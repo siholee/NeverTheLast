@@ -2,15 +2,11 @@ using UnityEngine;
 
 public class Skill : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    public string SKILL_NAME;
+    public string SKILL_TYPE;
+    public int SKILL_COUNTER;
+    public float SKILL_TIMER;
+    public float SKILL_CT;
+    public float SKILL_CURRENT_CT;
+    public float SKILL_MAX_CT;
 }

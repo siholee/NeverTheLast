@@ -3,10 +3,9 @@ using UnityEngine;
 
 public class Unit : MonoBehaviour
 {
-    public string ID;
+    public int ID;  
     public string NAME;
     public string POS;
-    public int RANK;
     public int HP_CURRENT;
     public int HP_MAX;
     public int ATK;
@@ -37,7 +36,8 @@ public class Unit : MonoBehaviour
     public float CT_MULBUFF;
     public float CT_SUMBUFF;
 
-    public List<Status> STATUS_MANAGER;
+    public List<Status> STATUS_MANAGER = new List<Status>(); 
+    public List<Skill> SKILL_MANAGER = new List<Skill>();
 
     public void StatusUpdate()
     {

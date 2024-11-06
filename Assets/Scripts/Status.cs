@@ -1,16 +1,14 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class Status : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    public string STATUS_NAME;
+    public string TRAIT;
+    public List<string> STATUS_ATTRIBUTE;
+    public float MULBUFF;
+    public float SUMBUFF;
+    public int REMAIN_COUNT;
+    public int REMAIN_TIME;
+    public string CUSTOM_EFFECT;
 }

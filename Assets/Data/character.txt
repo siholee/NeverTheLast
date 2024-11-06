@@ -1,0 +1,6 @@
+deadeye = {
+    POS = deadeye
+    HP = 931
+    ATK = 640
+    DEF = 364
+}

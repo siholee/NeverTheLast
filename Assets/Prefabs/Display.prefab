@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3364648342264496156}
   - component: {fileID: 2296052053422159168}
   - component: {fileID: 6130557220677250897}
+  - component: {fileID: 8677405185032503497}
   m_Layer: 0
   m_Name: Display
   m_TagString: Untagged
@@ -109,6 +110,47 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8677405185032503497
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3156148240666681756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89f6580719ac440488853911a625b047, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ID: 0
+  NAME: 
+  POS: 
+  RANK: 0
+  HP_CURRENT: 0
+  HP_MAX: 0
+  ATK: 0
+  DEF: 0
+  CRT_POS: 0
+  CRT_DMG: 0
+  CT: 0
+  HP_BASE: 0
+  HP_MULBUFF: 0
+  HP_SUMBUFF: 0
+  ATK_BASE: 0
+  ATK_MULBUFF: 0
+  ATK_SUMBUFF: 0
+  DEF_BASE: 0
+  DEF_MULBUFF: 0
+  DEF_SUMBUFF: 0
+  CRT_POS_BASE: 0
+  CRT_POS_BUFF: 0
+  CRT_DMG_BASE: 0
+  CRT_DMG_BUFF: 0
+  CT_BASE: 0
+  CT_MULBUFF: 0
+  CT_SUMBUFF: 0
+  STATUS_MANAGER: []
+  SKILL_MANAGER: []
 --- !u!1 &5998302768315456772
 GameObject:
   m_ObjectHideFlags: 0
