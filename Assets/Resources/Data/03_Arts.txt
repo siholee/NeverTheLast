@@ -1,0 +1,24 @@
+{
+    "arts": [
+        {
+            "ID": 1,
+            "NAME": "@ARTS_NAME_SHADOW-GALE",
+            "SKILL": {
+                "TYPE": "COUNT",
+                "COUNTER": 4,
+                "CONDITION": ["ATTACK", "SINGLE"],
+                "EFFECT": ["SPLIT", "ATK", 2000]
+            }
+        },
+        {
+            "ID": 4,
+            "NAME": "@ARTS_NAME_PRECISION",
+            "SKILL": {
+                "TYPE": "STACK",
+                "COUNTER": 5,
+                "CONDITION": ["ATTACK", "ALL"],
+                "EFFECT": ["cooldown(0.2)", "atkmulup(10)"]
+            }
+        }
+    ]
+}

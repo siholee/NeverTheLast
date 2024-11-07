@@ -1,25 +1,13 @@
-[
-    {
-        "ID": 1,
-        "NAME": "@CHAR_NAME_LYNN",
-        "POS": "deadeye",
-        "HP_BASE": 931,
-        "ATK_BASE": 640,
-        "DEF_BASE": 364,
-        "ARTS": {
-            "NAME": "@ARTS_NAME_PRECISION",
-            "TYPE": "stack",
-            "COUNTER": 5,
-            "TIMER": 0.5,
-            "CONDITION": ["ATTACK", "ALL"],
-            "EFFECT": ["cooldown(0.2)", "atkmulup(10)"]
-        },
-        "PASSIVE": {
-            "NAME": "@PASSIVE_NAME_BLADEMASTER",
-            "TYPE": "count",
-            "COUNTER": 4,
-            "CONDITION": ["ATTACK", "SINGLE"],
-            "EFFECT": ["SPLIT", "ATK", 2000]
+{
+    "characters": [
+        {
+            "ID": 1,
+            "NAME": "@CHAR_NAME_LYNN",
+            "POS": 1,
+            "HP_BASE": 931,
+            "ATK_BASE": 640,
+            "DEF_BASE": 364,
+            "ARTS": 1
         }
-    }
-]
+    ]
+}
