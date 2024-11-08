@@ -108,46 +108,50 @@ public class Unit : MonoBehaviour
         }
     }
 
-void CreateArts(int artsID)
-{
-    // Load Arts data from Resources
-    TextAsset artsDataFile = Resources.Load<TextAsset>("Data/03_Arts");
-    if (artsDataFile == null)
+    void CreateArts(int artsID)
     {
-        Debug.LogWarning("Arts data file not found!");
-        return;
+        // Load Arts data from Resources
+        TextAsset artsDataFile = Resources.Load<TextAsset>("Data/03_Arts");
+        if (artsDataFile == null)
+        {
+            Debug.LogWarning("Arts data file not found!");
+            return;
+        }
+
+        string json = artsDataFile.text;
+        ArtsDataWrapper artsWrapper = JsonUtility.FromJson<ArtsDataWrapper>(json);
+        ArtsData arts = System.Array.Find(artsWrapper.arts.ToArray(), a => a.ID == artsID);
+
+        if (arts != null)
+        {
+            // 새 빈 GameObject를 생성하고 Arts 컴포넌트를 추가
+            GameObject artsObject = new GameObject("Arts_" + artsID);
+            Arts newArts = artsObject.AddComponent<Arts>();
+
+            // Arts 데이터를 설정
+            newArts.NAME = arts.NAME;
+            
+            // SKILL 내의 필드를 설정
+            newArts.TYPE = arts.SKILL.TYPE;
+            newArts.COUNTER = arts.SKILL.COUNTER;
+            newArts.CONDITIONS = arts.SKILL.CONDITION;
+            newArts.EFFECTS = arts.SKILL.EFFECT;
+            
+            newArts.CT = 0f;
+            newArts.CURRENT_CT = 0f;
+            newArts.MAX_CT = 0f;
+
+            // ARTS_MANAGER 리스트에 추가
+            ARTS_MANAGER.Add(newArts);
+
+            // Arts 객체를 Unit 객체의 하위 자식으로 설정
+            artsObject.transform.SetParent(this.transform);
+        }
+        else
+        {
+            Debug.LogWarning("Arts data for ID " + artsID + " not found!");
+        }
     }
-
-    string json = artsDataFile.text;
-    ArtsDataWrapper artsWrapper = JsonUtility.FromJson<ArtsDataWrapper>(json);
-    ArtsData arts = System.Array.Find(artsWrapper.arts.ToArray(), a => a.ID == artsID);
-
-    if (arts != null)
-    {
-        // 새 빈 GameObject를 생성하고 Arts 컴포넌트를 추가
-        GameObject artsObject = new GameObject("Arts_" + artsID);
-        Arts newArts = artsObject.AddComponent<Arts>();
-
-        // Arts 데이터를 설정
-        newArts.NAME = arts.NAME;
-        newArts.TYPE = arts.TYPE;
-        newArts.COUNTER = arts.COUNTER;
-        newArts.TIMER = arts.TIMER;
-        newArts.CT = 0f;
-        newArts.CURRENT_CT = 0f;
-        newArts.MAX_CT = 0f;
-
-        // ARTS_MANAGER 리스트에 추가
-        ARTS_MANAGER.Add(newArts);
-
-        // Arts 객체를 Unit 객체의 하위 자식으로 설정
-        artsObject.transform.SetParent(this.transform); // 'this'는 현재 Unit 객체를 참조
-    }
-    else
-    {
-        Debug.LogWarning("Arts data for ID " + artsID + " not found!");
-    }
-}
 
     public void StatusUpdate()
     {
@@ -201,10 +205,15 @@ void CreateArts(int artsID)
     {
         public int ID;
         public string NAME;
+        public SkillData SKILL;  
+    }
+
+    [System.Serializable]
+    public class SkillData
+    {
         public string TYPE;
         public int COUNTER;
-        public float TIMER;
-        public string[] CONDITIONS;
-        public object[] EFFECTS;
+        public string[] CONDITION;
+        public string[] EFFECT;
     }
 }

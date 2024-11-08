@@ -2,7 +2,7 @@
     "positions": [
         {
             "ID": 1,
-            "NAME": "POS_NAME_DEADEYE",
+            "NAME": "@POS_NAME_DEADEYE",
             "ARTS": 4
         }
     ]

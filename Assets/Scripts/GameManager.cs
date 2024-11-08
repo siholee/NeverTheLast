@@ -12,15 +12,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         CreateHexGrid();
-    }
-
-    void Update()
-    {
-        // 스페이스 바를 누르면 유닛 생성
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            CreateUnit(1, 0, 0, 0); // 예시로 ID 1번 캐릭터를 생성
-        }
+        CreateUnit(1,0,0,0);
     }
 
     // 육각형 그리드 생성 함수
