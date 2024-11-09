@@ -130,8 +130,6 @@ public class Unit : MonoBehaviour
 
             // Arts 데이터를 설정
             newArts.NAME = arts.NAME;
-            
-            // SKILL 내의 필드를 설정
             newArts.TYPE = arts.SKILL.TYPE;
             newArts.COUNTER = arts.SKILL.COUNTER;
             newArts.CONDITIONS = arts.SKILL.CONDITION;
@@ -140,6 +138,9 @@ public class Unit : MonoBehaviour
             newArts.CT = 0f;
             newArts.CURRENT_CT = 0f;
             newArts.MAX_CT = 0f;
+
+            // 스킬 소유자 설정
+            newArts.OWNER = this; // 'this'는 현재 Unit 객체를 참조
 
             // ARTS_MANAGER 리스트에 추가
             ARTS_MANAGER.Add(newArts);
@@ -153,6 +154,7 @@ public class Unit : MonoBehaviour
         }
     }
 
+
     public void StatusUpdate()
     {
         HP_MAX = (int)(HP_BASE * (1 + (HP_MULBUFF * 0.01f)) + HP_SUMBUFF);
@@ -160,6 +162,33 @@ public class Unit : MonoBehaviour
         DEF = (int)(DEF_BASE * (1 + (DEF_MULBUFF * 0.01f)) + DEF_SUMBUFF);
         CRT_POS = CRT_POS_BASE + CRT_POS_BUFF;
         CRT_DMG = CRT_DMG_BASE + CRT_DMG_BUFF;
+    }
+
+    public void EffectHandler(float damage, string[] tags)
+    {
+        // 데미지를 임시로 출력
+        Debug.Log("Received Damage: " + damage);
+
+        // 태그를 바탕으로 ARTS_MANAGER 내에 있는 조건을 검색
+        foreach (Arts arts in ARTS_MANAGER)
+        {
+            if (arts.TYPE == "COUNT")
+            {
+                // CONDITIONS 배열과 태그 비교
+                foreach (string condition in arts.CONDITIONS)
+                {
+                    foreach (string tag in tags)
+                    {
+                        if (condition == tag)
+                        {
+                            // 조건이 태그와 일치할 경우 COUNTER 증가
+                            arts.COUNTER++;
+                            Debug.Log("Arts: " + arts.NAME + " - Counter increased to: " + arts.COUNTER);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     [System.Serializable]

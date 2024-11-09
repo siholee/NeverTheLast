@@ -7,7 +7,7 @@
                 "TYPE": "COUNT",
                 "COUNTER": 4,
                 "CONDITION": ["ATTACK", "SINGLE"],
-                "EFFECT": ["SPLIT", "ATK", 2000]
+                "EFFECT": ["!ATTACK-SPLIT-ATK(2000)#ULT#SHORT"]
             }
         },
         {
@@ -17,7 +17,7 @@
                 "TYPE": "STACK",
                 "COUNTER": 5,
                 "CONDITION": ["ATTACK", "ALL"],
-                "EFFECT": ["cooldown(0.2)", "atkmulup(10)"]
+                "EFFECT": ["!BUFF-SUM-CT(0.2)", "!BUFF-ATK-MUL(10)"]
             }
         }
     ]
