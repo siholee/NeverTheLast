@@ -131,7 +131,8 @@ public class Unit : MonoBehaviour
             // Arts 데이터를 설정
             newArts.NAME = arts.NAME;
             newArts.TYPE = arts.SKILL.TYPE;
-            newArts.COUNTER = arts.SKILL.COUNTER;
+            newArts.COUNTER = 0;
+            newArts.MAX_COUNTER = arts.SKILL.COUNTER;
             newArts.CONDITIONS = arts.SKILL.CONDITION;
             newArts.EFFECTS = arts.SKILL.EFFECT;
             
