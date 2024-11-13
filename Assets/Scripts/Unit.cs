@@ -137,7 +137,6 @@ public class Unit : MonoBehaviour
             newArts.EFFECTS = arts.SKILL.EFFECT;
             
             newArts.CT = 0f;
-            newArts.CURRENT_CT = 0f;
             newArts.MAX_CT = 0f;
 
             // 스킬 소유자 설정

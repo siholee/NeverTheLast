@@ -1,0 +1,19 @@
+{
+    "statuses": [
+        {
+            "ID": 1,
+            "NAME": "@STATUS_PRECISION_NAME", 
+            "DESCRIPTION": "@STATUS_PRECISION_DESCRIPTION",
+            "EFFECT": 
+        }
+    ]
+}
+
+    public int ID;
+    public string NAME;
+    public string TRAIT;
+    public string CONDITION;
+    public float MULBUFF;
+    public float SUMBUFF;
+    public int REMAIN_COUNT;
+    public int REMAIN_TIME;
