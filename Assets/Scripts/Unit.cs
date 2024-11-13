@@ -124,11 +124,11 @@ public class Unit : MonoBehaviour
 
         if (arts != null)
         {
-            // 새 빈 GameObject를 생성하고 Arts 컴포넌트를 추가
+            // Create a new GameObject and add the Arts component
             GameObject artsObject = new GameObject("Arts_" + artsID);
             Arts newArts = artsObject.AddComponent<Arts>();
 
-            // Arts 데이터를 설정
+            // Set the Arts data
             newArts.NAME = arts.NAME;
             newArts.TYPE = arts.SKILL.TYPE;
             newArts.COUNTER = 0;
@@ -139,13 +139,13 @@ public class Unit : MonoBehaviour
             newArts.CT = 0f;
             newArts.MAX_CT = 0f;
 
-            // 스킬 소유자 설정
-            newArts.OWNER = this; // 'this'는 현재 Unit 객체를 참조
+            // Assign the owner
+            newArts.OWNER = this;
 
-            // ARTS_MANAGER 리스트에 추가
+            // Add to ARTS_MANAGER list
             ARTS_MANAGER.Add(newArts);
 
-            // Arts 객체를 Unit 객체의 하위 자식으로 설정
+            // Set the Arts object as a child of the Unit
             artsObject.transform.SetParent(this.transform);
         }
         else
@@ -153,7 +153,6 @@ public class Unit : MonoBehaviour
             Debug.LogWarning("Arts data for ID " + artsID + " not found!");
         }
     }
-
 
     public void StatusUpdate()
     {
@@ -166,22 +165,18 @@ public class Unit : MonoBehaviour
 
     public void EffectHandler(float damage, string[] tags)
     {
-        // 데미지를 임시로 출력
         Debug.Log("Received Damage: " + damage);
 
-        // 태그를 바탕으로 ARTS_MANAGER 내에 있는 조건을 검색
         foreach (Arts arts in ARTS_MANAGER)
         {
             if (arts.TYPE == "COUNT")
             {
-                // CONDITIONS 배열과 태그 비교
                 foreach (string condition in arts.CONDITIONS)
                 {
                     foreach (string tag in tags)
                     {
                         if (condition == tag)
                         {
-                            // 조건이 태그와 일치할 경우 COUNTER 증가
                             arts.COUNTER++;
                             Debug.Log("Arts: " + arts.NAME + " - Counter increased to: " + arts.COUNTER);
                         }

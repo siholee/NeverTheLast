@@ -1,0 +1,20 @@
+{
+    "enemies": [
+        {
+            "ID": 1,
+            "NAME": "@ENEMY_NAME_ADAM",
+            "HP_BASE": 931,
+            "ATK_BASE": 640,
+            "DEF_BASE": 364,
+            "ARTS": 1
+        },
+        {
+            "ID": 2,
+            "NAME": "@ENEMY_NAME_EVE",
+            "HP_BASE": 931,
+            "ATK_BASE": 640,
+            "DEF_BASE": 364,
+            "ARTS": 1
+        }
+    ]
+}

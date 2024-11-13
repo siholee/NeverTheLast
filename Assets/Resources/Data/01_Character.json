@@ -2,7 +2,7 @@
     "characters": [
         {
             "ID": 1,
-            "NAME": "@CHAR_NAME_LYNN",
+            "NAME": "@CHAR_NAME_DEADEYE",
             "POS": 1,
             "HP_BASE": 931,
             "ATK_BASE": 640,
