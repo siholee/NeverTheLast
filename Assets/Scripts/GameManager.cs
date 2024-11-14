@@ -1,62 +1,36 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+// 게임 매니저 클래스
 public class GameManager : MonoBehaviour
 {
-    public GameObject hexPrefab;     // 육각형 셀 프리팹
-    public GameObject unitPrefab;    // 유닛 프리팹 (적과 아군 모두 사용)
-    public float hexRadius = 1f;     // 육각형 반지름
-    private int gridRadius = 3;      // 그리드 범위 (중앙을 기준으로 반경 3까지)
+    public GameObject hexPrefab; // 육각형 셀 프리팹
+    public GameObject unitPrefab; // 유닛 프리팹 (적과 아군 모두 사용)
+    public float hexRadius = 1f; // 육각형 반지름
+    private int gridRadius = 3; // 그리드 범위 (중앙을 기준으로 반경 3까지)
     public List<Cell> cells = new List<Cell>(); // 생성된 모든 셀을 관리하는 리스트
-    private List<CharacterData> allyDataList; // 아군 데이터 리스트
-    private List<EnemyData> enemyDataList; // 적 데이터 리스트
-    private bool allEnemiesSummoned = false; // 모든 적이 소환되었는지 여부
-    public int ROUND = 1; // 라운드 번호
+    private List<CharacterData> allyDataList = new List<CharacterData>(); // 아군 데이터 리스트
+    private List<EnemyData> enemyDataList = new List<EnemyData>(); // 적 데이터 리스트
+    private bool isRoundInProgress = false; // 라운드 진행 여부
+    public int ROUND; // 라운드 번호
 
     void Start()
     {
+        ROUND = 1;
         CreateHexGrid();
-        LoadData(); // 데이터 로드
+        // 데이터는 여기서 외부에서 로드한 후 allyDataList 및 enemyDataList에 추가된다고 가정합니다.
         CreateUnit(1, -2, 2, 0, true); // 아군 유닛 생성 예제
     }
 
     void Update()
     {
         // Space bar를 눌렀을 때 적을 소환
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) && !isRoundInProgress)
         {
-            if (!allEnemiesSummoned)
-            {
-                RoundManager(ROUND);
-                ROUND++; // 다음 라운드로 이동
-            }
+            isRoundInProgress = true; // 라운드 진행 중으로 설정
+            RoundManager(ROUND);
+            ROUND++; // 다음 라운드로 이동
         }
-    }
-
-    // 데이터 로드 함수
-    void LoadData()
-    {
-        // 아군 데이터 로드
-        TextAsset characterDataFile = Resources.Load<TextAsset>("Data/01_Character");
-        if (characterDataFile == null)
-        {
-            Debug.LogWarning("Character data file not found!");
-            return;
-        }
-        string characterJson = characterDataFile.text;
-        CharacterDataWrapper characterDataWrapper = JsonUtility.FromJson<CharacterDataWrapper>(characterJson);
-        allyDataList = characterDataWrapper.characters;
-
-        // 적 데이터 로드
-        TextAsset enemyDataFile = Resources.Load<TextAsset>("Data/05_Enemy");
-        if (enemyDataFile == null)
-        {
-            Debug.LogWarning("Enemy data file not found!");
-            return;
-        }
-        string enemyJson = enemyDataFile.text;
-        EnemyDataWrapper enemyDataWrapper = JsonUtility.FromJson<EnemyDataWrapper>(enemyJson);
-        enemyDataList = enemyDataWrapper.enemies;
     }
 
     // 육각형 그리드 생성 함수
@@ -178,16 +152,13 @@ public class GameManager : MonoBehaviour
 
                 foreach (int enemyId in enemyIds)
                 {
-                    if (cellIndex < 0 || cellIndex >= cells.Count) continue;
-                    Cell targetCell = cells[cellIndex];
+                    Cell targetCell = cells.Find(cell => cell.xPos == cellIndex);
+                    if (targetCell == null || targetCell.IsOccupied) continue;
 
-                    if (!targetCell.IsOccupied)
-                    {
-                        CreateUnit(enemyId, targetCell.xPos, targetCell.yPos, targetCell.zPos, false);
-                    }
+                    CreateUnit(enemyId, targetCell.xPos, targetCell.yPos, targetCell.zPos, false);
                 }
             }
-            allEnemiesSummoned = true;
+            isRoundInProgress = false; // 라운드가 끝났음을 표시
         }
         else
         {
