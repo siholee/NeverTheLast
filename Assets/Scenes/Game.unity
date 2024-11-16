@@ -180,7 +180,7 @@ Camera:
   near clip plane: 0.1
   far clip plane: 1000
   field of view: 60
-  orthographic: 0
+  orthographic: 1
   orthographic size: 5
   m_Depth: -1
   m_CullingMask:
@@ -206,7 +206,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -467,14 +467,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1597678924}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0f499c37824fe4244bcb92f904c19bb7, type: 3}
+  m_Script: {fileID: 11500000, guid: 6a1c3ce37f3ec4d5f86ad3cbae155376, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hexPrefab: {fileID: 8319343827303088403, guid: 4b350270475c549499c239704ca90aae, type: 3}
-  unitPrefab: {fileID: 3156148240666681756, guid: da6fb27125cdc8a44a91d47eb12b9377, type: 3}
+  gridSize: {x: 5, y: 5}
+  hexPrefab: {fileID: 3728585331109744876, guid: 4b350270475c549499c239704ca90aae, type: 3}
   hexRadius: 1
-  materials: []
-  cells: []
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
