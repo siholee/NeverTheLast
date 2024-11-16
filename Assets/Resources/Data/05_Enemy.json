@@ -4,16 +4,22 @@
             "ID": 1,
             "NAME": "@ENEMY_NAME_ADAM",
             "HP_BASE": 931,
+            "HP_INCREASE": 1,
             "ATK_BASE": 640,
+            "ATK_INCREASE": 1,
             "DEF_BASE": 364,
+            "DEF_INCREASE": 1,
             "ARTS": 1
         },
         {
             "ID": 2,
             "NAME": "@ENEMY_NAME_EVE",
             "HP_BASE": 931,
+            "HP_INCREASE": 1,
             "ATK_BASE": 640,
+            "ATK_INCREASE": 1,
             "DEF_BASE": 364,
+            "DEF_INCREASE": 1,
             "ARTS": 1
         }
     ]

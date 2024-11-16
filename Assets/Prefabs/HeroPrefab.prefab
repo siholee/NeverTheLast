@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1684662353397886831
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2594616855053797924}
+  - component: {fileID: 8808023893338718575}
+  m_Layer: 0
+  m_Name: HeroPrefab
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2594616855053797924
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1684662353397886831}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 9.297614, y: -2.0337596, z: -26.291708}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8808023893338718575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1684662353397886831}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af10cb48727c0d14da02d1b9b09b6908, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ID: 0
+  SIDE: 0
+  NAME: 
+  HP_CURRENT: 0
+  HP_MAX: 0
+  ATK: 0
+  DEF: 0
+  CRT_POS: 0
+  CRT_DMG: 0
+  CT: 0
+  HP_BASE: 0
+  HP_MULBUFF: 0
+  HP_SUMBUFF: 0
+  ATK_BASE: 0
+  ATK_MULBUFF: 0
+  ATK_SUMBUFF: 0
+  DEF_BASE: 0
+  DEF_MULBUFF: 0
+  DEF_SUMBUFF: 0
+  CRT_POS_BASE: 0
+  CRT_POS_BUFF: 0
+  CRT_DMG_BASE: 0
+  CRT_DMG_BUFF: 0
+  CT_BASE: 0
+  CT_MULBUFF: 0
+  CT_SUMBUFF: 0
+  STATUS_MANAGER: []
+  ARTS_MANAGER: []

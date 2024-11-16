@@ -1,173 +1,197 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-// 게임 매니저 클래스
 public class GameManager : MonoBehaviour
 {
-    public GameObject hexPrefab; // 육각형 셀 프리팹
-    public GameObject unitPrefab; // 유닛 프리팹 (적과 아군 모두 사용)
-    public float hexRadius = 1f; // 육각형 반지름
-    private int gridRadius = 3; // 그리드 범위 (중앙을 기준으로 반경 3까지)
-    public List<Cell> cells = new List<Cell>(); // 생성된 모든 셀을 관리하는 리스트
-    private List<CharacterData> allyDataList = new List<CharacterData>(); // 아군 데이터 리스트
-    private List<EnemyData> enemyDataList = new List<EnemyData>(); // 적 데이터 리스트
+    public GameObject GridManagerPrefab; // 그리드 매니저 프리팹
+    public GameObject HeroPrefab; // 아군 프리팹
+    public GameObject EnemyPrefab; // 적 프리팹
+    private GridManager grid; // Grid 클래스 참조
     private bool isRoundInProgress = false; // 라운드 진행 여부
     public int ROUND; // 라운드 번호
+    private Queue<int> enemiesToSummon = new Queue<int>(); // 적 소환 대기열
 
     void Start()
     {
+        // GridManagerPrefab에서 Grid 컴포넌트 가져오기
+        grid = GridManagerPrefab.GetComponent<GridManager>();
+        if (grid == null)
+        {
+            Debug.LogError("Grid component not found on GridManagerPrefab.");
+            return;
+        }
+
         ROUND = 1;
-        CreateHexGrid();
-        // 데이터는 여기서 외부에서 로드한 후 allyDataList 및 enemyDataList에 추가된다고 가정합니다.
-        CreateUnit(1, -2, 2, 0, true); // 아군 유닛 생성 예제
     }
 
     void Update()
     {
-        // Space bar를 눌렀을 때 적을 소환
+        // If press space key, call RoundManager
         if (Input.GetKeyDown(KeyCode.Space) && !isRoundInProgress)
         {
-            isRoundInProgress = true; // 라운드 진행 중으로 설정
-            RoundManager(ROUND);
-            ROUND++; // 다음 라운드로 이동
+            RoundManager();
         }
     }
 
-    // 육각형 그리드 생성 함수
-    void CreateHexGrid()
+    public void RoundManager()
     {
-        float hexWidth = Mathf.Sqrt(3) * hexRadius;
-        float hexHeight = 2f * hexRadius;
-        float xOffset = hexWidth * 0.75f;
-        float yOffset = hexHeight * 0.5f;
-        cells.Clear();
+        Debug.Log("RoundManager called."); // 디버그 로그 추가
 
-        for (int x = -gridRadius; x <= gridRadius; x++)
+        // Load JSON data from Resources/Data/07_Round.json
+        TextAsset jsonFile = Resources.Load<TextAsset>("Data/07_Round");
+        if (jsonFile == null)
         {
-            for (int y = -gridRadius; y <= gridRadius; y++)
+            Debug.LogError("Data/07_Round.json not found.");
+            return;
+        }
+
+        // Parse JSON data
+        RoundDataWrapper roundDataWrapper = JsonUtility.FromJson<RoundDataWrapper>(jsonFile.text);
+        RoundData currentRound = roundDataWrapper.rounds.Find(r => r.roundNumber == ROUND);
+
+        if (currentRound == null)
+        {
+            Debug.LogError($"No data found for round {ROUND}.");
+            return;
+        }
+
+        Debug.Log($"Round {ROUND} data loaded successfully."); // 디버그 로그 추가
+
+        // 적 소환 대기열 초기화
+        enemiesToSummon.Clear();
+        isRoundInProgress = true;
+
+        // 셀 데이터를 순회하며 적 소환 대기열에 추가
+        foreach (var cellData in currentRound.cells)
+        {
+            int cellIndex = cellData.cellIndex;
+            if (cellIndex < grid.yMin || cellIndex > grid.yMax) // y 값 검사
             {
-                int z = -x - y;
-                if (z < -gridRadius || z > gridRadius) continue;
-                if ((x == -3 && y == 3 && z == 0) || (x == 3 && y == -3 && z == 0)) continue;
+                Debug.LogWarning($"Invalid cellIndex {cellIndex} for round {ROUND}.");
+                continue;
+            }
 
-                float xPos = x * xOffset;
-                if (y % 2 != 0) xPos += hexWidth * 0.5f;
-                float yPos = y * (hexHeight * 0.75f);
-                Vector3 position = new Vector3(xPos, 0, yPos);
-                Quaternion rotation = Quaternion.Euler(90, 0, 0);
-                GameObject hex = Instantiate(hexPrefab, position, rotation, transform);
+            Debug.Log($"Valid cellIndex {cellIndex} for round {ROUND}."); // 디버그 로그 추가
 
-                Cell cellComponent = hex.GetComponent<Cell>();
-                if (cellComponent != null)
+            // 적 ID를 대기열에 추가
+            foreach (int enemyId in cellData.enemyIds)
+            {
+                enemiesToSummon.Enqueue(enemyId);
+            }
+        }
+
+        // 적 소환 시작
+        StartCoroutine(SummonEnemies());
+    }
+
+    private System.Collections.IEnumerator SummonEnemies()
+    {
+        while (enemiesToSummon.Count > 0)
+        {
+            bool enemySummoned = false;
+
+            // 적 셀 영역 (x 값이 grid.xMin ~ grid.xMax) 및 유효한 y 범위 (grid.yMin ~ grid.yMax)에서 적을 소환할 수 있는지 확인
+            for (int x = grid.xMin; x <= grid.xMax; x++)
+            {
+                for (int y = grid.yMin; y <= grid.yMax; y++)
                 {
-                    cellComponent.xPos = x;
-                    cellComponent.yPos = y;
-                    cellComponent.zPos = z;
-                    cellComponent.IsOccupied = false; // 초기화: 셀을 비어 있는 상태로 설정
-                    cells.Add(cellComponent);
+                    Cell cell = grid.GetCell(x, y);
+                    if (cell != null && !cell.isOccupied)
+                    {
+                        int enemyId = enemiesToSummon.Dequeue();
+                        CreateUnit(enemyId, cell.xPos, cell.yPos, false); // 적 생성
+                        cell.isOccupied = true;
+
+                        // 셀의 스프라이트를 None으로 설정
+                        SpriteRenderer spriteRenderer = cell.GetComponent<SpriteRenderer>();
+                        if (spriteRenderer != null)
+                        {
+                            spriteRenderer.sprite = null; // 스프라이트를 None으로 설정
+                        }
+
+                        Debug.Log($"Enemy {enemyId} spawned at ({x}, {y})."); // 디버그 로그 추가
+                        enemySummoned = true;
+                        break;
+                    }
+                }
+
+                if (enemySummoned)
+                {
+                    break;
                 }
             }
+
+            // 만약 소환할 수 있는 셀이 없다면 대기
+            if (!enemySummoned)
+            {
+                Debug.Log("Waiting for an available cell..."); // 디버그 로그 추가
+                yield return null; // 다음 프레임까지 대기
+            }
+        }
+
+        // 적이 모두 소환된 후 적 영역이 비어있는지 확인
+        while (true)
+        {
+            bool allCellsCleared = true;
+            for (int x = grid.xMin; x <= grid.xMax; x++)
+            {
+                for (int y = grid.yMin; y <= grid.yMax; y++)
+                {
+                    Cell cell = grid.GetCell(x, y);
+                    if (cell != null && cell.isOccupied)
+                    {
+                        allCellsCleared = false;
+                        break;
+                    }
+                }
+
+                if (!allCellsCleared)
+                {
+                    break;
+                }
+            }
+
+            if (allCellsCleared)
+            {
+                Debug.Log("All enemy cells cleared. Ending round."); // 디버그 로그 추가
+                isRoundInProgress = false; // 라운드 종료
+                ROUND++; // 다음 라운드로 이동
+                break;
+            }
+
+            yield return null; // 다음 프레임까지 대기
         }
     }
 
     // 유닛 생성 함수
-    void CreateUnit(int id, int x, int y, int z, bool side)
+    void CreateUnit(int id, int x, int y, bool side)
     {
-        Cell targetCell = cells.Find(cell => cell.xPos == x && cell.yPos == y && cell.zPos == z);
-        if (targetCell == null)
+        Vector3 position = new Vector3(x, y, 0); // 2D 포지션 설정
+        if (side == true)
         {
-            Debug.LogWarning($"Target cell at ({x}, {y}, {z}) not found!");
-            return;
+            GameObject unit = Instantiate(HeroPrefab, position, Quaternion.identity, transform);
+            unit.name = $"Unit_{id}";
+            Hero heroComponent = unit.GetComponent<Hero>();
+            heroComponent.ID = id;
         }
-
-        if (targetCell.IsOccupied)
+        else if (side == false)
         {
-            Debug.LogWarning($"Target cell at ({x}, {y}, {z}) is already occupied!");
-            return;
-        }
-
-        Vector3 spawnPosition = targetCell.transform.position + new Vector3(0, 1, 0);
-        GameObject unitObj = Instantiate(unitPrefab, spawnPosition, Quaternion.identity, targetCell.transform);
-        Unit unit = unitObj.GetComponent<Unit>();
-
-        if (unit != null)
-        {
-            if (side) // 아군 생성
-            {
-                CharacterData characterData = allyDataList.Find(c => c.ID == id);
-                if (characterData != null)
-                {
-                    unit.ID = characterData.ID;
-                    unit.NAME = characterData.NAME;
-                    unit.ATK_BASE = characterData.ATK_BASE;
-                    unit.DEF_BASE = characterData.DEF_BASE;
-                    unit.HP_BASE = characterData.HP_BASE;
-                }
-                else
-                {
-                    Debug.LogWarning($"Character data for ID {id} not found in 01_Character.json!");
-                }
-            }
-            else // 적군 생성
-            {
-                EnemyData enemyData = enemyDataList.Find(e => e.ID == id);
-                if (enemyData != null)
-                {
-                    unit.ID = enemyData.ID;
-                    unit.NAME = enemyData.NAME;
-                    unit.ATK_BASE = 50; // 예제 값
-                    unit.DEF_BASE = 20; // 예제 값
-                    unit.HP_BASE = 100; // 예제 값
-                }
-                else
-                {
-                    Debug.LogWarning($"Enemy data for ID {id} not found in 05_Enemy.json!");
-                }
-            }
-
-            targetCell.IsOccupied = true; // 셀이 점유되었음을 표시
-        }
-    }
-
-    // 라운드 관리 함수
-    void RoundManager(int roundNumber)
-    {
-        // Round data 파일 로드
-        TextAsset roundDataFile = Resources.Load<TextAsset>("Data/07_Round");
-        if (roundDataFile == null)
-        {
-            Debug.LogWarning("Round data file not found!");
-            return;
-        }
-        string roundJson = roundDataFile.text;
-        RoundDataWrapper roundData = JsonUtility.FromJson<RoundDataWrapper>(roundJson);
-
-        RoundData currentRound = roundData.rounds.Find(r => r.roundNumber == roundNumber);
-        if (currentRound != null)
-        {
-            foreach (var cellData in currentRound.cells)
-            {
-                int cellIndex = cellData.cellIndex;
-                List<int> enemyIds = cellData.enemyIds;
-
-                foreach (int enemyId in enemyIds)
-                {
-                    Cell targetCell = cells.Find(cell => cell.xPos == cellIndex);
-                    if (targetCell == null || targetCell.IsOccupied) continue;
-
-                    CreateUnit(enemyId, targetCell.xPos, targetCell.yPos, targetCell.zPos, false);
-                }
-            }
-            isRoundInProgress = false; // 라운드가 끝났음을 표시
-        }
-        else
-        {
-            Debug.LogWarning("No enemy data found for round " + roundNumber);
+            GameObject unit = Instantiate(EnemyPrefab, position, Quaternion.identity, transform);
+            unit.name = $"Unit_{id}";
+            Enemy enemyComponent = unit.GetComponent<Enemy>();
+            enemyComponent.ID = id;
+            enemyComponent.LEVEL = ROUND;
         }
     }
 }
 
-// Round data 클래스
+// JSON 데이터 클래스 정의
+[System.Serializable]
+public class RoundDataWrapper
+{
+    public List<RoundData> rounds;
+}
+
 [System.Serializable]
 public class RoundData
 {
@@ -180,53 +204,4 @@ public class CellData
 {
     public int cellIndex;
     public List<int> enemyIds;
-}
-
-[System.Serializable]
-public class RoundDataWrapper
-{
-    public List<RoundData> rounds;
-}
-
-// 아군 데이터 클래스 및 구조
-[System.Serializable]
-public class CharacterData
-{
-    public int ID;
-    public string NAME;
-    public int HP_BASE;
-    public int ATK_BASE;
-    public int DEF_BASE;
-    // 추가적인 속성...
-}
-
-[System.Serializable]
-public class CharacterDataWrapper
-{
-    public List<CharacterData> characters;
-}
-
-// 적 데이터 클래스 및 구조
-[System.Serializable]
-public class EnemyData
-{
-    public int ID;
-    public string NAME;
-    public SkillData SKILL;
-}
-
-[System.Serializable]
-public class EnemyDataWrapper
-{
-    public List<EnemyData> enemies;
-}
-
-// 스킬 데이터 클래스
-[System.Serializable]
-public class SkillData
-{
-    public string TYPE;
-    public float TIMER;
-    public string[] CONDITION;
-    public string[] EFFECT;
 }
