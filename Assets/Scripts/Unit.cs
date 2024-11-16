@@ -4,6 +4,7 @@ using UnityEngine;
 public class Unit : MonoBehaviour
 {
     public int ID;
+    public bool SIDE; // true: 아군, false: 적군
     public string NAME;
     public string POS;
     public int HP_CURRENT;
@@ -28,7 +29,7 @@ public class Unit : MonoBehaviour
 
     public float CRT_POS_BASE;
     public float CRT_POS_BUFF;
-    
+
     public float CRT_DMG_BASE;
     public float CRT_DMG_BUFF;
 
@@ -47,38 +48,69 @@ public class Unit : MonoBehaviour
 
     void LoadCharacterData()
     {
-        // Load character data from Resources
+        // Load ally and enemy data from Resources
         TextAsset characterDataFile = Resources.Load<TextAsset>("Data/01_Character");
-        if (characterDataFile == null)
+        TextAsset enemyDataFile = Resources.Load<TextAsset>("Data/05_Enemy");
+
+        if (characterDataFile == null || enemyDataFile == null)
         {
-            Debug.LogWarning("Character data file not found!");
+            Debug.LogWarning("Character or Enemy data file not found!");
             return;
         }
 
-        string json = characterDataFile.text;
-        CharacterDataWrapper characterWrapper = JsonUtility.FromJson<CharacterDataWrapper>(json);
-        CharacterData character = characterWrapper.characters.Find(c => c.ID == ID);
+        string characterJson = characterDataFile.text;
+        string enemyJson = enemyDataFile.text;
 
-        if (character != null)
+        CharacterDataWrapper characterWrapper = JsonUtility.FromJson<CharacterDataWrapper>(characterJson);
+        List<CharacterData> allyDataList = characterWrapper.characters;
+
+        EnemyDataWrapper enemyWrapper = JsonUtility.FromJson<EnemyDataWrapper>(enemyJson);
+        List<EnemyData> enemyDataList = enemyWrapper.enemies;
+
+        if (SIDE) // 아군인 경우
         {
-            NAME = character.NAME;
-            HP_BASE = character.HP_BASE;
-            ATK_BASE = character.ATK_BASE;
-            DEF_BASE = character.DEF_BASE;
-            HP_CURRENT = HP_BASE;
-            HP_MAX = HP_BASE;
-            ATK = ATK_BASE;
-            DEF = DEF_BASE;
+            CharacterData character = allyDataList.Find(c => c.ID == ID);
+            if (character != null)
+            {
+                NAME = character.NAME;
+                HP_BASE = character.HP_BASE;
+                ATK_BASE = character.ATK_BASE;
+                DEF_BASE = character.DEF_BASE;
+                HP_CURRENT = HP_BASE;
+                HP_MAX = HP_BASE;
+                ATK = ATK_BASE;
+                DEF = DEF_BASE;
 
-            // Load position data to get POS and ARTS
-            LoadPositionData(character.POS);
-
-            // Create character-specific ARTS
-            CreateArts(character.ARTS);
+                // Load position data to get POS and ARTS
+                LoadPositionData(character.POS);
+                CreateArts(character.ARTS);
+            }
+            else
+            {
+                Debug.LogWarning($"Character data for ID {ID} not found in 01_Character.json!");
+            }
         }
-        else
+        else // 적군인 경우
         {
-            Debug.LogWarning("Character data for ID " + ID + " not found!");
+            EnemyData enemy = enemyDataList.Find(e => e.ID == ID);
+            if (enemy != null)
+            {
+                NAME = enemy.NAME;
+                HP_BASE = 100; // 예제 값
+                ATK_BASE = 50; // 예제 값
+                DEF_BASE = 20; // 예제 값
+                HP_CURRENT = HP_BASE;
+                HP_MAX = HP_BASE;
+                ATK = ATK_BASE;
+                DEF = DEF_BASE;
+
+                // 적군의 스킬이나 추가 설정이 필요할 경우
+                // Example: enemy.SKILL
+            }
+            else
+            {
+                Debug.LogWarning($"Enemy data for ID {ID} not found in 05_Enemy.json!");
+            }
         }
     }
 
@@ -99,12 +131,11 @@ public class Unit : MonoBehaviour
         if (position != null)
         {
             POS = position.NAME;
-            // Create position-specific ARTS
             CreateArts(position.ARTS);
         }
         else
         {
-            Debug.LogWarning("Position data for ID " + posID + " not found!");
+            Debug.LogWarning($"Position data for ID {posID} not found!");
         }
     }
 
@@ -124,33 +155,25 @@ public class Unit : MonoBehaviour
 
         if (arts != null)
         {
-            // Create a new GameObject and add the Arts component
             GameObject artsObject = new GameObject("Arts_" + artsID);
             Arts newArts = artsObject.AddComponent<Arts>();
 
-            // Set the Arts data
             newArts.NAME = arts.NAME;
             newArts.TYPE = arts.SKILL.TYPE;
             newArts.COUNTER = 0;
             newArts.MAX_COUNTER = arts.SKILL.COUNTER;
             newArts.CONDITIONS = arts.SKILL.CONDITION;
             newArts.EFFECTS = arts.SKILL.EFFECT;
-            
             newArts.CT = 0f;
             newArts.MAX_CT = 0f;
-
-            // Assign the owner
             newArts.OWNER = this;
 
-            // Add to ARTS_MANAGER list
             ARTS_MANAGER.Add(newArts);
-
-            // Set the Arts object as a child of the Unit
             artsObject.transform.SetParent(this.transform);
         }
         else
         {
-            Debug.LogWarning("Arts data for ID " + artsID + " not found!");
+            Debug.LogWarning($"Arts data for ID {artsID} not found!");
         }
     }
 
@@ -178,7 +201,7 @@ public class Unit : MonoBehaviour
                         if (condition == tag)
                         {
                             arts.COUNTER++;
-                            Debug.Log("Arts: " + arts.NAME + " - Counter increased to: " + arts.COUNTER);
+                            Debug.Log($"Arts: {arts.NAME} - Counter increased to: {arts.COUNTER}");
                         }
                     }
                 }
@@ -229,7 +252,7 @@ public class Unit : MonoBehaviour
     {
         public int ID;
         public string NAME;
-        public SkillData SKILL;  
+        public SkillData SKILL;
     }
 
     [System.Serializable]
