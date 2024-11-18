@@ -38,7 +38,6 @@ public class GridManager : MonoBehaviour
                 float xOffset = (x - xMin) * tileSpacing;
                 float yOffset = (y - yMin) * tileSpacing;
                 Vector3 position = new Vector3(xOffset, yOffset, 0);
-
                 // 타일 생성 및 초기화
                 GameObject tile = Instantiate(tilePrefab, position, Quaternion.identity, transform);
                 tile.name = $"Tile_{x}_{y}";
@@ -47,10 +46,6 @@ public class GridManager : MonoBehaviour
                 {
                     tile.GetComponent<SpriteRenderer>().sprite = null;
                 }
-
-                // 디버깅: 타일 생성 위치 출력
-                Debug.Log($"Tile created at: ({x}, {y}) with position: {position}");
-
                 // Cell 컴포넌트 설정
                 Cell cellComponent = tile.GetComponent<Cell>();
                 if (cellComponent != null)
@@ -65,7 +60,6 @@ public class GridManager : MonoBehaviour
             }
         }
     }
-
     public Cell GetCell(int x, int y)
     {
         // 배열 인덱스 유효성 검사

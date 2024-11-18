@@ -7,13 +7,13 @@ public class GameManager : MonoBehaviour
     public GameObject HeroPrefab; // 아군 프리팹
     public GameObject EnemyPrefab; // 적 프리팹
     private GridManager grid; // Grid 클래스 참조
-    private bool isRoundInProgress = false; // 라운드 진행 여부
+    private bool isRoundInProgress; // 라운드 진행 여부
     public int ROUND; // 라운드 번호
-    private Queue<int> enemiesToSummon = new Queue<int>(); // 적 소환 대기열
+    private Dictionary<int, Queue<int>> enemiesToSummon; // Queue로 수정하여 적 소환 관리
+    private List<GameObject> activeEnemies; // 현재 활성화된 적 목록
 
     void Start()
     {
-        // GridManagerPrefab에서 Grid 컴포넌트 가져오기
         grid = GridManagerPrefab.GetComponent<GridManager>();
         if (grid == null)
         {
@@ -22,22 +22,28 @@ public class GameManager : MonoBehaviour
         }
 
         ROUND = 1;
+        isRoundInProgress = false;
+        activeEnemies = new List<GameObject>(); // 활성화된 적 리스트 초기화
+        CreateUnit(1, true, 1, 1);
     }
 
     void Update()
     {
-        // If press space key, call RoundManager
         if (Input.GetKeyDown(KeyCode.Space) && !isRoundInProgress)
         {
             RoundManager();
+        }
+
+        // 모든 적이 처치되었는지 확인
+        if (isRoundInProgress && enemiesToSummon.Count == 0 && activeEnemies.Count == 0)
+        {
+            isRoundInProgress = false;
+            Debug.Log("Round complete!");
         }
     }
 
     public void RoundManager()
     {
-        Debug.Log("RoundManager called."); // 디버그 로그 추가
-
-        // Load JSON data from Resources/Data/07_Round.json
         TextAsset jsonFile = Resources.Load<TextAsset>("Data/07_Round");
         if (jsonFile == null)
         {
@@ -45,39 +51,21 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // Parse JSON data
         RoundDataWrapper roundDataWrapper = JsonUtility.FromJson<RoundDataWrapper>(jsonFile.text);
         RoundData currentRound = roundDataWrapper.rounds.Find(r => r.roundNumber == ROUND);
-
         if (currentRound == null)
         {
             Debug.LogError($"No data found for round {ROUND}.");
             return;
         }
-
-        Debug.Log($"Round {ROUND} data loaded successfully."); // 디버그 로그 추가
-
-        // 적 소환 대기열 초기화
-        enemiesToSummon.Clear();
+        Debug.Log($"Round {ROUND} data loaded successfully.");
         isRoundInProgress = true;
+        enemiesToSummon = new Dictionary<int, Queue<int>>();
 
-        // 셀 데이터를 순회하며 적 소환 대기열에 추가
-        foreach (var cellData in currentRound.cells)
+        foreach (var cell in currentRound.cells)
         {
-            int cellIndex = cellData.cellIndex;
-            if (cellIndex < grid.yMin || cellIndex > grid.yMax) // y 값 검사
-            {
-                Debug.LogWarning($"Invalid cellIndex {cellIndex} for round {ROUND}.");
-                continue;
-            }
-
-            Debug.Log($"Valid cellIndex {cellIndex} for round {ROUND}."); // 디버그 로그 추가
-
-            // 적 ID를 대기열에 추가
-            foreach (int enemyId in cellData.enemyIds)
-            {
-                enemiesToSummon.Enqueue(enemyId);
-            }
+            enemiesToSummon[cell.cellIndex] = new Queue<int>(cell.enemyIds);
+            Debug.Log($"Cell {cell.cellIndex} has {enemiesToSummon[cell.cellIndex].Count} enemies.");
         }
 
         // 적 소환 시작
@@ -86,101 +74,67 @@ public class GameManager : MonoBehaviour
 
     private System.Collections.IEnumerator SummonEnemies()
     {
-        while (enemiesToSummon.Count > 0)
+        while (isRoundInProgress)
         {
-            bool enemySummoned = false;
-
-            // 적 셀 영역 (x 값이 grid.xMin ~ grid.xMax) 및 유효한 y 범위 (grid.yMin ~ grid.yMax)에서 적을 소환할 수 있는지 확인
-            for (int x = grid.xMin; x <= grid.xMax; x++)
+            foreach (var entry in enemiesToSummon)
             {
-                for (int y = grid.yMin; y <= grid.yMax; y++)
+                int cellIndex = entry.Key;
+                Queue<int> enemyQueue = entry.Value;
+
+                while (enemyQueue.Count > 0)
                 {
-                    Cell cell = grid.GetCell(x, y);
-                    if (cell != null && !cell.isOccupied)
+                    Cell emptyCell = SearchForEmptyCell(cellIndex);
+                    if (emptyCell != null)
                     {
-                        int enemyId = enemiesToSummon.Dequeue();
-                        CreateUnit(enemyId, cell.xPos, cell.yPos, false); // 적 생성
-                        cell.isOccupied = true;
-
-                        // 셀의 스프라이트를 None으로 설정
-                        SpriteRenderer spriteRenderer = cell.GetComponent<SpriteRenderer>();
-                        if (spriteRenderer != null)
-                        {
-                            spriteRenderer.sprite = null; // 스프라이트를 None으로 설정
-                        }
-
-                        Debug.Log($"Enemy {enemyId} spawned at ({x}, {y})."); // 디버그 로그 추가
-                        enemySummoned = true;
-                        break;
+                        int enemyId = enemyQueue.Dequeue();
+                        CreateUnit(enemyId, false, emptyCell.xPos, emptyCell.yPos);
+                    }
+                    else
+                    {
+                        yield return null; // 빈 셀이 없을 경우 다음 프레임까지 대기
                     }
                 }
-
-                if (enemySummoned)
-                {
-                    break;
-                }
-            }
-
-            // 만약 소환할 수 있는 셀이 없다면 대기
-            if (!enemySummoned)
-            {
-                Debug.Log("Waiting for an available cell..."); // 디버그 로그 추가
-                yield return null; // 다음 프레임까지 대기
-            }
-        }
-
-        // 적이 모두 소환된 후 적 영역이 비어있는지 확인
-        while (true)
-        {
-            bool allCellsCleared = true;
-            for (int x = grid.xMin; x <= grid.xMax; x++)
-            {
-                for (int y = grid.yMin; y <= grid.yMax; y++)
-                {
-                    Cell cell = grid.GetCell(x, y);
-                    if (cell != null && cell.isOccupied)
-                    {
-                        allCellsCleared = false;
-                        break;
-                    }
-                }
-
-                if (!allCellsCleared)
-                {
-                    break;
-                }
-            }
-
-            if (allCellsCleared)
-            {
-                Debug.Log("All enemy cells cleared. Ending round."); // 디버그 로그 추가
-                isRoundInProgress = false; // 라운드 종료
-                ROUND++; // 다음 라운드로 이동
-                break;
             }
 
             yield return null; // 다음 프레임까지 대기
         }
     }
 
-    // 유닛 생성 함수
-    void CreateUnit(int id, int x, int y, bool side)
+    public Cell SearchForEmptyCell(int x)
     {
-        Vector3 position = new Vector3(x, y, 0); // 2D 포지션 설정
-        if (side == true)
+        x = x + 3;
+        for (int y = 1; y < 4; y++) // y 값은 1부터 3까지
         {
-            GameObject unit = Instantiate(HeroPrefab, position, Quaternion.identity, transform);
-            unit.name = $"Unit_{id}";
-            Hero heroComponent = unit.GetComponent<Hero>();
-            heroComponent.ID = id;
+            Cell cellToSearch = grid.GetCell(x, y);
+            if (cellToSearch != null && !cellToSearch.isOccupied)
+            {
+                Debug.Log($"Empty cell found at ({cellToSearch.xPos}, {cellToSearch.yPos}).");
+                return cellToSearch;
+            }
         }
-        else if (side == false)
+        return null; // 빈 셀이 없을 경우
+    }
+
+    public void CreateUnit(int id, bool isHero, int x, int y)
+    {
+        GameObject unit = Instantiate(isHero ? HeroPrefab : EnemyPrefab, grid.CellManager[x - grid.xMin, y - grid.yMin].transform.position, Quaternion.identity);
+        Cell cell = grid.GetCell(x, y);
+        if (cell != null)
         {
-            GameObject unit = Instantiate(EnemyPrefab, position, Quaternion.identity, transform);
-            unit.name = $"Unit_{id}";
-            Enemy enemyComponent = unit.GetComponent<Enemy>();
-            enemyComponent.ID = id;
-            enemyComponent.LEVEL = ROUND;
+            cell.isOccupied = true;
+            cell.unit = unit;
+        }
+
+        if (isHero)
+        {
+            unit.GetComponent<Hero>().ID = id;
+             grid.CellManager[x, y].GetComponent<Cell>().GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>($"Sprite/Portraits/centurion_portrait");
+        }
+        else
+        {
+            unit.GetComponent<Enemy>().ID = id;
+            grid.CellManager[x, y].GetComponent<Cell>().GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>($"Sprite/Portraits/ADAM_PORTRAIT");
+            activeEnemies.Add(unit); // 활성화된 적 리스트에 추가
         }
     }
 }

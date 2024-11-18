@@ -2,7 +2,7 @@
     "enemies": [
         {
             "ID": 1,
-            "NAME": "@ENEMY_NAME_ADAM",
+            "NAME": "ADAM",
             "HP_BASE": 931,
             "HP_INCREASE": 1,
             "ATK_BASE": 640,
@@ -13,7 +13,7 @@
         },
         {
             "ID": 2,
-            "NAME": "@ENEMY_NAME_EVE",
+            "NAME": "EVE",
             "HP_BASE": 931,
             "HP_INCREASE": 1,
             "ATK_BASE": 640,
