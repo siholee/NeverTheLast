@@ -39,6 +39,7 @@ public class Unit : MonoBehaviour
 
     public List<Status> STATUS_MANAGER = new List<Status>();
     public List<Arts> ARTS_MANAGER = new List<Arts>();
+    public GameManager GameManagerHandler;
 
     void CreateArts(int artsID)
     {
@@ -108,6 +109,20 @@ public class Unit : MonoBehaviour
             }
             }
         }
+    }
+
+    public void TakeDamage(float Damage, float IgnoreDefense){
+        float damage = Damage * (1 - DEF / (DEF + 300)) * (1 - IgnoreDefense);
+        HP_CURRENT -= (int)damage;
+        if (HP_CURRENT <= 0)
+        {
+            HP_CURRENT = 0;
+            DestoryUnit();
+        }
+    }
+
+    public void DestoryUnit(){
+        Destroy(this.gameObject);
     }
 
     [System.Serializable]

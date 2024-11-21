@@ -2,33 +2,42 @@ using UnityEngine;
 
 public class GridManager : MonoBehaviour
 {
-    public GameObject tilePrefab;
-    public int xMin; // x 좌표 최소값 (아군 영역)
-    public int xMax; // x 좌표 최대값 (적 영역)
-    public int yMin; // y 좌표 최소값
-    public int yMax; // y 좌표 최대값
-    public float tileSpacing; // 타일 간의 간격
+    // 싱글톤 인스턴스
+    public static GridManager Instance { get; private set; }
 
-    // CellManager 배열: x, y 좌표를 기록
-    public GameObject[,] CellManager;
+    public GameObject CellPrefab;
+    public int xMin = -4;
+    public int xMax = 4;
+    public int yMin = 1;
+    public int yMax = 3;
+    public float tileSpacing = 2.1f;
 
-    void Start()
+    private Cell[,] CellManager; // 셀 관리 배열
+
+    private void Awake()
     {
-        // 값을 Start 함수에서 설정
-        xMin = -4;
-        xMax = 4;
-        yMin = 1;
-        yMax = 3;
-        tileSpacing = 2.1f; // 타일 간의 간격 설정
+        // 싱글톤 인스턴스 초기화
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject); // 씬 변경 시에도 유지
+        }
+        else
+        {
+            Destroy(gameObject); // 이미 인스턴스가 존재하면 제거
+        }
+    }
 
+    private void Start()
+    {
         CreateGrid();
     }
 
-    void CreateGrid()
+    private void CreateGrid()
     {
         int rows = yMax - yMin + 1;
         int columns = xMax - xMin + 1;
-        CellManager = new GameObject[columns, rows];
+        CellManager = new Cell[columns, rows];
 
         for (int x = xMin; x <= xMax; x++)
         {
@@ -38,16 +47,12 @@ public class GridManager : MonoBehaviour
                 float xOffset = (x - xMin) * tileSpacing;
                 float yOffset = (y - yMin) * tileSpacing;
                 Vector3 position = new Vector3(xOffset, yOffset, 0);
-                // 타일 생성 및 초기화
-                GameObject tile = Instantiate(tilePrefab, position, Quaternion.identity, transform);
-                tile.name = $"Tile_{x}_{y}";
-                // x가 0일 경우 Sprite none으로 설정
-                if (x == 0)
-                {
-                    tile.GetComponent<SpriteRenderer>().sprite = null;
-                }
-                // Cell 컴포넌트 설정
-                Cell cellComponent = tile.GetComponent<Cell>();
+
+                // Cell 생성 및 초기화
+                GameObject cellObject = Instantiate(CellPrefab, position, Quaternion.identity, transform);
+                cellObject.name = $"Cell_{x}_{y}";
+
+                Cell cellComponent = cellObject.GetComponent<Cell>();
                 if (cellComponent != null)
                 {
                     cellComponent.xPos = x;
@@ -55,28 +60,48 @@ public class GridManager : MonoBehaviour
                     cellComponent.isOccupied = false; // 초기화
                 }
 
-                // CellManager에 셀 저장
-                CellManager[x - xMin, y - yMin] = tile;
+                // xPos가 0일 경우 SpriteRenderer의 sprite를 null로 설정
+                SpriteRenderer spriteRenderer = cellObject.GetComponent<SpriteRenderer>();
+                if (x == 0 && spriteRenderer != null)
+                {
+                    spriteRenderer.sprite = null;
+                }
+
+                // 배열에 셀 저장
+                CellManager[x - xMin, y - yMin] = cellComponent;
             }
         }
     }
-    public Cell GetCell(int x, int y)
+
+    public bool IsCellAvailable(int xPos, int yPos)
     {
-        // 배열 인덱스 유효성 검사
-        if (x - xMin >= 0 && x - xMin < CellManager.GetLength(0) &&
-            y - yMin >= 0 && y - yMin < CellManager.GetLength(1))
+        int adjustedX = xPos - xMin;
+        int adjustedY = yPos - yMin;
+
+        if (adjustedX >= 0 && adjustedX < CellManager.GetLength(0) &&
+            adjustedY >= 0 && adjustedY < CellManager.GetLength(1))
         {
-            return CellManager[x - xMin, y - yMin].GetComponent<Cell>();
+            Cell cell = CellManager[adjustedX, adjustedY];
+            return cell != null && !cell.isOccupied;
         }
 
-        Debug.LogError($"Invalid cell position: ({x}, {y})");
-        return null;
+        return false; // 셀이 없거나 이미 점유됨
     }
 
-    // 포지션 전환: 아군 좌표 <-> 적 좌표
-    public Vector3 SwitchPosition(Vector3 position)
+    public void SpawnEnemy(int xPos, int yPos, int enemyId)
     {
-        // x 값에 -1을 곱해 포지션 전환
-        return new Vector3(position.x * -1, position.y, position.z);
+        int adjustedX = xPos - xMin;
+        int adjustedY = yPos - yMin;
+
+        if (adjustedX >= 0 && adjustedX < CellManager.GetLength(0) &&
+            adjustedY >= 0 && adjustedY < CellManager.GetLength(1))
+        {
+            Cell cell = CellManager[adjustedX, adjustedY];
+            if (cell != null)
+            {
+                Debug.Log($"Spawning enemy {enemyId} at Cell ({xPos}, {yPos}).");
+                cell.isOccupied = true; // 셀을 점유 상태로 변경
+            }
+        }
     }
 }
