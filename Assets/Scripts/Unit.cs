@@ -1,41 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// 셀을 나타내는 클래스 (기본적인 구조)
-/// </summary>
-public class Cell
-{
-    public Vector3 position;
-    public Unit occupant;
-
-    public Cell(Vector3 pos)
-    {
-        position = pos;
-        occupant = null;
-    }
-}
-
-/// <summary>
-/// 셀 매니저 클래스 (기본적인 구조)
-/// </summary>
-public class CellMgr : MonoBehaviour
-{
-    public int width = 10;
-    public int height = 10;
-    public float cellSize = 1f;
-    public Cell[,] grid;
-
-    void Start()
-    {
-        grid = new Cell[width, height];
-        for(int x = 0; x < width; x++)
-            for(int y = 0; y < height; y++)
-                grid[x, y] = new Cell(new Vector3(x * cellSize, 0, y * cellSize));
-    }
-
-    // 추가적인 셀 관리 로직 구현 가능
-}
 
 public class Unit : MonoBehaviour
 {
