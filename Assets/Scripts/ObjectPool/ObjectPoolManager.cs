@@ -43,16 +43,16 @@ public class ObjectPoolManager : MonoBehaviour
             GameObject obj = Instantiate(heroPrefab);
             obj.name = $"Hero Unit {i + 1}";
             obj.transform.SetParent(heroPoolObj);
-            obj.SetActive(false);
             Hero instantiatedUnit = obj.GetComponent<Hero>();
+            instantiatedUnit.isActive = false;
             heroPool.Add(instantiatedUnit);
         }
         for (int i = 0; i < enemyMaxCount; i++) {
             GameObject obj = Instantiate(enemyPrefab);
             obj.name = $"Enemy Unit {i + 1}";
             obj.transform.SetParent(enemyPoolObj);
-            obj.SetActive(false);
             Enemy instantiatedUnit = obj.GetComponent<Enemy>();
+            instantiatedUnit.isActive = false;
             enemyPool.Add(instantiatedUnit);
         }
     }
@@ -63,9 +63,9 @@ public class ObjectPoolManager : MonoBehaviour
         {
             foreach (Hero unit in heroPool)
             {
-                if (!unit.gameObject.activeSelf)
+                if (!unit.isActive)
                 {
-                    unit.gameObject.SetActive(true);
+                    unit.isActive = true;
                     activeHeroes.Add(unit);
                     return unit.gameObject;
                 }
@@ -76,7 +76,7 @@ public class ObjectPoolManager : MonoBehaviour
             newHero.name = $"Hero Unit {heroPool.Count + 1}";
             newHero.transform.SetParent(heroPoolObj);
             Hero newHeroComponent = newHero.GetComponent<Hero>();
-            newHero.SetActive(true);
+            newHeroComponent.isActive = true;
             heroPool.Add(newHeroComponent);
             activeHeroes.Add(newHeroComponent);
             return newHero;
@@ -85,9 +85,9 @@ public class ObjectPoolManager : MonoBehaviour
         {
             foreach (Enemy unit in enemyPool)
             {
-                if (!unit.gameObject.activeSelf)
+                if (!unit.isActive)
                 {
-                    unit.gameObject.SetActive(true);
+                    unit.isActive = true;
                     activeEnemies.Add(unit);
                     return unit.gameObject;
                 }
@@ -98,7 +98,7 @@ public class ObjectPoolManager : MonoBehaviour
             newEnemy.name = $"Enemy Unit {enemyPool.Count + 1}";
             newEnemy.transform.SetParent(enemyPoolObj);
             Enemy newEnemyComponent = newEnemy.GetComponent<Enemy>();
-            newEnemy.SetActive(true);
+            newEnemyComponent.isActive = true;
             enemyPool.Add(newEnemyComponent);
             activeEnemies.Add(newEnemyComponent);
             return newEnemy;
@@ -111,7 +111,7 @@ public class ObjectPoolManager : MonoBehaviour
         if (heroComponent != null && activeHeroes.Contains(heroComponent))
         {
             activeHeroes.Remove(heroComponent);
-            obj.SetActive(false);
+            heroComponent.isActive = false;
             obj.transform.SetParent(heroPoolObj);
             return;
         }
@@ -120,7 +120,7 @@ public class ObjectPoolManager : MonoBehaviour
         if (enemyComponent != null && activeEnemies.Contains(enemyComponent))
         {
             activeEnemies.Remove(enemyComponent);
-            obj.SetActive(false);
+            enemyComponent.isActive = false;
             obj.transform.SetParent(enemyPoolObj);
             return;
         }

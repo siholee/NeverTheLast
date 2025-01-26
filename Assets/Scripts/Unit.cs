@@ -1,9 +1,14 @@
 using System.Collections.Generic;
+using System.Linq;
+using Mono.Cecil;
 using UnityEngine;
 
 
 public class Unit : MonoBehaviour
 {
+    public GameManager gameManager;
+    public bool isActive = false;
+
     // 기본 식별 정보
     public int ID;
     public bool SIDE; // true: 아군, false: 적군
@@ -63,6 +68,12 @@ public class Unit : MonoBehaviour
     public Cell currentCell;
 
     /// <summary>
+    /// 활성화 후 초기 정보 설정
+    /// </summary>
+    public virtual void InitProcess(bool isHero, int id) {}
+
+
+    /// <summary>
     /// 상태 업데이트 함수
     /// </summary>
     public void StatusUpdate()
@@ -112,6 +123,7 @@ public class Unit : MonoBehaviour
             HP_CURRENT = 0;
             Debug.Log($"{NAME}은(는) 사망했습니다.");
             // 추가적인 사망 처리 로직 (예: 게임 오브젝트 비활성화 등)
+            gameManager.poolManager.DeactivateUnit(gameObject);
         }
     }
 
@@ -186,6 +198,8 @@ public class Unit : MonoBehaviour
     /// </summary>
     void Start()
     {
+        gameManager = FindFirstObjectByType<GameManager>();
+
         // 예시: Fire 속성 20% 피해 증가, Ice 속성 30% 피해 감소
         AddDamageIncrease("Fire", 0.2f); // 20% 증가
         AddDamageReduction("Ice", 0.3f); // 30% 감소

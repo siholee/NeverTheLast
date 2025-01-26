@@ -6,4 +6,5 @@ public class Cell : MonoBehaviour
     public int yPos;
     public bool isOccupied = false;
     public GameObject unit;
+    public SpriteRenderer portraitRenderer;
 }

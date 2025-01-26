@@ -8,6 +8,10 @@ public class GameManager : MonoBehaviour
     public RoundManager roundManager;
     public ObjectPoolManager poolManager;
 
+    // 게임 데이터 관련
+    public DataManager dataManager;
+    public EnemyDataList enemyDataList;
+
     private void Awake()
     {
         if (Instance == null)
@@ -23,6 +27,8 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        dataManager = GetComponent<DataManager>();
+        enemyDataList = dataManager.FetchEnemyDataList();
         roundManager = new RoundManager();
         roundManager.LoadRound(1); // 첫 번째 라운드 시작
     }
@@ -34,24 +40,4 @@ public class GameManager : MonoBehaviour
             roundManager.UpdateRound();
         }
     }
-}
-
-[System.Serializable]
-public class RoundDataWrapper
-{
-    public List<RoundData> rounds;
-}
-
-[System.Serializable]
-public class RoundData
-{
-    public int roundNumber;
-    public List<CellData> cells;
-}
-
-[System.Serializable]
-public class CellData
-{
-    public int cellIndex;
-    public List<int> enemyIds;
 }

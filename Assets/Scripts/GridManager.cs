@@ -1,10 +1,12 @@
 using UnityEngine;
+using UnityEngine.Pool;
 
 public class GridManager : MonoBehaviour
 {
     // 싱글톤 인스턴스
     public static GridManager Instance { get; private set; }
 
+    public ObjectPoolManager poolManager;
     public GameObject CellPrefab;
     public int xMin = -4;
     public int xMax = 4;
@@ -101,6 +103,9 @@ public class GridManager : MonoBehaviour
             {
                 Debug.Log($"Spawning enemy {enemyId} at Cell ({xPos}, {yPos}).");
                 cell.isOccupied = true; // 셀을 점유 상태로 변경
+                Enemy enemyUnit = poolManager.ActivateUnit(false).GetComponent<Enemy>();
+                enemyUnit.currentCell = cell;
+                enemyUnit.InitProcess(false, enemyId);
             }
         }
     }

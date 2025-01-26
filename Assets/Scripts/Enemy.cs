@@ -1,77 +1,69 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Enemy : Unit
 {
     public int LEVEL; // 적 레벨
-    void Start()
+
+    public override void InitProcess(bool isHero, int id)
     {
-        LoadCharacterData();
+        LoadEnemyData(id);
         StatusUpdate();
     }
     // 캐릭터 데이터를 로드하는 함수
-    public void LoadCharacterData()
+    public void LoadEnemyData(int id)
     {
-        // Resources 폴더에서 JSON 파일 로드
-        TextAsset characterDataFile = Resources.Load<TextAsset>("Data/05_Enemy");
-        if (characterDataFile == null)
+        // 라운드별 스탯 증가량 반영 필요
+        EnemyData data = gameManager.enemyDataList.enemies.FirstOrDefault(e => e.ID == id);
+        LoadSprite(data.PORTRAIT);
+
+        if (data == null)
         {
-            Debug.LogWarning("Character data file not found!");
-            return;
-        }
-        // JSON 데이터를 문자열로 가져오기
-        string json = characterDataFile.text;
-        CharacterDataWrapper characterWrapper = JsonUtility.FromJson<CharacterDataWrapper>(json);
-        // 데이터 유효성 검사
-        if (characterWrapper == null || characterWrapper.characters == null || characterWrapper.characters.Count == 0)
-        {
-            Debug.LogWarning("Character data is empty or invalid!");
+            Debug.LogError($"적 데이터(ID: {id})를 찾을 수 없습니다.");
             return;
         }
 
-        // ID에 해당하는 캐릭터 데이터 찾기
-        CharacterData character = System.Array.Find(characterWrapper.characters.ToArray(), c => c.ID == ID);
-        if (character != null)
-        {
-            // 캐릭터 데이터를 Enemy 속성에 할당
-            NAME = character.NAME;
-            HP_BASE = SetBase(character.HP, LEVEL, character.HP_INCREASE);
-            ATK_BASE = SetBase(character.ATK, LEVEL, character.ATK_INCREASE);
-            DEF_BASE = SetBase(character.DEF, LEVEL, character.DEF_INCREASE);
-            CRT_POS_BASE = character.CRT_POS;
-            CRT_DMG_BASE = character.CRT_DMG;
-            CT_BASE = character.CT;
-        }
-        else
-        {
-            Debug.LogWarning($"Character with ID {ID} not found in character data!");
-        }
+        // 적 데이터로 Unit 속성 초기화
+        ID = data.ID;
+        NAME = data.NAME;
+
+        // 체력 관련 초기화
+        HP_BASE = SetBase(data.HP_BASE, LEVEL, data.HP_INCREASE);
+        HP_MULBUFF = 0f;
+        HP_SUMBUFF = 0f;
+        HP_CURRENT = HP_BASE;
+
+        // 공격력 관련 초기화
+        ATK_BASE = SetBase(data.ATK_BASE, LEVEL, data.ATK_INCREASE);
+        ATK_MULBUFF = 0f;
+        ATK_SUMBUFF = 0f;
+        ATK = ATK_BASE;
+
+        // 방어력 관련 초기화
+        DEF_BASE = SetBase(data.DEF_BASE, LEVEL, data.DEF_INCREASE);
+        DEF_MULBUFF = 0f;
+        DEF_SUMBUFF = 0f;
+        DEF = DEF_BASE;
+
+        // 기타 초기화
+        CRT_POS_BASE = 0f;
+        CRT_POS_BUFF = 0f;
+        CRT_DMG_BASE = 0f;
+        CRT_DMG_BUFF = 0f;
+
+        CT_BASE = 0f;
+        CT_MULBUFF = 0f;
+        CT_SUMBUFF = 0f;
+    }
+
+    public void LoadSprite(string name)
+    {
+        Sprite sprite = Resources.Load<Sprite>($"Sprite/Portraits/{name}");
+        currentCell.portraitRenderer.sprite = sprite;
     }
    
     public int SetBase(int n, int lv, int increase){
         return n + lv * increase;
     }
-}
-// CharacterDataWrapper 클래스 정의
-[System.Serializable]
-public class CharacterDataWrapper
-{
-    public List<CharacterData> characters;
-}
-
-// CharacterData 클래스 정의
-[System.Serializable]
-public class CharacterData
-{
-    public int ID;
-    public string NAME;
-    public int HP;
-    public int HP_INCREASE;
-    public int ATK;
-    public int ATK_INCREASE;
-    public int DEF;
-    public int DEF_INCREASE;
-    public int CRT_POS;
-    public int CRT_DMG;
-    public int CT;
 }
