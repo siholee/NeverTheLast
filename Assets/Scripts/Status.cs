@@ -87,17 +87,17 @@ public class Status : MonoBehaviour
 
     public void DestroyStatus()
     {
-        // Remove the status effect from the owner
-        if (TYPE == "normal" || (TYPE == "stack" && CURRENT_STACK > 0))
-        {
-            OWNER.ATK_MULBUFF -= CURRENT_STACK * STACK_EFFECT; // Reset ATK multiplier
-        }
+        // // Remove the status effect from the owner
+        // if (TYPE == "normal" || (TYPE == "stack" && CURRENT_STACK > 0))
+        // {
+        //     OWNER.ATK_MULBUFF -= CURRENT_STACK * STACK_EFFECT; // Reset ATK multiplier
+        // }
 
-        // Remove the status from the owner's STATUS_MANAGER list
-        OWNER.STATUS_MANAGER.Remove(this);
+        // // Remove the status from the owner's STATUS_MANAGER list
+        // OWNER.STATUS_MANAGER.Remove(this);
 
-        // Destroy the status object
-        Destroy(gameObject);
+        // // Destroy the status object
+        // Destroy(gameObject);
     }
 
     void RemoveStatusEffect()

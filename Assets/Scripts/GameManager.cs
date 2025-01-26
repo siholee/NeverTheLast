@@ -1,10 +1,12 @@
 using UnityEngine;
-using System.Collections.Generic; 
+using System.Collections.Generic;
+using UnityEngine.Pool;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     public RoundManager roundManager;
+    public ObjectPoolManager poolManager;
 
     private void Awake()
     {

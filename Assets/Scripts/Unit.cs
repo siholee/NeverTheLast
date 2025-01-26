@@ -82,25 +82,25 @@ public class Unit : MonoBehaviour
 
     public void EffectHandler(float damage, string[] tags)
     {
-        Debug.Log("Received Damage: " + damage);
+        // Debug.Log("Received Damage: " + damage);
 
-        foreach (Arts arts in ARTS_MANAGER)
-        {
-            if (arts.TYPE == "COUNT")
-            {
-            foreach (string condition in arts.CONDITIONS)
-            {
-                foreach (string tag in tags)
-                {
-                if (condition == tag)
-                {
-                    arts.COUNTER++;
-                    Debug.Log($"Arts: {arts.NAME} - Counter increased to: {arts.COUNTER}");
-                }
-                }
-            }
-            }
-        }
+        // foreach (Arts arts in ARTS_MANAGER)
+        // {
+        //     if (arts.TYPE == "COUNT")
+        //     {
+        //     foreach (string condition in arts.CONDITIONS)
+        //     {
+        //         foreach (string tag in tags)
+        //         {
+        //         if (condition == tag)
+        //         {
+        //             arts.COUNTER++;
+        //             Debug.Log($"Arts: {arts.NAME} - Counter increased to: {arts.COUNTER}");
+        //         }
+        //         }
+        //     }
+        //     }
+        // }
     }
 
     public void TakeDamage(float Damage, float IgnoreDefense){
