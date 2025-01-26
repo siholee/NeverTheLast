@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 public class Unit : MonoBehaviour
 {
@@ -37,10 +36,6 @@ public class Unit : MonoBehaviour
     public float CT_MULBUFF;
     public float CT_SUMBUFF;
 
-    public List<Status> STATUS_MANAGER = new List<Status>();
-    public List<Arts> ARTS_MANAGER = new List<Arts>();
-    public GameManager GameManagerHandler;
-
     void CreateArts(int artsID)
     {
         // Load Arts data from Resources
@@ -69,9 +64,6 @@ public class Unit : MonoBehaviour
             newArts.CT = 0f;
             newArts.MAX_CT = 0f;
             newArts.OWNER = this;
-
-            ARTS_MANAGER.Add(newArts);
-            artsObject.transform.SetParent(this.transform);
         }
         else
         {
@@ -117,12 +109,7 @@ public class Unit : MonoBehaviour
         if (HP_CURRENT <= 0)
         {
             HP_CURRENT = 0;
-            DestoryUnit();
         }
-    }
-
-    public void DestoryUnit(){
-        Destroy(this.gameObject);
     }
 
     [System.Serializable]
