@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class Status : MonoBehaviour
+public class Buff : MonoBehaviour
 {
     public string NAME;
     public string TYPE;
@@ -57,7 +57,7 @@ public class Status : MonoBehaviour
             if (CURRENT_STACK < MAX_STACK)
             {
                 CURRENT_STACK++;
-                OWNER.ATK_MULBUFF += STACK_EFFECT; // Increase ATK multiplier
+                OWNER.atkMultiplicativeBuff += STACK_EFFECT; // Increase ATK multiplier
                 isStackEffectActive = true;
                 StartCoroutine(StackTimer());
             }
@@ -74,7 +74,7 @@ public class Status : MonoBehaviour
         }
 
         CURRENT_STACK--;
-        OWNER.ATK_MULBUFF -= STACK_EFFECT; // Decrease ATK multiplier
+        OWNER.atkMultiplicativeBuff -= STACK_EFFECT; // Decrease ATK multiplier
         if (CURRENT_STACK > 0)
         {
             StartCoroutine(StackTimer());

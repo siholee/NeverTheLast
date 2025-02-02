@@ -1,0 +1,26 @@
+rounds:
+  - roundNumber: 1
+    cells:
+      - cellIndex: 1
+        enemyIds:
+          - 1
+          - 1
+          - 1
+          - 1
+          - 1
+          - 1
+      - cellIndex: 2
+        enemyIds: []
+      - cellIndex: 3
+        enemyIds: []
+  - roundNumber: 2
+    cells:
+      - cellIndex: 1
+        enemyIds:
+          - 1
+          - 1
+      - cellIndex: 2
+        enemyIds:
+          - 2
+      - cellIndex: 3
+        enemyIds: []

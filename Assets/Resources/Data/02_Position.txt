@@ -1,9 +1,0 @@
-{
-    "positions": [
-        {
-            "ID": 1,
-            "NAME": "@POS_NAME_DEADEYE",
-            "ARTS": 4
-        }
-    ]
-}

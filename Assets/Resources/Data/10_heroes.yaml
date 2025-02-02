@@ -1,0 +1,16 @@
+characters:
+  - id: 1
+    name: DEADEYE
+    synergies:
+      - 1
+      - 2
+    hp_base: 931
+    atk_base: 640
+    def_base: 364
+    crit_chance_base: 5
+    crit_damage_base: 50
+    codes:
+      passive: 1
+      normal: 2
+      ultimate: 3
+    portrait: DEADEYE_PORTRAIT

@@ -24,7 +24,7 @@ public class ObjectPoolManager : MonoBehaviour
 
     private void Start()
     {
-        gameMgr = FindFirstObjectByType<GameManager>();
+        gameMgr = GameManager.Instance;
         gridMgr = FindFirstObjectByType<GridManager>();
 
         heroPoolObj = transform.Find("UnitPool").Find("HeroPool");
