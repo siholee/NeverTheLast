@@ -15,7 +15,7 @@ public class Instant : SFXEffect
     
   }
   
-  public override void ExpireEffect()
+  public override void RemoveEffect()
   {
   }
 }

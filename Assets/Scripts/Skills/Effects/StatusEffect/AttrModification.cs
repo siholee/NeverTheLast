@@ -59,7 +59,7 @@ public override void ApplyEffect()
   }
 }
 
-  public override void ExpireEffect()
+  public override void RemoveEffect()
   {
     foreach (Unit target in targets)
     {

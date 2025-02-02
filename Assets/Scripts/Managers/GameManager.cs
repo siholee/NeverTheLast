@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     public RoundManager roundManager;
     public ObjectPoolManager poolManager;
+    public SkillManager skillManager;
 
     // 현재 진행중인 게임 상태
     public List<Unit> currentEnemies;

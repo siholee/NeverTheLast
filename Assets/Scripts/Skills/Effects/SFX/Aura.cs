@@ -18,7 +18,7 @@ public class Aura : SFXEffect
     
   }
   
-  public override void ExpireEffect()
+  public override void RemoveEffect()
   {
   }
 }

@@ -19,7 +19,7 @@ public class Projectile : SFXEffect
     
   }
 
-  public override void ExpireEffect()
+  public override void RemoveEffect()
   {
   }
 }

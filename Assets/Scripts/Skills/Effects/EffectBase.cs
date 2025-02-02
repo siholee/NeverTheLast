@@ -1,5 +1,5 @@
 public abstract class EffectBase
 {
   public abstract void ApplyEffect();
-  public abstract void ExpireEffect();
+  public abstract void RemoveEffect();
 }

@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using Unity.VisualScripting;
-
 public class AttrMod
 {
   public const int ATK_ADD = 1;

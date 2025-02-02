@@ -24,7 +24,7 @@ public class InstantDamage: DamageEffect
     }
   }
   
-  public override void ExpireEffect()
+  public override void RemoveEffect()
   {
   }
 }

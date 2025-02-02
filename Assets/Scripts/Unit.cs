@@ -136,6 +136,7 @@ public class Unit : MonoBehaviour
             Debug.Log($"{unitName}은(는) 사망했습니다.");
             // 추가적인 사망 처리 로직 (예: 게임 오브젝트 비활성화 등)
             gameManager.poolManager.DeactivateUnit(gameObject);
+            gameManager.skillManager.OnCasterDeath(this);
         }
     }
 
@@ -208,15 +209,19 @@ public class Unit : MonoBehaviour
     /// <summary>
     /// 예시: 초기화 시 속성별 피해 증가 및 감소 설정
     /// </summary>
-    void Start()
+    private void Start()
     {
         gameManager = GameManager.Instance;
 
         // 예시: 전체공격 피격 피해 30% 감소
-        // AddDamageIncrease("Fire", 20f); // 20% 증가
-        AddDamageReduction(DamageTag.ALL_TARGET, 30); // 전체공격 피격 피해 30% 감소
+        // AddDamageReduction(DamageTag.ALL_TARGET, 30); // 전체공격 피격 피해 30% 감소
 
         // 다른 속성들도 필요에 따라 추가
+    }
+
+    private void Update()
+    {
+        
     }
 
     /// <summary>
