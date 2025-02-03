@@ -7,4 +7,5 @@ public class Cell : MonoBehaviour
     public bool isOccupied = false;
     public GameObject unit;
     public SpriteRenderer portraitRenderer;
+    public GameObject hpBarObj;
 }

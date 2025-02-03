@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 
-public class InstantDamage: DamageEffect
-{  
+public class InstantDamage : DamageEffect
+{
   public InstantDamage(Unit target, List<int> tags, int amount)
   {
-    targets = new List<Unit>{target};
+    targets = new List<Unit> { target };
     this.tags = tags;
     this.amount = amount;
   }
@@ -20,10 +20,10 @@ public class InstantDamage: DamageEffect
   {
     foreach (Unit target in targets)
     {
-
+      target.TakeDamage(amount, 0, tags);
     }
   }
-  
+
   public override void RemoveEffect()
   {
   }

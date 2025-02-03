@@ -1,25 +1,30 @@
 using System.Collections.Generic;
+using UnityEngine;
 
-public class SkillManager
+public class SkillManager : MonoBehaviour
 {
-    public Dictionary<Unit, List<CodeBase>> codeCasters = new Dictionary<Unit, List<CodeBase>>();
+    public Dictionary<Unit, Dictionary<CodeBase, Coroutine>> codeCasters = new Dictionary<Unit, Dictionary<CodeBase, Coroutine>>();
 
     /// <summary>
     /// 시전자와 대상, 실행할 스킬을 받아 스킬을 등록하고 효과를 시작함.
+    /// 스킬 시전에 성공했는지 여부를 리턴턴
     /// </summary>
-    public void RegisterSkill(Unit caster, CodeBase skill)
+    public bool RegisterSkill(Unit caster, CodeBase skill)
     {
-        if (caster == null  || skill == null)
-            return;
+        Debug.LogWarning($"{caster.name}의 {skill.codeName} 스킬 시전 시도");
+        if (caster == null || skill == null)
+            return false;
+        if (!skill.CanCast())
+            return false;
 
+        Coroutine skillActivation = StartCoroutine(skill.StartCode());
         if (!codeCasters.ContainsKey(caster))
         {
-            codeCasters[caster] = new List<CodeBase>();
+            codeCasters[caster] = new Dictionary<CodeBase, Coroutine>();
         }
-        codeCasters[caster].Add(skill);
+        codeCasters[caster][skill] = skillActivation;
 
-        // 스킬 효과 시작 (CodeBase가 StartEffect 메소드를 구현했다고 가정)
-        skill.StartCode();
+        return true;
     }
 
     /// <summary>
@@ -30,10 +35,11 @@ public class SkillManager
         if (caster == null || skill == null)
             return;
 
-        if (codeCasters.ContainsKey(caster))
+        if (codeCasters.ContainsKey(caster) && codeCasters[caster].ContainsKey(skill))
         {
             // 스킬 효과 중단
-            skill.StopCode();
+            StartCoroutine(skill.StopCode());
+            StopCoroutine(codeCasters[caster][skill]);
             codeCasters[caster].Remove(skill);
             if (codeCasters[caster].Count == 0)
             {
@@ -49,12 +55,13 @@ public class SkillManager
     {
         if (caster == null)
             return;
-            
+
         if (codeCasters.ContainsKey(caster))
         {
-            foreach (var skill in codeCasters[caster])
+            foreach (var kvPair in codeCasters[caster])
             {
-                skill.StopCode();
+                StartCoroutine(kvPair.Key.StopCode());
+                StopCoroutine(codeCasters[caster][kvPair.Key]);
             }
             codeCasters.Remove(caster);
         }

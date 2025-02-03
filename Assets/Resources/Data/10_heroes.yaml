@@ -1,13 +1,13 @@
-characters:
+heroes:
   - id: 1
     name: DEADEYE
     synergies:
       - 1
       - 2
-    hp_base: 931
-    atk_base: 640
-    def_base: 364
-    crit_chance_base: 5
+    hp_base: 10000
+    atk_base: 800
+    def_base: 300
+    crit_chance_base: 20
     crit_damage_base: 50
     codes:
       passive: 1

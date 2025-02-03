@@ -1,3 +1,7 @@
+public class CodeCreationContext
+{
+  public Unit caster;
+}
 public static class CodeFactory
 {
   public static CodeBase CreateCode(int codeId, CodeCreationContext context)

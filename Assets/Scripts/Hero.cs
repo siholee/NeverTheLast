@@ -5,18 +5,18 @@ using UnityEngine;
 public class Hero : Unit
 {
     public int[] synergies;
-    public override void InitProcess(bool isHero, int id)
+    public override void InitProcess(bool isEnemy, int id)
     {
-        base.InitProcess(isHero, id);
-        LoadData(isHero, id);
+        LoadData(isEnemy, id);
+        base.InitProcess(isEnemy, id);
         StatusUpdate();
     }
-        // 캐릭터 데이터를 로드하는 함수
-    public void LoadData(bool isHero, int id)
+    // 캐릭터 데이터를 로드하는 함수
+    public void LoadData(bool isEnemy, int id)
     {
         // 라운드별 스탯 증가량 반영 필요
-        HeroData data = gameManager.heroDataList.heroes.FirstOrDefault(e => e.id == id);
-        LoadSprite(data.portrait, isHero);
+        HeroData data = GameManager.Instance.heroDataList.heroes.FirstOrDefault(e => e.id == id);
+        LoadSprite(data.portrait, isEnemy);
 
         if (data == null)
         {
@@ -31,9 +31,16 @@ public class Hero : Unit
 
         // 체력 관련 초기화
         baseHp = data.hp_base;
+        maxHp = baseHp;
         hpMultiplicativeBuff = 0f;
         hpAdditiveBuff = 0f;
-        currentHp = baseHp;
+        currentHp = maxHp;
+
+        // 마나 관련 초기화
+        maxMana = 100;
+        currentMana = 0;
+        manaChargeRate = 1f;
+        manaChargeBuff = 0;
 
         // 공격력 관련 초기화
         baseAtk = data.atk_base;
@@ -46,6 +53,8 @@ public class Hero : Unit
         defMultiplicativeBuff = 0f;
         defAdditiveBuff = 0f;
         def = baseDef;
+        damageReduction = 0f;
+        damageReductionBuff = 0;
 
         // 기타 초기화
         baseCritChance = 0f;
@@ -53,7 +62,7 @@ public class Hero : Unit
         baseCritDamage = 0f;
         critDamageBuff = 0f;
 
-        baseCooldown = 0f;
+        baseCooldown = 1f;
         cooldownMultiplicativeBuff = 0f;
         cooldownAdditiveBuff = 0f;
 

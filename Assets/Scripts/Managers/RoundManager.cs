@@ -15,16 +15,22 @@ public class RoundManager
         dataManager = manager;
         spawnQueues = new Dictionary<int, Queue<int>>();
     }
- 
+
+    public void SpawnHeroesForTest()
+    {
+        GridManager.Instance.SpawnUnit(-1, 2, false, 1);
+    }
+
     public void LoadRound(int roundNumber)
     {
+        if (roundNumber == 1) SpawnHeroesForTest();
         ROUND = roundNumber;
 
         RoundDataList roundDataList = dataManager.FetchRoundDataList();
         currentRound = roundDataList.rounds.Find(r => r.roundNumber == ROUND);
         if (currentRound == null)
         {
-            Debug.LogError($"No data found for round {ROUND}.");
+            // Debug.LogError($"No data found for round {ROUND}.");
             return;
         }
 
@@ -33,50 +39,50 @@ public class RoundManager
         {
             Queue<int> queue = new Queue<int>(cell.enemyIds);
             spawnQueues[cell.cellIndex] = queue;
-            Debug.Log($"Cell {cell.cellIndex}: Initialized with {queue.Count} enemies in queue.");
+            // Debug.Log($"Cell {cell.cellIndex}: Initialized with {queue.Count} enemies in queue.");
         }
 
-        Debug.Log($"Round {ROUND} data loaded successfully.");
+        // Debug.Log($"Round {ROUND} data loaded successfully.");
         IsRoundInProgress = true;
     }
 
     public void UpdateRound()
     {
-        Debug.Log("Updating round...");
+        // Debug.Log("Updating round...");
         foreach (var cellIndex in spawnQueues.Keys)
         {
-            Debug.Log($"Checking cellIndex {cellIndex}...");
-            
+            // Debug.Log($"Checking cellIndex {cellIndex}...");
+
             // 적을 소환하려 시도하고 실패하면 루프를 종료
             while (spawnQueues[cellIndex].Count > 0)
             {
                 if (!TrySpawnEnemy(cellIndex))
                 {
-                    Debug.Log($"No space available for cellIndex {cellIndex}. Stopping spawn attempts.");
+                    // Debug.Log($"No space available for cellIndex {cellIndex}. Stopping spawn attempts.");
                     break; // 소환 실패 시 루프 종료
                 }
             }
 
             if (spawnQueues[cellIndex].Count > 0)
             {
-                Debug.Log($"Cell {cellIndex}: {spawnQueues[cellIndex].Count} enemies remain in queue.");
+                // Debug.Log($"Cell {cellIndex}: {spawnQueues[cellIndex].Count} enemies remain in queue.");
             }
         }
 
         if (AreAllQueuesEmpty())
         {
-            Debug.Log("All queues are empty. Ending round.");
+            // Debug.Log("All queues are empty. Ending round.");
             EndRound();
         }
         else
         {
-            Debug.Log("Enemies still remain in queues. Round continues.");
+            // Debug.Log("Enemies still remain in queues. Round continues.");
         }
     }
-    
+
     private bool TrySpawnEnemy(int cellIndex)
     {
-        Debug.Log($"Trying to spawn enemy at cellIndex {cellIndex}...");
+        // Debug.Log($"Trying to spawn enemy at cellIndex {cellIndex}...");
 
         // xPos에 해당하는 yPos를 모두 확인 (1, 2, 3)
         for (int y = 1; y <= 3; y++)
@@ -88,14 +94,14 @@ public class RoundManager
                 int enemyId = spawnQueues[cellIndex].Dequeue();
 
                 // GridManager의 SpawnEnemy에 xPos, yPos, enemyId 전달
-                GridManager.Instance.SpawnEnemy(cellIndex, y, enemyId);
+                GridManager.Instance.SpawnUnit(cellIndex, y, true, enemyId);
 
-                Debug.Log($"Enemy {enemyId} spawned at Cell ({cellIndex}, {y}).");
+                // Debug.Log($"Enemy {enemyId} spawned at Cell ({cellIndex}, {y}).");
                 return true; // 적 소환 성공
             }
         }
 
-        Debug.Log($"No available space to spawn enemy at cellIndex {cellIndex}.");
+        // Debug.Log($"No available space to spawn enemy at cellIndex {cellIndex}.");
         return false; // 적 소환 실패
     }
 
@@ -110,13 +116,13 @@ public class RoundManager
 
     private void EndRound()
     {
-        Debug.Log($"Round {ROUND} completed.");
+        // Debug.Log($"Round {ROUND} completed.");
         IsRoundInProgress = false;
     }
 
     public void NotifyCellAvailable(int cellIndex)
     {
-        Debug.Log($"Cell {cellIndex} is now available. Checking queue...");
+        // Debug.Log($"Cell {cellIndex} is now available. Checking queue...");
         if (spawnQueues.ContainsKey(cellIndex) && spawnQueues[cellIndex].Count > 0)
         {
             TrySpawnEnemy(cellIndex);

@@ -1,11 +1,11 @@
 enemies:
   - id: 1
     name: DAIYAN
-    hp_base: 931
+    hp_base: 3000
     hp_increment: 1
-    atk_base: 640
+    atk_base: 120
     atk_increment: 1
-    def_base: 364
+    def_base: 100
     def_increment: 1
     crit_chance_base: 5
     crit_damage_base: 50
@@ -16,13 +16,13 @@ enemies:
     portrait: DAIYAN_PORTRAIT
   - id: 2
     name: CLUKAY
-    hp_base: 931
+    hp_base: 5000
     hp_increment: 1
-    atk_base: 640
+    atk_base: 200
     atk_increment: 1
-    def_base: 364
+    def_base: 150
     def_increment: 1
-    crit_chance_base: 5
+    crit_chance_base: 50
     crit_damage_base: 50
     codes:
       passive: 1
