@@ -1,0 +1,29 @@
+status:
+  - id: 1
+    name: Burn
+    Category: Negative
+    Type: DOT
+    canRemove: true
+    Timer: 10.0
+    Counter: 0
+  - id: 2
+    name: Attack Up
+    Category: Positive
+    Type: StatBuff
+    canRemove: true
+    Timer: 0
+    Counter: 3
+  - id: 3
+    name: Frozen  
+    Category: Negative
+    Type: Stun
+    canRemove: true
+    Timer: 2.0
+    Counter: 0
+  - id: 4
+    name: Immortality
+    Category: Positive
+    Type: StatBuff
+    canRemove: Etc
+    Timer: 10.0
+    Counter: 1

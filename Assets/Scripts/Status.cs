@@ -7,6 +7,13 @@ public enum StatusCategory {
     Neutral    // 중립적인 상태
 }
 
+public enum StatusType {
+    StatBuff,
+    DOT,
+    Stun,
+    Etc
+}
+
 // 기본 상태 클래스
 public class Status {
     // 상태 식별자
@@ -17,6 +24,7 @@ public class Status {
     public string Name;
     // 상태 범주
     public StatusCategory Category;
+    public StatusType Type;
     // 상태 제거 가능 여부
     public bool canRemove;
     // 지속 시간 (0일 경우 무제한)
