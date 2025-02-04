@@ -1,13 +1,28 @@
 heroes:
   - id: 1
-    name: DEADEYE
+    name: SEI
     synergies:
       - 1
       - 2
-    hp_base: 10000
-    atk_base: 800
-    def_base: 300
-    crit_chance_base: 20
+    hp_base: 1203
+    atk_base: 446
+    def_base: 655
+    crit_chance_base: 5
+    crit_damage_base: 50
+    codes:
+      passive: 1
+      normal: 4
+      ultimate: 3
+    portrait: SEI_PORTRAIT
+  - id: 2
+    name: LYNN
+    synergies:
+      - 1
+      - 3
+    hp_base: 931
+    atk_base: 640
+    def_base: 364
+    crit_chance_base: 5
     crit_damage_base: 50
     codes:
       passive: 1

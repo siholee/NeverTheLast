@@ -14,6 +14,8 @@ public class Unit : MonoBehaviour
     public bool isEnemy;
     public string unitName;
 
+    public int level;
+
     // 체력 관련 능력치
     public int currentHp;
     public int maxHp;
@@ -280,5 +282,10 @@ public class Unit : MonoBehaviour
     public void RecoverMana(int amount)
     {
         currentMana = Mathf.Min((int)(currentMana + amount * manaChargeRate), maxMana);
+    }
+
+    public int SetBase(int n, int lv, int increase)
+    {
+        return n + lv * increase;
     }
 }

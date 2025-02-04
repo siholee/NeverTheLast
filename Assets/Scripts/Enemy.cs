@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class Enemy : Unit
 {
-    public int LEVEL; // 적 레벨
-
     public override void InitProcess(bool isEnemy, int id)
     {
         LoadData(isEnemy, id);
@@ -69,10 +67,5 @@ public class Enemy : Unit
         passiveCodeId = data.codes["passive"];
         normalCodeId = data.codes["normal"];
         ultimateCodeId = data.codes["ultimate"];
-    }
-
-    public int SetBase(int n, int lv, int increase)
-    {
-        return n + lv * increase;
     }
 }

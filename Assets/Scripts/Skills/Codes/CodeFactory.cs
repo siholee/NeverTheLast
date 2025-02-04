@@ -14,6 +14,8 @@ public static class CodeFactory
         return new FireBlast(context);
       case 3:
         return new Laevateinn(context);
+      case 4:
+        return new AuricMandate(context);
       default:
         return null;
     }

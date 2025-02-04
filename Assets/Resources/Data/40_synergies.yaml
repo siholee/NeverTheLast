@@ -1,5 +1,7 @@
 synergies:
   - id: 1
-    name: "Heavy"
+    name: "@SYNERGY_NAME: AKASHA"
   - id: 2
-    name: "Machine"
+    name: "@SYNERGY_NAME: LEADER"
+  - id: 3
+    name: "@SYNERGY_NAME: SNIPER"
