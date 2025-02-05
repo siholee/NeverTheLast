@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-
 public class Unit : MonoBehaviour
 {
     public GameManager gameManager;
@@ -13,7 +12,6 @@ public class Unit : MonoBehaviour
     public int id;
     public bool isEnemy;
     public string unitName;
-
     public int level;
 
     // 체력 관련 능력치
@@ -22,31 +20,45 @@ public class Unit : MonoBehaviour
     public int baseHp;
     public float hpMultiplicativeBuff;
     public float hpAdditiveBuff;
+    public int statHp;
+    public int growthHp;
+    public int upgradeHp;
 
     // 공격력 관련 능력치
-    public int atk;
-    public int baseAtk;
-    public float atkMultiplicativeBuff;
-    public float atkAdditiveBuff;
+    public int atk; // 현재 공격력
+    public int baseAtk; // 기본 공격력
+    public float atkMultiplicativeBuff; // 공퍼
+    public float atkAdditiveBuff; // 깡공
+    public int statAtk; // 기초 공격력
+    public int growthAtk; // 성장 공격력
+    public int upgradeAtk; // 공격력 업그레이드 횟수
 
     // 방어력 관련 능력치
     public int def;
     public int baseDef;
     public float defMultiplicativeBuff;
     public float defAdditiveBuff;
-
-    // 비율 피해 감소
+    public int statDef;
+    public int growthDef;
+    public int upgradeDef;
     public float damageReduction;
     public int damageReductionBuff;
 
-    // 치명타 확률 및 피해
+    // 치명타 확률 관련 능력치
     public float critChance;
     public float baseCritChance;
     public float critChanceBuff;
+    public float statCritChance;
+    public float growthCritChance;
+    public float upgradeCritChance;
 
+    // 치명타 피해 관련 능력치
     public float critDamage;
     public float baseCritDamage;
     public float critDamageBuff;
+    public float statCritDamage;
+    public float growthCritDamage;
+    public float upgradeCritDamage;
 
     // 쿨타임
     public float cooldown;
@@ -54,13 +66,13 @@ public class Unit : MonoBehaviour
     public float cooldownMultiplicativeBuff;
     public float cooldownAdditiveBuff;
 
-    // 마나
+    // 마나 관련 능력치
     public int currentMana;
     public int maxMana;
     public float manaChargeRate;
     public int manaChargeBuff;
 
-    // 코드
+    // 코드 관련 변수들
     public int passiveCodeId;
     public int normalCodeId;
     public int ultimateCodeId;
@@ -78,9 +90,9 @@ public class Unit : MonoBehaviour
     public Dictionary<string, float> damageIncreaseByAttribute = new Dictionary<string, float>();
 
     /// <summary>
-    /// 태그그별 받는 피해 감소를 관리하는 딕셔너리
-    /// key: 속성 ID (예: DamageTag.SINGLE_TARGET 등 Helper/helper.cs에서 추가)
-    /// value: 피해 감소 비율 (예: 30은은 30% 감소)
+    /// 태그별 받는 피해 감소를 관리하는 딕셔너리
+    /// key: 속성 ID (예: DamageTag.SINGLE_TARGET 등)
+    /// value: 피해 감소 비율 (예: 30은 30% 감소)
     /// </summary>
     public Dictionary<int, int> damageReductionByAttribute = new Dictionary<int, int>();
 
@@ -112,6 +124,22 @@ public class Unit : MonoBehaviour
         currentCell.portraitRenderer.sprite = sprite;
     }
 
+    /// <summary>
+    /// 능력치 기본값들을 산출하는 함수 (모든 스탯에 대해)
+    /// </summary>
+    public void SetBase()
+    {
+        // 공격력 기본값 계산
+        baseAtk = statAtk + (level * growthAtk) + (upgradeAtk * growthAtk);
+        // 체력 기본값 계산
+        baseHp = statHp + (level * growthHp) + (upgradeHp * growthHp);
+        // 방어력 기본값 계산
+        baseDef = statDef + (level * growthDef) + (upgradeDef * growthDef);
+        // 치명타 확률 기본값 계산
+        baseCritChance = statCritChance + (level * growthCritChance) + (upgradeCritChance * growthCritChance);
+        // 치명타 피해 기본값 계산
+        baseCritDamage = statCritDamage + (level * growthCritDamage) + (upgradeCritDamage * growthCritDamage);
+    }
 
     /// <summary>
     /// 상태 업데이트 함수
@@ -126,7 +154,8 @@ public class Unit : MonoBehaviour
         def = (int)(baseDef * (1 + (defMultiplicativeBuff * 0.01f)) + defAdditiveBuff);
         critChance = baseCritChance + critChanceBuff;
         critDamage = baseCritDamage + critDamageBuff;
-        damageReduction = damageReductionBuff * 0.01f;
+        // 비율 피해 감소 등 나머지 스탯 업데이트
+        damageReduction = damageReductionByAttribute.ContainsKey(0) ? damageReductionByAttribute[0] * 0.01f : 0f;
         manaChargeRate = 1 + manaChargeBuff * 0.01f;
         manaChargeBuff = 0;
         cooldown = baseCooldown * (1 + cooldownMultiplicativeBuff * 0.01f) + cooldownAdditiveBuff;
@@ -140,13 +169,9 @@ public class Unit : MonoBehaviour
     /// <param name="damageTags">입는 데미지의 속성들</param>
     public void TakeDamage(float Damage, int armorPenetration, List<int> damageTags)
     {
-        // 방어력 관통 적용 (방어력에서 선 차감)
         float effectiveDEF = Mathf.Max(def - armorPenetration, 0);
-
-        // 데미지 계산: Damage * (1 / (1 + DEF * 0.01f))
         float damageReceived = Damage * (1f / (1f + effectiveDEF * 0.01f));
 
-        // 속성별 피해 감소 적용
         foreach (int attr in damageTags)
         {
             if (damageReductionByAttribute.ContainsKey(attr))
@@ -157,7 +182,6 @@ public class Unit : MonoBehaviour
         }
         damageReceived *= 1 - damageReduction;
 
-        // 체력 차감
         int hpBeforeHit = currentHp;
         currentHp -= Mathf.FloorToInt(damageReceived);
         Debug.Log($"{unitName}은(는) {hpBeforeHit}의 체력을 지닌 채 {damageReceived}의 피해를 받았습니다. 남은 체력: {currentHp}");
@@ -166,23 +190,15 @@ public class Unit : MonoBehaviour
         {
             currentHp = 0;
             Debug.Log($"{unitName}은(는) 사망했습니다.");
-            // 추가적인 사망 처리 로직 (예: 게임 오브젝트 비활성화 등)
             DeactivateUnit();
             gameManager.skillManager.OnCasterDeath(this);
         }
     }
 
-    /// <summary>
-    /// 예시: 초기화 시 속성별 피해 증가 및 감소 설정
-    /// </summary>
     private void Start()
     {
         gameManager = GameManager.Instance;
-
-        // 예시: 전체공격 피격 피해 30% 감소
-        // AddDamageReduction(DamageTag.ALL_TARGET, 30); // 전체공격 피격 피해 30% 감소
-
-        // 다른 속성들도 필요에 따라 추가
+        // 추가 설정이 필요하다면 이곳에 작성
     }
 
     private void Update()
@@ -228,11 +244,6 @@ public class Unit : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 속성별 피해 증가를 추가하는 함수
-    /// </summary>
-    /// <param name="attribute">속성 이름</param>
-    /// <param name="increase">피해 증가 비율 (0 ~ 1)</param>
     public void AddDamageIncrease(string attribute, float increase)
     {
         if (damageIncreaseByAttribute.ContainsKey(attribute))
@@ -245,11 +256,6 @@ public class Unit : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 속성별 피해 감소를 추가하는 함수
-    /// </summary>
-    /// <param name="attribute">속성 id(Helpes/Helper.cs)</param>
-    /// <param name="reduction">피해 감소 비율 (0 ~ 1)</param>
     public void AddDamageReduction(int tag, int reduction)
     {
         if (damageReductionByAttribute.ContainsKey(tag))
@@ -282,10 +288,5 @@ public class Unit : MonoBehaviour
     public void RecoverMana(int amount)
     {
         currentMana = Mathf.Min((int)(currentMana + amount * manaChargeRate), maxMana);
-    }
-
-    public int SetBase(int n, int lv, int increase)
-    {
-        return n + lv * increase;
     }
 }

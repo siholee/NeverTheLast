@@ -89,11 +89,17 @@ public class HeroData
     public int id;
     public string name;
     public int[] synergies;
-    public int hp_base;
-    public int atk_base;
-    public int def_base;
-    public int crit_chance_base;
-    public int crit_damage_base;
+    public int hp;
+    public int hp_increase;
+    public int atk;
+    public int atk_increase;
+    public int def;
+    public int def_increase;
+    public int crit_chance;
+    public int crit_chance_increase;
+    public int crit_damage;
+    public int crit_damage_increase;
+    public int mana;
     public Dictionary<string, int> codes;
     public string portrait;
 }

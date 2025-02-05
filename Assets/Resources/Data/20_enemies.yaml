@@ -1,7 +1,7 @@
 enemies:
   - id: 1
     name: DAIYAN
-    hp_base: 3000
+    hp_base: 300
     hp_increment: 1
     atk_base: 120
     atk_increment: 1
@@ -16,7 +16,7 @@ enemies:
     portrait: DAIYAN_PORTRAIT
   - id: 2
     name: CLUKAY
-    hp_base: 5000
+    hp_base: 500
     hp_increment: 1
     atk_base: 200
     atk_increment: 1

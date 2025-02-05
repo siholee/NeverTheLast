@@ -20,7 +20,7 @@ public class AuricMandate : CodeBase
         caster.isCasting = true;
         targetUnits = GridManager.Instance.TargetNearestEnemy(caster);
 
-        // 4 consecutive single target attacks, each dealing 80% of caster's attack
+        // 4회 타격
         for (int i = 0; i < 4; i++)
         {
             InstantDamage instantDamage = new(targetUnits, new List<int> { DamageTag.SINGLE_TARGET }, (int)(caster.atk * 0.8f));

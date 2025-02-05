@@ -7,8 +7,10 @@ public class Hero : Unit
     public int[] synergies;
     public override void InitProcess(bool isEnemy, int id)
     {
+        level = 1;
         LoadData(isEnemy, id);
         base.InitProcess(isEnemy, id);
+        SetBase();
         StatusUpdate();
     }
     // 캐릭터 데이터를 로드하는 함수
@@ -30,26 +32,29 @@ public class Hero : Unit
         synergies = data.synergies;
 
         // 체력 관련 초기화
-        baseHp = data.hp_base;
-        maxHp = baseHp;
+        statHp = data.hp;
+        growthHp = data.hp_increase;
+        upgradeHp = 0;
+        maxHp = statHp + growthHp;
         hpMultiplicativeBuff = 0f;
         hpAdditiveBuff = 0f;
         currentHp = maxHp;
 
         // 마나 관련 초기화
-        maxMana = 100;
+        maxMana = data.mana;
         currentMana = 0;
         manaChargeRate = 1f;
         manaChargeBuff = 0;
 
         // 공격력 관련 초기화
-        baseAtk = data.atk_base;
+        statAtk = data.atk;
+        growthAtk = data.atk_increase;
+        upgradeAtk = 0;
         atkMultiplicativeBuff = 0f;
         atkAdditiveBuff = 0f;
-        atk = baseAtk;
 
         // 방어력 관련 초기화
-        baseDef = data.def_base;
+        statDef = data.def;
         defMultiplicativeBuff = 0f;
         defAdditiveBuff = 0f;
         def = baseDef;
