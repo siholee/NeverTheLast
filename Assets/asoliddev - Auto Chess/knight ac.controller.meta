@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 364a706ab409f9f418954e762347678c
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 159545
+  packageName: Auto Chess
+  packageVersion: 1.0
+  assetPath: Assets/asoliddev - Auto Chess/knight ac.controller
+  uploadId: 355440

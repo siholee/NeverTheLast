@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 922b77e70f5edd844bfbf722ca138255
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 159545
+  packageName: Auto Chess
+  packageVersion: 1.0
+  assetPath: Assets/asoliddev - Auto Chess/Scripts/Champion.cs
+  uploadId: 355440

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: d190cf551b5d25645b384a58df4154a0
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 159545
+  packageName: Auto Chess
+  packageVersion: 1.0
+  assetPath: Assets/asoliddev - Auto Chess/ChampionTypes/Frost.asset
+  uploadId: 355440

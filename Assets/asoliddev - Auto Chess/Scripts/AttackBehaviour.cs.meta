@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: bc66b714b42d7cd48a7e9341f31eba22
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 159545
+  packageName: Auto Chess
+  packageVersion: 1.0
+  assetPath: Assets/asoliddev - Auto Chess/Scripts/AttackBehaviour.cs
+  uploadId: 355440

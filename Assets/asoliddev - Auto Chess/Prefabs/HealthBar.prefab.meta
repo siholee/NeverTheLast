@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 1d6a954fe5c7aaf4dac9e594db9585b4
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 159545
+  packageName: Auto Chess
+  packageVersion: 1.0
+  assetPath: Assets/asoliddev - Auto Chess/Prefabs/HealthBar.prefab
+  uploadId: 355440

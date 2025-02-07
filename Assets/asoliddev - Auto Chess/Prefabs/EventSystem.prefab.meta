@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 3305eed4e4ae4e3468bb2dcec7f8352a
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 159545
+  packageName: Auto Chess
+  packageVersion: 1.0
+  assetPath: Assets/asoliddev - Auto Chess/Prefabs/EventSystem.prefab
+  uploadId: 355440

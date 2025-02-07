@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: f1d18db0a2ad1b1448047b1f46b3daa7
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 159545
+  packageName: Auto Chess
+  packageVersion: 1.0
+  assetPath: Assets/asoliddev - Auto Chess/Scripts/ChampionBonus.cs
+  uploadId: 355440
