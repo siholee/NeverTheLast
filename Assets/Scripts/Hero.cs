@@ -12,6 +12,8 @@ public class Hero : Unit
         base.InitProcess(isEnemy, id);
         SetBase();
         StatusUpdate();
+        Debug.LogWarning($"{unitName} 생성 완료");
+        GameManager.Instance.unitManager.SetUnitCooldown(this);
     }
     // 캐릭터 데이터를 로드하는 함수
     public void LoadData(bool isEnemy, int id)
@@ -67,7 +69,7 @@ public class Hero : Unit
         baseCritDamage = 0f;
         critDamageBuff = 0f;
 
-        baseCooldown = 1f;
+        cooldownRate = 1f;
         cooldownMultiplicativeBuff = 0f;
         cooldownAdditiveBuff = 0f;
 

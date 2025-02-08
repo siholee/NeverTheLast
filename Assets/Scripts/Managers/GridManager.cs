@@ -8,6 +8,8 @@ public class GridManager : MonoBehaviour
     // 싱글톤 인스턴스
     public static GridManager Instance { get; private set; }
 
+    public GameManager gameManager;
+
     public GameObject cellPrefab;
     public GameObject HeroPrefab;
     public GameObject EnemyPrefab;
@@ -35,7 +37,7 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    private void Start()
+    public void InitializeComponent()
     {
         heroList = new List<Hero>();
         enemyList = new List<Enemy>();
@@ -59,7 +61,7 @@ public class GridManager : MonoBehaviour
 
                 // Cell 생성 및 초기화
                 GameObject cellObject = Instantiate(cellPrefab, position, Quaternion.identity, transform);
-                cellObject.name = $"Cell_{x}_{y}";
+                cellObject.name = $"Cell ({x}, {y})";
 
                 Cell cellComponent = cellObject.GetComponent<Cell>();
                 if (cellComponent != null)
@@ -123,7 +125,7 @@ public class GridManager : MonoBehaviour
     {
         int adjustedX = xPos - xMin;
         int adjustedY = yPos - yMin;
-        Debug.LogWarning($"adjustedX: {adjustedX}, adjustedY: {adjustedY}");
+        // Debug.LogWarning($"adjustedX: {adjustedX}, adjustedY: {adjustedY}");
 
         if (adjustedX >= 0 && adjustedX < cellManager.GetLength(0) &&
             adjustedY >= 0 && adjustedY < cellManager.GetLength(1))

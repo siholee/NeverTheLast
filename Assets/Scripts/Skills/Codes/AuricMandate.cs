@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class AuricMandate : CodeBase
 {
-    private float duration = 0.5f;
-
     public AuricMandate(CodeCreationContext context)
     {
+        codeType = CodeType.Normal;
         caster = context.caster;
         cooldown = 2f;
+        duration = 0.2f;
         codeName = "성광의 권능";
         manaAmount = 10;
         effects = new Dictionary<string, EffectBase>();
@@ -17,7 +17,7 @@ public class AuricMandate : CodeBase
 
     public override IEnumerator StartCode()
     {
-        caster.isCasting = true;
+        caster.isCastingNormal = true;
         targetUnits = GridManager.Instance.TargetNearestEnemy(caster);
 
         // 4회 타격
@@ -40,7 +40,7 @@ public class AuricMandate : CodeBase
             effect.Value.RemoveEffect();
         }
         effects.Clear();
-        caster.isCasting = false;
+        caster.isCastingNormal = false;
         caster.RecoverMana(manaAmount);
         yield return null;
     }

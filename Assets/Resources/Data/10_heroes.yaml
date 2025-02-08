@@ -4,7 +4,7 @@ heroes:
     synergies:
       - 1
       - 2
-    hp: 164
+    hp: 1640
     hp_increase: 155
     atk: 61
     atk_increase: 57

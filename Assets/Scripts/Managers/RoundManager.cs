@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class RoundManager
 {
+    public GameManager gameManager;
     private DataManager dataManager;
     public int ROUND { get; private set; }
     public bool IsRoundInProgress { get; private set; }
@@ -18,7 +19,7 @@ public class RoundManager
 
     public void SpawnHeroesForTest()
     {
-        GridManager.Instance.SpawnUnit(-1, 2, false, 1);
+        gameManager.gridManager.SpawnUnit(-1, 2, false, 1);
     }
 
     public void LoadRound(int roundNumber)
@@ -88,13 +89,13 @@ public class RoundManager
         for (int y = 1; y <= 3; y++)
         {
             // GridManager의 IsCellAvailable에 xPos와 yPos를 전달
-            if (GridManager.Instance.IsCellAvailable(cellIndex, y))
+            if (gameManager.gridManager.IsCellAvailable(cellIndex, y))
             {
                 // 대기열에서 적 ID를 가져옴
                 int enemyId = spawnQueues[cellIndex].Dequeue();
 
                 // GridManager의 SpawnEnemy에 xPos, yPos, enemyId 전달
-                GridManager.Instance.SpawnUnit(cellIndex, y, true, enemyId);
+                gameManager.gridManager.SpawnUnit(cellIndex, y, true, enemyId);
 
                 // Debug.Log($"Enemy {enemyId} spawned at Cell ({cellIndex}, {y}).");
                 return true; // 적 소환 성공

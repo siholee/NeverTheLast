@@ -4,19 +4,20 @@ using UnityEngine;
 
 public class FireBlast : CodeBase
 {
-  private float duration = 0.5f;
   public FireBlast(CodeCreationContext context)
   {
+    codeType = CodeType.Normal;
     caster = context.caster;
     cooldown = 2f;
     codeName = "불알";
+    duration = 0.5f;
     manaAmount = 10;
     effects = new Dictionary<string, EffectBase>();
   }
 
   public override IEnumerator StartCode()
   {
-    caster.isCasting = true;
+    caster.isCastingNormal = true;
     targetUnits = GridManager.Instance.TargetNearestEnemy(caster);
     InstantDamage instantDamage = new(targetUnits, new List<int> { DamageTag.SINGLE_TARGET }, (int)(caster.atk * 1.5f));
     effects.Add("Damage", instantDamage);
@@ -34,13 +35,14 @@ public class FireBlast : CodeBase
       effect.Value.RemoveEffect();
     }
     effects.Clear();
-    caster.isCasting = false;
+    caster.isCastingNormal = false;
     caster.RecoverMana(manaAmount);
     yield return null;
   }
 
   public override bool CanCast()
   {
+
     return GridManager.Instance.TargetNearestEnemy(caster).Count == 1;
   }
 }

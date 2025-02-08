@@ -3,7 +3,7 @@ enemies:
     name: DAIYAN
     hp_base: 300
     hp_increment: 1
-    atk_base: 120
+    atk_base: 12
     atk_increment: 1
     def_base: 100
     def_increment: 1

@@ -11,6 +11,7 @@ public class Enemy : Unit
         base.InitProcess(isEnemy, id);
         SetBase();
         StatusUpdate();
+        gameManager.unitManager.SetUnitCooldown(this);
     }
     // 캐릭터 데이터를 로드하는 함수
     public void LoadData(bool isEnemy, int id)
@@ -27,7 +28,7 @@ public class Enemy : Unit
         // 적 데이터로 Unit 속성 초기화
         base.id = data.id;
         unitName = data.name;
-        
+
         // 체력 관련 초기화
         statHp = data.hp_base;
         growthHp = data.hp_increment;
@@ -64,7 +65,7 @@ public class Enemy : Unit
         baseCritDamage = 0f;
         critDamageBuff = 0f;
 
-        baseCooldown = 1f;
+        cooldownRate = 1f;
         cooldownMultiplicativeBuff = 0f;
         cooldownAdditiveBuff = 0f;
 

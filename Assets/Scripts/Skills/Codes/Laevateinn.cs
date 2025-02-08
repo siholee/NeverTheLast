@@ -6,15 +6,17 @@ public class Laevateinn : CodeBase
 {
   public Laevateinn(CodeCreationContext context)
   {
+    codeType = CodeType.Ultimate;
     caster = context.caster;
     cooldown = 10f;
     codeName = "레바테인";
+    duration = 3f;
     effects = new Dictionary<string, EffectBase>();
   }
 
   public override IEnumerator StartCode()
   {
-    caster.isCasting = true;
+    caster.isCastingUltimate = true;
     targetUnits = GridManager.Instance.TargetAllEnemies(caster);
     effects = new Dictionary<string, EffectBase>
     {
@@ -39,7 +41,7 @@ public class Laevateinn : CodeBase
       }
     }
     effects.Clear();
-    caster.isCasting = false;
+    caster.isCastingUltimate = false;
     yield return null;
   }
 

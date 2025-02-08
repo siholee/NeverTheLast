@@ -3,88 +3,71 @@ using UnityEngine;
 
 public class UnitManager : MonoBehaviour
 {
-  public static UnitManager Instance { get; private set; }
+  public GameManager gameManager;
 
-  // 이벤트 델리게이트 정의
-  public event Action<Unit> PassiveSkillActivated;
-  public event Action<Unit> NormalSkillActivated;
-  public event Action<Unit> UltimateSkillActivated;
-  public event Action<Unit, float> DamageApplied;
-  public event Action<Unit, float> HealApplied;
-  public event Action<Unit, int> HpChanged;
-  public event Action<Unit, StatusEffect> StatusEffectApplied;
+  public CooldownController[,] heroCooldowns;
+  public CooldownController[,] enemyCooldowns;
 
-  private void Awake()
+
+  public void SetUnitCooldown(Unit unit)
   {
-    if (Instance == null)
+    Cell cell = unit.currentCell;
+    int x = unit.isEnemy ? cell.xPos - 1 : cell.xPos + 4;
+    int y = cell.yPos - 1;
+    if (!unit.isEnemy)
     {
-      Instance = this;
-      // 씬 전환 시에도 유지하고 싶으면 아래 코드 활성화
-      // DontDestroyOnLoad(gameObject);
+      heroCooldowns[x, y].SetUnit(unit);
     }
     else
     {
-      Destroy(gameObject);
+      enemyCooldowns[x, y].SetUnit(unit);
     }
   }
 
-  // 스킬 이벤트 호출 함수들
-  public void TriggerPassiveSkill(Unit unit)
+  private void Update()
   {
-    PassiveSkillActivated?.Invoke(unit);
-  }
-
-  public void TriggerNormalSkill(Unit unit)
-  {
-    NormalSkillActivated?.Invoke(unit);
-  }
-
-  public void TriggerUltimateSkill(Unit unit)
-  {
-    UltimateSkillActivated?.Invoke(unit);
-  }
-
-  // 데미지 및 회복 이벤트 호출 함수들
-  public void ApplyDamage(Unit unit, float damage)
-  {
-    // 데미지 이벤트 발행
-    DamageApplied?.Invoke(unit, damage);
-    // 체력 수정 및 체력 변화 이벤트 발행
-    unit.currentHp -= (int)damage;
-    if (unit.currentHp < 0)
-      unit.currentHp = 0;
-    HpChanged?.Invoke(unit, unit.currentHp);
-  }
-
-  public void ApplyHealing(Unit unit, float heal)
-  {
-    // 회복 이벤트 발행
-    HealApplied?.Invoke(unit, heal);
-    unit.currentHp += (int)heal;
-    if (unit.currentHp > unit.maxHp)
-      unit.currentHp = unit.maxHp;
-    HpChanged?.Invoke(unit, unit.currentHp);
-  }
-
-  // 상태 효과 부여 이벤트 호출 함수
-  public void ApplyStatusEffect(Unit unit, StatusEffect statusEffect)
-  {
-    StatusEffectApplied?.Invoke(unit, statusEffect);
-  }
-}
-
-// 간단한 상태 효과 클래스 예제
-[Serializable]
-public class StatusEffect
-{
-  public string effectName;
-  public float duration;
-  public float magnitude;
-
-  public StatusEffect(string effectName, float duration, float magnitude)
-  {
-    this.effectName = effectName;
-    this.duration = duration;
-    this.magnitude = magnitude;
+    if (gameManager.gameState == GameManager.GameState.RoundInProgress)
+    {
+      foreach (CooldownController cCon in heroCooldowns)
+      {
+        cCon.UpdateCooldown(Time.deltaTime);
+        CodeBase.CodeType typeToCast = cCon.CheckCodeTypeToCast();
+        switch (typeToCast)
+        {
+          case CodeBase.CodeType.Passive:
+            cCon.unit.ActivatePassiveCode();
+            cCon.ResetCooldown(CodeBase.CodeType.Passive);
+            break;
+          case CodeBase.CodeType.Normal:
+            cCon.unit.ActivateNormalCode();
+            cCon.ResetCooldown(CodeBase.CodeType.Normal);
+            break;
+          case CodeBase.CodeType.Ultimate:
+            cCon.unit.ActivateUltimateCode();
+            cCon.ResetCooldown(CodeBase.CodeType.Ultimate);
+            break;
+        }
+      }
+      foreach (CooldownController cCon in enemyCooldowns)
+      {
+        cCon.UpdateCooldown(Time.deltaTime);
+        CodeBase.CodeType typeToCast = cCon.CheckCodeTypeToCast();
+        switch (typeToCast)
+        {
+          case CodeBase.CodeType.Passive:
+            cCon.unit.ActivatePassiveCode();
+            cCon.ResetCooldown(CodeBase.CodeType.Passive);
+            break;
+          case CodeBase.CodeType.Normal:
+            cCon.unit.ActivateNormalCode();
+            cCon.ResetCooldown(CodeBase.CodeType.Normal);
+            break;
+          case CodeBase.CodeType.Ultimate:
+            cCon.unit.ActivateUltimateCode();
+            cCon.ResetCooldown(CodeBase.CodeType.Ultimate);
+            break;
+        }
+      }
+    }
   }
 }

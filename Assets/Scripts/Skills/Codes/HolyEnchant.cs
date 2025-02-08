@@ -5,9 +5,9 @@ using UnityEngine;
 
 public class HolyEnchant : CodeBase
 {
-    public float duration;
     public HolyEnchant(CodeCreationContext context)
     {
+        codeType = CodeType.Passive;
         caster = context.caster;
         cooldown = 86400f;
         duration = 0;

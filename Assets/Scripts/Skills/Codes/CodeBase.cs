@@ -4,10 +4,18 @@ using UnityEngine;
 
 public abstract class CodeBase
 {
+  public enum CodeType
+  {
+    None,
+    Passive,
+    Normal,
+    Ultimate
+  }
+  public CodeType codeType; // 코드 타입
   public Unit caster; // 시전유닛
-  public List<Cell> targetCells; // 시전대상셀
   public List<Unit> targetUnits; // 시전대상유닛
   public float cooldown; // 쿨감 임마 쿨감
+  public float duration; // 시전시간(동안 쿨안돔)
   public string codeName; // 코드 이름
   public int manaAmount; // 생성 마나량
 
