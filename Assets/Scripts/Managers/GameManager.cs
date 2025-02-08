@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
     public UnitManager unitManager;
     public GridManager gridManager;
     public UiManager uiManager;
+    public SfxManager sfxManager;
 
 
     // 현재 진행중인 게임 상태
@@ -71,6 +72,7 @@ public class GameManager : MonoBehaviour
         gameState = GameState.Preperation;
         skillManager = GetComponent<SkillManager>();
         unitManager = GetComponent<UnitManager>();
+        sfxManager = GetComponent<SfxManager>();
         Debug.LogWarning("GameManager Start");
 
         dataManager = GetComponent<DataManager>();

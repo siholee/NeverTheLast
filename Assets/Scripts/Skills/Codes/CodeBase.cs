@@ -4,6 +4,7 @@ using UnityEngine;
 
 public abstract class CodeBase
 {
+  public SfxManager sfxManager;
   public enum CodeType
   {
     None,

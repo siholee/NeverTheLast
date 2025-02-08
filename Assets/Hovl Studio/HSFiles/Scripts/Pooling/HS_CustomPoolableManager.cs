@@ -4,7 +4,7 @@ using UnityEngine.Pool;
 
 namespace CGT.Pooling
 {
-    public class HS_PoolableManager : MonoBehaviour
+    public class HS_CustomPoolableManager : MonoBehaviour
     {
         [SerializeField] protected int defaultPoolCapacity = 5;
         [SerializeField] protected int maxPoolCapacity = 20;
@@ -13,14 +13,14 @@ namespace CGT.Pooling
         /// <summary>
         /// Makes sure at least one VFXManager exists, returning the first one found
         /// </summary>
-        public static HS_PoolableManager EnsureExists()
+        public static HS_CustomPoolableManager EnsureExists()
         {
-            HS_PoolableManager manager = FindFirstObjectByType<HS_PoolableManager>();
+            HS_CustomPoolableManager manager = FindFirstObjectByType<HS_CustomPoolableManager>();
             if (manager == null)
             {
                 string managerName = "CGT_ObjectPoolManager";
                 GameObject managerGO = new GameObject(managerName);
-                manager = managerGO.AddComponent<HS_PoolableManager>();
+                manager = managerGO.AddComponent<HS_CustomPoolableManager>();
                 // ^We init it here to deal with potential race conditions, what with
                 // how we're making this system manage itself
             }
@@ -33,7 +33,7 @@ namespace CGT.Pooling
             transform.position = Vector3.zero;
             // ^So that when things are instantiated, they're initially in the world coords
             // specified in their prefabs
-            DontDestroyOnLoad(this.gameObject);
+            DontDestroyOnLoad(gameObject);
         }
 
         public virtual HS_Poolable GetInstanceOf(HS_Poolable prefab)
