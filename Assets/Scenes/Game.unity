@@ -971,6 +971,7 @@ GameObject:
   - component: {fileID: 1597678928}
   - component: {fileID: 1597678929}
   - component: {fileID: 1597678930}
+  - component: {fileID: 1597678931}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1009,6 +1010,7 @@ MonoBehaviour:
   unitManager: {fileID: 0}
   gridManager: {fileID: 1241768294}
   uiManager: {fileID: 667318213}
+  sfxManager: {fileID: 0}
   gameState: 0
   currentEnemies: []
   currentHeroes: []
@@ -1054,6 +1056,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameManager: {fileID: 0}
+--- !u!114 &1597678931
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1597678924}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c32e6628c6746fb43b3e35f7d3c6af22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  poolableManager: {fileID: 0}
+  projectilePrefabEntries:
+  - key: AuricMandate
+    prefab: {fileID: 5674659321163275499, guid: 259fc1d5a5095a74ca777cf7c59974e9,
+      type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
