@@ -20,7 +20,7 @@ public class Laevateinn : CodeBase
     targetUnits = GridManager.Instance.TargetAllEnemies(caster);
     effects = new Dictionary<string, EffectBase>
     {
-        { "Damage", new InstantDamage(targetUnits, new List<int> {DamageTag.ALL_TARGET}, (int)(caster.atk * 3f)) }
+        { "Damage", new InstantDamage(caster, targetUnits, new List<int> {DamageTag.ALL_TARGET}, (int)(caster.atk * 3f)) }
     };
     yield return new WaitForSeconds(3f);
     foreach (var effect in effects)

@@ -1,4 +1,4 @@
-public class RecoverMana: StatusEffect
+public class RecoverMana : StatusEffect
 {
   public Unit target;
   public int amount;
@@ -7,6 +7,7 @@ public class RecoverMana: StatusEffect
   {
     this.target = target;
     this.amount = amount;
+    persistantType = PersistantType.Instant;
   }
 
   public override void ApplyEffect()
@@ -16,6 +17,6 @@ public class RecoverMana: StatusEffect
 
   public override void RemoveEffect()
   {
-    
+
   }
 }

@@ -26,7 +26,7 @@ public class AuricMandate : CodeBase
         // 4회 타격
         for (int i = 0; i < 4; i++)
         {
-            InstantDamage instantDamage = new(targetUnits, new List<int> { DamageTag.SINGLE_TARGET }, (int)(caster.atk * 0.8f));
+            InstantDamage instantDamage = new(caster, targetUnits, new List<int> { DamageTag.SINGLE_TARGET }, (int)(caster.atk * 0.8f));
             effects.Add("Damage" + i, instantDamage);
             GameManager.Instance.sfxManager.FireSingleProjectile(prefab, caster, targetUnits[0], duration);
             yield return new WaitForSeconds(duration);

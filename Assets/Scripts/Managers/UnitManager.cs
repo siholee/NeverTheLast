@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class UnitManager : MonoBehaviour
@@ -16,10 +17,12 @@ public class UnitManager : MonoBehaviour
     int y = cell.yPos - 1;
     if (!unit.isEnemy)
     {
+      Debug.Log("Hero Cooldown Set");
       heroCooldowns[x, y].SetUnit(unit);
     }
     else
     {
+      Debug.Log("Enemy Cooldown Set");
       enemyCooldowns[x, y].SetUnit(unit);
     }
   }
@@ -28,45 +31,49 @@ public class UnitManager : MonoBehaviour
   {
     if (gameManager.gameState == GameManager.GameState.RoundInProgress)
     {
-      foreach (CooldownController cCon in heroCooldowns)
+      foreach (var cCon in heroCooldowns)
       {
-        cCon.UpdateCooldown(Time.deltaTime);
-        CodeBase.CodeType typeToCast = cCon.CheckCodeTypeToCast();
-        switch (typeToCast)
-        {
-          case CodeBase.CodeType.Passive:
-            cCon.unit.ActivatePassiveCode();
-            cCon.ResetCooldown(CodeBase.CodeType.Passive);
-            break;
-          case CodeBase.CodeType.Normal:
-            cCon.unit.ActivateNormalCode();
-            cCon.ResetCooldown(CodeBase.CodeType.Normal);
-            break;
-          case CodeBase.CodeType.Ultimate:
-            cCon.unit.ActivateUltimateCode();
-            cCon.ResetCooldown(CodeBase.CodeType.Ultimate);
-            break;
-        }
+        ProcessFrame(cCon);
       }
-      foreach (CooldownController cCon in enemyCooldowns)
+      foreach (var cCon in enemyCooldowns)
       {
-        cCon.UpdateCooldown(Time.deltaTime);
-        CodeBase.CodeType typeToCast = cCon.CheckCodeTypeToCast();
-        switch (typeToCast)
-        {
-          case CodeBase.CodeType.Passive:
-            cCon.unit.ActivatePassiveCode();
-            cCon.ResetCooldown(CodeBase.CodeType.Passive);
-            break;
-          case CodeBase.CodeType.Normal:
-            cCon.unit.ActivateNormalCode();
-            cCon.ResetCooldown(CodeBase.CodeType.Normal);
-            break;
-          case CodeBase.CodeType.Ultimate:
-            cCon.unit.ActivateUltimateCode();
-            cCon.ResetCooldown(CodeBase.CodeType.Ultimate);
-            break;
-        }
+        ProcessFrame(cCon);
+      }
+    }
+  }
+
+  private void ProcessFrame(CooldownController cCon)
+  {
+    if (cCon.unit == null)
+    {
+      return;
+    }
+    cCon.UpdateCooldown(Time.deltaTime);
+    if (cCon.unit.isControlled)
+    {
+      cCon.unit.controlDuration -= Time.deltaTime;
+      if (cCon.unit.controlDuration <= 0)
+      {
+        cCon.unit.OnControlEnd();
+      }
+    }
+    else
+    {
+      CodeBase.CodeType typeToCast = cCon.CheckCodeTypeToCast();
+      switch (typeToCast)
+      {
+        case CodeBase.CodeType.Passive:
+          cCon.unit.ActivatePassiveCode();
+          cCon.ResetCooldown(CodeBase.CodeType.Passive);
+          break;
+        case CodeBase.CodeType.Normal:
+          cCon.unit.ActivateNormalCode();
+          cCon.ResetCooldown(CodeBase.CodeType.Normal);
+          break;
+        case CodeBase.CodeType.Ultimate:
+          cCon.unit.ActivateUltimateCode();
+          cCon.ResetCooldown(CodeBase.CodeType.Ultimate);
+          break;
       }
     }
   }

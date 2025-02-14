@@ -29,7 +29,7 @@ public class CooldownController
     {
       return;
     }
-    if (unit.isActive && !unit.isControlled)
+    if (unit.isActive)
     {
       passiveCd = Mathf.Max(0, passiveCd - deltaTime * unit.cooldownRate);
       normalCd = !unit.isCastingNormal ? Mathf.Max(0, normalCd - deltaTime * unit.cooldownRate) : normalCd;

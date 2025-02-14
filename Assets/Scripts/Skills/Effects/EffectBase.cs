@@ -14,16 +14,24 @@ public enum StateType
   Etc
 }
 
+public enum PersistantType
+{
+  Permanent,
+  Temporary,
+  Instant,
+}
+
 public abstract class EffectBase
 {
   public int id;
-  // 상태 보유자
-  public Unit owner;
+  // 상태를 부여한 유닛
+  public Unit caster;
   // 상태 이름
-  public string name;
+  public string effectName;
   // 상태 범주
   public StateCategory category;
   public StateType type;
+  public PersistantType persistantType = PersistantType.Temporary;
   // 상태 제거 가능 여부
   public bool canRemove;
   // 지속 시간 (0일 경우 무제한)

@@ -14,6 +14,7 @@ public class Hero : Unit
         StatusUpdate();
         Debug.LogWarning($"{unitName} 생성 완료");
         GameManager.Instance.unitManager.SetUnitCooldown(this);
+        InvokeOnSpawn();
     }
     // 캐릭터 데이터를 로드하는 함수
     public void LoadData(bool isEnemy, int id)

@@ -4,12 +4,12 @@ heroes:
     synergies:
       - 1
       - 2
-    hp: 1640
-    hp_increase: 155
-    atk: 61
-    atk_increase: 57
-    def: 89
-    def_increase: 85
+    hp: 10000
+    hp_increase: 500
+    atk: 1000
+    atk_increase: 100
+    def: 200
+    def_increase: 20
     crit_chance: 5
     crit_chance_increase: 3
     crit_damage: 50

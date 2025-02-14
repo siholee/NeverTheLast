@@ -19,7 +19,7 @@ public class FireBlast : CodeBase
   {
     caster.isCastingNormal = true;
     targetUnits = GridManager.Instance.TargetNearestEnemy(caster);
-    InstantDamage instantDamage = new(targetUnits, new List<int> { DamageTag.SINGLE_TARGET }, (int)(caster.atk * 1.5f));
+    InstantDamage instantDamage = new(caster, targetUnits, new List<int> { DamageTag.SINGLE_TARGET }, (int)(caster.atk * 1.5f));
     effects.Add("Damage", instantDamage);
     yield return new WaitForSeconds(duration);
     effects["Damage"].ApplyEffect();

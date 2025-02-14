@@ -83,6 +83,9 @@ public class Unit : MonoBehaviour
 
     // 제어 상태
     public bool isControlled;
+    public float controlDuration;
+
+    public EffectController effectController;
 
     /// <summary>
     /// 속성별 가하는 피해 증가를 관리하는 딕셔너리
@@ -104,6 +107,52 @@ public class Unit : MonoBehaviour
     public Cell currentCell;
 
     /// <summary>
+    /// 스폰시 이벤트
+    /// </summary>
+    public event Action<Unit> OnSpawn;
+    /// <summary>
+    /// 사망시 이벤트
+    /// 첫 번째 인자: 자신(사망자)
+    /// 두 번째 인자: 가해자
+    /// </summary>
+    public event Action<Unit, Unit> OnDeath;
+    /// <summary>
+    /// 제어 당할 시 이벤트
+    /// 첫 번째 인자: 자신
+    /// 두 번째 인자: 가해자
+    /// </summary>
+    public event Action<Unit, Unit> OnControllStarted;
+    /// <summary>
+    /// 제어가 끝날 시 이벤트
+    /// 첫 번째 인자: 자신
+    /// </summary>
+    public event Action<Unit> OnControllEnded;
+    /// <summary>
+    /// 패시브 스킬 발동시 이벤트
+    /// </summary>
+    public event Action<Unit> OnPassiveActivated;
+    /// <summary>
+    /// 일반 스킬 발동시 이벤트
+    /// </summary>
+    public event Action<Unit> OnNormalActivated;
+    /// <summary>
+    /// 궁극 스킬 발동시 이벤트
+    /// </summary>
+    public event Action<Unit> OnUltimateActivated;
+    /// <summary>
+    /// 피격 전 이벤트
+    /// 첫 번째 인자: 자신
+    /// 두 번째 인자: 가해자
+    /// </summary>
+    public event Action<Unit, Unit> OnBeforeDamageTaken;
+    /// <summary>
+    /// 피격 후 이벤트
+    /// 첫 번째 인자: 자신
+    /// 두 번째 인자: 가해자
+    /// </summary>
+    public event Action<Unit, Unit, int> OnAfterDamageTaken;
+
+    /// <summary>
     /// 활성화 후 초기 정보 설정
     /// </summary>
     public virtual void InitProcess(bool isEnemy, int id)
@@ -117,6 +166,11 @@ public class Unit : MonoBehaviour
             isCastingNormal = false;
             isControlled = false;
         }
+    }
+
+    protected void InvokeOnSpawn()
+    {
+        OnSpawn?.Invoke(this);
     }
 
     public void LoadSprite(string name, bool isEnemy)
@@ -169,8 +223,10 @@ public class Unit : MonoBehaviour
     /// <param name="Damage">입는 데미지</param>
     /// <param name="armorPenetration">방어력 관통 수치</param>
     /// <param name="damageTags">입는 데미지의 속성들</param>
-    public void TakeDamage(float Damage, int armorPenetration, List<int> damageTags)
+    /// <param name="dealer">데미지를 입힌 유닛</param>
+    public void TakeDamage(float Damage, int armorPenetration, List<int> damageTags, Unit dealer)
     {
+        OnBeforeDamageTaken?.Invoke(this, dealer);
         float effectiveDEF = Mathf.Max(def - armorPenetration, 0);
         float damageReceived = Damage * (1f / (1f + effectiveDEF * 0.01f));
 
@@ -188,13 +244,29 @@ public class Unit : MonoBehaviour
         currentHp -= Mathf.FloorToInt(damageReceived);
         Debug.Log($"{unitName}은(는) {hpBeforeHit}의 체력을 지닌 채 {damageReceived}의 피해를 받았습니다. 남은 체력: {currentHp}");
 
+        OnAfterDamageTaken?.Invoke(this, dealer, (int)damageReceived);
+
         if (currentHp <= 0)
         {
             currentHp = 0;
             Debug.Log($"{unitName}은(는) 사망했습니다.");
             DeactivateUnit();
             gameManager.skillManager.OnCasterDeath(this);
+            OnDeath?.Invoke(this, dealer);
         }
+    }
+
+    public void OnGetControlled(Unit caster, float duartion)
+    {
+        isControlled = true;
+        controlDuration = duartion;
+        OnControllStarted?.Invoke(this, caster);
+    }
+
+    public void OnControlEnd()
+    {
+        isControlled = false;
+        OnControllEnded?.Invoke(this);
     }
 
     public void ActivatePassiveCode()
@@ -202,6 +274,7 @@ public class Unit : MonoBehaviour
         bool success = gameManager.skillManager.RegisterSkill(this, passiveCode);
         if (success)
         {
+            OnPassiveActivated?.Invoke(this);
             Debug.Log($"{unitName}의 패시브 코드가 발동되었습니다.");
         }
     }
@@ -211,6 +284,7 @@ public class Unit : MonoBehaviour
         bool success = gameManager.skillManager.RegisterSkill(this, normalCode);
         if (success)
         {
+            OnNormalActivated?.Invoke(this);
             Debug.Log($"{unitName}의 일반 코드가 발동되었습니다.");
         }
     }
@@ -220,6 +294,7 @@ public class Unit : MonoBehaviour
         bool success = gameManager.skillManager.RegisterSkill(this, ultimateCode);
         if (success)
         {
+            OnUltimateActivated?.Invoke(this);
             Debug.Log($"{unitName}의 궁극 코드가 발동되었습니다.");
         }
     }
@@ -227,6 +302,7 @@ public class Unit : MonoBehaviour
     private void Start()
     {
         gameManager = GameManager.Instance;
+        effectController = new EffectController();
         // 추가 설정이 필요하다면 이곳에 작성
     }
 
