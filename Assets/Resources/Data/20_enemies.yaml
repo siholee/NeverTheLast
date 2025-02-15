@@ -1,9 +1,9 @@
 enemies:
   - id: 1
     name: DAIYAN
-    hp_base: 3000
+    hp_base: 1500
     hp_increment: 300
-    atk_base: 500
+    atk_base: 200
     atk_increment: 50
     def_base: 100
     def_increment: 10

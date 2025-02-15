@@ -25,7 +25,6 @@ public class HolyEnchant : CodeBase
         // effects["AtkBuff"].ApplyEffect();
         yield return null;
     }
-
     public override IEnumerator StopCode()
     {
         caster.effectController.RemoveEffect("HolyEnchant");

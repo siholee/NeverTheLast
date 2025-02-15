@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using CGT.Pooling;
 using UnityEngine;
 
 public class FireBlast : CodeBase
 {
+  private HS_Poolable prefab;
+
   public FireBlast(CodeCreationContext context)
   {
     codeType = CodeType.Normal;
@@ -13,6 +16,7 @@ public class FireBlast : CodeBase
     duration = 0.5f;
     manaAmount = 10;
     effects = new Dictionary<string, EffectBase>();
+    prefab = GameManager.Instance.sfxManager.projectilePrefabs["FireBlast"];
   }
 
   public override IEnumerator StartCode()
@@ -21,6 +25,7 @@ public class FireBlast : CodeBase
     targetUnits = GridManager.Instance.TargetNearestEnemy(caster);
     InstantDamage instantDamage = new(caster, targetUnits, new List<int> { DamageTag.SINGLE_TARGET }, (int)(caster.atk * 1.5f));
     effects.Add("Damage", instantDamage);
+    GameManager.Instance.sfxManager.FireSingleProjectile(prefab, caster, targetUnits[0], duration);
     yield return new WaitForSeconds(duration);
     effects["Damage"].ApplyEffect();
     GameManager.Instance.skillManager.DeregisterSkill(caster, this);

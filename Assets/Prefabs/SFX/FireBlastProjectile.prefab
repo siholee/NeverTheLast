@@ -288,8 +288,8 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 3
-      scalar: 0.6
-      minScalar: 0.4
+      scalar: 6
+      minScalar: 4
       maxCurve:
         serializedVersion: 2
         m_Curve:
@@ -341,8 +341,8 @@ ParticleSystem:
     startSizeY:
       serializedVersion: 2
       minMaxState: 3
-      scalar: 0.6
-      minScalar: 0.4
+      scalar: 6
+      minScalar: 4
       maxCurve:
         serializedVersion: 2
         m_Curve:
@@ -394,8 +394,8 @@ ParticleSystem:
     startSizeZ:
       serializedVersion: 2
       minMaxState: 3
-      scalar: 0.6
-      minScalar: 0.4
+      scalar: 6
+      minScalar: 4
       maxCurve:
         serializedVersion: 2
         m_Curve:
@@ -4855,12 +4855,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4424731503520034}
-  - component: {fileID: 114752226285970980}
-  - component: {fileID: 54905710770579714}
-  - component: {fileID: 135206474481286692}
+  - component: {fileID: 6083203027495684203}
   - component: {fileID: -5485251294766662383}
   m_Layer: 0
-  m_Name: Projectile 16 fire
+  m_Name: FireBlastProjectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4882,7 +4880,7 @@ Transform:
   - {fileID: 2607686436613172566}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &114752226285970980
+--- !u!114 &6083203027495684203
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4891,71 +4889,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 1347034509603832}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 605a456cfc02f6b499a64717539a27e8, type: 3}
+  m_Script: {fileID: 11500000, guid: 99087f55e0b13bf4d895306bf3e577dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 20
-  hitOffset: 0.1
-  UseFirePointRotation: 0
+  unitFrom: {fileID: 0}
+  unitTo: {fileID: 0}
+  duration: 0
+  timer: 0
   rotationOffset: {x: 0, y: 0, z: 0}
   hit: {fileID: 7011958025079213326}
   hitPS: {fileID: 7172500568181788774}
   flash: {fileID: 1089561480799257477}
-  rb: {fileID: 54905710770579714}
-  col: {fileID: 135206474481286692}
   lightSourse: {fileID: 0}
-  Detached:
-  - {fileID: 1211005865835098}
+  Detached: []
   projectilePS: {fileID: 192425388666632839}
-  notDestroy: 1
---- !u!54 &54905710770579714
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1347034509603832}
-  serializedVersion: 4
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 0
---- !u!135 &135206474481286692
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1347034509603832}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.1
-  m_Center: {x: 0, y: 0, z: 0}
+  notDestroy: 0
 --- !u!114 &-5485251294766662383
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5259,8 +5207,8 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 3
-      scalar: 0.08
-      minScalar: 0.05
+      scalar: 0.8
+      minScalar: 0.5
       maxCurve:
         serializedVersion: 2
         m_Curve:
@@ -10139,7 +10087,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0.15
+      scalar: 1.5
       minScalar: 0.02
       maxCurve:
         serializedVersion: 2
@@ -14811,6 +14759,16 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 198362312611286218, guid: f326479f7cef0794d95f29731f4bbdb3,
+        type: 3}
+      propertyPath: InitialModule.startSize.scalar
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 198362312611286218, guid: f326479f7cef0794d95f29731f4bbdb3,
+        type: 3}
+      propertyPath: InitialModule.startSize.minScalar
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 199094054600421258, guid: f326479f7cef0794d95f29731f4bbdb3,
         type: 3}
       propertyPath: m_Materials.Array.size
@@ -14923,6 +14881,11 @@ PrefabInstance:
         type: 3}
       propertyPath: playOnAwake
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 198805344971955384, guid: cd5def2bb4f6b4e4ab15ba0b6f35b29d,
+        type: 3}
+      propertyPath: InitialModule.startSize.scalar
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 198950957929409650, guid: cd5def2bb4f6b4e4ab15ba0b6f35b29d,
         type: 3}
