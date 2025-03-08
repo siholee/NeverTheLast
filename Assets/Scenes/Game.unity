@@ -723,7 +723,7 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
+  m_VertexColorAlwaysGammaSpace: 1
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
@@ -969,8 +969,6 @@ GameObject:
   - component: {fileID: 1597678926}
   - component: {fileID: 1597678927}
   - component: {fileID: 1597678928}
-  - component: {fileID: 1597678929}
-  - component: {fileID: 1597678930}
   - component: {fileID: 1597678931}
   m_Layer: 0
   m_Name: GameManager
@@ -1006,8 +1004,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f499c37824fe4244bcb92f904c19bb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  skillManager: {fileID: 0}
-  unitManager: {fileID: 0}
   gridManager: {fileID: 1241768294}
   uiManager: {fileID: 667318213}
   sfxManager: {fileID: 0}
@@ -1015,10 +1011,8 @@ MonoBehaviour:
   currentEnemies: []
   currentHeroes: []
   dataManager: {fileID: 0}
-  enemyDataList:
-    enemies: []
-  heroDataList:
-    heroes: []
+  unitDataList:
+    units: []
 --- !u!114 &1597678928
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1031,31 +1025,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73cdc08cddf8eaf489e9416a7418cb79, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1597678929
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1597678924}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d42ddb1b3dcae2842935a74ee6c97279, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1597678930
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1597678924}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fd6d6ee074672a347a56633c55a792aa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  gameManager: {fileID: 0}
 --- !u!114 &1597678931
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1073,6 +1042,11 @@ MonoBehaviour:
   - key: AuricMandate
     prefab: {fileID: 5674659321163275499, guid: 259fc1d5a5095a74ca777cf7c59974e9,
       type: 3}
+  - key: FireBlast
+    prefab: {fileID: -5485251294766662383, guid: 05f9f6eef4ae8b147aafff94ea24f25c,
+      type: 3}
+  - key: Levateinn
+    prefab: {fileID: 985822931654328972, guid: 0effd9867f890cc4693ddb3f2ebb2401, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

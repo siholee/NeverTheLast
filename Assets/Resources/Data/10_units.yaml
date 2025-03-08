@@ -1,0 +1,80 @@
+units:
+  - id: 1
+    name: SEI
+    synergies:
+      - 1
+      - 2
+    hpBase: 12000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 250
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 100
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.25
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 1
+      normal: 2
+      ultimate: 1
+    portrait: SEI_PORTRAIT
+
+  - id: 2
+    name: DAIYAN
+    synergies:
+      - 1
+      - 2
+    hpBase: 3000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 200
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 50
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.05
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 1.2
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 1
+      normal: 1
+      ultimate: 1
+    portrait: DAIYAN_PORTRAIT
+  - id: 3
+    name: CLUKAY
+    synergies:
+      - 1
+      - 2
+    hpBase: 5000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 250
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 70
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.05
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 1.2
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 1
+      normal: 1
+      ultimate: 1
+    portrait: CLUKAY_PORTRAIT

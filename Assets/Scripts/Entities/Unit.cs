@@ -5,358 +5,500 @@ using UnityEngine;
 
 public class Unit : MonoBehaviour
 {
-    public GameManager gameManager;
     public bool isActive = false;
 
-    // 기본 식별 정보
-    public int id;
-    public bool isEnemy;
-    public string unitName;
-    public int level;
+    // 기본 식별정보
+    [SerializeField] private int _id;
+    [SerializeField] private bool _isEnemy;
+    [SerializeField] private string _unitName;
+    [SerializeField] private int _level;
+    public int id { get => _id; protected set => _id = value; }
+    public bool isEnemy { get => _isEnemy; protected set => _isEnemy = value; }
+    public string unitName { get => _unitName; protected set => _unitName = value; }
+    public int level { get => _level; protected set => _level = value; }
 
-    // 체력 관련 능력치
-    public int currentHp;
-    public int maxHp;
-    public int baseHp;
-    public float hpMultiplicativeBuff;
-    public float hpAdditiveBuff;
-    public int statHp;
-    public int growthHp;
-    public int upgradeHp;
+    public Cell currentCell; // 위치중인 셀
 
-    // 공격력 관련 능력치
-    public int atk; // 현재 공격력
-    public int baseAtk; // 기본 공격력
-    public float atkMultiplicativeBuff; // 공퍼
-    public float atkAdditiveBuff; // 깡공
-    public int statAtk; // 기초 공격력
-    public int growthAtk; // 성장 공격력
-    public int upgradeAtk; // 공격력 업그레이드 횟수
+    // 유닛 강화 횟수
+    [SerializeField] private int _hpUpgrade;
+    [SerializeField] private int _atkUpgrade;
+    [SerializeField] private int _defUpgrade;
+    [SerializeField] private int _critChanceUpgrade;
+    [SerializeField] private int _critMultiplierUpgrade;
+    public int hpUpgrade { get => _hpUpgrade; protected set => _hpUpgrade = value; }
+    public int atkUpgrade { get => _atkUpgrade; protected set => _atkUpgrade = value; }
+    public int defUpgrade { get => _defUpgrade; protected set => _defUpgrade = value; }
+    public int critChanceUpgrade { get => _critChanceUpgrade; protected set => _critChanceUpgrade = value; }
+    public int critMultiplierUpgrade { get => _critMultiplierUpgrade; protected set => _critMultiplierUpgrade = value; }
 
-    // 방어력 관련 능력치
-    public int def;
-    public int baseDef;
-    public float defMultiplicativeBuff;
-    public float defAdditiveBuff;
-    public int statDef;
-    public int growthDef;
-    public int upgradeDef;
-    public float damageReduction;
-    public int damageReductionBuff;
+    // 유닛 현재 상태
+    [SerializeField] private int _hpCurr;
+    [SerializeField] private int _manaCurr;
+    [SerializeField] private int _atkCurr;
+    [SerializeField] private int _defCurr;
+    [SerializeField] private float _critChanceCurr;
+    [SerializeField] private float _critDamageCurr;
+    [SerializeField] private float _codeAcceleration;
+    public int hpCurr { get => _hpCurr; protected set => _hpCurr = value; }
+    public int manaCurr { get => _manaCurr; protected set => _manaCurr = value; }
+    public int atkCurr { get => _atkCurr; protected set => _atkCurr = value; }
+    public int defCurr { get => _defCurr; protected set => _defCurr = value; }
+    public float critChanceCurr { get => _critChanceCurr; protected set => _critChanceCurr = value; }
+    public float critMultiplierCurr { get => _critDamageCurr; protected set => _critDamageCurr = value; }
+    public float codeAcceleration { get => _codeAcceleration; protected set => _codeAcceleration = value; }
 
-    // 치명타 확률 관련 능력치
-    public float critChance;
-    public float baseCritChance;
-    public float critChanceBuff;
-    public float statCritChance;
-    public float growthCritChance;
-    public float upgradeCritChance;
-
-    // 치명타 피해 관련 능력치
-    public float critDamage;
-    public float baseCritDamage;
-    public float critDamageBuff;
-    public float statCritDamage;
-    public float growthCritDamage;
-    public float upgradeCritDamage;
-
-    // 쿨타임
-    public float cooldownRate;
-    public float cooldownMultiplicativeBuff;
-    public float cooldownAdditiveBuff;
-
-    // 마나 관련 능력치
-    public int currentMana;
-    public int maxMana;
-    public float manaChargeRate;
-    public int manaChargeBuff;
-
-    // 코드 관련 변수들
-    public int passiveCodeId;
-    public int normalCodeId;
-    public int ultimateCodeId;
-    public CodeBase passiveCode;
-    public CodeBase normalCode;
-    public CodeBase ultimateCode;
-    public bool isCastingNormal;
-    public bool isCastingUltimate;
-
-    // 제어 상태
-    public bool isControlled;
+    public bool isCasting; // 스킬 시전중
+    public float castingTime;
+    public bool isControlled; // 행동 불가 상태
     public float controlDuration;
 
-    public EffectController effectController;
+    // 유닛 스탯 수치
+    // 인스펙터 노출용용
+    [SerializeField] private int _hpBase;
+    [SerializeField] private int _hpIncrementLvl;
+    [SerializeField] private int _hpIncrementUpgrade;
+    [SerializeField] private int _hpMax;
+    [SerializeField] private int _manaBase;
+    [SerializeField] private int _manaMax;
+    [SerializeField] private int _atkBase;
+    [SerializeField] private int _atkIncrementLvl;
+    [SerializeField] private int _atkIncrementUpgrade;
+    [SerializeField] private int _defBase;
+    [SerializeField] private int _defIncrementLvl;
+    [SerializeField] private int _defIncrementUpgrade;
+    [SerializeField] private float _critChanceBase;
+    [SerializeField] private float _critChanceIncrementLvl;
+    [SerializeField] private float _critChanceIncrementUpgrade;
+    [SerializeField] private float _critMultiplierBase;
+    [SerializeField] private float _critMultiplierIncrementLvl;
+    [SerializeField] private float _critMultiplierIncrementUpgrade;
+    [SerializeField] private List<int> _synergies;
 
-    /// <summary>
-    /// 속성별 가하는 피해 증가를 관리하는 딕셔너리
-    /// key: 속성 이름 (예: "Fire", "Ice")
-    /// value: 피해 증가 비율 (예: 0.2f는 20% 증가)
-    /// </summary>
-    public Dictionary<string, float> damageIncreaseByAttribute = new Dictionary<string, float>();
+    // 실제 수치 관리용
+    public int hpBase { get => _hpBase; protected set => _hpBase = value; }
+    public int hpIncrementLvl { get => _hpIncrementLvl; protected set => _hpIncrementLvl = value; }
+    public int hpIncrementUpgrade { get => _hpIncrementUpgrade; protected set => _hpIncrementUpgrade = value; }
+    public int hpMax { get => _hpMax; protected set => _hpMax = value; }
+    public int manaBase { get => _manaBase; protected set => _manaBase = value; }
+    public int manaMax { get => _manaMax; protected set => _manaMax = value; }
+    public int atkBase { get => _atkBase; protected set => _atkBase = value; }
+    public int atkIncrementLvl { get => _atkIncrementLvl; protected set => _atkIncrementLvl = value; }
+    public int atkIncrementUpgrade { get => _atkIncrementUpgrade; protected set => _atkIncrementUpgrade = value; }
+    public int defBase { get => _defBase; protected set => _defBase = value; }
+    public int defIncrementLvl { get => _defIncrementLvl; protected set => _defIncrementLvl = value; }
+    public int defIncrementUpgrade { get => _defIncrementUpgrade; protected set => _defIncrementUpgrade = value; }
+    public float critChanceBase { get => _critChanceBase; protected set => _critChanceBase = value; }
+    public float critChanceIncrementLvl { get => _critChanceIncrementLvl; protected set => _critChanceIncrementLvl = value; }
+    public float critChanceIncrementUpgrade { get => _critChanceIncrementUpgrade; protected set => _critChanceIncrementUpgrade = value; }
+    public float critMultiplierBase { get => _critMultiplierBase; protected set => _critMultiplierBase = value; }
+    public float critMultiplierIncrementLvl { get => _critMultiplierIncrementLvl; protected set => _critMultiplierIncrementLvl = value; }
+    public float critMultiplierIncrementUpgrade { get => _critMultiplierIncrementUpgrade; protected set => _critMultiplierIncrementUpgrade = value; }
 
-    /// <summary>
-    /// 태그별 받는 피해 감소를 관리하는 딕셔너리
-    /// key: 속성 ID (예: DamageTag.SINGLE_TARGET 등)
-    /// value: 피해 감소 비율 (예: 30은 30% 감소)
-    /// </summary>
-    public Dictionary<int, int> damageReductionByAttribute = new Dictionary<int, int>();
+    public List<int> synergies { get => _synergies; protected set => _synergies = value; }
 
-    /// <summary>
-    /// 현재 유닛이 위치한 셀
-    /// </summary>
-    public Cell currentCell;
+    // 유닛 상태효과(버프/디버프)
+    protected Dictionary<string, StatusEffect> statusEffects; // 이펙트 이름(식별자), 이펙트 효과. 동일 식별자는 중첩되지 않고 덮어씌워짐짐
 
-    /// <summary>
-    /// 스폰시 이벤트
-    /// </summary>
-    public event Action<Unit> OnSpawn;
-    /// <summary>
-    /// 사망시 이벤트
-    /// 첫 번째 인자: 자신(사망자)
-    /// 두 번째 인자: 가해자
-    /// </summary>
-    public event Action<Unit, Unit> OnDeath;
-    /// <summary>
-    /// 제어 당할 시 이벤트
-    /// 첫 번째 인자: 자신
-    /// 두 번째 인자: 가해자
-    /// </summary>
-    public event Action<Unit, Unit> OnControllStarted;
-    /// <summary>
-    /// 제어가 끝날 시 이벤트
-    /// 첫 번째 인자: 자신
-    /// </summary>
-    public event Action<Unit> OnControllEnded;
-    /// <summary>
-    /// 패시브 스킬 발동시 이벤트
-    /// </summary>
-    public event Action<Unit> OnPassiveActivated;
-    /// <summary>
-    /// 일반 스킬 발동시 이벤트
-    /// </summary>
-    public event Action<Unit> OnNormalActivated;
-    /// <summary>
-    /// 궁극 스킬 발동시 이벤트
-    /// </summary>
-    public event Action<Unit> OnUltimateActivated;
-    /// <summary>
-    /// 피격 전 이벤트
-    /// 첫 번째 인자: 자신
-    /// 두 번째 인자: 가해자
-    /// </summary>
-    public event Action<Unit, Unit> OnBeforeDamageTaken;
-    /// <summary>
-    /// 피격 후 이벤트
-    /// 첫 번째 인자: 자신
-    /// 두 번째 인자: 가해자
-    /// </summary>
-    public event Action<Unit, Unit, int> OnAfterDamageTaken;
+    // 유닛 코드(스킬) 정보
+    protected PassiveCode passiveCode;
+    protected NormalCode normalCode;
+    protected UltimateCode ultimateCode;
+    public float normalCooldown;
+    public float ultimateCooldown;
 
-    /// <summary>
-    /// 활성화 후 초기 정보 설정
-    /// </summary>
-    public virtual void InitProcess(bool isEnemy, int id)
+    // 이벤트
+    private Dictionary<BaseEnums.UnitEventType, Delegate> eventDict;
+
+    void Awake()
+    {
+        eventDict = new Dictionary<BaseEnums.UnitEventType, Delegate>();
+    }
+
+    public virtual void InitializeUnit(bool isEnemy, int id)
     {
         this.id = id;
-        if (id > 0)
+        this.isEnemy = isEnemy;
+        // 유닛 데이터가 없을 경우 바로 종료
+        if (id == 0)
         {
-            passiveCode = CodeFactory.CreateCode(passiveCodeId, new CodeCreationContext { caster = this });
-            normalCode = CodeFactory.CreateCode(normalCodeId, new CodeCreationContext { caster = this });
-            ultimateCode = CodeFactory.CreateCode(ultimateCodeId, new CodeCreationContext { caster = this });
-            isCastingNormal = false;
-            isControlled = false;
+            return;
         }
+        LoadData(isEnemy, id);
+        AttributesUpdate();
+        hpCurr = hpMax;
+        manaCurr = 0;
+        AddListener<(Unit, DamageContext)>(BaseEnums.UnitEventType.OnTakingDamage, DefaultTakeDamageEvent);
+        AddListener<Unit>(BaseEnums.UnitEventType.OnRoundStart, DefaultRoundStartEvent);
+        AddListener<Unit>(BaseEnums.UnitEventType.OnRoundEnd, DefaultRoundEndEvent);
     }
 
-    protected void InvokeOnSpawn()
+    protected virtual void LoadData(bool isEnemy, int id)
     {
-        OnSpawn?.Invoke(this);
+        UnitData data = GameManager.Instance.unitDataList.units.FirstOrDefault(e => e.id == id);
+        LoadSprite(data.portrait, isEnemy);
+        level = 0;
+        unitName = data.name;
+        synergies = data.synergies;
+        hpBase = data.hpBase;
+        hpIncrementLvl = data.hpIncrementLvl;
+        hpIncrementUpgrade = data.hpIncrementUpgrade;
+        atkBase = data.atkBase;
+        atkIncrementLvl = data.atkIncrementLvl;
+        atkIncrementUpgrade = data.atkIncrementUpgrade;
+        defBase = data.defBase;
+        defIncrementLvl = data.defIncrementLvl;
+        defIncrementUpgrade = data.defIncrementUpgrade;
+        critChanceBase = data.critChance;
+        critChanceIncrementLvl = data.critChanceIncrementLvl;
+        critChanceIncrementUpgrade = data.critChanceIncrementUpgrade;
+        critMultiplierBase = data.critMultiplier;
+        critMultiplierIncrementLvl = data.critMultiplierIncrementLvl;
+        critMultiplierIncrementUpgrade = data.critMultiplierIncrementUpgrade;
+        manaBase = data.manaBase;
+        codeAcceleration = 1f;
+
+        statusEffects = new Dictionary<string, StatusEffect>();
+        isCasting = false;
+        castingTime = 0f;
+        isControlled = false;
+        controlDuration = 0f;
+
+        passiveCode = CodeFactory.CreatePassiveCode(data.codes["passive"], new PassiveCodeContext { caster = this });
+        normalCode = CodeFactory.CreateNormalCode(data.codes["normal"], new NormalCodeContext { caster = this });
+        ultimateCode = CodeFactory.CreateUltimateCode(data.codes["ultimate"], new UltimateCodeContext { caster = this });
+        normalCooldown = normalCode.cooldown;
+        ultimateCooldown = ultimateCode.cooldown;
     }
 
-    public void LoadSprite(string name, bool isEnemy)
+    protected virtual void LoadSprite(string name, bool isEnemy)
     {
-        Debug.LogWarning($"Sprite/Portraits/{(isEnemy ? "Enemies" : "Heroes")}/{name}");
-        Sprite sprite = Resources.Load<Sprite>($"Sprite/Portraits/{(isEnemy ? "Enemies" : "Heroes")}/{name}");
+        Sprite sprite = Resources.Load<Sprite>($"Sprite/Portraits/{name}");
         currentCell.portraitRenderer.sprite = sprite;
+        // currentCell.portraitRenderer.flipX = isEnemy; // 카드면 미사용, 일러라면 적일 경우 x축 반전전
     }
 
     /// <summary>
-    /// 능력치 기본값들을 산출하는 함수 (모든 스탯에 대해)
+    /// 유닛의 스탯 수치 업데이트<br/>
+    /// 매 프레임마다 호출하기엔 무거운 것 같으니 상태 변화가 있을 때만 호출
     /// </summary>
-    public void SetBase()
+    protected virtual void AttributesUpdate()
     {
-        // 공격력 기본값 계산
-        baseAtk = statAtk + (level * growthAtk) + (upgradeAtk * growthAtk);
-        // 체력 기본값 계산
-        baseHp = statHp + (level * growthHp) + (upgradeHp * growthHp);
-        // 방어력 기본값 계산
-        baseDef = statDef + (level * growthDef) + (upgradeDef * growthDef);
-        // 치명타 확률 기본값 계산
-        baseCritChance = statCritChance + (level * growthCritChance) + (upgradeCritChance * growthCritChance);
-        // 치명타 피해 기본값 계산
-        baseCritDamage = statCritDamage + (level * growthCritDamage) + (upgradeCritDamage * growthCritDamage);
-    }
+        // 스탯 수정치 계산
+        float hpMul = 0f;
+        float hpAdd = 0f;
+        float atkMul = 0f;
+        float atkAdd = 0f;
+        float defMul = 0f;
+        float defAdd = 0f;
+        float critChanceAdd = 0f;
+        float critMultiplierAdd = 0f;
+        float codeAccelMul = 0f;
 
-    /// <summary>
-    /// 상태 업데이트 함수
-    /// </summary>
-    public void StatusUpdate()
-    {
-        float hpRate = (float)currentHp / maxHp;
-        maxHp = (int)(baseHp * (1 + (hpMultiplicativeBuff * 0.01f)) + hpAdditiveBuff);
-        currentHp = Mathf.Min((int)(maxHp * hpRate), maxHp);
-        currentCell.hpBarObj.transform.localScale = new Vector3(hpRate, 1, 1);
-        atk = (int)(baseAtk * (1 + (atkMultiplicativeBuff * 0.01f)) + atkAdditiveBuff);
-        def = (int)(baseDef * (1 + (defMultiplicativeBuff * 0.01f)) + defAdditiveBuff);
-        critChance = baseCritChance + critChanceBuff;
-        critDamage = baseCritDamage + critDamageBuff;
-        // 비율 피해 감소 등 나머지 스탯 업데이트
-        damageReduction = damageReductionByAttribute.ContainsKey(0) ? damageReductionByAttribute[0] * 0.01f : 0f;
-        manaChargeRate = 1 + manaChargeBuff * 0.01f;
-        manaChargeBuff = 0;
-        cooldownRate = 1 + cooldownMultiplicativeBuff * 0.01f + cooldownAdditiveBuff;
-    }
-
-    /// <summary>
-    /// 데미지를 입는 함수
-    /// </summary>
-    /// <param name="Damage">입는 데미지</param>
-    /// <param name="armorPenetration">방어력 관통 수치</param>
-    /// <param name="damageTags">입는 데미지의 속성들</param>
-    /// <param name="dealer">데미지를 입힌 유닛</param>
-    public void TakeDamage(float Damage, int armorPenetration, List<int> damageTags, Unit dealer)
-    {
-        OnBeforeDamageTaken?.Invoke(this, dealer);
-        float effectiveDEF = Mathf.Max(def - armorPenetration, 0);
-        float damageReceived = Damage * (1f / (1f + effectiveDEF * 0.01f));
-
-        foreach (int attr in damageTags)
+        foreach (var effectPair in statusEffects)
         {
-            if (damageReductionByAttribute.ContainsKey(attr))
-            {
-                float reduction = damageReductionByAttribute[attr];
-                damageReceived *= 1f - reduction;
-            }
+            hpMul += effectPair.Value.HpMultiplicativeModifier(this);
+            hpAdd += effectPair.Value.HpAdditiveModifier(this);
+            atkMul += effectPair.Value.AtkMultiplicativeModifier(this);
+            atkAdd += effectPair.Value.AtkAdditiveModifier(this);
+            defMul += effectPair.Value.DefMultiplicativeModifier(this);
+            defAdd += effectPair.Value.DefAdditiveModifier(this);
+            critChanceAdd += effectPair.Value.CritChanceAdditiveModifier(this);
+            critMultiplierAdd += effectPair.Value.CritMultiplierAdditiveModifier(this);
+            codeAccelMul += effectPair.Value.CodeAccelationMultiplicativeModifier(this);
         }
-        damageReceived *= 1 - damageReduction;
 
-        int hpBeforeHit = currentHp;
-        currentHp -= Mathf.FloorToInt(damageReceived);
-        Debug.Log($"{unitName}은(는) {hpBeforeHit}의 체력을 지닌 채 {damageReceived}의 피해를 받았습니다. 남은 체력: {currentHp}");
+        // hp 비율 저장
+        float healthRatio = (hpMax > 0) ? (float)hpCurr / hpMax : 1f;
 
-        OnAfterDamageTaken?.Invoke(this, dealer, (int)damageReceived);
+        hpMax = Mathf.RoundToInt(GetBaseHp() * (1f + hpMul) + hpAdd);
+        manaMax = manaBase;
+        atkCurr = Mathf.RoundToInt(GetBaseAtk() * (1f + atkMul) + atkAdd);
+        defCurr = Mathf.RoundToInt(GetBaseDef() * (1f + defMul) + defAdd);
+        critChanceCurr = GetBaseCritChance() + critChanceAdd;
+        critMultiplierCurr = GetBaseCritDamage() + critMultiplierAdd;
+        codeAcceleration = 1f + codeAccelMul;
 
-        if (currentHp <= 0)
-        {
-            currentHp = 0;
-            Debug.Log($"{unitName}은(는) 사망했습니다.");
-            DeactivateUnit();
-            gameManager.skillManager.OnCasterDeath(this);
-            OnDeath?.Invoke(this, dealer);
-        }
+        // hp 비율 복구
+        hpCurr = Mathf.RoundToInt(hpMax * healthRatio);
     }
 
-    public void OnGetControlled(Unit caster, float duartion)
+    // 이벤트를 처리하는 메소드들
+    /// <summary>
+    /// 유닛 소환 이벤트
+    /// </summary>
+    /// <param name="cell">유닛이 위치한 셀</param>
+    /// <param name="isEnemy">진영</param>
+    /// <param name="id">유닛의 데이터상 id</param>
+    public virtual void Spawn(Cell cell, bool isEnemy, int id)
+    {
+        ActivateUnit();
+        InitializeUnit(isEnemy, id);
+        Invoke(BaseEnums.UnitEventType.OnSpawn, this);
+    }
+
+    /// <summary>
+    /// 유닛 사망 이벤트
+    /// </summary>
+    /// <param name="attacker">막타친 적 유닛(사망 시 이벤트 처리용)</param>
+    public virtual void Die(Unit attacker)
+    {
+        Invoke(BaseEnums.UnitEventType.OnDeath, (this, attacker));
+        DeactivateUnit();
+    }
+
+    /// <summary>
+    /// 유닛 피해 처리 이벤트<br/>
+    /// 다른 피해 처리 이벤트를 등록하지 않았을 경우 기본 피해 처리 이벤트(DefaultTakeDamageEvent) 호출
+    /// </summary>
+    /// <param name="context">피해 정보 컨텍스트</param>
+    public virtual void TakeDamage(DamageContext context)
+    {
+        Invoke(BaseEnums.UnitEventType.OnBeforeDamageTaken, (this, context.attacker));
+        Invoke(BaseEnums.UnitEventType.OnTakingDamage, (this, context));
+        Invoke(BaseEnums.UnitEventType.OnAfterDamageTaken, (this, context.attacker));
+    }
+
+    /// <summary>
+    /// 유닛이 행동불능 상태가 되었을 때 호출되는 이벤트
+    /// </summary>
+    /// <param name="context">공격자와 지속시간을 지닌 제어 정보 컨텍스트</param>
+    public virtual void ControlStarts(ControlContext context)
     {
         isControlled = true;
-        controlDuration = duartion;
-        OnControllStarted?.Invoke(this, caster);
+        controlDuration = context.duration;
+        Invoke(BaseEnums.UnitEventType.OnControlStarts, (this, context));
     }
 
-    public void OnControlEnd()
+    /// <summary>
+    /// 유닛이 행동불능 상태에서 벗어났을 때 호출되는 이벤트
+    /// </summary>
+    public virtual void ControlEnds()
     {
         isControlled = false;
-        OnControllEnded?.Invoke(this);
+        controlDuration = 0f;
+        Invoke(BaseEnums.UnitEventType.OnControlEnds, this);
     }
 
-    public void ActivatePassiveCode()
+    public virtual void CastPassiveCode()
     {
-        bool success = gameManager.skillManager.RegisterSkill(this, passiveCode);
-        if (success)
+        passiveCode.CastCode();
+        Invoke(BaseEnums.UnitEventType.OnPassiveActivates, this);
+    }
+
+    public virtual void CastNormalCode()
+    {
+        normalCode.CastCode();
+        Invoke(BaseEnums.UnitEventType.OnNormalActivates, this);
+    }
+
+    public virtual void CastUltimateCode()
+    {
+        manaCurr = 0;
+        currentCell.manaBarObj.transform.localScale = new Vector3(0f, 1f, 1f);
+        ultimateCode.CastCode();
+        Invoke(BaseEnums.UnitEventType.OnUltimateActivates, this);
+    }
+
+    public virtual void RecoverMana(int amount)
+    {
+        manaCurr += amount;
+        if (manaCurr > manaMax)
         {
-            OnPassiveActivated?.Invoke(this);
-            Debug.Log($"{unitName}의 패시브 코드가 발동되었습니다.");
+            manaCurr = manaMax;
         }
-    }
-
-    public void ActivateNormalCode()
-    {
-        bool success = gameManager.skillManager.RegisterSkill(this, normalCode);
-        if (success)
-        {
-            OnNormalActivated?.Invoke(this);
-            Debug.Log($"{unitName}의 일반 코드가 발동되었습니다.");
-        }
-    }
-
-    public void ActivateUltimateCode()
-    {
-        bool success = gameManager.skillManager.RegisterSkill(this, ultimateCode);
-        if (success)
-        {
-            OnUltimateActivated?.Invoke(this);
-            Debug.Log($"{unitName}의 궁극 코드가 발동되었습니다.");
-        }
-    }
-
-    private void Start()
-    {
-        gameManager = GameManager.Instance;
-        effectController = new EffectController();
-        // 추가 설정이 필요하다면 이곳에 작성
+        currentCell.manaBarObj.transform.localScale = new Vector3((float)manaCurr / manaMax, 1f, 1f);
     }
 
     private void Update()
     {
-        if (isActive)
+        if (!isActive) return;
+        if (GameManager.Instance.gameState == BaseEnums.GameState.RoundInProgress)
         {
-            StatusUpdate();
+            if (isControlled)
+            {
+                controlDuration -= Time.deltaTime;
+                if (controlDuration <= 0f)
+                {
+                    ControlEnds();
+                }
+            }
+            if (!isControlled && !isCasting)
+            {
+                if (ultimateCooldown <= 0f && ultimateCode.HasValidTarget() && manaCurr >= manaMax)
+                {
+                    CastUltimateCode();
+                }
+                else
+                {
+                    if (normalCooldown <= 0f && normalCode.HasValidTarget())
+                    {
+                        CastNormalCode();
+                    }
+                }
+                ultimateCooldown = Mathf.Max(0f, ultimateCooldown - Time.deltaTime * codeAcceleration);
+                normalCooldown = Mathf.Max(0f, normalCooldown - Time.deltaTime * codeAcceleration);
+            }
         }
     }
 
-    public void AddDamageIncrease(string attribute, float increase)
+    // 디폴트 이벤트 액션(이거 참고해서 다른 이벤트 만들어 넣으면 됨)
+
+    /// <summary>
+    /// 다른 피해 처리 이벤트를 등록하지 않았을 경우 기본 피해 처리 이벤트<br/>
+    /// 피해량 = (1 + (방어력 - 관통력) * 0.01) * 피해량<br/>
+    /// </summary>
+    /// <param name="selfContext">(자신(Unit)과 피해 정보(TakeDamageContext)) 튜플</param>
+    /// <remarks>
+    /// selfContext.self = 피해를 받은 유닛(Unit) <br/>
+    /// selfContext.context = 피해 정보 (TakeDamageContext)
+    /// </remarks>
+    protected void DefaultTakeDamageEvent((Unit self, DamageContext context) selfContext)
     {
-        if (damageIncreaseByAttribute.ContainsKey(attribute))
+        Unit self = selfContext.self;
+        DamageContext context = selfContext.context;
+        int effectiveDef = self.defCurr - context.penetration;
+        float receivingDamageModifier = 1f;
+        foreach (var effectPair in statusEffects)
         {
-            damageIncreaseByAttribute[attribute] += increase;
+            receivingDamageModifier *= effectPair.Value.ReceivingDamageModifier(self);
         }
-        else
+        int damageReceived = (int)(receivingDamageModifier * context.damage / (1 + effectiveDef * 0.01f));
+        int hpBeforeHit = self.hpCurr;
+        self.hpCurr -= damageReceived;
+        currentCell.hpBarObj.transform.localScale = new Vector3((float)self.hpCurr / self.hpMax, 1f, 1f);
+        Debug.Log($"{self.unitName}은(는) {context.attacker.unitName}에게 {damageReceived}의 {(context.isCrit ? "치명" : "")}피해를 받았습니다. 체력: {hpBeforeHit} -> {self.hpCurr}");
+        if (self.hpCurr <= 0)
         {
-            damageIncreaseByAttribute.Add(attribute, increase);
+            self.Die(context.attacker);
         }
     }
 
-    public void AddDamageReduction(int tag, int reduction)
+    /// <summary>
+    /// 라운드 시작 처리 이벤트
+    /// </summary>
+    protected void DefaultRoundStartEvent(Unit self)
     {
-        if (damageReductionByAttribute.ContainsKey(tag))
-        {
-            damageReductionByAttribute[tag] += reduction;
-        }
-        else
-        {
-            damageReductionByAttribute.Add(tag, reduction);
-        }
+        CastPassiveCode();
     }
 
-    public void ActivateUnit(bool isEnemy, int id)
+    /// <summary>
+    /// 라운드 종료 처리 이벤트
+    /// </summary>
+    protected void DefaultRoundEndEvent(Unit self)
+    {
+        statusEffects.Clear();
+        AttributesUpdate();
+    }
+
+    // 베이스 스탯 수치 반환
+    public virtual int GetBaseHp()
+    {
+        return hpBase + hpIncrementLvl * level + hpIncrementUpgrade * hpUpgrade;
+    }
+
+    public virtual int GetBaseAtk()
+    {
+        return atkBase + atkIncrementLvl * level + atkIncrementUpgrade * atkUpgrade;
+    }
+
+    public virtual int GetBaseDef()
+    {
+        return defBase + defIncrementLvl * level + defIncrementUpgrade * defUpgrade;
+    }
+
+    public virtual float GetBaseCritChance()
+    {
+        return critChanceBase + critChanceIncrementLvl * level + critChanceIncrementUpgrade * critChanceUpgrade;
+    }
+
+    public virtual float GetBaseCritDamage()
+    {
+        return critMultiplierBase + critMultiplierIncrementLvl * level + critMultiplierIncrementUpgrade * critMultiplierUpgrade;
+    }
+
+    // 유닛 활성화 상태 관리
+    public void ActivateUnit()
     {
         isActive = true;
-        this.isEnemy = isEnemy;
-        InitProcess(isEnemy, id);
         currentCell.isOccupied = true;
         currentCell.hpBarObj.transform.Find("Bar Sprite").GetComponent<SpriteRenderer>().enabled = true;
+        currentCell.hpBarObj.transform.localScale = Vector3.one;
+        currentCell.manaBarObj.transform.Find("Bar Sprite").GetComponent<SpriteRenderer>().enabled = true;
+        currentCell.manaBarObj.transform.localScale = new Vector3(0f, 1f, 1f);
     }
 
     public void DeactivateUnit()
     {
         isActive = false;
+        id = 0;
         currentCell.isOccupied = false;
         currentCell.portraitRenderer.sprite = null;
         currentCell.hpBarObj.transform.Find("Bar Sprite").GetComponent<SpriteRenderer>().enabled = false;
+        currentCell.manaBarObj.transform.Find("Bar Sprite").GetComponent<SpriteRenderer>().enabled = false;
+        currentCell.reservedTime = 2f;
     }
 
-    public void RecoverMana(int amount)
+    // 유닛 상태효과 관리
+    public void AddStatusEffect(string identifier, StatusEffect effect)
     {
-        currentMana = Mathf.Min((int)(currentMana + amount * manaChargeRate), maxMana);
+        // 같은 버프여도 서로 다른 유닛이 부여하면 중첩가능
+        Debug.Log($"{unitName}에게 {identifier} 상태효과 부여");
+        if (statusEffects.ContainsKey(identifier))
+        {
+            statusEffects[identifier] = effect;
+        }
+        else
+        {
+            statusEffects.Add(identifier, effect);
+        }
+        AttributesUpdate();
+    }
+
+    public void RemoveStatusEffect(string identifier)
+    {
+        Debug.Log($"{unitName}에게서 {identifier} 상태효과 제거됨");
+        if (statusEffects.ContainsKey(identifier))
+        {
+            statusEffects.Remove(identifier);
+        }
+        AttributesUpdate();
+    }
+
+    // 이벤트 리스너 관리
+    public void AddListener<T>(BaseEnums.UnitEventType eventType, Action<T> action)
+    {
+        if (!eventDict.ContainsKey(eventType))
+        {
+            RemoveAllListners(eventType);
+        }
+        eventDict[eventType] = (Action<T>)eventDict[eventType] + action;
+    }
+
+    public void RemoveListener<T>(BaseEnums.UnitEventType eventType, Action<T> action)
+    {
+        if (eventDict.ContainsKey(eventType))
+        {
+            eventDict[eventType] = (Action<T>)eventDict[eventType] - action;
+        }
+    }
+
+    public void RemoveAllListners(BaseEnums.UnitEventType eventType)
+    {
+        if (eventDict.ContainsKey(eventType))
+        {
+            eventDict[eventType] = null;
+        }
+        else
+        {
+            eventDict.Add(eventType, null);
+        }
+    }
+
+    public void Invoke<T>(BaseEnums.UnitEventType eventType, T context)
+    {
+        if (eventDict.ContainsKey(eventType))
+        {
+            ((Action<T>)eventDict[eventType])?.Invoke(context);
+        }
     }
 }

@@ -20,8 +20,8 @@ public class GridManager : MonoBehaviour
     public float tileSpacing = 2.1f;
 
     private Cell[,] cellManager; // 셀 관리 배열
-    private List<Hero> heroList;
-    private List<Enemy> enemyList;
+    private List<Unit> heroList;
+    private List<Unit> enemyList;
 
     private void Awake()
     {
@@ -39,8 +39,8 @@ public class GridManager : MonoBehaviour
 
     public void InitializeComponent()
     {
-        heroList = new List<Hero>();
-        enemyList = new List<Enemy>();
+        heroList = new List<Unit>();
+        enemyList = new List<Unit>();
         CreateGrid();
     }
 
@@ -70,6 +70,7 @@ public class GridManager : MonoBehaviour
                     cellComponent.yPos = y;
                     cellComponent.isOccupied = false; // 초기화
                     cellComponent.portraitRenderer.sprite = null; // 초기화
+                    cellComponent.reservedTime = 0f; // 초기화
                 }
 
                 // 셀의 위치에 따라 아군과 적 투명 캐릭터 생성
@@ -79,7 +80,7 @@ public class GridManager : MonoBehaviour
                     heroObj.transform.SetParent(cellObject.transform);
                     heroObj.transform.localPosition = Vector3.zero;
                     cellComponent.unit = heroObj;
-                    Hero hero = heroObj.GetComponent<Hero>();
+                    Unit hero = heroObj.GetComponent<Unit>();
                     hero.currentCell = cellComponent;
                     hero.isActive = false;
                     heroList.Add(hero);
@@ -90,7 +91,7 @@ public class GridManager : MonoBehaviour
                     enemyObj.transform.SetParent(cellObject.transform);
                     enemyObj.transform.localPosition = Vector3.zero;
                     cellComponent.unit = enemyObj;
-                    Enemy enemy = enemyObj.GetComponent<Enemy>();
+                    Unit enemy = enemyObj.GetComponent<Unit>();
                     enemy.currentCell = cellComponent;
                     enemy.isActive = false;
                     enemyList.Add(enemy);
@@ -115,7 +116,7 @@ public class GridManager : MonoBehaviour
             adjustedY >= 0 && adjustedY < cellManager.GetLength(1))
         {
             Cell cell = cellManager[adjustedX, adjustedY];
-            return cell != null && !cell.isOccupied;
+            return cell != null && !cell.isOccupied && cell.reservedTime <= 0f;
         }
 
         return false; // 셀이 없거나 이미 점유됨
@@ -133,16 +134,9 @@ public class GridManager : MonoBehaviour
             Cell cell = cellManager[adjustedX, adjustedY];
             if (cell != null)
             {
-                Debug.Log($"Spawning {(isEnemy ? "enemy" : "hero")} {unitId} at Cell ({xPos}, {yPos}).");
                 cell.isOccupied = true; // 셀을 점유 상태로 변경
-                if (isEnemy)
-                {
-                    cell.unit.GetComponent<Enemy>().ActivateUnit(isEnemy, unitId);
-                }
-                else
-                {
-                    cell.unit.GetComponent<Hero>().ActivateUnit(isEnemy, unitId);
-                }
+                cell.unit.GetComponent<Unit>().Spawn(cell, isEnemy, unitId);
+                Debug.Log($"{(isEnemy ? "적군" : "아군")} 유닛 {cell.unit.GetComponent<Unit>().unitName}을 ({xPos}, {yPos})에 소환");
                 // Enemy enemyUnit = poolManager.ActivateUnit(false).GetComponent<Enemy>();
                 // enemyUnit.currentCell = cell;
                 // enemyUnit.InitProcess(false, enemyId);
@@ -150,23 +144,36 @@ public class GridManager : MonoBehaviour
         }
     }
 
+    public void OnRoundStart()
+    {
+        foreach (Unit hero in heroList)
+        {
+            hero.Invoke(BaseEnums.UnitEventType.OnRoundStart, (hero));
+        }
+
+        foreach (Unit enemy in enemyList)
+        {
+            enemy.Invoke(BaseEnums.UnitEventType.OnRoundStart, (enemy));
+        }
+    }
+
     public List<Unit> TargetNearestEnemy(Unit caster)
     {
         List<Unit> enemyCandidates = new List<Unit>();
 
-        if (caster is Hero)
+        if (!caster.isEnemy)
         {
             // Assuming GridManager maintains a list of enemies
-            foreach (Enemy enemy in enemyList)
+            foreach (Unit enemy in enemyList)
             {
                 if (enemy.isActive) enemyCandidates.Add(enemy);
             }
 
         }
-        else if (caster is Enemy)
+        else
         {
             // Assuming GridManager maintains a list of heroes
-            foreach (Hero hero in heroList)
+            foreach (Unit hero in heroList)
             {
                 if (hero.isActive) enemyCandidates.Add(hero);
             }
@@ -174,7 +181,7 @@ public class GridManager : MonoBehaviour
 
         List<Unit> nearestUnit = new List<Unit>();
         float minDistance = float.MaxValue;
-        Vector2 casterPos = new Vector2(caster.currentCell.xPos, caster.currentCell.yPos);
+        Vector2 casterPos = new(caster.currentCell.xPos, caster.currentCell.yPos);
 
         foreach (Unit unit in enemyCandidates)
         {
@@ -192,25 +199,25 @@ public class GridManager : MonoBehaviour
 
     public List<Unit> TargetAllEnemies(Unit caster)
     {
-        if (caster is Hero)
+        if (!caster.isEnemy)
         {
-            return enemyList.Where(e => e.isActive).Cast<Unit>().ToList();
+            return enemyList.Where(e => e.isActive).ToList();
         }
         else
         {
-            return heroList.Where(h => h.isActive).Cast<Unit>().ToList();
+            return heroList.Where(h => h.isActive).ToList();
         }
     }
 
     public List<Unit> TargetAllAllies(Unit caster)
     {
-        if (caster is Hero)
+        if (!caster.isEnemy)
         {
-            return heroList.Where(e => e.isActive).Cast<Unit>().ToList();
+            return heroList.Where(e => e.isActive).ToList();
         }
         else
         {
-            return enemyList.Where(h => h.isActive).Cast<Unit>().ToList();
+            return enemyList.Where(h => h.isActive).ToList();
         }
     }
 }

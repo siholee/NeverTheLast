@@ -5,32 +5,18 @@ using YamlDotNet.Serialization;
 public class DataManager : MonoBehaviour
 {
     // 다른 데이터 불러오는것도 전부 여기에 정리할 것
-    public HeroDataList FetchHeroDataList()
+    public UnitDataList FetchUnitDataList()
     {
-        TextAsset heroData = Resources.Load<TextAsset>("Data/10_heroes");
+        TextAsset unitData = Resources.Load<TextAsset>("Data/10_units");
         var deserializer = new DeserializerBuilder().Build();
-        if (heroData == null)
+        if (unitData == null)
         {
-            Debug.LogError("Data/10_heroes.yaml not found.");
+            Debug.LogError("Data/10_units.yaml not found.");
             return null;
         }
 
-        HeroDataList heroDataList = deserializer.Deserialize<HeroDataList>(heroData.text);
-        return heroDataList;
-    }
-
-    public EnemyDataList FetchEnemyDataList()
-    {
-        TextAsset enemyData = Resources.Load<TextAsset>("Data/20_enemies");
-        var deserializer = new DeserializerBuilder().Build();
-        if (enemyData == null)
-        {
-            Debug.LogError("Data/20_enemies.yaml not found.");
-            return null;
-        }
-
-        EnemyDataList enemyDataList = deserializer.Deserialize<EnemyDataList>(enemyData.text);
-        return enemyDataList;
+        UnitDataList unitDataList = deserializer.Deserialize<UnitDataList>(unitData.text);
+        return unitDataList;
     }
 
     public CodeDataList FetchCodeDataList()
@@ -46,6 +32,7 @@ public class DataManager : MonoBehaviour
         CodeDataList codeDataList = deserializer.Deserialize<CodeDataList>(codeData.text);
         return codeDataList;
     }
+
     public RoundDataList FetchRoundDataList()
     {
         TextAsset roundData = Resources.Load<TextAsset>("Data/70_rounds");
@@ -60,8 +47,6 @@ public class DataManager : MonoBehaviour
         return roundDataList;
     }
 }
-
-
 
 [System.Serializable]
 public class RoundDataList
@@ -84,70 +69,54 @@ public class CellData
 }
 
 [System.Serializable]
-public class HeroData
+public class UnitData
 {
     public int id;
     public string name;
-    public int[] synergies;
-    public int hp;
-    public int hp_increase;
-    public int atk;
-    public int atk_increase;
-    public int def;
-    public int def_increase;
-    public int crit_chance;
-    public int crit_chance_increase;
-    public int crit_damage;
-    public int crit_damage_increase;
-    public int mana;
+    public List<int> synergies;
+    public int hpBase;
+    public int hpIncrementLvl;         // YAML의 hpIncrementLvl 필드와 매핑
+    public int hpIncrementUpgrade;     // YAML의 hpIncrementUpgrade 필드와 매핑
+    public int atkBase;
+    public int atkIncrementLvl;        // YAML의 atkIncrementLvl 필드와 매핑
+    public int atkIncrementUpgrade;    // YAML의 atkIncrementUpgrade 필드와 매핑
+    public int defBase;
+    public int defIncrementLvl;        // YAML의 defIncrementLvl 필드와 매핑
+    public int defIncrementUpgrade;    // YAML의 defIncrementUpgrade 필드와 매핑
+    public float critChance;
+    public float critChanceIncrementLvl;   // YAML의 critChanceIncrementLvl 필드와 매핑
+    public float critChanceIncrementUpgrade; // YAML의 critChanceIncrementUpgrade 필드와 매핑
+    public float critMultiplier;
+    public float critMultiplierIncrementLvl;   // YAML의 critMultiplierIncrementLvl 필드와 매핑
+    public float critMultiplierIncrementUpgrade; // YAML의 critMultiplierIncrementUpgrade 필드와 매핑
+    public int manaBase;
     public Dictionary<string, int> codes;
     public string portrait;
 }
 
 [System.Serializable]
-public class HeroDataList
+public class UnitDataList
 {
-    public List<HeroData> heroes;
-}
-
-[System.Serializable]
-public class EnemyData
-{
-    public int id;
-    public string name;
-    public int hp_base;
-    public int hp_increment;
-    public int atk_base;
-    public int atk_increment;
-    public int def_base;
-    public int def_increment;
-    public int crit_chance_base;
-    public int crit_damage_base;
-    public Dictionary<string, int> codes;
-    public string portrait;
-}
-
-[System.Serializable]
-public class EnemyDataList
-{
-    public List<EnemyData> enemies;
+    public List<UnitData> units;
 }
 
 [System.Serializable]
 public class CodeData
 {
     public int id;           // 코드 ID
-    public string name;      // 코드 이름
-    public float cooldown;   // 기본 쿨타임
-    public bool isPassive;   // 패시브 여부
-    public int counter;      // 최대 사용 횟수
-    public int attribute;    // Attribute (HP, ATK, DEF 등)
-    public float coefficient; // 스킬 계수
-    public int elementId;    // 속성 ID
+    public string verbalName;      // 코드 이름
+    public string codeName;
 }
 
 [System.Serializable]
+public class CodeDataRepository
+{
+    public List<CodeData> passive; // 코드 목록
+    public List<CodeData> normal;  // 코드 목록
+    public List<CodeData> ultimate; // 코드 목록
+}
+
 public class CodeDataList
 {
-    public List<CodeData> codes; // 코드 목록
+    public CodeDataRepository codes;
 }

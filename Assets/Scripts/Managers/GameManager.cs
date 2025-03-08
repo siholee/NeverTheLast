@@ -2,34 +2,23 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Pool;
 using System.Collections;
+using static BaseEnums;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     public RoundManager roundManager;
-    public SkillManager skillManager;
-    public UnitManager unitManager;
     public GridManager gridManager;
     public UiManager uiManager;
     public SfxManager sfxManager;
 
-
-    // 현재 진행중인 게임 상태
-    public enum GameState
-    {
-        Preperation,
-        RoundInProgress,
-        RoundEnd,
-        GameOver
-    }
     public GameState gameState;
     public List<Unit> currentEnemies;
     public List<Unit> currentHeroes;
 
     // 게임 데이터 관련
     public DataManager dataManager;
-    public EnemyDataList enemyDataList;
-    public HeroDataList heroDataList;
+    public UnitDataList unitDataList;
 
     private void Awake()
     {
@@ -55,6 +44,7 @@ public class GameManager : MonoBehaviour
             if (gameState == GameState.Preperation)
             {
                 gameState = GameState.RoundInProgress;
+                GridManager.Instance.OnRoundStart();
             }
             else if (gameState == GameState.RoundInProgress)
             {
@@ -70,26 +60,10 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         gameState = GameState.Preperation;
-        skillManager = GetComponent<SkillManager>();
-        unitManager = GetComponent<UnitManager>();
         sfxManager = GetComponent<SfxManager>();
-        Debug.LogWarning("GameManager Start");
 
         dataManager = GetComponent<DataManager>();
-        enemyDataList = dataManager.FetchEnemyDataList();
-        heroDataList = dataManager.FetchHeroDataList();
-
-        unitManager.gameManager = this;
-        unitManager.heroCooldowns = new CooldownController[4, 3];
-        unitManager.enemyCooldowns = new CooldownController[4, 3];
-        for (int i = 0; i < 4; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                unitManager.heroCooldowns[i, j] = new CooldownController();
-                unitManager.enemyCooldowns[i, j] = new CooldownController();
-            }
-        }
+        unitDataList = dataManager.FetchUnitDataList();
 
         gridManager.gameManager = this;
         gridManager.InitializeComponent();

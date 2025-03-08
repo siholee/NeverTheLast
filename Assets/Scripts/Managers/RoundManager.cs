@@ -35,7 +35,6 @@ public class RoundManager
             return;
         }
 
-        Debug.LogWarning(currentRound.roundNumber);
         foreach (var cell in currentRound.cells)
         {
             Queue<int> queue = new Queue<int>(cell.enemyIds);

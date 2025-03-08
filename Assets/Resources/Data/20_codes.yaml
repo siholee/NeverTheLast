@@ -1,0 +1,16 @@
+codes:
+  passive:
+    - id: 1
+      verbalName: 홀리 인챈트
+      codeName: HolyEnchant
+  normal:
+    - id: 1
+      verbalName: 불알타격
+      codeName: FireBlast
+    - id: 2
+      varbalName: 성광의 권능
+      codeName: AuricMandate
+  ultimate:
+    - id: 1
+      verbalName: 레바테인
+      codeName: Levateinn

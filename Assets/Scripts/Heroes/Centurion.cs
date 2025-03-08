@@ -1,14 +1,16 @@
-using UnityEngine;
+// using UnityEngine;
 
-public class Centurion : Unit
-{
-    public int PRECISION;
+// public class Centurion : OldUnit
+// {
+//     public int PRECISION;
 
-    void start(){
-        PRECISION = 0;
-    }
+//     void start()
+//     {
+//         PRECISION = 0;
+//     }
 
-    public void ManagePrecision(){
+//     public void ManagePrecision()
+//     {
 
-    }   
-}
+//     }
+// }
