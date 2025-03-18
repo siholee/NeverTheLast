@@ -8,7 +8,7 @@ codes:
       verbalName: 불알타격
       codeName: FireBlast
     - id: 2
-      varbalName: 성광의 권능
+      verbalName: 성광의 권능
       codeName: AuricMandate
   ultimate:
     - id: 1

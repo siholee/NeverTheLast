@@ -1,12 +1,18 @@
-public class HolyEnchantBuff : StatusEffect
-{
-  public override float AtkMultiplicativeModifier(Unit unit)
-  {
-    return 0.2f;
-  }
+using Entities;
+using StatusEffects.Base;
 
-  public override float CritChanceAdditiveModifier(Unit unit)
+namespace StatusEffects.Effects
+{
+  public class HolyEnchantBuff : StatusEffect
   {
-    return 0.1f;
+    public override float AtkMultiplicativeModifier(Unit unit)
+    {
+      return 0.2f;
+    }
+
+    public override float CritChanceAdditiveModifier(Unit unit)
+    {
+      return 0.1f;
+    }
   }
 }

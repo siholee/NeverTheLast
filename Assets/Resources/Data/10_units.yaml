@@ -3,7 +3,7 @@ units:
     name: SEI
     synergies:
       - 1
-      - 2
+      - 4
     hpBase: 12000
     hpIncrementLvl: 1000
     hpIncrementUpgrade: 1000
@@ -30,7 +30,6 @@ units:
     name: DAIYAN
     synergies:
       - 1
-      - 2
     hpBase: 3000
     hpIncrementLvl: 1000
     hpIncrementUpgrade: 1000
@@ -55,8 +54,7 @@ units:
   - id: 3
     name: CLUKAY
     synergies:
-      - 1
-      - 2
+      - 3
     hpBase: 5000
     hpIncrementLvl: 1000
     hpIncrementUpgrade: 1000

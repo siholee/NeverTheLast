@@ -1,48 +1,52 @@
 using System.Collections.Generic;
+using Entities;
 
-public class PassiveCodeContext
+namespace BaseClasses
 {
-  public Unit caster;
-}
-
-public class NormalCodeContext
-{
-  public Unit caster;
-}
-
-public class UltimateCodeContext
-{
-  public Unit caster;
-}
-
-public class DamageContext
-{
-  public Unit attacker;
-  public int damage;
-  public bool isCrit;
-  public BaseEnums.CodeType codeType;
-  public List<int> damageTags;
-  public int penetration;
-
-  public DamageContext(Unit attacker, int damage, BaseEnums.CodeType codeType, List<int> damageTags, bool isCrit = false, int penetration = 0)
+  public class PassiveCodeContext
   {
-    this.attacker = attacker;
-    this.damage = damage;
-    this.isCrit = isCrit;
-    this.codeType = codeType;
-    this.damageTags = damageTags;
-    this.penetration = penetration;
+    public Unit Caster;
   }
-}
 
-public class ControlContext
-{
-  public Unit attacker;
-  public float duration;
-
-  public ControlContext(Unit attacker, float duration)
+  public class NormalCodeContext
   {
-    this.attacker = attacker;
-    this.duration = duration;
+    public Unit Caster;
+  }
+
+  public class UltimateCodeContext
+  {
+    public Unit Caster;
+  }
+
+  public class DamageContext
+  {
+    public readonly Unit Attacker;
+    public readonly int Damage;
+    public readonly bool IsCrit;
+    public BaseEnums.CodeType CodeType;
+    public List<int> DamageTags;
+    public readonly int Penetration;
+
+    public DamageContext(Unit attacker, int damage, BaseEnums.CodeType codeType, List<int> damageTags, bool isCrit = false, int penetration = 0)
+    {
+      this.Attacker = attacker;
+      this.Damage = damage;
+      this.IsCrit = isCrit;
+      this.CodeType = codeType;
+      this.DamageTags = damageTags;
+      this.Penetration = penetration;
+    }
+  }
+
+  public class ControlContext
+  {
+    public Unit Attacker;
+    public readonly float Duration;
+
+    public ControlContext(Unit attacker, float duration)
+    {
+      this.Attacker = attacker;
+      this.Duration = duration;
+    }
   }
 }

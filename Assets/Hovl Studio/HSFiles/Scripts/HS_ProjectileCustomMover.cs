@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Entities;
 using UnityEngine;
 
 public class HS_ProjectileCustomMover : MonoBehaviour

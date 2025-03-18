@@ -1,12 +1,14 @@
-using System.Collections;
-using UnityEngine;
+using BaseClasses;
 
-public class NormalCode : Code
+namespace Codes.Base
 {
-  public int manaAmount; // 생성 마나량
-
-  public NormalCode(NormalCodeContext context)
+  public class NormalCode : Code
   {
-    caster = context.caster;
+    public int ManaAmount; // 생성 마나량
+
+    public NormalCode(NormalCodeContext context)
+    {
+      Caster = context.Caster;
+    }
   }
 }

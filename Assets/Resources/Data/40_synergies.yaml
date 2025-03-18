@@ -1,7 +1,17 @@
 synergies:
   - id: 1
-    name: "@SYNERGY_NAME: AKASHA"
+    name: 아카샤
+    maxStack: 1
+    description: 모든 아군 유닛의 공격력을 20% 증가시킵니다.
   - id: 2
-    name: "@SYNERGY_NAME: LEADER"
+    name: 리더
+    maxStack: 1
+    description: 모든 아군 유닛의 공격력, 방어력을 10%, 치명타율을 5%, 치명배율을 20% 증가시킵니다.
   - id: 3
-    name: "@SYNERGY_NAME: SNIPER"
+    name: 스나이퍼
+    maxStack: 2
+    description: 스나이퍼 유닛의 코드 가속을 스택당 20% 증가시킵니다. 모든 아군 유닛의 공격력을 스택당 15% 증가시킵니다.
+  - id: 4
+    name: 센티널
+    maxStack: 3
+    description: 모든 유닛의 방어력을 100 증가시킵니다. 센티널 유닛은 스택당 방어력 20%를 추가로 받습니다.

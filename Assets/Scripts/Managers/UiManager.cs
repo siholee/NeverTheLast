@@ -3,6 +3,9 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
 using System.Collections.Generic;
+using System.Linq;
+using BaseClasses;
+using Managers;
 
 public class UiManager : MonoBehaviour
 {
@@ -45,16 +48,12 @@ public class UiManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI synergyDesc;
     [SerializeField] private RectTransform unitPortraitContainer;
 
-    // 시너지 정보 저장용 딕셔너리
-    private Dictionary<string, SynergyInfo> synergyInfos = new Dictionary<string, SynergyInfo>();
-
     private void Start()
     {
         // 캔버스가 에디터에서 지정되지 않았다면, 스크립트가 붙은 오브젝트의 Canvas 컴포넌트를 사용
         if (mainCanvas == null)
             mainCanvas = GetComponent<Canvas>();
 
-        InitializeSynergyData();
         EnsureUIComponents();
         SetupUIPositions();
         UpdateUIVisibility();
@@ -351,10 +350,6 @@ public class UiManager : MonoBehaviour
             layout.childControlHeight = false;
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = false;
-            
-            // 예시 시너지 아이템 추가 (Akasha, Sentinel)
-            CreateSynergyItem("Akasha", 1, 1);
-            CreateSynergyItem("Sentinel", 1, 1);
         }
         
         // 시너지 툴팁 생성
@@ -453,7 +448,7 @@ public class UiManager : MonoBehaviour
 
     private void UpdateUIVisibility()
     {
-        bool isPreparationPhase = GameManager.Instance.gameState == BaseEnums.GameState.Preperation;
+        bool isPreparationPhase = GameManager.Instance.gameState == BaseEnums.GameState.Preparation;
         if (shopPanel != null)
             shopPanel.gameObject.SetActive(isPreparationPhase);
         if (synergyPanel != null)
@@ -486,28 +481,9 @@ public class UiManager : MonoBehaviour
         Debug.Log($"Unit slot {slotIndex} clicked");
     }
 
-    private void InitializeSynergyData()
+    private void CreateSynergyItem(SynergyInfo info)
     {
-        synergyInfos["Akasha"] = new SynergyInfo(
-            "Akasha",
-            "Increases attack damage by 20% for all allied units.",
-            new List<UnitInfo> {
-                new UnitInfo("Sei", "Sprit/Portraits/SEI_PORTRAIT")
-            }
-        );
-        
-        synergyInfos["Sentinel"] = new SynergyInfo(
-            "Sentinel",
-            "Increases defense by 100 for all allied units. Sentinel characters gain an additional 200% defense.",
-            new List<UnitInfo> {
-                new UnitInfo("Sei", "Sprit/Portraits/SEI_PORTRAIT")
-            }
-        );
-    }
-
-    private void CreateSynergyItem(string className, int current, int threshold)
-    {
-        GameObject synergyItem = new GameObject(className);
+        GameObject synergyItem = new GameObject(info.ID.ToString());
         synergyItem.transform.SetParent(synergyContainer, false);
         RectTransform itemRect = synergyItem.AddComponent<RectTransform>();
         itemRect.sizeDelta = new Vector2(140f, 40f);
@@ -517,7 +493,7 @@ public class UiManager : MonoBehaviour
         GameObject nameObj = new GameObject("ClassName");
         nameObj.transform.SetParent(synergyItem.transform, false);
         TextMeshProUGUI classText = nameObj.AddComponent<TextMeshProUGUI>();
-        classText.text = className;
+        classText.text = info.Name;
         classText.fontSize = 16;
         classText.alignment = TextAlignmentOptions.Left;
         RectTransform nameRect = classText.GetComponent<RectTransform>();
@@ -530,10 +506,10 @@ public class UiManager : MonoBehaviour
         GameObject countObj = new GameObject("CountText");
         countObj.transform.SetParent(synergyItem.transform, false);
         TextMeshProUGUI countText = countObj.AddComponent<TextMeshProUGUI>();
-        countText.text = $"{current}/{threshold}";
+        countText.text = $"{info.Count}/{info.MaxCount}";
         countText.fontSize = 16;
         countText.alignment = TextAlignmentOptions.Right;
-        countText.color = (current >= threshold) ? Color.green : Color.white;
+        countText.color = (info.Count >= info.MaxCount) ? Color.green : Color.white;
         RectTransform countRect = countText.GetComponent<RectTransform>();
         countRect.anchorMin = new Vector2(0.7f, 0.5f);
         countRect.anchorMax = new Vector2(1f, 0.5f);
@@ -544,7 +520,7 @@ public class UiManager : MonoBehaviour
         EventTrigger trigger = synergyItem.AddComponent<EventTrigger>();
         EventTrigger.Entry enterEntry = new EventTrigger.Entry();
         enterEntry.eventID = EventTriggerType.PointerEnter;
-        enterEntry.callback.AddListener((data) => { OnSynergyPointerEnter(className); });
+        enterEntry.callback.AddListener((data) => { OnSynergyPointerEnter(info.ID); });
         trigger.triggers.Add(enterEntry);
         EventTrigger.Entry exitEntry = new EventTrigger.Entry();
         exitEntry.eventID = EventTriggerType.PointerExit;
@@ -552,88 +528,86 @@ public class UiManager : MonoBehaviour
         trigger.triggers.Add(exitEntry);
     }
 
-    private void OnSynergyPointerEnter(string className)
+    private void OnSynergyPointerEnter(int synergyId)
     {
-        if (synergyInfos.TryGetValue(className, out SynergyInfo info))
+        SynergyInfo info = GameManager.Instance.SynergyCounts[synergyId];
+        synergyTitle.text = info.Name;
+        synergyDesc.text = info.Description;
+        foreach (Transform child in unitPortraitContainer)
         {
-            synergyTitle.text = info.Name;
-            synergyDesc.text = info.Description;
-            foreach (Transform child in unitPortraitContainer)
-            {
-                Destroy(child.gameObject);
-            }
-            RectTransform titleRect = synergyTitle.GetComponent<RectTransform>();
-            titleRect.anchorMin = new Vector2(0, 1);
-            titleRect.anchorMax = new Vector2(1, 1);
-            titleRect.sizeDelta = new Vector2(0, 30);
-            titleRect.anchoredPosition = new Vector2(0, -20);
-            
-            RectTransform descRect = synergyDesc.GetComponent<RectTransform>();
-            descRect.anchorMin = new Vector2(0, 1);
-            descRect.anchorMax = new Vector2(1, 1);
-            descRect.sizeDelta = new Vector2(-30, 60);
-            descRect.anchoredPosition = new Vector2(0, -60);
-            
-            unitPortraitContainer.anchorMin = new Vector2(0, 0);
-            unitPortraitContainer.anchorMax = new Vector2(1, 1);
-            unitPortraitContainer.pivot = new Vector2(0.5f, 0.5f);
-            unitPortraitContainer.sizeDelta = new Vector2(-30, -130);
-            unitPortraitContainer.anchoredPosition = new Vector2(0, -20); 
-            
-            GameObject gridObj = new GameObject("PortraitGrid");
-            gridObj.transform.SetParent(unitPortraitContainer, false);
-            RectTransform gridRect = gridObj.AddComponent<RectTransform>();
-            gridRect.anchorMin = Vector2.zero;
-            gridRect.anchorMax = Vector2.one;
-            gridRect.sizeDelta = Vector2.zero;
-            gridRect.anchoredPosition = new Vector2(0, 10);
-            
-            GridLayoutGroup gridLayout = gridObj.AddComponent<GridLayoutGroup>();
-            gridLayout.spacing = new Vector2(20, 5);
-            gridLayout.cellSize = new Vector2(45, 65);
-            gridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
-            gridLayout.startAxis = GridLayoutGroup.Axis.Horizontal;
-            gridLayout.childAlignment = TextAnchor.UpperLeft;
-            gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            gridLayout.constraintCount = 4;
-            gridLayout.padding = new RectOffset(5, 5, 5, 5);
-            
-            foreach (UnitInfo unit in info.Units)
-            {
-                GameObject portraitObj = new GameObject(unit.Name);
-                portraitObj.transform.SetParent(gridObj.transform, false);
-                Image bgImage = portraitObj.AddComponent<Image>();
-                bgImage.color = new Color(0.15f, 0.15f, 0.15f, 1f);
-                GameObject imageObj = new GameObject("Portrait");
-                imageObj.transform.SetParent(portraitObj.transform, false);
-                Image portrait = imageObj.AddComponent<Image>();
-                portrait.sprite = Resources.Load<Sprite>(unit.PortraitPath);
-                portrait.color = new Color(0.5f, 0.5f, 0.5f, 1f);
-                RectTransform imageRect = portrait.GetComponent<RectTransform>();
-                imageRect.anchorMin = new Vector2(0, 0.2f);
-                imageRect.anchorMax = new Vector2(1, 1);
-                imageRect.sizeDelta = new Vector2(-6, -6);
-                imageRect.anchoredPosition = Vector2.zero;
-                
-                GameObject nameObj = new GameObject("UnitName");
-                nameObj.transform.SetParent(portraitObj.transform, false);
-                TextMeshProUGUI nameText = nameObj.AddComponent<TextMeshProUGUI>();
-                nameText.text = unit.Name;
-                nameText.fontSize = 10;
-                nameText.alignment = TextAlignmentOptions.Center;
-                nameText.color = Color.white;
-                nameText.overflowMode = TextOverflowModes.Truncate;
-                RectTransform nameRect = nameText.GetComponent<RectTransform>();
-                nameRect.anchorMin = new Vector2(0, 0);
-                nameRect.anchorMax = new Vector2(1, 0.2f);
-                nameRect.sizeDelta = Vector2.zero;
-                nameRect.anchoredPosition = Vector2.zero;
-            }
-            
-            synergyTooltip.sizeDelta = new Vector2(300f, 280f);
-            synergyTooltip.anchoredPosition = new Vector2(190f, 0f);
-            synergyTooltip.gameObject.SetActive(true);
+            Destroy(child.gameObject);
         }
+        RectTransform titleRect = synergyTitle.GetComponent<RectTransform>();
+        titleRect.anchorMin = new Vector2(0, 1);
+        titleRect.anchorMax = new Vector2(1, 1);
+        titleRect.sizeDelta = new Vector2(0, 30);
+        titleRect.anchoredPosition = new Vector2(0, -20);
+        
+        RectTransform descRect = synergyDesc.GetComponent<RectTransform>();
+        descRect.anchorMin = new Vector2(0, 1);
+        descRect.anchorMax = new Vector2(1, 1);
+        descRect.sizeDelta = new Vector2(-30, 60);
+        descRect.anchoredPosition = new Vector2(0, -60);
+        
+        unitPortraitContainer.anchorMin = new Vector2(0, 0);
+        unitPortraitContainer.anchorMax = new Vector2(1, 1);
+        unitPortraitContainer.pivot = new Vector2(0.5f, 0.5f);
+        unitPortraitContainer.sizeDelta = new Vector2(-30, -130);
+        unitPortraitContainer.anchoredPosition = new Vector2(0, -20); 
+        
+        GameObject gridObj = new GameObject("PortraitGrid");
+        gridObj.transform.SetParent(unitPortraitContainer, false);
+        RectTransform gridRect = gridObj.AddComponent<RectTransform>();
+        gridRect.anchorMin = Vector2.zero;
+        gridRect.anchorMax = Vector2.one;
+        gridRect.sizeDelta = Vector2.zero;
+        gridRect.anchoredPosition = new Vector2(0, 10);
+        
+        GridLayoutGroup gridLayout = gridObj.AddComponent<GridLayoutGroup>();
+        gridLayout.spacing = new Vector2(20, 5);
+        gridLayout.cellSize = new Vector2(45, 65);
+        gridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
+        gridLayout.startAxis = GridLayoutGroup.Axis.Horizontal;
+        gridLayout.childAlignment = TextAnchor.UpperLeft;
+        gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        gridLayout.constraintCount = 4;
+        gridLayout.padding = new RectOffset(5, 5, 5, 5);
+        
+        foreach (UnitInfo unit in info.Units)
+        {
+            GameObject portraitObj = new GameObject(unit.Name);
+            portraitObj.transform.SetParent(gridObj.transform, false);
+            Image bgImage = portraitObj.AddComponent<Image>();
+            bgImage.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+            GameObject imageObj = new GameObject("Portrait");
+            imageObj.transform.SetParent(portraitObj.transform, false);
+            Image portrait = imageObj.AddComponent<Image>();
+            portrait.sprite = Resources.Load<Sprite>(unit.PortraitPath);
+            portrait.color = new Color(0.5f, 0.5f, 0.5f, 1f);
+            RectTransform imageRect = portrait.GetComponent<RectTransform>();
+            imageRect.anchorMin = new Vector2(0, 0.2f);
+            imageRect.anchorMax = new Vector2(1, 1);
+            imageRect.sizeDelta = new Vector2(-6, -6);
+            imageRect.anchoredPosition = Vector2.zero;
+            
+            GameObject nameObj = new GameObject("UnitName");
+            nameObj.transform.SetParent(portraitObj.transform, false);
+            TextMeshProUGUI nameText = nameObj.AddComponent<TextMeshProUGUI>();
+            nameText.text = unit.Name;
+            nameText.fontSize = 10;
+            nameText.alignment = TextAlignmentOptions.Center;
+            nameText.color = Color.white;
+            nameText.overflowMode = TextOverflowModes.Truncate;
+            RectTransform nameRect = nameText.GetComponent<RectTransform>();
+            nameRect.anchorMin = new Vector2(0, 0);
+            nameRect.anchorMax = new Vector2(1, 0.2f);
+            nameRect.sizeDelta = Vector2.zero;
+            nameRect.anchoredPosition = Vector2.zero;
+        }
+        
+        synergyTooltip.sizeDelta = new Vector2(300f, 280f);
+        synergyTooltip.anchoredPosition = new Vector2(190f, 0f);
+        synergyTooltip.gameObject.SetActive(true);
     }
 
     private void OnSynergyPointerExit()
@@ -641,32 +615,19 @@ public class UiManager : MonoBehaviour
         synergyTooltip.gameObject.SetActive(false);
     }
 
-    [System.Serializable]
-    private class SynergyInfo
+    public void RefreshSynergyPane()
     {
-        public string Name { get; private set; }
-        public string Description { get; private set; }
-        public List<UnitInfo> Units { get; private set; }
-        
-        public SynergyInfo(string name, string desc, List<UnitInfo> units)
+        foreach (Transform child in synergyContainer)
         {
-            Name = name;
-            Description = desc;
-            Units = units;
+            Destroy(child.gameObject);
+        }
+        
+        foreach (var synergy in GameManager.Instance.SynergyCounts)
+        {
+            if (synergy.Value.Count > 0)
+            {
+                CreateSynergyItem(synergy.Value);
+            }
         }
     }
-
-    [System.Serializable]
-    private class UnitInfo
-    {
-        public string Name { get; private set; }
-        public string PortraitPath { get; private set; }
-        
-        public UnitInfo(string name, string portraitPath)
-        {
-            Name = name;
-            PortraitPath = portraitPath;
-        }
-    }
-
 }

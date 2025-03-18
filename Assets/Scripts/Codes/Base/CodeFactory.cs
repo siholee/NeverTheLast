@@ -1,30 +1,38 @@
-public static class CodeFactory
+using BaseClasses;
+using Codes.Normal;
+using Codes.Passive;
+using Codes.Ultimate;
+
+namespace Codes.Base
 {
-  public static PassiveCode CreatePassiveCode(int codeId, PassiveCodeContext context)
+  public static class CodeFactory
   {
-    return codeId switch
+    public static PassiveCode CreatePassiveCode(int codeId, PassiveCodeContext context)
     {
-      1 => new HolyEnchant(context),
-      _ => null,
-    };
-  }
+      return codeId switch
+      {
+        1 => new HolyEnchant(context),
+        _ => null,
+      };
+    }
 
-  public static NormalCode CreateNormalCode(int codeId, NormalCodeContext context)
-  {
-    return codeId switch
+    public static NormalCode CreateNormalCode(int codeId, NormalCodeContext context)
     {
-      1 => new FireBlast(context),
-      2 => new AuricMandate(context),
-      _ => null,
-    };
-  }
+      return codeId switch
+      {
+        1 => new FireBlast(context),
+        2 => new AuricMandate(context),
+        _ => null,
+      };
+    }
 
-  public static UltimateCode CreateUltimateCode(int codeId, UltimateCodeContext context)
-  {
-    return codeId switch
+    public static UltimateCode CreateUltimateCode(int codeId, UltimateCodeContext context)
     {
-      1 => new Laevateinn(context),
-      _ => null,
-    };
+      return codeId switch
+      {
+        1 => new Laevateinn(context),
+        _ => null,
+      };
+    }
   }
 }

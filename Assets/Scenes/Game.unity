@@ -762,7 +762,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameManager: {fileID: 1597678927}
-  _nextRoundBtn: {fileID: 312406836}
+  nextRoundBtn: {fileID: 312406836}
+  shopPanel: {fileID: 0}
+  unitShopSlots: []
+  refreshButton: {fileID: 0}
+  upButton: {fileID: 0}
+  downButton: {fileID: 0}
+  costRangeText: {fileID: 0}
+  topInfoPanel: {fileID: 0}
+  lifeText: {fileID: 0}
+  roundText: {fileID: 0}
+  goldText: {fileID: 0}
+  synergyPanel: {fileID: 0}
+  synergyContainer: {fileID: 0}
+  synergyTooltip: {fileID: 0}
+  synergyTitle: {fileID: 0}
+  synergyDesc: {fileID: 0}
+  unitPortraitContainer: {fileID: 0}
 --- !u!1 &764134609
 GameObject:
   m_ObjectHideFlags: 0
@@ -949,15 +965,17 @@ MonoBehaviour:
   gameManager: {fileID: 0}
   cellPrefab: {fileID: 5841715503207317143, guid: 09743f73f4342c243ae386b43be9806e,
     type: 3}
-  HeroPrefab: {fileID: 1684662353397886831, guid: f1fbae5ed4720774d8e5c61f0846f467,
+  heroPrefab: {fileID: 1684662353397886831, guid: f1fbae5ed4720774d8e5c61f0846f467,
     type: 3}
-  EnemyPrefab: {fileID: 2816147314669736202, guid: 565e0c081d02e99479535ad2ce26799f,
+  enemyPrefab: {fileID: 2816147314669736202, guid: 565e0c081d02e99479535ad2ce26799f,
     type: 3}
   xMin: -4
   xMax: 4
   yMin: 1
   yMax: 3
   tileSpacing: 11
+  heroList: []
+  enemyList: []
 --- !u!1 &1597678924
 GameObject:
   m_ObjectHideFlags: 0
@@ -1008,8 +1026,6 @@ MonoBehaviour:
   uiManager: {fileID: 667318213}
   sfxManager: {fileID: 0}
   gameState: 0
-  currentEnemies: []
-  currentHeroes: []
   dataManager: {fileID: 0}
   unitDataList:
     units: []

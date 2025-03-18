@@ -1,71 +1,79 @@
 using System.Collections;
 using System.Collections.Generic;
+using BaseClasses;
 using CGT.Pooling;
+using Codes.Base;
+using Entities;
+using Helpers;
+using Managers;
 using UnityEngine;
 
-public class Laevateinn : UltimateCode
+namespace Codes.Ultimate
 {
-  private HS_Poolable prefab;
-  public Laevateinn(UltimateCodeContext context) : base(context)
+  public class Laevateinn : UltimateCode
   {
-    codeType = BaseEnums.CodeType.Ultimate;
-    caster = context.caster;
-    cooldown = 10f;
-    codeName = "레바테인";
-    castingDelay = 2f;
-    prefab = GameManager.Instance.sfxManager.projectilePrefabs["Levateinn"];
-  }
-
-  public override void CastCode()
-  {
-    caster.isCasting = true;
-    Debug.Log($"{caster.unitName}({caster.currentCell.xPos}, {caster.currentCell.yPos})이 {codeName} 시전");
-    skillCoroutine = caster.StartCoroutine(SkillCoroutine());
-  }
-
-  protected override IEnumerator SkillCoroutine()
-  {
-    // 캐스팅
-    float elapsedTime = 0f;
-    while (elapsedTime < castingDelay)
+    private readonly HS_Poolable _prefab;
+    public Laevateinn(UltimateCodeContext context) : base(context)
     {
-      if (caster.isControlled || !caster.isActive)
+      CodeType = BaseEnums.CodeType.Ultimate;
+      Caster = context.Caster;
+      Cooldown = 10f;
+      CodeName = "레바테인";
+      CastingDelay = 2f;
+      _prefab = GameManager.Instance.sfxManager.ProjectilePrefabs["Levateinn"];
+    }
+
+    public override void CastCode()
+    {
+      Caster.isCasting = true;
+      Debug.Log($"{Caster.UnitName}({Caster.currentCell.xPos}, {Caster.currentCell.yPos})이 {CodeName} 시전");
+      CurrSkillCoroutine = Caster.StartCoroutine(SkillCoroutine());
+    }
+
+    protected override IEnumerator SkillCoroutine()
+    {
+      // 캐스팅
+      float elapsedTime = 0f;
+      while (elapsedTime < CastingDelay)
       {
-        Debug.Log($"{caster.unitName}({caster.currentCell.xPos}, {caster.currentCell.yPos})의 {codeName} 시전이 방해됨");
-        StopCode();
-        yield break;
+        if (Caster.isControlled || !Caster.isActive)
+        {
+          Debug.Log($"{Caster.UnitName}({Caster.currentCell.xPos}, {Caster.currentCell.yPos})의 {CodeName} 시전이 방해됨");
+          StopCode();
+          yield break;
+        }
+        elapsedTime += Time.deltaTime;
+        yield return null;
       }
-      elapsedTime += Time.deltaTime;
-      yield return null;
+
+      // 효과 처리
+      TargetUnits = GridManager.Instance.TargetAllEnemies(Caster);
+      bool isCrit = Random.value <= Caster.CritChanceCurr;
+      float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
+      DamageContext context = new(Caster, (int)(Caster.AtkCurr * 3f * critMultiplier), BaseEnums.CodeType.Ultimate, new List<int> { DamageTag.AllTarget }, isCrit);
+      foreach (var unit in TargetUnits)
+      {
+        Caster.StartCoroutine(FireProjectile(unit, Random.Range(0.1f, 0.5f), context));
+      }
+      StopCode();
     }
 
-    // 효과 처리
-    targetUnits = GridManager.Instance.TargetAllEnemies(caster);
-    bool isCrit = Random.value <= caster.critChanceCurr;
-    float critMultiplier = isCrit ? caster.critMultiplierCurr : 1f;
-    DamageContext context = new(caster, (int)(caster.atkCurr * 3f * critMultiplier), BaseEnums.CodeType.Ultimate, new List<int> { DamageTag.ALL_TARGET }, isCrit);
-    foreach (var unit in targetUnits)
+    public override void StopCode()
     {
-      caster.StartCoroutine(FireProjectile(unit, Random.Range(0.1f, 0.5f), context));
+      Caster.ultimateCooldown = Cooldown;
+      Caster.isCasting = false;
     }
-    StopCode();
-  }
 
-  public override void StopCode()
-  {
-    caster.ultimateCooldown = cooldown;
-    caster.isCasting = false;
-  }
+    private IEnumerator FireProjectile(Unit target, float delay, DamageContext context)
+    {
+      GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, target, delay);
+      yield return new WaitForSeconds(delay);
+      target.TakeDamage(context);
+    }
 
-  private IEnumerator FireProjectile(Unit target, float delay, DamageContext context)
-  {
-    GameManager.Instance.sfxManager.FireSingleProjectile(prefab, caster, target, delay);
-    yield return new WaitForSeconds(delay);
-    target.TakeDamage(context);
-  }
-
-  public override bool HasValidTarget()
-  {
-    return GridManager.Instance.TargetAllEnemies(caster).Count > 0;
+    public override bool HasValidTarget()
+    {
+      return GridManager.Instance.TargetAllEnemies(Caster).Count > 0;
+    }
   }
 }

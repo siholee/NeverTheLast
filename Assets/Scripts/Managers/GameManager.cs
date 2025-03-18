@@ -1,83 +1,115 @@
-using UnityEngine;
+using System;
 using System.Collections.Generic;
-using UnityEngine.Pool;
-using System.Collections;
-using static BaseEnums;
+using BaseClasses;
+using Entities;
+using UnityEngine;
+using static BaseClasses.BaseEnums;
 
-public class GameManager : MonoBehaviour
+namespace Managers
 {
-    public static GameManager Instance { get; private set; }
-    public RoundManager roundManager;
-    public GridManager gridManager;
-    public UiManager uiManager;
-    public SfxManager sfxManager;
-
-    public GameState gameState;
-    public List<Unit> currentEnemies;
-    public List<Unit> currentHeroes;
-
-    // 게임 데이터 관련
-    public DataManager dataManager;
-    public UnitDataList unitDataList;
-
-    private void Awake()
+    public class GameManager : MonoBehaviour
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
+        public static GameManager Instance { get; private set; }
+        private RoundManager _roundManager;
+        public GridManager gridManager;
+        public UiManager uiManager;
+        public SfxManager sfxManager;
 
-    public void NextGameState(bool isGameOver)
-    {
-        if (isGameOver)
+        public GameState gameState;
+        public Dictionary<int, SynergyInfo> SynergyCounts;
+
+        // 게임 데이터 관련
+        public DataManager dataManager;
+        public UnitDataList unitDataList;
+        public SynergyDataList synergyDataList;
+
+        private void Awake()
         {
-            gameState = GameState.GameOver;
-        }
-        else
-        {
-            if (gameState == GameState.Preperation)
+            if (Instance == null)
             {
-                gameState = GameState.RoundInProgress;
-                GridManager.Instance.OnRoundStart();
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
             }
-            else if (gameState == GameState.RoundInProgress)
+            else
             {
-                gameState = GameState.RoundEnd;
-            }
-            else if (gameState == GameState.RoundEnd)
-            {
-                gameState = GameState.Preperation;
+                Destroy(gameObject);
             }
         }
-    }
 
-    private void Start()
-    {
-        gameState = GameState.Preperation;
-        sfxManager = GetComponent<SfxManager>();
-
-        dataManager = GetComponent<DataManager>();
-        unitDataList = dataManager.FetchUnitDataList();
-
-        gridManager.gameManager = this;
-        gridManager.InitializeComponent();
-
-        roundManager = new RoundManager(dataManager);
-        roundManager.gameManager = this;
-        roundManager.LoadRound(1); // 첫 번째 라운드 시작
-    }
-
-    private void Update()
-    {
-        if (roundManager.IsRoundInProgress)
+        public void NextGameState(bool isGameOver)
         {
-            roundManager.UpdateRound();
+            if (isGameOver)
+            {
+                gameState = GameState.GameOver;
+            }
+            else
+            {
+                switch (gameState)
+                {
+                    case GameState.Preparation:
+                        gameState = GameState.RoundInProgress;
+                        GridManager.Instance.OnRoundStart();
+                        break;
+                    case GameState.RoundInProgress:
+                        gameState = GameState.RoundEnd;
+                        break;
+                    case GameState.RoundEnd:
+                        gameState = GameState.Preparation;
+                        break;
+                    case GameState.GameOver:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
+
+        public void CalculateSynergies()
+        {
+            SynergyCounts.Clear();
+            foreach (var synergyData in synergyDataList.synergies)
+            {
+                SynergyCounts.Add(synergyData.id, new SynergyInfo(synergyData, new List<UnitInfo>()));
+            }
+            foreach (var hero in GridManager.Instance.heroList)
+            {
+                if (!hero.isActive) continue;
+                foreach (var synergyId in hero.Synergies)
+                {
+                    SynergyCounts[synergyId].Count++;
+                    SynergyCounts[synergyId].Units.Add(new UnitInfo(hero.UnitName, hero.PortraitPath));
+                }
+            }
+            uiManager.RefreshSynergyPane();
+        }
+
+        private void Start()
+        {
+            SynergyCounts = new Dictionary<int, SynergyInfo>();
+            gameState = GameState.Preparation;
+            sfxManager = GetComponent<SfxManager>();
+
+            dataManager = GetComponent<DataManager>();
+            unitDataList = dataManager.FetchUnitDataList();
+            synergyDataList = dataManager.FetchSynergyDataList();
+            foreach (var synergyData in synergyDataList.synergies)
+            {
+                SynergyCounts.Add(synergyData.id, new SynergyInfo(synergyData, new List<UnitInfo>()));
+            }
+
+            gridManager.gameManager = this;
+            gridManager.InitializeComponent();
+
+            _roundManager = new RoundManager(dataManager);
+            _roundManager.LoadRound(1); // 첫 번째 라운드 시작
+        }
+
+        private void Update()
+        {
+            if (_roundManager.IsRoundInProgress)
+            {
+                _roundManager.UpdateRound();
+            }
         }
     }
 }

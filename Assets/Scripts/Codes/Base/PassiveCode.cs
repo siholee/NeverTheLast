@@ -1,7 +1,12 @@
-public class PassiveCode : Code
+using BaseClasses;
+
+namespace Codes.Base
 {
-  public PassiveCode(PassiveCodeContext context)
+  public class PassiveCode : Code
   {
-    caster = context.caster;
+    public PassiveCode(PassiveCodeContext context)
+    {
+      Caster = context.Caster;
+    }
   }
 }

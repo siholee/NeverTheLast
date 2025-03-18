@@ -1,7 +1,12 @@
-public abstract class UltimateCode : Code
+using BaseClasses;
+
+namespace Codes.Base
 {
-  public UltimateCode(UltimateCodeContext context)
+  public abstract class UltimateCode : Code
   {
-    caster = context.caster;
+    public UltimateCode(UltimateCodeContext context)
+    {
+      Caster = context.Caster;
+    }
   }
 }
