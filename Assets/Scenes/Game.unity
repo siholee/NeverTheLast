@@ -761,8 +761,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 608e2a5af99570f4287fd657ef3b1b1a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+<<<<<<< Updated upstream
   gameManager: {fileID: 1597678927}
   nextRoundBtn: {fileID: 312406836}
+=======
+  mainCanvas: {fileID: 667318211}
+  topPanelBGPrefab: {fileID: 0}
+  shopPanelPrefab: {fileID: 0}
+  shopSlotPrefab: {fileID: 0}
+  buttonPrefab: {fileID: 0}
+>>>>>>> Stashed changes
   shopPanel: {fileID: 0}
   unitShopSlots: []
   refreshButton: {fileID: 0}
@@ -1072,5 +1080,5 @@ SceneRoots:
   - {fileID: 832575519}
   - {fileID: 1597678926}
   - {fileID: 1241768293}
-  - {fileID: 667318212}
   - {fileID: 764134612}
+  - {fileID: 667318212}
