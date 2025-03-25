@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
 using System.Collections.Generic;
+using Entities;
 
 public class UiUnitManager : MonoBehaviour
 {
@@ -392,7 +393,7 @@ public void InitializeUnitInfoPanel(Transform parentContainer)
         
         // Set unit name
         if (unitNameText != null)
-            unitNameText.text = $"{selectedUnit.unitName} Lv.{selectedUnit.level}";
+            unitNameText.text = $"{selectedUnit.UnitName} Lv.{selectedUnit.Level}";
             
         // Set unit portrait (get sprite from Cell)
         if (unitPortrait != null && selectedUnit.currentCell != null)
@@ -400,22 +401,22 @@ public void InitializeUnitInfoPanel(Transform parentContainer)
             
         // Set stat values
         if (statItemDict.ContainsKey(StatType.HP))
-            statItemDict[StatType.HP].ValueText.text = $"{selectedUnit.hpCurr}/{selectedUnit.hpMax}";
+            statItemDict[StatType.HP].ValueText.text = $"{selectedUnit.HpCurr}/{selectedUnit.HpMax}";
             
         if (statItemDict.ContainsKey(StatType.ATK))
-            statItemDict[StatType.ATK].ValueText.text = selectedUnit.atkCurr.ToString();
+            statItemDict[StatType.ATK].ValueText.text = selectedUnit.AtkCurr.ToString();
             
         if (statItemDict.ContainsKey(StatType.DEF))
-            statItemDict[StatType.DEF].ValueText.text = selectedUnit.defCurr.ToString();
+            statItemDict[StatType.DEF].ValueText.text = selectedUnit.DefCurr.ToString();
             
         if (statItemDict.ContainsKey(StatType.CRIT_CHANCE))
-            statItemDict[StatType.CRIT_CHANCE].ValueText.text = $"{selectedUnit.critChanceCurr * 100:F1}%";
+            statItemDict[StatType.CRIT_CHANCE].ValueText.text = $"{selectedUnit.CritChanceCurr * 100:F1}%";
             
         if (statItemDict.ContainsKey(StatType.CRIT_DAMAGE))
-            statItemDict[StatType.CRIT_DAMAGE].ValueText.text = $"{selectedUnit.critMultiplierCurr * 100:F1}%";
+            statItemDict[StatType.CRIT_DAMAGE].ValueText.text = $"{selectedUnit.CritMultiplierCurr * 100:F1}%";
             
         if (statItemDict.ContainsKey(StatType.COOLDOWN))
-            statItemDict[StatType.COOLDOWN].ValueText.text = $"{(selectedUnit.codeAcceleration - 1) * 100:F1}%";
+            statItemDict[StatType.COOLDOWN].ValueText.text = $"{(selectedUnit.CodeAcceleration - 1) * 100:F1}%";
     }
     
     // Show stat tooltip
@@ -438,7 +439,7 @@ public void InitializeUnitInfoPanel(Transform parentContainer)
                     $"Base: {selectedUnit.GetBaseHp()}",
                     GetAdditiveModifierText("HP"),
                     GetMultiplicativeModifierText("HP"),
-                    $"Total: {selectedUnit.hpMax} (Current: {selectedUnit.hpCurr})"
+                    $"Total: {selectedUnit.HpMax} (Current: {selectedUnit.HpCurr})"
                 );
                 break;
                 
@@ -448,7 +449,7 @@ public void InitializeUnitInfoPanel(Transform parentContainer)
                     $"Base: {selectedUnit.GetBaseAtk()}",
                     GetAdditiveModifierText("Attack"),
                     GetMultiplicativeModifierText("Attack"),
-                    $"Total: {selectedUnit.atkCurr}"
+                    $"Total: {selectedUnit.AtkCurr}"
                 );
                 break;
                 
@@ -458,7 +459,7 @@ public void InitializeUnitInfoPanel(Transform parentContainer)
                     $"Base: {selectedUnit.GetBaseDef()}",
                     GetAdditiveModifierText("Defense"),
                     GetMultiplicativeModifierText("Defense"),
-                    $"Total: {selectedUnit.defCurr}"
+                    $"Total: {selectedUnit.DefCurr}"
                 );
                 break;
                 
@@ -468,7 +469,7 @@ public void InitializeUnitInfoPanel(Transform parentContainer)
                     $"Base: {selectedUnit.GetBaseCritChance() * 100:F1}%",
                     GetAdditiveModifierText("Crit Chance"),
                     GetMultiplicativeModifierText("Crit Chance"),
-                    $"Total: {selectedUnit.critChanceCurr * 100:F1}%"
+                    $"Total: {selectedUnit.CritChanceCurr * 100:F1}%"
                 );
                 break;
                 
@@ -478,7 +479,7 @@ public void InitializeUnitInfoPanel(Transform parentContainer)
                     $"Base: {selectedUnit.GetBaseCritDamage() * 100:F1}%",
                     GetAdditiveModifierText("Crit Damage"),
                     GetMultiplicativeModifierText("Crit Damage"),
-                    $"Total: {selectedUnit.critMultiplierCurr * 100:F1}%"
+                    $"Total: {selectedUnit.CritMultiplierCurr * 100:F1}%"
                 );
                 break;
                 
@@ -488,7 +489,7 @@ public void InitializeUnitInfoPanel(Transform parentContainer)
                     "Base: 0%",
                     GetAdditiveModifierText("Cooldown Reduction"),
                     GetMultiplicativeModifierText("Cooldown Reduction"),
-                    $"Total: {(selectedUnit.codeAcceleration - 1) * 100:F1}%"
+                    $"Total: {(selectedUnit.CodeAcceleration - 1) * 100:F1}%"
                 );
                 break;
         }
