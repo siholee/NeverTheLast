@@ -49,67 +49,45 @@ namespace Managers
         }
 
         private void CreateGrid()
+{
+    int rows = yMax - yMin + 1;
+    int columns = xMax - xMin + 1;
+    _cellManager = new Cell[columns, rows];
+
+    for (int x = xMin; x <= xMax; x++)
+    {
+        for (int y = yMin; y <= yMax; y++)
         {
-            int rows = yMax - yMin + 1;
-            int columns = xMax - xMin + 1;
-            _cellManager = new Cell[columns, rows];
+            Vector3 position = new Vector3(x * tileSpacing, y * tileSpacing, 0);
+            GameObject cellObject = Instantiate(cellPrefab, position, Quaternion.identity);
+            cellObject.name = $"Cell_{x}_{y}";
+            cellObject.transform.parent = transform;
 
-            for (int x = xMin; x <= xMax; x++)
+            Cell cell = cellObject.GetComponent<Cell>();
+            if (cell == null)
             {
-                for (int y = yMin; y <= yMax; y++)
-                {
-                    // 위치 계산
-                    float xOffset = (x - xMin) * tileSpacing;
-                    float yOffset = (y - yMin) * tileSpacing;
-                    Vector3 position = new Vector3(xOffset, yOffset, 0);
-
-                    // Cell 생성 및 초기화
-                    GameObject cellObject = Instantiate(cellPrefab, position, Quaternion.identity, transform);
-                    cellObject.name = $"Cell ({x}, {y})";
-
-                    Cell cellComponent = cellObject.GetComponent<Cell>();
-                    if (cellComponent != null)
-                    {
-                        cellComponent.xPos = x;
-                        cellComponent.yPos = y;
-                        cellComponent.isOccupied = false; // 초기화
-                        cellComponent.portraitRenderer.sprite = null; // 초기화
-                        cellComponent.reservedTime = 0f; // 초기화
-                    }
-
-                    // 셀의 위치에 따라 아군과 적 투명 캐릭터 생성
-                    if (x < 0)
-                    {
-                        GameObject heroObj = Instantiate(heroPrefab, position, Quaternion.identity);
-                        heroObj.transform.SetParent(cellObject.transform);
-                        heroObj.transform.localPosition = Vector3.zero;
-                        cellComponent.unit = heroObj;
-                        Unit hero = heroObj.GetComponent<Unit>();
-                        hero.currentCell = cellComponent;
-                        hero.isActive = false;
-                        heroList.Add(hero);
-                    }
-                    else if (x > 0)
-                    {
-                        GameObject enemyObj = Instantiate(enemyPrefab, position, Quaternion.identity);
-                        enemyObj.transform.SetParent(cellObject.transform);
-                        enemyObj.transform.localPosition = Vector3.zero;
-                        cellComponent.unit = enemyObj;
-                        Unit enemy = enemyObj.GetComponent<Unit>();
-                        enemy.currentCell = cellComponent;
-                        enemy.isActive = false;
-                        enemyList.Add(enemy);
-                    }
-                    else
-                    {
-                        cellComponent.GetComponent<SpriteRenderer>().sprite = null;
-                    }
-
-                    // 배열에 셀 저장
-                    _cellManager[x - xMin, y - yMin] = cellComponent;
-                }
+                cell = cellObject.AddComponent<Cell>();
             }
+            
+            // BoxCollider2D 추가
+            BoxCollider2D boxCollider = cellObject.GetComponent<BoxCollider2D>();
+            if (boxCollider == null)
+            {
+                boxCollider = cellObject.AddComponent<BoxCollider2D>();
+                boxCollider.size = new Vector2(2.0f, 2.0f); // 셀 크기에 맞게 조정
+            }
+
+            cell.xPos = x;
+            cell.yPos = y;
+            cell.isOccupied = false;
+            cell.reservedTime = 0f;
+
+            int adjustedX = x - xMin;
+            int adjustedY = y - yMin;
+            _cellManager[adjustedX, adjustedY] = cell;
         }
+    }
+}
 
         public bool IsCellAvailable(int xPos, int yPos)
         {
@@ -130,7 +108,6 @@ namespace Managers
         {
             int adjustedX = xPos - xMin;
             int adjustedY = yPos - yMin;
-            // Debug.LogWarning($"adjustedX: {adjustedX}, adjustedY: {adjustedY}");
 
             if (adjustedX >= 0 && adjustedX < _cellManager.GetLength(0) &&
                 adjustedY >= 0 && adjustedY < _cellManager.GetLength(1))
@@ -141,9 +118,6 @@ namespace Managers
                     cell.isOccupied = true; // 셀을 점유 상태로 변경
                     cell.unit.GetComponent<Unit>().Spawn(cell, isEnemy, unitId);
                     Debug.Log($"{(isEnemy ? "적군" : "아군")} 유닛 {cell.unit.GetComponent<Unit>().UnitName}을 ({xPos}, {yPos})에 소환");
-                    // Enemy enemyUnit = poolManager.ActivateUnit(false).GetComponent<Enemy>();
-                    // enemyUnit.currentCell = cell;
-                    // enemyUnit.InitProcess(false, enemyId);
                 }
             }
         }
