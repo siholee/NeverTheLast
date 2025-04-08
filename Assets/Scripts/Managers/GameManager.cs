@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using BaseClasses;
-using Entities;
+using Managers.UI;
 using UnityEngine;
 using static BaseClasses.BaseEnums;
 
@@ -12,7 +12,7 @@ namespace Managers
         public static GameManager Instance { get; private set; }
         private RoundManager _roundManager;
         public GridManager gridManager;
-        public UiManager uiManager;
+        public UIManager uiManager;
         public SfxManager sfxManager;
 
         public GameState gameState;

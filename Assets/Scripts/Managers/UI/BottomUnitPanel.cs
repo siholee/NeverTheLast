@@ -5,7 +5,7 @@ using TMPro;
 using BaseClasses;
 using Entities;
 
-namespace Managers
+namespace Managers.UI
 {
     public class BottomUnitPanel : MonoBehaviour
     {

@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using BaseClasses;
 
-namespace Managers
+namespace Managers.UI
 {
     public class BottomPanelManager : MonoBehaviour
     {

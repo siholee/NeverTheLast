@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using BaseClasses;
 
-namespace Managers
+namespace Managers.UI
 {
     public class TopPanelManager : MonoBehaviour
     {

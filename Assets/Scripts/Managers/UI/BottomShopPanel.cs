@@ -4,7 +4,7 @@ using TMPro;
 using System.Collections.Generic;
 using BaseClasses;
 
-namespace Managers
+namespace Managers.UI
 {
     public class BottomShopPanel : MonoBehaviour
     {
