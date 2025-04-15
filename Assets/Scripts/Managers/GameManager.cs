@@ -83,25 +83,37 @@ namespace Managers
         }
 
         private void Start()
-        {
-            SynergyCounts = new Dictionary<int, SynergyInfo>();
-            gameState = GameState.Preparation;
-            sfxManager = GetComponent<SfxManager>();
+{
+    SynergyCounts = new Dictionary<int, SynergyInfo>();
+    gameState = GameState.Preparation;
+    sfxManager = GetComponent<SfxManager>();
 
-            dataManager = GetComponent<DataManager>();
-            unitDataList = dataManager.FetchUnitDataList();
-            synergyDataList = dataManager.FetchSynergyDataList();
-            foreach (var synergyData in synergyDataList.synergies)
-            {
-                SynergyCounts.Add(synergyData.id, new SynergyInfo(synergyData, new List<UnitInfo>()));
-            }
+    // UIManager 참조 확인
+    if (uiManager == null)
+    {
+        uiManager = FindObjectOfType<UIManager>();
+        if (uiManager == null)
+            Debug.LogWarning("UIManager not found!");
+        else
+            Debug.Log("UIManager reference found");
+    }
 
-            gridManager.gameManager = this;
-            gridManager.InitializeComponent();
+    dataManager = GetComponent<DataManager>();
+    unitDataList = dataManager.FetchUnitDataList();
+    synergyDataList = dataManager.FetchSynergyDataList();
+    foreach (var synergyData in synergyDataList.synergies)
+    {
+        SynergyCounts.Add(synergyData.id, new SynergyInfo(synergyData, new List<UnitInfo>()));
+    }
 
-            _roundManager = new RoundManager(dataManager);
-            _roundManager.LoadRound(1); // 첫 번째 라운드 시작
-        }
+    gridManager.gameManager = this;
+    if (gridManager.uiManager == null)
+        gridManager.uiManager = uiManager; // GridManager에 UIManager 참조 전달
+    gridManager.InitializeComponent();
+
+    _roundManager = new RoundManager(dataManager);
+    _roundManager.LoadRound(1); // 첫 번째 라운드 시작
+}
 
         private void Update()
         {

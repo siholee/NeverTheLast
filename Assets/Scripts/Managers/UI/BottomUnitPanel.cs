@@ -392,6 +392,8 @@ namespace Managers.UI
             
             if (unit != null && unit.isActive)
             {
+                Debug.Log($"Setting selected unit to {unit.UnitName}");
+                
                 // Update UI elements
                 unitNameText.text = $"{unit.UnitName} (Level {unit.Level})";
                 unitDescriptionText.text = "Unit description"; // Unit class has no Description property
@@ -413,6 +415,11 @@ namespace Managers.UI
                     if (portrait != null)
                         unitPortrait.sprite = portrait;
                 }
+                else
+                {
+                    unitPortrait.sprite = null;
+                    unitPortrait.color = new Color(0.3f, 0.3f, 0.3f);
+                }
                 
                 // Enable buttons
                 sellButton.interactable = true;
@@ -423,6 +430,8 @@ namespace Managers.UI
             }
             else
             {
+                Debug.Log("No unit selected or unit is inactive");
+                
                 // Reset to default values when no unit selected
                 unitNameText.text = "No Unit Selected";
                 unitDescriptionText.text = "Select a unit to view its information.";

@@ -338,7 +338,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 667318213}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: UiManager, Assembly-CSharp
         m_MethodName: OnNextRoundBtnClick
         m_Mode: 1
@@ -759,34 +759,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 667318208}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 608e2a5af99570f4287fd657ef3b1b1a, type: 3}
+  m_Script: {fileID: 11500000, guid: a4876c270e3dafd49aa3300e01f1e390, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   mainCanvas: {fileID: 667318211}
-  topPanelBGPrefab: {fileID: 0}
-  shopPanelPrefab: {fileID: 0}
-  shopSlotPrefab: {fileID: 0}
-  buttonPrefab: {fileID: 0}
-  bottomPanelContainer: {fileID: 0}
-  activeBottomPanelIndex: 0
-  shopPanel: {fileID: 0}
-  unitShopSlots: []
-  refreshButton: {fileID: 0}
-  upButton: {fileID: 0}
-  downButton: {fileID: 0}
-  costRangeText: {fileID: 0}
-  topInfoPanel: {fileID: 0}
-  lifeText: {fileID: 0}
-  roundText: {fileID: 0}
-  goldText: {fileID: 0}
-  synergyPanel: {fileID: 0}
-  synergyContainer: {fileID: 0}
-  synergyTooltip: {fileID: 0}
-  synergyTitle: {fileID: 0}
-  synergyDesc: {fileID: 0}
-  unitPortraitContainer: {fileID: 0}
-  shopManager: {fileID: 0}
-  unitManager: {fileID: 0}
+  topPanelArea: {fileID: 0}
+  bottomPanelArea: {fileID: 0}
+  topPanelManager: {fileID: 0}
+  bottomPanelManager: {fileID: 0}
+  showDebugAreas: 0
 --- !u!1 &764134609
 GameObject:
   m_ObjectHideFlags: 0
@@ -1058,6 +1039,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameManager: {fileID: 0}
+  uiManager: {fileID: 0}
   cellPrefab: {fileID: 5841715503207317143, guid: 09743f73f4342c243ae386b43be9806e,
     type: 3}
   heroPrefab: {fileID: 1684662353397886831, guid: f1fbae5ed4720774d8e5c61f0846f467,
@@ -1118,7 +1100,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gridManager: {fileID: 1241768294}
-  uiManager: {fileID: 667318213}
+  uiManager: {fileID: 0}
   sfxManager: {fileID: 0}
   gameState: 0
   dataManager: {fileID: 0}
