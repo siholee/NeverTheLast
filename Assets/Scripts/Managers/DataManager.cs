@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YamlDotNet.Serialization;
@@ -61,6 +62,50 @@ namespace Managers
 
             RoundDataList roundDataList = deserializer.Deserialize<RoundDataList>(roundData.text);
             return roundDataList;
+        }
+        
+        public ElementDataList FetchElementDataList()
+        {
+            TextAsset elementData = Resources.Load<TextAsset>("Data/50_elements");
+            var deserializer = new DeserializerBuilder().Build();
+            if (elementData == null)
+            {
+                Debug.LogError("Data/50_elements.yaml not found.");
+                return null;
+            }
+
+            // YAML 데이터를 임시로 읽어올 클래스 정의
+            var rawData = deserializer.Deserialize<Dictionary<string, List<Dictionary<string, object>>>>(elementData.text);
+
+            // 데이터를 변환하여 Dictionary<int, List<ElementData>> 형태로 저장
+            var elementDataList = new ElementDataList
+            {
+                elementsByCost = new Dictionary<int, List<ElementData>>()
+            };
+
+            foreach (var group in rawData["elements"])
+            {
+                int cost = Convert.ToInt32(group["cost"]);
+                var elements = (List<object>)group["elements"];
+                var elementList = new List<ElementData>();
+
+                foreach (var element in elements)
+                {
+                    var elementDict = (Dictionary<string, object>)element;
+                    var elementDataItem = new ElementData
+                    {
+                        id = Convert.ToInt32(elementDict["id"]),
+                        name = elementDict["name"].ToString(),
+                        description = elementDict["description"].ToString(),
+                        cost = cost
+                    };
+                    elementList.Add(elementDataItem);
+                }
+
+                elementDataList.elementsByCost[cost] = elementList;
+            }
+
+            return elementDataList;
         }
     }
 
@@ -150,5 +195,20 @@ namespace Managers
     public class SynergyDataList
     {
         public List<SynergyData> synergies;
+    }
+
+    [System.Serializable]
+    public class ElementData
+    {
+        public int id;
+        public string name;
+        public string description;
+        public int cost;
+    }
+    
+    [System.Serializable]
+    public class ElementDataList
+    {
+        public Dictionary<int, List<ElementData>> elementsByCost;
     }
 }
