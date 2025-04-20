@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using YamlDotNet.Serialization;
 
@@ -74,36 +75,23 @@ namespace Managers
                 return null;
             }
 
-            // YAML 데이터를 임시로 읽어올 클래스 정의
-            var rawData = deserializer.Deserialize<Dictionary<string, List<Dictionary<string, object>>>>(elementData.text);
+            // YAML 데이터를 읽기 위한 임시 클래스 정의
+            var rawData = deserializer.Deserialize<RawElementDataList>(elementData.text);
 
             // 데이터를 변환하여 Dictionary<int, List<ElementData>> 형태로 저장
             var elementDataList = new ElementDataList
             {
-                elementsByCost = new Dictionary<int, List<ElementData>>()
-            };
-
-            foreach (var group in rawData["elements"])
-            {
-                int cost = Convert.ToInt32(group["cost"]);
-                var elements = (List<object>)group["elements"];
-                var elementList = new List<ElementData>();
-
-                foreach (var element in elements)
-                {
-                    var elementDict = (Dictionary<string, object>)element;
-                    var elementDataItem = new ElementData
+                elementsByCost = rawData.Elements.ToDictionary(
+                    group => group.Cost,
+                    group => group.Elements.Select(e => new ElementData
                     {
-                        id = Convert.ToInt32(elementDict["id"]),
-                        name = elementDict["name"].ToString(),
-                        description = elementDict["description"].ToString(),
-                        cost = cost
-                    };
-                    elementList.Add(elementDataItem);
-                }
-
-                elementDataList.elementsByCost[cost] = elementList;
-            }
+                        id = e.Id,
+                        name = e.Name,
+                        description = e.Description,
+                        cost = group.Cost
+                    }).ToList()
+                )
+            };
 
             return elementDataList;
         }
@@ -210,5 +198,36 @@ namespace Managers
     public class ElementDataList
     {
         public Dictionary<int, List<ElementData>> elementsByCost;
+    }
+    
+    // YAML 데이터를 읽기 위한 임시 클래스
+    public class RawElementDataList
+    {
+        [YamlMember(Alias = "elements")]
+        public List<RawElementGroup> Elements { get; set; }
+    }
+
+    public class RawElementGroup
+    {
+        [YamlMember(Alias = "cost")]
+        public int Cost { get; set; }
+
+        [YamlMember(Alias = "elements")]
+        public List<RawElement> Elements { get; set; }
+    }
+
+    public class RawElement
+    {
+        [YamlMember(Alias = "id")]
+        public int Id { get; set; }
+
+        [YamlMember(Alias = "name")]
+        public string Name { get; set; }
+        
+        [YamlMember(Alias = "cost")]
+        public int Cost { get; set; }
+
+        [YamlMember(Alias = "description")]
+        public string Description { get; set; }
     }
 }
