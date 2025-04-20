@@ -22,6 +22,7 @@ namespace Managers
         public DataManager dataManager;
         public UnitDataList unitDataList;
         public SynergyDataList synergyDataList;
+        public ElementDataList elementDataList;
 
         private void Awake()
         {
@@ -91,6 +92,7 @@ namespace Managers
             dataManager = GetComponent<DataManager>();
             unitDataList = dataManager.FetchUnitDataList();
             synergyDataList = dataManager.FetchSynergyDataList();
+            elementDataList = dataManager.FetchElementDataList();
             foreach (var synergyData in synergyDataList.synergies)
             {
                 SynergyCounts.Add(synergyData.id, new SynergyInfo(synergyData, new List<UnitInfo>()));
