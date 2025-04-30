@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using YamlDotNet.Serialization;
 
@@ -61,6 +63,37 @@ namespace Managers
 
             RoundDataList roundDataList = deserializer.Deserialize<RoundDataList>(roundData.text);
             return roundDataList;
+        }
+        
+        public ElementDataList FetchElementDataList()
+        {
+            TextAsset elementData = Resources.Load<TextAsset>("Data/50_elements");
+            var deserializer = new DeserializerBuilder().Build();
+            if (elementData == null)
+            {
+                Debug.LogError("Data/50_elements.yaml not found.");
+                return null;
+            }
+
+            // YAML 데이터를 읽기 위한 임시 클래스 정의
+            var rawData = deserializer.Deserialize<RawElementDataList>(elementData.text);
+
+            // 데이터를 변환하여 Dictionary<int, List<ElementData>> 형태로 저장
+            var elementDataList = new ElementDataList
+            {
+                elementsByCost = rawData.Elements.ToDictionary(
+                    group => group.Cost,
+                    group => group.Elements.Select(e => new ElementData
+                    {
+                        id = e.Id,
+                        name = e.Name,
+                        description = e.Description,
+                        cost = group.Cost
+                    }).ToList()
+                )
+            };
+
+            return elementDataList;
         }
     }
 
@@ -150,5 +183,51 @@ namespace Managers
     public class SynergyDataList
     {
         public List<SynergyData> synergies;
+    }
+
+    [System.Serializable]
+    public class ElementData
+    {
+        public int id;
+        public string name;
+        public string description;
+        public int cost;
+    }
+    
+    [System.Serializable]
+    public class ElementDataList
+    {
+        public Dictionary<int, List<ElementData>> elementsByCost;
+    }
+    
+    // YAML 데이터를 읽기 위한 임시 클래스
+    public class RawElementDataList
+    {
+        [YamlMember(Alias = "elements")]
+        public List<RawElementGroup> Elements { get; set; }
+    }
+
+    public class RawElementGroup
+    {
+        [YamlMember(Alias = "cost")]
+        public int Cost { get; set; }
+
+        [YamlMember(Alias = "elements")]
+        public List<RawElement> Elements { get; set; }
+    }
+
+    public class RawElement
+    {
+        [YamlMember(Alias = "id")]
+        public int Id { get; set; }
+
+        [YamlMember(Alias = "name")]
+        public string Name { get; set; }
+        
+        [YamlMember(Alias = "cost")]
+        public int Cost { get; set; }
+
+        [YamlMember(Alias = "description")]
+        public string Description { get; set; }
     }
 }

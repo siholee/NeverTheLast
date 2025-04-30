@@ -1,7 +1,359 @@
 elements:
-  - id: 1
-    name: Fire
-    description: Deals fire-based damage
-  - id: 2
-    name: Water
-    description: Deals water-based damage
+  - cost: 1
+    elements:
+      - id: 1
+        name: 대지
+        cost: 1
+        description: 대지 설명
+      - id: 2
+        name: 물
+        cost: 1
+        description: 물 설명
+      - id: 3
+        name: 불
+        cost: 1
+        description: 불 설명
+      - id: 4
+        name: 공기
+        cost: 1
+        description: 공기 설명
+  - cost: 2
+    elements:
+      - id: 5
+        name: 진흙
+        cost: 2
+        description: 진흙 설명
+      - id: 6
+        name: 용암
+        cost: 2
+        description: 용암 설명
+      - id: 7
+        name: 압력
+        cost: 2
+        description: 압력 설명
+      - id: 8
+        name: 증기
+        cost: 2
+        description: 증기 설명
+      - id: 9
+        name: 비
+        cost: 2
+        description: 비 설명
+  - cost: 3
+    elements:
+      - id: 10
+        name: 화산
+        cost: 3
+        description: 화산 설명
+      - id: 11
+        name: 돌
+        cost: 3
+        description: 돌 설명
+      - id: 12
+        name: 구름
+        cost: 3
+        description: 구름 설명
+      - id: 13
+        name: 바다
+        cost: 3
+        description: 바다 설명
+      - id: 14
+        name: 힘
+        cost: 3
+        description: 힘 설명
+  - cost: 4
+    elements:
+      - id: 15
+        name: 지진
+        cost: 4
+        description: 지진 설명
+      - id: 16
+        name: 바람
+        cost: 4
+        description: 바람 설명
+      - id: 17
+        name: 철
+        cost: 4
+        description: 철 설명
+      - id: 18
+        name: 하늘
+        cost: 4
+        description: 하늘 설명
+      - id: 19
+        name: 생명
+        cost: 4
+        description: 생명 설명
+  - cost: 5
+    elements:
+      - id: 20
+        name: 산
+        cost: 5
+        description: 산 설명
+      - id: 21
+        name: 태양
+        cost: 5
+        description: 태양 설명
+      - id: 22
+        name: 세계
+        cost: 5
+        description: 세계 설명
+      - id: 23
+        name: 새싹
+        cost: 5
+        description: 새싹 설명
+      - id: 24
+        name: 시간
+        cost: 5
+        description: 시간 설명
+      - id: 25
+        name: 화염
+        cost: 5
+        description: 화염 설명
+  - cost: 6
+    elements:
+      - id: 26
+        name: 천둥
+        cost: 6
+        description: 천둥 설명
+      - id: 27
+        name: 강
+        cost: 6
+        description: 강 설명
+      - id: 28
+        name: 짐승
+        cost: 6
+        description: 짐승 설명
+  - cost: 7
+    elements:
+      - id: 29
+        name: 모래
+        cost: 7
+        description: 모래 설명
+      - id: 30
+        name: 폭풍
+        cost: 7
+        description: 폭풍 설명
+      - id: 31
+        name: 파동
+        cost: 7
+        description: 파동 설명
+      - id: 32
+        name: 달
+        cost: 7
+        description: 달 설명
+  - cost: 8
+    elements:
+      - id: 33
+        name: 쓰나미
+        cost: 8
+        description: 쓰나미 설명
+      - id: 34
+        name: 사막
+        cost: 8
+        description: 사막 설명
+      - id: 35
+        name: 소리
+        cost: 8
+        description: 소리 설명
+      - id: 36
+        name: 서리
+        cost: 8
+        description: 서리 설명
+      - id: 37
+        name: 빛
+        cost: 8
+        description: 빛 설명
+  - cost: 9
+    elements:
+      - id: 38
+        name: 새
+        cost: 9
+        description: 새 설명
+      - id: 39
+        name: 황금
+        cost: 9
+        description: 황금 설명
+  - cost: 10
+    elements:
+      - id: 40
+        name: 죽음
+        cost: 10
+        description: 죽음 설명
+      - id: 41
+        name: 나무
+        cost: 10
+        description: 나무 설명
+  - cost: 11
+    elements:
+      - id: 42
+        name: 인간
+        cost: 11
+        description: 인간 설명
+      - id: 43
+        name: 피라미드
+        cost: 11
+        description: 피라미드 설명
+      - id: 44
+        name: 배
+        cost: 11
+        description: 배 설명
+  - cost: 12
+    elements:
+      - id: 45
+        name: 산성비
+        cost: 12
+        description: 산성비 설명
+      - id: 46
+        name: 어둠
+        cost: 12
+        description: 어둠 설명
+      - id: 47
+        name: 반전
+        cost: 12
+        description: 반전 설명
+  - cost: 13
+    elements:
+      - id: 48
+        name: 늑대
+        cost: 13
+        description: 늑대 설명
+      - id: 49
+        name: 풍요
+        cost: 13
+        description: 풍요 설명
+  - cost: 14
+    elements:
+      - id: 50
+        name: 전사
+        cost: 14
+        description: 전사 설명
+      - id: 51
+        name: 독수리
+        cost: 14
+        description: 독수리 설명
+  - cost: 15
+    elements:
+      - id: 52
+        name: 도구
+        cost: 15
+        description: 도구 설명
+      - id: 53
+        name: 과일
+        cost: 15
+        description: 과일 설명
+  - cost: 17
+    elements:
+      - id: 55
+        name: 검
+        cost: 17
+        description: 검 설명
+  - cost: 18
+    elements:
+      - id: 54
+        name: 노래
+        cost: 18
+        description: 노래 설명
+  - cost: 19
+    elements:
+      - id: 56
+        name: 활
+        cost: 19
+        description: 활 설명
+      - id: 57
+        name: 왕
+        cost: 19
+        description: 왕 설명
+      - id: 58
+        name: 언어
+        cost: 19
+        description: 언어 설명
+  - cost: 20
+    elements:
+      - id: 59
+        name: 재앙
+        cost: 20
+        description: 재앙 설명
+      - id: 60
+        name: 숲
+        cost: 20
+        description: 숲 설명
+      - id: 61
+        name: 미스틸테인
+        cost: 20
+        description: 미스틸테인 설명
+  - cost: 21
+    elements:
+      - id: 62
+        name: 뼈
+        cost: 21
+        description: 뼈 설명
+      - id: 63
+        name: 부엉이
+        cost: 21
+        description: 부엉이 설명
+      - id: 64
+        name: 권위
+        cost: 21
+        description: 권위 설명
+  - cost: 22
+    elements:
+      - id: 65
+        name: 축복
+        cost: 22
+        description: 축복 설명
+      - id: 66
+        name: 사랑
+        cost: 22
+        description: 사랑 설명
+  - cost: 24
+    elements:
+      - id: 67
+        name: 지식
+        cost: 24
+        description: 지식 설명
+  - cost: 25
+    elements:
+      - id: 68
+        name: 수렵
+        cost: 25
+        description: 수렵 설명
+      - id: 69
+        name: 신성
+        cost: 25
+        description: 신성 설명
+  - cost: 32
+    elements:
+      - id: 70
+        name: 규율
+        cost: 32
+        description: 규율 설명
+  - cost: 33
+    elements:
+      - id: 71
+        name: 악기
+        cost: 33
+        description: 악기 설명
+  - cost: 34
+    elements:
+      - id: 72
+        name: 투쟁
+        cost: 34
+        description: 투쟁 설명
+  - cost: 36
+    elements:
+      - id: 73
+        name: 기계
+        cost: 36
+        description: 기계 설명
+  - cost: 39
+    elements:
+      - id: 74
+        name: 창조
+        cost: 39
+        description: 창조 설명
+  - cost: 40
+    elements:
+      - id: 75
+        name: 종말
+        cost: 40
+        description: 종말 설명

@@ -118,7 +118,7 @@ namespace Managers
                 adjustedY >= 0 && adjustedY < _cellManager.GetLength(1))
             {
                 Cell cell = _cellManager[adjustedX, adjustedY];
-                if (cell != null)
+                if (cell)
                 {
                     // Create unit
                     GameObject unitObj;

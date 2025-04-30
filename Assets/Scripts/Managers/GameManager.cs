@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using BaseClasses;
+using Managers.UI;
 using UnityEngine;
 using static BaseClasses.BaseEnums;
 
@@ -11,6 +12,7 @@ namespace Managers
         public static GameManager Instance { get; private set; }
         private RoundManager _roundManager;
         public GridManager gridManager;
+        public UIManager uiManager;
         public SfxManager sfxManager;
 
         public GameState gameState;
@@ -20,6 +22,7 @@ namespace Managers
         public DataManager dataManager;
         public UnitDataList unitDataList;
         public SynergyDataList synergyDataList;
+        public ElementDataList elementDataList;
 
         private void Awake()
         {
@@ -81,24 +84,26 @@ namespace Managers
         }
 
         private void Start()
-{
-    SynergyCounts = new Dictionary<int, SynergyInfo>();
-    gameState = GameState.Preparation;
-    sfxManager = GetComponent<SfxManager>();
-    dataManager = GetComponent<DataManager>();
-    unitDataList = dataManager.FetchUnitDataList();
-    synergyDataList = dataManager.FetchSynergyDataList();
-    foreach (var synergyData in synergyDataList.synergies)
-    {
-        SynergyCounts.Add(synergyData.id, new SynergyInfo(synergyData, new List<UnitInfo>()));
-    }
+        {
+            SynergyCounts = new Dictionary<int, SynergyInfo>();
+            gameState = GameState.Preparation;
+            sfxManager = GetComponent<SfxManager>();
 
-    gridManager.gameManager = this;
-    gridManager.InitializeComponent();
+            dataManager = GetComponent<DataManager>();
+            unitDataList = dataManager.FetchUnitDataList();
+            synergyDataList = dataManager.FetchSynergyDataList();
+            elementDataList = dataManager.FetchElementDataList();
+            foreach (var synergyData in synergyDataList.synergies)
+            {
+                SynergyCounts.Add(synergyData.id, new SynergyInfo(synergyData, new List<UnitInfo>()));
+            }
 
-    _roundManager = new RoundManager(dataManager);
-    _roundManager.LoadRound(1); // 첫 번째 라운드 시작
-}
+            gridManager.gameManager = this;
+            gridManager.InitializeComponent();
+
+            _roundManager = new RoundManager(dataManager);
+            _roundManager.LoadRound(1); // 첫 번째 라운드 시작
+        }
 
         private void Update()
         {
