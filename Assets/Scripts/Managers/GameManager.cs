@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using BaseClasses;
-using Managers.UI;
 using UnityEngine;
 using static BaseClasses.BaseEnums;
 
@@ -12,7 +11,6 @@ namespace Managers
         public static GameManager Instance { get; private set; }
         private RoundManager _roundManager;
         public GridManager gridManager;
-        public UIManager uiManager;
         public SfxManager sfxManager;
 
         public GameState gameState;
@@ -87,17 +85,6 @@ namespace Managers
     SynergyCounts = new Dictionary<int, SynergyInfo>();
     gameState = GameState.Preparation;
     sfxManager = GetComponent<SfxManager>();
-
-    // UIManager 참조 확인
-    if (uiManager == null)
-    {
-        uiManager = FindObjectOfType<UIManager>();
-        if (uiManager == null)
-            Debug.LogWarning("UIManager not found!");
-        else
-            Debug.Log("UIManager reference found");
-    }
-
     dataManager = GetComponent<DataManager>();
     unitDataList = dataManager.FetchUnitDataList();
     synergyDataList = dataManager.FetchSynergyDataList();
@@ -107,8 +94,6 @@ namespace Managers
     }
 
     gridManager.gameManager = this;
-    if (gridManager.uiManager == null)
-        gridManager.uiManager = uiManager; // GridManager에 UIManager 참조 전달
     gridManager.InitializeComponent();
 
     _roundManager = new RoundManager(dataManager);

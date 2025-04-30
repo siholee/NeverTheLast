@@ -4,7 +4,6 @@ using BaseClasses;
 using Entities;
 using UnityEngine;
 using UnityEngine.Serialization;
-using Managers.UI;
 
 namespace Managers
 {
@@ -15,7 +14,6 @@ namespace Managers
 
         [Header("References")]
         public GameManager gameManager;
-        public UIManager uiManager; // 직접 UIManager 참조 추가
 
         [Header("Prefabs")]
         public GameObject cellPrefab;
@@ -33,9 +31,6 @@ namespace Managers
         public List<Unit> heroList;
         public List<Unit> enemyList;
         
-        // 성능 개선을 위한 참조 캐싱
-        private BottomUnitPanel cachedUnitPanel;
-
         private void Awake()
         {
             // Initialize singleton instance
@@ -49,14 +44,6 @@ namespace Managers
                 Destroy(gameObject); // Remove if instance already exists
                 return;
             }
-            
-            // 참조 확인
-            if (uiManager == null)
-            {
-                uiManager = FindObjectOfType<UIManager>();
-                if (uiManager == null)
-                    Debug.LogWarning("UIManager not found in scene!");
-            }
         }
 
         public void InitializeComponent()
@@ -64,51 +51,6 @@ namespace Managers
             heroList = new List<Unit>();
             enemyList = new List<Unit>();
             CreateGrid();
-            
-            // UI 참조 미리 캐싱 (성능 개선)
-            CacheUIReferences();
-        }
-        
-        // UI 참조 캐싱
-        private void CacheUIReferences()
-        {
-            // 1. 직접 참조 사용
-            if (uiManager != null)
-            {
-                BottomPanelManager bottomPanel = uiManager.GetBottomPanelManager();
-                if (bottomPanel != null)
-                {
-                    cachedUnitPanel = bottomPanel.GetUnitInfoPanel();
-                    Debug.Log("UI references cached from direct reference");
-                    return;
-                }
-            }
-            
-            // 2. GameManager 통해 참조
-            if (gameManager != null && gameManager.uiManager != null)
-            {
-                BottomPanelManager bottomPanel = gameManager.uiManager.GetBottomPanelManager();
-                if (bottomPanel != null)
-                {
-                    cachedUnitPanel = bottomPanel.GetUnitInfoPanel();
-                    Debug.Log("UI references cached from GameManager");
-                    return;
-                }
-            }
-            
-            // 3. 싱글톤 인스턴스 사용
-            if (UIManager.Instance != null)
-            {
-                BottomPanelManager bottomPanel = UIManager.Instance.GetBottomPanelManager();
-                if (bottomPanel != null)
-                {
-                    cachedUnitPanel = bottomPanel.GetUnitInfoPanel();
-                    Debug.Log("UI references cached from UIManager.Instance");
-                    return;
-                }
-            }
-            
-            Debug.LogWarning("Failed to cache UI references");
         }
 
         private void CreateGrid()
@@ -221,10 +163,8 @@ namespace Managers
             }
         }
         
-        // 성능 개선된 SelectUnit 메서드
         public void SelectUnit(int xPos, int yPos)
         {
-            // 불필요한 로깅 제거 (성능 개선)
             int adjustedX = xPos - xMin;
             int adjustedY = yPos - yMin;
             
@@ -233,63 +173,13 @@ namespace Managers
             {
                 Cell cell = _cellManager[adjustedX, adjustedY];
                 if (cell == null) return;
-                
-                // Check if cell has a unit
                 if (cell.isOccupied && cell.unit != null)
                 {
                     Unit selectedUnit = cell.unit.GetComponent<Unit>();
                     if (selectedUnit != null && selectedUnit.isActive)
                     {
                         Debug.Log($"Selected unit: {selectedUnit.UnitName} at ({xPos}, {yPos})");
-                        
-                        // 캐싱된 참조 사용 (성능 향상)
-                        if (cachedUnitPanel != null)
-                        {
-                            cachedUnitPanel.SetSelectedUnit(selectedUnit);
-                            return;
-                        }
-                        
-                        // 참조가 캐싱되지 않은 경우 다시 시도
-                        if (uiManager != null)
-                        {
-                            BottomPanelManager bottomPanel = uiManager.GetBottomPanelManager();
-                            if (bottomPanel != null)
-                            {
-                                BottomUnitPanel unitPanel = bottomPanel.GetUnitInfoPanel();
-                                if (unitPanel != null)
-                                {
-                                    // 참조 캐싱
-                                    cachedUnitPanel = unitPanel;
-                                    unitPanel.SetSelectedUnit(selectedUnit);
-                                    return;
-                                }
-                            }
-                        }
-                        
-                        // UIManager.Instance 사용
-                        if (UIManager.Instance != null)
-                        {
-                            BottomPanelManager bottomPanel = UIManager.Instance.GetBottomPanelManager();
-                            if (bottomPanel != null)
-                            {
-                                BottomUnitPanel unitPanel = bottomPanel.GetUnitInfoPanel();
-                                if (unitPanel != null)
-                                {
-                                    // 참조 캐싱
-                                    cachedUnitPanel = unitPanel;
-                                    unitPanel.SetSelectedUnit(selectedUnit);
-                                    return;
-                                }
-                            }
-                        }
-                        
-                        Debug.LogWarning("Cannot find UI references to display unit info");
                     }
-                }
-                else if (cachedUnitPanel != null)
-                {
-                    // 빈 셀 클릭 시 유닛 정보 지우기
-                    cachedUnitPanel.SetSelectedUnit(null);
                 }
             }
         }
