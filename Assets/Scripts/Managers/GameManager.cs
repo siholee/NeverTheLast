@@ -80,6 +80,7 @@ namespace Managers
                     SynergyCounts[synergyId].Units.Add(new UnitInfo(hero.UnitName, hero.PortraitPath));
                 }
             }
+            uiManager.SetSynergyText(SynergyCounts);
         }
 
         private void Start()
