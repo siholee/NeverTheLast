@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using BaseClasses;
-using Managers.UI;
 using UnityEngine;
-using UnityEngine.UI;
 using static BaseClasses.BaseEnums;
 
 namespace Managers
@@ -15,9 +13,6 @@ namespace Managers
         public TMPro.TextMeshProUGUI gameLifeText;
         public TMPro.TextMeshProUGUI gameStageText;
         public TMPro.TextMeshProUGUI gameSpeedText;
-        
-        // 좌측 사이드바
-        public Transform synergyTagContainer;
 
         public void TestButtonClick()
         {
@@ -54,34 +49,6 @@ namespace Managers
             else
             {
                 Debug.LogError("게임 속도 텍스트 파싱 실패: " + currentText);
-            }
-        }
-
-        public void SetSynergyText(Dictionary<int, SynergyInfo> synergyCounts)
-        {
-            List<SynergyInfo> synergyList = new List<SynergyInfo>();
-            foreach (var synergy in synergyCounts.Values)
-            {
-                if (synergy.Count > 0)
-                {
-                    synergyList.Add(synergy);
-                }
-            }
-            synergyList.Sort((a, b) => b.Count.CompareTo(a.Count)); // Count 기준으로 내림차순 정렬
-            for (int i = 0; i < synergyTagContainer.childCount; i++)
-            {
-                var synergyTag = synergyTagContainer.GetChild(i).GetComponent<SynergyTag>();
-                if (i < synergyList.Count && synergyList[i].Count > 0 )
-                {
-                    SynergyInfo synergyInfo = synergyList[i];
-                    synergyTag.Initialize(synergyInfo.Name, Resources.Load<Sprite>(synergyInfo.Units[0].PortraitPath));
-                    synergyTag.synergyCountText.text = $"{synergyInfo.Count} | {synergyInfo.MaxCount}";
-                    synergyTag.SetActive(true);
-                }
-                else
-                {
-                    synergyTag.SetActive(false);
-                }
             }
         }
     }
