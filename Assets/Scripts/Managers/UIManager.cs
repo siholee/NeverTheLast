@@ -15,16 +15,95 @@ namespace Managers
         public TMPro.TextMeshProUGUI gameLifeText;
         public TMPro.TextMeshProUGUI gameStageText;
         public TMPro.TextMeshProUGUI gameSpeedText;
-        
+
         // 좌측 사이드바
         public Transform synergyTagContainer;
+        
+        // 시너지 팝업
+        public SynergyPopup synergyPopupObj;
+        
+        private void Start()
+        {
+            // 시작할 때 팝업 비활성화
+            if (synergyPopupObj != null)
+            {
+                synergyPopupObj.synergyPopupPanel.SetActive(false);
+            }
+        }
 
+        public void ShowSynergyPopup(Vector3 position, SynergyInfo synergyInfo)
+        {
+            if (synergyPopupObj == null) return;
+            synergyPopupObj.synergyPopupPanel.SetActive(true);
+
+            // 팝업 위치 설정 (우상단 -> 좌상단)
+            RectTransform popupRect = synergyPopupObj.synergyPopupPanel.GetComponent<RectTransform>();
+            // Vector2 screenPosition = Camera.main.WorldToScreenPoint(position);
+            popupRect.position = position;
+
+            // 시너지 정보 설정
+            synergyPopupObj.synergyNameText.text = synergyInfo.Name;
+            synergyPopupObj.synergyDescText.text = synergyInfo.Description;
+            synergyPopupObj.synergyCountText.text = $"{synergyInfo.Count}/{synergyInfo.MaxCount}";
+
+            // 유닛 포트레이트 설정
+            for (int i = 0; i < synergyPopupObj.unitPortraits.Count; i++)
+            {
+                if (i < synergyInfo.Units.Count)
+                {
+                    synergyPopupObj.unitPortraits[i].sprite = Resources.Load<Sprite>(synergyInfo.Units[i].PortraitPath);
+                    synergyPopupObj.unitPortraits[i].gameObject.SetActive(true);
+                }
+                else
+                {
+                    synergyPopupObj.unitPortraits[i].gameObject.SetActive(false);
+                }
+            }
+        }
+
+        public void HideSynergyPopup()
+        {
+            if (synergyPopupObj != null)
+            {
+                synergyPopupObj.synergyPopupPanel.SetActive(false);
+            }
+        }
+
+        public void SetSynergyText(Dictionary<int, SynergyInfo> synergyCounts)
+        {
+            List<SynergyInfo> synergyList = new List<SynergyInfo>();
+            foreach (var synergy in synergyCounts.Values)
+            {
+                if (synergy.Count > 0)
+                {
+                    synergyList.Add(synergy);
+                }
+            }
+            synergyList.Sort((a, b) => b.Count.CompareTo(a.Count));
+            
+            for (int i = 0; i < synergyTagContainer.childCount; i++)
+            {
+                var synergyTag = synergyTagContainer.GetChild(i).GetComponent<SynergyTag>();
+                if (i < synergyList.Count && synergyList[i].Count > 0)
+                {
+                    SynergyInfo synergyInfo = synergyList[i];
+                    synergyTag.Initialize(synergyInfo, Resources.Load<Sprite>(synergyInfo.Units[0].PortraitPath));
+                    synergyTag.synergyCountText.text = $"{synergyInfo.Count} | {synergyInfo.MaxCount}";
+                    synergyTag.SetActive(true);
+                }
+                else
+                {
+                    synergyTag.SetActive(false);
+                }
+            }
+        }
+
+        // 기존 메서드들...
         public void TestButtonClick()
         {
             Debug.Log("Test Button Clicked");
         }
-        
-        // 배속
+
         public void OnGameSpeedButtonClick()
         {
             string currentText = gameSpeedText.text;
@@ -47,40 +126,13 @@ namespace Managers
                         newSpeed = 1;
                         break;
                 }
-                
+
+                Time.timeScale = newSpeed;
                 gameSpeedText.text = newSpeed + "X";
             }
             else
             {
                 Debug.LogError("게임 속도 텍스트 파싱 실패: " + currentText);
-            }
-        }
-
-        public void SetSynergyText(Dictionary<int, SynergyInfo> synergyCounts)
-        {
-            List<SynergyInfo> synergyList = new List<SynergyInfo>();
-            foreach (var synergy in synergyCounts.Values)
-            {
-                if (synergy.Count > 0)
-                {
-                    synergyList.Add(synergy);
-                }
-            }
-            synergyList.Sort((a, b) => b.Count.CompareTo(a.Count)); // Count 기준으로 내림차순 정렬
-            for (int i = 0; i < synergyTagContainer.childCount; i++)
-            {
-                var synergyTag = synergyTagContainer.GetChild(i).GetComponent<SynergyTag>();
-                if (i < synergyList.Count && synergyList[i].Count > 0 )
-                {
-                    SynergyInfo synergyInfo = synergyList[i];
-                    synergyTag.Initialize(synergyInfo.Name, Resources.Load<Sprite>(synergyInfo.Units[0].PortraitPath));
-                    synergyTag.synergyCountText.text = $"{synergyInfo.Count} | {synergyInfo.MaxCount}";
-                    synergyTag.SetActive(true);
-                }
-                else
-                {
-                    synergyTag.SetActive(false);
-                }
             }
         }
     }
