@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using BaseClasses;
 using UnityEngine;
+using UnityEngine.Serialization;
 using static BaseClasses.BaseEnums;
 
 namespace Managers
@@ -13,6 +14,8 @@ namespace Managers
         public GridManager gridManager;
         public UIManager uiManager;
         public SfxManager sfxManager;
+        public ShopManager shopManager;
+        public InventoryManager inventoryManager;
 
         public GameState gameState;
         public Dictionary<int, SynergyInfo> SynergyCounts;
@@ -21,7 +24,7 @@ namespace Managers
         public DataManager dataManager;
         public UnitDataList unitDataList;
         public SynergyDataList synergyDataList;
-        public ElementDataList elementDataList;
+        public ResourceTokenDataList resourceTokenDataList;
 
         private void Awake()
         {
@@ -92,7 +95,7 @@ namespace Managers
             dataManager = GetComponent<DataManager>();
             unitDataList = dataManager.FetchUnitDataList();
             synergyDataList = dataManager.FetchSynergyDataList();
-            elementDataList = dataManager.FetchElementDataList();
+            resourceTokenDataList = dataManager.FetchTokenDataList();
             foreach (var synergyData in synergyDataList.synergies)
             {
                 SynergyCounts.Add(synergyData.id, new SynergyInfo(synergyData, new List<UnitInfo>()));
@@ -100,6 +103,14 @@ namespace Managers
 
             gridManager.gameManager = this;
             gridManager.InitializeComponent();
+            shopManager = GetComponent<ShopManager>();
+            inventoryManager = GetComponent<InventoryManager>();
+            for (int i = 1; i <= 3; i++)
+            {
+                shopManager.RerollShopItems(i);
+            }
+            shopManager.ShowShopItems(1);
+            inventoryManager.Initialize();
 
             _roundManager = new RoundManager(dataManager);
             _roundManager.LoadRound(1); // 첫 번째 라운드 시작

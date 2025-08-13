@@ -60,7 +60,7 @@ namespace Entities
         public float controlDuration;
 
         // 유닛 스탯 수치
-        // 인스펙터 노출용용
+        // 인스펙터 노출용
         [SerializeField] private int hpBase;
         [SerializeField] private int hpIncrementLvl;
         [SerializeField] private int hpIncrementUpgrade;

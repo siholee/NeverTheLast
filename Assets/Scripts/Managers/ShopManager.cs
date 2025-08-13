@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using BaseClasses;
+using JetBrains.Annotations;
+using Managers.UI;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -9,89 +11,130 @@ namespace Managers
 {
     public class ShopManager: MonoBehaviour
     {
-        public ShopItem[] ShopItems;
-        public int currentLevel;
-        public int maxLevel;
-        public int rerollCost;
+        public ShopItem[] ShopItemsTier1;
+        public ShopItem[] ShopItemsTier2;
+        public ShopItem[] ShopItemsTier3;
+        public int currentTier;
+        public int maxTier;
         
         public Button rerollButton;
-        public Button maxLevelUpButton;
         public Button levelUpButton;
         public Button levelDownButton;
 
+        public Transform shopTagParent;
+
         private void Awake()
         {
-            currentLevel = 1;
-            maxLevel = 1;
-            rerollCost = 0;
+            currentTier = 1;
+            maxTier = 3;
+            ShopItemsTier1 = new ShopItem[5];
+            ShopItemsTier2 = new ShopItem[5];
+            ShopItemsTier3 = new ShopItem[5];
         }
 
         private void SetLevelButtonAvailability()
         {
-            levelUpButton.interactable = maxLevel > 0;
-            levelDownButton.interactable = currentLevel > 1;
-            maxLevelUpButton.interactable = currentLevel < maxLevel;
+            levelUpButton.interactable = maxTier > currentTier;
+            levelDownButton.interactable = currentTier > 1;
+            rerollButton.interactable = GameManager.Instance.inventoryManager.rerollTicketCount > 0;
         }
         
         public void OnLevelUpButtonClicked()
         {
-            if (currentLevel >= maxLevel) return;
-            currentLevel++;
+            if (currentTier >= maxTier) return;
+            currentTier++;
+            ShowShopItems(currentTier);
             SetLevelButtonAvailability();
         }
         
         public void OnLevelDownButtonClicked()
         {
-            if (currentLevel <= 1) return;
-            currentLevel--;
+            if (currentTier <= 1) return;
+            currentTier--;
+            ShowShopItems(currentTier);
             SetLevelButtonAvailability();
         }
 
         public void OnRerollButtonClicked()
         {
-            if (rerollCost <= 0) return;
+            if (GameManager.Instance.inventoryManager.rerollTicketCount <= 0)
+            {
+                Debug.LogWarning("Reroll 티켓이 부족합니다.");
+                return;
+            }
+            GameManager.Instance.inventoryManager.rerollTicketCount--;
+            RerollShopItems(currentTier);
+            ShowShopItems(currentTier);
+            SetLevelButtonAvailability();
         }
 
-        private void RerollShopItems(Dictionary<int, List<ElementData>> elementsByCost)
+        public void ShowShopItems(int tier)
         {
-            var levelCosts = new[] { currentLevel, currentLevel + 1, currentLevel + 2 };
-            var levelChances = new[] { 0.5f, 0.3f, 0.2f };
-
-            var elementsByLevel = new List<ElementData>[3];
-            for (var i = 0; i < 3; i++)
+            ShopItem[] targetShopArray = tier switch
             {
-                if (!elementsByCost.TryGetValue(levelCosts[i], out var list) || list.Count == 0)
-                    elementsByLevel[i] = new List<ElementData>();
-                else
-                    elementsByLevel[i] = new List<ElementData>(list);
+                1 => ShopItemsTier1,
+                2 => ShopItemsTier2,
+                3 => ShopItemsTier3,
+                _ => null
+            };
+            ShopTag[] targetShopTagArray = shopTagParent.GetComponentsInChildren<ShopTag>();
+            for (var i = 0; i < 5; i++)
+            {
+                targetShopTagArray[i].Initialize(targetShopArray[i]);
+            }
+        }
+
+        public void RerollShopItems(int tier)
+        {
+            // GameManager에서 unitDataList 가져오기
+            var unitDataList = GameManager.Instance.unitDataList;
+            if (unitDataList?.units == null)
+            {
+                Debug.LogError("UnitDataList가 없습니다.");
+                return;
             }
 
-            // 레벨별 원소가 없으면 한 단계 아래로 대체
-            for (int i = 2; i >= 0; i--)
+            // 지정된 tier의 유닛들만 필터링
+            var tierUnits = new List<UnitData>();
+            foreach (var unit in unitDataList.units)
             {
-                if (elementsByLevel[i].Count == 0 && i > 0)
-                    elementsByLevel[i] = new List<ElementData>(elementsByLevel[i - 1]);
-            }
-
-            var rand = new System.Random();
-            foreach (var t in ShopItems)
-            {
-                // 확률에 따라 레벨 선택
-                float r = (float)rand.NextDouble();
-                var levelIdx = 0;
-                if (r < levelChances[0]) levelIdx = 0;
-                else if (r < levelChances[0] + levelChances[1]) levelIdx = 1;
-                else levelIdx = 2;
-
-                var candidates = elementsByLevel[levelIdx];
-                if (candidates.Count == 0)
+                if (unit.tier == tier)
                 {
-                    t.gameObject.SetActive(false);
-                    continue;
+                    tierUnits.Add(unit);
                 }
-                var selected = candidates[rand.Next(candidates.Count)];
-                t.Initialize(selected);
+            }
+
+            if (tierUnits.Count == 0)
+            {
+                Debug.LogWarning($"Tier {tier}에 해당하는 유닛이 없습니다.");
+                return;
+            }
+
+            // 해당 tier의 상점 배열 선택
+            ShopItem[] targetShopArray = tier switch
+            {
+                1 => ShopItemsTier1,
+                2 => ShopItemsTier2,
+                3 => ShopItemsTier3,
+                _ => null
+            };
+
+            if (targetShopArray == null)
+            {
+                Debug.LogError($"Tier {tier}에 해당하는 상점 배열이 없습니다.");
+                return;
+            }
+
+            // 5개의 무작위 유닛 선택하여 ShopItem 생성
+            for (var i = 0; i < 5; i++)
+            {
+                // 무작위 유닛 선택
+                var randomIndex = UnityEngine.Random.Range(0, tierUnits.Count);
+                UnitData selectedUnit = tierUnits[randomIndex];
+                targetShopArray[i] = new ShopItem();
+                targetShopArray[i].Initialize(selectedUnit);
             }
         }
     }
 }
+

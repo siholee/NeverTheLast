@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
 using YamlDotNet.Serialization;
 
 namespace Managers
@@ -65,35 +66,20 @@ namespace Managers
             return roundDataList;
         }
         
-        public ElementDataList FetchElementDataList()
+        public ResourceTokenDataList FetchTokenDataList()
         {
-            TextAsset elementData = Resources.Load<TextAsset>("Data/50_elements");
+            TextAsset tokenData = Resources.Load<TextAsset>("Data/50_tokens");
             var deserializer = new DeserializerBuilder().Build();
-            if (elementData == null)
+            if (tokenData == null)
             {
-                Debug.LogError("Data/50_elements.yaml not found.");
+                Debug.LogError("Data/50_tokens.yaml not found.");
                 return null;
             }
+            ResourceTokenDataList tokenDataList = deserializer.Deserialize<ResourceTokenDataList>(tokenData.text);
+            if (tokenDataList is { tokens: not null }) return tokenDataList;
+            Debug.LogError("Failed to deserialize ResourceTokenDataList.");
+            return null;
 
-            // YAML 데이터를 읽기 위한 임시 클래스 정의
-            var rawData = deserializer.Deserialize<RawElementDataList>(elementData.text);
-
-            // 데이터를 변환하여 Dictionary<int, List<ElementData>> 형태로 저장
-            var elementDataList = new ElementDataList
-            {
-                elementsByCost = rawData.Elements.ToDictionary(
-                    group => group.Cost,
-                    group => group.Elements.Select(e => new ElementData
-                    {
-                        id = e.Id,
-                        name = e.Name,
-                        description = e.Description,
-                        cost = group.Cost
-                    }).ToList()
-                )
-            };
-
-            return elementDataList;
         }
     }
 
@@ -141,6 +127,9 @@ namespace Managers
         public int manaBase;
         public Dictionary<string, int> codes;
         public string portrait;
+        public List<int> cost;
+        public int costAmount;
+        public int tier;
     }
 
     [System.Serializable]
@@ -186,48 +175,15 @@ namespace Managers
     }
 
     [System.Serializable]
-    public class ElementData
+    public class ResourceTokenData
     {
         public int id;
         public string name;
-        public string description;
-        public int cost;
     }
     
     [System.Serializable]
-    public class ElementDataList
+    public class ResourceTokenDataList
     {
-        public Dictionary<int, List<ElementData>> elementsByCost;
-    }
-    
-    // YAML 데이터를 읽기 위한 임시 클래스
-    public class RawElementDataList
-    {
-        [YamlMember(Alias = "elements")]
-        public List<RawElementGroup> Elements { get; set; }
-    }
-
-    public class RawElementGroup
-    {
-        [YamlMember(Alias = "cost")]
-        public int Cost { get; set; }
-
-        [YamlMember(Alias = "elements")]
-        public List<RawElement> Elements { get; set; }
-    }
-
-    public class RawElement
-    {
-        [YamlMember(Alias = "id")]
-        public int Id { get; set; }
-
-        [YamlMember(Alias = "name")]
-        public string Name { get; set; }
-        
-        [YamlMember(Alias = "cost")]
-        public int Cost { get; set; }
-
-        [YamlMember(Alias = "description")]
-        public string Description { get; set; }
+        public List<ResourceTokenData> tokens;
     }
 }

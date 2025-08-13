@@ -7,19 +7,21 @@ namespace Managers
 {
     public class InventoryManager: MonoBehaviour
     {
-        public int currentGold;
-        public Dictionary<int, int> ElementsInHand;
+        public int rerollTicketCount;
+        public Dictionary<int, int> TokensInHand;
         public Dictionary<int, int> UnitsInHand;
 
-        private void Awake()
+        public void Initialize()
         {
-            currentGold = 0;
-            var elementsData = GameManager.Instance.elementDataList;
-            foreach (var element in elementsData.elementsByCost.SelectMany(eList => eList.Value))
+            rerollTicketCount = 0;
+            var tokensData = GameManager.Instance.resourceTokenDataList;
+            TokensInHand = new Dictionary<int, int>();
+            foreach (var token in tokensData.tokens)
             {
-                ElementsInHand[element.id] = 0;
+                TokensInHand[token.id] = 0;
             }
             var unitsData = GameManager.Instance.unitDataList;
+            UnitsInHand = new Dictionary<int, int>();
             foreach (var unit in unitsData.units)
             {
                 UnitsInHand[unit.id] = 0;

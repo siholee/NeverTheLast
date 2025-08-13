@@ -25,6 +25,9 @@ units:
       normal: 2
       ultimate: 1
     portrait: SEI_PORTRAIT
+    cost: [1, 2, 3]
+    costAmount: 6
+    tier: 1
 
   - id: 2
     name: DAIYAN
@@ -51,6 +54,10 @@ units:
       normal: 1
       ultimate: 1
     portrait: DAIYAN_PORTRAIT
+    cost: [4, 5]
+    costAmount: 4
+    tier: 1
+    
   - id: 3
     name: CLUKAY
     synergies:
@@ -76,3 +83,450 @@ units:
       normal: 1
       ultimate: 1
     portrait: CLUKAY_PORTRAIT
+    cost: [6, 7, 8]
+    costAmount: 8
+    tier: 2
+
+  - id: 4
+    name: SEI_2
+    synergies:
+      - 2
+    hpBase: 12000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 250
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 100
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.25
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 1
+      normal: 2
+      ultimate: 1
+    portrait: SEI_PORTRAIT
+    cost: [2, 3]
+    costAmount: 6
+    tier: 1
+
+  - id: 5
+    name: SEI_3
+    synergies:
+      - 1
+      - 3
+    hpBase: 12000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 250
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 100
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.25
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 1
+      normal: 2
+      ultimate: 1
+    portrait: SEI_PORTRAIT
+    cost: [1, 7, 8]
+    costAmount: 12
+    tier: 3
+
+  - id: 6
+    name: SEI_4
+    synergies:
+      - 4
+    hpBase: 12000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 250
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 100
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.25
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 1
+      normal: 2
+      ultimate: 1
+    portrait: SEI_PORTRAIT
+    cost: [2, 4, 5]
+    costAmount: 5
+    tier: 1
+
+  - id: 7
+    name: SEI_5
+    synergies:
+      - 2
+    hpBase: 12000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 250
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 100
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.25
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 1
+      normal: 2
+      ultimate: 1
+    portrait: SEI_PORTRAIT
+    cost: [6, 8]
+    costAmount: 4
+    tier: 1
+
+  - id: 8
+    name: SEI_6
+    synergies:
+      - 1
+      - 4
+    hpBase: 12000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 250
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 100
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.25
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 1
+      normal: 2
+      ultimate: 1
+    portrait: SEI_PORTRAIT
+    cost: [3, 6]
+    costAmount: 5
+    tier: 1
+
+  - id: 9
+    name: SEI_7
+    synergies:
+      - 3
+      - 4
+    hpBase: 12000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 250
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 100
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.25
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 1
+      normal: 2
+      ultimate: 1
+    portrait: SEI_PORTRAIT
+    cost: [4, 5]
+    costAmount: 9
+    tier: 2
+
+  - id: 10
+    name: SEI_8
+    synergies:
+      - 3
+    hpBase: 12000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 250
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 100
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.25
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 1
+      normal: 2
+      ultimate: 1
+    portrait: SEI_PORTRAIT
+    cost: [1, 8]
+    costAmount: 8
+    tier: 2
+
+  - id: 11
+    name: SEI_9
+    synergies:
+      - 1
+      - 4
+    hpBase: 12000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 250
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 100
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.25
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 1
+      normal: 2
+      ultimate: 1
+    portrait: SEI_PORTRAIT
+    cost: [6]
+    costAmount: 7
+    tier: 2
+
+  - id: 12
+    name: SEI_10
+    synergies:
+      - 1
+      - 4
+    hpBase: 12000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 250
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 100
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.25
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 1
+      normal: 2
+      ultimate: 1
+    portrait: SEI_PORTRAIT
+    cost: [4]
+    costAmount: 9
+    tier: 2
+
+  - id: 13
+    name: SEI_11
+    synergies:
+      - 3
+    hpBase: 12000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 250
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 100
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.25
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 1
+      normal: 2
+      ultimate: 1
+    portrait: SEI_PORTRAIT
+    cost: [5, 7]
+    costAmount: 8
+    tier: 2
+
+  - id: 14
+    name: SEI_12
+    synergies:
+      - 1
+      - 4
+    hpBase: 12000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 250
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 100
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.25
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 1
+      normal: 2
+      ultimate: 1
+    portrait: SEI_PORTRAIT
+    cost: [2, 3, 5]
+    costAmount: 11
+    tier: 3
+
+  - id: 15
+    name: SEI_13
+    synergies:
+      - 3
+      - 4
+    hpBase: 12000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 250
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 100
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.25
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 1
+      normal: 2
+      ultimate: 1
+    portrait: SEI_PORTRAIT
+    cost: [3, 8]
+    costAmount: 12
+    tier: 3
+
+  - id: 16
+    name: SEI_14
+    synergies:
+      - 1
+      - 4
+    hpBase: 12000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 250
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 100
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.25
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 1
+      normal: 2
+      ultimate: 1
+    portrait: SEI_PORTRAIT
+    cost: [7, 8]
+    costAmount: 10
+    tier: 3
+
+  - id: 17
+    name: SEI_15
+    synergies:
+      - 1
+      - 4
+    hpBase: 12000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 250
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 100
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.25
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 1
+      normal: 2
+      ultimate: 1
+    portrait: SEI_PORTRAIT
+    cost: [4, 7]
+    costAmount: 12
+    tier: 3
+
+  - id: 18
+    name: SEI_16
+    synergies:
+      - 1
+    hpBase: 12000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 250
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 100
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.25
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 1
+      normal: 2
+      ultimate: 1
+    portrait: SEI_PORTRAIT
+    cost: [4, 7, 8]
+    costAmount: 10
+    tier: 3
