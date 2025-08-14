@@ -23,7 +23,7 @@ namespace Managers
         [Header("Grid Settings")]
         public int xMin = -4;
         public int xMax = 4;
-        public int yMin = 1;
+        public int yMin = 0; 
         public int yMax = 3;
         public float tileSpacing = 2.1f;
 
@@ -205,14 +205,14 @@ namespace Managers
             {
                 foreach (Unit enemy in enemyList)
                 {
-                    if (enemy.isActive) enemyCandidates.Add(enemy);
+                    if (enemy.isActive && enemy.currentCell.yPos > 0) enemyCandidates.Add(enemy);
                 }
             }
             else
             {
                 foreach (Unit hero in heroList)
                 {
-                    if (hero.isActive) enemyCandidates.Add(hero);
+                    if (hero.isActive && hero.currentCell.yPos > 0) enemyCandidates.Add(hero);
                 }
             }
 
@@ -238,11 +238,11 @@ namespace Managers
         {
             if (!caster.IsEnemy)
             {
-                return enemyList.Where(e => e.isActive).ToList();
+                return enemyList.Where(e => e.isActive && e.currentCell.yPos > 0).ToList();
             }
             else
             {
-                return heroList.Where(h => h.isActive).ToList();
+                return heroList.Where(h => h.isActive && h.currentCell.yPos > 0).ToList();
             }
         }
 
@@ -250,11 +250,11 @@ namespace Managers
         {
             if (!caster.IsEnemy)
             {
-                return heroList.Where(e => e.isActive).ToList();
+                return heroList.Where(e => e.isActive && e.currentCell.yPos > 0).ToList();
             }
             else
             {
-                return enemyList.Where(h => h.isActive).ToList();
+                return enemyList.Where(h => h.isActive && h.currentCell.yPos > 0).ToList();
             }
         }
         
