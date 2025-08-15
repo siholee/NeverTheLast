@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using BaseClasses;
+using Entities;
 using Managers.UI;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,12 +23,21 @@ namespace Managers
         // 시너지 팝업
         public SynergyPopup synergyPopupObj;
         
+        // 유닛 정보 탭
+        public InfoTab infoTab;
+        
         private void Start()
         {
             // 시작할 때 팝업 비활성화
             if (synergyPopupObj != null)
             {
                 synergyPopupObj.synergyPopupPanel.SetActive(false);
+            }
+            
+            // 시작할 때 InfoTab 비활성화
+            if (infoTab != null)
+            {
+                infoTab.gameObject.SetActive(false);
             }
         }
 
@@ -95,6 +105,39 @@ namespace Managers
                 {
                     synergyTag.SetActive(false);
                 }
+            }
+        }
+
+        // InfoTab 관련 메서드들
+        public void ShowInfoTab(Unit unit)
+        {
+            if (infoTab == null || unit == null) return;
+            
+            // InfoTab 활성화
+            infoTab.gameObject.SetActive(true);
+            
+            // 유닛 정보 설정
+            infoTab.unitNameText.text = unit.UnitName;
+            infoTab.unitLevelText.text = $"Lv.{unit.Level}";
+            infoTab.maxHpText.text = $"Max HP: {unit.HpMax}";
+            infoTab.currentHpText.text = $"Current HP: {unit.HpCurr}";
+            infoTab.atkText.text = $"ATK: {unit.AtkCurr}";
+            infoTab.defText.text = $"DEF: {unit.DefCurr}";
+            infoTab.critPosText.text = $"Crit Rate: {unit.CritChanceCurr}%";
+            infoTab.critDmgText.text = $"Crit DMG: {unit.CritMultiplierCurr}%";
+            infoTab.coolDownText.text = $"Normal CD: {unit.normalCooldown:F1}s";
+            infoTab.penetrationText.text = "Penetration: N/A"; // 관통력은 아직 구현되지 않음
+            
+            // 업그레이드 정보 설정 (임시값)
+            infoTab.upgradePosText.text = "Upgrade Rate: 50%";
+            infoTab.upgradeFailText.text = "Fail Rate: 50%";
+        }
+        
+        public void HideInfoTab()
+        {
+            if (infoTab != null)
+            {
+                infoTab.gameObject.SetActive(false);
             }
         }
 

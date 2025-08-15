@@ -12,6 +12,7 @@ public class Cell : MonoBehaviour
     public SpriteRenderer portraitRenderer;
     public GameObject hpBarObj;
     public GameObject manaBarObj;
+    public GameObject infoTab;
 
     private void Update()
     {
@@ -29,19 +30,30 @@ private void OnMouseDown()
         if (cellUnit != null && cellUnit.isActive)
         {
             Debug.Log($"Cell contains active unit: {cellUnit.UnitName}");
-            // UIManager를 통해 유닛 정보 패널 업데이트
-            GridManager.Instance.SelectUnit(xPos, yPos);
+            // UIManager를 통해 InfoTab 활성화 및 유닛 정보 표시
+            if (GameManager.Instance != null && GameManager.Instance.uiManager != null)
+            {
+                GameManager.Instance.uiManager.ShowInfoTab(cellUnit);
+            }
         }
         else
         {
             Debug.Log($"Cell contains inactive or missing unit component");
-            GridManager.Instance.SelectUnit(xPos, yPos);
+            // 빈 셀 클릭 시 InfoTab 숨기기
+            if (GameManager.Instance != null && GameManager.Instance.uiManager != null)
+            {
+                GameManager.Instance.uiManager.HideInfoTab();
+            }
         }
     }
     else
     {
         Debug.Log($"Cell is empty");
-        GridManager.Instance.SelectUnit(xPos, yPos);
+        // 빈 셀 클릭 시 InfoTab 숨기기
+        if (GameManager.Instance != null && GameManager.Instance.uiManager != null)
+        {
+            GameManager.Instance.uiManager.HideInfoTab();
+        }
     }
 }
 }
