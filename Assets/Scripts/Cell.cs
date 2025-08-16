@@ -19,41 +19,37 @@ public class Cell : MonoBehaviour
         reservedTime = Mathf.Max(0, reservedTime - Time.deltaTime);
     }
     
-private void OnMouseDown()
-{
-    Debug.Log($"Cell clicked: ({xPos}, {yPos})");
-    
-    // Cell이 클릭되면 GridManager를 통해 유닛 정보를 표시
-    if (isOccupied && unit != null)
+    // InfoTab UI 업데이트 담당 메서드
+    public void UpdateInfoTab()
     {
-        Unit cellUnit = unit.GetComponent<Unit>();
-        if (cellUnit != null && cellUnit.isActive)
+        if (infoTab == null) return;
+        
+        // 유닛이 있고 활성 상태인 경우 InfoTab 표시
+        if (isOccupied && unit != null)
         {
-            Debug.Log($"Cell contains active unit: {cellUnit.UnitName}");
-            // UIManager를 통해 InfoTab 활성화 및 유닛 정보 표시
-            if (GameManager.Instance != null && GameManager.Instance.uiManager != null)
+            Unit cellUnit = unit.GetComponent<Unit>();
+            if (cellUnit != null && cellUnit.isActive)
             {
-                GameManager.Instance.uiManager.ShowInfoTab(cellUnit);
+                infoTab.SetActive(true);
+                // 추가적인 InfoTab 업데이트 로직이 필요하다면 여기에 추가
+            }
+            else
+            {
+                infoTab.SetActive(false);
             }
         }
         else
         {
-            Debug.Log($"Cell contains inactive or missing unit component");
-            // 빈 셀 클릭 시 InfoTab 숨기기
-            if (GameManager.Instance != null && GameManager.Instance.uiManager != null)
-            {
-                GameManager.Instance.uiManager.HideInfoTab();
-            }
+            infoTab.SetActive(false);
         }
     }
-    else
+    
+    // InfoTab 숨기기
+    public void HideInfoTab()
     {
-        Debug.Log($"Cell is empty");
-        // 빈 셀 클릭 시 InfoTab 숨기기
-        if (GameManager.Instance != null && GameManager.Instance.uiManager != null)
+        if (infoTab != null)
         {
-            GameManager.Instance.uiManager.HideInfoTab();
+            infoTab.SetActive(false);
         }
     }
-}
 }

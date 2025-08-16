@@ -73,14 +73,6 @@ namespace Managers
                     {
                         cell = cellObject.AddComponent<Cell>();
                     }
-                    
-                    // Add BoxCollider2D
-                    BoxCollider2D boxCollider = cellObject.GetComponent<BoxCollider2D>();
-                    if (boxCollider == null)
-                    {
-                        boxCollider = cellObject.AddComponent<BoxCollider2D>();
-                        boxCollider.size = new Vector2(2.0f, 2.0f); // Adjust to cell size
-                    }
 
                     cell.xPos = x;
                     cell.yPos = y;

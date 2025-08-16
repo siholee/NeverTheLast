@@ -26,6 +26,8 @@ namespace Managers
         // 유닛 정보 탭
         public InfoTab infoTab;
         
+        private Camera mainCamera;
+        
         private void Start()
         {
             // 시작할 때 팝업 비활성화
@@ -39,8 +41,52 @@ namespace Managers
             {
                 infoTab.gameObject.SetActive(false);
             }
+
+            // 메인 카메라 참조 가져오기
+            if (mainCamera == null)
+            {
+                mainCamera = Camera.main;
+            }
         }
 
+        private void Update()
+        {
+            // 마우스 왼쪽 버튼 클릭 감지
+            if (Input.GetMouseButtonDown(0))
+            {
+                HandleMouseClick();
+            }
+        }
+
+        private void HandleMouseClick()
+        {
+            if (mainCamera == null) return;
+            
+            Vector3 mousePosition = Input.mousePosition;
+            // Z값을 카메라와의 거리로 설정하여 정확한 월드 좌표 변환
+            mousePosition.z = -mainCamera.transform.position.z;
+            Vector3 worldPosition = mainCamera.ScreenToWorldPoint(mousePosition);
+            
+            // Raycast로 클릭된 오브젝트 찾기
+            Collider2D hitCollider = Physics2D.OverlapPoint(worldPosition);
+            
+            if (hitCollider != null)
+            {
+                Cell clickedCell = hitCollider.GetComponent<Cell>();
+                if (clickedCell != null)
+                {
+                    // Cell을 감지했을 때 실제 Cell 위치에 구 오브젝트 표시
+                    Vector3 cellPosition = clickedCell.transform.position;
+                    HandleCellClick(clickedCell);
+                }
+            }
+            else
+            {
+                // 빈 공간 클릭 시 InfoTab 숨기기
+                HideInfoTab();
+            }
+        }
+        
         public void ShowSynergyPopup(Vector3 position, SynergyInfo synergyInfo)
         {
             if (synergyPopupObj == null) return;
@@ -138,6 +184,36 @@ namespace Managers
             if (infoTab != null)
             {
                 infoTab.gameObject.SetActive(false);
+            }
+        }
+
+        // Cell 클릭 처리를 위한 중앙화된 메서드
+        public void HandleCellClick(Cell clickedCell)
+        {
+            Debug.Log($"Cell clicked: ({clickedCell.xPos}, {clickedCell.yPos})");
+
+            // Cell이 클릭되면 유닛 정보를 표시
+            if (clickedCell.isOccupied && clickedCell.unit != null)
+            {
+                Unit cellUnit = clickedCell.unit.GetComponent<Unit>();
+                if (cellUnit != null && cellUnit.isActive)
+                {
+                    Debug.Log($"Cell contains active unit: {cellUnit.UnitName}");
+                    // InfoTab 활성화 및 유닛 정보 표시
+                    ShowInfoTab(cellUnit);
+                }
+                else
+                {
+                    Debug.Log($"Cell contains inactive or missing unit component");
+                    // 빈 셀 클릭 시 InfoTab 숨기기
+                    HideInfoTab();
+                }
+            }
+            else
+            {
+                Debug.Log($"Cell is empty");
+                // 빈 셀 클릭 시 InfoTab 숨기기
+                HideInfoTab();
             }
         }
 
