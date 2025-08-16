@@ -1,9 +1,8 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace Managers.UI
 {
-    public class InfoTab : MonoBehaviour, IPointerClickHandler
+    public class InfoTab : MonoBehaviour
     {
         [Header("Unit Information")]
         public TMPro.TextMeshProUGUI unitNameText; // 유닛명
@@ -29,27 +28,24 @@ namespace Managers.UI
         
         void Update()
         {
-            // InfoTab이 활성화된 상태에서 외부 클릭 감지
-            if (gameObject.activeInHierarchy && Input.GetMouseButtonDown(0))
+            // ESC 키를 누를 경우 InfoTab 닫기
+            if (gameObject.activeInHierarchy && Input.GetKeyDown(KeyCode.Escape))
             {
-                // 마우스 위치가 InfoTab 영역 밖인지 확인
-                Vector2 mousePosition = Input.mousePosition;
-                RectTransform rectTransform = GetComponent<RectTransform>();
-                
-                if (!RectTransformUtility.RectangleContainsScreenPoint(rectTransform, mousePosition, Camera.main))
-                {
-                    // InfoTab 외부 클릭 시 숨기기
-                    if (GameManager.Instance != null && GameManager.Instance.uiManager != null)
-                    {
-                        GameManager.Instance.uiManager.HideInfoTab();
-                    }
-                }
+                CloseInfoTab();
+                return;
             }
         }
         
-        public void OnPointerClick(PointerEventData eventData)
+        // 버튼 클릭 시 호출될 함수 (버튼의 OnClick 이벤트에 연결)
+        public void OnCloseButtonClick()
         {
-            // InfoTab 내부 클릭 시 아무것도 하지 않음 (이벤트 소비)
+            CloseInfoTab();
+        }
+        
+        // InfoTab 닫기 기능을 담당하는 메서드
+        private void CloseInfoTab()
+        {
+            gameObject.SetActive(false);
         }
     }
 }

@@ -82,7 +82,7 @@ namespace Managers
             }
             else
             {
-                // 빈 공간 클릭 시 InfoTab 숨기기
+                Debug.Log("Empty space clicked");
                 HideInfoTab();
             }
         }
@@ -208,12 +208,6 @@ namespace Managers
                     // 빈 셀 클릭 시 InfoTab 숨기기
                     HideInfoTab();
                 }
-            }
-            else
-            {
-                Debug.Log($"Cell is empty");
-                // 빈 셀 클릭 시 InfoTab 숨기기
-                HideInfoTab();
             }
         }
 
