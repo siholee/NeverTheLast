@@ -80,7 +80,7 @@ namespace Managers
             ShopTag[] targetShopTagArray = shopTagParent.GetComponentsInChildren<ShopTag>();
             for (var i = 0; i < 5; i++)
             {
-                targetShopTagArray[i].Initialize(targetShopArray[i]);
+                targetShopTagArray[i].Initialize(targetShopArray[i], i);
             }
         }
 
@@ -135,6 +135,76 @@ namespace Managers
                 targetShopArray[i].Initialize(selectedUnit);
             }
         }
+
+        public void RerollSingleSlot(int tier, int slotIndex)
+        {
+            // GameManager에서 unitDataList 가져오기
+            var unitDataList = GameManager.Instance.unitDataList;
+            if (unitDataList?.units == null)
+            {
+                Debug.LogError("UnitDataList가 없습니다.");
+                return;
+            }
+
+            // 지정된 tier의 유닛들만 필터링
+            var tierUnits = new List<UnitData>();
+            foreach (var unit in unitDataList.units)
+            {
+                if (unit.tier == tier)
+                {
+                    tierUnits.Add(unit);
+                }
+            }
+
+            if (tierUnits.Count == 0)
+            {
+                Debug.LogWarning($"Tier {tier}에 해당하는 유닛이 없습니다.");
+                return;
+            }
+
+            // 해당 tier의 상점 배열 선택
+            ShopItem[] targetShopArray = tier switch
+            {
+                1 => ShopItemsTier1,
+                2 => ShopItemsTier2,
+                3 => ShopItemsTier3,
+                _ => null
+            };
+
+            if (targetShopArray == null || slotIndex < 0 || slotIndex >= targetShopArray.Length)
+            {
+                Debug.LogError($"유효하지 않은 슬롯 인덱스: {slotIndex}");
+                return;
+            }
+
+            // 해당 슬롯에 새로운 무작위 유닛 배치
+            var randomIndex = UnityEngine.Random.Range(0, tierUnits.Count);
+            UnitData selectedUnit = tierUnits[randomIndex];
+            targetShopArray[slotIndex] = new ShopItem();
+            targetShopArray[slotIndex].Initialize(selectedUnit);
+        }
+
+        public void RefreshSingleShopTag(int tier, int slotIndex)
+        {
+            ShopItem[] targetShopArray = tier switch
+            {
+                1 => ShopItemsTier1,
+                2 => ShopItemsTier2,
+                3 => ShopItemsTier3,
+                _ => null
+            };
+
+            if (targetShopArray == null || slotIndex < 0 || slotIndex >= targetShopArray.Length)
+            {
+                Debug.LogError($"유효하지 않은 슬롯 인덱스: {slotIndex}");
+                return;
+            }
+
+            ShopTag[] shopTags = shopTagParent.GetComponentsInChildren<ShopTag>();
+            if (slotIndex < shopTags.Length)
+            {
+                shopTags[slotIndex].Initialize(targetShopArray[slotIndex]);
+            }
+        }
     }
 }
-

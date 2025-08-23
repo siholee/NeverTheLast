@@ -18,6 +18,28 @@ public class Cell : MonoBehaviour
     {
         reservedTime = Mathf.Max(0, reservedTime - Time.deltaTime);
     }
+
+    private void OnMouseDown()
+    {
+        // 유닛이 있는 셀을 클릭했을 때 드래그 시작
+        if (isOccupied && unit != null)
+        {
+            Unit cellUnit = unit.GetComponent<Unit>();
+            if (cellUnit != null && cellUnit.isActive)
+            {
+                DragAndDropManager.Instance?.StartDrag(this);
+            }
+        }
+    }
+
+    private void OnMouseUp()
+    {
+        // 마우스를 놓았을 때 드래그 종료
+        if (DragAndDropManager.Instance != null && DragAndDropManager.Instance.IsDragging())
+        {
+            DragAndDropManager.Instance.EndDrag();
+        }
+    }
     
     // InfoTab UI 업데이트 담당 메서드
     public void UpdateInfoTab()

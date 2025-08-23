@@ -16,6 +16,7 @@ namespace Managers
         public SfxManager sfxManager;
         public ShopManager shopManager;
         public InventoryManager inventoryManager;
+        public DragAndDropManager dragAndDropManager;
 
         public GameState gameState;
         public Dictionary<int, SynergyInfo> SynergyCounts;
@@ -125,3 +126,4 @@ namespace Managers
         }
     }
 }
+

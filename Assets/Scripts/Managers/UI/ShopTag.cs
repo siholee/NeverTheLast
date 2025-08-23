@@ -1,5 +1,7 @@
 using System.Linq;
 using BaseClasses;
+using Entities;
+using Managers;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,6 +24,7 @@ namespace Managers.UI
 
         private ShopItem _shopItem;
         private bool _isPurchased;
+        private int _slotIndex = -1; // 슬롯 인덱스 추가
 
         private void Start()
         {
@@ -42,9 +45,11 @@ namespace Managers.UI
             }
         }
 
-        public void Initialize(ShopItem shopItem)
+        public void Initialize(ShopItem shopItem, int slotIndex = -1)
         {
             _shopItem = shopItem;
+            _slotIndex = slotIndex;
+            _isPurchased = false; // 초기화 시 구매 상태 리셋
             itemNameText.text = shopItem.ItemName;
             string path = $"Sprite/Portraits/{shopItem.IconPath}";
             Sprite sprite = Resources.Load<Sprite>(path);
@@ -132,11 +137,34 @@ namespace Managers.UI
                 return;
             }
 
+            // GridManager 인스턴스 가져오기
+            GridManager gridManager = GridManager.Instance;
+            if (gridManager == null)
+            {
+                Debug.LogError("GridManager를 찾을 수 없습니다.");
+                return;
+            }
+
+            // 벤치에 빈 셀이 있는지 확인
+            if (!gridManager.HasAvailableBenchSlot())
+            {
+                Debug.Log("벤치가 가득 차서 유닛을 구매할 수 없습니다.");
+                return;
+            }
+
             // InventoryManager 인스턴스 가져오기
             InventoryManager inventoryManager = FindFirstObjectByType<InventoryManager>();
             if (inventoryManager == null)
             {
                 Debug.LogError("InventoryManager를 찾을 수 없습니다.");
+                return;
+            }
+
+            // ShopManager 인스턴스 가져오기
+            ShopManager shopManager = FindFirstObjectByType<ShopManager>();
+            if (shopManager == null)
+            {
+                Debug.LogError("ShopManager를 찾을 수 없습니다.");
                 return;
             }
 
@@ -146,22 +174,48 @@ namespace Managers.UI
             // 토큰이 충분한지 확인하고 구매 처리
             if (inventoryManager.SpendToken(costs))
             {
-                // 구매 성공 - UnitsInHand에 추가
-                if (!inventoryManager.UnitsInHand.ContainsKey(_shopItem.ID))
-                {
-                    inventoryManager.UnitsInHand[_shopItem.ID] = 0;
-                }
-                inventoryManager.UnitsInHand[_shopItem.ID] += 1;
+                // GridManager의 SpawnUnit을 사용하여 벤치에 유닛 생성
+                gridManager.SpawnUnit(0, 0, false, _shopItem.ID, true); // 벤치에 스폰
                 
-                // 구매 완료 상태로 변경
-                SetPurchasedState();
+                Debug.Log($"{_shopItem.ItemName} 구매 완료! 벤치에 배치되었습니다.");
                 
-                Debug.Log($"{_shopItem.ItemName} 구매 완료! 현재 보유량: {inventoryManager.UnitsInHand[_shopItem.ID]}");
+                // 구매한 슬롯을 새로운 유닛으로 교체
+                ReplaceWithNewUnit(shopManager);
             }
             else
             {
                 Debug.Log("토큰이 부족하여 구매할 수 없습니다.");
             }
+        }
+
+        private void ReplaceWithNewUnit(ShopManager shopManager)
+        {
+            // 슬롯 인덱스가 유효하지 않은 경우 자동으로 찾기
+            if (_slotIndex == -1)
+            {
+                ShopTag[] shopTags = shopManager.shopTagParent.GetComponentsInChildren<ShopTag>();
+                for (int i = 0; i < shopTags.Length; i++)
+                {
+                    if (shopTags[i] == this)
+                    {
+                        _slotIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            if (_slotIndex == -1)
+            {
+                Debug.LogError("슬롯 인덱스를 찾을 수 없습니다.");
+                return;
+            }
+
+            // 해당 슬롯을 새로운 유닛으로 교체
+            int currentTier = shopManager.currentTier;
+            shopManager.RerollSingleSlot(currentTier, _slotIndex);
+            shopManager.RefreshSingleShopTag(currentTier, _slotIndex);
+            
+            Debug.Log($"슬롯 {_slotIndex}이(가) 새로운 유닛으로 교체되었습니다.");
         }
 
         private void SetPurchasedState()

@@ -27,13 +27,10 @@ namespace Managers
         public int yMax = 3;
         
         [Header("Bench Grid Settings")]
-        public int benchXMin = -4;
-        public int benchXMax = 4;
-        public int benchYMin = -1;
-        public int benchYMax = -1;
+        public int benchSize = 9; // 벤치 슬롯 개수
 
         private Cell[,] _fieldCellManager; // Cell management array
-        private Cell[,] _benchCellManager; // Cell management array
+        private Cell[] _benchCellManager; // Cell management array (1차원)
         public List<Unit> heroList;
         public List<Unit> enemyList;
 
@@ -70,9 +67,7 @@ namespace Managers
             _fieldCellManager = new Cell[columns, rows];
             
             // _benchCellManager 배열 초기화
-            int benchRows = benchYMax - benchYMin + 1;
-            int benchColumns = benchXMax - benchXMin + 1;
-            _benchCellManager = new Cell[benchColumns, benchRows];
+            _benchCellManager = new Cell[benchSize];
             
             // fieldParent의 자식 오브젝트들을 순회하며 Cell 정보 설정
             foreach (Transform child in fieldParent)
@@ -127,8 +122,11 @@ namespace Managers
             }
             
             // benchParent의 자식 오브젝트들을 순회하며 Cell 정보 설정
+            int benchIndex = 0;
             foreach (Transform child in benchParent)
             {
+                if (benchIndex >= benchSize) break;
+                
                 // 오브젝트 이름에서 좌표 추출 (Cell_{x}_{y} 형식)
                 string childName = child.name;
                 if (childName.StartsWith("Cell_"))
@@ -151,20 +149,10 @@ namespace Managers
                             cell.isOccupied = false;
                             cell.reservedTime = 0f;
                             
-                            // 2차원 배열 인덱스 계산 및 할당
-                            int adjustedX = x - benchXMin;
-                            int adjustedY = y - benchYMin;
-                            
-                            // 범위 체크
-                            if (adjustedX >= 0 && adjustedX < benchColumns && adjustedY >= 0 && adjustedY < benchRows)
-                            {
-                                _benchCellManager[adjustedX, adjustedY] = cell;
-                                Debug.Log($"Bench Cell assigned to array: {childName} at index [{adjustedX}, {adjustedY}]");
-                            }
-                            else
-                            {
-                                Debug.LogWarning($"Bench Cell coordinates out of range: {childName} (x: {x}, y: {y})");
-                            }
+                            // 1차원 배열 인덱스 계산 및 할당
+                            _benchCellManager[benchIndex] = cell;
+                            Debug.Log($"Bench Cell assigned to array: {childName} at index [{benchIndex}]");
+                            benchIndex++;
                         }
                         else
                         {
@@ -194,57 +182,94 @@ namespace Managers
             return false; // Cell doesn't exist or is occupied
         }
 
-        public void SpawnUnit(int xPos, int yPos, bool isEnemy, int unitId)
+        public void SpawnUnit(int xPos, int yPos, bool isEnemy, int unitId, bool isBench = false)
         {
-            int adjustedX = xPos - xMin;
-            int adjustedY = yPos - yMin;
-
-            if (adjustedX >= 0 && adjustedX < _fieldCellManager.GetLength(0) &&
-                adjustedY >= 0 && adjustedY < _fieldCellManager.GetLength(1))
+            Cell cell = null;
+            
+            if (isBench)
             {
-                Cell cell = _fieldCellManager[adjustedX, adjustedY];
-                if (cell)
+                // 벤치에 유닛 스폰
+                for (int i = 0; i < benchSize; i++)
                 {
-                    // Create unit
-                    GameObject unitObj;
-                    if (isEnemy)
-                    {
-                        unitObj = Instantiate(enemyPrefab, cell.transform.position, Quaternion.identity);
-                        unitObj.name = $"Enemy_{unitId}";
-                    }
-                    else
-                    {
-                        unitObj = Instantiate(heroPrefab, cell.transform.position, Quaternion.identity);
-                        unitObj.name = $"Hero_{unitId}";
-                    }
-                    
-                    // Assign unit to cell
-                    cell.isOccupied = true;
-                    cell.unit = unitObj;
-                    
-                    // Initialize unit
-                    Unit unitComponent = unitObj.GetComponent<Unit>();
-                    if (unitComponent != null)
-                    {
-                        // Add to appropriate list
-                        if (isEnemy)
-                        {
-                            enemyList.Add(unitComponent);
-                        }
-                        else
-                        {
-                            heroList.Add(unitComponent);
-                        }
-                        
-                        unitComponent.currentCell = cell;
-                        unitComponent.Spawn(cell, isEnemy, unitId);
-                        Debug.Log($"Spawned {(isEnemy ? "enemy" : "hero")} unit {unitComponent.UnitName} at ({xPos}, {yPos})");
-                    }
-                    else
-                    {
-                        Debug.LogError($"Failed to get Unit component from spawned object at ({xPos}, {yPos})");
-                    }
+                    if (!_benchCellManager[i] || _benchCellManager[i].isOccupied) continue;
+                    cell = _benchCellManager[i];
+                    break;
                 }
+                
+                if (!cell)
+                {
+                    Debug.LogWarning("벤치에 빈 셀이 없습니다.");
+                    return;
+                }
+            }
+            else
+            {
+                // 필드에 유닛 스폰
+                int adjustedX = xPos - xMin;
+                int adjustedY = yPos - yMin;
+
+                if (adjustedX >= 0 && adjustedX < _fieldCellManager.GetLength(0) &&
+                    adjustedY >= 0 && adjustedY < _fieldCellManager.GetLength(1))
+                {
+                    cell = _fieldCellManager[adjustedX, adjustedY];
+                }
+                
+                if (cell == null || cell.isOccupied)
+                {
+                    Debug.LogWarning($"셀이 없거나 이미 점유되어 있습니다: ({xPos}, {yPos})");
+                    return;
+                }
+            }
+
+            // Create unit
+            GameObject unitObj;
+            if (isEnemy)
+            {
+                unitObj = Instantiate(enemyPrefab, cell.transform.position, Quaternion.identity);
+                unitObj.name = $"Enemy_{unitId}";
+            }
+            else
+            {
+                unitObj = Instantiate(heroPrefab, cell.transform.position, Quaternion.identity);
+                unitObj.name = $"Hero_{unitId}";
+            }
+            unitObj.transform.SetParent(cell.transform);
+            
+            // Assign unit to cell
+            cell.isOccupied = true;
+            cell.unit = unitObj;
+            
+            // Initialize unit
+            Unit unitComponent = unitObj.GetComponent<Unit>();
+            if (unitComponent != null)
+            {
+                // Set parent based on location
+                if (isBench)
+                {
+                    unitObj.transform.SetParent(benchParent);
+                }
+                else
+                {
+                    unitObj.transform.SetParent(fieldParent);
+                }
+                
+                // Add to appropriate list
+                if (isEnemy)
+                {
+                    enemyList.Add(unitComponent);
+                }
+                else
+                {
+                    heroList.Add(unitComponent);
+                }
+                
+                unitComponent.currentCell = cell;
+                unitComponent.Spawn(cell, isEnemy, unitId);
+                Debug.Log($"Spawned {(isEnemy ? "enemy" : "hero")} unit {unitComponent.UnitName} at {(isBench ? "bench" : $"({xPos}, {yPos})")}");
+            }
+            else
+            {
+                Debug.LogError($"Failed to get Unit component from spawned object");
             }
         }
         
@@ -361,6 +386,61 @@ namespace Managers
             
             return null;
         }
+
+        public bool HasAvailableBenchSlot()
+        {
+            for (int i = 0; i < benchSize; i++)
+            {
+                Cell cell = _benchCellManager[i];
+                if (cell != null && !cell.isOccupied)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool PlaceUnitOnBench(Unit unit)
+        {
+            if (unit == null) return false;
+            
+            // 첫 번째 빈 셀 찾기
+            for (int i = 0; i < benchSize; i++)
+            {
+                Cell cell = _benchCellManager[i];
+                if (cell != null && !cell.isOccupied)
+                {
+                    // 셀에 유닛 배치
+                    cell.isOccupied = true;
+                    cell.unit = unit.gameObject;
+                    unit.currentCell = cell;
+                    
+                    // 유닛의 위치를 셀 위치로 설정
+                    unit.transform.position = cell.transform.position;
+                    unit.transform.SetParent(cell.transform);
+                    
+                    // 유닛을 활성화
+                    unit.gameObject.SetActive(true);
+                    
+                    Debug.Log($"유닛 {unit.UnitName}이(가) 벤치 셀 ({cell.xPos}, {cell.yPos})에 배치되었습니다.");
+                    return true;
+                }
+            }
+            
+            Debug.LogWarning("벤치에 빈 셀이 없습니다.");
+            return false;
+        }
+        
+        public bool IsBenchCell(Cell cell)
+        {
+            if (cell == null || _benchCellManager == null) return false;
+            
+            for (int i = 0; i < benchSize; i++)
+            {
+                if (_benchCellManager[i] == cell)
+                    return true;
+            }
+            return false;
+        }
     }
 }
-

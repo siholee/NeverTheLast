@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
+using Entities;
 using Managers.UI;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ namespace Managers
     {
         public int rerollTicketCount;
         [SerializeField] public IntIntDictionary TokensInHand;
-        [SerializeField] public IntIntDictionary UnitsInHand;
+        [SerializeField] public List<Unit> UnitsInHand;
 
         public ResourcePanel resourcePanel;
 
@@ -23,14 +24,12 @@ namespace Managers
             TokensInHand.Clear();
             foreach (var token in tokensData.tokens)
             {
-                TokensInHand[token.id] = 0;
+                TokensInHand[token.id] = 50;
             }
-            var unitsData = GameManager.Instance.unitDataList;
-            if (UnitsInHand == null) UnitsInHand = new IntIntDictionary();
-            foreach (var unit in unitsData.units)
-            {
-                UnitsInHand[unit.id] = 0;
-            }
+            
+            if (UnitsInHand == null) UnitsInHand = new List<Unit>();
+            UnitsInHand.Clear();
+            
             resourcePanel.UpdatePanel(TokensInHand, rerollTicketCount);
         }
     
@@ -56,6 +55,44 @@ namespace Managers
             }
             resourcePanel.UpdatePanel(TokensInHand, rerollTicketCount);
             return true;
+        }
+
+        public void AddUnit(Unit unit)
+        {
+            if (unit != null)
+            {
+                UnitsInHand.Add(unit);
+            }
+        }
+
+        public bool RemoveUnit(Unit unit)
+        {
+            return UnitsInHand.Remove(unit);
+        }
+
+        public Unit RemoveUnitById(int unitId)
+        {
+            var unit = UnitsInHand.FirstOrDefault(u => u.ID == unitId);
+            if (unit != null)
+            {
+                UnitsInHand.Remove(unit);
+            }
+            return unit;
+        }
+
+        public List<Unit> GetUnitsById(int unitId)
+        {
+            return UnitsInHand.Where(u => u.ID == unitId).ToList();
+        }
+
+        public int GetUnitCountById(int unitId)
+        {
+            return UnitsInHand.Count(u => u.ID == unitId);
+        }
+
+        public bool HasUnit(int unitId)
+        {
+            return UnitsInHand.Any(u => u.ID == unitId);
         }
     }
 }
