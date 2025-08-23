@@ -23,7 +23,7 @@ namespace Managers
 
         public void SpawnHeroesForTest()
         {
-            GameManager.Instance.gridManager.SpawnUnit(-1, 2, false, 1);
+            // GameManager.Instance.gridManager.SpawnUnit(-1, 2, false, 1);
         }
 
         public void LoadRound(int roundNumber)

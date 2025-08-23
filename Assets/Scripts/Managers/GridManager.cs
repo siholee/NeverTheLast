@@ -25,11 +25,20 @@ namespace Managers
         public int xMax = 4;
         public int yMin = 0; 
         public int yMax = 3;
-        public float tileSpacing = 2.1f;
+        
+        [Header("Bench Grid Settings")]
+        public int benchXMin = -4;
+        public int benchXMax = 4;
+        public int benchYMin = -1;
+        public int benchYMax = -1;
 
-        private Cell[,] _cellManager; // Cell management array
+        private Cell[,] _fieldCellManager; // Cell management array
+        private Cell[,] _benchCellManager; // Cell management array
         public List<Unit> heroList;
         public List<Unit> enemyList;
+
+        public Transform benchParent;
+        public Transform fieldParent;
         
         private void Awake()
         {
@@ -50,38 +59,122 @@ namespace Managers
         {
             heroList = new List<Unit>();
             enemyList = new List<Unit>();
-            CreateGrid();
+            SetGrid();
         }
 
-        private void CreateGrid()
+        private void SetGrid()
         {
+            // _fieldCellManager 배열 초기화
             int rows = yMax - yMin + 1;
             int columns = xMax - xMin + 1;
-            _cellManager = new Cell[columns, rows];
-
-            for (int x = xMin; x <= xMax; x++)
+            _fieldCellManager = new Cell[columns, rows];
+            
+            // _benchCellManager 배열 초기화
+            int benchRows = benchYMax - benchYMin + 1;
+            int benchColumns = benchXMax - benchXMin + 1;
+            _benchCellManager = new Cell[benchColumns, benchRows];
+            
+            // fieldParent의 자식 오브젝트들을 순회하며 Cell 정보 설정
+            foreach (Transform child in fieldParent)
             {
-                for (int y = yMin; y <= yMax; y++)
+                // 오브젝트 이름에서 좌표 추출 (Cell_{x}_{y} 형식)
+                string childName = child.name;
+                if (childName.StartsWith("Cell_"))
                 {
-                    Vector3 position = new Vector3(x * tileSpacing, y * tileSpacing, 0);
-                    GameObject cellObject = Instantiate(cellPrefab, position, Quaternion.identity);
-                    cellObject.name = $"Cell_{x}_{y}";
-                    cellObject.transform.parent = transform;
-
-                    Cell cell = cellObject.GetComponent<Cell>();
-                    if (cell == null)
+                    string[] parts = childName.Split('_');
+                    if (parts.Length == 3)
                     {
-                        cell = cellObject.AddComponent<Cell>();
+                        if (int.TryParse(parts[1], out int x) && int.TryParse(parts[2], out int y))
+                        {
+                            // Cell 컴포넌트 가져오기 또는 추가
+                            Cell cell = child.GetComponent<Cell>();
+                            if (cell == null)
+                            {
+                                cell = child.gameObject.AddComponent<Cell>();
+                            }
+                            
+                            // Cell 속성 설정
+                            cell.xPos = x;
+                            cell.yPos = y;
+                            cell.isOccupied = false;
+                            cell.reservedTime = 0f;
+                            
+                            // 2차원 배열 인덱스 계산 및 할당
+                            int adjustedX = x - xMin;
+                            int adjustedY = y - yMin;
+                            
+                            // 범위 체크
+                            if (adjustedX >= 0 && adjustedX < columns && adjustedY >= 0 && adjustedY < rows)
+                            {
+                                _fieldCellManager[adjustedX, adjustedY] = cell;
+                                Debug.Log($"Field Cell assigned to array: {childName} at index [{adjustedX}, {adjustedY}]");
+                            }
+                            else
+                            {
+                                Debug.LogWarning($"Field Cell coordinates out of range: {childName} (x: {x}, y: {y})");
+                            }
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"Failed to parse coordinates from object name: {childName}");
+                        }
                     }
-
-                    cell.xPos = x;
-                    cell.yPos = y;
-                    cell.isOccupied = false;
-                    cell.reservedTime = 0f;
-
-                    int adjustedX = x - xMin;
-                    int adjustedY = y - yMin;
-                    _cellManager[adjustedX, adjustedY] = cell;
+                    else
+                    {
+                        Debug.LogWarning($"Invalid Cell object name format: {childName}. Expected format: Cell_x_y");
+                    }
+                }
+            }
+            
+            // benchParent의 자식 오브젝트들을 순회하며 Cell 정보 설정
+            foreach (Transform child in benchParent)
+            {
+                // 오브젝트 이름에서 좌표 추출 (Cell_{x}_{y} 형식)
+                string childName = child.name;
+                if (childName.StartsWith("Cell_"))
+                {
+                    string[] parts = childName.Split('_');
+                    if (parts.Length == 3)
+                    {
+                        if (int.TryParse(parts[1], out int x) && int.TryParse(parts[2], out int y))
+                        {
+                            // Cell 컴포넌트 가져오기 또는 추가
+                            Cell cell = child.GetComponent<Cell>();
+                            if (cell == null)
+                            {
+                                cell = child.gameObject.AddComponent<Cell>();
+                            }
+                            
+                            // Cell 속성 설정
+                            cell.xPos = x;
+                            cell.yPos = y;
+                            cell.isOccupied = false;
+                            cell.reservedTime = 0f;
+                            
+                            // 2차원 배열 인덱스 계산 및 할당
+                            int adjustedX = x - benchXMin;
+                            int adjustedY = y - benchYMin;
+                            
+                            // 범위 체크
+                            if (adjustedX >= 0 && adjustedX < benchColumns && adjustedY >= 0 && adjustedY < benchRows)
+                            {
+                                _benchCellManager[adjustedX, adjustedY] = cell;
+                                Debug.Log($"Bench Cell assigned to array: {childName} at index [{adjustedX}, {adjustedY}]");
+                            }
+                            else
+                            {
+                                Debug.LogWarning($"Bench Cell coordinates out of range: {childName} (x: {x}, y: {y})");
+                            }
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"Failed to parse coordinates from bench object name: {childName}");
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"Invalid Bench Cell object name format: {childName}. Expected format: Cell_x_y");
+                    }
                 }
             }
         }
@@ -91,10 +184,10 @@ namespace Managers
             int adjustedX = xPos - xMin;
             int adjustedY = yPos - yMin;
 
-            if (adjustedX >= 0 && adjustedX < _cellManager.GetLength(0) &&
-                adjustedY >= 0 && adjustedY < _cellManager.GetLength(1))
+            if (adjustedX >= 0 && adjustedX < _fieldCellManager.GetLength(0) &&
+                adjustedY >= 0 && adjustedY < _fieldCellManager.GetLength(1))
             {
-                Cell cell = _cellManager[adjustedX, adjustedY];
+                Cell cell = _fieldCellManager[adjustedX, adjustedY];
                 return cell != null && !cell.isOccupied && cell.reservedTime <= 0f;
             }
 
@@ -106,10 +199,10 @@ namespace Managers
             int adjustedX = xPos - xMin;
             int adjustedY = yPos - yMin;
 
-            if (adjustedX >= 0 && adjustedX < _cellManager.GetLength(0) &&
-                adjustedY >= 0 && adjustedY < _cellManager.GetLength(1))
+            if (adjustedX >= 0 && adjustedX < _fieldCellManager.GetLength(0) &&
+                adjustedY >= 0 && adjustedY < _fieldCellManager.GetLength(1))
             {
-                Cell cell = _cellManager[adjustedX, adjustedY];
+                Cell cell = _fieldCellManager[adjustedX, adjustedY];
                 if (cell)
                 {
                     // Create unit
@@ -160,10 +253,10 @@ namespace Managers
             int adjustedX = xPos - xMin;
             int adjustedY = yPos - yMin;
             
-            if (adjustedX >= 0 && adjustedX < _cellManager.GetLength(0) &&
-                adjustedY >= 0 && adjustedY < _cellManager.GetLength(1))
+            if (adjustedX >= 0 && adjustedX < _fieldCellManager.GetLength(0) &&
+                adjustedY >= 0 && adjustedY < _fieldCellManager.GetLength(1))
             {
-                Cell cell = _cellManager[adjustedX, adjustedY];
+                Cell cell = _fieldCellManager[adjustedX, adjustedY];
                 if (cell == null) return;
                 if (cell.isOccupied && cell.unit != null)
                 {
@@ -256,10 +349,10 @@ namespace Managers
             int adjustedX = xPos - xMin;
             int adjustedY = yPos - yMin;
             
-            if (adjustedX >= 0 && adjustedX < _cellManager.GetLength(0) &&
-                adjustedY >= 0 && adjustedY < _cellManager.GetLength(1))
+            if (adjustedX >= 0 && adjustedX < _fieldCellManager.GetLength(0) &&
+                adjustedY >= 0 && adjustedY < _fieldCellManager.GetLength(1))
             {
-                Cell cell = _cellManager[adjustedX, adjustedY];
+                Cell cell = _fieldCellManager[adjustedX, adjustedY];
                 if (cell != null && cell.isOccupied && cell.unit != null)
                 {
                     return cell.unit.GetComponent<Unit>();
@@ -270,3 +363,4 @@ namespace Managers
         }
     }
 }
+
