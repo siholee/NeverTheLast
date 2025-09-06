@@ -39,7 +39,7 @@ namespace Codes.Passive
         protected void ApplyHolyEnchant()
         {
             var targetUnits = GridManager.Instance.TargetAllAllies(Caster);
-            var buffEffect = new HolyEnchantBuff();
+            var buffEffect = new HolyEnchantEffect();
             foreach (var targetUnit in targetUnits)
             {
                 targetUnit.AddStatusEffect($"HolyEnchantBuff{Caster.currentCell.xPos}{Caster.currentCell.yPos}", buffEffect);

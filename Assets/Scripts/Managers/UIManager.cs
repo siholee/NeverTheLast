@@ -248,5 +248,10 @@ namespace Managers
                 Debug.LogError("게임 속도 텍스트 파싱 실패: " + currentText);
             }
         }
+
+        public void OnGameStartButtonClick()
+        {
+            GameManager.Instance.gameState = GameState.RoundInProgress;
+        }
     }
 }

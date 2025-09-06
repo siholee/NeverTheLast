@@ -137,6 +137,7 @@ namespace Entities
             LoadData(_isEnemy, _id);
             AttributesUpdate();
             HpCurr = HpMax;
+            currentCell.hpBarObj.transform.localScale = new Vector3((float)HpCurr / HpMax, 1f, 1f);
             ManaCurr = 0;
             AddListener<(Unit, DamageContext)>(BaseEnums.UnitEventType.OnTakingDamage, DefaultTakeDamageEvent);
             AddListener<Unit>(BaseEnums.UnitEventType.OnRoundStart, DefaultRoundStartEvent);
@@ -268,6 +269,7 @@ namespace Entities
         public virtual void Die(Unit attacker)
         {
             Invoke(BaseEnums.UnitEventType.OnDeath, (this, attacker));
+            if (isEnemy) GameManager.Instance.OnKillEnemy();
             DeactivateUnit();
         }
 

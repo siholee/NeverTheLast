@@ -442,5 +442,37 @@ namespace Managers
             }
             return false;
         }
+
+        public bool AreAllEnemySideCellsEmpty()
+        {
+            // 적 측 셀들(y = 1, 2, 3)이 모두 비어있는지 확인
+            for (int x = xMin; x <= xMax; x++)
+            {
+                for (int y = 1; y <= 3; y++) // 적 측은 y = 1, 2, 3
+                {
+                    int adjustedX = x - xMin;
+                    int adjustedY = y - yMin;
+                    
+                    if (adjustedX >= 0 && adjustedX < _fieldCellManager.GetLength(0) &&
+                        adjustedY >= 0 && adjustedY < _fieldCellManager.GetLength(1))
+                    {
+                        Cell cell = _fieldCellManager[adjustedX, adjustedY];
+                        if (cell != null && cell.isOccupied)
+                        {
+                            // 셀에 유닛이 있고, 그 유닛이 적인지 확인
+                            if (cell.unit != null)
+                            {
+                                Unit unit = cell.unit.GetComponent<Unit>();
+                                if (unit != null && unit.IsEnemy)
+                                {
+                                    return false; // 적이 있으면 false 반환
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return true; // 모든 적 측 셀이 비어있음
+        }
     }
 }

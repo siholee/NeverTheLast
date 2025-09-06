@@ -19,6 +19,7 @@ namespace Managers
         public DragAndDropManager dragAndDropManager;
 
         public GameState gameState;
+        public int KillCount;
         public Dictionary<int, SynergyInfo> SynergyCounts;
 
         // 게임 데이터 관련
@@ -32,6 +33,7 @@ namespace Managers
             if (Instance == null)
             {
                 Instance = this;
+                KillCount = 0;
                 DontDestroyOnLoad(gameObject);
             }
             else
@@ -87,6 +89,22 @@ namespace Managers
             uiManager.SetSynergyText(SynergyCounts);
         }
 
+        public void OnKillEnemy()
+        {
+            KillCount++;
+            
+            // 3의 배수 킬마다 토큰 보상 지급
+            if (KillCount % 3 == 0)
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    int randomTokenId = UnityEngine.Random.Range(1, 9); // 1-8 사이의 무작위 tokenId
+                    inventoryManager.AddToken(randomTokenId, 1);
+                }
+                Debug.Log($"킬 {KillCount}번째 달성! 무작위 토큰 5개를 지급했습니다.");
+            }
+        }
+
         private void Start()
         {
             SynergyCounts = new Dictionary<int, SynergyInfo>();
@@ -126,4 +144,3 @@ namespace Managers
         }
     }
 }
-

@@ -28,7 +28,7 @@ namespace Managers
 
         public void LoadRound(int roundNumber)
         {
-            if (roundNumber == 1) SpawnHeroesForTest();
+            // if (roundNumber == 1) SpawnHeroesForTest();
             Round = roundNumber;
 
             RoundDataList roundDataList = _dataManager.FetchRoundDataList();
@@ -92,7 +92,7 @@ namespace Managers
 
             if (AreAllQueuesEmpty())
             {
-                // Debug.Log("All queues are empty. Ending round.");
+                Debug.Log("All queues are empty. Ending round.");
                 EndRound();
             }
             else
@@ -128,17 +128,33 @@ namespace Managers
 
         private bool AreAllQueuesEmpty()
         {
+            // 스폰 큐가 비어있는지 확인
             foreach (var queue in _spawnQueues.Values)
             {
                 if (queue.Count > 0) return false;
             }
-            return true;
+            
+            // 적 측 필드 셀들이 모두 비어있는지 확인
+            return GameManager.Instance.gridManager.AreAllEnemySideCellsEmpty();
         }
 
         private void EndRound()
         {
-            // Debug.Log($"Round {ROUND} completed.");
             IsRoundInProgress = false;
+            // 현재 HeroList에 있는 모든 영웅들을 다시 Initialize
+            foreach (Unit hero in GridManager.Instance.heroList.ToList())
+            {
+                if (hero != null && hero.isActive)
+                {
+                    hero.InitializeUnit(hero.IsEnemy, hero.ID);
+                    Debug.Log($"영웅 {hero.UnitName}을(를) 다시 초기화했습니다.");
+                }
+            }
+            
+            // Debug.Log($"Round {ROUND} completed.");
+            GameManager.Instance.NextGameState(false);
+            LoadRound((Round + 1) % 2 + 1);
+            IsRoundInProgress = true;
         }
 
         public void NotifyCellAvailable(int cellIndex)

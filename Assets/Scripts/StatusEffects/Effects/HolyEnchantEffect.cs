@@ -3,7 +3,7 @@ using StatusEffects.Base;
 
 namespace StatusEffects.Effects
 {
-  public class HolyEnchantBuff : StatusEffect
+  public class HolyEnchantEffect : StatusEffect
   {
     public override float AtkMultiplicativeModifier(Unit unit)
     {

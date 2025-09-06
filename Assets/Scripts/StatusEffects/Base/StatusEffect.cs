@@ -47,5 +47,9 @@ namespace StatusEffects.Base
     {
       return 1f;
     }
+    public virtual float HealingReceivedModifier(Unit unit)
+    {
+      return 1f;
+    }
   }
 }

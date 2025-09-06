@@ -7,7 +7,7 @@ units:
     hpBase: 12000
     hpIncrementLvl: 1000
     hpIncrementUpgrade: 1000
-    atkBase: 250
+    atkBase: 1000
     atkIncrementLvl: 100
     atkIncrementUpgrade: 100
     defBase: 100
@@ -94,7 +94,7 @@ units:
     hpBase: 12000
     hpIncrementLvl: 1000
     hpIncrementUpgrade: 1000
-    atkBase: 250
+    atkBase: 1200
     atkIncrementLvl: 100
     atkIncrementUpgrade: 100
     defBase: 100
@@ -124,7 +124,7 @@ units:
     hpBase: 12000
     hpIncrementLvl: 1000
     hpIncrementUpgrade: 1000
-    atkBase: 250
+    atkBase: 900
     atkIncrementLvl: 100
     atkIncrementUpgrade: 100
     defBase: 100
@@ -153,7 +153,7 @@ units:
     hpBase: 12000
     hpIncrementLvl: 1000
     hpIncrementUpgrade: 1000
-    atkBase: 250
+    atkBase: 1100
     atkIncrementLvl: 100
     atkIncrementUpgrade: 100
     defBase: 100
@@ -182,7 +182,7 @@ units:
     hpBase: 12000
     hpIncrementLvl: 1000
     hpIncrementUpgrade: 1000
-    atkBase: 250
+    atkBase: 1250
     atkIncrementLvl: 100
     atkIncrementUpgrade: 100
     defBase: 100
@@ -212,7 +212,7 @@ units:
     hpBase: 12000
     hpIncrementLvl: 1000
     hpIncrementUpgrade: 1000
-    atkBase: 250
+    atkBase: 1050
     atkIncrementLvl: 100
     atkIncrementUpgrade: 100
     defBase: 100

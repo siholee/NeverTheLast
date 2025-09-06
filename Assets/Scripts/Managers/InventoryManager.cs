@@ -24,8 +24,10 @@ namespace Managers
             TokensInHand.Clear();
             foreach (var token in tokensData.tokens)
             {
-                TokensInHand[token.id] = 50;
+                TokensInHand[token.id] = 2;
             }
+
+            rerollTicketCount = 3;
             
             if (UnitsInHand == null) UnitsInHand = new List<Unit>();
             UnitsInHand.Clear();
