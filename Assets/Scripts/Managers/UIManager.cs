@@ -169,8 +169,8 @@ namespace Managers
             infoTab.currentHpText.text = $"Current HP: {unit.HpCurr}";
             infoTab.atkText.text = $"ATK: {unit.AtkCurr}";
             infoTab.defText.text = $"DEF: {unit.DefCurr}";
-            infoTab.critPosText.text = $"Crit Rate: {unit.CritChanceCurr}%";
-            infoTab.critDmgText.text = $"Crit DMG: {unit.CritMultiplierCurr}%";
+            infoTab.critPosText.text = $"Crit Rate: {(unit.CritChanceCurr * 100):F1}%";
+            infoTab.critDmgText.text = $"Crit DMG: {(unit.CritMultiplierCurr * 100):F1}%";
             infoTab.coolDownText.text = $"Normal CD: {unit.normalCooldown:F1}s";
             infoTab.penetrationText.text = "Penetration: N/A"; // 관통력은 아직 구현되지 않음
             

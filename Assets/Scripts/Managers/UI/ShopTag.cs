@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Entities;
@@ -80,6 +81,79 @@ namespace Managers.UI
 
             // 비용 설정
             var costs = shopItem.Cost.Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            
+            // 반복적으로 비용 재설정
+            bool needsReroll = true;
+            int maxAttempts = 10; // 무한 루프 방지
+            int attempts = 0;
+            
+            while (needsReroll && attempts < maxAttempts)
+            {
+                attempts++;
+                
+                // 1. 비용 설정 (첫 번째 반복이 아닌 경우 새로 생성)
+                if (attempts > 1)
+                {
+                    // 원본 비용 구조를 유지하면서 새로운 값으로 재설정
+                    var originalCosts = shopItem.Cost.Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                    int totalOriginal = originalCosts.Values.Sum();
+                    
+                    costs = new Dictionary<int, int>();
+                    foreach (var kvp in originalCosts)
+                    {
+                        // 각 토큰에 대해 랜덤한 비율로 재분배 (최소 1은 보장)
+                        costs[kvp.Key] = Mathf.Max(1, UnityEngine.Random.Range(1, totalOriginal));
+                    }
+                    
+                    // 총합을 원래 총합과 비슷하게 조정
+                    int currentTotal = costs.Values.Sum();
+                    float scaleFactor = (float)totalOriginal / currentTotal;
+                    var scaledCosts = new Dictionary<int, int>();
+                    foreach (var kvp in costs)
+                    {
+                        scaledCosts[kvp.Key] = Mathf.Max(1, Mathf.RoundToInt(kvp.Value * scaleFactor));
+                    }
+                    costs = scaledCosts;
+                }
+                
+                // 2. 60% 이상 차지하는 토큰이 있는지 확인
+                int totalCost = costs.Values.Sum();
+                bool hasExcessiveToken = false;
+                
+                if (totalCost > 0)
+                {
+                    foreach (var kvp in costs)
+                    {
+                        float percentage = (float)kvp.Value / totalCost;
+                        if (percentage >= 0.6f)
+                        {
+                            hasExcessiveToken = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // 3. 60% 이상 차지하는 토큰이 있는 경우
+                if (hasExcessiveToken)
+                {
+                    // 3-1. 10% 확률로 비용설정 종료
+                    if (UnityEngine.Random.Range(0f, 1f) <= 0.1f)
+                    {
+                        needsReroll = false;
+                    }
+                    // 3-2. 90% 확률로 다시 1로 반복
+                    else
+                    {
+                        needsReroll = true;
+                    }
+                }
+                else
+                {
+                    // 60% 이상 차지하는 토큰이 없으면 종료
+                    needsReroll = false;
+                }
+            }
+            
             var costKeys = costs.Keys.ToArray();
             if (costs.Count > 0)
             {
