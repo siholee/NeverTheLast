@@ -1,17 +1,57 @@
 synergies:
   - id: 1
-    name: 아카샤
-    maxStack: 1
-    description: 모든 아군 유닛의 공격력을 20% 증가시킵니다.
+    name: 그리스
+    maxStack: 6
+    description: 전투 시작 시 주변에 있는 그리스 소속의 유닛만큼 고정 방어막을 획득하며 모든 소속 유닛은 방어막을 보유하면 가하는 피해가 증가한다.
   - id: 2
-    name: 리더
-    maxStack: 1
-    description: 모든 아군 유닛의 공격력, 방어력을 10%, 치명타율을 5%, 치명배율을 20% 증가시킵니다.
+    name: 다르마
+    maxStack: 6
+    description: 모든 다르마 아군은 배치 시 다르마 시너지가 활성화되어 있다면 추가로 다르마 패시브를 획득한다.
   - id: 3
-    name: 스나이퍼
-    maxStack: 2
-    description: 스나이퍼 유닛의 코드 가속을 스택당 20% 증가시킵니다. 모든 아군 유닛의 공격력을 스택당 15% 증가시킵니다.
+    name: 노르드
+    maxStack: 6
+    description: 모든 노르드 소속 유닛은 체력 비율에 반비례하여 가하는 피해가 증가한다. 추가로 체력 비율이 30% 이하라면 가하는 피해의 15%만큼 체력을 회복한다.
   - id: 4
-    name: 센티널
-    maxStack: 3
-    description: 모든 유닛의 방어력을 100 증가시킵니다. 센티널 유닛은 스택당 방어력 20%를 추가로 받습니다.
+    name: 타카미가하라
+    maxStack: 6
+    description: 타카미가하라 진영 시너지 효과입니다.
+  - id: 5
+    name: 메소포타미아
+    maxStack: 6
+    description: 시너지가 활성화되면 하나의 랜덤 셀이 변화하며 해당 위치에 배치된 메소포타미아 소속 유닛은 전투가 끝날 때까지 생존했다면 영구적으로 공격력을 획득한다.
+  - id: 6
+    name: 아카샤
+    maxStack: 2
+    description: 아카샤 진영 시너지 효과입니다.
+  - id: 7
+    name: 파수꾼
+    maxStack: 6
+    description: 파수꾼 직업 시너지 효과입니다.
+  - id: 8
+    name: 투사
+    maxStack: 6
+    description: 투사 직업 시너지 효과입니다.
+  - id: 9
+    name: 처형자
+    maxStack: 6
+    description: 처형자 직업 시너지 효과입니다.
+  - id: 10
+    name: 사수
+    maxStack: 6
+    description: 사수 직업 시너지 효과입니다.
+  - id: 11
+    name: 마법사
+    maxStack: 6
+    description: 마법사 직업 시너지 효과입니다.
+  - id: 12
+    name: 책략가
+    maxStack: 6
+    description: 책략가 직업 시너지 효과입니다.
+  - id: 13
+    name: 메카닉
+    maxStack: 6
+    description: 메카닉 직업 시너지 효과입니다.
+  - id: 14
+    name: 지원가
+    maxStack: 6
+    description: 지원가 직업 시너지 효과입니다.

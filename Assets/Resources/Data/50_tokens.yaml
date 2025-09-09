@@ -1,17 +1,17 @@
 tokens:
   - id: 1
-    name: 토큰1
+    name: 불
   - id: 2
-    name: 토큰2
+    name: 물
   - id: 3
-    name: 토큰3
+    name: 풀
   - id: 4
-    name: 토큰4
+    name: 바람
   - id: 5
-    name: 토큰5
+    name: 땅
   - id: 6
-    name: 토큰6
+    name: 얼음
   - id: 7
-    name: 토큰7
+    name: 빛
   - id: 8
-    name: 토큰8
+    name: 어둠
