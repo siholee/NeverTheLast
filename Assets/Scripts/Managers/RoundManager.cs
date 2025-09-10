@@ -152,7 +152,8 @@ namespace Managers
             }
             
             // Debug.Log($"Round {ROUND} completed.");
-            GameManager.Instance.NextGameState(false);
+            // 적 전멸로 인한 라운드 종료를 GameManager에 알림
+            GameManager.Instance.EndRoundByEnemyDefeat();
             LoadRound((Round + 1) % 2 + 1);
             IsRoundInProgress = true;
         }
@@ -164,6 +165,16 @@ namespace Managers
             {
                 TrySpawnEnemy(cellIndex);
             }
+        }
+
+        public int GetTotalQueuedEnemies()
+        {
+            int total = 0;
+            foreach (var queue in _spawnQueues.Values)
+            {
+                total += queue.Count;
+            }
+            return total;
         }
     }
 }

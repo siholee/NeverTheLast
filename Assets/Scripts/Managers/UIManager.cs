@@ -12,7 +12,7 @@ namespace Managers
     public class UIManager : MonoBehaviour
     {
         // 상단
-        public TMPro.TextMeshProUGUI gameGoldText;
+        public TMPro.TextMeshProUGUI gameStatusText;
         public TMPro.TextMeshProUGUI gameLifeText;
         public TMPro.TextMeshProUGUI gameStageText;
         public TMPro.TextMeshProUGUI gameSpeedText;
@@ -46,6 +46,71 @@ namespace Managers
             if (mainCamera == null)
             {
                 mainCamera = Camera.main;
+            }
+            
+            // 생명력 UI 초기화
+            UpdateLifeText();
+        }
+
+        public void UpdateGameStatus(GameState currentState, int remainingTime)
+        {
+            if (gameStatusText == null) return;
+
+            switch (currentState)
+            {
+                case GameState.Preparation:
+                    if (remainingTime > 0)
+                    {
+                        gameStatusText.text = $"준비 단계 - 남은시간: {remainingTime}초";
+                    }
+                    else
+                    {
+                        gameStatusText.text = "준비 단계";
+                    }
+                    break;
+                case GameState.RoundInProgress:
+                    gameStatusText.text = "라운드 진행 중";
+                    break;
+                case GameState.RoundEnd:
+                    gameStatusText.text = "라운드 종료";
+                    break;
+                case GameState.GameOver:
+                    gameStatusText.text = "게임 오버";
+                    break;
+                default:
+                    gameStatusText.text = "알 수 없는 상태";
+                    break;
+            }
+        }
+
+        public void UpdateGameStatusWithEnemyCount(GameState currentState, int remainingTime, int enemyCount)
+        {
+            if (gameStatusText == null) return;
+
+            switch (currentState)
+            {
+                case GameState.RoundInProgress:
+                    if (remainingTime > 0)
+                    {
+                        gameStatusText.text = $"라운드 진행 중 - 시간: {remainingTime}초, 적: {enemyCount}마리";
+                    }
+                    else
+                    {
+                        gameStatusText.text = $"라운드 진행 중 - 적: {enemyCount}마리";
+                    }
+                    break;
+                default:
+                    // 다른 상태는 기본 메서드 사용
+                    UpdateGameStatus(currentState, remainingTime);
+                    break;
+            }
+        }
+
+        public void UpdateLifeText()
+        {
+            if (gameLifeText != null && GameManager.Instance != null)
+            {
+                gameLifeText.text = $"생명력: {GameManager.Instance.life}";
             }
         }
 
@@ -210,8 +275,6 @@ namespace Managers
                 }
             }
         }
-
-        // 기존 메서드들...
         public void TestButtonClick()
         {
             Debug.Log("Test Button Clicked");
@@ -251,7 +314,10 @@ namespace Managers
 
         public void OnGameStartButtonClick()
         {
-            GameManager.Instance.gameState = GameState.RoundInProgress;
+            if (GameManager.Instance.gameState == GameState.Preparation)
+            {
+                GameManager.Instance.StartRound();
+            }
         }
     }
 }
