@@ -141,6 +141,13 @@ namespace Managers
         private void EndRound()
         {
             IsRoundInProgress = false;
+            
+            // 적 전멸로 인한 라운드 종료를 GameManager에 알림
+            GameManager.Instance.EndRoundByEnemyDefeat();
+            
+            // 아군 필드 상태 복원 (라운드 시작 전 상태로)
+            GameManager.Instance.RestoreAllyFieldState();
+            
             // 현재 HeroList에 있는 모든 영웅들을 다시 Initialize
             foreach (Unit hero in GridManager.Instance.heroList.ToList())
             {
@@ -152,8 +159,6 @@ namespace Managers
             }
             
             // Debug.Log($"Round {ROUND} completed.");
-            // 적 전멸로 인한 라운드 종료를 GameManager에 알림
-            GameManager.Instance.EndRoundByEnemyDefeat();
             LoadRound((Round + 1) % 2 + 1);
             IsRoundInProgress = true;
         }

@@ -514,6 +514,8 @@ MonoBehaviour:
   itemCostIcon1: {fileID: 6659667057910941749}
   itemCostIcon2: {fileID: 1522597857441342171}
   itemCostIcon3: {fileID: 4133134533874001092}
+  purchaseButton: {fileID: 0}
+  soldOutOverlay: {fileID: 0}
 --- !u!1 &1073316126672253498
 GameObject:
   m_ObjectHideFlags: 0
@@ -1017,8 +1019,9 @@ MonoBehaviour:
       m_Calls: []
   m_text: Char_Name
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 10af7c299d318fa4d9900b3d3c1d0874, type: 2}
+  m_sharedMaterial: {fileID: 7435427345327988578, guid: 10af7c299d318fa4d9900b3d3c1d0874,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

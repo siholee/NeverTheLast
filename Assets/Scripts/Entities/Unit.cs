@@ -341,6 +341,12 @@ namespace Entities
             if (!isActive) return;
             if (GameManager.Instance.gameState == BaseEnums.GameState.RoundInProgress)
             {
+                // 벤치에 있는 유닛은 공격하지 않음
+                if (GridManager.Instance != null && GridManager.Instance.IsBenchCell(currentCell))
+                {
+                    return;
+                }
+                
                 if (isControlled)
                 {
                     controlDuration -= Time.deltaTime;

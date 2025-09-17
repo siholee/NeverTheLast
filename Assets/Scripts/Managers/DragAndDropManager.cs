@@ -1,5 +1,7 @@
 using UnityEngine;
 using Entities;
+using BaseClasses;
+using static BaseClasses.BaseEnums;
 
 namespace Managers
 {
@@ -27,7 +29,12 @@ namespace Managers
             if (Instance == null)
             {
                 Instance = this;
-                DontDestroyOnLoad(gameObject);
+                
+                // 런타임에만 DontDestroyOnLoad 적용
+                if (Application.isPlaying)
+                {
+                    DontDestroyOnLoad(gameObject);
+                }
                 
                 // 드래그 프리뷰를 미리 생성 (비활성화 상태로)
                 CreateDragPreview();
@@ -47,6 +54,17 @@ namespace Managers
             
             Unit unit = cell.unit.GetComponent<Unit>();
             if (unit == null || !unit.isActive) return;
+            
+            // 라운드 진행 중에는 벤치에 있는 유닛만 드래그 가능
+            if (GameManager.Instance != null && GameManager.Instance.gameState == GameState.RoundInProgress)
+            {
+                // GridManager를 통해 벤치 셀인지 확인
+                if (!GridManager.Instance.IsBenchCell(cell))
+                {
+                    Debug.Log($"라운드 진행 중에는 벤치에 있는 유닛만 이동할 수 있습니다.");
+                    return;
+                }
+            }
             
             isDragging = true;
             draggedUnit = unit;
@@ -107,12 +125,19 @@ namespace Managers
         
         private void HandleDrop(Cell targetCell)
         {
-            // 유효한 이동인지 확인 (필드의 x좌표가 음수인 셀이거나 벤치의 셀)
+            // 유효한 이동인지 확인 (라운드 진행 중에는 벤치만, 다른 상태에서는 벤치 또는 필드)
             bool isValidMove = IsValidDropTarget(targetCell);
             
             if (!isValidMove)
             {
-                Debug.Log("유효하지 않은 이동 위치입니다.");
+                if (GameManager.Instance != null && GameManager.Instance.gameState == GameState.RoundInProgress)
+                {
+                    Debug.Log("라운드 진행 중에는 벤치에서 벤치로만 유닛을 이동할 수 있습니다.");
+                }
+                else
+                {
+                    Debug.Log("유효하지 않은 이동 위치입니다.");
+                }
                 return;
             }
             
@@ -137,11 +162,14 @@ namespace Managers
         
         private bool IsValidDropTarget(Cell targetCell)
         {
-            // 필드의 x좌표가 음수인 셀인지 확인
-            bool isNegativeXField = targetCell.xPos < 0;
+            // 라운드 진행 중에는 벤치만 유효한 드롭 대상
+            if (GameManager.Instance != null && GameManager.Instance.gameState == GameState.RoundInProgress)
+            {
+                return IsBenchCell(targetCell);
+            }
             
-            // 벤치 셀인지 확인 (벤치 셀은 보통 특별한 표시가 있거나 특정 위치에 있음)
-            // 여기서는 GridManager의 벤치 셀 배열을 통해 확인
+            // 다른 상태에서는 기존 로직 유지 (필드의 x좌표가 음수인 셀이거나 벤치의 셀)
+            bool isNegativeXField = targetCell.xPos < 0;
             bool isBenchCell = IsBenchCell(targetCell);
             
             return isNegativeXField || isBenchCell;

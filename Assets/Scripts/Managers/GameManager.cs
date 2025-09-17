@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using BaseClasses;
 using Entities;
 using UnityEngine;
@@ -36,6 +37,9 @@ namespace Managers
         // 생명력 시스템
         public int life; // 현재 생명력
 
+        // 아군 필드 상태 저장 (라운드 복원용)
+        private List<(int xPos, int yPos, int unitId)> allyFieldSnapshot;
+
         // 게임 데이터 관련
         public DataManager dataManager;
         public UnitDataList unitDataList;
@@ -49,7 +53,12 @@ namespace Managers
                 Instance = this;
                 KillCount = 0;
                 life = 20; // 생명력 초기화
-                DontDestroyOnLoad(gameObject);
+                
+                // 런타임에만 DontDestroyOnLoad 적용
+                if (Application.isPlaying)
+                {
+                    DontDestroyOnLoad(gameObject);
+                }
             }
             else
             {
@@ -117,6 +126,9 @@ namespace Managers
             gameState = GameState.RoundInProgress;
             isPreparationTimerActive = false;
             
+            // 아군 필드 상태 저장 (라운드 종료 후 복원용)
+            SaveAllyFieldState();
+            
             // 라운드 진행 타이머 시작
             currentRoundProgressTime = roundProgressTime;
             isRoundProgressTimerActive = true;
@@ -144,6 +156,7 @@ namespace Managers
         {
             SynergyCounts = new Dictionary<int, SynergyInfo>();
             gameState = GameState.Preparation;
+            allyFieldSnapshot = new List<(int xPos, int yPos, int unitId)>();
             sfxManager = GetComponent<SfxManager>();
 
             dataManager = GetComponent<DataManager>();
@@ -206,6 +219,13 @@ namespace Managers
                 // 남은 적 수 계산 (필드의 적 + 스폰 대기 중인 적)
                 int remainingEnemies = GetRemainingEnemyCount();
                 
+                // 아군 전멸 체크
+                if (AreAllAlliesDefeated())
+                {
+                    EndRoundByAllyDefeat();
+                    return;
+                }
+                
                 // UI 업데이트
                 int displayTime = Mathf.Max(0, Mathf.CeilToInt(currentRoundProgressTime));
                 if (uiManager != null)
@@ -240,11 +260,16 @@ namespace Managers
             int fieldEnemies = 0;
             int queuedEnemies = 0;
             
-            // 필드에 있는 적 수 계산
+            // 필드에 있는 적 수 계산 (벤치에 있는 적은 제외)
             foreach (Unit enemy in GridManager.Instance.enemyList)
             {
                 if (enemy != null && enemy.isActive)
                 {
+                    // 벤치에 있는 유닛은 제외 (적이 벤치에 있을 가능성은 낮지만 안전을 위해)
+                    if (GridManager.Instance.IsBenchCell(enemy.currentCell))
+                    {
+                        continue;
+                    }
                     fieldEnemies++;
                 }
             }
@@ -256,6 +281,23 @@ namespace Managers
             }
             
             return fieldEnemies + queuedEnemies;
+        }
+
+        private bool AreAllAlliesDefeated()
+        {
+            // 필드에 있는 아군 수 계산 (벤치 제외)
+            foreach (Unit ally in GridManager.Instance.heroList)
+            {
+                if (ally != null && ally.isActive)
+                {
+                    // 벤치에 있는 유닛은 제외, 필드에 있는 아군만 체크
+                    if (!GridManager.Instance.IsBenchCell(ally.currentCell))
+                    {
+                        return false; // 필드에 살아있는 아군이 있으면 false
+                    }
+                }
+            }
+            return true; // 필드에 살아있는 아군이 없으면 true
         }
 
         private void EndRoundByTimeout()
@@ -281,9 +323,30 @@ namespace Managers
             EndRound();
         }
 
+        private void EndRoundByAllyDefeat()
+        {
+            // 아군 전멸로 인한 라운드 종료 (패배 처리)
+            isRoundProgressTimerActive = false;
+            
+            // 남은 적 수만큼 생명력 차감 (패배 페널티)
+            int remainingEnemies = GetRemainingEnemyCount();
+            TakeDamage(remainingEnemies);
+            
+            Debug.Log($"아군이 전멸했습니다! 남은 적 {remainingEnemies}마리만큼 생명력 차감. 현재 생명력: {life}");
+            
+            // 라운드 종료 처리
+            EndRound();
+        }
+
         private void EndRound()
         {
             gameState = GameState.RoundEnd;
+            
+            // 아군 필드 상태 복원 (게임 오버가 아닌 경우에만)
+            if (life > 0)
+            {
+                RestoreAllyFieldState();
+            }
             
             // 잠시 후 다음 준비 단계로 전환
             if (life > 0)
@@ -308,6 +371,49 @@ namespace Managers
                 gameState = GameState.GameOver;
                 Debug.Log("생명력이 0이 되었습니다. 게임 오버!");
             }
+        }
+
+        private void SaveAllyFieldState()
+        {
+            allyFieldSnapshot.Clear();
+            
+            // 현재 필드에 있는 아군 유닛들의 위치와 ID 저장
+            foreach (Unit ally in GridManager.Instance.heroList)
+            {
+                if (ally != null && ally.isActive && ally.currentCell != null)
+                {
+                    // 벤치가 아닌 필드에 있는 유닛만 저장
+                    if (!GridManager.Instance.IsBenchCell(ally.currentCell))
+                    {
+                        allyFieldSnapshot.Add((ally.currentCell.xPos, ally.currentCell.yPos, ally.ID));
+                    }
+                }
+            }
+            
+            Debug.Log($"아군 필드 상태 저장됨: {allyFieldSnapshot.Count}개 유닛");
+        }
+
+        public void RestoreAllyFieldState()
+        {
+            if (gameState == GameState.GameOver) return; // 게임 오버 시에는 복원하지 않음
+            
+            // 현재 필드에 있는 모든 아군 유닛 제거 (벤치는 유지)
+            var fieldAllies = GridManager.Instance.heroList.Where(ally => 
+                ally != null && ally.isActive && ally.currentCell != null && 
+                !GridManager.Instance.IsBenchCell(ally.currentCell)).ToList();
+            
+            foreach (Unit ally in fieldAllies)
+            {
+                ally.DeactivateUnit();
+            }
+            
+            // 저장된 상태로 아군 필드 복원
+            foreach (var (xPos, yPos, unitId) in allyFieldSnapshot)
+            {
+                GridManager.Instance.SpawnUnit(xPos, yPos, false, unitId, false);
+            }
+            
+            Debug.Log($"아군 필드 상태 복원됨: {allyFieldSnapshot.Count}개 유닛");
         }
     }
 }
