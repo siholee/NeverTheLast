@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Codes.Base;
+using Codes.Normal;
 using Managers;
 using StatusEffects.Base;
 using UnityEngine;
@@ -58,6 +59,10 @@ namespace Entities
         public float castingTime;
         public bool isControlled; // 행동 불가 상태
         public float controlDuration;
+
+        // 타겟팅 우선도 (-3 ~ 3, 높을수록 우선순위 높음)
+        [SerializeField] private int priority = 0;
+        public int Priority { get => priority; set => priority = Mathf.Clamp(value, -3, 3); }
 
         // 유닛 스탯 수치
         // 인스펙터 노출용
@@ -176,7 +181,8 @@ namespace Entities
             controlDuration = 0f;
 
             PassiveCode = CodeFactory.CreatePassiveCode(data.codes["passive"], new PassiveCodeContext { Caster = this });
-            NormalCode = CodeFactory.CreateNormalCode(data.codes["normal"], new NormalCodeContext { Caster = this });
+            // 모든 유닛의 일반공격은 NormalAttack으로 통일
+            NormalCode = new NormalAttack(new NormalCodeContext { Caster = this });
             UltimateCode = CodeFactory.CreateUltimateCode(data.codes["ultimate"], new UltimateCodeContext { Caster = this });
             normalCooldown = NormalCode.Cooldown;
             ultimateCooldown = UltimateCode.Cooldown;

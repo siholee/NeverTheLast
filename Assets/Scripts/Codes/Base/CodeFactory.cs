@@ -16,15 +16,18 @@ namespace Codes.Base
       };
     }
 
+    // 더 이상 사용되지 않음 - 모든 유닛이 NormalAttack을 사용
+    /*
     public static NormalCode CreateNormalCode(int codeId, NormalCodeContext context)
     {
       return codeId switch
       {
-        1 => new FireBlast(context),
+        1 => new NormalAttack(context), // FireBlast 대신 NormalAttack 사용
         2 => new AuricMandate(context),
         _ => null,
       };
     }
+    */
 
     public static UltimateCode CreateUltimateCode(int codeId, UltimateCodeContext context)
     {
