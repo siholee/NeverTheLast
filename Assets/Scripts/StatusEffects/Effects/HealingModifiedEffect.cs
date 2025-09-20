@@ -7,7 +7,7 @@ namespace StatusEffects.Effects
     {
         private float _healingModifier;
 
-        public HealingModifiedEffect(float modifier)
+        public HealingModifiedEffect(float modifier): base(null, null)
         {
             _healingModifier = modifier;
         }

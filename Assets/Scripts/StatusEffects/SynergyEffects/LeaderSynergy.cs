@@ -5,6 +5,12 @@ namespace StatusEffects.SynergyEffects
 {
     public class LeaderSynergy: SynergyEffect
     {
+        public LeaderSynergy(string name, string description) : base(null, name, description)
+        {
+            Stack = 1;
+            Duration = 0f;
+        }
+        
         public override float AtkMultiplicativeModifier(Unit unit)
         {
             return Stack * 0.1f;

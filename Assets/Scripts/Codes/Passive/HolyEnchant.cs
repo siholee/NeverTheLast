@@ -22,7 +22,7 @@ namespace Codes.Passive
         {
             ApplyHolyEnchant();
             // 시전자 사망 시 효과를 멈추기 위한 이벤트 핸들러 생성
-            Action<(Unit, Unit)> onDeathHandler = null;
+            Action<EventContext> onDeathHandler = null;
             // 익명함수를 변수화해 이벤트 핸들러에서 삭제가 가능하도록 함
             onDeathHandler = (deathInfo) =>
             {
@@ -39,7 +39,7 @@ namespace Codes.Passive
         protected void ApplyHolyEnchant()
         {
             var targetUnits = GridManager.Instance.TargetAllAllies(Caster);
-            var buffEffect = new HolyEnchantEffect();
+            var buffEffect = new HolyEnchantEffect(Caster);
             foreach (var targetUnit in targetUnits)
             {
                 targetUnit.AddStatusEffect($"HolyEnchantBuff{Caster.currentCell.xPos}{Caster.currentCell.yPos}", buffEffect);

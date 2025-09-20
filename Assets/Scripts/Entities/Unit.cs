@@ -144,9 +144,10 @@ namespace Entities
             HpCurr = HpMax;
             currentCell.hpBarObj.transform.localScale = new Vector3((float)HpCurr / HpMax, 1f, 1f);
             ManaCurr = 0;
-            AddListener<(Unit, DamageContext)>(BaseEnums.UnitEventType.OnTakingDamage, DefaultTakeDamageEvent);
-            AddListener<Unit>(BaseEnums.UnitEventType.OnRoundStart, DefaultRoundStartEvent);
-            AddListener<Unit>(BaseEnums.UnitEventType.OnRoundEnd, DefaultRoundEndEvent);
+            AddListener<EventContext>(BaseEnums.UnitEventType.OnTakingDamage, DefaultTakeDamageEvent);
+            AddListener<EventContext>(BaseEnums.UnitEventType.OnRoundStart, DefaultRoundStartEvent);
+            AddListener<EventContext>(BaseEnums.UnitEventType.OnRoundEnd, DefaultRoundEndEvent);
+            AddListener<EventContext>(BaseEnums.UnitEventType.OnUpdate, DefaultUpdateEvent);
         }
 
         protected virtual void LoadData(bool _isEnemy, int _id)
@@ -265,7 +266,8 @@ namespace Entities
         {
             ActivateUnit();
             InitializeUnit(_isEnemy, _id);
-            Invoke(BaseEnums.UnitEventType.OnSpawn, this);
+            EventContext context = new EventContext(this);
+            Invoke(BaseEnums.UnitEventType.OnSpawn, context);
         }
 
         /// <summary>
@@ -274,7 +276,8 @@ namespace Entities
         /// <param name="attacker">막타친 적 유닛(사망 시 이벤트 처리용)</param>
         public virtual void Die(Unit attacker)
         {
-            Invoke(BaseEnums.UnitEventType.OnDeath, (this, attacker));
+            EventContext context = new EventContext(this, attacker);
+            Invoke(BaseEnums.UnitEventType.OnDeath, context);
             if (isEnemy) GameManager.Instance.OnKillEnemy();
             DeactivateUnit();
         }
@@ -286,9 +289,9 @@ namespace Entities
         /// <param name="context">피해 정보 컨텍스트</param>
         public virtual void TakeDamage(DamageContext context)
         {
-            Invoke(BaseEnums.UnitEventType.OnBeforeDamageTaken, (this, context.Attacker));
-            Invoke(BaseEnums.UnitEventType.OnTakingDamage, (this, context));
-            Invoke(BaseEnums.UnitEventType.OnAfterDamageTaken, (this, context.Attacker));
+            Invoke(BaseEnums.UnitEventType.OnBeforeDamageTaken, new EventContext(this, context.Attacker));
+            Invoke(BaseEnums.UnitEventType.OnTakingDamage, new EventContext(this, null, context));
+            Invoke(BaseEnums.UnitEventType.OnAfterDamageTaken, new EventContext(this, context.Attacker));
         }
 
         /// <summary>
@@ -299,7 +302,7 @@ namespace Entities
         {
             isControlled = true;
             controlDuration = context.Duration;
-            Invoke(BaseEnums.UnitEventType.OnControlStarts, (this, context));
+            Invoke(BaseEnums.UnitEventType.OnControlStarts, new EventContext(this, context.Attacker));
         }
 
         /// <summary>
@@ -309,19 +312,19 @@ namespace Entities
         {
             isControlled = false;
             controlDuration = 0f;
-            Invoke(BaseEnums.UnitEventType.OnControlEnds, this);
+            Invoke(BaseEnums.UnitEventType.OnControlEnds, new EventContext(this));
         }
 
         public virtual void CastPassiveCode()
         {
             PassiveCode.CastCode();
-            Invoke(BaseEnums.UnitEventType.OnPassiveActivates, this);
+            Invoke(BaseEnums.UnitEventType.OnPassiveActivates, new EventContext(this));
         }
 
         public virtual void CastNormalCode()
         {
             NormalCode.CastCode();
-            Invoke(BaseEnums.UnitEventType.OnNormalActivates, this);
+            Invoke(BaseEnums.UnitEventType.OnNormalActivates, new EventContext(this));
         }
 
         public virtual void CastUltimateCode()
@@ -329,7 +332,7 @@ namespace Entities
             ManaCurr = 0;
             currentCell.manaBarObj.transform.localScale = new Vector3(0f, 1f, 1f);
             UltimateCode.CastCode();
-            Invoke(BaseEnums.UnitEventType.OnUltimateActivates, this);
+            Invoke(BaseEnums.UnitEventType.OnUltimateActivates, new EventContext(this));
         }
 
         public virtual void RecoverMana(int amount)
@@ -348,10 +351,12 @@ namespace Entities
             if (GameManager.Instance.gameState == BaseEnums.GameState.RoundInProgress)
             {
                 // 벤치에 있는 유닛은 공격하지 않음
-                if (GridManager.Instance != null && GridManager.Instance.IsBenchCell(currentCell))
+                if (GridManager.Instance && GridManager.Instance.IsBenchCell(currentCell))
                 {
                     return;
                 }
+                
+                Invoke(BaseEnums.UnitEventType.OnUpdate, new EventContext(this, null, null, Time.deltaTime));
                 
                 if (isControlled)
                 {
@@ -386,36 +391,36 @@ namespace Entities
         /// 다른 피해 처리 이벤트를 등록하지 않았을 경우 기본 피해 처리 이벤트<br/>
         /// 피해량 = (1 + (방어력 - 관통력) * 0.01) * 피해량<br/>
         /// </summary>
-        /// <param name="selfContext">(자신(Unit)과 피해 정보(TakeDamageContext)) 튜플</param>
+        /// <param name="context">EventContext객체</param>
         /// <remarks>
-        /// selfContext.self = 피해를 받은 유닛(Unit) <br/>
-        /// selfContext.context = 피해 정보 (TakeDamageContext)
+        /// context.Grantee = 피해를 받은 유닛(Unit) <br/>
+        /// context.DmgCtx = 피해 정보 (TakeDamageContext)
         /// </remarks>
-        protected void DefaultTakeDamageEvent((Unit self, DamageContext context) selfContext)
+        protected void DefaultTakeDamageEvent(EventContext context)
         {
-            Unit self = selfContext.self;
-            DamageContext context = selfContext.context;
-            int effectiveDef = self.DefCurr - context.Penetration;
+            Unit self = context.Grantee;
+            DamageContext dmgCtx = context.DmgCtx;
+            int effectiveDef = Math.Max(self.DefCurr - dmgCtx.Penetration, 0);
             float receivingDamageModifier = 1f;
             foreach (var effectPair in StatusEffects)
             {
                 receivingDamageModifier *= effectPair.Value.ReceivingDamageModifier(self);
             }
-            int damageReceived = (int)(receivingDamageModifier * context.Damage / (1 + effectiveDef * 0.01f));
+            int damageReceived = (int)(receivingDamageModifier * dmgCtx.Damage / (1 + effectiveDef * 0.01f));
             int hpBeforeHit = self.HpCurr;
             self.HpCurr -= damageReceived;
             currentCell.hpBarObj.transform.localScale = new Vector3((float)self.HpCurr / self.HpMax, 1f, 1f);
-            Debug.Log($"{self.UnitName}은(는) {context.Attacker.UnitName}에게 {damageReceived}의 {(context.IsCrit ? "치명" : "")}피해를 받았습니다. 체력: {hpBeforeHit} -> {self.HpCurr}");
+            Debug.Log($"{self.UnitName}은(는) {dmgCtx.Attacker.UnitName}에게 {damageReceived}의 {(dmgCtx.IsCrit ? "치명" : "")}피해를 받았습니다. 체력: {hpBeforeHit} -> {self.HpCurr}");
             if (self.HpCurr <= 0)
             {
-                self.Die(context.Attacker);
+                self.Die(dmgCtx.Attacker);
             }
         }
 
         /// <summary>
         /// 라운드 시작 처리 이벤트
         /// </summary>
-        protected void DefaultRoundStartEvent(Unit self)
+        protected void DefaultRoundStartEvent(EventContext context)
         {
             CastPassiveCode();
         }
@@ -423,10 +428,24 @@ namespace Entities
         /// <summary>
         /// 라운드 종료 처리 이벤트
         /// </summary>
-        protected void DefaultRoundEndEvent(Unit self)
+        protected void DefaultRoundEndEvent(EventContext context)
         {
             StatusEffects.Clear();
             AttributesUpdate();
+        }
+        
+        /// <summary>
+        /// 매 프레임 실행 이벤트
+        /// </summary>
+        protected void DefaultUpdateEvent(EventContext context)
+        {
+            foreach (var effectPair in StatusEffects)
+            {
+                if (effectPair.Value is ITemporalEffect temporalEffect)
+                {
+                    temporalEffect.OnUpdate(context);
+                }
+            }
         }
 
         // 베이스 스탯 수치 반환

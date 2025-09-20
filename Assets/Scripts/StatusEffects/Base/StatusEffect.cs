@@ -6,6 +6,14 @@ namespace StatusEffects.Base
   {
     public int Stack;
     public float Duration;
+    public Unit Grantor;
+    public string Identifier;
+
+    protected StatusEffect(Unit grantor, string identifier)
+    {
+      Grantor = grantor;
+      Identifier = identifier;
+    }
     
     public virtual int HpAdditiveModifier(Unit unit)
     {

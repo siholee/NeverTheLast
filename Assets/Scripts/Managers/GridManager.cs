@@ -298,12 +298,14 @@ namespace Managers
         {
             foreach (Unit hero in heroList)
             {
-                hero.Invoke(BaseEnums.UnitEventType.OnRoundStart, (hero));
+                EventContext context = new EventContext(hero);
+                hero.Invoke(BaseEnums.UnitEventType.OnRoundStart, context);
             }
 
             foreach (Unit enemy in enemyList)
             {
-                enemy.Invoke(BaseEnums.UnitEventType.OnRoundStart, (enemy));
+                EventContext context = new EventContext(enemy);
+                enemy.Invoke(BaseEnums.UnitEventType.OnRoundStart, context);
             }
         }
 

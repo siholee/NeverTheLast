@@ -29,12 +29,28 @@ namespace BaseClasses
 
     public DamageContext(Unit attacker, int damage, BaseEnums.CodeType codeType, List<int> damageTags, bool isCrit = false, int penetration = 0)
     {
-      this.Attacker = attacker;
-      this.Damage = damage;
-      this.IsCrit = isCrit;
-      this.CodeType = codeType;
-      this.DamageTags = damageTags;
-      this.Penetration = penetration;
+      Attacker = attacker;
+      Damage = damage;
+      IsCrit = isCrit;
+      CodeType = codeType;
+      DamageTags = damageTags;
+      Penetration = penetration;
+    }
+  }
+
+  public class EventContext
+  {
+    public readonly Unit Grantee;
+    public readonly Unit Grantor;
+    public readonly DamageContext DmgCtx;
+    public readonly float FloatParam;
+    
+    public EventContext(Unit grantee, Unit grantor = null, DamageContext dmgCtx = null, float floatParam = 0f)
+    {
+      Grantee = grantee;
+      Grantor = grantor;
+      DmgCtx = dmgCtx;
+      FloatParam = floatParam;
     }
   }
 
@@ -45,8 +61,8 @@ namespace BaseClasses
 
     public ControlContext(Unit attacker, float duration)
     {
-      this.Attacker = attacker;
-      this.Duration = duration;
+      Attacker = attacker;
+      Duration = duration;
     }
   }
 }

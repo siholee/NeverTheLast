@@ -34,6 +34,7 @@ namespace Codes.Base
       return codeId switch
       {
         1 => new Laevateinn(context),
+        2 => new ApplyPoison(context),
         _ => null,
       };
     }

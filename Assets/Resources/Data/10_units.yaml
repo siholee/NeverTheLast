@@ -34,10 +34,10 @@ units:
     synergies:
       - 6
       - 10
-    hpBase: 3000
+    hpBase: 30000
     hpIncrementLvl: 1000
     hpIncrementUpgrade: 1000
-    atkBase: 200
+    atkBase: 50
     atkIncrementLvl: 100
     atkIncrementUpgrade: 100
     defBase: 50
@@ -64,10 +64,10 @@ units:
     synergies:
       - 1
       - 11
-    hpBase: 5000
+    hpBase: 50000
     hpIncrementLvl: 1000
     hpIncrementUpgrade: 1000
-    atkBase: 250
+    atkBase: 70
     atkIncrementLvl: 100
     atkIncrementUpgrade: 100
     defBase: 70
@@ -127,7 +127,7 @@ units:
     hpBase: 12000
     hpIncrementLvl: 1000
     hpIncrementUpgrade: 1000
-    atkBase: 900
+    atkBase: 400
     atkIncrementLvl: 100
     atkIncrementUpgrade: 100
     defBase: 100
@@ -143,8 +143,8 @@ units:
     codes:
       passive: 1
       normal: 2
-      ultimate: 1
-    portrait: SEI_PORTRAIT
+      ultimate: 2
+    portrait: H5_PORTRAIT
     cost: [3, 4, 8]
     costAmount: 12
     tier: 1

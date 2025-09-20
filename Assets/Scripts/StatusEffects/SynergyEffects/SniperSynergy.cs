@@ -5,6 +5,12 @@ namespace StatusEffects.SynergyEffects
 {
     public class SniperSynergy: SynergyEffect
     {
+        public SniperSynergy(string name, string description) : base(null, name, description)
+        {
+            Stack = 1;
+            Duration = 0f;
+        }
+        
         public override float AtkMultiplicativeModifier(Unit unit)
         {
             return Stack * 0.15f;

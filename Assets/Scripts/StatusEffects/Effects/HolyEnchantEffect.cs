@@ -5,6 +5,12 @@ namespace StatusEffects.Effects
 {
   public class HolyEnchantEffect : StatusEffect
   {
+    public HolyEnchantEffect(Unit grantor) : base(grantor, null)
+    {
+      Stack = 1;
+      Duration = 0f;
+    }
+    
     public override float AtkMultiplicativeModifier(Unit unit)
     {
       return 0.2f;

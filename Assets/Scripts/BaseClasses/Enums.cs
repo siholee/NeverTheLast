@@ -6,7 +6,8 @@ namespace BaseClasses
     {
       Passive,
       Normal,
-      Ultimate
+      Ultimate,
+      Effect,
     }
 
     public enum UnitEventType
@@ -21,6 +22,7 @@ namespace BaseClasses
       OnBeforeDamageTaken, // Unit(자신), Unit(공격자)
       OnTakingDamage, // Unit(자신), TakeDamageContext(피해 정보)
       OnAfterDamageTaken, // Unit(자신), Unit(공격자)
+      OnUpdate, // Unit(자신)
 
       OnStageStart, // Unit(자신)
       OnRoundStart, // Unit(자신)
