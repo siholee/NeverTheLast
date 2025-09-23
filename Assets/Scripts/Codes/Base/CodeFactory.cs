@@ -12,6 +12,7 @@ namespace Codes.Base
       return codeId switch
       {
         1 => new HolyEnchant(context),
+        2 => new HuntersVenom(context), // 아탈란테 패시브
         _ => null,
       };
     }
@@ -35,6 +36,7 @@ namespace Codes.Base
       {
         1 => new Laevateinn(context),
         2 => new ApplyPoison(context),
+        3 => new Moonfall(context), // 아탈란테 액티브
         _ => null,
       };
     }

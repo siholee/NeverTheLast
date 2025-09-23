@@ -122,28 +122,28 @@ units:
   - id: 5
     name: 아탈란테
     synergies:
-      - 1
-      - 9
+      - 1  # 그리스
+      - 9  # 처형자
     hpBase: 12000
     hpIncrementLvl: 1000
     hpIncrementUpgrade: 1000
-    atkBase: 400
-    atkIncrementLvl: 100
-    atkIncrementUpgrade: 100
-    defBase: 100
-    defIncrementLvl: 20
-    defIncrementUpgrade: 20
-    critChance: 0.25
-    critChanceIncrementLvl: 0.01
-    critChanceIncrementUpgrade: 0.05
-    critMultiplier: 1.5
-    critMultiplierIncrementLvl: 0
-    critMultiplierIncrementUpgrade: 0.1
+    atkBase: 800  # 처형자 특성상 공격력 증가
+    atkIncrementLvl: 120
+    atkIncrementUpgrade: 120
+    defBase: 80   # 처형자는 방어력이 낮음
+    defIncrementLvl: 15
+    defIncrementUpgrade: 15
+    critChance: 0.35  # 처형자는 크리티컬 확률이 높음
+    critChanceIncrementLvl: 0.02
+    critChanceIncrementUpgrade: 0.08
+    critMultiplier: 1.8  # 크리티컬 배율도 높음
+    critMultiplierIncrementLvl: 0.1
+    critMultiplierIncrementUpgrade: 0.2
     manaBase: 100
     codes:
-      passive: 1
-      normal: 2
-      ultimate: 2
+      passive: 2    # 사냥꾼의 독
+      normal: 2     # 기본 공격
+      ultimate: 3   # 달빛 폭격
     portrait: H5_PORTRAIT
     cost: [3, 4, 8]
     costAmount: 12

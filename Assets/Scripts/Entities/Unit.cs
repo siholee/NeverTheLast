@@ -439,7 +439,9 @@ namespace Entities
         /// </summary>
         protected void DefaultUpdateEvent(EventContext context)
         {
-            foreach (var effectPair in StatusEffects)
+            // Collection modified 에러 방지를 위해 복사본으로 순회
+            var effectPairs = StatusEffects.ToList();
+            foreach (var effectPair in effectPairs)
             {
                 if (effectPair.Value is ITemporalEffect temporalEffect)
                 {

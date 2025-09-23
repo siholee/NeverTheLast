@@ -3,6 +3,9 @@ codes:
     - id: 1
       verbalName: 홀리 인챈트
       codeName: HolyEnchant
+    - id: 2
+      verbalName: 사냥꾼의 독
+      codeName: HuntersVenom
   normal:
     - id: 1
       verbalName: 불알타격
@@ -17,3 +20,6 @@ codes:
     - id: 2
       verbalName: 대애충독
       codeName: ApplyPoison
+    - id: 3
+      verbalName: 달빛 폭격
+      codeName: Moonfall
