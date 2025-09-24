@@ -59,6 +59,9 @@ namespace Entities
         public float castingTime;
         public bool isControlled; // 행동 불가 상태
         public float controlDuration;
+        
+        // 일반공격 타겟팅
+        public Unit currentNormalTarget; // 현재 일반공격 타겟
 
         // 타겟팅 우선도 (-3 ~ 3, 높을수록 우선순위 높음)
         [SerializeField] private int priority = 0;
@@ -180,6 +183,7 @@ namespace Entities
             castingTime = 0f;
             isControlled = false;
             controlDuration = 0f;
+            currentNormalTarget = null; // 일반공격 타겟 초기화
 
             PassiveCode = CodeFactory.CreatePassiveCode(data.codes["passive"], new PassiveCodeContext { Caster = this });
             // 모든 유닛의 일반공격은 NormalAttack으로 통일
@@ -496,6 +500,7 @@ namespace Entities
             currentCell.hpBarObj.transform.Find("Bar Sprite").GetComponent<SpriteRenderer>().enabled = false;
             currentCell.manaBarObj.transform.Find("Bar Sprite").GetComponent<SpriteRenderer>().enabled = false;
             currentCell.reservedTime = 2f;
+            currentNormalTarget = null; // 타겟 초기화
         }
 
         // 유닛 상태효과 관리
@@ -505,7 +510,17 @@ namespace Entities
             Debug.Log($"{UnitName}에게 {identifier} 상태효과 부여");
             if (StatusEffects.ContainsKey(identifier))
             {
-                StatusEffects[identifier] = effect;
+                // 기존 효과가 BurnEffect이고 새로운 효과도 BurnEffect인 경우 지속시간 연장
+                if (StatusEffects[identifier] is StatusEffects.Effects.BurnEffect existingBurn && 
+                    effect is StatusEffects.Effects.BurnEffect newBurn)
+                {
+                    existingBurn.UpdateDuration(2f); // +2초 연장
+                    Debug.Log($"{UnitName}의 화상 지속시간 연장: {existingBurn.Duration}초");
+                }
+                else
+                {
+                    StatusEffects[identifier] = effect;
+                }
             }
             else
             {

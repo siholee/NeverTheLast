@@ -37,6 +37,7 @@ namespace Codes.Base
         1 => new Laevateinn(context),
         2 => new ApplyPoison(context),
         3 => new Moonfall(context), // 아탈란테 액티브
+        4 => new ApplyBurn(context), // 화상 부여
         _ => null,
       };
     }

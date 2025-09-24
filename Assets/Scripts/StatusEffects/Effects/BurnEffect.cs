@@ -2,17 +2,17 @@
 using BaseClasses;
 using Entities;
 using StatusEffects.Base;
+using UnityEngine;
 
 namespace StatusEffects.Effects
 {
     public class BurnEffect: StatusEffect, ITemporalEffect, IHpChangeEffect
     {
-        private float _burnDamage;
         private float _elapsedTime;
+        private const float BurnPercentage = 0.02f; // 최대체력의 2%
 
-        public BurnEffect(Unit grantor, string identifier, float burnDamage): base(grantor, identifier)
+        public BurnEffect(Unit grantor, string identifier): base(grantor, identifier)
         {
-            _burnDamage = burnDamage;
             Duration = 2f; 
             _elapsedTime = 0f;
         }
@@ -38,7 +38,8 @@ namespace StatusEffects.Effects
             int iteration = IsTriggered(context.FloatParam);
             for (int i = 0; i < iteration; i++)
             {
-                int damage = HpFlatChange();
+                // 최대체력의 2%에 해당하는 고정 피해
+                int damage = Mathf.RoundToInt(context.Grantee.HpMax * BurnPercentage);
                 DamageContext dmgContext = new DamageContext(Grantor, damage, BaseEnums.CodeType.Effect, new List<int>(), false, 10000000);
                 context.Grantee.TakeDamage(dmgContext);
             }
@@ -56,12 +57,14 @@ namespace StatusEffects.Effects
         
         public int HpFlatChange()
         {
+            // 화상은 퍼센테이지 기반 데미지이므로 고정값은 0
             return 0;
         }
         
         public float HpPercentageChange()
         {
-            return -_burnDamage;
+            // 최대체력의 2% 손실
+            return -BurnPercentage;
         }
     }
 }

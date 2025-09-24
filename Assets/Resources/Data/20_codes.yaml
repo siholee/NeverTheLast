@@ -23,3 +23,6 @@ codes:
     - id: 3
       verbalName: 달빛 폭격
       codeName: Moonfall
+    - id: 4
+      verbalName: 화상부여
+      codeName: ApplyBurn

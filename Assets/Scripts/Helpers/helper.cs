@@ -21,6 +21,8 @@ namespace Helpers
     public const int AllTarget = 10003;
     public const int NormalAttack = 20001;
     public const int UltAttack = 20002;
+    public const int ContactAttack = 30001;    // 접촉 공격
+    public const int NonContactAttack = 30002; // 비접촉 공격
   }
 
   public class Helper

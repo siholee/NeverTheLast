@@ -63,7 +63,7 @@ namespace Codes.Ultimate
                 int primaryDamage = Mathf.RoundToInt(Caster.AtkCurr * 2f * critMultiplier);
                 
                 DamageContext primaryContext = new(Caster, primaryDamage, BaseEnums.CodeType.Ultimate, 
-                    new List<int>(), isCrit);
+                    new List<int> { DamageTag.SingleTarget, DamageTag.UltAttack, DamageTag.NonContactAttack }, isCrit);
 
                 // 주 공격 실행 및 완료 대기
                 yield return Caster.StartCoroutine(FirePrimaryProjectile(primaryTarget, 0.2f, primaryContext));
@@ -77,7 +77,7 @@ namespace Codes.Ultimate
                 {
                     int backDamage = Mathf.RoundToInt(Caster.AtkCurr * 1.5f * critMultiplier);
                     DamageContext backContext = new(Caster, backDamage, BaseEnums.CodeType.Ultimate, 
-                        new List<int>(), isCrit);
+                        new List<int> { DamageTag.MultiTarget, DamageTag.UltAttack, DamageTag.NonContactAttack }, isCrit);
                     
                     // 모든 후열 타겟에게 동시에 공격 (주 타겟 위치에서 시작)
                     yield return Caster.StartCoroutine(FireBackAreaAttack(primaryTarget, backTargets, backContext));

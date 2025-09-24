@@ -1,10 +1,10 @@
 status:
   - id: 1
-    name: Burn
+    name: 화상
     Category: Negative
     Type: DOT
     canRemove: true
-    Timer: 10.0
+    Timer: 2.0
     Counter: 0
   - id: 2
     name: Attack Up
