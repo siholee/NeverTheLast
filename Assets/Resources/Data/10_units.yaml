@@ -114,7 +114,7 @@
       passive: 1
       normal: 2
       ultimate: 1
-    portrait: SEI_PORTRAIT
+    portrait: H4_PORTRAIT
     cost: [1, 5]
     costAmount: 6
     tier: 1

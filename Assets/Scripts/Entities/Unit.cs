@@ -157,7 +157,7 @@ namespace Entities
         {
             UnitData data = GameManager.Instance.unitDataList.units.FirstOrDefault(e => e.id == _id);
             LoadSprite(data.portrait, _isEnemy);
-            Level = 0;
+            Level = _isEnemy ? 0 : 1;
             UnitName = data.name;
             Synergies = data.synergies;
             HpBase = data.hpBase;
@@ -186,8 +186,17 @@ namespace Entities
             currentNormalTarget = null; // 일반공격 타겟 초기화
 
             PassiveCode = CodeFactory.CreatePassiveCode(data.codes["passive"], new PassiveCodeContext { Caster = this });
-            // 모든 유닛의 일반공격은 NormalAttack으로 통일
-            NormalCode = new NormalAttack(new NormalCodeContext { Caster = this });
+            
+            // 아탈란테(ID 5)는 전용 일반공격 사용, 나머지는 기본 NormalAttack 사용
+            if (ID == 5) // 아탈란테
+            {
+                NormalCode = new Codes.Normal.AtlantaArchery(new NormalCodeContext { Caster = this });
+            }
+            else
+            {
+                NormalCode = new NormalAttack(new NormalCodeContext { Caster = this });
+            }
+            
             UltimateCode = CodeFactory.CreateUltimateCode(data.codes["ultimate"], new UltimateCodeContext { Caster = this });
             normalCooldown = NormalCode.Cooldown;
             ultimateCooldown = UltimateCode.Cooldown;
@@ -527,6 +536,9 @@ namespace Entities
                 StatusEffects.Add(identifier, effect);
             }
             AttributesUpdate();
+            
+            // InfoTab이 열려있고 현재 유닛이 표시되고 있다면 업데이트
+            UpdateInfoTabIfShowing();
         }
 
         public void RemoveStatusEffect(string identifier)
@@ -537,6 +549,9 @@ namespace Entities
                 StatusEffects.Remove(identifier);
             }
             AttributesUpdate();
+            
+            // InfoTab이 열려있고 현재 유닛이 표시되고 있다면 업데이트
+            UpdateInfoTabIfShowing();
         }
         
         public void SetSynergyEffect(int synergyId, SynergyEffect effect)
@@ -549,6 +564,22 @@ namespace Entities
             {
                 SynergyEffects[synergyId] = effect;
                 Debug.Log($"{UnitName}에게 {effect.SynergyName} {effect.Stack} 시너지 적용");
+            }
+            
+            // InfoTab이 열려있고 현재 유닛이 표시되고 있다면 업데이트
+            UpdateInfoTabIfShowing();
+        }
+        
+        // InfoTab 업데이트 헬퍼 메서드
+        private void UpdateInfoTabIfShowing()
+        {
+            var gameManager = Managers.GameManager.Instance;
+            if (gameManager != null && gameManager.uiManager != null && 
+                gameManager.uiManager.infoTab != null && 
+                gameManager.uiManager.infoTab.gameObject.activeInHierarchy)
+            {
+                // InfoTab이 열려있고 현재 유닛이 표시되고 있다면 자동으로 업데이트됨 (Update 메서드에서 처리)
+                // 별도 호출 불필요 - InfoTab 자체에서 지속적으로 업데이트
             }
         }
 
@@ -588,6 +619,17 @@ namespace Entities
             {
                 ((Action<T>)value)?.Invoke(context);
             }
+        }
+        
+        // 상태 효과 정보 접근 메서드들 (UI 표시용)
+        public System.Collections.Generic.Dictionary<string, StatusEffect> GetStatusEffects()
+        {
+            return StatusEffects;
+        }
+        
+        public System.Collections.Generic.Dictionary<int, SynergyEffect> GetSynergyEffects()
+        {
+            return SynergyEffects;
         }
     }
 }

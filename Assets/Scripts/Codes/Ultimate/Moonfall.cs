@@ -129,8 +129,11 @@ namespace Codes.Ultimate
             GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, target, delay);
             yield return new WaitForSeconds(delay);
             
-            // 피해 적용 (독은 패시브에서 자동으로 부여됨)
+            // 피해 적용
             target.TakeDamage(context);
+            
+            // 사냥꾼의 독 부여 (아탈란테 패시브 효과)
+            ApplyHuntersVenom(target);
             
             Debug.Log($"주 타겟 {target.UnitName}({target.currentCell.xPos}, {target.currentCell.yPos})에게 피해 적용 완료");
         }
@@ -161,11 +164,29 @@ namespace Codes.Ultimate
                 if (target != null && target.isActive)
                 {
                     target.TakeDamage(context);
+                    
+                    // 사냥꾼의 독 부여 (아탈란테 패시브 효과)
+                    ApplyHuntersVenom(target);
+                    
                     Debug.Log($"후열 범위 공격: {target.UnitName}({target.currentCell.xPos}, {target.currentCell.yPos})에게 피해 적용");
                 }
             }
             
             Debug.Log($"후열 범위 공격 완료: {backTargets.Count}명의 적에게 동시 공격");
+        }
+        
+        private void ApplyHuntersVenom(Unit target)
+        {
+            if (target != null && target.isActive && target.IsEnemy != Caster.IsEnemy)
+            {
+                // 공격력의 10%에 해당하는 독 부여
+                int poisonDamage = Mathf.RoundToInt(Caster.AtkCurr * 0.1f);
+                string identifier = $"HuntersVenomPoison_{Caster.currentCell.xPos}_{Caster.currentCell.yPos}";
+                var poisonEffect = new PoisonEffect(Caster, identifier, poisonDamage);
+                target.AddStatusEffect(identifier, poisonEffect);
+                
+                Debug.Log($"{Caster.UnitName}이 {target.UnitName}에게 사냥꾼의 독 부여 (피해: {poisonDamage})");
+            }
         }
 
         public override void StopCode()
