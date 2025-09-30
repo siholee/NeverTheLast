@@ -8,11 +8,11 @@ codes:
       codeName: HuntersVenom
   normal:
     - id: 1
-      verbalName: 불알타격
-      codeName: FireBlast
+      verbalName: a005-N아탈란테
+      codeName: a005-NAtlanta
     - id: 2
-      verbalName: 성광의 권능
-      codeName: AuricMandate
+      verbalName: a004-N피그말리온
+      codeName: a004-NPygmalion
   ultimate:
     - id: 1
       verbalName: 레바테인
@@ -21,8 +21,8 @@ codes:
       verbalName: 대애충독
       codeName: ApplyPoison
     - id: 3
-      verbalName: 달빛 폭격
-      codeName: Moonfall
+      verbalName: a005_U_Moonfall
+      codeName: a005_U_Moonfall
     - id: 4
       verbalName: 화상부여
       codeName: ApplyBurn

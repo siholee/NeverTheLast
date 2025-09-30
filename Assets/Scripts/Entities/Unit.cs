@@ -186,17 +186,7 @@ namespace Entities
             currentNormalTarget = null; // 일반공격 타겟 초기화
 
             PassiveCode = CodeFactory.CreatePassiveCode(data.codes["passive"], new PassiveCodeContext { Caster = this });
-            
-            // 아탈란테(ID 5)는 전용 일반공격 사용, 나머지는 기본 NormalAttack 사용
-            if (ID == 5) // 아탈란테
-            {
-                NormalCode = new Codes.Normal.AtlantaArchery(new NormalCodeContext { Caster = this });
-            }
-            else
-            {
-                NormalCode = new NormalAttack(new NormalCodeContext { Caster = this });
-            }
-            
+            NormalCode = CodeFactory.CreateNormalCode(data.codes["normal"], new NormalCodeContext { Caster = this });
             UltimateCode = CodeFactory.CreateUltimateCode(data.codes["ultimate"], new UltimateCodeContext { Caster = this });
             normalCooldown = NormalCode.Cooldown;
             ultimateCooldown = UltimateCode.Cooldown;
@@ -525,6 +515,13 @@ namespace Entities
                 {
                     existingBurn.UpdateDuration(2f); // +2초 연장
                     Debug.Log($"{UnitName}의 화상 지속시간 연장: {existingBurn.Duration}초");
+                }
+                // HolyEnchant의 경우 중첩 불가능 - 기존 효과 유지
+                else if (identifier == "HolyEnchantBuff" && 
+                         StatusEffects[identifier] is StatusEffects.Effects.HolyEnchantEffect)
+                {
+                    Debug.Log($"{UnitName}에게 이미 홀리 인챈트가 적용되어 있음 - 중첩 무시");
+                    return; // 새로운 효과를 적용하지 않고 기존 효과 유지
                 }
                 else
                 {

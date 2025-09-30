@@ -142,7 +142,7 @@
     manaBase: 100
     codes:
       passive: 2    # 사냥꾼의 독
-      normal: 2     # 기본 공격
+      normal: 1     # a005-N아탈란테
       ultimate: 3   # 달빛 폭격
     portrait: H5_PORTRAIT
     cost: [3, 4, 8]

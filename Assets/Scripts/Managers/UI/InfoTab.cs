@@ -233,7 +233,11 @@ namespace Managers.UI
         {
             if (string.IsNullOrEmpty(identifier)) return "알 수 없는 효과";
             
-            if (identifier.Contains("Poison")) return "맹독";
+            if (identifier.Contains("PoisonEffect")) 
+            {
+                // 맹독의 경우 개별 인스턴스를 구분할 수 있도록 표시
+                return "맹독";
+            }
             if (identifier.Contains("Burn")) return "화상";
             if (identifier.Contains("HolyEnchant")) return "신성한 인챈트";
             if (identifier.Contains("HealingModified")) return "치유 변화";
