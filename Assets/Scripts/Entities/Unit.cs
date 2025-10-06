@@ -47,6 +47,7 @@ namespace Entities
         [SerializeField] private float critChanceCurr;
         [SerializeField] private float critDamageCurr;
         [SerializeField] private float codeAcceleration;
+        [SerializeField] private int shieldCurr;  // 방어막 (라운드 끝까지 유지)
         public int HpCurr { get => hpCurr; protected set => hpCurr = value; }
         public int ManaCurr { get => manaCurr; protected set => manaCurr = value; }
         public int AtkCurr { get => atkCurr; protected set => atkCurr = value; }
@@ -54,6 +55,7 @@ namespace Entities
         public float CritChanceCurr { get => critChanceCurr; protected set => critChanceCurr = value; }
         public float CritMultiplierCurr { get => critDamageCurr; protected set => critDamageCurr = value; }
         public float CodeAcceleration { get => codeAcceleration; protected set => codeAcceleration = value; }
+        public int ShieldCurr { get => shieldCurr; protected set => shieldCurr = value; }
 
         public bool isCasting; // 스킬 시전중
         public float castingTime;
@@ -147,6 +149,8 @@ namespace Entities
             HpCurr = HpMax;
             currentCell.hpBarObj.transform.localScale = new Vector3((float)HpCurr / HpMax, 1f, 1f);
             ManaCurr = 0;
+            ShieldCurr = 0;
+            UpdateShieldBar(); // 방어막 바 초기화
             AddListener<EventContext>(BaseEnums.UnitEventType.OnTakingDamage, DefaultTakeDamageEvent);
             AddListener<EventContext>(BaseEnums.UnitEventType.OnRoundStart, DefaultRoundStartEvent);
             AddListener<EventContext>(BaseEnums.UnitEventType.OnRoundEnd, DefaultRoundEndEvent);
@@ -256,6 +260,37 @@ namespace Entities
 
             // hp 비율 복구
             HpCurr = Mathf.RoundToInt(HpMax * healthRatio);
+            
+            // 방어막 바 업데이트
+            UpdateShieldBar();
+        }
+
+        /// <summary>
+        /// 방어막 바의 시각적 표시를 업데이트
+        /// </summary>
+        protected virtual void UpdateShieldBar()
+        {
+            if (currentCell?.shieldBarObj != null)
+            {
+                if (ShieldCurr > 0)
+                {
+                    // 방어막이 있으면 바를 보이고, 최대 체력 대비 방어막 비율로 크기 설정
+                    currentCell.shieldBarObj.SetActive(true);
+                    float shieldRatio = (float)ShieldCurr / HpMax;
+                    currentCell.shieldBarObj.transform.localScale = new Vector3(shieldRatio, 1f, 1f);
+                    Debug.Log($"[방어막 바] {UnitName}의 방어막 바 업데이트: {ShieldCurr}/{HpMax} (비율: {shieldRatio:F2})");
+                }
+                else
+                {
+                    // 방어막이 없으면 바를 숨김
+                    currentCell.shieldBarObj.SetActive(false);
+                    Debug.Log($"[방어막 바] {UnitName}의 방어막 바 숨김 (방어막: 0)");
+                }
+            }
+            else
+            {
+                Debug.Log($"[방어막 바] {UnitName}의 shieldBarObj가 null입니다. Cell 프리팹에 설정이 필요합니다.");
+            }
         }
 
         // 이벤트를 처리하는 메소드들
@@ -348,6 +383,43 @@ namespace Entities
             currentCell.manaBarObj.transform.localScale = new Vector3((float)ManaCurr / ManaMax, 1f, 1f);
         }
 
+        /// <summary>
+        /// 방어막을 추가하는 메서드
+        /// </summary>
+        /// <param name="amount">추가할 방어막 양</param>
+        public virtual void AddShield(int amount)
+        {
+            int previousShield = ShieldCurr;
+            ShieldCurr += amount;
+            AttributesUpdate(); // 소마 효과 등을 위해 스탯 업데이트
+            UpdateShieldBar(); // 방어막 바 시각 업데이트
+            Debug.Log($"[방어막] {UnitName}에게 {amount}만큼의 방어막이 추가되었습니다. {previousShield} -> {ShieldCurr}");
+        }
+
+        /// <summary>
+        /// 방어막을 설정하는 메서드 (기존 방어막을 덮어씀)
+        /// </summary>
+        /// <param name="amount">설정할 방어막 양</param>
+        public virtual void SetShield(int amount)
+        {
+            ShieldCurr = amount;
+            AttributesUpdate(); // 소마 효과 등을 위해 스탯 업데이트
+            UpdateShieldBar(); // 방어막 바 시각 업데이트
+            Debug.Log($"{UnitName}의 방어막이 {amount}로 설정되었습니다.");
+        }
+
+        /// <summary>
+        /// 방어막을 제거하는 메서드
+        /// </summary>
+        /// <param name="amount">제거할 방어막 양</param>
+        public virtual void RemoveShield(int amount)
+        {
+            ShieldCurr = Mathf.Max(0, ShieldCurr - amount);
+            AttributesUpdate(); // 소마 효과 등을 위해 스탯 업데이트
+            UpdateShieldBar(); // 방어막 바 시각 업데이트
+            Debug.Log($"{UnitName}의 방어막이 {amount}만큼 감소했습니다. 현재 방어막: {ShieldCurr}");
+        }
+
         private void Update()
         {
             if (!isActive) return;
@@ -411,7 +483,36 @@ namespace Entities
             }
             int damageReceived = (int)(receivingDamageModifier * dmgCtx.Damage / (1 + effectiveDef * 0.01f));
             int hpBeforeHit = self.HpCurr;
-            self.HpCurr -= damageReceived;
+            
+            // 방어막 처리
+            bool hasShieldPenetration = dmgCtx.DamageTags.Contains(Helpers.DamageTag.ShieldPenetration);
+            bool isDamageOverTime = dmgCtx.CodeType == BaseEnums.CodeType.Effect; // 지속피해 (맹독, 화상 등)
+            
+            if (self.ShieldCurr > 0 && !hasShieldPenetration && !isDamageOverTime)
+            {
+                // 방어막이 있고 관통이 아니고 지속피해가 아닌 경우
+                if (self.ShieldCurr >= damageReceived)
+                {
+                    // 방어막이 데미지를 모두 흡수
+                    self.ShieldCurr -= damageReceived;
+                    damageReceived = 0;
+                }
+                else
+                {
+                    // 방어막이 일부만 흡수하고 나머지는 체력에서 차감
+                    damageReceived -= self.ShieldCurr;
+                    self.ShieldCurr = 0;
+                    self.HpCurr -= damageReceived;
+                }
+                // 방어막 변경 후 시각 업데이트
+                UpdateShieldBar();
+            }
+            else
+            {
+                // 방어막 무시하고 체력에서 직접 차감
+                self.HpCurr -= damageReceived;
+            }
+            
             currentCell.hpBarObj.transform.localScale = new Vector3((float)self.HpCurr / self.HpMax, 1f, 1f);
             Debug.Log($"{self.UnitName}은(는) {dmgCtx.Attacker.UnitName}에게 {damageReceived}의 {(dmgCtx.IsCrit ? "치명" : "")}피해를 받았습니다. 체력: {hpBeforeHit} -> {self.HpCurr}");
             if (self.HpCurr <= 0)
@@ -425,6 +526,7 @@ namespace Entities
         /// </summary>
         protected void DefaultRoundStartEvent(EventContext context)
         {
+            Debug.Log($"[라운드 시작] {UnitName}의 DefaultRoundStartEvent 호출됨");
             CastPassiveCode();
         }
 
@@ -434,6 +536,7 @@ namespace Entities
         protected void DefaultRoundEndEvent(EventContext context)
         {
             StatusEffects.Clear();
+            ShieldCurr = 0;  // 라운드 종료 시 방어막 초기화
             AttributesUpdate();
         }
         

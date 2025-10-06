@@ -11,7 +11,8 @@ public static class Target
     {
         SingleTarget = 1,    // 단일 대상
         NineSquareArea = 2,  // 9칸 범위 (대상 중심 3x3)
-        All = 3              // 전체 대상
+        All = 3,             // 전체 대상
+        FrontRowAllies = 4   // 전열 아군
     }
 
     // 진영 정의
@@ -40,6 +41,8 @@ public static class Target
                 return GetNineSquareAreaTargets(caster, faction);
             case TargetType.All:
                 return GetAllTargets(caster, faction);
+            case TargetType.FrontRowAllies:
+                return GetFrontRowAllies(caster);
             default:
                 Debug.LogWarning($"Unknown target type: {targetType}");
                 return new List<Unit>();
@@ -90,6 +93,21 @@ public static class Target
         }
 
         return areaTargets;
+    }
+
+    /// <summary>
+    /// 전열 아군 타겟 선택 - 가장 낮은 yPos에 있는 아군들을 선택
+    /// </summary>
+    private static List<Unit> GetFrontRowAllies(Unit caster)
+    {
+        List<Unit> allAllies = GetAvailableTargets(caster, TargetFaction.Same);
+        if (allAllies.Count == 0) return new List<Unit>();
+        
+        // 가장 낮은 yPos 찾기 (전열)
+        int frontRowY = allAllies.Min(ally => ally.currentCell.yPos);
+        
+        // 전열에 있는 모든 아군 반환
+        return allAllies.Where(ally => ally.currentCell.yPos == frontRowY).ToList();
     }
 
     /// <summary>
@@ -212,5 +230,13 @@ public static class Target
     public static List<Unit> GetAllAllies(Unit caster)
     {
         return GetTargets(caster, (int)TargetType.All, TargetFaction.Same);
+    }
+    
+    /// <summary>
+    /// 전열 아군 타겟
+    /// </summary>
+    public static List<Unit> GetFrontRowAlliesTarget(Unit caster)
+    {
+        return GetTargets(caster, (int)TargetType.FrontRowAllies);
     }
 }

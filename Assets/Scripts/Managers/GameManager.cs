@@ -133,6 +133,7 @@ namespace Managers
             currentRoundProgressTime = roundProgressTime;
             isRoundProgressTimerActive = true;
             
+            Debug.Log("[GameManager] 라운드 시작 - GridManager.OnRoundStart() 호출");
             GridManager.Instance.OnRoundStart();
         }
 

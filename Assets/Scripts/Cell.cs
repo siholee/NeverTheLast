@@ -12,6 +12,7 @@ public class Cell : MonoBehaviour
     public SpriteRenderer portraitRenderer;
     public GameObject hpBarObj;
     public GameObject manaBarObj;
+    public GameObject shieldBarObj;
     public GameObject infoTab;
 
     private void Update()

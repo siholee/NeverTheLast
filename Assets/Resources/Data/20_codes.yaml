@@ -6,6 +6,9 @@ codes:
     - id: 2
       verbalName: 사냥꾼의 독
       codeName: HuntersVenom
+    - id: 3
+      verbalName: 소미
+      codeName: Soma
   normal:
     - id: 1
       verbalName: a005-N아탈란테
@@ -26,3 +29,6 @@ codes:
     - id: 4
       verbalName: 화상부여
       codeName: ApplyBurn
+    - id: 5
+      verbalName: 나샤카라
+      codeName: Nishakara

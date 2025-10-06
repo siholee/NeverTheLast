@@ -296,16 +296,28 @@ namespace Managers
 
         public void OnRoundStart()
         {
+            Debug.Log("[GridManager] OnRoundStart 호출됨");
+            
+            Debug.Log($"[GridManager] 아군 수: {heroList.Count}");
             foreach (Unit hero in heroList)
             {
-                EventContext context = new EventContext(hero);
-                hero.Invoke(BaseEnums.UnitEventType.OnRoundStart, context);
+                if (hero.isActive)
+                {
+                    Debug.Log($"[GridManager] 아군 {hero.UnitName}에게 OnRoundStart 이벤트 발송");
+                    EventContext context = new EventContext(hero);
+                    hero.Invoke(BaseEnums.UnitEventType.OnRoundStart, context);
+                }
             }
 
+            Debug.Log($"[GridManager] 적군 수: {enemyList.Count}");
             foreach (Unit enemy in enemyList)
             {
-                EventContext context = new EventContext(enemy);
-                enemy.Invoke(BaseEnums.UnitEventType.OnRoundStart, context);
+                if (enemy.isActive)
+                {
+                    Debug.Log($"[GridManager] 적군 {enemy.UnitName}에게 OnRoundStart 이벤트 발송");
+                    EventContext context = new EventContext(enemy);
+                    enemy.Invoke(BaseEnums.UnitEventType.OnRoundStart, context);
+                }
             }
         }
 

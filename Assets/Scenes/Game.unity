@@ -1191,6 +1191,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 559141985}
   hpBarObj: {fileID: 661114339}
   manaBarObj: {fileID: 1542395763}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &35920781
 SpriteRenderer:
@@ -1350,6 +1351,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 1453460077}
   hpBarObj: {fileID: 1687674554}
   manaBarObj: {fileID: 506019942}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &39602861
 SpriteRenderer:
@@ -2679,6 +2681,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 1500800982}
   hpBarObj: {fileID: 415599918}
   manaBarObj: {fileID: 256516556}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &133069179
 SpriteRenderer:
@@ -3133,6 +3136,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 975665660}
   hpBarObj: {fileID: 1219812790}
   manaBarObj: {fileID: 1049723688}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &144516441
 SpriteRenderer:
@@ -5046,6 +5050,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 1736470798}
   hpBarObj: {fileID: 401604661}
   manaBarObj: {fileID: 501051726}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &287386551
 SpriteRenderer:
@@ -5205,6 +5210,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 120883821}
   hpBarObj: {fileID: 1497193527}
   manaBarObj: {fileID: 2145209604}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &303317736
 SpriteRenderer:
@@ -7217,6 +7223,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 1884088825}
   hpBarObj: {fileID: 26691646}
   manaBarObj: {fileID: 659159146}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &405718336
 SpriteRenderer:
@@ -7705,6 +7712,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 817433141}
   hpBarObj: {fileID: 1236162480}
   manaBarObj: {fileID: 810755565}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!1 &445971077
 GameObject:
@@ -8755,6 +8763,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 2067515569}
   hpBarObj: {fileID: 1261023005}
   manaBarObj: {fileID: 1992432269}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &499884859
 SpriteRenderer:
@@ -11836,6 +11845,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 2139893251}
   hpBarObj: {fileID: 333605476}
   manaBarObj: {fileID: 595522242}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &732969940
 SpriteRenderer:
@@ -12070,6 +12080,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 32398226}
   hpBarObj: {fileID: 944735013}
   manaBarObj: {fileID: 25518522}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &734818986
 SpriteRenderer:
@@ -12394,6 +12405,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 352919514}
   hpBarObj: {fileID: 742466481}
   manaBarObj: {fileID: 1548526375}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &744866761
 SpriteRenderer:
@@ -14106,6 +14118,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 1203174991}
   hpBarObj: {fileID: 304129131}
   manaBarObj: {fileID: 826862822}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &829363589
 SpriteRenderer:
@@ -14476,6 +14489,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 338506112}
   hpBarObj: {fileID: 1697323146}
   manaBarObj: {fileID: 93614892}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &847654344
 SpriteRenderer:
@@ -14777,6 +14791,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 1370947895}
   hpBarObj: {fileID: 1032544025}
   manaBarObj: {fileID: 153961369}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &853913877
 SpriteRenderer:
@@ -14936,6 +14951,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 536238322}
   hpBarObj: {fileID: 1549250889}
   manaBarObj: {fileID: 724626663}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &856541249
 SpriteRenderer:
@@ -15267,6 +15283,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 559905812}
   hpBarObj: {fileID: 1024800286}
   manaBarObj: {fileID: 1753172411}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &872401687
 SpriteRenderer:
@@ -15513,6 +15530,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 1131276899}
   hpBarObj: {fileID: 476199932}
   manaBarObj: {fileID: 1657976369}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &888782599
 SpriteRenderer:
@@ -15709,6 +15727,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 1487627893}
   hpBarObj: {fileID: 1700194446}
   manaBarObj: {fileID: 1585841241}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &912328183
 SpriteRenderer:
@@ -15868,6 +15887,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 1158411973}
   hpBarObj: {fileID: 565020048}
   manaBarObj: {fileID: 1010431168}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &912758106
 SpriteRenderer:
@@ -16196,6 +16216,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 2113143176}
   hpBarObj: {fileID: 247937769}
   manaBarObj: {fileID: 1546861206}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &945185576
 SpriteRenderer:
@@ -16936,6 +16957,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 600622706}
   hpBarObj: {fileID: 986017672}
   manaBarObj: {fileID: 977576741}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &1007555755
 SpriteRenderer:
@@ -18858,6 +18880,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 367539025}
   hpBarObj: {fileID: 1936560875}
   manaBarObj: {fileID: 1255379114}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &1130932124
 SpriteRenderer:
@@ -19056,6 +19079,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 1467861561}
   hpBarObj: {fileID: 1048426107}
   manaBarObj: {fileID: 1041583681}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!1 &1138102989
 GameObject:
@@ -19452,6 +19476,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 1689069492}
   hpBarObj: {fileID: 129040850}
   manaBarObj: {fileID: 684800644}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &1158231229
 SpriteRenderer:
@@ -21610,6 +21635,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 877648719}
   hpBarObj: {fileID: 1916875668}
   manaBarObj: {fileID: 2145444645}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!1 &1282733563
 GameObject:
@@ -22579,6 +22605,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 763346122}
   hpBarObj: {fileID: 627090641}
   manaBarObj: {fileID: 2058553181}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &1326768089
 SpriteRenderer:
@@ -23610,6 +23637,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 2106346965}
   hpBarObj: {fileID: 105452320}
   manaBarObj: {fileID: 261367082}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &1394580033
 SpriteRenderer:
@@ -26690,6 +26718,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 752840518}
   hpBarObj: {fileID: 766589106}
   manaBarObj: {fileID: 1558355842}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &1678375894
 SpriteRenderer:
@@ -27043,6 +27072,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 469377980}
   hpBarObj: {fileID: 1200024764}
   manaBarObj: {fileID: 998809824}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &1695223689
 SpriteRenderer:
@@ -27371,6 +27401,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 826543694}
   hpBarObj: {fileID: 319312356}
   manaBarObj: {fileID: 493434631}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &1698809456
 SpriteRenderer:
@@ -29909,6 +29940,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 511431757}
   hpBarObj: {fileID: 2143241313}
   manaBarObj: {fileID: 2114073234}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &1896014776
 SpriteRenderer:
@@ -31383,6 +31415,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 2039107536}
   hpBarObj: {fileID: 2036708985}
   manaBarObj: {fileID: 797206541}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &1967293686
 SpriteRenderer:
@@ -31801,6 +31834,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 1051985732}
   hpBarObj: {fileID: 1217222635}
   manaBarObj: {fileID: 1297134243}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &1991868321
 SpriteRenderer:
@@ -32142,6 +32176,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 19215779}
   hpBarObj: {fileID: 1375188532}
   manaBarObj: {fileID: 1092030014}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &2017115465
 SpriteRenderer:
@@ -33482,6 +33517,7 @@ MonoBehaviour:
   portraitRenderer: {fileID: 830532686}
   hpBarObj: {fileID: 1084509265}
   manaBarObj: {fileID: 627924953}
+  shieldBarObj: {fileID: 0}
   infoTab: {fileID: 0}
 --- !u!212 &2120019510
 SpriteRenderer:
