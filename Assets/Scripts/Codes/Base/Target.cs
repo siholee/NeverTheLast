@@ -96,18 +96,20 @@ public static class Target
     }
 
     /// <summary>
-    /// 전열 아군 타겟 선택 - 가장 낮은 yPos에 있는 아군들을 선택
+    /// 전열 아군 타겟 선택 - 가장 앞 X좌표에 있는 아군들을 선택
     /// </summary>
     private static List<Unit> GetFrontRowAllies(Unit caster)
     {
         List<Unit> allAllies = GetAvailableTargets(caster, TargetFaction.Same);
         if (allAllies.Count == 0) return new List<Unit>();
-        
-        // 가장 낮은 yPos 찾기 (전열)
-        int frontRowY = allAllies.Min(ally => ally.currentCell.yPos);
-        
-        // 전열에 있는 모든 아군 반환
-        return allAllies.Where(ally => ally.currentCell.yPos == frontRowY).ToList();
+
+        // 가장 앞 X좌표 찾기 (아군: 왼쪽=작은 X, 적군: 오른쪽=큰 X)
+        int frontmostX = caster.IsEnemy
+            ? allAllies.Max(ally => ally.currentCell.xPos)
+            : allAllies.Min(ally => ally.currentCell.xPos);
+
+        // 해당 X좌표에 있는 모든 아군 반환
+        return allAllies.Where(ally => ally.currentCell.xPos == frontmostX).ToList();
     }
 
     /// <summary>

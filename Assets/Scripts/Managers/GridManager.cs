@@ -27,15 +27,16 @@ namespace Managers
         public int yMax = 3;
         
         [Header("Bench Grid Settings")]
-        public int benchSize = 9; // 벤치 슬롯 개수
+        public int benchSize = 9; // 벤치 슬롯 개수 (고정: -4~4)
 
         private Cell[,] _fieldCellManager; // Cell management array
         private Cell[] _benchCellManager; // Cell management array (1차원)
         public List<Unit> heroList;
         public List<Unit> enemyList;
 
-        public Transform benchParent;
-        public Transform fieldParent;
+        // 그리드 부모 오브젝트들
+        public Transform Field;  // 게임 필드 (HMSon 대체)
+        public Transform Bench;  // 대기석 (JSPark 대체)
         
         private void Awake()
         {
@@ -59,6 +60,57 @@ namespace Managers
             SetGrid();
         }
 
+        // 에디터에서 수동으로 그리드를 재생성할 수 있는 퍼블릭 메서드
+        [ContextMenu("Regenerate Grid")]
+        public void RegenerateGrid()
+        {
+            SetGrid();
+        }
+        
+        // 에디터에서 기존 셀들을 정리할 수 있는 퍼블릭 메서드
+        public void ClearExistingCells()
+        {
+            // Field 하위의 기존 셀들 제거
+            if (Field != null)
+            {
+                for (int i = Field.childCount - 1; i >= 0; i--)
+                {
+#if UNITY_EDITOR
+                    if (!Application.isPlaying)
+                    {
+                        DestroyImmediate(Field.GetChild(i).gameObject);
+                    }
+                    else
+                    {
+                        Destroy(Field.GetChild(i).gameObject);
+                    }
+#else
+                    Destroy(Field.GetChild(i).gameObject);
+#endif
+                }
+            }
+            
+            // Bench 하위의 기존 셀들 제거
+            if (Bench != null)
+            {
+                for (int i = Bench.childCount - 1; i >= 0; i--)
+                {
+#if UNITY_EDITOR
+                    if (!Application.isPlaying)
+                    {
+                        DestroyImmediate(Bench.GetChild(i).gameObject);
+                    }
+                    else
+                    {
+                        Destroy(Bench.GetChild(i).gameObject);
+                    }
+#else
+                    Destroy(Bench.GetChild(i).gameObject);
+#endif
+                }
+            }
+        }
+
         private void SetGrid()
         {
             // _fieldCellManager 배열 초기화
@@ -69,102 +121,143 @@ namespace Managers
             // _benchCellManager 배열 초기화
             _benchCellManager = new Cell[benchSize];
             
-            // fieldParent의 자식 오브젝트들을 순회하며 Cell 정보 설정
-            foreach (Transform child in fieldParent)
+            // 기존에 하드코딩된 셀들이 있다면 먼저 정리
+            ClearExistingCells();
+            
+            // 새로운 필드 셀들 생성
+            CreateFieldCells();
+            
+            // 새로운 벤치 셀들 생성
+            CreateBenchCells();
+        }
+        
+        private void CreateFieldCells()
+        {
+            if (cellPrefab == null)
             {
-                // 오브젝트 이름에서 좌표 추출 (Cell_{x}_{y} 형식)
-                string childName = child.name;
-                if (childName.StartsWith("Cell_"))
-                {
-                    string[] parts = childName.Split('_');
-                    if (parts.Length == 3)
-                    {
-                        if (int.TryParse(parts[1], out int x) && int.TryParse(parts[2], out int y))
-                        {
-                            // Cell 컴포넌트 가져오기 또는 추가
-                            Cell cell = child.GetComponent<Cell>();
-                            if (cell == null)
-                            {
-                                cell = child.gameObject.AddComponent<Cell>();
-                            }
-                            
-                            // Cell 속성 설정
-                            cell.xPos = x;
-                            cell.yPos = y;
-                            cell.isOccupied = false;
-                            cell.reservedTime = 0f;
-                            
-                            // 2차원 배열 인덱스 계산 및 할당
-                            int adjustedX = x - xMin;
-                            int adjustedY = y - yMin;
-                            
-                            // 범위 체크
-                            if (adjustedX >= 0 && adjustedX < columns && adjustedY >= 0 && adjustedY < rows)
-                            {
-                                _fieldCellManager[adjustedX, adjustedY] = cell;
-                                Debug.Log($"Field Cell assigned to array: {childName} at index [{adjustedX}, {adjustedY}]");
-                            }
-                            else
-                            {
-                                Debug.LogWarning($"Field Cell coordinates out of range: {childName} (x: {x}, y: {y})");
-                            }
-                        }
-                        else
-                        {
-                            Debug.LogWarning($"Failed to parse coordinates from object name: {childName}");
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"Invalid Cell object name format: {childName}. Expected format: Cell_x_y");
-                    }
-                }
+                Debug.LogError("Cell Prefab이 할당되지 않았습니다!");
+                return;
             }
             
-            // benchParent의 자식 오브젝트들을 순회하며 Cell 정보 설정
-            int benchIndex = 0;
-            foreach (Transform child in benchParent)
+            if (Field == null)
             {
-                if (benchIndex >= benchSize) break;
-                
-                // 오브젝트 이름에서 좌표 추출 (Cell_{x}_{y} 형식)
-                string childName = child.name;
-                if (childName.StartsWith("Cell_"))
+                Debug.LogError("Field가 할당되지 않았습니다!");
+                return;
+            }
+            
+            // 필드 셀들 생성 (x: -4~4, y: 1~3)
+            for (int x = xMin; x <= xMax; x++)
+            {
+                for (int y = 1; y <= 3; y++) // 필드는 y=1,2,3만 사용
                 {
-                    string[] parts = childName.Split('_');
-                    if (parts.Length == 3)
+                    // 셀 프리팹에서 인스턴스 생성
+                    GameObject cellObj = Instantiate(cellPrefab, Field);
+                    
+                    // 셀 이름 설정
+                    cellObj.name = $"Cell_{x}_{y}";
+                    
+                    // 위치 계산 및 설정
+                    Vector3 cellPosition = CalculateFieldCellPosition(x, y);
+                    cellObj.transform.position = cellPosition;
+                    
+                    // Cell 컴포넌트 가져오기 또는 추가
+                    Cell cell = cellObj.GetComponent<Cell>();
+                    if (cell == null)
                     {
-                        if (int.TryParse(parts[1], out int x) && int.TryParse(parts[2], out int y))
-                        {
-                            // Cell 컴포넌트 가져오기 또는 추가
-                            Cell cell = child.GetComponent<Cell>();
-                            if (cell == null)
-                            {
-                                cell = child.gameObject.AddComponent<Cell>();
-                            }
-                            
-                            // Cell 속성 설정
-                            cell.xPos = x;
-                            cell.yPos = y;
-                            cell.isOccupied = false;
-                            cell.reservedTime = 0f;
-                            
-                            // 1차원 배열 인덱스 계산 및 할당
-                            _benchCellManager[benchIndex] = cell;
-                            Debug.Log($"Bench Cell assigned to array: {childName} at index [{benchIndex}]");
-                            benchIndex++;
-                        }
-                        else
-                        {
-                            Debug.LogWarning($"Failed to parse coordinates from bench object name: {childName}");
-                        }
+                        cell = cellObj.AddComponent<Cell>();
+                    }
+                    
+                    // Cell 속성 설정
+                    cell.xPos = x;
+                    cell.yPos = y;
+                    cell.isOccupied = false;
+                    cell.reservedTime = 0f;
+                    
+                    // 2차원 배열 인덱스 계산 및 할당
+                    int adjustedX = x - xMin;
+                    int adjustedY = y - yMin;
+                    
+                    // 범위 체크 및 배열에 등록
+                    if (adjustedX >= 0 && adjustedX < _fieldCellManager.GetLength(0) &&
+                        adjustedY >= 0 && adjustedY < _fieldCellManager.GetLength(1))
+                    {
+                        _fieldCellManager[adjustedX, adjustedY] = cell;
+                        Debug.Log($"Field Cell created: Cell_{x}_{y} at position {cellPosition}");
                     }
                     else
                     {
-                        Debug.LogWarning($"Invalid Bench Cell object name format: {childName}. Expected format: Cell_x_y");
+                        Debug.LogWarning($"Field Cell coordinates out of range: Cell_{x}_{y}");
                     }
                 }
             }
+        }
+        
+        private void CreateBenchCells()
+        {
+            if (cellPrefab == null)
+            {
+                Debug.LogError("Cell Prefab이 할당되지 않았습니다!");
+                return;
+            }
+            
+            if (Bench == null)
+            {
+                Debug.LogError("Bench가 할당되지 않았습니다!");
+                return;
+            }
+            
+            // 벤치 셀들 생성 (x: -4~4, y: 0) - 고정값 사용
+            int benchIndex = 0;
+            for (int x = -4; x <= 4; x++)
+            {
+                if (benchIndex >= benchSize) break; // benchSize 제한 확인
+                
+                // 셀 프리팹에서 인스턴스 생성
+                GameObject cellObj = Instantiate(cellPrefab, Bench);
+                
+                // 셀 이름 설정
+                cellObj.name = $"Cell_{x}_0";
+                
+                // 위치 계산 및 설정
+                Vector3 cellPosition = CalculateBenchCellPosition(x);
+                cellObj.transform.position = cellPosition;
+                
+                // Cell 컴포넌트 가져오기 또는 추가
+                Cell cell = cellObj.GetComponent<Cell>();
+                if (cell == null)
+                {
+                    cell = cellObj.AddComponent<Cell>();
+                }
+                
+                // Cell 속성 설정
+                cell.xPos = x;
+                cell.yPos = 0;
+                cell.isOccupied = false;
+                cell.reservedTime = 0f;
+                
+                // 1차원 배열에 등록
+                _benchCellManager[benchIndex] = cell;
+                Debug.Log($"Bench Cell created: Cell_{x}_0 at position {cellPosition}");
+                benchIndex++;
+            }
+        }
+        
+        private Vector3 CalculateFieldCellPosition(int x, int y)
+        {
+            // 기존 하드코딩된 위치 공식을 사용
+            // Cell -4, 1 = Pos(-44, 11, 0)
+            // Cell -3, 1 = Pos(-33, 11, 0)
+            // 즉, x좌표는 x * 11, y좌표는 y * 11
+            return new Vector3(x * 11, y * 11, 0);
+        }
+        
+        private Vector3 CalculateBenchCellPosition(int x)
+        {
+            // 기존 하드코딩된 벤치 위치 공식을 사용
+            // Cell -4, 0 = Pos(-44, 0, 0)
+            // Cell -3, 0 = Pos(-33, 0, 0)
+            // 즉, x좌표는 x * 11, y좌표는 0
+            return new Vector3(x * 11, 0, 0);
         }
 
         public bool IsCellAvailable(int xPos, int yPos)
@@ -246,11 +339,13 @@ namespace Managers
                 // Set parent based on location
                 if (isBench)
                 {
-                    unitObj.transform.SetParent(benchParent);
+                    // 벤치 유닛은 Bench를 부모로 설정
+                    unitObj.transform.SetParent(Bench);
                 }
                 else
                 {
-                    unitObj.transform.SetParent(fieldParent);
+                    // 필드 유닛은 Field를 부모로 설정
+                    unitObj.transform.SetParent(Field);
                 }
                 
                 // Add to appropriate list
@@ -432,6 +527,9 @@ namespace Managers
                     // 유닛의 위치를 셀 위치로 설정
                     unit.transform.position = cell.transform.position;
                     unit.transform.SetParent(cell.transform);
+                    
+                    // 유닛의 부모를 벤치로 설정
+                    unit.transform.SetParent(Bench);
                     
                     // 유닛을 활성화
                     unit.gameObject.SetActive(true);

@@ -391,7 +391,7 @@ namespace Entities
         {
             int previousShield = ShieldCurr;
             ShieldCurr += amount;
-            AttributesUpdate(); // 소마 효과 등을 위해 스탯 업데이트
+            AttributesUpdate(); // 상태 효과 반영을 위해 스탯 업데이트
             UpdateShieldBar(); // 방어막 바 시각 업데이트
             Debug.Log($"[방어막] {UnitName}에게 {amount}만큼의 방어막이 추가되었습니다. {previousShield} -> {ShieldCurr}");
         }
@@ -403,7 +403,7 @@ namespace Entities
         public virtual void SetShield(int amount)
         {
             ShieldCurr = amount;
-            AttributesUpdate(); // 소마 효과 등을 위해 스탯 업데이트
+            AttributesUpdate(); // 상태 효과 반영을 위해 스탯 업데이트
             UpdateShieldBar(); // 방어막 바 시각 업데이트
             Debug.Log($"{UnitName}의 방어막이 {amount}로 설정되었습니다.");
         }
@@ -415,7 +415,7 @@ namespace Entities
         public virtual void RemoveShield(int amount)
         {
             ShieldCurr = Mathf.Max(0, ShieldCurr - amount);
-            AttributesUpdate(); // 소마 효과 등을 위해 스탯 업데이트
+            AttributesUpdate(); // 상태 효과 반영을 위해 스탯 업데이트
             UpdateShieldBar(); // 방어막 바 시각 업데이트
             Debug.Log($"{UnitName}의 방어막이 {amount}만큼 감소했습니다. 현재 방어막: {ShieldCurr}");
         }

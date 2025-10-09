@@ -241,7 +241,6 @@ namespace Managers.UI
             if (identifier.Contains("Burn")) return "화상";
             if (identifier.Contains("HolyEnchant")) return "신성한 인챈트";
             if (identifier.Contains("HealingModified")) return "치유 변화";
-            if (identifier.Contains("SomaBuff")) return "소마";
             if (identifier.Contains("Shield")) return "방어막";
             
             return identifier;
@@ -251,14 +250,7 @@ namespace Managers.UI
         private string GetEffectDescription(StatusEffect effect)
         {
             StringBuilder desc = new StringBuilder();
-            
-            // 소마 효과의 특별한 설명
-            if (effect is StatusEffects.Effects.SomaEffect somaEffect)
-            {
-                desc.Append("방어막 보유 시 공격력 +10% ");
-                return desc.ToString().Trim();
-            }
-            
+
             // 공격력 수정자
             if (effect.AtkMultiplicativeModifier(null) != 0f)
                 desc.Append($"공격력 {(effect.AtkMultiplicativeModifier(null) * 100):+0;-0}% ");

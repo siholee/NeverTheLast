@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Codes.Passive
 {
     /// <summary>
-    /// 찬드라의 패시브: 소미(Soma)
+    /// 찬드라의 패시브: 소마(Soma)
     /// 전투 시작 시 아군 전체에게 자신의 방어력 60%에 해당하는 방어막 부여
     /// </summary>
     public class Soma : PassiveCode
@@ -17,35 +17,24 @@ namespace Codes.Passive
         public Soma(PassiveCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "소미";
+            CodeName = "소마";
             Caster = context.Caster;
         }
 
         public override void CastCode()
         {
             Debug.Log($"[소마 패시브] {Caster.UnitName}의 소마 패시브가 활성화되었습니다.");
-            
+
             // 라운드 시작 시 방어막 부여를 위한 이벤트 핸들러 등록
-            Action<EventContext> onRoundStartHandler = null;
-            onRoundStartHandler = (eventContext) =>
+            Action<EventContext> onRoundStartHandler = (eventContext) =>
             {
                 Debug.Log($"[소마 패시브] OnRoundStart 이벤트 발생 - {Caster.UnitName}");
                 GrantShieldOnCombatStart();
             };
-            
-            // 시전자 사망 시 효과를 멈추기 위한 이벤트 핸들러 생성
-            Action<EventContext> onDeathHandler = null;
-            onDeathHandler = (deathInfo) =>
-            {
-                Debug.Log($"[소마 패시브] {Caster.UnitName} 사망으로 소마 패시브 제거");
-                Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, onDeathHandler);
-                Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundStart, onRoundStartHandler);
-            };
 
             Debug.Log($"[소마 패시브] {Caster.UnitName}의 OnRoundStart 이벤트 핸들러 등록");
-            
-            // 이벤트 핸들러들 등록
-            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, onDeathHandler);
+
+            // 이벤트 핸들러 등록
             Caster.AddListener(BaseEnums.UnitEventType.OnRoundStart, onRoundStartHandler);
         }
 
