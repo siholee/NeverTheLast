@@ -173,6 +173,12 @@ namespace Managers
                     cell.isOccupied = false;
                     cell.reservedTime = 0f;
                     
+                    // UI GameObject 기본 비활성화
+                    if (cell.uiObject != null)
+                    {
+                        cell.uiObject.SetActive(false);
+                    }
+                    
                     // 2차원 배열 인덱스 계산 및 할당
                     int adjustedX = x - xMin;
                     int adjustedY = y - yMin;
@@ -234,6 +240,12 @@ namespace Managers
                 cell.yPos = 0;
                 cell.isOccupied = false;
                 cell.reservedTime = 0f;
+                
+                // UI GameObject 기본 비활성화
+                if (cell.uiObject != null)
+                {
+                    cell.uiObject.SetActive(false);
+                }
                 
                 // 1차원 배열에 등록
                 _benchCellManager[benchIndex] = cell;

@@ -191,3 +191,55 @@ public virtual bool HasValidTarget() { return true; }
 5. `HS_ProjectileMover` 컴포넌트를 삭제
 6. 프리팹 하위 파티클의 사이즈 조절(10배 정도로 키우면 잘 보임)
 ![img.png](Docs/4.png)
+
+## UI 시스템 및 Z값 문제 해결
+
+### Cell UI 관리 시스템
+
+기존 Unity Hierarchy의 하드코딩된 셀을 Cell.prefab 기반 프로그래매틱 생성으로 전환하면서 UI 관리 시스템도 개선됨.
+
+#### 주요 변경사항:
+- **Unit.cs**: 게임 로직 담당, Find() 성능 문제 해결
+- **Cell.cs**: UI 표시 및 관리 담당, 분리된 책임
+- **필드 전용 UI**: 대기석(yPos=0)은 UI 비활성화, 필드(yPos>0)만 UI 표시
+
+#### HP 바 시스템:
+```csharp
+// 체력 100% = scale 9, 위치 변화로 감소 표현
+float targetScale = hpRatio * 9.0f;
+float xOffset = (9.0f - targetScale) * -0.5f;
+```
+
+### Z값 위치 왜곡 문제 (해결됨)
+
+#### 문제 상황:
+- HP 바의 z값 변화로 인한 시각적 위치 왜곡
+- 체력 100%에서는 정상, 체력 감소 시 위치 어긋남
+- 2D 환경에서 z값 불일치로 인한 렌더링 오류
+
+#### 원인 분석:
+```csharp
+// 기존 문제 코드
+currHpBarPos.z = maxHpBar.localPosition.z - 0.1f; 
+```
+- 드래그 앤 드롭 시스템: `mousePosition.z = -mainCamera.transform.position.z`
+- HP 바 시스템: 임의 z값 (-0.1f) 사용
+- **z값 불일치로 인한 위치 계산 오류**
+
+#### 해결 방법:
+```csharp
+// 수정된 코드 - z값 통일
+maxHpBarPos.z = 0f;
+currHpBarPos.z = 0f;
+
+// SpriteRenderer sortingOrder로 렌더링 순서 제어
+currHpRenderer.sortingOrder = maxHpRenderer.sortingOrder + 1;
+```
+
+#### 결과:
+- **z값 0으로 통일**: 2D 환경에 적합한 일관된 좌표계
+- **sortingOrder 활용**: z축 대신 렌더링 순서로 깊이 제어
+- **위치 왜곡 해결**: 체력 감소 시에도 정확한 위치 표시
+
+### 교훈:
+2D 게임에서는 z축 위치보다 sortingOrder를 활용한 렌더링 순서 제어가 더 안정적임.

@@ -147,7 +147,12 @@ namespace Entities
             LoadData(_isEnemy, _id);
             AttributesUpdate();
             HpCurr = HpMax;
-            currentCell.hpBarObj.transform.localScale = new Vector3((float)HpCurr / HpMax, 1f, 1f);
+            
+            // Cell의 HP 바 초기화 및 업데이트
+            currentCell.InitializeHpBar();
+            // Cell의 MP 바 초기화 및 업데이트
+            currentCell.InitializeMpBar();
+            
             ManaCurr = 0;
             ShieldCurr = 0;
             UpdateShieldBar(); // 방어막 바 초기화
@@ -270,27 +275,9 @@ namespace Entities
         /// </summary>
         protected virtual void UpdateShieldBar()
         {
-            if (currentCell?.shieldBarObj != null)
-            {
-                if (ShieldCurr > 0)
-                {
-                    // 방어막이 있으면 바를 보이고, 최대 체력 대비 방어막 비율로 크기 설정
-                    currentCell.shieldBarObj.SetActive(true);
-                    float shieldRatio = (float)ShieldCurr / HpMax;
-                    currentCell.shieldBarObj.transform.localScale = new Vector3(shieldRatio, 1f, 1f);
-                    Debug.Log($"[방어막 바] {UnitName}의 방어막 바 업데이트: {ShieldCurr}/{HpMax} (비율: {shieldRatio:F2})");
-                }
-                else
-                {
-                    // 방어막이 없으면 바를 숨김
-                    currentCell.shieldBarObj.SetActive(false);
-                    Debug.Log($"[방어막 바] {UnitName}의 방어막 바 숨김 (방어막: 0)");
-                }
-            }
-            else
-            {
-                Debug.Log($"[방어막 바] {UnitName}의 shieldBarObj가 null입니다. Cell 프리팹에 설정이 필요합니다.");
-            }
+            // Cell의 통합 UI 시스템으로 대체됨
+            // TODO: Cell.cs에 방어막 바 관리 기능 추가 후 currentCell.UpdateUI() 호출
+            Debug.Log($"[방어막 바] {UnitName}의 방어막 업데이트는 Cell.UpdateUI()로 처리됩니다.");
         }
 
         // 이벤트를 처리하는 메소드들
@@ -368,7 +355,8 @@ namespace Entities
         public virtual void CastUltimateCode()
         {
             ManaCurr = 0;
-            currentCell.manaBarObj.transform.localScale = new Vector3(0f, 1f, 1f);
+            // Cell의 통합 UI 시스템 사용
+            currentCell.UpdateUI();
             UltimateCode.CastCode();
             Invoke(BaseEnums.UnitEventType.OnUltimateActivates, new EventContext(this));
         }
@@ -380,7 +368,8 @@ namespace Entities
             {
                 ManaCurr = ManaMax;
             }
-            currentCell.manaBarObj.transform.localScale = new Vector3((float)ManaCurr / ManaMax, 1f, 1f);
+            // Cell의 통합 UI 시스템 사용
+            currentCell.UpdateUI();
         }
 
         /// <summary>
@@ -513,7 +502,9 @@ namespace Entities
                 self.HpCurr -= damageReceived;
             }
             
-            currentCell.hpBarObj.transform.localScale = new Vector3((float)self.HpCurr / self.HpMax, 1f, 1f);
+            // Cell의 통합 UI 업데이트 메서드 사용
+            currentCell.UpdateUI();
+            
             Debug.Log($"{self.UnitName}은(는) {dmgCtx.Attacker.UnitName}에게 {damageReceived}의 {(dmgCtx.IsCrit ? "치명" : "")}피해를 받았습니다. 체력: {hpBeforeHit} -> {self.HpCurr}");
             if (self.HpCurr <= 0)
             {
@@ -587,10 +578,9 @@ namespace Entities
         {
             isActive = true;
             currentCell.isOccupied = true;
-            currentCell.hpBarObj.transform.Find("Bar Sprite").GetComponent<SpriteRenderer>().enabled = true;
-            currentCell.hpBarObj.transform.localScale = Vector3.one;
-            currentCell.manaBarObj.transform.Find("Bar Sprite").GetComponent<SpriteRenderer>().enabled = true;
-            currentCell.manaBarObj.transform.localScale = new Vector3(0f, 1f, 1f);
+            
+            // Cell의 통합 UI 관리 사용
+            currentCell.SetOccupiedUnit(this);
         }
 
         public void DeactivateUnit()
@@ -599,8 +589,10 @@ namespace Entities
             ID = 0;
             currentCell.isOccupied = false;
             currentCell.portraitRenderer.sprite = null;
-            currentCell.hpBarObj.transform.Find("Bar Sprite").GetComponent<SpriteRenderer>().enabled = false;
-            currentCell.manaBarObj.transform.Find("Bar Sprite").GetComponent<SpriteRenderer>().enabled = false;
+            
+            // Cell의 통합 UI 관리 사용
+            currentCell.SetOccupiedUnit(null);
+            
             currentCell.reservedTime = 2f;
             currentNormalTarget = null; // 타겟 초기화
         }
