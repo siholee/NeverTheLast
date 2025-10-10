@@ -147,7 +147,7 @@ namespace Managers
             }
             else
             {
-                Debug.Log("Empty space clicked");
+                // Debug.Log("Empty space clicked");
                 HideInfoTab();
             }
         }
@@ -239,7 +239,7 @@ namespace Managers
         // Cell 클릭 처리를 위한 중앙화된 메서드
         public void HandleCellClick(Cell clickedCell)
         {
-            Debug.Log($"Cell clicked: ({clickedCell.xPos}, {clickedCell.yPos})");
+            // Debug.Log($"Cell clicked: ({clickedCell.xPos}, {clickedCell.yPos})");
 
             // Cell이 클릭되면 유닛 정보를 표시
             if (clickedCell.isOccupied && clickedCell.unit != null)

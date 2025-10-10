@@ -188,7 +188,7 @@ namespace Managers
                         adjustedY >= 0 && adjustedY < _fieldCellManager.GetLength(1))
                     {
                         _fieldCellManager[adjustedX, adjustedY] = cell;
-                        Debug.Log($"Field Cell created: Cell_{x}_{y} at position {cellPosition}");
+                        // Field Cell created: Cell_{x}_{y} at position {cellPosition}
                     }
                     else
                     {
@@ -249,7 +249,7 @@ namespace Managers
                 
                 // 1차원 배열에 등록
                 _benchCellManager[benchIndex] = cell;
-                Debug.Log($"Bench Cell created: Cell_{x}_0 at position {cellPosition}");
+                // Bench Cell created: Cell_{x}_0 at position {cellPosition}
                 benchIndex++;
             }
         }
@@ -372,7 +372,7 @@ namespace Managers
                 
                 unitComponent.currentCell = cell;
                 unitComponent.Spawn(cell, isEnemy, unitId);
-                Debug.Log($"Spawned {(isEnemy ? "enemy" : "hero")} unit {unitComponent.UnitName} at {(isBench ? "bench" : $"({xPos}, {yPos})")}");
+                // Debug.Log($"Spawned {(isEnemy ? "enemy" : "hero")} unit {unitComponent.UnitName} at {(isBench ? "bench" : $"({xPos}, {yPos})")}");
             }
             else
             {

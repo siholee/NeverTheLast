@@ -47,7 +47,8 @@ namespace Entities
         [SerializeField] private float critChanceCurr;
         [SerializeField] private float critDamageCurr;
         [SerializeField] private float codeAcceleration;
-        [SerializeField] private int shieldCurr;  // 방어막 (라운드 끝까지 유지)
+        [SerializeField] private int shieldMax;   // 최대 방어막 (획득한 총 방어막)
+        [SerializeField] private int shieldCurr;  // 현재 방어막 (라운드 끝까지 유지)
         public int HpCurr { get => hpCurr; protected set => hpCurr = value; }
         public int ManaCurr { get => manaCurr; protected set => manaCurr = value; }
         public int AtkCurr { get => atkCurr; protected set => atkCurr = value; }
@@ -55,6 +56,7 @@ namespace Entities
         public float CritChanceCurr { get => critChanceCurr; protected set => critChanceCurr = value; }
         public float CritMultiplierCurr { get => critDamageCurr; protected set => critDamageCurr = value; }
         public float CodeAcceleration { get => codeAcceleration; protected set => codeAcceleration = value; }
+        public int ShieldMax { get => shieldMax; protected set => shieldMax = value; }
         public int ShieldCurr { get => shieldCurr; protected set => shieldCurr = value; }
 
         public bool isCasting; // 스킬 시전중
@@ -154,6 +156,7 @@ namespace Entities
             currentCell.InitializeMpBar();
             
             ManaCurr = 0;
+            ShieldMax = 0;
             ShieldCurr = 0;
             UpdateShieldBar(); // 방어막 바 초기화
             AddListener<EventContext>(BaseEnums.UnitEventType.OnTakingDamage, DefaultTakeDamageEvent);
@@ -275,9 +278,16 @@ namespace Entities
         /// </summary>
         protected virtual void UpdateShieldBar()
         {
-            // Cell의 통합 UI 시스템으로 대체됨
-            // TODO: Cell.cs에 방어막 바 관리 기능 추가 후 currentCell.UpdateUI() 호출
-            Debug.Log($"[방어막 바] {UnitName}의 방어막 업데이트는 Cell.UpdateUI()로 처리됩니다.");
+            // Cell의 통합 UI 시스템을 통해 방어막 바 업데이트
+            if (currentCell != null)
+            {
+                currentCell.UpdateUI(); // Cell에서 HP + 방어막 바 통합 처리
+                Debug.Log($"[방어막 바] {UnitName}의 방어막 바 업데이트 완료 - Cell.UpdateUI() 호출");
+            }
+            else
+            {
+                Debug.LogWarning($"[방어막 바] {UnitName}의 currentCell이 null입니다!");
+            }
         }
 
         // 이벤트를 처리하는 메소드들
@@ -378,11 +388,16 @@ namespace Entities
         /// <param name="amount">추가할 방어막 양</param>
         public virtual void AddShield(int amount)
         {
-            int previousShield = ShieldCurr;
+            int previousShieldMax = ShieldMax;
+            int previousShieldCurr = ShieldCurr;
+            
+            // ShieldMax와 ShieldCurr 둘 다 증가
+            ShieldMax += amount;
             ShieldCurr += amount;
+            
             AttributesUpdate(); // 상태 효과 반영을 위해 스탯 업데이트
             UpdateShieldBar(); // 방어막 바 시각 업데이트
-            Debug.Log($"[방어막] {UnitName}에게 {amount}만큼의 방어막이 추가되었습니다. {previousShield} -> {ShieldCurr}");
+            Debug.Log($"[AddShield] {UnitName}: Max {previousShieldMax}→{ShieldMax}, Curr {previousShieldCurr}→{ShieldCurr} (HP: {HpCurr}/{HpMax})");
         }
 
         /// <summary>
@@ -391,22 +406,35 @@ namespace Entities
         /// <param name="amount">설정할 방어막 양</param>
         public virtual void SetShield(int amount)
         {
+            ShieldMax = amount;
             ShieldCurr = amount;
             AttributesUpdate(); // 상태 효과 반영을 위해 스탯 업데이트
             UpdateShieldBar(); // 방어막 바 시각 업데이트
-            Debug.Log($"{UnitName}의 방어막이 {amount}로 설정되었습니다.");
+            Debug.Log($"[SetShield] {UnitName}의 방어막이 {amount}로 설정되었습니다 (Max={ShieldMax}, Curr={ShieldCurr})");
         }
 
         /// <summary>
-        /// 방어막을 제거하는 메서드
+        /// 방어막을 제거하는 메서드 (피해를 받을 때 호출)
         /// </summary>
         /// <param name="amount">제거할 방어막 양</param>
         public virtual void RemoveShield(int amount)
         {
+            int previousShieldCurr = ShieldCurr;
             ShieldCurr = Mathf.Max(0, ShieldCurr - amount);
+            
+            // ShieldCurr이 0이 되면 ShieldMax도 초기화
+            if (ShieldCurr == 0)
+            {
+                ShieldMax = 0;
+                Debug.Log($"[RemoveShield] {UnitName}의 방어막이 모두 소진되어 초기화됨 (Curr {previousShieldCurr}→0, Max 0)");
+            }
+            else
+            {
+                Debug.Log($"[RemoveShield] {UnitName}의 방어막 감소: Curr {previousShieldCurr}→{ShieldCurr} (Max={ShieldMax})");
+            }
+            
             AttributesUpdate(); // 상태 효과 반영을 위해 스탯 업데이트
             UpdateShieldBar(); // 방어막 바 시각 업데이트
-            Debug.Log($"{UnitName}의 방어막이 {amount}만큼 감소했습니다. 현재 방어막: {ShieldCurr}");
         }
 
         private void Update()
@@ -483,15 +511,15 @@ namespace Entities
                 if (self.ShieldCurr >= damageReceived)
                 {
                     // 방어막이 데미지를 모두 흡수
-                    self.ShieldCurr -= damageReceived;
+                    self.RemoveShield(damageReceived); // RemoveShield 메서드 사용 (ShieldCurr=0이 되면 ShieldMax도 초기화)
                     damageReceived = 0;
                 }
                 else
                 {
                     // 방어막이 일부만 흡수하고 나머지는 체력에서 차감
-                    damageReceived -= self.ShieldCurr;
-                    self.ShieldCurr = 0;
-                    self.HpCurr -= damageReceived;
+                    int remainingDamage = damageReceived - self.ShieldCurr;
+                    self.RemoveShield(self.ShieldCurr); // 방어막 모두 소진 (자동으로 Max도 0으로)
+                    self.HpCurr -= remainingDamage;
                 }
                 // 방어막 변경 후 시각 업데이트
                 UpdateShieldBar();
@@ -505,7 +533,7 @@ namespace Entities
             // Cell의 통합 UI 업데이트 메서드 사용
             currentCell.UpdateUI();
             
-            Debug.Log($"{self.UnitName}은(는) {dmgCtx.Attacker.UnitName}에게 {damageReceived}의 {(dmgCtx.IsCrit ? "치명" : "")}피해를 받았습니다. 체력: {hpBeforeHit} -> {self.HpCurr}");
+            // Debug.Log($"{self.UnitName}은(는) {dmgCtx.Attacker.UnitName}에게 {damageReceived}의 {(dmgCtx.IsCrit ? "치명" : "")}피해를 받았습니다. 체력: {hpBeforeHit} -> {self.HpCurr}");
             if (self.HpCurr <= 0)
             {
                 self.Die(dmgCtx.Attacker);
@@ -527,7 +555,8 @@ namespace Entities
         protected void DefaultRoundEndEvent(EventContext context)
         {
             StatusEffects.Clear();
-            ShieldCurr = 0;  // 라운드 종료 시 방어막 초기화
+            ShieldMax = 0;   // 라운드 종료 시 방어막 최대치 초기화
+            ShieldCurr = 0;  // 라운드 종료 시 방어막 현재치 초기화
             AttributesUpdate();
         }
         

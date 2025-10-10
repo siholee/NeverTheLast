@@ -251,7 +251,7 @@ namespace Managers.UI
                 // GridManager의 SpawnUnit을 사용하여 벤치에 유닛 생성
                 gridManager.SpawnUnit(0, 0, false, _shopItem.ID, true); // 벤치에 스폰
                 
-                Debug.Log($"{_shopItem.ItemName} 구매 완료! 벤치에 배치되었습니다.");
+                // Debug.Log($"{_shopItem.ItemName} 구매 완료! 벤치에 배치되었습니다.");
                 
                 // 구매한 슬롯을 새로운 유닛으로 교체
                 ReplaceWithNewUnit(shopManager);
@@ -289,7 +289,7 @@ namespace Managers.UI
             shopManager.RerollSingleSlot(currentTier, _slotIndex);
             shopManager.RefreshSingleShopTag(currentTier, _slotIndex);
             
-            Debug.Log($"슬롯 {_slotIndex}이(가) 새로운 유닛으로 교체되었습니다.");
+            // Debug.Log($"슬롯 {_slotIndex}이(가) 새로운 유닛으로 교체되었습니다.");
         }
 
         private void SetPurchasedState()

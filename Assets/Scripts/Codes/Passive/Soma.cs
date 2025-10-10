@@ -10,7 +10,7 @@ namespace Codes.Passive
 {
     /// <summary>
     /// 찬드라의 패시브: 소마(Soma)
-    /// 전투 시작 시 아군 전체에게 자신의 방어력 60%에 해당하는 방어막 부여
+    /// 전투 시작 시 아군 전체에게 자신의 방어력 200%에 해당하는 방어막 부여
     /// </summary>
     public class Soma : PassiveCode
     {
@@ -28,7 +28,7 @@ namespace Codes.Passive
             // 라운드 시작 시 방어막 부여를 위한 이벤트 핸들러 등록
             Action<EventContext> onRoundStartHandler = (eventContext) =>
             {
-                Debug.Log($"[소마 패시브] OnRoundStart 이벤트 발생 - {Caster.UnitName}");
+                Debug.LogWarning($"[소마 패시브] OnRoundStart 이벤트 발생 - {Caster.UnitName}");
                 GrantShieldOnCombatStart();
             };
 
@@ -36,33 +36,50 @@ namespace Codes.Passive
 
             // 이벤트 핸들러 등록
             Caster.AddListener(BaseEnums.UnitEventType.OnRoundStart, onRoundStartHandler);
+            
+            // 즉시 한번 실행 (현재 라운드에서도 발동)
+            Debug.LogWarning($"[소마 패시브] 패시브 활성화와 동시에 방어막 즉시 부여");
+            GrantShieldOnCombatStart();
         }
 
         /// <summary>
-        /// 전투 시작 시 아군 전체에게 시전자 방어력의 60%에 해당하는 방어막 부여
+        /// 전투 시작 시 아군 전체에게 시전자 방어력의 200%에 해당하는 방어막 부여
         /// </summary>
         protected void GrantShieldOnCombatStart()
         {
-            Debug.Log($"[소마 패시브] GrantShieldOnCombatStart 메서드 시작 - {Caster.UnitName}");
+            Debug.LogWarning($"[소마 패시브] GrantShieldOnCombatStart 메서드 시작 - {Caster.UnitName}");
             
             var targetUnits = Target.GetAllAllies(Caster);
-            int shieldAmount = Mathf.RoundToInt(Caster.DefCurr * 0.6f);
+            int shieldAmount = Mathf.RoundToInt(Caster.DefCurr * 2.0f); // 200%로 변경
             
-            Debug.Log($"[소마 패시브] 방어막 양: {shieldAmount} (방어력 {Caster.DefCurr}의 60%)");
-            Debug.Log($"[소마 패시브] 대상 유닛 수: {targetUnits.Count}");
+            Debug.LogWarning($"[소마 패시브] 방어막 양: {shieldAmount} (방어력 {Caster.DefCurr}의 200%)");
+            Debug.LogWarning($"[소마 패시브] 대상 유닛 수: {targetUnits.Count}");
+            
+            if (targetUnits.Count == 0)
+            {
+                Debug.LogError($"[소마 패시브] 아군 대상을 찾을 수 없습니다! Caster.IsEnemy: {Caster.IsEnemy}");
+                return;
+            }
+            
+            Debug.LogWarning($"[소마 패시브] 방어막 부여 시작 - {targetUnits.Count}명의 아군에게 {shieldAmount} 방어막 부여");
             
             foreach (var targetUnit in targetUnits)
             {
                 if (targetUnit != null && targetUnit.isActive)
                 {
+                    int beforeShield = targetUnit.ShieldCurr;
                     targetUnit.AddShield(shieldAmount);
-                    Debug.Log($"[소마 패시브] {targetUnit.UnitName}에게 {shieldAmount}의 방어막 부여 완료");
+                    int afterShield = targetUnit.ShieldCurr;
+                    
+                    Debug.LogWarning($"[소마 패시브] {targetUnit.UnitName}: 방어막 {beforeShield} → {afterShield} (추가: {shieldAmount})");
                 }
                 else
                 {
-                    Debug.Log($"[소마 패시브] 대상 유닛이 null이거나 비활성 상태");
+                    Debug.LogError($"[소마 패시브] 대상 유닛이 null이거나 비활성 상태: {(targetUnit != null ? targetUnit.UnitName : "null")}");
                 }
             }
+            
+            Debug.LogWarning($"[소마 패시브] 방어막 부여 완료!");
         }
 
         public override void StopCode()
