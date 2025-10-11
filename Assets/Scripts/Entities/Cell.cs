@@ -28,6 +28,17 @@ public class Cell : MonoBehaviour
     public SpriteMask shieldBarMask;            // 방어막 바 마스크
     
     private Unit occupiedUnit;  // 점유 중인 유닛 참조
+    
+    // 클릭/드래그 구분용 필드
+    private Vector3 mouseDownPosition;
+    private float mouseDownTime;
+    private bool isDraggingStarted = false;
+    
+    [Header("Drag Threshold Settings")]
+    [Tooltip("드래그로 인식할 최소 마우스 이동 거리 (픽셀)")]
+    public float dragDistanceThreshold = 10f;
+    [Tooltip("드래그로 인식할 최소 시간 (초)")]
+    public float dragTimeThreshold = 0.15f;
 
     private void Update()
     {
@@ -42,24 +53,89 @@ public class Cell : MonoBehaviour
 
     private void OnMouseDown()
     {
-        // 유닛이 있는 셀을 클릭했을 때 드래그 시작
+        // 유닛이 있는지 확인
         if (isOccupied && unit != null)
         {
             Unit cellUnit = unit.GetComponent<Unit>();
             if (cellUnit != null && cellUnit.isActive)
             {
-                DragAndDropManager.Instance?.StartDrag(this);
+                // 기본적으로 클릭 처리를 위한 초기값 저장
+                mouseDownPosition = Input.mousePosition;
+                mouseDownTime = Time.time;
+                isDraggingStarted = false;
             }
+        }
+    }
+    
+    private void OnMouseDrag()
+    {
+        // 이미 드래그를 시작했거나 유닛이 없으면 무시
+        if (isDraggingStarted || !isOccupied || unit == null) return;
+        
+        Unit cellUnit = unit.GetComponent<Unit>();
+        if (cellUnit == null || !cellUnit.isActive) return;
+        
+        // 적군은 드래그 불가
+        if (cellUnit.IsEnemy) return;
+        
+        // 아군만 드래그 가능하며, Preparation 상태에서만 가능
+        if (GameManager.Instance == null || 
+            GameManager.Instance.gameState != BaseClasses.BaseEnums.GameState.Preparation)
+        {
+            return;
+        }
+        
+        // 거리와 시간 체크
+        float distance = Vector3.Distance(Input.mousePosition, mouseDownPosition);
+        float holdTime = Time.time - mouseDownTime;
+        
+        // 하이브리드: 거리 OR 시간 중 하나를 만족하면 드래그 시작
+        if (distance > dragDistanceThreshold || holdTime > dragTimeThreshold)
+        {
+            DragAndDropManager.Instance?.StartDrag(this);
+            isDraggingStarted = true;
         }
     }
 
     private void OnMouseUp()
     {
-        // 마우스를 놓았을 때 드래그 종료
-        if (DragAndDropManager.Instance != null && DragAndDropManager.Instance.IsDragging())
+        if (isDraggingStarted)
         {
-            DragAndDropManager.Instance.EndDrag();
+            // 드래그 종료
+            if (DragAndDropManager.Instance != null && 
+                DragAndDropManager.Instance.IsDragging())
+            {
+                DragAndDropManager.Instance.EndDrag();
+            }
         }
+        else
+        {
+            // 짧은 클릭 처리 - InfoTab 토글
+            if (isOccupied && unit != null)
+            {
+                Unit cellUnit = unit.GetComponent<Unit>();
+                if (cellUnit != null && cellUnit.isActive)
+                {
+                    UIManager uiManager = GameManager.Instance?.uiManager;
+                    if (uiManager != null && uiManager.infoTab != null)
+                    {
+                        // 적군은 무조건 InfoTab 표시
+                        if (cellUnit.IsEnemy)
+                        {
+                            uiManager.ShowInfoTab(cellUnit);
+                        }
+                        else
+                        {
+                            // 아군도 클릭 시 InfoTab 표시 (이미 열려있어도 정보 갱신)
+                            uiManager.ShowInfoTab(cellUnit);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 상태 초기화
+        isDraggingStarted = false;
     }
     
     /// <summary>
@@ -93,11 +169,6 @@ public class Cell : MonoBehaviour
             InitializeHpBar();
             InitializeMpBar();
             InitializeShieldBar();
-            Debug.Log($"[Cell] {name} UI 활성화 (필드 유닛)");
-        }
-        else if (yPos == 0)
-        {
-            Debug.Log($"[Cell] {name} 대기석 유닛 - UI 활성화 안함");
         }
     }
     
@@ -110,7 +181,6 @@ public class Cell : MonoBehaviour
         {
             uiObject.SetActive(false);
             DeactivateShieldBarCompletely(); // 방어막 바도 완전 비활성화
-            Debug.Log($"[Cell] {name} UI 비활성화");
         }
     }
     
@@ -180,11 +250,6 @@ public class Cell : MonoBehaviour
             
             // 렌더링 순서 설정 (z축 대신 sortingOrder 활용)
             hpBarFill.sortingOrder = hpBarBackground.sortingOrder + 1;
-            
-            // 디버깅용 로그
-            string unitType = occupiedUnit != null ? (occupiedUnit.IsEnemy ? "적군" : "아군") : "미확인";
-            string unitName = occupiedUnit != null ? occupiedUnit.UnitName : "미확인";
-            Debug.Log($"[Cell] {name} HP 바 초기화 완료 ({unitType} {unitName}) - Sprite Mask 방식, z값 통일");
         }
         else
         {
@@ -223,11 +288,6 @@ public class Cell : MonoBehaviour
             
             // 렌더링 순서 설정 (z축 대신 sortingOrder 활용)
             mpBarFill.sortingOrder = mpBarBackground.sortingOrder + 1;
-            
-            // 디버깅용 로그
-            string unitType = occupiedUnit != null ? (occupiedUnit.IsEnemy ? "적군" : "아군") : "미확인";
-            string unitName = occupiedUnit != null ? occupiedUnit.UnitName : "미확인";
-            Debug.Log($"[Cell] {name} MP 바 초기화 완료 ({unitType} {unitName}) - Sprite Mask 방식, z값 통일");
         }
         else
         {
@@ -269,8 +329,6 @@ public class Cell : MonoBehaviour
             {
                 shieldBarFill.sortingOrder = mpBarFill.sortingOrder + 1;
             }
-            
-            Debug.Log($"[Cell] {name} 방어막 바 초기화 완료 - 독립 바 방식 (BG+Fill+Mask)");
         }
         else
         {
@@ -312,8 +370,6 @@ public class Cell : MonoBehaviour
         {
             shieldBarFill.color = Color.cyan;
         }
-        
-        Debug.Log($"[Shield Bar] {occupiedUnit?.UnitName}: ShieldRatio={shieldRatio:F2} (Curr={occupiedUnit?.ShieldCurr}, Max={occupiedUnit?.ShieldMax})");
     }
 
     /// <summary>
@@ -398,7 +454,6 @@ public class Cell : MonoBehaviour
             hpBarBackground.gameObject.SetActive(false);
             hpBarFill.gameObject.SetActive(false);
             hpBarMask.gameObject.SetActive(false);
-            Debug.Log($"[Cell] {name} HP 바 비활성화");
         }
     }
 
@@ -412,7 +467,6 @@ public class Cell : MonoBehaviour
             mpBarBackground.gameObject.SetActive(false);
             mpBarFill.gameObject.SetActive(false);
             mpBarMask.gameObject.SetActive(false);
-            Debug.Log($"[Cell] {name} MP 바 비활성화");
         }
     }
 

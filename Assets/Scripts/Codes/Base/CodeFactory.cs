@@ -12,8 +12,9 @@ namespace Codes.Base
       return codeId switch
       {
         1 => new HolyEnchant(context),
-        2 => new HuntersVenom(context), // 아탈란테 패시브
+        2 => new GenericPassive(context) { CodeName = "사냥꾼의 독" }, // 아탈란테 패시브
         3 => new Soma(context), // 찬드라 패시브
+        4 => new GenericPassive(context) { CodeName = "갈라테아" }, // 피그말리온 패시브
         _ => null,
       };
     }
@@ -37,6 +38,7 @@ namespace Codes.Base
         3 => new a005_U_Moonfall(context), // 아탈란테 궁극기
         4 => new ApplyBurn(context), // 화상 부여
         5 => new Nishakara(context), // 찬드라 궁극기
+        6 => new a004_U_LovesPrize(context), // 피그말리온 궁극기
         _ => null,
       };
     }

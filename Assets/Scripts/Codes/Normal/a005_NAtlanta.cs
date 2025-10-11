@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using BaseClasses;
 using Codes.Base;
 using Entities;
+using Entities.Status;
+using Effects.Base;
 using Helpers;
-using StatusEffects.Effects;
 using UnityEngine;
 
 namespace Codes.Normal
@@ -38,17 +39,31 @@ namespace Codes.Normal
         }
 
         /// <summary>
-        /// 아탈란테의 추가 효과: 맹독 부여
+        /// 아탈란테의 추가 효과: 사냥꾼의 독 부여 (새 Status 시스템)
         /// </summary>
         protected override IEnumerator ApplyAdditionalEffects(Unit target, DamageContext context)
         {
-            // 맹독 효과 적용 (공격력의 10%)
-            // 각 맹독이 개별적으로 스택되도록 고유한 identifier 생성
-            string identifier = $"PoisonEffect_{Caster.GetInstanceID()}_{target.GetInstanceID()}_{System.DateTime.Now.Ticks}";
-            var poisonEffect = new PoisonEffect(Caster, identifier, (int)(Caster.AtkCurr * 0.1f));
-            target.AddStatusEffect(identifier, poisonEffect);
+            // 사냥꾼의 독 상태 생성 (StatusId = 3)
+            var huntersVenomStatus = new UnitStatus(3, Caster, target);
             
-            Debug.Log($"{Caster.UnitName}이 {target.UnitName}에게 맹독을 부여했습니다. (데미지: {(int)(Caster.AtkCurr * 0.1f)}, ID: {identifier})");
+            // DOT 효과 추가 (EffectId = 1001, 공격력의 10%)
+            huntersVenomStatus.AddEffect(1001, 10f);
+            
+            // Effect 객체 생성 및 할당
+            foreach (var effectInstance in huntersVenomStatus.Effects)
+            {
+                effectInstance.EffectObject = EffectFactory.CreateEffect(
+                    effectInstance.EffectId,
+                    effectInstance.Coefficient,
+                    Caster,
+                    target
+                );
+            }
+            
+            // 상태 적용
+            target.AddStatus(huntersVenomStatus);
+            
+            Debug.Log($"[아탈란테] {target.UnitName}에게 사냥꾼의 독 상태 부여 (공격력의 10% DOT)");
             
             yield return null;
         }

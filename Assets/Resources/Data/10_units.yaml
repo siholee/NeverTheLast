@@ -111,9 +111,9 @@
     critMultiplierIncrementUpgrade: 0.1
     manaBase: 100
     codes:
-      passive: 1
+      passive: 4
       normal: 2
-      ultimate: 1
+      ultimate: 6
     portrait: H4_PORTRAIT
     cost: [1, 5]
     costAmount: 6

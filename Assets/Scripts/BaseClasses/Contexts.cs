@@ -6,6 +6,7 @@ namespace BaseClasses
   public class PassiveCodeContext
   {
     public Unit Caster;
+    public string Name; // 패시브 이름 (GenericPassive용)
   }
 
   public class NormalCodeContext

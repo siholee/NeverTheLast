@@ -4887,7 +4887,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 100}
+  m_AnchoredPosition: {x: 0, y: -200}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &483713855
@@ -4918,7 +4918,12 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: New Text
+  m_text: "<b>\uC0C1\uD0DC \uD6A8\uACFC:</b>\r\n\u2022 <color=#ff4444>\uB9F9\uB3C5</color>\r\n 
+    \uB0A8\uC740\uC2DC\uAC04: 2.6\uCD08\r\n  \uD6A8\uACFC: \uC2DC\uC804\uC790\uC758
+    \uACF5\uACA9\uB825\uC5D0 \uBE44\uB840\uD55C \uC9C0\uC18D \uD53C\uD574\uB97C \uC785\uD799\uB2C8\uB2E4.\r\n 
+    \uD6A8\uACFC \uC218: 1\r\n\r\n\u2022 <color=#ffaa44>\uC2E0\uC131\uD55C \uC778\uCC48\uD2B8</color>\r\n 
+    \uB0A8\uC740\uC2DC\uAC04: \uC601\uAD6C\r\n  \uD6A8\uACFC: \uACF5\uACA9\uB825
+    +20% \uCE58\uBA85\uD0C0\uC728 +10%"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 10af7c299d318fa4d9900b3d3c1d0874, type: 2}
   m_sharedMaterial: {fileID: 7435427345327988578, guid: 10af7c299d318fa4d9900b3d3c1d0874,
@@ -4953,7 +4958,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -7380,7 +7385,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &862412030
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8768,7 +8773,6 @@ MonoBehaviour:
   unitLevelText: {fileID: 1295071028}
   maxHpText: {fileID: 474366104}
   currentHpText: {fileID: 1406511992}
-  hpText: {fileID: 1308512314}
   atkText: {fileID: 2079287340}
   defText: {fileID: 1118724509}
   critPosText: {fileID: 2089479124}
@@ -9053,7 +9057,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1173763578
 RectTransform:
   m_ObjectHideFlags: 0

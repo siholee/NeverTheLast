@@ -45,5 +45,30 @@ namespace BaseClasses
       DefensePenetration, // 방어력 일정량 무시
       SplitDamage, // 총 피해를 타겟 전체에게 균등 분배
     }
+
+    // 효과 분류
+    public enum EffectCategory
+    {
+      Positive,   // 긍정적 효과 (버프)
+      Negative,   // 부정적 효과 (디버프)
+      Neutral     // 중립적 효과
+    }
+
+    // 상태 분류
+    public enum StatusCategory
+    {
+      Positive,   // 긍정적 상태 (버프)
+      Negative,   // 부정적 상태 (디버프)
+      Neutral     // 중립적 상태
+    }
+    
+    // 상태 중첩 정책
+    public enum StatusStackPolicy
+    {
+      Stack,              // 중첩 허용 (맹독 - 독립적으로 작동)
+      ExtendDuration,     // 지속시간 연장 (화상 - 기존 효과에 시간 추가)
+      ReplaceIfStronger,  // 더 강한 것으로 교체 (효과가 큰 것만 유지)
+      Ignore              // 중복 무시 (기존 효과 유지, 새 효과 무시)
+    }
   }
 }

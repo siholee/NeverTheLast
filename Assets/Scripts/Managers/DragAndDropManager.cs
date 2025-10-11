@@ -75,8 +75,6 @@ namespace Managers
             
             // 원본 유닛을 반투명하게 만들기
             SetUnitAlpha(unit, dragAlpha);
-            
-            // Debug.Log($"드래그 시작: {unit.UnitName} at ({cell.xPos}, {cell.yPos})");
         }
         
         public void EndDrag()

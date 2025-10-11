@@ -4,9 +4,10 @@ using BaseClasses;
 using CGT.Pooling;
 using Codes.Base;
 using Entities;
+using Entities.Status;
+using Effects.Base;
 using Helpers;
 using Managers;
-using StatusEffects.Effects;
 using UnityEngine;
 
 namespace Codes.Ultimate
@@ -175,22 +176,33 @@ namespace Codes.Ultimate
         }
         
         /// <summary>
-        /// 아탈란테 궁극기 전용 맹독 부여
-        /// 각 공격마다 개별적으로 스택되는 맹독 효과
+        /// 아탈란테 궁극기 전용 사냥꾼의 독 부여 (새 Status 시스템)
         /// </summary>
         private void ApplyPoisonEffect(Unit target)
         {
             if (target != null && target.isActive && target.IsEnemy != Caster.IsEnemy)
             {
-                // 공격력의 10%에 해당하는 맹독 부여
-                int poisonDamage = Mathf.RoundToInt(Caster.AtkCurr * 0.1f);
+                // 사냥꾼의 독 상태 생성 (StatusId = 3)
+                var huntersVenomStatus = new UnitStatus(3, Caster, target);
                 
-                // 각 맹독이 개별적으로 스택되도록 고유한 identifier 생성
-                string identifier = $"MoonfallPoison_{Caster.GetInstanceID()}_{target.GetInstanceID()}_{System.DateTime.Now.Ticks}";
-                var poisonEffect = new PoisonEffect(Caster, identifier, poisonDamage);
-                target.AddStatusEffect(identifier, poisonEffect);
+                // DOT 효과 추가 (EffectId = 1001, 공격력의 10%)
+                huntersVenomStatus.AddEffect(1001, 10f);
                 
-                Debug.Log($"{Caster.UnitName}이 {target.UnitName}에게 달빛폭격 맹독 부여 (피해: {poisonDamage}, ID: {identifier})");
+                // Effect 객체 생성 및 할당
+                foreach (var effectInstance in huntersVenomStatus.Effects)
+                {
+                    effectInstance.EffectObject = EffectFactory.CreateEffect(
+                        effectInstance.EffectId,
+                        effectInstance.Coefficient,
+                        Caster,
+                        target
+                    );
+                }
+                
+                // 상태 적용
+                target.AddStatus(huntersVenomStatus);
+                
+                Debug.Log($"[달빛폭격] {target.UnitName}에게 사냥꾼의 독 상태 부여 (공격력의 10% DOT)");
             }
         }
 
