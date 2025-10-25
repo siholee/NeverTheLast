@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using CGT.Pooling;
+using Effects;
 using Entities;
+using BaseClasses;
 using UnityEngine;
 
 namespace Managers
@@ -30,14 +32,39 @@ namespace Managers
       }
     }
 
+    /// <summary>
+    /// 단일 투사체 발사 (기본 - 직선 경로)
+    /// </summary>
     public void FireSingleProjectile(HS_Poolable prefab, Unit unitFrom, Unit unitTo, float duration)
+    {
+      FireSingleProjectile(prefab, unitFrom, unitTo, duration, ProjectilePathType.Linear, null);
+    }
+    
+    /// <summary>
+    /// 단일 투사체 발사 (경로 타입 지정)
+    /// </summary>
+    public void FireSingleProjectile(HS_Poolable prefab, Unit unitFrom, Unit unitTo, float duration, 
+      ProjectilePathType pathType)
+    {
+      FireSingleProjectile(prefab, unitFrom, unitTo, duration, pathType, null);
+    }
+    
+    /// <summary>
+    /// 단일 투사체 발사 (경로 타입 및 파라미터 지정)
+    /// </summary>
+    public void FireSingleProjectile(HS_Poolable prefab, Unit unitFrom, Unit unitTo, float duration, 
+      ProjectilePathType pathType, ProjectilePathData pathData)
     {
       HS_Poolable projectile = poolableManager.GetInstanceOf(prefab);
       projectile.transform.position = unitFrom.transform.position;
       projectile.transform.rotation = Quaternion.LookRotation(unitTo.transform.position - unitFrom.transform.position);
       projectile.gameObject.SetActive(true);
       HS_ProjectileCustomMover mover = projectile.GetComponent<HS_ProjectileCustomMover>();
-      mover.SetProjectileInfo(unitFrom, unitTo, duration);
+      
+      if (pathData != null)
+        mover.SetProjectileInfo(unitFrom, unitTo, duration, pathType, pathData);
+      else
+        mover.SetProjectileInfo(unitFrom, unitTo, duration, pathType, new ProjectilePathData());
     }
   }
 }

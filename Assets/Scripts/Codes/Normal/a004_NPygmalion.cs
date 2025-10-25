@@ -1,6 +1,9 @@
+using System.Collections;
 using System.Collections.Generic;
 using BaseClasses;
 using Codes.Base;
+using Entities;
+using Managers;
 using UnityEngine;
 
 namespace Codes.Normal
@@ -22,6 +25,16 @@ namespace Codes.Normal
         protected override int CalculateDamage(float critMultiplier)
         {
             return (int)(Caster.DefCurr * 0.8f * critMultiplier);
+        }
+        
+        protected override IEnumerator FireProjectile(List<Unit> targets, float delay, DamageContext context)
+        {
+            foreach (var target in targets)
+            {
+                GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, target, delay);
+                yield return new WaitForSeconds(delay);
+                target.TakeDamage(context);
+            }
         }
     }
 }

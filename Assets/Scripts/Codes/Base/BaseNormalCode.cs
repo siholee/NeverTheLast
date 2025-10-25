@@ -111,7 +111,8 @@ namespace Codes.Base
         {
             foreach (var target in targets)
             {
-                GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, target, delay);
+                ProjectilePathData pathData = ProjectilePathData.CreateSpiral(5f, 20f, 5f);
+                GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, target, delay, ProjectilePathType.Spiral, pathData);
                 yield return new WaitForSeconds(delay);
                 target.TakeDamage(context);
             }

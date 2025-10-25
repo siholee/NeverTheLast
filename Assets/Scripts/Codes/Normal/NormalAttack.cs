@@ -70,7 +70,7 @@ namespace Codes.Normal
       Debug.Log($"{Caster.UnitName}이 {TargetUnits[0].UnitName}에게 {contactType} 일반공격을 시전했습니다.");
       
       DamageContext context = new(Caster, (int)(Caster.AtkCurr * 1.0f * critMultiplier), BaseEnums.CodeType.Normal, damageTags, isCrit);
-      Caster.StartCoroutine(FireProjectile(TargetUnits, 0.5f, context));
+      Caster.StartCoroutine(FireProjectile(TargetUnits, 2f, context));
       Caster.RecoverMana(ManaAmount);
       StopCode();
     }
@@ -85,7 +85,8 @@ namespace Codes.Normal
     {
       foreach (var target in targets)
       {
-        GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, target, delay);
+        ProjectilePathData pathData = ProjectilePathData.CreateWave(2, 5);
+        GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, target, delay, ProjectilePathType.Wave, pathData);
         yield return new WaitForSeconds(delay);
         target.TakeDamage(context);
       }

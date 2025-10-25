@@ -178,19 +178,19 @@ public virtual bool HasValidTarget() { return true; }
 투사체 프리팹을 생성하기 위한 일련의 단계
 
 1. 원하는 투사체 프리팹을 복사 후 Prefabs/SFX에 붙여넣기
-![img.png](Docs/1.png)
-![img.png](Docs/2.png)
+![img.png](01.png)
+![img.png](02.png)
 
 2. 복사한 프리팹의 콜라이더와 리지드바디, 라이트 컴포넌트를 삭제
 3. `Hovl Studio/HSFiles/Scripts/HS_ProjectileCustomMover` 컴포넌트를 추가
 4. `HS_ProjectileMover` 컴포넌트의 내용물을 보고 적당히 `HS_ProjectileCustomMover`에 오브젝트 할당
-![img.png](Docs/3.png)
+![img.png](03.png)
 
 여기선 Hit, Hit PS, Flash, Projectile PS를 똑같이 맞춰주면 됨(복사하는 투사체 효과마다 Flash가 없는 등 조금씩 다름)
 
 5. `HS_ProjectileMover` 컴포넌트를 삭제
 6. 프리팹 하위 파티클의 사이즈 조절(10배 정도로 키우면 잘 보임)
-![img.png](Docs/4.png)
+![img.png](04.png)
 
 ## UI 시스템 및 Z값 문제 해결
 
