@@ -171,44 +171,95 @@ namespace Entities
 
         protected virtual void LoadData(bool _isEnemy, int _id)
         {
-            UnitData data = GameManager.Instance.unitDataList.units.FirstOrDefault(e => e.id == _id);
-            LoadSprite(data.portrait, _isEnemy);
-            Level = _isEnemy ? 0 : 1;
-            UnitName = data.name;
-            Synergies = data.synergies;
-            HpBase = data.hpBase;
-            HpIncrementLvl = data.hpIncrementLvl;
-            HpIncrementUpgrade = data.hpIncrementUpgrade;
-            AtkBase = data.atkBase;
-            AtkIncrementLvl = data.atkIncrementLvl;
-            AtkIncrementUpgrade = data.atkIncrementUpgrade;
-            DefBase = data.defBase;
-            DefIncrementLvl = data.defIncrementLvl;
-            DefIncrementUpgrade = data.defIncrementUpgrade;
-            CritChanceBase = data.critChance;
-            CritChanceIncrementLvl = data.critChanceIncrementLvl;
-            CritChanceIncrementUpgrade = data.critChanceIncrementUpgrade;
-            CritMultiplierBase = data.critMultiplier;
-            CritMultiplierIncrementLvl = data.critMultiplierIncrementLvl;
-            CritMultiplierIncrementUpgrade = data.critMultiplierIncrementUpgrade;
-            ManaBase = data.manaBase;
-            CodeAcceleration = 1f;
+            // 적 유닛인 경우 EnemyData에서 로드
+            if (_isEnemy)
+            {
+                EnemyDataList enemyDataList = GameManager.Instance.dataManager.FetchEnemyDataList();
+                EnemyData enemyData = enemyDataList.enemies.FirstOrDefault(e => e.id == _id);
+                
+                if (enemyData == null)
+                {
+                    Debug.LogError($"Enemy data not found for ID: {_id}");
+                    return;
+                }
+                
+                LoadSprite(enemyData.portrait, _isEnemy);
+                Level = 0;
+                UnitName = enemyData.name;
+                Synergies = new List<int> { enemyData.faction, enemyData.@class };  // 소속과 직업
+                HpBase = enemyData.hpBase;
+                HpIncrementLvl = enemyData.hpIncrementLvl;
+                HpIncrementUpgrade = enemyData.hpIncrementUpgrade;
+                AtkBase = enemyData.atkBase;
+                AtkIncrementLvl = enemyData.atkIncrementLvl;
+                AtkIncrementUpgrade = enemyData.atkIncrementUpgrade;
+                DefBase = enemyData.defBase;
+                DefIncrementLvl = enemyData.defIncrementLvl;
+                DefIncrementUpgrade = enemyData.defIncrementUpgrade;
+                CritChanceBase = enemyData.critChance;
+                CritChanceIncrementLvl = enemyData.critChanceIncrementLvl;
+                CritChanceIncrementUpgrade = enemyData.critChanceIncrementUpgrade;
+                CritMultiplierBase = enemyData.critMultiplier;
+                CritMultiplierIncrementLvl = enemyData.critMultiplierIncrementLvl;
+                CritMultiplierIncrementUpgrade = enemyData.critMultiplierIncrementUpgrade;
+                ManaBase = enemyData.manaBase;
+                CodeAcceleration = 1f;
 
-            StatusEffects = new Dictionary<string, StatusEffect>();
-            isCasting = false;
-            castingTime = 0f;
-            isControlled = false;
-            controlDuration = 0f;
-            currentNormalTarget = null; // 일반공격 타겟 초기화
+                StatusEffects = new Dictionary<string, StatusEffect>();
+                isCasting = false;
+                castingTime = 0f;
+                isControlled = false;
+                controlDuration = 0f;
+                currentNormalTarget = null;
 
-            PassiveCode = CodeFactory.CreatePassiveCode(data.codes["passive"], new PassiveCodeContext { Caster = this });
-            NormalCode = CodeFactory.CreateNormalCode(data.codes["normal"], new NormalCodeContext { Caster = this });
-            UltimateCode = CodeFactory.CreateUltimateCode(data.codes["ultimate"], new UltimateCodeContext { Caster = this });
-            normalCooldown = NormalCode.Cooldown;
-            ultimateCooldown = UltimateCode.Cooldown;
-            
-            // 유닛별 패시브 StatusEffect 적용
-            ApplyPassiveStatusEffect();
+                PassiveCode = CodeFactory.CreatePassiveCode(enemyData.codes["passive"], new PassiveCodeContext { Caster = this });
+                NormalCode = CodeFactory.CreateNormalCode(enemyData.codes["normal"], new NormalCodeContext { Caster = this });
+                UltimateCode = CodeFactory.CreateUltimateCode(enemyData.codes["ultimate"], new UltimateCodeContext { Caster = this });
+                normalCooldown = NormalCode.Cooldown;
+                ultimateCooldown = UltimateCode.Cooldown;
+            }
+            // 아군(영웅) 유닛인 경우 기존 UnitData에서 로드
+            else
+            {
+                UnitData data = GameManager.Instance.unitDataList.units.FirstOrDefault(e => e.id == _id);
+                LoadSprite(data.portrait, _isEnemy);
+                Level = 1;
+                UnitName = data.name;
+                Synergies = data.synergies;
+                HpBase = data.hpBase;
+                HpIncrementLvl = data.hpIncrementLvl;
+                HpIncrementUpgrade = data.hpIncrementUpgrade;
+                AtkBase = data.atkBase;
+                AtkIncrementLvl = data.atkIncrementLvl;
+                AtkIncrementUpgrade = data.atkIncrementUpgrade;
+                DefBase = data.defBase;
+                DefIncrementLvl = data.defIncrementLvl;
+                DefIncrementUpgrade = data.defIncrementUpgrade;
+                CritChanceBase = data.critChance;
+                CritChanceIncrementLvl = data.critChanceIncrementLvl;
+                CritChanceIncrementUpgrade = data.critChanceIncrementUpgrade;
+                CritMultiplierBase = data.critMultiplier;
+                CritMultiplierIncrementLvl = data.critMultiplierIncrementLvl;
+                CritMultiplierIncrementUpgrade = data.critMultiplierIncrementUpgrade;
+                ManaBase = data.manaBase;
+                CodeAcceleration = 1f;
+
+                StatusEffects = new Dictionary<string, StatusEffect>();
+                isCasting = false;
+                castingTime = 0f;
+                isControlled = false;
+                controlDuration = 0f;
+                currentNormalTarget = null; // 일반공격 타겟 초기화
+
+                PassiveCode = CodeFactory.CreatePassiveCode(data.codes["passive"], new PassiveCodeContext { Caster = this });
+                NormalCode = CodeFactory.CreateNormalCode(data.codes["normal"], new NormalCodeContext { Caster = this });
+                UltimateCode = CodeFactory.CreateUltimateCode(data.codes["ultimate"], new UltimateCodeContext { Caster = this });
+                normalCooldown = NormalCode.Cooldown;
+                ultimateCooldown = UltimateCode.Cooldown;
+                
+                // 유닛별 패시브 StatusEffect 적용
+                ApplyPassiveStatusEffect();
+            }
         }
 
         /// <summary>
@@ -586,6 +637,7 @@ namespace Entities
             ShieldMax = 0;   // 라운드 종료 시 방어막 최대치 초기화
             ShieldCurr = 0;  // 라운드 종료 시 방어막 현재치 초기화
             AttributesUpdate();
+            UpdateShieldBar(); // 방어막 바 UI 업데이트 (비활성화)
         }
         
         /// <summary>

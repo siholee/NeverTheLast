@@ -1,0 +1,5 @@
+stageThemes:
+  - id: 1
+    name: 노르드
+    faction: 3  # 노르드 진영 ID
+    description: 노르드 진영의 적들이 등장합니다.

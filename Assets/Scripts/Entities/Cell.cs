@@ -215,7 +215,7 @@ public class Cell : MonoBehaviour
         }
         else
         {
-            DeactivateShieldBar(); // 방어막이 없으면 비활성화
+            DeactivateShieldBarCompletely(); // 방어막이 없으면 완전히 비활성화
         }
     }
     

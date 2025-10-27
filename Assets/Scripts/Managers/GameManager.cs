@@ -181,6 +181,7 @@ namespace Managers
             inventoryManager.Initialize();
 
             _roundManager = new RoundManager(dataManager);
+            _roundManager.InitializeStage(1); // 첫 번째 스테이지 시작
             _roundManager.LoadRound(1); // 첫 번째 라운드 시작
             
             // 첫 번째 준비 타이머 시작

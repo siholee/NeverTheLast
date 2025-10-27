@@ -1,34 +1,130 @@
-rounds:
-  - roundNumber: 1
-    cells:
-      - cellIndex: 1
-        enemyIds:
-          - 2
-          - 2
-          - 2
-          - 2
-      - cellIndex: 2
-        enemyIds:
-          - 3
-          - 3
-      - cellIndex: 3
-        enemyIds: []
-  - roundNumber: 2
-    cells:
-      - cellIndex: 1
-        enemyIds:
-          - 2
-          - 2
-      - cellIndex: 2
-        enemyIds:
-          - 3
-          - 3
-          - 3
-          - 3
-          - 3
-          - 3
-          - 3
-          - 3
-          - 3
-      - cellIndex: 3
-        enemyIds: []
+﻿roundTypes:
+  - id: 1
+    name: "Round Type 1"
+    isElite: false
+    isBoss: false
+    patterns:
+      - classes: [9, 9, 12]
+        weight: 30
+      - classes: [9, 9, 12, 12]
+        weight: 30
+      - classes: [9, 9, 9, 12]
+        weight: 20
+      - classes: [9, 9, 9, 12, 12]
+        weight: 20
+
+  - id: 2
+    name: "Round Type 2"
+    isElite: false
+    isBoss: false
+    patterns:
+      - classes: [8, 13]
+        weight: 25
+      - classes: [8, 13, 13]
+        weight: 25
+      - classes: [8, 8, 13]
+        weight: 25
+      - classes: [8, 8, 13, 13]
+        weight: 25
+
+  - id: 3
+    name: "Round Type 3"
+    isElite: false
+    isBoss: false
+    patterns:
+      - classes: [7, 7, 14]
+        weight: 30
+      - classes: [7, 7, 14, 14]
+        weight: 30
+      - classes: [7, 7, 7, 14]
+        weight: 20
+      - classes: [7, 7, 7, 14, 14]
+        weight: 20
+
+  - id: 4
+    name: "Round Type 4 Elite"
+    isElite: true
+    isBoss: false
+    patterns:
+      - eliteIds: [2001]
+        weight: 50
+      - eliteIds: [2001, 2002]
+        weight: 50
+
+  - id: 5
+    name: "Round Type 5"
+    isElite: false
+    isBoss: false
+    patterns:
+      - classes: [10, 12]
+        weight: 25
+      - classes: [10, 12, 12]
+        weight: 25
+      - classes: [10, 10, 12]
+        weight: 25
+      - classes: [10, 10, 12, 12]
+        weight: 25
+
+  - id: 6
+    name: "Round Type 6"
+    isElite: false
+    isBoss: false
+    patterns:
+      - classes: [11, 13]
+        weight: 25
+      - classes: [11, 13, 13]
+        weight: 25
+      - classes: [11, 11, 13]
+        weight: 25
+      - classes: [11, 11, 13, 13]
+        weight: 25
+
+  - id: 7
+    name: "Round Type 7"
+    isElite: false
+    isBoss: false
+    patterns:
+      - classes: [9, 9, 8]
+        weight: 30
+      - classes: [9, 9, 8, 8]
+        weight: 30
+      - classes: [9, 9, 9, 8]
+        weight: 20
+      - classes: [9, 9, 9, 8, 8]
+        weight: 20
+
+  - id: 8
+    name: "Round Type 8 Elite"
+    isElite: true
+    isBoss: false
+    patterns:
+      - eliteIds: [2001, 2002]
+        weight: 60
+      - eliteIds: [2001, 2001, 2002]
+        weight: 40
+
+  - id: 9
+    name: "Round Type 9"
+    isElite: false
+    isBoss: false
+    patterns:
+      - classes: [7, 7, 10]
+        weight: 30
+      - classes: [7, 7, 10, 10]
+        weight: 30
+      - classes: [7, 7, 7, 10]
+        weight: 20
+      - classes: [7, 7, 7, 10, 10]
+        weight: 20
+
+  - id: 10
+    name: "Round Type 10 Boss"
+    isElite: false
+    isBoss: true
+    patterns:
+      - bossId: 3001
+        weight: 100
+
+stages:
+  - stageNumber: 1
+    rounds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]

@@ -79,7 +79,45 @@ namespace Managers
             if (tokenDataList is { tokens: not null }) return tokenDataList;
             Debug.LogError("Failed to deserialize ResourceTokenDataList.");
             return null;
-
+        }
+        
+        public EnemyDataList FetchEnemyDataList()
+        {
+            TextAsset enemyData = Resources.Load<TextAsset>("Data/60_enemies");
+            var deserializer = new DeserializerBuilder().Build();
+            if (enemyData == null)
+            {
+                Debug.LogError("Data/60_enemies.yaml not found.");
+                return null;
+            }
+            EnemyDataList enemyDataList = deserializer.Deserialize<EnemyDataList>(enemyData.text);
+            return enemyDataList;
+        }
+        
+        public StageThemeDataList FetchStageThemeDataList()
+        {
+            TextAsset themeData = Resources.Load<TextAsset>("Data/80_stages");
+            var deserializer = new DeserializerBuilder().Build();
+            if (themeData == null)
+            {
+                Debug.LogError("Data/80_stages.yaml not found.");
+                return null;
+            }
+            StageThemeDataList themeDataList = deserializer.Deserialize<StageThemeDataList>(themeData.text);
+            return themeDataList;
+        }
+        
+        public RoundTypeDataList FetchRoundTypeDataList()
+        {
+            TextAsset roundTypeData = Resources.Load<TextAsset>("Data/70_rounds");
+            var deserializer = new DeserializerBuilder().Build();
+            if (roundTypeData == null)
+            {
+                Debug.LogError("Data/70_rounds.yaml not found.");
+                return null;
+            }
+            RoundTypeDataList roundTypeDataList = deserializer.Deserialize<RoundTypeDataList>(roundTypeData.text);
+            return roundTypeDataList;
         }
     }
 
@@ -185,5 +223,88 @@ namespace Managers
     public class ResourceTokenDataList
     {
         public List<ResourceTokenData> tokens;
+    }
+    
+    // 새로운 적 시스템 데이터 클래스들
+    [System.Serializable]
+    public class EnemyData
+    {
+        public int id;
+        public string name;
+        public int faction;     // 소속 (시너지 ID)
+        public int @class;      // 직업 (시너지 ID) - class는 C# 예약어이므로 @class 사용
+        public string tier;     // normal, elite, boss
+        public int hpBase;
+        public int hpIncrementLvl;
+        public int hpIncrementUpgrade;
+        public int atkBase;
+        public int atkIncrementLvl;
+        public int atkIncrementUpgrade;
+        public int defBase;
+        public int defIncrementLvl;
+        public int defIncrementUpgrade;
+        public float critChance;
+        public float critChanceIncrementLvl;
+        public float critChanceIncrementUpgrade;
+        public float critMultiplier;
+        public float critMultiplierIncrementLvl;
+        public float critMultiplierIncrementUpgrade;
+        public int manaBase;
+        public Dictionary<string, int> codes;
+        public string portrait;
+    }
+    
+    [System.Serializable]
+    public class EnemyDataList
+    {
+        public List<EnemyData> enemies;
+    }
+    
+    [System.Serializable]
+    public class StageThemeData
+    {
+        public int id;
+        public string name;
+        public int faction;
+        public string description;
+    }
+    
+    [System.Serializable]
+    public class StageThemeDataList
+    {
+        public List<StageThemeData> stageThemes;
+    }
+    
+    [System.Serializable]
+    public class RoundPattern
+    {
+        public List<int> classes;       // 일반 라운드용 직업 리스트
+        public List<int> eliteIds;      // 엘리트 라운드용 엘리트 ID 리스트
+        public int bossId;              // 보스 라운드용 보스 ID
+        public int weight;              // 이 패턴이 선택될 확률 가중치
+    }
+    
+    [System.Serializable]
+    public class RoundTypeData
+    {
+        public int id;
+        public string name;
+        public bool isElite;
+        public bool isBoss;
+        public List<RoundPattern> patterns;  // 여러 패턴 중 랜덤 선택
+    }
+    
+    [System.Serializable]
+    public class StageData
+    {
+        public int stageNumber;
+        public List<int> rounds;    // 각 라운드의 roundType ID
+    }
+    
+    [System.Serializable]
+    public class RoundTypeDataList
+    {
+        public List<RoundTypeData> roundTypes;
+        public List<StageData> stages;
     }
 }

@@ -1,0 +1,335 @@
+enemies:
+  # ?∏Î•¥??ÏßÑÏòÅ ?ºÎ∞ò ??
+  # Ï≤òÌòï??(Executioner) - Row 1
+  - id: 1001
+    name: Î∞úÌÇ§Î¶?
+    faction: 3  # ?∏Î•¥??
+    class: 9    # Ï≤òÌòï??
+    tier: normal
+    hpBase: 15000
+    hpIncrementLvl: 1500
+    hpIncrementUpgrade: 1500
+    atkBase: 800
+    atkIncrementLvl: 80
+    atkIncrementUpgrade: 80
+    defBase: 80
+    defIncrementLvl: 15
+    defIncrementUpgrade: 15
+    critChance: 0.15
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.03
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 100
+      normal: 100
+      ultimate: 100
+    portrait: SEI_PORTRAIT
+
+  # ?¨ÏÇ¨ (Warrior) - Row 1
+  - id: 1002
+    name: Í¥ëÏ†Ñ??
+    faction: 3  # ?∏Î•¥??
+    class: 8    # ?¨ÏÇ¨
+    tier: normal
+    hpBase: 25000
+    hpIncrementLvl: 2000
+    hpIncrementUpgrade: 2000
+    atkBase: 600
+    atkIncrementLvl: 60
+    atkIncrementUpgrade: 60
+    defBase: 100
+    defIncrementLvl: 20
+    defIncrementUpgrade: 20
+    critChance: 0.1
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.03
+    critMultiplier: 1.4
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 100
+      normal: 100
+      ultimate: 100
+    portrait: SEI_PORTRAIT
+
+  - id: 1003
+    name: ?ÑÏä§Ïπ¥Î?
+    faction: 3  # ?∏Î•¥??
+    class: 8    # ?¨ÏÇ¨
+    tier: normal
+    hpBase: 22000
+    hpIncrementLvl: 1800
+    hpIncrementUpgrade: 1800
+    atkBase: 700
+    atkIncrementLvl: 70
+    atkIncrementUpgrade: 70
+    defBase: 90
+    defIncrementLvl: 18
+    defIncrementUpgrade: 18
+    critChance: 0.12
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.03
+    critMultiplier: 1.4
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 100
+      normal: 100
+      ultimate: 100
+    portrait: SEI_PORTRAIT
+
+  # ?åÏàòÍæ?(Guardian) - Row 1
+  - id: 1004
+    name: ?§Ïä§ÎπÑÌÇπ
+    faction: 3  # ?∏Î•¥??
+    class: 7    # ?åÏàòÍæ?
+    tier: normal
+    hpBase: 35000
+    hpIncrementLvl: 3000
+    hpIncrementUpgrade: 3000
+    atkBase: 400
+    atkIncrementLvl: 40
+    atkIncrementUpgrade: 40
+    defBase: 150
+    defIncrementLvl: 30
+    defIncrementUpgrade: 30
+    critChance: 0.05
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.03
+    critMultiplier: 1.2
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 100
+      normal: 100
+      ultimate: 100
+    portrait: SEI_PORTRAIT
+
+  # ?¨Ïàò (Archer) - Row 3
+  - id: 1005
+    name: ?†ÏãúÎ•??¨Ïàò
+    faction: 3  # ?∏Î•¥??
+    class: 10   # ?¨Ïàò
+    tier: normal
+    hpBase: 12000
+    hpIncrementLvl: 1000
+    hpIncrementUpgrade: 1000
+    atkBase: 900
+    atkIncrementLvl: 90
+    atkIncrementUpgrade: 90
+    defBase: 60
+    defIncrementLvl: 12
+    defIncrementUpgrade: 12
+    critChance: 0.2
+    critChanceIncrementLvl: 0.02
+    critChanceIncrementUpgrade: 0.04
+    critMultiplier: 1.6
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 100
+      normal: 100
+      ultimate: 100
+    portrait: SEI_PORTRAIT
+
+  # ÎßàÎ≤ï??(Mage) - Row 3
+  - id: 1006
+    name: Í∞êÎ∞ò?åÏù∏
+    faction: 3  # ?∏Î•¥??
+    class: 11   # ÎßàÎ≤ï??
+    tier: normal
+    hpBase: 10000
+    hpIncrementLvl: 800
+    hpIncrementUpgrade: 800
+    atkBase: 1100
+    atkIncrementLvl: 110
+    atkIncrementUpgrade: 110
+    defBase: 50
+    defIncrementLvl: 10
+    defIncrementUpgrade: 10
+    critChance: 0.15
+    critChanceIncrementLvl: 0.02
+    critChanceIncrementUpgrade: 0.04
+    critMultiplier: 1.8
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.15
+    manaBase: 100
+    codes:
+      passive: 100
+      normal: 100
+      ultimate: 100
+    portrait: SEI_PORTRAIT
+
+  # Ï±ÖÎûµÍ∞Ä (Tactician) - Row 2
+  - id: 1007
+    name: ?òÎ¶¨?úÏä§Ï∫¥ÌîÑ
+    faction: 3  # ?∏Î•¥??
+    class: 12   # Ï±ÖÎûµÍ∞Ä
+    tier: normal
+    hpBase: 13000
+    hpIncrementLvl: 1100
+    hpIncrementUpgrade: 1100
+    atkBase: 700
+    atkIncrementLvl: 70
+    atkIncrementUpgrade: 70
+    defBase: 70
+    defIncrementLvl: 14
+    defIncrementUpgrade: 14
+    critChance: 0.1
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.03
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 100
+      normal: 100
+      ultimate: 100
+    portrait: SEI_PORTRAIT
+
+  # Î©îÏπ¥??(Mechanic) - Row 2
+  - id: 1008
+    name: ?∏Ïù¥??
+    faction: 3  # ?∏Î•¥??
+    class: 13   # Î©îÏπ¥??
+    tier: normal
+    hpBase: 14000
+    hpIncrementLvl: 1200
+    hpIncrementUpgrade: 1200
+    atkBase: 850
+    atkIncrementLvl: 85
+    atkIncrementUpgrade: 85
+    defBase: 80
+    defIncrementLvl: 16
+    defIncrementUpgrade: 16
+    critChance: 0.12
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.03
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 100
+      normal: 100
+      ultimate: 100
+    portrait: SEI_PORTRAIT
+
+  # ÏßÄ?êÍ? (Support) - Row 2
+  - id: 1009
+    name: Î∞îÎãàÎ•??¨Ï†ú
+    faction: 3  # ?∏Î•¥??
+    class: 14   # ÏßÄ?êÍ?
+    tier: normal
+    hpBase: 11000
+    hpIncrementLvl: 900
+    hpIncrementUpgrade: 900
+    atkBase: 500
+    atkIncrementLvl: 50
+    atkIncrementUpgrade: 50
+    defBase: 60
+    defIncrementLvl: 12
+    defIncrementUpgrade: 12
+    critChance: 0.08
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.02
+    critMultiplier: 1.3
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 100
+      normal: 100
+      ultimate: 100
+    portrait: SEI_PORTRAIT
+
+  # ?òÎ¶¨????
+  - id: 2001
+    name: ?§ÏûÑ??
+    faction: 3  # ?∏Î•¥??
+    class: 7    # ?åÏàòÍæ?
+    tier: elite
+    hpBase: 80000
+    hpIncrementLvl: 7000
+    hpIncrementUpgrade: 7000
+    atkBase: 1000
+    atkIncrementLvl: 100
+    atkIncrementUpgrade: 100
+    defBase: 300
+    defIncrementLvl: 50
+    defIncrementUpgrade: 50
+    critChance: 0.1
+    critChanceIncrementLvl: 0.01
+    critChanceIncrementUpgrade: 0.03
+    critMultiplier: 1.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.1
+    manaBase: 100
+    codes:
+      passive: 100
+      normal: 100
+      ultimate: 100
+    portrait: SEI_PORTRAIT
+
+  - id: 2002
+    name: ?†Î•¥
+    faction: 3  # ?∏Î•¥??
+    class: 8    # ?¨ÏÇ¨
+    tier: elite
+    hpBase: 70000
+    hpIncrementLvl: 6000
+    hpIncrementUpgrade: 6000
+    atkBase: 1500
+    atkIncrementLvl: 150
+    atkIncrementUpgrade: 150
+    defBase: 250
+    defIncrementLvl: 40
+    defIncrementUpgrade: 40
+    critChance: 0.15
+    critChanceIncrementLvl: 0.02
+    critChanceIncrementUpgrade: 0.04
+    critMultiplier: 2.0
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.15
+    manaBase: 100
+    codes:
+      passive: 100
+      normal: 100
+      ultimate: 100
+    portrait: SEI_PORTRAIT
+
+  # Î≥¥Ïä§ ??
+  - id: 3001
+    name: ?§Îîò
+    faction: 3  # ?∏Î•¥??
+    class: 11   # ÎßàÎ≤ï??
+    tier: boss
+    hpBase: 150000
+    hpIncrementLvl: 12000
+    hpIncrementUpgrade: 12000
+    atkBase: 2500
+    atkIncrementLvl: 250
+    atkIncrementUpgrade: 250
+    defBase: 400
+    defIncrementLvl: 60
+    defIncrementUpgrade: 60
+    critChance: 0.2
+    critChanceIncrementLvl: 0.02
+    critChanceIncrementUpgrade: 0.05
+    critMultiplier: 2.5
+    critMultiplierIncrementLvl: 0
+    critMultiplierIncrementUpgrade: 0.2
+    manaBase: 100
+    codes:
+      passive: 100
+      normal: 100
+      ultimate: 100
+    portrait: SEI_PORTRAIT
