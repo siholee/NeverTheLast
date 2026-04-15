@@ -139,6 +139,9 @@ namespace Managers
         public float critMultiplierIncrementLvl;   // YAML의 critMultiplierIncrementLvl 필드와 매핑
         public float critMultiplierIncrementUpgrade; // YAML의 critMultiplierIncrementUpgrade 필드와 매핑
         public int manaBase;
+        public float speedBase;
+        public float speedIncrementLvl;
+        public float speedIncrementUpgrade;
         public Dictionary<string, int> codes;
         public string portrait;
     }

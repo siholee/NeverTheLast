@@ -26,6 +26,16 @@ namespace BaseClasses
       OnRoundStart, // Unit(자신)
       OnRoundEnd, // Unit(자신)
       OnStageEnd, // Unit(자신)
+      OnTurnStart, // Unit(자신)
+      OnTurnEnd, // Unit(자신)
+    }
+
+    // 턴제 전투에서 행동 유형
+    public enum ActionType
+    {
+      None,
+      Normal,
+      Ultimate
     }
 
     // 현재 진행중인 게임 상태

@@ -32,11 +32,13 @@ namespace Entities
         [SerializeField] private int defUpgrade;
         [SerializeField] private int critChanceUpgrade;
         [SerializeField] private int critMultiplierUpgrade;
+        [SerializeField] private int speedUpgrade;
         public int HpUpgrade { get => hpUpgrade; protected set => hpUpgrade = value; }
         public int AtkUpgrade { get => atkUpgrade; protected set => atkUpgrade = value; }
         public int DefUpgrade { get => defUpgrade; protected set => defUpgrade = value; }
         public int CritChanceUpgrade { get => critChanceUpgrade; protected set => critChanceUpgrade = value; }
         public int CritMultiplierUpgrade { get => critMultiplierUpgrade; protected set => critMultiplierUpgrade = value; }
+        public int SpeedUpgrade { get => speedUpgrade; protected set => speedUpgrade = value; }
 
         // 유닛 현재 상태
         [SerializeField] private int hpCurr;
@@ -45,19 +47,18 @@ namespace Entities
         [SerializeField] private int defCurr;
         [SerializeField] private float critChanceCurr;
         [SerializeField] private float critDamageCurr;
-        [SerializeField] private float codeAcceleration;
+        [SerializeField] private float speedCurr;
         public int HpCurr { get => hpCurr; protected set => hpCurr = value; }
         public int ManaCurr { get => manaCurr; protected set => manaCurr = value; }
         public int AtkCurr { get => atkCurr; protected set => atkCurr = value; }
         public int DefCurr { get => defCurr; protected set => defCurr = value; }
         public float CritChanceCurr { get => critChanceCurr; protected set => critChanceCurr = value; }
         public float CritMultiplierCurr { get => critDamageCurr; protected set => critDamageCurr = value; }
-        public float CodeAcceleration { get => codeAcceleration; protected set => codeAcceleration = value; }
+        public float SpeedCurr { get => speedCurr; protected set => speedCurr = value; }
 
         public bool isCasting; // 스킬 시전중
-        public float castingTime;
         public bool isControlled; // 행동 불가 상태
-        public float controlDuration;
+        public int controlTurns; // 턴제 전투용 제어 턴 수
 
         // 유닛 스탯 수치
         // 인스펙터 노출용용
@@ -79,6 +80,9 @@ namespace Entities
         [SerializeField] private float critMultiplierBase;
         [SerializeField] private float critMultiplierIncrementLvl;
         [SerializeField] private float critMultiplierIncrementUpgrade;
+        [SerializeField] private float speedBase;
+        [SerializeField] private float speedIncrementLvl;
+        [SerializeField] private float speedIncrementUpgrade;
         [SerializeField] private List<int> synergies;
 
         // 실제 수치 관리용
@@ -100,6 +104,9 @@ namespace Entities
         public float CritMultiplierBase { get => critMultiplierBase; protected set => critMultiplierBase = value; }
         public float CritMultiplierIncrementLvl { get => critMultiplierIncrementLvl; protected set => critMultiplierIncrementLvl = value; }
         public float CritMultiplierIncrementUpgrade { get => critMultiplierIncrementUpgrade; protected set => critMultiplierIncrementUpgrade = value; }
+        public float SpeedBase { get => speedBase; protected set => speedBase = value; }
+        public float SpeedIncrementLvl { get => speedIncrementLvl; protected set => speedIncrementLvl = value; }
+        public float SpeedIncrementUpgrade { get => speedIncrementUpgrade; protected set => speedIncrementUpgrade = value; }
 
         public List<int> Synergies { get => synergies; protected set => synergies = value; }
 
@@ -108,11 +115,9 @@ namespace Entities
         protected Dictionary<int, SynergyEffect> SynergyEffects;
 
         // 유닛 코드(스킬) 정보
-        protected PassiveCode PassiveCode;
-        protected NormalCode NormalCode;
-        protected UltimateCode UltimateCode;
-        public float normalCooldown;
-        public float ultimateCooldown;
+        public PassiveCode PassiveCode;
+        public NormalCode NormalCode;
+        public UltimateCode UltimateCode;
 
         // 이벤트
         private Dictionary<BaseEnums.UnitEventType, Delegate> _eventDict;
@@ -165,20 +170,19 @@ namespace Entities
             CritMultiplierBase = data.critMultiplier;
             CritMultiplierIncrementLvl = data.critMultiplierIncrementLvl;
             CritMultiplierIncrementUpgrade = data.critMultiplierIncrementUpgrade;
+            SpeedBase = data.speedBase;
+            SpeedIncrementLvl = data.speedIncrementLvl;
+            SpeedIncrementUpgrade = data.speedIncrementUpgrade;
             ManaBase = data.manaBase;
-            CodeAcceleration = 1f;
 
             StatusEffects = new Dictionary<string, StatusEffect>();
             isCasting = false;
-            castingTime = 0f;
             isControlled = false;
-            controlDuration = 0f;
+            controlTurns = 0;
 
             PassiveCode = CodeFactory.CreatePassiveCode(data.codes["passive"], new PassiveCodeContext { Caster = this });
             NormalCode = CodeFactory.CreateNormalCode(data.codes["normal"], new NormalCodeContext { Caster = this });
             UltimateCode = CodeFactory.CreateUltimateCode(data.codes["ultimate"], new UltimateCodeContext { Caster = this });
-            normalCooldown = NormalCode.Cooldown;
-            ultimateCooldown = UltimateCode.Cooldown;
         }
 
         protected virtual void LoadSprite(string _name, bool _isEnemy)
@@ -205,7 +209,8 @@ namespace Entities
             float defAdd = 0f;
             float critChanceAdd = 0f;
             float critMultiplierAdd = 0f;
-            float codeAccelMul = 0f;
+            float speedMul = 0f;
+            float speedAdd = 0f;
 
             foreach (var effectPair in StatusEffects)
             {
@@ -217,7 +222,8 @@ namespace Entities
                 defAdd += effectPair.Value.DefAdditiveModifier(this);
                 critChanceAdd += effectPair.Value.CritChanceAdditiveModifier(this);
                 critMultiplierAdd += effectPair.Value.CritMultiplierAdditiveModifier(this);
-                codeAccelMul += effectPair.Value.CodeAccelerationMultiplicativeModifier(this);
+                speedMul += effectPair.Value.SpeedMultiplicativeModifier(this);
+                speedAdd += effectPair.Value.SpeedAdditiveModifier(this);
             }
             foreach (var effectPair in SynergyEffects)
             {
@@ -229,7 +235,8 @@ namespace Entities
                 defAdd += effectPair.Value.DefAdditiveModifier(this);
                 critChanceAdd += effectPair.Value.CritChanceAdditiveModifier(this);
                 critMultiplierAdd += effectPair.Value.CritMultiplierAdditiveModifier(this);
-                codeAccelMul += effectPair.Value.CodeAccelerationMultiplicativeModifier(this);
+                speedMul += effectPair.Value.SpeedMultiplicativeModifier(this);
+                speedAdd += effectPair.Value.SpeedAdditiveModifier(this);
             }
 
             // hp 비율 저장
@@ -241,7 +248,15 @@ namespace Entities
             DefCurr = Mathf.RoundToInt(GetBaseDef() * (1f + defMul) + defAdd);
             CritChanceCurr = GetBaseCritChance() + critChanceAdd;
             CritMultiplierCurr = GetBaseCritDamage() + critMultiplierAdd;
-            CodeAcceleration = 1f + codeAccelMul;
+
+            float oldSpeed = SpeedCurr;
+            SpeedCurr = GetBaseSpeed() * (1f + speedMul) + speedAdd;
+
+            // 속도 변경 시 BattleManager에 통보
+            if (Mathf.Abs(oldSpeed - SpeedCurr) > 0.001f && Managers.BattleManager.Instance != null)
+            {
+                Managers.BattleManager.Instance.OnSpeedChanged(this, oldSpeed, SpeedCurr);
+            }
 
             // hp 비율 복구
             HpCurr = Mathf.RoundToInt(HpMax * healthRatio);
@@ -268,6 +283,11 @@ namespace Entities
         public virtual void Die(Unit attacker)
         {
             Invoke(BaseEnums.UnitEventType.OnDeath, (this, attacker));
+            // BattleManager에서 유닛 제거
+            if (Managers.BattleManager.Instance != null)
+            {
+                Managers.BattleManager.Instance.UnregisterUnit(this);
+            }
             DeactivateUnit();
         }
 
@@ -290,7 +310,7 @@ namespace Entities
         public virtual void ControlStarts(ControlContext context)
         {
             isControlled = true;
-            controlDuration = context.Duration;
+            controlTurns = context.TurnDuration;
             Invoke(BaseEnums.UnitEventType.OnControlStarts, (this, context));
         }
 
@@ -300,7 +320,7 @@ namespace Entities
         public virtual void ControlEnds()
         {
             isControlled = false;
-            controlDuration = 0f;
+            controlTurns = 0;
             Invoke(BaseEnums.UnitEventType.OnControlEnds, this);
         }
 
@@ -334,37 +354,7 @@ namespace Entities
             currentCell.manaBarObj.transform.localScale = new Vector3((float)ManaCurr / ManaMax, 1f, 1f);
         }
 
-        private void Update()
-        {
-            if (!isActive) return;
-            if (GameManager.Instance.gameState == BaseEnums.GameState.RoundInProgress)
-            {
-                if (isControlled)
-                {
-                    controlDuration -= Time.deltaTime;
-                    if (controlDuration <= 0f)
-                    {
-                        ControlEnds();
-                    }
-                }
-                if (!isControlled && !isCasting)
-                {
-                    if (ultimateCooldown <= 0f && UltimateCode.HasValidTarget() && ManaCurr >= ManaMax)
-                    {
-                        CastUltimateCode();
-                    }
-                    else
-                    {
-                        if (normalCooldown <= 0f && NormalCode.HasValidTarget())
-                        {
-                            CastNormalCode();
-                        }
-                    }
-                    ultimateCooldown = Mathf.Max(0f, ultimateCooldown - Time.deltaTime * CodeAcceleration);
-                    normalCooldown = Mathf.Max(0f, normalCooldown - Time.deltaTime * CodeAcceleration);
-                }
-            }
-        }
+        // 턴제 전투에서는 BattleManager가 전투 로직을 관리하므로 Update() 전투 로직 제거
 
         // 디폴트 이벤트 액션(이거 참고해서 다른 이벤트 만들어 넣으면 됨)
 
@@ -441,6 +431,11 @@ namespace Entities
             return CritMultiplierBase + CritMultiplierIncrementLvl * Level + CritMultiplierIncrementUpgrade * CritMultiplierUpgrade;
         }
 
+        public virtual float GetBaseSpeed()
+        {
+            return SpeedBase + SpeedIncrementLvl * Level + SpeedIncrementUpgrade * SpeedUpgrade;
+        }
+
         // 유닛 활성화 상태 관리
         public void ActivateUnit()
         {
@@ -460,7 +455,6 @@ namespace Entities
             currentCell.portraitRenderer.sprite = null;
             currentCell.hpBarObj.transform.Find("Bar Sprite").GetComponent<SpriteRenderer>().enabled = false;
             currentCell.manaBarObj.transform.Find("Bar Sprite").GetComponent<SpriteRenderer>().enabled = false;
-            currentCell.reservedTime = 2f;
         }
 
         // 유닛 상태효과 관리

@@ -33,58 +33,36 @@ namespace Codes.Normal
 
         protected override IEnumerator SkillCoroutine()
         {
-            // 캐스팅
-            float elapsedTime = 0f;
-            while (elapsedTime < CastingDelay)
-            {
-                if (Caster.isControlled || !Caster.isActive)
-                {
-                    Debug.Log($"{Caster.UnitName}({Caster.currentCell.xPos}, {Caster.currentCell.yPos})의 {CodeName} 시전이 방해됨");
-                    StopCode();
-                    yield break;
-                }
-                elapsedTime += Time.deltaTime;
-                yield return null;
-            }
+            // 캐스팅 연출
+            if (CastingDelay > 0f)
+                yield return new WaitForSeconds(CastingDelay);
 
-            // 효과 처리
+            // 4연타 효과 처리
             for (int i = 0; i < 4; i++)
             {
-                if (Caster.isControlled || !Caster.isActive)
-                {
-                    Debug.Log($"{Caster.UnitName}({Caster.currentCell.xPos}, {Caster.currentCell.yPos})의 {CodeName} 시전이 방해됨");
-                    StopCode();
-                    yield break;
-                }
                 TargetUnits = GridManager.Instance.TargetNearestEnemy(Caster);
                 if (TargetUnits.Count == 0)
                 {
-                    yield break;
+                    break;
                 }
                 bool isCrit = Random.value <= Caster.CritChanceCurr;
                 float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
                 DamageContext context = new(Caster, (int)(Caster.AtkCurr * 0.8f * critMultiplier), BaseEnums.CodeType.Normal, new List<int> { DamageTag.SingleTarget }, isCrit);
-                Caster.StartCoroutine(FireProjectile(TargetUnits, 0.2f, context));
-                yield return new WaitForSeconds(0.2f);
+
+                foreach (var target in TargetUnits)
+                {
+                    GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, target, 0.2f);
+                    yield return new WaitForSeconds(0.2f);
+                    target.TakeDamage(context);
+                    Caster.RecoverMana(ManaAmount);
+                }
             }
             StopCode();
         }
 
         public override void StopCode()
         {
-            Caster.normalCooldown = Cooldown;
             Caster.isCasting = false;
-        }
-
-        private IEnumerator FireProjectile(List<Unit> targets, float delay, DamageContext context)
-        {
-            foreach (var target in targets)
-            {
-                GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, target, delay);
-                yield return new WaitForSeconds(delay);
-                target.TakeDamage(context);
-                Caster.RecoverMana(ManaAmount);
-            }
         }
 
         public override bool HasValidTarget()

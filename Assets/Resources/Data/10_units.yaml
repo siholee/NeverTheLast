@@ -24,6 +24,9 @@ units:
       passive: 1
       normal: 2
       ultimate: 1
+    speedBase: 95
+    speedIncrementLvl: 2
+    speedIncrementUpgrade: 3
     portrait: SEI_PORTRAIT
 
   - id: 2
@@ -50,6 +53,9 @@ units:
       passive: 1
       normal: 1
       ultimate: 1
+    speedBase: 110
+    speedIncrementLvl: 2
+    speedIncrementUpgrade: 3
     portrait: DAIYAN_PORTRAIT
   - id: 3
     name: CLUKAY
@@ -75,4 +81,7 @@ units:
       passive: 1
       normal: 1
       ultimate: 1
+    speedBase: 102
+    speedIncrementLvl: 2
+    speedIncrementUpgrade: 3
     portrait: CLUKAY_PORTRAIT

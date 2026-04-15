@@ -41,12 +41,12 @@ namespace BaseClasses
   public class ControlContext
   {
     public Unit Attacker;
-    public readonly float Duration;
+    public readonly int TurnDuration;
 
-    public ControlContext(Unit attacker, float duration)
+    public ControlContext(Unit attacker, int turnDuration)
     {
       this.Attacker = attacker;
-      this.Duration = duration;
+      this.TurnDuration = turnDuration;
     }
   }
 }

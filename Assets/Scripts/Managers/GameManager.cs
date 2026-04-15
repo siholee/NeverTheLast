@@ -9,10 +9,11 @@ namespace Managers
     public class GameManager : MonoBehaviour
     {
         public static GameManager Instance { get; private set; }
-        private RoundManager _roundManager;
+        public RoundManager roundManager;
         public GridManager gridManager;
         public UIManager uiManager;
         public SfxManager sfxManager;
+        public BattleManager battleManager;
 
         public GameState gameState;
         public Dictionary<int, SynergyInfo> SynergyCounts;
@@ -49,6 +50,7 @@ namespace Managers
                     case GameState.Preparation:
                         gameState = GameState.RoundInProgress;
                         GridManager.Instance.OnRoundStart();
+                        battleManager.StartBattle();
                         break;
                     case GameState.RoundInProgress:
                         gameState = GameState.RoundEnd;
@@ -100,16 +102,10 @@ namespace Managers
             gridManager.gameManager = this;
             gridManager.InitializeComponent();
 
-            _roundManager = new RoundManager(dataManager);
-            _roundManager.LoadRound(1); // 첫 번째 라운드 시작
+            roundManager = new RoundManager(dataManager);
+            roundManager.LoadRound(1); // 첫 번째 라운드 시작
         }
 
-        private void Update()
-        {
-            if (_roundManager.IsRoundInProgress)
-            {
-                _roundManager.UpdateRound();
-            }
-        }
+        // 턴제 전투에서는 BattleManager가 전투 루프를 관리하므로 Update() 실시간 처리 제거
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using BaseClasses;
+using Entities;
 using UnityEngine;
 using static BaseClasses.BaseEnums;
 
@@ -18,6 +19,41 @@ namespace Managers
         {
             // Start Round 함수 여기에 구현하면 됨
             Debug.Log("Test Button Clicked");
+        }
+
+        // 턴 행동 선택 패널
+        public GameObject actionPanel;
+        public UnityEngine.UI.Button normalButton;
+        public UnityEngine.UI.Button ultimateButton;
+
+        /// <summary>
+        /// 히어로 턴에 행동 선택 패널 표시
+        /// </summary>
+        public void ShowActionPanel(Unit unit)
+        {
+            if (actionPanel != null)
+            {
+                actionPanel.SetActive(true);
+                // 궁극기 버튼은 마나가 충분할 때만 활성화
+                if (ultimateButton != null)
+                {
+                    ultimateButton.interactable = unit.ManaCurr >= unit.ManaMax
+                        && unit.UltimateCode != null
+                        && unit.UltimateCode.HasValidTarget();
+                }
+            }
+            Debug.Log($"[UI] {unit.UnitName} 행동 선택 패널 표시");
+        }
+
+        /// <summary>
+        /// 행동 선택 패널 숨기기
+        /// </summary>
+        public void HideActionPanel()
+        {
+            if (actionPanel != null)
+            {
+                actionPanel.SetActive(false);
+            }
         }
 
         // 배속

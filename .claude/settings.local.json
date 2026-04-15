@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la /c/Users/sihol/Documents/GitHub/NeverTheLast/*.json /c/Users/sihol/Documents/GitHub/NeverTheLast/*.md /c/Users/sihol/Documents/GitHub/NeverTheLast/*.xml /c/Users/sihol/Documents/GitHub/NeverTheLast/*.yml /c/Users/sihol/Documents/GitHub/NeverTheLast/*.yaml)",
+      "Bash(git:*)",
+      "Bash(wc:*)",
+      "WebSearch"
+    ]
+  }
+}

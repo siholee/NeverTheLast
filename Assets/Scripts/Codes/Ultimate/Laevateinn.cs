@@ -32,43 +32,42 @@ namespace Codes.Ultimate
 
     protected override IEnumerator SkillCoroutine()
     {
-      // 캐스팅
-      float elapsedTime = 0f;
-      while (elapsedTime < CastingDelay)
-      {
-        if (Caster.isControlled || !Caster.isActive)
-        {
-          Debug.Log($"{Caster.UnitName}({Caster.currentCell.xPos}, {Caster.currentCell.yPos})의 {CodeName} 시전이 방해됨");
-          StopCode();
-          yield break;
-        }
-        elapsedTime += Time.deltaTime;
-        yield return null;
-      }
+      // 캐스팅 연출
+      if (CastingDelay > 0f)
+        yield return new WaitForSeconds(CastingDelay);
 
-      // 효과 처리
+      // 효과 처리 - 전체 대상
       TargetUnits = GridManager.Instance.TargetAllEnemies(Caster);
       bool isCrit = Random.value <= Caster.CritChanceCurr;
       float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
       DamageContext context = new(Caster, (int)(Caster.AtkCurr * 3f * critMultiplier), BaseEnums.CodeType.Ultimate, new List<int> { DamageTag.AllTarget }, isCrit);
+
+      // 모든 대상에 투사체 발사 및 데미지 적용
+      float maxDelay = 0f;
       foreach (var unit in TargetUnits)
       {
-        Caster.StartCoroutine(FireProjectile(unit, Random.Range(0.1f, 0.5f), context));
+        float delay = Random.Range(0.1f, 0.5f);
+        if (delay > maxDelay) maxDelay = delay;
+        GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, unit, delay);
       }
+      // 가장 긴 투사체가 도착할 때까지 대기
+      yield return new WaitForSeconds(maxDelay + 0.1f);
+
+      // 데미지 일괄 적용
+      foreach (var unit in TargetUnits)
+      {
+        if (unit.isActive)
+        {
+          unit.TakeDamage(context);
+        }
+      }
+
       StopCode();
     }
 
     public override void StopCode()
     {
-      Caster.ultimateCooldown = Cooldown;
       Caster.isCasting = false;
-    }
-
-    private IEnumerator FireProjectile(Unit target, float delay, DamageContext context)
-    {
-      GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, target, delay);
-      yield return new WaitForSeconds(delay);
-      target.TakeDamage(context);
     }
 
     public override bool HasValidTarget()

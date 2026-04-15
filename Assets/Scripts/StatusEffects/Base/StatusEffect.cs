@@ -39,7 +39,11 @@ namespace StatusEffects.Base
     {
       return 0f;
     }
-    public virtual float CodeAccelerationMultiplicativeModifier(Unit unit)
+    public virtual float SpeedMultiplicativeModifier(Unit unit)
+    {
+      return 0f;
+    }
+    public virtual float SpeedAdditiveModifier(Unit unit)
     {
       return 0f;
     }

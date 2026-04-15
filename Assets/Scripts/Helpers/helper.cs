@@ -10,8 +10,8 @@ namespace Helpers
     public const int HpMul = 6;
     public const int CritChanceAdd = 7;
     public const int CritDmgAdd = 8;
-    public const int CdAdd = 9;
-    public const int CdMul = 10;
+    public const int SpeedAdd = 9;
+    public const int SpeedMul = 10;
   }
 
   public class DamageTag

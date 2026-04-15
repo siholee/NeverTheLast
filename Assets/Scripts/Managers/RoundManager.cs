@@ -126,7 +126,7 @@ namespace Managers
             return false; // 적 소환 실패
         }
 
-        private bool AreAllQueuesEmpty()
+        public bool AreAllQueuesEmpty()
         {
             foreach (var queue in _spawnQueues.Values)
             {
@@ -139,6 +139,23 @@ namespace Managers
         {
             // Debug.Log($"Round {ROUND} completed.");
             IsRoundInProgress = false;
+        }
+
+        /// <summary>
+        /// BattleManager가 TurnCleanup에서 호출. 빈 셀에 대기중인 적을 스폰.
+        /// </summary>
+        public void TrySpawnPending()
+        {
+            foreach (var cellIndex in _spawnQueues.Keys)
+            {
+                while (_spawnQueues[cellIndex].Count > 0)
+                {
+                    if (!TrySpawnEnemy(cellIndex))
+                    {
+                        break;
+                    }
+                }
+            }
         }
 
         public void NotifyCellAvailable(int cellIndex)

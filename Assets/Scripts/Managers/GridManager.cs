@@ -85,7 +85,6 @@ namespace Managers
                     cell.xPos = x;
                     cell.yPos = y;
                     cell.isOccupied = false;
-                    cell.reservedTime = 0f;
 
                     int adjustedX = x - xMin;
                     int adjustedY = y - yMin;
@@ -103,7 +102,7 @@ namespace Managers
                 adjustedY >= 0 && adjustedY < _cellManager.GetLength(1))
             {
                 Cell cell = _cellManager[adjustedX, adjustedY];
-                return cell != null && !cell.isOccupied && cell.reservedTime <= 0f;
+                return cell != null && !cell.isOccupied;
             }
 
             return false; // Cell doesn't exist or is occupied
@@ -154,6 +153,13 @@ namespace Managers
                         unitComponent.currentCell = cell;
                         unitComponent.Spawn(cell, isEnemy, unitId);
                         Debug.Log($"Spawned {(isEnemy ? "enemy" : "hero")} unit {unitComponent.UnitName} at ({xPos}, {yPos})");
+
+                        // 전투 진행 중이면 BattleManager에 유닛 등록
+                        if (GameManager.Instance.gameState == BaseClasses.BaseEnums.GameState.RoundInProgress
+                            && BattleManager.Instance != null)
+                        {
+                            BattleManager.Instance.RegisterUnit(unitComponent);
+                        }
                     }
                     else
                     {

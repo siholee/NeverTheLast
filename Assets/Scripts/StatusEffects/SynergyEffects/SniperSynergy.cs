@@ -10,7 +10,7 @@ namespace StatusEffects.SynergyEffects
             return Stack * 0.15f;
         }
 
-        public override float CodeAccelerationMultiplicativeModifier(Unit unit)
+        public override float SpeedMultiplicativeModifier(Unit unit)
         {
             if (unit.Synergies.Contains(3)) return Stack * 0.2f;
             return 0f;
