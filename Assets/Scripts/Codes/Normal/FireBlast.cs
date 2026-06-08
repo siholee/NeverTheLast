@@ -22,6 +22,10 @@ namespace Codes.Normal
       CodeName = "불알";
       CastingDelay = 0.5f;
       ManaAmount = 10;
+      Element       = BaseEnums.ElementType.Pyro;
+      SkillCategory = BaseEnums.SkillCategory.Basic;  // 기본 공격 (SP 생성)
+      SpCost        = 0;
+      TargetType    = BaseEnums.TargetType.Single;    // 단일 타겟 (BattleManager가 사전 결정)
       // effects = new Dictionary<string, OldEffectBase>();
       _prefab = GameManager.Instance.sfxManager.ProjectilePrefabs["FireBlast"];
     }
@@ -39,11 +43,15 @@ namespace Codes.Normal
       if (CastingDelay > 0f)
         yield return new WaitForSeconds(CastingDelay);
 
-      // 효과 처리
-      TargetUnits = GridManager.Instance.TargetNearestEnemy(Caster);
+      // TargetUnits는 BattleManager.ResolveTargetsCoroutine()이 이미 설정함
+      if (TargetUnits == null || TargetUnits.Count == 0)
+      {
+          StopCode();
+          yield break;
+      }
       bool isCrit = Random.value <= Caster.CritChanceCurr;
       float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
-      DamageContext context = new(Caster, (int)(Caster.AtkCurr * 1.0f * critMultiplier), BaseEnums.CodeType.Normal, new List<int> { DamageTag.SingleTarget }, isCrit);
+      DamageContext context = new(Caster, (int)(Caster.AtkCurr * 1.0f * critMultiplier), BaseEnums.CodeType.Normal, new List<int> { DamageTag.SingleTarget }, Element, isCrit);
 
       // 투사체 발사 및 데미지 적용 대기
       foreach (var target in TargetUnits)

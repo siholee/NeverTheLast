@@ -1,0 +1,172 @@
+items:
+  # ── 주무기 (MainWeapon) ──────────────────────────────────────────────────
+  - id: 1
+    itemName: 낡은 검
+    description: 오래된 검. 공격력이 조금 오른다.
+    iconPath: Sprite/Items/sword_old
+    slotType: MainWeapon
+    bonusAtk: 20
+    bonusDef: 0
+    bonusHp: 0
+    bonusCritChance: 0.0
+    bonusSpeed: 0.0
+
+  - id: 2
+    itemName: 철제 검
+    description: 단단한 철로 만든 검. 공격력이 오른다.
+    iconPath: Sprite/Items/sword_iron
+    slotType: MainWeapon
+    bonusAtk: 50
+    bonusDef: 0
+    bonusHp: 0
+    bonusCritChance: 0.0
+    bonusSpeed: 0.0
+
+  - id: 3
+    itemName: 예리한 단검
+    description: 빠르고 날카로운 단검. 치명타율이 오른다.
+    iconPath: Sprite/Items/dagger_sharp
+    slotType: MainWeapon
+    bonusAtk: 30
+    bonusDef: 0
+    bonusHp: 0
+    bonusCritChance: 0.05
+    bonusSpeed: 0.0
+
+  # ── 보조무기 (SubWeapon) ─────────────────────────────────────────────────
+  - id: 11
+    itemName: 낡은 방패
+    description: 오래된 방패. 방어력이 조금 오른다.
+    iconPath: Sprite/Items/shield_old
+    slotType: SubWeapon
+    bonusAtk: 0
+    bonusDef: 15
+    bonusHp: 0
+    bonusCritChance: 0.0
+    bonusSpeed: 0.0
+
+  - id: 12
+    itemName: 철제 방패
+    description: 단단한 철 방패. 방어력이 오른다.
+    iconPath: Sprite/Items/shield_iron
+    slotType: SubWeapon
+    bonusAtk: 0
+    bonusDef: 40
+    bonusHp: 0
+    bonusCritChance: 0.0
+    bonusSpeed: 0.0
+
+  # ── 투구 (Helmet) ────────────────────────────────────────────────────────
+  - id: 21
+    itemName: 가죽 투구
+    description: 기본적인 가죽 투구. 체력이 조금 오른다.
+    iconPath: Sprite/Items/helmet_leather
+    slotType: Helmet
+    bonusAtk: 0
+    bonusDef: 5
+    bonusHp: 200
+    bonusCritChance: 0.0
+    bonusSpeed: 0.0
+
+  - id: 22
+    itemName: 철제 투구
+    description: 기본적인 철 투구. 방어력과 체력이 오른다.
+    iconPath: Sprite/Items/helmet_iron
+    slotType: Helmet
+    bonusAtk: 0
+    bonusDef: 15
+    bonusHp: 500
+    bonusCritChance: 0.0
+    bonusSpeed: 0.0
+
+  # ── 목걸이 (Necklace) ────────────────────────────────────────────────────
+  - id: 31
+    itemName: 나무 목걸이
+    description: 소박한 나무 목걸이. 약간의 체력을 준다.
+    iconPath: Sprite/Items/necklace_wood
+    slotType: Necklace
+    bonusAtk: 0
+    bonusDef: 0
+    bonusHp: 300
+    bonusCritChance: 0.0
+    bonusSpeed: 0.0
+
+  - id: 32
+    itemName: 공격의 목걸이
+    description: 공격력을 높여주는 목걸이.
+    iconPath: Sprite/Items/necklace_atk
+    slotType: Necklace
+    bonusAtk: 25
+    bonusDef: 0
+    bonusHp: 0
+    bonusCritChance: 0.0
+    bonusSpeed: 0.0
+
+  # ── 반지 (Ring) ──────────────────────────────────────────────────────────
+  - id: 41
+    itemName: 속도의 반지
+    description: 행동 속도를 높여주는 반지.
+    iconPath: Sprite/Items/ring_speed
+    slotType: Ring
+    bonusAtk: 0
+    bonusDef: 0
+    bonusHp: 0
+    bonusCritChance: 0.0
+    bonusSpeed: 5.0
+
+  - id: 42
+    itemName: 치명타 반지
+    description: 치명타 확률을 높여주는 반지.
+    iconPath: Sprite/Items/ring_crit
+    slotType: Ring
+    bonusAtk: 0
+    bonusDef: 0
+    bonusHp: 0
+    bonusCritChance: 0.08
+    bonusSpeed: 0.0
+
+  # ── 갑옷 (Armor) ─────────────────────────────────────────────────────────
+  - id: 51
+    itemName: 가죽 갑옷
+    description: 기본적인 가죽 갑옷. 방어력과 체력을 올린다.
+    iconPath: Sprite/Items/armor_leather
+    slotType: Armor
+    bonusAtk: 0
+    bonusDef: 20
+    bonusHp: 400
+    bonusCritChance: 0.0
+    bonusSpeed: 0.0
+
+  - id: 52
+    itemName: 철제 갑옷
+    description: 단단한 철 갑옷. 방어력과 체력이 크게 오른다.
+    iconPath: Sprite/Items/armor_iron
+    slotType: Armor
+    bonusAtk: 0
+    bonusDef: 50
+    bonusHp: 1000
+    bonusCritChance: 0.0
+    bonusSpeed: 0.0
+
+  # ── 신발 (Shoes) ─────────────────────────────────────────────────────────
+  - id: 61
+    itemName: 가죽 신발
+    description: 가벼운 가죽 신발. 속도가 조금 오른다.
+    iconPath: Sprite/Items/shoes_leather
+    slotType: Shoes
+    bonusAtk: 0
+    bonusDef: 0
+    bonusHp: 0
+    bonusCritChance: 0.0
+    bonusSpeed: 3.0
+
+  - id: 62
+    itemName: 전투화
+    description: 전투용 신발. 속도와 방어력이 오른다.
+    iconPath: Sprite/Items/shoes_battle
+    slotType: Shoes
+    bonusAtk: 0
+    bonusDef: 10
+    bonusHp: 0
+    bonusCritChance: 0.0
+    bonusSpeed: 7.0

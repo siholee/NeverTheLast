@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BaseClasses;
 using UnityEngine;
 using YamlDotNet.Serialization;
 
@@ -65,6 +66,31 @@ namespace Managers
             return roundDataList;
         }
         
+        // Phase 4: 아이템 데이터 불러오기
+        public ItemDataList FetchItemDataList()
+        {
+            TextAsset itemData = Resources.Load<TextAsset>("Data/80_items");
+            if (itemData == null)
+            {
+                Debug.LogError("Data/80_items.yaml not found.");
+                return new ItemDataList { items = new List<ItemData>() };
+            }
+
+            var deserializer = new DeserializerBuilder().Build();
+            ItemDataList list = deserializer.Deserialize<ItemDataList>(itemData.text);
+
+            // slotType 문자열 → EquipSlotType 파싱
+            if (list?.items != null)
+            {
+                foreach (var item in list.items)
+                {
+                    item.SlotType = System.Enum.TryParse<BaseEnums.EquipSlotType>(item.slotType, true, out var parsed)
+                        ? parsed : BaseEnums.EquipSlotType.MainWeapon;
+                }
+            }
+            return list;
+        }
+
         public ElementDataList FetchElementDataList()
         {
             TextAsset elementData = Resources.Load<TextAsset>("Data/50_elements");
@@ -106,15 +132,14 @@ namespace Managers
     [System.Serializable]
     public class RoundData
     {
-        public int roundNumber;
-        public List<CellData> cells;
-    }
-
-    [System.Serializable]
-    public class CellData
-    {
-        public int cellIndex;
-        public List<int> enemyIds;
+        public int  roundNumber;
+        public int  stage;       // 스테이지 번호 (1~3)
+        public int  encounter;   // 인카운터 번호 (1~4, 4 = 보스)
+        public bool isBoss;      // 보스 인카운터 여부
+        /// <summary>적 전열 소환 큐. 0-3번 슬롯에 순서대로 채움; 4번 이후는 빈 슬롯이 생길 때 소환.</summary>
+        public List<int> frontlineEnemies;
+        /// <summary>적 후열 소환 큐. frontlineEnemies와 동일한 방식으로 처리.</summary>
+        public List<int> backlineEnemies;
     }
 
     [System.Serializable]
@@ -122,27 +147,20 @@ namespace Managers
     {
         public int id;
         public string name;
+        /// <summary>원소 속성 문자열 (e.g. "Geo"). 없으면 Physical로 처리.</summary>
+        public string element;
         public List<int> synergies;
-        public int hpBase;
-        public int hpIncrementLvl;         // YAML의 hpIncrementLvl 필드와 매핑
-        public int hpIncrementUpgrade;     // YAML의 hpIncrementUpgrade 필드와 매핑
-        public int atkBase;
-        public int atkIncrementLvl;        // YAML의 atkIncrementLvl 필드와 매핑
-        public int atkIncrementUpgrade;    // YAML의 atkIncrementUpgrade 필드와 매핑
-        public int defBase;
-        public int defIncrementLvl;        // YAML의 defIncrementLvl 필드와 매핑
-        public int defIncrementUpgrade;    // YAML의 defIncrementUpgrade 필드와 매핑
-        public float critChance;
-        public float critChanceIncrementLvl;   // YAML의 critChanceIncrementLvl 필드와 매핑
-        public float critChanceIncrementUpgrade; // YAML의 critChanceIncrementUpgrade 필드와 매핑
-        public float critMultiplier;
-        public float critMultiplierIncrementLvl;   // YAML의 critMultiplierIncrementLvl 필드와 매핑
-        public float critMultiplierIncrementUpgrade; // YAML의 critMultiplierIncrementUpgrade 필드와 매핑
-        public int manaBase;
-        public float speedBase;
-        public float speedIncrementLvl;
-        public float speedIncrementUpgrade;
-        public Dictionary<string, int> codes;
+
+        // ── 새 스탯 시스템 (STR / DEX / CON / INT / LUK) ────────────────────────
+        public int str;   // 근력 — 물리 공격/방어 기여
+        public int dex;   // 민첩 — 속도 기여
+        public int con;   // 체력 — HP/방어 기여
+        [YamlDotNet.Serialization.YamlMember(Alias = "int")]
+        public int intel; // 지능 — 마법 공격 기여 (YAML 키: "int")
+        public int luk;   // 행운 — 치명타 기여
+
+        public int manaBase;  // 궁극기 에너지 최대치 (기존 시스템 유지)
+        public Dictionary<string, int> codes; // basic / normal / ultimate / passive
         public string portrait;
     }
 

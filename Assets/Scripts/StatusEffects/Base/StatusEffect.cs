@@ -6,6 +6,13 @@ namespace StatusEffects.Base
   {
     public int Stack;
     public float Duration;
+
+    /// <summary>
+    /// Phase 5: 라운드 종료 시 자동 제거되지 않아야 하면 true로 오버라이드.
+    /// 원소 반응 디버프(Superconduct, Frozen, Burning 등)는 true.
+    /// DefaultRoundEndEvent가 이 플래그를 확인하여 필터링.
+    /// </summary>
+    public virtual bool PersistsAcrossRounds => false;
     
     public virtual int HpAdditiveModifier(Unit unit)
     {

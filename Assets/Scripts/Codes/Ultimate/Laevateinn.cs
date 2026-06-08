@@ -20,6 +20,8 @@ namespace Codes.Ultimate
       Cooldown = 10f;
       CodeName = "레바테인";
       CastingDelay = 2f;
+      Element    = BaseEnums.ElementType.Pyro;
+      TargetType = BaseEnums.TargetType.AoE;  // 광역 (필드 위 모든 적, BattleManager 사전 결정)
       _prefab = GameManager.Instance.sfxManager.ProjectilePrefabs["Levateinn"];
     }
 
@@ -36,11 +38,15 @@ namespace Codes.Ultimate
       if (CastingDelay > 0f)
         yield return new WaitForSeconds(CastingDelay);
 
-      // 효과 처리 - 전체 대상
-      TargetUnits = GridManager.Instance.TargetAllEnemies(Caster);
+      // TargetUnits는 BattleManager.ResolveTargetsCoroutine()이 이미 설정함 (AoE = 적 전체)
+      if (TargetUnits == null || TargetUnits.Count == 0)
+      {
+          StopCode();
+          yield break;
+      }
       bool isCrit = Random.value <= Caster.CritChanceCurr;
       float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
-      DamageContext context = new(Caster, (int)(Caster.AtkCurr * 3f * critMultiplier), BaseEnums.CodeType.Ultimate, new List<int> { DamageTag.AllTarget }, isCrit);
+      DamageContext context = new(Caster, (int)(Caster.AtkCurr * 3f * critMultiplier), BaseEnums.CodeType.Ultimate, new List<int> { DamageTag.AllTarget }, Element, isCrit);
 
       // 모든 대상에 투사체 발사 및 데미지 적용
       float maxDelay = 0f;

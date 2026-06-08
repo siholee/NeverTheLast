@@ -1,26 +1,87 @@
 rounds:
+  # ── Stage 1 ──────────────────────────────────────────────────────────────
   - roundNumber: 1
-    cells:
-      - cellIndex: 1
-        enemyIds:
-          - 2
-          - 2
-          - 2
-          - 2
-      - cellIndex: 2
-        enemyIds:
-          - 3
-          - 3
-      - cellIndex: 3
-        enemyIds: []
+    stage: 1
+    encounter: 1
+    isBoss: false
+    frontlineEnemies: [101, 102]   # 슬라임, 고블린
+    backlineEnemies: []
+
   - roundNumber: 2
-    cells:
-      - cellIndex: 1
-        enemyIds:
-          - 2
-          - 2
-      - cellIndex: 2
-        enemyIds:
-          - 3
-      - cellIndex: 3
-        enemyIds: []
+    stage: 1
+    encounter: 2
+    isBoss: false
+    frontlineEnemies: [101, 101, 102]
+    backlineEnemies: [101]
+
+  - roundNumber: 3
+    stage: 1
+    encounter: 3
+    isBoss: false
+    frontlineEnemies: [102, 102]
+    backlineEnemies: [101, 101]
+
+  - roundNumber: 4
+    stage: 1
+    encounter: 4
+    isBoss: true
+    frontlineEnemies: [103, 103]   # 해골병사 × 2 (보스 인카운터)
+    backlineEnemies: [102, 101]
+
+  # ── Stage 2 ──────────────────────────────────────────────────────────────
+  - roundNumber: 5
+    stage: 2
+    encounter: 1
+    isBoss: false
+    frontlineEnemies: [102, 103]
+    backlineEnemies: []
+
+  - roundNumber: 6
+    stage: 2
+    encounter: 2
+    isBoss: false
+    frontlineEnemies: [103, 102, 101]
+    backlineEnemies: [101]
+
+  - roundNumber: 7
+    stage: 2
+    encounter: 3
+    isBoss: false
+    frontlineEnemies: [103, 103]
+    backlineEnemies: [102, 101]
+
+  - roundNumber: 8
+    stage: 2
+    encounter: 4
+    isBoss: true
+    frontlineEnemies: [103, 103, 103]
+    backlineEnemies: [102, 102]
+
+  # ── Stage 3 ──────────────────────────────────────────────────────────────
+  - roundNumber: 9
+    stage: 3
+    encounter: 1
+    isBoss: false
+    frontlineEnemies: [103, 102]
+    backlineEnemies: [101]
+
+  - roundNumber: 10
+    stage: 3
+    encounter: 2
+    isBoss: false
+    frontlineEnemies: [103, 103]
+    backlineEnemies: [102, 102]
+
+  - roundNumber: 11
+    stage: 3
+    encounter: 3
+    isBoss: false
+    frontlineEnemies: [103, 103, 102]
+    backlineEnemies: [102, 101]
+
+  - roundNumber: 12
+    stage: 3
+    encounter: 4
+    isBoss: true
+    frontlineEnemies: [103, 103, 103]
+    backlineEnemies: [103, 102]

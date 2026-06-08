@@ -6,7 +6,6 @@ using Codes.Base;
 using Managers;
 using StatusEffects.Base;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Entities
 {
@@ -26,103 +25,91 @@ namespace Entities
 
         public Cell currentCell; // 위치중인 셀
 
-        // 유닛 강화 횟수
-        [SerializeField] private int hpUpgrade;
-        [SerializeField] private int atkUpgrade;
-        [SerializeField] private int defUpgrade;
-        [SerializeField] private int critChanceUpgrade;
-        [SerializeField] private int critMultiplierUpgrade;
-        [SerializeField] private int speedUpgrade;
-        public int HpUpgrade { get => hpUpgrade; protected set => hpUpgrade = value; }
-        public int AtkUpgrade { get => atkUpgrade; protected set => atkUpgrade = value; }
-        public int DefUpgrade { get => defUpgrade; protected set => defUpgrade = value; }
-        public int CritChanceUpgrade { get => critChanceUpgrade; protected set => critChanceUpgrade = value; }
-        public int CritMultiplierUpgrade { get => critMultiplierUpgrade; protected set => critMultiplierUpgrade = value; }
-        public int SpeedUpgrade { get => speedUpgrade; protected set => speedUpgrade = value; }
+        // ── 기본 스탯 (STR / DEX / CON / INT / LUK) ────────────────────────────
+        [SerializeField] private int strStat;
+        [SerializeField] private int dexStat;
+        [SerializeField] private int conStat;
+        [SerializeField] private int intStat;
+        [SerializeField] private int lukStat;
 
-        // 유닛 현재 상태
+        public int StrStat { get => strStat; protected set => strStat = value; }
+        public int DexStat { get => dexStat; protected set => dexStat = value; }
+        public int ConStat { get => conStat; protected set => conStat = value; }
+        public int IntStat { get => intStat; protected set => intStat = value; }
+        public int LukStat { get => lukStat; protected set => lukStat = value; }
+
+        // ── 파생 스탯 (현재 상태) ────────────────────────────────────────────────
         [SerializeField] private int hpCurr;
+        [SerializeField] private int hpMax;
         [SerializeField] private int manaCurr;
+        [SerializeField] private int manaMax;
         [SerializeField] private int atkCurr;
         [SerializeField] private int defCurr;
         [SerializeField] private float critChanceCurr;
         [SerializeField] private float critDamageCurr;
         [SerializeField] private float speedCurr;
+
         public int HpCurr { get => hpCurr; protected set => hpCurr = value; }
+        public int HpMax { get => hpMax; protected set => hpMax = value; }
         public int ManaCurr { get => manaCurr; protected set => manaCurr = value; }
+        public int ManaMax { get => manaMax; protected set => manaMax = value; }
         public int AtkCurr { get => atkCurr; protected set => atkCurr = value; }
         public int DefCurr { get => defCurr; protected set => defCurr = value; }
         public float CritChanceCurr { get => critChanceCurr; protected set => critChanceCurr = value; }
         public float CritMultiplierCurr { get => critDamageCurr; protected set => critDamageCurr = value; }
         public float SpeedCurr { get => speedCurr; protected set => speedCurr = value; }
 
-        public bool isCasting; // 스킬 시전중
+        public bool isCasting;    // 스킬 시전 중
         public bool isControlled; // 행동 불가 상태
-        public int controlTurns; // 턴제 전투용 제어 턴 수
+        public int controlTurns;  // 제어 남은 턴 수
 
-        // 유닛 스탯 수치
-        // 인스펙터 노출용용
-        [SerializeField] private int hpBase;
-        [SerializeField] private int hpIncrementLvl;
-        [SerializeField] private int hpIncrementUpgrade;
-        [SerializeField] private int hpMax;
-        [SerializeField] private int manaBase;
-        [SerializeField] private int manaMax;
-        [SerializeField] private int atkBase;
-        [SerializeField] private int atkIncrementLvl;
-        [SerializeField] private int atkIncrementUpgrade;
-        [SerializeField] private int defBase;
-        [SerializeField] private int defIncrementLvl;
-        [SerializeField] private int defIncrementUpgrade;
-        [SerializeField] private float critChanceBase;
-        [SerializeField] private float critChanceIncrementLvl;
-        [SerializeField] private float critChanceIncrementUpgrade;
-        [SerializeField] private float critMultiplierBase;
-        [SerializeField] private float critMultiplierIncrementLvl;
-        [SerializeField] private float critMultiplierIncrementUpgrade;
-        [SerializeField] private float speedBase;
-        [SerializeField] private float speedIncrementLvl;
-        [SerializeField] private float speedIncrementUpgrade;
-        [SerializeField] private List<int> synergies;
-
-        // 실제 수치 관리용
-        public int HpBase { get => hpBase; protected set => hpBase = value; }
-        public int HpIncrementLvl { get => hpIncrementLvl; protected set => hpIncrementLvl = value; }
-        public int HpIncrementUpgrade { get => hpIncrementUpgrade; protected set => hpIncrementUpgrade = value; }
-        public int HpMax { get => hpMax; protected set => hpMax = value; }
+        [SerializeField] private int manaBase; // 궁극기 에너지 최대치 (YAML에서 로드)
         public int ManaBase { get => manaBase; protected set => manaBase = value; }
-        public int ManaMax { get => manaMax; protected set => manaMax = value; }
-        public int AtkBase { get => atkBase; protected set => atkBase = value; }
-        public int AtkIncrementLvl { get => atkIncrementLvl; protected set => atkIncrementLvl = value; }
-        public int AtkIncrementUpgrade { get => atkIncrementUpgrade; protected set => atkIncrementUpgrade = value; }
-        public int DefBase { get => defBase; protected set => defBase = value; }
-        public int DefIncrementLvl { get => defIncrementLvl; protected set => defIncrementLvl = value; }
-        public int DefIncrementUpgrade { get => defIncrementUpgrade; protected set => defIncrementUpgrade = value; }
-        public float CritChanceBase { get => critChanceBase; protected set => critChanceBase = value; }
-        public float CritChanceIncrementLvl { get => critChanceIncrementLvl; protected set => critChanceIncrementLvl = value; }
-        public float CritChanceIncrementUpgrade { get => critChanceIncrementUpgrade; protected set => critChanceIncrementUpgrade = value; }
-        public float CritMultiplierBase { get => critMultiplierBase; protected set => critMultiplierBase = value; }
-        public float CritMultiplierIncrementLvl { get => critMultiplierIncrementLvl; protected set => critMultiplierIncrementLvl = value; }
-        public float CritMultiplierIncrementUpgrade { get => critMultiplierIncrementUpgrade; protected set => critMultiplierIncrementUpgrade = value; }
-        public float SpeedBase { get => speedBase; protected set => speedBase = value; }
-        public float SpeedIncrementLvl { get => speedIncrementLvl; protected set => speedIncrementLvl = value; }
-        public float SpeedIncrementUpgrade { get => speedIncrementUpgrade; protected set => speedIncrementUpgrade = value; }
 
+        [SerializeField] private List<int> synergies;
         public List<int> Synergies { get => synergies; protected set => synergies = value; }
 
-        // 유닛 상태효과(버프/디버프)
-        protected Dictionary<string, StatusEffect> StatusEffects; // 이펙트 이름(식별자), 이펙트 효과. 동일 식별자는 중첩되지 않고 덮어씌워짐짐
+        // ── 패시브 플래그 (영구 효과) ──────────────────────────────────────────
+        /// <summary>영구 패시브 효과 플래그 집합. PassiveCode.CastCode()에서 설정됨.</summary>
+        public HashSet<string> PermanentPassiveFlags { get; } = new HashSet<string>();
+
+        /// <summary>
+        /// CON을 계수로 사용하는 스킬의 실질 CON 수치.<br/>
+        /// P1 패시브(SeiP1) 활성 시 CON + INT를 반환.
+        /// </summary>
+        public int GetEffectiveCon()
+            => PermanentPassiveFlags.Contains("SeiP1") ? ConStat + IntStat : ConStat;
+
+        // ── 인벤토리 (Phase 4) ────────────────────────────────────────────────
+        public Inventory Inventory { get; private set; }
+
+        // ── 원소 시스템 ───────────────────────────────────────────────────────
+        public BaseEnums.ElementType NativeElement { get; protected set; } = BaseEnums.ElementType.Physical;
+        public BaseEnums.ElementType CurrentAura { get; set; } = BaseEnums.ElementType.Physical;
+
+        // ── 주목도 & 그리드 라인 ──────────────────────────────────────────────
+        public int ThreatLevelBase { get; set; } = 1;
+        public BaseEnums.GridLine CurrentLine { get; set; } = BaseEnums.GridLine.Frontline;
+        public int EffectiveThreat => ThreatLevelBase + (CurrentLine == BaseEnums.GridLine.Frontline ? 1 : 0);
+
+        // 상태효과
+        protected Dictionary<string, StatusEffect> StatusEffects;
         protected Dictionary<int, SynergyEffect> SynergyEffects;
 
-        // 유닛 코드(스킬) 정보
+        // ── 코드 (스킬) ──────────────────────────────────────────────────────
         public PassiveCode PassiveCode;
+        /// <summary>기본 공격 코드 (SP 생성; 마력탄 등). Basic 행동 시 실행.</summary>
+        public NormalCode BasicCode;
+        /// <summary>클래스 스킬 코드 (클래스 고유 행동; 명상 등). YAML class_skill 슬롯.</summary>
+        public NormalCode ClassCode;
+        /// <summary>스킬 코드 (SP 소모; 암석포 등). Normal 행동 시 실행.</summary>
         public NormalCode NormalCode;
         public UltimateCode UltimateCode;
 
         // 이벤트
         private Dictionary<BaseEnums.UnitEventType, Delegate> _eventDict;
 
-        [FormerlySerializedAs("portraitPath")] public string PortraitPath;
+        public string PortraitPath;
 
         void Awake()
         {
@@ -134,15 +121,15 @@ namespace Entities
         {
             ID = _id;
             IsEnemy = _isEnemy;
-            // 유닛 데이터가 없을 경우 바로 종료
-            if (_id == 0)
-            {
-                return;
-            }
+            if (_id == 0) return;
+
+            Inventory = new Inventory(this);
             LoadData(_isEnemy, _id);
+            CurrentAura = BaseEnums.ElementType.Physical;
             AttributesUpdate();
             HpCurr = HpMax;
             ManaCurr = 0;
+
             AddListener<(Unit, DamageContext)>(BaseEnums.UnitEventType.OnTakingDamage, DefaultTakeDamageEvent);
             AddListener<Unit>(BaseEnums.UnitEventType.OnRoundStart, DefaultRoundStartEvent);
             AddListener<Unit>(BaseEnums.UnitEventType.OnRoundEnd, DefaultRoundEndEvent);
@@ -150,29 +137,23 @@ namespace Entities
 
         protected virtual void LoadData(bool _isEnemy, int _id)
         {
-            UnitData data = GameManager.Instance.unitDataList.units.FirstOrDefault(e => e.id == _id);
+            var data = GameManager.Instance.unitDataList.units.FirstOrDefault(e => e.id == _id);
             LoadSprite(data.portrait, _isEnemy);
-            Level = 0;
+            Level = 1;
             UnitName = data.name;
-            Synergies = data.synergies;
-            HpBase = data.hpBase;
-            HpIncrementLvl = data.hpIncrementLvl;
-            HpIncrementUpgrade = data.hpIncrementUpgrade;
-            AtkBase = data.atkBase;
-            AtkIncrementLvl = data.atkIncrementLvl;
-            AtkIncrementUpgrade = data.atkIncrementUpgrade;
-            DefBase = data.defBase;
-            DefIncrementLvl = data.defIncrementLvl;
-            DefIncrementUpgrade = data.defIncrementUpgrade;
-            CritChanceBase = data.critChance;
-            CritChanceIncrementLvl = data.critChanceIncrementLvl;
-            CritChanceIncrementUpgrade = data.critChanceIncrementUpgrade;
-            CritMultiplierBase = data.critMultiplier;
-            CritMultiplierIncrementLvl = data.critMultiplierIncrementLvl;
-            CritMultiplierIncrementUpgrade = data.critMultiplierIncrementUpgrade;
-            SpeedBase = data.speedBase;
-            SpeedIncrementLvl = data.speedIncrementLvl;
-            SpeedIncrementUpgrade = data.speedIncrementUpgrade;
+
+            // 원소 속성 파싱
+            NativeElement = System.Enum.TryParse<BaseEnums.ElementType>(data.element, true, out var parsedElement)
+                ? parsedElement : BaseEnums.ElementType.Physical;
+
+            Synergies = data.synergies ?? new List<int>();
+
+            // ── 새 스탯 시스템 ──────────────────────────────────────────────
+            StrStat = data.str;
+            DexStat = data.dex;
+            ConStat = data.con;
+            IntStat = data.intel;
+            LukStat = data.luk;
             ManaBase = data.manaBase;
 
             StatusEffects = new Dictionary<string, StatusEffect>();
@@ -180,9 +161,18 @@ namespace Entities
             isControlled = false;
             controlTurns = 0;
 
-            PassiveCode = CodeFactory.CreatePassiveCode(data.codes["passive"], new PassiveCodeContext { Caster = this });
-            NormalCode = CodeFactory.CreateNormalCode(data.codes["normal"], new NormalCodeContext { Caster = this });
-            UltimateCode = CodeFactory.CreateUltimateCode(data.codes["ultimate"], new UltimateCodeContext { Caster = this });
+            // 코드 생성 (codes 딕셔너리에서 basic/normal/ultimate/passive 키 조회)
+            int passiveId     = data.codes.TryGetValue("passive",     out var p)  ? p  : 0;
+            int basicId       = data.codes.TryGetValue("basic",       out var b)  ? b  : 0;
+            int classSkillId  = data.codes.TryGetValue("class_skill", out var cs) ? cs : 0;
+            int normalId      = data.codes.TryGetValue("normal",      out var n)  ? n  : 0;
+            int ultimateId    = data.codes.TryGetValue("ultimate",    out var u)  ? u  : 0;
+
+            PassiveCode  = CodeFactory.CreatePassiveCode  (passiveId,    new PassiveCodeContext  { Caster = this });
+            BasicCode    = CodeFactory.CreateBasicCode    (basicId,      new NormalCodeContext   { Caster = this });
+            ClassCode    = CodeFactory.CreateClassCode    (classSkillId, new NormalCodeContext   { Caster = this });
+            NormalCode   = CodeFactory.CreateNormalCode   (normalId,     new NormalCodeContext   { Caster = this });
+            UltimateCode = CodeFactory.CreateUltimateCode (ultimateId,   new UltimateCodeContext { Caster = this });
         }
 
         protected virtual void LoadSprite(string _name, bool _isEnemy)
@@ -191,84 +181,87 @@ namespace Entities
             PortraitPath = path;
             Sprite sprite = Resources.Load<Sprite>(path);
             currentCell.portraitRenderer.sprite = sprite;
-            // currentCell.portraitRenderer.flipX = isEnemy; // 카드면 미사용, 일러라면 적일 경우 x축 반전
         }
 
+        // ── 파생 스탯 공식 ──────────────────────────────────────────────────────
+        /// <summary>HP = CON*300 + 500</summary>
+        public virtual int GetBaseHp()    => ConStat * 300 + 500;
+        /// <summary>ATK = INT*20 + STR*20 (범용 공격력; 스킬은 INT/CON 직접 참조)</summary>
+        public virtual int GetBaseAtk()   => IntStat * 20 + StrStat * 20;
+        /// <summary>DEF = CON*10 + STR*5</summary>
+        public virtual int GetBaseDef()   => ConStat * 10 + StrStat * 5;
+        /// <summary>CritChance = LUK * 0.05 (5% per LUK)</summary>
+        public virtual float GetBaseCritChance()  => LukStat * 0.05f;
+        /// <summary>CritMultiplier = 1.5 + LUK * 0.05</summary>
+        public virtual float GetBaseCritDamage()  => 1.5f + LukStat * 0.05f;
+        /// <summary>Speed = DEX*10 + 60</summary>
+        public virtual float GetBaseSpeed() => DexStat * 10f + 60f;
+
         /// <summary>
-        /// 유닛의 스탯 수치 업데이트<br/>
-        /// 매 프레임마다 호출하기엔 무거운 것 같으니 상태 변화가 있을 때만 호출
+        /// 스탯 수치 갱신. 상태효과·시너지·인벤토리 보너스를 반영 후 파생 스탯 재계산.
         /// </summary>
-        protected virtual void AttributesUpdate()
+        public virtual void AttributesUpdate()
         {
-            // 스탯 수정치 계산
-            float hpMul = 0f;
-            float hpAdd = 0f;
-            float atkMul = 0f;
-            float atkAdd = 0f;
-            float defMul = 0f;
-            float defAdd = 0f;
-            float critChanceAdd = 0f;
-            float critMultiplierAdd = 0f;
-            float speedMul = 0f;
-            float speedAdd = 0f;
+            float hpMul = 0f, hpAdd = 0f;
+            float atkMul = 0f, atkAdd = 0f;
+            float defMul = 0f, defAdd = 0f;
+            float critChanceAdd = 0f, critMultiplierAdd = 0f;
+            float speedMul = 0f, speedAdd = 0f;
 
             foreach (var effectPair in StatusEffects)
             {
-                hpMul += effectPair.Value.HpMultiplicativeModifier(this);
-                hpAdd += effectPair.Value.HpAdditiveModifier(this);
-                atkMul += effectPair.Value.AtkMultiplicativeModifier(this);
-                atkAdd += effectPair.Value.AtkAdditiveModifier(this);
-                defMul += effectPair.Value.DefMultiplicativeModifier(this);
-                defAdd += effectPair.Value.DefAdditiveModifier(this);
-                critChanceAdd += effectPair.Value.CritChanceAdditiveModifier(this);
+                hpMul   += effectPair.Value.HpMultiplicativeModifier(this);
+                hpAdd   += effectPair.Value.HpAdditiveModifier(this);
+                atkMul  += effectPair.Value.AtkMultiplicativeModifier(this);
+                atkAdd  += effectPair.Value.AtkAdditiveModifier(this);
+                defMul  += effectPair.Value.DefMultiplicativeModifier(this);
+                defAdd  += effectPair.Value.DefAdditiveModifier(this);
+                critChanceAdd     += effectPair.Value.CritChanceAdditiveModifier(this);
                 critMultiplierAdd += effectPair.Value.CritMultiplierAdditiveModifier(this);
                 speedMul += effectPair.Value.SpeedMultiplicativeModifier(this);
                 speedAdd += effectPair.Value.SpeedAdditiveModifier(this);
             }
             foreach (var effectPair in SynergyEffects)
             {
-                hpMul += effectPair.Value.HpMultiplicativeModifier(this);
-                hpAdd += effectPair.Value.HpAdditiveModifier(this);
-                atkMul += effectPair.Value.AtkMultiplicativeModifier(this);
-                atkAdd += effectPair.Value.AtkAdditiveModifier(this);
-                defMul += effectPair.Value.DefMultiplicativeModifier(this);
-                defAdd += effectPair.Value.DefAdditiveModifier(this);
-                critChanceAdd += effectPair.Value.CritChanceAdditiveModifier(this);
+                hpMul   += effectPair.Value.HpMultiplicativeModifier(this);
+                hpAdd   += effectPair.Value.HpAdditiveModifier(this);
+                atkMul  += effectPair.Value.AtkMultiplicativeModifier(this);
+                atkAdd  += effectPair.Value.AtkAdditiveModifier(this);
+                defMul  += effectPair.Value.DefMultiplicativeModifier(this);
+                defAdd  += effectPair.Value.DefAdditiveModifier(this);
+                critChanceAdd     += effectPair.Value.CritChanceAdditiveModifier(this);
                 critMultiplierAdd += effectPair.Value.CritMultiplierAdditiveModifier(this);
                 speedMul += effectPair.Value.SpeedMultiplicativeModifier(this);
                 speedAdd += effectPair.Value.SpeedAdditiveModifier(this);
             }
 
-            // hp 비율 저장
+            // 인벤토리 장비 보너스
+            int   invAtk  = Inventory != null ? Inventory.TotalAtkBonus  : 0;
+            int   invDef  = Inventory != null ? Inventory.TotalDefBonus  : 0;
+            int   invHp   = Inventory != null ? Inventory.TotalHpBonus   : 0;
+            float invCrit = Inventory != null ? Inventory.TotalCritBonus : 0f;
+            float invSpd  = Inventory != null ? Inventory.TotalSpdBonus  : 0f;
+
             float healthRatio = (HpMax > 0) ? (float)HpCurr / HpMax : 1f;
 
-            HpMax = Mathf.RoundToInt(GetBaseHp() * (1f + hpMul) + hpAdd);
+            HpMax  = Mathf.RoundToInt(GetBaseHp() * (1f + hpMul) + hpAdd) + invHp;
             ManaMax = ManaBase;
-            AtkCurr = Mathf.RoundToInt(GetBaseAtk() * (1f + atkMul) + atkAdd);
-            DefCurr = Mathf.RoundToInt(GetBaseDef() * (1f + defMul) + defAdd);
-            CritChanceCurr = GetBaseCritChance() + critChanceAdd;
+            AtkCurr = Mathf.RoundToInt(GetBaseAtk() * (1f + atkMul) + atkAdd) + invAtk;
+            DefCurr = Mathf.RoundToInt(GetBaseDef() * (1f + defMul) + defAdd) + invDef;
+            CritChanceCurr    = GetBaseCritChance() + critChanceAdd + invCrit;
             CritMultiplierCurr = GetBaseCritDamage() + critMultiplierAdd;
 
             float oldSpeed = SpeedCurr;
-            SpeedCurr = GetBaseSpeed() * (1f + speedMul) + speedAdd;
+            SpeedCurr = GetBaseSpeed() * (1f + speedMul) + speedAdd + invSpd;
 
-            // 속도 변경 시 BattleManager에 통보
             if (Mathf.Abs(oldSpeed - SpeedCurr) > 0.001f && Managers.BattleManager.Instance != null)
-            {
                 Managers.BattleManager.Instance.OnSpeedChanged(this, oldSpeed, SpeedCurr);
-            }
 
-            // hp 비율 복구
             HpCurr = Mathf.RoundToInt(HpMax * healthRatio);
         }
 
-        // 이벤트를 처리하는 메소드들
-        /// <summary>
-        /// 유닛 소환 이벤트
-        /// </summary>
-        /// <param name="cell">유닛이 위치한 셀</param>
-        /// <param name="_isEnemy">진영</param>
-        /// <param name="_id">유닛의 데이터상 id</param>
+        // ── 이벤트 처리 메소드 ────────────────────────────────────────────────
+
         public virtual void Spawn(Cell cell, bool _isEnemy, int _id)
         {
             ActivateUnit();
@@ -276,26 +269,14 @@ namespace Entities
             Invoke(BaseEnums.UnitEventType.OnSpawn, this);
         }
 
-        /// <summary>
-        /// 유닛 사망 이벤트
-        /// </summary>
-        /// <param name="attacker">막타친 적 유닛(사망 시 이벤트 처리용)</param>
         public virtual void Die(Unit attacker)
         {
             Invoke(BaseEnums.UnitEventType.OnDeath, (this, attacker));
-            // BattleManager에서 유닛 제거
             if (Managers.BattleManager.Instance != null)
-            {
                 Managers.BattleManager.Instance.UnregisterUnit(this);
-            }
             DeactivateUnit();
         }
 
-        /// <summary>
-        /// 유닛 피해 처리 이벤트<br/>
-        /// 다른 피해 처리 이벤트를 등록하지 않았을 경우 기본 피해 처리 이벤트(DefaultTakeDamageEvent) 호출
-        /// </summary>
-        /// <param name="context">피해 정보 컨텍스트</param>
         public virtual void TakeDamage(DamageContext context)
         {
             Invoke(BaseEnums.UnitEventType.OnBeforeDamageTaken, (this, context.Attacker));
@@ -303,10 +284,6 @@ namespace Entities
             Invoke(BaseEnums.UnitEventType.OnAfterDamageTaken, (this, context.Attacker));
         }
 
-        /// <summary>
-        /// 유닛이 행동불능 상태가 되었을 때 호출되는 이벤트
-        /// </summary>
-        /// <param name="context">공격자와 지속시간을 지닌 제어 정보 컨텍스트</param>
         public virtual void ControlStarts(ControlContext context)
         {
             isControlled = true;
@@ -314,9 +291,6 @@ namespace Entities
             Invoke(BaseEnums.UnitEventType.OnControlStarts, (this, context));
         }
 
-        /// <summary>
-        /// 유닛이 행동불능 상태에서 벗어났을 때 호출되는 이벤트
-        /// </summary>
         public virtual void ControlEnds()
         {
             isControlled = false;
@@ -326,13 +300,30 @@ namespace Entities
 
         public virtual void CastPassiveCode()
         {
-            PassiveCode.CastCode();
+            PassiveCode?.CastCode();
             Invoke(BaseEnums.UnitEventType.OnPassiveActivates, this);
+        }
+
+        /// <summary>클래스 스킬 실행 (ClassCode). ClassSkill 행동 시 호출.</summary>
+        public virtual void CastClassCode()
+        {
+            ClassCode?.CastCode();
+            Invoke(BaseEnums.UnitEventType.OnNormalActivates, this);
+        }
+
+        /// <summary>기본 공격 실행 (BasicCode). Basic 행동 시 SP 생성과 함께 호출.</summary>
+        public virtual void CastBasicCode()
+        {
+            if (BasicCode != null)
+                BasicCode.CastCode();
+            else
+                NormalCode?.CastCode(); // BasicCode 없으면 NormalCode로 폴백
+            Invoke(BaseEnums.UnitEventType.OnNormalActivates, this);
         }
 
         public virtual void CastNormalCode()
         {
-            NormalCode.CastCode();
+            NormalCode?.CastCode();
             Invoke(BaseEnums.UnitEventType.OnNormalActivates, this);
         }
 
@@ -344,29 +335,23 @@ namespace Entities
             Invoke(BaseEnums.UnitEventType.OnUltimateActivates, this);
         }
 
+        /// <summary>HP를 직접 설정 (RunManager 세이브 복원, RewardManager 회복용).</summary>
+        public void ModifyHp(int newHp)
+        {
+            HpCurr = Mathf.Clamp(newHp, 0, HpMax);
+            if (currentCell?.hpBarObj != null)
+                currentCell.hpBarObj.transform.localScale =
+                    new Vector3((float)HpCurr / HpMax, 1f, 1f);
+        }
+
         public virtual void RecoverMana(int amount)
         {
-            ManaCurr += amount;
-            if (ManaCurr > ManaMax)
-            {
-                ManaCurr = ManaMax;
-            }
+            ManaCurr = Mathf.Min(ManaCurr + amount, ManaMax);
             currentCell.manaBarObj.transform.localScale = new Vector3((float)ManaCurr / ManaMax, 1f, 1f);
         }
 
-        // 턴제 전투에서는 BattleManager가 전투 로직을 관리하므로 Update() 전투 로직 제거
+        // ── 디폴트 이벤트 핸들러 ───────────────────────────────────────────────
 
-        // 디폴트 이벤트 액션(이거 참고해서 다른 이벤트 만들어 넣으면 됨)
-
-        /// <summary>
-        /// 다른 피해 처리 이벤트를 등록하지 않았을 경우 기본 피해 처리 이벤트<br/>
-        /// 피해량 = (1 + (방어력 - 관통력) * 0.01) * 피해량<br/>
-        /// </summary>
-        /// <param name="selfContext">(자신(Unit)과 피해 정보(TakeDamageContext)) 튜플</param>
-        /// <remarks>
-        /// selfContext.self = 피해를 받은 유닛(Unit) <br/>
-        /// selfContext.context = 피해 정보 (TakeDamageContext)
-        /// </remarks>
         protected void DefaultTakeDamageEvent((Unit self, DamageContext context) selfContext)
         {
             Unit self = selfContext.self;
@@ -374,69 +359,65 @@ namespace Entities
             int effectiveDef = self.DefCurr - context.Penetration;
             float receivingDamageModifier = 1f;
             foreach (var effectPair in StatusEffects)
-            {
                 receivingDamageModifier *= effectPair.Value.ReceivingDamageModifier(self);
+
+            float reactionMult = 1f;
+            if (context.Element != BaseEnums.ElementType.Physical
+                && Managers.BattleManager.Instance?.ReactionHandler != null)
+            {
+                reactionMult = Managers.BattleManager.Instance.ReactionHandler
+                    .HandleReaction(context.Attacker, self, context.Element, context);
             }
-            int damageReceived = (int)(receivingDamageModifier * context.Damage / (1 + effectiveDef * 0.01f));
+
+            int damageReceived = (int)(receivingDamageModifier * reactionMult * context.Damage / (1 + effectiveDef * 0.01f));
             int hpBeforeHit = self.HpCurr;
             self.HpCurr -= damageReceived;
             currentCell.hpBarObj.transform.localScale = new Vector3((float)self.HpCurr / self.HpMax, 1f, 1f);
-            Debug.Log($"{self.UnitName}은(는) {context.Attacker.UnitName}에게 {damageReceived}의 {(context.IsCrit ? "치명" : "")}피해를 받았습니다. 체력: {hpBeforeHit} -> {self.HpCurr}");
+            Debug.Log($"{self.UnitName}은(는) {context.Attacker.UnitName}에게 {damageReceived}의 {(context.IsCrit ? "치명" : "")}{(reactionMult > 1f ? "반응+" : "")}피해를 받았습니다. 체력: {hpBeforeHit} → {self.HpCurr}");
             if (self.HpCurr <= 0)
-            {
                 self.Die(context.Attacker);
-            }
         }
 
-        /// <summary>
-        /// 라운드 시작 처리 이벤트
-        /// </summary>
         protected void DefaultRoundStartEvent(Unit self)
         {
             CastPassiveCode();
         }
 
-        /// <summary>
-        /// 라운드 종료 처리 이벤트
-        /// </summary>
+        /// <summary>Phase 5: PersistsAcrossRounds = true인 효과는 유지.</summary>
         protected void DefaultRoundEndEvent(Unit self)
         {
-            StatusEffects.Clear();
+            var keysToRemove = new List<string>();
+            foreach (var pair in StatusEffects)
+            {
+                if (!pair.Value.PersistsAcrossRounds)
+                    keysToRemove.Add(pair.Key);
+            }
+            foreach (var key in keysToRemove)
+                StatusEffects.Remove(key);
             AttributesUpdate();
         }
 
-        // 베이스 스탯 수치 반환
-        public virtual int GetBaseHp()
+        // ── 런 보너스 ─────────────────────────────────────────────────────────
+        /// <summary>
+        /// 런 중 획득한 보너스를 기본 스탯에 추가 후 AttributesUpdate() 호출.<br/>
+        /// 매개변수는 기존 RewardManager 호환성을 위해 유지되며, 내부적으로 새 스탯에 매핑됨.
+        /// </summary>
+        public void AddRunBonus(int atkBase = 0, int defBase = 0, float critChanceBase = 0f,
+                                float speedBase = 0f, int hpBase = 0)
         {
-            return HpBase + HpIncrementLvl * Level + HpIncrementUpgrade * HpUpgrade;
+            // INT +1 per 20 ATK bonus
+            IntStat += atkBase / 20;
+            // CON +1 per 300 HP bonus or 10 DEF bonus
+            ConStat += hpBase / 300 + defBase / 10;
+            // DEX +1 per 10 Speed bonus
+            DexStat += (int)(speedBase / 10f);
+            // LUK +1 per 5% CritChance bonus
+            LukStat += (int)(critChanceBase / 0.05f);
+            AttributesUpdate();
         }
 
-        public virtual int GetBaseAtk()
-        {
-            return AtkBase + AtkIncrementLvl * Level + AtkIncrementUpgrade * AtkUpgrade;
-        }
+        // ── 유닛 활성화/비활성화 ────────────────────────────────────────────────
 
-        public virtual int GetBaseDef()
-        {
-            return DefBase + DefIncrementLvl * Level + DefIncrementUpgrade * DefUpgrade;
-        }
-
-        public virtual float GetBaseCritChance()
-        {
-            return CritChanceBase + CritChanceIncrementLvl * Level + CritChanceIncrementUpgrade * CritChanceUpgrade;
-        }
-
-        public virtual float GetBaseCritDamage()
-        {
-            return CritMultiplierBase + CritMultiplierIncrementLvl * Level + CritMultiplierIncrementUpgrade * CritMultiplierUpgrade;
-        }
-
-        public virtual float GetBaseSpeed()
-        {
-            return SpeedBase + SpeedIncrementLvl * Level + SpeedIncrementUpgrade * SpeedUpgrade;
-        }
-
-        // 유닛 활성화 상태 관리
         public void ActivateUnit()
         {
             isActive = true;
@@ -457,38 +438,29 @@ namespace Entities
             currentCell.manaBarObj.transform.Find("Bar Sprite").GetComponent<SpriteRenderer>().enabled = false;
         }
 
-        // 유닛 상태효과 관리
+        // ── 상태효과 관리 ──────────────────────────────────────────────────────
+
+        public System.Collections.Generic.IReadOnlyDictionary<string, StatusEffect> GetStatusEffects()
+            => StatusEffects;
+
         public void AddStatusEffect(string identifier, StatusEffect effect)
         {
-            // 같은 버프여도 서로 다른 유닛이 부여하면 중첩가능
             Debug.Log($"{UnitName}에게 {identifier} 상태효과 부여");
-            if (StatusEffects.ContainsKey(identifier))
-            {
-                StatusEffects[identifier] = effect;
-            }
-            else
-            {
-                StatusEffects.Add(identifier, effect);
-            }
+            StatusEffects[identifier] = effect;
             AttributesUpdate();
         }
 
         public void RemoveStatusEffect(string identifier)
         {
             Debug.Log($"{UnitName}에게서 {identifier} 상태효과 제거됨");
-            if (StatusEffects.ContainsKey(identifier))
-            {
-                StatusEffects.Remove(identifier);
-            }
+            StatusEffects.Remove(identifier);
             AttributesUpdate();
         }
-        
+
         public void SetSynergyEffect(int synergyId, SynergyEffect effect)
         {
             if (effect.Stack == 0)
-            {
                 SynergyEffects.Remove(synergyId);
-            }
             else
             {
                 SynergyEffects[synergyId] = effect;
@@ -496,42 +468,33 @@ namespace Entities
             }
         }
 
-        // 이벤트 리스너 관리
+        // ── 이벤트 리스너 관리 ────────────────────────────────────────────────
+
         public void AddListener<T>(BaseEnums.UnitEventType eventType, Action<T> action)
         {
             if (!_eventDict.ContainsKey(eventType))
-            {
                 RemoveAllListeners(eventType);
-            }
             _eventDict[eventType] = (Action<T>)_eventDict[eventType] + action;
         }
 
         public void RemoveListener<T>(BaseEnums.UnitEventType eventType, Action<T> action)
         {
             if (_eventDict.ContainsKey(eventType))
-            {
                 _eventDict[eventType] = (Action<T>)_eventDict[eventType] - action;
-            }
         }
 
         public void RemoveAllListeners(BaseEnums.UnitEventType eventType)
         {
             if (_eventDict.ContainsKey(eventType))
-            {
                 _eventDict[eventType] = null;
-            }
             else
-            {
                 _eventDict.Add(eventType, null);
-            }
         }
 
         public void Invoke<T>(BaseEnums.UnitEventType eventType, T context)
         {
             if (_eventDict.TryGetValue(eventType, out var value))
-            {
                 ((Action<T>)value)?.Invoke(context);
-            }
         }
     }
 }

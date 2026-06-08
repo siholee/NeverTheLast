@@ -6,165 +6,100 @@ using UnityEngine;
 
 namespace Managers
 {
+    /// <summary>
+    /// 라운드 데이터 로드 + 적 소환 큐 관리.<br/>
+    /// 전열 큐(frontlineQueue)와 후열 큐(backlineQueue)를 별도로 유지.
+    /// 빈 슬롯이 생기면 BattleManager.TurnCleanup에서 TrySpawnPending()이 호출됨.
+    /// </summary>
     public class RoundManager
     {
         private readonly DataManager _dataManager;
-        public int Round { get; private set; }
+        public int  Round            { get; private set; }
         public bool IsRoundInProgress { get; private set; }
 
-        private readonly Dictionary<int, Queue<int>> _spawnQueues; // 적 대기열
-        private RoundData _currentRound;
+        private Queue<int> _frontlineQueue = new();
+        private Queue<int> _backlineQueue  = new();
+        private RoundData  _currentRound;
 
-        public RoundManager(DataManager manager)
-        {
-            _dataManager = manager;
-            _spawnQueues = new Dictionary<int, Queue<int>>();
-        }
+        public RoundManager(DataManager manager) { _dataManager = manager; }
 
-        public void SpawnHeroesForTest()
-        {
-            GameManager.Instance.gridManager.SpawnUnit(-1, 2, false, 1);
-        }
+        // ── 라운드 로드 ────────────────────────────────────────────────────────
 
         public void LoadRound(int roundNumber)
         {
-            if (roundNumber == 1) SpawnHeroesForTest();
             Round = roundNumber;
 
-            RoundDataList roundDataList = _dataManager.FetchRoundDataList();
-            _currentRound = roundDataList.rounds.Find(r => r.roundNumber == Round);
+            var dataList = _dataManager.FetchRoundDataList();
+            _currentRound = dataList?.rounds?.Find(r => r.roundNumber == roundNumber);
+
             if (_currentRound == null)
             {
-                // Debug.LogError($"No data found for round {ROUND}.");
+                Debug.LogWarning($"[RoundManager] roundNumber {roundNumber} 데이터 없음 — 라운드 생략");
                 return;
             }
 
-            foreach (var cell in _currentRound.cells)
-            {
-                Queue<int> queue = new Queue<int>(cell.enemyIds);
-                _spawnQueues[cell.cellIndex] = queue;
-                // Debug.Log($"Cell {cell.cellIndex}: Initialized with {queue.Count} enemies in queue.");
-            }
-            
+            // 전열/후열 큐 초기화
+            _frontlineQueue = new Queue<int>(_currentRound.frontlineEnemies ?? new List<int>());
+            _backlineQueue  = new Queue<int>(_currentRound.backlineEnemies  ?? new List<int>());
+
             GameManager.Instance.CalculateSynergies();
             ApplySynergyEffects();
 
-            // Debug.Log($"Round {ROUND} data loaded successfully.");
             IsRoundInProgress = true;
+            Debug.Log($"[RoundManager] 라운드 {roundNumber} 로드 — 전열 {_frontlineQueue.Count}명, 후열 {_backlineQueue.Count}명 대기");
         }
 
         private void ApplySynergyEffects()
         {
             foreach (var synergy in GameManager.Instance.SynergyCounts)
             {
-                // Debug.Log($"Synergy {synergy.Key}: {synergy.Value} units.");
                 foreach (var unit in GridManager.Instance.heroList)
                 {
-                    var synergyEffect = SynergyEffectFactory.CreateSynergyEffect(synergy.Key);
-                    synergyEffect.SetStack(Mathf.Min(synergy.Value.Count, synergy.Value.MaxCount));
-                    unit.SetSynergyEffect(synergy.Key, synergyEffect);
+                    var effect = SynergyEffectFactory.CreateSynergyEffect(synergy.Key);
+                    effect.SetStack(Mathf.Min(synergy.Value.Count, synergy.Value.MaxCount));
+                    unit.SetSynergyEffect(synergy.Key, effect);
                 }
             }
         }
 
-        public void UpdateRound()
+        // ── 적 소환 ────────────────────────────────────────────────────────────
+
+        /// <summary>BattleManager TurnCleanup에서 호출. 빈 슬롯에 대기 적을 소환.</summary>
+        public void TrySpawnPending()
         {
-            // Debug.Log("Updating round...");
-            foreach (var cellIndex in _spawnQueues.Keys)
-            {
-                // Debug.Log($"Checking cellIndex {cellIndex}...");
-
-                // 적을 소환하려 시도하고 실패하면 루프를 종료
-                while (_spawnQueues[cellIndex].Count > 0)
-                {
-                    if (!TrySpawnEnemy(cellIndex))
-                    {
-                        // Debug.Log($"No space available for cellIndex {cellIndex}. Stopping spawn attempts.");
-                        break; // 소환 실패 시 루프 종료
-                    }
-                }
-
-                if (_spawnQueues[cellIndex].Count > 0)
-                {
-                    // Debug.Log($"Cell {cellIndex}: {spawnQueues[cellIndex].Count} enemies remain in queue.");
-                }
-            }
-
-            if (AreAllQueuesEmpty())
-            {
-                // Debug.Log("All queues are empty. Ending round.");
-                EndRound();
-            }
-            else
-            {
-                // Debug.Log("Enemies still remain in queues. Round continues.");
-            }
+            TrySpawnFromQueue(isFrontline: true,  _frontlineQueue);
+            TrySpawnFromQueue(isFrontline: false, _backlineQueue);
         }
 
-        private bool TrySpawnEnemy(int cellIndex)
+        private void TrySpawnFromQueue(bool isFrontline, Queue<int> queue)
         {
-            // Debug.Log($"Trying to spawn enemy at cellIndex {cellIndex}...");
-
-            // xPos에 해당하는 yPos를 모두 확인 (1, 2, 3)
-            for (int y = 1; y <= 3; y++)
+            while (queue.Count > 0)
             {
-                // GridManager의 IsCellAvailable에 xPos와 yPos를 전달
-                if (GameManager.Instance.gridManager.IsCellAvailable(cellIndex, y))
-                {
-                    // 대기열에서 적 ID를 가져옴
-                    int enemyId = _spawnQueues[cellIndex].Dequeue();
+                int slot = GridManager.Instance.FindAvailableEnemySlot(isFrontline);
+                if (slot < 0) break; // 빈 슬롯 없음
 
-                    // GridManager의 SpawnEnemy에 xPos, yPos, enemyId 전달
-                    GameManager.Instance.gridManager.SpawnUnit(cellIndex, y, true, enemyId);
-
-                    // Debug.Log($"Enemy {enemyId} spawned at Cell ({cellIndex}, {y}).");
-                    return true; // 적 소환 성공
-                }
+                int unitId = queue.Dequeue();
+                GridManager.Instance.SpawnEnemy(unitId, isFrontline, slot);
             }
-
-            // Debug.Log($"No available space to spawn enemy at cellIndex {cellIndex}.");
-            return false; // 적 소환 실패
         }
 
+        // ── 큐 상태 확인 ───────────────────────────────────────────────────────
+
+        /// <summary>전열/후열 모든 큐가 비었는지 (BattleManager의 라운드 완료 조건).</summary>
         public bool AreAllQueuesEmpty()
-        {
-            foreach (var queue in _spawnQueues.Values)
-            {
-                if (queue.Count > 0) return false;
-            }
-            return true;
-        }
+            => _frontlineQueue.Count == 0 && _backlineQueue.Count == 0;
 
         private void EndRound()
         {
-            // Debug.Log($"Round {ROUND} completed.");
             IsRoundInProgress = false;
+            Debug.Log($"[RoundManager] 라운드 {Round} 종료");
         }
 
-        /// <summary>
-        /// BattleManager가 TurnCleanup에서 호출. 빈 셀에 대기중인 적을 스폰.
-        /// </summary>
-        public void TrySpawnPending()
-        {
-            foreach (var cellIndex in _spawnQueues.Keys)
-            {
-                while (_spawnQueues[cellIndex].Count > 0)
-                {
-                    if (!TrySpawnEnemy(cellIndex))
-                    {
-                        break;
-                    }
-                }
-            }
-        }
+        // ── 레거시 호환 ───────────────────────────────────────────────────────
 
-        public void NotifyCellAvailable(int cellIndex)
-        {
-            // Debug.Log($"Cell {cellIndex} is now available. Checking queue...");
-            if (_spawnQueues.ContainsKey(cellIndex) && _spawnQueues[cellIndex].Count > 0)
-            {
-                TrySpawnEnemy(cellIndex);
-            }
-        }
+        /// <summary>사용하지 않음 (CharacterSelectionManager가 아군 소환 담당). 호환용으로 유지.</summary>
+        public void SpawnHeroesForTest() { }
+
+        public void NotifyCellAvailable(int cellIndex) { TrySpawnPending(); }
     }
 }

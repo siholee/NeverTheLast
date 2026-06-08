@@ -1,87 +1,71 @@
 units:
   - id: 1
     name: SEI
-    synergies:
-      - 1
-      - 4
-    hpBase: 12000
-    hpIncrementLvl: 1000
-    hpIncrementUpgrade: 1000
-    atkBase: 250
-    atkIncrementLvl: 100
-    atkIncrementUpgrade: 100
-    defBase: 100
-    defIncrementLvl: 20
-    defIncrementUpgrade: 20
-    critChance: 0.25
-    critChanceIncrementLvl: 0.01
-    critChanceIncrementUpgrade: 0.05
-    critMultiplier: 1.5
-    critMultiplierIncrementLvl: 0
-    critMultiplierIncrementUpgrade: 0.1
+    element: Geo
+    synergies: []
+    # ── 기본 스탯 (STR / DEX / CON / INT / LUK) ────────────────────────────
+    str: 0   # 근력 — 물리 계수에 기여
+    dex: 2   # 민첩 — 속도에 기여 (Speed = DEX*10+60 → 80)
+    con: 1   # 체력 — HP/방어/CON 계수에 기여 (HP = CON*300+500 → 800)
+    int: 4   # 지능 — 마법 계수에 기여 (P1 효과로 CON 계수에도 더해짐)
+    luk: 2   # 행운 — 치명타에 기여 (CritChance = LUK*5% → 10%)
     manaBase: 100
     codes:
-      passive: 1
-      normal: 2
-      ultimate: 1
-    speedBase: 95
-    speedIncrementLvl: 2
-    speedIncrementUpgrade: 3
+      passive: 1      # SeiP1Passive (P1: CON 기반 스킬에 INT 추가)
+      basic: 1        # MagicBullet (마력탄: 무기 스킬, INT*40 단일 피해, SP+1)
+      class_skill: 1  # Meditation (명상: 캐스터 클래스 스킬, SP+2 · 마나+30)
+      normal: 1       # RockCannon (암석포: 캐릭터 스킬, SP-1, CON*60 + 스플래시 CON*40)
+      ultimate: 0     # Meteor — Lv.75 해금, 현재 없음
     portrait: SEI_PORTRAIT
 
-  - id: 2
-    name: DAIYAN
-    synergies:
-      - 1
-    hpBase: 3000
-    hpIncrementLvl: 1000
-    hpIncrementUpgrade: 1000
-    atkBase: 200
-    atkIncrementLvl: 100
-    atkIncrementUpgrade: 100
-    defBase: 50
-    defIncrementLvl: 20
-    defIncrementUpgrade: 20
-    critChance: 0.05
-    critChanceIncrementLvl: 0.01
-    critChanceIncrementUpgrade: 0.05
-    critMultiplier: 1.2
-    critMultiplierIncrementLvl: 0
-    critMultiplierIncrementUpgrade: 0.1
-    manaBase: 100
+  # ── 테스트 적군 유닛 (개발용) ──────────────────────────────────────────────
+  - id: 101
+    name: 슬라임
+    element: Hydro
+    synergies: []
+    str: 0
+    dex: 1   # Speed = 1*10+60 = 70
+    con: 2   # HP = 2*300+500 = 1100
+    int: 1
+    luk: 0
+    manaBase: 0
     codes:
-      passive: 1
-      normal: 1
-      ultimate: 1
-    speedBase: 110
-    speedIncrementLvl: 2
-    speedIncrementUpgrade: 3
-    portrait: DAIYAN_PORTRAIT
-  - id: 3
-    name: CLUKAY
-    synergies:
-      - 3
-    hpBase: 5000
-    hpIncrementLvl: 1000
-    hpIncrementUpgrade: 1000
-    atkBase: 250
-    atkIncrementLvl: 100
-    atkIncrementUpgrade: 100
-    defBase: 70
-    defIncrementLvl: 20
-    defIncrementUpgrade: 20
-    critChance: 0.05
-    critChanceIncrementLvl: 0.01
-    critChanceIncrementUpgrade: 0.05
-    critMultiplier: 1.2
-    critMultiplierIncrementLvl: 0
-    critMultiplierIncrementUpgrade: 0.1
-    manaBase: 100
+      passive: 0
+      basic: 1     # MagicBullet (단일 마법 공격)
+      normal: 0
+      ultimate: 0
+    portrait: ""
+
+  - id: 102
+    name: 고블린
+    element: Pyro
+    synergies: []
+    str: 1
+    dex: 2   # Speed = 2*10+60 = 80
+    con: 1   # HP = 1*300+500 = 800
+    int: 2
+    luk: 1
+    manaBase: 0
     codes:
-      passive: 1
-      normal: 1
-      ultimate: 1
-    speedBase: 102
-    speedIncrementLvl: 2
-    speedIncrementUpgrade: 3
-    portrait: CLUKAY_PORTRAIT
+      passive: 0
+      basic: 1     # MagicBullet
+      normal: 0
+      ultimate: 0
+    portrait: ""
+
+  - id: 103
+    name: 해골병사
+    element: Physical
+    synergies: []
+    str: 2
+    dex: 0   # Speed = 0*10+60 = 60
+    con: 3   # HP = 3*300+500 = 1400
+    int: 0
+    luk: 0
+    manaBase: 0
+    codes:
+      passive: 0
+      basic: 1     # MagicBullet
+      normal: 0
+      ultimate: 0
+    portrait: ""
