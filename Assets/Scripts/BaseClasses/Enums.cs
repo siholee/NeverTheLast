@@ -33,9 +33,12 @@ namespace BaseClasses
     // 현재 진행중인 게임 상태
     public enum GameState
     {
+      CharacterSelection,
       Preparation,
       RoundInProgress,
       RoundEnd,
+      RewardSelection,
+      RunComplete,
       GameOver
     }
 

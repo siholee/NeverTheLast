@@ -95,6 +95,40 @@ namespace Managers
             IsRoundInProgress = true;
         }
 
+        public bool TryLoadNextRound()
+        {
+            if (_roundTypeDataList == null)
+            {
+                _roundTypeDataList = _dataManager.FetchRoundTypeDataList();
+            }
+
+            StageData stageData = _roundTypeDataList?.stages?.Find(s => s.stageNumber == Stage);
+            int roundsInStage = stageData?.rounds?.Count ?? 0;
+
+            if (roundsInStage > 0 && Round < roundsInStage)
+            {
+                LoadRound(Round + 1);
+                return true;
+            }
+
+            int nextStage = Stage + 1;
+            bool hasNextStage = _roundTypeDataList?.stages?.Any(s => s.stageNumber == nextStage) == true;
+            if (!hasNextStage)
+            {
+                Debug.Log("[RoundManager] 모든 스테이지를 완료했습니다.");
+                return false;
+            }
+
+            InitializeStage(nextStage);
+            LoadRound(1);
+            return true;
+        }
+
+        public void StopRound()
+        {
+            IsRoundInProgress = false;
+        }
+
         /// <summary>
         /// 라운드 타입에 따라 적을 소환
         /// </summary>
@@ -312,34 +346,6 @@ namespace Managers
             
             // 적 전멸로 인한 라운드 종료를 GameManager에 알림
             GameManager.Instance.EndRoundByEnemyDefeat();
-            
-            // 아군 필드 상태 복원 (라운드 시작 전 상태로)
-            GameManager.Instance.RestoreAllyFieldState();
-            
-            // 현재 HeroList에 있는 모든 영웅들을 다시 Initialize
-            foreach (Unit hero in GridManager.Instance.heroList.ToList())
-            {
-                if (hero != null && hero.isActive)
-                {
-                    hero.InitializeUnit(hero.IsEnemy, hero.ID);
-                    Debug.Log($"영웅 {hero.UnitName}을(를) 다시 초기화했습니다.");
-                }
-            }
-            
-            // 다음 라운드 로드
-            if (Round >= 8)
-            {
-                // 스테이지 완료
-                Debug.Log($"Stage {Stage} completed!");
-                InitializeStage(Stage + 1);
-                LoadRound(1);
-            }
-            else
-            {
-                LoadRound(Round + 1);
-            }
-            
-            IsRoundInProgress = true;
         }
 
         // 기존 메서드들 (호환성 유지)

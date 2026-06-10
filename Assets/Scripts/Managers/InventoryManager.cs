@@ -32,7 +32,7 @@ namespace Managers
             if (UnitsInHand == null) UnitsInHand = new List<Unit>();
             UnitsInHand.Clear();
             
-            resourcePanel.UpdatePanel(TokensInHand, rerollTicketCount);
+            RefreshPanel();
         }
     
         public void AddToken(int tokenId, int amount)
@@ -42,7 +42,7 @@ namespace Managers
                 TokensInHand[tokenId] += amount;
             }
 
-            resourcePanel.UpdatePanel(TokensInHand, rerollTicketCount);
+            RefreshPanel();
         }
 
         public bool SpendToken(Dictionary<int, int> tokensToSpend)
@@ -55,8 +55,16 @@ namespace Managers
             {
                 TokensInHand[token.Key] -= token.Value;
             }
-            resourcePanel.UpdatePanel(TokensInHand, rerollTicketCount);
+            RefreshPanel();
             return true;
+        }
+
+        public void RefreshPanel()
+        {
+            if (resourcePanel != null)
+            {
+                resourcePanel.UpdatePanel(TokensInHand, rerollTicketCount);
+            }
         }
 
         public void AddUnit(Unit unit)

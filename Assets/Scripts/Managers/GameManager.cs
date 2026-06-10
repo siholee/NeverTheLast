@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
+using Core;
 using Entities;
 using UnityEngine;
-using UnityEngine.Serialization;
+using UnityEngine.SceneManagement;
 using static BaseClasses.BaseEnums;
 
 namespace Managers
@@ -19,6 +20,25 @@ namespace Managers
         public ShopManager shopManager;
         public InventoryManager inventoryManager;
         public DragAndDropManager dragAndDropManager;
+        public RunManager runManager;
+        public RewardManager rewardManager;
+        public RoundManager RoundManager => _roundManager;
+
+        public static void LoadMainMenuScene()
+        {
+            CleanupRunContext();
+            SceneManager.LoadScene("MainMenu");
+        }
+
+        public static void LoadBattleScene()
+        {
+            if (Instance != null)
+            {
+                CleanupRunContext();
+            }
+
+            SceneManager.LoadScene("Game");
+        }
 
         public GameState gameState;
         public int KillCount;
@@ -59,6 +79,8 @@ namespace Managers
                 {
                     DontDestroyOnLoad(gameObject);
                 }
+
+                EnsurePersistentManagers();
             }
             else
             {
@@ -76,6 +98,10 @@ namespace Managers
             {
                 switch (gameState)
                 {
+                    case GameState.CharacterSelection:
+                        gameState = GameState.Preparation;
+                        StartPreparationTimer();
+                        break;
                     case GameState.Preparation:
                         StartRound();
                         break;
@@ -88,7 +114,16 @@ namespace Managers
                         gameState = GameState.Preparation;
                         StartPreparationTimer();
                         break;
+                    case GameState.RewardSelection:
+                        gameState = GameState.Preparation;
+                        StartPreparationTimer();
+                        break;
+                    case GameState.RunComplete:
+                        SaveSystem.DeleteSave();
+                        LoadMainMenuScene();
+                        break;
                     case GameState.GameOver:
+                        SaveSystem.DeleteSave();
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -128,6 +163,7 @@ namespace Managers
             
             // 아군 필드 상태 저장 (라운드 종료 후 복원용)
             SaveAllyFieldState();
+            runManager?.SaveCurrentRun();
             
             // 라운드 진행 타이머 시작
             currentRoundProgressTime = roundProgressTime;
@@ -181,16 +217,12 @@ namespace Managers
             inventoryManager.Initialize();
 
             _roundManager = new RoundManager(dataManager);
-            _roundManager.InitializeStage(1); // 첫 번째 스테이지 시작
-            _roundManager.LoadRound(1); // 첫 번째 라운드 시작
-            
-            // 첫 번째 준비 타이머 시작
-            StartPreparationTimer();
+            StartFromIntent();
         }
 
         private void Update()
         {
-            if (_roundManager.IsRoundInProgress)
+            if (_roundManager != null && _roundManager.IsRoundInProgress)
             {
                 _roundManager.UpdateRound();
             }
@@ -257,6 +289,35 @@ namespace Managers
             }
         }
 
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+        }
+
+        public void BeginRunAfterCharacterSelection()
+        {
+            if (_roundManager == null)
+            {
+                _roundManager = new RoundManager(dataManager);
+                _roundManager.InitializeStage(1);
+            }
+
+            _roundManager.LoadRound(1);
+            gameState = GameState.Preparation;
+            StartPreparationTimer();
+            runManager?.SaveCurrentRun();
+        }
+
+        public void EnterPreparationAfterReward()
+        {
+            gameState = GameState.Preparation;
+            StartPreparationTimer();
+            uiManager?.UpdateLifeText();
+        }
+
         private int GetRemainingEnemyCount()
         {
             int fieldEnemies = 0;
@@ -314,7 +375,7 @@ namespace Managers
             Debug.Log($"라운드 시간 초과! 남은 적 {remainingEnemies}마리만큼 생명력 차감. 현재 생명력: {life}");
             
             // 라운드 종료 처리
-            EndRound();
+            EndRound(false);
         }
 
         public void EndRoundByEnemyDefeat()
@@ -322,7 +383,7 @@ namespace Managers
             // 적 전멸로 인한 라운드 종료 (생명력 차감 없음)
             isRoundProgressTimerActive = false;
             Debug.Log("모든 적을 처치했습니다! 라운드 승리!");
-            EndRound();
+            EndRound(true);
         }
 
         private void EndRoundByAllyDefeat()
@@ -337,11 +398,12 @@ namespace Managers
             Debug.Log($"아군이 전멸했습니다! 남은 적 {remainingEnemies}마리만큼 생명력 차감. 현재 생명력: {life}");
             
             // 라운드 종료 처리
-            EndRound();
+            EndRound(false);
         }
 
-        private void EndRound()
+        private void EndRound(bool victory)
         {
+            _roundManager?.StopRound();
             gameState = GameState.RoundEnd;
             
             // 아군 필드 상태 복원 (게임 오버가 아닌 경우에만)
@@ -350,9 +412,23 @@ namespace Managers
                 RestoreAllyFieldState();
             }
             
-            // 잠시 후 다음 준비 단계로 전환
-            if (life > 0)
+            if (life <= 0)
             {
+                SaveSystem.DeleteSave();
+                return;
+            }
+
+            if (victory)
+            {
+                gameState = GameState.RewardSelection;
+                var rewards = rewardManager != null
+                    ? rewardManager.GenerateRewards(3)
+                    : new List<RewardDef>();
+                uiManager?.ShowRewardPanel(rewards);
+            }
+            else
+            {
+                runManager?.SaveCurrentRun();
                 NextGameState(false);
             }
         }
@@ -372,6 +448,7 @@ namespace Managers
             {
                 gameState = GameState.GameOver;
                 Debug.Log("생명력이 0이 되었습니다. 게임 오버!");
+                SaveSystem.DeleteSave();
             }
         }
 
@@ -416,6 +493,81 @@ namespace Managers
             }
             
             Debug.Log($"아군 필드 상태 복원됨: {allyFieldSnapshot.Count}개 유닛");
+        }
+
+        private void EnsurePersistentManagers()
+        {
+            if (SettingsManager.Instance == null)
+            {
+                new GameObject("SettingsManager").AddComponent<SettingsManager>();
+            }
+
+            if (RunManager.Instance == null)
+            {
+                runManager = new GameObject("RunManager").AddComponent<RunManager>();
+            }
+            else
+            {
+                runManager = RunManager.Instance;
+            }
+
+            if (RewardManager.Instance == null)
+            {
+                rewardManager = new GameObject("RewardManager").AddComponent<RewardManager>();
+            }
+            else
+            {
+                rewardManager = RewardManager.Instance;
+            }
+        }
+
+        private void StartFromIntent()
+        {
+            switch (GameStartIntent.Current)
+            {
+                case GameStartIntent.Intent.NewGame:
+                    runManager.StartRun();
+                    _roundManager.InitializeStage(1);
+                    gameState = GameState.CharacterSelection;
+                    uiManager?.ShowCharacterSelection();
+                    break;
+                case GameStartIntent.Intent.Continue:
+                    if (runManager.LoadSavedRun())
+                    {
+                        gameState = GameState.Preparation;
+                        StartPreparationTimer();
+                    }
+                    else
+                    {
+                        _roundManager.InitializeStage(1);
+                        gameState = GameState.CharacterSelection;
+                        uiManager?.ShowCharacterSelection();
+                    }
+                    break;
+                case GameStartIntent.Intent.DirectStart:
+                default:
+                    runManager.StartRun();
+                    _roundManager.InitializeStage(1);
+                    _roundManager.LoadRound(1);
+                    gameState = GameState.Preparation;
+                    StartPreparationTimer();
+                    break;
+            }
+
+            GameStartIntent.Current = GameStartIntent.Intent.DirectStart;
+        }
+
+        private static void CleanupRunContext()
+        {
+            CharacterSelectionManager.DestroyInstance();
+            RunManager.DestroyInstance();
+            RewardManager.DestroyInstance();
+
+            if (Instance != null)
+            {
+                Destroy(Instance.gameObject);
+                Instance = null;
+            }
         }
     }
 }

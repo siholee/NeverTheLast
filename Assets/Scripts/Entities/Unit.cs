@@ -33,11 +33,13 @@ namespace Entities
         [SerializeField] private int defUpgrade;
         [SerializeField] private int critChanceUpgrade;
         [SerializeField] private int critMultiplierUpgrade;
+        [SerializeField] private float codeAccelerationRunBonus;
         public int HpUpgrade { get => hpUpgrade; protected set => hpUpgrade = value; }
         public int AtkUpgrade { get => atkUpgrade; protected set => atkUpgrade = value; }
         public int DefUpgrade { get => defUpgrade; protected set => defUpgrade = value; }
         public int CritChanceUpgrade { get => critChanceUpgrade; protected set => critChanceUpgrade = value; }
         public int CritMultiplierUpgrade { get => critMultiplierUpgrade; protected set => critMultiplierUpgrade = value; }
+        public float CodeAccelerationRunBonus { get => codeAccelerationRunBonus; protected set => codeAccelerationRunBonus = value; }
 
         // 유닛 현재 상태
         [SerializeField] private int hpCurr;
@@ -344,7 +346,7 @@ namespace Entities
             DefCurr = Mathf.RoundToInt(GetBaseDef() * (1f + defMul) + defAdd);
             CritChanceCurr = GetBaseCritChance() + critChanceAdd;
             CritMultiplierCurr = GetBaseCritDamage() + critMultiplierAdd;
-            CodeAcceleration = 1f + codeAccelMul;
+            CodeAcceleration = 1f + codeAccelMul + CodeAccelerationRunBonus;
 
             // hp 비율 복구
             HpCurr = Mathf.RoundToInt(HpMax * healthRatio);
@@ -459,6 +461,44 @@ namespace Entities
             }
             // Cell의 통합 UI 시스템 사용
             currentCell.UpdateUI();
+        }
+
+        public void ModifyHp(int newHp)
+        {
+            HpCurr = Mathf.Clamp(newHp, 0, HpMax);
+            currentCell?.UpdateUI();
+        }
+
+        public void AddRunBonus(
+            int hpUpgrade = 0,
+            int atkUpgrade = 0,
+            int defUpgrade = 0,
+            int critChanceUpgrade = 0,
+            int critMultiplierUpgrade = 0,
+            float codeAccelerationBonus = 0f)
+        {
+            HpUpgrade += hpUpgrade;
+            AtkUpgrade += atkUpgrade;
+            DefUpgrade += defUpgrade;
+            CritChanceUpgrade += critChanceUpgrade;
+            CritMultiplierUpgrade += critMultiplierUpgrade;
+            CodeAccelerationRunBonus += codeAccelerationBonus;
+            AttributesUpdate();
+            currentCell?.UpdateUI();
+        }
+
+        public void RestoreRunState(Core.UnitSaveData saveData)
+        {
+            if (saveData == null) return;
+
+            HpUpgrade = saveData.hpUpgrade;
+            AtkUpgrade = saveData.atkUpgrade;
+            DefUpgrade = saveData.defUpgrade;
+            CritChanceUpgrade = saveData.critChanceUpgrade;
+            CritMultiplierUpgrade = saveData.critMultiplierUpgrade;
+            CodeAccelerationRunBonus = saveData.codeAccelerationBonus;
+            AttributesUpdate();
+            ModifyHp(saveData.currentHP);
         }
 
         /// <summary>
