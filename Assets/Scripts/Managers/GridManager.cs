@@ -21,13 +21,13 @@ namespace Managers
         public GameObject enemyPrefab;
         
         [Header("Grid Settings")]
-        public int xMin = -4;
-        public int xMax = 4;
-        public int yMin = 0; 
-        public int yMax = 3;
+        public int xMin = -2;
+        public int xMax = 2;
+        public int yMin = 1; 
+        public int yMax = 4;
         
         [Header("Bench Grid Settings")]
-        public int benchSize = 9; // 벤치 슬롯 개수 (고정: -4~4)
+        public int benchSize = 5; // 대기 슬롯 개수
 
         private Cell[,] _fieldCellManager; // Cell management array
         private Cell[] _benchCellManager; // Cell management array (1차원)
@@ -145,10 +145,12 @@ namespace Managers
                 return;
             }
             
-            // 필드 셀들 생성 (x: -4~4, y: 1~3)
+            // 필드 셀들 생성: 아군 x=-2~-1, 적군 x=1~2, y=1~4
             for (int x = xMin; x <= xMax; x++)
             {
-                for (int y = 1; y <= 3; y++) // 필드는 y=1,2,3만 사용
+                if (x == 0) continue;
+
+                for (int y = yMin; y <= yMax; y++)
                 {
                     // 셀 프리팹에서 인스턴스 생성
                     GameObject cellObj = Instantiate(cellPrefab, Field);
@@ -212,9 +214,9 @@ namespace Managers
                 return;
             }
             
-            // 벤치 셀들 생성 (x: -4~4, y: 0) - 고정값 사용
+            // 벤치 셀들 생성 (x: -2~2, y: 0)
             int benchIndex = 0;
-            for (int x = -4; x <= 4; x++)
+            for (int x = xMin; x <= xMax; x++)
             {
                 if (benchIndex >= benchSize) break; // benchSize 제한 확인
                 
@@ -274,6 +276,8 @@ namespace Managers
 
         public bool IsCellAvailable(int xPos, int yPos)
         {
+            if (!IsValidFieldPosition(xPos, yPos)) return false;
+
             int adjustedX = xPos - xMin;
             int adjustedY = yPos - yMin;
 
@@ -285,6 +289,31 @@ namespace Managers
             }
 
             return false; // Cell doesn't exist or is occupied
+        }
+
+        public bool IsValidFieldPosition(int xPos, int yPos)
+        {
+            return xPos >= xMin && xPos <= xMax && xPos != 0 && yPos >= yMin && yPos <= yMax;
+        }
+
+        public bool IsAllyFieldPosition(int xPos, int yPos)
+        {
+            return IsValidFieldPosition(xPos, yPos) && xPos < 0;
+        }
+
+        public bool IsEnemyFieldPosition(int xPos, int yPos)
+        {
+            return IsValidFieldPosition(xPos, yPos) && xPos > 0;
+        }
+
+        public int GetFrontColumn(bool isEnemy)
+        {
+            return isEnemy ? 1 : -1;
+        }
+
+        public int GetRearColumn(bool isEnemy)
+        {
+            return isEnemy ? 2 : -2;
         }
 
         public void SpawnUnit(int xPos, int yPos, bool isEnemy, int unitId, bool isBench = false)
@@ -310,6 +339,12 @@ namespace Managers
             else
             {
                 // 필드에 유닛 스폰
+                if ((isEnemy && !IsEnemyFieldPosition(xPos, yPos)) || (!isEnemy && !IsAllyFieldPosition(xPos, yPos)))
+                {
+                    Debug.LogWarning($"진영에 맞지 않는 셀입니다: {(isEnemy ? "적" : "아군")} -> ({xPos}, {yPos})");
+                    return;
+                }
+
                 int adjustedX = xPos - xMin;
                 int adjustedY = yPos - yMin;
 
@@ -569,10 +604,10 @@ namespace Managers
 
         public bool AreAllEnemySideCellsEmpty()
         {
-            // 적 측 셀들(y = 1, 2, 3)이 모두 비어있는지 확인
-            for (int x = xMin; x <= xMax; x++)
+            // 적 측 셀이 모두 비어있는지 확인
+            for (int x = 1; x <= 2; x++)
             {
-                for (int y = 1; y <= 3; y++) // 적 측은 y = 1, 2, 3
+                for (int y = yMin; y <= yMax; y++)
                 {
                     int adjustedX = x - xMin;
                     int adjustedY = y - yMin;

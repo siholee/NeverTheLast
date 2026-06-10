@@ -106,6 +106,20 @@ namespace Managers
             StageThemeDataList themeDataList = deserializer.Deserialize<StageThemeDataList>(themeData.text);
             return themeDataList;
         }
+
+        public RewardDataList FetchRewardDataList()
+        {
+            TextAsset rewardData = Resources.Load<TextAsset>("Data/90_rewards");
+            var deserializer = new DeserializerBuilder().Build();
+            if (rewardData == null)
+            {
+                Debug.LogError("Data/90_rewards.yaml not found.");
+                return null;
+            }
+
+            RewardDataList rewardDataList = deserializer.Deserialize<RewardDataList>(rewardData.text);
+            return rewardDataList;
+        }
         
         public RoundTypeDataList FetchRoundTypeDataList()
         {
@@ -147,6 +161,21 @@ namespace Managers
         public int id;
         public string name;
         public List<int> synergies;
+        public int strBase;
+        public int strIncrementLvl;
+        public int strIncrementUpgrade;
+        public int dexBase;
+        public int dexIncrementLvl;
+        public int dexIncrementUpgrade;
+        public int conBase;
+        public int conIncrementLvl;
+        public int conIncrementUpgrade;
+        public int intBase;
+        public int intIncrementLvl;
+        public int intIncrementUpgrade;
+        public int lukBase;
+        public int lukIncrementLvl;
+        public int lukIncrementUpgrade;
         public int hpBase;
         public int hpIncrementLvl;         // YAML의 hpIncrementLvl 필드와 매핑
         public int hpIncrementUpgrade;     // YAML의 hpIncrementUpgrade 필드와 매핑
@@ -234,6 +263,21 @@ namespace Managers
         public int faction;     // 소속 (시너지 ID)
         public int @class;      // 직업 (시너지 ID) - class는 C# 예약어이므로 @class 사용
         public string tier;     // normal, elite, boss
+        public int strBase;
+        public int strIncrementLvl;
+        public int strIncrementUpgrade;
+        public int dexBase;
+        public int dexIncrementLvl;
+        public int dexIncrementUpgrade;
+        public int conBase;
+        public int conIncrementLvl;
+        public int conIncrementUpgrade;
+        public int intBase;
+        public int intIncrementLvl;
+        public int intIncrementUpgrade;
+        public int lukBase;
+        public int lukIncrementLvl;
+        public int lukIncrementUpgrade;
         public int hpBase;
         public int hpIncrementLvl;
         public int hpIncrementUpgrade;
@@ -273,6 +317,20 @@ namespace Managers
     public class StageThemeDataList
     {
         public List<StageThemeData> stageThemes;
+    }
+
+    [System.Serializable]
+    public class RewardTierOddsData
+    {
+        public int round;
+        public List<int> tierWeights;
+    }
+
+    [System.Serializable]
+    public class RewardDataList
+    {
+        public List<RewardDef> rewards;
+        public List<RewardTierOddsData> rewardTierOdds;
     }
     
     [System.Serializable]

@@ -60,7 +60,7 @@ namespace Codes.Test
                     ally.AddShield(shieldAmount);
 
                     // 방어막 상태 효과 추가 (시각적 표시 및 관리용)
-                    string shieldIdentifier = $"Shield_{ally.GetInstanceID()}_{Time.time}";
+                    string shieldIdentifier = $"Shield_{ally.GetEntityId()}_{Time.time}";
                     ShieldEffect shieldEffect = new ShieldEffect(Caster, shieldIdentifier, 0);
                     ally.AddStatusEffect(shieldIdentifier, shieldEffect);
 
@@ -73,7 +73,7 @@ namespace Codes.Test
 
         private List<Unit> GetAllAllies()
         {
-            GridManager gridManager = GameObject.FindFirstObjectByType<GridManager>();
+            GridManager gridManager = GameObject.FindAnyObjectByType<GridManager>();
             if (gridManager == null) return new List<Unit>();
 
             bool casterIsAlly = gridManager.heroList.Contains(Caster);

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using BaseClasses;
+using Core;
 using Entities;
 using Managers.UI;
 using UnityEngine;
@@ -33,6 +35,7 @@ namespace Managers
 
         private List<RewardDef> _currentRewards;
         private GameObject _characterSelectionPanel;
+        private GameObject _trainingPhasePanel;
         
         private Camera mainCamera;
         
@@ -63,6 +66,7 @@ namespace Managers
         public void UpdateGameStatus(GameState currentState, int remainingTime)
         {
             if (gameStatusText == null) return;
+            UpdateStageText();
 
             switch (currentState)
             {
@@ -88,6 +92,9 @@ namespace Managers
                 case GameState.RewardSelection:
                     gameStatusText.text = "보상 선택";
                     break;
+                case GameState.TrainingPhase:
+                    gameStatusText.text = "육성 페이즈";
+                    break;
                 case GameState.RunComplete:
                     gameStatusText.text = "런 완료";
                     break;
@@ -103,6 +110,7 @@ namespace Managers
         public void UpdateGameStatusWithEnemyCount(GameState currentState, int remainingTime, int enemyCount)
         {
             if (gameStatusText == null) return;
+            UpdateStageText();
 
             switch (currentState)
             {
@@ -129,6 +137,15 @@ namespace Managers
             {
                 gameLifeText.text = $"생명력: {GameManager.Instance.life}";
             }
+        }
+
+        private void UpdateStageText()
+        {
+            if (gameStageText == null || GameManager.Instance?.RoundManager == null) return;
+
+            var roundManager = GameManager.Instance.RoundManager;
+            string modeText = GameManager.Instance.CurrentMode == GameMode.Infinite ? "무한" : "육성";
+            gameStageText.text = $"{modeText} | 스테이지 {roundManager.Stage} | 라운드 {roundManager.Round}";
         }
         
         public void ShowSynergyPopup(Vector3 position, SynergyInfo synergyInfo)
@@ -255,6 +272,23 @@ namespace Managers
             }
         }
 
+        public void ShowTrainingPhasePanel()
+        {
+            EnsureTrainingPhasePanel();
+            if (_trainingPhasePanel != null)
+            {
+                _trainingPhasePanel.SetActive(true);
+            }
+        }
+
+        public void HideTrainingPhasePanel()
+        {
+            if (_trainingPhasePanel != null)
+            {
+                _trainingPhasePanel.SetActive(false);
+            }
+        }
+
         public void ShowCharacterSelection()
         {
             EnsureCharacterSelectionManager();
@@ -378,7 +412,27 @@ namespace Managers
             panelRect.offsetMax = Vector2.zero;
             _characterSelectionPanel.GetComponent<Image>().color = new Color(0.01f, 0.03f, 0.04f, 0.94f);
 
+            var titleObject = new GameObject("Title", typeof(RectTransform), typeof(TMPro.TextMeshProUGUI));
+            titleObject.transform.SetParent(_characterSelectionPanel.transform, false);
+            var titleRect = titleObject.GetComponent<RectTransform>();
+            titleRect.anchorMin = new Vector2(0.08f, 0.86f);
+            titleRect.anchorMax = new Vector2(0.92f, 0.94f);
+            titleRect.offsetMin = Vector2.zero;
+            titleRect.offsetMax = Vector2.zero;
+            var title = titleObject.GetComponent<TMPro.TextMeshProUGUI>();
+            title.text = GameManager.Instance != null && GameManager.Instance.CurrentMode == GameMode.Infinite
+                ? "무한 모드 - 육성 완료 캐릭터 5명 선택"
+                : "육성 모드 - 메인 캐릭터 1명 + 서포트 캐릭터 4명 선택";
+            title.alignment = TMPro.TextAlignmentOptions.Center;
+            title.fontSize = 24f;
+            title.color = Color.white;
+
             var units = GameManager.Instance.unitDataList?.units?.FindAll(unit => unit.id < 100) ?? new List<UnitData>();
+            if (GameManager.Instance != null && GameManager.Instance.CurrentMode == GameMode.Infinite)
+            {
+                var trainedIds = SaveSystem.LoadTrainedCharacters().unitIds;
+                units = units.Where(unit => trainedIds.Contains(unit.id)).ToList();
+            }
             for (int i = 0; i < units.Count; i++)
             {
                 int unitId = units[i].id;
@@ -434,6 +488,37 @@ namespace Managers
             startLabel.alignment = TMPro.TextAlignmentOptions.Center;
             startLabel.fontSize = 20f;
             startLabel.color = Color.white;
+        }
+
+        private void EnsureTrainingPhasePanel()
+        {
+            if (_trainingPhasePanel != null) return;
+
+            var canvas = EnsureOverlayCanvas("TrainingPhaseCanvas");
+            _trainingPhasePanel = new GameObject("TrainingPhasePanel", typeof(RectTransform), typeof(Image));
+            _trainingPhasePanel.transform.SetParent(canvas.transform, false);
+            var panelRect = _trainingPhasePanel.GetComponent<RectTransform>();
+            panelRect.anchorMin = Vector2.zero;
+            panelRect.anchorMax = Vector2.one;
+            panelRect.offsetMin = Vector2.zero;
+            panelRect.offsetMax = Vector2.zero;
+            _trainingPhasePanel.GetComponent<Image>().color = new Color(0.02f, 0.03f, 0.04f, 0.92f);
+
+            var labelObject = new GameObject("Label", typeof(RectTransform), typeof(TMPro.TextMeshProUGUI));
+            labelObject.transform.SetParent(_trainingPhasePanel.transform, false);
+            var labelRect = labelObject.GetComponent<RectTransform>();
+            labelRect.anchorMin = new Vector2(0.18f, 0.42f);
+            labelRect.anchorMax = new Vector2(0.82f, 0.58f);
+            labelRect.offsetMin = Vector2.zero;
+            labelRect.offsetMax = Vector2.zero;
+
+            var label = labelObject.GetComponent<TMPro.TextMeshProUGUI>();
+            label.text = "육성 페이즈\n아무 키나 클릭하면 다음 스테이지로 진행";
+            label.alignment = TMPro.TextAlignmentOptions.Center;
+            label.fontSize = 28f;
+            label.color = Color.white;
+
+            _trainingPhasePanel.SetActive(false);
         }
 
         private static Canvas EnsureOverlayCanvas(string objectName)

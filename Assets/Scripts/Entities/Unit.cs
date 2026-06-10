@@ -28,12 +28,22 @@ namespace Entities
         public Cell currentCell; // 위치중인 셀
 
         // 유닛 강화 횟수
+        [SerializeField] private int strUpgrade;
+        [SerializeField] private int dexUpgrade;
+        [SerializeField] private int conUpgrade;
+        [SerializeField] private int intUpgrade;
+        [SerializeField] private int lukUpgrade;
         [SerializeField] private int hpUpgrade;
         [SerializeField] private int atkUpgrade;
         [SerializeField] private int defUpgrade;
         [SerializeField] private int critChanceUpgrade;
         [SerializeField] private int critMultiplierUpgrade;
         [SerializeField] private float codeAccelerationRunBonus;
+        public int StrUpgrade { get => strUpgrade; protected set => strUpgrade = value; }
+        public int DexUpgrade { get => dexUpgrade; protected set => dexUpgrade = value; }
+        public int ConUpgrade { get => conUpgrade; protected set => conUpgrade = value; }
+        public int IntUpgrade { get => intUpgrade; protected set => intUpgrade = value; }
+        public int LukUpgrade { get => lukUpgrade; protected set => lukUpgrade = value; }
         public int HpUpgrade { get => hpUpgrade; protected set => hpUpgrade = value; }
         public int AtkUpgrade { get => atkUpgrade; protected set => atkUpgrade = value; }
         public int DefUpgrade { get => defUpgrade; protected set => defUpgrade = value; }
@@ -49,6 +59,7 @@ namespace Entities
         [SerializeField] private float critChanceCurr;
         [SerializeField] private float critDamageCurr;
         [SerializeField] private float codeAcceleration;
+        [SerializeField] private float evasionChanceCurr;
         [SerializeField] private int shieldMax;   // 최대 방어막 (획득한 총 방어막)
         [SerializeField] private int shieldCurr;  // 현재 방어막 (라운드 끝까지 유지)
         public int HpCurr { get => hpCurr; protected set => hpCurr = value; }
@@ -58,6 +69,7 @@ namespace Entities
         public float CritChanceCurr { get => critChanceCurr; protected set => critChanceCurr = value; }
         public float CritMultiplierCurr { get => critDamageCurr; protected set => critDamageCurr = value; }
         public float CodeAcceleration { get => codeAcceleration; protected set => codeAcceleration = value; }
+        public float EvasionChanceCurr { get => evasionChanceCurr; protected set => evasionChanceCurr = value; }
         public int ShieldMax { get => shieldMax; protected set => shieldMax = value; }
         public int ShieldCurr { get => shieldCurr; protected set => shieldCurr = value; }
 
@@ -73,7 +85,24 @@ namespace Entities
         [SerializeField] private int priority = 0;
         public int Priority { get => priority; set => priority = Mathf.Clamp(value, -3, 3); }
 
-        // 유닛 스탯 수치
+        // 유닛 기본 스탯 수치
+        [SerializeField] private int strBase;
+        [SerializeField] private int strIncrementLvl;
+        [SerializeField] private int strIncrementUpgrade;
+        [SerializeField] private int dexBase;
+        [SerializeField] private int dexIncrementLvl;
+        [SerializeField] private int dexIncrementUpgrade;
+        [SerializeField] private int conBase;
+        [SerializeField] private int conIncrementLvl;
+        [SerializeField] private int conIncrementUpgrade;
+        [SerializeField] private int intBase;
+        [SerializeField] private int intIncrementLvl;
+        [SerializeField] private int intIncrementUpgrade;
+        [SerializeField] private int lukBase;
+        [SerializeField] private int lukIncrementLvl;
+        [SerializeField] private int lukIncrementUpgrade;
+
+        // 기존 파생 스탯 수치 - 5대 기본 스탯 전환 중 하위 호환용
         // 인스펙터 노출용
         [SerializeField] private int hpBase;
         [SerializeField] private int hpIncrementLvl;
@@ -96,6 +125,21 @@ namespace Entities
         [SerializeField] private List<int> synergies;
 
         // 실제 수치 관리용
+        public int StrBase { get => strBase; protected set => strBase = value; }
+        public int StrIncrementLvl { get => strIncrementLvl; protected set => strIncrementLvl = value; }
+        public int StrIncrementUpgrade { get => strIncrementUpgrade; protected set => strIncrementUpgrade = value; }
+        public int DexBase { get => dexBase; protected set => dexBase = value; }
+        public int DexIncrementLvl { get => dexIncrementLvl; protected set => dexIncrementLvl = value; }
+        public int DexIncrementUpgrade { get => dexIncrementUpgrade; protected set => dexIncrementUpgrade = value; }
+        public int ConBase { get => conBase; protected set => conBase = value; }
+        public int ConIncrementLvl { get => conIncrementLvl; protected set => conIncrementLvl = value; }
+        public int ConIncrementUpgrade { get => conIncrementUpgrade; protected set => conIncrementUpgrade = value; }
+        public int IntBase { get => intBase; protected set => intBase = value; }
+        public int IntIncrementLvl { get => intIncrementLvl; protected set => intIncrementLvl = value; }
+        public int IntIncrementUpgrade { get => intIncrementUpgrade; protected set => intIncrementUpgrade = value; }
+        public int LukBase { get => lukBase; protected set => lukBase = value; }
+        public int LukIncrementLvl { get => lukIncrementLvl; protected set => lukIncrementLvl = value; }
+        public int LukIncrementUpgrade { get => lukIncrementUpgrade; protected set => lukIncrementUpgrade = value; }
         public int HpBase { get => hpBase; protected set => hpBase = value; }
         public int HpIncrementLvl { get => hpIncrementLvl; protected set => hpIncrementLvl = value; }
         public int HpIncrementUpgrade { get => hpIncrementUpgrade; protected set => hpIncrementUpgrade = value; }
@@ -186,25 +230,21 @@ namespace Entities
                 }
                 
                 LoadSprite(enemyData.portrait, _isEnemy);
-                Level = 0;
+                Level = Mathf.Max(0, GameManager.Instance?.RoundManager?.EnemyLevel ?? 0);
                 UnitName = enemyData.name;
                 Synergies = new List<int> { enemyData.faction, enemyData.@class };  // 소속과 직업
-                HpBase = enemyData.hpBase;
-                HpIncrementLvl = enemyData.hpIncrementLvl;
-                HpIncrementUpgrade = enemyData.hpIncrementUpgrade;
-                AtkBase = enemyData.atkBase;
-                AtkIncrementLvl = enemyData.atkIncrementLvl;
-                AtkIncrementUpgrade = enemyData.atkIncrementUpgrade;
-                DefBase = enemyData.defBase;
-                DefIncrementLvl = enemyData.defIncrementLvl;
-                DefIncrementUpgrade = enemyData.defIncrementUpgrade;
-                CritChanceBase = enemyData.critChance;
-                CritChanceIncrementLvl = enemyData.critChanceIncrementLvl;
-                CritChanceIncrementUpgrade = enemyData.critChanceIncrementUpgrade;
-                CritMultiplierBase = enemyData.critMultiplier;
-                CritMultiplierIncrementLvl = enemyData.critMultiplierIncrementLvl;
-                CritMultiplierIncrementUpgrade = enemyData.critMultiplierIncrementUpgrade;
-                ManaBase = enemyData.manaBase;
+                LoadStatData(
+                    enemyData.strBase, enemyData.strIncrementLvl, enemyData.strIncrementUpgrade,
+                    enemyData.dexBase, enemyData.dexIncrementLvl, enemyData.dexIncrementUpgrade,
+                    enemyData.conBase, enemyData.conIncrementLvl, enemyData.conIncrementUpgrade,
+                    enemyData.intBase, enemyData.intIncrementLvl, enemyData.intIncrementUpgrade,
+                    enemyData.lukBase, enemyData.lukIncrementLvl, enemyData.lukIncrementUpgrade,
+                    enemyData.hpBase, enemyData.hpIncrementLvl, enemyData.hpIncrementUpgrade,
+                    enemyData.atkBase, enemyData.atkIncrementLvl, enemyData.atkIncrementUpgrade,
+                    enemyData.defBase, enemyData.defIncrementLvl, enemyData.defIncrementUpgrade,
+                    enemyData.critChance, enemyData.critChanceIncrementLvl, enemyData.critChanceIncrementUpgrade,
+                    enemyData.critMultiplier, enemyData.critMultiplierIncrementLvl, enemyData.critMultiplierIncrementUpgrade,
+                    enemyData.manaBase);
                 CodeAcceleration = 1f;
 
                 StatusEffects = new Dictionary<string, StatusEffect>();
@@ -228,22 +268,18 @@ namespace Entities
                 Level = 1;
                 UnitName = data.name;
                 Synergies = data.synergies;
-                HpBase = data.hpBase;
-                HpIncrementLvl = data.hpIncrementLvl;
-                HpIncrementUpgrade = data.hpIncrementUpgrade;
-                AtkBase = data.atkBase;
-                AtkIncrementLvl = data.atkIncrementLvl;
-                AtkIncrementUpgrade = data.atkIncrementUpgrade;
-                DefBase = data.defBase;
-                DefIncrementLvl = data.defIncrementLvl;
-                DefIncrementUpgrade = data.defIncrementUpgrade;
-                CritChanceBase = data.critChance;
-                CritChanceIncrementLvl = data.critChanceIncrementLvl;
-                CritChanceIncrementUpgrade = data.critChanceIncrementUpgrade;
-                CritMultiplierBase = data.critMultiplier;
-                CritMultiplierIncrementLvl = data.critMultiplierIncrementLvl;
-                CritMultiplierIncrementUpgrade = data.critMultiplierIncrementUpgrade;
-                ManaBase = data.manaBase;
+                LoadStatData(
+                    data.strBase, data.strIncrementLvl, data.strIncrementUpgrade,
+                    data.dexBase, data.dexIncrementLvl, data.dexIncrementUpgrade,
+                    data.conBase, data.conIncrementLvl, data.conIncrementUpgrade,
+                    data.intBase, data.intIncrementLvl, data.intIncrementUpgrade,
+                    data.lukBase, data.lukIncrementLvl, data.lukIncrementUpgrade,
+                    data.hpBase, data.hpIncrementLvl, data.hpIncrementUpgrade,
+                    data.atkBase, data.atkIncrementLvl, data.atkIncrementUpgrade,
+                    data.defBase, data.defIncrementLvl, data.defIncrementUpgrade,
+                    data.critChance, data.critChanceIncrementLvl, data.critChanceIncrementUpgrade,
+                    data.critMultiplier, data.critMultiplierIncrementLvl, data.critMultiplierIncrementUpgrade,
+                    data.manaBase);
                 CodeAcceleration = 1f;
 
                 StatusEffects = new Dictionary<string, StatusEffect>();
@@ -262,6 +298,88 @@ namespace Entities
                 // 유닛별 패시브 StatusEffect 적용
                 ApplyPassiveStatusEffect();
             }
+        }
+
+        private void LoadStatData(
+            int dataStrBase, int dataStrIncrementLvl, int dataStrIncrementUpgrade,
+            int dataDexBase, int dataDexIncrementLvl, int dataDexIncrementUpgrade,
+            int dataConBase, int dataConIncrementLvl, int dataConIncrementUpgrade,
+            int dataIntBase, int dataIntIncrementLvl, int dataIntIncrementUpgrade,
+            int dataLukBase, int dataLukIncrementLvl, int dataLukIncrementUpgrade,
+            int legacyHpBase, int legacyHpIncrementLvl, int legacyHpIncrementUpgrade,
+            int legacyAtkBase, int legacyAtkIncrementLvl, int legacyAtkIncrementUpgrade,
+            int legacyDefBase, int legacyDefIncrementLvl, int legacyDefIncrementUpgrade,
+            float legacyCritChance, float legacyCritChanceIncrementLvl, float legacyCritChanceIncrementUpgrade,
+            float legacyCritMultiplier, float legacyCritMultiplierIncrementLvl, float legacyCritMultiplierIncrementUpgrade,
+            int legacyManaBase)
+        {
+            bool hasPrimaryStats = dataStrBase != 0 || dataDexBase != 0 || dataConBase != 0 || dataIntBase != 0 || dataLukBase != 0;
+
+            if (hasPrimaryStats)
+            {
+                StrBase = dataStrBase;
+                StrIncrementLvl = dataStrIncrementLvl;
+                StrIncrementUpgrade = dataStrIncrementUpgrade;
+                DexBase = dataDexBase;
+                DexIncrementLvl = dataDexIncrementLvl;
+                DexIncrementUpgrade = dataDexIncrementUpgrade;
+                ConBase = dataConBase;
+                ConIncrementLvl = dataConIncrementLvl;
+                ConIncrementUpgrade = dataConIncrementUpgrade;
+                IntBase = dataIntBase;
+                IntIncrementLvl = dataIntIncrementLvl;
+                IntIncrementUpgrade = dataIntIncrementUpgrade;
+                LukBase = dataLukBase;
+                LukIncrementLvl = dataLukIncrementLvl;
+                LukIncrementUpgrade = dataLukIncrementUpgrade;
+            }
+            else
+            {
+                // 기존 저장/유닛 데이터를 5대 기본 스탯으로 임시 환산한다.
+                StrBase = LegacyAttackToStr(legacyAtkBase, 1);
+                StrIncrementLvl = LegacyAttackToStr(legacyAtkIncrementLvl, 0);
+                StrIncrementUpgrade = LegacyAttackToStr(legacyAtkIncrementUpgrade, 0);
+                DexBase = Mathf.Max(1, 10 + Mathf.RoundToInt(legacyCritChance * 20f));
+                DexIncrementLvl = Mathf.RoundToInt(legacyCritChanceIncrementLvl * 20f);
+                DexIncrementUpgrade = Mathf.RoundToInt(legacyCritChanceIncrementUpgrade * 20f);
+                ConBase = LegacyHpToCon(legacyHpBase, 1);
+                ConIncrementLvl = LegacyHpToCon(legacyHpIncrementLvl, 0);
+                ConIncrementUpgrade = LegacyHpToCon(legacyHpIncrementUpgrade, 0);
+                IntBase = Mathf.Max(1, Mathf.RoundToInt(legacyManaBase / 10f));
+                IntIncrementLvl = 0;
+                IntIncrementUpgrade = 0;
+                LukBase = Mathf.Max(0, Mathf.RoundToInt(legacyCritChance * 100f));
+                LukIncrementLvl = Mathf.RoundToInt(legacyCritChanceIncrementLvl * 100f);
+                LukIncrementUpgrade = Mathf.RoundToInt(legacyCritChanceIncrementUpgrade * 100f);
+            }
+
+            // 기존 파생 스탯 필드는 표시/하위 호환을 위해 보존한다.
+            HpBase = legacyHpBase;
+            HpIncrementLvl = legacyHpIncrementLvl;
+            HpIncrementUpgrade = legacyHpIncrementUpgrade;
+            AtkBase = legacyAtkBase;
+            AtkIncrementLvl = legacyAtkIncrementLvl;
+            AtkIncrementUpgrade = legacyAtkIncrementUpgrade;
+            DefBase = legacyDefBase;
+            DefIncrementLvl = legacyDefIncrementLvl;
+            DefIncrementUpgrade = legacyDefIncrementUpgrade;
+            CritChanceBase = legacyCritChance;
+            CritChanceIncrementLvl = legacyCritChanceIncrementLvl;
+            CritChanceIncrementUpgrade = legacyCritChanceIncrementUpgrade;
+            CritMultiplierBase = legacyCritMultiplier;
+            CritMultiplierIncrementLvl = legacyCritMultiplierIncrementLvl;
+            CritMultiplierIncrementUpgrade = legacyCritMultiplierIncrementUpgrade;
+            ManaBase = legacyManaBase;
+        }
+
+        private static int LegacyHpToCon(int hp, int minValue)
+        {
+            return Mathf.Max(minValue, Mathf.RoundToInt(hp / 1000f));
+        }
+
+        private static int LegacyAttackToStr(int attack, int minValue)
+        {
+            return Mathf.Max(minValue, Mathf.RoundToInt(attack / 10f));
         }
 
         /// <summary>
@@ -340,13 +458,14 @@ namespace Entities
             // hp 비율 저장
             float healthRatio = (HpMax > 0) ? (float)HpCurr / HpMax : 1f;
 
-            HpMax = Mathf.RoundToInt(GetBaseHp() * (1f + hpMul) + hpAdd);
-            ManaMax = ManaBase;
-            AtkCurr = Mathf.RoundToInt(GetBaseAtk() * (1f + atkMul) + atkAdd);
-            DefCurr = Mathf.RoundToInt(GetBaseDef() * (1f + defMul) + defAdd);
-            CritChanceCurr = GetBaseCritChance() + critChanceAdd;
-            CritMultiplierCurr = GetBaseCritDamage() + critMultiplierAdd;
-            CodeAcceleration = 1f + codeAccelMul + CodeAccelerationRunBonus;
+            HpMax = Mathf.RoundToInt(GetDerivedHp() * (1f + hpMul) + hpAdd);
+            ManaMax = GetDerivedMana();
+            AtkCurr = Mathf.RoundToInt(GetDerivedAtk() * (1f + atkMul) + atkAdd);
+            DefCurr = Mathf.RoundToInt(GetDerivedDef() * (1f + defMul) + defAdd);
+            CritChanceCurr = Mathf.Clamp01(GetDerivedCritChance() + critChanceAdd);
+            CritMultiplierCurr = Mathf.Max(1f, GetDerivedCritDamage() + critMultiplierAdd);
+            EvasionChanceCurr = GetDerivedEvasionChance();
+            CodeAcceleration = Mathf.Max(0.1f, GetDerivedCodeAcceleration() + codeAccelMul + CodeAccelerationRunBonus);
 
             // hp 비율 복구
             HpCurr = Mathf.RoundToInt(HpMax * healthRatio);
@@ -477,6 +596,11 @@ namespace Entities
             int critMultiplierUpgrade = 0,
             float codeAccelerationBonus = 0f)
         {
+            StrUpgrade += atkUpgrade;
+            DexUpgrade += Mathf.RoundToInt(codeAccelerationBonus * 20f);
+            ConUpgrade += hpUpgrade + defUpgrade;
+            LukUpgrade += critChanceUpgrade + critMultiplierUpgrade;
+
             HpUpgrade += hpUpgrade;
             AtkUpgrade += atkUpgrade;
             DefUpgrade += defUpgrade;
@@ -491,6 +615,11 @@ namespace Entities
         {
             if (saveData == null) return;
 
+            StrUpgrade = saveData.strUpgrade != 0 ? saveData.strUpgrade : saveData.atkUpgrade;
+            DexUpgrade = saveData.dexUpgrade;
+            ConUpgrade = saveData.conUpgrade != 0 ? saveData.conUpgrade : saveData.hpUpgrade + saveData.defUpgrade;
+            IntUpgrade = saveData.intUpgrade;
+            LukUpgrade = saveData.lukUpgrade != 0 ? saveData.lukUpgrade : saveData.critChanceUpgrade + saveData.critMultiplierUpgrade;
             HpUpgrade = saveData.hpUpgrade;
             AtkUpgrade = saveData.atkUpgrade;
             DefUpgrade = saveData.defUpgrade;
@@ -617,6 +746,15 @@ namespace Entities
             {
                 receivingDamageModifier *= effectPair.Value.ReceivingDamageModifier(self);
             }
+            
+            bool canEvade = dmgCtx.CodeType != BaseEnums.CodeType.Effect;
+            if (canEvade && UnityEngine.Random.value < self.EvasionChanceCurr)
+            {
+                currentCell.UpdateUI();
+                Debug.Log($"{self.UnitName}이(가) 공격을 회피했습니다. 회피율: {self.EvasionChanceCurr * 100f:F1}%");
+                return;
+            }
+            
             int damageReceived = (int)(receivingDamageModifier * dmgCtx.Damage / (1 + effectiveDef * 0.01f));
             int hpBeforeHit = self.HpCurr;
             
@@ -710,29 +848,108 @@ namespace Entities
         }
 
         // 베이스 스탯 수치 반환
+        public int GetBasePrimaryStat(BaseEnums.PrimaryStat stat)
+        {
+            return stat switch
+            {
+                BaseEnums.PrimaryStat.STR => GetBaseStr(),
+                BaseEnums.PrimaryStat.DEX => GetBaseDex(),
+                BaseEnums.PrimaryStat.CON => GetBaseCon(),
+                BaseEnums.PrimaryStat.INT => GetBaseInt(),
+                BaseEnums.PrimaryStat.LUK => GetBaseLuk(),
+                _ => 0,
+            };
+        }
+
+        public virtual int GetBaseStr()
+        {
+            return StrBase + StrIncrementLvl * Level + StrIncrementUpgrade * StrUpgrade;
+        }
+
+        public virtual int GetBaseDex()
+        {
+            return DexBase + DexIncrementLvl * Level + DexIncrementUpgrade * DexUpgrade;
+        }
+
+        public virtual int GetBaseCon()
+        {
+            return ConBase + ConIncrementLvl * Level + ConIncrementUpgrade * ConUpgrade;
+        }
+
+        public virtual int GetBaseInt()
+        {
+            return IntBase + IntIncrementLvl * Level + IntIncrementUpgrade * IntUpgrade;
+        }
+
+        public virtual int GetBaseLuk()
+        {
+            return LukBase + LukIncrementLvl * Level + LukIncrementUpgrade * LukUpgrade;
+        }
+
+        public virtual int GetDerivedHp()
+        {
+            return Mathf.Max(1, GetBaseCon() * 1000);
+        }
+
+        public virtual int GetDerivedMana()
+        {
+            return Mathf.Max(1, GetBaseInt() * 10);
+        }
+
+        public virtual int GetDerivedAtk()
+        {
+            return Mathf.Max(1, GetBaseStr() * 10);
+        }
+
+        public virtual int GetDerivedDef()
+        {
+            return Mathf.Max(0, GetBaseCon() * 5 + GetBaseDex() * 2);
+        }
+
+        public virtual float GetDerivedCritChance()
+        {
+            return Mathf.Clamp01(GetBaseLuk() * 0.01f);
+        }
+
+        public virtual float GetDerivedCritDamage()
+        {
+            return 1.5f + Mathf.Max(0, GetBaseLuk() - 10) * 0.005f;
+        }
+
+        public virtual float GetDerivedCodeAcceleration()
+        {
+            return 1f + Mathf.Max(0, GetBaseDex() - 10) * 0.01f;
+        }
+
+        public virtual float GetDerivedEvasionChance()
+        {
+            return Mathf.Clamp(GetBaseDex() * 0.0025f, 0f, 0.4f);
+        }
+
+        // 기존 파생 스탯 접근자는 하위 호환을 위해 유지한다.
         public virtual int GetBaseHp()
         {
-            return HpBase + HpIncrementLvl * Level + HpIncrementUpgrade * HpUpgrade;
+            return GetDerivedHp();
         }
 
         public virtual int GetBaseAtk()
         {
-            return AtkBase + AtkIncrementLvl * Level + AtkIncrementUpgrade * AtkUpgrade;
+            return GetDerivedAtk();
         }
 
         public virtual int GetBaseDef()
         {
-            return DefBase + DefIncrementLvl * Level + DefIncrementUpgrade * DefUpgrade;
+            return GetDerivedDef();
         }
 
         public virtual float GetBaseCritChance()
         {
-            return CritChanceBase + CritChanceIncrementLvl * Level + CritChanceIncrementUpgrade * CritChanceUpgrade;
+            return GetDerivedCritChance();
         }
 
         public virtual float GetBaseCritDamage()
         {
-            return CritMultiplierBase + CritMultiplierIncrementLvl * Level + CritMultiplierIncrementUpgrade * CritMultiplierUpgrade;
+            return GetDerivedCritDamage();
         }
 
         // 유닛 활성화 상태 관리

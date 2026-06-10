@@ -9,6 +9,7 @@ namespace Core
     {
         private const string KeyJson   = "NTL_RunSave";
         private const string KeyExists = "NTL_HasSave";
+        private const string KeyTrainedCharacters = "NTL_TrainedCharacters";
 
         /// <summary>저장된 런이 있는지 확인</summary>
         public static bool HasSave()
@@ -47,6 +48,40 @@ namespace Core
             PlayerPrefs.SetInt(KeyExists, 0);
             PlayerPrefs.Save();
             Debug.Log("[SaveSystem] 세이브 삭제");
+        }
+
+        public static TrainedCharacterCollection LoadTrainedCharacters()
+        {
+            string json = PlayerPrefs.GetString(KeyTrainedCharacters, "");
+            if (string.IsNullOrEmpty(json))
+            {
+                return new TrainedCharacterCollection();
+            }
+
+            TrainedCharacterCollection data = JsonUtility.FromJson<TrainedCharacterCollection>(json);
+            return data ?? new TrainedCharacterCollection();
+        }
+
+        public static bool IsCharacterTrained(int unitId)
+        {
+            return LoadTrainedCharacters().unitIds.Contains(unitId);
+        }
+
+        public static void AddTrainedCharacter(int unitId)
+        {
+            if (unitId <= 0) return;
+
+            TrainedCharacterCollection data = LoadTrainedCharacters();
+            if (!data.unitIds.Contains(unitId))
+            {
+                data.unitIds.Add(unitId);
+                data.unitIds.Sort();
+            }
+
+            string json = JsonUtility.ToJson(data, prettyPrint: false);
+            PlayerPrefs.SetString(KeyTrainedCharacters, json);
+            PlayerPrefs.Save();
+            Debug.Log($"[SaveSystem] 육성 완료 캐릭터 저장: {unitId}");
         }
     }
 }

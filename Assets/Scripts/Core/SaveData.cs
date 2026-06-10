@@ -4,6 +4,12 @@ using System.Collections.Generic;
 namespace Core
 {
     [Serializable]
+    public class TrainedCharacterCollection
+    {
+        public List<int> unitIds = new();
+    }
+
+    [Serializable]
     public class TokenSaveData
     {
         public int tokenId;
@@ -18,6 +24,11 @@ namespace Core
         public int xPos;
         public int yPos;
         public bool isBench;
+        public int strUpgrade;
+        public int dexUpgrade;
+        public int conUpgrade;
+        public int intUpgrade;
+        public int lukUpgrade;
         public int hpUpgrade;
         public int atkUpgrade;
         public int defUpgrade;
@@ -29,6 +40,7 @@ namespace Core
     [Serializable]
     public class RunSaveData
     {
+        public int gameMode;
         public int currentStage;
         public int currentRound;
         public int life;

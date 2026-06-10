@@ -171,7 +171,7 @@ namespace Codes.Base
         /// </summary>
         protected List<Unit> GetAvailableEnemies()
         {
-            GridManager gridManager = GameObject.FindFirstObjectByType<GridManager>();
+            GridManager gridManager = GameObject.FindAnyObjectByType<GridManager>();
             if (gridManager == null)
                 return new List<Unit>();
             

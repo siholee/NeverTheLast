@@ -227,7 +227,7 @@ namespace Managers.UI
             }
 
             // InventoryManager 인스턴스 가져오기
-            InventoryManager inventoryManager = FindFirstObjectByType<InventoryManager>();
+            InventoryManager inventoryManager = FindAnyObjectByType<InventoryManager>();
             if (inventoryManager == null)
             {
                 Debug.LogError("InventoryManager를 찾을 수 없습니다.");
@@ -235,7 +235,7 @@ namespace Managers.UI
             }
 
             // ShopManager 인스턴스 가져오기
-            ShopManager shopManager = FindFirstObjectByType<ShopManager>();
+            ShopManager shopManager = FindAnyObjectByType<ShopManager>();
             if (shopManager == null)
             {
                 Debug.LogError("ShopManager를 찾을 수 없습니다.");

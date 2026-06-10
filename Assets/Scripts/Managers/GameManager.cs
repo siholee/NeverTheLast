@@ -23,6 +23,8 @@ namespace Managers
         public RunManager runManager;
         public RewardManager rewardManager;
         public RoundManager RoundManager => _roundManager;
+        public const int MaxTrainingStage = 100;
+        public GameMode CurrentMode => runManager != null ? runManager.CurrentMode : GameMode.Training;
 
         public static void LoadMainMenuScene()
         {
@@ -53,6 +55,7 @@ namespace Managers
         public float roundProgressTime = 60f; // 라운드 진행 시간 (초)
         private float currentRoundProgressTime;
         private bool isRoundProgressTimerActive = false;
+        private float trainingPhaseEnteredAt;
 
         // 생명력 시스템
         public int life; // 현재 생명력
@@ -117,6 +120,9 @@ namespace Managers
                     case GameState.RewardSelection:
                         gameState = GameState.Preparation;
                         StartPreparationTimer();
+                        break;
+                    case GameState.TrainingPhase:
+                        runManager?.AdvanceAfterTrainingPhase();
                         break;
                     case GameState.RunComplete:
                         SaveSystem.DeleteSave();
@@ -287,6 +293,14 @@ namespace Managers
                     uiManager.UpdateGameStatus(gameState, 0);
                 }
             }
+
+            if (gameState == GameState.TrainingPhase &&
+                Time.unscaledTime - trainingPhaseEnteredAt > 0.15f &&
+                (Input.anyKeyDown || Input.GetMouseButtonDown(0)))
+            {
+                uiManager?.HideTrainingPhasePanel();
+                runManager?.AdvanceAfterTrainingPhase();
+            }
         }
 
         private void OnDestroy()
@@ -316,6 +330,15 @@ namespace Managers
             gameState = GameState.Preparation;
             StartPreparationTimer();
             uiManager?.UpdateLifeText();
+        }
+
+        public void EnterTrainingPhase()
+        {
+            gameState = GameState.TrainingPhase;
+            isPreparationTimerActive = false;
+            isRoundProgressTimerActive = false;
+            trainingPhaseEnteredAt = Time.unscaledTime;
+            uiManager?.ShowTrainingPhasePanel();
         }
 
         private int GetRemainingEnemyCount()
@@ -422,7 +445,7 @@ namespace Managers
             {
                 gameState = GameState.RewardSelection;
                 var rewards = rewardManager != null
-                    ? rewardManager.GenerateRewards(3)
+                    ? rewardManager.GenerateRewards(3, _roundManager?.Round ?? 1, CurrentMode)
                     : new List<RewardDef>();
                 uiManager?.ShowRewardPanel(rewards);
             }
@@ -526,7 +549,13 @@ namespace Managers
             switch (GameStartIntent.Current)
             {
                 case GameStartIntent.Intent.NewGame:
-                    runManager.StartRun();
+                    runManager.StartRun(GameMode.Training);
+                    _roundManager.InitializeStage(1);
+                    gameState = GameState.CharacterSelection;
+                    uiManager?.ShowCharacterSelection();
+                    break;
+                case GameStartIntent.Intent.InfiniteMode:
+                    runManager.StartRun(GameMode.Infinite);
                     _roundManager.InitializeStage(1);
                     gameState = GameState.CharacterSelection;
                     uiManager?.ShowCharacterSelection();
@@ -546,7 +575,7 @@ namespace Managers
                     break;
                 case GameStartIntent.Intent.DirectStart:
                 default:
-                    runManager.StartRun();
+                    runManager.StartRun(GameMode.Training);
                     _roundManager.InitializeStage(1);
                     _roundManager.LoadRound(1);
                     gameState = GameState.Preparation;

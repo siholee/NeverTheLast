@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using System.Linq;
+using BaseClasses;
 using Entities;
 using UnityEngine;
+using static BaseClasses.BaseEnums;
 
 namespace Managers
 {
@@ -10,6 +13,7 @@ namespace Managers
         public string id;
         public string displayName;
         public string description;
+        public int tier = 1;
         public bool isRare;
         public int atkBonus;
         public int defBonus;
@@ -35,18 +39,20 @@ namespace Managers
             Destroy(instance.gameObject);
         }
 
-        private static readonly List<RewardDef> RewardPool = new()
+        private RewardDataList _rewardDataList;
+
+        private static readonly List<RewardDef> FallbackRewardPool = new()
         {
-            new RewardDef { id = "heal_small", displayName = "소회복", description = "아군 전체 HP를 500 회복", healAmount = 500 },
-            new RewardDef { id = "atk_up", displayName = "공격력 강화", description = "선택 유닛 공격력 강화 +1", atkBonus = 1 },
-            new RewardDef { id = "def_up", displayName = "방어력 강화", description = "선택 유닛 방어력 강화 +1", defBonus = 1 },
-            new RewardDef { id = "crit_up", displayName = "치명 강화", description = "선택 유닛 치명타 강화 +1", critChanceBonus = 1f },
-            new RewardDef { id = "hp_up", displayName = "체력 강화", description = "선택 유닛 체력 강화 +1", hpBonus = 1 },
-            new RewardDef { id = "haste_up", displayName = "가속 강화", description = "선택 유닛 코드 가속 +5%", codeAccelerationBonus = 0.05f },
-            new RewardDef { id = "tickets", displayName = "재정비권", description = "리롤 티켓 +3", rerollTicketBonus = 3 },
-            new RewardDef { id = "tokens", displayName = "전리품", description = "무작위 토큰 8개 획득", randomTokenAmount = 8 },
-            new RewardDef { id = "full_heal", displayName = "완전 회복", description = "아군 전체 HP 완전 회복", isRare = true, fullHealParty = true },
-            new RewardDef { id = "big_atk", displayName = "큰 공격력", description = "선택 유닛 공격력 강화 +3", isRare = true, atkBonus = 3 },
+            new RewardDef { id = "heal_small", displayName = "소회복", description = "아군 전체 HP를 500 회복", tier = 1, healAmount = 500 },
+            new RewardDef { id = "atk_up", displayName = "공격력 강화", description = "선택 유닛 공격력 강화 +1", tier = 1, atkBonus = 1 },
+            new RewardDef { id = "def_up", displayName = "방어력 강화", description = "선택 유닛 방어력 강화 +1", tier = 1, defBonus = 1 },
+            new RewardDef { id = "crit_up", displayName = "치명 강화", description = "선택 유닛 치명타 강화 +1", tier = 2, critChanceBonus = 1f },
+            new RewardDef { id = "hp_up", displayName = "체력 강화", description = "선택 유닛 체력 강화 +1", tier = 2, hpBonus = 1 },
+            new RewardDef { id = "haste_up", displayName = "가속 강화", description = "선택 유닛 코드 가속 +5%", tier = 3, codeAccelerationBonus = 0.05f },
+            new RewardDef { id = "tickets", displayName = "재정비권", description = "리롤 티켓 +3", tier = 3, rerollTicketBonus = 3 },
+            new RewardDef { id = "tokens", displayName = "전리품", description = "무작위 토큰 8개 획득", tier = 3, randomTokenAmount = 8 },
+            new RewardDef { id = "full_heal", displayName = "완전 회복", description = "아군 전체 HP 완전 회복", tier = 4, isRare = true, fullHealParty = true },
+            new RewardDef { id = "big_atk", displayName = "큰 공격력", description = "선택 유닛 공격력 강화 +3", tier = 4, isRare = true, atkBonus = 3 },
         };
 
         private void Awake()
@@ -70,17 +76,19 @@ namespace Managers
             }
         }
 
-        public List<RewardDef> GenerateRewards(int count = 3)
+        public List<RewardDef> GenerateRewards(int count = 3, int rewardRound = 1, GameMode mode = GameMode.Training)
         {
-            var pool = new List<RewardDef>(RewardPool);
+            EnsureRewardData();
+            var pool = new List<RewardDef>(_rewardDataList?.rewards ?? FallbackRewardPool);
             var result = new List<RewardDef>();
 
             for (int i = 0; i < count && pool.Count > 0; i++)
             {
-                var candidates = pool.FindAll(reward => !reward.isRare || Random.value < 0.25f);
+                int tier = RollTier(rewardRound, mode);
+                var candidates = pool.FindAll(reward => reward.tier == tier);
                 if (candidates.Count == 0)
                 {
-                    candidates.AddRange(pool);
+                    candidates.AddRange(pool.OrderBy(reward => Mathf.Abs(reward.tier - tier)).Take(3));
                 }
 
                 var reward = candidates[Random.Range(0, candidates.Count)];
@@ -89,6 +97,54 @@ namespace Managers
             }
 
             return result;
+        }
+
+        private void EnsureRewardData()
+        {
+            if (_rewardDataList != null) return;
+            _rewardDataList = GameManager.Instance?.dataManager?.FetchRewardDataList();
+        }
+
+        private int RollTier(int rewardRound, GameMode mode)
+        {
+            EnsureRewardData();
+            List<RewardTierOddsData> oddsTable = _rewardDataList?.rewardTierOdds;
+            if (oddsTable == null || oddsTable.Count == 0)
+            {
+                return Random.value < 0.25f ? 2 : 1;
+            }
+
+            int cappedRound = mode == GameMode.Infinite
+                ? Mathf.Min(rewardRound, 10)
+                : rewardRound;
+            RewardTierOddsData odds = oddsTable
+                .Where(row => row.round <= cappedRound)
+                .OrderByDescending(row => row.round)
+                .FirstOrDefault() ?? oddsTable[0];
+
+            if (odds.tierWeights == null || odds.tierWeights.Count == 0)
+            {
+                return 1;
+            }
+
+            int totalWeight = odds.tierWeights.Sum();
+            if (totalWeight <= 0)
+            {
+                return 1;
+            }
+
+            int roll = Random.Range(0, totalWeight);
+            int current = 0;
+            for (int i = 0; i < odds.tierWeights.Count; i++)
+            {
+                current += odds.tierWeights[i];
+                if (roll < current)
+                {
+                    return i + 1;
+                }
+            }
+
+            return 1;
         }
 
         public void ApplyReward(RewardDef reward, Unit target = null)

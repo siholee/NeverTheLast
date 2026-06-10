@@ -12,6 +12,8 @@ namespace Core
             DirectStart,
             /// <summary>메인메뉴에서 "새로운 여정" 선택</summary>
             NewGame,
+            /// <summary>메인메뉴에서 "무한 모드" 선택</summary>
+            InfiniteMode,
             /// <summary>메인메뉴에서 "이어하기" 선택</summary>
             Continue,
         }

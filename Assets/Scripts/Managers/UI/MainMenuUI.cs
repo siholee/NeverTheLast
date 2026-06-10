@@ -26,11 +26,13 @@ namespace Managers.UI
         {
             // ── 버튼 연결 (활성 오브젝트이므로 GameObject.Find 사용 가능) ─────
             var newGameBtn  = FindBtn("NewGameBtn");
+            var infiniteBtn = FindBtn("InfiniteModeBtn");
             var continueBtn = FindBtn("ContinueBtn");
             var settingsBtn = FindBtn("SettingsBtn");
             var quitBtn     = FindBtn("QuitBtn");
 
             if (newGameBtn  != null) newGameBtn.onClick.AddListener(OnNewGame);
+            if (infiniteBtn != null) infiniteBtn.onClick.AddListener(OnInfiniteMode);
             if (settingsBtn != null) settingsBtn.onClick.AddListener(OnSettings);
             if (quitBtn     != null) quitBtn.onClick.AddListener(OnQuit);
 
@@ -74,6 +76,14 @@ namespace Managers.UI
             }
             Debug.Log("[MainMenuUI] 런 이어하기");
             GameStartIntent.Current = GameStartIntent.Intent.Continue;
+            Managers.GameManager.LoadBattleScene();
+        }
+
+        private void OnInfiniteMode()
+        {
+            Debug.Log("[MainMenuUI] 무한 모드 시작");
+            SaveSystem.DeleteSave();
+            GameStartIntent.Current = GameStartIntent.Intent.InfiniteMode;
             Managers.GameManager.LoadBattleScene();
         }
 

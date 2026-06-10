@@ -1,0 +1,90 @@
+rewards:
+  - id: heal_small
+    displayName: 소회복
+    description: 아군 전체 HP를 500 회복
+    tier: 1
+    healAmount: 500
+
+  - id: atk_up
+    displayName: STR 강화
+    description: 선택 유닛 STR 강화 +1
+    tier: 1
+    atkBonus: 1
+
+  - id: def_up
+    displayName: CON 강화
+    description: 선택 유닛 CON 강화 +1
+    tier: 1
+    defBonus: 1
+
+  - id: crit_up
+    displayName: LUK 강화
+    description: 선택 유닛 LUK 강화 +1
+    tier: 2
+    critChanceBonus: 1
+
+  - id: hp_up
+    displayName: 체력 강화
+    description: 선택 유닛 CON 강화 +1
+    tier: 2
+    hpBonus: 1
+
+  - id: haste_up
+    displayName: DEX 강화
+    description: 선택 유닛 코드 가속 +5%
+    tier: 3
+    codeAccelerationBonus: 0.05
+
+  - id: tickets
+    displayName: 재정비권
+    description: 리롤 티켓 +3
+    tier: 3
+    rerollTicketBonus: 3
+
+  - id: tokens
+    displayName: 전리품
+    description: 무작위 토큰 8개 획득
+    tier: 3
+    randomTokenAmount: 8
+
+  - id: full_heal
+    displayName: 완전 회복
+    description: 아군 전체 HP 완전 회복
+    tier: 4
+    fullHealParty: true
+
+  - id: big_atk
+    displayName: 큰 STR 강화
+    description: 선택 유닛 STR 강화 +3
+    tier: 4
+    atkBonus: 3
+
+  - id: legendary_growth
+    displayName: 전설의 성장
+    description: 선택 유닛 STR/CON/LUK 강화 +2
+    tier: 5
+    atkBonus: 2
+    defBonus: 2
+    critChanceBonus: 2
+
+rewardTierOdds:
+  - round: 1
+    tierWeights: [100, 0, 0, 0, 0]
+  - round: 2
+    tierWeights: [75, 25, 0, 0, 0]
+  - round: 3
+    tierWeights: [55, 35, 10, 0, 0]
+  - round: 4
+    tierWeights: [35, 40, 20, 5, 0]
+  - round: 5
+    tierWeights: [20, 35, 35, 10, 0]
+  - round: 6
+    tierWeights: [10, 25, 40, 20, 5]
+  - round: 7
+    tierWeights: [5, 20, 35, 30, 10]
+  - round: 8
+    tierWeights: [0, 15, 30, 40, 15]
+  - round: 9
+    tierWeights: [0, 10, 25, 45, 20]
+  - round: 10
+    tierWeights: [0, 5, 20, 45, 30]

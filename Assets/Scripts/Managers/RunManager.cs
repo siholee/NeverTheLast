@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using BaseClasses;
 using Core;
 using Entities;
 using UnityEngine;
+using static BaseClasses.BaseEnums;
 
 namespace Managers
 {
@@ -11,6 +13,7 @@ namespace Managers
         public static RunManager Instance { get; private set; }
 
         public bool RunActive { get; private set; }
+        public GameMode CurrentMode { get; private set; } = GameMode.Training;
 
         public static void DestroyInstance()
         {
@@ -42,8 +45,9 @@ namespace Managers
             }
         }
 
-        public void StartRun()
+        public void StartRun(GameMode mode = GameMode.Training)
         {
+            CurrentMode = mode;
             RunActive = true;
             SaveSystem.DeleteSave();
         }
@@ -64,6 +68,7 @@ namespace Managers
             }
 
             RunActive = true;
+            CurrentMode = (GameMode)save.gameMode;
             GameManager.Instance.life = save.life;
             GameManager.Instance.KillCount = save.killCount;
             RestoreInventory(save);
@@ -71,7 +76,7 @@ namespace Managers
             RoundManager roundManager = GameManager.Instance.RoundManager;
             roundManager.InitializeStage(Mathf.Max(1, save.currentStage));
             RestoreHeroes(save.heroUnits);
-            roundManager.LoadRound(Mathf.Max(1, save.currentRound));
+            roundManager.LoadRound(Mathf.Max(1, save.currentStage));
 
             GameManager.Instance.uiManager?.UpdateLifeText();
             Debug.Log($"[RunManager] 저장 런 복원 - Stage {save.currentStage}, Round {save.currentRound}");
@@ -81,6 +86,18 @@ namespace Managers
         public void AdvanceAfterReward()
         {
             if (!RunActive) return;
+
+            if (CurrentMode == GameMode.Training)
+            {
+                if (GameManager.Instance.RoundManager.Stage >= GameManager.MaxTrainingStage)
+                {
+                    CompleteTrainingRun();
+                    return;
+                }
+
+                GameManager.Instance.EnterTrainingPhase();
+                return;
+            }
 
             bool hasNextRound = GameManager.Instance.RoundManager.TryLoadNextRound();
             if (!hasNextRound)
@@ -94,6 +111,37 @@ namespace Managers
 
             SaveCurrentRun();
             GameManager.Instance.EnterPreparationAfterReward();
+        }
+
+        public void AdvanceAfterTrainingPhase()
+        {
+            if (!RunActive) return;
+
+            bool hasNextRound = GameManager.Instance.RoundManager.TryLoadNextRound();
+            if (!hasNextRound)
+            {
+                CompleteTrainingRun();
+                return;
+            }
+
+            SaveCurrentRun();
+            GameManager.Instance.EnterPreparationAfterReward();
+        }
+
+        private void CompleteTrainingRun()
+        {
+            int mainUnitId = CharacterSelectionManager.Instance?.MainUnitId ?? 0;
+            if (mainUnitId <= 0)
+            {
+                mainUnitId = GridManager.Instance.heroList
+                    .FirstOrDefault(hero => hero != null && hero.isActive && !hero.IsEnemy)?.ID ?? 0;
+            }
+
+            SaveSystem.AddTrainedCharacter(mainUnitId);
+            RunActive = false;
+            SaveSystem.DeleteSave();
+            GameManager.Instance.gameState = GameState.RunComplete;
+            GameManager.LoadMainMenuScene();
         }
 
         private void OnApplicationPause(bool pauseStatus)
@@ -116,6 +164,7 @@ namespace Managers
             {
                 currentStage = roundManager?.Stage ?? 1,
                 currentRound = roundManager?.Round ?? 1,
+                gameMode = (int)CurrentMode,
                 life = GameManager.Instance.life,
                 killCount = GameManager.Instance.KillCount,
                 rerollTicketCount = GameManager.Instance.inventoryManager?.rerollTicketCount ?? 0,
@@ -152,6 +201,11 @@ namespace Managers
                     xPos = hero.currentCell.xPos,
                     yPos = hero.currentCell.yPos,
                     isBench = GridManager.Instance.IsBenchCell(hero.currentCell),
+                    strUpgrade = hero.StrUpgrade,
+                    dexUpgrade = hero.DexUpgrade,
+                    conUpgrade = hero.ConUpgrade,
+                    intUpgrade = hero.IntUpgrade,
+                    lukUpgrade = hero.LukUpgrade,
                     hpUpgrade = hero.HpUpgrade,
                     atkUpgrade = hero.AtkUpgrade,
                     defUpgrade = hero.DefUpgrade,

@@ -56,7 +56,7 @@ namespace Codes.Test
             Caster.AddShield(shieldAmount);
 
             // 2. 방어막 상태 효과도 추가 (시각적 표시용)
-            string shieldIdentifier = $"Shield_{Caster.GetInstanceID()}_{Time.time}";
+            string shieldIdentifier = $"Shield_{Caster.GetEntityId()}_{Time.time}";
             ShieldEffect shieldEffect = new ShieldEffect(Caster, shieldIdentifier, 0);
             Caster.AddStatusEffect(shieldIdentifier, shieldEffect);
 
@@ -110,7 +110,7 @@ namespace Codes.Test
 
         private List<Unit> GetAvailableEnemies()
         {
-            GridManager gridManager = GameObject.FindFirstObjectByType<GridManager>();
+            GridManager gridManager = GameObject.FindAnyObjectByType<GridManager>();
             if (gridManager == null) return new List<Unit>();
 
             bool casterIsAlly = gridManager.heroList.Contains(Caster);

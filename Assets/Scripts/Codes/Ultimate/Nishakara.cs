@@ -61,7 +61,7 @@ namespace Codes.Ultimate
                     ally.AddShield(shieldAmount);
 
                     // 시각적 표시를 위한 방어막 상태 효과 추가
-                    string shieldIdentifier = $"Shield_{ally.GetInstanceID()}_{Time.time}";
+                    string shieldIdentifier = $"Shield_{ally.GetEntityId()}_{Time.time}";
                     ShieldEffect shieldEffect = new ShieldEffect(Caster, shieldIdentifier, 0);
                     ally.AddStatusEffect(shieldIdentifier, shieldEffect);
 

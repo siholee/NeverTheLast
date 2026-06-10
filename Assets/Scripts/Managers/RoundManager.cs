@@ -9,8 +9,9 @@ namespace Managers
     public class RoundManager
     {
         private readonly DataManager _dataManager;
-        public int Stage { get; private set; }  // 현재 스테이지
-        public int Round { get; private set; }  // 현재 라운드 (1-8)
+        public int Stage { get; private set; }  // 현재 전투 스테이지
+        public int Round { get; private set; }  // 10스테이지마다 증가하는 라운드
+        public int EnemyLevel => Mathf.Max(0, Stage - 1);
         public bool IsRoundInProgress { get; private set; }
 
         private StageThemeData _currentStageTheme;
@@ -21,7 +22,7 @@ namespace Managers
         {
             _dataManager = manager;
             Stage = 1;
-            Round = 0;
+            Round = 1;
         }
 
         public void SpawnHeroesForTest()
@@ -34,8 +35,8 @@ namespace Managers
         /// </summary>
         public void InitializeStage(int stageNumber)
         {
-            Stage = stageNumber;
-            Round = 0;
+            Stage = Mathf.Max(1, stageNumber);
+            Round = GetRewardRound(Stage);
             
             // 스테이지 테마 데이터 로드
             StageThemeDataList themeDataList = _dataManager.FetchStageThemeDataList();
@@ -59,7 +60,8 @@ namespace Managers
         /// </summary>
         public void LoadRound(int roundNumber)
         {
-            Round = roundNumber;
+            Stage = Mathf.Max(1, roundNumber);
+            Round = GetRewardRound(Stage);
             
             if (_enemyDataList == null || _roundTypeDataList == null)
             {
@@ -68,14 +70,15 @@ namespace Managers
             }
             
             // 스테이지 데이터에서 현재 라운드의 roundType ID 가져오기
-            StageData stageData = _roundTypeDataList.stages.Find(s => s.stageNumber == Stage);
-            if (stageData == null || stageData.rounds.Count < Round)
+            StageData stageData = _roundTypeDataList.stages.Find(s => s.stageNumber == 1);
+            if (stageData == null || stageData.rounds == null || stageData.rounds.Count == 0)
             {
-                Debug.LogError($"Stage {Stage} or Round {Round} data not found.");
+                Debug.LogError($"Stage pattern data not found for battle stage {Stage}.");
                 return;
             }
             
-            int roundTypeId = stageData.rounds[Round - 1];
+            int patternIndex = (Stage - 1) % stageData.rounds.Count;
+            int roundTypeId = stageData.rounds[patternIndex];
             RoundTypeData roundType = _roundTypeDataList.roundTypes.Find(rt => rt.id == roundTypeId);
             
             if (roundType == null)
@@ -91,7 +94,7 @@ namespace Managers
             GameManager.Instance.CalculateSynergies();
             ApplySynergyEffects();
 
-            Debug.Log($"Stage {Stage}, Round {Round} started with {roundType.name}");
+            Debug.Log($"Battle Stage {Stage}, Reward Round {Round} started with {roundType.name}");
             IsRoundInProgress = true;
         }
 
@@ -102,26 +105,20 @@ namespace Managers
                 _roundTypeDataList = _dataManager.FetchRoundTypeDataList();
             }
 
-            StageData stageData = _roundTypeDataList?.stages?.Find(s => s.stageNumber == Stage);
-            int roundsInStage = stageData?.rounds?.Count ?? 0;
-
-            if (roundsInStage > 0 && Round < roundsInStage)
+            StageData stageData = _roundTypeDataList?.stages?.Find(s => s.stageNumber == 1);
+            if (stageData?.rounds != null && stageData.rounds.Count > 0)
             {
-                LoadRound(Round + 1);
+                LoadRound(Stage + 1);
                 return true;
             }
 
-            int nextStage = Stage + 1;
-            bool hasNextStage = _roundTypeDataList?.stages?.Any(s => s.stageNumber == nextStage) == true;
-            if (!hasNextStage)
-            {
-                Debug.Log("[RoundManager] 모든 스테이지를 완료했습니다.");
-                return false;
-            }
+            Debug.Log("[RoundManager] 라운드 패턴 데이터가 없어 다음 스테이지를 로드할 수 없습니다.");
+            return false;
+        }
 
-            InitializeStage(nextStage);
-            LoadRound(1);
-            return true;
+        private static int GetRewardRound(int battleStage)
+        {
+            return Mathf.Max(1, ((battleStage - 1) / 10) + 1);
         }
 
         public void StopRound()
@@ -247,19 +244,17 @@ namespace Managers
         }
 
         /// <summary>
-        /// 적을 배치. 직업에 따라 x좌표(열)를 결정하고, 같은 직업은 y좌표를 1부터 증가
-        /// 1열 (x=1): 처형자(9), 투사(8), 파수꾼(7)
-        /// 2열 (x=2): 책략가(12), 지원가(14), 메카닉(13)
-        /// 3열 (x=3): 사수(10), 마법사(11)
+        /// 적을 배치. 직업에 따라 전열/후열을 결정하고, 같은 열은 y좌표를 1부터 증가
+        /// 전열 (x=1): 처형자(9), 투사(8), 파수꾼(7)
+        /// 후열 (x=2): 사수(10), 마법사(11), 책략가(12), 메카닉(13), 지원가(14)
         /// </summary>
         private void PlaceEnemies(List<int> enemyIds)
         {
-            // 열별로 적을 그룹화 (같은 열에 속한 적들끼리)
+            // 전열/후열별로 적을 그룹화
             Dictionary<int, List<int>> columnGroups = new Dictionary<int, List<int>>
             {
-                { 1, new List<int>() },  // 1열: 처형자, 투사, 파수꾼
-                { 2, new List<int>() },  // 2열: 책략가, 지원가, 메카닉
-                { 3, new List<int>() }   // 3열: 사수, 마법사
+                { 1, new List<int>() },
+                { 2, new List<int>() }
             };
             
             // 적을 열별로 분류
@@ -280,7 +275,7 @@ namespace Managers
                 
                 foreach (int enemyId in column.Value)
                 {
-                    if (yPos > 3) break;  // 최대 y=3까지만
+                    if (yPos > 4) break;  // 각 열 최대 4칸
                     
                     // (xPos, yPos)에 적 배치
                     GameManager.Instance.gridManager.SpawnUnit(xPos, yPos, true, enemyId);
@@ -296,17 +291,11 @@ namespace Managers
         /// </summary>
         private int GetColumnForClass(int classId)
         {
-            // 1열 (x=1): 처형자(9), 투사(8), 파수꾼(7)
+            // 전열 (x=1): 처형자(9), 투사(8), 파수꾼(7)
             if (classId == 7 || classId == 8 || classId == 9) return 1;
             
-            // 2열 (x=2): 책략가(12), 지원가(14), 메카닉(13)
-            if (classId == 12 || classId == 13 || classId == 14) return 2;
-            
-            // 3열 (x=3): 사수(10), 마법사(11)
-            if (classId == 10 || classId == 11) return 3;
-            
-            // 기본값 1열
-            return 1;
+            // 후열 (x=2): 사수(10), 마법사(11), 책략가(12), 메카닉(13), 지원가(14)
+            return 2;
         }
 
         private void ApplySynergyEffects()

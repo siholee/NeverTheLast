@@ -68,7 +68,7 @@ namespace Codes.Ultimate
       GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, target, delay);
       yield return new WaitForSeconds(delay);
       // 각 맹독이 개별적으로 스택되도록 고유한 identifier 생성
-      string identifier = $"PoisonEffect_{Caster.GetInstanceID()}_{target.GetInstanceID()}_{System.DateTime.Now.Ticks}";
+      string identifier = $"PoisonEffect_{Caster.GetEntityId()}_{target.GetEntityId()}_{System.DateTime.Now.Ticks}";
       var buffEffect = new PoisonEffect(Caster, identifier, (int)(Caster.AtkCurr * 0.1f));
       target.AddStatusEffect(identifier, buffEffect);
     }
