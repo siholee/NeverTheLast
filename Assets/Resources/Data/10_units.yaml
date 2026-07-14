@@ -22,6 +22,8 @@ units:
     lukBase: 10
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
+    atkBase: 100
+    defBase: 0
     codes:
       passive: 1
       normal: 2
@@ -51,6 +53,8 @@ units:
     lukBase: 12
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
+    atkBase: 100
+    defBase: 0
     codes:
       passive: 5
       normal: 11
@@ -80,6 +84,8 @@ units:
     lukBase: 10
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    atkBase: 100
+    defBase: 0
     codes:
       passive: 4
       normal: 2
@@ -109,6 +115,8 @@ units:
     lukBase: 20
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    atkBase: 100
+    defBase: 0
     codes:
       passive: 2
       normal: 1
@@ -138,6 +146,8 @@ units:
     lukBase: 10
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
+    atkBase: 100
+    defBase: 0
     codes:
       passive: 3
       normal: 12
@@ -198,7 +208,6 @@ units:
     lukIncrementUpgrade: 1
     atkBase: 100
     defBase: 20
-    manaBase: 100
     codes:
       passive: 70
       normal: 70

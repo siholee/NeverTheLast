@@ -134,22 +134,10 @@ namespace Managers
         public int lukBase;
         public int lukIncrementLvl;
         public int lukIncrementUpgrade;
-        public int hpBase;
-        public int hpIncrementLvl;         // YAML의 hpIncrementLvl 필드와 매핑
-        public int hpIncrementUpgrade;     // YAML의 hpIncrementUpgrade 필드와 매핑
         public int atkBase;
-        public int atkIncrementLvl;        // YAML의 atkIncrementLvl 필드와 매핑
-        public int atkIncrementUpgrade;    // YAML의 atkIncrementUpgrade 필드와 매핑
+        public int atkIncrementLvl;
         public int defBase;
-        public int defIncrementLvl;        // YAML의 defIncrementLvl 필드와 매핑
-        public int defIncrementUpgrade;    // YAML의 defIncrementUpgrade 필드와 매핑
-        public float critChance;
-        public float critChanceIncrementLvl;   // YAML의 critChanceIncrementLvl 필드와 매핑
-        public float critChanceIncrementUpgrade; // YAML의 critChanceIncrementUpgrade 필드와 매핑
-        public float critMultiplier;
-        public float critMultiplierIncrementLvl;   // YAML의 critMultiplierIncrementLvl 필드와 매핑
-        public float critMultiplierIncrementUpgrade; // YAML의 critMultiplierIncrementUpgrade 필드와 매핑
-        public int manaBase;
+        public int defIncrementLvl;
         public string ultimateResourceType;
         public string ultimateResourceName;
         public int ultimateResourceMax;
@@ -257,22 +245,10 @@ namespace Managers
         public int lukBase;
         public int lukIncrementLvl;
         public int lukIncrementUpgrade;
-        public int hpBase;
-        public int hpIncrementLvl;
-        public int hpIncrementUpgrade;
         public int atkBase;
         public int atkIncrementLvl;
-        public int atkIncrementUpgrade;
         public int defBase;
         public int defIncrementLvl;
-        public int defIncrementUpgrade;
-        public float critChance;
-        public float critChanceIncrementLvl;
-        public float critChanceIncrementUpgrade;
-        public float critMultiplier;
-        public float critMultiplierIncrementLvl;
-        public float critMultiplierIncrementUpgrade;
-        public int manaBase;
         public string ultimateResourceType;
         public string ultimateResourceName;
         public int ultimateResourceMax;

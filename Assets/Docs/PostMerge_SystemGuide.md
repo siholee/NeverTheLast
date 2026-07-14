@@ -275,12 +275,13 @@ lukIncrementUpgrade: 1
 현재 코드 기준 대표 계산:
 
 - 최대 체력: `CON * 1000`
-- 공격력: `STR * 10`
-- 방어력: `STR * 3`
+- 공격력: YAML `atkBase + atkIncrementLvl * 성장 레벨` (명시적 전투 스탯, STR 파생이 아님)
+- 방어력: YAML `defBase + defIncrementLvl * 성장 레벨`
 - 치명타 확률: `LUK * 1%`
 - 치명타 피해: 기본 150%
+- 공격속도: `1 + DEX * 1%`
 - 마나 최대값: 마나형 궁극기 자원은 기본 100
-- 스택형 궁극기 자원은 `ultimateResourceMax` 또는 기존 `manaBase`를 사용
+- 스택형 궁극기 자원은 `ultimateResourceMax`를 사용
 
 정확한 계산은 `Unit.GetDerived...()` 계열 메서드에서 관리한다.
 
@@ -290,13 +291,14 @@ lukIncrementUpgrade: 1
 - `Assets/Scripts/BaseClasses/Enums.cs`
 - `Assets/Scripts/Managers/DataManager.cs`
 
-### 레거시 스탯 호환
+### 스탯 필드 규칙
 
-기존 데이터에는 `hpBase`, `atkBase`, `defBase`, `critChance`, `manaBase` 등이 남아 있다.
+모든 유닛/적은 5스탯 필드(`strBase`~`lukIncrementUpgrade`)와 전투 스탯(`atkBase`,
+`atkIncrementLvl`, `defBase`, `defIncrementLvl`)을 YAML에 직접 작성한다.
 
-현재 `strBase` 등 5스탯이 YAML에 없으면 기존 레거시 스탯을 임시로 5스탯으로 변환한다. 이는 기존 저장/유닛 데이터와 충돌을 줄이기 위한 과도기 처리이다.
-
-새로운 데이터는 가급적 5스탯 필드를 직접 작성한다.
+레거시 필드(`hpBase`, `critChance*`, `critMultiplier*`, `manaBase`,
+`atkIncrementUpgrade`, `defIncrementUpgrade`)와 런타임 변환 로직은 제거되었다.
+저장 포맷도 v2로 올라가 구버전 세이브는 로드 시 폐기된다(`RunSaveData.version`).
 
 레거시 modifier 정리:
 
@@ -824,8 +826,8 @@ target.AddStatus(status);
 
 ## 현재 과도기/주의 사항
 
-- 기존 문서나 일부 YAML에는 `hpBase`, `atkBase`, `defBase`, `manaBase` 같은 레거시 필드가 남아 있다.
-- 새 유닛/적은 5스탯 필드를 우선 작성한다.
+- 스탯 모델은 5스탯 + 명시적 atk/def로 단일화되었다. 레거시 필드/변환 로직은 제거됨
+  (자세한 규칙은 "스탯 필드 규칙" 절 참고).
 - `AtkCurr`, `DefCurr`, `HpMax`, `ManaCurr` 같은 파생 전투 값은 UI와 전투 계산 호환을 위해 유지된다.
 - `StatusEffect` 기반 레거시 상태와 신규 `UnitStatus` 기반 상태가 공존한다.
 - 새 개발은 가능하면 `UnitStatus`와 `BaseEffect` 기반으로 진행한다.

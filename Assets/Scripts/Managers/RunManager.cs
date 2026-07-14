@@ -395,11 +395,6 @@ namespace Managers
                     conUpgrade = hero.ConUpgrade,
                     intUpgrade = hero.IntUpgrade,
                     lukUpgrade = hero.LukUpgrade,
-                    hpUpgrade = hero.HpUpgrade,
-                    atkUpgrade = hero.AtkUpgrade,
-                    defUpgrade = hero.DefUpgrade,
-                    critChanceUpgrade = hero.CritChanceUpgrade,
-                    critMultiplierUpgrade = hero.CritMultiplierUpgrade,
                     codeAccelerationBonus = hero.CodeAccelerationRunBonus,
                     equippedItemIds = hero.EquippedItemIds.ToList(),
                 });

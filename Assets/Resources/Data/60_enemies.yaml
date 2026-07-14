@@ -4,29 +4,26 @@ enemies:
     themeId: 3
     archetype: 9
     element: None
-    classLevels:
-      - className: Ranger
-        level: 3
-    subclasses:
-      - className: Ranger
-        subclassName: Thief
     tier: normal
-    hpBase: 15000
-    hpIncrementLvl: 1500
-    hpIncrementUpgrade: 1500
+    strBase: 80
+    strIncrementLvl: 8
+    strIncrementUpgrade: 8
+    dexBase: 13
+    dexIncrementLvl: 0
+    dexIncrementUpgrade: 1
+    conBase: 15
+    conIncrementLvl: 2
+    conIncrementUpgrade: 2
+    intBase: 10
+    intIncrementLvl: 0
+    intIncrementUpgrade: 0
+    lukBase: 15
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 3
     atkBase: 800
     atkIncrementLvl: 80
-    atkIncrementUpgrade: 80
     defBase: 80
     defIncrementLvl: 15
-    defIncrementUpgrade: 15
-    critChance: 0.15
-    critChanceIncrementLvl: 0.01
-    critChanceIncrementUpgrade: 0.03
-    critMultiplier: 1.5
-    critMultiplierIncrementLvl: 0
-    critMultiplierIncrementUpgrade: 0.1
-    manaBase: 100
     codes:
       passive: 100
       normal: 100
@@ -38,29 +35,26 @@ enemies:
     themeId: 3
     archetype: 8
     element: Pyro
-    classLevels:
-      - className: Fighter
-        level: 3
-    subclasses:
-      - className: Fighter
-        subclassName: Barbarian
     tier: normal
-    hpBase: 25000
-    hpIncrementLvl: 2000
-    hpIncrementUpgrade: 2000
+    strBase: 60
+    strIncrementLvl: 6
+    strIncrementUpgrade: 6
+    dexBase: 12
+    dexIncrementLvl: 0
+    dexIncrementUpgrade: 1
+    conBase: 25
+    conIncrementLvl: 2
+    conIncrementUpgrade: 2
+    intBase: 10
+    intIncrementLvl: 0
+    intIncrementUpgrade: 0
+    lukBase: 10
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 3
     atkBase: 600
     atkIncrementLvl: 60
-    atkIncrementUpgrade: 60
     defBase: 100
     defIncrementLvl: 20
-    defIncrementUpgrade: 20
-    critChance: 0.1
-    critChanceIncrementLvl: 0.01
-    critChanceIncrementUpgrade: 0.03
-    critMultiplier: 1.4
-    critMultiplierIncrementLvl: 0
-    critMultiplierIncrementUpgrade: 0.1
-    manaBase: 100
     codes:
       passive: 100
       normal: 100
@@ -72,26 +66,26 @@ enemies:
     themeId: 3
     archetype: 8
     element: Cryo
-    classLevels:
-      - className: Fighter
-        level: 1
     tier: normal
-    hpBase: 22000
-    hpIncrementLvl: 1800
-    hpIncrementUpgrade: 1800
+    strBase: 70
+    strIncrementLvl: 7
+    strIncrementUpgrade: 7
+    dexBase: 12
+    dexIncrementLvl: 0
+    dexIncrementUpgrade: 1
+    conBase: 22
+    conIncrementLvl: 2
+    conIncrementUpgrade: 2
+    intBase: 10
+    intIncrementLvl: 0
+    intIncrementUpgrade: 0
+    lukBase: 12
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 3
     atkBase: 700
     atkIncrementLvl: 70
-    atkIncrementUpgrade: 70
     defBase: 90
     defIncrementLvl: 18
-    defIncrementUpgrade: 18
-    critChance: 0.12
-    critChanceIncrementLvl: 0.01
-    critChanceIncrementUpgrade: 0.03
-    critMultiplier: 1.4
-    critMultiplierIncrementLvl: 0
-    critMultiplierIncrementUpgrade: 0.1
-    manaBase: 100
     codes:
       passive: 100
       normal: 100
@@ -103,29 +97,26 @@ enemies:
     themeId: 3
     archetype: 7
     element: Geo
-    classLevels:
-      - className: Guardian
-        level: 3
-    subclasses:
-      - className: Guardian
-        subclassName: Paladin
     tier: normal
-    hpBase: 35000
-    hpIncrementLvl: 3000
-    hpIncrementUpgrade: 3000
+    strBase: 40
+    strIncrementLvl: 4
+    strIncrementUpgrade: 4
+    dexBase: 11
+    dexIncrementLvl: 0
+    dexIncrementUpgrade: 1
+    conBase: 35
+    conIncrementLvl: 3
+    conIncrementUpgrade: 3
+    intBase: 10
+    intIncrementLvl: 0
+    intIncrementUpgrade: 0
+    lukBase: 5
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 3
     atkBase: 400
     atkIncrementLvl: 40
-    atkIncrementUpgrade: 40
     defBase: 150
     defIncrementLvl: 30
-    defIncrementUpgrade: 30
-    critChance: 0.05
-    critChanceIncrementLvl: 0.01
-    critChanceIncrementUpgrade: 0.03
-    critMultiplier: 1.2
-    critMultiplierIncrementLvl: 0
-    critMultiplierIncrementUpgrade: 0.1
-    manaBase: 100
     codes:
       passive: 100
       normal: 100
@@ -137,26 +128,26 @@ enemies:
     themeId: 3
     archetype: 10
     element: Anemo
-    classLevels:
-      - className: Ranger
-        level: 1
     tier: normal
-    hpBase: 12000
-    hpIncrementLvl: 1000
-    hpIncrementUpgrade: 1000
+    strBase: 90
+    strIncrementLvl: 9
+    strIncrementUpgrade: 9
+    dexBase: 14
+    dexIncrementLvl: 0
+    dexIncrementUpgrade: 1
+    conBase: 12
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 10
+    intIncrementLvl: 0
+    intIncrementUpgrade: 0
+    lukBase: 20
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 4
     atkBase: 900
     atkIncrementLvl: 90
-    atkIncrementUpgrade: 90
     defBase: 60
     defIncrementLvl: 12
-    defIncrementUpgrade: 12
-    critChance: 0.2
-    critChanceIncrementLvl: 0.02
-    critChanceIncrementUpgrade: 0.04
-    critMultiplier: 1.6
-    critMultiplierIncrementLvl: 0
-    critMultiplierIncrementUpgrade: 0.1
-    manaBase: 100
     codes:
       passive: 100
       normal: 100
@@ -168,29 +159,26 @@ enemies:
     themeId: 3
     archetype: 11
     element: Electro
-    classLevels:
-      - className: Mage
-        level: 3
-    subclasses:
-      - className: Mage
-        subclassName: Wizard
     tier: normal
-    hpBase: 10000
-    hpIncrementLvl: 800
-    hpIncrementUpgrade: 800
+    strBase: 110
+    strIncrementLvl: 11
+    strIncrementUpgrade: 11
+    dexBase: 13
+    dexIncrementLvl: 0
+    dexIncrementUpgrade: 1
+    conBase: 10
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 10
+    intIncrementLvl: 0
+    intIncrementUpgrade: 0
+    lukBase: 15
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 4
     atkBase: 1100
     atkIncrementLvl: 110
-    atkIncrementUpgrade: 110
     defBase: 50
     defIncrementLvl: 10
-    defIncrementUpgrade: 10
-    critChance: 0.15
-    critChanceIncrementLvl: 0.02
-    critChanceIncrementUpgrade: 0.04
-    critMultiplier: 1.8
-    critMultiplierIncrementLvl: 0
-    critMultiplierIncrementUpgrade: 0.15
-    manaBase: 100
     codes:
       passive: 100
       normal: 100
@@ -202,29 +190,26 @@ enemies:
     themeId: 3
     archetype: 12
     element: None
-    classLevels:
-      - className: Priest
-        level: 3
-    subclasses:
-      - className: Priest
-        subclassName: Herald
     tier: normal
-    hpBase: 13000
-    hpIncrementLvl: 1100
-    hpIncrementUpgrade: 1100
+    strBase: 70
+    strIncrementLvl: 7
+    strIncrementUpgrade: 7
+    dexBase: 12
+    dexIncrementLvl: 0
+    dexIncrementUpgrade: 1
+    conBase: 13
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 10
+    intIncrementLvl: 0
+    intIncrementUpgrade: 0
+    lukBase: 10
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 3
     atkBase: 700
     atkIncrementLvl: 70
-    atkIncrementUpgrade: 70
     defBase: 70
     defIncrementLvl: 14
-    defIncrementUpgrade: 14
-    critChance: 0.1
-    critChanceIncrementLvl: 0.01
-    critChanceIncrementUpgrade: 0.03
-    critMultiplier: 1.5
-    critMultiplierIncrementLvl: 0
-    critMultiplierIncrementUpgrade: 0.1
-    manaBase: 100
     codes:
       passive: 100
       normal: 100
@@ -236,26 +221,26 @@ enemies:
     themeId: 3
     archetype: 13
     element: Geo
-    classLevels:
-      - className: Mage
-        level: 1
     tier: normal
-    hpBase: 14000
-    hpIncrementLvl: 1200
-    hpIncrementUpgrade: 1200
+    strBase: 85
+    strIncrementLvl: 8
+    strIncrementUpgrade: 8
+    dexBase: 12
+    dexIncrementLvl: 0
+    dexIncrementUpgrade: 1
+    conBase: 14
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 10
+    intIncrementLvl: 0
+    intIncrementUpgrade: 0
+    lukBase: 12
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 3
     atkBase: 850
     atkIncrementLvl: 85
-    atkIncrementUpgrade: 85
     defBase: 80
     defIncrementLvl: 16
-    defIncrementUpgrade: 16
-    critChance: 0.12
-    critChanceIncrementLvl: 0.01
-    critChanceIncrementUpgrade: 0.03
-    critMultiplier: 1.5
-    critMultiplierIncrementLvl: 0
-    critMultiplierIncrementUpgrade: 0.1
-    manaBase: 100
     codes:
       passive: 100
       normal: 100
@@ -267,29 +252,26 @@ enemies:
     themeId: 3
     archetype: 14
     element: Hydro
-    classLevels:
-      - className: Priest
-        level: 3
-    subclasses:
-      - className: Priest
-        subclassName: Cleric
     tier: normal
-    hpBase: 11000
-    hpIncrementLvl: 900
-    hpIncrementUpgrade: 900
+    strBase: 50
+    strIncrementLvl: 5
+    strIncrementUpgrade: 5
+    dexBase: 12
+    dexIncrementLvl: 0
+    dexIncrementUpgrade: 0
+    conBase: 11
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 10
+    intIncrementLvl: 0
+    intIncrementUpgrade: 0
+    lukBase: 8
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 2
     atkBase: 500
     atkIncrementLvl: 50
-    atkIncrementUpgrade: 50
     defBase: 60
     defIncrementLvl: 12
-    defIncrementUpgrade: 12
-    critChance: 0.08
-    critChanceIncrementLvl: 0.01
-    critChanceIncrementUpgrade: 0.02
-    critMultiplier: 1.3
-    critMultiplierIncrementLvl: 0
-    critMultiplierIncrementUpgrade: 0.1
-    manaBase: 100
     codes:
       passive: 100
       normal: 100
@@ -301,29 +283,26 @@ enemies:
     themeId: 3
     archetype: 7
     element: Cryo
-    classLevels:
-      - className: Guardian
-        level: 3
-    subclasses:
-      - className: Guardian
-        subclassName: Paladin
     tier: elite
-    hpBase: 80000
-    hpIncrementLvl: 7000
-    hpIncrementUpgrade: 7000
+    strBase: 100
+    strIncrementLvl: 10
+    strIncrementUpgrade: 10
+    dexBase: 12
+    dexIncrementLvl: 0
+    dexIncrementUpgrade: 1
+    conBase: 80
+    conIncrementLvl: 7
+    conIncrementUpgrade: 7
+    intBase: 10
+    intIncrementLvl: 0
+    intIncrementUpgrade: 0
+    lukBase: 10
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 3
     atkBase: 1000
     atkIncrementLvl: 100
-    atkIncrementUpgrade: 100
     defBase: 300
     defIncrementLvl: 50
-    defIncrementUpgrade: 50
-    critChance: 0.1
-    critChanceIncrementLvl: 0.01
-    critChanceIncrementUpgrade: 0.03
-    critMultiplier: 1.5
-    critMultiplierIncrementLvl: 0
-    critMultiplierIncrementUpgrade: 0.1
-    manaBase: 100
     codes:
       passive: 100
       normal: 100
@@ -335,29 +314,26 @@ enemies:
     themeId: 3
     archetype: 8
     element: Pyro
-    classLevels:
-      - className: Fighter
-        level: 3
-    subclasses:
-      - className: Fighter
-        subclassName: Barbarian
     tier: elite
-    hpBase: 70000
-    hpIncrementLvl: 6000
-    hpIncrementUpgrade: 6000
+    strBase: 150
+    strIncrementLvl: 15
+    strIncrementUpgrade: 15
+    dexBase: 13
+    dexIncrementLvl: 0
+    dexIncrementUpgrade: 1
+    conBase: 70
+    conIncrementLvl: 6
+    conIncrementUpgrade: 6
+    intBase: 10
+    intIncrementLvl: 0
+    intIncrementUpgrade: 0
+    lukBase: 15
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 4
     atkBase: 1500
     atkIncrementLvl: 150
-    atkIncrementUpgrade: 150
     defBase: 250
     defIncrementLvl: 40
-    defIncrementUpgrade: 40
-    critChance: 0.15
-    critChanceIncrementLvl: 0.02
-    critChanceIncrementUpgrade: 0.04
-    critMultiplier: 2.0
-    critMultiplierIncrementLvl: 0
-    critMultiplierIncrementUpgrade: 0.15
-    manaBase: 100
     codes:
       passive: 100
       normal: 100
@@ -369,29 +345,26 @@ enemies:
     themeId: 3
     archetype: 11
     element: Electro
-    classLevels:
-      - className: Mage
-        level: 3
-    subclasses:
-      - className: Mage
-        subclassName: Wizard
     tier: boss
-    hpBase: 150000
-    hpIncrementLvl: 12000
-    hpIncrementUpgrade: 12000
+    strBase: 250
+    strIncrementLvl: 25
+    strIncrementUpgrade: 25
+    dexBase: 14
+    dexIncrementLvl: 0
+    dexIncrementUpgrade: 1
+    conBase: 150
+    conIncrementLvl: 12
+    conIncrementUpgrade: 12
+    intBase: 10
+    intIncrementLvl: 0
+    intIncrementUpgrade: 0
+    lukBase: 20
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 5
     atkBase: 2500
     atkIncrementLvl: 250
-    atkIncrementUpgrade: 250
     defBase: 400
     defIncrementLvl: 60
-    defIncrementUpgrade: 60
-    critChance: 0.2
-    critChanceIncrementLvl: 0.02
-    critChanceIncrementUpgrade: 0.05
-    critMultiplier: 2.5
-    critMultiplierIncrementLvl: 0
-    critMultiplierIncrementUpgrade: 0.2
-    manaBase: 100
     codes:
       passive: 100
       normal: 100
@@ -417,7 +390,6 @@ enemies:
     atkIncrementLvl: 55
     defBase: 90
     defIncrementLvl: 12
-    manaBase: 100
     codes: { passive: 100, normal: 100, ultimate: 100 }
     portrait: ATALANTE_PORTRAIT
 
@@ -440,7 +412,6 @@ enemies:
     atkIncrementLvl: 65
     defBase: 65
     defIncrementLvl: 9
-    manaBase: 100
     codes: { passive: 100, normal: 100, ultimate: 100 }
     portrait: ATALANTE_PORTRAIT
 
@@ -463,7 +434,6 @@ enemies:
     atkIncrementLvl: 75
     defBase: 45
     defIncrementLvl: 7
-    manaBase: 100
     codes: { passive: 100, normal: 100, ultimate: 100 }
     portrait: CHANDRA_PORTRAIT
 
@@ -487,7 +457,6 @@ enemies:
     atkIncrementLvl: 110
     defBase: 220
     defIncrementLvl: 25
-    manaBase: 100
     codes: { passive: 100, normal: 100, ultimate: 100 }
     portrait: CHANDRA_PORTRAIT
 
@@ -511,7 +480,6 @@ enemies:
     atkIncrementLvl: 210
     defBase: 380
     defIncrementLvl: 40
-    manaBase: 100
     codes: { passive: 100, normal: 100, ultimate: 100 }
     portrait: SHI_PORTRAIT
 
@@ -535,7 +503,6 @@ enemies:
     atkIncrementLvl: 80
     defBase: 180
     defIncrementLvl: 20
-    manaBase: 100
     codes: { passive: 70, normal: 70, ultimate: 70 }
     codeStages: { passive: 3, normal: 1, ultimate: 1 }
     levelPassives:
@@ -571,7 +538,6 @@ enemies:
     atkIncrementLvl: 130
     defBase: 300
     defIncrementLvl: 30
-    manaBase: 100
     codes: { passive: 70, normal: 70, ultimate: 70 }
     codeStages: { passive: 3, normal: 1, ultimate: 1 }
     levelPassives:

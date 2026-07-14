@@ -89,11 +89,6 @@ namespace Core
         public int conUpgrade;
         public int intUpgrade;
         public int lukUpgrade;
-        public int hpUpgrade;
-        public int atkUpgrade;
-        public int defUpgrade;
-        public int critChanceUpgrade;
-        public int critMultiplierUpgrade;
         public float codeAccelerationBonus;
         public List<int> equippedItemIds = new();
     }
@@ -101,6 +96,9 @@ namespace Core
     [Serializable]
     public class RunSaveData
     {
+        // 저장 포맷 버전. 레거시 스탯 필드 제거(v2) 이전 저장본은 로드하지 않고 폐기한다.
+        public int version = CurrentVersion;
+        public const int CurrentVersion = 2;
         public int gameMode;
         public int currentStage;
         public int currentRound;

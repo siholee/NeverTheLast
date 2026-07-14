@@ -881,11 +881,6 @@ namespace Managers
                 conUpgrade = unit.ConUpgrade,
                 intUpgrade = unit.IntUpgrade,
                 lukUpgrade = unit.LukUpgrade,
-                hpUpgrade = unit.HpUpgrade,
-                atkUpgrade = unit.AtkUpgrade,
-                defUpgrade = unit.DefUpgrade,
-                critChanceUpgrade = unit.CritChanceUpgrade,
-                critMultiplierUpgrade = unit.CritMultiplierUpgrade,
                 codeAccelerationBonus = unit.CodeAccelerationRunBonus,
                 equippedItemIds = unit.EquippedItemIds.ToList(),
             };

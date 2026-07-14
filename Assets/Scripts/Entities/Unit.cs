@@ -51,22 +51,12 @@ namespace Entities
         [SerializeField] private int conUpgrade;
         [SerializeField] private int intUpgrade;
         [SerializeField] private int lukUpgrade;
-        [SerializeField] private int hpUpgrade;
-        [SerializeField] private int atkUpgrade;
-        [SerializeField] private int defUpgrade;
-        [SerializeField] private int critChanceUpgrade;
-        [SerializeField] private int critMultiplierUpgrade;
         [SerializeField] private float codeAccelerationRunBonus;
         public int StrUpgrade { get => strUpgrade; protected set => strUpgrade = value; }
         public int DexUpgrade { get => dexUpgrade; protected set => dexUpgrade = value; }
         public int ConUpgrade { get => conUpgrade; protected set => conUpgrade = value; }
         public int IntUpgrade { get => intUpgrade; protected set => intUpgrade = value; }
         public int LukUpgrade { get => lukUpgrade; protected set => lukUpgrade = value; }
-        public int HpUpgrade { get => hpUpgrade; protected set => hpUpgrade = value; }
-        public int AtkUpgrade { get => atkUpgrade; protected set => atkUpgrade = value; }
-        public int DefUpgrade { get => defUpgrade; protected set => defUpgrade = value; }
-        public int CritChanceUpgrade { get => critChanceUpgrade; protected set => critChanceUpgrade = value; }
-        public int CritMultiplierUpgrade { get => critMultiplierUpgrade; protected set => critMultiplierUpgrade = value; }
         public float CodeAccelerationRunBonus { get => codeAccelerationRunBonus; protected set => codeAccelerationRunBonus = value; }
 
         // 유닛 현재 상태
@@ -134,26 +124,16 @@ namespace Entities
         [SerializeField] private int lukIncrementLvl;
         [SerializeField] private int lukIncrementUpgrade;
 
-        // 기존 파생 스탯 수치 - 5대 기본 스탯 전환 중 하위 호환용
-        // 인스펙터 노출용
-        [SerializeField] private int hpBase;
-        [SerializeField] private int hpIncrementLvl;
-        [SerializeField] private int hpIncrementUpgrade;
+        // 파생/전투 스탯 수치.
+        // HP/치명타/궁극기 자원은 5대 기본 스탯에서 파생되고,
+        // 공격력/방어력은 YAML의 atkBase/defBase가 명시적 전투 스탯으로 남는다.
         [SerializeField] private int hpMax;
-        [SerializeField] private int manaBase;
+        [SerializeField] private int ultimateResourceMax;
         [SerializeField] private int manaMax;
         [SerializeField] private int atkBase;
         [SerializeField] private int atkIncrementLvl;
-        [SerializeField] private int atkIncrementUpgrade;
         [SerializeField] private int defBase;
         [SerializeField] private int defIncrementLvl;
-        [SerializeField] private int defIncrementUpgrade;
-        [SerializeField] private float critChanceBase;
-        [SerializeField] private float critChanceIncrementLvl;
-        [SerializeField] private float critChanceIncrementUpgrade;
-        [SerializeField] private float critMultiplierBase;
-        [SerializeField] private float critMultiplierIncrementLvl;
-        [SerializeField] private float critMultiplierIncrementUpgrade;
 
         // 실제 수치 관리용
         public int StrBase { get => strBase; protected set => strBase = value; }
@@ -171,24 +151,13 @@ namespace Entities
         public int LukBase { get => lukBase; protected set => lukBase = value; }
         public int LukIncrementLvl { get => lukIncrementLvl; protected set => lukIncrementLvl = value; }
         public int LukIncrementUpgrade { get => lukIncrementUpgrade; protected set => lukIncrementUpgrade = value; }
-        public int HpBase { get => hpBase; protected set => hpBase = value; }
-        public int HpIncrementLvl { get => hpIncrementLvl; protected set => hpIncrementLvl = value; }
-        public int HpIncrementUpgrade { get => hpIncrementUpgrade; protected set => hpIncrementUpgrade = value; }
         public int HpMax { get => hpMax; protected set => hpMax = value; }
-        public int ManaBase { get => manaBase; protected set => manaBase = value; }
+        public int UltimateResourceMax { get => ultimateResourceMax; protected set => ultimateResourceMax = value; }
         public int ManaMax { get => manaMax; protected set => manaMax = value; }
         public int AtkBase { get => atkBase; protected set => atkBase = value; }
         public int AtkIncrementLvl { get => atkIncrementLvl; protected set => atkIncrementLvl = value; }
-        public int AtkIncrementUpgrade { get => atkIncrementUpgrade; protected set => atkIncrementUpgrade = value; }
         public int DefBase { get => defBase; protected set => defBase = value; }
         public int DefIncrementLvl { get => defIncrementLvl; protected set => defIncrementLvl = value; }
-        public int DefIncrementUpgrade { get => defIncrementUpgrade; protected set => defIncrementUpgrade = value; }
-        public float CritChanceBase { get => critChanceBase; protected set => critChanceBase = value; }
-        public float CritChanceIncrementLvl { get => critChanceIncrementLvl; protected set => critChanceIncrementLvl = value; }
-        public float CritChanceIncrementUpgrade { get => critChanceIncrementUpgrade; protected set => critChanceIncrementUpgrade = value; }
-        public float CritMultiplierBase { get => critMultiplierBase; protected set => critMultiplierBase = value; }
-        public float CritMultiplierIncrementLvl { get => critMultiplierIncrementLvl; protected set => critMultiplierIncrementLvl = value; }
-        public float CritMultiplierIncrementUpgrade { get => critMultiplierIncrementUpgrade; protected set => critMultiplierIncrementUpgrade = value; }
 
         // 유닛 상태효과(버프/디버프) - 기존 시스템 (하위 호환용)
         protected Dictionary<string, StatusEffect> StatusEffects;
@@ -297,12 +266,8 @@ namespace Entities
                     enemyData.conBase, enemyData.conIncrementLvl, enemyData.conIncrementUpgrade,
                     enemyData.intBase, enemyData.intIncrementLvl, enemyData.intIncrementUpgrade,
                     enemyData.lukBase, enemyData.lukIncrementLvl, enemyData.lukIncrementUpgrade,
-                    enemyData.hpBase, enemyData.hpIncrementLvl, enemyData.hpIncrementUpgrade,
-                    enemyData.atkBase, enemyData.atkIncrementLvl, enemyData.atkIncrementUpgrade,
-                    enemyData.defBase, enemyData.defIncrementLvl, enemyData.defIncrementUpgrade,
-                    enemyData.critChance, enemyData.critChanceIncrementLvl, enemyData.critChanceIncrementUpgrade,
-                    enemyData.critMultiplier, enemyData.critMultiplierIncrementLvl, enemyData.critMultiplierIncrementUpgrade,
-                    enemyData.manaBase);
+                    enemyData.atkBase, enemyData.atkIncrementLvl,
+                    enemyData.defBase, enemyData.defIncrementLvl);
                 ConfigureUltimateResource(enemyData.ultimateResourceType, enemyData.ultimateResourceName, enemyData.ultimateResourceMax);
                 CodeAcceleration = 1f;
 
@@ -339,12 +304,8 @@ namespace Entities
                     data.conBase, data.conIncrementLvl, data.conIncrementUpgrade,
                     data.intBase, data.intIncrementLvl, data.intIncrementUpgrade,
                     data.lukBase, data.lukIncrementLvl, data.lukIncrementUpgrade,
-                    data.hpBase, data.hpIncrementLvl, data.hpIncrementUpgrade,
-                    data.atkBase, data.atkIncrementLvl, data.atkIncrementUpgrade,
-                    data.defBase, data.defIncrementLvl, data.defIncrementUpgrade,
-                    data.critChance, data.critChanceIncrementLvl, data.critChanceIncrementUpgrade,
-                    data.critMultiplier, data.critMultiplierIncrementLvl, data.critMultiplierIncrementUpgrade,
-                    data.manaBase);
+                    data.atkBase, data.atkIncrementLvl,
+                    data.defBase, data.defIncrementLvl);
                 ConfigureUltimateResource(data.ultimateResourceType, data.ultimateResourceName, data.ultimateResourceMax);
                 CodeAcceleration = 1f;
 
@@ -523,7 +484,7 @@ namespace Entities
             UltimateResourceName = string.IsNullOrWhiteSpace(resourceName)
                 ? (UltimateResourceType == BaseEnums.UltimateResourceType.Mana ? "마나" : "스택")
                 : resourceName;
-            ManaBase = resourceMax > 0 ? resourceMax : 100;
+            UltimateResourceMax = resourceMax > 0 ? resourceMax : 100;
         }
 
         private void ApplyCodeStages(Dictionary<string, int> codeStages)
@@ -693,80 +654,35 @@ namespace Entities
             int dataConBase, int dataConIncrementLvl, int dataConIncrementUpgrade,
             int dataIntBase, int dataIntIncrementLvl, int dataIntIncrementUpgrade,
             int dataLukBase, int dataLukIncrementLvl, int dataLukIncrementUpgrade,
-            int legacyHpBase, int legacyHpIncrementLvl, int legacyHpIncrementUpgrade,
-            int legacyAtkBase, int legacyAtkIncrementLvl, int legacyAtkIncrementUpgrade,
-            int legacyDefBase, int legacyDefIncrementLvl, int legacyDefIncrementUpgrade,
-            float legacyCritChance, float legacyCritChanceIncrementLvl, float legacyCritChanceIncrementUpgrade,
-            float legacyCritMultiplier, float legacyCritMultiplierIncrementLvl, float legacyCritMultiplierIncrementUpgrade,
-            int legacyManaBase)
+            int dataAtkBase, int dataAtkIncrementLvl,
+            int dataDefBase, int dataDefIncrementLvl)
         {
             bool hasPrimaryStats = dataStrBase != 0 || dataDexBase != 0 || dataConBase != 0 || dataIntBase != 0 || dataLukBase != 0;
-
-            if (hasPrimaryStats)
+            if (!hasPrimaryStats)
             {
-                StrBase = dataStrBase;
-                StrIncrementLvl = dataStrIncrementLvl;
-                StrIncrementUpgrade = dataStrIncrementUpgrade;
-                DexBase = dataDexBase;
-                DexIncrementLvl = dataDexIncrementLvl;
-                DexIncrementUpgrade = dataDexIncrementUpgrade;
-                ConBase = dataConBase;
-                ConIncrementLvl = dataConIncrementLvl;
-                ConIncrementUpgrade = dataConIncrementUpgrade;
-                IntBase = dataIntBase;
-                IntIncrementLvl = dataIntIncrementLvl;
-                IntIncrementUpgrade = dataIntIncrementUpgrade;
-                LukBase = dataLukBase;
-                LukIncrementLvl = dataLukIncrementLvl;
-                LukIncrementUpgrade = dataLukIncrementUpgrade;
-            }
-            else
-            {
-                // 기존 저장/유닛 데이터를 5대 기본 스탯으로 임시 환산한다.
-                StrBase = LegacyAttackToStr(legacyAtkBase, 1);
-                StrIncrementLvl = LegacyAttackToStr(legacyAtkIncrementLvl, 0);
-                StrIncrementUpgrade = LegacyAttackToStr(legacyAtkIncrementUpgrade, 0);
-                DexBase = Mathf.Max(1, 10 + Mathf.RoundToInt(legacyCritChance * 20f));
-                DexIncrementLvl = Mathf.RoundToInt(legacyCritChanceIncrementLvl * 20f);
-                DexIncrementUpgrade = Mathf.RoundToInt(legacyCritChanceIncrementUpgrade * 20f);
-                ConBase = LegacyHpToCon(legacyHpBase, 1);
-                ConIncrementLvl = LegacyHpToCon(legacyHpIncrementLvl, 0);
-                ConIncrementUpgrade = LegacyHpToCon(legacyHpIncrementUpgrade, 0);
-                IntBase = Mathf.Max(1, Mathf.RoundToInt(legacyManaBase / 10f));
-                IntIncrementLvl = 0;
-                IntIncrementUpgrade = 0;
-                LukBase = Mathf.Max(0, Mathf.RoundToInt(legacyCritChance * 100f));
-                LukIncrementLvl = Mathf.RoundToInt(legacyCritChanceIncrementLvl * 100f);
-                LukIncrementUpgrade = Mathf.RoundToInt(legacyCritChanceIncrementUpgrade * 100f);
+                Debug.LogError($"[Unit] {UnitName}(ID {ID}): 5대 기본 스탯이 모두 0입니다. YAML 데이터를 확인하세요.");
             }
 
-            // 기존 파생 스탯 필드는 표시/하위 호환을 위해 보존한다.
-            HpBase = legacyHpBase;
-            HpIncrementLvl = legacyHpIncrementLvl;
-            HpIncrementUpgrade = legacyHpIncrementUpgrade;
-            AtkBase = legacyAtkBase;
-            AtkIncrementLvl = legacyAtkIncrementLvl;
-            AtkIncrementUpgrade = legacyAtkIncrementUpgrade;
-            DefBase = legacyDefBase;
-            DefIncrementLvl = legacyDefIncrementLvl;
-            DefIncrementUpgrade = legacyDefIncrementUpgrade;
-            CritChanceBase = legacyCritChance;
-            CritChanceIncrementLvl = legacyCritChanceIncrementLvl;
-            CritChanceIncrementUpgrade = legacyCritChanceIncrementUpgrade;
-            CritMultiplierBase = legacyCritMultiplier;
-            CritMultiplierIncrementLvl = legacyCritMultiplierIncrementLvl;
-            CritMultiplierIncrementUpgrade = legacyCritMultiplierIncrementUpgrade;
-            ManaBase = legacyManaBase;
-        }
+            StrBase = dataStrBase;
+            StrIncrementLvl = dataStrIncrementLvl;
+            StrIncrementUpgrade = dataStrIncrementUpgrade;
+            DexBase = dataDexBase;
+            DexIncrementLvl = dataDexIncrementLvl;
+            DexIncrementUpgrade = dataDexIncrementUpgrade;
+            ConBase = dataConBase;
+            ConIncrementLvl = dataConIncrementLvl;
+            ConIncrementUpgrade = dataConIncrementUpgrade;
+            IntBase = dataIntBase;
+            IntIncrementLvl = dataIntIncrementLvl;
+            IntIncrementUpgrade = dataIntIncrementUpgrade;
+            LukBase = dataLukBase;
+            LukIncrementLvl = dataLukIncrementLvl;
+            LukIncrementUpgrade = dataLukIncrementUpgrade;
 
-        private static int LegacyHpToCon(int hp, int minValue)
-        {
-            return Mathf.Max(minValue, Mathf.RoundToInt(hp / 1000f));
-        }
-
-        private static int LegacyAttackToStr(int attack, int minValue)
-        {
-            return Mathf.Max(minValue, Mathf.RoundToInt(attack / 10f));
+            AtkBase = dataAtkBase;
+            AtkIncrementLvl = dataAtkIncrementLvl;
+            DefBase = dataDefBase;
+            DefIncrementLvl = dataDefIncrementLvl;
         }
 
         /// <summary>
@@ -1112,18 +1028,12 @@ namespace Entities
             int critMultiplierUpgrade = 0,
             float codeAccelerationBonus = 0f)
         {
-            StrUpgrade += atkUpgrade;
+            // 보상 종류별 매핑: atk/def → STR, hp → CON, crit 계열 → LUK, 가속 → DEX(+런 보너스)
+            StrUpgrade += atkUpgrade + defUpgrade;
             DexUpgrade += Mathf.RoundToInt(codeAccelerationBonus * 20f);
             ConUpgrade += hpUpgrade;
             IntUpgrade += intUpgrade;
-            StrUpgrade += defUpgrade;
             LukUpgrade += critChanceUpgrade + critMultiplierUpgrade;
-
-            HpUpgrade += hpUpgrade;
-            AtkUpgrade += atkUpgrade;
-            DefUpgrade += defUpgrade;
-            CritChanceUpgrade += critChanceUpgrade;
-            CritMultiplierUpgrade += critMultiplierUpgrade;
             CodeAccelerationRunBonus += codeAccelerationBonus;
             AttributesUpdate();
             currentCell?.UpdateUI();
@@ -1136,16 +1046,11 @@ namespace Entities
             TrainingLevel = saveData.trainingLevel;
             // 육성 레벨이 복원되면 그에 맞는 레벨 해금 패시브를 다시 활성화한다.
             RefreshLevelPassives();
-            StrUpgrade = saveData.strUpgrade != 0 ? saveData.strUpgrade : saveData.atkUpgrade + saveData.defUpgrade;
+            StrUpgrade = saveData.strUpgrade;
             DexUpgrade = saveData.dexUpgrade;
-            ConUpgrade = saveData.conUpgrade != 0 ? saveData.conUpgrade : saveData.hpUpgrade;
+            ConUpgrade = saveData.conUpgrade;
             IntUpgrade = saveData.intUpgrade;
-            LukUpgrade = saveData.lukUpgrade != 0 ? saveData.lukUpgrade : saveData.critChanceUpgrade + saveData.critMultiplierUpgrade;
-            HpUpgrade = saveData.hpUpgrade;
-            AtkUpgrade = saveData.atkUpgrade;
-            DefUpgrade = saveData.defUpgrade;
-            CritChanceUpgrade = saveData.critChanceUpgrade;
-            CritMultiplierUpgrade = saveData.critMultiplierUpgrade;
+            LukUpgrade = saveData.lukUpgrade;
             CodeAccelerationRunBonus = saveData.codeAccelerationBonus;
             if (saveData.equippedItemIds != null && saveData.equippedItemIds.Count > 0)
             {
@@ -1547,18 +1452,17 @@ namespace Entities
         {
             return UltimateResourceType == BaseEnums.UltimateResourceType.Mana
                 ? GetDerivedMana()
-                : Mathf.Max(1, ManaBase);
+                : Mathf.Max(1, UltimateResourceMax);
         }
 
         public virtual int GetDerivedAtk()
         {
-            int legacyAttack = AtkBase + AtkIncrementLvl * GetStatGrowthLevel() + AtkIncrementUpgrade * AtkUpgrade;
-            return Mathf.Max(1, legacyAttack > 0 ? legacyAttack : 100);
+            return Mathf.Max(1, AtkBase + AtkIncrementLvl * GetStatGrowthLevel());
         }
 
         public virtual int GetDerivedDef()
         {
-            return Mathf.Max(0, DefBase + DefIncrementLvl * GetStatGrowthLevel() + DefIncrementUpgrade * DefUpgrade);
+            return Mathf.Max(0, DefBase + DefIncrementLvl * GetStatGrowthLevel());
         }
 
         public virtual float GetDerivedCritChance()

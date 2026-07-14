@@ -37,6 +37,13 @@ namespace Core
             }
             string json = PlayerPrefs.GetString(KeyJson, "{}");
             RunSaveData data = JsonUtility.FromJson<RunSaveData>(json);
+            if (data == null || data.version < RunSaveData.CurrentVersion)
+            {
+                // 구버전 저장본(레거시 스탯 필드 포함)은 필드 매핑이 달라 안전하게 복원할 수 없다.
+                Debug.LogWarning($"[SaveSystem] 저장 포맷 버전 불일치 (저장 {data?.version ?? 0} < 현재 {RunSaveData.CurrentVersion}) — 세이브 폐기");
+                DeleteSave();
+                return null;
+            }
             Debug.Log($"[SaveSystem] 런 불러오기 완료 (Stage {data.currentStage}, Round {data.currentRound})");
             return data;
         }
