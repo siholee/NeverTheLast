@@ -1,7 +1,6 @@
 using Effects.Base;
 using Effects.Negative;
 using Effects.Neutral;
-using Effects.Positive;
 using Entities;
 using UnityEngine;
 
@@ -33,10 +32,7 @@ namespace Effects.Base
                 2001 => new DisableNormalAttackEffect(effectId, coefficient),
                 2002 => new TauntEffect(effectId, coefficient),
                 2003 => new ThornEffect(effectId, coefficient),
-                
-                // Positive Effects (3000-3999)
-                3001 => new DamageReductionEffect(effectId, coefficient),
-                
+
                 _ => null
             };
             
@@ -66,7 +62,6 @@ namespace Effects.Base
                 2001 => "행동불가",
                 2002 => "도발",
                 2003 => "가시",
-                3001 => "받는 피해 감소",
                 _ => "알 수 없는 효과"
             };
         }
@@ -83,7 +78,6 @@ namespace Effects.Base
                 2001 => "일반 공격을 사용할 수 없습니다.",
                 2002 => "우선도가 증가하여 적의 공격을 끌어당깁니다.",
                 2003 => "접촉 피해를 입으면 공격자에게 화상을 부여합니다.",
-                3001 => "받는 피해가 감소합니다.",
                 _ => ""
             };
         }

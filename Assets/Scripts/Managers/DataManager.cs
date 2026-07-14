@@ -24,34 +24,6 @@ namespace Managers
             return unitDataList;
         }
         
-        // public CodeDataList FetchCodeDataList()
-        // {
-        //     TextAsset codeData = Resources.Load<TextAsset>("Data/20_codes");
-        //     var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
-        //     if (codeData == null)
-        //     {
-        //         Debug.LogError("Data/20_codes.yaml not found.");
-        //         return null;
-        //     }
-        //
-        //     CodeDataList codeDataList = deserializer.Deserialize<CodeDataList>(codeData.text);
-        //     return codeDataList;
-        // }
-        
-        public RoundDataList FetchRoundDataList()
-        {
-            TextAsset roundData = Resources.Load<TextAsset>("Data/70_rounds");
-            var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
-            if (roundData == null)
-            {
-                Debug.LogError("Data/70_rounds.yaml not found.");
-                return null;
-            }
-
-            RoundDataList roundDataList = deserializer.Deserialize<RoundDataList>(roundData.text);
-            return roundDataList;
-        }
-        
         public ResourceTokenDataList FetchTokenDataList()
         {
             TextAsset tokenData = Resources.Load<TextAsset>("Data/50_tokens");
@@ -136,26 +108,6 @@ namespace Managers
     }
 
     [System.Serializable]
-    public class RoundDataList
-    {
-        public List<RoundData> rounds;
-    }
-
-    [System.Serializable]
-    public class RoundData
-    {
-        public int roundNumber;
-        public List<CellData> cells;
-    }
-
-    [System.Serializable]
-    public class CellData
-    {
-        public int cellIndex;
-        public List<int> enemyIds;
-    }
-
-    [System.Serializable]
     public class UnitData
     {
         public int id;
@@ -227,28 +179,6 @@ namespace Managers
         public List<UnitData> units;
     }
 
-    [System.Serializable]
-    public class CodeData
-    {
-        public int id;           // 코드 ID
-        public string verbalName;      // 코드 이름
-        public string codeName;
-        public string description;
-    }
-
-    [System.Serializable]
-    public class CodeDataRepository
-    {
-        public List<CodeData> passive; // 코드 목록
-        public List<CodeData> normal;  // 코드 목록
-        public List<CodeData> ultimate; // 코드 목록
-    }
-
-    public class CodeDataList
-    {
-        public CodeDataRepository Codes;
-    }
-    
     [System.Serializable]
     public class ResourceTokenData
     {
@@ -436,7 +366,6 @@ namespace Managers
     [System.Serializable]
     public class RewardDataList
     {
-        public List<RewardDef> rewards;
         public List<RewardTierOddsData> rewardTierOdds;
     }
     

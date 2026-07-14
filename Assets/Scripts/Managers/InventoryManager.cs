@@ -14,7 +14,6 @@ namespace Managers
         public int Gold { get; private set; }
         [SerializeField] public List<int> ItemIdsInHand;
         [SerializeField] public IntIntDictionary TokensInHand;
-        [SerializeField] public List<Unit> UnitsInHand;
 
         public ResourcePanel resourcePanel;
 
@@ -31,9 +30,7 @@ namespace Managers
             }
 
             rerollTicketCount = 50;
-            
-            if (UnitsInHand == null) UnitsInHand = new List<Unit>();
-            UnitsInHand.Clear();
+
             if (ItemIdsInHand == null) ItemIdsInHand = new List<int>();
             ItemIdsInHand.Clear();
             
@@ -131,44 +128,6 @@ namespace Managers
             {
                 resourcePanel.UpdatePanel(TokensInHand, rerollTicketCount, Gold);
             }
-        }
-
-        public void AddUnit(Unit unit)
-        {
-            if (unit != null)
-            {
-                UnitsInHand.Add(unit);
-            }
-        }
-
-        public bool RemoveUnit(Unit unit)
-        {
-            return UnitsInHand.Remove(unit);
-        }
-
-        public Unit RemoveUnitById(int unitId)
-        {
-            var unit = UnitsInHand.FirstOrDefault(u => u.ID == unitId);
-            if (unit != null)
-            {
-                UnitsInHand.Remove(unit);
-            }
-            return unit;
-        }
-
-        public List<Unit> GetUnitsById(int unitId)
-        {
-            return UnitsInHand.Where(u => u.ID == unitId).ToList();
-        }
-
-        public int GetUnitCountById(int unitId)
-        {
-            return UnitsInHand.Count(u => u.ID == unitId);
-        }
-
-        public bool HasUnit(int unitId)
-        {
-            return UnitsInHand.Any(u => u.ID == unitId);
         }
     }
 }

@@ -32,11 +32,6 @@ namespace Managers
             Round = 1;
         }
 
-        public void SpawnHeroesForTest()
-        {
-            // GameManager.Instance.gridManager.SpawnUnit(-1, 2, false, 1);
-        }
-
         /// <summary>
         /// 스테이지 시작 시 호출. 스테이지 테마를 랜덤으로 선택
         /// </summary>
@@ -435,18 +430,6 @@ namespace Managers
             
             // 적 전멸로 인한 라운드 종료를 GameManager에 알림
             GameManager.Instance.EndRoundByEnemyDefeat();
-        }
-
-        // 기존 메서드들 (호환성 유지)
-        public void NotifyCellAvailable(int cellIndex)
-        {
-            // 새 시스템에서는 대기열이 없으므로 빈 메서드
-        }
-
-        public int GetTotalQueuedEnemies()
-        {
-            // 새 시스템에서는 대기열이 없으므로 0 반환
-            return 0;
         }
     }
 }

@@ -143,17 +143,11 @@ fixedBossStages:
 
 전투 종료 후 3개의 보상 선택지를 획득한다.
 
-보상 데이터는 `Assets/Resources/Data/90_rewards.yaml`에서 관리한다.
+보상 풀은 `Assets/Resources/Data/40_items.yaml`의 아이템 목록에서 생성된다
+(`eventOnly` 아이템 제외, 아이템 `rarity`가 보상 티어로 사용됨).
+`90_rewards.yaml`에는 라운드별 티어 확률(`rewardTierOdds`)만 남아 있다.
 
 ```yaml
-rewards:
-  - id: nordic_fury
-    displayName: 노르드의 격노
-    description: 노르드 테마 전용 보상. 선택 유닛 STR 강화 +2
-    tier: 3
-    themeIds: [1]
-    atkBonus: 2
-
 rewardTierOdds:
   - round: 1
     tierWeights: [100, 0, 0, 0, 0]
@@ -164,10 +158,11 @@ rewardTierOdds:
 - `rewardTierOdds`는 라운드별 1~5티어 보상 가중치를 의미한다.
 - 육성 모드는 현재 라운드에 맞는 확률을 사용한다.
 - 무한 모드는 10라운드 이후에도 10라운드 확률을 유지한다.
-- 테마 전용 보상은 `themeIds`가 현재 테마 ID와 맞을 때만 등장한다.
 
-현재 보상 필드:
+`RewardDef`(런타임 DTO, `RewardManager.cs` 정의)가 지원하는 효과 필드
+(현재는 아이템 보상 위주로 사용되지만, 이벤트 보상 등에서 활용 가능):
 
+- `itemId`: 아이템 지급
 - `healAmount`: 전체 아군 고정 회복
 - `fullHealParty`: 전체 아군 완전 회복
 - `atkBonus`: 선택 유닛 STR 강화
@@ -452,8 +447,7 @@ CON은 최대 체력과 치유 보너스에 더해 보호막 보너스에도 연
 
 관련 파일:
 
-- `Assets/Scripts/Entities/Unit.cs`
-- `Assets/Scripts/StatusEffects/Effects/ShieldEffect.cs`
+- `Assets/Scripts/Entities/Unit.cs` (`AddShield`/`SetShield`, `ShieldCurr`/`ShieldMax`)
 
 ## 신규 유닛 추가 절차
 
@@ -608,32 +602,12 @@ stageThemes:
     description: 신규 테마 적들이 등장합니다.
     midBossId: 2101
     bossId: 3101
-    uniqueRewardIds:
-      - new_theme_reward
 ```
 
 체크 포인트:
 
 - 테마의 `enemyThemeId`와 같은 `themeId`를 가진 normal 적이 `60_enemies.yaml`에 있어야 한다.
 - `midBossId`와 `bossId`는 `60_enemies.yaml`에 존재해야 한다.
-- `uniqueRewardIds`를 사용한다면 같은 ID의 보상이 `90_rewards.yaml`에 있어야 한다.
-
-### 2. 테마 전용 보상 추가
-
-파일:
-
-- `Assets/Resources/Data/90_rewards.yaml`
-
-예시:
-
-```yaml
-  - id: new_theme_reward
-    displayName: 신규 테마 보상
-    description: 신규 테마 전용 보상
-    tier: 3
-    themeIds: [2]
-    atkBonus: 2
-```
 
 ## 신규 코드(스킬) 추가 절차
 
@@ -802,30 +776,17 @@ target.AddStatus(status);
 
 ## 신규 보상 추가 절차
 
-파일:
+전투 보상 풀은 `40_items.yaml`의 아이템에서 자동 생성된다
+(`RewardManager.GenerateRewards`, `eventOnly` 제외, `rarity`=티어).
 
-- `Assets/Resources/Data/90_rewards.yaml`
-
-예시:
-
-```yaml
-  - id: str_training
-    displayName: STR 훈련
-    description: 선택 유닛 STR 강화 +1
-    tier: 1
-    atkBonus: 1
-```
-
-체크 포인트:
-
-- `id`는 고유해야 한다.
-- `tier`는 1~5를 사용한다.
-- 테마 전용이면 `themeIds`를 지정한다.
-- 새 효과 필드가 필요하면 `RewardDef`와 `RewardManager.ApplyReward()`를 함께 확장한다.
+- 새 전투 보상을 추가하려면 `40_items.yaml`에 아이템을 추가한다.
+- 라운드별 티어 확률을 조정하려면 `90_rewards.yaml`의 `rewardTierOdds`를 수정한다.
+- 아이템이 아닌 효과(회복, 스탯 강화 등)가 필요하면 `RewardDef`와 `RewardManager.ApplyReward()`를 함께 확장한다.
 
 관련 파일:
 
 - `Assets/Scripts/Managers/RewardManager.cs`
+- `Assets/Resources/Data/40_items.yaml`
 - `Assets/Resources/Data/90_rewards.yaml`
 
 ## 데이터 로딩 파일 목록
@@ -839,7 +800,7 @@ target.AddStatus(status);
 - `60_enemies.yaml`: 적 데이터
 - `70_rounds.yaml`: 라운드 패턴
 - `80_stages.yaml`: 테마/고정 보스
-- `90_rewards.yaml`: 보상/등급 확률
+- `90_rewards.yaml`: 보상 등급 확률(`rewardTierOdds`)
 
 로딩 담당:
 
@@ -855,12 +816,11 @@ target.AddStatus(status);
 4. 테마 `enemyThemeId`와 적 `themeId`가 매칭되는가
 5. 라운드 패턴의 `archetypes`와 적 `archetype`이 매칭되는가
 6. 보스/중간 보스 ID가 `60_enemies.yaml`에 존재하는가
-7. 테마 전용 보상 ID가 `90_rewards.yaml`에 존재하는가
-8. 궁극기 자원 타입이 `Mana` 또는 `Stack`으로 지정되었는가
-9. 일반 코드와 궁극기 코드에 INT 실패 판정을 직접 넣지 않았는가
-10. 패시브 코드에 영구 효과를 등록했다면 제거 조건도 설계했는가
-11. `dotnet build Assembly-CSharp.csproj`가 성공하는가
-12. `dotnet build Assembly-CSharp-Editor.csproj`가 성공하는가
+7. 궁극기 자원 타입이 `Mana` 또는 `Stack`으로 지정되었는가
+8. 일반 코드와 궁극기 코드에 INT 실패 판정을 직접 넣지 않았는가
+9. 패시브 코드에 영구 효과를 등록했다면 제거 조건도 설계했는가
+10. `dotnet build Assembly-CSharp.csproj`가 성공하는가
+11. `dotnet build Assembly-CSharp-Editor.csproj`가 성공하는가
 
 ## 현재 과도기/주의 사항
 

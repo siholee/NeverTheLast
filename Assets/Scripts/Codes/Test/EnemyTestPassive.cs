@@ -38,7 +38,7 @@ namespace Codes.Test
                 {
                     // UnitStatus로 공격력 버프 부여 (StatusId = 9999는 테스트용)
                     var buffStatus = new UnitStatus(9999, Caster, ally);
-                    buffStatus.AddEffect(2001, 10f); // AtkMultiplicative 10%
+                    buffStatus.AddEffect(2001, 10f); // TODO(Phase 4): 2001은 DisableNormalAttackEffect — 주석의 "공격력 10%"와 불일치 (구 효과 ID 체계 잔재). 의도한 효과 확인 필요.
                     
                     // Effect 객체 생성
                     foreach (var effectInstance in buffStatus.Effects)

@@ -461,11 +461,6 @@ namespace Managers
             }
         }
 
-        public void TestButtonClick()
-        {
-            Debug.Log("Test Button Clicked");
-        }
-
         public void OnGameSpeedButtonClick()
         {
             string currentText = gameSpeedText.text;

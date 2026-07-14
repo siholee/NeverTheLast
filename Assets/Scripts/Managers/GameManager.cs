@@ -631,8 +631,7 @@ namespace Managers
         private int GetRemainingEnemyCount()
         {
             int fieldEnemies = 0;
-            int queuedEnemies = 0;
-            
+
             // 필드에 있는 적 수 계산 (벤치에 있는 적은 제외)
             foreach (Unit enemy in GridManager.Instance.enemyList)
             {
@@ -646,14 +645,8 @@ namespace Managers
                     fieldEnemies++;
                 }
             }
-            
-            // 스폰 대기 중인 적 수 계산
-            if (_roundManager != null)
-            {
-                queuedEnemies = _roundManager.GetTotalQueuedEnemies();
-            }
-            
-            return fieldEnemies + queuedEnemies;
+
+            return fieldEnemies;
         }
 
         private bool AreAllAlliesDefeated()

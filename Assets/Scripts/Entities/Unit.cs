@@ -1606,32 +1606,6 @@ namespace Entities
             return 1f;
         }
 
-        // 기존 파생 스탯 접근자는 하위 호환을 위해 유지한다.
-        public virtual int GetBaseHp()
-        {
-            return GetDerivedHp();
-        }
-
-        public virtual int GetBaseAtk()
-        {
-            return GetDerivedAtk();
-        }
-
-        public virtual int GetBaseDef()
-        {
-            return GetDerivedDef();
-        }
-
-        public virtual float GetBaseCritChance()
-        {
-            return GetDerivedCritChance();
-        }
-
-        public virtual float GetBaseCritDamage()
-        {
-            return GetDerivedCritDamage();
-        }
-
         // 유닛 활성화 상태 관리
         public void ActivateUnit()
         {
