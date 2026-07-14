@@ -5,7 +5,6 @@ using Codes.Base;
 using Entities;
 using Entities.Status;
 using Effects.Base;
-using Helpers;
 using UnityEngine;
 
 namespace Codes.Normal
@@ -36,10 +35,10 @@ namespace Codes.Normal
         {
             List<int> tags = new List<int>
             {
-                Helpers.DamageTag.SingleTarget,
-                Helpers.DamageTag.NormalAttack,
-                Helpers.DamageTag.NonContactAttack,
-                Helpers.DamageTag.Physical,
+                BaseClasses.DamageTag.SingleTarget,
+                BaseClasses.DamageTag.NormalAttack,
+                BaseClasses.DamageTag.NonContactAttack,
+                BaseClasses.DamageTag.Physical,
             };
             return tags;
         }

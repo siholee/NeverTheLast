@@ -6,7 +6,6 @@ using Codes.Base;
 using Entities;
 using Entities.Status;
 using Effects.Base;
-using Helpers;
 using Managers;
 using UnityEngine;
 
@@ -76,14 +75,14 @@ namespace Codes.Ultimate
             int backDamage = (int)(Caster.AtkCurr * 1.5f * critMultiplier); // 후열은 150%
 
             // 주 타겟에게 공격
-            List<int> primaryTags = new List<int> { Helpers.DamageTag.SingleTarget, Helpers.DamageTag.UltAttack, Helpers.DamageTag.NonContactAttack };
+            List<int> primaryTags = new List<int> { BaseClasses.DamageTag.SingleTarget, BaseClasses.DamageTag.UltAttack, BaseClasses.DamageTag.NonContactAttack };
             DamageContext primaryContext = new(Caster, primaryDamage, BaseEnums.CodeType.Ultimate, primaryTags, isCrit);
             Caster.StartCoroutine(FirePrimaryProjectile(primaryTarget, 0.5f, primaryContext));
 
             // 후열 범위 공격 (0.8초 후)
             if (backTargets.Count > 0)
             {
-                List<int> backTags = new List<int> { Helpers.DamageTag.MultiTarget, Helpers.DamageTag.UltAttack, Helpers.DamageTag.NonContactAttack };
+                List<int> backTags = new List<int> { BaseClasses.DamageTag.MultiTarget, BaseClasses.DamageTag.UltAttack, BaseClasses.DamageTag.NonContactAttack };
                 DamageContext backContext = new(Caster, backDamage, BaseEnums.CodeType.Ultimate, backTags, isCrit);
                 Caster.StartCoroutine(FireBackAreaAttack(primaryTarget, backTargets, backContext));
             }

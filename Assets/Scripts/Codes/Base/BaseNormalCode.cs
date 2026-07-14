@@ -5,7 +5,6 @@ using BaseClasses;
 using CGT.Pooling;
 using Codes.Base;
 using Entities;
-using Helpers;
 using Managers;
 using UnityEngine;
 
@@ -26,7 +25,7 @@ namespace Codes.Base
             Cooldown = 2f;
             CastingDelay = 0.5f;
             ManaAmount = 10;
-            CodeTags = new List<int> { Helpers.DamageTag.Physical };
+            CodeTags = new List<int> { BaseClasses.DamageTag.Physical };
             _prefab = GameManager.Instance.sfxManager.ProjectilePrefabs["FireBlast"];
         }
 
@@ -73,7 +72,7 @@ namespace Codes.Base
             int damage = CalculateDamage(critMultiplier);
             
             // 디버그 로그
-            string contactType = damageTags.Contains(Helpers.DamageTag.ContactAttack) ? "접촉" : "비접촉";
+            string contactType = damageTags.Contains(BaseClasses.DamageTag.ContactAttack) ? "접촉" : "비접촉";
             Debug.Log($"{Caster.UnitName}이 {TargetUnits[0].UnitName}에게 {contactType} 일반공격을 시전했습니다.");
             
             DamageContext context = new(Caster, damage, BaseEnums.CodeType.Normal, damageTags, isCrit);
@@ -181,7 +180,7 @@ namespace Codes.Base
         /// </summary>
         protected virtual List<int> GetDamageTags()
         {
-            return new List<int> { Helpers.DamageTag.SingleTarget, Helpers.DamageTag.NormalAttack, Helpers.DamageTag.Physical, Helpers.DamageTag.NonContactAttack };
+            return new List<int> { BaseClasses.DamageTag.SingleTarget, BaseClasses.DamageTag.NormalAttack, BaseClasses.DamageTag.Physical, BaseClasses.DamageTag.NonContactAttack };
         }
     }
 }

@@ -68,13 +68,6 @@ namespace BaseClasses
       Infinite,
     }
 
-    public enum DamageTag
-    {
-      FlatDamage, // 피해량 계산 후 플랫 수치 추가
-      DefensePenetration, // 방어력 일정량 무시
-      SplitDamage, // 총 피해를 타겟 전체에게 균등 분배
-    }
-
     public enum PrimaryStat
     {
       STR,

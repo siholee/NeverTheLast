@@ -1,4 +1,4 @@
-namespace Helpers
+namespace BaseClasses
 {
   public class DamageTag
   {

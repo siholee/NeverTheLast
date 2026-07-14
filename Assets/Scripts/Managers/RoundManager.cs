@@ -15,10 +15,22 @@ namespace Managers
         public int CurrentThemeId => _currentStageTheme?.id ?? 0;
         public string CurrentThemeName => _currentStageTheme?.name ?? "";
         public bool IsCurrentBossStage => IsBossStage(Stage);
-        public bool IsCurrentEventStage { get; private set; }
         public bool IsRoundInProgress { get; private set; }
-        public StageEventData CurrentEventData => _stageThemeDataList?.events?
+        private StageEventData CurrentEventData => _stageThemeDataList?.events?
             .FirstOrDefault(data => data.themeId == CurrentThemeId && data.stageInRound == StageInRound);
+
+        /// <summary>
+        /// 현재 스테이지가 테마 고정 슬롯(StageInRound == 5) 사건 스테이지라면 true를 반환한다.
+        /// stageEvent는 테마에 정의된 사건이 없으면 null일 수 있다(호출부에서 대체 사건 사용).
+        /// 고정 보스 스테이지에서는 사건이 발생하지 않으며, 사건 전투 중에는 재진입하지 않는다.
+        /// </summary>
+        public bool TryGetScheduledEvent(out StageEventData stageEvent)
+        {
+            stageEvent = null;
+            if (IsRoundInProgress || !IsEventStage()) return false;
+            stageEvent = CurrentEventData;
+            return true;
+        }
 
         private StageThemeDataList _stageThemeDataList;
         private StageThemeData _currentStageTheme;
@@ -51,8 +63,7 @@ namespace Managers
         {
             Stage = Mathf.Max(1, roundNumber);
             Round = GetRewardRound(Stage);
-            IsCurrentEventStage = false;
-            
+
             EnsureDataLoaded();
             EnsureThemeForCurrentRound();
 
@@ -64,7 +75,6 @@ namespace Managers
 
             if (IsEventStage())
             {
-                IsCurrentEventStage = true;
                 IsRoundInProgress = false;
                 Debug.Log($"Battle Stage {Stage}, Reward Round {Round} is event stage for theme {CurrentThemeName}");
                 return;
@@ -189,7 +199,6 @@ namespace Managers
         {
             if (enemyId <= 0) return false;
             EnsureDataLoaded();
-            IsCurrentEventStage = false;
             IsRoundInProgress = true;
             PlaceEnemies(new List<int> { enemyId });
             return true;

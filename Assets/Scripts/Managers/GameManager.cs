@@ -163,9 +163,9 @@ namespace Managers
 
         public void StartRound()
         {
-            if (_roundManager != null && _roundManager.IsCurrentEventStage)
+            if (_roundManager != null && _roundManager.TryGetScheduledEvent(out StageEventData scheduledEvent))
             {
-                EnterEventStage();
+                EnterStageSlotEvent(scheduledEvent);
                 return;
             }
 
@@ -332,9 +332,9 @@ namespace Managers
 
         public void EnterNextStageAfterLoad()
         {
-            if (_roundManager != null && _roundManager.IsCurrentEventStage)
+            if (_roundManager != null && _roundManager.TryGetScheduledEvent(out StageEventData scheduledEvent))
             {
-                EnterEventStage();
+                EnterStageSlotEvent(scheduledEvent);
             }
             else
             {
@@ -343,13 +343,12 @@ namespace Managers
         }
 
         /// <summary>
-        /// 테마 고정 슬롯(StageInRound == 5) 사건 진입점. 스테이지 자체가 사건으로 대체되며,
+        /// 테마 고정 슬롯(StageInRound == 5) 사건 진입. 스테이지 자체가 사건으로 대체되며,
         /// 사건 종료 후에는 다음 스테이지로 진행한다.
         /// </summary>
-        public void EnterEventStage()
+        private void EnterStageSlotEvent(StageEventData stageEvent)
         {
-            StageEventData stageEvent = _roundManager?.CurrentEventData ?? BuildFallbackEvent();
-            EnterEvent(stageEvent, () => runManager?.AdvanceAfterEvent());
+            EnterEvent(stageEvent ?? BuildFallbackEvent(), () => runManager?.AdvanceAfterReward());
         }
 
         /// <summary>
@@ -487,7 +486,7 @@ namespace Managers
             }
             else
             {
-                runManager?.AdvanceAfterEvent();
+                runManager?.AdvanceAfterReward();
             }
         }
 

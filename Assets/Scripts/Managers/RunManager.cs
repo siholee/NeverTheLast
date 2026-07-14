@@ -172,11 +172,6 @@ namespace Managers
             GameManager.LoadMainMenuScene();
         }
 
-        public void AdvanceAfterEvent()
-        {
-            AdvanceAfterReward();
-        }
-
         private static TrainedCharacterRecord BuildTrainedCharacterRecord(Unit mainUnit)
         {
             long createdAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();

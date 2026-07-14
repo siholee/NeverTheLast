@@ -1090,11 +1090,11 @@ namespace Entities
             if (code.ActivationChance < 0f) return true;
 
             float statBonus = 0f;
-            if (code.CodeTags.Contains(Helpers.DamageTag.Physical))
+            if (code.CodeTags.Contains(BaseClasses.DamageTag.Physical))
             {
                 statBonus += GetBaseDex() * 0.01f;
             }
-            if (code.CodeTags.Contains(Helpers.DamageTag.Special))
+            if (code.CodeTags.Contains(BaseClasses.DamageTag.Special))
             {
                 statBonus += GetBaseInt() * 0.01f;
             }
@@ -1296,7 +1296,7 @@ namespace Entities
             int shieldBeforeHit = self.ShieldCurr;
             
             // 방어막 처리
-            bool hasShieldPenetration = dmgCtx.DamageTags.Contains(Helpers.DamageTag.ShieldPenetration);
+            bool hasShieldPenetration = dmgCtx.DamageTags.Contains(BaseClasses.DamageTag.ShieldPenetration);
             bool isDamageOverTime = dmgCtx.CodeType == BaseEnums.CodeType.Effect; // 지속피해 (맹독, 화상 등)
             
             if (self.ShieldCurr > 0 && !hasShieldPenetration && !isDamageOverTime)
