@@ -44,18 +44,16 @@ namespace Entities
 
         public Cell currentCell; // 위치중인 셀
 
-        // 유닛 강화 횟수
-        [SerializeField] private int strUpgrade;
-        [SerializeField] private int dexUpgrade;
-        [SerializeField] private int conUpgrade;
-        [SerializeField] private int intUpgrade;
-        [SerializeField] private int lukUpgrade;
+        // 유닛 스탯 모델 (5스탯/전투 스탯/강화 — 계산은 UnitStats 담당)
+        [SerializeField] private UnitStats stats = new();
+        public UnitStats Stats => stats;
+
         [SerializeField] private float codeAccelerationRunBonus;
-        public int StrUpgrade { get => strUpgrade; protected set => strUpgrade = value; }
-        public int DexUpgrade { get => dexUpgrade; protected set => dexUpgrade = value; }
-        public int ConUpgrade { get => conUpgrade; protected set => conUpgrade = value; }
-        public int IntUpgrade { get => intUpgrade; protected set => intUpgrade = value; }
-        public int LukUpgrade { get => lukUpgrade; protected set => lukUpgrade = value; }
+        public int StrUpgrade { get => stats.StrUpgrade; protected set => stats.StrUpgrade = value; }
+        public int DexUpgrade { get => stats.DexUpgrade; protected set => stats.DexUpgrade = value; }
+        public int ConUpgrade { get => stats.ConUpgrade; protected set => stats.ConUpgrade = value; }
+        public int IntUpgrade { get => stats.IntUpgrade; protected set => stats.IntUpgrade = value; }
+        public int LukUpgrade { get => stats.LukUpgrade; protected set => stats.LukUpgrade = value; }
         public float CodeAccelerationRunBonus { get => codeAccelerationRunBonus; protected set => codeAccelerationRunBonus = value; }
 
         // 유닛 현재 상태
@@ -106,57 +104,34 @@ namespace Entities
         [SerializeField] private int priority = 0;
         public int Priority { get => priority; set => priority = Mathf.Clamp(value, -3, 3); }
 
-        // 유닛 기본 스탯 수치
-        [SerializeField] private int strBase;
-        [SerializeField] private int strIncrementLvl;
-        [SerializeField] private int strIncrementUpgrade;
-        [SerializeField] private int dexBase;
-        [SerializeField] private int dexIncrementLvl;
-        [SerializeField] private int dexIncrementUpgrade;
-        [SerializeField] private int conBase;
-        [SerializeField] private int conIncrementLvl;
-        [SerializeField] private int conIncrementUpgrade;
-        [SerializeField] private int intBase;
-        [SerializeField] private int intIncrementLvl;
-        [SerializeField] private int intIncrementUpgrade;
-        [SerializeField] private int lukBase;
-        [SerializeField] private int lukIncrementLvl;
-        [SerializeField] private int lukIncrementUpgrade;
-
-        // 파생/전투 스탯 수치.
-        // HP/치명타/궁극기 자원은 5대 기본 스탯에서 파생되고,
-        // 공격력/방어력은 YAML의 atkBase/defBase가 명시적 전투 스탯으로 남는다.
+        // 파생/자원 최대치 (스탯 원본은 UnitStats가 소유)
         [SerializeField] private int hpMax;
         [SerializeField] private int ultimateResourceMax;
         [SerializeField] private int manaMax;
-        [SerializeField] private int atkBase;
-        [SerializeField] private int atkIncrementLvl;
-        [SerializeField] private int defBase;
-        [SerializeField] private int defIncrementLvl;
 
-        // 실제 수치 관리용
-        public int StrBase { get => strBase; protected set => strBase = value; }
-        public int StrIncrementLvl { get => strIncrementLvl; protected set => strIncrementLvl = value; }
-        public int StrIncrementUpgrade { get => strIncrementUpgrade; protected set => strIncrementUpgrade = value; }
-        public int DexBase { get => dexBase; protected set => dexBase = value; }
-        public int DexIncrementLvl { get => dexIncrementLvl; protected set => dexIncrementLvl = value; }
-        public int DexIncrementUpgrade { get => dexIncrementUpgrade; protected set => dexIncrementUpgrade = value; }
-        public int ConBase { get => conBase; protected set => conBase = value; }
-        public int ConIncrementLvl { get => conIncrementLvl; protected set => conIncrementLvl = value; }
-        public int ConIncrementUpgrade { get => conIncrementUpgrade; protected set => conIncrementUpgrade = value; }
-        public int IntBase { get => intBase; protected set => intBase = value; }
-        public int IntIncrementLvl { get => intIncrementLvl; protected set => intIncrementLvl = value; }
-        public int IntIncrementUpgrade { get => intIncrementUpgrade; protected set => intIncrementUpgrade = value; }
-        public int LukBase { get => lukBase; protected set => lukBase = value; }
-        public int LukIncrementLvl { get => lukIncrementLvl; protected set => lukIncrementLvl = value; }
-        public int LukIncrementUpgrade { get => lukIncrementUpgrade; protected set => lukIncrementUpgrade = value; }
+        // 스탯 접근 위임 (외부 호출 호환용)
+        public int StrBase { get => stats.StrBase; protected set => stats.StrBase = value; }
+        public int StrIncrementLvl { get => stats.StrIncrementLvl; protected set => stats.StrIncrementLvl = value; }
+        public int StrIncrementUpgrade { get => stats.StrIncrementUpgrade; protected set => stats.StrIncrementUpgrade = value; }
+        public int DexBase { get => stats.DexBase; protected set => stats.DexBase = value; }
+        public int DexIncrementLvl { get => stats.DexIncrementLvl; protected set => stats.DexIncrementLvl = value; }
+        public int DexIncrementUpgrade { get => stats.DexIncrementUpgrade; protected set => stats.DexIncrementUpgrade = value; }
+        public int ConBase { get => stats.ConBase; protected set => stats.ConBase = value; }
+        public int ConIncrementLvl { get => stats.ConIncrementLvl; protected set => stats.ConIncrementLvl = value; }
+        public int ConIncrementUpgrade { get => stats.ConIncrementUpgrade; protected set => stats.ConIncrementUpgrade = value; }
+        public int IntBase { get => stats.IntBase; protected set => stats.IntBase = value; }
+        public int IntIncrementLvl { get => stats.IntIncrementLvl; protected set => stats.IntIncrementLvl = value; }
+        public int IntIncrementUpgrade { get => stats.IntIncrementUpgrade; protected set => stats.IntIncrementUpgrade = value; }
+        public int LukBase { get => stats.LukBase; protected set => stats.LukBase = value; }
+        public int LukIncrementLvl { get => stats.LukIncrementLvl; protected set => stats.LukIncrementLvl = value; }
+        public int LukIncrementUpgrade { get => stats.LukIncrementUpgrade; protected set => stats.LukIncrementUpgrade = value; }
         public int HpMax { get => hpMax; protected set => hpMax = value; }
         public int UltimateResourceMax { get => ultimateResourceMax; protected set => ultimateResourceMax = value; }
         public int ManaMax { get => manaMax; protected set => manaMax = value; }
-        public int AtkBase { get => atkBase; protected set => atkBase = value; }
-        public int AtkIncrementLvl { get => atkIncrementLvl; protected set => atkIncrementLvl = value; }
-        public int DefBase { get => defBase; protected set => defBase = value; }
-        public int DefIncrementLvl { get => defIncrementLvl; protected set => defIncrementLvl = value; }
+        public int AtkBase { get => stats.AtkBase; protected set => stats.AtkBase = value; }
+        public int AtkIncrementLvl { get => stats.AtkIncrementLvl; protected set => stats.AtkIncrementLvl = value; }
+        public int DefBase { get => stats.DefBase; protected set => stats.DefBase = value; }
+        public int DefIncrementLvl { get => stats.DefIncrementLvl; protected set => stats.DefIncrementLvl = value; }
 
         // 유닛 상태(버프/디버프) 컨테이너
         protected readonly UnitStatusController StatusController = new();
@@ -199,6 +174,7 @@ namespace Entities
 
         private void InitializeStatusController()
         {
+            stats.Initialize(this);
             StatusController.Initialize(
                 this,
                 () => { AttributesUpdate(); UpdateInfoTabIfShowing(); },
@@ -455,7 +431,7 @@ namespace Entities
             }
         }
 
-        private int GetEquipmentStatBonus(BaseEnums.PrimaryStat stat)
+        internal int GetEquipmentStatBonus(BaseEnums.PrimaryStat stat)
         {
             if (EquipmentLoadout == null) return 0;
 
@@ -621,15 +597,7 @@ namespace Entities
         {
             if (amount == 0) return;
 
-            switch (stat)
-            {
-                case BaseEnums.PrimaryStat.STR: StrUpgrade += amount; break;
-                case BaseEnums.PrimaryStat.DEX: DexUpgrade += amount; break;
-                case BaseEnums.PrimaryStat.CON: ConUpgrade += amount; break;
-                case BaseEnums.PrimaryStat.INT: IntUpgrade += amount; break;
-                case BaseEnums.PrimaryStat.LUK: LukUpgrade += amount; break;
-            }
-
+            stats.AddUpgrade(stat, amount);
             AttributesUpdate();
             RefreshLevelPassives();
             currentCell?.UpdateUI();
@@ -658,32 +626,14 @@ namespace Entities
             int dataAtkBase, int dataAtkIncrementLvl,
             int dataDefBase, int dataDefIncrementLvl)
         {
-            bool hasPrimaryStats = dataStrBase != 0 || dataDexBase != 0 || dataConBase != 0 || dataIntBase != 0 || dataLukBase != 0;
-            if (!hasPrimaryStats)
-            {
-                Debug.LogError($"[Unit] {UnitName}(ID {ID}): 5대 기본 스탯이 모두 0입니다. YAML 데이터를 확인하세요.");
-            }
-
-            StrBase = dataStrBase;
-            StrIncrementLvl = dataStrIncrementLvl;
-            StrIncrementUpgrade = dataStrIncrementUpgrade;
-            DexBase = dataDexBase;
-            DexIncrementLvl = dataDexIncrementLvl;
-            DexIncrementUpgrade = dataDexIncrementUpgrade;
-            ConBase = dataConBase;
-            ConIncrementLvl = dataConIncrementLvl;
-            ConIncrementUpgrade = dataConIncrementUpgrade;
-            IntBase = dataIntBase;
-            IntIncrementLvl = dataIntIncrementLvl;
-            IntIncrementUpgrade = dataIntIncrementUpgrade;
-            LukBase = dataLukBase;
-            LukIncrementLvl = dataLukIncrementLvl;
-            LukIncrementUpgrade = dataLukIncrementUpgrade;
-
-            AtkBase = dataAtkBase;
-            AtkIncrementLvl = dataAtkIncrementLvl;
-            DefBase = dataDefBase;
-            DefIncrementLvl = dataDefIncrementLvl;
+            stats.Load(
+                dataStrBase, dataStrIncrementLvl, dataStrIncrementUpgrade,
+                dataDexBase, dataDexIncrementLvl, dataDexIncrementUpgrade,
+                dataConBase, dataConIncrementLvl, dataConIncrementUpgrade,
+                dataIntBase, dataIntIncrementLvl, dataIntIncrementUpgrade,
+                dataLukBase, dataLukIncrementLvl, dataLukIncrementUpgrade,
+                dataAtkBase, dataAtkIncrementLvl,
+                dataDefBase, dataDefIncrementLvl);
         }
 
         /// <summary>
@@ -1317,51 +1267,18 @@ namespace Entities
             StatusController.Tick(context.FloatParam);
         }
 
-        // 베이스 스탯 수치 반환
-        public int GetBasePrimaryStat(BaseEnums.PrimaryStat stat)
-        {
-            return stat switch
-            {
-                BaseEnums.PrimaryStat.STR => GetBaseStr(),
-                BaseEnums.PrimaryStat.DEX => GetBaseDex(),
-                BaseEnums.PrimaryStat.CON => GetBaseCon(),
-                BaseEnums.PrimaryStat.INT => GetBaseInt(),
-                BaseEnums.PrimaryStat.LUK => GetBaseLuk(),
-                _ => 0,
-            };
-        }
+        // ===== 스탯 계산 (UnitStats 위임) =====
 
-        public virtual int GetBaseStr()
-        {
-            int raw = StrBase + StrIncrementLvl * GetStatGrowthLevel() + StrIncrementUpgrade * StrUpgrade + GetEquipmentStatBonus(BaseEnums.PrimaryStat.STR) + GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.STR);
-            return ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.STR, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.STR, raw));
-        }
+        public int GetBasePrimaryStat(BaseEnums.PrimaryStat stat) => stats.GetBasePrimaryStat(stat);
+        public int GetBaseStr() => stats.GetBaseStr();
+        public int GetBaseDex() => stats.GetBaseDex();
+        public int GetBaseCon() => stats.GetBaseCon();
+        public int GetBaseInt() => stats.GetBaseInt();
+        public int GetBaseLuk() => stats.GetBaseLuk();
+        public int GetGrowthStatValue(BaseEnums.PrimaryStat stat) => stats.GetGrowthStatValue(stat);
 
-        public virtual int GetBaseDex()
-        {
-            int raw = DexBase + DexIncrementLvl * GetStatGrowthLevel() + DexIncrementUpgrade * DexUpgrade + GetEquipmentStatBonus(BaseEnums.PrimaryStat.DEX) + GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.DEX);
-            return ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.DEX, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.DEX, raw));
-        }
-
-        public virtual int GetBaseCon()
-        {
-            int raw = ConBase + ConIncrementLvl * GetStatGrowthLevel() + ConIncrementUpgrade * ConUpgrade + GetEquipmentStatBonus(BaseEnums.PrimaryStat.CON) + GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.CON);
-            return ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.CON, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.CON, raw));
-        }
-
-        public virtual int GetBaseInt()
-        {
-            int raw = IntBase + IntIncrementLvl * GetStatGrowthLevel() + IntIncrementUpgrade * IntUpgrade + GetEquipmentStatBonus(BaseEnums.PrimaryStat.INT) + GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.INT);
-            return ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.INT, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.INT, raw));
-        }
-
-        public virtual int GetBaseLuk()
-        {
-            int raw = LukBase + LukIncrementLvl * GetStatGrowthLevel() + LukIncrementUpgrade * LukUpgrade + GetEquipmentStatBonus(BaseEnums.PrimaryStat.LUK) + GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.LUK);
-            return ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.LUK, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.LUK, raw));
-        }
-
-        private int GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat stat)
+        /// <summary>상태 효과의 5스탯 가산 보정 합계 (UnitStats에서 역참조)</summary>
+        internal int GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat stat)
         {
             int total = 0;
             foreach (var effect in ActiveEffectObjects())
@@ -1372,7 +1289,8 @@ namespace Entities
             return total;
         }
 
-        private int ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat stat, int value)
+        /// <summary>상태 효과의 5스탯 배율 보정 적용 (UnitStats에서 역참조)</summary>
+        internal int ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat stat, int value)
         {
             float multiplier = 1f;
             foreach (var effect in ActiveEffectObjects())
@@ -1382,118 +1300,27 @@ namespace Entities
             return Mathf.Max(0, Mathf.RoundToInt(value * multiplier));
         }
 
-        public int GetGrowthStatValue(BaseEnums.PrimaryStat stat)
-        {
-            int growthLevel = GetStatGrowthLevel();
-            return stat switch
-            {
-                BaseEnums.PrimaryStat.STR => StrIncrementLvl * growthLevel + StrIncrementUpgrade * StrUpgrade,
-                BaseEnums.PrimaryStat.DEX => DexIncrementLvl * growthLevel + DexIncrementUpgrade * DexUpgrade,
-                BaseEnums.PrimaryStat.CON => ConIncrementLvl * growthLevel + ConIncrementUpgrade * ConUpgrade,
-                BaseEnums.PrimaryStat.INT => IntIncrementLvl * growthLevel + IntIncrementUpgrade * IntUpgrade,
-                BaseEnums.PrimaryStat.LUK => LukIncrementLvl * growthLevel + LukIncrementUpgrade * LukUpgrade,
-                _ => 0,
-            };
-        }
+        public int GetDerivedHp() => stats.GetDerivedHp();
+        public int GetDerivedMana() => stats.GetDerivedMana();
 
-        private int GetStatGrowthLevel()
-        {
-            return IsEnemy ? Mathf.Max(0, Level) : Mathf.Max(0, Level - 1);
-        }
-
-        private int ApplyCharacterStatBonus(BaseEnums.PrimaryStat stat, int rawValue)
-        {
-            float multiplier = 1f;
-            if (IsCharacterStatTag(MainStat, stat))
-            {
-                multiplier += 0.2f;
-            }
-            if (IsCharacterStatTag(SubStat, stat))
-            {
-                multiplier += 0.1f;
-            }
-
-            return Mathf.Max(0, Mathf.RoundToInt(rawValue * multiplier));
-        }
-
-        private static bool IsCharacterStatTag(string statName, BaseEnums.PrimaryStat stat)
-        {
-            return !string.IsNullOrWhiteSpace(statName)
-                && Enum.TryParse(statName, true, out BaseEnums.PrimaryStat parsed)
-                && parsed == stat;
-        }
-
-        public virtual int GetDerivedHp()
-        {
-            return Mathf.Max(1, GetBaseCon() * 1000);
-        }
-
-        public virtual int GetDerivedMana()
-        {
-            return 100;
-        }
-
-        public virtual int GetUltimateResourceMax()
+        public int GetUltimateResourceMax()
         {
             return UltimateResourceType == BaseEnums.UltimateResourceType.Mana
-                ? GetDerivedMana()
+                ? stats.GetDerivedMana()
                 : Mathf.Max(1, UltimateResourceMax);
         }
 
-        public virtual int GetDerivedAtk()
-        {
-            return Mathf.Max(1, AtkBase + AtkIncrementLvl * GetStatGrowthLevel());
-        }
-
-        public virtual int GetDerivedDef()
-        {
-            return Mathf.Max(0, DefBase + DefIncrementLvl * GetStatGrowthLevel());
-        }
-
-        public virtual float GetDerivedCritChance()
-        {
-            return Mathf.Clamp01(GetBaseLuk() * 0.01f);
-        }
-
-        public virtual float GetDerivedCritDamage()
-        {
-            return 1.5f;
-        }
-
-        public virtual float GetDerivedCodeAcceleration()
-        {
-            return 1f;
-        }
-
-        public virtual float GetDerivedAttackSpeed()
-        {
-            return 1f + Mathf.Max(0, GetBaseDex()) * 0.01f;
-        }
-
-        public virtual float GetDerivedEvasionChance()
-        {
-            return 0f;
-        }
-
-        public virtual float GetDerivedHealingBonus()
-        {
-            return Mathf.Clamp(Mathf.Max(0, GetBaseCon() - 10) * 0.01f, 0f, 2f);
-        }
-
-        public virtual float GetDerivedShieldBonus()
-        {
-            return Mathf.Clamp(Mathf.Max(0, GetBaseCon() - 10) * 0.01f, 0f, 2f);
-        }
-
-        public virtual float GetDerivedManaEfficiency()
-        {
-            return 1f + Mathf.Max(0, GetBaseInt()) * 0.02f;
-        }
-
-        public virtual float GetDerivedCodeActivationChance()
-        {
-            return 1f;
-        }
+        public int GetDerivedAtk() => stats.GetDerivedAtk();
+        public int GetDerivedDef() => stats.GetDerivedDef();
+        public float GetDerivedCritChance() => stats.GetDerivedCritChance();
+        public float GetDerivedCritDamage() => stats.GetDerivedCritDamage();
+        public float GetDerivedCodeAcceleration() => stats.GetDerivedCodeAcceleration();
+        public float GetDerivedAttackSpeed() => stats.GetDerivedAttackSpeed();
+        public float GetDerivedEvasionChance() => stats.GetDerivedEvasionChance();
+        public float GetDerivedHealingBonus() => stats.GetDerivedHealingBonus();
+        public float GetDerivedShieldBonus() => stats.GetDerivedShieldBonus();
+        public float GetDerivedManaEfficiency() => stats.GetDerivedManaEfficiency();
+        public float GetDerivedCodeActivationChance() => stats.GetDerivedCodeActivationChance();
 
         // 유닛 활성화 상태 관리
         public void ActivateUnit()
