@@ -15,8 +15,9 @@ namespace Managers.UI
         public TMPro.TMP_Text token7Text;
         public TMPro.TMP_Text token8Text;
         public TMPro.TMP_Text rerollText;
+        public TMPro.TMP_Text goldText;
 
-        public void UpdatePanel(Dictionary<int, int> tokens, int rerollTickets)
+        public void UpdatePanel(Dictionary<int, int> tokens, int rerollTickets, int gold)
         {
             for (int i = 1; i <= 8; i++)
             {
@@ -31,6 +32,8 @@ namespace Managers.UI
                     textField.text = "0";
                 }
             }
+            if (rerollText != null) rerollText.text = rerollTickets.ToString();
+            if (goldText != null) goldText.text = gold.ToString();
         }
     }
 }

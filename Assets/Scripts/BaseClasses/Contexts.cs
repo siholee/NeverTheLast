@@ -27,6 +27,8 @@ namespace BaseClasses
     public BaseEnums.CodeType CodeType;
     public List<int> DamageTags;
     public readonly int Penetration;
+    public float DefenseStatMultiplier;
+    public bool IsCancelled;
 
     public DamageContext(Unit attacker, int damage, BaseEnums.CodeType codeType, List<int> damageTags, bool isCrit = false, int penetration = 0)
     {
@@ -36,6 +38,24 @@ namespace BaseClasses
       CodeType = codeType;
       DamageTags = damageTags;
       Penetration = penetration;
+      DefenseStatMultiplier = 1f;
+      IsCancelled = false;
+    }
+  }
+
+  public class DamageResolvedContext
+  {
+    public readonly Unit Attacker;
+    public readonly Unit Target;
+    public readonly DamageContext DamageContext;
+    public readonly int DamageDealt;
+
+    public DamageResolvedContext(Unit attacker, Unit target, DamageContext damageContext, int damageDealt)
+    {
+      Attacker = attacker;
+      Target = target;
+      DamageContext = damageContext;
+      DamageDealt = damageDealt;
     }
   }
 

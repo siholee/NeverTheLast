@@ -4,6 +4,7 @@ using System.Linq;
 using BaseClasses;
 using Codes.Base;
 using Codes.Normal;
+using Core;
 using Managers;
 using StatusEffects.Base;
 using UnityEngine;
@@ -19,11 +20,28 @@ namespace Entities
         [SerializeField] private int id;
         [SerializeField] private bool isEnemy;
         [SerializeField] private string unitName;
+        [SerializeField] private string element;
+        [SerializeField] private string mainStat;
+        [SerializeField] private string subStat;
+        [SerializeField] private List<int> equippedItemIds = new();
+        [SerializeField] private List<LearnedPassiveSaveData> learnedPassiveRecords = new();
         [SerializeField] private int level;
+        // 육성(트레이닝) 레벨. 육성 페이즈에서 메인 캐릭터가 훈련할 때마다 증가한다.
+        // 레벨 해금 패시브(#2/#3) 해금 판정에만 사용되며, 클래스 파생 Level과 분리되어 저장/복원된다.
+        [SerializeField] private int trainingLevel;
         public int ID { get => id; protected set => id = value; }
         public bool IsEnemy { get => isEnemy; protected set => isEnemy = value; }
         public string UnitName { get => unitName; protected set => unitName = value; }
+        public string Element { get => element; protected set => element = value; }
+        public string MainStat { get => mainStat; protected set => mainStat = value; }
+        public string SubStat { get => subStat; protected set => subStat = value; }
+        public IReadOnlyList<int> EquippedItemIds => equippedItemIds;
+        public IReadOnlyList<LearnedPassiveSaveData> LearnedPassiveRecords => learnedPassiveRecords;
         public int Level { get => level; protected set => level = value; }
+        // 육성 레벨. 육성 페이즈에서만 증가. 저장/복원 대상.
+        public int TrainingLevel { get => trainingLevel; protected set => trainingLevel = value; }
+        // 레벨 해금 패시브 판정에 쓰이는 유효 레벨 = 기본 Level + 육성 레벨.
+        public int PassiveUnlockLevel => Level + TrainingLevel;
 
         public Cell currentCell; // 위치중인 셀
 
@@ -59,9 +77,16 @@ namespace Entities
         [SerializeField] private float critChanceCurr;
         [SerializeField] private float critDamageCurr;
         [SerializeField] private float codeAcceleration;
+        [SerializeField] private float attackSpeedCurr;
         [SerializeField] private float evasionChanceCurr;
+        [SerializeField] private float healingBonusCurr;
+        [SerializeField] private float manaEfficiencyCurr;
+        [SerializeField] private float codeActivationChanceCurr;
         [SerializeField] private int shieldMax;   // 최대 방어막 (획득한 총 방어막)
         [SerializeField] private int shieldCurr;  // 현재 방어막 (라운드 끝까지 유지)
+        [SerializeField] private float shieldBonusCurr;
+        [SerializeField] private BaseEnums.UltimateResourceType ultimateResourceType = BaseEnums.UltimateResourceType.Mana;
+        [SerializeField] private string ultimateResourceName = "마나";
         public int HpCurr { get => hpCurr; protected set => hpCurr = value; }
         public int ManaCurr { get => manaCurr; protected set => manaCurr = value; }
         public int AtkCurr { get => atkCurr; protected set => atkCurr = value; }
@@ -69,9 +94,16 @@ namespace Entities
         public float CritChanceCurr { get => critChanceCurr; protected set => critChanceCurr = value; }
         public float CritMultiplierCurr { get => critDamageCurr; protected set => critDamageCurr = value; }
         public float CodeAcceleration { get => codeAcceleration; protected set => codeAcceleration = value; }
+        public float AttackSpeedCurr { get => attackSpeedCurr; protected set => attackSpeedCurr = value; }
         public float EvasionChanceCurr { get => evasionChanceCurr; protected set => evasionChanceCurr = value; }
+        public float HealingBonusCurr { get => healingBonusCurr; protected set => healingBonusCurr = value; }
+        public float ManaEfficiencyCurr { get => manaEfficiencyCurr; protected set => manaEfficiencyCurr = value; }
+        public float CodeActivationChanceCurr { get => codeActivationChanceCurr; protected set => codeActivationChanceCurr = value; }
         public int ShieldMax { get => shieldMax; protected set => shieldMax = value; }
         public int ShieldCurr { get => shieldCurr; protected set => shieldCurr = value; }
+        public float ShieldBonusCurr { get => shieldBonusCurr; protected set => shieldBonusCurr = value; }
+        public BaseEnums.UltimateResourceType UltimateResourceType { get => ultimateResourceType; protected set => ultimateResourceType = value; }
+        public string UltimateResourceName { get => ultimateResourceName; protected set => ultimateResourceName = value; }
 
         public bool isCasting; // 스킬 시전중
         public float castingTime;
@@ -122,7 +154,6 @@ namespace Entities
         [SerializeField] private float critMultiplierBase;
         [SerializeField] private float critMultiplierIncrementLvl;
         [SerializeField] private float critMultiplierIncrementUpgrade;
-        [SerializeField] private List<int> synergies;
 
         // 실제 수치 관리용
         public int StrBase { get => strBase; protected set => strBase = value; }
@@ -159,21 +190,35 @@ namespace Entities
         public float CritMultiplierIncrementLvl { get => critMultiplierIncrementLvl; protected set => critMultiplierIncrementLvl = value; }
         public float CritMultiplierIncrementUpgrade { get => critMultiplierIncrementUpgrade; protected set => critMultiplierIncrementUpgrade = value; }
 
-        public List<int> Synergies { get => synergies; protected set => synergies = value; }
-
         // 유닛 상태효과(버프/디버프) - 기존 시스템 (하위 호환용)
         protected Dictionary<string, StatusEffect> StatusEffects;
         
         // 새로운 상태 시스템 - List로 변경하여 중첩 허용
         protected List<Status.UnitStatus> Statuses;
-        protected Dictionary<int, SynergyEffect> SynergyEffects;
 
         // 유닛 코드(스킬) 정보
-        protected PassiveCode PassiveCode;
+        // 유닛 고유 패시브 목록: [0] = 초기 패시브(항상 활성), 이후 = 레벨/INT 용량에 따라 해금되는 패시브.
+        protected List<PassiveCode> PassiveCodes = new();
+        // 아직 해금되지 않은 레벨 패시브 정의. RefreshLevelPassives()에서 Level에 도달하면 PassiveCodes로 승격한다.
+        protected List<LevelPassiveData> PendingLevelPassives = new();
+        protected List<PassiveCode> ItemPassiveCodes = new();
         protected NormalCode NormalCode;
         protected UltimateCode UltimateCode;
         public float normalCooldown;
         public float ultimateCooldown;
+        protected EquipmentLoadout EquipmentLoadout;
+        private readonly HashSet<BaseEnums.UnitElement> _combatElements = new();
+        private readonly Dictionary<string, int> _combatResources = new();
+        private readonly Dictionary<string, int> _combatResourceMaximums = new();
+        private int _baseNormalCodeId;
+        private int _baseUltimateCodeId;
+        private int _baseNormalCodeStage = 1;
+        private int _baseUltimateCodeStage = 1;
+
+        public int CarryWeightMax => 5 + Mathf.Max(0, GetBaseStr());
+        public int CarryWeightCurrent => EquipmentLoadout?.GetTotalWeight() ?? 0;
+        public int MaxCodeCount => Mathf.Max(3, GetBaseInt());
+        public int LearnedCodeCount => 2 + PassiveCodes.Count;
 
         // 이벤트
         private Dictionary<BaseEnums.UnitEventType, Delegate> _eventDict;
@@ -183,12 +228,22 @@ namespace Entities
         void Awake()
         {
             _eventDict = new Dictionary<BaseEnums.UnitEventType, Delegate>();
-            SynergyEffects = new Dictionary<int, SynergyEffect>();
             Statuses = new List<Status.UnitStatus>();
+            EquipmentLoadout = new EquipmentLoadout();
         }
 
         public virtual void InitializeUnit(bool _isEnemy, int _id)
         {
+            _eventDict = new Dictionary<BaseEnums.UnitEventType, Delegate>();
+            StatusEffects = new Dictionary<string, StatusEffect>();
+            Statuses = new List<Status.UnitStatus>();
+            PassiveCodes = new List<PassiveCode>();
+            PendingLevelPassives = new List<LevelPassiveData>();
+            ItemPassiveCodes = new List<PassiveCode>();
+            learnedPassiveRecords = new List<LearnedPassiveSaveData>();
+            _combatElements.Clear();
+            _combatResources.Clear();
+            _combatResourceMaximums.Clear();
             ID = _id;
             IsEnemy = _isEnemy;
             // 유닛 데이터가 없을 경우 바로 종료
@@ -232,7 +287,10 @@ namespace Entities
                 LoadSprite(enemyData.portrait, _isEnemy);
                 Level = Mathf.Max(0, GameManager.Instance?.RoundManager?.EnemyLevel ?? 0);
                 UnitName = enemyData.name;
-                Synergies = new List<int> { enemyData.faction, enemyData.@class };  // 소속과 직업
+                Element = string.IsNullOrWhiteSpace(enemyData.element) ? "None" : enemyData.element;
+                ResetCombatElements();
+                MainStat = "";
+                SubStat = "";
                 LoadStatData(
                     enemyData.strBase, enemyData.strIncrementLvl, enemyData.strIncrementUpgrade,
                     enemyData.dexBase, enemyData.dexIncrementLvl, enemyData.dexIncrementUpgrade,
@@ -245,6 +303,7 @@ namespace Entities
                     enemyData.critChance, enemyData.critChanceIncrementLvl, enemyData.critChanceIncrementUpgrade,
                     enemyData.critMultiplier, enemyData.critMultiplierIncrementLvl, enemyData.critMultiplierIncrementUpgrade,
                     enemyData.manaBase);
+                ConfigureUltimateResource(enemyData.ultimateResourceType, enemyData.ultimateResourceName, enemyData.ultimateResourceMax);
                 CodeAcceleration = 1f;
 
                 StatusEffects = new Dictionary<string, StatusEffect>();
@@ -254,9 +313,12 @@ namespace Entities
                 controlDuration = 0f;
                 currentNormalTarget = null;
 
-                PassiveCode = CodeFactory.CreatePassiveCode(enemyData.codes["passive"], new PassiveCodeContext { Caster = this });
-                NormalCode = CodeFactory.CreateNormalCode(enemyData.codes["normal"], new NormalCodeContext { Caster = this });
-                UltimateCode = CodeFactory.CreateUltimateCode(enemyData.codes["ultimate"], new UltimateCodeContext { Caster = this });
+                LoadPassiveCodes(enemyData.codes["passive"], enemyData.levelPassives);
+                _baseNormalCodeId = enemyData.codes["normal"];
+                _baseUltimateCodeId = enemyData.codes["ultimate"];
+                NormalCode = CodeFactory.CreateNormalCode(_baseNormalCodeId, new NormalCodeContext { Caster = this });
+                UltimateCode = CodeFactory.CreateUltimateCode(_baseUltimateCodeId, new UltimateCodeContext { Caster = this });
+                ApplyCodeStages(enemyData.codeStages);
                 normalCooldown = NormalCode.Cooldown;
                 ultimateCooldown = UltimateCode.Cooldown;
             }
@@ -267,7 +329,10 @@ namespace Entities
                 LoadSprite(data.portrait, _isEnemy);
                 Level = 1;
                 UnitName = data.name;
-                Synergies = data.synergies;
+                Element = string.IsNullOrWhiteSpace(data.element) ? "None" : data.element;
+                ResetCombatElements();
+                MainStat = data.mainStat ?? "";
+                SubStat = data.subStat ?? "";
                 LoadStatData(
                     data.strBase, data.strIncrementLvl, data.strIncrementUpgrade,
                     data.dexBase, data.dexIncrementLvl, data.dexIncrementUpgrade,
@@ -280,6 +345,7 @@ namespace Entities
                     data.critChance, data.critChanceIncrementLvl, data.critChanceIncrementUpgrade,
                     data.critMultiplier, data.critMultiplierIncrementLvl, data.critMultiplierIncrementUpgrade,
                     data.manaBase);
+                ConfigureUltimateResource(data.ultimateResourceType, data.ultimateResourceName, data.ultimateResourceMax);
                 CodeAcceleration = 1f;
 
                 StatusEffects = new Dictionary<string, StatusEffect>();
@@ -289,15 +355,336 @@ namespace Entities
                 controlDuration = 0f;
                 currentNormalTarget = null; // 일반공격 타겟 초기화
 
-                PassiveCode = CodeFactory.CreatePassiveCode(data.codes["passive"], new PassiveCodeContext { Caster = this });
-                NormalCode = CodeFactory.CreateNormalCode(data.codes["normal"], new NormalCodeContext { Caster = this });
-                UltimateCode = CodeFactory.CreateUltimateCode(data.codes["ultimate"], new UltimateCodeContext { Caster = this });
+                LoadPassiveCodes(data.codes["passive"], data.levelPassives);
+                _baseNormalCodeId = data.codes["normal"];
+                _baseUltimateCodeId = data.codes["ultimate"];
+                NormalCode = CodeFactory.CreateNormalCode(_baseNormalCodeId, new NormalCodeContext { Caster = this });
+                UltimateCode = CodeFactory.CreateUltimateCode(_baseUltimateCodeId, new UltimateCodeContext { Caster = this });
+                ApplyCodeStages(data.codeStages);
+                EquipStartingItems(data.startingItemIds);
                 normalCooldown = NormalCode.Cooldown;
                 ultimateCooldown = UltimateCode.Cooldown;
                 
                 // 유닛별 패시브 StatusEffect 적용
                 ApplyPassiveStatusEffect();
             }
+        }
+
+        private void EquipStartingItems(List<int> startingItemIds)
+        {
+            equippedItemIds.Clear();
+            EquipmentLoadout = new EquipmentLoadout();
+            ItemPassiveCodes?.Clear();
+            if (startingItemIds == null) return;
+
+            foreach (int itemId in startingItemIds)
+            {
+                if (!TryEquipItem(itemId, out string reason))
+                {
+                    Debug.LogWarning($"[장비] {UnitName} 시작 아이템 {itemId} 장착 실패: {reason}");
+                }
+            }
+        }
+
+        public bool TryEquipItem(int itemId, out string reason)
+        {
+            reason = null;
+            ItemData itemData = GetItemData(itemId);
+            if (itemData == null)
+            {
+                reason = $"아이템 데이터를 찾을 수 없습니다: {itemId}";
+                return false;
+            }
+
+            int prospectiveWeight = EquipmentLoadout.GetProspectiveWeight(itemData);
+            if (prospectiveWeight > CarryWeightMax)
+            {
+                reason = $"장비 중량이 한도를 초과합니다. ({prospectiveWeight}/{CarryWeightMax})";
+                return false;
+            }
+
+            if (!EquipmentLoadout.TryEquip(itemData, HasEquipmentProficiency, out reason))
+            {
+                return false;
+            }
+
+            RefreshEquippedItemIds();
+            RefreshEquipmentCodeGrants();
+            AttributesUpdate();
+            currentCell?.UpdateUI();
+            return true;
+        }
+
+        private void RefreshEquipmentCodeGrants()
+        {
+            foreach (PassiveCode itemPassiveCode in ItemPassiveCodes)
+            {
+                itemPassiveCode?.StopCode();
+            }
+            ItemPassiveCodes.Clear();
+
+            NormalCode?.StopCode();
+            UltimateCode?.StopCode();
+            NormalCode = CodeFactory.CreateNormalCode(_baseNormalCodeId, new NormalCodeContext { Caster = this });
+            UltimateCode = CodeFactory.CreateUltimateCode(_baseUltimateCodeId, new UltimateCodeContext { Caster = this });
+            NormalCode?.SetStage(_baseNormalCodeStage);
+            UltimateCode?.SetStage(_baseUltimateCodeStage);
+
+            foreach (ItemData equippedItem in EquipmentLoadout.GetEquippedItemData())
+            {
+                ApplyItemCodeGrants(equippedItem);
+            }
+        }
+
+        private void RefreshEquippedItemIds()
+        {
+            equippedItemIds = EquipmentLoadout.GetEquippedItemData()
+                .Where(item => item != null)
+                .Select(item => item.id)
+                .ToList();
+        }
+
+        private ItemData GetItemData(int itemId)
+        {
+            ItemDataList itemDataList = GameManager.Instance?.itemDataList ?? GameManager.Instance?.dataManager?.FetchItemDataList();
+            return itemDataList?.items?.FirstOrDefault(item => item.id == itemId);
+        }
+
+        // 클래스 시스템이 제거되어 장비 숙련도 제한은 없다. 모든 장비는 슬롯/양손무기 규칙만 따른다.
+        private bool HasEquipmentProficiency(EquipmentProficiency proficiency) => true;
+
+        private void ApplyItemCodeGrants(ItemData itemData)
+        {
+            if (itemData.codeGrants == null) return;
+
+            foreach (EquipmentCodeGrant codeGrant in itemData.codeGrants)
+            {
+                if (codeGrant == null) continue;
+
+                string codeSlot = codeGrant.slot?.Trim().ToLowerInvariant();
+                switch (codeSlot)
+                {
+                    case "normal":
+                    case "normalattack":
+                    case "normal_attack":
+                    case "일반공격":
+                        NormalCode?.StopCode();
+                        NormalCode = CodeFactory.CreateNormalCode(codeGrant.codeId, new NormalCodeContext { Caster = this });
+                        NormalCode?.SetStage(codeGrant.stage);
+                        normalCooldown = NormalCode?.Cooldown ?? 0f;
+                        break;
+                    case "passive":
+                    case "패시브":
+                        PassiveCode itemPassiveCode = CodeFactory.CreatePassiveCode(codeGrant.codeId, new PassiveCodeContext { Caster = this });
+                        itemPassiveCode?.SetStage(codeGrant.stage);
+                        if (itemPassiveCode != null)
+                        {
+                            ItemPassiveCodes.Add(itemPassiveCode);
+                        }
+                        break;
+                    case "ultimate":
+                    case "궁극기":
+                        UltimateCode?.StopCode();
+                        UltimateCode = CodeFactory.CreateUltimateCode(codeGrant.codeId, new UltimateCodeContext { Caster = this });
+                        UltimateCode?.SetStage(codeGrant.stage);
+                        ultimateCooldown = UltimateCode?.Cooldown ?? 0f;
+                        break;
+                }
+            }
+        }
+
+        private int GetEquipmentStatBonus(BaseEnums.PrimaryStat stat)
+        {
+            if (EquipmentLoadout == null) return 0;
+
+            int total = 0;
+            foreach (ItemData itemData in EquipmentLoadout.GetEquippedItemData())
+            {
+                if (itemData?.statBonuses == null) continue;
+
+                foreach (EquipmentStatBonus bonus in itemData.statBonuses)
+                {
+                    if (bonus == null || string.IsNullOrWhiteSpace(bonus.stat)) continue;
+                    if (Enum.TryParse(bonus.stat, true, out BaseEnums.PrimaryStat bonusStat) && bonusStat == stat)
+                    {
+                        total += bonus.amount;
+                    }
+                }
+            }
+
+            return total;
+        }
+
+        private void ConfigureUltimateResource(string resourceType, string resourceName, int resourceMax)
+        {
+            UltimateResourceType = string.Equals(resourceType, "Stack", StringComparison.OrdinalIgnoreCase)
+                ? BaseEnums.UltimateResourceType.Stack
+                : BaseEnums.UltimateResourceType.Mana;
+            UltimateResourceName = string.IsNullOrWhiteSpace(resourceName)
+                ? (UltimateResourceType == BaseEnums.UltimateResourceType.Mana ? "마나" : "스택")
+                : resourceName;
+            ManaBase = resourceMax > 0 ? resourceMax : 100;
+        }
+
+        private void ApplyCodeStages(Dictionary<string, int> codeStages)
+        {
+            if (codeStages == null) return;
+
+            if (codeStages.TryGetValue("passive", out int passiveStage) && PassiveCodes.Count > 0)
+            {
+                // codeStages.passive는 초기 패시브([0])에만 적용한다.
+                // 레벨 해금 패시브의 단계는 levelPassives 각 항목의 stage 필드로 지정한다.
+                PassiveCodes[0]?.SetStage(passiveStage);
+                if (learnedPassiveRecords.Count > 0)
+                {
+                    learnedPassiveRecords[0].stage = passiveStage;
+                }
+            }
+            if (codeStages.TryGetValue("normal", out int normalStage))
+            {
+                _baseNormalCodeStage = normalStage;
+                NormalCode?.SetStage(normalStage);
+            }
+            if (codeStages.TryGetValue("ultimate", out int ultimateStage))
+            {
+                _baseUltimateCodeStage = ultimateStage;
+                UltimateCode?.SetStage(ultimateStage);
+            }
+        }
+
+        /// <summary>
+        /// 유닛의 패시브 코드를 로드한다.
+        /// 초기 패시브(innatePassiveId)는 항상 활성화되고, 레벨 해금 패시브는 현재 Level 조건을
+        /// 만족하는 것만 즉시 활성화한다. 나머지는 PendingLevelPassives에 보관했다가
+        /// 레벨업 시 RefreshLevelPassives()로 승격한다.
+        /// </summary>
+        private void LoadPassiveCodes(int innatePassiveId, List<LevelPassiveData> levelPassives)
+        {
+            PassiveCodes.Clear();
+            PendingLevelPassives.Clear();
+
+            PassiveCode innate = CodeFactory.CreatePassiveCode(innatePassiveId, new PassiveCodeContext { Caster = this });
+            if (innate != null)
+            {
+                PassiveCodes.Add(innate);
+                AddLearnedPassiveRecord(innatePassiveId, innate.CurrentStage, innate.Transferable);
+            }
+
+            if (levelPassives != null)
+            {
+                foreach (LevelPassiveData def in levelPassives)
+                {
+                    if (def == null) continue;
+                    PendingLevelPassives.Add(def);
+                }
+            }
+
+            RefreshLevelPassives();
+        }
+
+        /// <summary>
+        /// 현재 Level과 INT 코드 용량을 만족한 패시브를 활성 목록으로 승격한다.
+        /// 레벨업(예: 육성 페이즈, 업그레이드) 이후 호출한다. 이미 활성화된 패시브는 중복 추가하지 않는다.
+        /// </summary>
+        protected void RefreshLevelPassives()
+        {
+            if (PendingLevelPassives.Count == 0) return;
+
+            List<LevelPassiveData> eligible = PendingLevelPassives
+                .Where(def => def != null && PassiveUnlockLevel >= def.unlockLevel)
+                .OrderBy(def => def.unlockLevel)
+                .ToList();
+
+            foreach (LevelPassiveData def in eligible)
+            {
+                if (LearnedCodeCount >= MaxCodeCount) break;
+
+                PassiveCode code = CodeFactory.CreatePassiveCode(def.codeId, new PassiveCodeContext { Caster = this });
+                if (code != null)
+                {
+                    if (def.stage > 0) code.SetStage(def.stage);
+                    PassiveCodes.Add(code);
+                    AddLearnedPassiveRecord(def.codeId, code.CurrentStage, code.Transferable);
+                }
+                PendingLevelPassives.Remove(def);
+            }
+
+            PendingLevelPassives.RemoveAll(def => def == null);
+        }
+
+        private void AddLearnedPassiveRecord(int codeId, int stage, bool transferable = true)
+        {
+            if (codeId <= 0) return;
+
+            LearnedPassiveSaveData existing = learnedPassiveRecords
+                .FirstOrDefault(record => record != null && record.codeId == codeId);
+            if (existing != null)
+            {
+                existing.stage = Mathf.Max(existing.stage, stage);
+                existing.transferable = existing.transferable && transferable;
+                return;
+            }
+
+            learnedPassiveRecords.Add(new LearnedPassiveSaveData
+            {
+                codeId = codeId,
+                stage = Mathf.Max(1, stage),
+                transferable = transferable,
+            });
+        }
+
+        public bool LearnTransferredPassive(int codeId, int stage)
+        {
+            if (codeId <= 0) return false;
+            if (LearnedCodeCount >= MaxCodeCount) return false;
+            if (learnedPassiveRecords.Any(record => record != null && record.codeId == codeId))
+            {
+                return false;
+            }
+
+            PassiveCode code = CodeFactory.CreatePassiveCode(codeId, new PassiveCodeContext { Caster = this });
+            if (code == null) return false;
+            if (!code.Transferable) return false;
+
+            code.SetStage(stage);
+            PassiveCodes.Add(code);
+            AddLearnedPassiveRecord(codeId, code.CurrentStage, code.Transferable);
+            return true;
+        }
+
+        /// <summary>
+        /// 육성: 지정한 5스탯의 강화 수치를 증가시킨다. 즉시 스탯을 재계산한다.
+        /// </summary>
+        public void AddStatUpgrade(BaseEnums.PrimaryStat stat, int amount)
+        {
+            if (amount == 0) return;
+
+            switch (stat)
+            {
+                case BaseEnums.PrimaryStat.STR: StrUpgrade += amount; break;
+                case BaseEnums.PrimaryStat.DEX: DexUpgrade += amount; break;
+                case BaseEnums.PrimaryStat.CON: ConUpgrade += amount; break;
+                case BaseEnums.PrimaryStat.INT: IntUpgrade += amount; break;
+                case BaseEnums.PrimaryStat.LUK: LukUpgrade += amount; break;
+            }
+
+            AttributesUpdate();
+            RefreshLevelPassives();
+            currentCell?.UpdateUI();
+        }
+
+        /// <summary>
+        /// 육성: 트레이닝 레벨을 올리고 레벨 해금 패시브를 갱신한다.
+        /// 육성 페이즈에서 메인 캐릭터에게 호출한다.
+        /// </summary>
+        public void GainTrainingLevel(int amount = 1)
+        {
+            if (amount <= 0) return;
+
+            TrainingLevel += amount;
+            RefreshLevelPassives();
+            AttributesUpdate();
+            currentCell?.UpdateUI();
         }
 
         private void LoadStatData(
@@ -388,20 +775,8 @@ namespace Entities
         /// </summary>
         protected virtual void ApplyPassiveStatusEffect()
         {
-            // ID에 따라 패시브 효과 적용
-            switch (ID)
-            {
-                case 4: // 피그말리온 - 갈라테아 (방어력 10% 증가)
-                    var galateaPassive = new StatusEffects.Passive.GalateaPassive(this);
-                    AddStatusEffect("galatea_passive", galateaPassive);
-                    Debug.Log($"[패시브] {UnitName}에게 갈라테아 패시브 적용 (방어력 +10%)");
-                    break;
-                    
-                // 추가 유닛들의 패시브는 여기에 case로 추가
-                default:
-                    // 패시브 StatusEffect가 없는 유닛
-                    break;
-            }
+            // 기존 레거시 스탯 패시브는 5스탯/코드 구조로 이전하면서 제거했다.
+            // 추가 유닛 패시브는 Code 또는 새 Status 시스템으로 연결한다.
         }
 
         protected virtual void LoadSprite(string _name, bool _isEnemy)
@@ -420,52 +795,36 @@ namespace Entities
         protected virtual void AttributesUpdate()
         {
             // 스탯 수정치 계산
-            float hpMul = 0f;
-            float hpAdd = 0f;
-            float atkMul = 0f;
-            float atkAdd = 0f;
-            float defMul = 0f;
-            float defAdd = 0f;
             float critChanceAdd = 0f;
             float critMultiplierAdd = 0f;
-            float codeAccelMul = 0f;
+            float shieldBonusAdd = 0f;
+            float codeAccelerationAdd = 0f;
+            float manaRecoveryMultiplier = 1f;
 
             foreach (var effectPair in StatusEffects)
             {
-                hpMul += effectPair.Value.HpMultiplicativeModifier(this);
-                hpAdd += effectPair.Value.HpAdditiveModifier(this);
-                atkMul += effectPair.Value.AtkMultiplicativeModifier(this);
-                atkAdd += effectPair.Value.AtkAdditiveModifier(this);
-                defMul += effectPair.Value.DefMultiplicativeModifier(this);
-                defAdd += effectPair.Value.DefAdditiveModifier(this);
                 critChanceAdd += effectPair.Value.CritChanceAdditiveModifier(this);
                 critMultiplierAdd += effectPair.Value.CritMultiplierAdditiveModifier(this);
-                codeAccelMul += effectPair.Value.CodeAccelerationMultiplicativeModifier(this);
+                shieldBonusAdd += effectPair.Value.ShieldBonusAdditiveModifier(this);
+                codeAccelerationAdd += effectPair.Value.CodeAccelerationAdditiveModifier(this);
+                manaRecoveryMultiplier *= effectPair.Value.ManaRecoveryMultiplierModifier(this);
             }
-            foreach (var effectPair in SynergyEffects)
-            {
-                hpMul += effectPair.Value.HpMultiplicativeModifier(this);
-                hpAdd += effectPair.Value.HpAdditiveModifier(this);
-                atkMul += effectPair.Value.AtkMultiplicativeModifier(this);
-                atkAdd += effectPair.Value.AtkAdditiveModifier(this);
-                defMul += effectPair.Value.DefMultiplicativeModifier(this);
-                defAdd += effectPair.Value.DefAdditiveModifier(this);
-                critChanceAdd += effectPair.Value.CritChanceAdditiveModifier(this);
-                critMultiplierAdd += effectPair.Value.CritMultiplierAdditiveModifier(this);
-                codeAccelMul += effectPair.Value.CodeAccelerationMultiplicativeModifier(this);
-            }
-
             // hp 비율 저장
             float healthRatio = (HpMax > 0) ? (float)HpCurr / HpMax : 1f;
 
-            HpMax = Mathf.RoundToInt(GetDerivedHp() * (1f + hpMul) + hpAdd);
-            ManaMax = GetDerivedMana();
-            AtkCurr = Mathf.RoundToInt(GetDerivedAtk() * (1f + atkMul) + atkAdd);
-            DefCurr = Mathf.RoundToInt(GetDerivedDef() * (1f + defMul) + defAdd);
+            HpMax = GetDerivedHp();
+            ManaMax = GetUltimateResourceMax();
+            AtkCurr = GetDerivedAtk();
+            DefCurr = GetDerivedDef();
             CritChanceCurr = Mathf.Clamp01(GetDerivedCritChance() + critChanceAdd);
             CritMultiplierCurr = Mathf.Max(1f, GetDerivedCritDamage() + critMultiplierAdd);
             EvasionChanceCurr = GetDerivedEvasionChance();
-            CodeAcceleration = Mathf.Max(0.1f, GetDerivedCodeAcceleration() + codeAccelMul + CodeAccelerationRunBonus);
+            HealingBonusCurr = GetDerivedHealingBonus();
+            ShieldBonusCurr = Mathf.Max(0f, GetDerivedShieldBonus() + shieldBonusAdd);
+            ManaEfficiencyCurr = GetDerivedManaEfficiency() * manaRecoveryMultiplier;
+            CodeActivationChanceCurr = GetDerivedCodeActivationChance();
+            CodeAcceleration = Mathf.Max(0.1f, GetDerivedCodeAcceleration() + CodeAccelerationRunBonus + codeAccelerationAdd);
+            AttackSpeedCurr = GetDerivedAttackSpeed();
 
             // hp 비율 복구
             HpCurr = Mathf.RoundToInt(HpMax * healthRatio);
@@ -513,6 +872,10 @@ namespace Entities
         {
             EventContext context = new EventContext(this, attacker);
             Invoke(BaseEnums.UnitEventType.OnDeath, context);
+            if (attacker != null && attacker != this)
+            {
+                attacker.Invoke(BaseEnums.UnitEventType.OnKill, new EventContext(attacker, this));
+            }
             if (isEnemy) GameManager.Instance.OnKillEnemy();
             DeactivateUnit();
         }
@@ -524,7 +887,8 @@ namespace Entities
         /// <param name="context">피해 정보 컨텍스트</param>
         public virtual void TakeDamage(DamageContext context)
         {
-            Invoke(BaseEnums.UnitEventType.OnBeforeDamageTaken, new EventContext(this, context.Attacker));
+            if (context == null) return;
+            Invoke(BaseEnums.UnitEventType.OnBeforeDamageTaken, new EventContext(this, context.Attacker, context));
             Invoke(BaseEnums.UnitEventType.OnTakingDamage, new EventContext(this, null, context));
             Invoke(BaseEnums.UnitEventType.OnAfterDamageTaken, new EventContext(this, context.Attacker));
         }
@@ -552,8 +916,29 @@ namespace Entities
 
         public virtual void CastPassiveCode()
         {
-            PassiveCode.CastCode();
+            foreach (PassiveCode passiveCode in PassiveCodes)
+            {
+                TryCastPassiveCode(passiveCode);
+            }
+            foreach (PassiveCode itemPassiveCode in ItemPassiveCodes)
+            {
+                TryCastPassiveCode(itemPassiveCode);
+            }
+
             Invoke(BaseEnums.UnitEventType.OnPassiveActivates, new EventContext(this));
+        }
+
+        private void TryCastPassiveCode(PassiveCode passiveCode)
+        {
+            if (passiveCode == null) return;
+
+            if (!TryPassCodeActivation(passiveCode))
+            {
+                Debug.Log($"{UnitName}의 패시브 코드 {passiveCode.CodeName} 발동 실패");
+                return;
+            }
+
+            passiveCode.CastCode();
         }
 
         public virtual void CastNormalCode()
@@ -564,14 +949,26 @@ namespace Entities
 
         public virtual void CastUltimateCode()
         {
-            ManaCurr = 0;
+            ConsumeUltimateResource();
             // Cell의 통합 UI 시스템 사용
             currentCell.UpdateUI();
+
             UltimateCode.CastCode();
             Invoke(BaseEnums.UnitEventType.OnUltimateActivates, new EventContext(this));
         }
 
         public virtual void RecoverMana(int amount)
+        {
+            if (UltimateResourceType != BaseEnums.UltimateResourceType.Mana)
+            {
+                return;
+            }
+
+            int adjustedAmount = Mathf.Max(0, Mathf.RoundToInt(amount * ManaEfficiencyCurr));
+            AddUltimateResource(adjustedAmount);
+        }
+
+        public virtual void AddUltimateResource(int amount)
         {
             ManaCurr += amount;
             if (ManaCurr > ManaMax)
@@ -582,23 +979,144 @@ namespace Entities
             currentCell.UpdateUI();
         }
 
+        public void ResetCombatElements()
+        {
+            _combatElements.Clear();
+            if (Enum.TryParse(Element, true, out BaseEnums.UnitElement innateElement) &&
+                innateElement != BaseEnums.UnitElement.None)
+            {
+                _combatElements.Add(innateElement);
+            }
+        }
+
+        public void GrantCombatElement(BaseEnums.UnitElement elementToGrant)
+        {
+            if (elementToGrant == BaseEnums.UnitElement.None) return;
+            if (_combatElements.Add(elementToGrant))
+            {
+                AttributesUpdate();
+                currentCell?.UpdateUI();
+            }
+        }
+
+        public bool HasCombatElement(BaseEnums.UnitElement elementToCheck)
+        {
+            return _combatElements.Contains(elementToCheck);
+        }
+
+        public string GetCombatElementDisplay()
+        {
+            return _combatElements.Count == 0 ? "None" : string.Join(", ", _combatElements);
+        }
+
+        public void SetCombatResourceMaximum(string resourceId, int maximum, bool resetCurrent = false)
+        {
+            if (string.IsNullOrWhiteSpace(resourceId)) return;
+            _combatResourceMaximums[resourceId] = Mathf.Max(0, maximum);
+            if (resetCurrent || !_combatResources.ContainsKey(resourceId))
+            {
+                _combatResources[resourceId] = 0;
+            }
+            else
+            {
+                _combatResources[resourceId] = Mathf.Min(_combatResources[resourceId], _combatResourceMaximums[resourceId]);
+            }
+            currentCell?.UpdateUI();
+        }
+
+        public int GetCombatResource(string resourceId)
+        {
+            return !string.IsNullOrWhiteSpace(resourceId) && _combatResources.TryGetValue(resourceId, out int value) ? value : 0;
+        }
+
+        public int GetCombatResourceMaximum(string resourceId)
+        {
+            return !string.IsNullOrWhiteSpace(resourceId) && _combatResourceMaximums.TryGetValue(resourceId, out int value) ? value : 0;
+        }
+
+        public int AddCombatResource(string resourceId, int amount)
+        {
+            if (string.IsNullOrWhiteSpace(resourceId) || amount == 0) return GetCombatResource(resourceId);
+            int maximum = GetCombatResourceMaximum(resourceId);
+            int next = Mathf.Clamp(GetCombatResource(resourceId) + amount, 0, maximum);
+            _combatResources[resourceId] = next;
+            currentCell?.UpdateUI();
+            return next;
+        }
+
+        public bool TryConsumeCombatResource(string resourceId, int amount)
+        {
+            if (amount <= 0) return true;
+            int current = GetCombatResource(resourceId);
+            if (current < amount) return false;
+            _combatResources[resourceId] = current - amount;
+            currentCell?.UpdateUI();
+            return true;
+        }
+
+        public bool CanActAndAttack()
+        {
+            return isActive && !isControlled && !isCasting && NormalCode != null && NormalCode.HasValidTarget();
+        }
+
+        public virtual bool CanCastUltimateCode()
+        {
+            return ManaCurr >= ManaMax;
+        }
+
+        protected virtual void ConsumeUltimateResource()
+        {
+            ManaCurr = 0;
+        }
+
         public void ModifyHp(int newHp)
         {
-            HpCurr = Mathf.Clamp(newHp, 0, HpMax);
+            if (newHp > HpCurr)
+            {
+                int healingAmount = Mathf.RoundToInt((newHp - HpCurr) * (1f + HealingBonusCurr));
+                HpCurr = Mathf.Clamp(HpCurr + healingAmount, 0, HpMax);
+            }
+            else
+            {
+                HpCurr = Mathf.Clamp(newHp, 0, HpMax);
+            }
             currentCell?.UpdateUI();
+        }
+
+        private bool TryPassCodeActivation(Code code)
+        {
+            if (code == null) return false;
+            if (code.IgnoresActivationChance) return true;
+            if (code.ActivationChance < 0f) return true;
+
+            float statBonus = 0f;
+            if (code.CodeTags.Contains(Helpers.DamageTag.Physical))
+            {
+                statBonus += GetBaseDex() * 0.01f;
+            }
+            if (code.CodeTags.Contains(Helpers.DamageTag.Special))
+            {
+                statBonus += GetBaseInt() * 0.01f;
+            }
+
+            float chance = Mathf.Clamp01((code.ActivationChance + statBonus) * code.ActivationChanceMultiplier);
+            return UnityEngine.Random.value <= chance;
         }
 
         public void AddRunBonus(
             int hpUpgrade = 0,
             int atkUpgrade = 0,
             int defUpgrade = 0,
+            int intUpgrade = 0,
             int critChanceUpgrade = 0,
             int critMultiplierUpgrade = 0,
             float codeAccelerationBonus = 0f)
         {
             StrUpgrade += atkUpgrade;
             DexUpgrade += Mathf.RoundToInt(codeAccelerationBonus * 20f);
-            ConUpgrade += hpUpgrade + defUpgrade;
+            ConUpgrade += hpUpgrade;
+            IntUpgrade += intUpgrade;
+            StrUpgrade += defUpgrade;
             LukUpgrade += critChanceUpgrade + critMultiplierUpgrade;
 
             HpUpgrade += hpUpgrade;
@@ -615,9 +1133,12 @@ namespace Entities
         {
             if (saveData == null) return;
 
-            StrUpgrade = saveData.strUpgrade != 0 ? saveData.strUpgrade : saveData.atkUpgrade;
+            TrainingLevel = saveData.trainingLevel;
+            // 육성 레벨이 복원되면 그에 맞는 레벨 해금 패시브를 다시 활성화한다.
+            RefreshLevelPassives();
+            StrUpgrade = saveData.strUpgrade != 0 ? saveData.strUpgrade : saveData.atkUpgrade + saveData.defUpgrade;
             DexUpgrade = saveData.dexUpgrade;
-            ConUpgrade = saveData.conUpgrade != 0 ? saveData.conUpgrade : saveData.hpUpgrade + saveData.defUpgrade;
+            ConUpgrade = saveData.conUpgrade != 0 ? saveData.conUpgrade : saveData.hpUpgrade;
             IntUpgrade = saveData.intUpgrade;
             LukUpgrade = saveData.lukUpgrade != 0 ? saveData.lukUpgrade : saveData.critChanceUpgrade + saveData.critMultiplierUpgrade;
             HpUpgrade = saveData.hpUpgrade;
@@ -626,6 +1147,10 @@ namespace Entities
             CritChanceUpgrade = saveData.critChanceUpgrade;
             CritMultiplierUpgrade = saveData.critMultiplierUpgrade;
             CodeAccelerationRunBonus = saveData.codeAccelerationBonus;
+            if (saveData.equippedItemIds != null && saveData.equippedItemIds.Count > 0)
+            {
+                EquipStartingItems(saveData.equippedItemIds);
+            }
             AttributesUpdate();
             ModifyHp(saveData.currentHP);
         }
@@ -636,6 +1161,7 @@ namespace Entities
         /// <param name="amount">추가할 방어막 양</param>
         public virtual void AddShield(int amount)
         {
+            amount = ApplyShieldBonus(amount);
             int previousShieldMax = ShieldMax;
             int previousShieldCurr = ShieldCurr;
             
@@ -654,11 +1180,17 @@ namespace Entities
         /// <param name="amount">설정할 방어막 양</param>
         public virtual void SetShield(int amount)
         {
+            amount = ApplyShieldBonus(amount);
             ShieldMax = amount;
             ShieldCurr = amount;
             AttributesUpdate(); // 상태 효과 반영을 위해 스탯 업데이트
             UpdateShieldBar(); // 방어막 바 시각 업데이트
             Debug.Log($"[SetShield] {UnitName}의 방어막이 {amount}로 설정되었습니다 (Max={ShieldMax}, Curr={ShieldCurr})");
+        }
+
+        private int ApplyShieldBonus(int amount)
+        {
+            return Mathf.Max(0, Mathf.RoundToInt(amount * (1f + ShieldBonusCurr)));
         }
 
         /// <summary>
@@ -708,7 +1240,7 @@ namespace Entities
                 }
                 if (!isControlled && !isCasting)
                 {
-                    if (ultimateCooldown <= 0f && UltimateCode.HasValidTarget() && ManaCurr >= ManaMax)
+                    if (ultimateCooldown <= 0f && UltimateCode.HasValidTarget() && CanCastUltimateCode())
                     {
                         CastUltimateCode();
                     }
@@ -720,7 +1252,7 @@ namespace Entities
                         }
                     }
                     ultimateCooldown = Mathf.Max(0f, ultimateCooldown - Time.deltaTime * CodeAcceleration);
-                    normalCooldown = Mathf.Max(0f, normalCooldown - Time.deltaTime * CodeAcceleration);
+                    normalCooldown = Mathf.Max(0f, normalCooldown - Time.deltaTime * CodeAcceleration * AttackSpeedCurr);
                 }
             }
         }
@@ -740,7 +1272,11 @@ namespace Entities
         {
             Unit self = context.Grantee;
             DamageContext dmgCtx = context.DmgCtx;
-            int effectiveDef = Math.Max(self.DefCurr - dmgCtx.Penetration, 0);
+            if (dmgCtx == null || dmgCtx.IsCancelled)
+            {
+                currentCell?.UpdateUI();
+                return;
+            }
             float receivingDamageModifier = 1f;
             foreach (var effectPair in StatusEffects)
             {
@@ -755,8 +1291,9 @@ namespace Entities
                 return;
             }
             
-            int damageReceived = (int)(receivingDamageModifier * dmgCtx.Damage / (1 + effectiveDef * 0.01f));
+            int damageReceived = self.CalculateDamageAfterDefense(dmgCtx, receivingDamageModifier);
             int hpBeforeHit = self.HpCurr;
+            int shieldBeforeHit = self.ShieldCurr;
             
             // 방어막 처리
             bool hasShieldPenetration = dmgCtx.DamageTags.Contains(Helpers.DamageTag.ShieldPenetration);
@@ -789,6 +1326,14 @@ namespace Entities
             
             // Cell의 통합 UI 업데이트 메서드 사용
             currentCell.UpdateUI();
+
+            int damageDealt = Mathf.Max(0, hpBeforeHit - self.HpCurr) + Mathf.Max(0, shieldBeforeHit - self.ShieldCurr);
+            if (dmgCtx.Attacker != null && damageDealt > 0)
+            {
+                dmgCtx.Attacker.Invoke(
+                    BaseEnums.UnitEventType.OnDamageDealt,
+                    new DamageResolvedContext(dmgCtx.Attacker, self, dmgCtx, damageDealt));
+            }
             
             // Debug.Log($"{self.UnitName}은(는) {dmgCtx.Attacker.UnitName}에게 {damageReceived}의 {(dmgCtx.IsCrit ? "치명" : "")}피해를 받았습니다. 체력: {hpBeforeHit} -> {self.HpCurr}");
             if (self.HpCurr <= 0)
@@ -797,12 +1342,39 @@ namespace Entities
             }
         }
 
+        private int CalculateDamageAfterDefense(DamageContext dmgCtx, float receivingDamageModifier)
+        {
+            int defenseStat = GetDefenseStatForDamage(dmgCtx);
+            float scaledDefense = defenseStat * Mathf.Max(0f, dmgCtx.DefenseStatMultiplier);
+            float outgoingDamageModifier = 1f;
+            if (dmgCtx.Attacker?.StatusEffects != null)
+            {
+                foreach (var effectPair in dmgCtx.Attacker.StatusEffects)
+                {
+                    outgoingDamageModifier *= effectPair.Value.OutgoingDamageModifier(dmgCtx.Attacker, this, dmgCtx);
+                }
+            }
+
+            float defenseMultiplier = scaledDefense >= 0f
+                ? 1f / (1f + scaledDefense * 0.01f)
+                : 2f / (1f - scaledDefense * 0.01f);
+
+            float flatReducedDamage = Mathf.Max(1f, dmgCtx.Damage * outgoingDamageModifier - scaledDefense);
+            return Mathf.Max(1, Mathf.RoundToInt(flatReducedDamage * defenseMultiplier * receivingDamageModifier));
+        }
+
+        private int GetDefenseStatForDamage(DamageContext dmgCtx)
+        {
+            return DefCurr;
+        }
+
         /// <summary>
         /// 라운드 시작 처리 이벤트
         /// </summary>
         protected void DefaultRoundStartEvent(EventContext context)
         {
             Debug.Log($"[라운드 시작] {UnitName}의 DefaultRoundStartEvent 호출됨");
+            ResetCombatElements();
             CastPassiveCode();
         }
 
@@ -812,6 +1384,9 @@ namespace Entities
         protected void DefaultRoundEndEvent(EventContext context)
         {
             StatusEffects.Clear();
+            ResetCombatElements();
+            _combatResources.Clear();
+            _combatResourceMaximums.Clear();
             ShieldMax = 0;   // 라운드 종료 시 방어막 최대치 초기화
             ShieldCurr = 0;  // 라운드 종료 시 방어막 현재치 초기화
             AttributesUpdate();
@@ -863,27 +1438,99 @@ namespace Entities
 
         public virtual int GetBaseStr()
         {
-            return StrBase + StrIncrementLvl * Level + StrIncrementUpgrade * StrUpgrade;
+            int raw = StrBase + StrIncrementLvl * GetStatGrowthLevel() + StrIncrementUpgrade * StrUpgrade + GetEquipmentStatBonus(BaseEnums.PrimaryStat.STR) + GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.STR);
+            return ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.STR, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.STR, raw));
         }
 
         public virtual int GetBaseDex()
         {
-            return DexBase + DexIncrementLvl * Level + DexIncrementUpgrade * DexUpgrade;
+            int raw = DexBase + DexIncrementLvl * GetStatGrowthLevel() + DexIncrementUpgrade * DexUpgrade + GetEquipmentStatBonus(BaseEnums.PrimaryStat.DEX) + GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.DEX);
+            return ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.DEX, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.DEX, raw));
         }
 
         public virtual int GetBaseCon()
         {
-            return ConBase + ConIncrementLvl * Level + ConIncrementUpgrade * ConUpgrade;
+            int raw = ConBase + ConIncrementLvl * GetStatGrowthLevel() + ConIncrementUpgrade * ConUpgrade + GetEquipmentStatBonus(BaseEnums.PrimaryStat.CON) + GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.CON);
+            return ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.CON, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.CON, raw));
         }
 
         public virtual int GetBaseInt()
         {
-            return IntBase + IntIncrementLvl * Level + IntIncrementUpgrade * IntUpgrade;
+            int raw = IntBase + IntIncrementLvl * GetStatGrowthLevel() + IntIncrementUpgrade * IntUpgrade + GetEquipmentStatBonus(BaseEnums.PrimaryStat.INT) + GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.INT);
+            return ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.INT, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.INT, raw));
         }
 
         public virtual int GetBaseLuk()
         {
-            return LukBase + LukIncrementLvl * Level + LukIncrementUpgrade * LukUpgrade;
+            int raw = LukBase + LukIncrementLvl * GetStatGrowthLevel() + LukIncrementUpgrade * LukUpgrade + GetEquipmentStatBonus(BaseEnums.PrimaryStat.LUK) + GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.LUK);
+            return ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.LUK, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.LUK, raw));
+        }
+
+        private int GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat stat)
+        {
+            int total = 0;
+            foreach (var effectPair in StatusEffects)
+            {
+                total += effectPair.Value.PrimaryStatAdditiveModifier(this, stat);
+            }
+
+            return total;
+        }
+
+        private int ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat stat, int value)
+        {
+            float multiplier = 1f;
+            foreach (var effectPair in StatusEffects)
+            {
+                multiplier *= effectPair.Value.PrimaryStatMultiplierModifier(this, stat);
+            }
+            return Mathf.Max(0, Mathf.RoundToInt(value * multiplier));
+        }
+
+        public int GetGrowthStatValue(BaseEnums.PrimaryStat stat)
+        {
+            int growthLevel = GetStatGrowthLevel();
+            return stat switch
+            {
+                BaseEnums.PrimaryStat.STR => StrIncrementLvl * growthLevel + StrIncrementUpgrade * StrUpgrade,
+                BaseEnums.PrimaryStat.DEX => DexIncrementLvl * growthLevel + DexIncrementUpgrade * DexUpgrade,
+                BaseEnums.PrimaryStat.CON => ConIncrementLvl * growthLevel + ConIncrementUpgrade * ConUpgrade,
+                BaseEnums.PrimaryStat.INT => IntIncrementLvl * growthLevel + IntIncrementUpgrade * IntUpgrade,
+                BaseEnums.PrimaryStat.LUK => LukIncrementLvl * growthLevel + LukIncrementUpgrade * LukUpgrade,
+                _ => 0,
+            };
+        }
+
+        public bool HasStatusEffect(string identifier)
+        {
+            return !string.IsNullOrWhiteSpace(identifier) && StatusEffects.ContainsKey(identifier);
+        }
+
+        private int GetStatGrowthLevel()
+        {
+            return IsEnemy ? Mathf.Max(0, Level) : Mathf.Max(0, Level - 1);
+        }
+
+        private int ApplyCharacterStatBonus(BaseEnums.PrimaryStat stat, int rawValue)
+        {
+            float multiplier = 1f;
+            if (IsCharacterStatTag(MainStat, stat))
+            {
+                multiplier += 0.2f;
+            }
+            if (IsCharacterStatTag(SubStat, stat))
+            {
+                multiplier += 0.1f;
+            }
+
+            return Mathf.Max(0, Mathf.RoundToInt(rawValue * multiplier));
+        }
+
+        private static bool IsCharacterStatTag(string statName, BaseEnums.PrimaryStat stat)
+        {
+            return !string.IsNullOrWhiteSpace(statName)
+                && Enum.TryParse(statName, true, out BaseEnums.PrimaryStat parsed)
+                && parsed == stat;
         }
 
         public virtual int GetDerivedHp()
@@ -893,17 +1540,25 @@ namespace Entities
 
         public virtual int GetDerivedMana()
         {
-            return Mathf.Max(1, GetBaseInt() * 10);
+            return 100;
+        }
+
+        public virtual int GetUltimateResourceMax()
+        {
+            return UltimateResourceType == BaseEnums.UltimateResourceType.Mana
+                ? GetDerivedMana()
+                : Mathf.Max(1, ManaBase);
         }
 
         public virtual int GetDerivedAtk()
         {
-            return Mathf.Max(1, GetBaseStr() * 10);
+            int legacyAttack = AtkBase + AtkIncrementLvl * GetStatGrowthLevel() + AtkIncrementUpgrade * AtkUpgrade;
+            return Mathf.Max(1, legacyAttack > 0 ? legacyAttack : 100);
         }
 
         public virtual int GetDerivedDef()
         {
-            return Mathf.Max(0, GetBaseCon() * 5 + GetBaseDex() * 2);
+            return Mathf.Max(0, DefBase + DefIncrementLvl * GetStatGrowthLevel() + DefIncrementUpgrade * DefUpgrade);
         }
 
         public virtual float GetDerivedCritChance()
@@ -913,17 +1568,42 @@ namespace Entities
 
         public virtual float GetDerivedCritDamage()
         {
-            return 1.5f + Mathf.Max(0, GetBaseLuk() - 10) * 0.005f;
+            return 1.5f;
         }
 
         public virtual float GetDerivedCodeAcceleration()
         {
-            return 1f + Mathf.Max(0, GetBaseDex() - 10) * 0.01f;
+            return 1f;
+        }
+
+        public virtual float GetDerivedAttackSpeed()
+        {
+            return 1f + Mathf.Max(0, GetBaseDex()) * 0.01f;
         }
 
         public virtual float GetDerivedEvasionChance()
         {
-            return Mathf.Clamp(GetBaseDex() * 0.0025f, 0f, 0.4f);
+            return 0f;
+        }
+
+        public virtual float GetDerivedHealingBonus()
+        {
+            return Mathf.Clamp(Mathf.Max(0, GetBaseCon() - 10) * 0.01f, 0f, 2f);
+        }
+
+        public virtual float GetDerivedShieldBonus()
+        {
+            return Mathf.Clamp(Mathf.Max(0, GetBaseCon() - 10) * 0.01f, 0f, 2f);
+        }
+
+        public virtual float GetDerivedManaEfficiency()
+        {
+            return 1f + Mathf.Max(0, GetBaseInt()) * 0.02f;
+        }
+
+        public virtual float GetDerivedCodeActivationChance()
+        {
+            return 1f;
         }
 
         // 기존 파생 스탯 접근자는 하위 호환을 위해 유지한다.
@@ -1007,9 +1687,23 @@ namespace Entities
                 StatusEffects.Add(identifier, effect);
             }
             AttributesUpdate();
+
+            if (effect != null && effect.IsBeneficial)
+            {
+                NotifyBeneficialEffectReceived(effect.Grantor);
+            }
             
             // InfoTab이 열려있고 현재 유닛이 표시되고 있다면 업데이트
             UpdateInfoTabIfShowing();
+        }
+
+        public void NotifyBeneficialEffectReceived(Unit grantor)
+        {
+            Invoke(BaseEnums.UnitEventType.OnBeneficialEffectReceived, new EventContext(this, grantor));
+            if (grantor != null)
+            {
+                grantor.Invoke(BaseEnums.UnitEventType.OnBeneficialEffectGranted, new EventContext(grantor, this));
+            }
         }
 
         public void RemoveStatusEffect(string identifier)
@@ -1020,22 +1714,6 @@ namespace Entities
                 StatusEffects.Remove(identifier);
             }
             AttributesUpdate();
-            
-            // InfoTab이 열려있고 현재 유닛이 표시되고 있다면 업데이트
-            UpdateInfoTabIfShowing();
-        }
-        
-        public void SetSynergyEffect(int synergyId, SynergyEffect effect)
-        {
-            if (effect.Stack == 0)
-            {
-                SynergyEffects.Remove(synergyId);
-            }
-            else
-            {
-                SynergyEffects[synergyId] = effect;
-                Debug.Log($"{UnitName}에게 {effect.SynergyName} {effect.Stack} 시너지 적용");
-            }
             
             // InfoTab이 열려있고 현재 유닛이 표시되고 있다면 업데이트
             UpdateInfoTabIfShowing();
@@ -1055,40 +1733,55 @@ namespace Entities
         }
 
         // 이벤트 리스너 관리
+        // 각 UnitEventType은 하나의 컨텍스트 타입(Action<T>)만 사용한다. 서로 다른 T를
+        // 같은 이벤트에 섞어 등록/발행하면 과거에는 InvalidCastException으로 크래시했으나,
+        // 아래 메서드들은 타입이 어긋나면 크래시 대신 오류 로그를 남기고 무시한다.
         public void AddListener<T>(BaseEnums.UnitEventType eventType, Action<T> action)
         {
-            if (!_eventDict.ContainsKey(eventType))
+            if (action == null) return;
+
+            if (!_eventDict.TryGetValue(eventType, out var existing) || existing == null)
             {
-                RemoveAllListeners(eventType);
+                _eventDict[eventType] = action;
+                return;
             }
-            _eventDict[eventType] = (Action<T>)_eventDict[eventType] + action;
+
+            if (existing is Action<T> typed)
+            {
+                _eventDict[eventType] = typed + action;
+            }
+            else
+            {
+                Debug.LogError($"[Unit] 이벤트 {eventType}에 이미 {existing.GetType()} 리스너가 등록되어 있어 {typeof(Action<T>)} 리스너를 추가할 수 없습니다.");
+            }
         }
 
         public void RemoveListener<T>(BaseEnums.UnitEventType eventType, Action<T> action)
         {
-            if (_eventDict.ContainsKey(eventType))
+            if (action == null) return;
+
+            if (_eventDict.TryGetValue(eventType, out var existing) && existing is Action<T> typed)
             {
-                _eventDict[eventType] = (Action<T>)_eventDict[eventType] - action;
+                _eventDict[eventType] = typed - action;
             }
         }
 
         public void RemoveAllListeners(BaseEnums.UnitEventType eventType)
         {
-            if (_eventDict.ContainsKey(eventType))
-            {
-                _eventDict[eventType] = null;
-            }
-            else
-            {
-                _eventDict.Add(eventType, null);
-            }
+            _eventDict[eventType] = null;
         }
 
         public void Invoke<T>(BaseEnums.UnitEventType eventType, T context)
         {
-            if (_eventDict.TryGetValue(eventType, out var value))
+            if (!_eventDict.TryGetValue(eventType, out var value) || value == null) return;
+
+            if (value is Action<T> typed)
             {
-                ((Action<T>)value)?.Invoke(context);
+                typed.Invoke(context);
+            }
+            else
+            {
+                Debug.LogError($"[Unit] 이벤트 {eventType} 발행 타입 {typeof(T)}이(가) 등록된 리스너 타입 {value.GetType()}과(와) 일치하지 않습니다.");
             }
         }
         
@@ -1096,11 +1789,6 @@ namespace Entities
         public System.Collections.Generic.Dictionary<string, StatusEffect> GetStatusEffects()
         {
             return StatusEffects;
-        }
-        
-        public System.Collections.Generic.Dictionary<int, SynergyEffect> GetSynergyEffects()
-        {
-            return SynergyEffects;
         }
         
         // ===== 새로운 Status 시스템 메서드들 =====

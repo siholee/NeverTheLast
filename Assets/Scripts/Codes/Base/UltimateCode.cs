@@ -7,6 +7,7 @@ namespace Codes.Base
     public UltimateCode(UltimateCodeContext context)
     {
       Caster = context.Caster;
+      ActivationType = BaseEnums.CodeActivationType.Ultimate;
     }
   }
 }

@@ -9,6 +9,7 @@ namespace Codes.Base
     public NormalCode(NormalCodeContext context)
     {
       Caster = context.Caster;
+      ActivationType = BaseEnums.CodeActivationType.Active;
     }
   }
 }

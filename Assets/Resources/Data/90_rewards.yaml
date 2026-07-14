@@ -7,7 +7,7 @@ rewards:
 
   - id: atk_up
     displayName: STR 강화
-    description: 선택 유닛 STR 강화 +1
+    description: 선택 유닛 아이템 중량 한도 강화 +1
     tier: 1
     atkBonus: 1
 
@@ -31,9 +31,15 @@ rewards:
 
   - id: haste_up
     displayName: DEX 강화
-    description: 선택 유닛 코드 가속 +5%
+    description: 선택 유닛 공격속도 강화
     tier: 3
     codeAccelerationBonus: 0.05
+
+  - id: int_up
+    displayName: INT 강화
+    description: 선택 유닛 마나 회복량과 최대 코드 수 강화 +1
+    tier: 2
+    intBonus: 1
 
   - id: tickets
     displayName: 재정비권
@@ -55,7 +61,7 @@ rewards:
 
   - id: big_atk
     displayName: 큰 STR 강화
-    description: 선택 유닛 STR 강화 +3
+    description: 선택 유닛 아이템 중량 한도 강화 +3
     tier: 4
     atkBonus: 3
 
@@ -66,6 +72,13 @@ rewards:
     atkBonus: 2
     defBonus: 2
     critChanceBonus: 2
+
+  - id: nordic_fury
+    displayName: 노르드의 격노
+    description: 노르드 테마 전용 보상. 선택 유닛 STR 강화 +2
+    tier: 3
+    themeIds: [1]
+    atkBonus: 2
 
 rewardTierOdds:
   - round: 1

@@ -23,11 +23,11 @@ namespace Managers.UI
         [Header("Status Effects")]
         public TMPro.TextMeshProUGUI statusEffectsText;
         
-        [Header("Synergy Information")]
-        public GameObject synergyTag1;
-        public GameObject synergyTag2;
-        public TMPro.TextMeshProUGUI synergyText1;
-        public TMPro.TextMeshProUGUI synergyText2;
+        [Header("Identity Information")]
+        public GameObject identityTag1;
+        public GameObject identityTag2;
+        public TMPro.TextMeshProUGUI elementText;
+        public TMPro.TextMeshProUGUI classText;
         
         [Header("Tab System")]
         public GameObject tab1Content;
@@ -135,7 +135,7 @@ namespace Managers.UI
             if (coolDownText != null) coolDownText.text = $"{currentDisplayedUnit.normalCooldown:F1}s";
             
             UpdateStatusEffects(currentDisplayedUnit);
-            UpdateSynergyInfo(currentDisplayedUnit);
+            UpdateIdentityInfo(currentDisplayedUnit);
             
             if (upgradePosText != null) upgradePosText.text = "Upgrade Rate: 50%";
             if (upgradeFailText != null) upgradeFailText.text = "Fail Rate: 50%";
@@ -199,25 +199,6 @@ namespace Managers.UI
                 }
             }
 
-            // 시너지 효과 (기존 시스템)
-            var synergyEffects = unit.GetSynergyEffects();
-            if (synergyEffects != null && synergyEffects.Count > 0)
-            {
-                foreach (var synergy in synergyEffects)
-                {
-                    hasAnyEffect = true;
-                    string synergyName = synergy.Value.SynergyName ?? $"시너지 {synergy.Key}";
-                    string stack = synergy.Value.Stack > 1 ? $" (x{synergy.Value.Stack})" : "";
-                    string description = synergy.Value.SynergyDescription ?? GetSynergyEffectDescription(synergy.Value);
-                    
-                    statusBuilder.AppendLine($"• <color=#44aaff>{synergyName}</color>{stack}");
-                    statusBuilder.AppendLine($"  타입: 시너지");
-                    if (!string.IsNullOrEmpty(description))
-                        statusBuilder.AppendLine($"  효과: {description}");
-                    statusBuilder.AppendLine();
-                }
-            }
-
             if (!hasAnyEffect)
             {
                 statusBuilder.AppendLine("없음");
@@ -247,7 +228,6 @@ namespace Managers.UI
             if (identifier.Contains("PoisonEffect")) return "맹독";
             if (identifier.Contains("Burn")) return "화상";
             if (identifier.Contains("HolyEnchant")) return "신성한 인챈트";
-            if (identifier.Contains("HealingModified")) return "치유 변화";
             if (identifier.Contains("Shield")) return "방어막";
             
             return identifier;
@@ -257,34 +237,13 @@ namespace Managers.UI
         {
             StringBuilder desc = new StringBuilder();
 
-            if (effect.AtkMultiplicativeModifier(null) != 0f)
-                desc.Append($"공격력 {(effect.AtkMultiplicativeModifier(null) * 100):+0;-0}% ");
-            if (effect.AtkAdditiveModifier(null) != 0)
-                desc.Append($"공격력 {effect.AtkAdditiveModifier(null):+0;-0} ");
-                
-            if (effect.DefMultiplicativeModifier(null) != 0f)
-                desc.Append($"방어력 {(effect.DefMultiplicativeModifier(null) * 100):+0;-0}% ");
-            if (effect.DefAdditiveModifier(null) != 0)
-                desc.Append($"방어력 {effect.DefAdditiveModifier(null):+0;-0} ");
-                
-            if (effect.HpMultiplicativeModifier(null) != 0f)
-                desc.Append($"체력 {(effect.HpMultiplicativeModifier(null) * 100):+0;-0}% ");
-            if (effect.HpAdditiveModifier(null) != 0)
-                desc.Append($"체력 {effect.HpAdditiveModifier(null):+0;-0} ");
-                
             if (effect.CritChanceAdditiveModifier(null) != 0f)
                 desc.Append($"치명타율 {(effect.CritChanceAdditiveModifier(null) * 100):+0;-0}% ");
             if (effect.CritMultiplierAdditiveModifier(null) != 0f)
                 desc.Append($"치명타 배율 {(effect.CritMultiplierAdditiveModifier(null) * 100):+0;-0}% ");
                 
-            if (effect.CodeAccelerationMultiplicativeModifier(null) != 0f)
-                desc.Append($"코드 가속 {(effect.CodeAccelerationMultiplicativeModifier(null) * 100):+0;-0}% ");
-                
             if (effect.ReceivingDamageModifier(null) != 1f)
                 desc.Append($"받는 피해 {((effect.ReceivingDamageModifier(null) - 1f) * 100):+0;-0}% ");
-                
-            if (effect.HealingReceivedModifier(null) != 1f)
-                desc.Append($"치유량 {((effect.HealingReceivedModifier(null) - 1f) * 100):+0;-0}% ");
 
             if (effect is IHpChangeEffect hpChangeEffect)
             {
@@ -297,87 +256,32 @@ namespace Managers.UI
             return desc.ToString().Trim();
         }
 
-        private string GetSynergyEffectDescription(SynergyEffect effect)
-        {
-            StringBuilder desc = new StringBuilder();
-            
-            if (effect.AtkMultiplicativeModifier(null) != 0f)
-                desc.Append($"공격력 {(effect.AtkMultiplicativeModifier(null) * 100):+0;-0}% ");
-            if (effect.AtkAdditiveModifier(null) != 0)
-                desc.Append($"공격력 {effect.AtkAdditiveModifier(null):+0;-0} ");
-                
-            if (effect.DefMultiplicativeModifier(null) != 0f)
-                desc.Append($"방어력 {(effect.DefMultiplicativeModifier(null) * 100):+0;-0}% ");
-            if (effect.DefAdditiveModifier(null) != 0)
-                desc.Append($"방어력 {effect.DefAdditiveModifier(null):+0;-0} ");
-                
-            if (effect.HpMultiplicativeModifier(null) != 0f)
-                desc.Append($"체력 {(effect.HpMultiplicativeModifier(null) * 100):+0;-0}% ");
-            if (effect.HpAdditiveModifier(null) != 0)
-                desc.Append($"체력 {effect.HpAdditiveModifier(null):+0;-0} ");
-                
-            if (effect.CritChanceAdditiveModifier(null) != 0f)
-                desc.Append($"치명타율 {(effect.CritChanceAdditiveModifier(null) * 100):+0;-0}% ");
-            if (effect.CritMultiplierAdditiveModifier(null) != 0f)
-                desc.Append($"치명타 배율 {(effect.CritMultiplierAdditiveModifier(null) * 100):+0;-0}% ");
-                
-            if (effect.CodeAccelerationMultiplicativeModifier(null) != 0f)
-                desc.Append($"코드 가속 {(effect.CodeAccelerationMultiplicativeModifier(null) * 100):+0;-0}% ");
-
-            return desc.ToString().Trim();
-        }
-        
-        private void UpdateSynergyInfo(Entities.Unit unit)
+        private void UpdateIdentityInfo(Entities.Unit unit)
         {
             if (unit == null) return;
-            
-            var synergies = unit.Synergies;
-            
-            if (synergies.Count > 0)
+
+            if (!string.IsNullOrWhiteSpace(unit.Element))
             {
-                if (synergyTag1 != null) synergyTag1.SetActive(true);
-                
-                if (synergyText1 != null)
+                if (identityTag1 != null) identityTag1.SetActive(true);
+                if (elementText != null)
                 {
-                    var synergyData = GetSynergyData(synergies[0]);
-                    synergyText1.text = synergyData?.name ?? $"시너지 {synergies[0]}";
+                    elementText.text = $"원소: {unit.GetCombatElementDisplay()} | 중량 {unit.CarryWeightCurrent}/{unit.CarryWeightMax} | 코드 {unit.LearnedCodeCount}/{unit.MaxCodeCount}";
                 }
             }
             else
             {
-                if (synergyTag1 != null) synergyTag1.SetActive(false);
+                if (identityTag1 != null) identityTag1.SetActive(false);
             }
             
-            if (synergies.Count > 1)
+            if (!string.IsNullOrWhiteSpace(unit.MainStat) || !string.IsNullOrWhiteSpace(unit.SubStat))
             {
-                if (synergyTag2 != null) synergyTag2.SetActive(true);
-                
-                if (synergyText2 != null)
-                {
-                    var synergyData = GetSynergyData(synergies[1]);
-                    synergyText2.text = synergyData?.name ?? $"시너지 {synergies[1]}";
-                }
+                if (identityTag2 != null) identityTag2.SetActive(true);
+                if (classText != null) classText.text = $"스탯: {unit.MainStat} / {unit.SubStat}";
             }
             else
             {
-                if (synergyTag2 != null) synergyTag2.SetActive(false);
+                if (identityTag2 != null) identityTag2.SetActive(false);
             }
-        }
-        
-        private SynergyData GetSynergyData(int synergyId)
-        {
-            var gameManager = Managers.GameManager.Instance;
-            if (gameManager?.synergyDataList?.synergies == null) return null;
-            
-            foreach (var synergy in gameManager.synergyDataList.synergies)
-            {
-                if (synergy.id == synergyId)
-                {
-                    return synergy;
-                }
-            }
-            
-            return null;
         }
     }
 }

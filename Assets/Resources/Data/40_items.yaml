@@ -1,0 +1,88 @@
+items:
+  - id: 4001
+    name: 평범한 로브
+    slot: Armor
+    category: LightArmor
+    requiredProficiency: LightArmor
+    rarity: 1
+    weight: 2
+    statBonuses:
+      - stat: CON
+        amount: 1
+
+  - id: 4002
+    name: 나무 지팡이
+    slot: MainHand
+    category: Wand
+    requiredProficiency: Wand
+    rarity: 1
+    weight: 2
+    statBonuses:
+      - stat: INT
+        amount: 1
+    codeGrants:
+      - slot: normal
+        codeId: 10
+        stage: 1
+
+  - id: 4003
+    name: 녹슨 활
+    slot: MainHand
+    category: Longbow
+    requiredProficiency: Longbow
+    rarity: 1
+    weight: 4
+    twoHanded: true
+    statBonuses:
+      - stat: DEX
+        amount: 1
+    codeGrants:
+      - slot: normal
+        codeId: 11
+        stage: 1
+
+  - id: 4004
+    name: 평범한 갑옷
+    slot: Armor
+    category: HeavyArmor
+    requiredProficiency: HeavyArmor
+    rarity: 1
+    weight: 6
+    statBonuses:
+      - stat: CON
+        amount: 2
+    codeGrants:
+      - slot: passive
+        codeId: 10
+        stage: 1
+
+  - id: 4005
+    name: 녹슨 방패
+    slot: OffHand
+    category: Shield
+    requiredProficiency: Shield
+    rarity: 1
+    weight: 3
+    statBonuses:
+      - stat: STR
+        amount: 1
+    codeGrants:
+      - slot: passive
+        codeId: 11
+        stage: 1
+
+  - id: 4010
+    name: 마카나
+    slot: MainHand
+    category: Sword
+    requiredProficiency: Sword
+    rarity: 5
+    weight: 3
+    eventOnly: true
+    statBonuses:
+      - stat: LUK
+        amount: 2
+    codeGrants:
+      - slot: passive
+        codeId: 90
+        stage: 1

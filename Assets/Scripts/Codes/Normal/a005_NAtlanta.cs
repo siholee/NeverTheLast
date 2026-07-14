@@ -34,7 +34,13 @@ namespace Codes.Normal
         /// </summary>
         protected override List<int> GetDamageTags()
         {
-            List<int> tags = new List<int> { Helpers.DamageTag.SingleTarget, Helpers.DamageTag.NormalAttack, Helpers.DamageTag.NonContactAttack };
+            List<int> tags = new List<int>
+            {
+                Helpers.DamageTag.SingleTarget,
+                Helpers.DamageTag.NormalAttack,
+                Helpers.DamageTag.NonContactAttack,
+                Helpers.DamageTag.Physical,
+            };
             return tags;
         }
 

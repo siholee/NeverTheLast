@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
+using Core;
 using Entities;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -407,12 +408,25 @@ namespace Managers
                 
                 unitComponent.currentCell = cell;
                 unitComponent.Spawn(cell, isEnemy, unitId);
+                UnlockStarterIfJoinedDuringRun(isEnemy, unitId);
                 // Debug.Log($"Spawned {(isEnemy ? "enemy" : "hero")} unit {unitComponent.UnitName} at {(isBench ? "bench" : $"({xPos}, {yPos})")}");
             }
             else
             {
                 Debug.LogError($"Failed to get Unit component from spawned object");
             }
+        }
+
+        private static void UnlockStarterIfJoinedDuringRun(bool isEnemy, int unitId)
+        {
+            if (isEnemy || unitId <= 0 || GameManager.Instance == null) return;
+            if (GameManager.Instance.CurrentMode != BaseClasses.BaseEnums.GameMode.Training) return;
+
+            bool selectedAtStart = CharacterSelectionManager.Instance?.Lineup
+                .Any(entry => entry.UnitId == unitId) ?? false;
+            if (selectedAtStart) return;
+
+            SaveSystem.AddStarterUnlock(unitId);
         }
         
         public void SelectUnit(int xPos, int yPos)
@@ -632,6 +646,17 @@ namespace Managers
                 }
             }
             return true; // 모든 적 측 셀이 비어있음
+        }
+
+        public void ClearActiveEnemies()
+        {
+            foreach (Unit enemy in enemyList.ToList())
+            {
+                if (enemy != null && enemy.isActive && enemy.IsEnemy)
+                {
+                    enemy.DeactivateUnit();
+                }
+            }
         }
     }
 }

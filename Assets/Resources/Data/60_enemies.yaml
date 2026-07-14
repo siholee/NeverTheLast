@@ -1,10 +1,15 @@
 enemies:
-  # ?�르??진영 ?�반 ??
-  # 처형??(Executioner) - Row 1
   - id: 1001
-    name: 발키�?
-    faction: 3  # ?�르??
-    class: 9    # 처형??
+    name: 발키리
+    themeId: 3
+    archetype: 9
+    element: None
+    classLevels:
+      - className: Ranger
+        level: 3
+    subclasses:
+      - className: Ranger
+        subclassName: Thief
     tier: normal
     hpBase: 15000
     hpIncrementLvl: 1500
@@ -28,11 +33,17 @@ enemies:
       ultimate: 100
     portrait: SEI_PORTRAIT
 
-  # ?�사 (Warrior) - Row 1
   - id: 1002
-    name: 광전??
-    faction: 3  # ?�르??
-    class: 8    # ?�사
+    name: 광전사
+    themeId: 3
+    archetype: 8
+    element: Pyro
+    classLevels:
+      - className: Fighter
+        level: 3
+    subclasses:
+      - className: Fighter
+        subclassName: Barbarian
     tier: normal
     hpBase: 25000
     hpIncrementLvl: 2000
@@ -57,9 +68,13 @@ enemies:
     portrait: SEI_PORTRAIT
 
   - id: 1003
-    name: ?�스카�?
-    faction: 3  # ?�르??
-    class: 8    # ?�사
+    name: 허스카를
+    themeId: 3
+    archetype: 8
+    element: Cryo
+    classLevels:
+      - className: Fighter
+        level: 1
     tier: normal
     hpBase: 22000
     hpIncrementLvl: 1800
@@ -83,11 +98,17 @@ enemies:
       ultimate: 100
     portrait: SEI_PORTRAIT
 
-  # ?�수�?(Guardian) - Row 1
   - id: 1004
-    name: ?�스비킹
-    faction: 3  # ?�르??
-    class: 7    # ?�수�?
+    name: 방패 바이킹
+    themeId: 3
+    archetype: 7
+    element: Geo
+    classLevels:
+      - className: Guardian
+        level: 3
+    subclasses:
+      - className: Guardian
+        subclassName: Paladin
     tier: normal
     hpBase: 35000
     hpIncrementLvl: 3000
@@ -111,11 +132,14 @@ enemies:
       ultimate: 100
     portrait: SEI_PORTRAIT
 
-  # ?�수 (Archer) - Row 3
   - id: 1005
-    name: ?�시�??�수
-    faction: 3  # ?�르??
-    class: 10   # ?�수
+    name: 노르드 궁수
+    themeId: 3
+    archetype: 10
+    element: Anemo
+    classLevels:
+      - className: Ranger
+        level: 1
     tier: normal
     hpBase: 12000
     hpIncrementLvl: 1000
@@ -139,11 +163,17 @@ enemies:
       ultimate: 100
     portrait: SEI_PORTRAIT
 
-  # 마법??(Mage) - Row 3
   - id: 1006
-    name: 감반?�인
-    faction: 3  # ?�르??
-    class: 11   # 마법??
+    name: 룬술사
+    themeId: 3
+    archetype: 11
+    element: Electro
+    classLevels:
+      - className: Mage
+        level: 3
+    subclasses:
+      - className: Mage
+        subclassName: Wizard
     tier: normal
     hpBase: 10000
     hpIncrementLvl: 800
@@ -167,11 +197,17 @@ enemies:
       ultimate: 100
     portrait: SEI_PORTRAIT
 
-  # 책략가 (Tactician) - Row 2
   - id: 1007
-    name: ?�리?�스캴프
-    faction: 3  # ?�르??
-    class: 12   # 책략가
+    name: 전술가
+    themeId: 3
+    archetype: 12
+    element: None
+    classLevels:
+      - className: Priest
+        level: 3
+    subclasses:
+      - className: Priest
+        subclassName: Herald
     tier: normal
     hpBase: 13000
     hpIncrementLvl: 1100
@@ -195,11 +231,14 @@ enemies:
       ultimate: 100
     portrait: SEI_PORTRAIT
 
-  # 메카??(Mechanic) - Row 2
   - id: 1008
-    name: ?�이??
-    faction: 3  # ?�르??
-    class: 13   # 메카??
+    name: 장인
+    themeId: 3
+    archetype: 13
+    element: Geo
+    classLevels:
+      - className: Mage
+        level: 1
     tier: normal
     hpBase: 14000
     hpIncrementLvl: 1200
@@ -223,11 +262,17 @@ enemies:
       ultimate: 100
     portrait: SEI_PORTRAIT
 
-  # 지?��? (Support) - Row 2
   - id: 1009
-    name: 바니�??�제
-    faction: 3  # ?�르??
-    class: 14   # 지?��?
+    name: 치유사
+    themeId: 3
+    archetype: 14
+    element: Hydro
+    classLevels:
+      - className: Priest
+        level: 3
+    subclasses:
+      - className: Priest
+        subclassName: Cleric
     tier: normal
     hpBase: 11000
     hpIncrementLvl: 900
@@ -251,11 +296,17 @@ enemies:
       ultimate: 100
     portrait: SEI_PORTRAIT
 
-  # ?�리????
   - id: 2001
-    name: ?�임??
-    faction: 3  # ?�르??
-    class: 7    # ?�수�?
+    name: 야를
+    themeId: 3
+    archetype: 7
+    element: Cryo
+    classLevels:
+      - className: Guardian
+        level: 3
+    subclasses:
+      - className: Guardian
+        subclassName: Paladin
     tier: elite
     hpBase: 80000
     hpIncrementLvl: 7000
@@ -280,9 +331,16 @@ enemies:
     portrait: SEI_PORTRAIT
 
   - id: 2002
-    name: ?�르
-    faction: 3  # ?�르??
-    class: 8    # ?�사
+    name: 우르
+    themeId: 3
+    archetype: 8
+    element: Pyro
+    classLevels:
+      - className: Fighter
+        level: 3
+    subclasses:
+      - className: Fighter
+        subclassName: Barbarian
     tier: elite
     hpBase: 70000
     hpIncrementLvl: 6000
@@ -306,11 +364,17 @@ enemies:
       ultimate: 100
     portrait: SEI_PORTRAIT
 
-  # 보스 ??
   - id: 3001
-    name: ?�딘
-    faction: 3  # ?�르??
-    class: 11   # 마법??
+    name: 오딘
+    themeId: 3
+    archetype: 11
+    element: Electro
+    classLevels:
+      - className: Mage
+        level: 3
+    subclasses:
+      - className: Mage
+        subclassName: Wizard
     tier: boss
     hpBase: 150000
     hpIncrementLvl: 12000
@@ -333,3 +397,194 @@ enemies:
       normal: 100
       ultimate: 100
     portrait: SEI_PORTRAIT
+
+  - id: 1010
+    name: 재규어전사
+    themeId: 4
+    archetype: 7
+    element: Dendro
+    tier: normal
+    strBase: 12
+    strIncrementLvl: 1
+    dexBase: 10
+    dexIncrementLvl: 1
+    conBase: 18
+    conIncrementLvl: 2
+    intBase: 5
+    lukBase: 8
+    lukIncrementLvl: 1
+    atkBase: 650
+    atkIncrementLvl: 55
+    defBase: 90
+    defIncrementLvl: 12
+    manaBase: 100
+    codes: { passive: 100, normal: 100, ultimate: 100 }
+    portrait: ATALANTE_PORTRAIT
+
+  - id: 1011
+    name: 독수리전사
+    themeId: 4
+    archetype: 8
+    element: Anemo
+    tier: normal
+    strBase: 10
+    strIncrementLvl: 1
+    dexBase: 18
+    dexIncrementLvl: 2
+    conBase: 14
+    conIncrementLvl: 1
+    intBase: 7
+    lukBase: 12
+    lukIncrementLvl: 1
+    atkBase: 720
+    atkIncrementLvl: 65
+    defBase: 65
+    defIncrementLvl: 9
+    manaBase: 100
+    codes: { passive: 100, normal: 100, ultimate: 100 }
+    portrait: ATALANTE_PORTRAIT
+
+  - id: 1012
+    name: 피필틴
+    themeId: 4
+    archetype: 10
+    element: Dendro
+    tier: normal
+    strBase: 5
+    dexBase: 11
+    dexIncrementLvl: 1
+    conBase: 10
+    conIncrementLvl: 1
+    intBase: 20
+    intIncrementLvl: 2
+    lukBase: 10
+    lukIncrementLvl: 1
+    atkBase: 850
+    atkIncrementLvl: 75
+    defBase: 45
+    defIncrementLvl: 7
+    manaBase: 100
+    codes: { passive: 100, normal: 100, ultimate: 100 }
+    portrait: CHANDRA_PORTRAIT
+
+  - id: 2003
+    name: 틀랄록
+    themeId: 4
+    archetype: 11
+    element: Hydro
+    tier: elite
+    strBase: 14
+    strIncrementLvl: 1
+    dexBase: 12
+    dexIncrementLvl: 1
+    conBase: 75
+    conIncrementLvl: 5
+    intBase: 30
+    intIncrementLvl: 2
+    lukBase: 12
+    lukIncrementLvl: 1
+    atkBase: 1300
+    atkIncrementLvl: 110
+    defBase: 220
+    defIncrementLvl: 25
+    manaBase: 100
+    codes: { passive: 100, normal: 100, ultimate: 100 }
+    portrait: CHANDRA_PORTRAIT
+
+  - id: 3002
+    name: 테스카틀리포카
+    themeId: 4
+    archetype: 11
+    element: Void
+    tier: boss
+    strBase: 22
+    strIncrementLvl: 2
+    dexBase: 18
+    dexIncrementLvl: 1
+    conBase: 140
+    conIncrementLvl: 9
+    intBase: 45
+    intIncrementLvl: 3
+    lukBase: 20
+    lukIncrementLvl: 1
+    atkBase: 2400
+    atkIncrementLvl: 210
+    defBase: 380
+    defIncrementLvl: 40
+    manaBase: 100
+    codes: { passive: 100, normal: 100, ultimate: 100 }
+    portrait: SHI_PORTRAIT
+
+  - id: 3201
+    name: 케찰코아틀
+    themeId: 4
+    archetype: 11
+    element: Dendro
+    tier: boss
+    strBase: 12
+    strIncrementLvl: 1
+    dexBase: 14
+    dexIncrementLvl: 1
+    conBase: 95
+    conIncrementLvl: 6
+    intBase: 42
+    intIncrementLvl: 3
+    lukBase: 18
+    lukIncrementLvl: 1
+    atkBase: 900
+    atkIncrementLvl: 80
+    defBase: 180
+    defIncrementLvl: 20
+    manaBase: 100
+    codes: { passive: 70, normal: 70, ultimate: 70 }
+    codeStages: { passive: 3, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 80, unlockLevel: 0, stage: 1 }
+      - { codeId: 71, unlockLevel: 1, stage: 1 }
+      - { codeId: 72, unlockLevel: 6, stage: 1 }
+      - { codeId: 73, unlockLevel: 14, stage: 1 }
+      - { codeId: 74, unlockLevel: 18, stage: 1 }
+      - { codeId: 75, unlockLevel: 22, stage: 1 }
+      - { codeId: 76, unlockLevel: 26, stage: 1 }
+      - { codeId: 77, unlockLevel: 38, stage: 1 }
+      - { codeId: 78, unlockLevel: 42, stage: 1 }
+      - { codeId: 79, unlockLevel: 55, stage: 1 }
+    portrait: ATALANTE_PORTRAIT
+
+  - id: 3202
+    name: 격노한 케찰코아틀
+    themeId: 4
+    archetype: 11
+    element: Dendro
+    tier: boss
+    strBase: 18
+    strIncrementLvl: 2
+    dexBase: 20
+    dexIncrementLvl: 2
+    conBase: 150
+    conIncrementLvl: 10
+    intBase: 80
+    intIncrementLvl: 5
+    lukBase: 25
+    lukIncrementLvl: 2
+    atkBase: 1500
+    atkIncrementLvl: 130
+    defBase: 300
+    defIncrementLvl: 30
+    manaBase: 100
+    codes: { passive: 70, normal: 70, ultimate: 70 }
+    codeStages: { passive: 3, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 71, unlockLevel: 0, stage: 1 }
+      - { codeId: 72, unlockLevel: 0, stage: 1 }
+      - { codeId: 73, unlockLevel: 0, stage: 1 }
+      - { codeId: 74, unlockLevel: 0, stage: 1 }
+      - { codeId: 75, unlockLevel: 0, stage: 1 }
+      - { codeId: 76, unlockLevel: 0, stage: 1 }
+      - { codeId: 77, unlockLevel: 0, stage: 1 }
+      - { codeId: 78, unlockLevel: 0, stage: 1 }
+      - { codeId: 79, unlockLevel: 0, stage: 1 }
+      - { codeId: 80, unlockLevel: 0, stage: 1 }
+      - { codeId: 81, unlockLevel: 0, stage: 1 }
+      - { codeId: 82, unlockLevel: 0, stage: 1 }
+    portrait: ATALANTE_PORTRAIT

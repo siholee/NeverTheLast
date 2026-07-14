@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Entities;
-using StatusEffects.Base;
 using UnityEngine;
 
 namespace Managers
@@ -12,8 +11,16 @@ namespace Managers
         public int Stage { get; private set; }  // 현재 전투 스테이지
         public int Round { get; private set; }  // 10스테이지마다 증가하는 라운드
         public int EnemyLevel => Mathf.Max(0, Stage - 1);
+        public int StageInRound => ((Stage - 1) % 10) + 1;
+        public int CurrentThemeId => _currentStageTheme?.id ?? 0;
+        public string CurrentThemeName => _currentStageTheme?.name ?? "";
+        public bool IsCurrentBossStage => IsBossStage(Stage);
+        public bool IsCurrentEventStage { get; private set; }
         public bool IsRoundInProgress { get; private set; }
+        public StageEventData CurrentEventData => _stageThemeDataList?.events?
+            .FirstOrDefault(data => data.themeId == CurrentThemeId && data.stageInRound == StageInRound);
 
+        private StageThemeDataList _stageThemeDataList;
         private StageThemeData _currentStageTheme;
         private EnemyDataList _enemyDataList;
         private RoundTypeDataList _roundTypeDataList;
@@ -38,21 +45,8 @@ namespace Managers
             Stage = Mathf.Max(1, stageNumber);
             Round = GetRewardRound(Stage);
             
-            // 스테이지 테마 데이터 로드
-            StageThemeDataList themeDataList = _dataManager.FetchStageThemeDataList();
-            if (themeDataList == null || themeDataList.stageThemes.Count == 0)
-            {
-                Debug.LogError("Failed to load stage theme data.");
-                return;
-            }
-            
-            // 랜덤으로 스테이지 테마 선택 (현재는 노르드만 있음)
-            _currentStageTheme = themeDataList.stageThemes[Random.Range(0, themeDataList.stageThemes.Count)];
-            Debug.Log($"Stage {Stage} theme: {_currentStageTheme.name}");
-            
-            // 적 데이터와 라운드 타입 데이터 로드
-            _enemyDataList = _dataManager.FetchEnemyDataList();
-            _roundTypeDataList = _dataManager.FetchRoundTypeDataList();
+            EnsureDataLoaded();
+            EnsureThemeForCurrentRound();
         }
 
         /// <summary>
@@ -62,10 +56,22 @@ namespace Managers
         {
             Stage = Mathf.Max(1, roundNumber);
             Round = GetRewardRound(Stage);
+            IsCurrentEventStage = false;
             
-            if (_enemyDataList == null || _roundTypeDataList == null)
+            EnsureDataLoaded();
+            EnsureThemeForCurrentRound();
+
+            if (_enemyDataList == null || _roundTypeDataList == null || _currentStageTheme == null)
             {
-                Debug.LogError("Enemy data or round type data not loaded.");
+                Debug.LogError("Enemy data, round type data, or stage theme data not loaded.");
+                return;
+            }
+
+            if (IsEventStage())
+            {
+                IsCurrentEventStage = true;
+                IsRoundInProgress = false;
+                Debug.Log($"Battle Stage {Stage}, Reward Round {Round} is event stage for theme {CurrentThemeName}");
                 return;
             }
             
@@ -86,14 +92,15 @@ namespace Managers
                 Debug.LogError($"RoundType {roundTypeId} not found.");
                 return;
             }
+
+            if (roundType.isBoss && CurrentRoundHasFixedBoss())
+            {
+                roundType = _roundTypeDataList.roundTypes.FirstOrDefault(rt => !rt.isBoss && !rt.isElite) ?? roundType;
+            }
             
             // 적 소환
-            SpawnEnemiesForRound(roundType);
+            SpawnEnemiesForStage(roundType);
             
-            // 시너지 계산 및 적용
-            GameManager.Instance.CalculateSynergies();
-            ApplySynergyEffects();
-
             Debug.Log($"Battle Stage {Stage}, Reward Round {Round} started with {roundType.name}");
             IsRoundInProgress = true;
         }
@@ -121,17 +128,125 @@ namespace Managers
             return Mathf.Max(1, ((battleStage - 1) / 10) + 1);
         }
 
+        private void EnsureDataLoaded()
+        {
+            _stageThemeDataList ??= _dataManager.FetchStageThemeDataList();
+            _enemyDataList ??= _dataManager.FetchEnemyDataList();
+            _roundTypeDataList ??= _dataManager.FetchRoundTypeDataList();
+        }
+
+        private void EnsureThemeForCurrentRound()
+        {
+            if (_stageThemeDataList?.stageThemes == null || _stageThemeDataList.stageThemes.Count == 0)
+            {
+                Debug.LogError("Failed to load stage theme data.");
+                return;
+            }
+
+            int themeIndex = (Round - 1) % _stageThemeDataList.stageThemes.Count;
+            StageThemeData selectedTheme = _stageThemeDataList.stageThemes[themeIndex];
+            if (_currentStageTheme?.id == selectedTheme.id) return;
+
+            _currentStageTheme = selectedTheme;
+            Debug.Log($"Round {Round} theme: {_currentStageTheme.name}");
+        }
+
+        private bool IsEventStage()
+        {
+            if (CurrentEventData != null) return true;
+            return StageInRound == 5 && !IsFixedBossStage(Stage);
+        }
+
+        private bool IsFixedBossStage(int stage)
+        {
+            return GetFixedBossId(stage) > 0;
+        }
+
+        private bool CurrentRoundHasFixedBoss()
+        {
+            if (_stageThemeDataList?.fixedBossStages == null) return false;
+
+            return _stageThemeDataList.fixedBossStages.Any(data => GetRewardRound(data.stage) == Round);
+        }
+
+        private bool IsBossStage(int stage)
+        {
+            if (GetFixedBossId(stage) > 0) return true;
+
+            int stageInRound = ((stage - 1) % 10) + 1;
+            return (stageInRound == 10 && !CurrentRoundHasFixedBoss()) ||
+                   (stageInRound == 9 && CurrentRoundHasFixedBoss());
+        }
+
+        private int GetFixedBossId(int stage)
+        {
+            FixedBossStageData fixedBoss = _stageThemeDataList?.fixedBossStages?
+                .FirstOrDefault(data => data.stage == stage);
+            return fixedBoss?.bossId ?? 0;
+        }
+
         public void StopRound()
         {
             IsRoundInProgress = false;
         }
 
+        public bool StartEventBattle(int enemyId)
+        {
+            if (enemyId <= 0) return false;
+            EnsureDataLoaded();
+            IsCurrentEventStage = false;
+            IsRoundInProgress = true;
+            PlaceEnemies(new List<int> { enemyId });
+            return true;
+        }
+
         /// <summary>
         /// 라운드 타입에 따라 적을 소환
         /// </summary>
-        private void SpawnEnemiesForRound(RoundTypeData roundType)
+        private void SpawnEnemiesForStage(RoundTypeData roundType)
         {
             List<int> enemyIdsToSpawn = new List<int>();
+
+            int fixedBossId = GetFixedBossId(Stage);
+            if (fixedBossId > 0)
+            {
+                enemyIdsToSpawn.Add(fixedBossId);
+                PlaceEnemies(enemyIdsToSpawn);
+                return;
+            }
+
+            if (StageInRound == 8 && _currentStageTheme.midBossId > 0)
+            {
+                enemyIdsToSpawn.Add(_currentStageTheme.midBossId);
+                PlaceEnemies(enemyIdsToSpawn);
+                return;
+            }
+
+            bool isThemeBossStage = (StageInRound == 10 && !CurrentRoundHasFixedBoss()) ||
+                                    (StageInRound == 9 && CurrentRoundHasFixedBoss());
+            if (isThemeBossStage && _currentStageTheme.bossId > 0)
+            {
+                enemyIdsToSpawn.Add(_currentStageTheme.bossId);
+                PlaceEnemies(enemyIdsToSpawn);
+                return;
+            }
+
+            ThemeStagePatternData themeStagePattern = _currentStageTheme.stagePatterns?
+                .FirstOrDefault(data => data.stageInRound == StageInRound);
+            if (themeStagePattern?.patterns != null && themeStagePattern.patterns.Count > 0)
+            {
+                RoundPattern themePattern = SelectRandomPattern(themeStagePattern.patterns);
+                if (themePattern?.archetypes != null)
+                {
+                    foreach (int archetypeId in themePattern.archetypes)
+                    {
+                        int enemyId = GetRandomEnemyByThemeAndArchetype(_currentStageTheme.enemyThemeId, archetypeId);
+                        if (enemyId != -1) enemyIdsToSpawn.Add(enemyId);
+                    }
+                }
+                PlaceEnemies(enemyIdsToSpawn);
+                return;
+            }
             
             // 패턴 중 하나를 가중치에 따라 랜덤 선택
             RoundPattern selectedPattern = SelectRandomPattern(roundType.patterns);
@@ -147,12 +262,12 @@ namespace Managers
             {
                 enemyIdsToSpawn.Add(selectedPattern.bossId);
                 
-                // 보스 호위 추가 (패턴의 classes)
-                if (selectedPattern.classes != null)
+                // 보스 호위 추가 (패턴의 archetypes)
+                if (selectedPattern.archetypes != null)
                 {
-                    foreach (int classId in selectedPattern.classes)
+                    foreach (int archetypeId in selectedPattern.archetypes)
                     {
-                        int enemyId = GetRandomEnemyByFactionAndClass(_currentStageTheme.faction, classId);
+                        int enemyId = GetRandomEnemyByThemeAndArchetype(_currentStageTheme.enemyThemeId, archetypeId);
                         if (enemyId != -1) enemyIdsToSpawn.Add(enemyId);
                     }
                 }
@@ -169,12 +284,12 @@ namespace Managers
                     }
                 }
                 
-                // 일반 적 추가 (패턴의 classes)
-                if (selectedPattern.classes != null)
+                // 일반 적 추가 (패턴의 archetypes)
+                if (selectedPattern.archetypes != null)
                 {
-                    foreach (int classId in selectedPattern.classes)
+                    foreach (int archetypeId in selectedPattern.archetypes)
                     {
-                        int enemyId = GetRandomEnemyByFactionAndClass(_currentStageTheme.faction, classId);
+                        int enemyId = GetRandomEnemyByThemeAndArchetype(_currentStageTheme.enemyThemeId, archetypeId);
                         if (enemyId != -1) enemyIdsToSpawn.Add(enemyId);
                     }
                 }
@@ -182,11 +297,11 @@ namespace Managers
             // 일반 라운드
             else
             {
-                if (selectedPattern.classes != null)
+                if (selectedPattern.archetypes != null)
                 {
-                    foreach (int classId in selectedPattern.classes)
+                    foreach (int archetypeId in selectedPattern.archetypes)
                     {
-                        int enemyId = GetRandomEnemyByFactionAndClass(_currentStageTheme.faction, classId);
+                        int enemyId = GetRandomEnemyByThemeAndArchetype(_currentStageTheme.enemyThemeId, archetypeId);
                         if (enemyId != -1) enemyIdsToSpawn.Add(enemyId);
                     }
                 }
@@ -226,17 +341,17 @@ namespace Managers
         }
 
         /// <summary>
-        /// 진영과 직업으로 랜덤 적 ID를 가져옴
+        /// 테마와 적 분류로 랜덤 적 ID를 가져옴
         /// </summary>
-        private int GetRandomEnemyByFactionAndClass(int faction, int classId)
+        private int GetRandomEnemyByThemeAndArchetype(int themeId, int archetypeId)
         {
             List<EnemyData> matchingEnemies = _enemyDataList.enemies
-                .Where(e => e.faction == faction && e.@class == classId && e.tier == "normal")
+                .Where(e => e.themeId == themeId && e.archetype == archetypeId && e.tier == "normal")
                 .ToList();
             
             if (matchingEnemies.Count == 0)
             {
-                Debug.LogWarning($"No enemy found for faction {faction} and class {classId}");
+                Debug.LogWarning($"No enemy found for theme {themeId} and archetype {archetypeId}");
                 return -1;
             }
             
@@ -244,9 +359,9 @@ namespace Managers
         }
 
         /// <summary>
-        /// 적을 배치. 직업에 따라 전열/후열을 결정하고, 같은 열은 y좌표를 1부터 증가
-        /// 전열 (x=1): 처형자(9), 투사(8), 파수꾼(7)
-        /// 후열 (x=2): 사수(10), 마법사(11), 책략가(12), 메카닉(13), 지원가(14)
+        /// 적을 배치. 적 분류에 따라 전열/후열을 결정하고, 같은 열은 y좌표를 1부터 증가
+        /// 전열 (x=1): 7, 8, 9
+        /// 후열 (x=2): 10, 11, 12, 13, 14
         /// </summary>
         private void PlaceEnemies(List<int> enemyIds)
         {
@@ -263,7 +378,7 @@ namespace Managers
                 EnemyData enemy = _enemyDataList.enemies.Find(e => e.id == enemyId);
                 if (enemy == null) continue;
                 
-                int column = GetColumnForClass(enemy.@class);
+                int column = GetColumnForArchetype(enemy.archetype);
                 columnGroups[column].Add(enemyId);
             }
             
@@ -287,28 +402,13 @@ namespace Managers
         }
 
         /// <summary>
-        /// 직업에 따라 Column(xPos) 반환
+        /// 적 분류에 따라 Column(xPos) 반환
         /// </summary>
-        private int GetColumnForClass(int classId)
+        private int GetColumnForArchetype(int archetypeId)
         {
-            // 전열 (x=1): 처형자(9), 투사(8), 파수꾼(7)
-            if (classId == 7 || classId == 8 || classId == 9) return 1;
+            if (archetypeId == 7 || archetypeId == 8 || archetypeId == 9) return 1;
             
-            // 후열 (x=2): 사수(10), 마법사(11), 책략가(12), 메카닉(13), 지원가(14)
             return 2;
-        }
-
-        private void ApplySynergyEffects()
-        {
-            foreach (var synergy in GameManager.Instance.SynergyCounts)
-            {
-                foreach (var unit in GridManager.Instance.heroList)
-                {
-                    var synergyEffect = SynergyEffectFactory.CreateSynergyEffect(synergy.Key);
-                    synergyEffect.SetStack(Mathf.Min(synergy.Value.Count, synergy.Value.MaxCount));
-                    unit.SetSynergyEffect(synergy.Key, synergyEffect);
-                }
-            }
         }
 
         /// <summary>

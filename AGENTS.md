@@ -50,11 +50,18 @@ Three-tier hierarchy under `Scripts/Codes/`:
 
 Each implements: `CastCode()`, `SkillCoroutine()` (coroutine for sustained effects), `StopCode()`, `HasValidTarget()`. New skills are instantiated via `CodeFactory`.
 
-### Status Effects & Synergies
+**Passives per unit (3):** every unit has 1 innate passive (`codes.passive`) plus up to 2 level-unlocked passives (`levelPassives: [{codeId, unlockLevel, stage}]`). `Unit` holds them in `PassiveCodes` (List); `RefreshLevelPassives()` promotes a definition once `PassiveUnlockLevel` (= `Level + TrainingLevel`) reaches its `unlockLevel`.
+
+### Status Effects
 
 - `StatusEffect` base class provides additive/multiplicative modifier methods per stat
-- `SynergyEffect` extends StatusEffect with stack/duration support; instantiated via `SynergyEffectFactory`
-- Synergies are recalculated via `GameManager.CalculateSynergies()` based on active heroes
+- Newer effects use the `UnitStatus` + `BaseEffect`/`EffectFactory` system (list-based, stack policies)
+- **Synergy system removed** (`SynergyEffect`/`SynergyEffectFactory`/`SynergyManager` deleted). Team-composition bonuses are no longer computed.
+
+### Progression (classes removed, training added)
+
+- The BG3-style class-level/subclass system was removed. `unitClass` is now a flat identity tag used only for normal-attack contact typing, equipment proficiency, and training specialty (`ClassCatalog.GetPrimaryStat`).
+- Growth comes from the **training (육성) phase** (`TrainingManager`): between stages the main character trains a chosen stat (boosted by support affinity) and gains training levels that unlock passives #2/#3.
 
 ### Damage Pipeline
 
@@ -69,7 +76,7 @@ YAML data lives in `Assets/Resources/Data/` with numbered prefixes indicating lo
 | `10_units.yaml` | Unit definitions (stats, synergy IDs, code IDs) |
 | `20_codes.yaml` | Skill/code definitions |
 | `30_status.yaml` | Status effect templates (DOT, StatBuff, Stun) |
-| `40_synergies.yaml` | Synergy definitions with max stacks |
+| `40_items.yaml` | Equipment/item definitions (synergy file removed) |
 | `50_elements.yaml` | Element/item data grouped by cost |
 | `60_elites.yaml` | Elite unit data |
 | `70_rounds.yaml` | Round-based enemy spawn queues by cell index |

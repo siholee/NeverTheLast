@@ -23,6 +23,7 @@ namespace Codes.Normal
       CodeName = "기본공격";
       CastingDelay = 0.5f;
       ManaAmount = 10;
+      CodeTags = new List<int> { DamageTag.Physical };
       // effects = new Dictionary<string, OldEffectBase>();
       _prefab = GameManager.Instance.sfxManager.ProjectilePrefabs["FireBlast"];
     }
@@ -89,6 +90,7 @@ namespace Codes.Normal
         GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, target, delay, ProjectilePathType.Wave, pathData);
         yield return new WaitForSeconds(delay);
         target.TakeDamage(context);
+        Caster.Invoke(BaseEnums.UnitEventType.OnNormalAttackHit, new EventContext(Caster, target, context));
       }
     }
 
@@ -102,38 +104,24 @@ namespace Codes.Normal
     /// </summary>
     private List<Unit> SelectTarget()
     {
-      // 모든 가용 적 목록 가져오기
       List<Unit> availableEnemies = GetAvailableEnemies();
       
       if (availableEnemies.Count == 0)
         return new List<Unit>();
-      
-      // 현재 타겟이 유효한지 확인
-      if (Caster.currentNormalTarget != null && 
-          Caster.currentNormalTarget.isActive && 
-          availableEnemies.Contains(Caster.currentNormalTarget))
+
+      int maxPriority = availableEnemies.Max(enemy => enemy.Priority);
+      List<Unit> highestPriorityEnemies = availableEnemies
+        .Where(enemy => enemy.Priority == maxPriority)
+        .ToList();
+
+      if (Caster.currentNormalTarget != null &&
+          Caster.currentNormalTarget.isActive &&
+          highestPriorityEnemies.Contains(Caster.currentNormalTarget))
       {
-        // 더 높은 우선도의 적이 있는지 확인
-        Unit higherPriorityEnemy = availableEnemies
-          .Where(enemy => enemy.Priority > Caster.currentNormalTarget.Priority)
-          .OrderByDescending(enemy => enemy.Priority)
-          .FirstOrDefault();
-        
-        if (higherPriorityEnemy != null)
-        {
-          // 더 높은 우선도의 적으로 타겟 변경
-          Caster.currentNormalTarget = higherPriorityEnemy;
-        }
-        // 현재 타겟 유지
+        return new List<Unit> { Caster.currentNormalTarget };
       }
-      else
-      {
-        // 새로운 타겟 선택 (우선도 기반)
-        Caster.currentNormalTarget = availableEnemies
-          .OrderByDescending(enemy => enemy.Priority)
-          .ThenBy(enemy => Random.value) // 같은 우선도면 랜덤
-          .FirstOrDefault();
-      }
+
+      Caster.currentNormalTarget = highestPriorityEnemies[Random.Range(0, highestPriorityEnemies.Count)];
       
       return Caster.currentNormalTarget != null ? 
         new List<Unit> { Caster.currentNormalTarget } : 
@@ -163,42 +151,11 @@ namespace Codes.Normal
     }
     
     /// <summary>
-    /// 시너지에 따른 데미지 태그 결정
+    /// 기본 일반공격 데미지 태그
     /// </summary>
     private List<int> GetDamageTags()
     {
-      List<int> tags = new List<int> { DamageTag.SingleTarget, DamageTag.NormalAttack };
-      
-      // 아탈란테 예외 처리 (항상 비접촉)
-      if (Caster.ID == 5) // 아탈란테 ID
-      {
-        tags.Add(DamageTag.NonContactAttack);
-        return tags;
-      }
-      
-      // 직업 시너지에 따른 접촉/비접촉 결정
-      bool isContact = false;
-      
-      foreach (int synergy in Caster.Synergies)
-      {
-        switch (synergy)
-        {
-          case 7:  // 파수꾼
-          case 8:  // 투사  
-          case 9:  // 처형자
-            isContact = true;
-            break;
-          case 10: // 사수
-          case 11: // 마법사
-          case 12: // 책략가
-          case 13: // 메카닉
-            isContact = false;
-            break;
-        }
-      }
-      
-      tags.Add(isContact ? DamageTag.ContactAttack : DamageTag.NonContactAttack);
-      return tags;
+      return new List<int> { DamageTag.SingleTarget, DamageTag.NormalAttack, DamageTag.Physical, DamageTag.NonContactAttack };
     }
   }
 }

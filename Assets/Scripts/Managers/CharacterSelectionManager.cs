@@ -10,6 +10,7 @@ namespace Managers
         public static CharacterSelectionManager Instance { get; private set; }
 
         private const int MaxSelection = 5;
+        private const int MinSelection = 1;
         private const int MainSelection = 1;
 
         public static void DestroyInstance()
@@ -78,9 +79,16 @@ namespace Managers
                 return false;
             }
 
+            CharacterRole role = _lineup.Count < MainSelection ? CharacterRole.Main : CharacterRole.Support;
+            if (!CanSelectForRole(unitId, role))
+            {
+                Debug.LogWarning($"[CharSel] {role} 슬롯에 선택할 수 없는 영웅: {unitId}");
+                return false;
+            }
+
             if (GameManager.Instance != null &&
                 GameManager.Instance.CurrentMode == BaseClasses.BaseEnums.GameMode.Infinite &&
-                !SaveSystem.IsCharacterTrained(unitId))
+                (!CanUseInInfinite(unitId) || !SaveSystem.IsCharacterTrained(unitId)))
             {
                 Debug.Log($"[CharSel] 무한 모드는 육성 완료 캐릭터만 선택 가능: {unitId}");
                 return false;
@@ -92,7 +100,6 @@ namespace Managers
                 return false;
             }
 
-            CharacterRole role = _lineup.Count < MainSelection ? CharacterRole.Main : CharacterRole.Support;
             _lineup.Add(new LineupEntry { UnitId = unitId, XPos = xPos, YPos = yPos, Role = role });
             Debug.Log($"[CharSel] {role} {unitId} 추가 -> ({xPos}, {yPos})");
             return true;
@@ -111,6 +118,12 @@ namespace Managers
 
         public bool AddSupportHero(int unitId)
         {
+            if (!_lineup.Any(entry => entry.Role == CharacterRole.Main))
+            {
+                Debug.Log("[CharSel] 메인 캐릭터를 먼저 선택해야 합니다.");
+                return false;
+            }
+
             if (_lineup.Count(entry => entry.Role == CharacterRole.Support) >= MaxSelection - MainSelection)
             {
                 Debug.Log("[CharSel] 서포트 캐릭터 최대 인원 초과");
@@ -150,9 +163,19 @@ namespace Managers
                 }
             }
 
-            if (_lineup.Count < MaxSelection)
+            bool infiniteMode = GameManager.Instance != null &&
+                GameManager.Instance.CurrentMode == BaseClasses.BaseEnums.GameMode.Infinite;
+            int requiredSelection = infiniteMode ? MaxSelection : MinSelection;
+
+            if (_lineup.Count < requiredSelection)
             {
-                Debug.LogWarning($"[CharSel] 편성 인원이 부족합니다. 현재 {_lineup.Count}/{MaxSelection}");
+                Debug.LogWarning($"[CharSel] 편성 인원이 부족합니다. 현재 {_lineup.Count}/{requiredSelection}");
+                return;
+            }
+
+            if (!infiniteMode && !CanSelectForRole(MainUnitId, CharacterRole.Main))
+            {
+                Debug.LogWarning("[CharSel] 육성 모드 메인 캐릭터는 아탈란테만 선택할 수 있습니다.");
                 return;
             }
 
@@ -178,10 +201,15 @@ namespace Managers
                 return;
             }
 
-            var playerUnits = units.Where(unit => unit.id < 100).Take(MaxSelection).ToList();
-            foreach (var unit in playerUnits)
+            UnitData main = units.FirstOrDefault(unit => unit.canStartAsMain);
+            if (main != null)
             {
-                AddHero(unit.id);
+                AddHero(main.id);
+            }
+
+            foreach (var support in units.Where(unit => unit.canStartAsSupport).Take(MaxSelection - MainSelection))
+            {
+                AddHero(support.id);
             }
         }
 
@@ -223,6 +251,36 @@ namespace Managers
             {
                 AddHero(unitId);
             }
+        }
+
+        private static bool CanUseInInfinite(int unitId)
+        {
+            UnitData data = GetUnitData(unitId);
+            return data != null && data.canUseInInfinite;
+        }
+
+        private static bool CanSelectForRole(int unitId, CharacterRole role)
+        {
+            if (GameManager.Instance != null &&
+                GameManager.Instance.CurrentMode == BaseClasses.BaseEnums.GameMode.Infinite)
+            {
+                return CanUseInInfinite(unitId) && SaveSystem.IsCharacterTrained(unitId);
+            }
+
+            UnitData data = GetUnitData(unitId);
+            if (data == null) return false;
+
+            return role switch
+            {
+                CharacterRole.Main => data.canStartAsMain,
+                CharacterRole.Support => data.canStartAsSupport || SaveSystem.IsStarterUnlocked(unitId) || SaveSystem.IsCharacterTrained(unitId),
+                _ => false,
+            };
+        }
+
+        private static UnitData GetUnitData(int unitId)
+        {
+            return GameManager.Instance?.unitDataList?.units?.FirstOrDefault(unit => unit.id == unitId);
         }
 
         private static void ClearExistingHeroes()

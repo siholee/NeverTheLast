@@ -1,5 +1,104 @@
 stageThemes:
   - id: 1
     name: 노르드
-    faction: 3  # 노르드 진영 ID
-    description: 노르드 진영의 적들이 등장합니다.
+    enemyThemeId: 3  # 노르드 테마 ID
+    description: 노르드 테마의 적들이 등장합니다.
+    midBossId: 2001
+    bossId: 3001
+    uniqueRewardIds:
+      - nordic_fury
+
+  - id: 2
+    name: 아즈텍
+    enemyThemeId: 4
+    description: 태양과 제의의 땅에서 아즈텍 전사들이 등장합니다.
+    midBossId: 2003
+    bossId: 3002
+    stagePatterns:
+      - stageInRound: 1
+        patterns:
+          - { archetypes: [7, 10], weight: 50 }
+          - { archetypes: [8, 10], weight: 50 }
+      - stageInRound: 2
+        patterns:
+          - { archetypes: [7, 8, 10], weight: 60 }
+          - { archetypes: [8, 8, 10], weight: 40 }
+      - stageInRound: 3
+        patterns:
+          - { archetypes: [7, 7, 10], weight: 50 }
+          - { archetypes: [7, 8, 10, 10], weight: 50 }
+      - stageInRound: 4
+        patterns:
+          - { archetypes: [7, 8, 8, 10], weight: 50 }
+          - { archetypes: [7, 7, 10, 10], weight: 50 }
+      - stageInRound: 6
+        patterns:
+          - { archetypes: [7, 7, 8, 10], weight: 50 }
+          - { archetypes: [7, 8, 10, 10], weight: 50 }
+      - stageInRound: 7
+        patterns:
+          - { archetypes: [7, 7, 8, 8, 10], weight: 50 }
+          - { archetypes: [7, 8, 8, 10, 10], weight: 50 }
+      - stageInRound: 9
+        patterns:
+          - { archetypes: [7, 7, 8, 10, 10], weight: 50 }
+          - { archetypes: [7, 8, 8, 10, 10], weight: 50 }
+
+events:
+  - id: nord_waystone
+    themeId: 1
+    stageInRound: 5
+    title: 룬이 새겨진 이정표
+    dialogue:
+      - speaker: 일행
+        text: 눈보라 속에서 오래된 이정표가 희미하게 빛난다.
+      - speaker: 룬술사
+        text: 길을 재촉할 수는 있지만, 새겨진 룬을 건드리지 않는 편이 좋겠군.
+    choices:
+      - id: continue
+        text: 이정표를 지나 길을 계속 간다.
+        action: continue
+        successText: 일행은 눈보라를 뚫고 다음 목적지로 향했다.
+
+  - id: aztec_quetzalcoatl
+    themeId: 2
+    stageInRound: 5
+    title: 깃털 달린 뱀의 신전
+    dialogue:
+      - speaker: 케찰코아틀
+        text: 먼 길을 건너온 자들이여. 너희가 지닌 의지의 무게를 보여라.
+      - speaker: 케찰코아틀
+        text: 시련을 받아 동료가 되거나, 공물을 바치고 지나가거나, 나를 적으로 돌릴 수 있다.
+      - speaker: 케찰코아틀
+        text: 마지막 길을 고른다면 신의 모든 권능을 마주하게 될 것이다.
+    choices:
+      - id: trial
+        text: 케찰코아틀의 시련을 받는다.
+        action: battle_recruit
+        battleEnemyId: 3201
+        grantUnitId: 20
+        successText: 케찰코아틀이 일행의 의지를 인정하고 서포트 유닛으로 합류했다.
+        failureText: 시련을 이겨내지 못했지만 케찰코아틀은 물러날 기회를 주었다.
+      - id: tribute
+        text: 케찰코아틀에게 공물을 바친다.
+        action: pay_gold
+        goldCostPerStage: 200
+        successText: 공물 {cost} 골드를 바치자 신전의 길이 열렸다.
+        failureText: "공물로 바칠 골드가 부족하다. 필요 골드: {cost}"
+      - id: hostile
+        text: 케찰코아틀과 적대한다.
+        action: battle_item
+        battleEnemyId: 3202
+        grantItemId: 4010
+        successText: 격노한 신을 쓰러뜨리고 전설의 한손검 마카나를 획득했다.
+        failureText: 신의 모든 권능을 감당하지 못하고 물러났다.
+
+fixedBossStages:
+  - stage: 25
+    bossId: 3001
+  - stage: 50
+    bossId: 3001
+  - stage: 75
+    bossId: 3001
+  - stage: 100
+    bossId: 3001

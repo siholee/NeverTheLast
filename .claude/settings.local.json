@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(ls *.csproj)",
+      "Bash(which dotnet *)",
+      "Bash(dotnet build *)",
+      "Bash(python -c \"import uuid; print\\(uuid.uuid4\\(\\).hex\\)\")"
     ],
     "deny": [],
     "ask": []

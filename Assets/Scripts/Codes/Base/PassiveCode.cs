@@ -7,6 +7,7 @@ namespace Codes.Base
     public PassiveCode(PassiveCodeContext context)
     {
       Caster = context.Caster;
+      ActivationType = BaseEnums.CodeActivationType.Passive;
     }
   }
 }

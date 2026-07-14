@@ -14,9 +14,11 @@ namespace Managers
         public string displayName;
         public string description;
         public int tier = 1;
+        public List<int> themeIds;
         public bool isRare;
         public int atkBonus;
         public int defBonus;
+        public int intBonus;
         public float critChanceBonus;
         public float codeAccelerationBonus;
         public int hpBonus;
@@ -24,6 +26,7 @@ namespace Managers
         public int rerollTicketBonus;
         public int randomTokenAmount;
         public bool fullHealParty;
+        public int itemId;
     }
 
     public class RewardManager : MonoBehaviour
@@ -40,6 +43,7 @@ namespace Managers
         }
 
         private RewardDataList _rewardDataList;
+        private ItemDataList _itemDataList;
 
         private static readonly List<RewardDef> FallbackRewardPool = new()
         {
@@ -76,10 +80,21 @@ namespace Managers
             }
         }
 
-        public List<RewardDef> GenerateRewards(int count = 3, int rewardRound = 1, GameMode mode = GameMode.Training)
+        public List<RewardDef> GenerateRewards(int count = 3, int rewardRound = 1, GameMode mode = GameMode.Training, int themeId = 0)
         {
             EnsureRewardData();
-            var pool = new List<RewardDef>(_rewardDataList?.rewards ?? FallbackRewardPool);
+            _itemDataList ??= GameManager.Instance?.itemDataList ?? GameManager.Instance?.dataManager?.FetchItemDataList();
+            var pool = (_itemDataList?.items ?? new List<ItemData>())
+                .Where(item => item != null && !item.eventOnly)
+                .Select(item => new RewardDef
+                {
+                    id = $"item_{item.id}",
+                    itemId = item.id,
+                    displayName = item.name,
+                    description = BuildItemDescription(item),
+                    tier = Mathf.Clamp(item.rarity, 1, 5),
+                })
+                .ToList();
             var result = new List<RewardDef>();
 
             for (int i = 0; i < count && pool.Count > 0; i++)
@@ -97,6 +112,15 @@ namespace Managers
             }
 
             return result;
+        }
+
+        private static string BuildItemDescription(ItemData item)
+        {
+            string stats = item.statBonuses == null || item.statBonuses.Count == 0
+                ? ""
+                : string.Join(", ", item.statBonuses.Select(bonus => $"{bonus.stat} +{bonus.amount}"));
+            string suffix = string.IsNullOrWhiteSpace(stats) ? "" : $" | {stats}";
+            return $"{item.category} | 중량 {Mathf.Max(0, item.weight)}{suffix}";
         }
 
         private void EnsureRewardData()
@@ -151,7 +175,11 @@ namespace Managers
         {
             if (reward == null) return;
 
-            if (reward.fullHealParty)
+            if (reward.itemId > 0)
+            {
+                GameManager.Instance.inventoryManager?.AddItem(reward.itemId);
+            }
+            else if (reward.fullHealParty)
             {
                 foreach (var hero in GridManager.Instance.heroList)
                 {
@@ -187,6 +215,7 @@ namespace Managers
                     hpUpgrade: reward.hpBonus,
                     atkUpgrade: reward.atkBonus,
                     defUpgrade: reward.defBonus,
+                    intUpgrade: reward.intBonus,
                     critChanceUpgrade: Mathf.RoundToInt(reward.critChanceBonus),
                     codeAccelerationBonus: reward.codeAccelerationBonus
                 );

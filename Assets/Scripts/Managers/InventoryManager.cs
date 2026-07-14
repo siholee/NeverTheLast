@@ -11,6 +11,8 @@ namespace Managers
     public class InventoryManager: MonoBehaviour
     {
         public int rerollTicketCount;
+        public int Gold { get; private set; }
+        [SerializeField] public List<int> ItemIdsInHand;
         [SerializeField] public IntIntDictionary TokensInHand;
         [SerializeField] public List<Unit> UnitsInHand;
 
@@ -19,6 +21,7 @@ namespace Managers
         public void Initialize()
         {
             rerollTicketCount = 0;
+            Gold = 500;
             var tokensData = GameManager.Instance.resourceTokenDataList;
             if (TokensInHand == null) TokensInHand = new IntIntDictionary();
             TokensInHand.Clear();
@@ -31,6 +34,8 @@ namespace Managers
             
             if (UnitsInHand == null) UnitsInHand = new List<Unit>();
             UnitsInHand.Clear();
+            if (ItemIdsInHand == null) ItemIdsInHand = new List<int>();
+            ItemIdsInHand.Clear();
             
             RefreshPanel();
         }
@@ -59,11 +64,72 @@ namespace Managers
             return true;
         }
 
+        public void AddGold(int amount)
+        {
+            Gold = Mathf.Max(0, Gold + amount);
+            RefreshPanel();
+        }
+
+        public bool TrySpendGold(int amount)
+        {
+            amount = Mathf.Max(0, amount);
+            if (Gold < amount) return false;
+            Gold -= amount;
+            RefreshPanel();
+            return true;
+        }
+
+        public void RestoreGold(int amount)
+        {
+            Gold = Mathf.Max(0, amount);
+            RefreshPanel();
+        }
+
+        public void AddItem(int itemId)
+        {
+            if (itemId <= 0) return;
+            ItemIdsInHand ??= new List<int>();
+            ItemIdsInHand.Add(itemId);
+            RefreshPanel();
+        }
+
+        public bool TryEquipStoredItem(Unit unit, int itemId, out string reason)
+        {
+            reason = null;
+            if (unit == null || ItemIdsInHand == null || !ItemIdsInHand.Contains(itemId))
+            {
+                reason = "보관 중인 아이템이 아닙니다.";
+                return false;
+            }
+            ItemDataList itemDataList = GameManager.Instance?.itemDataList ?? GameManager.Instance?.dataManager?.FetchItemDataList();
+            ItemData selected = itemDataList?.items?.FirstOrDefault(item => item.id == itemId);
+            var displaced = new List<int>();
+            if (selected != null && EquipmentLoadout.TryParseSlot(selected.slot, out EquipmentSlot selectedSlot))
+            {
+                foreach (int equippedId in unit.EquippedItemIds)
+                {
+                    ItemData equipped = itemDataList.items.FirstOrDefault(item => item.id == equippedId);
+                    if (equipped == null || !EquipmentLoadout.TryParseSlot(equipped.slot, out EquipmentSlot equippedSlot)) continue;
+                    if (equippedSlot == selectedSlot ||
+                        (selectedSlot == EquipmentSlot.MainHand && selected.twoHanded && equippedSlot == EquipmentSlot.OffHand))
+                    {
+                        displaced.Add(equippedId);
+                    }
+                }
+            }
+            if (!unit.TryEquipItem(itemId, out reason)) return false;
+            ItemIdsInHand.Remove(itemId);
+            ItemIdsInHand.AddRange(displaced);
+            RefreshPanel();
+            return true;
+        }
+
         public void RefreshPanel()
         {
+            GameManager.Instance?.uiManager?.UpdateGoldText();
             if (resourcePanel != null)
             {
-                resourcePanel.UpdatePanel(TokensInHand, rerollTicketCount);
+                resourcePanel.UpdatePanel(TokensInHand, rerollTicketCount, Gold);
             }
         }
 

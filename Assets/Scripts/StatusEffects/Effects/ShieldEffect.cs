@@ -11,6 +11,8 @@ namespace StatusEffects.Effects
     /// </summary>
     public class ShieldEffect : StatusEffect
     {
+        public override bool IsBeneficial => true;
+
         private int _shieldAmount;
         private bool _isApplied;
 

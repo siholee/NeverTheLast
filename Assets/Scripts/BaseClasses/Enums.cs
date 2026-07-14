@@ -10,6 +10,19 @@ namespace BaseClasses
       Effect,
     }
 
+    public enum CodeActivationType
+    {
+      Active,
+      Passive,
+      Ultimate,
+    }
+
+    public enum UltimateResourceType
+    {
+      Mana,
+      Stack,
+    }
+
     public enum UnitEventType
     {
       OnSpawn, // Unit(자신)
@@ -19,9 +32,14 @@ namespace BaseClasses
       OnPassiveActivates, // Unit(자신)
       OnNormalActivates, // Unit(자신)
       OnUltimateActivates, // Unit(자신)
+      OnNormalAttackHit, // Unit(자신), Unit(대상), DamageContext(일반공격 적중 정보)
+      OnBeneficialEffectReceived, // Unit(자신), Unit(부여자)
+      OnBeneficialEffectGranted, // Unit(자신), Unit(대상)
       OnBeforeDamageTaken, // Unit(자신), Unit(공격자)
       OnTakingDamage, // Unit(자신), TakeDamageContext(피해 정보)
       OnAfterDamageTaken, // Unit(자신), Unit(공격자)
+      OnDamageDealt, // DamageResolvedContext(공격자, 대상, 실제 피해량)
+      OnKill, // Unit(자신), Unit(처치 대상)
       OnUpdate, // Unit(자신)
 
       OnStageStart, // Unit(자신)
@@ -38,6 +56,7 @@ namespace BaseClasses
       RoundInProgress,
       RoundEnd,
       RewardSelection,
+      EventStage,
       TrainingPhase,
       RunComplete,
       GameOver
@@ -63,6 +82,19 @@ namespace BaseClasses
       CON,
       INT,
       LUK,
+    }
+
+    public enum UnitElement
+    {
+      None,
+      Pyro,
+      Hydro,
+      Dendro,
+      Anemo,
+      Electro,
+      Cryo,
+      Geo,
+      Void,
     }
 
     // 효과 분류

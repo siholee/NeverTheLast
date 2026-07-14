@@ -13,7 +13,7 @@ namespace Managers
         public UnitDataList FetchUnitDataList()
         {
             TextAsset unitData = Resources.Load<TextAsset>("Data/10_units");
-            var deserializer = new DeserializerBuilder().Build();
+            var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
             if (unitData == null)
             {
                 Debug.LogError("Data/10_units.yaml not found.");
@@ -27,7 +27,7 @@ namespace Managers
         // public CodeDataList FetchCodeDataList()
         // {
         //     TextAsset codeData = Resources.Load<TextAsset>("Data/20_codes");
-        //     var deserializer = new DeserializerBuilder().Build();
+        //     var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
         //     if (codeData == null)
         //     {
         //         Debug.LogError("Data/20_codes.yaml not found.");
@@ -38,24 +38,10 @@ namespace Managers
         //     return codeDataList;
         // }
         
-        public SynergyDataList FetchSynergyDataList()
-        {
-            TextAsset synergyData = Resources.Load<TextAsset>("Data/40_synergies");
-            var deserializer = new DeserializerBuilder().Build();
-            if (synergyData == null)
-            {
-                Debug.LogError("Data/40_synergies.yaml not found.");
-                return null;
-            }
-
-            SynergyDataList synergyDataList = deserializer.Deserialize<SynergyDataList>(synergyData.text);
-            return synergyDataList;
-        }
-
         public RoundDataList FetchRoundDataList()
         {
             TextAsset roundData = Resources.Load<TextAsset>("Data/70_rounds");
-            var deserializer = new DeserializerBuilder().Build();
+            var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
             if (roundData == null)
             {
                 Debug.LogError("Data/70_rounds.yaml not found.");
@@ -69,7 +55,7 @@ namespace Managers
         public ResourceTokenDataList FetchTokenDataList()
         {
             TextAsset tokenData = Resources.Load<TextAsset>("Data/50_tokens");
-            var deserializer = new DeserializerBuilder().Build();
+            var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
             if (tokenData == null)
             {
                 Debug.LogError("Data/50_tokens.yaml not found.");
@@ -84,7 +70,7 @@ namespace Managers
         public EnemyDataList FetchEnemyDataList()
         {
             TextAsset enemyData = Resources.Load<TextAsset>("Data/60_enemies");
-            var deserializer = new DeserializerBuilder().Build();
+            var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
             if (enemyData == null)
             {
                 Debug.LogError("Data/60_enemies.yaml not found.");
@@ -97,7 +83,7 @@ namespace Managers
         public StageThemeDataList FetchStageThemeDataList()
         {
             TextAsset themeData = Resources.Load<TextAsset>("Data/80_stages");
-            var deserializer = new DeserializerBuilder().Build();
+            var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
             if (themeData == null)
             {
                 Debug.LogError("Data/80_stages.yaml not found.");
@@ -110,7 +96,7 @@ namespace Managers
         public RewardDataList FetchRewardDataList()
         {
             TextAsset rewardData = Resources.Load<TextAsset>("Data/90_rewards");
-            var deserializer = new DeserializerBuilder().Build();
+            var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
             if (rewardData == null)
             {
                 Debug.LogError("Data/90_rewards.yaml not found.");
@@ -120,11 +106,25 @@ namespace Managers
             RewardDataList rewardDataList = deserializer.Deserialize<RewardDataList>(rewardData.text);
             return rewardDataList;
         }
+
+        public ItemDataList FetchItemDataList()
+        {
+            TextAsset itemData = Resources.Load<TextAsset>("Data/40_items");
+            var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
+            if (itemData == null)
+            {
+                Debug.LogError("Data/40_items.yaml not found.");
+                return null;
+            }
+
+            ItemDataList itemDataList = deserializer.Deserialize<ItemDataList>(itemData.text);
+            return itemDataList;
+        }
         
         public RoundTypeDataList FetchRoundTypeDataList()
         {
             TextAsset roundTypeData = Resources.Load<TextAsset>("Data/70_rounds");
-            var deserializer = new DeserializerBuilder().Build();
+            var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
             if (roundTypeData == null)
             {
                 Debug.LogError("Data/70_rounds.yaml not found.");
@@ -160,7 +160,13 @@ namespace Managers
     {
         public int id;
         public string name;
-        public List<int> synergies;
+        public string element;
+        public List<int> startingItemIds;
+        public bool canStartAsMain;
+        public bool canStartAsSupport;
+        public bool canUseInInfinite;
+        public string mainStat;
+        public string subStat;
         public int strBase;
         public int strIncrementLvl;
         public int strIncrementUpgrade;
@@ -192,11 +198,27 @@ namespace Managers
         public float critMultiplierIncrementLvl;   // YAML의 critMultiplierIncrementLvl 필드와 매핑
         public float critMultiplierIncrementUpgrade; // YAML의 critMultiplierIncrementUpgrade 필드와 매핑
         public int manaBase;
+        public string ultimateResourceType;
+        public string ultimateResourceName;
+        public int ultimateResourceMax;
         public Dictionary<string, int> codes;
+        public Dictionary<string, int> codeStages;
+        // 레벨 해금 패시브: codes.passive 외에 레벨과 INT 코드 용량을 만족하면 해금되는 목록.
+        public List<LevelPassiveData> levelPassives;
         public string portrait;
         public List<int> cost;
         public int costAmount;
         public int tier;
+    }
+
+    // 레벨에 따라 해금되는 추가 패시브 정의.
+    // codeId: 20_codes.yaml passive 코드 ID / unlockLevel: 해금되는 유닛 레벨 / stage: 코드 단계(1 또는 3)
+    [System.Serializable]
+    public class LevelPassiveData
+    {
+        public int codeId;
+        public int unlockLevel;
+        public int stage = 1;
     }
 
     [System.Serializable]
@@ -211,6 +233,7 @@ namespace Managers
         public int id;           // 코드 ID
         public string verbalName;      // 코드 이름
         public string codeName;
+        public string description;
     }
 
     [System.Serializable]
@@ -227,21 +250,6 @@ namespace Managers
     }
     
     [System.Serializable]
-    public class SynergyData
-    {
-        public int id;           // 시너지 ID
-        public string name;
-        public int maxStack;
-        public string description;
-    }
-    
-    [System.Serializable]
-    public class SynergyDataList
-    {
-        public List<SynergyData> synergies;
-    }
-
-    [System.Serializable]
     public class ResourceTokenData
     {
         public int id;
@@ -253,6 +261,46 @@ namespace Managers
     {
         public List<ResourceTokenData> tokens;
     }
+
+    [System.Serializable]
+    public class ItemData
+    {
+        public int id;
+        public string name;
+        public string slot;
+        public string category;
+        public string requiredProficiency;
+        public int rarity;
+        public int weight = 1;
+        public bool eventOnly;
+        public bool twoHanded;
+        public List<BaseClasses.EquipmentStatBonus> statBonuses;
+        public List<BaseClasses.EquipmentCodeGrant> codeGrants;
+
+        public bool IsWeapon => string.Equals(slot, "MainHand", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(slot, "OffHand", StringComparison.OrdinalIgnoreCase);
+
+        public BaseClasses.EquipmentProficiency RequiredProficiency
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(requiredProficiency))
+                {
+                    return BaseClasses.EquipmentProficiency.None;
+                }
+
+                return Enum.TryParse(requiredProficiency, true, out BaseClasses.EquipmentProficiency proficiency)
+                    ? proficiency
+                    : BaseClasses.EquipmentProficiency.None;
+            }
+        }
+    }
+
+    [System.Serializable]
+    public class ItemDataList
+    {
+        public List<ItemData> items;
+    }
     
     // 새로운 적 시스템 데이터 클래스들
     [System.Serializable]
@@ -260,8 +308,9 @@ namespace Managers
     {
         public int id;
         public string name;
-        public int faction;     // 소속 (시너지 ID)
-        public int @class;      // 직업 (시너지 ID) - class는 C# 예약어이므로 @class 사용
+        public int themeId;     // 스테이지 테마 필터 ID
+        public int archetype;   // 스폰/배치용 적 분류 ID
+        public string element;
         public string tier;     // normal, elite, boss
         public int strBase;
         public int strIncrementLvl;
@@ -294,7 +343,13 @@ namespace Managers
         public float critMultiplierIncrementLvl;
         public float critMultiplierIncrementUpgrade;
         public int manaBase;
+        public string ultimateResourceType;
+        public string ultimateResourceName;
+        public int ultimateResourceMax;
         public Dictionary<string, int> codes;
+        public Dictionary<string, int> codeStages;
+        // 레벨 해금 패시브 (아군 UnitData와 동일 구조). 적도 초기 패시브 + 레벨 해금 패시브를 가질 수 있다.
+        public List<LevelPassiveData> levelPassives;
         public string portrait;
     }
     
@@ -309,14 +364,66 @@ namespace Managers
     {
         public int id;
         public string name;
-        public int faction;
+        public int enemyThemeId;
         public string description;
+        public int midBossId;
+        public int bossId;
+        public List<string> uniqueRewardIds;
+        public List<ThemeStagePatternData> stagePatterns;
+    }
+
+    [System.Serializable]
+    public class ThemeStagePatternData
+    {
+        public int stageInRound;
+        public List<RoundPattern> patterns;
+    }
+
+    [System.Serializable]
+    public class StageEventDialogueData
+    {
+        public string speaker;
+        public string text;
+    }
+
+    [System.Serializable]
+    public class StageEventChoiceData
+    {
+        public string id;
+        public string text;
+        public string action;
+        public int goldCostPerStage;
+        public int battleEnemyId;
+        public int grantUnitId;
+        public int grantItemId;
+        public string successText;
+        public string failureText;
+    }
+
+    [System.Serializable]
+    public class StageEventData
+    {
+        public string id;
+        public int themeId;
+        public int stageInRound;
+        public string title;
+        public List<StageEventDialogueData> dialogue;
+        public List<StageEventChoiceData> choices;
+    }
+
+    [System.Serializable]
+    public class FixedBossStageData
+    {
+        public int stage;
+        public int bossId;
     }
     
     [System.Serializable]
     public class StageThemeDataList
     {
         public List<StageThemeData> stageThemes;
+        public List<FixedBossStageData> fixedBossStages;
+        public List<StageEventData> events;
     }
 
     [System.Serializable]
@@ -336,7 +443,7 @@ namespace Managers
     [System.Serializable]
     public class RoundPattern
     {
-        public List<int> classes;       // 일반 라운드용 직업 리스트
+        public List<int> archetypes;    // 일반 라운드용 적 분류 리스트
         public List<int> eliteIds;      // 엘리트 라운드용 엘리트 ID 리스트
         public int bossId;              // 보스 라운드용 보스 ID
         public int weight;              // 이 패턴이 선택될 확률 가중치
