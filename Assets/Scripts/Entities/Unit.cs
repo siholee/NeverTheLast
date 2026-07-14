@@ -158,8 +158,8 @@ namespace Entities
         public int DefBase { get => defBase; protected set => defBase = value; }
         public int DefIncrementLvl { get => defIncrementLvl; protected set => defIncrementLvl = value; }
 
-        // 유닛 상태(버프/디버프) - List로 중첩 허용
-        protected List<Status.UnitStatus> Statuses;
+        // 유닛 상태(버프/디버프) 컨테이너
+        protected readonly UnitStatusController StatusController = new();
 
         // 유닛 코드(스킬) 정보
         // 유닛 고유 패시브 목록: [0] = 초기 패시브(항상 활성), 이후 = 레벨/INT 용량에 따라 해금되는 패시브.
@@ -193,14 +193,22 @@ namespace Entities
         void Awake()
         {
             _eventDict = new Dictionary<BaseEnums.UnitEventType, Delegate>();
-            Statuses = new List<Status.UnitStatus>();
+            InitializeStatusController();
             EquipmentLoadout = new EquipmentLoadout();
+        }
+
+        private void InitializeStatusController()
+        {
+            StatusController.Initialize(
+                this,
+                () => { AttributesUpdate(); UpdateInfoTabIfShowing(); },
+                NotifyBeneficialEffectReceived);
         }
 
         public virtual void InitializeUnit(bool _isEnemy, int _id)
         {
             _eventDict = new Dictionary<BaseEnums.UnitEventType, Delegate>();
-            Statuses = new List<Status.UnitStatus>();
+            InitializeStatusController();
             PassiveCodes = new List<PassiveCode>();
             PendingLevelPassives = new List<LevelPassiveData>();
             ItemPassiveCodes = new List<PassiveCode>();
@@ -706,17 +714,7 @@ namespace Entities
         /// </summary>
         protected IEnumerable<Effects.Base.BaseEffect> ActiveEffectObjects()
         {
-            for (int i = 0; i < Statuses.Count; i++)
-            {
-                var effects = Statuses[i].Effects;
-                for (int j = 0; j < effects.Count; j++)
-                {
-                    if (effects[j].EffectObject != null)
-                    {
-                        yield return effects[j].EffectObject;
-                    }
-                }
-            }
+            return StatusController.ActiveEffectObjects();
         }
 
         protected virtual void AttributesUpdate()
@@ -1300,11 +1298,7 @@ namespace Entities
         protected void DefaultRoundEndEvent(EventContext context)
         {
             // 상태를 라운드 종료 시 정리 (OnRemove 호출로 이벤트 리스너 등 해제)
-            for (int i = Statuses.Count - 1; i >= 0; i--)
-            {
-                Statuses[i].OnRemove();
-            }
-            Statuses.Clear();
+            StatusController.ClearAll();
             ResetCombatElements();
             _combatResources.Clear();
             _combatResourceMaximums.Clear();
@@ -1319,17 +1313,8 @@ namespace Entities
         /// </summary>
         protected void DefaultUpdateEvent(EventContext context)
         {
-            for (int i = Statuses.Count - 1; i >= 0; i--)
-            {
-                var status = Statuses[i];
-                status.OnUpdate(context.FloatParam);
-                
-                // 지속 시간이 만료된 상태 제거
-                if (status.IsExpired())
-                {
-                    RemoveStatusAt(i);
-                }
-            }
+            // 상태 효과 틱 + 만료 상태 제거
+            StatusController.Tick(context.FloatParam);
         }
 
         // 베이스 스탯 수치 반환
@@ -1610,230 +1595,61 @@ namespace Entities
             }
         }
         
-        // ===== Status 시스템 메서드들 =====
-        
-        /// <summary>
-        /// 상태 추가 (새로운 시스템) - 중첩 정책에 따라 처리
-        /// </summary>
-        /// <param name="status">추가할 상태</param>
+        // ===== Status 시스템 메서드들 (UnitStatusController 위임) =====
+
+        /// <summary>상태 추가 - 중첩 정책에 따라 처리</summary>
         public void AddStatus(Status.UnitStatus status)
         {
-            // 중첩 정책에 따른 처리 (동일 여부 판정은 Key 기준 — 기본값은 StatusId 문자열)
-            switch (status.StackPolicy)
-            {
-                case BaseEnums.StatusStackPolicy.Stack:
-                    // 중첩 허용 - 그대로 추가
-                    AddStatusInternal(status);
-                    Debug.Log($"[Status-Stack] {UnitName}에게 {status.StatusName} 추가 (중첩, 총 {Statuses.Count}개)");
-                    break;
-
-                case BaseEnums.StatusStackPolicy.ExtendDuration:
-                    // 지속시간 연장 - 기존 것 찾아서 시간 추가
-                    var existing = Statuses.FirstOrDefault(s => s.Key == status.Key);
-                    if (existing != null)
-                    {
-                        float oldDuration = existing.Duration - existing.ElapsedTime;
-                        existing.Duration = existing.ElapsedTime + oldDuration + status.Duration;
-                        Debug.Log($"[Status-Extend] {UnitName}의 {status.StatusName} 지속시간 연장: {oldDuration:F1}초 → {existing.Duration - existing.ElapsedTime:F1}초");
-                    }
-                    else
-                    {
-                        AddStatusInternal(status);
-                        Debug.Log($"[Status-Extend] {UnitName}에게 {status.StatusName} 최초 적용");
-                    }
-                    break;
-
-                case BaseEnums.StatusStackPolicy.ReplaceIfStronger:
-                    // 더 강한 것으로 교체 - Coefficient 비교
-                    var existingStrong = Statuses.FirstOrDefault(s => s.Key == status.Key);
-                    if (existingStrong != null)
-                    {
-                        // 새로운 효과의 평균 계수 계산
-                        float newAvgCoeff = status.Effects.Count > 0
-                            ? status.Effects.Average(e => e.Coefficient)
-                            : 0f;
-                        float existingAvgCoeff = existingStrong.Effects.Count > 0
-                            ? existingStrong.Effects.Average(e => e.Coefficient)
-                            : 0f;
-
-                        if (newAvgCoeff > existingAvgCoeff)
-                        {
-                            RemoveStatusAt(Statuses.IndexOf(existingStrong));
-                            AddStatusInternal(status);
-                            Debug.Log($"[Status-Replace] {UnitName}의 {status.StatusName} 교체 (계수: {existingAvgCoeff:F1} → {newAvgCoeff:F1})");
-                        }
-                        else
-                        {
-                            Debug.Log($"[Status-Replace] {UnitName}의 기존 {status.StatusName}이 더 강함 - 무시");
-                        }
-                    }
-                    else
-                    {
-                        AddStatusInternal(status);
-                        Debug.Log($"[Status-Replace] {UnitName}에게 {status.StatusName} 최초 적용");
-                    }
-                    break;
-
-                case BaseEnums.StatusStackPolicy.Replace:
-                    // 무조건 교체 - 기존 dict 덮어쓰기 의미론 (지속시간/수치 갱신)
-                    int replaceIndex = Statuses.FindIndex(s => s.Key == status.Key);
-                    if (replaceIndex >= 0)
-                    {
-                        RemoveStatusAt(replaceIndex);
-                    }
-                    AddStatusInternal(status);
-                    break;
-
-                case BaseEnums.StatusStackPolicy.Ignore:
-                    // 중복 무시 - 기존 것 있으면 추가 안 함
-                    if (Statuses.Any(s => s.Key == status.Key))
-                    {
-                        Debug.Log($"[Status-Ignore] {UnitName}에게 이미 {status.StatusName} 존재 - 무시");
-                    }
-                    else
-                    {
-                        AddStatusInternal(status);
-                        Debug.Log($"[Status-Ignore] {UnitName}에게 {status.StatusName} 최초 적용");
-                    }
-                    break;
-            }
-
-            // InfoTab 업데이트
+            StatusController.Add(status);
             UpdateInfoTabIfShowing();
         }
-        
-        /// <summary>
-        /// 상태 추가 내부 로직 (Effect 객체 생성 및 리스트 추가)
-        /// </summary>
-        private void AddStatusInternal(Status.UnitStatus status)
-        {
-            // Effect 객체들 생성 및 할당 (직접 생성된 EffectObject는 Caster/Target만 보정)
-            foreach (var effectInstance in status.Effects)
-            {
-                if (effectInstance.EffectObject == null)
-                {
-                    effectInstance.EffectObject = Effects.Base.EffectFactory.CreateEffect(
-                        effectInstance.EffectId,
-                        effectInstance.Coefficient,
-                        status.Caster,
-                        this
-                    );
-                }
-                else
-                {
-                    effectInstance.EffectObject.Caster ??= status.Caster;
-                    effectInstance.EffectObject.Target ??= this;
-                }
-            }
 
-            Statuses.Add(status);
-            status.OnApply();
-            // 스탯 질의 훅을 가진 효과가 즉시 반영되도록 스탯 캐시 갱신
-            AttributesUpdate();
-
-            if (status.IsBeneficial)
-            {
-                NotifyBeneficialEffectReceived(status.Caster);
-            }
-        }
-        
-        /// <summary>
-        /// 인덱스로 상태 제거 (내부용)
-        /// </summary>
-        private void RemoveStatusAt(int index)
-        {
-            if (index >= 0 && index < Statuses.Count)
-            {
-                var status = Statuses[index];
-                status.OnRemove();
-                Statuses.RemoveAt(index);
-                // 스탯 질의 훅 해제 반영
-                AttributesUpdate();
-
-                Debug.Log($"[Status] {UnitName}의 {status.StatusName} 제거 (남은 상태: {Statuses.Count}개)");
-
-                // InfoTab 업데이트
-                UpdateInfoTabIfShowing();
-            }
-        }
-        
-        /// <summary>
-        /// 상태 ID로 상태 제거 (가장 오래된 것 하나만 제거)
-        /// </summary>
-        /// <param name="statusId">제거할 상태 ID</param>
+        /// <summary>상태 ID로 상태 제거 (가장 오래된 것 하나만 제거)</summary>
         public void RemoveStatus(int statusId)
         {
-            for (int i = 0; i < Statuses.Count; i++)
-            {
-                if (Statuses[i].StatusId == statusId)
-                {
-                    RemoveStatusAt(i);
-                    return; // 첫 번째 것만 제거
-                }
-            }
+            StatusController.Remove(statusId);
         }
-        
-        /// <summary>
-        /// 특정 상태를 보유 중인지 확인
-        /// </summary>
+
+        /// <summary>특정 상태를 보유 중인지 확인</summary>
         public bool HasStatus(int statusId)
         {
-            return Statuses.Any(s => s.StatusId == statusId);
+            return StatusController.Has(statusId);
         }
 
-        /// <summary>
-        /// 키로 상태 보유 여부 확인 (시전자별 키 등 문자열 키 기반 상태용)
-        /// </summary>
+        /// <summary>키로 상태 보유 여부 확인 (시전자별 키 등 문자열 키 기반 상태용)</summary>
         public bool HasStatusKey(string key)
         {
-            return !string.IsNullOrEmpty(key) && Statuses.Any(s => s.Key == key);
+            return StatusController.HasKey(key);
         }
 
-        /// <summary>
-        /// 키로 상태 제거 (일치하는 모든 상태 제거)
-        /// </summary>
+        /// <summary>키로 상태 제거 (일치하는 모든 상태 제거)</summary>
         public void RemoveStatusByKey(string key)
         {
-            if (string.IsNullOrEmpty(key)) return;
-            for (int i = Statuses.Count - 1; i >= 0; i--)
-            {
-                if (Statuses[i].Key == key)
-                {
-                    RemoveStatusAt(i);
-                }
-            }
+            StatusController.RemoveByKey(key);
         }
-        
-        /// <summary>
-        /// 상태 가져오기 (가장 오래된 것 반환)
-        /// </summary>
+
+        /// <summary>상태 가져오기 (가장 오래된 것 반환)</summary>
         public Status.UnitStatus GetStatus(int statusId)
         {
-            return Statuses.FirstOrDefault(s => s.StatusId == statusId);
+            return StatusController.Get(statusId);
         }
-        
-        /// <summary>
-        /// 특정 StatusId의 모든 상태 가져오기
-        /// </summary>
+
+        /// <summary>특정 StatusId의 모든 상태 가져오기</summary>
         public List<Status.UnitStatus> GetAllStatuses(int statusId)
         {
-            return Statuses.Where(s => s.StatusId == statusId).ToList();
+            return StatusController.GetAll(statusId);
         }
-        
-        /// <summary>
-        /// 모든 상태 목록 반환
-        /// </summary>
+
+        /// <summary>모든 상태 목록 반환 (복사본)</summary>
         public List<Status.UnitStatus> GetAllStatuses()
         {
-            return new List<Status.UnitStatus>(Statuses);
+            return StatusController.GetAll();
         }
-        
-        /// <summary>
-        /// 모든 상태 가져오기 (UI 표시용) - 하위 호환성을 위해 유지
-        /// </summary>
+
+        /// <summary>모든 상태 가져오기 (UI 표시용)</summary>
         public List<Status.UnitStatus> GetStatuses()
         {
-            return Statuses;
+            return StatusController.GetLive();
         }
     }
 }
