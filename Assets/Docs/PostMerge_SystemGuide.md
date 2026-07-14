@@ -399,28 +399,34 @@ ultimateResourceMax: 9
 
 ### Status 시스템
 
-현재 두 종류의 상태 시스템이 공존한다.
-
-- 기존 `StatusEffect` 딕셔너리 기반 시스템
-- 신규 `UnitStatus` 리스트 기반 시스템
-
-신규 개발은 가능하면 `UnitStatus` 기반으로 작성한다.
+상태 시스템은 `UnitStatus` + `BaseEffect` 단일 체계다.
+(구 `StatusEffect` 딕셔너리 시스템은 제거되었고, 버프류는 `Effects/Buffs/`로 이식됨.)
 
 `UnitStatus`는 다음을 지원한다.
 
-- 상태 ID
+- 상태 ID + 문자열 Key (중복/중첩 판정용 — 시전자별 중첩은 Key에 시전자 ID 포함)
 - 이름/설명
-- 지속시간
+- 지속시간 (0 이하 = 무한, 라운드 종료 시 정리)
 - 카테고리: Positive, Negative, Neutral
-- 중첩 정책: Stack, ExtendDuration, ReplaceIfStronger, Ignore
-- 여러 효과 인스턴스
+- 중첩 정책: Stack, ExtendDuration, ReplaceIfStronger, Ignore, Replace(무조건 교체)
+- 여러 효과 인스턴스 (EffectFactory ID 또는 직접 생성한 BaseEffect 객체)
+- IsBeneficial (부여 시 OnBeneficialEffectReceived 이벤트 발행)
+
+`BaseEffect`는 생명주기 훅(OnApply/OnUpdate/OnRemove)과 스탯 질의 훅
+(치명타/받는·주는 피해/5스탯 가산·배율/마나 회복/보호막/코드 가속)을 제공한다.
+
+상태 정의 방법 두 가지:
+
+- 정식 상태(맹독/화상 등): `UnitStatus(statusId, ...)` — `LoadStatusData()`의 ID 스위치에 등록
+- 코드 정의 버프: `BuffStatus.Create(...)` (`Effects/Buffs/BuffEffects.cs`) —
+  `StatusDefinition` 기반, ID 대역은 `BuffStatusIds` 참고 (10~ 공용, 100~199 유닛 고유)
 
 관련 파일:
 
 - `Assets/Scripts/Entities/Status/UnitStatus.cs`
 - `Assets/Scripts/Effects/Base/BaseEffect.cs`
 - `Assets/Scripts/Effects/Base/EffectFactory.cs`
-- `Assets/Resources/Data/30_status.yaml`
+- `Assets/Scripts/Effects/Buffs/BuffEffects.cs`
 
 ### DamageContext
 
@@ -741,37 +747,47 @@ codeStages:
 
 ## 신규 상태/효과 추가 절차
 
-신규 상태는 가능하면 신규 `UnitStatus` 시스템으로 작성한다.
-
 ### 1. 상태 정의
 
-현재 상태 기본값은 `UnitStatus.LoadStatusData()`에 하드코딩된 부분이 있다. 상태 데이터 YAML 연동을 확장할 경우 `30_status.yaml`과 `DataManager` 로딩 구조도 함께 정리한다.
+두 가지 방법이 있다.
+
+- 정식 상태(디버프 등 여러 코드가 공유): `UnitStatus.LoadStatusData()`의 ID 스위치에 등록
+- 코드 정의 버프(한 코드 전용): `StatusDefinition` + `BuffStatus.Create(...)` 사용,
+  ID는 `BuffStatusIds`에 추가 (100~199 = 유닛 고유 버프 대역)
 
 파일:
 
 - `Assets/Scripts/Entities/Status/UnitStatus.cs`
-- `Assets/Resources/Data/30_status.yaml`
+- `Assets/Scripts/Effects/Buffs/BuffEffects.cs`
 
 ### 2. 효과 정의
 
-효과는 `BaseEffect`를 상속하고 `EffectFactory`에 연결한다.
+효과는 `BaseEffect`를 상속한다. 생명주기형 효과(DoT 등)는 `EffectFactory`에 ID를 등록하고,
+스탯 질의형 버프 효과는 `Effects/Buffs/`에 클래스를 추가해 `status.AddEffect(new ...)`로 직접 첨부한다.
 
 파일:
 
 - `Assets/Scripts/Effects/Base/BaseEffect.cs`
 - `Assets/Scripts/Effects/Base/EffectFactory.cs`
-- `Assets/Scripts/Effects/Positive`
 - `Assets/Scripts/Effects/Negative`
 - `Assets/Scripts/Effects/Neutral`
+- `Assets/Scripts/Effects/Buffs`
 
 ### 3. 코드에서 상태 부여
 
 예시 흐름:
 
 ```csharp
+// 정식 상태 (EffectFactory ID 기반)
 var status = new UnitStatus(statusId, Caster, target);
-status.AddEffect(effectId, duration);
+status.AddEffect(effectId, coefficient);
 target.AddStatus(status);
+
+// 코드 정의 버프 (직접 생성한 효과 객체)
+target.AddStatus(BuffStatus.Create(
+    BuffStatusIds.MyBuff, "MyBuffKey", "버프 이름",
+    Caster, target, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.STR, 4),
+    duration: 4f));
 ```
 
 상태를 부여하는 코드가 궁극기 자원 스택을 올려야 한다면, 부여 성공 시점에 `AddUltimateResource(1)`를 호출하는 식으로 연결한다.
@@ -797,7 +813,6 @@ target.AddStatus(status);
 
 - `10_units.yaml`: 아군 유닛
 - `20_codes.yaml`: 코드 표시 데이터
-- `30_status.yaml`: 상태/효과 데이터
 - `50_tokens.yaml`: 토큰 데이터
 - `60_enemies.yaml`: 적 데이터
 - `70_rounds.yaml`: 라운드 패턴
@@ -829,6 +844,5 @@ target.AddStatus(status);
 - 스탯 모델은 5스탯 + 명시적 atk/def로 단일화되었다. 레거시 필드/변환 로직은 제거됨
   (자세한 규칙은 "스탯 필드 규칙" 절 참고).
 - `AtkCurr`, `DefCurr`, `HpMax`, `ManaCurr` 같은 파생 전투 값은 UI와 전투 계산 호환을 위해 유지된다.
-- `StatusEffect` 기반 레거시 상태와 신규 `UnitStatus` 기반 상태가 공존한다.
-- 새 개발은 가능하면 `UnitStatus`와 `BaseEffect` 기반으로 진행한다.
+- 상태 시스템은 `UnitStatus` + `BaseEffect` 단일 체계다 (구 `StatusEffect` 딕셔너리 제거됨).
 - Unity가 `.csproj`를 재생성할 수 있으므로, 파일 삭제 후 IDE 빌드에서 삭제된 `.cs`를 찾는 오류가 나오면 프로젝트 파일 재생성 또는 Compile 항목 정리를 확인한다.

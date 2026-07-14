@@ -3,9 +3,9 @@ using System.Collections;
 using System.Linq;
 using BaseClasses;
 using Codes.Base;
+using Effects.Buffs;
 using Entities;
 using Managers;
-using StatusEffects.Effects;
 using UnityEngine;
 
 namespace Codes.Passive
@@ -23,12 +23,14 @@ namespace Codes.Passive
 
         public override void CastCode()
         {
-            Caster.AddStatusEffect("ChandraNishakara", new ChandraNishakaraEffect(Caster, GetRatio()));
+            Caster.AddStatus(BuffStatus.Create(
+                BuffStatusIds.Nishakara, "ChandraNishakara", "니샤카라",
+                Caster, Caster, new NishakaraBuffEffect(GetRatio())));
         }
 
         public override void StopCode()
         {
-            Caster.RemoveStatusEffect("ChandraNishakara");
+            Caster.RemoveStatusByKey("ChandraNishakara");
         }
 
         private float GetRatio()
@@ -53,7 +55,9 @@ namespace Codes.Passive
 
         public override void CastCode()
         {
-            Caster.AddStatusEffect("ChandraBastion", new ShieldBonusEffect(Caster, "ChandraBastion", 0.25f));
+            Caster.AddStatus(BuffStatus.Create(
+                BuffStatusIds.Bastion, "ChandraBastion", "성채",
+                Caster, Caster, new ShieldBonusBuffEffect(0.25f)));
         }
     }
 
@@ -166,9 +170,11 @@ namespace Codes.Passive
         {
             if (context.Grantee != Caster || !Caster.isActive) return;
 
-            Caster.AddStatusEffect(
-                "ChandraBulwarkStr",
-                new PrimaryStatBonusEffect(Caster, "ChandraBulwarkStr", BaseEnums.PrimaryStat.STR, 4, 4f));
+            // Replace 정책: 재발동 시 4초로 갱신
+            Caster.AddStatus(BuffStatus.Create(
+                BuffStatusIds.BulwarkStr, "ChandraBulwarkStr", "보루",
+                Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.STR, 4),
+                duration: 4f));
         }
     }
 
@@ -183,12 +189,12 @@ namespace Codes.Passive
 
         public override void CastCode()
         {
-            Caster.RemoveStatusEffect("ChandraLastStandFormation");
+            Caster.RemoveStatusByKey("ChandraLastStandFormation");
             if (!HasOtherFrontAlly())
             {
-                Caster.AddStatusEffect(
-                    "ChandraLastStandFormation",
-                    new PrimaryStatBonusEffect(Caster, "ChandraLastStandFormation", BaseEnums.PrimaryStat.CON, 12));
+                Caster.AddStatus(BuffStatus.Create(
+                    BuffStatusIds.LastStandFormation, "ChandraLastStandFormation", "배수의 진",
+                    Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.CON, 12)));
             }
         }
 
@@ -276,7 +282,7 @@ namespace Codes.Passive
         {
             _elapsed = 0f;
             _applied = false;
-            Caster.RemoveStatusEffect("ChandraIronWall");
+            Caster.RemoveStatusByKey("ChandraIronWall");
             if (_isRegistered) return;
 
             _updateHandler = OnUpdate;
@@ -314,9 +320,9 @@ namespace Codes.Passive
             if (_elapsed < TriggerTime) return;
 
             _applied = true;
-            Caster.AddStatusEffect(
-                "ChandraIronWall",
-                new PrimaryStatBonusEffect(Caster, "ChandraIronWall", BaseEnums.PrimaryStat.CON, 6));
+            Caster.AddStatus(BuffStatus.Create(
+                BuffStatusIds.IronWall, "ChandraIronWall", "철벽",
+                Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.CON, 6)));
         }
 
         private void OnRoundEnd(EventContext context)
@@ -340,7 +346,9 @@ namespace Codes.Passive
 
         public override void CastCode()
         {
-            Caster.AddStatusEffect("Lokapala", new LokapalaEffect(Caster));
+            Caster.AddStatus(BuffStatus.Create(
+                BuffStatusIds.Lokapala, "Lokapala", "로카팔라",
+                Caster, Caster, new LokapalaBuffEffect()));
         }
     }
 
@@ -386,8 +394,12 @@ namespace Codes.Passive
             if (context.Grantee != Caster || target == null || !target.isActive) return;
             if (!Target.GetAllAllies(Caster).Contains(target)) return;
 
-            string identifier = $"{AnemoImbueEffect.StatusPrefix}_{Caster.GetEntityId()}";
-            target.AddStatusEffect(identifier, new AnemoImbueEffect(Caster, identifier, ImbueDuration));
+            // 바람 부여 마커 상태 (효과 객체 없음). Replace 정책으로 재부여 시 지속시간 갱신.
+            string statusKey = $"AnemoImbue_{Caster.GetEntityId()}";
+            target.AddStatus(BuffStatus.Create(
+                BuffStatusIds.AnemoImbue, statusKey, "월광",
+                Caster, target, null,
+                duration: ImbueDuration));
         }
     }
 
@@ -503,7 +515,9 @@ namespace Codes.Passive
 
         public override void CastCode()
         {
-            Caster.AddStatusEffect("QuetzalcoatlForestGrace", new ForestGraceEffect(Caster));
+            Caster.AddStatus(BuffStatus.Create(
+                BuffStatusIds.ForestGrace, "QuetzalcoatlForestGrace", "숲의 은총",
+                Caster, Caster, new ForestGraceBuffEffect()));
         }
     }
 
@@ -517,7 +531,9 @@ namespace Codes.Passive
 
         public override void CastCode()
         {
-            Caster.AddStatusEffect("QuetzalcoatlSpellSniper", new SpellSniperEffect(Caster));
+            Caster.AddStatus(BuffStatus.Create(
+                BuffStatusIds.SpellSniper, "QuetzalcoatlSpellSniper", "주문 저격수",
+                Caster, Caster, new SpellSniperBuffEffect()));
         }
     }
 
@@ -551,8 +567,13 @@ namespace Codes.Passive
             if (_elapsed < 4f) return;
             _elapsed -= 4f;
             _stacks++;
-            Caster.AddStatusEffect("QuetzalcoatlRootingCon", new PrimaryStatBonusEffect(Caster, "QuetzalcoatlRootingCon", BaseEnums.PrimaryStat.CON, _stacks));
-            Caster.AddStatusEffect("QuetzalcoatlRootingInt", new PrimaryStatBonusEffect(Caster, "QuetzalcoatlRootingInt", BaseEnums.PrimaryStat.INT, _stacks));
+            // Replace 정책: 스택 증가 시 더 큰 수치로 교체
+            Caster.AddStatus(BuffStatus.Create(
+                BuffStatusIds.RootingCon, "QuetzalcoatlRootingCon", "뿌리박기 (CON)",
+                Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.CON, _stacks)));
+            Caster.AddStatus(BuffStatus.Create(
+                BuffStatusIds.RootingInt, "QuetzalcoatlRootingInt", "뿌리박기 (INT)",
+                Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.INT, _stacks)));
         }
     }
 
@@ -593,7 +614,9 @@ namespace Codes.Passive
 
         public override void CastCode()
         {
-            Caster.AddStatusEffect("QuetzalcoatlScholar", new ScholarEffect(Caster));
+            Caster.AddStatus(BuffStatus.Create(
+                BuffStatusIds.Scholar, "QuetzalcoatlScholar", "학자",
+                Caster, Caster, new ScholarBuffEffect()));
         }
     }
 
@@ -630,8 +653,10 @@ namespace Codes.Passive
             {
                 int amount = Mathf.RoundToInt(Caster.GetGrowthStatValue(stat) * 1.5f);
                 if (amount <= 0) continue;
-                string identifier = $"QuetzalcoatlTranscendence_{stat}";
-                Caster.AddStatusEffect(identifier, new PrimaryStatBonusEffect(Caster, identifier, stat, amount));
+                string statusKey = $"QuetzalcoatlTranscendence_{stat}";
+                Caster.AddStatus(BuffStatus.Create(
+                    BuffStatusIds.Transcendence, statusKey, $"초월 ({stat})",
+                    Caster, Caster, new PrimaryStatBonusBuffEffect(stat, amount)));
             }
         }
     }
@@ -714,7 +739,9 @@ namespace Codes.Passive
 
         public override void CastCode()
         {
-            Caster.AddStatusEffect("QuetzalcoatlGuardianWill", new GuardianWillEffect(Caster));
+            Caster.AddStatus(BuffStatus.Create(
+                BuffStatusIds.GuardianWill, "QuetzalcoatlGuardianWill", "수호자의 의지",
+                Caster, Caster, new GuardianWillBuffEffect()));
         }
     }
 
@@ -754,23 +781,25 @@ namespace Codes.Passive
 
         private void ApplyToAllies()
         {
+            string statusKey = $"QuetzalcoatlCipactliSlayer_{Caster.GetEntityId()}";
             foreach (Unit ally in Target.GetAllAllies(Caster))
             {
                 if (ally == null || !ally.isActive) continue;
-                string identifier = $"QuetzalcoatlCipactliSlayer_{Caster.GetEntityId()}";
-                if (!ally.HasStatusEffect(identifier))
+                if (!ally.HasStatusKey(statusKey))
                 {
-                    ally.AddStatusEffect(identifier, new CipactliSlayerEffect(Caster, identifier));
+                    ally.AddStatus(BuffStatus.Create(
+                        BuffStatusIds.CipactliSlayer, statusKey, "시팍틀리를 살해한 자",
+                        Caster, ally, new CipactliSlayerBuffEffect()));
                 }
             }
         }
 
         private void RemoveFromAllies()
         {
-            string identifier = $"QuetzalcoatlCipactliSlayer_{Caster.GetEntityId()}";
+            string statusKey = $"QuetzalcoatlCipactliSlayer_{Caster.GetEntityId()}";
             foreach (Unit ally in Target.GetAllAllies(Caster))
             {
-                ally?.RemoveStatusEffect(identifier);
+                ally?.RemoveStatusByKey(statusKey);
             }
         }
     }

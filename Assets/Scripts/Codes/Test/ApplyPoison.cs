@@ -5,7 +5,6 @@ using CGT.Pooling;
 using Codes.Base;
 using Entities;
 using Managers;
-using StatusEffects.Effects;
 using UnityEngine;
 
 namespace Codes.Ultimate
@@ -66,10 +65,11 @@ namespace Codes.Ultimate
     {
       GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, target, delay);
       yield return new WaitForSeconds(delay);
-      // 각 맹독이 개별적으로 스택되도록 고유한 identifier 생성
-      string identifier = $"PoisonEffect_{Caster.GetEntityId()}_{target.GetEntityId()}_{System.DateTime.Now.Ticks}";
-      var buffEffect = new PoisonEffect(Caster, identifier, (int)(Caster.AtkCurr * 0.1f));
-      target.AddStatusEffect(identifier, buffEffect);
+      // 맹독 상태(1) 부여 - Stack 정책이라 개별적으로 중첩된다
+      var poisonStatus = new Entities.Status.UnitStatus(1, Caster, target);
+      poisonStatus.Duration = 2f; // 구 PoisonEffect와 동일한 지속시간
+      poisonStatus.AddEffect(1001, 10f); // 시전자 공격력의 10% 지속 피해
+      target.AddStatus(poisonStatus);
     }
 
     public override bool HasValidTarget()

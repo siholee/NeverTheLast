@@ -6,7 +6,6 @@ using Codes.Base;
 using Codes.Normal;
 using Core;
 using Managers;
-using StatusEffects.Base;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -159,10 +158,7 @@ namespace Entities
         public int DefBase { get => defBase; protected set => defBase = value; }
         public int DefIncrementLvl { get => defIncrementLvl; protected set => defIncrementLvl = value; }
 
-        // 유닛 상태효과(버프/디버프) - 기존 시스템 (하위 호환용)
-        protected Dictionary<string, StatusEffect> StatusEffects;
-        
-        // 새로운 상태 시스템 - List로 변경하여 중첩 허용
+        // 유닛 상태(버프/디버프) - List로 중첩 허용
         protected List<Status.UnitStatus> Statuses;
 
         // 유닛 코드(스킬) 정보
@@ -204,7 +200,6 @@ namespace Entities
         public virtual void InitializeUnit(bool _isEnemy, int _id)
         {
             _eventDict = new Dictionary<BaseEnums.UnitEventType, Delegate>();
-            StatusEffects = new Dictionary<string, StatusEffect>();
             Statuses = new List<Status.UnitStatus>();
             PassiveCodes = new List<PassiveCode>();
             PendingLevelPassives = new List<LevelPassiveData>();
@@ -271,7 +266,6 @@ namespace Entities
                 ConfigureUltimateResource(enemyData.ultimateResourceType, enemyData.ultimateResourceName, enemyData.ultimateResourceMax);
                 CodeAcceleration = 1f;
 
-                StatusEffects = new Dictionary<string, StatusEffect>();
                 isCasting = false;
                 castingTime = 0f;
                 isControlled = false;
@@ -309,7 +303,6 @@ namespace Entities
                 ConfigureUltimateResource(data.ultimateResourceType, data.ultimateResourceName, data.ultimateResourceMax);
                 CodeAcceleration = 1f;
 
-                StatusEffects = new Dictionary<string, StatusEffect>();
                 isCasting = false;
                 castingTime = 0f;
                 isControlled = false;
@@ -735,14 +728,6 @@ namespace Entities
             float codeAccelerationAdd = 0f;
             float manaRecoveryMultiplier = 1f;
 
-            foreach (var effectPair in StatusEffects)
-            {
-                critChanceAdd += effectPair.Value.CritChanceAdditiveModifier(this);
-                critMultiplierAdd += effectPair.Value.CritMultiplierAdditiveModifier(this);
-                shieldBonusAdd += effectPair.Value.ShieldBonusAdditiveModifier(this);
-                codeAccelerationAdd += effectPair.Value.CodeAccelerationAdditiveModifier(this);
-                manaRecoveryMultiplier *= effectPair.Value.ManaRecoveryMultiplierModifier(this);
-            }
             foreach (var effect in ActiveEffectObjects())
             {
                 critChanceAdd += effect.CritChanceAdditiveModifier(this);
@@ -1209,10 +1194,6 @@ namespace Entities
                 return;
             }
             float receivingDamageModifier = 1f;
-            foreach (var effectPair in StatusEffects)
-            {
-                receivingDamageModifier *= effectPair.Value.ReceivingDamageModifier(self);
-            }
             foreach (var effect in ActiveEffectObjects())
             {
                 receivingDamageModifier *= effect.ReceivingDamageModifier(self);
@@ -1284,13 +1265,6 @@ namespace Entities
             float outgoingDamageModifier = 1f;
             if (dmgCtx.Attacker != null)
             {
-                if (dmgCtx.Attacker.StatusEffects != null)
-                {
-                    foreach (var effectPair in dmgCtx.Attacker.StatusEffects)
-                    {
-                        outgoingDamageModifier *= effectPair.Value.OutgoingDamageModifier(dmgCtx.Attacker, this, dmgCtx);
-                    }
-                }
                 foreach (var effect in dmgCtx.Attacker.ActiveEffectObjects())
                 {
                     outgoingDamageModifier *= effect.OutgoingDamageModifier(dmgCtx.Attacker, this, dmgCtx);
@@ -1325,8 +1299,7 @@ namespace Entities
         /// </summary>
         protected void DefaultRoundEndEvent(EventContext context)
         {
-            StatusEffects.Clear();
-            // 새 상태 시스템도 라운드 종료 시 정리 (OnRemove 호출로 이벤트 리스너 등 해제)
+            // 상태를 라운드 종료 시 정리 (OnRemove 호출로 이벤트 리스너 등 해제)
             for (int i = Statuses.Count - 1; i >= 0; i--)
             {
                 Statuses[i].OnRemove();
@@ -1346,17 +1319,6 @@ namespace Entities
         /// </summary>
         protected void DefaultUpdateEvent(EventContext context)
         {
-            // 기존 StatusEffect 시스템 (하위 호환)
-            var effectPairs = StatusEffects.ToList();
-            foreach (var effectPair in effectPairs)
-            {
-                if (effectPair.Value is ITemporalEffect temporalEffect)
-                {
-                    temporalEffect.OnUpdate(context);
-                }
-            }
-            
-            // 새로운 Status 시스템
             for (int i = Statuses.Count - 1; i >= 0; i--)
             {
                 var status = Statuses[i];
@@ -1417,10 +1379,6 @@ namespace Entities
         private int GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat stat)
         {
             int total = 0;
-            foreach (var effectPair in StatusEffects)
-            {
-                total += effectPair.Value.PrimaryStatAdditiveModifier(this, stat);
-            }
             foreach (var effect in ActiveEffectObjects())
             {
                 total += effect.PrimaryStatAdditiveModifier(this, stat);
@@ -1432,10 +1390,6 @@ namespace Entities
         private int ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat stat, int value)
         {
             float multiplier = 1f;
-            foreach (var effectPair in StatusEffects)
-            {
-                multiplier *= effectPair.Value.PrimaryStatMultiplierModifier(this, stat);
-            }
             foreach (var effect in ActiveEffectObjects())
             {
                 multiplier *= effect.PrimaryStatMultiplierModifier(this, stat);
@@ -1455,11 +1409,6 @@ namespace Entities
                 BaseEnums.PrimaryStat.LUK => LukIncrementLvl * growthLevel + LukIncrementUpgrade * LukUpgrade,
                 _ => 0,
             };
-        }
-
-        public bool HasStatusEffect(string identifier)
-        {
-            return !string.IsNullOrWhiteSpace(identifier) && StatusEffects.ContainsKey(identifier);
         }
 
         private int GetStatGrowthLevel()
@@ -1586,46 +1535,6 @@ namespace Entities
         }
 
         // 유닛 상태효과 관리
-        public void AddStatusEffect(string identifier, StatusEffect effect)
-        {
-            // 같은 버프여도 서로 다른 유닛이 부여하면 중첩가능
-            Debug.Log($"{UnitName}에게 {identifier} 상태효과 부여");
-            if (StatusEffects.ContainsKey(identifier))
-            {
-                // 기존 효과가 BurnEffect이고 새로운 효과도 BurnEffect인 경우 지속시간 연장
-                if (StatusEffects[identifier] is StatusEffects.Effects.BurnEffect existingBurn && 
-                    effect is StatusEffects.Effects.BurnEffect newBurn)
-                {
-                    existingBurn.UpdateDuration(2f); // +2초 연장
-                    Debug.Log($"{UnitName}의 화상 지속시간 연장: {existingBurn.Duration}초");
-                }
-                // HolyEnchant의 경우 중첩 불가능 - 기존 효과 유지
-                else if (identifier == "HolyEnchantBuff" && 
-                         StatusEffects[identifier] is StatusEffects.Effects.HolyEnchantEffect)
-                {
-                    Debug.Log($"{UnitName}에게 이미 홀리 인챈트가 적용되어 있음 - 중첩 무시");
-                    return; // 새로운 효과를 적용하지 않고 기존 효과 유지
-                }
-                else
-                {
-                    StatusEffects[identifier] = effect;
-                }
-            }
-            else
-            {
-                StatusEffects.Add(identifier, effect);
-            }
-            AttributesUpdate();
-
-            if (effect != null && effect.IsBeneficial)
-            {
-                NotifyBeneficialEffectReceived(effect.Grantor);
-            }
-            
-            // InfoTab이 열려있고 현재 유닛이 표시되고 있다면 업데이트
-            UpdateInfoTabIfShowing();
-        }
-
         public void NotifyBeneficialEffectReceived(Unit grantor)
         {
             Invoke(BaseEnums.UnitEventType.OnBeneficialEffectReceived, new EventContext(this, grantor));
@@ -1635,19 +1544,6 @@ namespace Entities
             }
         }
 
-        public void RemoveStatusEffect(string identifier)
-        {
-            Debug.Log($"{UnitName}에게서 {identifier} 상태효과 제거됨");
-            if (StatusEffects.ContainsKey(identifier))
-            {
-                StatusEffects.Remove(identifier);
-            }
-            AttributesUpdate();
-            
-            // InfoTab이 열려있고 현재 유닛이 표시되고 있다면 업데이트
-            UpdateInfoTabIfShowing();
-        }
-        
         // InfoTab 업데이트 헬퍼 메서드
         private void UpdateInfoTabIfShowing()
         {
@@ -1714,13 +1610,7 @@ namespace Entities
             }
         }
         
-        // 상태 효과 정보 접근 메서드들 (UI 표시용)
-        public System.Collections.Generic.Dictionary<string, StatusEffect> GetStatusEffects()
-        {
-            return StatusEffects;
-        }
-        
-        // ===== 새로운 Status 시스템 메서드들 =====
+        // ===== Status 시스템 메서드들 =====
         
         /// <summary>
         /// 상태 추가 (새로운 시스템) - 중첩 정책에 따라 처리

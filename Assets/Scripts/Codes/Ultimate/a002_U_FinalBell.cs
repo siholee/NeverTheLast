@@ -1,13 +1,15 @@
 using System.Collections;
 using BaseClasses;
 using Codes.Base;
-using StatusEffects.Effects;
+using Effects.Buffs;
 using UnityEngine;
 
 namespace Codes.Ultimate
 {
     public class a002_U_FinalBell : UltimateCode
     {
+        public const string StatusKey = "FinalBell";
+
         public a002_U_FinalBell(UltimateCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Ultimate;
@@ -26,8 +28,13 @@ namespace Codes.Ultimate
 
         protected override IEnumerator SkillCoroutine()
         {
-            var effect = new FinalBellEffect(Caster);
-            Caster.AddStatusEffect(FinalBellEffect.StatusIdentifier, effect);
+            // Replace 정책: 재시전 시 8초로 갱신 (구 dict 덮어쓰기와 동일)
+            var status = BuffStatus.Create(
+                BuffStatusIds.FinalBell, StatusKey, "만종",
+                Caster, Caster, new FinalBellBuffEffect(),
+                duration: 8f,
+                description: "DEX가 레벨×2만큼 증가합니다.");
+            Caster.AddStatus(status);
             Debug.Log($"[만종] {Caster.UnitName}: 8초간 DEX +{Caster.Level * 2}, 시의 종언 발동 간격 1/3");
 
             StopCode();

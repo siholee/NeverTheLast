@@ -5,7 +5,6 @@ using CGT.Pooling;
 using Codes.Base;
 using Entities;
 using Managers;
-using StatusEffects.Effects;
 using UnityEngine;
 
 namespace Codes.Ultimate
@@ -71,12 +70,12 @@ namespace Codes.Ultimate
     {
       GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, target, delay);
       yield return new WaitForSeconds(delay);
-      
-      // 화상 효과 부여 - 고정 식별자로 중복 적용 시 지속시간 연장
-      string identifier = "BurnEffect";
-      var burnEffect = new BurnEffect(Caster, identifier);
-      target.AddStatusEffect(identifier, burnEffect);
-      
+
+      // 화상 상태(2) 부여 - ExtendDuration 정책으로 중복 적용 시 +2초 연장
+      var burnStatus = new Entities.Status.UnitStatus(2, Caster, target);
+      burnStatus.AddEffect(1002, 2f); // 최대 체력의 2% 지속 피해
+      target.AddStatus(burnStatus);
+
       Debug.Log($"{Caster.UnitName}이 {target.UnitName}에게 화상 부여");
     }
 

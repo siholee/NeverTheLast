@@ -4,7 +4,6 @@ using System.Linq;
 using BaseClasses;
 using Codes.Base;
 using Entities;
-using StatusEffects.Effects;
 using UnityEngine;
 
 namespace Codes.Passive
@@ -54,7 +53,7 @@ namespace Codes.Passive
 
             int stage = Mathf.Clamp(CurrentStage, 1, MaxStage);
             int maxStack = stage * 3;
-            int stackGain = Caster.HasStatusEffect(FinalBellEffect.StatusIdentifier) ? 3 : 1;
+            int stackGain = Caster.HasStatusKey(Codes.Ultimate.a002_U_FinalBell.StatusKey) ? 3 : 1;
             int previousStack = Mathf.Min(_verseStack, maxStack);
             _verseStack = Mathf.Min(previousStack + stackGain, maxStack);
 

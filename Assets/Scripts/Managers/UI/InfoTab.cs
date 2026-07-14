@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Text;
 using System.Collections.Generic;
-using StatusEffects.Base;
 using Entities.Status;
 using Managers;
 
@@ -179,26 +178,6 @@ namespace Managers.UI
                 }
             }
 
-            // 기존 StatusEffect 시스템 (하위 호환)
-            var statusEffects = unit.GetStatusEffects();
-            if (statusEffects != null && statusEffects.Count > 0)
-            {
-                foreach (var effect in statusEffects)
-                {
-                    hasAnyEffect = true;
-                    string effectName = GetEffectDisplayName(effect.Key);
-                    string duration = effect.Value.Duration > 0 ? $"{effect.Value.Duration:F1}초" : "영구";
-                    string stack = effect.Value.Stack > 1 ? $" (x{effect.Value.Stack})" : "";
-                    string description = GetEffectDescription(effect.Value);
-                    
-                    statusBuilder.AppendLine($"• <color=#ffaa44>{effectName}</color>{stack}");
-                    statusBuilder.AppendLine($"  남은시간: {duration}");
-                    if (!string.IsNullOrEmpty(description))
-                        statusBuilder.AppendLine($"  효과: {description}");
-                    statusBuilder.AppendLine();
-                }
-            }
-
             if (!hasAnyEffect)
             {
                 statusBuilder.AppendLine("없음");
@@ -219,41 +198,6 @@ namespace Managers.UI
                 default:
                     return "#ffaa44";
             }
-        }
-
-        private string GetEffectDisplayName(string identifier)
-        {
-            if (string.IsNullOrEmpty(identifier)) return "알 수 없는 효과";
-            
-            if (identifier.Contains("PoisonEffect")) return "맹독";
-            if (identifier.Contains("Burn")) return "화상";
-            if (identifier.Contains("HolyEnchant")) return "신성한 인챈트";
-            if (identifier.Contains("Shield")) return "방어막";
-            
-            return identifier;
-        }
-
-        private string GetEffectDescription(StatusEffect effect)
-        {
-            StringBuilder desc = new StringBuilder();
-
-            if (effect.CritChanceAdditiveModifier(null) != 0f)
-                desc.Append($"치명타율 {(effect.CritChanceAdditiveModifier(null) * 100):+0;-0}% ");
-            if (effect.CritMultiplierAdditiveModifier(null) != 0f)
-                desc.Append($"치명타 배율 {(effect.CritMultiplierAdditiveModifier(null) * 100):+0;-0}% ");
-                
-            if (effect.ReceivingDamageModifier(null) != 1f)
-                desc.Append($"받는 피해 {((effect.ReceivingDamageModifier(null) - 1f) * 100):+0;-0}% ");
-
-            if (effect is IHpChangeEffect hpChangeEffect)
-            {
-                if (hpChangeEffect.HpFlatChange() != 0)
-                    desc.Append($"초당 {hpChangeEffect.HpFlatChange():+0;-0} HP ");
-                if (hpChangeEffect.HpPercentageChange() != 0f)
-                    desc.Append($"초당 최대HP의 {(hpChangeEffect.HpPercentageChange() * 100):+0;-0}% ");
-            }
-
-            return desc.ToString().Trim();
         }
 
         private void UpdateIdentityInfo(Entities.Unit unit)

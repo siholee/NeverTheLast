@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Codes.Base;
+using Effects.Buffs;
 using Entities;
 using Managers;
-using StatusEffects.Effects;
 using UnityEngine;
 
 namespace Codes.Ultimate
@@ -50,12 +50,19 @@ namespace Codes.Ultimate
             Caster.NotifyBeneficialEffectReceived(Caster);
 
             float speedBonus = Mathf.Max(0f, Caster.GetBaseInt() * 0.01f);
+            string statusKey = $"SomaSpeed_{Caster.GetEntityId()}";
             foreach (Unit ally in GetRearAllies())
             {
                 if (ally == null || !ally.isActive) continue;
 
-                string identifier = $"SomaSpeed_{Caster.GetEntityId()}";
-                ally.AddStatusEffect(identifier, new CodeAccelerationEffect(Caster, identifier, speedBonus, SpeedBuffDuration));
+                // Replace 정책: 재시전 시 지속시간/수치 갱신 (구 dict 덮어쓰기와 동일)
+                var status = BuffStatus.Create(
+                    BuffStatusIds.SomaSpeed, statusKey, "소마",
+                    Caster, ally, new CodeAccelerationBuffEffect(speedBonus),
+                    duration: SpeedBuffDuration,
+                    isBeneficial: true,
+                    description: "코드 가속이 증가합니다.");
+                ally.AddStatus(status);
                 Debug.Log($"[소마] {ally.UnitName}에게 {SpeedBuffDuration}초간 공격속도 +{speedBonus:P0}");
             }
 

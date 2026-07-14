@@ -1,9 +1,9 @@
 using System;
 using BaseClasses;
 using Codes.Base;
+using Effects.Buffs;
 using Entities;
 using Managers;
-using StatusEffects.Effects;
 using UnityEngine;
 
 namespace Codes.Passive
@@ -39,11 +39,16 @@ namespace Codes.Passive
         protected void ApplyHolyEnchant()
         {
             var targetUnits = GridManager.Instance.TargetAllAllies(Caster);
-            var buffEffect = new HolyEnchantEffect(Caster);
             foreach (var targetUnit in targetUnits)
             {
-                // 고정된 identifier를 사용하여 중첩 방지
-                targetUnit.AddStatusEffect("HolyEnchantBuff", buffEffect);
+                // 고정 키를 사용하여 중첩 방지 (Ignore 정책)
+                var status = BuffStatus.Create(
+                    BuffStatusIds.HolyEnchant, "HolyEnchantBuff", "홀리 인챈트",
+                    Caster, targetUnit, new CritChanceBuffEffect(0.1f),
+                    stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
+                    isBeneficial: true,
+                    description: "치명타율 +10%");
+                targetUnit.AddStatus(status);
             }
         }
 
@@ -52,8 +57,7 @@ namespace Codes.Passive
             var targetUnits = GridManager.Instance.TargetAllAllies(Caster);
             foreach (var targetUnit in targetUnits)
             {
-                // 고정된 identifier로 상태효과 제거
-                targetUnit.RemoveStatusEffect("HolyEnchantBuff");
+                targetUnit.RemoveStatusByKey("HolyEnchantBuff");
             }
         }
     }
