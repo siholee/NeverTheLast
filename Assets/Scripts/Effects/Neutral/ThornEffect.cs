@@ -58,16 +58,6 @@ namespace Effects.Neutral
             }
         }
         
-        public override void OnRoundStart()
-        {
-            // 라운드 시작 시 특별한 처리 없음
-        }
-        
-        public override void OnUpdate(float deltaTime)
-        {
-            // 매 프레임 특별한 처리 없음
-        }
-        
         public override void OnRemove()
         {
             if (Target != null)
@@ -76,16 +66,6 @@ namespace Effects.Neutral
                 Target.RemoveListener<EventContext>(BaseEnums.UnitEventType.OnTakingDamage, OnDamageTaken);
                 Debug.Log($"[가시] {Target.UnitName}에게서 가시 효과 제거");
             }
-        }
-        
-        public override BaseEffect Clone()
-        {
-            var clone = new ThornEffect(EffectId, Coefficient)
-            {
-                Caster = this.Caster,
-                Target = this.Target
-            };
-            return clone;
         }
     }
 }

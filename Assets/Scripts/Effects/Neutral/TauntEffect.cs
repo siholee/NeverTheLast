@@ -29,16 +29,6 @@ namespace Effects.Neutral
             }
         }
         
-        public override void OnRoundStart()
-        {
-            // 라운드 시작 시 특별한 처리 없음
-        }
-        
-        public override void OnUpdate(float deltaTime)
-        {
-            // 매 프레임 특별한 처리 없음
-        }
-        
         public override void OnRemove()
         {
             if (Target != null)
@@ -46,16 +36,6 @@ namespace Effects.Neutral
                 Target.Priority -= (int)Coefficient;
                 Debug.Log($"[도발] {Target.UnitName}의 우선도 복구: {Target.Priority}");
             }
-        }
-        
-        public override BaseEffect Clone()
-        {
-            var clone = new TauntEffect(EffectId, Coefficient)
-            {
-                Caster = this.Caster,
-                Target = this.Target
-            };
-            return clone;
         }
     }
 }

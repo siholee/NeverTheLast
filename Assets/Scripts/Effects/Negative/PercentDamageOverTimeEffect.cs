@@ -28,11 +28,6 @@ namespace Effects.Negative
             Debug.Log($"[Percent DOT] {Target.UnitName}에게 퍼센트 지속 피해 효과 적용 (계수: {Coefficient}%)");
         }
         
-        public override void OnRoundStart()
-        {
-            // DOT는 매 프레임 처리되므로 라운드 시작 시 특별한 처리 없음
-        }
-        
         public override void OnUpdate(float deltaTime)
         {
             float previousTime = _elapsedTime;
@@ -62,16 +57,6 @@ namespace Effects.Negative
         public override void OnRemove()
         {
             Debug.Log($"[Percent DOT] {Target.UnitName}에게서 퍼센트 지속 피해 효과 제거");
-        }
-        
-        public override BaseEffect Clone()
-        {
-            var clone = new PercentDamageOverTimeEffect(EffectId, Coefficient)
-            {
-                Caster = this.Caster,
-                Target = this.Target
-            };
-            return clone;
         }
     }
 }

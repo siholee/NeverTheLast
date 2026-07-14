@@ -8,6 +8,27 @@ using UnityEngine;
 namespace Entities.Status
 {
     /// <summary>
+    /// 코드에서 직접 정의하는 상태 정의.
+    /// LoadStatusData의 ID 스위치에 등록하지 않고도 상태를 만들 수 있다 (버프류에 사용).
+    /// </summary>
+    public class StatusDefinition
+    {
+        public int Id;
+        /// <summary>중복/중첩 판정용 고유 키. null이면 Id 문자열을 사용한다.
+        /// 시전자별 중첩이 필요하면 키에 시전자 ID를 포함시킨다.</summary>
+        public string Key;
+        public string Name;
+        public string Description = "";
+        public string IconPath = "";
+        public BaseEnums.StatusCategory Category = BaseEnums.StatusCategory.Neutral;
+        public BaseEnums.StatusStackPolicy StackPolicy = BaseEnums.StatusStackPolicy.Replace;
+        /// <summary>지속 시간(초). 0 이하 = 무한(라운드 종료 시 정리).</summary>
+        public float Duration = -1f;
+        /// <summary>이로운 상태 여부 (OnBeneficialEffectReceived 발행 판정)</summary>
+        public bool IsBeneficial;
+    }
+
+    /// <summary>
     /// 상태(Status) 클래스
     /// 유닛에게 적용되는 상태를 표현하며, 여러 효과(Effect)를 포함할 수 있습니다.
     /// </summary>
@@ -36,6 +57,12 @@ namespace Entities.Status
         
         /// <summary>복수 보유 가능 여부 (같은 StatusId를 여러 개 가질 수 있는지)</summary>
         public bool CanStack { get; private set; }
+
+        /// <summary>중복/중첩 판정용 고유 키 (기본값: StatusId 문자열)</summary>
+        public string Key { get; private set; }
+
+        /// <summary>이로운 상태 여부 (부여 시 OnBeneficialEffectReceived 이벤트 발행)</summary>
+        public bool IsBeneficial { get; private set; }
         
         /// <summary>상태 시전자</summary>
         public Unit Caster { get; set; }
@@ -81,9 +108,32 @@ namespace Entities.Status
             Owner = owner;
             ElapsedTime = 0f;
             Effects = new List<EffectInstance>();
-            
-            // 데이터에서 상태 정보 로드 (추후 구현)
+
             LoadStatusData(statusId);
+            Key = StatusId.ToString();
+        }
+
+        /// <summary>
+        /// StatusDefinition 기반 생성자 — 코드에서 직접 정의한 상태(버프류)에 사용.
+        /// </summary>
+        public UnitStatus(StatusDefinition definition, Unit caster, Unit owner)
+        {
+            StatusId = definition.Id;
+            Caster = caster;
+            Owner = owner;
+            ElapsedTime = 0f;
+            Effects = new List<EffectInstance>();
+
+            StatusName = definition.Name;
+            StatusDescription = definition.Description;
+            IconPath = definition.IconPath;
+            Priority = 0;
+            Category = definition.Category;
+            StackPolicy = definition.StackPolicy;
+            CanStack = definition.StackPolicy == BaseEnums.StatusStackPolicy.Stack;
+            Duration = definition.Duration;
+            Key = string.IsNullOrEmpty(definition.Key) ? definition.Id.ToString() : definition.Key;
+            IsBeneficial = definition.IsBeneficial;
         }
         
         /// <summary>
@@ -157,11 +207,24 @@ namespace Entities.Status
         }
         
         /// <summary>
-        /// 효과 추가
+        /// 효과 추가 (EffectFactory ID 기반 — Unit.AddStatusInternal에서 객체 생성)
         /// </summary>
         public void AddEffect(int effectId, float coefficient = 100f)
         {
             var effectInstance = new EffectInstance(effectId, coefficient);
+            Effects.Add(effectInstance);
+        }
+
+        /// <summary>
+        /// 효과 추가 (직접 생성한 BaseEffect 객체 — 생성자 인자가 필요한 버프류에 사용)
+        /// </summary>
+        public void AddEffect(BaseEffect effect)
+        {
+            if (effect == null) return;
+            var effectInstance = new EffectInstance(effect.EffectId, effect.Coefficient)
+            {
+                EffectObject = effect,
+            };
             Effects.Add(effectInstance);
         }
         
@@ -179,20 +242,6 @@ namespace Entities.Status
             }
             
             Debug.Log($"[상태] {Owner.UnitName}에게 '{StatusName}' 상태 적용 (지속시간: {Duration}초, 효과 수: {Effects.Count})");
-        }
-        
-        /// <summary>
-        /// 매 라운드 시작 시 호출
-        /// </summary>
-        public void OnRoundStart()
-        {
-            foreach (var effectInstance in Effects)
-            {
-                if (effectInstance.EffectObject != null)
-                {
-                    effectInstance.EffectObject.OnRoundStart();
-                }
-            }
         }
         
         /// <summary>

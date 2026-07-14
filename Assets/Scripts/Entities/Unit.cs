@@ -708,6 +708,24 @@ namespace Entities
         /// 유닛의 스탯 수치 업데이트<br/>
         /// 매 프레임마다 호출하기엔 무거운 것 같으니 상태 변화가 있을 때만 호출
         /// </summary>
+        /// <summary>
+        /// 현재 보유 중인 모든 상태의 효과 객체 열거 (스탯 질의 훅 집계용)
+        /// </summary>
+        protected IEnumerable<Effects.Base.BaseEffect> ActiveEffectObjects()
+        {
+            for (int i = 0; i < Statuses.Count; i++)
+            {
+                var effects = Statuses[i].Effects;
+                for (int j = 0; j < effects.Count; j++)
+                {
+                    if (effects[j].EffectObject != null)
+                    {
+                        yield return effects[j].EffectObject;
+                    }
+                }
+            }
+        }
+
         protected virtual void AttributesUpdate()
         {
             // 스탯 수정치 계산
@@ -724,6 +742,14 @@ namespace Entities
                 shieldBonusAdd += effectPair.Value.ShieldBonusAdditiveModifier(this);
                 codeAccelerationAdd += effectPair.Value.CodeAccelerationAdditiveModifier(this);
                 manaRecoveryMultiplier *= effectPair.Value.ManaRecoveryMultiplierModifier(this);
+            }
+            foreach (var effect in ActiveEffectObjects())
+            {
+                critChanceAdd += effect.CritChanceAdditiveModifier(this);
+                critMultiplierAdd += effect.CritMultiplierAdditiveModifier(this);
+                shieldBonusAdd += effect.ShieldBonusAdditiveModifier(this);
+                codeAccelerationAdd += effect.CodeAccelerationAdditiveModifier(this);
+                manaRecoveryMultiplier *= effect.ManaRecoveryMultiplierModifier(this);
             }
             // hp 비율 저장
             float healthRatio = (HpMax > 0) ? (float)HpCurr / HpMax : 1f;
@@ -1187,6 +1213,10 @@ namespace Entities
             {
                 receivingDamageModifier *= effectPair.Value.ReceivingDamageModifier(self);
             }
+            foreach (var effect in ActiveEffectObjects())
+            {
+                receivingDamageModifier *= effect.ReceivingDamageModifier(self);
+            }
             
             bool canEvade = dmgCtx.CodeType != BaseEnums.CodeType.Effect;
             if (canEvade && UnityEngine.Random.value < self.EvasionChanceCurr)
@@ -1252,11 +1282,18 @@ namespace Entities
             int defenseStat = GetDefenseStatForDamage(dmgCtx);
             float scaledDefense = defenseStat * Mathf.Max(0f, dmgCtx.DefenseStatMultiplier);
             float outgoingDamageModifier = 1f;
-            if (dmgCtx.Attacker?.StatusEffects != null)
+            if (dmgCtx.Attacker != null)
             {
-                foreach (var effectPair in dmgCtx.Attacker.StatusEffects)
+                if (dmgCtx.Attacker.StatusEffects != null)
                 {
-                    outgoingDamageModifier *= effectPair.Value.OutgoingDamageModifier(dmgCtx.Attacker, this, dmgCtx);
+                    foreach (var effectPair in dmgCtx.Attacker.StatusEffects)
+                    {
+                        outgoingDamageModifier *= effectPair.Value.OutgoingDamageModifier(dmgCtx.Attacker, this, dmgCtx);
+                    }
+                }
+                foreach (var effect in dmgCtx.Attacker.ActiveEffectObjects())
+                {
+                    outgoingDamageModifier *= effect.OutgoingDamageModifier(dmgCtx.Attacker, this, dmgCtx);
                 }
             }
 
@@ -1289,6 +1326,12 @@ namespace Entities
         protected void DefaultRoundEndEvent(EventContext context)
         {
             StatusEffects.Clear();
+            // 새 상태 시스템도 라운드 종료 시 정리 (OnRemove 호출로 이벤트 리스너 등 해제)
+            for (int i = Statuses.Count - 1; i >= 0; i--)
+            {
+                Statuses[i].OnRemove();
+            }
+            Statuses.Clear();
             ResetCombatElements();
             _combatResources.Clear();
             _combatResourceMaximums.Clear();
@@ -1378,6 +1421,10 @@ namespace Entities
             {
                 total += effectPair.Value.PrimaryStatAdditiveModifier(this, stat);
             }
+            foreach (var effect in ActiveEffectObjects())
+            {
+                total += effect.PrimaryStatAdditiveModifier(this, stat);
+            }
 
             return total;
         }
@@ -1388,6 +1435,10 @@ namespace Entities
             foreach (var effectPair in StatusEffects)
             {
                 multiplier *= effectPair.Value.PrimaryStatMultiplierModifier(this, stat);
+            }
+            foreach (var effect in ActiveEffectObjects())
+            {
+                multiplier *= effect.PrimaryStatMultiplierModifier(this, stat);
             }
             return Mathf.Max(0, Mathf.RoundToInt(value * multiplier));
         }
@@ -1677,7 +1728,7 @@ namespace Entities
         /// <param name="status">추가할 상태</param>
         public void AddStatus(Status.UnitStatus status)
         {
-            // 중첩 정책에 따른 처리
+            // 중첩 정책에 따른 처리 (동일 여부 판정은 Key 기준 — 기본값은 StatusId 문자열)
             switch (status.StackPolicy)
             {
                 case BaseEnums.StatusStackPolicy.Stack:
@@ -1685,10 +1736,10 @@ namespace Entities
                     AddStatusInternal(status);
                     Debug.Log($"[Status-Stack] {UnitName}에게 {status.StatusName} 추가 (중첩, 총 {Statuses.Count}개)");
                     break;
-                    
+
                 case BaseEnums.StatusStackPolicy.ExtendDuration:
                     // 지속시간 연장 - 기존 것 찾아서 시간 추가
-                    var existing = Statuses.FirstOrDefault(s => s.StatusId == status.StatusId);
+                    var existing = Statuses.FirstOrDefault(s => s.Key == status.Key);
                     if (existing != null)
                     {
                         float oldDuration = existing.Duration - existing.ElapsedTime;
@@ -1701,23 +1752,23 @@ namespace Entities
                         Debug.Log($"[Status-Extend] {UnitName}에게 {status.StatusName} 최초 적용");
                     }
                     break;
-                    
+
                 case BaseEnums.StatusStackPolicy.ReplaceIfStronger:
                     // 더 강한 것으로 교체 - Coefficient 비교
-                    var existingStrong = Statuses.FirstOrDefault(s => s.StatusId == status.StatusId);
+                    var existingStrong = Statuses.FirstOrDefault(s => s.Key == status.Key);
                     if (existingStrong != null)
                     {
                         // 새로운 효과의 평균 계수 계산
-                        float newAvgCoeff = status.Effects.Count > 0 
-                            ? status.Effects.Average(e => e.Coefficient) 
+                        float newAvgCoeff = status.Effects.Count > 0
+                            ? status.Effects.Average(e => e.Coefficient)
                             : 0f;
-                        float existingAvgCoeff = existingStrong.Effects.Count > 0 
-                            ? existingStrong.Effects.Average(e => e.Coefficient) 
+                        float existingAvgCoeff = existingStrong.Effects.Count > 0
+                            ? existingStrong.Effects.Average(e => e.Coefficient)
                             : 0f;
-                        
+
                         if (newAvgCoeff > existingAvgCoeff)
                         {
-                            Statuses.Remove(existingStrong);
+                            RemoveStatusAt(Statuses.IndexOf(existingStrong));
                             AddStatusInternal(status);
                             Debug.Log($"[Status-Replace] {UnitName}의 {status.StatusName} 교체 (계수: {existingAvgCoeff:F1} → {newAvgCoeff:F1})");
                         }
@@ -1732,10 +1783,20 @@ namespace Entities
                         Debug.Log($"[Status-Replace] {UnitName}에게 {status.StatusName} 최초 적용");
                     }
                     break;
-                    
+
+                case BaseEnums.StatusStackPolicy.Replace:
+                    // 무조건 교체 - 기존 dict 덮어쓰기 의미론 (지속시간/수치 갱신)
+                    int replaceIndex = Statuses.FindIndex(s => s.Key == status.Key);
+                    if (replaceIndex >= 0)
+                    {
+                        RemoveStatusAt(replaceIndex);
+                    }
+                    AddStatusInternal(status);
+                    break;
+
                 case BaseEnums.StatusStackPolicy.Ignore:
                     // 중복 무시 - 기존 것 있으면 추가 안 함
-                    if (Statuses.Any(s => s.StatusId == status.StatusId))
+                    if (Statuses.Any(s => s.Key == status.Key))
                     {
                         Debug.Log($"[Status-Ignore] {UnitName}에게 이미 {status.StatusName} 존재 - 무시");
                     }
@@ -1746,7 +1807,7 @@ namespace Entities
                     }
                     break;
             }
-            
+
             // InfoTab 업데이트
             UpdateInfoTabIfShowing();
         }
@@ -1756,7 +1817,7 @@ namespace Entities
         /// </summary>
         private void AddStatusInternal(Status.UnitStatus status)
         {
-            // Effect 객체들 생성 및 할당
+            // Effect 객체들 생성 및 할당 (직접 생성된 EffectObject는 Caster/Target만 보정)
             foreach (var effectInstance in status.Effects)
             {
                 if (effectInstance.EffectObject == null)
@@ -1768,10 +1829,22 @@ namespace Entities
                         this
                     );
                 }
+                else
+                {
+                    effectInstance.EffectObject.Caster ??= status.Caster;
+                    effectInstance.EffectObject.Target ??= this;
+                }
             }
-            
+
             Statuses.Add(status);
             status.OnApply();
+            // 스탯 질의 훅을 가진 효과가 즉시 반영되도록 스탯 캐시 갱신
+            AttributesUpdate();
+
+            if (status.IsBeneficial)
+            {
+                NotifyBeneficialEffectReceived(status.Caster);
+            }
         }
         
         /// <summary>
@@ -1784,9 +1857,11 @@ namespace Entities
                 var status = Statuses[index];
                 status.OnRemove();
                 Statuses.RemoveAt(index);
-                
+                // 스탯 질의 훅 해제 반영
+                AttributesUpdate();
+
                 Debug.Log($"[Status] {UnitName}의 {status.StatusName} 제거 (남은 상태: {Statuses.Count}개)");
-                
+
                 // InfoTab 업데이트
                 UpdateInfoTabIfShowing();
             }
@@ -1814,6 +1889,29 @@ namespace Entities
         public bool HasStatus(int statusId)
         {
             return Statuses.Any(s => s.StatusId == statusId);
+        }
+
+        /// <summary>
+        /// 키로 상태 보유 여부 확인 (시전자별 키 등 문자열 키 기반 상태용)
+        /// </summary>
+        public bool HasStatusKey(string key)
+        {
+            return !string.IsNullOrEmpty(key) && Statuses.Any(s => s.Key == key);
+        }
+
+        /// <summary>
+        /// 키로 상태 제거 (일치하는 모든 상태 제거)
+        /// </summary>
+        public void RemoveStatusByKey(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return;
+            for (int i = Statuses.Count - 1; i >= 0; i--)
+            {
+                if (Statuses[i].Key == key)
+                {
+                    RemoveStatusAt(i);
+                }
+            }
         }
         
         /// <summary>
