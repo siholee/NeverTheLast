@@ -821,7 +821,8 @@ target.AddStatus(BuffStatus.Create(
 
 로딩 담당:
 
-- `Assets/Scripts/Managers/DataManager.cs`
+- `Assets/Scripts/Managers/DataManager.cs` (제네릭 `Load<T>` 로더)
+- DTO 클래스: `Assets/Scripts/Data/` (패밀리별 파일)
 
 ## 구현 후 확인 체크리스트
 
