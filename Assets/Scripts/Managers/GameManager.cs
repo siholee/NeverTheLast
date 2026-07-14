@@ -29,7 +29,7 @@ namespace Managers
         public static void LoadMainMenuScene()
         {
             CleanupRunContext();
-            SceneManager.LoadScene("MainMenu");
+            SceneManager.LoadScene(SceneNames.MainMenu);
         }
 
         public static void LoadBattleScene()
@@ -39,7 +39,7 @@ namespace Managers
                 CleanupRunContext();
             }
 
-            SceneManager.LoadScene("Game");
+            SceneManager.LoadScene(SceneNames.Game);
         }
 
         public GameState gameState;
@@ -137,7 +137,7 @@ namespace Managers
                         break;
                     case GameState.TrainingPhase:
                         // 육성 종료 직후(after training)는 사건 발생 지점이다.
-                        RunEventCheckpoint(() => runManager?.AdvanceAfterTrainingPhase());
+                        RunEventCheckpoint(() => runManager?.AdvanceToNextStage());
                         break;
                     case GameState.RunComplete:
                         _eventScheduler.Clear();
@@ -348,7 +348,7 @@ namespace Managers
         /// </summary>
         private void EnterStageSlotEvent(StageEventData stageEvent)
         {
-            EnterEvent(stageEvent ?? BuildFallbackEvent(), () => runManager?.AdvanceAfterReward());
+            EnterEvent(stageEvent ?? BuildFallbackEvent(), () => runManager?.AdvanceToNextStage());
         }
 
         /// <summary>
@@ -486,7 +486,7 @@ namespace Managers
             }
             else
             {
-                runManager?.AdvanceAfterReward();
+                runManager?.AdvanceToNextStage();
             }
         }
 
@@ -886,6 +886,14 @@ namespace Managers
             };
         }
 
+        /// <summary>
+        /// 매니저 수명 주기 규칙:
+        /// - 씬 배치(Game.unity): GameManager GO(+DataManager/SfxManager/InventoryManager 컴포넌트),
+        ///   GridManager, UIManager, DragAndDropManager — 씬 로드 시 함께 생성/파괴된다.
+        /// - 런타임 영속(DontDestroyOnLoad): SettingsManager(앱 수명),
+        ///   RunManager/RewardManager/CharacterSelectionManager(런 수명) — 이 메서드가 없으면 생성하고,
+        ///   런 종료 시 CleanupRunContext()가 런 수명 매니저만 파괴한다.
+        /// </summary>
         private void EnsurePersistentManagers()
         {
             if (SettingsManager.Instance == null)

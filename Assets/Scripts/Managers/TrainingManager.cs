@@ -28,9 +28,13 @@ namespace Managers
         // 육성 페이즈마다 오르는 트레이닝 레벨.
         public const int TrainingLevelGain = 1;
         private const int OffSpecialtyAppearanceRate = 35;
-        private const int MaxBond = 100;
+        private const int MaxBond = SupportBondState.MaxBond;
 
-        private static readonly Dictionary<int, int> SupportBonds = new();
+        // 우정도는 런 범위 상태이므로 RunManager가 소유한다.
+        // RunManager가 아직 없을 때(에디터 진입 직후 등)를 대비한 폴백.
+        private static readonly SupportBondState FallbackBonds = new();
+        private static SupportBondState Bonds =>
+            RunManager.Instance != null ? RunManager.Instance.SupportBonds : FallbackBonds;
 
         public struct TrainingResult
         {
@@ -149,44 +153,15 @@ namespace Managers
         public static int GetSupportBond(Unit support)
         {
             if (support == null) return 0;
-            if (SupportBonds.TryGetValue(support.ID, out int bond))
+            if (Bonds.TryGet(support.ID, out int bond))
             {
                 return bond;
             }
 
             SupportCardSaveData card = SaveSystem.GetSupportCard(support.ID);
             int initialBond = HasSupportCard(card) ? Mathf.Clamp(card.initialBond, 0, MaxBond) : 0;
-            SupportBonds[support.ID] = initialBond;
+            Bonds.Set(support.ID, initialBond);
             return initialBond;
-        }
-
-        public static void RestoreSupportBonds(IEnumerable<SupportBondSaveData> savedBonds)
-        {
-            SupportBonds.Clear();
-            if (savedBonds == null) return;
-
-            foreach (SupportBondSaveData saved in savedBonds)
-            {
-                if (saved == null || saved.unitId <= 0) continue;
-                SupportBonds[saved.unitId] = Mathf.Clamp(saved.currentBond, 0, MaxBond);
-            }
-        }
-
-        public static List<SupportBondSaveData> BuildSupportBondSaveData()
-        {
-            return SupportBonds
-                .Where(pair => pair.Key > 0)
-                .Select(pair => new SupportBondSaveData
-                {
-                    unitId = pair.Key,
-                    currentBond = Mathf.Clamp(pair.Value, 0, MaxBond),
-                })
-                .ToList();
-        }
-
-        public static void ClearSupportBonds()
-        {
-            SupportBonds.Clear();
         }
 
         /// <summary>지정 집중 스탯의 총 강화량(기본 + 서포트 보너스).</summary>
@@ -260,7 +235,7 @@ namespace Managers
                         int bondGain = Mathf.Max(1, card.bondGainRate);
                         if (specialtyMatch) bondGain += 1;
                         newBond = Mathf.Clamp(previousBond + bondGain, 0, MaxBond);
-                        SupportBonds[support.ID] = newBond;
+                        Bonds.Set(support.ID, newBond);
                     }
                     else
                     {

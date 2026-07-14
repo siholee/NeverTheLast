@@ -16,6 +16,9 @@ namespace Managers
         public bool RunActive { get; private set; }
         public GameMode CurrentMode { get; private set; } = GameMode.Training;
 
+        // 런 범위 상태: 서포트 우정도 (런 시작 시 초기화, 저장/복원 대상)
+        public SupportBondState SupportBonds { get; } = new();
+
         public static void DestroyInstance()
         {
             if (Instance == null) return;
@@ -50,7 +53,7 @@ namespace Managers
         {
             CurrentMode = mode;
             RunActive = true;
-            TrainingManager.ClearSupportBonds();
+            SupportBonds.Clear();
             SaveSystem.DeleteSave();
         }
 
@@ -74,7 +77,7 @@ namespace Managers
             GameManager.Instance.life = save.life;
             GameManager.Instance.KillCount = save.killCount;
             RestoreInventory(save);
-            TrainingManager.RestoreSupportBonds(save.supportBonds);
+            SupportBonds.Restore(save.supportBonds);
 
             RoundManager roundManager = GameManager.Instance.RoundManager;
             roundManager.InitializeStage(Mathf.Max(1, save.currentStage));
@@ -88,20 +91,18 @@ namespace Managers
             return true;
         }
 
-        public void AdvanceAfterReward()
+        /// <summary>
+        /// 스테이지 전진의 단일 진입점. 보상/사건/육성 등 어느 흐름에서 오든
+        /// 런 종료 판정(육성 최대 스테이지 도달, 패턴 소진) 후 다음 스테이지를 로드한다.
+        /// </summary>
+        public void AdvanceToNextStage()
         {
             if (!RunActive) return;
 
             if (CurrentMode == GameMode.Training)
             {
-                if (GameManager.Instance.RoundManager.Stage >= GameManager.MaxTrainingStage)
-                {
-                    CompleteTrainingRun();
-                    return;
-                }
-
-                bool hasNextTrainingRound = GameManager.Instance.RoundManager.TryLoadNextRound();
-                if (!hasNextTrainingRound)
+                if (GameManager.Instance.RoundManager.Stage >= GameManager.MaxTrainingStage ||
+                    !GameManager.Instance.RoundManager.TryLoadNextRound())
                 {
                     CompleteTrainingRun();
                     return;
@@ -119,21 +120,6 @@ namespace Managers
                 SaveSystem.DeleteSave();
                 GameManager.Instance.gameState = BaseClasses.BaseEnums.GameState.RunComplete;
                 GameManager.LoadMainMenuScene();
-                return;
-            }
-
-            SaveCurrentRun();
-            GameManager.Instance.EnterNextStageAfterLoad();
-        }
-
-        public void AdvanceAfterTrainingPhase()
-        {
-            if (!RunActive) return;
-
-            bool hasNextRound = GameManager.Instance.RoundManager.TryLoadNextRound();
-            if (!hasNextRound)
-            {
-                CompleteTrainingRun();
                 return;
             }
 
@@ -356,7 +342,7 @@ namespace Managers
                 preparationActionUsed = GameManager.Instance.PreparationActionUsed,
                 tokens = BuildTokenSaveData(),
                 storedItemIds = GameManager.Instance.inventoryManager?.ItemIdsInHand?.ToList() ?? new List<int>(),
-                supportBonds = TrainingManager.BuildSupportBondSaveData(),
+                supportBonds = SupportBonds.BuildSaveData(),
                 heroUnits = BuildHeroSaveData(),
             };
         }

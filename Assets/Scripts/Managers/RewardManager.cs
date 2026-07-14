@@ -208,7 +208,7 @@ namespace Managers
             }
 
             GameManager.Instance.uiManager?.HideRewardPanel();
-            RunManager.Instance?.AdvanceAfterReward();
+            RunManager.Instance?.AdvanceToNextStage();
         }
 
         private static void GrantRandomTokens(int amount)
