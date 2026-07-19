@@ -16,8 +16,9 @@ namespace Managers
         public string CurrentThemeName => _currentStageTheme?.name ?? "";
         public bool IsCurrentBossStage => IsBossStage(Stage);
         public bool IsRoundInProgress { get; private set; }
-        private StageEventData CurrentEventData => _stageThemeDataList?.events?
+        private StageEventData RawCurrentEventData => _stageThemeDataList?.events?
             .FirstOrDefault(data => data.themeId == CurrentThemeId && data.stageInRound == StageInRound);
+        private StageEventData CurrentEventData => IsEventEligible(RawCurrentEventData) ? RawCurrentEventData : null;
 
         /// <summary>
         /// 현재 스테이지가 테마 고정 슬롯(StageInRound == 5) 사건 스테이지라면 true를 반환한다.
@@ -72,6 +73,8 @@ namespace Managers
                 Debug.LogError("Enemy data, round type data, or stage theme data not loaded.");
                 return;
             }
+
+            MarkSuppressedOnceEventIfBlocked();
 
             if (IsEventStage())
             {
@@ -158,8 +161,55 @@ namespace Managers
 
         private bool IsEventStage()
         {
+            if (RawCurrentEventData != null) return CurrentEventData != null;
             if (CurrentEventData != null) return true;
             return StageInRound == 5 && !IsFixedBossStage(Stage);
+        }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// 에디터 디버그용: 사건 연출을 즉시 확인하기 위한 표본 사건을 반환한다.
+        /// 현재 테마의 사건을 우선 사용하고, 없으면 정의된 첫 사건을 사용한다.
+        /// 실제 진행(oncePerRun 기록 등)에는 영향을 주지 않는다.
+        /// </summary>
+        public StageEventData GetDebugSampleEvent()
+        {
+            EnsureDataLoaded();
+            List<StageEventData> events = _stageThemeDataList?.events;
+            if (events == null || events.Count == 0) return null;
+
+            return events.FirstOrDefault(data => data != null && data.themeId == CurrentThemeId)
+                ?? events.FirstOrDefault(data => data != null);
+        }
+#endif
+
+        private static bool IsEventEligible(StageEventData stageEvent)
+        {
+            if (stageEvent == null) return false;
+            RunManager runManager = GameManager.Instance?.runManager;
+            if (stageEvent.oncePerRun && runManager != null && runManager.HasTriggeredEvent(stageEvent.id)) return false;
+            return !IsBlockedByDeck(stageEvent);
+        }
+
+        private static bool IsBlockedByDeck(StageEventData stageEvent)
+        {
+            if (stageEvent?.blockedUnitIds == null || stageEvent.blockedUnitIds.Count == 0) return false;
+            return GridManager.Instance != null && GridManager.Instance.heroList.Any(hero =>
+                hero != null && hero.isActive && !hero.IsEnemy && stageEvent.blockedUnitIds.Contains(hero.ID));
+        }
+
+        private void MarkSuppressedOnceEventIfBlocked()
+        {
+            StageEventData stageEvent = RawCurrentEventData;
+            RunManager runManager = GameManager.Instance?.runManager;
+            if (stageEvent?.oncePerRun != true || runManager == null || runManager.HasTriggeredEvent(stageEvent.id)) return;
+            if (IsBlockedByDeck(stageEvent)) runManager.MarkEventTriggered(stageEvent.id);
+        }
+
+        public bool CurrentThemeHasTag(string tag)
+        {
+            return !string.IsNullOrWhiteSpace(tag) && _currentStageTheme?.tags != null &&
+                   _currentStageTheme.tags.Any(value => string.Equals(value, tag, System.StringComparison.OrdinalIgnoreCase));
         }
 
         private bool IsFixedBossStage(int stage)

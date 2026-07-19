@@ -11,8 +11,9 @@ namespace Effects.Negative
     /// </summary>
     public class PercentDamageOverTimeEffect : BaseEffect
     {
+        public override bool IsDamageOverTime => true;
         private float _elapsedTime;
-        private float _damageInterval = 0.1f; // 0.1초마다 피해
+        private const float DamageInterval = 0.1f; // 0.1초마다 피해
         
         public PercentDamageOverTimeEffect(int effectId, float coefficient = 2f) : base(effectId, coefficient)
         {
@@ -34,14 +35,15 @@ namespace Effects.Negative
             _elapsedTime += deltaTime;
             
             // 0.1초마다 피해 적용
-            int previousMultiple = (int)(previousTime / _damageInterval);
-            int currentMultiple = (int)(_elapsedTime / _damageInterval);
+            int previousMultiple = (int)(previousTime / DamageInterval);
+            int currentMultiple = (int)(_elapsedTime / DamageInterval);
             int triggerCount = currentMultiple - previousMultiple;
             
             for (int i = 0; i < triggerCount; i++)
             {
+                if (Target == null || !Target.isActive || Target.HpCurr <= 0) break;
                 // 최대 체력의 퍼센트로 피해 계산
-                int damage = Mathf.RoundToInt(Target.HpMax * Coefficient / 100f);
+                int damage = CalculateTickDamage();
                 DamageContext dmgContext = new DamageContext(
                     Caster, 
                     damage, 
@@ -52,6 +54,17 @@ namespace Effects.Negative
                 );
                 Target.TakeDamage(dmgContext);
             }
+        }
+
+        public override int EstimateDamagePerSecond()
+        {
+            return Mathf.Max(0, Mathf.RoundToInt(CalculateTickDamage() / DamageInterval));
+        }
+
+        private int CalculateTickDamage()
+        {
+            float multiplier = Caster != null ? Caster.GetDamageOverTimeApplicationMultiplier() : 1f;
+            return Mathf.Max(0, Mathf.RoundToInt((Target?.HpMax ?? 0) * Coefficient / 100f * multiplier));
         }
         
         public override void OnRemove()

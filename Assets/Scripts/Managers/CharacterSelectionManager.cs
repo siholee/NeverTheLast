@@ -272,7 +272,7 @@ namespace Managers
 
             return role switch
             {
-                CharacterRole.Main => data.canStartAsMain,
+                CharacterRole.Main => data.canStartAsMain || SaveSystem.IsStarterUnlocked(unitId) || SaveSystem.IsCharacterTrained(unitId),
                 CharacterRole.Support => data.canStartAsSupport || SaveSystem.IsStarterUnlocked(unitId) || SaveSystem.IsCharacterTrained(unitId),
                 _ => false,
             };

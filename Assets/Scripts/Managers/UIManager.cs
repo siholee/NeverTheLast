@@ -5,6 +5,7 @@ using BaseClasses;
 using Core;
 using Entities;
 using Managers.UI;
+using Managers.UI.Screens;
 using UnityEngine;
 using UnityEngine.UI;
 using static BaseClasses.BaseEnums;
@@ -36,13 +37,7 @@ namespace Managers
         private TMPro.TextMeshProUGUI _selectionSummaryLabel;
         private static readonly Color HeroButtonDefaultColor = new(0.12f, 0.18f, 0.20f, 1f);
         private static readonly Color HeroButtonSelectedColor = new(0.85f, 0.65f, 0.15f, 1f);
-        private GameObject _eventStagePanel;
-        private TMPro.TextMeshProUGUI _eventStageText;
-        private TMPro.TextMeshProUGUI _eventTitleText;
-        private TMPro.TextMeshProUGUI _eventSpeakerText;
-        private Button _eventNextButton;
-        private Button[] _eventChoiceButtons;
-        private TMPro.TextMeshProUGUI[] _eventChoiceTexts;
+        private EventVisualNovelScreen _eventScreen;
         private GameObject _preparationPhasePanel;
         private TMPro.TextMeshProUGUI _preparationInfoLabel;
         private Button _prepTrainingButton;
@@ -316,81 +311,27 @@ namespace Managers
             }
         }
 
+        // 사건 화면은 비주얼 노벨 연출 전용 클래스가 담당한다. UIManager는 진입점만 제공한다.
+        private EventVisualNovelScreen EventScreen => _eventScreen ??= new EventVisualNovelScreen(this);
+
         public void ShowEventStagePanel(StageEventData eventData, int dialogueIndex)
         {
-            EnsureEventStagePanel();
-            if (eventData == null) return;
-            _eventStagePanel.SetActive(true);
-            if (_eventTitleText != null) _eventTitleText.text = eventData.title ?? "사건";
-
-            int dialogueCount = eventData.dialogue?.Count ?? 0;
-            if (dialogueIndex < dialogueCount)
-            {
-                StageEventDialogueData line = eventData.dialogue[dialogueIndex];
-                if (_eventSpeakerText != null) _eventSpeakerText.text = line.speaker ?? "";
-                if (_eventStageText != null) _eventStageText.text = line.text ?? "";
-                SetEventChoicesVisible(false);
-                ConfigureEventNextButton("다음", () => GameManager.Instance?.AdvanceEventDialogue());
-                return;
-            }
-
-            if (_eventSpeakerText != null) _eventSpeakerText.text = "선택";
-            if (_eventStageText != null) _eventStageText.text = "어떻게 하시겠습니까?";
-            if (_eventNextButton != null) _eventNextButton.gameObject.SetActive(false);
-            for (int i = 0; i < _eventChoiceButtons.Length; i++)
-            {
-                int capturedIndex = i;
-                bool visible = eventData.choices != null && i < eventData.choices.Count;
-                _eventChoiceButtons[i].gameObject.SetActive(visible);
-                if (!visible) continue;
-                StageEventChoiceData choice = eventData.choices[i];
-                int cost = Mathf.Max(0, choice.goldCostPerStage * (GameManager.Instance?.RoundManager?.Stage ?? 1));
-                _eventChoiceTexts[i].text = choice.goldCostPerStage > 0 ? $"{choice.text}\n골드 -{cost}" : choice.text;
-                _eventChoiceButtons[i].onClick.RemoveAllListeners();
-                _eventChoiceButtons[i].onClick.AddListener(() => GameManager.Instance?.SelectEventChoice(eventData.choices[capturedIndex].id));
-            }
+            EventScreen.Show(eventData, dialogueIndex);
         }
 
         public void ShowEventMessage(string message)
         {
-            if (_eventStageText != null) _eventStageText.text = message ?? "";
+            EventScreen.ShowMessage(message);
         }
 
         public void ShowEventResolution(string message)
         {
-            EnsureEventStagePanel();
-            _eventStagePanel.SetActive(true);
-            if (_eventSpeakerText != null) _eventSpeakerText.text = "결과";
-            if (_eventStageText != null) _eventStageText.text = message ?? "사건이 끝났다.";
-            SetEventChoicesVisible(false);
-            ConfigureEventNextButton("계속", () => GameManager.Instance?.CompleteEventStage());
-        }
-
-        private void ConfigureEventNextButton(string label, UnityEngine.Events.UnityAction action)
-        {
-            if (_eventNextButton == null) return;
-            _eventNextButton.gameObject.SetActive(true);
-            _eventNextButton.onClick.RemoveAllListeners();
-            _eventNextButton.onClick.AddListener(action);
-            TMPro.TextMeshProUGUI text = _eventNextButton.GetComponentInChildren<TMPro.TextMeshProUGUI>();
-            if (text != null) text.text = label;
-        }
-
-        private void SetEventChoicesVisible(bool visible)
-        {
-            if (_eventChoiceButtons == null) return;
-            foreach (Button button in _eventChoiceButtons)
-            {
-                button?.gameObject.SetActive(visible);
-            }
+            EventScreen.ShowResolution(message);
         }
 
         public void HideEventStagePanel()
         {
-            if (_eventStagePanel != null)
-            {
-                _eventStagePanel.SetActive(false);
-            }
+            EventScreen.Hide();
         }
 
         public void ShowEquipmentPanel()
@@ -973,50 +914,6 @@ namespace Managers
             _trainingInfoLabel.text =
                 $"{mainName} · 트레이닝 Lv.{trainingLv} · 서포트 {supports}명\n" +
                 $"예상 강화량:  {gains}\n훈련 실패 없음 · 특기 훈련 참여 시 우정 상승 및 스킬 전수 판정";
-        }
-
-        private void EnsureEventStagePanel()
-        {
-            if (_eventStagePanel != null) return;
-
-            var canvas = EnsureOverlayCanvas("EventStageCanvas");
-            _eventStagePanel = new GameObject("EventStagePanel", typeof(RectTransform), typeof(Image));
-            _eventStagePanel.transform.SetParent(canvas.transform, false);
-            var panelRect = _eventStagePanel.GetComponent<RectTransform>();
-            panelRect.anchorMin = Vector2.zero;
-            panelRect.anchorMax = Vector2.one;
-            panelRect.offsetMin = Vector2.zero;
-            panelRect.offsetMax = Vector2.zero;
-            _eventStagePanel.GetComponent<Image>().color = new Color(0.025f, 0.03f, 0.035f, 0.97f);
-
-            _eventTitleText = CreateHudText("Title", _eventStagePanel.transform,
-                new Vector2(0.14f, 0.82f), new Vector2(0.86f, 0.92f), "사건", 34f, TMPro.TextAlignmentOptions.Center);
-            _eventSpeakerText = CreateHudText("Speaker", _eventStagePanel.transform,
-                new Vector2(0.18f, 0.66f), new Vector2(0.40f, 0.74f), "", 20f, TMPro.TextAlignmentOptions.MidlineLeft);
-            _eventStageText = CreateHudText("Dialogue", _eventStagePanel.transform,
-                new Vector2(0.18f, 0.45f), new Vector2(0.82f, 0.66f), "", 26f, TMPro.TextAlignmentOptions.TopLeft);
-            _eventStageText.textWrappingMode = TMPro.TextWrappingModes.Normal;
-
-            _eventNextButton = CreateHudButton("Next", _eventStagePanel.transform,
-                new Vector2(0.68f, 0.30f), new Vector2(0.82f, 0.37f), () => GameManager.Instance?.AdvanceEventDialogue());
-            CreateHudText("Label", _eventNextButton.transform, Vector2.zero, Vector2.one, "다음", 18f, TMPro.TextAlignmentOptions.Center);
-
-            _eventChoiceButtons = new Button[3];
-            _eventChoiceTexts = new TMPro.TextMeshProUGUI[3];
-            for (int i = 0; i < 3; i++)
-            {
-                float yMax = 0.40f - i * 0.10f;
-                Button button = CreateHudButton($"Choice_{i}", _eventStagePanel.transform,
-                    new Vector2(0.22f, yMax - 0.075f), new Vector2(0.78f, yMax), () => { });
-                TMPro.TextMeshProUGUI label = CreateHudText("Label", button.transform,
-                    new Vector2(0.03f, 0.06f), new Vector2(0.97f, 0.94f), "", 18f, TMPro.TextAlignmentOptions.Center);
-                label.textWrappingMode = TMPro.TextWrappingModes.Normal;
-                _eventChoiceButtons[i] = button;
-                _eventChoiceTexts[i] = label;
-                button.gameObject.SetActive(false);
-            }
-
-            _eventStagePanel.SetActive(false);
         }
 
         private static Canvas EnsureOverlayCanvas(string objectName)

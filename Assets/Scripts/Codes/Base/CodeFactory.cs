@@ -40,6 +40,16 @@ namespace Codes.Base
         81 => new QuetzalcoatlGuardianWill(context),
         82 => new QuetzalcoatlCipactliSlayer(context),
         90 => new MacanaGrowth(context),
+        120 => new TsukuyomiMoonReckoning(context),
+        121 => new TsukuyomiSpellShield(context),
+        122 => new TsukuyomiFickle(context),
+        123 => new TsukuyomiCurse(context),
+        124 => new TsukuyomiWidenWound(context),
+        125 => new TsukuyomiPainfulWound(context),
+        126 => new TsukuyomiCycle(context),
+        127 => new TsukuyomiChainLightning(context),
+        128 => new TsukuyomiFullMoon(context),
+        129 => new MoonGodBlessing(context),
         100 => new EnemyTestPassive(context), // 적 전용 테스트 패시브
         _ => null,
       };
@@ -55,6 +65,7 @@ namespace Codes.Base
         11 => new Shoot(context),
         12 => new Sachi(context),
         70 => new QuetzalcoatlBall(context),
+        120 => new TsukuyomiLightningBolt(context),
         100 => new EnemyTestNormal(context), // 적 전용 테스트 일반 공격
         _ => new NormalAttack(context), // 기본 일반공격 (임시, 나중에 각 유닛별로 교체 예정)
       };
@@ -72,6 +83,7 @@ namespace Codes.Base
         6 => new a004_U_LovesPrize(context), // 피그말리온 궁극기
         7 => new a002_U_FinalBell(context), // 시 궁극기
         70 => new QuetzalcoatlYorisUltimate(context),
+        120 => new TsukuyomiMoonThunder(context),
         100 => new EnemyTestUltimate(context), // 적 전용 테스트 궁극기
         _ => null,
       };

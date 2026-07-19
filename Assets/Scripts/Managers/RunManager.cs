@@ -18,6 +18,7 @@ namespace Managers
 
         // 런 범위 상태: 서포트 우정도 (런 시작 시 초기화, 저장/복원 대상)
         public SupportBondState SupportBonds { get; } = new();
+        private readonly HashSet<string> _triggeredEventIds = new();
 
         public static void DestroyInstance()
         {
@@ -54,6 +55,7 @@ namespace Managers
             CurrentMode = mode;
             RunActive = true;
             SupportBonds.Clear();
+            _triggeredEventIds.Clear();
             SaveSystem.DeleteSave();
         }
 
@@ -78,6 +80,11 @@ namespace Managers
             GameManager.Instance.KillCount = save.killCount;
             RestoreInventory(save);
             SupportBonds.Restore(save.supportBonds);
+            _triggeredEventIds.Clear();
+            foreach (string eventId in save.triggeredEventIds ?? new List<string>())
+            {
+                if (!string.IsNullOrWhiteSpace(eventId)) _triggeredEventIds.Add(eventId);
+            }
 
             RoundManager roundManager = GameManager.Instance.RoundManager;
             roundManager.InitializeStage(Mathf.Max(1, save.currentStage));
@@ -344,7 +351,20 @@ namespace Managers
                 storedItemIds = GameManager.Instance.inventoryManager?.ItemIdsInHand?.ToList() ?? new List<int>(),
                 supportBonds = SupportBonds.BuildSaveData(),
                 heroUnits = BuildHeroSaveData(),
+                triggeredEventIds = _triggeredEventIds.ToList(),
             };
+        }
+
+        public bool HasTriggeredEvent(string eventId)
+        {
+            return !string.IsNullOrWhiteSpace(eventId) && _triggeredEventIds.Contains(eventId);
+        }
+
+        public void MarkEventTriggered(string eventId)
+        {
+            if (string.IsNullOrWhiteSpace(eventId)) return;
+            _triggeredEventIds.Add(eventId);
+            SaveCurrentRun();
         }
 
         private static List<TokenSaveData> BuildTokenSaveData()
@@ -383,6 +403,7 @@ namespace Managers
                     lukUpgrade = hero.LukUpgrade,
                     codeAccelerationBonus = hero.CodeAccelerationRunBonus,
                     equippedItemIds = hero.EquippedItemIds.ToList(),
+                    grantedPassiveCodeIds = hero.GrantedPassiveCodeIds.ToList(),
                 });
             }
 

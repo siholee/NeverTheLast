@@ -13,6 +13,9 @@ namespace Entities
 {
     public class Unit : MonoBehaviour
     {
+        /// <summary>모든 진영의 사망을 관찰해야 하는 필드 패시브용 전역 전투 이벤트.</summary>
+        public static event Action<Unit, Unit> AnyUnitDied;
+
         public bool isActive = false;
 
         // 기본 식별정보
@@ -24,6 +27,7 @@ namespace Entities
         [SerializeField] private string subStat;
         [SerializeField] private List<int> equippedItemIds = new();
         [SerializeField] private List<LearnedPassiveSaveData> learnedPassiveRecords = new();
+        [SerializeField] private List<int> grantedPassiveCodeIds = new();
         [SerializeField] private int level;
         // 육성(트레이닝) 레벨. 육성 페이즈에서 메인 캐릭터가 훈련할 때마다 증가한다.
         // 레벨 해금 패시브(#2/#3) 해금 판정에만 사용되며, 클래스 파생 Level과 분리되어 저장/복원된다.
@@ -36,6 +40,7 @@ namespace Entities
         public string SubStat { get => subStat; protected set => subStat = value; }
         public IReadOnlyList<int> EquippedItemIds => equippedItemIds;
         public IReadOnlyList<LearnedPassiveSaveData> LearnedPassiveRecords => learnedPassiveRecords;
+        public IReadOnlyList<int> GrantedPassiveCodeIds => grantedPassiveCodeIds;
         public int Level { get => level; protected set => level = value; }
         // 육성 레벨. 육성 페이즈에서만 증가. 저장/복원 대상.
         public int TrainingLevel { get => trainingLevel; protected set => trainingLevel = value; }
@@ -189,6 +194,7 @@ namespace Entities
             PendingLevelPassives = new List<LevelPassiveData>();
             ItemPassiveCodes = new List<PassiveCode>();
             learnedPassiveRecords = new List<LearnedPassiveSaveData>();
+            grantedPassiveCodeIds = new List<int>();
             _combatElements.Clear();
             _combatResources.Clear();
             _combatResourceMaximums.Clear();
@@ -590,6 +596,19 @@ namespace Entities
             return true;
         }
 
+        /// <summary>사건/보상으로 획득한 런 영구 패시브를 코드 용량과 무관하게 추가한다.</summary>
+        public bool GrantPermanentPassive(int codeId, int stage = 1)
+        {
+            if (codeId <= 0 || grantedPassiveCodeIds.Contains(codeId)) return false;
+            PassiveCode code = CodeFactory.CreatePassiveCode(codeId, new PassiveCodeContext { Caster = this });
+            if (code == null) return false;
+            code.SetStage(stage);
+            PassiveCodes.Add(code);
+            grantedPassiveCodeIds.Add(codeId);
+            AddLearnedPassiveRecord(codeId, code.CurrentStage, code.Transferable);
+            return true;
+        }
+
         /// <summary>
         /// 육성: 지정한 5스탯의 강화 수치를 증가시킨다. 즉시 스탯을 재계산한다.
         /// </summary>
@@ -747,6 +766,7 @@ namespace Entities
         {
             EventContext context = new EventContext(this, attacker);
             Invoke(BaseEnums.UnitEventType.OnDeath, context);
+            AnyUnitDied?.Invoke(this, attacker);
             if (attacker != null && attacker != this)
             {
                 attacker.Invoke(BaseEnums.UnitEventType.OnKill, new EventContext(attacker, this));
@@ -948,7 +968,12 @@ namespace Entities
         {
             if (newHp > HpCurr)
             {
-                int healingAmount = Mathf.RoundToInt((newHp - HpCurr) * (1f + HealingBonusCurr));
+                float receivedMultiplier = 1f;
+                foreach (var effect in ActiveEffectObjects())
+                {
+                    receivedMultiplier *= effect.HealingReceivedMultiplierModifier(this);
+                }
+                int healingAmount = Mathf.RoundToInt((newHp - HpCurr) * (1f + HealingBonusCurr) * receivedMultiplier);
                 HpCurr = Mathf.Clamp(HpCurr + healingAmount, 0, HpMax);
             }
             else
@@ -1001,6 +1026,11 @@ namespace Entities
         public void RestoreRunState(Core.UnitSaveData saveData)
         {
             if (saveData == null) return;
+
+            foreach (int passiveCodeId in saveData.grantedPassiveCodeIds ?? new List<int>())
+            {
+                GrantPermanentPassive(passiveCodeId);
+            }
 
             TrainingLevel = saveData.trainingLevel;
             // 육성 레벨이 복원되면 그에 맞는 레벨 해금 패시브를 다시 활성화한다.
@@ -1209,15 +1239,17 @@ namespace Entities
         private int CalculateDamageAfterDefense(DamageContext dmgCtx, float receivingDamageModifier)
         {
             int defenseStat = GetDefenseStatForDamage(dmgCtx);
-            float scaledDefense = defenseStat * Mathf.Max(0f, dmgCtx.DefenseStatMultiplier);
+            float defenseStatMultiplier = dmgCtx.DefenseStatMultiplier;
             float outgoingDamageModifier = 1f;
             if (dmgCtx.Attacker != null)
             {
                 foreach (var effect in dmgCtx.Attacker.ActiveEffectObjects())
                 {
                     outgoingDamageModifier *= effect.OutgoingDamageModifier(dmgCtx.Attacker, this, dmgCtx);
+                    defenseStatMultiplier *= effect.DefenseStatMultiplierModifier(dmgCtx.Attacker, this, dmgCtx);
                 }
             }
+            float scaledDefense = defenseStat * Mathf.Max(0f, defenseStatMultiplier);
 
             float defenseMultiplier = scaledDefense >= 0f
                 ? 1f / (1f + scaledDefense * 0.01f)
@@ -1477,6 +1509,31 @@ namespace Entities
         public List<Status.UnitStatus> GetStatuses()
         {
             return StatusController.GetLive();
+        }
+
+        /// <summary>현재 보유한 상태 중 지속피해 효과가 하나라도 있는지 확인한다.</summary>
+        public bool HasDamageOverTimeStatus()
+        {
+            return ActiveEffectObjects().Any(effect => effect.IsDamageOverTime);
+        }
+
+        /// <summary>현재 지속피해 효과를 1초간 정산한 예상 피해 총합.</summary>
+        public int GetEstimatedDamageOverTimePerSecond()
+        {
+            return ActiveEffectObjects()
+                .Where(effect => effect.IsDamageOverTime)
+                .Sum(effect => Mathf.Max(0, effect.EstimateDamagePerSecond()));
+        }
+
+        /// <summary>이 유닛이 부여하는 지속피해량 배율.</summary>
+        public float GetDamageOverTimeApplicationMultiplier()
+        {
+            float multiplier = 1f;
+            foreach (var effect in ActiveEffectObjects())
+            {
+                multiplier *= effect.DamageOverTimeApplicationMultiplier(this);
+            }
+            return Mathf.Max(0f, multiplier);
         }
     }
 }

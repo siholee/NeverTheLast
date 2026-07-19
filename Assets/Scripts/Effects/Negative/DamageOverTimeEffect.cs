@@ -11,8 +11,9 @@ namespace Effects.Negative
     /// </summary>
     public class DamageOverTimeEffect : BaseEffect
     {
+        public override bool IsDamageOverTime => true;
         private float _elapsedTime;
-        private float _damageInterval = 0.1f; // 0.1초마다 피해
+        private const float DamageInterval = 0.1f; // 0.1초마다 피해
         
         public DamageOverTimeEffect(int effectId, float coefficient = 100f) : base(effectId, coefficient)
         {
@@ -34,13 +35,14 @@ namespace Effects.Negative
             _elapsedTime += deltaTime;
             
             // 0.1초마다 피해 적용
-            int previousMultiple = (int)(previousTime / _damageInterval);
-            int currentMultiple = (int)(_elapsedTime / _damageInterval);
+            int previousMultiple = (int)(previousTime / DamageInterval);
+            int currentMultiple = (int)(_elapsedTime / DamageInterval);
             int triggerCount = currentMultiple - previousMultiple;
             
             for (int i = 0; i < triggerCount; i++)
             {
-                int damage = Mathf.RoundToInt(Caster.AtkCurr * Coefficient / 100f);
+                if (Target == null || !Target.isActive || Target.HpCurr <= 0) break;
+                int damage = CalculateTickDamage();
                 DamageContext dmgContext = new DamageContext(
                     Caster, 
                     damage, 
@@ -51,6 +53,17 @@ namespace Effects.Negative
                 );
                 Target.TakeDamage(dmgContext);
             }
+        }
+
+        public override int EstimateDamagePerSecond()
+        {
+            return Mathf.Max(0, Mathf.RoundToInt(CalculateTickDamage() / DamageInterval));
+        }
+
+        private int CalculateTickDamage()
+        {
+            float multiplier = Caster != null ? Caster.GetDamageOverTimeApplicationMultiplier() : 1f;
+            return Mathf.Max(0, Mathf.RoundToInt((Caster?.AtkCurr ?? 0) * Coefficient / 100f * multiplier));
         }
         
         public override void OnRemove()

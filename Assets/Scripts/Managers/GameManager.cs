@@ -299,7 +299,38 @@ namespace Managers
 
             // 육성 페이즈는 키 입력이 아니라 집중 스탯 버튼 선택으로 진행한다
             // (UIManager 훈련 패널 -> GameManager.CompleteTrainingPhaseWithFocus).
+
+#if UNITY_EDITOR
+            HandleDebugInput();
+#endif
         }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// 에디터 전용 디버그 입력. 빌드에는 포함되지 않는다.
+        /// F9: 현재 테마의 사건을 즉시 실행(사건 연출 확인용). 테마 사건이 없으면 첫 사건을 사용한다.
+        /// </summary>
+        private void HandleDebugInput()
+        {
+            if (!UnityEngine.Input.GetKeyDown(UnityEngine.KeyCode.F9)) return;
+            if (gameState == GameState.EventStage) return;
+
+            StageEventData sample = _roundManager?.GetDebugSampleEvent() ?? BuildFallbackEvent();
+            GameState previousState = gameState;
+            Debug.Log($"[디버그] 사건 미리보기 실행: {sample?.title}");
+
+            // 사건이 끝나면 원래 상태로 되돌린다(스테이지 진행에는 영향을 주지 않는다).
+            // {deity} 치환은 EnterEvent 내부(PrepareRandomEventVariant)에서 처리된다.
+            EnterEvent(sample, () =>
+            {
+                gameState = previousState;
+                if (previousState == GameState.Preparation)
+                {
+                    uiManager?.ShowPreparationPhasePanel(IsPreparationLimitedToDeck(), preparationActionUsed);
+                }
+            });
+        }
+#endif
 
         private void OnDestroy()
         {
@@ -369,10 +400,34 @@ namespace Managers
             isPreparationTimerActive = false;
             isRoundProgressTimerActive = false;
             eventStageEnteredAt = Time.unscaledTime;
-            currentStageEvent = stageEvent;
+            currentStageEvent = PrepareRandomEventVariant(stageEvent);
             pendingEventChoice = null;
             eventDialogueIndex = 0;
             uiManager?.ShowEventStagePanel(currentStageEvent, eventDialogueIndex);
+        }
+
+        private static StageEventData PrepareRandomEventVariant(StageEventData source)
+        {
+            if (source?.randomSpeakers == null || source.randomSpeakers.Count == 0) return source;
+            string speaker = source.randomSpeakers[UnityEngine.Random.Range(0, source.randomSpeakers.Count)];
+            return new StageEventData
+            {
+                id = source.id,
+                themeId = source.themeId,
+                stageInRound = source.stageInRound,
+                title = source.title?.Replace("{deity}", speaker),
+                oncePerRun = source.oncePerRun,
+                blockedUnitIds = source.blockedUnitIds,
+                randomSpeakers = source.randomSpeakers,
+                choices = source.choices,
+                dialogue = source.dialogue?.Select(line => new StageEventDialogueData
+                {
+                    speaker = line.speaker?.Replace("{deity}", speaker),
+                    text = line.text?.Replace("{deity}", speaker),
+                    // 초상화 지정도 {deity} 치환 대상이다(예: portrait: "{deity}_PORTRAIT").
+                    portrait = line.portrait?.Replace("{deity}", speaker),
+                }).ToList(),
+            };
         }
 
         /// <summary>
@@ -437,15 +492,20 @@ namespace Managers
                 uiManager?.ShowEventResolution(string.IsNullOrWhiteSpace(choice.successText)
                     ? $"공물로 {cost} 골드를 바쳤다."
                     : choice.successText.Replace("{cost}", cost.ToString()));
+                ApplyEventChoiceRewards(choice);
+                runManager?.SaveCurrentRun();
                 return;
             }
 
             if (choice.battleEnemyId > 0)
             {
+                MarkCurrentEventTriggered();
                 BeginEventBattle(choice);
                 return;
             }
 
+            ApplyEventChoiceRewards(choice);
+            runManager?.SaveCurrentRun();
             uiManager?.ShowEventResolution(choice.successText ?? "사건이 끝났다.");
         }
 
@@ -707,6 +767,7 @@ namespace Managers
         {
             _roundManager?.StopRound();
             gameState = GameState.RoundEnd;
+            GridManager.Instance?.OnRoundEnd();
             
             // 아군 필드 상태 복원 (게임 오버가 아닌 경우에만)
             if (life > 0)
@@ -758,14 +819,7 @@ namespace Managers
             StageEventChoiceData resolvedChoice = pendingEventChoice;
             if (victory && resolvedChoice != null)
             {
-                if (resolvedChoice.grantUnitId > 0)
-                {
-                    RecruitSupportUnit(resolvedChoice.grantUnitId);
-                }
-                if (resolvedChoice.grantItemId > 0)
-                {
-                    inventoryManager?.AddItem(resolvedChoice.grantItemId);
-                }
+                ApplyEventChoiceRewards(resolvedChoice);
                 runManager?.SaveCurrentRun();
             }
 
@@ -773,6 +827,31 @@ namespace Managers
                 ? resolvedChoice?.successText ?? "전투에서 승리했다."
                 : resolvedChoice?.failureText ?? "전투에서 물러났다.";
             uiManager?.ShowEventResolution(resultText);
+        }
+
+        private void ApplyEventChoiceRewards(StageEventChoiceData choice)
+        {
+            if (choice == null) return;
+            MarkCurrentEventTriggered();
+            if (choice.grantUnitId > 0) RecruitSupportUnit(choice.grantUnitId);
+            if (choice.grantItemId > 0) inventoryManager?.AddItem(choice.grantItemId);
+            if (choice.grantPassiveCodeId <= 0) return;
+
+            IEnumerable<Unit> recipients = choice.grantPassiveToAll
+                ? GridManager.Instance.heroList.Where(hero => hero != null && hero.isActive && !hero.IsEnemy)
+                : Enumerable.Empty<Unit>();
+            foreach (Unit recipient in recipients.ToList())
+            {
+                recipient.GrantPermanentPassive(choice.grantPassiveCodeId);
+            }
+        }
+
+        private void MarkCurrentEventTriggered()
+        {
+            if (currentStageEvent?.oncePerRun == true)
+            {
+                runManager?.MarkEventTriggered(currentStageEvent.id);
+            }
         }
 
         private bool RecruitSupportUnit(int unitId)
@@ -883,6 +962,7 @@ namespace Managers
                 lukUpgrade = unit.LukUpgrade,
                 codeAccelerationBonus = unit.CodeAccelerationRunBonus,
                 equippedItemIds = unit.EquippedItemIds.ToList(),
+                grantedPassiveCodeIds = unit.GrantedPassiveCodeIds.ToList(),
             };
         }
 

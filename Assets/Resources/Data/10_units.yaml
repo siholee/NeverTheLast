@@ -245,3 +245,65 @@ units:
         unlockLevel: 55
         stage: 1
     portrait: ATALANTE_PORTRAIT
+
+  - id: 21
+    name: 츠쿠요미
+    element: Electro
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: true
+    mainStat: INT
+    subStat: LUK
+    strBase: 7
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 10
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 9
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 18
+    intIncrementLvl: 3
+    intIncrementUpgrade: 1
+    lukBase: 12
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 1
+    atkBase: 80
+    atkIncrementLvl: 8
+    defBase: 12
+    defIncrementLvl: 2
+    codes:
+      passive: 120
+      normal: 120
+      ultimate: 120
+    codeStages:
+      passive: 1
+      normal: 1
+      ultimate: 1
+    levelPassives:
+      - codeId: 121
+        unlockLevel: 12
+        stage: 1
+      - codeId: 122
+        unlockLevel: 15
+        stage: 1
+      - codeId: 123
+        unlockLevel: 28
+        stage: 1
+      - codeId: 124
+        unlockLevel: 33
+        stage: 1
+      - codeId: 125
+        unlockLevel: 38
+        stage: 1
+      - codeId: 126
+        unlockLevel: 44
+        stage: 1
+      - codeId: 127
+        unlockLevel: 55
+        stage: 1
+      - codeId: 128
+        unlockLevel: 72
+        stage: 1
+    portrait: TSUKUYOMI_PORTRAIT

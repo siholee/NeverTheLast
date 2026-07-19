@@ -74,6 +74,21 @@ namespace Effects.Base
         /// <summary>주는 피해 배율 보정 (공격자의 효과에서 질의, 1 = 변화 없음)</summary>
         public virtual float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context) => 1f;
 
+        /// <summary>공격 시 대상 방어력 적용 배율 보정 (공격자의 효과에서 질의, 1 = 변화 없음)</summary>
+        public virtual float DefenseStatMultiplierModifier(Unit attacker, Unit target, DamageContext context) => 1f;
+
+        /// <summary>받는 치유량 배율 보정 (1 = 변화 없음)</summary>
+        public virtual float HealingReceivedMultiplierModifier(Unit unit) => 1f;
+
+        /// <summary>보유자가 부여하는 지속피해량 배율 보정 (1 = 변화 없음)</summary>
+        public virtual float DamageOverTimeApplicationMultiplier(Unit unit) => 1f;
+
+        /// <summary>지속피해 효과 여부. 처치 시 남은 지속피해 정산 등에 사용한다.</summary>
+        public virtual bool IsDamageOverTime => false;
+
+        /// <summary>현재 시점 기준 1초 동안 입힐 수 있는 지속피해량.</summary>
+        public virtual int EstimateDamagePerSecond() => 0;
+
         /// <summary>5대 기본 스탯 가산 보정</summary>
         public virtual int PrimaryStatAdditiveModifier(Unit unit, BaseEnums.PrimaryStat stat) => 0;
 

@@ -91,6 +91,7 @@ namespace Core
         public int lukUpgrade;
         public float codeAccelerationBonus;
         public List<int> equippedItemIds = new();
+        public List<int> grantedPassiveCodeIds = new();
     }
 
     [Serializable]
@@ -111,5 +112,6 @@ namespace Core
         public List<int> storedItemIds = new();
         public List<SupportBondSaveData> supportBonds = new();
         public List<UnitSaveData> heroUnits = new();
+        public List<string> triggeredEventIds = new();
     }
 }

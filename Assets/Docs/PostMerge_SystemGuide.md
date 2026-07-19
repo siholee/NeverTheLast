@@ -108,6 +108,44 @@
 - `Assets/Resources/Data/70_rounds.yaml`
 - `Assets/Resources/Data/80_stages.yaml`
 
+### 사건(이벤트) 연출 — 비주얼 노벨 화면
+
+사건 스테이지는 우마무스메식 비주얼 노벨 화면으로 표시된다.
+연출은 `Assets/Scripts/Managers/UI/Screens/EventVisualNovelScreen.cs`가 전담하고,
+`UIManager`는 진입점(`ShowEventStagePanel`/`ShowEventResolution`/`HideEventStagePanel`)만 위임한다.
+흐름 제어(대사 진행, 선택 처리)는 그대로 `GameManager`가 담당한다.
+
+화면 구성:
+
+- 배경 암전 + 제목 플레이트
+- 화자 초상화(첫 등장 시 아래에서 떠오르는 연출, 같은 화자가 이어 말하면 재연출 없음)
+- 화자 이름표(금색) + 대사창(타자기 효과)
+- 대사 진행: 화면 아무 곳이나 클릭. 타자기 진행 중 클릭하면 즉시 전체 출력
+- 선택지 카드: 골드 비용/보유 골드, 전투 발생, 동료·아이템 획득 가능 여부를 자동 표기
+
+초상화 지정 규칙(`dialogue` 항목):
+
+1. `portrait`를 직접 지정하면 그 값을 사용한다(`Resources/Sprite/Portraits` 기준, 확장자 제외).
+2. 지정하지 않으면 `speaker` 이름을 `10_units.yaml`의 유닛 `name`과 대조해 자동 해석한다.
+3. 둘 다 해당 없으면 초상화 없이 내레이션처럼 표시된다(예: 화자가 `일행`인 경우).
+
+```yaml
+    dialogue:
+      - speaker: 일행          # 유닛이 아니므로 초상화 없음(내레이션)
+        text: 눈보라 속에서 이정표가 희미하게 빛난다.
+      - speaker: 케찰코아틀     # 유닛 이름과 일치 → 해당 유닛 초상화 자동 사용
+        text: 너희가 지닌 의지의 무게를 보여라.
+      - speaker: 룬술사
+        portrait: SEI_PORTRAIT # 유닛이 아닌 화자는 초상화를 직접 지정
+        text: 룬을 건드리지 않는 편이 좋겠군.
+```
+
+`randomSpeakers`를 쓰는 사건은 `{deity}` 치환이 `title`/`speaker`/`text`/`portrait`에 모두 적용되므로
+`portrait: "{deity}_PORTRAIT"` 형태로 화자별 초상화를 지정할 수 있다.
+
+에디터에서 연출을 즉시 확인하려면 플레이 모드에서 **F9** 를 누른다
+(현재 테마의 사건을 미리보기로 실행하며, 스테이지 진행이나 `oncePerRun` 기록에는 영향을 주지 않는다).
+
 ### 테마 데이터
 
 테마는 `Assets/Resources/Data/80_stages.yaml`에 정의한다.

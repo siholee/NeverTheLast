@@ -648,6 +648,14 @@ namespace Managers
             return true; // 모든 적 측 셀이 비어있음
         }
 
+        public void OnRoundEnd()
+        {
+            foreach (Unit unit in heroList.Concat(enemyList).Where(unit => unit != null && unit.isActive).ToList())
+            {
+                unit.Invoke(BaseEnums.UnitEventType.OnRoundEnd, new EventContext(unit));
+            }
+        }
+
         public void ClearActiveEnemies()
         {
             foreach (Unit enemy in enemyList.ToList())
