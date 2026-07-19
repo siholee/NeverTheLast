@@ -485,6 +485,10 @@ namespace Managers.UI.Screens
                 "", 26f, TextAlignmentOptions.TopLeft, UISpriteFactory.Palette.TextPrimary);
             _dialogueText.textWrappingMode = TextWrappingModes.Normal;
             _dialogueText.lineSpacing = 12f;
+            // 대사 길이가 들쭉날쭉해도 잘리지 않도록 넘칠 때만 축소한다.
+            _dialogueText.enableAutoSizing = true;
+            _dialogueText.fontSizeMax = 26f;
+            _dialogueText.fontSizeMin = 17f;
 
             // 6) 화자 이름표 (대사창 좌상단에 걸치도록)
             _namePlate = CreateRect("NamePlate", dialogueBox.transform, new Vector2(0.025f, 0.84f), new Vector2(0.30f, 1.16f));
@@ -495,6 +499,10 @@ namespace Managers.UI.Screens
             _speakerText = CreateText("Speaker", _namePlate.transform, new Vector2(0.06f, 0f), new Vector2(0.94f, 1f),
                 "", 21f, TextAlignmentOptions.Center, new Color(0.08f, 0.07f, 0.04f));
             _speakerText.fontStyle = FontStyles.Bold;
+            // 화자 이름이 길어도 이름표를 넘치지 않게 축소한다.
+            _speakerText.enableAutoSizing = true;
+            _speakerText.fontSizeMax = 21f;
+            _speakerText.fontSizeMin = 13f;
             _namePlate.SetActive(false);
 
             // 7) 계속 진행 표시(▼)
