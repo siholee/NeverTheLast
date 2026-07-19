@@ -126,26 +126,36 @@ events:
         successText: 격노한 신을 쓰러뜨리고 전설의 한손검 마카나를 획득했다.
         failureText: 신의 모든 권능을 감당하지 못하고 물러났다.
 
+  # 츠쿠요미 조우 — 비주얼 노벨 연출 시연을 겸한 영입 사건.
+  # 화자 "츠쿠요미"는 10_units.yaml의 유닛 이름과 일치하므로 초상화가 자동 해석된다.
+  # 화자 "일행"은 유닛이 아니므로 초상화 없이 내레이션처럼 표시된다.
+  # NOTE: 아마테라스/스사노오는 아직 유닛(22/23)이 없어 이 사건은 츠쿠요미 전용이다.
+  #       두 신을 추가할 때는 각자 별도 사건으로 나누고 blockedUnitIds를 함께 갱신할 것.
   - id: japan_moon_deity
     themeId: 3
     stageInRound: 5
     oncePerRun: true
-    blockedUnitIds: [21, 22, 23]
-    randomSpeakers: [츠쿠요미, 아마테라스, 스사노오]
-    title: 달밤에 나타난 {deity}
+    blockedUnitIds: [21]
+    title: 달밤에 나타난 츠쿠요미
     dialogue:
       - speaker: 일행
-        text: 일본의 첫 달밤, 세 신의 기척 중 하나가 길을 가로막는다.
-      - speaker: "{deity}"
-        text: 너희가 택할 것은 동행인가, 달의 가호인가.
+        text: 구름이 갈라지고, 버려진 신사의 마당이 달빛으로 하얗게 젖는다.
+      - speaker: 츠쿠요미
+        text: 밤을 걷는 자들이여. 이 달 아래에서 무엇을 구하는가.
+      - speaker: 일행
+        text: 그녀의 손끝에서 푸른 번개가 소리 없이 맴돈다. 적의는 없다. 다만 재고 있을 뿐이다.
+      - speaker: 츠쿠요미
+        text: 달은 차고 또 기운다. 너희의 각오도 그러한가… 아니면 이지러지지 않는 것을 품었는가.
+      - speaker: 츠쿠요미
+        text: 동행을 원한다면 이름을 걸어라. 가호만으로 족하다면, 그것도 나쁘지 않다.
     choices:
       - id: accompany
-        text: 동행한다.
+        text: 이름을 걸고 동행을 청한다.
         action: recruit
         grantUnitId: 21
         successText: 츠쿠요미가 일행에 합류했다. 이제 스타팅 캐릭터로 선택할 수 있다.
       - id: blessing
-        text: 가호를 받는다.
+        text: 달의 가호만을 받는다.
         action: grant_passive
         grantPassiveCodeId: 129
         grantPassiveToAll: true
