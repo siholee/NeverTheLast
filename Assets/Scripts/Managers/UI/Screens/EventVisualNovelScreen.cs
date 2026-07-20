@@ -44,10 +44,13 @@ namespace Managers.UI.Screens
         private Button _skipButton;
         private TextMeshProUGUI _autoLabel;
 
+        private Image _flashImage;
+
         private Coroutine _typingRoutine;
         private Coroutine _introRoutine;
         private Coroutine _indicatorRoutine;
         private Coroutine _autoRoutine;
+        private Coroutine _effectRoutine;
         private bool _isTyping;
         private bool _autoAdvance;
         private bool _hasMoreDialogue;
@@ -92,7 +95,9 @@ namespace Managers.UI.Screens
                 SetChoicesVisible(false, eventData);
                 SetAdvanceCatcherEnabled(true);
                 SetAuxiliaryButtonsVisible(true);
-                TypeDialogue(line.text ?? "");
+                PlayLineAudio(line);
+                PlayLineEffect(line.effect);
+                TypeDialogue(line.text ?? "", line.textSpeed);
                 return;
             }
 
@@ -136,6 +141,8 @@ namespace Managers.UI.Screens
             StopRoutine(ref _introRoutine);
             StopRoutine(ref _indicatorRoutine);
             StopRoutine(ref _autoRoutine);
+            StopRoutine(ref _effectRoutine);
+            if (_flashImage != null) _flashImage.gameObject.SetActive(false);
             _isTyping = false;
             _hasMoreDialogue = false;
             SetAutoAdvance(false);
@@ -212,7 +219,7 @@ namespace Managers.UI.Screens
             if (_speakerText != null) _speakerText.text = hasSpeaker ? speaker : "";
         }
 
-        private void TypeDialogue(string text)
+        private void TypeDialogue(string text, float speedScale = 1f)
         {
             StopRoutine(ref _typingRoutine);
             StopRoutine(ref _indicatorRoutine);
@@ -221,10 +228,10 @@ namespace Managers.UI.Screens
             _pendingFullText = text ?? "";
             if (_dialogueText == null) return;
 
-            _typingRoutine = _coroutineRunner.StartCoroutine(TypewriterRoutine(_pendingFullText));
+            _typingRoutine = _coroutineRunner.StartCoroutine(TypewriterRoutine(_pendingFullText, speedScale));
         }
 
-        private IEnumerator TypewriterRoutine(string fullText)
+        private IEnumerator TypewriterRoutine(string fullText, float speedScale)
         {
             _isTyping = true;
             _dialogueText.text = fullText;
@@ -233,7 +240,9 @@ namespace Managers.UI.Screens
 
             int total = _dialogueText.textInfo.characterCount;
             // 게임 속도 배율(Time.timeScale)의 영향을 받지 않도록 unscaled 시간을 쓴다.
-            float delay = 1f / CharsPerSecond;
+            // textSpeed가 지정되지 않은(0) 대사는 기본 속도를 쓴다.
+            float scale = speedScale > 0.01f ? speedScale : 1f;
+            float delay = 1f / (CharsPerSecond * scale);
 
             for (int visible = 0; visible <= total; visible++)
             {
@@ -393,22 +402,146 @@ namespace Managers.UI.Screens
         /// 1) 대사에 portrait가 지정되어 있으면 그것을 사용
         /// 2) 없으면 화자 이름을 유닛 데이터의 name과 대조해 해당 유닛 초상화를 사용
         /// 3) 둘 다 실패하면 초상화 없음(내레이션 취급)
+        /// emotion이 지정되면 "{초상화}_{표정}"을 우선 시도하고, 파일이 없으면 기본 초상화로 폴백한다.
         /// </summary>
         private static string ResolvePortraitPath(StageEventDialogueData line)
         {
             if (line == null) return null;
 
-            if (!string.IsNullOrWhiteSpace(line.portrait))
+            string basePortrait = line.portrait;
+            if (string.IsNullOrWhiteSpace(basePortrait))
             {
-                return line.portrait;
+                if (string.IsNullOrWhiteSpace(line.speaker)) return null;
+
+                List<UnitData> units = GameManager.Instance?.unitDataList?.units;
+                UnitData match = units?.FirstOrDefault(unit =>
+                    unit != null && string.Equals(unit.name?.Trim(), line.speaker.Trim(), System.StringComparison.OrdinalIgnoreCase));
+                basePortrait = match?.portrait;
             }
 
-            if (string.IsNullOrWhiteSpace(line.speaker)) return null;
+            if (string.IsNullOrWhiteSpace(basePortrait)) return null;
+            if (string.IsNullOrWhiteSpace(line.emotion)) return basePortrait;
 
-            List<UnitData> units = GameManager.Instance?.unitDataList?.units;
-            UnitData match = units?.FirstOrDefault(unit =>
-                unit != null && string.Equals(unit.name?.Trim(), line.speaker.Trim(), System.StringComparison.OrdinalIgnoreCase));
-            return match?.portrait;
+            // 표정 이미지가 준비되어 있으면 사용하고, 없으면 기본 초상화를 쓴다.
+            string emotionPath = $"{basePortrait}_{line.emotion.Trim()}";
+            return Resources.Load<Sprite>($"Sprite/Portraits/{emotionPath}") != null ? emotionPath : basePortrait;
+        }
+
+        // ===== 사운드 / 연출 =====
+
+        /// <summary>대사에 지정된 BGM/효과음을 재생한다. 오디오 에셋이 없으면 조용히 넘어간다.</summary>
+        private static void PlayLineAudio(StageEventDialogueData line)
+        {
+            if (line == null) return;
+
+            AudioManager audio = AudioManager.EnsureExists();
+            if (!string.IsNullOrWhiteSpace(line.bgm))
+            {
+                if (string.Equals(line.bgm.Trim(), "stop", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    audio.StopBgm();
+                }
+                else
+                {
+                    audio.PlayBgm(line.bgm.Trim());
+                }
+            }
+
+            audio.PlaySfx(line.sfx);
+        }
+
+        /// <summary>대사에 지정된 연출 효과를 실행한다(shake / bounce / flash).</summary>
+        private void PlayLineEffect(string effect)
+        {
+            if (string.IsNullOrWhiteSpace(effect)) return;
+
+            switch (effect.Trim().ToLowerInvariant())
+            {
+                case "shake":
+                    StopRoutine(ref _effectRoutine);
+                    _effectRoutine = _coroutineRunner.StartCoroutine(ShakeRoutine());
+                    break;
+                case "bounce":
+                    StopRoutine(ref _effectRoutine);
+                    _effectRoutine = _coroutineRunner.StartCoroutine(BounceRoutine());
+                    break;
+                case "flash":
+                    StopRoutine(ref _effectRoutine);
+                    _effectRoutine = _coroutineRunner.StartCoroutine(FlashRoutine());
+                    break;
+                case "none":
+                    break;
+                default:
+                    Debug.LogWarning($"[사건] 알 수 없는 연출 효과: {effect}");
+                    break;
+            }
+        }
+
+        /// <summary>초상화를 좌우로 흔든다(충격/동요).</summary>
+        private IEnumerator ShakeRoutine()
+        {
+            if (_portraitRect == null) yield break;
+
+            const float duration = 0.35f;
+            const float magnitude = 18f;
+            Vector2 origin = _portraitRect.anchoredPosition;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float damper = 1f - Mathf.Clamp01(elapsed / duration);
+                float offset = Mathf.Sin(elapsed * 52f) * magnitude * damper;
+                _portraitRect.anchoredPosition = origin + new Vector2(offset, 0f);
+                yield return null;
+            }
+
+            _portraitRect.anchoredPosition = origin;
+            _effectRoutine = null;
+        }
+
+        /// <summary>초상화를 살짝 위로 튀긴다(놀람/강조).</summary>
+        private IEnumerator BounceRoutine()
+        {
+            if (_portraitRect == null) yield break;
+
+            const float duration = 0.30f;
+            const float height = 26f;
+            Vector2 origin = _portraitRect.anchoredPosition;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                // 위로 솟았다가 내려오는 포물선
+                float offset = Mathf.Sin(t * Mathf.PI) * height;
+                _portraitRect.anchoredPosition = origin + new Vector2(0f, offset);
+                yield return null;
+            }
+
+            _portraitRect.anchoredPosition = origin;
+            _effectRoutine = null;
+        }
+
+        /// <summary>화면 전체를 흰색으로 번쩍인다(번개/충격).</summary>
+        private IEnumerator FlashRoutine()
+        {
+            if (_flashImage == null) yield break;
+
+            const float duration = 0.32f;
+            _flashImage.gameObject.SetActive(true);
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                Color color = _flashImage.color;
+                color.a = Mathf.Lerp(0.85f, 0f, t);
+                _flashImage.color = color;
+                yield return null;
+            }
+
+            _flashImage.gameObject.SetActive(false);
+            _effectRoutine = null;
         }
 
         private void SetPortrait(string portraitName, bool animate)
@@ -424,8 +557,13 @@ namespace Managers.UI.Screens
 
             if (_currentPortraitPath == portraitName && _portraitImage.gameObject.activeSelf)
             {
-                return; // 같은 화자가 이어서 말하는 경우 다시 등장 연출을 하지 않는다.
+                return; // 같은 화자가 같은 표정으로 이어서 말하는 경우 다시 등장 연출을 하지 않는다.
             }
+
+            // 이미 초상화가 떠 있는 상태에서 다른 이미지로 바뀌면 표정 변화로 보고 살짝 튀겨준다.
+            bool isExpressionChange = !animate
+                && _portraitImage.gameObject.activeSelf
+                && !string.IsNullOrEmpty(_currentPortraitPath);
 
             Sprite sprite = Resources.Load<Sprite>($"Sprite/Portraits/{portraitName}");
             if (sprite == null)
@@ -450,6 +588,12 @@ namespace Managers.UI.Screens
                 // 연출 없이 교체할 때는 이전 등장 연출의 알파/오프셋이 남지 않도록 확정한다.
                 _portraitImage.color = Color.white;
                 if (_portraitRect != null) _portraitRect.anchoredPosition = Vector2.zero;
+
+                if (isExpressionChange)
+                {
+                    StopRoutine(ref _effectRoutine);
+                    _effectRoutine = _coroutineRunner.StartCoroutine(BounceRoutine());
+                }
             }
         }
 
@@ -655,6 +799,13 @@ namespace Managers.UI.Screens
                 _choiceButtons[i] = button;
                 card.SetActive(false);
             }
+
+            // 11) 플래시 오버레이 — 가장 마지막에 만들어 최상단에 둔다. 클릭은 통과시킨다.
+            var flash = CreateRect("FlashOverlay", _root.transform, Vector2.zero, Vector2.one);
+            _flashImage = flash.AddComponent<Image>();
+            _flashImage.color = new Color(1f, 1f, 1f, 0f);
+            _flashImage.raycastTarget = false;
+            flash.SetActive(false);
 
             _root.SetActive(false);
         }

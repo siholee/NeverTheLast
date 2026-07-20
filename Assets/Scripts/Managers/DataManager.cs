@@ -22,6 +22,8 @@ namespace Managers
             return deserializer.Deserialize<T>(asset.text);
         }
 
+        public IntroDataList FetchIntroDataList() => Load<IntroDataList>("Data/00_intro");
+
         public UnitDataList FetchUnitDataList() => Load<UnitDataList>("Data/10_units");
 
         public ItemDataList FetchItemDataList() => Load<ItemDataList>("Data/40_items");

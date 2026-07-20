@@ -151,9 +151,43 @@
 
 `randomSpeakers`를 쓰는 사건은 `{deity}` 치환이 `title`/`speaker`/`text`/`portrait`에 모두 적용되므로
 `portrait: "{deity}_PORTRAIT"` 형태로 화자별 초상화를 지정할 수 있다.
+(대사 필드 복사/치환은 `StageEventDialogueData.CloneWithReplacement()`가 담당한다.
+**대사 필드를 추가할 때 이 메서드도 함께 갱신할 것** — 누락하면 해당 연출이 조용히 사라진다.)
+
+#### 대사 연출 필드
+
+각 `dialogue` 항목에 아래 필드를 선택적으로 붙여 연출을 지정한다.
+
+| 필드 | 설명 |
+| --- | --- |
+| `portrait` | 초상화 파일명(`Resources/Sprite/Portraits` 기준, 확장자 제외) |
+| `emotion` | 표정. `{portrait}_{emotion}` 파일을 우선 사용하고, 없으면 기본 초상화로 폴백 |
+| `effect` | `shake`(흔들림) / `bounce`(톡 튀기) / `flash`(화면 번쩍) / `none` |
+| `sfx` | 1회 재생할 효과음 (`Resources/Audio/SFX/{sfx}`) |
+| `bgm` | 이 대사부터 재생할 BGM (`Resources/Audio/BGM/{bgm}`). `stop`이면 정지. 같은 곡이면 재시작하지 않음 |
+| `textSpeed` | 타자기 속도 배율(1 = 기본, 0.5 = 느리게, 2 = 빠르게) |
+
+표정이 바뀌면(같은 화자라도 초상화 이미지가 달라지면) 자동으로 살짝 튀는 연출이 들어간다.
+
+오디오는 `Assets/Scripts/Managers/AudioManager.cs`가 담당한다.
+**오디오/표정 에셋이 없어도 조용히 무시**되므로(같은 이름은 1회만 로그) 데이터를 미리 작성해 두고
+나중에 파일만 넣으면 그대로 살아난다. 볼륨은 `SettingsManager`의 Music/Sfx 값을 따른다.
 
 에디터에서 연출을 즉시 확인하려면 플레이 모드에서 **F9** 를 누른다
 (현재 테마의 사건을 미리보기로 실행하며, 스테이지 진행이나 `oncePerRun` 기록에는 영향을 주지 않는다).
+
+### 인트로 시퀀스
+
+새 여정(New Game) 시작 시 캐릭터 선택 **전에** 인트로가 재생된다(포켓몬식 오프닝).
+
+- 데이터: `Assets/Resources/Data/00_intro.yaml`의 `intros` 목록
+- 구조는 사건(`StageEventData`)과 동일하므로 비주얼 노벨 화면이 그대로 재생한다
+- `choices`가 없는 사건은 마지막 대사 후 **자동 종료**되고 다음 흐름으로 넘어간다
+  (`GameManager.AdvanceEventDialogue`가 처리)
+- 인트로 데이터가 없으면 건너뛰고 바로 캐릭터 선택으로 진행하므로, 데이터 누락이 진행을 막지 않는다
+
+새 인트로를 추가하려면 `intros`에 항목을 넣고 `GameManager.PlayIntroThen()`이 찾는 id
+(`new_game_intro`)를 맞추거나, 다른 id로 호출부를 지정한다.
 
 ### 테마 데이터
 

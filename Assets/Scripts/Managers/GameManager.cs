@@ -420,13 +420,9 @@ namespace Managers
                 blockedUnitIds = source.blockedUnitIds,
                 randomSpeakers = source.randomSpeakers,
                 choices = source.choices,
-                dialogue = source.dialogue?.Select(line => new StageEventDialogueData
-                {
-                    speaker = line.speaker?.Replace("{deity}", speaker),
-                    text = line.text?.Replace("{deity}", speaker),
-                    // 초상화 지정도 {deity} 치환 대상이다(예: portrait: "{deity}_PORTRAIT").
-                    portrait = line.portrait?.Replace("{deity}", speaker),
-                }).ToList(),
+                // 대사 필드 복사/치환은 DTO의 CloneWithReplacement가 담당한다
+                // (필드 추가 시 복사 누락으로 연출이 사라지는 것을 막기 위함).
+                dialogue = source.dialogue?.Select(line => line.CloneWithReplacement("{deity}", speaker)).ToList(),
             };
         }
 
@@ -470,6 +466,15 @@ namespace Managers
             if (gameState != GameState.EventStage || currentStageEvent == null) return;
             int dialogueCount = currentStageEvent.dialogue?.Count ?? 0;
             eventDialogueIndex = Mathf.Min(eventDialogueIndex + 1, dialogueCount);
+
+            // 선택지가 없는 사건(인트로 등)은 대사가 끝나면 바로 종료한다.
+            bool hasChoices = (currentStageEvent.choices?.Count ?? 0) > 0;
+            if (eventDialogueIndex >= dialogueCount && !hasChoices)
+            {
+                CompleteEventStage();
+                return;
+            }
+
             uiManager?.ShowEventStagePanel(currentStageEvent, eventDialogueIndex);
         }
 
@@ -1007,14 +1012,13 @@ namespace Managers
                 case GameStartIntent.Intent.NewGame:
                     runManager.StartRun(GameMode.Training);
                     _roundManager.InitializeStage(1);
-                    gameState = GameState.CharacterSelection;
-                    uiManager?.ShowCharacterSelection();
+                    // 새 여정은 인트로 시퀀스를 먼저 보여준 뒤 캐릭터 선택으로 넘어간다.
+                    PlayIntroThen(EnterCharacterSelection);
                     break;
                 case GameStartIntent.Intent.InfiniteMode:
                     runManager.StartRun(GameMode.Infinite);
                     _roundManager.InitializeStage(1);
-                    gameState = GameState.CharacterSelection;
-                    uiManager?.ShowCharacterSelection();
+                    EnterCharacterSelection();
                     break;
                 case GameStartIntent.Intent.Continue:
                     if (runManager.LoadSavedRun())
@@ -1027,8 +1031,7 @@ namespace Managers
                     else
                     {
                         _roundManager.InitializeStage(1);
-                        gameState = GameState.CharacterSelection;
-                        uiManager?.ShowCharacterSelection();
+                        EnterCharacterSelection();
                     }
                     break;
                 case GameStartIntent.Intent.DirectStart:
@@ -1042,6 +1045,43 @@ namespace Managers
             }
 
             GameStartIntent.Current = GameStartIntent.Intent.DirectStart;
+        }
+
+        private void EnterCharacterSelection()
+        {
+            gameState = GameState.CharacterSelection;
+            uiManager?.ShowCharacterSelection();
+        }
+
+        /// <summary>
+        /// 인트로 시퀀스를 재생하고 끝나면 <paramref name="onComplete"/>를 실행한다.
+        /// 인트로 데이터가 없으면 바로 다음 흐름으로 넘어간다(데이터 누락이 진행을 막지 않는다).
+        /// </summary>
+        private void PlayIntroThen(Action onComplete)
+        {
+            StageEventData intro = LoadIntroSequence("new_game_intro");
+            if (intro == null)
+            {
+                onComplete?.Invoke();
+                return;
+            }
+
+            EnterEvent(intro, onComplete);
+        }
+
+        private StageEventData LoadIntroSequence(string introId)
+        {
+            IntroDataList introData = dataManager?.FetchIntroDataList();
+            List<StageEventData> intros = introData?.intros;
+            if (intros == null || intros.Count == 0)
+            {
+                Debug.Log("[인트로] 인트로 데이터가 없어 건너뜁니다 (Data/00_intro.yaml).");
+                return null;
+            }
+
+            StageEventData match = intros.FirstOrDefault(entry => entry != null && entry.id == introId)
+                ?? intros.FirstOrDefault(entry => entry != null);
+            return match;
         }
 
         private static void CleanupRunContext()
