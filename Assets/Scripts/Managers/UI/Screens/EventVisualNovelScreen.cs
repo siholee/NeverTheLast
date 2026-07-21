@@ -24,6 +24,12 @@ namespace Managers.UI.Screens
         private const float PortraitSlideDuration = 0.34f;
         private const float AutoAdvanceDelay = 1.4f; // AUTO 모드에서 다음 대사까지 대기 시간
 
+        /// <summary>
+        /// 초상화 하단 위치(뷰포트 비율). 대사/이름표 배치의 기준선이며,
+        /// 이 값보다 아래는 텍스트 영역이므로 초상화가 침범하지 않는다.
+        /// </summary>
+        private const float PortraitBottom = 0.30f;
+
         private readonly MonoBehaviour _coroutineRunner;
 
         private GameObject _root;
@@ -682,16 +688,19 @@ namespace Managers.UI.Screens
             _advanceCatcher.transition = Selectable.Transition.None;
             _advanceCatcher.targetGraphic = catcherImage;
 
-            // 3) 화자 초상화 — 화면 오른쪽에 크게 세운다(블루 아카이브 스토리 구도)
-            var portrait = CreateRect("Portrait", _root.transform, new Vector2(0.38f, 0.18f), new Vector2(0.86f, 0.98f));
+            // 3) 화자 초상화 — 화면 오른쪽에 크게 세운다(블루 아카이브 스토리 구도).
+            //    하단(y)은 대사 영역보다 위에서 끝나야 한다. 초상화가 대사 뒤에 깔리면
+            //    텍스트가 일러스트에 묻혀 읽기 어려워진다.
+            var portrait = CreateRect("Portrait", _root.transform, new Vector2(0.42f, PortraitBottom), new Vector2(0.90f, 1.02f));
             _portraitRect = portrait.GetComponent<RectTransform>();
             _portraitImage = portrait.AddComponent<Image>();
             _portraitImage.preserveAspect = true;
             _portraitImage.raycastTarget = false;
             portrait.SetActive(false);
 
-            // 4) 하단 스크림: 딱딱한 상자 대신 그라데이션으로 텍스트 가독성만 확보
-            var scrim = CreateRect("BottomScrim", _root.transform, new Vector2(0f, 0f), new Vector2(1f, 0.42f));
+            // 4) 하단 스크림: 딱딱한 상자 대신 그라데이션으로 텍스트 가독성만 확보.
+            //    초상화 하단과 겹치도록 조금 높게 잡아 인물의 발치가 자연스럽게 어두워지게 한다.
+            var scrim = CreateRect("BottomScrim", _root.transform, new Vector2(0f, 0f), new Vector2(1f, 0.46f));
             var scrimImage = scrim.AddComponent<Image>();
             scrimImage.sprite = UISpriteFactory.VerticalGradient(96,
                 UISpriteFactory.Palette.ScrimTop, UISpriteFactory.Palette.ScrimBottom);
@@ -709,8 +718,9 @@ namespace Managers.UI.Screens
                 "사건", 30f, TextAlignmentOptions.Left, UISpriteFactory.Palette.TextPrimary);
             ApplyTextShadow(_titleText);
 
-            // 6) 화자 이름표 — 기울어진 평행사변형(블루 아카이브 시그니처)
-            _namePlate = CreateRect("NamePlate", _root.transform, new Vector2(0.075f, 0.288f), new Vector2(0.30f, 0.345f));
+            // 6) 화자 이름표 — 기울어진 평행사변형(블루 아카이브 시그니처).
+            //    초상화 하단 경계에 걸치도록 두어 인물과 대사를 시각적으로 잇는다.
+            _namePlate = CreateRect("NamePlate", _root.transform, new Vector2(0.075f, PortraitBottom - 0.005f), new Vector2(0.30f, PortraitBottom + 0.055f));
             var nameImage = _namePlate.AddComponent<Image>();
             nameImage.sprite = UISpriteFactory.Parallelogram(48, 12, UISpriteFactory.Palette.Accent);
             nameImage.type = Image.Type.Sliced;
@@ -724,8 +734,9 @@ namespace Managers.UI.Screens
             _speakerText.fontSizeMin = 13f;
             _namePlate.SetActive(false);
 
-            // 7) 대사 — 장면 위에 바로 얹고 그림자로 가독성 확보
-            _dialogueText = CreateText("Dialogue", _root.transform, new Vector2(0.075f, 0.085f), new Vector2(0.90f, 0.275f),
+            // 7) 대사 — 장면 위에 바로 얹고 그림자로 가독성 확보.
+            //    상단은 초상화 하단(=이름표) 아래에서 시작해 일러스트와 겹치지 않는다.
+            _dialogueText = CreateText("Dialogue", _root.transform, new Vector2(0.075f, 0.075f), new Vector2(0.90f, PortraitBottom - 0.015f),
                 "", 28f, TextAlignmentOptions.TopLeft, UISpriteFactory.Palette.TextPrimary);
             _dialogueText.textWrappingMode = TextWrappingModes.Normal;
             _dialogueText.lineSpacing = 14f;
@@ -800,12 +811,34 @@ namespace Managers.UI.Screens
                 card.SetActive(false);
             }
 
-            // 11) 플래시 오버레이 — 가장 마지막에 만들어 최상단에 둔다. 클릭은 통과시킨다.
+            // 11) 플래시 오버레이 — 최상단. 클릭은 통과시킨다.
             var flash = CreateRect("FlashOverlay", _root.transform, Vector2.zero, Vector2.one);
             _flashImage = flash.AddComponent<Image>();
             _flashImage.color = new Color(1f, 1f, 1f, 0f);
             _flashImage.raycastTarget = false;
             flash.SetActive(false);
+
+            // 렌더 순서를 명시적으로 고정한다(뒤 → 앞).
+            // Unity UI는 계층 순서대로 그리므로, 생성 순서에 의존하면 나중에 요소를 추가하다가
+            // 텍스트가 일러스트 뒤로 들어가는 식의 사고가 나기 쉽다.
+            var renderOrder = new List<Transform>
+            {
+                backdrop.transform,
+                catcher.transform,
+                portrait.transform,      // 인물 일러스트
+                scrim.transform,         // 인물 발치를 눌러 텍스트 가독성 확보
+                titleBar.transform,
+                _titleText.transform,
+                _namePlate.transform,
+                _dialogueText.transform, // 반드시 초상화/스크림보다 위
+                _continueIndicator.transform,
+                _autoButton.transform,
+                _skipButton.transform,
+            };
+            foreach (Button choice in _choiceButtons) renderOrder.Add(choice.transform);
+            renderOrder.Add(flash.transform);
+
+            foreach (Transform layer in renderOrder) layer.SetAsLastSibling();
 
             _root.SetActive(false);
         }
