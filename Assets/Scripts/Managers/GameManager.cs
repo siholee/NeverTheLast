@@ -14,6 +14,9 @@ namespace Managers
     {
         public static GameManager Instance { get; private set; }
         private RoundManager _roundManager;
+
+        /// <summary>전투 행동을 중앙에서 예약·직렬 실행하는 스케줄러.</summary>
+        public ActionScheduler ActionScheduler { get; } = new();
         public GridManager gridManager;
         public UIManager uiManager;
         public SfxManager sfxManager;
@@ -54,6 +57,39 @@ namespace Managers
         public float roundProgressTime = 60f; // 라운드 진행 시간 (초)
         private float currentRoundProgressTime;
         private bool isRoundProgressTimerActive = false;
+        /// <summary>
+        /// 현재 단계 타이머의 남은 비율(1 = 방금 시작, 0 = 시간 종료).
+        /// HUD의 원형 프로그레스가 읽는다. 타이머가 돌지 않는 단계에서는 1을 반환한다.
+        /// </summary>
+        public float PhaseProgressRatio
+        {
+            get
+            {
+                if (isRoundProgressTimerActive && roundProgressTime > 0f)
+                {
+                    return Mathf.Clamp01(currentRoundProgressTime / roundProgressTime);
+                }
+
+                if (isPreparationTimerActive && preparationTime > 0f)
+                {
+                    return Mathf.Clamp01(currentPreparationTime / preparationTime);
+                }
+
+                return 1f;
+            }
+        }
+
+        /// <summary>현재 단계 타이머의 남은 초. 표시용이므로 올림한다.</summary>
+        public int PhaseRemainingSeconds
+        {
+            get
+            {
+                if (isRoundProgressTimerActive) return Mathf.Max(0, Mathf.CeilToInt(currentRoundProgressTime));
+                if (isPreparationTimerActive) return Mathf.Max(0, Mathf.CeilToInt(currentPreparationTime));
+                return 0;
+            }
+        }
+
         private float eventStageEnteredAt;
         private float trainingPhaseEnteredAt;
         private StageEventData currentStageEvent;
@@ -163,6 +199,8 @@ namespace Managers
 
         public void StartRound()
         {
+            if (!AllowProgressWhileWithinCarryLimit()) return;
+
             if (_roundManager != null && _roundManager.TryGetScheduledEvent(out StageEventData scheduledEvent))
             {
                 EnterStageSlotEvent(scheduledEvent);
@@ -190,12 +228,45 @@ namespace Managers
 
             Debug.LogWarning("[GameManager] 🔥 라운드 시작 - GridManager.OnRoundStart() 호출");
             GridManager.Instance.OnRoundStart();
+
+            // 유닛이 모두 배치·활성화된 뒤에 행동치를 초기화해야 한다.
+            ActionScheduler.BeginRound();
         }
+
+        // ── 경험치 지급량 ──────────────────────────────────────────
+        // 아군 레벨이 스테이지 진행과 대략 보조를 맞추도록 스테이지 비례로 준다.
+        // 적 레벨 = 스테이지이므로, 이 곡선이 아군/적 격차를 결정한다.
+        public const int ExpPerKillBase = 10;
+        public const int ExpPerKillPerStage = 2;
+        public const int ExpPerStageClearBase = 50;
+        public const int ExpPerStageClearPerStage = 10;
+        public const int ExpPerTrainingBase = 30;
+        public const int ExpPerTrainingPerStage = 5;
+
+        // 전투 중 획득한 EXP는 즉시 주지 않고 모아 둔다.
+        // 라운드 종료 시 아군 필드를 전투 시작 시점 스냅샷으로 되돌리므로,
+        // 복원이 끝난 뒤에 지급해야 성장이 사라지지 않는다.
+        private int pendingPartyExp;
+
+        /// <summary>활성 아군 전원에게 EXP를 지급한다.</summary>
+        public void GrantExpToParty(int amount)
+        {
+            if (amount <= 0 || GridManager.Instance == null) return;
+
+            foreach (Unit hero in GridManager.Instance.heroList)
+            {
+                if (hero == null || hero.IsEnemy || !hero.isActive) continue;
+                hero.AddExp(amount);
+            }
+        }
+
+        private int CurrentStageForExp => Mathf.Max(1, _roundManager?.Stage ?? 1);
 
         public void OnKillEnemy()
         {
             KillCount++;
             inventoryManager?.AddGold(25 * Mathf.Max(1, _roundManager?.Stage ?? 1));
+            pendingPartyExp += ExpPerKillBase + ExpPerKillPerStage * CurrentStageForExp;
             
             // 3의 배수 킬마다 토큰 보상 지급
             if (KillCount % 3 == 0)
@@ -235,7 +306,14 @@ namespace Managers
             {
                 _roundManager.UpdateRound();
             }
-            
+
+            // 전투 중에는 스케줄러가 행동 순서를 굴린다.
+            // 유닛은 스스로 공격하지 않고 여기서 호출된 시점에만 행동한다.
+            if (gameState == GameState.RoundInProgress)
+            {
+                ActionScheduler.Tick(Time.deltaTime);
+            }
+
             // 준비 단계 타이머 처리
             if (gameState == GameState.Preparation && isPreparationTimerActive)
             {
@@ -577,6 +655,8 @@ namespace Managers
 
         public void EnterTrainingPhase()
         {
+            if (!AllowProgressWhileWithinCarryLimit()) return;
+
             gameState = GameState.TrainingPhase;
             isPreparationTimerActive = false;
             isRoundProgressTimerActive = false;
@@ -589,8 +669,17 @@ namespace Managers
         public void CompleteTrainingPhaseWithFocus(BaseEnums.PrimaryStat focus)
         {
             if (gameState != GameState.TrainingPhase) return;
+            if (!AllowProgressWhileWithinCarryLimit())
+            {
+                uiManager?.HideTrainingPhasePanel();
+                gameState = GameState.Preparation;
+                RefreshPreparationForCarryWeight();
+                return;
+            }
 
             TrainingManager.TrainingResult result = TrainingManager.ApplyTraining(focus);
+            // 육성도 EXP 획득처다. 훈련을 받은 메인이 가장 많이 성장한다.
+            TrainingManager.GetMainUnit()?.AddExp(ExpPerTrainingBase + ExpPerTrainingPerStage * CurrentStageForExp);
             uiManager?.HideTrainingPhasePanel();
             preparationActionUsed = true;
             gameState = GameState.Preparation;
@@ -601,6 +690,7 @@ namespace Managers
         public void OpenTrainingFromPreparation()
         {
             if (gameState != GameState.Preparation || preparationActionUsed || IsPreparationLimitedToDeck()) return;
+            if (!AllowProgressWhileWithinCarryLimit()) return;
 
             isPreparationTimerActive = false;
             gameState = GameState.TrainingPhase;
@@ -611,6 +701,7 @@ namespace Managers
         public void RestFromPreparation()
         {
             if (gameState != GameState.Preparation || preparationActionUsed || IsPreparationLimitedToDeck()) return;
+            if (!AllowProgressWhileWithinCarryLimit()) return;
 
             HealAllActiveHeroes();
             preparationActionUsed = true;
@@ -621,6 +712,7 @@ namespace Managers
         public void BeginAdditionalBattleFromPreparation()
         {
             if (gameState != GameState.Preparation || preparationActionUsed || IsPreparationLimitedToDeck()) return;
+            if (!AllowProgressWhileWithinCarryLimit()) return;
 
             preparationActionUsed = true;
             StartRound();
@@ -629,6 +721,7 @@ namespace Managers
         public void OpenDeckSetupFromPreparation()
         {
             if (gameState != GameState.Preparation) return;
+            if (!AllowProgressWhileWithinCarryLimit()) return;
 
             uiManager?.ShowPreparationPhasePanel(
                 IsPreparationLimitedToDeck(),
@@ -645,6 +738,38 @@ namespace Managers
         public bool IsPreparationLimitedToDeck()
         {
             return CurrentMode == GameMode.Training && _roundManager != null && _roundManager.IsCurrentBossStage;
+        }
+
+        public bool HasOverburdenedHeroes => GridManager.Instance?.heroList?.Any(hero =>
+            hero != null && hero.isActive && !hero.IsEnemy && hero.IsOverCarryWeightMax) == true;
+
+        public string CarryWeightBlockMessage
+        {
+            get
+            {
+                List<Unit> overburdened = GridManager.Instance?.heroList?
+                    .Where(hero => hero != null && hero.isActive && !hero.IsEnemy && hero.IsOverCarryWeightMax)
+                    .ToList() ?? new List<Unit>();
+                if (overburdened.Count == 0) return null;
+
+                string units = string.Join(", ", overburdened.Select(hero =>
+                    $"{hero.UnitName} {hero.CarryWeightCurrent}/{hero.CarryWeightMax}"));
+                return $"3차 중량 초과: {units}. 장비에서 휴대품을 비워야 다른 행동을 할 수 있습니다.";
+            }
+        }
+
+        private bool AllowProgressWhileWithinCarryLimit()
+        {
+            if (!HasOverburdenedHeroes) return true;
+            RefreshPreparationForCarryWeight();
+            return false;
+        }
+
+        public void RefreshPreparationForCarryWeight()
+        {
+            if (gameState != GameState.Preparation) return;
+            uiManager?.ShowPreparationPhasePanel(
+                IsPreparationLimitedToDeck(), preparationActionUsed, CarryWeightBlockMessage);
         }
 
         public void RestorePreparationActionState(bool actionUsed)
@@ -780,12 +905,22 @@ namespace Managers
                 RestoreAllyFieldState();
             }
             GridManager.Instance?.ClearActiveEnemies();
-            
+
             if (life <= 0)
             {
+                pendingPartyExp = 0;
                 SaveSystem.DeleteSave();
                 return;
             }
+
+            // 필드 복원이 끝난 뒤에 EXP를 지급한다(복원 전에 주면 스냅샷에 덮여 사라진다).
+            int earnedExp = pendingPartyExp;
+            pendingPartyExp = 0;
+            if (victory)
+            {
+                earnedExp += ExpPerStageClearBase + ExpPerStageClearPerStage * CurrentStageForExp;
+            }
+            GrantExpToParty(earnedExp);
 
             if (eventBattleInProgress)
             {
@@ -959,6 +1094,9 @@ namespace Managers
                 xPos = unit.currentCell.xPos,
                 yPos = unit.currentCell.yPos,
                 isBench = isBench,
+                // 레벨/EXP를 빠뜨리면 라운드 종료 복원에서 성장이 초기화된다.
+                level = unit.Level,
+                exp = unit.Exp,
                 trainingLevel = unit.TrainingLevel,
                 strUpgrade = unit.StrUpgrade,
                 dexUpgrade = unit.DexUpgrade,
@@ -967,6 +1105,7 @@ namespace Managers
                 lukUpgrade = unit.LukUpgrade,
                 codeAccelerationBonus = unit.CodeAccelerationRunBonus,
                 equippedItemIds = unit.EquippedItemIds.ToList(),
+                carriedItemIds = unit.CarriedItemIds.ToList(),
                 grantedPassiveCodeIds = unit.GrantedPassiveCodeIds.ToList(),
             };
         }

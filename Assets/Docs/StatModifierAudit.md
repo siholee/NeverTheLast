@@ -229,13 +229,13 @@ supportBonds
 메인의 트레이닝 스탯 직접 계승값
 ```
 
-현재 패시브 기록은 `Unit`이 해금한 초기 패시브와 레벨 해금 패시브를 `LearnedPassiveSaveData`로 보관한다. 고유 패시브 전수 가능/불가는 아직 코드 데이터에 없으므로 기본값은 `transferable = true`다. 추후 `20_codes.yaml` 또는 별도 스킬 메타 데이터에 `transferable` 플래그를 추가해야 한다.
+현재 패시브 기록은 `Unit`이 해금한 패시브를 `LearnedPassiveSaveData`로 보관한다. 고유 패시브 원본은 전수되지 않으며, 전수 가능한 고유 P는 `TransferVersionCodeId`가 가리키는 열화 일반 패시브를 별도 기록한다. 매핑이 0이면 전수 불가다.
 
 ## 정리할 과제
 
 - `RewardDef`의 레거시 스탯 필드를 5스탯 명칭으로 정리
 - `DEF = STR * 3` 공식 재검토
 - 추가 전투가 일반 전투와 다른 보너스 전투라면 별도 round/reward 타입 데이터 추가
-- 고유 패시브 전수 가능/불가를 코드 데이터에 명시하는 플래그 추가
+- ~~고유 패시브 전수 규칙 구현~~ — `UniquePassiveCode.TransferVersionCodeId`와 열화 코드 230~233으로 해결
 - 무한 모드는 육성 완료 5인 고정 편성으로 유지
 - 육성 모드는 메인 1명만 있어도 시작 가능하고, 서포트는 최대 4명까지 선택 또는 진행 중 합류

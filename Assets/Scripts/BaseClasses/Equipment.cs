@@ -28,13 +28,45 @@ namespace BaseClasses
     public enum EquipmentProficiency
     {
         None,
+        Dagger,
         Wand,
+        Orb,
+        Greatsword,
         Longbow,
+        Shortbow,
+        Crossbow,
         LightArmor,
         MediumArmor,
         HeavyArmor,
         Shield,
-        Sword,
+        Longsword,
+        Mace,
+        Spear,
+    }
+
+    public static class EquipmentProficiencyRules
+    {
+        public static bool IsWeapon(this EquipmentProficiency proficiency)
+        {
+            return proficiency is EquipmentProficiency.Dagger
+                or EquipmentProficiency.Wand
+                or EquipmentProficiency.Orb
+                or EquipmentProficiency.Greatsword
+                or EquipmentProficiency.Longbow
+                or EquipmentProficiency.Shortbow
+                or EquipmentProficiency.Crossbow
+                or EquipmentProficiency.Shield
+                or EquipmentProficiency.Longsword
+                or EquipmentProficiency.Mace
+                or EquipmentProficiency.Spear;
+        }
+
+        public static bool IsBow(this EquipmentProficiency proficiency)
+        {
+            return proficiency is EquipmentProficiency.Longbow
+                or EquipmentProficiency.Shortbow
+                or EquipmentProficiency.Crossbow;
+        }
     }
 
     [Serializable]
@@ -68,7 +100,7 @@ namespace BaseClasses
 
         public IReadOnlyDictionary<EquipmentSlot, EquippedItem> Items => _items;
 
-        public bool TryEquip(ItemData itemData, Func<EquipmentProficiency, bool> hasProficiency, out string reason)
+        public bool TryEquip(ItemData itemData, out string reason)
         {
             reason = null;
             if (itemData == null)
@@ -80,12 +112,6 @@ namespace BaseClasses
             if (!TryParseSlot(itemData.slot, out EquipmentSlot slot))
             {
                 reason = $"알 수 없는 장비 슬롯입니다: {itemData.slot}";
-                return false;
-            }
-
-            if (itemData.RequiredProficiency != EquipmentProficiency.None && !hasProficiency(itemData.RequiredProficiency))
-            {
-                reason = $"{itemData.requiredProficiency} 숙련이 없어 장착할 수 없습니다.";
                 return false;
             }
 
@@ -112,26 +138,6 @@ namespace BaseClasses
         public int GetTotalWeight()
         {
             return _items.Values.Sum(item => Math.Max(0, item.Data.weight));
-        }
-
-        public int GetProspectiveWeight(ItemData itemData)
-        {
-            if (itemData == null || !TryParseSlot(itemData.slot, out EquipmentSlot slot))
-            {
-                return GetTotalWeight();
-            }
-
-            int weight = GetTotalWeight();
-            if (_items.TryGetValue(slot, out EquippedItem replaced))
-            {
-                weight -= Math.Max(0, replaced.Data.weight);
-            }
-            if (slot == EquipmentSlot.MainHand && itemData.twoHanded &&
-                _items.TryGetValue(EquipmentSlot.OffHand, out EquippedItem offHand))
-            {
-                weight -= Math.Max(0, offHand.Data.weight);
-            }
-            return Math.Max(0, weight) + Math.Max(0, itemData.weight);
         }
 
         private bool IsMainHandTwoHanded()

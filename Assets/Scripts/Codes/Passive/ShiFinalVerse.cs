@@ -8,8 +8,13 @@ using UnityEngine;
 
 namespace Codes.Passive
 {
-    public class ShiFinalVerse : PassiveCode
+    public class ShiFinalVerse : UniquePassiveCode
     {
+        // 종언 스택 도달 시 터지는 세 단계의 위력.
+        private const int FinisherPower = 60;
+        private const int SplitPower1 = 100;
+        private const int SplitPower2 = 150;
+
         private int _verseStack;
         private bool _isRegistered;
         private Action<EventContext> _normalAttackHitHandler;
@@ -21,6 +26,7 @@ namespace Codes.Passive
             Caster = context.Caster;
             MaxStage = 3;
             IgnoresActivationChance = true;
+            Transferable = false;
         }
 
         public override void CastCode()
@@ -59,15 +65,15 @@ namespace Codes.Passive
 
             if (previousStack < 3 && _verseStack >= 3)
             {
-                DealLowestDefenseDamage(20);
+                DealLowestHpDamage(FinisherPower);
             }
             else if (stage >= 2 && previousStack < 6 && _verseStack >= 6)
             {
-                DealSplitDamage(50);
+                DealSplitDamage(SplitPower1);
             }
             else if (stage >= 3 && previousStack < 9 && _verseStack >= 9)
             {
-                DealSplitDamage(75);
+                DealSplitDamage(SplitPower2);
             }
 
             if (_verseStack >= maxStack)
@@ -76,17 +82,17 @@ namespace Codes.Passive
             }
         }
 
-        private void DealLowestDefenseDamage(int dexMultiplier)
+        private void DealLowestHpDamage(int power)
         {
+            // 방어력이 폐지되어 '가장 무른 적' 기준을 현재 체력으로 대체한다.
             Unit target = GetAvailableEnemies()
-                .OrderBy(unit => unit.DefCurr)
-                .ThenBy(unit => unit.HpCurr)
+                .OrderBy(unit => unit.HpCurr)
                 .FirstOrDefault();
             if (target == null) return;
 
             bool isCrit = UnityEngine.Random.value <= Caster.CritChanceCurr;
             float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
-            int damage = Mathf.Max(1, Mathf.RoundToInt(Caster.GetBaseDex() * dexMultiplier * critMultiplier));
+            int damage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(power) * critMultiplier));
             var tags = new List<int>
             {
                 DamageTag.SingleTarget,
@@ -96,14 +102,14 @@ namespace Codes.Passive
             target.TakeDamage(new DamageContext(Caster, damage, BaseEnums.CodeType.Passive, tags, isCrit));
         }
 
-        private void DealSplitDamage(int dexMultiplier)
+        private void DealSplitDamage(int power)
         {
             List<Unit> targets = GetAvailableEnemies();
             if (targets.Count == 0) return;
 
             bool isCrit = UnityEngine.Random.value <= Caster.CritChanceCurr;
             float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
-            int totalDamage = Mathf.Max(1, Mathf.RoundToInt(Caster.GetBaseDex() * dexMultiplier * critMultiplier));
+            int totalDamage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(power) * critMultiplier));
             int splitDamage = Mathf.Max(1, totalDamage / targets.Count);
             var tags = new List<int>
             {
@@ -124,6 +130,219 @@ namespace Codes.Passive
             return Target.GetAllEnemies(Caster)
                 .Where(unit => unit != null && unit.isActive && unit.currentCell != null && unit.currentCell.isOccupied)
                 .ToList();
+        }
+    }
+
+    public abstract class ShiStatusPassive : PassiveCode
+    {
+        private readonly int _statusId;
+        private readonly string _statusKey;
+        private readonly string _description;
+        private bool _registered;
+        private Action<EventContext> _cleanupHandler;
+
+        protected ShiStatusPassive(
+            PassiveCodeContext context,
+            int statusId,
+            string statusKey,
+            string codeName,
+            string description) : base(context)
+        {
+            _statusId = statusId;
+            _statusKey = statusKey;
+            _description = description;
+            CodeType = BaseEnums.CodeType.Passive;
+            CodeName = codeName;
+            IgnoresActivationChance = true;
+        }
+
+        protected abstract Effects.Base.BaseEffect CreateEffect();
+
+        public override void CastCode()
+        {
+            if (_registered) return;
+            Caster.AddStatus(Effects.Buffs.BuffStatus.Create(
+                _statusId,
+                _statusKey,
+                CodeName,
+                Caster,
+                Caster,
+                CreateEffect(),
+                description: _description));
+            _cleanupHandler = _ => StopCode();
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = true;
+        }
+
+        public override void StopCode()
+        {
+            if (!_registered) return;
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            Caster.RemoveStatusByKey(_statusKey);
+            _registered = false;
+        }
+    }
+
+    /// <summary>Lv.10: 베기 태그 공격의 피해가 25% 증가한다.</summary>
+    public sealed class ShiSwordMaster : ShiStatusPassive
+    {
+        public ShiSwordMaster(PassiveCodeContext context) : base(
+            context, 154, "shi_sword_master", "검의 달인", "베기류 공격의 피해가 25% 증가합니다.") { }
+
+        protected override Effects.Base.BaseEffect CreateEffect() => new ShiSwordMasterEffect();
+    }
+
+    internal sealed class ShiSwordMasterEffect : Effects.Base.BaseEffect
+    {
+        public ShiSwordMasterEffect() : base(0) { }
+
+        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
+        {
+            return attacker == Caster && context?.DamageTags?.Contains(DamageTag.Slash) == true ? 1.25f : 1f;
+        }
+    }
+
+    /// <summary>Lv.20: 시의 무기 숙련 제한을 해제한다. 판정은 Unit.HasEquipmentProficiency에서 수행한다.</summary>
+    public sealed class ShiAllWeaponMastery : PassiveCode
+    {
+        public ShiAllWeaponMastery(PassiveCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Passive;
+            CodeName = "만류귀종";
+            IgnoresActivationChance = true;
+        }
+    }
+
+    /// <summary>Lv.28: 바람 원소가 부착된 동안 DEX +10.</summary>
+    public sealed class ShiSwiftness : ShiStatusPassive
+    {
+        public ShiSwiftness(PassiveCodeContext context) : base(
+            context, 156, "shi_swiftness", "신속", "바람 원소가 부착된 동안 DEX가 10 증가합니다.") { }
+
+        protected override Effects.Base.BaseEffect CreateEffect() => new ShiSwiftnessEffect();
+    }
+
+    internal sealed class ShiSwiftnessEffect : Effects.Base.BaseEffect
+    {
+        public ShiSwiftnessEffect() : base(0) { }
+
+        public override int PrimaryStatAdditiveModifier(Unit unit, BaseEnums.PrimaryStat stat)
+        {
+            return unit == Caster && stat == BaseEnums.PrimaryStat.DEX &&
+                   unit.HasCombatElement(BaseEnums.UnitElement.Anemo) ? 10 : 0;
+        }
+    }
+
+    /// <summary>Lv.44 / 수르트 Lv.66 공용: 공격 후 생명력 8% 미만의 적을 처형한다.</summary>
+    public sealed class HeavenlyKiller : ExecuteThresholdPassive
+    {
+        public const int CodeId = 58;
+        public HeavenlyKiller(PassiveCodeContext context) : base(context, "천살성", 0.08f) { }
+
+        protected override bool CanExecute()
+        {
+            // 시가 당연한 운명을 습득했다면 천살성은 완전히 대체되어 중복 판정하지 않는다.
+            return !Caster.HasLearnedPassiveCode(ShiCertainDestiny.CodeId);
+        }
+    }
+
+    /// <summary>Lv.78: 체력 30% 미만 대상 공격은 확정 치명타이며 치명타 확률×2를 치명타 피해에 더한다.</summary>
+    public sealed class ShiTenDaysNoFlower : ShiStatusPassive
+    {
+        public const int CodeId = 59;
+
+        public ShiTenDaysNoFlower(PassiveCodeContext context) : base(
+            context, 159, "shi_ten_days_no_flower", "화무십일홍",
+            "체력 30% 미만의 적을 공격하면 확정 치명타가 발생하고 치명타 확률의 2배가 치명타 피해에 더해집니다.")
+        {
+            Transferable = false;
+        }
+
+        protected override Effects.Base.BaseEffect CreateEffect() => new ShiTenDaysNoFlowerEffect();
+    }
+
+    internal sealed class ShiTenDaysNoFlowerEffect : Effects.Base.BaseEffect
+    {
+        public ShiTenDaysNoFlowerEffect() : base(0) { }
+
+        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
+        {
+            if (attacker != Caster || target == null || target.HpMax <= 0 || context == null ||
+                context.CodeType == BaseEnums.CodeType.Effect || (float)target.HpCurr / target.HpMax >= 0.3f)
+            {
+                return 1f;
+            }
+
+            float normalCritMultiplier = Mathf.Max(1f, attacker.CritMultiplierCurr);
+            float desiredCritMultiplier = normalCritMultiplier + attacker.CritChanceCurr * 2f;
+            float alreadyAppliedMultiplier = context.IsCrit ? normalCritMultiplier : 1f;
+            context.IsCrit = true;
+            return desiredCritMultiplier / alreadyAppliedMultiplier;
+        }
+    }
+
+    /// <summary>Lv.82: 천살성을 보유한 경우 처형선을 12%로 대체한다.</summary>
+    public sealed class ShiCertainDestiny : ExecuteThresholdPassive
+    {
+        public const int CodeId = 60;
+        public ShiCertainDestiny(PassiveCodeContext context) : base(context, "당연한 운명", 0.12f) { }
+
+        protected override bool CanExecute() => Caster.HasLearnedPassiveCode(HeavenlyKiller.CodeId);
+    }
+
+    public abstract class ExecuteThresholdPassive : PassiveCode
+    {
+        private readonly float _threshold;
+        private bool _registered;
+        private Action<DamageResolvedContext> _damageHandler;
+        private Action<EventContext> _cleanupHandler;
+
+        protected ExecuteThresholdPassive(PassiveCodeContext context, string codeName, float threshold) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Passive;
+            CodeName = codeName;
+            IgnoresActivationChance = true;
+            _threshold = threshold;
+        }
+
+        protected virtual bool CanExecute() => true;
+
+        public override void CastCode()
+        {
+            if (_registered) return;
+            _damageHandler = OnDamageDealt;
+            _cleanupHandler = _ => StopCode();
+            Caster.AddListener(BaseEnums.UnitEventType.OnDamageDealt, _damageHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = true;
+        }
+
+        public override void StopCode()
+        {
+            if (!_registered) return;
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnDamageDealt, _damageHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = false;
+        }
+
+        private void OnDamageDealt(DamageResolvedContext context)
+        {
+            Unit target = context?.Target;
+            if (!CanExecute() || context?.Attacker != Caster || context.DamageDealt <= 0 ||
+                context.DamageContext?.CodeType == BaseEnums.CodeType.Effect || target == null ||
+                !target.isActive || target.HpCurr <= 0 || target.HpMax <= 0)
+            {
+                return;
+            }
+
+            if ((float)target.HpCurr / target.HpMax < _threshold)
+            {
+                target.Die(Caster);
+            }
         }
     }
 }

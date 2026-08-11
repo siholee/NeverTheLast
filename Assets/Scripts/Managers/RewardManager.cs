@@ -163,7 +163,7 @@ namespace Managers
 
             if (reward.itemId > 0)
             {
-                GameManager.Instance.inventoryManager?.AddItem(reward.itemId);
+                GameManager.Instance.inventoryManager?.AddItem(reward.itemId, target);
             }
             else if (reward.fullHealParty)
             {

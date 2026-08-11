@@ -1,556 +1,250 @@
+# 적 데이터
+#
+# 스탯 규격 (2026-08 개편):
+#   · 공격력/방어력 스탯은 존재하지 않는다. 모든 전투 수치는 5스탯에서 파생된다.
+#       피해     = 스킬 위력 × 주스탯 × 0.2   (포켓몬식 — 위력은 스킬마다 고정)
+#       최대체력 = CON × 100
+#       방어력   = STR × 1      (롤 방식: 받는 피해 배율 = 기준값 / (기준값 + 방어력))
+#     기준값은 레벨에 비례해 커지므로 감소율은 레벨과 무관하게 일정하다.
+#   · 스탯 = base + incrementLvl × (Level − 1)
+#   · 적의 Level은 현재 스테이지와 같다. 즉 1스테이지 = Level 1 = 성장분 0.
+#   · mainStat ×1.2 / subStat ×1.1 배율은 아군과 동일하게 적용된다.
+#
+# 현재는 콜로세움(로마) 테마만 운영한다.
+# 노르드·아즈텍·일본 테마의 적은 전용 스프라이트가 없어 제거되었다.
+# 새 테마를 추가할 때는 초상화 자산을 먼저 확보한 뒤 등록할 것.
+
 enemies:
-  - id: 1001
-    name: 발키리
-    themeId: 3
+  # ── 콜로세움 테마 (themeId 5) ─────────────────────────────────────
+  # 로마 각지의 인간 검투사와 속주에서 붙잡아 온 괴수가 맞붙는 대축제.
+  # 모든 검투사는 인간이다. 전투 카드용 초상화와 사건용 스탠딩을 함께 보유한다.
+  - id: 1020
+    name: 무르밀로
+    themeId: 5
+    archetype: 7
+    element: None
+    tier: normal
+    mainStat: STR
+    subStat: CON
+    strBase: 12
+    strIncrementLvl: 1
+    dexBase: 9
+    dexIncrementLvl: 1
+    conBase: 26
+    conIncrementLvl: 2
+    intBase: 6
+    lukBase: 8
+    lukIncrementLvl: 1
+    codes: { passive: 109, normal: 101, ultimate: 140 }
+    levelPassives:
+      - { codeId: 110, unlockLevel: 20, stage: 1 }
+      - { codeId: 111, unlockLevel: 40, stage: 1 }
+      - { codeId: 112, unlockLevel: 70, stage: 1 }
+    portrait: MURMILLO_PORTRAIT
+    standing: MURMILLO_STANDING
+
+  - id: 1021
+    name: 호플로마쿠스
+    themeId: 5
+    archetype: 8
+    element: None
+    tier: normal
+    mainStat: STR
+    subStat: DEX
+    strBase: 16
+    strIncrementLvl: 2
+    dexBase: 13
+    dexIncrementLvl: 1
+    conBase: 18
+    conIncrementLvl: 1
+    intBase: 6
+    lukBase: 10
+    lukIncrementLvl: 1
+    codes: { passive: 109, normal: 102, ultimate: 141 }
+    levelPassives:
+      - { codeId: 110, unlockLevel: 20, stage: 1 }
+      - { codeId: 111, unlockLevel: 40, stage: 1 }
+      - { codeId: 112, unlockLevel: 70, stage: 1 }
+    portrait: HOPLOMACHUS_PORTRAIT
+    standing: HOPLOMACHUS_STANDING
+
+  - id: 1022
+    name: 트라엑스
+    themeId: 5
     archetype: 9
     element: None
     tier: normal
-    strBase: 80
-    strIncrementLvl: 8
-    strIncrementUpgrade: 8
-    dexBase: 13
-    dexIncrementLvl: 0
-    dexIncrementUpgrade: 1
-    conBase: 15
-    conIncrementLvl: 2
-    conIncrementUpgrade: 2
-    intBase: 10
-    intIncrementLvl: 0
-    intIncrementUpgrade: 0
-    lukBase: 15
+    mainStat: STR
+    subStat: LUK
+    strBase: 19
+    strIncrementLvl: 2
+    dexBase: 16
+    dexIncrementLvl: 1
+    conBase: 14
+    conIncrementLvl: 1
+    intBase: 6
+    lukBase: 14
     lukIncrementLvl: 1
-    lukIncrementUpgrade: 3
-    atkBase: 800
-    atkIncrementLvl: 80
-    defBase: 80
-    defIncrementLvl: 15
-    codes:
-      passive: 100
-      normal: 100
-      ultimate: 100
-    portrait: SEI_PORTRAIT
+    codes: { passive: 109, normal: 103, ultimate: 142 }
+    levelPassives:
+      - { codeId: 110, unlockLevel: 20, stage: 1 }
+      - { codeId: 111, unlockLevel: 40, stage: 1 }
+      - { codeId: 112, unlockLevel: 70, stage: 1 }
+    portrait: THRAEX_PORTRAIT
+    standing: THRAEX_STANDING
 
-  - id: 1002
-    name: 광전사
-    themeId: 3
-    archetype: 8
-    element: Pyro
-    tier: normal
-    strBase: 60
-    strIncrementLvl: 6
-    strIncrementUpgrade: 6
-    dexBase: 12
-    dexIncrementLvl: 0
-    dexIncrementUpgrade: 1
-    conBase: 25
-    conIncrementLvl: 2
-    conIncrementUpgrade: 2
-    intBase: 10
-    intIncrementLvl: 0
-    intIncrementUpgrade: 0
-    lukBase: 10
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 3
-    atkBase: 600
-    atkIncrementLvl: 60
-    defBase: 100
-    defIncrementLvl: 20
-    codes:
-      passive: 100
-      normal: 100
-      ultimate: 100
-    portrait: SEI_PORTRAIT
-
-  - id: 1003
-    name: 허스카를
-    themeId: 3
-    archetype: 8
-    element: Cryo
-    tier: normal
-    strBase: 70
-    strIncrementLvl: 7
-    strIncrementUpgrade: 7
-    dexBase: 12
-    dexIncrementLvl: 0
-    dexIncrementUpgrade: 1
-    conBase: 22
-    conIncrementLvl: 2
-    conIncrementUpgrade: 2
-    intBase: 10
-    intIncrementLvl: 0
-    intIncrementUpgrade: 0
-    lukBase: 12
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 3
-    atkBase: 700
-    atkIncrementLvl: 70
-    defBase: 90
-    defIncrementLvl: 18
-    codes:
-      passive: 100
-      normal: 100
-      ultimate: 100
-    portrait: SEI_PORTRAIT
-
-  - id: 1004
-    name: 방패 바이킹
-    themeId: 3
-    archetype: 7
-    element: Geo
-    tier: normal
-    strBase: 40
-    strIncrementLvl: 4
-    strIncrementUpgrade: 4
-    dexBase: 11
-    dexIncrementLvl: 0
-    dexIncrementUpgrade: 1
-    conBase: 35
-    conIncrementLvl: 3
-    conIncrementUpgrade: 3
-    intBase: 10
-    intIncrementLvl: 0
-    intIncrementUpgrade: 0
-    lukBase: 5
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 3
-    atkBase: 400
-    atkIncrementLvl: 40
-    defBase: 150
-    defIncrementLvl: 30
-    codes:
-      passive: 100
-      normal: 100
-      ultimate: 100
-    portrait: SEI_PORTRAIT
-
-  - id: 1005
-    name: 노르드 궁수
-    themeId: 3
+  - id: 1023
+    name: 레티아리우스
+    themeId: 5
     archetype: 10
-    element: Anemo
-    tier: normal
-    strBase: 90
-    strIncrementLvl: 9
-    strIncrementUpgrade: 9
-    dexBase: 14
-    dexIncrementLvl: 0
-    dexIncrementUpgrade: 1
-    conBase: 12
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 10
-    intIncrementLvl: 0
-    intIncrementUpgrade: 0
-    lukBase: 20
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 4
-    atkBase: 900
-    atkIncrementLvl: 90
-    defBase: 60
-    defIncrementLvl: 12
-    codes:
-      passive: 100
-      normal: 100
-      ultimate: 100
-    portrait: SEI_PORTRAIT
-
-  - id: 1006
-    name: 룬술사
-    themeId: 3
-    archetype: 11
-    element: Electro
-    tier: normal
-    strBase: 110
-    strIncrementLvl: 11
-    strIncrementUpgrade: 11
-    dexBase: 13
-    dexIncrementLvl: 0
-    dexIncrementUpgrade: 1
-    conBase: 10
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 10
-    intIncrementLvl: 0
-    intIncrementUpgrade: 0
-    lukBase: 15
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 4
-    atkBase: 1100
-    atkIncrementLvl: 110
-    defBase: 50
-    defIncrementLvl: 10
-    codes:
-      passive: 100
-      normal: 100
-      ultimate: 100
-    portrait: SEI_PORTRAIT
-
-  - id: 1007
-    name: 전술가
-    themeId: 3
-    archetype: 12
     element: None
     tier: normal
-    strBase: 70
-    strIncrementLvl: 7
-    strIncrementUpgrade: 7
-    dexBase: 12
-    dexIncrementLvl: 0
-    dexIncrementUpgrade: 1
-    conBase: 13
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 10
-    intIncrementLvl: 0
-    intIncrementUpgrade: 0
-    lukBase: 10
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 3
-    atkBase: 700
-    atkIncrementLvl: 70
-    defBase: 70
-    defIncrementLvl: 14
-    codes:
-      passive: 100
-      normal: 100
-      ultimate: 100
-    portrait: SEI_PORTRAIT
-
-  - id: 1008
-    name: 장인
-    themeId: 3
-    archetype: 13
-    element: Geo
-    tier: normal
-    strBase: 85
-    strIncrementLvl: 8
-    strIncrementUpgrade: 8
-    dexBase: 12
-    dexIncrementLvl: 0
-    dexIncrementUpgrade: 1
-    conBase: 14
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 10
-    intIncrementLvl: 0
-    intIncrementUpgrade: 0
-    lukBase: 12
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 3
-    atkBase: 850
-    atkIncrementLvl: 85
-    defBase: 80
-    defIncrementLvl: 16
-    codes:
-      passive: 100
-      normal: 100
-      ultimate: 100
-    portrait: SEI_PORTRAIT
-
-  - id: 1009
-    name: 치유사
-    themeId: 3
-    archetype: 14
-    element: Hydro
-    tier: normal
-    strBase: 50
-    strIncrementLvl: 5
-    strIncrementUpgrade: 5
-    dexBase: 12
-    dexIncrementLvl: 0
-    dexIncrementUpgrade: 0
-    conBase: 11
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 10
-    intIncrementLvl: 0
-    intIncrementUpgrade: 0
-    lukBase: 8
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 2
-    atkBase: 500
-    atkIncrementLvl: 50
-    defBase: 60
-    defIncrementLvl: 12
-    codes:
-      passive: 100
-      normal: 100
-      ultimate: 100
-    portrait: SEI_PORTRAIT
-
-  - id: 2001
-    name: 야를
-    themeId: 3
-    archetype: 7
-    element: Cryo
-    tier: elite
-    strBase: 100
-    strIncrementLvl: 10
-    strIncrementUpgrade: 10
-    dexBase: 12
-    dexIncrementLvl: 0
-    dexIncrementUpgrade: 1
-    conBase: 80
-    conIncrementLvl: 7
-    conIncrementUpgrade: 7
-    intBase: 10
-    intIncrementLvl: 0
-    intIncrementUpgrade: 0
-    lukBase: 10
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 3
-    atkBase: 1000
-    atkIncrementLvl: 100
-    defBase: 300
-    defIncrementLvl: 50
-    codes:
-      passive: 100
-      normal: 100
-      ultimate: 100
-    portrait: SEI_PORTRAIT
-
-  - id: 2002
-    name: 우르
-    themeId: 3
-    archetype: 8
-    element: Pyro
-    tier: elite
-    strBase: 150
-    strIncrementLvl: 15
-    strIncrementUpgrade: 15
-    dexBase: 13
-    dexIncrementLvl: 0
-    dexIncrementUpgrade: 1
-    conBase: 70
-    conIncrementLvl: 6
-    conIncrementUpgrade: 6
-    intBase: 10
-    intIncrementLvl: 0
-    intIncrementUpgrade: 0
-    lukBase: 15
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 4
-    atkBase: 1500
-    atkIncrementLvl: 150
-    defBase: 250
-    defIncrementLvl: 40
-    codes:
-      passive: 100
-      normal: 100
-      ultimate: 100
-    portrait: SEI_PORTRAIT
-
-  - id: 3001
-    name: 오딘
-    themeId: 3
-    archetype: 11
-    element: Electro
-    tier: boss
-    strBase: 250
-    strIncrementLvl: 25
-    strIncrementUpgrade: 25
-    dexBase: 14
-    dexIncrementLvl: 0
-    dexIncrementUpgrade: 1
-    conBase: 150
-    conIncrementLvl: 12
-    conIncrementUpgrade: 12
-    intBase: 10
-    intIncrementLvl: 0
-    intIncrementUpgrade: 0
-    lukBase: 20
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 5
-    atkBase: 2500
-    atkIncrementLvl: 250
-    defBase: 400
-    defIncrementLvl: 60
-    codes:
-      passive: 100
-      normal: 100
-      ultimate: 100
-    portrait: SEI_PORTRAIT
-
-  - id: 1010
-    name: 재규어전사
-    themeId: 4
-    archetype: 7
-    element: Dendro
-    tier: normal
-    strBase: 12
+    mainStat: DEX
+    subStat: INT
+    strBase: 13
     strIncrementLvl: 1
-    dexBase: 10
-    dexIncrementLvl: 1
-    conBase: 18
-    conIncrementLvl: 2
-    intBase: 5
-    lukBase: 8
-    lukIncrementLvl: 1
-    atkBase: 650
-    atkIncrementLvl: 55
-    defBase: 90
-    defIncrementLvl: 12
-    codes: { passive: 100, normal: 100, ultimate: 100 }
-    portrait: ATALANTE_PORTRAIT
-
-  - id: 1011
-    name: 독수리전사
-    themeId: 4
-    archetype: 8
-    element: Anemo
-    tier: normal
-    strBase: 10
-    strIncrementLvl: 1
-    dexBase: 18
+    dexBase: 17
     dexIncrementLvl: 2
-    conBase: 14
+    conBase: 12
     conIncrementLvl: 1
-    intBase: 7
+    intBase: 8
+    intIncrementLvl: 1
     lukBase: 12
     lukIncrementLvl: 1
-    atkBase: 720
-    atkIncrementLvl: 65
-    defBase: 65
-    defIncrementLvl: 9
-    codes: { passive: 100, normal: 100, ultimate: 100 }
-    portrait: ATALANTE_PORTRAIT
+    codes: { passive: 109, normal: 104, ultimate: 143 }
+    levelPassives:
+      - { codeId: 110, unlockLevel: 20, stage: 1 }
+      - { codeId: 111, unlockLevel: 40, stage: 1 }
+      - { codeId: 112, unlockLevel: 70, stage: 1 }
+    portrait: RETIARIUS_PORTRAIT
+    standing: RETIARIUS_STANDING
 
-  - id: 1012
-    name: 피필틴
-    themeId: 4
-    archetype: 10
-    element: Dendro
+  - id: 1024
+    name: 세쿠토르
+    themeId: 5
+    archetype: 9
+    element: None
     tier: normal
-    strBase: 5
-    dexBase: 11
-    dexIncrementLvl: 1
-    conBase: 10
-    conIncrementLvl: 1
-    intBase: 20
-    intIncrementLvl: 2
-    lukBase: 10
-    lukIncrementLvl: 1
-    atkBase: 850
-    atkIncrementLvl: 75
-    defBase: 45
-    defIncrementLvl: 7
-    codes: { passive: 100, normal: 100, ultimate: 100 }
-    portrait: CHANDRA_PORTRAIT
-
-  - id: 2003
-    name: 틀랄록
-    themeId: 4
-    archetype: 11
-    element: Hydro
-    tier: elite
-    strBase: 14
-    strIncrementLvl: 1
-    dexBase: 12
-    dexIncrementLvl: 1
-    conBase: 75
-    conIncrementLvl: 5
-    intBase: 30
-    intIncrementLvl: 2
-    lukBase: 12
-    lukIncrementLvl: 1
-    atkBase: 1300
-    atkIncrementLvl: 110
-    defBase: 220
-    defIncrementLvl: 25
-    codes: { passive: 100, normal: 100, ultimate: 100 }
-    portrait: CHANDRA_PORTRAIT
-
-  - id: 3002
-    name: 테스카틀리포카
-    themeId: 4
-    archetype: 11
-    element: Void
-    tier: boss
-    strBase: 22
+    mainStat: STR
+    subStat: DEX
+    strBase: 18
     strIncrementLvl: 2
     dexBase: 18
-    dexIncrementLvl: 1
-    conBase: 140
-    conIncrementLvl: 9
-    intBase: 45
-    intIncrementLvl: 3
-    lukBase: 20
+    dexIncrementLvl: 2
+    conBase: 16
+    conIncrementLvl: 1
+    intBase: 6
+    lukBase: 11
     lukIncrementLvl: 1
-    atkBase: 2400
-    atkIncrementLvl: 210
-    defBase: 380
-    defIncrementLvl: 40
-    codes: { passive: 100, normal: 100, ultimate: 100 }
-    portrait: SHI_PORTRAIT
-
-  - id: 3201
-    name: 케찰코아틀
-    themeId: 4
-    archetype: 11
-    element: Dendro
-    tier: boss
-    strBase: 12
-    strIncrementLvl: 1
-    dexBase: 14
-    dexIncrementLvl: 1
-    conBase: 95
-    conIncrementLvl: 6
-    intBase: 42
-    intIncrementLvl: 3
-    lukBase: 18
-    lukIncrementLvl: 1
-    atkBase: 900
-    atkIncrementLvl: 80
-    defBase: 180
-    defIncrementLvl: 20
-    codes: { passive: 70, normal: 70, ultimate: 70 }
-    codeStages: { passive: 3, normal: 1, ultimate: 1 }
+    codes: { passive: 109, normal: 103, ultimate: 144 }
     levelPassives:
-      - { codeId: 80, unlockLevel: 0, stage: 1 }
-      - { codeId: 71, unlockLevel: 1, stage: 1 }
-      - { codeId: 72, unlockLevel: 6, stage: 1 }
-      - { codeId: 73, unlockLevel: 14, stage: 1 }
-      - { codeId: 74, unlockLevel: 18, stage: 1 }
-      - { codeId: 75, unlockLevel: 22, stage: 1 }
-      - { codeId: 76, unlockLevel: 26, stage: 1 }
-      - { codeId: 77, unlockLevel: 38, stage: 1 }
-      - { codeId: 78, unlockLevel: 42, stage: 1 }
-      - { codeId: 79, unlockLevel: 55, stage: 1 }
-    portrait: ATALANTE_PORTRAIT
+      - { codeId: 110, unlockLevel: 20, stage: 1 }
+      - { codeId: 111, unlockLevel: 40, stage: 1 }
+      - { codeId: 112, unlockLevel: 70, stage: 1 }
+    portrait: SECUTOR_PORTRAIT
+    standing: SECUTOR_STANDING
 
-  - id: 3202
-    name: 격노한 케찰코아틀
-    themeId: 4
-    archetype: 11
-    element: Dendro
-    tier: boss
-    strBase: 18
+  - id: 1025
+    name: 디마카이루스
+    themeId: 5
+    archetype: 8
+    element: None
+    tier: normal
+    mainStat: DEX
+    subStat: LUK
+    strBase: 17
     strIncrementLvl: 2
     dexBase: 20
     dexIncrementLvl: 2
-    conBase: 150
-    conIncrementLvl: 10
-    intBase: 80
-    intIncrementLvl: 5
-    lukBase: 25
-    lukIncrementLvl: 2
-    atkBase: 1500
-    atkIncrementLvl: 130
-    defBase: 300
-    defIncrementLvl: 30
-    codes: { passive: 70, normal: 70, ultimate: 70 }
-    codeStages: { passive: 3, normal: 1, ultimate: 1 }
+    conBase: 12
+    conIncrementLvl: 1
+    intBase: 6
+    lukBase: 16
+    lukIncrementLvl: 1
+    codes: { passive: 109, normal: 102, ultimate: 145 }
     levelPassives:
-      - { codeId: 71, unlockLevel: 0, stage: 1 }
-      - { codeId: 72, unlockLevel: 0, stage: 1 }
-      - { codeId: 73, unlockLevel: 0, stage: 1 }
-      - { codeId: 74, unlockLevel: 0, stage: 1 }
-      - { codeId: 75, unlockLevel: 0, stage: 1 }
-      - { codeId: 76, unlockLevel: 0, stage: 1 }
-      - { codeId: 77, unlockLevel: 0, stage: 1 }
-      - { codeId: 78, unlockLevel: 0, stage: 1 }
-      - { codeId: 79, unlockLevel: 0, stage: 1 }
-      - { codeId: 80, unlockLevel: 0, stage: 1 }
-      - { codeId: 81, unlockLevel: 0, stage: 1 }
-      - { codeId: 82, unlockLevel: 0, stage: 1 }
-    portrait: ATALANTE_PORTRAIT
+      - { codeId: 110, unlockLevel: 20, stage: 1 }
+      - { codeId: 111, unlockLevel: 40, stage: 1 }
+      - { codeId: 112, unlockLevel: 70, stage: 1 }
+    portrait: DIMACHAERUS_PORTRAIT
+    standing: DIMACHAERUS_STANDING
+
+  # ── 엘리트 ────────────────────────────────────────────────────────
+  # 마르켈루스는 일반 전투에 섞이는 '필드 엘리트'라 내구를 완만하게 잡는다.
+  # 사비나는 8스테이지에 단독 출현하는 중간 보스이므로 내구가 훨씬 높다.
+  - id: 2004
+    name: 프리무스 팔루스 마르켈루스
+    themeId: 5
+    archetype: 7
+    element: None
+    tier: elite
+    mainStat: STR
+    subStat: CON
+    strBase: 26
+    strIncrementLvl: 2
+    dexBase: 18
+    dexIncrementLvl: 1
+    conBase: 54
+    conIncrementLvl: 4
+    intBase: 8
+    lukBase: 16
+    lukIncrementLvl: 1
+    codes: { passive: 164, normal: 101, ultimate: 146 }
+    levelPassives:
+      - { codeId: 165, unlockLevel: 20, stage: 1 }
+      - { codeId: 166, unlockLevel: 40, stage: 1 }
+      - { codeId: 167, unlockLevel: 70, stage: 1 }
+    portrait: MARCELLUS_PORTRAIT
+    standing: MARCELLUS_STANDING
+
+  - id: 2005
+    name: 베스티아리우스 사비나
+    themeId: 5
+    archetype: 10
+    element: None
+    tier: elite
+    mainStat: DEX
+    subStat: LUK
+    strBase: 16
+    strIncrementLvl: 2
+    dexBase: 24
+    dexIncrementLvl: 2
+    conBase: 95
+    conIncrementLvl: 13
+    intBase: 12
+    intIncrementLvl: 1
+    lukBase: 18
+    lukIncrementLvl: 1
+    codes: { passive: 168, normal: 104, ultimate: 147 }
+    levelPassives:
+      - { codeId: 169, unlockLevel: 20, stage: 1 }
+      - { codeId: 170, unlockLevel: 40, stage: 1 }
+      - { codeId: 171, unlockLevel: 70, stage: 1 }
+    portrait: SABINA_PORTRAIT
+    standing: SABINA_STANDING
+
+  # ── 보스 ──────────────────────────────────────────────────────────
+  - id: 3003
+    name: 스파르타쿠스
+    themeId: 5
+    archetype: 8
+    element: None
+    tier: boss
+    mainStat: STR
+    subStat: LUK
+    strBase: 42
+    strIncrementLvl: 4
+    dexBase: 20
+    dexIncrementLvl: 2
+    conBase: 100
+    conIncrementLvl: 15
+    intBase: 8
+    lukBase: 20
+    lukIncrementLvl: 1
+    codes: { passive: 176, normal: 102, ultimate: 149 }
+    levelPassives:
+      - { codeId: 177, unlockLevel: 20, stage: 1 }
+      - { codeId: 178, unlockLevel: 40, stage: 1 }
+      - { codeId: 179, unlockLevel: 70, stage: 1 }
+    portrait: SPARTACUS_PORTRAIT
+    standing: SPARTACUS_STANDING

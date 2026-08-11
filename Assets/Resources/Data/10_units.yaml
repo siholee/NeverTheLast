@@ -1,153 +1,459 @@
+# 아군 유닛 데이터
+#
+# 스탯 규격 (2026-08 개편):
+#   · 공격력/방어력 스탯은 존재하지 않는다. 모든 전투 수치는 5스탯에서 파생된다.
+#       피해     = 스킬 위력 × 주스탯 × 0.2   (포켓몬식 — 위력은 스킬마다 고정)
+#       최대체력 = CON × 100
+#       방어력   = STR × 1      (롤 방식: 받는 피해 배율 = 기준값 / (기준값 + 방어력))
+#     기준값은 레벨에 비례해 커지므로 감소율은 레벨과 무관하게 일정하다.
+#   · 스탯 = base + incrementLvl × (Level − 1) + incrementUpgrade × 강화횟수
+#   · 아군의 Level은 EXP로 오른다 (킬 / 스테이지 클리어 / 육성).
+#   · 일반 트레이닝 보너스: mainStat +20%, subStats +10% (부스탯 2개면 각 +5%)
+#   · 특수 트레이닝 보너스(세이·시): mainStat +25%, subStats +15%
+#
+# mainStat은 5스탯 어느 것이든 쓸 수 있다.
+# 스탯마다 공격 외의 고유 역할이 따로 있으므로, 주스탯이 이중 이득을 갖는 것은 의도된 설계다.
+#   STR — 방어력 (받는 피해 비율 감소) + 장비 중량 한도
+#   DEX — 행동 속도
+#   CON — 최대 체력
+#   INT — 마나 획득 효율
+#   LUK — 치명타 확률
+#
+# 캐릭터 분류 (characterType)
+#   Starter — 게임 초기부터 메인으로 사용 가능. 육성 완료 시 서포트 카드에도 추가되며
+#             그 카드는 무한 모드에서도 쓸 수 있다.
+#   Support — 게임 초기부터 서포터 카드로만 편성 가능. 무한 모드에서는 사용 불가.
+#   Locked  — 초기에는 사용 불가. 육성 모드 중 아군으로 합류하면(포켓로그식) 영구 해금되어
+#             이후 런부터 Starter처럼 메인으로 쓸 수 있다.
+#
+# 플래그 대응:
+#   Starter → canStartAsMain: true,  canStartAsSupport: false, canUseInInfinite: true
+#   Support → canStartAsMain: false, canStartAsSupport: true,  canUseInInfinite: false
+#   Locked  → 셋 다 false (해금되면 런타임에서 Starter로 승격)
+#
+# 획득처 미정 캐릭터도 기획이 끝났다면 Locked로 등록해 둔다.
+# 일본·노르드 테마를 다시 추가할 때 영입 사건을 붙여 획득 경로를 부여한다.
+
 units:
   - id: 1
     name: 세이
+    characterType: Support
     element: Geo
+    startingProficiencies: [Orb]
+    startingItemIds: [4109]
+    tags: [Akasha, Divine]
     canStartAsMain: false
     canStartAsSupport: true
     canUseInInfinite: false
-    mainStat: DEX
-    subStat: INT
-    strBase: 8
+    mainStat: INT
+    subStat: DEX
+    subStats: [DEX]
+    mainStatTrainingBonus: 0.25
+    subStatTrainingBonus: 0.15
+    strBase: 10
     strIncrementLvl: 1
     strIncrementUpgrade: 1
-    dexBase: 12
+    dexBase: 16
     dexIncrementLvl: 2
     dexIncrementUpgrade: 1
-    conBase: 8
+    conBase: 15
     conIncrementLvl: 1
     conIncrementUpgrade: 1
-    intBase: 10
-    intIncrementLvl: 2
+    intBase: 18
+    intIncrementLvl: 3
     intIncrementUpgrade: 1
-    lukBase: 10
-    lukIncrementLvl: 2
+    lukBase: 12
+    lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    atkBase: 100
-    defBase: 0
     codes:
+      passive: 50
+      normal: 3
+      ultimate: 8
+    codeStages:
       passive: 1
-      normal: 2
+      normal: 1
       ultimate: 1
+    levelPassives:
+      - { codeId: 51, unlockLevel: 6,  stage: 1 }   # 성채
+      - { codeId: 52, unlockLevel: 50, stage: 1 }   # 사전준비
+      - { codeId: 53, unlockLevel: 92, stage: 1 }   # 빅뱅
     portrait: SEI_PORTRAIT
+    standing: SEI_STANDING
 
   - id: 2
     name: 시
-    element: Void
+    characterType: Locked
+    element: Anemo
+    startingProficiencies: [Longsword, LightArmor]
+    startingItemIds: [4102]
+    tags: [Divine]
     canStartAsMain: false
     canStartAsSupport: false
-    canUseInInfinite: true
+    canUseInInfinite: false
     mainStat: DEX
     subStat: LUK
-    strBase: 12
-    strIncrementLvl: 2
-    strIncrementUpgrade: 1
-    dexBase: 12
-    dexIncrementLvl: 2
-    dexIncrementUpgrade: 1
-    conBase: 6
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 6
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 12
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
-    atkBase: 100
-    defBase: 0
-    codes:
-      passive: 5
-      normal: 11
-      ultimate: 7
-    portrait: SHI_PORTRAIT
-
-  - id: 4
-    name: 피그말리온
-    element: Geo
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    mainStat: CON
-    subStat: INT
-    strBase: 6
+    subStats: [LUK]
+    mainStatTrainingBonus: 0.25
+    subStatTrainingBonus: 0.15
+    strBase: 14
     strIncrementLvl: 1
     strIncrementUpgrade: 1
-    dexBase: 4
-    dexIncrementLvl: 1
+    dexBase: 20
+    dexIncrementLvl: 3
     dexIncrementUpgrade: 1
-    conBase: 12
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 10
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 10
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    atkBase: 100
-    defBase: 0
-    codes:
-      passive: 4
-      normal: 2
-      ultimate: 6
-    portrait: PYGMALION_PORTRAIT
-
-  - id: 5
-    name: 아탈란테
-    element: Dendro
-    canStartAsMain: true
-    canStartAsSupport: false
-    canUseInInfinite: true
-    mainStat: DEX
-    subStat: STR
-    strBase: 10
-    strIncrementLvl: 2
-    strIncrementUpgrade: 1
-    dexBase: 12
-    dexIncrementLvl: 2
-    dexIncrementUpgrade: 1
-    conBase: 6
+    conBase: 13
     conIncrementLvl: 1
     conIncrementUpgrade: 1
-    intBase: 6
+    intBase: 10
     intIncrementLvl: 1
     intIncrementUpgrade: 1
     lukBase: 20
-    lukIncrementLvl: 1
+    lukIncrementLvl: 2
     lukIncrementUpgrade: 1
-    atkBase: 100
-    defBase: 0
     codes:
-      passive: 2
+      passive: 5
+      normal: 13
+      ultimate: 7
+    codeStages:
+      passive: 1
       normal: 1
-      ultimate: 3
-    portrait: ATALANTE_PORTRAIT
+      ultimate: 1
+    levelPassives:
+      - { codeId: 54,  unlockLevel: 10, stage: 1 }   # 검의 달인
+      - { codeId: 55,  unlockLevel: 20, stage: 1 }   # 만류귀종
+      - { codeId: 56,  unlockLevel: 28, stage: 1 }   # 신속
+      - { codeId: 124, unlockLevel: 31, stage: 1 }   # 상처 벌리기
+      - { codeId: 58,  unlockLevel: 44, stage: 1 }   # 천살성
+      - { codeId: 59,  unlockLevel: 78, stage: 1 }   # 화무십일홍
+      - { codeId: 60,  unlockLevel: 82, stage: 1 }   # 당연한 운명
+    portrait: SHI_PORTRAIT
+    standing: SHI_STANDING
 
-  - id: 12
-    name: 찬드라
-    element: Anemo
+  - id: 4
+    name: 피그말리온
+    characterType: Locked
+    element: Pyro
+    startingProficiencies: [Orb, MediumArmor]
+    startingItemIds: [4109]
+    tags: [Greek]
     canStartAsMain: false
-    canStartAsSupport: true
+    canStartAsSupport: false
     canUseInInfinite: false
     mainStat: CON
-    subStat: LUK
-    strBase: 8
+    subStat: STR
+    subStats: [STR, INT]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.05
+    strBase: 12
     strIncrementLvl: 1
     strIncrementUpgrade: 1
     dexBase: 8
     dexIncrementLvl: 1
     dexIncrementUpgrade: 1
-    conBase: 10
+    conBase: 26
     conIncrementLvl: 2
     conIncrementUpgrade: 1
     intBase: 16
     intIncrementLvl: 1
     intIncrementUpgrade: 1
     lukBase: 10
-    lukIncrementLvl: 2
+    lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    atkBase: 100
-    defBase: 0
+    codes:
+      passive: 4
+      normal: 2
+      ultimate: 6
+    codeStages:
+      passive: 1
+      normal: 1
+      ultimate: 1
+    levelPassives:
+      - { codeId: 12,  unlockLevel: 12, stage: 1 }   # 기사회생
+      - { codeId: 87,  unlockLevel: 30, stage: 1 }   # 팔랑크스
+      - { codeId: 220, unlockLevel: 39, stage: 1 }   # 약자 멸시
+      - { codeId: 221, unlockLevel: 45, stage: 1 }   # 천천히 꾸준히
+      - { codeId: 222, unlockLevel: 68, stage: 1 }   # 날카로운 가시
+      - { codeId: 223, unlockLevel: 76, stage: 1 }   # 사랑신의 가호
+    portrait: PYGMALION_PORTRAIT
+    standing: PYGMALION_STANDING
+
+  - id: 5
+    name: 아탈란테
+    characterType: Starter
+    element: Dendro
+    startingProficiencies: [Longbow, MediumArmor]
+    startingItemIds: [4106]
+    tags: [Greek]
+    canStartAsMain: true
+    canStartAsSupport: false
+    canUseInInfinite: true
+    mainStat: DEX
+    subStat: CON
+    subStats: [CON]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 16
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 20
+    dexIncrementLvl: 2
+    dexIncrementUpgrade: 1
+    conBase: 14
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 10
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 24
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes:
+      passive: 2
+      normal: 1
+      ultimate: 3
+    codeStages:
+      passive: 1
+      normal: 1
+      ultimate: 1
+    levelPassives:
+      - { codeId: 140, unlockLevel: 4,  stage: 1 }   # 궁수
+      - { codeId: 141, unlockLevel: 6,  stage: 1 }   # 민첩함
+      - { codeId: 142, unlockLevel: 10, stage: 1 }   # 유리대포
+      - { codeId: 143, unlockLevel: 18, stage: 1 }   # 사냥꾼
+      - { codeId: 144, unlockLevel: 30, stage: 1 }   # 맹독
+      - { codeId: 145, unlockLevel: 41, stage: 1 }   # 저격수
+      - { codeId: 146, unlockLevel: 67, stage: 1 }   # 사냥신의 가호
+    portrait: ATALANTE_PORTRAIT
+    standing: ATALANTE_STANDING
+
+  # 그리스 스타터. 전열 탱커 또는 활 계열 힘사수 딜탱.
+  - id: 6
+    name: 오리온
+    characterType: Starter
+    element: Geo
+    startingProficiencies: [Longsword, Shield, HeavyArmor]
+    startingItemIds: [4102]
+    tags: [Greek]
+    canStartAsMain: true
+    canStartAsSupport: false
+    canUseInInfinite: true
+    mainStat: STR
+    subStat: CON
+    subStats: [CON]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 24
+    strIncrementLvl: 2
+    strIncrementUpgrade: 1
+    dexBase: 12
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 20
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 10
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 14
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes:
+      passive: 80
+      normal: 80
+      ultimate: 80
+    codeStages:
+      passive: 1
+      normal: 1
+      ultimate: 1
+    levelPassives:
+      - { codeId: 140, unlockLevel: 4,  stage: 1 }   # 궁수
+      - { codeId: 81,  unlockLevel: 10, stage: 1 }   # 중갑병
+      - { codeId: 12,  unlockLevel: 12, stage: 1 }   # 기사회생
+      - { codeId: 143, unlockLevel: 18, stage: 1 }   # 사냥꾼
+      - { codeId: 82,  unlockLevel: 32, stage: 1 }   # 명사수
+      - { codeId: 38,  unlockLevel: 38, stage: 1 }   # 철벽
+      - { codeId: 83,  unlockLevel: 52, stage: 1 }   # 파수꾼
+      - { codeId: 146, unlockLevel: 67, stage: 1 }   # 사냥신의 가호
+    portrait: ORION_PORTRAIT
+    standing: ORION_STANDING
+
+  # 그리스 스타터. 딜/탱 비중을 자유롭게 조절하는 범용 전열 딜러.
+  - id: 7
+    name: 테세우스
+    characterType: Starter
+    element: Hydro
+    startingProficiencies: [Spear, HeavyArmor]
+    startingItemIds: [4104]
+    tags: [Greek]
+    canStartAsMain: true
+    canStartAsSupport: false
+    canUseInInfinite: true
+    mainStat: DEX
+    subStat: CON
+    subStats: [CON]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 16
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 22
+    dexIncrementLvl: 2
+    dexIncrementUpgrade: 1
+    conBase: 20
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 12
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 14
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes:
+      passive: 84
+      normal: 84
+      ultimate: 84
+    codeStages:
+      passive: 1
+      normal: 1
+      ultimate: 1
+    levelPassives:
+      - { codeId: 85, unlockLevel: 9,  stage: 1 }   # 원소 친화 - 물
+      - { codeId: 86, unlockLevel: 22, stage: 1 }   # 투사
+      - { codeId: 87, unlockLevel: 30, stage: 1 }   # 팔랑크스
+      - { codeId: 88, unlockLevel: 45, stage: 1 }   # 자가치유
+      - { codeId: 89, unlockLevel: 50, stage: 1 }   # 과다치유
+    portrait: THESEUS_PORTRAIT
+    standing: THESEUS_STANDING
+
+  # 그리스 미해금. 치유와 공격을 겸하는 하이브리드 지원가.
+  - id: 8
+    name: 아스클레피오스
+    characterType: Locked
+    element: Electro
+    startingProficiencies: [Spear]
+    startingItemIds: [4104]
+    tags: [Greek, Human]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: INT
+    subStat: CON
+    subStats: [CON, LUK]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.05
+    strBase: 9
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 12
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 16
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 20
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 16
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes:
+      passive: 91
+      normal: 91
+      ultimate: 91
+    codeStages:
+      passive: 1
+      normal: 1
+      ultimate: 1
+    levelPassives:
+      - { codeId: 71, unlockLevel: 4,  stage: 1 }   # 지혜
+      - { codeId: 97, unlockLevel: 30, stage: 1 }   # 마나 호흡법
+      - { codeId: 35, unlockLevel: 35, stage: 1 }   # 목욕제계
+      - { codeId: 96, unlockLevel: 40, stage: 1 }   # 치명적인 치유
+      - { codeId: 126, unlockLevel: 44, stage: 1 }  # 순환
+      - { codeId: 98, unlockLevel: 58, stage: 1 }   # 의신의 가호
+    portrait: ASCLEPIUS_PORTRAIT
+    standing: ASCLEPIUS_STANDING
+
+  # 타카미가하라 미해금. 기본공격을 증폭하는 후열 사수.
+  - id: 9
+    name: 아마테라스
+    characterType: Locked
+    element: Pyro
+    startingProficiencies: [Longbow, LightArmor]
+    startingItemIds: [4106]
+    tags: [Takamagahara, ThreeNobles]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: DEX
+    subStat: STR
+    subStats: [STR, LUK]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.05
+    strBase: 16
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 22
+    dexIncrementLvl: 2
+    dexIncrementUpgrade: 1
+    conBase: 12
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 10
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 16
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes:
+      passive: 92
+      normal: 92
+      ultimate: 92
+    codeStages:
+      passive: 1
+      normal: 1
+      ultimate: 1
+    levelPassives:
+      - { codeId: 142, unlockLevel: 10, stage: 1 }  # 유리대포
+      - { codeId: 93,  unlockLevel: 25, stage: 1 }  # 투명
+      - { codeId: 82,  unlockLevel: 32, stage: 1 }  # 명사수
+      - { codeId: 145, unlockLevel: 41, stage: 1 }  # 저격수
+      - { codeId: 94,  unlockLevel: 44, stage: 1 }  # 폭죽놀이
+      - { codeId: 95,  unlockLevel: 68, stage: 1 }  # 파죽지세
+    portrait: AMATERASU_PORTRAIT
+    standing: AMATERASU_STANDING
+
+  # 스타터 서포터. 방어막을 부여하는 방어형 지원 역할을 맡는다.
+  - id: 12
+    name: 찬드라
+    characterType: Support
+    element: Anemo
+    startingProficiencies: [Orb, LightArmor]
+    startingItemIds: [4109]
+    tags: [Indus]
+    canStartAsMain: false
+    canStartAsSupport: true
+    canUseInInfinite: false
+    mainStat: CON
+    subStat: LUK
+    subStats: [LUK]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 10
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 12
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 22
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 18
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 14
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
     codes:
       passive: 3
       normal: 12
@@ -175,39 +481,42 @@ units:
       - codeId: 38
         unlockLevel: 38
         stage: 1
-      - codeId: 43
-        unlockLevel: 43
-        stage: 1
       - codeId: 62
         unlockLevel: 62
         stage: 1
     portrait: CHANDRA_PORTRAIT
+    standing: CHANDRA_STANDING
 
+  # ── 보관: 획득 경로 없음 (아즈텍 테마 제거) ──────────────────────
   - id: 20
     name: 케찰코아틀
+    characterType: Locked
     element: Dendro
+    startingProficiencies: [Orb]
+    startingItemIds: [4109]
     canStartAsMain: false
     canStartAsSupport: false
-    canUseInInfinite: true
+    canUseInInfinite: false
     mainStat: INT
-    subStat: CON
-    strBase: 8
+    subStat: LUK
+    subStats: [LUK]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 10
     strIncrementLvl: 1
     strIncrementUpgrade: 1
-    dexBase: 8
+    dexBase: 12
     dexIncrementLvl: 1
     dexIncrementUpgrade: 1
-    conBase: 12
-    conIncrementLvl: 2
+    conBase: 20
+    conIncrementLvl: 1
     conIncrementUpgrade: 1
-    intBase: 16
-    intIncrementLvl: 3
+    intBase: 24
+    intIncrementLvl: 2
     intIncrementUpgrade: 1
-    lukBase: 8
-    lukIncrementLvl: 1
+    lukBase: 12
+    lukIncrementLvl: 2
     lukIncrementUpgrade: 1
-    atkBase: 100
-    defBase: 20
     codes:
       passive: 70
       normal: 70
@@ -217,62 +526,46 @@ units:
       normal: 1
       ultimate: 1
     levelPassives:
-      - codeId: 71
-        unlockLevel: 1
-        stage: 1
-      - codeId: 72
-        unlockLevel: 6
-        stage: 1
-      - codeId: 73
-        unlockLevel: 14
-        stage: 1
-      - codeId: 74
-        unlockLevel: 18
-        stage: 1
-      - codeId: 75
-        unlockLevel: 22
-        stage: 1
-      - codeId: 76
-        unlockLevel: 26
-        stage: 1
-      - codeId: 77
-        unlockLevel: 38
-        stage: 1
-      - codeId: 78
-        unlockLevel: 42
-        stage: 1
-      - codeId: 79
-        unlockLevel: 55
-        stage: 1
-    portrait: ATALANTE_PORTRAIT
+      - { codeId: 71, unlockLevel: 4,  stage: 1 }   # 지혜
+      - { codeId: 72, unlockLevel: 9,  stage: 1 }   # 행운아
+      - { codeId: 73, unlockLevel: 18, stage: 1 }   # 학자
+      - { codeId: 74, unlockLevel: 22, stage: 1 }   # 명상
+      - { codeId: 52, unlockLevel: 48, stage: 1 }   # 사전 준비 (세이와 공용)
+      - { codeId: 75, unlockLevel: 90, stage: 1 }   # 날개 달린 뱀
+    portrait: QUETZALCOATL_PORTRAIT
+    standing: QUETZALCOATL_STANDING
 
+  # ── 보관: 획득 경로 없음 (일본 테마 제거) ────────────────────────
   - id: 21
     name: 츠쿠요미
+    characterType: Locked
     element: Electro
+    startingProficiencies: [Spear]
+    startingItemIds: [4104]
+    tags: [Takamagahara, ThreeNobles]
     canStartAsMain: false
     canStartAsSupport: false
-    canUseInInfinite: true
+    canUseInInfinite: false
     mainStat: INT
     subStat: LUK
-    strBase: 7
+    subStats: [LUK]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 9
     strIncrementLvl: 1
     strIncrementUpgrade: 1
-    dexBase: 10
+    dexBase: 14
     dexIncrementLvl: 1
     dexIncrementUpgrade: 1
-    conBase: 9
+    conBase: 16
     conIncrementLvl: 1
     conIncrementUpgrade: 1
-    intBase: 18
-    intIncrementLvl: 3
+    intBase: 26
+    intIncrementLvl: 2
     intIncrementUpgrade: 1
-    lukBase: 12
+    lukBase: 18
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
-    atkBase: 80
-    atkIncrementLvl: 8
-    defBase: 12
-    defIncrementLvl: 2
     codes:
       passive: 120
       normal: 120
@@ -307,3 +600,57 @@ units:
         unlockLevel: 72
         stage: 1
     portrait: TSUKUYOMI_PORTRAIT
+    standing: TSUKUYOMI_STANDING
+
+  # ── 보관: 획득 경로 없음 (노르드 테마 제거) ──────────────────────
+  - id: 24
+    name: 수르트
+    characterType: Starter
+    element: Pyro
+    startingProficiencies: [Longsword, Mace, HeavyArmor]
+    startingItemIds: [4102]
+    tags: [Nord]
+    canStartAsMain: true
+    canStartAsSupport: false
+    canUseInInfinite: true
+    mainStat: STR
+    subStat: CON
+    subStats: [CON]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 26
+    strIncrementLvl: 2
+    strIncrementUpgrade: 1
+    dexBase: 12
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 22
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 8
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 12
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 1
+    ultimateResourceType: Stack
+    ultimateResourceName: 라그나로크
+    ultimateResourceMax: 6
+    codes:
+      passive: 130
+      normal: 130
+      ultimate: 130
+    codeStages:
+      passive: 1
+      normal: 1
+      ultimate: 1
+    levelPassives:
+      - { codeId: 133, unlockLevel: 4,  stage: 1 }   # 거인
+      - { codeId: 134, unlockLevel: 8,  stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 135, unlockLevel: 25, stage: 1 }   # 천상의 신체
+      - { codeId: 136, unlockLevel: 28, stage: 1 }   # 투사
+      - { codeId: 137, unlockLevel: 33, stage: 1 }   # 클러치 플레이어
+      - { codeId: 138, unlockLevel: 52, stage: 1 }   # 신살자
+      - { codeId: 58,  unlockLevel: 66, stage: 1 }   # 천살성
+    portrait: SURTR_PORTRAIT
+    standing: SURTR_STANDING

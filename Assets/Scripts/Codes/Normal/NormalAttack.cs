@@ -19,7 +19,7 @@ namespace Codes.Normal
       CodeType = BaseEnums.CodeType.Normal;
       Caster = context.Caster;
       Cooldown = 2f;
-      CodeName = "기본공격";
+      CodeName = "일반공격";
       CastingDelay = 0.5f;
       ManaAmount = 10;
       CodeTags = new List<int> { DamageTag.Physical };
@@ -69,7 +69,7 @@ namespace Codes.Normal
       string contactType = damageTags.Contains(DamageTag.ContactAttack) ? "접촉" : "비접촉";
       Debug.Log($"{Caster.UnitName}이 {TargetUnits[0].UnitName}에게 {contactType} 일반공격을 시전했습니다.");
       
-      DamageContext context = new(Caster, (int)(Caster.AtkCurr * 1.0f * critMultiplier), BaseEnums.CodeType.Normal, damageTags, isCrit);
+      DamageContext context = new(Caster, Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(50) * critMultiplier)), BaseEnums.CodeType.Normal, damageTags, isCrit);
       Caster.StartCoroutine(FireProjectile(TargetUnits, 2f, context));
       Caster.RecoverMana(ManaAmount);
       StopCode();

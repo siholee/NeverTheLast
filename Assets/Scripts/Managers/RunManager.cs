@@ -395,6 +395,8 @@ namespace Managers
                     xPos = hero.currentCell.xPos,
                     yPos = hero.currentCell.yPos,
                     isBench = GridManager.Instance.IsBenchCell(hero.currentCell),
+                    level = hero.Level,
+                    exp = hero.Exp,
                     trainingLevel = hero.TrainingLevel,
                     strUpgrade = hero.StrUpgrade,
                     dexUpgrade = hero.DexUpgrade,
@@ -403,6 +405,7 @@ namespace Managers
                     lukUpgrade = hero.LukUpgrade,
                     codeAccelerationBonus = hero.CodeAccelerationRunBonus,
                     equippedItemIds = hero.EquippedItemIds.ToList(),
+                    carriedItemIds = hero.CarriedItemIds.ToList(),
                     grantedPassiveCodeIds = hero.GrantedPassiveCodeIds.ToList(),
                 });
             }

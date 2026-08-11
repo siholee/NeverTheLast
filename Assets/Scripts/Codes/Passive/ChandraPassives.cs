@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Codes.Passive
 {
-    public class ChandraNishakara : PassiveCode
+    public class ChandraNishakara : UniquePassiveCode
     {
         public ChandraNishakara(PassiveCodeContext context) : base(context)
         {
@@ -124,7 +124,7 @@ namespace Codes.Passive
 
                 if (tickHeal > 0)
                 {
-                    Caster.ModifyHp(Caster.HpCurr + tickHeal);
+                    Caster.ModifyHp(Caster.HpCurr + tickHeal, Caster);
                 }
 
                 yield return null;
@@ -256,7 +256,7 @@ namespace Codes.Passive
                 if (ally == null || !ally.isActive) continue;
 
                 int healAmount = Mathf.RoundToInt(ally.HpMax * healRatio);
-                ally.ModifyHp(ally.HpCurr + healAmount);
+                ally.ModifyHp(ally.HpCurr + healAmount, Caster);
             }
         }
     }
@@ -331,24 +331,6 @@ namespace Codes.Passive
 
             _elapsed = 0f;
             _applied = false;
-        }
-    }
-
-    public class ChandraLokapala : PassiveCode
-    {
-        public ChandraLokapala(PassiveCodeContext context) : base(context)
-        {
-            CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "로카팔라";
-            Transferable = false;
-            IgnoresActivationChance = true;
-        }
-
-        public override void CastCode()
-        {
-            Caster.AddStatus(BuffStatus.Create(
-                BuffStatusIds.Lokapala, "Lokapala", "로카팔라",
-                Caster, Caster, new LokapalaBuffEffect()));
         }
     }
 
@@ -474,7 +456,7 @@ namespace Codes.Passive
             while (_elapsed >= 1f)
             {
                 _elapsed -= 1f;
-                Caster.ModifyHp(Caster.HpCurr + Caster.GetBaseCon());
+                Caster.ModifyHp(Caster.HpCurr + Caster.GetBaseCon(), Caster);
             }
         }
     }
@@ -501,7 +483,7 @@ namespace Codes.Passive
         private void OnDamageDealt(DamageResolvedContext context)
         {
             if (context.Attacker != Caster || context.DamageDealt <= 0) return;
-            Caster.ModifyHp(Caster.HpCurr + Mathf.RoundToInt(context.DamageDealt * 0.2f));
+            Caster.ModifyHp(Caster.HpCurr + Mathf.RoundToInt(context.DamageDealt * 0.2f), Caster);
         }
     }
 
@@ -600,7 +582,7 @@ namespace Codes.Passive
         {
             if (context.Attacker != Caster || context.DamageDealt <= 0) return;
             Unit ally = Target.GetAllAllies(Caster).Where(unit => unit != null && unit.isActive).OrderBy(unit => unit.HpCurr).FirstOrDefault();
-            ally?.ModifyHp(ally.HpCurr + Mathf.RoundToInt(context.DamageDealt * 0.2f));
+            ally?.ModifyHp(ally.HpCurr + Mathf.RoundToInt(context.DamageDealt * 0.2f), Caster);
         }
     }
 

@@ -63,7 +63,7 @@ namespace Codes.Test
             float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
             
             // 공격력의 150% 피해
-            int damage = Mathf.RoundToInt(Caster.AtkCurr * 1.5f * critMultiplier);
+            int damage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(75) * critMultiplier));
             
             List<int> damageTags = new List<int> 
             { 

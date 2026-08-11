@@ -10,21 +10,23 @@ namespace Codes.Normal
 {
     /// <summary>
     /// 피그말리온의 일반공격: a004-N피그말리온
-    /// 자신의 방어력 80%에 해당하는 단일공격
+    /// CON 기반 위력 60의 단일공격
     /// </summary>
     public class a004_NPygmalion : BaseNormalCode
     {
         public a004_NPygmalion(NormalCodeContext context) : base(context)
         {
-            CodeName = "a004-N피그말리온";
+            CodeName = "일반공격";
         }
 
         /// <summary>
-        /// 피그말리온은 방어력의 80%로 데미지 계산
+        /// 피그말리온은 CON을 근거로 위력 60의 피해를 계산한다.
         /// </summary>
         protected override int CalculateDamage(float critMultiplier)
         {
-            return (int)(Caster.DefCurr * 0.8f * critMultiplier);
+            // 피그말리온은 방어형 컨셉이므로 CON을 근거로 때린다.
+            return Mathf.Max(1, Mathf.RoundToInt(
+                Caster.SkillDamage(60, BaseEnums.PrimaryStat.CON) * critMultiplier));
         }
         
         protected override IEnumerator FireProjectile(List<Unit> targets, float delay, DamageContext context)

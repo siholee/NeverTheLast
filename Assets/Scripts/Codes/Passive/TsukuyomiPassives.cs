@@ -5,6 +5,7 @@ using BaseClasses;
 using Codes.Base;
 using Effects.Base;
 using Effects.Buffs;
+using Effects.Negative;
 using Entities;
 using Entities.Status;
 using Managers;
@@ -19,12 +20,11 @@ namespace Codes.Passive
         public const int PainfulWound = 122;
         public const int Cycle = 123;
         public const int FullMoon = 124;
-        public const int MoonGodBlessing = 125;
         public const int WidenWound = 126;
     }
 
     /// <summary>처치된 적의 지속피해를 1초 정산해 주변 3×3 범위에 폭발시킨다.</summary>
-    public sealed class TsukuyomiMoonReckoning : PassiveCode
+    public sealed class TsukuyomiMoonReckoning : UniquePassiveCode
     {
         private bool _registered;
         private Action<EventContext> _cleanupHandler;
@@ -129,7 +129,8 @@ namespace Codes.Passive
             if (_timer < 8f) return;
             _timer = 0f;
             int shieldBefore = Caster.ShieldCurr;
-            Caster.AddShield(Mathf.Max(1, Mathf.RoundToInt(Caster.GetBaseInt() * 0.5f)));
+            // 사양 "INT 50%" = 위력 50. 보호막도 피해와 같은 척도를 쓴다.
+            Caster.AddShield(Mathf.Max(1, Caster.SkillDamage(50, BaseEnums.PrimaryStat.INT)), Caster);
             _grantedShield = Mathf.Max(0, Caster.ShieldCurr - shieldBefore);
             _armed = true;
         }
@@ -227,6 +228,10 @@ namespace Codes.Passive
 
     public sealed class TsukuyomiWidenWound : PassiveCode
     {
+        private bool _registered;
+        private Action<DamageResolvedContext> _damageHandler;
+        private Action<EventContext> _cleanupHandler;
+
         public TsukuyomiWidenWound(PassiveCodeContext context) : base(context)
         {
             CodeName = "상처 벌리기";
@@ -237,7 +242,31 @@ namespace Codes.Passive
         {
             Caster.AddStatus(BuffStatus.Create(
                 TsukuyomiStatusIds.WidenWound, "tsukuyomi_widen_wound", CodeName, Caster, Caster,
-                new WidenWoundEffect(), description: "지속피해 상태의 대상을 공격할 때 방어력 45%를 무시합니다."));
+                new WidenWoundEffect(), description: "지속피해 상태의 대상을 공격할 때 방어력 45%를 무시하고 치유량 감소를 부여합니다."));
+            if (_registered) return;
+            _damageHandler = OnDamageDealt;
+            _cleanupHandler = _ => StopCode();
+            Caster.AddListener(BaseEnums.UnitEventType.OnDamageDealt, _damageHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = true;
+        }
+
+        private void OnDamageDealt(DamageResolvedContext context)
+        {
+            Unit target = context?.Target;
+            if (context?.Attacker != Caster || target == null || target.HpCurr <= 0 ||
+                !target.HasDamageOverTimeStatus()) return;
+            HealingReductionStatus.Apply(target, Caster, 6f, CodeName);
+        }
+
+        public override void StopCode()
+        {
+            if (!_registered || Caster == null) return;
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnDamageDealt, _damageHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = false;
         }
     }
 
@@ -277,10 +306,7 @@ namespace Codes.Passive
         {
             Unit target = context?.Target;
             if (target == null || target.HpCurr <= 0 || target.HpCurr >= target.HpMax || !target.HasDamageOverTimeStatus()) return;
-            target.AddStatus(BuffStatus.Create(
-                TsukuyomiStatusIds.PainfulWound, "tsukuyomi_painful_wound", CodeName, Caster, target,
-                new HealingReceivedEffect(0.5f), 6f, BaseEnums.StatusStackPolicy.Replace,
-                BaseEnums.StatusCategory.Negative, false, "받는 치유량이 50% 감소합니다."));
+            HealingReductionStatus.Apply(target, Caster, 6f, CodeName);
         }
     }
 
@@ -405,24 +431,6 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>사건으로 부여되는 전수 불가능 런 영구 패시브.</summary>
-    public sealed class MoonGodBlessing : PassiveCode
-    {
-        public MoonGodBlessing(PassiveCodeContext context) : base(context)
-        {
-            CodeName = "월신의 가호";
-            IgnoresActivationChance = true;
-            Transferable = false;
-        }
-
-        public override void CastCode()
-        {
-            Caster.AddStatus(BuffStatus.Create(
-                TsukuyomiStatusIds.MoonGodBlessing, "moon_god_blessing", CodeName, Caster, Caster,
-                new ThemeDamageEffect(1.25f, 0.75f), description: "일본 테마 또는 밤 필드에서 주는 피해가 25% 증가하고 받는 피해가 25% 감소합니다."));
-        }
-    }
-
     internal sealed class PrimaryStatMultiplierEffect : BaseEffect
     {
         private readonly BaseEnums.PrimaryStat _stat;
@@ -442,18 +450,15 @@ namespace Codes.Passive
         public override float DamageOverTimeApplicationMultiplier(Unit unit) => _multiplier;
     }
 
+    /// <summary>
+    /// 지속피해 상태의 대상을 때릴 때 방어력의 45%를 무시한다.
+    /// 피해 계산에서 유효 방어력에 이 배율이 곱해진다(0.55 = 45% 무시).
+    /// </summary>
     internal sealed class WidenWoundEffect : BaseEffect
     {
         public WidenWoundEffect() : base(0) { }
         public override float DefenseStatMultiplierModifier(Unit attacker, Unit target, DamageContext context)
             => target != null && target.HasDamageOverTimeStatus() ? 0.55f : 1f;
-    }
-
-    internal sealed class HealingReceivedEffect : BaseEffect
-    {
-        private readonly float _multiplier;
-        public HealingReceivedEffect(float multiplier) : base(0, multiplier) => _multiplier = multiplier;
-        public override float HealingReceivedMultiplierModifier(Unit unit) => _multiplier;
     }
 
     internal sealed class OutgoingDamageEffect : BaseEffect

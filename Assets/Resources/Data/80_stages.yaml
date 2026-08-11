@@ -1,172 +1,82 @@
+# 테마 / 사건 / 고정 보스 정의
+#
+# 현재는 콜로세움(로마) 테마 하나만 운영한다.
+# 노르드·아즈텍·일본 테마는 전용 적 스프라이트가 없어 제거되었다.
+# 해당 테마의 영입 사건(케찰코아틀/츠쿠요미)도 함께 제거되었으나,
+# 유닛 데이터와 코드 구현은 10_units.yaml에 그대로 보관되어 있다. 수르트는 Starter로 개방했다.
+#
+# 테마를 다시 늘릴 때 필요한 것:
+#   1. 전용 적 초상화 자산
+#   2. 60_enemies.yaml에 해당 themeId의 normal/elite/boss 등록
+#   3. 여기 stageThemes에 항목 추가 (enemyThemeId를 적 themeId와 일치시킬 것)
+#   4. 필요하면 events에 테마 사건 추가
+
 stageThemes:
-  - id: 1
-    name: 노르드
-    tags: [Nord]
-    enemyThemeId: 3  # 노르드 테마 ID
-    description: 노르드 테마의 적들이 등장합니다.
-    midBossId: 2001
-    bossId: 3001
-    uniqueRewardIds:
-      - nordic_fury
-
-  - id: 2
-    name: 아즈텍
-    tags: [Aztec]
-    enemyThemeId: 4
-    description: 태양과 제의의 땅에서 아즈텍 전사들이 등장합니다.
-    midBossId: 2003
-    bossId: 3002
+  - id: 4
+    name: 콜로세움
+    tags: [Colosseum, Rome, Festival]
+    enemyThemeId: 5
+    description: 로마 각지의 인간 검투사와 속주에서 붙잡아 온 괴수가 맞붙는 대축제입니다.
+    midBossId: 2005
+    bossId: 3003
     stagePatterns:
       - stageInRound: 1
         patterns:
-          - { archetypes: [7, 10], weight: 50 }
-          - { archetypes: [8, 10], weight: 50 }
+          - { enemyIds: [1020, 1023], weight: 100 }
       - stageInRound: 2
         patterns:
-          - { archetypes: [7, 8, 10], weight: 60 }
-          - { archetypes: [8, 8, 10], weight: 40 }
+          - { enemyIds: [1021, 1022], weight: 100 }
       - stageInRound: 3
         patterns:
-          - { archetypes: [7, 7, 10], weight: 50 }
-          - { archetypes: [7, 8, 10, 10], weight: 50 }
+          - { enemyIds: [1023, 1024, 1020], weight: 60 }
+          - { enemyIds: [1025, 1021, 1020], weight: 40 }
       - stageInRound: 4
         patterns:
-          - { archetypes: [7, 8, 8, 10], weight: 50 }
-          - { archetypes: [7, 7, 10, 10], weight: 50 }
+          - { enemyIds: [2004, 1023], weight: 100 }
       - stageInRound: 6
         patterns:
-          - { archetypes: [7, 7, 8, 10], weight: 50 }
-          - { archetypes: [7, 8, 10, 10], weight: 50 }
+          - { enemyIds: [1020, 1025, 1023, 1024], weight: 50 }
+          - { enemyIds: [1021, 1022, 1023, 1024], weight: 50 }
       - stageInRound: 7
         patterns:
-          - { archetypes: [7, 7, 8, 8, 10], weight: 50 }
-          - { archetypes: [7, 8, 8, 10, 10], weight: 50 }
+          - { enemyIds: [1020, 1021, 1023, 1024, 1025], weight: 100 }
       - stageInRound: 9
         patterns:
-          - { archetypes: [7, 7, 8, 10, 10], weight: 50 }
-          - { archetypes: [7, 8, 8, 10, 10], weight: 50 }
-
-  - id: 3
-    name: 일본
-    tags: [Japan, Night]
-    enemyThemeId: 3
-    description: 달빛이 내려앉은 일본의 밤입니다.
-    midBossId: 2001
-    bossId: 3001
-    stagePatterns:
-      - stageInRound: 1
-        patterns:
-          - { archetypes: [7, 10], weight: 100 }
-      - stageInRound: 2
-        patterns:
-          - { archetypes: [7, 8, 10], weight: 100 }
-      - stageInRound: 3
-        patterns:
-          - { archetypes: [7, 7, 10], weight: 50 }
-          - { archetypes: [8, 8, 10], weight: 50 }
-      - stageInRound: 4
-        patterns:
-          - { archetypes: [7, 8, 10, 10], weight: 100 }
-      - stageInRound: 6
-        patterns:
-          - { archetypes: [7, 7, 8, 10], weight: 100 }
-      - stageInRound: 7
-        patterns:
-          - { archetypes: [7, 8, 8, 10, 10], weight: 100 }
-      - stageInRound: 9
-        patterns:
-          - { archetypes: [7, 7, 8, 10, 10], weight: 100 }
+          - { enemyIds: [2004, 1022, 1024, 1025], weight: 50 }
+          - { enemyIds: [1020, 1021, 1023, 1024, 1025], weight: 50 }
 
 events:
-  - id: nord_waystone
-    themeId: 1
-    stageInRound: 5
-    title: 룬이 새겨진 이정표
-    dialogue:
-      - speaker: 일행
-        text: 눈보라 속에서 오래된 이정표가 희미하게 빛난다.
-      - speaker: 룬술사
-        text: 길을 재촉할 수는 있지만, 새겨진 룬을 건드리지 않는 편이 좋겠군.
-    choices:
-      - id: continue
-        text: 이정표를 지나 길을 계속 간다.
-        action: continue
-        successText: 일행은 눈보라를 뚫고 다음 목적지로 향했다.
-
-  - id: aztec_quetzalcoatl
-    themeId: 2
-    stageInRound: 5
-    title: 깃털 달린 뱀의 신전
-    dialogue:
-      - speaker: 케찰코아틀
-        text: 먼 길을 건너온 자들이여. 너희가 지닌 의지의 무게를 보여라.
-      - speaker: 케찰코아틀
-        text: 시련을 받아 동료가 되거나, 공물을 바치고 지나가거나, 나를 적으로 돌릴 수 있다.
-      - speaker: 케찰코아틀
-        text: 마지막 길을 고른다면 신의 모든 권능을 마주하게 될 것이다.
-    choices:
-      - id: trial
-        text: 케찰코아틀의 시련을 받는다.
-        action: battle_recruit
-        battleEnemyId: 3201
-        grantUnitId: 20
-        successText: 케찰코아틀이 일행의 의지를 인정하고 서포트 유닛으로 합류했다.
-        failureText: 시련을 이겨내지 못했지만 케찰코아틀은 물러날 기회를 주었다.
-      - id: tribute
-        text: 케찰코아틀에게 공물을 바친다.
-        action: pay_gold
-        goldCostPerStage: 200
-        successText: 공물 {cost} 골드를 바치자 신전의 길이 열렸다.
-        failureText: "공물로 바칠 골드가 부족하다. 필요 골드: {cost}"
-      - id: hostile
-        text: 케찰코아틀과 적대한다.
-        action: battle_item
-        battleEnemyId: 3202
-        grantItemId: 4010
-        successText: 격노한 신을 쓰러뜨리고 전설의 한손검 마카나를 획득했다.
-        failureText: 신의 모든 권능을 감당하지 못하고 물러났다.
-
-  # 츠쿠요미 조우 — 비주얼 노벨 연출 시연을 겸한 영입 사건.
-  # 화자 "츠쿠요미"는 10_units.yaml의 유닛 이름과 일치하므로 초상화가 자동 해석된다.
-  # 화자 "일행"은 유닛이 아니므로 초상화 없이 내레이션처럼 표시된다.
-  # NOTE: 아마테라스/스사노오는 아직 유닛(22/23)이 없어 이 사건은 츠쿠요미 전용이다.
-  #       두 신을 추가할 때는 각자 별도 사건으로 나누고 blockedUnitIds를 함께 갱신할 것.
-  - id: japan_moon_deity
-    themeId: 3
+  - id: colosseum_masked_gladiator
+    themeId: 4
     stageInRound: 5
     oncePerRun: true
-    blockedUnitIds: [21]
-    title: 달밤에 나타난 츠쿠요미
+    title: 가면 쓴 검투사
     dialogue:
       - speaker: 일행
-        text: 구름이 갈라지고, 버려진 신사의 마당이 달빛으로 하얗게 젖는다.
-      - speaker: 츠쿠요미
-        text: 밤을 걷는 자들이여. 이 달 아래에서 무엇을 구하는가.
+        text: 축제의 함성이 경기장 밖까지 울린다. 다음 시합을 기다리는 검투사들 사이에서 유난히 여유로운 사내 하나가 손을 흔든다.
+      - speaker: 가면 쓴 검투사
+        text: 처음 보는 얼굴들이군. 오늘은 오래 버티는 쪽이 이기는 날이라던데, 내기는 했나?
+        portrait: SHI_PORTRAIT
+        standing: SPARTACUS_STANDING
       - speaker: 일행
-        text: 그녀의 손끝에서 푸른 번개가 소리 없이 맴돈다. 적의는 없다. 다만 재고 있을 뿐이다.
-      - speaker: 츠쿠요미
-        text: 달은 차고 또 기운다. 너희의 각오도 그러한가… 아니면 이지러지지 않는 것을 품었는가.
-      - speaker: 츠쿠요미
-        text: 동행을 원한다면 이름을 걸어라. 가호만으로 족하다면, 그것도 나쁘지 않다.
+        text: 트라키아식 억양, 목에 남은 오래된 사슬 자국, 그리고 자유를 말할 때만 잠깐 사라지는 웃음. 역사에서 읽었던 인물이 떠오른다.
+      - speaker: 주인공
+        text: 스파르타쿠스.
+      - speaker: 스파르타쿠스
+        text: 하하, 들켰나? 이름 하나 숨기는 게 칼 휘두르는 것보다 어렵군. 그래도 축제는 끝까지 즐겨야지. 결승에서 보자고.
+        portrait: SPARTACUS_PORTRAIT
+        standing: SPARTACUS_STANDING
     choices:
-      - id: accompany
-        text: 이름을 걸고 동행을 청한다.
-        action: recruit
-        grantUnitId: 21
-        successText: 츠쿠요미가 일행에 합류했다. 이제 스타팅 캐릭터로 선택할 수 있다.
-      - id: blessing
-        text: 달의 가호만을 받는다.
-        action: grant_passive
-        grantPassiveCodeId: 129
-        grantPassiveToAll: true
-        successText: 모든 아군이 전수 불가능한 '월신의 가호'를 획득했다.
+      - id: keep_spartacus_secret
+        text: 관중 앞에서는 모르는 척한다.
+        action: continue
+        successText: 스파르타쿠스는 웃으며 경기장으로 돌아갔다. 결승전에서 그의 진짜 실력을 확인하게 될 것이다.
+      - id: warn_spartacus
+        text: 로마 경비대가 눈치채기 전에 떠나라고 경고한다.
+        action: continue
+        successText: 그는 고맙다는 듯 고개를 끄덕였지만, 받은 의뢰와 결승전은 끝내겠다며 자리를 지켰다.
 
-fixedBossStages:
-  - stage: 25
-    bossId: 3001
-  - stage: 50
-    bossId: 3001
-  - stage: 75
-    bossId: 3001
-  - stage: 100
-    bossId: 3001
+# 고정 보스는 현재 없다.
+# 테마가 하나뿐이라 10스테이지마다 스파르타쿠스가 반복 등장하므로,
+# 25/50/75/100 지점의 고정 보스는 테마가 늘어난 뒤에 다시 설계한다.
+fixedBossStages: []

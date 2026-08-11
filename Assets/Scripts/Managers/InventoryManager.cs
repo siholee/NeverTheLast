@@ -15,7 +15,6 @@ namespace Managers
         [SerializeField] public List<int> ItemIdsInHand;
         [SerializeField] public IntIntDictionary TokensInHand;
 
-        public ResourcePanel resourcePanel;
 
         public void Initialize()
         {
@@ -82,52 +81,80 @@ namespace Managers
             RefreshPanel();
         }
 
-        public void AddItem(int itemId)
+        public bool AddItem(int itemId, Unit preferredCarrier = null)
         {
-            if (itemId <= 0) return;
-            ItemIdsInHand ??= new List<int>();
-            ItemIdsInHand.Add(itemId);
-            RefreshPanel();
+            if (itemId <= 0) return false;
+
+            var candidates = new List<Unit>();
+            if (preferredCarrier != null) candidates.Add(preferredCarrier);
+            if (GridManager.Instance?.heroList != null)
+            {
+                candidates.AddRange(GridManager.Instance.heroList.Where(hero =>
+                    hero != null && hero.isActive && !hero.IsEnemy && hero != preferredCarrier));
+            }
+
+            foreach (Unit carrier in candidates)
+            {
+                if (carrier.TryStoreItem(itemId, out _))
+                {
+                    RefreshPanel();
+                    return true;
+                }
+            }
+
+            // 영웅 생성 전 지급되는 레거시/사건 아이템만 공유 보관함에 임시 저장한다.
+            if (candidates.Count == 0)
+            {
+                ItemIdsInHand ??= new List<int>();
+                ItemIdsInHand.Add(itemId);
+                RefreshPanel();
+                return true;
+            }
+
+            Debug.LogWarning($"[인벤토리] 아이템 데이터가 없거나 휴대 대상을 찾지 못해 아이템 {itemId}을 지급하지 못했습니다.");
+            return false;
         }
 
         public bool TryEquipStoredItem(Unit unit, int itemId, out string reason)
         {
             reason = null;
-            if (unit == null || ItemIdsInHand == null || !ItemIdsInHand.Contains(itemId))
+            if (unit == null)
             {
-                reason = "보관 중인 아이템이 아닙니다.";
+                reason = "장착할 유닛이 없습니다.";
                 return false;
             }
-            ItemDataList itemDataList = GameManager.Instance?.itemDataList ?? GameManager.Instance?.dataManager?.FetchItemDataList();
-            ItemData selected = itemDataList?.items?.FirstOrDefault(item => item.id == itemId);
-            var displaced = new List<int>();
-            if (selected != null && EquipmentLoadout.TryParseSlot(selected.slot, out EquipmentSlot selectedSlot))
+
+            bool fromLegacyStorage = ItemIdsInHand?.Contains(itemId) == true;
+            if (!unit.CarriedItemIds.Contains(itemId) && !fromLegacyStorage)
             {
-                foreach (int equippedId in unit.EquippedItemIds)
-                {
-                    ItemData equipped = itemDataList.items.FirstOrDefault(item => item.id == equippedId);
-                    if (equipped == null || !EquipmentLoadout.TryParseSlot(equipped.slot, out EquipmentSlot equippedSlot)) continue;
-                    if (equippedSlot == selectedSlot ||
-                        (selectedSlot == EquipmentSlot.MainHand && selected.twoHanded && equippedSlot == EquipmentSlot.OffHand))
-                    {
-                        displaced.Add(equippedId);
-                    }
-                }
+                reason = "이 유닛이 휴대 중인 아이템이 아닙니다.";
+                return false;
             }
-            if (!unit.TryEquipItem(itemId, out reason)) return false;
-            ItemIdsInHand.Remove(itemId);
-            ItemIdsInHand.AddRange(displaced);
+
+            if (fromLegacyStorage)
+            {
+                if (!unit.TryStoreItem(itemId, out reason)) return false;
+                ItemIdsInHand.Remove(itemId);
+            }
+
+            if (!unit.TryEquipCarriedItem(itemId, out reason))
+            {
+                if (fromLegacyStorage)
+                {
+                    unit.RemoveCarriedItem(itemId);
+                    ItemIdsInHand.Add(itemId);
+                }
+                return false;
+            }
+
             RefreshPanel();
             return true;
         }
 
         public void RefreshPanel()
         {
+            // 자원 표시는 전투 HUD 상단 스트립이 담당한다.
             GameManager.Instance?.uiManager?.UpdateGoldText();
-            if (resourcePanel != null)
-            {
-                resourcePanel.UpdatePanel(TokensInHand, rerollTicketCount, Gold);
-            }
         }
     }
 }

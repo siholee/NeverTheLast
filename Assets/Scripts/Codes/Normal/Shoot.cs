@@ -8,21 +8,15 @@ namespace Codes.Normal
     {
         public Shoot(NormalCodeContext context) : base(context)
         {
-            CodeName = "사격";
+            CodeName = "일반공격";
             MaxStage = 3;
             CodeTags = new List<int> { DamageTag.Physical };
         }
 
         protected override int CalculateDamage(float critMultiplier)
         {
-            int stageBonus = CurrentStage switch
-            {
-                1 => 100,
-                2 => 200,
-                _ => 300,
-            };
-
-            return (int)((Caster.GetBaseStr() + stageBonus) * critMultiplier);
+            StagePowers ??= new[] { 45, 55, 65 };
+            return RollDamage(critMultiplier);
         }
 
         protected override List<int> GetDamageTags()

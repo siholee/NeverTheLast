@@ -485,14 +485,14 @@ namespace Managers
             {
                 foreach (Unit enemy in enemyList)
                 {
-                    if (enemy.isActive && enemy.currentCell.yPos > 0) enemyCandidates.Add(enemy);
+                    if (enemy.isActive && !enemy.IsUntargetable && enemy.currentCell.yPos > 0) enemyCandidates.Add(enemy);
                 }
             }
             else
             {
                 foreach (Unit hero in heroList)
                 {
-                    if (hero.isActive && hero.currentCell.yPos > 0) enemyCandidates.Add(hero);
+                    if (hero.isActive && !hero.IsUntargetable && hero.currentCell.yPos > 0) enemyCandidates.Add(hero);
                 }
             }
 
@@ -518,11 +518,11 @@ namespace Managers
         {
             if (!caster.IsEnemy)
             {
-                return enemyList.Where(e => e.isActive && e.currentCell.yPos > 0).ToList();
+                return enemyList.Where(e => e.isActive && !e.IsUntargetable && e.currentCell.yPos > 0).ToList();
             }
             else
             {
-                return heroList.Where(h => h.isActive && h.currentCell.yPos > 0).ToList();
+                return heroList.Where(h => h.isActive && !h.IsUntargetable && h.currentCell.yPos > 0).ToList();
             }
         }
 

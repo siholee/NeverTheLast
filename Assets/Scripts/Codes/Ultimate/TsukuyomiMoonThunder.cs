@@ -11,6 +11,9 @@ namespace Codes.Ultimate
     /// <summary>모든 적에게 INT 80% 범위 피해를 입히고 번개 원소를 부여한다.</summary>
     public sealed class TsukuyomiMoonThunder : UltimateCode
     {
+        /// <summary>사양 "INT의 80%"에 대응하는 고정 위력.</summary>
+        private const int UltimatePower = 80;
+
         public TsukuyomiMoonThunder(UltimateCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Ultimate;
@@ -44,7 +47,9 @@ namespace Codes.Ultimate
                 .Where(unit => unit != null && unit.isActive && unit.HpCurr > 0).ToList();
             bool isCrit = Random.value <= Caster.CritChanceCurr;
             float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
-            int damage = Mathf.Max(1, Mathf.RoundToInt(Caster.GetBaseInt() * 0.8f * critMultiplier));
+            // 사양 "INT의 80%" = 위력 80.
+            int damage = Mathf.Max(1, Mathf.RoundToInt(
+                Caster.SkillDamage(UltimatePower, BaseEnums.PrimaryStat.INT) * critMultiplier));
             var tags = new List<int> { DamageTag.AllTarget, DamageTag.UltAttack, DamageTag.Special, DamageTag.NonContactAttack };
 
             foreach (Unit target in targets)

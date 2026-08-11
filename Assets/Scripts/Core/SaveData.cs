@@ -83,6 +83,9 @@ namespace Core
         public int xPos;
         public int yPos;
         public bool isBench;
+        // 유닛 레벨과 누적 경험치. 아군 성장 곡선의 단일 축이다.
+        public int level = 1;
+        public int exp;
         public int trainingLevel;
         public int strUpgrade;
         public int dexUpgrade;
@@ -91,6 +94,7 @@ namespace Core
         public int lukUpgrade;
         public float codeAccelerationBonus;
         public List<int> equippedItemIds = new();
+        public List<int> carriedItemIds = new();
         public List<int> grantedPassiveCodeIds = new();
     }
 
@@ -99,7 +103,9 @@ namespace Core
     {
         // 저장 포맷 버전. 레거시 스탯 필드 제거(v2) 이전 저장본은 로드하지 않고 폐기한다.
         public int version = CurrentVersion;
-        public const int CurrentVersion = 2;
+        // v3: 공격력/방어력 스탯 폐지 + 아군 EXP 레벨업 도입으로 유닛 스냅샷 구조가 바뀌었다.
+        // v4: 유닛별 휴대 인벤토리와 3단계 중량 시스템.
+        public const int CurrentVersion = 4;
         public int gameMode;
         public int currentStage;
         public int currentRound;

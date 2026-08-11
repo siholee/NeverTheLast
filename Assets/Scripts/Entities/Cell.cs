@@ -110,26 +110,13 @@ public class Cell : MonoBehaviour
         }
         else
         {
-            // 짧은 클릭 처리 - InfoTab 토글
+            // 짧은 클릭 처리 - 해당 유닛 기준으로 코덱스(상세 화면)를 연다.
             if (isOccupied && unit != null)
             {
                 Unit cellUnit = unit.GetComponent<Unit>();
                 if (cellUnit != null && cellUnit.isActive)
                 {
-                    UIManager uiManager = GameManager.Instance?.uiManager;
-                    if (uiManager != null && uiManager.infoTab != null)
-                    {
-                        // 적군은 무조건 InfoTab 표시
-                        if (cellUnit.IsEnemy)
-                        {
-                            uiManager.ShowInfoTab(cellUnit);
-                        }
-                        else
-                        {
-                            // 아군도 클릭 시 InfoTab 표시 (이미 열려있어도 정보 갱신)
-                            uiManager.ShowInfoTab(cellUnit);
-                        }
-                    }
+                    GameManager.Instance?.uiManager?.ShowUnitDetail(cellUnit);
                 }
             }
         }

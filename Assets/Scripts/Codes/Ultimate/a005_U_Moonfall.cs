@@ -1,219 +1,120 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using BaseClasses;
 using CGT.Pooling;
 using Codes.Base;
 using Entities;
-using Entities.Status;
-using Effects.Base;
 using Managers;
 using UnityEngine;
 
 namespace Codes.Ultimate
 {
     /// <summary>
-    /// 아탈란테의 궁극기: a005_U_Moonfall
-    /// 단일 적에게 공격력의 n%에 해당하는 피해를 입힌다.
-    /// 이후 유닛 뒤 (y+1, x+-1)에게 범위 피해를 입힌다.
-    /// 모든 공격 적중 시 공격력 10%에 해당하는 맹독 부여
+    /// 아탈란테 궁극기. 전열 단일 대상에게 위력 100을 가한 뒤 후열 전체에 위력 60을 가한다.
+    /// 전열이 비어 있으면 후열 단일 대상에게 최초 타격만 적용한다.
     /// </summary>
-    public class a005_U_Moonfall : UltimateCode
+    public sealed class a005_U_Moonfall : UltimateCode
     {
         private readonly HS_Poolable _prefab;
-        
+
         public a005_U_Moonfall(UltimateCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Ultimate;
-            Caster = context.Caster;
+            CodeName = "달빛 추격";
             Cooldown = 6f;
-            CodeName = "a005_U_Moonfall";
             CastingDelay = 1f;
-            _prefab = GameManager.Instance.sfxManager.ProjectilePrefabs["Levateinn"];
+            Power = 100;
+            CodeTags = new List<int> { DamageTag.Physical, DamageTag.NonContactAttack };
+            GameManager.Instance?.sfxManager?.ProjectilePrefabs?.TryGetValue("Levateinn", out _prefab);
         }
 
         public override void CastCode()
         {
+            if (!HasValidTarget()) return;
             Caster.isCasting = true;
-            Debug.Log($"{Caster.UnitName}({Caster.currentCell.xPos}, {Caster.currentCell.yPos})이 {CodeName} 시전");
             CurrSkillCoroutine = Caster.StartCoroutine(SkillCoroutine());
         }
 
         protected override IEnumerator SkillCoroutine()
         {
-            // 캐스팅
-            float elapsedTime = 0f;
-            while (elapsedTime < CastingDelay)
+            float elapsed = 0f;
+            while (elapsed < CastingDelay)
             {
-                if (Caster.isControlled || !Caster.isActive)
+                if (Caster == null || !Caster.isActive || Caster.isControlled)
                 {
-                    Debug.Log($"{Caster.UnitName}({Caster.currentCell.xPos}, {Caster.currentCell.yPos})의 {CodeName} 시전이 방해됨");
                     StopCode();
                     yield break;
                 }
-                elapsedTime += Time.deltaTime;
+                elapsed += Time.deltaTime;
                 yield return null;
             }
 
-            // 주 타겟 선택
-            Unit primaryTarget = GetPrimaryTarget();
-            if (primaryTarget == null)
+            List<Unit> enemies = Target.GetAllEnemies(Caster)
+                .Where(unit => unit != null && unit.isActive && unit.currentCell != null)
+                .ToList();
+            if (enemies.Count == 0)
             {
-                Debug.Log("주 타겟을 찾을 수 없음");
                 StopCode();
                 yield break;
             }
 
-            // 뒤쪽 타겟들 선택
-            List<Unit> backTargets = GetBackTargets(primaryTarget);
+            int frontColumn = GridManager.Instance.GetFrontColumn(enemies[0].IsEnemy);
+            int rearColumn = GridManager.Instance.GetRearColumn(enemies[0].IsEnemy);
+            List<Unit> frontEnemies = enemies.Where(unit => unit.currentCell.xPos == frontColumn).ToList();
+            bool frontExists = frontEnemies.Count > 0;
+            List<Unit> primaryPool = frontExists
+                ? frontEnemies
+                : enemies.Where(unit => unit.currentCell.xPos == rearColumn).ToList();
+            if (primaryPool.Count == 0) primaryPool = enemies;
+            Unit primary = primaryPool.OrderByDescending(unit => unit.Priority).First();
 
-            // 크리티컬 계산
             bool isCrit = Random.value <= Caster.CritChanceCurr;
             float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
+            int primaryDamage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(100, BaseEnums.PrimaryStat.DEX) * critMultiplier));
 
-            // 피해 계산 (공격력의 200%)
-            int primaryDamage = (int)(Caster.AtkCurr * 2.0f * critMultiplier);
-            int backDamage = (int)(Caster.AtkCurr * 1.5f * critMultiplier); // 후열은 150%
-
-            // 주 타겟에게 공격
-            List<int> primaryTags = new List<int> { BaseClasses.DamageTag.SingleTarget, BaseClasses.DamageTag.UltAttack, BaseClasses.DamageTag.NonContactAttack };
-            DamageContext primaryContext = new(Caster, primaryDamage, BaseEnums.CodeType.Ultimate, primaryTags, isCrit);
-            Caster.StartCoroutine(FirePrimaryProjectile(primaryTarget, 0.5f, primaryContext));
-
-            // 후열 범위 공격 (0.8초 후)
-            if (backTargets.Count > 0)
+            if (_prefab != null) GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, primary, 0.35f);
+            yield return new WaitForSeconds(0.35f);
+            if (primary != null && primary.isActive)
             {
-                List<int> backTags = new List<int> { BaseClasses.DamageTag.MultiTarget, BaseClasses.DamageTag.UltAttack, BaseClasses.DamageTag.NonContactAttack };
-                DamageContext backContext = new(Caster, backDamage, BaseEnums.CodeType.Ultimate, backTags, isCrit);
-                Caster.StartCoroutine(FireBackAreaAttack(primaryTarget, backTargets, backContext));
+                primary.TakeDamage(new DamageContext(
+                    Caster, primaryDamage, BaseEnums.CodeType.Ultimate,
+                    new List<int> { DamageTag.SingleTarget, DamageTag.UltAttack, DamageTag.Physical, DamageTag.NonContactAttack },
+                    isCrit));
+            }
+
+            // 전열이 있었을 때만 후열 전체에 두 번째 효과가 발동한다.
+            if (frontExists)
+            {
+                List<Unit> rearEnemies = enemies
+                    .Where(unit => unit != null && unit.isActive && unit.currentCell.xPos == rearColumn)
+                    .ToList();
+                int rearDamage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(60, BaseEnums.PrimaryStat.DEX) * critMultiplier));
+                foreach (Unit target in rearEnemies)
+                {
+                    if (_prefab != null) GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, primary, target, 0.15f);
+                }
+                yield return new WaitForSeconds(0.2f);
+                foreach (Unit target in rearEnemies.Where(unit => unit != null && unit.isActive))
+                {
+                    target.TakeDamage(new DamageContext(
+                        Caster, rearDamage, BaseEnums.CodeType.Ultimate,
+                        new List<int> { DamageTag.MultiTarget, DamageTag.UltAttack, DamageTag.Physical, DamageTag.NonContactAttack },
+                        isCrit));
+                }
             }
 
             StopCode();
         }
 
-        private Unit GetPrimaryTarget()
-        {
-            var nearestTargets = GridManager.Instance.TargetNearestEnemy(Caster);
-            return nearestTargets.Count > 0 ? nearestTargets[0] : null;
-        }
-
-        private List<Unit> GetBackTargets(Unit primaryTarget)
-        {
-            List<Unit> backTargets = new List<Unit>();
-            int targetX = primaryTarget.currentCell.xPos;
-            int targetY = primaryTarget.currentCell.yPos;
-            
-            // 뒤쪽 위치 계산 (y+1, x-1과 x+1)
-            int[] backXPositions = { targetX - 1, targetX + 1 };
-            int backY = targetY + 1;
-            
-            Debug.Log($"주 타겟: {primaryTarget.UnitName} at ({targetX}, {targetY}), 후열 검색: y={backY}");
-            
-            foreach (int backX in backXPositions)
-            {
-                Unit targetUnit = GridManager.Instance.GetUnitAtPosition(backX, backY);
-                if (targetUnit != null && targetUnit.isActive && 
-                    targetUnit.IsEnemy == primaryTarget.IsEnemy && 
-                    targetUnit != primaryTarget) // 주 타겟과 다른 유닛
-                {
-                    backTargets.Add(targetUnit);
-                    Debug.Log($"뒤쪽 타겟 발견: {targetUnit.UnitName} at ({backX}, {targetY})");
-                }
-            }
-            
-            return backTargets;
-        }
-
-        private IEnumerator FirePrimaryProjectile(Unit target, float delay, DamageContext context)
-        {
-            GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, target, delay);
-            yield return new WaitForSeconds(delay);
-            
-            // 피해 적용
-            target.TakeDamage(context);
-            
-            // 맹독 부여 (공격력의 10%)
-            ApplyPoisonEffect(target);
-            
-            Debug.Log($"주 타겟 {target.UnitName}({target.currentCell.xPos}, {target.currentCell.yPos})에게 피해 적용 완료");
-        }
-
-        private IEnumerator FireBackAreaAttack(Unit primaryTarget, List<Unit> backTargets, DamageContext context)
-        {
-            // 주 타겟 위치에서 범위 공격 이펙트 생성 (모든 후열 타겟에게 동시에)
-            var effectPrefab = _prefab; // 기본값
-            if (GameManager.Instance.sfxManager.ProjectilePrefabs.ContainsKey("NormalAttack"))
-            {
-                effectPrefab = GameManager.Instance.sfxManager.ProjectilePrefabs["NormalAttack"];
-            }
-            
-            Debug.Log($"주 타겟 {primaryTarget.UnitName}({primaryTarget.currentCell.xPos}, {primaryTarget.currentCell.yPos})에서 후열 범위 공격 시작");
-            
-            // 모든 후열 타겟에게 동시에 투사체 발사 (주 타겟에서 시작)
-            foreach (var target in backTargets)
-            {
-                GameManager.Instance.sfxManager.FireSingleProjectile(effectPrefab, primaryTarget, target, 0.1f);
-            }
-            
-            // 투사체 도달 시간 대기
-            yield return new WaitForSeconds(0.3f);
-            
-            // 모든 후열 타겟에게 동시에 피해 적용
-            foreach (var target in backTargets)
-            {
-                if (target != null && target.isActive)
-                {
-                    target.TakeDamage(context);
-                    
-                    // 맹독 부여 (공격력의 10%)
-                    ApplyPoisonEffect(target);
-                    
-                    Debug.Log($"후열 범위 공격: {target.UnitName}({target.currentCell.xPos}, {target.currentCell.yPos})에게 피해 적용");
-                }
-            }
-            
-            Debug.Log($"후열 범위 공격 완료: {backTargets.Count}명의 적에게 동시 공격");
-        }
-        
-        /// <summary>
-        /// 아탈란테 궁극기 전용 사냥꾼의 독 부여 (새 Status 시스템)
-        /// </summary>
-        private void ApplyPoisonEffect(Unit target)
-        {
-            if (target != null && target.isActive && target.IsEnemy != Caster.IsEnemy)
-            {
-                // 사냥꾼의 독 상태 생성 (StatusId = 3)
-                var huntersVenomStatus = new UnitStatus(3, Caster, target);
-                
-                // DOT 효과 추가 (EffectId = 1001, 공격력의 10%)
-                huntersVenomStatus.AddEffect(1001, 10f);
-                
-                // Effect 객체 생성 및 할당
-                foreach (var effectInstance in huntersVenomStatus.Effects)
-                {
-                    effectInstance.EffectObject = EffectFactory.CreateEffect(
-                        effectInstance.EffectId,
-                        effectInstance.Coefficient,
-                        Caster,
-                        target
-                    );
-                }
-                
-                // 상태 적용
-                target.AddStatus(huntersVenomStatus);
-                
-                Debug.Log($"[달빛폭격] {target.UnitName}에게 사냥꾼의 독 상태 부여 (공격력의 10% DOT)");
-            }
-        }
-
         public override void StopCode()
         {
+            if (Caster == null) return;
             Caster.ultimateCooldown = Cooldown;
             Caster.isCasting = false;
         }
 
         public override bool HasValidTarget()
-        {
-            return GridManager.Instance.TargetNearestEnemy(Caster).Count > 0;
-        }
+            => Caster != null && Caster.isActive && Target.GetAllEnemies(Caster).Any(unit => unit != null && unit.isActive);
     }
 }

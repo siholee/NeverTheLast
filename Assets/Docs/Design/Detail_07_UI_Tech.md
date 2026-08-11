@@ -1,0 +1,264 @@
+# 상세 기획서 07 — UI와 기술 구조
+
+> **3계층 문서.** UI 화면 구성, 매니저 구조, 데이터 파일, 저장 시스템, 아트/사운드 규약.
+> 개념 정의는 [서브 기획서](GDD_Sub_Concepts.md) 7장을 본다.
+
+최종 갱신: 2026-08-10
+관련 코드: `Assets/Scripts/Managers/`, `Assets/Scripts/Core/`, `Assets/Scripts/Data/`
+
+---
+
+## 1. UI 화면 구성
+
+### 1.1 화면 목록
+
+| 화면 | 스크립트 | 역할 |
+| --- | --- | --- |
+| 메인 메뉴 | `UI/MainMenuUI.cs` | 새 여정 / 이어하기 / 설정 |
+| 캐릭터 선택 | `UI/Screens/CharacterSelectScreen.cs` | 메인 1 + 서포트 편성 |
+| 준비 | `UI/Screens/PreparationScreen.cs` | 행동 선택, 덱 구성, 장비 |
+| 보상 | `UI/Screens/RewardScreen.cs` | 3택 1 |
+| 육성 | `UI/Screens/TrainingScreen.cs` | 5스탯 집중 버튼, 서포트 등장/우정 표시 |
+| 사건 | `UI/Screens/EventScreen.cs` + `EventVisualNovelScreen.cs` | VN 연출 |
+| 도감 | `UI/Screens/CodexScreen.cs` | 유닛/코드/아이템 열람 |
+| 모달 | `UI/Screens/ModalScreen.cs` | 확인/경고 |
+| 설정 | `UI/SettingsUI.cs` | Music / Sfx 볼륨 등 |
+
+### 1.2 전투 HUD
+
+| 컴포넌트 | 표시 |
+| --- | --- |
+| `HUD/TopStatusBar.cs` | 생명력, 스테이지/라운드, 페이즈 타이머(원형 게이지 + 숫자) |
+| `HUD/PartyPanel.cs` | 파티 유닛 상태 |
+| `HUD/ActionQueuePanel.cs` | **행동 순서 큐** — 다음에 누가 움직이는지 |
+| `HUD/BattleHud.cs` | 전투 화면 총괄 |
+
+> 전투가 자동인 만큼, **"다음에 누가 움직이는가"를 항상 노출**하는 것이 관전 경험의 핵심이다.
+
+### 1.3 UI 테마
+
+| 파일 | 역할 |
+| --- | --- |
+| `UI/Theme/UITheme.cs` | 색상 팔레트, 타이포 |
+| `UI/Theme/UIShapes.cs` | 런타임 도형 생성 (RoundedRect, Parallelogram, VerticalGradient 등) |
+| `UI/Core/UIBuild.cs` | 공통 빌더 |
+
+**아트 에셋 없이 코드로 UI를 구성한다.** 스타일 변경이 데이터/코드 한 곳에서 끝난다.
+
+### 1.4 셀 UI 규칙
+
+| 규칙 | 내용 |
+| --- | --- |
+| 책임 분리 | `Unit.cs`는 게임 로직, `Cell.cs`는 UI 표시 |
+| 필드 전용 | 대기석 유닛은 UI를 표시하지 않는다 |
+| HP 바 | 체력 100% = scale 9, 위치 이동으로 감소 표현 |
+| **z값 통일** | 모든 바의 z = 0 |
+| 깊이 제어 | z축이 아닌 **`SpriteRenderer.sortingOrder`** 사용 |
+
+```csharp
+// HP 바 스케일 계산
+float targetScale = hpRatio * 9.0f;
+float xOffset = (9.0f - targetScale) * -0.5f;
+
+// 렌더 순서
+currHpRenderer.sortingOrder = maxHpRenderer.sortingOrder + 1;
+```
+
+> **교훈** — 2D에서는 z축 위치보다 `sortingOrder`가 안정적이다.
+> 과거 HP 바에 임의 z값(-0.1f)을 쓴 결과, 드래그 앤 드롭의 z 좌표계와 충돌해 위치가 왜곡됐다.
+
+## 2. 매니저 구조
+
+모든 매니저는 싱글턴(`Manager.Instance`)이다.
+
+| 매니저 | 책임 |
+| --- | --- |
+| `GameManager` | 게임 상태 머신, 페이즈 타이머, 생명력, 사건 흐름, 준비 행동 |
+| `RunManager` | 런 수명(시작/저장/복원/완료), 우정도, 사건 발생 이력, **스테이지 전진 단일 진입점** |
+| `RoundManager` | 스테이지/라운드/테마 결정, 적 편성·배치, 보스 슬롯 판정 |
+| `GridManager` | 셀 생성, 유닛 스폰/활성화, 타겟팅, `heroList` / `enemyList` |
+| `ActionScheduler` | 행동치 기반 행동 예약·직렬 실행 (MonoBehaviour 아님, `GameManager`가 소유) |
+| `TrainingManager` | 집중 훈련, 서포트 판정, 패시브 전수 (**정적 클래스**) |
+| `RewardManager` | 보상 풀 생성 및 적용 |
+| `CharacterSelectionManager` | 편성 규칙 검증 (최대 5, 메인 1, 중복 불가) |
+| `InventoryManager` | 골드/토큰/티켓/보관 아이템, 장비 착용 검증 |
+| `DataManager` | YAML 제네릭 로더 (`Load<T>`) |
+| `UIManager` | 화면 전환 위임 |
+| `AudioManager` | BGM/SFX 재생, 볼륨 |
+| `SfxManager` | 전투 이펙트 |
+| `DragAndDropManager` | 유닛 배치 조작 |
+| `EventScheduler` | 사건 예약 큐 |
+
+### 2.1 단일 진입점 원칙
+
+`RunManager.AdvanceToNextStage()` — 보상/사건/육성 어느 흐름에서 오든 여기를 통과한다.
+
+```
+if (육성 모드) {
+    if (Stage >= MaxTrainingStage || !TryLoadNextRound())  → CompleteTrainingRun()
+    else                                                    → 세이브 + 다음 스테이지
+} else {
+    if (!TryLoadNextRound())  → RunComplete + 세이브 삭제 + 메인 메뉴
+    else                       → 세이브 + 다음 스테이지
+}
+```
+
+> **흐름이 갈라져도 종료 판정은 하나로 유지된다.** 새 진행 경로를 추가할 때 이 메서드를 호출한다.
+
+### 2.2 씬 구성
+
+| 씬 | 상수 |
+| --- | --- |
+| 메인 메뉴 | `SceneNames.MainMenu` |
+| 전투 | `SceneNames.Game` |
+
+씬 전환 시 `CleanupRunContext()`로 런 컨텍스트를 정리한다.
+`RunManager`는 `DontDestroyOnLoad`로 씬을 건너뛴다.
+
+## 3. 데이터 파일
+
+`Assets/Resources/Data/` — YamlDotNet으로 역직렬화한다.
+
+| 파일 | 내용 | DTO |
+| --- | --- | --- |
+| `00_intro.yaml` | 인트로 시퀀스 | `IntroData.cs` |
+| `10_units.yaml` | 아군 유닛 | `UnitData.cs` |
+| `20_codes.yaml` | 코드 표시 데이터 (패시브/일반/궁극기) | — |
+| `40_items.yaml` | 아이템 (= 전투 보상 풀) | `ItemData.cs` |
+| `50_tokens.yaml` | 토큰 정의 | `TokenData.cs` |
+| `60_enemies.yaml` | 적 (normal/elite/boss) | `EnemyData.cs` |
+| `70_rounds.yaml` | 라운드 타입/편성 패턴 | `RoundData.cs` |
+| `80_stages.yaml` | 테마, 사건, 고정 보스 | `StageData.cs` |
+| `90_rewards.yaml` | 라운드별 보상 티어 확률 | `RewardData.cs` |
+
+**로딩** — `DataManager.Load<T>()` 제네릭 로더. `IgnoreUnmatchedProperties`가 적용되어
+YAML에 남아 있는 폐기 필드(`classLevels`, `subclasses` 등)는 무시된다.
+
+## 4. 저장 시스템
+
+`Assets/Scripts/Core/SaveSystem.cs`, `SaveData.cs`
+
+### 4.1 진행 저장 (`RunSaveData`, version 2)
+
+| 필드 | 내용 |
+| --- | --- |
+| `currentStage` / `currentRound` | 진행 위치 |
+| `gameMode` | 육성 / 무한 |
+| `life` / `killCount` | 생명력, 처치 수 |
+| `gold` / `tokens` / `rerollTicketCount` / `storedItemIds` | 인벤토리 |
+| `preparationActionUsed` | 준비 행동 소모 여부 |
+| `supportBonds` | 서포트별 우정도 |
+| `heroUnits` | 아군 유닛 상태 (아래 4.2) |
+| `triggeredEventIds` | 이미 발생한 사건 ID |
+
+### 4.2 유닛 저장 (`UnitSaveData`)
+
+`unitId`, `currentHP`, `xPos` / `yPos` / `isBench`, `trainingLevel`,
+`strUpgrade` ~ `lukUpgrade`, `codeAccelerationBonus`, `equippedItemIds`, `carriedItemIds`, `grantedPassiveCodeIds`
+
+### 4.3 영구 저장 (`TrainedCharacterRecord`)
+
+육성 완료 캐릭터. 런과 무관하게 누적된다. → [Detail_04 §7](Detail_04_Training.md#7-육성-완료와-계승)
+
+### 4.4 저장/삭제 시점
+
+| 시점 | 동작 |
+| --- | --- |
+| 스테이지 전진 | `SaveCurrentRun()` |
+| 전투 시작 직전 | `SaveCurrentRun()` |
+| 사건 발생 기록 | `MarkEventTriggered()` → 즉시 저장 |
+| 앱 일시정지 / 종료 | `OnApplicationPause` / `OnApplicationQuit` |
+| 런 시작 | `SaveSystem.DeleteSave()` — 기존 진행 폐기 |
+| 게임 오버 / 런 완료 | `SaveSystem.DeleteSave()` |
+
+### 4.5 복원 순서
+
+```
+LoadSavedRun()
+  1. 모드/생명력/킬 수 복원
+  2. 인벤토리 복원 (토큰, 골드, 티켓, 아이템)
+  3. 우정도 / 사건 이력 복원
+  4. RoundManager.InitializeStage(stage)
+  5. 기존 아군 전부 비활성화 → 저장된 아군 스폰 → RestoreRunState()
+  6. RoundManager.LoadRound(stage)
+  7. UI 갱신 → EnterNextStageAfterLoad() → 준비 행동 상태 복원
+```
+
+**구버전 세이브는 로드 시 폐기된다** (`RunSaveData.version`).
+
+## 5. 아트 규약
+
+| 영역 | 규약 |
+| --- | --- |
+| 초상화 | `Resources/Sprite/Portraits/{name}` — 확장자 제외, 대문자 스네이크 (`TSUKUYOMI_PORTRAIT`) |
+| 표정 | `{PORTRAIT}_{emotion}` — 없으면 기본 초상화로 폴백 |
+| 스탠딩 | `{NAME}_STANDING` |
+| 페이퍼돌 | [Character_PaperDoll_Spec.md](../Character_PaperDoll_Spec.md) 참조 |
+| 이펙트 | Hovl Studio 투사체 기반 |
+| 폰트 | TextMesh Pro |
+
+### 5.1 투사체 프리팹 제작 절차
+
+1. 원하는 투사체 프리팹을 복사해 `Prefabs/SFX`에 붙여넣기
+2. 콜라이더, 리지드바디, 라이트 컴포넌트 삭제
+3. `Hovl Studio/HSFiles/Scripts/HS_ProjectileCustomMover` 컴포넌트 추가
+4. 기존 `HS_ProjectileMover`의 내용(Hit, Hit PS, Flash, Projectile PS)을 `HS_ProjectileCustomMover`에 동일하게 할당
+5. `HS_ProjectileMover` 컴포넌트 삭제
+6. 하위 파티클 사이즈 조절 (10배 정도)
+
+> 복사하는 투사체마다 Flash가 없는 등 구성이 조금씩 다르다.
+
+## 6. 사운드 규약
+
+| 항목 | 규약 |
+| --- | --- |
+| 경로 | `Resources/Audio/BGM/{name}`, `Resources/Audio/SFX/{name}` |
+| 담당 | `AudioManager` |
+| 볼륨 | `SettingsManager`의 Music / Sfx 값을 따른다 |
+| BGM 전환 | 같은 곡이면 재시작하지 않음. `stop`이면 정지 |
+| **누락 처리** | 파일이 없어도 **조용히 무시** (같은 이름은 1회만 로그) |
+
+**누락 처리 정책이 핵심이다.** 기획 데이터를 먼저 쓰고 에셋은 나중에 채울 수 있다.
+
+## 7. 빌드와 검증
+
+| 항목 | 내용 |
+| --- | --- |
+| 엔진 | Unity Editor (CLI 빌드 명령 미구성) |
+| 메인 씬 | `Assets/Scenes/SampleScene.unity` |
+| 플랫폼 | Android, 패키지 `com.solid.autochess` |
+| 스크립팅 백엔드 | IL2CPP |
+| 입력 | Unity 신규 Input System (active input handler: 2) |
+
+**빌드 검증**
+
+```bash
+dotnet build Assembly-CSharp.csproj
+```
+
+```bash
+dotnet build Assembly-CSharp-Editor.csproj
+```
+
+> Unity가 `.csproj`를 재생성할 수 있다. 파일 삭제 후 IDE 빌드에서 삭제된 `.cs`를 찾는 오류가 나면
+> 프로젝트 파일 재생성 또는 Compile 항목 정리를 확인한다.
+
+## 8. 디버깅 진입점
+
+| 대상 | 방법 |
+| --- | --- |
+| 피해 계산 | `Unit.DefaultTakeDamageEvent()`의 로그 활성화 |
+| 이벤트 전파 | `GridManager.OnRoundStart()` 로그 |
+| 상태 전이/타이머 | `GameManager.Update()` 로그 |
+| 유닛 실시간 상태 | 도감(`CodexScreen`) / 파티 패널 |
+| 사건 연출 | 플레이 모드에서 **F9** (미리보기) |
+| 보호막 | `AddShield` 로그 — `Max A→B, Curr C→D (HP: x/y)` |
+
+## 9. 기술 부채
+
+| 항목 | 내용 |
+| --- | --- |
+| 🔸 자동 테스트 없음 | 회귀 검증이 전적으로 수동 플레이에 의존한다 |
+| 🔸 밸런스 시뮬레이터 없음 | 스테이지별 예상 전투 길이/승률을 계산할 수단이 없다 |
+| 🔸 `RewardDef` 필드명 | 옛 스탯 체계 이름이 남아 실제 효과와 어긋난다 |
+| 🔸 메인 사망 시 폴백 | 첫 활성 아군이 메인으로 승격된다. 정책 명시 필요 |

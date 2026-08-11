@@ -20,7 +20,6 @@ namespace Effects.Buffs
         public const int BulwarkStr = 102;
         public const int LastStandFormation = 103;
         public const int IronWall = 104;
-        public const int Lokapala = 105;
         public const int AnemoImbue = 106;
         public const int ForestGrace = 107;
         public const int SpellSniper = 108;
@@ -68,6 +67,12 @@ namespace Effects.Buffs
     }
 
     /// <summary>치명타 확률 가산 버프 (홀리 인챈트 등)</summary>
+    /// <summary>수치 효과 없이 상태를 화면에 표시하기 위한 표식용 효과.</summary>
+    public class MarkerBuffEffect : BaseEffect
+    {
+        public MarkerBuffEffect() : base(0) { }
+    }
+
     public class CritChanceBuffEffect : BaseEffect
     {
         private readonly float _amount;
@@ -163,38 +168,6 @@ namespace Effects.Buffs
         public override float ShieldBonusAdditiveModifier(Unit unit)
         {
             return unit == Caster ? _bonus : 0f;
-        }
-    }
-
-    /// <summary>로카팔라: 아군 중 로카팔라 패시브(코드 43) 보유자 수 × 3 만큼 INT 가산</summary>
-    public class LokapalaBuffEffect : BaseEffect
-    {
-        public const int CodeId = 43;
-
-        public LokapalaBuffEffect() : base(0) { }
-
-        public override int PrimaryStatAdditiveModifier(Unit unit, BaseEnums.PrimaryStat stat)
-        {
-            if (unit == null || unit != Caster || stat != BaseEnums.PrimaryStat.INT)
-            {
-                return 0;
-            }
-
-            int holders = 0;
-            foreach (Unit ally in global::Target.GetAllAllies(unit))
-            {
-                if (ally == null || !ally.isActive) continue;
-                foreach (var record in ally.LearnedPassiveRecords)
-                {
-                    if (record != null && record.codeId == CodeId)
-                    {
-                        holders++;
-                        break;
-                    }
-                }
-            }
-
-            return holders * 3;
         }
     }
 

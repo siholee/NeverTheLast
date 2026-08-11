@@ -6,7 +6,7 @@ namespace BaseClasses
   public class PassiveCodeContext
   {
     public Unit Caster;
-    public string Name; // 패시브 이름 (GenericPassive용)
+    public string Name; // 데이터에 등록된 패시브 표시 이름
   }
 
   public class NormalCodeContext
@@ -23,7 +23,7 @@ namespace BaseClasses
   {
     public readonly Unit Attacker;
     public readonly int Damage;
-    public readonly bool IsCrit;
+    public bool IsCrit;
     public BaseEnums.CodeType CodeType;
     public List<int> DamageTags;
     public readonly int Penetration;

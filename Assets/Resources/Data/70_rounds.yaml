@@ -1,30 +1,40 @@
-﻿roundTypes:
+# 라운드 타입 (편성 패턴 폴백)
+#
+# 테마가 stagePatterns를 직접 정의하면 그쪽이 우선한다.
+# 여기 정의는 stagePatterns가 없는 스테이지 슬롯에서만 쓰인다.
+#
+# 사용 가능한 archetype은 현재 등록된 적에 한정된다 (콜로세움 테마):
+#   7  전열 - 무르밀로, 마르켈루스
+#   8  전열 - 호플로마쿠스, 디마카이루스, 스파르타쿠스
+#   9  전열 - 트라엑스, 세쿠토르
+#   10 후열 - 레티아리우스, 사비나
+# 새 분류를 쓰려면 60_enemies.yaml에 해당 archetype의 적을 먼저 등록할 것.
+
+roundTypes:
   - id: 1
     name: "Round Type 1"
     isElite: false
     isBoss: false
     patterns:
-      - archetypes: [9, 9, 12]
+      - archetypes: [7, 10]
+        weight: 40
+      - archetypes: [7, 9, 10]
         weight: 30
-      - archetypes: [9, 9, 12, 12]
+      - archetypes: [7, 7, 10]
         weight: 30
-      - archetypes: [9, 9, 9, 12]
-        weight: 20
-      - archetypes: [9, 9, 9, 12, 12]
-        weight: 20
 
   - id: 2
     name: "Round Type 2"
     isElite: false
     isBoss: false
     patterns:
-      - archetypes: [8, 13]
+      - archetypes: [8, 10]
         weight: 25
-      - archetypes: [8, 13, 13]
+      - archetypes: [8, 10, 10]
         weight: 25
-      - archetypes: [8, 8, 13]
+      - archetypes: [8, 8, 10]
         weight: 25
-      - archetypes: [8, 8, 13, 13]
+      - archetypes: [8, 8, 9, 10]
         weight: 25
 
   - id: 3
@@ -32,13 +42,13 @@
     isElite: false
     isBoss: false
     patterns:
-      - archetypes: [7, 7, 14]
+      - archetypes: [7, 7, 10]
         weight: 30
-      - archetypes: [7, 7, 14, 14]
+      - archetypes: [7, 7, 9, 10]
         weight: 30
-      - archetypes: [7, 7, 7, 14]
+      - archetypes: [7, 8, 9, 10]
         weight: 20
-      - archetypes: [7, 7, 7, 14, 14]
+      - archetypes: [7, 8, 9, 10, 10]
         weight: 20
 
   - id: 4
@@ -46,9 +56,9 @@
     isElite: true
     isBoss: false
     patterns:
-      - eliteIds: [2001]
+      - eliteIds: [2004]
         weight: 50
-      - eliteIds: [2001, 2002]
+      - eliteIds: [2004, 2005]
         weight: 50
 
   - id: 5
@@ -56,13 +66,13 @@
     isElite: false
     isBoss: false
     patterns:
-      - archetypes: [10, 12]
+      - archetypes: [9, 10]
         weight: 25
-      - archetypes: [10, 12, 12]
+      - archetypes: [9, 10, 10]
         weight: 25
-      - archetypes: [10, 10, 12]
+      - archetypes: [9, 9, 10]
         weight: 25
-      - archetypes: [10, 10, 12, 12]
+      - archetypes: [9, 9, 10, 10]
         weight: 25
 
   - id: 6
@@ -70,14 +80,12 @@
     isElite: false
     isBoss: false
     patterns:
-      - archetypes: [11, 13]
-        weight: 25
-      - archetypes: [11, 13, 13]
-        weight: 25
-      - archetypes: [11, 11, 13]
-        weight: 25
-      - archetypes: [11, 11, 13, 13]
-        weight: 25
+      - archetypes: [8, 9, 10]
+        weight: 30
+      - archetypes: [8, 8, 9, 10]
+        weight: 40
+      - archetypes: [8, 9, 9, 10]
+        weight: 30
 
   - id: 7
     name: "Round Type 7"
@@ -90,7 +98,7 @@
         weight: 30
       - archetypes: [9, 9, 9, 8]
         weight: 20
-      - archetypes: [9, 9, 9, 8, 8]
+      - archetypes: [9, 9, 9, 8, 10]
         weight: 20
 
   - id: 8
@@ -98,9 +106,9 @@
     isElite: true
     isBoss: false
     patterns:
-      - eliteIds: [2001, 2002]
+      - eliteIds: [2004, 2005]
         weight: 60
-      - eliteIds: [2001, 2001, 2002]
+      - eliteIds: [2004, 2004, 2005]
         weight: 40
 
   - id: 9
@@ -114,7 +122,7 @@
         weight: 30
       - archetypes: [7, 7, 7, 10]
         weight: 20
-      - archetypes: [7, 7, 7, 10, 10]
+      - archetypes: [7, 8, 9, 10, 10]
         weight: 20
 
   - id: 10
@@ -122,7 +130,7 @@
     isElite: false
     isBoss: true
     patterns:
-      - bossId: 3001
+      - bossId: 3003
         weight: 100
 
 stages:

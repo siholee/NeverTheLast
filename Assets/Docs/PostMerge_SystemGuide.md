@@ -360,7 +360,7 @@ lukIncrementUpgrade: 1
 - 방어력: YAML `defBase + defIncrementLvl * 성장 레벨`
 - 치명타 확률: `LUK * 1%`
 - 치명타 피해: 기본 150%
-- 공격속도: `1 + DEX * 1%`
+- 행동 속도: `1 + 최종 DEX * 1%` (독립 공격속도 스탯 없음)
 - 마나 최대값: 마나형 궁극기 자원은 기본 100
 - 스택형 궁극기 자원은 `ultimateResourceMax`를 사용
 

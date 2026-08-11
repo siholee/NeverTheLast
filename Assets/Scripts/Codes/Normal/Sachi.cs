@@ -9,14 +9,17 @@ namespace Codes.Normal
     {
         public Sachi(NormalCodeContext context) : base(context)
         {
-            CodeName = "사친";
+            CodeName = "일반공격";
             MaxStage = 1;
+            Power = 40;
             CodeTags = new List<int> { DamageTag.Special };
         }
 
         protected override int CalculateDamage(float critMultiplier)
         {
-            return Mathf.Max(1, Mathf.RoundToInt(Caster.GetBaseInt() * 0.4f * critMultiplier));
+            // 사양 "INT의 40%" = 위력 40. 피해 = 위력 × INT × SkillPowerScale.
+            return Mathf.Max(1, Mathf.RoundToInt(
+                Caster.SkillDamage(Power, BaseEnums.PrimaryStat.INT) * critMultiplier));
         }
 
         protected override List<int> GetDamageTags()

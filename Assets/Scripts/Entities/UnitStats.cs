@@ -1,17 +1,49 @@
 using System;
+using System.Linq;
 using BaseClasses;
 using UnityEngine;
 
 namespace Entities
 {
     /// <summary>
-    /// 유닛의 스탯 모델: 5대 기본 스탯(base/성장/강화) + 명시적 전투 스탯(atk/def)과
-    /// 파생 스탯 계산(GetBase*/GetDerived*)을 담당한다.
+    /// 유닛의 스탯 모델: 5대 기본 스탯(base/성장/강화)과 파생 스탯 계산(GetBase*/GetDerived*)을 담당한다.
     /// 장비/상태 보정과 성장 레벨은 소유자(Unit)를 통해 조회한다.
+    ///
+    /// 명시적 공격력/방어력 스탯은 존재하지 않는다. 모든 전투 수치는 5스탯에서 파생된다.
+    ///   피해     = 스킬 위력 × 주스탯 × <see cref="SkillPowerScale"/>   (포켓몬식)
+    ///   최대체력 = CON × <see cref="HpPerConPoint"/>
+    ///   방어력   = STR × <see cref="DefensePerStrPoint"/>              (롤 방식 감쇠)
     /// </summary>
     [Serializable]
     public class UnitStats
     {
+        /// <summary>
+        /// 스킬 위력 1 × 주스탯 1이 만드는 피해량.
+        /// 전투 화력 전체를 조절하는 단일 손잡이다.
+        /// </summary>
+        public const float SkillPowerScale = 0.2f;
+
+        /// <summary>CON 1점이 만드는 최대 체력.</summary>
+        public const int HpPerConPoint = 100;
+
+        /// <summary>STR 1점이 만드는 방어력.</summary>
+        public const float DefensePerStrPoint = 1f;
+
+        /// <summary>
+        /// 방어력 감쇠 기준값의 1레벨 값. 리그 오브 레전드의 100에 해당한다.
+        /// 받는 피해 배율 = 기준값 / (기준값 + 방어력).
+        /// </summary>
+        public const float ArmorConstantBase = 100f;
+
+        /// <summary>
+        /// 레벨 1당 기준값 증가분.
+        ///
+        /// 롤과 달리 이 게임은 모든 스탯이 레벨에 선형 비례한다. 기준값을 100으로 고정하면
+        /// 방어력만 계속 커져 후반에 피해가 무한히 상쇄된다. 기준값을 함께 키워
+        /// **감소율이 레벨과 무관하게 일정**하도록 만든다.
+        /// </summary>
+        public const float ArmorConstantPerLevel = 10f;
+
         private Unit _owner;
 
         // 기본 스탯 수치
@@ -30,12 +62,6 @@ namespace Entities
         [SerializeField] private int lukBase;
         [SerializeField] private int lukIncrementLvl;
         [SerializeField] private int lukIncrementUpgrade;
-
-        // 명시적 전투 스탯 (STR 파생이 아님)
-        [SerializeField] private int atkBase;
-        [SerializeField] private int atkIncrementLvl;
-        [SerializeField] private int defBase;
-        [SerializeField] private int defIncrementLvl;
 
         // 강화 횟수 (육성/보상)
         [SerializeField] private int strUpgrade;
@@ -59,10 +85,6 @@ namespace Entities
         public int LukBase { get => lukBase; set => lukBase = value; }
         public int LukIncrementLvl { get => lukIncrementLvl; set => lukIncrementLvl = value; }
         public int LukIncrementUpgrade { get => lukIncrementUpgrade; set => lukIncrementUpgrade = value; }
-        public int AtkBase { get => atkBase; set => atkBase = value; }
-        public int AtkIncrementLvl { get => atkIncrementLvl; set => atkIncrementLvl = value; }
-        public int DefBase { get => defBase; set => defBase = value; }
-        public int DefIncrementLvl { get => defIncrementLvl; set => defIncrementLvl = value; }
         public int StrUpgrade { get => strUpgrade; set => strUpgrade = value; }
         public int DexUpgrade { get => dexUpgrade; set => dexUpgrade = value; }
         public int ConUpgrade { get => conUpgrade; set => conUpgrade = value; }
@@ -80,9 +102,7 @@ namespace Entities
             int dataDexBase, int dataDexIncrementLvl, int dataDexIncrementUpgrade,
             int dataConBase, int dataConIncrementLvl, int dataConIncrementUpgrade,
             int dataIntBase, int dataIntIncrementLvl, int dataIntIncrementUpgrade,
-            int dataLukBase, int dataLukIncrementLvl, int dataLukIncrementUpgrade,
-            int dataAtkBase, int dataAtkIncrementLvl,
-            int dataDefBase, int dataDefIncrementLvl)
+            int dataLukBase, int dataLukIncrementLvl, int dataLukIncrementUpgrade)
         {
             bool hasPrimaryStats = dataStrBase != 0 || dataDexBase != 0 || dataConBase != 0 || dataIntBase != 0 || dataLukBase != 0;
             if (!hasPrimaryStats)
@@ -105,11 +125,6 @@ namespace Entities
             lukBase = dataLukBase;
             lukIncrementLvl = dataLukIncrementLvl;
             lukIncrementUpgrade = dataLukIncrementUpgrade;
-
-            atkBase = dataAtkBase;
-            atkIncrementLvl = dataAtkIncrementLvl;
-            defBase = dataDefBase;
-            defIncrementLvl = dataDefIncrementLvl;
         }
 
         /// <summary>지정한 5스탯의 강화 수치를 증가</summary>
@@ -127,23 +142,27 @@ namespace Entities
 
         // ===== 성장/보정 =====
 
-        /// <summary>성장 레벨: 적 = Level, 아군 = Level - 1</summary>
+        /// <summary>
+        /// 성장 레벨. 아군·적 모두 <c>Level − 1</c>로 통일한다.
+        /// 즉 Level 1은 성장분 0이며, 스탯은 항상 <c>base + incrementLvl × 성장레벨</c>이다.
+        /// 적의 Level은 현재 스테이지가, 아군의 Level은 누적 EXP가 결정한다.
+        /// </summary>
         public int GetStatGrowthLevel()
         {
-            return _owner.IsEnemy ? Mathf.Max(0, _owner.Level) : Mathf.Max(0, _owner.Level - 1);
+            return Mathf.Max(0, _owner.Level - 1);
         }
 
-        /// <summary>캐릭터 주/부 스탯 배율 (주 ×1.2, 부 ×1.1)</summary>
+        /// <summary>캐릭터별 트레이닝 보너스. 주/부 스탯과 보너스율은 영웅 데이터가 결정한다.</summary>
         private int ApplyCharacterStatBonus(BaseEnums.PrimaryStat stat, int rawValue)
         {
             float multiplier = 1f;
             if (IsCharacterStatTag(_owner.MainStat, stat))
             {
-                multiplier += 0.2f;
+                multiplier += _owner.MainStatTrainingBonus;
             }
-            if (IsCharacterStatTag(_owner.SubStat, stat))
+            if (_owner.SubStats.Any(statName => IsCharacterStatTag(statName, stat)))
             {
-                multiplier += 0.1f;
+                multiplier += _owner.SubStatTrainingBonus;
             }
 
             return Mathf.Max(0, Mathf.RoundToInt(rawValue * multiplier));
@@ -173,9 +192,15 @@ namespace Entities
 
         public int GetBaseStr()
         {
+            return _owner.ApplyEncumbranceStatMultiplier(BaseEnums.PrimaryStat.STR, GetUnburdenedBaseStr());
+        }
+
+        /// <summary>휴대 한도 산정용 STR. 중량 페널티만 제외하고 성장·장비·상태 배율은 반영한다.</summary>
+        internal int GetUnburdenedBaseStr()
+        {
             int raw = strBase + strIncrementLvl * GetStatGrowthLevel() + strIncrementUpgrade * strUpgrade
                 + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.STR) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.STR);
-            return _owner.ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.STR, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.STR, raw));
+            return _owner.ApplyStatusPrimaryStatMultipliers(BaseEnums.PrimaryStat.STR, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.STR, raw));
         }
 
         public int GetBaseDex()
@@ -223,21 +248,35 @@ namespace Entities
 
         // ===== 파생 스탯 =====
 
-        public int GetDerivedHp() => Mathf.Max(1, GetBaseCon() * 1000);
+        public int GetDerivedHp() => Mathf.Max(1, GetBaseCon() * HpPerConPoint);
 
         public int GetDerivedMana() => 100;
 
-        public int GetDerivedAtk() => Mathf.Max(1, atkBase + atkIncrementLvl * GetStatGrowthLevel());
+        /// <summary>방어력. STR에서 파생된다.</summary>
+        public int GetDerivedDef()
+            => Mathf.Max(0, Mathf.RoundToInt(GetBaseStr() * DefensePerStrPoint));
 
-        public int GetDerivedDef() => Mathf.Max(0, defBase + defIncrementLvl * GetStatGrowthLevel());
+        /// <summary>이 유닛의 레벨에 대응하는 방어력 감쇠 기준값.</summary>
+        public float GetArmorConstant()
+            => ArmorConstantBase + ArmorConstantPerLevel * Mathf.Max(0, _owner.Level - 1);
 
-        public float GetDerivedCritChance() => Mathf.Clamp01(GetBaseLuk() * 0.01f);
+        /// <summary>
+        /// 포켓몬식 피해 산출: 스킬이 가진 고정 위력에 시전자의 지정 스탯을 곱한다.
+        /// 방어력이 없으므로 이 값이 곧 기본 피해량이며, 이후 치명타·피해 보정만 곱해진다.
+        /// </summary>
+        public int GetSkillDamage(int skillPower, BaseEnums.PrimaryStat stat)
+            => Mathf.Max(1, Mathf.RoundToInt(
+                Mathf.Max(0, skillPower) * Mathf.Max(0, GetBasePrimaryStat(stat)) * SkillPowerScale));
+
+        // 최종 명중 확률은 Unit.AttributesUpdate에서 0~100%로 제한한다.
+        // 여기서는 학자처럼 초과분을 사용하는 효과를 위해 원시 확률을 보존한다.
+        public float GetDerivedCritChance() => Mathf.Max(0f, GetBaseLuk() * 0.01f);
 
         public float GetDerivedCritDamage() => 1.5f;
 
         public float GetDerivedCodeAcceleration() => 1f;
 
-        public float GetDerivedAttackSpeed() => 1f + Mathf.Max(0, GetBaseDex()) * 0.01f;
+        public float GetDerivedActionSpeed() => 1f + Mathf.Max(0, GetBaseDex()) * 0.01f;
 
         public float GetDerivedEvasionChance() => 0f;
 

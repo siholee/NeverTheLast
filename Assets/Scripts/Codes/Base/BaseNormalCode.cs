@@ -26,6 +26,7 @@ namespace Codes.Base
             CastingDelay = 0.5f;
             ManaAmount = 10;
             CodeTags = new List<int> { BaseClasses.DamageTag.Physical };
+            Power = 50;   // 기본 일반공격 위력
             _prefab = GameManager.Instance.sfxManager.ProjectilePrefabs["FireBlast"];
         }
 
@@ -96,7 +97,7 @@ namespace Codes.Base
         /// </summary>
         protected virtual int CalculateDamage(float critMultiplier)
         {
-            return (int)(Caster.AtkCurr * 1.0f * critMultiplier);
+            return RollDamage(critMultiplier);
         }
 
         /// <summary>
@@ -171,7 +172,8 @@ namespace Codes.Base
                 unit.currentCell && 
                 unit.currentCell.yPos > 0 && 
                 unit.currentCell.isOccupied && 
-                unit.isActive
+                unit.isActive &&
+                !unit.IsUntargetable
             ).ToList();
         }
         

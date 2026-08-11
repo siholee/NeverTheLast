@@ -175,7 +175,7 @@ namespace Managers
 
             if (!infiniteMode && !CanSelectForRole(MainUnitId, CharacterRole.Main))
             {
-                Debug.LogWarning("[CharSel] 육성 모드 메인 캐릭터는 아탈란테만 선택할 수 있습니다.");
+                Debug.LogWarning("[CharSel] 육성 모드 메인으로 시작할 수 없는 캐릭터입니다.");
                 return;
             }
 

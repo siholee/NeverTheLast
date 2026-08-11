@@ -146,7 +146,7 @@ public static class Target
         }
 
         // 필드에 있는 유닛만 필터링 (yPos > 0)
-        return targetList.Where(unit => unit && unit.currentCell && unit.currentCell.yPos > 0 && unit.currentCell.isOccupied).ToList();
+        return targetList.Where(unit => unit && !unit.IsUntargetable && unit.currentCell && unit.currentCell.yPos > 0 && unit.currentCell.isOccupied).ToList();
     }
 
     /// <summary>

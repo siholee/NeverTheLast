@@ -5,12 +5,25 @@ using UnityEngine;
 
 namespace Managers
 {
+    /// <summary>스테이지의 성격. HUD 진행 예고에서 칸 색과 기호를 정하는 데 쓴다.</summary>
+    public enum StageKind
+    {
+        Normal,
+        Elite,
+        Event,
+        MidBoss,
+        Boss,
+    }
+
     public class RoundManager
     {
         private readonly DataManager _dataManager;
         public int Stage { get; private set; }  // 현재 전투 스테이지
         public int Round { get; private set; }  // 10스테이지마다 증가하는 라운드
-        public int EnemyLevel => Mathf.Max(0, Stage - 1);
+        // 누적 전투 라운드 기준 성장 레벨. 1번째 전투는 기본 스탯(성장 0회),
+        // n번째 전투는 각 스탯의 IncrementLvl을 (n - 1)회 적용한다.
+        /// <summary>적 유닛의 레벨. 현재 스테이지와 같다(1스테이지 = Level 1 = 성장분 0).</summary>
+        public int EnemyLevel => Mathf.Max(1, Stage);
         public int StageInRound => ((Stage - 1) % 10) + 1;
         public int CurrentThemeId => _currentStageTheme?.id ?? 0;
         public string CurrentThemeName => _currentStageTheme?.name ?? "";
@@ -240,6 +253,42 @@ namespace Managers
             return fixedBoss?.bossId ?? 0;
         }
 
+        /// <summary>
+        /// 임의의 스테이지가 어떤 성격인지 판정한다. HUD의 진행 예고 표시에 쓴다.
+        /// 스폰 로직(<see cref="SpawnEnemiesForStage"/>)과 같은 규칙을 따르므로
+        /// 규칙을 바꿀 때는 두 곳을 함께 고쳐야 한다.
+        /// </summary>
+        public StageKind GetStageKind(int stage)
+        {
+            EnsureDataLoaded();
+
+            if (GetFixedBossId(stage) > 0) return StageKind.Boss;
+
+            int rewardRound = GetRewardRound(stage);
+            int stageInRound = ((stage - 1) % 10) + 1;
+            bool roundHasFixedBoss = _stageThemeDataList?.fixedBossStages?
+                .Any(data => GetRewardRound(data.stage) == rewardRound) ?? false;
+
+            if (stageInRound == 10 && !roundHasFixedBoss) return StageKind.Boss;
+            if (stageInRound == 9 && roundHasFixedBoss) return StageKind.Boss;
+            // 중보스 여부는 테마마다 다르지만, 예고는 현재 테마 기준으로만 근사한다.
+            if (stageInRound == 8 && (_currentStageTheme?.midBossId ?? 0) > 0) return StageKind.MidBoss;
+            if (stageInRound == 5) return StageKind.Event;
+            return StageKind.Normal;
+        }
+
+        /// <summary>현재 스테이지부터 count개의 진행 예고를 반환한다.</summary>
+        public List<StageKind> GetUpcomingStageKinds(int count)
+        {
+            var kinds = new List<StageKind>();
+            for (int i = 0; i < Mathf.Max(0, count); i++)
+            {
+                kinds.Add(GetStageKind(Stage + i));
+            }
+
+            return kinds;
+        }
+
         public void StopRound()
         {
             IsRoundInProgress = false;
@@ -290,6 +339,16 @@ namespace Managers
             if (themeStagePattern?.patterns != null && themeStagePattern.patterns.Count > 0)
             {
                 RoundPattern themePattern = SelectRandomPattern(themeStagePattern.patterns);
+                if (themePattern?.enemyIds != null)
+                {
+                    foreach (int enemyId in themePattern.enemyIds)
+                    {
+                        if (_enemyDataList.enemies.Any(enemy => enemy.id == enemyId))
+                        {
+                            enemyIdsToSpawn.Add(enemyId);
+                        }
+                    }
+                }
                 if (themePattern?.archetypes != null)
                 {
                     foreach (int archetypeId in themePattern.archetypes)

@@ -34,6 +34,10 @@ namespace Managers
         // 유닛이 아닌 화자(일행, 내레이션 등)는 비워두면 초상화 없이 표시된다.
         public string portrait;
 
+        // 선택: 화자 스탠딩 일러스트 파일명(Resources/Sprite/Standings 기준, 확장자 제외).
+        // 사건 화면에서는 standing을 portrait보다 우선하며, 둘 다 없으면 유닛 데이터에서 자동 해석한다.
+        public string standing;
+
         // 선택: 표정. 초상화 파일명 뒤에 접미사로 붙여 해석한다.
         //   예) portrait=TSUKUYOMI_PORTRAIT, emotion=smile → "TSUKUYOMI_PORTRAIT_smile"
         // 해당 파일이 없으면 표정 없는 기본 초상화로 자동 폴백하므로,
@@ -65,6 +69,7 @@ namespace Managers
                 speaker = speaker?.Replace(token, value),
                 text = text?.Replace(token, value),
                 portrait = portrait?.Replace(token, value),
+                standing = standing?.Replace(token, value),
                 emotion = emotion,
                 effect = effect,
                 sfx = sfx,

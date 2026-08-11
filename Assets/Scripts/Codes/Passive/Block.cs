@@ -64,8 +64,8 @@ namespace Codes.Passive
             _elapsed -= TickInterval;
             if (UnityEngine.Random.value > GetStageChance()) return;
 
-            int shieldAmount = Mathf.RoundToInt(Caster.GetBaseCon() * 0.8f + GetStageShieldBonus());
-            Caster.AddShield(shieldAmount);
+            int shieldAmount = Caster.SkillDamage(40, BaseEnums.PrimaryStat.CON) + Mathf.RoundToInt(GetStageShieldBonus());
+            Caster.AddShield(shieldAmount, Caster);
             Debug.Log($"[막기] {Caster.UnitName}이 {shieldAmount} 방어막 획득");
         }
 

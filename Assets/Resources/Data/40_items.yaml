@@ -1,88 +1,144 @@
 items:
-  - id: 4001
-    name: 평범한 로브
-    slot: Armor
-    category: LightArmor
-    requiredProficiency: LightArmor
-    rarity: 1
-    weight: 2
-    statBonuses:
-      - stat: CON
-        amount: 1
-
-  - id: 4002
-    name: 나무 지팡이
+  # T1 무기 — 효과는 의도적으로 5스탯 +1만 제공한다.
+  - id: 4101
+    name: 의식용 단검
     slot: MainHand
-    category: Wand
-    requiredProficiency: Wand
+    category: Dagger
+    requiredProficiency: Dagger
+    rarity: 1
+    weight: 1
+    statBonuses: [{ stat: LUK, amount: 1 }]
+
+  - id: 4102
+    name: 이빨 빠진 검
+    slot: MainHand
+    category: Longsword
+    requiredProficiency: Longsword
     rarity: 1
     weight: 2
-    statBonuses:
-      - stat: INT
-        amount: 1
-    codeGrants:
-      - slot: normal
-        codeId: 10
-        stage: 1
+    statBonuses: [{ stat: STR, amount: 1 }]
 
-  - id: 4003
-    name: 녹슨 활
+  - id: 4103
+    name: 녹슨 대검
+    slot: MainHand
+    category: Greatsword
+    requiredProficiency: Greatsword
+    rarity: 1
+    weight: 4
+    twoHanded: true
+    statBonuses: [{ stat: STR, amount: 1 }]
+
+  - id: 4104
+    name: 훈련용 장창
+    slot: MainHand
+    category: Spear
+    requiredProficiency: Spear
+    rarity: 1
+    weight: 3
+    twoHanded: true
+    statBonuses: [{ stat: DEX, amount: 1 }]
+
+  - id: 4105
+    name: 망가진 망치
+    slot: MainHand
+    category: Mace
+    requiredProficiency: Mace
+    rarity: 1
+    weight: 3
+    statBonuses: [{ stat: CON, amount: 1 }]
+
+  - id: 4106
+    name: 버려진 활
     slot: MainHand
     category: Longbow
     requiredProficiency: Longbow
     rarity: 1
+    weight: 3
+    twoHanded: true
+    statBonuses: [{ stat: DEX, amount: 1 }]
+
+  - id: 4107
+    name: 견습 사냥꾼의 활
+    slot: MainHand
+    category: Shortbow
+    requiredProficiency: Shortbow
+    rarity: 1
+    weight: 2
+    statBonuses: [{ stat: DEX, amount: 1 }]
+
+  - id: 4108
+    name: 초심자용 쇠뇌
+    slot: MainHand
+    category: Crossbow
+    requiredProficiency: Crossbow
+    rarity: 1
     weight: 4
     twoHanded: true
-    statBonuses:
-      - stat: DEX
-        amount: 1
-    codeGrants:
-      - slot: normal
-        codeId: 11
-        stage: 1
+    statBonuses: [{ stat: DEX, amount: 1 }]
 
-  - id: 4004
-    name: 평범한 갑옷
-    slot: Armor
-    category: HeavyArmor
-    requiredProficiency: HeavyArmor
+  - id: 4109
+    name: 유리 구슬
+    slot: MainHand
+    category: Orb
+    requiredProficiency: Orb
     rarity: 1
-    weight: 6
-    statBonuses:
-      - stat: CON
-        amount: 2
-    codeGrants:
-      - slot: passive
-        codeId: 10
-        stage: 1
+    weight: 1
+    statBonuses: [{ stat: INT, amount: 1 }]
 
-  - id: 4005
-    name: 녹슨 방패
+  - id: 4110
+    name: 버려진 방패
     slot: OffHand
     category: Shield
     requiredProficiency: Shield
     rarity: 1
     weight: 3
-    statBonuses:
-      - stat: STR
-        amount: 1
-    codeGrants:
-      - slot: passive
-        codeId: 11
-        stage: 1
+    statBonuses: [{ stat: STR, amount: 1 }]
 
+  # T1 방어구 — 의복은 숙련을 요구하지 않는다.
+  - id: 4111
+    name: 평범한 로브
+    slot: Armor
+    category: Clothing
+    rarity: 1
+    weight: 1
+    statBonuses: [{ stat: INT, amount: 1 }]
+
+  - id: 4112
+    name: 헤진 가죽 갑옷
+    slot: Armor
+    category: LightArmor
+    requiredProficiency: LightArmor
+    rarity: 1
+    weight: 2
+    statBonuses: [{ stat: DEX, amount: 1 }]
+
+  - id: 4113
+    name: 망가진 비늘 갑옷
+    slot: Armor
+    category: MediumArmor
+    requiredProficiency: MediumArmor
+    rarity: 1
+    weight: 4
+    statBonuses: [{ stat: CON, amount: 1 }]
+
+  - id: 4114
+    name: 녹슨 판금 갑옷
+    slot: Armor
+    category: HeavyArmor
+    requiredProficiency: HeavyArmor
+    rarity: 1
+    weight: 6
+    statBonuses: [{ stat: STR, amount: 1 }]
+
+  # 아즈텍 영입 사건 전용 보상. 일반 보상 풀에는 들어가지 않는다.
   - id: 4010
     name: 마카나
     slot: MainHand
-    category: Sword
-    requiredProficiency: Sword
+    category: Longsword
+    requiredProficiency: Longsword
     rarity: 5
     weight: 3
     eventOnly: true
-    statBonuses:
-      - stat: LUK
-        amount: 2
+    statBonuses: [{ stat: LUK, amount: 2 }]
     codeGrants:
-      - slot: passive
-        codeId: 90
-        stage: 1
+      - { slot: passive, codeId: 90, stage: 1 }

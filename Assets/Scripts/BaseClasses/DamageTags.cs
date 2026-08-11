@@ -13,6 +13,7 @@ namespace BaseClasses
     public const int ContactAttack = 30001;    // 접촉 공격
     public const int NonContactAttack = 30002; // 비접촉 공격
     public const int ShieldPenetration = 40001; // 방어막 관통
+    public const int TrueDamage = 40002;        // 고정 피해 — 방어력 감쇠를 무시한다
     public const int Slash = 50001; // 베기
   }
 }

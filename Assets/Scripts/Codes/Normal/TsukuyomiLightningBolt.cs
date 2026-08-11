@@ -7,7 +7,7 @@ namespace Codes.Normal
     {
         public TsukuyomiLightningBolt(NormalCodeContext context) : base(context)
         {
-            CodeName = "월뢰";
+            CodeName = "일반공격";
         }
     }
 }

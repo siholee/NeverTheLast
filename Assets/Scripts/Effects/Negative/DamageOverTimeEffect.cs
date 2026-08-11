@@ -63,7 +63,7 @@ namespace Effects.Negative
         private int CalculateTickDamage()
         {
             float multiplier = Caster != null ? Caster.GetDamageOverTimeApplicationMultiplier() : 1f;
-            return Mathf.Max(0, Mathf.RoundToInt((Caster?.AtkCurr ?? 0) * Coefficient / 100f * multiplier));
+            return Mathf.Max(0, Mathf.RoundToInt((Caster?.SkillDamage(50) ?? 0) * Coefficient / 100f * multiplier));
         }
         
         public override void OnRemove()
