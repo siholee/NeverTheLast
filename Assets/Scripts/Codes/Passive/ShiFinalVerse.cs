@@ -248,16 +248,15 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>Lv.78: 체력 30% 미만 대상 공격은 확정 치명타이며 치명타 확률×2를 치명타 피해에 더한다.</summary>
+    /// <summary>Lv.78: 체력 10% 미만 대상 공격은 확정 치명타이며 치명타 확률×2를 치명타 피해에 더한다.</summary>
     public sealed class ShiTenDaysNoFlower : ShiStatusPassive
     {
         public const int CodeId = 59;
 
         public ShiTenDaysNoFlower(PassiveCodeContext context) : base(
             context, 159, "shi_ten_days_no_flower", "화무십일홍",
-            "체력 30% 미만의 적을 공격하면 확정 치명타가 발생하고 치명타 확률의 2배가 치명타 피해에 더해집니다.")
+            "체력 10% 미만의 적을 공격하면 확정 치명타가 발생하고 치명타 확률의 2배가 치명타 피해에 더해집니다.")
         {
-            Transferable = false;
         }
 
         protected override Effects.Base.BaseEffect CreateEffect() => new ShiTenDaysNoFlowerEffect();
@@ -265,12 +264,15 @@ namespace Codes.Passive
 
     internal sealed class ShiTenDaysNoFlowerEffect : Effects.Base.BaseEffect
     {
+        /// <summary>확정 치명타가 걸리는 체력선. 전수 가능해진 대신 창을 좁혔다.</summary>
+        private const float TenDaysThreshold = 0.10f;
+
         public ShiTenDaysNoFlowerEffect() : base(0) { }
 
         public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
         {
             if (attacker != Caster || target == null || target.HpMax <= 0 || context == null ||
-                context.CodeType == BaseEnums.CodeType.Effect || (float)target.HpCurr / target.HpMax >= 0.3f)
+                context.CodeType == BaseEnums.CodeType.Effect || (float)target.HpCurr / target.HpMax >= TenDaysThreshold)
             {
                 return 1f;
             }

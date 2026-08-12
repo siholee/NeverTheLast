@@ -1254,7 +1254,12 @@ namespace Entities
             }
         }
 
+        /// <summary>원소를 부착한다. 부착 직후 원소 반응을 검사한다.</summary>
         public void GrantCombatElement(BaseEnums.UnitElement elementToGrant, float duration = CommonElementAuraDuration)
+            => GrantCombatElement(elementToGrant, duration, null);
+
+        /// <param name="source">부착을 일으킨 유닛. 원소 반응 피해가 이 유닛의 CON에 비례한다.</param>
+        public void GrantCombatElement(BaseEnums.UnitElement elementToGrant, float duration, Unit source)
         {
             if (elementToGrant == BaseEnums.UnitElement.None) return;
             bool isInnate = Enum.TryParse(Element, true, out BaseEnums.UnitElement innateElement) &&
@@ -1269,7 +1274,25 @@ namespace Entities
                 AttributesUpdate();
                 currentCell?.UpdateUI();
             }
+
+            // 부착 직후 반응 검사. 반응하면 두 원소가 함께 소모된다.
+            Effects.Negative.ElementalReaction.TryResolve(this, elementToGrant, source);
         }
+
+        /// <summary>부착된 원소를 걷어낸다. 고유 원소도 반응으로 소모될 수 있다.</summary>
+        public void RemoveCombatElement(BaseEnums.UnitElement elementToRemove)
+        {
+            if (!_combatElements.Remove(elementToRemove)) return;
+            _temporaryElementDurations.Remove(elementToRemove);
+            AttributesUpdate();
+            currentCell?.UpdateUI();
+        }
+
+        /// <summary>원소 반응이 일어났음을 알린다. 반응 연계 패시브가 이 신호를 듣는다.</summary>
+        public static event Action<Unit, Unit, string> AnyElementalReaction;
+
+        internal static void NotifyElementalReaction(Unit source, Unit target, string reactionName)
+            => AnyElementalReaction?.Invoke(source, target, reactionName);
 
         public bool HasCombatElement(BaseEnums.UnitElement elementToCheck)
         {
@@ -2019,6 +2042,15 @@ namespace Entities
         }
 
         /// <summary>현재 보유한 상태 중 지속피해 효과가 하나라도 있는지 확인한다.</summary>
+        /// <summary>해로운 상태를 하나라도 갖고 있는가.</summary>
+        public bool HasNegativeStatus()
+            => GetAllStatuses().Any(status =>
+                status != null && status.Category == BaseEnums.StatusCategory.Negative);
+
+        /// <summary>지정 숙련을 갖췄는가(외부 조회용).</summary>
+        public bool HasProficiency(EquipmentProficiency proficiency)
+            => HasEquipmentProficiency(proficiency);
+
         public bool HasDamageOverTimeStatus()
         {
             return ActiveEffectObjects().Any(effect => effect.IsDamageOverTime);

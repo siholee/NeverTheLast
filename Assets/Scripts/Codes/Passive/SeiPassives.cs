@@ -127,7 +127,7 @@ namespace Codes.Passive
         public SeiCitadel(PassiveCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "성채";
+            CodeName = "성역";
             IgnoresActivationChance = true;
         }
 

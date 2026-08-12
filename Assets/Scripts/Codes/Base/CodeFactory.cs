@@ -13,6 +13,26 @@ namespace Codes.Base
       return codeId switch
       {
         1 => new HolyEnchant(context),        // (구) 홀리 인챈트 — 미사용, 참고용 보존
+        // ── 베다 진영 (야마·아그니·인드라·바유) ──
+        240 => new YamaDeathContract(context),
+        241 => new VedicWisdom(context),
+        242 => new ElectroMastery(context),
+        243 => new PyroMastery(context),
+        244 => new YamaHighVoltage(context),
+        245 => new YamaCharge(context),
+        246 => new AllOrNothing(context),
+        247 => new AgniEternalFlame(context),
+        248 => new AgniArchmage(context),
+        249 => new IndraThunderMark(context),
+        250 => new IndraFrontrunner(context),
+        251 => new IndraGenius(context),
+        252 => new IndraDragonSlayer(context),
+        253 => new IndraOverconfidence(context),
+        254 => new IndraGuide(context),
+        255 => new VayuPurifyingWind(context),
+        224 => new VayuPurifyingWindEcho(context),
+        256 => new VayuSecondWind(context),
+        257 => new VayuAmbush(context),
         50 => new SeiCreation(context),       // 세이 초기 패시브 — 창조
         51 => new SeiCitadel(context),        // 세이 Lv.6  성채
         52 => new SeiPreparation(context),    // 세이 Lv.50 사전준비
@@ -116,6 +136,10 @@ namespace Codes.Base
         11 => new Shoot(context),
         12 => new Sachi(context),
         13 => new ShiVoidSlash(context), // 시 일반공격
+        240 => new YamaNormalAttack(context),
+        241 => new AgniNormalAttack(context),
+        242 => new IndraNormalAttack(context),
+        243 => new VayuNormalAttack(context),
         70 => new QuetzalcoatlBall(context),
         80 => new OrionNormalAttack(context),
         84 => new TheseusNormalAttack(context),
@@ -139,6 +163,10 @@ namespace Codes.Base
         6 => new a004_U_LovesPrize(context), // 피그말리온 궁극기
         7 => new a002_U_FinalBell(context), // 시 궁극기
         8 => new SeiSanctuary(context), // 세이 궁극기
+        240 => new YamaFinalArrival(context),
+        241 => new AgniWhiteFlame(context),
+        242 => new IndraThunderbolt(context),
+        243 => new VayuSouthWind(context),
         70 => new QuetzalcoatlYorisUltimate(context),
         80 => new OrionHeavyBlow(context),
         84 => new TheseusRecoveryStrike(context),

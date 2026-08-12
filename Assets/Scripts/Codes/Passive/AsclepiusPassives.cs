@@ -24,7 +24,7 @@ namespace Codes.Passive
         public AsclepiusNashorsTooth(PassiveCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "내셔의 이빨";
+            CodeName = "생명의 잔";
             IgnoresActivationChance = true;
             TransferVersionCodeId = 232;
         }

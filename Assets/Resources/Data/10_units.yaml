@@ -74,7 +74,7 @@ units:
       normal: 1
       ultimate: 1
     levelPassives:
-      - { codeId: 51, unlockLevel: 6,  stage: 1 }   # 성채
+      - { codeId: 51, unlockLevel: 6,  stage: 1 }   # 성역
       - { codeId: 52, unlockLevel: 50, stage: 1 }   # 사전준비
       - { codeId: 53, unlockLevel: 92, stage: 1 }   # 빅뱅
     portrait: SEI_PORTRAIT
@@ -430,7 +430,7 @@ units:
     element: Anemo
     startingProficiencies: [Orb, LightArmor]
     startingItemIds: [4109]
-    tags: [Indus]
+    tags: [Vedic]
     canStartAsMain: false
     canStartAsSupport: true
     canUseInInfinite: false
@@ -654,3 +654,171 @@ units:
       - { codeId: 58,  unlockLevel: 66, stage: 1 }   # 천살성
     portrait: SURTR_PORTRAIT
     standing: SURTR_STANDING
+
+  # ══ 베다 진영 ══════════════════════════════════════════════════
+  # 일러스트가 준비되기 전까지 세이의 초상화·스탠딩을 임시로 쓴다.
+
+  # 지속피해 코어. 수동적인 지속피해를 능동적으로 터뜨린다.
+  - id: 30
+    name: 야마
+    characterType: Locked
+    element: Electro
+    startingProficiencies: [Spear, MediumArmor]
+    tags: [Vedic, Lokapala]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: INT
+    subStat: DEX
+    subStats: [DEX, CON]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.05
+    strBase: 10
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 18
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 18
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 22
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 12
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes: { passive: 240, normal: 240, ultimate: 240 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 241, unlockLevel: 4,  stage: 1 }   # 지혜
+      - { codeId: 242, unlockLevel: 9,  stage: 1 }   # 원소 숙련 - 번개
+      - { codeId: 121, unlockLevel: 12, stage: 1 }   # 주문 보호막
+      - { codeId: 244, unlockLevel: 44, stage: 1 }   # 고전압
+      - { codeId: 245, unlockLevel: 65, stage: 1 }   # 충전
+      - { codeId: 246, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
+    portrait: SEI_PORTRAIT
+    standing: SEI_STANDING
+
+  # 베다/캐스터 파티의 서브 딜러.
+  - id: 31
+    name: 아그니
+    characterType: Locked
+    element: Pyro
+    startingProficiencies: [Orb]
+    tags: [Vedic, Lokapala]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: INT
+    subStat: LUK
+    subStats: [LUK]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 8
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 12
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 14
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 24
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 18
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 1
+    codes: { passive: 247, normal: 241, ultimate: 241 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 243, unlockLevel: 8,  stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 121, unlockLevel: 12, stage: 1 }   # 주문 보호막
+      - { codeId: 248, unlockLevel: 71, stage: 1 }   # 대마법사
+      - { codeId: 246, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
+    portrait: SEI_PORTRAIT
+    standing: SEI_STANDING
+
+  # 클래식 번개 하이퍼캐리.
+  - id: 32
+    name: 인드라
+    characterType: Locked
+    element: Electro
+    startingProficiencies: [Orb, LightArmor]
+    tags: [Vedic, Lokapala]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: INT
+    subStat: LUK
+    subStats: [LUK]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 8
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 14
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 14
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 26
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 16
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 1
+    codes: { passive: 249, normal: 242, ultimate: 242 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 250, unlockLevel: 11, stage: 1 }   # 선두주자
+      - { codeId: 251, unlockLevel: 20, stage: 1 }   # 천재
+      - { codeId: 252, unlockLevel: 30, stage: 1 }   # 용살자
+      - { codeId: 253, unlockLevel: 45, stage: 1 }   # 자기과신
+      - { codeId: 246, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
+      - { codeId: 254, unlockLevel: 92, stage: 1 }   # 인도자
+    portrait: SEI_PORTRAIT
+    standing: SEI_STANDING
+
+  # 범용 방어형 서포터.
+  - id: 33
+    name: 바유
+    characterType: Starter
+    element: Anemo
+    startingProficiencies: [Longbow, LightArmor]
+    tags: [Vedic, Lokapala]
+    canStartAsMain: true
+    canStartAsSupport: false
+    canUseInInfinite: true
+    mainStat: CON
+    subStat: DEX
+    subStats: [DEX]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 12
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 18
+    dexIncrementLvl: 2
+    dexIncrementUpgrade: 1
+    conBase: 22
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 12
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 14
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes: { passive: 255, normal: 243, ultimate: 243 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 140, unlockLevel: 4,  stage: 1 }   # 궁수
+      - { codeId: 256, unlockLevel: 13, stage: 1 }   # 재기의 바람
+      - { codeId: 122, unlockLevel: 15, stage: 1 }   # 변덕쟁이
+      - { codeId: 257, unlockLevel: 30, stage: 1 }   # 기습
+      - { codeId: 246, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
+    portrait: SEI_PORTRAIT
+    standing: SEI_STANDING

@@ -144,7 +144,7 @@ namespace Codes.Ultimate
                 duration: Duration,
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
-                description: "기본공격마다 차원문 4개가 각각 동일 대상에게 화살 2발을 발사합니다."));
+                description: "기본공격마다 차원문 4개가 열린다. 차원문마다 대상을 무작위로 정하고, 한 차원문의 화살 2발은 같은 대상을 노린다."));
             Caster.StartCoroutine(ExpirePortals());
             StopCode();
         }

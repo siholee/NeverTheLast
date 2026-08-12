@@ -8,7 +8,7 @@ codes:
       verbalName: 약점 추적
       codeName: AtalanteWeaknessTracker
       description: "공격 대상의 디버프 1개당 방어력을 5% 무시한다(최대 20%). <고유 패시브> <열화 전수본 230>"
-    - { id: 140, verbalName: 궁수, codeName: AtalanteArcher, description: "장궁·단궁·쇠뇌 숙련을 얻는다." }
+    - { id: 140, verbalName: 궁수, codeName: AtalanteArcher, description: "장궁·단궁·쇠뇌 중 하나를 장착했고 숙련되어 있으면 STR +5." }
     - { id: 141, verbalName: 민첩함, codeName: AtalanteAgility, description: "DEX +2, 경갑 숙련을 얻는다." }
     - { id: 142, verbalName: 유리대포, codeName: AtalanteGlassCannon, description: "최대 체력 -25%, 적 방어력 20% 무시." }
     - { id: 143, verbalName: 사냥꾼, codeName: AtalanteHunter, description: "짐승 또는 괴수 분류의 적에게 가하는 피해 +30%." }
@@ -31,7 +31,7 @@ codes:
     - { id: 55, verbalName: 만류귀종, codeName: ShiAllWeaponMastery, description: "모든 무기에 대한 숙련을 얻는다." }
     - { id: 56, verbalName: 신속, codeName: ShiSwiftness, description: "바람 원소가 부착되어 있는 동안 DEX +10." }
     - { id: 58, verbalName: 천살성, codeName: HeavenlyKiller, description: "공격 후 최대 체력의 8% 미만인 적을 즉시 처형한다." }
-    - { id: 59, verbalName: 화무십일홍, codeName: ShiTenDaysNoFlower, description: "체력 30% 미만인 적 공격 시 확정 치명타. 치명타 확률의 2배가 해당 공격의 치명타 피해에 더해진다. <전수 불가능>" }
+    - { id: 59, verbalName: 화무십일홍, codeName: ShiTenDaysNoFlower, description: "체력 10% 미만인 적 공격 시 확정 치명타. 치명타 확률의 2배가 해당 공격의 치명타 피해에 더해진다." }
     - { id: 60, verbalName: 당연한 운명, codeName: ShiCertainDestiny, description: "천살성 보유 시 처형 기준을 최대 체력의 12% 미만으로 대체한다." }
     - id: 11
       verbalName: 막기
@@ -89,7 +89,7 @@ codes:
       verbalName: 마카나
       codeName: MacanaGrowth
       description: "적 처치 시 25% 확률로 영구적으로 무작위 스탯 +1."
-    - { id: 91, verbalName: 내셔의 이빨, codeName: AsclepiusNashorsTooth, description: "궁극기 사용 후 5초간 DEX가 40 증가한다. <고유 패시브> <열화 전수본 232>" }
+    - { id: 91, verbalName: 생명의 잔, codeName: AsclepiusNashorsTooth, description: "궁극기 사용 후 5초간 DEX가 40 증가한다. <고유 패시브> <열화 전수본 232>" }
     - { id: 92, verbalName: 태양의 박자, codeName: AmaterasuSunRhythm, description: "기본공격 적중 시 6초간 DEX +4. 최대 6중첩. <고유 패시브> <열화 전수본 233>" }
     - { id: 93, verbalName: 투명, codeName: AmaterasuConcealment, description: "체력이 35% 이하일 때 대상 지정 우선도 -1." }
     - { id: 94, verbalName: 폭죽놀이, codeName: AmaterasuFireworks, description: "4번째 기본공격마다 무작위 적에게 DEX 기반 위력 20의 단일 피해를 주는 폭죽 4발을 발사한다." }
@@ -103,7 +103,7 @@ codes:
     - { id: 223, verbalName: 사랑신의 가호, codeName: PygmalionLoveGodBlessing, description: "접촉 분류 기술에게 받는 피해가 25% 감소한다." }
     - { id: 230, verbalName: 약점 추적 (전수), codeName: InheritedAtalanteWeaknessTracker, description: "대상의 디버프 하나당 방어력을 3% 무시한다(최대 12%). <열화 전수본>" }
     - { id: 231, verbalName: 원소 친화 - 바위 (전수), codeName: InheritedOrionGeoAffinity, description: "바위 원소를 보유한 동안 2초마다 CON +1. <열화 전수본>" }
-    - { id: 232, verbalName: 내셔의 이빨 (전수), codeName: InheritedAsclepiusNashorsTooth, description: "궁극기 사용 후 5초간 DEX가 20 증가한다. <열화 전수본>" }
+    - { id: 232, verbalName: 생명의 잔 (전수), codeName: InheritedAsclepiusNashorsTooth, description: "궁극기 사용 후 5초간 DEX가 20 증가한다. <열화 전수본>" }
     - { id: 233, verbalName: 태양의 박자 (전수), codeName: InheritedAmaterasuSunRhythm, description: "기본공격 적중 시 6초간 DEX +2. 최대 4중첩. <열화 전수본>" }
     # 일반 등급 적은 테마별로 아래 네 단계 성장 패시브를 공유한다.
     - { id: 101, verbalName: 북방의 기세, codeName: NordCommonSpirit, description: "주는 피해가 5% 증가한다. <적 전용> <전수 불가능>" }
@@ -188,9 +188,30 @@ codes:
     - { id: 210, verbalName: 재규어의 밤, codeName: AztecPassive210, description: "체력이 50% 미만이면 주는 피해·코드 가속·흡혈이 증가하지만 받는 피해도 증가한다. <전수 불가능>" }
     - { id: 211, verbalName: 신좌 없는 신, codeName: AztecPassive211, description: "전투당 한 번 치명 피해를 버티고 최대 체력의 20%를 회복하며 궁극기를 준비한다. <전수 불가능>" }
     - { id: 50, verbalName: 최초의 노래, codeName: SeiCreation, description: "<고유 패시브> <전수 불가> 세이가 필드에 있는 동안 모든 아군의 피해에 세이 INT의 [1.5/2.2/3.0]배만큼 고정 피해가 추가된다. (아군 평균 피해의 약 15/22/30%)" }
-    - { id: 51, verbalName: 성채, codeName: SeiCitadel, description: "세이가 필드에 있는 동안 아군 전체의 받는 피해가 10% 감소한다. 동일 코드끼리 중첩되지 않는다." }
+    - { id: 51, verbalName: 성역, codeName: SeiCitadel, description: "세이가 필드에 있는 동안 아군 전체의 받는 피해가 10% 감소한다. 동일 코드끼리 중첩되지 않는다." }
     - { id: 52, verbalName: 사전준비, codeName: SeiPreparation, description: "전투 시작 시 궁극기 충전량이 100%가 된다. 마나를 쓰지 않는 특수 궁극기 보유자에게는 효과가 없다." }
     - { id: 53, verbalName: 빅뱅, codeName: SeiBigBang, description: "<전수 불가> 전투 중 최초로 궁극기를 발동하면 아군 전체의 궁극기 충전량이 100%가 된다. 특수 궁극기 보유자에게도 적용된다." }
+
+    # ── 베다 진영 ──
+    - { id: 240, verbalName: 죽음의 계약, codeName: YamaDeathContract, description: "야마가 필드에 있는 동안 모든 아군이 가하는 지속피해 +25%. 동일·하위 코드와 중복되지 않고 높은 쪽만 적용된다. <고유 패시브> <열화 전수본 123>" }
+    - { id: 241, verbalName: 지혜, codeName: VedicWisdom, description: "INT +4." }
+    - { id: 242, verbalName: 원소 숙련 - 번개, codeName: ElectroMastery, description: "번개 원소를 보유한 적에게 주는 피해 +10%." }
+    - { id: 243, verbalName: 원소 숙련 - 불, codeName: PyroMastery, description: "불 원소를 보유한 적에게 주는 피해 +10%." }
+    - { id: 244, verbalName: 고전압, codeName: YamaHighVoltage, description: "감전을 생성하면 6초간 주는 피해 +25%." }
+    - { id: 245, verbalName: 충전, codeName: YamaCharge, description: "감전으로 피해를 입히면 마나를 회복한다. 재사용 대기시간 4초." }
+    - { id: 246, verbalName: 전부 아니면 전무, codeName: AllOrNothing, description: "덱 전원이 로카팔라이거나 자신만 로카팔라일 경우, 레벨에 따른 성장 스탯이 1.2배가 된다." }
+    - { id: 247, verbalName: 영원히 타오르는 불꽃, codeName: AgniEternalFlame, description: "필드의 불 원소 아군이 가하는 피해 +20%. 동일·하위 코드와 중복되지 않고 높은 쪽만 적용된다. <고유 패시브>" }
+    - { id: 248, verbalName: 대마법사, codeName: AgniArchmage, description: "필드의 보주 숙련 아군이 가하는 특수 피해의 치명타 피해 +25%. 동일·하위 코드와 중복되지 않고 높은 쪽만 적용된다." }
+    - { id: 249, verbalName: 뇌정 각인, codeName: IndraThunderMark, description: "<전수 불가능> 적을 타격할 때마다 4초간 유지되는 표식을 남긴다. 표식이 4가 되면 INT의 40%에 해당하는 고정 피해를 입힌다. 치명타가 적용되지 않는다. <고유 패시브>" }
+    - { id: 250, verbalName: 선두주자, codeName: IndraFrontrunner, description: "전투 종료 후 획득하는 EXP +30%." }
+    - { id: 251, verbalName: 천재, codeName: IndraGenius, description: "INT 집중 훈련 시 훈련 효율 +10%." }
+    - { id: 252, verbalName: 용살자, codeName: IndraDragonSlayer, description: "'용' 속성 유닛에게 가하는 피해 +40%." }
+    - { id: 253, verbalName: 자기과신, codeName: IndraOverconfidence, description: "적 처치 시 특수 피해의 가하는 피해 +5%. 중첩된다." }
+    - { id: 254, verbalName: 인도자, codeName: IndraGuide, description: "궁극기 코드 발동 이후 필드의 다른 아군에게 마나를 부여한다." }
+    - { id: 255, verbalName: 정화의 바람, codeName: VayuPurifyingWind, description: "궁극기 발동 시 충전 1 획득(최대 2). 충전이 있고 디버프에 걸린 아군이 있으면 충전을 소모해 해로운 효과를 제거한다. <고유 패시브> <열화 전수본 224>" }
+    - { id: 224, verbalName: 정화의 바람 (전수), codeName: VayuPurifyingWindEcho, description: "궁극기 발동 시 충전 0.5 획득(최대 1). 충전이 차면 아군 하나의 해로운 효과를 제거한다." }
+    - { id: 256, verbalName: 재기의 바람, codeName: VayuSecondWind, description: "체력이 40% 이하로 떨어지면 4초에 걸쳐 최대 체력의 40%를 회복한다. 전투 중 1회." }
+    - { id: 257, verbalName: 기습, codeName: VayuAmbush, description: "최대 체력인 적을 공격하면 확정 치명타가 발생하고 치명타 확률의 2배가 치명타 피해에 더해진다." }
 
   normal:
     - id: 1
@@ -250,7 +271,16 @@ codes:
     - { id: 91, verbalName: 일반공격, codeName: AsclepiusNormalAttack, description: "단일 적에게 INT 기반 위력 60의 특수 피해를 입힌다. #비접촉 #특수" }
     - { id: 92, verbalName: 일반공격, codeName: AmaterasuNormalAttack, description: "단일 적에게 DEX 기반 위력 70의 물리 피해를 입힌다. #비접촉 #물리" }
 
+    - { id: 240, verbalName: 일반공격, codeName: YamaNormalAttack, description: "단일 적에게 DEX 기반 위력 60의 물리 피해를 입힌다. #물리 #베기 #접촉" }
+    - { id: 241, verbalName: 일반공격, codeName: AgniNormalAttack, description: "단일 적에게 INT 기반 위력 60의 특수 피해를 입힌다. #특수 #비접촉" }
+    - { id: 242, verbalName: 일반공격, codeName: IndraNormalAttack, description: "단일 적에게 INT 기반 위력 50의 특수 피해를 입힌다. #특수 #비접촉" }
+    - { id: 243, verbalName: 일반공격, codeName: VayuNormalAttack, description: "단일 적에게 CON 기반 위력 60의 물리 피해를 입힌다. #물리 #비접촉" }
+
   ultimate:
+    - { id: 240, verbalName: 언젠가 다다를 마지막, codeName: YamaFinalArrival, description: "적 전체를 베어 DEX 기반 위력 60의 피해를 입히고 번개 원소를 부여한다. 이후 대상의 지속피해를 즉시 정산해 INT의 80%만큼 추가 피해를 만든다. #특수 #베기 #접촉" }
+    - { id: 241, verbalName: 백화, codeName: AgniWhiteFlame, description: "적 전체에게 INT 기반 위력 65의 피해를 입히고 불 원소를 부여한다. #특수 #비접촉" }
+    - { id: 242, verbalName: 천벌, codeName: IndraThunderbolt, description: "단일 대상에게 INT의 [레벨]%에 해당하는 피해를 입히고, 계수를 20%p씩 깎으며 다른 적에게 튕긴다. 계수가 0이 되거나 남은 적이 없으면 멈춘다. #바운스 #특수 #비접촉" }
+    - { id: 243, verbalName: 남풍, codeName: VayuSouthWind, description: "적 전체에게 DEX 기반 위력 50의 피해를 입히고 바람 원소 부여, 방어력을 20% 감소시킨다. 이후 6초간 매초 CON 기반 위력 25의 잔풍 피해를 남긴다. #특수 #비접촉" }
     - id: 3
       verbalName: 달빛 추격
       codeName: a005_U_Moonfall
