@@ -106,7 +106,7 @@ namespace Codes.Ultimate
     /// <summary>아그니 U — 백화(白火). 적 전체에게 INT 기반 위력 65 + 불 원소 부여.</summary>
     public sealed class AgniWhiteFlame : SimpleUltimate
     {
-        private const int Power = 65;
+        private const int FlamePower = 65;
 
         public AgniWhiteFlame(UltimateCodeContext context)
             : base(context, "백화", 8f, 0.5f) { }
@@ -116,7 +116,7 @@ namespace Codes.Ultimate
             bool isCrit = Random.value <= Caster.CritChanceCurr;
             float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
             int damage = Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(Power, BaseEnums.PrimaryStat.INT) * critMultiplier));
+                Caster.SkillDamage(FlamePower, BaseEnums.PrimaryStat.INT) * critMultiplier));
 
             var tags = new List<int>
             {

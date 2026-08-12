@@ -1008,7 +1008,8 @@ namespace Entities
             string path = $"Sprite/Portraits/{_name}";
             PortraitPath = path;
             Sprite sprite = Resources.Load<Sprite>(path);
-            currentCell.portraitRenderer.sprite = sprite;
+            // 해상도가 제각각이라 Cell이 칸 크기에 맞춰 배율을 잡아 준다.
+            currentCell.SetPortrait(sprite);
             // currentCell.portraitRenderer.flipX = isEnemy; // 카드면 미사용, 일러라면 적일 경우 x축 반전
         }
 
@@ -1913,7 +1914,7 @@ namespace Entities
             untargetableSourceCount = 0;
             ID = 0;
             currentCell.isOccupied = false;
-            currentCell.portraitRenderer.sprite = null;
+            currentCell.SetPortrait(null);
             
             // Cell의 통합 UI 관리 사용
             currentCell.SetOccupiedUnit(null);

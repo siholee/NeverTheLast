@@ -254,8 +254,9 @@ namespace Managers
                 dragPreviewRenderer.color = previewColor;
             }
             
-            // 스케일 약간 작게 설정 (선택사항)
-            dragPreview.transform.localScale = Vector3.one * 0.9f;
+            // 칸에 맞춘 배율을 그대로 따르고, 들고 있는 느낌이 나도록 조금만 줄인다.
+            float fit = Cell.PortraitScaleFor(dragPreviewRenderer.sprite);
+            dragPreview.transform.localScale = Vector3.one * (fit * 0.9f);
             
             // 드래그 프리뷰 활성화
             dragPreview.SetActive(true);

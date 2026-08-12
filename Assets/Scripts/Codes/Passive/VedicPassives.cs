@@ -184,7 +184,7 @@ namespace Codes.Passive
     /// <summary>Lv.65 충전 — 감전 피해가 들어가면 마나를 회복한다(4초 재사용 대기).</summary>
     public sealed class YamaCharge : PassiveCode
     {
-        private const float Cooldown = 4f;
+        private const float ChargeCooldown = 4f;
         private const int ManaGain = 12;
 
         private float _readyAt;
@@ -227,7 +227,7 @@ namespace Codes.Passive
             if (context.Target == null ||
                 !context.Target.HasStatus(Effects.Negative.ElementalReaction.ShockStatusId)) return;
 
-            _readyAt = Time.time + Cooldown;
+            _readyAt = Time.time + ChargeCooldown;
             Caster.RecoverMana(ManaGain);
         }
     }

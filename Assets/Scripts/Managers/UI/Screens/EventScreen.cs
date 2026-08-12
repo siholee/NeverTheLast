@@ -14,6 +14,15 @@ namespace Managers.UI.Screens
     /// </summary>
     public class EventScreen : ModalScreen
     {
+        /// <summary>자동 진행에서 한 대사를 보여 주는 기본 시간(초).</summary>
+        private const float AutoBaseDelay = 1.2f;
+
+        /// <summary>글자 하나당 더해 주는 시간(초). 긴 대사는 그만큼 오래 머문다.</summary>
+        private const float AutoDelayPerChar = 0.045f;
+
+        /// <summary>자동 진행 대기 시간의 상한(초).</summary>
+        private const float AutoMaxDelay = 6f;
+
         protected override string CanvasName => "EventCanvas";
         protected override int SortingOrder => 75;
         protected override string Title => "사건";
@@ -26,6 +35,12 @@ namespace Managers.UI.Screens
         private TextMeshProUGUI _body;
         private RectTransform _choiceArea;
         private Button _advance;
+        private Button _auto;
+        private Button _skip;
+
+        private bool _autoPlay;
+        private float _autoTimer;
+        private bool _autoWaiting;
 
         protected override void Build()
         {
@@ -53,11 +68,77 @@ namespace Managers.UI.Screens
             _choiceArea = UIBuild.Container("Choices", Body);
             UIBuild.Anchor(_choiceArea, new Vector2(0f, 0f), new Vector2(1f, 0.44f));
 
-            // 대사가 남아 있을 때만 보이는 "계속" 버튼.
+            // 대사가 남아 있을 때만 보이는 진행 버튼들. 오른쪽부터 계속 · 자동 · 건너뛰기.
             _advance = UIBuild.Button("Advance", Body, "계속 ▸",
                 () => GameManager.Instance?.AdvanceEventDialogue());
             UIBuild.Pin(_advance.image.rectTransform, new Vector2(1f, 0f), new Vector2(160f, 44f),
                 Vector2.zero);
+
+            _auto = UIBuild.Button("Auto", Body, "자동", ToggleAuto);
+            UIBuild.Pin(_auto.image.rectTransform, new Vector2(1f, 0f), new Vector2(90f, 44f),
+                new Vector2(-168f, 0f));
+
+            _skip = UIBuild.Button("Skip", Body, "건너뛰기 ▶▶", SkipAll);
+            UIBuild.Pin(_skip.image.rectTransform, new Vector2(1f, 0f), new Vector2(120f, 44f),
+                new Vector2(-266f, 0f));
+        }
+
+        // ── 자동 진행 / 건너뛰기 ──────────────────────────────────────
+
+        private void ToggleAuto()
+        {
+            _autoPlay = !_autoPlay;
+            _autoTimer = 0f;
+            RefreshAutoLabel();
+        }
+
+        private void SkipAll()
+        {
+            _autoPlay = false;
+            _autoWaiting = false;
+            RefreshAutoLabel();
+            GameManager.Instance?.SkipEventDialogue();
+        }
+
+        private void RefreshAutoLabel()
+        {
+            if (_auto == null) return;
+            var label = _auto.GetComponentInChildren<TextMeshProUGUI>();
+            if (label == null) return;
+            label.text = _autoPlay ? "자동 ●" : "자동";
+            label.color = _autoPlay ? UITheme.Accent : UITheme.TextPrimary;
+        }
+
+        /// <summary>
+        /// 자동 진행 타이머. <see cref="UIManager"/>가 매 프레임 넘겨 준다.
+        /// 대사 길이에 비례해 기다리므로 긴 대사를 읽을 시간이 남는다.
+        /// </summary>
+        public void Tick(float deltaTime)
+        {
+            if (!_autoPlay || !_autoWaiting || !IsVisible) return;
+
+            _autoTimer -= deltaTime;
+            if (_autoTimer > 0f) return;
+
+            _autoWaiting = false;
+            GameManager.Instance?.AdvanceEventDialogue();
+        }
+
+        private void ArmAutoTimer(string line)
+        {
+            _autoWaiting = true;
+            _autoTimer = Mathf.Min(AutoMaxDelay,
+                AutoBaseDelay + (line?.Length ?? 0) * AutoDelayPerChar);
+        }
+
+        /// <summary>선택지·결과 화면에서는 자동 진행을 끈다. 선택은 플레이어가 해야 한다.</summary>
+        private void StopAuto()
+        {
+            _autoPlay = false;
+            _autoWaiting = false;
+            if (_auto != null) _auto.gameObject.SetActive(false);
+            if (_skip != null) _skip.gameObject.SetActive(false);
+            RefreshAutoLabel();
         }
 
         /// <summary>대사 인덱스에 맞춰 화면을 갱신한다. 대사가 끝나면 선택지를 띄운다.</summary>
@@ -78,6 +159,7 @@ namespace Managers.UI.Screens
                 _speaker.text = line.speaker ?? "";
                 _body.text = line.text ?? "";
                 SetPortrait(ResolvePortrait(line));
+                ArmAutoTimer(line.text);
             }
             else
             {
@@ -85,10 +167,16 @@ namespace Managers.UI.Screens
                 _speaker.text = "";
                 if (dialogue == null || dialogue.Count == 0) _body.text = "";
                 SetPortrait(null);
+                _autoWaiting = false;
             }
 
             bool showChoices = !hasDialogueLeft && stageEvent?.choices != null && stageEvent.choices.Count > 0;
             _advance.gameObject.SetActive(hasDialogueLeft);
+
+            // 자동·건너뛰기는 남은 대사가 있을 때만 의미가 있다.
+            _auto.gameObject.SetActive(hasDialogueLeft);
+            _skip.gameObject.SetActive(hasDialogueLeft);
+            RefreshAutoLabel();
 
             if (showChoices) BuildChoices(stageEvent.choices);
         }
@@ -120,6 +208,7 @@ namespace Managers.UI.Screens
             base.Show();
             _body.text = message ?? "";
             _advance.gameObject.SetActive(false);
+            StopAuto();
         }
 
         /// <summary>사건 종료 안내. 확인을 누르면 다음 진행으로 넘어간다.</summary>
@@ -132,6 +221,7 @@ namespace Managers.UI.Screens
             _body.text = message ?? "";
             SetPortrait(null);
             _advance.gameObject.SetActive(false);
+            StopAuto();
 
             UIBuild.Clear(_choiceArea);
             Button confirm = UIBuild.Button("Confirm", _choiceArea, "확인",

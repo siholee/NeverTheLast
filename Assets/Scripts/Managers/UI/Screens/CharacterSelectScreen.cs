@@ -16,6 +16,10 @@ namespace Managers.UI.Screens
     ///   · 후보를 초상화 타일 격자로 늘어놓는다
     ///   · 커서를 올린 캐릭터의 큰 초상화와 요약을 좌측에 띄운다
     ///
+    /// 그림은 <b>초상화(Portrait)만</b> 쓰고 타일·미리보기 모두 정사각형으로 고정한다.
+    /// 초상화 원본이 정사각형이므로 칸이 정사각형이면 여백 없이 딱 맞고 비율도 틀어지지 않는다.
+    /// 스탠딩은 세로로 길어 같은 칸에 섞으면 비율이 무너지므로 이 화면에서는 쓰지 않는다.
+    ///
     /// 모드에 따라 단계가 다르다.
     ///   육성 모드 — 1단계 메인 1명 → [다음] → 2단계 서포터 4명 → [시작]
     ///   무한 모드 — 메인 단계 없이 서포터 5명을 바로 고른다
@@ -24,6 +28,9 @@ namespace Managers.UI.Screens
     {
         private const int Columns = 6;
         private const int MaxParty = 5;
+
+        /// <summary>타일 사이 간격(픽셀).</summary>
+        private const float TileGap = 10f;
 
         private enum Phase
         {
@@ -38,6 +45,7 @@ namespace Managers.UI.Screens
         protected override Vector2 AnchorMax => new(0.95f, 0.94f);
 
         private RectTransform _grid;
+        private SquareGridSizer _sizer;
         private Image _preview;
         private TextMeshProUGUI _previewName;
         private TextMeshProUGUI _previewInfo;
@@ -63,8 +71,14 @@ namespace Managers.UI.Screens
                 UIShapes.Corner.Diagonal, 8, UITheme.Outline, 1);
             UIBuild.Anchor(previewPane.rectTransform, new Vector2(0f, 0.14f), new Vector2(0.30f, 1f), 4f, 4f);
 
-            _preview = UIBuild.Solid("PreviewArt", previewPane.transform, Color.white);
-            UIBuild.Anchor(_preview.rectTransform, new Vector2(0.04f, 0.30f), new Vector2(0.96f, 0.97f));
+            // 미리보기도 정사각형. AspectRatioFitter가 슬롯 안에서 1:1을 유지하도록 크기를 잡는다.
+            RectTransform previewSlot = UIBuild.Container("PreviewSlot", previewPane.transform);
+            UIBuild.Anchor(previewSlot, new Vector2(0.04f, 0.30f), new Vector2(0.96f, 0.97f));
+
+            _preview = UIBuild.Solid("PreviewArt", previewSlot, Color.white);
+            var previewFitter = _preview.gameObject.AddComponent<AspectRatioFitter>();
+            previewFitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+            previewFitter.aspectRatio = 1f;
             _preview.preserveAspect = true;
             _preview.enabled = false;
 
@@ -82,6 +96,17 @@ namespace Managers.UI.Screens
 
             _grid = UIBuild.Container("Grid", Body);
             UIBuild.Anchor(_grid, new Vector2(0.32f, 0.22f), new Vector2(1f, 0.92f));
+
+            // 타일 배치는 GridLayoutGroup에 맡기고, 칸 크기는 SquareGridSizer가 정사각형으로 유지한다.
+            var layout = _grid.gameObject.AddComponent<GridLayoutGroup>();
+            layout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            layout.constraintCount = Columns;
+            layout.spacing = new Vector2(TileGap, TileGap);
+            layout.childAlignment = TextAnchor.UpperCenter;
+
+            _sizer = _grid.gameObject.AddComponent<SquareGridSizer>();
+            _sizer.MaxColumns = Columns;
+            _sizer.Gap = TileGap;
 
             _summary = UIBuild.Text("Summary", Body, "", UITheme.FontCaption, UITheme.TextPrimary,
                 TextAlignmentOptions.TopLeft, wrap: true);
@@ -146,34 +171,30 @@ namespace Managers.UI.Screens
             _tileArts.Clear();
 
             List<UnitData> units = Candidates();
-            int rows = Mathf.Max(1, Mathf.CeilToInt(units.Count / (float)Columns));
-            float cellW = 1f / Columns;
-            float cellH = 1f / rows;
 
-            for (int i = 0; i < units.Count; i++)
+            foreach (UnitData unit in units)
             {
-                UnitData unit = units[i];
-                int row = i / Columns;
-                int column = i % Columns;
-
                 Image tile = UIBuild.Panel($"Unit{unit.id}", _grid, UITheme.SurfaceRaised,
                     UIShapes.Corner.Diagonal, 6, UITheme.Outline, 1);
-                UIBuild.Anchor(tile.rectTransform,
-                    new Vector2(column * cellW, 1f - (row + 1) * cellH),
-                    new Vector2((column + 1) * cellW, 1f - row * cellH), 4f, 4f);
 
                 // 초상화 — 철권식으로 타일 전체를 그림으로 채운다.
+                // 타일이 정사각형이고 초상화 원본도 정사각형이라 여백 없이 딱 맞는다.
                 Image art = UIBuild.Solid("Art", tile.transform, Color.white);
-                UIBuild.Anchor(art.rectTransform, new Vector2(0.05f, 0.24f), new Vector2(0.95f, 0.96f));
+                UIBuild.Stretch(art.rectTransform, 3f, 3f);
                 art.preserveAspect = true;
                 Sprite portrait = LoadPortrait(unit.portrait);
                 if (portrait != null) art.sprite = portrait;
                 else art.enabled = false;
                 _tileArts[unit.id] = art;
 
+                // 이름표는 그림 위에 얹는다. 타일을 정사각형으로 유지하기 위해 자리를 따로 빼지 않는다.
+                Image nameStrip = UIBuild.Solid("NameStrip", tile.transform, UITheme.Backdrop);
+                UIBuild.Anchor(nameStrip.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.20f), 3f, 3f);
+                nameStrip.raycastTarget = false;
+
                 TextMeshProUGUI label = UIBuild.Text("Name", tile.transform, unit.name,
                     UITheme.FontMicro, UITheme.TextPrimary, TextAlignmentOptions.Center);
-                UIBuild.Anchor(label.rectTransform, new Vector2(0f, 0.02f), new Vector2(1f, 0.22f));
+                UIBuild.Anchor(label.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.20f), 3f, 3f);
 
                 int captured = unit.id;
                 UIBuild.OnClick(tile.gameObject, () => OnTileClicked(captured));
@@ -182,6 +203,8 @@ namespace Managers.UI.Screens
                 _tiles[unit.id] = tile;
                 if (_hovered == 0) _hovered = unit.id;
             }
+
+            _sizer.Apply();
         }
 
         private void OnTileClicked(int unitId)
@@ -279,9 +302,10 @@ namespace Managers.UI.Screens
                 return;
             }
 
-            Sprite standing = LoadStanding(unit.standing) ?? LoadPortrait(unit.portrait);
-            _preview.enabled = standing != null;
-            if (standing != null) _preview.sprite = standing;
+            // 스탠딩은 세로로 길어 정사각형 슬롯과 맞지 않는다. 이 화면은 초상화만 쓴다.
+            Sprite portrait = LoadPortrait(unit.portrait);
+            _preview.enabled = portrait != null;
+            if (portrait != null) _preview.sprite = portrait;
 
             _previewName.text = unit.name;
             _previewInfo.text =
@@ -343,9 +367,6 @@ namespace Managers.UI.Screens
         private static Sprite LoadPortrait(string spriteName)
             => string.IsNullOrWhiteSpace(spriteName) ? null : Resources.Load<Sprite>($"Sprite/Portraits/{spriteName}");
 
-        private static Sprite LoadStanding(string spriteName)
-            => string.IsNullOrWhiteSpace(spriteName) ? null : Resources.Load<Sprite>($"Sprite/Standings/{spriteName}");
-
         private static string UnitName(int unitId)
         {
             return GameManager.Instance?.unitDataList?.units?
@@ -356,6 +377,66 @@ namespace Managers.UI.Screens
         {
             if (CharacterSelectionManager.Instance != null) return;
             new GameObject("CharacterSelectionManager").AddComponent<CharacterSelectionManager>();
+        }
+    }
+
+    /// <summary>
+    /// <see cref="GridLayoutGroup"/>의 칸을 정사각형으로 유지한다.
+    ///
+    /// 격자 영역의 실제 픽셀 크기는 캔버스 스케일이 확정된 뒤에야 알 수 있고 창 크기에 따라 또 바뀐다.
+    /// 한 번만 재면 첫 프레임에 어긋나므로, 영역 크기가 바뀔 때마다 다시 계산한다.
+    /// 가로·세로 어느 쪽으로도 넘치지 않는 변 길이를 골라 후보 수와 무관하게 1:1을 지킨다.
+    /// </summary>
+    internal sealed class SquareGridSizer : UIBehaviour
+    {
+        public int MaxColumns = 6;
+        public float Gap = 10f;
+
+        private GridLayoutGroup _layout;
+        private RectTransform _rect;
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            Apply();
+        }
+
+        protected override void OnRectTransformDimensionsChange()
+        {
+            base.OnRectTransformDimensionsChange();
+            Apply();
+        }
+
+        public void Apply()
+        {
+            if (_layout == null) _layout = GetComponent<GridLayoutGroup>();
+            if (_rect == null) _rect = GetComponent<RectTransform>();
+            if (_layout == null || _rect == null) return;
+
+            int count = 0;
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                if (transform.GetChild(i).gameObject.activeSelf) count++;
+            }
+            if (count == 0) return;
+
+            int columns = Mathf.Clamp(count, 1, Mathf.Max(1, MaxColumns));
+            int rows = Mathf.Max(1, Mathf.CeilToInt(count / (float)columns));
+
+            float width = _rect.rect.width;
+            float height = _rect.rect.height;
+            if (width <= 1f || height <= 1f) return;
+
+            float side = Mathf.Max(1f, Mathf.Min(
+                (width - Gap * (columns - 1)) / columns,
+                (height - Gap * (rows - 1)) / rows));
+
+            _layout.constraintCount = columns;
+            _layout.spacing = new Vector2(Gap, Gap);
+            if (!Mathf.Approximately(_layout.cellSize.x, side))
+            {
+                _layout.cellSize = new Vector2(side, side);
+            }
         }
     }
 }

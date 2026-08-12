@@ -147,6 +147,12 @@ namespace Managers
 
         // ── 사건 ─────────────────────────────────────────────────────
 
+        /// <summary>사건 화면의 자동 진행 타이머를 굴린다. 화면 자체는 MonoBehaviour가 아니다.</summary>
+        private void Update()
+        {
+            _event.Tick(Time.deltaTime);
+        }
+
         public void ShowEventStagePanel(StageEventData eventData, int dialogueIndex)
         {
             _event.Show(eventData, dialogueIndex);

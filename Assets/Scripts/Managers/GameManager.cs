@@ -556,6 +556,25 @@ namespace Managers
             uiManager?.ShowEventStagePanel(currentStageEvent, eventDialogueIndex);
         }
 
+        /// <summary>
+        /// 남은 대사를 한 번에 건너뛴다.
+        /// 선택지가 있는 사건은 선택지 화면으로, 없는 사건(인트로 등)은 바로 종료로 간다.
+        /// </summary>
+        public void SkipEventDialogue()
+        {
+            if (gameState != GameState.EventStage || currentStageEvent == null) return;
+            eventDialogueIndex = currentStageEvent.dialogue?.Count ?? 0;
+
+            bool hasChoices = (currentStageEvent.choices?.Count ?? 0) > 0;
+            if (!hasChoices)
+            {
+                CompleteEventStage();
+                return;
+            }
+
+            uiManager?.ShowEventStagePanel(currentStageEvent, eventDialogueIndex);
+        }
+
         public void SelectEventChoice(string choiceId)
         {
             if (gameState != GameState.EventStage || currentStageEvent?.choices == null) return;

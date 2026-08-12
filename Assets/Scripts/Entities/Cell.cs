@@ -40,6 +40,31 @@ public class Cell : MonoBehaviour
     [Tooltip("드래그로 인식할 최소 시간 (초)")]
     public float dragTimeThreshold = 0.15f;
 
+    /// <summary>칸 안에 초상화가 차지할 한 변의 크기(월드 단위). 칸 테두리(10.16)보다 조금 작게 잡는다.</summary>
+    public const float PortraitFitSize = 9.6f;
+
+    /// <summary>
+    /// 칸에 초상화를 올린다.
+    ///
+    /// 원본 해상도가 제각각이라(아군 1254px, 적 512px, 일부 1024px) 렌더러 스케일을 고정하면
+    /// 아군은 칸을 넘치고 적은 칸의 절반만 채운다. 긴 변을 <see cref="PortraitFitSize"/>에 맞춰
+    /// 균일 배율로 줄이면 해상도와 무관하게 항상 칸에 꼭 맞고 비율도 유지된다.
+    /// </summary>
+    public void SetPortrait(Sprite sprite)
+    {
+        if (portraitRenderer == null) return;
+        portraitRenderer.sprite = sprite;
+        portraitRenderer.transform.localScale = Vector3.one * PortraitScaleFor(sprite);
+    }
+
+    /// <summary>해당 스프라이트를 칸 크기에 맞추는 배율.</summary>
+    public static float PortraitScaleFor(Sprite sprite)
+    {
+        if (sprite == null) return 1f;
+        float longest = Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y);
+        return longest <= 0.0001f ? 1f : PortraitFitSize / longest;
+    }
+
     private void Update()
     {
         reservedTime = Mathf.Max(0, reservedTime - Time.deltaTime);
