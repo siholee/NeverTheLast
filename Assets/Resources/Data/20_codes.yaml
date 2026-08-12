@@ -8,7 +8,7 @@ codes:
       verbalName: 약점 추적
       codeName: AtalanteWeaknessTracker
       description: "공격 대상의 디버프 1개당 방어력을 5% 무시한다(최대 20%). <고유 패시브> <열화 전수본 230>"
-    - { id: 140, verbalName: 궁수, codeName: AtalanteArcher, description: "장궁·단궁·쇠뇌 중 하나를 장착했고 숙련되어 있으면 STR +5." }
+    - { id: 140, verbalName: 궁수, codeName: AtalanteArcher, description: "장궁·단궁·쇠뇌 숙련을 얻는다. 활 계열 무기를 장착하고 숙련되어 있으면 STR +5." }
     - { id: 141, verbalName: 민첩함, codeName: AtalanteAgility, description: "DEX +2, 경갑 숙련을 얻는다." }
     - { id: 142, verbalName: 유리대포, codeName: AtalanteGlassCannon, description: "최대 체력 -25%, 적 방어력 20% 무시." }
     - { id: 143, verbalName: 사냥꾼, codeName: AtalanteHunter, description: "짐승 또는 괴수 분류의 적에게 가하는 피해 +30%." }
@@ -30,9 +30,9 @@ codes:
     - { id: 54, verbalName: 검의 달인, codeName: ShiSwordMaster, description: "베기류 공격의 가하는 피해가 25% 증가한다." }
     - { id: 55, verbalName: 만류귀종, codeName: ShiAllWeaponMastery, description: "모든 무기에 대한 숙련을 얻는다." }
     - { id: 56, verbalName: 신속, codeName: ShiSwiftness, description: "바람 원소가 부착되어 있는 동안 DEX +10." }
-    - { id: 58, verbalName: 천살성, codeName: HeavenlyKiller, description: "공격 후 최대 체력의 8% 미만인 적을 즉시 처형한다." }
+    - { id: 58, verbalName: 천살성, codeName: HeavenlyKiller, description: "공격 후 최대 체력의 8% 미만인 적을 즉시 처형한다. 일반 등급의 적에게만 적용된다." }
     - { id: 59, verbalName: 화무십일홍, codeName: ShiTenDaysNoFlower, description: "체력 10% 미만인 적 공격 시 확정 치명타. 치명타 확률의 2배가 해당 공격의 치명타 피해에 더해진다." }
-    - { id: 60, verbalName: 당연한 운명, codeName: ShiCertainDestiny, description: "천살성 보유 시 처형 기준을 최대 체력의 12% 미만으로 대체한다." }
+    - { id: 60, verbalName: 당연한 운명, codeName: ShiCertainDestiny, description: "천살성 보유 시 처형 기준을 최대 체력의 12% 미만으로 대체한다. 일반 등급의 적에게만 적용된다." }
     - id: 11
       verbalName: 막기
       codeName: Block
