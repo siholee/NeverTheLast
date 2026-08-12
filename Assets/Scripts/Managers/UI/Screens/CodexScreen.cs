@@ -66,7 +66,7 @@ namespace Managers.UI.Screens
         {
             if (_rootObject != null) return;
 
-            Canvas canvas = UIBuild.Canvas("CodexCanvas", 60);
+            Canvas canvas = UIBuild.Canvas("CodexCanvas", 120);
             _rootObject = new GameObject("CodexScreen", typeof(RectTransform));
             _rootObject.transform.SetParent(canvas.transform, false);
             UIBuild.Stretch(_rootObject.GetComponent<RectTransform>());

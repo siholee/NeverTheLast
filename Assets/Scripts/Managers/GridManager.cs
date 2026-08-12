@@ -257,22 +257,44 @@ namespace Managers
             }
         }
         
+        // ── 배치 상수 (세븐나이츠식 전열/후열) ──────────────────────
+        // 전열과 후열은 크게 벌리고, 같은 열의 4명은 촘촘히 세로로 세운다.
+        // 진영 사이는 더 크게 벌려 전선이 마주 보는 형태가 되게 한다.
+
+        /// <summary>양 진영 전열 사이의 간격(전열끼리의 거리).</summary>
+        private const float FrontLineGap = 26f;
+
+        /// <summary>같은 진영에서 전열과 후열 사이의 간격.</summary>
+        private const float RowDepthGap = 16f;
+
+        /// <summary>한 열 안에서 위아래로 늘어선 4명의 간격.</summary>
+        private const float SlotSpacing = 10f;
+
+        /// <summary>전장 최하단에서 대기석까지 내려가는 거리.</summary>
+        private const float BenchOffsetY = 14f;
+
         private Vector3 CalculateFieldCellPosition(int x, int y)
         {
-            // 기존 하드코딩된 위치 공식을 사용
-            // Cell -4, 1 = Pos(-44, 11, 0)
-            // Cell -3, 1 = Pos(-33, 11, 0)
-            // 즉, x좌표는 x * 11, y좌표는 y * 11
-            return new Vector3(x * 11, y * 11, 0);
+            // x = -2(아군 후열) / -1(아군 전열) / 1(적 전열) / 2(적 후열)
+            //   전열은 중앙에서 FrontLineGap/2 만큼, 후열은 거기서 RowDepthGap 만큼 더 뒤로 뺀다.
+            int side = x < 0 ? -1 : 1;             // 아군 -1, 적 +1
+            bool isFront = Mathf.Abs(x) == 1;
+            float depth = FrontLineGap * 0.5f + (isFront ? 0f : RowDepthGap);
+            float posX = side * depth;
+
+            // y = 1~4를 세로로 중앙 정렬한다. (1.5, 0.5, -0.5, -1.5) × 간격
+            float center = (yMin + yMax) * 0.5f;
+            float posY = (center - y) * SlotSpacing;
+
+            return new Vector3(posX, posY, 0f);
         }
         
+        /// <summary>대기석은 전장 아래에 가로로 늘어놓는다.</summary>
         private Vector3 CalculateBenchCellPosition(int x)
         {
-            // 기존 하드코딩된 벤치 위치 공식을 사용
-            // Cell -4, 0 = Pos(-44, 0, 0)
-            // Cell -3, 0 = Pos(-33, 0, 0)
-            // 즉, x좌표는 x * 11, y좌표는 0
-            return new Vector3(x * 11, 0, 0);
+            float fieldBottom = (yMin + yMax) * 0.5f - yMax;      // 전장 최하단 슬롯의 y 계수
+            float posY = fieldBottom * SlotSpacing - BenchOffsetY;
+            return new Vector3(x * SlotSpacing, posY, 0f);
         }
 
         public bool IsCellAvailable(int xPos, int yPos)
