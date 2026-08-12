@@ -84,6 +84,9 @@ namespace Effects.Base
         /// <summary>공격 시 대상 방어력 적용 배율 보정 (공격자의 효과에서 질의, 1 = 변화 없음)</summary>
         public virtual float DefenseStatMultiplierModifier(Unit attacker, Unit target, DamageContext context) => 1f;
 
+        /// <summary>받는 피해에서 고정으로 깎는 내구 가산치.</summary>
+        public virtual int DurabilityAdditiveModifier(Unit unit) => 0;
+
         /// <summary>효과 보유자의 방어력 적용 배율 보정. 방어력 감소 디버프 등에 사용한다.</summary>
         public virtual float OwnedDefenseStatMultiplierModifier(Unit unit, DamageContext context) => 1f;
 

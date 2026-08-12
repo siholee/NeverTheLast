@@ -13,6 +13,12 @@ namespace Managers
         public string requiredProficiency;
         public int rarity;
         public int weight = 1;
+        /// <summary>
+        /// 내구 — 받는 피해에서 **고정으로 깎아내는 양**.
+        /// 방어력(비율 감소)과 달리 방어 무시·관통의 영향을 받지 않는다.
+        /// 방어구에만 붙이는 것을 원칙으로 한다.
+        /// </summary>
+        public int durability;
         public bool eventOnly;
         public bool twoHanded;
         public List<BaseClasses.EquipmentStatBonus> statBonuses;

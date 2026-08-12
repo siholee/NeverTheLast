@@ -30,6 +30,8 @@ namespace Entities
         [SerializeField] private float subStatTrainingBonus = 0.1f;
         [SerializeField] private List<string> startingProficiencies = new();
         [SerializeField] private List<string> unitTags = new();
+        // 적 등급(normal / elite / boss). 아군은 비어 있다.
+        [SerializeField] private string unitTier = "";
         [SerializeField] private List<int> equippedItemIds = new();
         [SerializeField] private List<int> carriedItemIds = new();
         [SerializeField] private List<LearnedPassiveSaveData> learnedPassiveRecords = new();
@@ -281,6 +283,7 @@ namespace Entities
             carriedItemIds = new List<int>();
             startingProficiencies = new List<string>();
             unitTags = new List<string>();
+            unitTier = "";
             _combatElements.Clear();
             _temporaryElementDurations.Clear();
             _combatResources.Clear();
@@ -337,6 +340,7 @@ namespace Entities
                 mainStatTrainingBonus = 0.2f;
                 subStatTrainingBonus = 0.1f;
                 unitTags = enemyData.tags != null ? new List<string>(enemyData.tags) : new List<string>();
+                unitTier = enemyData.tier ?? "";
                 LoadStatData(
                     enemyData.strBase, enemyData.strIncrementLvl, enemyData.strIncrementUpgrade,
                     enemyData.dexBase, enemyData.dexIncrementLvl, enemyData.dexIncrementUpgrade,
@@ -383,6 +387,7 @@ namespace Entities
                     ? new List<string>(data.startingProficiencies)
                     : new List<string>();
                 unitTags = data.tags != null ? new List<string>(data.tags) : new List<string>();
+                unitTier = "";   // 아군 영웅은 등급이 없다
                 LoadStatData(
                     data.strBase, data.strIncrementLvl, data.strIncrementUpgrade,
                     data.dexBase, data.dexIncrementLvl, data.dexIncrementUpgrade,
@@ -616,6 +621,18 @@ namespace Entities
                 .Any(item => item != null && item.RequiredProficiency.IsBow() && CanUseEquipmentEffects(item));
         }
 
+        /// <summary>적 등급. 아군은 빈 문자열이다.</summary>
+        public string UnitTier => unitTier ?? "";
+
+        /// <summary>
+        /// 처형(즉사) 대상이 될 수 있는가.
+        ///
+        /// **일반 등급의 적만 처형된다.** 엘리트·보스는 물론이고, 아군 영웅도 처형되지 않는다.
+        /// 적이 처형 코드를 들고 있어도 아군을 즉사시킬 수 없다는 뜻이다.
+        /// </summary>
+        public bool IsExecutable =>
+            IsEnemy && string.Equals(unitTier, "normal", StringComparison.OrdinalIgnoreCase);
+
         public bool HasUnitTag(string tag)
         {
             return !string.IsNullOrWhiteSpace(tag) &&
@@ -672,6 +689,37 @@ namespace Entities
                         break;
                 }
             }
+        }
+
+        /// <summary>
+        /// 착용 장비가 제공하는 내구의 합. 받는 피해에서 고정으로 차감된다.
+        /// 방어력과 달리 비율이 아니라 절대량이므로, 방어력을 100% 무시당해도 남는다.
+        /// </summary>
+        public int DurabilityCurr
+        {
+            get
+            {
+                if (EquipmentLoadout == null) return 0;
+
+                int total = 0;
+                foreach (ItemData itemData in EquipmentLoadout.GetEquippedItemData())
+                {
+                    if (itemData == null || !CanUseEquipmentEffects(itemData)) continue;
+                    total += Mathf.Max(0, itemData.durability);
+                }
+                return total + GetStatusDurabilityBonus();
+            }
+        }
+
+        /// <summary>상태 효과가 더해 주는 내구.</summary>
+        private int GetStatusDurabilityBonus()
+        {
+            int total = 0;
+            foreach (var effect in ActiveEffectObjects())
+            {
+                total += effect.DurabilityAdditiveModifier(this);
+            }
+            return total;
         }
 
         internal int GetEquipmentStatBonus(BaseEnums.PrimaryStat stat)
@@ -1704,8 +1752,18 @@ namespace Entities
                 ? 1f   // 고정 피해(TrueDamage)는 방어력 감쇠를 받지 않는다
                 : ArmorMultiplier(effectiveArmor, stats.GetArmorConstant());
 
-            return Mathf.Max(1, Mathf.RoundToInt(
-                dmgCtx.Damage * outgoingDamageModifier * armorMultiplier * receivingDamageModifier));
+            float scaled = dmgCtx.Damage * outgoingDamageModifier * armorMultiplier * receivingDamageModifier;
+
+            // 내구는 마지막에 고정값으로 깎는다.
+            // 방어력을 100% 무시당해도 남으므로, 관통 빌드에 대한 최후의 완충재가 된다.
+            // 지속피해(도트)는 틱당 피해가 작아 내구가 곧 무효화가 되므로 제외한다.
+            bool ignoresDurability = dmgCtx.CodeType == BaseEnums.CodeType.Effect;
+            if (!ignoresDurability)
+            {
+                scaled -= Mathf.Max(0, DurabilityCurr);
+            }
+
+            return Mathf.Max(1, Mathf.RoundToInt(scaled));
         }
 
         /// <summary>

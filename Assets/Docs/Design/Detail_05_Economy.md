@@ -96,6 +96,7 @@ STR이 낮은 캐릭터는 무거운 장비를 감당하지 못한다 — STR의
 
 | 효과 | 필드 | 동작 |
 | --- | --- | --- |
+| **내구** | `durability` | 받는 피해에서 **고정 감소**. 방어구 전용. T1 기준 의복 2 / 경갑 5 / 방패 6 / 중갑 10 / 판금 16 |
 | 5스탯 보너스 | `statBonuses: [{stat, amount}]` | `GetEquipmentStatBonus()`로 합산 |
 | 코드 부여 | `codeGrants: [{slot, codeId, stage}]` | `ItemPassiveCodes`에 추가 또는 일반/궁극기 교체 |
 | 사건 전용 | `eventOnly: true` | 전투 보상 풀에서 제외 |

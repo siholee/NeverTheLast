@@ -339,6 +339,9 @@ namespace Codes.Passive
                 return;
             }
 
+            // 처형은 일반 등급의 적에게만 통한다. 엘리트·보스·아군은 대상이 아니다.
+            if (!target.IsExecutable) return;
+
             if ((float)target.HpCurr / target.HpMax < _threshold)
             {
                 target.Die(Caster);

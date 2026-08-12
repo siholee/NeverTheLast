@@ -1,3 +1,9 @@
+# 내구(durability): 받는 피해에서 고정으로 깎는 값.
+#   방어력(비율 감소)과 달리 방어 무시·관통의 영향을 받지 않는다.
+#   방어구 계열에만 부여한다.
+#   T1 기준 — 의복 2 / 경갑 5 / 방패 6 / 중갑 10 / 판금 16
+#   상위 티어는 `T1 값 × (1 + (rarity-1) × 0.6)`을 기준으로 올린다.
+#   (고정값이므로 티어를 따라 올리지 않으면 후반에 무의미해진다)
 items:
   # T1 무기 — 효과는 의도적으로 5스탯 +1만 제공한다.
   - id: 4101
@@ -92,6 +98,7 @@ items:
     requiredProficiency: Shield
     rarity: 1
     weight: 3
+    durability: 6
     statBonuses: [{ stat: STR, amount: 1 }]
 
   # T1 방어구 — 의복은 숙련을 요구하지 않는다.
@@ -101,6 +108,7 @@ items:
     category: Clothing
     rarity: 1
     weight: 1
+    durability: 2
     statBonuses: [{ stat: INT, amount: 1 }]
 
   - id: 4112
@@ -110,6 +118,7 @@ items:
     requiredProficiency: LightArmor
     rarity: 1
     weight: 2
+    durability: 5
     statBonuses: [{ stat: DEX, amount: 1 }]
 
   - id: 4113
@@ -119,6 +128,7 @@ items:
     requiredProficiency: MediumArmor
     rarity: 1
     weight: 4
+    durability: 10
     statBonuses: [{ stat: CON, amount: 1 }]
 
   - id: 4114
@@ -128,6 +138,7 @@ items:
     requiredProficiency: HeavyArmor
     rarity: 1
     weight: 6
+    durability: 16
     statBonuses: [{ stat: STR, amount: 1 }]
 
   # 아즈텍 영입 사건 전용 보상. 일반 보상 풀에는 들어가지 않는다.

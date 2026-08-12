@@ -22,6 +22,7 @@ namespace Managers.UI.Screens
         {
             Equipment,
             Skills,
+            Sheet,
         }
 
         private const int GridColumns = 5;
@@ -36,6 +37,8 @@ namespace Managers.UI.Screens
         private TextMeshProUGUI _weightLabel;
         private Button _equipmentTab;
         private Button _skillTab;
+        private Button _sheetTab;
+        private RectTransform _statStrip;
 
         private Unit _selected;
         private Tab _tab = Tab.Equipment;
@@ -91,8 +94,16 @@ namespace Managers.UI.Screens
             UIBuild.Anchor(gridPane, new Vector2(0.19f, 0f), new Vector2(0.63f, 0.88f),
                 UITheme.PanelPad, UITheme.PanelPad);
             BuildTabs(gridPane);
+
+            // BG3 레퍼런스의 '근접 +N / 명중 보너스 / 피해' 줄 자리에 주스탯을 놓는다.
+            Image statPane = UIBuild.Panel("StatStrip", gridPane, UITheme.SurfaceSunken,
+                UIShapes.Corner.None, 4);
+            UIBuild.Anchor(statPane.rectTransform, new Vector2(0f, 0.80f), new Vector2(1f, 0.90f), 0f, 2f);
+            _statStrip = UIBuild.Container("StatRow", statPane.transform);
+            UIBuild.Stretch(_statStrip, 8f, 4f);
+
             _gridArea = UIBuild.Container("Grid", gridPane);
-            UIBuild.Anchor(_gridArea, new Vector2(0f, 0f), new Vector2(1f, 0.90f));
+            UIBuild.Anchor(_gridArea, new Vector2(0f, 0f), new Vector2(1f, 0.79f));
 
             // ── 우: 상세 ──
             Image detailPane = UIBuild.Panel("DetailPane", panel.transform, UITheme.SurfaceSunken,
@@ -136,6 +147,10 @@ namespace Managers.UI.Screens
             _skillTab = UIBuild.Button("SkillTab", parent, "코드", () => SetTab(Tab.Skills));
             UIBuild.Anchor(_skillTab.image.rectTransform, new Vector2(0.26f, 0.92f),
                 new Vector2(0.50f, 1f));
+
+            _sheetTab = UIBuild.Button("SheetTab", parent, "캐릭터 시트", () => SetTab(Tab.Sheet));
+            UIBuild.Anchor(_sheetTab.image.rectTransform, new Vector2(0.52f, 0.92f),
+                new Vector2(0.82f, 1f));
         }
 
         private void SetTab(Tab tab)
@@ -167,6 +182,7 @@ namespace Managers.UI.Screens
             // 선택된 탭만 앰버로 칠해 현재 위치를 알린다.
             Tint(_equipmentTab, _tab == Tab.Equipment);
             Tint(_skillTab, _tab == Tab.Skills);
+            Tint(_sheetTab, _tab == Tab.Sheet);
         }
 
         private static void Tint(Button button, bool active)
@@ -222,8 +238,141 @@ namespace Managers.UI.Screens
             UIBuild.Clear(_gridArea);
             if (_selected == null) return;
 
+            RefreshStatStrip();
             if (_tab == Tab.Equipment) BuildEquipmentGrid();
-            else BuildSkillList();
+            else if (_tab == Tab.Skills) BuildSkillList();
+            else BuildCharacterSheet();
+        }
+
+        /// <summary>
+        /// 소유 아이템 격자 바로 위에 5주스탯을 가로로 늘어놓는다.
+        /// 발더스 게이트의 '근접/원거리 명중·피해' 줄을 대체하는 자리다.
+        /// </summary>
+        private void RefreshStatStrip()
+        {
+            UIBuild.Clear(_statStrip);
+            if (_selected == null) return;
+
+            var stats = new[]
+            {
+                BaseClasses.BaseEnums.PrimaryStat.STR,
+                BaseClasses.BaseEnums.PrimaryStat.DEX,
+                BaseClasses.BaseEnums.PrimaryStat.CON,
+                BaseClasses.BaseEnums.PrimaryStat.INT,
+                BaseClasses.BaseEnums.PrimaryStat.LUK,
+            };
+
+            float step = 1f / stats.Length;
+            for (int i = 0; i < stats.Length; i++)
+            {
+                var stat = stats[i];
+                bool isMain = _selected.MainPrimaryStat == stat;
+                bool isSub = string.Equals(_selected.SubStat, stat.ToString(),
+                    System.StringComparison.OrdinalIgnoreCase);
+
+                var cell = UIBuild.Container($"Stat{stat}", _statStrip);
+                UIBuild.Anchor(cell, new Vector2(i * step, 0f), new Vector2((i + 1) * step, 1f));
+
+                Color tone = isMain ? UITheme.Accent : isSub ? UITheme.TextPrimary : UITheme.TextSecondary;
+                string mark = isMain ? " ★" : isSub ? " ◆" : "";
+
+                TextMeshProUGUI name = UIBuild.Text("Name", cell, stat + mark,
+                    UITheme.FontMicro, tone, TextAlignmentOptions.Center);
+                UIBuild.Anchor(name.rectTransform, new Vector2(0f, 0.5f), new Vector2(1f, 1f));
+
+                TextMeshProUGUI value = UIBuild.Text("Value", cell,
+                    _selected.GetBasePrimaryStat(stat).ToString(),
+                    UITheme.FontBody, tone, TextAlignmentOptions.Center);
+                UIBuild.Anchor(value.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.5f));
+            }
+        }
+
+        /// <summary>
+        /// 캐릭터 시트 — 기초 스탯 → 상세(파생) 스탯 → 고유 코드 → 그 외 보유 코드 순으로 쌓는다.
+        /// </summary>
+        private void BuildCharacterSheet()
+        {
+            float y = 0f;
+
+            AddSheetHeading("기초 스탯", ref y);
+            AddSheetRow("STR", $"{_selected.GetBasePrimaryStat(BaseClasses.BaseEnums.PrimaryStat.STR)}", ref y);
+            AddSheetRow("DEX", $"{_selected.GetBasePrimaryStat(BaseClasses.BaseEnums.PrimaryStat.DEX)}", ref y);
+            AddSheetRow("CON", $"{_selected.GetBasePrimaryStat(BaseClasses.BaseEnums.PrimaryStat.CON)}", ref y);
+            AddSheetRow("INT", $"{_selected.GetBasePrimaryStat(BaseClasses.BaseEnums.PrimaryStat.INT)}", ref y);
+            AddSheetRow("LUK", $"{_selected.GetBasePrimaryStat(BaseClasses.BaseEnums.PrimaryStat.LUK)}", ref y);
+            y += 10f;
+
+            AddSheetHeading("상세 스탯", ref y);
+            AddSheetRow("최대 체력", $"{_selected.HpCurr} / {_selected.HpMax}", ref y);
+            AddSheetRow("방어력", $"{_selected.DefCurr}   (받는 피해 −{(1f - _selected.DamageTakenMultiplierFromArmor) * 100f:0}%)", ref y);
+            AddSheetRow("내구", $"{_selected.DurabilityCurr}   (피해 고정 경감)", ref y);
+            AddSheetRow("위력 100 기준 피해", $"{_selected.SkillDamage(100)}", ref y);
+            AddSheetRow("치명타", $"{_selected.CritChanceCurr * 100f:0.#}%   ×{_selected.CritMultiplierCurr:0.##}", ref y);
+            AddSheetRow("행동 속도", $"×{_selected.ActionSpeedCurr:0.##}", ref y);
+            AddSheetRow("마나 효율", $"×{_selected.ManaEfficiencyCurr:0.##}", ref y);
+            if (_selected.ShieldCurr > 0) AddSheetRow("방어막", $"{_selected.ShieldCurr}", ref y);
+            y += 10f;
+
+            AddSheetHeading("고유 코드", ref y);
+            var unique = _selected.ActivePassiveCodes.Where(c => c != null && c.IsUniquePassive).ToList();
+            foreach (Code code in unique)
+            {
+                AddSheetRow($"패시브  {code.CodeName}", StageText(code), ref y);
+            }
+            if (_selected.ActiveNormalCode != null)
+            {
+                AddSheetRow($"일반  {_selected.ActiveNormalCode.CodeName}", StageText(_selected.ActiveNormalCode), ref y);
+            }
+            if (_selected.ActiveUltimateCode != null)
+            {
+                AddSheetRow($"궁극기  {_selected.ActiveUltimateCode.CodeName}", StageText(_selected.ActiveUltimateCode), ref y);
+            }
+            y += 10f;
+
+            AddSheetHeading($"그 외 보유 코드   {_selected.LearnedCodeCount} / {_selected.MaxCodeCount}", ref y);
+            var others = _selected.ActivePassiveCodes.Where(c => c != null && !c.IsUniquePassive).ToList();
+            if (others.Count == 0 && _selected.ActiveItemPassiveCodes.Count == 0)
+            {
+                AddSheetRow("—", "없음", ref y);
+            }
+            foreach (Code code in others)
+            {
+                AddSheetRow(code.CodeName, StageText(code), ref y);
+            }
+            foreach (Code code in _selected.ActiveItemPassiveCodes)
+            {
+                if (code == null) continue;
+                AddSheetRow(code.CodeName, "장비", ref y);
+            }
+        }
+
+        private static string StageText(Code code)
+            => code != null && code.MaxStage > 1 ? $"{code.CurrentStage}단계" : "";
+
+        private void AddSheetHeading(string text, ref float y)
+        {
+            TextMeshProUGUI label = UIBuild.Text("Heading", _gridArea, text, UITheme.FontBody, UITheme.Accent);
+            UIBuild.Pin(label.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 24f), new Vector2(0f, -y));
+            label.rectTransform.anchorMax = new Vector2(1f, 1f);
+            label.rectTransform.sizeDelta = new Vector2(0f, 24f);
+            y += 26f;
+        }
+
+        private void AddSheetRow(string left, string right, ref float y)
+        {
+            var row = UIBuild.Container("Row", _gridArea);
+            UIBuild.Pin(row, new Vector2(0f, 1f), new Vector2(0f, 20f), new Vector2(0f, -y));
+            row.anchorMax = new Vector2(1f, 1f);
+            row.sizeDelta = new Vector2(0f, 20f);
+
+            TextMeshProUGUI l = UIBuild.Text("L", row, left, UITheme.FontCaption, UITheme.TextPrimary);
+            UIBuild.Anchor(l.rectTransform, new Vector2(0f, 0f), new Vector2(0.6f, 1f), 8f, 0f);
+
+            TextMeshProUGUI r = UIBuild.Text("R", row, right, UITheme.FontCaption,
+                UITheme.TextSecondary, TextAlignmentOptions.MidlineRight);
+            UIBuild.Anchor(r.rectTransform, new Vector2(0.6f, 0f), new Vector2(1f, 1f), 8f, 0f);
+
+            y += 22f;
         }
 
         private void BuildEquipmentGrid()
