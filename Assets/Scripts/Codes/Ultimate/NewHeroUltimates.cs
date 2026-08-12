@@ -109,7 +109,12 @@ namespace Codes.Ultimate
     public sealed class AmaterasuPortalBarrage : UltimateCode
     {
         private const float Duration = 6f;
-        private const int ArrowPower = 20;
+
+        /// <summary>
+        /// 화살 한 발의 위력. 8발 합계가 일반공격(위력 70) 한 대와 비슷해지도록 잡았다.
+        /// 궁 지속 중 평타가 대략 두 배가 되는 셈이다.
+        /// </summary>
+        private const int ArrowPower = 8;
         private Action<EventContext> _normalHitHandler;
         private Action<EventContext> _cleanupHandler;
 

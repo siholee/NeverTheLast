@@ -317,7 +317,7 @@ codes:
       codeName: TheseusRecoveryStrike
       description: "단일 적에게 DEX 기반 위력 100의 피해를 입히고 잃은 체력의 25%+CON*10만큼 회복한다. (계수 임시) #접촉 #물리"
     - { id: 91, verbalName: 의신의 영약, codeName: AsclepiusFlask, description: "단일 적에게 INT 위력 80 피해 후 주변에 위력 60 범위 피해. 투사체가 관통한 아군은 CON 위력 120 보호막을 얻는다. #비접촉 #특수" }
-    - { id: 92, verbalName: 태양문 개방, codeName: AmaterasuPortalBarrage, description: "6초간 차원문 4개를 연다. 기본공격마다 각 차원문이 같은 무작위 대상에게 DEX 위력 20 화살 2발씩, 총 8발을 발사한다. #비접촉 #물리" }
+    - { id: 92, verbalName: 태양문 개방, codeName: AmaterasuPortalBarrage, description: "6초간 차원문 4개를 연다. 기본공격마다 각 차원문이 같은 무작위 대상에게 DEX 위력 8 화살 2발씩, 총 8발을 발사한다. #비접촉 #물리" }
     - id: 120
       verbalName: 월뢰만천
       codeName: TsukuyomiMoonThunder
