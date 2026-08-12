@@ -25,7 +25,9 @@ namespace Managers.UI
         {
             HideLegacySceneUI();
             // 설정 화면은 이 오브젝트가 직접 들고 있는다(구형 씬 오브젝트에 의존하지 않음).
-            _settings = GetComponent<SettingsUI>() ?? gameObject.AddComponent<SettingsUI>();
+            // ??는 UnityEngine.Object의 수명 검사를 건너뛰므로 == 오버로드를 타야 한다.
+            SettingsUI existing = GetComponent<SettingsUI>();
+            _settings = existing != null ? existing : gameObject.AddComponent<SettingsUI>();
             BuildMenu();
         }
 

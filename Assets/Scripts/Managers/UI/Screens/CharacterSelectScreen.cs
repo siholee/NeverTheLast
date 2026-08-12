@@ -237,7 +237,9 @@ namespace Managers.UI.Screens
         /// <summary>커서가 타일 위에 올라가면 좌측 큰 초상화를 갈아 끼운다.</summary>
         private void AddHoverPreview(GameObject target, int unitId)
         {
-            EventTrigger trigger = target.GetComponent<EventTrigger>() ?? target.AddComponent<EventTrigger>();
+            // ??는 UnityEngine.Object의 수명 검사를 건너뛴다. == 오버로드를 타야 한다.
+            EventTrigger existing = target.GetComponent<EventTrigger>();
+            EventTrigger trigger = existing != null ? existing : target.AddComponent<EventTrigger>();
             var entry = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
             entry.callback.AddListener(_ =>
             {

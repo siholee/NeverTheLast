@@ -437,11 +437,11 @@ MonoBehaviour:
   cellPrefab: {fileID: 3448253296688506009, guid: 68bf848b03ba5004c9e8392f1503723a, type: 3}
   heroPrefab: {fileID: 1684662353397886831, guid: f1fbae5ed4720774d8e5c61f0846f467, type: 3}
   enemyPrefab: {fileID: 2816147314669736202, guid: 565e0c081d02e99479535ad2ce26799f, type: 3}
-  xMin: -3
-  xMax: 3
+  xMin: -2
+  xMax: 2
   yMin: 1
-  yMax: 3
-  benchSize: 9
+  yMax: 4
+  benchSize: 5
   heroList: []
   enemyList: []
   Field: {fileID: 4101}

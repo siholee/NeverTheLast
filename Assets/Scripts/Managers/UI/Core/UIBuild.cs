@@ -283,7 +283,7 @@ namespace Managers.UI.Core
         public static void OnClick(GameObject target, Action callback)
         {
             if (target == null || callback == null) return;
-            var trigger = target.GetComponent<EventTrigger>() ?? target.AddComponent<EventTrigger>();
+            EventTrigger trigger = Ensure<EventTrigger>(target);
             var entry = new EventTrigger.Entry { eventID = EventTriggerType.PointerClick };
             entry.callback.AddListener(_ => callback());
             trigger.triggers.Add(entry);
@@ -292,7 +292,22 @@ namespace Managers.UI.Core
         /// <summary>CanvasGroup을 보장한다. 페이드/입력차단 제어용.</summary>
         public static CanvasGroup Group(GameObject target)
         {
-            return target.GetComponent<CanvasGroup>() ?? target.AddComponent<CanvasGroup>();
+            return Ensure<CanvasGroup>(target);
+        }
+
+        /// <summary>
+        /// 컴포넌트를 보장한다. 없으면 붙인다.
+        ///
+        /// <b><c>??</c>를 쓰면 안 된다.</b> 널 병합 연산자는 참조 동등성만 보므로
+        /// UnityEngine.Object의 수명 검사(파괴된 객체를 null로 취급하는 <c>==</c> 오버로드)를
+        /// 건너뛴다. 그 결과 "있는 것처럼 보이지만 실제로는 없는" 컴포넌트를 그대로 돌려주고,
+        /// 나중에 접근하는 쪽에서 MissingComponentException이 난다.
+        /// (행동서열 슬롯의 CanvasGroup이 실제로 이 경로로 깨졌다.)
+        /// </summary>
+        private static T Ensure<T>(GameObject target) where T : Component
+        {
+            T existing = target.GetComponent<T>();
+            return existing != null ? existing : target.AddComponent<T>();
         }
 
         /// <summary>자식을 전부 지운다. 목록을 다시 그릴 때.</summary>

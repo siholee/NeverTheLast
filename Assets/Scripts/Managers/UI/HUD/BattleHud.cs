@@ -71,7 +71,7 @@ namespace Managers.UI.HUD
             Image div1 = strip.transform.Find("Div1").GetComponent<Image>();
             UIBuild.Pin(div1.rectTransform, new Vector2(0.30f, 0.5f), new Vector2(1f, 20f), Vector2.zero);
 
-            _goldLabel = UIBuild.Text("Gold", strip.transform, "◈ 0", UITheme.FontHeading,
+            _goldLabel = UIBuild.Text("Gold", strip.transform, "◆ 0", UITheme.FontHeading,
                 UITheme.Accent, TextAlignmentOptions.Center);
             UIBuild.Anchor(_goldLabel.rectTransform, new Vector2(0.30f, 0f), new Vector2(0.60f, 1f), 8f, 0f);
 
@@ -106,7 +106,7 @@ namespace Managers.UI.HUD
         public void SetGold(int gold)
         {
             if (_goldLabel == null) return;
-            _goldLabel.text = $"◈ {gold}";
+            _goldLabel.text = $"◆ {gold}";
         }
 
         public void SetPhase(BaseEnums.GameState state, int remainingEnemies)

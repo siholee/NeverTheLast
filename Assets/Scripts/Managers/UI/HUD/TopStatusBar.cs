@@ -41,7 +41,7 @@ namespace Managers.UI.HUD
 
             // ── 오른쪽 끝: 버튼 3개 (설정 ← 인벤 ← 배속 순으로 붙인다) ──
             float cursor = 0f;
-            Button settings = UIBuild.IconButton("SettingsButton", _root, "⚙", onSettings);
+            Button settings = UIBuild.IconButton("SettingsButton", _root, "≡", onSettings);
             UIBuild.Pin(settings.image.rectTransform, new Vector2(1f, 0.5f),
                 new Vector2(ButtonSize, ButtonSize), new Vector2(cursor, 0f));
             cursor -= ButtonSize + 6f;

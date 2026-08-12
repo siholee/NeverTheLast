@@ -114,6 +114,8 @@ namespace Managers
 
         private void SetGrid()
         {
+            EnforceLayoutBounds();
+
             // _fieldCellManager 배열 초기화
             int rows = yMax - yMin + 1;
             int columns = xMax - xMin + 1;
@@ -131,10 +133,45 @@ namespace Managers
             // 새로운 벤치 셀들 생성
             CreateBenchCells();
 
-            // 만들어진 셀에 맞춰 카메라를 잡는다.
-            FrameCamera();
+            // 만들어진 셀에 맞춰 카메라를 잡는다. 준비 단계이므로 대기석까지 보여 준다.
+            SetBenchVisible(true);
         }
         
+        // 전열/후열 구조가 성립하는 유일한 범위. 진영당 2열 × 4행이다.
+        private const int LayoutXMin = -2;
+        private const int LayoutXMax = 2;
+        private const int LayoutYMin = 1;
+        private const int LayoutYMax = 4;
+        private const int LayoutBenchSize = 5;
+
+        /// <summary>
+        /// 씬에 저장된 범위를 전열/후열 구조에 맞게 되돌린다.
+        ///
+        /// <see cref="CalculateFieldCellPosition"/>은 |x|=1을 전열, 그 외를 후열로 본다.
+        /// 따라서 x가 ±2를 넘으면 <b>여러 x가 같은 좌표로 계산되어 셀이 겹쳐 쌓인다</b>
+        /// (실제로 씬에 구 레이아웃 값 xMin -3 / xMax 3이 남아 x=-3과 -2가 포개져 있었다).
+        /// 인스펙터 값이 조용히 구조를 깨뜨리지 않도록 여기서 바로잡고 알린다.
+        /// </summary>
+        private void EnforceLayoutBounds()
+        {
+            if (xMin == LayoutXMin && xMax == LayoutXMax &&
+                yMin == LayoutYMin && yMax == LayoutYMax && benchSize == LayoutBenchSize)
+            {
+                return;
+            }
+
+            Debug.LogWarning(
+                $"[GridManager] 전장 범위가 전열/후열 구조와 다릅니다. " +
+                $"x[{xMin},{xMax}] y[{yMin},{yMax}] 대기석 {benchSize} → " +
+                $"x[{LayoutXMin},{LayoutXMax}] y[{LayoutYMin},{LayoutYMax}] 대기석 {LayoutBenchSize}로 보정합니다.");
+
+            xMin = LayoutXMin;
+            xMax = LayoutXMax;
+            yMin = LayoutYMin;
+            yMax = LayoutYMax;
+            benchSize = LayoutBenchSize;
+        }
+
         private void CreateFieldCells()
         {
             if (cellPrefab == null)
@@ -312,12 +349,41 @@ namespace Managers
         /// </summary>
         private const float CameraBottomHudFraction = 0.16f;
 
+        /// <summary>상단 상태바(생명력·골드·스테이지)에 최상단 행이 가리지 않도록 두는 여유.</summary>
+        private const float CameraTopHudFraction = 0.07f;
+
+        /// <summary>대기석이 지금 화면에 나와 있는지.</summary>
+        private bool _benchVisible = true;
+
+        /// <summary>
+        /// 대기석을 보이거나 숨기고, 그에 맞춰 카메라를 다시 잡는다.
+        ///
+        /// 전투 중에는 유닛을 대기석으로 옮길 수 없으므로 자리만 차지한다.
+        /// 숨긴 만큼 전장이 화면을 더 크게 쓰게 되어 전투가 잘 보인다.
+        /// </summary>
+        public void SetBenchVisible(bool visible)
+        {
+            _benchVisible = visible;
+
+            if (_benchCellManager != null)
+            {
+                foreach (Cell cell in _benchCellManager)
+                {
+                    if (cell != null) cell.gameObject.SetActive(visible);
+                }
+            }
+
+            FrameCamera();
+        }
+
         /// <summary>
         /// 전장 전체가 화면에 들어오도록 카메라를 맞춘다.
         ///
         /// 배치 상수를 바꿀 때마다 씬의 카메라를 손으로 옮기면 금방 어긋난다.
         /// 실제로 만들어진 셀 좌표에서 경계를 구해 그 중심에 카메라를 두고 배율을 잡으면,
         /// 전열/후열 간격이나 대기석 위치를 바꿔도 프레이밍이 따라온다.
+        ///
+        /// 대기석이 숨어 있으면 계산에서도 빼므로 전장이 그만큼 확대된다.
         /// </summary>
         private void FrameCamera()
         {
@@ -345,7 +411,10 @@ namespace Managers
             }
 
             if (_fieldCellManager != null) foreach (Cell cell in _fieldCellManager) Include(cell);
-            if (_benchCellManager != null) foreach (Cell cell in _benchCellManager) Include(cell);
+            if (_benchVisible && _benchCellManager != null)
+            {
+                foreach (Cell cell in _benchCellManager) Include(cell);
+            }
             if (!any) return;
 
             // 셀 중심 좌표를 모았으니 반 칸씩 넓히고 여백을 더한다.
@@ -353,8 +422,11 @@ namespace Managers
             minX -= pad; maxX += pad;
             minY -= pad; maxY += pad;
 
-            // 아래쪽 HUD가 대기석을 덮지 않도록 아래로만 더 벌린다.
-            minY -= (maxY - minY) * CameraBottomHudFraction;
+            // HUD가 판을 덮지 않도록 위아래로 더 벌린다.
+            // 상단 상태바는 늘 떠 있고, 준비 페이즈 바는 전투 중에 사라지므로 그때는 아래 여유가 없어도 된다.
+            float span = maxY - minY;
+            maxY += span * CameraTopHudFraction;
+            if (_benchVisible) minY -= span * CameraBottomHudFraction;
 
             float width = maxX - minX;
             float height = maxY - minY;
@@ -543,7 +615,10 @@ namespace Managers
         public void OnRoundStart()
         {
             Debug.Log("[GridManager] OnRoundStart 호출됨");
-            
+
+            // 전투 중에는 대기석을 쓸 수 없다. 숨기고 그만큼 전장을 확대한다.
+            SetBenchVisible(false);
+
             Debug.Log($"[GridManager] 아군 수: {heroList.Count}");
             foreach (Unit hero in heroList)
             {
@@ -744,6 +819,9 @@ namespace Managers
             {
                 unit.Invoke(BaseEnums.UnitEventType.OnRoundEnd, new EventContext(unit));
             }
+
+            // 다시 편성할 수 있도록 대기석을 되돌린다.
+            SetBenchVisible(true);
         }
 
         public void ClearActiveEnemies()
