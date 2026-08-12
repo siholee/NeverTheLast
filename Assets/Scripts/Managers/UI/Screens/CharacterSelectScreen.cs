@@ -204,6 +204,7 @@ namespace Managers.UI.Screens
                 if (_hovered == 0) _hovered = unit.id;
             }
 
+            _sizer.Count = units.Count;
             _sizer.Apply();
         }
 
@@ -392,6 +393,15 @@ namespace Managers.UI.Screens
         public int MaxColumns = 6;
         public float Gap = 10f;
 
+        /// <summary>
+        /// 이번에 배치할 타일 수. 격자를 다시 그리는 쪽이 직접 알려 준다.
+        ///
+        /// <c>transform.childCount</c>를 세면 안 된다. <see cref="UIBuild.Clear"/>의 Destroy는
+        /// 프레임 끝에 처리되므로, 다시 그린 직후에는 <b>지워질 예정인 이전 타일까지 함께 세어져</b>
+        /// 열·행 수가 부풀고 칸이 실제보다 작게 잡힌다.
+        /// </summary>
+        public int Count;
+
         private GridLayoutGroup _layout;
         private RectTransform _rect;
 
@@ -413,12 +423,8 @@ namespace Managers.UI.Screens
             if (_rect == null) _rect = GetComponent<RectTransform>();
             if (_layout == null || _rect == null) return;
 
-            int count = 0;
-            for (int i = 0; i < transform.childCount; i++)
-            {
-                if (transform.GetChild(i).gameObject.activeSelf) count++;
-            }
-            if (count == 0) return;
+            int count = Count;
+            if (count <= 0) return;
 
             int columns = Mathf.Clamp(count, 1, Mathf.Max(1, MaxColumns));
             int rows = Mathf.Max(1, Mathf.CeilToInt(count / (float)columns));

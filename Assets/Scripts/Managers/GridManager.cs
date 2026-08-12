@@ -130,6 +130,9 @@ namespace Managers
             
             // 새로운 벤치 셀들 생성
             CreateBenchCells();
+
+            // 만들어진 셀에 맞춰 카메라를 잡는다.
+            FrameCamera();
         }
         
         private void CreateFieldCells()
@@ -295,6 +298,71 @@ namespace Managers
             float fieldBottom = (yMin + yMax) * 0.5f - yMax;      // 전장 최하단 슬롯의 y 계수
             float posY = fieldBottom * SlotSpacing - BenchOffsetY;
             return new Vector3(x * SlotSpacing, posY, 0f);
+        }
+
+        /// <summary>칸 하나의 반지름(월드 단위). 셀 테두리 스프라이트가 10.16이다.</summary>
+        private const float CellExtent = 5.08f;
+
+        /// <summary>전장 바깥에 남길 여백(월드 단위).</summary>
+        private const float CameraMargin = 2f;
+
+        /// <summary>
+        /// 화면 아래 HUD(준비 페이즈 바)에 가리지 않도록 아래쪽에만 더 주는 여유.
+        /// 화면 높이 대비 비율이며, 대기석이 HUD 뒤로 숨지 않을 만큼 잡는다.
+        /// </summary>
+        private const float CameraBottomHudFraction = 0.16f;
+
+        /// <summary>
+        /// 전장 전체가 화면에 들어오도록 카메라를 맞춘다.
+        ///
+        /// 배치 상수를 바꿀 때마다 씬의 카메라를 손으로 옮기면 금방 어긋난다.
+        /// 실제로 만들어진 셀 좌표에서 경계를 구해 그 중심에 카메라를 두고 배율을 잡으면,
+        /// 전열/후열 간격이나 대기석 위치를 바꿔도 프레이밍이 따라온다.
+        /// </summary>
+        private void FrameCamera()
+        {
+            Camera camera = Camera.main;
+            if (camera == null || !camera.orthographic) return;
+
+            bool any = false;
+            float minX = 0f, maxX = 0f, minY = 0f, maxY = 0f;
+
+            void Include(Cell cell)
+            {
+                if (cell == null) return;
+                Vector3 position = cell.transform.position;
+                if (!any)
+                {
+                    minX = maxX = position.x;
+                    minY = maxY = position.y;
+                    any = true;
+                    return;
+                }
+                minX = Mathf.Min(minX, position.x);
+                maxX = Mathf.Max(maxX, position.x);
+                minY = Mathf.Min(minY, position.y);
+                maxY = Mathf.Max(maxY, position.y);
+            }
+
+            if (_fieldCellManager != null) foreach (Cell cell in _fieldCellManager) Include(cell);
+            if (_benchCellManager != null) foreach (Cell cell in _benchCellManager) Include(cell);
+            if (!any) return;
+
+            // 셀 중심 좌표를 모았으니 반 칸씩 넓히고 여백을 더한다.
+            float pad = CellExtent + CameraMargin;
+            minX -= pad; maxX += pad;
+            minY -= pad; maxY += pad;
+
+            // 아래쪽 HUD가 대기석을 덮지 않도록 아래로만 더 벌린다.
+            minY -= (maxY - minY) * CameraBottomHudFraction;
+
+            float width = maxX - minX;
+            float height = maxY - minY;
+            float aspect = camera.aspect > 0f ? camera.aspect : 16f / 9f;
+
+            camera.orthographicSize = Mathf.Max(height * 0.5f, width * 0.5f / aspect);
+            camera.transform.position = new Vector3(
+                (minX + maxX) * 0.5f, (minY + maxY) * 0.5f, camera.transform.position.z);
         }
 
         public bool IsCellAvailable(int xPos, int yPos)

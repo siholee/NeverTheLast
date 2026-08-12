@@ -69,7 +69,8 @@ namespace Managers.UI.Screens
             UIBuild.Anchor(_choiceArea, new Vector2(0f, 0f), new Vector2(1f, 0.44f));
 
             // 대사가 남아 있을 때만 보이는 진행 버튼들. 오른쪽부터 계속 · 자동 · 건너뛰기.
-            _advance = UIBuild.Button("Advance", Body, "계속 ▸",
+            // ▸(U+25B8)는 LiberationSans SDF에 없어 □로 깨진다. 폰트에 있는 ▶를 쓴다.
+            _advance = UIBuild.Button("Advance", Body, "계속 ▶",
                 () => GameManager.Instance?.AdvanceEventDialogue());
             UIBuild.Pin(_advance.image.rectTransform, new Vector2(1f, 0f), new Vector2(160f, 44f),
                 Vector2.zero);
