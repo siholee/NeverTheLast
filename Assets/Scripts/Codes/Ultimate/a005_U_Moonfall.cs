@@ -7,6 +7,7 @@ using Codes.Base;
 using Entities;
 using Managers;
 using UnityEngine;
+using Effects.Projectiles;
 
 namespace Codes.Ultimate
 {
@@ -73,7 +74,11 @@ namespace Codes.Ultimate
             float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
             int primaryDamage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(100, BaseEnums.PrimaryStat.DEX) * critMultiplier));
 
-            if (_prefab != null) GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, primary, 0.35f);
+            // 활에서 나가는 화살이라 곡선형이다.
+            if (_prefab != null)
+                GameManager.Instance.sfxManager.FireSingleProjectile(
+                    _prefab, Caster, primary, 0.35f,
+                    ProjectilePathType.ParabolicArc, ProjectileFlight.DataFor(ProjectilePathType.ParabolicArc));
             yield return new WaitForSeconds(0.35f);
             if (primary != null && primary.isActive)
             {
@@ -92,7 +97,10 @@ namespace Codes.Ultimate
                 int rearDamage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(60, BaseEnums.PrimaryStat.DEX) * critMultiplier));
                 foreach (Unit target in rearEnemies)
                 {
-                    if (_prefab != null) GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, primary, target, 0.15f);
+                    if (_prefab != null)
+                        GameManager.Instance.sfxManager.FireSingleProjectile(
+                            _prefab, primary, target, 0.15f,
+                            ProjectilePathType.ParabolicArc, ProjectileFlight.DataFor(ProjectilePathType.ParabolicArc));
                 }
                 yield return new WaitForSeconds(0.2f);
                 foreach (Unit target in rearEnemies.Where(unit => unit != null && unit.isActive))

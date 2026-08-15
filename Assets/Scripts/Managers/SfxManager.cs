@@ -4,6 +4,7 @@ using Effects;
 using Entities;
 using BaseClasses;
 using UnityEngine;
+using Effects.Projectiles;
 
 namespace Managers
 {
@@ -115,12 +116,16 @@ namespace Managers
       projectile.gameObject.SetActive(true);
       _liveProjectiles.Add(projectile);
 
+      // 궤적을 굴리는 것은 이 컴포넌트다. Hovl 기본 프리팹에는 없으므로 붙어 있는지 확인한다.
       HS_ProjectileCustomMover mover = projectile.GetComponent<HS_ProjectileCustomMover>();
-      
-      if (pathData != null)
-        mover.SetProjectileInfo(unitFrom, unitTo, duration, pathType, pathData);
-      else
-        mover.SetProjectileInfo(unitFrom, unitTo, duration, pathType, new ProjectilePathData());
+      if (mover == null)
+      {
+        Debug.LogWarning(
+          $"[SfxManager] {prefab.name}에 HS_ProjectileCustomMover가 없어 투사체가 움직이지 않습니다.");
+        return;
+      }
+
+      mover.SetProjectileInfo(unitFrom, unitTo, duration, pathType, pathData ?? new ProjectilePathData());
     }
   }
 }

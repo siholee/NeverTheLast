@@ -7,6 +7,7 @@ using Effects.Buffs;
 using Entities;
 using Managers;
 using UnityEngine;
+using Effects.Projectiles;
 
 namespace Codes.Ultimate
 {
@@ -177,7 +178,10 @@ namespace Codes.Ultimate
                 GameManager.Instance.sfxManager.ProjectilePrefabs.TryGetValue("FireBlast", out var prefab))
             {
                 foreach (Unit target in enemies)
-                    GameManager.Instance.sfxManager.FireSingleProjectile(prefab, Caster, target, 0.25f);
+                    // 특수 피해라 직선형이다.
+                    GameManager.Instance.sfxManager.FireSingleProjectile(
+                        prefab, Caster, target, 0.25f,
+                        ProjectilePathType.Linear, ProjectileFlight.DataFor(ProjectilePathType.Linear));
                 yield return new WaitForSeconds(0.25f);
             }
 

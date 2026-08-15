@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace BaseClasses
+namespace Effects.Projectiles
 {
     /// <summary>
     /// 투사체 경로의 파라미터를 저장하는 클래스

@@ -4,6 +4,7 @@ using Effects;
 using Entities;
 using BaseClasses;
 using UnityEngine;
+using Effects.Projectiles;
 
 public class HS_ProjectileCustomMover : MonoBehaviour
 {

@@ -141,6 +141,32 @@ HUD가 판을 덮지 않도록 위아래로 여유를 더 준다.
 > (`xMin -3 / xMax 3 / yMax 3 / benchSize 9`)이 남아 x=−3과 −2가 포개져 있었다.
 > `EnforceLayoutBounds()`가 진영당 2열 × 4행, 대기석 5칸으로 바로잡고 경고를 남긴다.
 
+## 1.10 투사체 궤적
+
+공격 이펙트는 Hovl Studio `AAA Projectiles Vol 1`을 쓰고, 비행은 `HS_ProjectileCustomMover`가 굴린다.
+`SfxManager.FireSingleProjectile`이 풀에서 꺼내 시전자→대상 좌표와 궤적을 넘긴다.
+
+**궤적은 두 가지만 쓴다.**
+
+| 궤적 | 대상 | 계산 |
+| --- | --- | --- |
+| **직선형** `Linear` | 마법·특수 투사체, 접촉(근접) 물리 | `Lerp(start, end, t)` |
+| **곡선형** `ParabolicArc` | 화살·투척 등 **원거리 물리** | `Lerp` + `4h·t(1−t)`, 최고 높이 5 |
+
+선택은 `ProjectileFlight.PathFor(피해 태그)`가 한다 — `Physical`이면서 `ContactAttack`이 아니면 곡선형,
+그 외에는 직선형이다. 접촉 물리를 뺀 이유는 붙어서 때리는 연출에 포물선을 씌우면
+이펙트가 솟았다 내려와 타격감이 어긋나기 때문이다.
+
+> 🔸 **나머지 경로 타입(Spiral·Wave·Bezier·MultiPoint·DelayedDrop)은 구현만 남기고 쓰지 않는다.**
+> 이 게임은 XY 평면을 정사영으로 비추는데, 그 경로들은 오프셋을 **경로에 수직인 z축**으로 준다.
+> Wave는 전량이 z라 화면에서 아무 변화가 없었고, Spiral은 절반만 y라 나선이 아니라 위아래 진동으로 보였다.
+> 곡선형은 y를 직접 올리므로 2D에서 그대로 보인다.
+
+**파일 위치** — `Scripts/Effects/Projectiles/`
+(`HS_ProjectileCustomMover` · `ProjectilePathType` · `ProjectilePathData` · `ProjectileFlight`)
+`HS_ProjectileCustomMover`는 이 프로젝트가 작성한 코드인데 벤더 폴더(`Hovl Studio/`)에 있었다.
+에셋을 다시 임포트하면 덮어써질 자리라 Scripts로 옮겼다.
+
 ### 1.2 전투 HUD
 
 | 컴포넌트 | 표시 |

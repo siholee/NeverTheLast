@@ -7,6 +7,7 @@ using Codes.Base;
 using Entities;
 using Managers;
 using UnityEngine;
+using Effects.Projectiles;
 
 namespace Codes.Base
 {
@@ -112,8 +113,10 @@ namespace Codes.Base
         {
             foreach (var target in targets)
             {
-                ProjectilePathData pathData = ProjectilePathData.CreateSpiral(5f, 20f, 5f);
-                GameManager.Instance.sfxManager.FireSingleProjectile(_prefab, Caster, target, delay, ProjectilePathType.Spiral, pathData);
+                // 물리(화살·투척)는 곡선형, 마법·특수는 직선형으로 날아간다.
+                ProjectilePathType path = ProjectileFlight.PathFor(context);
+                GameManager.Instance.sfxManager.FireSingleProjectile(
+                    _prefab, Caster, target, delay, path, ProjectileFlight.DataFor(path));
                 yield return new WaitForSeconds(delay);
                 target.TakeDamage(context);
                 Caster.Invoke(BaseEnums.UnitEventType.OnNormalAttackHit, new EventContext(Caster, target, context));

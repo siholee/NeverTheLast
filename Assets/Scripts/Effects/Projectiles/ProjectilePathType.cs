@@ -1,4 +1,4 @@
-﻿namespace BaseClasses
+﻿namespace Effects.Projectiles
 {
     /// <summary>
     /// 투사체 경로 타입을 정의하는 Enum

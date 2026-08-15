@@ -7,6 +7,7 @@ using Codes.Base;
 using Entities;
 using Managers;
 using UnityEngine;
+using Effects.Projectiles;
 
 namespace Codes.Test
 {
@@ -86,15 +87,15 @@ namespace Codes.Test
         {
             foreach (var target in targets)
             {
-                // 베지어 곡선 (높은 아크)
-                ProjectilePathData pathData = ProjectilePathData.CreateBezier(5f);
+                // 물리(화살·투척)는 곡선형, 마법·특수는 직선형으로 날아간다.
+                ProjectilePathType path = ProjectileFlight.PathFor(context);
                 GameManager.Instance.sfxManager.FireSingleProjectile(
-                    _prefab, 
-                    Caster, 
-                    target, 
-                    delay, 
-                    ProjectilePathType.BezierCurve, 
-                    pathData
+                    _prefab,
+                    Caster,
+                    target,
+                    delay,
+                    path,
+                    ProjectileFlight.DataFor(path)
                 );
                 yield return new WaitForSeconds(delay);
                 target.TakeDamage(context);

@@ -6,6 +6,7 @@ using Codes.Base;
 using Entities;
 using Managers;
 using UnityEngine;
+using Effects.Projectiles;
 
 namespace Codes.Normal
 {
@@ -83,17 +84,14 @@ namespace Codes.Normal
             {
                 Unit target = availableTargets[i % availableTargets.Count];
                 plannedTargets.Add(target);
-                ProjectilePathData pathData = ProjectilePathData.CreateSpiral(
-                    5f + i * 0.2f,
-                    20f + i * 2f,
-                    5f);
+                // 세이의 유도탄은 특수 피해라 직선형이다.
                 GameManager.Instance.sfxManager.FireSingleProjectile(
                     _prefab,
                     Caster,
                     target,
                     delay,
-                    ProjectilePathType.Spiral,
-                    pathData);
+                    ProjectilePathType.Linear,
+                    ProjectileFlight.DataFor(ProjectilePathType.Linear));
             }
 
             yield return new WaitForSeconds(delay);

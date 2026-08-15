@@ -8,6 +8,7 @@ using Effects.Buffs;
 using Entities;
 using Managers;
 using UnityEngine;
+using Effects.Projectiles;
 
 namespace Codes.Ultimate
 {
@@ -88,11 +89,14 @@ namespace Codes.Ultimate
                 isCrit));
         }
 
+        /// <summary>의신의 영약은 특수 피해라 직선형이다.</summary>
         private void FireProjectile(Unit target, float delay)
         {
             if (GameManager.Instance?.sfxManager?.ProjectilePrefabs != null &&
                 GameManager.Instance.sfxManager.ProjectilePrefabs.TryGetValue("FireBlast", out var prefab))
-                GameManager.Instance.sfxManager.FireSingleProjectile(prefab, Caster, target, delay);
+                GameManager.Instance.sfxManager.FireSingleProjectile(
+                    prefab, Caster, target, delay,
+                    ProjectilePathType.Linear, ProjectileFlight.DataFor(ProjectilePathType.Linear));
         }
 
         public override void StopCode()
@@ -195,11 +199,14 @@ namespace Codes.Ultimate
             ClearPortalHook();
         }
 
+        /// <summary>차원문에서 나오는 화살이라 곡선형으로 날아간다.</summary>
         private void FireProjectile(Unit target, float delay)
         {
             if (GameManager.Instance?.sfxManager?.ProjectilePrefabs != null &&
                 GameManager.Instance.sfxManager.ProjectilePrefabs.TryGetValue("FireBlast", out var prefab))
-                GameManager.Instance.sfxManager.FireSingleProjectile(prefab, Caster, target, delay);
+                GameManager.Instance.sfxManager.FireSingleProjectile(
+                    prefab, Caster, target, delay,
+                    ProjectilePathType.ParabolicArc, ProjectileFlight.DataFor(ProjectilePathType.ParabolicArc));
         }
 
         private void ClearPortalHook()
