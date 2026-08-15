@@ -20,11 +20,19 @@ namespace Managers
 
   public class SfxManager : MonoBehaviour
   {
-    // 파티클 prefab들은 원본이 전투 화면 기준으로 과하게 크다.
-    // prefab을 직접 수정하면 서드파티(Hovl Studio) 에셋을 건드리게 되므로
-    // 스폰 시점에 스케일을 적용해 조절한다.
+    // 파티클 크기는 스폰 시점의 루트 스케일로 맞춘다.
     // (모든 파티클의 scalingMode가 Hierarchy(0)라 루트 스케일이 그대로 반영된다.)
-    private const float DefaultProjectileScale = 0.45f;
+    //
+    // 배율이 두 갈래인 이유: 프로젝트가 손본 프리팹(Prefabs/SFX)은 파티클 startSize가 6인데,
+    // Hovl 원본(Resources/SFX/Projectile)은 0.6으로 **정확히 10배 작다.**
+    // 같은 배율을 쓰면 원본 프리팹은 전장(가로 약 68유닛)에서 점처럼 보여 사실상 안 보인다.
+    // 두 값은 화면상 크기가 비슷해지도록(주 파티클 약 4.2유닛) 맞춰 두었다.
+
+    /// <summary>프로젝트가 손본 프리팹(startSize 6 기준)의 배율.</summary>
+    private const float DefaultProjectileScale = 0.7f;
+
+    /// <summary>Hovl 원본 프리팹(startSize 0.6 기준)의 배율.</summary>
+    private const float ElementalProjectileScale = 6f;
 
     // 동시에 살아있는 투사체 상한. 전체 공격/광역 스킬에서 화면이 난잡해지는 것을 막는다.
     private const int MaxConcurrentProjectiles = 12;
@@ -116,16 +124,57 @@ namespace Managers
       projectile.gameObject.SetActive(true);
       _liveProjectiles.Add(projectile);
 
-      // 궤적을 굴리는 것은 이 컴포넌트다. Hovl 기본 프리팹에는 없으므로 붙어 있는지 확인한다.
-      HS_ProjectileCustomMover mover = projectile.GetComponent<HS_ProjectileCustomMover>();
-      if (mover == null)
-      {
-        Debug.LogWarning(
-          $"[SfxManager] {prefab.name}에 HS_ProjectileCustomMover가 없어 투사체가 움직이지 않습니다.");
-        return;
-      }
+      PrepareMover(projectile).SetProjectileInfo(
+        unitFrom, unitTo, duration, pathType, pathData ?? new ProjectilePathData());
+    }
 
-      mover.SetProjectileInfo(unitFrom, unitTo, duration, pathType, pathData ?? new ProjectilePathData());
+    /// <summary>
+    /// 시전자의 원소에 맞는 투사체를 쏜다.
+    ///
+    /// 원소별로 프리팹이 다르고 원신 원소 색이 입혀진다.
+    /// 해당 원소의 프리팹이 없으면 <paramref name="fallback"/>으로 물러난다.
+    /// </summary>
+    public void FireElementalProjectile(Unit unitFrom, Unit unitTo, float duration,
+      ProjectilePathType pathType, ProjectilePathData pathData, HS_Poolable fallback = null)
+    {
+      if (unitFrom == null || unitTo == null) return;
+
+      BaseEnums.UnitElement element = ElementalProjectiles.Parse(unitFrom.Element);
+      HS_Poolable prefab = ElementalProjectiles.PrefabFor(element) ?? fallback;
+      if (prefab == null) return;
+
+      TrimLiveProjectiles();
+
+      HS_Poolable projectile = poolableManager.GetInstanceOf(prefab);
+      projectile.transform.position = unitFrom.transform.position;
+      projectile.transform.rotation =
+        Quaternion.LookRotation(unitTo.transform.position - unitFrom.transform.position);
+      projectile.transform.localScale = Vector3.one * ElementalProjectileScale;
+      projectile.gameObject.SetActive(true);
+      _liveProjectiles.Add(projectile);
+
+      // 풀에서 돌려쓰므로 색은 매번 다시 칠한다.
+      ElementalProjectiles.Tint(projectile.gameObject, element);
+
+      PrepareMover(projectile).SetProjectileInfo(
+        unitFrom, unitTo, duration, pathType, pathData ?? new ProjectilePathData());
+    }
+
+    /// <summary>
+    /// 궤적을 굴릴 컴포넌트를 준비한다.
+    ///
+    /// Hovl 원본 프리팹에는 <see cref="HS_ProjectileCustomMover"/>가 없고 스톡 무버만 있다.
+    /// 없으면 붙이고, 스톡 무버는 꺼 둔다 — 둘 다 살아 있으면 서로 위치를 밀어 궤적이 망가진다.
+    /// </summary>
+    private static HS_ProjectileCustomMover PrepareMover(HS_Poolable projectile)
+    {
+      var stock = projectile.GetComponent<HS_ProjectileMover>();
+      if (stock != null) stock.enabled = false;
+
+      var mover = projectile.GetComponent<HS_ProjectileCustomMover>();
+      if (mover == null) mover = projectile.gameObject.AddComponent<HS_ProjectileCustomMover>();
+      mover.ResolveMissingReferences();
+      return mover;
     }
   }
 }

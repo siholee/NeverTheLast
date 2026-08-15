@@ -352,42 +352,55 @@ public class HS_ProjectileCustomMover : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 인스펙터에서 채워지지 않은 참조를 계층에서 찾아 채운다.
+    ///
+    /// 이 컴포넌트를 런타임에 붙이는 경로(Hovl 원본 프리팹에는 이 스크립트가 없다)를 지원하기 위한 것이다.
+    /// 이미 채워져 있으면 손대지 않으므로, 손으로 구성한 프리팹의 설정이 덮이지 않는다.
+    /// </summary>
+    public void ResolveMissingReferences()
+    {
+        if (projectilePS == null) projectilePS = GetComponentInChildren<ParticleSystem>(true);
+        if (lightSourse == null) lightSourse = GetComponentInChildren<Light>(true);
+        Detached ??= new GameObject[0];
+    }
+
     protected virtual void OnHitTarget()
     {
         if (lightSourse != null)
             lightSourse.enabled = false;
-        projectilePS.Stop();
-        projectilePS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
-        Quaternion rot = Quaternion.LookRotation(unitTo.transform.position - unitFrom.transform.position);
+        if (projectilePS != null)
+        {
+            projectilePS.Stop();
+            projectilePS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
 
         //Spawn hit effect on collision
-        if (hit != null)
+        if (hit != null && unitFrom != null && unitTo != null)
         {
-            hit.transform.rotation = rot;
+            hit.transform.rotation = Quaternion.LookRotation(
+                unitTo.transform.position - unitFrom.transform.position);
             hit.transform.position = unitTo.transform.position;
-            hitPS.Play();
+            if (hitPS != null) hitPS.Play();
         }
 
         //Removing trail from the projectile on cillision enter or smooth removing. Detached elements must have "AutoDestroying script"
-        foreach (var detachedPrefab in Detached)
+        if (Detached != null)
         {
-            if (detachedPrefab != null)
+            foreach (var detachedPrefab in Detached)
             {
+                if (detachedPrefab == null) continue;
                 ParticleSystem detachedPS = detachedPrefab.GetComponent<ParticleSystem>();
-                detachedPS.Stop();
+                if (detachedPS != null) detachedPS.Stop();
             }
         }
-        if (notDestroy)
-            StartCoroutine(DisableTimer(hitPS.main.duration));
-        else
-        {
-            if (hitPS != null)
-            {
-                Destroy(gameObject, hitPS.main.duration);
-            }
-            else
-                Destroy(gameObject, 1);
-        }
+
+        // 풀에서 돌려쓰는 오브젝트다. Destroy하면 풀이 인스턴스를 되돌려받지 못하고
+        // 매번 새로 만들게 되므로, 반드시 RejoinPool로 회수한다.
+        float linger = hitPS != null ? hitPS.main.duration : 1f;
+        var poolable = GetComponent<CGT.Pooling.HS_Poolable>();
+        if (poolable != null) poolable.RejoinPoolAfter(linger);
+        else StartCoroutine(DisableTimer(linger));
     }
 }

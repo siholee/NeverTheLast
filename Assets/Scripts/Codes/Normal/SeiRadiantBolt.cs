@@ -11,12 +11,13 @@ using Effects.Projectiles;
 namespace Codes.Normal
 {
     /// <summary>
-    /// 세이의 일반 공격. 카이사 Q처럼 여러 유도탄을 주변 적에게 균등 분배하며,
-    /// 고립된 적에게는 모든 유도탄이 집중된다.
+    /// 세이의 일반 공격. TFT 카이사(이카시아의 비)를 따른다.
     ///
-    /// 6발, 총 위력 80의 특수 피해를 입힌다.
+    ///   · <b>첫 발</b>은 평소 일반공격 규칙으로 고른 <b>지정 대상</b>에게 나간다.
+    ///   · <b>나머지 5발</b>은 살아 있는 적 중 <b>무작위</b>로 흩어진다.
     ///
-    /// 세이는 INT 주력이므로 두 형태 모두 INT를 근거로 피해를 낸다.
+    /// 6발, 총 위력 80의 특수 피해를 입힌다. 세이는 INT 주력이라 INT를 근거로 피해를 낸다.
+    /// 모든 발사체는 <b>비접촉 특수</b> 공격이므로 직선으로 날아간다.
     /// </summary>
     public sealed class SeiRadiantBolt : BaseNormalCode
     {
@@ -27,7 +28,7 @@ namespace Codes.Normal
         {
             CodeName = "일반공격";
             Power = BasePower;
-            CodeTags = new List<int> { DamageTag.Special };
+            CodeTags = new List<int> { DamageTag.Special, DamageTag.NonContactAttack };
         }
 
         protected override int CalculateDamage(float critMultiplier)
@@ -49,31 +50,15 @@ namespace Codes.Normal
         }
 
         /// <summary>
-        /// 우선 대상은 기존 일반공격 규칙으로 정하고, 나머지 적도 유도탄 분배 후보로 함께 반환한다.
+        /// 첫 발이 나갈 지정 대상만 정한다. 나머지 발사체의 대상은 발사 시점에 무작위로 뽑는다.
         /// </summary>
-        protected override List<Unit> SelectTarget()
-        {
-            List<Unit> primaryTargets = base.SelectTarget();
-            if (primaryTargets.Count == 0) return primaryTargets;
-
-            Unit primary = primaryTargets[0];
-            return new[] { primary }
-                .Concat(GetAvailableEnemies()
-                    .Where(enemy => enemy != primary)
-                    .OrderByDescending(enemy => enemy.Priority)
-                    .ThenBy(enemy => enemy.HpCurr))
-                .ToList();
-        }
+        protected override List<Unit> SelectTarget() => base.SelectTarget();
 
         protected override IEnumerator FireProjectile(List<Unit> targets, float delay, DamageContext context)
         {
-            List<Unit> availableTargets = targets
-                .Where(target => target != null && target.isActive && !target.IsUntargetable)
-                .ToList();
-            if (availableTargets.Count == 0)
-            {
-                yield break;
-            }
+            Unit primary = targets.FirstOrDefault(
+                target => target != null && target.isActive && !target.IsUntargetable);
+            if (primary == null) yield break;
 
             int missileCount = BaseMissileCount;
             int damagePerMissile = context.Damage / missileCount;
@@ -82,16 +67,17 @@ namespace Codes.Normal
 
             for (int i = 0; i < missileCount; i++)
             {
-                Unit target = availableTargets[i % availableTargets.Count];
+                // 첫 발은 지정 대상, 나머지는 무작위 — TFT 카이사와 같은 분배다.
+                Unit target = i == 0 ? primary : RandomEnemy() ?? primary;
                 plannedTargets.Add(target);
-                // 세이의 유도탄은 특수 피해라 직선형이다.
-                GameManager.Instance.sfxManager.FireSingleProjectile(
-                    _prefab,
+
+                GameManager.Instance.sfxManager.FireElementalProjectile(
                     Caster,
                     target,
                     delay,
                     ProjectilePathType.Linear,
-                    ProjectileFlight.DataFor(ProjectilePathType.Linear));
+                    ProjectileFlight.DataFor(ProjectilePathType.Linear),
+                    _prefab);
             }
 
             yield return new WaitForSeconds(delay);
@@ -117,6 +103,15 @@ namespace Codes.Normal
                     BaseEnums.UnitEventType.OnNormalAttackHit,
                     new EventContext(Caster, target, missileContext));
             }
+        }
+
+        /// <summary>살아 있는 적 중 하나를 무작위로 고른다. 없으면 null.</summary>
+        private Unit RandomEnemy()
+        {
+            List<Unit> candidates = GetAvailableEnemies()
+                .Where(enemy => enemy != null && enemy.isActive && !enemy.IsUntargetable)
+                .ToList();
+            return candidates.Count == 0 ? null : candidates[Random.Range(0, candidates.Count)];
         }
 
         private List<int> BuildMissileTags()

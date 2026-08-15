@@ -88,8 +88,8 @@ namespace Codes.Normal
       {
         // 물리(화살·투척)는 곡선형, 마법·특수는 직선형으로 날아간다.
         ProjectilePathType path = ProjectileFlight.PathFor(context);
-        GameManager.Instance.sfxManager.FireSingleProjectile(
-          _prefab, Caster, target, delay, path, ProjectileFlight.DataFor(path));
+        GameManager.Instance.sfxManager.FireElementalProjectile(
+          Caster, target, delay, path, ProjectileFlight.DataFor(path), _prefab);
         yield return new WaitForSeconds(delay);
         target.TakeDamage(context);
         Caster.Invoke(BaseEnums.UnitEventType.OnNormalAttackHit, new EventContext(Caster, target, context));

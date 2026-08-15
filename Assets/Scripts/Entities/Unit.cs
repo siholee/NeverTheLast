@@ -1619,6 +1619,11 @@ namespace Entities
         private void Update()
         {
             if (!isActive) return;
+
+            // 씬을 내리는 동안에도 유닛의 Update는 한동안 더 돈다.
+            // 그때 GameManager는 이미 사라져 있어, 검사 없이 참조하면 콘솔이 예외로 뒤덮인다.
+            if (GameManager.Instance == null) return;
+
             if (GameManager.Instance.gameState == BaseEnums.GameState.RoundInProgress)
             {
                 // 벤치에 있는 유닛은 공격하지 않음

@@ -382,7 +382,7 @@ units:
     startingProficiencies: [Longbow, LightArmor]
     startingItemIds: [4106]
     tags: [Takamagahara, ThreeNobles]
-    canStartAsMain: false
+    canStartAsMain: true   # 임시: 투사체 궤적 확인용
     canStartAsSupport: false
     canUseInInfinite: false
     mainStat: DEX
