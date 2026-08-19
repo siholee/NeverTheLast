@@ -52,6 +52,9 @@ public class Cell : MonoBehaviour
     /// <summary>발밑(바닥 타일 중심)에서 캐릭터가 살짝 떠 보이지 않도록 내리는 보정.</summary>
     private const float GroundSink = 0.6f;
 
+    /// <summary>정수리와 체력 바 사이에 두는 간격.</summary>
+    private const float BarHeadroom = 1.2f;
+
     /// <summary>같은 행 안에서 렌더링 순서를 나누는 간격.</summary>
     private const int DepthSortingStep = 10;
 
@@ -72,12 +75,7 @@ public class Cell : MonoBehaviour
     /// </summary>
     private void SetUpPseudo3D()
     {
-        if (_groundPad == null) _groundPad = GetComponent<SpriteRenderer>();
-        if (_groundPad != null)
-        {
-            Vector3 padScale = _groundPad.transform.localScale;
-            _groundPad.transform.localScale = new Vector3(padScale.x, padScale.y * GroundPadFlatten, padScale.z);
-        }
+        BuildGroundPad();
 
         if (uiObject != null)
         {
@@ -86,9 +84,41 @@ public class Cell : MonoBehaviour
                 _uiBasePosition = uiObject.transform.localPosition;
                 _uiBaseCaptured = true;
             }
-            // 체력/마나 바는 세운 캐릭터의 머리 위로.
-            uiObject.transform.localPosition = _uiBasePosition + new Vector3(0f, StandingHeight * 0.85f, 0f);
+            // 체력/마나 바는 세운 캐릭터의 정수리 위로.
+            // 프리팹 기본값에 더하지 않고 절대 위치로 잡는다 — 기본값이 -2라 더하면 가슴께에 걸린다.
+            uiObject.transform.localPosition = new Vector3(
+                _uiBasePosition.x, StandingHeight - GroundSink + BarHeadroom, _uiBasePosition.z);
         }
+    }
+
+    /// <summary>
+    /// 칸 테두리를 눕힌 바닥 타일로 바꾼다.
+    ///
+    /// 테두리 스프라이트는 <b>셀 루트</b>에 붙어 있어서 루트를 눌러 봐야 소용이 없다.
+    /// 루트 스케일은 <see cref="Managers.GridManager"/>가 원근 배율로 덮어쓰고,
+    /// 무엇보다 그 아래 캐릭터까지 같이 눌린다.
+    /// 그래서 테두리를 전용 자식으로 옮기고 그 자식만 납작하게 만든다.
+    /// </summary>
+    private void BuildGroundPad()
+    {
+        if (_groundPad != null) return;
+
+        SpriteRenderer rootFrame = GetComponent<SpriteRenderer>();
+        if (rootFrame == null) return;
+
+        var padObject = new GameObject("GroundPad");
+        padObject.transform.SetParent(transform, false);
+        padObject.transform.localPosition = Vector3.zero;
+        padObject.transform.localScale = new Vector3(1f, GroundPadFlatten, 1f);
+
+        _groundPad = padObject.AddComponent<SpriteRenderer>();
+        _groundPad.sprite = rootFrame.sprite;
+        _groundPad.color = rootFrame.color;
+        _groundPad.sortingLayerID = rootFrame.sortingLayerID;
+        _groundPad.sortingOrder = rootFrame.sortingOrder;
+
+        // 원본은 꺼 둔다. 둘 다 그리면 눕히지 않은 사각형이 그대로 남는다.
+        rootFrame.enabled = false;
     }
 
     /// <summary>
@@ -99,7 +129,7 @@ public class Cell : MonoBehaviour
     {
         int order = rowFromBack * DepthSortingStep;
 
-        if (_groundPad == null) _groundPad = GetComponent<SpriteRenderer>();
+        BuildGroundPad();
         if (_groundPad != null) _groundPad.sortingOrder = order;
         if (portraitRenderer != null) portraitRenderer.sortingOrder = order + 1;
 

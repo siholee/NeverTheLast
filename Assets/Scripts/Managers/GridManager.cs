@@ -324,16 +324,16 @@ namespace Managers
         // 화면 위쪽(y가 작은 슬롯)을 먼 쪽으로 본다.
 
         /// <summary>가장 뒤쪽 행의 가로 오프셋 비율. 1이면 원근 없음.</summary>
-        private const float PerspectiveConverge = 0.78f;
+        private const float PerspectiveConverge = 0.93f;
 
         /// <summary>가장 뒤쪽 행의 크기 비율.</summary>
-        private const float PerspectiveScale = 0.82f;
+        private const float PerspectiveScale = 0.91f;
 
         /// <summary>가장 뒤쪽 행의 세로 간격 비율. 작을수록 지평선에 몰린다.</summary>
-        private const float PerspectiveRowSquash = 0.62f;
+        private const float PerspectiveRowSquash = 0.82f;
 
         /// <summary>같은 진영에서 뒤쪽 열을 위로 얼마나 밀어 올릴지.</summary>
-        private const float BackColumnRise = 4.2f;
+        private const float BackColumnRise = 1.8f;
 
         /// <summary>슬롯의 "먼 정도". 0이면 가장 앞(화면 아래), 1이면 가장 뒤(화면 위).</summary>
         private float Farness(int y)
