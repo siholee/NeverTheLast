@@ -43,26 +43,114 @@ public class Cell : MonoBehaviour
     /// <summary>칸 안에 초상화가 차지할 한 변의 크기(월드 단위). 칸 테두리(10.16)보다 조금 작게 잡는다.</summary>
     public const float PortraitFitSize = 9.6f;
 
+    /// <summary>세워 세울 캐릭터의 높이(월드 단위). 바닥 타일보다 크게 잡아 존재감을 준다.</summary>
+    public const float StandingHeight = 13f;
+
+    /// <summary>바닥 타일을 눕히는 비율. 위에서 비스듬히 내려다보는 느낌을 낸다.</summary>
+    public const float GroundPadFlatten = 0.34f;
+
+    /// <summary>발밑(바닥 타일 중심)에서 캐릭터가 살짝 떠 보이지 않도록 내리는 보정.</summary>
+    private const float GroundSink = 0.6f;
+
+    /// <summary>같은 행 안에서 렌더링 순서를 나누는 간격.</summary>
+    private const int DepthSortingStep = 10;
+
+    private SpriteRenderer _groundPad;
+    private Vector3 _uiBasePosition;
+    private bool _uiBaseCaptured;
+
+    private void Awake()
+    {
+        SetUpPseudo3D();
+    }
+
     /// <summary>
-    /// 칸에 초상화를 올린다.
+    /// 바닥 타일을 눕히고, 체력 바를 캐릭터 머리 위로 올린다.
+    ///
+    /// 정사영 카메라라 진짜 원근은 없다. 바닥은 납작하게, 캐릭터는 그 위에 세워
+    /// 비스듬히 내려다보는 판처럼 보이게 만든다.
+    /// </summary>
+    private void SetUpPseudo3D()
+    {
+        if (_groundPad == null) _groundPad = GetComponent<SpriteRenderer>();
+        if (_groundPad != null)
+        {
+            Vector3 padScale = _groundPad.transform.localScale;
+            _groundPad.transform.localScale = new Vector3(padScale.x, padScale.y * GroundPadFlatten, padScale.z);
+        }
+
+        if (uiObject != null)
+        {
+            if (!_uiBaseCaptured)
+            {
+                _uiBasePosition = uiObject.transform.localPosition;
+                _uiBaseCaptured = true;
+            }
+            // 체력/마나 바는 세운 캐릭터의 머리 위로.
+            uiObject.transform.localPosition = _uiBasePosition + new Vector3(0f, StandingHeight * 0.85f, 0f);
+        }
+    }
+
+    /// <summary>
+    /// 앞줄이 뒷줄을 가리도록 렌더링 순서를 정한다.
+    /// <paramref name="rowFromBack"/>이 클수록 화면 앞쪽(카메라에 가까움)이다.
+    /// </summary>
+    public void ApplyDepth(int rowFromBack)
+    {
+        int order = rowFromBack * DepthSortingStep;
+
+        if (_groundPad == null) _groundPad = GetComponent<SpriteRenderer>();
+        if (_groundPad != null) _groundPad.sortingOrder = order;
+        if (portraitRenderer != null) portraitRenderer.sortingOrder = order + 1;
+
+        // 바 종류는 캐릭터보다 항상 위에.
+        foreach (SpriteRenderer bar in new[]
+                 {
+                     hpBarBackground, hpBarFill, mpBarBackground, mpBarFill,
+                     shieldBarBackground, shieldBarFill,
+                 })
+        {
+            if (bar != null) bar.sortingOrder = order + 5;
+        }
+    }
+
+    /// <summary>
+    /// 칸에 초상화를 세운다.
     ///
     /// 원본 해상도가 제각각이라(아군 1254px, 적 512px, 일부 1024px) 렌더러 스케일을 고정하면
-    /// 아군은 칸을 넘치고 적은 칸의 절반만 채운다. 긴 변을 <see cref="PortraitFitSize"/>에 맞춰
-    /// 균일 배율로 줄이면 해상도와 무관하게 항상 칸에 꼭 맞고 비율도 유지된다.
+    /// 아군은 칸을 넘치고 적은 칸의 절반만 채운다. <b>세로 높이</b>를
+    /// <see cref="StandingHeight"/>에 맞춰 균일 배율로 키우면 해상도와 무관하게 같은 키가 되고,
+    /// 발밑이 바닥 타일에 닿도록 위로 올려 세운다.
+    ///
+    /// 임시 조치다 — 전신 스탠딩 스프라이트가 준비되면 초상화 대신 그것을 쓴다.
     /// </summary>
     public void SetPortrait(Sprite sprite)
     {
         if (portraitRenderer == null) return;
+
         portraitRenderer.sprite = sprite;
-        portraitRenderer.transform.localScale = Vector3.one * PortraitScaleFor(sprite);
+
+        if (sprite == null)
+        {
+            portraitRenderer.transform.localScale = Vector3.one;
+            portraitRenderer.transform.localPosition = Vector3.zero;
+            return;
+        }
+
+        float scale = PortraitScaleFor(sprite);
+        portraitRenderer.transform.localScale = new Vector3(scale, scale, 1f);
+
+        // 스프라이트 중심이 원점이므로 절반 높이만큼 올려야 발밑이 바닥에 닿는다.
+        float halfHeight = sprite.bounds.size.y * 0.5f * scale;
+        portraitRenderer.transform.localPosition = new Vector3(0f, halfHeight - GroundSink, 0f);
     }
 
-    /// <summary>해당 스프라이트를 칸 크기에 맞추는 배율.</summary>
+    /// <summary>해당 스프라이트를 정해진 키에 맞추는 배율.</summary>
     public static float PortraitScaleFor(Sprite sprite)
     {
         if (sprite == null) return 1f;
-        float longest = Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y);
-        return longest <= 0.0001f ? 1f : PortraitFitSize / longest;
+        float height = sprite.bounds.size.y;
+        return height <= 0.0001f ? 1f : StandingHeight / height;
     }
 
     private void Update()

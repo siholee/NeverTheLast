@@ -202,6 +202,9 @@ namespace Managers
                     // 위치 계산 및 설정
                     Vector3 cellPosition = CalculateFieldCellPosition(x, y);
                     cellObj.transform.position = cellPosition;
+
+                    // 원근: 뒤쪽 슬롯일수록 작게 그리고, 앞줄이 뒷줄을 가리도록 정렬 순서를 준다.
+                    cellObj.transform.localScale = Vector3.one * CellScaleFor(y);
                     
                     // Cell 컴포넌트 가져오기 또는 추가
                     Cell cell = cellObj.GetComponent<Cell>();
@@ -215,6 +218,7 @@ namespace Managers
                     cell.yPos = y;
                     cell.isOccupied = false;
                     cell.reservedTime = 0f;
+                    cell.ApplyDepth(y - yMin);
                     
                     // UI GameObject 기본 비활성화
                     if (cell.uiObject != null)
@@ -313,6 +317,31 @@ namespace Managers
         /// <summary>전장 최하단에서 대기석까지 내려가는 거리.</summary>
         private const float BenchOffsetY = 14f;
 
+        // ── 유사 3D 원근 ────────────────────────────────────────────
+        // 정사영 카메라라 진짜 원근은 없다. 대신 "뒤쪽 슬롯일수록"
+        //   ① 화면 중앙으로 모이고 ② 작아지고 ③ 행 간격이 좁아지게 만들어
+        // 바닥 평면을 비스듬히 내려다보는 느낌을 낸다.
+        // 화면 위쪽(y가 작은 슬롯)을 먼 쪽으로 본다.
+
+        /// <summary>가장 뒤쪽 행의 가로 오프셋 비율. 1이면 원근 없음.</summary>
+        private const float PerspectiveConverge = 0.78f;
+
+        /// <summary>가장 뒤쪽 행의 크기 비율.</summary>
+        private const float PerspectiveScale = 0.82f;
+
+        /// <summary>가장 뒤쪽 행의 세로 간격 비율. 작을수록 지평선에 몰린다.</summary>
+        private const float PerspectiveRowSquash = 0.62f;
+
+        /// <summary>같은 진영에서 뒤쪽 열을 위로 얼마나 밀어 올릴지.</summary>
+        private const float BackColumnRise = 4.2f;
+
+        /// <summary>슬롯의 "먼 정도". 0이면 가장 앞(화면 아래), 1이면 가장 뒤(화면 위).</summary>
+        private float Farness(int y)
+        {
+            int span = Mathf.Max(1, yMax - yMin);
+            return Mathf.Clamp01((yMax - y) / (float)span);
+        }
+
         private Vector3 CalculateFieldCellPosition(int x, int y)
         {
             // x = -2(아군 후열) / -1(아군 전열) / 1(적 전열) / 2(적 후열)
@@ -320,15 +349,41 @@ namespace Managers
             int side = x < 0 ? -1 : 1;             // 아군 -1, 적 +1
             bool isFront = Mathf.Abs(x) == 1;
             float depth = FrontLineGap * 0.5f + (isFront ? 0f : RowDepthGap);
-            float posX = side * depth;
 
-            // y = 1~4를 세로로 중앙 정렬한다. (1.5, 0.5, -0.5, -1.5) × 간격
-            float center = (yMin + yMax) * 0.5f;
-            float posY = (center - y) * SlotSpacing;
+            float farness = Farness(y);
+
+            // ① 뒤로 갈수록 중앙으로 모인다.
+            float posX = side * depth * Mathf.Lerp(1f, PerspectiveConverge, farness);
+
+            // ③ 뒤로 갈수록 행 간격이 좁아진다. 앞 행부터 누적해서 위로 쌓는다.
+            float posY = 0f;
+            for (int row = yMax; row > y; row--)
+            {
+                posY += SlotSpacing * Mathf.Lerp(1f, PerspectiveRowSquash, Farness(row));
+            }
+            // 전장이 화면 중앙에 오도록 전체를 절반만큼 내린다.
+            posY -= TotalFieldHeight() * 0.5f;
+
+            // 후열은 한 칸 뒤에 선 것처럼 조금 더 위로.
+            if (!isFront) posY += BackColumnRise;
 
             return new Vector3(posX, posY, 0f);
         }
-        
+
+        /// <summary>원근을 반영한 전장 세로 총높이.</summary>
+        private float TotalFieldHeight()
+        {
+            float total = 0f;
+            for (int row = yMax; row > yMin; row--)
+            {
+                total += SlotSpacing * Mathf.Lerp(1f, PerspectiveRowSquash, Farness(row));
+            }
+            return total;
+        }
+
+        /// <summary>② 뒤로 갈수록 작아지는 배율.</summary>
+        private float CellScaleFor(int y) => Mathf.Lerp(1f, PerspectiveScale, Farness(y));
+
         /// <summary>대기석은 전장 아래에 가로로 늘어놓는다.</summary>
         private Vector3 CalculateBenchCellPosition(int x)
         {
@@ -420,7 +475,9 @@ namespace Managers
             // 셀 중심 좌표를 모았으니 반 칸씩 넓히고 여백을 더한다.
             float pad = CellExtent + CameraMargin;
             minX -= pad; maxX += pad;
-            minY -= pad; maxY += pad;
+            minY -= pad;
+            // 캐릭터는 바닥에서 위로 서 있으므로 머리와 체력 바가 잘리지 않게 위를 더 연다.
+            maxY += Cell.StandingHeight + CameraMargin;
 
             // HUD가 판을 덮지 않도록 위아래로 더 벌린다.
             // 상단 상태바는 늘 떠 있고, 준비 페이즈 바는 전투 중에 사라지므로 그때는 아래 여유가 없어도 된다.
