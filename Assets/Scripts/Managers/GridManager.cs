@@ -203,7 +203,7 @@ namespace Managers
                     Vector3 cellPosition = CalculateFieldCellPosition(x, y);
                     cellObj.transform.position = cellPosition;
 
-                    // 원근: 뒤쪽 슬롯일수록 작게 그리고, 앞줄이 뒷줄을 가리도록 정렬 순서를 준다.
+                    // 칸 크기는 모두 같다. 정렬 순서만 행에 따라 줘서 앞줄이 뒷줄 위로 그려지게 한다.
                     cellObj.transform.localScale = Vector3.one * CellScaleFor(y);
                     
                     // Cell 컴포넌트 가져오기 또는 추가
@@ -301,95 +301,52 @@ namespace Managers
             }
         }
         
-        // ── 배치 상수 (세븐나이츠식 전열/후열) ──────────────────────
-        // 전열과 후열은 크게 벌리고, 같은 열의 4명은 촘촘히 세로로 세운다.
-        // 진영 사이는 더 크게 벌려 전선이 마주 보는 형태가 되게 한다.
+        // ── 배치 상수 ───────────────────────────────────────────────
+        //
+        // 진영마다 정확히 2열 × 4행이다. 유사 3D 원근(뒤쪽 행 축소·수렴·행간 압축)은 걷어냈다.
+        // 원근을 넣으면 뒤 행 간격이 SlotSpacing × 0.82까지 줄어드는데, 칸 스프라이트 자체가
+        // 10.16 월드 단위라 간격이 칸 크기보다 작아져 **칸과 스탠딩이 서로 겹쳐 보였다.**
+        // 지금은 간격을 항상 칸 크기보다 크게 잡아 격자가 또렷하게 떨어진다.
 
-        /// <summary>양 진영 전열 사이의 간격(전열끼리의 거리).</summary>
-        private const float FrontLineGap = 26f;
-
-        /// <summary>같은 진영에서 전열과 후열 사이의 간격.</summary>
-        private const float RowDepthGap = 16f;
+        /// <summary>같은 진영 두 열 사이의 간격. 칸 크기(10.16)보다 커야 겹치지 않는다.</summary>
+        private const float ColumnSpacing = 11.6f;
 
         /// <summary>한 열 안에서 위아래로 늘어선 4명의 간격.</summary>
-        private const float SlotSpacing = 10f;
+        private const float SlotSpacing = 11.6f;
+
+        /// <summary>양 진영 사이(아군 전열 ↔ 적 전열)에 추가로 벌리는 거리.</summary>
+        private const float CenterGap = 7f;
 
         /// <summary>전장 최하단에서 대기석까지 내려가는 거리.</summary>
         private const float BenchOffsetY = 14f;
 
-        // ── 유사 3D 원근 ────────────────────────────────────────────
-        // 정사영 카메라라 진짜 원근은 없다. 대신 "뒤쪽 슬롯일수록"
-        //   ① 화면 중앙으로 모이고 ② 작아지고 ③ 행 간격이 좁아지게 만들어
-        // 바닥 평면을 비스듬히 내려다보는 느낌을 낸다.
-        // 화면 위쪽(y가 작은 슬롯)을 먼 쪽으로 본다.
-
-        /// <summary>가장 뒤쪽 행의 가로 오프셋 비율. 1이면 원근 없음.</summary>
-        private const float PerspectiveConverge = 0.93f;
-
-        /// <summary>가장 뒤쪽 행의 크기 비율.</summary>
-        private const float PerspectiveScale = 0.91f;
-
-        /// <summary>가장 뒤쪽 행의 세로 간격 비율. 작을수록 지평선에 몰린다.</summary>
-        private const float PerspectiveRowSquash = 0.82f;
-
-        /// <summary>같은 진영에서 뒤쪽 열을 위로 얼마나 밀어 올릴지.</summary>
-        private const float BackColumnRise = 1.8f;
-
-        /// <summary>슬롯의 "먼 정도". 0이면 가장 앞(화면 아래), 1이면 가장 뒤(화면 위).</summary>
-        private float Farness(int y)
-        {
-            int span = Mathf.Max(1, yMax - yMin);
-            return Mathf.Clamp01((yMax - y) / (float)span);
-        }
-
+        /// <summary>
+        /// 칸 하나의 좌표. |x| = 1이 전열(중앙 쪽), 2가 후열이며 y는 위에서 아래로 1~4다.
+        /// 두 축 모두 등간격이라 진영마다 반듯한 2 × 4 격자가 나온다.
+        /// </summary>
         private Vector3 CalculateFieldCellPosition(int x, int y)
         {
-            // x = -2(아군 후열) / -1(아군 전열) / 1(적 전열) / 2(적 후열)
-            //   전열은 중앙에서 FrontLineGap/2 만큼, 후열은 거기서 RowDepthGap 만큼 더 뒤로 뺀다.
-            int side = x < 0 ? -1 : 1;             // 아군 -1, 적 +1
-            bool isFront = Mathf.Abs(x) == 1;
-            float depth = FrontLineGap * 0.5f + (isFront ? 0f : RowDepthGap);
+            int side = x < 0 ? -1 : 1;                        // 아군 -1, 적 +1
+            int columnIndex = Mathf.Abs(x) - 1;               // 전열 0, 후열 1
 
-            float farness = Farness(y);
+            float posX = side * (CenterGap * 0.5f + (columnIndex + 0.5f) * ColumnSpacing);
 
-            // ① 뒤로 갈수록 중앙으로 모인다.
-            float posX = side * depth * Mathf.Lerp(1f, PerspectiveConverge, farness);
-
-            // ③ 뒤로 갈수록 행 간격이 좁아진다. 앞 행부터 누적해서 위로 쌓는다.
-            float posY = 0f;
-            for (int row = yMax; row > y; row--)
-            {
-                posY += SlotSpacing * Mathf.Lerp(1f, PerspectiveRowSquash, Farness(row));
-            }
-            // 전장이 화면 중앙에 오도록 전체를 절반만큼 내린다.
-            posY -= TotalFieldHeight() * 0.5f;
-
-            // 후열은 한 칸 뒤에 선 것처럼 조금 더 위로.
-            if (!isFront) posY += BackColumnRise;
+            // y가 작을수록 화면 위. 행 중앙을 원점에 두어 전장이 세로로 가운데 정렬된다.
+            float rowCenter = (yMin + yMax) * 0.5f;
+            float posY = (rowCenter - y) * SlotSpacing;
 
             return new Vector3(posX, posY, 0f);
         }
 
-        /// <summary>원근을 반영한 전장 세로 총높이.</summary>
-        private float TotalFieldHeight()
-        {
-            float total = 0f;
-            for (int row = yMax; row > yMin; row--)
-            {
-                total += SlotSpacing * Mathf.Lerp(1f, PerspectiveRowSquash, Farness(row));
-            }
-            return total;
-        }
-
-        /// <summary>② 뒤로 갈수록 작아지는 배율.</summary>
-        private float CellScaleFor(int y) => Mathf.Lerp(1f, PerspectiveScale, Farness(y));
+        /// <summary>모든 칸의 크기가 같다. 원근 축소를 쓰지 않는다.</summary>
+        private float CellScaleFor(int y) => 1f;
 
         /// <summary>대기석은 전장 아래에 가로로 늘어놓는다.</summary>
         private Vector3 CalculateBenchCellPosition(int x)
         {
-            float fieldBottom = (yMin + yMax) * 0.5f - yMax;      // 전장 최하단 슬롯의 y 계수
-            float posY = fieldBottom * SlotSpacing - BenchOffsetY;
-            return new Vector3(x * SlotSpacing, posY, 0f);
+            float rowCenter = (yMin + yMax) * 0.5f;
+            float fieldBottom = (rowCenter - yMax) * SlotSpacing;   // 최하단 행의 y 좌표
+            return new Vector3(x * ColumnSpacing, fieldBottom - BenchOffsetY, 0f);
         }
 
         /// <summary>칸 하나의 반지름(월드 단위). 셀 테두리 스프라이트가 10.16이다.</summary>
@@ -397,6 +354,9 @@ namespace Managers
 
         /// <summary>전장 바깥에 남길 여백(월드 단위).</summary>
         private const float CameraMargin = 2f;
+
+        /// <summary>칸 위로 삐져나오는 체력·마나 바의 높이(월드 단위).</summary>
+        private const float BarOverhang = 2.5f;
 
         /// <summary>
         /// 화면 아래 HUD(준비 페이즈 바)에 가리지 않도록 아래쪽에만 더 주는 여유.
@@ -410,6 +370,118 @@ namespace Managers
         /// <summary>대기석이 지금 화면에 나와 있는지.</summary>
         private bool _benchVisible = true;
 
+        /// <summary>이번 프레임에 열 정렬을 다시 해야 하는지.</summary>
+        private bool _layoutDirty = true;
+
+        /// <summary>배치가 바뀌었음을 알린다. 실제 정렬은 프레임 끝에 한 번만 돈다.</summary>
+        public void RequestFieldLayoutRefresh() => _layoutDirty = true;
+
+        /// <summary>마지막으로 정렬할 때 빈 칸을 보여 주고 있었는지.</summary>
+        private bool _lastShowEmpty = true;
+
+        private void LateUpdate()
+        {
+            // 게임 상태가 바뀌면(준비 ↔ 전투) 빈 칸을 보여 줄지가 달라지므로 그때도 다시 세운다.
+            bool showEmpty = ShouldShowEmptyCells();
+            if (!_layoutDirty && showEmpty == _lastShowEmpty) return;
+
+            _layoutDirty = false;
+            _lastShowEmpty = showEmpty;
+            RefreshFieldLayout();
+        }
+
+        /// <summary>배치를 만질 수 있는 동안에만 빈 칸(=놓을 자리)을 보여 준다.</summary>
+        private static bool ShouldShowEmptyCells()
+        {
+            return GameManager.Instance == null ||
+                   GameManager.Instance.gameState == BaseEnums.GameState.Preparation;
+        }
+
+        /// <summary>
+        /// 진영마다 두 열을 다시 세운다. <b>빈 칸은 자리를 차지하지 않는다</b> —
+        /// 배치된 유닛만 열 중앙에 모이고(세븐나이츠식), 빈 칸은 그 아래에 붙는다.
+        /// 전투 중에는 빈 칸을 아예 지워 전장이 화면을 더 크게 쓴다.
+        ///
+        /// 정렬이 끝나면 카메라도 다시 잡는다. 인원이 줄면 그만큼 화면이 당겨진다.
+        /// </summary>
+        public void RefreshFieldLayout()
+        {
+            if (_fieldCellManager == null) return;
+
+            bool showEmpty = ShouldShowEmptyCells();
+            _lastShowEmpty = showEmpty;
+
+            for (int columnIndex = 0; columnIndex < 2; columnIndex++)
+            {
+                LayOutColumn(-1, columnIndex, showEmpty);
+                LayOutColumn(1, columnIndex, showEmpty);
+            }
+
+            FrameCamera();
+        }
+
+        /// <summary>한 진영의 한 열(전열 또는 후열)을 세로 중앙 정렬한다.</summary>
+        private void LayOutColumn(int side, int columnIndex, bool showEmpty)
+        {
+            int x = side * (columnIndex + 1);
+
+            var occupied = new List<Cell>();
+            var empty = new List<Cell>();
+            for (int y = yMin; y <= yMax; y++)
+            {
+                Cell cell = GetFieldCell(x, y);
+                if (cell == null) continue;
+                (cell.isOccupied ? occupied : empty).Add(cell);
+            }
+
+            var ordered = new List<Cell>(occupied);
+            if (showEmpty) ordered.AddRange(empty);
+
+            float posX = side * (CenterGap * 0.5f + (columnIndex + 0.5f) * ColumnSpacing);
+            float half = (ordered.Count - 1) * 0.5f;
+
+            for (int i = 0; i < ordered.Count; i++)
+            {
+                Cell cell = ordered[i];
+                float slot = i - half;   // 위가 음수, 아래가 양수 — yPos와 같은 방향이다.
+
+                cell.transform.position = new Vector3(posX, -slot * SlotSpacing, 0f);
+                cell.transform.localScale = Vector3.one;
+
+                // 유닛 오브젝트는 Field 밑에 따로 매달려 있어 셀을 옮겨도 따라오지 않는다.
+                // 투사체는 유닛의 트랜스폼을 시작점·도착점으로 쓰므로, 여기서 맞춰 주지 않으면
+                // 소환 당시 좌표를 향해 날아가 엉뚱한 허공에서 터진다.
+                if (cell.unit != null) cell.unit.transform.position = cell.transform.position;
+
+                cell.DisplaySlot = slot;
+                cell.IsLaidOut = true;
+                cell.ApplyDepth(i);
+                // 카드가 칸을 덮으므로 바닥 타일은 빈 칸에서만 보인다.
+                cell.SetGroundPadVisible(!cell.isOccupied);
+            }
+
+            if (showEmpty) return;
+
+            foreach (Cell cell in empty)
+            {
+                cell.IsLaidOut = false;
+                cell.SetGroundPadVisible(false);
+            }
+        }
+
+        /// <summary>필드 칸 하나를 좌표로 찾는다. 범위를 벗어나면 null.</summary>
+        private Cell GetFieldCell(int x, int y)
+        {
+            if (_fieldCellManager == null) return null;
+
+            int adjustedX = x - xMin;
+            int adjustedY = y - yMin;
+            if (adjustedX < 0 || adjustedX >= _fieldCellManager.GetLength(0)) return null;
+            if (adjustedY < 0 || adjustedY >= _fieldCellManager.GetLength(1)) return null;
+
+            return _fieldCellManager[adjustedX, adjustedY];
+        }
+
         /// <summary>
         /// 대기석을 보이거나 숨기고, 그에 맞춰 카메라를 다시 잡는다.
         ///
@@ -419,6 +491,7 @@ namespace Managers
         public void SetBenchVisible(bool visible)
         {
             _benchVisible = visible;
+            RequestFieldLayoutRefresh();
 
             if (_benchCellManager != null)
             {
@@ -450,7 +523,8 @@ namespace Managers
 
             void Include(Cell cell)
             {
-                if (cell == null) return;
+                // 전투 중 지워진 빈 칸은 프레이밍에서 뺀다.
+                if (cell == null || !cell.IsLaidOut) return;
                 Vector3 position = cell.transform.position;
                 if (!any)
                 {
@@ -472,12 +546,20 @@ namespace Managers
             }
             if (!any) return;
 
+            // 전장은 x = 0을 기준으로 좌우 대칭이다. 한쪽 열이 비어 화면에서 지워져도
+            // 프레이밍까지 한쪽으로 쏠리면 안 되므로 가로 경계를 대칭으로 되돌린다.
+            float halfWidth = Mathf.Max(Mathf.Abs(minX), Mathf.Abs(maxX));
+            minX = -halfWidth;
+            maxX = halfWidth;
+
             // 셀 중심 좌표를 모았으니 반 칸씩 넓히고 여백을 더한다.
             float pad = CellExtent + CameraMargin;
             minX -= pad; maxX += pad;
             minY -= pad;
-            // 캐릭터는 바닥에서 위로 서 있으므로 머리와 체력 바가 잘리지 않게 위를 더 연다.
-            maxY += Cell.StandingHeight + CameraMargin;
+            // 체력·마나 바는 칸 위로 조금 삐져나온다. 그만큼만 위를 더 연다.
+            // 예전에는 캐릭터 키 전체(13)를 더했는데, 이제 캐릭터가 칸 안에 들어가므로
+            // 그대로 두면 전장이 화면 아래쪽으로 쏠린다.
+            maxY += BarOverhang + CameraMargin;
 
             // HUD가 판을 덮지 않도록 위아래로 더 벌린다.
             // 상단 상태바는 늘 떠 있고, 준비 페이즈 바는 전투 중에 사라지므로 그때는 아래 여유가 없어도 된다.
@@ -720,11 +802,13 @@ namespace Managers
 
             List<Unit> nearestUnit = new List<Unit>();
             float minDistance = float.MaxValue;
-            Vector2 casterPos = new(caster.currentCell.xPos, caster.currentCell.yPos);
+            // yPos가 아니라 DisplaySlot을 쓴다. 빈 칸을 지우고 중앙 정렬하면
+            // 논리 좌표와 화면상의 거리가 어긋나기 때문이다.
+            Vector2 casterPos = new(caster.currentCell.xPos, caster.currentCell.DisplaySlot);
 
             foreach (Unit unit in enemyCandidates)
             {
-                Vector2 targetPos = new Vector2(unit.currentCell.xPos, unit.currentCell.yPos);
+                Vector2 targetPos = new Vector2(unit.currentCell.xPos, unit.currentCell.DisplaySlot);
                 float distance = Vector2.Distance(casterPos, targetPos);
                 if (distance < minDistance)
                 {
@@ -881,15 +965,48 @@ namespace Managers
             SetBenchVisible(true);
         }
 
+        /// <summary>
+        /// 유닛을 전장에서 완전히 물린다.
+        ///
+        /// <see cref="Unit.DeactivateUnit"/>만 부르면 <c>isActive</c>만 꺼질 뿐
+        /// <see cref="heroList"/>·<see cref="enemyList"/>의 항목과 씬의 오브젝트는 그대로 남는다.
+        /// 라운드가 끝날 때마다 아군을 비활성화하고 새로 <see cref="SpawnUnit"/>하므로,
+        /// 그대로 두면 <b>같은 캐릭터가 라운드 수만큼 리스트에 쌓인다</b>
+        /// (TAB 목록에 세이가 네 번 나오던 원인). 오브젝트도 함께 누적된다.
+        /// </summary>
+        public void RetireUnit(Unit unit)
+        {
+            if (unit == null) return;
+
+            if (unit.isActive && unit.currentCell != null)
+            {
+                unit.DeactivateUnit();
+            }
+
+            heroList.Remove(unit);
+            enemyList.Remove(unit);
+
+            if (unit != null && unit.gameObject != null)
+            {
+                Destroy(unit.gameObject);
+            }
+        }
+
+        /// <summary>파괴됐거나 비어 버린 항목을 리스트에서 걷어낸다.</summary>
+        public void PruneUnitLists()
+        {
+            heroList?.RemoveAll(unit => unit == null);
+            enemyList?.RemoveAll(unit => unit == null);
+        }
+
+        /// <summary>라운드가 끝나면 적을 전부 물린다. 죽어서 이미 비활성인 개체도 함께 정리한다.</summary>
         public void ClearActiveEnemies()
         {
             foreach (Unit enemy in enemyList.ToList())
             {
-                if (enemy != null && enemy.isActive && enemy.IsEnemy)
-                {
-                    enemy.DeactivateUnit();
-                }
+                RetireUnit(enemy);
             }
+            PruneUnitLists();
         }
     }
 }

@@ -124,11 +124,12 @@ namespace Managers.UI.HUD
                         ? UITheme.Enemy
                         : UITheme.TextSecondary;
 
+                // 초가 아니라 '몇 번째 행동인지'를 보여 준다.
                 _etaLabel.text = reservation.IsUltimate
                     ? "ULT"
-                    : reservation.EtaSeconds > 0f
-                        ? $"{reservation.EtaSeconds:0.0}"
-                        : "NOW";
+                    : reservation.ActionsAhead <= 0
+                        ? "NOW"
+                        : $"+{reservation.ActionsAhead}";
                 _etaLabel.color = reservation.IsUltimate ? UITheme.Accent : UITheme.TextMuted;
 
                 // 아래로 갈수록 연하게. 맨 위 두 칸은 또렷하게 유지한다.
