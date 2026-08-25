@@ -33,14 +33,16 @@ namespace Managers.UI.Theme
         // ── 상태 컬러 ────────────────────────────────────────────────
         public static readonly Color Hp = new(0.427f, 0.831f, 0.404f, 1f);        // 아군 체력(연두)
         public static readonly Color HpLow = new(0.902f, 0.286f, 0.243f, 1f);     // 위험 체력
-        public static readonly Color Mana = new(0.322f, 0.671f, 0.937f, 1f);      // 마나/궁극기 자원
-        public static readonly Color ManaFull = new(1f, 0.804f, 0.239f, 1f);      // 궁극기 준비 완료
+        /// <summary>
+        /// 마나 · 궁극기 자원. <b>파랑은 자원 전용이다.</b>
+        /// 충전 중 · 충전 완료 · 예약을 색으로 나누지 않고, 링이 찬 각도로만 읽힌다.
+        /// (예전의 ManaFull 앰버 전환은 앰버를 "지금 눌러야 할 것"에만 쓰기 위해 없앴다.)
+        /// </summary>
+        public static readonly Color Mana = new(0.322f, 0.671f, 0.937f, 1f);
+
+        /// <summary>방어막. 체력 바 <b>오른쪽에 이어 붙는</b> 회백색.</summary>
         public static readonly Color Shield = new(0.847f, 0.851f, 0.878f, 1f);
 
-        // 파티 카드 전용 색. 스타레일과 달리 이 게임은 체력을 적색으로,
-        // 방어막을 그 위에 덮이는 청색으로, 행동 게이지를 노란색으로 구분한다.
-        public static readonly Color HpRed = new(0.851f, 0.243f, 0.243f, 1f);
-        public static readonly Color ShieldBlue = new(0.298f, 0.616f, 0.937f, 1f);
         public static readonly Color ActionYellow = new(0.980f, 0.816f, 0.196f, 1f);
         public static readonly Color Enemy = new(0.855f, 0.267f, 0.286f, 1f);
         public static readonly Color Danger = new(0.902f, 0.286f, 0.243f, 1f);
@@ -65,6 +67,24 @@ namespace Managers.UI.Theme
             new(0.706f, 0.529f, 0.898f, 1f), // 4성 보라
             new(1f, 0.804f, 0.239f, 1f),     // 5성 앰버
             new(1f, 0.545f, 0.259f, 1f),     // 6성 주황
+        };
+
+        // ── 5스탯 색축 ───────────────────────────────────────────────
+        // 스탯을 가리키는 별도 축이다. 자원 파랑(Mana) · 액센트 앰버 · 적색과 겹치지 않도록
+        // 골랐다. 훈련 화면과 코덱스에서만 쓴다 — 전투 HUD는 이 색을 쓰지 않는다.
+        public static readonly Color StatStr = new(0.878f, 0.478f, 0.290f, 1f);   // #E07A4A 주황
+        public static readonly Color StatDex = new(0.310f, 0.749f, 0.659f, 1f);   // #4FBFA8 청록
+        public static readonly Color StatCon = new(0.427f, 0.831f, 0.404f, 1f);   // #6DD467 연두
+        public static readonly Color StatInt = new(0.663f, 0.533f, 0.878f, 1f);   // #A988E0 보라
+        public static readonly Color StatLuk = new(0.898f, 0.627f, 0.784f, 1f);   // #E5A0C8 분홍
+
+        public static Color Stat(BaseClasses.BaseEnums.PrimaryStat stat) => stat switch
+        {
+            BaseClasses.BaseEnums.PrimaryStat.STR => StatStr,
+            BaseClasses.BaseEnums.PrimaryStat.DEX => StatDex,
+            BaseClasses.BaseEnums.PrimaryStat.CON => StatCon,
+            BaseClasses.BaseEnums.PrimaryStat.INT => StatInt,
+            _ => StatLuk,
         };
 
         public static Color Rarity(int star)

@@ -13,11 +13,13 @@ namespace Managers.UI.HUD
     /// 전투 화면 HUD 전체를 조립하고 매 프레임 갱신한다.
     ///
     /// 화면 배치 (세븐나이츠식 전투 화면 위에 얹힌다):
-    ///   좌상단 — 행동 로그(궁극기만)
+    ///   좌상단 — 행동서열
     ///   상단중앙 — 생명력 / 골드 / 현재 단계
     ///   우상단 — 라운드 + 진행 게이지 · 진행 예고 · 배속/인벤/설정
-    ///   좌하단 — 아군 파티 카드
-    ///   우하단 — 의도적으로 비워둠(전투 연출과 드래그 조작을 가리지 않기 위해)
+    ///   하단 — 준비 페이즈 바(PreparationScreen)만. 전투 중에는 비어 있다.
+    ///
+    /// 아군 파티 카드는 없다. 유닛의 체력 · 방어막 · 행동 게이지 · 궁극기 충전은
+    /// 전부 전장 위 <see cref="Entities.View.UnitCardView"/>가 들고 있어 중복이었다.
     /// </summary>
     public class BattleHud : MonoBehaviour
     {
@@ -25,7 +27,6 @@ namespace Managers.UI.HUD
         private static readonly float[] SpeedSteps = { 1f, 2f, 3f };
 
         private TopStatusBar _topBar;
-        private PartyPanel _party;
         private ActionQueuePanel _queue;
         private CodexScreen _codex;
 
@@ -47,7 +48,6 @@ namespace Managers.UI.HUD
             transform.SetParent(canvas.transform, false);
 
             _queue = new ActionQueuePanel(canvas.transform);
-            _party = new PartyPanel(canvas.transform);
             _topBar = new TopStatusBar(canvas.transform, CycleSpeed, ToggleCodex, OpenSettings);
             BuildResourceStrip(canvas.transform);
 
@@ -86,7 +86,6 @@ namespace Managers.UI.HUD
         private void Update()
         {
             _topBar?.Tick();
-            _party?.Tick();
             _queue?.Tick();
 
             if (Input.GetKeyDown(KeyCode.Tab)) ToggleCodex();
