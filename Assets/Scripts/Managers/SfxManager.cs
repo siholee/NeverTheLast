@@ -37,6 +37,11 @@ namespace Managers
     // 동시에 살아있는 투사체 상한. 전체 공격/광역 스킬에서 화면이 난잡해지는 것을 막는다.
     private const int MaxConcurrentProjectiles = 12;
 
+    /// <summary>
+    /// 투사체 배율. 카드 한 변의 1/3쯤이라 카드를 가리지 않으면서 또렷하게 보인다.
+    /// </summary>
+    private static float ProjectileScale => Cell.CardSize * 0.34f;
+
     [SerializeField] private HS_CustomPoolableManager poolableManager;
     [SerializeField] private List<ProjectilePrefabEntry> projectilePrefabEntries;
 
@@ -114,18 +119,13 @@ namespace Managers
     public void FireSingleProjectile(HS_Poolable prefab, Unit unitFrom, Unit unitTo, float duration, 
       ProjectilePathType pathType, ProjectilePathData pathData)
     {
-      TrimLiveProjectiles();
+      // prefab은 더 이상 쓰지 않는다. 투사체는 CardProjectile이 코드로 그린다.
+      // (호출부를 전부 고치지 않으려고 시그니처만 남겨 두었다.)
+      if (unitFrom == null || unitTo == null) return;
 
-      HS_Poolable projectile = poolableManager.GetInstanceOf(prefab);
-      projectile.transform.position = unitFrom.transform.position;
-      projectile.transform.rotation = Quaternion.LookRotation(unitTo.transform.position - unitFrom.transform.position);
-      // 풀에서 재사용되므로 매번 스케일을 다시 지정한다.
-      projectile.transform.localScale = Vector3.one * GetProjectileScale(prefab);
-      projectile.gameObject.SetActive(true);
-      _liveProjectiles.Add(projectile);
-
-      PrepareMover(projectile).SetProjectileInfo(
-        unitFrom, unitTo, duration, pathType, pathData ?? new ProjectilePathData());
+      BaseEnums.UnitElement element = ElementalProjectiles.Parse(unitFrom.Element);
+      CardProjectile.Fire(unitFrom, unitTo, ElementalProjectiles.ColorFor(element), duration,
+        pathType, pathData ?? new ProjectilePathData(), ProjectileScale);
     }
 
     /// <summary>
@@ -140,24 +140,22 @@ namespace Managers
       if (unitFrom == null || unitTo == null) return;
 
       BaseEnums.UnitElement element = ElementalProjectiles.Parse(unitFrom.Element);
-      HS_Poolable prefab = ElementalProjectiles.PrefabFor(element) ?? fallback;
-      if (prefab == null) return;
+      CardProjectile.Fire(unitFrom, unitTo, ElementalProjectiles.ColorFor(element), duration,
+        pathType, pathData ?? new ProjectilePathData(), ProjectileScale);
+    }
 
-      TrimLiveProjectiles();
+    /// <summary>
+    /// 지정한 Hovl 투사체 외형에 별도의 원소 색을 입혀 발사한다.
+    /// 캐릭터 전용 연출이 원소 기본 프리팹과 다른 실루엣을 필요로 할 때 사용한다.
+    /// </summary>
+    public void FireTintedProjectile(HS_Poolable prefab, BaseEnums.UnitElement tintElement,
+      Unit unitFrom, Unit unitTo, float duration, ProjectilePathType pathType, ProjectilePathData pathData)
+    {
+      if (unitFrom == null || unitTo == null) return;
 
-      HS_Poolable projectile = poolableManager.GetInstanceOf(prefab);
-      projectile.transform.position = unitFrom.transform.position;
-      projectile.transform.rotation =
-        Quaternion.LookRotation(unitTo.transform.position - unitFrom.transform.position);
-      projectile.transform.localScale = Vector3.one * ElementalProjectileScale;
-      projectile.gameObject.SetActive(true);
-      _liveProjectiles.Add(projectile);
-
-      // 풀에서 돌려쓰므로 색은 매번 다시 칠한다.
-      ElementalProjectiles.Tint(projectile.gameObject, element);
-
-      PrepareMover(projectile).SetProjectileInfo(
-        unitFrom, unitTo, duration, pathType, pathData ?? new ProjectilePathData());
+      // 외형은 하나로 통일하고 색만 캐릭터별 원소를 따른다.
+      CardProjectile.Fire(unitFrom, unitTo, ElementalProjectiles.ColorFor(tintElement), duration,
+        pathType, pathData ?? new ProjectilePathData(), ProjectileScale);
     }
 
     /// <summary>

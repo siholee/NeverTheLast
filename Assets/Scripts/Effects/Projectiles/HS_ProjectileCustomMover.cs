@@ -205,11 +205,22 @@ public class HS_ProjectileCustomMover : MonoBehaviour
     // ===== 경로 계산 메서드들 =====
     
     /// <summary>
-    /// 직선 경로 계산
+    /// 직선 경로 계산.
+    ///
+    /// 등속으로 미끄러지면 투사체가 <b>떠다니는 것처럼</b> 보인다. 상업 게임의 투사체는
+    /// 대개 출발이 느슨하고 도착이 빠르다 — 그래야 마지막에 '꽂히는' 느낌이 난다.
+    /// 그래서 진행도에 완만한 가속을 먹인 뒤 보간한다.
     /// </summary>
     protected Vector3 CalculateLinearPoint(Vector3 start, Vector3 end, float t)
     {
-        return Vector3.Lerp(start, end, t);
+        return Vector3.Lerp(start, end, Accelerate(t));
+    }
+
+    /// <summary>도착이 빨라지는 가속 곡선. 1에서는 정확히 1이라 도착 지점이 어긋나지 않는다.</summary>
+    protected static float Accelerate(float t)
+    {
+        t = Mathf.Clamp01(t);
+        return t * t * (3f - 2f * t) * 0.35f + t * t * 0.65f;
     }
     
     /// <summary>
