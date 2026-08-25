@@ -103,7 +103,7 @@ namespace Codes.Passive
         public QuetzalcoatlOvercritScholar(PassiveCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "학자";
+            CodeName = "예리함";
             IgnoresActivationChance = true;
         }
 
@@ -111,7 +111,7 @@ namespace Codes.Passive
             QuetzalcoatlStatusIds.Scholar, "quetzalcoatl_scholar", CodeName,
             Caster, Caster, new QuetzalcoatlScholarEffect(),
             stackPolicy: BaseEnums.StatusStackPolicy.Ignore, isBeneficial: true,
-            description: "100%를 초과한 치명타 확률의 2배를 치명타 피해로 전환합니다."));
+            description: "100%를 초과한 치명타 확률의 1.5배를 치명타 피해로 전환합니다."));
     }
 
     public sealed class QuetzalcoatlMeditation : PassiveCode
@@ -127,7 +127,7 @@ namespace Codes.Passive
             QuetzalcoatlStatusIds.Meditation, "quetzalcoatl_meditation", CodeName,
             Caster, Caster, new QuetzalcoatlMeditationEffect(),
             stackPolicy: BaseEnums.StatusStackPolicy.Ignore, isBeneficial: true,
-            description: "전투 중 2초마다 INT가 1 증가합니다."));
+            description: "전투 중 1턴마다 INT가 1 증가합니다."));
     }
 
     /// <summary>Lv.90: 20초마다 6초간 아군 전체 마나 재생.</summary>
@@ -185,10 +185,10 @@ namespace Codes.Passive
                     QuetzalcoatlStatusIds.WingedSerpent,
                     $"quetzalcoatl_winged_serpent_{Caster.GetEntityId()}", CodeName,
                     Caster, ally, new QuetzalcoatlManaRegenEffect(),
-                    duration: 6f,
+                    duration: 3,   // 6초 → 3턴
                     stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                     isBeneficial: true,
-                    description: "6초 동안 매초 케찰코아틀 INT/10만큼 마나를 회복합니다."));
+                    description: "3턴 동안 턴마다 케찰코아틀 INT/10만큼 마나를 회복합니다."));
             }
         }
     }
@@ -209,13 +209,12 @@ namespace Codes.Passive
 
     internal sealed class QuetzalcoatlScholarEffect : BaseEffect
     {
-        public QuetzalcoatlScholarEffect() : base(0, 2f) { }
-        public override float ExcessCritChanceConversionMultiplier(Unit unit) => unit == Target ? 2f : 0f;
+        public QuetzalcoatlScholarEffect() : base(0, 1.5f) { }
+        public override float ExcessCritChanceConversionMultiplier(Unit unit) => unit == Target ? 1.5f : 0f;
     }
 
     internal sealed class QuetzalcoatlMeditationEffect : BaseEffect
     {
-        private float _elapsed;
         private int _stacks;
 
         public QuetzalcoatlMeditationEffect() : base(0) { }
@@ -223,31 +222,23 @@ namespace Codes.Passive
         public override int PrimaryStatAdditiveModifier(Unit unit, BaseEnums.PrimaryStat stat)
             => unit == Target && stat == BaseEnums.PrimaryStat.INT ? _stacks : 0;
 
-        public override void OnUpdate(float deltaTime)
+        /// <summary>턴마다 INT +1. 예전 '2초마다 +1'과 같은 속도다.</summary>
+        public override void OnOwnerTurn()
         {
-            _elapsed += deltaTime;
-            int gained = Mathf.FloorToInt(_elapsed / 2f);
-            if (gained <= 0) return;
-            _elapsed -= gained * 2f;
-            _stacks += gained;
+            _stacks++;
             Target?.RefreshAttributes();
         }
     }
 
     internal sealed class QuetzalcoatlManaRegenEffect : BaseEffect
     {
-        private float _elapsed;
-
         public QuetzalcoatlManaRegenEffect() : base(0) { }
 
-        public override void OnUpdate(float deltaTime)
+        /// <summary>턴마다 INT/10의 2배를 회복한다. 예전 '매초 INT/10'을 1턴 = 2초로 환산했다.</summary>
+        public override void OnOwnerTurn()
         {
-            float previous = _elapsed;
-            _elapsed += deltaTime;
-            int ticks = Mathf.FloorToInt(_elapsed) - Mathf.FloorToInt(previous);
-            if (ticks <= 0 || Caster == null || Target == null) return;
-            int manaPerTick = Mathf.Max(0, Mathf.FloorToInt(Caster.GetBaseInt() / 10f));
-            for (int i = 0; i < ticks; i++) Target.RecoverMana(manaPerTick);
+            if (Caster == null || Target == null) return;
+            Target.RecoverMana(Mathf.Max(0, Mathf.FloorToInt(Caster.GetBaseInt() / 10f)) * 2);
         }
     }
 }

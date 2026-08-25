@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,7 @@ using Codes.Base;
 using Codes.Passive;
 using Effects.Buffs;
 using Entities;
-using Entities.Status;
+using Managers;
 using UnityEngine;
 
 namespace Codes.Ultimate
@@ -14,16 +15,15 @@ namespace Codes.Ultimate
     public enum AztecUltimateStyle
     {
         Jaguar,
+        EliteJaguar,
         Eagle,
+        EliteEagle,
         SerpentPriest,
-        HummingbirdPriest,
-        OwlShaman,
-        Coyote,
-        TlalocHighPriest,
+        EliteSerpentPriest,
         Tezcatlipoca,
     }
 
-    /// <summary>아즈텍 병종별 궁극기. 일반 병종은 피해·보호막·단순 버프만 사용한다.</summary>
+    /// <summary>새 메히코 테마의 궁극기. 테스카틀리포카만 스택형 소환 궁극기를 사용한다.</summary>
     public sealed class AztecUltimate : UltimateCode
     {
         private readonly AztecUltimateStyle _style;
@@ -34,25 +34,39 @@ namespace Codes.Ultimate
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = style switch
             {
-                AztecUltimateStyle.Jaguar => "재규어 휩쓸기",
-                AztecUltimateStyle.Eagle => "태양의 투창",
-                AztecUltimateStyle.SerpentPriest => "독안개",
-                AztecUltimateStyle.HummingbirdPriest => "벌새의 노래",
-                AztecUltimateStyle.OwlShaman => "밤의 파동",
-                AztecUltimateStyle.Coyote => "코요테의 난무",
-                AztecUltimateStyle.TlalocHighPriest => "신전의 폭우",
-                AztecUltimateStyle.Tezcatlipoca => "연기 나는 거울",
-                _ => "아즈텍 비기",
+                AztecUltimateStyle.Jaguar => "대지 분쇄",
+                AztecUltimateStyle.EliteJaguar => "왕의 대지 분쇄",
+                AztecUltimateStyle.Eagle => "맹독 화살",
+                AztecUltimateStyle.EliteEagle => "왕의 맹독 화살",
+                AztecUltimateStyle.SerpentPriest => "풍요의 의식",
+                AztecUltimateStyle.EliteSerpentPriest => "대풍요의 의식",
+                AztecUltimateStyle.Tezcatlipoca => "검은 태양의 전열",
+                _ => "메히코 비기",
             };
-            Cooldown = style switch
-            {
-                AztecUltimateStyle.TlalocHighPriest => 8f,
-                AztecUltimateStyle.Tezcatlipoca => 10f,
-                _ => 7f,
-            };
-            CastingDelay = style == AztecUltimateStyle.Tezcatlipoca ? 0.9f : 0.65f;
+            Cooldown = style == AztecUltimateStyle.Tezcatlipoca ? 0f : 4f;
+            CastingDelay = style == AztecUltimateStyle.Tezcatlipoca ? 0.9f : 0.6f;
             MaxStage = 1;
+
+            (int flat, float coefficient, BaseEnums.PrimaryStat stat) = PowerOf(style);
+            Power = flat;
+            PowerStatCoefficient = coefficient;
+            PowerStat = stat;
         }
+
+        private static (int, float, BaseEnums.PrimaryStat) PowerOf(AztecUltimateStyle style) => style switch
+        {
+            AztecUltimateStyle.Jaguar => (100, 0.6f, BaseEnums.PrimaryStat.STR),
+            AztecUltimateStyle.EliteJaguar => (150, 0.8f, BaseEnums.PrimaryStat.STR),
+            AztecUltimateStyle.Eagle => (100, 0.8f, BaseEnums.PrimaryStat.STR),
+            AztecUltimateStyle.EliteEagle => (120, 0.8f, BaseEnums.PrimaryStat.STR),
+            AztecUltimateStyle.SerpentPriest => (200, 0.8f, BaseEnums.PrimaryStat.INT),
+            AztecUltimateStyle.EliteSerpentPriest => (200, 0.8f, BaseEnums.PrimaryStat.INT),
+            _ => (0, 0f, BaseEnums.PrimaryStat.INT),
+        };
+
+        private bool IsJaguar => _style is AztecUltimateStyle.Jaguar or AztecUltimateStyle.EliteJaguar;
+        private bool IsEagle => _style is AztecUltimateStyle.Eagle or AztecUltimateStyle.EliteEagle;
+        private bool IsSerpent => _style is AztecUltimateStyle.SerpentPriest or AztecUltimateStyle.EliteSerpentPriest;
 
         public override void CastCode()
         {
@@ -66,190 +80,94 @@ namespace Codes.Ultimate
             float elapsed = 0f;
             while (elapsed < CastingDelay)
             {
-                if (Caster == null || !Caster.isActive || Caster.isControlled)
-                {
-                    StopCode();
-                    yield break;
-                }
+                if (Caster == null || !Caster.isActive || Caster.isControlled) { StopCode(); yield break; }
                 elapsed += Time.deltaTime;
                 yield return null;
             }
 
-            switch (_style)
-            {
-                case AztecUltimateStyle.Jaguar:
-                    ResolveJaguar();
-                    break;
-                case AztecUltimateStyle.Eagle:
-                    ResolveEagle();
-                    break;
-                case AztecUltimateStyle.SerpentPriest:
-                    ResolveSerpentPriest();
-                    break;
-                case AztecUltimateStyle.HummingbirdPriest:
-                    ResolveHummingbirdPriest();
-                    break;
-                case AztecUltimateStyle.OwlShaman:
-                    ResolveOwlShaman();
-                    break;
-                case AztecUltimateStyle.Coyote:
-                    yield return ResolveCoyote();
-                    break;
-                case AztecUltimateStyle.TlalocHighPriest:
-                    ResolveTlalocHighPriest();
-                    break;
-                case AztecUltimateStyle.Tezcatlipoca:
-                    ResolveTezcatlipoca();
-                    break;
-            }
+            if (IsJaguar) ResolveJaguar();
+            else if (IsEagle) ResolveEagle();
+            else if (IsSerpent) ResolveSerpentPriest();
+            else ResolveTezcatlipoca();
 
             StopCode();
         }
 
         private void ResolveJaguar()
         {
-            List<Unit> enemies = AztecCombat.Enemies(Caster);
-            Unit primary = enemies.OrderByDescending(unit => unit.Priority).FirstOrDefault();
-            if (primary == null) return;
-
-            List<Unit> targets = primary.currentCell == null
-                ? new List<Unit> { primary }
-                : enemies.Where(unit =>
-                    unit.currentCell != null && unit.currentCell.yPos == primary.currentCell.yPos).ToList();
-            foreach (Unit target in targets)
-            {
-                DealDamage(target, 1.2f, true, true, true);
-            }
-            Caster.AddShield(Mathf.Max(1, Mathf.RoundToInt(Caster.HpMax * 0.2f)), Caster);
+            Unit target = HighestPriorityEnemy();
+            if (target == null) return;
+            DealDamage(target, BaseEnums.PrimaryStat.STR, DamageTag.Physical, DamageTag.ContactAttack);
+            if (target.isActive) target.GrantCombatElement(BaseEnums.UnitElement.Geo, 3, Caster);
         }
 
         private void ResolveEagle()
         {
-            Unit target = AztecCombat.Enemies(Caster).OrderBy(AztecCombat.HealthRatio).FirstOrDefault();
-            if (target != null) DealDamage(target, 2f, true, false);
+            Unit target = HighestPriorityEnemy();
+            if (target == null) return;
+            DealDamage(target, BaseEnums.PrimaryStat.STR, DamageTag.Physical, DamageTag.NonContactAttack);
+            if (target.isActive) AztecCombat.ApplyPoison(Caster, target);
         }
 
         private void ResolveSerpentPriest()
         {
-            float duration = AztecCombat.HasPassive(Caster, 190) ? 5f : 3.5f;
-            int stacks = AztecCombat.HasPassive(Caster, 191) ? 2 : 1;
-            foreach (Unit target in AztecCombat.Enemies(Caster))
+            int healing = Mathf.Max(1, Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.INT));
+            foreach (Unit ally in AztecCombat.AlliesIncludingSelf(Caster))
             {
-                DealDamage(target, 0.55f, false, true);
-                if (!target.isActive) continue;
-                for (int stack = 0; stack < stacks; stack++)
-                {
-                    AztecCombat.ApplyPoison(Caster, target, duration, 8f);
-                }
+                ally.ModifyHp(ally.HpCurr + healing, Caster);
+                if (ally.isActive) ally.GrantCombatElement(BaseEnums.UnitElement.Dendro, 3, Caster);
             }
-        }
-
-        private void ResolveHummingbirdPriest()
-        {
-            int amount = AztecCombat.HasPassive(Caster, 194) ? 7 : 5;
-            float duration = AztecCombat.HasPassive(Caster, 195) ? 9f : 6f;
-            foreach (Unit ally in AztecCombat.Allies(Caster))
-            {
-                AztecCombat.AddStatus(
-                    Caster,
-                    ally,
-                    7450,
-                    $"aztec_hummingbird_song_{Caster.GetHashCode()}",
-                    "벌새의 노래",
-                    new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.DEX, amount),
-                    duration,
-                    description: $"DEX +{amount}");
-            }
-        }
-
-        private void ResolveOwlShaman()
-        {
-            foreach (Unit target in AztecCombat.Enemies(Caster))
-            {
-                DealDamage(target, 1f, false, true);
-            }
-        }
-
-        private IEnumerator ResolveCoyote()
-        {
-            Unit target = AztecCombat.Enemies(Caster).OrderByDescending(unit => unit.Priority).FirstOrDefault();
-            int hits = AztecCombat.HasPassive(Caster, 203) ? 5 : 4;
-            for (int hit = 0; hit < hits && target != null && target.isActive; hit++)
-            {
-                DealDamage(target, 0.45f, true, false);
-                yield return new WaitForSeconds(0.1f);
-            }
-        }
-
-        private void ResolveTlalocHighPriest()
-        {
-            foreach (Unit target in AztecCombat.Enemies(Caster))
-            {
-                DealDamage(target, 0.8f, false, true);
-                if (target != null && target.isActive)
-                {
-                    target.GrantCombatElement(BaseEnums.UnitElement.Hydro);
-                }
-            }
-            Caster.AddShield(Mathf.Max(1, Mathf.RoundToInt(Caster.HpMax * 0.15f)), Caster);
         }
 
         private void ResolveTezcatlipoca()
         {
-            List<Unit> enemies = AztecCombat.Enemies(Caster);
-            // 위력은 스킬마다 다르므로, '가장 위협적인 적' 기준을 주스탯 크기로 본다.
-            Unit reflected = enemies
-                .OrderByDescending(unit => unit.GetBasePrimaryStat(unit.MainPrimaryStat))
-                .FirstOrDefault();
-            UnitStatus stolen = reflected?.GetAllStatuses().FirstOrDefault(status => status.IsBeneficial);
-            if (stolen != null)
+            GridManager grid = GridManager.Instance;
+            if (grid == null) return;
+
+            int frontColumn = grid.GetFrontColumn(Caster.IsEnemy);
+            foreach (Unit ally in AztecCombat.AlliesIncludingSelf(Caster)
+                         .Where(unit => unit != Caster && unit.currentCell != null && unit.currentCell.xPos == frontColumn)
+                         .ToList())
             {
-                reflected.RemoveStatus(stolen.StatusId);
+                grid.RetireUnit(ally);
             }
 
-            AztecCombat.AddStatus(
-                Caster,
-                Caster,
-                7470,
-                "aztec_stolen_reflection",
-                "훔친 거울상",
-                new AztecAllDamageEffect(1.2f),
-                6f,
-                description: "주는 피해가 20% 증가합니다.");
-
-            foreach (Unit target in enemies)
+            for (int y = grid.yMin; y <= grid.yMax; y++)
             {
-                DealDamage(target, 0.95f, false, true);
-                if (target != null && target.isActive)
-                {
-                    target.GrantCombatElement(BaseEnums.UnitElement.Void);
-                }
+                if (!grid.IsCellAvailable(frontColumn, y)) continue;
+
+                grid.SpawnUnit(frontColumn, y, Caster.IsEnemy, AztecCombat.EliteJaguarWarriorId);
+
+                // 라운드 도중 소환된 유닛은 일반 스폰과 달리 OnRoundStart를 거치지 않는다.
+                // 즉시 패시브를 켜야 행동불능 추적과 현재 레벨 해금 패시브가 이번 전투부터 동작한다.
+                List<Unit> side = Caster.IsEnemy ? grid.enemyList : grid.heroList;
+                Unit summoned = side.LastOrDefault(unit => unit != null && unit.isActive &&
+                    unit.ID == AztecCombat.EliteJaguarWarriorId && unit.currentCell != null &&
+                    unit.currentCell.xPos == frontColumn && unit.currentCell.yPos == y);
+                summoned?.CastPassiveCode();
             }
+
+            Caster.AddStatus(BuffStatus.Create(
+                7660, $"tezcatlipoca_vulnerability_{Guid.NewGuid():N}", "현현의 균열",
+                Caster, Caster, new TezcatlipocaVulnerabilityEffect(),
+                stackPolicy: BaseEnums.StatusStackPolicy.Stack,
+                isBeneficial: false,
+                category: BaseEnums.StatusCategory.Negative,
+                description: "받는 피해가 50% 증가합니다. 중첩됩니다."));
+
+            AztecCombat.ApplyTezcatlipocaFormation(Caster);
         }
 
-        private void DealDamage(
-            Unit target,
-            float ratio,
-            bool physical,
-            bool multiTarget,
-            bool contact = false)
+        private Unit HighestPriorityEnemy() => AztecCombat.Enemies(Caster)
+            .OrderByDescending(unit => unit.Priority).FirstOrDefault();
+
+        private void DealDamage(Unit target, BaseEnums.PrimaryStat stat, int damageType, int contactType)
         {
-            if (target == null || !target.isActive) return;
-            bool isCrit = Random.value <= Caster.CritChanceCurr;
+            bool isCrit = UnityEngine.Random.value <= Caster.CritChanceCurr;
             float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
-            int damage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(Mathf.RoundToInt(ratio * 50f)) * critMultiplier));
-            target.TakeDamage(new DamageContext(
-                Caster,
-                damage,
-                BaseEnums.CodeType.Ultimate,
-                new List<int>
-                {
-                    multiTarget ? DamageTag.MultiTarget : DamageTag.SingleTarget,
-                    DamageTag.UltAttack,
-                    physical ? DamageTag.Physical : DamageTag.Special,
-                    contact ? DamageTag.ContactAttack : DamageTag.NonContactAttack,
-                },
-                isCrit));
+            int damage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(CurrentPower, stat) * critMultiplier));
+            target.TakeDamage(new DamageContext(Caster, damage, BaseEnums.CodeType.Ultimate,
+                new List<int> { DamageTag.SingleTarget, DamageTag.UltAttack, damageType, contactType }, isCrit));
         }
 
         public override void StopCode()
@@ -262,17 +180,7 @@ namespace Codes.Ultimate
         public override bool HasValidTarget()
         {
             if (Caster == null || !Caster.isActive) return false;
-            return _style == AztecUltimateStyle.HummingbirdPriest
-                ? AztecCombat.Allies(Caster).Count > 0
-                : AztecCombat.Enemies(Caster).Count > 0;
+            return IsSerpent || _style == AztecUltimateStyle.Tezcatlipoca || AztecCombat.Enemies(Caster).Count > 0;
         }
-    }
-
-    internal sealed class AztecAllDamageEffect : Effects.Base.BaseEffect
-    {
-        private readonly float _multiplier;
-        public AztecAllDamageEffect(float multiplier) : base(0, multiplier) => _multiplier = multiplier;
-        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
-            => attacker == Target ? _multiplier : 1f;
     }
 }
