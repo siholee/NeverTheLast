@@ -7,9 +7,9 @@ codes:
     - id: 2
       verbalName: 약점 추적
       codeName: AtalanteWeaknessTracker
-      description: "공격 대상의 디버프 1개당 방어력을 5% 무시한다(최대 20%). <고유 패시브> <열화 전수본 230>"
-    - { id: 140, verbalName: 궁수, codeName: AtalanteArcher, description: "장궁·단궁·쇠뇌 숙련을 얻는다. 활 계열 무기를 장착하고 숙련되어 있으면 STR +5." }
-    - { id: 141, verbalName: 민첩함, codeName: AtalanteAgility, description: "DEX +2, 경갑 숙련을 얻는다." }
+      description: "공격 대상의 디버프 1개당 방어력을 5% 무시한다(최대 20%). <고유 패시브> <전수 불가능>"
+    - { id: 140, verbalName: 궁수, codeName: AtalanteArcher, description: "활 계열 무기를 장착하고 숙련되어 있으면 STR +5." }
+    - { id: 141, verbalName: 민첩함, codeName: AtalanteAgility, description: "DEX +2." }
     - { id: 142, verbalName: 유리대포, codeName: AtalanteGlassCannon, description: "최대 체력 -25%, 적 방어력 20% 무시." }
     - { id: 143, verbalName: 사냥꾼, codeName: AtalanteHunter, description: "짐승 또는 괴수 분류의 적에게 가하는 피해 +30%." }
     - { id: 144, verbalName: 맹독, codeName: AtalanteVirulentPoison, description: "스킬 공격 적중 시 3초간 매초 20+CON의 5% 지속피해를 부여한다." }
@@ -28,7 +28,6 @@ codes:
       codeName: ShiFinalVerse
       description: "일반공격 적중으로 종언 스택을 쌓고 단계별 추가 공격을 발동한다. <전수 불가능>"
     - { id: 54, verbalName: 검의 달인, codeName: ShiSwordMaster, description: "베기류 공격의 가하는 피해가 25% 증가한다." }
-    - { id: 55, verbalName: 만류귀종, codeName: ShiAllWeaponMastery, description: "모든 무기에 대한 숙련을 얻는다." }
     - { id: 56, verbalName: 신속, codeName: ShiSwiftness, description: "바람 원소가 부착되어 있는 동안 DEX +10." }
     - { id: 58, verbalName: 천살성, codeName: HeavenlyKiller, description: "공격 후 최대 체력의 8% 미만인 적을 즉시 처형한다. 일반 등급의 적에게만 적용된다." }
     - { id: 59, verbalName: 화무십일홍, codeName: ShiTenDaysNoFlower, description: "체력 10% 미만인 적 공격 시 확정 치명타. 치명타 확률의 2배가 해당 공격의 치명타 피해에 더해진다." }
@@ -72,28 +71,28 @@ codes:
     - { id: 70, verbalName: 풍요의 축복, codeName: QuetzalcoatlBounty, description: "필드의 풀 아군 1명당 아군 전체의 가하는 피해가 [5/10/15]% 증가한다. <전수 불가능>" }
     - { id: 71, verbalName: 지혜, codeName: QuetzalcoatlWisdom, description: "INT +4." }
     - { id: 72, verbalName: 행운아, codeName: QuetzalcoatlLucky, description: "LUK +4." }
-    - { id: 73, verbalName: 학자, codeName: QuetzalcoatlOvercritScholar, description: "100%를 초과한 치명타 확률의 2배를 치명타 피해로 전환한다." }
+    - { id: 73, verbalName: 예리함, codeName: QuetzalcoatlOvercritScholar, description: "100%를 초과한 치명타 확률의 1.5배를 치명타 피해로 전환한다." }
     - { id: 74, verbalName: 명상, codeName: QuetzalcoatlMeditation, description: "전투 중 2초마다 INT +1." }
     - { id: 75, verbalName: 날개 달린 뱀, codeName: QuetzalcoatlWingedSerpent, description: "20초마다 6초간 모든 아군이 매초 케찰코아틀 INT/10만큼 마나를 회복한다. <전수 불가능>" }
-    - { id: 80, verbalName: 원소 친화 - 바위, codeName: OrionGeoAffinity, description: "바위 원소를 보유한 동안 매초 CON +1. <고유 패시브> <열화 전수본 231>" }
+    - { id: 80, verbalName: 억센 육체, codeName: OrionGeoAffinity, description: "바위 원소를 보유한 동안 매초 CON +1. <고유 패시브> <전수 불가능>" }
     - { id: 81, verbalName: 중갑병, codeName: OrionHeavyInfantry, description: "중갑 착용 중 STR +4." }
     - { id: 82, verbalName: 명사수, codeName: OrionMarksman, description: "활 계열 무기 장착 중 단일 대상 피해를 입히면 STR만큼 고정 피해를 추가한다." }
     - { id: 83, verbalName: 파수꾼, codeName: OrionSentinel, description: "전열에 있을 때 필드의 후열 아군 하나당 STR +1." }
     - { id: 84, verbalName: 코드 직조, codeName: TheseusCodeWeave, description: "일반 코드 발동 시 0.25스택, 궁극기 코드 발동 시 1스택을 얻는다(최대 3). 1스택을 소비해 다음 일반공격을 강화한다. <고유 패시브> <전수 불가능>" }
     - { id: 85, verbalName: 원소 친화 - 물, codeName: TheseusHydroAffinity, description: "물 원소 보유 중 올스탯 +1, 마나 회복 효율 +20%." }
     - { id: 86, verbalName: 투사, codeName: TheseusFighter, description: "물리·접촉 피해를 가하면 실제 피해의 25%만큼 회복한다." }
-    - { id: 87, verbalName: 팔랑크스, codeName: TheseusPhalanx, description: "전열에 있을 때 자신 외 전열 아군 하나당 STR +1." }
+    - { id: 87, verbalName: 팔랑크스, codeName: GreekPhalanx, description: "팔랑크스를 가진 필드의 아군 수 n에 비례해 전투 시작 시 CON 기반 위력 30*n의 보호막을 얻고, 상시 가하는 피해가 5%*n 증가한다. 모든 Greek 유닛이 자동 보유. <전수 불가능>" }
     - { id: 88, verbalName: 자가치유, codeName: TheseusSelfHealing, description: "매초 CON만큼 회복한다. 물 또는 풀 원소 보유 시 2배이며 두 원소가 중첩되어도 2배를 넘지 않는다." }
     - { id: 89, verbalName: 과다치유, codeName: TheseusOverheal, description: "최대 체력을 넘긴 회복량의 25%를 보호막으로 전환한다." }
     - id: 90
       verbalName: 마카나
       codeName: MacanaGrowth
       description: "적 처치 시 25% 확률로 영구적으로 무작위 스탯 +1."
-    - { id: 91, verbalName: 생명의 잔, codeName: AsclepiusNashorsTooth, description: "궁극기 사용 후 5초간 DEX가 40 증가한다. <고유 패시브> <열화 전수본 232>" }
-    - { id: 92, verbalName: 태양의 박자, codeName: AmaterasuSunRhythm, description: "기본공격 적중 시 6초간 DEX +4. 최대 6중첩. <고유 패시브> <열화 전수본 233>" }
+    - { id: 91, verbalName: 생명의 잔, codeName: AsclepiusNashorsTooth, description: "궁극기 사용 후 5초간 DEX가 40 증가한다. <고유 패시브> <전수 불가능>" }
+    - { id: 92, verbalName: 태양의 박자, codeName: AmaterasuSunRhythm, description: "기본공격 적중 시 6초간 DEX +4. 최대 6중첩. <고유 패시브> <전수 불가능>" }
     - { id: 93, verbalName: 투명, codeName: AmaterasuConcealment, description: "체력이 35% 이하일 때 대상 지정 우선도 -1." }
     - { id: 94, verbalName: 폭죽놀이, codeName: AmaterasuFireworks, description: "4번째 기본공격마다 무작위 적에게 DEX 기반 위력 20의 단일 피해를 주는 폭죽 4발을 발사한다." }
-    - { id: 95, verbalName: 파죽지세, codeName: AmaterasuBreakthrough, description: "피해를 준 적의 처치에 관여하면 4초간 DEX +12." }
+    - { id: 95, verbalName: 파죽지세, codeName: AmaterasuBreakthrough, description: "피해를 준 적의 처치에 관여하면 4초간 주스탯 +12." }
     - { id: 96, verbalName: 치명적인 치유, codeName: AsclepiusCriticalTreatment, description: "치유와 보호막이 치명타 확률로 치명타 피해 배율만큼 증가한다." }
     - { id: 97, verbalName: 마나 호흡법, codeName: AsclepiusManaBreathing, description: "INT가 제공하는 마나 회복 효율 기여분을 1.2배로 만든다." }
     - { id: 98, verbalName: 의신의 가호, codeName: AsclepiusDivineMedicine, description: "부여하는 치유와 보호막이 50% 증가하고 받은 대상의 부정 상태를 모두 제거한다." }
@@ -110,14 +109,14 @@ codes:
     - { id: 102, verbalName: 혹한의 강인함, codeName: NordCommonToughness, description: "받는 피해가 5% 감소한다. <적 전용> <전수 불가능>" }
     - { id: 103, verbalName: 약탈자의 숙련, codeName: NordCommonMastery, description: "주는 피해가 10% 증가한다. <적 전용> <전수 불가능>" }
     - { id: 104, verbalName: 노르드의 노련함, codeName: NordCommonVeteran, description: "코드 가속이 10% 증가한다. <적 전용> <전수 불가능>" }
-    - { id: 105, verbalName: 태양의 전사, codeName: AztecCommonSpirit, description: "주는 피해가 5% 증가한다. <적 전용> <전수 불가능>" }
-    - { id: 106, verbalName: 신전의 가호, codeName: AztecCommonToughness, description: "받는 피해가 5% 감소한다. <적 전용> <전수 불가능>" }
-    - { id: 107, verbalName: 흑요석 숙련, codeName: AztecCommonMastery, description: "주는 피해가 10% 증가한다. <적 전용> <전수 불가능>" }
-    - { id: 108, verbalName: 의식의 박자, codeName: AztecCommonVeteran, description: "코드 가속이 10% 증가한다. <적 전용> <전수 불가능>" }
     - { id: 109, verbalName: 검투사의 기백, codeName: ColosseumCommonSpirit, description: "주는 피해가 5% 증가한다. <적 전용> <전수 불가능>" }
     - { id: 110, verbalName: 관중의 함성, codeName: ColosseumCommonToughness, description: "받는 피해가 5% 감소한다. <적 전용> <전수 불가능>" }
     - { id: 111, verbalName: 투기장 무기술, codeName: ColosseumCommonMastery, description: "주는 피해가 10% 증가한다. <적 전용> <전수 불가능>" }
     - { id: 112, verbalName: 백전노장, codeName: ColosseumCommonVeteran, description: "코드 가속이 10% 증가한다. <적 전용> <전수 불가능>" }
+    - { id: 113, verbalName: 군단의 기세, codeName: LegionCommonSpirit, description: "주는 피해가 5% 증가한다. <적 전용> <전수 불가능>" }
+    - { id: 114, verbalName: 방진의 견고함, codeName: LegionCommonToughness, description: "받는 피해가 5% 감소한다. <적 전용> <전수 불가능>" }
+    - { id: 115, verbalName: 규율 숙련, codeName: LegionCommonMastery, description: "주는 피해가 10% 증가한다. <적 전용> <전수 불가능>" }
+    - { id: 116, verbalName: 백인대의 노련함, codeName: LegionCommonVeteran, description: "코드 가속이 10% 증가한다. <적 전용> <전수 불가능>" }
     - id: 120
       verbalName: 월식 정산
       codeName: TsukuyomiMoonReckoning
@@ -177,23 +176,12 @@ codes:
     - { id: 177, verbalName: 노련한 검투사, codeName: ColosseumPassive177, description: "전투당 처음 받는 제어 효과를 무효화한다. <전수 불가능>" }
     - { id: 178, verbalName: 목숨값, codeName: ColosseumPassive178, description: "체력이 40% 미만이면 받는 피해가 30% 감소하고 피해의 20%를 회복한다. <전수 불가능>" }
     - { id: 179, verbalName: 다시 한 판, codeName: ColosseumPassive179, description: "전투당 한 번 치명 피해를 버티고 최대 체력의 30%를 회복하며 궁극기를 준비한다. <전수 불가능>" }
-    # 아즈텍 일반 병종은 105~108 공통 적 패시브를 사용한다.
-    - { id: 204, verbalName: 비를 부르는 자, codeName: AztecPassive204, description: "INT +5. <전수 불가능>" }
-    - { id: 205, verbalName: 폭우의 박자, codeName: AztecPassive205, description: "코드 가속이 15% 증가한다. <전수 불가능>" }
-    - { id: 206, verbalName: 거센 소나기, codeName: AztecPassive206, description: "궁극기 피해가 20% 증가한다. <전수 불가능>" }
-    - { id: 207, verbalName: 빗물 장막, codeName: AztecPassive207, description: "부여받는 보호막이 25% 증가한다. <전수 불가능>" }
-    # 테스카틀리포카 전용 보스 기믹
-    - { id: 208, verbalName: 금이 간 흡연경, codeName: AztecPassive208, description: "5번째 피격마다 공격자에게 흑요석 반사 피해를 준다. <전수 불가능>" }
-    - { id: 209, verbalName: 어디에나 있는 그림자, codeName: AztecPassive209, description: "전투당 처음 받는 제어 효과를 무효화한다. <전수 불가능>" }
-    - { id: 210, verbalName: 재규어의 밤, codeName: AztecPassive210, description: "체력이 50% 미만이면 주는 피해·코드 가속·흡혈이 증가하지만 받는 피해도 증가한다. <전수 불가능>" }
-    - { id: 211, verbalName: 신좌 없는 신, codeName: AztecPassive211, description: "전투당 한 번 치명 피해를 버티고 최대 체력의 20%를 회복하며 궁극기를 준비한다. <전수 불가능>" }
-    - { id: 50, verbalName: 최초의 노래, codeName: SeiCreation, description: "<고유 패시브> <전수 불가> 세이가 필드에 있는 동안 모든 아군의 피해에 세이 INT의 [1.5/2.2/3.0]배만큼 고정 피해가 추가된다. (아군 평균 피해의 약 15/22/30%)" }
-    - { id: 51, verbalName: 성역, codeName: SeiCitadel, description: "세이가 필드에 있는 동안 아군 전체의 받는 피해가 10% 감소한다. 동일 코드끼리 중첩되지 않는다." }
+    - { id: 50, verbalName: 빅뱅, codeName: SeiBigBang, description: "<고유 패시브> <전수 불가> 보호막을 보유한 아군이 피해를 입으면 아군별 1초 내부 쿨다운으로 스택을 얻는다. 8스택에서 무작위 적에게 GEO 미사일 8발을 발사해 각각 INT의 20%에 해당하는 피해를 입히고, 아군 전체에 세이 INT의 80%에 해당하는 보호막을 부여한다. #특수 #비접촉 #추가공격" }
     - { id: 52, verbalName: 사전준비, codeName: SeiPreparation, description: "전투 시작 시 궁극기 충전량이 100%가 된다. 마나를 쓰지 않는 특수 궁극기 보유자에게는 효과가 없다." }
-    - { id: 53, verbalName: 빅뱅, codeName: SeiBigBang, description: "<전수 불가> 전투 중 최초로 궁극기를 발동하면 아군 전체의 궁극기 충전량이 100%가 된다. 특수 궁극기 보유자에게도 적용된다." }
+    - { id: 53, verbalName: 창세의 노래, codeName: SeiFirstSong, description: "<전수 불가> 전투 중 최초로 궁극기를 발동하면 아군 전체의 궁극기 충전량이 100%가 된다. 특수 궁극기 보유자에게도 적용된다." }
 
     # ── 베다 진영 ──
-    - { id: 240, verbalName: 죽음의 계약, codeName: YamaDeathContract, description: "야마가 필드에 있는 동안 모든 아군이 가하는 지속피해 +25%. 동일·하위 코드와 중복되지 않고 높은 쪽만 적용된다. <고유 패시브> <열화 전수본 123>" }
+    - { id: 240, verbalName: 죽음의 계약, codeName: YamaDeathContract, description: "야마가 필드에 있는 동안 모든 아군이 가하는 지속피해 +25%. 동일·하위 코드와 중복되지 않고 높은 쪽만 적용된다. <고유 패시브> <전수 불가능>" }
     - { id: 241, verbalName: 지혜, codeName: VedicWisdom, description: "INT +4." }
     - { id: 242, verbalName: 원소 숙련 - 번개, codeName: ElectroMastery, description: "번개 원소를 보유한 적에게 주는 피해 +10%." }
     - { id: 243, verbalName: 원소 숙련 - 불, codeName: PyroMastery, description: "불 원소를 보유한 적에게 주는 피해 +10%." }
@@ -208,10 +196,74 @@ codes:
     - { id: 252, verbalName: 용살자, codeName: IndraDragonSlayer, description: "'용' 속성 유닛에게 가하는 피해 +40%." }
     - { id: 253, verbalName: 자기과신, codeName: IndraOverconfidence, description: "적 처치 시 특수 피해의 가하는 피해 +5%. 중첩된다." }
     - { id: 254, verbalName: 인도자, codeName: IndraGuide, description: "궁극기 코드 발동 이후 필드의 다른 아군에게 마나를 부여한다." }
-    - { id: 255, verbalName: 정화의 바람, codeName: VayuPurifyingWind, description: "궁극기 발동 시 충전 1 획득(최대 2). 충전이 있고 디버프에 걸린 아군이 있으면 충전을 소모해 해로운 효과를 제거한다. <고유 패시브> <열화 전수본 224>" }
+    - { id: 255, verbalName: 정화의 바람, codeName: VayuPurifyingWind, description: "궁극기 발동 시 충전 1 획득(최대 2). 충전이 있고 디버프에 걸린 아군이 있으면 충전을 소모해 해로운 효과를 제거한다. <고유 패시브> <전수 불가능>" }
     - { id: 224, verbalName: 정화의 바람 (전수), codeName: VayuPurifyingWindEcho, description: "궁극기 발동 시 충전 0.5 획득(최대 1). 충전이 차면 아군 하나의 해로운 효과를 제거한다." }
     - { id: 256, verbalName: 재기의 바람, codeName: VayuSecondWind, description: "체력이 40% 이하로 떨어지면 4초에 걸쳐 최대 체력의 40%를 회복한다. 전투 중 1회." }
     - { id: 257, verbalName: 기습, codeName: VayuAmbush, description: "최대 체력인 적을 공격하면 확정 치명타가 발생하고 치명타 확률의 2배가 치명타 피해에 더해진다." }
+    # ── 프레이아 ──
+    - { id: 260, verbalName: 피톤치드, codeName: FreyaPhytoncide, description: "치유한 아군이 2초에 걸쳐 최대 체력의 5%를 추가로 회복한다. 대상별 내부 쿨다운 2초. <고유 패시브> <전수 불가능>" }
+    - { id: 261, verbalName: 의술, codeName: FreyaMedicine, description: "부여하는 치유와 보호막이 25% 증가한다. 의신의 가호(98)의 하위 코드이며 중복 적용되지 않는다." }
+    - { id: 262, verbalName: 리더쉽, codeName: FreyaLeadership, description: "필드에 있을 경우, 모든 아군이 가하는 피해 +10%. 중첩되지 않는다." }
+    - { id: 263, verbalName: 전사장, codeName: FreyaWarChief, description: "모든 전열 아군에게 STR +8." }
+    # ── 로키 ──
+    - { id: 264, verbalName: 펜리르, codeName: LokiFenrir, description: "소환수 펜리르를 보유한다. 펜리르는 4초마다 현재 체력이 가장 낮은 적에게 STR 기반 위력 40의 단일 피해를 입힌다. #접촉 #물리 #추가공격 <고유 패시브> <전수 불가능>" }
+    - { id: 265, verbalName: 소환사, codeName: LokiSummoner, description: "필드에 있는 모든 소환수가 가하는 피해 +25%. 중첩되지 않는다." }
+    # ── 스카디 ──
+    - { id: 266, verbalName: 서리의 전사, codeName: SkadiFrostWarrior, description: "8초마다 아무런 원소도 부착되어 있지 않다면 자신에게 얼음 원소를 부착한다. 상시 빙결 면역. <고유 패시브> <전수 불가능>" }
+    - { id: 267, verbalName: 원소 숙련 - 얼음, codeName: CryoMastery, description: "얼음 원소를 보유한 적에게 주는 피해 +10%." }
+    - { id: 268, verbalName: 원소 친화 - 얼음, codeName: SkadiCryoAffinity, description: "얼음 원소를 보유한 동안 빙결된 적을 공격하면 확정 치명타가 된다." }
+    - { id: 269, verbalName: 원소술사, codeName: SkadiElementalist, description: "필드에 있을 경우, 모든 아군이 원소 반응으로 만들어낸 피해 +25%. 상위 코드와 중복 적용되지 않는다." }
+    # ── 쿠베라 ──
+    - { id: 270, verbalName: 대지의 계율, codeName: KuberaEarthLaw, description: "필드에 있을 경우, 모든 에어본 상태의 적이 받는 피해 +10%. <고유 패시브> <전수 불가능>" }
+    - { id: 271, verbalName: 원소 친화 - 바위, codeName: KuberaGeoAffinity, description: "바위 원소를 보유한 동안 모든 접촉 공격에게 받는 피해 -25%." }
+    - { id: 272, verbalName: 뿌리박기, codeName: KuberaRooting, description: "자신의 원소가 풀 혹은 바위라면 상시 에어본 면역." }
+    - { id: 273, verbalName: 상인, codeName: KuberaMerchant, description: "전투에서 획득하는 골드 +25%. 중첩되지 않는다." }
+    # ── 바루나 ──
+    - { id: 274, verbalName: 대해의 판결, codeName: VarunaOceanVerdict, description: "필드에 있을 경우, 모든 아군이 원소 반응으로 만들어낸 피해 +40%. 원소술사(269)의 상위 코드이며 둘 다 하나만, 높은 쪽만 적용된다. <고유 패시브> <전수 불가능>" }
+    - { id: 275, verbalName: 수천, codeName: VarunaWaterHeaven, description: "필드에 있을 경우, 모든 물·번개·바람 원소 아군의 치명타 피해 +25%. 중첩되지 않는다." }
+    # ── 오르페우스 ──
+    - { id: 276, verbalName: 죽음마저 속인 자, codeName: OrpheusCheatedDeath, description: "전투 시작 시 궁극기 비탄의 연주를 즉시 발동한다. <고유 패시브> <전수 불가능>" }
+    - { id: 277, verbalName: 음유시인, codeName: OrpheusBard, description: "코드 보유자가 바람 원소라면 전투 종료 후 아군 전체 획득 EXP +5%. 중첩되지 않는다." }
+    # ── 스사노오 ──
+    - { id: 278, verbalName: 뇌신, codeName: SusanooRaijin, description: "바람 및 번개 원소 판정도 함께 받는다. 물·바람·번개 원소가 부착된 적을 공격할 경우 방어력의 20%를 무시한다. <고유 패시브> <전수 불가능>" }
+    - { id: 279, verbalName: 파도베기, codeName: SusanooWaveCut, description: "보유자가 양손검 혹은 한손검 숙련이라면 물 속성 유닛에게 받는 피해 -30%." }
+
+    # ── 로마 테마에서 도입한 공용 해금 패시브 ──
+    - { id: 280, verbalName: 야습, codeName: NightRaid, description: "전투 시작 시 자신의 행동 게이지를 50% 채운다. 첫 행동이 두 배 빨리 온다." }
+    - { id: 281, verbalName: 카리스마, codeName: Charisma, description: "전투 종료 후 모든 아군의 획득 EXP +10%. 선두주자·음유시인과 더해진다." }
+    - { id: 282, verbalName: 직감, codeName: Intuition, description: "DEX 집중 훈련 효율 +10%." }
+    - { id: 283, verbalName: 전술가, codeName: Tactician, description: "필드에 있는 동안 아군 전체가 적 방어력의 10%를 무시한다." }
+    - { id: 284, verbalName: 심안, codeName: MindsEye, description: "원소가 부착된 적을 공격하면 내구를 무시하고 피해를 준 뒤 그 원소를 지운다." }
+    # ── 로마(레기온) 적 고유 패시브 ──
+    - { id: 300, verbalName: 방진 편성, codeName: LegionHastatiPassive, description: "전투 시작 시 위력 200 + CON×1.0에 해당하는 보호막을 자신에게 부여한다. <적 전용> <전수 불가능>" }
+    - { id: 301, verbalName: 중열의 방벽, codeName: LegionPrincipesPassive, description: "전투 시작 시 위력 225 + CON×1.1에 해당하는 보호막을 자신에게 부여한다. <적 전용> <전수 불가능>" }
+    - { id: 302, verbalName: 최후의 방벽, codeName: LegionTriariiPassive, description: "전투 시작 시 위력 250 + CON×1.2에 해당하는 보호막을 자신에게 부여한다. <적 전용> <전수 불가능>" }
+    - { id: 303, verbalName: 백인대의 방벽, codeName: LegionCenturionPassive, description: "전투 시작 시 위력 300 + CON×1.4에 해당하는 보호막을 자신에게 부여한다. <적 전용> <전수 불가능>" }
+    - { id: 304, verbalName: 산병 지원, codeName: LegionVelitesPassive, description: "필드의 전열 아군 하나당 가하는 피해가 5% 증가한다. <적 전용> <전수 불가능>" }
+    - { id: 305, verbalName: 조준 사격, codeName: LegionScorpioPassive, description: "필드의 전열 아군 하나당 가하는 피해가 10% 증가한다. <적 전용> <전수 불가능>" }
+    - { id: 306, verbalName: 기병의 회피, codeName: LegionEquesPassive, description: "접촉 기술을 LUK%의 확률로 회피한다. <적 전용> <전수 불가능>" }
+    - { id: 307, verbalName: 부관의 신호, codeName: LegionOptioPassive, description: "전투 시작 시 CON+STR이 가장 높은 전열 아군을 지정한다. 지정된 아군이 단일 피해를 가하면 같은 대상에게 추가공격으로 일반공격을 넣는다. <적 전용> <전수 불가능>" }
+    - { id: 308, verbalName: 천부장의 신호, codeName: LegionTribunePassive, description: "전투 시작 시 CON+STR이 가장 높은 전열 아군을 지정한다. 지정된 아군이 단일 피해를 가하면 같은 대상에게 추가공격으로 일반공격을 넣는다. <적 전용> <전수 불가능>" }
+    - { id: 309, verbalName: 화합, codeName: LegionConcordia, description: "단일 아군에게 이로운 효과를 부여하면 그 아군에게 '화합' 2스택을 준다. 화합 보유자는 가하는 피해 +25%. 자기 턴마다 1스택 감소하고, 새로 부여하면 이전 보유자가 잃는다. <고유 패시브> <전수 불가능>" }
+    - { id: 310, verbalName: 천천히 서둘러라, codeName: LegionFestinaLente, description: "자신의 DEX가 25% 감소하고 궁극기로 가하는 피해가 25% 증가한다. <고유 패시브> <전수 불가능>" }
+    - { id: 311, verbalName: "왔노라, 보았노라, 이겼노라", codeName: LegionVeniVidiVici, description: "적을 처치할 때마다 모든 '로마' 아군의 가하는 피해가 10% 증가한다. 상한 없이 중첩된다. <고유 패시브> <전수 불가능>" }
+    - { id: 312, verbalName: 최고의 2인자, codeName: LegionSecondInCommand, description: "필드에 옥타비아가 있으면 일반공격이 무조건 옥타비아를 향하고, 추가로 옥타비아의 행동 게이지를 100% 채운다. <보스 전용> <전수 불가능>" }
+    - { id: 313, verbalName: 팍스 로마나, codeName: LegionPaxRomana, description: "공격이 적중한 대상 수 하나당 궁극기 자원을 최대치의 2% 채운다. <보스 전용> <전수 불가능>" }
+    - { id: 314, verbalName: 갈리아의 정복자, codeName: LegionConquerorOfGaul, description: "자기 전열의 '로마' 아군이 받는 피해가 10% 감소한다. <보스 전용> <전수 불가능>" }
+    - { id: 315, verbalName: 대범한 관용, codeName: LegionClementia, description: "적을 처치하고 자기 전열에 빈 자리가 있으면 센츄리온을 소환한다. <보스 전용> <전수 불가능>" }
+    - { id: 316, verbalName: 위대한 전술가, codeName: LegionGrandTactician, description: "자기 전열의 '로마' 아군이 단일 피해를 가하면 같은 대상에게 추가공격으로 일반공격을 넣는다. <보스 전용> <전수 불가능>" }
+    - { id: 317, verbalName: 독재관, codeName: LegionDictator, description: "궁극기의 지속 턴 수 +1. <보스 전용> <전수 불가능>" }
+
+    # ── 메히코(신규 아즈텍) 전용 패시브 ──
+    - { id: 320, verbalName: 행동불능 추적, codeName: AztecControlledHunter, description: "행동불능 상태의 적에게 가하는 피해 +25%. <적 전용> <전수 불가능>" }
+    - { id: 321, verbalName: 맹독 추적, codeName: AztecPoisonHunter, description: "맹독 상태의 적에게 가하는 피해 +25%. <적 전용> <전수 불가능>" }
+    - { id: 322, verbalName: 죽음의 제의, codeName: AztecSerpentDeathRite, description: "아군 유닛이 쓰러지면 적 전체에게 위력 100 + INT×1.4의 특수 추가공격을 가한다. #비접촉 #특수 #추가공격 <적 전용>" }
+    - { id: 323, verbalName: 연기 나는 거울의 신, codeName: TezcatlipocaDivineFormation, description: "INT 1당 최대 체력 +1%. 아군 전체가 전열 아군 하나당 받는 피해 20% 감소. 재규어 전사 사망 시 궁극기 스택 +2. <보스 전용>" }
+    - { id: 324, verbalName: 인신공양, codeName: AztecHumanSacrifice, description: "필드 위 적이 쓰러질 때마다 STR +5%. <적 전용>" }
+    - { id: 325, verbalName: 비몽사몽, codeName: AztecDreamlikeResonance, description: "공명 반응 계산에서 자신의 CON을 1.2배로 계산한다. <적 전용>" }
+    - { id: 326, verbalName: 망치 나가신다!, codeName: AztecHammerIncoming, description: "둔기를 장착하고 숙련되어 있으면 공격이 내구 5를 무시한다. <적 전용>" }
+    - { id: 327, verbalName: 원소 친화 - 풀, codeName: AztecDendroAffinity, description: "풀 원소 보유 중 CON +2, 자기 턴마다 최대 체력의 1% 회복. <적 전용>" }
+    - { id: 328, verbalName: 고귀한 몸, codeName: AztecNobleBody, description: "대상 지정 우선도 -1. <적 전용>" }
 
   normal:
     - id: 1
@@ -224,7 +276,7 @@ codes:
     - id: 3
       verbalName: 일반공격
       codeName: SeiRadiantBolt
-      description: "주변 적에게 총 6발의 유도탄을 분배해 INT 기반 총 위력 80의 특수 피해를 입힌다. 고립된 대상에게는 전탄이 집중된다. #비접촉 #특수"
+      description: "단일 적에게 INT의 50%에 해당하는 단일 피해를 입힌다. #특수 #비접촉"
     - id: 10
       verbalName: 일반공격
       codeName: MagicBolt
@@ -275,11 +327,48 @@ codes:
     - { id: 241, verbalName: 일반공격, codeName: AgniNormalAttack, description: "단일 적에게 INT 기반 위력 60의 특수 피해를 입힌다. #특수 #비접촉" }
     - { id: 242, verbalName: 일반공격, codeName: IndraNormalAttack, description: "단일 적에게 INT 기반 위력 50의 특수 피해를 입힌다. #특수 #비접촉" }
     - { id: 243, verbalName: 일반공격, codeName: VayuNormalAttack, description: "단일 적에게 CON 기반 위력 60의 물리 피해를 입힌다. #물리 #비접촉" }
+    - { id: 244, verbalName: 일반공격, codeName: FreyaNormalAttack, description: "아군 전체를 INT 기반 위력 40만큼 치유한다." }
+    - { id: 245, verbalName: 일반공격, codeName: LokiNormalAttack, description: "단일 적에게 STR 기반 위력 80의 피해를 입힌다. #비접촉 #물리" }
+    - { id: 246, verbalName: 일반공격, codeName: SkadiNormalAttack, description: "단일 적에게 INT 기반 위력 40의 피해를 입히고 얼음 원소를 부착한다. #특수 #비접촉" }
+    - { id: 247, verbalName: 일반공격, codeName: KuberaNormalAttack, description: "단일 적에게 STR 기반 위력 70의 피해를 입힌다. #접촉 #물리" }
+    - { id: 248, verbalName: 일반공격, codeName: VarunaNormalAttack, description: "단일 적에게 CON 기반 위력 60의 피해를 입힌다. #특수 #비접촉" }
+    - { id: 249, verbalName: 일반공격, codeName: SusanooNormalAttack, description: "단일 적에게 DEX 기반 위력 60의 피해를 입힌다. #물리 #접촉 #베기" }
+    - { id: 250, verbalName: 일반공격, codeName: OrpheusNormalAttack, description: "단일 적에게 LUK 기반 위력 50의 피해를 입힌다. #특수 #비접촉" }
+
+    # ── 로마(레기온) 적 일반공격 ──
+    - { id: 260, verbalName: 일반공격, codeName: LegionHastatiNormal, description: "단일 적에게 위력 50 + STR×0.2의 물리 피해를 입힌다. #물리 #접촉 #찌르기" }
+    - { id: 261, verbalName: 일반공격, codeName: LegionPrincipesNormal, description: "단일 적에게 위력 62 + STR×0.2의 물리 피해를 입힌다. #물리 #접촉 #찌르기" }
+    - { id: 262, verbalName: 일반공격, codeName: LegionTriariiNormal, description: "단일 적에게 위력 75 + STR×0.2의 물리 피해를 입힌다. #물리 #접촉 #찌르기" }
+    - { id: 263, verbalName: 일반공격, codeName: LegionCenturionNormal, description: "단일 적에게 위력 100 + STR×0.2의 물리 피해를 입힌다. #물리 #접촉 #찌르기" }
+    - { id: 264, verbalName: 일반공격, codeName: LegionVelitesNormal, description: "단일 적에게 위력 80 + STR×0.4의 물리 피해를 입힌다. #물리 #비접촉" }
+    - { id: 265, verbalName: 일반공격, codeName: LegionScorpioNormal, description: "단일 적에게 위력 80 + STR×0.4의 물리 피해를 입힌다. #물리 #비접촉" }
+    - { id: 266, verbalName: 일반공격, codeName: LegionEquesNormal, description: "투사체 하나를 날려 단일 적에게 위력 DEX×0.6의 특수 피해를 입힌다. #특수 #비접촉" }
+    - { id: 267, verbalName: 일반공격, codeName: LegionOptioNormal, description: "단일 적에게 위력 DEX×0.6의 물리 피해를 입힌다. #물리 #접촉 #베기" }
+    - { id: 268, verbalName: 일반공격, codeName: LegionTribuneNormal, description: "단일 적에게 위력 DEX×0.8의 물리 피해를 입힌다. #물리 #접촉 #베기" }
+    - { id: 269, verbalName: 일반공격, codeName: LegionAgrippaNormal, description: "피해를 주지 않는다. INT가 가장 높은 필드 위 아군에게 1턴간 치명타 피해 +20%를 부여한다." }
+    - { id: 270, verbalName: 일반공격, codeName: LegionOctaviaNormal, description: "단일 적에게 위력 INT×0.9의 특수 피해를 입힌다. #특수 #비접촉" }
+    - { id: 271, verbalName: 일반공격, codeName: LegionCaesarNormal, description: "단일 적에게 위력 LUK×0.6의 물리 피해를 입힌다. #물리 #접촉" }
+
+    # ── 메히코(신규 아즈텍) 일반행동 ──
+    - { id: 280, verbalName: 일반공격, codeName: AztecJaguarNormal, description: "단일 적에게 위력 80 + STR×0.4의 물리 피해를 입힌다. #접촉 #물리" }
+    - { id: 281, verbalName: 일반공격, codeName: AztecEliteJaguarNormal, description: "단일 적에게 위력 100 + STR×0.6의 물리 피해를 입힌다. #접촉 #물리" }
+    - { id: 282, verbalName: 일반공격, codeName: AztecEagleNormal, description: "단일 적에게 위력 80 + DEX×0.6의 물리 피해를 입힌다. #비접촉 #물리" }
+    - { id: 283, verbalName: 일반공격, codeName: AztecEliteEagleNormal, description: "단일 적에게 위력 100 + DEX×0.6의 물리 피해를 입힌다. #비접촉 #물리" }
+    - { id: 284, verbalName: 희생의 창, codeName: AztecSerpentNormal, description: "단일 아군에게 위력 INT×0.6의 특수 피해를 입힌다. #비접촉 #특수" }
+    - { id: 285, verbalName: 희생의 창, codeName: AztecEliteSerpentNormal, description: "단일 아군에게 위력 INT×0.6의 특수 피해를 입힌다. #비접촉 #특수" }
+    - { id: 286, verbalName: 전열 칙령, codeName: TezcatlipocaCommand, description: "전열 아군 하나를 즉시 행동시키고 1턴간 가하는 피해 +50%. 재규어 전사를 지목하면 궁극기 스택 +1." }
 
   ultimate:
     - { id: 240, verbalName: 언젠가 다다를 마지막, codeName: YamaFinalArrival, description: "적 전체를 베어 DEX 기반 위력 60의 피해를 입히고 번개 원소를 부여한다. 이후 대상의 지속피해를 즉시 정산해 INT의 80%만큼 추가 피해를 만든다. #특수 #베기 #접촉" }
     - { id: 241, verbalName: 백화, codeName: AgniWhiteFlame, description: "적 전체에게 INT 기반 위력 65의 피해를 입히고 불 원소를 부여한다. #특수 #비접촉" }
     - { id: 242, verbalName: 천벌, codeName: IndraThunderbolt, description: "단일 대상에게 INT의 [레벨]%에 해당하는 피해를 입히고, 계수를 20%p씩 깎으며 다른 적에게 튕긴다. 계수가 0이 되거나 남은 적이 없으면 멈춘다. #바운스 #특수 #비접촉" }
+    - { id: 244, verbalName: 풍요의 산물, codeName: FreyaHarvest, description: "이번 전투의 순수치유량을 정산해 프레이아 최대 체력의 10%마다 아군 전체 STR +1(최대 +25)을 7초간 부여하고 기록을 비운다." }
+    - { id: 245, verbalName: 발드르의 살해자, codeName: LokiBaldrSlayer, description: "최대 체력이 가장 높은 단일 적에게 STR 기반 위력 120의 피해를 입히고 치유량 감소 -50%(6초)를 부여한다." }
+    - { id: 246, verbalName: 고드름 스파이크, codeName: SkadiIcicleSpike, description: "적 전체에게 INT 기반 위력 80의 피해를 입히고 얼음 원소를 부착한다. #특수 #비접촉" }
+    - { id: 247, verbalName: 황금의 지진, codeName: KuberaGoldenQuake, description: "적 전체에게 STR 기반 위력 70의 피해를 입히고 에어본 상태이상을 부여한다. #특수 #비접촉" }
+    - { id: 248, verbalName: 마카라, codeName: VarunaMakara, description: "소환수 마카라를 8초간 소환한다. 마카라는 2초마다 적 전체에게 INT 기반 위력 40의 피해를 입히고 물 원소를 부여한다." }
+    - { id: 249, verbalName: 천총운검, codeName: SusanooAmenoMurakumo, description: "상시형 궁극기. 필드에 에어본 상태의 적이 있으면 그 대상에게 즉시 DEX 기반 위력 80의 피해를 가한다. 내부 쿨다운 2초. #물리 #접촉 #베기 #추가공격" }
+    - { id: 250, verbalName: 비탄의 연주, codeName: OrpheusLament, description: "강인도가 없는 모든 적에게 오르페우스 INT x12만큼의 강인도를 새로 부여한다." }
     - { id: 243, verbalName: 남풍, codeName: VayuSouthWind, description: "적 전체에게 DEX 기반 위력 50의 피해를 입히고 바람 원소 부여, 방어력을 20% 감소시킨다. 이후 6초간 매초 CON 기반 위력 25의 잔풍 피해를 남긴다. #특수 #비접촉" }
     - id: 3
       verbalName: 달빛 추격
@@ -299,7 +388,7 @@ codes:
     - id: 8
       verbalName: 창세
       codeName: SeiSanctuary
-      description: "6초간 아군 전체 DEX를 세이 INT만큼 높이고 공격에 단계별 INT 고정 피해를 추가한다."
+      description: "8초간 모든 아군이 피해를 가할 때마다 세이 INT ×3의 고정 피해가 추가된다."
     - id: 100
       verbalName: 적의 강공격
       codeName: EnemyTestUltimate
@@ -335,11 +424,24 @@ codes:
     - { id: 146, verbalName: 월계관, codeName: ColosseumMarcellusUltimate, description: "방어막을 얻고 최대 3명의 적을 공격한다." }
     - { id: 147, verbalName: 사냥 개시, codeName: ColosseumSabinaUltimate, description: "6초간 모든 아군이 사냥꾼의 표식 대상에게 주는 피해가 증가한다." }
     - { id: 149, verbalName: 한판 뒤집기, codeName: ColosseumSpartacusUltimate, description: "적 전열 전체를 공격하고 입힌 피해의 15%를 회복한다." }
-    - { id: 150, verbalName: 재규어 휩쓸기, codeName: AztecJaguarUltimate, description: "대상과 같은 행을 공격하고 최대 체력의 20%에 해당하는 보호막을 얻는다." }
-    - { id: 151, verbalName: 태양의 투창, codeName: AztecEagleUltimate, description: "체력이 가장 낮은 적에게 위력 100의 물리 피해를 입힌다." }
-    - { id: 152, verbalName: 독안개, codeName: AztecSerpentUltimate, description: "모든 적에게 위력 28의 특수 피해를 입히고 맹독을 부여한다." }
-    - { id: 153, verbalName: 벌새의 노래, codeName: AztecHummingbirdUltimate, description: "모든 아군에게 일정 시간 DEX를 부여한다." }
-    - { id: 154, verbalName: 밤의 파동, codeName: AztecOwlUltimate, description: "모든 적에게 위력 50의 특수 피해를 입힌다." }
-    - { id: 155, verbalName: 코요테의 난무, codeName: AztecCoyoteUltimate, description: "단일 적에게 위력 22의 물리 피해를 4회 입힌다." }
-    - { id: 156, verbalName: 신전의 폭우, codeName: AztecTlalocUltimate, description: "모든 적에게 위력 40의 특수 피해와 물 원소를 부여하고 자신은 보호막을 얻는다." }
-    - { id: 157, verbalName: 연기 나는 거울, codeName: AztecTezcatlipocaUltimate, description: "공격력이 가장 높은 적의 이로운 효과 하나를 흡수하고 모든 적에게 Void 범위 피해를 입힌다." }
+    # ── 메히코(신규 아즈텍) 궁극기 ──
+    - { id: 180, verbalName: 대지 분쇄, codeName: AztecJaguarUltimate, description: "단일 적에게 위력 100 + STR×0.6의 물리 피해를 입히고 바위 원소를 부착한다. #접촉 #물리" }
+    - { id: 181, verbalName: 왕의 대지 분쇄, codeName: AztecEliteJaguarUltimate, description: "단일 적에게 위력 150 + STR×0.8의 물리 피해를 입히고 바위 원소를 부착한다. #접촉 #물리" }
+    - { id: 182, verbalName: 맹독 화살, codeName: AztecEagleUltimate, description: "단일 적에게 위력 100 + STR×0.8의 물리 피해를 입히고 맹독을 부여한다. #비접촉 #물리" }
+    - { id: 183, verbalName: 왕의 맹독 화살, codeName: AztecEliteEagleUltimate, description: "단일 적에게 위력 120 + STR×0.8의 물리 피해를 입히고 맹독을 부여한다. #비접촉 #물리" }
+    - { id: 184, verbalName: 풍요의 의식, codeName: AztecSerpentUltimate, description: "아군 전체를 위력 200 + INT×0.8만큼 회복시키고 풀 원소를 부착한다." }
+    - { id: 185, verbalName: 대풍요의 의식, codeName: AztecEliteSerpentUltimate, description: "아군 전체를 위력 200 + INT×0.8만큼 회복시키고 풀 원소를 부착한다." }
+    - { id: 186, verbalName: 검은 태양의 전열, codeName: TezcatlipocaUltimate, description: "스택 8을 소비해 전열을 초기화하고 정예 재규어 전사 4명을 소환한다. 사용할 때마다 받는 피해 +50%(중첩)." }
+    # ── 로마(레기온) 적 궁극기 ──
+    - { id: 160, verbalName: 필룸 투척, codeName: LegionHastatiUltimate, description: "단일 적에게 위력 80 + STR×0.4의 물리 피해를 입힌다. #물리 #접촉 #찌르기" }
+    - { id: 161, verbalName: 전열 돌파, codeName: LegionPrincipesUltimate, description: "단일 적에게 위력 90 + STR×0.4의 물리 피해를 입힌다. #물리 #접촉 #찌르기" }
+    - { id: 162, verbalName: 최후의 창, codeName: LegionTriariiUltimate, description: "단일 적에게 위력 100 + STR×0.4의 물리 피해를 입히고 바위 원소를 부여한다. #물리 #접촉 #찌르기" }
+    - { id: 163, verbalName: 백인대 돌격, codeName: LegionCenturionUltimate, description: "단일 적에게 위력 120 + STR×0.4의 물리 피해를 입히고 바위 원소를 부여한다. #물리 #접촉 #찌르기" }
+    - { id: 164, verbalName: 일제 투창, codeName: LegionVelitesUltimate, description: "단일 적에게 위력 120 + STR×0.6의 물리 피해를 입힌다. #물리 #비접촉" }
+    - { id: 165, verbalName: 관통 사격, codeName: LegionScorpioUltimate, description: "단일 적에게 위력 120 + STR×0.6의 물리 피해를 입힌다. 이 공격은 대상 방어력의 20%를 무시한다. #물리 #비접촉" }
+    - { id: 166, verbalName: 쌍기창, codeName: LegionEquesUltimate, description: "서로 다른 적 둘에게 각각 위력 DEX×1.2의 특수 피해를 입힌다. #특수 #비접촉" }
+    - { id: 167, verbalName: 방벽 지시, codeName: LegionOptioUltimate, description: "아군 전체에게 위력 INT×1.2의 보호막을 부여한다." }
+    - { id: 168, verbalName: 천부장의 방벽, codeName: LegionTribuneUltimate, description: "아군 전체에게 위력 INT×1.6의 보호막을 부여한다." }
+    - { id: 169, verbalName: 제 2의 건국자, codeName: LegionAgrippaUltimate, description: "아군 전체의 궁극기 자원을 최대치의 20%만큼 채운다. '화합' 보유자는 두 배(40%)를 받는다." }
+    - { id: 170, verbalName: 존엄한 자, codeName: LegionOctaviaUltimate, description: "모든 적에게 위력 INT×1.5의 특수 피해를 입힌다. #특수 #비접촉" }
+    - { id: 171, verbalName: 주사위는 던져졌다, codeName: LegionCaesarUltimate, description: "아군 전체의 행동 게이지를 100% 채우고, 2턴(독재관 보유 시 3턴)간 아군이 치명타를 낼 때마다 위력 LUK×0.1에 해당하는 고정 피해를 추가한다." }

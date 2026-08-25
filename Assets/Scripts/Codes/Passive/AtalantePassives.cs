@@ -31,7 +31,6 @@ namespace Codes.Passive
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "약점 추적";
             IgnoresActivationChance = true;
-            TransferVersionCodeId = 230;
         }
 
         public override void CastCode()
@@ -98,7 +97,7 @@ namespace Codes.Passive
                 Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.DEX, 2),
                 stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
                 isBeneficial: true,
-                description: "DEX +2, 경갑 숙련을 얻습니다."));
+                description: "DEX +2."));
         }
     }
 
@@ -192,10 +191,10 @@ namespace Codes.Passive
                 Id = AtalanteStatusIds.Venom,
                 Key = $"atalante_venom_{Caster.GetEntityId()}",
                 Name = "맹독",
-                Description = "3초 동안 매초 20 + 시전자 CON의 5%에 해당하는 지속피해를 받습니다.",
+                Description = "2턴 동안 턴마다 40 + 시전자 CON의 10%에 해당하는 지속피해를 받습니다.",
                 Category = BaseEnums.StatusCategory.Negative,
                 StackPolicy = BaseEnums.StatusStackPolicy.Replace,
-                Duration = 3f,
+                Duration = 2,   // 3초 → 2턴
             }, Caster, target);
             status.AddEffect(new AtalanteVenomEffect());
             target.AddStatus(status);
@@ -300,28 +299,20 @@ namespace Codes.Passive
 
     internal sealed class AtalanteVenomEffect : BaseEffect
     {
-        private float _elapsed;
         public override bool IsDamageOverTime => true;
 
         public AtalanteVenomEffect() : base(0) { }
 
-        public override void OnApply() => _elapsed = 0f;
+        /// <summary>대상의 턴마다 한 번. 1턴 = 2초이므로 예전 '매초' 값의 2배를 준다.</summary>
+        public override void OnOwnerTurn() => DealTick();
 
-        public override void OnUpdate(float deltaTime)
-        {
-            float previous = _elapsed;
-            _elapsed += deltaTime;
-            int ticks = Mathf.FloorToInt(_elapsed) - Mathf.FloorToInt(previous);
-            for (int i = 0; i < ticks; i++) DealTick();
-        }
-
-        public override int EstimateDamagePerSecond() => CalculateDamage();
+        public override int EstimateDamagePerTurn() => CalculateDamage();
 
         private int CalculateDamage()
         {
             if (Caster == null) return 0;
             float multiplier = Caster.GetDamageOverTimeApplicationMultiplier();
-            return Mathf.Max(0, Mathf.RoundToInt((20f + Caster.GetBaseCon() * 0.05f) * multiplier));
+            return Mathf.Max(0, Mathf.RoundToInt((40f + Caster.GetBaseCon() * 0.1f) * multiplier));
         }
 
         private void DealTick()

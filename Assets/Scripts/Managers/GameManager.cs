@@ -54,8 +54,17 @@ namespace Managers
         private bool isPreparationTimerActive = false;
 
         // 라운드 진행 타이머 관련
-        public float roundProgressTime = 60f; // 라운드 진행 시간 (초)
-        private float currentRoundProgressTime;
+        /// <summary>
+        /// 라운드 제한 — <b>전역 턴 수</b>. 벽시계가 아니다.
+        ///
+        /// 전투가 턴제이므로 초로 재면 시전 딜레이·투사체 비행 같은 <b>연출 길이가
+        /// 라운드당 행동 수를 좌우</b>한다. 연출을 손볼 때마다 밸런스가 흔들리므로 턴으로 센다.
+        /// 참가 유닛이 많을수록 각자 얻는 턴은 줄어드는데, 보스전처럼 인원이 적은 전투에
+        /// 더 많은 턴이 돌아가는 셈이라 의도한 성질이다.
+        /// </summary>
+        public int roundTurnLimit = 80;
+        /// <summary>이번 라운드에 남은 턴 수.</summary>
+        private int remainingRoundTurns;
         private bool isRoundProgressTimerActive = false;
         /// <summary>
         /// 현재 단계 타이머의 남은 비율(1 = 방금 시작, 0 = 시간 종료).
@@ -65,9 +74,9 @@ namespace Managers
         {
             get
             {
-                if (isRoundProgressTimerActive && roundProgressTime > 0f)
+                if (isRoundProgressTimerActive && roundTurnLimit > 0)
                 {
-                    return Mathf.Clamp01(currentRoundProgressTime / roundProgressTime);
+                    return Mathf.Clamp01(remainingRoundTurns / (float)roundTurnLimit);
                 }
 
                 if (isPreparationTimerActive && preparationTime > 0f)
@@ -79,16 +88,22 @@ namespace Managers
             }
         }
 
-        /// <summary>현재 단계 타이머의 남은 초. 표시용이므로 올림한다.</summary>
+        /// <summary>
+        /// HUD 게이지 옆에 띄울 숫자.
+        /// 준비 단계에서는 <b>남은 초</b>, 전투 중에는 <b>남은 턴</b>이다.
+        /// </summary>
         public int PhaseRemainingSeconds
         {
             get
             {
-                if (isRoundProgressTimerActive) return Mathf.Max(0, Mathf.CeilToInt(currentRoundProgressTime));
+                if (isRoundProgressTimerActive) return Mathf.Max(0, remainingRoundTurns);
                 if (isPreparationTimerActive) return Mathf.Max(0, Mathf.CeilToInt(currentPreparationTime));
                 return 0;
             }
         }
+
+        /// <summary>전투 중이면 true. HUD가 숫자 단위를 '턴'으로 바꿔 표시한다.</summary>
+        public bool IsRoundTurnGauge => isRoundProgressTimerActive;
 
         private float eventStageEnteredAt;
         private float trainingPhaseEnteredAt;
@@ -223,7 +238,7 @@ namespace Managers
             runManager?.SaveCurrentRun();
 
             // 라운드 진행 타이머 시작
-            currentRoundProgressTime = roundProgressTime;
+            remainingRoundTurns = roundTurnLimit;
             isRoundProgressTimerActive = true;
 
             Debug.LogWarning("[GameManager] 🔥 라운드 시작 - GridManager.OnRoundStart() 호출");
@@ -248,15 +263,21 @@ namespace Managers
         // 복원이 끝난 뒤에 지급해야 성장이 사라지지 않는다.
         private int pendingPartyExp;
 
-        /// <summary>활성 아군 전원에게 EXP를 지급한다.</summary>
+        /// <summary>
+        /// 활성 아군 전원에게 EXP를 지급한다.
+        /// 선두주자(250)·음유시인(277)이 필드에 있으면 그만큼 배율이 붙는다.
+        /// </summary>
         public void GrantExpToParty(int amount)
         {
             if (amount <= 0 || GridManager.Instance == null) return;
 
+            int scaled = Mathf.Max(1, Mathf.RoundToInt(
+                amount * Codes.Passive.RewardModifiers.ExpMultiplier()));
+
             foreach (Unit hero in GridManager.Instance.heroList)
             {
                 if (hero == null || hero.IsEnemy || !hero.isActive) continue;
-                hero.AddExp(amount);
+                hero.AddExp(scaled);
             }
         }
 
@@ -265,7 +286,10 @@ namespace Managers
         public void OnKillEnemy()
         {
             KillCount++;
-            inventoryManager?.AddGold(25 * Mathf.Max(1, _roundManager?.Stage ?? 1));
+            // 상인(273)이 필드에 있으면 획득 골드가 늘어난다.
+            int gold = Mathf.RoundToInt(
+                25 * Mathf.Max(1, _roundManager?.Stage ?? 1) * Codes.Passive.RewardModifiers.GoldMultiplier());
+            inventoryManager?.AddGold(gold);
             pendingPartyExp += ExpPerKillBase + ExpPerKillPerStage * CurrentStageForExp;
             
             // 3의 배수 킬마다 토큰 보상 지급
@@ -335,27 +359,26 @@ namespace Managers
             // 라운드 진행 중 타이머 처리
             else if (gameState == GameState.RoundInProgress && isRoundProgressTimerActive)
             {
-                currentRoundProgressTime -= Time.deltaTime;
-                
+                // 남은 턴은 스케줄러가 연 턴 수에서 역산한다. 벽시계는 보지 않는다.
+                remainingRoundTurns = Mathf.Max(0, roundTurnLimit - ActionScheduler.TurnsTaken);
+
                 // 남은 적 수 계산 (필드의 적 + 스폰 대기 중인 적)
                 int remainingEnemies = GetRemainingEnemyCount();
-                
+
                 // 아군 전멸 체크
                 if (AreAllAlliesDefeated())
                 {
                     EndRoundByAllyDefeat();
                     return;
                 }
-                
-                // UI 업데이트
-                int displayTime = Mathf.Max(0, Mathf.CeilToInt(currentRoundProgressTime));
+
                 if (uiManager != null)
                 {
-                    uiManager.UpdateGameStatusWithEnemyCount(gameState, displayTime, remainingEnemies);
+                    uiManager.UpdateGameStatusWithEnemyCount(gameState, remainingRoundTurns, remainingEnemies);
                 }
-                
-                // 시간이 다 되면 라운드 종료 (시간 초과)
-                if (currentRoundProgressTime <= 0)
+
+                // 턴을 다 쓰면 라운드 종료
+                if (remainingRoundTurns <= 0)
                 {
                     EndRoundByTimeout();
                 }
@@ -452,7 +475,7 @@ namespace Managers
         }
 
         /// <summary>
-        /// 테마 고정 슬롯(StageInRound == 5) 사건 진입. 스테이지 자체가 사건으로 대체되며,
+        /// 테마 고정 슬롯(내용 슬롯 5) 사건 진입. 스테이지 자체가 사건으로 대체되며,
         /// 사건 종료 후에는 다음 스테이지로 진행한다.
         /// </summary>
         private void EnterStageSlotEvent(StageEventData stageEvent)
@@ -625,7 +648,7 @@ namespace Managers
             }
 
             gameState = GameState.RoundInProgress;
-            currentRoundProgressTime = roundProgressTime;
+            remainingRoundTurns = roundTurnLimit;
             isRoundProgressTimerActive = true;
             GridManager.Instance.OnRoundStart();
         }
@@ -659,7 +682,7 @@ namespace Managers
             {
                 id = "fallback_event",
                 themeId = _roundManager?.CurrentThemeId ?? 0,
-                stageInRound = _roundManager?.StageInRound ?? 5,
+                stageInRound = _roundManager?.ContentSlotInRound ?? 5,
                 title = $"{theme}의 갈림길",
                 dialogue = new List<StageEventDialogueData>
                 {
@@ -697,8 +720,12 @@ namespace Managers
             }
 
             TrainingManager.TrainingResult result = TrainingManager.ApplyTraining(focus);
-            // 육성도 EXP 획득처다. 훈련을 받은 메인이 가장 많이 성장한다.
-            TrainingManager.GetMainUnit()?.AddExp(ExpPerTrainingBase + ExpPerTrainingPerStage * CurrentStageForExp);
+
+            // 육성 EXP도 파티 전체가 나눠 받는다.
+            // 메인에게만 주면 서포터가 100스테이지에서 26레벨까지 뒤처져,
+            // 후반에 서포터가 제 몫을 못 하는 구조가 된다. 성장 속도는 5인이 동일하다.
+            // (집중 훈련의 스탯 보너스는 여전히 메인에게만 붙는다 — 차별화는 그쪽이 담당한다.)
+            GrantExpToParty(ExpPerTrainingBase + ExpPerTrainingPerStage * CurrentStageForExp);
             uiManager?.HideTrainingPhasePanel();
             preparationActionUsed = true;
             gameState = GameState.Preparation;
@@ -717,15 +744,24 @@ namespace Managers
             uiManager?.ShowTrainingPhasePanel();
         }
 
+        /// <summary>휴식 한 번이 되찾아 주는 훈련 체력.</summary>
+        public const int RestEnergyRecovery = 40;
+
         public void RestFromPreparation()
         {
             if (gameState != GameState.Preparation || preparationActionUsed || IsPreparationLimitedToDeck()) return;
             if (!AllowProgressWhileWithinCarryLimit()) return;
 
             HealAllActiveHeroes();
+
+            // 훈련 체력도 함께 회복한다. 우마무스메의 휴식이 하는 일이 이것이다.
+            TrainingManager.State.RestoreEnergy(RestEnergyRecovery);
+
             preparationActionUsed = true;
             runManager?.SaveCurrentRun();
-            uiManager?.ShowPreparationPhasePanel(IsPreparationLimitedToDeck(), preparationActionUsed, "휴식 완료: 모든 활성 아군의 체력을 회복했습니다.");
+            uiManager?.ShowPreparationPhasePanel(IsPreparationLimitedToDeck(), preparationActionUsed,
+                $"휴식 완료: 아군 체력을 회복하고 훈련 체력을 {RestEnergyRecovery} 되찾았습니다 " +
+                $"(현재 {TrainingManager.State.Energy}).");
         }
 
         public void BeginAdditionalBattleFromPreparation()
@@ -820,7 +856,15 @@ namespace Managers
                 ? $" / 서포트 {result.SupportMessages.Count}명 판정"
                 : "";
 
-            return $"훈련 완료: {FormatPrimaryStat(result.Focus)} +{result.StatGain}, 트레이닝 Lv.{result.NewTrainingLevel}{supports}{transferred}";
+            if (result.Failed)
+            {
+                return $"훈련 실패 ({result.FailureRate}%): {FormatPrimaryStat(result.Focus)} 상승 없음, " +
+                       $"체력 {result.EnergySpent} 소모 (남은 체력 {result.EnergyAfter}){supports}";
+            }
+
+            return $"훈련 완료: {FormatPrimaryStat(result.Focus)} +{result.StatGain}, " +
+                   $"스킬 Pt +{result.SkillPointsGained}, 훈련 Lv.{result.NewFocusTrainingLevel}, " +
+                   $"남은 체력 {result.EnergyAfter}{supports}{transferred}";
         }
 
         private static string FormatPrimaryStat(BaseEnums.PrimaryStat stat)
@@ -1083,14 +1127,17 @@ namespace Managers
             if (gameState == GameState.GameOver) return; // 게임 오버 시에는 복원하지 않음
             
             // 현재 필드에 있는 모든 아군 유닛 제거 (벤치는 유지)
-            var fieldAllies = GridManager.Instance.heroList.Where(ally => 
-                ally != null && ally.isActive && ally.currentCell != null && 
+            // 현재 필드에 있는 모든 아군 유닛 제거 (벤치는 유지).
+            // 비활성화만 하면 리스트와 씬에 잔해가 남아 라운드마다 사본이 쌓이므로 완전히 물린다.
+            var fieldAllies = GridManager.Instance.heroList.Where(ally =>
+                ally != null && ally.currentCell != null &&
                 !GridManager.Instance.IsBenchCell(ally.currentCell)).ToList();
-            
+
             foreach (Unit ally in fieldAllies)
             {
-                ally.DeactivateUnit();
+                GridManager.Instance.RetireUnit(ally);
             }
+            GridManager.Instance.PruneUnitLists();
             
             // 저장된 상태로 아군 필드 복원
             foreach (UnitSaveData saved in allyFieldSnapshot)
@@ -1170,8 +1217,8 @@ namespace Managers
                 case GameStartIntent.Intent.NewGame:
                     runManager.StartRun(GameMode.Training);
                     _roundManager.InitializeStage(1);
-                    // 새 여정은 인트로 시퀀스를 먼저 보여준 뒤 캐릭터 선택으로 넘어간다.
-                    PlayIntroThen(EnterCharacterSelection);
+                    // 테스트 흐름: 시작 대사를 건너뛰고 즉시 캐릭터 선택으로 이동한다.
+                    EnterCharacterSelection();
                     break;
                 case GameStartIntent.Intent.InfiniteMode:
                     runManager.StartRun(GameMode.Infinite);

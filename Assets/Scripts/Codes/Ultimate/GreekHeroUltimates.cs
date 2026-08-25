@@ -19,7 +19,7 @@ namespace Codes.Ultimate
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "강타";
             Power = 120;
-            Cooldown = 8f;
+            Cooldown = 4;
             CastingDelay = 0.5f;
             CodeTags = new List<int> { DamageTag.Physical, DamageTag.ContactAttack };
         }
@@ -74,7 +74,7 @@ namespace Codes.Ultimate
                     Caster,
                     target,
                     new ArmorBreakEffect(0.8f),
-                    duration: 5f,
+                    duration: 2,   // 5초 → 2턴
                     stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                     category: BaseEnums.StatusCategory.Negative,
                     description: "방어력이 20% 감소합니다."));
@@ -116,7 +116,7 @@ namespace Codes.Ultimate
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "회복의 일격";
             Power = 100;
-            Cooldown = 8f;
+            Cooldown = 4;
             CastingDelay = 0.5f;
             CodeTags = new List<int> { DamageTag.Physical, DamageTag.ContactAttack };
         }

@@ -19,13 +19,13 @@ namespace Codes.Ultimate
         /// <summary>최다 피해 아군에게 주는 올스탯 = 찬드라 INT의 25%.</summary>
         private const float AllStatIntRatio = 0.25f;
 
-        private const float AllStatDuration = 6f;
+        private const int AllStatDuration = 3;   // 6초 → 3턴
 
         public a012_U_Soma(UltimateCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             Caster = context.Caster;
-            Cooldown = 8f;
+            Cooldown = 4;
             CodeName = "소마";
             CastingDelay = 0.5f;
         }
@@ -81,7 +81,7 @@ namespace Codes.Ultimate
                 topDealer.AddStatus(status);
                 topDealer.NotifyBeneficialEffectReceived(Caster);
 
-                Debug.Log($"[소마] 방어막 {shieldAmount} / 최다 피해 {topDealer.UnitName}에게 올스탯 +{allStat} ({AllStatDuration}초)");
+                Debug.Log($"[소마] 방어막 {shieldAmount} / 최다 피해 {topDealer.UnitName}에게 올스탯 +{allStat} ({AllStatDuration}턴)");
             }
             StopCode();
         }
@@ -139,7 +139,7 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "초록빛 심판";
-            Cooldown = 8f;
+            Cooldown = 4;
             CastingDelay = 0.6f;
             Power = 80;
             CodeTags = new List<int> { DamageTag.Special, DamageTag.NonContactAttack };

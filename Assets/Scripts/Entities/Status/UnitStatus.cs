@@ -22,8 +22,9 @@ namespace Entities.Status
         public string IconPath = "";
         public BaseEnums.StatusCategory Category = BaseEnums.StatusCategory.Neutral;
         public BaseEnums.StatusStackPolicy StackPolicy = BaseEnums.StatusStackPolicy.Replace;
-        /// <summary>지속 시간(초). 0 이하 = 무한(라운드 종료 시 정리).</summary>
-        public float Duration = -1f;
+        /// <summary>지속 <b>턴</b> 수. 0 이하 = 무한(라운드 종료 시 정리).
+        /// 보유자의 턴이 시작될 때마다 1씩 소모된다.</summary>
+        public int Duration = -1;
         /// <summary>이로운 상태 여부 (OnBeneficialEffectReceived 발행 판정)</summary>
         public bool IsBeneficial;
     }
@@ -70,11 +71,14 @@ namespace Entities.Status
         /// <summary>상태 보유자</summary>
         public Unit Owner { get; set; }
         
-        /// <summary>지속 시간 (초 단위, -1이면 무한)</summary>
-        public float Duration { get; set; }
+        /// <summary>지속 턴 수 (-1이면 무한)</summary>
+        public int Duration { get; set; }
         
-        /// <summary>경과 시간 (초 단위)</summary>
-        public float ElapsedTime { get; set; }
+        /// <summary>보유자의 턴을 몇 번 넘겼는지</summary>
+        public int ElapsedTurns { get; set; }
+
+        /// <summary>남은 턴 수. 무한이면 <see cref="int.MaxValue"/>.</summary>
+        public int RemainingTurns => Duration <= 0 ? int.MaxValue : Mathf.Max(0, Duration - ElapsedTurns);
         
         /// <summary>효과 목록 (EffectId%계수 형식)</summary>
         public List<EffectInstance> Effects { get; private set; }
@@ -106,7 +110,7 @@ namespace Entities.Status
             StatusId = statusId;
             Caster = caster;
             Owner = owner;
-            ElapsedTime = 0f;
+            ElapsedTurns = 0;
             Effects = new List<EffectInstance>();
 
             LoadStatusData(statusId);
@@ -121,7 +125,7 @@ namespace Entities.Status
             StatusId = definition.Id;
             Caster = caster;
             Owner = owner;
-            ElapsedTime = 0f;
+            ElapsedTurns = 0;
             Effects = new List<EffectInstance>();
 
             StatusName = definition.Name;
@@ -153,7 +157,7 @@ namespace Entities.Status
                     Category = BaseEnums.StatusCategory.Negative;
                     StackPolicy = BaseEnums.StatusStackPolicy.Stack; // 중첩 허용
                     CanStack = true; // 복수 보유 가능
-                    Duration = 3f;
+                    Duration = 2;   // 3초 → 2턴
                     // Effects는 외부에서 추가
                     break;
                     
@@ -165,7 +169,7 @@ namespace Entities.Status
                     Category = BaseEnums.StatusCategory.Negative;
                     StackPolicy = BaseEnums.StatusStackPolicy.ExtendDuration; // 지속시간 연장
                     CanStack = false; // 복수 보유 불가
-                    Duration = 2f;
+                    Duration = 1;   // 2초 → 1턴
                     break;
                     
                 case 3: // 사냥꾼의 독 (아탈란테)
@@ -176,7 +180,7 @@ namespace Entities.Status
                     Category = BaseEnums.StatusCategory.Negative;
                     StackPolicy = BaseEnums.StatusStackPolicy.Stack; // 중첩 허용
                     CanStack = true; // 복수 보유 가능
-                    Duration = 3f;
+                    Duration = 2;   // 3초 → 2턴
                     // Effects는 외부에서 추가 (EffectId=1001, DOT)
                     break;
                     
@@ -188,7 +192,7 @@ namespace Entities.Status
                     Category = BaseEnums.StatusCategory.Neutral;
                     StackPolicy = BaseEnums.StatusStackPolicy.Ignore; // 중복 무시
                     CanStack = false; // 복수 보유 불가
-                    Duration = 8f;
+                    Duration = 4;   // 8초 → 4턴
                     // Effects는 외부에서 추가
                     break;
                     
@@ -201,7 +205,7 @@ namespace Entities.Status
                     Category = BaseEnums.StatusCategory.Neutral;
                     StackPolicy = BaseEnums.StatusStackPolicy.Stack;
                     CanStack = false;
-                    Duration = 1f;
+                    Duration = 1;   // 1초 → 1턴
                     break;
             }
         }
@@ -241,21 +245,21 @@ namespace Entities.Status
                 }
             }
             
-            Debug.Log($"[상태] {Owner.UnitName}에게 '{StatusName}' 상태 적용 (지속시간: {Duration}초, 효과 수: {Effects.Count})");
+            Debug.Log($"[상태] {Owner.UnitName}에게 '{StatusName}' 상태 적용 (지속: {Duration}턴, 효과 수: {Effects.Count})");
         }
         
         /// <summary>
-        /// 매 프레임 업데이트
+        /// 보유자의 턴이 시작될 때 한 번 호출된다. 전투가 턴제이므로 프레임 틱은 쓰지 않는다.
         /// </summary>
-        public void OnUpdate(float deltaTime)
+        public void OnOwnerTurn()
         {
-            ElapsedTime += deltaTime;
-            
+            ElapsedTurns++;
+
             foreach (var effectInstance in Effects)
             {
                 if (effectInstance.EffectObject != null)
                 {
-                    effectInstance.EffectObject.OnUpdate(deltaTime);
+                    effectInstance.EffectObject.OnOwnerTurn();
                 }
             }
         }
@@ -277,11 +281,11 @@ namespace Entities.Status
         }
         
         /// <summary>
-        /// 지속 시간 만료 여부
+        /// 지속 턴 만료 여부
         /// </summary>
         public bool IsExpired()
         {
-            return Duration > 0 && ElapsedTime >= Duration;
+            return Duration > 0 && ElapsedTurns >= Duration;
         }
     }
 }

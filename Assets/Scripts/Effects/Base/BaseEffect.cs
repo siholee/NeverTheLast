@@ -52,9 +52,14 @@ namespace Effects.Base
         /// <summary>효과 적용 시 호출 (초기화)</summary>
         public virtual void OnApply() { }
 
-        /// <summary>매 프레임 업데이트 시 호출 (DoT 등)</summary>
-        /// <param name="deltaTime">프레임 델타 타임</param>
-        public virtual void OnUpdate(float deltaTime) { }
+        /// <summary>
+        /// <b>이 효과를 들고 있는 유닛의 턴이 시작될 때</b> 호출된다.
+        ///
+        /// 전투는 턴제다. 지속피해·재생·주기형 패시브는 벽시계가 아니라 이 훅으로 진행한다.
+        /// 프레임마다 돌던 예전 방식은 행동 순서와 어긋나서, 누군가 행동하는 동안에도
+        /// 효과만 계속 흘러가는 문제가 있었다.
+        /// </summary>
+        public virtual void OnOwnerTurn() { }
 
         /// <summary>효과 제거 시 호출</summary>
         public virtual void OnRemove() { }
@@ -86,6 +91,23 @@ namespace Effects.Base
 
         /// <summary>받는 피해에서 고정으로 깎는 내구 가산치.</summary>
         public virtual int DurabilityAdditiveModifier(Unit unit) => 0;
+
+        /// <summary>공격 시 대상 내구의 일부만 무시하는 양.</summary>
+        public virtual int DurabilityPenetrationModifier(Unit attacker, Unit target, DamageContext context) => 0;
+
+        /// <summary>
+        /// 회피 확률 가산 보정. 공격의 종류를 보고 조건부로 회피시키는 효과가 쓴다
+        /// (에퀴테스 '기병의 회피'는 접촉 기술만 회피한다).
+        /// </summary>
+        public virtual float EvasionChanceAdditiveModifier(Unit unit, DamageContext context) => 0f;
+
+        /// <summary>
+        /// 전투 시작 시 행동 게이지 보정. 양수면 그 유닛의 첫 행동을 앞당기고, 음수면 늦춘다.
+        /// 1 = 한 번의 행동에 필요한 행동치 전부.
+        /// <b>효과 보유자가 아니라 임의의 참가자에 대해 질의</b>되므로,
+        /// 대상을 가리는 조건은 각 효과가 직접 판단한다.
+        /// </summary>
+        public virtual float RoundStartActionAdjustment(Unit unit) => 0f;
 
         /// <summary>효과 보유자의 방어력 적용 배율 보정. 방어력 감소 디버프 등에 사용한다.</summary>
         public virtual float OwnedDefenseStatMultiplierModifier(Unit unit, DamageContext context) => 1f;
@@ -120,8 +142,8 @@ namespace Effects.Base
         /// <summary>지속피해 효과 여부. 처치 시 남은 지속피해 정산 등에 사용한다.</summary>
         public virtual bool IsDamageOverTime => false;
 
-        /// <summary>현재 시점 기준 1초 동안 입힐 수 있는 지속피해량.</summary>
-        public virtual int EstimateDamagePerSecond() => 0;
+        /// <summary>보유자의 턴 한 번에 입힐 지속피해량. 정산형 코드(야마·츠쿠요미)가 읽는다.</summary>
+        public virtual int EstimateDamagePerTurn() => 0;
 
         /// <summary>5대 기본 스탯 가산 보정</summary>
         public virtual int PrimaryStatAdditiveModifier(Unit unit, BaseEnums.PrimaryStat stat) => 0;
@@ -146,5 +168,23 @@ namespace Effects.Base
 
         /// <summary>치명 피해를 막으면 true. 사망 직전 효과(황혼 등)에서 사용한다.</summary>
         public virtual bool TryPreventDeath(Unit unit, Unit attacker) => false;
+
+        /// <summary>
+        /// 보유자가 소환한 소환수의 피해 배율 보정 (1 = 변화 없음).
+        /// 소환수는 소환자의 일반 <see cref="OutgoingDamageModifier"/>를 받지 않으므로 이 훅만 적용된다.
+        /// </summary>
+        public virtual float SummonDamageMultiplierModifier(Unit unit) => 1f;
+
+        /// <summary>보유자가 빙결에 면역이면 true.</summary>
+        public virtual bool GrantsFreezeImmunity(Unit unit) => false;
+
+        /// <summary>보유자가 에어본에 면역이면 true.</summary>
+        public virtual bool GrantsAirborneImmunity(Unit unit) => false;
+
+        /// <summary>
+        /// 보유자의 일반공격을 막으면 true.
+        /// 턴제로 바뀌면서 <c>normalCooldown</c>이 의미를 잃었으므로, 행동 차단은 이 훅으로 판정한다.
+        /// </summary>
+        public virtual bool BlocksNormalAttack(Unit unit) => false;
     }
 }

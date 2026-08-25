@@ -174,7 +174,7 @@ namespace Codes.Passive
             Caster.AddStatus(BuffStatus.Create(
                 BuffStatusIds.BulwarkStr, "ChandraBulwarkStr", "보루",
                 Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.STR, 4),
-                duration: 4f));
+                duration: 2));   // 4초 → 2턴
         }
     }
 
@@ -336,7 +336,7 @@ namespace Codes.Passive
 
     public class ChandraMoonlight : PassiveCode
     {
-        private const float ImbueDuration = 4f;
+        private const int ImbueDuration = 2;   // 4초 → 2턴
 
         private bool _isRegistered;
         private Action<EventContext> _beneficialGrantedHandler;

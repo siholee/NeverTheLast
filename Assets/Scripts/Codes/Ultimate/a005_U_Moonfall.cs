@@ -23,7 +23,7 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "달빛 추격";
-            Cooldown = 6f;
+            Cooldown = 3;
             CastingDelay = 1f;
             Power = 100;
             CodeTags = new List<int> { DamageTag.Physical, DamageTag.NonContactAttack };

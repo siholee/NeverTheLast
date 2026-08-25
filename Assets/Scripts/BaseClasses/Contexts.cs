@@ -27,10 +27,13 @@ namespace BaseClasses
     public BaseEnums.CodeType CodeType;
     public List<int> DamageTags;
     public readonly int Penetration;
+    /// <summary>내구 고정 경감 중 무시할 양. 전부 무시는 DurabilityPenetration 태그를 사용한다.</summary>
+    public readonly int DurabilityPenetration;
     public float DefenseStatMultiplier;
     public bool IsCancelled;
 
-    public DamageContext(Unit attacker, int damage, BaseEnums.CodeType codeType, List<int> damageTags, bool isCrit = false, int penetration = 0)
+    public DamageContext(Unit attacker, int damage, BaseEnums.CodeType codeType, List<int> damageTags,
+      bool isCrit = false, int penetration = 0, int durabilityPenetration = 0)
     {
       Attacker = attacker;
       Damage = damage;
@@ -38,6 +41,7 @@ namespace BaseClasses
       CodeType = codeType;
       DamageTags = damageTags;
       Penetration = penetration;
+      DurabilityPenetration = System.Math.Max(0, durabilityPenetration);
       DefenseStatMultiplier = 1f;
       IsCancelled = false;
     }
@@ -78,12 +82,14 @@ namespace BaseClasses
   public class ControlContext
   {
     public Unit Attacker;
-    public readonly float Duration;
 
-    public ControlContext(Unit attacker, float duration)
+    /// <summary>행동 불가 <b>턴</b> 수. 전투가 턴제이므로 초가 아니다.</summary>
+    public readonly int Duration;
+
+    public ControlContext(Unit attacker, int durationTurns)
     {
       Attacker = attacker;
-      Duration = duration;
+      Duration = durationTurns;
     }
   }
 }

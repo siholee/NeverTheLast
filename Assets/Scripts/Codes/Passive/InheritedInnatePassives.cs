@@ -47,7 +47,7 @@ namespace Codes.Passive
             Caster, Caster, new InheritedGeoGrowthEffect(),
             stackPolicy: BaseEnums.StatusStackPolicy.Replace,
             isBeneficial: true,
-            description: "바위 원소를 보유한 동안 2초마다 CON이 1 증가합니다."));
+            description: "바위 원소를 보유한 동안 1턴마다 CON이 1 증가합니다."));
     }
 
     /// <summary>내셔의 이빨 열화본: 궁극기 사용 후 5초간 DEX +20.</summary>
@@ -80,10 +80,10 @@ namespace Codes.Passive
                 InheritedInnateStatusIds.AsclepiusNashorsTooth,
                 "inherited_asclepius_nashors_tooth", CodeName,
                 Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.DEX, 20),
-                duration: 5f,
+                duration: 2,   // 5초 → 2턴
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
-                description: "궁극기 사용 후 5초간 DEX가 20 증가합니다."));
+                description: "궁극기 사용 후 2턴간 DEX가 20 증가합니다."));
         }
 
         public override void StopCode()
@@ -127,7 +127,7 @@ namespace Codes.Passive
             Caster.AddStatus(BuffStatus.Create(
                 InheritedInnateStatusIds.AmaterasuSunRhythm, "inherited_amaterasu_sun_rhythm", CodeName,
                 Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.DEX, 2),
-                duration: 6f,
+                duration: 3,   // 6초 → 3턴
                 stackPolicy: BaseEnums.StatusStackPolicy.Stack,
                 isBeneficial: true,
                 description: "DEX +2 (최대 4중첩)."));
@@ -159,18 +159,14 @@ namespace Codes.Passive
 
     internal sealed class InheritedGeoGrowthEffect : BaseEffect
     {
-        private float _elapsed;
         private int _conStacks;
         public InheritedGeoGrowthEffect() : base(0) { }
 
-        public override void OnUpdate(float deltaTime)
+        /// <summary>턴마다 CON +1. 예전 '2초마다 +1'과 같은 속도다.</summary>
+        public override void OnOwnerTurn()
         {
             if (Target == null || !Target.isActive || !Target.HasCombatElement(BaseEnums.UnitElement.Geo)) return;
-            _elapsed += deltaTime;
-            int gained = Mathf.FloorToInt(_elapsed / 2f);
-            if (gained <= 0) return;
-            _elapsed -= gained * 2f;
-            _conStacks += gained;
+            _conStacks++;
             Target.RefreshAttributes();
         }
 

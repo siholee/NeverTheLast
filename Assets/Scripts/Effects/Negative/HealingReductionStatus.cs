@@ -15,25 +15,23 @@ namespace Effects.Negative
         public const int StatusId = 5900;
         public const string StatusKey = "healing_reduction_50";
 
-        public static void Apply(Unit target, Unit caster, float duration, string sourceName)
+        /// <summary><paramref name="turns"/>는 턴 수다. 남은 턴이 더 긴 기존 상태는 유지된다.</summary>
+        public static void Apply(Unit target, Unit caster, int turns, string sourceName)
         {
-            if (target == null || !target.isActive || duration <= 0f) return;
+            if (target == null || !target.isActive || turns <= 0) return;
 
             UnitStatus existing = target.GetAllStatuses()
                 .FirstOrDefault(status => status.Key == StatusKey);
             if (existing != null)
             {
-                float remaining = existing.Duration <= 0f
-                    ? float.PositiveInfinity
-                    : existing.Duration - existing.ElapsedTime;
-                if (remaining >= duration) return;
+                if (existing.RemainingTurns >= turns) return;
                 target.RemoveStatusByKey(StatusKey);
             }
 
-            target.AddStatus(Create(target, caster, duration, sourceName));
+            target.AddStatus(Create(target, caster, turns, sourceName));
         }
 
-        private static UnitStatus Create(Unit target, Unit caster, float duration, string sourceName)
+        private static UnitStatus Create(Unit target, Unit caster, int turns, string sourceName)
         {
             var definition = new StatusDefinition
             {
@@ -43,7 +41,7 @@ namespace Effects.Negative
                 Description = $"{sourceName}: 받는 치유량이 50% 감소합니다.",
                 Category = BaseEnums.StatusCategory.Negative,
                 StackPolicy = BaseEnums.StatusStackPolicy.Replace,
-                Duration = duration,
+                Duration = turns,
                 IsBeneficial = false,
             };
             var status = new UnitStatus(definition, caster, target);

@@ -30,11 +30,11 @@ namespace Codes.Passive
             target.AddStatus(BuffStatus.Create(
                 PygmalionStatusIds.Burn, BurnStatusKey, "화상",
                 caster, target, new PygmalionBurnEffect(),
-                duration: 3f,
+                duration: 2,   // 3초 → 2턴
                 stackPolicy: BaseEnums.StatusStackPolicy.Stack,
                 category: BaseEnums.StatusCategory.Negative,
                 isBeneficial: false,
-                description: "3초간 매초 40 + 시전자 CON의 5%만큼 피해를 입습니다. 중첩되어도 지속피해 종류는 1개로 계산합니다."));
+                description: "2턴간 턴마다 40 + 시전자 CON의 5%만큼 피해를 입습니다. 중첩되어도 지속피해 종류는 1개로 계산합니다."));
         }
 
         public static bool IsContactDamage(DamageContext context)
@@ -86,7 +86,7 @@ namespace Codes.Passive
             Caster, Caster, new SharpThornsEffect(),
             stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
             isBeneficial: true,
-            description: "접촉 피해를 받으면 공격자에게 3초간 치유량 50% 감소를 부여합니다."));
+            description: "접촉 피해를 받으면 공격자에게 2턴간 치유량 50% 감소를 부여합니다."));
     }
 
     public sealed class PygmalionLoveGodBlessing : PassiveCode
@@ -108,7 +108,7 @@ namespace Codes.Passive
     /// <summary>궁극기 장미의 가시: 피해 감소·도발·접촉 반격 화상.</summary>
     internal sealed class RoseThornsEffect : BaseEffect
     {
-        private const float BurnInternalCooldown = 1f;
+        private const float BurnInternalCooldown = 1;
         private Action<EventContext> _damageHandler;
         private readonly Dictionary<Unit, float> _nextBurnTimeByAttacker = new();
 
@@ -175,7 +175,7 @@ namespace Codes.Passive
         private void OnTakingDamage(EventContext context)
         {
             if (!PygmalionCombat.IsContactDamage(context?.DmgCtx)) return;
-            HealingReductionStatus.Apply(context.DmgCtx.Attacker, Target, 3f, "날카로운 가시");
+            HealingReductionStatus.Apply(context.DmgCtx.Attacker, Target, 2, "날카로운 가시");   // 3초 → 2턴
         }
 
         public override void OnRemove()
@@ -195,7 +195,6 @@ namespace Codes.Passive
 
     internal sealed class PygmalionBurnEffect : BaseEffect
     {
-        private float _elapsed;
         public override bool IsDamageOverTime => true;
 
         public PygmalionBurnEffect() : base(0)
@@ -203,23 +202,16 @@ namespace Codes.Passive
             Category = BaseEnums.EffectCategory.Negative;
         }
 
-        public override void OnApply() => _elapsed = 0f;
+        /// <summary>대상의 턴마다 한 번. 1턴 = 2초이므로 예전 '매초' 값의 2배를 준다.</summary>
+        public override void OnOwnerTurn() => DealTick();
 
-        public override void OnUpdate(float deltaTime)
-        {
-            float previous = _elapsed;
-            _elapsed += deltaTime;
-            int ticks = Mathf.FloorToInt(_elapsed) - Mathf.FloorToInt(previous);
-            for (int i = 0; i < ticks; i++) DealTick();
-        }
-
-        public override int EstimateDamagePerSecond() => CalculateDamage();
+        public override int EstimateDamagePerTurn() => CalculateDamage();
 
         private int CalculateDamage()
         {
             if (Caster == null) return 0;
             float multiplier = Caster.GetDamageOverTimeApplicationMultiplier();
-            return Mathf.Max(0, Mathf.RoundToInt((40f + Caster.GetBaseCon() * 0.05f) * multiplier));
+            return Mathf.Max(0, Mathf.RoundToInt((80f + Caster.GetBaseCon() * 0.1f) * multiplier));
         }
 
         private void DealTick()

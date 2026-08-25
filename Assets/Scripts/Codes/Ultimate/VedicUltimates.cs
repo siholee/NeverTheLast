@@ -68,7 +68,7 @@ namespace Codes.Ultimate
         private const float DetonateRatio = 0.8f;
 
         public YamaFinalArrival(UltimateCodeContext context)
-            : base(context, "언젠가 다다를 마지막", 8f, 0.5f) { }
+            : base(context, "언젠가 다다를 마지막", 4, 0.5f) { }
 
         protected override void Resolve()
         {
@@ -91,7 +91,7 @@ namespace Codes.Ultimate
                 target.GrantCombatElement(BaseEnums.UnitElement.Electro, Unit.CommonElementAuraDuration, Caster);
 
                 // 지속피해 즉시 정산 — 대상이 받고 있던 초당 피해를 INT 비례로 터뜨린다.
-                int dotPerSecond = target.GetEstimatedDamageOverTimePerSecond();
+                int dotPerSecond = target.GetEstimatedDamageOverTimePerTurn();
                 if (dotPerSecond <= 0) continue;
 
                 int detonate = Mathf.Max(1, Mathf.RoundToInt(
@@ -109,7 +109,7 @@ namespace Codes.Ultimate
         private const int FlamePower = 65;
 
         public AgniWhiteFlame(UltimateCodeContext context)
-            : base(context, "백화", 8f, 0.5f) { }
+            : base(context, "백화", 4, 0.5f) { }
 
         protected override void Resolve()
         {
@@ -143,7 +143,7 @@ namespace Codes.Ultimate
     public sealed class IndraThunderbolt : SimpleUltimate
     {
         public IndraThunderbolt(UltimateCodeContext context)
-            : base(context, "천벌", 8f, 0.4f) { }
+            : base(context, "천벌", 4, 0.4f) { }
 
         protected override void Resolve()
         {
@@ -191,11 +191,11 @@ namespace Codes.Ultimate
     {
         private const int BurstPower = 50;
         private const int LingerPower = 25;
-        private const float LingerDuration = 6f;
+        private const int LingerDuration = 3;   // 6초 → 3턴
         private const int ArmorShredStatusId = 6100;
 
         public VayuSouthWind(UltimateCodeContext context)
-            : base(context, "남풍", 8f, 0.5f) { }
+            : base(context, "남풍", 4, 0.5f) { }
 
         protected override void Resolve()
         {
@@ -235,7 +235,7 @@ namespace Codes.Ultimate
                     stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                     category: BaseEnums.StatusCategory.Negative,
                     isBeneficial: false,
-                    description: $"매초 {lingerPerSecond}의 바람 피해를 받습니다."));
+                    description: $"턴마다 {lingerPerSecond}의 바람 피해를 받습니다."));
             }
         }
     }

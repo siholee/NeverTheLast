@@ -134,7 +134,7 @@ namespace Codes.Ultimate
                 {
                     ColosseumCombat.AddStatus(
                         Caster, target, 6341, "colosseum_line_break", "대열 붕괴",
-                        new ColosseumReceivingDamageEffect(1.25f), 6f,
+                        new ColosseumReceivingDamageEffect(1.25f), 3,   // 6초 → 3턴
                         BaseEnums.StatusCategory.Negative, false,
                         description: "받는 피해가 25% 증가합니다.");
                 }
@@ -151,14 +151,14 @@ namespace Codes.Ultimate
             DealDamage(target, 1.4f, isCrit, critMultiplier);
             if (!target.isActive) return;
             ColosseumCombat.AddStatus(
-                Caster, target, 6342, DuelMarkKey, "일대일 지명", null, 8f,
+                Caster, target, 6342, DuelMarkKey, "일대일 지명", null, 4,   // 8초 → 4턴
                 BaseEnums.StatusCategory.Negative, false,
                 description: "트라엑스에게 지명되었습니다.");
             ColosseumCombat.AddStatus(
                 Caster, Caster, 6343, "colosseum_duel_bonus", "결투의 집중",
                 new ConditionalOutgoingDamageEffect((_, victim, _) =>
                     victim != null && victim.HasStatusKey(DuelMarkKey) ? 1.3f : 1f),
-                8f);
+                4);   // 8초 → 4턴
         }
 
         private void ResolveRetiarius(bool isCrit, float critMultiplier)
@@ -170,11 +170,11 @@ namespace Codes.Ultimate
                 DealDamage(target, 0.9f, isCrit, critMultiplier, true);
                 if (target.isActive)
                 {
-                    target.ControlStarts(new ControlContext(Caster, 0.75f));
+                    target.ControlStarts(new ControlContext(Caster, 1));
                     ColosseumCombat.ApplyCapture(
                         Caster,
                         target,
-                        ColosseumCombat.HasPassive(Caster, 153) ? 6f : 4f,
+                        ColosseumCombat.HasPassive(Caster, 153) ? 3 : 2,   // 6/4초 → 3/2턴
                         ColosseumCombat.HasPassive(Caster, 154));
                 }
             }
@@ -189,7 +189,7 @@ namespace Codes.Ultimate
                 "colosseum_secutor_pursuit",
                 "집요한 추격",
                 new CompositeEffect(new CodeAccelerationEffect(0.4f), new FullControlImmunityEffect()),
-                6f);
+                3);   // 6초 → 3턴
 
             Unit target = ColosseumCombat.Enemies(Caster)
                 .OrderByDescending(unit => unit.currentCell != null &&
@@ -252,7 +252,7 @@ namespace Codes.Ultimate
                         target != null && target.HasStatusKey(ColosseumCombat.SabinaMarkKey)
                             ? damageMultiplier
                             : 1f),
-                    6f);
+                    3);   // 6초 → 3턴
             }
         }
 

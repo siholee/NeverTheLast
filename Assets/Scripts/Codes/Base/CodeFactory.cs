@@ -33,10 +33,9 @@ namespace Codes.Base
         224 => new VayuPurifyingWindEcho(context),
         256 => new VayuSecondWind(context),
         257 => new VayuAmbush(context),
-        50 => new SeiCreation(context),       // 세이 초기 패시브 — 창조
-        51 => new SeiCitadel(context),        // 세이 Lv.6  성채
+        50 => new SeiBigBang(context),        // 세이 초기 패시브 — 빅뱅
         52 => new SeiPreparation(context),    // 세이 Lv.50 사전준비
-        53 => new SeiBigBang(context),        // 세이 Lv.92 빅뱅
+        53 => new SeiFirstSong(context),      // 세이 Lv.92 최초의 노래
         2 => new AtalanteWeaknessTracker(context), // 아탈란테 패시브
         140 => new AtalanteArcher(context),
         141 => new AtalanteAgility(context),
@@ -49,7 +48,6 @@ namespace Codes.Base
         4 => new GalateaPassive(context), // 피그말리온 패시브
         5 => new ShiFinalVerse(context), // 시 패시브
         54 => new ShiSwordMaster(context),
-        55 => new ShiAllWeaponMastery(context),
         56 => new ShiSwiftness(context),
         58 => new HeavenlyKiller(context),
         59 => new ShiTenDaysNoFlower(context),
@@ -76,7 +74,7 @@ namespace Codes.Base
         84 => new TheseusCodeWeave(context),
         85 => new TheseusHydroAffinity(context),
         86 => new TheseusFighter(context),
-        87 => new TheseusPhalanx(context),
+        87 => new GreekPhalanx(context),
         88 => new TheseusSelfHealing(context),
         89 => new TheseusOverheal(context),
         90 => new MacanaGrowth(context),
@@ -92,11 +90,33 @@ namespace Codes.Base
         221 => new PygmalionSlowAndSteady(context),
         222 => new PygmalionSharpThorns(context),
         223 => new PygmalionLoveGodBlessing(context),
+        // ── 노르드 신규 (프레이아·로키·스카디) ──
+        260 => new FreyaPhytoncide(context),
+        261 => new FreyaMedicine(context),
+        262 => new FreyaLeadership(context),
+        263 => new FreyaWarChief(context),
+        264 => new LokiFenrir(context),
+        265 => new LokiSummoner(context),
+        266 => new SkadiFrostWarrior(context),
+        267 => new CryoMastery(context),
+        268 => new SkadiCryoAffinity(context),
+        269 => new SkadiElementalist(context),
+        // ── 쿠베라·바루나·오르페우스·스사노오 ──
+        270 => new KuberaEarthLaw(context),
+        271 => new KuberaGeoAffinity(context),
+        272 => new KuberaRooting(context),
+        273 => new KuberaMerchant(context),
+        274 => new VarunaOceanVerdict(context),
+        275 => new VarunaWaterHeaven(context),
+        276 => new OrpheusCheatedDeath(context),
+        277 => new OrpheusBard(context),
+        278 => new SusanooRaijin(context),
+        279 => new SusanooWaveCut(context),
         230 => new InheritedAtalanteWeaknessTracker(context),
         231 => new InheritedOrionGeoAffinity(context),
         232 => new InheritedAsclepiusNashorsTooth(context),
         233 => new InheritedAmaterasuSunRhythm(context),
-        >= 101 and <= 112 => new EnemyCommonPassive(context, codeId),
+        (>= 101 and <= 104) or (>= 109 and <= 116) => new EnemyCommonPassive(context, codeId),
         120 => new TsukuyomiMoonReckoning(context),
         121 => new TsukuyomiSpellShield(context),
         122 => new TsukuyomiFickle(context),
@@ -117,10 +137,20 @@ namespace Codes.Base
           context,
           codeId,
           ColosseumCodeNames.Passive(codeId)),
-        >= 204 and <= 211 => new AztecPassive(
+        >= 320 and <= 328 => new AztecPassive(
           context,
           codeId,
           AztecCodeNames.Passive(codeId)),
+        // ── 로마 (레기온) ──
+        280 => new NightRaid(context),
+        281 => new Charisma(context),
+        282 => new Intuition(context),
+        283 => new Tactician(context),
+        284 => new MindsEye(context),
+        >= 300 and <= 317 => new LegionPassive(
+          context,
+          codeId,
+          LegionCodeNames.Passive(codeId)),
         _ => null,
       };
     }
@@ -140,6 +170,13 @@ namespace Codes.Base
         241 => new AgniNormalAttack(context),
         242 => new IndraNormalAttack(context),
         243 => new VayuNormalAttack(context),
+        244 => new FreyaNormalAttack(context),
+        245 => new LokiNormalAttack(context),
+        246 => new SkadiNormalAttack(context),
+        247 => new KuberaNormalAttack(context),
+        248 => new VarunaNormalAttack(context),
+        249 => new SusanooNormalAttack(context),
+        250 => new OrpheusNormalAttack(context),
         70 => new QuetzalcoatlBall(context),
         80 => new OrionNormalAttack(context),
         84 => new TheseusNormalAttack(context),
@@ -150,6 +187,12 @@ namespace Codes.Base
         >= 101 and <= 108 => new EnemyArchetypeNormal(
           context,
           (EnemyArchetypeNormalStyle)(codeId - 101)),
+        >= 260 and <= 271 => new LegionNormal(
+          context,
+          (LegionNormalStyle)(codeId - 260)),
+        >= 280 and <= 286 => new AztecNormal(
+          context,
+          (AztecNormalStyle)(codeId - 280)),
         _ => new NormalAttack(context), // 기본 일반공격 (임시, 나중에 각 유닛별로 교체 예정)
       };
     }
@@ -167,6 +210,13 @@ namespace Codes.Base
         241 => new AgniWhiteFlame(context),
         242 => new IndraThunderbolt(context),
         243 => new VayuSouthWind(context),
+        244 => new FreyaHarvest(context),
+        245 => new LokiBaldrSlayer(context),
+        246 => new SkadiIcicleSpike(context),
+        247 => new KuberaGoldenQuake(context),
+        248 => new VarunaMakara(context),
+        249 => new SusanooAmenoMurakumo(context),
+        250 => new OrpheusLament(context),
         70 => new QuetzalcoatlYorisUltimate(context),
         80 => new OrionHeavyBlow(context),
         84 => new TheseusRecoveryStrike(context),
@@ -177,9 +227,12 @@ namespace Codes.Base
         (>= 140 and <= 147) or 149 => new ColosseumUltimate(
           context,
           (ColosseumUltimateStyle)(codeId - 140)),
-        >= 150 and <= 157 => new AztecUltimate(
+        >= 180 and <= 186 => new AztecUltimate(
           context,
-          (AztecUltimateStyle)(codeId - 150)),
+          (AztecUltimateStyle)(codeId - 180)),
+        >= 160 and <= 171 => new LegionUltimate(
+          context,
+          (LegionUltimateStyle)(codeId - 160)),
         100 => new EnemyTestUltimate(context), // 적 전용 테스트 궁극기
         _ => null,
       };

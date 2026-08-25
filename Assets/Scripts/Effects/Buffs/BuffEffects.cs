@@ -37,11 +37,12 @@ namespace Effects.Buffs
     public static class BuffStatus
     {
         /// <summary>
-        /// 단일 효과 버프 상태 생성. duration 0 이하 = 무한(라운드 종료까지).
+        /// 단일 효과 버프 상태 생성.
+        /// <paramref name="duration"/>은 <b>턴</b> 수이며 0 이하면 무한(라운드 종료까지)이다.
         /// </summary>
         public static UnitStatus Create(
             int id, string key, string name, Unit caster, Unit owner, BaseEffect effect,
-            float duration = -1f,
+            int duration = -1,
             BaseEnums.StatusStackPolicy stackPolicy = BaseEnums.StatusStackPolicy.Replace,
             BaseEnums.StatusCategory category = BaseEnums.StatusCategory.Positive,
             bool isBeneficial = false,

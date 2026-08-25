@@ -12,6 +12,9 @@ namespace Managers
         public int archetype;   // 스폰/배치용 적 분류 ID
         public string element;
         public string tier;     // normal, elite, boss
+        public List<int> startingItemIds;
+        // 적도 장비 숙련을 데이터로 보유한다. 전용 장비 및 숙련 조건 패시브 판정에 사용한다.
+        public List<string> startingProficiencies;
         // Beast / Monster 등 패시브 판정용 분류 태그.
         public List<string> tags;
         // 주/부 스탯. 주스탯이 위력(AttackPower)의 근거이며 ×1.2, 부스탯은 ×1.1 배율을 받는다.

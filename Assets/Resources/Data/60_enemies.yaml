@@ -10,9 +10,11 @@
 #   · 적의 Level은 현재 스테이지와 같다. 즉 1스테이지 = Level 1 = 성장분 0.
 #   · mainStat ×1.2 / subStat ×1.1 배율은 아군과 동일하게 적용된다.
 #
-# 현재는 콜로세움(로마) 테마만 운영한다.
-# 노르드·아즈텍·일본 테마의 적은 전용 스프라이트가 없어 제거되었다.
-# 새 테마를 추가할 때는 초상화 자산을 먼저 확보한 뒤 등록할 것.
+# 현재 운영 적 테마는 콜로세움(themeId 5), 로마 군단(themeId 6), 메히코(themeId 7)다.
+# 노르드·일본 테마의 적은 전용 스프라이트가 없어 제거된 상태다.
+#
+# 🔸 로마 군단 12종은 전용 초상화가 아직 없어 기존 스프라이트를 임시로 돌려 쓴다.
+#    전용 자산이 나오면 portrait/standing만 갈아 끼우면 된다.
 
 enemies:
   # ── 콜로세움 테마 (themeId 5) ─────────────────────────────────────
@@ -248,3 +250,594 @@ enemies:
       - { codeId: 179, unlockLevel: 70, stage: 1 }
     portrait: SPARTACUS_PORTRAIT
     standing: SPARTACUS_STANDING
+  # ── 로마 군단 테마 (themeId 6) ────────────────────────────────────
+  # 공화정 로마의 정규 군단. 전열은 하스타티 → 프린키페스 → 트리아리 → 센츄리온
+  # 순으로 그대로 강해지는 사다리이고, 후열은 사수(벨리테스·스콜피오)와
+  # 지휘관(옵티오·트리뷴)이 나뉜다.
+  #
+  # 일반 병종은 무기·자세 계열별로 같은 캔버스/실루엣 박스/바닥선을 사용한다.
+  # 색상과 장비 차이는 유지하되 팔레트 스왑 계열처럼 크기와 초상화 구도를 통일한다.
+  - id: 1030
+    name: 하스타티
+    themeId: 6
+    archetype: 7
+    element: Anemo
+    tier: normal
+    tags: [Rome, Legion]
+    mainStat: STR
+    subStat: CON
+    strBase: 11
+    strIncrementLvl: 1
+    dexBase: 9
+    dexIncrementLvl: 1
+    conBase: 22
+    conIncrementLvl: 2
+    intBase: 6
+    lukBase: 8
+    lukIncrementLvl: 1
+    codes: { passive: 300, normal: 260, ultimate: 160 }
+    levelPassives:
+      - { codeId: 8, unlockLevel: 10, stage: 1 }
+      - { codeId: 12, unlockLevel: 30, stage: 1 }
+      - { codeId: 38, unlockLevel: 40, stage: 1 }
+    portrait: HASTATI_PORTRAIT
+    standing: HASTATI_STANDING
+
+  - id: 1031
+    name: 프린키페스
+    themeId: 6
+    archetype: 7
+    element: Geo
+    tier: normal
+    tags: [Rome, Legion]
+    mainStat: STR
+    subStat: CON
+    strBase: 14
+    strIncrementLvl: 1
+    dexBase: 10
+    dexIncrementLvl: 1
+    conBase: 27
+    conIncrementLvl: 2
+    intBase: 6
+    lukBase: 8
+    lukIncrementLvl: 1
+    codes: { passive: 301, normal: 261, ultimate: 161 }
+    levelPassives:
+      - { codeId: 8, unlockLevel: 10, stage: 1 }
+      - { codeId: 81, unlockLevel: 20, stage: 1 }
+      - { codeId: 12, unlockLevel: 30, stage: 1 }
+      - { codeId: 38, unlockLevel: 40, stage: 1 }
+    portrait: PRINCIPES_PORTRAIT
+    standing: PRINCIPES_STANDING
+
+  - id: 1032
+    name: 트리아리
+    themeId: 6
+    archetype: 7
+    element: Geo
+    tier: normal
+    tags: [Rome, Legion]
+    mainStat: STR
+    subStat: CON
+    strBase: 17
+    strIncrementLvl: 2
+    dexBase: 10
+    dexIncrementLvl: 1
+    conBase: 32
+    conIncrementLvl: 3
+    intBase: 7
+    lukBase: 9
+    lukIncrementLvl: 1
+    codes: { passive: 302, normal: 262, ultimate: 162 }
+    levelPassives:
+      - { codeId: 8, unlockLevel: 10, stage: 1 }
+      - { codeId: 81, unlockLevel: 20, stage: 1 }
+      - { codeId: 12, unlockLevel: 30, stage: 1 }
+      - { codeId: 38, unlockLevel: 40, stage: 1 }
+      - { codeId: 83, unlockLevel: 50, stage: 1 }
+      - { codeId: 256, unlockLevel: 60, stage: 1 }
+    portrait: TRIARII_PORTRAIT
+    standing: TRIARII_STANDING
+
+  - id: 1033
+    name: 에퀴테스
+    themeId: 6
+    archetype: 8
+    element: Pyro
+    tier: normal
+    tags: [Rome, Legion]
+    mainStat: DEX
+    subStat: LUK
+    strBase: 13
+    strIncrementLvl: 1
+    dexBase: 20
+    dexIncrementLvl: 2
+    conBase: 20
+    conIncrementLvl: 2
+    intBase: 10
+    intIncrementLvl: 1
+    lukBase: 18
+    lukIncrementLvl: 2
+    codes: { passive: 306, normal: 266, ultimate: 166 }
+    levelPassives:
+      - { codeId: 93, unlockLevel: 10, stage: 1 }
+      - { codeId: 280, unlockLevel: 20, stage: 1 }
+      - { codeId: 256, unlockLevel: 30, stage: 1 }
+      - { codeId: 257, unlockLevel: 40, stage: 1 }
+      - { codeId: 58, unlockLevel: 60, stage: 1 }
+    portrait: EQUITES_PORTRAIT
+    standing: EQUITES_STANDING
+
+  - id: 1034
+    name: 센츄리온
+    themeId: 6
+    archetype: 7
+    element: Geo
+    tier: normal
+    tags: [Rome, Legion]
+    mainStat: STR
+    subStat: CON
+    strBase: 21
+    strIncrementLvl: 2
+    dexBase: 12
+    dexIncrementLvl: 1
+    conBase: 40
+    conIncrementLvl: 3
+    intBase: 8
+    lukBase: 10
+    lukIncrementLvl: 1
+    codes: { passive: 303, normal: 263, ultimate: 163 }
+    levelPassives:
+      - { codeId: 8, unlockLevel: 10, stage: 1 }
+      - { codeId: 81, unlockLevel: 20, stage: 1 }
+      - { codeId: 12, unlockLevel: 30, stage: 1 }
+      - { codeId: 38, unlockLevel: 40, stage: 1 }
+      - { codeId: 83, unlockLevel: 50, stage: 1 }
+      - { codeId: 256, unlockLevel: 60, stage: 1 }
+      - { codeId: 262, unlockLevel: 70, stage: 1 }
+      - { codeId: 263, unlockLevel: 80, stage: 1 }
+    portrait: CENTURION_PORTRAIT
+    standing: CENTURION_STANDING
+
+  - id: 1035
+    name: 벨리테스
+    themeId: 6
+    archetype: 10
+    element: Anemo
+    tier: normal
+    tags: [Rome, Legion]
+    mainStat: STR
+    subStat: DEX
+    strBase: 14
+    strIncrementLvl: 1
+    dexBase: 15
+    dexIncrementLvl: 1
+    conBase: 12
+    conIncrementLvl: 1
+    intBase: 6
+    lukBase: 10
+    lukIncrementLvl: 1
+    codes: { passive: 304, normal: 264, ultimate: 164 }
+    levelPassives:
+      - { codeId: 113, unlockLevel: 20, stage: 1 }
+      - { codeId: 114, unlockLevel: 40, stage: 1 }
+      - { codeId: 115, unlockLevel: 70, stage: 1 }
+    portrait: VELITES_PORTRAIT
+    standing: VELITES_STANDING
+
+  - id: 1036
+    name: 스콜피오
+    themeId: 6
+    archetype: 10
+    element: Geo
+    tier: normal
+    tags: [Rome, Legion]
+    mainStat: STR
+    subStat: DEX
+    strBase: 18
+    strIncrementLvl: 2
+    dexBase: 16
+    dexIncrementLvl: 1
+    conBase: 14
+    conIncrementLvl: 1
+    intBase: 6
+    lukBase: 10
+    lukIncrementLvl: 1
+    codes: { passive: 305, normal: 265, ultimate: 165 }
+    levelPassives:
+      - { codeId: 114, unlockLevel: 20, stage: 1 }
+      - { codeId: 115, unlockLevel: 40, stage: 1 }
+      - { codeId: 116, unlockLevel: 70, stage: 1 }
+    portrait: SCORPIO_PORTRAIT
+    standing: SCORPIO_STANDING
+
+  - id: 1037
+    name: 옵티오
+    themeId: 6
+    archetype: 11
+    element: Anemo
+    tier: normal
+    tags: [Rome, Legion]
+    mainStat: INT
+    subStat: DEX
+    strBase: 10
+    strIncrementLvl: 1
+    dexBase: 16
+    dexIncrementLvl: 1
+    conBase: 16
+    conIncrementLvl: 1
+    intBase: 18
+    intIncrementLvl: 2
+    lukBase: 10
+    lukIncrementLvl: 1
+    codes: { passive: 307, normal: 267, ultimate: 167 }
+    levelPassives:
+      - { codeId: 8, unlockLevel: 10, stage: 1 }
+      - { codeId: 121, unlockLevel: 20, stage: 1 }
+      - { codeId: 52, unlockLevel: 30, stage: 1 }
+    portrait: OPTIO_PORTRAIT
+    standing: OPTIO_STANDING
+
+  - id: 1038
+    name: 트리뷴
+    themeId: 6
+    archetype: 11
+    element: Pyro
+    tier: normal
+    tags: [Rome, Legion]
+    mainStat: INT
+    subStat: DEX
+    strBase: 11
+    strIncrementLvl: 1
+    dexBase: 20
+    dexIncrementLvl: 2
+    conBase: 18
+    conIncrementLvl: 1
+    intBase: 24
+    intIncrementLvl: 2
+    lukBase: 12
+    lukIncrementLvl: 1
+    codes: { passive: 308, normal: 268, ultimate: 168 }
+    levelPassives:
+      - { codeId: 8, unlockLevel: 10, stage: 1 }
+      - { codeId: 121, unlockLevel: 20, stage: 1 }
+      - { codeId: 52, unlockLevel: 30, stage: 1 }
+      - { codeId: 54, unlockLevel: 40, stage: 1 }
+      - { codeId: 254, unlockLevel: 80, stage: 1 }
+    portrait: TRIBUNE_PORTRAIT
+    standing: TRIBUNE_STANDING
+
+  # ── 로마 군단 중간 보스 (9스테이지에 둘이 함께 나온다) ────────────
+  # 아그리파는 옥타비아를 밀어 주는 서포터라 단독으로는 위협이 되지 않는다.
+  # 둘을 반드시 같이 배치할 것 — 편성은 80_stages.yaml의 stagePatterns가 정한다.
+  - id: 2006
+    name: 아그리파
+    themeId: 6
+    archetype: 11
+    element: Geo
+    tier: elite
+    tags: [Rome]
+    mainStat: DEX
+    subStat: INT
+    strBase: 14
+    strIncrementLvl: 1
+    dexBase: 30
+    dexIncrementLvl: 3
+    conBase: 70
+    conIncrementLvl: 9
+    intBase: 26
+    intIncrementLvl: 2
+    lukBase: 14
+    lukIncrementLvl: 1
+    codes: { passive: 309, normal: 269, ultimate: 169 }
+    levelPassives:
+      - { codeId: 312, unlockLevel: 1, stage: 1 }
+      - { codeId: 12, unlockLevel: 12, stage: 1 }
+      - { codeId: 97, unlockLevel: 30, stage: 1 }
+      - { codeId: 283, unlockLevel: 46, stage: 1 }
+      - { codeId: 89, unlockLevel: 50, stage: 1 }
+      - { codeId: 52, unlockLevel: 52, stage: 1 }
+      - { codeId: 254, unlockLevel: 92, stage: 1 }
+    portrait: AGRIPPA_PORTRAIT
+    standing: AGRIPPA_STANDING
+
+  - id: 2007
+    name: 옥타비아
+    themeId: 6
+    archetype: 11
+    element: Anemo
+    tier: elite
+    tags: [Rome, Emperor]
+    mainStat: INT
+    subStat: LUK
+    strBase: 10
+    dexBase: 18
+    dexIncrementLvl: 1
+    conBase: 62
+    conIncrementLvl: 8
+    intBase: 34
+    intIncrementLvl: 3
+    lukBase: 24
+    lukIncrementLvl: 2
+    codes: { passive: 310, normal: 270, ultimate: 170 }
+    levelPassives:
+      - { codeId: 313, unlockLevel: 1, stage: 1 }
+      - { codeId: 284, unlockLevel: 1, stage: 1 }
+      - { codeId: 142, unlockLevel: 10, stage: 1 }
+      - { codeId: 73, unlockLevel: 18, stage: 1 }
+      - { codeId: 251, unlockLevel: 20, stage: 1 }
+      - { codeId: 262, unlockLevel: 40, stage: 1 }
+      - { codeId: 248, unlockLevel: 71, stage: 1 }
+    portrait: OCTAVIA_PORTRAIT
+    standing: OCTAVIA_STANDING
+
+  # ── 로마 군단 보스 ────────────────────────────────────────────────
+  - id: 3004
+    name: 카이사르
+    themeId: 6
+    archetype: 8
+    element: Anemo
+    tier: boss
+    tags: [Rome, Emperor]
+    mainStat: LUK
+    subStat: DEX
+    strBase: 20
+    strIncrementLvl: 2
+    dexBase: 26
+    dexIncrementLvl: 2
+    conBase: 105
+    conIncrementLvl: 15
+    intBase: 16
+    intIncrementLvl: 1
+    lukBase: 40
+    lukIncrementLvl: 4
+    codes: { passive: 311, normal: 271, ultimate: 171 }
+    levelPassives:
+      - { codeId: 314, unlockLevel: 1, stage: 1 }
+      - { codeId: 315, unlockLevel: 1, stage: 1 }
+      - { codeId: 316, unlockLevel: 1, stage: 1 }
+      - { codeId: 317, unlockLevel: 1, stage: 1 }
+      - { codeId: 72, unlockLevel: 9, stage: 1 }
+      - { codeId: 281, unlockLevel: 12, stage: 1 }
+      - { codeId: 282, unlockLevel: 21, stage: 1 }
+      - { codeId: 137, unlockLevel: 55, stage: 1 }
+      - { codeId: 95, unlockLevel: 68, stage: 1 }
+      - { codeId: 254, unlockLevel: 92, stage: 1 }
+    portrait: CAESAR_PORTRAIT
+    standing: CAESAR_STANDING
+
+  # ── 메히코 테마 (themeId 7) ──────────────────────────────────────
+  # 기존 아즈텍 병종/신관/보스는 제거하고 아래 3개 병과와 정예형, 테스카틀리포카로 재구성했다.
+  - id: 1040
+    name: 재규어 전사
+    themeId: 7
+    archetype: 7
+    element: Geo
+    tier: normal
+    tags: [Mexica, Jaguar]
+    startingItemIds: [4105, 4112]
+    startingProficiencies: [Mace, LightArmor]
+    mainStat: CON
+    subStat: STR
+    strBase: 18
+    strIncrementLvl: 2
+    dexBase: 9
+    dexIncrementLvl: 1
+    conBase: 28
+    conIncrementLvl: 3
+    intBase: 6
+    lukBase: 8
+    lukIncrementLvl: 1
+    codes: { passive: 320, normal: 280, ultimate: 180 }
+    ultimateResourceMax: 100
+    levelPassives:
+      - { codeId: 324, unlockLevel: 10, stage: 1 }
+      - { codeId: 325, unlockLevel: 20, stage: 1 }
+      - { codeId: 326, unlockLevel: 30, stage: 1 }
+      - { codeId: 86, unlockLevel: 60, stage: 1 }
+    portrait: AZTEC_JAGUAR_PORTRAIT
+    standing: AZTEC_JAGUAR_STANDING
+
+  - id: 2010
+    name: 정예 재규어 전사
+    themeId: 7
+    archetype: 7
+    element: Geo
+    tier: elite
+    tags: [Mexica, Jaguar]
+    startingItemIds: [4105, 4113]
+    startingProficiencies: [Mace, MediumArmor]
+    mainStat: CON
+    subStat: STR
+    strBase: 28
+    strIncrementLvl: 3
+    dexBase: 12
+    dexIncrementLvl: 1
+    conBase: 50
+    conIncrementLvl: 5
+    intBase: 8
+    lukBase: 10
+    lukIncrementLvl: 1
+    codes: { passive: 320, normal: 281, ultimate: 181 }
+    levelPassives:
+      - { codeId: 324, unlockLevel: 10, stage: 1 }
+      - { codeId: 325, unlockLevel: 20, stage: 1 }
+      - { codeId: 326, unlockLevel: 30, stage: 1 }
+      - { codeId: 327, unlockLevel: 40, stage: 1 }
+      - { codeId: 135, unlockLevel: 50, stage: 1 }
+      - { codeId: 86, unlockLevel: 60, stage: 1 }
+    portrait: AZTEC_ELITE_JAGUAR_PORTRAIT
+    standing: AZTEC_ELITE_JAGUAR_STANDING
+
+  - id: 1041
+    name: 독수리 전사
+    themeId: 7
+    archetype: 10
+    element: Dendro
+    tier: normal
+    tags: [Mexica, Eagle]
+    startingItemIds: [4106, 4112]
+    startingProficiencies: [Longbow, LightArmor]
+    mainStat: STR
+    subStat: CON
+    strBase: 20
+    strIncrementLvl: 2
+    dexBase: 16
+    dexIncrementLvl: 1
+    conBase: 16
+    conIncrementLvl: 2
+    intBase: 6
+    lukBase: 12
+    lukIncrementLvl: 1
+    codes: { passive: 321, normal: 282, ultimate: 182 }
+    levelPassives:
+      - { codeId: 140, unlockLevel: 10, stage: 1 }
+      - { codeId: 324, unlockLevel: 20, stage: 1 }
+      - { codeId: 123, unlockLevel: 40, stage: 1 }
+      - { codeId: 221, unlockLevel: 60, stage: 1 }
+    portrait: AZTEC_EAGLE_PORTRAIT
+    standing: AZTEC_EAGLE_STANDING
+
+  - id: 2011
+    name: 정예 독수리 전사
+    themeId: 7
+    archetype: 10
+    element: Dendro
+    tier: elite
+    tags: [Mexica, Eagle]
+    startingItemIds: [4106, 4112]
+    startingProficiencies: [Longbow, LightArmor]
+    mainStat: STR
+    subStat: CON
+    strBase: 28
+    strIncrementLvl: 3
+    dexBase: 21
+    dexIncrementLvl: 2
+    conBase: 26
+    conIncrementLvl: 3
+    intBase: 8
+    lukBase: 16
+    lukIncrementLvl: 2
+    codes: { passive: 321, normal: 283, ultimate: 183 }
+    levelPassives:
+      - { codeId: 140, unlockLevel: 10, stage: 1 }
+      - { codeId: 324, unlockLevel: 20, stage: 1 }
+      - { codeId: 125, unlockLevel: 30, stage: 1 }
+      - { codeId: 123, unlockLevel: 40, stage: 1 }
+      - { codeId: 257, unlockLevel: 50, stage: 1 }
+      - { codeId: 221, unlockLevel: 60, stage: 1 }
+    portrait: AZTEC_ELITE_EAGLE_PORTRAIT
+    standing: AZTEC_ELITE_EAGLE_STANDING
+
+  - id: 1042
+    name: 뱀 사제
+    themeId: 7
+    archetype: 11
+    element: Dendro
+    tier: normal
+    tags: [Mexica, Priest]
+    startingItemIds: [4104]
+    startingProficiencies: [Spear]
+    mainStat: INT
+    subStat: CON
+    strBase: 8
+    dexBase: 10
+    dexIncrementLvl: 1
+    conBase: 18
+    conIncrementLvl: 2
+    intBase: 24
+    intIncrementLvl: 2
+    lukBase: 12
+    lukIncrementLvl: 1
+    codes: { passive: 322, normal: 284, ultimate: 184 }
+    levelPassives:
+      - { codeId: 261, unlockLevel: 10, stage: 1 }
+      - { codeId: 328, unlockLevel: 20, stage: 1 }
+      - { codeId: 74, unlockLevel: 30, stage: 1 }
+      - { codeId: 248, unlockLevel: 40, stage: 1 }
+      - { codeId: 52, unlockLevel: 50, stage: 1 }
+      - { codeId: 70, unlockLevel: 60, stage: 1 }
+    portrait: AZTEC_SERPENT_PRIEST_PORTRAIT
+    standing: AZTEC_SERPENT_PRIEST_STANDING
+
+  - id: 2012
+    name: 정예 뱀 사제
+    themeId: 7
+    archetype: 11
+    element: Dendro
+    tier: elite
+    tags: [Mexica, Priest]
+    startingItemIds: [4104]
+    startingProficiencies: [Spear]
+    mainStat: INT
+    subStat: CON
+    strBase: 10
+    dexBase: 12
+    dexIncrementLvl: 1
+    conBase: 32
+    conIncrementLvl: 3
+    intBase: 34
+    intIncrementLvl: 3
+    lukBase: 16
+    lukIncrementLvl: 1
+    codes: { passive: 322, normal: 285, ultimate: 185 }
+    levelPassives:
+      - { codeId: 261, unlockLevel: 10, stage: 1 }
+      - { codeId: 328, unlockLevel: 20, stage: 1 }
+      - { codeId: 74, unlockLevel: 30, stage: 1 }
+      - { codeId: 248, unlockLevel: 40, stage: 1 }
+      - { codeId: 52, unlockLevel: 50, stage: 1 }
+      - { codeId: 70, unlockLevel: 60, stage: 1 }
+    portrait: AZTEC_ELITE_SERPENT_PRIEST_PORTRAIT
+    standing: AZTEC_ELITE_SERPENT_PRIEST_STANDING
+
+  # 9스테이지의 후열 조우. 기존 영웅 케찰코아틀의 코드/스프라이트를 적 데이터에서 재사용한다.
+  - id: 3201
+    name: 케찰코아틀
+    themeId: 7
+    archetype: 11
+    element: Dendro
+    tier: boss
+    tags: [Mexica, Divine]
+    startingItemIds: [4109]
+    startingProficiencies: [Orb]
+    mainStat: INT
+    subStat: CON
+    strBase: 12
+    dexBase: 18
+    dexIncrementLvl: 1
+    conBase: 55
+    conIncrementLvl: 6
+    intBase: 38
+    intIncrementLvl: 4
+    lukBase: 22
+    lukIncrementLvl: 2
+    codes: { passive: 70, normal: 70, ultimate: 70 }
+    levelPassives:
+      - { codeId: 74, unlockLevel: 30, stage: 1 }
+      - { codeId: 75, unlockLevel: 60, stage: 1 }
+    portrait: QUETZALCOATL_PORTRAIT
+    standing: QUETZALCOATL_STANDING
+
+  - id: 3010
+    name: 테스카틀리포카
+    themeId: 7
+    archetype: 11
+    element: Electro
+    tier: boss
+    tags: [Mexica, Undead]
+    startingItemIds: [4104, 4112]
+    startingProficiencies: [Spear, LightArmor]
+    mainStat: INT
+    strBase: 14
+    dexBase: 14
+    conBase: 60
+    intBase: 45
+    intIncrementLvl: 5
+    lukBase: 18
+    codes: { passive: 323, normal: 286, ultimate: 186 }
+    ultimateResourceType: Stack
+    ultimateResourceName: 흡연경
+    ultimateResourceMax: 8
+    portrait: AZTEC_TEZCATLIPOCA_PORTRAIT
+    standing: AZTEC_TEZCATLIPOCA_STANDING

@@ -121,13 +121,17 @@ namespace Managers.UI.HUD
                 ? $"STAGE {round.Stage}"
                 : round.CurrentThemeName;
 
-            // 원형 게이지: 준비/전투 단계의 남은 시간.
-            float ratio = game.PhaseProgressRatio;
-            _timerRing.fillAmount = ratio;
-            int seconds = game.PhaseRemainingSeconds;
-            _timerLabel.text = seconds > 0 ? seconds.ToString() : "";
-            // 10초 이하로 남으면 붉게 바꿔 압박을 준다.
-            _timerRing.color = seconds > 0 && seconds <= 10 ? UITheme.Danger : UITheme.Accent;
+            // 원형 게이지 — 준비 단계는 남은 초, 전투 중에는 남은 턴이다.
+            _timerRing.fillAmount = game.PhaseProgressRatio;
+
+            int remaining = game.PhaseRemainingSeconds;
+            bool turnGauge = game.IsRoundTurnGauge;
+            _timerLabel.text = remaining > 0
+                ? (turnGauge ? $"{remaining}T" : remaining.ToString())
+                : "";
+
+            // 얼마 안 남으면 붉게 바꿔 압박을 준다. 턴 게이지는 10턴이 기준이다.
+            _timerRing.color = remaining > 0 && remaining <= 10 ? UITheme.Danger : UITheme.Accent;
 
             if (_lastStage != round.Stage)
             {

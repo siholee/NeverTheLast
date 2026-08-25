@@ -60,7 +60,7 @@ namespace Codes.Passive
         private void OnAnyUnitDied(Unit dead, Unit attacker)
         {
             if (Caster == null || !Caster.isActive || dead == null || dead.IsEnemy == Caster.IsEnemy) return;
-            int dotPerSecond = dead.GetEstimatedDamageOverTimePerSecond();
+            int dotPerSecond = dead.GetEstimatedDamageOverTimePerTurn();
             if (dotPerSecond <= 0 || dead.currentCell == null) return;
 
             float[] ratios = { 0.5f, 0.75f, 1f };
@@ -257,7 +257,7 @@ namespace Codes.Passive
             Unit target = context?.Target;
             if (context?.Attacker != Caster || target == null || target.HpCurr <= 0 ||
                 !target.HasDamageOverTimeStatus()) return;
-            HealingReductionStatus.Apply(target, Caster, 6f, CodeName);
+            HealingReductionStatus.Apply(target, Caster, 3, CodeName);   // 6초 → 3턴
         }
 
         public override void StopCode()
@@ -306,7 +306,7 @@ namespace Codes.Passive
         {
             Unit target = context?.Target;
             if (target == null || target.HpCurr <= 0 || target.HpCurr >= target.HpMax || !target.HasDamageOverTimeStatus()) return;
-            HealingReductionStatus.Apply(target, Caster, 6f, CodeName);
+            HealingReductionStatus.Apply(target, Caster, 3, CodeName);   // 6초 → 3턴
         }
     }
 

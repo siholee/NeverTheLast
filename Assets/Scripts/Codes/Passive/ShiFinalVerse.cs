@@ -63,23 +63,31 @@ namespace Codes.Passive
             int previousStack = Mathf.Min(_verseStack, maxStack);
             _verseStack = Mathf.Min(previousStack + stackGain, maxStack);
 
+            // 추가공격은 그 자리에서 터뜨리지 않고 스케줄러에 예약한다.
+            // 한 번에 하나만 행동해야 하고, 같은 키라 한 턴에 두 번 겹쳐 들어가지 않는다.
             if (previousStack < 3 && _verseStack >= 3)
             {
-                DealLowestHpDamage(FinisherPower);
+                EnqueueVerse("shi_verse_3", () => DealLowestHpDamage(FinisherPower));
             }
             else if (stage >= 2 && previousStack < 6 && _verseStack >= 6)
             {
-                DealSplitDamage(SplitPower1);
+                EnqueueVerse("shi_verse_6", () => DealSplitDamage(SplitPower1));
             }
             else if (stage >= 3 && previousStack < 9 && _verseStack >= 9)
             {
-                DealSplitDamage(SplitPower2);
+                EnqueueVerse("shi_verse_9", () => DealSplitDamage(SplitPower2));
             }
 
             if (_verseStack >= maxStack)
             {
                 _verseStack = 0;
             }
+        }
+
+        private void EnqueueVerse(string key, System.Action run)
+        {
+            Managers.GameManager.Instance?.ActionScheduler.EnqueueAdditional(
+                Caster, key, CodeName, run);
         }
 
         private void DealLowestHpDamage(int power)
@@ -201,17 +209,6 @@ namespace Codes.Passive
         public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
         {
             return attacker == Caster && context?.DamageTags?.Contains(DamageTag.Slash) == true ? 1.25f : 1f;
-        }
-    }
-
-    /// <summary>Lv.20: 시의 무기 숙련 제한을 해제한다. 판정은 Unit.HasEquipmentProficiency에서 수행한다.</summary>
-    public sealed class ShiAllWeaponMastery : PassiveCode
-    {
-        public ShiAllWeaponMastery(PassiveCodeContext context) : base(context)
-        {
-            CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "만류귀종";
-            IgnoresActivationChance = true;
         }
     }
 

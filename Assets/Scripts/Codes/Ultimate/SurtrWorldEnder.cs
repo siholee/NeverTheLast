@@ -15,7 +15,7 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "라그나로크";
-            Cooldown = 0f;
+            Cooldown = 0;
             CastingDelay = 0f;
             MaxStage = 1;
         }

@@ -19,7 +19,7 @@ namespace Codes.Normal
     {
       CodeType = BaseEnums.CodeType.Normal;
       Caster = context.Caster;
-      Cooldown = 2f;
+      Cooldown = 1;
       CodeName = "일반공격";
       CastingDelay = 0.5f;
       ManaAmount = 10;
@@ -72,7 +72,7 @@ namespace Codes.Normal
       
       DamageContext context = new(Caster, Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(50) * critMultiplier)), BaseEnums.CodeType.Normal, damageTags, isCrit);
       Caster.StartCoroutine(FireProjectile(TargetUnits, 2f, context));
-      Caster.RecoverMana(ManaAmount);
+      // 궁극기 자원은 전투 시간으로 찬다(Unit.AccrueUltimateResource). 여기서 또 주지 않는다.
       StopCode();
     }
 

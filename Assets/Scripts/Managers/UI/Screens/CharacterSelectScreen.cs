@@ -319,6 +319,7 @@ namespace Managers.UI.Screens
         {
             if (unit.canStartAsMain) return "스타터 — 메인으로 시작할 수 있다";
             if (unit.canStartAsSupport) return "서포트 — 서포터 카드 전용";
+            if (CharacterSelectionManager.IsTemporarilyUnlocked(unit)) return "테스트 해금 — 메인으로 시작할 수 있다";
             return SaveSystem.IsStarterUnlocked(unit.id) ? "해금됨 — 메인으로 쓸 수 있다" : "미해금";
         }
 
@@ -356,13 +357,21 @@ namespace Managers.UI.Screens
             if (_phase == Phase.Main)
             {
                 return units
-                    .Where(unit => unit.canStartAsMain || SaveSystem.IsStarterUnlocked(unit.id))
+                    .Where(unit => unit.canStartAsMain ||
+                                   CharacterSelectionManager.IsTemporarilyUnlocked(unit) ||
+                                   SaveSystem.IsStarterUnlocked(unit.id))
                     .OrderBy(unit => unit.id)
                     .ToList();
             }
 
+            // 유닛 중복 출전 금지 — 메인으로 고른 캐릭터는 서포터 격자에 아예 띄우지 않는다.
+            // 육성이 끝난 스타터가 서포터 카드로도 등장하기 시작하면 같은 유닛이 양쪽에 오를 수 있다.
+            int mainUnitId = CharacterSelectionManager.Instance?.MainUnitId ?? 0;
+
             return units
-                .Where(unit => unit.canStartAsSupport)
+                .Where(unit => unit.canStartAsSupport ||
+                               SaveSystem.IsCharacterTrained(unit.id))
+                .Where(unit => unit.id != mainUnitId)
                 .OrderBy(unit => unit.id)
                 .ToList();
         }

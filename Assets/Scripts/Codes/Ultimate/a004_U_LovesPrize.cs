@@ -13,7 +13,7 @@ namespace Codes.Ultimate
         public a004_U_LovesPrize(UltimateCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Ultimate;
-            Cooldown = 8f;
+            Cooldown = 4;
             CodeName = "장미의 가시";
             CastingDelay = 0f;
         }
@@ -30,7 +30,7 @@ namespace Codes.Ultimate
             Caster.AddStatus(BuffStatus.Create(
                 PygmalionStatusIds.RoseThorns, "pygmalion_rose_thorns", CodeName,
                 Caster, Caster, new RoseThornsEffect(),
-                duration: 8f,
+                duration: 4,   // 8초 → 4턴
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
                 description: "받는 피해가 50% 감소하고 대상 지정 우선도가 1 증가합니다. 접촉 피해를 받으면 공격자별 1초 내부 쿨다운으로 중첩 가능한 화상을 부여합니다."));

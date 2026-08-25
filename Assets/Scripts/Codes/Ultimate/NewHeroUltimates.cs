@@ -18,7 +18,7 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "의신의 영약";
-            Cooldown = 8f;
+            Cooldown = 4;
             CastingDelay = 0.5f;
             CodeTags = new List<int> { DamageTag.Special, DamageTag.NonContactAttack };
         }
@@ -112,7 +112,7 @@ namespace Codes.Ultimate
 
     public sealed class AmaterasuPortalBarrage : UltimateCode
     {
-        private const float Duration = 6f;
+        private const int Duration = 3;   // 6초 → 3턴
 
         /// <summary>
         /// 화살 한 발의 위력. 8발 합계가 일반공격(위력 70) 한 대와 비슷해지도록 잡았다.
@@ -126,7 +126,7 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "태양문 개방";
-            Cooldown = 8f;
+            Cooldown = 4;
             CastingDelay = 0.5f;
         }
 

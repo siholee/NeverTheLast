@@ -11,6 +11,12 @@ namespace Managers
         public int enemyThemeId;
         public string description;
         public int midBossId;
+
+        /// <summary>
+        /// 중간 보스가 나오는 라운드 내 스테이지 번호. 비워 두면 8이다.
+        /// 테마마다 편성이 달라 고정하지 않는다.
+        /// </summary>
+        public int midBossStageInRound;
         public int bossId;
         public List<string> tags;
         public List<ThemeStagePatternData> stagePatterns;

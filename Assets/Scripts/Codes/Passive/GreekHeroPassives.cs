@@ -31,15 +31,14 @@ namespace Codes.Passive
         public const int OrionArmorBreak = 157;
     }
 
-    /// <summary>오리온 고유 패시브: 바위 원소 보유 중 매초 CON +1(라운드 동안 누적).</summary>
+    /// <summary>오리온 고유 패시브 '억센 육체': 바위 원소 보유 중 매초 CON +1(라운드 동안 누적).</summary>
     public sealed class OrionGeoAffinity : UniquePassiveCode
     {
         public OrionGeoAffinity(PassiveCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "원소 친화 - 바위";
+            CodeName = "억센 육체";
             IgnoresActivationChance = true;
-            TransferVersionCodeId = 231;
         }
 
         public override void CastCode()
@@ -49,7 +48,7 @@ namespace Codes.Passive
                 Caster, Caster, new OrionGeoAffinityEffect(),
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
-                description: "바위 원소를 보유한 동안 매초 CON이 1 증가합니다."));
+                description: "바위 원소를 보유한 동안 턴마다 CON이 1 증가합니다."));
         }
     }
 
@@ -237,21 +236,45 @@ namespace Codes.Passive
         }
     }
 
-    public sealed class TheseusPhalanx : PassiveCode
+    /// <summary>
+    /// 팔랑크스 — 모든 Greek 유닛이 하드코딩으로 가지는 진형 패시브다.
+    ///
+    /// 재설계 전에는 '전열의 다른 전열 아군 수만큼 STR'이었지만,
+    /// 이제는 <b>같은 패시브를 든 아군 수</b> n에 비례한다.
+    ///   · 전투 시작 시 CON 위력 <c>30 × n</c> 보호막
+    ///   · 상시 가하는 피해 <c>+5% × n</c> (n은 매 질의마다 다시 세므로 아군이 쓰러지면 즉시 줄어든다)
+    ///
+    /// 코드 용량을 차지하지 않고 전수도 되지 않는다.
+    /// </summary>
+    public sealed class GreekPhalanx : PassiveCode
     {
-        public TheseusPhalanx(PassiveCodeContext context) : base(context)
+        public const int ShieldPowerPerAlly = 30;
+        public const float DamageBonusPerAlly = 0.05f;
+
+        public GreekPhalanx(PassiveCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "팔랑크스";
             IgnoresActivationChance = true;
+            Transferable = false;
+            IgnoresCodeCapacity = true;   // 진영 공통 코드라 용량을 먹지 않는다
         }
 
-        public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
-            GreekHeroStatusIds.TheseusPhalanx, "theseus_phalanx", CodeName,
-            Caster, Caster, new TheseusPhalanxEffect(),
-            stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
-            isBeneficial: true,
-            description: "전열에 있을 때 자신 외 전열 아군 하나당 STR +1."));
+        public override void CastCode()
+        {
+            if (Caster == null || !Caster.isActive) return;
+
+            Caster.AddStatus(BuffStatus.Create(
+                GreekHeroStatusIds.TheseusPhalanx, "greek_phalanx", CodeName,
+                Caster, Caster, new GreekPhalanxEffect(),
+                stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
+                isBeneficial: true,
+                description: "팔랑크스를 가진 아군 하나당 가하는 피해 +5%. 전투 시작 시 인원수에 비례한 보호막."));
+
+            int count = GreekPhalanxEffect.HolderCount(Caster);
+            int shield = Mathf.Max(1, Caster.SkillDamage(ShieldPowerPerAlly * count, BaseEnums.PrimaryStat.CON));
+            Caster.AddShield(shield, Caster);
+        }
     }
 
     public sealed class TheseusSelfHealing : PassiveCode
@@ -268,7 +291,7 @@ namespace Codes.Passive
             Caster, Caster, new TheseusSelfHealingEffect(),
             stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
             isBeneficial: true,
-            description: "매초 CON만큼 회복합니다. 물 또는 풀 원소가 있으면 2배가 되며 중첩되지 않습니다."));
+            description: "턴마다 CON만큼 회복합니다. 물 또는 풀 원소가 있으면 2배가 되며 중첩되지 않습니다."));
     }
 
     public sealed class TheseusOverheal : PassiveCode
@@ -290,18 +313,14 @@ namespace Codes.Passive
 
     internal sealed class OrionGeoAffinityEffect : BaseEffect
     {
-        private float _elapsed;
         private int _conStacks;
         public OrionGeoAffinityEffect() : base(0) { }
 
-        public override void OnUpdate(float deltaTime)
+        /// <summary>턴마다 CON +2. 예전 '매초 +1'을 1턴 = 2초로 환산했다.</summary>
+        public override void OnOwnerTurn()
         {
             if (Target == null || !Target.isActive || !Target.HasCombatElement(BaseEnums.UnitElement.Geo)) return;
-            _elapsed += deltaTime;
-            int gained = Mathf.FloorToInt(_elapsed);
-            if (gained <= 0) return;
-            _elapsed -= gained;
-            _conStacks += gained;
+            _conStacks += 2;
             Target.RefreshAttributes();
         }
 
@@ -345,32 +364,40 @@ namespace Codes.Passive
             => unit == Target && unit.HasCombatElement(BaseEnums.UnitElement.Hydro) ? 1.2f : 1f;
     }
 
-    internal sealed class TheseusPhalanxEffect : BaseEffect
+    /// <summary>팔랑크스 상시 효과 — 보유 아군 수에 비례해 가하는 피해가 늘어난다.</summary>
+    internal sealed class GreekPhalanxEffect : BaseEffect
     {
-        public TheseusPhalanxEffect() : base(0) { }
-        public override int PrimaryStatAdditiveModifier(Unit unit, BaseEnums.PrimaryStat stat)
+        public GreekPhalanxEffect() : base(0) { }
+
+        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
         {
-            if (unit != Target || stat != BaseEnums.PrimaryStat.STR || !GreekHeroPosition.IsFront(unit)) return 0;
-            int frontColumn = GridManager.Instance.GetFrontColumn(unit.IsEnemy);
-            return global::Target.GetAllAllies(unit).Count(ally => ally != null && ally != unit && ally.isActive &&
-                ally.currentCell != null && ally.currentCell.xPos == frontColumn);
+            if (attacker != Target) return 1f;
+            return 1f + GreekPhalanx.DamageBonusPerAlly * HolderCount(attacker);
+        }
+
+        /// <summary>필드에 살아 있는 팔랑크스 보유 아군 수(자신 포함). 실시간으로 다시 센다.</summary>
+        public static int HolderCount(Unit unit)
+        {
+            if (unit == null) return 0;
+            var allies = global::Target.GetAllAllies(unit)
+                .Where(ally => ally != null && ally.isActive)
+                .ToList();
+            if (!allies.Contains(unit)) allies.Add(unit);
+            return allies.Count(ally => ally.ActivePassiveCodes.Any(code => code is GreekPhalanx));
         }
     }
 
     internal sealed class TheseusSelfHealingEffect : BaseEffect
     {
-        private float _elapsed;
         public TheseusSelfHealingEffect() : base(0) { }
-        public override void OnUpdate(float deltaTime)
+
+        /// <summary>턴마다 CON의 2배를 회복한다. 예전 '매초 CON'을 1턴 = 2초로 환산했다.</summary>
+        public override void OnOwnerTurn()
         {
             if (Target == null || !Target.isActive) return;
-            _elapsed += deltaTime;
-            int ticks = Mathf.FloorToInt(_elapsed);
-            if (ticks <= 0) return;
-            _elapsed -= ticks;
             bool doubled = Target.HasCombatElement(BaseEnums.UnitElement.Hydro) ||
                            Target.HasCombatElement(BaseEnums.UnitElement.Dendro);
-            int heal = Mathf.Max(1, Target.GetBaseCon()) * ticks * (doubled ? 2 : 1);
+            int heal = Mathf.Max(1, Target.GetBaseCon()) * 2 * (doubled ? 2 : 1);
             Target.ModifyHp(Target.HpCurr + heal, Caster ?? Target);
         }
     }

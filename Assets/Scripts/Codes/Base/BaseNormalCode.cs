@@ -23,7 +23,7 @@ namespace Codes.Base
         {
             CodeType = BaseEnums.CodeType.Normal;
             Caster = context.Caster;
-            Cooldown = 2f;
+            Cooldown = 1;
             CastingDelay = 0.5f;
             ManaAmount = 10;
             CodeTags = new List<int> { BaseClasses.DamageTag.Physical };
@@ -83,7 +83,8 @@ namespace Codes.Base
             // 추가 효과 처리 (하위 클래스에서 오버라이드 가능)
             yield return ApplyAdditionalEffects(TargetUnits[0], context);
             
-            Caster.RecoverMana(ManaAmount);
+            // 궁극기 자원은 전투 시간으로 차오른다(Unit.AccrueUltimateResource).
+            // 여기서 또 주면 행동이 잦은 유닛이 이중으로 이득을 본다.
             StopCode();
         }
 

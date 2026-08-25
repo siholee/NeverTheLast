@@ -53,7 +53,6 @@ namespace Codes.Passive
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "죽음의 계약";
             IgnoresActivationChance = true;
-            TransferVersionCodeId = 123;   // 전수 시 츠쿠요미의 '저주'가 넘어간다
         }
 
         public override void CastCode()
@@ -139,7 +138,7 @@ namespace Codes.Passive
     /// <summary>Lv.44 고전압 — 감전을 생성하면 주는 피해 +25%(6초).</summary>
     public sealed class YamaHighVoltage : PassiveCode
     {
-        private const float Duration = 6f;
+        private const int Duration = 3;   // 6초 → 3턴
         private bool _registered;
         private Action<EventContext> _cleanupHandler;
 
@@ -184,7 +183,7 @@ namespace Codes.Passive
     /// <summary>Lv.65 충전 — 감전 피해가 들어가면 마나를 회복한다(4초 재사용 대기).</summary>
     public sealed class YamaCharge : PassiveCode
     {
-        private const float ChargeCooldown = 4f;
+        private const float ChargeCooldown = 2;
         private const int ManaGain = 12;
 
         private float _readyAt;
@@ -573,7 +572,6 @@ namespace Codes.Passive
 
         public VayuPurifyingWind(PassiveCodeContext context) : this(context, 1f, 2f)
         {
-            TransferVersionCodeId = 224;   // 열화 전수본
         }
 
         private VayuPurifyingWind(PassiveCodeContext context, float chargePerCast, float maxCharge)
@@ -690,7 +688,7 @@ namespace Codes.Passive
                 new ThresholdRegenEffect(0.40f, 0.40f, 4f),
                 stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
                 isBeneficial: true,
-                description: "체력 40% 이하로 떨어지면 4초에 걸쳐 최대 체력의 40%를 회복합니다. 전투당 1회."));
+                description: "체력 40% 이하로 떨어지면 2턴에 걸쳐 최대 체력의 40%를 회복합니다. 전투당 1회."));
         }
     }
 
@@ -800,9 +798,10 @@ namespace Codes.Passive
         private readonly float _duration;
 
         private bool _used;
-        private bool _healing;
-        private float _remaining;
-        private float _healPerSecond;
+        private int _remainingTurns;
+
+        /// <summary>지속 턴 수. 생성자는 아직 초를 받으므로 1턴 = 2초로 환산한다.</summary>
+        private int DurationTurns => Mathf.Max(1, Mathf.RoundToInt(_duration * 0.5f));
 
         public ThresholdRegenEffect(float threshold, float healRatio, float duration) : base(0)
         {
@@ -811,24 +810,21 @@ namespace Codes.Passive
             _duration = duration;
         }
 
-        public override void OnUpdate(float deltaTime)
+        public override void OnOwnerTurn()
         {
             if (Target == null || !Target.isActive || Target.HpMax <= 0) return;
 
-            if (!_used && !_healing && (float)Target.HpCurr / Target.HpMax <= _threshold)
+            if (!_used && _remainingTurns <= 0 && (float)Target.HpCurr / Target.HpMax <= _threshold)
             {
                 _used = true;
-                _healing = true;
-                _remaining = _duration;
-                _healPerSecond = Target.HpMax * _healRatio / _duration;
+                _remainingTurns = DurationTurns;
             }
 
-            if (!_healing) return;
+            if (_remainingTurns <= 0) return;
 
-            _remaining -= deltaTime;
-            Target.ModifyHp(Mathf.Min(Target.HpMax,
-                Target.HpCurr + Mathf.RoundToInt(_healPerSecond * deltaTime)));
-            if (_remaining <= 0f) _healing = false;
+            _remainingTurns--;
+            int healPerTurn = Mathf.Max(1, Mathf.RoundToInt(Target.HpMax * _healRatio / DurationTurns));
+            Target.ModifyHp(Mathf.Min(Target.HpMax, Target.HpCurr + healPerTurn));
         }
     }
 

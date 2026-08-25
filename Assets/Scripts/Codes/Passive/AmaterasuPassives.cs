@@ -29,7 +29,6 @@ namespace Codes.Passive
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "태양의 박자";
             IgnoresActivationChance = true;
-            TransferVersionCodeId = 233;
         }
 
         public override void CastCode()
@@ -49,7 +48,7 @@ namespace Codes.Passive
             Caster.AddStatus(BuffStatus.Create(
                 AmaterasuStatusIds.SunRhythm, "amaterasu_sun_rhythm", CodeName,
                 Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.DEX, 4),
-                duration: 6f,
+                duration: 3,   // 6초 → 3턴
                 stackPolicy: BaseEnums.StatusStackPolicy.Stack,
                 isBeneficial: true,
                 description: "DEX +4 (최대 6중첩)."));
@@ -173,8 +172,9 @@ namespace Codes.Passive
             if (dead == null || !_contributedTargets.Remove(dead) || Caster == null || !Caster.isActive) return;
             Caster.AddStatus(BuffStatus.Create(
                 AmaterasuStatusIds.Breakthrough, "amaterasu_breakthrough", CodeName,
-                Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.DEX, 12),
-                duration: 4f,
+                // 주스탯이 DEX가 아닌 보유자(로키 등)도 온전히 쓸 수 있도록 주스탯으로 일반화했다.
+                Caster, Caster, new PrimaryStatBonusBuffEffect(Caster.MainPrimaryStat, 12),
+                duration: 2,   // 4초 → 2턴
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
                 description: "DEX +12."));

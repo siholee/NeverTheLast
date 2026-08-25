@@ -27,11 +27,38 @@ namespace Codes.Base
     /// <summary>단계(1~MaxStage)별 위력. 지정하면 <see cref="Power"/>보다 우선한다.</summary>
     protected int[] StagePowers;
 
-    /// <summary>현재 단계에 해당하는 위력.</summary>
-    public int CurrentPower =>
+    /// <summary>
+    /// 위력의 <b>스탯 비례 성분</b> 계수. 0이면 고정 위력만 쓴다.
+    ///
+    ///   위력 = 고정값 + 시전자 스탯 × 계수
+    ///
+    /// 고정값이 저점을 보장하고, 계수를 낮게 잡으면 고점이 억제된다.
+    /// 위력 자체가 스탯에 비례하므로 최종 피해는 스탯의 제곱에 가깝게 자란다 —
+    /// 계수를 크게 잡으면 후반에 폭발하니 주의할 것.
+    /// </summary>
+    protected float PowerStatCoefficient;
+
+    /// <summary>비례 성분이 참조할 스탯. 지정하지 않으면 시전자의 주스탯을 쓴다.</summary>
+    protected BaseEnums.PrimaryStat? PowerStat;
+
+    /// <summary>현재 단계에 해당하는 고정 위력.</summary>
+    protected int FlatPower =>
       StagePowers != null && StagePowers.Length > 0
         ? StagePowers[Mathf.Clamp(CurrentStage - 1, 0, StagePowers.Length - 1)]
         : Power;
+
+    /// <summary>현재 단계에 해당하는 위력. 비례 성분이 있으면 시전자 스탯을 읽어 더한다.</summary>
+    public int CurrentPower
+    {
+      get
+      {
+        int flat = FlatPower;
+        if (PowerStatCoefficient <= 0f || Caster == null) return flat;
+
+        BaseEnums.PrimaryStat stat = PowerStat ?? Caster.MainPrimaryStat;
+        return flat + Mathf.RoundToInt(Caster.GetBasePrimaryStat(stat) * PowerStatCoefficient);
+      }
+    }
 
     /// <summary>현재 단계 위력으로 시전자 기준 피해량을 계산한다.</summary>
     public int RollDamage(float critMultiplier = 1f)

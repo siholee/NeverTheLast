@@ -26,7 +26,6 @@ namespace Codes.Passive
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "생명의 잔";
             IgnoresActivationChance = true;
-            TransferVersionCodeId = 232;
         }
 
         public override void CastCode()
@@ -45,10 +44,10 @@ namespace Codes.Passive
             Caster?.AddStatus(BuffStatus.Create(
                 AsclepiusStatusIds.NashorsTooth, "asclepius_nashors_tooth", CodeName,
                 Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.DEX, 40),
-                duration: 5f,
+                duration: 2,   // 5초 → 2턴
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
-                description: "궁극기 사용 후 5초간 DEX가 40 증가합니다."));
+                description: "궁극기 사용 후 2턴간 DEX가 40 증가합니다."));
         }
 
         public override void StopCode()

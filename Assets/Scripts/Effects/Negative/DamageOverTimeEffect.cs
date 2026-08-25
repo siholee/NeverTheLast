@@ -12,53 +12,40 @@ namespace Effects.Negative
     public class DamageOverTimeEffect : BaseEffect
     {
         public override bool IsDamageOverTime => true;
-        private float _elapsedTime;
-        private const float DamageInterval = 0.1f; // 0.1초마다 피해
-        
+                
         public DamageOverTimeEffect(int effectId, float coefficient = 100f) : base(effectId, coefficient)
         {
             EffectName = "지속 피해";
             EffectDescription = $"시전자 공격력의 {coefficient}%에 해당하는 지속 피해";
             Category = BaseEnums.EffectCategory.Negative;
-            _elapsedTime = 0f;
-        }
-        
-        public override void OnApply()
-        {
-            _elapsedTime = 0f;
-            Debug.Log($"[DOT] {Target.UnitName}에게 지속 피해 효과 적용 (계수: {Coefficient}%)");
-        }
-        
-        public override void OnUpdate(float deltaTime)
-        {
-            float previousTime = _elapsedTime;
-            _elapsedTime += deltaTime;
-            
-            // 0.1초마다 피해 적용
-            int previousMultiple = (int)(previousTime / DamageInterval);
-            int currentMultiple = (int)(_elapsedTime / DamageInterval);
-            int triggerCount = currentMultiple - previousMultiple;
-            
-            for (int i = 0; i < triggerCount; i++)
-            {
-                if (Target == null || !Target.isActive || Target.HpCurr <= 0) break;
-                int damage = CalculateTickDamage();
-                DamageContext dmgContext = new DamageContext(
-                    Caster, 
-                    damage, 
-                    BaseEnums.CodeType.Effect, 
-                    new List<int>(), 
-                    false, 
-                    10000000
-                );
-                Target.TakeDamage(dmgContext);
-            }
         }
 
-        public override int EstimateDamagePerSecond()
+        public override void OnApply()
         {
-            return Mathf.Max(0, Mathf.RoundToInt(CalculateTickDamage() / DamageInterval));
+            Debug.Log($"[DOT] {Target.UnitName}에게 지속 피해 효과 적용 (계수: {Coefficient}%)");
         }
+
+        /// <summary>
+        /// 보유자의 턴마다 한 번 터진다.
+        ///
+        /// 예전에는 0.1초 간격으로 초당 10회 터졌다. 벽시계 기준이라 프레임·연출 길이에 따라
+        /// 총 피해가 흔들렸고, 초당 위력 50 스킬 10회라는 사실상 조정되지 않은 수치였다.
+        /// 턴제로 옮기면서 <b>턴당 1회</b>로 정리했다.
+        /// </summary>
+        public override void OnOwnerTurn()
+        {
+            if (Target == null || !Target.isActive || Target.HpCurr <= 0) return;
+
+            Target.TakeDamage(new DamageContext(
+                Caster,
+                CalculateTickDamage(),
+                BaseEnums.CodeType.Effect,
+                new List<int>(),
+                false,
+                10000000));
+        }
+
+        public override int EstimateDamagePerTurn() => CalculateTickDamage();
 
         private int CalculateTickDamage()
         {

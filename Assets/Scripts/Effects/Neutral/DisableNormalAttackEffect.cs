@@ -1,5 +1,6 @@
 using BaseClasses;
 using Effects.Base;
+using Entities;
 using UnityEngine;
 
 namespace Effects.Neutral
@@ -17,33 +18,18 @@ namespace Effects.Neutral
             Category = BaseEnums.EffectCategory.Neutral;
         }
         
+        // 턴제에서는 normalCooldown이 의미를 잃었다(행동 주기는 AV가 전담한다).
+        // 상태를 들고 있는 동안 스케줄러가 이 훅을 보고 일반공격 예약을 건너뛴다.
+        public override bool BlocksNormalAttack(Unit unit) => unit == Target;
+
         public override void OnApply()
         {
-            // normalCooldown을 매우 높은 값으로 설정하여 일반 공격 불가능하게 만듦
-            if (Target != null)
-            {
-                Target.normalCooldown = float.MaxValue;
-                Debug.Log($"[행동불가] {Target.UnitName}의 일반 공격이 비활성화되었습니다.");
-            }
+            if (Target != null) Debug.Log($"[행동불가] {Target.UnitName}의 일반 공격이 비활성화되었습니다.");
         }
-        
-        public override void OnUpdate(float deltaTime)
-        {
-            // 지속적으로 일반 공격 쿨다운을 최댓값으로 유지
-            if (Target != null && Target.normalCooldown < float.MaxValue)
-            {
-                Target.normalCooldown = float.MaxValue;
-            }
-        }
-        
+
         public override void OnRemove()
         {
-            // 행동불가 해제 시 normalCooldown 초기화
-            if (Target != null)
-            {
-                Target.normalCooldown = 0f;
-                Debug.Log($"[행동불가] {Target.UnitName}의 일반 공격이 활성화되었습니다.");
-            }
+            if (Target != null) Debug.Log($"[행동불가] {Target.UnitName}의 일반 공격이 활성화되었습니다.");
         }
     }
 }

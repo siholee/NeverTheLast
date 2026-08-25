@@ -62,9 +62,9 @@ namespace Entities
                     var existing = _statuses.FirstOrDefault(s => s.Key == status.Key);
                     if (existing != null)
                     {
-                        float oldDuration = existing.Duration - existing.ElapsedTime;
-                        existing.Duration = existing.ElapsedTime + oldDuration + status.Duration;
-                        Debug.Log($"[Status-Extend] {_owner.UnitName}의 {status.StatusName} 지속시간 연장: {oldDuration:F1}초 → {existing.Duration - existing.ElapsedTime:F1}초");
+                        int oldRemaining = existing.RemainingTurns;
+                        existing.Duration = existing.ElapsedTurns + oldRemaining + status.Duration;
+                        Debug.Log($"[Status-Extend] {_owner.UnitName}의 {status.StatusName} 지속 연장: {oldRemaining}턴 → {existing.RemainingTurns}턴");
                     }
                     else
                     {
@@ -213,18 +213,21 @@ namespace Entities
         /// <summary>내부 리스트 직접 반환 (UI 표시용)</summary>
         public List<UnitStatus> GetLive() => _statuses;
 
-        /// <summary>매 프레임 틱: 효과 업데이트 + 만료 상태 제거</summary>
-        public void Tick(float deltaTime)
+        /// <summary>
+        /// 보유자의 턴 시작 틱: 효과 진행 + 만료 상태 제거.
+        /// 전투가 턴제이므로 프레임이 아니라 턴 경계에서만 돈다.
+        /// </summary>
+        public void TickTurn()
         {
+            // 틱 도중 상태가 추가·제거될 수 있으므로 사본으로 순회한다.
+            foreach (UnitStatus status in _statuses.ToList())
+            {
+                status.OnOwnerTurn();
+            }
+
             for (int i = _statuses.Count - 1; i >= 0; i--)
             {
-                var status = _statuses[i];
-                status.OnUpdate(deltaTime);
-
-                if (status.IsExpired())
-                {
-                    RemoveAt(i);
-                }
+                if (_statuses[i].IsExpired()) RemoveAt(i);
             }
         }
 

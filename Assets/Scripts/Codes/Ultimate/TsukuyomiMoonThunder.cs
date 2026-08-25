@@ -18,7 +18,7 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "월뢰만천";
-            Cooldown = 6f;
+            Cooldown = 3;
             CastingDelay = 1f;
             CodeTags = new List<int> { DamageTag.Special };
         }

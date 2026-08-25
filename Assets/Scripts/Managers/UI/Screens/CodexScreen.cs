@@ -25,9 +25,27 @@ namespace Managers.UI.Screens
             Sheet,
         }
 
-        private const int GridColumns = 5;
-        private const float SlotSize = 76f;
+        // 장착 슬롯은 한 줄에 7칸(주무기·보조·갑옷·머리·목걸이·반지·신발)이 들어가야 해서 작게 잡는다.
+        private const float EquipSlotSize = 64f;
+        private const float EquipSlotGap = 6f;
+
+        // 보관함은 발더스 게이트처럼 빈 칸까지 그려서 "여기에 들어온다"를 보여 준다.
+        private const int StoreColumns = 5;
+        private const int StoreMinRows = 3;
+        private const float SlotSize = 72f;
         private const float SlotGap = 8f;
+
+        /// <summary>장착 슬롯의 표시 순서와 한국어 이름.</summary>
+        private static readonly (BaseClasses.EquipmentSlot Slot, string Label)[] EquipSlots =
+        {
+            (BaseClasses.EquipmentSlot.MainHand, "주무기"),
+            (BaseClasses.EquipmentSlot.OffHand, "보조"),
+            (BaseClasses.EquipmentSlot.Armor, "갑옷"),
+            (BaseClasses.EquipmentSlot.Head, "머리"),
+            (BaseClasses.EquipmentSlot.Necklace, "목걸이"),
+            (BaseClasses.EquipmentSlot.Ring, "반지"),
+            (BaseClasses.EquipmentSlot.Shoes, "신발"),
+        };
 
         private GameObject _rootObject;
         private RectTransform _partyColumn;
@@ -224,6 +242,16 @@ namespace Managers.UI.Screens
                     UITheme.FontMicro, UITheme.TextMuted);
                 UIBuild.Anchor(meta.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.45f), 10f, 0f);
 
+                // 보상 장비는 여유가 있는 아군에게 자동으로 들어간다.
+                // 누가 들고 있는지 목록에서 바로 보이지 않으면 받은 장비를 영영 못 찾는다.
+                int carried = unit.CarriedItemIds.Count;
+                if (carried > 0)
+                {
+                    TextMeshProUGUI bag = UIBuild.Text("Bag", card.transform, $"◫ {carried}",
+                        UITheme.FontMicro, UITheme.Accent, TextAlignmentOptions.MidlineRight);
+                    UIBuild.Anchor(bag.rectTransform, new Vector2(0.5f, 0f), new Vector2(1f, 0.45f), 10f, 0f);
+                }
+
                 Unit captured = unit;
                 UIBuild.OnClick(card.gameObject, () =>
                 {
@@ -375,51 +403,140 @@ namespace Managers.UI.Screens
             y += 22f;
         }
 
+        /// <summary>
+        /// 발더스 게이트 3식 배치.
+        ///   위 — 고정 장착 슬롯 7칸. 비어 있어도 칸과 부위 이름을 그린다.
+        ///   아래 — 보관함 격자. 빈 칸까지 그려서 새로 얻은 장비가 어디로 들어오는지 보이게 한다.
+        ///
+        /// 이전에는 장착품과 휴대품이 한 격자에 섞여 흘러가서, 보상으로 받은 장비가
+        /// 목록 어디쯤 붙었는지 알 수 없었다.
+        /// </summary>
         private void BuildEquipmentGrid()
         {
-            ItemDataList itemData = GameManager.Instance?.itemDataList;
-            List<ItemData> equipped = _selected.EquippedItems.ToList();
+            float y = 0f;
 
-            int index = 0;
+            BuildEquippedRow(ref y);
+            y += 14f;
+            BuildStorageGrid(ref y);
+        }
 
-            // 장착 중인 장비를 먼저, 앰버 테두리로 구분해 배치한다.
-            foreach (ItemData item in equipped)
+        private void BuildEquippedRow(ref float y)
+        {
+            AddGridHeading("장착", ref y);
+
+            // 슬롯별로 장착품을 찾아 둔다. 슬롯 문자열 해석은 장착 로직과 같은 함수를 쓴다.
+            var bySlot = new Dictionary<BaseClasses.EquipmentSlot, ItemData>();
+            foreach (ItemData item in _selected.EquippedItems)
             {
-                CreateSlot(index++, item, isEquipped: true, isCarried: false);
+                if (item != null &&
+                    BaseClasses.EquipmentLoadout.TryParseSlot(item.slot, out BaseClasses.EquipmentSlot slot))
+                {
+                    bySlot[slot] = item;
+                }
             }
+
+            for (int i = 0; i < EquipSlots.Length; i++)
+            {
+                (BaseClasses.EquipmentSlot slot, string label) = EquipSlots[i];
+                bySlot.TryGetValue(slot, out ItemData item);
+
+                float x = i * (EquipSlotSize + EquipSlotGap);
+                CreateSlotCell($"Equip{slot}", x, y, EquipSlotSize, item,
+                    emptyLabel: label, isEquipped: true, isCarried: false);
+            }
+
+            y += EquipSlotSize;
+        }
+
+        private void BuildStorageGrid(ref float y)
+        {
+            ItemDataList itemData = GameManager.Instance?.itemDataList;
+
+            // 이 캐릭터가 휴대 중인 것 → 그 다음 공용 보관함(영웅 생성 전에 지급된 것) 순으로 채운다.
+            var entries = new List<(ItemData Item, bool Carried)>();
 
             foreach (int itemId in _selected.CarriedItemIds)
             {
                 ItemData item = itemData?.items?.FirstOrDefault(entry => entry.id == itemId);
-                if (item == null) continue;
-                CreateSlot(index++, item, isEquipped: false, isCarried: true);
+                if (item != null) entries.Add((item, true));
             }
 
             foreach (int itemId in GameManager.Instance?.inventoryManager?.ItemIdsInHand ?? new List<int>())
             {
                 ItemData item = itemData?.items?.FirstOrDefault(entry => entry.id == itemId);
-                if (item == null) continue;
-                CreateSlot(index++, item, isEquipped: false, isCarried: false);
+                if (item != null) entries.Add((item, false));
             }
 
-            if (index == 0)
+            AddGridHeading($"보관함   {entries.Count}칸 사용", ref y);
+
+            // 내용물이 많으면 줄을 늘리되, 비어 있어도 최소 줄 수만큼 빈 칸을 그린다.
+            int rows = Mathf.Max(StoreMinRows,
+                Mathf.CeilToInt(entries.Count / (float)StoreColumns));
+
+            for (int index = 0; index < rows * StoreColumns; index++)
             {
-                TextMeshProUGUI empty = UIBuild.Text("Empty", _gridArea, "보유한 장비가 없습니다.",
-                    UITheme.FontBody, UITheme.TextMuted, TextAlignmentOptions.Center);
-                UIBuild.Stretch(empty.rectTransform);
+                int row = index / StoreColumns;
+                int column = index % StoreColumns;
+                float x = column * (SlotSize + SlotGap);
+                float slotY = y + row * (SlotSize + SlotGap);
+
+                if (index < entries.Count)
+                {
+                    (ItemData item, bool carried) = entries[index];
+                    CreateSlotCell($"Store{index}", x, slotY, SlotSize, item,
+                        emptyLabel: null, isEquipped: false, isCarried: carried);
+                }
+                else
+                {
+                    CreateSlotCell($"Store{index}", x, slotY, SlotSize, null,
+                        emptyLabel: null, isEquipped: false, isCarried: false);
+                }
             }
+
+            y += rows * (SlotSize + SlotGap);
         }
 
-        private void CreateSlot(int index, ItemData item, bool isEquipped, bool isCarried)
+        private void AddGridHeading(string text, ref float y)
         {
-            int row = index / GridColumns;
-            int column = index % GridColumns;
+            TextMeshProUGUI heading = UIBuild.Text($"Heading{text}", _gridArea, text,
+                UITheme.FontCaption, UITheme.TextSecondary);
+            UIBuild.Pin(heading.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 18f),
+                new Vector2(0f, -y));
+            heading.rectTransform.anchorMax = new Vector2(1f, 1f);
+            heading.rectTransform.sizeDelta = new Vector2(0f, 18f);
 
-            Color border = isEquipped ? UITheme.Accent : UITheme.Rarity(item.rarity);
-            Image slot = UIBuild.Panel($"Slot{index}", _gridArea, UITheme.SurfaceRaised,
-                UIShapes.Corner.Diagonal, 6, border, isEquipped ? 2 : 1);
-            UIBuild.Pin(slot.rectTransform, new Vector2(0f, 1f), new Vector2(SlotSize, SlotSize),
-                new Vector2(column * (SlotSize + SlotGap), -row * (SlotSize + SlotGap)));
+            y += 22f;
+        }
+
+        /// <summary>
+        /// 칸 하나. <paramref name="item"/>이 null이면 빈 칸으로 그린다.
+        /// 빈 장착 슬롯은 부위 이름을, 빈 보관함 칸은 아무것도 쓰지 않는다.
+        /// </summary>
+        private void CreateSlotCell(string name, float x, float y, float size,
+            ItemData item, string emptyLabel, bool isEquipped, bool isCarried)
+        {
+            bool filled = item != null;
+
+            Color fill = filled ? UITheme.SurfaceRaised : UITheme.SurfaceSunken;
+            Color border = !filled ? UITheme.Outline
+                : isEquipped ? UITheme.Accent
+                : UITheme.Rarity(item.rarity);
+
+            Image slot = UIBuild.Panel(name, _gridArea, fill,
+                UIShapes.Corner.Diagonal, 6, border, filled && isEquipped ? 2 : 1);
+            UIBuild.Pin(slot.rectTransform, new Vector2(0f, 1f), new Vector2(size, size),
+                new Vector2(x, -y));
+
+            if (!filled)
+            {
+                if (!string.IsNullOrEmpty(emptyLabel))
+                {
+                    TextMeshProUGUI hint = UIBuild.Text("Hint", slot.transform, emptyLabel,
+                        UITheme.FontMicro, UITheme.TextMuted, TextAlignmentOptions.Center);
+                    UIBuild.Stretch(hint.rectTransform, 4f, 4f);
+                }
+                return;
+            }
 
             TextMeshProUGUI label = UIBuild.Text("Name", slot.transform, item.name,
                 UITheme.FontMicro, UITheme.TextPrimary, TextAlignmentOptions.Center, wrap: true);
@@ -431,11 +548,12 @@ namespace Managers.UI.Screens
             UIBuild.Pin(weight.rectTransform, new Vector2(1f, 0f), new Vector2(20f, 14f),
                 new Vector2(-4f, 2f));
 
-            if (isEquipped)
+            // 공용 보관함 물건은 이 캐릭터의 것이 아니므로 따로 표시한다.
+            if (!isEquipped && !isCarried)
             {
-                TextMeshProUGUI mark = UIBuild.Text("Equipped", slot.transform, "E",
-                    UITheme.FontMicro, UITheme.Accent, TextAlignmentOptions.BottomLeft);
-                UIBuild.Pin(mark.rectTransform, new Vector2(0f, 0f), new Vector2(16f, 14f),
+                TextMeshProUGUI shared = UIBuild.Text("Shared", slot.transform, "공용",
+                    UITheme.FontMicro, UITheme.TextSecondary, TextAlignmentOptions.BottomLeft);
+                UIBuild.Pin(shared.rectTransform, new Vector2(0f, 0f), new Vector2(28f, 14f),
                     new Vector2(4f, 2f));
             }
 
@@ -642,8 +760,9 @@ namespace Managers.UI.Screens
             GridManager grid = GridManager.Instance;
             if (grid?.heroList == null) return new List<Unit>();
 
+            // isActive를 반드시 본다. 물러난 유닛이 리스트에 남아 있으면 같은 캐릭터가 여러 번 나온다.
             return grid.heroList
-                .Where(unit => unit != null && !unit.IsEnemy)
+                .Where(unit => unit != null && unit.isActive && !unit.IsEnemy)
                 .OrderByDescending(unit => unit.currentCell != null && unit.currentCell.yPos > 0)
                 .ThenBy(unit => unit.UnitName)
                 .ToList();

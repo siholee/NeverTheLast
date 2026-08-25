@@ -13,6 +13,12 @@ namespace Managers
         private const int MinSelection = 1;
         private const int MainSelection = 1;
 
+        // 테스트용 임시 플래그. Locked 캐릭터를 영구 해금 데이터 변경 없이 메인 후보에 노출한다.
+        public const bool UnlockLockedCharactersForTesting = true;
+
+        public static bool IsTemporarilyUnlocked(UnitData data)
+            => UnlockLockedCharactersForTesting && data != null && data.characterType == "Locked";
+
         public static void DestroyInstance()
         {
             if (Instance == null) return;
@@ -272,7 +278,7 @@ namespace Managers
 
             return role switch
             {
-                CharacterRole.Main => data.canStartAsMain || SaveSystem.IsStarterUnlocked(unitId) || SaveSystem.IsCharacterTrained(unitId),
+                CharacterRole.Main => data.canStartAsMain || IsTemporarilyUnlocked(data) || SaveSystem.IsStarterUnlocked(unitId) || SaveSystem.IsCharacterTrained(unitId),
                 CharacterRole.Support => data.canStartAsSupport || SaveSystem.IsStarterUnlocked(unitId) || SaveSystem.IsCharacterTrained(unitId),
                 _ => false,
             };
@@ -285,13 +291,12 @@ namespace Managers
 
         private static void ClearExistingHeroes()
         {
+            // 리스트에 사본이 남지 않도록 완전히 물린다.
             foreach (var hero in GridManager.Instance.heroList.ToList())
             {
-                if (hero != null && hero.isActive)
-                {
-                    hero.DeactivateUnit();
-                }
+                GridManager.Instance.RetireUnit(hero);
             }
+            GridManager.Instance.PruneUnitLists();
         }
     }
 }

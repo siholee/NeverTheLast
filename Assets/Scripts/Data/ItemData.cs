@@ -20,6 +20,11 @@ namespace Managers
         /// </summary>
         public int durability;
         public bool eventOnly;
+        /// <summary>
+        /// 테마 전용 보상. 비어 있으면 모든 테마의 보상 풀에 등장한다.
+        /// 값은 <c>80_stages.yaml</c>의 <c>stageThemes[].id</c>다(적 themeId가 아니다).
+        /// </summary>
+        public List<int> themeIds;
         public bool twoHanded;
         public List<BaseClasses.EquipmentStatBonus> statBonuses;
         public List<BaseClasses.EquipmentCodeGrant> codeGrants;

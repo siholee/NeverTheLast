@@ -14,18 +14,14 @@ namespace Codes.Ultimate
     /// <summary>
     /// 세이 궁극기 — 창세.
     ///
-    /// 6초간 아군 전체에게:
-    ///   · DEX +세이의 INT 만큼
-    ///   · 가하는 피해에 세이 INT의 y배만큼 고정 피해 추가 (아군 평균 피해의 30~60%)
+    /// 8초간 아군 전체가 피해를 가할 때마다 세이 INT ×3의 고정 피해를 추가한다.
     /// </summary>
     public sealed class SeiSanctuary : UltimateCode
     {
         private const int StatusId = 5110;
         private const string StatusKey = "sei_genesis";
-        private const float Duration = 6f;
-
-        /// <summary>단계별 INT 계수. 아군 평균 피해 대비 약 30% / 45% / 60%.</summary>
-        private static readonly float[] IntRatios = { 3.0f, 4.5f, 6.0f };
+        private const int Duration = 4;   // 8초 → 4턴
+        private const float IntRatio = 3f;
 
         private readonly List<(Unit ally, Action<DamageResolvedContext> handler)> _hooks = new();
         private bool _resolving;
@@ -34,12 +30,9 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "창세";
-            MaxStage = 3;
-            Cooldown = 8f;
+            Cooldown = 4;
             CastingDelay = 0.5f;
         }
-
-        private float Ratio => IntRatios[Mathf.Clamp(CurrentStage, 1, MaxStage) - 1];
 
         public override void CastCode()
         {
@@ -62,18 +55,17 @@ namespace Codes.Ultimate
                 yield return null;
             }
 
-            int dexBonus = Mathf.Max(1, Caster.GetBaseInt());
             ClearHooks();
 
             foreach (Unit ally in Target.GetAllAllies(Caster).Where(unit => unit != null && unit.isActive))
             {
                 var status = BuffStatus.Create(
                     StatusId, StatusKey, CodeName,
-                    Caster, ally, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.DEX, dexBonus),
+                    Caster, ally, new MarkerBuffEffect(),
                     duration: Duration,
                     stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                     isBeneficial: true,
-                    description: $"DEX +{dexBonus}, 가하는 피해에 고정 피해가 추가됩니다.");
+                    description: $"가하는 피해에 세이 INT ×{IntRatio:0.#}의 고정 피해가 추가됩니다.");
                 ally.AddStatus(status);
 
                 Unit bound = ally;
@@ -85,7 +77,7 @@ namespace Codes.Ultimate
             // 지속시간이 끝나면 추가 피해 훅을 회수한다.
             Caster.StartCoroutine(ExpireAfter(Duration));
 
-            Debug.Log($"[창세] 아군 전체 DEX +{dexBonus}, 추가 고정 피해 INT×{Ratio:0.#}, {Duration}초");
+            Debug.Log($"[창세] 아군 전체 추가 고정 피해 INT×{IntRatio:0.#}, {Duration}턴");
             StopCode();
         }
 
@@ -111,10 +103,7 @@ namespace Codes.Ultimate
 
             Unit target = context?.Target;
             if (ally == null || target == null || !target.isActive || context.DamageDealt <= 0) return;
-            if (context.DamageContext?.DamageTags != null &&
-                context.DamageContext.DamageTags.Contains(DamageTag.TrueDamage)) return;
-
-            int bonus = Mathf.Max(1, Mathf.RoundToInt(Caster.GetBaseInt() * Ratio));
+            int bonus = Mathf.Max(1, Mathf.RoundToInt(Caster.GetBaseInt() * IntRatio));
             var tags = new List<int> { DamageTag.SingleTarget, DamageTag.TrueDamage };
 
             _resolving = true;

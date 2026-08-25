@@ -25,16 +25,31 @@ namespace Managers
         /// <summary>적 유닛의 레벨. 현재 스테이지와 같다(1스테이지 = Level 1 = 성장분 0).</summary>
         public int EnemyLevel => Mathf.Max(1, Stage);
         public int StageInRound => ((Stage - 1) % 10) + 1;
+
+        /// <summary>
+        /// 이 스테이지가 소비하는 <b>내용 슬롯</b>. 평소에는 <see cref="StageInRound"/>과 같다.
+        ///
+        /// 고정 보스가 낀 라운드는 <b>2번 슬롯을 건너뛰고 이후를 1씩 당긴다.</b>
+        /// 그래서 마지막 한 칸이 비고 거기에 고정 보스가 들어간다.
+        ///
+        /// <code>
+        /// 평소       1  2  3  4  5(사건) 6  7  8  9  10(보스)
+        /// 고정 보스  1  3  4  5(사건)    6  7  8  9  10(보스)  고정 보스
+        /// </code>
+        ///
+        /// 결과적으로 테마 보스는 9번째 전투로 당겨진다 — 기존 규칙과 같은 자리다.
+        /// </summary>
+        public int ContentSlotInRound => ContentSlot(Stage);
         public int CurrentThemeId => _currentStageTheme?.id ?? 0;
         public string CurrentThemeName => _currentStageTheme?.name ?? "";
         public bool IsCurrentBossStage => IsBossStage(Stage);
         public bool IsRoundInProgress { get; private set; }
         private StageEventData RawCurrentEventData => _stageThemeDataList?.events?
-            .FirstOrDefault(data => data.themeId == CurrentThemeId && data.stageInRound == StageInRound);
+            .FirstOrDefault(data => data.themeId == CurrentThemeId && data.stageInRound == ContentSlotInRound);
         private StageEventData CurrentEventData => IsEventEligible(RawCurrentEventData) ? RawCurrentEventData : null;
 
         /// <summary>
-        /// 현재 스테이지가 테마 고정 슬롯(StageInRound == 5) 사건 스테이지라면 true를 반환한다.
+        /// 현재 스테이지가 테마 고정 슬롯(내용 슬롯 5) 사건 스테이지라면 true를 반환한다.
         /// stageEvent는 테마에 정의된 사건이 없으면 null일 수 있다(호출부에서 대체 사건 사용).
         /// 고정 보스 스테이지에서는 사건이 발생하지 않으며, 사건 전투 중에는 재진입하지 않는다.
         /// </summary>
@@ -172,11 +187,16 @@ namespace Managers
             Debug.Log($"Round {Round} theme: {_currentStageTheme.name}");
         }
 
+        /// <summary>현재 테마의 중간 보스 슬롯. 데이터가 비어 있으면 기존 규칙인 8을 쓴다.</summary>
+        private int MidBossStageInRound =>
+            (_currentStageTheme?.midBossStageInRound ?? 0) > 0 ? _currentStageTheme.midBossStageInRound : 8;
+
         private bool IsEventStage()
         {
+            if (IsFixedBossStage(Stage)) return false;
             if (RawCurrentEventData != null) return CurrentEventData != null;
             if (CurrentEventData != null) return true;
-            return StageInRound == 5 && !IsFixedBossStage(Stage);
+            return ContentSlotInRound == 5;
         }
 
 #if UNITY_EDITOR
@@ -230,20 +250,32 @@ namespace Managers
             return GetFixedBossId(stage) > 0;
         }
 
-        private bool CurrentRoundHasFixedBoss()
+        private bool CurrentRoundHasFixedBoss() => RoundHasFixedBoss(Round);
+
+        private bool RoundHasFixedBoss(int rewardRound)
         {
             if (_stageThemeDataList?.fixedBossStages == null) return false;
 
-            return _stageThemeDataList.fixedBossStages.Any(data => GetRewardRound(data.stage) == Round);
+            return _stageThemeDataList.fixedBossStages.Any(data => GetRewardRound(data.stage) == rewardRound);
+        }
+
+        /// <summary>
+        /// 임의 스테이지의 내용 슬롯. 규칙은 <see cref="ContentSlotInRound"/>을 본다.
+        /// 고정 보스 스테이지 자신은 어떤 슬롯에도 대응하지 않는다(11을 반환하고 호출부가 먼저 걸러낸다).
+        /// </summary>
+        private int ContentSlot(int stage)
+        {
+            int stageInRound = ((stage - 1) % 10) + 1;
+            if (!RoundHasFixedBoss(GetRewardRound(stage))) return stageInRound;
+
+            return stageInRound >= 2 ? stageInRound + 1 : stageInRound;
         }
 
         private bool IsBossStage(int stage)
         {
             if (GetFixedBossId(stage) > 0) return true;
 
-            int stageInRound = ((stage - 1) % 10) + 1;
-            return (stageInRound == 10 && !CurrentRoundHasFixedBoss()) ||
-                   (stageInRound == 9 && CurrentRoundHasFixedBoss());
+            return ContentSlot(stage) == 10;
         }
 
         private int GetFixedBossId(int stage)
@@ -264,16 +296,12 @@ namespace Managers
 
             if (GetFixedBossId(stage) > 0) return StageKind.Boss;
 
-            int rewardRound = GetRewardRound(stage);
-            int stageInRound = ((stage - 1) % 10) + 1;
-            bool roundHasFixedBoss = _stageThemeDataList?.fixedBossStages?
-                .Any(data => GetRewardRound(data.stage) == rewardRound) ?? false;
+            int slot = ContentSlot(stage);
 
-            if (stageInRound == 10 && !roundHasFixedBoss) return StageKind.Boss;
-            if (stageInRound == 9 && roundHasFixedBoss) return StageKind.Boss;
+            if (slot == 10) return StageKind.Boss;
             // 중보스 여부는 테마마다 다르지만, 예고는 현재 테마 기준으로만 근사한다.
-            if (stageInRound == 8 && (_currentStageTheme?.midBossId ?? 0) > 0) return StageKind.MidBoss;
-            if (stageInRound == 5) return StageKind.Event;
+            if (slot == MidBossStageInRound && (_currentStageTheme?.midBossId ?? 0) > 0) return StageKind.MidBoss;
+            if (slot == 5) return StageKind.Event;
             return StageKind.Normal;
         }
 
@@ -318,25 +346,28 @@ namespace Managers
                 return;
             }
 
-            if (StageInRound == 8 && _currentStageTheme.midBossId > 0)
+            // 테마가 이 스테이지의 편성을 직접 적어 두었으면 그쪽이 우선한다.
+            // 보스에게 호위를 붙이려면 중간 보스·보스 단독 스폰보다 먼저 봐야 한다.
+            int slot = ContentSlotInRound;
+            ThemeStagePatternData themeStagePattern = _currentStageTheme.stagePatterns?
+                .FirstOrDefault(data => data.stageInRound == slot);
+            bool hasThemePattern = themeStagePattern?.patterns != null && themeStagePattern.patterns.Count > 0;
+
+            if (!hasThemePattern && slot == MidBossStageInRound && _currentStageTheme.midBossId > 0)
             {
                 enemyIdsToSpawn.Add(_currentStageTheme.midBossId);
                 PlaceEnemies(enemyIdsToSpawn);
                 return;
             }
 
-            bool isThemeBossStage = (StageInRound == 10 && !CurrentRoundHasFixedBoss()) ||
-                                    (StageInRound == 9 && CurrentRoundHasFixedBoss());
-            if (isThemeBossStage && _currentStageTheme.bossId > 0)
+            if (!hasThemePattern && slot == 10 && _currentStageTheme.bossId > 0)
             {
                 enemyIdsToSpawn.Add(_currentStageTheme.bossId);
                 PlaceEnemies(enemyIdsToSpawn);
                 return;
             }
 
-            ThemeStagePatternData themeStagePattern = _currentStageTheme.stagePatterns?
-                .FirstOrDefault(data => data.stageInRound == StageInRound);
-            if (themeStagePattern?.patterns != null && themeStagePattern.patterns.Count > 0)
+            if (hasThemePattern)
             {
                 RoundPattern themePattern = SelectRandomPattern(themeStagePattern.patterns);
                 if (themePattern?.enemyIds != null)

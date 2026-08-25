@@ -113,7 +113,7 @@ namespace Codes.Passive
 
     internal sealed class SurtrTwilightControllerEffect : BaseEffect
     {
-        private const float StaggerDuration = 2f;
+        private const int StaggerDuration = 1;   // 2초 → 1턴
         private bool _used;
         private bool _staggering;
         private float _staggerRemaining;
@@ -137,10 +137,10 @@ namespace Codes.Passive
             return true;
         }
 
-        public override void OnUpdate(float deltaTime)
+        public override void OnOwnerTurn()
         {
             if (!_staggering || Target == null || !Target.isActive) return;
-            _staggerRemaining -= deltaTime;
+            _staggerRemaining -= 1f;
             if (_staggerRemaining > 0f) return;
 
             _staggering = false;
@@ -155,7 +155,7 @@ namespace Codes.Passive
                 Target,
                 new SurtrBurningTwilightEffect(),
                 category: BaseEnums.StatusCategory.Neutral,
-                description: "라그나로크가 항상 최대 중첩이며 매초 증가하는 비율로 최대 체력을 잃습니다."));
+                description: "라그나로크가 항상 최대 중첩이며 턴마다 증가하는 비율로 최대 체력을 잃습니다."));
         }
 
         public override void OnRemove()
@@ -167,30 +167,43 @@ namespace Codes.Passive
         }
     }
 
+    /// <summary>
+    /// 황혼의 자기 소진.
+    ///
+    /// 이 효과만은 턴이 아니라 <b>전투 시계(초)</b>를 쓴다.
+    /// 소진율이 시간에 따라 점점 커지는 구조라, 행동 속도가 빠른 수르트일수록
+    /// 턴 기준으로는 더 빨리 타 죽는 역설이 생기기 때문이다.
+    /// 전투 시계는 AV에서 환산하므로 누군가 행동하는 동안에는 멈춘다.
+    /// </summary>
     internal sealed class SurtrBurningTwilightEffect : BaseEffect
     {
-        private float _elapsed;
         private int _drainTick;
+        private float _secondsCarry;
 
         public SurtrBurningTwilightEffect() : base(0) { }
 
         public override void OnApply()
         {
-            _elapsed = 0f;
             _drainTick = 0;
+            _secondsCarry = 0f;
             Target?.FillUltimateResource(false);
         }
 
-        public override void OnUpdate(float deltaTime)
+        public override void OnOwnerTurn()
         {
             if (Target == null || !Target.isActive) return;
             Target.FillUltimateResource(false);
-            _elapsed += deltaTime;
-            while (_elapsed >= 1f && Target.isActive)
+
+            // 직전 턴 이후 흐른 전투 시간만큼 1초 단위로 정산한다.
+            _secondsCarry += Target.LastTurnSeconds;
+            while (_secondsCarry >= 1f && Target.isActive)
             {
-                _elapsed -= 1f;
+                _secondsCarry -= 1f;
+
+                // 매초 최대 체력의 2%부터 시작해 1%p씩 증가한다.
                 float drainRatio = (2f + _drainTick) * 0.01f;
                 _drainTick++;
+
                 int drain = Mathf.Max(1, Mathf.RoundToInt(Target.HpMax * drainRatio));
                 if (Target.HpCurr <= drain)
                 {

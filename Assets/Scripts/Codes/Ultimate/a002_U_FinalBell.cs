@@ -14,7 +14,7 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             Caster = context.Caster;
-            Cooldown = 8f;
+            Cooldown = 4;
             CodeName = "만종";
             CastingDelay = 0f;
         }
@@ -32,10 +32,10 @@ namespace Codes.Ultimate
             var status = BuffStatus.Create(
                 BuffStatusIds.FinalBell, StatusKey, "만종",
                 Caster, Caster, new FinalBellBuffEffect(),
-                duration: 8f,
+                duration: 4,   // 8초 → 4턴
                 description: "DEX가 레벨×2만큼 증가합니다.");
             Caster.AddStatus(status);
-            Debug.Log($"[만종] {Caster.UnitName}: 8초간 DEX +{Caster.Level * 2}, 시의 종언 발동 간격 1/3");
+            Debug.Log($"[만종] {Caster.UnitName}: 4턴간 DEX +{Caster.Level * 2}, 시의 종언 발동 간격 1/3");
 
             StopCode();
             yield return null;

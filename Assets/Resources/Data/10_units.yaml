@@ -74,9 +74,14 @@ units:
       normal: 1
       ultimate: 1
     levelPassives:
-      - { codeId: 51, unlockLevel: 6,  stage: 1 }   # 성역
-      - { codeId: 52, unlockLevel: 50, stage: 1 }   # 사전준비
-      - { codeId: 53, unlockLevel: 92, stage: 1 }   # 빅뱅
+      - { codeId: 8,   unlockLevel: 8,  stage: 1 }   # 성채
+      - { codeId: 121, unlockLevel: 12, stage: 1 }   # 주문 보호막
+      - { codeId: 74,  unlockLevel: 22, stage: 1 }   # 명상
+      - { codeId: 93,  unlockLevel: 25, stage: 1 }   # 투명
+      - { codeId: 97,  unlockLevel: 30, stage: 1 }   # 마나 호흡법
+      - { codeId: 38,  unlockLevel: 38, stage: 1 }   # 철벽
+      - { codeId: 52,  unlockLevel: 50, stage: 1 }   # 사전준비
+      - { codeId: 53,  unlockLevel: 92, stage: 1 }   # 창세의 노래
     portrait: SEI_PORTRAIT
     standing: SEI_STANDING
 
@@ -120,7 +125,6 @@ units:
       ultimate: 1
     levelPassives:
       - { codeId: 54,  unlockLevel: 10, stage: 1 }   # 검의 달인
-      - { codeId: 55,  unlockLevel: 20, stage: 1 }   # 만류귀종
       - { codeId: 56,  unlockLevel: 28, stage: 1 }   # 신속
       - { codeId: 124, unlockLevel: 31, stage: 1 }   # 상처 벌리기
       - { codeId: 58,  unlockLevel: 44, stage: 1 }   # 천살성
@@ -169,7 +173,6 @@ units:
       ultimate: 1
     levelPassives:
       - { codeId: 12,  unlockLevel: 12, stage: 1 }   # 기사회생
-      - { codeId: 87,  unlockLevel: 30, stage: 1 }   # 팔랑크스
       - { codeId: 220, unlockLevel: 39, stage: 1 }   # 약자 멸시
       - { codeId: 221, unlockLevel: 45, stage: 1 }   # 천천히 꾸준히
       - { codeId: 222, unlockLevel: 68, stage: 1 }   # 날카로운 가시
@@ -319,7 +322,6 @@ units:
     levelPassives:
       - { codeId: 85, unlockLevel: 9,  stage: 1 }   # 원소 친화 - 물
       - { codeId: 86, unlockLevel: 22, stage: 1 }   # 투사
-      - { codeId: 87, unlockLevel: 30, stage: 1 }   # 팔랑크스
       - { codeId: 88, unlockLevel: 45, stage: 1 }   # 자가치유
       - { codeId: 89, unlockLevel: 50, stage: 1 }   # 과다치유
     portrait: THESEUS_PORTRAIT
@@ -427,7 +429,7 @@ units:
   - id: 12
     name: 찬드라
     characterType: Support
-    element: Anemo
+    element: Geo
     startingProficiencies: [Orb, LightArmor]
     startingItemIds: [4109]
     tags: [Vedic]
@@ -487,7 +489,7 @@ units:
     portrait: CHANDRA_PORTRAIT
     standing: CHANDRA_STANDING
 
-  # ── 보관: 획득 경로 없음 (아즈텍 테마 제거) ──────────────────────
+  # ── 보관: 영웅 획득 경로 미정 ─────────────────────────────────────
   - id: 20
     name: 케찰코아틀
     characterType: Locked
@@ -575,14 +577,8 @@ units:
       normal: 1
       ultimate: 1
     levelPassives:
-      - codeId: 121
-        unlockLevel: 12
-        stage: 1
       - codeId: 122
         unlockLevel: 15
-        stage: 1
-      - codeId: 123
-        unlockLevel: 28
         stage: 1
       - codeId: 124
         unlockLevel: 33
@@ -592,9 +588,6 @@ units:
         stage: 1
       - codeId: 126
         unlockLevel: 44
-        stage: 1
-      - codeId: 127
-        unlockLevel: 55
         stage: 1
       - codeId: 128
         unlockLevel: 72
@@ -646,7 +639,6 @@ units:
       ultimate: 1
     levelPassives:
       - { codeId: 133, unlockLevel: 4,  stage: 1 }   # 거인
-      - { codeId: 134, unlockLevel: 8,  stage: 1 }   # 원소 숙련 - 불
       - { codeId: 135, unlockLevel: 25, stage: 1 }   # 천상의 신체
       - { codeId: 136, unlockLevel: 28, stage: 1 }   # 투사
       - { codeId: 137, unlockLevel: 33, stage: 1 }   # 클러치 플레이어
@@ -737,8 +729,8 @@ units:
       - { codeId: 121, unlockLevel: 12, stage: 1 }   # 주문 보호막
       - { codeId: 248, unlockLevel: 71, stage: 1 }   # 대마법사
       - { codeId: 246, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
-    portrait: SEI_PORTRAIT
-    standing: SEI_STANDING
+    portrait: AGNI_PORTRAIT
+    standing: AGNI_STANDING
 
   # 클래식 번개 하이퍼캐리.
   - id: 32
@@ -820,5 +812,424 @@ units:
       - { codeId: 122, unlockLevel: 15, stage: 1 }   # 변덕쟁이
       - { codeId: 257, unlockLevel: 30, stage: 1 }   # 기습
       - { codeId: 246, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
-    portrait: SEI_PORTRAIT
-    standing: SEI_STANDING
+    portrait: VAYU_PORTRAIT
+    standing: VAYU_STANDING
+
+  # ══════════════════════════════════════════════════════════════
+  # 2026-08 신규 — 노르드 3인 · 로카팔라 2인 · 그리스 1인 · 타카미가하라 1인
+  # ══════════════════════════════════════════════════════════════
+
+  - id: 25
+    name: 프레이아
+    characterType: Support
+    element: Dendro
+    startingProficiencies: [Spear, LightArmor]
+    startingItemIds: [4104]
+    tags: [Nord]
+    canStartAsMain: false
+    canStartAsSupport: true
+    canUseInInfinite: false
+    mainStat: INT
+    subStat: DEX
+    subStats: [DEX]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 8
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 16
+    dexIncrementLvl: 2
+    dexIncrementUpgrade: 1
+    conBase: 18
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 22
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 12
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes: { passive: 260, normal: 244, ultimate: 244 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 74,  unlockLevel: 22, stage: 1 }   # 명상
+      - { codeId: 261, unlockLevel: 30, stage: 1 }   # 의술
+      - { codeId: 262, unlockLevel: 40, stage: 1 }   # 리더쉽
+      - { codeId: 263, unlockLevel: 61, stage: 1 }   # 전사장
+    portrait: FREYA_PORTRAIT
+    standing: FREYA_STANDING
+
+  - id: 26
+    name: 로키
+    characterType: Locked
+    element: Pyro
+    startingProficiencies: [Longbow, MediumArmor]
+    startingItemIds: [4106]
+    tags: [Nord]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: LUK
+    subStat: STR
+    subStats: [STR]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 18
+    strIncrementLvl: 2
+    strIncrementUpgrade: 1
+    dexBase: 16
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 14
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 10
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 22
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 1
+    codes: { passive: 264, normal: 245, ultimate: 245 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 133, unlockLevel: 4,  stage: 1 }   # 거인
+      - { codeId: 122, unlockLevel: 15, stage: 1 }   # 변덕쟁이
+      - { codeId: 265, unlockLevel: 25, stage: 1 }   # 소환사
+      - { codeId: 138, unlockLevel: 52, stage: 1 }   # 신살자
+      - { codeId: 95,  unlockLevel: 68, stage: 1 }   # 파죽지세
+    portrait: LOKI_PORTRAIT
+    standing: LOKI_STANDING
+
+  - id: 27
+    name: 스카디
+    characterType: Support
+    element: Cryo
+    startingProficiencies: [Orb, MediumArmor]
+    startingItemIds: [4109]
+    tags: [Nord]
+    canStartAsMain: false
+    canStartAsSupport: true
+    canUseInInfinite: false
+    mainStat: CON
+    subStat: INT
+    subStats: [INT]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 10
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 12
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 24
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 18
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 12
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes: { passive: 266, normal: 246, ultimate: 246 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 133, unlockLevel: 4,  stage: 1 }   # 거인
+      - { codeId: 267, unlockLevel: 10, stage: 1 }   # 원소 숙련 - 얼음
+      - { codeId: 268, unlockLevel: 12, stage: 1 }   # 원소 친화 - 얼음
+      - { codeId: 38,  unlockLevel: 38, stage: 1 }   # 철벽
+      - { codeId: 269, unlockLevel: 60, stage: 1 }   # 원소술사
+    portrait: SKADI_PORTRAIT
+    standing: SKADI_STANDING
+
+  - id: 34
+    name: 쿠베라
+    characterType: Support
+    element: Geo
+    startingProficiencies: [Shield, Longsword, HeavyArmor]
+    startingItemIds: [4102]
+    tags: [Vedic, Lokapala]
+    canStartAsMain: false
+    canStartAsSupport: true
+    canUseInInfinite: false
+    mainStat: CON
+    subStat: STR
+    subStats: [STR]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 20
+    strIncrementLvl: 2
+    strIncrementUpgrade: 1
+    dexBase: 10
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 26
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 8
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 10
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes: { passive: 270, normal: 247, ultimate: 247 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 271, unlockLevel: 5,  stage: 1 }   # 원소 친화 - 바위
+      - { codeId: 135, unlockLevel: 25, stage: 1 }   # 천상의 신체
+      - { codeId: 272, unlockLevel: 27, stage: 1 }   # 뿌리박기
+      - { codeId: 273, unlockLevel: 32, stage: 1 }   # 상인
+      - { codeId: 38,  unlockLevel: 38, stage: 1 }   # 철벽
+      - { codeId: 246, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
+    portrait: KUBERA_PORTRAIT
+    standing: KUBERA_STANDING
+
+  - id: 35
+    name: 바루나
+    characterType: Support
+    element: Hydro
+    startingProficiencies: [Spear, MediumArmor]
+    startingItemIds: [4104]
+    tags: [Vedic, Lokapala]
+    canStartAsMain: false
+    canStartAsSupport: true
+    canUseInInfinite: false
+    mainStat: CON
+    subStat: INT
+    subStats: [INT]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 10
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 12
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 22
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 20
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 12
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes: { passive: 274, normal: 248, ultimate: 248 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 121, unlockLevel: 12, stage: 1 }   # 주문 보호막
+      - { codeId: 125, unlockLevel: 38, stage: 1 }   # 고통스러운 상처
+      - { codeId: 244, unlockLevel: 44, stage: 1 }   # 고전압
+      - { codeId: 275, unlockLevel: 50, stage: 1 }   # 수천
+      - { codeId: 246, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
+    portrait: VARUNA_PORTRAIT
+    standing: VARUNA_STANDING
+
+  - id: 10
+    name: 오르페우스
+    characterType: Support
+    element: Anemo
+    startingProficiencies: [Longsword, LightArmor]
+    startingItemIds: [4102]
+    tags: [Greek]
+    canStartAsMain: false
+    canStartAsSupport: true
+    canUseInInfinite: false
+    mainStat: LUK
+    subStat: INT
+    subStats: [INT]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 10
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 14
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 14
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 18
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 22
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 1
+    codes: { passive: 276, normal: 250, ultimate: 250 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 72,  unlockLevel: 9,  stage: 1 }   # 행운아
+      - { codeId: 256, unlockLevel: 13, stage: 1 }   # 재기의 바람
+      - { codeId: 93,  unlockLevel: 25, stage: 1 }   # 투명
+      - { codeId: 56,  unlockLevel: 28, stage: 1 }   # 신속
+      - { codeId: 277, unlockLevel: 30, stage: 1 }   # 음유시인
+    portrait: ORPHEUS_PORTRAIT
+    standing: ORPHEUS_STANDING
+
+  - id: 22
+    name: 스사노오
+    characterType: Locked
+    element: Hydro
+    startingProficiencies: [Greatsword, LightArmor]
+    startingItemIds: [4103]
+    tags: [Takamagahara, ThreeNobles]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: LUK
+    subStat: DEX
+    subStats: [DEX]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 16
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 22
+    dexIncrementLvl: 2
+    dexIncrementUpgrade: 1
+    conBase: 16
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 8
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 24
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 1
+    codes: { passive: 278, normal: 249, ultimate: 249 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 72,  unlockLevel: 9,  stage: 1 }   # 행운아
+      - { codeId: 54,  unlockLevel: 10, stage: 1 }   # 검의 달인
+      - { codeId: 73,  unlockLevel: 18, stage: 1 }   # 예리함
+      - { codeId: 279, unlockLevel: 22, stage: 1 }   # 파도베기
+      - { codeId: 58,  unlockLevel: 44, stage: 1 }   # 천살성
+    portrait: SUSANOO_PORTRAIT
+    standing: SUSANOO_STANDING
+  # ── 로마 3인 ──────────────────────────────────────────────────────
+  # 적(60_enemies.yaml 2006 / 2007 / 3004)과 코드를 공유한다.
+  # 보스로 등장할 때만 붙는 패시브(312~317 · 284 심안)는 여기 없다.
+  # 전용 로마 스프라이트를 적 버전과 공유한다.
+  - id: 40
+    name: 아그리파
+    characterType: Support
+    element: Geo
+    startingProficiencies: [Greatsword, MediumArmor]
+    startingItemIds: [4103]
+    tags: [Rome]
+    canStartAsMain: false
+    canStartAsSupport: true
+    canUseInInfinite: false
+    mainStat: DEX
+    subStat: INT
+    subStats: [INT]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 12
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 20
+    dexIncrementLvl: 2
+    dexIncrementUpgrade: 1
+    conBase: 14
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 18
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 12
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes: { passive: 309, normal: 269, ultimate: 169 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 12,  unlockLevel: 12, stage: 1 }   # 기사회생
+      - { codeId: 97,  unlockLevel: 30, stage: 1 }   # 마나 호흡법
+      - { codeId: 283, unlockLevel: 46, stage: 1 }   # 전술가
+      - { codeId: 89,  unlockLevel: 50, stage: 1 }   # 과다치유
+      - { codeId: 52,  unlockLevel: 52, stage: 1 }   # 사전준비
+      - { codeId: 254, unlockLevel: 92, stage: 1 }   # 인도자
+    portrait: AGRIPPA_PORTRAIT
+    standing: AGRIPPA_STANDING
+
+  - id: 41
+    name: 옥타비아
+    characterType: Locked
+    element: Anemo
+    startingProficiencies: [Orb, LightArmor]
+    startingItemIds: [4109]
+    tags: [Rome, Emperor]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: INT
+    subStat: LUK
+    subStats: [LUK]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 8
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 10
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 12
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 24
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 18
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 1
+    codes: { passive: 310, normal: 270, ultimate: 170 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 142, unlockLevel: 10, stage: 1 }   # 유리대포
+      - { codeId: 73,  unlockLevel: 18, stage: 1 }   # 예리함
+      - { codeId: 251, unlockLevel: 20, stage: 1 }   # 천재
+      - { codeId: 262, unlockLevel: 40, stage: 1 }   # 리더쉽
+      - { codeId: 248, unlockLevel: 71, stage: 1 }   # 대마법사
+    portrait: OCTAVIA_PORTRAIT
+    standing: OCTAVIA_STANDING
+
+  - id: 42
+    name: 카이사르
+    characterType: Locked
+    element: Anemo
+    startingProficiencies: [Longsword, LightArmor]
+    startingItemIds: [4102]
+    tags: [Rome, Emperor]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: LUK
+    subStat: DEX
+    subStats: [DEX]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 12
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 18
+    dexIncrementLvl: 2
+    dexIncrementUpgrade: 1
+    conBase: 15
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 12
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 22
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 1
+    codes: { passive: 311, normal: 271, ultimate: 171 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 72,  unlockLevel: 9,  stage: 1 }   # 행운아
+      - { codeId: 281, unlockLevel: 12, stage: 1 }   # 카리스마
+      - { codeId: 282, unlockLevel: 21, stage: 1 }   # 직감
+      - { codeId: 137, unlockLevel: 55, stage: 1 }   # 클러치 플레이어
+      - { codeId: 95,  unlockLevel: 68, stage: 1 }   # 파죽지세
+      - { codeId: 254, unlockLevel: 92, stage: 1 }   # 인도자
+    portrait: CAESAR_PORTRAIT
+    standing: CAESAR_STANDING

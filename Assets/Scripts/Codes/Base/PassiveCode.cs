@@ -10,6 +10,12 @@ namespace Codes.Base
     /// </summary>
     public bool IsUniquePassive { get; protected set; }
 
+    /// <summary>
+    /// INT가 만드는 코드 용량을 차지하지 않는 패시브인지.
+    /// 고유 패시브 외에, 진영 전체에 하드코딩으로 배포되는 코드(그리스 팔랑크스)가 여기에 해당한다.
+    /// </summary>
+    public bool IgnoresCodeCapacity { get; protected set; }
+
     public PassiveCode(PassiveCodeContext context)
     {
       Caster = context.Caster;

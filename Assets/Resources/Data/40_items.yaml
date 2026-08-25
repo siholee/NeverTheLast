@@ -4,6 +4,9 @@
 #   T1 기준 — 의복 2 / 경갑 5 / 방패 6 / 중갑 10 / 판금 16
 #   상위 티어는 `T1 값 × (1 + (rarity-1) × 0.6)`을 기준으로 올린다.
 #   (고정값이므로 티어를 따라 올리지 않으면 후반에 무의미해진다)
+#
+# themeIds: 테마 전용 보상. 비어 있으면 모든 테마의 보상 풀에 등장한다.
+#   값은 80_stages.yaml의 stageThemes[].id다 (적 themeId가 아니다).
 items:
   # T1 무기 — 효과는 의도적으로 5스탯 +1만 제공한다.
   - id: 4101
@@ -141,7 +144,108 @@ items:
     durability: 16
     statBonuses: [{ stat: STR, amount: 1 }]
 
-  # 아즈텍 영입 사건 전용 보상. 일반 보상 풀에는 들어가지 않는다.
+  # ── T2 레기온 세트 — '로마' 테마 전용 보상 (themeIds: [5]) ──────────
+  # 군단 규격 생산품이라 T1 대응품과 중량이 같고 스탯만 올라간다.
+  # T2는 codeGrants를 주지 않는다. 스탯 증가와 내구도만 제공한다.
+  # 방어구 내구는 T1 값 x (1 + (rarity-1) x 0.6) = x1.6 규칙을 따랐다.
+  - id: 4201
+    name: 레기온 한손검
+    slot: MainHand
+    category: Longsword
+    requiredProficiency: Longsword
+    rarity: 2
+    weight: 2
+    themeIds: [5]
+    statBonuses: [{ stat: STR, amount: 3 }]
+
+  - id: 4202
+    name: 레기온 두손검
+    slot: MainHand
+    category: Greatsword
+    requiredProficiency: Greatsword
+    rarity: 2
+    weight: 4
+    twoHanded: true
+    themeIds: [5]
+    statBonuses: [{ stat: STR, amount: 3 }]
+
+  - id: 4203
+    name: 레기온 장창
+    slot: MainHand
+    category: Spear
+    requiredProficiency: Spear
+    rarity: 2
+    weight: 3
+    twoHanded: true
+    themeIds: [5]
+    statBonuses: [{ stat: DEX, amount: 3 }]
+
+  - id: 4204
+    name: 레기온 쇠뇌
+    slot: MainHand
+    category: Crossbow
+    requiredProficiency: Crossbow
+    rarity: 2
+    weight: 4
+    twoHanded: true
+    themeIds: [5]
+    statBonuses: [{ stat: DEX, amount: 3 }]
+
+  - id: 4205
+    name: 레기온 보주
+    slot: MainHand
+    category: Orb
+    requiredProficiency: Orb
+    rarity: 2
+    weight: 1
+    themeIds: [5]
+    statBonuses: [{ stat: INT, amount: 3 }]
+
+  - id: 4206
+    name: 레기온 방패
+    slot: OffHand
+    category: Shield
+    requiredProficiency: Shield
+    rarity: 2
+    weight: 3
+    durability: 10
+    themeIds: [5]
+    statBonuses: [{ stat: STR, amount: 3 }]
+
+  - id: 4207
+    name: 레기온 경갑
+    slot: Armor
+    category: LightArmor
+    requiredProficiency: LightArmor
+    rarity: 2
+    weight: 2
+    durability: 8
+    themeIds: [5]
+    statBonuses: [{ stat: DEX, amount: 3 }]
+
+  - id: 4208
+    name: 레기온 평갑
+    slot: Armor
+    category: MediumArmor
+    requiredProficiency: MediumArmor
+    rarity: 2
+    weight: 4
+    durability: 16
+    themeIds: [5]
+    statBonuses: [{ stat: CON, amount: 3 }]
+
+  - id: 4209
+    name: 레기온 중갑
+    slot: Armor
+    category: HeavyArmor
+    requiredProficiency: HeavyArmor
+    rarity: 2
+    weight: 6
+    durability: 26
+    themeIds: [5]
+    statBonuses: [{ stat: STR, amount: 3 }]
+
+  # 메히코 케찰코아틀 영입 사건 전용 보상. 일반 보상 풀에는 들어가지 않는다.
   - id: 4010
     name: 마카나
     slot: MainHand

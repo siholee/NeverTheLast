@@ -4,6 +4,7 @@ using System.Linq;
 using BaseClasses;
 using Codes.Base;
 using Codes.Normal;
+using Codes.Passive;
 using Core;
 using Managers;
 using UnityEngine;
@@ -107,6 +108,24 @@ namespace Entities
         /// <summary>이번 라운드에 이 유닛이 가한 누적 피해.</summary>
         public int RoundDamageDealt { get => roundDamageDealt; private set => roundDamageDealt = value; }
 
+        /// <summary>
+        /// 이번 라운드에 이 유닛이 <b>부여자로서</b> 실제로 채운 체력의 합(순수치유량).
+        /// 과다치유(오버힐)와 보호막은 세지 않는다. 프레이아 궁극기 '풍요의 산물'이 자원으로 쓴다.
+        /// </summary>
+        public int RoundEffectiveHealingDone { get; private set; }
+
+        /// <summary>순수치유량 기록을 0으로 되돌린다.</summary>
+        public void ResetEffectiveHealingRecord() => RoundEffectiveHealingDone = 0;
+
+        // ── 강인도 (붕괴: 스타레일식 가상 체력) ─────────────────────
+        // 체력과 병렬로 깎이며 피해를 흡수하지 않는다. 0이 되면 사라지고 처치 판정만 발행한다.
+        [SerializeField] private int toughnessCurr;
+        [SerializeField] private int toughnessMax;
+
+        public int ToughnessCurr => toughnessCurr;
+        public int ToughnessMax => toughnessMax;
+        public bool HasToughness => toughnessCurr > 0;
+
         /// <summary>방어력. STR 파생. 롤 방식으로 받는 피해를 비율 감소시킨다.</summary>
         public int DefCurr { get => defCurr; protected set => defCurr = value; }
 
@@ -156,7 +175,8 @@ namespace Entities
         public bool isCasting; // 스킬 시전중
         public float castingTime;
         public bool isControlled; // 행동 불가 상태
-        public float controlDuration;
+        /// <summary>남은 행동 불가 <b>턴</b> 수. 자기 턴이 올 때마다 1씩 줄고 그 턴의 행동을 건너뛴다.</summary>
+        public int controlTurns;
         
         // 일반공격 타겟팅
         public Unit currentNormalTarget; // 현재 일반공격 타겟
@@ -214,9 +234,15 @@ namespace Entities
         public float ultimateCooldown;
         protected EquipmentLoadout EquipmentLoadout;
         /// <summary>원신의 1U 오라 감쇠 시간을 기준으로 한 공용 원소 부착 지속시간.</summary>
-        public const float CommonElementAuraDuration = 9.5f;
+        /// <summary>원소 부착 기본 지속 <b>턴</b> 수. 부착자가 아니라 <b>부착된 유닛</b>의 턴으로 센다.</summary>
+        public const int CommonElementAuraDuration = 5;
         private readonly HashSet<BaseEnums.UnitElement> _combatElements = new();
-        private readonly Dictionary<BaseEnums.UnitElement, float> _temporaryElementDurations = new();
+        /// <summary>
+        /// 실제로 부착되지는 않았지만 <b>판정만</b> 받는 원소(스사노오 '뇌신').
+        /// 원소 반응의 재료로는 쓰이지 않는다. 부착이 아니므로 반응에 소모되지도 않는다.
+        /// </summary>
+        private readonly HashSet<BaseEnums.UnitElement> _judgementElements = new();
+        private readonly Dictionary<BaseEnums.UnitElement, int> _temporaryElementDurations = new();
         private readonly Dictionary<string, int> _combatResources = new();
         private readonly Dictionary<string, int> _combatResourceMaximums = new();
         private int _baseNormalCodeId;
@@ -235,7 +261,8 @@ namespace Entities
         public bool IsOverCarryWeightMax => CarryWeightCurrent > CarryWeightMax;
         public int MaxCodeCount => Mathf.Max(3, GetBaseInt());
         // 일반공격·고유 궁극기는 고정 2칸, 고유 패시브는 별도 슬롯이라 코드 용량을 차지하지 않는다.
-        public int LearnedCodeCount => 2 + PassiveCodes.Count(code => code != null && !code.IsUniquePassive);
+        public int LearnedCodeCount => 2 + PassiveCodes.Count(
+            code => code != null && !code.IsUniquePassive && !code.IgnoresCodeCapacity);
 
         // ── UI 조회용 읽기 전용 접근자 ──────────────────────────────
         // 코드/장비 컨테이너는 protected로 유지하고, 화면이 필요로 하는 조회만 공개한다.
@@ -285,6 +312,7 @@ namespace Entities
             unitTags = new List<string>();
             unitTier = "";
             _combatElements.Clear();
+            _judgementElements.Clear();
             _temporaryElementDurations.Clear();
             _combatResources.Clear();
             _combatResourceMaximums.Clear();
@@ -339,6 +367,9 @@ namespace Entities
                 subStats = string.IsNullOrWhiteSpace(SubStat) ? new List<string>() : new List<string> { SubStat };
                 mainStatTrainingBonus = 0.2f;
                 subStatTrainingBonus = 0.1f;
+                startingProficiencies = enemyData.startingProficiencies != null
+                    ? new List<string>(enemyData.startingProficiencies)
+                    : new List<string>();
                 unitTags = enemyData.tags != null ? new List<string>(enemyData.tags) : new List<string>();
                 unitTier = enemyData.tier ?? "";
                 LoadStatData(
@@ -353,7 +384,7 @@ namespace Entities
                 isCasting = false;
                 castingTime = 0f;
                 isControlled = false;
-                controlDuration = 0f;
+                controlTurns = 0;
                 currentNormalTarget = null;
 
                 LoadPassiveCodes(enemyData.codes["passive"], enemyData.levelPassives);
@@ -362,6 +393,7 @@ namespace Entities
                 NormalCode = CodeFactory.CreateNormalCode(_baseNormalCodeId, new NormalCodeContext { Caster = this });
                 UltimateCode = CodeFactory.CreateUltimateCode(_baseUltimateCodeId, new UltimateCodeContext { Caster = this });
                 ApplyCodeStages(enemyData.codeStages);
+                EquipStartingItems(enemyData.startingItemIds);
                 normalCooldown = NormalCode.Cooldown;
                 ultimateCooldown = UltimateCode.Cooldown;
             }
@@ -400,7 +432,7 @@ namespace Entities
                 isCasting = false;
                 castingTime = 0f;
                 isControlled = false;
-                controlDuration = 0f;
+                controlTurns = 0;
                 currentNormalTarget = null; // 일반공격 타겟 초기화
 
                 LoadPassiveCodes(data.codes["passive"], data.levelPassives);
@@ -589,15 +621,9 @@ namespace Entities
                 Enum.TryParse(value, true, out EquipmentProficiency parsed) && parsed == proficiency);
             if (hasStartingProficiency) return true;
 
-            // 만류귀종: 모든 무기 숙련. 방어구까지 열지는 않는다.
-            if (HasLearnedPassiveCode(55) && proficiency.IsWeapon()) return true;
-
-            // 궁수(140): 장궁·단궁·쇠뇌 / 민첩함(141): 경갑.
-            if (HasLearnedPassiveCode(140) &&
-                proficiency is (EquipmentProficiency.Longbow or EquipmentProficiency.Shortbow or EquipmentProficiency.Crossbow))
-                return true;
-            if (HasLearnedPassiveCode(141) && proficiency == EquipmentProficiency.LightArmor) return true;
-
+            // 모션 문제로 숙련을 부여하는 코드는 전부 삭제했다.
+            // 만류귀종(55)은 없어졌고, 궁수(140)·민첩함(141)도 더 이상 숙련을 열지 않는다.
+            // 각 캐릭터가 쓸 수 있는 장비는 시작 숙련이 전부다.
             return false;
         }
 
@@ -797,19 +823,17 @@ namespace Entities
             {
                 PassiveCodes.Add(innate);
                 AddLearnedPassiveRecord(innatePassiveId, innate.CurrentStage, innate.Transferable);
-                if (innate is UniquePassiveCode unique && unique.TransferVersionCodeId > 0)
-                {
-                    PassiveCode transferVersion = CodeFactory.CreatePassiveCode(
-                        unique.TransferVersionCodeId,
-                        new PassiveCodeContext { Caster = this });
-                    if (transferVersion != null && transferVersion.Transferable && !transferVersion.IsUniquePassive)
-                    {
-                        AddLearnedPassiveRecord(
-                            unique.TransferVersionCodeId,
-                            transferVersion.CurrentStage,
-                            true);
-                    }
-                }
+                // 모든 고유 패시브는 전수 불가다. 열화 전수본 제도는 폐지했다.
+            }
+
+            // 팔랑크스(87)는 모든 Greek 유닛이 자동으로 가진다.
+            // 코드 용량을 차지하지 않아야 하므로 levelPassives가 아니라 여기서 직접 붙인다.
+            if (!IsEnemy && HasUnitTag("Greek") &&
+                PassiveCodes.All(code => code is not GreekPhalanx))
+            {
+                PassiveCode phalanx = CodeFactory.CreatePassiveCode(
+                    87, new PassiveCodeContext { Caster = this });
+                if (phalanx != null) PassiveCodes.Add(phalanx);
             }
 
             if (levelPassives != null)
@@ -1007,10 +1031,12 @@ namespace Entities
         {
             string path = $"Sprite/Portraits/{_name}";
             PortraitPath = path;
-            Sprite sprite = Resources.Load<Sprite>(path);
-            // 해상도가 제각각이라 Cell이 칸 크기에 맞춰 배율을 잡아 준다.
-            currentCell.SetPortrait(sprite);
-            // currentCell.portraitRenderer.flipX = isEnemy; // 카드면 미사용, 일러라면 적일 경우 x축 반전
+
+            // 전장의 유닛은 언제나 초상화 카드다. 전용 인게임 SD 스프라이트 경로는 없앴다 —
+            // 해상도와 여백이 제각각이라 카드 안에서 크기가 들쭉날쭉했고,
+            // 연출 방향도 스프라이트가 아니라 카드가 반응하고 발사하는 쪽으로 잡았다.
+            // 타격·시전 반응은 UnitCardView가 카드 자체를 흔들어 처리한다.
+            currentCell.SetPortrait(Resources.Load<Sprite>(path));
         }
 
         /// <summary>
@@ -1148,7 +1174,7 @@ namespace Entities
             }
             Invoke(BaseEnums.UnitEventType.OnBeforeDamageTaken, new EventContext(this, context.Attacker, context));
             Invoke(BaseEnums.UnitEventType.OnTakingDamage, new EventContext(this, null, context));
-            Invoke(BaseEnums.UnitEventType.OnAfterDamageTaken, new EventContext(this, context.Attacker));
+            Invoke(BaseEnums.UnitEventType.OnAfterDamageTaken, new EventContext(this, context.Attacker, context));
         }
 
         /// <summary>
@@ -1158,7 +1184,7 @@ namespace Entities
         public virtual void ControlStarts(ControlContext context)
         {
             isControlled = true;
-            controlDuration = context.Duration;
+            controlTurns = Mathf.Max(1, Mathf.RoundToInt(context.Duration));
             Invoke(BaseEnums.UnitEventType.OnControlStarts, new EventContext(this, context.Attacker));
         }
 
@@ -1168,7 +1194,7 @@ namespace Entities
         public virtual void ControlEnds()
         {
             isControlled = false;
-            controlDuration = 0f;
+            controlTurns = 0;
             Invoke(BaseEnums.UnitEventType.OnControlEnds, new EventContext(this));
         }
 
@@ -1215,6 +1241,51 @@ namespace Entities
             Invoke(BaseEnums.UnitEventType.OnUltimateActivates, new EventContext(this));
         }
 
+        // ── 궁극기 자원 ────────────────────────────────────────
+        //
+        // 예전에는 일반공격 한 번에 고정량을 얻었다. 그래서 행동이 잦은
+        // 고DEX 유닛일수록 궁극기가 빨리 찼고, INT는 곁가지 배율에 그쳤다.
+        // 지금은 <b>전투 시간</b>에 비례해 차오르므로 행동 횟수와 무관하다.
+        // 느리더라도 INT가 높으면 궁극기로 화력을 내는 빌드가 성립한다.
+
+        /// <summary>전투 시간과 무관하게 항상 붙는 최소 회복량(초당).</summary>
+        private const float ManaRegenBase = 1.5f;
+
+        /// <summary>INT 1당 늘어나는 초당 회복량.</summary>
+        private const float ManaRegenPerInt = 0.15f;
+
+        /// <summary>
+        /// 초당 회복량 상한. 자원 100 기준 <b>전투 시간 5초</b>가 최단 충전 주기다.
+        ///
+        /// 기본 회복량이 INT에 비례하는데 <see cref="ManaEfficiencyCurr"/>도 INT에 비례해서,
+        /// 곱하면 사실상 INT의 제곱으로 자란다. 고레벨 캐스터가 매 턴 궁극기를 쓰는 것을 막는 뚜껑이다.
+        /// </summary>
+        private const float ManaRegenCap = 20f;
+
+        /// <summary>
+        /// 전투 시간 1초당 회복하는 궁극기 자원.
+        /// DEX는 관여하지 않는다. INT가 유일한 충전 속도 스탯이다.
+        /// </summary>
+        public float ManaPerCombatSecond => Mathf.Min(ManaRegenCap,
+            (ManaRegenBase + Mathf.Max(0, GetBaseInt()) * ManaRegenPerInt) * ManaEfficiencyCurr);
+
+        /// <summary>흐른 전투 시간만큼 궁극기 자원을 채운다. 소수점은 다음 정산으로 넘긴다.</summary>
+        public void AccrueUltimateResource(float combatSeconds)
+        {
+            if (combatSeconds <= 0f) return;
+            if (UltimateResourceType != BaseEnums.UltimateResourceType.Mana) return;
+            if (!isActive || ManaCurr >= ManaMax) return;
+
+            _manaCarry += ManaPerCombatSecond * combatSeconds;
+            int whole = Mathf.FloorToInt(_manaCarry);
+            if (whole <= 0) return;
+
+            _manaCarry -= whole;
+            AddUltimateResource(whole);
+        }
+
+        private float _manaCarry;
+
         public virtual void RecoverMana(int amount)
         {
             if (UltimateResourceType != BaseEnums.UltimateResourceType.Mana)
@@ -1247,6 +1318,7 @@ namespace Entities
         public void ResetCombatElements()
         {
             _combatElements.Clear();
+            _judgementElements.Clear();
             _temporaryElementDurations.Clear();
             if (Enum.TryParse(Element, true, out BaseEnums.UnitElement innateElement) &&
                 innateElement != BaseEnums.UnitElement.None)
@@ -1256,11 +1328,11 @@ namespace Entities
         }
 
         /// <summary>원소를 부착한다. 부착 직후 원소 반응을 검사한다.</summary>
-        public void GrantCombatElement(BaseEnums.UnitElement elementToGrant, float duration = CommonElementAuraDuration)
+        public void GrantCombatElement(BaseEnums.UnitElement elementToGrant, int duration = CommonElementAuraDuration)
             => GrantCombatElement(elementToGrant, duration, null);
 
         /// <param name="source">부착을 일으킨 유닛. 원소 반응 피해가 이 유닛의 CON에 비례한다.</param>
-        public void GrantCombatElement(BaseEnums.UnitElement elementToGrant, float duration, Unit source)
+        public void GrantCombatElement(BaseEnums.UnitElement elementToGrant, int duration, Unit source)
         {
             if (elementToGrant == BaseEnums.UnitElement.None) return;
             bool isInnate = Enum.TryParse(Element, true, out BaseEnums.UnitElement innateElement) &&
@@ -1268,7 +1340,7 @@ namespace Entities
             bool added = _combatElements.Add(elementToGrant);
             if (!isInnate)
             {
-                _temporaryElementDurations[elementToGrant] = duration > 0f ? duration : CommonElementAuraDuration;
+                _temporaryElementDurations[elementToGrant] = duration > 0 ? duration : CommonElementAuraDuration;
             }
             if (added)
             {
@@ -1277,7 +1349,8 @@ namespace Entities
             }
 
             // 부착 직후 반응 검사. 반응하면 두 원소가 함께 소모된다.
-            Effects.Negative.ElementalReaction.TryResolve(this, elementToGrant, source);
+            // added == false는 같은 원소가 이미 붙어 있었다는 뜻이다 — 공명(바위+바위)의 재료가 된다.
+            Effects.Negative.ElementalReaction.TryResolve(this, elementToGrant, source, !added);
         }
 
         /// <summary>부착된 원소를 걷어낸다. 고유 원소도 반응으로 소모될 수 있다.</summary>
@@ -1295,9 +1368,30 @@ namespace Entities
         internal static void NotifyElementalReaction(Unit source, Unit target, string reactionName)
             => AnyElementalReaction?.Invoke(source, target, reactionName);
 
+        /// <summary>
+        /// 이 원소를 가진 것으로 <b>판정</b>되는가. 실제 부착과 판정 전용 원소를 함께 본다.
+        /// 원소 반응 판정에는 <see cref="HasAttachedElement"/>를 써야 한다.
+        /// </summary>
         public bool HasCombatElement(BaseEnums.UnitElement elementToCheck)
         {
+            return _combatElements.Contains(elementToCheck) || _judgementElements.Contains(elementToCheck);
+        }
+
+        /// <summary>실제로 부착된 원소인가. 원소 반응은 이쪽만 재료로 쓴다.</summary>
+        public bool HasAttachedElement(BaseEnums.UnitElement elementToCheck)
+        {
             return _combatElements.Contains(elementToCheck);
+        }
+
+        /// <summary>판정 전용 원소를 추가한다. 부착이 아니므로 반응을 일으키지도, 반응에 소모되지도 않는다.</summary>
+        public void AddElementJudgement(BaseEnums.UnitElement elementToGrant)
+        {
+            if (elementToGrant == BaseEnums.UnitElement.None) return;
+            if (_judgementElements.Add(elementToGrant))
+            {
+                AttributesUpdate();
+                currentCell?.UpdateUI();
+            }
         }
 
         public string GetCombatElementDisplay()
@@ -1305,15 +1399,22 @@ namespace Entities
             return _combatElements.Count == 0 ? "None" : string.Join(", ", _combatElements);
         }
 
-        private void TickTemporaryCombatElements(float deltaTime)
+        /// <summary>
+        /// 부착된 원소가 하나라도 있는가. 고유 원소도 원소 반응에 소모되므로 0이 될 수 있다.
+        /// 스카디의 '서리의 전사'가 이 상태를 감지해 얼음을 다시 두른다.
+        /// </summary>
+        public bool HasAnyCombatElement => _combatElements.Count > 0;
+
+        /// <summary>부착 원소를 한 턴 소모한다. 부착된 유닛의 턴 기준이다.</summary>
+        private void TickTemporaryCombatElements()
         {
-            if (_temporaryElementDurations.Count == 0 || deltaTime <= 0f) return;
+            if (_temporaryElementDurations.Count == 0) return;
 
             List<BaseEnums.UnitElement> expired = null;
             foreach (BaseEnums.UnitElement elementType in _temporaryElementDurations.Keys.ToList())
             {
-                float remaining = _temporaryElementDurations[elementType] - deltaTime;
-                if (remaining > 0f)
+                int remaining = _temporaryElementDurations[elementType] - 1;
+                if (remaining > 0)
                 {
                     _temporaryElementDurations[elementType] = remaining;
                     continue;
@@ -1415,6 +1516,14 @@ namespace Entities
                 {
                     AddShield(Mathf.RoundToInt(overheal * overhealShieldRatio), source);
                 }
+
+                // 순수치유량 — 오버힐을 뺀 실제 회복분만 부여자에게 누적한다.
+                int effectiveHealing = Mathf.Max(0, healingAmount - overheal);
+                if (source != null && effectiveHealing > 0)
+                {
+                    source.RoundEffectiveHealingDone += effectiveHealing;
+                }
+
                 NotifyHealingOrShieldGranted(source, healingAmount);
             }
             else
@@ -1422,6 +1531,140 @@ namespace Entities
                 HpCurr = Mathf.Clamp(newHp, 0, HpMax);
             }
             currentCell?.UpdateUI();
+        }
+
+        // ── 제어 상태 조회와 부여 ──────────────────────────────────
+
+        /// <summary>빙결 중인가. 빙결은 행동만 막고 피격·대상 지정은 정상이다.</summary>
+        public bool IsFrozen => HasStatus(Effects.Negative.ControlStatuses.FrozenStatusId);
+
+        /// <summary>에어본(공중에 떠 있는) 상태인가. 행동만 막고 피격·대상 지정은 정상이다.</summary>
+        public bool IsAirborne => HasStatus(Effects.Negative.ControlStatuses.AirborneStatusId);
+
+        /// <summary>어떤 효과가 일반공격을 막고 있는지.</summary>
+        public bool IsNormalAttackBlocked =>
+            ActiveEffectObjects().Any(effect => effect.BlocksNormalAttack(this));
+
+        /// <summary>빙결 면역 여부.</summary>
+        public bool IsFreezeImmune =>
+            ActiveEffectObjects().Any(effect => effect.GrantsFreezeImmunity(this));
+
+        /// <summary>에어본 면역 여부.</summary>
+        public bool IsAirborneImmune =>
+            ActiveEffectObjects().Any(effect => effect.GrantsAirborneImmunity(this));
+
+        /// <summary>
+        /// 행동 불가를 건다. 이미 걸려 있으면 <b>남은 시간과 새 지속시간 중 긴 쪽</b>을 남긴다.
+        /// <see cref="ControlStarts"/>가 무조건 덮어쓰는 것과 달리 제어를 짧게 만들지 않는다.
+        /// </summary>
+        public void ApplyControlAtLeast(Unit attacker, int turns)
+        {
+            if (turns <= 0) return;
+            if (isControlled && controlTurns >= turns) return;
+            ControlStarts(new ControlContext(attacker, turns));
+        }
+
+        // ── 강인도 ─────────────────────────────────────────────────
+
+        /// <summary>
+        /// 강인도(가상 체력)를 부여한다. 이미 가지고 있으면 아무 일도 하지 않는다.
+        /// </summary>
+        public bool GrantToughness(int amount, Unit source)
+        {
+            if (amount <= 0 || HasToughness || !isActive) return false;
+            toughnessMax = amount;
+            toughnessCurr = amount;
+            currentCell?.UpdateUI();
+            string grantorName = source != null ? source.UnitName : "-";
+            Debug.Log($"[강인도] {UnitName}에게 {amount} 부여 (부여자: {grantorName})");
+            return true;
+        }
+
+        public void ClearToughness()
+        {
+            toughnessCurr = 0;
+            toughnessMax = 0;
+        }
+
+        /// <summary>
+        /// 실제로 들어간 피해만큼 강인도를 깎는다. 0이 되면 강인도를 없애고
+        /// <b>처치 판정 이벤트만</b> 발행한다. 대상은 죽지 않고 골드·EXP도 지급하지 않는다.
+        /// </summary>
+        private void ReduceToughness(int damageDealt, Unit attacker)
+        {
+            if (damageDealt <= 0 || toughnessCurr <= 0) return;
+
+            toughnessCurr = Mathf.Max(0, toughnessCurr - damageDealt);
+            if (toughnessCurr > 0) return;
+
+            toughnessMax = 0;
+            Debug.Log($"[강인도] {UnitName}의 강인도가 파괴되었습니다 — 처치 판정 발행");
+            AnyUnitDied?.Invoke(this, attacker);
+            if (attacker != null && attacker != this)
+            {
+                attacker.Invoke(BaseEnums.UnitEventType.OnKill, new EventContext(attacker, this));
+            }
+        }
+
+        // ══════════════════════════════════════════════════════
+        // 턴
+        // ══════════════════════════════════════════════════════
+
+        /// <summary>이 유닛이 이번 라운드에 행동한 횟수. 지속시간과 주기 효과의 기본 시간 축이다.</summary>
+        public int TurnCount { get; private set; }
+
+        /// <summary>
+        /// <b>직전 턴부터 이번 턴까지 흐른 전투 시간(초).</b>
+        ///
+        /// 벽시계가 아니라 AV에서 환산한 값이라 누군가 행동하는 동안에는 늘어나지 않는다.
+        /// 턴으로 세기 어색한 연속적인 효과(수르트 황혼의 점증 자기피해)만 이 값을 읽는다.
+        /// 그 외의 지속시간·주기는 전부 <see cref="TurnCount"/> 축을 쓴다.
+        /// </summary>
+        public float LastTurnSeconds { get; private set; }
+
+        /// <summary>전투 시계를 마지막으로 읽은 시점. <see cref="LastTurnSeconds"/> 산출용.</summary>
+        private float _combatSecondsAtLastTurn;
+
+        /// <summary>
+        /// 자기 턴을 연다. <see cref="Managers.ActionScheduler"/>가 행동 직전에 한 번만 부른다.
+        ///
+        /// 이 안에서 상태 지속시간이 줄고, 지속피해·재생·주기형 패시브가 진행된다.
+        /// 예전에는 프레임마다 돌아서 누가 행동하는 동안에도 효과만 계속 흘렀다.
+        /// </summary>
+        public void BeginTurn()
+        {
+            TurnCount++;
+
+            float now = Managers.GameManager.Instance?.ActionScheduler?.CombatSeconds ?? 0f;
+            LastTurnSeconds = Mathf.Max(0f, now - _combatSecondsAtLastTurn);
+            _combatSecondsAtLastTurn = now;
+
+            TickControlTurn();
+            TickTemporaryCombatElements();
+
+            // 궁극기 쿨다운도 턴 단위다. 코드 가속은 턴당 감소량을 키운다.
+            if (ultimateCooldown > 0f)
+            {
+                ultimateCooldown = Mathf.Max(0f, ultimateCooldown - Mathf.Max(1f, CodeAcceleration));
+            }
+
+            StatusController.TickTurn();
+            Invoke(BaseEnums.UnitEventType.OnTurnStart, new EventContext(this));
+        }
+
+        /// <summary>자기 턴의 행동이 모두 끝났을 때 스케줄러가 부른다.</summary>
+        public void EndTurn()
+        {
+            Invoke(BaseEnums.UnitEventType.OnTurnEnd, new EventContext(this));
+        }
+
+        /// <summary>행동 불가를 한 턴 소모한다. 0이 되면 제어가 풀린다.</summary>
+        private void TickControlTurn()
+        {
+            if (!isControlled) return;
+
+            controlTurns--;
+            if (controlTurns <= 0) ControlEnds();
         }
 
         public void AddUntargetableSource()
@@ -1632,24 +1875,12 @@ namespace Entities
                     return;
                 }
                 
+                // 프레임 훅은 연출 전용으로 남긴다.
+                // 지속시간·제어·쿨다운·주기 효과는 전부 BeginTurn()이 턴 경계에서 진행한다.
                 Invoke(BaseEnums.UnitEventType.OnUpdate, new EventContext(this, null, null, Time.deltaTime));
-                
-                if (isControlled)
-                {
-                    controlDuration -= Time.deltaTime;
-                    if (controlDuration <= 0f)
-                    {
-                        ControlEnds();
-                    }
-                }
-                // 행동 시점은 ActionScheduler가 정한다(중앙 처리).
-                // 여기서는 쿨다운만 흘려보내고, 실제 시전은 스케줄러가 호출한다.
-                if (!isControlled && !isCasting)
-                {
-                    ultimateCooldown = Mathf.Max(0f, ultimateCooldown - Time.deltaTime * CodeAcceleration);
-                    // 일반공격에는 쿨타임이 없다. 행동 주기는 DEX가 만드는 행동치(AV)가 전담한다.
-                    normalCooldown = 0f;
-                }
+
+                // 일반공격에는 쿨타임이 없다. 행동 주기는 DEX가 만드는 행동치(AV)가 전담한다.
+                normalCooldown = 0f;
             }
         }
 
@@ -1680,10 +1911,15 @@ namespace Entities
             }
             
             bool canEvade = dmgCtx.CodeType != BaseEnums.CodeType.Effect;
-            if (canEvade && UnityEngine.Random.value < self.EvasionChanceCurr)
+            float evasionChance = self.EvasionChanceCurr;
+            foreach (var effect in ActiveEffectObjects())
+            {
+                evasionChance += effect.EvasionChanceAdditiveModifier(self, dmgCtx);
+            }
+            if (canEvade && UnityEngine.Random.value < evasionChance)
             {
                 currentCell.UpdateUI();
-                Debug.Log($"{self.UnitName}이(가) 공격을 회피했습니다. 회피율: {self.EvasionChanceCurr * 100f:F1}%");
+                Debug.Log($"{self.UnitName}이(가) 공격을 회피했습니다. 회피율: {evasionChance * 100f:F1}%");
                 return;
             }
             
@@ -1734,6 +1970,10 @@ namespace Entities
             currentCell.UpdateUI();
 
             int damageDealt = Mathf.Max(0, hpBeforeHit - self.HpCurr) + Mathf.Max(0, shieldBeforeHit - self.ShieldCurr);
+
+            // 강인도는 체력과 병렬로 깎인다. 피해를 흡수하지 않으므로 위 계산에는 관여하지 않는다.
+            self.ReduceToughness(damageDealt, dmgCtx.Attacker);
+
             if (dmgCtx.Attacker != null && damageDealt > 0)
             {
                 dmgCtx.Attacker.RoundDamageDealt += damageDealt;
@@ -1759,12 +1999,24 @@ namespace Entities
         {
             float outgoingDamageModifier = 1f;
             float defenseStatMultiplier = dmgCtx.DefenseStatMultiplier;
+            int durabilityPenetration = Mathf.Max(0, dmgCtx.DurabilityPenetration);
+
+            // 소환수의 공격은 소환자의 '가하는 피해 증가'를 물려받지 않는다.
+            // 대신 소환수 전용 배율(소환사 등)만 적용된다.
+            bool isSummonAttack = dmgCtx.DamageTags != null &&
+                                  dmgCtx.DamageTags.Contains(BaseClasses.DamageTag.SummonAttack);
+
             if (dmgCtx.Attacker != null)
             {
                 foreach (var effect in dmgCtx.Attacker.ActiveEffectObjects())
                 {
-                    outgoingDamageModifier *= effect.OutgoingDamageModifier(dmgCtx.Attacker, this, dmgCtx);
+                    if (!isSummonAttack)
+                    {
+                        outgoingDamageModifier *= effect.OutgoingDamageModifier(dmgCtx.Attacker, this, dmgCtx);
+                    }
                     defenseStatMultiplier *= effect.DefenseStatMultiplierModifier(dmgCtx.Attacker, this, dmgCtx);
+                    durabilityPenetration += Mathf.Max(0,
+                        effect.DurabilityPenetrationModifier(dmgCtx.Attacker, this, dmgCtx));
                 }
             }
 
@@ -1786,10 +2038,12 @@ namespace Entities
             // 내구는 마지막에 고정값으로 깎는다.
             // 방어력을 100% 무시당해도 남으므로, 관통 빌드에 대한 최후의 완충재가 된다.
             // 지속피해(도트)는 틱당 피해가 작아 내구가 곧 무효화가 되므로 제외한다.
-            bool ignoresDurability = dmgCtx.CodeType == BaseEnums.CodeType.Effect;
+            bool ignoresDurability = dmgCtx.CodeType == BaseEnums.CodeType.Effect ||
+                                     (dmgCtx.DamageTags != null &&
+                                      dmgCtx.DamageTags.Contains(BaseClasses.DamageTag.DurabilityPenetration));
             if (!ignoresDurability)
             {
-                scaled -= Mathf.Max(0, DurabilityCurr);
+                scaled -= Mathf.Max(0, DurabilityCurr - durabilityPenetration);
             }
 
             return Mathf.Max(1, Mathf.RoundToInt(scaled));
@@ -1802,6 +2056,12 @@ namespace Entities
         {
             Debug.Log($"[라운드 시작] {UnitName}의 DefaultRoundStartEvent 호출됨");
             RoundDamageDealt = 0;
+            RoundEffectiveHealingDone = 0;
+            TurnCount = 0;
+            LastTurnSeconds = 0f;
+            _combatSecondsAtLastTurn = 0f;
+            _manaCarry = 0f;
+            ClearToughness();
             ResetCombatElements();
             CastPassiveCode();
         }
@@ -1818,18 +2078,19 @@ namespace Entities
             _combatResourceMaximums.Clear();
             ShieldMax = 0;   // 라운드 종료 시 방어막 최대치 초기화
             ShieldCurr = 0;  // 라운드 종료 시 방어막 현재치 초기화
+            ClearToughness();
             AttributesUpdate();
             UpdateShieldBar(); // 방어막 바 UI 업데이트 (비활성화)
         }
         
         /// <summary>
-        /// 매 프레임 실행 이벤트
+        /// 매 프레임 실행 이벤트.
+        ///
+        /// 전투 판정은 전부 턴 경계(<see cref="BeginTurn"/>)로 옮겼다.
+        /// 여기에는 연출처럼 프레임 단위가 필요한 것만 남긴다.
         /// </summary>
         protected void DefaultUpdateEvent(EventContext context)
         {
-            // 상태 효과 틱 + 만료 상태 제거
-            StatusController.Tick(context.FloatParam);
-            TickTemporaryCombatElements(context.FloatParam);
         }
 
         // ===== 스탯 계산 (UnitStats 위임) =====
@@ -2075,11 +2336,11 @@ namespace Entities
         }
 
         /// <summary>현재 지속피해 효과를 1초간 정산한 예상 피해 총합.</summary>
-        public int GetEstimatedDamageOverTimePerSecond()
+        public int GetEstimatedDamageOverTimePerTurn()
         {
             return ActiveEffectObjects()
                 .Where(effect => effect.IsDamageOverTime)
-                .Sum(effect => Mathf.Max(0, effect.EstimateDamagePerSecond()));
+                .Sum(effect => Mathf.Max(0, effect.EstimateDamagePerTurn()));
         }
 
         /// <summary>이 유닛이 부여하는 지속피해량 배율.</summary>

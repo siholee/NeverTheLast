@@ -37,10 +37,13 @@ namespace BaseClasses
       OnBeneficialEffectGranted, // Unit(자신), Unit(대상)
       OnBeforeDamageTaken, // Unit(자신), Unit(공격자)
       OnTakingDamage, // Unit(자신), TakeDamageContext(피해 정보)
-      OnAfterDamageTaken, // Unit(자신), Unit(공격자)
+      OnAfterDamageTaken, // Unit(자신), Unit(공격자), DamageContext(처리 완료된 피해 정보)
       OnDamageDealt, // DamageResolvedContext(공격자, 대상, 실제 피해량)
       OnKill, // Unit(자신), Unit(처치 대상)
-      OnUpdate, // Unit(자신)
+      OnUpdate, // Unit(자신) — 연출용 프레임 틱. 전투 판정에는 쓰지 않는다.
+
+      OnTurnStart, // Unit(자신) — 자기 턴이 시작될 때. 상태 지속시간과 주기 효과가 여기서 진행된다.
+      OnTurnEnd,   // Unit(자신) — 자기 턴의 행동이 끝났을 때
 
       OnStageStart, // Unit(자신)
       OnRoundStart, // Unit(자신)
