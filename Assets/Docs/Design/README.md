@@ -49,15 +49,18 @@
 | [Detail_06_Events.md](Detail_06_Events.md) | 사건 데이터 스키마, 선택지 액션, VN 연출 필드, 현재 사건 |
 | [Detail_07_UI_Tech.md](Detail_07_UI_Tech.md) | UI 화면 구성, 매니저 구조, 데이터 파일, 저장 시스템 |
 | [Detail_08_Confirmed_Characters.md](Detail_08_Confirmed_Characters.md) | 확정 캐릭터의 전투 사양, 해금 패시브, 아트 자산과 남은 작업 |
-| [Detail_09_Code_Weapon_Catalog.md](Detail_09_Code_Weapon_Catalog.md) | 플레이어 코드 ID와 무기·방어구 숙련/아이템의 관리 목록 |
-| [Detail_10_Reward_Catalog.md](Detail_10_Reward_Catalog.md) | 보상 풀, 티어 확률, 사건 전용 보상의 관리 목록 |
-| [Detail_11_Equipment_Catalog.md](Detail_11_Equipment_Catalog.md) | 장비 ID·숙련·중량과 캐릭터별 시작 무기 목록 |
+| [Detail_09_Enemy_Catalog.md](Detail_09_Enemy_Catalog.md) | 적 스탯 규격, 테마별 로스터, 스테이지 편성 |
+| [Detail_10_Boss_Catalog.md](Detail_10_Boss_Catalog.md) | 중간 보스와 최종 보스의 사양·공략 축·미결 |
+| [Detail_11_Code_Catalog.md](Detail_11_Code_Catalog.md) | **ID별 코드 효과 색인.** 아군·적 전체를 분류별·ID순으로 |
+| [Detail_12_Code_Weapon_Catalog.md](Detail_12_Code_Weapon_Catalog.md) | 플레이어 코드 슬롯 규칙과 무기·방어구 숙련의 관리 목록 |
+| [Detail_13_Reward_Catalog.md](Detail_13_Reward_Catalog.md) | 보상 풀, 티어 확률, 테마 전용·사건 전용 보상의 관리 목록 |
+| [Detail_14_Equipment_Catalog.md](Detail_14_Equipment_Catalog.md) | 장비 ID·숙련·중량과 캐릭터별 시작 무기 목록 |
 
 ### 미결 — 기획 백로그
 
 | 문서 | 내용 |
 | --- | --- |
-| [Design_Backlog.md](Design_Backlog.md) | **결정이 필요한 항목 17개.** 코드·데이터로 해결할 수 없고 설계 판단이 선행되어야 하는 것들 |
+| [Design_Backlog.md](Design_Backlog.md) | **결정이 필요한 항목 20개.** 코드·데이터로 해결할 수 없고 설계 판단이 선행되어야 하는 것들 |
 
 > 결정이 끝난 항목은 해당 상세 기획서로 옮기고 백로그에서 지운다.
 

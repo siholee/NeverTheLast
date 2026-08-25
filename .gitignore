@@ -70,3 +70,11 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# 크래시/비정상 종료 시 유니티가 만드는 씬 복구본. 저장소에 들어갈 이유가 없다.
+/[Aa]ssets/_[Rr]ecovery/
+
+# 에디터 검증 스크립트가 뱉는 산출물
+Artifacts/
+__pycache__/
+*.pyc
