@@ -27,6 +27,12 @@ namespace Managers
         public int randomTokenAmount;
         public bool fullHealParty;
         public int itemId;
+
+        /// <summary>
+        /// 장비 보상의 원본 데이터. 보상 화면이 부위 · 중량 · 스탯을 <b>구조로</b> 보여 주기 위해 들고 다닌다.
+        /// 예전에는 이걸 문자열 한 줄로 뭉쳐 description에 넣었는데, 그러면 세 장을 비교할 수 없었다.
+        /// </summary>
+        public ItemData item;
     }
 
     public class RewardManager : MonoBehaviour
@@ -71,7 +77,7 @@ namespace Managers
             EnsureRewardData();
             _itemDataList ??= GameManager.Instance?.itemDataList ?? GameManager.Instance?.dataManager?.FetchItemDataList();
             var pool = (_itemDataList?.items ?? new List<ItemData>())
-                .Where(item => item != null && !item.eventOnly)
+                .Where(item => item != null && !item.eventOnly && IsAvailableInTheme(item, themeId))
                 .Select(item => new RewardDef
                 {
                     id = $"item_{item.id}",
@@ -79,6 +85,7 @@ namespace Managers
                     displayName = item.name,
                     description = BuildItemDescription(item),
                     tier = Mathf.Clamp(item.rarity, 1, 5),
+                    item = item,
                 })
                 .ToList();
             var result = new List<RewardDef>();
@@ -98,6 +105,16 @@ namespace Managers
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// 테마 전용 보상 필터. <c>themeIds</c>가 비어 있으면 어느 테마에서나 나온다.
+        /// 테마를 특정할 수 없는 호출(themeId == 0)에서는 전용 보상을 제외한다.
+        /// </summary>
+        private static bool IsAvailableInTheme(ItemData item, int themeId)
+        {
+            if (item.themeIds == null || item.themeIds.Count == 0) return true;
+            return item.themeIds.Contains(themeId);
         }
 
         private static string BuildItemDescription(ItemData item)

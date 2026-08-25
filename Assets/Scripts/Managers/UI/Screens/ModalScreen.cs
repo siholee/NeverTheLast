@@ -53,10 +53,7 @@ namespace Managers.UI.Screens
                 UIShapes.Corner.Diagonal, 16, UITheme.Outline, 1);
             UIBuild.Anchor(panel.rectTransform, AnchorMin, AnchorMax);
 
-            _title = UIBuild.Label("Title", panel.transform, Title, UITheme.FontTitle,
-                UITheme.TextPrimary);
-            UIBuild.Anchor(_title.rectTransform, new Vector2(0f, 0.88f), new Vector2(1f, 1f),
-                UITheme.PanelPad, 10f);
+            BuildHeader(panel.transform);
 
             Image rule = UIBuild.Divider("TitleRule", panel.transform);
             UIBuild.Anchor(rule.rectTransform, new Vector2(0f, 0.88f), new Vector2(1f, 0.88f),
@@ -70,6 +67,47 @@ namespace Managers.UI.Screens
             Build();
             _root.SetActive(false);
         }
+
+        /// <summary>
+        /// 모든 모달이 같은 머리를 쓴다.
+        ///   [앰버 세로 막대] [라틴 대문자 마이크로 라벨]
+        ///                    [한글 제목]        [우측 사선 빗금]
+        ///
+        /// 제목만 덩그러니 놓던 예전 머리와 달리, 어디를 보라는 신호(앰버 막대)와
+        /// 화면의 성격(라틴 라벨)이 함께 붙는다. 명일방주식 정보 위계다.
+        /// </summary>
+        private void BuildHeader(Transform panel)
+        {
+            // 오른쪽 위 장식. 면을 채우지 않으면서 머리와 몸통을 갈라 준다.
+            Image stripes = UIBuild.Solid("HeaderStripes", panel, Color.white);
+            stripes.sprite = UIShapes.DiagonalStripes(
+                12, new Color(1f, 1f, 1f, 0.030f), new Color(1f, 1f, 1f, 0f));
+            stripes.type = Image.Type.Tiled;
+            stripes.color = Color.white;
+            UIBuild.Anchor(stripes.rectTransform, new Vector2(0.62f, 0.88f), new Vector2(1f, 1f));
+            stripes.raycastTarget = false;
+
+            Image bar = UIBuild.Solid("HeaderBar", panel, UITheme.Accent);
+            UIBuild.Pin(bar.rectTransform, new Vector2(0f, 1f), new Vector2(3f, 26f),
+                new Vector2(UITheme.PanelPad, -22f));
+
+            if (!string.IsNullOrEmpty(Caption))
+            {
+                TextMeshProUGUI caption = UIBuild.Label("Caption", panel, Caption,
+                    UITheme.FontMicro, UITheme.TextMuted);
+                caption.characterSpacing = 20f;
+                UIBuild.Pin(caption.rectTransform, new Vector2(0f, 1f), new Vector2(320f, 13f),
+                    new Vector2(UITheme.PanelPad + 12f, -18f));
+            }
+
+            _title = UIBuild.Label("Title", panel, Title, UITheme.FontTitle, UITheme.TextPrimary);
+            _title.characterSpacing = 5f;
+            UIBuild.Pin(_title.rectTransform, new Vector2(0f, 1f), new Vector2(520f, 30f),
+                new Vector2(UITheme.PanelPad + 12f, -34f));
+        }
+
+        /// <summary>제목 위에 얹는 라틴 대문자 라벨. 없으면 생략된다.</summary>
+        protected virtual string Caption => null;
 
         protected void SetTitle(string text)
         {
