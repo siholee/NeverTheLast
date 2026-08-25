@@ -160,12 +160,13 @@ namespace Managers.UI.Screens
 
             if (item.durability > 0)
             {
-                rows.Add(new Row("내구", "-" + item.durability, UITheme.Shield));
+                // 내구는 받는 피해에서 고정으로 깎아내는 양이다. 벌점이 아니라 이득이다.
+                rows.Add(new Row("받는 피해", "-" + item.durability, UITheme.Shield));
             }
 
             if (item.RequiredProficiency != EquipmentProficiency.None)
             {
-                rows.Add(new Row("요구 숙련", item.RequiredProficiency.ToString(), UITheme.TextPrimary));
+                rows.Add(new Row("요구 숙련", ProficiencyName(item.RequiredProficiency), UITheme.TextPrimary));
             }
 
             if (item.twoHanded && rows.Count < MaxSpecRows)
@@ -181,14 +182,46 @@ namespace Managers.UI.Screens
             return rows;
         }
 
+        /// <summary>장비 부위의 한글 이름. 데이터는 영문이라 여기서만 옮긴다.</summary>
+        private static string SlotName(string slot) => slot switch
+        {
+            "MainHand" => "주무기",
+            "OffHand" => "보조",
+            "Armor" => "갑옷",
+            "Head" => "머리",
+            "Necklace" => "목걸이",
+            "Ring" => "반지",
+            "Shoes" => "신발",
+            _ => slot,
+        };
+
+        /// <summary>요구 숙련의 한글 이름.</summary>
+        private static string ProficiencyName(EquipmentProficiency proficiency) => proficiency switch
+        {
+            EquipmentProficiency.Dagger => "단검",
+            EquipmentProficiency.Wand => "완드",
+            EquipmentProficiency.Orb => "보주",
+            EquipmentProficiency.Greatsword => "대검",
+            EquipmentProficiency.Longbow => "장궁",
+            EquipmentProficiency.Shortbow => "단궁",
+            EquipmentProficiency.Crossbow => "쇠뇌",
+            EquipmentProficiency.LightArmor => "경갑",
+            EquipmentProficiency.MediumArmor => "평갑",
+            EquipmentProficiency.HeavyArmor => "중갑",
+            EquipmentProficiency.Shield => "방패",
+            EquipmentProficiency.Longsword => "한손검",
+            EquipmentProficiency.Mace => "둔기",
+            EquipmentProficiency.Spear => "장창",
+            _ => proficiency.ToString(),
+        };
+
         /// <summary>등급 · 부위 · 분류를 한 줄로. 세 장이 같은 자리에서 비교된다.</summary>
         private static string MetaLine(RewardDef reward)
         {
             int tier = Mathf.Max(1, reward.tier);
             var parts = new List<string> { $"TIER {tier}" };
 
-            if (!string.IsNullOrWhiteSpace(reward.item?.slot)) parts.Add(reward.item.slot);
-            if (!string.IsNullOrWhiteSpace(reward.item?.category)) parts.Add(reward.item.category);
+            if (!string.IsNullOrWhiteSpace(reward.item?.slot)) parts.Add(SlotName(reward.item.slot));
             if (reward.isRare) parts.Add("RARE");
 
             return string.Join(" · ", parts);
@@ -201,6 +234,7 @@ namespace Managers.UI.Screens
             private readonly TextMeshProUGUI _meta;
             private readonly TextMeshProUGUI _name;
             private readonly TextMeshProUGUI _specCaption;
+            private readonly Image _specRule;
             private readonly TextMeshProUGUI[] _statLabels = new TextMeshProUGUI[MaxStatRows];
             private readonly TextMeshProUGUI[] _statValues = new TextMeshProUGUI[MaxStatRows];
             private readonly TextMeshProUGUI[] _specLabels = new TextMeshProUGUI[MaxSpecRows];
@@ -243,7 +277,7 @@ namespace Managers.UI.Screens
                     _statValues[i] = RowValue(root, $"StatValue{i}", top, UITheme.FontHeading);
                 }
 
-                Rule(root, "Rule2", 0.415f);
+                _specRule = Rule(root, "Rule2", 0.415f);
 
                 _specCaption = Caption(root, "SpecCaption", "SPEC", 0.355f);
                 for (int i = 0; i < MaxSpecRows; i++)
@@ -265,11 +299,23 @@ namespace Managers.UI.Screens
                 UIBuild.Stretch(pickLabel.rectTransform);
             }
 
-            private static void Rule(Transform root, string name, float y)
+            private static Image Rule(Transform root, string name, float y)
             {
                 Image rule = UIBuild.Divider(name, root);
+                MoveRule(rule, y);
+                return rule;
+            }
+
+            private static void MoveRule(Image rule, float y)
+            {
                 UIBuild.Anchor(rule.rectTransform, new Vector2(0f, y), new Vector2(1f, y), 18f, 0f);
                 rule.rectTransform.sizeDelta = new Vector2(rule.rectTransform.sizeDelta.x, 1f);
+            }
+
+            private static void MoveBand(RectTransform rect, float top, float height)
+            {
+                UIBuild.Anchor(rect, new Vector2(rect.anchorMin.x, top - height),
+                    new Vector2(rect.anchorMax.x, top), 18f, 0f);
             }
 
             private static TextMeshProUGUI Caption(Transform root, string name, string text, float bottom)
@@ -310,11 +356,26 @@ namespace Managers.UI.Screens
                 _meta.color = reward.isRare ? rarity : UITheme.TextMuted;
                 _name.text = reward.displayName;
 
-                Fill(_statLabels, _statValues, StatRows(reward));
+                List<Row> stats = StatRows(reward);
+                Fill(_statLabels, _statValues, stats);
 
                 List<Row> specs = SpecRows(reward);
                 _specCaption.gameObject.SetActive(specs.Count > 0);
+                _specRule.gameObject.SetActive(specs.Count > 0);
                 Fill(_specLabels, _specValues, specs);
+
+                // 장비는 대개 스탯이 하나뿐이라 고정 자리에 두면 가운데가 텅 빈다.
+                // 실제 줄 수만큼만 쓰고 SPEC 블록을 위로 끌어올린다.
+                float statsBottom = 0.70f - Mathf.Max(1, stats.Count) * 0.068f;
+                MoveRule(_specRule, statsBottom - 0.015f);
+                MoveBand((RectTransform)_specCaption.transform, statsBottom - 0.055f, 0.04f);
+
+                for (int i = 0; i < _specLabels.Length; i++)
+                {
+                    float top = statsBottom - 0.115f - i * 0.062f;
+                    MoveBand(_specLabels[i].rectTransform, top, 0.058f);
+                    MoveBand(_specValues[i].rectTransform, top, 0.058f);
+                }
             }
 
             private static void Fill(TextMeshProUGUI[] labels, TextMeshProUGUI[] values, List<Row> rows)

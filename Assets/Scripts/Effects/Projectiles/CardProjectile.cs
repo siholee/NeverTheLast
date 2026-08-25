@@ -96,8 +96,12 @@ namespace Effects.Projectiles
             _sortingLayer = reference != null ? reference.sortingLayerID : 0;
 
             // 잔광이 몸통 뒤에 깔리도록 먼저 만든다(같은 정렬 순서면 나중 것이 위).
-            _streak = NewRenderer("Streak", ProjectileShapes.Streak(), color, 0.55f, OverlaySortingOrder);
-            _streak.transform.localScale = new Vector3(_scale * 1.6f, _scale * 0.8f, 1f);
+            _streak = NewRenderer("Streak", ProjectileShapes.Streak(), color, 0.5f, OverlaySortingOrder);
+            _streak.transform.localScale = new Vector3(_scale * 1.5f, _scale * 0.7f, 1f);
+            // 잔광 스프라이트는 가운데가 원점이라 그대로 두면 절반이 머리 앞으로 튀어나온다.
+            // 뒤로 반 칸 밀어 꼬리로만 보이게 한다.
+            float streakLength = ProjectileShapes.Streak().bounds.size.x * _scale * 1.5f;
+            _streak.transform.localPosition = new Vector3(-streakLength * 0.5f, 0f, 0f);
 
             _head = NewRenderer("Head", ProjectileShapes.Sliver(), color, 1f, OverlaySortingOrder + 1);
             _head.transform.localScale = Vector3.one * _scale;

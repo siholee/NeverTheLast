@@ -24,7 +24,7 @@ namespace Effects.Projectiles
         /// </summary>
         /// <param name="length">긴 축(px).</param>
         /// <param name="width">짧은 축(px).</param>
-        public static Sprite Sliver(int length = 96, int width = 26)
+        public static Sprite Sliver(int length = 150, int width = 20)
         {
             length = Mathf.Max(length, 8);
             width = Mathf.Max(width, 4);
@@ -39,11 +39,14 @@ namespace Effects.Projectiles
             {
                 for (int x = 0; x < length; x++)
                 {
-                    // 앞쪽 30%는 뾰족하게, 뒤쪽 70%는 길게 빼서 화살촉 같은 실루엣을 만든다.
+                    // 양 끝이 바늘처럼 모이고 앞쪽 3분의 1 지점이 가장 두껍다.
+                    // 두께가 얇을수록(150:20) 실루엣이 또렷해진다 — 두꺼우면 물방울처럼 뭉툭해진다.
                     float along = (x + 0.5f) / length;
-                    float taper = along < 0.3f
-                        ? along / 0.3f
-                        : 1f - (along - 0.3f) / 0.7f;
+                    const float peak = 0.68f;
+                    float taper = along < peak
+                        ? along / peak
+                        : (1f - along) / (1f - peak);
+                    taper = Mathf.Pow(Mathf.Clamp01(taper), 0.65f);
 
                     float allowed = halfWidth * Mathf.Clamp01(taper);
                     float distance = Mathf.Abs(y + 0.5f - halfWidth);
@@ -61,7 +64,7 @@ namespace Effects.Projectiles
         /// 뒤로 흐르는 잔광. 왼쪽이 투명하고 오른쪽으로 갈수록 진해진다.
         /// 진행 방향으로 늘려 쓴다.
         /// </summary>
-        public static Sprite Streak(int length = 128, int width = 16)
+        public static Sprite Streak(int length = 220, int width = 22)
         {
             length = Mathf.Max(length, 8);
             width = Mathf.Max(width, 2);
