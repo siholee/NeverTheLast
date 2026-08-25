@@ -8,7 +8,14 @@ using UnityEngine;
 namespace Managers
 {
     /// <summary>
-    /// 육성(트레이닝) 시스템.
+    /// 육성(트레이닝) 시스템. 우마무스메의 훈련 화면을 기준으로 삼되,
+    /// <b>훈련 하나는 대응하는 스탯 하나만</b> 올린다.
+    ///
+    /// 한 번의 훈련은 이렇게 계산된다:
+    ///   상승 = floor( (훈련 레벨 기본치 + 서포트 보너스) × 컨디션 배율 )
+    ///   체력 = 훈련별 소모(지능만 회복) + 실패 시 추가 소모
+    ///   실패율 = 체력이 60 미만부터 오르고 30 미만에서 급증
+    ///
     /// 메인 캐릭터가 육성 페이즈마다 하나의 5스탯을 집중 훈련하여 성장한다.
     /// 서포트 캐릭터는 훈련 효과를 증폭시킨다(우마무스메 서포트 카드 역할).
     /// 훈련 시 메인의 트레이닝 레벨이 올라 레벨 해금 패시브(#2/#3)가 해금된다.
@@ -19,8 +26,6 @@ namespace Managers
     /// </summary>
     public static class TrainingManager
     {
-        // 집중 훈련 시 기본 스탯 강화량.
-        public const int BaseStatGain = 1;
         // 서포트 1명당 추가되는 집중 스탯 강화량(항상 적용).
         public const int SupportStatBonusPerUnit = 1;
         // 집중 스탯이 서포트의 특기(클래스 주 스탯)와 일치할 때 서포트 1명당 추가 강화량.
@@ -29,6 +34,72 @@ namespace Managers
         public const int TrainingLevelGain = 1;
         private const int OffSpecialtyAppearanceRate = 35;
         private const int MaxBond = SupportBondState.MaxBond;
+        /// <summary>훈련에 실패하면 체력을 이만큼 더 잃는다.</summary>
+        public const int FailureEnergyPenalty = 10;
+
+        /// <summary>
+        /// 훈련 하나는 <b>대응하는 스탯 하나만</b> 올린다.
+        /// 우마무스메처럼 한 훈련이 여러 스탯을 함께 올리지 않는다.
+        /// </summary>
+        public readonly struct TrainingOption
+        {
+            public readonly BaseEnums.PrimaryStat Stat;
+            public readonly string Name;
+            public readonly string Effect;
+
+            /// <summary>훈련에 드는 체력. 음수면 오히려 회복한다(지능).</summary>
+            public readonly int EnergyCost;
+
+            public readonly int SkillPoints;
+
+            private readonly int[] _gains;
+
+            public TrainingOption(BaseEnums.PrimaryStat stat, string name, string effect,
+                int energyCost, int skillPoints, int[] gains)
+            {
+                Stat = stat;
+                Name = name;
+                Effect = effect;
+                EnergyCost = energyCost;
+                SkillPoints = skillPoints;
+                _gains = gains;
+            }
+
+            /// <summary>훈련 레벨(1~5)에 따른 기본 상승치.</summary>
+            public int BaseGain(int level)
+            {
+                if (_gains == null || _gains.Length == 0) return 1;
+                return _gains[Mathf.Clamp(level - 1, 0, _gains.Length - 1)];
+            }
+        }
+
+        /// <summary>
+        /// 훈련 5종. 지능만 체력을 회복하고 스킬 Pt를 많이 준다 — 우마무스메의 지능 훈련 역할이다.
+        /// </summary>
+        public static readonly TrainingOption[] Options =
+        {
+            new(BaseEnums.PrimaryStat.STR, "근력", "방어력 · 장비 중량 한도", 20, 2, new[] { 3, 4, 5, 6, 8 }),
+            new(BaseEnums.PrimaryStat.DEX, "민첩", "행동 속도", 18, 2, new[] { 3, 4, 5, 6, 8 }),
+            new(BaseEnums.PrimaryStat.CON, "체력", "최대 체력", 16, 2, new[] { 3, 4, 5, 6, 8 }),
+            new(BaseEnums.PrimaryStat.INT, "지능", "마나 획득 효율", -5, 4, new[] { 2, 3, 4, 5, 6 }),
+            new(BaseEnums.PrimaryStat.LUK, "행운", "치명타 확률", 14, 3, new[] { 3, 4, 5, 6, 8 }),
+        };
+
+        public static TrainingOption GetOption(BaseEnums.PrimaryStat stat)
+        {
+            foreach (TrainingOption option in Options)
+            {
+                if (option.Stat == stat) return option;
+            }
+
+            return Options[0];
+        }
+
+        // 훈련 체력·레벨·스킬 Pt도 런 범위 상태다. RunManager가 없을 때를 위한 폴백.
+        private static readonly TrainingState FallbackTraining = new();
+
+        public static TrainingState State =>
+            RunManager.Instance != null ? RunManager.Instance.Training : FallbackTraining;
 
         // 우정도는 런 범위 상태이므로 RunManager가 소유한다.
         // RunManager가 아직 없을 때(에디터 진입 직후 등)를 대비한 폴백.
@@ -43,6 +114,12 @@ namespace Managers
             public int SupportBonus;
             public int AffinityBonus;
             public int NewTrainingLevel;
+            public bool Failed;
+            public int FailureRate;
+            public int EnergySpent;
+            public int EnergyAfter;
+            public int SkillPointsGained;
+            public int NewFocusTrainingLevel;
             public List<string> SupportMessages;
             public List<int> TransferredPassiveIds;
         }
@@ -150,6 +227,33 @@ namespace Managers
                 && specialty == focus;
         }
 
+        /// <summary>우정 훈련이 붙기 시작하는 우정도.</summary>
+        public const int FriendshipBondThreshold = 75;
+
+        /// <summary>
+        /// 이 서포트의 특기 훈련. 서포트 카드가 있으면 카드의 값을,
+        /// 없으면 현재 가장 높은 5스탯을 특기로 본다.
+        /// </summary>
+        public static BaseEnums.PrimaryStat GetSupportSpecialty(Unit support)
+        {
+            if (support == null) return BaseEnums.PrimaryStat.STR;
+
+            SupportCardSaveData card = SaveSystem.GetSupportCard(support.ID);
+            if (HasSupportCard(card)
+                && System.Enum.TryParse(card.specialtyTraining, true, out BaseEnums.PrimaryStat specialty))
+            {
+                return specialty;
+            }
+
+            return GetHighestPrimaryStat(support);
+        }
+
+        /// <summary>이번 훈련이 이 서포트의 특기와 맞는지.</summary>
+        public static bool IsSupportSpecialty(Unit support, BaseEnums.PrimaryStat focus)
+        {
+            return support != null && GetSupportSpecialty(support) == focus;
+        }
+
         public static int GetSupportBond(Unit support)
         {
             if (support == null) return 0;
@@ -164,8 +268,72 @@ namespace Managers
             return initialBond;
         }
 
-        /// <summary>지정 집중 스탯의 총 강화량(기본 + 서포트 보너스).</summary>
-        public static int GetFocusStatGain(BaseEnums.PrimaryStat focus) => BaseStatGain + GetSupportBonus(focus);
+        /// <summary>
+        /// 이번 훈련으로 오를 강화량.
+        ///
+        ///   (훈련 레벨 기본치 + 서포트 보너스) × 컨디션
+        ///
+        /// <b>주/부 스탯 배율은 여기서 곱하지 않는다.</b>
+        /// <see cref="Entities.UnitStats"/>가 최종 스탯을 낼 때 이미 곱하고 있어서
+        /// 여기서 또 곱하면 두 번 적용된다. 화면에는 <see cref="GetSpecialtyMultiplier"/>를
+        /// "최종 스탯에 붙는 배율"로 따로 보여 준다.
+        /// </summary>
+        public static int GetProjectedGain(BaseEnums.PrimaryStat focus)
+        {
+            int raw = GetOption(focus).BaseGain(State.GetLevel(focus)) + GetSupportBonus(focus);
+            return Mathf.Max(1, Mathf.FloorToInt(raw * State.ConditionMultiplier));
+        }
+
+        /// <summary>예전 이름. 화면 코드가 쓰던 진입점이라 남겨 둔다.</summary>
+        public static int GetFocusStatGain(BaseEnums.PrimaryStat focus) => GetProjectedGain(focus);
+
+        /// <summary>이 훈련에 드는 체력. 음수면 회복이다.</summary>
+        public static int GetEnergyCost(BaseEnums.PrimaryStat focus) => GetOption(focus).EnergyCost;
+
+        /// <summary>
+        /// 실패율(%). 체력이 낮을수록 가파르게 오른다.
+        /// 체력을 회복하는 훈련(지능)은 실패하지 않는다.
+        /// </summary>
+        public static int GetFailureRate(BaseEnums.PrimaryStat focus)
+        {
+            if (GetOption(focus).EnergyCost <= 0) return 0;
+
+            int energy = State.Energy;
+            if (energy >= 60) return 0;
+            if (energy >= 30) return Mathf.RoundToInt((60 - energy) * 0.6f);
+
+            return Mathf.Min(85, Mathf.RoundToInt(18 + (30 - energy) * 1.6f));
+        }
+
+        /// <summary>
+        /// 이 스탯이 메인 캐릭터의 주/부 스탯이라 최종 스탯에 붙는 배율.
+        /// 10_units.yaml의 mainStatTrainingBonus · subStatTrainingBonus를 그대로 읽는다.
+        /// </summary>
+        public static float GetSpecialtyMultiplier(BaseEnums.PrimaryStat focus)
+        {
+            Unit main = GetMainUnit();
+            if (main == null) return 1f;
+
+            float multiplier = 1f;
+            if (MatchesStat(main.MainStat, focus)) multiplier += main.MainStatTrainingBonus;
+
+            foreach (string sub in main.SubStats)
+            {
+                if (!MatchesStat(sub, focus)) continue;
+
+                multiplier += main.SubStatTrainingBonus;
+                break;
+            }
+
+            return multiplier;
+        }
+
+        private static bool MatchesStat(string statName, BaseEnums.PrimaryStat stat)
+        {
+            return !string.IsNullOrWhiteSpace(statName)
+                && System.Enum.TryParse(statName, true, out BaseEnums.PrimaryStat parsed)
+                && parsed == stat;
+        }
 
         /// <summary>
         /// 집중 스탯 훈련을 메인 캐릭터에 적용한다.
@@ -173,21 +341,45 @@ namespace Managers
         /// </summary>
         public static TrainingResult ApplyTraining(BaseEnums.PrimaryStat focus)
         {
+            TrainingOption option = GetOption(focus);
+            TrainingState state = State;
+
             List<SupportTrainingRoll> rolls = RollSupportTraining(focus);
             int baseSupport = rolls
                 .Where(roll => roll.Appeared)
                 .Sum(roll => roll.Card != null ? Mathf.Max(0, roll.Card.trainingBonus) : SupportStatBonusPerUnit);
             int totalSupport = rolls.Where(roll => roll.Appeared).Sum(roll => roll.StatBonus);
             int affinity = Mathf.Max(0, totalSupport - baseSupport);
-            int gain = BaseStatGain + totalSupport;
+
+            int gain = Mathf.Max(1, Mathf.FloorToInt(
+                (option.BaseGain(state.GetLevel(focus)) + totalSupport) * state.ConditionMultiplier));
+
+            // 실패 판정은 체력을 쓰기 전 값으로 한다. 화면에 보여 준 확률과 같아야 한다.
+            int failureRate = GetFailureRate(focus);
+            bool failed = Random.Range(0, 100) < failureRate;
+
+            int energySpent = option.EnergyCost + (failed ? FailureEnergyPenalty : 0);
+            state.SpendEnergy(energySpent);
 
             Unit main = GetMainUnit();
-            if (main != null)
+            if (failed)
             {
-                main.AddStatUpgrade(focus, gain);
-                main.GainTrainingLevel(TrainingLevelGain);
-                ApplySkillTransfers(main, rolls);
+                gain = 0;
             }
+            else
+            {
+                state.RaiseLevel(focus);
+                state.GainSkillPoints(option.SkillPoints);
+
+                if (main != null)
+                {
+                    main.AddStatUpgrade(focus, gain);
+                    main.GainTrainingLevel(TrainingLevelGain);
+                    ApplySkillTransfers(main, rolls);
+                }
+            }
+
+            state.DriftCondition();
 
             return new TrainingResult
             {
@@ -196,6 +388,12 @@ namespace Managers
                 SupportBonus = totalSupport,
                 AffinityBonus = affinity,
                 NewTrainingLevel = main != null ? main.TrainingLevel : 0,
+                Failed = failed,
+                FailureRate = failureRate,
+                EnergySpent = energySpent,
+                EnergyAfter = state.Energy,
+                SkillPointsGained = failed ? 0 : option.SkillPoints,
+                NewFocusTrainingLevel = state.GetLevel(focus),
                 SupportMessages = BuildSupportMessages(rolls),
                 TransferredPassiveIds = rolls
                     .Where(roll => roll.TransferredPassive != null)

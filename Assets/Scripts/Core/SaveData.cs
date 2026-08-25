@@ -75,6 +75,24 @@ namespace Core
         public int currentBond;
     }
 
+    /// <summary>훈련 하나의 레벨. 스탯은 <see cref="BaseClasses.BaseEnums.PrimaryStat"/>의 정수값이다.</summary>
+    [Serializable]
+    public class TrainingLevelSaveData
+    {
+        public int stat;
+        public int level;
+    }
+
+    /// <summary>육성 런의 훈련 상태 — 체력 · 훈련 레벨 · 스킬 Pt · 컨디션.</summary>
+    [Serializable]
+    public class TrainingSaveData
+    {
+        public int energy = TrainingState.MaxEnergy;
+        public int skillPoints;
+        public int conditionIndex = TrainingState.NormalConditionIndex;
+        public List<TrainingLevelSaveData> levels = new();
+    }
+
     [Serializable]
     public class UnitSaveData
     {
@@ -117,6 +135,9 @@ namespace Core
         public List<TokenSaveData> tokens = new();
         public List<int> storedItemIds = new();
         public List<SupportBondSaveData> supportBonds = new();
+
+        // 훈련 상태. v4 저장본에는 없던 필드라 기본값으로 채워진다(버전은 올리지 않는다).
+        public TrainingSaveData training = new();
         public List<UnitSaveData> heroUnits = new();
         public List<string> triggeredEventIds = new();
     }

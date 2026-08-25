@@ -18,6 +18,9 @@ namespace Managers
 
         // 런 범위 상태: 서포트 우정도 (런 시작 시 초기화, 저장/복원 대상)
         public SupportBondState SupportBonds { get; } = new();
+
+        // 런 범위 상태: 훈련 체력 · 훈련 레벨 · 스킬 Pt · 컨디션 (저장/복원 대상)
+        public TrainingState Training { get; } = new();
         private readonly HashSet<string> _triggeredEventIds = new();
 
         public static void DestroyInstance()
@@ -55,6 +58,7 @@ namespace Managers
             CurrentMode = mode;
             RunActive = true;
             SupportBonds.Clear();
+            Training.Reset();
             _triggeredEventIds.Clear();
             SaveSystem.DeleteSave();
         }
@@ -80,6 +84,7 @@ namespace Managers
             GameManager.Instance.KillCount = save.killCount;
             RestoreInventory(save);
             SupportBonds.Restore(save.supportBonds);
+            Training.Restore(save.training);
             _triggeredEventIds.Clear();
             foreach (string eventId in save.triggeredEventIds ?? new List<string>())
             {
@@ -350,6 +355,7 @@ namespace Managers
                 tokens = BuildTokenSaveData(),
                 storedItemIds = GameManager.Instance.inventoryManager?.ItemIdsInHand?.ToList() ?? new List<int>(),
                 supportBonds = SupportBonds.BuildSaveData(),
+                training = Training.BuildSaveData(),
                 heroUnits = BuildHeroSaveData(),
                 triggeredEventIds = _triggeredEventIds.ToList(),
             };
@@ -437,13 +443,15 @@ namespace Managers
 
         private static void RestoreHeroes(List<UnitSaveData> savedHeroes)
         {
+            // 비활성화만 하면 리스트에 사본이 남는다. 불러오기 전에 기존 아군을 완전히 물린다.
             foreach (var hero in GridManager.Instance.heroList.ToList())
             {
-                if (hero != null && hero.isActive && !hero.IsEnemy)
+                if (hero != null && !hero.IsEnemy)
                 {
-                    hero.DeactivateUnit();
+                    GridManager.Instance.RetireUnit(hero);
                 }
             }
+            GridManager.Instance.PruneUnitLists();
 
             if (savedHeroes == null) return;
 
