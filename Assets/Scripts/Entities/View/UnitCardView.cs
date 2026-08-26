@@ -54,6 +54,25 @@ namespace Entities.View
 
         /// <summary>테두리 안쪽으로 물이 들어갈 여백(캔버스 단위).</summary>
         private const float RingEdge = 1.6f;
+
+        /// <summary>
+        /// 아직 차지 않은 부분. 스타레일처럼 <b>흐린 흰색</b>이다.
+        /// 예전에는 여기가 카드보다 더 어두워서, 어두운 그릇에 어두운 물이 담긴 꼴이라
+        /// 수위가 카드에서 떨어져 보이지 않았다.
+        /// </summary>
+        private static readonly Color RingWell = new(0.635f, 0.655f, 0.686f, 1f);
+
+        /// <summary>스택 칸을 가르는 선. 물이 찼든 안 찼든 같은 색으로 보이게 어둡다.</summary>
+        private static readonly Color RingTick = new(0.067f, 0.071f, 0.082f, 1f);
+
+        /// <summary>
+        /// 칸 나누기를 그려 줄 스택 수의 상한. 이보다 많으면 칸이 선 두께만큼도 안 남아
+        /// 줄무늬로만 보이므로 그냥 연속 게이지로 둔다.
+        /// </summary>
+        private const int MaxRingTicks = 8;
+
+        /// <summary>칸 나누기 선의 두께(캔버스 단위).</summary>
+        private const float RingTickThickness = 0.7f;
         private const float HpTop = 104.7f;
         private const float HpHeight = 5.7f;
         private const float ActionTop = 112.2f;
@@ -81,6 +100,10 @@ namespace Entities.View
         private Image _ultOutline;
 
         /// <summary>링 색을 다시 계산할지 판단할 때 쓰는 직전 원소 이름.</summary>
+        private RectTransform _ultTicks;
+
+        /// <summary>칸 나누기를 다시 그릴지 판단하는 값. 스택형이 아니면 0이다.</summary>
+        private int _ringTickCount = -1;
         private string _ringElementName;
         private Image _hpFill;
         private Image _shieldFill;
@@ -261,13 +284,13 @@ namespace Entities.View
             _ultRoot.sizeDelta = new Vector2(RingSize, RingSize);
             _ultRoot.anchoredPosition = new Vector2(RingOverhang, RingOverhang);
 
-            // 빈 그릇. 차오르기 전에도 자리가 보여야 한다.
-            Image ultWell = NewImage(_ultRoot, "Well", new Color(0.043f, 0.047f, 0.055f, 0.92f));
+            // 빈 그릇. 흐린 흰색이라 차오르기 전에도 자리가 또렷하다.
+            Image ultWell = NewImage(_ultRoot, "Well", RingWell);
             ultWell.sprite = UIShapes.Disc(96, Color.white);
             UIBuild.Stretch(ultWell.rectTransform, RingEdge, RingEdge);
 
-            // 차오르는 물. 테두리보다 연하게 둬서 테두리가 윤곽을 잡는다.
-            _ultFill = NewImage(_ultRoot, "Fill", FillColor(UITheme.Mana));
+            // 차오르는 물. 테두리와 같은 진한 원소 색이라 흰 바탕 위에서 수위가 바로 읽힌다.
+            _ultFill = NewImage(_ultRoot, "Fill", UITheme.Mana);
             _ultFill.sprite = UIShapes.Disc(96, Color.white);
             _ultFill.type = Image.Type.Filled;
             _ultFill.fillMethod = Image.FillMethod.Vertical;
@@ -277,6 +300,10 @@ namespace Entities.View
 
             // 테두리는 가장 위에. 수위와 무관하게 늘 같은 굵기다.
             // 색은 유닛의 원소를 따라가므로 Bind에서 다시 칠한다.
+            // 스택형 궁극기의 칸 나누기. 물 위·테두리 아래에 놓여야 물을 잘라 보인다.
+            _ultTicks = UIBuild.Container("Ticks", _ultRoot);
+            UIBuild.Stretch(_ultTicks, RingEdge, RingEdge);
+
             _ultOutline = NewImage(_ultRoot, "Outline", UITheme.Mana);
             _ultOutline.sprite = UIShapes.Disc(96, Color.white, 0.80f);
             UIBuild.Stretch(_ultOutline.rectTransform);
@@ -398,7 +425,9 @@ namespace Entities.View
             _ultRoot.gameObject.SetActive(combatHud);
             _hpFill.transform.parent.gameObject.SetActive(combatHud);
             _actionFill.transform.parent.gameObject.SetActive(combatHud);
+            _ringTickCount = -1;
             if (!combatHud)
+            RefreshUltimateTicks();
             {
                 foreach (Image dot in _dots) dot.enabled = false;
                 _actingOutline.enabled = false;
@@ -437,11 +466,16 @@ namespace Entities.View
             // 문자열이 그대로면 아무 일도 하지 않으므로 비용은 비교 한 번이다.
             RefreshUltimateRingColor();
 
-            int resourceMax = _unit.UltimateResourceMax > 0 ? _unit.UltimateResourceMax : _unit.ManaMax;
+            // ManaMax는 AttributesUpdate가 GetUltimateResourceMax()로 채워 두는 값이라
+            // 마나형이면 파생 마나, 스택형이면 최대 스택이 그대로 들어 있다.
+            // 예전에는 yaml 원본값(UltimateResourceMax)을 먼저 봐서, 파생 마나가 100이
+            // 아닌 유닛의 수위가 실제와 어긋났다.
+            int resourceMax = _unit.ManaMax > 0 ? _unit.ManaMax : _unit.GetUltimateResourceMax();
             _ultFill.fillAmount = resourceMax > 0 ? Mathf.Clamp01(_unit.ManaCurr / (float)resourceMax) : 0f;
 
             // ── 행동 게이지 ──
             ActionScheduler scheduler = GameManager.Instance?.ActionScheduler;
+            RefreshUltimateTicks();
             SetSpan(_actionFill.rectTransform, 0f, scheduler?.ActionProgress(_unit) ?? 0f);
             _actingOutline.enabled = scheduler != null && ReferenceEquals(scheduler.ActingUnit, _unit);
 
@@ -573,20 +607,6 @@ namespace Entities.View
         // ── 조립 헬퍼 ────────────────────────────────────────────────
 
         /// <summary>
-        /// 차오르는 안쪽 색.
-        ///
-        /// 처음에는 테두리와 같은 색을 알파 0.45로 깔았는데, 그릇이 어두워서
-        /// 수위가 거의 읽히지 않았다. 반투명 대신 <b>흰색을 살짝 섞어 밝힌 색</b>을
-        /// 거의 불투명하게 쓴다 — 그래야 빈 부분과 찬 부분이 확실히 갈린다.
-        /// 테두리보다는 밝아서 둘이 겹쳐 보이지도 않는다.
-        /// </summary>
-        private static Color FillColor(Color outline)
-        {
-            Color light = Color.Lerp(outline, Color.white, 0.22f);
-            return new Color(light.r, light.g, light.b, 0.88f);
-        }
-
-        /// <summary>
         /// 궁극기 링을 유닛의 <b>원소 색</b>으로 칠한다.
         ///
         /// 투사체와 <see cref="Effects.Projectiles.ElementalProjectiles"/>의 같은 표를 쓴다.
@@ -608,7 +628,48 @@ namespace Entities.View
                 : Effects.Projectiles.ElementalProjectiles.ColorFor(element);
 
             _ultOutline.color = ring;
-            _ultFill.color = FillColor(ring);
+            _ultFill.color = ring;
+        }
+
+        /// <summary>
+        /// 스택형 궁극기(수르트의 라그나로크처럼 <c>ultimateResourceType: Stack</c>)는
+        /// 연속 게이지가 아니라 <b>칸이 하나씩 차는</b> 자원이다.
+        /// 마나와 같은 물결로 그리면 "지금 몇 스택인지"를 눈금 없이 재야 한다.
+        ///
+        /// 그래서 원 안쪽을 스택 수만큼 가로줄로 나눠 둔다. 물이 차 있든 없든 줄은
+        /// 늘 보이므로 최대 스택도 함께 읽힌다. 줄 길이는 그 높이에서의 현(chord)에
+        /// 맞춰 잘라 원 밖으로 삐져나가지 않게 한다.
+        /// </summary>
+        private void RefreshUltimateTicks()
+        {
+            int ticks = 0;
+            if (_unit != null && _unit.UltimateResourceType == BaseEnums.UltimateResourceType.Stack)
+            {
+                int max = _unit.GetUltimateResourceMax();
+                if (max >= 2 && max <= MaxRingTicks) ticks = max;
+            }
+
+            if (ticks == _ringTickCount) return;
+            _ringTickCount = ticks;
+
+            UIBuild.Clear(_ultTicks);
+            if (ticks == 0) return;
+
+            float diameter = RingSize - RingEdge * 2f;
+            float radius = diameter * 0.5f;
+
+            for (int i = 1; i < ticks; i++)
+            {
+                float y = diameter * i / ticks;             // 원 아래에서 잰 높이
+                float offset = y - radius;                  // 중심에서의 거리
+                float half = Mathf.Sqrt(Mathf.Max(0f, radius * radius - offset * offset));
+
+                Image line = UIBuild.Solid($"Tick{i}", _ultTicks, RingTick);
+                line.raycastTarget = false;
+                UIBuild.Pin(line.rectTransform, new Vector2(0.5f, 0f),
+                    new Vector2(half * 2f, RingTickThickness),
+                    new Vector2(0f, y - RingTickThickness * 0.5f));
+            }
         }
 
         /// <summary>캔버스 좌상단 기준으로 자리를 잡는다.</summary>
