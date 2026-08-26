@@ -78,6 +78,10 @@ namespace Entities.View
         private MeshRenderer _nameRenderer;
         private RectTransform _ultRoot;
         private Image _ultFill;
+        private Image _ultOutline;
+
+        /// <summary>링 색을 다시 계산할지 판단할 때 쓰는 직전 원소 이름.</summary>
+        private string _ringElementName;
         private Image _hpFill;
         private Image _shieldFill;
         private Image _actionFill;
@@ -271,10 +275,11 @@ namespace Entities.View
             _ultFill.fillAmount = 0f;
             UIBuild.Stretch(_ultFill.rectTransform, RingEdge, RingEdge);
 
-            // 테두리는 가장 위에. 수위와 무관하게 늘 같은 색·같은 굵기다.
-            Image ultOutline = NewImage(_ultRoot, "Outline", UITheme.Mana);
-            ultOutline.sprite = UIShapes.Disc(96, Color.white, 0.80f);
-            UIBuild.Stretch(ultOutline.rectTransform);
+            // 테두리는 가장 위에. 수위와 무관하게 늘 같은 굵기다.
+            // 색은 유닛의 원소를 따라가므로 Bind에서 다시 칠한다.
+            _ultOutline = NewImage(_ultRoot, "Outline", UITheme.Mana);
+            _ultOutline.sprite = UIShapes.Disc(96, Color.white, 0.80f);
+            UIBuild.Stretch(_ultOutline.rectTransform);
 
             // ── 체력 + 방어막(같은 트랙, 방어막이 오른쪽에 이어 붙는다) ──
             Image hpTrack = UIBuild.Solid("HpTrack", root, new Color(1f, 1f, 1f, 0.07f));
@@ -386,6 +391,9 @@ namespace Entities.View
             _nameLabel.text = unit.UnitName;
             _factionBand.color = unit.IsEnemy ? UITheme.Enemy : UITheme.TextSecondary;
 
+            _ringElementName = null;   // 다른 유닛이 들어왔으니 링 색을 다시 잡는다
+            RefreshUltimateRingColor();
+
             // 대기석 카드는 전투 정보를 들지 않는다. 이름표만 남는다.
             _ultRoot.gameObject.SetActive(combatHud);
             _hpFill.transform.parent.gameObject.SetActive(combatHud);
@@ -425,6 +433,10 @@ namespace Entities.View
             _hpFill.color = _unit.IsEnemy ? UITheme.Enemy : UITheme.HpColor(hpRatio);
 
             // ── 궁극기 링 ──
+            // 원소가 런 중에 바뀌는 유닛이 있어 매 프레임 값을 확인한다.
+            // 문자열이 그대로면 아무 일도 하지 않으므로 비용은 비교 한 번이다.
+            RefreshUltimateRingColor();
+
             int resourceMax = _unit.UltimateResourceMax > 0 ? _unit.UltimateResourceMax : _unit.ManaMax;
             _ultFill.fillAmount = resourceMax > 0 ? Mathf.Clamp01(_unit.ManaCurr / (float)resourceMax) : 0f;
 
@@ -560,9 +572,44 @@ namespace Entities.View
 
         // ── 조립 헬퍼 ────────────────────────────────────────────────
 
-        /// <summary>차오르는 안쪽 색. 테두리와 같은 색조를 연하게 쓴다.</summary>
-        private static Color FillColor(Color outline) =>
-            new(outline.r, outline.g, outline.b, 0.45f);
+        /// <summary>
+        /// 차오르는 안쪽 색.
+        ///
+        /// 처음에는 테두리와 같은 색을 알파 0.45로 깔았는데, 그릇이 어두워서
+        /// 수위가 거의 읽히지 않았다. 반투명 대신 <b>흰색을 살짝 섞어 밝힌 색</b>을
+        /// 거의 불투명하게 쓴다 — 그래야 빈 부분과 찬 부분이 확실히 갈린다.
+        /// 테두리보다는 밝아서 둘이 겹쳐 보이지도 않는다.
+        /// </summary>
+        private static Color FillColor(Color outline)
+        {
+            Color light = Color.Lerp(outline, Color.white, 0.22f);
+            return new Color(light.r, light.g, light.b, 0.88f);
+        }
+
+        /// <summary>
+        /// 궁극기 링을 유닛의 <b>원소 색</b>으로 칠한다.
+        ///
+        /// 투사체와 <see cref="Effects.Projectiles.ElementalProjectiles"/>의 같은 표를 쓴다.
+        /// 그래서 카드에 달린 링 색과 그 유닛이 쏘는 투사체 색이 항상 일치하고,
+        /// 편성만 훑어도 어떤 속성이 몇 명인지가 읽힌다.
+        /// 원소가 없는 유닛(None)은 예전처럼 자원 파랑을 쓴다.
+        ///
+        /// 원소 이름이 그대로면 아무 일도 하지 않는다. 매 프레임 불러도 안전하다.
+        /// </summary>
+        private void RefreshUltimateRingColor()
+        {
+            string elementName = _unit != null ? _unit.Element : null;
+            if (elementName == _ringElementName) return;
+            _ringElementName = elementName;
+
+            BaseEnums.UnitElement element = Effects.Projectiles.ElementalProjectiles.Parse(elementName);
+            Color ring = element == BaseEnums.UnitElement.None
+                ? UITheme.Mana
+                : Effects.Projectiles.ElementalProjectiles.ColorFor(element);
+
+            _ultOutline.color = ring;
+            _ultFill.color = FillColor(ring);
+        }
 
         /// <summary>캔버스 좌상단 기준으로 자리를 잡는다.</summary>
         private static void Place(RectTransform rect, float x, float y, float width, float height)
