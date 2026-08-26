@@ -18,7 +18,8 @@ namespace Entities.View
     ///   · 컷코너 카드 프레임 — 초상화가 그 위에 선다(초상화는 여전히 SpriteRenderer다)
     ///   · 진영 띠 — 아군 무채색 / 적 적색. <b>파랑을 쓰지 않는다.</b>
     ///   · 이름 띠
-    ///   · 궁극기 링 — 우상단에 걸치는 원형 게이지. 충전 중·완료·예약이 모두 같은 색이다.
+    ///   · 궁극기 게이지 — 우상단에 걸치는 원형. 테두리는 고정이고 안쪽이 아래에서
+    ///     위로 차오른다(스타레일식). 충전 중·완료·예약이 모두 같은 색이다.
     ///   · 체력 바 — 그 <b>오른쪽에 이어 붙는</b> 방어막(회백)
     ///   · 행동 게이지 — 체력 바 절반 높이
     ///   · 상태 점 — 이로운 것 초록, 해로운 것 적색
@@ -50,6 +51,9 @@ namespace Entities.View
         private const float NameBandHeight = 28f;
         private const float RingSize = 27f;
         private const float RingOverhang = 5f;
+
+        /// <summary>테두리 안쪽으로 물이 들어갈 여백(캔버스 단위).</summary>
+        private const float RingEdge = 1.6f;
         private const float HpTop = 104.7f;
         private const float HpHeight = 5.7f;
         private const float ActionTop = 112.2f;
@@ -72,7 +76,8 @@ namespace Entities.View
         private Image _actingOutline;
         private TextMeshPro _nameLabel;
         private MeshRenderer _nameRenderer;
-        private Image _ultRing;
+        private RectTransform _ultRoot;
+        private Image _ultFill;
         private Image _hpFill;
         private Image _shieldFill;
         private Image _actionFill;
@@ -238,15 +243,38 @@ namespace Entities.View
             _nameLabel.raycastTarget = false;
             LayOutName(cardSize);
 
-            // ── 궁극기 링 ──
-            _ultRing = UIBuild.RadialBar("UltRing", root, UITheme.Mana,
-                new Color(1f, 1f, 1f, 0.14f), 96, 0.68f);
-            var ringTrack = (RectTransform)_ultRing.rectTransform.parent;
-            ringTrack.anchorMin = new Vector2(1f, 1f);
-            ringTrack.anchorMax = new Vector2(1f, 1f);
-            ringTrack.pivot = new Vector2(1f, 1f);
-            ringTrack.sizeDelta = new Vector2(RingSize, RingSize);
-            ringTrack.anchoredPosition = new Vector2(RingOverhang, RingOverhang);
+            // ── 궁극기 충전 ──
+            // 붕괴: 스타레일 방식이다. 테두리는 늘 또렷하게 그려 두고,
+            // 안쪽이 아래에서 위로 차오른다.
+            //
+            // 시계 방향으로 도는 링을 쓰지 않는 이유는 각도로만 읽히기 때문이다.
+            // 절반쯤 찼는지 3분의 2쯤 찼는지 알려면 호의 끝을 눈으로 따라가야 한다.
+            // 수위는 높이 하나로 읽히고, 여러 카드를 훑을 때 특히 차이가 크다.
+            _ultRoot = UIBuild.Container("UltGauge", root);
+            _ultRoot.anchorMin = new Vector2(1f, 1f);
+            _ultRoot.anchorMax = new Vector2(1f, 1f);
+            _ultRoot.pivot = new Vector2(1f, 1f);
+            _ultRoot.sizeDelta = new Vector2(RingSize, RingSize);
+            _ultRoot.anchoredPosition = new Vector2(RingOverhang, RingOverhang);
+
+            // 빈 그릇. 차오르기 전에도 자리가 보여야 한다.
+            Image ultWell = NewImage(_ultRoot, "Well", new Color(0.043f, 0.047f, 0.055f, 0.92f));
+            ultWell.sprite = UIShapes.Disc(96, Color.white);
+            UIBuild.Stretch(ultWell.rectTransform, RingEdge, RingEdge);
+
+            // 차오르는 물. 테두리보다 연하게 둬서 테두리가 윤곽을 잡는다.
+            _ultFill = NewImage(_ultRoot, "Fill", FillColor(UITheme.Mana));
+            _ultFill.sprite = UIShapes.Disc(96, Color.white);
+            _ultFill.type = Image.Type.Filled;
+            _ultFill.fillMethod = Image.FillMethod.Vertical;
+            _ultFill.fillOrigin = (int)Image.OriginVertical.Bottom;
+            _ultFill.fillAmount = 0f;
+            UIBuild.Stretch(_ultFill.rectTransform, RingEdge, RingEdge);
+
+            // 테두리는 가장 위에. 수위와 무관하게 늘 같은 색·같은 굵기다.
+            Image ultOutline = NewImage(_ultRoot, "Outline", UITheme.Mana);
+            ultOutline.sprite = UIShapes.Disc(96, Color.white, 0.80f);
+            UIBuild.Stretch(ultOutline.rectTransform);
 
             // ── 체력 + 방어막(같은 트랙, 방어막이 오른쪽에 이어 붙는다) ──
             Image hpTrack = UIBuild.Solid("HpTrack", root, new Color(1f, 1f, 1f, 0.07f));
@@ -359,7 +387,7 @@ namespace Entities.View
             _factionBand.color = unit.IsEnemy ? UITheme.Enemy : UITheme.TextSecondary;
 
             // 대기석 카드는 전투 정보를 들지 않는다. 이름표만 남는다.
-            _ultRing.transform.parent.gameObject.SetActive(combatHud);
+            _ultRoot.gameObject.SetActive(combatHud);
             _hpFill.transform.parent.gameObject.SetActive(combatHud);
             _actionFill.transform.parent.gameObject.SetActive(combatHud);
             if (!combatHud)
@@ -398,7 +426,7 @@ namespace Entities.View
 
             // ── 궁극기 링 ──
             int resourceMax = _unit.UltimateResourceMax > 0 ? _unit.UltimateResourceMax : _unit.ManaMax;
-            _ultRing.fillAmount = resourceMax > 0 ? Mathf.Clamp01(_unit.ManaCurr / (float)resourceMax) : 0f;
+            _ultFill.fillAmount = resourceMax > 0 ? Mathf.Clamp01(_unit.ManaCurr / (float)resourceMax) : 0f;
 
             // ── 행동 게이지 ──
             ActionScheduler scheduler = GameManager.Instance?.ActionScheduler;
@@ -531,6 +559,10 @@ namespace Entities.View
         }
 
         // ── 조립 헬퍼 ────────────────────────────────────────────────
+
+        /// <summary>차오르는 안쪽 색. 테두리와 같은 색조를 연하게 쓴다.</summary>
+        private static Color FillColor(Color outline) =>
+            new(outline.r, outline.g, outline.b, 0.45f);
 
         /// <summary>캔버스 좌상단 기준으로 자리를 잡는다.</summary>
         private static void Place(RectTransform rect, float x, float y, float width, float height)
