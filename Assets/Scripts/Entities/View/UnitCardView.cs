@@ -22,7 +22,7 @@ namespace Entities.View
     ///     위로 차오른다(스타레일식). 충전 중·완료·예약이 모두 같은 색이다.
     ///   · 체력 바 — 그 <b>오른쪽에 이어 붙는</b> 방어막(회백)
     ///   · 행동 게이지 — 체력 바 절반 높이
-    ///   · 상태 점 — 이로운 것 초록, 해로운 것 적색
+    ///   · 상태 아이콘 — 이로운 것 초록, 해로운 것 적색(<see cref="StatusIcons"/>)
     ///
     /// 프레임은 SpriteRenderer, 나머지는 월드 스페이스 캔버스다.
     /// 초상화가 SpriteRenderer라 프레임은 그보다 뒤에(정렬 순서가 낮게) 있어야 하므로
@@ -77,9 +77,11 @@ namespace Entities.View
         private const float HpHeight = 5.7f;
         private const float ActionTop = 112.2f;
         private const float ActionHeight = 2.9f;
-        private const float DotTop = 117.7f;
-        private const float DotSize = 10f;
-        private const float DotGap = 13f;
+        private const float DotTop = 117.0f;
+
+        /// <summary>상태 아이콘 한 변. 그림이 들어가면서 점일 때보다 조금 키웠다.</summary>
+        private const float DotSize = 12f;
+        private const float DotGap = 14f;
 
         private static TMP_FontAsset _font;
         private static bool _fontSearched;
@@ -98,12 +100,12 @@ namespace Entities.View
         private RectTransform _ultRoot;
         private Image _ultFill;
         private Image _ultOutline;
-
-        /// <summary>링 색을 다시 계산할지 판단할 때 쓰는 직전 원소 이름.</summary>
         private RectTransform _ultTicks;
 
         /// <summary>칸 나누기를 다시 그릴지 판단하는 값. 스택형이 아니면 0이다.</summary>
         private int _ringTickCount = -1;
+
+        /// <summary>링 색을 다시 계산할지 판단할 때 쓰는 직전 원소 이름.</summary>
         private string _ringElementName;
         private Image _hpFill;
         private Image _shieldFill;
@@ -298,12 +300,12 @@ namespace Entities.View
             _ultFill.fillAmount = 0f;
             UIBuild.Stretch(_ultFill.rectTransform, RingEdge, RingEdge);
 
-            // 테두리는 가장 위에. 수위와 무관하게 늘 같은 굵기다.
-            // 색은 유닛의 원소를 따라가므로 Bind에서 다시 칠한다.
             // 스택형 궁극기의 칸 나누기. 물 위·테두리 아래에 놓여야 물을 잘라 보인다.
             _ultTicks = UIBuild.Container("Ticks", _ultRoot);
             UIBuild.Stretch(_ultTicks, RingEdge, RingEdge);
 
+            // 테두리는 가장 위에. 수위와 무관하게 늘 같은 굵기다.
+            // 색은 유닛의 원소를 따라가므로 Bind에서 다시 칠한다.
             _ultOutline = NewImage(_ultRoot, "Outline", UITheme.Mana);
             _ultOutline.sprite = UIShapes.Disc(96, Color.white, 0.80f);
             UIBuild.Stretch(_ultOutline.rectTransform);
@@ -319,10 +321,14 @@ namespace Entities.View
             Place(actionTrack.rectTransform, 0f, ActionTop, CanvasWidth, ActionHeight);
             _actionFill = NewImage(actionTrack.transform, "ActionFill", UITheme.ActionYellow);
 
-            // ── 상태 점 ──
+            // ── 상태 아이콘 ──
+            // 예전에는 초록·적색 점이라 "뭔가 걸려 있다"까지만 읽혔다. 지금은 그림이 붙어
+            // 무엇이 걸렸는지도 함께 읽힌다. 색은 그대로 분류를 나타낸다.
             for (int i = 0; i < MaxDots; i++)
             {
                 Image dot = UIBuild.Solid($"Status{i}", root, UITheme.TextMuted);
+                dot.type = Image.Type.Simple;
+                dot.preserveAspect = true;
                 Place(dot.rectTransform, i * DotGap, DotTop, DotSize, DotSize);
                 dot.enabled = false;
                 _dots[i] = dot;
@@ -419,15 +425,15 @@ namespace Entities.View
             _factionBand.color = unit.IsEnemy ? UITheme.Enemy : UITheme.TextSecondary;
 
             _ringElementName = null;   // 다른 유닛이 들어왔으니 링 색을 다시 잡는다
+            _ringTickCount = -1;
             RefreshUltimateRingColor();
+            RefreshUltimateTicks();
 
             // 대기석 카드는 전투 정보를 들지 않는다. 이름표만 남는다.
             _ultRoot.gameObject.SetActive(combatHud);
             _hpFill.transform.parent.gameObject.SetActive(combatHud);
             _actionFill.transform.parent.gameObject.SetActive(combatHud);
-            _ringTickCount = -1;
             if (!combatHud)
-            RefreshUltimateTicks();
             {
                 foreach (Image dot in _dots) dot.enabled = false;
                 _actingOutline.enabled = false;
@@ -465,6 +471,7 @@ namespace Entities.View
             // 원소가 런 중에 바뀌는 유닛이 있어 매 프레임 값을 확인한다.
             // 문자열이 그대로면 아무 일도 하지 않으므로 비용은 비교 한 번이다.
             RefreshUltimateRingColor();
+            RefreshUltimateTicks();
 
             // ManaMax는 AttributesUpdate가 GetUltimateResourceMax()로 채워 두는 값이라
             // 마나형이면 파생 마나, 스택형이면 최대 스택이 그대로 들어 있다.
@@ -475,7 +482,6 @@ namespace Entities.View
 
             // ── 행동 게이지 ──
             ActionScheduler scheduler = GameManager.Instance?.ActionScheduler;
-            RefreshUltimateTicks();
             SetSpan(_actionFill.rectTransform, 0f, scheduler?.ActionProgress(_unit) ?? 0f);
             _actingOutline.enabled = scheduler != null && ReferenceEquals(scheduler.ActingUnit, _unit);
 
@@ -505,7 +511,10 @@ namespace Entities.View
             {
                 bool has = statuses != null && i < statuses.Count && statuses[i] != null;
                 _dots[i].enabled = has;
-                if (has) _dots[i].color = statuses[i].IsBeneficial ? UITheme.Positive : UITheme.Danger;
+                if (!has) continue;
+
+                _dots[i].sprite = StatusIcons.For(statuses[i]);
+                _dots[i].color = StatusIcons.Tint(statuses[i]);
             }
         }
 
