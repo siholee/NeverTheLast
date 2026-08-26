@@ -25,7 +25,7 @@ namespace Managers.UI.Screens
     {
         private const int CardCount = 3;
         private const int MaxStatRows = 4;
-        private const int MaxSpecRows = 3;
+        private const int MaxSpecRows = 4;
 
         protected override string CanvasName => "RewardCanvas";
         protected override int SortingOrder => 70;
@@ -169,14 +169,15 @@ namespace Managers.UI.Screens
                 rows.Add(new Row("요구 숙련", ProficiencyName(item.RequiredProficiency), UITheme.TextPrimary));
             }
 
-            if (item.twoHanded && rows.Count < MaxSpecRows)
-            {
-                rows.Add(new Row("양손", "보조 슬롯 사용", UITheme.TextMuted));
-            }
-
+            // 부여 코드가 이 장비를 고를 가장 큰 이유다. 양손 여부보다 먼저 적는다.
             if (item.codeGrants is { Count: > 0 } && rows.Count < MaxSpecRows)
             {
                 rows.Add(new Row("부여 코드", item.codeGrants.Count + "개", UITheme.Accent));
+            }
+
+            if (item.twoHanded && rows.Count < MaxSpecRows)
+            {
+                rows.Add(new Row("양손", "보조 슬롯 사용", UITheme.TextMuted));
             }
 
             return rows;

@@ -245,6 +245,84 @@ items:
     themeIds: [5]
     statBonuses: [{ stat: STR, amount: 3 }]
 
+  # ── T2 메히코 세트 — '메히코' 테마 전용 보상 (themeIds: [6]) ──────────
+  # 아즈텍 전사 계열이 실제로 드는 무기다. 스탯은 그 계열이 쓰는 주스탯을 따른다.
+  # T2는 레기온 세트와 같은 규칙으로 codeGrants 없이 스탯만 올린다.
+  - id: 4210
+    name: 독수리 전사의 활
+    slot: MainHand
+    category: Longbow
+    requiredProficiency: Longbow
+    rarity: 2
+    weight: 3
+    twoHanded: true
+    themeIds: [6]
+    statBonuses: [{ stat: DEX, amount: 3 }]
+
+  - id: 4211
+    name: 재규어 전사의 몽둥이
+    slot: MainHand
+    category: Mace
+    requiredProficiency: Mace
+    rarity: 2
+    weight: 3
+    themeIds: [6]
+    statBonuses: [{ stat: STR, amount: 3 }]
+
+  - id: 4212
+    name: 뱀 사제의 지팡이
+    slot: MainHand
+    category: Spear
+    requiredProficiency: Spear
+    rarity: 2
+    weight: 3
+    twoHanded: true
+    themeIds: [6]
+    statBonuses: [{ stat: INT, amount: 3 }]
+
+  # ── T3 정예 메히코 세트 ────────────────────────────────────────────
+  # T2와 같은 무기를 정예 개체가 들던 것이다. 스탯이 한 단계 오르고,
+  # 그 계열의 고유 패시브가 무기에 그대로 실린다.
+  #   독수리 = 맹독 추적(321) / 재규어 = 행동불능 추적(320) / 뱀 사제 = 죽음의 제의(322)
+  # 셋 다 진영을 가리지 않는 효과라 아군이 들어도 그대로 동작한다.
+  - id: 4213
+    name: 정예 독수리 전사의 활
+    slot: MainHand
+    category: Longbow
+    requiredProficiency: Longbow
+    rarity: 3
+    weight: 3
+    twoHanded: true
+    themeIds: [6]
+    statBonuses: [{ stat: DEX, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 321, stage: 1 }
+
+  - id: 4214
+    name: 정예 재규어 전사의 몽둥이
+    slot: MainHand
+    category: Mace
+    requiredProficiency: Mace
+    rarity: 3
+    weight: 3
+    themeIds: [6]
+    statBonuses: [{ stat: STR, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 320, stage: 1 }
+
+  - id: 4215
+    name: 정예 뱀 사제의 지팡이
+    slot: MainHand
+    category: Spear
+    requiredProficiency: Spear
+    rarity: 3
+    weight: 3
+    twoHanded: true
+    themeIds: [6]
+    statBonuses: [{ stat: INT, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 322, stage: 1 }
+
   # 메히코 케찰코아틀 영입 사건 전용 보상. 일반 보상 풀에는 들어가지 않는다.
   - id: 4010
     name: 마카나

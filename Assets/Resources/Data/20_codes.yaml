@@ -255,9 +255,9 @@ codes:
     - { id: 317, verbalName: 독재관, codeName: LegionDictator, description: "궁극기의 지속 턴 수 +1. <보스 전용> <전수 불가능>" }
 
     # ── 메히코(신규 아즈텍) 전용 패시브 ──
-    - { id: 320, verbalName: 행동불능 추적, codeName: AztecControlledHunter, description: "행동불능 상태의 적에게 가하는 피해 +25%. <적 전용> <전수 불가능>" }
-    - { id: 321, verbalName: 맹독 추적, codeName: AztecPoisonHunter, description: "맹독 상태의 적에게 가하는 피해 +25%. <적 전용> <전수 불가능>" }
-    - { id: 322, verbalName: 죽음의 제의, codeName: AztecSerpentDeathRite, description: "아군 유닛이 쓰러지면 적 전체에게 위력 100 + INT×1.4의 특수 추가공격을 가한다. #비접촉 #특수 #추가공격 <적 전용>" }
+    - { id: 320, verbalName: 행동불능 추적, codeName: AztecControlledHunter, description: "행동불능 상태의 적에게 가하는 피해 +25%. <정예 재규어 전사의 몽둥이로 획득> <전수 불가능>" }
+    - { id: 321, verbalName: 맹독 추적, codeName: AztecPoisonHunter, description: "맹독 상태의 적에게 가하는 피해 +25%. <정예 독수리 전사의 활로 획득> <전수 불가능>" }
+    - { id: 322, verbalName: 죽음의 제의, codeName: AztecSerpentDeathRite, description: "아군 유닛이 쓰러지면 적 전체에게 위력 100 + INT×1.4의 특수 추가공격을 가한다. #비접촉 #특수 #추가공격 <정예 뱀 사제의 지팡이로 획득>" }
     - { id: 323, verbalName: 연기 나는 거울의 신, codeName: TezcatlipocaDivineFormation, description: "INT 1당 최대 체력 +1%. 아군 전체가 전열 아군 하나당 받는 피해 20% 감소. 재규어 전사 사망 시 궁극기 스택 +2. <보스 전용>" }
     - { id: 324, verbalName: 인신공양, codeName: AztecHumanSacrifice, description: "필드 위 적이 쓰러질 때마다 STR +5%. <적 전용>" }
     - { id: 325, verbalName: 비몽사몽, codeName: AztecDreamlikeResonance, description: "공명 반응 계산에서 자신의 CON을 1.2배로 계산한다. <적 전용>" }
