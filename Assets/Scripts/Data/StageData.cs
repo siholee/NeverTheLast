@@ -8,6 +8,14 @@ namespace Managers
     {
         public int id;
         public string name;
+
+        /// <summary>
+        /// 이 테마를 런에 넣을지. 기본값은 true이며 yaml에 적지 않으면 켜져 있다.
+        ///
+        /// 리메이크가 필요한 테마를 지우지 않고 잠시 빼둘 때 쓴다. 항목을 통째로 지우면
+        /// 그 테마를 참조하는 사건·적·보상 데이터가 함께 죽어 되살리기 번거롭다.
+        /// </summary>
+        public bool enabled = true;
         public int enemyThemeId;
         public string description;
         public int midBossId;

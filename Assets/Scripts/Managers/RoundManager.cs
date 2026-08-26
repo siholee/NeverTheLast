@@ -63,6 +63,7 @@ namespace Managers
 
         private StageThemeDataList _stageThemeDataList;
         private StageThemeData _currentStageTheme;
+        private List<StageThemeData> _activeThemes;
         private EnemyDataList _enemyDataList;
         private RoundTypeDataList _roundTypeDataList;
 
@@ -179,12 +180,32 @@ namespace Managers
                 return;
             }
 
-            int themeIndex = (Round - 1) % _stageThemeDataList.stageThemes.Count;
-            StageThemeData selectedTheme = _stageThemeDataList.stageThemes[themeIndex];
+            List<StageThemeData> themes = ActiveThemes();
+            int themeIndex = (Round - 1) % themes.Count;
+            StageThemeData selectedTheme = themes[themeIndex];
             if (_currentStageTheme?.id == selectedTheme.id) return;
 
             _currentStageTheme = selectedTheme;
             Debug.Log($"Round {Round} theme: {_currentStageTheme.name}");
+        }
+
+        /// <summary>
+        /// 런에 실제로 도는 테마 목록. <c>enabled: false</c>인 테마는 빠진다.
+        /// 전부 꺼져 있으면 데이터가 잘못된 것이므로 원래 목록을 그대로 쓴다
+        /// (런이 시작조차 못 하는 것보다는 낫다).
+        /// </summary>
+        private List<StageThemeData> ActiveThemes()
+        {
+            if (_activeThemes != null) return _activeThemes;
+
+            _activeThemes = _stageThemeDataList.stageThemes.Where(theme => theme.enabled).ToList();
+            if (_activeThemes.Count == 0)
+            {
+                Debug.LogError("[RoundManager] 켜져 있는 스테이지 테마가 하나도 없습니다. 전체 목록을 그대로 씁니다.");
+                _activeThemes = _stageThemeDataList.stageThemes;
+            }
+
+            return _activeThemes;
         }
 
         /// <summary>현재 테마의 중간 보스 슬롯. 데이터가 비어 있으면 기존 규칙인 8을 쓴다.</summary>
