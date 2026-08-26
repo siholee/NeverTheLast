@@ -130,6 +130,24 @@ namespace BaseClasses
             return true;
         }
 
+        /// <summary>장착 중인 아이템 하나를 벗긴다. 착용 중이 아니면 false.</summary>
+        public bool Unequip(int itemId)
+        {
+            EquipmentSlot? found = null;
+            foreach (KeyValuePair<EquipmentSlot, EquippedItem> pair in _items)
+            {
+                if (pair.Value?.Data == null || pair.Value.Data.id != itemId) continue;
+
+                found = pair.Key;
+                break;
+            }
+
+            if (found == null) return false;
+
+            _items.Remove(found.Value);
+            return true;
+        }
+
         public IEnumerable<ItemData> GetEquippedItemData()
         {
             return _items.Values.Select(item => item.Data);

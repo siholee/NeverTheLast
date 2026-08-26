@@ -537,6 +537,41 @@ namespace Entities
             return true;
         }
 
+        /// <summary>
+        /// 장착 중인 장비를 벗긴다.
+        /// <paramref name="storeToCarried"/>가 true면 개인 인벤토리로 들어가고,
+        /// false면 그냥 손에서 놓는다(다른 유닛에게 넘길 때 쓴다).
+        /// </summary>
+        public bool TryUnequip(int itemId, bool storeToCarried)
+        {
+            if (EquipmentLoadout == null || !EquipmentLoadout.Unequip(itemId)) return false;
+
+            if (storeToCarried)
+            {
+                carriedItemIds ??= new List<int>();
+                carriedItemIds.Add(itemId);
+            }
+
+            RefreshEquippedItemIds();
+            RefreshEquipmentCodeGrants();
+            AttributesUpdate();
+            currentCell?.UpdateUI();
+            return true;
+        }
+
+        /// <summary>이 유닛이 이 아이템을 장착 중인지.</summary>
+        public bool IsEquipped(int itemId)
+        {
+            if (EquipmentLoadout == null) return false;
+
+            foreach (ItemData equipped in EquipmentLoadout.GetEquippedItemData())
+            {
+                if (equipped != null && equipped.id == itemId) return true;
+            }
+
+            return false;
+        }
+
         public bool RemoveCarriedItem(int itemId)
         {
             bool removed = carriedItemIds != null && carriedItemIds.Remove(itemId);

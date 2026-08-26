@@ -115,6 +115,78 @@ namespace Managers
             return false;
         }
 
+        /// <summary>
+        /// 장비를 다른 캐릭터에게 넘긴다. 발더스 게이트에서 초상화 위로 끌어다 놓는 동작이다.
+        ///
+        /// 보상 장비가 1번 캐릭터에게만 쌓여 다른 캐릭터가 영영 착용하지 못하던 문제를
+        /// 푸는 통로다. 출처는 셋 중 하나다 — 상대의 개인 인벤토리, 상대가 장착 중인 것,
+        /// 그리고 영웅 생성 전에 지급돼 공용 보관함에 남아 있는 것.
+        /// </summary>
+        public bool TryTransferItem(Unit from, Unit to, int itemId, out string reason)
+        {
+            reason = null;
+            if (to == null)
+            {
+                reason = "받을 유닛이 없습니다.";
+                return false;
+            }
+
+            bool fromShared = from == null;
+            bool wasEquipped = false;
+
+            if (fromShared)
+            {
+                if (ItemIdsInHand?.Remove(itemId) != true)
+                {
+                    reason = "공용 보관함에 없는 아이템입니다.";
+                    return false;
+                }
+            }
+            else if (from.CarriedItemIds.Contains(itemId))
+            {
+                from.RemoveCarriedItem(itemId);
+            }
+            else if (from.IsEquipped(itemId))
+            {
+                // 넘길 때는 상대의 인벤토리를 거치지 않는다. 거치면 중량이 잠깐 두 번 잡힌다.
+                if (!from.TryUnequip(itemId, storeToCarried: false))
+                {
+                    reason = "장비를 벗기지 못했습니다.";
+                    return false;
+                }
+
+                wasEquipped = true;
+            }
+            else
+            {
+                reason = "이 유닛이 가진 아이템이 아닙니다.";
+                return false;
+            }
+
+            if (to.TryStoreItem(itemId, out reason))
+            {
+                RefreshPanel();
+                return true;
+            }
+
+            // 넘기지 못했다. 원래 자리로 되돌린다.
+            if (fromShared)
+            {
+                ItemIdsInHand ??= new List<int>();
+                ItemIdsInHand.Add(itemId);
+            }
+            else if (wasEquipped)
+            {
+                from.TryEquipItem(itemId, out _);
+            }
+            else
+            {
+                from.TryStoreItem(itemId, out _);
+            }
+
+            return false;
+        }
+
         public bool TryEquipStoredItem(Unit unit, int itemId, out string reason)
         {
             reason = null;
