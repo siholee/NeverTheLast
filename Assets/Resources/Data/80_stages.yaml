@@ -175,8 +175,8 @@ events:
         text: 천막 사이로 지휘관 하나가 걸어 나온다. 갑옷은 병사들과 다를 바 없는데, 지나가는 병사마다 하던 일을 멈추고 고개를 숙인다.
       - speaker: 카이사르
         text: 이름은 됐다. 강을 건널 셈이면 건너라. 어차피 한 번 건넌 다리는 되돌아갈 수 없으니, 서로 각오만 확인해 두자고.
-        portrait: SPARTACUS_PORTRAIT
-        standing: SPARTACUS_STANDING
+        portrait: CAESAR_PORTRAIT
+        standing: CAESAR_STANDING
     choices:
       - id: legion_accept_challenge
         text: 결승에서 보자고 답한다.
