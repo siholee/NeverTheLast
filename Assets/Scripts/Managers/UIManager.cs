@@ -23,6 +23,7 @@ namespace Managers
         private readonly PreparationScreen _preparation = new();
         private readonly RewardScreen _reward = new();
         private readonly TrainingScreen _training = new();
+        private readonly TrainingResultScreen _trainingResult = new();
         private readonly CharacterSelectScreen _characterSelect = new();
         private readonly EventScreen _event = new();
 
@@ -131,6 +132,18 @@ namespace Managers
         public void HideTrainingPhasePanel()
         {
             _training.Hide();
+        }
+
+        /// <summary>훈련 결과 화면. 확인을 누르면 GameManager가 준비 페이즈로 넘긴다.</summary>
+        public void ShowTrainingResultPanel(TrainingManager.TrainingResult result)
+        {
+            _training.Hide();
+            _trainingResult.Show(result);
+        }
+
+        public void HideTrainingResultPanel()
+        {
+            _trainingResult.Hide();
         }
 
         // ── 캐릭터 선택 ──────────────────────────────────────────────

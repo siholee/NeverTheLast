@@ -20,9 +20,13 @@ namespace Managers
     /// 서포트 캐릭터는 훈련 효과를 증폭시킨다(우마무스메 서포트 카드 역할).
     /// 훈련 시 메인의 트레이닝 레벨이 올라 레벨 해금 패시브(#2/#3)가 해금된다.
     ///
-    /// 서포트 보너스는 실제 편성 데이터에서 계산한다:
-    ///  - 서포트 1명당 기본 보너스(SupportStatBonusPerUnit).
-    ///  - 집중 스탯이 서포트의 현재 최고 5스탯과 일치하면 특기 보너스(AffinityBonusPerUnit) 추가.
+    /// 서포트는 <b>턴마다 다섯 훈련 중 한 곳에 새로 배치된다</b>(우마무스메와 같다).
+    /// 특기 훈련에 앉을 확률이 특기율이고, 실패하면 다른 훈련으로 흩어지거나 아예 나오지 않는다.
+    /// 보너스는 <b>고른 훈련에 앉아 있는 서포트만</b> 준다 — 그래서 "어느 훈련에 누가 앉았나"가
+    /// 이 화면의 핵심 선택이 된다.
+    ///
+    /// 배치는 <see cref="TrainingState"/>가 들고 있어 화면을 닫았다 열어도 바뀌지 않고,
+    /// 훈련이나 휴식으로 턴이 지나면 <see cref="InvalidateSupportPlacement"/>로 무효화된다.
     /// </summary>
     public static class TrainingManager
     {
@@ -32,7 +36,11 @@ namespace Managers
         public const int AffinityBonusPerUnit = 1;
         // 육성 페이즈마다 오르는 트레이닝 레벨.
         public const int TrainingLevelGain = 1;
+        /// <summary>특기 훈련에 앉지 못했을 때, 그래도 다른 훈련 어딘가에 앉을 확률(%).</summary>
         private const int OffSpecialtyAppearanceRate = 35;
+
+        /// <summary>서포트 카드가 없는 동료의 특기율(%). 카드가 붙으면 카드 값을 쓴다.</summary>
+        private const int DefaultSpecialtyRate = 45;
         private const int MaxBond = SupportBondState.MaxBond;
         /// <summary>훈련에 실패하면 체력을 이만큼 더 잃는다.</summary>
         public const int FailureEnergyPenalty = 10;
@@ -107,9 +115,26 @@ namespace Managers
         private static SupportBondState Bonds =>
             RunManager.Instance != null ? RunManager.Instance.SupportBonds : FallbackBonds;
 
+        /// <summary>훈련 결과 화면이 서포트 한 명을 그리는 데 필요한 것들.</summary>
+        public struct SupportOutcome
+        {
+            public string Name;
+            public string PortraitPath;
+            public int StatBonus;
+            public int BondBefore;
+            public int BondAfter;
+            public bool Friendship;
+
+            /// <summary>이번 훈련에서 전수받은 패시브. 없으면 null.</summary>
+            public string TransferredName;
+        }
+
         public struct TrainingResult
         {
             public BaseEnums.PrimaryStat Focus;
+
+            /// <summary>훈련 이름("근력" 등).</summary>
+            public string FocusName;
             public int StatGain;
             public int SupportBonus;
             public int AffinityBonus;
@@ -122,6 +147,13 @@ namespace Managers
             public int NewFocusTrainingLevel;
             public List<string> SupportMessages;
             public List<int> TransferredPassiveIds;
+
+            /// <summary>훈련 전후 컨디션 이름. 결과 화면이 변화를 보여 준다.</summary>
+            public string ConditionBefore;
+            public string ConditionAfter;
+
+            /// <summary>이 훈련에 참여한 서포트들. 다른 자리에 앉은 서포트는 들어오지 않는다.</summary>
+            public List<SupportOutcome> Supports;
         }
 
         private class SupportTrainingRoll
@@ -136,6 +168,9 @@ namespace Managers
             public int PreviousBond;
             public int NewBond;
             public LearnedPassiveSaveData TransferredPassive;
+
+            /// <summary>전수된 패시브의 이름. 유닛에 붙은 코드 인스턴스에서 읽어 온다.</summary>
+            public string TransferredName;
         }
 
         /// <summary>현재 살아있는 메인 유닛 인스턴스를 찾는다. 없으면 첫 활성 아군을 반환.</summary>
@@ -170,11 +205,83 @@ namespace Managers
         /// <summary>서포트 수.</summary>
         public static int GetSupportCount() => GetSupportUnits().Count;
 
-        /// <summary>집중 스탯과 무관하게 항상 적용되는 서포트 기본 보너스.</summary>
-        public static int GetBaseSupportBonus()
+        // ── 서포트 배치 ──────────────────────────────────────────────
+
+        /// <summary>
+        /// 이번 턴의 서포트 배치를 굴린다. 이미 굴렸으면 그대로 두되,
+        /// 그 뒤에 합류한 서포트만 새로 자리를 잡아 준다.
+        ///
+        /// 훈련 화면을 열 때마다 호출해도 안전하다 — 그렇지 않으면 화면을 여닫는 것만으로
+        /// 자리를 다시 굴릴 수 있어 배치가 선택이 아니게 된다.
+        /// </summary>
+        public static void EnsureSupportPlacement()
+        {
+            TrainingState state = State;
+            bool fresh = !state.PlacementReady;
+
+            foreach (Unit support in GetSupportUnits())
+            {
+                if (!fresh && state.WasPlacementRolled(support.ID)) continue;
+
+                RollPlacement(state, support);
+            }
+
+            state.MarkPlacementReady();
+        }
+
+        private static void RollPlacement(TrainingState state, Unit support)
+        {
+            BaseEnums.PrimaryStat specialty = GetSupportSpecialty(support);
+            SupportCardSaveData card = SaveSystem.GetSupportCard(support.ID);
+            int specialtyRate = HasSupportCard(card)
+                ? Mathf.Clamp(card.specialtyRate, 0, 100)
+                : DefaultSpecialtyRate;
+
+            if (Random.Range(0, 100) < specialtyRate)
+            {
+                state.SetPlacement(support.ID, specialty);
+                return;
+            }
+
+            // 특기에 앉지 못했다. 남은 네 훈련 중 하나로 흩어지거나, 이번 턴은 쉰다.
+            if (Random.Range(0, 100) >= OffSpecialtyAppearanceRate)
+            {
+                state.SetAbsent(support.ID);
+                return;
+            }
+
+            var others = Options
+                .Select(option => option.Stat)
+                .Where(stat => stat != specialty)
+                .ToList();
+            state.SetPlacement(support.ID, others[Random.Range(0, others.Count)]);
+        }
+
+        /// <summary>턴이 지났다. 다음에 훈련 화면을 열면 배치를 새로 굴린다.</summary>
+        public static void InvalidateSupportPlacement() => State.InvalidatePlacement();
+
+        /// <summary>이 서포트가 이번 턴에 앉은 훈련. 나오지 않았으면 null.</summary>
+        public static BaseEnums.PrimaryStat? GetPlacement(Unit support)
+        {
+            if (support == null) return null;
+            return State.TryGetPlacement(support.ID, out BaseEnums.PrimaryStat stat)
+                ? stat
+                : (BaseEnums.PrimaryStat?)null;
+        }
+
+        /// <summary>이번 턴에 해당 훈련에 앉아 있는 서포트들.</summary>
+        public static List<Unit> GetSupportsOn(BaseEnums.PrimaryStat focus)
+        {
+            return GetSupportUnits()
+                .Where(support => GetPlacement(support) == focus)
+                .ToList();
+        }
+
+        /// <summary>이 훈련에 앉은 서포트들의 기본 보너스 합(특기 보너스 제외).</summary>
+        public static int GetBaseSupportBonus(BaseEnums.PrimaryStat focus)
         {
             int bonus = 0;
-            foreach (Unit support in GetSupportUnits())
+            foreach (Unit support in GetSupportsOn(focus))
             {
                 SupportCardSaveData card = SaveSystem.GetSupportCard(support.ID);
                 bonus += HasSupportCard(card)
@@ -185,11 +292,15 @@ namespace Managers
             return bonus;
         }
 
-        /// <summary>지정 집중 스탯에 대한 서포트 보너스(기본 + 특기 일치 보너스).</summary>
+        /// <summary>
+        /// 이 훈련을 고르면 받게 되는 서포트 보너스.
+        /// <b>이번 턴에 그 훈련에 앉아 있는 서포트만</b> 센다 — 다른 자리에 앉은 서포트는
+        /// 아무것도 주지 않는다.
+        /// </summary>
         public static int GetSupportBonus(BaseEnums.PrimaryStat focus)
         {
             int bonus = 0;
-            foreach (Unit support in GetSupportUnits())
+            foreach (Unit support in GetSupportsOn(focus))
             {
                 SupportCardSaveData card = SaveSystem.GetSupportCard(support.ID);
                 if (HasSupportCard(card))
@@ -290,6 +401,9 @@ namespace Managers
         /// <summary>이 훈련에 드는 체력. 음수면 회복이다.</summary>
         public static int GetEnergyCost(BaseEnums.PrimaryStat focus) => GetOption(focus).EnergyCost;
 
+        /// <summary>성공률(%). 화면에는 실패율보다 이쪽을 크게 보여 준다.</summary>
+        public static int GetSuccessRate(BaseEnums.PrimaryStat focus) => 100 - GetFailureRate(focus);
+
         /// <summary>
         /// 실패율(%). 체력이 낮을수록 가파르게 오른다.
         /// 체력을 회복하는 훈련(지능)은 실패하지 않는다.
@@ -379,11 +493,19 @@ namespace Managers
                 }
             }
 
+            string conditionBefore = state.ConditionName;
             state.DriftCondition();
+
+            // 턴이 지났다. 다음 훈련 화면은 배치를 새로 굴린다.
+            InvalidateSupportPlacement();
 
             return new TrainingResult
             {
                 Focus = focus,
+                FocusName = option.Name,
+                ConditionBefore = conditionBefore,
+                ConditionAfter = state.ConditionName,
+                Supports = BuildSupportOutcomes(rolls),
                 StatGain = gain,
                 SupportBonus = totalSupport,
                 AffinityBonus = affinity,
@@ -411,7 +533,11 @@ namespace Managers
                 SupportCardSaveData card = record?.supportCard;
                 bool hasCard = HasSupportCard(card);
                 bool specialtyMatch = hasCard && IsCardSpecialty(card, focus);
-                bool appeared = !hasCard || RollAppearance(card, specialtyMatch);
+
+                // 참여 여부는 여기서 굴리지 않는다. 이번 턴 배치는 화면을 열 때 이미 정해졌고,
+                // 플레이어는 그 배치를 보고 훈련을 골랐다. 지금 다시 굴리면 화면에 보여 준
+                // 보너스와 실제 결과가 어긋난다.
+                bool appeared = GetPlacement(support) == focus;
                 int previousBond = hasCard ? GetSupportBond(support) : 0;
                 int newBond = previousBond;
                 int statBonus = 0;
@@ -462,12 +588,6 @@ namespace Managers
             return rolls;
         }
 
-        private static bool RollAppearance(SupportCardSaveData card, bool specialtyMatch)
-        {
-            int rate = specialtyMatch ? card.specialtyRate : OffSpecialtyAppearanceRate;
-            return Random.Range(0, 100) < Mathf.Clamp(rate, 0, 100);
-        }
-
         private static BaseEnums.PrimaryStat GetHighestPrimaryStat(Unit unit)
         {
             if (unit == null) return BaseEnums.PrimaryStat.STR;
@@ -515,11 +635,39 @@ namespace Managers
                 }
 
                 LearnedPassiveSaveData selected = candidates[Random.Range(0, candidates.Count)];
+                // 코드 인스턴스에는 원본 ID가 없다. 배우기 전후를 비교해 새로 붙은 것을 집는다.
+                var before = new HashSet<Codes.Base.PassiveCode>(main.ActivePassiveCodes);
                 if (main.LearnTransferredPassive(selected.codeId, selected.stage))
                 {
                     roll.TransferredPassive = selected;
+                    roll.TransferredName = main.ActivePassiveCodes
+                        .FirstOrDefault(code => code != null && !before.Contains(code))?.CodeName
+                        ?? $"패시브 #{selected.codeId}";
                 }
             }
+        }
+
+        /// <summary>결과 화면용 서포트 목록. 이번 훈련에 실제로 앉아 있던 서포트만 담는다.</summary>
+        private static List<SupportOutcome> BuildSupportOutcomes(List<SupportTrainingRoll> rolls)
+        {
+            var outcomes = new List<SupportOutcome>();
+            foreach (SupportTrainingRoll roll in rolls)
+            {
+                if (roll.Support == null || !roll.Appeared) continue;
+
+                outcomes.Add(new SupportOutcome
+                {
+                    Name = roll.Support.UnitName,
+                    PortraitPath = roll.Support.PortraitPath,
+                    StatBonus = roll.StatBonus,
+                    BondBefore = roll.PreviousBond,
+                    BondAfter = roll.NewBond,
+                    Friendship = roll.FriendshipTraining,
+                    TransferredName = roll.TransferredName,
+                });
+            }
+
+            return outcomes;
         }
 
         private static List<string> BuildSupportMessages(List<SupportTrainingRoll> rolls)
@@ -529,7 +677,7 @@ namespace Managers
             {
                 if (roll.Support == null || !HasSupportCard(roll.Card)) continue;
 
-                string appearance = roll.Appeared ? "참여" : "불참";
+                string appearance = roll.Appeared ? "참여" : "다른 훈련";
                 string bond = roll.Appeared ? $"우정 {roll.PreviousBond}->{roll.NewBond}" : $"우정 {roll.PreviousBond}";
                 string friendship = roll.FriendshipTraining ? " / 우정 훈련" : "";
                 string transfer = roll.TransferredPassive != null ? $" / 패시브 {roll.TransferredPassive.codeId} 전수" : "";

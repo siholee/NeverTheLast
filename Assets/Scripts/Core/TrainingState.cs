@@ -12,8 +12,9 @@ namespace Core
     ///   · 스킬 Pt — 훈련마다 쌓인다.
     ///   · 컨디션 — 훈련 결과에 배율로 곱해진다.
     ///
-    /// 런 범위 상태이므로 <see cref="Managers.RunManager"/>가 소유한다.
-    /// (아직 세이브에는 실리지 않는다 — 저장한 런을 불러오면 체력과 훈련 레벨이 초기화된다.)
+    ///   · 서포트 배치 — 이번 턴에 어떤 서포트가 어느 훈련에 앉았는지.
+    ///
+    /// 런 범위 상태이므로 <see cref="Managers.RunManager"/>가 소유하고 세이브에 함께 실린다.
     /// </summary>
     public class TrainingState
     {
@@ -29,6 +30,21 @@ namespace Core
         public const int NormalConditionIndex = 2;
 
         private readonly Dictionary<BaseEnums.PrimaryStat, int> _levels = new();
+
+        /// <summary>
+        /// 이번 훈련 턴에 각 서포트가 앉은 훈련. 우마무스메처럼 <b>턴마다 다시 배치된다</b>.
+        ///
+        /// 값이 <see cref="Absent"/>면 이번 턴에 나오지 않은 것이다. "굴리지 않았다"와
+        /// "굴렸는데 안 나왔다"를 구분해야 하므로, 자리를 못 받은 서포트도 목록에 남는다.
+        /// 화면을 닫았다 다시 열어도 자리가 바뀌면 안 되므로 굴린 결과를 여기 보관한다.
+        /// </summary>
+        private readonly Dictionary<int, int> _placements = new();
+
+        /// <summary>배치표에서 "이번 턴에는 나오지 않음"을 뜻하는 값.</summary>
+        public const int Absent = -1;
+
+        /// <summary>이번 턴 배치를 이미 굴렸는지. 훈련이나 휴식으로 턴이 지나면 false로 돌아간다.</summary>
+        public bool PlacementReady { get; private set; }
 
         public int Energy { get; private set; } = MaxEnergy;
         public int SkillPoints { get; private set; }
@@ -76,9 +92,40 @@ namespace Core
             ConditionIndex = Mathf.Clamp(ConditionIndex + (worsen ? 1 : -1), 0, ConditionNames.Length - 1);
         }
 
+        /// <summary>이 서포트가 이번 턴에 앉은 훈련. 나오지 않았거나 아직 안 굴렸으면 false.</summary>
+        public bool TryGetPlacement(int unitId, out BaseEnums.PrimaryStat stat)
+        {
+            stat = BaseEnums.PrimaryStat.STR;
+            if (!_placements.TryGetValue(unitId, out int value) || value == Absent) return false;
+
+            stat = (BaseEnums.PrimaryStat)value;
+            return true;
+        }
+
+        /// <summary>이번 턴에 이 서포트의 자리를 이미 굴렸는지(자리를 못 받았어도 true).</summary>
+        public bool WasPlacementRolled(int unitId) => _placements.ContainsKey(unitId);
+
+        /// <summary>이 서포트를 해당 훈련에 앉힌다.</summary>
+        public void SetPlacement(int unitId, BaseEnums.PrimaryStat stat) => _placements[unitId] = (int)stat;
+
+        /// <summary>이번 턴에 나오지 않은 서포트로 기록한다(자리 없음).</summary>
+        public void SetAbsent(int unitId) => _placements[unitId] = Absent;
+
+        /// <summary>배치 한 판을 다 굴렸다고 표시한다.</summary>
+        public void MarkPlacementReady() => PlacementReady = true;
+
+        /// <summary>턴이 지났다. 다음에 훈련 화면을 열면 배치를 새로 굴린다.</summary>
+        public void InvalidatePlacement()
+        {
+            _placements.Clear();
+            PlacementReady = false;
+        }
+
         public void Reset()
         {
             _levels.Clear();
+            _placements.Clear();
+            PlacementReady = false;
             Energy = MaxEnergy;
             SkillPoints = 0;
             ConditionIndex = NormalConditionIndex;
@@ -94,7 +141,18 @@ namespace Core
                 skillPoints = SkillPoints,
                 conditionIndex = ConditionIndex,
                 levels = new List<TrainingLevelSaveData>(),
+                placementReady = PlacementReady,
+                placements = new List<TrainingPlacementSaveData>(),
             };
+
+            foreach (KeyValuePair<int, int> pair in _placements)
+            {
+                data.placements.Add(new TrainingPlacementSaveData
+                {
+                    unitId = pair.Key,
+                    stat = pair.Value,
+                });
+            }
 
             foreach (KeyValuePair<BaseEnums.PrimaryStat, int> pair in _levels)
             {
@@ -120,6 +178,19 @@ namespace Core
             Energy = Mathf.Clamp(saved.energy, 0, MaxEnergy);
             SkillPoints = Mathf.Max(0, saved.skillPoints);
             ConditionIndex = Mathf.Clamp(saved.conditionIndex, 0, ConditionNames.Length - 1);
+
+            PlacementReady = saved.placementReady;
+            if (saved.placements != null)
+            {
+                foreach (TrainingPlacementSaveData placement in saved.placements)
+                {
+                    if (placement == null) continue;
+                    if (placement.stat != Absent
+                        && !System.Enum.IsDefined(typeof(BaseEnums.PrimaryStat), placement.stat)) continue;
+
+                    _placements[placement.unitId] = placement.stat;
+                }
+            }
 
             if (saved.levels == null) return;
 

@@ -91,6 +91,18 @@ namespace Core
         public int skillPoints;
         public int conditionIndex = TrainingState.NormalConditionIndex;
         public List<TrainingLevelSaveData> levels = new();
+
+        // 이번 훈련 턴의 서포트 배치. 화면을 다시 열 때마다 자리가 바뀌면 안 되므로
+        // 굴린 결과를 그대로 들고 있는다. 아직 굴리지 않았으면 placementReady가 false다.
+        public bool placementReady;
+        public List<TrainingPlacementSaveData> placements = new();
+    }
+
+    [Serializable]
+    public class TrainingPlacementSaveData
+    {
+        public int unitId;
+        public int stat;
     }
 
     [Serializable]

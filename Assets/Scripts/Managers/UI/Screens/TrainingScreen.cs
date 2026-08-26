@@ -16,9 +16,9 @@ namespace Managers.UI.Screens
     /// 육성 페이즈. 우마무스메의 훈련 화면 구성을 따른다.
     ///
     ///   상단 — 스테이지 · 체력 게이지 · 컨디션 · 스킬 Pt
-    ///   좌   — 고른 훈련의 상세(레벨 · 상승 내역 · 체력 소모 · 실패율)
+    ///   좌   — 고른 훈련의 상세(레벨 · 상승 내역 · 체력 소모 · 성공률)
     ///   중앙 — 메인 캐릭터
-    ///   우   — 서포트 편성과 이번 훈련 참여 여부
+    ///   우   — <b>이 훈련에 앉은 서포트만</b>. 다른 자리에 앉은 서포트는 아예 나오지 않는다.
     ///   하단 — 5스탯 현황 + 훈련 5종 + 결정
     ///
     /// <b>훈련 하나는 대응하는 스탯 하나만 올린다.</b> 계산은 전부
@@ -90,6 +90,10 @@ namespace Managers.UI.Screens
         public override void Show()
         {
             base.Show();
+
+            // 이번 턴의 서포트 배치를 확정한다. 이미 굴렸으면 그대로 쓴다 —
+            // 화면을 여닫는 것만으로 자리가 다시 굴려지면 배치가 선택이 아니게 된다.
+            TrainingManager.EnsureSupportPlacement();
 
             if (!_selectionInitialized)
             {
@@ -196,7 +200,7 @@ namespace Managers.UI.Screens
 
             _costValue = BuildDetailTile(root, 0f, "체력", out _);
             _skillValue = BuildDetailTile(root, 0.34f, "스킬 Pt", out _);
-            _failValue = BuildDetailTile(root, 0.68f, "실패율", out _);
+            _failValue = BuildDetailTile(root, 0.68f, "성공률", out _);
         }
 
         private static TextMeshProUGUI BuildDetailTile(Transform root, float x, string caption,
@@ -378,12 +382,14 @@ namespace Managers.UI.Screens
             _skillValue.text = $"+{option.SkillPoints}";
             _skillValue.color = UITheme.Positive;
 
-            _failValue.text = $"{failure} %";
+            // 실패율보다 성공률을 크게 보여 준다. 누르기 전에 확인해야 하는 숫자다.
+            int success = 100 - failure;
+            _failValue.text = $"{success} %";
             _failValue.color = failure == 0 ? UITheme.Positive
                 : failure < 20 ? new Color(0.878f, 0.647f, 0.290f)
                 : UITheme.Danger;
 
-            _decideHint.text = $"{option.Name} +{gain} · 실패율 {failure}%";
+            _decideHint.text = $"{option.Name} +{gain} · 성공 {success}%";
         }
 
         private void SetBreakdown(int index, string key, string value, Color color)
@@ -415,17 +421,20 @@ namespace Managers.UI.Screens
 
         private void RefreshSupports()
         {
-            List<Unit> supports = TrainingManager.GetSupportUnits();
-            int joined = 0;
+            // 우마무스메처럼 이 훈련에 앉은 서포트만 세운다. 다른 자리에 앉았거나 쉬는 서포트를
+            // 회색으로 남겨 두면 목록이 늘 꽉 차 보여서, 정작 이번 선택의 값어치가 묻힌다.
+            List<Unit> seated = TrainingManager.GetSupportsOn(_selected);
+            int total = TrainingManager.GetSupportCount();
 
             for (int i = 0; i < _supportRows.Length; i++)
             {
-                Unit support = i < supports.Count ? supports[i] : null;
-                bool matched = _supportRows[i].Bind(support, _selected);
-                if (matched) joined++;
+                _supportRows[i].Bind(i < seated.Count ? seated[i] : null, _selected);
             }
 
-            _supportCaption.text = $"서포트 편성 · 특기 일치 {joined} / {supports.Count}";
+            _supportCaption.text = seated.Count > 0
+                ? $"이 훈련의 서포트 {seated.Count} / {total}"
+                : $"이 훈련에 온 서포트가 없습니다 · 전체 {total}";
+            _supportCaption.color = seated.Count > 0 ? UITheme.TextMuted : UITheme.TextMuted;
         }
 
         private void RefreshStatCards(Unit main)
@@ -490,7 +499,7 @@ namespace Managers.UI.Screens
                 UIBuild.Anchor(_state.rectTransform, new Vector2(0.24f, 0.06f), new Vector2(1f, 0.34f));
             }
 
-            /// <summary>이번 훈련과 특기가 맞는지 돌려준다.</summary>
+            /// <summary>이 서포트가 지금 고른 훈련에 앉아 있는지 돌려준다.</summary>
             public bool Bind(Unit support, BaseEnums.PrimaryStat focus)
             {
                 _frame.gameObject.SetActive(support != null);
@@ -503,24 +512,28 @@ namespace Managers.UI.Screens
                 _portrait.enabled = portrait != null;
 
                 int bond = TrainingManager.GetSupportBond(support);
-                bool matched = TrainingManager.IsSupportSpecialty(support, focus);
-                bool friendship = matched && bond >= TrainingManager.FriendshipBondThreshold;
+                bool specialty = TrainingManager.IsSupportSpecialty(support, focus);
+                bool friendship = specialty && bond >= TrainingManager.FriendshipBondThreshold;
+
+                _portrait.color = Color.white;
 
                 _name.text = support.UnitName;
-                _name.color = matched ? UITheme.TextPrimary : UITheme.TextSecondary;
+                _name.color = UITheme.TextPrimary;
 
                 _specialty.text = $"특기 {TrainingManager.GetSupportSpecialty(support)}";
-                _specialty.color = matched ? UITheme.Accent : UITheme.TextMuted;
+                _specialty.color = specialty ? UITheme.Accent : UITheme.TextMuted;
 
                 _bondFill.fillAmount = bond / (float)SupportBondState.MaxBond;
                 _bondFill.color = bond >= TrainingManager.FriendshipBondThreshold ? UITheme.Accent : UITheme.Mana;
 
-                _state.text = friendship
-                    ? $"우정 훈련 · 우정 {bond}"
-                    : matched ? $"특기 일치 · 우정 {bond}" : $"우정 {bond}";
-                _state.color = friendship ? UITheme.Accent : matched ? UITheme.Positive : UITheme.TextMuted;
+                _state.text = friendship ? $"우정 훈련 · 우정 {bond}"
+                    : specialty ? $"특기 일치 · 우정 {bond}"
+                    : $"우정 {bond}";
+                _state.color = friendship ? UITheme.Accent
+                    : specialty ? UITheme.Positive
+                    : UITheme.TextSecondary;
 
-                return matched;
+                return true;
             }
         }
 
@@ -567,11 +580,19 @@ namespace Managers.UI.Screens
         /// <summary>훈련 버튼 하나. 이름 · 레벨 · 체력 소모 · 예상 상승치.</summary>
         private sealed class TrainingButton
         {
+            /// <summary>버튼 위에 얹는 서포트 자리 하나의 크기(px).</summary>
+            private const float SeatSize = 26f;
+            private const float SeatGap = 3f;
+
             private readonly BaseEnums.PrimaryStat _stat;
             private readonly Image _frame;
             private readonly TextMeshProUGUI _name;
             private readonly TextMeshProUGUI _meta;
             private readonly TextMeshProUGUI _gain;
+
+            /// <summary>이 훈련에 앉은 서포트를 보여 주는 작은 초상화들.</summary>
+            private readonly Image[] _seatFrames = new Image[MaxSupportRows];
+            private readonly Image[] _seatPortraits = new Image[MaxSupportRows];
 
             public TrainingButton(Transform parent, BaseEnums.PrimaryStat stat, int index, int count,
                 Action onClick)
@@ -594,6 +615,27 @@ namespace Managers.UI.Screens
                 _gain = UIBuild.Text("Gain", _frame.transform, "", UITheme.FontTitle, UITheme.TextSecondary,
                     TextAlignmentOptions.MidlineRight);
                 UIBuild.Anchor(_gain.rectTransform, new Vector2(0.62f, 0.1f), new Vector2(1f, 0.92f), 14f, 0f);
+
+                // 서포트 자리. 버튼 윗변에 걸쳐 놓아 "누가 여기 앉았는지"가 버튼을 고르기 전에 보인다.
+                for (int seat = 0; seat < _seatFrames.Length; seat++)
+                {
+                    Image frame = UIBuild.Panel($"Seat{seat}", _frame.transform, UITheme.SurfaceSunken,
+                        UIShapes.Corner.Diagonal, 4, UITheme.Outline, 1);
+                    UIBuild.Pin(frame.rectTransform, new Vector2(0f, 1f),
+                        new Vector2(SeatSize, SeatSize),
+                        new Vector2(10f + seat * (SeatSize + SeatGap), SeatSize * 0.45f));
+
+                    var portraitObject = new GameObject("Portrait", typeof(RectTransform), typeof(Image));
+                    portraitObject.transform.SetParent(frame.transform, false);
+                    var portrait = portraitObject.GetComponent<Image>();
+                    portrait.preserveAspect = true;
+                    portrait.raycastTarget = false;
+                    UIBuild.Stretch(portrait.rectTransform, 2f, 2f);
+
+                    _seatFrames[seat] = frame;
+                    _seatPortraits[seat] = portrait;
+                    frame.gameObject.SetActive(false);
+                }
             }
 
             public void Refresh(TrainingState state, BaseEnums.PrimaryStat focus)
@@ -613,6 +655,34 @@ namespace Managers.UI.Screens
 
                 _gain.text = $"+{TrainingManager.GetProjectedGain(_stat)}";
                 _gain.color = active ? UITheme.Stat(_stat) : UITheme.TextMuted;
+
+                RefreshSeats();
+            }
+
+            /// <summary>이번 턴에 이 훈련에 앉은 서포트들을 버튼 위에 늘어놓는다.</summary>
+            private void RefreshSeats()
+            {
+                List<Unit> seated = TrainingManager.GetSupportsOn(_stat);
+
+                for (int seat = 0; seat < _seatFrames.Length; seat++)
+                {
+                    Unit support = seat < seated.Count ? seated[seat] : null;
+                    _seatFrames[seat].gameObject.SetActive(support != null);
+                    if (support == null) continue;
+
+                    Sprite portrait = string.IsNullOrEmpty(support.PortraitPath)
+                        ? null
+                        : Resources.Load<Sprite>(support.PortraitPath);
+                    _seatPortraits[seat].sprite = portrait;
+                    _seatPortraits[seat].enabled = portrait != null;
+
+                    // 특기 자리에 앉은 서포트는 테두리를 앰버로 — 우정 훈련까지 이어지는 자리다.
+                    bool specialty = TrainingManager.IsSupportSpecialty(support, _stat);
+                    _seatFrames[seat].sprite = UIShapes.CutCorner(4, UITheme.SurfaceSunken,
+                        UIShapes.Corner.Diagonal,
+                        specialty ? UITheme.Accent : UITheme.Outline,
+                        specialty ? 2 : 1);
+                }
             }
         }
     }

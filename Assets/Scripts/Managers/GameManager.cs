@@ -726,11 +726,27 @@ namespace Managers
             // 후반에 서포터가 제 몫을 못 하는 구조가 된다. 성장 속도는 5인이 동일하다.
             // (집중 훈련의 스탯 보너스는 여전히 메인에게만 붙는다 — 차별화는 그쪽이 담당한다.)
             GrantExpToParty(ExpPerTrainingBase + ExpPerTrainingPerStage * CurrentStageForExp);
+            runManager?.SaveCurrentRun();
+
+            // 결과를 한 장으로 보여 준 다음에 준비 페이즈로 넘어간다.
+            // 확인을 누르면 CompleteTrainingResult가 이어받는다.
+            _pendingTrainingResult = result;
+            uiManager?.ShowTrainingResultPanel(result);
+        }
+
+        /// <summary>확인을 누르기 전까지 들고 있는 훈련 결과. 준비 페이즈 안내줄에 다시 쓴다.</summary>
+        private TrainingManager.TrainingResult _pendingTrainingResult;
+
+        /// <summary>훈련 결과 화면에서 확인을 눌렀다. 여기서 준비 페이즈로 돌아간다.</summary>
+        public void CompleteTrainingResult()
+        {
+            uiManager?.HideTrainingResultPanel();
             uiManager?.HideTrainingPhasePanel();
+
             preparationActionUsed = true;
             gameState = GameState.Preparation;
-            runManager?.SaveCurrentRun();
-            uiManager?.ShowPreparationPhasePanel(IsPreparationLimitedToDeck(), preparationActionUsed, BuildTrainingResultMessage(result));
+            uiManager?.ShowPreparationPhasePanel(IsPreparationLimitedToDeck(), preparationActionUsed,
+                BuildTrainingResultMessage(_pendingTrainingResult));
         }
 
         public void OpenTrainingFromPreparation()
@@ -756,6 +772,9 @@ namespace Managers
 
             // 훈련 체력도 함께 회복한다. 우마무스메의 휴식이 하는 일이 이것이다.
             TrainingManager.State.RestoreEnergy(RestEnergyRecovery);
+
+            // 휴식도 턴을 쓴다. 서포트는 다음 훈련에서 다른 자리에 앉는다.
+            TrainingManager.InvalidateSupportPlacement();
 
             preparationActionUsed = true;
             runManager?.SaveCurrentRun();
