@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Managers.UI.Core;
 using Managers.UI.Theme;
 using TMPro;
@@ -107,15 +108,27 @@ namespace Managers.UI.Screens
             SetEnabled(_start, !carryBlocked);
         }
 
-        private static void SetEnabled(Button button, bool enabled)
+        /// <summary>켤 때 되돌릴 라벨 색. 버튼을 만들 때의 색을 처음 한 번만 기억한다.</summary>
+        private readonly Dictionary<TextMeshProUGUI, Color> _labelColors = new();
+
+        private void SetEnabled(Button button, bool enabled)
         {
             if (button == null) return;
             button.interactable = enabled;
+
             TextMeshProUGUI label = button.GetComponentInChildren<TextMeshProUGUI>();
-            if (label != null)
+            if (label == null) return;
+
+            // 예전에는 켤 때 `label.color`를 자기 자신으로 다시 넣었다. 그래서 한 번 흐려진
+            // 라벨은 영영 흐린 채로 남았고, 훈련을 한 번 하고 나면 다음 스테이지에서도
+            // 준비 행동 버튼이 계속 꺼진 것처럼 보였다(실제로는 눌렸다).
+            if (!_labelColors.TryGetValue(label, out Color baseColor))
             {
-                label.color = enabled ? label.color : UITheme.TextMuted;
+                baseColor = label.color;
+                _labelColors[label] = baseColor;
             }
+
+            label.color = enabled ? baseColor : UITheme.TextMuted;
         }
     }
 }
