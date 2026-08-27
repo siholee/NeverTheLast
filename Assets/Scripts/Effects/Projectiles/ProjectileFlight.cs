@@ -1,8 +1,24 @@
+using System.Collections;
 using System.Collections.Generic;
 using BaseClasses;
+using UnityEngine;
 
 namespace Effects.Projectiles
 {
+    /// <summary>
+    /// 투사체가 실제로 대상에 닿았는지 알려 주는 표식.
+    ///
+    /// 공격 코드는 "몇 초쯤 걸리겠지" 하고 기다리는 대신 이 표식이 서기를 기다린다.
+    /// 비행 시간과 대기 시간이 어긋나 <b>맞기도 전에 피해가 들어가는</b> 일을 막는다.
+    /// </summary>
+    public sealed class ProjectileImpactToken
+    {
+        public bool Impacted { get; private set; }
+
+        /// <summary>투사체가 닿았다. 여러 번 불려도 상관없다.</summary>
+        public void MarkImpact() => Impacted = true;
+    }
+
     /// <summary>
     /// 투사체가 어떤 궤적으로 날아갈지 고른다.
     ///
@@ -42,6 +58,34 @@ namespace Effects.Projectiles
 
         /// <summary><see cref="DamageContext"/>에서 곧바로 궤적을 고른다.</summary>
         public static ProjectilePathType PathFor(DamageContext context) => PathFor(context?.DamageTags);
+
+        /// <summary>
+        /// 연출이 만들어지지 않았을 때(투사체 없이 쏜 경우 등) 무한정 기다리지 않도록 두는 여유.
+        /// </summary>
+        private const float ImpactWaitGrace = 0.35f;
+
+        /// <summary>
+        /// 투사체가 대상에 닿을 때까지 기다린다. 피해는 이 뒤에 넣는다.
+        ///
+        /// 연출이 아예 만들어지지 않았거나 중간에 걷혔을 수도 있으므로,
+        /// 예상 비행 시간 + 여유가 지나면 더 기다리지 않고 넘어간다.
+        /// </summary>
+        public static IEnumerator WaitForImpact(ProjectileImpactToken token, float expectedFlight)
+        {
+            if (token == null)
+            {
+                yield return new WaitForSeconds(Mathf.Max(0f, expectedFlight));
+                yield break;
+            }
+
+            float waited = 0f;
+            float limit = Mathf.Max(0f, expectedFlight) + ImpactWaitGrace;
+            while (!token.Impacted && waited < limit)
+            {
+                waited += Time.deltaTime;
+                yield return null;
+            }
+        }
 
         /// <summary>궤적에 맞는 파라미터. 직선형은 쓰는 값이 없어 기본값을 준다.</summary>
         public static ProjectilePathData DataFor(ProjectilePathType pathType)

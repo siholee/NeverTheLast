@@ -682,6 +682,16 @@ namespace Entities
                 .Any(item => item != null && item.RequiredProficiency.IsBow() && CanUseEquipmentEffects(item));
         }
 
+        /// <summary>숙련이 필요 없는 Armor 슬롯 장비(의복류)를 착용 중인가.</summary>
+        public bool HasEquippedClothing()
+        {
+            return EquipmentLoadout != null && EquipmentLoadout.GetEquippedItemData().Any(item =>
+                item != null && item.RequiredProficiency == EquipmentProficiency.None &&
+                (string.Equals(item.slot, "Armor", StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(item.slot, "Body", StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(item.slot, "갑옷", StringComparison.OrdinalIgnoreCase)));
+        }
+
         /// <summary>적 등급. 아군은 빈 문자열이다.</summary>
         public string UnitTier => unitTier ?? "";
 
@@ -1130,7 +1140,12 @@ namespace Entities
             CodeActivationChanceCurr = GetDerivedCodeActivationChance();
             CodeAcceleration = Mathf.Max(0.1f, GetDerivedCodeAcceleration() + CodeAccelerationRunBonus + codeAccelerationAdd);
             // 별도 공격속도 스탯·배율은 없다. 행동 빈도는 최종 DEX에서만 파생된다.
-            ActionSpeedCurr = Mathf.Max(0.1f, GetDerivedActionSpeed());
+            float actionSpeed = GetDerivedActionSpeed();
+            foreach (var effect in activeEffects)
+            {
+                actionSpeed = effect.ActionSpeedModifier(this, actionSpeed);
+            }
+            ActionSpeedCurr = Mathf.Max(0.1f, actionSpeed);
 
             // hp 비율 복구
             HpCurr = Mathf.RoundToInt(HpMax * healthRatio);
@@ -1207,6 +1222,9 @@ namespace Entities
                 context.IsCancelled = true;
                 return;
             }
+            // 즉시 피해형 스킬도 Slash 태그/근접 병종 판정을 거쳐 타격 VFX를 얻는다.
+            // 일반공격 발사 루틴에서 이미 연출한 대상은 DamageContext 표식으로 중복을 막는다.
+            GameManager.Instance?.sfxManager?.PlayDamageImpact(this, context);
             Invoke(BaseEnums.UnitEventType.OnBeforeDamageTaken, new EventContext(this, context.Attacker, context));
             Invoke(BaseEnums.UnitEventType.OnTakingDamage, new EventContext(this, null, context));
             Invoke(BaseEnums.UnitEventType.OnAfterDamageTaken, new EventContext(this, context.Attacker, context));

@@ -52,6 +52,8 @@ ENCLOSED_WHITE_BACKGROUND_ASSETS = {
     "THRAEX_STANDING.png",
     "TRIARII_STANDING.png",
     "VELITES_STANDING.png",
+    "YAMA_STANDING.png",
+    "INDRA_STANDING.png",
 }
 
 NEIGHBORS = (
@@ -300,12 +302,12 @@ def normalize_existing() -> None:
         unity_meta(portrait_path)
 
 
-def import_new() -> None:
-    missing = [str(path) for path in NEW_ASSETS.values() if not path.exists()]
+def import_assets(assets: dict[str, Path]) -> None:
+    missing = [str(path) for path in assets.values() if not path.exists()]
     if missing:
         raise FileNotFoundError("신규 원본 누락: " + ", ".join(missing))
 
-    for asset_name, source in NEW_ASSETS.items():
+    for asset_name, source in assets.items():
         with Image.open(source) as loaded:
             transparent = connected_background_alpha(loaded)
         standing = fit_to_canvas(transparent, (1024, 1536), (54, 38), bottom_align=True)
@@ -318,17 +320,43 @@ def import_new() -> None:
         unity_meta(portrait_path)
 
 
+def import_new() -> None:
+    import_assets(NEW_ASSETS)
+
+
+def parse_asset_arguments(arguments: list[str]) -> dict[str, Path]:
+    assets: dict[str, Path] = {}
+    for argument in arguments:
+        if "=" not in argument:
+            raise ValueError(f"--asset 형식은 KEY=PNG_PATH 이어야 합니다: {argument}")
+        asset_name, source = argument.split("=", 1)
+        asset_name = asset_name.strip().upper()
+        if not asset_name or not source.strip():
+            raise ValueError(f"--asset 형식은 KEY=PNG_PATH 이어야 합니다: {argument}")
+        assets[asset_name] = Path(source.strip()).expanduser()
+    return assets
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--existing", action="store_true", help="현재 등록된 스프라이트 전체의 알파 및 규격 정규화")
     parser.add_argument("--new", action="store_true", help="Downloads의 아즈텍 원본 7장을 스탠딩/초상화로 등록")
+    parser.add_argument(
+        "--asset",
+        action="append",
+        default=[],
+        metavar="KEY=PNG_PATH",
+        help="지정한 원본을 전용 스탠딩/초상화로 등록(여러 번 사용 가능)",
+    )
     args = parser.parse_args()
-    if not args.existing and not args.new:
+    if not args.existing and not args.new and not args.asset:
         args.existing = args.new = True
     if args.existing:
         normalize_existing()
     if args.new:
         import_new()
+    if args.asset:
+        import_assets(parse_asset_arguments(args.asset))
 
 
 if __name__ == "__main__":

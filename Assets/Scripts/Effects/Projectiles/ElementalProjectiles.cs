@@ -80,6 +80,15 @@ namespace Effects.Projectiles
         public static Color ColorFor(BaseEnums.UnitElement element)
             => Colors.TryGetValue(element, out Color color) ? color : Color.white;
 
+        /// <summary>궁극기용 파스텔 팔레트. 원소 식별색은 유지하고 흰색을 섞어 채도를 낮춘다.</summary>
+        public static Color PastelColorFor(BaseEnums.UnitElement element)
+        {
+            Color baseColor = ColorFor(element);
+            Color pastel = Color.Lerp(baseColor, Color.white, 0.38f);
+            pastel.a = baseColor.a;
+            return pastel;
+        }
+
         /// <summary>
         /// 투사체 인스턴스의 모든 파티클을 원소 색으로 칠한다.
         ///

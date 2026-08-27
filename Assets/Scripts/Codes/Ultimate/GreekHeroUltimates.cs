@@ -90,7 +90,8 @@ namespace Codes.Ultimate
                 // 접촉(근접) 공격이라 포물선을 씌우지 않는다.
                 GameManager.Instance.sfxManager.FireSingleProjectile(
                     prefab, Caster, target, 0.25f,
-                    ProjectilePathType.Linear, ProjectileFlight.DataFor(ProjectilePathType.Linear));
+                    ProjectilePathType.Linear, ProjectileFlight.DataFor(ProjectilePathType.Linear),
+                    null, true);
             }
         }
 
@@ -161,7 +162,8 @@ namespace Codes.Ultimate
                 // 접촉(근접) 공격이라 포물선을 씌우지 않는다.
                 GameManager.Instance.sfxManager.FireSingleProjectile(
                     prefab, Caster, target, 0.25f,
-                    ProjectilePathType.Linear, ProjectileFlight.DataFor(ProjectilePathType.Linear));
+                    ProjectilePathType.Linear, ProjectileFlight.DataFor(ProjectilePathType.Linear),
+                    null, true);
             }
             yield return new WaitForSeconds(0.25f);
             target.TakeDamage(new DamageContext(

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Entities;
+using UnityEngine;
 
 namespace BaseClasses
 {
@@ -21,6 +22,8 @@ namespace BaseClasses
 
   public class DamageContext
   {
+    private readonly HashSet<EntityId> _visualizedTargetIds = new();
+
     public readonly Unit Attacker;
     public readonly int Damage;
     public bool IsCrit;
@@ -31,6 +34,16 @@ namespace BaseClasses
     public readonly int DurabilityPenetration;
     public float DefenseStatMultiplier;
     public bool IsCancelled;
+
+    /// <summary>
+    /// 같은 피해 컨텍스트가 광역 대상에 재사용되더라도 대상별 타격 VFX는 한 번씩 재생한다.
+    /// 공격 코드가 피해 적용보다 먼저 연출을 시작한 경우 Unit.TakeDamage의 자동 연출과
+    /// 중복되지 않게 하는 표식이기도 하다.
+    /// </summary>
+    public bool TryMarkImpactVfx(Unit target)
+    {
+      return target != null && _visualizedTargetIds.Add(target.GetEntityId());
+    }
 
     public DamageContext(Unit attacker, int damage, BaseEnums.CodeType codeType, List<int> damageTags,
       bool isCrit = false, int penetration = 0, int durabilityPenetration = 0)

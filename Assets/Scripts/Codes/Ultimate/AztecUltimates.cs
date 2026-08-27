@@ -6,6 +6,7 @@ using BaseClasses;
 using Codes.Base;
 using Codes.Passive;
 using Effects.Buffs;
+using Effects.Projectiles;
 using Entities;
 using Managers;
 using UnityEngine;
@@ -86,7 +87,7 @@ namespace Codes.Ultimate
             }
 
             if (IsJaguar) ResolveJaguar();
-            else if (IsEagle) ResolveEagle();
+            else if (IsEagle) yield return ResolveEagle();
             else if (IsSerpent) ResolveSerpentPriest();
             else ResolveTezcatlipoca();
 
@@ -101,11 +102,32 @@ namespace Codes.Ultimate
             if (target.isActive) target.GrantCombatElement(BaseEnums.UnitElement.Geo, 3, Caster);
         }
 
-        private void ResolveEagle()
+        private IEnumerator ResolveEagle()
         {
             Unit target = HighestPriorityEnemy();
-            if (target == null) return;
-            DealDamage(target, BaseEnums.PrimaryStat.STR, DamageTag.Physical, DamageTag.NonContactAttack);
+            if (target == null) yield break;
+
+            bool isCrit = UnityEngine.Random.value <= Caster.CritChanceCurr;
+            float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
+            int damage = Mathf.Max(1, Mathf.RoundToInt(
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.STR) * critMultiplier));
+            var context = new DamageContext(Caster, damage, BaseEnums.CodeType.Ultimate,
+                new List<int>
+                {
+                    DamageTag.SingleTarget, DamageTag.UltAttack, DamageTag.Physical,
+                    DamageTag.NonContactAttack, DamageTag.Arrow,
+                }, isCrit);
+
+            const float flight = 0.42f;
+            var token = new ProjectileImpactToken();
+            ProjectilePathType path = ProjectileFlight.PathFor(context);
+            GameManager.Instance?.sfxManager?.FireElementalProjectile(
+                Caster, target, flight, path, ProjectileFlight.DataFor(path), null,
+                token.MarkImpact, context);
+            yield return ProjectileFlight.WaitForImpact(token, flight);
+
+            if (target == null || !target.isActive) yield break;
+            target.TakeDamage(context);
             if (target.isActive) AztecCombat.ApplyPoison(Caster, target);
         }
 

@@ -35,9 +35,11 @@ namespace Codes.Normal
             foreach (var target in targets)
             {
                 ProjectilePathType path = ProjectileFlight.PathFor(context);
+                var token = new ProjectileImpactToken();
                 GameManager.Instance.sfxManager.FireElementalProjectile(
-                    Caster, target, delay, path, ProjectileFlight.DataFor(path), _prefab);
-                yield return new WaitForSeconds(delay);
+                    Caster, target, delay, path, ProjectileFlight.DataFor(path), _prefab,
+                    token.MarkImpact);
+                yield return ProjectileFlight.WaitForImpact(token, delay);
                 target.TakeDamage(context);
             }
         }

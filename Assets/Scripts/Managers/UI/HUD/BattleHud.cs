@@ -26,6 +26,14 @@ namespace Managers.UI.HUD
         /// <summary>배속 단계. 버튼을 누를 때마다 순환한다.</summary>
         private static readonly float[] SpeedSteps = { 1f, 2f, 3f };
 
+        /// <summary>
+        /// 화면에 보이는 배속에 곱해지는 기준 시간 배율.
+        ///
+        /// 예전 1배속이 눈으로 따라가기 어려울 만큼 빨랐다. 기준을 절반으로 낮춰
+        /// <b>2배속이 예전 1배속과 같은 속도</b>가 되도록 맞췄다.
+        /// </summary>
+        private const float BaseTimeScale = 0.5f;
+
         private TopStatusBar _topBar;
         private ActionQueuePanel _queue;
         private CodexScreen _codex;
@@ -52,7 +60,13 @@ namespace Managers.UI.HUD
             BuildResourceStrip(canvas.transform);
 
             _codex = new CodexScreen();
-            _topBar.SetSpeedLabel(SpeedSteps[_speedIndex]);
+            ApplySpeed();
+        }
+
+        /// <summary>HUD가 사라진 뒤에도 느려진 시간 배율이 남지 않게 되돌린다.</summary>
+        private void OnDestroy()
+        {
+            Time.timeScale = 1f;
         }
 
         /// <summary>상단 중앙의 생명력/골드/단계 표시.</summary>
@@ -133,9 +147,15 @@ namespace Managers.UI.HUD
         private void CycleSpeed()
         {
             _speedIndex = (_speedIndex + 1) % SpeedSteps.Length;
+            ApplySpeed();
+        }
+
+        /// <summary>현재 단계의 배속을 시간 배율과 표시에 함께 반영한다.</summary>
+        private void ApplySpeed()
+        {
             float speed = SpeedSteps[_speedIndex];
-            Time.timeScale = speed;
-            _topBar.SetSpeedLabel(speed);
+            Time.timeScale = speed * BaseTimeScale;
+            _topBar?.SetSpeedLabel(speed);
         }
 
         public void ToggleCodex()

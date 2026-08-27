@@ -392,7 +392,18 @@ namespace Managers
         public static int GetProjectedGain(BaseEnums.PrimaryStat focus)
         {
             int raw = GetOption(focus).BaseGain(State.GetLevel(focus)) + GetSupportBonus(focus);
-            return Mathf.Max(1, Mathf.FloorToInt(raw * State.ConditionMultiplier));
+            return Mathf.Max(1, Mathf.FloorToInt(
+                raw * State.ConditionMultiplier * GetPersonalTrainingMultiplier(GetMainUnit(), focus)));
+        }
+
+        private static float GetPersonalTrainingMultiplier(Unit main, BaseEnums.PrimaryStat focus)
+        {
+            if (main != null && focus == BaseEnums.PrimaryStat.DEX &&
+                main.ActivePassiveCodes.Any(code => code is Codes.Passive.BastetMasterThief))
+            {
+                return 1.10f;
+            }
+            return 1f;
         }
 
         /// <summary>예전 이름. 화면 코드가 쓰던 진입점이라 남겨 둔다.</summary>
@@ -466,7 +477,8 @@ namespace Managers
             int affinity = Mathf.Max(0, totalSupport - baseSupport);
 
             int gain = Mathf.Max(1, Mathf.FloorToInt(
-                (option.BaseGain(state.GetLevel(focus)) + totalSupport) * state.ConditionMultiplier));
+                (option.BaseGain(state.GetLevel(focus)) + totalSupport) * state.ConditionMultiplier *
+                GetPersonalTrainingMultiplier(GetMainUnit(), focus)));
 
             // 실패 판정은 체력을 쓰기 전 값으로 한다. 화면에 보여 준 확률과 같아야 한다.
             int failureRate = GetFailureRate(focus);

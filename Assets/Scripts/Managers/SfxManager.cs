@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using CGT.Pooling;
 using Effects;
@@ -67,6 +68,62 @@ namespace Managers
       }
     }
 
+    /// <summary>베기 선이 나타난 뒤 실제 피해가 들어가기까지의 짧은 타격 지연.</summary>
+    public const float MeleeImpactDelay = SlashEffect.ImpactDelay;
+
+    /// <summary>
+    /// 이 공격이 투사체 대신 대상 위치 베기를 사용할지 판정한다.
+    /// Slash 태그는 코드 종류와 무관하게 우선하며, 일반공격은 검 기본 숙련,
+    /// 로마/메히코 근접 병종의 접촉 공격도 베기로 표시한다.
+    /// </summary>
+    public static bool ShouldUseSlash(Unit attacker, DamageContext context)
+    {
+      if (attacker == null || context?.DamageTags == null) return false;
+      if (context.DamageTags.Contains(DamageTag.Slash)) return true;
+
+      bool swordNormal = context.CodeType == BaseEnums.CodeType.Normal &&
+        (attacker.HasProficiency(EquipmentProficiency.Longsword) ||
+         attacker.HasProficiency(EquipmentProficiency.Greatsword));
+      if (swordNormal) return true;
+
+      bool factionMelee = context.DamageTags.Contains(DamageTag.ContactAttack) &&
+        (attacker.HasUnitTag("Rome") || attacker.HasUnitTag("Mexica"));
+      return factionMelee;
+    }
+
+    /// <summary>
+    /// 근접 공격이면 베기를 재생하고 true를 반환한다. 공격 코드에서는 true일 때
+    /// 투사체를 만들지 않고 <see cref="MeleeImpactDelay"/> 뒤 피해를 적용하면 된다.
+    /// </summary>
+    public bool TryPlayMeleeAttack(Unit attacker, Unit target, DamageContext context)
+    {
+      if (target == null || !ShouldUseSlash(attacker, context)) return false;
+
+      if (context.TryMarkImpactVfx(target))
+      {
+        BaseEnums.UnitElement element = ElementalProjectiles.Parse(attacker.Element);
+        Color accent = element == BaseEnums.UnitElement.None
+          ? new Color(0.72f, 0.82f, 0.92f)
+          : (context.CodeType == BaseEnums.CodeType.Ultimate ||
+             context.DamageTags.Contains(DamageTag.UltAttack)
+            ? ElementalProjectiles.PastelColorFor(element)
+            : ElementalProjectiles.ColorFor(element));
+        SlashEffect.Play(attacker, target, accent);
+        attacker.currentCell?.PlayAttackReaction(1.15f);
+      }
+      return true;
+    }
+
+    /// <summary>즉시 피해형 스킬이 별도 발사 루틴을 거치지 않아도 베기 태그를 시각화한다.</summary>
+    public void PlayDamageImpact(Unit target, DamageContext context)
+    {
+      if (context?.Attacker == null || target == null) return;
+      TryPlayMeleeAttack(context.Attacker, target, context);
+    }
+
+    /// <summary>에어본 상태가 유지되는 동안 대상 아래에 상승 파티클을 붙인다.</summary>
+    public void PlayAirborne(Unit target) => AirborneEffect.Attach(target);
+
     /// <summary>투사체에 적용할 최종 스케일.</summary>
     private float GetProjectileScale(HS_Poolable prefab)
     {
@@ -116,16 +173,20 @@ namespace Managers
     /// <summary>
     /// 단일 투사체 발사 (경로 타입 및 파라미터 지정)
     /// </summary>
-    public void FireSingleProjectile(HS_Poolable prefab, Unit unitFrom, Unit unitTo, float duration, 
-      ProjectilePathType pathType, ProjectilePathData pathData)
+    public void FireSingleProjectile(HS_Poolable prefab, Unit unitFrom, Unit unitTo, float duration,
+      ProjectilePathType pathType, ProjectilePathData pathData, Action onImpact = null,
+      bool pastel = false)
     {
       // prefab은 더 이상 쓰지 않는다. 투사체는 CardProjectile이 코드로 그린다.
       // (호출부를 전부 고치지 않으려고 시그니처만 남겨 두었다.)
       if (unitFrom == null || unitTo == null) return;
 
       BaseEnums.UnitElement element = ElementalProjectiles.Parse(unitFrom.Element);
-      CardProjectile.Fire(unitFrom, unitTo, ElementalProjectiles.ColorFor(element), duration,
-        pathType, pathData ?? new ProjectilePathData(), ProjectileScale);
+      Color color = pastel
+        ? ElementalProjectiles.PastelColorFor(element)
+        : ElementalProjectiles.ColorFor(element);
+      CardProjectile.Fire(unitFrom, unitTo, color, duration,
+        pathType, pathData ?? new ProjectilePathData(), ProjectileScale, onImpact);
     }
 
     /// <summary>
@@ -135,13 +196,49 @@ namespace Managers
     /// 해당 원소의 프리팹이 없으면 <paramref name="fallback"/>으로 물러난다.
     /// </summary>
     public void FireElementalProjectile(Unit unitFrom, Unit unitTo, float duration,
-      ProjectilePathType pathType, ProjectilePathData pathData, HS_Poolable fallback = null)
+      ProjectilePathType pathType, ProjectilePathData pathData, HS_Poolable fallback = null,
+      Action onImpact = null, DamageContext context = null)
     {
       if (unitFrom == null || unitTo == null) return;
 
       BaseEnums.UnitElement element = ElementalProjectiles.Parse(unitFrom.Element);
-      CardProjectile.Fire(unitFrom, unitTo, ElementalProjectiles.ColorFor(element), duration,
-        pathType, pathData ?? new ProjectilePathData(), ProjectileScale);
+      Color color = context?.CodeType == BaseEnums.CodeType.Ultimate ||
+                    context?.DamageTags?.Contains(DamageTag.UltAttack) == true
+        ? ElementalProjectiles.PastelColorFor(element)
+        : ElementalProjectiles.ColorFor(element);
+      ProjectileVisualStyle style = context?.DamageTags?.Contains(DamageTag.Arrow) == true
+        ? (context.DamageTags.Contains(DamageTag.UltAttack)
+          ? ProjectileVisualStyle.EmpoweredArrow
+          : ProjectileVisualStyle.Arrow)
+        : ProjectileVisualStyle.Bolt;
+      CardProjectile.Fire(unitFrom, unitTo, color, duration,
+        pathType, pathData ?? new ProjectilePathData(), ProjectileScale, onImpact, style);
+    }
+
+    /// <summary>
+    /// 허공의 한 점에서 대상에게 투사체를 쏜다.
+    ///
+    /// 시전자가 직접 쏘지 않는 연출(허공에 열린 차원문 등)에 쓴다.
+    /// <paramref name="unitFrom"/>은 원소 색을 고르는 데만 쓰고, 궤적의 출발점은 <paramref name="origin"/>이다.
+    /// </summary>
+    public void FireProjectileFromPoint(Vector3 origin, Unit unitFrom, Unit unitTo, float duration,
+      ProjectilePathType pathType, ProjectilePathData pathData, Action onImpact = null,
+      DamageContext context = null)
+    {
+      if (unitFrom == null || unitTo == null) return;
+
+      BaseEnums.UnitElement element = ElementalProjectiles.Parse(unitFrom.Element);
+      Color color = context?.CodeType == BaseEnums.CodeType.Ultimate ||
+                    context?.DamageTags?.Contains(DamageTag.UltAttack) == true
+        ? ElementalProjectiles.PastelColorFor(element)
+        : ElementalProjectiles.ColorFor(element);
+      ProjectileVisualStyle style = context?.DamageTags?.Contains(DamageTag.Arrow) == true
+        ? (context.DamageTags.Contains(DamageTag.UltAttack)
+          ? ProjectileVisualStyle.EmpoweredArrow
+          : ProjectileVisualStyle.Arrow)
+        : ProjectileVisualStyle.Bolt;
+      CardProjectile.FireFrom(origin, unitFrom, unitTo, color, duration,
+        pathType, pathData ?? new ProjectilePathData(), ProjectileScale, onImpact, style);
     }
 
     /// <summary>
@@ -149,13 +246,14 @@ namespace Managers
     /// 캐릭터 전용 연출이 원소 기본 프리팹과 다른 실루엣을 필요로 할 때 사용한다.
     /// </summary>
     public void FireTintedProjectile(HS_Poolable prefab, BaseEnums.UnitElement tintElement,
-      Unit unitFrom, Unit unitTo, float duration, ProjectilePathType pathType, ProjectilePathData pathData)
+      Unit unitFrom, Unit unitTo, float duration, ProjectilePathType pathType, ProjectilePathData pathData,
+      Action onImpact = null)
     {
       if (unitFrom == null || unitTo == null) return;
 
       // 외형은 하나로 통일하고 색만 캐릭터별 원소를 따른다.
       CardProjectile.Fire(unitFrom, unitTo, ElementalProjectiles.ColorFor(tintElement), duration,
-        pathType, pathData ?? new ProjectilePathData(), ProjectileScale);
+        pathType, pathData ?? new ProjectilePathData(), ProjectileScale, onImpact);
     }
 
     /// <summary>

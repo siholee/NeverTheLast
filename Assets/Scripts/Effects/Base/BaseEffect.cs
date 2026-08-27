@@ -163,6 +163,12 @@ namespace Effects.Base
         /// <summary>코드 가속 가산 보정</summary>
         public virtual float CodeAccelerationAdditiveModifier(Unit unit) => 0f;
 
+        /// <summary>
+        /// 최종 행동 속도를 덮어쓰거나 제한하는 보정. 기본값은 계산된 속도를 그대로 돌려준다.
+        /// 호루스처럼 DEX와 무관하게 전투 속도가 고정되는 효과가 사용한다.
+        /// </summary>
+        public virtual float ActionSpeedModifier(Unit unit, float calculatedSpeed) => calculatedSpeed;
+
         /// <summary>최대 체력 배율 보정 (1 = 변화 없음)</summary>
         public virtual float MaxHpMultiplierModifier(Unit unit) => 1f;
 

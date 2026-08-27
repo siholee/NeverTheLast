@@ -1,8 +1,10 @@
+using System;
 using System.Linq;
 using BaseClasses;
 using Effects.Base;
 using Entities;
 using Entities.Status;
+using Managers;
 using UnityEngine;
 
 namespace Effects.Negative
@@ -16,6 +18,8 @@ namespace Effects.Negative
     /// </summary>
     public static class ControlStatuses
     {
+        /// <summary>에어본 연출이 최고점에 도달했을 때. (source, target)</summary>
+        public static event Action<Unit, Unit> AirborneApexReached;
         public const int FrozenStatusId = 5920;
         public const int AirborneStatusId = 5921;
         public const int StunStatusId = 5922;
@@ -60,9 +64,15 @@ namespace Effects.Negative
         public static bool ApplyAirborne(Unit target, Unit source)
         {
             int turns = AirborneTurns(source, target);
-            return ApplyControl(target, source, turns, AirborneStatusId, AirborneKey, "에어본",
+            bool applied = ApplyControl(target, source, turns, AirborneStatusId, AirborneKey, "에어본",
                 "공중에 떠 행동할 수 없습니다. 피격과 대상 지정은 정상입니다.",
                 target != null && target.IsAirborneImmune);
+            if (applied)
+            {
+                Effects.AirborneEffect.Attach(target,
+                    () => AirborneApexReached?.Invoke(source, target));
+            }
+            return applied;
         }
 
         // ── 기절 ──────────────────────────────────────────────────

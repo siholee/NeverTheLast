@@ -1,9 +1,17 @@
+using System;
 using System.Collections.Generic;
 using Entities;
 using UnityEngine;
 
 namespace Effects.Projectiles
 {
+    public enum ProjectileVisualStyle
+    {
+        Bolt,
+        Arrow,
+        EmpoweredArrow,
+    }
+
     /// <summary>
     /// 카드 게임식 투사체.
     ///
@@ -31,6 +39,8 @@ namespace Effects.Projectiles
 
         private SpriteRenderer _head;
         private SpriteRenderer _streak;
+        private SpriteRenderer _upperFletching;
+        private SpriteRenderer _lowerFletching;
         private SpriteRenderer _core;
         private readonly SpriteRenderer[] _shards = new SpriteRenderer[ShardCount];
         private readonly float[] _shardAngles = new float[ShardCount];
@@ -46,6 +56,10 @@ namespace Effects.Projectiles
         private int _sortingLayer;
         private ProjectilePathType _path;
         private ProjectilePathData _data;
+        private ProjectileVisualStyle _style;
+
+        /// <summary>머리가 대상에 닿는 순간 한 번 부른다. 피해는 여기에 맞춰 들어간다.</summary>
+        private Action _onImpact;
 
         /// <summary>
         /// 투사체 하나를 쏜다.
@@ -53,7 +67,22 @@ namespace Effects.Projectiles
         /// <param name="color">원소 색. 몸통과 잔광에 입힌다.</param>
         /// <param name="scale">전장 배율. 칸 크기에 맞춰 키운다.</param>
         public static void Fire(Unit from, Unit to, Color color, float duration,
-            ProjectilePathType path, ProjectilePathData data, float scale = 1f)
+            ProjectilePathType path, ProjectilePathData data, float scale = 1f, Action onImpact = null,
+            ProjectileVisualStyle style = ProjectileVisualStyle.Bolt)
+            => Fire(from, to, color, duration, path, data, scale, null, onImpact, style);
+
+        /// <summary>
+        /// 시작점을 직접 지정해 쏜다. 허공에 열린 차원문처럼 <b>시전자와 발사 위치가 다른</b> 연출용이다.
+        /// <paramref name="from"/>은 색과 정렬을 고르는 데만 쓴다.
+        /// </summary>
+        public static void FireFrom(Vector3 origin, Unit from, Unit to, Color color, float duration,
+            ProjectilePathType path, ProjectilePathData data, float scale = 1f, Action onImpact = null,
+            ProjectileVisualStyle style = ProjectileVisualStyle.Bolt)
+            => Fire(from, to, color, duration, path, data, scale, origin, onImpact, style);
+
+        private static void Fire(Unit from, Unit to, Color color, float duration,
+            ProjectilePathType path, ProjectilePathData data, float scale, Vector3? origin, Action onImpact,
+            ProjectileVisualStyle style)
         {
             if (from == null || to == null) return;
 
@@ -61,7 +90,8 @@ namespace Effects.Projectiles
 
             var go = new GameObject("CardProjectile");
             var projectile = go.AddComponent<CardProjectile>();
-            projectile.Setup(from, to, color, Mathf.Max(0.05f, duration), path, data, scale);
+            projectile._onImpact = onImpact;
+            projectile.Setup(from, to, color, Mathf.Max(0.05f, duration), path, data, scale, origin, style);
             Live.Add(projectile);
         }
 
@@ -72,20 +102,35 @@ namespace Effects.Projectiles
             {
                 CardProjectile oldest = Live[0];
                 Live.RemoveAt(0);
-                if (oldest != null) Destroy(oldest.gameObject);
+                if (oldest == null) continue;
+
+                // 자리를 비우려고 앞당겨 걷는 것뿐이다. 착탄은 알려 주고 보낸다 —
+                // 그러지 않으면 이 투사체를 기다리던 피해가 통째로 사라진다.
+                oldest.NotifyImpact();
+                Destroy(oldest.gameObject);
             }
         }
 
+        /// <summary>착탄을 한 번만 알린다.</summary>
+        private void NotifyImpact()
+        {
+            Action callback = _onImpact;
+            _onImpact = null;
+            callback?.Invoke();
+        }
+
         private void Setup(Unit from, Unit to, Color color, float duration,
-            ProjectilePathType path, ProjectilePathData data, float scale)
+            ProjectilePathType path, ProjectilePathData data, float scale, Vector3? origin,
+            ProjectileVisualStyle style)
         {
             _from = from;
             _to = to;
             _duration = duration;
             _path = path;
             _data = data;
-            _scale = Mathf.Max(0.2f, scale);
-            _start = from.transform.position;
+            _style = style;
+            _scale = Mathf.Max(0.2f, scale) * (style == ProjectileVisualStyle.EmpoweredArrow ? 1.45f : 1f);
+            _start = origin ?? from.transform.position;
             _end = to.transform.position;
 
             transform.position = _start;
@@ -104,7 +149,29 @@ namespace Effects.Projectiles
             _streak.transform.localPosition = new Vector3(-streakLength * 0.5f, 0f, 0f);
 
             _head = NewRenderer("Head", ProjectileShapes.Sliver(), color, 1f, OverlaySortingOrder + 1);
-            _head.transform.localScale = Vector3.one * _scale;
+            _head.transform.localScale = style == ProjectileVisualStyle.Bolt
+                ? Vector3.one * _scale
+                : new Vector3(_scale * 1.18f, _scale * 0.48f, 1f);
+
+            if (style != ProjectileVisualStyle.Bolt)
+            {
+                // 긴 몸통 뒤에 두 개의 깃을 붙여 작은 화면에서도 '화살' 실루엣이 읽히게 한다.
+                Sprite fletching = ProjectileShapes.Shard(42, 8);
+                _upperFletching = NewRenderer("UpperFletching", fletching, color, 0.9f,
+                    OverlaySortingOrder + 1);
+                _lowerFletching = NewRenderer("LowerFletching", fletching, color, 0.9f,
+                    OverlaySortingOrder + 1);
+                float rear = -ProjectileShapes.Sliver().bounds.size.x * _scale * 0.42f;
+                _upperFletching.transform.localPosition = new Vector3(rear, _scale * 0.10f, 0f);
+                _lowerFletching.transform.localPosition = new Vector3(rear, -_scale * 0.10f, 0f);
+                _upperFletching.transform.localRotation = Quaternion.Euler(0f, 0f, 32f);
+                _lowerFletching.transform.localRotation = Quaternion.Euler(0f, 0f, -32f);
+
+                if (style == ProjectileVisualStyle.EmpoweredArrow)
+                {
+                    _streak.transform.localScale = new Vector3(_scale * 2.15f, _scale * 0.92f, 1f);
+                }
+            }
 
             // 착탄 조각은 미리 만들어 두고 꺼 둔다. 터질 때 켜기만 하면 된다.
             _core = NewRenderer("Core", ProjectileShapes.Core(), Color.white, 0f, OverlaySortingOrder + 3);
@@ -116,7 +183,7 @@ namespace Effects.Projectiles
                     OverlaySortingOrder + 2);
                 _shards[i].enabled = false;
                 // 진행 방향을 중심으로 부채꼴로 흩어진다. 완전한 방사형보다 방향감이 산다.
-                _shardAngles[i] = Random.Range(-62f, 62f);
+                _shardAngles[i] = UnityEngine.Random.Range(-62f, 62f);
             }
 
             Aim();
@@ -185,9 +252,12 @@ namespace Effects.Projectiles
         private void BeginImpact()
         {
             _impact = 0f;
+            NotifyImpact();
 
             _head.enabled = false;
             _streak.enabled = false;
+            if (_upperFletching != null) _upperFletching.enabled = false;
+            if (_lowerFletching != null) _lowerFletching.enabled = false;
 
             _core.enabled = true;
             for (int i = 0; i < ShardCount; i++) _shards[i].enabled = true;

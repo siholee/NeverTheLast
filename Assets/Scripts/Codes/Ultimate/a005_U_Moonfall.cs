@@ -26,7 +26,7 @@ namespace Codes.Ultimate
             Cooldown = 3;
             CastingDelay = 1f;
             Power = 100;
-            CodeTags = new List<int> { DamageTag.Physical, DamageTag.NonContactAttack };
+            CodeTags = new List<int> { DamageTag.Physical, DamageTag.NonContactAttack, DamageTag.Arrow };
             GameManager.Instance?.sfxManager?.ProjectilePrefabs?.TryGetValue("Levateinn", out _prefab);
         }
 
@@ -73,19 +73,24 @@ namespace Codes.Ultimate
             bool isCrit = Random.value <= Caster.CritChanceCurr;
             float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
             int primaryDamage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(100, BaseEnums.PrimaryStat.DEX) * critMultiplier));
+            var primaryContext = new DamageContext(
+                Caster, primaryDamage, BaseEnums.CodeType.Ultimate,
+                new List<int>
+                {
+                    DamageTag.SingleTarget, DamageTag.UltAttack, DamageTag.Physical,
+                    DamageTag.NonContactAttack, DamageTag.Arrow,
+                }, isCrit);
 
             // 활에서 나가는 화살이라 곡선형이다.
-            if (_prefab != null)
-                GameManager.Instance.sfxManager.FireSingleProjectile(
-                    _prefab, Caster, primary, 0.35f,
-                    ProjectilePathType.ParabolicArc, ProjectileFlight.DataFor(ProjectilePathType.ParabolicArc));
-            yield return new WaitForSeconds(0.35f);
+            var primaryToken = new ProjectileImpactToken();
+            GameManager.Instance?.sfxManager?.FireElementalProjectile(
+                Caster, primary, 0.35f, ProjectilePathType.ParabolicArc,
+                ProjectileFlight.DataFor(ProjectilePathType.ParabolicArc), _prefab,
+                primaryToken.MarkImpact, primaryContext);
+            yield return ProjectileFlight.WaitForImpact(primaryToken, 0.35f);
             if (primary != null && primary.isActive)
             {
-                primary.TakeDamage(new DamageContext(
-                    Caster, primaryDamage, BaseEnums.CodeType.Ultimate,
-                    new List<int> { DamageTag.SingleTarget, DamageTag.UltAttack, DamageTag.Physical, DamageTag.NonContactAttack },
-                    isCrit));
+                primary.TakeDamage(primaryContext);
             }
 
             // 전열이 있었을 때만 후열 전체에 두 번째 효과가 발동한다.
@@ -95,20 +100,26 @@ namespace Codes.Ultimate
                     .Where(unit => unit != null && unit.isActive && unit.currentCell.xPos == rearColumn)
                     .ToList();
                 int rearDamage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(60, BaseEnums.PrimaryStat.DEX) * critMultiplier));
+                var rearContext = new DamageContext(
+                    Caster, rearDamage, BaseEnums.CodeType.Ultimate,
+                    new List<int>
+                    {
+                        DamageTag.MultiTarget, DamageTag.UltAttack, DamageTag.Physical,
+                        DamageTag.NonContactAttack, DamageTag.Arrow,
+                    }, isCrit);
+                var rearToken = new ProjectileImpactToken();
                 foreach (Unit target in rearEnemies)
                 {
-                    if (_prefab != null)
-                        GameManager.Instance.sfxManager.FireSingleProjectile(
-                            _prefab, primary, target, 0.15f,
-                            ProjectilePathType.ParabolicArc, ProjectileFlight.DataFor(ProjectilePathType.ParabolicArc));
+                    GameManager.Instance?.sfxManager?.FireProjectileFromPoint(
+                        primary.transform.position, Caster, target, 0.15f,
+                        ProjectilePathType.ParabolicArc,
+                        ProjectileFlight.DataFor(ProjectilePathType.ParabolicArc),
+                        rearToken.MarkImpact, rearContext);
                 }
-                yield return new WaitForSeconds(0.2f);
+                yield return ProjectileFlight.WaitForImpact(rearToken, 0.15f);
                 foreach (Unit target in rearEnemies.Where(unit => unit != null && unit.isActive))
                 {
-                    target.TakeDamage(new DamageContext(
-                        Caster, rearDamage, BaseEnums.CodeType.Ultimate,
-                        new List<int> { DamageTag.MultiTarget, DamageTag.UltAttack, DamageTag.Physical, DamageTag.NonContactAttack },
-                        isCrit));
+                    target.TakeDamage(rearContext);
                 }
             }
 

@@ -96,7 +96,8 @@ namespace Codes.Ultimate
                 GameManager.Instance.sfxManager.ProjectilePrefabs.TryGetValue("FireBlast", out var prefab))
                 GameManager.Instance.sfxManager.FireSingleProjectile(
                     prefab, Caster, target, delay,
-                    ProjectilePathType.Linear, ProjectileFlight.DataFor(ProjectilePathType.Linear));
+                    ProjectilePathType.Linear, ProjectileFlight.DataFor(ProjectilePathType.Linear),
+                    null, true);
         }
 
         public override void StopCode()
@@ -114,11 +115,21 @@ namespace Codes.Ultimate
     {
         private const int Duration = 3;   // 6초 → 3턴
 
-        /// <summary>
-        /// 화살 한 발의 위력. 8발 합계가 일반공격(위력 70) 한 대와 비슷해지도록 잡았다.
-        /// 궁 지속 중 평타가 대략 두 배가 되는 셈이다.
-        /// </summary>
-        private const int ArrowPower = 8;
+        /// <summary>한 번의 일제사격에 열리는 차원문 수.</summary>
+        private const int PortalCount = 4;
+
+        /// <summary>차원문 하나가 뱉는 화살 수. 같은 차원문의 화살은 같은 대상을 노린다.</summary>
+        private const int ArrowsPerPortal = 2;
+
+        /// <summary>화살 한 발의 피해는 방아쇠가 된 일반공격 <b>최종 피해</b>의 0.1배다.</summary>
+        private const float ArrowDamageRatio = 0.1f;
+
+        /// <summary>화살이 허공에서 대상까지 날아가는 시간.</summary>
+        private const float ArrowFlightTime = 0.25f;
+
+        /// <summary>같은 차원문에서 나온 화살이 겹쳐 보이지 않게 벌리는 거리(월드 단위).</summary>
+        private const float ArrowSpread = 1.6f;
+
         private Action<EventContext> _normalHitHandler;
         private Action<EventContext> _cleanupHandler;
 
@@ -142,7 +153,7 @@ namespace Codes.Ultimate
             yield return new WaitForSeconds(CastingDelay);
             if (Caster == null || !Caster.isActive || Caster.isControlled) { StopCode(); yield break; }
             ClearPortalHook();
-            _normalHitHandler = _ => Caster.StartCoroutine(FirePortalVolley());
+            _normalHitHandler = OnNormalHit;
             _cleanupHandler = _ => ClearPortalHook();
             Caster.AddListener(BaseEnums.UnitEventType.OnNormalAttackHit, _normalHitHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
@@ -153,44 +164,81 @@ namespace Codes.Ultimate
                 duration: Duration,
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
-                description: "기본공격마다 차원문 4개가 열린다. 차원문마다 대상을 무작위로 정하고, 한 차원문의 화살 2발은 같은 대상을 노린다."));
+                description: $"기본공격을 맞힐 때마다 아군 진영 허공에 차원문 {PortalCount}개가 열려 " +
+                             $"화살 {PortalCount * ArrowsPerPortal}발을 한 번에 쏜다. 차원문마다 대상을 무작위로 " +
+                             "정하고, 한 차원문의 화살은 같은 대상을 노린다. 화살 한 발은 그 일반공격 " +
+                             $"최종 피해의 {ArrowDamageRatio:0.#}배를 추가공격으로 준다."));
             Caster.StartCoroutine(ExpirePortals());
             StopCode();
         }
 
-        private IEnumerator FirePortalVolley()
+        /// <summary>
+        /// 기본공격이 적중하면 차원문 일제사격이 뒤따른다.
+        ///
+        /// 화살 피해는 그 일반공격이 실제로 뽑아낸 최종 피해에서 갈라 나온다.
+        /// 치명타로 크게 터진 평타는 뒤따르는 화살도 그만큼 굵어진다.
+        /// </summary>
+        private void OnNormalHit(EventContext context)
+        {
+            if (Caster == null || !Caster.isActive) return;
+
+            int normalDamage = context?.DmgCtx?.Damage ?? 0;
+            if (normalDamage <= 0) return;
+
+            int arrowDamage = Mathf.Max(1, Mathf.RoundToInt(normalDamage * ArrowDamageRatio));
+            Caster.StartCoroutine(FirePortalVolley(arrowDamage, context.DmgCtx.IsCrit));
+        }
+
+        /// <summary>차원문 전부가 동시에 화살을 뱉고, 도착하는 순간 한꺼번에 판정한다.</summary>
+        private IEnumerator FirePortalVolley(int arrowDamage, bool isCrit)
         {
             List<Unit> enemies = global::Target.GetAllEnemies(Caster)
                 .Where(unit => unit != null && unit.isActive && !unit.IsUntargetable).ToList();
             if (enemies.Count == 0) yield break;
 
-            for (int portal = 0; portal < 4; portal++)
+            // 화살이 전부 같은 순간 같은 시간을 날아가므로 표식 하나를 함께 쓴다.
+            var token = new ProjectileImpactToken();
+            var targets = new List<Unit>(PortalCount * ArrowsPerPortal);
+            for (int portal = 0; portal < PortalCount; portal++)
             {
                 Unit target = enemies[UnityEngine.Random.Range(0, enemies.Count)];
-                for (int arrow = 0; arrow < 2; arrow++) FireProjectile(target, 0.2f);
-                Caster.StartCoroutine(ResolvePortalPair(target));
+                Vector3 origin = RandomAllyAirPoint();
+
+                for (int arrow = 0; arrow < ArrowsPerPortal; arrow++)
+                {
+                    // 같은 차원문에서 나온 화살이 한 점에 겹치지 않도록 조금씩 어긋나게 놓는다.
+                    float offset = (arrow - (ArrowsPerPortal - 1) * 0.5f) * ArrowSpread;
+                    FireArrow(origin + new Vector3(0f, offset, 0f), target, token, arrowDamage, isCrit);
+                    targets.Add(target);
+                }
             }
-            yield return null;
+
+            yield return ProjectileFlight.WaitForImpact(token, ArrowFlightTime);
+            foreach (Unit target in targets) ResolveArrow(target, arrowDamage, isCrit);
         }
 
-        private IEnumerator ResolvePortalPair(Unit target)
+        /// <summary>
+        /// 화살 한 발의 판정.
+        ///
+        /// 궁극기가 열어 준 <b>추가공격</b>이다. 일반공격으로는 세지 않으므로
+        /// 평타에 얹히는 효과(태양의 박자 등)를 다시 굴리지 않는다.
+        /// </summary>
+        private void ResolveArrow(Unit target, int arrowDamage, bool isCrit)
         {
-            yield return new WaitForSeconds(0.2f);
-            for (int arrow = 0; arrow < 2; arrow++)
-            {
-                if (target == null || !target.isActive || target.IsUntargetable)
-                    target = global::Target.GetAllEnemies(Caster)
-                        .FirstOrDefault(unit => unit != null && unit.isActive && !unit.IsUntargetable);
-                if (target == null) yield break;
-                bool isCrit = UnityEngine.Random.value <= Caster.CritChanceCurr;
-                int damage = Mathf.Max(1, Mathf.RoundToInt(
-                    Caster.SkillDamage(ArrowPower, BaseEnums.PrimaryStat.DEX) *
-                    (isCrit ? Caster.CritMultiplierCurr : 1f)));
-                target.TakeDamage(new DamageContext(
-                    Caster, damage, BaseEnums.CodeType.Ultimate,
-                    new List<int> { DamageTag.SingleTarget, DamageTag.UltAttack, DamageTag.Physical, DamageTag.NonContactAttack },
-                    isCrit));
-            }
+            if (Caster == null || !Caster.isActive) return;
+            if (target == null || !target.isActive || target.IsUntargetable)
+                target = global::Target.GetAllEnemies(Caster)
+                    .FirstOrDefault(unit => unit != null && unit.isActive && !unit.IsUntargetable);
+            if (target == null) return;
+
+            target.TakeDamage(new DamageContext(
+                Caster, arrowDamage, BaseEnums.CodeType.Ultimate,
+                new List<int>
+                {
+                    DamageTag.SingleTarget, DamageTag.UltAttack, DamageTag.AdditionalAttack,
+                    DamageTag.Physical, DamageTag.NonContactAttack, DamageTag.Arrow,
+                },
+                isCrit));
         }
 
         private IEnumerator ExpirePortals()
@@ -199,14 +247,39 @@ namespace Codes.Ultimate
             ClearPortalHook();
         }
 
-        /// <summary>차원문에서 나오는 화살이라 곡선형으로 날아간다.</summary>
-        private void FireProjectile(Unit target, float delay)
+        /// <summary>
+        /// 차원문이 열릴 아군 진영 안의 한 점.
+        ///
+        /// 차원문 자체는 그리지 않는다. 화살이 허공에서 튀어나오는 것으로만 보인다.
+        /// </summary>
+        private Vector3 RandomAllyAirPoint()
         {
-            if (GameManager.Instance?.sfxManager?.ProjectilePrefabs != null &&
-                GameManager.Instance.sfxManager.ProjectilePrefabs.TryGetValue("FireBlast", out var prefab))
-                GameManager.Instance.sfxManager.FireSingleProjectile(
-                    prefab, Caster, target, delay,
-                    ProjectilePathType.ParabolicArc, ProjectileFlight.DataFor(ProjectilePathType.ParabolicArc));
+            int side = Caster?.currentCell != null && Caster.currentCell.xPos < 0 ? -1 : 1;
+            if (GridManager.Instance != null && GridManager.Instance.TryGetSideBounds(side, out Bounds area))
+                return new Vector3(
+                    UnityEngine.Random.Range(area.min.x, area.max.x),
+                    UnityEngine.Random.Range(area.min.y, area.max.y),
+                    0f);
+
+            return Caster != null ? Caster.transform.position : Vector3.zero;
+        }
+
+        /// <summary>차원문에서 나온 화살은 허공의 한 점에서 대상까지 직선으로 날아간다.</summary>
+        private void FireArrow(Vector3 origin, Unit target, ProjectileImpactToken token,
+            int arrowDamage, bool isCrit)
+        {
+            var visualContext = new DamageContext(
+                Caster, arrowDamage, BaseEnums.CodeType.Ultimate,
+                new List<int>
+                {
+                    DamageTag.SingleTarget, DamageTag.UltAttack, DamageTag.AdditionalAttack,
+                    DamageTag.Physical, DamageTag.NonContactAttack, DamageTag.Arrow,
+                },
+                isCrit);
+            GameManager.Instance?.sfxManager?.FireProjectileFromPoint(
+                origin, Caster, target, ArrowFlightTime,
+                ProjectilePathType.Linear, ProjectileFlight.DataFor(ProjectilePathType.Linear),
+                token.MarkImpact, visualContext);
         }
 
         private void ClearPortalHook()

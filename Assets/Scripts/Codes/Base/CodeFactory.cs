@@ -141,6 +141,16 @@ namespace Codes.Base
           context,
           codeId,
           AztecCodeNames.Passive(codeId)),
+        // ── 이집트 (호루스·아누비스·바스테트) ──
+        340 => new HorusSkyFalcon(context),
+        341 => new AnubisSoulHarvest(context),
+        342 => new BastetAirborneHunter(context),
+        343 => new EgyptianPiercingShot(context),
+        344 => new AnubisSpearGuard(context),
+        345 => new AnubisReaper(context),
+        346 => new BastetMasterThief(context),
+        347 => new BastetLightArmament(context),
+        348 => new BastetSelfish(context),
         // ── 로마 (레기온) ──
         280 => new NightRaid(context),
         281 => new Charisma(context),
@@ -193,6 +203,9 @@ namespace Codes.Base
         >= 280 and <= 286 => new AztecNormal(
           context,
           (AztecNormalStyle)(codeId - 280)),
+        290 => new HorusNormalAttack(context),
+        291 => new AnubisNormalAttack(context),
+        292 => new BastetNormalAttack(context),
         _ => new NormalAttack(context), // 기본 일반공격 (임시, 나중에 각 유닛별로 교체 예정)
       };
     }
@@ -233,6 +246,9 @@ namespace Codes.Base
         >= 160 and <= 171 => new LegionUltimate(
           context,
           (LegionUltimateStyle)(codeId - 160)),
+        290 => new HorusWadjet(context),
+        291 => new AnubisStoneSpear(context),
+        292 => new BastetApexExecution(context),
         100 => new EnemyTestUltimate(context), // 적 전용 테스트 궁극기
         _ => null,
       };

@@ -181,7 +181,8 @@ namespace Codes.Ultimate
                     // 특수 피해라 직선형이다.
                     GameManager.Instance.sfxManager.FireSingleProjectile(
                         prefab, Caster, target, 0.25f,
-                        ProjectilePathType.Linear, ProjectileFlight.DataFor(ProjectilePathType.Linear));
+                        ProjectilePathType.Linear, ProjectileFlight.DataFor(ProjectilePathType.Linear),
+                        null, true);
                 yield return new WaitForSeconds(0.25f);
             }
 

@@ -65,13 +65,18 @@ namespace Codes.Normal
       
       // 접촉/비접촉 태그 결정
       List<int> damageTags = GetDamageTags();
+      if (Caster.HasEquippedBow() && damageTags.Contains(DamageTag.NonContactAttack) &&
+          !damageTags.Contains(DamageTag.Arrow))
+        damageTags.Add(DamageTag.Arrow);
       
       // 디버그 로그
       string contactType = damageTags.Contains(DamageTag.ContactAttack) ? "접촉" : "비접촉";
       Debug.Log($"{Caster.UnitName}이 {TargetUnits[0].UnitName}에게 {contactType} 일반공격을 시전했습니다.");
       
       DamageContext context = new(Caster, Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(50) * critMultiplier)), BaseEnums.CodeType.Normal, damageTags, isCrit);
-      Caster.StartCoroutine(FireProjectile(TargetUnits, 2f, context));
+      // 예전에는 2초를 줬다. 투사체가 너무 오래 떠 있어 그 사이 대상이 다른 공격에
+      // 쓰러지면 빈자리로 날아갔다. 다른 일반공격과 같은 0.5초로 맞춘다.
+      Caster.StartCoroutine(FireProjectile(TargetUnits, 0.5f, context));
       // 궁극기 자원은 전투 시간으로 찬다(Unit.AccrueUltimateResource). 여기서 또 주지 않는다.
       StopCode();
     }
@@ -86,11 +91,22 @@ namespace Codes.Normal
     {
       foreach (var target in targets)
       {
-        // 물리(화살·투척)는 곡선형, 마법·특수는 직선형으로 날아간다.
-        ProjectilePathType path = ProjectileFlight.PathFor(context);
-        GameManager.Instance.sfxManager.FireElementalProjectile(
-          Caster, target, delay, path, ProjectileFlight.DataFor(path), _prefab);
-        yield return new WaitForSeconds(delay);
+        SfxManager sfx = GameManager.Instance?.sfxManager;
+        bool melee = sfx != null && sfx.TryPlayMeleeAttack(Caster, target, context);
+        if (melee)
+        {
+          yield return new WaitForSeconds(SfxManager.MeleeImpactDelay);
+        }
+        else
+        {
+          // 물리(화살·투척)는 곡선형, 마법·특수는 직선형으로 날아간다.
+          // 피해는 투사체가 닿은 뒤에 들어간다.
+          ProjectilePathType path = ProjectileFlight.PathFor(context);
+          var token = new ProjectileImpactToken();
+          sfx?.FireElementalProjectile(
+            Caster, target, delay, path, ProjectileFlight.DataFor(path), _prefab, token.MarkImpact, context);
+          yield return ProjectileFlight.WaitForImpact(token, delay);
+        }
         target.TakeDamage(context);
         Caster.Invoke(BaseEnums.UnitEventType.OnNormalAttackHit, new EventContext(Caster, target, context));
       }

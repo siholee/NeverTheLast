@@ -17,11 +17,13 @@ namespace Managers.UI.Screens
         private GameObject _root;
         private TextMeshProUGUI _info;
         private Button _training;
-        private Button _extraBattle;
         private Button _rest;
         private Button _deck;
-        private Button _equipment;
         private Button _start;
+
+        /// <summary>전투 시작을 되물을지 판단하려고 마지막 갱신 상태를 들고 있는다.</summary>
+        private bool _deckOnly;
+        private bool _actionUsed;
 
         public void Show(bool deckOnly, bool actionUsed, string message)
         {
@@ -44,7 +46,8 @@ namespace Managers.UI.Screens
                 UIShapes.Corner.Diagonal, 12, UITheme.Outline, 1);
             _root = panel.gameObject;
             // 하단 가운데. 좌하단 파티 카드와 겹치지 않도록 폭을 제한한다.
-            UIBuild.Pin(panel.rectTransform, new Vector2(0.5f, 0f), new Vector2(1180f, 132f),
+            // 버튼 4개(훈련 · 휴식 · 덱 구성 · 전투 시작)가 좌우 여백 안에 딱 들어가는 폭이다.
+            UIBuild.Pin(panel.rectTransform, new Vector2(0.5f, 0f), new Vector2(788f, 132f),
                 new Vector2(0f, 24f));
 
             TextMeshProUGUI title = UIBuild.Label("Title", panel.transform, "준비 페이즈",
@@ -60,16 +63,11 @@ namespace Managers.UI.Screens
 
             _training = MakeButton(panel.transform, 0, "훈련",
                 () => GameManager.Instance?.OpenTrainingFromPreparation());
-            _extraBattle = MakeButton(panel.transform, 1, "추가 전투",
-                () => GameManager.Instance?.BeginAdditionalBattleFromPreparation());
-            _rest = MakeButton(panel.transform, 2, "휴식",
+            _rest = MakeButton(panel.transform, 1, "휴식",
                 () => GameManager.Instance?.RestFromPreparation());
-            _deck = MakeButton(panel.transform, 3, "덱 구성",
+            _deck = MakeButton(panel.transform, 2, "덱 구성",
                 () => GameManager.Instance?.OpenDeckSetupFromPreparation());
-            _equipment = MakeButton(panel.transform, 4, "장비",
-                () => GameManager.Instance?.OpenEquipmentFromPreparation());
-            _start = MakeButton(panel.transform, 5, "전투 시작",
-                () => GameManager.Instance?.StartRound(), primary: true);
+            _start = MakeButton(panel.transform, 3, "전투 시작", StartRequested, primary: true);
 
             _root.SetActive(false);
         }
@@ -85,8 +83,34 @@ namespace Managers.UI.Screens
             return button;
         }
 
+        /// <summary>
+        /// 전투 시작. 이번 준비 페이즈에 훈련도 휴식도 하지 않았다면 한 번 되묻는다.
+        ///
+        /// 준비 행동은 스테이지마다 한 번뿐이라 그냥 넘기면 되돌릴 수 없다.
+        /// 행동을 고를 수 없는 상황(보스전 · 이미 행동함)에서는 묻지 않고 바로 시작한다.
+        /// </summary>
+        private void StartRequested()
+        {
+            if (_deckOnly || _actionUsed)
+            {
+                GameManager.Instance?.StartRound();
+                return;
+            }
+
+            ConfirmDialog.Ask(
+                "준비 행동 없음",
+                "이번 준비 페이즈에서 훈련도 휴식도 하지 않았습니다.\n" +
+                "준비 행동은 스테이지마다 한 번뿐이라 전투를 시작하면 이번 기회는 사라집니다.\n\n" +
+                "이대로 전투를 시작할까요?",
+                "전투 시작",
+                () => GameManager.Instance?.StartRound());
+        }
+
         private void Refresh(bool deckOnly, bool actionUsed, string message)
         {
+            _deckOnly = deckOnly;
+            _actionUsed = actionUsed;
+
             bool carryBlocked = GameManager.Instance?.HasOverburdenedHeroes == true;
             string carryMessage = GameManager.Instance?.CarryWeightBlockMessage;
             _info.text = carryBlocked
@@ -97,14 +121,12 @@ namespace Managers.UI.Screens
                     ? "보스전 준비: 덱 구성과 전투 시작만 가능합니다."
                     : actionUsed
                         ? "준비 행동 완료: 덱을 정리한 뒤 전투를 시작하세요."
-                        : "훈련 · 추가 전투 · 휴식 중 하나를 선택하거나 바로 전투를 시작하세요.";
+                        : "훈련과 휴식 중 하나를 선택하거나 바로 전투를 시작하세요.";
 
             bool actionAvailable = !carryBlocked && !deckOnly && !actionUsed;
             SetEnabled(_training, actionAvailable);
-            SetEnabled(_extraBattle, actionAvailable);
             SetEnabled(_rest, actionAvailable);
             SetEnabled(_deck, !carryBlocked);
-            SetEnabled(_equipment, true);
             SetEnabled(_start, !carryBlocked);
         }
 

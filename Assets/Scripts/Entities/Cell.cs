@@ -357,6 +357,13 @@ public class Cell : MonoBehaviour
         _card.Tick();
     }
 
+    /// <summary>투사체 착탄·근접 타격 시점에 카드가 적 방향으로 짧게 전진한다.</summary>
+    public void PlayAttackReaction(float strength = 1f)
+    {
+        EnsureCard();
+        _card?.PlayAttackReaction(strength);
+    }
+
     // ── 예전 프리팹 바 진입점 ────────────────────────────────────────
     // 체력 · 마나 · 방어막 바는 UnitCardView로 옮겼다. Unit이 소환 직후 부르는
     // 자리라 이름은 남겨 두고, 카드 바인딩만 확인한다.

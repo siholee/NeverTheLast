@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using BaseClasses;
+using Effects.Negative;
 using Entities.Status;
 using Managers;
 using Managers.UI.Core;
@@ -16,7 +17,6 @@ namespace Entities.View
     /// 우하단 파티 카드를 없애면서 그쪽이 들고 있던 정보가 전부 이리로 왔다.
     /// 한 장에 담기는 것:
     ///   · 컷코너 카드 프레임 — 초상화가 그 위에 선다(초상화는 여전히 SpriteRenderer다)
-    ///   · 진영 띠 — 아군 무채색 / 적 적색. <b>파랑을 쓰지 않는다.</b>
     ///   · 이름 띠
     ///   · 궁극기 게이지 — 우상단에 걸치는 원형. 테두리는 고정이고 안쪽이 아래에서
     ///     위로 차오른다(스타레일식). 충전 중·완료·예약이 모두 같은 색이다.
@@ -46,7 +46,6 @@ namespace Entities.View
         private const int MaxDots = 5;
 
         // 캔버스 좌표(좌상단 기준). 디자인 캔버스의 퍼센트를 그대로 옮겼다.
-        private const float BandHeight = 2.6f;
         private const float NameBandTop = 72f;
         private const float NameBandHeight = 28f;
         private const float RingSize = 27f;
@@ -93,7 +92,6 @@ namespace Entities.View
         private SpriteRenderer _frame;
         private Canvas _canvas;
         private CanvasGroup _group;
-        private Image _factionBand;
         private Image _actingOutline;
         private TextMeshPro _nameLabel;
         private MeshRenderer _nameRenderer;
@@ -120,6 +118,8 @@ namespace Entities.View
         private const float PunchAmount = 0.07f; // 커지는 비율
         private const float LungeDistance = 0.9f;
         private const float RecoilDistance = 0.55f;
+        private const float AirborneRiseTime = 0.16f;
+        private const float AirborneFallTime = 0.22f;
 
         private Transform _portrait;
         private Vector3 _portraitBaseScale = Vector3.one;
@@ -127,6 +127,7 @@ namespace Entities.View
         private float _punch;
         private float _lunge;
         private float _recoil;
+        private float _airborneLift;
         private int _facing = 1;
         private int _lastHp = -1;
 
@@ -232,9 +233,6 @@ namespace Entities.View
             _group.blocksRaycasts = false;
 
             Transform root = canvasObject.transform;
-
-            _factionBand = UIBuild.Solid("FactionBand", root, UITheme.TextSecondary);
-            Place(_factionBand.rectTransform, 0f, 0f, CanvasWidth, BandHeight);
 
             // 초상화가 카드 면을 거의 덮으므로 테두리는 초상화 '위'에 그린다.
             // 흰 배경 초상화에서도 카드 형태(컷코너)가 보이게 하기 위한 것이다.
@@ -422,7 +420,6 @@ namespace Entities.View
             AttachEvents();
 
             _nameLabel.text = unit.UnitName;
-            _factionBand.color = unit.IsEnemy ? UITheme.Enemy : UITheme.TextSecondary;
 
             _ringElementName = null;   // 다른 유닛이 들어왔으니 링 색을 다시 잡는다
             _ringTickCount = -1;
@@ -455,15 +452,19 @@ namespace Entities.View
             _lastHp = _unit.HpCurr;
 
             // ── 체력 · 방어막 ──
+            // 트랙 전체가 재는 양은 "최대 체력"이 아니라 "지금 남은 체력 + 방어막"의 상한이다.
+            // 예전에는 최대 체력으로만 재고 남은 자리(1 - 체력비율)까지만 방어막을 그렸다.
+            // 그래서 체력이 가득 찬 유닛(찬드라 같은 방어형)은 방어막을 받아도 그릴 자리가
+            // 0이라 아예 보이지 않았다. 이제 방어막만큼 트랙을 늘려 항상 오른쪽에 이어 붙는다.
             float hpRatio = _unit.HpMax > 0 ? Mathf.Clamp01(_unit.HpCurr / (float)_unit.HpMax) : 0f;
-            // 방어막도 최대 체력을 기준으로 잰다. 그래야 같은 바에 이어 붙일 수 있다.
-            float shieldRatio = _unit.HpMax > 0 ? Mathf.Clamp01(_unit.ShieldCurr / (float)_unit.HpMax) : 0f;
-            shieldRatio = Mathf.Min(shieldRatio, 1f - hpRatio); // 바를 넘치면 잘라 보여준다
+            float track = Mathf.Max(_unit.HpMax, _unit.HpCurr + _unit.ShieldCurr);
+            float hpSpan = track > 0f ? Mathf.Clamp01(_unit.HpCurr / track) : 0f;
+            float shieldSpan = track > 0f ? Mathf.Clamp01(_unit.ShieldCurr / track) : 0f;
 
-            SetSpan(_hpFill.rectTransform, 0f, hpRatio);
-            SetSpan(_shieldFill.rectTransform, hpRatio, hpRatio + shieldRatio);
-            _hpFill.enabled = hpRatio > 0f;
-            _shieldFill.enabled = shieldRatio > 0f;
+            SetSpan(_hpFill.rectTransform, 0f, hpSpan);
+            SetSpan(_shieldFill.rectTransform, hpSpan, hpSpan + shieldSpan);
+            _hpFill.enabled = hpSpan > 0f;
+            _shieldFill.enabled = shieldSpan > 0f;
             // 적은 비율과 무관하게 적색, 아군은 30% 이하부터 붉어진다.
             _hpFill.color = _unit.IsEnemy ? UITheme.Enemy : UITheme.HpColor(hpRatio);
 
@@ -556,6 +557,12 @@ namespace Entities.View
             _punch = Mathf.Max(_punch, 0.6f * Mathf.Min(1f, strength));
         }
 
+        /// <summary>
+        /// 실제 발사/베기 시점에 쓰는 공개 진입점. 시전 시작 이벤트의 기본 찍기와 별개로
+        /// 타격 순간에도 공격자가 조금 전진해 근접 공격의 거리감을 살린다.
+        /// </summary>
+        public void PlayAttackReaction(float strength = 1f) => PlayCast(strength);
+
         /// <summary>맞는 순간 하얗게 번쩍이며 뒤로 밀린다.</summary>
         private void PlayHit()
         {
@@ -567,6 +574,7 @@ namespace Entities.View
         private void ResetReaction()
         {
             _flash = _punch = _lunge = _recoil = 0f;
+            _airborneLift = 0f;
             _lastHp = -1;
             ApplyReaction();
         }
@@ -575,9 +583,18 @@ namespace Entities.View
         {
             if (deltaTime <= 0f) return;
 
-            bool moving = _flash > 0f || _punch > 0f || _lunge > 0f || _recoil > 0f;
+            float airborneTarget = _unit != null && _unit.HasStatusKey(ControlStatuses.AirborneKey)
+                ? Cell.CardSize * 0.13f
+                : 0f;
+            float airborneTime = airborneTarget > _airborneLift ? AirborneRiseTime : AirborneFallTime;
+            float airborneStep = Cell.CardSize * 0.13f * deltaTime / airborneTime;
+            float nextAirborne = Mathf.MoveTowards(_airborneLift, airborneTarget, airborneStep);
+
+            bool moving = _flash > 0f || _punch > 0f || _lunge > 0f || _recoil > 0f
+                || !Mathf.Approximately(nextAirborne, _airborneLift);
             if (!moving) return;
 
+            _airborneLift = nextAirborne;
             _flash = Mathf.Max(0f, _flash - deltaTime / FlashTime);
             _punch = Mathf.Max(0f, _punch - deltaTime / PunchTime);
             _lunge = Mathf.Max(0f, _lunge - deltaTime / LungeTime);
@@ -602,7 +619,7 @@ namespace Entities.View
             // 찍기는 나갔다 돌아오는 모양(0 → 1 → 0), 밀림은 곧바로 사그라든다.
             float lungeShape = Mathf.Sin(Mathf.PI * (1f - _lunge));
             float offsetX = _facing * (LungeDistance * lungeShape - RecoilDistance * _recoil);
-            var offset = new Vector3(offsetX, 0f, 0f);
+            var offset = new Vector3(offsetX, _airborneLift, 0f);
 
             transform.localPosition = offset;
             transform.localScale = Vector3.one * scale;
@@ -634,7 +651,7 @@ namespace Entities.View
             BaseEnums.UnitElement element = Effects.Projectiles.ElementalProjectiles.Parse(elementName);
             Color ring = element == BaseEnums.UnitElement.None
                 ? UITheme.Mana
-                : Effects.Projectiles.ElementalProjectiles.ColorFor(element);
+                : Effects.Projectiles.ElementalProjectiles.PastelColorFor(element);
 
             _ultOutline.color = ring;
             _ultFill.color = ring;

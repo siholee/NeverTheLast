@@ -52,6 +52,7 @@ namespace Codes.Normal
                 var boltPrefab = ElementalProjectiles.PrefabFor(BaseEnums.UnitElement.Anemo)
                     ?? ElementalProjectiles.PrefabFor(BaseEnums.UnitElement.Geo)
                     ?? _prefab;
+                var token = new ProjectileImpactToken();
                 GameManager.Instance?.sfxManager?.FireTintedProjectile(
                     boltPrefab,
                     BaseEnums.UnitElement.Geo,
@@ -59,9 +60,10 @@ namespace Codes.Normal
                     target,
                     flightDuration,
                     ProjectilePathType.Linear,
-                    ProjectileFlight.DataFor(ProjectilePathType.Linear));
+                    ProjectileFlight.DataFor(ProjectilePathType.Linear),
+                    token.MarkImpact);
 
-                yield return new WaitForSeconds(flightDuration);
+                yield return ProjectileFlight.WaitForImpact(token, flightDuration);
                 if (target == null || !target.isActive || target.IsUntargetable) continue;
                 target.TakeDamage(context);
                 Caster.Invoke(

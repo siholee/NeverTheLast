@@ -69,6 +69,12 @@ namespace Codes.Base
             
             // 접촉/비접촉 태그 결정
             List<int> damageTags = GetDamageTags();
+            if (Caster.HasEquippedBow() &&
+                damageTags.Contains(BaseClasses.DamageTag.NonContactAttack) &&
+                !damageTags.Contains(BaseClasses.DamageTag.Arrow))
+            {
+                damageTags.Add(BaseClasses.DamageTag.Arrow);
+            }
             
             // 데미지 계산 (하위 클래스에서 오버라이드 가능)
             int damage = CalculateDamage(critMultiplier);
@@ -77,7 +83,7 @@ namespace Codes.Base
             string contactType = damageTags.Contains(BaseClasses.DamageTag.ContactAttack) ? "접촉" : "비접촉";
             Debug.Log($"{Caster.UnitName}이 {TargetUnits[0].UnitName}에게 {contactType} 일반공격을 시전했습니다.");
             
-            DamageContext context = new(Caster, damage, BaseEnums.CodeType.Normal, damageTags, isCrit);
+            DamageContext context = CreateDamageContext(damage, damageTags, isCrit);
             Caster.StartCoroutine(FireProjectile(TargetUnits, 0.5f, context));
             
             // 추가 효과 처리 (하위 클래스에서 오버라이드 가능)
@@ -102,6 +108,10 @@ namespace Codes.Base
             return RollDamage(critMultiplier);
         }
 
+        /// <summary>캐릭터별 방어 무시·관통 같은 공격 단위 보정을 붙일 수 있는 생성 훅.</summary>
+        protected virtual DamageContext CreateDamageContext(int damage, List<int> damageTags, bool isCrit)
+            => new(Caster, damage, BaseEnums.CodeType.Normal, damageTags, isCrit);
+
         /// <summary>
         /// 추가 효과 적용 (하위 클래스에서 오버라이드)
         /// </summary>
@@ -114,15 +124,32 @@ namespace Codes.Base
         {
             foreach (var target in targets)
             {
-                // 물리(화살·투척)는 곡선형, 마법·특수는 직선형으로 날아간다.
-                ProjectilePathType path = ProjectileFlight.PathFor(context);
-                GameManager.Instance.sfxManager.FireElementalProjectile(
-                    Caster, target, delay, path, ProjectileFlight.DataFor(path), _prefab);
-                yield return new WaitForSeconds(delay);
+                SfxManager sfx = GameManager.Instance?.sfxManager;
+                bool melee = sfx != null && sfx.TryPlayMeleeAttack(Caster, target, context);
+                if (melee)
+                {
+                    yield return new WaitForSeconds(SfxManager.MeleeImpactDelay);
+                }
+                else
+                {
+                    // 물리(화살·투척)는 곡선형, 마법·특수는 직선형으로 날아간다.
+                    // 피해는 투사체가 실제로 닿은 뒤에 들어간다. 미리 재 둔 시간으로 기다리면
+                    // 대상이 먼저 쓰러져 카드가 사라진 자리로 투사체만 날아가는 꼴이 된다.
+                    ProjectilePathType path = ProjectileFlight.PathFor(context);
+                    var token = new ProjectileImpactToken();
+                    sfx?.FireElementalProjectile(
+                        Caster, target, delay, path, ProjectileFlight.DataFor(path), _prefab,
+                        token.MarkImpact, context);
+                    yield return ProjectileFlight.WaitForImpact(token, delay);
+                }
                 target.TakeDamage(context);
                 Caster.Invoke(BaseEnums.UnitEventType.OnNormalAttackHit, new EventContext(Caster, target, context));
+                OnAttackResolved(target, context);
             }
         }
+
+        /// <summary>투사체가 실제로 적중한 직후의 캐릭터별 후처리 훅.</summary>
+        protected virtual void OnAttackResolved(Unit target, DamageContext context) { }
 
         public override bool HasValidTarget()
         {

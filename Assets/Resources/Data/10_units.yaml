@@ -648,7 +648,7 @@ units:
     standing: SURTR_STANDING
 
   # ══ 베다 진영 ══════════════════════════════════════════════════
-  # 일러스트가 준비되기 전까지 세이의 초상화·스탠딩을 임시로 쓴다.
+  # 각 유닛은 전용 초상화·스탠딩을 사용한다.
 
   # 지속피해 코어. 수동적인 지속피해를 능동적으로 터뜨린다.
   - id: 30
@@ -689,8 +689,8 @@ units:
       - { codeId: 244, unlockLevel: 44, stage: 1 }   # 고전압
       - { codeId: 245, unlockLevel: 65, stage: 1 }   # 충전
       - { codeId: 246, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
-    portrait: SEI_PORTRAIT
-    standing: SEI_STANDING
+    portrait: YAMA_PORTRAIT
+    standing: YAMA_STANDING
 
   # 베다/캐스터 파티의 서브 딜러.
   - id: 31
@@ -771,8 +771,8 @@ units:
       - { codeId: 253, unlockLevel: 45, stage: 1 }   # 자기과신
       - { codeId: 246, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
       - { codeId: 254, unlockLevel: 92, stage: 1 }   # 인도자
-    portrait: SEI_PORTRAIT
-    standing: SEI_STANDING
+    portrait: INDRA_PORTRAIT
+    standing: INDRA_STANDING
 
   # 범용 방어형 서포터.
   - id: 33
@@ -1233,3 +1233,136 @@ units:
       - { codeId: 254, unlockLevel: 92, stage: 1 }   # 인도자
     portrait: CAESAR_PORTRAIT
     standing: CAESAR_STANDING
+
+  # ══════════════════════════════════════════════════════════════
+  # 이집트 신규 — 호루스 · 아누비스 · 바스테트
+  # ══════════════════════════════════════════════════════════════
+
+  - id: 43
+    name: 호루스
+    characterType: Locked
+    element: Pyro
+    startingProficiencies: [Longbow, LightArmor]
+    startingItemIds: [4106]
+    tags: [Egypt]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: DEX
+    subStat: STR
+    subStats: [STR]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 20
+    strIncrementLvl: 2
+    strIncrementUpgrade: 1
+    dexBase: 22
+    dexIncrementLvl: 2
+    dexIncrementUpgrade: 1
+    conBase: 12
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 12
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 14
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    ultimateResourceType: Stack
+    ultimateResourceName: 우제트
+    ultimateResourceMax: 4
+    codes: { passive: 340, normal: 290, ultimate: 290 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 343, unlockLevel: 14, stage: 1 }   # 관통사격
+      - { codeId: 56,  unlockLevel: 28, stage: 1 }   # 신속
+      - { codeId: 145, unlockLevel: 41, stage: 1 }   # 저격수
+      - { codeId: 138, unlockLevel: 52, stage: 1 }   # 신살자
+      - { codeId: 95,  unlockLevel: 68, stage: 1 }   # 파죽지세
+    portrait: HORUS_PORTRAIT
+    standing: HORUS_STANDING
+
+  - id: 44
+    name: 아누비스
+    characterType: Starter
+    element: Geo
+    # 현재 장비 분류의 Spear/MediumArmor가 단창/평갑을 포괄한다.
+    startingProficiencies: [Spear, MediumArmor]
+    startingItemIds: [4104]
+    tags: [Egypt]
+    canStartAsMain: true
+    canStartAsSupport: false
+    canUseInInfinite: true
+    mainStat: CON
+    subStat: STR
+    subStats: [STR]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 20
+    strIncrementLvl: 2
+    strIncrementUpgrade: 1
+    dexBase: 10
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 24
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 12
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 10
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes: { passive: 341, normal: 291, ultimate: 291 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 344, unlockLevel: 9,  stage: 1 }   # 창지기
+      - { codeId: 20,  unlockLevel: 20, stage: 1 }   # 보루
+      - { codeId: 135, unlockLevel: 25, stage: 1 }   # 천상의 신체
+      - { codeId: 35,  unlockLevel: 35, stage: 1 }   # 목욕재계
+      - { codeId: 126, unlockLevel: 44, stage: 1 }   # 순환
+      - { codeId: 345, unlockLevel: 50, stage: 1 }   # 저승사자
+    portrait: ANUBIS_PORTRAIT
+    standing: ANUBIS_STANDING
+
+  - id: 45
+    name: 바스테트
+    characterType: Locked
+    element: Geo
+    startingProficiencies: [Dagger, LightArmor]
+    startingItemIds: [4101]
+    tags: [Egypt]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: LUK
+    subStat: DEX
+    subStats: [DEX]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 12
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 22
+    dexIncrementLvl: 2
+    dexIncrementUpgrade: 1
+    conBase: 12
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 10
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 24
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 1
+    codes: { passive: 342, normal: 292, ultimate: 292 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 346, unlockLevel: 2,  stage: 1 }   # 대도
+      - { codeId: 347, unlockLevel: 6,  stage: 1 }   # 가벼운 무장
+      - { codeId: 142, unlockLevel: 10, stage: 1 }   # 유리대포
+      - { codeId: 93,  unlockLevel: 25, stage: 1 }   # 투명
+      - { codeId: 348, unlockLevel: 29, stage: 1 }   # 이기적
+      - { codeId: 95,  unlockLevel: 68, stage: 1 }   # 파죽지세
+    portrait: BASTET_PORTRAIT
+    standing: BASTET_STANDING

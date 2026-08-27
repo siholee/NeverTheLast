@@ -19,5 +19,6 @@ namespace BaseClasses
     public const int DurabilityPenetration = 40003; // 내구 관통 — 고정 경감(내구)을 무시한다
     public const int Slash = 50001; // 베기
     public const int Pierce = 50002; // 찌르기
+    public const int Arrow = 50003; // 화살
   }
 }

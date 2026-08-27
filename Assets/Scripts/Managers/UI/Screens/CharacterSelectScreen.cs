@@ -357,6 +357,8 @@ namespace Managers.UI.Screens
             if (_phase == Phase.Main)
             {
                 return units
+                    // 초기 서포트 카드는 육성이 끝나 해금 기록이 남아도 메인 격자에 오르지 않는다.
+                    .Where(unit => !CharacterSelectionManager.IsSupportOnly(unit))
                     .Where(unit => unit.canStartAsMain ||
                                    CharacterSelectionManager.IsTemporarilyUnlocked(unit) ||
                                    SaveSystem.IsStarterUnlocked(unit.id))

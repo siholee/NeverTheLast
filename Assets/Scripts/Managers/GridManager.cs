@@ -576,6 +576,52 @@ namespace Managers
                 (minX + maxX) * 0.5f, (minY + maxY) * 0.5f, camera.transform.position.z);
         }
 
+        /// <summary>
+        /// 한 진영이 화면에서 차지하는 영역(월드 좌표). 시전자와 떨어진 지점에서
+        /// 무언가를 터뜨리거나 쏠 때(허공의 차원문 등) 그 진영 안쪽 좌표를 고르는 데 쓴다.
+        ///
+        /// 전투 중 비어서 지워진 칸(<see cref="Cell.IsLaidOut"/> == false)은 화면에 없으므로 제외한다.
+        /// </summary>
+        /// <param name="side">아군 -1, 적 +1. 칸의 x 부호와 같다.</param>
+        public bool TryGetSideBounds(int side, out Bounds bounds)
+        {
+            bounds = new Bounds();
+            if (_fieldCellManager == null) return false;
+
+            bool any = false;
+            float minX = 0f, maxX = 0f, minY = 0f, maxY = 0f;
+
+            foreach (Cell cell in _fieldCellManager)
+            {
+                if (cell == null || !cell.IsLaidOut) continue;
+                if ((cell.xPos < 0 ? -1 : 1) != (side < 0 ? -1 : 1)) continue;
+
+                Vector3 position = cell.transform.position;
+                if (!any)
+                {
+                    minX = maxX = position.x;
+                    minY = maxY = position.y;
+                    any = true;
+                    continue;
+                }
+                minX = Mathf.Min(minX, position.x);
+                maxX = Mathf.Max(maxX, position.x);
+                minY = Mathf.Min(minY, position.y);
+                maxY = Mathf.Max(maxY, position.y);
+            }
+
+            if (!any) return false;
+
+            // 모은 것은 칸의 중심 좌표다. 반 칸씩 넓혀 실제로 칸이 덮는 영역으로 만든다.
+            minX -= CellExtent; maxX += CellExtent;
+            minY -= CellExtent; maxY += CellExtent;
+
+            bounds = new Bounds(
+                new Vector3((minX + maxX) * 0.5f, (minY + maxY) * 0.5f, 0f),
+                new Vector3(maxX - minX, maxY - minY, 0f));
+            return true;
+        }
+
         public bool IsCellAvailable(int xPos, int yPos)
         {
             if (!IsValidFieldPosition(xPos, yPos)) return false;

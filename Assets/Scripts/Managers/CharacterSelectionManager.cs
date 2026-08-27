@@ -19,6 +19,16 @@ namespace Managers
         public static bool IsTemporarilyUnlocked(UnitData data)
             => UnlockLockedCharactersForTesting && data != null && data.characterType == "Locked";
 
+        /// <summary>
+        /// 초기 서포트 카드(characterType: Support)인가.
+        ///
+        /// 이 부류는 <b>서포터 칸에만</b> 오른다. 육성으로 해금되거나 스타터 해금 기록이
+        /// 남더라도 메인 캐릭터 후보에는 절대 넣지 않는다 — 미해금(Locked)을 테스트용으로
+        /// 열어 둔 것과는 다른 이야기다.
+        /// </summary>
+        public static bool IsSupportOnly(UnitData data)
+            => data != null && !data.canStartAsMain && data.characterType == "Support";
+
         public static void DestroyInstance()
         {
             if (Instance == null) return;
@@ -278,7 +288,8 @@ namespace Managers
 
             return role switch
             {
-                CharacterRole.Main => data.canStartAsMain || IsTemporarilyUnlocked(data) || SaveSystem.IsStarterUnlocked(unitId) || SaveSystem.IsCharacterTrained(unitId),
+                CharacterRole.Main => !IsSupportOnly(data) &&
+                    (data.canStartAsMain || IsTemporarilyUnlocked(data) || SaveSystem.IsStarterUnlocked(unitId) || SaveSystem.IsCharacterTrained(unitId)),
                 CharacterRole.Support => data.canStartAsSupport || SaveSystem.IsStarterUnlocked(unitId) || SaveSystem.IsCharacterTrained(unitId),
                 _ => false,
             };
