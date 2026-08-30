@@ -393,7 +393,25 @@ namespace Managers
         {
             int raw = GetOption(focus).BaseGain(State.GetLevel(focus)) + GetSupportBonus(focus);
             return Mathf.Max(1, Mathf.FloorToInt(
-                raw * State.ConditionMultiplier * GetPersonalTrainingMultiplier(GetMainUnit(), focus)));
+                raw * State.ConditionMultiplier * GetPersonalTrainingMultiplier(GetMainUnit(), focus) *
+                GetSupportTrainingEfficiencyMultiplier(focus)));
+        }
+
+        private static float GetSupportTrainingEfficiencyMultiplier(BaseEnums.PrimaryStat focus)
+        {
+            if (focus != BaseEnums.PrimaryStat.INT) return 1f;
+            int wisdomCount = GetSupportsOn(focus).Count(support =>
+                support.ActivePassiveCodes.Any(code => code is Codes.Passive.QuetzalcoatlWisdom));
+            return 1f + wisdomCount * 0.10f;
+        }
+
+        private static float GetSupportTrainingEfficiencyMultiplier(
+            BaseEnums.PrimaryStat focus, IEnumerable<SupportTrainingRoll> rolls)
+        {
+            if (focus != BaseEnums.PrimaryStat.INT) return 1f;
+            int wisdomCount = rolls.Count(roll => roll.Appeared && roll.Support != null &&
+                roll.Support.ActivePassiveCodes.Any(code => code is Codes.Passive.QuetzalcoatlWisdom));
+            return 1f + wisdomCount * 0.10f;
         }
 
         private static float GetPersonalTrainingMultiplier(Unit main, BaseEnums.PrimaryStat focus)
@@ -478,7 +496,8 @@ namespace Managers
 
             int gain = Mathf.Max(1, Mathf.FloorToInt(
                 (option.BaseGain(state.GetLevel(focus)) + totalSupport) * state.ConditionMultiplier *
-                GetPersonalTrainingMultiplier(GetMainUnit(), focus)));
+                GetPersonalTrainingMultiplier(GetMainUnit(), focus) *
+                GetSupportTrainingEfficiencyMultiplier(focus, rolls)));
 
             // 실패 판정은 체력을 쓰기 전 값으로 한다. 화면에 보여 준 확률과 같아야 한다.
             int failureRate = GetFailureRate(focus);

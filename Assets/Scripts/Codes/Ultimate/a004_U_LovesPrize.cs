@@ -33,7 +33,7 @@ namespace Codes.Ultimate
                 duration: 4,   // 8초 → 4턴
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
-                description: "받는 피해가 50% 감소하고 대상 지정 우선도가 1 증가합니다. 접촉 피해를 받으면 공격자별 1초 내부 쿨다운으로 중첩 가능한 화상을 부여합니다."));
+                description: "받는 피해가 50% 감소하고 대상 지정 우선도가 1 증가합니다. 접촉 피해를 받으면 공격자별 1초 내부 쿨다운으로 CON 명중 판정 후 기본 2턴 화상을 부여합니다."));
             StopCode();
             yield return null;
         }

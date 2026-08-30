@@ -10,11 +10,11 @@
 #   · 적의 Level은 현재 스테이지와 같다. 즉 1스테이지 = Level 1 = 성장분 0.
 #   · mainStat ×1.2 / subStat ×1.1 배율은 아군과 동일하게 적용된다.
 #
-# 현재 운영 적 테마는 콜로세움(themeId 5), 로마 군단(themeId 6), 메히코(themeId 7)다.
+# 현재 운영 적 테마는 콜로세움(themeId 5), 로마 군단(themeId 6), 메히코(themeId 7), 아스완(themeId 8)이다.
 # 노르드·일본 테마의 적은 전용 스프라이트가 없어 제거된 상태다.
 #
-# 🔸 로마 군단 12종은 전용 초상화가 아직 없어 기존 스프라이트를 임시로 돌려 쓴다.
-#    전용 자산이 나오면 portrait/standing만 갈아 끼우면 된다.
+# 🔸 로마 군단 12종과 아스완의 일반 이단심문관은 기존 스프라이트를 임시로 돌려 쓴다.
+#    아스완 나머지 7종은 전용 자산을 적용했고, 호루스 조우는 영웅 호루스 자산을 의도적으로 재사용한다.
 
 enemies:
   # ── 콜로세움 테마 (themeId 5) ─────────────────────────────────────
@@ -841,3 +841,278 @@ enemies:
     ultimateResourceMax: 8
     portrait: AZTEC_TEZCATLIPOCA_PORTRAIT
     standing: AZTEC_TEZCATLIPOCA_STANDING
+
+  # ── 아스완 테마 (themeId 8) ────────────────────────────────────────
+  # 두 축으로 굴러간다. 앞 절반(1~3스테이지)은 종말의 사도 — 불과 화상으로 방어력을 벗겨 내는 편성이고,
+  # 뒤 절반(6~8스테이지)은 사령 — 쓰러뜨려도 되살아나고 스스로 수를 불리는 편성이다.
+  # 9·10스테이지의 두 신이 그 둘을 한 번씩 극단까지 밀어 붙인다.
+  #
+  # 일반 이단심문관만 전용 일러스트가 없어 기존 스프라이트를 임시로 사용한다.
+
+  - id: 1050
+    name: 파멸의 성기사
+    themeId: 8
+    archetype: 7
+    element: Pyro
+    tier: normal
+    tags: [Aswan, Apostle]
+    startingItemIds: [4103, 4114]
+    startingProficiencies: [Greatsword, HeavyArmor]
+    mainStat: STR
+    subStat: CON
+    strBase: 20
+    strIncrementLvl: 2
+    dexBase: 10
+    dexIncrementLvl: 1
+    conBase: 26
+    conIncrementLvl: 3
+    intBase: 8
+    lukBase: 8
+    lukIncrementLvl: 1
+    codes: { passive: 360, normal: 300, ultimate: 300 }
+    levelPassives:
+      - { codeId: 81,  unlockLevel: 10, stage: 1 }   # 중갑병
+      - { codeId: 12,  unlockLevel: 20, stage: 1 }   # 기사회생
+      - { codeId: 243, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 38,  unlockLevel: 40, stage: 1 }   # 철벽
+    portrait: RUIN_PALADIN_PORTRAIT
+    standing: RUIN_PALADIN_STANDING
+
+  - id: 2020
+    name: 종말의 성기사
+    themeId: 8
+    archetype: 7
+    element: Pyro
+    tier: elite
+    tags: [Aswan, Apostle]
+    startingItemIds: [4103, 4114]
+    startingProficiencies: [Greatsword, HeavyArmor]
+    mainStat: STR
+    subStat: CON
+    strBase: 30
+    strIncrementLvl: 3
+    dexBase: 13
+    dexIncrementLvl: 1
+    conBase: 46
+    conIncrementLvl: 5
+    intBase: 10
+    lukBase: 10
+    lukIncrementLvl: 1
+    codes: { passive: 361, normal: 301, ultimate: 300 }
+    levelPassives:
+      - { codeId: 81,  unlockLevel: 10, stage: 1 }   # 중갑병
+      - { codeId: 12,  unlockLevel: 20, stage: 1 }   # 기사회생
+      - { codeId: 243, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 38,  unlockLevel: 40, stage: 1 }   # 철벽
+      - { codeId: 366, unlockLevel: 50, stage: 1 }   # 성스러운 칼날
+      - { codeId: 367, unlockLevel: 60, stage: 1 }   # 까칠한 피부
+    portrait: APOCALYPSE_PALADIN_PORTRAIT
+    standing: APOCALYPSE_PALADIN_STANDING
+
+  - id: 1051
+    name: 이단심문관
+    themeId: 8
+    archetype: 11
+    element: Pyro
+    tier: normal
+    tags: [Aswan, Apostle]
+    startingItemIds: [4102, 4113]
+    startingProficiencies: [Longsword, MediumArmor]
+    mainStat: CON
+    subStat: INT
+    strBase: 10
+    dexBase: 10
+    dexIncrementLvl: 1
+    conBase: 22
+    conIncrementLvl: 2
+    intBase: 20
+    intIncrementLvl: 2
+    lukBase: 10
+    lukIncrementLvl: 1
+    codes: { passive: 362, normal: 302, ultimate: 302 }
+    levelPassives:
+      - { codeId: 243, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
+    portrait: ASCLEPIUS_PORTRAIT
+    standing: ASCLEPIUS_STANDING
+
+  - id: 2021
+    name: 종말의 이단심문관
+    themeId: 8
+    archetype: 11
+    element: Pyro
+    tier: elite
+    tags: [Aswan, Apostle]
+    startingItemIds: [4102, 4113]
+    startingProficiencies: [Longsword, MediumArmor]
+    mainStat: CON
+    subStat: INT
+    strBase: 12
+    dexBase: 13
+    dexIncrementLvl: 1
+    conBase: 34
+    conIncrementLvl: 4
+    intBase: 30
+    intIncrementLvl: 3
+    lukBase: 12
+    lukIncrementLvl: 1
+    codes: { passive: 362, normal: 303, ultimate: 303 }
+    levelPassives:
+      - { codeId: 243, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 135, unlockLevel: 50, stage: 1 }   # 천상의 신체
+    portrait: APOCALYPSE_INQUISITOR_PORTRAIT
+    standing: APOCALYPSE_INQUISITOR_STANDING
+
+  # 명계의 사령은 죽어도 한 번 되살아나고 궁극기로 스스로 수를 불린다.
+  # 오시리스의 부위 파괴가 소환하는 것도 이 ID다 (AswanCombat.WraithId).
+  - id: 1052
+    name: 명계의 사령
+    themeId: 8
+    archetype: 9
+    element: Pyro
+    tier: normal
+    tags: [Aswan, Undead]
+    startingProficiencies: []
+    mainStat: LUK
+    subStat: DEX
+    strBase: 12
+    strIncrementLvl: 1
+    dexBase: 18
+    dexIncrementLvl: 2
+    conBase: 18
+    conIncrementLvl: 2
+    intBase: 8
+    lukBase: 22
+    lukIncrementLvl: 2
+    codes: { passive: 363, normal: 304, ultimate: 304 }
+    levelPassives:
+      - { codeId: 122, unlockLevel: 1,  stage: 1 }   # 변덕쟁이
+      - { codeId: 123, unlockLevel: 10, stage: 1 }   # 저주
+      - { codeId: 124, unlockLevel: 20, stage: 1 }   # 상처 벌리기
+      - { codeId: 125, unlockLevel: 30, stage: 1 }   # 고통스러운 상처
+      - { codeId: 86,  unlockLevel: 40, stage: 1 }   # 투사
+      - { codeId: 95,  unlockLevel: 50, stage: 1 }   # 파죽지세
+      - { codeId: 126, unlockLevel: 60, stage: 1 }   # 순환
+    portrait: NETHER_WRAITH_PORTRAIT
+    standing: NETHER_WRAITH_STANDING
+
+  # 🔸 타락한 사제는 원안에 코드 정의가 없어 테마 축(사령 운용)에 맞춰 새로 짠 병종이다.
+  - id: 1053
+    name: 타락한 사제
+    themeId: 8
+    archetype: 11
+    element: Pyro
+    tier: normal
+    tags: [Aswan, Undead]
+    startingItemIds: [4109, 4111]
+    startingProficiencies: [Orb]
+    mainStat: INT
+    subStat: CON
+    strBase: 8
+    dexBase: 11
+    dexIncrementLvl: 1
+    conBase: 20
+    conIncrementLvl: 2
+    intBase: 24
+    intIncrementLvl: 2
+    lukBase: 12
+    lukIncrementLvl: 1
+    codes: { passive: 371, normal: 305, ultimate: 305 }
+    levelPassives:
+      - { codeId: 243, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 126, unlockLevel: 50, stage: 1 }   # 순환
+    portrait: FALLEN_PRIEST_PORTRAIT
+    standing: FALLEN_PRIEST_STANDING
+
+  # 4스테이지의 조우. 기존 영웅 호루스의 코드/스프라이트를 적 데이터에서 재사용한다.
+  # 메히코 9스테이지의 케찰코아틀(3201)과 같은 방식이다.
+  - id: 3203
+    name: 호루스
+    themeId: 8
+    archetype: 10
+    element: Pyro
+    tier: boss
+    tags: [Aswan, Egypt, Divine]
+    startingItemIds: [4106, 4112]
+    startingProficiencies: [Longbow, LightArmor]
+    mainStat: DEX
+    subStat: STR
+    strBase: 24
+    strIncrementLvl: 2
+    dexBase: 28
+    dexIncrementLvl: 3
+    conBase: 34
+    conIncrementLvl: 4
+    intBase: 14
+    lukBase: 18
+    lukIncrementLvl: 2
+    codes: { passive: 340, normal: 290, ultimate: 290 }
+    ultimateResourceType: Stack
+    ultimateResourceName: 우제트
+    ultimateResourceMax: 4
+    levelPassives:
+      - { codeId: 343, unlockLevel: 14, stage: 1 }   # 관통사격
+      - { codeId: 145, unlockLevel: 41, stage: 1 }   # 저격수
+    portrait: HORUS_PORTRAIT
+    standing: HORUS_STANDING
+
+  # 오시리스는 체력이 14개의 부위로 나뉜 중간 보스다(9스테이지).
+  # 깎을수록 단단해지고, 부위가 깨질 때마다 사령 3기가 필드로 쏟아진다.
+  - id: 3011
+    name: 오시리스
+    themeId: 8
+    archetype: 8
+    element: Anemo
+    tier: boss
+    tags: [Aswan, Egypt, Undead]
+    startingItemIds: [4104, 4112]
+    startingProficiencies: [Spear, LightArmor]
+    mainStat: INT
+    subStat: LUK
+    strBase: 16
+    strIncrementLvl: 2
+    dexBase: 14
+    dexIncrementLvl: 1
+    # CON은 14배로 불어나므로 기본값을 낮게 잡았다. 불완전한 부활(364)이 배율을 얹는다.
+    # 9스테이지(Level 9) 기준 CON 16 → 최대 체력 16,000. 받는 피해가 2.4배에서 시작하므로
+    # 체감 체력은 약 6,700이며, 부위를 깰수록 남은 몫이 점점 단단해진다.
+    conBase: 8
+    conIncrementLvl: 1
+    intBase: 40
+    intIncrementLvl: 4
+    lukBase: 24
+    lukIncrementLvl: 2
+    codes: { passive: 364, normal: 306, ultimate: 306 }
+    levelPassives:
+      - { codeId: 126, unlockLevel: 40, stage: 1 }   # 순환
+    portrait: OSIRIS_PORTRAIT
+    standing: OSIRIS_STANDING
+
+  - id: 3012
+    name: 아문·라
+    themeId: 8
+    archetype: 8
+    element: Electro
+    tier: boss
+    tags: [Aswan, Egypt, Undead]
+    startingItemIds: [4104, 4112]
+    startingProficiencies: [Spear, LightArmor]
+    mainStat: INT
+    subStat: LUK
+    strBase: 18
+    strIncrementLvl: 2
+    dexBase: 18
+    dexIncrementLvl: 2
+    conBase: 70
+    conIncrementLvl: 7
+    intBase: 44
+    intIncrementLvl: 5
+    lukBase: 26
+    lukIncrementLvl: 2
+    codes: { passive: 365, normal: 307, ultimate: 307 }
+    levelPassives:
+      - { codeId: 95,  unlockLevel: 10, stage: 1 }   # 파죽지세
+      - { codeId: 368, unlockLevel: 30, stage: 1 }   # 초월
+      - { codeId: 369, unlockLevel: 50, stage: 1 }   # 영혼 흡수
+      - { codeId: 370, unlockLevel: 70, stage: 1 }   # 지옥불
+    portrait: AMUN_RA_PORTRAIT
+    standing: AMUN_RA_STANDING

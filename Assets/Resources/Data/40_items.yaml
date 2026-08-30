@@ -322,16 +322,3 @@ items:
     statBonuses: [{ stat: INT, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 322, stage: 1 }
-
-  # 메히코 케찰코아틀 영입 사건 전용 보상. 일반 보상 풀에는 들어가지 않는다.
-  - id: 4010
-    name: 마카나
-    slot: MainHand
-    category: Longsword
-    requiredProficiency: Longsword
-    rarity: 5
-    weight: 3
-    eventOnly: true
-    statBonuses: [{ stat: LUK, amount: 2 }]
-    codeGrants:
-      - { slot: passive, codeId: 90, stage: 1 }

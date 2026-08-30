@@ -163,13 +163,13 @@ namespace Entities.Status
                     
                 case 2: // 화상
                     StatusName = "화상";
-                    StatusDescription = "최대 체력의 2%에 해당하는 지속 피해를 입힙니다.";
+                    StatusDescription = "턴마다 최대 체력의 5%에 해당하는 지속 피해를 입힙니다.";
                     IconPath = "Icons/Status/Burn";
                     Priority = 0;
                     Category = BaseEnums.StatusCategory.Negative;
                     StackPolicy = BaseEnums.StatusStackPolicy.ExtendDuration; // 지속시간 연장
                     CanStack = false; // 복수 보유 불가
-                    Duration = 1;   // 2초 → 1턴
+                    Duration = 2;
                     break;
                     
                 case 3: // 사냥꾼의 독 (아탈란테)

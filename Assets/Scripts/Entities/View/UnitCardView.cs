@@ -72,6 +72,15 @@ namespace Entities.View
 
         /// <summary>칸 나누기 선의 두께(캔버스 단위).</summary>
         private const float RingTickThickness = 0.7f;
+
+        /// <summary>
+        /// 체력 바를 끊어 그릴 칸 수의 상한. 가로 바는 링보다 길어 더 잘게 나눠도 읽힌다
+        /// (오시리스의 14칸이 이 안에 들어온다). 넘어가면 그냥 연속 게이지로 둔다.
+        /// </summary>
+        private const int MaxHpTicks = 16;
+
+        /// <summary>체력 바 칸 나누기 선의 두께(캔버스 단위).</summary>
+        private const float HpTickThickness = 0.9f;
         private const float HpTop = 104.7f;
         private const float HpHeight = 5.7f;
         private const float ActionTop = 112.2f;
@@ -107,6 +116,10 @@ namespace Entities.View
         private string _ringElementName;
         private Image _hpFill;
         private Image _shieldFill;
+        private RectTransform _hpTicks;
+
+        /// <summary>체력 바 칸 나누기를 다시 그릴지 판단하는 값. 나누지 않으면 0이다.</summary>
+        private int _hpTickCount = -1;
         private Image _actionFill;
         private readonly Image[] _dots = new Image[MaxDots];
         private Image _hitFlash;
@@ -314,6 +327,10 @@ namespace Entities.View
             _hpFill = NewImage(hpTrack.transform, "HpFill", UITheme.Hp);
             _shieldFill = NewImage(hpTrack.transform, "ShieldFill", UITheme.Shield);
 
+            // 체력이 단계로 끊기는 유닛(오시리스의 부위 파괴)만 칸 나누기를 얻는다.
+            // 채움 뒤에 만들어야 물 위에 선이 놓인다.
+            _hpTicks = UIBuild.Stretch(UIBuild.Container("HpTicks", hpTrack.transform));
+
             // ── 행동 게이지 ──
             Image actionTrack = UIBuild.Solid("ActionTrack", root, new Color(1f, 1f, 1f, 0.07f));
             Place(actionTrack.rectTransform, 0f, ActionTop, CanvasWidth, ActionHeight);
@@ -467,6 +484,7 @@ namespace Entities.View
             _shieldFill.enabled = shieldSpan > 0f;
             // 적은 비율과 무관하게 적색, 아군은 30% 이하부터 붉어진다.
             _hpFill.color = _unit.IsEnemy ? UITheme.Enemy : UITheme.HpColor(hpRatio);
+            RefreshHpSegments();
 
             // ── 궁극기 링 ──
             // 원소가 런 중에 바뀌는 유닛이 있어 매 프레임 값을 확인한다.
@@ -695,6 +713,31 @@ namespace Entities.View
                 UIBuild.Pin(line.rectTransform, new Vector2(0.5f, 0f),
                     new Vector2(half * 2f, RingTickThickness),
                     new Vector2(0f, y - RingTickThickness * 0.5f));
+            }
+        }
+
+        /// <summary>
+        /// 체력 바를 칸으로 끊어 그린다. 궁극기 링의 스택 칸(<see cref="RefreshUltimateTicks"/>)과 같은 방식이며,
+        /// 이쪽은 세로선을 가로로 늘어놓는다. 칸 수가 그대로면 아무것도 다시 만들지 않는다.
+        /// </summary>
+        private void RefreshHpSegments()
+        {
+            int segments = _unit != null ? _unit.HpSegmentCount : 0;
+            if (segments < 2 || segments > MaxHpTicks) segments = 0;
+
+            if (segments == _hpTickCount) return;
+            _hpTickCount = segments;
+
+            UIBuild.Clear(_hpTicks);
+            if (segments == 0) return;
+
+            for (int i = 1; i < segments; i++)
+            {
+                Image line = UIBuild.Solid($"HpTick{i}", _hpTicks, RingTick);
+                line.raycastTarget = false;
+                UIBuild.Pin(line.rectTransform, new Vector2(0f, 0.5f),
+                    new Vector2(HpTickThickness, HpHeight),
+                    new Vector2(CanvasWidth * i / segments - HpTickThickness * 0.5f, 0f));
             }
         }
 

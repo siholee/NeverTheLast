@@ -1,6 +1,6 @@
 # 테마 / 사건 / 고정 보스 정의
 #
-# 운영 테마는 로마 군단(id 5), 메히코(id 6)다.
+# 운영 테마는 로마 군단(id 5), 메히코(id 6), 아스완(id 7)이다.
 # 콜로세움(id 4)은 리메이크가 필요해 enabled: false로 잠시 빼두었다.
 #   데이터는 그대로 두었으므로 다시 켤 때는 그 줄만 지우거나 true로 바꾸면 된다.
 # 노르드·일본 테마는 전용 적 스프라이트가 없어 제거되었다.
@@ -134,6 +134,53 @@ stageThemes:
         patterns:
           - { enemyIds: [2010, 2010, 3010], weight: 100 }
 
+  # ── 아스완 ────────────────────────────────────────────────────────
+  # 한 테마 안에서 성격이 두 번 바뀐다.
+  #   1~3  종말의 사도 — 불을 붙이고 화상으로 방어력을 벗겨 내는 정면 편성.
+  #   4    호루스 조우 — 앞 절반의 마침표.
+  #   6~8  사령 — 되살아나고 스스로 수를 불리는 편성. 처리 속도를 시험한다.
+  #   9    오시리스 — 깎을수록 단단해지는 부위 파괴 보스. 깰 때마다 사령이 쏟아진다.
+  #   10   아문·라 — 스택을 쌓아 한 번에 터뜨리는 최종 보스.
+  #
+  # 중간 보스 슬롯을 9로 옮겼다. 오시리스는 부위 파괴로 사령을 뿌리므로
+  # 호위를 따로 붙이지 않아도 단독으로 필드가 가득 찬다.
+  - id: 7
+    name: 아스완
+    tags: [Aswan, Egypt, Apocalypse]
+    enemyThemeId: 8
+    description: 종말을 선포한 사도들이 불을 놓고, 그 재 위로 명계의 사령이 걸어 나옵니다.
+    midBossId: 3011
+    midBossStageInRound: 9
+    bossId: 3012
+    stagePatterns:
+      - stageInRound: 1
+        patterns:
+          - { enemyIds: [1050, 1050, 1050, 1051, 1051], weight: 100 }
+      - stageInRound: 2
+        patterns:
+          - { enemyIds: [1050, 1050, 2020, 2021, 2021], weight: 100 }
+      - stageInRound: 3
+        patterns:
+          - { enemyIds: [2020, 2020, 2020, 1051, 1051], weight: 100 }
+      - stageInRound: 4
+        patterns:
+          - { enemyIds: [3203], weight: 100 }
+      - stageInRound: 6
+        patterns:
+          - { enemyIds: [1052, 1052, 1052], weight: 100 }
+      - stageInRound: 7
+        patterns:
+          - { enemyIds: [1052, 1052, 1053, 1053], weight: 100 }
+      - stageInRound: 8
+        patterns:
+          - { enemyIds: [1052, 1052, 1053, 1053, 1053], weight: 100 }
+      - stageInRound: 9
+        patterns:
+          - { enemyIds: [3011], weight: 100 }
+      - stageInRound: 10
+        patterns:
+          - { enemyIds: [3012], weight: 100 }
+
 events:
   - id: colosseum_masked_gladiator
     themeId: 4
@@ -214,6 +261,34 @@ events:
         text: 의식의 북을 끊는다.
         action: continue
         successText: 북소리는 멎었지만 전사들의 발걸음은 더 빨라졌다.
+
+  - id: aswan_the_first_seal
+    themeId: 7
+    stageInRound: 5
+    oncePerRun: true
+    title: 첫 번째 봉인
+    dialogue:
+      - speaker: 일행
+        text: 강 상류의 채석장이 통째로 불에 그을려 있다. 무너진 신전 기둥마다 같은 문장이 새로 새겨져 있다 — 종말을 선포하는 사도들의 것이다.
+      - speaker: 호루스
+        text: 여기서부터는 아버지의 땅이다. 사도들이 불을 놓았고, 그 재 밑에서 무언가가 걸어 나오고 있다.
+        portrait: HORUS_PORTRAIT
+        standing: HORUS_STANDING
+      - speaker: 일행
+        text: 그가 활을 내리지 않은 채 강 건너편을 가리킨다. 모래 위로 발자국이 이어지는데, 발자국을 남긴 것들의 그림자가 보이지 않는다.
+      - speaker: 호루스
+        text: 사령은 죽여도 한 번은 다시 일어선다. 두 번 죽일 각오가 없다면 강을 건너지 마라.
+        portrait: HORUS_PORTRAIT
+        standing: HORUS_STANDING
+    choices:
+      - id: aswan_ask_about_osiris
+        text: 재 밑에서 걸어 나온 것이 무엇인지 묻는다.
+        action: continue
+        successText: 호루스는 대답 대신 상류를 오래 바라보았다. 그 이름을 입에 올리지 않는 것만으로도 답이 되었다.
+      - id: aswan_burn_the_seal
+        text: 기둥에 새겨진 문장을 지운다.
+        action: continue
+        successText: 문장은 지워졌지만 그을음은 남았다. 사도들은 곧 같은 자리에 다시 새길 것이다.
 
 # 고정 보스는 현재 없다.
 # 25/50/75/100 지점의 고정 보스는 아직 설계되지 않았다.

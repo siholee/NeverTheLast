@@ -3,7 +3,7 @@
 > **3계층 문서.** 5스탯과 파생, 레벨·EXP, 코드 3분류, 패시브 해금, 캐릭터 데이터 스키마.
 > 개념 정의는 [서브 기획서](GDD_Sub_Concepts.md) 3장을 본다.
 
-최종 갱신: 2026-08-16
+최종 갱신: 2026-08-30
 관련 코드: `Unit.cs`, `UnitStats.cs`, `Code.cs`, `CodeFactory.cs`, `GameManager.cs`
 관련 데이터: `10_units.yaml`, `20_codes.yaml`, `60_enemies.yaml`
 
@@ -232,8 +232,9 @@ public abstract class Code
 ### 4.4 패시브 구조 — 고유 패시브 1개 + 레벨 해금 N개
 
 캐릭터마다 해금 패시브와 별도인 **고유 패시브 1개**와 **고유 궁극기 1개**가 있다.
-고유 패시브는 `UniquePassiveCode`이며 코드 용량을 차지하지 않는다. `<전수 불가>`가 아니면 원본이 가리키는 별도 일반 `PassiveCode` ID를 말딸식 열화 전수 후보로 기록한다.
-현재 열화 전수본은 아탈란테 230, 오리온 231, 아스클레피오스 232, 아마테라스 233, 야마 123(츠쿠요미 `저주`를 그대로 물려준다), 바유 224이며 나머지 영웅의 고유 P는 전수 불가다.
+고유 패시브는 `UniquePassiveCode`이며 코드 용량을 차지하지 않는다.
+**고유 패시브는 어떤 경로로도 전수되지 않는다** — 생성 시점에 `Transferable = false`가 붙는다.
+서포터 카드가 넘겨줄 수 있는 것은 해금 패시브뿐이다.
 
 | 캐릭터 | 초기 패시브 | 3단계 수치 |
 | --- | --- | --- |
@@ -314,35 +315,41 @@ ID는 같은 분류 안에서 중복되면 안 된다.
 
 ### 5.1 현재 분류
 
-| 캐릭터 | 분류 | 비고 |
-| --- | --- | --- |
-| 수르트 · 아탈란테 · 오리온 · 테세우스 | **Starter** | 메인으로 즉시 선택 가능 |
-| 세이 · 찬드라 | **Support** | 세이 = 초기 지급 공격형 서포터, 찬드라 = 방어형 서포터 |
-| 시 · 케찰코아틀 · 츠쿠요미 · 피그말리온 | **Locked** | 획득처 미정 또는 테마 복원 시 영입 사건으로 해금 |
+| 분류 | 인원 | 캐릭터 |
+| --- | ---: | --- |
+| **Starter** | 6 | 아탈란테 · 오리온 · 테세우스 · 수르트 · 바유 · 아누비스 |
+| **Support** | 10 | 세이 · 찬드라 · 프레이아 · 스카디 · 쿠베라 · 바루나 · 오르페우스 · 아그리파 · 토트 · 이시스 |
+| **Locked** | 16 | 시 · 피그말리온 · 아스클레피오스 · 아마테라스 · 케찰코아틀 · 츠쿠요미 · 야마 · 아그니 · 인드라 · 로키 · 스사노오 · 옥타비아 · 카이사르 · 호루스 · 바스테트 · 세트 |
 
-🔸 **`Locked` → 해금 상태의 영구 저장은 아직 구현되지 않았다.** 데이터 분류만 확정된 단계다.
+🔴 **`Locked` 16인 전원에게 획득 경로가 없다.** 해금 상태의 영구 저장도 아직 구현되지 않았고,
+합류시킬 영입 사건도 하나도 없다. **실제로 편성 가능한 것은 Starter 6 + Support 10 = 16명뿐이다.**
+[Design_Backlog](Design_Backlog.md) 항목 5·21.
 
 ## 6. 캐릭터 데이터 스키마 (`10_units.yaml`)
 
 ```yaml
 - id: 5
   name: 아탈란테
+  characterType: Starter        # Starter / Support / Locked
   element: Dendro
-  characterType: Starter   # Starter / Support / Locked
+  startingProficiencies: [Longbow, MediumArmor]
+  startingItemIds: [4106]       # 선택. 없으면 맨손으로 시작한다
+  tags: [Greek]
   canStartAsMain: true
   canStartAsSupport: false
   canUseInInfinite: true
-  mainStat: DEX          # 5스탯 어느 것이든 가능
+  mainStat: DEX                 # 5스탯 어느 것이든 가능
   subStat: CON
-  subStats: [CON]        # 복수 부스탯 캐릭터는 [CON, LUK]처럼 표기
+  subStats: [CON]               # 복수 부스탯 캐릭터는 [CON, LUK]처럼 표기
   mainStatTrainingBonus: 0.20
-  subStatTrainingBonus: 0.10  # 부스탯 2개면 각 0.05
-  startingProficiencies: [Longbow, HeavyArmor]
-  tags: [Greek]
+  subStatTrainingBonus: 0.10    # 부스탯 2개면 각 0.05
   strBase: 16
   strIncrementLvl: 1
   strIncrementUpgrade: 1
-  # dex/con/int/luk 동일 구조
+  # dex / con / int / luk 동일 구조
+  ultimateResourceType: Stack   # 선택. 생략하면 마나형
+  ultimateResourceName: 우제트   # 선택. 스택형 게이지의 표시 이름
+  ultimateResourceMax: 4        # 선택
   codes:
     passive: 2
     normal: 1
@@ -352,98 +359,96 @@ ID는 같은 분류 안에서 중복되면 안 된다.
     normal: 1
     ultimate: 1
   levelPassives:
-    - { codeId: 121, unlockLevel: 12, stage: 1 }   # 선택
-  startingItemIds: [4010]                          # 선택
+    - { codeId: 140, unlockLevel: 4, stage: 1 }   # 선택
   portrait: ATALANTE_PORTRAIT
-  standing: ATALANTE_STANDING                      # 선택
+  standing: ATALANTE_STANDING                     # 선택
 ```
+
+`ultimateResourceType`을 `Stack`으로 두면 궁극기 링이 칸으로 나뉘어 그려진다
+(호루스의 우제트 4칸, 테스카틀리포카의 흡연경 8칸). 생략하면 연속형 마나 게이지다.
 
 **폐지된 필드**: `atkBase`, `atkIncrementLvl`, `defBase`, `defIncrementLvl`
 (DTO에서도 제거되었으므로 YAML에 남겨도 무시된다)
 
+
 ## 7. 현재 캐릭터
 
-기초 스탯·레벨당 성장·트레이닝 보너스는 서로 합치지 않고
-[Detail_08 공통 스탯 표](Detail_08_Confirmed_Characters.md#스탯-표기-규칙)에서 관리한다.
+**총 32명.** 기초 스탯·레벨당 성장·트레이닝 보너스는 여기서 중복해 적지 않고
+[Detail_08 공통 스탯 표](Detail_08_Confirmed_Characters.md#스탯-표기-규칙) 한 곳에서 관리한다.
+전투 사양(P/N/U와 해금 패시브)은 [Detail_08](Detail_08_Confirmed_Characters.md),
+코드 ID 색인은 [Detail_12](Detail_12_Code_Weapon_Catalog.md)를 본다.
 
-| ID | 이름 | 원소 | 주스탯 | 부스탯 | 역할 |
-| --- | --- | --- | --- | --- | --- |
-| 1 | 세이 | Geo | INT | DEX | 후열 지원 |
-| 2 | 시 | Anemo | DEX | LUK | 연타 암살자 · **보관** |
-| 4 | 피그말리온 | Pyro | CON | STR · INT | 지속피해 반격 전열 탱커 |
-| 5 | 아탈란테 | Dendro | DEX | CON | 후열 사수 · 지속피해 딜러 |
-| 6 | 오리온 | Geo | STR | CON | 전열 탱커 · 힘사수 딜탱 |
-| 7 | 테세우스 | Hydro | DEX | CON | 범용 전열 딜러 |
-| 8 | 아스클레피오스 | Electro | INT | CON · LUK | 하이브리드 치유·서브 딜러 |
-| 9 | 아마테라스 | Pyro | DEX | STR · LUK | 후열 기본공격 사수 |
-| 12 | 찬드라 | Anemo | CON | LUK | 방어 지원 |
-| 20 | 케찰코아틀 | Dendro | INT | LUK | 풀 파티 서브 딜러·지원 · **보관** |
-| 21 | 츠쿠요미 | Electro | INT | LUK | 지속피해 술사 · **보관** |
-| 24 | 수르트 | Pyro | STR | CON | 전열 화력 · **Starter** |
-| 30 | 야마 | Electro | INT | DEX · CON | 지속피해 정산 딜러 · **보관** |
-| 31 | 아그니 | Pyro | INT | LUK | 불 파티 서브 딜러 · **보관** |
-| 32 | 인드라 | Electro | INT | LUK | 번개 하이퍼캐리 · **보관** |
-| 33 | 바유 | Anemo | CON | DEX | 정화형 방어 서포터 · **Starter** |
+| ID | 이름 | 분류 | 원소 | 주/부 | 역할 |
+| ---: | --- | --- | --- | --- | --- |
+| 5 | 아탈란테 | Starter | Dendro | DEX / CON | 후열 사수 · 지속피해 딜러 |
+| 6 | 오리온 | Starter | Geo | STR / CON | 전열 탱커 · 힘사수 딜탱 |
+| 7 | 테세우스 | Starter | Hydro | DEX / CON | 범용 전열 딜러 |
+| 24 | 수르트 | Starter | Pyro | STR / CON | 전열 화력 |
+| 33 | 바유 | Starter | Anemo | CON / DEX | 정화형 방어 서포터 |
+| 44 | 아누비스 | Starter | Geo | CON / STR | 전열 탱커 · 사령 특효 |
+| 1 | 세이 | Support | Geo | INT / DEX | 공격형 서포터 → 육성 시 딜러급 |
+| 12 | 찬드라 | Support | Geo | CON / LUK | 방어형 스타터 서포터 |
+| 25 | 프레이아 | Support | Dendro | INT / DEX | 체력 감소 파티의 코어 힐러 |
+| 27 | 스카디 | Support | Cryo | CON / INT | 범용 얼음 부착 서포터 |
+| 34 | 쿠베라 | Support | Geo | CON / STR | 베다·에어본 파티 탱커 |
+| 35 | 바루나 | Support | Hydro | CON / INT | 감전 파티 코어 · 물 부여 |
+| 10 | 오르페우스 | Support | Anemo | LUK / INT | 강인도를 부여하는 특수 서포터 |
+| 40 | 아그리파 | Support | Geo | DEX / INT | 궁극기 딜러 보조형 서포터 |
+| 47 | 토트 | Support | Hydro | INT / CON | 강인도 서포트 #2 |
+| 48 | 이시스 | Support | Geo | CON / INT | 범용 바위 부여 서브딜러 |
+| 2 | 시 | 🔴 Locked | Anemo | DEX / LUK | 연타 암살자 |
+| 4 | 피그말리온 | 🔴 Locked | Pyro | CON / STR·INT | 지속피해 반격 전열 탱커 |
+| 8 | 아스클레피오스 | 🔴 Locked | Electro | INT / CON·LUK | 하이브리드 치유·서브 딜러 |
+| 9 | 아마테라스 | 🔴 Locked | Pyro | DEX / STR·LUK | 후열 기본공격 사수 |
+| 20 | 케찰코아틀 | 🔴 Locked | Dendro | INT / LUK | 풀 파티 서브 딜러·지원 |
+| 21 | 츠쿠요미 | 🔴 Locked | Electro | INT / LUK | 지속피해 술사 |
+| 30 | 야마 | 🔴 Locked | Electro | INT / DEX·CON | 지속피해 정산 딜러 |
+| 31 | 아그니 | 🔴 Locked | Pyro | INT / LUK | 불 파티 서브 딜러 |
+| 32 | 인드라 | 🔴 Locked | Electro | INT / LUK | 번개 하이퍼캐리 |
+| 26 | 로키 | 🔴 Locked | Pyro | LUK / STR | 추가공격 기반 사수 |
+| 22 | 스사노오 | 🔴 Locked | Hydro | LUK / DEX | 에어본 파티 하이퍼캐리 |
+| 41 | 옥타비아 | 🔴 Locked | Anemo | INT / LUK | 저스핏 고화력 궁극기 딜러 |
+| 42 | 카이사르 | 🔴 Locked | Anemo | LUK / DEX | '로마' 파티 공격형 서포터 |
+| 43 | 호루스 | 🔴 Locked | Pyro | DEX / STR | 속도 고정형 사수 |
+| 45 | 바스테트 | 🔴 Locked | Geo | LUK / DEX | 에어본 추격 암살자 |
+| 46 | 세트 | 🔴 Locked | Pyro | STR / CON | 지속피해 파티의 전열 탱커 |
 
-상세 전투 사양과 열화 전수본의 수치는 [Detail_08](Detail_08_Confirmed_Characters.md)를 본다.
+🔴 표시는 **획득 경로가 없어 현재 편성할 수 없는 캐릭터**다.
 
-### 7.1 기본 5스탯
+### 7.1 획득 경로가 없는 캐릭터
 
-| 유닛 | STR | DEX | CON | INT | LUK |
-| --- | --- | --- | --- | --- | --- |
-| 세이 | 10 | **16** | 15 | 18 | 12 |
-| 시 | 14 | **20** | 13 | 10 | 20 |
-| 피그말리온 | 12 | 8 | **26** | 16 | 10 |
-| 아탈란테 | 16 | **20** | 14 | 10 | 24 |
-| 오리온 | **24** | 12 | 20 | 10 | 14 |
-| 테세우스 | 16 | **22** | 20 | 12 | 14 |
-| 아스클레피오스 | 9 | 12 | 16 | **20** | 16 |
-| 아마테라스 | 16 | **22** | 12 | 10 | 16 |
-| 찬드라 | 10 | 12 | **22** | 18 | 14 |
-| 케찰코아틀 | 10 | 12 | 20 | **24** | 12 |
-| 츠쿠요미 | 9 | 14 | 16 | **26** | 18 |
-| 수르트 | **26** | 12 | 22 | 8 | 12 |
-| 야마 | 10 | 18 | 18 | **22** | 12 |
-| 아그니 | 8 | 12 | 14 | **24** | 18 |
-| 인드라 | 8 | 14 | 14 | **26** | 16 |
-| 바유 | 12 | 18 | **22** | 12 | 14 |
+**Locked 16인 전원이 여기 해당한다.** 데이터·전투 코드·아트가 모두 완성되어 있으나,
+`characterType: Locked`는 "런 중 합류 시 영구 해금"을 뜻하는데 **합류시킬 영입 사건이 하나도 없다.**
+해금 상태를 저장하는 코드도 아직 없다.
 
-(굵은 값은 기초 주스탯이며, 트레이닝 보너스는 별도 축으로 적용된다.)
+| 막고 있는 것 | 상태 |
+| --- | --- |
+| 영입 사건 | 🔴 없음. 현재 사건 4개는 전부 복선형이다 — [Detail_06 §6](Detail_06_Events.md) |
+| 해금 영구 저장 | 🔴 미구현 |
+| 사건 액션 | `grantUnitId`가 스키마에 있으나 데이터에 한 번도 쓰이지 않았다 |
 
-### 7.2 보관 상태 캐릭터
+임시로 열려면 `canStartAsMain` / `canStartAsSupport`를 켜면 된다.
+설계 판단은 [Design_Backlog](Design_Backlog.md) 항목 5·21에 있다.
 
-시 · 케찰코아틀 · 츠쿠요미 · 피그말리온 · 아스클레피오스 · 아마테라스 · 야마 · 아그니 · 인드라는 **현재 획득 경로가 없다.**
-시는 획득 사건이 미정이고, 케찰코아틀은 메히코 테마 조우가 복귀했지만 영웅 획득 보상 연결이 아직 없으며, 일본 테마는 제거된 상태이기 때문이다.
-데이터와 구현된 코드는 그대로 보존되어 있다.
+### 7.2 패시브 보유 현황
 
-다시 쓰려면 `canStartAsMain` / `canStartAsSupport`를 열거나 새 영입 사건을 붙인다.
+유닛마다 **고유 패시브 1개 + 해금 패시브 4~8개**를 가진다.
+유닛별 정확한 목록은 [Detail_12 §2](Detail_12_Code_Weapon_Catalog.md)에 한 벌만 둔다.
 
-### 7.3 남은 데이터 공백
+| 해금 패시브 수 | 유닛 |
+| ---: | --- |
+| 8 | 세이 · 오리온 |
+| 7 | 아탈란테 · 찬드라 |
+| 6 | 시 · 아스클레피오스 · 아마테라스 · 케찰코아틀 · 수르트 · 야마 · 인드라 · 쿠베라 · 아그리파 · 카이사르 · 아누비스 · 바스테트 |
+| 5 | 피그말리온 · 츠쿠요미 · 바유 · 로키 · 스카디 · 바루나 · 오르페우스 · 스사노오 · 옥타비아 · 호루스 |
+| 4 | 테세우스 · 아그니 · 프레이아 · 세트 · 토트 · 이시스 |
 
-피그말리온의 전투 코드·해금 패시브·Standing·Portrait 공백은 2026-08-12에 해소했다. 현재 캐릭터 데이터의 남은 공백은 Locked 영입 사건과 영구 해금 저장이다.
+팔랑크스(87)는 이 수에 포함하지 않는다. 해금 패시브가 아니라 **Greek 속성 유닛이 전원
+하드코딩으로 갖는 진영 공통 코드**이며 코드 용량도 차지하지 않는다.
 
-### 7.4 패시브 보유 현황
-
-| 유닛 | 초기 | 해금 | 장비 | 합계 |
-| --- | --- | --- | --- | --- |
-| 세이 | 1 | 3 | — | 4 |
-| 시 | 1 | 7 | — | 8 |
-| 피그말리온 | 1 | 6 | — | 7 |
-| 아탈란테 | 1 | 7 | — | 8 |
-| 오리온 | 1 | 8 | — | 9 |
-| 테세우스 | 1 | 5 | — | 6 |
-| 아스클레피오스 | 1 | 6 | — | 7 |
-| 아마테라스 | 1 | 6 | — | 7 |
-| 찬드라 | 1 | 7 | — | 8 |
-| 케찰코아틀 | 1 | 6 | — | 7 |
-| 츠쿠요미 | 1 | 8 | — | 9 |
-| 수르트 | 1 | 7 | — | 8 |
-| 야마 | 1 | 6 | — | 7 |
-| 아그니 | 1 | 4 | — | 5 |
-| 인드라 | 1 | 6 | — | 7 |
-| 바유 | 1 | 5 | — | 6 |
-
-고유 P 열화 전수본은 위 합계에 포함하지 않는다. 지원 카드 육성 기록에는 전수 가능한 영웅만 별도 ID 230~233을 후보로 남긴다.
+> **열화 전수본 제도는 폐지되었다.** 고유 패시브는 전수되지 않으며,
+> 서포터 카드가 넘겨줄 수 있는 것은 해금 패시브뿐이다.
+> 옛 전수본 230·231·233·224는 삭제했고, 232만 이시스의 독립 해금 패시브 `생명의 물`로 재편입되었다.
 
 ## 8. 적 데이터 스키마 (`60_enemies.yaml`)
 

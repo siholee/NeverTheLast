@@ -91,4 +91,66 @@ namespace Codes.Normal
             DamageTag.Physical, DamageTag.ContactAttack, DamageTag.Slash,
         };
     }
+
+    /// <summary>세트 N — STR×0.8 물리·접촉·베기.</summary>
+    public sealed class SetNormalAttack : BaseNormalCode
+    {
+        public SetNormalAttack(NormalCodeContext context) : base(context)
+        { CodeName = "일반공격"; Power = 80; }
+
+        protected override int CalculateDamage(float critMultiplier)
+            => Mathf.Max(1, Mathf.RoundToInt(
+                Caster.SkillDamage(80, BaseEnums.PrimaryStat.STR) * critMultiplier));
+
+        protected override List<int> GetDamageTags() => new()
+        {
+            DamageTag.SingleTarget, DamageTag.NormalAttack,
+            DamageTag.Physical, DamageTag.ContactAttack, DamageTag.Slash,
+        };
+    }
+
+    /// <summary>토트 N — INT×0.8 특수·비접촉.</summary>
+    public sealed class ThothNormalAttack : BaseNormalCode
+    {
+        public ThothNormalAttack(NormalCodeContext context) : base(context)
+        { CodeName = "일반공격"; Power = 80; }
+
+        protected override int CalculateDamage(float critMultiplier)
+            => Mathf.Max(1, Mathf.RoundToInt(
+                Caster.SkillDamage(80, BaseEnums.PrimaryStat.INT) * critMultiplier));
+
+        protected override List<int> GetDamageTags() => new()
+        {
+            DamageTag.SingleTarget, DamageTag.NormalAttack,
+            DamageTag.Special, DamageTag.NonContactAttack,
+        };
+    }
+
+    /// <summary>이시스 N — INT×0.6. 세 번째 적중마다 바위 원소를 부여한다.</summary>
+    public sealed class IsisNormalAttack : BaseNormalCode
+    {
+        private int _hitCount;
+
+        public IsisNormalAttack(NormalCodeContext context) : base(context)
+        { CodeName = "일반공격"; Power = 60; }
+
+        protected override int CalculateDamage(float critMultiplier)
+            => Mathf.Max(1, Mathf.RoundToInt(
+                Caster.SkillDamage(60, BaseEnums.PrimaryStat.INT) * critMultiplier));
+
+        protected override List<int> GetDamageTags() => new()
+        {
+            DamageTag.SingleTarget, DamageTag.NormalAttack,
+            DamageTag.Special, DamageTag.NonContactAttack,
+        };
+
+        protected override void OnAttackResolved(Unit target, DamageContext context)
+        {
+            if (target == null || !target.isActive) return;
+            _hitCount++;
+            if (_hitCount < 3) return;
+            _hitCount = 0;
+            target.GrantCombatElement(BaseEnums.UnitElement.Geo, Unit.CommonElementAuraDuration, Caster);
+        }
+    }
 }

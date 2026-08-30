@@ -27,6 +27,7 @@ namespace Effects.Negative
         // 5910대로 옮겨 HasStatus(감전) 조회가 치유량 감소와 섞이지 않게 했다.
         public const int ShockStatusId = 5910;
         public const int BurnStatusId = 5911;
+        public const string BurnStatusKey = "burn";
 
         /// <summary>
         /// 반응 지속피해의 위력. 반응 유발자의 CON에 곱해진다.
@@ -35,7 +36,7 @@ namespace Effects.Negative
         private const int ReactionPower = 90;
 
         private const int ShockDuration = 2;   // 4초 → 2턴
-        private const int BurnDuration = 3;    // 6초 → 3턴
+        private const int BurnDuration = 2;    // 별도 명시가 없는 원소 반응 화상의 기본 지속시간
 
         /// <summary>반응 한 쌍의 정의.</summary>
         private readonly struct Pair
@@ -169,6 +170,20 @@ namespace Effects.Negative
                 return;
             }
 
+            if (pair.StatusId == BurnStatusId)
+            {
+                if (!TryApplyBurn(source, target, pair.Duration))
+                {
+                    Unit.NotifyElementalReaction(source, target, pair.Name);
+                    Debug.Log($"[원소 반응] {pair.Name} 저항 — {source.UnitName} → {target.UnitName}");
+                    return;
+                }
+
+                Unit.NotifyElementalReaction(source, target, pair.Name);
+                Debug.Log($"[원소 반응] {pair.Name} — {source.UnitName} → {target.UnitName}, 최대 체력 5%");
+                return;
+            }
+
             int perSecond = Mathf.Max(1, Mathf.RoundToInt(
                 source.SkillDamage(ReactionPower, BaseEnums.PrimaryStat.CON) * FieldReactionMultiplier(source)));
 
@@ -183,6 +198,26 @@ namespace Effects.Negative
 
             Unit.NotifyElementalReaction(source, target, pair.Name);
             Debug.Log($"[원소 반응] {pair.Name} — {source.UnitName} → {target.UnitName}, 턴당 {perSecond}");
+        }
+
+        /// <summary>
+        /// 공통 화상 부여. 별도 명시가 없으면 2턴이며, 부여자와 대상의 CON으로 명중을 판정한다.
+        /// 모든 출처가 같은 키를 사용하므로 재부여 시 피해가 중첩되지 않고 지속시간이 연장된다.
+        /// </summary>
+        public static bool TryApplyBurn(Unit source, Unit target, int duration = BurnDuration)
+        {
+            if (source == null || target == null || !target.isActive || duration <= 0) return false;
+            if (!EffectContest.PassesConCheck(source, target)) return false;
+
+            target.AddStatus(BuffStatus.Create(
+                BurnStatusId, BurnStatusKey, "화상",
+                source, target, new PercentDamageOverTimeEffect(0, 5f),
+                duration: duration,
+                stackPolicy: BaseEnums.StatusStackPolicy.ExtendDuration,
+                category: BaseEnums.StatusCategory.Negative,
+                isBeneficial: false,
+                description: $"{duration}턴간 턴마다 최대 체력의 5%에 해당하는 화상 피해를 받습니다."));
+            return true;
         }
 
         /// <summary>공명 계산에만 적용되는 시전자 CON 배율. 여러 효과가 있어도 가장 높은 값 하나만 쓴다.</summary>
@@ -201,6 +236,23 @@ namespace Effects.Negative
             }
             return multiplier;
         }
+    }
+
+    /// <summary>
+    /// 지속피해·제어처럼 CON으로 명중과 저항을 겨루는 효과의 공통 판정.
+    /// 동률은 50%, CON 1 차이마다 1%p이며 극단값에서도 10~90%를 보장한다.
+    /// </summary>
+    public static class EffectContest
+    {
+        public static float ConHitChance(Unit source, Unit target)
+        {
+            float sourceCon = source != null ? source.GetBaseCon() : 0f;
+            float targetCon = target != null ? target.GetBaseCon() : 0f;
+            return Mathf.Clamp(0.5f + (sourceCon - targetCon) * 0.01f, 0.1f, 0.9f);
+        }
+
+        public static bool PassesConCheck(Unit source, Unit target)
+            => target != null && target.isActive && Random.value <= ConHitChance(source, target);
     }
 
     /// <summary>원소 반응 피해를 키우는 코드가 구현한다. 가장 큰 보너스 하나만 적용된다.</summary>

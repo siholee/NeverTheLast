@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Codes.Base;
+using Codes.Passive;
+using Effects.Buffs;
+using Effects.Negative;
 using Effects.Projectiles;
 using Entities;
 using Managers;
@@ -112,5 +115,189 @@ namespace Codes.Ultimate
         public BastetApexExecution(UltimateCodeContext context) : base(context)
         { CodeType = BaseEnums.CodeType.Ultimate; CodeName = "천공 처형"; Cooldown = 0; CastingDelay = 0f; }
         public override bool HasValidTarget() => false;
+    }
+
+    /// <summary>세트 U — STR×1.2 참격 후 CON 명중 판정으로 3턴 화상.</summary>
+    public sealed class SetBurningSlash : UltimateCode
+    {
+        public SetBurningSlash(UltimateCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Ultimate;
+            CodeName = "화염 참격";
+            Cooldown = 4;
+            CastingDelay = 0.5f;
+            Power = 120;
+        }
+
+        public override void CastCode()
+        {
+            if (!HasValidTarget()) return;
+            Caster.isCasting = true;
+            CurrSkillCoroutine = Caster.StartCoroutine(SkillCoroutine());
+        }
+
+        protected override IEnumerator SkillCoroutine()
+        {
+            yield return new WaitForSeconds(CastingDelay);
+            if (Caster == null || !Caster.isActive || Caster.isControlled)
+            { StopCode(); yield break; }
+
+            Unit target = global::Target.GetAllEnemies(Caster)
+                .Where(unit => unit != null && unit.isActive && !unit.IsUntargetable)
+                .OrderByDescending(unit => unit.Priority)
+                .FirstOrDefault();
+            if (target == null) { StopCode(); yield break; }
+
+            bool isCrit = Random.value <= Caster.CritChanceCurr;
+            float crit = isCrit ? Caster.CritMultiplierCurr : 1f;
+            int damage = Mathf.Max(1, Mathf.RoundToInt(
+                Caster.SkillDamage(120, BaseEnums.PrimaryStat.STR) * crit));
+            var damageContext = new DamageContext(
+                Caster, damage, BaseEnums.CodeType.Ultimate,
+                new List<int>
+                {
+                    DamageTag.SingleTarget, DamageTag.UltAttack,
+                    DamageTag.Physical, DamageTag.ContactAttack, DamageTag.Slash,
+                }, isCrit);
+
+            GameManager.Instance?.sfxManager?.TryPlayMeleeAttack(Caster, target, damageContext);
+            yield return new WaitForSeconds(SfxManager.MeleeImpactDelay);
+            if (target != null && target.isActive)
+            {
+                target.TakeDamage(damageContext);
+                if (target.isActive && !ElementalReaction.TryApplyBurn(Caster, target, 3))
+                {
+                    Debug.Log($"[화염 참격] {target.UnitName}이(가) 화상에 저항했습니다.");
+                }
+            }
+            StopCode();
+        }
+
+        public override void StopCode()
+        {
+            if (Caster == null) return;
+            Caster.ultimateCooldown = Cooldown;
+            Caster.isCasting = false;
+        }
+
+        public override bool HasValidTarget() => Caster != null && Caster.isActive &&
+            global::Target.GetAllEnemies(Caster).Any(unit => unit != null && unit.isActive && !unit.IsUntargetable);
+    }
+
+    /// <summary>토트 U — 3턴간 아군 전체가 감소시킨 강인도의 30%를 실제 피해로 더한다.</summary>
+    public sealed class ThothEyeOfWisdom : UltimateCode
+    {
+        public ThothEyeOfWisdom(UltimateCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Ultimate;
+            CodeName = "지혜의 눈";
+            Cooldown = 4;
+            CastingDelay = 0.5f;
+        }
+
+        public override void CastCode()
+        {
+            if (!HasValidTarget()) return;
+            Caster.isCasting = true;
+            CurrSkillCoroutine = Caster.StartCoroutine(SkillCoroutine());
+        }
+
+        protected override IEnumerator SkillCoroutine()
+        {
+            yield return new WaitForSeconds(CastingDelay);
+            if (Caster == null || !Caster.isActive || Caster.isControlled)
+            { StopCode(); yield break; }
+
+            foreach (Unit ally in global::Target.GetAllAllies(Caster)
+                         .Where(unit => unit != null && unit.isActive))
+            {
+                ally.AddStatus(BuffStatus.Create(
+                    EgyptianStatusIds.ThothEyeOfWisdom, $"thoth_eye_of_wisdom_{Caster.GetEntityId()}", CodeName,
+                    Caster, ally, new ToughnessEchoEffect(0.30f),
+                    duration: 3,
+                    stackPolicy: BaseEnums.StatusStackPolicy.Replace,
+                    isBeneficial: true,
+                    description: "감소시킨 강인도의 30%를 실제 피해로 더합니다."));
+            }
+            StopCode();
+        }
+
+        public override void StopCode()
+        {
+            if (Caster == null) return;
+            Caster.ultimateCooldown = Cooldown;
+            Caster.isCasting = false;
+        }
+
+        public override bool HasValidTarget() => Caster != null && Caster.isActive;
+    }
+
+    /// <summary>이시스 U — 적 전체 3연타, 바위 부착, 행동 게이지 50% 지연.</summary>
+    public sealed class IsisDesertDeluge : UltimateCode
+    {
+        public IsisDesertDeluge(UltimateCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Ultimate;
+            CodeName = "사막의 격류";
+            Cooldown = 4;
+            CastingDelay = 0.55f;
+            Power = 40;
+        }
+
+        public override void CastCode()
+        {
+            if (!HasValidTarget()) return;
+            Caster.isCasting = true;
+            CurrSkillCoroutine = Caster.StartCoroutine(SkillCoroutine());
+        }
+
+        protected override IEnumerator SkillCoroutine()
+        {
+            yield return new WaitForSeconds(CastingDelay);
+            if (Caster == null || !Caster.isActive || Caster.isControlled)
+            { StopCode(); yield break; }
+
+            List<Unit> targets = global::Target.GetAllEnemies(Caster)
+                .Where(unit => unit != null && unit.isActive && !unit.IsUntargetable)
+                .ToList();
+            if (targets.Count == 0) { StopCode(); yield break; }
+
+            bool isCrit = Random.value <= Caster.CritChanceCurr;
+            float crit = isCrit ? Caster.CritMultiplierCurr : 1f;
+            int damage = Mathf.Max(1, Mathf.RoundToInt(
+                Caster.SkillDamage(40, BaseEnums.PrimaryStat.INT) * crit));
+
+            for (int hit = 0; hit < 3; hit++)
+            {
+                foreach (Unit target in targets.Where(unit => unit != null && unit.isActive).ToList())
+                {
+                    target.TakeDamage(new DamageContext(
+                        Caster, damage, BaseEnums.CodeType.Ultimate,
+                        new List<int>
+                        {
+                            DamageTag.AllTarget, DamageTag.UltAttack,
+                            DamageTag.Special, DamageTag.NonContactAttack,
+                        }, isCrit));
+                }
+                if (hit < 2) yield return new WaitForSeconds(0.14f);
+            }
+
+            foreach (Unit target in targets.Where(unit => unit != null && unit.isActive).ToList())
+            {
+                target.GrantCombatElement(BaseEnums.UnitElement.Geo, Unit.CommonElementAuraDuration, Caster);
+                GameManager.Instance?.ActionScheduler?.DelayAction(target, 0.5f);
+            }
+            StopCode();
+        }
+
+        public override void StopCode()
+        {
+            if (Caster == null) return;
+            Caster.ultimateCooldown = Cooldown;
+            Caster.isCasting = false;
+        }
+
+        public override bool HasValidTarget() => Caster != null && Caster.isActive &&
+            global::Target.GetAllEnemies(Caster).Any(unit => unit != null && unit.isActive && !unit.IsUntargetable);
     }
 }

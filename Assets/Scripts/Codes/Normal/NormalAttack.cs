@@ -22,7 +22,6 @@ namespace Codes.Normal
       Cooldown = 1;
       CodeName = "일반공격";
       CastingDelay = 0.5f;
-      ManaAmount = 10;
       CodeTags = new List<int> { DamageTag.Physical };
       // effects = new Dictionary<string, OldEffectBase>();
       _prefab = GameManager.Instance.sfxManager.ProjectilePrefabs["FireBlast"];

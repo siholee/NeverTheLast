@@ -17,6 +17,7 @@ namespace BaseClasses
     public const int ShieldPenetration = 40001; // 방어막 관통
     public const int TrueDamage = 40002;        // 고정 피해 — 방어력 감쇠를 무시한다
     public const int DurabilityPenetration = 40003; // 내구 관통 — 고정 경감(내구)을 무시한다
+    public const int ToughnessEcho = 40004;     // 강인도 감소량을 실피해로 전환한 추가 피해 — 강인도를 다시 깎지 않는다
     public const int Slash = 50001; // 베기
     public const int Pierce = 50002; // 찌르기
     public const int Arrow = 50003; // 화살

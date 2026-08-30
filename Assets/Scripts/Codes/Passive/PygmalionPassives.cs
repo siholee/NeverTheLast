@@ -17,24 +17,14 @@ namespace Codes.Passive
         public const int SharpThorns = 5802;
         public const int LoveGodBlessing = 5803;
         public const int RoseThorns = 5804;
-        public const int Burn = 5805;
     }
 
     public static class PygmalionCombat
     {
-        public const string BurnStatusKey = "pygmalion_burn";
-
         public static void ApplyBurn(Unit caster, Unit target)
         {
             if (caster == null || target == null || !target.isActive) return;
-            target.AddStatus(BuffStatus.Create(
-                PygmalionStatusIds.Burn, BurnStatusKey, "화상",
-                caster, target, new PygmalionBurnEffect(),
-                duration: 2,   // 3초 → 2턴
-                stackPolicy: BaseEnums.StatusStackPolicy.Stack,
-                category: BaseEnums.StatusCategory.Negative,
-                isBeneficial: false,
-                description: "2턴간 턴마다 40 + 시전자 CON의 5%만큼 피해를 입습니다. 중첩되어도 지속피해 종류는 1개로 계산합니다."));
+            ElementalReaction.TryApplyBurn(caster, target);
         }
 
         public static bool IsContactDamage(DamageContext context)
@@ -193,33 +183,4 @@ namespace Codes.Passive
             => unit == Target && PygmalionCombat.IsContactDamage(context) ? _multiplier : 1f;
     }
 
-    internal sealed class PygmalionBurnEffect : BaseEffect
-    {
-        public override bool IsDamageOverTime => true;
-
-        public PygmalionBurnEffect() : base(0)
-        {
-            Category = BaseEnums.EffectCategory.Negative;
-        }
-
-        /// <summary>대상의 턴마다 한 번. 1턴 = 2초이므로 예전 '매초' 값의 2배를 준다.</summary>
-        public override void OnOwnerTurn() => DealTick();
-
-        public override int EstimateDamagePerTurn() => CalculateDamage();
-
-        private int CalculateDamage()
-        {
-            if (Caster == null) return 0;
-            float multiplier = Caster.GetDamageOverTimeApplicationMultiplier();
-            return Mathf.Max(0, Mathf.RoundToInt((80f + Caster.GetBaseCon() * 0.1f) * multiplier));
-        }
-
-        private void DealTick()
-        {
-            if (Caster == null || Target == null || !Target.isActive || Target.HpCurr <= 0) return;
-            Target.TakeDamage(new DamageContext(
-                Caster, CalculateDamage(), BaseEnums.CodeType.Effect,
-                new List<int> { DamageTag.SingleTarget, DamageTag.NonContactAttack }));
-        }
-    }
 }

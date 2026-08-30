@@ -1,7 +1,7 @@
 using BaseClasses;
 using Effects.Base;
+using Effects.Negative;
 using Entities;
-using Entities.Status;
 using UnityEngine;
 
 namespace Effects.Neutral
@@ -38,23 +38,11 @@ namespace Effects.Neutral
             
             if (isContactAttack)
             {
-                // 공격자에게 화상 부여 (StatusId = 2)
-                var burnStatus = new UnitStatus(2, Target, context.DmgCtx.Attacker);
-                burnStatus.AddEffect(1002, 2f); // PercentDOT 2%
-                
-                // Effect 객체 생성 및 할당
-                foreach (var effectInstance in burnStatus.Effects)
-                {
-                    effectInstance.EffectObject = EffectFactory.CreateEffect(
-                        effectInstance.EffectId,
-                        effectInstance.Coefficient,
-                        Target,
-                        context.DmgCtx.Attacker
-                    );
-                }
-                
-                context.DmgCtx.Attacker.AddStatus(burnStatus);
-                Debug.Log($"[가시] {context.DmgCtx.Attacker.UnitName}이 접촉 피해로 화상을 입었습니다!");
+                Unit attacker = context.DmgCtx.Attacker;
+                if (ElementalReaction.TryApplyBurn(Target, attacker))
+                    Debug.Log($"[가시] {attacker.UnitName}이 접촉 피해로 화상을 입었습니다!");
+                else
+                    Debug.Log($"[가시] {attacker.UnitName}이 화상에 저항했습니다.");
             }
         }
         

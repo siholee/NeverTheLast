@@ -30,7 +30,6 @@ namespace Codes.Base
         253 => new IndraOverconfidence(context),
         254 => new IndraGuide(context),
         255 => new VayuPurifyingWind(context),
-        224 => new VayuPurifyingWindEcho(context),
         256 => new VayuSecondWind(context),
         257 => new VayuAmbush(context),
         50 => new SeiBigBang(context),        // 세이 초기 패시브 — 빅뱅
@@ -77,7 +76,6 @@ namespace Codes.Base
         87 => new GreekPhalanx(context),
         88 => new TheseusSelfHealing(context),
         89 => new TheseusOverheal(context),
-        90 => new MacanaGrowth(context),
         91 => new AsclepiusNashorsTooth(context),
         92 => new AmaterasuSunRhythm(context),
         93 => new AmaterasuConcealment(context),
@@ -112,10 +110,7 @@ namespace Codes.Base
         277 => new OrpheusBard(context),
         278 => new SusanooRaijin(context),
         279 => new SusanooWaveCut(context),
-        230 => new InheritedAtalanteWeaknessTracker(context),
-        231 => new InheritedOrionGeoAffinity(context),
         232 => new InheritedAsclepiusNashorsTooth(context),
-        233 => new InheritedAmaterasuSunRhythm(context),
         (>= 101 and <= 104) or (>= 109 and <= 116) => new EnemyCommonPassive(context, codeId),
         120 => new TsukuyomiMoonReckoning(context),
         121 => new TsukuyomiSpellShield(context),
@@ -141,7 +136,7 @@ namespace Codes.Base
           context,
           codeId,
           AztecCodeNames.Passive(codeId)),
-        // ── 이집트 (호루스·아누비스·바스테트) ──
+        // ── 이집트 (호루스·아누비스·바스테트·세트·토트·이시스) ──
         340 => new HorusSkyFalcon(context),
         341 => new AnubisSoulHarvest(context),
         342 => new BastetAirborneHunter(context),
@@ -151,6 +146,25 @@ namespace Codes.Base
         346 => new BastetMasterThief(context),
         347 => new BastetLightArmament(context),
         348 => new BastetSelfish(context),
+        349 => new SetBloodOfTheDesert(context),
+        350 => new ThothToughnessScholar(context),
+        351 => new ThothIllusionist(context),
+        352 => new ThothHiddenTruth(context),
+        353 => new IsisDesertRadiance(context),
+        354 => new IsisElement(context),
+        // ── 아스완 (종말의 사도 · 사령 · 오시리스 · 아문·라) ──
+        360 => new AswanPyreJudgment(context, 0.10f),
+        361 => new AswanPyreJudgment(context, 0.20f),
+        362 => new AswanPyreSentence(context),
+        363 => new AswanNetherReturn(context),
+        364 => new OsirisImperfectResurrection(context),
+        365 => new AmunRaAscension(context),
+        366 => new AswanHolyBlade(context),
+        367 => new AswanCoarseSkin(context),
+        368 => new AmunRaTranscendence(context),
+        369 => new AmunRaSoulDrain(context),
+        370 => new AmunRaHellfire(context),
+        371 => new AswanDeathChant(context),
         // ── 로마 (레기온) ──
         280 => new NightRaid(context),
         281 => new Charisma(context),
@@ -206,6 +220,19 @@ namespace Codes.Base
         290 => new HorusNormalAttack(context),
         291 => new AnubisNormalAttack(context),
         292 => new BastetNormalAttack(context),
+        293 => new SetNormalAttack(context),
+        294 => new ThothNormalAttack(context),
+        295 => new IsisNormalAttack(context),
+        // ── 아스완 ──
+        300 => new AswanPaladinSlash(context, 80),    // 파멸의 성기사
+        301 => new AswanPaladinSlash(context, 100),   // 종말의 성기사
+        302 => new AswanInquisitorPrayer(context, 60),
+        303 => new AswanInquisitorPrayer(context, 80),
+        304 => new AswanWraithClaw(context),
+        305 => new AswanFallenPriestRite(context),
+        306 => new OsirisEarthRequiem(context),
+        307 => new AmunRaBladeVolley(context),
+        308 => new AmunRaBladeVolley(context, alwaysEmpowered: true),
         _ => new NormalAttack(context), // 기본 일반공격 (임시, 나중에 각 유닛별로 교체 예정)
       };
     }
@@ -249,6 +276,17 @@ namespace Codes.Base
         290 => new HorusWadjet(context),
         291 => new AnubisStoneSpear(context),
         292 => new BastetApexExecution(context),
+        293 => new SetBurningSlash(context),
+        294 => new ThothEyeOfWisdom(context),
+        295 => new IsisDesertDeluge(context),
+        // ── 아스완 ──
+        300 => new AswanPaladinJudgment(context),     // 파멸·종말의 성기사 공용
+        302 => new AswanInquisitorPyre(context, 60),
+        303 => new AswanInquisitorPyre(context, 80),
+        304 => new AswanWraithSummon(context),
+        305 => new AswanFallenPriestWard(context),
+        306 => new OsirisRebirthFlood(context),
+        307 => new AmunRaSolarJudgment(context),
         100 => new EnemyTestUltimate(context), // 적 전용 테스트 궁극기
         _ => null,
       };

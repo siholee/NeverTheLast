@@ -454,7 +454,7 @@ units:
     intIncrementLvl: 1
     intIncrementUpgrade: 1
     lukBase: 14
-    lukIncrementLvl: 1
+    lukIncrementLvl: 2
     lukIncrementUpgrade: 1
     codes:
       passive: 3
@@ -624,7 +624,7 @@ units:
     intIncrementLvl: 1
     intIncrementUpgrade: 1
     lukBase: 12
-    lukIncrementLvl: 2
+    lukIncrementLvl: 1
     lukIncrementUpgrade: 1
     ultimateResourceType: Stack
     ultimateResourceName: 라그나로크
@@ -1366,3 +1366,123 @@ units:
       - { codeId: 95,  unlockLevel: 68, stage: 1 }   # 파죽지세
     portrait: BASTET_PORTRAIT
     standing: BASTET_STANDING
+
+  - id: 46
+    name: 세트
+    characterType: Locked
+    element: Pyro
+    startingProficiencies: [Greatsword, MediumArmor]
+    startingItemIds: [4103]
+    tags: [Egypt]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: STR
+    subStat: CON
+    subStats: [CON]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 24
+    strIncrementLvl: 2
+    strIncrementUpgrade: 1
+    dexBase: 12
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 22
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 8
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 12
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes: { passive: 349, normal: 293, ultimate: 293 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 136, unlockLevel: 25, stage: 1 }   # 투사
+      - { codeId: 125, unlockLevel: 38, stage: 1 }   # 고통스러운 상처
+      - { codeId: 220, unlockLevel: 39, stage: 1 }   # 약자 멸시
+      - { codeId: 89,  unlockLevel: 50, stage: 1 }   # 과다치유
+    portrait: SET_PORTRAIT
+    standing: SET_STANDING
+
+  - id: 47
+    name: 토트
+    characterType: Support
+    element: Hydro
+    startingProficiencies: [Orb]
+    startingItemIds: [4109]
+    tags: [Egypt]
+    canStartAsMain: false
+    canStartAsSupport: true
+    canUseInInfinite: false
+    mainStat: INT
+    subStat: CON
+    subStats: [CON]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 10
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 12
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 20
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 24
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 14
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes: { passive: 350, normal: 294, ultimate: 294 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 71,  unlockLevel: 1,  stage: 1 }   # 지혜
+      - { codeId: 351, unlockLevel: 20, stage: 1 }   # 환술사
+      - { codeId: 74,  unlockLevel: 22, stage: 1 }   # 명상
+      - { codeId: 352, unlockLevel: 39, stage: 1 }   # 허허실실
+    portrait: THOTH_PORTRAIT
+    standing: THOTH_STANDING
+
+  - id: 48
+    name: 이시스
+    characterType: Support
+    element: Geo
+    startingProficiencies: [Orb]
+    startingItemIds: [4109]
+    tags: [Egypt]
+    canStartAsMain: false
+    canStartAsSupport: true
+    canUseInInfinite: false
+    mainStat: CON
+    subStat: INT
+    subStats: [INT]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 10
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 12
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 22
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 20
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 12
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes: { passive: 353, normal: 295, ultimate: 295 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 71,  unlockLevel: 1,  stage: 1 }   # 지혜
+      - { codeId: 354, unlockLevel: 12, stage: 1 }   # 원소 (효과 미정)
+      - { codeId: 35,  unlockLevel: 35, stage: 1 }   # 목욕재계
+      - { codeId: 232, unlockLevel: 70, stage: 1 }   # 생명의 물
+    portrait: ISIS_PORTRAIT
+    standing: ISIS_STANDING

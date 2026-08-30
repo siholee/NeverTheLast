@@ -25,7 +25,6 @@ namespace Codes.Base
             Caster = context.Caster;
             Cooldown = 1;
             CastingDelay = 0.5f;
-            ManaAmount = 10;
             CodeTags = new List<int> { BaseClasses.DamageTag.Physical };
             Power = 50;   // 기본 일반공격 위력
             _prefab = GameManager.Instance.sfxManager.ProjectilePrefabs["FireBlast"];

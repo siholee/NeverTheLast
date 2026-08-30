@@ -625,52 +625,6 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>정화의 바람 열화 전수본 — 충전 0.5씩, 최대 1.</summary>
-    public sealed class VayuPurifyingWindEcho : PassiveCode
-    {
-        private float _charge;
-        private bool _registered;
-        private Action<EventContext> _ultimateHandler;
-        private Action<EventContext> _cleanupHandler;
-
-        public VayuPurifyingWindEcho(PassiveCodeContext context) : base(context)
-        {
-            CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "정화의 바람 (전수)";
-            IgnoresActivationChance = true;
-        }
-
-        public override void CastCode()
-        {
-            _charge = 0f;
-            if (Caster == null || _registered) return;
-            _ultimateHandler = _ =>
-            {
-                _charge = Mathf.Min(1f, _charge + 0.5f);
-                if (_charge < 1f) return;
-                Unit afflicted = Target.GetAllAllies(Caster)
-                    .FirstOrDefault(unit => unit != null && unit.isActive && unit.HasNegativeStatus());
-                if (afflicted == null) return;
-                _charge -= 1f;
-                afflicted.RemoveAllNegativeStatuses();
-            };
-            _cleanupHandler = _ => StopCode();
-            Caster.AddListener(BaseEnums.UnitEventType.OnUltimateActivates, _ultimateHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
-            _registered = true;
-        }
-
-        public override void StopCode()
-        {
-            if (!_registered) return;
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnUltimateActivates, _ultimateHandler);
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
-            _registered = false;
-        }
-    }
-
     /// <summary>Lv.13 재기의 바람 — 체력 40% 이하로 떨어지면 4초에 걸쳐 40% 회복. 전투당 1회.</summary>
     public sealed class VayuSecondWind : PassiveCode
     {

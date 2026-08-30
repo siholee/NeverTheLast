@@ -18,7 +18,6 @@ namespace Codes.Normal
             CodeName = "일반공격";
             Cooldown = 0;
             CastingDelay = 0.4f;
-            ManaAmount = 0;
             MaxStage = 1;
             Power = 80;
             CodeTags = new List<int> { DamageTag.Physical, DamageTag.Slash };

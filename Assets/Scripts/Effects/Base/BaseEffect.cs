@@ -96,6 +96,18 @@ namespace Effects.Base
         public virtual int DurabilityPenetrationModifier(Unit attacker, Unit target, DamageContext context) => 0;
 
         /// <summary>
+        /// 공격이 강인도를 감소시키는 배율의 가산 보정. 0.25는 강인도 효율 +25%다.
+        /// 같은 공격자에게 여러 효과가 있으면 가산한 뒤 기본 배율 1에 더한다.
+        /// </summary>
+        public virtual float ToughnessDamageAdditiveModifier(Unit attacker, Unit target, DamageContext context) => 0f;
+
+        /// <summary>
+        /// 실제로 감소시킨 강인도 중 체력 피해로 한 번 더 가할 비율.
+        /// 토트의 지혜의 눈과 허허실실처럼 여러 효과가 있으면 가산한다.
+        /// </summary>
+        public virtual float ToughnessEchoDamageRatioModifier(Unit attacker, Unit target, DamageContext context) => 0f;
+
+        /// <summary>
         /// 회피 확률 가산 보정. 공격의 종류를 보고 조건부로 회피시키는 효과가 쓴다
         /// (에퀴테스 '기병의 회피'는 접촉 기술만 회피한다).
         /// </summary>
@@ -171,6 +183,13 @@ namespace Effects.Base
 
         /// <summary>최대 체력 배율 보정 (1 = 변화 없음)</summary>
         public virtual float MaxHpMultiplierModifier(Unit unit) => 1f;
+
+        /// <summary>
+        /// 체력 바를 몇 칸으로 나눠 보여 줄지. 0이면 나누지 않는다(보통의 연속 게이지).
+        /// 오시리스의 '불완전한 부활'처럼 <b>체력 자체가 단계로 끊기는</b> 유닛이 사용한다.
+        /// 순수한 표시용 훅이라 피해 계산에는 관여하지 않는다.
+        /// </summary>
+        public virtual int HpSegmentCount(Unit unit) => 0;
 
         /// <summary>치명 피해를 막으면 true. 사망 직전 효과(황혼 등)에서 사용한다.</summary>
         public virtual bool TryPreventDeath(Unit unit, Unit attacker) => false;

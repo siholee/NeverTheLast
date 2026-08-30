@@ -69,7 +69,7 @@ codes:
       codeName: ChandraMoonlight
       description: "아군에게 이로운 효과를 부여할 경우, 바람 원소 부여"
     - { id: 70, verbalName: 풍요의 축복, codeName: QuetzalcoatlBounty, description: "필드의 풀 아군 1명당 아군 전체의 가하는 피해가 [5/10/15]% 증가한다. <전수 불가능>" }
-    - { id: 71, verbalName: 지혜, codeName: QuetzalcoatlWisdom, description: "INT +4." }
+    - { id: 71, verbalName: 지혜, codeName: QuetzalcoatlWisdom, description: "서포트 카드로서 INT 집중 훈련에 배치되면 INT 훈련 효율 +10%." }
     - { id: 72, verbalName: 행운아, codeName: QuetzalcoatlLucky, description: "LUK +4." }
     - { id: 73, verbalName: 예리함, codeName: QuetzalcoatlOvercritScholar, description: "100%를 초과한 치명타 확률의 1.5배를 치명타 피해로 전환한다." }
     - { id: 74, verbalName: 명상, codeName: QuetzalcoatlMeditation, description: "전투 중 2초마다 INT +1." }
@@ -84,10 +84,6 @@ codes:
     - { id: 87, verbalName: 팔랑크스, codeName: GreekPhalanx, description: "팔랑크스를 가진 필드의 아군 수 n에 비례해 전투 시작 시 CON 기반 위력 30*n의 보호막을 얻고, 상시 가하는 피해가 5%*n 증가한다. 모든 Greek 유닛이 자동 보유. <전수 불가능>" }
     - { id: 88, verbalName: 자가치유, codeName: TheseusSelfHealing, description: "매초 CON만큼 회복한다. 물 또는 풀 원소 보유 시 2배이며 두 원소가 중첩되어도 2배를 넘지 않는다." }
     - { id: 89, verbalName: 과다치유, codeName: TheseusOverheal, description: "최대 체력을 넘긴 회복량의 25%를 보호막으로 전환한다." }
-    - id: 90
-      verbalName: 마카나
-      codeName: MacanaGrowth
-      description: "적 처치 시 25% 확률로 영구적으로 무작위 스탯 +1."
     - { id: 91, verbalName: 생명의 잔, codeName: AsclepiusNashorsTooth, description: "궁극기 사용 후 5초간 DEX가 40 증가한다. <고유 패시브> <전수 불가능>" }
     - { id: 92, verbalName: 태양의 박자, codeName: AmaterasuSunRhythm, description: "기본공격 적중 시 6초간 DEX +4. 최대 6중첩. <고유 패시브> <전수 불가능>" }
     - { id: 93, verbalName: 투명, codeName: AmaterasuConcealment, description: "체력이 35% 이하일 때 대상 지정 우선도 -1." }
@@ -100,10 +96,9 @@ codes:
     - { id: 221, verbalName: 천천히 꾸준히, codeName: PygmalionSlowAndSteady, description: "자신이 부여하는 지속피해가 25% 증가한다." }
     - { id: 222, verbalName: 날카로운 가시, codeName: PygmalionSharpThorns, description: "접촉 피해를 받으면 공격자에게 3초간 받는 치유량 50% 감소를 부여한다." }
     - { id: 223, verbalName: 사랑신의 가호, codeName: PygmalionLoveGodBlessing, description: "접촉 분류 기술에게 받는 피해가 25% 감소한다." }
-    - { id: 230, verbalName: 약점 추적 (전수), codeName: InheritedAtalanteWeaknessTracker, description: "대상의 디버프 하나당 방어력을 3% 무시한다(최대 12%). <열화 전수본>" }
-    - { id: 231, verbalName: 원소 친화 - 바위 (전수), codeName: InheritedOrionGeoAffinity, description: "바위 원소를 보유한 동안 2초마다 CON +1. <열화 전수본>" }
-    - { id: 232, verbalName: 생명의 잔 (전수), codeName: InheritedAsclepiusNashorsTooth, description: "궁극기 사용 후 5초간 DEX가 20 증가한다. <열화 전수본>" }
-    - { id: 233, verbalName: 태양의 박자 (전수), codeName: InheritedAmaterasuSunRhythm, description: "기본공격 적중 시 6초간 DEX +2. 최대 4중첩. <열화 전수본>" }
+    # 옛 열화 전수본(230·231·233)은 제도 폐지와 함께 삭제했다.
+    # 232만 이시스의 독립 해금 패시브 '생명의 물'로 남는다.
+    - { id: 232, verbalName: 생명의 물, codeName: InheritedAsclepiusNashorsTooth, description: "궁극기 사용 후 2턴간 DEX가 20 증가한다." }
     # 일반 등급 적은 테마별로 아래 네 단계 성장 패시브를 공유한다.
     - { id: 101, verbalName: 북방의 기세, codeName: NordCommonSpirit, description: "주는 피해가 5% 증가한다. <적 전용> <전수 불가능>" }
     - { id: 102, verbalName: 혹한의 강인함, codeName: NordCommonToughness, description: "받는 피해가 5% 감소한다. <적 전용> <전수 불가능>" }
@@ -197,7 +192,6 @@ codes:
     - { id: 253, verbalName: 자기과신, codeName: IndraOverconfidence, description: "적 처치 시 특수 피해의 가하는 피해 +5%. 중첩된다." }
     - { id: 254, verbalName: 인도자, codeName: IndraGuide, description: "궁극기 코드 발동 이후 필드의 다른 아군에게 마나를 부여한다." }
     - { id: 255, verbalName: 정화의 바람, codeName: VayuPurifyingWind, description: "궁극기 발동 시 충전 1 획득(최대 2). 충전이 있고 디버프에 걸린 아군이 있으면 충전을 소모해 해로운 효과를 제거한다. <고유 패시브> <전수 불가능>" }
-    - { id: 224, verbalName: 정화의 바람 (전수), codeName: VayuPurifyingWindEcho, description: "궁극기 발동 시 충전 0.5 획득(최대 1). 충전이 차면 아군 하나의 해로운 효과를 제거한다." }
     - { id: 256, verbalName: 재기의 바람, codeName: VayuSecondWind, description: "체력이 40% 이하로 떨어지면 4초에 걸쳐 최대 체력의 40%를 회복한다. 전투 중 1회." }
     - { id: 257, verbalName: 기습, codeName: VayuAmbush, description: "최대 체력인 적을 공격하면 확정 치명타가 발생하고 치명타 확률의 2배가 치명타 피해에 더해진다." }
     # ── 프레이아 ──
@@ -275,6 +269,27 @@ codes:
     - { id: 346, verbalName: 대도, codeName: BastetMasterThief, description: "DEX 집중 훈련 효율 +10%." }
     - { id: 347, verbalName: 가벼운 무장, codeName: BastetLightArmament, description: "의복류 방어구를 착용하면 DEX +5%." }
     - { id: 348, verbalName: 이기적, codeName: BastetSelfish, description: "추가공격으로 가하는 피해 +20%." }
+    - { id: 349, verbalName: 사막의 피, codeName: SetBloodOfTheDesert, description: "전투 시간 8초마다 다음 단일 접촉 피해가 적중하면 STR×0.2의 추가 고정 피해를 주고 최대 체력의 8%를 회복한다. <고유 패시브> <전수 불가능>" }
+    - { id: 350, verbalName: 강인도 해석, codeName: ThothToughnessScholar, description: "필드에 있을 경우 아군 전체의 강인도 효율 +25%. <고유 패시브> <전수 불가능>" }
+    - { id: 351, verbalName: 환술사, codeName: ThothIllusionist, description: "피해를 가할 때 강인도 효율 +25%." }
+    - { id: 352, verbalName: 허허실실, codeName: ThothHiddenTruth, description: "감소시킨 강인도의 10%를 실제 피해로 더한다. 지혜의 눈과 중복 적용된다." }
+    - { id: 353, verbalName: 사막의 광휘, codeName: IsisDesertRadiance, description: "이시스가 적에게 바위 원소를 부여하면 사막의 광휘 표식을 남긴다. 표식 대상이 받는 특수 피해 +10%. <고유 패시브> <전수 불가능>" }
+    - { id: 354, verbalName: 원소, codeName: IsisElement, description: "효과 미정." }
+
+    # ── 아스완 패시브 (종말의 사도 · 사령 · 오시리스 · 아문·라) ──
+    # 360·361은 같은 코드의 강도 차이다. 파멸의 성기사가 10%, 종말의 성기사가 20%를 쓴다.
+    - { id: 360, verbalName: 화형 심판, codeName: AswanPyreJudgment, description: "불 원소를 보유한 적에게 방어력 10% 무시, 화상 상태의 적에게 방어력 10% 무시(중복 시 최대 20%). <적 전용> <전수 불가능>" }
+    - { id: 361, verbalName: 화형 심판, codeName: AswanPyreJudgment, description: "불 원소를 보유한 적에게 방어력 20% 무시, 화상 상태의 적에게 방어력 20% 무시(중복 시 최대 40%). <적 전용> <전수 불가능>" }
+    - { id: 362, verbalName: 화형 선고, codeName: AswanPyreSentence, description: "이미 불 원소를 지닌 대상에게 불 원소를 부착하면 지속피해 '화상'으로 변환한다. <적 전용> <전수 불가능>" }
+    - { id: 363, verbalName: 명계의 재림, codeName: AswanNetherReturn, description: "치명적인 피해를 입으면 전투당 1회에 한해 다음 자기 턴에 부활한다. 부활 시 해로운 상태를 모두 잃고 체력이 가득 찬다. <적 전용> <전수 불가능>" }
+    - { id: 364, verbalName: 불완전한 부활, codeName: OsirisImperfectResurrection, description: "최대 체력이 14배가 되고 받는 피해가 2.4배에서 시작한다. 부위(체력 1/14)가 깨질 때마다 받는 피해가 10%p 줄고 사령 3기가 소환된다. <적 전용> <전수 불가능>" }
+    - { id: 365, verbalName: 승천, codeName: AmunRaAscension, description: "적을 공격한 행동마다 '승천' 1스택을 얻고 피해를 받으면 1스택을 잃는다. 스택 하나당 치명타 피해 +5%, 가하는 피해 +5%. <적 전용> <전수 불가능>" }
+    - { id: 366, verbalName: 성스러운 칼날, codeName: AswanHolyBlade, description: "'베기' 태그 공격의 치명타 피해 +25%." }
+    - { id: 367, verbalName: 까칠한 피부, codeName: AswanCoarseSkin, description: "'접촉' 태그의 공격을 받으면 방어력으로 감소시킨 피해량의 50%를 공격자에게 되돌려준다. #물리 #근접" }
+    - { id: 368, verbalName: 초월, codeName: AmunRaTranscendence, description: "전투 시간 15초가 지나면 최대 체력이 20% 증가하고 증가량만큼 회복한다." }
+    - { id: 369, verbalName: 영혼 흡수, codeName: AmunRaSoulDrain, description: "적을 처치하면 최대 체력의 20%만큼 회복한다." }
+    - { id: 370, verbalName: 지옥불, codeName: AmunRaHellfire, description: "강화 일반공격을 사용한 이후 '승천' 스택 수만큼 무작위 단일 적에게 칼날을 추가로 발사한다." }
+    - { id: 371, verbalName: 죽음의 성가, codeName: AswanDeathChant, description: "필드의 사령 아군 하나당 아군 전체의 가하는 피해가 5% 증가한다. <적 전용> <전수 불가능>" }
 
   normal:
     - id: 1
@@ -373,6 +388,20 @@ codes:
     - { id: 290, verbalName: 일반공격, codeName: HorusNormalAttack, description: "단일 적에게 STR×1.0의 물리 피해를 입힌다. 네 번째 공격은 우제트로 강화된다. #물리 #비접촉 #arrow" }
     - { id: 291, verbalName: 일반공격, codeName: AnubisNormalAttack, description: "단일 적에게 CON×0.8의 피해를 입힌다. #접촉 #물리 #찌르기" }
     - { id: 292, verbalName: 일반공격, codeName: BastetNormalAttack, description: "단일 적에게 DEX×0.8의 피해를 입힌다. #접촉 #물리 #베기" }
+    - { id: 293, verbalName: 일반공격, codeName: SetNormalAttack, description: "단일 적에게 STR×0.8의 피해를 입힌다. #접촉 #물리 #베기" }
+    - { id: 294, verbalName: 일반공격, codeName: ThothNormalAttack, description: "단일 적에게 INT×0.8의 피해를 입힌다. #비접촉 #특수" }
+    - { id: 295, verbalName: 일반공격, codeName: IsisNormalAttack, description: "단일 적에게 INT×0.6의 피해를 입힌다. 세 번째 적중마다 바위 원소를 부여한다. #비접촉 #특수" }
+
+    # ── 아스완 일반공격 ──
+    - { id: 300, verbalName: 일반공격, codeName: AswanPaladinSlash, description: "단일 적에게 STR×0.8의 피해를 입힌다. #접촉 #물리 #베기" }
+    - { id: 301, verbalName: 일반공격, codeName: AswanPaladinSlash, description: "단일 적에게 STR×1.0의 피해를 입힌다. #접촉 #물리 #베기" }
+    - { id: 302, verbalName: 일반공격, codeName: AswanInquisitorPrayer, description: "아군 전체를 CON×0.6만큼 치유한다. #특수" }
+    - { id: 303, verbalName: 일반공격, codeName: AswanInquisitorPrayer, description: "아군 전체를 CON×0.8만큼 치유한다. #특수" }
+    - { id: 304, verbalName: 일반공격, codeName: AswanWraithClaw, description: "단일 적에게 LUK×0.9의 피해를 입히고 지속피해 '출혈(5턴)'을 부여한다. 명중은 시전자의 LUK+DEX와 대상의 CON으로 판정한다. #접촉 #물리 #베기 #디버프" }
+    - { id: 305, verbalName: 일반공격, codeName: AswanFallenPriestRite, description: "단일 적에게 INT×0.8의 피해를 입히고 불 원소를 부여한다. #비접촉 #특수" }
+    - { id: 306, verbalName: 대지의 진혼, codeName: OsirisEarthRequiem, description: "적 전체에게 INT×1.2의 피해를 입히고 바위 원소를 부여한다. #비접촉 #특수" }
+    - { id: 307, verbalName: 일반공격, codeName: AmunRaBladeVolley, description: "칼날 셋으로 서로 다른 적 3명에게 INT×1.8의 피해를 입힌다. 치명타가 터지면 강화 일반공격을 즉시 큐에 예약한다. #비접촉 #특수 #베기" }
+    - { id: 308, verbalName: 강화 일반공격, codeName: AmunRaBladeVolley, description: "단일 적에게 INT×1.8의 피해를 입힌다. '지옥불' 보유 시 이후 '승천' 스택만큼 칼날을 더 발사한다. #비접촉 #특수 #베기" }
 
   ultimate:
     - { id: 240, verbalName: 언젠가 다다를 마지막, codeName: YamaFinalArrival, description: "적 전체를 베어 DEX 기반 위력 60의 피해를 입히고 번개 원소를 부여한다. 이후 대상의 지속피해를 즉시 정산해 INT의 80%만큼 추가 피해를 만든다. #특수 #베기 #접촉" }
@@ -397,7 +426,7 @@ codes:
     - id: 6
       verbalName: 장미의 가시
       codeName: a004_U_LovesPrize
-      description: "8초간 받는 피해 50% 감소, 대상 지정 우선도 +1. 접촉 피해를 받으면 공격자에게 3초간 매초 40+CON 5%의 중첩 가능한 화상을 부여한다. 공격자별 재부여 내부 쿨다운 1초."
+      description: "8초간 받는 피해 50% 감소, 대상 지정 우선도 +1. 접촉 피해를 받으면 공격자에게 CON 명중 판정 후 기본 2턴 화상을 부여한다. 공격자별 재부여 내부 쿨다운 1초."
     - id: 7
       verbalName: 만종
       codeName: a002_U_FinalBell
@@ -465,3 +494,16 @@ codes:
     - { id: 290, verbalName: 우제트, codeName: HorusWadjet, description: "상시형 궁극기. 네 번째 일반공격에 STR×0.6 피해를 더하고 적 방어력을 20% 무시한다. 일반공격마다 우제트 게이지가 1/4씩 찬다. #물리 #비접촉 #arrow" }
     - { id: 291, verbalName: 저승의 바위 창, codeName: AnubisStoneSpear, description: "적 전열 전체(비어 있으면 후열 전체)에 STR×0.8의 피해를 입힌다. 아누비스가 전열이면 전열 아군 전체에게 CON×1.4 보호막을 부여한다. #특수 #비접촉" }
     - { id: 292, verbalName: 천공 처형, codeName: BastetApexExecution, description: "상시형 궁극기. 적이 에어본 정점에 도달하면 즉시 DEX×1.2의 추가공격을 가한다. 베기 연출 동안 대상은 정점에 머문다. #접촉 #물리 #베기 #추가공격" }
+    - { id: 293, verbalName: 화염 참격, codeName: SetBurningSlash, description: "단일 적에게 STR×1.2의 피해를 입히고 CON 명중 판정에 성공하면 화상(3턴)을 부여한다. #접촉 #물리 #베기 #디버프" }
+    - { id: 294, verbalName: 지혜의 눈, codeName: ThothEyeOfWisdom, description: "3턴간 아군 전체가 감소시킨 강인도의 30%를 실제 피해로 더한다." }
+    - { id: 295, verbalName: 사막의 격류, codeName: IsisDesertDeluge, description: "적 전체에게 INT×0.4의 피해를 3회 입히고 바위 원소를 부여한 뒤 행동 게이지를 50% 지연시킨다. #비접촉 #특수 #디버프" }
+
+    # ── 아스완 궁극기 ──
+    # 300은 파멸·종말의 성기사가 함께 쓴다. 두 병종의 차이는 화형 심판(360/361)의 방어 무시 폭이다.
+    - { id: 300, verbalName: 파멸의 심판, codeName: AswanPaladinJudgment, description: "적 전체에게 위력 200 + CON×0.6의 피해를 입힌다. #특수 #비접촉" }
+    - { id: 302, verbalName: 화형 선고, codeName: AswanInquisitorPyre, description: "적 전체에게 INT×0.6의 피해를 입히고 불 원소를 부여한다. #특수 #비접촉" }
+    - { id: 303, verbalName: 화형 선고, codeName: AswanInquisitorPyre, description: "적 전체에게 INT×0.8의 피해를 입히고 불 원소를 부여한다. #특수 #비접촉" }
+    - { id: 304, verbalName: 사령 소환, codeName: AswanWraithSummon, description: "필드에 빈칸이 있으면 자신과 동일한 사령을 하나 소환한다. 빈칸이 없으면 발동하지 않는다." }
+    - { id: 305, verbalName: 망자의 가호, codeName: AswanFallenPriestWard, description: "아군 전체에게 위력 INT×0.5의 보호막을 부여한다. 사령 분류 아군은 두 배를 받는다." }
+    - { id: 306, verbalName: 재생의 격류, codeName: OsirisRebirthFlood, description: "적 전체에게 INT×2.0의 피해를 입히고 행동 게이지를 50% 지연시킨다. #특수 #비접촉 #디버프" }
+    - { id: 307, verbalName: 태양의 심판, codeName: AmunRaSolarJudgment, description: "'승천' 스택 × INT×0.6의 피해를 적 전체에게 입힌 뒤 '승천' 스택을 0으로 되돌린다. #특수 #비접촉" }

@@ -215,6 +215,24 @@ namespace Entities
         public int LukIncrementLvl { get => stats.LukIncrementLvl; protected set => stats.LukIncrementLvl = value; }
         public int LukIncrementUpgrade { get => stats.LukIncrementUpgrade; protected set => stats.LukIncrementUpgrade = value; }
         public int HpMax { get => hpMax; protected set => hpMax = value; }
+
+        /// <summary>
+        /// 체력 바를 나눠 그릴 칸 수. 0이면 보통의 연속 게이지다.
+        /// 효과가 여럿이면 <b>가장 잘게 나누는 값 하나</b>만 쓴다. 표시 전용이다.
+        /// </summary>
+        public int HpSegmentCount
+        {
+            get
+            {
+                int segments = 0;
+                foreach (var effect in ActiveEffectObjects())
+                {
+                    segments = Mathf.Max(segments, effect.HpSegmentCount(this));
+                }
+                return segments;
+            }
+        }
+
         public int UltimateResourceMax { get => ultimateResourceMax; protected set => ultimateResourceMax = value; }
         public int ManaMax { get => manaMax; protected set => manaMax = value; }
         // 공격력/방어력 스탯은 존재하지 않는다. 피해는 SkillDamage(위력)로 그때그때 산출한다.
@@ -1401,6 +1419,8 @@ namespace Entities
                 currentCell?.UpdateUI();
             }
 
+            AnyCombatElementGranted?.Invoke(source, this, elementToGrant);
+
             // 부착 직후 반응 검사. 반응하면 두 원소가 함께 소모된다.
             // added == false는 같은 원소가 이미 붙어 있었다는 뜻이다 — 공명(바위+바위)의 재료가 된다.
             Effects.Negative.ElementalReaction.TryResolve(this, elementToGrant, source, !added);
@@ -1417,6 +1437,9 @@ namespace Entities
 
         /// <summary>원소 반응이 일어났음을 알린다. 반응 연계 패시브가 이 신호를 듣는다.</summary>
         public static event Action<Unit, Unit, string> AnyElementalReaction;
+
+        /// <summary>원소가 부착될 때 발행한다. (부여자, 대상, 부여 원소)</summary>
+        public static event Action<Unit, Unit, BaseEnums.UnitElement> AnyCombatElementGranted;
 
         internal static void NotifyElementalReaction(Unit source, Unit target, string reactionName)
             => AnyElementalReaction?.Invoke(source, target, reactionName);
@@ -1643,12 +1666,27 @@ namespace Entities
         /// 실제로 들어간 피해만큼 강인도를 깎는다. 0이 되면 강인도를 없애고
         /// <b>처치 판정 이벤트만</b> 발행한다. 대상은 죽지 않고 골드·EXP도 지급하지 않는다.
         /// </summary>
-        private void ReduceToughness(int damageDealt, Unit attacker)
+        private int ReduceToughness(int damageDealt, Unit attacker, DamageContext context)
         {
-            if (damageDealt <= 0 || toughnessCurr <= 0) return;
+            if (damageDealt <= 0 || toughnessCurr <= 0 ||
+                context?.DamageTags?.Contains(BaseClasses.DamageTag.ToughnessEcho) == true) return 0;
 
-            toughnessCurr = Mathf.Max(0, toughnessCurr - damageDealt);
-            if (toughnessCurr > 0) return;
+            float efficiencyBonus = 0f;
+            if (attacker != null)
+            {
+                foreach (var effect in attacker.ActiveEffectObjects())
+                {
+                    efficiencyBonus += Mathf.Max(0f,
+                        effect.ToughnessDamageAdditiveModifier(attacker, this, context));
+                }
+            }
+
+            int before = toughnessCurr;
+            int reduction = Mathf.Max(1, Mathf.RoundToInt(damageDealt * (1f + efficiencyBonus)));
+            toughnessCurr = Mathf.Max(0, toughnessCurr - reduction);
+            int reduced = before - toughnessCurr;
+            currentCell?.UpdateUI();
+            if (toughnessCurr > 0) return reduced;
 
             toughnessMax = 0;
             Debug.Log($"[강인도] {UnitName}의 강인도가 파괴되었습니다 — 처치 판정 발행");
@@ -1657,6 +1695,7 @@ namespace Entities
             {
                 attacker.Invoke(BaseEnums.UnitEventType.OnKill, new EventContext(attacker, this));
             }
+            return reduced;
         }
 
         // ══════════════════════════════════════════════════════
@@ -2025,7 +2064,7 @@ namespace Entities
             int damageDealt = Mathf.Max(0, hpBeforeHit - self.HpCurr) + Mathf.Max(0, shieldBeforeHit - self.ShieldCurr);
 
             // 강인도는 체력과 병렬로 깎인다. 피해를 흡수하지 않으므로 위 계산에는 관여하지 않는다.
-            self.ReduceToughness(damageDealt, dmgCtx.Attacker);
+            int toughnessReduced = self.ReduceToughness(damageDealt, dmgCtx.Attacker, dmgCtx);
 
             if (dmgCtx.Attacker != null && damageDealt > 0)
             {
@@ -2033,6 +2072,31 @@ namespace Entities
                 dmgCtx.Attacker.Invoke(
                     BaseEnums.UnitEventType.OnDamageDealt,
                     new DamageResolvedContext(dmgCtx.Attacker, self, dmgCtx, damageDealt));
+            }
+
+            // 강인도 감소량의 일부를 실제 피해로 바꾸는 효과. 전환 피해는 다시 강인도를
+            // 깎지 않도록 ToughnessEcho 태그를 붙여 재귀와 이중 정산을 막는다.
+            if (dmgCtx.Attacker != null && toughnessReduced > 0 && self.isActive && self.HpCurr > 0)
+            {
+                float echoRatio = 0f;
+                foreach (var effect in dmgCtx.Attacker.ActiveEffectObjects())
+                {
+                    echoRatio += Mathf.Max(0f,
+                        effect.ToughnessEchoDamageRatioModifier(dmgCtx.Attacker, self, dmgCtx));
+                }
+
+                int echoDamage = Mathf.RoundToInt(toughnessReduced * echoRatio);
+                if (echoDamage > 0)
+                {
+                    self.TakeDamage(new DamageContext(
+                        dmgCtx.Attacker, echoDamage, dmgCtx.CodeType,
+                        new List<int>
+                        {
+                            BaseClasses.DamageTag.SingleTarget,
+                            BaseClasses.DamageTag.TrueDamage,
+                            BaseClasses.DamageTag.ToughnessEcho,
+                        }));
+                }
             }
             
             // Debug.Log($"{self.UnitName}은(는) {dmgCtx.Attacker.UnitName}에게 {damageReceived}의 {(dmgCtx.IsCrit ? "치명" : "")}피해를 받았습니다. 체력: {hpBeforeHit} -> {self.HpCurr}");

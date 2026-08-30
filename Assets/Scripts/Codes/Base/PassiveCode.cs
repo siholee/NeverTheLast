@@ -25,17 +25,11 @@ namespace Codes.Base
 
   public abstract class UniquePassiveCode : PassiveCode
   {
-    /// <summary>
-    /// 원본 대신 서포트 카드가 전수하는 열화 패시브 ID.
-    /// 0이면 명시적으로 전수 불가능한 고유 패시브다.
-    /// </summary>
-    public int TransferVersionCodeId { get; protected set; }
-
     protected UniquePassiveCode(PassiveCodeContext context) : base(context)
     {
+      // 고유 패시브는 어떤 경로로도 전수되지 않는다. 열화 전수본 제도는 폐지했다.
       IsUniquePassive = true;
       Transferable = false;
-      TransferVersionCodeId = 0;
     }
   }
 }

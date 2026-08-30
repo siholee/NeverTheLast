@@ -4,247 +4,223 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**NeverTheLast** is a Unity-based auto-chess/tower defense hybrid game written in C#. Players strategically place hero units on a grid to fight waves of enemies, managing resources, synergies, and unit upgrades through rounds.
+**NeverTheLast** is a Unity 6 (6000.4) roguelite RPG in C#. The player builds a party of mythological
+heroes, walks a run of stages themed by civilisation, and **raises one main character** across the run.
+Combat is **turn-based and fully automatic** — the player's decisions are made before the fight
+(party, placement, equipment, training), never during it.
+
+Korean is the working language: comments, logs, commit messages, and all design docs are in Korean.
 
 ## Development Commands
 
-### Unity Editor
-- Open the project in **Unity Editor** (no CLI build commands configured)
-- Main scene: `Assets/Scenes/SampleScene.unity`
-- Platform target: Android (`com.solid.autochess`)
-- Scripting backend: IL2CPP (Android)
+There is no CLI build. Open the project in the **Unity Editor**.
 
-### Common Operations
-- **Run game**: Play mode in Unity Editor (F5 or play button)
-- **Build for Android**: Unity Editor → File → Build Settings → Android
-- Git workflow: Standard git commands (commit, push, branch)
+- **Scenes**: `Assets/Scenes/MainMenu.unity` → `Assets/Scenes/Game.unity`
+- **Run**: Play mode in the Editor
+- **Input**: Unity's new Input System (`activeInputHandler: 2`)
 
-## Code Architecture
+### Type-checking without the Editor
 
-### Core Game Loop
+Unity generates `Assembly-CSharp.csproj` at the repo root. To compile-check a change without opening
+the Editor, copy that csproj (so the generated one is not clobbered), add any **new** `.cs` files as
+`<Compile Include="…" />`, redirect `BaseIntermediateOutputPath` / `OutputPath` to a scratch folder,
+then `dotnet build <copy>.csproj`. Delete the copy and its output afterwards. `LangVersion` is 9.0.
 
-The game follows a state machine pattern managed by `GameManager`:
-- **Preparation** → **RoundInProgress** → **RoundEnd** → (repeat or **GameOver**)
-- Timer-based transitions with automatic round start after preparation time
-- Life system: Player loses life equal to remaining enemies when round ends/times out
+> New `.cs` files have no `.meta` until the Editor next gains focus. That is expected — do not create
+> `.meta` files by hand.
 
-### Manager Hierarchy (Singleton Pattern)
+## Documentation — read this first
 
-All key systems use singleton instances accessed via `Manager.Instance`:
+**`Assets/Docs/Design/` is the design source of truth, and it is kept in sync with the data files.**
+Before changing gameplay, read the relevant chapter; after changing gameplay, update it.
 
-1. **GameManager** (`Assets/Scripts/Managers/GameManager.cs`)
-   - Central game state controller
-   - Manages game loop, life system, kill count tracking
-   - References all other managers (UIManager, GridManager, ShopManager, etc.)
-   - Handles round transitions and ally field state snapshots for restoration
+| Doc | Covers |
+| --- | --- |
+| `README.md` | Doc hierarchy and writing rules |
+| `GDD_Main.md` / `GDD_Sub_Concepts.md` | Vision (no numbers) / concept definitions |
+| `Detail_01_Progression.md` | Run structure, stages, themes, enemy scaling, life |
+| `Detail_02_Combat.md` | Battlefield, action values, damage formula, shields, elements, damage tags |
+| `Detail_03_Character.md` | 5-stat model, derived stats, code system, unit schema |
+| `Detail_04_Training.md` | Focused training, support cards, bond, passive transfer |
+| `Detail_05_Economy.md` | Gold/tokens/tickets, equipment, reward flow |
+| `Detail_06_Events.md` | Event schema, choice actions, VN presentation |
+| `Detail_07_UI_Tech.md` | UI screens, manager inventory, data files, save system |
+| `Detail_08_Confirmed_Characters.md` | Per-character combat spec and unlock passives |
+| `Detail_09` / `Detail_10` | Enemy roster & stage composition / boss specs |
+| `Detail_11` / `Detail_12` | Code catalogue by ID / player code & proficiency index |
+| `Detail_13` / `Detail_14` | Reward pool & tier odds / equipment list |
+| `Design_Backlog.md` | Open design decisions that block work |
 
-2. **GridManager** (`Assets/Scripts/Managers/GridManager.cs`)
-   - Manages battle grid (xMin: -4, xMax: 4, yMin: 0, yMax: 3)
-   - Manages bench grid (9 slots, separate from battle field)
-   - Handles unit spawning, cell occupation, and targeting logic
-   - Maintains `heroList` and `enemyList` (active units)
-   - **Important**: Bench units (y=0) do not participate in combat
+Writing rules that matter when editing: **a number lives in exactly one document**, unimplemented
+things are marked 🔸/🔴, and the detail docs mirror `Assets/Resources/Data/*.yaml` and the code.
 
-3. **DataManager** (`Assets/Scripts/Managers/DataManager.cs`)
-   - Loads YAML data files from `Resources/Data/`:
-     - `10_units.yaml` - Unit stats, codes, synergies
-     - `40_synergies.yaml` - Synergy definitions
-     - `50_tokens.yaml` - Resource token data
-     - `70_rounds.yaml` - Enemy spawn patterns
-   - Uses YamlDotNet for deserialization
+## Core Model
 
-4. **RoundManager** (`Assets/Scripts/Managers/RoundManager.cs`)
-   - Manages enemy wave spawning from round data
-   - Tracks remaining queued enemies for round completion
-   - Handles spawn timing and positions
+### Stats — five stats, nothing else
 
-5. **UIManager** - UI updates, game status display, info tabs
-6. **ShopManager** - Unit shop, reroll system, tier-based unit pools
-7. **InventoryManager** - Resource token management
-8. **DragAndDropManager** - Unit placement and movement
-9. **SfxManager** - Audio effects
-
-### Entity System
-
-**Unit** (`Assets/Scripts/Entities/Unit.cs`) - Base class for all characters:
-- Properties: HP, Mana, Atk, Def, CritChance, CritMultiplier, Shield
-- Three code types (skills):
-  - **PassiveCode**: Activated on round start
-  - **NormalCode**: Basic attack with cooldown
-  - **UltimateCode**: Special ability requiring full mana
-- Event-driven architecture: Uses `UnitEventType` enum for lifecycle hooks
-  - `OnRoundStart`, `OnRoundEnd`, `OnSpawn`, `OnDeath`
-  - `OnTakingDamage`, `OnBeforeDamageTaken`, `OnAfterDamageTaken`
-  - `OnUpdate`, `OnPassiveActivates`, `OnNormalActivates`, `OnUltimateActivates`
-- Status effects system: Dictionary-based with unique identifiers
-- Synergy effects: Applied based on team composition
-- **Shield mechanics**: Blocks damage before HP (unless ShieldPenetration tag or damage-over-time effect)
-- **Targeting**: Units maintain `currentNormalTarget` for basic attacks, with priority system (-3 to 3)
-
-### Code (Skill) System
-
-**Code** (`Assets/Scripts/Codes/Base/Code.cs`) - Abstract skill base class:
-- Properties: CodeType, CodeName, Caster, TargetUnits, Cooldown, CastingDelay
-- Implementations in `Assets/Scripts/Codes/`:
-  - `Passive/` - Passive abilities (triggered on round start)
-  - `Normal/` - Basic attacks (e.g., `NormalAttack.cs`, unit-specific variants)
-  - `Ultimate/` - Ultimate abilities (require full mana)
-- **CodeFactory** (`Assets/Scripts/Codes/Base/CodeFactory.cs`): Creates code instances by ID
-- Coroutine-based execution for delayed/multi-hit effects
-
-### Status Effects
-
-**StatusEffect** (`Assets/Scripts/StatusEffects/Base/StatusEffect.cs`):
-- Base class providing stat modifier methods
-- Stack-based and duration-based effects
-- Modifiers: HP, Atk, Def, CritChance, CritMultiplier, CodeAcceleration
-- Special modifiers: ReceivingDamageModifier, HealingReceivedModifier
-- Interfaces:
-  - `ITemporalEffect`: Effects that update each frame (poison, burn)
-  - `IStackEffect`: Effects that stack (not yet fully implemented)
-  - `IHpChangeEffect`: Effects triggered by HP changes
-
-**SynergyEffect** (`Assets/Scripts/StatusEffects/Base/SynergyEffect.cs`):
-- Extends StatusEffect for team synergy bonuses
-- Automatically applied/removed based on unit composition
-- Examples: `LeaderSynergy`, `SentinelSynergy`, `SniperSynergy`, `AkashaSynergy`
-
-### Data Structures
-
-**Context Objects** (`Assets/Scripts/BaseClasses/Contexts.cs`):
-- `EventContext`: Generic event data (Grantee, Attacker, DamageContext, DeltaTime)
-- `DamageContext`: Damage calculation data (Damage, IsCrit, Penetration, CodeType, DamageTags)
-- `ControlContext`: CC effect data (Attacker, Duration)
-- `PassiveCodeContext`, `NormalCodeContext`, `UltimateCodeContext`: Skill execution contexts
-
-**Enums** (`Assets/Scripts/BaseClasses/Enums.cs`):
-- `GameState`: Preparation, RoundInProgress, RoundEnd, GameOver
-- `UnitEventType`: 17 event types for unit lifecycle
-- `CodeType`: Passive, Normal, Ultimate, Effect
-- `DamageTag`: FlatDamage, DefensePenetration, SplitDamage, ShieldPenetration (in `Helpers.cs`)
-
-### Helper Systems
-
-**Helpers** (`Assets/Scripts/Helpers/helper.cs`):
-- `DamageTag` enum: Additional damage modifiers beyond base enums
-- Utility functions for damage calculation and targeting
-
-**SerializableDictionary** (`Assets/Scripts/BaseClasses/SerializableDictionary.cs`):
-- Unity-serializable dictionary implementation for Inspector
-
-## Key Design Patterns
-
-### Event-Driven Unit Lifecycle
-Units register event listeners for specific triggers. Default handlers can be overridden:
-```csharp
-AddListener<EventContext>(UnitEventType.OnTakingDamage, CustomTakeDamageEvent);
-Invoke(UnitEventType.OnTakingDamage, context);
-```
-
-### Damage Calculation Pipeline
-1. `OnBeforeDamageTaken` event fires
-2. `OnTakingDamage` calculates: `damage / (1 + effectiveDef * 0.01)` with status effect modifiers
-3. Shield absorption (if applicable)
-4. HP reduction and bar update
-5. `OnAfterDamageTaken` event fires
-6. Death check and `OnDeath` event
-
-### Round Flow
-1. **Preparation Phase**: Players arrange units, shop, upgrade (30s default timer)
-2. `StartRound()`: Save ally field state, start progress timer (60s)
-3. **Combat Phase**:
-   - Units execute codes based on cooldowns and mana
-   - RoundManager spawns enemies from queue
-   - Round ends when: all enemies defeated OR all allies defeated OR timeout
-4. **Round End**:
-   - Calculate damage (remaining enemies = life loss)
-   - Restore ally field to saved state
-   - Clear status effects, reset shields
-   - Transition to next Preparation phase
-
-### Factory Pattern for Dynamic Creation
-- **CodeFactory**: Creates skill instances from numeric IDs
-- **SynergyEffectFactory**: Creates synergy effect instances from synergy IDs
-
-## Important Implementation Details
-
-### Cell Coordinate System
-- Battle field: x ∈ [-4, 4], y ∈ [0, 3]
-- Bench: Separate 9-slot array, not part of battle grid
-- y=0 (bench) units are excluded from combat checks
-- Cell names follow `Cell_x_y` format
-
-### Unit Activation/Deactivation
-- `ActivateUnit()`: Sets `isActive=true`, occupies cell, shows HP/mana bars
-- `DeactivateUnit()`: Sets `isActive=false`, clears cell, adds 2s reservation timer
-- Inactive units are skipped in combat loops
-
-### Stat Calculation
-- Base stats + (IncrementLvl × Level) + (IncrementUpgrade × UpgradeCount)
-- Modifiers applied: `FinalStat = BaseStat × (1 + MultiplicativeSum) + AdditiveSum`
-- `AttributesUpdate()` must be called after stat-affecting changes
-
-### Shield System
-- Shields block damage before HP loss
-- Exceptions: `ShieldPenetration` damage tag, damage-over-time effects (`CodeType.Effect`)
-- Shields persist entire round, cleared on `OnRoundEnd`
-- Shield bar UI updates via `UpdateShieldBar()`
-
-### Status Effect Identifiers
-- Same identifier = non-stacking (overwrites)
-- Different casters can stack same buff type by using unique identifiers
-- Example: `HolyEnchantBuff` is non-stackable, `BurnEffect` extends duration
-
-## Common Development Patterns
-
-### Adding a New Unit
-1. Add unit data to `Resources/Data/10_units.yaml`
-2. Create portrait sprite in `Resources/Sprite/Portraits/`
-3. Implement codes in `Assets/Scripts/Codes/[Passive|Normal|Ultimate]/`
-4. Register codes in CodeFactory if using new IDs
-
-### Adding a New Status Effect
-1. Extend `StatusEffect` base class
-2. Implement modifier methods (e.g., `AtkMultiplicativeModifier`)
-3. If temporal: implement `ITemporalEffect.OnUpdate()`
-4. Apply via `unit.AddStatusEffect(identifier, effectInstance)`
-
-### Adding a New Synergy
-1. Add synergy data to `Resources/Data/40_synergies.yaml`
-2. Create synergy effect class extending `SynergyEffect`
-3. Register in `SynergyEffectFactory`
-4. System auto-applies based on unit composition in `GameManager.CalculateSynergies()`
-
-### Debugging Combat
-- Enable logs in `Unit.cs` `DefaultTakeDamageEvent()` for damage breakdown
-- Check `GridManager.OnRoundStart()` logs to verify event propagation
-- Monitor `GameManager.Update()` for state transitions and timer issues
-- Use `InfoTab` (UI) to inspect unit stats, buffs, and synergies in real-time
-
-## Project Structure
+**There is no Attack or Defense stat.** Every combat number derives from five stats.
 
 ```
-Assets/
-├── Scripts/
-│   ├── BaseClasses/        # Enums, Contexts, Info structs
-│   ├── Entities/           # Unit.cs (core entity logic)
-│   ├── Managers/           # All singleton managers
-│   ├── Codes/              # Skill implementations (Passive, Normal, Ultimate)
-│   ├── StatusEffects/      # Buff/debuff system
-│   ├── Helpers/            # Utility functions
-│   └── Cell.cs             # Grid cell logic
-├── Resources/
-│   ├── Data/               # YAML game data files
-│   └── Sprite/Portraits/   # Unit portrait images
-└── Scenes/                 # Unity scenes
-
-Library/PackageCache/       # Unity packages (ignore for development)
+피해     = 스킬 위력 × 주스탯 × 0.2      (위력은 스킬마다 고정, 포켓몬식)
+최대체력 = CON × 100
+방어력   = STR × 1                       (받는 피해 배율 = 기준값 / (기준값 + 방어력))
+기준값   = 100 + 10 × (레벨 − 1)
+스탯     = base + incrementLvl × (Level − 1) + incrementUpgrade × 강화횟수
 ```
 
-## Notes for Future Development
+| Stat | Second role |
+| --- | --- |
+| STR | Defense + equipment weight limit |
+| DEX | Action speed |
+| CON | Max HP |
+| INT | Mana efficiency + code capacity |
+| LUK | Crit chance |
 
-- Game is in active development; recent commits focus on shield mechanics and InfoTab UI
-- Korean language comments/logs are common in codebase
-- Third-party assets: Hovl Studio effects, TextMesh Pro
-- No automated tests currently implemented
-- Uses Unity's new Input System (active input handler: 2)
+Main stat gets ×1.2, sub stat ×1.1. `Unit.AttributesUpdate()` recomputes derived values and
+**preserves the HP ratio**, so a max-HP multiplier scales current HP with it.
+
+### Turn-based combat — `ActionScheduler`
+
+Combat is not real time. `Managers/ActionScheduler.cs` owns the clock.
+
+- Speed = `100 × ActionSpeedCurr`, action value `AV = 10000 / speed` (lower acts sooner).
+  Time is not advanced continuously — everyone's AV is decremented by exactly what the next actor needs.
+- Action priority: `Passive(0) → Additional(1) → Ultimate(2) → Normal(3)`.
+- **Ultimates do not consume a turn.** They queue as soon as the resource fills and do not reset AV.
+- Duplicate suppression: one `(unit + kind + key)` may sit in the queue at a time.
+- `CombatSeconds` is a derived axis (AV that has flowed), not wall-clock. Effects that need
+  "seconds" use it. Wall-clock is only for presentation (projectile flight, cast animation).
+- `SyncParticipants()` picks up units spawned mid-round automatically.
+
+Status durations, damage-over-time and periodic passives advance on **`BaseEffect.OnOwnerTurn()`**,
+not per frame.
+
+### Grid
+
+`GridManager` — `x ∈ [-2, 2] excluding 0`, `y ∈ [1, 4]`. Negative x is the ally side.
+
+| | Front | Rear |
+| --- | --- | --- |
+| Ally | x = -1 | x = -2 |
+| Enemy | x = 1 | x = 2 |
+
+Four slots per column, eight per side. Bench is a separate 9-slot array, not part of the field.
+Use `GetFrontColumn(isEnemy)` / `GetRearColumn(isEnemy)` rather than hard-coding.
+
+## Architecture
+
+### Managers
+
+Singletons via `Manager.Instance`, in `Assets/Scripts/Managers/`.
+
+| Manager | Responsibility |
+| --- | --- |
+| `GameManager` | State machine, phase timers, life, event flow. Owns `ActionScheduler` |
+| `RunManager` | Run lifetime (start/save/restore), bond, event history, **single entry point for stage advance** |
+| `RoundManager` | Stage/round/theme selection, enemy composition and placement, boss slots |
+| `GridManager` | Cell creation, spawning, targeting, `heroList` / `enemyList` |
+| `ActionScheduler` | Turn scheduling (plain class, not a MonoBehaviour) |
+| `EventScheduler` | Event queue for inserting events at arbitrary points (plain class) |
+| `TrainingManager` | Focused training, support rolls, passive transfer (**static class**) |
+| `RewardManager` | Reward pool generation and application |
+| `CharacterSelectionManager` | Party rules (max 5, one main, no duplicates) |
+| `InventoryManager` | Gold/tokens/tickets, equipment validation |
+| `DataManager` | Generic YAML loader (`Load<T>`, YamlDotNet) |
+| `UIManager` | Screen routing |
+| `AudioManager` / `SfxManager` | BGM & SFX / combat effects |
+| `DragAndDropManager` | Unit placement |
+
+`SettingsManager` and the save system live in `Assets/Scripts/Core/`.
+
+### Data files — `Assets/Resources/Data/`
+
+| File | Content | DTO |
+| --- | --- | --- |
+| `00_intro.yaml` | Intro sequence | `IntroData.cs` |
+| `10_units.yaml` | Player units | `UnitData.cs` |
+| `20_codes.yaml` | Code display data (passive/normal/ultimate) | — |
+| `40_items.yaml` | Equipment (= reward pool) | `ItemData.cs` |
+| `50_tokens.yaml` | Token definitions | `TokenData.cs` |
+| `60_enemies.yaml` | Enemies (normal/elite/boss) | `EnemyData.cs` |
+| `70_rounds.yaml` | Round types / composition patterns (fallback only) | `RoundData.cs` |
+| `80_stages.yaml` | Themes, events, fixed bosses | `StageData.cs` |
+| `90_rewards.yaml` | Per-round reward tier odds | `RewardData.cs` |
+
+**Code IDs are per-slot namespaces.** Passive 290 and ultimate 290 are unrelated; `CodeFactory`
+resolves them in separate switches. Orion's P/N/U are all `80`.
+
+### Codes (skills)
+
+`Assets/Scripts/Codes/` — `Base/`, `Passive/`, `Normal/`, `Ultimate/`.
+
+Every unit has **one unique passive + one normal attack + one unique ultimate**, plus N unlock
+passives from `levelPassives` bounded by INT-derived code capacity.
+
+- `CodeFactory` maps numeric IDs to classes — three switches, one per slot.
+- `UniquePassiveCode` sets `Transferable = false`. **Unique passives are never transferred**;
+  support cards can only pass on unlock passives. (The old degraded-transfer system is gone.)
+- Normal attacks have **no cooldown** — DEX-driven action value sets the cadence.
+- Power supports a proportional term: `위력 = Power + 스탯 × PowerStatCoefficient` (`Code.CurrentPower`).
+
+### Effects and statuses
+
+`BaseEffect` (`Effects/Base/`) is one class with **many optional query hooks** — stat modifiers,
+incoming/outgoing damage multipliers, healing/shield multipliers, `TryPreventDeath`,
+`MaxHpMultiplierModifier`, `HpSegmentCount`, and lifecycle (`OnApply` / `OnOwnerTurn` / `OnRemove`).
+Override only what a code needs. `Unit` aggregates every active effect when computing a value.
+
+Statuses (`UnitStatus`) wrap effects with id/key/duration/stack policy. Same key = same status;
+`StatusStackPolicy` picks between Replace / ExtendDuration / Stack / Ignore.
+
+Damage flows through `Unit.TakeDamage(DamageContext)`:
+`OnBeforeDamageTaken → OnTakingDamage (mitigation, shield, HP) → death check → OnAfterDamageTaken`,
+and `OnDamageDealt` fires on the attacker.
+
+### Damage tags — `BaseClasses/DamageTags.cs`
+
+The **ten-thousands digit is the category**; an attack takes one from each band.
+10000 target scope · 20000 attack kind · 30000 contact · 40000 penetration · 50000 weapon class.
+
+> Damage-over-time (`CodeType.Effect`) carries an **empty tag list**. Code that checks for contact
+> must ask whether `ContactAttack` is present — never "is not `NonContactAttack`".
+
+## Common Tasks
+
+### Adding a unit
+
+1. `10_units.yaml` — stats, `codes`, `levelPassives`, proficiencies, tags
+2. Portrait/standing in `Resources/Sprite/Portraits` · `Standings`
+3. Implement codes under `Codes/[Passive|Normal|Ultimate]/`, register in `CodeFactory`
+4. Register display data in `20_codes.yaml`
+5. Update `Detail_08` (spec) and `Detail_12` (index)
+
+Growth must follow the rule in `Detail_08`: **main +2, sub +2, others +1** (Sei/Shi: main +3, sub +2).
+All 32 units currently satisfy it.
+
+### Adding a theme
+
+1. Enemy portraits first — a theme without art does not ship
+2. `60_enemies.yaml` — register normal/elite/boss under a new enemy `themeId`
+3. `80_stages.yaml` — add to `stageThemes` with `enemyThemeId` matching, plus `stagePatterns`
+4. Add a 5-slot event under `events`
+5. Update `Detail_09` (roster/composition), `Detail_10` (bosses), `Detail_01` (theme table)
+
+Themes with `enabled: false` are filtered out of the rotation by `RoundManager.ActiveThemes()`.
+A stage's `stagePatterns` entry takes priority over lone `midBossId`/`bossId` spawning.
+
+### Adding a status effect
+
+Extend `BaseEffect`, override only the hooks you need, and apply via
+`unit.AddStatus(BuffStatus.Create(id, key, name, caster, owner, effect, …))`.
+Pick a status ID that does not collide — check the existing constants first
+(`ControlStatuses`, `ElementalReaction`, and the per-theme `…StatusIds` classes).
+
+## Conventions
+
+- Comments and logs are Korean, and they explain **why**, not what. Match the surrounding density.
+- Commit messages are a single Korean sentence in plain present tense, describing the change from
+  the player's or the system's point of view (see `git log`).
+- Prefer the existing shared helpers (`Target.GetAllEnemies`, `AswanCombat`-style per-theme
+  helper classes) over re-deriving the same query in each code.
+- No automated tests exist. Verify gameplay changes in Play mode, and type-check with the
+  csproj-copy trick above.

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using BaseClasses;
 using Codes.Base;
 using Effects.Base;
@@ -22,6 +23,11 @@ namespace Codes.Passive
         public const int Reaper = 7805;
         public const int LightArmament = 7806;
         public const int Selfish = 7807;
+        public const int ThothToughnessAura = 7808;
+        public const int ThothIllusionist = 7809;
+        public const int ThothHiddenTruth = 7810;
+        public const int IsisDesertRadiance = 7811;
+        public const int ThothEyeOfWisdom = 7812;
     }
 
     /// <summary>호루스 P — 행동 속도를 1.0으로 고정하고 초과 속도 1%마다 STR +1.</summary>
@@ -296,5 +302,233 @@ namespace Codes.Passive
         public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
             => attacker == Target && context?.DamageTags?.Contains(DamageTag.AdditionalAttack) == true
                 ? 1.20f : 1f;
+    }
+
+    /// <summary>세트 P — 전투 시간 8초마다 다음 단일 접촉 피해에 고정 피해와 자가 회복을 붙인다.</summary>
+    public sealed class SetBloodOfTheDesert : UniquePassiveCode
+    {
+        private const float IntervalSeconds = 8f;
+        private float _nextReadyAt;
+        private bool _registered;
+        private bool _resolving;
+        private Action<DamageResolvedContext> _damageHandler;
+        private Action<EventContext> _cleanupHandler;
+
+        public SetBloodOfTheDesert(PassiveCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Passive;
+            CodeName = "사막의 피";
+            IgnoresActivationChance = true;
+            Transferable = false;
+        }
+
+        public override void CastCode()
+        {
+            if (Caster == null || _registered) return;
+            _nextReadyAt = (GameManager.Instance?.ActionScheduler?.CombatSeconds ?? 0f) + IntervalSeconds;
+            _damageHandler = OnDamageDealt;
+            _cleanupHandler = _ => StopCode();
+            Caster.AddListener(BaseEnums.UnitEventType.OnDamageDealt, _damageHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = true;
+        }
+
+        private void OnDamageDealt(DamageResolvedContext context)
+        {
+            if (_resolving || context?.Attacker != Caster || context.Target == null ||
+                context.DamageDealt <= 0) return;
+            List<int> tags = context.DamageContext?.DamageTags;
+            if (tags == null || !tags.Contains(DamageTag.SingleTarget) ||
+                !tags.Contains(DamageTag.ContactAttack)) return;
+
+            float now = GameManager.Instance?.ActionScheduler?.CombatSeconds ?? 0f;
+            if (now + 0.0001f < _nextReadyAt) return;
+            _nextReadyAt = now + IntervalSeconds;
+
+            int bonus = Mathf.Max(1, Caster.SkillDamage(20, BaseEnums.PrimaryStat.STR));
+            if (context.Target.isActive && context.Target.HpCurr > 0)
+            {
+                _resolving = true;
+                try
+                {
+                    context.Target.TakeDamage(new DamageContext(
+                        Caster, bonus, BaseEnums.CodeType.Passive,
+                        new List<int> { DamageTag.SingleTarget, DamageTag.TrueDamage, DamageTag.AdditionalAttack }));
+                }
+                finally
+                {
+                    _resolving = false;
+                }
+            }
+
+            Caster.ModifyHp(Caster.HpCurr + Mathf.RoundToInt(Caster.HpMax * 0.08f), Caster);
+        }
+
+        public override void StopCode()
+        {
+            if (!_registered || Caster == null) return;
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnDamageDealt, _damageHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = false;
+            _resolving = false;
+        }
+    }
+
+    /// <summary>토트 P — 필드에 있는 동안 모든 아군의 강인도 효율 +25%.</summary>
+    public sealed class ThothToughnessScholar : UniquePassiveCode
+    {
+        private readonly List<Unit> _boundAllies = new();
+        private Action<EventContext> _cleanupHandler;
+        private bool _registered;
+
+        public ThothToughnessScholar(PassiveCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Passive;
+            CodeName = "강인도 해석";
+            IgnoresActivationChance = true;
+            Transferable = false;
+        }
+
+        public override void CastCode()
+        {
+            if (Caster == null || _registered) return;
+            string key = $"thoth_toughness_aura_{Caster.GetEntityId()}";
+            foreach (Unit ally in global::Target.GetAllAllies(Caster)
+                         .Where(unit => unit != null && unit.isActive))
+            {
+                ally.AddStatus(BuffStatus.Create(
+                    EgyptianStatusIds.ThothToughnessAura, key, CodeName,
+                    Caster, ally, new ToughnessEfficiencyEffect(0.25f),
+                    stackPolicy: BaseEnums.StatusStackPolicy.Replace,
+                    isBeneficial: true,
+                    description: "강인도 효율이 25% 증가합니다."));
+                _boundAllies.Add(ally);
+            }
+
+            _cleanupHandler = _ => StopCode();
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = true;
+        }
+
+        public override void StopCode()
+        {
+            if (!_registered || Caster == null) return;
+            string key = $"thoth_toughness_aura_{Caster.GetEntityId()}";
+            foreach (Unit ally in _boundAllies) ally?.RemoveStatusByKey(key);
+            _boundAllies.Clear();
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = false;
+        }
+    }
+
+    public sealed class ThothIllusionist : PassiveCode
+    {
+        public ThothIllusionist(PassiveCodeContext context) : base(context)
+        { CodeType = BaseEnums.CodeType.Passive; CodeName = "환술사"; IgnoresActivationChance = true; }
+
+        public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
+            EgyptianStatusIds.ThothIllusionist, "thoth_illusionist", CodeName,
+            Caster, Caster, new ToughnessEfficiencyEffect(0.25f),
+            stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
+            isBeneficial: true,
+            description: "피해를 가할 때 강인도 효율이 25% 증가합니다."));
+    }
+
+    public sealed class ThothHiddenTruth : PassiveCode
+    {
+        public ThothHiddenTruth(PassiveCodeContext context) : base(context)
+        { CodeType = BaseEnums.CodeType.Passive; CodeName = "허허실실"; IgnoresActivationChance = true; }
+
+        public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
+            EgyptianStatusIds.ThothHiddenTruth, "thoth_hidden_truth", CodeName,
+            Caster, Caster, new ToughnessEchoEffect(0.10f),
+            stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
+            isBeneficial: true,
+            description: "감소시킨 강인도의 10%를 실제 피해로 더합니다."));
+    }
+
+    public sealed class IsisDesertRadiance : UniquePassiveCode
+    {
+        public const string MarkKey = "isis_desert_radiance";
+        private Action<Unit, Unit, BaseEnums.UnitElement> _elementHandler;
+        private Action<EventContext> _cleanupHandler;
+        private bool _registered;
+
+        public IsisDesertRadiance(PassiveCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Passive;
+            CodeName = "사막의 광휘";
+            IgnoresActivationChance = true;
+            Transferable = false;
+        }
+
+        public override void CastCode()
+        {
+            if (Caster == null || _registered) return;
+            _elementHandler = OnElementGranted;
+            _cleanupHandler = _ => StopCode();
+            Unit.AnyCombatElementGranted += _elementHandler;
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = true;
+        }
+
+        private void OnElementGranted(Unit source, Unit target, BaseEnums.UnitElement element)
+        {
+            if (source != Caster || target == null || target.IsEnemy == Caster.IsEnemy ||
+                element != BaseEnums.UnitElement.Geo) return;
+
+            target.AddStatus(BuffStatus.Create(
+                EgyptianStatusIds.IsisDesertRadiance, MarkKey, CodeName,
+                Caster, target, new IsisDesertRadianceEffect(),
+                duration: Unit.CommonElementAuraDuration,
+                stackPolicy: BaseEnums.StatusStackPolicy.Replace,
+                category: BaseEnums.StatusCategory.Negative,
+                isBeneficial: false,
+                description: "특수 피해를 10% 더 받습니다."));
+        }
+
+        public override void StopCode()
+        {
+            if (!_registered || Caster == null) return;
+            Unit.AnyCombatElementGranted -= _elementHandler;
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = false;
+        }
+    }
+
+    /// <summary>이시스 Lv.12 — 효과가 아직 기획되지 않아 코드 슬롯과 이름만 보존한다.</summary>
+    public sealed class IsisElement : PassiveCode
+    {
+        public IsisElement(PassiveCodeContext context) : base(context)
+        { CodeType = BaseEnums.CodeType.Passive; CodeName = "원소"; IgnoresActivationChance = true; }
+    }
+
+    internal sealed class ToughnessEfficiencyEffect : BaseEffect
+    {
+        private readonly float _bonus;
+        public ToughnessEfficiencyEffect(float bonus) : base(0, bonus) => _bonus = bonus;
+        public override float ToughnessDamageAdditiveModifier(Unit attacker, Unit target, DamageContext context)
+            => attacker == Target ? _bonus : 0f;
+    }
+
+    internal sealed class ToughnessEchoEffect : BaseEffect
+    {
+        private readonly float _ratio;
+        public ToughnessEchoEffect(float ratio) : base(0, ratio) => _ratio = ratio;
+        public override float ToughnessEchoDamageRatioModifier(Unit attacker, Unit target, DamageContext context)
+            => attacker == Target ? _ratio : 0f;
+    }
+
+    internal sealed class IsisDesertRadianceEffect : BaseEffect
+    {
+        public IsisDesertRadianceEffect() : base(0) { }
+        public override float ReceivingDamageModifier(Unit unit, DamageContext context)
+            => unit == Target && context?.DamageTags?.Contains(DamageTag.Special) == true ? 1.10f : 1f;
     }
 }

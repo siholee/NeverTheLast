@@ -49,9 +49,6 @@ namespace Managers
         public string portrait;
         // 비주얼 노벨/캐릭터 소개용 세로 전신 일러스트. 없으면 portrait로 폴백한다.
         public string standing;
-        public List<int> cost;
-        public int costAmount;
-        public int tier;
     }
 
     // 레벨에 따라 해금되는 추가 패시브 정의.

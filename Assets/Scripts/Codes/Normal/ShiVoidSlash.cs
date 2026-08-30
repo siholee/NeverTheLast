@@ -17,7 +17,6 @@ namespace Codes.Normal
             CodeName = "일반공격";
             Cooldown = 1;      // 기본 2초보다 짧다 — 스택을 빨리 쌓기 위한 설계
             CastingDelay = 0.35f;
-            ManaAmount = 12;
             MaxStage = 3;
             StagePowers = new[] { 38, 46, 54 };
             CodeTags = new List<int> { DamageTag.Physical };

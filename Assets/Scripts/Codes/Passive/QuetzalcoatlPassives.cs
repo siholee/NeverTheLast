@@ -77,10 +77,8 @@ namespace Codes.Passive
             IgnoresActivationChance = true;
         }
 
-        public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
-            QuetzalcoatlStatusIds.Wisdom, "quetzalcoatl_wisdom", CodeName,
-            Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.INT, 4),
-            stackPolicy: BaseEnums.StatusStackPolicy.Ignore, isBeneficial: true, description: "INT +4"));
+        // 전투 효과는 없다. TrainingManager가 서포트 카드의 활성 패시브를 확인해
+        // INT 집중 훈련 효율 +10%를 적용한다.
     }
 
     public sealed class QuetzalcoatlLucky : PassiveCode

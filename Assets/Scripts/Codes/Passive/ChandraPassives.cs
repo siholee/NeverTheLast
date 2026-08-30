@@ -785,33 +785,4 @@ namespace Codes.Passive
             }
         }
     }
-
-    public class MacanaGrowth : PassiveCode
-    {
-        private bool _registered;
-        private Action<EventContext> _handler;
-
-        public MacanaGrowth(PassiveCodeContext context) : base(context)
-        {
-            CodeName = "마카나";
-            Transferable = false;
-            IgnoresActivationChance = true;
-        }
-
-        public override void CastCode()
-        {
-            if (_registered) return;
-            _handler = OnKill;
-            Caster.AddListener(BaseEnums.UnitEventType.OnKill, _handler);
-            _registered = true;
-        }
-
-        private void OnKill(EventContext context)
-        {
-            if (context.Grantee != Caster || UnityEngine.Random.value >= 0.25f) return;
-            BaseEnums.PrimaryStat stat = (BaseEnums.PrimaryStat)UnityEngine.Random.Range(0, 5);
-            Caster.AddStatUpgrade(stat, 1);
-            Debug.Log($"[마카나] {Caster.UnitName}의 {stat}이 영구적으로 1 증가했습니다.");
-        }
-    }
 }

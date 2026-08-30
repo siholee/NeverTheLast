@@ -3,7 +3,7 @@
 > **3계층 문서.** UI 화면 구성, 매니저 구조, 데이터 파일, 저장 시스템, 아트/사운드 규약.
 > 개념 정의는 [서브 기획서](GDD_Sub_Concepts.md) 7장을 본다.
 
-최종 갱신: 2026-08-10
+최종 갱신: 2026-08-30
 관련 코드: `Assets/Scripts/Managers/`, `Assets/Scripts/Core/`, `Assets/Scripts/Data/`
 
 ---
@@ -230,6 +230,9 @@ currHpRenderer.sortingOrder = maxHpRenderer.sortingOrder + 1;
 | `AudioManager` | BGM/SFX 재생, 볼륨 |
 | `SfxManager` | 전투 이펙트 |
 | `DragAndDropManager` | 유닛 배치 조작 |
+| `EventScheduler` | 사건 예약 큐. 임의 지점에 사건을 끼워 넣는다 (MonoBehaviour 아님) |
+
+`SettingsManager`는 `Assets/Scripts/Core/`에 있고 위 목록의 싱글턴 규칙과 별개다.
 | `EventScheduler` | 사건 예약 큐 |
 
 ### 2.1 단일 진입점 원칙
