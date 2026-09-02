@@ -206,22 +206,32 @@ namespace Codes.Passive
     }
 
     /// <summary>같은 진영이 부여하는 지속피해량을 25% 증가시킨다.</summary>
+    /// <summary>지속피해 증폭 계열의 <b>일반 등급</b>. 강화 등급은 죽음의 계약(240)이다.</summary>
     public sealed class TsukuyomiCurse : PassiveCode
     {
+        public const int CodeId = 123;
+        private const float Multiplier = 1.20f;
+
         public TsukuyomiCurse(PassiveCodeContext context) : base(context)
         {
             CodeName = "저주";
             IgnoresActivationChance = true;
+            SupersededByCodeId = YamaDeathContract.CodeId;
         }
 
         public override void CastCode()
         {
+            if (Caster == null) return;
+
             foreach (Unit ally in Target.GetAllAllies(Caster).Where(unit => unit != null && unit.isActive))
             {
+                // 죽음의 계약과 같은 키를 써야 필드에서 둘이 곱해지지 않고 높은 쪽만 남는다.
                 ally.AddStatus(BuffStatus.Create(
-                    TsukuyomiStatusIds.Curse, $"tsukuyomi_curse_{Caster.GetEntityId()}", "저주", Caster, ally,
-                    new DamageOverTimeApplicationEffect(1.25f),
-                    description: "부여하는 지속피해량이 25% 증가합니다."));
+                    TsukuyomiStatusIds.Curse, YamaDeathContract.SharedKey, "저주", Caster, ally,
+                    new DamageOverTimeApplicationEffect(Multiplier),
+                    stackPolicy: BaseEnums.StatusStackPolicy.ReplaceIfStronger,
+                    isBeneficial: true,
+                    description: "부여하는 지속피해량이 20% 증가합니다."));
             }
         }
     }

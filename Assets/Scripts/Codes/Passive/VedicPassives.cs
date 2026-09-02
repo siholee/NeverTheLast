@@ -43,10 +43,12 @@ namespace Codes.Passive
     /// </summary>
     public sealed class YamaDeathContract : UniquePassiveCode
     {
+        public const int CodeId = 240;
+
         /// <summary>지속피해 증폭 계열의 공용 상태 키. 같은 키를 쓰면 중복 적용되지 않는다.</summary>
         public const string SharedKey = "dot_amplify_aura";
 
-        private const float Multiplier = 1.25f;
+        private const float Multiplier = 1.30f;
 
         public YamaDeathContract(PassiveCodeContext context) : base(context)
         {
@@ -63,13 +65,13 @@ namespace Codes.Passive
 
             foreach (Unit ally in Target.GetAllAllies(Caster).Where(unit => unit != null && unit.isActive))
             {
-                // ReplaceIfStronger — 저주(1.25)와 겹쳐도 높은 쪽만 남는다.
+                // ReplaceIfStronger — 저주(1.20)와 겹쳐도 높은 쪽만 남는다.
                 ally.AddStatus(BuffStatus.Create(
                     VedicIds.YamaCurse, SharedKey, CodeName, Caster, ally,
                     new DotAmplifyEffect(Multiplier),
                     stackPolicy: BaseEnums.StatusStackPolicy.ReplaceIfStronger,
                     isBeneficial: true,
-                    description: "부여하는 지속피해량이 25% 증가합니다."));
+                    description: "부여하는 지속피해량이 30% 증가합니다."));
             }
         }
     }

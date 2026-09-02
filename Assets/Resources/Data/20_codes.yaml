@@ -127,7 +127,7 @@ codes:
     - id: 123
       verbalName: 저주
       codeName: TsukuyomiCurse
-      description: "같은 진영의 모든 아군이 부여하는 지속피해량이 25% 증가한다."
+      description: "같은 진영의 모든 아군이 부여하는 지속피해량이 20% 증가한다. 죽음의 계약(240)의 일반 등급이며 함께 들면 발동하지 않는다."
     - id: 124
       verbalName: 상처 벌리기
       codeName: TsukuyomiWidenWound
@@ -176,7 +176,7 @@ codes:
     - { id: 53, verbalName: 창세의 노래, codeName: SeiFirstSong, description: "<전수 불가> 전투 중 최초로 궁극기를 발동하면 아군 전체의 궁극기 충전량이 100%가 된다. 특수 궁극기 보유자에게도 적용된다." }
 
     # ── 베다 진영 ──
-    - { id: 240, verbalName: 죽음의 계약, codeName: YamaDeathContract, description: "야마가 필드에 있는 동안 모든 아군이 가하는 지속피해 +25%. 동일·하위 코드와 중복되지 않고 높은 쪽만 적용된다. <고유 패시브> <전수 불가능>" }
+    - { id: 240, verbalName: 죽음의 계약, codeName: YamaDeathContract, description: "야마가 필드에 있는 동안 모든 아군이 가하는 지속피해 +30%. 저주(123)의 강화 등급이며 높은 쪽만 적용된다. <고유 패시브> <전수 불가능>" }
     - { id: 241, verbalName: 지혜, codeName: VedicWisdom, description: "INT +4." }
     - { id: 242, verbalName: 원소 숙련 - 번개, codeName: ElectroMastery, description: "번개 원소를 보유한 적에게 주는 피해 +10%." }
     - { id: 243, verbalName: 원소 숙련 - 불, codeName: PyroMastery, description: "불 원소를 보유한 적에게 주는 피해 +10%." }
