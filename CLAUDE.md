@@ -146,8 +146,23 @@ Singletons via `Manager.Instance`, in `Assets/Scripts/Managers/`.
 | `80_stages.yaml` | Themes, events, fixed bosses | `StageData.cs` |
 | `90_rewards.yaml` | Per-round reward tier odds | `RewardData.cs` |
 
-**Code IDs are per-slot namespaces.** Passive 290 and ultimate 290 are unrelated; `CodeFactory`
-resolves them in separate switches. Orion's P/N/U are all `80`.
+**Code IDs are per-slot namespaces.** Passive 22 and ultimate 22 are unrelated; `CodeFactory`
+resolves them in separate switches.
+
+**IDs are allocated by faction and by code family** — see `Detail_03 §7.4` and `Detail_11 §1.5`.
+
+| Space | Rule |
+| --- | --- |
+| Unit ID | 20-slot block per faction — Akasha 1~, Greek 20~, Takamagahara 40~, Vedic 60~, Nord 80~, Rome 100~, Egypt 120~, Mexica 140~, Gaul 160~ |
+| Ally normal / ultimate | **same number as the owner's unit ID** (Orion = 22 → N 22, U 22) |
+| Ally unique passive | **owner's unit ID + 200** (Orion → 222) |
+| Ally shared unlock passive | 1~179 |
+| Equipment-granted passive | 400~499 |
+| Enemy codes | 1000+ in per-theme 100-slot blocks (공용 1000 · 콜로세움 1100 · 로마 1200 · 메히코 1300 · 아스완 1400) |
+
+Enemy codes are dispatched by **range arms whose ID gaps are the style index**
+(`(LegionNormalStyle)(codeId - 1200)`), so append new enemy codes at the end of a family —
+never in the middle. Changing unit IDs breaks saves: bump `RunSaveData.CurrentVersion` with it.
 
 ### Codes (skills)
 

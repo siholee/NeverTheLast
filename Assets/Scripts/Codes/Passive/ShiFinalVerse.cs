@@ -235,11 +235,11 @@ namespace Codes.Passive
     /// <summary>Lv.44 / 수르트 Lv.66 공용: 공격 후 생명력 8% 미만의 적을 처형한다.</summary>
     public sealed class HeavenlyKiller : ExecuteThresholdPassive
     {
-        public const int CodeId = 58;
+        public const int CodeId = 11;
 
         public HeavenlyKiller(PassiveCodeContext context) : base(context, "천살성", 0.08f)
         {
-            // 일반 등급. 당연한 운명(60)을 배웠으면 발동 자체가 막힌다.
+            // 일반 등급. 당연한 운명(13)을 배웠으면 발동 자체가 막힌다.
             SupersededByCodeId = ShiCertainDestiny.CodeId;
         }
     }
@@ -247,7 +247,7 @@ namespace Codes.Passive
     /// <summary>Lv.78: 체력 10% 미만 대상 공격은 확정 치명타이며 치명타 확률×2를 치명타 피해에 더한다.</summary>
     public sealed class ShiTenDaysNoFlower : ShiStatusPassive
     {
-        public const int CodeId = 59;
+        public const int CodeId = 12;
 
         public ShiTenDaysNoFlower(PassiveCodeContext context) : base(
             context, 159, "shi_ten_days_no_flower", "화무십일홍",
@@ -284,7 +284,7 @@ namespace Codes.Passive
     /// <summary>Lv.82: 천살성을 보유한 경우 처형선을 12%로 대체한다.</summary>
     public sealed class ShiCertainDestiny : ExecuteThresholdPassive
     {
-        public const int CodeId = 60;
+        public const int CodeId = 13;
 
         public ShiCertainDestiny(PassiveCodeContext context) : base(context, "당연한 운명", 0.12f)
         {

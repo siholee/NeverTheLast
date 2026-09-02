@@ -66,22 +66,22 @@ units:
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
     codes:
-      passive: 50
-      normal: 3
-      ultimate: 8
+      passive: 201
+      normal: 1
+      ultimate: 1
     codeStages:
       passive: 1
       normal: 1
       ultimate: 1
     levelPassives:
-      - { codeId: 8,   unlockLevel: 8,  stage: 1 }   # 성채
-      - { codeId: 121, unlockLevel: 12, stage: 1 }   # 주문 보호막
-      - { codeId: 74,  unlockLevel: 22, stage: 1 }   # 명상
-      - { codeId: 93,  unlockLevel: 25, stage: 1 }   # 투명
-      - { codeId: 97,  unlockLevel: 30, stage: 1 }   # 마나 호흡법
-      - { codeId: 38,  unlockLevel: 38, stage: 1 }   # 철벽
-      - { codeId: 52,  unlockLevel: 50, stage: 1 }   # 사전준비
-      - { codeId: 53,  unlockLevel: 92, stage: 1 }   # 창세의 노래
+      - { codeId: 1,   unlockLevel: 8,  stage: 1 }   # 성채
+      - { codeId: 33, unlockLevel: 12, stage: 1 }   # 주문 보호막
+      - { codeId: 18,  unlockLevel: 22, stage: 1 }   # 명상
+      - { codeId: 27,  unlockLevel: 25, stage: 1 }   # 투명
+      - { codeId: 31,  unlockLevel: 30, stage: 1 }   # 마나 호흡법
+      - { codeId: 6,  unlockLevel: 38, stage: 1 }   # 철벽
+      - { codeId: 7,  unlockLevel: 50, stage: 1 }   # 사전준비
+      - { codeId: 8,  unlockLevel: 92, stage: 1 }   # 창세의 노래
     portrait: SEI_PORTRAIT
     standing: SEI_STANDING
 
@@ -116,20 +116,20 @@ units:
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
     codes:
-      passive: 5
-      normal: 13
-      ultimate: 7
+      passive: 202
+      normal: 2
+      ultimate: 2
     codeStages:
       passive: 1
       normal: 1
       ultimate: 1
     levelPassives:
-      - { codeId: 54,  unlockLevel: 10, stage: 1 }   # 검의 달인
-      - { codeId: 56,  unlockLevel: 28, stage: 1 }   # 신속
-      - { codeId: 124, unlockLevel: 31, stage: 1 }   # 상처 벌리기
-      - { codeId: 58,  unlockLevel: 44, stage: 1 }   # 천살성
-      - { codeId: 59,  unlockLevel: 78, stage: 1 }   # 화무십일홍
-      - { codeId: 60,  unlockLevel: 82, stage: 1 }   # 당연한 운명
+      - { codeId: 9,  unlockLevel: 10, stage: 1 }   # 검의 달인
+      - { codeId: 10,  unlockLevel: 28, stage: 1 }   # 신속
+      - { codeId: 35, unlockLevel: 31, stage: 1 }   # 상처 벌리기
+      - { codeId: 11,  unlockLevel: 44, stage: 1 }   # 천살성
+      - { codeId: 12,  unlockLevel: 78, stage: 1 }   # 화무십일홍
+      - { codeId: 13,  unlockLevel: 82, stage: 1 }   # 당연한 운명
     portrait: SHI_PORTRAIT
     standing: SHI_STANDING
 
@@ -164,19 +164,19 @@ units:
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
     codes:
-      passive: 4
-      normal: 2
-      ultimate: 6
+      passive: 220
+      normal: 20
+      ultimate: 20
     codeStages:
       passive: 1
       normal: 1
       ultimate: 1
     levelPassives:
-      - { codeId: 12,  unlockLevel: 12, stage: 1 }   # 기사회생
-      - { codeId: 220, unlockLevel: 39, stage: 1 }   # 약자 멸시
-      - { codeId: 221, unlockLevel: 45, stage: 1 }   # 천천히 꾸준히
-      - { codeId: 222, unlockLevel: 68, stage: 1 }   # 날카로운 가시
-      - { codeId: 223, unlockLevel: 76, stage: 1 }   # 사랑신의 가호
+      - { codeId: 2,  unlockLevel: 12, stage: 1 }   # 기사회생
+      - { codeId: 51, unlockLevel: 39, stage: 1 }   # 약자 멸시
+      - { codeId: 52, unlockLevel: 45, stage: 1 }   # 천천히 꾸준히
+      - { codeId: 53, unlockLevel: 68, stage: 1 }   # 날카로운 가시
+      - { codeId: 54, unlockLevel: 76, stage: 1 }   # 사랑신의 가호
     portrait: PYGMALION_PORTRAIT
     standing: PYGMALION_STANDING
 
@@ -211,21 +211,21 @@ units:
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
     codes:
-      passive: 2
-      normal: 1
-      ultimate: 3
+      passive: 221
+      normal: 21
+      ultimate: 21
     codeStages:
       passive: 1
       normal: 1
       ultimate: 1
     levelPassives:
-      - { codeId: 140, unlockLevel: 4,  stage: 1 }   # 궁수
-      - { codeId: 141, unlockLevel: 6,  stage: 1 }   # 민첩함
-      - { codeId: 142, unlockLevel: 10, stage: 1 }   # 유리대포
-      - { codeId: 143, unlockLevel: 18, stage: 1 }   # 사냥꾼
-      - { codeId: 144, unlockLevel: 30, stage: 1 }   # 맹독
-      - { codeId: 145, unlockLevel: 41, stage: 1 }   # 저격수
-      - { codeId: 146, unlockLevel: 67, stage: 1 }   # 사냥신의 가호
+      - { codeId: 44, unlockLevel: 4,  stage: 1 }   # 궁수
+      - { codeId: 45, unlockLevel: 6,  stage: 1 }   # 민첩함
+      - { codeId: 46, unlockLevel: 10, stage: 1 }   # 유리대포
+      - { codeId: 47, unlockLevel: 18, stage: 1 }   # 사냥꾼
+      - { codeId: 48, unlockLevel: 30, stage: 1 }   # 맹독
+      - { codeId: 49, unlockLevel: 41, stage: 1 }   # 저격수
+      - { codeId: 50, unlockLevel: 67, stage: 1 }   # 사냥신의 가호
     portrait: ATALANTE_PORTRAIT
     standing: ATALANTE_STANDING
 
@@ -261,22 +261,22 @@ units:
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
     codes:
-      passive: 80
-      normal: 80
-      ultimate: 80
+      passive: 222
+      normal: 22
+      ultimate: 22
     codeStages:
       passive: 1
       normal: 1
       ultimate: 1
     levelPassives:
-      - { codeId: 140, unlockLevel: 4,  stage: 1 }   # 궁수
-      - { codeId: 81,  unlockLevel: 10, stage: 1 }   # 중갑병
-      - { codeId: 12,  unlockLevel: 12, stage: 1 }   # 기사회생
-      - { codeId: 143, unlockLevel: 18, stage: 1 }   # 사냥꾼
-      - { codeId: 82,  unlockLevel: 32, stage: 1 }   # 명사수
-      - { codeId: 38,  unlockLevel: 38, stage: 1 }   # 철벽
-      - { codeId: 83,  unlockLevel: 52, stage: 1 }   # 파수꾼
-      - { codeId: 146, unlockLevel: 67, stage: 1 }   # 사냥신의 가호
+      - { codeId: 44, unlockLevel: 4,  stage: 1 }   # 궁수
+      - { codeId: 20,  unlockLevel: 10, stage: 1 }   # 중갑병
+      - { codeId: 2,  unlockLevel: 12, stage: 1 }   # 기사회생
+      - { codeId: 47, unlockLevel: 18, stage: 1 }   # 사냥꾼
+      - { codeId: 21,  unlockLevel: 32, stage: 1 }   # 명사수
+      - { codeId: 6,  unlockLevel: 38, stage: 1 }   # 철벽
+      - { codeId: 22,  unlockLevel: 52, stage: 1 }   # 파수꾼
+      - { codeId: 50, unlockLevel: 67, stage: 1 }   # 사냥신의 가호
     portrait: ORION_PORTRAIT
     standing: ORION_STANDING
 
@@ -312,18 +312,18 @@ units:
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
     codes:
-      passive: 84
-      normal: 84
-      ultimate: 84
+      passive: 223
+      normal: 23
+      ultimate: 23
     codeStages:
       passive: 1
       normal: 1
       ultimate: 1
     levelPassives:
-      - { codeId: 85, unlockLevel: 9,  stage: 1 }   # 원소 친화 - 물
-      - { codeId: 86, unlockLevel: 22, stage: 1 }   # 투사
-      - { codeId: 88, unlockLevel: 45, stage: 1 }   # 자가치유
-      - { codeId: 89, unlockLevel: 50, stage: 1 }   # 과다치유
+      - { codeId: 23, unlockLevel: 9,  stage: 1 }   # 원소 친화 - 물
+      - { codeId: 24, unlockLevel: 22, stage: 1 }   # 투사
+      - { codeId: 25, unlockLevel: 45, stage: 1 }   # 자가치유
+      - { codeId: 26, unlockLevel: 50, stage: 1 }   # 과다치유
     portrait: THESEUS_PORTRAIT
     standing: THESEUS_STANDING
 
@@ -359,20 +359,20 @@ units:
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
     codes:
-      passive: 91
-      normal: 91
-      ultimate: 91
+      passive: 224
+      normal: 24
+      ultimate: 24
     codeStages:
       passive: 1
       normal: 1
       ultimate: 1
     levelPassives:
-      - { codeId: 71, unlockLevel: 4,  stage: 1 }   # 지혜
-      - { codeId: 97, unlockLevel: 30, stage: 1 }   # 마나 호흡법
-      - { codeId: 35, unlockLevel: 35, stage: 1 }   # 목욕제계
-      - { codeId: 96, unlockLevel: 40, stage: 1 }   # 치명적인 치유
-      - { codeId: 126, unlockLevel: 44, stage: 1 }  # 순환
-      - { codeId: 98, unlockLevel: 58, stage: 1 }   # 의신의 가호
+      - { codeId: 15, unlockLevel: 4,  stage: 1 }   # 지혜
+      - { codeId: 31, unlockLevel: 30, stage: 1 }   # 마나 호흡법
+      - { codeId: 5, unlockLevel: 35, stage: 1 }   # 목욕제계
+      - { codeId: 30, unlockLevel: 40, stage: 1 }   # 치명적인 치유
+      - { codeId: 37, unlockLevel: 44, stage: 1 }  # 순환
+      - { codeId: 32, unlockLevel: 58, stage: 1 }   # 의신의 가호
     portrait: ASCLEPIUS_PORTRAIT
     standing: ASCLEPIUS_STANDING
 
@@ -408,20 +408,20 @@ units:
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
     codes:
-      passive: 92
-      normal: 92
-      ultimate: 92
+      passive: 240
+      normal: 40
+      ultimate: 40
     codeStages:
       passive: 1
       normal: 1
       ultimate: 1
     levelPassives:
-      - { codeId: 142, unlockLevel: 10, stage: 1 }  # 유리대포
-      - { codeId: 93,  unlockLevel: 25, stage: 1 }  # 투명
-      - { codeId: 82,  unlockLevel: 32, stage: 1 }  # 명사수
-      - { codeId: 145, unlockLevel: 41, stage: 1 }  # 저격수
-      - { codeId: 94,  unlockLevel: 44, stage: 1 }  # 폭죽놀이
-      - { codeId: 95,  unlockLevel: 68, stage: 1 }  # 파죽지세
+      - { codeId: 46, unlockLevel: 10, stage: 1 }  # 유리대포
+      - { codeId: 27,  unlockLevel: 25, stage: 1 }  # 투명
+      - { codeId: 21,  unlockLevel: 32, stage: 1 }  # 명사수
+      - { codeId: 49, unlockLevel: 41, stage: 1 }  # 저격수
+      - { codeId: 28,  unlockLevel: 44, stage: 1 }  # 폭죽놀이
+      - { codeId: 29,  unlockLevel: 68, stage: 1 }  # 파죽지세
     portrait: AMATERASU_PORTRAIT
     standing: AMATERASU_STANDING
 
@@ -457,33 +457,33 @@ units:
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
     codes:
-      passive: 3
-      normal: 12
-      ultimate: 5
+      passive: 260
+      normal: 60
+      ultimate: 60
     codeStages:
       passive: 3
       normal: 1
       ultimate: 1
     levelPassives:
-      - codeId: 8
+      - codeId: 1
         unlockLevel: 8
         stage: 1
-      - codeId: 12
+      - codeId: 2
         unlockLevel: 12
         stage: 1
-      - codeId: 20
+      - codeId: 3
         unlockLevel: 20
         stage: 1
-      - codeId: 27
+      - codeId: 4
         unlockLevel: 27
         stage: 1
-      - codeId: 35
+      - codeId: 5
         unlockLevel: 35
         stage: 1
-      - codeId: 38
+      - codeId: 6
         unlockLevel: 38
         stage: 1
-      - codeId: 62
+      - codeId: 14
         unlockLevel: 62
         stage: 1
     portrait: CHANDRA_PORTRAIT
@@ -520,20 +520,20 @@ units:
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
     codes:
-      passive: 70
-      normal: 70
-      ultimate: 70
+      passive: 340
+      normal: 140
+      ultimate: 140
     codeStages:
       passive: 1
       normal: 1
       ultimate: 1
     levelPassives:
-      - { codeId: 71, unlockLevel: 4,  stage: 1 }   # 지혜
-      - { codeId: 72, unlockLevel: 9,  stage: 1 }   # 행운아
-      - { codeId: 73, unlockLevel: 18, stage: 1 }   # 학자
-      - { codeId: 74, unlockLevel: 22, stage: 1 }   # 명상
-      - { codeId: 52, unlockLevel: 48, stage: 1 }   # 사전 준비 (세이와 공용)
-      - { codeId: 75, unlockLevel: 90, stage: 1 }   # 날개 달린 뱀
+      - { codeId: 15, unlockLevel: 4,  stage: 1 }   # 지혜
+      - { codeId: 16, unlockLevel: 9,  stage: 1 }   # 행운아
+      - { codeId: 17, unlockLevel: 18, stage: 1 }   # 학자
+      - { codeId: 18, unlockLevel: 22, stage: 1 }   # 명상
+      - { codeId: 7, unlockLevel: 48, stage: 1 }   # 사전 준비 (세이와 공용)
+      - { codeId: 19, unlockLevel: 90, stage: 1 }   # 날개 달린 뱀
     portrait: QUETZALCOATL_PORTRAIT
     standing: QUETZALCOATL_STANDING
 
@@ -569,27 +569,27 @@ units:
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
     codes:
-      passive: 120
-      normal: 120
-      ultimate: 120
+      passive: 241
+      normal: 41
+      ultimate: 41
     codeStages:
       passive: 1
       normal: 1
       ultimate: 1
     levelPassives:
-      - codeId: 122
+      - codeId: 34
         unlockLevel: 15
         stage: 1
-      - codeId: 124
+      - codeId: 35
         unlockLevel: 33
         stage: 1
-      - codeId: 125
+      - codeId: 36
         unlockLevel: 38
         stage: 1
-      - codeId: 126
+      - codeId: 37
         unlockLevel: 44
         stage: 1
-      - codeId: 128
+      - codeId: 38
         unlockLevel: 72
         stage: 1
     portrait: TSUKUYOMI_PORTRAIT
@@ -630,20 +630,20 @@ units:
     ultimateResourceName: 라그나로크
     ultimateResourceMax: 6
     codes:
-      passive: 130
-      normal: 130
-      ultimate: 130
+      passive: 280
+      normal: 80
+      ultimate: 80
     codeStages:
       passive: 1
       normal: 1
       ultimate: 1
     levelPassives:
-      - { codeId: 133, unlockLevel: 4,  stage: 1 }   # 거인
-      - { codeId: 135, unlockLevel: 25, stage: 1 }   # 천상의 신체
-      - { codeId: 136, unlockLevel: 28, stage: 1 }   # 투사
-      - { codeId: 137, unlockLevel: 33, stage: 1 }   # 클러치 플레이어
-      - { codeId: 138, unlockLevel: 52, stage: 1 }   # 신살자
-      - { codeId: 58,  unlockLevel: 66, stage: 1 }   # 천살성
+      - { codeId: 39, unlockLevel: 4,  stage: 1 }   # 거인
+      - { codeId: 40, unlockLevel: 25, stage: 1 }   # 천상의 신체
+      - { codeId: 41, unlockLevel: 28, stage: 1 }   # 투사
+      - { codeId: 42, unlockLevel: 33, stage: 1 }   # 클러치 플레이어
+      - { codeId: 43, unlockLevel: 52, stage: 1 }   # 신살자
+      - { codeId: 11,  unlockLevel: 66, stage: 1 }   # 천살성
     portrait: SURTR_PORTRAIT
     standing: SURTR_STANDING
 
@@ -680,15 +680,15 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    codes: { passive: 240, normal: 240, ultimate: 240 }
+    codes: { passive: 261, normal: 61, ultimate: 61 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 241, unlockLevel: 4,  stage: 1 }   # 지혜
-      - { codeId: 242, unlockLevel: 9,  stage: 1 }   # 원소 숙련 - 번개
-      - { codeId: 121, unlockLevel: 12, stage: 1 }   # 주문 보호막
-      - { codeId: 244, unlockLevel: 44, stage: 1 }   # 고전압
-      - { codeId: 245, unlockLevel: 65, stage: 1 }   # 충전
-      - { codeId: 246, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
+      - { codeId: 56, unlockLevel: 4,  stage: 1 }   # 지혜
+      - { codeId: 57, unlockLevel: 9,  stage: 1 }   # 원소 숙련 - 번개
+      - { codeId: 33, unlockLevel: 12, stage: 1 }   # 주문 보호막
+      - { codeId: 59, unlockLevel: 44, stage: 1 }   # 고전압
+      - { codeId: 60, unlockLevel: 65, stage: 1 }   # 충전
+      - { codeId: 61, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
     portrait: YAMA_PORTRAIT
     standing: YAMA_STANDING
 
@@ -722,13 +722,13 @@ units:
     lukBase: 18
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
-    codes: { passive: 247, normal: 241, ultimate: 241 }
+    codes: { passive: 262, normal: 62, ultimate: 62 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 243, unlockLevel: 8,  stage: 1 }   # 원소 숙련 - 불
-      - { codeId: 121, unlockLevel: 12, stage: 1 }   # 주문 보호막
-      - { codeId: 248, unlockLevel: 71, stage: 1 }   # 대마법사
-      - { codeId: 246, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
+      - { codeId: 58, unlockLevel: 8,  stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 33, unlockLevel: 12, stage: 1 }   # 주문 보호막
+      - { codeId: 62, unlockLevel: 71, stage: 1 }   # 대마법사
+      - { codeId: 61, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
     portrait: AGNI_PORTRAIT
     standing: AGNI_STANDING
 
@@ -762,15 +762,15 @@ units:
     lukBase: 16
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
-    codes: { passive: 249, normal: 242, ultimate: 242 }
+    codes: { passive: 263, normal: 63, ultimate: 63 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 250, unlockLevel: 11, stage: 1 }   # 선두주자
-      - { codeId: 251, unlockLevel: 20, stage: 1 }   # 천재
-      - { codeId: 252, unlockLevel: 30, stage: 1 }   # 용살자
-      - { codeId: 253, unlockLevel: 45, stage: 1 }   # 자기과신
-      - { codeId: 246, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
-      - { codeId: 254, unlockLevel: 92, stage: 1 }   # 인도자
+      - { codeId: 63, unlockLevel: 11, stage: 1 }   # 선두주자
+      - { codeId: 64, unlockLevel: 20, stage: 1 }   # 천재
+      - { codeId: 65, unlockLevel: 30, stage: 1 }   # 용살자
+      - { codeId: 66, unlockLevel: 45, stage: 1 }   # 자기과신
+      - { codeId: 61, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
+      - { codeId: 67, unlockLevel: 92, stage: 1 }   # 인도자
     portrait: INDRA_PORTRAIT
     standing: INDRA_STANDING
 
@@ -804,14 +804,14 @@ units:
     lukBase: 14
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    codes: { passive: 255, normal: 243, ultimate: 243 }
+    codes: { passive: 264, normal: 64, ultimate: 64 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 140, unlockLevel: 4,  stage: 1 }   # 궁수
-      - { codeId: 256, unlockLevel: 13, stage: 1 }   # 재기의 바람
-      - { codeId: 122, unlockLevel: 15, stage: 1 }   # 변덕쟁이
-      - { codeId: 257, unlockLevel: 30, stage: 1 }   # 기습
-      - { codeId: 246, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
+      - { codeId: 44, unlockLevel: 4,  stage: 1 }   # 궁수
+      - { codeId: 68, unlockLevel: 13, stage: 1 }   # 재기의 바람
+      - { codeId: 34, unlockLevel: 15, stage: 1 }   # 변덕쟁이
+      - { codeId: 69, unlockLevel: 30, stage: 1 }   # 기습
+      - { codeId: 61, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
     portrait: VAYU_PORTRAIT
     standing: VAYU_STANDING
 
@@ -849,13 +849,13 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    codes: { passive: 260, normal: 244, ultimate: 244 }
+    codes: { passive: 281, normal: 81, ultimate: 81 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 74,  unlockLevel: 22, stage: 1 }   # 명상
-      - { codeId: 261, unlockLevel: 30, stage: 1 }   # 의술
-      - { codeId: 262, unlockLevel: 40, stage: 1 }   # 리더쉽
-      - { codeId: 263, unlockLevel: 61, stage: 1 }   # 전사장
+      - { codeId: 18,  unlockLevel: 22, stage: 1 }   # 명상
+      - { codeId: 70, unlockLevel: 30, stage: 1 }   # 의술
+      - { codeId: 71, unlockLevel: 40, stage: 1 }   # 리더쉽
+      - { codeId: 72, unlockLevel: 61, stage: 1 }   # 전사장
     portrait: FREYA_PORTRAIT
     standing: FREYA_STANDING
 
@@ -889,14 +889,14 @@ units:
     lukBase: 22
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
-    codes: { passive: 264, normal: 245, ultimate: 245 }
+    codes: { passive: 282, normal: 82, ultimate: 82 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 133, unlockLevel: 4,  stage: 1 }   # 거인
-      - { codeId: 122, unlockLevel: 15, stage: 1 }   # 변덕쟁이
-      - { codeId: 265, unlockLevel: 25, stage: 1 }   # 소환사
-      - { codeId: 138, unlockLevel: 52, stage: 1 }   # 신살자
-      - { codeId: 95,  unlockLevel: 68, stage: 1 }   # 파죽지세
+      - { codeId: 39, unlockLevel: 4,  stage: 1 }   # 거인
+      - { codeId: 34, unlockLevel: 15, stage: 1 }   # 변덕쟁이
+      - { codeId: 73, unlockLevel: 25, stage: 1 }   # 소환사
+      - { codeId: 43, unlockLevel: 52, stage: 1 }   # 신살자
+      - { codeId: 29,  unlockLevel: 68, stage: 1 }   # 파죽지세
     portrait: LOKI_PORTRAIT
     standing: LOKI_STANDING
 
@@ -930,14 +930,14 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    codes: { passive: 266, normal: 246, ultimate: 246 }
+    codes: { passive: 283, normal: 83, ultimate: 83 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 133, unlockLevel: 4,  stage: 1 }   # 거인
-      - { codeId: 267, unlockLevel: 10, stage: 1 }   # 원소 숙련 - 얼음
-      - { codeId: 268, unlockLevel: 12, stage: 1 }   # 원소 친화 - 얼음
-      - { codeId: 38,  unlockLevel: 38, stage: 1 }   # 철벽
-      - { codeId: 269, unlockLevel: 60, stage: 1 }   # 원소술사
+      - { codeId: 39, unlockLevel: 4,  stage: 1 }   # 거인
+      - { codeId: 74, unlockLevel: 10, stage: 1 }   # 원소 숙련 - 얼음
+      - { codeId: 75, unlockLevel: 12, stage: 1 }   # 원소 친화 - 얼음
+      - { codeId: 6,  unlockLevel: 38, stage: 1 }   # 철벽
+      - { codeId: 76, unlockLevel: 60, stage: 1 }   # 원소술사
     portrait: SKADI_PORTRAIT
     standing: SKADI_STANDING
 
@@ -971,15 +971,15 @@ units:
     lukBase: 10
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    codes: { passive: 270, normal: 247, ultimate: 247 }
+    codes: { passive: 265, normal: 65, ultimate: 65 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 271, unlockLevel: 5,  stage: 1 }   # 원소 친화 - 바위
-      - { codeId: 135, unlockLevel: 25, stage: 1 }   # 천상의 신체
-      - { codeId: 272, unlockLevel: 27, stage: 1 }   # 뿌리박기
-      - { codeId: 273, unlockLevel: 32, stage: 1 }   # 상인
-      - { codeId: 38,  unlockLevel: 38, stage: 1 }   # 철벽
-      - { codeId: 246, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
+      - { codeId: 77, unlockLevel: 5,  stage: 1 }   # 원소 친화 - 바위
+      - { codeId: 40, unlockLevel: 25, stage: 1 }   # 천상의 신체
+      - { codeId: 78, unlockLevel: 27, stage: 1 }   # 뿌리박기
+      - { codeId: 79, unlockLevel: 32, stage: 1 }   # 상인
+      - { codeId: 6,  unlockLevel: 38, stage: 1 }   # 철벽
+      - { codeId: 61, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
     portrait: KUBERA_PORTRAIT
     standing: KUBERA_STANDING
 
@@ -1013,14 +1013,14 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    codes: { passive: 274, normal: 248, ultimate: 248 }
+    codes: { passive: 266, normal: 66, ultimate: 66 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 121, unlockLevel: 12, stage: 1 }   # 주문 보호막
-      - { codeId: 125, unlockLevel: 38, stage: 1 }   # 고통스러운 상처
-      - { codeId: 244, unlockLevel: 44, stage: 1 }   # 고전압
-      - { codeId: 275, unlockLevel: 50, stage: 1 }   # 수천
-      - { codeId: 246, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
+      - { codeId: 33, unlockLevel: 12, stage: 1 }   # 주문 보호막
+      - { codeId: 36, unlockLevel: 38, stage: 1 }   # 고통스러운 상처
+      - { codeId: 59, unlockLevel: 44, stage: 1 }   # 고전압
+      - { codeId: 80, unlockLevel: 50, stage: 1 }   # 수천
+      - { codeId: 61, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
     portrait: VARUNA_PORTRAIT
     standing: VARUNA_STANDING
 
@@ -1054,14 +1054,14 @@ units:
     lukBase: 22
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
-    codes: { passive: 276, normal: 250, ultimate: 250 }
+    codes: { passive: 225, normal: 25, ultimate: 25 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 72,  unlockLevel: 9,  stage: 1 }   # 행운아
-      - { codeId: 256, unlockLevel: 13, stage: 1 }   # 재기의 바람
-      - { codeId: 93,  unlockLevel: 25, stage: 1 }   # 투명
-      - { codeId: 56,  unlockLevel: 28, stage: 1 }   # 신속
-      - { codeId: 277, unlockLevel: 30, stage: 1 }   # 음유시인
+      - { codeId: 16,  unlockLevel: 9,  stage: 1 }   # 행운아
+      - { codeId: 68, unlockLevel: 13, stage: 1 }   # 재기의 바람
+      - { codeId: 27,  unlockLevel: 25, stage: 1 }   # 투명
+      - { codeId: 10,  unlockLevel: 28, stage: 1 }   # 신속
+      - { codeId: 81, unlockLevel: 30, stage: 1 }   # 음유시인
     portrait: ORPHEUS_PORTRAIT
     standing: ORPHEUS_STANDING
 
@@ -1095,14 +1095,14 @@ units:
     lukBase: 24
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
-    codes: { passive: 278, normal: 249, ultimate: 249 }
+    codes: { passive: 242, normal: 42, ultimate: 42 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 72,  unlockLevel: 9,  stage: 1 }   # 행운아
-      - { codeId: 54,  unlockLevel: 10, stage: 1 }   # 검의 달인
-      - { codeId: 73,  unlockLevel: 18, stage: 1 }   # 예리함
-      - { codeId: 279, unlockLevel: 22, stage: 1 }   # 파도베기
-      - { codeId: 58,  unlockLevel: 44, stage: 1 }   # 천살성
+      - { codeId: 16,  unlockLevel: 9,  stage: 1 }   # 행운아
+      - { codeId: 9,  unlockLevel: 10, stage: 1 }   # 검의 달인
+      - { codeId: 17,  unlockLevel: 18, stage: 1 }   # 예리함
+      - { codeId: 82, unlockLevel: 22, stage: 1 }   # 파도베기
+      - { codeId: 11,  unlockLevel: 44, stage: 1 }   # 천살성
     portrait: SUSANOO_PORTRAIT
     standing: SUSANOO_STANDING
   # ── 로마 3인 ──────────────────────────────────────────────────────
@@ -1139,15 +1139,15 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    codes: { passive: 309, normal: 269, ultimate: 169 }
+    codes: { passive: 300, normal: 100, ultimate: 100 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 12,  unlockLevel: 12, stage: 1 }   # 기사회생
-      - { codeId: 97,  unlockLevel: 30, stage: 1 }   # 마나 호흡법
-      - { codeId: 283, unlockLevel: 46, stage: 1 }   # 전술가
-      - { codeId: 89,  unlockLevel: 50, stage: 1 }   # 과다치유
-      - { codeId: 52,  unlockLevel: 52, stage: 1 }   # 사전준비
-      - { codeId: 254, unlockLevel: 92, stage: 1 }   # 인도자
+      - { codeId: 2,  unlockLevel: 12, stage: 1 }   # 기사회생
+      - { codeId: 31,  unlockLevel: 30, stage: 1 }   # 마나 호흡법
+      - { codeId: 85, unlockLevel: 46, stage: 1 }   # 전술가
+      - { codeId: 26,  unlockLevel: 50, stage: 1 }   # 과다치유
+      - { codeId: 7,  unlockLevel: 52, stage: 1 }   # 사전준비
+      - { codeId: 67, unlockLevel: 92, stage: 1 }   # 인도자
     portrait: AGRIPPA_PORTRAIT
     standing: AGRIPPA_STANDING
 
@@ -1181,14 +1181,14 @@ units:
     lukBase: 18
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
-    codes: { passive: 310, normal: 270, ultimate: 170 }
+    codes: { passive: 301, normal: 101, ultimate: 101 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 142, unlockLevel: 10, stage: 1 }   # 유리대포
-      - { codeId: 73,  unlockLevel: 18, stage: 1 }   # 예리함
-      - { codeId: 251, unlockLevel: 20, stage: 1 }   # 천재
-      - { codeId: 262, unlockLevel: 40, stage: 1 }   # 리더쉽
-      - { codeId: 248, unlockLevel: 71, stage: 1 }   # 대마법사
+      - { codeId: 46, unlockLevel: 10, stage: 1 }   # 유리대포
+      - { codeId: 17,  unlockLevel: 18, stage: 1 }   # 예리함
+      - { codeId: 64, unlockLevel: 20, stage: 1 }   # 천재
+      - { codeId: 71, unlockLevel: 40, stage: 1 }   # 리더쉽
+      - { codeId: 62, unlockLevel: 71, stage: 1 }   # 대마법사
     portrait: OCTAVIA_PORTRAIT
     standing: OCTAVIA_STANDING
 
@@ -1222,15 +1222,15 @@ units:
     lukBase: 22
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
-    codes: { passive: 311, normal: 271, ultimate: 171 }
+    codes: { passive: 302, normal: 102, ultimate: 102 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 72,  unlockLevel: 9,  stage: 1 }   # 행운아
-      - { codeId: 281, unlockLevel: 12, stage: 1 }   # 카리스마
-      - { codeId: 282, unlockLevel: 21, stage: 1 }   # 직감
-      - { codeId: 137, unlockLevel: 55, stage: 1 }   # 클러치 플레이어
-      - { codeId: 95,  unlockLevel: 68, stage: 1 }   # 파죽지세
-      - { codeId: 254, unlockLevel: 92, stage: 1 }   # 인도자
+      - { codeId: 16,  unlockLevel: 9,  stage: 1 }   # 행운아
+      - { codeId: 83, unlockLevel: 12, stage: 1 }   # 카리스마
+      - { codeId: 84, unlockLevel: 21, stage: 1 }   # 직감
+      - { codeId: 42, unlockLevel: 55, stage: 1 }   # 클러치 플레이어
+      - { codeId: 29,  unlockLevel: 68, stage: 1 }   # 파죽지세
+      - { codeId: 67, unlockLevel: 92, stage: 1 }   # 인도자
     portrait: CAESAR_PORTRAIT
     standing: CAESAR_STANDING
 
@@ -1271,14 +1271,14 @@ units:
     ultimateResourceType: Stack
     ultimateResourceName: 우제트
     ultimateResourceMax: 4
-    codes: { passive: 340, normal: 290, ultimate: 290 }
+    codes: { passive: 320, normal: 120, ultimate: 120 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 343, unlockLevel: 14, stage: 1 }   # 관통사격
-      - { codeId: 56,  unlockLevel: 28, stage: 1 }   # 신속
-      - { codeId: 145, unlockLevel: 41, stage: 1 }   # 저격수
-      - { codeId: 138, unlockLevel: 52, stage: 1 }   # 신살자
-      - { codeId: 95,  unlockLevel: 68, stage: 1 }   # 파죽지세
+      - { codeId: 86, unlockLevel: 14, stage: 1 }   # 관통사격
+      - { codeId: 10,  unlockLevel: 28, stage: 1 }   # 신속
+      - { codeId: 49, unlockLevel: 41, stage: 1 }   # 저격수
+      - { codeId: 43, unlockLevel: 52, stage: 1 }   # 신살자
+      - { codeId: 29,  unlockLevel: 68, stage: 1 }   # 파죽지세
     portrait: HORUS_PORTRAIT
     standing: HORUS_STANDING
 
@@ -1313,15 +1313,15 @@ units:
     lukBase: 10
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    codes: { passive: 341, normal: 291, ultimate: 291 }
+    codes: { passive: 321, normal: 121, ultimate: 121 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 344, unlockLevel: 9,  stage: 1 }   # 창지기
-      - { codeId: 20,  unlockLevel: 20, stage: 1 }   # 보루
-      - { codeId: 135, unlockLevel: 25, stage: 1 }   # 천상의 신체
-      - { codeId: 35,  unlockLevel: 35, stage: 1 }   # 목욕재계
-      - { codeId: 126, unlockLevel: 44, stage: 1 }   # 순환
-      - { codeId: 345, unlockLevel: 50, stage: 1 }   # 저승사자
+      - { codeId: 87, unlockLevel: 9,  stage: 1 }   # 창지기
+      - { codeId: 3,  unlockLevel: 20, stage: 1 }   # 보루
+      - { codeId: 40, unlockLevel: 25, stage: 1 }   # 천상의 신체
+      - { codeId: 5,  unlockLevel: 35, stage: 1 }   # 목욕재계
+      - { codeId: 37, unlockLevel: 44, stage: 1 }   # 순환
+      - { codeId: 88, unlockLevel: 50, stage: 1 }   # 저승사자
     portrait: ANUBIS_PORTRAIT
     standing: ANUBIS_STANDING
 
@@ -1355,16 +1355,16 @@ units:
     lukBase: 24
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
-    codes: { passive: 342, normal: 292, ultimate: 292 }
+    codes: { passive: 322, normal: 122, ultimate: 122 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 346, unlockLevel: 2,  stage: 1 }   # 대도
-      - { codeId: 347, unlockLevel: 6,  stage: 1 }   # 가벼운 무장
-      - { codeId: 142, unlockLevel: 10, stage: 1 }   # 유리대포
-      - { codeId: 93,  unlockLevel: 25, stage: 1 }   # 투명
-      - { codeId: 348, unlockLevel: 29, stage: 1 }   # 이기적
-      - { codeId: 425, unlockLevel: 40, stage: 1 }   # 암살자
-      - { codeId: 95,  unlockLevel: 68, stage: 1 }   # 파죽지세
+      - { codeId: 89, unlockLevel: 2,  stage: 1 }   # 대도
+      - { codeId: 90, unlockLevel: 6,  stage: 1 }   # 가벼운 무장
+      - { codeId: 46, unlockLevel: 10, stage: 1 }   # 유리대포
+      - { codeId: 27,  unlockLevel: 25, stage: 1 }   # 투명
+      - { codeId: 91, unlockLevel: 29, stage: 1 }   # 이기적
+      - { codeId: 98, unlockLevel: 40, stage: 1 }   # 암살자
+      - { codeId: 29,  unlockLevel: 68, stage: 1 }   # 파죽지세
     portrait: BASTET_PORTRAIT
     standing: BASTET_STANDING
 
@@ -1398,13 +1398,13 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    codes: { passive: 349, normal: 293, ultimate: 293 }
+    codes: { passive: 323, normal: 123, ultimate: 123 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 136, unlockLevel: 25, stage: 1 }   # 투사
-      - { codeId: 125, unlockLevel: 38, stage: 1 }   # 고통스러운 상처
-      - { codeId: 220, unlockLevel: 39, stage: 1 }   # 약자 멸시
-      - { codeId: 89,  unlockLevel: 50, stage: 1 }   # 과다치유
+      - { codeId: 41, unlockLevel: 25, stage: 1 }   # 투사
+      - { codeId: 36, unlockLevel: 38, stage: 1 }   # 고통스러운 상처
+      - { codeId: 51, unlockLevel: 39, stage: 1 }   # 약자 멸시
+      - { codeId: 26,  unlockLevel: 50, stage: 1 }   # 과다치유
     portrait: SET_PORTRAIT
     standing: SET_STANDING
 
@@ -1438,13 +1438,13 @@ units:
     lukBase: 14
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    codes: { passive: 350, normal: 294, ultimate: 294 }
+    codes: { passive: 324, normal: 124, ultimate: 124 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 71,  unlockLevel: 1,  stage: 1 }   # 지혜
-      - { codeId: 351, unlockLevel: 20, stage: 1 }   # 환술사
-      - { codeId: 74,  unlockLevel: 22, stage: 1 }   # 명상
-      - { codeId: 352, unlockLevel: 39, stage: 1 }   # 허허실실
+      - { codeId: 15,  unlockLevel: 1,  stage: 1 }   # 지혜
+      - { codeId: 92, unlockLevel: 20, stage: 1 }   # 환술사
+      - { codeId: 18,  unlockLevel: 22, stage: 1 }   # 명상
+      - { codeId: 93, unlockLevel: 39, stage: 1 }   # 허허실실
     portrait: THOTH_PORTRAIT
     standing: THOTH_STANDING
 
@@ -1478,13 +1478,13 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    codes: { passive: 353, normal: 295, ultimate: 295 }
+    codes: { passive: 325, normal: 125, ultimate: 125 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 71,  unlockLevel: 1,  stage: 1 }   # 지혜
-      - { codeId: 354, unlockLevel: 12, stage: 1 }   # 원소 (효과 미정)
-      - { codeId: 35,  unlockLevel: 35, stage: 1 }   # 목욕재계
-      - { codeId: 232, unlockLevel: 70, stage: 1 }   # 생명의 물
+      - { codeId: 15,  unlockLevel: 1,  stage: 1 }   # 지혜
+      - { codeId: 94, unlockLevel: 12, stage: 1 }   # 원소 (효과 미정)
+      - { codeId: 5,  unlockLevel: 35, stage: 1 }   # 목욕재계
+      - { codeId: 55, unlockLevel: 70, stage: 1 }   # 생명의 물
     portrait: ISIS_PORTRAIT
     standing: ISIS_STANDING
 
@@ -1518,17 +1518,17 @@ units:
     lukBase: 24
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
-    codes: { passive: 420, normal: 310, ultimate: 310 }
+    codes: { passive: 203, normal: 3, ultimate: 3 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     ultimateResourceType: Stack
     ultimateResourceName: 아즈라엘
     ultimateResourceMax: 7
     levelPassives:
-      - { codeId: 421, unlockLevel: 5,  stage: 1 }   # 손재주
-      - { codeId: 54,  unlockLevel: 12, stage: 1 }   # 검의 달인
-      - { codeId: 425, unlockLevel: 18, stage: 1 }   # 암살자
-      - { codeId: 257, unlockLevel: 30, stage: 1 }   # 기습
-      - { codeId: 58,  unlockLevel: 44, stage: 1 }   # 천살성
+      - { codeId: 95, unlockLevel: 5,  stage: 1 }   # 손재주
+      - { codeId: 9,  unlockLevel: 12, stage: 1 }   # 검의 달인
+      - { codeId: 98, unlockLevel: 18, stage: 1 }   # 암살자
+      - { codeId: 69, unlockLevel: 30, stage: 1 }   # 기습
+      - { codeId: 11,  unlockLevel: 44, stage: 1 }   # 천살성
     portrait: SABAH_PORTRAIT
     standing: SABAH_STANDING
 
@@ -1562,13 +1562,13 @@ units:
     lukBase: 16
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    codes: { passive: 422, normal: 311, ultimate: 311 }
+    codes: { passive: 226, normal: 26, ultimate: 26 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 142, unlockLevel: 10, stage: 1 }   # 유리대포
-      - { codeId: 423, unlockLevel: 20, stage: 1 }   # 정신력
-      - { codeId: 424, unlockLevel: 30, stage: 1 }   # 원소 친화 - 불
-      - { codeId: 137, unlockLevel: 55, stage: 1 }   # 클러치 플레이어
+      - { codeId: 46, unlockLevel: 10, stage: 1 }   # 유리대포
+      - { codeId: 96, unlockLevel: 20, stage: 1 }   # 정신력
+      - { codeId: 97, unlockLevel: 30, stage: 1 }   # 원소 친화 - 불
+      - { codeId: 42, unlockLevel: 55, stage: 1 }   # 클러치 플레이어
     portrait: ICARIA_PORTRAIT
     standing: ICARIA_STANDING
 
@@ -1602,12 +1602,12 @@ units:
     lukBase: 24
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
-    codes: { passive: 426, normal: 312, ultimate: 312 }
+    codes: { passive: 360, normal: 160, ultimate: 160 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 427, unlockLevel: 1,  stage: 1 }   # 고귀한 혈통
-      - { codeId: 428, unlockLevel: 5,  stage: 1 }   # 장교
-      - { codeId: 268, unlockLevel: 12, stage: 1 }   # 원소 친화 - 얼음
-      - { codeId: 429, unlockLevel: 30, stage: 1 }   # 개선문
+      - { codeId: 99, unlockLevel: 1,  stage: 1 }   # 고귀한 혈통
+      - { codeId: 100, unlockLevel: 5,  stage: 1 }   # 장교
+      - { codeId: 75, unlockLevel: 12, stage: 1 }   # 원소 친화 - 얼음
+      - { codeId: 101, unlockLevel: 30, stage: 1 }   # 개선문
     portrait: MARIE_PORTRAIT
     standing: MARIE_STANDING

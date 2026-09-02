@@ -41,18 +41,18 @@ namespace Codes.Passive
                 161 => "깊은 상처",
                 162 => "박수갈채",
                 163 => "다음 상대",
-                164 => "챔피언의 여유",
-                165 => "세 번의 승부",
-                166 => "월계관의 정화",
-                167 => "결승의 투지",
-                168 => "사냥꾼의 표식",
-                169 => "채찍 견제",
-                170 => "집중 사냥",
-                171 => "다음 사냥감",
-                176 => "몸이 풀리는군",
-                177 => "노련한 검투사",
-                178 => "목숨값",
-                179 => "다시 한 판",
+                1100 => "챔피언의 여유",
+                1101 => "세 번의 승부",
+                1102 => "월계관의 정화",
+                1103 => "결승의 투지",
+                1104 => "사냥꾼의 표식",
+                1105 => "채찍 견제",
+                1106 => "집중 사냥",
+                1107 => "다음 사냥감",
+                1112 => "몸이 풀리는군",
+                1113 => "노련한 검투사",
+                1114 => "목숨값",
+                1115 => "다시 한 판",
                 _ => "콜로세움 전투술",
             };
         }
@@ -170,43 +170,43 @@ namespace Codes.Passive
                     break;
 
                 // 프리무스 팔루스 마르켈루스
-                case 164:
+                case 1100:
                     AddSelf(new ChampionBalanceEffect());
                     break;
-                case 165:
+                case 1101:
                     Caster.SetCombatResourceMaximum(ColosseumCombat.ChampionSequenceResource, 3, true);
                     break;
-                case 166:
+                case 1102:
                     // 궁극기 시 해로운 효과 하나 제거.
                     break;
-                case 167:
+                case 1103:
                     AddSelf(new LowHealthOffenseEffect(0.5f, 1.2f, 0.25f));
                     break;
 
                 // 베스티아리우스 사비나
-                case 168:
+                case 1104:
                     AddSelf(new SabinaMarkControllerEffect());
                     break;
-                case 169:
-                case 170:
+                case 1105:
+                case 1106:
                     // 공격력 감소와 표식 집중 공격은 액티브 코드에서 처리한다.
                     break;
-                case 171:
+                case 1107:
                     AddSelf(new SabinaMarkControllerEffect(true));
                     break;
 
                 // 스파르타쿠스
-                case 176:
+                case 1112:
                     Caster.SetCombatResourceMaximum(ColosseumCombat.WarmUpResource, 5, true);
                     AddSelf(new SpartacusWarmUpEffect());
                     break;
-                case 177:
+                case 1113:
                     AddSelf(new FirstControlImmunityEffect());
                     break;
-                case 178:
+                case 1114:
                     AddSelf(new LowHealthSurvivalEffect(0.4f, 0.7f, 0.2f));
                     break;
-                case 179:
+                case 1115:
                     AddSelf(new LastStandEffect(0.3f, false));
                     break;
             }

@@ -16,24 +16,24 @@ namespace Codes.Passive
         {
             return codeId switch
             {
-                300 => "방진 편성",
-                301 => "중열의 방벽",
-                302 => "최후의 방벽",
-                303 => "백인대의 방벽",
-                304 => "산병 지원",
-                305 => "조준 사격",
-                306 => "기병의 회피",
-                307 => "부관의 신호",
-                308 => "천부장의 신호",
-                309 => "화합",
-                310 => "천천히 서둘러라",
-                311 => "왔노라, 보았노라, 이겼노라",
-                312 => "최고의 2인자",
-                313 => "팍스 로마나",
-                314 => "갈리아의 정복자",
-                315 => "대범한 관용",
-                316 => "위대한 전술가",
-                317 => "독재관",
+                1200 => "방진 편성",
+                1201 => "중열의 방벽",
+                1202 => "최후의 방벽",
+                1203 => "백인대의 방벽",
+                1204 => "산병 지원",
+                1205 => "조준 사격",
+                1206 => "기병의 회피",
+                1207 => "부관의 신호",
+                1208 => "천부장의 신호",
+                300 => "화합",
+                301 => "천천히 서둘러라",
+                302 => "왔노라, 보았노라, 이겼노라",
+                1212 => "최고의 2인자",
+                1213 => "팍스 로마나",
+                1214 => "갈리아의 정복자",
+                1215 => "대범한 관용",
+                1216 => "위대한 전술가",
+                1217 => "독재관",
                 _ => "군단 전투술",
             };
         }
@@ -66,70 +66,70 @@ namespace Codes.Passive
             {
                 // ── 전열 중장보병 — 전투 시작 시 보호막 ──────────────
                 // 보호막 위력 = 고정값 + CON × 계수. 사다리를 따라 고정값과 계수가 함께 오른다.
-                case 300:
+                case 1200:
                     AddSelf(new RoundStartShieldEffect(200, 1.0f));
                     break;
-                case 301:
+                case 1201:
                     AddSelf(new RoundStartShieldEffect(225, 1.1f));
                     break;
-                case 302:
+                case 1202:
                     AddSelf(new RoundStartShieldEffect(250, 1.2f));
                     break;
-                case 303:
+                case 1203:
                     AddSelf(new RoundStartShieldEffect(300, 1.4f));
                     break;
 
                 // ── 후열 사수 — 전열 아군 수에 비례한 화력 ───────────
-                case 304:
+                case 1204:
                     AddSelf(new FrontLineAllyDamageEffect(0.05f));
                     break;
-                case 305:
+                case 1205:
                     AddSelf(new FrontLineAllyDamageEffect(0.10f));
                     break;
 
                 // ── 에퀴테스 ─────────────────────────────────────────
-                case 306:
+                case 1206:
                     AddSelf(new ContactEvasionEffect());
                     break;
 
                 // ── 옵티오 · 트리뷴 ──────────────────────────────────
-                case 307:
-                case 308:
+                case 1207:
+                case 1208:
                     AddSelf(new SignalMarkEffect());
                     break;
 
                 // ── 아그리파 ─────────────────────────────────────────
-                case 309:
+                case 300:
                     AddSelf(new ConcordiaEffect());
                     break;
 
                 // ── 옥타비아 ─────────────────────────────────────────
-                case 310:
+                case 301:
                     AddSelf(new FestinaLenteEffect());
                     break;
 
                 // ── 카이사르 ─────────────────────────────────────────
-                case 311:
+                case 302:
                     AddSelf(new VeniVidiViciEffect());
                     break;
 
                 // ── 보스 전용 ────────────────────────────────────────
-                case 312:
+                case 1212:
                     AddSelf(new SecondInCommandEffect());
                     break;
-                case 313:
+                case 1213:
                     AddSelf(new PaxRomanaEffect());
                     break;
-                case 314:
+                case 1214:
                     AddSelf(new ConquerorOfGaulEffect(0.9f));
                     break;
-                case 315:
+                case 1215:
                     AddSelf(new ClementiaEffect());
                     break;
-                case 316:
+                case 1216:
                     AddSelf(new GrandTacticianEffect());
                     break;
-                case 317:
+                case 1217:
                     // 궁극기 지속 턴 +1은 카이사르 궁극기가 코드 보유 여부를 읽어 처리한다.
                     break;
             }

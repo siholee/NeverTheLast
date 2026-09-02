@@ -38,12 +38,12 @@ namespace Codes.Passive
     /// <summary>
     /// 야마 고유 P — 죽음의 계약.
     /// 필드에 있는 동안 아군 전체의 지속피해 부여량 +25%.
-    /// 츠쿠요미의 '저주'(123)의 상위 코드로, 둘이 겹치면 높은 쪽만 적용된다.
-    /// 전수될 때는 원본 대신 저주(123)가 전수된다.
+    /// 츠쿠요미의 '저주'(1016)의 상위 코드로, 둘이 겹치면 높은 쪽만 적용된다.
+    /// 전수될 때는 원본 대신 저주(1016)가 전수된다.
     /// </summary>
     public sealed class YamaDeathContract : UniquePassiveCode
     {
-        public const int CodeId = 240;
+        public const int CodeId = 261;
 
         /// <summary>지속피해 증폭 계열의 공용 상태 키. 같은 키를 쓰면 중복 적용되지 않는다.</summary>
         public const string SharedKey = "dot_amplify_aura";

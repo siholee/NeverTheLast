@@ -49,18 +49,18 @@ namespace Codes.Passive
 
             switch (_codeId)
             {
-                case 320: AddSelf(new ControlledTargetDamageEffect(1.25f)); break;
-                case 321: AddSelf(new PoisonedTargetDamageEffect(1.25f)); break;
-                case 322: AddSelf(new SerpentDeathRiteEffect()); break;
-                case 323:
+                case 1300: AddSelf(new ControlledTargetDamageEffect(1.25f)); break;
+                case 1301: AddSelf(new PoisonedTargetDamageEffect(1.25f)); break;
+                case 1302: AddSelf(new SerpentDeathRiteEffect()); break;
+                case 1303:
                     AddSelf(new TezcatlipocaDivinityEffect());
                     AztecCombat.ApplyTezcatlipocaFormation(Caster);
                     break;
-                case 324: AddSelf(new HumanSacrificeEffect()); break;
-                case 325: AddSelf(new DreamlikeResonanceEffect(1.2f)); break;
-                case 326: AddSelf(new MarkerEffect()); break;
-                case 327: AddSelf(new DendroAffinityEffect()); break;
-                case 328: AddSelf(new NobleBodyEffect(-1)); break;
+                case 1304: AddSelf(new HumanSacrificeEffect()); break;
+                case 1305: AddSelf(new DreamlikeResonanceEffect(1.2f)); break;
+                case 1306: AddSelf(new MarkerEffect()); break;
+                case 1307: AddSelf(new DendroAffinityEffect()); break;
+                case 1308: AddSelf(new NobleBodyEffect(-1)); break;
             }
         }
 

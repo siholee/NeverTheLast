@@ -187,7 +187,7 @@ namespace Codes.Normal
     /// <summary>레기온 공격 코드가 함께 쓰는 판정.</summary>
     internal static class LegionAttack
     {
-        public const int MindsEyeCodeId = 284;
+        public const int MindsEyeCodeId = 1219;
 
         /// <summary>심안을 들고 있고 대상에게 원소가 붙어 있으면 내구를 무시한다.</summary>
         public static bool UsesMindsEye(Unit caster, Unit target)
@@ -200,7 +200,7 @@ namespace Codes.Normal
         /// <summary>'최고의 2인자' 보유 시 필드의 옥타비아. 없으면 null.</summary>
         public static Unit SecondInCommandTarget(Unit caster)
         {
-            if (caster == null || !caster.HasLearnedPassiveCode(312)) return null;
+            if (caster == null || !caster.HasLearnedPassiveCode(1212)) return null;
 
             return global::Target.GetAllAllies(caster)
                 .FirstOrDefault(unit => unit != null && unit.isActive &&

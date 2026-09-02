@@ -909,13 +909,13 @@ namespace Entities
                 // 모든 고유 패시브는 전수 불가다. 열화 전수본 제도는 폐지했다.
             }
 
-            // 팔랑크스(87)는 모든 Greek 유닛이 자동으로 가진다.
+            // 팔랑크스(183)는 모든 Greek 유닛이 자동으로 가진다.
             // 코드 용량을 차지하지 않아야 하므로 levelPassives가 아니라 여기서 직접 붙인다.
             if (!IsEnemy && HasUnitTag("Greek") &&
                 PassiveCodes.All(code => code is not GreekPhalanx))
             {
                 PassiveCode phalanx = CodeFactory.CreatePassiveCode(
-                    87, new PassiveCodeContext { Caster = this });
+                    183, new PassiveCodeContext { Caster = this });
                 if (phalanx != null) PassiveCodes.Add(phalanx);
             }
 

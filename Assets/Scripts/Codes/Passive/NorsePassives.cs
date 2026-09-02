@@ -55,7 +55,7 @@ namespace Codes.Passive
             description: "치유한 아군이 1턴에 걸쳐 최대 체력의 5%를 추가로 회복합니다."));
     }
 
-    /// <summary>Lv.30 의술 — 부여하는 치유·보호막 +25%. `의신의 가호`(98)의 하위 코드.</summary>
+    /// <summary>Lv.30 의술 — 부여하는 치유·보호막 +25%. `의신의 가호`(32)의 일반 등급.</summary>
     public sealed class FreyaMedicine : PassiveCode
     {
         public FreyaMedicine(PassiveCodeContext context) : base(context)
@@ -63,7 +63,7 @@ namespace Codes.Passive
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "의술";
             IgnoresActivationChance = true;
-            // 일반 등급. 의신의 가호(98)를 배웠으면 발동 자체가 막힌다.
+            // 일반 등급. 의신의 가호(32)를 배웠으면 발동 자체가 막힌다.
             SupersededByCodeId = AsclepiusDivineMedicine.CodeId;
         }
 

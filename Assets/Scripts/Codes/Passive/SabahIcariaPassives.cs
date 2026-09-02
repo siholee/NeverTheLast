@@ -10,12 +10,12 @@ namespace Codes.Passive
 {
     public static class SabahIcariaCodeIds
     {
-        public const int SabahInnate = 420;
-        public const int SabahDexterity = 421;
-        public const int IcariaInnate = 422;
-        public const int IcariaMentalStrength = 423;
-        public const int IcariaPyroAffinity = 424;
-        public const int SabahAssassin = 425;
+        public const int SabahInnate = 203;
+        public const int SabahDexterity = 95;
+        public const int IcariaInnate = 226;
+        public const int IcariaMentalStrength = 96;
+        public const int IcariaPyroAffinity = 97;
+        public const int SabahAssassin = 98;
     }
 
     internal static class SabahIcariaStatusIds

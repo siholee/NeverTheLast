@@ -128,7 +128,7 @@ namespace Codes.Passive
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "대해의 판결";
             IgnoresActivationChance = true;
-            // 원소술사(269)의 강화 등급. 필드 판정은 IReactionAmplifier가 높은 쪽만 고른다.
+            // 원소술사(76)의 강화 등급. 필드 판정은 IReactionAmplifier가 높은 쪽만 고른다.
             Grade = BaseEnums.CodeGrade.Enhanced;
         }
 

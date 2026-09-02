@@ -11,10 +11,10 @@ namespace Codes.Passive
 {
     public static class MarieCodeIds
     {
-        public const int Innate = 426;
-        public const int NobleBloodline = 427;
-        public const int Officer = 428;
-        public const int ArcDeTriomphe = 429;
+        public const int Innate = 360;
+        public const int NobleBloodline = 99;
+        public const int Officer = 100;
+        public const int ArcDeTriomphe = 101;
     }
 
     internal static class MarieStatusIds

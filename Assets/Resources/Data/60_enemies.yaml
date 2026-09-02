@@ -37,11 +37,11 @@ enemies:
     intBase: 6
     lukBase: 8
     lukIncrementLvl: 1
-    codes: { passive: 109, normal: 101, ultimate: 140 }
+    codes: { passive: 1008, normal: 1000, ultimate: 1100 }
     levelPassives:
-      - { codeId: 110, unlockLevel: 20, stage: 1 }
-      - { codeId: 111, unlockLevel: 40, stage: 1 }
-      - { codeId: 112, unlockLevel: 70, stage: 1 }
+      - { codeId: 1009, unlockLevel: 20, stage: 1 }
+      - { codeId: 1010, unlockLevel: 40, stage: 1 }
+      - { codeId: 1011, unlockLevel: 70, stage: 1 }
     portrait: MURMILLO_PORTRAIT
     standing: MURMILLO_STANDING
 
@@ -62,11 +62,11 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
-    codes: { passive: 109, normal: 102, ultimate: 141 }
+    codes: { passive: 1008, normal: 1001, ultimate: 1101 }
     levelPassives:
-      - { codeId: 110, unlockLevel: 20, stage: 1 }
-      - { codeId: 111, unlockLevel: 40, stage: 1 }
-      - { codeId: 112, unlockLevel: 70, stage: 1 }
+      - { codeId: 1009, unlockLevel: 20, stage: 1 }
+      - { codeId: 1010, unlockLevel: 40, stage: 1 }
+      - { codeId: 1011, unlockLevel: 70, stage: 1 }
     portrait: HOPLOMACHUS_PORTRAIT
     standing: HOPLOMACHUS_STANDING
 
@@ -87,11 +87,11 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 109, normal: 103, ultimate: 142 }
+    codes: { passive: 1008, normal: 1002, ultimate: 1102 }
     levelPassives:
-      - { codeId: 110, unlockLevel: 20, stage: 1 }
-      - { codeId: 111, unlockLevel: 40, stage: 1 }
-      - { codeId: 112, unlockLevel: 70, stage: 1 }
+      - { codeId: 1009, unlockLevel: 20, stage: 1 }
+      - { codeId: 1010, unlockLevel: 40, stage: 1 }
+      - { codeId: 1011, unlockLevel: 70, stage: 1 }
     portrait: THRAEX_PORTRAIT
     standing: THRAEX_STANDING
 
@@ -113,11 +113,11 @@ enemies:
     intIncrementLvl: 1
     lukBase: 12
     lukIncrementLvl: 1
-    codes: { passive: 109, normal: 104, ultimate: 143 }
+    codes: { passive: 1008, normal: 1003, ultimate: 1103 }
     levelPassives:
-      - { codeId: 110, unlockLevel: 20, stage: 1 }
-      - { codeId: 111, unlockLevel: 40, stage: 1 }
-      - { codeId: 112, unlockLevel: 70, stage: 1 }
+      - { codeId: 1009, unlockLevel: 20, stage: 1 }
+      - { codeId: 1010, unlockLevel: 40, stage: 1 }
+      - { codeId: 1011, unlockLevel: 70, stage: 1 }
     portrait: RETIARIUS_PORTRAIT
     standing: RETIARIUS_STANDING
 
@@ -138,11 +138,11 @@ enemies:
     intBase: 6
     lukBase: 11
     lukIncrementLvl: 1
-    codes: { passive: 109, normal: 103, ultimate: 144 }
+    codes: { passive: 1008, normal: 1002, ultimate: 1104 }
     levelPassives:
-      - { codeId: 110, unlockLevel: 20, stage: 1 }
-      - { codeId: 111, unlockLevel: 40, stage: 1 }
-      - { codeId: 112, unlockLevel: 70, stage: 1 }
+      - { codeId: 1009, unlockLevel: 20, stage: 1 }
+      - { codeId: 1010, unlockLevel: 40, stage: 1 }
+      - { codeId: 1011, unlockLevel: 70, stage: 1 }
     portrait: SECUTOR_PORTRAIT
     standing: SECUTOR_STANDING
 
@@ -163,11 +163,11 @@ enemies:
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
-    codes: { passive: 109, normal: 102, ultimate: 145 }
+    codes: { passive: 1008, normal: 1001, ultimate: 1105 }
     levelPassives:
-      - { codeId: 110, unlockLevel: 20, stage: 1 }
-      - { codeId: 111, unlockLevel: 40, stage: 1 }
-      - { codeId: 112, unlockLevel: 70, stage: 1 }
+      - { codeId: 1009, unlockLevel: 20, stage: 1 }
+      - { codeId: 1010, unlockLevel: 40, stage: 1 }
+      - { codeId: 1011, unlockLevel: 70, stage: 1 }
     portrait: DIMACHAERUS_PORTRAIT
     standing: DIMACHAERUS_STANDING
 
@@ -191,11 +191,11 @@ enemies:
     intBase: 8
     lukBase: 16
     lukIncrementLvl: 1
-    codes: { passive: 164, normal: 101, ultimate: 146 }
+    codes: { passive: 1100, normal: 1000, ultimate: 1106 }
     levelPassives:
-      - { codeId: 165, unlockLevel: 20, stage: 1 }
-      - { codeId: 166, unlockLevel: 40, stage: 1 }
-      - { codeId: 167, unlockLevel: 70, stage: 1 }
+      - { codeId: 1101, unlockLevel: 20, stage: 1 }
+      - { codeId: 1102, unlockLevel: 40, stage: 1 }
+      - { codeId: 1103, unlockLevel: 70, stage: 1 }
     portrait: MARCELLUS_PORTRAIT
     standing: MARCELLUS_STANDING
 
@@ -217,11 +217,11 @@ enemies:
     intIncrementLvl: 1
     lukBase: 18
     lukIncrementLvl: 1
-    codes: { passive: 168, normal: 104, ultimate: 147 }
+    codes: { passive: 1104, normal: 1003, ultimate: 1107 }
     levelPassives:
-      - { codeId: 169, unlockLevel: 20, stage: 1 }
-      - { codeId: 170, unlockLevel: 40, stage: 1 }
-      - { codeId: 171, unlockLevel: 70, stage: 1 }
+      - { codeId: 1105, unlockLevel: 20, stage: 1 }
+      - { codeId: 1106, unlockLevel: 40, stage: 1 }
+      - { codeId: 1107, unlockLevel: 70, stage: 1 }
     portrait: SABINA_PORTRAIT
     standing: SABINA_STANDING
 
@@ -243,11 +243,11 @@ enemies:
     intBase: 8
     lukBase: 20
     lukIncrementLvl: 1
-    codes: { passive: 176, normal: 102, ultimate: 149 }
+    codes: { passive: 1112, normal: 1001, ultimate: 1109 }
     levelPassives:
-      - { codeId: 177, unlockLevel: 20, stage: 1 }
-      - { codeId: 178, unlockLevel: 40, stage: 1 }
-      - { codeId: 179, unlockLevel: 70, stage: 1 }
+      - { codeId: 1113, unlockLevel: 20, stage: 1 }
+      - { codeId: 1114, unlockLevel: 40, stage: 1 }
+      - { codeId: 1115, unlockLevel: 70, stage: 1 }
     portrait: SPARTACUS_PORTRAIT
     standing: SPARTACUS_STANDING
   # ── 로마 군단 테마 (themeId 6) ────────────────────────────────────
@@ -275,11 +275,11 @@ enemies:
     intBase: 6
     lukBase: 8
     lukIncrementLvl: 1
-    codes: { passive: 300, normal: 260, ultimate: 160 }
+    codes: { passive: 1200, normal: 1200, ultimate: 1200 }
     levelPassives:
-      - { codeId: 8, unlockLevel: 10, stage: 1 }
-      - { codeId: 12, unlockLevel: 30, stage: 1 }
-      - { codeId: 38, unlockLevel: 40, stage: 1 }
+      - { codeId: 1, unlockLevel: 10, stage: 1 }
+      - { codeId: 2, unlockLevel: 30, stage: 1 }
+      - { codeId: 6, unlockLevel: 40, stage: 1 }
     portrait: HASTATI_PORTRAIT
     standing: HASTATI_STANDING
 
@@ -301,12 +301,12 @@ enemies:
     intBase: 6
     lukBase: 8
     lukIncrementLvl: 1
-    codes: { passive: 301, normal: 261, ultimate: 161 }
+    codes: { passive: 1201, normal: 1201, ultimate: 1201 }
     levelPassives:
-      - { codeId: 8, unlockLevel: 10, stage: 1 }
-      - { codeId: 81, unlockLevel: 20, stage: 1 }
-      - { codeId: 12, unlockLevel: 30, stage: 1 }
-      - { codeId: 38, unlockLevel: 40, stage: 1 }
+      - { codeId: 1, unlockLevel: 10, stage: 1 }
+      - { codeId: 20, unlockLevel: 20, stage: 1 }
+      - { codeId: 2, unlockLevel: 30, stage: 1 }
+      - { codeId: 6, unlockLevel: 40, stage: 1 }
     portrait: PRINCIPES_PORTRAIT
     standing: PRINCIPES_STANDING
 
@@ -328,14 +328,14 @@ enemies:
     intBase: 7
     lukBase: 9
     lukIncrementLvl: 1
-    codes: { passive: 302, normal: 262, ultimate: 162 }
+    codes: { passive: 1202, normal: 1202, ultimate: 1202 }
     levelPassives:
-      - { codeId: 8, unlockLevel: 10, stage: 1 }
-      - { codeId: 81, unlockLevel: 20, stage: 1 }
-      - { codeId: 12, unlockLevel: 30, stage: 1 }
-      - { codeId: 38, unlockLevel: 40, stage: 1 }
-      - { codeId: 83, unlockLevel: 50, stage: 1 }
-      - { codeId: 256, unlockLevel: 60, stage: 1 }
+      - { codeId: 1, unlockLevel: 10, stage: 1 }
+      - { codeId: 20, unlockLevel: 20, stage: 1 }
+      - { codeId: 2, unlockLevel: 30, stage: 1 }
+      - { codeId: 6, unlockLevel: 40, stage: 1 }
+      - { codeId: 22, unlockLevel: 50, stage: 1 }
+      - { codeId: 68, unlockLevel: 60, stage: 1 }
     portrait: TRIARII_PORTRAIT
     standing: TRIARII_STANDING
 
@@ -358,13 +358,13 @@ enemies:
     intIncrementLvl: 1
     lukBase: 18
     lukIncrementLvl: 2
-    codes: { passive: 306, normal: 266, ultimate: 166 }
+    codes: { passive: 1206, normal: 1206, ultimate: 1206 }
     levelPassives:
-      - { codeId: 93, unlockLevel: 10, stage: 1 }
-      - { codeId: 280, unlockLevel: 20, stage: 1 }
-      - { codeId: 256, unlockLevel: 30, stage: 1 }
-      - { codeId: 257, unlockLevel: 40, stage: 1 }
-      - { codeId: 58, unlockLevel: 60, stage: 1 }
+      - { codeId: 27, unlockLevel: 10, stage: 1 }
+      - { codeId: 1218, unlockLevel: 20, stage: 1 }
+      - { codeId: 68, unlockLevel: 30, stage: 1 }
+      - { codeId: 69, unlockLevel: 40, stage: 1 }
+      - { codeId: 11, unlockLevel: 60, stage: 1 }
     portrait: EQUITES_PORTRAIT
     standing: EQUITES_STANDING
 
@@ -386,16 +386,16 @@ enemies:
     intBase: 8
     lukBase: 10
     lukIncrementLvl: 1
-    codes: { passive: 303, normal: 263, ultimate: 163 }
+    codes: { passive: 1203, normal: 1203, ultimate: 1203 }
     levelPassives:
-      - { codeId: 8, unlockLevel: 10, stage: 1 }
-      - { codeId: 81, unlockLevel: 20, stage: 1 }
-      - { codeId: 12, unlockLevel: 30, stage: 1 }
-      - { codeId: 38, unlockLevel: 40, stage: 1 }
-      - { codeId: 83, unlockLevel: 50, stage: 1 }
-      - { codeId: 256, unlockLevel: 60, stage: 1 }
-      - { codeId: 262, unlockLevel: 70, stage: 1 }
-      - { codeId: 263, unlockLevel: 80, stage: 1 }
+      - { codeId: 1, unlockLevel: 10, stage: 1 }
+      - { codeId: 20, unlockLevel: 20, stage: 1 }
+      - { codeId: 2, unlockLevel: 30, stage: 1 }
+      - { codeId: 6, unlockLevel: 40, stage: 1 }
+      - { codeId: 22, unlockLevel: 50, stage: 1 }
+      - { codeId: 68, unlockLevel: 60, stage: 1 }
+      - { codeId: 71, unlockLevel: 70, stage: 1 }
+      - { codeId: 72, unlockLevel: 80, stage: 1 }
     portrait: CENTURION_PORTRAIT
     standing: CENTURION_STANDING
 
@@ -417,11 +417,11 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
-    codes: { passive: 304, normal: 264, ultimate: 164 }
+    codes: { passive: 1204, normal: 1204, ultimate: 1204 }
     levelPassives:
-      - { codeId: 113, unlockLevel: 20, stage: 1 }
-      - { codeId: 114, unlockLevel: 40, stage: 1 }
-      - { codeId: 115, unlockLevel: 70, stage: 1 }
+      - { codeId: 1012, unlockLevel: 20, stage: 1 }
+      - { codeId: 1013, unlockLevel: 40, stage: 1 }
+      - { codeId: 1014, unlockLevel: 70, stage: 1 }
     portrait: VELITES_PORTRAIT
     standing: VELITES_STANDING
 
@@ -443,11 +443,11 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
-    codes: { passive: 305, normal: 265, ultimate: 165 }
+    codes: { passive: 1205, normal: 1205, ultimate: 1205 }
     levelPassives:
-      - { codeId: 114, unlockLevel: 20, stage: 1 }
-      - { codeId: 115, unlockLevel: 40, stage: 1 }
-      - { codeId: 116, unlockLevel: 70, stage: 1 }
+      - { codeId: 1013, unlockLevel: 20, stage: 1 }
+      - { codeId: 1014, unlockLevel: 40, stage: 1 }
+      - { codeId: 1015, unlockLevel: 70, stage: 1 }
     portrait: SCORPIO_PORTRAIT
     standing: SCORPIO_STANDING
 
@@ -470,11 +470,11 @@ enemies:
     intIncrementLvl: 2
     lukBase: 10
     lukIncrementLvl: 1
-    codes: { passive: 307, normal: 267, ultimate: 167 }
+    codes: { passive: 1207, normal: 1207, ultimate: 1207 }
     levelPassives:
-      - { codeId: 8, unlockLevel: 10, stage: 1 }
-      - { codeId: 121, unlockLevel: 20, stage: 1 }
-      - { codeId: 52, unlockLevel: 30, stage: 1 }
+      - { codeId: 1, unlockLevel: 10, stage: 1 }
+      - { codeId: 33, unlockLevel: 20, stage: 1 }
+      - { codeId: 7, unlockLevel: 30, stage: 1 }
     portrait: OPTIO_PORTRAIT
     standing: OPTIO_STANDING
 
@@ -497,13 +497,13 @@ enemies:
     intIncrementLvl: 2
     lukBase: 12
     lukIncrementLvl: 1
-    codes: { passive: 308, normal: 268, ultimate: 168 }
+    codes: { passive: 1208, normal: 1208, ultimate: 1208 }
     levelPassives:
-      - { codeId: 8, unlockLevel: 10, stage: 1 }
-      - { codeId: 121, unlockLevel: 20, stage: 1 }
-      - { codeId: 52, unlockLevel: 30, stage: 1 }
-      - { codeId: 54, unlockLevel: 40, stage: 1 }
-      - { codeId: 254, unlockLevel: 80, stage: 1 }
+      - { codeId: 1, unlockLevel: 10, stage: 1 }
+      - { codeId: 33, unlockLevel: 20, stage: 1 }
+      - { codeId: 7, unlockLevel: 30, stage: 1 }
+      - { codeId: 9, unlockLevel: 40, stage: 1 }
+      - { codeId: 67, unlockLevel: 80, stage: 1 }
     portrait: TRIBUNE_PORTRAIT
     standing: TRIBUNE_STANDING
 
@@ -529,15 +529,15 @@ enemies:
     intIncrementLvl: 2
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 309, normal: 269, ultimate: 169 }
+    codes: { passive: 300, normal: 100, ultimate: 100 }
     levelPassives:
-      - { codeId: 312, unlockLevel: 1, stage: 1 }
-      - { codeId: 12, unlockLevel: 12, stage: 1 }
-      - { codeId: 97, unlockLevel: 30, stage: 1 }
-      - { codeId: 283, unlockLevel: 46, stage: 1 }
-      - { codeId: 89, unlockLevel: 50, stage: 1 }
-      - { codeId: 52, unlockLevel: 52, stage: 1 }
-      - { codeId: 254, unlockLevel: 92, stage: 1 }
+      - { codeId: 1212, unlockLevel: 1, stage: 1 }
+      - { codeId: 2, unlockLevel: 12, stage: 1 }
+      - { codeId: 31, unlockLevel: 30, stage: 1 }
+      - { codeId: 85, unlockLevel: 46, stage: 1 }
+      - { codeId: 26, unlockLevel: 50, stage: 1 }
+      - { codeId: 7, unlockLevel: 52, stage: 1 }
+      - { codeId: 67, unlockLevel: 92, stage: 1 }
     portrait: AGRIPPA_PORTRAIT
     standing: AGRIPPA_STANDING
 
@@ -559,15 +559,15 @@ enemies:
     intIncrementLvl: 3
     lukBase: 24
     lukIncrementLvl: 2
-    codes: { passive: 310, normal: 270, ultimate: 170 }
+    codes: { passive: 301, normal: 101, ultimate: 101 }
     levelPassives:
-      - { codeId: 313, unlockLevel: 1, stage: 1 }
-      - { codeId: 284, unlockLevel: 1, stage: 1 }
-      - { codeId: 142, unlockLevel: 10, stage: 1 }
-      - { codeId: 73, unlockLevel: 18, stage: 1 }
-      - { codeId: 251, unlockLevel: 20, stage: 1 }
-      - { codeId: 262, unlockLevel: 40, stage: 1 }
-      - { codeId: 248, unlockLevel: 71, stage: 1 }
+      - { codeId: 1213, unlockLevel: 1, stage: 1 }
+      - { codeId: 1219, unlockLevel: 1, stage: 1 }
+      - { codeId: 46, unlockLevel: 10, stage: 1 }
+      - { codeId: 17, unlockLevel: 18, stage: 1 }
+      - { codeId: 64, unlockLevel: 20, stage: 1 }
+      - { codeId: 71, unlockLevel: 40, stage: 1 }
+      - { codeId: 62, unlockLevel: 71, stage: 1 }
     portrait: OCTAVIA_PORTRAIT
     standing: OCTAVIA_STANDING
 
@@ -591,18 +591,18 @@ enemies:
     intIncrementLvl: 1
     lukBase: 40
     lukIncrementLvl: 4
-    codes: { passive: 311, normal: 271, ultimate: 171 }
+    codes: { passive: 302, normal: 102, ultimate: 102 }
     levelPassives:
-      - { codeId: 314, unlockLevel: 1, stage: 1 }
-      - { codeId: 315, unlockLevel: 1, stage: 1 }
-      - { codeId: 316, unlockLevel: 1, stage: 1 }
-      - { codeId: 317, unlockLevel: 1, stage: 1 }
-      - { codeId: 72, unlockLevel: 9, stage: 1 }
-      - { codeId: 281, unlockLevel: 12, stage: 1 }
-      - { codeId: 282, unlockLevel: 21, stage: 1 }
-      - { codeId: 137, unlockLevel: 55, stage: 1 }
-      - { codeId: 95, unlockLevel: 68, stage: 1 }
-      - { codeId: 254, unlockLevel: 92, stage: 1 }
+      - { codeId: 1214, unlockLevel: 1, stage: 1 }
+      - { codeId: 1215, unlockLevel: 1, stage: 1 }
+      - { codeId: 1216, unlockLevel: 1, stage: 1 }
+      - { codeId: 1217, unlockLevel: 1, stage: 1 }
+      - { codeId: 16, unlockLevel: 9, stage: 1 }
+      - { codeId: 83, unlockLevel: 12, stage: 1 }
+      - { codeId: 84, unlockLevel: 21, stage: 1 }
+      - { codeId: 42, unlockLevel: 55, stage: 1 }
+      - { codeId: 29, unlockLevel: 68, stage: 1 }
+      - { codeId: 67, unlockLevel: 92, stage: 1 }
     portrait: CAESAR_PORTRAIT
     standing: CAESAR_STANDING
 
@@ -628,13 +628,13 @@ enemies:
     intBase: 6
     lukBase: 8
     lukIncrementLvl: 1
-    codes: { passive: 320, normal: 280, ultimate: 180 }
+    codes: { passive: 1300, normal: 1300, ultimate: 1300 }
     ultimateResourceMax: 100
     levelPassives:
-      - { codeId: 324, unlockLevel: 10, stage: 1 }
-      - { codeId: 325, unlockLevel: 20, stage: 1 }
-      - { codeId: 326, unlockLevel: 30, stage: 1 }
-      - { codeId: 86, unlockLevel: 60, stage: 1 }
+      - { codeId: 1304, unlockLevel: 10, stage: 1 }
+      - { codeId: 1305, unlockLevel: 20, stage: 1 }
+      - { codeId: 1306, unlockLevel: 30, stage: 1 }
+      - { codeId: 24, unlockLevel: 60, stage: 1 }
     portrait: AZTEC_JAGUAR_PORTRAIT
     standing: AZTEC_JAGUAR_STANDING
 
@@ -658,14 +658,14 @@ enemies:
     intBase: 8
     lukBase: 10
     lukIncrementLvl: 1
-    codes: { passive: 320, normal: 281, ultimate: 181 }
+    codes: { passive: 1300, normal: 1301, ultimate: 1301 }
     levelPassives:
-      - { codeId: 324, unlockLevel: 10, stage: 1 }
-      - { codeId: 325, unlockLevel: 20, stage: 1 }
-      - { codeId: 326, unlockLevel: 30, stage: 1 }
-      - { codeId: 327, unlockLevel: 40, stage: 1 }
-      - { codeId: 135, unlockLevel: 50, stage: 1 }
-      - { codeId: 86, unlockLevel: 60, stage: 1 }
+      - { codeId: 1304, unlockLevel: 10, stage: 1 }
+      - { codeId: 1305, unlockLevel: 20, stage: 1 }
+      - { codeId: 1306, unlockLevel: 30, stage: 1 }
+      - { codeId: 1307, unlockLevel: 40, stage: 1 }
+      - { codeId: 40, unlockLevel: 50, stage: 1 }
+      - { codeId: 24, unlockLevel: 60, stage: 1 }
     portrait: AZTEC_ELITE_JAGUAR_PORTRAIT
     standing: AZTEC_ELITE_JAGUAR_STANDING
 
@@ -689,12 +689,12 @@ enemies:
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
-    codes: { passive: 321, normal: 282, ultimate: 182 }
+    codes: { passive: 1301, normal: 1302, ultimate: 1302 }
     levelPassives:
-      - { codeId: 140, unlockLevel: 10, stage: 1 }
-      - { codeId: 324, unlockLevel: 20, stage: 1 }
-      - { codeId: 123, unlockLevel: 40, stage: 1 }
-      - { codeId: 221, unlockLevel: 60, stage: 1 }
+      - { codeId: 44, unlockLevel: 10, stage: 1 }
+      - { codeId: 1304, unlockLevel: 20, stage: 1 }
+      - { codeId: 1016, unlockLevel: 40, stage: 1 }
+      - { codeId: 52, unlockLevel: 60, stage: 1 }
     portrait: AZTEC_EAGLE_PORTRAIT
     standing: AZTEC_EAGLE_STANDING
 
@@ -718,14 +718,14 @@ enemies:
     intBase: 8
     lukBase: 16
     lukIncrementLvl: 2
-    codes: { passive: 321, normal: 283, ultimate: 183 }
+    codes: { passive: 1301, normal: 1303, ultimate: 1303 }
     levelPassives:
-      - { codeId: 140, unlockLevel: 10, stage: 1 }
-      - { codeId: 324, unlockLevel: 20, stage: 1 }
-      - { codeId: 125, unlockLevel: 30, stage: 1 }
-      - { codeId: 123, unlockLevel: 40, stage: 1 }
-      - { codeId: 257, unlockLevel: 50, stage: 1 }
-      - { codeId: 221, unlockLevel: 60, stage: 1 }
+      - { codeId: 44, unlockLevel: 10, stage: 1 }
+      - { codeId: 1304, unlockLevel: 20, stage: 1 }
+      - { codeId: 36, unlockLevel: 30, stage: 1 }
+      - { codeId: 1016, unlockLevel: 40, stage: 1 }
+      - { codeId: 69, unlockLevel: 50, stage: 1 }
+      - { codeId: 52, unlockLevel: 60, stage: 1 }
     portrait: AZTEC_ELITE_EAGLE_PORTRAIT
     standing: AZTEC_ELITE_EAGLE_STANDING
 
@@ -749,14 +749,14 @@ enemies:
     intIncrementLvl: 2
     lukBase: 12
     lukIncrementLvl: 1
-    codes: { passive: 322, normal: 284, ultimate: 184 }
+    codes: { passive: 1302, normal: 1304, ultimate: 1304 }
     levelPassives:
-      - { codeId: 261, unlockLevel: 10, stage: 1 }
-      - { codeId: 328, unlockLevel: 20, stage: 1 }
-      - { codeId: 74, unlockLevel: 30, stage: 1 }
-      - { codeId: 248, unlockLevel: 40, stage: 1 }
-      - { codeId: 52, unlockLevel: 50, stage: 1 }
-      - { codeId: 70, unlockLevel: 60, stage: 1 }
+      - { codeId: 70, unlockLevel: 10, stage: 1 }
+      - { codeId: 1308, unlockLevel: 20, stage: 1 }
+      - { codeId: 18, unlockLevel: 30, stage: 1 }
+      - { codeId: 62, unlockLevel: 40, stage: 1 }
+      - { codeId: 7, unlockLevel: 50, stage: 1 }
+      - { codeId: 340, unlockLevel: 60, stage: 1 }
     portrait: AZTEC_SERPENT_PRIEST_PORTRAIT
     standing: AZTEC_SERPENT_PRIEST_STANDING
 
@@ -780,14 +780,14 @@ enemies:
     intIncrementLvl: 3
     lukBase: 16
     lukIncrementLvl: 1
-    codes: { passive: 322, normal: 285, ultimate: 185 }
+    codes: { passive: 1302, normal: 1305, ultimate: 1305 }
     levelPassives:
-      - { codeId: 261, unlockLevel: 10, stage: 1 }
-      - { codeId: 328, unlockLevel: 20, stage: 1 }
-      - { codeId: 74, unlockLevel: 30, stage: 1 }
-      - { codeId: 248, unlockLevel: 40, stage: 1 }
-      - { codeId: 52, unlockLevel: 50, stage: 1 }
-      - { codeId: 70, unlockLevel: 60, stage: 1 }
+      - { codeId: 70, unlockLevel: 10, stage: 1 }
+      - { codeId: 1308, unlockLevel: 20, stage: 1 }
+      - { codeId: 18, unlockLevel: 30, stage: 1 }
+      - { codeId: 62, unlockLevel: 40, stage: 1 }
+      - { codeId: 7, unlockLevel: 50, stage: 1 }
+      - { codeId: 340, unlockLevel: 60, stage: 1 }
     portrait: AZTEC_ELITE_SERPENT_PRIEST_PORTRAIT
     standing: AZTEC_ELITE_SERPENT_PRIEST_STANDING
 
@@ -812,10 +812,10 @@ enemies:
     intIncrementLvl: 4
     lukBase: 22
     lukIncrementLvl: 2
-    codes: { passive: 70, normal: 70, ultimate: 70 }
+    codes: { passive: 340, normal: 140, ultimate: 140 }
     levelPassives:
-      - { codeId: 74, unlockLevel: 30, stage: 1 }
-      - { codeId: 75, unlockLevel: 60, stage: 1 }
+      - { codeId: 18, unlockLevel: 30, stage: 1 }
+      - { codeId: 19, unlockLevel: 60, stage: 1 }
     portrait: QUETZALCOATL_PORTRAIT
     standing: QUETZALCOATL_STANDING
 
@@ -835,7 +835,7 @@ enemies:
     intBase: 45
     intIncrementLvl: 5
     lukBase: 18
-    codes: { passive: 323, normal: 286, ultimate: 186 }
+    codes: { passive: 1303, normal: 1306, ultimate: 1306 }
     ultimateResourceType: Stack
     ultimateResourceName: 흡연경
     ultimateResourceMax: 8
@@ -869,12 +869,12 @@ enemies:
     intBase: 8
     lukBase: 8
     lukIncrementLvl: 1
-    codes: { passive: 360, normal: 300, ultimate: 300 }
+    codes: { passive: 1400, normal: 1400, ultimate: 1400 }
     levelPassives:
-      - { codeId: 81,  unlockLevel: 10, stage: 1 }   # 중갑병
-      - { codeId: 12,  unlockLevel: 20, stage: 1 }   # 기사회생
-      - { codeId: 243, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
-      - { codeId: 38,  unlockLevel: 40, stage: 1 }   # 철벽
+      - { codeId: 20,  unlockLevel: 10, stage: 1 }   # 중갑병
+      - { codeId: 2,  unlockLevel: 20, stage: 1 }   # 기사회생
+      - { codeId: 58, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 6,  unlockLevel: 40, stage: 1 }   # 철벽
     portrait: RUIN_PALADIN_PORTRAIT
     standing: RUIN_PALADIN_STANDING
 
@@ -898,14 +898,14 @@ enemies:
     intBase: 10
     lukBase: 10
     lukIncrementLvl: 1
-    codes: { passive: 361, normal: 301, ultimate: 300 }
+    codes: { passive: 1401, normal: 1401, ultimate: 1400 }
     levelPassives:
-      - { codeId: 81,  unlockLevel: 10, stage: 1 }   # 중갑병
-      - { codeId: 12,  unlockLevel: 20, stage: 1 }   # 기사회생
-      - { codeId: 243, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
-      - { codeId: 38,  unlockLevel: 40, stage: 1 }   # 철벽
-      - { codeId: 366, unlockLevel: 50, stage: 1 }   # 성스러운 칼날
-      - { codeId: 367, unlockLevel: 60, stage: 1 }   # 까칠한 피부
+      - { codeId: 20,  unlockLevel: 10, stage: 1 }   # 중갑병
+      - { codeId: 2,  unlockLevel: 20, stage: 1 }   # 기사회생
+      - { codeId: 58, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 6,  unlockLevel: 40, stage: 1 }   # 철벽
+      - { codeId: 1406, unlockLevel: 50, stage: 1 }   # 성스러운 칼날
+      - { codeId: 1407, unlockLevel: 60, stage: 1 }   # 까칠한 피부
     portrait: APOCALYPSE_PALADIN_PORTRAIT
     standing: APOCALYPSE_PALADIN_STANDING
 
@@ -929,9 +929,9 @@ enemies:
     intIncrementLvl: 2
     lukBase: 10
     lukIncrementLvl: 1
-    codes: { passive: 362, normal: 302, ultimate: 302 }
+    codes: { passive: 1402, normal: 1402, ultimate: 1401 }
     levelPassives:
-      - { codeId: 243, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 58, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
     portrait: ASCLEPIUS_PORTRAIT
     standing: ASCLEPIUS_STANDING
 
@@ -955,10 +955,10 @@ enemies:
     intIncrementLvl: 3
     lukBase: 12
     lukIncrementLvl: 1
-    codes: { passive: 362, normal: 303, ultimate: 303 }
+    codes: { passive: 1402, normal: 1403, ultimate: 1402 }
     levelPassives:
-      - { codeId: 243, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
-      - { codeId: 135, unlockLevel: 50, stage: 1 }   # 천상의 신체
+      - { codeId: 58, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 40, unlockLevel: 50, stage: 1 }   # 천상의 신체
     portrait: APOCALYPSE_INQUISITOR_PORTRAIT
     standing: APOCALYPSE_INQUISITOR_STANDING
 
@@ -983,15 +983,15 @@ enemies:
     intBase: 8
     lukBase: 22
     lukIncrementLvl: 2
-    codes: { passive: 363, normal: 304, ultimate: 304 }
+    codes: { passive: 1403, normal: 1404, ultimate: 1403 }
     levelPassives:
-      - { codeId: 122, unlockLevel: 1,  stage: 1 }   # 변덕쟁이
-      - { codeId: 123, unlockLevel: 10, stage: 1 }   # 저주
-      - { codeId: 124, unlockLevel: 20, stage: 1 }   # 상처 벌리기
-      - { codeId: 125, unlockLevel: 30, stage: 1 }   # 고통스러운 상처
-      - { codeId: 86,  unlockLevel: 40, stage: 1 }   # 투사
-      - { codeId: 95,  unlockLevel: 50, stage: 1 }   # 파죽지세
-      - { codeId: 126, unlockLevel: 60, stage: 1 }   # 순환
+      - { codeId: 34, unlockLevel: 1,  stage: 1 }   # 변덕쟁이
+      - { codeId: 1016, unlockLevel: 10, stage: 1 }   # 저주
+      - { codeId: 35, unlockLevel: 20, stage: 1 }   # 상처 벌리기
+      - { codeId: 36, unlockLevel: 30, stage: 1 }   # 고통스러운 상처
+      - { codeId: 24,  unlockLevel: 40, stage: 1 }   # 투사
+      - { codeId: 29,  unlockLevel: 50, stage: 1 }   # 파죽지세
+      - { codeId: 37, unlockLevel: 60, stage: 1 }   # 순환
     portrait: NETHER_WRAITH_PORTRAIT
     standing: NETHER_WRAITH_STANDING
 
@@ -1016,10 +1016,10 @@ enemies:
     intIncrementLvl: 2
     lukBase: 12
     lukIncrementLvl: 1
-    codes: { passive: 371, normal: 305, ultimate: 305 }
+    codes: { passive: 1411, normal: 1405, ultimate: 1404 }
     levelPassives:
-      - { codeId: 243, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
-      - { codeId: 126, unlockLevel: 50, stage: 1 }   # 순환
+      - { codeId: 58, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 37, unlockLevel: 50, stage: 1 }   # 순환
     portrait: FALLEN_PRIEST_PORTRAIT
     standing: FALLEN_PRIEST_STANDING
 
@@ -1045,13 +1045,13 @@ enemies:
     intBase: 14
     lukBase: 18
     lukIncrementLvl: 2
-    codes: { passive: 340, normal: 290, ultimate: 290 }
+    codes: { passive: 320, normal: 120, ultimate: 120 }
     ultimateResourceType: Stack
     ultimateResourceName: 우제트
     ultimateResourceMax: 4
     levelPassives:
-      - { codeId: 343, unlockLevel: 14, stage: 1 }   # 관통사격
-      - { codeId: 145, unlockLevel: 41, stage: 1 }   # 저격수
+      - { codeId: 86, unlockLevel: 14, stage: 1 }   # 관통사격
+      - { codeId: 49, unlockLevel: 41, stage: 1 }   # 저격수
     portrait: HORUS_PORTRAIT
     standing: HORUS_STANDING
 
@@ -1081,9 +1081,9 @@ enemies:
     intIncrementLvl: 4
     lukBase: 24
     lukIncrementLvl: 2
-    codes: { passive: 364, normal: 306, ultimate: 306 }
+    codes: { passive: 1404, normal: 1406, ultimate: 1405 }
     levelPassives:
-      - { codeId: 126, unlockLevel: 40, stage: 1 }   # 순환
+      - { codeId: 37, unlockLevel: 40, stage: 1 }   # 순환
     portrait: OSIRIS_PORTRAIT
     standing: OSIRIS_STANDING
 
@@ -1108,11 +1108,11 @@ enemies:
     intIncrementLvl: 5
     lukBase: 26
     lukIncrementLvl: 2
-    codes: { passive: 365, normal: 307, ultimate: 307 }
+    codes: { passive: 1405, normal: 1407, ultimate: 1406 }
     levelPassives:
-      - { codeId: 95,  unlockLevel: 10, stage: 1 }   # 파죽지세
-      - { codeId: 368, unlockLevel: 30, stage: 1 }   # 초월
-      - { codeId: 369, unlockLevel: 50, stage: 1 }   # 영혼 흡수
-      - { codeId: 370, unlockLevel: 70, stage: 1 }   # 지옥불
+      - { codeId: 29,  unlockLevel: 10, stage: 1 }   # 파죽지세
+      - { codeId: 1408, unlockLevel: 30, stage: 1 }   # 초월
+      - { codeId: 1409, unlockLevel: 50, stage: 1 }   # 영혼 흡수
+      - { codeId: 1410, unlockLevel: 70, stage: 1 }   # 지옥불
     portrait: AMUN_RA_PORTRAIT
     standing: AMUN_RA_STANDING

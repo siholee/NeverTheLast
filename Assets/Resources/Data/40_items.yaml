@@ -305,7 +305,7 @@ items:
     themeIds: [6]
     statBonuses: [{ stat: DEX, amount: 5 }]
     codeGrants:
-      - { slot: passive, codeId: 321, stage: 1 }
+      - { slot: passive, codeId: 1301, stage: 1 }
 
   - id: 4214
     name: 정예 재규어 전사의 몽둥이
@@ -317,7 +317,7 @@ items:
     themeIds: [6]
     statBonuses: [{ stat: STR, amount: 5 }]
     codeGrants:
-      - { slot: passive, codeId: 320, stage: 1 }
+      - { slot: passive, codeId: 1300, stage: 1 }
 
   - id: 4215
     name: 정예 뱀 사제의 지팡이
@@ -330,7 +330,7 @@ items:
     themeIds: [6]
     statBonuses: [{ stat: INT, amount: 5 }]
     codeGrants:
-      - { slot: passive, codeId: 322, stage: 1 }
+      - { slot: passive, codeId: 1302, stage: 1 }
 
   # ── T3 고유 장비 ────────────────────────────────────────────────
   - id: 4301
@@ -465,7 +465,7 @@ items:
     weight: 2
     statBonuses: [{ stat: LUK, amount: 5 }]
     codeGrants:
-      - { slot: passive, codeId: 144, stage: 1 }
+      - { slot: passive, codeId: 48, stage: 1 }
 
   - id: 4304
     name: 잠비야

@@ -209,7 +209,7 @@ namespace Codes.Passive
     /// <summary>지속피해 증폭 계열의 <b>일반 등급</b>. 강화 등급은 죽음의 계약(240)이다.</summary>
     public sealed class TsukuyomiCurse : PassiveCode
     {
-        public const int CodeId = 123;
+        public const int CodeId = 1016;
         private const float Multiplier = 1.20f;
 
         public TsukuyomiCurse(PassiveCodeContext context) : base(context)
