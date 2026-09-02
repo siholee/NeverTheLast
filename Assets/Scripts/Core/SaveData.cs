@@ -135,7 +135,7 @@ namespace Core
         public int version = CurrentVersion;
         // v3: 공격력/방어력 스탯 폐지 + 아군 EXP 레벨업 도입으로 유닛 스냅샷 구조가 바뀌었다.
         // v4: 유닛별 휴대 인벤토리와 3단계 중량 시스템.
-        public const int CurrentVersion = 4;
+        public const int CurrentVersion = 5;
         public int gameMode;
         public int currentStage;
         public int currentRound;

@@ -133,7 +133,7 @@ units:
     portrait: SHI_PORTRAIT
     standing: SHI_STANDING
 
-  - id: 4
+  - id: 20
     name: 피그말리온
     characterType: Locked
     element: Pyro
@@ -180,7 +180,7 @@ units:
     portrait: PYGMALION_PORTRAIT
     standing: PYGMALION_STANDING
 
-  - id: 5
+  - id: 21
     name: 아탈란테
     characterType: Starter
     element: Dendro
@@ -230,7 +230,7 @@ units:
     standing: ATALANTE_STANDING
 
   # 그리스 스타터. 전열 탱커 또는 활 계열 힘사수 딜탱.
-  - id: 6
+  - id: 22
     name: 오리온
     characterType: Starter
     element: Geo
@@ -281,7 +281,7 @@ units:
     standing: ORION_STANDING
 
   # 그리스 스타터. 딜/탱 비중을 자유롭게 조절하는 범용 전열 딜러.
-  - id: 7
+  - id: 23
     name: 테세우스
     characterType: Starter
     element: Hydro
@@ -328,7 +328,7 @@ units:
     standing: THESEUS_STANDING
 
   # 그리스 미해금. 치유와 공격을 겸하는 하이브리드 지원가.
-  - id: 8
+  - id: 24
     name: 아스클레피오
     characterType: Locked
     element: Electro
@@ -377,7 +377,7 @@ units:
     standing: ASCLEPIUS_STANDING
 
   # 타카미가하라 미해금. 기본공격을 증폭하는 후열 사수.
-  - id: 9
+  - id: 40
     name: 아마테라스
     characterType: Locked
     element: Pyro
@@ -426,7 +426,7 @@ units:
     standing: AMATERASU_STANDING
 
   # 스타터 서포터. 방어막을 부여하는 방어형 지원 역할을 맡는다.
-  - id: 12
+  - id: 60
     name: 찬드라
     characterType: Support
     element: Geo
@@ -490,7 +490,7 @@ units:
     standing: CHANDRA_STANDING
 
   # ── 보관: 영웅 획득 경로 미정 ─────────────────────────────────────
-  - id: 20
+  - id: 140
     name: 케찰코아틀
     characterType: Locked
     element: Dendro
@@ -538,7 +538,7 @@ units:
     standing: QUETZALCOATL_STANDING
 
   # ── 보관: 획득 경로 없음 (일본 테마 제거) ────────────────────────
-  - id: 21
+  - id: 41
     name: 츠쿠요미
     characterType: Locked
     element: Electro
@@ -596,7 +596,7 @@ units:
     standing: TSUKUYOMI_STANDING
 
   # ── 보관: 획득 경로 없음 (노르드 테마 제거) ──────────────────────
-  - id: 24
+  - id: 80
     name: 수르트
     characterType: Starter
     element: Pyro
@@ -651,7 +651,7 @@ units:
   # 각 유닛은 전용 초상화·스탠딩을 사용한다.
 
   # 지속피해 코어. 수동적인 지속피해를 능동적으로 터뜨린다.
-  - id: 30
+  - id: 61
     name: 야마
     characterType: Locked
     element: Electro
@@ -693,7 +693,7 @@ units:
     standing: YAMA_STANDING
 
   # 베다/캐스터 파티의 서브 딜러.
-  - id: 31
+  - id: 62
     name: 아그니
     characterType: Locked
     element: Pyro
@@ -733,7 +733,7 @@ units:
     standing: AGNI_STANDING
 
   # 클래식 번개 하이퍼캐리.
-  - id: 32
+  - id: 63
     name: 인드라
     characterType: Locked
     element: Electro
@@ -775,7 +775,7 @@ units:
     standing: INDRA_STANDING
 
   # 범용 방어형 서포터.
-  - id: 33
+  - id: 64
     name: 바유
     characterType: Starter
     element: Anemo
@@ -819,7 +819,7 @@ units:
   # 2026-08 신규 — 노르드 3인 · 로카팔라 2인 · 그리스 1인 · 타카미가하라 1인
   # ══════════════════════════════════════════════════════════════
 
-  - id: 25
+  - id: 81
     name: 프레이아
     characterType: Support
     element: Dendro
@@ -859,7 +859,7 @@ units:
     portrait: FREYA_PORTRAIT
     standing: FREYA_STANDING
 
-  - id: 26
+  - id: 82
     name: 로키
     characterType: Locked
     element: Pyro
@@ -900,7 +900,7 @@ units:
     portrait: LOKI_PORTRAIT
     standing: LOKI_STANDING
 
-  - id: 27
+  - id: 83
     name: 스카디
     characterType: Support
     element: Cryo
@@ -941,7 +941,7 @@ units:
     portrait: SKADI_PORTRAIT
     standing: SKADI_STANDING
 
-  - id: 34
+  - id: 65
     name: 쿠베라
     characterType: Support
     element: Geo
@@ -983,7 +983,7 @@ units:
     portrait: KUBERA_PORTRAIT
     standing: KUBERA_STANDING
 
-  - id: 35
+  - id: 66
     name: 바루나
     characterType: Support
     element: Hydro
@@ -1024,7 +1024,7 @@ units:
     portrait: VARUNA_PORTRAIT
     standing: VARUNA_STANDING
 
-  - id: 10
+  - id: 25
     name: 오르페우스
     characterType: Support
     element: Anemo
@@ -1065,7 +1065,7 @@ units:
     portrait: ORPHEUS_PORTRAIT
     standing: ORPHEUS_STANDING
 
-  - id: 22
+  - id: 42
     name: 스사노오
     characterType: Locked
     element: Hydro
@@ -1109,7 +1109,7 @@ units:
   # 적(60_enemies.yaml 2006 / 2007 / 3004)과 코드를 공유한다.
   # 보스로 등장할 때만 붙는 패시브(312~317 · 284 심안)는 여기 없다.
   # 전용 로마 스프라이트를 적 버전과 공유한다.
-  - id: 40
+  - id: 100
     name: 아그리파
     characterType: Support
     element: Geo
@@ -1151,7 +1151,7 @@ units:
     portrait: AGRIPPA_PORTRAIT
     standing: AGRIPPA_STANDING
 
-  - id: 41
+  - id: 101
     name: 옥타비아
     characterType: Locked
     element: Anemo
@@ -1192,7 +1192,7 @@ units:
     portrait: OCTAVIA_PORTRAIT
     standing: OCTAVIA_STANDING
 
-  - id: 42
+  - id: 102
     name: 카이사르
     characterType: Locked
     element: Anemo
@@ -1238,7 +1238,7 @@ units:
   # 이집트 신규 — 호루스 · 아누비스 · 바스테트
   # ══════════════════════════════════════════════════════════════
 
-  - id: 43
+  - id: 120
     name: 호루스
     characterType: Locked
     element: Pyro
@@ -1282,7 +1282,7 @@ units:
     portrait: HORUS_PORTRAIT
     standing: HORUS_STANDING
 
-  - id: 44
+  - id: 121
     name: 아누비스
     characterType: Starter
     element: Geo
@@ -1325,7 +1325,7 @@ units:
     portrait: ANUBIS_PORTRAIT
     standing: ANUBIS_STANDING
 
-  - id: 45
+  - id: 122
     name: 바스테트
     characterType: Locked
     element: Geo
@@ -1368,7 +1368,7 @@ units:
     portrait: BASTET_PORTRAIT
     standing: BASTET_STANDING
 
-  - id: 46
+  - id: 123
     name: 세트
     characterType: Locked
     element: Pyro
@@ -1408,7 +1408,7 @@ units:
     portrait: SET_PORTRAIT
     standing: SET_STANDING
 
-  - id: 47
+  - id: 124
     name: 토트
     characterType: Support
     element: Hydro
@@ -1448,7 +1448,7 @@ units:
     portrait: THOTH_PORTRAIT
     standing: THOTH_STANDING
 
-  - id: 48
+  - id: 125
     name: 이시스
     characterType: Support
     element: Geo
@@ -1488,7 +1488,7 @@ units:
     portrait: ISIS_PORTRAIT
     standing: ISIS_STANDING
 
-  - id: 49
+  - id: 3
     name: 사바흐
     characterType: Starter
     element: Electro
@@ -1532,7 +1532,7 @@ units:
     portrait: SABAH_PORTRAIT
     standing: SABAH_STANDING
 
-  - id: 50
+  - id: 26
     name: 이카리아
     characterType: Locked
     element: Pyro
@@ -1572,7 +1572,7 @@ units:
     portrait: ICARIA_PORTRAIT
     standing: ICARIA_STANDING
 
-  - id: 51
+  - id: 160
     name: 마리
     characterType: Support
     element: Cryo

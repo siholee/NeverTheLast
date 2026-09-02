@@ -311,7 +311,7 @@ events:
       - id: recruit_bastet_after_amun_ra
         text: 바스테트를 동료로 맞이한다.
         action: continue
-        grantUnitId: 45
+        grantUnitId: 122
         successText: 바스테트가 아군에 합류했다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
       - id: decline_bastet_after_amun_ra
         text: 이번에는 각자의 길을 간다.
@@ -341,7 +341,7 @@ events:
       - id: recruit_horus_after_amun_ra
         text: 호루스에게 함께 싸우자고 청한다.
         action: continue
-        grantUnitId: 43
+        grantUnitId: 120
         successText: 호루스가 아군에 합류했다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
       - id: decline_horus_after_amun_ra
         text: 아직은 각자의 전장을 지킨다.
@@ -370,7 +370,7 @@ events:
       - id: recruit_set_after_amun_ra
         text: 세트와 맹약을 맺는다.
         action: continue
-        grantUnitId: 46
+        grantUnitId: 123
         successText: 세트가 아군에 합류했다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
       - id: decline_set_after_amun_ra
         text: 혼돈과 손잡지 않는다.

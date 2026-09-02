@@ -37,7 +37,7 @@ namespace Managers
 
     public class RewardManager : MonoBehaviour
     {
-        private const int SabahUnitId = 49;
+        private const int SabahUnitId = 3;
         private static readonly HashSet<int> SabahRewardItemIds = new() { 4303, 4304 };
 
         public static RewardManager Instance { get; private set; }
