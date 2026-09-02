@@ -19,6 +19,15 @@ namespace Codes.Base
     /// </summary>
     public bool IgnoresCodeCapacity { get; protected set; }
 
+    /// <summary>
+    /// 이 코드를 대체하는 <b>강화 등급</b> 코드의 ID. 0이면 대체 관계가 없다.
+    ///
+    /// 서포터 전수로 같은 계열의 두 등급을 함께 들 수 있으므로, 보유자가 이 ID의 코드를
+    /// 배웠으면 <see cref="Entities.Unit"/>이 이 코드를 아예 발동하지 않는다.
+    /// 효과마다 상대 상태를 조회해 스스로 눌리던 방식을 한 줄 선언으로 바꾼 것이다.
+    /// </summary>
+    public int SupersededByCodeId { get; protected set; }
+
     public PassiveCode(PassiveCodeContext context)
     {
       Caster = context.Caster;

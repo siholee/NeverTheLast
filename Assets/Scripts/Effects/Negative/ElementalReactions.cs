@@ -198,6 +198,16 @@ namespace Effects.Negative
             {
                 float reduction = Mathf.Clamp01(
                     (source.GetBaseCon() - target.GetBaseCon()) * 0.01f);
+
+                // 깎을 방어력이 없으면 상태도 붙이지 않는다. 0%짜리 디버프가 남으면
+                // 디버프 수를 세는 효과(사바흐의 빈틈 포착 등)에 공짜로 잡힌다.
+                if (reduction <= 0f)
+                {
+                    Unit.NotifyElementalReaction(source, target, pair.Name);
+                    Debug.Log($"[원소 반응] 촉진 무효 — {source.UnitName}의 CON이 {target.UnitName} 이하다");
+                    return;
+                }
+
                 target.AddStatus(BuffStatus.Create(
                     CatalyzeStatusId, CatalyzeStatusKey, pair.Name,
                     source, target, new CatalyzeDefenseEffect(1f - reduction),

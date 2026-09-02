@@ -635,31 +635,52 @@ namespace Managers.UI.Screens
 
         // ── 코드 / 시트 탭 ───────────────────────────────────────────
 
+        /// <summary>
+        /// 코드 목록. <b>등급이 색으로 보인다</b> — 일반은 은색, 강화는 금색이다.
+        /// 강화 등급에 대체되어 발동하지 않는 코드는 흐리게 깔고 이유를 붙인다.
+        /// </summary>
         private void BuildCodeList(Transform column, Unit unit, float top)
         {
-            var entries = new List<(string Kind, string Name)>();
+            var entries = new List<(string Kind, string Name, Color Tint)>();
 
-            if (unit.ActiveNormalCode != null) entries.Add(("일반", unit.ActiveNormalCode.CodeName));
-            if (unit.ActiveUltimateCode != null) entries.Add(("궁극", unit.ActiveUltimateCode.CodeName));
+            if (unit.ActiveNormalCode != null)
+                entries.Add(("일반", unit.ActiveNormalCode.CodeName, GradeColor(unit.ActiveNormalCode)));
+            if (unit.ActiveUltimateCode != null)
+                entries.Add(("궁극", unit.ActiveUltimateCode.CodeName, GradeColor(unit.ActiveUltimateCode)));
 
             foreach (PassiveCode passive in unit.ActivePassiveCodes)
             {
-                if (passive != null) entries.Add(("패시브", passive.CodeName));
+                if (passive != null) entries.Add(PassiveEntry("패시브", passive, unit));
             }
 
             foreach (PassiveCode passive in unit.ActiveItemPassiveCodes)
             {
-                if (passive != null) entries.Add(("장비", passive.CodeName));
+                if (passive != null) entries.Add(PassiveEntry("장비", passive, unit));
             }
 
             float y = top;
             AddListHeading(column, $"코드 {unit.LearnedCodeCount} / {unit.MaxCodeCount}", ref y);
-            foreach ((string kind, string name) in entries)
+            foreach ((string kind, string name, Color tint) in entries)
             {
-                AddListRow(column, kind, name, ref y);
+                AddListRow(column, kind, name, ref y, tint);
             }
 
             if (entries.Count == 0) AddListRow(column, "—", "없음", ref y);
+        }
+
+        private static Color GradeColor(Code code)
+            => code != null && code.Grade == BaseClasses.BaseEnums.CodeGrade.Enhanced
+                ? UITheme.CodeEnhanced
+                : UITheme.CodeNormal;
+
+        private static (string Kind, string Name, Color Tint) PassiveEntry(
+            string kind, PassiveCode passive, Unit unit)
+        {
+            bool superseded = passive.SupersededByCodeId > 0 &&
+                              unit.HasLearnedPassiveCode(passive.SupersededByCodeId);
+            return superseded
+                ? (kind, $"{passive.CodeName} (대체됨)", UITheme.TextMuted)
+                : (kind, passive.CodeName, GradeColor(passive));
         }
 
         private void BuildSheet(Transform column, Unit unit, float top)
@@ -749,7 +770,8 @@ namespace Managers.UI.Screens
             y += 22f;
         }
 
-        private static void AddListRow(Transform column, string left, string right, ref float y)
+        private static void AddListRow(Transform column, string left, string right, ref float y,
+            Color? rightTint = null)
         {
             var row = UIBuild.Container("Row", column);
             row.anchorMin = new Vector2(0f, 1f);
@@ -761,8 +783,8 @@ namespace Managers.UI.Screens
             TextMeshProUGUI l = UIBuild.Text("L", row, left, UITheme.FontMicro, UITheme.TextSecondary);
             UIBuild.Anchor(l.rectTransform, new Vector2(0f, 0f), new Vector2(0.55f, 1f), 4f, 0f);
 
-            TextMeshProUGUI r = UIBuild.Text("R", row, right, UITheme.FontMicro, UITheme.TextPrimary,
-                TextAlignmentOptions.MidlineRight);
+            TextMeshProUGUI r = UIBuild.Text("R", row, right, UITheme.FontMicro,
+                rightTint ?? UITheme.TextPrimary, TextAlignmentOptions.MidlineRight);
             UIBuild.Anchor(r.rectTransform, new Vector2(0.55f, 0f), new Vector2(1f, 1f), 4f, 0f);
             r.overflowMode = TextOverflowModes.Ellipsis;
 

@@ -47,6 +47,9 @@ namespace Codes.Normal
     /// <summary>이카리아 N — 체력을 지불할 수 있으면 INT 계수가 0.6에서 0.9로 오른다.</summary>
     public sealed class IcariaRecklessThrust : BaseNormalCode
     {
+        /// <summary>체력을 지불했을 때의 위력 배율.</summary>
+        private const float PaidPowerMultiplier = 1.5f;
+
         private float _spentHpRatio;
         private float _codeDamageMultiplier = 1f;
 
@@ -62,10 +65,12 @@ namespace Codes.Normal
             _spentHpRatio = 0f;
             _codeDamageMultiplier = 1f;
 
-            int power = 60;
+            // 체력을 낼 수 있으면 위력이 1.5배(60 → 90)가 된다. 단계·비례 위력을
+            // 잃지 않도록 리터럴이 아니라 CurrentPower에서 출발한다.
+            int power = CurrentPower;
             if (Caster.TryConsumeAttackHp(0.10f, false, out float skillCost))
             {
-                power = 90;
+                power = Mathf.RoundToInt(CurrentPower * PaidPowerMultiplier);
                 _spentHpRatio += skillCost;
             }
 

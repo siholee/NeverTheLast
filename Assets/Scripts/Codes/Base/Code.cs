@@ -19,6 +19,12 @@ namespace Codes.Base
     public int MaxStage { get; protected set; } = 1;
 
     /// <summary>
+    /// 코드 등급. 기본은 일반(은색)이고, 같은 계열의 일반 등급을 대체하는 코드가 강화(금색)다.
+    /// 등급은 표시용 색과 <see cref="PassiveCode.SupersededByCodeId"/> 판정에 함께 쓰인다.
+    /// </summary>
+    public BaseEnums.CodeGrade Grade { get; protected set; } = BaseEnums.CodeGrade.Normal;
+
+    /// <summary>
     /// 스킬 고정 위력(포켓몬식). 피해 = 위력 × 시전자 주스탯 × SkillPowerScale.
     /// 단계별로 다르면 <see cref="StagePowers"/>를 채운다. 0이면 피해를 주지 않는 스킬이다.
     /// </summary>

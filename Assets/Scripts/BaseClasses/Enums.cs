@@ -17,6 +17,19 @@ namespace BaseClasses
       Ultimate,
     }
 
+    /// <summary>
+    /// 코드 등급. 같은 효과 계열에서 강화 등급은 일반 등급을 대체한다.
+    /// 둘을 함께 들면 강화 쪽만 적용되고 일반 쪽은 발동하지 않는다.
+    /// </summary>
+    public enum CodeGrade
+    {
+      /// <summary>일반 — 은색.</summary>
+      Normal,
+
+      /// <summary>강화 — 금색. 같은 계열의 일반 등급을 대체한다.</summary>
+      Enhanced,
+    }
+
     public enum UltimateResourceType
     {
       Mana,

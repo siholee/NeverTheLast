@@ -1510,13 +1510,13 @@ units:
     dexIncrementLvl: 2
     dexIncrementUpgrade: 1
     conBase: 14
-    conIncrementLvl: 2
+    conIncrementLvl: 1
     conIncrementUpgrade: 1
     intBase: 10
     intIncrementLvl: 1
     intIncrementUpgrade: 1
     lukBase: 24
-    lukIncrementLvl: 3
+    lukIncrementLvl: 2
     lukIncrementUpgrade: 1
     codes: { passive: 420, normal: 310, ultimate: 310 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
@@ -1554,13 +1554,13 @@ units:
     dexIncrementLvl: 1
     dexIncrementUpgrade: 1
     conBase: 18
-    conIncrementLvl: 2
+    conIncrementLvl: 1
     conIncrementUpgrade: 1
     intBase: 22
-    intIncrementLvl: 3
+    intIncrementLvl: 2
     intIncrementUpgrade: 1
     lukBase: 16
-    lukIncrementLvl: 2
+    lukIncrementLvl: 1
     lukIncrementUpgrade: 1
     codes: { passive: 422, normal: 311, ultimate: 311 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
@@ -1588,10 +1588,10 @@ units:
     mainStatTrainingBonus: 0.20
     subStatTrainingBonus: 0.05
     strBase: 16
-    strIncrementLvl: 2
+    strIncrementLvl: 1
     strIncrementUpgrade: 1
     dexBase: 20
-    dexIncrementLvl: 2
+    dexIncrementLvl: 1
     dexIncrementUpgrade: 1
     conBase: 14
     conIncrementLvl: 1
@@ -1600,7 +1600,7 @@ units:
     intIncrementLvl: 1
     intIncrementUpgrade: 1
     lukBase: 24
-    lukIncrementLvl: 3
+    lukIncrementLvl: 2
     lukIncrementUpgrade: 1
     codes: { passive: 426, normal: 312, ultimate: 312 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }

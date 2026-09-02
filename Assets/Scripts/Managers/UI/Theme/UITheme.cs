@@ -54,6 +54,13 @@ namespace Managers.UI.Theme
         public static readonly Color TextMuted = new(0.427f, 0.443f, 0.459f, 1f);
         public static readonly Color TextOnAccent = new(0.071f, 0.071f, 0.071f, 1f);
 
+        // ── 코드 등급 ────────────────────────────────────────────────
+        /// <summary>일반 등급 코드 — 은색.</summary>
+        public static readonly Color CodeNormal = new(0.847f, 0.851f, 0.878f, 1f);
+
+        /// <summary>강화 등급 코드 — 금색. 같은 계열의 일반 등급을 대체한다.</summary>
+        public static readonly Color CodeEnhanced = new(1f, 0.804f, 0.239f, 1f);
+
         // ── 선/구분 ──────────────────────────────────────────────────
         public static readonly Color Divider = new(1f, 1f, 1f, 0.10f);
         public static readonly Color Outline = new(1f, 1f, 1f, 0.16f);

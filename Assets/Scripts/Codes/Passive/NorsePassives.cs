@@ -63,6 +63,8 @@ namespace Codes.Passive
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "의술";
             IgnoresActivationChance = true;
+            // 일반 등급. 의신의 가호(98)를 배웠으면 발동 자체가 막힌다.
+            SupersededByCodeId = AsclepiusDivineMedicine.CodeId;
         }
 
         public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
@@ -304,13 +306,17 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>의술 — 부여 치유·보호막 +25%. 상위 코드 `의신의 가호`가 있으면 침묵한다.</summary>
+    /// <summary>의술 — 부여 치유·보호막 +25%.</summary>
     internal sealed class MedicineEffect : BaseEffect
     {
         private const float Multiplier = 1.25f;
 
         public MedicineEffect() : base(0, Multiplier) { }
 
+        /// <summary>
+        /// 등급 대체는 <see cref="PassiveCode.SupersededByCodeId"/>가 발동 단계에서 막는다.
+        /// 여기 남은 판정은 <b>배운 기록 없이</b> 장비가 의신의 가호를 부여한 경우를 위한 것이다.
+        /// </summary>
         private bool Suppressed =>
             Target != null && Target.HasStatus(AsclepiusStatusIds.DivineMedicine);
 

@@ -97,11 +97,15 @@ namespace Codes.Passive
 
     public sealed class AsclepiusDivineMedicine : PassiveCode
     {
+        public const int CodeId = 98;
+
         public AsclepiusDivineMedicine(PassiveCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "의신의 가호";
             IgnoresActivationChance = true;
+            // 의술(261)의 강화 등급.
+            Grade = BaseEnums.CodeGrade.Enhanced;
         }
 
         public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(

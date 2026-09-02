@@ -236,12 +236,11 @@ namespace Codes.Passive
     public sealed class HeavenlyKiller : ExecuteThresholdPassive
     {
         public const int CodeId = 58;
-        public HeavenlyKiller(PassiveCodeContext context) : base(context, "천살성", 0.08f) { }
 
-        protected override bool CanExecute()
+        public HeavenlyKiller(PassiveCodeContext context) : base(context, "천살성", 0.08f)
         {
-            // 시가 당연한 운명을 습득했다면 천살성은 완전히 대체되어 중복 판정하지 않는다.
-            return !Caster.HasLearnedPassiveCode(ShiCertainDestiny.CodeId);
+            // 일반 등급. 당연한 운명(60)을 배웠으면 발동 자체가 막힌다.
+            SupersededByCodeId = ShiCertainDestiny.CodeId;
         }
     }
 
@@ -286,8 +285,13 @@ namespace Codes.Passive
     public sealed class ShiCertainDestiny : ExecuteThresholdPassive
     {
         public const int CodeId = 60;
-        public ShiCertainDestiny(PassiveCodeContext context) : base(context, "당연한 운명", 0.12f) { }
 
+        public ShiCertainDestiny(PassiveCodeContext context) : base(context, "당연한 운명", 0.12f)
+        {
+            Grade = BaseEnums.CodeGrade.Enhanced;
+        }
+
+        /// <summary>천살성을 발판으로 삼는 강화 등급이라, 그 코드를 배우지 않았으면 처형선이 서지 않는다.</summary>
         protected override bool CanExecute() => Caster.HasLearnedPassiveCode(HeavenlyKiller.CodeId);
     }
 

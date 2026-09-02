@@ -1043,13 +1043,19 @@ namespace Managers
         {
             const int AmunRaBossId = 3012;
             if (_roundManager?.CurrentBossId != AmunRaBossId) return;
-            if (!SaveSystem.MarkBossDefeated(AmunRaBossId)) return;
+            if (SaveSystem.HasDefeatedBoss(AmunRaBossId)) return;
 
+            // 사건을 확인한 뒤에 기록을 남긴다. 먼저 기록하면 사건을 못 찾았을 때
+            // 최초 격파가 소진되어 바스테트 합류가 영영 사라진다.
             StageEventData bastetEvent = _roundManager.GetEventById("aswan_bastet_first_amun_ra_clear");
-            if (bastetEvent != null)
+            if (bastetEvent == null)
             {
-                RequestEvent(bastetEvent);
+                Debug.LogWarning("[사건] 아문·라 최초 격파 사건(aswan_bastet_first_amun_ra_clear)을 찾지 못했다.");
+                return;
             }
+
+            if (!SaveSystem.MarkBossDefeated(AmunRaBossId)) return;
+            RequestEvent(bastetEvent);
         }
 
         private void ResolveEventBattle(bool victory)

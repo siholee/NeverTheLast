@@ -1309,6 +1309,14 @@ namespace Entities
         {
             if (passiveCode == null) return;
 
+            // 같은 계열의 강화 등급을 이미 배웠으면 일반 등급은 발동하지 않는다.
+            if (passiveCode.SupersededByCodeId > 0 &&
+                HasLearnedPassiveCode(passiveCode.SupersededByCodeId))
+            {
+                Debug.Log($"{UnitName}의 {passiveCode.CodeName}은(는) 강화 등급 코드에 대체되어 발동하지 않는다");
+                return;
+            }
+
             if (!TryPassCodeActivation(passiveCode))
             {
                 Debug.Log($"{UnitName}의 패시브 코드 {passiveCode.CodeName} 발동 실패");

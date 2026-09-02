@@ -160,6 +160,10 @@ passives from `levelPassives` bounded by INT-derived code capacity.
 - `UniquePassiveCode` sets `Transferable = false`. **Unique passives are never transferred**;
   support cards can only pass on unlock passives. (The old degraded-transfer system is gone.)
 - Normal attacks have **no cooldown** — DEX-driven action value sets the cadence.
+- Codes carry a **grade**: `CodeGrade.Normal` (silver) or `Enhanced` (gold). A silver code sets
+  `SupersededByCodeId` to the gold code that replaces it, and `Unit.TryCastPassiveCode` refuses to
+  fire it when the owner has learned that gold code. Field-wide auras (different owners) keep their
+  existing highest-only handling; the grade is a label there. See `Detail_12 §3.2`.
 - Power supports a proportional term: `위력 = Power + 스탯 × PowerStatCoefficient` (`Code.CurrentPower`).
 
 ### Effects and statuses
@@ -195,7 +199,7 @@ The **ten-thousands digit is the category**; an attack takes one from each band.
 5. Update `Detail_08` (spec) and `Detail_12` (index)
 
 Growth must follow the rule in `Detail_08`: **main +2, sub +2, others +1** (Sei/Shi: main +3, sub +2).
-All 32 units currently satisfy it.
+All 35 units currently satisfy it.
 
 ### Adding a theme
 

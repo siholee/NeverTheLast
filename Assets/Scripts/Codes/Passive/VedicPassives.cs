@@ -53,6 +53,8 @@ namespace Codes.Passive
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "죽음의 계약";
             IgnoresActivationChance = true;
+            // 지속피해 증폭 계열의 강화 등급. 같은 계열의 일반 등급과 겹치면 이쪽만 남는다.
+            Grade = BaseEnums.CodeGrade.Enhanced;
         }
 
         public override void CastCode()
@@ -285,6 +287,8 @@ namespace Codes.Passive
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "영원히 타오르는 불꽃";
             IgnoresActivationChance = true;
+            // 불 원소 아군 피해 계열의 강화 등급.
+            Grade = BaseEnums.CodeGrade.Enhanced;
         }
 
         public override void CastCode()
@@ -314,6 +318,8 @@ namespace Codes.Passive
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "대마법사";
             IgnoresActivationChance = true;
+            // 보주 치명타 피해 계열의 강화 등급.
+            Grade = BaseEnums.CodeGrade.Enhanced;
         }
 
         public override void CastCode()
