@@ -664,7 +664,8 @@ namespace Managers
             return isEnemy ? 2 : -2;
         }
 
-        public void SpawnUnit(int xPos, int yPos, bool isEnemy, int unitId, bool isBench = false)
+        /// <summary>유닛을 스폰하고 그 인스턴스를 돌려준다. 자리를 못 잡으면 null이다.</summary>
+        public Unit SpawnUnit(int xPos, int yPos, bool isEnemy, int unitId, bool isBench = false)
         {
             Cell cell = null;
             
@@ -681,7 +682,7 @@ namespace Managers
                 if (!cell)
                 {
                     Debug.LogWarning("벤치에 빈 셀이 없습니다.");
-                    return;
+                    return null;
                 }
             }
             else
@@ -690,7 +691,7 @@ namespace Managers
                 if ((isEnemy && !IsEnemyFieldPosition(xPos, yPos)) || (!isEnemy && !IsAllyFieldPosition(xPos, yPos)))
                 {
                     Debug.LogWarning($"진영에 맞지 않는 셀입니다: {(isEnemy ? "적" : "아군")} -> ({xPos}, {yPos})");
-                    return;
+                    return null;
                 }
 
                 int adjustedX = xPos - xMin;
@@ -705,7 +706,7 @@ namespace Managers
                 if (cell == null || cell.isOccupied)
                 {
                     Debug.LogWarning($"셀이 없거나 이미 점유되어 있습니다: ({xPos}, {yPos})");
-                    return;
+                    return null;
                 }
             }
 
@@ -757,11 +758,11 @@ namespace Managers
                 unitComponent.Spawn(cell, isEnemy, unitId);
                 UnlockStarterIfJoinedDuringRun(isEnemy, unitId);
                 // Debug.Log($"Spawned {(isEnemy ? "enemy" : "hero")} unit {unitComponent.UnitName} at {(isBench ? "bench" : $"({xPos}, {yPos})")}");
+                return unitComponent;
             }
-            else
-            {
-                Debug.LogError($"Failed to get Unit component from spawned object");
-            }
+
+            Debug.LogError($"Failed to get Unit component from spawned object");
+            return null;
         }
 
         private static void UnlockStarterIfJoinedDuringRun(bool isEnemy, int unitId)

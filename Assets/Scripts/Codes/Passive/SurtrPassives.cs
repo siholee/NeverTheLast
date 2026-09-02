@@ -29,7 +29,7 @@ namespace Codes.Passive
         private float _stackRemaining;
         private DamageContext _lastStackContext;
         private Action<DamageResolvedContext> _damageHandler;
-        private Action<EventContext> _updateHandler;
+        private Action<EventContext> _turnHandler;
         private Action<EventContext> _cleanupHandler;
 
         public SurtrTwilight(PassiveCodeContext context) : base(context)
@@ -56,10 +56,10 @@ namespace Codes.Passive
                 description: "치명 피해를 한 번 막고 2초 경직 후 완전히 회복하여 황혼에 진입합니다. 라그나로크 스택마다 방어력 20%를 무시합니다."));
 
             _damageHandler = OnDamageDealt;
-            _updateHandler = OnUpdate;
+            _turnHandler = OnOwnerTurnStart;
             _cleanupHandler = _ => StopCode();
             Caster.AddListener(BaseEnums.UnitEventType.OnDamageDealt, _damageHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnUpdate, _updateHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             _registered = true;
@@ -69,7 +69,7 @@ namespace Codes.Passive
         {
             if (!_registered) return;
             Caster.RemoveListener(BaseEnums.UnitEventType.OnDamageDealt, _damageHandler);
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnUpdate, _updateHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             Caster.RemoveStatusByKey(SurtrIds.TwilightControllerKey);
@@ -94,7 +94,7 @@ namespace Codes.Passive
             _stackRemaining = RagnarokStackDuration;
         }
 
-        private void OnUpdate(EventContext context)
+        private void OnOwnerTurnStart(EventContext context)
         {
             if (Caster.HasStatusKey(SurtrIds.TwilightStatusKey))
             {
@@ -103,7 +103,7 @@ namespace Codes.Passive
             }
 
             if (Caster.ManaCurr <= 0) return;
-            _stackRemaining -= context.FloatParam;
+            _stackRemaining -= Caster.LastTurnSeconds;
             if (_stackRemaining > 0f) return;
             Caster.AddUltimateResource(-Caster.ManaCurr);
             _stackRemaining = 0f;

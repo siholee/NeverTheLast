@@ -11,7 +11,7 @@ namespace Codes.Passive
 
         private bool _isRegistered;
         private float _elapsed;
-        private Action<EventContext> _updateHandler;
+        private Action<EventContext> _turnHandler;
         private Action<EventContext> _roundEndHandler;
 
         public Block(PassiveCodeContext context) : base(context)
@@ -26,9 +26,9 @@ namespace Codes.Passive
         {
             if (_isRegistered) return;
 
-            _updateHandler = OnUpdate;
+            _turnHandler = OnOwnerTurnStart;
             _roundEndHandler = OnRoundEnd;
-            Caster.AddListener(BaseEnums.UnitEventType.OnUpdate, _updateHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _roundEndHandler);
             _isRegistered = true;
             _elapsed = 0f;
@@ -38,9 +38,9 @@ namespace Codes.Passive
         {
             if (!_isRegistered) return;
 
-            if (_updateHandler != null)
+            if (_turnHandler != null)
             {
-                Caster.RemoveListener(BaseEnums.UnitEventType.OnUpdate, _updateHandler);
+                Caster.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
             }
 
             if (_roundEndHandler != null)
@@ -48,17 +48,17 @@ namespace Codes.Passive
                 Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _roundEndHandler);
             }
 
-            _updateHandler = null;
+            _turnHandler = null;
             _roundEndHandler = null;
             _isRegistered = false;
             _elapsed = 0f;
         }
 
-        private void OnUpdate(EventContext context)
+        private void OnOwnerTurnStart(EventContext context)
         {
             if (context.Grantee != Caster || !Caster.isActive) return;
 
-            _elapsed += context.FloatParam;
+            _elapsed += Caster.LastTurnSeconds;
             if (_elapsed < TickInterval) return;
 
             _elapsed -= TickInterval;

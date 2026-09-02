@@ -1334,6 +1334,14 @@ namespace Entities
 
         public virtual void CastUltimateCode()
         {
+            // 예약과 실행 사이에 앞선 추가공격이 마지막 적을 지웠을 수 있다.
+            // 자원을 먼저 태우면 아무 일도 못 하고 궁극기 한 번을 통째로 잃는다.
+            if (UltimateCode != null && !UltimateCode.HasValidTarget())
+            {
+                Debug.Log($"{UnitName}의 궁극기 {UltimateCode.CodeName}은(는) 대상이 없어 자원을 유지한 채 취소한다");
+                return;
+            }
+
             ConsumeUltimateResource();
             // Cell의 통합 UI 시스템 사용
             currentCell.UpdateUI();
@@ -2096,7 +2104,7 @@ namespace Entities
             }
             if (canEvade && UnityEngine.Random.value < evasionChance)
             {
-                currentCell.UpdateUI();
+                currentCell?.UpdateUI();
                 Debug.Log($"{self.UnitName}이(가) 공격을 회피했습니다. 회피율: {evasionChance * 100f:F1}%");
                 return;
             }

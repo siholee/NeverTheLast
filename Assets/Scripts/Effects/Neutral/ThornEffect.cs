@@ -33,8 +33,10 @@ namespace Effects.Neutral
         {
             if (context.DmgCtx == null || context.DmgCtx.Attacker == null) return;
             
-            // 접촉 피해인지 확인
-            bool isContactAttack = !context.DmgCtx.DamageTags.Contains(DamageTag.NonContactAttack);
+            // 접촉 태그가 붙은 공격에만 되받아친다. 지속피해는 태그 목록이 비어 있으므로
+            // '비접촉이 아니면 접촉'으로 뒤집어 물으면 화상 틱마다 시전자를 태우게 된다.
+            bool isContactAttack = context.DmgCtx.DamageTags != null &&
+                                   context.DmgCtx.DamageTags.Contains(DamageTag.ContactAttack);
             
             if (isContactAttack)
             {

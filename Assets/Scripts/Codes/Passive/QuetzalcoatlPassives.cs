@@ -133,7 +133,7 @@ namespace Codes.Passive
     {
         private const float CooldownSeconds = 20f;
         private float _elapsed;
-        private Action<EventContext> _updateHandler;
+        private Action<EventContext> _turnHandler;
         private Action<EventContext> _cleanupHandler;
         private bool _registered;
 
@@ -150,9 +150,9 @@ namespace Codes.Passive
             if (Caster == null || _registered) return;
             _elapsed = 0f;
             ApplyAura();
-            _updateHandler = OnUpdate;
+            _turnHandler = OnOwnerTurnStart;
             _cleanupHandler = _ => StopCode();
-            Caster.AddListener(BaseEnums.UnitEventType.OnUpdate, _updateHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             _registered = true;
@@ -161,15 +161,15 @@ namespace Codes.Passive
         public override void StopCode()
         {
             if (!_registered || Caster == null) return;
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnUpdate, _updateHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             _registered = false;
         }
 
-        private void OnUpdate(EventContext context)
+        private void OnOwnerTurnStart(EventContext context)
         {
-            _elapsed += Mathf.Max(0f, context?.FloatParam ?? 0f);
+            _elapsed += Mathf.Max(0f, Caster?.LastTurnSeconds ?? 0f);
             if (_elapsed < CooldownSeconds) return;
             _elapsed %= CooldownSeconds;
             ApplyAura();

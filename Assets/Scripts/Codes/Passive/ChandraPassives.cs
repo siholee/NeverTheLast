@@ -268,7 +268,7 @@ namespace Codes.Passive
         private bool _isRegistered;
         private bool _applied;
         private float _elapsed;
-        private Action<EventContext> _updateHandler;
+        private Action<EventContext> _turnHandler;
         private Action<EventContext> _roundEndHandler;
 
         public ChandraIronWall(PassiveCodeContext context) : base(context)
@@ -285,9 +285,9 @@ namespace Codes.Passive
             Caster.RemoveStatusByKey("ChandraIronWall");
             if (_isRegistered) return;
 
-            _updateHandler = OnUpdate;
+            _turnHandler = OnOwnerTurnStart;
             _roundEndHandler = OnRoundEnd;
-            Caster.AddListener(BaseEnums.UnitEventType.OnUpdate, _updateHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _roundEndHandler);
             _isRegistered = true;
         }
@@ -296,27 +296,27 @@ namespace Codes.Passive
         {
             if (!_isRegistered) return;
 
-            if (_updateHandler != null)
+            if (_turnHandler != null)
             {
-                Caster.RemoveListener(BaseEnums.UnitEventType.OnUpdate, _updateHandler);
+                Caster.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
             }
             if (_roundEndHandler != null)
             {
                 Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _roundEndHandler);
             }
 
-            _updateHandler = null;
+            _turnHandler = null;
             _roundEndHandler = null;
             _isRegistered = false;
             _elapsed = 0f;
             _applied = false;
         }
 
-        private void OnUpdate(EventContext context)
+        private void OnOwnerTurnStart(EventContext context)
         {
             if (_applied || context.Grantee != Caster || !Caster.isActive) return;
 
-            _elapsed += context.FloatParam;
+            _elapsed += Caster.LastTurnSeconds;
             if (_elapsed < TriggerTime) return;
 
             _applied = true;
@@ -432,7 +432,7 @@ namespace Codes.Passive
     {
         private bool _registered;
         private float _elapsed;
-        private Action<EventContext> _updateHandler;
+        private Action<EventContext> _turnHandler;
 
         public QuetzalcoatlRegeneration(PassiveCodeContext context) : base(context)
         {
@@ -444,15 +444,15 @@ namespace Codes.Passive
         {
             _elapsed = 0f;
             if (_registered) return;
-            _updateHandler = OnUpdate;
-            Caster.AddListener(BaseEnums.UnitEventType.OnUpdate, _updateHandler);
+            _turnHandler = OnOwnerTurnStart;
+            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
             _registered = true;
         }
 
-        private void OnUpdate(EventContext context)
+        private void OnOwnerTurnStart(EventContext context)
         {
             if (context.Grantee != Caster || !Caster.isActive) return;
-            _elapsed += context.FloatParam;
+            _elapsed += Caster.LastTurnSeconds;
             while (_elapsed >= 1f)
             {
                 _elapsed -= 1f;
@@ -524,7 +524,7 @@ namespace Codes.Passive
         private bool _registered;
         private float _elapsed;
         private int _stacks;
-        private Action<EventContext> _updateHandler;
+        private Action<EventContext> _turnHandler;
 
         public QuetzalcoatlRooting(PassiveCodeContext context) : base(context)
         {
@@ -537,15 +537,15 @@ namespace Codes.Passive
             _elapsed = 0f;
             _stacks = 0;
             if (_registered) return;
-            _updateHandler = OnUpdate;
-            Caster.AddListener(BaseEnums.UnitEventType.OnUpdate, _updateHandler);
+            _turnHandler = OnOwnerTurnStart;
+            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
             _registered = true;
         }
 
-        private void OnUpdate(EventContext context)
+        private void OnOwnerTurnStart(EventContext context)
         {
             if (context.Grantee != Caster || !Caster.CanActAndAttack()) return;
-            _elapsed += context.FloatParam;
+            _elapsed += Caster.LastTurnSeconds;
             if (_elapsed < 4f) return;
             _elapsed -= 4f;
             _stacks++;
@@ -620,15 +620,15 @@ namespace Codes.Passive
             _elapsed = 0f;
             _applied = false;
             if (_registered) return;
-            _handler = OnUpdate;
-            Caster.AddListener(BaseEnums.UnitEventType.OnUpdate, _handler);
+            _handler = OnOwnerTurnStart;
+            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _handler);
             _registered = true;
         }
 
-        private void OnUpdate(EventContext context)
+        private void OnOwnerTurnStart(EventContext context)
         {
             if (_applied || context.Grantee != Caster || !Caster.isActive) return;
-            _elapsed += context.FloatParam;
+            _elapsed += Caster.LastTurnSeconds;
             if (_elapsed < 8f) return;
             _applied = true;
             foreach (BaseEnums.PrimaryStat stat in Enum.GetValues(typeof(BaseEnums.PrimaryStat)))
@@ -689,15 +689,15 @@ namespace Codes.Passive
         {
             _elapsed = 6f;
             if (_registered) return;
-            _handler = OnUpdate;
-            Caster.AddListener(BaseEnums.UnitEventType.OnUpdate, _handler);
+            _handler = OnOwnerTurnStart;
+            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _handler);
             _registered = true;
         }
 
-        private void OnUpdate(EventContext context)
+        private void OnOwnerTurnStart(EventContext context)
         {
             if (context.Grantee != Caster || !Caster.isActive || GridManager.Instance == null) return;
-            _elapsed += context.FloatParam;
+            _elapsed += Caster.LastTurnSeconds;
             if (_elapsed < 6f) return;
             int frontColumn = GridManager.Instance.GetFrontColumn(Caster.IsEnemy);
             for (int y = GridManager.Instance.yMin; y <= GridManager.Instance.yMax; y++)
@@ -746,14 +746,14 @@ namespace Codes.Passive
             if (_registered) return;
             _handler = _ => ApplyToAllies();
             _deathHandler = _ => RemoveFromAllies();
-            Caster.AddListener(BaseEnums.UnitEventType.OnUpdate, _handler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _handler);
             Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _deathHandler);
             _registered = true;
         }
 
         public override void StopCode()
         {
-            if (_handler != null) Caster.RemoveListener(BaseEnums.UnitEventType.OnUpdate, _handler);
+            if (_handler != null) Caster.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _handler);
             if (_deathHandler != null) Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _deathHandler);
             RemoveFromAllies();
             _handler = null;

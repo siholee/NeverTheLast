@@ -457,10 +457,16 @@ namespace Managers
 
             foreach (var saved in savedHeroes)
             {
-                GridManager.Instance.SpawnUnit(saved.xPos, saved.yPos, false, saved.unitId, saved.isBench);
-                Unit restored = GridManager.Instance.heroList
-                    .LastOrDefault(hero => hero != null && hero.isActive && hero.ID == saved.unitId);
-                restored?.RestoreRunState(saved);
+                // 스폰이 돌려준 인스턴스를 그대로 쓴다. ID로 되찾으면 자리를 못 잡았을 때
+                // 같은 ID의 앞선 유닛에 남의 저장 상태를 덮어쓴다.
+                Unit restored = GridManager.Instance.SpawnUnit(
+                    saved.xPos, saved.yPos, false, saved.unitId, saved.isBench);
+                if (restored == null)
+                {
+                    Debug.LogWarning($"[RunManager] 유닛 {saved.unitId} 복원 실패 — 배치할 자리가 없다");
+                    continue;
+                }
+                restored.RestoreRunState(saved);
             }
         }
     }

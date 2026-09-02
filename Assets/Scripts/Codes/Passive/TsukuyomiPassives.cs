@@ -85,7 +85,7 @@ namespace Codes.Passive
         private bool _armed;
         private int _grantedShield;
         private bool _registered;
-        private Action<EventContext> _updateHandler;
+        private Action<EventContext> _turnHandler;
         private Action<EventContext> _damageHandler;
         private Action<EventContext> _cleanupHandler;
 
@@ -101,10 +101,10 @@ namespace Codes.Passive
             _armed = false;
             _grantedShield = 0;
             if (_registered) return;
-            _updateHandler = OnUpdate;
+            _turnHandler = OnOwnerTurnStart;
             _damageHandler = OnBeforeDamageTaken;
             _cleanupHandler = _ => StopCode();
-            Caster.AddListener(BaseEnums.UnitEventType.OnUpdate, _updateHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnBeforeDamageTaken, _damageHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
@@ -114,7 +114,7 @@ namespace Codes.Passive
         public override void StopCode()
         {
             if (!_registered) return;
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnUpdate, _updateHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnBeforeDamageTaken, _damageHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
@@ -122,10 +122,10 @@ namespace Codes.Passive
             _armed = false;
         }
 
-        private void OnUpdate(EventContext context)
+        private void OnOwnerTurnStart(EventContext context)
         {
             if (_armed) return;
-            _timer += context.FloatParam;
+            _timer += Caster.LastTurnSeconds;
             if (_timer < 8f) return;
             _timer = 0f;
             int shieldBefore = Caster.ShieldCurr;
@@ -151,7 +151,7 @@ namespace Codes.Passive
         private const string StatusKey = "tsukuyomi_fickle";
         private float _timer;
         private bool _registered;
-        private Action<EventContext> _updateHandler;
+        private Action<EventContext> _turnHandler;
         private Action<EventContext> _cleanupHandler;
 
         public TsukuyomiFickle(PassiveCodeContext context) : base(context)
@@ -164,9 +164,9 @@ namespace Codes.Passive
         {
             _timer = 0f;
             if (_registered) return;
-            _updateHandler = OnUpdate;
+            _turnHandler = OnOwnerTurnStart;
             _cleanupHandler = _ => StopCode();
-            Caster.AddListener(BaseEnums.UnitEventType.OnUpdate, _updateHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             _registered = true;
@@ -175,15 +175,15 @@ namespace Codes.Passive
         public override void StopCode()
         {
             if (!_registered) return;
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnUpdate, _updateHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             _registered = false;
         }
 
-        private void OnUpdate(EventContext context)
+        private void OnOwnerTurnStart(EventContext context)
         {
-            _timer += context.FloatParam;
+            _timer += Caster.LastTurnSeconds;
             if (_timer < 2f) return;
             _timer %= 2f;
             RerollStats();
