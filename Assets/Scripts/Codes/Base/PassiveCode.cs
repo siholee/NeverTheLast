@@ -2,6 +2,9 @@ using BaseClasses;
 
 namespace Codes.Base
 {
+  /// <summary>반격 태그를 가진 행동을 제공하는 패시브. 자동 지정 우선순위 판정에 사용한다.</summary>
+  public interface ICounterAttackProvider { }
+
   public class PassiveCode : Code
   {
     /// <summary>

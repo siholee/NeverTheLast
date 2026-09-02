@@ -16,6 +16,12 @@ namespace Entities
     {
         /// <summary>모든 진영의 사망을 관찰해야 하는 필드 패시브용 전역 전투 이벤트.</summary>
         public static event Action<Unit, Unit> AnyUnitDied;
+        /// <summary>해로운 상태가 실제로 적용되거나 지속시간이 갱신된 순간.</summary>
+        public static event Action<Unit, Unit, Status.UnitStatus> AnyNegativeStatusGranted;
+        /// <summary>어느 유닛이든 실제 피해를 가한 순간.</summary>
+        public static event Action<DamageResolvedContext> AnyDamageDealt;
+        /// <summary>피해 판정이 아닌 효과나 공격 비용으로 체력을 실제 소비한 순간.</summary>
+        public static event Action<Unit, int> AnyHpSpent;
 
         public bool isActive = false;
 
@@ -297,6 +303,7 @@ namespace Entities
 
         // 이벤트
         private Dictionary<BaseEnums.UnitEventType, Delegate> _eventDict;
+        private bool _resolvingDamageDealtEvent;
 
         [FormerlySerializedAs("portraitPath")] public string PortraitPath;
 
@@ -313,7 +320,8 @@ namespace Entities
             StatusController.Initialize(
                 this,
                 () => AttributesUpdate(),
-                NotifyBeneficialEffectReceived);
+                NotifyBeneficialEffectReceived,
+                NotifyNegativeStatusGranted);
         }
 
         public virtual void InitializeUnit(bool _isEnemy, int _id)
@@ -724,8 +732,9 @@ namespace Entities
 
         public bool HasUnitTag(string tag)
         {
-            return !string.IsNullOrWhiteSpace(tag) &&
-                   unitTags.Any(value => string.Equals(value, tag, StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrWhiteSpace(tag)) return false;
+            if (unitTags.Any(value => string.Equals(value, tag, StringComparison.OrdinalIgnoreCase))) return true;
+            return ActiveEffectObjects().Any(effect => effect.GrantsUnitTag(this, tag));
         }
 
         /// <summary>고유 패시브처럼 런타임에 유닛 분류를 추가한다. 동일 태그는 중복되지 않는다.</summary>
@@ -794,9 +803,20 @@ namespace Entities
                 foreach (ItemData itemData in EquipmentLoadout.GetEquippedItemData())
                 {
                     if (itemData == null || !CanUseEquipmentEffects(itemData)) continue;
-                    total += Mathf.Max(0, itemData.durability);
+                    float itemMultiplier = 1f;
+                    foreach (var effect in ActiveEffectObjects())
+                    {
+                        itemMultiplier *= effect.EquipmentDurabilityMultiplierModifier(this, itemData);
+                    }
+                    total += Mathf.Max(0, Mathf.RoundToInt(itemData.durability * itemMultiplier));
                 }
-                return total + GetStatusDurabilityBonus();
+                total += GetStatusDurabilityBonus();
+                float multiplier = 1f;
+                foreach (var effect in ActiveEffectObjects())
+                {
+                    multiplier *= effect.DurabilityMultiplierModifier(this);
+                }
+                return Mathf.Max(0, Mathf.RoundToInt(total * multiplier));
             }
         }
 
@@ -1235,6 +1255,8 @@ namespace Entities
         public virtual void TakeDamage(DamageContext context)
         {
             if (context == null) return;
+            // 광역 공격은 같은 컨텍스트를 여러 대상에게 재사용할 수 있으므로 대상마다 초기화한다.
+            context.ResolvedDamage = 0;
             if (IsUntargetable)
             {
                 context.IsCancelled = true;
@@ -1572,13 +1594,16 @@ namespace Entities
 
         public void ModifyHp(int newHp, Unit source = null)
         {
+            int hpBefore = HpCurr;
             if (newHp > HpCurr)
             {
                 float receivedMultiplier = 1f;
                 float overhealShieldRatio = 0f;
+                bool attackTriggeredSelfHealing = source == this && _resolvingDamageDealtEvent;
                 foreach (var effect in ActiveEffectObjects())
                 {
-                    receivedMultiplier *= effect.HealingReceivedMultiplierModifier(this);
+                    receivedMultiplier *= effect.HealingReceivedMultiplierModifier(
+                        this, source, attackTriggeredSelfHealing);
                     overhealShieldRatio += effect.OverhealShieldConversionModifier(this);
                 }
                 float outgoingMultiplier = GetOutgoingSupportMultiplier(source, false);
@@ -1606,7 +1631,60 @@ namespace Entities
             {
                 HpCurr = Mathf.Clamp(newHp, 0, HpMax);
             }
+            int hpSpent = Mathf.Max(0, hpBefore - HpCurr);
+            if (hpSpent > 0) AnyHpSpent?.Invoke(this, hpSpent);
             currentCell?.UpdateUI();
+        }
+
+        /// <summary>
+        /// 공격 준비 중 최대 체력 비율만큼 체력을 지불한다. 일반 비용은 체력을 1 미만으로
+        /// 만들 수 없으며, 부족 시 1까지 소모하는 효과만 예외를 허용한다.
+        /// </summary>
+        public bool TryConsumeAttackHp(
+            float requestedMaxHpRatio,
+            bool reduceToOneIfInsufficient,
+            out float spentMaxHpRatio)
+        {
+            spentMaxHpRatio = 0f;
+            if (requestedMaxHpRatio <= 0f || HpMax <= 0 || HpCurr <= 0) return false;
+
+            float costMultiplier = 1f;
+            foreach (var effect in ActiveEffectObjects())
+            {
+                costMultiplier *= Mathf.Max(0f, effect.AttackSelfHpCostMultiplier(this));
+            }
+
+            int requested = Mathf.Max(1, Mathf.RoundToInt(HpMax * requestedMaxHpRatio * costMultiplier));
+            int spent;
+            if (HpCurr > requested)
+            {
+                spent = requested;
+            }
+            else if (reduceToOneIfInsufficient)
+            {
+                spent = Mathf.Max(0, HpCurr - 1);
+            }
+            else
+            {
+                return false;
+            }
+
+            HpCurr = Mathf.Max(1, HpCurr - spent);
+            spentMaxHpRatio = (float)spent / HpMax;
+            if (spent > 0) AnyHpSpent?.Invoke(this, spent);
+            currentCell?.UpdateUI();
+            return true;
+        }
+
+        internal bool ResistsNegativeStatus(Status.UnitStatus status)
+        {
+            if (status == null || status.Category != BaseEnums.StatusCategory.Negative) return false;
+            float chance = 0f;
+            foreach (var effect in ActiveEffectObjects())
+            {
+                chance += Mathf.Max(0f, effect.NegativeStatusResistanceChanceModifier(this, status));
+            }
+            return chance > 0f && UnityEngine.Random.value < Mathf.Clamp01(chance);
         }
 
         // ── 제어 상태 조회와 부여 ──────────────────────────────────
@@ -2062,6 +2140,7 @@ namespace Entities
             currentCell.UpdateUI();
 
             int damageDealt = Mathf.Max(0, hpBeforeHit - self.HpCurr) + Mathf.Max(0, shieldBeforeHit - self.ShieldCurr);
+            dmgCtx.ResolvedDamage = damageDealt;
 
             // 강인도는 체력과 병렬로 깎인다. 피해를 흡수하지 않으므로 위 계산에는 관여하지 않는다.
             int toughnessReduced = self.ReduceToughness(damageDealt, dmgCtx.Attacker, dmgCtx);
@@ -2069,9 +2148,11 @@ namespace Entities
             if (dmgCtx.Attacker != null && damageDealt > 0)
             {
                 dmgCtx.Attacker.RoundDamageDealt += damageDealt;
+                var resolvedContext = new DamageResolvedContext(dmgCtx.Attacker, self, dmgCtx, damageDealt);
                 dmgCtx.Attacker.Invoke(
                     BaseEnums.UnitEventType.OnDamageDealt,
-                    new DamageResolvedContext(dmgCtx.Attacker, self, dmgCtx, damageDealt));
+                    resolvedContext);
+                AnyDamageDealt?.Invoke(resolvedContext);
             }
 
             // 강인도 감소량의 일부를 실제 피해로 바꾸는 효과. 전환 피해는 다시 강인도를
@@ -2114,7 +2195,7 @@ namespace Entities
         /// </summary>
         private int CalculateFinalDamage(DamageContext dmgCtx, float receivingDamageModifier)
         {
-            float outgoingDamageModifier = 1f;
+            float outgoingDamageModifier = Mathf.Max(0f, dmgCtx.OutgoingDamageMultiplier);
             float defenseStatMultiplier = dmgCtx.DefenseStatMultiplier;
             int durabilityPenetration = Mathf.Max(0, dmgCtx.DurabilityPenetration);
 
@@ -2316,6 +2397,11 @@ namespace Entities
             }
         }
 
+        private void NotifyNegativeStatusGranted(Unit grantor, Status.UnitStatus status)
+        {
+            AnyNegativeStatusGranted?.Invoke(grantor, this, status);
+        }
+
         // 이벤트 리스너 관리
         // 각 UnitEventType은 하나의 컨텍스트 타입(Action<T>)만 사용한다. 서로 다른 T를
         // 같은 이벤트에 섞어 등록/발행하면 과거에는 InvalidCastException으로 크래시했으나,
@@ -2361,7 +2447,19 @@ namespace Entities
 
             if (value is Action<T> typed)
             {
-                typed.Invoke(context);
+                bool previousDamageEventState = _resolvingDamageDealtEvent;
+                if (eventType == BaseEnums.UnitEventType.OnDamageDealt)
+                {
+                    _resolvingDamageDealtEvent = true;
+                }
+                try
+                {
+                    typed.Invoke(context);
+                }
+                finally
+                {
+                    _resolvingDamageDealtEvent = previousDamageEventState;
+                }
             }
             else
             {
@@ -2375,6 +2473,13 @@ namespace Entities
         public void AddStatus(Status.UnitStatus status)
         {
             StatusController.Add(status);
+        }
+
+        /// <summary>이 유닛이 부여하는 유한 턴 상태의 지속시간 가산치를 합산한다.</summary>
+        internal int GetGrantedStatusDurationBonus(Status.UnitStatus status)
+        {
+            return ActiveEffectObjects().Sum(effect =>
+                effect.GrantedStatusDurationAdditiveModifier(this, status));
         }
 
         /// <summary>상태 ID로 상태 제거 (가장 오래된 것 하나만 제거)</summary>

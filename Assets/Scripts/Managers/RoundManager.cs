@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core;
 using Entities;
 using UnityEngine;
 
@@ -44,8 +45,9 @@ namespace Managers
         public string CurrentThemeName => _currentStageTheme?.name ?? "";
         public bool IsCurrentBossStage => IsBossStage(Stage);
         public bool IsRoundInProgress { get; private set; }
-        private StageEventData RawCurrentEventData => _stageThemeDataList?.events?
-            .FirstOrDefault(data => data.themeId == CurrentThemeId && data.stageInRound == ContentSlotInRound);
+        private int _cachedEventStage = int.MinValue;
+        private StageEventData _cachedEvent;
+        private StageEventData RawCurrentEventData => SelectCurrentEventData();
         private StageEventData CurrentEventData => IsEventEligible(RawCurrentEventData) ? RawCurrentEventData : null;
 
         /// <summary>
@@ -59,6 +61,45 @@ namespace Managers
             if (IsRoundInProgress || !IsEventStage()) return false;
             stageEvent = CurrentEventData;
             return true;
+        }
+
+        /// <summary>동적 체크포인트에서 직접 예약할 사건을 ID로 찾는다.</summary>
+        public StageEventData GetEventById(string eventId)
+        {
+            EnsureDataLoaded();
+            return string.IsNullOrWhiteSpace(eventId)
+                ? null
+                : _stageThemeDataList?.events?.FirstOrDefault(data => data?.id == eventId);
+        }
+
+        private StageEventData SelectCurrentEventData()
+        {
+            if (_cachedEventStage == Stage) return _cachedEvent;
+            _cachedEventStage = Stage;
+            _cachedEvent = null;
+
+            List<StageEventData> events = _stageThemeDataList?.events;
+            if (events == null) return null;
+
+            int slot = ContentSlotInRound;
+            List<StageEventData> unlockedTierEvents = events
+                .Where(data => data != null && data.themeId == 0 && data.stageInRound == slot &&
+                               data.tier > 0 && IsEventEligible(data))
+                .ToList();
+            if (unlockedTierEvents.Count > 0)
+            {
+                // 같은 티어의 영입 사건은 별개 사건으로 취급하며 무작위로 하나만 제시한다.
+                int highestTier = unlockedTierEvents.Max(data => data.tier);
+                List<StageEventData> highest = unlockedTierEvents
+                    .Where(data => data.tier == highestTier)
+                    .ToList();
+                _cachedEvent = highest[UnityEngine.Random.Range(0, highest.Count)];
+                return _cachedEvent;
+            }
+
+            _cachedEvent = events.FirstOrDefault(data =>
+                data != null && data.themeId == CurrentThemeId && data.stageInRound == slot);
+            return _cachedEvent;
         }
 
         private StageThemeDataList _stageThemeDataList;
@@ -240,8 +281,14 @@ namespace Managers
         private static bool IsEventEligible(StageEventData stageEvent)
         {
             if (stageEvent == null) return false;
+            if (stageEvent.requiresBossDefeatId > 0 &&
+                !SaveSystem.HasDefeatedBoss(stageEvent.requiresBossDefeatId)) return false;
             RunManager runManager = GameManager.Instance?.runManager;
             if (stageEvent.oncePerRun && runManager != null && runManager.HasTriggeredEvent(stageEvent.id)) return false;
+            int recruitUnitId = stageEvent.choices?
+                .Select(choice => choice?.grantUnitId ?? 0)
+                .FirstOrDefault(unitId => unitId > 0) ?? 0;
+            if (recruitUnitId > 0 && SaveSystem.IsStarterUnlocked(recruitUnitId)) return false;
             return !IsBlockedByDeck(stageEvent);
         }
 
@@ -297,6 +344,17 @@ namespace Managers
             if (GetFixedBossId(stage) > 0) return true;
 
             return ContentSlot(stage) == 10;
+        }
+
+        /// <summary>현재 스테이지에 실제 배치되는 보스 ID. 보스 스테이지가 아니면 0.</summary>
+        public int CurrentBossId
+        {
+            get
+            {
+                int fixedBoss = GetFixedBossId(Stage);
+                if (fixedBoss > 0) return fixedBoss;
+                return ContentSlotInRound == 10 ? _currentStageTheme?.bossId ?? 0 : 0;
+            }
         }
 
         private int GetFixedBossId(int stage)

@@ -108,12 +108,99 @@ namespace Codes.Ultimate
             global::Target.GetAllEnemies(Caster).Any(unit => unit != null && unit.isActive && !unit.IsUntargetable);
     }
 
-    /// <summary>바스테트 U — 패시브형. 에어본 정점 추가공격은 BastetAirborneHunter가 처리한다.</summary>
+    /// <summary>바스테트 U — 우선 지정한 아군의 추가공격·반격을 전군 추격으로 연결한다.</summary>
     public sealed class BastetApexExecution : UltimateCode
     {
+        private Unit _selectedAlly;
+        private System.Action<DamageResolvedContext> _damageHandler;
+        private int _lastTriggeredAction = int.MinValue;
+        private bool _registered;
+        private bool _resolving;
+
         public override bool IsAutoCast => false;
         public BastetApexExecution(UltimateCodeContext context) : base(context)
-        { CodeType = BaseEnums.CodeType.Ultimate; CodeName = "천공 처형"; Cooldown = 0; CastingDelay = 0f; }
+        { CodeType = BaseEnums.CodeType.Ultimate; CodeName = "야수의 추격"; Cooldown = 0; CastingDelay = 0f; }
+
+        public void StartPassive()
+        {
+            if (Caster == null || _registered) return;
+            _selectedAlly = global::Target.GetAllAllies(Caster)
+                .Where(unit => unit != null && unit.isActive && unit.currentCell != null && unit.currentCell.yPos > 0)
+                .OrderByDescending(HasCounterAttack)
+                .ThenByDescending(unit => unit.GetBaseDex())
+                .FirstOrDefault();
+            if (_selectedAlly == null) return;
+
+            _lastTriggeredAction = int.MinValue;
+            _damageHandler = OnAnyDamageDealt;
+            Unit.AnyDamageDealt += _damageHandler;
+            _registered = true;
+        }
+
+        public void StopPassive()
+        {
+            if (!_registered) return;
+            Unit.AnyDamageDealt -= _damageHandler;
+            _selectedAlly = null;
+            _damageHandler = null;
+            _registered = false;
+            _resolving = false;
+        }
+
+        public override void StopCode() => StopPassive();
+
+        private static bool HasCounterAttack(Unit unit)
+            => unit != null && unit.ActivePassiveCodes.Concat(unit.ActiveItemPassiveCodes)
+                .Any(code => code is ICounterAttackProvider);
+
+        private void OnAnyDamageDealt(DamageResolvedContext context)
+        {
+            List<int> tags = context?.DamageContext?.DamageTags;
+            if (_resolving || Caster == null || !Caster.isActive || _selectedAlly == null ||
+                !_selectedAlly.isActive || context?.Attacker != _selectedAlly || context.DamageDealt <= 0 ||
+                tags == null ||
+                (!tags.Contains(DamageTag.AdditionalAttack) && !tags.Contains(DamageTag.CounterAttack))) return;
+
+            int action = GameManager.Instance?.ActionScheduler?.CurrentActionId ?? 0;
+            if (_lastTriggeredAction == action) return;
+            _lastTriggeredAction = action;
+            GameManager.Instance?.ActionScheduler?.EnqueueAdditional(
+                Caster, "bastet_beast_pursuit", CodeName, ResolvePursuit);
+        }
+
+        private void ResolvePursuit()
+        {
+            if (Caster == null || !Caster.isActive) return;
+            List<Unit> enemies = global::Target.GetAllEnemies(Caster)
+                .Where(unit => unit != null && unit.isActive && !unit.IsUntargetable)
+                .ToList();
+            if (enemies.Count == 0) return;
+
+            bool isCrit = UnityEngine.Random.value <= Caster.CritChanceCurr;
+            int damage = Mathf.Max(1, Mathf.RoundToInt(
+                Caster.SkillDamage(120, BaseEnums.PrimaryStat.DEX) *
+                (isCrit ? Caster.CritMultiplierCurr : 1f)));
+            _resolving = true;
+            try
+            {
+                foreach (Unit enemy in enemies)
+                {
+                    enemy.TakeDamage(new DamageContext(
+                        Caster, damage, BaseEnums.CodeType.Ultimate,
+                        new List<int>
+                        {
+                            DamageTag.AllTarget, DamageTag.UltAttack, DamageTag.AdditionalAttack,
+                            DamageTag.Physical, DamageTag.ContactAttack, DamageTag.Slash,
+                        },
+                        isCrit));
+                }
+            }
+            finally
+            {
+                _resolving = false;
+            }
+        }
+
         public override bool HasValidTarget() => false;
     }
 

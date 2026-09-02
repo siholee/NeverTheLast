@@ -14,14 +14,16 @@ namespace Codes.Ultimate
 {
     public sealed class OrionHeavyBlow : UltimateCode
     {
+        private const int ArrowCount = 12;
+
         public OrionHeavyBlow(UltimateCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Ultimate;
-            CodeName = "강타";
-            Power = 120;
+            CodeName = "화살비";
+            Power = 10;
             Cooldown = 4;
             CastingDelay = 0.5f;
-            CodeTags = new List<int> { DamageTag.Physical, DamageTag.ContactAttack };
+            CodeTags = new List<int> { DamageTag.Physical, DamageTag.NonContactAttack, DamageTag.Arrow };
         }
 
         public override void CastCode()
@@ -45,54 +47,29 @@ namespace Codes.Ultimate
                 yield return null;
             }
 
-            Unit target = global::Target.GetAllEnemies(Caster)
-                .Where(unit => unit != null && unit.isActive && !unit.IsUntargetable)
-                .OrderByDescending(unit => unit.Priority)
-                .FirstOrDefault();
-            if (target == null)
+            for (int arrow = 0; arrow < ArrowCount; arrow++)
             {
-                StopCode();
-                yield break;
-            }
+                List<Unit> enemies = global::Target.GetAllEnemies(Caster)
+                    .Where(unit => unit != null && unit.isActive && !unit.IsUntargetable)
+                    .ToList();
+                if (enemies.Count == 0) break;
 
-            bool isCrit = Random.value <= Caster.CritChanceCurr;
-            int damage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(Power, BaseEnums.PrimaryStat.STR) *
-                                                       (isCrit ? Caster.CritMultiplierCurr : 1f)));
-            FirePlaceholderProjectile(target);
-            yield return new WaitForSeconds(0.25f);
-            target.TakeDamage(new DamageContext(
-                Caster, damage, BaseEnums.CodeType.Ultimate,
-                new List<int> { DamageTag.SingleTarget, DamageTag.UltAttack, DamageTag.Physical, DamageTag.ContactAttack },
-                isCrit));
-
-            if (target.isActive)
-            {
-                target.AddStatus(BuffStatus.Create(
-                    GreekHeroStatusIds.OrionArmorBreak,
-                    $"orion_armor_break_{Caster.GetEntityId()}",
-                    "방어력 감소",
-                    Caster,
-                    target,
-                    new ArmorBreakEffect(0.8f),
-                    duration: 2,   // 5초 → 2턴
-                    stackPolicy: BaseEnums.StatusStackPolicy.Replace,
-                    category: BaseEnums.StatusCategory.Negative,
-                    description: "방어력이 20% 감소합니다."));
+                Unit target = enemies[Random.Range(0, enemies.Count)];
+                bool isCrit = Random.value <= Caster.CritChanceCurr;
+                int damage = Mathf.Max(1, Mathf.RoundToInt(
+                    Caster.SkillDamage(Power, BaseEnums.PrimaryStat.STR) *
+                    (isCrit ? Caster.CritMultiplierCurr : 1f)));
+                target.TakeDamage(new DamageContext(
+                    Caster, damage, BaseEnums.CodeType.Ultimate,
+                    new List<int>
+                    {
+                        DamageTag.SingleTarget, DamageTag.UltAttack, DamageTag.Physical,
+                        DamageTag.NonContactAttack, DamageTag.Arrow,
+                    },
+                    isCrit));
+                yield return new WaitForSeconds(0.06f);
             }
             StopCode();
-        }
-
-        private void FirePlaceholderProjectile(Unit target)
-        {
-            if (GameManager.Instance?.sfxManager?.ProjectilePrefabs != null &&
-                GameManager.Instance.sfxManager.ProjectilePrefabs.TryGetValue("FireBlast", out var prefab))
-            {
-                // 접촉(근접) 공격이라 포물선을 씌우지 않는다.
-                GameManager.Instance.sfxManager.FireSingleProjectile(
-                    prefab, Caster, target, 0.25f,
-                    ProjectilePathType.Linear, ProjectileFlight.DataFor(ProjectilePathType.Linear),
-                    null, true);
-            }
         }
 
         public override void StopCode()

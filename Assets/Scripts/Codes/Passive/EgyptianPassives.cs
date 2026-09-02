@@ -124,81 +124,98 @@ namespace Codes.Passive
                 : 0;
     }
 
-    /// <summary>바스테트 P와 패시브형 궁극기 — 접촉 회피 및 에어본 정점 추가공격.</summary>
+    /// <summary>바스테트 P — 아군의 추가공격·반격으로 야수의 시선 스택을 쌓는다.</summary>
     public sealed class BastetAirborneHunter : UniquePassiveCode
     {
+        public const string ResourceId = "bastet_beast_gaze";
+        public const int MaximumStacks = 100;
+
         private bool _registered;
+        private Action<DamageResolvedContext> _damageHandler;
         private Action<EventContext> _cleanupHandler;
+        private int _lastStackAction = int.MinValue;
 
         public BastetAirborneHunter(PassiveCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "고양이의 몸놀림";
+            CodeName = "야수의 시선";
             IgnoresActivationChance = true;
         }
 
         public override void CastCode()
         {
-            if (Caster == null) return;
-            Caster.AddStatus(BuffStatus.Create(
-                EgyptianStatusIds.BastetGrace, "bastet_grace", CodeName,
-                Caster, Caster, new BastetContactEvasionEffect(),
-                stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
-                isBeneficial: true,
-                description: "LUK×0.5% 확률로 접촉 공격을 회피합니다."));
-
-            if (_registered) return;
-            ControlStatuses.AirborneApexReached += OnAirborneApex;
+            if (Caster == null || _registered) return;
+            Caster.SetCombatResourceMaximum(ResourceId, MaximumStacks, true);
+            _lastStackAction = int.MinValue;
+            _damageHandler = OnAnyDamageDealt;
             _cleanupHandler = _ => StopCode();
             Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            Unit.AnyDamageDealt += _damageHandler;
             _registered = true;
+
+            if (Caster.ActiveUltimateCode is Codes.Ultimate.BastetApexExecution ultimate)
+                ultimate.StartPassive();
         }
 
-        private void OnAirborneApex(Unit source, Unit target)
+        private void OnAnyDamageDealt(DamageResolvedContext context)
         {
-            if (Caster == null || !Caster.isActive || target == null || !target.isActive ||
-                target.IsEnemy == Caster.IsEnemy || !target.HasStatusKey(ControlStatuses.AirborneKey)) return;
-            Caster.StartCoroutine(StrikeAtApex(target));
+            Unit attacker = context?.Attacker;
+            List<int> tags = context?.DamageContext?.DamageTags;
+            if (Caster == null || !Caster.isActive || attacker == null || !attacker.isActive ||
+                attacker.IsEnemy != Caster.IsEnemy || attacker.currentCell == null || attacker.currentCell.yPos <= 0 ||
+                context.DamageDealt <= 0 || tags == null ||
+                (!tags.Contains(DamageTag.AdditionalAttack) && !tags.Contains(DamageTag.CounterAttack))) return;
+
+            int action = GameManager.Instance?.ActionScheduler?.CurrentActionId ?? 0;
+            if (_lastStackAction == action) return;
+            _lastStackAction = action;
+
+            int stacks = Caster.AddCombatResource(ResourceId, 1);
+            if (stacks < MaximumStacks) return;
+            GameManager.Instance?.ActionScheduler?.EnqueueAdditional(
+                Caster, "bastet_beast_gaze", CodeName, ResolveBeastGaze);
         }
 
-        private IEnumerator StrikeAtApex(Unit target)
+        private void ResolveBeastGaze()
         {
+            if (Caster == null || !Caster.isActive) return;
+            int stacks = Caster.GetCombatResource(ResourceId);
+            if (stacks < MaximumStacks) return;
+
+            Unit target = global::Target.GetAllEnemies(Caster)
+                .Where(unit => unit != null && unit.isActive && !unit.IsUntargetable)
+                .OrderByDescending(unit => unit.HpMax)
+                .ThenByDescending(unit => unit.HpCurr)
+                .FirstOrDefault();
+            if (target == null) return;
+
+            Caster.TryConsumeCombatResource(ResourceId, stacks);
             bool isCrit = UnityEngine.Random.value <= Caster.CritChanceCurr;
-            float crit = isCrit ? Caster.CritMultiplierCurr : 1f;
             int damage = Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(120, BaseEnums.PrimaryStat.DEX) * crit));
-            var context = new DamageContext(Caster, damage, BaseEnums.CodeType.Ultimate,
+                stacks * Caster.GetBaseLuk() * (isCrit ? Caster.CritMultiplierCurr : 1f)));
+            target.TakeDamage(new DamageContext(
+                Caster, damage, BaseEnums.CodeType.Passive,
                 new List<int>
                 {
-                    DamageTag.SingleTarget, DamageTag.UltAttack, DamageTag.AdditionalAttack,
+                    DamageTag.SingleTarget, DamageTag.AdditionalAttack,
                     DamageTag.Physical, DamageTag.ContactAttack, DamageTag.Slash,
-                }, isCrit);
-
-            GameManager.Instance?.sfxManager?.TryPlayMeleeAttack(Caster, target, context);
-            yield return new WaitForSeconds(SfxManager.MeleeImpactDelay);
-            if (target != null && target.isActive) target.TakeDamage(context);
+                },
+                isCrit));
         }
 
         public override void StopCode()
         {
             if (!_registered || Caster == null) return;
-            ControlStatuses.AirborneApexReached -= OnAirborneApex;
+            Unit.AnyDamageDealt -= _damageHandler;
             Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            if (Caster.ActiveUltimateCode is Codes.Ultimate.BastetApexExecution ultimate)
+                ultimate.StopPassive();
+            _damageHandler = null;
             _cleanupHandler = null;
             _registered = false;
         }
-    }
-
-    internal sealed class BastetContactEvasionEffect : BaseEffect
-    {
-        public BastetContactEvasionEffect() : base(0) { }
-
-        public override float EvasionChanceAdditiveModifier(Unit unit, DamageContext context)
-            => unit == Target && context?.DamageTags?.Contains(DamageTag.ContactAttack) == true
-                ? Mathf.Clamp01(unit.GetBaseLuk() * 0.005f)
-                : 0f;
     }
 
     public sealed class EgyptianPiercingShot : PassiveCode
@@ -260,7 +277,7 @@ namespace Codes.Passive
                 ? 1.30f : 1f;
     }
 
-    /// <summary>바스테트 Lv.2 — TrainingManager가 타입을 확인해 DEX 훈련량에 10%를 곱한다.</summary>
+    /// <summary>바스테트 Lv.2 — TrainingManager가 타입을 확인해 LUK 훈련량에 10%를 곱한다.</summary>
     public sealed class BastetMasterThief : PassiveCode
     {
         public BastetMasterThief(PassiveCodeContext context) : base(context)

@@ -37,6 +37,9 @@ namespace Managers
 
     public class RewardManager : MonoBehaviour
     {
+        private const int SabahUnitId = 49;
+        private static readonly HashSet<int> SabahRewardItemIds = new() { 4303, 4304 };
+
         public static RewardManager Instance { get; private set; }
 
         public static void DestroyInstance()
@@ -77,7 +80,8 @@ namespace Managers
             EnsureRewardData();
             _itemDataList ??= GameManager.Instance?.itemDataList ?? GameManager.Instance?.dataManager?.FetchItemDataList();
             var pool = (_itemDataList?.items ?? new List<ItemData>())
-                .Where(item => item != null && !item.eventOnly && IsAvailableInTheme(item, themeId))
+                .Where(item => item != null && !item.eventOnly && IsAvailableInTheme(item, themeId) &&
+                               IsAvailableForRoster(item))
                 .Select(item => new RewardDef
                 {
                     id = $"item_{item.id}",
@@ -115,6 +119,19 @@ namespace Managers
         {
             if (item.themeIds == null || item.themeIds.Count == 0) return true;
             return item.themeIds.Contains(themeId);
+        }
+
+        /// <summary>칸자르와 잠비야는 사바흐가 현재 파티·대기석·선발 덱에 있을 때만 등장한다.</summary>
+        private static bool IsAvailableForRoster(ItemData item)
+        {
+            if (item == null || !SabahRewardItemIds.Contains(item.id)) return true;
+
+            bool inPartyOrBench = GridManager.Instance?.heroList?.Any(unit =>
+                unit != null && !unit.IsEnemy && unit.ID == SabahUnitId) == true;
+            if (inPartyOrBench) return true;
+
+            return CharacterSelectionManager.Instance?.Lineup?.Any(entry =>
+                entry != null && entry.UnitId == SabahUnitId) == true;
         }
 
         private static string BuildItemDescription(ItemData item)

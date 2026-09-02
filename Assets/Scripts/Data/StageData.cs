@@ -115,6 +115,10 @@ namespace Managers
         public string id;
         public int themeId;
         public int stageInRound;
+        /// <summary>사건 등급. 0이면 고정/무등급 사건, 1~5면 T1~T5 사건이다.</summary>
+        public int tier;
+        /// <summary>이 보스를 영구 기록상 격파한 뒤에만 사건 풀에 들어간다.</summary>
+        public int requiresBossDefeatId;
         public string title;
         public bool oncePerRun;
         public List<int> blockedUnitIds;

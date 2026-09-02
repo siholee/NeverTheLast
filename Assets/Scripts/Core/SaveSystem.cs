@@ -10,6 +10,7 @@ namespace Core
         private const string KeyJson   = "NTL_RunSave";
         private const string KeyExists = "NTL_HasSave";
         private const string KeyTrainedCharacters = "NTL_TrainedCharacters";
+        private const string KeyBossDefeatedPrefix = "NTL_BossDefeated_";
 
         /// <summary>저장된 런이 있는지 확인</summary>
         public static bool HasSave()
@@ -92,6 +93,22 @@ namespace Core
             data.unlockedStarterUnitIds.Add(unitId);
             SaveTrainedCharacterCollection(data);
             Debug.Log($"[SaveSystem] 스타팅 후보 해금: {unitId}");
+        }
+
+        /// <summary>런을 넘어 유지되는 보스 최초 격파 기록.</summary>
+        public static bool HasDefeatedBoss(int bossId)
+        {
+            return bossId > 0 && PlayerPrefs.GetInt(KeyBossDefeatedPrefix + bossId, 0) == 1;
+        }
+
+        /// <summary>최초 기록이면 true. 이미 격파한 보스라면 false.</summary>
+        public static bool MarkBossDefeated(int bossId)
+        {
+            if (bossId <= 0 || HasDefeatedBoss(bossId)) return false;
+            PlayerPrefs.SetInt(KeyBossDefeatedPrefix + bossId, 1);
+            PlayerPrefs.Save();
+            Debug.Log($"[SaveSystem] 보스 최초 격파 기록: {bossId}");
+            return true;
         }
 
         public static void AddTrainedCharacter(int unitId)

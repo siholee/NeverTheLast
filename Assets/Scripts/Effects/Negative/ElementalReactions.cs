@@ -16,6 +16,7 @@ namespace Effects.Negative
     ///
     ///   감전 — 물 + 번개    (지속피해)
     ///   화상 — 불 + 풀      (지속피해)
+    ///   촉진 — 풀 + 번개    (부여자와 대상의 CON 차이만큼 방어력 감소)
     ///   빙결 — 얼음 + 물    (피해 없음. 행동 불가만)
     ///   공명 — 바위 + 바위  (피해 없음. 행동 불가만. <b>같은 원소끼리</b> 일어나는 유일한 반응)
     ///
@@ -27,7 +28,9 @@ namespace Effects.Negative
         // 5910대로 옮겨 HasStatus(감전) 조회가 치유량 감소와 섞이지 않게 했다.
         public const int ShockStatusId = 5910;
         public const int BurnStatusId = 5911;
+        public const int CatalyzeStatusId = 5912;
         public const string BurnStatusKey = "burn";
+        public const string CatalyzeStatusKey = "reaction_catalyze";
 
         /// <summary>
         /// 반응 지속피해의 위력. 반응 유발자의 CON에 곱해진다.
@@ -54,12 +57,17 @@ namespace Effects.Negative
             /// <summary>지속피해 대신 기절(행동 불가)을 남기는 반응인지.</summary>
             public readonly bool Stuns;
 
+            /// <summary>지속피해 대신 촉진 방어력 감소를 남기는 반응인지.</summary>
+            public readonly bool Catalyzes;
+
             public Pair(BaseEnums.UnitElement a, BaseEnums.UnitElement b, string name,
-                int statusId, string key, int duration, bool freezes = false, bool stuns = false)
+                int statusId, string key, int duration,
+                bool freezes = false, bool stuns = false, bool catalyzes = false)
             {
                 A = a; B = b; Name = name; StatusId = statusId; Key = key; Duration = duration;
                 Freezes = freezes;
                 Stuns = stuns;
+                Catalyzes = catalyzes;
             }
         }
 
@@ -69,6 +77,8 @@ namespace Effects.Negative
                 "감전", ShockStatusId, "reaction_shock", ShockDuration),
             new(BaseEnums.UnitElement.Pyro, BaseEnums.UnitElement.Dendro,
                 "화상", BurnStatusId, "reaction_burn", BurnDuration),
+            new(BaseEnums.UnitElement.Dendro, BaseEnums.UnitElement.Electro,
+                "촉진", CatalyzeStatusId, CatalyzeStatusKey, 2, catalyzes: true),
             new(BaseEnums.UnitElement.Cryo, BaseEnums.UnitElement.Hydro,
                 "빙결", ControlStatuses.FrozenStatusId, ControlStatuses.FrozenKey, 0, freezes: true),
             // 바위 + 바위. 같은 원소가 겹쳐야 일어나므로 아래 TryResolve의 alreadyAttached 경로에서만 성립한다.
@@ -184,6 +194,23 @@ namespace Effects.Negative
                 return;
             }
 
+            if (pair.Catalyzes)
+            {
+                float reduction = Mathf.Clamp01(
+                    (source.GetBaseCon() - target.GetBaseCon()) * 0.01f);
+                target.AddStatus(BuffStatus.Create(
+                    CatalyzeStatusId, CatalyzeStatusKey, pair.Name,
+                    source, target, new CatalyzeDefenseEffect(1f - reduction),
+                    duration: pair.Duration,
+                    stackPolicy: BaseEnums.StatusStackPolicy.ExtendDuration,
+                    category: BaseEnums.StatusCategory.Negative,
+                    isBeneficial: false,
+                    description: $"방어력이 {reduction * 100f:0.#}% 감소합니다."));
+                Unit.NotifyElementalReaction(source, target, pair.Name);
+                Debug.Log($"[원소 반응] 촉진 — {source.UnitName} → {target.UnitName}, 방어력 -{reduction * 100f:0.#}%");
+                return;
+            }
+
             int perSecond = Mathf.Max(1, Mathf.RoundToInt(
                 source.SkillDamage(ReactionPower, BaseEnums.PrimaryStat.CON) * FieldReactionMultiplier(source)));
 
@@ -291,5 +318,20 @@ namespace Effects.Negative
         }
 
         public override int EstimateDamagePerTurn() => _damagePerTurn;
+    }
+
+    /// <summary>촉진이 남기는 방어력 배율 감소.</summary>
+    public sealed class CatalyzeDefenseEffect : BaseEffect
+    {
+        private readonly float _multiplier;
+
+        public CatalyzeDefenseEffect(float multiplier) : base(0, multiplier)
+        {
+            _multiplier = Mathf.Clamp01(multiplier);
+            Category = BaseEnums.EffectCategory.Negative;
+        }
+
+        public override float OwnedDefenseStatMultiplierModifier(Unit unit, DamageContext context)
+            => unit == Target ? _multiplier : 1f;
     }
 }

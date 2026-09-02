@@ -378,7 +378,7 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>소환사 — 소환수 피해 배율. <see cref="Combat.Summons"/>가 필드 전체에서 최댓값 하나만 읽는다.</summary>
+    /// <summary>소환사 — 아군 전체 소환수 피해 배율. <see cref="Combat.Summons"/>가 최댓값 하나만 읽는다.</summary>
     internal sealed class SummonMasterEffect : BaseEffect
     {
         private readonly float _multiplier;
@@ -386,6 +386,7 @@ namespace Codes.Passive
         public SummonMasterEffect(float multiplier) : base(0, multiplier) => _multiplier = multiplier;
 
         public override float SummonDamageMultiplierModifier(Unit unit) => _multiplier;
+        public override float AlliedSummonDamageMultiplierModifier(Unit unit, Unit summonOwner) => _multiplier;
     }
 
     /// <summary>서리의 전사 — 빙결 면역 + 4턴마다 무원소 상태면 얼음 재부착.</summary>

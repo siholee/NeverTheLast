@@ -8,6 +8,8 @@ namespace Managers
     {
         public int id;
         public string name;
+        /// <summary>Resources/Sprite/Items 기준 아이콘 파일명(확장자 제외).</summary>
+        public string icon;
         public string slot;
         public string category;
         public string requiredProficiency;

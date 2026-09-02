@@ -19,14 +19,20 @@ namespace Entities
         private Unit _owner;
         private Action _onChanged;              // 상태 추가/제거 시 (AttributesUpdate + InfoTab 갱신)
         private Action<Unit> _notifyBeneficial; // 이로운 상태 부여 시 (시전자 전달)
+        private Action<Unit, UnitStatus> _notifyNegative; // 해로운 상태 적용/갱신 시
 
         private readonly List<UnitStatus> _statuses = new();
 
-        public void Initialize(Unit owner, Action onChanged, Action<Unit> notifyBeneficial)
+        public void Initialize(
+            Unit owner,
+            Action onChanged,
+            Action<Unit> notifyBeneficial,
+            Action<Unit, UnitStatus> notifyNegative)
         {
             _owner = owner;
             _onChanged = onChanged;
             _notifyBeneficial = notifyBeneficial;
+            _notifyNegative = notifyNegative;
             _statuses.Clear();
         }
 
@@ -49,6 +55,21 @@ namespace Entities
         /// <summary>상태 추가 - 중첩 정책에 따라 처리 (동일 여부 판정은 Key 기준)</summary>
         public void Add(UnitStatus status)
         {
+            if (status == null) return;
+            if (status.Duration > 0 && !status.SourceDurationAdjusted && status.Caster != null)
+            {
+                status.Duration = Mathf.Max(
+                    1,
+                    status.Duration + status.Caster.GetGrantedStatusDurationBonus(status));
+                status.SourceDurationAdjusted = true;
+            }
+            if (status.Category == BaseEnums.StatusCategory.Negative &&
+                _owner.ResistsNegativeStatus(status))
+            {
+                Debug.Log($"[상태 저항] {_owner.UnitName}이(가) '{status.StatusName}' 상태를 저항했습니다.");
+                return;
+            }
+
             switch (status.StackPolicy)
             {
                 case BaseEnums.StatusStackPolicy.Stack:
@@ -64,6 +85,10 @@ namespace Entities
                     {
                         int oldRemaining = existing.RemainingTurns;
                         existing.Duration = existing.ElapsedTurns + oldRemaining + status.Duration;
+                        if (status.Category == BaseEnums.StatusCategory.Negative)
+                        {
+                            _notifyNegative?.Invoke(status.Caster, status);
+                        }
                         Debug.Log($"[Status-Extend] {_owner.UnitName}의 {status.StatusName} 지속 연장: {oldRemaining}턴 → {existing.RemainingTurns}턴");
                     }
                     else
@@ -157,6 +182,10 @@ namespace Entities
             if (status.IsBeneficial)
             {
                 _notifyBeneficial?.Invoke(status.Caster);
+            }
+            if (status.Category == BaseEnums.StatusCategory.Negative)
+            {
+                _notifyNegative?.Invoke(status.Caster, status);
             }
         }
 

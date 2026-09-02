@@ -165,6 +165,32 @@ namespace Codes.Base
         369 => new AmunRaSoulDrain(context),
         370 => new AmunRaHellfire(context),
         371 => new AswanDeathChant(context),
+        // ── 장비 전용 패시브 ──
+        400 => new KhopeshItemPassive(context),
+        401 => new YasakaniMagatamaItemPassive(context),
+        402 => new YataMirrorItemPassive(context),
+        403 => new MinotaurHornItemPassive(context),
+        404 => new GoldenAppleItemPassive(context),
+        405 => new GoldenBeastShieldItemPassive(context),
+        406 => new AriadneThreadItemPassive(context),
+        407 => new OuroborosBranchItemPassive(context),
+        408 => new AegeusSwordItemPassive(context),
+        409 => new PeriphetesClubItemPassive(context),
+        410 => new JambiyaItemPassive(context),
+        411 => new AlamutFortressItemPassive(context),
+        412 => new AugusteWatchItemPassive(context),
+        // ── 사바흐·이카리아 ──
+        420 => new SabahDebuffHunter(context),
+        421 => new SabahDexterity(context),
+        422 => new IcariaRecklessChallenge(context),
+        423 => new IcariaMentalStrength(context),
+        424 => new IcariaPyroAffinity(context),
+        425 => new SabahAssassin(context),
+        // ── 마리 ──
+        426 => new MarieCriticalCommand(context),
+        427 => new MarieNobleBloodline(context),
+        428 => new MarieOfficer(context),
+        429 => new MarieArcDeTriomphe(context),
         // ── 로마 (레기온) ──
         280 => new NightRaid(context),
         281 => new Charisma(context),
@@ -233,6 +259,9 @@ namespace Codes.Base
         306 => new OsirisEarthRequiem(context),
         307 => new AmunRaBladeVolley(context),
         308 => new AmunRaBladeVolley(context, alwaysEmpowered: true),
+        310 => new SabahLightningSlash(context),
+        311 => new IcariaRecklessThrust(context),
+        312 => new MariePistolShot(context),
         _ => new NormalAttack(context), // 기본 일반공격 (임시, 나중에 각 유닛별로 교체 예정)
       };
     }
@@ -287,6 +316,9 @@ namespace Codes.Base
         305 => new AswanFallenPriestWard(context),
         306 => new OsirisRebirthFlood(context),
         307 => new AmunRaSolarJudgment(context),
+        310 => new SabahAzrael(context),
+        311 => new IcariaChallengeTheSky(context),
+        312 => new MarieSongOfRevolution(context),
         100 => new EnemyTestUltimate(context), // 적 전용 테스트 궁극기
         _ => null,
       };

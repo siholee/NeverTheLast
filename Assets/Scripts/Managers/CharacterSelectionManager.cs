@@ -14,7 +14,7 @@ namespace Managers
         private const int MainSelection = 1;
 
         // 테스트용 임시 플래그. Locked 캐릭터를 영구 해금 데이터 변경 없이 메인 후보에 노출한다.
-        public const bool UnlockLockedCharactersForTesting = true;
+        public const bool UnlockLockedCharactersForTesting = false;
 
         public static bool IsTemporarilyUnlocked(UnitData data)
             => UnlockLockedCharactersForTesting && data != null && data.characterType == "Locked";

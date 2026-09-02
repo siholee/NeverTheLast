@@ -567,10 +567,31 @@ namespace Managers.UI.Screens
                 return;
             }
 
+            Sprite itemSprite = string.IsNullOrWhiteSpace(item.icon)
+                ? null
+                : Resources.Load<Sprite>($"Sprite/Items/{item.icon}");
+            if (itemSprite != null)
+            {
+                var artObject = new GameObject("ItemArt", typeof(RectTransform), typeof(Image));
+                artObject.transform.SetParent(slot.transform, false);
+                Image art = artObject.GetComponent<Image>();
+                art.sprite = itemSprite;
+                art.preserveAspect = true;
+                art.raycastTarget = false;
+                art.color = new Color(1f, 1f, 1f, 0.9f);
+                UIBuild.Stretch(art.rectTransform, 5f, 5f);
+            }
+
             TextMeshProUGUI label = UIBuild.Text("Name", slot.transform, item.name,
                 UITheme.FontMicro, UITheme.TextPrimary, TextAlignmentOptions.Center, wrap: true);
             UIBuild.Stretch(label.rectTransform, 3f, 10f);
             label.overflowMode = TextOverflowModes.Ellipsis;
+            if (itemSprite != null)
+            {
+                label.alignment = TextAlignmentOptions.Bottom;
+                label.outlineColor = new Color32(10, 12, 15, 230);
+                label.outlineWidth = 0.22f;
+            }
 
             TextMeshProUGUI weight = UIBuild.Text("Weight", slot.transform, $"{item.weight}",
                 UITheme.FontMicro, UITheme.TextMuted, TextAlignmentOptions.BottomRight);

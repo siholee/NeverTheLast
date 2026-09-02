@@ -399,28 +399,39 @@ namespace Managers
 
         private static float GetSupportTrainingEfficiencyMultiplier(BaseEnums.PrimaryStat focus)
         {
-            if (focus != BaseEnums.PrimaryStat.INT) return 1f;
-            int wisdomCount = GetSupportsOn(focus).Count(support =>
-                support.ActivePassiveCodes.Any(code => code is Codes.Passive.QuetzalcoatlWisdom));
-            return 1f + wisdomCount * 0.10f;
+            int bonusCount = GetSupportsOn(focus).Count(support =>
+                HasTrainingEfficiencyPassive(support, focus));
+            return 1f + bonusCount * 0.10f;
         }
 
         private static float GetSupportTrainingEfficiencyMultiplier(
             BaseEnums.PrimaryStat focus, IEnumerable<SupportTrainingRoll> rolls)
         {
-            if (focus != BaseEnums.PrimaryStat.INT) return 1f;
-            int wisdomCount = rolls.Count(roll => roll.Appeared && roll.Support != null &&
-                roll.Support.ActivePassiveCodes.Any(code => code is Codes.Passive.QuetzalcoatlWisdom));
-            return 1f + wisdomCount * 0.10f;
+            int bonusCount = rolls.Count(roll => roll.Appeared && roll.Support != null &&
+                HasTrainingEfficiencyPassive(roll.Support, focus));
+            return 1f + bonusCount * 0.10f;
+        }
+
+        private static bool HasTrainingEfficiencyPassive(Unit support, BaseEnums.PrimaryStat focus)
+        {
+            if (support == null) return false;
+            return focus switch
+            {
+                BaseEnums.PrimaryStat.INT => support.ActivePassiveCodes.Any(code =>
+                    code is Codes.Passive.QuetzalcoatlWisdom),
+                BaseEnums.PrimaryStat.DEX => support.ActivePassiveCodes.Any(code =>
+                    code is Codes.Passive.MarieOfficer),
+                _ => false,
+            };
         }
 
         private static float GetPersonalTrainingMultiplier(Unit main, BaseEnums.PrimaryStat focus)
         {
-            if (main != null && focus == BaseEnums.PrimaryStat.DEX &&
-                main.ActivePassiveCodes.Any(code => code is Codes.Passive.BastetMasterThief))
-            {
-                return 1.10f;
-            }
+            if (main == null) return 1f;
+            if (focus == BaseEnums.PrimaryStat.LUK &&
+                main.ActivePassiveCodes.Any(code => code is Codes.Passive.BastetMasterThief)) return 1.10f;
+            if (focus == BaseEnums.PrimaryStat.DEX &&
+                main.ActivePassiveCodes.Any(code => code is Codes.Passive.SabahDexterity)) return 1.10f;
             return 1f;
         }
 

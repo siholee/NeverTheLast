@@ -8,7 +8,7 @@ codes:
       verbalName: 약점 추적
       codeName: AtalanteWeaknessTracker
       description: "공격 대상의 디버프 1개당 방어력을 5% 무시한다(최대 20%). <고유 패시브> <전수 불가능>"
-    - { id: 140, verbalName: 궁수, codeName: AtalanteArcher, description: "활 계열 무기를 장착하고 숙련되어 있으면 STR +5." }
+    - { id: 140, verbalName: 궁수, codeName: AtalanteArcher, description: "활 계열 무기를 장착하고 숙련되어 있으면 STR +5%." }
     - { id: 141, verbalName: 민첩함, codeName: AtalanteAgility, description: "DEX +2." }
     - { id: 142, verbalName: 유리대포, codeName: AtalanteGlassCannon, description: "최대 체력 -25%, 적 방어력 20% 무시." }
     - { id: 143, verbalName: 사냥꾼, codeName: AtalanteHunter, description: "짐승 또는 괴수 분류의 적에게 가하는 피해 +30%." }
@@ -74,8 +74,8 @@ codes:
     - { id: 73, verbalName: 예리함, codeName: QuetzalcoatlOvercritScholar, description: "100%를 초과한 치명타 확률의 1.5배를 치명타 피해로 전환한다." }
     - { id: 74, verbalName: 명상, codeName: QuetzalcoatlMeditation, description: "전투 중 2초마다 INT +1." }
     - { id: 75, verbalName: 날개 달린 뱀, codeName: QuetzalcoatlWingedSerpent, description: "20초마다 6초간 모든 아군이 매초 케찰코아틀 INT/10만큼 마나를 회복한다. <전수 불가능>" }
-    - { id: 80, verbalName: 억센 육체, codeName: OrionGeoAffinity, description: "바위 원소를 보유한 동안 매초 CON +1. <고유 패시브> <전수 불가능>" }
-    - { id: 81, verbalName: 중갑병, codeName: OrionHeavyInfantry, description: "중갑 착용 중 STR +4." }
+    - { id: 80, verbalName: 시리우스, codeName: OrionGeoAffinity, description: "피해를 받거나 HP를 소모하면 한 행동당 충전 1스택을 얻는다(최대 5). 5스택이 되면 모두 소비하고 소환수 시리우스가 적 전체에게 STR×1.2 피해를 가한다. #물리 #접촉 #추가공격 #반격 <고유 패시브> <전수 불가능>" }
+    - { id: 81, verbalName: 중갑병, codeName: OrionHeavyInfantry, description: "숙련된 중갑을 장착했다면 중갑 아이템이 제공하는 내구도 +20%." }
     - { id: 82, verbalName: 명사수, codeName: OrionMarksman, description: "활 계열 무기 장착 중 단일 대상 피해를 입히면 STR만큼 고정 피해를 추가한다." }
     - { id: 83, verbalName: 파수꾼, codeName: OrionSentinel, description: "전열에 있을 때 필드의 후열 아군 하나당 STR +1." }
     - { id: 84, verbalName: 코드 직조, codeName: TheseusCodeWeave, description: "일반 코드 발동 시 0.25스택, 궁극기 코드 발동 시 1스택을 얻는다(최대 3). 1스택을 소비해 다음 일반공격을 강화한다. <고유 패시브> <전수 불가능>" }
@@ -262,11 +262,11 @@ codes:
     # ── 이집트 신규 패시브 ──
     - { id: 340, verbalName: 창공의 매, codeName: HorusSkyFalcon, description: "행동 속도가 1.0으로 고정된다. 고정치를 초과한 행동 속도 1%마다 STR +1. <고유 패시브> <전수 불가능>" }
     - { id: 341, verbalName: 영혼 수확, codeName: AnubisSoulHarvest, description: "필드에서 아군 또는 적이 쓰러질 때마다 전투가 끝나도 유지되는 영혼 1스택을 얻는다. 영혼 4스택마다 STR +1. <고유 패시브> <전수 불가능>" }
-    - { id: 342, verbalName: 고양이의 몸놀림, codeName: BastetAirborneHunter, description: "LUK×0.5% 확률로 접촉 공격을 회피한다. 적이 에어본 정점에 도달하면 즉시 DEX×1.2의 추가공격을 가한다. #접촉 #물리 #베기 #추가공격 <고유 패시브> <전수 불가능>" }
+    - { id: 342, verbalName: 야수의 시선, codeName: BastetAirborneHunter, description: "필드 위 아군이 추가공격 또는 반격을 할 때마다 스택 +1(최대 100). 최대치에 도달하면 스택을 모두 소비하고 최대 체력이 가장 높은 적에게 스택×LUK 피해를 가한다. #접촉 #물리 #베기 #추가공격 <고유 패시브> <전수 불가능>" }
     - { id: 343, verbalName: 관통사격, codeName: EgyptianPiercingShot, description: "숙련된 활 계통 무기를 장착한 화살 공격이 대상 내구 4를 무시한다." }
     - { id: 344, verbalName: 창지기, codeName: AnubisSpearGuard, description: "숙련된 창 계통 무기를 장착하면 STR +3%." }
     - { id: 345, verbalName: 저승사자, codeName: AnubisReaper, description: "사령 속성 대상에게 주는 피해 +30%." }
-    - { id: 346, verbalName: 대도, codeName: BastetMasterThief, description: "DEX 집중 훈련 효율 +10%." }
+    - { id: 346, verbalName: 대도, codeName: BastetMasterThief, description: "LUK 집중 훈련 효율 +10%." }
     - { id: 347, verbalName: 가벼운 무장, codeName: BastetLightArmament, description: "의복류 방어구를 착용하면 DEX +5%." }
     - { id: 348, verbalName: 이기적, codeName: BastetSelfish, description: "추가공격으로 가하는 피해 +20%." }
     - { id: 349, verbalName: 사막의 피, codeName: SetBloodOfTheDesert, description: "전투 시간 8초마다 다음 단일 접촉 피해가 적중하면 STR×0.2의 추가 고정 피해를 주고 최대 체력의 8%를 회복한다. <고유 패시브> <전수 불가능>" }
@@ -290,6 +290,32 @@ codes:
     - { id: 369, verbalName: 영혼 흡수, codeName: AmunRaSoulDrain, description: "적을 처치하면 최대 체력의 20%만큼 회복한다." }
     - { id: 370, verbalName: 지옥불, codeName: AmunRaHellfire, description: "강화 일반공격을 사용한 이후 '승천' 스택 수만큼 무작위 단일 적에게 칼날을 추가로 발사한다." }
     - { id: 371, verbalName: 죽음의 성가, codeName: AswanDeathChant, description: "필드의 사령 아군 하나당 아군 전체의 가하는 피해가 5% 증가한다. <적 전용> <전수 불가능>" }
+
+    # ── 장비 전용 패시브 ──
+    # 공격속도는 독립 스탯이 없으므로 1%p = DEX 1 규칙으로 환산했다.
+    - { id: 400, verbalName: 코페쉬, codeName: KhopeshItemPassive, description: "기본공격 적중 시 2턴 동안 DEX +8. 최대 4중첩이며 새 중첩 획득 시 지속시간이 갱신된다. <장비 전용> <전수 불가능>" }
+    - { id: 401, verbalName: 야사카니의 곡옥, codeName: YasakaniMagatamaItemPassive, description: "궁극기 사용 후 4턴 동안 DEX +25. <장비 전용> <전수 불가능>" }
+    - { id: 402, verbalName: 야타의 거울, codeName: YataMirrorItemPassive, description: "전투당 1회 치명 피해를 막고 2턴 경직 후 최대 체력으로 부활한다. <장비 전용> <전수 불가능>" }
+    - { id: 403, verbalName: 미노타우로스의 뿔, codeName: MinotaurHornItemPassive, description: "물리 피해를 25% 덜 받고 짐승 속성을 얻는다. <장비 전용> <전수 불가능>" }
+    - { id: 404, verbalName: 황금 사과, codeName: GoldenAppleItemPassive, description: "장착자가 소환한 소환수의 피해 +40%. <장비 전용> <전수 불가능>" }
+    - { id: 405, verbalName: 금빛 짐승의 가죽 방패, codeName: GoldenBeastShieldItemPassive, description: "내구 +20%. <장비 전용> <전수 불가능>" }
+    - { id: 406, verbalName: 아리아드네의 실타래, codeName: AriadneThreadItemPassive, description: "공격으로 자신을 회복할 때 회복량 +25%. <장비 전용> <전수 불가능>" }
+    - { id: 407, verbalName: 우로보로스의 가지, codeName: OuroborosBranchItemPassive, description: "장착자가 행하는 회복 효과 +30%. <장비 전용> <전수 불가능>" }
+    - { id: 408, verbalName: 에게우스의 검, codeName: AegeusSwordItemPassive, description: "치명타 피해 +50%. <장비 전용> <전수 불가능>" }
+    - { id: 409, verbalName: 페리페테스의 몽둥이, codeName: PeriphetesClubItemPassive, description: "베기 공격으로 가하는 피해 +25%. <장비 전용> <전수 불가능>" }
+    - { id: 410, verbalName: 잠비야, codeName: JambiyaItemPassive, description: "물리·접촉 공격 적중 시 대상 최대 체력의 2%만큼 고정 추가 피해. <장비 전용> <전수 불가능>" }
+    - { id: 411, verbalName: 알라무트 요새, codeName: AlamutFortressItemPassive, description: "적 처치 또는 강인도 파괴 시 행동 게이지를 100% 앞당긴다. <장비 전용> <전수 불가능>" }
+    - { id: 412, verbalName: 오귀스트의 시계, codeName: AugusteWatchItemPassive, description: "부여하는 모든 유한 턴 상태의 지속시간 +1턴. <장비 전용> <전수 불가능>" }
+    - { id: 420, verbalName: 빈틈 포착, codeName: SabahDebuffHunter, description: "공격 시 대상의 디버프 1개당 가하는 피해 +2%. 아군이 적에게 디버프를 부여하면 아즈라엘 스택 +1. <고유> <전수 불가능>" }
+    - { id: 421, verbalName: 손재주, codeName: SabahDexterity, description: "DEX 훈련 효율 +10%." }
+    - { id: 422, verbalName: 무모한 도전, codeName: IcariaRecklessChallenge, description: "공격으로 체력을 소모하면 실제 최대 체력 소모 비율만큼 해당 공격 피해가 증가한다. 공격 체력 소모량은 2배가 된다. <고유> <전수 불가능>" }
+    - { id: 423, verbalName: 정신력, codeName: IcariaMentalStrength, description: "해로운 상태가 적용될 때 10% 확률로 저항한다." }
+    - { id: 424, verbalName: 원소 친화 - 불, codeName: IcariaPyroAffinity, description: "불 원소를 보유한 채 공격하면 최대 체력의 5%를 소모하고(부족하면 체력 1까지 소모) 가하는 피해가 20% 증가한다." }
+    - { id: 425, verbalName: 암살자, codeName: SabahAssassin, description: "100%를 초과한 치명타 확률을 1:1로 치명타 피해로 전환한다." }
+    - { id: 426, verbalName: 혁명의 장교, codeName: MarieCriticalCommand, description: "필드에 있는 동안 모든 아군의 치명타 피해가 마리의 LUK%만큼 증가한다. <고유> <전수 불가능>" }
+    - { id: 427, verbalName: 고귀한 혈통, codeName: MarieNobleBloodline, description: "LUK +5%." }
+    - { id: 428, verbalName: 장교, codeName: MarieOfficer, description: "서포트 카드로서 DEX 집중 훈련에 배치되면 DEX 훈련 효율 +10%." }
+    - { id: 429, verbalName: 개선문, codeName: MarieArcDeTriomphe, description: "전투 시작 시 발동하는 패시브 코드가 3개 이상이면 아군 전체에게 4턴간 치명타 확률 +100%." }
 
   normal:
     - id: 1
@@ -341,7 +367,7 @@ codes:
     - id: 80
       verbalName: 일반공격
       codeName: OrionNormalAttack
-      description: "단일 적에게 STR 기반 위력 80의 피해를 입힌다. #접촉 #물리"
+      description: "단일 적에게 STR 기반 위력 80의 피해를 입힌다. #비접촉 #사격 #물리"
     - id: 84
       verbalName: 일반공격
       codeName: TheseusNormalAttack
@@ -402,6 +428,9 @@ codes:
     - { id: 306, verbalName: 대지의 진혼, codeName: OsirisEarthRequiem, description: "적 전체에게 INT×1.2의 피해를 입히고 바위 원소를 부여한다. #비접촉 #특수" }
     - { id: 307, verbalName: 일반공격, codeName: AmunRaBladeVolley, description: "칼날 셋으로 서로 다른 적 3명에게 INT×1.8의 피해를 입힌다. 치명타가 터지면 강화 일반공격을 즉시 큐에 예약한다. #비접촉 #특수 #베기" }
     - { id: 308, verbalName: 강화 일반공격, codeName: AmunRaBladeVolley, description: "단일 적에게 INT×1.8의 피해를 입힌다. '지옥불' 보유 시 이후 '승천' 스택만큼 칼날을 더 발사한다. #비접촉 #특수 #베기" }
+    - { id: 310, verbalName: 번개 베기, codeName: SabahLightningSlash, description: "적 최대 3명에게 DEX×0.9의 피해를 입히고 번개 원소를 부여한다. #베기 #접촉 #물리" }
+    - { id: 311, verbalName: 무모한 찌르기, codeName: IcariaRecklessThrust, description: "단일 적에게 INT×0.6의 피해를 입힌다. 최대 체력의 10%를 소모할 수 있으면 소모하고 위력이 INT×0.9로 변한다. #물리 #접촉 #찌르기" }
+    - { id: 312, verbalName: 장교의 사격, codeName: MariePistolShot, description: "단일 적에게 LUK×0.5의 피해를 입힌다. #물리 #사격 #비접촉" }
 
   ultimate:
     - { id: 240, verbalName: 언젠가 다다를 마지막, codeName: YamaFinalArrival, description: "적 전체를 베어 DEX 기반 위력 60의 피해를 입히고 번개 원소를 부여한다. 이후 대상의 지속피해를 즉시 정산해 INT의 80%만큼 추가 피해를 만든다. #특수 #베기 #접촉" }
@@ -443,9 +472,9 @@ codes:
       codeName: QuetzalcoatlYorisUltimate
       description: "적 전체에게 INT 기반 위력 80의 피해를 입히고 풀 원소를 부여한다. #비접촉 #특수"
     - id: 80
-      verbalName: 강타
+      verbalName: 화살비
       codeName: OrionHeavyBlow
-      description: "단일 적에게 STR 기반 위력 120의 피해를 입히고 5초간 방어력을 20% 감소시킨다. #접촉 #물리"
+      description: "무작위 단일 대상을 향해 화살 12발을 쏘며, 각 화살은 STR 기반 위력 10의 피해를 입힌다. #비접촉 #사격 #물리"
     - id: 84
       verbalName: 회복의 일격
       codeName: TheseusRecoveryStrike
@@ -493,7 +522,7 @@ codes:
     # ── 이집트 신규 궁극기 ──
     - { id: 290, verbalName: 우제트, codeName: HorusWadjet, description: "상시형 궁극기. 네 번째 일반공격에 STR×0.6 피해를 더하고 적 방어력을 20% 무시한다. 일반공격마다 우제트 게이지가 1/4씩 찬다. #물리 #비접촉 #arrow" }
     - { id: 291, verbalName: 저승의 바위 창, codeName: AnubisStoneSpear, description: "적 전열 전체(비어 있으면 후열 전체)에 STR×0.8의 피해를 입힌다. 아누비스가 전열이면 전열 아군 전체에게 CON×1.4 보호막을 부여한다. #특수 #비접촉" }
-    - { id: 292, verbalName: 천공 처형, codeName: BastetApexExecution, description: "상시형 궁극기. 적이 에어본 정점에 도달하면 즉시 DEX×1.2의 추가공격을 가한다. 베기 연출 동안 대상은 정점에 머문다. #접촉 #물리 #베기 #추가공격" }
+    - { id: 292, verbalName: 야수의 추격, codeName: BastetApexExecution, description: "패시브형 궁극기. 반격을 보유한 아군을 우선 지정하고, 없으면 DEX가 가장 높은 아군을 지정한다. 지정 아군이 추가공격 또는 반격을 하면 적 전체에게 DEX×1.2의 추가공격을 가한다. #접촉 #물리 #베기 #추가공격" }
     - { id: 293, verbalName: 화염 참격, codeName: SetBurningSlash, description: "단일 적에게 STR×1.2의 피해를 입히고 CON 명중 판정에 성공하면 화상(3턴)을 부여한다. #접촉 #물리 #베기 #디버프" }
     - { id: 294, verbalName: 지혜의 눈, codeName: ThothEyeOfWisdom, description: "3턴간 아군 전체가 감소시킨 강인도의 30%를 실제 피해로 더한다." }
     - { id: 295, verbalName: 사막의 격류, codeName: IsisDesertDeluge, description: "적 전체에게 INT×0.4의 피해를 3회 입히고 바위 원소를 부여한 뒤 행동 게이지를 50% 지연시킨다. #비접촉 #특수 #디버프" }
@@ -507,3 +536,6 @@ codes:
     - { id: 305, verbalName: 망자의 가호, codeName: AswanFallenPriestWard, description: "아군 전체에게 위력 INT×0.5의 보호막을 부여한다. 사령 분류 아군은 두 배를 받는다." }
     - { id: 306, verbalName: 재생의 격류, codeName: OsirisRebirthFlood, description: "적 전체에게 INT×2.0의 피해를 입히고 행동 게이지를 50% 지연시킨다. #특수 #비접촉 #디버프" }
     - { id: 307, verbalName: 태양의 심판, codeName: AmunRaSolarJudgment, description: "'승천' 스택 × INT×0.6의 피해를 적 전체에게 입힌 뒤 '승천' 스택을 0으로 되돌린다. #특수 #비접촉" }
+    - { id: 310, verbalName: 아즈라엘, codeName: SabahAzrael, description: "아군이 적에게 디버프를 부여할 때 얻는 아즈라엘 스택이 7이 되면 모두 소모해 적 전체에게 DEX×1.0의 피해를 입힌다. #베기 #접촉 #물리" }
+    - { id: 311, verbalName: 창공에 대한 도전, codeName: IcariaChallengeTheSky, description: "적 전체에게 INT×1.1의 피해를 입힌다. 최대 체력의 20%를 소모할 수 있으면 소모하고 위력이 INT×1.4로 변한다. #특수 #접촉 #찌르기" }
+    - { id: 312, verbalName: 혁명의 노래, codeName: MarieSongOfRevolution, description: "아군 전체에게 3턴간 일반공격으로 가하는 피해 +20%, DEX +10을 부여한다." }

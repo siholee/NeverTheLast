@@ -516,6 +516,8 @@ namespace Managers
                 id = source.id,
                 themeId = source.themeId,
                 stageInRound = source.stageInRound,
+                tier = source.tier,
+                requiresBossDefeatId = source.requiresBossDefeatId,
                 title = source.title?.Replace("{deity}", speaker),
                 oncePerRun = source.oncePerRun,
                 blockedUnitIds = source.blockedUnitIds,
@@ -1004,6 +1006,11 @@ namespace Managers
             }
             GrantExpToParty(earnedExp);
 
+            if (victory)
+            {
+                QueueFirstAmunRaClearEvent();
+            }
+
             if (eventBattleInProgress)
             {
                 ResolveEventBattle(victory);
@@ -1030,6 +1037,19 @@ namespace Managers
                 ? rewardManager.GenerateRewards(3, _roundManager?.Round ?? 1, CurrentMode, _roundManager?.CurrentThemeId ?? 0)
                 : new List<RewardDef>();
             uiManager?.ShowRewardPanel(rewards);
+        }
+
+        private void QueueFirstAmunRaClearEvent()
+        {
+            const int AmunRaBossId = 3012;
+            if (_roundManager?.CurrentBossId != AmunRaBossId) return;
+            if (!SaveSystem.MarkBossDefeated(AmunRaBossId)) return;
+
+            StageEventData bastetEvent = _roundManager.GetEventById("aswan_bastet_first_amun_ra_clear");
+            if (bastetEvent != null)
+            {
+                RequestEvent(bastetEvent);
+            }
         }
 
         private void ResolveEventBattle(bool victory)

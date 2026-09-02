@@ -92,6 +92,12 @@ namespace Effects.Base
         /// <summary>받는 피해에서 고정으로 깎는 내구 가산치.</summary>
         public virtual int DurabilityAdditiveModifier(Unit unit) => 0;
 
+        /// <summary>장비와 효과에서 얻는 최종 내구 배율 보정 (1 = 변화 없음).</summary>
+        public virtual float DurabilityMultiplierModifier(Unit unit) => 1f;
+
+        /// <summary>특정 장비 한 개가 제공하는 내구 배율 보정 (1 = 변화 없음).</summary>
+        public virtual float EquipmentDurabilityMultiplierModifier(Unit unit, Managers.ItemData item) => 1f;
+
         /// <summary>공격 시 대상 내구의 일부만 무시하는 양.</summary>
         public virtual int DurabilityPenetrationModifier(Unit attacker, Unit target, DamageContext context) => 0;
 
@@ -106,6 +112,13 @@ namespace Effects.Base
         /// 토트의 지혜의 눈과 허허실실처럼 여러 효과가 있으면 가산한다.
         /// </summary>
         public virtual float ToughnessEchoDamageRatioModifier(Unit attacker, Unit target, DamageContext context) => 0f;
+
+        /// <summary>자신의 공격 때문에 지불하는 체력 비용 배율 (1 = 변화 없음).</summary>
+        public virtual float AttackSelfHpCostMultiplier(Unit unit) => 1f;
+
+        /// <summary>해로운 상태가 최종 적용되기 직전의 저항 확률 가산치.</summary>
+        public virtual float NegativeStatusResistanceChanceModifier(
+            Unit unit, Entities.Status.UnitStatus status) => 0f;
 
         /// <summary>
         /// 회피 확률 가산 보정. 공격의 종류를 보고 조건부로 회피시키는 효과가 쓴다
@@ -127,6 +140,10 @@ namespace Effects.Base
         /// <summary>받는 치유량 배율 보정 (1 = 변화 없음)</summary>
         public virtual float HealingReceivedMultiplierModifier(Unit unit) => 1f;
 
+        /// <summary>치유의 부여자와 공격 연계 여부를 함께 보는 받는 치유량 배율 보정.</summary>
+        public virtual float HealingReceivedMultiplierModifier(Unit unit, Unit source, bool attackTriggered)
+            => HealingReceivedMultiplierModifier(unit);
+
         /// <summary>보유자가 부여하는 치유량 배율 보정 (1 = 변화 없음)</summary>
         public virtual float OutgoingHealingMultiplierModifier(Unit source, Unit target) => 1f;
 
@@ -138,6 +155,13 @@ namespace Effects.Base
 
         /// <summary>보유자가 부여하는 보호막량 배율 보정 (1 = 변화 없음)</summary>
         public virtual float OutgoingShieldMultiplierModifier(Unit source, Unit target) => 1f;
+
+        /// <summary>
+        /// 보유자가 새로 부여하는 유한 턴 상태의 지속시간 가산치.
+        /// 무한 상태(Duration &lt;= 0)에는 적용되지 않으며, 상태 하나당 최초 부여 시 한 번만 읽힌다.
+        /// </summary>
+        public virtual int GrantedStatusDurationAdditiveModifier(
+            Unit source, Entities.Status.UnitStatus status) => 0;
 
         /// <summary>보유자의 치유·보호막이 치명타 판정을 할 수 있는지 여부.</summary>
         public virtual bool EnablesHealingShieldCritical(Unit source) => false;
@@ -199,6 +223,12 @@ namespace Effects.Base
         /// 소환수는 소환자의 일반 <see cref="OutgoingDamageModifier"/>를 받지 않으므로 이 훅만 적용된다.
         /// </summary>
         public virtual float SummonDamageMultiplierModifier(Unit unit) => 1f;
+
+        /// <summary>보유자가 아군 전체의 소환수에게 제공하는 피해 배율 보정 (1 = 변화 없음).</summary>
+        public virtual float AlliedSummonDamageMultiplierModifier(Unit unit, Unit summonOwner) => 1f;
+
+        /// <summary>효과가 유닛 분류 태그를 동적으로 부여하는지 여부.</summary>
+        public virtual bool GrantsUnitTag(Unit unit, string tag) => false;
 
         /// <summary>보유자가 빙결에 면역이면 true.</summary>
         public virtual bool GrantsFreezeImmunity(Unit unit) => false;

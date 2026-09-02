@@ -47,7 +47,7 @@ namespace Codes.Passive
 
     /// <summary>Lv.4: 장궁·단궁·쇠뇌 숙련. 실제 장비 판정은 Unit에서 수행한다.</summary>
     /// <summary>
-    /// 궁수 — 장궁·단궁·쇠뇌 중 하나를 <b>장착했고 숙련도 갖췄을 때</b> STR +5.
+    /// 궁수 — 장궁·단궁·쇠뇌 중 하나를 <b>장착했고 숙련도 갖췄을 때</b> STR +5%.
     /// 숙련만 주던 예전 사양에서 바뀌었다(바유와 공유하는 공용 코드).
     /// </summary>
     public sealed class AtalanteArcher : PassiveCode
@@ -67,18 +67,16 @@ namespace Codes.Passive
                 new ArcherBowBonusEffect(),
                 stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
                 isBeneficial: true,
-                description: "활 계열 무기를 장착하고 숙련되어 있으면 STR +5."));
+                description: "활 계열 무기를 장착하고 숙련되어 있으면 STR +5%."));
         }
     }
 
     internal sealed class ArcherBowBonusEffect : Effects.Base.BaseEffect
     {
-        private const int Bonus = 5;
-
         public ArcherBowBonusEffect() : base(0) { }
 
-        public override int PrimaryStatAdditiveModifier(Unit unit, BaseEnums.PrimaryStat stat)
-            => unit == Target && stat == BaseEnums.PrimaryStat.STR && unit.HasEquippedBow() ? Bonus : 0;
+        public override float PrimaryStatMultiplierModifier(Unit unit, BaseEnums.PrimaryStat stat)
+            => unit == Target && stat == BaseEnums.PrimaryStat.STR && unit.HasEquippedBow() ? 1.05f : 1f;
     }
 
     public sealed class AtalanteAgility : PassiveCode

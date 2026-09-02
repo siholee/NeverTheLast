@@ -32,8 +32,14 @@ namespace BaseClasses
     public readonly int Penetration;
     /// <summary>내구 고정 경감 중 무시할 양. 전부 무시는 DurabilityPenetration 태그를 사용한다.</summary>
     public readonly int DurabilityPenetration;
+    /// <summary>이 공격을 준비하며 시전자가 실제로 소비한 최대 체력 비율.</summary>
+    public float SelfHpSpentRatio;
+    /// <summary>공격 자체가 제공하는 추가 피해 배율. 패시브 효과들과 곱연산된다.</summary>
+    public float OutgoingDamageMultiplier = 1f;
     public float DefenseStatMultiplier;
     public bool IsCancelled;
+    /// <summary>방어막과 체력에서 실제로 감소한 피해량. 피해 처리 후 이벤트가 읽는다.</summary>
+    public int ResolvedDamage { get; internal set; }
 
     /// <summary>
     /// 같은 피해 컨텍스트가 광역 대상에 재사용되더라도 대상별 타격 VFX는 한 번씩 재생한다.

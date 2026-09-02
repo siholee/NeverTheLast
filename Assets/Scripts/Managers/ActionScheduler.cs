@@ -95,9 +95,12 @@ namespace Managers
         private Unit _acting;
         private float _actingElapsed;
         private int _sequence;
+        private int _currentActionId = -1;
 
         /// <summary>이번 라운드에 해결된 행동 수. 전역 행동 카운트다.</summary>
         public int ActionCount { get; private set; }
+        /// <summary>현재 실행 중인 행동의 고유 번호. 즉발 행동과 코루틴 행동 모두 같은 번호를 유지한다.</summary>
+        public int CurrentActionId => _currentActionId >= 0 ? _currentActionId : ActionCount;
 
         /// <summary>
         /// 이번 라운드에 열린 <b>턴</b>의 수(전역). 추가공격·패시브 발동은 세지 않는다.
@@ -133,6 +136,7 @@ namespace Managers
             _acting = null;
             TurnOwner = null;
             _actingElapsed = 0f;
+            _currentActionId = -1;
             ActionCount = 0;
             TurnsTaken = 0;
             CombatSeconds = 0f;
@@ -189,6 +193,7 @@ namespace Managers
             _actionValues.Clear();
             ClearQueue();
             _acting = null;
+            _currentActionId = -1;
             TurnOwner = null;
         }
 
@@ -313,6 +318,7 @@ namespace Managers
 
                 _acting = null;
                 _actingElapsed = 0f;
+                _currentActionId = -1;
             }
 
             // 2) 자원이 찬 궁극기를 예약한다. 턴과 무관하므로 매번 훑는다.
@@ -370,7 +376,11 @@ namespace Managers
                 _queue.RemoveAt(i);
             }
 
-            if (_acting != null && !_acting.isActive) _acting = null;
+            if (_acting != null && !_acting.isActive)
+            {
+                _acting = null;
+                _currentActionId = -1;
+            }
             if (TurnOwner != null && !TurnOwner.isActive) TurnOwner = null;
         }
 
@@ -391,12 +401,14 @@ namespace Managers
                 if (next.Unit.isControlled) continue;   // 제어 중이면 예약을 버린다
 
                 _actingElapsed = 0f;
+                _currentActionId = ActionCount + 1;
                 next.Run();
 
                 // 코드에 따라서는 코루틴 없이 즉시 끝난다(자원만 쌓는 궁극기, 즉발 추가공격 등).
                 // 그런 경우 isCasting이 서지 않으므로 붙잡지 않고 바로 다음으로 넘어간다.
                 _acting = next.Unit.isCasting ? next.Unit : null;
                 ActionCount++;
+                if (_acting == null) _currentActionId = -1;
                 return true;
             }
 

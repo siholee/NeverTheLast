@@ -280,6 +280,15 @@ items:
     themeIds: [6]
     statBonuses: [{ stat: INT, amount: 3 }]
 
+  - id: 4216
+    name: 행운의 동전
+    icon: ITEM_LUCKY_COIN
+    slot: Necklace
+    category: Necklace
+    rarity: 2
+    weight: 1
+    statBonuses: [{ stat: LUK, amount: 3 }]
+
   # ── T3 정예 메히코 세트 ────────────────────────────────────────────
   # T2와 같은 무기를 정예 개체가 들던 것이다. 스탯이 한 단계 오르고,
   # 그 계열의 고유 패시브가 무기에 그대로 실린다.
@@ -322,3 +331,174 @@ items:
     statBonuses: [{ stat: INT, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 322, stage: 1 }
+
+  # ── T3 고유 장비 ────────────────────────────────────────────────
+  - id: 4301
+    name: 에게우스의 검
+    icon: ITEM_AEGEUS_SWORD
+    slot: MainHand
+    category: Longsword
+    requiredProficiency: Longsword
+    rarity: 3
+    weight: 2
+    statBonuses: [{ stat: DEX, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 408, stage: 1 }
+
+  - id: 4302
+    name: 페리페테스의 몽둥이
+    icon: ITEM_PERIPHETES_CLUB
+    slot: MainHand
+    category: Mace
+    requiredProficiency: Mace
+    rarity: 3
+    weight: 3
+    statBonuses: [{ stat: STR, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 409, stage: 1 }
+
+  # ── T4 고유 장비 ────────────────────────────────────────────────
+  - id: 4401
+    name: 황금 사과
+    icon: ITEM_GOLDEN_APPLE
+    slot: MainHand
+    category: Orb
+    requiredProficiency: Orb
+    rarity: 4
+    weight: 1
+    statBonuses: [{ stat: CON, amount: 7 }]
+    codeGrants:
+      - { slot: passive, codeId: 404, stage: 1 }
+
+  - id: 4402
+    name: 금빛 짐승의 가죽 방패
+    icon: ITEM_GOLDEN_BEAST_SHIELD
+    slot: OffHand
+    category: Shield
+    requiredProficiency: Shield
+    rarity: 4
+    weight: 3
+    durability: 17
+    codeGrants:
+      - { slot: passive, codeId: 405, stage: 1 }
+
+  - id: 4403
+    name: 아리아드네의 실타래
+    icon: ITEM_ARIADNE_THREAD
+    slot: Necklace
+    category: Necklace
+    rarity: 4
+    weight: 1
+    statBonuses: [{ stat: DEX, amount: 7 }]
+    codeGrants:
+      - { slot: passive, codeId: 406, stage: 1 }
+
+  - id: 4404
+    name: 우로보로스의 가지
+    icon: ITEM_OUROBOROS_BRANCH
+    slot: MainHand
+    category: Spear
+    requiredProficiency: Spear
+    rarity: 4
+    weight: 3
+    twoHanded: true
+    statBonuses: [{ stat: INT, amount: 7 }]
+    codeGrants:
+      - { slot: passive, codeId: 407, stage: 1 }
+
+  # ── T5 고유 장비 ────────────────────────────────────────────────
+  - id: 4501
+    name: 코페쉬
+    icon: ITEM_KHOPESH
+    slot: MainHand
+    category: Longbow
+    requiredProficiency: Longbow
+    rarity: 5
+    weight: 3
+    twoHanded: true
+    statBonuses: [{ stat: DEX, amount: 9 }]
+    codeGrants:
+      - { slot: passive, codeId: 400, stage: 1 }
+
+  - id: 4502
+    name: 야사카니의 곡옥
+    icon: ITEM_YASAKANI_MAGATAMA
+    slot: MainHand
+    category: Longbow
+    requiredProficiency: Longbow
+    rarity: 5
+    weight: 3
+    twoHanded: true
+    statBonuses: [{ stat: STR, amount: 9 }]
+    codeGrants:
+      - { slot: passive, codeId: 401, stage: 1 }
+
+  - id: 4503
+    name: 야타의 거울
+    icon: ITEM_YATA_MIRROR
+    slot: Necklace
+    category: Necklace
+    rarity: 5
+    weight: 1
+    statBonuses: [{ stat: LUK, amount: 9 }]
+    codeGrants:
+      - { slot: passive, codeId: 402, stage: 1 }
+
+  - id: 4504
+    name: 미노타우로스의 뿔
+    icon: ITEM_MINOTAUR_HORN
+    slot: Head
+    category: Helmet
+    rarity: 5
+    weight: 2
+    durability: 17
+    codeGrants:
+      - { slot: passive, codeId: 403, stage: 1 }
+
+  - id: 4303
+    name: 칸자르
+    icon: ITEM_KHANJAR
+    slot: MainHand
+    category: Longsword
+    requiredProficiency: Longsword
+    rarity: 3
+    weight: 2
+    statBonuses: [{ stat: LUK, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 144, stage: 1 }
+
+  - id: 4304
+    name: 잠비야
+    icon: ITEM_JAMBIYA
+    slot: MainHand
+    category: Longsword
+    requiredProficiency: Longsword
+    rarity: 3
+    weight: 2
+    statBonuses: [{ stat: DEX, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 410, stage: 1 }
+
+  - id: 4305
+    name: 오귀스트의 시계
+    icon: ITEM_AUGUSTE_WATCH
+    slot: Necklace
+    category: Necklace
+    rarity: 3
+    weight: 1
+    statBonuses: [{ stat: LUK, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 412, stage: 1 }
+
+  - id: 4505
+    name: 알라무트 요새
+    icon: ITEM_ALAMUT_FORTRESS
+    slot: Armor
+    category: LightArmor
+    requiredProficiency: LightArmor
+    rarity: 5
+    weight: 2
+    durability: 17
+    statBonuses: [{ stat: LUK, amount: 9 }]
+    codeGrants:
+      - { slot: passive, codeId: 411, stage: 1 }

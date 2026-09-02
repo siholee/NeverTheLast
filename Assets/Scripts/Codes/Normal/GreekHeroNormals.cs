@@ -23,7 +23,8 @@ namespace Codes.Normal
             DamageTag.SingleTarget,
             DamageTag.NormalAttack,
             DamageTag.Physical,
-            DamageTag.ContactAttack,
+            DamageTag.NonContactAttack,
+            DamageTag.Arrow,
         };
     }
 

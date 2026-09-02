@@ -234,8 +234,8 @@ units:
     name: 오리온
     characterType: Starter
     element: Geo
-    startingProficiencies: [Longsword, Shield, HeavyArmor]
-    startingItemIds: [4102]
+    startingProficiencies: [Longbow, HeavyArmor]
+    startingItemIds: [4106]
     tags: [Greek]
     canStartAsMain: true
     canStartAsSupport: false
@@ -285,8 +285,8 @@ units:
     name: 테세우스
     characterType: Starter
     element: Hydro
-    startingProficiencies: [Spear, HeavyArmor]
-    startingItemIds: [4104]
+    startingProficiencies: [Longsword, HeavyArmor]
+    startingItemIds: [4102]
     tags: [Greek]
     canStartAsMain: true
     canStartAsSupport: false
@@ -329,7 +329,7 @@ units:
 
   # 그리스 미해금. 치유와 공격을 겸하는 하이브리드 지원가.
   - id: 8
-    name: 아스클레피오스
+    name: 아스클레피오
     characterType: Locked
     element: Electro
     startingProficiencies: [Spear]
@@ -1363,6 +1363,7 @@ units:
       - { codeId: 142, unlockLevel: 10, stage: 1 }   # 유리대포
       - { codeId: 93,  unlockLevel: 25, stage: 1 }   # 투명
       - { codeId: 348, unlockLevel: 29, stage: 1 }   # 이기적
+      - { codeId: 425, unlockLevel: 40, stage: 1 }   # 암살자
       - { codeId: 95,  unlockLevel: 68, stage: 1 }   # 파죽지세
     portrait: BASTET_PORTRAIT
     standing: BASTET_STANDING
@@ -1486,3 +1487,127 @@ units:
       - { codeId: 232, unlockLevel: 70, stage: 1 }   # 생명의 물
     portrait: ISIS_PORTRAIT
     standing: ISIS_STANDING
+
+  - id: 49
+    name: 사바흐
+    characterType: Starter
+    element: Electro
+    startingProficiencies: [Longsword, LightArmor]
+    startingItemIds: [4102]
+    tags: [Akasha]
+    canStartAsMain: true
+    canStartAsSupport: false
+    canUseInInfinite: true
+    mainStat: LUK
+    subStat: DEX
+    subStats: [DEX]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 14
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 20
+    dexIncrementLvl: 2
+    dexIncrementUpgrade: 1
+    conBase: 14
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 10
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 24
+    lukIncrementLvl: 3
+    lukIncrementUpgrade: 1
+    codes: { passive: 420, normal: 310, ultimate: 310 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    ultimateResourceType: Stack
+    ultimateResourceName: 아즈라엘
+    ultimateResourceMax: 7
+    levelPassives:
+      - { codeId: 421, unlockLevel: 5,  stage: 1 }   # 손재주
+      - { codeId: 54,  unlockLevel: 12, stage: 1 }   # 검의 달인
+      - { codeId: 425, unlockLevel: 18, stage: 1 }   # 암살자
+      - { codeId: 257, unlockLevel: 30, stage: 1 }   # 기습
+      - { codeId: 58,  unlockLevel: 44, stage: 1 }   # 천살성
+    portrait: SABAH_PORTRAIT
+    standing: SABAH_STANDING
+
+  - id: 50
+    name: 이카리아
+    characterType: Locked
+    element: Pyro
+    startingProficiencies: [Spear]
+    startingItemIds: [4104]
+    tags: [Greek]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: INT
+    subStat: CON
+    subStats: [CON, LUK]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.05
+    strBase: 10
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 12
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 18
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 22
+    intIncrementLvl: 3
+    intIncrementUpgrade: 1
+    lukBase: 16
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 1
+    codes: { passive: 422, normal: 311, ultimate: 311 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 142, unlockLevel: 10, stage: 1 }   # 유리대포
+      - { codeId: 423, unlockLevel: 20, stage: 1 }   # 정신력
+      - { codeId: 424, unlockLevel: 30, stage: 1 }   # 원소 친화 - 불
+      - { codeId: 137, unlockLevel: 55, stage: 1 }   # 클러치 플레이어
+    portrait: ICARIA_PORTRAIT
+    standing: ICARIA_STANDING
+
+  - id: 51
+    name: 마리
+    characterType: Support
+    element: Cryo
+    startingProficiencies: [Longsword, LightArmor]
+    startingItemIds: [4102]
+    tags: [Gaul, Human]
+    canStartAsMain: false
+    canStartAsSupport: true
+    canUseInInfinite: false
+    mainStat: LUK
+    subStat: DEX
+    subStats: [DEX, STR]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.05
+    strBase: 16
+    strIncrementLvl: 2
+    strIncrementUpgrade: 1
+    dexBase: 20
+    dexIncrementLvl: 2
+    dexIncrementUpgrade: 1
+    conBase: 14
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 10
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 24
+    lukIncrementLvl: 3
+    lukIncrementUpgrade: 1
+    codes: { passive: 426, normal: 312, ultimate: 312 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 427, unlockLevel: 1,  stage: 1 }   # 고귀한 혈통
+      - { codeId: 428, unlockLevel: 5,  stage: 1 }   # 장교
+      - { codeId: 268, unlockLevel: 12, stage: 1 }   # 원소 친화 - 얼음
+      - { codeId: 429, unlockLevel: 30, stage: 1 }   # 개선문
+    portrait: MARIE_PORTRAIT
+    standing: MARIE_STANDING

@@ -290,6 +290,93 @@ events:
         action: continue
         successText: 문장은 지워졌지만 그을음은 남았다. 사도들은 곧 같은 자리에 다시 새길 것이다.
 
+  # 아문·라 최초 격파 직후 한 번만 동적 큐에 들어가는 합류 대화.
+  - id: aswan_bastet_first_amun_ra_clear
+    themeId: 0
+    stageInRound: 0
+    requiresBossDefeatId: 3012
+    title: 모래 위의 고양이 발자국
+    dialogue:
+      - speaker: 일행
+        text: 아문·라의 빛이 꺼진 자리에서 가벼운 발소리가 들린다. 무너진 기둥 위에 앉아 있던 여인이 천천히 내려온다.
+      - speaker: 바스테트
+        text: 태양이 너무 오래 하늘을 독차지했어. 쓰러뜨린 솜씨는 마음에 드는데, 다음 사냥터도 이만큼 재미있을까?
+        portrait: BASTET_PORTRAIT
+        standing: BASTET_STANDING
+      - speaker: 바스테트
+        text: 자리가 남는다면 같이 가지. 발소리는 죽이고, 적의 목숨만 깨워 줄게.
+        portrait: BASTET_PORTRAIT
+        standing: BASTET_STANDING
+    choices:
+      - id: recruit_bastet_after_amun_ra
+        text: 바스테트를 동료로 맞이한다.
+        action: continue
+        grantUnitId: 45
+        successText: 바스테트가 아군에 합류했다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
+      - id: decline_bastet_after_amun_ra
+        text: 이번에는 각자의 길을 간다.
+        action: continue
+        successText: 바스테트는 아쉬운 듯 웃더니 모래바람 속으로 사라졌다.
+
+  # 아문·라 격파 이후 모든 테마의 사건 슬롯에서 출현 가능한 별개의 T4 영입 사건.
+  - id: t4_horus_falcon_without_throne
+    themeId: 0
+    stageInRound: 5
+    tier: 4
+    requiresBossDefeatId: 3012
+    oncePerRun: true
+    title: 왕좌 없는 매
+    dialogue:
+      - speaker: 일행
+        text: 길목의 폐허 위로 매 한 마리가 원을 그린다. 그림자가 세 번째로 겹친 순간, 활을 든 전사가 돌기둥 뒤에서 모습을 드러낸다.
+      - speaker: 호루스
+        text: 아문·라는 쓰러졌지만 하늘의 질서는 돌아오지 않았다. 왕좌를 되찾기 전에, 그 빈자리를 노리는 것부터 막아야 한다.
+        portrait: HORUS_PORTRAIT
+        standing: HORUS_STANDING
+      - speaker: 호루스
+        text: 너희의 길이 종말을 거슬러 간다면 내 화살도 같은 곳을 향할 것이다.
+        portrait: HORUS_PORTRAIT
+        standing: HORUS_STANDING
+    choices:
+      - id: recruit_horus_after_amun_ra
+        text: 호루스에게 함께 싸우자고 청한다.
+        action: continue
+        grantUnitId: 43
+        successText: 호루스가 아군에 합류했다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
+      - id: decline_horus_after_amun_ra
+        text: 아직은 각자의 전장을 지킨다.
+        action: continue
+        successText: 호루스는 매의 울음과 함께 하늘 너머로 사라졌다.
+
+  - id: t4_set_red_desert_compact
+    themeId: 0
+    stageInRound: 5
+    tier: 4
+    requiresBossDefeatId: 3012
+    oncePerRun: true
+    title: 붉은 사막의 맹약
+    dialogue:
+      - speaker: 일행
+        text: 바람이 멎자 붉은 모래가 벽처럼 솟는다. 모래 장막 한가운데서 거대한 검을 멘 전사가 웃음을 터뜨린다.
+      - speaker: 세트
+        text: 태양의 왕을 꺾었다고 질서까지 네 편이 된 건 아니다. 사막은 늘 가장 강한 자의 발자국만 남기지.
+        portrait: SET_PORTRAIT
+        standing: SET_STANDING
+      - speaker: 세트
+        text: 네가 더 큰 혼돈을 찾아간다면 내가 앞장서 주마. 대신 지루하게 만들지는 마라.
+        portrait: SET_PORTRAIT
+        standing: SET_STANDING
+    choices:
+      - id: recruit_set_after_amun_ra
+        text: 세트와 맹약을 맺는다.
+        action: continue
+        grantUnitId: 46
+        successText: 세트가 아군에 합류했다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
+      - id: decline_set_after_amun_ra
+        text: 혼돈과 손잡지 않는다.
+        action: continue
+        successText: 세트는 다음 선택은 달라질 거라며 붉은 모래 속으로 돌아갔다.
+
 # 고정 보스는 현재 없다.
 # 25/50/75/100 지점의 고정 보스는 아직 설계되지 않았다.
 # 🔸 '고정 보스 라운드에서는 2번 스테이지를 건너뛰고 이후 스테이지를 1씩 당긴다'는

@@ -77,6 +77,9 @@ namespace Entities.Status
         /// <summary>보유자의 턴을 몇 번 넘겼는지</summary>
         public int ElapsedTurns { get; set; }
 
+        /// <summary>부여자의 지속시간 보정을 이미 반영했는지 여부.</summary>
+        internal bool SourceDurationAdjusted { get; set; }
+
         /// <summary>남은 턴 수. 무한이면 <see cref="int.MaxValue"/>.</summary>
         public int RemainingTurns => Duration <= 0 ? int.MaxValue : Mathf.Max(0, Duration - ElapsedTurns);
         

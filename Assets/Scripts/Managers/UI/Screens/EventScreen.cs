@@ -418,7 +418,8 @@ namespace Managers.UI.Screens
         {
             Show();
 
-            _eventTitle.text = string.IsNullOrWhiteSpace(stageEvent?.title) ? "사건" : stageEvent.title;
+            string title = string.IsNullOrWhiteSpace(stageEvent?.title) ? "사건" : stageEvent.title;
+            _eventTitle.text = (stageEvent?.tier ?? 0) > 0 ? $"T{stageEvent.tier} · {title}" : title;
             UIBuild.Clear(_choiceArea);
 
             List<StageEventDialogueData> dialogue = stageEvent?.dialogue;

@@ -17,6 +17,8 @@ namespace Codes.Passive
         public const string TheseusCodeWeaveResource = "theseus_code_weave_quarters";
         public const int TheseusResourceMaximum = 12;
         public const int TheseusEnhancedAttackCost = 4;
+        public const string OrionSiriusResource = "orion_sirius_charge";
+        public const int OrionSiriusMaximum = 5;
     }
 
     public static class GreekHeroStatusIds
@@ -31,24 +33,102 @@ namespace Codes.Passive
         public const int OrionArmorBreak = 157;
     }
 
-    /// <summary>오리온 고유 패시브 '억센 육체': 바위 원소 보유 중 매초 CON +1(라운드 동안 누적).</summary>
-    public sealed class OrionGeoAffinity : UniquePassiveCode
+    /// <summary>오리온 P — 피해를 받거나 체력을 소비한 행동마다 시리우스 충전 1스택.</summary>
+    public sealed class OrionGeoAffinity : UniquePassiveCode, ICounterAttackProvider
     {
+        private Action<EventContext> _damageHandler;
+        private Action<Unit, int> _hpSpentHandler;
+        private Action<EventContext> _cleanupHandler;
+        private int _lastChargeAction = int.MinValue;
+        private bool _registered;
+
         public OrionGeoAffinity(PassiveCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "억센 육체";
+            CodeName = "시리우스";
             IgnoresActivationChance = true;
         }
 
         public override void CastCode()
         {
-            Caster?.AddStatus(BuffStatus.Create(
-                GreekHeroStatusIds.OrionGeoAffinity, "orion_geo_affinity", CodeName,
-                Caster, Caster, new OrionGeoAffinityEffect(),
-                stackPolicy: BaseEnums.StatusStackPolicy.Replace,
-                isBeneficial: true,
-                description: "바위 원소를 보유한 동안 턴마다 CON이 1 증가합니다."));
+            if (Caster == null || _registered) return;
+            Caster.SetCombatResourceMaximum(
+                GreekHeroCombat.OrionSiriusResource,
+                GreekHeroCombat.OrionSiriusMaximum,
+                true);
+            _lastChargeAction = int.MinValue;
+            _damageHandler = OnDamageTaken;
+            _hpSpentHandler = OnHpSpent;
+            _cleanupHandler = _ => StopCode();
+            Caster.AddListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _damageHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            Unit.AnyHpSpent += _hpSpentHandler;
+            _registered = true;
+        }
+
+        public override void StopCode()
+        {
+            if (!_registered || Caster == null) return;
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _damageHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            Unit.AnyHpSpent -= _hpSpentHandler;
+            _damageHandler = null;
+            _hpSpentHandler = null;
+            _cleanupHandler = null;
+            _registered = false;
+        }
+
+        private void OnDamageTaken(EventContext context)
+        {
+            if (context?.Grantee == Caster && context.DmgCtx?.ResolvedDamage > 0)
+                TryGainCharge();
+        }
+
+        private void OnHpSpent(Unit unit, int amount)
+        {
+            if (unit == Caster && amount > 0) TryGainCharge();
+        }
+
+        private void TryGainCharge()
+        {
+            if (Caster == null || !Caster.isActive) return;
+            int action = GameManager.Instance?.ActionScheduler?.CurrentActionId ?? 0;
+            if (_lastChargeAction == action) return;
+            _lastChargeAction = action;
+
+            int charge = Caster.AddCombatResource(GreekHeroCombat.OrionSiriusResource, 1);
+            if (charge < GreekHeroCombat.OrionSiriusMaximum) return;
+
+            GameManager.Instance?.ActionScheduler?.EnqueueAdditional(
+                Caster, "orion_sirius", CodeName, ResolveSirius);
+        }
+
+        private void ResolveSirius()
+        {
+            if (Caster == null || !Caster.isActive ||
+                !Caster.TryConsumeCombatResource(
+                    GreekHeroCombat.OrionSiriusResource,
+                    GreekHeroCombat.OrionSiriusMaximum)) return;
+
+            bool isCrit = UnityEngine.Random.value <= Caster.CritChanceCurr;
+            int damage = Mathf.Max(1, Mathf.RoundToInt(
+                Caster.SkillDamage(120, BaseEnums.PrimaryStat.STR) *
+                (isCrit ? Caster.CritMultiplierCurr : 1f) *
+                Combat.Summons.DamageMultiplier(Caster)));
+            foreach (Unit enemy in global::Target.GetAllEnemies(Caster)
+                         .Where(unit => unit != null && unit.isActive && !unit.IsUntargetable).ToList())
+            {
+                enemy.TakeDamage(new DamageContext(
+                    Caster, damage, BaseEnums.CodeType.Passive,
+                    new List<int>
+                    {
+                        DamageTag.AllTarget, DamageTag.AdditionalAttack, DamageTag.CounterAttack,
+                        DamageTag.SummonAttack, DamageTag.Physical, DamageTag.ContactAttack,
+                    },
+                    isCrit));
+            }
         }
     }
 
@@ -63,10 +143,10 @@ namespace Codes.Passive
 
         public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
             GreekHeroStatusIds.OrionHeavyInfantry, "orion_heavy_infantry", CodeName,
-            Caster, Caster, new EquippedStatEffect(EquipmentProficiency.HeavyArmor, BaseEnums.PrimaryStat.STR, 4),
+            Caster, Caster, new HeavyArmorDurabilityEffect(),
             stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
             isBeneficial: true,
-            description: "중갑 착용 중 STR +4."));
+            description: "숙련된 중갑 아이템이 제공하는 내구도가 20% 증가합니다."));
     }
 
     /// <summary>활 계열 무기로 단일 대상 피해를 입혔을 때 STR만큼 고정 피해를 추가한다.</summary>
@@ -311,21 +391,14 @@ namespace Codes.Passive
             description: "최대 체력을 넘긴 회복량의 25%를 보호막으로 전환합니다."));
     }
 
-    internal sealed class OrionGeoAffinityEffect : BaseEffect
+    internal sealed class HeavyArmorDurabilityEffect : BaseEffect
     {
-        private int _conStacks;
-        public OrionGeoAffinityEffect() : base(0) { }
-
-        /// <summary>턴마다 CON +2. 예전 '매초 +1'을 1턴 = 2초로 환산했다.</summary>
-        public override void OnOwnerTurn()
-        {
-            if (Target == null || !Target.isActive || !Target.HasCombatElement(BaseEnums.UnitElement.Geo)) return;
-            _conStacks += 2;
-            Target.RefreshAttributes();
-        }
-
-        public override int PrimaryStatAdditiveModifier(Unit unit, BaseEnums.PrimaryStat stat)
-            => unit == Target && stat == BaseEnums.PrimaryStat.CON ? _conStacks : 0;
+        public HeavyArmorDurabilityEffect() : base(0) { }
+        public override float EquipmentDurabilityMultiplierModifier(Unit unit, Managers.ItemData item)
+            => unit == Target && item != null &&
+               item.RequiredProficiency == EquipmentProficiency.HeavyArmor &&
+               unit.HasProficiency(EquipmentProficiency.HeavyArmor)
+                ? 1.20f : 1f;
     }
 
     internal sealed class EquippedStatEffect : BaseEffect
