@@ -670,10 +670,12 @@ namespace Managers.UI.Screens
             if (entries.Count == 0) AddListRow(column, "—", "없음", ref y);
         }
 
-        private static Color GradeColor(Code code)
-            => code != null && code.Grade == BaseClasses.BaseEnums.CodeGrade.Enhanced
-                ? UITheme.CodeEnhanced
-                : UITheme.CodeNormal;
+        private static Color GradeColor(Code code) => code?.Grade switch
+        {
+            BaseClasses.BaseEnums.CodeGrade.Enhanced => UITheme.CodeEnhanced,
+            BaseClasses.BaseEnums.CodeGrade.Unique => UITheme.CodeUnique,
+            _ => UITheme.CodeNormal,
+        };
 
         private static (string Kind, string Name, Color Tint) PassiveEntry(
             string kind, PassiveCode passive, Unit unit)

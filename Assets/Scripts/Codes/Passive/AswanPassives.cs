@@ -43,11 +43,10 @@ namespace Codes.Passive
         public const int AscensionMax = 99;
 
         /// <summary>
-        /// 출혈. 5920~5922는 빙결·에어본·기절이 이미 쓰고 있어 5930으로 띄웠다.
+        /// 출혈은 <see cref="Effects.Negative.BleedStatus"/>가 계열 공용으로 들고 있다.
         /// 콜로세움의 '열상'(6261)과는 별개다 — 저쪽은 시전자 공격력 비례, 이쪽은 최대 체력 비례다.
         /// </summary>
-        public const int BleedStatusId = 5930;
-        public const string BleedStatusKey = "aswan_bleed";
+        public const float BleedMaxHpPercent = 1f;
 
         public static List<Unit> Enemies(Unit caster) => global::Target.GetAllEnemies(caster)
             .Where(unit => unit != null && unit.isActive && !unit.IsUntargetable).ToList();
@@ -80,14 +79,7 @@ namespace Codes.Passive
             if (source == null || target == null || !target.isActive || turns <= 0) return false;
             if (UnityEngine.Random.value > BleedHitChance(source, target)) return false;
 
-            target.AddStatus(BuffStatus.Create(
-                BleedStatusId, BleedStatusKey, "출혈",
-                source, target, new PercentDamageOverTimeEffect(0, 1f),
-                duration: turns,
-                stackPolicy: BaseEnums.StatusStackPolicy.ExtendDuration,
-                category: BaseEnums.StatusCategory.Negative,
-                isBeneficial: false,
-                description: $"{turns}턴간 턴마다 최대 체력의 1%에 해당하는 출혈 피해를 받습니다."));
+            Effects.Negative.BleedStatus.Apply(target, source, turns, BleedMaxHpPercent, "사령의 발톱");
             return true;
         }
 
@@ -348,6 +340,7 @@ namespace Codes.Passive
             CodeName = "명계의 재림";
             IgnoresActivationChance = true;
             Transferable = false;
+            SupersededByCodeId = VoidPerfectResurrection.CodeId;
         }
 
         public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(

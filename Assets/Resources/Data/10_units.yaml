@@ -1402,7 +1402,7 @@ units:
       - { codeId: 87, unlockLevel: 9,  stage: 1 }   # 창지기
       - { codeId: 3,  unlockLevel: 20, stage: 1 }   # 보루
       - { codeId: 40, unlockLevel: 25, stage: 1 }   # 천상의 신체
-      - { codeId: 5,  unlockLevel: 35, stage: 1 }   # 목욕재계
+      - { codeId: 102, unlockLevel: 38, stage: 1 }  # 죽은 자의 소생
       - { codeId: 37, unlockLevel: 44, stage: 1 }   # 순환
       - { codeId: 88, unlockLevel: 50, stage: 1 }   # 저승사자
     portrait: ANUBIS_PORTRAIT

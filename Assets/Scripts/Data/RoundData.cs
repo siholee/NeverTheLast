@@ -7,6 +7,16 @@ namespace Managers
     public class RoundPattern
     {
         public List<int> enemyIds;      // 테마 전용으로 직접 지정하는 적 ID 리스트
+
+        /// <summary>
+        /// 열을 못 박아 배치하는 목록. <see cref="enemyIds"/>는 적의 <c>archetype</c>이 열을
+        /// 정하므로 <b>같은 병종을 전열과 후열에 나눠 세울 수 없다</b>. 공허 테마의
+        /// 1·2스테이지처럼 프리즘만으로 양 열을 채우는 편성이 이 필드를 쓴다.
+        /// 둘 중 하나라도 적혀 있으면 <c>enemyIds</c> 대신 이쪽을 본다.
+        /// </summary>
+        public List<int> frontIds;
+        public List<int> rearIds;
+
         public List<int> archetypes;    // 일반 라운드용 적 분류 리스트
         public List<int> eliteIds;      // 엘리트 라운드용 엘리트 ID 리스트
         public int bossId;              // 보스 라운드용 보스 ID

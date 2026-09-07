@@ -178,10 +178,12 @@ highest-level unlocks on low-INT units; that gate is gone and INT now only drive
 - `UniquePassiveCode` sets `Transferable = false`. **Unique passives are never transferred**;
   support cards can only pass on unlock passives. (The old degraded-transfer system is gone.)
 - Normal attacks have **no cooldown** — DEX-driven action value sets the cadence.
-- Codes carry a **grade**: `CodeGrade.Normal` (silver) or `Enhanced` (gold). A silver code sets
-  `SupersededByCodeId` to the gold code that replaces it, and `Unit.TryCastPassiveCode` refuses to
-  fire it when the owner has learned that gold code. Field-wide auras (different owners) keep their
-  existing highest-only handling; the grade is a label there. See `Detail_12 §3.2`.
+- Codes carry a **grade**: `CodeGrade.Normal` (silver), `Enhanced` (gold), or `Unique` (purple).
+  A silver code sets `SupersededByCodeId` to the gold code that replaces it, and
+  `Unit.TryCastPassiveCode` refuses to fire it when the owner has learned that gold code.
+  **`Unique` sits outside that ladder** — setting `IsUniquePassive` forces the grade to `Unique`
+  and clears `SupersededByCodeId`, so a unique passive can neither replace nor be replaced.
+  Field-wide auras (different owners) keep their existing highest-only handling. See `Detail_12 §3.3`.
 - Power supports a proportional term: `위력 = Power + 스탯 × PowerStatCoefficient` (`Code.CurrentPower`).
 
 ### Effects and statuses
@@ -217,9 +219,11 @@ The **ten-thousands digit is the category**; an attack takes one from each band.
 5. Update `Detail_08` (spec) and `Detail_12` (index)
 
 Growth must follow the rule in `Detail_08`: **main +2, sub +2, others +1** (Sei/Shi: main +3, sub +2).
-37 units, with two documented exceptions: **Gaudi** has no sub stat at all (main +2, everything else +1),
-and **Light** carries two sub stats at +1 each instead of one at +2. Both are marked 🟡 in `Detail_08` —
-their base stats were not in the original design and are provisional.
+A unit with **two sub stats** splits that budget instead of doubling it — each sub grows +1 and the
+training bonus is +5% per sub rather than +10%. Seven units do this: 라이트 · 피그말리온 · 아스클레피아 ·
+아마테라스 · 야마 · 이카리아 · 마리. 37 units in total, and **Gaudi** is the only real exception —
+no sub stat at all (main +2, everything else +1). Gaudi's and Light's base stats were not in the
+original design and are marked 🟡 in `Detail_08` as provisional.
 
 ### Adding a theme
 

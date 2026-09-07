@@ -47,7 +47,7 @@ codes:
     - id: 2
       verbalName: 기사회생
       codeName: ChandraSecondWind
-      description: "체력이 25% 미만으로 떨어지면 5초에 걸쳐 체력을 30% 회복한다."
+      description: "체력이 25% 미만으로 떨어지면 3턴에 걸쳐 최대 체력의 60%를 회복한다. 전투당 1회."
     - id: 3
       verbalName: 보루
       codeName: ChandraBulwark
@@ -281,6 +281,8 @@ codes:
     - { id: 93, verbalName: 허허실실, codeName: ThothHiddenTruth, description: "감소시킨 강인도의 10%를 실제 피해로 더한다. 지혜의 눈과 중복 적용된다." }
     - { id: 325, verbalName: 사막의 광휘, codeName: IsisDesertRadiance, description: "이시스가 적에게 바위 원소를 부여하면 사막의 광휘 표식을 남긴다. 표식 대상이 받는 특수 피해 +10%. <고유 패시브> <전수 불가능>" }
     - { id: 94, verbalName: 원소, codeName: IsisElement, description: "효과 미정." }
+    - { id: 103, verbalName: 완벽한 재기, codeName: PerfectRecovery, description: "기사회생의 금색 상위 코드. 체력이 30% 미만으로 떨어지면 3턴에 걸쳐 최대 체력을 전부 회복한다. 전투당 1회." }
+    - { id: 102, verbalName: 죽은 자의 소생, codeName: AnubisRaiseTheDead, description: "전투가 끝나면 이번 라운드에 쓰러진 아군 하나를 무작위로 되살린다. 아누비스 자신이 쓰러져 있으면 발동하지 않는다." }
 
     # ── 아스완 패시브 (종말의 사도 · 사령 · 오시리스 · 아문·라) ──
     # 360·361은 같은 코드의 강도 차이다. 파멸의 성기사가 10%, 종말의 성기사가 20%를 쓴다.
@@ -324,8 +326,51 @@ codes:
 
     # ── 공허의 괴조 패시브 ──
     - { id: 1450, verbalName: 괴조의 부활, codeName: VoidMonstrousBirdRebirth, description: "전투 중 단 한 번 치명적인 피해를 입으면 최대 체력으로 부활한다. <고유 패시브> <적 전용> <전수 불가능>" }
-    - { id: 1451, verbalName: 가속, codeName: VoidMonstrousBirdAcceleration, description: "일반행동을 할 때마다 이번 전투 동안 DEX +2. 제한 없이 중첩된다. <적 전용> <전수 불가능>" }
+    - { id: 1451, verbalName: 가속, codeName: VoidMonstrousBirdAcceleration, description: "일반행동을 할 때마다 이번 전투 동안 DEX +1. 제한 없이 중첩된다. <적 전용> <전수 불가능>" }
     - { id: 1452, verbalName: 날카로운 부리, codeName: VoidMonstrousBirdSharpBeak, description: "단일 공격 적중 시 현재 LUK% 확률로 출혈을 3턴 부여한다. 출혈은 대상의 자기 턴 시작마다 최대 체력 3%의 고정 지속피해를 준다. <적 전용> <전수 불가능>" }
+
+    # ── 공허의 멧돼지 패시브 ──
+    - { id: 1460, verbalName: 우격다짐, codeName: VoidBeastBruteForce, description: "자신이 보유한 디버프 하나당 CON·LUK +1%. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1461, verbalName: 바위피부, codeName: VoidBeastHardSkin, description: "자신의 내구도 +10. <적 전용> <전수 불가능>" }
+    - { id: 1462, verbalName: 오만, codeName: VoidBeastArrogance, description: "적을 처치할 때마다 이번 전투 동안 물리 피해 +5%. 제한 없이 중첩된다. <적 전용> <전수 불가능>" }
+    - { id: 1463, verbalName: 강철피부, codeName: VoidBeastHardSkin, description: "바위피부의 금색 상위 코드. 자신의 내구도 +20. <적 전용> <전수 불가능>" }
+    - { id: 1464, verbalName: 하루종일도 할 수 있어, codeName: SurtrFighter, description: "투사(41)의 금색 상위 코드. 가한 피해의 12%만큼 체력을 회복한다. <적 전용> <전수 불가능>" }
+
+    # ── 공허의 늑대 패시브 ──
+    - { id: 1470, verbalName: 피 냄새, codeName: VoidWolfBloodScent, description: "자신이 출혈을 부여하면 같은 턴 수만큼 치유량 감소(-50%)도 확정으로 부여한다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1471, verbalName: 흡혈귀, codeName: VoidWolfBloodthirst, description: "적에게 피해를 입혀 자신을 회복할 때 회복량 +25%. <적 전용> <전수 불가능>" }
+    - { id: 1472, verbalName: 어둠의 군주, codeName: VoidWolfBloodthirst, description: "흡혈귀의 금색 상위 코드. 적에게 피해를 입혀 자신을 회복할 때 회복량 +50%. <적 전용> <전수 불가능>" }
+
+    # ── 공허 계열 공용 패시브 (사슴·분쇄자·용이 나눠 쓴다) ──
+    - { id: 1480, verbalName: 원소 감응, codeName: VoidDeerResonance, description: "공격 대상이 자신과 같은 원소를 보유하고 있으면 가하는 피해 +40%. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1481, verbalName: 알파 개체, codeName: VoidAlphaSpecimen, description: "CON이 제공하는 최대 체력이 2배가 되고, 한 번에 최대 체력의 1/2을 넘는 피해를 받지 않는다. 체력 바가 2칸으로 나뉜다. <적 전용>" }
+    - { id: 1482, verbalName: 폭풍, codeName: VoidStorm, description: "궁극기를 사용하면 모든 적에게 CON 대결 확률로 기절을 건다. <적 전용>" }
+    - { id: 1483, verbalName: 궁극의 보호막, codeName: VoidUltimateBarrier, description: "궁극기를 사용하면 자신에게 CON×1.2의 보호막을 부여한다. <적 전용>" }
+    - { id: 1484, verbalName: 공허의 선봉장, codeName: VoidVanguardAura, description: "일반행동을 마칠 때마다 필드의 공허 괴수 아군 전체가 올스탯 +3%. 제한 없이 중첩된다. 하위 코드가 없는 금색 단독. <적 전용>" }
+    - { id: 1485, verbalName: 위압감, codeName: VoidIntimidation, description: "필드에 있는 동안 모든 적의 INT 마나 회복 효율이 20% 감소한다. <적 전용>" }
+    - { id: 1486, verbalName: 완전함, codeName: VoidAlphaSpecimen, description: "알파 개체의 금색 상위 코드. CON이 제공하는 최대 체력이 3배가 되고, 한 번에 최대 체력의 1/3을 넘는 피해를 받지 않는다. <적 전용>" }
+
+    # ── 공허의 기사 패시브 ──
+    - { id: 1490, verbalName: 공허의 갑주, codeName: VoidKnightArmor, description: "보호막을 보유한 동안 가하는 피해 +30%. 자기 턴 시작 시 보호막이 없으면 CON×0.5의 보호막을 얻는다. <고유 패시브> <적 전용> <전수 불가능>" }
+
+    # ── 공허의 사수 패시브 ──
+    - { id: 1500, verbalName: 조준선, codeName: VoidMarksmanSightLine, description: "같은 대상을 연속으로 공격할 때마다 그 대상에게 주는 피해 +8%(최대 5중첩). 대상을 바꾸면 초기화된다. <고유 패시브> <적 전용> <전수 불가능>" }
+
+    # ── 공허의 선봉대 패시브 ──
+    - { id: 1510, verbalName: 공허의 맹세, codeName: VoidVanguardOath, description: "전투 시작 시와 도발이 풀린 뒤 자기 턴에 3턴 도발과 CON×1.0 보호막을 얻는다. 도발 중에는 받는 피해 -15%. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1511, verbalName: 방진, codeName: VoidPhalanxFormation, description: "자신이 전열에 있으면 후열 아군이 받는 피해가 10% 감소한다. <적 전용>" }
+
+    # ── 공허의 분쇄자 패시브 ──
+    - { id: 1520, verbalName: 질량, codeName: VoidCrusherMass, description: "최대 체력 1,000당 가하는 물리 피해 +1%. 한 번에 받는 단일 대상 피해가 최대 체력의 25%를 넘지 않는다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1521, verbalName: 궁극의 신체, codeName: VoidCrusherBody, description: "모든 공격에 자신의 최대 체력 2.5%에 해당하는 물리 피해가 추가된다. <적 전용>" }
+    - { id: 1522, verbalName: 천무지체, codeName: VoidCrusherBody, description: "궁극의 신체의 금색 상위 코드. 모든 공격에 자신의 최대 체력 5%에 해당하는 물리 피해가 추가된다. <적 전용>" }
+    - { id: 1523, verbalName: 적응 장갑, codeName: VoidAdaptiveArmor, description: "같은 기술에 적중당할 때마다 그 기술에게서 받는 피해가 10%씩 감소한다(최대 50%). 기술은 시전자·코드 종류·피해 태그 조합으로 구분한다. <적 전용>" }
+
+    # ── 공허의 용 패시브 ──
+    - { id: 1530, verbalName: 공허의 근원, codeName: VoidDragonOrigin, description: "필드의 공허 괴수 아군 하나당 올스탯 +3%. 자신이 쓰러지면 남은 공허 괴수 아군이 최대 체력의 50%를 회복한다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1531, verbalName: 에테르, codeName: VoidAether, description: "원소술사(76)의 금색 상위 코드. 아군 전체가 원소 반응으로 만든 피해 +40%. <적 전용>" }
+    - { id: 1532, verbalName: 완전한 부활, codeName: VoidPerfectResurrection, description: "명계의 재림(1403)의 금색 상위 코드. 치명 피해 시 전투당 1회 즉시 부활하며 해로운 상태를 잃고 체력이 가득 찬 뒤 2턴간 받는 피해가 30% 감소한다. <적 전용>" }
+    - { id: 1533, verbalName: 원소 정통, codeName: VoidElementalMastery, description: "원소 숙련의 금색 상위 코드. 자신의 원소를 보유한 적에게 주는 피해 +25%. 보유자의 고유 원소를 읽어 여덟 변형을 하나로 덮는다. <적 전용>" }
 
     # ── 장비 전용 패시브 ──
     # 공격속도는 독립 스탯이 없으므로 1%p = DEX 1 규칙으로 환산했다.
@@ -356,10 +401,11 @@ codes:
   normal:
     - id: 21
       verbalName: 일반공격
-      codeName: a005-NAtlanta
+      codeName: a005_NAtlanta
+      description: "단일 적에게 DEX 기반 위력 60의 피해를 입힌다. #비접촉 #물리"
     - id: 20
       verbalName: 일반공격
-      codeName: a004-NPygmalion
+      codeName: a004_NPygmalion
       description: "단일 적에게 CON 기반 위력 60의 물리 피해를 입힌다. #비접촉 #물리"
     - id: 1
       verbalName: 일반공격
@@ -416,6 +462,7 @@ codes:
     - id: 2
       verbalName: 일반공격
       codeName: ShiVoidSlash
+      description: "단일 적에게 DEX 기반 단계별 위력 38/46/54의 피해를 입힌다. 쿨다운이 1초로 짧아 타수 자체가 '시의 종언' 자원이 된다. #접촉 #물리 #베기"
     - id: 22
       verbalName: 일반공격
       codeName: OrionNormalAttack
@@ -484,6 +531,28 @@ codes:
     - { id: 1430, verbalName: 연속 사격, codeName: GenericSeedVolley, description: "단일 적에게 DEX×0.2의 피해를 3발 가한다. 과부하 중에는 4발이 된다. #물리 #비접촉 #사격" }
     - { id: 1440, verbalName: 프리즘 광선, codeName: VoidPrismNormal, description: "단일 적에게 100 + INT×0.6 위력의 피해를 입힌다. #특수 #비접촉" }
     - { id: 1450, verbalName: 괴조의 발톱, codeName: VoidMonstrousBirdNormal, description: "단일 적에게 100 + STR×0.6 위력의 피해를 입힌다. #물리 #접촉" }
+    - { id: 1460, verbalName: 멧돼지의 엄니, codeName: VoidBeastNormal, description: "단일 적에게 80 + STR×0.6 위력의 피해를 입힌다. #물리 #접촉" }
+    - { id: 1470, verbalName: 늑대의 송곳니, codeName: VoidWolfNormal, description: "단일 적에게 80 + STR×0.9 위력의 피해를 입히고 현재 LUK% 확률로 출혈(2턴)을 부여한다. #물리 #접촉" }
+    - { id: 1480, verbalName: 사슴의 뿔, codeName: VoidDeerNormal, description: "단일 적에게 200 + STR×1.2 위력의 피해를 입힌다. 행동 후 30% 확률로 강화 일반행동이 이어져 서로 다른 세 대상에게 각각 100 + STR×0.8 위력의 피해를 입힌다. #특수 #비접촉" }
+    - { id: 1481, verbalName: 사슴의 뿔 · 불, codeName: VoidDeerNormal, description: "단일 적에게 200 + STR×1.2 위력의 피해를 입힌다. 불 원소를 부착한다. 행동 후 30% 확률로 강화 일반행동이 이어져 서로 다른 세 대상에게 각각 100 + STR×0.8 위력의 피해를 입힌다. #특수 #비접촉" }
+    - { id: 1482, verbalName: 사슴의 뿔 · 물, codeName: VoidDeerNormal, description: "단일 적에게 200 + STR×1.2 위력의 피해를 입힌다. 물 원소를 부착한다. 행동 후 30% 확률로 강화 일반행동이 이어져 서로 다른 세 대상에게 각각 100 + STR×0.8 위력의 피해를 입힌다. #특수 #비접촉" }
+    - { id: 1483, verbalName: 사슴의 뿔 · 바람, codeName: VoidDeerNormal, description: "단일 적에게 200 + STR×1.2 위력의 피해를 입힌다. 바람 원소를 부착한다. 행동 후 30% 확률로 강화 일반행동이 이어져 서로 다른 세 대상에게 각각 100 + STR×0.8 위력의 피해를 입힌다. #특수 #비접촉" }
+    - { id: 1484, verbalName: 사슴의 뿔 · 번개, codeName: VoidDeerNormal, description: "단일 적에게 200 + STR×1.2 위력의 피해를 입힌다. 번개 원소를 부착한다. 행동 후 30% 확률로 강화 일반행동이 이어져 서로 다른 세 대상에게 각각 100 + STR×0.8 위력의 피해를 입힌다. #특수 #비접촉" }
+    - { id: 1485, verbalName: 사슴의 뿔 · 풀, codeName: VoidDeerNormal, description: "단일 적에게 200 + STR×1.2 위력의 피해를 입힌다. 풀 원소를 부착한다. 행동 후 30% 확률로 강화 일반행동이 이어져 서로 다른 세 대상에게 각각 100 + STR×0.8 위력의 피해를 입힌다. #특수 #비접촉" }
+    - { id: 1486, verbalName: 사슴의 뿔 · 얼음, codeName: VoidDeerNormal, description: "단일 적에게 200 + STR×1.2 위력의 피해를 입힌다. 얼음 원소를 부착한다. 행동 후 30% 확률로 강화 일반행동이 이어져 서로 다른 세 대상에게 각각 100 + STR×0.8 위력의 피해를 입힌다. #특수 #비접촉" }
+    - { id: 1487, verbalName: 사슴의 뿔 · 바위, codeName: VoidDeerNormal, description: "단일 적에게 200 + STR×1.2 위력의 피해를 입힌다. 바위 원소를 부착한다. 행동 후 30% 확률로 강화 일반행동이 이어져 서로 다른 세 대상에게 각각 100 + STR×0.8 위력의 피해를 입힌다. #특수 #비접촉" }
+    - { id: 1490, verbalName: 공허의 검, codeName: VoidKnightNormal, description: "단일 적에게 90 + STR×0.8 위력의 피해를 입힌다. #물리 #접촉 #베기" }
+    - { id: 1500, verbalName: 공허의 사격, codeName: VoidMarksmanNormal, description: "단일 적에게 70 + DEX×0.7 위력의 피해를 입힌다. 적 후열을 먼저 노린다. #물리 #비접촉 #화살" }
+    - { id: 1510, verbalName: 방벽 타격, codeName: VoidVanguardNormal, description: "단일 적에게 80 + CON×0.5 위력의 피해를 입힌다. #물리 #접촉" }
+    - { id: 1520, verbalName: 분쇄 타격, codeName: VoidCrusherNormal, description: "단일 적에게 100 + STR×0.6 위력의 피해를 입힌다. 대상이 보호막을 보유하고 있으면 위력이 2배가 된다. #물리 #접촉" }
+    - { id: 1530, verbalName: 브레스, codeName: VoidDragonNormal, description: "적 전열 전체(비어 있으면 후열 전체)에 80 + INT×0.6 위력의 피해를 입힌다. #특수 #비접촉" }
+    - { id: 1531, verbalName: 브레스 · 불, codeName: VoidDragonNormal, description: "적 전열 전체(비어 있으면 후열 전체)에 80 + INT×0.6 위력의 피해를 입힌다. 불 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1532, verbalName: 브레스 · 물, codeName: VoidDragonNormal, description: "적 전열 전체(비어 있으면 후열 전체)에 80 + INT×0.6 위력의 피해를 입힌다. 물 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1533, verbalName: 브레스 · 바람, codeName: VoidDragonNormal, description: "적 전열 전체(비어 있으면 후열 전체)에 80 + INT×0.6 위력의 피해를 입힌다. 바람 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1534, verbalName: 브레스 · 번개, codeName: VoidDragonNormal, description: "적 전열 전체(비어 있으면 후열 전체)에 80 + INT×0.6 위력의 피해를 입힌다. 번개 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1535, verbalName: 브레스 · 풀, codeName: VoidDragonNormal, description: "적 전열 전체(비어 있으면 후열 전체)에 80 + INT×0.6 위력의 피해를 입힌다. 풀 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1536, verbalName: 브레스 · 얼음, codeName: VoidDragonNormal, description: "적 전열 전체(비어 있으면 후열 전체)에 80 + INT×0.6 위력의 피해를 입힌다. 얼음 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1537, verbalName: 브레스 · 바위, codeName: VoidDragonNormal, description: "적 전열 전체(비어 있으면 후열 전체)에 80 + INT×0.6 위력의 피해를 입힌다. 바위 원소를 부착한다. #특수 #비접촉" }
     - { id: 902, verbalName: 강화 일반공격, codeName: AmunRaBladeVolley, description: "단일 적에게 INT×1.8의 피해를 입힌다. '지옥불' 보유 시 이후 '승천' 스택만큼 칼날을 더 발사한다. #비접촉 #특수 #베기" }
     - { id: 3, verbalName: 번개 베기, codeName: SabahLightningSlash, description: "적 최대 3명에게 DEX×0.9의 피해를 입히고 번개 원소를 부여한다. #베기 #접촉 #물리" }
     - { id: 26, verbalName: 무모한 찌르기, codeName: IcariaRecklessThrust, description: "단일 적에게 INT×0.6의 피해를 입힌다. 최대 체력의 10%를 소모할 수 있으면 소모하고 위력이 INT×0.9로 변한다. #물리 #접촉 #찌르기" }
@@ -516,6 +585,7 @@ codes:
     - id: 2
       verbalName: 만종
       codeName: a002_U_FinalBell
+      description: "4턴 동안 DEX가 레벨×2만큼 증가하고 '시의 종언' 스택 획득량이 3배가 된다."
     - id: 1
       verbalName: 창세
       codeName: SeiSanctuary
@@ -625,6 +695,63 @@ codes:
     - { id: 1455, verbalName: 공허 강습 · 풀, codeName: VoidMonstrousBirdUltimate, description: "전체 적에게 80 + STR×0.8 위력의 피해를 입히고 풀 원소를 부착한다. #물리 #접촉" }
     - { id: 1456, verbalName: 공허 강습 · 얼음, codeName: VoidMonstrousBirdUltimate, description: "전체 적에게 80 + STR×0.8 위력의 피해를 입히고 얼음 원소를 부착한다. #물리 #접촉" }
     - { id: 1457, verbalName: 공허 강습 · 바위, codeName: VoidMonstrousBirdUltimate, description: "전체 적에게 80 + STR×0.8 위력의 피해를 입히고 바위 원소를 부착한다. #물리 #접촉" }
+    - { id: 1460, verbalName: 광란의 일격, codeName: VoidBeastUltimate, description: "단일 적에게 120 + STR×1.5 위력의 피해를 입힌다. #물리 #접촉" }
+    - { id: 1461, verbalName: 광란의 일격 · 불, codeName: VoidBeastUltimate, description: "단일 적에게 120 + STR×1.5 위력의 피해를 입히고 불 원소를 부착한다. #물리 #접촉" }
+    - { id: 1462, verbalName: 광란의 일격 · 물, codeName: VoidBeastUltimate, description: "단일 적에게 120 + STR×1.5 위력의 피해를 입히고 물 원소를 부착한다. #물리 #접촉" }
+    - { id: 1463, verbalName: 광란의 일격 · 바람, codeName: VoidBeastUltimate, description: "단일 적에게 120 + STR×1.5 위력의 피해를 입히고 바람 원소를 부착한다. #물리 #접촉" }
+    - { id: 1464, verbalName: 광란의 일격 · 번개, codeName: VoidBeastUltimate, description: "단일 적에게 120 + STR×1.5 위력의 피해를 입히고 번개 원소를 부착한다. #물리 #접촉" }
+    - { id: 1465, verbalName: 광란의 일격 · 풀, codeName: VoidBeastUltimate, description: "단일 적에게 120 + STR×1.5 위력의 피해를 입히고 풀 원소를 부착한다. #물리 #접촉" }
+    - { id: 1466, verbalName: 광란의 일격 · 얼음, codeName: VoidBeastUltimate, description: "단일 적에게 120 + STR×1.5 위력의 피해를 입히고 얼음 원소를 부착한다. #물리 #접촉" }
+    - { id: 1467, verbalName: 광란의 일격 · 바위, codeName: VoidBeastUltimate, description: "단일 적에게 120 + STR×1.5 위력의 피해를 입히고 바위 원소를 부착한다. #물리 #접촉" }
+    - { id: 1470, verbalName: 피의 포식, codeName: VoidWolfUltimate, description: "단일 적에게 120 + STR×1.1 위력의 피해를 입히고 실제로 입힌 피해의 50%만큼 회복한다. #물리 #접촉" }
+    - { id: 1471, verbalName: 피의 포식 · 불, codeName: VoidWolfUltimate, description: "단일 적에게 120 + STR×1.1 위력의 피해를 입히고 실제로 입힌 피해의 50%만큼 회복한다. 불 원소를 부착한다. #물리 #접촉" }
+    - { id: 1472, verbalName: 피의 포식 · 물, codeName: VoidWolfUltimate, description: "단일 적에게 120 + STR×1.1 위력의 피해를 입히고 실제로 입힌 피해의 50%만큼 회복한다. 물 원소를 부착한다. #물리 #접촉" }
+    - { id: 1473, verbalName: 피의 포식 · 바람, codeName: VoidWolfUltimate, description: "단일 적에게 120 + STR×1.1 위력의 피해를 입히고 실제로 입힌 피해의 50%만큼 회복한다. 바람 원소를 부착한다. #물리 #접촉" }
+    - { id: 1474, verbalName: 피의 포식 · 번개, codeName: VoidWolfUltimate, description: "단일 적에게 120 + STR×1.1 위력의 피해를 입히고 실제로 입힌 피해의 50%만큼 회복한다. 번개 원소를 부착한다. #물리 #접촉" }
+    - { id: 1475, verbalName: 피의 포식 · 풀, codeName: VoidWolfUltimate, description: "단일 적에게 120 + STR×1.1 위력의 피해를 입히고 실제로 입힌 피해의 50%만큼 회복한다. 풀 원소를 부착한다. #물리 #접촉" }
+    - { id: 1476, verbalName: 피의 포식 · 얼음, codeName: VoidWolfUltimate, description: "단일 적에게 120 + STR×1.1 위력의 피해를 입히고 실제로 입힌 피해의 50%만큼 회복한다. 얼음 원소를 부착한다. #물리 #접촉" }
+    - { id: 1477, verbalName: 피의 포식 · 바위, codeName: VoidWolfUltimate, description: "단일 적에게 120 + STR×1.1 위력의 피해를 입히고 실제로 입힌 피해의 50%만큼 회복한다. 바위 원소를 부착한다. #물리 #접촉" }
+    - { id: 1480, verbalName: 무리 부르기, codeName: VoidDeerUltimate, description: "공허 늑대·멧돼지·괴조 중 하나를 빈 칸에 소환한다. 소환된 개체는 칸을 차지하는 진짜 유닛이며 시전자와 같은 레벨이고, 시전자가 쓰러지면 함께 쓰러진다. 빈 칸이 없으면 실패한다." }
+    - { id: 1481, verbalName: 무리 부르기 · 불, codeName: VoidDeerUltimate, description: "같은 원소의 늑대·멧돼지·괴조 중 하나를 빈 칸에 소환한다. 소환된 개체는 칸을 차지하는 진짜 유닛이며 시전자와 같은 레벨이고, 시전자가 쓰러지면 함께 쓰러진다. 빈 칸이 없으면 실패한다." }
+    - { id: 1482, verbalName: 무리 부르기 · 물, codeName: VoidDeerUltimate, description: "같은 원소의 늑대·멧돼지·괴조 중 하나를 빈 칸에 소환한다. 소환된 개체는 칸을 차지하는 진짜 유닛이며 시전자와 같은 레벨이고, 시전자가 쓰러지면 함께 쓰러진다. 빈 칸이 없으면 실패한다." }
+    - { id: 1483, verbalName: 무리 부르기 · 바람, codeName: VoidDeerUltimate, description: "같은 원소의 늑대·멧돼지·괴조 중 하나를 빈 칸에 소환한다. 소환된 개체는 칸을 차지하는 진짜 유닛이며 시전자와 같은 레벨이고, 시전자가 쓰러지면 함께 쓰러진다. 빈 칸이 없으면 실패한다." }
+    - { id: 1484, verbalName: 무리 부르기 · 번개, codeName: VoidDeerUltimate, description: "같은 원소의 늑대·멧돼지·괴조 중 하나를 빈 칸에 소환한다. 소환된 개체는 칸을 차지하는 진짜 유닛이며 시전자와 같은 레벨이고, 시전자가 쓰러지면 함께 쓰러진다. 빈 칸이 없으면 실패한다." }
+    - { id: 1485, verbalName: 무리 부르기 · 풀, codeName: VoidDeerUltimate, description: "같은 원소의 늑대·멧돼지·괴조 중 하나를 빈 칸에 소환한다. 소환된 개체는 칸을 차지하는 진짜 유닛이며 시전자와 같은 레벨이고, 시전자가 쓰러지면 함께 쓰러진다. 빈 칸이 없으면 실패한다." }
+    - { id: 1486, verbalName: 무리 부르기 · 얼음, codeName: VoidDeerUltimate, description: "같은 원소의 늑대·멧돼지·괴조 중 하나를 빈 칸에 소환한다. 소환된 개체는 칸을 차지하는 진짜 유닛이며 시전자와 같은 레벨이고, 시전자가 쓰러지면 함께 쓰러진다. 빈 칸이 없으면 실패한다." }
+    - { id: 1487, verbalName: 무리 부르기 · 바위, codeName: VoidDeerUltimate, description: "같은 원소의 늑대·멧돼지·괴조 중 하나를 빈 칸에 소환한다. 소환된 개체는 칸을 차지하는 진짜 유닛이며 시전자와 같은 레벨이고, 시전자가 쓰러지면 함께 쓰러진다. 빈 칸이 없으면 실패한다." }
+    - { id: 1490, verbalName: 파쇄격, codeName: VoidKnightUltimate, description: "단일 적에게 130 + STR×1.2 위력의 피해를 입히고 실제로 입힌 피해의 30%만큼 자신에게 보호막을 부여한다. #물리 #접촉 #베기" }
+    - { id: 1491, verbalName: 파쇄격 · 불, codeName: VoidKnightUltimate, description: "단일 적에게 130 + STR×1.2 위력의 피해를 입히고 실제로 입힌 피해의 30%만큼 자신에게 보호막을 부여한다. 불 원소를 부착한다. #물리 #접촉 #베기" }
+    - { id: 1492, verbalName: 파쇄격 · 물, codeName: VoidKnightUltimate, description: "단일 적에게 130 + STR×1.2 위력의 피해를 입히고 실제로 입힌 피해의 30%만큼 자신에게 보호막을 부여한다. 물 원소를 부착한다. #물리 #접촉 #베기" }
+    - { id: 1493, verbalName: 파쇄격 · 바람, codeName: VoidKnightUltimate, description: "단일 적에게 130 + STR×1.2 위력의 피해를 입히고 실제로 입힌 피해의 30%만큼 자신에게 보호막을 부여한다. 바람 원소를 부착한다. #물리 #접촉 #베기" }
+    - { id: 1494, verbalName: 파쇄격 · 번개, codeName: VoidKnightUltimate, description: "단일 적에게 130 + STR×1.2 위력의 피해를 입히고 실제로 입힌 피해의 30%만큼 자신에게 보호막을 부여한다. 번개 원소를 부착한다. #물리 #접촉 #베기" }
+    - { id: 1495, verbalName: 파쇄격 · 풀, codeName: VoidKnightUltimate, description: "단일 적에게 130 + STR×1.2 위력의 피해를 입히고 실제로 입힌 피해의 30%만큼 자신에게 보호막을 부여한다. 풀 원소를 부착한다. #물리 #접촉 #베기" }
+    - { id: 1496, verbalName: 파쇄격 · 얼음, codeName: VoidKnightUltimate, description: "단일 적에게 130 + STR×1.2 위력의 피해를 입히고 실제로 입힌 피해의 30%만큼 자신에게 보호막을 부여한다. 얼음 원소를 부착한다. #물리 #접촉 #베기" }
+    - { id: 1497, verbalName: 파쇄격 · 바위, codeName: VoidKnightUltimate, description: "단일 적에게 130 + STR×1.2 위력의 피해를 입히고 실제로 입힌 피해의 30%만큼 자신에게 보호막을 부여한다. 바위 원소를 부착한다. #물리 #접촉 #베기" }
+    - { id: 1500, verbalName: 관통 사격, codeName: VoidMarksmanUltimate, description: "적 후열을 우선해 단일 적에게 100 + DEX×1.0 위력의 피해를 입히고 내구를 무시한다. #물리 #비접촉 #화살" }
+    - { id: 1501, verbalName: 관통 사격 · 불, codeName: VoidMarksmanUltimate, description: "적 후열을 우선해 단일 적에게 100 + DEX×1.0 위력의 피해를 입히고 내구를 무시한다. 불 원소를 부착한다. #물리 #비접촉 #화살" }
+    - { id: 1502, verbalName: 관통 사격 · 물, codeName: VoidMarksmanUltimate, description: "적 후열을 우선해 단일 적에게 100 + DEX×1.0 위력의 피해를 입히고 내구를 무시한다. 물 원소를 부착한다. #물리 #비접촉 #화살" }
+    - { id: 1503, verbalName: 관통 사격 · 바람, codeName: VoidMarksmanUltimate, description: "적 후열을 우선해 단일 적에게 100 + DEX×1.0 위력의 피해를 입히고 내구를 무시한다. 바람 원소를 부착한다. #물리 #비접촉 #화살" }
+    - { id: 1504, verbalName: 관통 사격 · 번개, codeName: VoidMarksmanUltimate, description: "적 후열을 우선해 단일 적에게 100 + DEX×1.0 위력의 피해를 입히고 내구를 무시한다. 번개 원소를 부착한다. #물리 #비접촉 #화살" }
+    - { id: 1505, verbalName: 관통 사격 · 풀, codeName: VoidMarksmanUltimate, description: "적 후열을 우선해 단일 적에게 100 + DEX×1.0 위력의 피해를 입히고 내구를 무시한다. 풀 원소를 부착한다. #물리 #비접촉 #화살" }
+    - { id: 1506, verbalName: 관통 사격 · 얼음, codeName: VoidMarksmanUltimate, description: "적 후열을 우선해 단일 적에게 100 + DEX×1.0 위력의 피해를 입히고 내구를 무시한다. 얼음 원소를 부착한다. #물리 #비접촉 #화살" }
+    - { id: 1507, verbalName: 관통 사격 · 바위, codeName: VoidMarksmanUltimate, description: "적 후열을 우선해 단일 적에게 100 + DEX×1.0 위력의 피해를 입히고 내구를 무시한다. 바위 원소를 부착한다. #물리 #비접촉 #화살" }
+    - { id: 1510, verbalName: 방벽 전개, codeName: VoidVanguardUltimate, description: "필드의 공허 괴수 아군 전체에게 CON×0.8의 보호막을 부여한다. 피해를 주지 않아 팔레트 변형이 이 궁극기를 공유한다." }
+    - { id: 1520, verbalName: 분쇄, codeName: VoidCrusherUltimate, description: "적 전체의 보호막을 모두 제거하고 150 + STR×1.2 위력의 피해를 입힌다. #물리 #접촉" }
+    - { id: 1521, verbalName: 분쇄 · 불, codeName: VoidCrusherUltimate, description: "적 전체의 보호막을 모두 제거하고 150 + STR×1.2 위력의 피해를 입힌다. 불 원소를 부착한다. #물리 #접촉" }
+    - { id: 1522, verbalName: 분쇄 · 물, codeName: VoidCrusherUltimate, description: "적 전체의 보호막을 모두 제거하고 150 + STR×1.2 위력의 피해를 입힌다. 물 원소를 부착한다. #물리 #접촉" }
+    - { id: 1523, verbalName: 분쇄 · 바람, codeName: VoidCrusherUltimate, description: "적 전체의 보호막을 모두 제거하고 150 + STR×1.2 위력의 피해를 입힌다. 바람 원소를 부착한다. #물리 #접촉" }
+    - { id: 1524, verbalName: 분쇄 · 번개, codeName: VoidCrusherUltimate, description: "적 전체의 보호막을 모두 제거하고 150 + STR×1.2 위력의 피해를 입힌다. 번개 원소를 부착한다. #물리 #접촉" }
+    - { id: 1525, verbalName: 분쇄 · 풀, codeName: VoidCrusherUltimate, description: "적 전체의 보호막을 모두 제거하고 150 + STR×1.2 위력의 피해를 입힌다. 풀 원소를 부착한다. #물리 #접촉" }
+    - { id: 1526, verbalName: 분쇄 · 얼음, codeName: VoidCrusherUltimate, description: "적 전체의 보호막을 모두 제거하고 150 + STR×1.2 위력의 피해를 입힌다. 얼음 원소를 부착한다. #물리 #접촉" }
+    - { id: 1527, verbalName: 분쇄 · 바위, codeName: VoidCrusherUltimate, description: "적 전체의 보호막을 모두 제거하고 150 + STR×1.2 위력의 피해를 입힌다. 바위 원소를 부착한다. #물리 #접촉" }
+    - { id: 1530, verbalName: 원소 붕괴, codeName: VoidDragonUltimate, description: "적 전체에게 120 + INT×1.4 위력의 피해를 입힌다. #특수 #비접촉" }
+    - { id: 1531, verbalName: 원소 붕괴 · 불, codeName: VoidDragonUltimate, description: "적 전체에게 120 + INT×1.4 위력의 피해를 입힌다. 대상이 불 원소를 보유 중이면 위력이 1.5배가 되며, 적중 후 불 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1532, verbalName: 원소 붕괴 · 물, codeName: VoidDragonUltimate, description: "적 전체에게 120 + INT×1.4 위력의 피해를 입힌다. 대상이 물 원소를 보유 중이면 위력이 1.5배가 되며, 적중 후 물 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1533, verbalName: 원소 붕괴 · 바람, codeName: VoidDragonUltimate, description: "적 전체에게 120 + INT×1.4 위력의 피해를 입힌다. 대상이 바람 원소를 보유 중이면 위력이 1.5배가 되며, 적중 후 바람 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1534, verbalName: 원소 붕괴 · 번개, codeName: VoidDragonUltimate, description: "적 전체에게 120 + INT×1.4 위력의 피해를 입힌다. 대상이 번개 원소를 보유 중이면 위력이 1.5배가 되며, 적중 후 번개 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1535, verbalName: 원소 붕괴 · 풀, codeName: VoidDragonUltimate, description: "적 전체에게 120 + INT×1.4 위력의 피해를 입힌다. 대상이 풀 원소를 보유 중이면 위력이 1.5배가 되며, 적중 후 풀 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1536, verbalName: 원소 붕괴 · 얼음, codeName: VoidDragonUltimate, description: "적 전체에게 120 + INT×1.4 위력의 피해를 입힌다. 대상이 얼음 원소를 보유 중이면 위력이 1.5배가 되며, 적중 후 얼음 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1537, verbalName: 원소 붕괴 · 바위, codeName: VoidDragonUltimate, description: "적 전체에게 120 + INT×1.4 위력의 피해를 입힌다. 대상이 바위 원소를 보유 중이면 위력이 1.5배가 되며, 적중 후 바위 원소를 부착한다. #특수 #비접촉" }
     - { id: 3, verbalName: 아즈라엘, codeName: SabahAzrael, description: "아군이 적에게 디버프를 부여할 때 얻는 아즈라엘 스택이 7이 되면 모두 소모해 적 전체에게 DEX×1.0의 피해를 입힌다. #베기 #접촉 #물리" }
     - { id: 26, verbalName: 창공에 대한 도전, codeName: IcariaChallengeTheSky, description: "적 전체에게 INT×1.1의 피해를 입힌다. 최대 체력의 20%를 소모할 수 있으면 소모하고 위력이 INT×1.4로 변한다. #특수 #접촉 #찌르기" }
     - { id: 160, verbalName: 혁명의 노래, codeName: MarieSongOfRevolution, description: "아군 전체에게 3턴간 일반공격으로 가하는 피해 +20%, DEX +10을 부여한다." }

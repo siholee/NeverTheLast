@@ -181,6 +181,307 @@ stageThemes:
         patterns:
           - { enemyIds: [3012], weight: 100 }
 
+  # ── 공허 계열 (themeId 8~15 / enemyThemeId 9~16) ───────────────────
+  # 원소별로 테마가 갈린다. 한 테마 안에서는 모든 적이 같은 원소로 통일된다.
+  # 1·2스테이지는 프리즘 하나로 양 열을 채우므로 열 고정 편성(frontIds/rearIds)을 쓴다.
+  # 6은 사슴(엘리트), 9는 분쇄자(엘리트), 10은 용(보스)이 단독으로 선다.
+
+  - id: 8
+    name: 공허 괴수
+    tags: [Void]
+    enemyThemeId: 9
+    description: "공허가 형태를 갖추지 못한 채 몰려온다. 어떤 원소도 두르지 않았다."
+    midBossId: 2034
+    midBossStageInRound: 6
+    bossId: 3050
+    stagePatterns:
+      - stageInRound: 1
+        patterns:
+          - { frontIds: [1062, 1062], rearIds: [1062, 1062, 1062], weight: 100 }
+      - stageInRound: 2
+        patterns:
+          - { frontIds: [1062, 1062, 1062], rearIds: [1062, 1062, 1062], weight: 100 }
+      - stageInRound: 3
+        patterns:
+          - { frontIds: [1086, 1086, 1086], rearIds: [1070, 1070], weight: 100 }
+      - stageInRound: 4
+        patterns:
+          - { frontIds: [1078, 1078, 1078], rearIds: [1070, 1070], weight: 100 }
+      - stageInRound: 6
+        patterns:
+          - { rearIds: [2034], weight: 100 }
+      - stageInRound: 7
+        patterns:
+          - { frontIds: [1094, 1094, 1094], rearIds: [1102, 1102], weight: 100 }
+      - stageInRound: 8
+        patterns:
+          - { frontIds: [1110, 1110, 1110], rearIds: [1102, 1102], weight: 100 }
+      - stageInRound: 9
+        patterns:
+          - { frontIds: [2042], weight: 100 }
+      - stageInRound: 10
+        patterns:
+          - { frontIds: [3050], weight: 100 }
+
+  - id: 9
+    name: 공허 괴수 - 불
+    tags: [Void]
+    enemyThemeId: 10
+    description: "공허가 불 원소로 물들어 몰려온다. 편성 전원이 같은 원소를 두른다."
+    midBossId: 2035
+    midBossStageInRound: 6
+    bossId: 3051
+    stagePatterns:
+      - stageInRound: 1
+        patterns:
+          - { frontIds: [1063, 1063], rearIds: [1063, 1063, 1063], weight: 100 }
+      - stageInRound: 2
+        patterns:
+          - { frontIds: [1063, 1063, 1063], rearIds: [1063, 1063, 1063], weight: 100 }
+      - stageInRound: 3
+        patterns:
+          - { frontIds: [1087, 1087, 1087], rearIds: [1071, 1071], weight: 100 }
+      - stageInRound: 4
+        patterns:
+          - { frontIds: [1079, 1079, 1079], rearIds: [1071, 1071], weight: 100 }
+      - stageInRound: 6
+        patterns:
+          - { rearIds: [2035], weight: 100 }
+      - stageInRound: 7
+        patterns:
+          - { frontIds: [1095, 1095, 1095], rearIds: [1103, 1103], weight: 100 }
+      - stageInRound: 8
+        patterns:
+          - { frontIds: [1111, 1111, 1111], rearIds: [1103, 1103], weight: 100 }
+      - stageInRound: 9
+        patterns:
+          - { frontIds: [2043], weight: 100 }
+      - stageInRound: 10
+        patterns:
+          - { frontIds: [3051], weight: 100 }
+
+  - id: 10
+    name: 공허 괴수 - 물
+    tags: [Void]
+    enemyThemeId: 11
+    description: "공허가 물 원소로 물들어 몰려온다. 편성 전원이 같은 원소를 두른다."
+    midBossId: 2036
+    midBossStageInRound: 6
+    bossId: 3052
+    stagePatterns:
+      - stageInRound: 1
+        patterns:
+          - { frontIds: [1064, 1064], rearIds: [1064, 1064, 1064], weight: 100 }
+      - stageInRound: 2
+        patterns:
+          - { frontIds: [1064, 1064, 1064], rearIds: [1064, 1064, 1064], weight: 100 }
+      - stageInRound: 3
+        patterns:
+          - { frontIds: [1088, 1088, 1088], rearIds: [1072, 1072], weight: 100 }
+      - stageInRound: 4
+        patterns:
+          - { frontIds: [1080, 1080, 1080], rearIds: [1072, 1072], weight: 100 }
+      - stageInRound: 6
+        patterns:
+          - { rearIds: [2036], weight: 100 }
+      - stageInRound: 7
+        patterns:
+          - { frontIds: [1096, 1096, 1096], rearIds: [1104, 1104], weight: 100 }
+      - stageInRound: 8
+        patterns:
+          - { frontIds: [1112, 1112, 1112], rearIds: [1104, 1104], weight: 100 }
+      - stageInRound: 9
+        patterns:
+          - { frontIds: [2044], weight: 100 }
+      - stageInRound: 10
+        patterns:
+          - { frontIds: [3052], weight: 100 }
+
+  - id: 11
+    name: 공허 괴수 - 바람
+    tags: [Void]
+    enemyThemeId: 12
+    description: "공허가 바람 원소로 물들어 몰려온다. 편성 전원이 같은 원소를 두른다."
+    midBossId: 2037
+    midBossStageInRound: 6
+    bossId: 3053
+    stagePatterns:
+      - stageInRound: 1
+        patterns:
+          - { frontIds: [1065, 1065], rearIds: [1065, 1065, 1065], weight: 100 }
+      - stageInRound: 2
+        patterns:
+          - { frontIds: [1065, 1065, 1065], rearIds: [1065, 1065, 1065], weight: 100 }
+      - stageInRound: 3
+        patterns:
+          - { frontIds: [1089, 1089, 1089], rearIds: [1073, 1073], weight: 100 }
+      - stageInRound: 4
+        patterns:
+          - { frontIds: [1081, 1081, 1081], rearIds: [1073, 1073], weight: 100 }
+      - stageInRound: 6
+        patterns:
+          - { rearIds: [2037], weight: 100 }
+      - stageInRound: 7
+        patterns:
+          - { frontIds: [1097, 1097, 1097], rearIds: [1105, 1105], weight: 100 }
+      - stageInRound: 8
+        patterns:
+          - { frontIds: [1113, 1113, 1113], rearIds: [1105, 1105], weight: 100 }
+      - stageInRound: 9
+        patterns:
+          - { frontIds: [2045], weight: 100 }
+      - stageInRound: 10
+        patterns:
+          - { frontIds: [3053], weight: 100 }
+
+  - id: 12
+    name: 공허 괴수 - 번개
+    tags: [Void]
+    enemyThemeId: 13
+    description: "공허가 번개 원소로 물들어 몰려온다. 편성 전원이 같은 원소를 두른다."
+    midBossId: 2038
+    midBossStageInRound: 6
+    bossId: 3054
+    stagePatterns:
+      - stageInRound: 1
+        patterns:
+          - { frontIds: [1066, 1066], rearIds: [1066, 1066, 1066], weight: 100 }
+      - stageInRound: 2
+        patterns:
+          - { frontIds: [1066, 1066, 1066], rearIds: [1066, 1066, 1066], weight: 100 }
+      - stageInRound: 3
+        patterns:
+          - { frontIds: [1090, 1090, 1090], rearIds: [1074, 1074], weight: 100 }
+      - stageInRound: 4
+        patterns:
+          - { frontIds: [1082, 1082, 1082], rearIds: [1074, 1074], weight: 100 }
+      - stageInRound: 6
+        patterns:
+          - { rearIds: [2038], weight: 100 }
+      - stageInRound: 7
+        patterns:
+          - { frontIds: [1098, 1098, 1098], rearIds: [1106, 1106], weight: 100 }
+      - stageInRound: 8
+        patterns:
+          - { frontIds: [1114, 1114, 1114], rearIds: [1106, 1106], weight: 100 }
+      - stageInRound: 9
+        patterns:
+          - { frontIds: [2046], weight: 100 }
+      - stageInRound: 10
+        patterns:
+          - { frontIds: [3054], weight: 100 }
+
+  - id: 13
+    name: 공허 괴수 - 풀
+    tags: [Void]
+    enemyThemeId: 14
+    description: "공허가 풀 원소로 물들어 몰려온다. 편성 전원이 같은 원소를 두른다."
+    midBossId: 2039
+    midBossStageInRound: 6
+    bossId: 3055
+    stagePatterns:
+      - stageInRound: 1
+        patterns:
+          - { frontIds: [1067, 1067], rearIds: [1067, 1067, 1067], weight: 100 }
+      - stageInRound: 2
+        patterns:
+          - { frontIds: [1067, 1067, 1067], rearIds: [1067, 1067, 1067], weight: 100 }
+      - stageInRound: 3
+        patterns:
+          - { frontIds: [1091, 1091, 1091], rearIds: [1075, 1075], weight: 100 }
+      - stageInRound: 4
+        patterns:
+          - { frontIds: [1083, 1083, 1083], rearIds: [1075, 1075], weight: 100 }
+      - stageInRound: 6
+        patterns:
+          - { rearIds: [2039], weight: 100 }
+      - stageInRound: 7
+        patterns:
+          - { frontIds: [1099, 1099, 1099], rearIds: [1107, 1107], weight: 100 }
+      - stageInRound: 8
+        patterns:
+          - { frontIds: [1115, 1115, 1115], rearIds: [1107, 1107], weight: 100 }
+      - stageInRound: 9
+        patterns:
+          - { frontIds: [2047], weight: 100 }
+      - stageInRound: 10
+        patterns:
+          - { frontIds: [3055], weight: 100 }
+
+  - id: 14
+    name: 공허 괴수 - 얼음
+    tags: [Void]
+    enemyThemeId: 15
+    description: "공허가 얼음 원소로 물들어 몰려온다. 편성 전원이 같은 원소를 두른다."
+    midBossId: 2040
+    midBossStageInRound: 6
+    bossId: 3056
+    stagePatterns:
+      - stageInRound: 1
+        patterns:
+          - { frontIds: [1068, 1068], rearIds: [1068, 1068, 1068], weight: 100 }
+      - stageInRound: 2
+        patterns:
+          - { frontIds: [1068, 1068, 1068], rearIds: [1068, 1068, 1068], weight: 100 }
+      - stageInRound: 3
+        patterns:
+          - { frontIds: [1092, 1092, 1092], rearIds: [1076, 1076], weight: 100 }
+      - stageInRound: 4
+        patterns:
+          - { frontIds: [1084, 1084, 1084], rearIds: [1076, 1076], weight: 100 }
+      - stageInRound: 6
+        patterns:
+          - { rearIds: [2040], weight: 100 }
+      - stageInRound: 7
+        patterns:
+          - { frontIds: [1100, 1100, 1100], rearIds: [1108, 1108], weight: 100 }
+      - stageInRound: 8
+        patterns:
+          - { frontIds: [1116, 1116, 1116], rearIds: [1108, 1108], weight: 100 }
+      - stageInRound: 9
+        patterns:
+          - { frontIds: [2048], weight: 100 }
+      - stageInRound: 10
+        patterns:
+          - { frontIds: [3056], weight: 100 }
+
+  - id: 15
+    name: 공허 괴수 - 바위
+    tags: [Void]
+    enemyThemeId: 16
+    description: "공허가 바위 원소로 물들어 몰려온다. 편성 전원이 같은 원소를 두른다."
+    midBossId: 2041
+    midBossStageInRound: 6
+    bossId: 3057
+    stagePatterns:
+      - stageInRound: 1
+        patterns:
+          - { frontIds: [1069, 1069], rearIds: [1069, 1069, 1069], weight: 100 }
+      - stageInRound: 2
+        patterns:
+          - { frontIds: [1069, 1069, 1069], rearIds: [1069, 1069, 1069], weight: 100 }
+      - stageInRound: 3
+        patterns:
+          - { frontIds: [1093, 1093, 1093], rearIds: [1077, 1077], weight: 100 }
+      - stageInRound: 4
+        patterns:
+          - { frontIds: [1085, 1085, 1085], rearIds: [1077, 1077], weight: 100 }
+      - stageInRound: 6
+        patterns:
+          - { rearIds: [2041], weight: 100 }
+      - stageInRound: 7
+        patterns:
+          - { frontIds: [1101, 1101, 1101], rearIds: [1109, 1109], weight: 100 }
+      - stageInRound: 8
+        patterns:
+          - { frontIds: [1117, 1117, 1117], rearIds: [1109, 1109], weight: 100 }
+      - stageInRound: 9
+        patterns:
+          - { frontIds: [2049], weight: 100 }
+      - stageInRound: 10
+        patterns:
+          - { frontIds: [3057], weight: 100 }
+
 events:
   - id: colosseum_masked_gladiator
     themeId: 4

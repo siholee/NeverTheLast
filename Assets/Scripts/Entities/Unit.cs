@@ -2471,6 +2471,16 @@ namespace Entities
                 scaled -= Mathf.Max(0, DurabilityCurr - durabilityPenetration);
             }
 
+            // 한 방 상한. 감쇠·내구를 전부 통과한 뒤에 자른다 — '알파 개체'처럼
+            // 체력이 단계로 끊기는 유닛이 광역 폭딜 한 번에 무너지지 않게 하는 장치다.
+            float capRatio = 0f;
+            foreach (var effect in ActiveEffectObjects())
+            {
+                float ratio = effect.IncomingDamageCapRatio(this, dmgCtx);
+                if (ratio > 0f && (capRatio <= 0f || ratio < capRatio)) capRatio = ratio;
+            }
+            if (capRatio > 0f) scaled = Mathf.Min(scaled, HpMax * capRatio);
+
             return Mathf.Max(1, Mathf.RoundToInt(scaled));
         }
 
@@ -2606,6 +2616,7 @@ namespace Entities
         {
             isActive = false;
             untargetableSourceCount = 0;
+            if (ID > 0) LastActiveId = ID;
             ID = 0;
             currentNormalTarget = null; // 타겟 초기화
 
@@ -2625,6 +2636,32 @@ namespace Entities
             // Cell의 통합 UI 관리 사용
             currentCell.SetOccupiedUnit(null);
             currentCell.reservedTime = 2f;
+        }
+
+        /// <summary>
+        /// 마지막으로 전장에 서 있을 때의 유닛 ID.
+        ///
+        /// <see cref="DeactivateUnit"/>은 <c>ID</c>를 0으로 지운다. 되살리는 코드가
+        /// 정체성을 되찾을 수 있도록 지우기 직전의 값을 남겨 둔다.
+        /// </summary>
+        public int LastActiveId { get; private set; }
+
+        /// <summary>
+        /// 전투가 끝난 뒤 쓰러진 유닛을 제자리에 다시 세운다.
+        ///
+        /// 칸이 없는 소환수는 대상이 아니다 — 소환수는 라운드를 넘기지 않는다.
+        /// 회복 배율을 타면 과다치유가 보호막으로 새므로 체력은 직접 채운다.
+        /// </summary>
+        /// <returns>실제로 되살아났으면 true.</returns>
+        public bool ReviveAfterBattle()
+        {
+            if (isActive || IsSummon || currentCell == null || LastActiveId <= 0) return false;
+
+            ID = LastActiveId;
+            ActivateUnit();
+            HpCurr = HpMax;
+            RefreshView();
+            return true;
         }
 
         /// <summary>

@@ -164,9 +164,8 @@ namespace Codes.Passive
     /// (해금은 34·35·36·37·38뿐). 실제로는 독수리 전사·명계의 사령·공허의 괴조 같은
     /// 적 11종만 쓰고 있어, 특정 캐릭터에 묶지 않는 범용 코드로 옮겼다.
     ///
-    /// 야마의 <c>죽음의 계약</c>(261)이 같은 계열의 <b>금 등급</b>이며 그쪽은 아군 전체에 건다.
-    /// 둘을 같이 들면 <see cref="PassiveCode.SupersededByCodeId"/>가 이 코드를 재운다.
-    /// 서로 다른 유닛이 하나씩 들었을 때는 같은 상태 키를 써서 높은 배율만 남는다.
+    /// 야마의 <c>죽음의 계약</c>(261)이 같은 축의 더 센 효과지만 <b>고유 패시브</b>라
+    /// 등급 사다리에 끼지 않는다. 대신 <b>같은 상태 키</b>를 써서 둘이 겹치면 높은 배율만 남는다.
     /// </summary>
     public sealed class CursePassive : PersistentStatusPassive
     {
@@ -177,7 +176,6 @@ namespace Codes.Passive
             : base(context, SharedStatStatusIds.Curse, YamaDeathContract.SharedKey, "저주",
                 "부여하는 지속피해량이 20% 증가합니다.")
         {
-            SupersededByCodeId = YamaDeathContract.CodeId;
         }
 
         protected override BaseEffect CreateInitialEffect() => new DotAmplifyEffect(Multiplier);

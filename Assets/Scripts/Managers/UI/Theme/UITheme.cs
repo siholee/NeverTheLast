@@ -61,6 +61,9 @@ namespace Managers.UI.Theme
         /// <summary>강화 등급 코드 — 금색. 같은 계열의 일반 등급을 대체한다.</summary>
         public static readonly Color CodeEnhanced = new(1f, 0.804f, 0.239f, 1f);
 
+        /// <summary>고유 등급 코드 — 보라색. 은·금 사다리 밖의 P 슬롯 전용이다.</summary>
+        public static readonly Color CodeUnique = new(0.702f, 0.549f, 1f, 1f);
+
         // ── 선/구분 ──────────────────────────────────────────────────
         public static readonly Color Divider = new(1f, 1f, 1f, 0.10f);
         public static readonly Color Outline = new(1f, 1f, 1f, 0.16f);

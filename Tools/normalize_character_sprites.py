@@ -37,9 +37,11 @@ LOW_OPACITY_BACKDROP_ASSETS = {
     "APOCALYPSE_VANGUARD_STANDING.png",
     "VOID_VANGUARD_TORRENT_STANDING.png",
     "APOCALYPSE_VANGUARD_TORRENT_STANDING.png",
-    "VOID_BEAST_STANDING.png",
+    "VOID_KNIGHT_STANDING.png",
+    "VOID_WOLF_STANDING.png",
+    "VOID_CRUSHER_STANDING.png",
     "APOCALYPSE_BEAST_STANDING.png",
-    "VOID_BEAST_CONDUCTION_STANDING.png",
+    "VOID_KNIGHT_ELECTRO_STANDING.png",
     "APOCALYPSE_BEAST_CONDUCTION_STANDING.png",
 }
 
@@ -144,7 +146,11 @@ def remove_low_opacity_backdrop(image: Image.Image, asset_name: str) -> Image.Im
     rgba = image.convert("RGBA")
     if (
         asset_name not in LOW_OPACITY_BACKDROP_ASSETS
-        and not asset_name.startswith(("VOID_MONSTROUS_BIRD", "VOID_PRISM"))
+        and not asset_name.startswith((
+            "VOID_MONSTROUS_BIRD", "VOID_PRISM", "VOID_BOAR",
+            "VOID_KNIGHT", "VOID_WOLF", "VOID_CRUSHER", "VOID_DEER",
+            "VOID_DRAGON", "VOID_MARKSMAN", "VOID_VANGUARD",
+        ))
     ):
         return rgba
 
@@ -153,6 +159,29 @@ def remove_low_opacity_backdrop(image: Image.Image, asset_name: str) -> Image.Im
     # alpha 128 이하는 배경으로 제거하고, 128~251은 안티앨리어싱으로 재매핑한다.
     remapped = np.clip((alpha - 128.0) / 123.0 * 255.0, 0.0, 255.0).astype(np.uint8)
     array[:, :, 3] = remapped
+    return Image.fromarray(array, "RGBA")
+
+
+def remove_small_detached_fragments(image: Image.Image, asset_name: str) -> Image.Image:
+    """용 생성본의 본체와 분리된 미세한 밝은 잔여 픽셀만 제거한다."""
+    rgba = image.convert("RGBA")
+    if not asset_name.startswith("VOID_DRAGON"):
+        return rgba
+
+    array = np.array(rgba, dtype=np.uint8)
+    alpha = array[:, :, 3]
+    components = _components(alpha > 12)
+    if not components:
+        return rgba
+
+    largest_size = max(len(component) for component in components)
+    threshold = max(32, int(largest_size * 0.00025))
+    for component in components:
+        if len(component) >= threshold:
+            continue
+        xs = np.fromiter((point[0] for point in component), dtype=np.int32)
+        ys = np.fromiter((point[1] for point in component), dtype=np.int32)
+        array[ys, xs, 3] = 0
     return Image.fromarray(array, "RGBA")
 
 
@@ -257,6 +286,85 @@ def remove_large_checkerboard_residue(image: Image.Image, asset_name: str) -> Im
     return Image.fromarray(array, "RGBA")
 
 
+def remove_generated_checkerboard_residue(
+    image: Image.Image, asset_name: str, aggressive: bool = False,
+) -> Image.Image:
+    """생성된 공허 계열 원화의 닫힌 장식 안에 남은 투명 격자를 제거한다."""
+    rgba = image.convert("RGBA")
+    if not asset_name.startswith((
+        "VOID_BOAR", "VOID_KNIGHT", "VOID_WOLF", "VOID_CRUSHER", "VOID_DEER",
+        "VOID_DRAGON", "VOID_MARKSMAN", "VOID_VANGUARD",
+    )):
+        return rgba
+
+    array = np.array(rgba, dtype=np.uint8)
+    rgb = array[:, :, :3].astype(np.int16)
+    alpha = array[:, :, 3]
+    height, width = alpha.shape
+    yy, xx = np.indices((height, width))
+    gray = rgb.mean(axis=2)
+    chroma = rgb.max(axis=2) - rgb.min(axis=2)
+    expected = np.where(((xx // 24 + yy // 24) % 2) == 0, 253, 246)
+    patterned = (
+        (alpha > 12)
+        & (chroma <= 5)
+        & (np.abs(gray - expected) <= 7)
+    )
+
+    # 갑각의 밝은 면도 일부 조건에 걸릴 수 있으므로, 여러 격자 칸이 이어진
+    # 큰 영역만 시드로 삼는다. 현재 원화에서는 환형 장식 내부만 이 크기에 닿는다.
+    selected = np.zeros(patterned.shape, dtype=bool)
+    for component in _components(patterned):
+        if len(component) < 5000:
+            continue
+        xs = np.fromiter((point[0] for point in component), dtype=np.int32)
+        ys = np.fromiter((point[1] for point in component), dtype=np.int32)
+        selected[ys, xs] = True
+
+    if aggressive:
+        # ImageGen 출력마다 어두운 격자색(약 234~246)이 달라진다. 외곽에서 실제
+        # 배경의 두 명도 봉우리를 구한 뒤, 같은 반복색이 과반인 큰 내부 면만 고른다.
+        exterior = (alpha == 0) & (chroma <= 8) & (rgb.min(axis=2) >= 220)
+        exterior_gray = np.rint(gray[exterior]).astype(np.int16)
+        if exterior_gray.size:
+            histogram = np.bincount(exterior_gray, minlength=256)
+            first_peak = int(histogram.argmax())
+            suppressed = histogram.copy()
+            suppressed[max(0, first_peak - 4):min(256, first_peak + 5)] = 0
+            second_peak = int(suppressed.argmax())
+            broad_seed = (alpha > 12) & (chroma <= 8) & (rgb.min(axis=2) >= 220)
+            repeated = broad_seed & (
+                (np.abs(gray - first_peak) <= 3) | (np.abs(gray - second_peak) <= 3)
+            )
+            for component in _components(broad_seed):
+                if len(component) < 900:
+                    continue
+                xs = np.fromiter((point[0] for point in component), dtype=np.int32)
+                ys = np.fromiter((point[1] for point in component), dtype=np.int32)
+                if repeated[ys, xs].mean() < 0.55:
+                    continue
+                selected[ys, xs] = True
+
+    if not selected.any():
+        return rgba
+
+    # 격자 셀의 미세한 노이즈와 경계만 확장 제거한다. 금색·백색 갑각은
+    # 채도와 명도 조건에서 끊기므로 보존된다.
+    broad = (alpha > 0) & (rgb.min(axis=2) >= 220) & (chroma <= 18)
+    grown = selected.copy()
+    queue = deque((int(x), int(y)) for y, x in np.argwhere(selected))
+    while queue:
+        x, y = queue.popleft()
+        for dx, dy in NEIGHBORS:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < width and 0 <= ny < height and broad[ny, nx] and not grown[ny, nx]:
+                grown[ny, nx] = True
+                queue.append((nx, ny))
+
+    array[:, :, 3][grown] = 0
+    return Image.fromarray(array, "RGBA")
+
+
 def apply_palette_swap_reference_alpha(image: Image.Image, asset_name: str) -> Image.Image:
     """팔레트 스왑은 원본 실루엣 알파를 재사용해 닫힌 체크 배경까지 제거한다."""
     if asset_name != "RUIN_INQUISITOR_STANDING.png":
@@ -346,7 +454,11 @@ def portrait_from_standing(standing: Image.Image, full_figure: bool = False) -> 
 def is_full_figure_portrait(asset_name: str) -> bool:
     return (
         asset_name in FULL_FIGURE_PORTRAIT_ASSETS
-        or asset_name.startswith(("VOID_MONSTROUS_BIRD", "VOID_PRISM"))
+        or asset_name.startswith((
+            "VOID_MONSTROUS_BIRD", "VOID_PRISM", "VOID_BOAR",
+            "VOID_KNIGHT", "VOID_WOLF", "VOID_CRUSHER", "VOID_DEER",
+            "VOID_DRAGON",
+        ))
     )
 
 
@@ -400,7 +512,8 @@ def normalize_existing() -> None:
         if current.mode != "RGBA" or current.size != (1024, 1536) or current.getchannel("A").getextrema() != (0, 255):
             current = fit_to_canvas(connected_background_alpha(current), (1024, 1536), (54, 38), bottom_align=True)
         current = remove_enclosed_white_background(current, path.name)
-        save_png(remove_large_checkerboard_residue(current, path.name), path)
+        current = remove_large_checkerboard_residue(current, path.name)
+        save_png(remove_small_detached_fragments(current, path.name), path)
 
     # 개별 초상화에 남은 사각형·원형 흰 배경을 재사용하지 않는다.
     # 검수된 스탠딩 알파에서 같은 규격으로 다시 잘라 모든 초상화의 누끼 품질을 맞춘다.
@@ -420,10 +533,14 @@ def import_assets(assets: dict[str, Path]) -> None:
 
     for asset_name, source in assets.items():
         with Image.open(source) as loaded:
+            source_was_opaque = loaded.convert("RGBA").getchannel("A").getextrema() == (255, 255)
             transparent = connected_background_alpha(loaded)
         standing_path = STANDINGS / f"{asset_name}_STANDING.png"
         portrait_path = PORTRAITS / f"{asset_name}_PORTRAIT.png"
+        transparent = remove_generated_checkerboard_residue(
+            transparent, standing_path.name, aggressive=source_was_opaque)
         transparent = remove_low_opacity_backdrop(transparent, standing_path.name)
+        transparent = remove_small_detached_fragments(transparent, standing_path.name)
         if standing_path.name in LEFT_FACING_FLIP_ASSETS:
             transparent = transparent.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
         standing = fit_to_canvas(transparent, (1024, 1536), (54, 38), bottom_align=True)

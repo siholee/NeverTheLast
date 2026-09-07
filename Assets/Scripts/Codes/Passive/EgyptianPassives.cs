@@ -277,6 +277,88 @@ namespace Codes.Passive
                 ? 1.30f : 1f;
     }
 
+    /// <summary>
+    /// 아누비스 Lv.38 죽은 자의 소생 — 전투가 끝나면 이번 라운드에 쓰러진 아군 하나를 되살린다.
+    ///
+    /// 되살릴 대상은 <b>죽는 순간에</b> 모아 둔다. <see cref="Unit.DeactivateUnit"/>이
+    /// 유닛 ID를 지우고 칸을 비우므로, 라운드가 끝난 뒤에 필드를 훑어서는 누가 아군이었는지
+    /// 알아낼 수 없다.
+    ///
+    /// 소환수는 라운드를 넘기지 않으므로 대상에서 뺀다. 아누비스 자신이 쓰러졌다면
+    /// 아무도 일으키지 못한다 — 저승의 문을 여는 쪽이 먼저 누워 있기 때문이다.
+    ///
+    /// 🔸 지금은 <c>GameManager.RestoreAllyFieldState</c>가 전투 시작 시점의 스냅숏으로
+    /// 아군 전원을 되돌리므로 <b>사망이 라운드를 넘지 않는다</b>. 이 코드가 눈에 보이는
+    /// 차이를 만들려면 사망이 라운드 밖까지 남는 규칙이 먼저 있어야 한다.
+    /// </summary>
+    public sealed class AnubisRaiseTheDead : PassiveCode
+    {
+        public const int CodeId = 102;
+
+        private readonly List<Unit> _fallen = new();
+        private Action<EventContext> _roundEndHandler;
+        private Action<EventContext> _cleanupHandler;
+        private bool _registered;
+
+        public AnubisRaiseTheDead(PassiveCodeContext context) : base(context)
+        { CodeType = BaseEnums.CodeType.Passive; CodeName = "죽은 자의 소생"; IgnoresActivationChance = true; }
+
+        public override void CastCode()
+        {
+            if (Caster == null || _registered) return;
+
+            _fallen.Clear();
+            Unit.AnyUnitDied += OnAnyUnitDied;
+            _roundEndHandler = OnRoundEnd;
+            _cleanupHandler = _ => StopCode();
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _roundEndHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            _registered = true;
+        }
+
+        private void OnAnyUnitDied(Unit dead, Unit attacker)
+        {
+            if (Caster == null || dead == null || dead == Caster) return;
+            if (dead.IsEnemy != Caster.IsEnemy || dead.IsSummon || dead.currentCell == null) return;
+            if (_fallen.Contains(dead)) return;
+
+            _fallen.Add(dead);
+        }
+
+        private void OnRoundEnd(EventContext context)
+        {
+            if (context?.Grantee != Caster) return;
+
+            if (Caster.isActive)
+            {
+                List<Unit> candidates = _fallen.Where(unit => unit != null && !unit.isActive).ToList();
+                if (candidates.Count > 0)
+                {
+                    Unit raised = candidates[UnityEngine.Random.Range(0, candidates.Count)];
+                    if (raised.ReviveAfterBattle())
+                    {
+                        Debug.Log($"[죽은 자의 소생] {Caster.UnitName}이(가) {raised.UnitName}을(를) 다시 일으켰다.");
+                    }
+                }
+            }
+
+            StopCode();
+        }
+
+        public override void StopCode()
+        {
+            if (!_registered || Caster == null) return;
+
+            Unit.AnyUnitDied -= OnAnyUnitDied;
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _roundEndHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            _roundEndHandler = null;
+            _cleanupHandler = null;
+            _fallen.Clear();
+            _registered = false;
+        }
+    }
+
     /// <summary>바스테트 Lv.2 — TrainingManager가 타입을 확인해 LUK 훈련량에 10%를 곱한다.</summary>
     public sealed class BastetMasterThief : PassiveCode
     {

@@ -215,6 +215,15 @@ namespace Effects.Base
         /// </summary>
         public virtual int HpSegmentCount(Unit unit) => 0;
 
+        /// <summary>
+        /// 한 번의 피해가 최대 체력의 몇 배까지만 들어가는가. 0이면 상한이 없다.
+        ///
+        /// <see cref="HpSegmentCount"/>는 체력 바를 나눠 그리기만 하는 <b>표시</b>였다.
+        /// 실제로 "한 방에 절반 넘게 깎이지 않는다"를 만들려면 감쇠가 다 끝난 뒤 잘라야 하므로
+        /// 훅을 따로 둔다. 여러 효과가 걸리면 <b>가장 낮은 비율</b>이 이긴다.
+        /// </summary>
+        public virtual float IncomingDamageCapRatio(Unit unit, DamageContext context) => 0f;
+
         /// <summary>치명 피해를 막으면 true. 사망 직전 효과(황혼 등)에서 사용한다.</summary>
         public virtual bool TryPreventDeath(Unit unit, Unit attacker) => false;
 

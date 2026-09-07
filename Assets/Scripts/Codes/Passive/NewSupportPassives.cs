@@ -288,7 +288,8 @@ namespace Codes.Passive
             CodeName = "대해의 판결";
             IgnoresActivationChance = true;
             // 원소술사(76)의 강화 등급. 필드 판정은 IReactionAmplifier가 높은 쪽만 고른다.
-            Grade = BaseEnums.CodeGrade.Enhanced;
+            // 고유 패시브라 등급은 Unique다(은·금 사다리 밖).
+            
         }
 
         public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(

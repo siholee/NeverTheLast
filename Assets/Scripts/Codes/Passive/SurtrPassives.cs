@@ -136,17 +136,28 @@ namespace Codes.Passive
         public override float ShieldReceivedMultiplierModifier(Unit unit) => unit == Target ? 1.25f : 1f;
     }
 
+    /// <summary>
+    /// 투사(41)와 그 금색 상위 코드 '하루종일도 할 수 있어'(1464) — 가한 피해의 일부를 회복한다.
+    ///
+    /// 회복 비율만 다른 같은 코드라 한 클래스로 묶었다. 둘을 같이 배우면
+    /// <see cref="PassiveCode.SupersededByCodeId"/>가 은색 쪽을 재워 비율이 겹쳐 쌓이지 않는다.
+    /// </summary>
     public sealed class SurtrFighter : PassiveCode
     {
+        private readonly float _healRatio;
         private bool _registered;
         private Action<DamageResolvedContext> _damageHandler;
         private Action<EventContext> _cleanupHandler;
 
-        public SurtrFighter(PassiveCodeContext context) : base(context)
+        public SurtrFighter(PassiveCodeContext context, float healRatio, string name,
+            int supersededByCodeId, BaseEnums.CodeGrade grade) : base(context)
         {
+            _healRatio = healRatio;
             CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "투사";
+            CodeName = name;
             IgnoresActivationChance = true;
+            SupersededByCodeId = supersededByCodeId;
+            Grade = grade;
         }
 
         public override void CastCode()
@@ -156,7 +167,7 @@ namespace Codes.Passive
             {
                 if (context?.Attacker == Caster && context.DamageDealt > 0)
                 {
-                    Caster.ModifyHp(Caster.HpCurr + Mathf.RoundToInt(context.DamageDealt * 0.08f), Caster);
+                    Caster.ModifyHp(Caster.HpCurr + Mathf.RoundToInt(context.DamageDealt * _healRatio), Caster);
                 }
             };
             _cleanupHandler = _ => StopCode();

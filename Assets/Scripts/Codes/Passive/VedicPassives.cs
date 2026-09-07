@@ -116,6 +116,9 @@ namespace Codes.Passive
             _element = element;
             _statusId = statusId;
             _key = key;
+            // 원소마다 코드가 따로라 상위도 일곱이 되어야 한다. 대신 '원소 정통'(1533)이
+            // 보유자 자신의 원소를 읽어 하나로 덮으므로 그쪽을 상위로 둔다.
+            SupersededByCodeId = VoidElementalMastery.CodeId;
         }
 
         public override void CastCode()
@@ -322,7 +325,8 @@ namespace Codes.Passive
             CodeName = "영원히 타오르는 불꽃";
             IgnoresActivationChance = true;
             // 불 원소 아군 피해 계열의 강화 등급.
-            Grade = BaseEnums.CodeGrade.Enhanced;
+            // 고유 패시브라 등급은 Unique다(은·금 사다리 밖).
+            
         }
 
         public override void CastCode()

@@ -348,6 +348,9 @@ namespace Codes.Passive
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "원소술사";
             IgnoresActivationChance = true;
+            // 금색 상위는 공허의 용이 드는 에테르(1531)다. 같은 상태 키를 쓰므로
+            // 서로 다른 유닛이 들었을 때는 높은 쪽만 남는다.
+            SupersededByCodeId = VoidAether.CodeId;
         }
 
         public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(

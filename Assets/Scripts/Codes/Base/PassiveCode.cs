@@ -11,7 +11,23 @@ namespace Codes.Base
     /// 유닛 정의의 고유 패시브인지 여부. 고유 패시브는 코드 용량을 차지하지 않으며
     /// 원본 그대로 전수되지 않는다. 열화 전수본은 별도의 일반 PassiveCode로 만든다.
     /// </summary>
-    public bool IsUniquePassive { get; protected set; }
+    private bool _isUniquePassive;
+
+    /// <summary>
+    /// 고유 패시브인가. 참으로 두면 등급이 <see cref="BaseEnums.CodeGrade.Unique"/>로 바뀌고
+    /// 상위 코드 지정이 지워진다 — 고유 패시브는 은·금 사다리에 끼지 않는다.
+    /// </summary>
+    public bool IsUniquePassive
+    {
+      get => _isUniquePassive;
+      protected set
+      {
+        _isUniquePassive = value;
+        if (!value) return;
+        Grade = BaseEnums.CodeGrade.Unique;
+        SupersededByCodeId = 0;
+      }
+    }
 
     /// <summary>
     /// INT가 만드는 코드 용량을 차지하지 않는 패시브인지.

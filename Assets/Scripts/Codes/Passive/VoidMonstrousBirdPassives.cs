@@ -22,7 +22,6 @@ namespace Codes.Passive
         public const int Rebirth = 7890;
         public const int Acceleration = 7891;
         public const int SharpBeak = 7892;
-        public const int Bleed = 7893;
     }
 
     /// <summary>전투 중 한 번 치명 피해를 막고 즉시 최대 체력으로 부활한다.</summary>
@@ -181,14 +180,7 @@ namespace Codes.Passive
             float chance = Mathf.Clamp01(Target.GetBaseLuk() * 0.01f);
             if (UnityEngine.Random.value >= chance) return;
 
-            victim.AddStatus(BuffStatus.Create(
-                VoidMonstrousBirdStatusIds.Bleed, "void_monstrous_bird_bleed", "출혈",
-                Target, victim, new PercentDamageOverTimeEffect(0, BleedMaxHpPercent),
-                duration: BleedTurns,
-                stackPolicy: BaseEnums.StatusStackPolicy.ExtendDuration,
-                category: BaseEnums.StatusCategory.Negative,
-                isBeneficial: false,
-                description: "3턴 동안 자기 턴 시작 시 최대 체력의 3%에 해당하는 고정 지속피해를 받습니다."));
+            BleedStatus.Apply(victim, Target, BleedTurns, BleedMaxHpPercent, "날카로운 부리");
         }
 
         public override void OnRemove()

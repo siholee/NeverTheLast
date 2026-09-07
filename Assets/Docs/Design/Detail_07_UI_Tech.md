@@ -273,7 +273,7 @@ if (육성 모드) {
 | `40_items.yaml` | 아이템 (= 전투 보상 풀) | `ItemData.cs` |
 | `50_tokens.yaml` | 토큰 정의 | `TokenData.cs` |
 | `60_enemies.yaml` | 적 (normal/elite/boss) | `EnemyData.cs` |
-| `70_rounds.yaml` | 라운드 타입/편성 패턴 | `RoundData.cs` |
+| `70_rounds.yaml` | 라운드 타입/편성 패턴 (폴백 전용) | `RoundData.cs` |
 | `80_stages.yaml` | 테마, 사건, 고정 보스 | `StageData.cs` |
 | `90_rewards.yaml` | 라운드별 보상 티어 확률 | `RewardData.cs` |
 
@@ -284,7 +284,7 @@ YAML에 남아 있는 폐기 필드(`classLevels`, `subclasses` 등)는 무시�
 
 `Assets/Scripts/Core/SaveSystem.cs`, `SaveData.cs`
 
-### 4.1 진행 저장 (`RunSaveData`, version 2)
+### 4.1 진행 저장 (`RunSaveData`, version 6)
 
 | 필드 | 내용 |
 | --- | --- |
@@ -294,12 +294,17 @@ YAML에 남아 있는 폐기 필드(`classLevels`, `subclasses` 등)는 무시�
 | `gold` / `tokens` / `rerollTicketCount` / `storedItemIds` | 인벤토리 |
 | `preparationActionUsed` | 준비 행동 소모 여부 |
 | `supportBonds` | 서포트별 우정도 |
+| `training` | 훈련 상태(기력·스킬 포인트·컨디션·집중 배치). v4 저장본에는 없어 기본값으로 채워진다 |
 | `heroUnits` | 아군 유닛 상태 (아래 4.2) |
 | `triggeredEventIds` | 이미 발생한 사건 ID |
 
+**버전 이력** — v2 레거시 스탯 필드 제거 · v3 공격력/방어력 폐지와 아군 EXP 레벨업 도입 ·
+v4 유닛별 휴대 인벤토리와 3단계 중량 · v5 유닛 ID 소속별 재배치 ·
+**v6 코드 ID 계열별 재배치**(스카디 주·부 스탯, 수르트 궁극기 자원 종류 변경 포함).
+
 ### 4.2 유닛 저장 (`UnitSaveData`)
 
-`unitId`, `currentHP`, `xPos` / `yPos` / `isBench`, `trainingLevel`,
+`unitId`, `currentHP`, `xPos` / `yPos` / `isBench`, `level` / `exp`, `trainingLevel`,
 `strUpgrade` ~ `lukUpgrade`, `codeAccelerationBonus`, `equippedItemIds`, `carriedItemIds`, `grantedPassiveCodeIds`
 
 ### 4.3 영구 저장 (`TrainedCharacterRecord`)

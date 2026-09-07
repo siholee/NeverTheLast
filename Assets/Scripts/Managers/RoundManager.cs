@@ -449,6 +449,16 @@ namespace Managers
             if (hasThemePattern)
             {
                 RoundPattern themePattern = SelectRandomPattern(themeStagePattern.patterns);
+
+                // 열을 못 박은 편성이면 archetype 판정을 건너뛴다.
+                bool hasPinnedColumns = (themePattern?.frontIds?.Count ?? 0) > 0
+                                        || (themePattern?.rearIds?.Count ?? 0) > 0;
+                if (hasPinnedColumns)
+                {
+                    PlaceEnemiesInColumns(themePattern.frontIds, themePattern.rearIds);
+                    return;
+                }
+
                 if (themePattern?.enemyIds != null)
                 {
                     foreach (int enemyId in themePattern.enemyIds)
@@ -605,22 +615,41 @@ namespace Managers
                 columnGroups[column].Add(enemyId);
             }
             
-            // 각 열에 적 배치 (y는 1부터 순차적으로)
-            foreach (var column in columnGroups)
+            PlaceEnemiesInColumns(columnGroups[1], columnGroups[2]);
+        }
+
+        /// <summary>
+        /// 전열(x=1)·후열(x=2)에 각각 위에서부터 채운다.
+        /// 한 열은 4칸이 상한이라 넘치는 적은 <b>버려진다</b> — 조용히 사라지면 편성 실수를
+        /// 찾을 수 없으므로 경고를 남긴다.
+        /// </summary>
+        private void PlaceEnemiesInColumns(List<int> frontIds, List<int> rearIds)
+        {
+            PlaceColumn(1, frontIds);
+            PlaceColumn(2, rearIds);
+        }
+
+        private void PlaceColumn(int xPos, List<int> enemyIds)
+        {
+            if (enemyIds == null) return;
+
+            int yPos = 1;
+            foreach (int enemyId in enemyIds)
             {
-                int xPos = column.Key;
-                int yPos = 1;  // y는 1부터 시작
-                
-                foreach (int enemyId in column.Value)
+                if (_enemyDataList.enemies.All(enemy => enemy.id != enemyId))
                 {
-                    if (yPos > 4) break;  // 각 열 최대 4칸
-                    
-                    // (xPos, yPos)에 적 배치
-                    GameManager.Instance.gridManager.SpawnUnit(xPos, yPos, true, enemyId);
-                    Debug.Log($"Enemy {enemyId} spawned at Cell ({xPos}, {yPos})");
-                    
-                    yPos++;  // 같은 열 내에서 y 증가
+                    Debug.LogWarning($"[RoundManager] 편성에 없는 적 ID {enemyId}를 건너뛴다.");
+                    continue;
                 }
+                if (yPos > 4)
+                {
+                    Debug.LogWarning($"[RoundManager] {xPos}열이 가득 차 적 {enemyId}를 배치하지 못했다. 한 열은 4칸이다.");
+                    continue;
+                }
+
+                GameManager.Instance.gridManager.SpawnUnit(xPos, yPos, true, enemyId);
+                Debug.Log($"Enemy {enemyId} spawned at Cell ({xPos}, {yPos})");
+                yPos++;
             }
         }
 

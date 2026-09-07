@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Linq;
 using BaseClasses;
 using Codes.Base;
@@ -61,17 +60,48 @@ namespace Codes.Passive
         }
     }
 
+    /// <summary>
+    /// 기사회생(2)과 그 금색 상위 코드 완벽한 재기(103).
+    ///
+    /// 전투가 턴제로 바뀌면서 <b>초 단위 코루틴을 상태로 옮겼다.</b> 예전에는 5초에 걸쳐
+    /// 30%를 회복했는데, 벽시계 시간은 행동 순서와 무관해 빠른 유닛일수록 회복이 늦게
+    /// 끝나는 것처럼 보였다. 이제 자기 턴마다 정해진 비율씩 회복한다.
+    ///
+    /// 발동은 <b>전투당 1회</b>다. 재발동을 허용하면 회복 총량이 최대 체력을 넘겨 버린다.
+    /// </summary>
     public class ChandraSecondWind : PassiveCode
     {
+        /// <summary>회복이 끝나기까지의 턴 수. 두 등급이 같은 길이를 쓴다.</summary>
+        public const int RecoveryTurns = 3;
+
+        private const int StatusId = 5970;
+        private const string StatusKey = "second_wind_recovery";
+
+        private readonly float _threshold;
+        private readonly float _totalRatio;
+
         private bool _isRegistered;
         private bool _triggered;
         private Action<EventContext> _damageHandler;
+        private Action<EventContext> _cleanupHandler;
 
-        public ChandraSecondWind(PassiveCodeContext context) : base(context)
+        public ChandraSecondWind(PassiveCodeContext context) : this(
+            context, "기사회생", 0.25f, 0.60f, PerfectRecoveryCodeId, BaseEnums.CodeGrade.Normal) { }
+
+        /// <summary>완벽한 재기(103)의 코드 ID. 기사회생은 이 코드가 있으면 잠든다.</summary>
+        public const int PerfectRecoveryCodeId = 103;
+
+        protected ChandraSecondWind(PassiveCodeContext context, string name,
+            float threshold, float totalRatio, int supersededByCodeId, BaseEnums.CodeGrade grade)
+            : base(context)
         {
+            _threshold = threshold;
+            _totalRatio = totalRatio;
             CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "기사회생";
+            CodeName = name;
             IgnoresActivationChance = true;
+            Grade = grade;
+            SupersededByCodeId = supersededByCodeId;
         }
 
         public override void CastCode()
@@ -80,7 +110,9 @@ namespace Codes.Passive
             if (_isRegistered) return;
 
             _damageHandler = OnAfterDamageTaken;
+            _cleanupHandler = _ => StopCode();
             Caster.AddListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _damageHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             _isRegistered = true;
         }
 
@@ -88,12 +120,10 @@ namespace Codes.Passive
         {
             if (!_isRegistered) return;
 
-            if (_damageHandler != null)
-            {
-                Caster.RemoveListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _damageHandler);
-            }
-
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _damageHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             _damageHandler = null;
+            _cleanupHandler = null;
             _isRegistered = false;
             _triggered = false;
         }
@@ -101,35 +131,25 @@ namespace Codes.Passive
         private void OnAfterDamageTaken(EventContext context)
         {
             if (_triggered || context.Grantee != Caster || !Caster.isActive || Caster.HpMax <= 0) return;
-            if ((float)Caster.HpCurr / Caster.HpMax >= 0.25f) return;
+            if ((float)Caster.HpCurr / Caster.HpMax >= _threshold) return;
 
             _triggered = true;
-            Caster.StartCoroutine(HealOverTime());
+            float perTurn = _totalRatio * 100f / RecoveryTurns;
+            Caster.AddStatus(BuffStatus.Create(
+                StatusId, StatusKey, CodeName, Caster, Caster,
+                new PercentHealOverTimeEffect(perTurn),
+                duration: RecoveryTurns,
+                stackPolicy: BaseEnums.StatusStackPolicy.Replace,
+                isBeneficial: true,
+                description: $"{RecoveryTurns}턴 동안 자기 턴마다 최대 체력의 {perTurn:0.#}%를 회복합니다."));
         }
+    }
 
-        private IEnumerator HealOverTime()
-        {
-            const float duration = 5f;
-            float elapsed = 0f;
-            float healed = 0f;
-            float totalHeal = Caster.HpMax * 0.3f;
-
-            while (elapsed < duration && Caster != null && Caster.isActive)
-            {
-                float delta = Time.deltaTime;
-                elapsed += delta;
-                float targetHealed = totalHeal * Mathf.Clamp01(elapsed / duration);
-                int tickHeal = Mathf.RoundToInt(targetHealed - healed);
-                healed += tickHeal;
-
-                if (tickHeal > 0)
-                {
-                    Caster.ModifyHp(Caster.HpCurr + tickHeal, Caster);
-                }
-
-                yield return null;
-            }
-        }
+    /// <summary>완벽한 재기(103) — 기사회생의 금색 상위 코드. 30% 미만에서 3턴에 걸쳐 전부 회복한다.</summary>
+    public sealed class PerfectRecovery : ChandraSecondWind
+    {
+        public PerfectRecovery(PassiveCodeContext context)
+            : base(context, "완벽한 재기", 0.30f, 1.00f, 0, BaseEnums.CodeGrade.Enhanced) { }
     }
 
     public class ChandraBulwark : PassiveCode

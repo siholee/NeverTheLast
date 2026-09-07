@@ -28,6 +28,12 @@ namespace BaseClasses
 
       /// <summary>강화 — 금색. 같은 계열의 일반 등급을 대체한다.</summary>
       Enhanced,
+
+      /// <summary>
+      /// 고유 — 보라색. 캐릭터·병종에 묶인 P 슬롯 코드다.
+      /// <b>은·금 사다리 밖에 있다</b> — 상위 코드로 대체되지도, 다른 코드를 대체하지도 않는다.
+      /// </summary>
+      Unique,
     }
 
     public enum UltimateResourceType
