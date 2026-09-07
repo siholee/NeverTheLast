@@ -6,7 +6,7 @@ namespace Codes.Base
   {
     /// <summary>
     /// 자원이 최대일 때 행동 스케줄러가 자동 시전할지 여부.
-    /// 라그나로크처럼 자원 자체가 상시 효과인 궁극기는 false를 사용한다.
+    /// 천총운검처럼 패시브가 직접 굴리는 상시형 궁극기는 false를 사용한다.
     /// </summary>
     public virtual bool IsAutoCast => true;
 

@@ -33,7 +33,7 @@ namespace Codes.Base
         public override void CastCode()
         {
             Caster.isCasting = true;
-            Debug.Log($"{Caster.UnitName}({Caster.currentCell.xPos}, {Caster.currentCell.yPos})이 {CodeName} 시전");
+            Debug.Log($"{Caster.UnitName}{Caster.FieldPositionLabel()}이 {CodeName} 시전");
             CurrSkillCoroutine = Caster.StartCoroutine(SkillCoroutine());
         }
 
@@ -45,7 +45,7 @@ namespace Codes.Base
             {
                 if (Caster.isControlled || !Caster.isActive)
                 {
-                    Debug.Log($"{Caster.UnitName}({Caster.currentCell.xPos}, {Caster.currentCell.yPos})의 {CodeName} 시전이 방해됨");
+                    Debug.Log($"{Caster.UnitName}{Caster.FieldPositionLabel()}의 {CodeName} 시전이 방해됨");
                     StopCode();
                     yield break;
                 }
@@ -88,10 +88,20 @@ namespace Codes.Base
             // 추가 효과 처리 (하위 클래스에서 오버라이드 가능)
             yield return ApplyAdditionalEffects(TargetUnits[0], context);
             
+            NotifyActionResolved();
+
             // 궁극기 자원은 전투 시간으로 차오른다(Unit.AccrueUltimateResource).
             // 여기서 또 주면 행동이 잦은 유닛이 이중으로 이득을 본다.
             StopCode();
         }
+
+        /// <summary>
+        /// 일반행동이 실제로 끝났음을 알린다. 공격하지 않는 일반행동도 여기를 지난다.
+        /// 시전만 하고 방해받은 경우에는 발행하지 않는다 — '철벽'처럼 행동 횟수를 세는 코드가 듣는다.
+        /// </summary>
+        protected void NotifyActionResolved()
+            => Caster?.Invoke(
+                BaseClasses.BaseEnums.UnitEventType.OnNormalActionResolved, new EventContext(Caster));
 
         public override void StopCode()
         {
@@ -196,15 +206,8 @@ namespace Codes.Base
             bool casterIsAlly = gridManager.heroList.Contains(Caster);
             List<Unit> targetList = casterIsAlly ? gridManager.enemyList : gridManager.heroList;
             
-            // 필드에 있고 활성화된 유닛만 필터링 (yPos > 0)
-            return targetList.Where(unit => 
-                unit && 
-                unit.currentCell && 
-                unit.currentCell.yPos > 0 && 
-                unit.currentCell.isOccupied && 
-                unit.isActive &&
-                !unit.IsUntargetable
-            ).ToList();
+            // 전장에 서 있는 유닛만 남긴다. 칸이 없는 소환수도 여기서 함께 걸러진다.
+            return targetList.Where(unit => unit && unit.IsOnField && !unit.IsUntargetable).ToList();
         }
         
         /// <summary>

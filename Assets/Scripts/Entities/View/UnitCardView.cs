@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using BaseClasses;
 using Effects.Negative;
 using Entities.Status;
@@ -510,6 +511,14 @@ namespace Entities.View
             _group.alpha = alive ? 1f : 0.38f;
             if (_nameLabel != null)
             {
+                // 궁극기 링과 별개인 캐릭터 전투 자원(가우디의 사그리다 스택 등)을
+                // 이름 띠에서 항상 확인할 수 있게 한다. 여러 자원이면 먼저 등록된 하나를 대표로 표시한다.
+                string combatResourceId = _unit.CombatResourceIds.Count > 0 ? _unit.CombatResourceIds[0] : null;
+                int combatResourceMax = _unit.GetCombatResourceMaximum(combatResourceId);
+                _nameLabel.text = combatResourceMax > 0
+                    ? $"{_unit.UnitName}  ◆{_unit.GetCombatResource(combatResourceId)}/{combatResourceMax}"
+                    : _unit.UnitName;
+
                 // 이름표는 캔버스 밖이라 CanvasGroup이 닿지 않는다. 알파를 직접 맞춘다.
                 Color nameColor = UITheme.TextPrimary;
                 nameColor.a = alive ? 1f : 0.38f;
@@ -676,7 +685,7 @@ namespace Entities.View
         }
 
         /// <summary>
-        /// 스택형 궁극기(수르트의 라그나로크처럼 <c>ultimateResourceType: Stack</c>)는
+        /// 스택형 궁극기(호루스의 우제트처럼 <c>ultimateResourceType: Stack</c>)는
         /// 연속 게이지가 아니라 <b>칸이 하나씩 차는</b> 자원이다.
         /// 마나와 같은 물결로 그리면 "지금 몇 스택인지"를 눈금 없이 재야 한다.
         ///

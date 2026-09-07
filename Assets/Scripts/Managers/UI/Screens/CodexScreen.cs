@@ -567,9 +567,7 @@ namespace Managers.UI.Screens
                 return;
             }
 
-            Sprite itemSprite = string.IsNullOrWhiteSpace(item.icon)
-                ? null
-                : Resources.Load<Sprite>($"Sprite/Items/{item.icon}");
+            Sprite itemSprite = ItemTooltip.LoadArt(item);
             if (itemSprite != null)
             {
                 var artObject = new GameObject("ItemArt", typeof(RectTransform), typeof(Image));
@@ -597,6 +595,10 @@ namespace Managers.UI.Screens
                 UITheme.FontMicro, UITheme.TextMuted, TextAlignmentOptions.BottomRight);
             UIBuild.Pin(weight.rectTransform, new Vector2(1f, 0f), new Vector2(18f, 12f),
                 new Vector2(-3f, 2f));
+
+            // 슬롯에는 그림과 이름만 남긴다. 제원은 마우스를 올렸을 때 툴팁으로 보인다.
+            // 누르면 뜨는 상세 카드는 장착·해제 버튼을 들고 있어 툴팁과 역할이 다르다.
+            ItemTooltip.Attach(slot.gameObject, item, owner);
 
             RectTransform slotRect = slot.rectTransform;
             UIBuild.OnClick(slot.gameObject, () => ShowItemDetail(item, owner, isEquipped, slotRect));
@@ -659,7 +661,7 @@ namespace Managers.UI.Screens
             }
 
             float y = top;
-            AddListHeading(column, $"코드 {unit.LearnedCodeCount} / {unit.MaxCodeCount}", ref y);
+            AddListHeading(column, $"코드 {unit.LearnedCodeCount}개", ref y);
             foreach ((string kind, string name, Color tint) in entries)
             {
                 AddListRow(column, kind, name, ref y, tint);
@@ -707,7 +709,7 @@ namespace Managers.UI.Screens
             AddListHeading(column, "육성", ref y);
             AddListRow(column, "육성 Lv", $"{unit.TrainingLevel}", ref y);
             AddListRow(column, "중량", $"{unit.CarryWeightCurrent} / {unit.CarryWeightMax}", ref y);
-            AddListRow(column, "코드", $"{unit.LearnedCodeCount} / {unit.MaxCodeCount}", ref y);
+            AddListRow(column, "코드", $"{unit.LearnedCodeCount}개", ref y);
 
             BuildStatusList(column, unit, ref y);
         }

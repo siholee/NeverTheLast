@@ -135,7 +135,10 @@ namespace Core
         public int version = CurrentVersion;
         // v3: 공격력/방어력 스탯 폐지 + 아군 EXP 레벨업 도입으로 유닛 스냅샷 구조가 바뀌었다.
         // v4: 유닛별 휴대 인벤토리와 3단계 중량 시스템.
-        public const int CurrentVersion = 5;
+        // v5: 유닛 ID를 소속별 블록으로 재배치.
+        // v6: 코드 ID를 계열별 구간으로 재배치. ownedPassiveCodes에 담긴 codeId의 뜻이 바뀌었고,
+        //     스카디의 주·부 스탯과 수르트의 궁극기 자원 종류도 함께 바뀌었다.
+        public const int CurrentVersion = 6;
         public int gameMode;
         public int currentStage;
         public int currentRound;

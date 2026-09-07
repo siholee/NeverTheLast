@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Codes.Base;
+using Codes.Passive;
+using Effects.Buffs;
+using Effects.Neutral;
 using Entities;
 using UnityEngine;
 
@@ -84,33 +87,103 @@ namespace Codes.Normal
         };
     }
 
-    /// <summary>스카디 일반공격 — INT 기반 위력 40 + 얼음 원소 부착. 비접촉·특수.</summary>
+    /// <summary>
+    /// 스카디 N / N+.
+    /// 도발 중에는 단일 적에게 STR 위력 80의 접촉 물리 피해를 입힌다.
+    /// 도발 중이 아니라면 공격 대신 자신에게 방어막과 3턴 도발을 부여한다.
+    /// </summary>
     public sealed class SkadiNormalAttack : BaseNormalCode
     {
+        private const int NormalPower = 80;
+        private const int TauntDurationTurns = 3;
+        private const float ShieldFlat = 100f;
+        private const float ShieldStrCoefficient = 1.2f;
+
+        private bool _empowered;
+
         public SkadiNormalAttack(NormalCodeContext context) : base(context)
         {
             CodeName = "일반공격";
-            Power = 40;
-            CodeTags = new List<int> { DamageTag.Special };
+            Power = NormalPower;
+            CodeTags = new List<int> { DamageTag.Physical };
+        }
+
+        public override void CastCode()
+        {
+            _empowered = !Taunt.Has(Caster);
+            CodeName = _empowered ? "강화 일반행동" : "일반행동";
+            base.CastCode();
+        }
+
+        protected override IEnumerator SkillCoroutine()
+        {
+            if (!_empowered)
+            {
+                yield return base.SkillCoroutine();
+                yield break;
+            }
+
+            bool cast = false;
+            yield return WaitForCast(result => cast = result);
+            if (!cast)
+            {
+                StopCode();
+                yield break;
+            }
+
+            int shield = Mathf.Max(1, Mathf.RoundToInt(
+                ShieldFlat + Caster.GetBaseStr() * ShieldStrCoefficient));
+            Caster.AddShield(shield, Caster);
+            Taunt.Apply(Caster, Caster, TauntDurationTurns);
+
+            NotifyActionResolved();
+            StopCode();
         }
 
         protected override int CalculateDamage(float critMultiplier)
             => Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.INT) * critMultiplier));
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.STR) * critMultiplier));
 
         protected override List<int> GetDamageTags() => new()
         {
             DamageTag.SingleTarget, DamageTag.NormalAttack,
-            DamageTag.NonContactAttack, DamageTag.Special,
+            DamageTag.ContactAttack, DamageTag.Physical,
         };
 
-        protected override IEnumerator ApplyAdditionalEffects(Unit target, DamageContext context)
+        // 도발 중이 아니면 적이 없어도 방어막·도발 행동은 성립한다.
+        public override bool HasValidTarget()
+            => Caster != null && Caster.isActive && (!Taunt.Has(Caster) || base.HasValidTarget());
+    }
+
+    /// <summary>
+    /// 펜리르 N(501) — <b>체력이 가장 낮은</b> 적을 문다. STR 위력 40. 접촉·물리·소환수.
+    /// 우선도가 아니라 현재 체력으로 고르는 것이 펜리르의 정체성이다(마무리를 물어뜯는다).
+    /// </summary>
+    public sealed class FenrirBite : BaseNormalCode
+    {
+        public FenrirBite(NormalCodeContext context) : base(context)
         {
-            // 투사체 도착 시점에 맞춰 부착한다. FireProjectile의 비행 시간과 같은 값을 쓴다.
-            yield return new WaitForSeconds(0.5f);
-            if (target == null || !target.isActive) yield break;
-            target.GrantCombatElement(BaseEnums.UnitElement.Cryo, Unit.CommonElementAuraDuration, Caster);
+            CodeName = "물어뜯기";
+            Power = 40;
+            CodeTags = new List<int> { DamageTag.Physical };
         }
+
+        protected override List<Unit> SelectTarget()
+        {
+            Unit prey = GetAvailableEnemies().OrderBy(unit => unit.HpCurr).FirstOrDefault();
+            return prey != null ? new List<Unit> { prey } : new List<Unit>();
+        }
+
+        protected override int CalculateDamage(float critMultiplier)
+            => Mathf.Max(1, Mathf.RoundToInt(
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.STR)
+                * critMultiplier * Combat.Summons.DamageMultiplier(Caster.SummonOwner)));
+
+        protected override List<int> GetDamageTags() => new()
+        {
+            DamageTag.SingleTarget, DamageTag.NormalAttack,
+            DamageTag.SummonAttack, DamageTag.ContactAttack, DamageTag.Physical,
+        };
     }
 
     /// <summary>쿠베라 일반공격 — STR 기반 위력 70. 접촉·물리.</summary>

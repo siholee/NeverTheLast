@@ -65,7 +65,7 @@ namespace Combat
                 bonus = Mathf.Max(bonus, effect.EffectObject.SummonDamageMultiplierModifier(owner) - 1f);
             }
 
-            foreach (Unit ally in AlliesIncludingSelf(owner))
+            foreach (Unit ally in CombatTargets.AliveAlliesIncludingSelf(owner))
             {
                 if (ally == owner) continue;
                 foreach (var effect in ally.ActiveStatuses.SelectMany(status => status.Effects))
@@ -76,15 +76,6 @@ namespace Combat
                 }
             }
             return 1f + Mathf.Max(0f, bonus);
-        }
-
-        private static IEnumerable<Unit> AlliesIncludingSelf(Unit owner)
-        {
-            var allies = global::Target.GetAllAllies(owner)
-                .Where(unit => unit != null && unit.isActive)
-                .ToList();
-            if (!allies.Contains(owner)) allies.Add(owner);
-            return allies;
         }
     }
 }

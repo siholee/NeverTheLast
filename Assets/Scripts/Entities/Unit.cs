@@ -76,7 +76,68 @@ namespace Entities
         public int PassiveUnlockLevel => Level;
         public bool IsUntargetable => untargetableSourceCount > 0;
 
-        public Cell currentCell; // 위치중인 셀
+        public Cell currentCell; // 위치중인 셀. 소환수는 칸을 차지하지 않으므로 null이다.
+
+        // ── 소환수 ────────────────────────────────────────────────
+        //
+        // 소환수는 붕괴: 스타레일의 '기억 정령'과 같은 취급이다.
+        // 칸은 차지하지 않지만 <b>피격 대상이 되고 체력을 가지며</b> 소환자에게 종속된다.
+        // 행동 게이지(DEX)와 궁극기 자원(INT)은 일반 유닛과 똑같이 굴러간다.
+        private readonly List<Unit> _summons = new();
+
+        /// <summary>이 유닛을 불러낸 소환자. 소환수가 아니면 null이다.</summary>
+        public Unit SummonOwner { get; private set; }
+
+        /// <summary>칸 없이 소환자에 종속된 개체인가.</summary>
+        public bool IsSummon => SummonOwner != null;
+
+        /// <summary>이 유닛이 거느린 살아 있는 소환수.</summary>
+        public IReadOnlyList<Unit> ActiveSummons => _summons;
+
+        /// <summary>
+        /// <b>전장에 서 있는가.</b> 대상 지정·행동 순서·필드 판정이 모두 이 하나를 본다.
+        ///
+        /// 일반 유닛은 칸을 차지하고 있어야 하고, 소환수는 칸이 없는 대신
+        /// <b>소환자가 전장에 살아 있는 동안</b>만 존재한다.
+        /// 대상 지정 가능 여부(<see cref="IsUntargetable"/>)는 여기서 보지 않는다 —
+        /// 필드에 있으면서 잠시 지정 불가인 상태가 따로 있기 때문이다.
+        /// </summary>
+        public bool IsOnField
+        {
+            get
+            {
+                if (!isActive) return false;
+                if (IsSummon) return SummonOwner.isActive && SummonOwner.IsOnField;
+                return currentCell != null && currentCell.yPos > 0 && currentCell.isOccupied;
+            }
+        }
+
+        /// <summary>소환수를 이 유닛에 묶는다. <see cref="GridManager"/>의 소환 경로만 부른다.</summary>
+        internal void RegisterSummon(Unit summon)
+        {
+            if (summon == null || summon == this || _summons.Contains(summon)) return;
+            summon.SummonOwner = this;
+            _summons.Add(summon);
+        }
+
+        /// <summary>소환수를 목록에서 뗀다. 소환수가 쓰러졌을 때 부른다.</summary>
+        internal void UnregisterSummon(Unit summon)
+        {
+            if (summon == null) return;
+            _summons.Remove(summon);
+        }
+
+        /// <summary>거느린 소환수를 전부 거둔다. 소환자가 쓰러지거나 라운드가 끝날 때 부른다.</summary>
+        public void DismissSummons()
+        {
+            if (_summons.Count == 0) return;
+            // 소환수의 사망 처리가 목록을 건드리므로 사본으로 돈다.
+            foreach (Unit summon in _summons.ToList())
+            {
+                if (summon != null && summon.isActive) summon.Die(null);
+            }
+            _summons.Clear();
+        }
 
         // 유닛 스탯 모델 (5스탯/전투 스탯/강화 — 계산은 UnitStats 담당)
         [SerializeField] private UnitStats stats = new();
@@ -269,10 +330,24 @@ namespace Entities
         private readonly Dictionary<BaseEnums.UnitElement, int> _temporaryElementDurations = new();
         private readonly Dictionary<string, int> _combatResources = new();
         private readonly Dictionary<string, int> _combatResourceMaximums = new();
+
+        // 등록 순서를 따로 들고 있는다. Dictionary의 열거 순서는 보장되는 계약이 아니라
+        // "대표 자원 하나"를 뽑는 UI가 갱신마다 다른 자원을 집을 수 있다.
+        private readonly List<string> _combatResourceOrder = new();
         private int _baseNormalCodeId;
         private int _baseUltimateCodeId;
         private int _baseNormalCodeStage = 1;
         private int _baseUltimateCodeStage = 1;
+
+        /// <summary>
+        /// 중량과 개인 인벤토리를 쓰는가.
+        ///
+        /// <b>적은 쓰지 않는다.</b> 적은 편성 화면도, 보관함도, 장비를 갈아 끼울 기회도 없다 —
+        /// 데이터에 적힌 <c>startingItemIds</c>를 입고 나오는 것이 전부다.
+        /// 중량 페널티는 "무엇을 들고 갈지 고르게 만드는" 장치인데 그 선택이 없는 쪽에 걸면
+        /// 기획 의도와 무관하게 스탯만 깎인다.
+        /// </summary>
+        public bool UsesCarryWeight => !IsEnemy;
 
         /// <summary>중량 페널티 적용 전 STR과 같은 1차 적정 중량.</summary>
         public int CarryWeightFirstCap => Mathf.Max(1, stats.GetUnburdenedBaseStr());
@@ -281,10 +356,20 @@ namespace Entities
         /// <summary>3차 중량 기준. 초과 휴대는 가능하지만 장비 정리 전까지 진행 행동이 잠긴다.</summary>
         public int CarryWeightMax => CarryWeightFirstCap * 2;
         public int CarryWeightCurrent => (EquipmentLoadout?.GetTotalWeight() ?? 0) + GetStoredItemWeight();
-        public int EncumbranceTier => CarryWeightCurrent > CarryWeightSecondCap ? 2 : CarryWeightCurrent > CarryWeightFirstCap ? 1 : 0;
-        public bool IsOverCarryWeightMax => CarryWeightCurrent > CarryWeightMax;
-        public int MaxCodeCount => Mathf.Max(3, GetBaseInt());
-        // 일반공격·고유 궁극기는 고정 2칸, 고유 패시브는 별도 슬롯이라 코드 용량을 차지하지 않는다.
+        public int EncumbranceTier => !UsesCarryWeight
+            ? 0
+            : CarryWeightCurrent > CarryWeightSecondCap ? 2 : CarryWeightCurrent > CarryWeightFirstCap ? 1 : 0;
+        public bool IsOverCarryWeightMax => UsesCarryWeight && CarryWeightCurrent > CarryWeightMax;
+        /// <summary>
+        /// 배운 코드 수. <b>상한은 없다</b> — 표시 전용이다.
+        ///
+        /// 예전에는 INT가 코드 용량(<c>max(3, INT)</c>)을 정해 그 수를 넘으면 해금 패시브를
+        /// 조용히 배우지 못했다. INT가 낮은 적은 설계된 해금의 절반도 얻지 못했고,
+        /// 잘리는 쪽이 항상 고레벨 코드라 <b>가장 강한 것부터 사라졌다.</b>
+        /// INT는 이제 마나 효율만 담당한다.
+        ///
+        /// 일반공격·궁극기는 고정 2칸, 고유 패시브는 별도 슬롯이라 세지 않는다.
+        /// </summary>
         public int LearnedCodeCount => 2 + PassiveCodes.Count(
             code => code != null && !code.IsUniquePassive && !code.IgnoresCodeCapacity);
 
@@ -297,13 +382,15 @@ namespace Entities
         /// <summary>현재 걸린 상태(버프/디버프) 목록. HUD의 Modifier 표시가 읽는다.</summary>
         public IReadOnlyList<Status.UnitStatus> ActiveStatuses => StatusController.GetLive();
         /// <summary>고유 게이지(전투 자원) 식별자 목록. 없으면 비어 있다.</summary>
-        public IEnumerable<string> CombatResourceIds => _combatResourceMaximums.Keys;
+        public IReadOnlyList<string> CombatResourceIds => _combatResourceOrder;
         public IEnumerable<ItemData> EquippedItems =>
             EquipmentLoadout?.GetEquippedItemData() ?? Enumerable.Empty<ItemData>();
 
         // 이벤트
         private Dictionary<BaseEnums.UnitEventType, Delegate> _eventDict;
         private bool _resolvingDamageDealtEvent;
+        // OnDeath 리스너가 사망 칸이 비워진 뒤 실행해야 하는 작업(분열 등)을 한 번만 예약한다.
+        private readonly List<Action> _postDeathActions = new();
 
         [FormerlySerializedAs("portraitPath")] public string PortraitPath;
 
@@ -342,6 +429,8 @@ namespace Entities
             _temporaryElementDurations.Clear();
             _combatResources.Clear();
             _combatResourceMaximums.Clear();
+            _combatResourceOrder.Clear();
+            _postDeathActions.Clear();
             untargetableSourceCount = 0;
             ID = _id;
             IsEnemy = _isEnemy;
@@ -354,10 +443,9 @@ namespace Entities
             AttributesUpdate();
             HpCurr = HpMax;
             
-            // Cell의 HP 바 초기화 및 업데이트
-            currentCell.InitializeHpBar();
-            // Cell의 MP 바 초기화 및 업데이트
-            currentCell.InitializeMpBar();
+            // 칸이 없는 소환수는 칸이 들고 있던 바가 없다. 카드는 소환 경로가 따로 붙인다.
+            currentCell?.InitializeHpBar();
+            currentCell?.InitializeMpBar();
             
             ManaCurr = 0;
             ShieldMax = 0;
@@ -389,8 +477,12 @@ namespace Entities
                 Element = string.IsNullOrWhiteSpace(enemyData.element) ? "None" : enemyData.element;
                 ResetCombatElements();
                 MainStat = enemyData.mainStat ?? "";
-                SubStat = enemyData.subStat ?? "";
-                subStats = string.IsNullOrWhiteSpace(SubStat) ? new List<string>() : new List<string> { SubStat };
+                subStats = enemyData.subStats != null && enemyData.subStats.Count > 0
+                    ? new List<string>(enemyData.subStats)
+                    : string.IsNullOrWhiteSpace(enemyData.subStat)
+                        ? new List<string>()
+                        : new List<string> { enemyData.subStat };
+                SubStat = subStats.FirstOrDefault() ?? "";
                 mainStatTrainingBonus = 0.2f;
                 subStatTrainingBonus = 0.1f;
                 startingProficiencies = enemyData.startingProficiencies != null
@@ -518,6 +610,12 @@ namespace Entities
         public bool TryStoreItem(int itemId, out string reason)
         {
             reason = null;
+            if (!UsesCarryWeight)
+            {
+                reason = "적 유닛은 개인 인벤토리를 갖지 않습니다.";
+                return false;
+            }
+
             ItemData itemData = GetItemData(itemId);
             if (itemData == null)
             {
@@ -572,7 +670,8 @@ namespace Entities
         {
             if (EquipmentLoadout == null || !EquipmentLoadout.Unequip(itemId)) return false;
 
-            if (storeToCarried)
+            // 적은 보관함이 없다. 벗은 장비는 그대로 사라진다.
+            if (storeToCarried && UsesCarryWeight)
             {
                 carriedItemIds ??= new List<int>();
                 carriedItemIds.Add(itemId);
@@ -628,7 +727,7 @@ namespace Entities
 
         private int GetStoredItemWeight()
         {
-            if (carriedItemIds == null || carriedItemIds.Count == 0) return 0;
+            if (!UsesCarryWeight || carriedItemIds == null || carriedItemIds.Count == 0) return 0;
             int total = 0;
             foreach (int itemId in carriedItemIds)
             {
@@ -932,7 +1031,7 @@ namespace Entities
         }
 
         /// <summary>
-        /// 현재 Level과 INT 코드 용량을 만족한 패시브를 활성 목록으로 승격한다.
+        /// 현재 Level의 해금 조건을 만족한 패시브를 활성 목록으로 승격한다. 개수 상한은 없다.
         /// 레벨업(예: 육성 페이즈, 업그레이드) 이후 호출한다. 이미 활성화된 패시브는 중복 추가하지 않는다.
         /// </summary>
         protected void RefreshLevelPassives()
@@ -946,8 +1045,6 @@ namespace Entities
 
             foreach (LevelPassiveData def in eligible)
             {
-                if (LearnedCodeCount >= MaxCodeCount) break;
-
                 PassiveCode code = CodeFactory.CreatePassiveCode(def.codeId, new PassiveCodeContext { Caster = this });
                 if (code != null)
                 {
@@ -985,7 +1082,6 @@ namespace Entities
         public bool LearnTransferredPassive(int codeId, int stage)
         {
             if (codeId <= 0) return false;
-            if (LearnedCodeCount >= MaxCodeCount) return false;
             if (learnedPassiveRecords.Any(record => record != null && record.codeId == codeId))
             {
                 return false;
@@ -1001,7 +1097,7 @@ namespace Entities
             return true;
         }
 
-        /// <summary>사건/보상으로 획득한 런 영구 패시브를 코드 용량과 무관하게 추가한다.</summary>
+        /// <summary>사건/보상으로 획득한 런 영구 패시브를 추가한다.</summary>
         public bool GrantPermanentPassive(int codeId, int stage = 1)
         {
             if (codeId <= 0 || grantedPassiveCodeIds.Contains(codeId)) return false;
@@ -1119,7 +1215,7 @@ namespace Entities
             // 해상도와 여백이 제각각이라 카드 안에서 크기가 들쭉날쭉했고,
             // 연출 방향도 스프라이트가 아니라 카드가 반응하고 발사하는 쪽으로 잡았다.
             // 타격·시전 반응은 UnitCardView가 카드 자체를 흔들어 처리한다.
-            currentCell.SetPortrait(Resources.Load<Sprite>(path));
+            currentCell?.SetPortrait(Resources.Load<Sprite>(path));
         }
 
         /// <summary>
@@ -1204,15 +1300,8 @@ namespace Entities
 
         protected virtual void UpdateShieldBar()
         {
-            // Cell의 통합 UI 시스템을 통해 방어막 바 업데이트
-            if (currentCell != null)
-            {
-                currentCell.UpdateUI(); // Cell에서 HP + 방어막 바 통합 처리
-            }
-            else
-            {
-                Debug.LogWarning($"[방어막 바] {UnitName}의 currentCell이 null입니다!");
-            }
+            // 체력·마나·방어막 바는 카드가 함께 들고 있다. 칸이든 소환수 카드든 한 곳으로 보낸다.
+            RefreshView();
         }
 
         // 이벤트를 처리하는 메소드들
@@ -1231,6 +1320,98 @@ namespace Entities
         }
 
         /// <summary>
+        /// 소환수로 태어난다. 칸도, <c>10_units.yaml</c> 항목도 없다.
+        ///
+        /// 능력치는 <b>소환 시점 소환자의 기본 스탯</b>을 비율로 물려받아 레벨 1 고정값으로 굳힌다.
+        /// 소환 뒤에 소환자가 강해져도 따라 오르지 않는다 — 스냅샷이 소환수의 정의다.
+        /// 행동 게이지(DEX)와 궁극기 자원(INT)은 일반 유닛과 완전히 같은 경로를 탄다.
+        /// </summary>
+        public void SpawnAsSummon(Unit owner, Combat.SummonSpec spec)
+        {
+            if (owner == null || spec == null) return;
+
+            isActive = true;
+            InitializeUnit(owner.IsEnemy, 0);   // ID 0 — 데이터 파일을 읽지 않는 경로
+            owner.RegisterSummon(this);
+
+            Level = 1;
+            UnitName = spec.Name;
+            Element = spec.ResolveElement(owner);
+            ResetCombatElements();
+            MainStat = spec.ResolveMainStat(owner);
+            SubStat = "";
+            subStats = new List<string>();
+            mainStatTrainingBonus = 0f;
+            subStatTrainingBonus = 0f;
+            unitTier = "";
+            if (!string.IsNullOrWhiteSpace(spec.Portrait)) LoadSprite(spec.Portrait, owner.IsEnemy);
+
+            spec.ResolveStats(owner, out int str, out int dex, out int con, out int intel, out int luk);
+            // 증가분 0 — 소환수는 레벨도 강화도 없다.
+            LoadStatData(str, 0, 0, dex, 0, 0, con, 0, 0, intel, 0, 0, luk, 0, 0);
+            ConfigureUltimateResource(null, null, 0);   // 마나형 기본값
+            CodeAcceleration = 1f;
+
+            isCasting = false;
+            castingTime = 0f;
+            isControlled = false;
+            controlTurns = 0;
+            currentNormalTarget = null;
+
+            _baseNormalCodeId = spec.NormalCodeId;
+            _baseUltimateCodeId = spec.UltimateCodeId;
+            NormalCode = CodeFactory.CreateNormalCode(_baseNormalCodeId, new NormalCodeContext { Caster = this });
+            UltimateCode = CodeFactory.CreateUltimateCode(_baseUltimateCodeId, new UltimateCodeContext { Caster = this });
+            normalCooldown = NormalCode?.Cooldown ?? 0f;
+            ultimateCooldown = UltimateCode?.Cooldown ?? 0f;
+
+            AttributesUpdate();
+            HpCurr = HpMax;
+            ManaCurr = 0;
+            ShieldMax = 0;
+            ShieldCurr = 0;
+
+            // InitializeUnit은 ID 0에서 조기 반환하므로 기본 리스너가 붙지 않는다.
+            // 이걸 빠뜨리면 소환수가 피해를 아예 받지 않는다.
+            AddListener<EventContext>(BaseEnums.UnitEventType.OnTakingDamage, DefaultTakeDamageEvent);
+            AddListener<EventContext>(BaseEnums.UnitEventType.OnRoundStart, DefaultRoundStartEvent);
+            AddListener<EventContext>(BaseEnums.UnitEventType.OnRoundEnd, DefaultRoundEndEvent);
+            AddListener<EventContext>(BaseEnums.UnitEventType.OnUpdate, DefaultUpdateEvent);
+
+            BindSummonLifetime(owner, spec.LifetimeTurns);
+            Invoke(BaseEnums.UnitEventType.OnSpawn, new EventContext(this));
+        }
+
+        // ── 소환수 수명 ───────────────────────────────────────────
+        //
+        // '라이트 기준 3턴'처럼 수명은 <b>소환자의 턴</b>으로 센다. 소환수의 DEX가 소환자와
+        // 다르므로 자기 턴으로 세면 같은 3턴이 매번 다른 길이가 된다.
+        private int _summonTurnsRemaining;
+        private Action<EventContext> _summonLifetimeHandler;
+
+        private void BindSummonLifetime(Unit owner, int turns)
+        {
+            if (owner == null || turns <= 0) return;
+
+            _summonTurnsRemaining = turns;
+            _summonLifetimeHandler = _ =>
+            {
+                if (!isActive) return;
+                if (--_summonTurnsRemaining > 0) return;
+                Die(null);
+            };
+            owner.AddListener(BaseEnums.UnitEventType.OnTurnStart, _summonLifetimeHandler);
+        }
+
+        private void ReleaseSummonLifetime()
+        {
+            if (_summonLifetimeHandler == null) return;
+            SummonOwner?.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _summonLifetimeHandler);
+            _summonLifetimeHandler = null;
+            _summonTurnsRemaining = 0;
+        }
+
+        /// <summary>
         /// 유닛 사망 이벤트
         /// </summary>
         /// <param name="attacker">막타친 적 유닛(사망 시 이벤트 처리용)</param>
@@ -1245,6 +1426,20 @@ namespace Entities
             }
             if (isEnemy) GameManager.Instance.OnKillEnemy();
             DeactivateUnit();
+
+            if (_postDeathActions.Count == 0) return;
+            List<Action> actions = _postDeathActions.ToList();
+            _postDeathActions.Clear();
+            foreach (Action action in actions)
+            {
+                action?.Invoke();
+            }
+        }
+
+        /// <summary>사망 이벤트가 끝나고 원래 칸이 비워진 직후 실행할 작업을 예약한다.</summary>
+        internal void EnqueuePostDeathAction(Action action)
+        {
+            if (action != null) _postDeathActions.Add(action);
         }
 
         /// <summary>
@@ -1344,10 +1539,11 @@ namespace Entities
 
             ConsumeUltimateResource();
             // Cell의 통합 UI 시스템 사용
-            currentCell.UpdateUI();
+            RefreshView();
 
             UltimateCode.CastCode();
             Invoke(BaseEnums.UnitEventType.OnUltimateActivates, new EventContext(this));
+            if (UltimateCode.IsAutoCast) AnyActiveUltimateActivated?.Invoke(this);
         }
 
         // ── 궁극기 자원 ────────────────────────────────────────
@@ -1421,9 +1617,18 @@ namespace Entities
         {
             ManaCurr = Mathf.Clamp(ManaCurr + amount, 0, ManaMax);
             // Cell의 통합 UI 시스템 사용
-            currentCell.UpdateUI();
+            RefreshView();
         }
 
+        /// <summary>
+        /// 전투 시작 시 원소 상태를 초기화한다.
+        ///
+        /// <b>유닛의 고유 원소는 부착이 아니라 판정 전용이다.</b> 원신처럼 캐릭터의 속성과
+        /// 실제로 걸린 원소 부착은 별개의 축이다. 바위 유닛이라는 사실만으로 바위가
+        /// '부착'되어 있다고 보면, 누가 바위를 걸어 주는 순간 공명이 터져 아군이 기절한다.
+        /// 조건 판정(<see cref="HasCombatElement"/>)에는 그대로 잡히고,
+        /// 원소 반응의 재료(<see cref="HasAttachedElement"/>)로는 쓰이지 않는다.
+        /// </summary>
         public void ResetCombatElements()
         {
             _combatElements.Clear();
@@ -1432,7 +1637,7 @@ namespace Entities
             if (Enum.TryParse(Element, true, out BaseEnums.UnitElement innateElement) &&
                 innateElement != BaseEnums.UnitElement.None)
             {
-                _combatElements.Add(innateElement);
+                _judgementElements.Add(innateElement);
             }
         }
 
@@ -1444,13 +1649,11 @@ namespace Entities
         public void GrantCombatElement(BaseEnums.UnitElement elementToGrant, int duration, Unit source)
         {
             if (elementToGrant == BaseEnums.UnitElement.None) return;
-            bool isInnate = Enum.TryParse(Element, true, out BaseEnums.UnitElement innateElement) &&
-                            innateElement == elementToGrant;
+
+            // 자기 고유 원소를 받더라도 다른 원소와 똑같은 '부착'이다. 고유 원소는 판정 축에만
+            // 살아 있으므로, 여기서 예외를 두면 지속시간 없는 영구 부착이 생겨 축이 다시 섞인다.
             bool added = _combatElements.Add(elementToGrant);
-            if (!isInnate)
-            {
-                _temporaryElementDurations[elementToGrant] = duration > 0 ? duration : CommonElementAuraDuration;
-            }
+            _temporaryElementDurations[elementToGrant] = duration > 0 ? duration : CommonElementAuraDuration;
             if (added)
             {
                 AttributesUpdate();
@@ -1464,7 +1667,7 @@ namespace Entities
             Effects.Negative.ElementalReaction.TryResolve(this, elementToGrant, source, !added);
         }
 
-        /// <summary>부착된 원소를 걷어낸다. 고유 원소도 반응으로 소모될 수 있다.</summary>
+        /// <summary>부착된 원소를 걷어낸다. 고유 원소는 부착이 아니므로 여기서 사라지지 않는다.</summary>
         public void RemoveCombatElement(BaseEnums.UnitElement elementToRemove)
         {
             if (!_combatElements.Remove(elementToRemove)) return;
@@ -1479,11 +1682,15 @@ namespace Entities
         /// <summary>원소가 부착될 때 발행한다. (부여자, 대상, 부여 원소)</summary>
         public static event Action<Unit, Unit, BaseEnums.UnitElement> AnyCombatElementGranted;
 
+        /// <summary>발동형 궁극기가 사용될 때 발행한다. 상시형 궁극기는 제외한다.</summary>
+        public static event Action<Unit> AnyActiveUltimateActivated;
+
         internal static void NotifyElementalReaction(Unit source, Unit target, string reactionName)
             => AnyElementalReaction?.Invoke(source, target, reactionName);
 
         /// <summary>
         /// 이 원소를 가진 것으로 <b>판정</b>되는가. 실제 부착과 판정 전용 원소를 함께 본다.
+        /// 유닛의 고유 원소는 판정 축에 있으므로 여기서는 잡히고, 반응 재료로는 쓰이지 않는다.
         /// 원소 반응 판정에는 <see cref="HasAttachedElement"/>를 써야 한다.
         /// </summary>
         public bool HasCombatElement(BaseEnums.UnitElement elementToCheck)
@@ -1491,7 +1698,10 @@ namespace Entities
             return _combatElements.Contains(elementToCheck) || _judgementElements.Contains(elementToCheck);
         }
 
-        /// <summary>실제로 부착된 원소인가. 원소 반응은 이쪽만 재료로 쓴다.</summary>
+        /// <summary>
+        /// 실제로 <b>부착된</b> 원소인가. 원소 반응은 이쪽만 재료로 쓴다.
+        /// 유닛의 고유 원소는 포함되지 않는다 — 속성과 부착은 별개의 축이다.
+        /// </summary>
         public bool HasAttachedElement(BaseEnums.UnitElement elementToCheck)
         {
             return _combatElements.Contains(elementToCheck);
@@ -1514,8 +1724,8 @@ namespace Entities
         }
 
         /// <summary>
-        /// 부착된 원소가 하나라도 있는가. 고유 원소도 원소 반응에 소모되므로 0이 될 수 있다.
-        /// 스카디의 '서리의 전사'가 이 상태를 감지해 얼음을 다시 두른다.
+        /// <b>부착된</b> 원소가 하나라도 있는가. 고유 원소는 판정 전용이라 여기에 포함되지 않는다 —
+        /// 아무도 원소를 걸어 주지 않은 유닛은 속성이 무엇이든 false다.
         /// </summary>
         public bool HasAnyCombatElement => _combatElements.Count > 0;
 
@@ -1551,6 +1761,7 @@ namespace Entities
         public void SetCombatResourceMaximum(string resourceId, int maximum, bool resetCurrent = false)
         {
             if (string.IsNullOrWhiteSpace(resourceId)) return;
+            if (!_combatResourceMaximums.ContainsKey(resourceId)) _combatResourceOrder.Add(resourceId);
             _combatResourceMaximums[resourceId] = Mathf.Max(0, maximum);
             if (resetCurrent || !_combatResources.ContainsKey(resourceId))
             {
@@ -1803,8 +2014,8 @@ namespace Entities
         /// <b>직전 턴부터 이번 턴까지 흐른 전투 시간(초).</b>
         ///
         /// 벽시계가 아니라 AV에서 환산한 값이라 누군가 행동하는 동안에는 늘어나지 않는다.
-        /// 턴으로 세기 어색한 연속적인 효과(수르트 황혼의 점증 자기피해)만 이 값을 읽는다.
-        /// 그 외의 지속시간·주기는 전부 <see cref="TurnCount"/> 축을 쓴다.
+        /// 초 단위로 기획된 주기형 효과가 턴 경계에서 이 값을 누적한다.
+        /// 턴 단위로 기획된 지속시간·주기는 <see cref="TurnCount"/> 축을 쓴다.
         /// </summary>
         public float LastTurnSeconds { get; private set; }
 
@@ -2153,7 +2364,7 @@ namespace Entities
             }
             
             // Cell의 통합 UI 업데이트 메서드 사용
-            currentCell.UpdateUI();
+            self.RefreshView();
 
             int damageDealt = Mathf.Max(0, hpBeforeHit - self.HpCurr) + Mathf.Max(0, shieldBeforeHit - self.ShieldCurr);
             dmgCtx.ResolvedDamage = damageDealt;
@@ -2290,6 +2501,7 @@ namespace Entities
             ResetCombatElements();
             _combatResources.Clear();
             _combatResourceMaximums.Clear();
+            _combatResourceOrder.Clear();
             ShieldMax = 0;   // 라운드 종료 시 방어막 최대치 초기화
             ShieldCurr = 0;  // 라운드 종료 시 방어막 현재치 초기화
             ClearToughness();
@@ -2316,6 +2528,7 @@ namespace Entities
         public int GetBaseInt() => stats.GetBaseInt();
         public int GetBaseLuk() => stats.GetBaseLuk();
         public int GetGrowthStatValue(BaseEnums.PrimaryStat stat) => stats.GetGrowthStatValue(stat);
+        public int GetLevelGrowthStatValue(BaseEnums.PrimaryStat stat) => stats.GetLevelGrowthStatValue(stat);
 
         /// <summary>상태 효과의 5스탯 가산 보정 합계 (UnitStats에서 역참조)</summary>
         internal int GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat stat)
@@ -2382,8 +2595,9 @@ namespace Entities
         public void ActivateUnit()
         {
             isActive = true;
+            if (currentCell == null) return;   // 칸 없는 소환수
+
             currentCell.isOccupied = true;
-            
             // Cell의 통합 UI 관리 사용
             currentCell.SetOccupiedUnit(this);
         }
@@ -2393,15 +2607,43 @@ namespace Entities
             isActive = false;
             untargetableSourceCount = 0;
             ID = 0;
+            currentNormalTarget = null; // 타겟 초기화
+
+            // 거느리던 소환수는 소환자가 사라지면 함께 거둔다.
+            DismissSummons();
+            ReleaseSummonLifetime();
+            SummonOwner?.UnregisterSummon(this);
+
+            if (currentCell == null)
+            {
+                SummonView?.Dismiss();
+                return;
+            }
+
             currentCell.isOccupied = false;
             currentCell.SetPortrait(null);
-            
             // Cell의 통합 UI 관리 사용
             currentCell.SetOccupiedUnit(null);
-            
             currentCell.reservedTime = 2f;
-            currentNormalTarget = null; // 타겟 초기화
         }
+
+        /// <summary>
+        /// 이 유닛의 카드를 다시 그린다. 칸 위의 유닛은 칸이, 소환수는 전용 카드가 받는다.
+        /// </summary>
+        public void RefreshView()
+        {
+            if (currentCell != null) currentCell.UpdateUI();
+            else SummonView?.Tick();
+        }
+
+        /// <summary>소환수 카드. 칸이 없는 유닛만 가진다.</summary>
+        public View.SummonCardView SummonView { get; internal set; }
+
+        /// <summary>로그에 쓸 위치 표기. 칸이 없는 소환수는 소환자를 대신 적는다.</summary>
+        public string FieldPositionLabel()
+            => currentCell != null
+                ? $"({currentCell.xPos}, {currentCell.yPos})"
+                : IsSummon ? $"({SummonOwner.UnitName}의 소환수)" : "";
 
         // 유닛 상태효과 관리
         public void NotifyBeneficialEffectReceived(Unit grantor)

@@ -87,3 +87,12 @@ Corresponding C# data classes are in `DataManager.cs`.
 
 Code is organized by namespace matching the directory structure:
 `BaseClasses`, `Codes.Base`, `Codes.Normal`, `Codes.Passive`, `Codes.Ultimate`, `Entities`, `Managers`, `Managers.UI`, `StatusEffects.Base`, `StatusEffects.Effects`, `StatusEffects.SynergyEffects`, `Helpers`
+
+## Art Conventions
+
+- **공허 계열 아트 규칙:** 이름이 `공허의`로 시작하는 유닛은 `VOID_MONSTROUS_BIRD`를 시각 기준으로 삼는다.
+  큰 결정형 면 분할, 얇고 절제된 외곽선, 백색·먹색·옅은 금색 골격과 원소색 결정 채색을 유지한다.
+- 신규·수정 스프라이트는 스탠딩과 초상화를 기준 원화 옆에 놓고 선 처리·질감·채색의 통일성을
+  확인한다.
+- 적의 접미사 없는 기본 스프라이트는 화면 왼쪽을 바라본다. 양방향이 필요하면 같은 키의
+  `_RIGHT` 변형을 함께 등록한다.

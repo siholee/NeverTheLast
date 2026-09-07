@@ -92,11 +92,19 @@ namespace Codes.Passive
         {
             Caster?.AddStatus(BuffStatus.Create(
                 AtalanteStatusIds.Agility, "atalante_agility", CodeName,
-                Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.DEX, 2),
+                Caster, Caster, new AgilityDexEffect(),
                 stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
                 isBeneficial: true,
-                description: "DEX +2."));
+                description: "DEX +5%."));
         }
+    }
+
+    internal sealed class AgilityDexEffect : BaseEffect
+    {
+        public AgilityDexEffect() : base(0, 1.05f) { }
+
+        public override float PrimaryStatMultiplierModifier(Unit unit, BaseEnums.PrimaryStat stat)
+            => unit == Target && stat == BaseEnums.PrimaryStat.DEX ? 1.05f : 1f;
     }
 
     /// <summary>Lv.10: 최대 체력 -25%, 방어력 20% 무시.</summary>

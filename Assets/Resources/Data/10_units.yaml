@@ -85,6 +85,92 @@ units:
     portrait: SEI_PORTRAIT
     standing: SEI_STANDING
 
+  - id: 4
+    name: 가우디
+    characterType: Support
+    element: Dendro
+    startingProficiencies: [Longsword]
+    startingItemIds: [4102]
+    tags: [Vaitica, Akasha, Human]
+    canStartAsMain: false
+    canStartAsSupport: true
+    canUseInInfinite: false
+    mainStat: INT
+    subStat: ""
+    subStats: []
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.00
+    strBase: 10
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 14
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 16
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 24
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 12
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes:
+      passive: 204
+      normal: 4
+      ultimate: 4
+    codeStages:
+      passive: 1
+      normal: 1
+      ultimate: 1
+    # 해금 패시브는 아직 기획되지 않았다. 고유 P/N/U만 우선 구현한다.
+    levelPassives: []
+    portrait: GAUDI_PORTRAIT
+    standing: GAUDI_STANDING
+
+  - id: 5
+    name: 라이트
+    characterType: Support
+    element: Anemo
+    startingProficiencies: [Orb, Shield, LightArmor]
+    startingItemIds: [4109]
+    tags: [Akasha, Human]
+    canStartAsMain: false
+    canStartAsSupport: true
+    canUseInInfinite: false
+    mainStat: CON
+    subStat: DEX
+    subStats: [DEX, INT]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.05
+    strBase: 10
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 18
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 24
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 18
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 12
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes:
+      passive: 205
+      normal: 5
+      ultimate: 5
+    codeStages:
+      passive: 1
+      normal: 1
+      ultimate: 1
+    # 기본 능력치·해금 패시브와 플라이어의 독립 행동 규칙은 임시안이다.
+    levelPassives: []
+    portrait: LIGHT_PORTRAIT
+    standing: LIGHT_STANDING
+
   - id: 2
     name: 시
     characterType: Locked
@@ -329,7 +415,7 @@ units:
 
   # 그리스 미해금. 치유와 공격을 겸하는 하이브리드 지원가.
   - id: 24
-    name: 아스클레피오
+    name: 아스클레피아
     characterType: Locked
     element: Electro
     startingProficiencies: [Spear]
@@ -595,14 +681,14 @@ units:
     portrait: TSUKUYOMI_PORTRAIT
     standing: TSUKUYOMI_STANDING
 
-  # ── 보관: 획득 경로 없음 (노르드 테마 제거) ──────────────────────
+  # ── 노르드 스타터 ─────────────────────────────────────────────
   - id: 80
     name: 수르트
     characterType: Starter
     element: Pyro
-    startingProficiencies: [Longsword, Mace, HeavyArmor]
-    startingItemIds: [4102]
-    tags: [Nord]
+    startingProficiencies: [Greatsword, MediumArmor]
+    startingItemIds: [4103]
+    tags: [Nord, Giant]
     canStartAsMain: true
     canStartAsSupport: false
     canUseInInfinite: true
@@ -626,9 +712,6 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    ultimateResourceType: Stack
-    ultimateResourceName: 라그나로크
-    ultimateResourceMax: 6
     codes:
       passive: 280
       normal: 80
@@ -904,19 +987,19 @@ units:
     name: 스카디
     characterType: Support
     element: Cryo
-    startingProficiencies: [Orb, MediumArmor]
+    startingProficiencies: [Orb, Shield, HeavyArmor]
     startingItemIds: [4109]
-    tags: [Nord]
+    tags: [Nord, Giant]
     canStartAsMain: false
     canStartAsSupport: true
     canUseInInfinite: false
-    mainStat: CON
-    subStat: INT
-    subStats: [INT]
+    mainStat: STR
+    subStat: CON
+    subStats: [CON]
     mainStatTrainingBonus: 0.20
     subStatTrainingBonus: 0.10
     strBase: 10
-    strIncrementLvl: 1
+    strIncrementLvl: 2
     strIncrementUpgrade: 1
     dexBase: 12
     dexIncrementLvl: 1
@@ -925,7 +1008,7 @@ units:
     conIncrementLvl: 2
     conIncrementUpgrade: 1
     intBase: 18
-    intIncrementLvl: 2
+    intIncrementLvl: 1
     intIncrementUpgrade: 1
     lukBase: 12
     lukIncrementLvl: 1
@@ -936,7 +1019,7 @@ units:
       - { codeId: 39, unlockLevel: 4,  stage: 1 }   # 거인
       - { codeId: 74, unlockLevel: 10, stage: 1 }   # 원소 숙련 - 얼음
       - { codeId: 75, unlockLevel: 12, stage: 1 }   # 원소 친화 - 얼음
-      - { codeId: 6,  unlockLevel: 38, stage: 1 }   # 철벽
+      - { codeId: 6,  unlockLevel: 30, stage: 1 }   # 철벽
       - { codeId: 76, unlockLevel: 60, stage: 1 }   # 원소술사
     portrait: SKADI_PORTRAIT
     standing: SKADI_STANDING

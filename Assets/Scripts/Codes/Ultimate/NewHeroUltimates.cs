@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Codes.Base;
+using Codes.Passive;
+using Combat;
 using Effects.Buffs;
 using Entities;
 using Managers;
@@ -12,6 +14,199 @@ using Effects.Projectiles;
 
 namespace Codes.Ultimate
 {
+    /// <summary>
+    /// 라이트 U — 하늘을 나는 꿈.
+    /// 최대 마나가 가장 큰 아군에게 라이트 INT만큼 마나를 주고, 아군 전체의 부착 원소를
+    /// 바람 하나로 교체한다. 위대한 비행 3스택을 소비했다면 부정적 상태도 모두 제거한다.
+    ///
+    /// 원소 교체는 <b>시전 시점 한 번</b>이다. 지속 효과가 아니므로 이후에 붙는 원소는 그대로 남는다.
+    /// 걷어내는 것은 부착된 원소뿐이라 아군의 고유 원소(속성)는 건드리지 않는다 —
+    /// 바람이 만료되면 부착이 없는 상태로 돌아갈 뿐이다.
+    /// </summary>
+    public sealed class LightFlyingDream : UltimateCode
+    {
+        public LightFlyingDream(UltimateCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Ultimate;
+            CodeName = "하늘을 나는 꿈";
+            Cooldown = 4;
+            CastingDelay = 0.5f;
+        }
+
+        public override void CastCode()
+        {
+            if (!HasValidTarget()) return;
+            Caster.isCasting = true;
+            CurrSkillCoroutine = Caster.StartCoroutine(SkillCoroutine());
+        }
+
+        protected override IEnumerator SkillCoroutine()
+        {
+            bool cast = false;
+            yield return WaitForCast(result => cast = result);
+            if (!cast)
+            {
+                StopCode();
+                yield break;
+            }
+
+            List<Unit> allies = CombatTargets.AliveAlliesIncludingSelf(Caster);
+
+            if (allies.Count > 0)
+            {
+                int maximum = allies.Max(EffectiveMaximumMana);
+                List<Unit> candidates = allies.Where(unit => EffectiveMaximumMana(unit) == maximum).ToList();
+                Unit manaTarget = candidates[UnityEngine.Random.Range(0, candidates.Count)];
+                if (manaTarget.UltimateResourceType == BaseEnums.UltimateResourceType.Mana)
+                    manaTarget.AddUltimateResource(Mathf.Max(0, Caster.GetBaseInt()));
+            }
+
+            bool purify = Caster.ActivePassiveCodes
+                .OfType<LightGreatFlight>()
+                .FirstOrDefault()
+                ?.TryConsumePurification() == true;
+
+            foreach (Unit ally in allies)
+            {
+                foreach (BaseEnums.UnitElement element in AttachableElements)
+                {
+                    ally.RemoveCombatElement(element);
+                }
+
+                if (purify) ally.RemoveAllNegativeStatuses();
+                ally.GrantCombatElement(
+                    BaseEnums.UnitElement.Anemo,
+                    Unit.CommonElementAuraDuration,
+                    Caster);
+            }
+
+            StopCode();
+        }
+
+        /// <summary>부착 가능한 원소 목록. 시전마다 열거형을 다시 훑지 않도록 한 번만 만든다.</summary>
+        private static readonly BaseEnums.UnitElement[] AttachableElements =
+            Enum.GetValues(typeof(BaseEnums.UnitElement))
+                .Cast<BaseEnums.UnitElement>()
+                .Where(element => element != BaseEnums.UnitElement.None)
+                .ToArray();
+
+        private static int EffectiveMaximumMana(Unit unit)
+            => unit != null && unit.UltimateResourceType == BaseEnums.UltimateResourceType.Mana
+                ? unit.ManaMax
+                : 0;
+
+        public override void StopCode()
+        {
+            if (Caster == null) return;
+            Caster.ultimateCooldown = Cooldown;
+            Caster.isCasting = false;
+        }
+
+        public override bool HasValidTarget() => Caster != null && Caster.isActive;
+    }
+
+    /// <summary>플라이어 U(500) — 적 전체에게 INT 위력 80. 소환수 공격이다.</summary>
+    public sealed class FlyerSkyfall : SimpleUltimate
+    {
+        private const int SkyfallPower = 80;
+
+        public FlyerSkyfall(UltimateCodeContext context) : base(context, "낙하", 4, 0.4f)
+        {
+            Power = SkyfallPower;
+            CodeTags = new List<int> { DamageTag.Special, DamageTag.NonContactAttack };
+        }
+
+        protected override void Resolve()
+        {
+            bool isCrit = UnityEngine.Random.value <= Caster.CritChanceCurr;
+            float crit = isCrit ? Caster.CritMultiplierCurr : 1f;
+            int damage = Mathf.Max(1, Mathf.RoundToInt(
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.INT)
+                * crit * Summons.DamageMultiplier(Caster.SummonOwner)));
+
+            foreach (Unit target in Enemies())
+            {
+                target.TakeDamage(new DamageContext(
+                    Caster, damage, BaseEnums.CodeType.Ultimate,
+                    new List<int>
+                    {
+                        DamageTag.AllTarget, DamageTag.UltAttack, DamageTag.SummonAttack,
+                        DamageTag.Special, DamageTag.NonContactAttack,
+                    },
+                    isCrit));
+            }
+        }
+    }
+
+    /// <summary>가우디 U — 적 전체에게 INT×0.8 피해 후 풀 원소 부착.</summary>
+    public sealed class GaudiImmortalLegacy : UltimateCode
+    {
+        public GaudiImmortalLegacy(UltimateCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Ultimate;
+            CodeName = "불멸의 유산";
+            Cooldown = 4;
+            CastingDelay = 0.5f;
+            Power = 80;
+            CodeTags = new List<int> { DamageTag.Special, DamageTag.NonContactAttack };
+        }
+
+        public override void CastCode()
+        {
+            if (!HasValidTarget()) return;
+            Caster.isCasting = true;
+            CurrSkillCoroutine = Caster.StartCoroutine(SkillCoroutine());
+        }
+
+        protected override IEnumerator SkillCoroutine()
+        {
+            bool cast = false;
+            yield return WaitForCast(result => cast = result);
+            if (!cast)
+            {
+                StopCode();
+                yield break;
+            }
+
+            List<Unit> targets = CombatTargets.AliveEnemies(Caster);
+            if (targets.Count == 0)
+            {
+                StopCode();
+                yield break;
+            }
+
+            bool isCrit = UnityEngine.Random.value <= Caster.CritChanceCurr;
+            float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
+            int damage = Mathf.Max(1, Mathf.RoundToInt(
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.INT) * critMultiplier));
+            foreach (Unit target in targets)
+            {
+                target.TakeDamage(new DamageContext(
+                    Caster, damage, BaseEnums.CodeType.Ultimate,
+                    new List<int>
+                    {
+                        DamageTag.AllTarget, DamageTag.UltAttack,
+                        DamageTag.Special, DamageTag.NonContactAttack,
+                    },
+                    isCrit));
+                if (target.isActive)
+                    target.GrantCombatElement(
+                        BaseEnums.UnitElement.Dendro, Unit.CommonElementAuraDuration, Caster);
+            }
+            StopCode();
+        }
+
+        public override void StopCode()
+        {
+            if (Caster == null) return;
+            Caster.ultimateCooldown = Cooldown;
+            Caster.isCasting = false;
+        }
+
+        public override bool HasValidTarget()
+            => Caster != null && Caster.isActive && CombatTargets.AliveEnemies(Caster).Count > 0;
+    }
+
     public sealed class AsclepiusFlask : UltimateCode
     {
         public AsclepiusFlask(UltimateCodeContext context) : base(context)

@@ -20,6 +20,7 @@ namespace Managers
         // 주/부 스탯. 주스탯이 위력(AttackPower)의 근거이며 ×1.2, 부스탯은 ×1.1 배율을 받는다.
         public string mainStat;
         public string subStat;
+        public List<string> subStats;
         public int strBase;
         public int strIncrementLvl;
         public int strIncrementUpgrade;

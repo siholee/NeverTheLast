@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Codes.Base;
+using Codes.Normal;
 using Effects.Base;
 using Effects.Buffs;
 using Effects.Negative;
@@ -11,6 +12,164 @@ using UnityEngine;
 
 namespace Codes.Passive
 {
+    public static class LightCombat
+    {
+        public const string GreatFlightResource = "light_great_flight";
+        public const int GreatFlightMaximum = 12;
+        public const int PurificationCost = 3;
+    }
+
+    /// <summary>
+    /// 라이트 고유 P — 위대한 비행.
+    /// 필드 아군의 발동형 궁극기마다 1스택을 얻고, 라이트의 궁극기가 원소를 정화할 때
+    /// 3스택을 소비해 부정적 상태까지 함께 제거한다.
+    /// </summary>
+    public sealed class LightGreatFlight : UniquePassiveCode
+    {
+        private Action<Unit> _ultimateHandler;
+        private Action<EventContext> _cleanupHandler;
+        private bool _registered;
+
+        public LightGreatFlight(PassiveCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Passive;
+            CodeName = "위대한 비행";
+            IgnoresActivationChance = true;
+        }
+
+        public override void CastCode()
+        {
+            if (Caster == null || _registered) return;
+
+            Caster.SetCombatResourceMaximum(
+                LightCombat.GreatFlightResource,
+                LightCombat.GreatFlightMaximum,
+                resetCurrent: true);
+            _ultimateHandler = OnActiveUltimateActivated;
+            _cleanupHandler = _ => StopCode();
+            Unit.AnyActiveUltimateActivated += _ultimateHandler;
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = true;
+        }
+
+        private void OnActiveUltimateActivated(Unit user)
+        {
+            if (Caster == null || !_registered || !Caster.isActive || user == null || !user.IsOnField ||
+                user.IsEnemy != Caster.IsEnemy || user.ActiveUltimateCode?.IsAutoCast != true) return;
+
+            Caster.AddCombatResource(LightCombat.GreatFlightResource, 1);
+        }
+
+        public bool TryConsumePurification()
+            => Caster != null &&
+               Caster.TryConsumeCombatResource(
+                   LightCombat.GreatFlightResource,
+                   LightCombat.PurificationCost);
+
+        public override void StopCode()
+        {
+            if (Caster == null) return;
+            if (_registered)
+            {
+                Unit.AnyActiveUltimateActivated -= _ultimateHandler;
+                Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+                Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            }
+
+            Caster.SetCombatResourceMaximum(
+                LightCombat.GreatFlightResource,
+                LightCombat.GreatFlightMaximum,
+                resetCurrent: true);
+            _registered = false;
+        }
+    }
+
+    /// <summary>
+    /// 가우디 고유 P — 사그리다 파밀리아.
+    /// 일반공격 적중마다 전투 자원을 쌓고 6스택에서 다음 일반공격을 강화한다.
+    /// 바위 원소가 가우디 자신이나 적중 대상에게 있으면 획득량이 2가 된다.
+    /// </summary>
+    public sealed class GaudiSagradaFamilia : UniquePassiveCode
+    {
+        public const string ResourceId = "gaudi_sagrada_familia";
+        public const int MaxStacks = 6;
+
+        private Action<EventContext> _hitHandler;
+        private Action<EventContext> _cleanupHandler;
+        private bool _registered;
+
+        public bool IsEmpowered => Caster != null &&
+            Caster.GetCombatResource(ResourceId) >= MaxStacks;
+
+        public GaudiSagradaFamilia(PassiveCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Passive;
+            CodeName = "사그리다 파밀리아";
+            IgnoresActivationChance = true;
+        }
+
+        public override void CastCode()
+        {
+            if (Caster == null || _registered) return;
+
+            Caster.SetCombatResourceMaximum(ResourceId, MaxStacks, resetCurrent: true);
+            _hitHandler = OnNormalAttackHit;
+            _cleanupHandler = _ => StopCode();
+            Caster.AddListener(BaseEnums.UnitEventType.OnNormalAttackHit, _hitHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = true;
+            RefreshNormalAttackName();
+        }
+
+        private void OnNormalAttackHit(EventContext context)
+        {
+            Unit target = context?.Grantor;
+            if (Caster == null || target == null || context.DmgCtx == null ||
+                context.DmgCtx.ResolvedDamage <= 0) return;
+
+            // 강화 일반공격(N+)은 충전 스택을 소비할 뿐, 각 타격으로 다시 쌓지 않는다.
+            if (Caster.ActiveNormalCode is GaudiNormalAttack { IsEmpoweredAttack: true }) return;
+
+            int gain = Caster.HasCombatElement(BaseEnums.UnitElement.Geo) ||
+                       target.HasCombatElement(BaseEnums.UnitElement.Geo)
+                ? 2
+                : 1;
+            int stacks = Caster.AddCombatResource(ResourceId, gain);
+            RefreshNormalAttackName();
+            Debug.Log($"[사그리다 파밀리아] {Caster.UnitName} {stacks}/{MaxStacks} (+{gain})");
+        }
+
+        /// <summary>강화 일반공격이 실제 대상을 확보한 순간 6스택을 소비한다.</summary>
+        public bool TryConsumeEmpowerment()
+        {
+            if (!IsEmpowered || !Caster.TryConsumeCombatResource(ResourceId, MaxStacks)) return false;
+            RefreshNormalAttackName();
+            return true;
+        }
+
+        private void RefreshNormalAttackName()
+        {
+            if (Caster?.ActiveNormalCode != null)
+                Caster.ActiveNormalCode.CodeName = IsEmpowered ? "강화 일반공격" : "일반공격";
+        }
+
+        public override void StopCode()
+        {
+            if (Caster == null) return;
+            if (_registered)
+            {
+                Caster.RemoveListener(BaseEnums.UnitEventType.OnNormalAttackHit, _hitHandler);
+                Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+                Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            }
+            Caster.SetCombatResourceMaximum(ResourceId, MaxStacks, resetCurrent: true);
+            _registered = false;
+            RefreshNormalAttackName();
+        }
+    }
+
     /// <summary>쿠베라·바루나·오르페우스·스사노오가 쓰는 상태 ID 대역.</summary>
     public static class NewSupportStatusIds
     {
@@ -228,7 +387,7 @@ namespace Codes.Passive
     ///   2. 물·바람·번개가 부착된 적을 때릴 때 방어력 20%를 무시한다.
     ///   3. 상시형 궁극기 `천총운검`을 굴린다 — 에어본 상태의 적이 있으면 즉시 벤다.
     ///
-    /// 3번을 여기서 처리하는 것은 수르트의 황혼이 라그나로크를 관리하는 것과 같은 구조다.
+    /// 3번은 상시형 궁극기가 스케줄러 시전을 쓰지 않으므로 고유 패시브에서 직접 처리한다.
     /// </summary>
     public sealed class SusanooRaijin : UniquePassiveCode
     {

@@ -871,11 +871,11 @@ namespace Managers
         {
             if (!caster.IsEnemy)
             {
-                return enemyList.Where(e => e.isActive && !e.IsUntargetable && e.currentCell.yPos > 0).ToList();
+                return enemyList.Where(e => e.IsOnField && !e.IsUntargetable).ToList();
             }
             else
             {
-                return heroList.Where(h => h.isActive && !h.IsUntargetable && h.currentCell.yPos > 0).ToList();
+                return heroList.Where(h => h.IsOnField && !h.IsUntargetable).ToList();
             }
         }
 
@@ -883,11 +883,11 @@ namespace Managers
         {
             if (!caster.IsEnemy)
             {
-                return heroList.Where(e => e.isActive && e.currentCell.yPos > 0).ToList();
+                return heroList.Where(e => e.IsOnField).ToList();
             }
             else
             {
-                return enemyList.Where(h => h.isActive && h.currentCell.yPos > 0).ToList();
+                return enemyList.Where(h => h.IsOnField).ToList();
             }
         }
         
@@ -1001,11 +1001,54 @@ namespace Managers
             return true; // 모든 적 측 셀이 비어있음
         }
 
+        /// <summary>
+        /// 칸을 차지하지 않는 소환수를 전장에 세운다.
+        ///
+        /// 격자에 자리를 잡지 않으므로 <see cref="SpawnUnit"/>과 달리 <see cref="Cell"/>을 거치지 않는다.
+        /// 진영 목록에만 올려 두면 대상 지정(<c>Target</c>)과 행동 순서(<c>ActionScheduler</c>)가
+        /// <see cref="Unit.IsOnField"/>를 통해 자동으로 집어 간다.
+        /// </summary>
+        public Unit SpawnSummon(Unit owner, Combat.SummonSpec spec)
+        {
+            if (owner == null || spec == null || !owner.IsOnField) return null;
+
+            GameObject prefab = owner.IsEnemy ? enemyPrefab : heroPrefab;
+            if (prefab == null) return null;
+
+            Vector3 origin = owner.currentCell != null ? owner.currentCell.transform.position : Vector3.zero;
+            GameObject summonObj = Instantiate(prefab, origin, Quaternion.identity);
+            summonObj.name = $"Summon_{spec.Name}";
+            summonObj.transform.SetParent(owner.IsEnemy ? Field : Field);
+
+            Unit summon = summonObj.GetComponent<Unit>();
+            if (summon == null)
+            {
+                Debug.LogError($"[GridManager] 소환수 프리팹에 Unit이 없습니다: {spec.Name}");
+                Destroy(summonObj);
+                return null;
+            }
+
+            if (owner.IsEnemy) enemyList.Add(summon);
+            else heroList.Add(summon);
+
+            summon.currentCell = null;   // 칸을 차지하지 않는다
+            summon.SpawnAsSummon(owner, spec);
+            Entities.View.SummonCardView.Attach(summon, owner);
+            Debug.Log($"[소환] {owner.UnitName}이(가) {spec.Name}을(를) 불러냈다");
+            return summon;
+        }
+
         public void OnRoundEnd()
         {
             foreach (Unit unit in heroList.Concat(enemyList).Where(unit => unit != null && unit.isActive).ToList())
             {
                 unit.Invoke(BaseEnums.UnitEventType.OnRoundEnd, new EventContext(unit));
+            }
+
+            // 소환수는 라운드를 넘기지 않는다. 소환자가 살아남아도 함께 걷는다.
+            foreach (Unit unit in heroList.Concat(enemyList).Where(unit => unit != null).ToList())
+            {
+                unit.DismissSummons();
             }
 
             // 다시 편성할 수 있도록 대기석을 되돌린다.
@@ -1025,7 +1068,8 @@ namespace Managers
         {
             if (unit == null) return;
 
-            if (unit.isActive && unit.currentCell != null)
+            // 소환수는 칸이 없다. 칸 유무로 거르면 영영 비활성화되지 않는다.
+            if (unit.isActive)
             {
                 unit.DeactivateUnit();
             }

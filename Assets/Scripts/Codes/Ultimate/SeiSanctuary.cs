@@ -59,6 +59,11 @@ namespace Codes.Ultimate
 
             foreach (Unit ally in Target.GetAllAllies(Caster).Where(unit => unit != null && unit.isActive))
             {
+                // 속성이 바위인 아군에게도 그대로 부착한다. 고유 원소는 판정 축에만 있어
+                // 공명(부착된 바위 + 부착된 바위)의 재료가 아니다.
+                ally.GrantCombatElement(
+                    BaseEnums.UnitElement.Geo, Unit.CommonElementAuraDuration, Caster);
+
                 var status = BuffStatus.Create(
                     StatusId, StatusKey, CodeName,
                     Caster, ally, new MarkerBuffEffect(),

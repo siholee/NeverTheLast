@@ -44,7 +44,7 @@ namespace Managers
         public int ultimateResourceMax;
         public Dictionary<string, int> codes;
         public Dictionary<string, int> codeStages;
-        // 레벨 해금 패시브: codes.passive 외에 레벨과 INT 코드 용량을 만족하면 해금되는 목록.
+        // 레벨 해금 패시브: codes.passive 외에 레벨 조건을 만족하면 해금되는 목록.
         public List<LevelPassiveData> levelPassives;
         public string portrait;
         // 비주얼 노벨/캐릭터 소개용 세로 전신 일러스트. 없으면 portrait로 폴백한다.

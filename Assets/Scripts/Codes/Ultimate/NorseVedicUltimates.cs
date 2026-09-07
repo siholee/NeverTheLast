@@ -133,7 +133,7 @@ namespace Codes.Ultimate
         }
     }
 
-    /// <summary>스카디 U — 고드름 스파이크. 적 전체에 INT 위력 80 + 얼음 원소 부착.</summary>
+    /// <summary>스카디 U — 고드름 스파이크. 적 전체에 STR 위력 80 + 얼음 원소 부착.</summary>
     public sealed class SkadiIcicleSpike : SimpleUltimate
     {
         private const int SpikePower = 80;
@@ -146,12 +146,12 @@ namespace Codes.Ultimate
             bool isCrit = Random.value <= Caster.CritChanceCurr;
             float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
             int damage = Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(SpikePower, BaseEnums.PrimaryStat.INT) * critMultiplier));
+                Caster.SkillDamage(SpikePower, BaseEnums.PrimaryStat.STR) * critMultiplier));
 
             var tags = new List<int>
             {
                 DamageTag.AllTarget, DamageTag.UltAttack,
-                DamageTag.NonContactAttack, DamageTag.Special,
+                DamageTag.ContactAttack, DamageTag.Physical,
             };
 
             foreach (Unit target in Enemies())
@@ -324,7 +324,7 @@ namespace Codes.Ultimate
     /// <summary>
     /// 스사노오 U — 천총운검. 자동 시전하지 않는 <b>상시형 궁극기</b>다.
     /// 실제 발동 조건과 처리는 고유 패시브 <c>SusanooRaijin</c>이 관리한다.
-    /// 수르트의 라그나로크와 같은 취급이며 마나를 쓰지 않는다.
+    /// 마나를 쓰지 않으며 고유 패시브가 조건을 감시한다.
     /// </summary>
     public sealed class SusanooAmenoMurakumo : UltimateCode
     {

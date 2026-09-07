@@ -115,7 +115,7 @@ namespace Managers
         /// <b>누군가 행동하는 동안에는 멈춘다.</b> 연출 길이·프레임 수는 영향을 주지 않는다.
         /// 추가공격·패시브 발동처럼 AV를 소비하지 않는 행동도 시간을 흘리지 않는다.
         ///
-        /// 턴으로 세기 어색한 <b>연속적인 효과</b>(수르트 황혼의 점증 자기피해)가 이 축을 쓴다.
+        /// 초 단위로 기획된 주기형 효과가 턴 경계에서 이 축을 누적한다.
         /// </summary>
         public float CombatSeconds { get; private set; }
 
@@ -346,11 +346,9 @@ namespace Managers
             GridManager grid = GridManager.Instance;
             if (grid == null) return Enumerable.Empty<Unit>();
 
+            // 소환수도 자기 DEX로 행동 순서를 얻는다. IsOnField가 칸 유무를 흡수한다.
             return grid.heroList.Concat(grid.enemyList)
-                .Where(unit => unit != null
-                               && unit.isActive
-                               && unit.currentCell != null
-                               && unit.currentCell.yPos > 0);
+                .Where(unit => unit != null && unit.IsOnField);
         }
 
         /// <summary>새로 등장했거나 사라진 유닛을 AV 표에 반영한다.</summary>

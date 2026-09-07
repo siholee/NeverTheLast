@@ -98,6 +98,14 @@ namespace Effects.Negative
                 false);
         }
 
+        /// <summary>CON 비교 없이 명시한 턴 수만큼 기절시킨다.</summary>
+        public static bool ApplyFixedStun(Unit target, Unit source, int turns)
+        {
+            return ApplyControl(target, source, Mathf.Max(1, turns), StunStatusId, StunKey, "기절",
+                "행동할 수 없습니다. 피격과 대상 지정은 정상입니다.",
+                false);
+        }
+
         // ── 공통 ──────────────────────────────────────────────────
 
         private static bool ApplyControl(

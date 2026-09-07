@@ -13,8 +13,8 @@
 # 현재 운영 적 테마는 콜로세움(themeId 5), 로마 군단(themeId 6), 메히코(themeId 7), 아스완(themeId 8)이다.
 # 노르드·일본 테마의 적은 전용 스프라이트가 없어 제거된 상태다.
 #
-# 🔸 로마 군단 12종과 아스완의 일반 이단심문관은 기존 스프라이트를 임시로 돌려 쓴다.
-#    아스완 나머지 7종은 전용 자산을 적용했고, 호루스 조우는 영웅 호루스 자산을 의도적으로 재사용한다.
+# 🔸 로마 군단 12종은 기존 스프라이트를 임시로 돌려 쓴다.
+#    아스완 8종은 전용 자산을 적용했고, 호루스 조우는 영웅 호루스 자산을 의도적으로 재사용한다.
 
 enemies:
   # ── 콜로세움 테마 (themeId 5) ─────────────────────────────────────
@@ -847,7 +847,7 @@ enemies:
   # 뒤 절반(6~8스테이지)은 사령 — 쓰러뜨려도 되살아나고 스스로 수를 불리는 편성이다.
   # 9·10스테이지의 두 신이 그 둘을 한 번씩 극단까지 밀어 붙인다.
   #
-  # 일반 이단심문관만 전용 일러스트가 없어 기존 스프라이트를 임시로 사용한다.
+  # 파멸·종말 계열을 포함한 아스완 8종에 전용 일러스트를 사용한다.
 
   - id: 1050
     name: 파멸의 성기사
@@ -855,7 +855,7 @@ enemies:
     archetype: 7
     element: Pyro
     tier: normal
-    tags: [Aswan, Apostle]
+    tags: [Apostle]
     startingItemIds: [4103, 4114]
     startingProficiencies: [Greatsword, HeavyArmor]
     mainStat: STR
@@ -884,7 +884,7 @@ enemies:
     archetype: 7
     element: Pyro
     tier: elite
-    tags: [Aswan, Apostle]
+    tags: [Apostle]
     startingItemIds: [4103, 4114]
     startingProficiencies: [Greatsword, HeavyArmor]
     mainStat: STR
@@ -910,12 +910,12 @@ enemies:
     standing: APOCALYPSE_PALADIN_STANDING
 
   - id: 1051
-    name: 이단심문관
+    name: 파멸의 이단심문관
     themeId: 8
     archetype: 11
     element: Pyro
     tier: normal
-    tags: [Aswan, Apostle]
+    tags: [Apostle]
     startingItemIds: [4102, 4113]
     startingProficiencies: [Longsword, MediumArmor]
     mainStat: CON
@@ -932,8 +932,8 @@ enemies:
     codes: { passive: 1402, normal: 1402, ultimate: 1401 }
     levelPassives:
       - { codeId: 58, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
-    portrait: ASCLEPIUS_PORTRAIT
-    standing: ASCLEPIUS_STANDING
+    portrait: RUIN_INQUISITOR_PORTRAIT
+    standing: RUIN_INQUISITOR_STANDING
 
   - id: 2021
     name: 종말의 이단심문관
@@ -941,7 +941,7 @@ enemies:
     archetype: 11
     element: Pyro
     tier: elite
-    tags: [Aswan, Apostle]
+    tags: [Apostle]
     startingItemIds: [4102, 4113]
     startingProficiencies: [Longsword, MediumArmor]
     mainStat: CON
@@ -1116,3 +1116,762 @@ enemies:
       - { codeId: 1410, unlockLevel: 70, stage: 1 }   # 지옥불
     portrait: AMUN_RA_PORTRAIT
     standing: AMUN_RA_STANDING
+
+  # ── 범용 거인 (themeId 0: 테마 자동 편성 제외) ────────────────────
+  # 향후 테마의 stagePatterns.enemyIds/eliteId 또는 해당 테마 ID를 지정해 재사용한다.
+  - id: 1060
+    name: 파멸의 거인
+    themeId: 0
+    archetype: 7
+    element: Pyro
+    tier: normal
+    tags: [Apostle, Giant, Machine]
+    startingItemIds: [4105, 4114]
+    startingProficiencies: [Mace, HeavyArmor]
+    mainStat: STR
+    subStat: CON
+    strBase: 24
+    strIncrementLvl: 3
+    dexBase: 7
+    dexIncrementLvl: 1
+    conBase: 36
+    conIncrementLvl: 4
+    intBase: 6
+    lukBase: 8
+    lukIncrementLvl: 1
+    codes: { passive: 1420, normal: 1420, ultimate: 1420 }
+    levelPassives:
+      - { codeId: 39,   unlockLevel: 10, stage: 1 }   # 거인
+      - { codeId: 1423, unlockLevel: 20, stage: 1 }   # 파쇄
+      - { codeId: 20,   unlockLevel: 30, stage: 1 }   # 중갑병
+      - { codeId: 1424, unlockLevel: 40, stage: 1 }   # 강타
+      - { codeId: 6,    unlockLevel: 50, stage: 1 }   # 철벽
+      - { codeId: 1407, unlockLevel: 60, stage: 1 }   # 까칠한 피부
+    portrait: RUIN_GIANT_PORTRAIT
+    standing: RUIN_GIANT_STANDING
+
+  - id: 2030
+    name: 종말의 거인
+    themeId: 0
+    archetype: 7
+    element: Pyro
+    tier: elite
+    tags: [Apostle, Giant, Machine]
+    startingItemIds: [4105, 4114]
+    startingProficiencies: [Mace, HeavyArmor]
+    mainStat: STR
+    subStat: CON
+    strBase: 36
+    strIncrementLvl: 4
+    dexBase: 9
+    dexIncrementLvl: 1
+    conBase: 58
+    conIncrementLvl: 6
+    intBase: 8
+    lukBase: 10
+    lukIncrementLvl: 1
+    codes: { passive: 1421, normal: 1421, ultimate: 1421 }
+    levelPassives:
+      - { codeId: 39,   unlockLevel: 10, stage: 1 }   # 거인
+      - { codeId: 1423, unlockLevel: 20, stage: 1 }   # 파쇄
+      - { codeId: 20,   unlockLevel: 30, stage: 1 }   # 중갑병
+      - { codeId: 1424, unlockLevel: 40, stage: 1 }   # 강타
+      - { codeId: 6,    unlockLevel: 50, stage: 1 }   # 철벽
+      - { codeId: 1407, unlockLevel: 60, stage: 1 }   # 까칠한 피부
+      - { codeId: 7,    unlockLevel: 70, stage: 1 }   # 사전준비
+      - { codeId: 1425, unlockLevel: 80, stage: 1 }   # 병상첨병
+      - { codeId: 1444, unlockLevel: 90, stage: 1 }   # 파괴광선 — 파쇄 대체
+    portrait: APOCALYPSE_GIANT_PORTRAIT
+    standing: APOCALYPSE_GIANT_STANDING
+
+  - id: 2031
+    name: 혹한의 거인
+    themeId: 0
+    archetype: 7
+    element: Cryo
+    tier: elite
+    tags: [Apostle, Giant, Machine]
+    startingItemIds: [4105, 4114]
+    startingProficiencies: [Mace, HeavyArmor]
+    mainStat: STR
+    subStat: CON
+    strBase: 34
+    strIncrementLvl: 4
+    dexBase: 9
+    dexIncrementLvl: 1
+    conBase: 56
+    conIncrementLvl: 6
+    intBase: 8
+    lukBase: 10
+    lukIncrementLvl: 1
+    codes: { passive: 1422, normal: 1421, ultimate: 1421 }
+    levelPassives:
+      - { codeId: 39,   unlockLevel: 10, stage: 1 }   # 거인
+      - { codeId: 74,   unlockLevel: 20, stage: 1 }   # 원소 숙련 - 얼음
+      - { codeId: 20,   unlockLevel: 30, stage: 1 }   # 중갑병
+      - { codeId: 1424, unlockLevel: 40, stage: 1 }   # 강타
+      - { codeId: 6,    unlockLevel: 50, stage: 1 }   # 철벽
+      - { codeId: 75,   unlockLevel: 60, stage: 1 }   # 원소 친화 - 얼음
+      - { codeId: 1426, unlockLevel: 70, stage: 1 }   # 적응력
+      - { codeId: 1425, unlockLevel: 80, stage: 1 }   # 병상첨병
+    portrait: FROST_GIANT_PORTRAIT
+    standing: FROST_GIANT_STANDING
+
+  # ── 범용 씨앗 (themeId 0: 테마 자동 편성 제외) ────────────────────
+  # 전·후열 배치에 따라 방어/사격 모드가 바뀌는 소형 기계 병종이다.
+  - id: 1061
+    name: 공허의 씨앗
+    themeId: 0
+    archetype: 10
+    element: Geo
+    tier: normal
+    tags: [VoidMonster, Machine]
+    startingItemIds: [4107, 4114]
+    startingProficiencies: [Shortbow, HeavyArmor]
+    mainStat: CON
+    subStats: [DEX, LUK]
+    strBase: 8
+    strIncrementLvl: 1
+    dexBase: 18
+    dexIncrementLvl: 2
+    conBase: 24
+    conIncrementLvl: 3
+    intBase: 6
+    lukBase: 14
+    lukIncrementLvl: 1
+    codes: { passive: 1430, normal: 1430, ultimate: 1430 }
+    levelPassives:
+      - { codeId: 45,   unlockLevel: 10, stage: 1 }   # 민첩함 — DEX +5%
+      - { codeId: 1433, unlockLevel: 20, stage: 1 }   # 자폭
+      - { codeId: 1218, unlockLevel: 30, stage: 1 }   # 야습
+      - { codeId: 69,   unlockLevel: 40, stage: 1 }   # 기습
+      - { codeId: 17,   unlockLevel: 50, stage: 1 }   # 예리함
+    portrait: VOID_SEED_PORTRAIT
+    standing: VOID_SEED_STANDING
+
+  - id: 2032
+    name: 종말의 씨앗
+    themeId: 0
+    archetype: 10
+    element: Geo
+    tier: elite
+    tags: [Apostle, Machine]
+    startingItemIds: [4107, 4114]
+    startingProficiencies: [Shortbow, HeavyArmor]
+    mainStat: CON
+    subStats: [DEX, LUK]
+    strBase: 10
+    strIncrementLvl: 1
+    dexBase: 26
+    dexIncrementLvl: 3
+    conBase: 40
+    conIncrementLvl: 5
+    intBase: 8
+    lukBase: 18
+    lukIncrementLvl: 2
+    codes: { passive: 1431, normal: 1430, ultimate: 1430 }
+    levelPassives:
+      - { codeId: 45,   unlockLevel: 10, stage: 1 }   # 민첩함 — DEX +5%
+      - { codeId: 1433, unlockLevel: 20, stage: 1 }   # 자폭
+      - { codeId: 1218, unlockLevel: 30, stage: 1 }   # 야습
+      - { codeId: 69,   unlockLevel: 40, stage: 1 }   # 기습
+      - { codeId: 17,   unlockLevel: 50, stage: 1 }   # 예리함
+      - { codeId: 1434, unlockLevel: 60, stage: 1 }   # 대폭발(금) — 자폭 대체
+      - { codeId: 1435, unlockLevel: 80, stage: 1 }   # 오버로드
+    portrait: APOCALYPSE_SEED_PORTRAIT
+    standing: APOCALYPSE_SEED_STANDING
+
+  - id: 2033
+    name: 혹한의 씨앗
+    themeId: 0
+    archetype: 10
+    element: Cryo
+    tier: elite
+    tags: [Apostle, Machine]
+    startingItemIds: [4107, 4114]
+    startingProficiencies: [Shortbow, HeavyArmor]
+    mainStat: CON
+    subStats: [DEX, LUK]
+    strBase: 10
+    strIncrementLvl: 1
+    dexBase: 28
+    dexIncrementLvl: 3
+    conBase: 38
+    conIncrementLvl: 5
+    intBase: 8
+    lukBase: 18
+    lukIncrementLvl: 2
+    codes: { passive: 1432, normal: 1430, ultimate: 1431 }
+    levelPassives:
+      - { codeId: 45,   unlockLevel: 10, stage: 1 }   # 민첩함 — DEX +5%
+      - { codeId: 1433, unlockLevel: 20, stage: 1 }   # 자폭
+      - { codeId: 1436, unlockLevel: 30, stage: 1 }   # 서리광선
+      - { codeId: 17,   unlockLevel: 40, stage: 1 }   # 예리함
+      - { codeId: 69,   unlockLevel: 50, stage: 1 }   # 기습
+      - { codeId: 1218, unlockLevel: 60, stage: 1 }   # 야습
+    portrait: FROST_SEED_PORTRAIT
+    standing: FROST_SEED_STANDING
+
+  # ── 공허의 프리즘 (themeId 0: 테마 자동 편성 제외) ───────────────
+  # 팔레트 변형도 고유 원소는 Void다. 변형별 차이는 궁극기의 원소 부착뿐이다.
+  - id: 1062
+    name: 공허의 프리즘
+    themeId: 0
+    archetype: 11
+    element: Void
+    tier: normal
+    tags: [Monster, VoidMonster, VoidPrism]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: DEX
+    subStats: [INT, LUK]
+    strBase: 8
+    strIncrementLvl: 1
+    dexBase: 22
+    dexIncrementLvl: 2
+    conBase: 18
+    conIncrementLvl: 2
+    intBase: 18
+    intIncrementLvl: 2
+    lukBase: 14
+    lukIncrementLvl: 1
+    codes: { passive: 1440, normal: 1440, ultimate: 1440 }
+    levelPassives:
+      - { codeId: 45,   unlockLevel: 10, stage: 1 }   # 민첩함
+      - { codeId: 1441, unlockLevel: 20, stage: 1 }   # 공명
+      - { codeId: 1423, unlockLevel: 30, stage: 1 }   # 파쇄
+      - { codeId: 69,   unlockLevel: 40, stage: 1 }   # 기습
+      - { codeId: 1218, unlockLevel: 50, stage: 1 }   # 야습
+      - { codeId: 17,   unlockLevel: 60, stage: 1 }   # 예리함
+      - { codeId: 1442, unlockLevel: 70, stage: 1 }   # 분열
+      - { codeId: 1443, unlockLevel: 80, stage: 1 }   # 죽음의 메아리 — 공명 대체
+      - { codeId: 1444, unlockLevel: 90, stage: 1 }   # 파괴광선 — 파쇄 대체
+    portrait: VOID_PRISM_PORTRAIT
+    standing: VOID_PRISM_STANDING
+
+  - id: 1063
+    name: 공허의 프리즘 (불)
+    themeId: 0
+    archetype: 11
+    element: Void
+    tier: normal
+    tags: [Monster, VoidMonster, VoidPrism]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: DEX
+    subStats: [INT, LUK]
+    strBase: 8
+    strIncrementLvl: 1
+    dexBase: 22
+    dexIncrementLvl: 2
+    conBase: 18
+    conIncrementLvl: 2
+    intBase: 18
+    intIncrementLvl: 2
+    lukBase: 14
+    lukIncrementLvl: 1
+    codes: { passive: 1440, normal: 1440, ultimate: 1441 }
+    levelPassives:
+      - { codeId: 45, unlockLevel: 10, stage: 1 }
+      - { codeId: 1441, unlockLevel: 20, stage: 1 }
+      - { codeId: 1423, unlockLevel: 30, stage: 1 }
+      - { codeId: 69, unlockLevel: 40, stage: 1 }
+      - { codeId: 1218, unlockLevel: 50, stage: 1 }
+      - { codeId: 17, unlockLevel: 60, stage: 1 }
+      - { codeId: 1442, unlockLevel: 70, stage: 1 }
+      - { codeId: 1443, unlockLevel: 80, stage: 1 }
+      - { codeId: 1444, unlockLevel: 90, stage: 1 }
+    portrait: VOID_PRISM_PYRO_PORTRAIT
+    standing: VOID_PRISM_PYRO_STANDING
+
+  - id: 1064
+    name: 공허의 프리즘 (물)
+    themeId: 0
+    archetype: 11
+    element: Void
+    tier: normal
+    tags: [Monster, VoidMonster, VoidPrism]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: DEX
+    subStats: [INT, LUK]
+    strBase: 8
+    strIncrementLvl: 1
+    dexBase: 22
+    dexIncrementLvl: 2
+    conBase: 18
+    conIncrementLvl: 2
+    intBase: 18
+    intIncrementLvl: 2
+    lukBase: 14
+    lukIncrementLvl: 1
+    codes: { passive: 1440, normal: 1440, ultimate: 1442 }
+    levelPassives:
+      - { codeId: 45, unlockLevel: 10, stage: 1 }
+      - { codeId: 1441, unlockLevel: 20, stage: 1 }
+      - { codeId: 1423, unlockLevel: 30, stage: 1 }
+      - { codeId: 69, unlockLevel: 40, stage: 1 }
+      - { codeId: 1218, unlockLevel: 50, stage: 1 }
+      - { codeId: 17, unlockLevel: 60, stage: 1 }
+      - { codeId: 1442, unlockLevel: 70, stage: 1 }
+      - { codeId: 1443, unlockLevel: 80, stage: 1 }
+      - { codeId: 1444, unlockLevel: 90, stage: 1 }
+    portrait: VOID_PRISM_HYDRO_PORTRAIT
+    standing: VOID_PRISM_HYDRO_STANDING
+
+  - id: 1065
+    name: 공허의 프리즘 (바람)
+    themeId: 0
+    archetype: 11
+    element: Void
+    tier: normal
+    tags: [Monster, VoidMonster, VoidPrism]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: DEX
+    subStats: [INT, LUK]
+    strBase: 8
+    strIncrementLvl: 1
+    dexBase: 22
+    dexIncrementLvl: 2
+    conBase: 18
+    conIncrementLvl: 2
+    intBase: 18
+    intIncrementLvl: 2
+    lukBase: 14
+    lukIncrementLvl: 1
+    codes: { passive: 1440, normal: 1440, ultimate: 1443 }
+    levelPassives:
+      - { codeId: 45, unlockLevel: 10, stage: 1 }
+      - { codeId: 1441, unlockLevel: 20, stage: 1 }
+      - { codeId: 1423, unlockLevel: 30, stage: 1 }
+      - { codeId: 69, unlockLevel: 40, stage: 1 }
+      - { codeId: 1218, unlockLevel: 50, stage: 1 }
+      - { codeId: 17, unlockLevel: 60, stage: 1 }
+      - { codeId: 1442, unlockLevel: 70, stage: 1 }
+      - { codeId: 1443, unlockLevel: 80, stage: 1 }
+      - { codeId: 1444, unlockLevel: 90, stage: 1 }
+    portrait: VOID_PRISM_ANEMO_PORTRAIT
+    standing: VOID_PRISM_ANEMO_STANDING
+
+  - id: 1066
+    name: 공허의 프리즘 (번개)
+    themeId: 0
+    archetype: 11
+    element: Void
+    tier: normal
+    tags: [Monster, VoidMonster, VoidPrism]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: DEX
+    subStats: [INT, LUK]
+    strBase: 8
+    strIncrementLvl: 1
+    dexBase: 22
+    dexIncrementLvl: 2
+    conBase: 18
+    conIncrementLvl: 2
+    intBase: 18
+    intIncrementLvl: 2
+    lukBase: 14
+    lukIncrementLvl: 1
+    codes: { passive: 1440, normal: 1440, ultimate: 1444 }
+    levelPassives:
+      - { codeId: 45, unlockLevel: 10, stage: 1 }
+      - { codeId: 1441, unlockLevel: 20, stage: 1 }
+      - { codeId: 1423, unlockLevel: 30, stage: 1 }
+      - { codeId: 69, unlockLevel: 40, stage: 1 }
+      - { codeId: 1218, unlockLevel: 50, stage: 1 }
+      - { codeId: 17, unlockLevel: 60, stage: 1 }
+      - { codeId: 1442, unlockLevel: 70, stage: 1 }
+      - { codeId: 1443, unlockLevel: 80, stage: 1 }
+      - { codeId: 1444, unlockLevel: 90, stage: 1 }
+    portrait: VOID_PRISM_ELECTRO_PORTRAIT
+    standing: VOID_PRISM_ELECTRO_STANDING
+
+  - id: 1067
+    name: 공허의 프리즘 (풀)
+    themeId: 0
+    archetype: 11
+    element: Void
+    tier: normal
+    tags: [Monster, VoidMonster, VoidPrism]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: DEX
+    subStats: [INT, LUK]
+    strBase: 8
+    strIncrementLvl: 1
+    dexBase: 22
+    dexIncrementLvl: 2
+    conBase: 18
+    conIncrementLvl: 2
+    intBase: 18
+    intIncrementLvl: 2
+    lukBase: 14
+    lukIncrementLvl: 1
+    codes: { passive: 1440, normal: 1440, ultimate: 1445 }
+    levelPassives:
+      - { codeId: 45, unlockLevel: 10, stage: 1 }
+      - { codeId: 1441, unlockLevel: 20, stage: 1 }
+      - { codeId: 1423, unlockLevel: 30, stage: 1 }
+      - { codeId: 69, unlockLevel: 40, stage: 1 }
+      - { codeId: 1218, unlockLevel: 50, stage: 1 }
+      - { codeId: 17, unlockLevel: 60, stage: 1 }
+      - { codeId: 1442, unlockLevel: 70, stage: 1 }
+      - { codeId: 1443, unlockLevel: 80, stage: 1 }
+      - { codeId: 1444, unlockLevel: 90, stage: 1 }
+    portrait: VOID_PRISM_DENDRO_PORTRAIT
+    standing: VOID_PRISM_DENDRO_STANDING
+
+  - id: 1068
+    name: 공허의 프리즘 (얼음)
+    themeId: 0
+    archetype: 11
+    element: Void
+    tier: normal
+    tags: [Monster, VoidMonster, VoidPrism]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: DEX
+    subStats: [INT, LUK]
+    strBase: 8
+    strIncrementLvl: 1
+    dexBase: 22
+    dexIncrementLvl: 2
+    conBase: 18
+    conIncrementLvl: 2
+    intBase: 18
+    intIncrementLvl: 2
+    lukBase: 14
+    lukIncrementLvl: 1
+    codes: { passive: 1440, normal: 1440, ultimate: 1446 }
+    levelPassives:
+      - { codeId: 45, unlockLevel: 10, stage: 1 }
+      - { codeId: 1441, unlockLevel: 20, stage: 1 }
+      - { codeId: 1423, unlockLevel: 30, stage: 1 }
+      - { codeId: 69, unlockLevel: 40, stage: 1 }
+      - { codeId: 1218, unlockLevel: 50, stage: 1 }
+      - { codeId: 17, unlockLevel: 60, stage: 1 }
+      - { codeId: 1442, unlockLevel: 70, stage: 1 }
+      - { codeId: 1443, unlockLevel: 80, stage: 1 }
+      - { codeId: 1444, unlockLevel: 90, stage: 1 }
+    portrait: VOID_PRISM_CRYO_PORTRAIT
+    standing: VOID_PRISM_CRYO_STANDING
+
+  - id: 1069
+    name: 공허의 프리즘 (바위)
+    themeId: 0
+    archetype: 11
+    element: Void
+    tier: normal
+    tags: [Monster, VoidMonster, VoidPrism]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: DEX
+    subStats: [INT, LUK]
+    strBase: 8
+    strIncrementLvl: 1
+    dexBase: 22
+    dexIncrementLvl: 2
+    conBase: 18
+    conIncrementLvl: 2
+    intBase: 18
+    intIncrementLvl: 2
+    lukBase: 14
+    lukIncrementLvl: 1
+    codes: { passive: 1440, normal: 1440, ultimate: 1447 }
+    levelPassives:
+      - { codeId: 45, unlockLevel: 10, stage: 1 }
+      - { codeId: 1441, unlockLevel: 20, stage: 1 }
+      - { codeId: 1423, unlockLevel: 30, stage: 1 }
+      - { codeId: 69, unlockLevel: 40, stage: 1 }
+      - { codeId: 1218, unlockLevel: 50, stage: 1 }
+      - { codeId: 17, unlockLevel: 60, stage: 1 }
+      - { codeId: 1442, unlockLevel: 70, stage: 1 }
+      - { codeId: 1443, unlockLevel: 80, stage: 1 }
+      - { codeId: 1444, unlockLevel: 90, stage: 1 }
+    portrait: VOID_PRISM_GEO_PORTRAIT
+    standing: VOID_PRISM_GEO_STANDING
+
+  # ── 공허의 괴조 (themeId 0: 테마 자동 편성 제외) ───────────────
+  # 기본형의 원소 숙련은 불이다. 팔레트 변형은 원소 숙련과 궁극기 부착 원소만 달라진다.
+  - id: 1070
+    name: 공허의 괴조
+    themeId: 0
+    archetype: 11
+    element: Void
+    tier: normal
+    tags: [VoidMonster, Bird, Beast]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: DEX
+    subStats: [STR, LUK]
+    strBase: 18
+    strIncrementLvl: 2
+    dexBase: 22
+    dexIncrementLvl: 2
+    conBase: 14
+    conIncrementLvl: 1
+    intBase: 8
+    intIncrementLvl: 1
+    lukBase: 14
+    lukIncrementLvl: 1
+    codes: { passive: 1450, normal: 1450, ultimate: 1450 }
+    levelPassives:
+      - { codeId: 17,   unlockLevel: 10, stage: 1 }   # 예리함
+      - { codeId: 58,   unlockLevel: 20, stage: 1 }   # 원소 숙련 - 불 (기본)
+      - { codeId: 1451, unlockLevel: 30, stage: 1 }   # 가속
+      - { codeId: 1452, unlockLevel: 40, stage: 1 }   # 날카로운 부리
+      - { codeId: 28,   unlockLevel: 50, stage: 1 }   # 폭죽놀이
+      - { codeId: 11,   unlockLevel: 60, stage: 1 }   # 천살성
+      - { codeId: 51,   unlockLevel: 70, stage: 1 }   # 약자 멸시
+      - { codeId: 36,   unlockLevel: 80, stage: 1 }   # 고통스러운 상처
+      - { codeId: 1016, unlockLevel: 90, stage: 1 }   # 저주
+    portrait: VOID_MONSTROUS_BIRD_PORTRAIT
+    standing: VOID_MONSTROUS_BIRD_STANDING
+
+  - id: 1071
+    name: 공허의 괴조 (불)
+    themeId: 0
+    archetype: 11
+    element: Void
+    tier: normal
+    tags: [VoidMonster, Bird, Beast]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: DEX
+    subStats: [STR, LUK]
+    strBase: 18
+    strIncrementLvl: 2
+    dexBase: 22
+    dexIncrementLvl: 2
+    conBase: 14
+    conIncrementLvl: 1
+    intBase: 8
+    intIncrementLvl: 1
+    lukBase: 14
+    lukIncrementLvl: 1
+    codes: { passive: 1450, normal: 1450, ultimate: 1451 }
+    levelPassives:
+      - { codeId: 17, unlockLevel: 10, stage: 1 }
+      - { codeId: 58, unlockLevel: 20, stage: 1 }
+      - { codeId: 1451, unlockLevel: 30, stage: 1 }
+      - { codeId: 1452, unlockLevel: 40, stage: 1 }
+      - { codeId: 28, unlockLevel: 50, stage: 1 }
+      - { codeId: 11, unlockLevel: 60, stage: 1 }
+      - { codeId: 51, unlockLevel: 70, stage: 1 }
+      - { codeId: 36, unlockLevel: 80, stage: 1 }
+      - { codeId: 1016, unlockLevel: 90, stage: 1 }
+    portrait: VOID_MONSTROUS_BIRD_PYRO_PORTRAIT
+    standing: VOID_MONSTROUS_BIRD_PYRO_STANDING
+
+  - id: 1072
+    name: 공허의 괴조 (물)
+    themeId: 0
+    archetype: 11
+    element: Void
+    tier: normal
+    tags: [VoidMonster, Bird, Beast]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: DEX
+    subStats: [STR, LUK]
+    strBase: 18
+    strIncrementLvl: 2
+    dexBase: 22
+    dexIncrementLvl: 2
+    conBase: 14
+    conIncrementLvl: 1
+    intBase: 8
+    intIncrementLvl: 1
+    lukBase: 14
+    lukIncrementLvl: 1
+    codes: { passive: 1450, normal: 1450, ultimate: 1452 }
+    levelPassives:
+      - { codeId: 17, unlockLevel: 10, stage: 1 }
+      - { codeId: 186, unlockLevel: 20, stage: 1 }
+      - { codeId: 1451, unlockLevel: 30, stage: 1 }
+      - { codeId: 1452, unlockLevel: 40, stage: 1 }
+      - { codeId: 28, unlockLevel: 50, stage: 1 }
+      - { codeId: 11, unlockLevel: 60, stage: 1 }
+      - { codeId: 51, unlockLevel: 70, stage: 1 }
+      - { codeId: 36, unlockLevel: 80, stage: 1 }
+      - { codeId: 1016, unlockLevel: 90, stage: 1 }
+    portrait: VOID_MONSTROUS_BIRD_HYDRO_PORTRAIT
+    standing: VOID_MONSTROUS_BIRD_HYDRO_STANDING
+
+  - id: 1073
+    name: 공허의 괴조 (바람)
+    themeId: 0
+    archetype: 11
+    element: Void
+    tier: normal
+    tags: [VoidMonster, Bird, Beast]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: DEX
+    subStats: [STR, LUK]
+    strBase: 18
+    strIncrementLvl: 2
+    dexBase: 22
+    dexIncrementLvl: 2
+    conBase: 14
+    conIncrementLvl: 1
+    intBase: 8
+    intIncrementLvl: 1
+    lukBase: 14
+    lukIncrementLvl: 1
+    codes: { passive: 1450, normal: 1450, ultimate: 1453 }
+    levelPassives:
+      - { codeId: 17, unlockLevel: 10, stage: 1 }
+      - { codeId: 187, unlockLevel: 20, stage: 1 }
+      - { codeId: 1451, unlockLevel: 30, stage: 1 }
+      - { codeId: 1452, unlockLevel: 40, stage: 1 }
+      - { codeId: 28, unlockLevel: 50, stage: 1 }
+      - { codeId: 11, unlockLevel: 60, stage: 1 }
+      - { codeId: 51, unlockLevel: 70, stage: 1 }
+      - { codeId: 36, unlockLevel: 80, stage: 1 }
+      - { codeId: 1016, unlockLevel: 90, stage: 1 }
+    portrait: VOID_MONSTROUS_BIRD_ANEMO_PORTRAIT
+    standing: VOID_MONSTROUS_BIRD_ANEMO_STANDING
+
+  - id: 1074
+    name: 공허의 괴조 (번개)
+    themeId: 0
+    archetype: 11
+    element: Void
+    tier: normal
+    tags: [VoidMonster, Bird, Beast]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: DEX
+    subStats: [STR, LUK]
+    strBase: 18
+    strIncrementLvl: 2
+    dexBase: 22
+    dexIncrementLvl: 2
+    conBase: 14
+    conIncrementLvl: 1
+    intBase: 8
+    intIncrementLvl: 1
+    lukBase: 14
+    lukIncrementLvl: 1
+    codes: { passive: 1450, normal: 1450, ultimate: 1454 }
+    levelPassives:
+      - { codeId: 17, unlockLevel: 10, stage: 1 }
+      - { codeId: 57, unlockLevel: 20, stage: 1 }
+      - { codeId: 1451, unlockLevel: 30, stage: 1 }
+      - { codeId: 1452, unlockLevel: 40, stage: 1 }
+      - { codeId: 28, unlockLevel: 50, stage: 1 }
+      - { codeId: 11, unlockLevel: 60, stage: 1 }
+      - { codeId: 51, unlockLevel: 70, stage: 1 }
+      - { codeId: 36, unlockLevel: 80, stage: 1 }
+      - { codeId: 1016, unlockLevel: 90, stage: 1 }
+    portrait: VOID_MONSTROUS_BIRD_ELECTRO_PORTRAIT
+    standing: VOID_MONSTROUS_BIRD_ELECTRO_STANDING
+
+  - id: 1075
+    name: 공허의 괴조 (풀)
+    themeId: 0
+    archetype: 11
+    element: Void
+    tier: normal
+    tags: [VoidMonster, Bird, Beast]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: DEX
+    subStats: [STR, LUK]
+    strBase: 18
+    strIncrementLvl: 2
+    dexBase: 22
+    dexIncrementLvl: 2
+    conBase: 14
+    conIncrementLvl: 1
+    intBase: 8
+    intIncrementLvl: 1
+    lukBase: 14
+    lukIncrementLvl: 1
+    codes: { passive: 1450, normal: 1450, ultimate: 1455 }
+    levelPassives:
+      - { codeId: 17, unlockLevel: 10, stage: 1 }
+      - { codeId: 188, unlockLevel: 20, stage: 1 }
+      - { codeId: 1451, unlockLevel: 30, stage: 1 }
+      - { codeId: 1452, unlockLevel: 40, stage: 1 }
+      - { codeId: 28, unlockLevel: 50, stage: 1 }
+      - { codeId: 11, unlockLevel: 60, stage: 1 }
+      - { codeId: 51, unlockLevel: 70, stage: 1 }
+      - { codeId: 36, unlockLevel: 80, stage: 1 }
+      - { codeId: 1016, unlockLevel: 90, stage: 1 }
+    portrait: VOID_MONSTROUS_BIRD_DENDRO_PORTRAIT
+    standing: VOID_MONSTROUS_BIRD_DENDRO_STANDING
+
+  - id: 1076
+    name: 공허의 괴조 (얼음)
+    themeId: 0
+    archetype: 11
+    element: Void
+    tier: normal
+    tags: [VoidMonster, Bird, Beast]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: DEX
+    subStats: [STR, LUK]
+    strBase: 18
+    strIncrementLvl: 2
+    dexBase: 22
+    dexIncrementLvl: 2
+    conBase: 14
+    conIncrementLvl: 1
+    intBase: 8
+    intIncrementLvl: 1
+    lukBase: 14
+    lukIncrementLvl: 1
+    codes: { passive: 1450, normal: 1450, ultimate: 1456 }
+    levelPassives:
+      - { codeId: 17, unlockLevel: 10, stage: 1 }
+      - { codeId: 74, unlockLevel: 20, stage: 1 }
+      - { codeId: 1451, unlockLevel: 30, stage: 1 }
+      - { codeId: 1452, unlockLevel: 40, stage: 1 }
+      - { codeId: 28, unlockLevel: 50, stage: 1 }
+      - { codeId: 11, unlockLevel: 60, stage: 1 }
+      - { codeId: 51, unlockLevel: 70, stage: 1 }
+      - { codeId: 36, unlockLevel: 80, stage: 1 }
+      - { codeId: 1016, unlockLevel: 90, stage: 1 }
+    portrait: VOID_MONSTROUS_BIRD_CRYO_PORTRAIT
+    standing: VOID_MONSTROUS_BIRD_CRYO_STANDING
+
+  - id: 1077
+    name: 공허의 괴조 (바위)
+    themeId: 0
+    archetype: 11
+    element: Void
+    tier: normal
+    tags: [VoidMonster, Bird, Beast]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: DEX
+    subStats: [STR, LUK]
+    strBase: 18
+    strIncrementLvl: 2
+    dexBase: 22
+    dexIncrementLvl: 2
+    conBase: 14
+    conIncrementLvl: 1
+    intBase: 8
+    intIncrementLvl: 1
+    lukBase: 14
+    lukIncrementLvl: 1
+    codes: { passive: 1450, normal: 1450, ultimate: 1457 }
+    levelPassives:
+      - { codeId: 17, unlockLevel: 10, stage: 1 }
+      - { codeId: 189, unlockLevel: 20, stage: 1 }
+      - { codeId: 1451, unlockLevel: 30, stage: 1 }
+      - { codeId: 1452, unlockLevel: 40, stage: 1 }
+      - { codeId: 28, unlockLevel: 50, stage: 1 }
+      - { codeId: 11, unlockLevel: 60, stage: 1 }
+      - { codeId: 51, unlockLevel: 70, stage: 1 }
+      - { codeId: 36, unlockLevel: 80, stage: 1 }
+      - { codeId: 1016, unlockLevel: 90, stage: 1 }
+    portrait: VOID_MONSTROUS_BIRD_GEO_PORTRAIT
+    standing: VOID_MONSTROUS_BIRD_GEO_STANDING

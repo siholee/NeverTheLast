@@ -242,7 +242,7 @@ dialogue:
 | 공백 | 내용 |
 | --- | --- |
 | 🔴 전력 변화 사건 없음 | 네 사건 모두 `action: continue`뿐이다. `grantUnitId` · `grantItemId` · `grantPassiveCodeId` · `battle_*`가 **스키마에만 있고 데이터에 한 번도 쓰이지 않는다** |
-| 🔴 Locked 16인 획득 불가 | 영입 사건이 없어 `characterType: Locked` 캐릭터 전원이 편성 불가다 — [Design_Backlog](Design_Backlog.md) 항목 5·21 |
+| 🔴 Locked 17인 획득 불가 | 영입 사건이 없어 `characterType: Locked` 캐릭터 전원이 편성 불가다 — [Design_Backlog](Design_Backlog.md) 항목 5·21 |
 | 🔸 테마당 1개 고정 | 한 테마의 런에서는 늘 같은 사건이 나온다. 테마마다 둘 이상 두고 굴려야 반복이 줄어든다 |
 | 🔸 `randomSpeakers` 미사용 | 치환 기능이 구현되어 있으나 실제 데이터에 쓰이지 않는다 |
 | 🔸 사건 스케줄러 활용 | 임의 지점 삽입 기능이 있으나 5스테이지 고정 슬롯 외 사용 사례가 없다 |

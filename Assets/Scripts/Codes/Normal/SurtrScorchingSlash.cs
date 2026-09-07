@@ -1,17 +1,24 @@
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using BaseClasses;
 using Codes.Base;
-using Entities;
+using Effects.Neutral;
+using UnityEngine;
 
 namespace Codes.Normal
 {
     /// <summary>
-    /// 수르트 일반공격. 라그나로크 6중첩에서는 최대 3명을 공격하는 강화 일반공격으로 변한다.
+    /// 수르트 N / N+ — 도발 여부에 따라 단일 공격 또는 방어막·도발 행동으로 바뀐다.
+    /// 도발은 스카디와 같은 방식으로 <b>자신에게</b> 걸어 우선도를 올린다.
     /// </summary>
     public sealed class SurtrScorchingSlash : BaseNormalCode
     {
-        private bool IsEnhanced => Caster != null && Caster.ManaMax > 0 && Caster.ManaCurr >= Caster.ManaMax;
+        private const int NormalPower = 60;
+        private const int TauntDurationTurns = 3;
+        private const float ShieldFlat = 80f;
+        private const float ShieldStrCoefficient = 1.5f;
+
+        private bool _empowered;
 
         public SurtrScorchingSlash(NormalCodeContext context) : base(context)
         {
@@ -19,48 +26,57 @@ namespace Codes.Normal
             Cooldown = 0;
             CastingDelay = 0.4f;
             MaxStage = 1;
-            Power = 80;
+            Power = NormalPower;
             CodeTags = new List<int> { DamageTag.Physical, DamageTag.Slash };
         }
 
-        protected override List<Unit> SelectTarget()
+        public override void CastCode()
         {
-            if (!IsEnhanced) return base.SelectTarget();
-            return GetAvailableEnemies()
-                .OrderByDescending(unit => unit.Priority)
-                .ThenBy(unit => unit.HpCurr)
-                .Take(3)
-                .ToList();
+            _empowered = !Taunt.Has(Caster);
+            CodeName = _empowered ? "강화 일반행동" : "일반행동";
+            base.CastCode();
+        }
+
+        protected override IEnumerator SkillCoroutine()
+        {
+            if (!_empowered)
+            {
+                yield return base.SkillCoroutine();
+                yield break;
+            }
+
+            bool cast = false;
+            yield return WaitForCast(result => cast = result);
+            if (!cast)
+            {
+                StopCode();
+                yield break;
+            }
+
+            int shield = Mathf.Max(1, Mathf.RoundToInt(
+                ShieldFlat + Caster.GetBaseStr() * ShieldStrCoefficient));
+            Caster.AddShield(shield, Caster);
+            Taunt.Apply(Caster, Caster, TauntDurationTurns);
+
+            NotifyActionResolved();
+            StopCode();
         }
 
         protected override int CalculateDamage(float critMultiplier)
-        {
-            int power = IsEnhanced ? 100 : 80;
-            return UnityEngine.Mathf.Max(1, UnityEngine.Mathf.RoundToInt(Caster.SkillDamage(power) * critMultiplier));
-        }
+            => Mathf.Max(1, Mathf.RoundToInt(
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.STR) * critMultiplier));
 
-        protected override List<int> GetDamageTags()
+        protected override List<int> GetDamageTags() => new()
         {
-            if (IsEnhanced)
-            {
-                return new List<int>
-                {
-                    DamageTag.MultiTarget,
-                    DamageTag.NormalAttack,
-                    DamageTag.Special,
-                    DamageTag.NonContactAttack,
-                    DamageTag.Slash,
-                };
-            }
+            DamageTag.SingleTarget,
+            DamageTag.NormalAttack,
+            DamageTag.Physical,
+            DamageTag.ContactAttack,
+            DamageTag.Slash,
+        };
 
-            return new List<int>
-            {
-                DamageTag.SingleTarget,
-                DamageTag.NormalAttack,
-                DamageTag.Physical,
-                DamageTag.ContactAttack,
-                DamageTag.Slash,
-            };
-        }
+        // 도발 중이 아니면 적이 없어도 방어막·도발 행동은 성립한다.
+        public override bool HasValidTarget()
+            => Caster != null && Caster.isActive && (!Taunt.Has(Caster) || base.HasValidTarget());
     }
 }

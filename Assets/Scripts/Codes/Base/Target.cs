@@ -145,8 +145,8 @@ public static class Target
             targetList = casterIsAlly ? gridManager.enemyList : gridManager.heroList;
         }
 
-        // 필드에 있는 유닛만 필터링 (yPos > 0)
-        return targetList.Where(unit => unit && !unit.IsUntargetable && unit.currentCell && unit.currentCell.yPos > 0 && unit.currentCell.isOccupied).ToList();
+        // 전장에 서 있는 유닛만 남긴다. 칸이 없는 소환수도 여기서 함께 걸러진다.
+        return targetList.Where(unit => unit && unit.IsOnField && !unit.IsUntargetable).ToList();
     }
 
     /// <summary>

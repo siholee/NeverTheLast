@@ -18,6 +18,10 @@ namespace Codes.Base
         56 => new VedicWisdom(context),
         57 => new ElectroMastery(context),
         58 => new PyroMastery(context),
+        186 => new HydroMastery(context),
+        187 => new AnemoMastery(context),
+        188 => new DendroMastery(context),
+        189 => new GeoMastery(context),
         59 => new YamaHighVoltage(context),
         60 => new YamaCharge(context),
         61 => new AllOrNothing(context),
@@ -33,6 +37,8 @@ namespace Codes.Base
         68 => new VayuSecondWind(context),
         69 => new VayuAmbush(context),
         201 => new SeiBigBang(context),        // 세이 초기 패시브 — 빅뱅
+        204 => new GaudiSagradaFamilia(context), // 가우디 초기 패시브 — 사그리다 파밀리아
+        205 => new LightGreatFlight(context), // 라이트 초기 패시브 — 위대한 비행
         7 => new SeiPreparation(context),    // 세이 Lv.50 사전준비
         8 => new SeiFirstSong(context),      // 세이 Lv.92 최초의 노래
         221 => new AtalanteWeaknessTracker(context), // 아탈란테 패시브
@@ -58,7 +64,7 @@ namespace Codes.Base
         3 => new ChandraBulwark(context),
         4 => new ChandraLastStandFormation(context),
         5 => new ChandraPurificationBath(context),
-        6 => new ChandraIronWall(context),
+        6 => new IronWallPassive(context),      // 공용 — 일반행동마다 CON +2
         14 => new ChandraMoonlight(context),
         340 => new QuetzalcoatlBounty(context),
         15 => new QuetzalcoatlWisdom(context),
@@ -95,7 +101,7 @@ namespace Codes.Base
         72 => new FreyaWarChief(context),
         282 => new LokiFenrir(context),
         73 => new LokiSummoner(context),
-        283 => new SkadiFrostWarrior(context),
+        283 => new SkadiNorthernGuardian(context),
         74 => new CryoMastery(context),
         75 => new SkadiCryoAffinity(context),
         76 => new SkadiElementalist(context),
@@ -115,14 +121,14 @@ namespace Codes.Base
         241 => new TsukuyomiMoonReckoning(context),
         33 => new TsukuyomiSpellShield(context),
         34 => new TsukuyomiFickle(context),
-        1016 => new TsukuyomiCurse(context),
+        1016 => new CursePassive(context),   // 공용 — 부여 지속피해 +20%
         35 => new TsukuyomiWidenWound(context),
         36 => new TsukuyomiPainfulWound(context),
         37 => new TsukuyomiCycle(context),
         184 => new TsukuyomiChainLightning(context),
         38 => new TsukuyomiFullMoon(context),
         280 => new SurtrTwilight(context),
-        39 => new SurtrGiant(context),
+        39 => new GiantPassive(context),        // 공용 — STR +5%
         185 => new SurtrFireMastery(context),
         40 => new SurtrCelestialBody(context),
         41 => new SurtrFighter(context),
@@ -165,6 +171,32 @@ namespace Codes.Base
         1409 => new AmunRaSoulDrain(context),
         1410 => new AmunRaHellfire(context),
         1411 => new AswanDeathChant(context),
+        // ── 범용 거인 ──
+        1420 => new GenericGiantBulwark(context, 0.10f),
+        1421 => new GenericGiantBulwark(context, 0.20f),
+        1422 => new FrostGiantCore(context),
+        1423 => new GiantShatter(context),
+        1424 => new GiantStunningBlow(context),
+        1425 => new GiantCoupDeGrace(context),
+        1426 => new GiantAdaptability(context),
+        // ── 범용 씨앗 ──
+        1430 => new GenericSeedFormation(context, 1),
+        1431 => new GenericSeedFormation(context, 2),
+        1432 => new FrostSeedCore(context),
+        1433 => new SeedSelfDestruct(context, enhanced: false),
+        1434 => new SeedSelfDestruct(context, enhanced: true),
+        1435 => new SeedOverload(context),
+        1436 => new SeedFrostRay(context),
+        // ── 공허의 프리즘 ──
+        1440 => new VoidPrismCore(context),
+        1441 => new VoidPrismResonance(context),
+        1442 => new VoidPrismSplit(context),
+        1443 => new VoidPrismDeathEcho(context),
+        1444 => new VoidPrismDestructionRay(context),
+        // ── 공허의 괴조 ──
+        1450 => new VoidMonstrousBirdRebirth(context),
+        1451 => new VoidMonstrousBirdAcceleration(context),
+        1452 => new VoidMonstrousBirdSharpBeak(context),
         // ── 장비 전용 패시브 ──
         400 => new KhopeshItemPassive(context),
         401 => new YasakaniMagatamaItemPassive(context),
@@ -217,6 +249,10 @@ namespace Codes.Base
         21 => new a005_NAtlanta(context), // 아탈란테 일반공격
         20 => new a004_NPygmalion(context), // 피그말리온 일반공격
         1 => new SeiRadiantBolt(context), // 세이 일반공격
+        4 => new GaudiNormalAttack(context), // 가우디 일반/강화 일반공격
+        5 => new LightNormalAttack(context), // 라이트 일반공격/플라이어 소환
+        500 => new FlyerNormalAttack(context), // 소환수 — 플라이어 일반공격
+        501 => new FenrirBite(context), // 소환수 — 펜리르 일반공격
         900 => new MagicBolt(context),
         901 => new Shoot(context),
         60 => new Sachi(context),
@@ -267,6 +303,14 @@ namespace Codes.Base
         1405 => new AswanFallenPriestRite(context),
         1406 => new OsirisEarthRequiem(context),
         1407 => new AmunRaBladeVolley(context),
+        // ── 범용 거인 ──
+        1420 => new GenericGiantNormalAttack(context, 80),
+        1421 => new GenericGiantNormalAttack(context, 100),
+        // ── 범용 씨앗 ──
+        1430 => new GenericSeedVolley(context),
+        // ── 공허의 프리즘 ──
+        1440 => new VoidPrismNormal(context),
+        1450 => new VoidMonstrousBirdNormal(context),
         902 => new AmunRaBladeVolley(context, alwaysEmpowered: true),
         3 => new SabahLightningSlash(context),
         26 => new IcariaRecklessThrust(context),
@@ -284,6 +328,9 @@ namespace Codes.Base
         20 => new a004_U_LovesPrize(context), // 피그말리온 궁극기
         2 => new a002_U_FinalBell(context), // 시 궁극기
         1 => new SeiSanctuary(context), // 세이 궁극기
+        4 => new GaudiImmortalLegacy(context), // 가우디 궁극기
+        5 => new LightFlyingDream(context), // 라이트 궁극기
+        500 => new FlyerSkyfall(context), // 소환수 — 플라이어 궁극기
         61 => new YamaFinalArrival(context),
         62 => new AgniWhiteFlame(context),
         63 => new IndraThunderbolt(context),
@@ -329,6 +376,29 @@ namespace Codes.Base
         1404 => new AswanFallenPriestWard(context),
         1405 => new OsirisRebirthFlood(context),
         1406 => new AmunRaSolarJudgment(context),
+        // ── 범용 거인 ──
+        1420 => new GenericGiantHammerfall(context, 80, 130),
+        1421 => new GenericGiantHammerfall(context, 100, 150),
+        // ── 범용 씨앗 ──
+        1430 => new GenericSeedOverdrive(context),
+        1431 => new FrostSeedBeam(context),
+        // ── 공허의 프리즘. 기본형은 부착 없음, 팔레트 변형만 해당 원소를 부착한다. ──
+        1440 => new VoidPrismUltimate(context, BaseEnums.UnitElement.None),
+        1441 => new VoidPrismUltimate(context, BaseEnums.UnitElement.Pyro),
+        1442 => new VoidPrismUltimate(context, BaseEnums.UnitElement.Hydro),
+        1443 => new VoidPrismUltimate(context, BaseEnums.UnitElement.Anemo),
+        1444 => new VoidPrismUltimate(context, BaseEnums.UnitElement.Electro),
+        1445 => new VoidPrismUltimate(context, BaseEnums.UnitElement.Dendro),
+        1446 => new VoidPrismUltimate(context, BaseEnums.UnitElement.Cryo),
+        1447 => new VoidPrismUltimate(context, BaseEnums.UnitElement.Geo),
+        1450 => new VoidMonstrousBirdUltimate(context, BaseEnums.UnitElement.None),
+        1451 => new VoidMonstrousBirdUltimate(context, BaseEnums.UnitElement.Pyro),
+        1452 => new VoidMonstrousBirdUltimate(context, BaseEnums.UnitElement.Hydro),
+        1453 => new VoidMonstrousBirdUltimate(context, BaseEnums.UnitElement.Anemo),
+        1454 => new VoidMonstrousBirdUltimate(context, BaseEnums.UnitElement.Electro),
+        1455 => new VoidMonstrousBirdUltimate(context, BaseEnums.UnitElement.Dendro),
+        1456 => new VoidMonstrousBirdUltimate(context, BaseEnums.UnitElement.Cryo),
+        1457 => new VoidMonstrousBirdUltimate(context, BaseEnums.UnitElement.Geo),
         3 => new SabahAzrael(context),
         26 => new IcariaChallengeTheSky(context),
         160 => new MarieSongOfRevolution(context),

@@ -73,7 +73,7 @@ things are marked 🔸/🔴, and the detail docs mirror `Assets/Resources/Data/*
 | STR | Defense + equipment weight limit |
 | DEX | Action speed |
 | CON | Max HP |
-| INT | Mana efficiency + code capacity |
+| INT | Mana efficiency |
 | LUK | Crit chance |
 
 Main stat gets ×1.2, sub stat ×1.1. `Unit.AttributesUpdate()` recomputes derived values and
@@ -158,6 +158,7 @@ resolves them in separate switches.
 | Ally unique passive | **owner's unit ID + 200** (Orion → 222) |
 | Ally shared unlock passive | 1~179 |
 | Equipment-granted passive | 400~499 |
+| Summon codes (normal / ultimate) | 500~599 |
 | Enemy codes | 1000+ in per-theme 100-slot blocks (공용 1000 · 콜로세움 1100 · 로마 1200 · 메히코 1300 · 아스완 1400) |
 
 Enemy codes are dispatched by **range arms whose ID gaps are the style index**
@@ -169,7 +170,9 @@ never in the middle. Changing unit IDs breaks saves: bump `RunSaveData.CurrentVe
 `Assets/Scripts/Codes/` — `Base/`, `Passive/`, `Normal/`, `Ultimate/`.
 
 Every unit has **one unique passive + one normal attack + one unique ultimate**, plus N unlock
-passives from `levelPassives` bounded by INT-derived code capacity.
+passives from `levelPassives`. **There is no code-capacity cap** — every unlock whose level
+condition is met is learned. INT used to gate this (`max(3, INT)`) and silently dropped the
+highest-level unlocks on low-INT units; that gate is gone and INT now only drives mana efficiency.
 
 - `CodeFactory` maps numeric IDs to classes — three switches, one per slot.
 - `UniquePassiveCode` sets `Transferable = false`. **Unique passives are never transferred**;
@@ -214,7 +217,9 @@ The **ten-thousands digit is the category**; an attack takes one from each band.
 5. Update `Detail_08` (spec) and `Detail_12` (index)
 
 Growth must follow the rule in `Detail_08`: **main +2, sub +2, others +1** (Sei/Shi: main +3, sub +2).
-All 35 units currently satisfy it.
+37 units, with two documented exceptions: **Gaudi** has no sub stat at all (main +2, everything else +1),
+and **Light** carries two sub stats at +1 each instead of one at +2. Both are marked 🟡 in `Detail_08` —
+their base stats were not in the original design and are provisional.
 
 ### Adding a theme
 
@@ -239,7 +244,14 @@ Pick a status ID that does not collide — check the existing constants first
 - Comments and logs are Korean, and they explain **why**, not what. Match the surrounding density.
 - Commit messages are a single Korean sentence in plain present tense, describing the change from
   the player's or the system's point of view (see `git log`).
-- Prefer the existing shared helpers (`Target.GetAllEnemies`, `AswanCombat`-style per-theme
-  helper classes) over re-deriving the same query in each code.
+- Prefer the existing shared helpers over re-deriving the same query in each code:
+  `Combat.CombatTargets` (alive enemies / allies-including-self / highest-priority pick),
+  `Unit.IsOnField` (the single "standing on the battlefield" predicate — never re-derive it from
+  `currentCell.yPos`, which is null for summons),
+  `Combat.Summons` (summon damage rules), `Effects.Neutral.Taunt` (taunt id, key and `Has()`),
+  `Code.WaitForCast` (the casting-delay loop), and `AswanCombat`-style per-theme helper classes.
+- A code that replaces `SkillCoroutine` wholesale must still call `NotifyActionResolved()`
+  when the action actually lands — `OnNormalActionResolved` is what "per normal action"
+  passives such as 철벽(6) count.
 - No automated tests exist. Verify gameplay changes in Play mode, and type-check with the
   csproj-copy trick above.

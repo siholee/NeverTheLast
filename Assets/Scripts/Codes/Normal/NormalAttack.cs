@@ -76,6 +76,7 @@ namespace Codes.Normal
       // 예전에는 2초를 줬다. 투사체가 너무 오래 떠 있어 그 사이 대상이 다른 공격에
       // 쓰러지면 빈자리로 날아갔다. 다른 일반공격과 같은 0.5초로 맞춘다.
       Caster.StartCoroutine(FireProjectile(TargetUnits, 0.5f, context));
+      Caster.Invoke(BaseEnums.UnitEventType.OnNormalActionResolved, new EventContext(Caster));
       // 궁극기 자원은 전투 시간으로 찬다(Unit.AccrueUltimateResource). 여기서 또 주지 않는다.
       StopCode();
     }
@@ -157,14 +158,8 @@ namespace Codes.Normal
       bool casterIsAlly = gridManager.heroList.Contains(Caster);
       List<Unit> targetList = casterIsAlly ? gridManager.enemyList : gridManager.heroList;
       
-      // 필드에 있고 활성화된 유닛만 필터링 (yPos > 0)
-      return targetList.Where(unit => 
-        unit && 
-        unit.currentCell && 
-        unit.currentCell.yPos > 0 && 
-        unit.currentCell.isOccupied && 
-        unit.isActive
-      ).ToList();
+      // 전장에 서 있는 유닛만 남긴다. 칸이 없는 소환수도 여기서 함께 걸러진다.
+      return targetList.Where(unit => unit && unit.IsOnField).ToList();
     }
     
     /// <summary>

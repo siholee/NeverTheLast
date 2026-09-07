@@ -82,6 +82,29 @@ namespace Codes.Base
       CurrentStage = Mathf.Clamp(stage, 1, Mathf.Max(1, MaxStage));
     }
 
+    /// <summary>
+    /// 캐스팅 시간만큼 기다린다. 도중에 시전자가 쓰러지거나 제어당하면 <c>false</c>를 넘긴다.
+    ///
+    /// 표준 흐름을 통째로 갈아 끼우는 코드(공격하지 않는 일반행동, 자체 연출을 가진 궁극기)가
+    /// 대기 구간만 빌려 쓰라고 여기에 둔다. 판정이 코드마다 갈라지지 않게 하기 위해서다.
+    /// </summary>
+    protected IEnumerator WaitForCast(System.Action<bool> completed)
+    {
+      float elapsed = 0f;
+      while (elapsed < CastingDelay)
+      {
+        if (Caster == null || !Caster.isActive || Caster.isControlled)
+        {
+          completed(false);
+          yield break;
+        }
+
+        elapsed += Time.deltaTime;
+        yield return null;
+      }
+      completed(true);
+    }
+
     public virtual void CastCode() { }
     protected virtual IEnumerator SkillCoroutine() { yield return null; }
     public virtual void StopCode() { }

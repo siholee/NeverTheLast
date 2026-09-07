@@ -1,240 +1,209 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using BaseClasses;
-using Codes.Base;
-using Effects.Base;
-using Effects.Buffs;
-using Effects.Negative;
-using Entities;
-using Entities.Status;
-using Managers;
-using UnityEngine;
-
-namespace Codes.Passive
-{
-    internal static class TsukuyomiStatusIds
-    {
-        public const int Fickle = 120;
-        public const int Curse = 121;
-        public const int PainfulWound = 122;
-        public const int Cycle = 123;
-        public const int FullMoon = 124;
-        public const int WidenWound = 126;
-    }
-
-    /// <summary>처치된 적의 지속피해를 1초 정산해 주변 3×3 범위에 폭발시킨다.</summary>
-    public sealed class TsukuyomiMoonReckoning : UniquePassiveCode
-    {
-        private bool _registered;
-        private Action<EventContext> _cleanupHandler;
-
-        public TsukuyomiMoonReckoning(PassiveCodeContext context) : base(context)
-        {
-            CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "월식 정산";
-            MaxStage = 3;
-            IgnoresActivationChance = true;
-            Transferable = false;
-        }
-
-        public override void CastCode()
-        {
-            if (_registered) return;
-            Unit.AnyUnitDied += OnAnyUnitDied;
-            _cleanupHandler = _ => StopCode();
-            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
-            _registered = true;
-        }
-
-        public override void StopCode()
-        {
-            if (!_registered) return;
-            Unit.AnyUnitDied -= OnAnyUnitDied;
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
-            _registered = false;
-        }
-
-        private void OnAnyUnitDied(Unit dead, Unit attacker)
-        {
-            if (Caster == null || !Caster.isActive || dead == null || dead.IsEnemy == Caster.IsEnemy) return;
-            int dotPerSecond = dead.GetEstimatedDamageOverTimePerTurn();
-            if (dotPerSecond <= 0 || dead.currentCell == null) return;
-
-            float[] ratios = { 0.5f, 0.75f, 1f };
-            int damage = Mathf.Max(1, Mathf.RoundToInt(dotPerSecond * ratios[Mathf.Clamp(CurrentStage, 1, 3) - 1]));
-            int centerX = dead.currentCell.xPos;
-            int centerY = dead.currentCell.yPos;
-            var tags = new List<int> { DamageTag.MultiTarget, DamageTag.Special, DamageTag.NonContactAttack };
-
-            foreach (Unit target in Target.GetAllEnemies(Caster).Where(unit =>
-                         unit != null && unit != dead && unit.isActive && unit.HpCurr > 0 && unit.currentCell != null &&
-                         Mathf.Abs(unit.currentCell.xPos - centerX) <= 1 && Mathf.Abs(unit.currentCell.yPos - centerY) <= 1).ToList())
-            {
-                target.TakeDamage(new DamageContext(Caster, damage, BaseEnums.CodeType.Passive, tags));
-            }
-        }
-    }
-
-    /// <summary>8초마다 다음 공격 1회를 무효화하고 INT 50% 보호막을 얻는다.</summary>
-    public sealed class TsukuyomiSpellShield : PassiveCode
-    {
-        private float _timer;
-        private bool _armed;
-        private int _grantedShield;
-        private bool _registered;
-        private Action<EventContext> _turnHandler;
-        private Action<EventContext> _damageHandler;
-        private Action<EventContext> _cleanupHandler;
-
-        public TsukuyomiSpellShield(PassiveCodeContext context) : base(context)
-        {
-            CodeName = "주문 보호막";
-            IgnoresActivationChance = true;
-        }
-
-        public override void CastCode()
-        {
-            _timer = 0f;
-            _armed = false;
-            _grantedShield = 0;
-            if (_registered) return;
-            _turnHandler = OnOwnerTurnStart;
-            _damageHandler = OnBeforeDamageTaken;
-            _cleanupHandler = _ => StopCode();
-            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnBeforeDamageTaken, _damageHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
-            _registered = true;
-        }
-
-        public override void StopCode()
-        {
-            if (!_registered) return;
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnBeforeDamageTaken, _damageHandler);
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
-            _registered = false;
-            _armed = false;
-        }
-
-        private void OnOwnerTurnStart(EventContext context)
-        {
-            if (_armed) return;
-            _timer += Caster.LastTurnSeconds;
-            if (_timer < 8f) return;
-            _timer = 0f;
-            int shieldBefore = Caster.ShieldCurr;
-            // 사양 "INT 50%" = 위력 50. 보호막도 피해와 같은 척도를 쓴다.
-            Caster.AddShield(Mathf.Max(1, Caster.SkillDamage(50, BaseEnums.PrimaryStat.INT)), Caster);
-            _grantedShield = Mathf.Max(0, Caster.ShieldCurr - shieldBefore);
-            _armed = true;
-        }
-
-        private void OnBeforeDamageTaken(EventContext context)
-        {
-            if (!_armed || context.DmgCtx == null || context.DmgCtx.CodeType == BaseEnums.CodeType.Effect) return;
-            context.DmgCtx.IsCancelled = true;
-            Caster.RemoveShield(Mathf.Min(_grantedShield, Caster.ShieldCurr));
-            _armed = false;
-            _timer = 0f;
-        }
-    }
-
-    /// <summary>2초마다 서로 다른 두 기본 스탯에 +10%/-10%를 다시 배정한다.</summary>
-    public sealed class TsukuyomiFickle : PassiveCode
-    {
-        private const string StatusKey = "tsukuyomi_fickle";
-        private float _timer;
-        private bool _registered;
-        private Action<EventContext> _turnHandler;
-        private Action<EventContext> _cleanupHandler;
-
-        public TsukuyomiFickle(PassiveCodeContext context) : base(context)
-        {
-            CodeName = "변덕쟁이";
-            IgnoresActivationChance = true;
-        }
-
-        public override void CastCode()
-        {
-            _timer = 0f;
-            if (_registered) return;
-            _turnHandler = OnOwnerTurnStart;
-            _cleanupHandler = _ => StopCode();
-            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
-            _registered = true;
-        }
-
-        public override void StopCode()
-        {
-            if (!_registered) return;
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
-            _registered = false;
-        }
-
-        private void OnOwnerTurnStart(EventContext context)
-        {
-            _timer += Caster.LastTurnSeconds;
-            if (_timer < 2f) return;
-            _timer %= 2f;
-            RerollStats();
-        }
-
-        private void RerollStats()
-        {
-            Array stats = Enum.GetValues(typeof(BaseEnums.PrimaryStat));
-            int raisedIndex = UnityEngine.Random.Range(0, stats.Length);
-            int loweredIndex = UnityEngine.Random.Range(0, stats.Length - 1);
-            if (loweredIndex >= raisedIndex) loweredIndex++;
-
-            var status = BuffStatus.Create(
-                TsukuyomiStatusIds.Fickle, StatusKey, "변덕쟁이", Caster, Caster,
-                new PrimaryStatMultiplierEffect((BaseEnums.PrimaryStat)stats.GetValue(raisedIndex), 1.1f),
-                description: "무작위 기본 스탯 하나가 10% 증가하고 다른 하나가 10% 감소합니다.");
-            status.AddEffect(new PrimaryStatMultiplierEffect((BaseEnums.PrimaryStat)stats.GetValue(loweredIndex), 0.9f));
-            Caster.AddStatus(status);
-        }
-    }
-
-    /// <summary>같은 진영이 부여하는 지속피해량을 25% 증가시킨다.</summary>
-    /// <summary>지속피해 증폭 계열의 <b>일반 등급</b>. 강화 등급은 죽음의 계약(240)이다.</summary>
-    public sealed class TsukuyomiCurse : PassiveCode
-    {
-        public const int CodeId = 1016;
-        private const float Multiplier = 1.20f;
-
-        public TsukuyomiCurse(PassiveCodeContext context) : base(context)
-        {
-            CodeName = "저주";
-            IgnoresActivationChance = true;
-            SupersededByCodeId = YamaDeathContract.CodeId;
-        }
-
-        public override void CastCode()
-        {
-            if (Caster == null) return;
-
-            foreach (Unit ally in Target.GetAllAllies(Caster).Where(unit => unit != null && unit.isActive))
-            {
-                // 죽음의 계약과 같은 키를 써야 필드에서 둘이 곱해지지 않고 높은 쪽만 남는다.
-                ally.AddStatus(BuffStatus.Create(
-                    TsukuyomiStatusIds.Curse, YamaDeathContract.SharedKey, "저주", Caster, ally,
-                    new DamageOverTimeApplicationEffect(Multiplier),
-                    stackPolicy: BaseEnums.StatusStackPolicy.ReplaceIfStronger,
-                    isBeneficial: true,
-                    description: "부여하는 지속피해량이 20% 증가합니다."));
-            }
-        }
-    }
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using BaseClasses;
+using Codes.Base;
+using Effects.Base;
+using Effects.Buffs;
+using Effects.Negative;
+using Entities;
+using Entities.Status;
+using Managers;
+using UnityEngine;
+
+namespace Codes.Passive
+{
+    internal static class TsukuyomiStatusIds
+    {
+        public const int Fickle = 120;
+        public const int Curse = 121;
+        public const int PainfulWound = 122;
+        public const int Cycle = 123;
+        public const int FullMoon = 124;
+        public const int WidenWound = 126;
+    }
+
+    /// <summary>처치된 적의 지속피해를 1초 정산해 주변 3×3 범위에 폭발시킨다.</summary>
+    public sealed class TsukuyomiMoonReckoning : UniquePassiveCode
+    {
+        private bool _registered;
+        private Action<EventContext> _cleanupHandler;
+
+        public TsukuyomiMoonReckoning(PassiveCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Passive;
+            CodeName = "월식 정산";
+            MaxStage = 3;
+            IgnoresActivationChance = true;
+            Transferable = false;
+        }
+
+        public override void CastCode()
+        {
+            if (_registered) return;
+            Unit.AnyUnitDied += OnAnyUnitDied;
+            _cleanupHandler = _ => StopCode();
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = true;
+        }
+
+        public override void StopCode()
+        {
+            if (!_registered) return;
+            Unit.AnyUnitDied -= OnAnyUnitDied;
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = false;
+        }
+
+        private void OnAnyUnitDied(Unit dead, Unit attacker)
+        {
+            if (Caster == null || !Caster.isActive || dead == null || dead.IsEnemy == Caster.IsEnemy) return;
+            int dotPerSecond = dead.GetEstimatedDamageOverTimePerTurn();
+            if (dotPerSecond <= 0 || dead.currentCell == null) return;
+
+            float[] ratios = { 0.5f, 0.75f, 1f };
+            int damage = Mathf.Max(1, Mathf.RoundToInt(dotPerSecond * ratios[Mathf.Clamp(CurrentStage, 1, 3) - 1]));
+            int centerX = dead.currentCell.xPos;
+            int centerY = dead.currentCell.yPos;
+            var tags = new List<int> { DamageTag.MultiTarget, DamageTag.Special, DamageTag.NonContactAttack };
+
+            foreach (Unit target in Target.GetAllEnemies(Caster).Where(unit =>
+                         unit != null && unit != dead && unit.isActive && unit.HpCurr > 0 && unit.currentCell != null &&
+                         Mathf.Abs(unit.currentCell.xPos - centerX) <= 1 && Mathf.Abs(unit.currentCell.yPos - centerY) <= 1).ToList())
+            {
+                target.TakeDamage(new DamageContext(Caster, damage, BaseEnums.CodeType.Passive, tags));
+            }
+        }
+    }
+
+    /// <summary>8초마다 다음 공격 1회를 무효화하고 INT 50% 보호막을 얻는다.</summary>
+    public sealed class TsukuyomiSpellShield : PassiveCode
+    {
+        private float _timer;
+        private bool _armed;
+        private int _grantedShield;
+        private bool _registered;
+        private Action<EventContext> _turnHandler;
+        private Action<EventContext> _damageHandler;
+        private Action<EventContext> _cleanupHandler;
+
+        public TsukuyomiSpellShield(PassiveCodeContext context) : base(context)
+        {
+            CodeName = "주문 보호막";
+            IgnoresActivationChance = true;
+        }
+
+        public override void CastCode()
+        {
+            _timer = 0f;
+            _armed = false;
+            _grantedShield = 0;
+            if (_registered) return;
+            _turnHandler = OnOwnerTurnStart;
+            _damageHandler = OnBeforeDamageTaken;
+            _cleanupHandler = _ => StopCode();
+            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnBeforeDamageTaken, _damageHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = true;
+        }
+
+        public override void StopCode()
+        {
+            if (!_registered) return;
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnBeforeDamageTaken, _damageHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = false;
+            _armed = false;
+        }
+
+        private void OnOwnerTurnStart(EventContext context)
+        {
+            if (_armed) return;
+            _timer += Caster.LastTurnSeconds;
+            if (_timer < 8f) return;
+            _timer = 0f;
+            int shieldBefore = Caster.ShieldCurr;
+            // 사양 "INT 50%" = 위력 50. 보호막도 피해와 같은 척도를 쓴다.
+            Caster.AddShield(Mathf.Max(1, Caster.SkillDamage(50, BaseEnums.PrimaryStat.INT)), Caster);
+            _grantedShield = Mathf.Max(0, Caster.ShieldCurr - shieldBefore);
+            _armed = true;
+        }
+
+        private void OnBeforeDamageTaken(EventContext context)
+        {
+            if (!_armed || context.DmgCtx == null || context.DmgCtx.CodeType == BaseEnums.CodeType.Effect) return;
+            context.DmgCtx.IsCancelled = true;
+            Caster.RemoveShield(Mathf.Min(_grantedShield, Caster.ShieldCurr));
+            _armed = false;
+            _timer = 0f;
+        }
+    }
+
+    /// <summary>2초마다 서로 다른 두 기본 스탯에 +10%/-10%를 다시 배정한다.</summary>
+    public sealed class TsukuyomiFickle : PassiveCode
+    {
+        private const string StatusKey = "tsukuyomi_fickle";
+        private float _timer;
+        private bool _registered;
+        private Action<EventContext> _turnHandler;
+        private Action<EventContext> _cleanupHandler;
+
+        public TsukuyomiFickle(PassiveCodeContext context) : base(context)
+        {
+            CodeName = "변덕쟁이";
+            IgnoresActivationChance = true;
+        }
+
+        public override void CastCode()
+        {
+            _timer = 0f;
+            if (_registered) return;
+            _turnHandler = OnOwnerTurnStart;
+            _cleanupHandler = _ => StopCode();
+            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = true;
+        }
+
+        public override void StopCode()
+        {
+            if (!_registered) return;
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = false;
+        }
+
+        private void OnOwnerTurnStart(EventContext context)
+        {
+            _timer += Caster.LastTurnSeconds;
+            if (_timer < 2f) return;
+            _timer %= 2f;
+            RerollStats();
+        }
+
+        private void RerollStats()
+        {
+            Array stats = Enum.GetValues(typeof(BaseEnums.PrimaryStat));
+            int raisedIndex = UnityEngine.Random.Range(0, stats.Length);
+            int loweredIndex = UnityEngine.Random.Range(0, stats.Length - 1);
+            if (loweredIndex >= raisedIndex) loweredIndex++;
+
+            var status = BuffStatus.Create(
+                TsukuyomiStatusIds.Fickle, StatusKey, "변덕쟁이", Caster, Caster,
+                new PrimaryStatMultiplierEffect((BaseEnums.PrimaryStat)stats.GetValue(raisedIndex), 1.1f),
+                description: "무작위 기본 스탯 하나가 10% 증가하고 다른 하나가 10% 감소합니다.");
+            status.AddEffect(new PrimaryStatMultiplierEffect((BaseEnums.PrimaryStat)stats.GetValue(loweredIndex), 0.9f));
+            Caster.AddStatus(status);
+        }
+    }
 
     public sealed class TsukuyomiWidenWound : PassiveCode
     {
@@ -451,13 +420,6 @@ namespace Codes.Passive
             _multiplier = multiplier;
         }
         public override float PrimaryStatMultiplierModifier(Unit unit, BaseEnums.PrimaryStat stat) => stat == _stat ? _multiplier : 1f;
-    }
-
-    internal sealed class DamageOverTimeApplicationEffect : BaseEffect
-    {
-        private readonly float _multiplier;
-        public DamageOverTimeApplicationEffect(float multiplier) : base(0, multiplier) => _multiplier = multiplier;
-        public override float DamageOverTimeApplicationMultiplier(Unit unit) => _multiplier;
     }
 
     /// <summary>

@@ -29,6 +29,10 @@ namespace Codes.Passive
         public const int Wisdom = 6013;
         public const int Genius = 6014;
         public const int Frontrunner = 6015;
+        public const int ElementMasteryHydro = 6016;
+        public const int ElementMasteryAnemo = 6017;
+        public const int ElementMasteryDendro = 6018;
+        public const int ElementMasteryGeo = 6019;
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -137,6 +141,34 @@ namespace Codes.Passive
         public PyroMastery(PassiveCodeContext context) : base(
             context, "원소 숙련 - 불", BaseEnums.UnitElement.Pyro,
             VedicIds.ElementMasteryPyro, "mastery_pyro") { }
+    }
+
+    public sealed class HydroMastery : ElementMasteryPassive
+    {
+        public HydroMastery(PassiveCodeContext context) : base(
+            context, "원소 숙련 - 물", BaseEnums.UnitElement.Hydro,
+            VedicIds.ElementMasteryHydro, "mastery_hydro") { }
+    }
+
+    public sealed class AnemoMastery : ElementMasteryPassive
+    {
+        public AnemoMastery(PassiveCodeContext context) : base(
+            context, "원소 숙련 - 바람", BaseEnums.UnitElement.Anemo,
+            VedicIds.ElementMasteryAnemo, "mastery_anemo") { }
+    }
+
+    public sealed class DendroMastery : ElementMasteryPassive
+    {
+        public DendroMastery(PassiveCodeContext context) : base(
+            context, "원소 숙련 - 풀", BaseEnums.UnitElement.Dendro,
+            VedicIds.ElementMasteryDendro, "mastery_dendro") { }
+    }
+
+    public sealed class GeoMastery : ElementMasteryPassive
+    {
+        public GeoMastery(PassiveCodeContext context) : base(
+            context, "원소 숙련 - 바위", BaseEnums.UnitElement.Geo,
+            VedicIds.ElementMasteryGeo, "mastery_geo") { }
     }
 
     /// <summary>Lv.44 고전압 — 감전을 생성하면 주는 피해 +25%(6초).</summary>
@@ -679,7 +711,8 @@ namespace Codes.Passive
     // 효과
     // ══════════════════════════════════════════════════════════════
 
-    internal sealed class DotAmplifyEffect : BaseEffect
+    /// <summary>부여하는 지속피해량 배율. 죽음의 계약과 저주가 함께 쓴다.</summary>
+    public sealed class DotAmplifyEffect : BaseEffect
     {
         private readonly float _multiplier;
         public DotAmplifyEffect(float multiplier) : base(0, multiplier) => _multiplier = multiplier;

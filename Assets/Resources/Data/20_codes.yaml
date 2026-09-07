@@ -9,7 +9,7 @@ codes:
       codeName: AtalanteWeaknessTracker
       description: "공격 대상의 디버프 1개당 방어력을 5% 무시한다(최대 20%). <고유 패시브> <전수 불가능>"
     - { id: 44, verbalName: 궁수, codeName: AtalanteArcher, description: "활 계열 무기를 장착하고 숙련되어 있으면 STR +5%." }
-    - { id: 45, verbalName: 민첩함, codeName: AtalanteAgility, description: "DEX +2." }
+    - { id: 45, verbalName: 민첩함, codeName: AtalanteAgility, description: "DEX +5%." }
     - { id: 46, verbalName: 유리대포, codeName: AtalanteGlassCannon, description: "최대 체력 -25%, 적 방어력 20% 무시." }
     - { id: 47, verbalName: 사냥꾼, codeName: AtalanteHunter, description: "짐승 또는 괴수 분류의 적에게 가하는 피해 +30%." }
     - { id: 48, verbalName: 맹독, codeName: AtalanteVirulentPoison, description: "스킬 공격 적중 시 3초간 매초 20+CON의 5% 지속피해를 부여한다." }
@@ -62,8 +62,8 @@ codes:
       description: "전투 페이즈 종료 후, 모든 아군의 체력을 최대 체력의 CON%만큼 치유"
     - id: 6
       verbalName: 철벽
-      codeName: ChandraIronWall
-      description: "전투 시작 후 6초가 지나면 CON +6"
+      codeName: IronWallPassive
+      description: "일반행동을 할 때마다 이번 전투 동안 CON +2. 중첩된다."
     - id: 14
       verbalName: 월광
       codeName: ChandraMoonlight
@@ -126,8 +126,8 @@ codes:
       description: "2초마다 서로 다른 기본 스탯 하나가 10% 상승하고 하나가 10% 하락한다."
     - id: 1016
       verbalName: 저주
-      codeName: TsukuyomiCurse
-      description: "같은 진영의 모든 아군이 부여하는 지속피해량이 20% 증가한다. 죽음의 계약(240)의 일반 등급이며 함께 들면 발동하지 않는다."
+      codeName: CursePassive
+      description: "자신이 부여하는 지속피해량이 20% 증가한다. 죽음의 계약(261)의 일반 등급이며 함께 들면 발동하지 않는다."
     - id: 35
       verbalName: 상처 벌리기
       codeName: TsukuyomiWidenWound
@@ -151,9 +151,13 @@ codes:
     - id: 280
       verbalName: 황혼
       codeName: SurtrTwilight
-      description: "치명 피해를 전투당 한 번 막고 2초 경직 후 최대 체력까지 회복하여 황혼에 진입한다. 황혼 중 라그나로크는 최대 중첩이고 매초 2%부터 1%p씩 증가하는 최대 체력을 잃는다. <전수 불가능>"
-    - { id: 39, verbalName: 거인, codeName: SurtrGiant, description: "STR +4." }
+      description: "적을 공격할 때 공격한 대상마다 아군 전체에게 50+STR×0.5의 방어막을 부여한다. <고유 패시브> <전수 불가능>"
+    - { id: 39, verbalName: 거인, codeName: GiantPassive, description: "STR +5%." }
     - { id: 185, verbalName: 원소 숙련 - 불, codeName: SurtrFireMastery, description: "불 원소를 보유한 적에게 주는 피해가 10% 증가한다." }
+    - { id: 186, verbalName: 원소 숙련 - 물, codeName: HydroMastery, description: "물 원소를 보유한 적에게 주는 피해가 10% 증가한다." }
+    - { id: 187, verbalName: 원소 숙련 - 바람, codeName: AnemoMastery, description: "바람 원소를 보유한 적에게 주는 피해가 10% 증가한다." }
+    - { id: 188, verbalName: 원소 숙련 - 풀, codeName: DendroMastery, description: "풀 원소를 보유한 적에게 주는 피해가 10% 증가한다." }
+    - { id: 189, verbalName: 원소 숙련 - 바위, codeName: GeoMastery, description: "바위 원소를 보유한 적에게 주는 피해가 10% 증가한다." }
     - { id: 40, verbalName: 천상의 신체, codeName: SurtrCelestialBody, description: "받는 치유와 보호막 효과가 25% 증가한다." }
     - { id: 41, verbalName: 투사, codeName: SurtrFighter, description: "가한 피해의 8%만큼 체력을 회복한다." }
     - { id: 42, verbalName: 클러치 플레이어, codeName: SurtrClutchPlayer, description: "잃은 체력 비율의 50%만큼 주는 피해가 증가한다." }
@@ -171,7 +175,9 @@ codes:
     - { id: 1113, verbalName: 노련한 검투사, codeName: ColosseumPassive177, description: "전투당 처음 받는 제어 효과를 무효화한다. <전수 불가능>" }
     - { id: 1114, verbalName: 목숨값, codeName: ColosseumPassive178, description: "체력이 40% 미만이면 받는 피해가 30% 감소하고 피해의 20%를 회복한다. <전수 불가능>" }
     - { id: 1115, verbalName: 다시 한 판, codeName: ColosseumPassive179, description: "전투당 한 번 치명 피해를 버티고 최대 체력의 30%를 회복하며 궁극기를 준비한다. <전수 불가능>" }
-    - { id: 201, verbalName: 빅뱅, codeName: SeiBigBang, description: "<고유 패시브> <전수 불가> 보호막을 보유한 아군이 피해를 입으면 아군별 1초 내부 쿨다운으로 스택을 얻는다. 8스택에서 무작위 적에게 GEO 미사일 8발을 발사해 각각 INT의 20%에 해당하는 피해를 입히고, 아군 전체에 세이 INT의 80%에 해당하는 보호막을 부여한다. #특수 #비접촉 #추가공격" }
+    - { id: 201, verbalName: 빅뱅, codeName: SeiBigBang, description: "<고유 패시브> <전수 불가> 3턴마다 무작위 적에게 투사체 6발을 각각 따로 조준해 발사한다. 각 타수는 INT 기반 위력 40. #특수 #비접촉 #추가공격" }
+    - { id: 204, verbalName: 사그리다 파밀리아, codeName: GaudiSagradaFamilia, description: "<고유 패시브> <전수 불가> 일반공격이 적중할 때 스택 +1(최대 6). 자신 또는 적중 대상에게 바위 원소가 부착되어 있으면 +2. 6스택을 소비해 다음 일반공격을 강화하며, 강화 일반공격은 스택을 획득하지 않는다." }
+    - { id: 205, verbalName: 위대한 비행, codeName: LightGreatFlight, description: "<고유 패시브> <전수 불가> 필드의 아군이 발동형 궁극기를 사용하면 고유 스택 +1(최대 12). 하늘을 나는 꿈 사용 시 3스택 이상이면 3을 소비하여 원소 제거와 함께 모든 해로운 상태도 제거한다." }
     - { id: 7, verbalName: 사전준비, codeName: SeiPreparation, description: "전투 시작 시 궁극기 충전량이 100%가 된다. 마나를 쓰지 않는 특수 궁극기 보유자에게는 효과가 없다." }
     - { id: 8, verbalName: 창세의 노래, codeName: SeiFirstSong, description: "<전수 불가> 전투 중 최초로 궁극기를 발동하면 아군 전체의 궁극기 충전량이 100%가 된다. 특수 궁극기 보유자에게도 적용된다." }
 
@@ -200,10 +206,10 @@ codes:
     - { id: 71, verbalName: 리더쉽, codeName: FreyaLeadership, description: "필드에 있을 경우, 모든 아군이 가하는 피해 +10%. 중첩되지 않는다." }
     - { id: 72, verbalName: 전사장, codeName: FreyaWarChief, description: "모든 전열 아군에게 STR +8." }
     # ── 로키 ──
-    - { id: 282, verbalName: 펜리르, codeName: LokiFenrir, description: "소환수 펜리르를 보유한다. 펜리르는 4초마다 현재 체력이 가장 낮은 적에게 STR 기반 위력 40의 단일 피해를 입힌다. #접촉 #물리 #추가공격 <고유 패시브> <전수 불가능>" }
+    - { id: 282, verbalName: 펜리르, codeName: LokiFenrir, description: "소환수 펜리르를 불러낸다. 펜리르는 칸을 차지하지 않지만 체력을 가지고 피격 대상이 되며, 자기 DEX로 행동해 현재 체력이 가장 낮은 적을 문다. 로키가 쓰러지면 함께 사라진다. <고유 패시브> <전수 불가능>" }
     - { id: 73, verbalName: 소환사, codeName: LokiSummoner, description: "필드에 있는 모든 소환수가 가하는 피해 +25%. 중첩되지 않는다." }
     # ── 스카디 ──
-    - { id: 283, verbalName: 서리의 전사, codeName: SkadiFrostWarrior, description: "8초마다 아무런 원소도 부착되어 있지 않다면 자신에게 얼음 원소를 부착한다. 상시 빙결 면역. <고유 패시브> <전수 불가능>" }
+    - { id: 283, verbalName: 북방의 수호자, codeName: SkadiNorthernGuardian, description: "일반행동을 해결할 때마다 반격 스택을 최대치(3)로 충전한다. 적에게 피격되면 반격을 예약하고, 실제로 반격이 나갈 때 1스택을 소비해 공격자에게 STR×0.8 피해를 입힌다. #접촉 #물리 #추가행동 #반격 <고유 패시브> <전수 불가능>" }
     - { id: 74, verbalName: 원소 숙련 - 얼음, codeName: CryoMastery, description: "얼음 원소를 보유한 적에게 주는 피해 +10%." }
     - { id: 75, verbalName: 원소 친화 - 얼음, codeName: SkadiCryoAffinity, description: "얼음 원소를 보유한 동안 빙결된 적을 공격하면 확정 치명타가 된다." }
     - { id: 76, verbalName: 원소술사, codeName: SkadiElementalist, description: "필드에 있을 경우, 모든 아군이 원소 반응으로 만들어낸 피해 +25%. 상위 코드와 중복 적용되지 않는다." }
@@ -291,6 +297,36 @@ codes:
     - { id: 1410, verbalName: 지옥불, codeName: AmunRaHellfire, description: "강화 일반공격을 사용한 이후 '승천' 스택 수만큼 무작위 단일 적에게 칼날을 추가로 발사한다." }
     - { id: 1411, verbalName: 죽음의 성가, codeName: AswanDeathChant, description: "필드의 사령 아군 하나당 아군 전체의 가하는 피해가 5% 증가한다. <적 전용> <전수 불가능>" }
 
+    # ── 범용 거인 패시브 ──
+    - { id: 1420, verbalName: 거인의 방벽, codeName: GenericGiantBulwark, description: "전투 시작 시 최대 체력의 10%만큼 방어막을 얻는다. <적 전용> <전수 불가능>" }
+    - { id: 1421, verbalName: 거인의 방벽, codeName: GenericGiantBulwark, description: "전투 시작 시 최대 체력의 20%만큼 방어막을 얻는다. <적 전용> <전수 불가능>" }
+    - { id: 1422, verbalName: 혹한의 노심, codeName: FrostGiantCore, description: "턴 시작 시 자신에게 얼음 원소를 부착한다. 얼음이 부착된 채 Snow 태그 필드에 있으면 STR·CON의 레벨 성장분이 1.5배가 된다. <적 전용> <전수 불가능>" }
+    - { id: 1423, verbalName: 파쇄, codeName: GiantShatter, description: "단일 대상 궁극기 적중 후 대상의 방어력을 3턴 동안 20% 감소시킨다. <적 전용>" }
+    - { id: 1424, verbalName: 강타, codeName: GiantStunningBlow, description: "단일 대상 궁극기 적중 후 대상을 1턴 기절시킨다. <적 전용>" }
+    - { id: 1425, verbalName: 병상첨병, codeName: GiantCoupDeGrace, description: "행동불능 상태의 적을 공격할 때 치명타 피해 +40%. <적 전용>" }
+    - { id: 1426, verbalName: 적응력, codeName: GiantAdaptability, description: "물리·접촉 기술에 적중당할 때마다 이번 전투 동안 STR +1%. <적 전용>" }
+
+    # ── 범용 씨앗 패시브 ──
+    - { id: 1430, verbalName: 가변 장갑진, codeName: GenericSeedFormation, description: "전열에서는 레벨×1 CON, 후열에서는 레벨×1 DEX를 얻는다. <적 전용> <전수 불가능>" }
+    - { id: 1431, verbalName: 가변 장갑진, codeName: GenericSeedFormation, description: "전열에서는 레벨×2 CON, 후열에서는 레벨×2 DEX를 얻는다. <적 전용> <전수 불가능>" }
+    - { id: 1432, verbalName: 혹한의 동력로, codeName: FrostSeedCore, description: "Snow 태그 필드에서 DEX +30%, CON +15%. <적 전용> <전수 불가능>" }
+    - { id: 1433, verbalName: 자폭, codeName: SeedSelfDestruct, description: "치명 피해 시 적 진영 중앙에서 최대 체력의 20%만큼 범위 고정 피해를 주고 파괴된다. #추가공격 #특수 #비접촉 <적 전용>" }
+    - { id: 1434, verbalName: 대폭발, codeName: SeedSelfDestruct, description: "자폭의 금색 상위 코드. 치명 피해 시 적 진영 중앙에서 최대 체력의 40%만큼 범위 고정 피해를 주고 피격된 적에게 치유량 감소 50%를 3턴 부여한 뒤 파괴된다. #추가공격 #특수 #비접촉 <적 전용>" }
+    - { id: 1435, verbalName: 오버로드, codeName: SeedOverload, description: "체력이 30% 이하일 때 과부하 궁극기의 지속시간 동안 DEX 증가량이 25%가 된다. <적 전용>" }
+    - { id: 1436, verbalName: 서리광선, codeName: SeedFrostRay, description: "얼음 원소를 부착할 때 대상에게 2턴 둔화를 부여한다. 둔화는 DEX가 제공하는 행동 속도를 2/3으로 줄인다. <적 전용>" }
+
+    # ── 공허의 프리즘 패시브 ──
+    - { id: 1440, verbalName: 프리즘 동조, codeName: VoidPrismCore, description: "필드에 있는 공허의 프리즘 하나마다 자신의 INT +2%. 팔레트 변형도 동일 유닛으로 센다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1441, verbalName: 공명, codeName: VoidPrismResonance, description: "처치될 경우 공허 괴수 속성 아군의 행동 게이지를 50% 감소시킨다. <적 전용>" }
+    - { id: 1442, verbalName: 분열, codeName: VoidPrismSplit, description: "처치될 경우 자신이 서 있던 칸을 포함한 빈칸 최대 둘에 모든 스탯이 절반인 같은 공허의 프리즘을 생성한다. 빈칸이 부족하면 생성 가능한 수만 생성한다. 분열체는 다시 분열하지 않는다. <적 전용>" }
+    - { id: 1443, verbalName: 죽음의 메아리, codeName: VoidPrismDeathEcho, description: "공명의 금색 상위 코드. 처치될 경우 공허 괴수 속성 아군의 행동 게이지를 50% 감소시키고 자신의 현재 스탯 절반을 부여한다. <적 전용>" }
+    - { id: 1444, verbalName: 파괴광선, codeName: VoidPrismDestructionRay, description: "파쇄의 금색 상위 코드. 단일 대상 궁극기 적중 후 대상의 방어력을 3턴 동안 40% 감소시킨다. <적 전용>" }
+
+    # ── 공허의 괴조 패시브 ──
+    - { id: 1450, verbalName: 괴조의 부활, codeName: VoidMonstrousBirdRebirth, description: "전투 중 단 한 번 치명적인 피해를 입으면 최대 체력으로 부활한다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1451, verbalName: 가속, codeName: VoidMonstrousBirdAcceleration, description: "일반행동을 할 때마다 이번 전투 동안 DEX +2. 제한 없이 중첩된다. <적 전용> <전수 불가능>" }
+    - { id: 1452, verbalName: 날카로운 부리, codeName: VoidMonstrousBirdSharpBeak, description: "단일 공격 적중 시 현재 LUK% 확률로 출혈을 3턴 부여한다. 출혈은 대상의 자기 턴 시작마다 최대 체력 3%의 고정 지속피해를 준다. <적 전용> <전수 불가능>" }
+
     # ── 장비 전용 패시브 ──
     # 공격속도는 독립 스탯이 없으므로 1%p = DEX 1 규칙으로 환산했다.
     - { id: 400, verbalName: 코페쉬, codeName: KhopeshItemPassive, description: "기본공격 적중 시 2턴 동안 DEX +8. 최대 4중첩이며 새 중첩 획득 시 지속시간이 갱신된다. <장비 전용> <전수 불가능>" }
@@ -329,6 +365,22 @@ codes:
       verbalName: 일반공격
       codeName: SeiRadiantBolt
       description: "단일 적에게 INT의 50%에 해당하는 단일 피해를 입힌다. #특수 #비접촉"
+    - id: 4
+      verbalName: 일반공격
+      codeName: GaudiNormalAttack
+      description: "단일 적에게 INT×0.6의 피해를 입힌다. 사그리다 파밀리아 6스택에서는 스택을 소비하고, 서로 다른 무작위 대상 최대 3인을 우선도에 따라 지정해 각각 INT×0.8의 피해를 입히고 풀 원소를 부여한다. 강화 일반공격은 스택을 획득하지 않는다. #특수 #비접촉"
+    - id: 5
+      verbalName: 일반공격
+      codeName: LightNormalAttack
+      description: "필드에 플라이어가 없으면 소환한다(라이트 기준 3턴). 이미 있으면 단일 적에게 INT×0.6의 피해를 입힌다. #특수 #비접촉"
+    - id: 500
+      verbalName: 일반공격
+      codeName: FlyerNormalAttack
+      description: "소환수 — 단일 적에게 DEX×0.6의 피해를 입힌다. #소환수 #특수 #비접촉"
+    - id: 501
+      verbalName: 물어뜯기
+      codeName: FenrirBite
+      description: "소환수 — 현재 체력이 가장 낮은 적에게 STR×0.4의 피해를 입힌다. #소환수 #접촉 #물리"
     - id: 900
       verbalName: 일반공격
       codeName: MagicBolt
@@ -352,7 +404,7 @@ codes:
     - id: 80
       verbalName: 일반공격
       codeName: SurtrScorchingSlash
-      description: "단일 적에게 STR의 80% 피해. 라그나로크 6중첩에서는 최대 3명에게 STR의 100% 피해. #베기 (기본 #접촉 #물리 / 강화 #비접촉 #특수)"
+      description: "도발 상태가 아니면 강화 일반행동을 한다. 도발 상태라면 단일 적에게 STR×0.6의 피해를 입힌다. 강화 일반행동은 자신에게 3턴 도발(우선도 +1)과 80+STR×1.5의 방어막을 부여한다. #베기 #접촉 #물리"
     - { id: 1000, verbalName: 파수꾼의 타격, codeName: EnemySentinelNormal, description: "단일 적에게 위력 42의 물리 피해를 입힌다. #접촉 #물리" }
     - { id: 1001, verbalName: 투사의 공격, codeName: EnemyFighterNormal, description: "단일 적에게 위력 50의 물리 피해를 입힌다. #접촉 #물리" }
     - { id: 1002, verbalName: 처형자의 일격, codeName: EnemyExecutionerNormal, description: "단일 적에게 위력 55의 물리 피해를 입힌다. #접촉 #물리" }
@@ -381,7 +433,7 @@ codes:
     - { id: 64, verbalName: 일반공격, codeName: VayuNormalAttack, description: "단일 적에게 CON 기반 위력 60의 물리 피해를 입힌다. #물리 #비접촉" }
     - { id: 81, verbalName: 일반공격, codeName: FreyaNormalAttack, description: "아군 전체를 INT 기반 위력 40만큼 치유한다." }
     - { id: 82, verbalName: 일반공격, codeName: LokiNormalAttack, description: "단일 적에게 STR 기반 위력 80의 피해를 입힌다. #비접촉 #물리" }
-    - { id: 83, verbalName: 일반공격, codeName: SkadiNormalAttack, description: "단일 적에게 INT 기반 위력 40의 피해를 입히고 얼음 원소를 부착한다. #특수 #비접촉" }
+    - { id: 83, verbalName: 일반행동, codeName: SkadiNormalAttack, description: "도발 중이면 단일 적에게 STR×0.8의 피해를 입힌다. 도발 중이 아니라면 강화 일반행동으로 바뀌어 자신에게 100+STR×1.2의 방어막과 3턴 도발(우선도 +1)을 부여한다. #접촉 #물리" }
     - { id: 65, verbalName: 일반공격, codeName: KuberaNormalAttack, description: "단일 적에게 STR 기반 위력 70의 피해를 입힌다. #접촉 #물리" }
     - { id: 66, verbalName: 일반공격, codeName: VarunaNormalAttack, description: "단일 적에게 CON 기반 위력 60의 피해를 입힌다. #특수 #비접촉" }
     - { id: 42, verbalName: 일반공격, codeName: SusanooNormalAttack, description: "단일 적에게 DEX 기반 위력 60의 피해를 입힌다. #물리 #접촉 #베기" }
@@ -427,6 +479,11 @@ codes:
     - { id: 1405, verbalName: 일반공격, codeName: AswanFallenPriestRite, description: "단일 적에게 INT×0.8의 피해를 입히고 불 원소를 부여한다. #비접촉 #특수" }
     - { id: 1406, verbalName: 대지의 진혼, codeName: OsirisEarthRequiem, description: "적 전체에게 INT×1.2의 피해를 입히고 바위 원소를 부여한다. #비접촉 #특수" }
     - { id: 1407, verbalName: 일반공격, codeName: AmunRaBladeVolley, description: "칼날 셋으로 서로 다른 적 3명에게 INT×1.8의 피해를 입힌다. 치명타가 터지면 강화 일반공격을 즉시 큐에 예약한다. #비접촉 #특수 #베기" }
+    - { id: 1420, verbalName: 일반공격, codeName: GenericGiantNormalAttack, description: "단일 적에게 STR×0.8의 피해를 입힌다. #접촉 #물리" }
+    - { id: 1421, verbalName: 일반공격, codeName: GenericGiantNormalAttack, description: "단일 적에게 STR×1.0의 피해를 입힌다. #접촉 #물리" }
+    - { id: 1430, verbalName: 연속 사격, codeName: GenericSeedVolley, description: "단일 적에게 DEX×0.2의 피해를 3발 가한다. 과부하 중에는 4발이 된다. #물리 #비접촉 #사격" }
+    - { id: 1440, verbalName: 프리즘 광선, codeName: VoidPrismNormal, description: "단일 적에게 100 + INT×0.6 위력의 피해를 입힌다. #특수 #비접촉" }
+    - { id: 1450, verbalName: 괴조의 발톱, codeName: VoidMonstrousBirdNormal, description: "단일 적에게 100 + STR×0.6 위력의 피해를 입힌다. #물리 #접촉" }
     - { id: 902, verbalName: 강화 일반공격, codeName: AmunRaBladeVolley, description: "단일 적에게 INT×1.8의 피해를 입힌다. '지옥불' 보유 시 이후 '승천' 스택만큼 칼날을 더 발사한다. #비접촉 #특수 #베기" }
     - { id: 3, verbalName: 번개 베기, codeName: SabahLightningSlash, description: "적 최대 3명에게 DEX×0.9의 피해를 입히고 번개 원소를 부여한다. #베기 #접촉 #물리" }
     - { id: 26, verbalName: 무모한 찌르기, codeName: IcariaRecklessThrust, description: "단일 적에게 INT×0.6의 피해를 입힌다. 최대 체력의 10%를 소모할 수 있으면 소모하고 위력이 INT×0.9로 변한다. #물리 #접촉 #찌르기" }
@@ -438,7 +495,7 @@ codes:
     - { id: 63, verbalName: 천벌, codeName: IndraThunderbolt, description: "단일 대상에게 INT의 [레벨]%에 해당하는 피해를 입히고, 계수를 20%p씩 깎으며 다른 적에게 튕긴다. 계수가 0이 되거나 남은 적이 없으면 멈춘다. #바운스 #특수 #비접촉" }
     - { id: 81, verbalName: 풍요의 산물, codeName: FreyaHarvest, description: "이번 전투의 순수치유량을 정산해 프레이아 최대 체력의 10%마다 아군 전체 STR +1(최대 +25)을 7초간 부여하고 기록을 비운다." }
     - { id: 82, verbalName: 발드르의 살해자, codeName: LokiBaldrSlayer, description: "최대 체력이 가장 높은 단일 적에게 STR 기반 위력 120의 피해를 입히고 치유량 감소 -50%(6초)를 부여한다." }
-    - { id: 83, verbalName: 고드름 스파이크, codeName: SkadiIcicleSpike, description: "적 전체에게 INT 기반 위력 80의 피해를 입히고 얼음 원소를 부착한다. #특수 #비접촉" }
+    - { id: 83, verbalName: 고드름 스파이크, codeName: SkadiIcicleSpike, description: "적 전체에게 STR×0.8의 피해를 입히고 얼음 원소를 부착한다. #물리 #접촉" }
     - { id: 65, verbalName: 황금의 지진, codeName: KuberaGoldenQuake, description: "적 전체에게 STR 기반 위력 70의 피해를 입히고 에어본 상태이상을 부여한다. #특수 #비접촉" }
     - { id: 66, verbalName: 마카라, codeName: VarunaMakara, description: "소환수 마카라를 8초간 소환한다. 마카라는 2초마다 적 전체에게 INT 기반 위력 40의 피해를 입히고 물 원소를 부여한다." }
     - { id: 42, verbalName: 천총운검, codeName: SusanooAmenoMurakumo, description: "상시형 궁극기. 필드에 에어본 상태의 적이 있으면 그 대상에게 즉시 DEX 기반 위력 80의 피해를 가한다. 내부 쿨다운 2초. #물리 #접촉 #베기 #추가공격" }
@@ -462,7 +519,19 @@ codes:
     - id: 1
       verbalName: 창세
       codeName: SeiSanctuary
-      description: "8초간 모든 아군이 피해를 가할 때마다 세이 INT ×3의 고정 피해가 추가된다."
+      description: "시전 시 아군 전체에게 바위 원소를 부착한다. 이후 8초간 모든 아군이 피해를 가할 때마다 세이 INT ×3의 고정 피해가 추가된다."
+    - id: 4
+      verbalName: 불멸의 유산
+      codeName: GaudiImmortalLegacy
+      description: "적 전체에게 INT×0.8의 피해를 입히고 풀 원소를 부착한다. #특수 #비접촉"
+    - id: 5
+      verbalName: 하늘을 나는 꿈
+      codeName: LightFlyingDream
+      description: "최대 마나가 가장 높은 단일 아군에게 INT만큼 마나를 주유한다. 이후 아군 전체의 모든 원소를 제거하고 바람 원소를 부착한다. 위대한 비행이 3스택 이상이면 3스택을 소비해 모든 해로운 상태도 제거한다."
+    - id: 500
+      verbalName: 낙하
+      codeName: FlyerSkyfall
+      description: "소환수 — 적 전체에게 INT×0.8의 피해를 입힌다. #소환수 #특수 #비접촉"
     - id: 900
       verbalName: 적의 강공격
       codeName: EnemyTestUltimate
@@ -488,7 +557,7 @@ codes:
     - id: 80
       verbalName: 라그나로크
       codeName: SurtrRagnarok
-      description: "불 원소가 부착된 적을 공격하면 5초간 1중첩을 얻는다(최대 6). 중첩마다 방어력 20%를 무시하고 6중첩에서 일반공격이 강화된다. 자동 시전하지 않는 상시형 궁극기다."
+      description: "단일 적에게 STR×1.2의 피해를 입힌 후 적 전체에게 STR×0.8의 피해를 입히고 불 원소를 부착한다. #베기 #접촉 #물리"
     - { id: 1100, verbalName: 철벽 진형, codeName: ColosseumMurmilloUltimate, description: "자신과 체력이 가장 낮은 아군에게 최대 체력 비례 방어막을 부여한다." }
     - { id: 1101, verbalName: 대열 붕괴, codeName: ColosseumHoplomachusUltimate, description: "한 행을 공격하고 6초간 받는 피해를 증가시킨다." }
     - { id: 1102, verbalName: 일대일 지명, codeName: ColosseumThraexUltimate, description: "최대 체력이 가장 높은 적을 지명하고 8초간 그 대상에게 주는 피해가 증가한다." }
@@ -536,6 +605,26 @@ codes:
     - { id: 1404, verbalName: 망자의 가호, codeName: AswanFallenPriestWard, description: "아군 전체에게 위력 INT×0.5의 보호막을 부여한다. 사령 분류 아군은 두 배를 받는다." }
     - { id: 1405, verbalName: 재생의 격류, codeName: OsirisRebirthFlood, description: "적 전체에게 INT×2.0의 피해를 입히고 행동 게이지를 50% 지연시킨다. #특수 #비접촉 #디버프" }
     - { id: 1406, verbalName: 태양의 심판, codeName: AmunRaSolarJudgment, description: "'승천' 스택 × INT×0.6의 피해를 적 전체에게 입힌 뒤 '승천' 스택을 0으로 되돌린다. #특수 #비접촉" }
+    - { id: 1420, verbalName: 거인의 철퇴, codeName: GenericGiantHammerfall, description: "단일 적에게 80 + STR×1.3의 피해를 입힌다. #접촉 #물리" }
+    - { id: 1421, verbalName: 거인의 철퇴, codeName: GenericGiantHammerfall, description: "단일 적에게 100 + STR×1.5의 피해를 입힌다. #접촉 #물리" }
+    - { id: 1430, verbalName: 과부하, codeName: GenericSeedOverdrive, description: "2턴 동안 DEX +5% 및 일반공격 발사 수 +1. 오버로드 조건에서는 DEX +25%." }
+    - { id: 1431, verbalName: 빙결포, codeName: FrostSeedBeam, description: "단일 적에게 DEX×1.5의 피해를 입히고 얼음 원소를 부착한다. #물리 #비접촉 #사격" }
+    - { id: 1440, verbalName: 프리즘 파동, codeName: VoidPrismUltimate, description: "단일 적에게 150 + INT×1.2 위력의 피해를 입힌다. #특수 #비접촉" }
+    - { id: 1441, verbalName: 프리즘 파동 · 불, codeName: VoidPrismUltimate, description: "단일 적에게 150 + INT×1.2 위력의 피해를 입히고 불 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1442, verbalName: 프리즘 파동 · 물, codeName: VoidPrismUltimate, description: "단일 적에게 150 + INT×1.2 위력의 피해를 입히고 물 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1443, verbalName: 프리즘 파동 · 바람, codeName: VoidPrismUltimate, description: "단일 적에게 150 + INT×1.2 위력의 피해를 입히고 바람 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1444, verbalName: 프리즘 파동 · 번개, codeName: VoidPrismUltimate, description: "단일 적에게 150 + INT×1.2 위력의 피해를 입히고 번개 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1445, verbalName: 프리즘 파동 · 풀, codeName: VoidPrismUltimate, description: "단일 적에게 150 + INT×1.2 위력의 피해를 입히고 풀 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1446, verbalName: 프리즘 파동 · 얼음, codeName: VoidPrismUltimate, description: "단일 적에게 150 + INT×1.2 위력의 피해를 입히고 얼음 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1447, verbalName: 프리즘 파동 · 바위, codeName: VoidPrismUltimate, description: "단일 적에게 150 + INT×1.2 위력의 피해를 입히고 바위 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1450, verbalName: 공허 강습, codeName: VoidMonstrousBirdUltimate, description: "전체 적에게 80 + STR×0.8 위력의 피해를 입힌다. #물리 #접촉" }
+    - { id: 1451, verbalName: 공허 강습 · 불, codeName: VoidMonstrousBirdUltimate, description: "전체 적에게 80 + STR×0.8 위력의 피해를 입히고 불 원소를 부착한다. #물리 #접촉" }
+    - { id: 1452, verbalName: 공허 강습 · 물, codeName: VoidMonstrousBirdUltimate, description: "전체 적에게 80 + STR×0.8 위력의 피해를 입히고 물 원소를 부착한다. #물리 #접촉" }
+    - { id: 1453, verbalName: 공허 강습 · 바람, codeName: VoidMonstrousBirdUltimate, description: "전체 적에게 80 + STR×0.8 위력의 피해를 입히고 바람 원소를 부착한다. #물리 #접촉" }
+    - { id: 1454, verbalName: 공허 강습 · 번개, codeName: VoidMonstrousBirdUltimate, description: "전체 적에게 80 + STR×0.8 위력의 피해를 입히고 번개 원소를 부착한다. #물리 #접촉" }
+    - { id: 1455, verbalName: 공허 강습 · 풀, codeName: VoidMonstrousBirdUltimate, description: "전체 적에게 80 + STR×0.8 위력의 피해를 입히고 풀 원소를 부착한다. #물리 #접촉" }
+    - { id: 1456, verbalName: 공허 강습 · 얼음, codeName: VoidMonstrousBirdUltimate, description: "전체 적에게 80 + STR×0.8 위력의 피해를 입히고 얼음 원소를 부착한다. #물리 #접촉" }
+    - { id: 1457, verbalName: 공허 강습 · 바위, codeName: VoidMonstrousBirdUltimate, description: "전체 적에게 80 + STR×0.8 위력의 피해를 입히고 바위 원소를 부착한다. #물리 #접촉" }
     - { id: 3, verbalName: 아즈라엘, codeName: SabahAzrael, description: "아군이 적에게 디버프를 부여할 때 얻는 아즈라엘 스택이 7이 되면 모두 소모해 적 전체에게 DEX×1.0의 피해를 입힌다. #베기 #접촉 #물리" }
     - { id: 26, verbalName: 창공에 대한 도전, codeName: IcariaChallengeTheSky, description: "적 전체에게 INT×1.1의 피해를 입힌다. 최대 체력의 20%를 소모할 수 있으면 소모하고 위력이 INT×1.4로 변한다. #특수 #접촉 #찌르기" }
     - { id: 160, verbalName: 혁명의 노래, codeName: MarieSongOfRevolution, description: "아군 전체에게 3턴간 일반공격으로 가하는 피해 +20%, DEX +10을 부여한다." }

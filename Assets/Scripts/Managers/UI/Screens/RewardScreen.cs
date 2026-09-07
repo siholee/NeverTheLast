@@ -18,8 +18,11 @@ namespace Managers.UI.Screens
     /// 정보가 다 들어 있어도 세 장을 <b>비교</b>할 수는 없었다 — 같은 항목이 같은 자리에 오지 않으니
     /// 눈이 매번 문장을 다시 읽어야 했기 때문이다.
     ///
-    /// 지금은 아이템 데이터를 구조 그대로 받아 <b>등급 → 이름 → 스탯 → 제원</b> 순으로 세우고,
-    /// 세 장의 같은 줄에 같은 항목이 오도록 맞췄다. 눈이 가로로 훑으며 비교된다.
+    /// 지금은 <b>등급 → 이름 → 일러스트 → 요약</b> 순으로 세운다. 장비에 일러스트가 붙으면서
+    /// 카드가 제원을 다 이고 있을 자리가 없어졌고, 무엇보다 <b>그림이 먼저 눈에 들어와야</b>
+    /// 세 장을 훑는 속도가 빨라진다. 숫자와 조건은 마우스를 올렸을 때 툴팁으로 보인다.
+    ///
+    /// 장비가 아닌 보상(회복·토큰 등)은 그릴 그림이 없으므로 예전처럼 항목을 줄로 세운다.
     /// </summary>
     public class RewardScreen : ModalScreen
     {
@@ -166,7 +169,7 @@ namespace Managers.UI.Screens
 
             if (item.RequiredProficiency != EquipmentProficiency.None)
             {
-                rows.Add(new Row("요구 숙련", ProficiencyName(item.RequiredProficiency), UITheme.TextPrimary));
+                rows.Add(new Row("요구 숙련", ItemTooltip.ProficiencyName(item.RequiredProficiency), UITheme.TextPrimary));
             }
 
             // 부여 코드가 이 장비를 고를 가장 큰 이유다. 양손 여부보다 먼저 적는다.
@@ -183,46 +186,13 @@ namespace Managers.UI.Screens
             return rows;
         }
 
-        /// <summary>장비 부위의 한글 이름. 데이터는 영문이라 여기서만 옮긴다.</summary>
-        private static string SlotName(string slot) => slot switch
-        {
-            "MainHand" => "주무기",
-            "OffHand" => "보조",
-            "Armor" => "갑옷",
-            "Head" => "머리",
-            "Necklace" => "목걸이",
-            "Ring" => "반지",
-            "Shoes" => "신발",
-            _ => slot,
-        };
-
-        /// <summary>요구 숙련의 한글 이름.</summary>
-        private static string ProficiencyName(EquipmentProficiency proficiency) => proficiency switch
-        {
-            EquipmentProficiency.Dagger => "단검",
-            EquipmentProficiency.Wand => "완드",
-            EquipmentProficiency.Orb => "보주",
-            EquipmentProficiency.Greatsword => "대검",
-            EquipmentProficiency.Longbow => "장궁",
-            EquipmentProficiency.Shortbow => "단궁",
-            EquipmentProficiency.Crossbow => "쇠뇌",
-            EquipmentProficiency.LightArmor => "경갑",
-            EquipmentProficiency.MediumArmor => "평갑",
-            EquipmentProficiency.HeavyArmor => "중갑",
-            EquipmentProficiency.Shield => "방패",
-            EquipmentProficiency.Longsword => "한손검",
-            EquipmentProficiency.Mace => "둔기",
-            EquipmentProficiency.Spear => "장창",
-            _ => proficiency.ToString(),
-        };
-
         /// <summary>등급 · 부위 · 분류를 한 줄로. 세 장이 같은 자리에서 비교된다.</summary>
         private static string MetaLine(RewardDef reward)
         {
             int tier = Mathf.Max(1, reward.tier);
             var parts = new List<string> { $"TIER {tier}" };
 
-            if (!string.IsNullOrWhiteSpace(reward.item?.slot)) parts.Add(SlotName(reward.item.slot));
+            if (!string.IsNullOrWhiteSpace(reward.item?.slot)) parts.Add(ItemTooltip.SlotName(reward.item.slot));
             if (reward.isRare) parts.Add("RARE");
 
             return string.Join(" · ", parts);
@@ -236,10 +206,13 @@ namespace Managers.UI.Screens
             private readonly TextMeshProUGUI _name;
             private readonly TextMeshProUGUI _specCaption;
             private readonly Image _specRule;
+            private readonly TextMeshProUGUI _statCaption;
             private readonly TextMeshProUGUI[] _statLabels = new TextMeshProUGUI[MaxStatRows];
             private readonly TextMeshProUGUI[] _statValues = new TextMeshProUGUI[MaxStatRows];
             private readonly TextMeshProUGUI[] _specLabels = new TextMeshProUGUI[MaxSpecRows];
             private readonly TextMeshProUGUI[] _specValues = new TextMeshProUGUI[MaxSpecRows];
+            private readonly Image _art;
+            private readonly TextMeshProUGUI _summary;
 
             public Card(Transform parent, int index, Action<int> onPick)
             {
@@ -270,13 +243,27 @@ namespace Managers.UI.Screens
 
                 Rule(root, "Rule", 0.775f);
 
-                Caption(root, "StatCaption", "STATS", 0.725f);
+                _statCaption = Caption(root, "StatCaption", "STATS", 0.725f);
                 for (int i = 0; i < MaxStatRows; i++)
                 {
                     float top = 0.70f - i * 0.068f;
                     _statLabels[i] = RowLabel(root, $"StatLabel{i}", top);
                     _statValues[i] = RowValue(root, $"StatValue{i}", top, UITheme.FontHeading);
                 }
+
+                // 일러스트. 카드 가운데를 통째로 쓴다. 없으면(장비가 아닌 보상) 꺼지고
+                // 그 자리에 예전처럼 스탯 줄이 들어온다.
+                var artObject = new GameObject("Art", typeof(RectTransform), typeof(Image));
+                artObject.transform.SetParent(root, false);
+                _art = artObject.GetComponent<Image>();
+                _art.preserveAspect = true;
+                _art.raycastTarget = false;
+                UIBuild.Anchor(_art.rectTransform, new Vector2(0f, 0.30f), new Vector2(1f, 0.755f), 22f, 0f);
+
+                // 그림 아래 한 줄 요약. 세 장을 비교할 때 가장 자주 보는 값만 남긴다.
+                _summary = UIBuild.Text("Summary", root, "", UITheme.FontCaption, UITheme.TextSecondary,
+                    TextAlignmentOptions.Center, wrap: true);
+                UIBuild.Anchor(_summary.rectTransform, new Vector2(0f, 0.17f), new Vector2(1f, 0.29f), 16f, 0f);
 
                 _specRule = Rule(root, "Rule2", 0.415f);
 
@@ -358,11 +345,46 @@ namespace Managers.UI.Screens
                 _name.text = reward.displayName;
 
                 List<Row> stats = StatRows(reward);
-                Fill(_statLabels, _statValues, stats);
-
                 List<Row> specs = SpecRows(reward);
-                _specCaption.gameObject.SetActive(specs.Count > 0);
-                _specRule.gameObject.SetActive(specs.Count > 0);
+
+                Sprite art = ItemTooltip.LoadArt(reward.item);
+                _art.sprite = art;
+                _art.enabled = art != null;
+
+                // 카드 어디에 마우스를 올려도 제원이 뜬다. 그림에 자리를 내준 값들이 여기 있다.
+                TooltipTrigger.Attach(_root, () => reward.displayName,
+                    () => TooltipLines(reward, stats, specs), rarity);
+
+                BindArtLayout(art != null, stats, specs);
+            }
+
+            /// <summary>그림이 있으면 요약 한 줄, 없으면 예전처럼 표를 세운다.</summary>
+            private void BindArtLayout(bool hasArt, List<Row> stats, List<Row> specs)
+            {
+                _summary.gameObject.SetActive(hasArt);
+                // 이름 아래 구분선은 그림이 있을 때도 남긴다. 제목과 본문을 가르는 선이다.
+                _statCaption.gameObject.SetActive(!hasArt);
+                _specCaption.gameObject.SetActive(!hasArt && specs.Count > 0);
+                _specRule.gameObject.SetActive(!hasArt && specs.Count > 0);
+
+                for (int i = 0; i < _statLabels.Length; i++)
+                {
+                    _statLabels[i].gameObject.SetActive(!hasArt);
+                    _statValues[i].gameObject.SetActive(!hasArt);
+                }
+                for (int i = 0; i < _specLabels.Length; i++)
+                {
+                    _specLabels[i].gameObject.SetActive(!hasArt);
+                    _specValues[i].gameObject.SetActive(!hasArt);
+                }
+
+                if (hasArt)
+                {
+                    _summary.text = SummaryLine(stats);
+                    return;
+                }
+
+                Fill(_statLabels, _statValues, stats);
                 Fill(_specLabels, _specValues, specs);
 
                 // 장비는 대개 스탯이 하나뿐이라 고정 자리에 두면 가운데가 텅 빈다.
@@ -377,6 +399,39 @@ namespace Managers.UI.Screens
                     MoveBand(_specLabels[i].rectTransform, top, 0.058f);
                     MoveBand(_specValues[i].rectTransform, top, 0.058f);
                 }
+            }
+
+            /// <summary>그림 아래 한 줄. 스탯 보너스만 색을 입혀 이어 붙인다.</summary>
+            private static string SummaryLine(List<Row> stats)
+            {
+                if (stats.Count == 0) return "";
+
+                var parts = new List<string>();
+                foreach (Row row in stats)
+                {
+                    string hex = ColorUtility.ToHtmlStringRGB(row.Color);
+                    parts.Add($"<color=#{hex}>{row.Label} {row.Value}</color>");
+                }
+                return string.Join("   ", parts);
+            }
+
+            private static List<UITooltip.Line> TooltipLines(
+                RewardDef reward, List<Row> stats, List<Row> specs)
+            {
+                var lines = new List<UITooltip.Line>
+                {
+                    UITooltip.Line.Note(MetaLine(reward), UITheme.TextMuted),
+                };
+
+                foreach (Row row in stats) lines.Add(new UITooltip.Line(row.Label, row.Value, row.Color));
+                foreach (Row row in specs) lines.Add(new UITooltip.Line(row.Label, row.Value, row.Color));
+
+                if (reward.item?.twoHanded == true)
+                {
+                    lines.Add(UITooltip.Line.Note("두 손으로 든다 — 보조 슬롯을 함께 쓴다", UITheme.TextMuted));
+                }
+
+                return lines;
             }
 
             private static void Fill(TextMeshProUGUI[] labels, TextMeshProUGUI[] values, List<Row> rows)

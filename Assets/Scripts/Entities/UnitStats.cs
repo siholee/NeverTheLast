@@ -246,6 +246,21 @@ namespace Entities
             };
         }
 
+        /// <summary>강화 수치를 제외하고 레벨로만 얻은 성장 스탯을 반환한다.</summary>
+        public int GetLevelGrowthStatValue(BaseEnums.PrimaryStat stat)
+        {
+            int growthLevel = GetStatGrowthLevel();
+            return stat switch
+            {
+                BaseEnums.PrimaryStat.STR => strIncrementLvl * growthLevel,
+                BaseEnums.PrimaryStat.DEX => dexIncrementLvl * growthLevel,
+                BaseEnums.PrimaryStat.CON => conIncrementLvl * growthLevel,
+                BaseEnums.PrimaryStat.INT => intIncrementLvl * growthLevel,
+                BaseEnums.PrimaryStat.LUK => lukIncrementLvl * growthLevel,
+                _ => 0,
+            };
+        }
+
         // ===== 파생 스탯 =====
 
         public int GetDerivedHp() => Mathf.Max(1, GetBaseCon() * HpPerConPoint);

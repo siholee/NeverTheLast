@@ -311,8 +311,16 @@ namespace Managers.UI.Screens
             if (portrait != null) _preview.sprite = portrait;
 
             _previewName.text = unit.name;
+            List<string> subStats = unit.subStats?
+                .Where(stat => !string.IsNullOrWhiteSpace(stat))
+                .ToList() ?? new List<string>();
+            if (subStats.Count == 0 && !string.IsNullOrWhiteSpace(unit.subStat))
+                subStats.Add(unit.subStat);
+            string statText = subStats.Count == 0
+                ? $"주 {unit.mainStat} (단일)"
+                : $"주 {unit.mainStat} · 부 {string.Join(" · ", subStats)}";
             _previewInfo.text =
-                $"{unit.element}   주 {unit.mainStat} · 부 {unit.subStat}\n{RoleText(unit)}";
+                $"{unit.element}   {statText}\n{RoleText(unit)}";
         }
 
         private static string RoleText(UnitData unit)

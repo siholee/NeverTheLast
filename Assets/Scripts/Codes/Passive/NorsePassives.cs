@@ -21,9 +21,7 @@ namespace Codes.Passive
         public const int Medicine = 5322;
         public const int Leadership = 5323;
         public const int WarChief = 5324;
-        public const int Fenrir = 5325;
         public const int Summoner = 5326;
-        public const int FrostWarrior = 5327;
         public const int CryoMastery = 5328;
         public const int CryoAffinity = 5329;
         public const int Elementalist = 5330;
@@ -140,6 +138,11 @@ namespace Codes.Passive
     /// </summary>
     public sealed class LokiFenrir : UniquePassiveCode
     {
+        private Action<EventContext> _turnHandler;
+        private Action<EventContext> _cleanupHandler;
+        private bool _summonedThisRound;
+        private bool _registered;
+
         public LokiFenrir(PassiveCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Passive;
@@ -147,12 +150,44 @@ namespace Codes.Passive
             IgnoresActivationChance = true;
         }
 
-        public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
-            NorseStatusIds.Fenrir, "loki_fenrir", CodeName,
-            Caster, Caster, new FenrirEffect(),
-            stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
-            isBeneficial: true,
-            description: "펜리르가 2턴마다 체력이 가장 낮은 적에게 STR 위력 40의 피해를 입힙니다."));
+        public override void CastCode()
+        {
+            if (Caster == null || _registered) return;
+
+            _summonedThisRound = false;
+            _turnHandler = OnOwnerTurnStart;
+            _cleanupHandler = _ => StopCode();
+            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = true;
+        }
+
+        /// <summary>
+        /// 첫 턴에 펜리르를 불러낸다.
+        ///
+        /// 패시브가 붙는 시점은 로키가 아직 칸에 자리를 잡는 도중이라 소환이 성립하지 않는다.
+        /// 자기 턴이 열리면 로키는 확실히 전장에 서 있으므로 그때 부른다.
+        /// 한 라운드에 한 번만 부르므로 <b>쓰러진 펜리르는 다시 오지 않는다.</b>
+        /// </summary>
+        private void OnOwnerTurnStart(EventContext context)
+        {
+            if (Caster == null || !_registered || _summonedThisRound) return;
+            if (context?.Grantee != Caster || !Caster.IsOnField) return;
+
+            _summonedThisRound = true;
+            Managers.GridManager.Instance?.SpawnSummon(Caster, Combat.SummonCatalog.Fenrir(Caster));
+        }
+
+        public override void StopCode()
+        {
+            if (Caster == null || !_registered) return;
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _summonedThisRound = false;
+            _registered = false;
+        }
     }
 
     /// <summary>Lv.25 소환사 — 필드의 모든 소환수가 가하는 피해 +25%.</summary>
@@ -178,27 +213,105 @@ namespace Codes.Passive
     // ══════════════════════════════════════════════════════════════
 
     /// <summary>
-    /// 스카디 고유 P — 서리의 전사.
-    /// 8초마다 부착 원소가 하나도 없으면 자신에게 얼음을 두른다. 상시 빙결 면역.
-    ///
-    /// 스카디의 고유 원소가 얼음이라 평소에는 발동하지 않는다.
-    /// 원소 반응은 고유 원소까지 걷어 가므로, <b>반응으로 얼음을 잃은 직후</b> 되돌리는 코드다.
+    /// 스카디 고유 P — 북방의 수호자.
+    /// 일반행동을 해결할 때마다 반격 스택을 최대치까지 채운다. 적에게 피격되면 한 스택을
+    /// 소비해 공격자에게 STR 위력 80의 접촉 물리 반격을 예약한다.
     /// </summary>
-    public sealed class SkadiFrostWarrior : UniquePassiveCode
+    public sealed class SkadiNorthernGuardian : UniquePassiveCode, ICounterAttackProvider
     {
-        public SkadiFrostWarrior(PassiveCodeContext context) : base(context)
+        public const string ResourceId = "skadi_northern_guardian";
+        public const int MaxStacks = 3;
+
+        private Action<EventContext> _damageHandler;
+        private Action<EventContext> _actionHandler;
+        private Action<EventContext> _cleanupHandler;
+        private int _counterSequence;
+        private bool _registered;
+
+        public SkadiNorthernGuardian(PassiveCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "서리의 전사";
+            CodeName = "북방의 수호자";
+            Power = 80;
             IgnoresActivationChance = true;
         }
 
-        public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
-            NorseStatusIds.FrostWarrior, "skadi_frost_warrior", CodeName,
-            Caster, Caster, new FrostWarriorEffect(),
-            stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
-            isBeneficial: true,
-            description: "4턴마다 원소가 없으면 얼음을 부착합니다. 빙결에 면역입니다."));
+        public override void CastCode()
+        {
+            if (Caster == null || _registered) return;
+
+            Caster.SetCombatResourceMaximum(ResourceId, MaxStacks, resetCurrent: true);
+            _counterSequence = 0;
+            _damageHandler = OnAfterDamageTaken;
+            _actionHandler = OnNormalActionResolved;
+            _cleanupHandler = _ => StopCode();
+            Caster.AddListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _damageHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnNormalActionResolved, _actionHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = true;
+        }
+
+        private void OnNormalActionResolved(EventContext context)
+        {
+            if (Caster == null || !_registered || context?.Grantee != Caster) return;
+            Caster.AddCombatResource(ResourceId, MaxStacks);
+        }
+
+        private void OnAfterDamageTaken(EventContext context)
+        {
+            Unit attacker = context?.Grantor;
+            if (Caster == null || !_registered || !Caster.isActive || Caster.HpCurr <= 0 ||
+                attacker == null || !attacker.isActive || attacker.IsEnemy == Caster.IsEnemy ||
+                context.DmgCtx == null || context.DmgCtx.ResolvedDamage <= 0 ||
+                Caster.GetCombatResource(ResourceId) <= 0) return;
+
+            var scheduler = GameManager.Instance?.ActionScheduler;
+            if (scheduler == null) return;
+
+            string key = $"skadi_northern_guardian_{_counterSequence++}";
+            scheduler.EnqueueAdditional(Caster, key, CodeName, () => ResolveCounter(attacker));
+        }
+
+        /// <summary>
+        /// 스택은 <b>예약이 아니라 실제 반격이 나갈 때</b> 태운다.
+        /// 큐가 풀리기 전에 공격자가 쓰러지면 반격이 통째로 취소되는데,
+        /// 예약 시점에 태우면 아무 일도 없이 스택만 사라진다.
+        /// </summary>
+        private void ResolveCounter(Unit attacker)
+        {
+            if (Caster == null || !Caster.isActive || attacker == null || !attacker.isActive ||
+                attacker.IsUntargetable) return;
+            if (!Caster.TryConsumeCombatResource(ResourceId, 1)) return;
+
+            bool isCrit = UnityEngine.Random.value <= Caster.CritChanceCurr;
+            float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
+            int damage = Mathf.Max(1, Mathf.RoundToInt(
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.STR) * critMultiplier));
+            attacker.TakeDamage(new DamageContext(
+                Caster, damage, BaseEnums.CodeType.Passive,
+                new List<int>
+                {
+                    DamageTag.SingleTarget, DamageTag.AdditionalAttack, DamageTag.CounterAttack,
+                    DamageTag.ContactAttack, DamageTag.Physical,
+                },
+                isCrit));
+        }
+
+        public override void StopCode()
+        {
+            if (Caster == null) return;
+            if (_registered)
+            {
+                Caster.RemoveListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _damageHandler);
+                Caster.RemoveListener(BaseEnums.UnitEventType.OnNormalActionResolved, _actionHandler);
+                Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+                Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            }
+
+            Caster.SetCombatResourceMaximum(ResourceId, MaxStacks, resetCurrent: true);
+            _registered = false;
+        }
     }
 
     /// <summary>Lv.10 원소 숙련 - 얼음 — 얼음 원소를 보유한 적에게 주는 피해 +10%.</summary>
@@ -348,42 +461,6 @@ namespace Codes.Passive
     }
 
     /// <summary>펜리르 — 로키의 2턴마다 현재 체력이 가장 낮은 적을 문다.</summary>
-    internal sealed class FenrirEffect : BaseEffect
-    {
-        private const int IntervalTurns = 2;   // 4초 → 2턴
-        private const int Power = 40;
-
-        private int _turnsSinceBite;
-
-        public FenrirEffect() : base(0, Power) { }
-
-        /// <summary>주기가 차면 스케줄러에 추가공격으로 예약한다. 같은 키라 겹쳐 쌓이지 않는다.</summary>
-        public override void OnOwnerTurn()
-        {
-            if (Target == null || !Target.isActive) return;
-
-            _turnsSinceBite++;
-            if (_turnsSinceBite < IntervalTurns) return;
-
-            _turnsSinceBite = 0;
-            Unit owner = Target;
-            Managers.GameManager.Instance?.ActionScheduler.EnqueueAdditional(
-                owner, "loki_fenrir", "펜리르", () => Bite(owner));
-        }
-
-        private static void Bite(Unit owner)
-        {
-            Unit prey = global::Target.GetAllEnemies(owner)
-                .Where(unit => unit != null && unit.isActive && !unit.IsUntargetable)
-                .OrderBy(unit => unit.HpCurr)
-                .FirstOrDefault();
-            if (prey == null) return;
-
-            Combat.Summons.Deal(owner, prey, Power, BaseEnums.PrimaryStat.STR,
-                DamageTag.ContactAttack, DamageTag.Physical);
-        }
-    }
-
     /// <summary>소환사 — 아군 전체 소환수 피해 배율. <see cref="Combat.Summons"/>가 최댓값 하나만 읽는다.</summary>
     internal sealed class SummonMasterEffect : BaseEffect
     {
@@ -393,31 +470,6 @@ namespace Codes.Passive
 
         public override float SummonDamageMultiplierModifier(Unit unit) => _multiplier;
         public override float AlliedSummonDamageMultiplierModifier(Unit unit, Unit summonOwner) => _multiplier;
-    }
-
-    /// <summary>서리의 전사 — 빙결 면역 + 4턴마다 무원소 상태면 얼음 재부착.</summary>
-    internal sealed class FrostWarriorEffect : BaseEffect
-    {
-        private const int IntervalTurns = 4;   // 8초 → 4턴
-
-        private int _turnsSinceCheck;
-
-        public FrostWarriorEffect() : base(0) { }
-
-        public override bool GrantsFreezeImmunity(Unit unit) => unit == Target;
-
-        public override void OnOwnerTurn()
-        {
-            if (Target == null || !Target.isActive) return;
-
-            _turnsSinceCheck++;
-            if (_turnsSinceCheck < IntervalTurns) return;
-            _turnsSinceCheck = 0;
-
-            // 원소 부착은 행동이 아니다. 큐를 거치지 않고 그 자리에서 처리한다.
-            if (Target.HasAnyCombatElement) return;
-            Target.GrantCombatElement(BaseEnums.UnitElement.Cryo, Unit.CommonElementAuraDuration, Target);
-        }
     }
 
     /// <summary>

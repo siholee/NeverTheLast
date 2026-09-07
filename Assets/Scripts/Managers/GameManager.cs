@@ -1174,9 +1174,10 @@ namespace Managers
             // 현재 필드에 있는 모든 아군 유닛 제거 (벤치는 유지)
             // 현재 필드에 있는 모든 아군 유닛 제거 (벤치는 유지).
             // 비활성화만 하면 리스트와 씬에 잔해가 남아 라운드마다 사본이 쌓이므로 완전히 물린다.
+            // 소환수는 칸이 없다. 칸으로만 거르면 리스트에 남아 라운드마다 쌓인다.
             var fieldAllies = GridManager.Instance.heroList.Where(ally =>
-                ally != null && ally.currentCell != null &&
-                !GridManager.Instance.IsBenchCell(ally.currentCell)).ToList();
+                ally != null && (ally.IsSummon ||
+                    (ally.currentCell != null && !GridManager.Instance.IsBenchCell(ally.currentCell)))).ToList();
 
             foreach (Unit ally in fieldAllies)
             {

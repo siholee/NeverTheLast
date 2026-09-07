@@ -81,6 +81,12 @@ public class Cell : MonoBehaviour
     private SpriteRenderer _groundPad;
     private UnitCardView _card;
 
+    /// <summary>이 칸의 렌더링 순서 기준값. 칸 위에 얹는 카드가 이 값에서 출발한다.</summary>
+    public int DepthOrder { get; private set; }
+
+    /// <summary>이 칸이 쓰는 정렬 레이어.</summary>
+    public int DepthLayerId { get; private set; }
+
     private void Awake()
     {
         SetUpPseudo3D();
@@ -154,6 +160,11 @@ public class Cell : MonoBehaviour
 
         int layer = _groundPad != null ? _groundPad.sortingLayerID
             : portraitRenderer != null ? portraitRenderer.sortingLayerID : 0;
+
+        // 칸 위에 얹히는 것들(소환수 카드)이 같은 기준을 읽을 수 있게 남겨 둔다.
+        // 루트 SpriteRenderer는 바닥 타일로 옮긴 뒤 꺼 두므로 그쪽 값은 낡아 있다.
+        DepthOrder = order;
+        DepthLayerId = layer;
 
         if (_groundPad != null) _groundPad.sortingOrder = order;
         // 카드 프레임은 order, 초상화는 그 위(order + 1), HUD는 다시 그 위(order + 5).
