@@ -122,20 +122,13 @@ namespace Codes.Passive
 
             context.Target.AddStatus(BuffStatus.Create(
                 GenericGiantStatusIds.ShatteredArmor, "giant_shattered_armor", "파쇄 — 방어 붕괴",
-                Target, context.Target, new GiantArmorShredEffect(),
+                Target, context.Target, new ArmorShredEffect(0.8f),
                 duration: 3,
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 category: BaseEnums.StatusCategory.Negative,
                 isBeneficial: false,
                 description: "방어력이 20% 감소합니다."));
         }
-    }
-
-    internal sealed class GiantArmorShredEffect : BaseEffect
-    {
-        public GiantArmorShredEffect() : base(0, 0.8f) { }
-        public override float OwnedDefenseStatMultiplierModifier(Unit unit, DamageContext context)
-            => unit == Target ? 0.8f : 1f;
     }
 
     public sealed class GiantStunningBlow : PersistentStatusPassive

@@ -10,7 +10,7 @@ using UnityEngine;
 namespace Codes.Normal
 {
     /// <summary>
-    /// 세이의 일반 공격. 단일 적에게 INT 위력 50의 비접촉 특수 피해를 입힌다.
+    /// 세이의 일반행동. 단일 적에게 INT 위력 50의 비접촉 특수 피해를 입힌다.
     /// GEO 전용 금색 발사체를 사용해 카이사 기본 공격처럼 짧고 선명하게 직선 비행한다.
     /// </summary>
     public sealed class SeiRadiantBolt : BaseNormalCode
@@ -19,7 +19,7 @@ namespace Codes.Normal
 
         public SeiRadiantBolt(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = BasePower;
             CodeTags = new List<int> { DamageTag.Special, DamageTag.NonContactAttack };
         }
@@ -71,6 +71,5 @@ namespace Codes.Normal
                     new EventContext(Caster, target, context));
             }
         }
-
     }
 }

@@ -18,6 +18,11 @@ There is no CLI build. Open the project in the **Unity Editor**.
 - **Scenes**: `Assets/Scenes/MainMenu.unity` → `Assets/Scenes/Game.unity`
 - **Run**: Play mode in the Editor
 - **Input**: Unity's new Input System (`activeInputHandler: 2`)
+- **Debug mode**: **F1** opens the debug panel in Play mode (theme lock, stage jump, party level,
+  invincibility, speed). F2 wins the fight, F3 toggles ally invincibility, F4 cycles speed,
+  F9 previews an event. `Core/DebugMode.cs` + `Managers/UI/DevTools/DebugOverlay.cs`, both behind
+  `#if UNITY_EDITOR || DEVELOPMENT_BUILD` — see `Detail_07 §4.6`. A red banner stays on screen
+  while any override is active, so balance is never measured with invincibility left on.
 
 ### Type-checking without the Editor
 
@@ -48,7 +53,8 @@ Before changing gameplay, read the relevant chapter; after changing gameplay, up
 | `Detail_08_Confirmed_Characters.md` | Per-character combat spec and unlock passives |
 | `Detail_09` / `Detail_10` | Enemy roster & stage composition / boss specs |
 | `Detail_11` / `Detail_12` | Code catalogue by ID / player code & proficiency index |
-| `Detail_13` / `Detail_14` | Reward pool & tier odds / equipment list |
+| `Detail_13` / `Detail_14` | Reward pool & tier odds / equipment tier spec & list |
+| `Detail_15_Party_Synergy.md` | Role taxonomy, composition archetypes, per-main recommended lineups |
 | `Design_Backlog.md` | Open design decisions that block work |
 
 Writing rules that matter when editing: **a number lives in exactly one document**, unimplemented
@@ -88,12 +94,16 @@ Combat is not real time. `Managers/ActionScheduler.cs` owns the clock.
 - Action priority: `Passive(0) → Additional(1) → Ultimate(2) → Normal(3)`.
 - **Ultimates do not consume a turn.** They queue as soon as the resource fills and do not reset AV.
 - Duplicate suppression: one `(unit + kind + key)` may sit in the queue at a time.
-- `CombatSeconds` is a derived axis (AV that has flowed), not wall-clock. Effects that need
-  "seconds" use it. Wall-clock is only for presentation (projectile flight, cast animation).
+- **Turns are the only gameplay time axis.** Durations, periodic passives and internal cooldowns
+  all count `Unit.TurnCount`. Seconds survive in exactly one place: ultimate-resource accrual,
+  which converts flowed AV at `ActionValuePerSecond`. Wall-clock is only for presentation
+  (projectile flight, cast animation) — never for combat resolution.
 - `SyncParticipants()` picks up units spawned mid-round automatically.
 
 Status durations, damage-over-time and periodic passives advance on **`BaseEffect.OnOwnerTurn()`**,
-not per frame.
+not per frame. A passive that fires "every N turns" extends **`PeriodicTurnPassive`**
+(`Codes/Base/`) instead of hand-rolling a counter; an internal cooldown uses
+**`Combat.TurnCooldown` / `TargetTurnCooldown`** rather than `Time.time`.
 
 ### Grid
 
@@ -139,6 +149,7 @@ Singletons via `Manager.Instance`, in `Assets/Scripts/Managers/`.
 | `00_intro.yaml` | Intro sequence | `IntroData.cs` |
 | `10_units.yaml` | Player units | `UnitData.cs` |
 | `20_codes.yaml` | Code display data (passive/normal/ultimate) | — |
+| `30_synergies.yaml` | Party roles, archetypes, per-main recommended lineups | 🔴 not loaded yet |
 | `40_items.yaml` | Equipment (= reward pool) | `ItemData.cs` |
 | `50_tokens.yaml` | Token definitions | `TokenData.cs` |
 | `60_enemies.yaml` | Enemies (normal/elite/boss) | `EnemyData.cs` |
@@ -159,7 +170,7 @@ resolves them in separate switches.
 | Ally shared unlock passive | 1~179 |
 | Equipment-granted passive | 400~499 |
 | Summon codes (normal / ultimate) | 500~599 |
-| Enemy codes | 1000+ in per-theme 100-slot blocks (공용 1000 · 콜로세움 1100 · 로마 1200 · 메히코 1300 · 아스완 1400) |
+| Enemy codes | 1000+ in per-theme 100-slot blocks (공용 1000 · 콜로세움 1100 · 로마 1200 · 메히코 1300 · 아스완 1400 · 공허 1500) |
 
 Enemy codes are dispatched by **range arms whose ID gaps are the style index**
 (`(LegionNormalStyle)(codeId - 1200)`), so append new enemy codes at the end of a family —
@@ -178,6 +189,7 @@ highest-level unlocks on low-INT units; that gate is gone and INT now only drive
 - `UniquePassiveCode` sets `Transferable = false`. **Unique passives are never transferred**;
   support cards can only pass on unlock passives. (The old degraded-transfer system is gone.)
 - Normal attacks have **no cooldown** — DEX-driven action value sets the cadence.
+  `Code.Cooldown` is ultimate-only; setting it on a normal code does nothing.
 - Codes carry a **grade**: `CodeGrade.Normal` (silver), `Enhanced` (gold), or `Unique` (purple).
   A silver code sets `SupersededByCodeId` to the gold code that replaces it, and
   `Unit.TryCastPassiveCode` refuses to fire it when the owner has learned that gold code.
@@ -213,15 +225,15 @@ The **ten-thousands digit is the category**; an attack takes one from each band.
 ### Adding a unit
 
 1. `10_units.yaml` — stats, `codes`, `levelPassives`, proficiencies, tags
-2. Portrait/standing in `Resources/Sprite/Portraits` · `Standings`
+2. Portrait/standing in `Resources/Sprite/{Portraits,Standings}/Allies` (enemy art uses `Enemies/{Normal,Elite,Boss}`)
 3. Implement codes under `Codes/[Passive|Normal|Ultimate]/`, register in `CodeFactory`
 4. Register display data in `20_codes.yaml`
 5. Update `Detail_08` (spec) and `Detail_12` (index)
 
 Growth must follow the rule in `Detail_08`: **main +2, sub +2, others +1** (Sei/Shi: main +3, sub +2).
 A unit with **two sub stats** splits that budget instead of doubling it — each sub grows +1 and the
-training bonus is +5% per sub rather than +10%. Seven units do this: 라이트 · 피그말리온 · 아스클레피아 ·
-아마테라스 · 야마 · 이카리아 · 마리. 37 units in total, and **Gaudi** is the only real exception —
+training bonus is +5% per sub rather than +10%. Eight units do this: 라이트 · 니콜 · 피그말리온 ·
+아스클레피아 · 아마테라스 · 야마 · 이카리아 · 마리. 38 units in total, and **Gaudi** is the only real exception —
 no sub stat at all (main +2, everything else +1). Gaudi's and Light's base stats were not in the
 original design and are marked 🟡 in `Detail_08` as provisional.
 
@@ -235,6 +247,28 @@ original design and are marked 🟡 in `Detail_08` as provisional.
 
 Themes with `enabled: false` are filtered out of the rotation by `RoundManager.ActiveThemes()`.
 A stage's `stagePatterns` entry takes priority over lone `midBossId`/`bossId` spawning.
+
+### Adding equipment
+
+Every item is defined by four things and **the tier fixes the magnitudes** — see `Detail_14 §2`.
+
+| Element | Field | Decided by |
+| --- | --- | --- |
+| Category | `category` | the item |
+| Stat | `statBonuses` | *which* stat by the item, *how much* by the **tier** |
+| Weight | `weight` | the **category** (never changes with tier) |
+| Wear condition | `requiredProficiency` | the **category**; Clothing/Helmet/Necklace/Ring/Shoes have none |
+
+```
+티어 계수 P = T1:1 · T2:3 · T3:5 · T4:7 · T5:9
+5스탯 = +P      CritRate · CritDamage · Durability = +2P     (한 장비에 스탯 하나)
+방어구 고정 내구 = T1 값 × M,  M = T1:1 · T2:2 · T3:3.25 · T4:4.75 · T5:6.5
+```
+
+T1·T2 grant no code; **T3+ grant exactly one** `codeGrants` entry. Proficiency gates
+`statBonuses`, `codeGrants` and durability together (`Unit.CanUseEquipmentEffects`) — without it
+only the weight applies. `statBonuses` accepts the five stats plus `CritRate` / `CritDamage` /
+`Durability` (`EquipmentStatKeys` parses them; `Unit.GetEquipmentSecondaryStatBonus` sums them).
 
 ### Adding a status effect
 
@@ -250,6 +284,11 @@ Pick a status ID that does not collide — check the existing constants first
   the player's or the system's point of view (see `git log`).
 - Prefer the existing shared helpers over re-deriving the same query in each code:
   `Combat.CombatTargets` (alive enemies / allies-including-self / highest-priority pick),
+  `Effects.Buffs` shared modifier effects (`ReceivingDamageMultiplierEffect`,
+  `OutgoingDamageMultiplierEffect`, `PrimaryStatMultiplierEffect`, `CritMultiplierBonusEffect`,
+  `DamageOverTimeApplicationEffect`, `ArmorShredEffect`, `AttackTriggeredHealingEffect`,
+  `ExcessCritConversionEffect`, `ManaEfficiencyEffect`) — never re-declare a one-line
+  unconditional modifier under a new name,
   `Unit.IsOnField` (the single "standing on the battlefield" predicate — never re-derive it from
   `currentCell.yPos`, which is null for summons),
   `Combat.Summons` (summon damage rules), `Effects.Neutral.Taunt` (taunt id, key and `Has()`),

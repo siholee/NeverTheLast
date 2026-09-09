@@ -73,7 +73,7 @@ namespace Managers
 
     /// <summary>
     /// 이 공격이 투사체 대신 대상 위치 베기를 사용할지 판정한다.
-    /// Slash 태그는 코드 종류와 무관하게 우선하며, 일반공격은 검 기본 숙련,
+    /// Slash 태그는 코드 종류와 무관하게 우선하며, 일반행동은 검 기본 숙련,
     /// 로마/메히코 근접 병종의 접촉 공격도 베기로 표시한다.
     /// </summary>
     public static bool ShouldUseSlash(Unit attacker, DamageContext context)

@@ -183,8 +183,8 @@ namespace Codes.Passive
         }
 
         /// <summary>
-        /// '추가공격으로 일반공격'을 예약한다. 실제 일반공격 코루틴 대신
-        /// 그 유닛의 일반공격 위력으로 한 방을 넣는다 — 연출 없이 판정만 같게 두기 위해서다.
+        /// '추가행동으로 일반행동'을 예약한다. 실제 일반행동 코루틴 대신
+        /// 그 유닛의 일반행동 위력으로 한 방을 넣는다 — 연출 없이 판정만 같게 두기 위해서다.
         /// </summary>
         public static void EnqueueExtraNormalAttack(Unit attacker, Unit target, string key, string label)
         {
@@ -279,7 +279,7 @@ namespace Codes.Passive
 
     /// <summary>
     /// 부관의 신호 — 전투 시작 시 CON+STR이 가장 높은 전열 아군을 지정한다.
-    /// 지정된 아군이 단일 대상 피해를 주면 같은 대상에게 추가공격으로 일반공격을 넣는다.
+    /// 지정된 아군이 단일 대상 피해를 주면 같은 대상에게 추가행동으로 일반행동을 넣는다.
     /// </summary>
     internal sealed class SignalMarkEffect : BaseEffect
     {
@@ -300,7 +300,7 @@ namespace Codes.Passive
             {
                 if (context?.Attacker != _marked || context.Target == null) return;
                 if (context.DamageContext == null) return;
-                // 추가공격이 다시 추가공격을 부르지 않도록 막는다.
+                // 추가행동이 다시 추가행동을 부르지 않도록 막는다.
                 if (context.DamageContext.DamageTags != null &&
                     context.DamageContext.DamageTags.Contains(DamageTag.AdditionalAttack)) return;
                 if (!LegionCombat.IsSingleTargetDamage(context.DamageContext)) return;
@@ -453,9 +453,9 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// 최고의 2인자 — 필드에 옥타비아가 있으면 아그리파의 일반공격이 무조건 옥타비아를 향하고,
+    /// 최고의 2인자 — 필드에 옥타비아가 있으면 아그리파의 일반행동이 무조건 옥타비아를 향하고,
     /// 추가로 옥타비아의 행동 게이지를 100% 채운다(= 다음 행동을 즉시 당긴다).
-    /// 지명 자체는 아그리파의 일반공격 코드(<c>LegionAttack.SecondInCommandTarget</c>)가 처리한다.
+    /// 지명 자체는 아그리파의 일반행동 코드(<c>LegionAttack.SecondInCommandTarget</c>)가 처리한다.
     /// </summary>
     internal sealed class SecondInCommandEffect : BaseEffect
     {
@@ -463,7 +463,7 @@ namespace Codes.Passive
 
         public SecondInCommandEffect() : base(0) { }
 
-        /// <summary>일반공격이 옥타비아를 지목했을 때 아그리파의 코드가 부른다.</summary>
+        /// <summary>일반행동이 옥타비아를 지목했을 때 아그리파의 코드가 부른다.</summary>
         public static void PushForward(Unit octavia)
         {
             if (octavia == null) return;
@@ -592,7 +592,7 @@ namespace Codes.Passive
 
     /// <summary>
     /// 위대한 전술가 — 자기 전열의 '로마' 아군이 단일 대상 피해를 주면
-    /// 그 아군이 같은 대상에게 추가공격으로 일반공격을 한 번 더 넣는다.
+    /// 그 아군이 같은 대상에게 추가행동으로 일반행동을 한 번 더 넣는다.
     /// </summary>
     internal sealed class GrandTacticianEffect : BaseEffect
     {

@@ -5,14 +5,14 @@ using Codes.Base;
 namespace Codes.Normal
 {
     /// <summary>
-    /// 아탈란테의 일반공격: a005-N아탈란테
+    /// 아탈란테의 일반행동: a005-N아탈란테
     /// 단일 적에게 DEX 기반 위력 60의 물리·비접촉 피해를 입힌다.
     /// </summary>
     public class a005_NAtlanta : BaseNormalCode
     {
         public a005_NAtlanta(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = 60;
         }
 

@@ -204,7 +204,7 @@ public abstract class Code
     public string CodeName;
     public Unit Caster;
     public List<Unit> TargetUnits;
-    public float Cooldown;       // 궁극기 전용. 일반공격은 쿨다운을 쓰지 않는다
+    public float Cooldown;       // 궁극기 전용. 일반행동은 쿨다운을 쓰지 않는다
     public float CastingDelay;
 
     public virtual void CastCode() { }
@@ -287,10 +287,10 @@ levelPassives:        # 레벨로 해금되는 별도 패시브들
 
 ID는 같은 분류 안에서 중복되면 안 된다.
 
-### 4.6 일반공격에는 쿨타임이 없다
+### 4.6 일반행동에는 쿨타임이 없다
 
-일반공격의 발동 주기는 **DEX가 만드는 행동치(AV)가 전담**한다.
-`normalCooldown`은 매 프레임 0으로 유지되며, 실제 시전 시점은 `ActionScheduler`가 정한다.
+일반행동의 발동 주기는 **DEX가 만드는 행동치(AV)가 전담**한다.
+일반행동은 쿨다운을 갖지 않으며, 실제 시전 시점은 `ActionScheduler`가 정한다.
 
 > 과거에는 AV와 쿨다운이라는 두 개의 관문이 겹쳐 있어 DEX의 체감이 흐려졌다.
 > 관문을 하나로 줄여 **DEX = 공격 빈도**가 직관적으로 성립하게 했다.
@@ -393,7 +393,7 @@ ID는 같은 분류 안에서 중복되면 안 된다.
 | 121 | 아누비스 | Starter | Geo | CON / STR | 전열 탱커 · 사령 특효 |
 | 3 | 사바흐 | Starter | Electro | LUK / DEX | 디버프 연계 치명타 딜러 |
 | 1 | 세이 | Support | Geo | INT / DEX | 공격형 서포터 → 육성 시 딜러급 |
-| 4 | 가우디 | Support | Dendro | INT 단일 | 바위 연계 강화 일반공격 서브딜러 |
+| 4 | 가우디 | Support | Dendro | INT 단일 | 바위 연계 강화 일반행동 서브딜러 |
 | 5 | 라이트 | Support | Anemo | CON / DEX·INT | 궁극기 연계 정화·소환 서포터 |
 | 60 | 찬드라 | Support | Geo | CON / LUK | 방어형 스타터 서포터 |
 | 81 | 프레이아 | Support | Dendro | INT / DEX | 체력 감소 파티의 코어 힐러 |
@@ -408,18 +408,18 @@ ID는 같은 분류 안에서 중복되면 안 된다.
 | 2 | 시 | 🔴 Locked | Anemo | DEX / LUK | 연타 암살자 |
 | 20 | 피그말리온 | 🔴 Locked | Pyro | CON / STR·INT | 지속피해 반격 전열 탱커 |
 | 24 | 아스클레피아 | 🔴 Locked | Electro | INT / CON·LUK | 하이브리드 치유·서브 딜러 |
-| 40 | 아마테라스 | 🔴 Locked | Pyro | DEX / STR·LUK | 후열 기본공격 사수 |
+| 40 | 아마테라스 | 🔴 Locked | Pyro | DEX / STR·LUK | 후열 일반행동 사수 |
 | 140 | 케찰코아틀 | 🔴 Locked | Dendro | INT / LUK | 풀 파티 서브 딜러·지원 |
 | 41 | 츠쿠요미 | 🔴 Locked | Electro | INT / LUK | 지속피해 술사 |
 | 61 | 야마 | 🔴 Locked | Electro | INT / DEX·CON | 지속피해 정산 딜러 |
 | 62 | 아그니 | 🔴 Locked | Pyro | INT / LUK | 불 파티 서브 딜러 |
 | 63 | 인드라 | 🔴 Locked | Electro | INT / LUK | 번개 하이퍼캐리 |
-| 82 | 로키 | 🔴 Locked | Pyro | LUK / STR | 추가공격 기반 사수 |
+| 82 | 로키 | 🔴 Locked | Pyro | LUK / STR | 추가행동 기반 사수 |
 | 42 | 스사노오 | 🔴 Locked | Hydro | LUK / DEX | 에어본 파티 하이퍼캐리 |
 | 101 | 옥타비아 | 🔴 Locked | Anemo | INT / LUK | 저스핏 고화력 궁극기 딜러 |
 | 102 | 카이사르 | 🔴 Locked | Anemo | LUK / DEX | 로마 파티 공격형 서포터 |
 | 120 | 호루스 | 🔴 Locked | Pyro | DEX / STR | 속도 고정형 사수 |
-| 122 | 바스테트 | 🔴 Locked | Geo | LUK / DEX | 추가공격·반격 연계 암살자 |
+| 122 | 바스테트 | 🔴 Locked | Geo | LUK / DEX | 추가행동·반격 연계 암살자 |
 | 123 | 세트 | 🔴 Locked | Pyro | STR / CON | 지속피해 파티의 전열 탱커 |
 | 26 | 이카리아 | 🔴 Locked | Pyro | INT / CON·LUK | 체력 소모형 마법 딜러 |
 

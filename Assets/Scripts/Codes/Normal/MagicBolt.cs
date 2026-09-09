@@ -8,7 +8,7 @@ namespace Codes.Normal
     {
         public MagicBolt(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             MaxStage = 3;
             CodeTags = new List<int> { DamageTag.Special };
         }
@@ -37,12 +37,12 @@ namespace Codes.Normal
         }
     }
 
-    /// <summary>케찰코아틀 일반공격: 단일 적에게 INT 기반 위력 60 특수 피해.</summary>
+    /// <summary>케찰코아틀 일반행동: 단일 적에게 INT 기반 위력 60 특수 피해.</summary>
     public sealed class QuetzalcoatlBall : BaseNormalCode
     {
         public QuetzalcoatlBall(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = 60;
             CodeTags = new List<int> { DamageTag.Special };
         }

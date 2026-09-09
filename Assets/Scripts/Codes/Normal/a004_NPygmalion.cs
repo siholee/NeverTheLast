@@ -10,14 +10,14 @@ using Effects.Projectiles;
 namespace Codes.Normal
 {
     /// <summary>
-    /// 피그말리온의 일반공격: a004-N피그말리온
+    /// 피그말리온의 일반행동: a004-N피그말리온
     /// CON 기반 위력 60의 단일공격
     /// </summary>
     public class a004_NPygmalion : BaseNormalCode
     {
         public a004_NPygmalion(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
         }
 
         /// <summary>

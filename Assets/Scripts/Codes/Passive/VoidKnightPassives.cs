@@ -9,7 +9,7 @@ namespace Codes.Passive
 {
     public static class VoidKnightCodeIds
     {
-        public const int VoidArmor = 1490;
+        public const int VoidArmor = 1550;
     }
 
     public static class VoidKnightStatusIds

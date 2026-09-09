@@ -12,7 +12,7 @@ using UnityEngine;
 namespace Codes.Normal
 {
     /// <summary>
-    /// 프레이아 일반공격 — 유일하게 <b>적을 때리지 않는 일반공격</b>이다.
+    /// 프레이아 일반행동 — 유일하게 <b>적을 때리지 않는 일반행동</b>이다.
     /// 아군 전체를 INT 기반 위력 40만큼 치유한다.
     ///
     /// 대상이 아군이므로 <see cref="BaseNormalCode"/>의 적 타겟팅 흐름을 그대로 쓸 수 없다.
@@ -24,7 +24,7 @@ namespace Codes.Normal
 
         public FreyaNormalAttack(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = HealPower;
             CodeTags = new List<int> { DamageTag.Special };
         }
@@ -66,12 +66,12 @@ namespace Codes.Normal
         }
     }
 
-    /// <summary>로키 일반공격 — STR 기반 위력 80. 비접촉·물리.</summary>
+    /// <summary>로키 일반행동 — STR 기반 위력 80. 비접촉·물리.</summary>
     public sealed class LokiNormalAttack : BaseNormalCode
     {
         public LokiNormalAttack(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = 80;
             CodeTags = new List<int> { DamageTag.Physical };
         }
@@ -103,7 +103,7 @@ namespace Codes.Normal
 
         public SkadiNormalAttack(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = NormalPower;
             CodeTags = new List<int> { DamageTag.Physical };
         }
@@ -186,12 +186,12 @@ namespace Codes.Normal
         };
     }
 
-    /// <summary>쿠베라 일반공격 — STR 기반 위력 70. 접촉·물리.</summary>
+    /// <summary>쿠베라 일반행동 — STR 기반 위력 70. 접촉·물리.</summary>
     public sealed class KuberaNormalAttack : BaseNormalCode
     {
         public KuberaNormalAttack(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = 70;
             CodeTags = new List<int> { DamageTag.Physical };
         }
@@ -207,12 +207,12 @@ namespace Codes.Normal
         };
     }
 
-    /// <summary>바루나 일반공격 — CON 기반 위력 60. 비접촉·특수.</summary>
+    /// <summary>바루나 일반행동 — CON 기반 위력 60. 비접촉·특수.</summary>
     public sealed class VarunaNormalAttack : BaseNormalCode
     {
         public VarunaNormalAttack(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = 60;
             CodeTags = new List<int> { DamageTag.Special };
         }
@@ -228,12 +228,12 @@ namespace Codes.Normal
         };
     }
 
-    /// <summary>오르페우스 일반공격 — LUK 기반 위력 50. 비접촉·특수.</summary>
+    /// <summary>오르페우스 일반행동 — LUK 기반 위력 50. 비접촉·특수.</summary>
     public sealed class OrpheusNormalAttack : BaseNormalCode
     {
         public OrpheusNormalAttack(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = 50;
             CodeTags = new List<int> { DamageTag.Special };
         }
@@ -250,15 +250,15 @@ namespace Codes.Normal
     }
 
     /// <summary>
-    /// 스사노오 일반공격 — DEX 기반 위력 60. 접촉·물리·베기.
-    /// 원안에 있던 `#추가공격`은 붙이지 않는다. 추가공격은 정의상 기본 행동과 별개로 나가는 공격이라
-    /// 기본 행동 그 자체인 일반공격과는 상호배타다.
+    /// 스사노오 일반행동 — DEX 기반 위력 60. 접촉·물리·베기.
+    /// 원안에 있던 `#추가행동`은 붙이지 않는다. 추가행동은 정의상 기본 행동과 별개로 나가는 공격이라
+    /// 기본 행동 그 자체인 일반행동과는 상호배타다.
     /// </summary>
     public sealed class SusanooNormalAttack : BaseNormalCode
     {
         public SusanooNormalAttack(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = 60;
             CodeTags = new List<int> { DamageTag.Physical };
         }

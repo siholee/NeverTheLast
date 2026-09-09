@@ -19,6 +19,13 @@ ROOT = Path(__file__).resolve().parents[1]
 STANDINGS = ROOT / "Assets/Resources/Sprite/Standings"
 PORTRAITS = ROOT / "Assets/Resources/Sprite/Portraits"
 
+SPRITE_CATEGORY_DIRECTORIES = {
+    "ally": Path("Allies"),
+    "normal": Path("Enemies/Normal"),
+    "elite": Path("Enemies/Elite"),
+    "boss": Path("Enemies/Boss"),
+}
+
 FULL_FIGURE_PORTRAIT_ASSETS = {
     "VOID_MONSTROUS_BIRD_STANDING.png",
     "VOID_SEED_STANDING.png",
@@ -60,6 +67,16 @@ NEW_ASSETS = {
     "AZTEC_SERPENT_PRIEST": Path.home() / "Downloads/뱀 사제.png",
     "AZTEC_ELITE_SERPENT_PRIEST": Path.home() / "Downloads/정예 뱀 사제.png",
     "AZTEC_TEZCATLIPOCA": Path.home() / "Downloads/테스카틀리포카.png",
+}
+
+NEW_ASSET_CATEGORIES = {
+    "AZTEC_JAGUAR": "normal",
+    "AZTEC_ELITE_JAGUAR": "elite",
+    "AZTEC_EAGLE": "normal",
+    "AZTEC_ELITE_EAGLE": "elite",
+    "AZTEC_SERPENT_PRIEST": "normal",
+    "AZTEC_ELITE_SERPENT_PRIEST": "elite",
+    "AZTEC_TEZCATLIPOCA": "boss",
 }
 
 # 인물·장비가 흰 배경을 둘러싸 플러드필이 닿지 못했던 스탠딩이다.
@@ -150,6 +167,7 @@ def remove_low_opacity_backdrop(image: Image.Image, asset_name: str) -> Image.Im
             "VOID_MONSTROUS_BIRD", "VOID_PRISM", "VOID_BOAR",
             "VOID_KNIGHT", "VOID_WOLF", "VOID_CRUSHER", "VOID_DEER",
             "VOID_DRAGON", "VOID_MARKSMAN", "VOID_VANGUARD",
+            "LIGHT",
         ))
     ):
         return rgba
@@ -370,7 +388,7 @@ def apply_palette_swap_reference_alpha(image: Image.Image, asset_name: str) -> I
     if asset_name != "RUIN_INQUISITOR_STANDING.png":
         return image.convert("RGBA")
 
-    reference_path = STANDINGS / "APOCALYPSE_INQUISITOR_STANDING.png"
+    reference_path = find_sprite_path(STANDINGS, "APOCALYPSE_INQUISITOR_STANDING.png")
     with Image.open(reference_path) as loaded:
         reference = loaded.convert("RGBA")
 
@@ -505,8 +523,29 @@ def save_png(image: Image.Image, path: Path) -> None:
     temporary.replace(path)
 
 
+def find_sprite_path(root: Path, filename: str) -> Path:
+    """분류 폴더 전체에서 파일명 하나를 찾고 중복 키를 즉시 드러낸다."""
+    matches = sorted(root.rglob(filename))
+    if not matches:
+        raise FileNotFoundError(f"스프라이트 누락: {root / filename}")
+    if len(matches) > 1:
+        joined = ", ".join(str(path) for path in matches)
+        raise RuntimeError(f"중복 스프라이트 키 {filename}: {joined}")
+    return matches[0]
+
+
+def category_root(root: Path, category: str) -> Path:
+    try:
+        directory = SPRITE_CATEGORY_DIRECTORIES[category]
+    except KeyError as error:
+        raise ValueError(f"알 수 없는 스프라이트 분류: {category}") from error
+    destination = root / directory
+    destination.mkdir(parents=True, exist_ok=True)
+    return destination
+
+
 def normalize_existing() -> None:
-    for path in sorted(STANDINGS.glob("*.png")):
+    for path in sorted(STANDINGS.rglob("*.png")):
         with Image.open(path) as loaded:
             current = loaded.copy()
         if current.mode != "RGBA" or current.size != (1024, 1536) or current.getchannel("A").getextrema() != (0, 255):
@@ -517,8 +556,11 @@ def normalize_existing() -> None:
 
     # 개별 초상화에 남은 사각형·원형 흰 배경을 재사용하지 않는다.
     # 검수된 스탠딩 알파에서 같은 규격으로 다시 잘라 모든 초상화의 누끼 품질을 맞춘다.
-    for standing_path in sorted(STANDINGS.glob("*_STANDING.png")):
-        portrait_path = PORTRAITS / standing_path.name.replace("_STANDING.png", "_PORTRAIT.png")
+    for standing_path in sorted(STANDINGS.rglob("*_STANDING.png")):
+        relative = standing_path.relative_to(STANDINGS)
+        portrait_path = PORTRAITS / relative.with_name(
+            standing_path.name.replace("_STANDING.png", "_PORTRAIT.png"))
+        portrait_path.parent.mkdir(parents=True, exist_ok=True)
         with Image.open(standing_path) as loaded:
             portrait = portrait_from_standing(
                 loaded.convert("RGBA"), is_full_figure_portrait(standing_path.name))
@@ -526,17 +568,19 @@ def normalize_existing() -> None:
         unity_meta(portrait_path)
 
 
-def import_assets(assets: dict[str, Path]) -> None:
+def import_assets(assets: dict[str, Path], category: str = "ally") -> None:
     missing = [str(path) for path in assets.values() if not path.exists()]
     if missing:
         raise FileNotFoundError("신규 원본 누락: " + ", ".join(missing))
 
+    standing_root = category_root(STANDINGS, category)
+    portrait_root = category_root(PORTRAITS, category)
     for asset_name, source in assets.items():
         with Image.open(source) as loaded:
             source_was_opaque = loaded.convert("RGBA").getchannel("A").getextrema() == (255, 255)
             transparent = connected_background_alpha(loaded)
-        standing_path = STANDINGS / f"{asset_name}_STANDING.png"
-        portrait_path = PORTRAITS / f"{asset_name}_PORTRAIT.png"
+        standing_path = standing_root / f"{asset_name}_STANDING.png"
+        portrait_path = portrait_root / f"{asset_name}_PORTRAIT.png"
         transparent = remove_generated_checkerboard_residue(
             transparent, standing_path.name, aggressive=source_was_opaque)
         transparent = remove_low_opacity_backdrop(transparent, standing_path.name)
@@ -554,14 +598,16 @@ def import_assets(assets: dict[str, Path]) -> None:
         unity_meta(portrait_path)
 
 
-def import_directional_assets(assets: dict[str, Path]) -> None:
+def import_directional_assets(assets: dict[str, Path], category: str = "ally") -> None:
     """우향 원본에서 기본 좌향과 UI/연출용 우향 한 쌍을 같은 규격으로 등록한다."""
     missing = [str(path) for path in assets.values() if not path.exists()]
     if missing:
         raise FileNotFoundError("방향별 원본 누락: " + ", ".join(missing))
 
+    standing_root = category_root(STANDINGS, category)
+    portrait_root = category_root(PORTRAITS, category)
     for asset_name, source in assets.items():
-        default_standing_path = STANDINGS / f"{asset_name}_STANDING.png"
+        default_standing_path = standing_root / f"{asset_name}_STANDING.png"
         with Image.open(source) as loaded:
             right_source = connected_background_alpha(loaded)
         right_source = remove_low_opacity_backdrop(right_source, default_standing_path.name)
@@ -575,8 +621,8 @@ def import_directional_assets(assets: dict[str, Path]) -> None:
             ("", left_standing, left_portrait),
             ("_RIGHT", right_standing, right_portrait),
         ):
-            standing_path = STANDINGS / f"{asset_name}{direction}_STANDING.png"
-            portrait_path = PORTRAITS / f"{asset_name}{direction}_PORTRAIT.png"
+            standing_path = standing_root / f"{asset_name}{direction}_STANDING.png"
+            portrait_path = portrait_root / f"{asset_name}{direction}_PORTRAIT.png"
             save_png(standing, standing_path)
             save_png(portrait, portrait_path)
             unity_meta(standing_path)
@@ -584,7 +630,13 @@ def import_directional_assets(assets: dict[str, Path]) -> None:
 
 
 def import_new() -> None:
-    import_assets(NEW_ASSETS)
+    for category in SPRITE_CATEGORY_DIRECTORIES:
+        assets = {
+            key: path for key, path in NEW_ASSETS.items()
+            if NEW_ASSET_CATEGORIES[key] == category
+        }
+        if assets:
+            import_assets(assets, category)
 
 
 def parse_asset_arguments(arguments: list[str]) -> dict[str, Path]:
@@ -618,6 +670,12 @@ def main() -> None:
         metavar="KEY=PNG_PATH",
         help="우향 원본에서 기본 좌향과 _RIGHT 우향 스탠딩/초상화를 함께 등록",
     )
+    parser.add_argument(
+        "--category",
+        choices=tuple(SPRITE_CATEGORY_DIRECTORIES),
+        default="ally",
+        help="--asset/--directional-asset 저장 분류(기본값: ally)",
+    )
     args = parser.parse_args()
     if not args.existing and not args.new and not args.asset and not args.directional_asset:
         args.existing = args.new = True
@@ -626,9 +684,9 @@ def main() -> None:
     if args.new:
         import_new()
     if args.asset:
-        import_assets(parse_asset_arguments(args.asset))
+        import_assets(parse_asset_arguments(args.asset), args.category)
     if args.directional_asset:
-        import_directional_assets(parse_asset_arguments(args.directional_asset))
+        import_directional_assets(parse_asset_arguments(args.directional_asset), args.category)
 
 
 if __name__ == "__main__":

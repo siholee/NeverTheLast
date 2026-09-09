@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using BaseClasses;
+using Helpers;
 using Managers.UI.Core;
 using Managers.UI.Theme;
 using TMPro;
@@ -261,9 +262,7 @@ namespace Managers.UI.Screens
 
                 TrainingManager.SupportOutcome value = outcome.Value;
 
-                Sprite portrait = string.IsNullOrEmpty(value.PortraitPath)
-                    ? null
-                    : Resources.Load<Sprite>(value.PortraitPath);
+                Sprite portrait = SpriteResource.LoadPortrait(value.PortraitPath);
                 _portrait.sprite = portrait;
                 _portrait.enabled = portrait != null;
 

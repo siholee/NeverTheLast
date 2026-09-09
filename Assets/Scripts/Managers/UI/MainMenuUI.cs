@@ -1,4 +1,5 @@
 using Core;
+using Helpers;
 using Managers.UI.Core;
 using Managers.UI.Theme;
 using TMPro;
@@ -162,8 +163,8 @@ namespace Managers.UI
         /// <summary>표지에 세울 스탠딩. 없으면 그냥 생략한다(배경만 남는다).</summary>
         private static Sprite LoadStanding()
         {
-            Sprite sei = Resources.Load<Sprite>("Sprite/Standings/SEI_STANDING");
-            return sei != null ? sei : Resources.Load<Sprite>("Sprite/Standings/SHI_STANDING");
+            Sprite sei = SpriteResource.LoadStanding("SEI_STANDING");
+            return sei != null ? sei : SpriteResource.LoadStanding("SHI_STANDING");
         }
 
         // ── 제목 ─────────────────────────────────────────────────────

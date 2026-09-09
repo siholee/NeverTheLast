@@ -19,8 +19,7 @@ namespace Codes.Normal
     {
       CodeType = BaseEnums.CodeType.Normal;
       Caster = context.Caster;
-      Cooldown = 1;
-      CodeName = "일반공격";
+      CodeName = "일반행동";
       CastingDelay = 0.5f;
       CodeTags = new List<int> { DamageTag.Physical };
       // effects = new Dictionary<string, OldEffectBase>();
@@ -70,12 +69,12 @@ namespace Codes.Normal
       
       // 디버그 로그
       string contactType = damageTags.Contains(DamageTag.ContactAttack) ? "접촉" : "비접촉";
-      Debug.Log($"{Caster.UnitName}이 {TargetUnits[0].UnitName}에게 {contactType} 일반공격을 시전했습니다.");
+      Debug.Log($"{Caster.UnitName}이 {TargetUnits[0].UnitName}에게 {contactType} 일반행동을 시전했습니다.");
       
       DamageContext context = new(Caster, Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(50) * critMultiplier)), BaseEnums.CodeType.Normal, damageTags, isCrit);
       // 예전에는 2초를 줬다. 투사체가 너무 오래 떠 있어 그 사이 대상이 다른 공격에
-      // 쓰러지면 빈자리로 날아갔다. 다른 일반공격과 같은 0.5초로 맞춘다.
-      Caster.StartCoroutine(FireProjectile(TargetUnits, 0.5f, context));
+      // 쓰러지면 빈자리로 날아갔다. 다른 일반행동과 같은 0.5초로 맞춘다.
+      yield return FireProjectile(TargetUnits, 0.5f, context);
       Caster.Invoke(BaseEnums.UnitEventType.OnNormalActionResolved, new EventContext(Caster));
       // 궁극기 자원은 전투 시간으로 찬다(Unit.AccrueUltimateResource). 여기서 또 주지 않는다.
       StopCode();
@@ -83,7 +82,6 @@ namespace Codes.Normal
 
     public override void StopCode()
     {
-      Caster.normalCooldown = Cooldown;
       Caster.isCasting = false;
     }
 
@@ -163,7 +161,7 @@ namespace Codes.Normal
     }
     
     /// <summary>
-    /// 기본 일반공격 데미지 태그
+    /// 기본 일반행동 데미지 태그
     /// </summary>
     private List<int> GetDamageTags()
     {

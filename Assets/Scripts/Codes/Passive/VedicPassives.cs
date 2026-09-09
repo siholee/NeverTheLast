@@ -72,7 +72,7 @@ namespace Codes.Passive
                 // ReplaceIfStronger — 저주(1.20)와 겹쳐도 높은 쪽만 남는다.
                 ally.AddStatus(BuffStatus.Create(
                     VedicIds.YamaCurse, SharedKey, CodeName, Caster, ally,
-                    new DotAmplifyEffect(Multiplier),
+                    new DamageOverTimeApplicationEffect(Multiplier),
                     stackPolicy: BaseEnums.StatusStackPolicy.ReplaceIfStronger,
                     isBeneficial: true,
                     description: "부여하는 지속피해량이 30% 증가합니다."));
@@ -81,8 +81,11 @@ namespace Codes.Passive
     }
 
     /// <summary>Lv.4 지혜 — INT +4.</summary>
+    /// <summary>Lv.? 지혜 — INT 비례 증가. 고정 가산은 고레벨에서 무의미해져 배율로 바꿨다.</summary>
     public sealed class VedicWisdom : PassiveCode
     {
+        private const float WisdomMultiplier = 1.03f;
+
         public VedicWisdom(PassiveCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Passive;
@@ -94,9 +97,9 @@ namespace Codes.Passive
         {
             Caster?.AddStatus(BuffStatus.Create(
                 VedicIds.Wisdom, "vedic_wisdom", CodeName, Caster, Caster,
-                new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.INT, 4),
+                new PrimaryStatMultiplierEffect(WisdomMultiplier, BaseEnums.PrimaryStat.INT),
                 stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
-                isBeneficial: true, description: "INT +4"));
+                isBeneficial: true, description: "INT +3%"));
         }
     }
 
@@ -116,7 +119,7 @@ namespace Codes.Passive
             _element = element;
             _statusId = statusId;
             _key = key;
-            // 원소마다 코드가 따로라 상위도 일곱이 되어야 한다. 대신 '원소 정통'(1533)이
+            // 원소마다 코드가 따로라 상위도 일곱이 되어야 한다. 대신 '원소 정통'(1593)이
             // 보유자 자신의 원소를 읽어 하나로 덮으므로 그쪽을 상위로 둔다.
             SupersededByCodeId = VoidElementalMastery.CodeId;
         }
@@ -174,10 +177,10 @@ namespace Codes.Passive
             VedicIds.ElementMasteryGeo, "mastery_geo") { }
     }
 
-    /// <summary>Lv.44 고전압 — 감전을 생성하면 주는 피해 +25%(6초).</summary>
+    /// <summary>Lv.44 고전압 — 감전을 생성하면 주는 피해 +25%(3턴).</summary>
     public sealed class YamaHighVoltage : PassiveCode
     {
-        private const int Duration = 3;   // 6초 → 3턴
+        private const int Duration = 3;
         private bool _registered;
         private Action<EventContext> _cleanupHandler;
 
@@ -212,20 +215,20 @@ namespace Codes.Passive
             if (source != Caster || reactionName != "감전") return;
             Caster.AddStatus(BuffStatus.Create(
                 VedicIds.HighVoltage, "yama_high_voltage", CodeName, Caster, Caster,
-                new FlatOutgoingDamageEffect(1.25f),
+                new OutgoingDamageMultiplierEffect(1.25f),
                 duration: Duration,
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true, description: "주는 피해 +25%"));
         }
     }
 
-    /// <summary>Lv.65 충전 — 감전 피해가 들어가면 마나를 회복한다(4초 재사용 대기).</summary>
+    /// <summary>Lv.65 충전 — 감전 피해가 들어가면 마나를 회복한다(2턴 재사용 대기).</summary>
     public sealed class YamaCharge : PassiveCode
     {
-        private const float ChargeCooldown = 2;
+        private const int ChargeCooldownTurns = 2;
         private const int ManaGain = 12;
 
-        private float _readyAt;
+        private readonly Combat.TurnCooldown _cooldown = new(ChargeCooldownTurns);
         private bool _registered;
         private Action<DamageResolvedContext> _damageHandler;
         private Action<EventContext> _cleanupHandler;
@@ -239,7 +242,7 @@ namespace Codes.Passive
 
         public override void CastCode()
         {
-            _readyAt = 0f;
+            _cooldown.Reset();
             if (Caster == null || _registered) return;
             _damageHandler = OnDamageDealt;
             _cleanupHandler = _ => StopCode();
@@ -260,12 +263,12 @@ namespace Codes.Passive
 
         private void OnDamageDealt(DamageResolvedContext context)
         {
-            if (Time.time < _readyAt) return;
+            if (!_cooldown.IsReady(Caster)) return;
             if (context?.DamageContext?.CodeType != BaseEnums.CodeType.Effect) return;
             if (context.Target == null ||
                 !context.Target.HasStatus(Effects.Negative.ElementalReaction.ShockStatusId)) return;
 
-            _readyAt = Time.time + ChargeCooldown;
+            _cooldown.Use(Caster);
             Caster.RecoverMana(ManaGain);
         }
     }
@@ -339,7 +342,7 @@ namespace Codes.Passive
             {
                 ally.AddStatus(BuffStatus.Create(
                     VedicIds.AgniFlame, SharedKey, CodeName, Caster, ally,
-                    new FlatOutgoingDamageEffect(Multiplier),
+                    new OutgoingDamageMultiplierEffect(Multiplier),
                     stackPolicy: BaseEnums.StatusStackPolicy.ReplaceIfStronger,
                     isBeneficial: true, description: "가하는 피해 +20%"));
             }
@@ -370,7 +373,7 @@ namespace Codes.Passive
             {
                 ally.AddStatus(BuffStatus.Create(
                     VedicIds.Archmage, SharedKey, CodeName, Caster, ally,
-                    new SpecialCritDamageEffect(0.25f),
+                    new CritMultiplierBonusEffect(0.25f),
                     stackPolicy: BaseEnums.StatusStackPolicy.ReplaceIfStronger,
                     isBeneficial: true, description: "특수 피해의 치명타 피해 +25%"));
             }
@@ -383,16 +386,17 @@ namespace Codes.Passive
 
     /// <summary>
     /// 인드라 고유 P — 뇌정 각인.
-    /// 적을 때릴 때마다 4초 유지되는 표식을 남기고, 4중첩에서 터뜨려
+    /// 적을 때릴 때마다 2턴 유지되는 표식을 남기고, 4중첩에서 터뜨려
     /// INT의 40%에 해당하는 고정 피해를 준다. 치명타가 적용되지 않는다.
     /// </summary>
     public sealed class IndraThunderMark : UniquePassiveCode
     {
         private const int MarkThreshold = 4;
-        private const float MarkDuration = 4f;
+        private const int MarkDurationTurns = 2;
         private const int BurstPower = 40;
 
-        private readonly Dictionary<Unit, (int count, float expireAt)> _marks = new();
+        /// <summary>대상별 (중첩 수, 마지막으로 쌓은 인드라의 턴). 인드라 턴 기준으로 만료를 잰다.</summary>
+        private readonly Dictionary<Unit, (int count, int stackedAtTurn)> _marks = new();
         private bool _registered;
         private Action<DamageResolvedContext> _damageHandler;
         private Action<EventContext> _cleanupHandler;
@@ -435,7 +439,8 @@ namespace Codes.Passive
             if (context.DamageContext?.DamageTags?.Contains(DamageTag.TrueDamage) == true) return;
 
             int count = 1;
-            if (_marks.TryGetValue(target, out var mark) && Time.time < mark.expireAt)
+            if (_marks.TryGetValue(target, out var mark) &&
+                Caster.TurnCount - mark.stackedAtTurn < MarkDurationTurns)
             {
                 count = mark.count + 1;
             }
@@ -450,7 +455,7 @@ namespace Codes.Passive
                 return;
             }
 
-            _marks[target] = (count, Time.time + MarkDuration);
+            _marks[target] = (count, Caster.TurnCount);
         }
     }
 
@@ -669,7 +674,7 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>Lv.13 재기의 바람 — 체력 40% 이하로 떨어지면 4초에 걸쳐 40% 회복. 전투당 1회.</summary>
+    /// <summary>Lv.13 재기의 바람 — 체력 40% 이하로 떨어지면 2턴에 걸쳐 40% 회복. 전투당 1회.</summary>
     public sealed class VayuSecondWind : PassiveCode
     {
         public VayuSecondWind(PassiveCodeContext context) : base(context)
@@ -715,14 +720,6 @@ namespace Codes.Passive
     // 효과
     // ══════════════════════════════════════════════════════════════
 
-    /// <summary>부여하는 지속피해량 배율. 죽음의 계약과 저주가 함께 쓴다.</summary>
-    public sealed class DotAmplifyEffect : BaseEffect
-    {
-        private readonly float _multiplier;
-        public DotAmplifyEffect(float multiplier) : base(0, multiplier) => _multiplier = multiplier;
-        public override float DamageOverTimeApplicationMultiplier(Unit unit) => _multiplier;
-    }
-
     internal sealed class ElementMasteryEffect : BaseEffect
     {
         private readonly BaseEnums.UnitElement _element;
@@ -732,15 +729,6 @@ namespace Codes.Passive
             => attacker == Target && target != null && target.HasCombatElement(_element) ? 1.1f : 1f;
     }
 
-    internal sealed class FlatOutgoingDamageEffect : BaseEffect
-    {
-        private readonly float _multiplier;
-        public FlatOutgoingDamageEffect(float multiplier) : base(0, multiplier) => _multiplier = multiplier;
-
-        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
-            => attacker == Target ? _multiplier : 1f;
-    }
-
     internal sealed class SpecialDamageEffect : BaseEffect
     {
         private readonly float _multiplier;
@@ -748,13 +736,6 @@ namespace Codes.Passive
 
         public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
             => attacker == Target && context?.DamageTags?.Contains(DamageTag.Special) == true ? _multiplier : 1f;
-    }
-
-    internal sealed class SpecialCritDamageEffect : BaseEffect
-    {
-        private readonly float _bonus;
-        public SpecialCritDamageEffect(float bonus) : base(0, bonus) => _bonus = bonus;
-        public override float CritMultiplierAdditiveModifier(Unit unit) => unit == Target ? _bonus : 0f;
     }
 
     internal sealed class TaggedTargetDamageEffect : BaseEffect
@@ -799,7 +780,7 @@ namespace Codes.Passive
         private bool _used;
         private int _remainingTurns;
 
-        /// <summary>지속 턴 수. 생성자는 아직 초를 받으므로 1턴 = 2초로 환산한다.</summary>
+        /// <summary>지속 턴 수.</summary>
         private int DurationTurns => Mathf.Max(1, Mathf.RoundToInt(_duration * 0.5f));
 
         public ThresholdRegenEffect(float threshold, float healRatio, float duration) : base(0)

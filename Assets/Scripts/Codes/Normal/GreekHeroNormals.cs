@@ -13,7 +13,7 @@ namespace Codes.Normal
     {
         public OrionNormalAttack(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = 80;
             CodeTags = new List<int> { DamageTag.Physical };
         }
@@ -34,7 +34,7 @@ namespace Codes.Normal
 
         public TheseusNormalAttack(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = 80;
             CodeTags = new List<int> { DamageTag.Physical };
         }

@@ -33,8 +33,8 @@ namespace Codes.Passive
 
     /// <summary>
     /// 프레이아 고유 P — 피톤치드.
-    /// 프레이아가 치유한 아군에게 2초에 걸쳐 최대 체력의 5%를 더 회복시킨다.
-    /// 대상별 내부 쿨다운 2초라 광역 힐 한 번이 여러 번 겹쳐 터지지 않는다.
+    /// 프레이아가 치유한 아군에게 1턴에 걸쳐 최대 체력의 5%를 더 회복시킨다.
+    /// 회복이 아직 남아 있는 대상은 건너뛰므로 광역 힐 한 번이 여러 번 겹쳐 터지지 않는다.
     /// </summary>
     public sealed class FreyaPhytoncide : UniquePassiveCode
     {
@@ -93,7 +93,7 @@ namespace Codes.Passive
             {
                 ally.AddStatus(BuffStatus.Create(
                     NorseStatusIds.Leadership, SharedKey, CodeName, Caster, ally,
-                    new FlatOutgoingDamageEffect(Multiplier),
+                    new OutgoingDamageMultiplierEffect(Multiplier),
                     stackPolicy: BaseEnums.StatusStackPolicy.ReplaceIfStronger,
                     isBeneficial: true, description: "가하는 피해 +10%"));
             }
@@ -133,7 +133,7 @@ namespace Codes.Passive
 
     /// <summary>
     /// 로키 고유 P — 펜리르.
-    /// 소환수 펜리르가 4초마다 현재 체력이 가장 낮은 적을 문다.
+    /// 소환수 펜리르가 2턴마다 현재 체력이 가장 낮은 적을 문다.
     /// 칸을 차지하지 않아야 하므로 별도 유닛을 만들지 않고 로키에 붙는 상태로 굴린다.
     /// </summary>
     public sealed class LokiFenrir : UniquePassiveCode
@@ -348,7 +348,7 @@ namespace Codes.Passive
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "원소술사";
             IgnoresActivationChance = true;
-            // 금색 상위는 공허의 용이 드는 에테르(1531)다. 같은 상태 키를 쓰므로
+            // 금색 상위는 공허의 용이 드는 에테르(1591)다. 같은 상태 키를 쓰므로
             // 서로 다른 유닛이 들었을 때는 높은 쪽만 남는다.
             SupersededByCodeId = VoidAether.CodeId;
         }
@@ -381,7 +381,7 @@ namespace Codes.Passive
     /// <summary>피톤치드 — 프레이아가 치유를 넣을 때마다 대상에게 회복 상태를 얹는다.</summary>
     internal sealed class PhytoncideEffect : BaseEffect
     {
-        private const int RegenDurationTurns = 1;   // 2초 → 1턴
+        private const int RegenDurationTurns = 1;
         private const float MaxHpRatio = 0.05f;
 
         public PhytoncideEffect() : base(0) { }

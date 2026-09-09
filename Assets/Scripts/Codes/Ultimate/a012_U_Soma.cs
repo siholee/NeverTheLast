@@ -19,7 +19,7 @@ namespace Codes.Ultimate
         /// <summary>최다 피해 아군에게 주는 올스탯 = 찬드라 INT의 25%.</summary>
         private const float AllStatIntRatio = 0.25f;
 
-        private const int AllStatDuration = 3;   // 6초 → 3턴
+        private const int AllStatDuration = 3;
 
         public a012_U_Soma(UltimateCodeContext context) : base(context)
         {
@@ -129,7 +129,6 @@ namespace Codes.Ultimate
         {
             return unit.GetBaseStr() + unit.GetBaseDex() + unit.GetBaseCon() + unit.GetBaseInt() + unit.GetBaseLuk();
         }
-
     }
 
     /// <summary>케찰코아틀 궁극기: 적 전체 위력 80 특수 피해 + 풀 원소 부여.</summary>

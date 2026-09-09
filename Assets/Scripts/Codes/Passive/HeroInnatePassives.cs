@@ -20,7 +20,7 @@ namespace Codes.Passive
             if (Caster == null) return;
             Caster.AddStatus(BuffStatus.Create(
                 5002, "hunters_venom_innate", CodeName,
-                Caster, Caster, new HuntersVenomDamageEffect(1.2f),
+                Caster, Caster, new DamageOverTimeApplicationEffect(1.2f),
                 stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
                 isBeneficial: true,
                 description: "부여하는 지속 피해가 20% 증가합니다."));
@@ -58,36 +58,10 @@ namespace Codes.Passive
             if (Caster == null) return;
             Caster.AddStatus(BuffStatus.Create(
                 5010, "armor_training", CodeName,
-                Caster, Caster, new ArmorDamageReductionEffect(0.97f),
+                Caster, Caster, new ReceivingDamageMultiplierEffect(0.97f),
                 stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
                 isBeneficial: true,
                 description: "받는 피해가 3% 감소합니다."));
         }
-    }
-
-    internal sealed class HuntersVenomDamageEffect : BaseEffect
-    {
-        private readonly float _multiplier;
-
-        public HuntersVenomDamageEffect(float multiplier) : base(0, multiplier)
-        {
-            _multiplier = multiplier;
-        }
-
-        public override float DamageOverTimeApplicationMultiplier(Entities.Unit unit)
-            => unit == Target ? _multiplier : 1f;
-    }
-
-    internal sealed class ArmorDamageReductionEffect : BaseEffect
-    {
-        private readonly float _multiplier;
-
-        public ArmorDamageReductionEffect(float multiplier) : base(0, multiplier)
-        {
-            _multiplier = multiplier;
-        }
-
-        public override float ReceivingDamageModifier(Entities.Unit unit)
-            => unit == Target ? _multiplier : 1f;
     }
 }

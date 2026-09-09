@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Entities;
+using Helpers;
 using Managers.UI.Core;
 using Managers.UI.Theme;
 using TMPro;
@@ -143,9 +144,7 @@ namespace Managers.UI.HUD
                 if (_portraitPath == unit.PortraitPath) return;
                 _portraitPath = unit.PortraitPath;
 
-                Sprite sprite = string.IsNullOrEmpty(unit.PortraitPath)
-                    ? null
-                    : Resources.Load<Sprite>(unit.PortraitPath);
+                Sprite sprite = SpriteResource.LoadPortrait(unit.PortraitPath);
                 _portrait.sprite = sprite;
                 _portrait.enabled = sprite != null;
             }

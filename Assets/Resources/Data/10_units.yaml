@@ -171,6 +171,48 @@ units:
     portrait: LIGHT_PORTRAIT
     standing: LIGHT_STANDING
 
+  - id: 6
+    name: 니콜
+    characterType: Support
+    element: Electro
+    startingProficiencies: [Shortbow, LightArmor]
+    startingItemIds: [4107]
+    tags: [Akasha, Human]
+    canStartAsMain: false
+    canStartAsSupport: true
+    canUseInInfinite: false
+    mainStat: INT
+    subStat: DEX
+    subStats: [DEX, LUK]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.05
+    strBase: 9
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 16
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 16
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 22
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 16
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes: { passive: 206, normal: 6, ultimate: 6 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 15, unlockLevel: 4,  stage: 1 }   # 학식
+      - { codeId: 57, unlockLevel: 9,  stage: 1 }   # 원소 숙련 - 번개
+      - { codeId: 16, unlockLevel: 12, stage: 1 }   # 행운아
+      - { codeId: 18, unlockLevel: 22, stage: 1 }   # 명상
+      - { codeId: 59, unlockLevel: 33, stage: 1 }   # 고전압
+      - { codeId: 17, unlockLevel: 40, stage: 1 }   # 예리함
+    portrait: NICOLE_PORTRAIT
+    standing: NICOLE_STANDING
+
   - id: 2
     name: 시
     characterType: Locked
@@ -407,7 +449,7 @@ units:
       ultimate: 1
     levelPassives:
       - { codeId: 23, unlockLevel: 9,  stage: 1 }   # 원소 친화 - 물
-      - { codeId: 24, unlockLevel: 22, stage: 1 }   # 투사
+      - { codeId: 41, unlockLevel: 22, stage: 1 }   # 투사
       - { codeId: 25, unlockLevel: 45, stage: 1 }   # 자가치유
       - { codeId: 26, unlockLevel: 50, stage: 1 }   # 과다치유
     portrait: THESEUS_PORTRAIT
@@ -462,7 +504,7 @@ units:
     portrait: ASCLEPIUS_PORTRAIT
     standing: ASCLEPIUS_STANDING
 
-  # 타카미가하라 미해금. 기본공격을 증폭하는 후열 사수.
+  # 타카미가하라 미해금. 일반행동을 증폭하는 후열 사수.
   - id: 40
     name: 아마테라스
     characterType: Locked
@@ -739,6 +781,7 @@ units:
     characterType: Locked
     element: Electro
     startingProficiencies: [Spear, MediumArmor]
+    startingItemIds: [4104]
     tags: [Vedic, Lokapala]
     canStartAsMain: false
     canStartAsSupport: false
@@ -781,6 +824,7 @@ units:
     characterType: Locked
     element: Pyro
     startingProficiencies: [Orb]
+    startingItemIds: [4109]
     tags: [Vedic, Lokapala]
     canStartAsMain: false
     canStartAsSupport: false
@@ -821,6 +865,7 @@ units:
     characterType: Locked
     element: Electro
     startingProficiencies: [Orb, LightArmor]
+    startingItemIds: [4109]
     tags: [Vedic, Lokapala]
     canStartAsMain: false
     canStartAsSupport: false
@@ -863,6 +908,7 @@ units:
     characterType: Starter
     element: Anemo
     startingProficiencies: [Longbow, LightArmor]
+    startingItemIds: [4106]
     tags: [Vedic, Lokapala]
     canStartAsMain: true
     canStartAsSupport: false
@@ -1357,7 +1403,7 @@ units:
     codes: { passive: 320, normal: 120, ultimate: 120 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 86, unlockLevel: 14, stage: 1 }   # 관통사격
+      - { codeId: 86, unlockLevel: 14, stage: 1 }   # 빈틈의 실
       - { codeId: 10,  unlockLevel: 28, stage: 1 }   # 신속
       - { codeId: 49, unlockLevel: 41, stage: 1 }   # 저격수
       - { codeId: 43, unlockLevel: 52, stage: 1 }   # 신살자

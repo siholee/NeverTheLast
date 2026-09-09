@@ -14,7 +14,7 @@ namespace Codes.Passive
         public const int NashorsTooth = 5603;
     }
 
-    /// <summary>내셔의 이빨: 궁극기 사용 후 5초간 DEX +40.</summary>
+    /// <summary>내셔의 이빨: 궁극기 사용 후 2턴간 DEX +40.</summary>
     public sealed class AsclepiusNashorsTooth : UniquePassiveCode
     {
         private System.Action<EventContext> _castHandler;
@@ -44,7 +44,7 @@ namespace Codes.Passive
             Caster?.AddStatus(BuffStatus.Create(
                 AsclepiusStatusIds.NashorsTooth, "asclepius_nashors_tooth", CodeName,
                 Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.DEX, 40),
-                duration: 2,   // 5초 → 2턴
+                duration: 2,
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
                 description: "궁극기 사용 후 2턴간 DEX가 40 증가합니다."));
@@ -72,7 +72,7 @@ namespace Codes.Passive
 
         public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
             AsclepiusStatusIds.ManaBreathing, "asclepius_mana_breathing", CodeName,
-            Caster, Caster, new ManaBreathingEffect(),
+            Caster, Caster, new ManaEfficiencyEffect(1.2f),
             stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
             isBeneficial: true,
             description: "INT가 제공하는 마나 회복 효율 기여분이 20% 증가합니다."));
@@ -114,13 +114,6 @@ namespace Codes.Passive
             stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
             isBeneficial: true,
             description: "부여하는 치유와 보호막이 50% 증가하고, 받은 대상의 부정 상태를 모두 해제합니다."));
-    }
-
-    internal sealed class ManaBreathingEffect : BaseEffect
-    {
-        public ManaBreathingEffect() : base(0, 1.2f) { }
-        public override float ManaRecoveryIntContributionMultiplierModifier(Unit unit)
-            => unit == Target ? 1.2f : 1f;
     }
 
     internal sealed class CriticalTreatmentEffect : BaseEffect

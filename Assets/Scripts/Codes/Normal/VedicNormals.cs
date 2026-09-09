@@ -4,12 +4,12 @@ using Codes.Base;
 
 namespace Codes.Normal
 {
-    /// <summary>야마 일반공격 — DEX 기반 위력 60. 접촉·물리·베기.</summary>
+    /// <summary>야마 일반행동 — DEX 기반 위력 60. 접촉·물리·베기.</summary>
     public sealed class YamaNormalAttack : BaseNormalCode
     {
         public YamaNormalAttack(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = 60;
             CodeTags = new List<int> { DamageTag.Physical };
         }
@@ -25,12 +25,12 @@ namespace Codes.Normal
         };
     }
 
-    /// <summary>아그니 일반공격 — INT 기반 위력 60. 비접촉·특수.</summary>
+    /// <summary>아그니 일반행동 — INT 기반 위력 60. 비접촉·특수.</summary>
     public sealed class AgniNormalAttack : BaseNormalCode
     {
         public AgniNormalAttack(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = 60;
             CodeTags = new List<int> { DamageTag.Special };
         }
@@ -46,12 +46,12 @@ namespace Codes.Normal
         };
     }
 
-    /// <summary>인드라 일반공격 — INT 기반 위력 50. 비접촉·특수.</summary>
+    /// <summary>인드라 일반행동 — INT 기반 위력 50. 비접촉·특수.</summary>
     public sealed class IndraNormalAttack : BaseNormalCode
     {
         public IndraNormalAttack(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = 50;
             CodeTags = new List<int> { DamageTag.Special };
         }
@@ -67,12 +67,12 @@ namespace Codes.Normal
         };
     }
 
-    /// <summary>바유 일반공격 — CON 기반 위력 60. 비접촉·물리.</summary>
+    /// <summary>바유 일반행동 — CON 기반 위력 60. 비접촉·물리.</summary>
     public sealed class VayuNormalAttack : BaseNormalCode
     {
         public VayuNormalAttack(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = 60;
             CodeTags = new List<int> { DamageTag.Physical };
         }

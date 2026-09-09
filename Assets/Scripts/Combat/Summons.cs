@@ -16,7 +16,7 @@ namespace Combat
     ///     (<see cref="DamageTag.SummonAttack"/>을 보고 <c>Unit.CalculateFinalDamage</c>가 건너뛴다)
     ///   · 소환수 전용 배율만 받는다. 황금 사과는 장착자의 소환수에만 적용되고,
     ///     로키의 <c>소환사</c>(265)는 <b>필드 전체</b>에 적용된다.
-    ///   · <c>n번째 일반공격마다</c> 계열 카운터는 <see cref="DamageTag.NormalAttack"/>을 보므로
+    ///   · <c>n번째 일반행동마다</c> 계열 카운터는 <see cref="DamageTag.NormalAttack"/>을 보므로
     ///     소환수 공격이 자동으로 제외된다.
     /// </summary>
     public static class Summons

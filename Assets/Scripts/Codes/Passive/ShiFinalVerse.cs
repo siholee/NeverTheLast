@@ -63,7 +63,7 @@ namespace Codes.Passive
             int previousStack = Mathf.Min(_verseStack, maxStack);
             _verseStack = Mathf.Min(previousStack + stackGain, maxStack);
 
-            // 추가공격은 그 자리에서 터뜨리지 않고 스케줄러에 예약한다.
+            // 추가행동은 그 자리에서 터뜨리지 않고 스케줄러에 예약한다.
             // 한 번에 하나만 행동해야 하고, 같은 키라 한 턴에 두 번 겹쳐 들어가지 않는다.
             if (previousStack < 3 && _verseStack >= 3)
             {

@@ -4,6 +4,7 @@ using System.Linq;
 using BaseClasses;
 using Core;
 using Entities;
+using Helpers;
 using Managers.UI.Core;
 using Managers.UI.Theme;
 using TMPro;
@@ -409,9 +410,7 @@ namespace Managers.UI.Screens
                 return;
             }
 
-            Sprite portrait = string.IsNullOrEmpty(main.PortraitPath)
-                ? null
-                : Resources.Load<Sprite>(main.PortraitPath);
+            Sprite portrait = SpriteResource.LoadPortrait(main.PortraitPath);
             _mainPortrait.sprite = portrait;
             _mainPortrait.enabled = portrait != null;
 
@@ -505,9 +504,7 @@ namespace Managers.UI.Screens
                 _frame.gameObject.SetActive(support != null);
                 if (support == null) return false;
 
-                Sprite portrait = string.IsNullOrEmpty(support.PortraitPath)
-                    ? null
-                    : Resources.Load<Sprite>(support.PortraitPath);
+                Sprite portrait = SpriteResource.LoadPortrait(support.PortraitPath);
                 _portrait.sprite = portrait;
                 _portrait.enabled = portrait != null;
 
@@ -670,9 +667,7 @@ namespace Managers.UI.Screens
                     _seatFrames[seat].gameObject.SetActive(support != null);
                     if (support == null) continue;
 
-                    Sprite portrait = string.IsNullOrEmpty(support.PortraitPath)
-                        ? null
-                        : Resources.Load<Sprite>(support.PortraitPath);
+                    Sprite portrait = SpriteResource.LoadPortrait(support.PortraitPath);
                     _seatPortraits[seat].sprite = portrait;
                     _seatPortraits[seat].enabled = portrait != null;
 

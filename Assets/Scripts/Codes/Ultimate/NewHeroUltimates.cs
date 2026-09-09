@@ -308,7 +308,7 @@ namespace Codes.Ultimate
 
     public sealed class AmaterasuPortalBarrage : UltimateCode
     {
-        private const int Duration = 3;   // 6초 → 3턴
+        private const int Duration = 3;
 
         /// <summary>한 번의 일제사격에 열리는 차원문 수.</summary>
         private const int PortalCount = 4;
@@ -316,7 +316,7 @@ namespace Codes.Ultimate
         /// <summary>차원문 하나가 뱉는 화살 수. 같은 차원문의 화살은 같은 대상을 노린다.</summary>
         private const int ArrowsPerPortal = 2;
 
-        /// <summary>화살 한 발의 피해는 방아쇠가 된 일반공격 <b>최종 피해</b>의 0.1배다.</summary>
+        /// <summary>화살 한 발의 피해는 방아쇠가 된 일반행동 <b>최종 피해</b>의 0.1배다.</summary>
         private const float ArrowDamageRatio = 0.1f;
 
         /// <summary>화살이 허공에서 대상까지 날아가는 시간.</summary>
@@ -359,18 +359,18 @@ namespace Codes.Ultimate
                 duration: Duration,
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
-                description: $"기본공격을 맞힐 때마다 아군 진영 허공에 차원문 {PortalCount}개가 열려 " +
+                description: $"일반행동을 맞힐 때마다 아군 진영 허공에 차원문 {PortalCount}개가 열려 " +
                              $"화살 {PortalCount * ArrowsPerPortal}발을 한 번에 쏜다. 차원문마다 대상을 무작위로 " +
-                             "정하고, 한 차원문의 화살은 같은 대상을 노린다. 화살 한 발은 그 일반공격 " +
-                             $"최종 피해의 {ArrowDamageRatio:0.#}배를 추가공격으로 준다."));
+                             "정하고, 한 차원문의 화살은 같은 대상을 노린다. 화살 한 발은 그 일반행동 " +
+                             $"최종 피해의 {ArrowDamageRatio:0.#}배를 추가행동으로 준다."));
             Caster.StartCoroutine(ExpirePortals());
             StopCode();
         }
 
         /// <summary>
-        /// 기본공격이 적중하면 차원문 일제사격이 뒤따른다.
+        /// 일반행동이 적중하면 차원문 일제사격이 뒤따른다.
         ///
-        /// 화살 피해는 그 일반공격이 실제로 뽑아낸 최종 피해에서 갈라 나온다.
+        /// 화살 피해는 그 일반행동이 실제로 뽑아낸 최종 피해에서 갈라 나온다.
         /// 치명타로 크게 터진 평타는 뒤따르는 화살도 그만큼 굵어진다.
         /// </summary>
         private void OnNormalHit(EventContext context)
@@ -415,7 +415,7 @@ namespace Codes.Ultimate
         /// <summary>
         /// 화살 한 발의 판정.
         ///
-        /// 궁극기가 열어 준 <b>추가공격</b>이다. 일반공격으로는 세지 않으므로
+        /// 궁극기가 열어 준 <b>추가행동</b>이다. 일반행동으로는 세지 않으므로
         /// 평타에 얹히는 효과(태양의 박자 등)를 다시 굴리지 않는다.
         /// </summary>
         private void ResolveArrow(Unit target, int arrowDamage, bool isCrit)

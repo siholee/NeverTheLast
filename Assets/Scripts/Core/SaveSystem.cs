@@ -7,6 +7,46 @@ namespace Core
     /// </summary>
     public static class SaveSystem
     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        private static readonly System.Collections.Generic.Dictionary<string, string> DebugStrings = new();
+        private static readonly System.Collections.Generic.Dictionary<string, int> DebugInts = new();
+        internal static void ResetDebugStorage() { DebugStrings.Clear(); DebugInts.Clear(); }
+#endif
+        private static int ReadInt(string key, int fallback = 0)
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (DebugMode.SessionActive && DebugInts.TryGetValue(key, out int value)) return value;
+#endif
+            return PlayerPrefs.GetInt(key, fallback);
+        }
+        private static string ReadString(string key, string fallback = "")
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (DebugMode.SessionActive && DebugStrings.TryGetValue(key, out string value)) return value;
+#endif
+            return PlayerPrefs.GetString(key, fallback);
+        }
+        private static void WriteInt(string key, int value)
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (DebugMode.SessionActive) { DebugInts[key] = value; return; }
+#endif
+            PlayerPrefs.SetInt(key, value);
+        }
+        private static void WriteString(string key, string value)
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (DebugMode.SessionActive) { DebugStrings[key] = value; return; }
+#endif
+            PlayerPrefs.SetString(key, value);
+        }
+        private static void Flush()
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (DebugMode.SessionActive) return;
+#endif
+            PlayerPrefs.Save();
+        }
         private const string KeyJson   = "NTL_RunSave";
         private const string KeyExists = "NTL_HasSave";
         private const string KeyTrainedCharacters = "NTL_TrainedCharacters";
@@ -15,16 +55,16 @@ namespace Core
         /// <summary>저장된 런이 있는지 확인</summary>
         public static bool HasSave()
         {
-            return PlayerPrefs.GetInt(KeyExists, 0) == 1;
+            return ReadInt(KeyExists, 0) == 1;
         }
 
         /// <summary>현재 런 상태를 JSON으로 PlayerPrefs에 저장</summary>
         public static void SaveRun(RunSaveData data)
         {
             string json = JsonUtility.ToJson(data, prettyPrint: false);
-            PlayerPrefs.SetString(KeyJson,   json);
-            PlayerPrefs.SetInt(KeyExists, 1);
-            PlayerPrefs.Save();
+            WriteString(KeyJson, json);
+            WriteInt(KeyExists, 1);
+            Flush();
             Debug.Log($"[SaveSystem] 런 저장 완료 (Stage {data.currentStage}, Round {data.currentRound})");
         }
 
@@ -36,7 +76,7 @@ namespace Core
                 Debug.LogWarning("[SaveSystem] 저장된 런 없음");
                 return null;
             }
-            string json = PlayerPrefs.GetString(KeyJson, "{}");
+            string json = ReadString(KeyJson, "{}");
             RunSaveData data = JsonUtility.FromJson<RunSaveData>(json);
             if (data == null || data.version < RunSaveData.CurrentVersion)
             {
@@ -52,15 +92,15 @@ namespace Core
         /// <summary>저장 데이터 삭제 (게임오버 또는 런 완료 시)</summary>
         public static void DeleteSave()
         {
-            PlayerPrefs.DeleteKey(KeyJson);
-            PlayerPrefs.SetInt(KeyExists, 0);
-            PlayerPrefs.Save();
+            WriteString(KeyJson, "");
+            WriteInt(KeyExists, 0);
+            Flush();
             Debug.Log("[SaveSystem] 세이브 삭제");
         }
 
         public static TrainedCharacterCollection LoadTrainedCharacters()
         {
-            string json = PlayerPrefs.GetString(KeyTrainedCharacters, "");
+            string json = ReadString(KeyTrainedCharacters, "");
             if (string.IsNullOrEmpty(json))
             {
                 return new TrainedCharacterCollection();
@@ -98,15 +138,15 @@ namespace Core
         /// <summary>런을 넘어 유지되는 보스 최초 격파 기록.</summary>
         public static bool HasDefeatedBoss(int bossId)
         {
-            return bossId > 0 && PlayerPrefs.GetInt(KeyBossDefeatedPrefix + bossId, 0) == 1;
+            return bossId > 0 && ReadInt(KeyBossDefeatedPrefix + bossId, 0) == 1;
         }
 
         /// <summary>최초 기록이면 true. 이미 격파한 보스라면 false.</summary>
         public static bool MarkBossDefeated(int bossId)
         {
             if (bossId <= 0 || HasDefeatedBoss(bossId)) return false;
-            PlayerPrefs.SetInt(KeyBossDefeatedPrefix + bossId, 1);
-            PlayerPrefs.Save();
+            WriteInt(KeyBossDefeatedPrefix + bossId, 1);
+            Flush();
             Debug.Log($"[SaveSystem] 보스 최초 격파 기록: {bossId}");
             return true;
         }
@@ -191,8 +231,8 @@ namespace Core
         {
             data = NormalizeTrainedCharacterCollection(data);
             string json = JsonUtility.ToJson(data, prettyPrint: false);
-            PlayerPrefs.SetString(KeyTrainedCharacters, json);
-            PlayerPrefs.Save();
+            WriteString(KeyTrainedCharacters, json);
+            Flush();
         }
     }
 }

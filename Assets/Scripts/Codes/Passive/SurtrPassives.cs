@@ -137,19 +137,26 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// 투사(41)와 그 금색 상위 코드 '하루종일도 할 수 있어'(1464) — 가한 피해의 일부를 회복한다.
+    /// 투사(41)와 그 금색 상위 코드 '하루종일도 할 수 있어'(1524) — 가한 피해의 일부를 회복한다.
     ///
     /// 회복 비율만 다른 같은 코드라 한 클래스로 묶었다. 둘을 같이 배우면
     /// <see cref="PassiveCode.SupersededByCodeId"/>가 은색 쪽을 재워 비율이 겹쳐 쌓이지 않는다.
     /// </summary>
-    public sealed class SurtrFighter : PassiveCode
+    /// <summary>
+    /// 투사(41) 계열 — 가한 피해의 일정 비율을 회복한다. 조건이 없는 순수 흡혈이다.
+    ///
+    /// 수르트 전용으로 만들었다가 테세우스·세트·공허의 멧돼지가 같은 것을 필요로 해
+    /// <b>회복 비율만 다른 범용 코드</b>가 됐다. 예전에는 테세우스만 쓰는
+    /// '물리·접촉 25% 회복'짜리 별도 클래스가 같은 '투사' 이름을 달고 따로 있었다.
+    /// </summary>
+    public sealed class LifestealFighter : PassiveCode
     {
         private readonly float _healRatio;
         private bool _registered;
         private Action<DamageResolvedContext> _damageHandler;
         private Action<EventContext> _cleanupHandler;
 
-        public SurtrFighter(PassiveCodeContext context, float healRatio, string name,
+        public LifestealFighter(PassiveCodeContext context, float healRatio, string name,
             int supersededByCodeId, BaseEnums.CodeGrade grade) : base(context)
         {
             _healRatio = healRatio;

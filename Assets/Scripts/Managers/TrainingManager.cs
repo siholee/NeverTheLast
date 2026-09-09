@@ -418,7 +418,7 @@ namespace Managers
             return focus switch
             {
                 BaseEnums.PrimaryStat.INT => support.ActivePassiveCodes.Any(code =>
-                    code is Codes.Passive.QuetzalcoatlWisdom),
+                    code is Codes.Passive.ScholarshipPassive),
                 BaseEnums.PrimaryStat.DEX => support.ActivePassiveCodes.Any(code =>
                     code is Codes.Passive.MarieOfficer),
                 _ => false,

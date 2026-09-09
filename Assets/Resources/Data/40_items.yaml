@@ -1,9 +1,39 @@
-# 내구(durability): 받는 피해에서 고정으로 깎는 값.
-#   방어력(비율 감소)과 달리 방어 무시·관통의 영향을 받지 않는다.
-#   방어구 계열에만 부여한다.
-#   T1 기준 — 의복 2 / 경갑 5 / 방패 6 / 중갑 10 / 판금 16
-#   상위 티어는 `T1 값 × (1 + (rarity-1) × 0.6)`을 기준으로 올린다.
-#   (고정값이므로 티어를 따라 올리지 않으면 후반에 무의미해진다)
+# 장비 규격 — 상세 기획서 Detail_14 §1~§2가 원본이다.
+#
+# 장비 한 점은 네 가지로 정의된다.
+#   분류(category)  · 스탯(statBonuses) · 무게(weight) · 착용 조건(requiredProficiency, 없을 수도 있음)
+#
+# 1) 스탯은 <무엇을 올릴지>만 고르고 <얼마나>는 티어가 정한다.
+#      티어 계수 P = T1:1 · T2:3 · T3:5 · T4:7 · T5:9
+#      5스탯(STR/DEX/CON/INT/LUK) = +P
+#      CritRate(치명타 확률) · CritDamage(치명타 피해) · Durability(내구) = +2P
+#    한 장비는 스탯을 하나만 갖는다.
+#
+# 2) 무게는 분류가 정한다. 같은 분류면 티어가 올라도 무게가 그대로다.
+#      1: 단검 · 지팡이 · 보주 · 목걸이 · 반지
+#      2: 한손검 · 단궁 · 경갑 · 투구 · 신발
+#      3: 창 · 둔기 · 장궁 · 방패
+#      4: 대검 · 쇠뇌 · 평갑
+#      6: 중갑
+#      의복은 1.
+#
+# 3) 착용 조건은 분류와 같은 이름의 숙련이다.
+#    의복·투구·목걸이·반지·신발은 조건이 없어 누구나 효과를 받는다.
+#    숙련이 없으면 무게만 남고 statBonuses·codeGrants·내구가 전부 죽는다.
+#
+# 4) T3 이상은 codeGrants를 하나 갖는다. T1·T2는 스탯과 내구만 준다.
+#
+# 5) 방어구(방패·갑옷·투구·의복)는 스탯과 별개로 <티어 x 분류> 고정 내구를 갖는다.
+#    내구는 받는 피해에서 고정으로 깎는 값이라 방어 무시·관통의 영향을 받지 않는다.
+#      배수 M = T1:1 · T2:2 · T3:3.25 · T4:4.75 · T5:6.5   (T1 값 x M, 반올림)
+#
+#      분류   T1   T2   T3   T4   T5
+#      의복    2    4    7   10   13
+#      투구    3    6   10   14   20
+#      경갑    5   10   16   24   33
+#      방패    6   12   20   29   39
+#      평갑   10   20   33   48   65
+#      중갑   16   32   52   76  104
 #
 # themeIds: 테마 전용 보상. 비어 있으면 모든 테마의 보상 풀에 등장한다.
 #   값은 80_stages.yaml의 stageThemes[].id다 (적 themeId가 아니다).
@@ -147,7 +177,6 @@ items:
   # ── T2 레기온 세트 — '로마' 테마 전용 보상 (themeIds: [5]) ──────────
   # 군단 규격 생산품이라 T1 대응품과 중량이 같고 스탯만 올라간다.
   # T2는 codeGrants를 주지 않는다. 스탯 증가와 내구도만 제공한다.
-  # 방어구 내구는 T1 값 x (1 + (rarity-1) x 0.6) = x1.6 규칙을 따랐다.
   - id: 4201
     name: 레기온 한손검
     slot: MainHand
@@ -208,7 +237,7 @@ items:
     requiredProficiency: Shield
     rarity: 2
     weight: 3
-    durability: 10
+    durability: 12
     themeIds: [5]
     statBonuses: [{ stat: STR, amount: 3 }]
 
@@ -219,7 +248,7 @@ items:
     requiredProficiency: LightArmor
     rarity: 2
     weight: 2
-    durability: 8
+    durability: 10
     themeIds: [5]
     statBonuses: [{ stat: DEX, amount: 3 }]
 
@@ -230,7 +259,7 @@ items:
     requiredProficiency: MediumArmor
     rarity: 2
     weight: 4
-    durability: 16
+    durability: 20
     themeIds: [5]
     statBonuses: [{ stat: CON, amount: 3 }]
 
@@ -241,7 +270,7 @@ items:
     requiredProficiency: HeavyArmor
     rarity: 2
     weight: 6
-    durability: 26
+    durability: 32
     themeIds: [5]
     statBonuses: [{ stat: STR, amount: 3 }]
 
@@ -288,6 +317,32 @@ items:
     rarity: 2
     weight: 1
     statBonuses: [{ stat: LUK, amount: 3 }]
+
+  # 목걸이는 착용 조건이 없어 누구나 효과를 받는다.
+  # 5스탯이 아닌 수치를 고른 장비이며 T2 계수는 2P = 6이다.
+  - id: 4217
+    name: 결투자의 인장
+    slot: Necklace
+    category: Necklace
+    rarity: 2
+    weight: 1
+    statBonuses: [{ stat: CritRate, amount: 6 }]
+
+  - id: 4218
+    name: 사냥꾼의 이빨 목걸이
+    slot: Necklace
+    category: Necklace
+    rarity: 2
+    weight: 1
+    statBonuses: [{ stat: CritDamage, amount: 6 }]
+
+  - id: 4219
+    name: 무쇠 부적
+    slot: Necklace
+    category: Necklace
+    rarity: 2
+    weight: 1
+    statBonuses: [{ stat: Durability, amount: 6 }]
 
   # ── T3 정예 메히코 세트 ────────────────────────────────────────────
   # T2와 같은 무기를 정예 개체가 들던 것이다. 스탯이 한 단계 오르고,
@@ -378,7 +433,8 @@ items:
     requiredProficiency: Shield
     rarity: 4
     weight: 3
-    durability: 17
+    durability: 29
+    statBonuses: [{ stat: STR, amount: 7 }]
     codeGrants:
       - { slot: passive, codeId: 405, stage: 1 }
 
@@ -411,11 +467,10 @@ items:
     name: 코페쉬
     icon: ITEM_KHOPESH
     slot: MainHand
-    category: Longbow
-    requiredProficiency: Longbow
+    category: Longsword
+    requiredProficiency: Longsword
     rarity: 5
-    weight: 3
-    twoHanded: true
+    weight: 2
     statBonuses: [{ stat: DEX, amount: 9 }]
     codeGrants:
       - { slot: passive, codeId: 400, stage: 1 }
@@ -424,12 +479,11 @@ items:
     name: 야사카니의 곡옥
     icon: ITEM_YASAKANI_MAGATAMA
     slot: MainHand
-    category: Longbow
-    requiredProficiency: Longbow
+    category: Orb
+    requiredProficiency: Orb
     rarity: 5
-    weight: 3
-    twoHanded: true
-    statBonuses: [{ stat: STR, amount: 9 }]
+    weight: 1
+    statBonuses: [{ stat: INT, amount: 9 }]
     codeGrants:
       - { slot: passive, codeId: 401, stage: 1 }
 
@@ -451,7 +505,8 @@ items:
     category: Helmet
     rarity: 5
     weight: 2
-    durability: 17
+    durability: 20
+    statBonuses: [{ stat: CON, amount: 9 }]
     codeGrants:
       - { slot: passive, codeId: 403, stage: 1 }
 
@@ -498,7 +553,7 @@ items:
     requiredProficiency: LightArmor
     rarity: 5
     weight: 2
-    durability: 17
+    durability: 33
     statBonuses: [{ stat: LUK, amount: 9 }]
     codeGrants:
       - { slot: passive, codeId: 411, stage: 1 }

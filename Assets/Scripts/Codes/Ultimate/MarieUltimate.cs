@@ -5,7 +5,7 @@ using Entities;
 
 namespace Codes.Ultimate
 {
-    /// <summary>마리 U — 아군 전체에게 3턴간 일반공격 피해 +20%, DEX +10.</summary>
+    /// <summary>마리 U — 아군 전체에게 3턴간 일반행동 피해 +20%, DEX +10.</summary>
     public sealed class MarieSongOfRevolution : SimpleUltimate
     {
         private const int StatusId = 6513;
@@ -23,7 +23,7 @@ namespace Codes.Ultimate
                     duration: 3,
                     stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                     isBeneficial: true,
-                    description: "일반공격 피해 +20%, DEX +10 (3턴)."));
+                    description: "일반행동 피해 +20%, DEX +10 (3턴)."));
             }
         }
     }

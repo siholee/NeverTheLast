@@ -87,7 +87,7 @@ namespace Codes.Passive
 
     /// <summary>
     /// 가우디 고유 P — 사그리다 파밀리아.
-    /// 일반공격 적중마다 전투 자원을 쌓고 6스택에서 다음 일반공격을 강화한다.
+    /// 일반행동 적중마다 전투 자원을 쌓고 6스택에서 다음 일반행동을 강화한다.
     /// 바위 원소가 가우디 자신이나 적중 대상에게 있으면 획득량이 2가 된다.
     /// </summary>
     public sealed class GaudiSagradaFamilia : UniquePassiveCode
@@ -129,7 +129,7 @@ namespace Codes.Passive
             if (Caster == null || target == null || context.DmgCtx == null ||
                 context.DmgCtx.ResolvedDamage <= 0) return;
 
-            // 강화 일반공격(N+)은 충전 스택을 소비할 뿐, 각 타격으로 다시 쌓지 않는다.
+            // 강화 일반행동(N+)은 충전 스택을 소비할 뿐, 각 타격으로 다시 쌓지 않는다.
             if (Caster.ActiveNormalCode is GaudiNormalAttack { IsEmpoweredAttack: true }) return;
 
             int gain = Caster.HasCombatElement(BaseEnums.UnitElement.Geo) ||
@@ -141,7 +141,7 @@ namespace Codes.Passive
             Debug.Log($"[사그리다 파밀리아] {Caster.UnitName} {stacks}/{MaxStacks} (+{gain})");
         }
 
-        /// <summary>강화 일반공격이 실제 대상을 확보한 순간 6스택을 소비한다.</summary>
+        /// <summary>강화 일반행동이 실제 대상을 확보한 순간 6스택을 소비한다.</summary>
         public bool TryConsumeEmpowerment()
         {
             if (!IsEmpowered || !Caster.TryConsumeCombatResource(ResourceId, MaxStacks)) return false;
@@ -152,7 +152,7 @@ namespace Codes.Passive
         private void RefreshNormalAttackName()
         {
             if (Caster?.ActiveNormalCode != null)
-                Caster.ActiveNormalCode.CodeName = IsEmpowered ? "강화 일반공격" : "일반공격";
+                Caster.ActiveNormalCode.CodeName = IsEmpowered ? "강화 일반행동" : "일반행동";
         }
 
         public override void StopCode()
@@ -327,7 +327,7 @@ namespace Codes.Passive
             {
                 ally.AddStatus(BuffStatus.Create(
                     NewSupportStatusIds.WaterHeaven, SharedKey, CodeName, Caster, ally,
-                    new SpecialCritDamageEffect(0.25f),
+                    new CritMultiplierBonusEffect(0.25f),
                     stackPolicy: BaseEnums.StatusStackPolicy.ReplaceIfStronger,
                     isBeneficial: true, description: "치명타 피해 +25%"));
             }
@@ -510,7 +510,7 @@ namespace Codes.Passive
     internal sealed class RaijinEffect : BaseEffect
     {
         private const float DefenseIgnore = 0.8f;
-        private const int StrikeCooldownTurns = 1;   // 2초 → 1턴
+        private const int StrikeCooldownTurns = 1;
         private const int StrikePower = 80;
 
         private static readonly BaseEnums.UnitElement[] Marked =
@@ -531,7 +531,7 @@ namespace Codes.Passive
         }
 
         /// <summary>
-        /// 스사노오의 턴마다 에어본 상태의 적을 찾아 추가공격으로 예약한다.
+        /// 스사노오의 턴마다 에어본 상태의 적을 찾아 추가행동으로 예약한다.
         /// 한 번에 하나만 행동해야 하므로 그 자리에서 터뜨리지 않는다.
         /// </summary>
         public override void OnOwnerTurn()

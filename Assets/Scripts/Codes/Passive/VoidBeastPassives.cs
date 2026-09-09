@@ -12,11 +12,11 @@ namespace Codes.Passive
     /// <summary>공허의 멧돼지(야수) 계열 코드 ID.</summary>
     public static class VoidBeastCodeIds
     {
-        public const int BruteForce = 1460;
-        public const int StoneSkin = 1461;
-        public const int Arrogance = 1462;
-        public const int SteelSkin = 1463;
-        public const int AllDayLong = 1464;
+        public const int BruteForce = 1520;
+        public const int StoneSkin = 1521;
+        public const int Arrogance = 1522;
+        public const int SteelSkin = 1523;
+        public const int AllDayLong = 1524;
     }
 
     public static class VoidBeastStatusIds
@@ -65,7 +65,7 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// 바위피부(1461)와 그 금색 상위 코드 강철피부(1463) — 유닛 자신의 내구도를 올린다.
+    /// 바위피부(1521)와 그 금색 상위 코드 강철피부(1523) — 유닛 자신의 내구도를 올린다.
     ///
     /// 내구도는 받는 피해에서 <b>고정으로 깎아내는</b> 값이라 장비가 없는 적에게는 유일한 경감 수단이다.
     /// 둘을 같이 배우면 <see cref="PassiveCode.SupersededByCodeId"/>가 은색 쪽을 재운다.
@@ -96,7 +96,7 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// 오만(1462) — 적을 처치할 때마다 이번 전투 동안 물리 피해 +5%가 쌓인다.
+    /// 오만(1522) — 적을 처치할 때마다 이번 전투 동안 물리 피해 +5%가 쌓인다.
     ///
     /// 중첩은 상태를 여러 개 붙이는 대신 <b>배율을 키운 상태 하나</b>로 표현한다(철벽과 같은 이유).
     /// 지속피해는 태그가 비어 있어 물리로 세지 않는다 — <c>Physical</c> 태그를 직접 확인한다.

@@ -8,91 +8,234 @@ using UnityEngine;
 
 namespace Effects.Negative
 {
+    /// <summary>반응의 성격. <b>선언 순서가 곧 우선순위</b>다(위가 먼저).</summary>
+    public enum ReactionKind
+    {
+        /// <summary>증폭 — 방금 그 공격을 되짚어 키운다. 이번에 못 쓰면 사라지므로 가장 앞이다.</summary>
+        Amplify,
+
+        /// <summary>확산 — 원소를 진영 전체로 퍼뜨려 다음 반응의 재료를 만든다.</summary>
+        Spread,
+
+        /// <summary>제어 — 판을 가장 크게 바꾼다. 분쇄·내부 쿨다운으로 따로 눌린다.</summary>
+        Control,
+
+        /// <summary>즉발 피해.</summary>
+        Burst,
+
+        /// <summary>지속피해. 밀려도 다음 부착에서 다시 잡힌다.</summary>
+        Dot,
+
+        /// <summary>디버프.</summary>
+        Debuff,
+
+        /// <summary>버프·보호막. 자기 부착으로 만드는 것이라 경합이 드물다.</summary>
+        Buff,
+
+        /// <summary>무효 — 두 원소만 지운다. 다른 반응이 가능하면 굳이 고를 이유가 없다.</summary>
+        Null,
+    }
+
+    /// <summary>반응의 식별자. 재부착 내부 쿨다운의 키이기도 하다.</summary>
+    public enum ReactionId
+    {
+        None = 0,
+        Burn,           // 화상   불 + 불
+        Vaporize,       // 증발   불 + 물
+        Combustion,     // 연소   불 + 풀
+        Overload,       // 과부하 불 + 전기
+        Melt,           // 융해   불 + 얼음
+        Forge,          // 단조   불 + 바위
+        Essence,        // 정수   물 + 물
+        Bloom,          // 개화   물 + 풀
+        Shock,          // 감전   물 + 전기
+        Freeze,         // 빙결   물 + 얼음
+        Weathering,     // 풍화   물 + 바위
+        Rooting,        // 착근   풀 + 풀
+        Activation,     // 활성   풀 + 전기
+        Dormancy,       // 휴면   풀 + 얼음
+        Growth,         // 성장   풀 + 바위
+        Charge,         // 축전   전기 + 전기
+        Superconduct,   // 초전도 전기 + 얼음
+        Grounding,      // 접지   전기 + 바위
+        Slow,           // 둔화   얼음 + 얼음
+        Hardening,      // 경화   얼음 + 바위
+        Vibration,      // 진동   바위 + 바위
+        Diffusion,      // 확산   바람 + X (여섯 원소가 같은 반응이다)
+        DiffusionBurst, // 확산   바람 + 바람 (같은 이름, 광역 피해)
+    }
+
     /// <summary>
     /// 원소 반응.
     ///
-    /// 두 원소가 한 유닛에게 겹치면 반응이 일어나 **두 원소가 모두 사라지고** 지속피해를 남긴다.
-    /// 피해량은 <b>반응을 일으킨 유닛(반응을 유발한 공격자)의 CON</b>에 비례한다.
+    /// 두 원소가 한 유닛에게 겹치면 반응이 일어나 <b>두 원소가 모두 사라지고</b> 결과가 남는다.
+    /// 결과는 언제나 <b>원소가 부착된 유닛</b>이 가져간다 — 버프도 마찬가지다.
+    /// 자기 자신에게 원소를 둘러 버프를 만드는 것이 정규 운용이고,
+    /// 적에게 잘못 만들어 적을 이롭게 하는 것이 이 시스템의 상성이다.
     ///
-    ///   감전 — 물 + 번개    (지속피해)
-    ///   화상 — 불 + 풀      (지속피해)
-    ///   촉진 — 풀 + 번개    (부여자와 대상의 CON 차이만큼 방어력 감소)
-    ///   빙결 — 얼음 + 물    (피해 없음. 행동 불가만)
-    ///   공명 — 바위 + 바위  (피해 없음. 행동 불가만. <b>같은 원소끼리</b> 일어나는 유일한 반응)
+    /// 위력은 전부 <b>유발자의 CON</b>에 비례한다. 이 게임에서 CON은 최대 체력이자
+    /// <b>원소 친화력</b>이다. 보편적인 탱커는 STR을 주스탯으로 잡으므로 실질적으로는
+    /// 서포터가 반응을 키우는 자리를 가져간다.
     ///
-    /// 원소 부착이 일어나는 지점(<see cref="Unit.GrantCombatElement"/>)에서 한 번만 검사한다.
+    /// 전체 표는 <c>Detail_02 §6.3</c>에 있다.
     /// </summary>
     public static class ElementalReaction
     {
+        // ── 상태 ID ───────────────────────────────────────────────
         // 5900은 HealingReductionStatus가 이미 쓰고 있어 감전과 겹친다.
         // 5910대로 옮겨 HasStatus(감전) 조회가 치유량 감소와 섞이지 않게 했다.
         public const int ShockStatusId = 5910;
         public const int BurnStatusId = 5911;
-        public const int CatalyzeStatusId = 5912;
+        public const int WeatheringStatusId = 5912;
+        public const int BuffStatusId = 5913;
+        public const int VulnerableStatusId = 5914;
+
         public const string BurnStatusKey = "burn";
-        public const string CatalyzeStatusKey = "reaction_catalyze";
+        public const string WeatheringStatusKey = "reaction_weathering";
+
+        // ── 위력 ──────────────────────────────────────────────────
+
+        /// <summary>지속피해(감전·풍화)의 턴당 위력.</summary>
+        private const int DotPower = 90;
+
+        /// <summary>화상은 대상 최대 체력 비례라 유발자 CON을 보지 않는다.</summary>
+        private const float BurnMaxHpPercent = 5f;
+
+        /// <summary>즉발 피해(과부하)의 위력.</summary>
+        private const int BurstPower = 120;
+
+        /// <summary>확산(바람 + 바람)의 위력. 진영 전체를 때리므로 단일보다 낮다.</summary>
+        private const int DiffusionBurstPower = 70;
+
+        /// <summary>증폭이 얹는 약소 고정 피해의 위력.</summary>
+        private const int AmplifyPower = 40;
+
+        /// <summary>경화가 만드는 보호막의 위력.</summary>
+        private const int BarrierPower = 100;
+
+        /// <summary>지속피해·즉발 반응의 기본 지속 턴.</summary>
+        private const int DotDuration = 2;
+
+        /// <summary>버프·디버프 반응의 지속 턴.</summary>
+        private const int StatDuration = 3;
+
+        // ── CON 비례 계수 ─────────────────────────────────────────
 
         /// <summary>
-        /// 반응 지속피해의 위력. 반응 유발자의 CON에 곱해진다.
-        /// 1턴 = 2초 환산이므로 예전 '매초 위력 45'는 턴당 위력 90이 된다.
+        /// 버프·디버프·증폭이 공유하는 CON 비례식. <b>차이가 아니라 절대값</b>을 쓴다.
+        /// 유발자 CON에서 대상 CON을 빼는 식은 레벨이 오르면 양쪽이 같이 올라
+        /// 언제나 0 근처를 맴돌기 때문이다.
         /// </summary>
-        private const int ReactionPower = 90;
+        private const float RatioPerCon = 0.002f;   // CON 1당 0.2%
 
-        private const int ShockDuration = 2;   // 4초 → 2턴
-        private const int BurnDuration = 2;    // 별도 명시가 없는 원소 반응 화상의 기본 지속시간
+        private const float RatioCap = 0.30f;       // 상한 30%
 
-        /// <summary>반응 한 쌍의 정의.</summary>
-        private readonly struct Pair
+        /// <summary>증폭이 방금 그 공격의 피해에 얹는 비율의 상한. 다른 계수와 달리 크게 잡는다.</summary>
+        private const float AmplifyCap = 1.00f;
+        private const float AmplifyRatioPerCon = 0.005f;   // CON 1당 0.5%
+
+        // ── 재부착 내부 쿨다운 ────────────────────────────────────
+
+        /// <summary>제어 반응의 재발동 간격(대상의 턴).</summary>
+        private const int ControlCooldownTurns = 3;
+
+        /// <summary>지속피해·즉발 반응의 재발동 간격.</summary>
+        private const int DamageCooldownTurns = 1;
+
+        /// <summary>
+        /// 반응 계열별 재부착 내부 쿨다운. 부착 자체는 막지 않는다 —
+        /// 막으면 원소 숙련 코드("X 원소 보유 적에게 +10%")가 함께 꺼지기 때문이다.
+        /// </summary>
+        private static int CooldownTurns(ReactionKind kind) => kind switch
+        {
+            ReactionKind.Control => ControlCooldownTurns,
+            ReactionKind.Dot or ReactionKind.Burst => DamageCooldownTurns,
+            _ => 0,
+        };
+
+        // ── 표 ────────────────────────────────────────────────────
+
+        private readonly struct Reaction
         {
             public readonly BaseEnums.UnitElement A;
             public readonly BaseEnums.UnitElement B;
+            public readonly ReactionId Id;
             public readonly string Name;
-            public readonly int StatusId;
-            public readonly string Key;
-            public readonly int Duration;
+            public readonly ReactionKind Kind;
 
-            /// <summary>지속피해 대신 빙결(행동 불가)을 남기는 반응인지.</summary>
-            public readonly bool Freezes;
+            /// <summary>버프·디버프가 건드리는 스탯. 그 외에는 의미가 없다.</summary>
+            public readonly BaseEnums.PrimaryStat Stat;
 
-            /// <summary>지속피해 대신 기절(행동 불가)을 남기는 반응인지.</summary>
-            public readonly bool Stuns;
-
-            /// <summary>지속피해 대신 촉진 방어력 감소를 남기는 반응인지.</summary>
-            public readonly bool Catalyzes;
-
-            public Pair(BaseEnums.UnitElement a, BaseEnums.UnitElement b, string name,
-                int statusId, string key, int duration,
-                bool freezes = false, bool stuns = false, bool catalyzes = false)
+            public Reaction(BaseEnums.UnitElement a, BaseEnums.UnitElement b, ReactionId id,
+                string name, ReactionKind kind, BaseEnums.PrimaryStat stat = BaseEnums.PrimaryStat.STR)
             {
-                A = a; B = b; Name = name; StatusId = statusId; Key = key; Duration = duration;
-                Freezes = freezes;
-                Stuns = stuns;
-                Catalyzes = catalyzes;
+                A = a; B = b; Id = id; Name = name; Kind = kind; Stat = stat;
             }
         }
 
-        private static readonly Pair[] Pairs =
+        private const BaseEnums.UnitElement Pyro = BaseEnums.UnitElement.Pyro;
+        private const BaseEnums.UnitElement Hydro = BaseEnums.UnitElement.Hydro;
+        private const BaseEnums.UnitElement Dendro = BaseEnums.UnitElement.Dendro;
+        private const BaseEnums.UnitElement Electro = BaseEnums.UnitElement.Electro;
+        private const BaseEnums.UnitElement Cryo = BaseEnums.UnitElement.Cryo;
+        private const BaseEnums.UnitElement Anemo = BaseEnums.UnitElement.Anemo;
+        private const BaseEnums.UnitElement Geo = BaseEnums.UnitElement.Geo;
+
+        /// <summary>28쌍 전부. 바람이 낀 여섯 쌍은 <b>모두 같은 반응(확산)</b>이다.</summary>
+        private static readonly Reaction[] Table =
         {
-            new(BaseEnums.UnitElement.Hydro, BaseEnums.UnitElement.Electro,
-                "감전", ShockStatusId, "reaction_shock", ShockDuration),
-            new(BaseEnums.UnitElement.Pyro, BaseEnums.UnitElement.Dendro,
-                "화상", BurnStatusId, "reaction_burn", BurnDuration),
-            new(BaseEnums.UnitElement.Dendro, BaseEnums.UnitElement.Electro,
-                "촉진", CatalyzeStatusId, CatalyzeStatusKey, 2, catalyzes: true),
-            new(BaseEnums.UnitElement.Cryo, BaseEnums.UnitElement.Hydro,
-                "빙결", ControlStatuses.FrozenStatusId, ControlStatuses.FrozenKey, 0, freezes: true),
-            // 바위 + 바위. 같은 원소가 겹쳐야 일어나므로 아래 TryResolve의 alreadyAttached 경로에서만 성립한다.
-            new(BaseEnums.UnitElement.Geo, BaseEnums.UnitElement.Geo,
-                "공명", ControlStatuses.StunStatusId, ControlStatuses.StunKey, 0, stuns: true),
+            // 불
+            new(Pyro, Pyro,       ReactionId.Burn,        "화상",   ReactionKind.Dot),
+            new(Pyro, Hydro,      ReactionId.Vaporize,    "증발",   ReactionKind.Amplify),
+            new(Pyro, Dendro,     ReactionId.Combustion,  "연소",   ReactionKind.Amplify),
+            new(Pyro, Electro,    ReactionId.Overload,    "과부하", ReactionKind.Burst),
+            new(Pyro, Cryo,       ReactionId.Melt,        "융해",   ReactionKind.Amplify),
+            new(Pyro, Geo,        ReactionId.Forge,       "단조",   ReactionKind.Buff,  BaseEnums.PrimaryStat.DEX),
+
+            // 물
+            new(Hydro, Hydro,     ReactionId.Essence,     "정수",   ReactionKind.Buff,  BaseEnums.PrimaryStat.INT),
+            new(Hydro, Dendro,    ReactionId.Bloom,       "개화",   ReactionKind.Buff,  BaseEnums.PrimaryStat.CON),
+            new(Hydro, Electro,   ReactionId.Shock,       "감전",   ReactionKind.Dot),
+            new(Hydro, Cryo,      ReactionId.Freeze,      "빙결",   ReactionKind.Control),
+            new(Hydro, Geo,       ReactionId.Weathering,  "풍화",   ReactionKind.Dot),
+
+            // 풀
+            new(Dendro, Dendro,   ReactionId.Rooting,     "착근",   ReactionKind.Control),
+            new(Dendro, Electro,  ReactionId.Activation,  "활성",   ReactionKind.Debuff),
+            new(Dendro, Cryo,     ReactionId.Dormancy,    "휴면",   ReactionKind.Null),
+            new(Dendro, Geo,      ReactionId.Growth,      "성장",   ReactionKind.Buff,  BaseEnums.PrimaryStat.STR),
+
+            // 전기
+            new(Electro, Electro, ReactionId.Charge,      "축전",   ReactionKind.Buff,  BaseEnums.PrimaryStat.LUK),
+            new(Electro, Cryo,    ReactionId.Superconduct,"초전도", ReactionKind.Debuff),
+            new(Electro, Geo,     ReactionId.Grounding,   "접지",   ReactionKind.Null),
+
+            // 얼음
+            new(Cryo, Cryo,       ReactionId.Slow,        "둔화",   ReactionKind.Debuff, BaseEnums.PrimaryStat.DEX),
+            new(Cryo, Geo,        ReactionId.Hardening,   "경화",   ReactionKind.Buff),
+
+            // 바위
+            new(Geo, Geo,         ReactionId.Vibration,   "진동",   ReactionKind.Control),
+
+            // 바람 — 여섯 쌍이 하나의 '확산'이고, 바람 + 바람만 광역 피해다.
+            new(Anemo, Pyro,      ReactionId.Diffusion,   "확산",   ReactionKind.Spread),
+            new(Anemo, Hydro,     ReactionId.Diffusion,   "확산",   ReactionKind.Spread),
+            new(Anemo, Dendro,    ReactionId.Diffusion,   "확산",   ReactionKind.Spread),
+            new(Anemo, Electro,   ReactionId.Diffusion,   "확산",   ReactionKind.Spread),
+            new(Anemo, Cryo,      ReactionId.Diffusion,   "확산",   ReactionKind.Spread),
+            new(Anemo, Geo,       ReactionId.Diffusion,   "확산",   ReactionKind.Spread),
+            new(Anemo, Anemo,     ReactionId.DiffusionBurst, "확산", ReactionKind.Burst),
         };
+
+        // ── 판정 ──────────────────────────────────────────────────
 
         /// <summary>
         /// <paramref name="target"/>이 방금 <paramref name="applied"/> 원소를 부착받았을 때 반응을 검사한다.
-        /// 반응이 일어나면 true를 반환한다.
+        /// 성립하는 쌍이 여럿이면 <see cref="ReactionKind"/> 순서로 하나만 고른다.
         /// </summary>
-        /// <param name="source">반응을 일으킨 유닛. 피해량이 이 유닛의 CON에 비례한다.</param>
+        /// <param name="source">반응을 일으킨 유닛. 위력이 이 유닛의 CON에 비례한다.</param>
         /// <param name="alreadyAttached">
-        /// 부착 이전에 <b>같은 원소가 이미 붙어 있었는지</b>. 같은 원소끼리 겹치는 공명은
+        /// 부착 이전에 <b>같은 원소가 이미 붙어 있었는지</b>. 같은 원소끼리 겹치는 반응은
         /// 부착 집합만 봐서는 판별할 수 없으므로 부착 지점이 알려 준다.
         /// </param>
         public static bool TryResolve(
@@ -100,32 +243,262 @@ namespace Effects.Negative
         {
             if (target == null || applied == BaseEnums.UnitElement.None) return false;
 
-            foreach (Pair pair in Pairs)
+            Unit actor = source ?? target;
+            Reaction? best = null;
+            BaseEnums.UnitElement bestPartner = BaseEnums.UnitElement.None;
+            int bestRemaining = -1;
+
+            foreach (Reaction candidate in Table)
             {
-                // 같은 원소끼리 일어나는 반응(공명)은 덧붙이기 전에 이미 붙어 있었을 때만 성립한다.
-                if (pair.A == pair.B)
+                BaseEnums.UnitElement partner = Partner(candidate, target, applied, alreadyAttached);
+                if (partner == BaseEnums.UnitElement.None) continue;
+                if (!target.IsReactionReady((int)candidate.Id, CooldownTurns(candidate.Kind))) continue;
+                // 증폭은 피해를 주는 공격이 부착을 일으켰을 때만 성립한다. 곱할 피해가 없으면 넘긴다.
+                if (candidate.Kind == ReactionKind.Amplify && AmplifiableDamage(actor, target) <= 0) continue;
+
+                int remaining = target.GetAttachedElementRemainingTurns(partner);
+                if (best == null ||
+                    candidate.Kind < best.Value.Kind ||
+                    (candidate.Kind == best.Value.Kind && remaining > bestRemaining))
                 {
-                    if (applied != pair.A || !alreadyAttached) continue;
-                    if (!target.HasAttachedElement(pair.A)) continue;
-
-                    Trigger(target, pair, source ?? target);
-                    return true;
+                    best = candidate;
+                    bestPartner = partner;
+                    bestRemaining = remaining;
                 }
-
-                BaseEnums.UnitElement other =
-                    applied == pair.A ? pair.B :
-                    applied == pair.B ? pair.A :
-                    BaseEnums.UnitElement.None;
-
-                if (other == BaseEnums.UnitElement.None) continue;
-                // 판정 전용 원소(스사노오 '뇌신')는 반응 재료가 아니다. 실제 부착만 본다.
-                if (!target.HasAttachedElement(pair.A) || !target.HasAttachedElement(pair.B)) continue;
-
-                Trigger(target, pair, source ?? target);
-                return true;
             }
-            return false;
+
+            if (best == null) return false;
+
+            Trigger(target, best.Value, bestPartner, applied, actor);
+            return true;
         }
+
+        /// <summary>이 쌍이 성립하면 상대 원소를, 아니면 None을 돌려준다.</summary>
+        private static BaseEnums.UnitElement Partner(
+            Reaction reaction, Unit target, BaseEnums.UnitElement applied, bool alreadyAttached)
+        {
+            if (reaction.A == reaction.B)
+            {
+                // 같은 원소 반응은 덧붙이기 전에 이미 붙어 있었을 때만 성립한다.
+                if (applied != reaction.A || !alreadyAttached) return BaseEnums.UnitElement.None;
+                return target.HasAttachedElement(reaction.A) ? reaction.A : BaseEnums.UnitElement.None;
+            }
+
+            BaseEnums.UnitElement other =
+                applied == reaction.A ? reaction.B :
+                applied == reaction.B ? reaction.A :
+                BaseEnums.UnitElement.None;
+            if (other == BaseEnums.UnitElement.None) return BaseEnums.UnitElement.None;
+
+            // 판정 전용 원소(스사노오 '뇌신')는 반응 재료가 아니다. 실제 부착만 본다.
+            if (!target.HasAttachedElement(reaction.A) || !target.HasAttachedElement(reaction.B))
+            {
+                return BaseEnums.UnitElement.None;
+            }
+            return other;
+        }
+
+        // ── 발동 ──────────────────────────────────────────────────
+
+        private static void Trigger(
+            Unit target, Reaction reaction, BaseEnums.UnitElement partner,
+            BaseEnums.UnitElement applied, Unit source)
+        {
+            // 반응한 두 원소는 소모되어 사라진다.
+            target.RemoveCombatElement(reaction.A);
+            target.RemoveCombatElement(reaction.B);
+            target.MarkReactionOccurred((int)reaction.Id);
+
+            switch (reaction.Kind)
+            {
+                case ReactionKind.Amplify:  ResolveAmplify(target, source); break;
+                case ReactionKind.Spread:   ResolveSpread(target, partner == Anemo ? applied : partner, source); break;
+                case ReactionKind.Control:  ResolveControl(target, reaction, source); break;
+                case ReactionKind.Burst:    ResolveBurst(target, reaction, source); break;
+                case ReactionKind.Dot:      ResolveDot(target, reaction, source); break;
+                case ReactionKind.Debuff:   ResolveDebuff(target, reaction, source); break;
+                case ReactionKind.Buff:     ResolveBuff(target, reaction, source); break;
+                case ReactionKind.Null:     break;   // 두 원소를 지우는 것이 전부다
+            }
+
+            Unit.NotifyElementalReaction(source, target, reaction.Name);
+            Debug.Log($"[원소 반응] {reaction.Name} — {source.UnitName} → {target.UnitName}");
+        }
+
+        /// <summary>증폭이 되짚을 수 있는 '방금 그 공격'의 피해. 다른 대상을 때렸으면 0이다.</summary>
+        private static int AmplifiableDamage(Unit source, Unit target)
+            => source != null && source.LastResolvedTarget == target ? source.LastResolvedDamage : 0;
+
+        /// <summary>
+        /// 증폭(증발·연소·융해) — 약소한 고정 피해에 더해, 부착 직전에 들어간 그 공격의
+        /// 피해를 CON 비례로 한 번 더 얹는다. 부착은 언제나 피해 뒤에 오므로
+        /// "이번 공격을 키운다"를 사후 추가 피해로 환산한 것이다.
+        /// </summary>
+        private static void ResolveAmplify(Unit target, Unit source)
+        {
+            float ratio = Mathf.Min(AmplifyCap, Mathf.Max(0, source.GetBaseCon()) * AmplifyRatioPerCon);
+            int bonus = Mathf.RoundToInt(AmplifiableDamage(source, target) * ratio);
+            int flat = Mathf.Max(1, Mathf.RoundToInt(
+                source.SkillDamage(AmplifyPower, BaseEnums.PrimaryStat.CON) * FieldReactionMultiplier(source)));
+
+            DealReactionDamage(target, source, flat + bonus);
+        }
+
+        /// <summary>확산 — 부착된 유닛과 <b>같은 진영 전체</b>에 원소를 퍼뜨린다.</summary>
+        private static void ResolveSpread(Unit target, BaseEnums.UnitElement spreadElement, Unit source)
+        {
+            if (spreadElement == BaseEnums.UnitElement.None || spreadElement == Anemo) return;
+
+            foreach (Unit ally in global::Target.GetAllAllies(target).Where(unit => unit != null && unit.isActive))
+            {
+                // 확산이 뿌린 부착은 다시 반응하지 않는다. 그러지 않으면 확산 → 반응 → 확산으로
+                // 무한 연쇄가 돈다(부착 지점이 곧 반응 지점이기 때문이다).
+                ally.GrantCombatElement(spreadElement, Unit.CommonElementAuraDuration, source, suppressReaction: true);
+            }
+        }
+
+        private static void ResolveControl(Unit target, Reaction reaction, Unit source)
+        {
+            switch (reaction.Id)
+            {
+                case ReactionId.Freeze:
+                    ControlStatuses.ApplyFreeze(target, source, ControlStatuses.FreezeTurns(source));
+                    break;
+                case ReactionId.Vibration:
+                    ControlStatuses.ApplyStun(target, source, ResonanceConMultiplier(source));
+                    break;
+                case ReactionId.Rooting:
+                    // 착근은 행동을 막지 않고 뒤로 민다. 제어 분쇄의 대상이 아닌 유일한 제어다.
+                    Managers.GameManager.Instance?.ActionScheduler?.DelayAction(target, RootingDelayRatio);
+                    break;
+            }
+        }
+
+        /// <summary>착근이 미는 양. 한 번의 행동에 필요한 AV 대비 비율이다.</summary>
+        private const float RootingDelayRatio = 0.5f;
+
+        private static void ResolveBurst(Unit target, Reaction reaction, Unit source)
+        {
+            if (reaction.Id == ReactionId.DiffusionBurst)
+            {
+                int splash = Mathf.Max(1, Mathf.RoundToInt(
+                    source.SkillDamage(DiffusionBurstPower, BaseEnums.PrimaryStat.CON) *
+                    FieldReactionMultiplier(source)));
+
+                foreach (Unit unit in global::Target.GetAllAllies(target)
+                             .Where(u => u != null && u.isActive && u.HpCurr > 0))
+                {
+                    DealReactionDamage(unit, source, splash);
+                }
+                return;
+            }
+
+            int damage = Mathf.Max(1, Mathf.RoundToInt(
+                source.SkillDamage(BurstPower, BaseEnums.PrimaryStat.CON) * FieldReactionMultiplier(source)));
+            DealReactionDamage(target, source, damage);
+        }
+
+        private static void ResolveDot(Unit target, Reaction reaction, Unit source)
+        {
+            if (reaction.Id == ReactionId.Burn)
+            {
+                TryApplyBurn(source, target, DotDuration);
+                return;
+            }
+
+            int perTurn = Mathf.Max(1, Mathf.RoundToInt(
+                source.SkillDamage(DotPower, BaseEnums.PrimaryStat.CON) * FieldReactionMultiplier(source)));
+
+            if (reaction.Id == ReactionId.Weathering)
+            {
+                target.AddStatus(BuffStatus.Create(
+                    WeatheringStatusId, WeatheringStatusKey, reaction.Name,
+                    source, target, new WeatheringEffect(perTurn),
+                    duration: DotDuration,
+                    stackPolicy: BaseEnums.StatusStackPolicy.ExtendDuration,
+                    category: BaseEnums.StatusCategory.Negative,
+                    isBeneficial: false,
+                    description: $"행동을 시작할 때마다 {perTurn}의 풍화 피해를 받습니다."));
+                return;
+            }
+
+            target.AddStatus(BuffStatus.Create(
+                ShockStatusId, $"reaction_shock_{source.GetEntityId()}", reaction.Name,
+                source, target, new ReactionDotEffect(perTurn),
+                duration: DotDuration,
+                stackPolicy: BaseEnums.StatusStackPolicy.ExtendDuration,
+                category: BaseEnums.StatusCategory.Negative,
+                isBeneficial: false,
+                description: $"턴마다 {perTurn}의 {reaction.Name} 피해를 받습니다."));
+        }
+
+        private static void ResolveDebuff(Unit target, Reaction reaction, Unit source)
+        {
+            float ratio = StatRatio(source);
+            if (ratio <= 0f) return;
+
+            // 둔화만 스탯을 깎고, 활성·초전도는 특정 분류의 피해를 더 받게 한다.
+            if (reaction.Id == ReactionId.Slow)
+            {
+                target.AddStatus(BuffStatus.Create(
+                    BuffStatusId, $"reaction_{reaction.Id}", reaction.Name,
+                    source, target, new PrimaryStatMultiplierEffect(1f - ratio, reaction.Stat),
+                    duration: StatDuration,
+                    stackPolicy: BaseEnums.StatusStackPolicy.Replace,
+                    category: BaseEnums.StatusCategory.Negative,
+                    isBeneficial: false,
+                    description: $"{reaction.Stat}가 {ratio * 100f:0.#}% 감소합니다."));
+                return;
+            }
+
+            int tag = reaction.Id == ReactionId.Activation ? DamageTag.Special : DamageTag.Physical;
+            string label = reaction.Id == ReactionId.Activation ? "특수" : "물리";
+            target.AddStatus(BuffStatus.Create(
+                VulnerableStatusId, $"reaction_{reaction.Id}", reaction.Name,
+                source, target, new TaggedVulnerabilityEffect(tag, 1f + ratio),
+                duration: StatDuration,
+                stackPolicy: BaseEnums.StatusStackPolicy.Replace,
+                category: BaseEnums.StatusCategory.Negative,
+                isBeneficial: false,
+                description: $"{label} 공격에게 받는 피해가 {ratio * 100f:0.#}% 증가합니다."));
+        }
+
+        private static void ResolveBuff(Unit target, Reaction reaction, Unit source)
+        {
+            // 경화만 보호막이고 나머지는 스탯 배율이다.
+            if (reaction.Id == ReactionId.Hardening)
+            {
+                int shield = Mathf.Max(1, Mathf.RoundToInt(
+                    source.SkillDamage(BarrierPower, BaseEnums.PrimaryStat.CON) * FieldReactionMultiplier(source)));
+                target.AddShield(shield, source);
+                return;
+            }
+
+            float ratio = StatRatio(source);
+            if (ratio <= 0f) return;
+
+            target.AddStatus(BuffStatus.Create(
+                BuffStatusId, $"reaction_{reaction.Id}", reaction.Name,
+                source, target, new PrimaryStatMultiplierEffect(1f + ratio, reaction.Stat),
+                duration: StatDuration,
+                stackPolicy: BaseEnums.StatusStackPolicy.Replace,
+                isBeneficial: true,
+                description: $"{reaction.Stat}가 {ratio * 100f:0.#}% 증가합니다."));
+        }
+
+        /// <summary>버프·디버프가 공유하는 CON 비례 배율.</summary>
+        private static float StatRatio(Unit source)
+            => Mathf.Min(RatioCap, Mathf.Max(0, source?.GetBaseCon() ?? 0) * RatioPerCon);
+
+        private static void DealReactionDamage(Unit target, Unit source, int damage)
+        {
+            if (target == null || !target.isActive || damage <= 0) return;
+            target.TakeDamage(new DamageContext(
+                source, damage, BaseEnums.CodeType.Effect,
+                new List<int> { DamageTag.SingleTarget, DamageTag.Special, DamageTag.NonContactAttack }));
+        }
+
+        // ── 공용 ──────────────────────────────────────────────────
 
         /// <summary>
         /// 필드가 만들어 내는 원소 반응 피해 배율.
@@ -156,108 +529,27 @@ namespace Effects.Negative
             return 1f + Mathf.Max(0f, bonus);
         }
 
-        private static void Trigger(Unit target, Pair pair, Unit source)
-        {
-            // 반응한 두 원소는 소모되어 사라진다.
-            target.RemoveCombatElement(pair.A);
-            target.RemoveCombatElement(pair.B);
-
-            // 빙결은 피해가 없다. 유발자의 CON에 비례한 턴 수 동안 행동만 막는다.
-            if (pair.Freezes)
-            {
-                ControlStatuses.ApplyFreeze(target, source, ControlStatuses.FreezeTurns(source));
-                Unit.NotifyElementalReaction(source, target, pair.Name);
-                Debug.Log($"[원소 반응] 빙결 — {source.UnitName} → {target.UnitName}");
-                return;
-            }
-
-            // 공명도 피해가 없다. 부착자와 대상의 CON을 견주어 기절 턴 수를 정한다.
-            if (pair.Stuns)
-            {
-                ControlStatuses.ApplyStun(target, source, ResonanceConMultiplier(source));
-                Unit.NotifyElementalReaction(source, target, pair.Name);
-                Debug.Log($"[원소 반응] 공명 — {source.UnitName} → {target.UnitName}");
-                return;
-            }
-
-            if (pair.StatusId == BurnStatusId)
-            {
-                if (!TryApplyBurn(source, target, pair.Duration))
-                {
-                    Unit.NotifyElementalReaction(source, target, pair.Name);
-                    Debug.Log($"[원소 반응] {pair.Name} 저항 — {source.UnitName} → {target.UnitName}");
-                    return;
-                }
-
-                Unit.NotifyElementalReaction(source, target, pair.Name);
-                Debug.Log($"[원소 반응] {pair.Name} — {source.UnitName} → {target.UnitName}, 최대 체력 5%");
-                return;
-            }
-
-            if (pair.Catalyzes)
-            {
-                float reduction = Mathf.Clamp01(
-                    (source.GetBaseCon() - target.GetBaseCon()) * 0.01f);
-
-                // 깎을 방어력이 없으면 상태도 붙이지 않는다. 0%짜리 디버프가 남으면
-                // 디버프 수를 세는 효과(사바흐의 빈틈 포착 등)에 공짜로 잡힌다.
-                if (reduction <= 0f)
-                {
-                    Unit.NotifyElementalReaction(source, target, pair.Name);
-                    Debug.Log($"[원소 반응] 촉진 무효 — {source.UnitName}의 CON이 {target.UnitName} 이하다");
-                    return;
-                }
-
-                target.AddStatus(BuffStatus.Create(
-                    CatalyzeStatusId, CatalyzeStatusKey, pair.Name,
-                    source, target, new CatalyzeDefenseEffect(1f - reduction),
-                    duration: pair.Duration,
-                    stackPolicy: BaseEnums.StatusStackPolicy.ExtendDuration,
-                    category: BaseEnums.StatusCategory.Negative,
-                    isBeneficial: false,
-                    description: $"방어력이 {reduction * 100f:0.#}% 감소합니다."));
-                Unit.NotifyElementalReaction(source, target, pair.Name);
-                Debug.Log($"[원소 반응] 촉진 — {source.UnitName} → {target.UnitName}, 방어력 -{reduction * 100f:0.#}%");
-                return;
-            }
-
-            int perSecond = Mathf.Max(1, Mathf.RoundToInt(
-                source.SkillDamage(ReactionPower, BaseEnums.PrimaryStat.CON) * FieldReactionMultiplier(source)));
-
-            target.AddStatus(BuffStatus.Create(
-                pair.StatusId, $"{pair.Key}_{source.GetEntityId()}", pair.Name,
-                source, target, new ReactionDotEffect(perSecond),
-                duration: pair.Duration,
-                stackPolicy: BaseEnums.StatusStackPolicy.ExtendDuration,
-                category: BaseEnums.StatusCategory.Negative,
-                isBeneficial: false,
-                description: $"턴마다 {perSecond}의 {pair.Name} 피해를 받습니다."));
-
-            Unit.NotifyElementalReaction(source, target, pair.Name);
-            Debug.Log($"[원소 반응] {pair.Name} — {source.UnitName} → {target.UnitName}, 턴당 {perSecond}");
-        }
-
         /// <summary>
         /// 공통 화상 부여. 별도 명시가 없으면 2턴이며, 부여자와 대상의 CON으로 명중을 판정한다.
         /// 모든 출처가 같은 키를 사용하므로 재부여 시 피해가 중첩되지 않고 지속시간이 연장된다.
         /// </summary>
-        public static bool TryApplyBurn(Unit source, Unit target, int duration = BurnDuration)
+        public static bool TryApplyBurn(Unit source, Unit target, int duration = DotDuration)
         {
             if (source == null || target == null || !target.isActive || duration <= 0) return false;
             if (!EffectContest.PassesConCheck(source, target)) return false;
 
             target.AddStatus(BuffStatus.Create(
                 BurnStatusId, BurnStatusKey, "화상",
-                source, target, new PercentDamageOverTimeEffect(0, 5f),
+                source, target, new PercentDamageOverTimeEffect(0, BurnMaxHpPercent),
                 duration: duration,
                 stackPolicy: BaseEnums.StatusStackPolicy.ExtendDuration,
                 category: BaseEnums.StatusCategory.Negative,
                 isBeneficial: false,
-                description: $"{duration}턴간 턴마다 최대 체력의 5%에 해당하는 화상 피해를 받습니다."));
+                description: $"{duration}턴간 턴마다 최대 체력의 {BurnMaxHpPercent:0.#}%에 해당하는 화상 피해를 받습니다."));
             return true;
         }
 
-        /// <summary>공명 계산에만 적용되는 시전자 CON 배율. 여러 효과가 있어도 가장 높은 값 하나만 쓴다.</summary>
+        /// <summary>진동 기절 계산에만 적용되는 시전자 CON 배율. 여러 효과가 있어도 가장 높은 값 하나만 쓴다.</summary>
         private static float ResonanceConMultiplier(Unit source)
         {
             if (source == null) return 1f;
@@ -299,7 +591,7 @@ namespace Effects.Negative
         float ReactionDamageBonus { get; }
     }
 
-    /// <summary>공명 기절 턴 계산에서 시전자의 CON만 증폭하는 효과.</summary>
+    /// <summary>진동 기절 턴 계산에서 시전자의 CON만 증폭하는 효과.</summary>
     public interface IResonanceConMultiplier
     {
         float ResonanceConMultiplier { get; }
@@ -330,18 +622,70 @@ namespace Effects.Negative
         public override int EstimateDamagePerTurn() => _damagePerTurn;
     }
 
-    /// <summary>촉진이 남기는 방어력 배율 감소.</summary>
-    public sealed class CatalyzeDefenseEffect : BaseEffect
+    /// <summary>
+    /// 풍화 — 턴이 아니라 <b>행동을 시작할 때마다</b> 터지는 지속피해.
+    ///
+    /// 일반행동·궁극기·추가행동을 모두 센다. 다른 지속피해가 턴당 1회인 것과 달리
+    /// 턴을 쓰지 않는 행동까지 세므로 <b>빠르거나 궁극기·추가행동이 잦은 대상일수록 아프다.</b>
+    /// 캐스터 보스와 추가행동 빌드의 대항 수단이다.
+    /// </summary>
+    public sealed class WeatheringEffect : BaseEffect
     {
-        private readonly float _multiplier;
+        private readonly int _damagePerAction;
+        private System.Action<EventContext> _handler;
 
-        public CatalyzeDefenseEffect(float multiplier) : base(0, multiplier)
+        public override bool IsDamageOverTime => true;
+
+        public WeatheringEffect(int damagePerAction) : base(0, damagePerAction)
         {
-            _multiplier = Mathf.Clamp01(multiplier);
+            _damagePerAction = damagePerAction;
             Category = BaseEnums.EffectCategory.Negative;
         }
 
-        public override float OwnedDefenseStatMultiplierModifier(Unit unit, DamageContext context)
-            => unit == Target ? _multiplier : 1f;
+        public override void OnApply()
+        {
+            if (Target == null) return;
+            _handler = _ => Detonate();
+            Target.AddListener(BaseEnums.UnitEventType.OnNormalActivates, _handler);
+            Target.AddListener(BaseEnums.UnitEventType.OnUltimateActivates, _handler);
+            Target.AddListener(BaseEnums.UnitEventType.OnAdditionalActivates, _handler);
+        }
+
+        public override void OnRemove()
+        {
+            if (Target == null || _handler == null) return;
+            Target.RemoveListener(BaseEnums.UnitEventType.OnNormalActivates, _handler);
+            Target.RemoveListener(BaseEnums.UnitEventType.OnUltimateActivates, _handler);
+            Target.RemoveListener(BaseEnums.UnitEventType.OnAdditionalActivates, _handler);
+            _handler = null;
+        }
+
+        private void Detonate()
+        {
+            if (Target == null || !Target.isActive) return;
+            Target.TakeDamage(new DamageContext(
+                Caster, _damagePerAction, BaseEnums.CodeType.Effect,
+                new List<int> { DamageTag.SingleTarget, DamageTag.Special }));
+        }
+
+        /// <summary>턴당 최소 1회는 행동하므로 한 번분으로 어림한다.</summary>
+        public override int EstimateDamagePerTurn() => _damagePerAction;
+    }
+
+    /// <summary>특정 분류(물리·특수)의 공격에게만 받는 피해가 늘어나는 취약.</summary>
+    public sealed class TaggedVulnerabilityEffect : BaseEffect
+    {
+        private readonly int _tag;
+        private readonly float _multiplier;
+
+        public TaggedVulnerabilityEffect(int tag, float multiplier) : base(0, multiplier)
+        {
+            _tag = tag;
+            _multiplier = multiplier;
+            Category = BaseEnums.EffectCategory.Negative;
+        }
+
+        public override float ReceivingDamageModifier(Unit unit, DamageContext context)
+            => unit == Target && context?.DamageTags?.Contains(_tag) == true ? _multiplier : 1f;
     }
 }

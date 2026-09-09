@@ -6,6 +6,7 @@ using Codes.Base;
 using Codes.Normal;
 using Codes.Passive;
 using Core;
+using Helpers;
 using Managers;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -245,8 +246,8 @@ namespace Entities
         /// <summary>남은 행동 불가 <b>턴</b> 수. 자기 턴이 올 때마다 1씩 줄고 그 턴의 행동을 건너뛴다.</summary>
         public int controlTurns;
         
-        // 일반공격 타겟팅
-        public Unit currentNormalTarget; // 현재 일반공격 타겟
+        // 일반행동 타겟팅
+        public Unit currentNormalTarget; // 현재 일반행동 타겟
 
         // 타겟팅 우선도 (-3 ~ 3, 높을수록 우선순위 높음)
         [SerializeField] private int priority = 0;
@@ -312,13 +313,12 @@ namespace Entities
         protected List<PassiveCode> PassiveCodes = new();
         // 아직 해금되지 않은 레벨 패시브 정의. RefreshLevelPassives()에서 Level에 도달하면 PassiveCodes로 승격한다.
         protected List<LevelPassiveData> PendingLevelPassives = new();
+        private readonly Dictionary<LevelPassiveData, (PassiveCode code, bool ownsRecord)> levelPassiveInstances = new();
         protected List<PassiveCode> ItemPassiveCodes = new();
         protected NormalCode NormalCode;
         protected UltimateCode UltimateCode;
-        public float normalCooldown;
         public float ultimateCooldown;
         protected EquipmentLoadout EquipmentLoadout;
-        /// <summary>원신의 1U 오라 감쇠 시간을 기준으로 한 공용 원소 부착 지속시간.</summary>
         /// <summary>원소 부착 기본 지속 <b>턴</b> 수. 부착자가 아니라 <b>부착된 유닛</b>의 턴으로 센다.</summary>
         public const int CommonElementAuraDuration = 5;
         private readonly HashSet<BaseEnums.UnitElement> _combatElements = new();
@@ -368,7 +368,7 @@ namespace Entities
         /// 잘리는 쪽이 항상 고레벨 코드라 <b>가장 강한 것부터 사라졌다.</b>
         /// INT는 이제 마나 효율만 담당한다.
         ///
-        /// 일반공격·궁극기는 고정 2칸, 고유 패시브는 별도 슬롯이라 세지 않는다.
+        /// 일반행동·궁극기는 고정 2칸, 고유 패시브는 별도 슬롯이라 세지 않는다.
         /// </summary>
         public int LearnedCodeCount => 2 + PassiveCodes.Count(
             code => code != null && !code.IsUniquePassive && !code.IgnoresCodeCapacity);
@@ -392,6 +392,11 @@ namespace Entities
         // OnDeath 리스너가 사망 칸이 비워진 뒤 실행해야 하는 작업(분열 등)을 한 번만 예약한다.
         private readonly List<Action> _postDeathActions = new();
 
+        /// <summary>
+        /// 초상화 스프라이트를 가리키는 값. <b>해석에 성공하면 전체 경로, 실패하면 키 그대로</b>다.
+        /// 어느 쪽이든 <see cref="Helpers.SpriteResource.LoadPortrait(string)"/>에 그대로 넘길 수 있으므로,
+        /// 읽는 쪽은 <c>Resources.Load</c>를 직접 부르지 않는다 — 분류 폴더를 못 찾아 항상 null이 된다.
+        /// </summary>
         [FormerlySerializedAs("portraitPath")] public string PortraitPath;
 
         void Awake()
@@ -417,6 +422,7 @@ namespace Entities
             InitializeStatusController();
             PassiveCodes = new List<PassiveCode>();
             PendingLevelPassives = new List<LevelPassiveData>();
+            levelPassiveInstances.Clear();
             ItemPassiveCodes = new List<PassiveCode>();
             learnedPassiveRecords = new List<LearnedPassiveSaveData>();
             grantedPassiveCodeIds = new List<int>();
@@ -512,7 +518,6 @@ namespace Entities
                 UltimateCode = CodeFactory.CreateUltimateCode(_baseUltimateCodeId, new UltimateCodeContext { Caster = this });
                 ApplyCodeStages(enemyData.codeStages);
                 EquipStartingItems(enemyData.startingItemIds);
-                normalCooldown = NormalCode.Cooldown;
                 ultimateCooldown = UltimateCode.Cooldown;
             }
             // 아군(영웅) 유닛인 경우 기존 UnitData에서 로드
@@ -551,7 +556,7 @@ namespace Entities
                 castingTime = 0f;
                 isControlled = false;
                 controlTurns = 0;
-                currentNormalTarget = null; // 일반공격 타겟 초기화
+                currentNormalTarget = null; // 일반행동 타겟 초기화
 
                 LoadPassiveCodes(data.codes["passive"], data.levelPassives);
                 _baseNormalCodeId = data.codes["normal"];
@@ -560,7 +565,6 @@ namespace Entities
                 UltimateCode = CodeFactory.CreateUltimateCode(_baseUltimateCodeId, new UltimateCodeContext { Caster = this });
                 ApplyCodeStages(data.codeStages);
                 EquipStartingItems(data.startingItemIds);
-                normalCooldown = NormalCode.Cooldown;
                 ultimateCooldown = UltimateCode.Cooldown;
                 
                 // 유닛별 패시브 StatusEffect 적용
@@ -862,11 +866,10 @@ namespace Entities
                     case "normal":
                     case "normalattack":
                     case "normal_attack":
-                    case "일반공격":
+                    case "일반행동":
                         NormalCode?.StopCode();
                         NormalCode = CodeFactory.CreateNormalCode(codeGrant.codeId, new NormalCodeContext { Caster = this });
                         NormalCode?.SetStage(codeGrant.stage);
-                        normalCooldown = NormalCode?.Cooldown ?? 0f;
                         break;
                     case "passive":
                     case "패시브":
@@ -907,7 +910,11 @@ namespace Entities
                     {
                         itemMultiplier *= effect.EquipmentDurabilityMultiplierModifier(this, itemData);
                     }
-                    total += Mathf.Max(0, Mathf.RoundToInt(itemData.durability * itemMultiplier));
+
+                    // 분류가 정한 고정 내구(방어구)와 스탯 칸으로 고른 내구를 함께 센다.
+                    // 아이템 단위 배율(금빛 짐승의 가죽 방패 등)은 둘 모두에 걸린다.
+                    int itemDurability = itemData.durability + SecondaryDurabilityOf(itemData);
+                    total += Mathf.Max(0, Mathf.RoundToInt(itemDurability * itemMultiplier));
                 }
                 total += GetStatusDurabilityBonus();
                 float multiplier = 1f;
@@ -917,6 +924,20 @@ namespace Entities
                 }
                 return Mathf.Max(0, Mathf.RoundToInt(total * multiplier));
             }
+        }
+
+        /// <summary>장비 한 점이 스탯 칸으로 고른 내구.</summary>
+        private static int SecondaryDurabilityOf(ItemData itemData)
+        {
+            if (itemData?.statBonuses == null) return 0;
+
+            int total = 0;
+            foreach (EquipmentStatBonus bonus in itemData.statBonuses)
+            {
+                if (bonus != null && bonus.Secondary == EquipmentSecondaryStat.Durability) total += bonus.amount;
+            }
+
+            return total;
         }
 
         /// <summary>상태 효과가 더해 주는 내구.</summary>
@@ -941,11 +962,33 @@ namespace Entities
 
                 foreach (EquipmentStatBonus bonus in itemData.statBonuses)
                 {
-                    if (bonus == null || string.IsNullOrWhiteSpace(bonus.stat)) continue;
-                    if (Enum.TryParse(bonus.stat, true, out BaseEnums.PrimaryStat bonusStat) && bonusStat == stat)
+                    if (bonus == null) continue;
+                    if (bonus.TryGetPrimary(out BaseEnums.PrimaryStat bonusStat) && bonusStat == stat)
                     {
                         total += bonus.amount;
                     }
+                }
+            }
+
+            return total;
+        }
+
+        /// <summary>
+        /// 장비가 5스탯 대신 실은 부가 수치의 합 (치명타 확률·치명타 피해·내구).
+        /// 5스탯과 같은 규칙으로 <b>숙련이 없으면 통째로 죽는다.</b>
+        /// </summary>
+        internal int GetEquipmentSecondaryStatBonus(EquipmentSecondaryStat stat)
+        {
+            if (EquipmentLoadout == null || stat == EquipmentSecondaryStat.None) return 0;
+
+            int total = 0;
+            foreach (ItemData itemData in EquipmentLoadout.GetEquippedItemData())
+            {
+                if (itemData?.statBonuses == null || !CanUseEquipmentEffects(itemData)) continue;
+
+                foreach (EquipmentStatBonus bonus in itemData.statBonuses)
+                {
+                    if (bonus != null && bonus.Secondary == stat) total += bonus.amount;
                 }
             }
 
@@ -997,6 +1040,7 @@ namespace Entities
         /// </summary>
         private void LoadPassiveCodes(int innatePassiveId, List<LevelPassiveData> levelPassives)
         {
+            levelPassiveInstances.Clear();
             PassiveCodes.Clear();
             PendingLevelPassives.Clear();
 
@@ -1036,6 +1080,15 @@ namespace Entities
         /// </summary>
         protected void RefreshLevelPassives()
         {
+            foreach (var pair in levelPassiveInstances.Where(pair => PassiveUnlockLevel < pair.Key.unlockLevel).ToList())
+            {
+                pair.Value.code.StopCode();
+                PassiveCodes.Remove(pair.Value.code);
+                if (pair.Value.ownsRecord && !grantedPassiveCodeIds.Contains(pair.Key.codeId))
+                    learnedPassiveRecords.RemoveAll(record => record.codeId == pair.Key.codeId);
+                PendingLevelPassives.Add(pair.Key);
+                levelPassiveInstances.Remove(pair.Key);
+            }
             if (PendingLevelPassives.Count == 0) return;
 
             List<LevelPassiveData> eligible = PendingLevelPassives
@@ -1050,6 +1103,7 @@ namespace Entities
                 {
                     if (def.stage > 0) code.SetStage(def.stage);
                     PassiveCodes.Add(code);
+                    levelPassiveInstances[def] = (code, !HasLearnedPassiveCode(def.codeId));
                     AddLearnedPassiveRecord(def.codeId, code.CurrentStage, code.Transferable);
                 }
                 PendingLevelPassives.Remove(def);
@@ -1181,6 +1235,45 @@ namespace Entities
             return levelsGained;
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary>
+        /// 디버그 전용 — 레벨을 원하는 값으로 바로 맞춘다.
+        ///
+        /// <see cref="AddExp"/>는 올리기만 하므로 "Lv.90 해금 코드를 지금 보고 싶다"를 만들 수 없다.
+        /// 레벨을 내릴 때도 <see cref="RefreshLevelPassives"/>가 조건을 다시 재므로 해금이 함께 정리된다.
+        /// </summary>
+        public void DebugSetLevel(int targetLevel)
+        {
+            Core.DebugMode.BeginSession();
+            bool inBattle = GameManager.Instance?.gameState == BaseEnums.GameState.RoundInProgress;
+            DebugResetCombatState();
+            int previousHpMax = HpMax;
+            Level = Mathf.Max(1, targetLevel);
+            exp = 0;
+            RefreshLevelPassives();
+            AttributesUpdate();
+            // 최대 체력이 늘어난 만큼 현재 체력도 따라 올린다(줄어들면 AttributesUpdate가 비율로 맞춘다).
+            HpCurr = Mathf.Clamp(HpCurr + Mathf.Max(0, HpMax - previousHpMax), 1, HpMax);
+            currentCell?.UpdateUI();
+            if (inBattle) CastPassiveCode();
+            Debug.Log($"[디버그] {UnitName} 레벨을 {Level}로 맞췄다.");
+        }
+
+        public void DebugResetCombatState()
+        {
+            StopAllCoroutines();
+            NormalCode?.StopCode();
+            UltimateCode?.StopCode();
+            Invoke(BaseEnums.UnitEventType.OnRoundEnd, new EventContext(this));
+            foreach (var code in PassiveCodes.Concat(ItemPassiveCodes).ToList()) code?.StopCode();
+            isCasting = false;
+            isControlled = false;
+            controlTurns = 0;
+            ultimateCooldown = 0;
+            currentNormalTarget = null;
+        }
+#endif
+
         private void LoadStatData(
             int dataStrBase, int dataStrIncrementLvl, int dataStrIncrementUpgrade,
             int dataDexBase, int dataDexIncrementLvl, int dataDexIncrementUpgrade,
@@ -1208,14 +1301,14 @@ namespace Entities
 
         protected virtual void LoadSprite(string _name, bool _isEnemy)
         {
-            string path = $"Sprite/Portraits/{_name}";
+            Sprite portrait = SpriteResource.LoadPortrait(_name, out string path);
             PortraitPath = path;
 
             // 전장의 유닛은 언제나 초상화 카드다. 전용 인게임 SD 스프라이트 경로는 없앴다 —
             // 해상도와 여백이 제각각이라 카드 안에서 크기가 들쭉날쭉했고,
             // 연출 방향도 스프라이트가 아니라 카드가 반응하고 발사하는 쪽으로 잡았다.
             // 타격·시전 반응은 UnitCardView가 카드 자체를 흔들어 처리한다.
-            currentCell?.SetPortrait(Resources.Load<Sprite>(path));
+            currentCell?.SetPortrait(portrait);
         }
 
         /// <summary>
@@ -1259,6 +1352,10 @@ namespace Entities
             // 공격력은 스탯으로 존재하지 않는다. 피해는 스킬 위력 × 주스탯으로 그때그때 계산한다.
             ManaMax = GetUltimateResourceMax();
             DefCurr = GetDerivedDef();
+            // 장비가 실은 치명타 수치는 %p 단위로 적히므로 0.01을 곱해 배율 축으로 옮긴다.
+            critChanceAdd += GetEquipmentSecondaryStatBonus(EquipmentSecondaryStat.CritRate) * 0.01f;
+            critMultiplierAdd += GetEquipmentSecondaryStatBonus(EquipmentSecondaryStat.CritDamage) * 0.01f;
+
             float rawCritChance = Mathf.Max(0f, GetDerivedCritChance() + critChanceAdd);
             ExcessCritChanceCurr = Mathf.Max(0f, rawCritChance - 1f);
             CritChanceCurr = Mathf.Clamp01(rawCritChance);
@@ -1362,7 +1459,6 @@ namespace Entities
             _baseUltimateCodeId = spec.UltimateCodeId;
             NormalCode = CodeFactory.CreateNormalCode(_baseNormalCodeId, new NormalCodeContext { Caster = this });
             UltimateCode = CodeFactory.CreateUltimateCode(_baseUltimateCodeId, new UltimateCodeContext { Caster = this });
-            normalCooldown = NormalCode?.Cooldown ?? 0f;
             ultimateCooldown = UltimateCode?.Cooldown ?? 0f;
 
             AttributesUpdate();
@@ -1457,8 +1553,16 @@ namespace Entities
                 context.IsCancelled = true;
                 return;
             }
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // 디버그 무적. 지속피해·고정피해까지 한 곳에서 막으려면 입구에서 잘라야 한다.
+            if (IsEnemy ? Core.DebugMode.EnemyInvincible : Core.DebugMode.AllyInvincible)
+            {
+                context.IsCancelled = true;
+                return;
+            }
+#endif
             // 즉시 피해형 스킬도 Slash 태그/근접 병종 판정을 거쳐 타격 VFX를 얻는다.
-            // 일반공격 발사 루틴에서 이미 연출한 대상은 DamageContext 표식으로 중복을 막는다.
+            // 일반행동 발사 루틴에서 이미 연출한 대상은 DamageContext 표식으로 중복을 막는다.
             GameManager.Instance?.sfxManager?.PlayDamageImpact(this, context);
             Invoke(BaseEnums.UnitEventType.OnBeforeDamageTaken, new EventContext(this, context.Attacker, context));
             Invoke(BaseEnums.UnitEventType.OnTakingDamage, new EventContext(this, null, context));
@@ -1529,7 +1633,7 @@ namespace Entities
 
         public virtual void CastUltimateCode()
         {
-            // 예약과 실행 사이에 앞선 추가공격이 마지막 적을 지웠을 수 있다.
+            // 예약과 실행 사이에 앞선 추가행동이 마지막 적을 지웠을 수 있다.
             // 자원을 먼저 태우면 아무 일도 못 하고 궁극기 한 번을 통째로 잃는다.
             if (UltimateCode != null && !UltimateCode.HasValidTarget())
             {
@@ -1548,7 +1652,7 @@ namespace Entities
 
         // ── 궁극기 자원 ────────────────────────────────────────
         //
-        // 예전에는 일반공격 한 번에 고정량을 얻었다. 그래서 행동이 잦은
+        // 예전에는 일반행동 한 번에 고정량을 얻었다. 그래서 행동이 잦은
         // 고DEX 유닛일수록 궁극기가 빨리 찼고, INT는 곁가지 배율에 그쳤다.
         // 지금은 <b>전투 시간</b>에 비례해 차오르므로 행동 횟수와 무관하다.
         // 느리더라도 INT가 높으면 궁극기로 화력을 내는 빌드가 성립한다.
@@ -1625,7 +1729,7 @@ namespace Entities
         ///
         /// <b>유닛의 고유 원소는 부착이 아니라 판정 전용이다.</b> 원신처럼 캐릭터의 속성과
         /// 실제로 걸린 원소 부착은 별개의 축이다. 바위 유닛이라는 사실만으로 바위가
-        /// '부착'되어 있다고 보면, 누가 바위를 걸어 주는 순간 공명이 터져 아군이 기절한다.
+        /// '부착'되어 있다고 보면, 누가 바위를 걸어 주는 순간 진동이 터져 아군이 기절한다.
         /// 조건 판정(<see cref="HasCombatElement"/>)에는 그대로 잡히고,
         /// 원소 반응의 재료(<see cref="HasAttachedElement"/>)로는 쓰이지 않는다.
         /// </summary>
@@ -1646,7 +1750,12 @@ namespace Entities
             => GrantCombatElement(elementToGrant, duration, null);
 
         /// <param name="source">부착을 일으킨 유닛. 원소 반응 피해가 이 유닛의 CON에 비례한다.</param>
-        public void GrantCombatElement(BaseEnums.UnitElement elementToGrant, int duration, Unit source)
+        /// <param name="suppressReaction">
+        /// 반응 판정을 건너뛴다. <b>확산이 뿌리는 부착</b>이 다시 반응을 일으켜
+        /// 무한 연쇄가 되는 것을 막는 데 쓴다.
+        /// </param>
+        public void GrantCombatElement(
+            BaseEnums.UnitElement elementToGrant, int duration, Unit source, bool suppressReaction = false)
         {
             if (elementToGrant == BaseEnums.UnitElement.None) return;
 
@@ -1663,8 +1772,11 @@ namespace Entities
             AnyCombatElementGranted?.Invoke(source, this, elementToGrant);
 
             // 부착 직후 반응 검사. 반응하면 두 원소가 함께 소모된다.
-            // added == false는 같은 원소가 이미 붙어 있었다는 뜻이다 — 공명(바위+바위)의 재료가 된다.
-            Effects.Negative.ElementalReaction.TryResolve(this, elementToGrant, source, !added);
+            // added == false는 같은 원소가 이미 붙어 있었다는 뜻이다 — 같은 원소 반응의 재료가 된다.
+            if (!suppressReaction)
+            {
+                Effects.Negative.ElementalReaction.TryResolve(this, elementToGrant, source, !added);
+            }
         }
 
         /// <summary>부착된 원소를 걷어낸다. 고유 원소는 부착이 아니므로 여기서 사라지지 않는다.</summary>
@@ -1702,6 +1814,10 @@ namespace Entities
         /// 실제로 <b>부착된</b> 원소인가. 원소 반응은 이쪽만 재료로 쓴다.
         /// 유닛의 고유 원소는 포함되지 않는다 — 속성과 부착은 별개의 축이다.
         /// </summary>
+        /// <summary>부착된 원소의 남은 턴. 붙어 있지 않으면 0이다. 값이 클수록 최근에 붙었다.</summary>
+        public int GetAttachedElementRemainingTurns(BaseEnums.UnitElement elementToCheck)
+            => _temporaryElementDurations.TryGetValue(elementToCheck, out int remaining) ? remaining : 0;
+
         public bool HasAttachedElement(BaseEnums.UnitElement elementToCheck)
         {
             return _combatElements.Contains(elementToCheck);
@@ -1922,7 +2038,7 @@ namespace Entities
         /// <summary>에어본(공중에 떠 있는) 상태인가. 행동만 막고 피격·대상 지정은 정상이다.</summary>
         public bool IsAirborne => HasStatus(Effects.Negative.ControlStatuses.AirborneStatusId);
 
-        /// <summary>어떤 효과가 일반공격을 막고 있는지.</summary>
+        /// <summary>어떤 효과가 일반행동을 막고 있는지.</summary>
         public bool IsNormalAttackBlocked =>
             ActiveEffectObjects().Any(effect => effect.BlocksNormalAttack(this));
 
@@ -2007,20 +2123,42 @@ namespace Entities
         // 턴
         // ══════════════════════════════════════════════════════
 
-        /// <summary>이 유닛이 이번 라운드에 행동한 횟수. 지속시간과 주기 효과의 기본 시간 축이다.</summary>
+        /// <summary>
+        /// 이 유닛이 이번 라운드에 행동한 횟수. <b>지속시간·주기·내부 쿨다운의 유일한 시간 축이다.</b>
+        /// 초 축은 궁극기 자원 충전에만 남아 있다(<see cref="AccrueUltimateResource"/>).
+        /// </summary>
         public int TurnCount { get; private set; }
 
         /// <summary>
-        /// <b>직전 턴부터 이번 턴까지 흐른 전투 시간(초).</b>
-        ///
-        /// 벽시계가 아니라 AV에서 환산한 값이라 누군가 행동하는 동안에는 늘어나지 않는다.
-        /// 초 단위로 기획된 주기형 효과가 턴 경계에서 이 값을 누적한다.
-        /// 턴 단위로 기획된 지속시간·주기는 <see cref="TurnCount"/> 축을 쓴다.
+        /// 제어 분쇄용 상태 — 이번 라운드에 제어에 걸린 횟수와 마지막으로 걸린 턴.
+        /// 판정 규칙은 <see cref="Effects.Negative.ControlStatuses"/>가 가지고 여기에는 값만 둔다.
         /// </summary>
-        public float LastTurnSeconds { get; private set; }
+        public int ControlAppliedCount { get; internal set; }
 
-        /// <summary>전투 시계를 마지막으로 읽은 시점. <see cref="LastTurnSeconds"/> 산출용.</summary>
-        private float _combatSecondsAtLastTurn;
+        /// <summary>마지막으로 제어에 걸렸을 때의 <see cref="TurnCount"/>. 한 번도 없으면 충분히 과거다.</summary>
+        public int LastControlledTurn { get; internal set; } = -100000;
+
+        /// <summary>
+        /// 가장 최근에 이 유닛이 해결한 피해와 그 대상.
+        /// 원소 부착은 언제나 피해 <b>뒤</b>에 오므로, 증폭 반응이 "방금 그 공격"을 되짚는 데 쓴다.
+        /// </summary>
+        public int LastResolvedDamage { get; private set; }
+
+        public Unit LastResolvedTarget { get; private set; }
+
+        /// <summary>원소 반응 재부착 내부 쿨다운 — 반응 ID → 마지막으로 일어난 자기 턴.</summary>
+        private readonly Dictionary<int, int> _reactionCooldowns = new();
+
+        /// <summary>이 반응이 다시 일어날 수 있는지. <paramref name="intervalTurns"/>가 0 이하면 항상 참이다.</summary>
+        public bool IsReactionReady(int reactionId, int intervalTurns)
+        {
+            if (intervalTurns <= 0) return true;
+            return !_reactionCooldowns.TryGetValue(reactionId, out int last) ||
+                   TurnCount - last >= intervalTurns;
+        }
+
+        /// <summary>반응이 실제로 일어났음을 기록한다.</summary>
+        public void MarkReactionOccurred(int reactionId) => _reactionCooldowns[reactionId] = TurnCount;
 
         /// <summary>
         /// 자기 턴을 연다. <see cref="Managers.ActionScheduler"/>가 행동 직전에 한 번만 부른다.
@@ -2032,9 +2170,13 @@ namespace Entities
         {
             TurnCount++;
 
-            float now = Managers.GameManager.Instance?.ActionScheduler?.CombatSeconds ?? 0f;
-            LastTurnSeconds = Mathf.Max(0f, now - _combatSecondsAtLastTurn);
-            _combatSecondsAtLastTurn = now;
+            // 제어 분쇄 회차는 '조회할 때 계산'이 아니라 여기서 실제로 되돌린다.
+            // 그러지 않으면 필드에 낡은 회차가 남아 디버그 패널과 외부 조회가 서로 다른 값을 본다.
+            if (ControlAppliedCount > 0 &&
+                TurnCount - LastControlledTurn >= Effects.Negative.ControlStatuses.DiminishResetTurns)
+            {
+                ControlAppliedCount = 0;
+            }
 
             TickControlTurn();
             TickTemporaryCombatElements();
@@ -2276,8 +2418,7 @@ namespace Entities
                 // 지속시간·제어·쿨다운·주기 효과는 전부 BeginTurn()이 턴 경계에서 진행한다.
                 Invoke(BaseEnums.UnitEventType.OnUpdate, new EventContext(this, null, null, Time.deltaTime));
 
-                // 일반공격에는 쿨타임이 없다. 행동 주기는 DEX가 만드는 행동치(AV)가 전담한다.
-                normalCooldown = 0f;
+                // 일반행동에는 쿨타임이 없다. 행동 주기는 DEX가 만드는 행동치(AV)가 전담한다.
             }
         }
 
@@ -2358,7 +2499,8 @@ namespace Entities
                 foreach (var effect in ActiveEffectObjects())
                 {
                     if (!effect.TryPreventDeath(self, dmgCtx.Attacker)) continue;
-                    self.HpCurr = 1;
+                    // 즉시 부활 효과가 복구한 체력은 보존한다. 지연 부활만 최소 1을 보장한다.
+                    self.HpCurr = Mathf.Max(1, self.HpCurr);
                     break;
                 }
             }
@@ -2375,6 +2517,9 @@ namespace Entities
             if (dmgCtx.Attacker != null && damageDealt > 0)
             {
                 dmgCtx.Attacker.RoundDamageDealt += damageDealt;
+                // 증폭 반응은 부착보다 먼저 끝난 이 피해를 되짚어 키운다.
+                dmgCtx.Attacker.LastResolvedDamage = damageDealt;
+                dmgCtx.Attacker.LastResolvedTarget = self;
                 var resolvedContext = new DamageResolvedContext(dmgCtx.Attacker, self, dmgCtx, damageDealt);
                 dmgCtx.Attacker.Invoke(
                     BaseEnums.UnitEventType.OnDamageDealt,
@@ -2493,8 +2638,11 @@ namespace Entities
             RoundDamageDealt = 0;
             RoundEffectiveHealingDone = 0;
             TurnCount = 0;
-            LastTurnSeconds = 0f;
-            _combatSecondsAtLastTurn = 0f;
+            ControlAppliedCount = 0;
+            LastControlledTurn = -100000;
+            LastResolvedDamage = 0;
+            LastResolvedTarget = null;
+            _reactionCooldowns.Clear();
             _manaCarry = 0f;
             ClearToughness();
             ResetCombatElements();
@@ -2852,7 +3000,7 @@ namespace Entities
                 .Count();
         }
 
-        /// <summary>현재 지속피해 효과를 1초간 정산한 예상 피해 총합.</summary>
+        /// <summary>현재 지속피해 효과를 1턴간 정산한 예상 피해 총합.</summary>
         public int GetEstimatedDamageOverTimePerTurn()
         {
             return ActiveEffectObjects()

@@ -1,3 +1,4 @@
+using Helpers;
 using UnityEngine;
 
 namespace Entities.View
@@ -80,7 +81,7 @@ namespace Entities.View
         {
             if (string.IsNullOrWhiteSpace(summon.PortraitPath)) return;
 
-            Sprite sprite = Resources.Load<Sprite>(summon.PortraitPath);
+            Sprite sprite = SpriteResource.LoadPortrait(summon.PortraitPath);
             if (sprite == null) return;
 
             var portraitObject = new GameObject("Portrait", typeof(SpriteRenderer));

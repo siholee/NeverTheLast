@@ -51,7 +51,8 @@ namespace BaseClasses
       OnPassiveActivates, // Unit(자신)
       OnNormalActivates, // Unit(자신)
       OnUltimateActivates, // Unit(자신)
-      OnNormalAttackHit, // Unit(자신), Unit(대상), DamageContext(일반공격 적중 정보)
+      OnAdditionalActivates, // Unit(자신) — 예약된 추가행동이 시작될 때
+      OnNormalAttackHit, // Unit(자신), Unit(대상), DamageContext(일반행동 적중 정보)
       OnNormalActionResolved, // Unit(자신) — 일반행동이 실제로 끝났을 때. 공격하지 않는 일반행동도 포함한다
       OnBeneficialEffectReceived, // Unit(자신), Unit(부여자)
       OnBeneficialEffectGranted, // Unit(자신), Unit(대상)

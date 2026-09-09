@@ -28,11 +28,11 @@ namespace Codes.Ultimate
 
         protected override IEnumerator SkillCoroutine()
         {
-            // Replace 정책: 재시전 시 8초로 갱신 (구 dict 덮어쓰기와 동일)
+            // Replace 정책: 재시전 시 지속 턴을 처음부터 다시 센다
             var status = BuffStatus.Create(
                 BuffStatusIds.FinalBell, StatusKey, "만종",
                 Caster, Caster, new FinalBellBuffEffect(),
-                duration: 4,   // 8초 → 4턴
+                duration: 4,
                 description: "DEX가 레벨×2만큼 증가합니다.");
             Caster.AddStatus(status);
             Debug.Log($"[만종] {Caster.UnitName}: 4턴간 DEX +{Caster.Level * 2}, 시의 종언 발동 간격 1/3");

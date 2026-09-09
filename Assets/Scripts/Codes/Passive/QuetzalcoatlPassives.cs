@@ -68,12 +68,12 @@ namespace Codes.Passive
         }
     }
 
-    public sealed class QuetzalcoatlWisdom : PassiveCode
+    public sealed class ScholarshipPassive : PassiveCode
     {
-        public QuetzalcoatlWisdom(PassiveCodeContext context) : base(context)
+        public ScholarshipPassive(PassiveCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "지혜";
+            CodeName = "학식";
             IgnoresActivationChance = true;
         }
 
@@ -107,7 +107,7 @@ namespace Codes.Passive
 
         public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
             QuetzalcoatlStatusIds.Scholar, "quetzalcoatl_scholar", CodeName,
-            Caster, Caster, new QuetzalcoatlScholarEffect(),
+            Caster, Caster, new ExcessCritConversionEffect(1.5f),
             stackPolicy: BaseEnums.StatusStackPolicy.Ignore, isBeneficial: true,
             description: "100%를 초과한 치명타 확률의 1.5배를 치명타 피해로 전환합니다."));
     }
@@ -128,54 +128,20 @@ namespace Codes.Passive
             description: "전투 중 1턴마다 INT가 1 증가합니다."));
     }
 
-    /// <summary>Lv.90: 20초마다 6초간 아군 전체 마나 재생.</summary>
-    public sealed class QuetzalcoatlWingedSerpent : PassiveCode
+    /// <summary>Lv.90 날개 달린 뱀 — 10턴마다 아군 전체에게 3턴짜리 마나 재생을 다시 건다.</summary>
+    public sealed class QuetzalcoatlWingedSerpent : PeriodicTurnPassive
     {
-        private const float CooldownSeconds = 20f;
-        private float _elapsed;
-        private Action<EventContext> _turnHandler;
-        private Action<EventContext> _cleanupHandler;
-        private bool _registered;
+        private const int IntervalTurnCount = 10;
+        private const int AuraTurns = 3;
 
-        public QuetzalcoatlWingedSerpent(PassiveCodeContext context) : base(context)
+        public QuetzalcoatlWingedSerpent(PassiveCodeContext context)
+            : base(context, IntervalTurnCount, fireOnStart: true)
         {
-            CodeType = BaseEnums.CodeType.Passive;
             CodeName = "날개 달린 뱀";
-            IgnoresActivationChance = true;
             Transferable = false;
         }
 
-        public override void CastCode()
-        {
-            if (Caster == null || _registered) return;
-            _elapsed = 0f;
-            ApplyAura();
-            _turnHandler = OnOwnerTurnStart;
-            _cleanupHandler = _ => StopCode();
-            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
-            _registered = true;
-        }
-
-        public override void StopCode()
-        {
-            if (!_registered || Caster == null) return;
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
-            _registered = false;
-        }
-
-        private void OnOwnerTurnStart(EventContext context)
-        {
-            _elapsed += Mathf.Max(0f, Caster?.LastTurnSeconds ?? 0f);
-            if (_elapsed < CooldownSeconds) return;
-            _elapsed %= CooldownSeconds;
-            ApplyAura();
-        }
-
-        private void ApplyAura()
+        protected override void OnPeriodElapsed()
         {
             foreach (Unit ally in global::Target.GetAllAllies(Caster).Where(unit => unit != null && unit.isActive))
             {
@@ -183,10 +149,10 @@ namespace Codes.Passive
                     QuetzalcoatlStatusIds.WingedSerpent,
                     $"quetzalcoatl_winged_serpent_{Caster.GetEntityId()}", CodeName,
                     Caster, ally, new QuetzalcoatlManaRegenEffect(),
-                    duration: 3,   // 6초 → 3턴
+                    duration: AuraTurns,
                     stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                     isBeneficial: true,
-                    description: "3턴 동안 턴마다 케찰코아틀 INT/10만큼 마나를 회복합니다."));
+                    description: $"{AuraTurns}턴 동안 턴마다 케찰코아틀 INT/10만큼 마나를 회복합니다."));
             }
         }
     }
@@ -205,12 +171,6 @@ namespace Codes.Passive
         }
     }
 
-    internal sealed class QuetzalcoatlScholarEffect : BaseEffect
-    {
-        public QuetzalcoatlScholarEffect() : base(0, 1.5f) { }
-        public override float ExcessCritChanceConversionMultiplier(Unit unit) => unit == Target ? 1.5f : 0f;
-    }
-
     internal sealed class QuetzalcoatlMeditationEffect : BaseEffect
     {
         private int _stacks;
@@ -220,7 +180,7 @@ namespace Codes.Passive
         public override int PrimaryStatAdditiveModifier(Unit unit, BaseEnums.PrimaryStat stat)
             => unit == Target && stat == BaseEnums.PrimaryStat.INT ? _stacks : 0;
 
-        /// <summary>턴마다 INT +1. 예전 '2초마다 +1'과 같은 속도다.</summary>
+        /// <summary>턴마다 INT +1.</summary>
         public override void OnOwnerTurn()
         {
             _stacks++;
@@ -232,7 +192,7 @@ namespace Codes.Passive
     {
         public QuetzalcoatlManaRegenEffect() : base(0) { }
 
-        /// <summary>턴마다 INT/10의 2배를 회복한다. 예전 '매초 INT/10'을 1턴 = 2초로 환산했다.</summary>
+        /// <summary>턴마다 INT/10의 2배를 회복한다. 턴 하나가 예전 2초에 해당한다.</summary>
         public override void OnOwnerTurn()
         {
             if (Caster == null || Target == null) return;

@@ -133,7 +133,7 @@ namespace Codes.Ultimate
                     break;
                 case LegionUltimateStyle.Triarii:
                 case LegionUltimateStyle.Centurion:
-                    // 바위 원소를 부여한다. 이미 바위가 붙어 있으면 공명이 터진다.
+                    // 바위 원소를 부여한다. 이미 바위가 붙어 있으면 진동이 터진다.
                     StrikeSingle(isCrit, critMultiplier, BaseEnums.UnitElement.Geo);
                     break;
                 case LegionUltimateStyle.Scorpio:

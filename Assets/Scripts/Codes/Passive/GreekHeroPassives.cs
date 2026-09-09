@@ -274,47 +274,6 @@ namespace Codes.Passive
             description: "물 원소 보유 중 올스탯 +1, 마나 회복 효율 +20%."));
     }
 
-    public sealed class TheseusFighter : PassiveCode
-    {
-        private Action<DamageResolvedContext> _damageHandler;
-        private Action<EventContext> _cleanupHandler;
-        private bool _registered;
-
-        public TheseusFighter(PassiveCodeContext context) : base(context)
-        {
-            CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "투사";
-            IgnoresActivationChance = true;
-        }
-
-        public override void CastCode()
-        {
-            if (Caster == null || _registered) return;
-            _damageHandler = OnDamageDealt;
-            _cleanupHandler = _ => StopCode();
-            Caster.AddListener(BaseEnums.UnitEventType.OnDamageDealt, _damageHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
-            _registered = true;
-        }
-
-        public override void StopCode()
-        {
-            if (!_registered || Caster == null) return;
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnDamageDealt, _damageHandler);
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
-            _registered = false;
-        }
-
-        private void OnDamageDealt(DamageResolvedContext context)
-        {
-            List<int> tags = context?.DamageContext?.DamageTags;
-            if (context == null || context.DamageDealt <= 0 || tags == null ||
-                !tags.Contains(DamageTag.Physical) || !tags.Contains(DamageTag.ContactAttack)) return;
-            Caster.ModifyHp(Caster.HpCurr + Mathf.RoundToInt(context.DamageDealt * 0.25f), Caster);
-        }
-    }
 
     /// <summary>
     /// 팔랑크스 — 모든 Greek 유닛이 하드코딩으로 가지는 진형 패시브다.
@@ -464,7 +423,7 @@ namespace Codes.Passive
     {
         public TheseusSelfHealingEffect() : base(0) { }
 
-        /// <summary>턴마다 CON의 2배를 회복한다. 예전 '매초 CON'을 1턴 = 2초로 환산했다.</summary>
+        /// <summary>턴마다 CON의 2배를 회복한다. 턴 하나가 예전 2초에 해당한다.</summary>
         public override void OnOwnerTurn()
         {
             if (Target == null || !Target.isActive) return;
@@ -480,14 +439,6 @@ namespace Codes.Passive
         private readonly float _ratio;
         public OverhealShieldEffect(float ratio) : base(0, ratio) => _ratio = ratio;
         public override float OverhealShieldConversionModifier(Unit unit) => unit == Target ? _ratio : 0f;
-    }
-
-    public sealed class ArmorBreakEffect : BaseEffect
-    {
-        private readonly float _multiplier;
-        public ArmorBreakEffect(float multiplier) : base(0, multiplier) => _multiplier = multiplier;
-        public override float OwnedDefenseStatMultiplierModifier(Unit unit, DamageContext context)
-            => unit == Target ? _multiplier : 1f;
     }
 
     internal static class GreekHeroPosition

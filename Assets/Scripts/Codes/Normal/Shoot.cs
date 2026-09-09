@@ -8,7 +8,7 @@ namespace Codes.Normal
     {
         public Shoot(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             MaxStage = 3;
             CodeTags = new List<int> { DamageTag.Physical };
         }

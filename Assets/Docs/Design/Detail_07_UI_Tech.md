@@ -53,7 +53,7 @@
 | --- | --- |
 | 1. 기초 스탯 | STR / DEX / CON / INT / LUK |
 | 2. 상세 스탯 | 최대 체력, 방어력(감소율), 내구, 위력 100 기준 피해, 치명타, 행동 속도, 마나 효율 |
-| 3. 고유 코드 | 고유 패시브 · 일반공격 · 고유 궁극기 (단계 표기 포함) |
+| 3. 고유 코드 | 고유 패시브 · 일반행동 · 고유 궁극기 (단계 표기 포함) |
 | 4. 그 외 보유 코드 | 해금·전수받은 패시브와 장비 부여 코드. 용량 `보유 / 최대` 병기 |
 
 ### 1.6 캐릭터 선택 화면
@@ -270,6 +270,7 @@ if (육성 모드) {
 | `00_intro.yaml` | 인트로 시퀀스 | `IntroData.cs` |
 | `10_units.yaml` | 아군 유닛 | `UnitData.cs` |
 | `20_codes.yaml` | 코드 표시 데이터 (패시브/일반/궁극기) | — |
+| `30_synergies.yaml` | 역할군·아키타입·메인별 추천 편성 ([Detail_15](Detail_15_Party_Synergy.md)) | 🔴 미구현 |
 | `40_items.yaml` | 아이템 (= 전투 보상 풀) | `ItemData.cs` |
 | `50_tokens.yaml` | 토큰 정의 | `TokenData.cs` |
 | `60_enemies.yaml` | 적 (normal/elite/boss) | `EnemyData.cs` |
@@ -337,16 +338,77 @@ LoadSavedRun()
 
 **구버전 세이브는 로드 시 폐기된다** (`RunSaveData.version`).
 
+## 4.6 디버그 모드 (에디터 · 개발 빌드 전용)
+
+전투가 완전 자동이라 **확인하고 싶은 장면에 도달하는 방법이 정상 플레이뿐이다.**
+테마 하나를 보려면 라운드를 그만큼 지나야 하고(테마는 `(Round-1) % 활성테마수`로 정해진다),
+Lv.90 해금 코드를 보려면 런을 거의 완주해야 한다. 그래서 상태를 직접 밀어 넣는 조작을 모았다.
+
+`Core/DebugMode.cs`(상태) + `Managers/UI/DevTools/DebugOverlay.cs`(패널).
+둘 다 `#if UNITY_EDITOR || DEVELOPMENT_BUILD`으로 감싸 **출시 빌드에는 들어가지 않는다.**
+호출부(`Unit.TakeDamage`·`RoundManager.EnsureThemeForCurrentRound`·`GameManager.HandleDebugInput`)도
+같은 조건으로 감쌌다.
+
+### 단축키
+
+| 키 | 동작 |
+| --- | --- |
+| **F1** | 디버그 패널 열기/닫기 |
+| F2 | 적 전멸 — 지금 전투를 즉시 이긴다 |
+| F3 | 아군 무적 토글 |
+| F4 | 배속 순환 1 → 4 → 8배 |
+| F9 | 현재 테마의 사건을 즉시 실행 |
+
+### 패널 조작
+
+| 묶음 | 내용 |
+| --- | --- |
+| 테마 고정 | 라운드 계산을 무시하고 테마를 고정한다. **`enabled: false`인 테마도 고를 수 있다** |
+| 스테이지 | ±1 / ±10 이동, 슬롯(1·5사건·6엘리트·9엘리트·10보스) 바로가기 |
+| 전투 | 적 전멸(승리) · 아군 전멸(패배) · 아군/적 무적 · 아군 회복 |
+| 아군 레벨 | Lv.1 / 30 / 60 / 90 즉시 설정, +10 |
+| 배속 | 0.25× / 1× / 4× / 8× |
+
+**강제 설정이 하나라도 켜져 있으면 화면 위에 빨간 배너가 상시로 뜬다.**
+무적을 켜 둔 채 밸런스를 재는 사고를 막기 위한 것이다.
+
+### 원칙
+
+- **새 규칙을 만들지 않는다.** 이미 있는 진입점(`RoundManager.LoadRound`, `Unit.Die`,
+  `Unit.DebugSetLevel`)만 부르므로 디버그로 만든 상태가 정상 경로와 다르지 않다.
+- 무적은 `Unit.TakeDamage` **입구**에서 자른다. 지속피해·고정피해까지 한 곳에서 막기 위해서다.
+- 테마 고정은 **다음 스테이지 로드부터** 적용된다.
+
+---
+
 ## 5. 아트 규약
 
 | 영역 | 규약 |
 | --- | --- |
-| 초상화 | `Resources/Sprite/Portraits/{name}` — 확장자 제외, 대문자 스네이크 (`TSUKUYOMI_PORTRAIT`) |
+| 초상화 | `Resources/Sprite/Portraits/{Allies, Enemies/Normal, Enemies/Elite, Enemies/Boss}/{name}` — 데이터에는 폴더·확장자를 제외한 대문자 스네이크 키만 기록 (`TSUKUYOMI_PORTRAIT`) |
 | 표정 | `{PORTRAIT}_{emotion}` — 없으면 기본 초상화로 폴백 |
-| 스탠딩 | `{NAME}_STANDING` |
+| 스탠딩 | 초상화와 같은 분류 폴더의 `{NAME}_STANDING` |
 | 페이퍼돌 | [Character_PaperDoll_Spec.md](../Character_PaperDoll_Spec.md) 참조 |
 | 이펙트 | Hovl Studio 투사체 기반 |
 | 폰트 | TextMesh Pro |
+
+`SpriteResource`가 위 네 분류 폴더를 먼저 뒤지고 이전 평면 루트를 마지막으로 본다. 따라서 YAML과
+코드에는 분류 경로를 넣지 않고 기존 스프라이트 키를 그대로 유지한다. 아군·적이 같은 원화를 공유하는
+경우에는 파일을 `Allies`에 한 번만 두고 양쪽에서 같은 키로 불러온다.
+
+> **초상화·스탠딩은 `Resources.Load`를 직접 부르지 않는다. 반드시 `SpriteResource`를 거친다.**
+> 데이터가 들고 있는 것은 키(`SEI_PORTRAIT`)이고 실제 파일은 분류 폴더 안에 있어서, 키를 그대로
+> `Resources.Load`에 넘기면 **조용히 null이 돌아온다.** 분류 폴더로 옮기던 날 소환수 카드·행동
+> 대기열·도감·육성 화면이 한꺼번에 빈 칸이 된 것이 이 때문이다.
+> `SpriteResource`는 키와 해석이 끝난 전체 경로를 모두 받으므로 진입점을 하나로 둘 수 있다.
+>
+> `Unit.PortraitPath`는 **해석에 성공하면 전체 경로, 실패하면 키 그대로**를 담는다. 어느 쪽이든
+> 그대로 `SpriteResource.LoadPortrait`에 넘기면 된다.
+>
+> 아이템 아이콘(`Sprite/Items/`)만은 분류가 없는 평면 폴더라 직접 로드해도 된다.
+
+디버그 검증(F1 → 전체 검증)의 **스프라이트 연결** 단계가 유닛·적·아이템·소환수의 키를 전부 한 번씩
+읽어 본다. 자산을 옮기거나 이름을 바꾸면 이 단계가 먼저 깨진다.
 
 ### 5.1 투사체 프리팹 제작 절차
 

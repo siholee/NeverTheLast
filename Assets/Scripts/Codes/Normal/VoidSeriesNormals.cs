@@ -272,7 +272,7 @@ namespace Codes.Normal
                     }
                 }
 
-                // 공허의 선봉장(1484)처럼 '강화 일반행동을 마칠 때'를 세는 코드가 이 신호를 본다.
+                // 공허의 선봉장(1544)처럼 '강화 일반행동을 마칠 때'를 세는 코드가 이 신호를 본다.
                 NotifyActionResolved();
             }
             finally

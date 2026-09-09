@@ -246,8 +246,8 @@ namespace Effects.Base
         public virtual bool GrantsAirborneImmunity(Unit unit) => false;
 
         /// <summary>
-        /// 보유자의 일반공격을 막으면 true.
-        /// 턴제로 바뀌면서 <c>normalCooldown</c>이 의미를 잃었으므로, 행동 차단은 이 훅으로 판정한다.
+        /// 보유자의 일반행동을 막으면 true.
+        /// 행동 주기를 AV가 전담하므로 일반행동 차단은 쿨다운이 아니라 이 훅으로 판정한다.
         /// </summary>
         public virtual bool BlocksNormalAttack(Unit unit) => false;
     }

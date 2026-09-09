@@ -40,15 +40,6 @@ namespace Codes.Normal
                 EnemyArchetypeNormalStyle.Support => "지원가의 원호",
                 _ => "적의 공격",
             };
-            Cooldown = style switch
-            {
-                EnemyArchetypeNormalStyle.Sentinel => 2.4f,
-                EnemyArchetypeNormalStyle.Fighter => 2f,
-                EnemyArchetypeNormalStyle.Executioner => 2.2f,
-                EnemyArchetypeNormalStyle.Marksman => 2.1f,
-                EnemyArchetypeNormalStyle.Mage => 2.3f,
-                _ => 2.5f,
-            };
             CastingDelay = 0.4f;
             MaxStage = 1;
         }

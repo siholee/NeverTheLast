@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Core;
+using Helpers;
 using Managers.UI.Core;
 using Managers.UI.Theme;
 using TMPro;
@@ -387,7 +388,7 @@ namespace Managers.UI.Screens
         }
 
         private static Sprite LoadPortrait(string spriteName)
-            => string.IsNullOrWhiteSpace(spriteName) ? null : Resources.Load<Sprite>($"Sprite/Portraits/{spriteName}");
+            => SpriteResource.LoadPortrait(spriteName);
 
         private static string UnitName(int unitId)
         {

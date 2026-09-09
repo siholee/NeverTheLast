@@ -102,7 +102,7 @@ namespace Codes.Passive
             if (Caster == null) return;
             Caster.AddStatus(BuffStatus.Create(
                 MarieStatusIds.NobleBloodline, "marie_noble_bloodline", CodeName,
-                Caster, Caster, new MarieLukMultiplierEffect(1.05f),
+                Caster, Caster, new PrimaryStatMultiplierEffect(1.05f, BaseEnums.PrimaryStat.LUK),
                 stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
                 isBeneficial: true,
                 description: "LUK가 5% 증가합니다."));
@@ -110,14 +110,6 @@ namespace Codes.Passive
             // 고유 오라가 먼저 적용되므로, 상승한 LUK를 아군의 치명타 피해 캐시에 다시 반영한다.
             foreach (Unit ally in MarieCriticalCommand.Allies(Caster)) ally.RefreshAttributes();
         }
-    }
-
-    internal sealed class MarieLukMultiplierEffect : BaseEffect
-    {
-        private readonly float _multiplier;
-        public MarieLukMultiplierEffect(float multiplier) : base(0, multiplier) => _multiplier = multiplier;
-        public override float PrimaryStatMultiplierModifier(Unit unit, BaseEnums.PrimaryStat stat)
-            => unit == Target && stat == BaseEnums.PrimaryStat.LUK ? _multiplier : 1f;
     }
 
     /// <summary>DEX 집중 훈련에 배치되면 효율 +10%. TrainingManager가 읽는다.</summary>

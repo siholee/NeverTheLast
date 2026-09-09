@@ -43,12 +43,12 @@ namespace Managers
         public string speaker;
         public string text;
 
-        // 선택: 화자 초상화 파일명(Resources/Sprite/Portraits 기준, 확장자 제외).
+        // 선택: 화자 초상화 키(Sprite/Portraits의 분류 폴더·확장자 제외).
         // 비워두면 speaker 이름을 10_units.yaml의 유닛 이름과 대조해 자동 해석한다.
         // 유닛이 아닌 화자(일행, 내레이션 등)는 비워두면 초상화 없이 표시된다.
         public string portrait;
 
-        // 선택: 화자 스탠딩 일러스트 파일명(Resources/Sprite/Standings 기준, 확장자 제외).
+        // 선택: 화자 스탠딩 키(Sprite/Standings의 분류 폴더·확장자 제외).
         // 사건 화면에서는 standing을 portrait보다 우선하며, 둘 다 없으면 유닛 데이터에서 자동 해석한다.
         public string standing;
 

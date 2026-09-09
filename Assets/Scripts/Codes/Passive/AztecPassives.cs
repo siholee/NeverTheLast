@@ -125,10 +125,10 @@ namespace Codes.Passive
         {
             320 => "행동불능 상태의 적에게 주는 피해 +25%.",
             321 => "맹독 상태의 적에게 주는 피해 +25%.",
-            322 => "아군이 쓰러질 때 적 전체에게 INT 기반 추가공격을 가합니다.",
+            322 => "아군이 쓰러질 때 적 전체에게 INT 기반 추가행동을 가합니다.",
             323 => "INT에 비례해 최대 체력이 증가하고 전열 수에 비례한 피해 감소를 아군에게 제공합니다.",
             324 => "적이 쓰러질 때마다 STR +5%.",
-            325 => "공명 반응의 CON을 1.2배로 계산합니다.",
+            325 => "진동 반응의 CON을 1.2배로 계산합니다.",
             326 => "둔기를 장착하고 숙련되어 있으면 내구 5를 무시합니다.",
             327 => "풀 원소 보유 중 CON +2, 자기 턴마다 최대 체력의 1% 회복.",
             328 => "대상 지정 우선도 -1.",
@@ -250,19 +250,5 @@ namespace Codes.Passive
             int frontCount = AztecCombat.AlliesIncludingSelf(_tezcatlipoca).Count(AztecCombat.IsFrontLine);
             return Mathf.Max(0.1f, 1f - frontCount * _perFront);
         }
-    }
-
-    internal sealed class TezcatlipocaCommandDamageEffect : BaseEffect
-    {
-        public TezcatlipocaCommandDamageEffect() : base(0, 1.5f) { }
-        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
-            => attacker == Target ? 1.5f : 1f;
-    }
-
-    internal sealed class TezcatlipocaVulnerabilityEffect : BaseEffect
-    {
-        public TezcatlipocaVulnerabilityEffect() : base(0, 1.5f) { }
-        public override float ReceivingDamageModifier(Unit unit, DamageContext context)
-            => unit == Target ? 1.5f : 1f;
     }
 }

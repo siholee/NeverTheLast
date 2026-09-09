@@ -16,16 +16,16 @@ namespace Codes.Passive
     /// <summary>
     /// 세이 고유 패시브 — 빅뱅.
     ///
-    /// 6초마다 무작위 적에게 투사체 6발을 각각 따로 조준해 발사한다. 각 타수는 INT 위력 40.
+    /// 3턴마다 무작위 적에게 투사체 6발을 각각 따로 조준해 발사한다. 각 타수는 INT 위력 40.
     ///
-    /// 원안은 각 타수 위력 80(6초당 480)이었다. 세이의 일반공격이 위력 50이고 AV 스케줄러상
-    /// 한 유닛은 실전에서 수 초에 한 번만 행동하므로, 원안대로면 패시브 하나가 일반공격의
+    /// 원안은 각 타수 위력 80(주기당 480)이었다. 세이의 일반행동이 위력 50이고 AV 스케줄러상
+    /// 한 유닛은 실전에서 수 초에 한 번만 행동하므로, 원안대로면 패시브 하나가 일반행동의
     /// 10배 가까운 피해를 낸다. 40으로 낮춰 '공격형 서포터가 딜러급으로 자란다'는 컨셉은
     /// 유지하되 전용 딜러를 압도하지 않게 맞췄다.
     /// </summary>
     public sealed class SeiBigBang : UniquePassiveCode
     {
-        private const int IntervalTurns = 3;   // 6초 → 3턴
+        private const int IntervalTurns = 3;
         private const int MissileCount = 6;
         private const int MissilePower = 40;
         private const float MissileLaunchInterval = 0.06f;
@@ -81,7 +81,7 @@ namespace Codes.Passive
         /// <summary>
         /// 세이의 턴마다 세고, 주기가 차면 <b>스케줄러에 패시브로 예약</b>한다.
         /// 그 자리에서 터뜨리지 않는 이유는 한 번에 하나만 행동해야 하기 때문이다.
-        /// 예약된 패시브는 추가공격·본 행동보다 먼저 나간다.
+        /// 예약된 패시브는 추가행동·본 행동보다 먼저 나간다.
         /// </summary>
         public override void OnOwnerTurn()
         {

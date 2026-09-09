@@ -10,7 +10,7 @@ namespace BaseClasses
     public const int UltAttack = 20002;
     public const int Physical = 20003; // 물리
     public const int Special = 20004; // 특수
-    public const int AdditionalAttack = 20005; // 추가 공격 — 기본 행동과 별개로 발생
+    public const int AdditionalAttack = 20005; // 추가행동 — 기본 행동과 별개로 발생
     public const int SummonAttack = 20006;     // 소환수의 공격 — 소환자의 주는 피해 버프를 받지 않는다
     public const int CounterAttack = 20007;    // 반격 — 피격 또는 체력 소모에 반응해 발생
     public const int ContactAttack = 30001;    // 접촉 공격

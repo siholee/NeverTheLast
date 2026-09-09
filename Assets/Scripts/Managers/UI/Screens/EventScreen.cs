@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Helpers;
 using Managers.UI.Core;
 using Managers.UI.Theme;
 using TMPro;
@@ -511,7 +512,7 @@ namespace Managers.UI.Screens
 
         private static void SetStanding(Image slot, string key, string speaking)
         {
-            Sprite sprite = key == null ? null : Resources.Load<Sprite>($"Sprite/Standings/{key}");
+            Sprite sprite = SpriteResource.LoadStanding(key);
             slot.sprite = sprite;
             slot.enabled = sprite != null;
             if (sprite == null) return;

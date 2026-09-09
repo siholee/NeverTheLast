@@ -17,7 +17,7 @@ namespace Codes.Ultimate
             => unit == Target && stat == BaseEnums.PrimaryStat.DEX ? _dexMultiplier : 1f;
     }
 
-    /// <summary>파멸·종말의 씨앗 U — 2턴 DEX 강화 및 일반공격 1발 추가.</summary>
+    /// <summary>파멸·종말의 씨앗 U — 2턴 DEX 강화 및 일반행동 1발 추가.</summary>
     public sealed class GenericSeedOverdrive : SimpleUltimate
     {
         public GenericSeedOverdrive(UltimateCodeContext context)
@@ -35,8 +35,8 @@ namespace Codes.Ultimate
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
                 description: overload
-                    ? "2턴 동안 DEX +25%, 일반공격 발사 수 +1."
-                    : "2턴 동안 DEX +5%, 일반공격 발사 수 +1."));
+                    ? "2턴 동안 DEX +25%, 일반행동 발사 수 +1."
+                    : "2턴 동안 DEX +5%, 일반행동 발사 수 +1."));
         }
     }
 

@@ -634,7 +634,7 @@ enemies:
       - { codeId: 1304, unlockLevel: 10, stage: 1 }
       - { codeId: 1305, unlockLevel: 20, stage: 1 }
       - { codeId: 1306, unlockLevel: 30, stage: 1 }
-      - { codeId: 24, unlockLevel: 60, stage: 1 }
+      - { codeId: 41, unlockLevel: 60, stage: 1 }   # 투사
     portrait: AZTEC_JAGUAR_PORTRAIT
     standing: AZTEC_JAGUAR_STANDING
 
@@ -665,7 +665,7 @@ enemies:
       - { codeId: 1306, unlockLevel: 30, stage: 1 }
       - { codeId: 1307, unlockLevel: 40, stage: 1 }
       - { codeId: 40, unlockLevel: 50, stage: 1 }
-      - { codeId: 24, unlockLevel: 60, stage: 1 }
+      - { codeId: 41, unlockLevel: 60, stage: 1 }   # 투사
     portrait: AZTEC_ELITE_JAGUAR_PORTRAIT
     standing: AZTEC_ELITE_JAGUAR_STANDING
 
@@ -989,7 +989,7 @@ enemies:
       - { codeId: 1016, unlockLevel: 10, stage: 1 }   # 저주
       - { codeId: 35, unlockLevel: 20, stage: 1 }   # 상처 벌리기
       - { codeId: 36, unlockLevel: 30, stage: 1 }   # 고통스러운 상처
-      - { codeId: 24,  unlockLevel: 40, stage: 1 }   # 투사
+      - { codeId: 41,  unlockLevel: 40, stage: 1 }   # 투사
       - { codeId: 29,  unlockLevel: 50, stage: 1 }   # 파죽지세
       - { codeId: 37, unlockLevel: 60, stage: 1 }   # 순환
     portrait: NETHER_WRAITH_PORTRAIT
@@ -1050,7 +1050,7 @@ enemies:
     ultimateResourceName: 우제트
     ultimateResourceMax: 4
     levelPassives:
-      - { codeId: 86, unlockLevel: 14, stage: 1 }   # 관통사격
+      - { codeId: 86, unlockLevel: 14, stage: 1 }   # 빈틈의 실
       - { codeId: 49, unlockLevel: 41, stage: 1 }   # 저격수
     portrait: HORUS_PORTRAIT
     standing: HORUS_STANDING
@@ -1180,7 +1180,7 @@ enemies:
       - { codeId: 1407, unlockLevel: 60, stage: 1 }   # 까칠한 피부
       - { codeId: 7,    unlockLevel: 70, stage: 1 }   # 사전준비
       - { codeId: 1425, unlockLevel: 80, stage: 1 }   # 병상첨병
-      - { codeId: 1444, unlockLevel: 90, stage: 1 }   # 파괴광선 — 파쇄 대체
+      - { codeId: 1504, unlockLevel: 90, stage: 1 }   # 파괴광선 — 파쇄 대체
     portrait: APOCALYPSE_GIANT_PORTRAIT
     standing: APOCALYPSE_GIANT_STANDING
 
@@ -1335,17 +1335,17 @@ enemies:
     intIncrementLvl: 2
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1440, normal: 1440, ultimate: 1440 }
+    codes: { passive: 1500, normal: 1500, ultimate: 1500 }
     levelPassives:
       - { codeId: 45,   unlockLevel: 10, stage: 1 }   # 민첩함
-      - { codeId: 1441, unlockLevel: 20, stage: 1 }   # 공명
+      - { codeId: 1501, unlockLevel: 20, stage: 1 }   # 공명
       - { codeId: 1423, unlockLevel: 30, stage: 1 }   # 파쇄
       - { codeId: 69,   unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 1218, unlockLevel: 50, stage: 1 }   # 야습
       - { codeId: 17,   unlockLevel: 60, stage: 1 }   # 예리함
-      - { codeId: 1442, unlockLevel: 70, stage: 1 }   # 분열
-      - { codeId: 1443, unlockLevel: 80, stage: 1 }   # 죽음의 메아리 — 공명 대체
-      - { codeId: 1444, unlockLevel: 90, stage: 1 }   # 파괴광선 — 파쇄 대체
+      - { codeId: 1502, unlockLevel: 70, stage: 1 }   # 분열
+      - { codeId: 1503, unlockLevel: 80, stage: 1 }   # 죽음의 메아리 — 공명 대체
+      - { codeId: 1504, unlockLevel: 90, stage: 1 }   # 파괴광선 — 파쇄 대체
     portrait: VOID_PRISM_PORTRAIT
     standing: VOID_PRISM_STANDING
 
@@ -1370,18 +1370,18 @@ enemies:
     intIncrementLvl: 2
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1440, normal: 1440, ultimate: 1441 }
+    codes: { passive: 1500, normal: 1500, ultimate: 1501 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
-      - { codeId: 1441, unlockLevel: 20, stage: 1 }
+      - { codeId: 1501, unlockLevel: 20, stage: 1 }
       - { codeId: 58, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
       - { codeId: 17, unlockLevel: 60, stage: 1 }
-      - { codeId: 1442, unlockLevel: 70, stage: 1 }
-      - { codeId: 1443, unlockLevel: 80, stage: 1 }
-      - { codeId: 1444, unlockLevel: 90, stage: 1 }
+      - { codeId: 1502, unlockLevel: 70, stage: 1 }
+      - { codeId: 1503, unlockLevel: 80, stage: 1 }
+      - { codeId: 1504, unlockLevel: 90, stage: 1 }
     portrait: VOID_PRISM_PYRO_PORTRAIT
     standing: VOID_PRISM_PYRO_STANDING
 
@@ -1406,18 +1406,18 @@ enemies:
     intIncrementLvl: 2
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1440, normal: 1440, ultimate: 1442 }
+    codes: { passive: 1500, normal: 1500, ultimate: 1502 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
-      - { codeId: 1441, unlockLevel: 20, stage: 1 }
+      - { codeId: 1501, unlockLevel: 20, stage: 1 }
       - { codeId: 186, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
       - { codeId: 17, unlockLevel: 60, stage: 1 }
-      - { codeId: 1442, unlockLevel: 70, stage: 1 }
-      - { codeId: 1443, unlockLevel: 80, stage: 1 }
-      - { codeId: 1444, unlockLevel: 90, stage: 1 }
+      - { codeId: 1502, unlockLevel: 70, stage: 1 }
+      - { codeId: 1503, unlockLevel: 80, stage: 1 }
+      - { codeId: 1504, unlockLevel: 90, stage: 1 }
     portrait: VOID_PRISM_HYDRO_PORTRAIT
     standing: VOID_PRISM_HYDRO_STANDING
 
@@ -1442,18 +1442,18 @@ enemies:
     intIncrementLvl: 2
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1440, normal: 1440, ultimate: 1443 }
+    codes: { passive: 1500, normal: 1500, ultimate: 1503 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
-      - { codeId: 1441, unlockLevel: 20, stage: 1 }
+      - { codeId: 1501, unlockLevel: 20, stage: 1 }
       - { codeId: 187, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
       - { codeId: 17, unlockLevel: 60, stage: 1 }
-      - { codeId: 1442, unlockLevel: 70, stage: 1 }
-      - { codeId: 1443, unlockLevel: 80, stage: 1 }
-      - { codeId: 1444, unlockLevel: 90, stage: 1 }
+      - { codeId: 1502, unlockLevel: 70, stage: 1 }
+      - { codeId: 1503, unlockLevel: 80, stage: 1 }
+      - { codeId: 1504, unlockLevel: 90, stage: 1 }
     portrait: VOID_PRISM_ANEMO_PORTRAIT
     standing: VOID_PRISM_ANEMO_STANDING
 
@@ -1478,18 +1478,18 @@ enemies:
     intIncrementLvl: 2
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1440, normal: 1440, ultimate: 1444 }
+    codes: { passive: 1500, normal: 1500, ultimate: 1504 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
-      - { codeId: 1441, unlockLevel: 20, stage: 1 }
+      - { codeId: 1501, unlockLevel: 20, stage: 1 }
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 번개
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
       - { codeId: 17, unlockLevel: 60, stage: 1 }
-      - { codeId: 1442, unlockLevel: 70, stage: 1 }
-      - { codeId: 1443, unlockLevel: 80, stage: 1 }
-      - { codeId: 1444, unlockLevel: 90, stage: 1 }
+      - { codeId: 1502, unlockLevel: 70, stage: 1 }
+      - { codeId: 1503, unlockLevel: 80, stage: 1 }
+      - { codeId: 1504, unlockLevel: 90, stage: 1 }
     portrait: VOID_PRISM_ELECTRO_PORTRAIT
     standing: VOID_PRISM_ELECTRO_STANDING
 
@@ -1514,18 +1514,18 @@ enemies:
     intIncrementLvl: 2
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1440, normal: 1440, ultimate: 1445 }
+    codes: { passive: 1500, normal: 1500, ultimate: 1505 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
-      - { codeId: 1441, unlockLevel: 20, stage: 1 }
+      - { codeId: 1501, unlockLevel: 20, stage: 1 }
       - { codeId: 188, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
       - { codeId: 17, unlockLevel: 60, stage: 1 }
-      - { codeId: 1442, unlockLevel: 70, stage: 1 }
-      - { codeId: 1443, unlockLevel: 80, stage: 1 }
-      - { codeId: 1444, unlockLevel: 90, stage: 1 }
+      - { codeId: 1502, unlockLevel: 70, stage: 1 }
+      - { codeId: 1503, unlockLevel: 80, stage: 1 }
+      - { codeId: 1504, unlockLevel: 90, stage: 1 }
     portrait: VOID_PRISM_DENDRO_PORTRAIT
     standing: VOID_PRISM_DENDRO_STANDING
 
@@ -1550,18 +1550,18 @@ enemies:
     intIncrementLvl: 2
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1440, normal: 1440, ultimate: 1446 }
+    codes: { passive: 1500, normal: 1500, ultimate: 1506 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
-      - { codeId: 1441, unlockLevel: 20, stage: 1 }
+      - { codeId: 1501, unlockLevel: 20, stage: 1 }
       - { codeId: 74, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
       - { codeId: 17, unlockLevel: 60, stage: 1 }
-      - { codeId: 1442, unlockLevel: 70, stage: 1 }
-      - { codeId: 1443, unlockLevel: 80, stage: 1 }
-      - { codeId: 1444, unlockLevel: 90, stage: 1 }
+      - { codeId: 1502, unlockLevel: 70, stage: 1 }
+      - { codeId: 1503, unlockLevel: 80, stage: 1 }
+      - { codeId: 1504, unlockLevel: 90, stage: 1 }
     portrait: VOID_PRISM_CRYO_PORTRAIT
     standing: VOID_PRISM_CRYO_STANDING
 
@@ -1586,18 +1586,18 @@ enemies:
     intIncrementLvl: 2
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1440, normal: 1440, ultimate: 1447 }
+    codes: { passive: 1500, normal: 1500, ultimate: 1507 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
-      - { codeId: 1441, unlockLevel: 20, stage: 1 }
+      - { codeId: 1501, unlockLevel: 20, stage: 1 }
       - { codeId: 189, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
       - { codeId: 17, unlockLevel: 60, stage: 1 }
-      - { codeId: 1442, unlockLevel: 70, stage: 1 }
-      - { codeId: 1443, unlockLevel: 80, stage: 1 }
-      - { codeId: 1444, unlockLevel: 90, stage: 1 }
+      - { codeId: 1502, unlockLevel: 70, stage: 1 }
+      - { codeId: 1503, unlockLevel: 80, stage: 1 }
+      - { codeId: 1504, unlockLevel: 90, stage: 1 }
     portrait: VOID_PRISM_GEO_PORTRAIT
     standing: VOID_PRISM_GEO_STANDING
 
@@ -1624,11 +1624,11 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1450, normal: 1450, ultimate: 1450 }
+    codes: { passive: 1510, normal: 1510, ultimate: 1510 }
     levelPassives:
       - { codeId: 17,   unlockLevel: 10, stage: 1 }   # 예리함
-      - { codeId: 1451, unlockLevel: 30, stage: 1 }   # 가속
-      - { codeId: 1452, unlockLevel: 40, stage: 1 }   # 날카로운 부리
+      - { codeId: 1511, unlockLevel: 30, stage: 1 }   # 가속
+      - { codeId: 1512, unlockLevel: 40, stage: 1 }   # 날카로운 부리
       - { codeId: 28,   unlockLevel: 50, stage: 1 }   # 폭죽놀이
       - { codeId: 11,   unlockLevel: 60, stage: 1 }   # 천살성
       - { codeId: 51,   unlockLevel: 70, stage: 1 }   # 약자 멸시
@@ -1658,12 +1658,12 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1450, normal: 1450, ultimate: 1451 }
+    codes: { passive: 1510, normal: 1510, ultimate: 1511 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
       - { codeId: 58, unlockLevel: 20, stage: 1 }
-      - { codeId: 1451, unlockLevel: 30, stage: 1 }
-      - { codeId: 1452, unlockLevel: 40, stage: 1 }
+      - { codeId: 1511, unlockLevel: 30, stage: 1 }
+      - { codeId: 1512, unlockLevel: 40, stage: 1 }
       - { codeId: 28, unlockLevel: 50, stage: 1 }
       - { codeId: 11, unlockLevel: 60, stage: 1 }
       - { codeId: 51, unlockLevel: 70, stage: 1 }
@@ -1693,12 +1693,12 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1450, normal: 1450, ultimate: 1452 }
+    codes: { passive: 1510, normal: 1510, ultimate: 1512 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
       - { codeId: 186, unlockLevel: 20, stage: 1 }
-      - { codeId: 1451, unlockLevel: 30, stage: 1 }
-      - { codeId: 1452, unlockLevel: 40, stage: 1 }
+      - { codeId: 1511, unlockLevel: 30, stage: 1 }
+      - { codeId: 1512, unlockLevel: 40, stage: 1 }
       - { codeId: 28, unlockLevel: 50, stage: 1 }
       - { codeId: 11, unlockLevel: 60, stage: 1 }
       - { codeId: 51, unlockLevel: 70, stage: 1 }
@@ -1728,12 +1728,12 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1450, normal: 1450, ultimate: 1453 }
+    codes: { passive: 1510, normal: 1510, ultimate: 1513 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
       - { codeId: 187, unlockLevel: 20, stage: 1 }
-      - { codeId: 1451, unlockLevel: 30, stage: 1 }
-      - { codeId: 1452, unlockLevel: 40, stage: 1 }
+      - { codeId: 1511, unlockLevel: 30, stage: 1 }
+      - { codeId: 1512, unlockLevel: 40, stage: 1 }
       - { codeId: 28, unlockLevel: 50, stage: 1 }
       - { codeId: 11, unlockLevel: 60, stage: 1 }
       - { codeId: 51, unlockLevel: 70, stage: 1 }
@@ -1763,12 +1763,12 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1450, normal: 1450, ultimate: 1454 }
+    codes: { passive: 1510, normal: 1510, ultimate: 1514 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
       - { codeId: 57, unlockLevel: 20, stage: 1 }
-      - { codeId: 1451, unlockLevel: 30, stage: 1 }
-      - { codeId: 1452, unlockLevel: 40, stage: 1 }
+      - { codeId: 1511, unlockLevel: 30, stage: 1 }
+      - { codeId: 1512, unlockLevel: 40, stage: 1 }
       - { codeId: 28, unlockLevel: 50, stage: 1 }
       - { codeId: 11, unlockLevel: 60, stage: 1 }
       - { codeId: 51, unlockLevel: 70, stage: 1 }
@@ -1798,12 +1798,12 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1450, normal: 1450, ultimate: 1455 }
+    codes: { passive: 1510, normal: 1510, ultimate: 1515 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
       - { codeId: 188, unlockLevel: 20, stage: 1 }
-      - { codeId: 1451, unlockLevel: 30, stage: 1 }
-      - { codeId: 1452, unlockLevel: 40, stage: 1 }
+      - { codeId: 1511, unlockLevel: 30, stage: 1 }
+      - { codeId: 1512, unlockLevel: 40, stage: 1 }
       - { codeId: 28, unlockLevel: 50, stage: 1 }
       - { codeId: 11, unlockLevel: 60, stage: 1 }
       - { codeId: 51, unlockLevel: 70, stage: 1 }
@@ -1833,12 +1833,12 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1450, normal: 1450, ultimate: 1456 }
+    codes: { passive: 1510, normal: 1510, ultimate: 1516 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
       - { codeId: 74, unlockLevel: 20, stage: 1 }
-      - { codeId: 1451, unlockLevel: 30, stage: 1 }
-      - { codeId: 1452, unlockLevel: 40, stage: 1 }
+      - { codeId: 1511, unlockLevel: 30, stage: 1 }
+      - { codeId: 1512, unlockLevel: 40, stage: 1 }
       - { codeId: 28, unlockLevel: 50, stage: 1 }
       - { codeId: 11, unlockLevel: 60, stage: 1 }
       - { codeId: 51, unlockLevel: 70, stage: 1 }
@@ -1868,12 +1868,12 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1450, normal: 1450, ultimate: 1457 }
+    codes: { passive: 1510, normal: 1510, ultimate: 1517 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
       - { codeId: 189, unlockLevel: 20, stage: 1 }
-      - { codeId: 1451, unlockLevel: 30, stage: 1 }
-      - { codeId: 1452, unlockLevel: 40, stage: 1 }
+      - { codeId: 1511, unlockLevel: 30, stage: 1 }
+      - { codeId: 1512, unlockLevel: 40, stage: 1 }
       - { codeId: 28, unlockLevel: 50, stage: 1 }
       - { codeId: 11, unlockLevel: 60, stage: 1 }
       - { codeId: 51, unlockLevel: 70, stage: 1 }
@@ -1906,16 +1906,16 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1460, normal: 1460, ultimate: 1460 }
+    codes: { passive: 1520, normal: 1520, ultimate: 1520 }
     levelPassives:
-      - { codeId: 1461, unlockLevel: 10, stage: 1 }   # 바위피부
-      - { codeId: 1462, unlockLevel: 20, stage: 1 }   # 오만
+      - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
+      - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
       - { codeId: 41,   unlockLevel: 30, stage: 1 }   # 투사
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6,    unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
-      - { codeId: 1464, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
+      - { codeId: 1524, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
     portrait: VOID_BOAR_PORTRAIT
     standing: VOID_BOAR_STANDING
 
@@ -1939,17 +1939,17 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1460, normal: 1460, ultimate: 1461 }
+    codes: { passive: 1520, normal: 1520, ultimate: 1521 }
     levelPassives:
-      - { codeId: 1461, unlockLevel: 10, stage: 1 }   # 바위피부
-      - { codeId: 1462, unlockLevel: 20, stage: 1 }   # 오만
+      - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
+      - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
       - { codeId: 41,   unlockLevel: 30, stage: 1 }   # 투사
       - { codeId: 58,   unlockLevel: 40, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6,    unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
-      - { codeId: 1464, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
+      - { codeId: 1524, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
     portrait: VOID_BOAR_PYRO_PORTRAIT
     standing: VOID_BOAR_PYRO_STANDING
 
@@ -1973,17 +1973,17 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1460, normal: 1460, ultimate: 1462 }
+    codes: { passive: 1520, normal: 1520, ultimate: 1522 }
     levelPassives:
-      - { codeId: 1461, unlockLevel: 10, stage: 1 }   # 바위피부
-      - { codeId: 1462, unlockLevel: 20, stage: 1 }   # 오만
+      - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
+      - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
       - { codeId: 41,   unlockLevel: 30, stage: 1 }   # 투사
       - { codeId: 186,  unlockLevel: 40, stage: 1 }   # 원소 숙련 - 물
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6,    unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
-      - { codeId: 1464, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
+      - { codeId: 1524, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
     portrait: VOID_BOAR_HYDRO_PORTRAIT
     standing: VOID_BOAR_HYDRO_STANDING
 
@@ -2007,17 +2007,17 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1460, normal: 1460, ultimate: 1463 }
+    codes: { passive: 1520, normal: 1520, ultimate: 1523 }
     levelPassives:
-      - { codeId: 1461, unlockLevel: 10, stage: 1 }   # 바위피부
-      - { codeId: 1462, unlockLevel: 20, stage: 1 }   # 오만
+      - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
+      - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
       - { codeId: 41,   unlockLevel: 30, stage: 1 }   # 투사
       - { codeId: 187,  unlockLevel: 40, stage: 1 }   # 원소 숙련 - 바람
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6,    unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
-      - { codeId: 1464, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
+      - { codeId: 1524, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
     portrait: VOID_BOAR_ANEMO_PORTRAIT
     standing: VOID_BOAR_ANEMO_STANDING
 
@@ -2041,17 +2041,17 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1460, normal: 1460, ultimate: 1464 }
+    codes: { passive: 1520, normal: 1520, ultimate: 1524 }
     levelPassives:
-      - { codeId: 1461, unlockLevel: 10, stage: 1 }   # 바위피부
-      - { codeId: 1462, unlockLevel: 20, stage: 1 }   # 오만
+      - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
+      - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
       - { codeId: 41,   unlockLevel: 30, stage: 1 }   # 투사
       - { codeId: 57,   unlockLevel: 40, stage: 1 }   # 원소 숙련 - 번개
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6,    unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
-      - { codeId: 1464, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
+      - { codeId: 1524, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
     portrait: VOID_BOAR_ELECTRO_PORTRAIT
     standing: VOID_BOAR_ELECTRO_STANDING
 
@@ -2075,17 +2075,17 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1460, normal: 1460, ultimate: 1465 }
+    codes: { passive: 1520, normal: 1520, ultimate: 1525 }
     levelPassives:
-      - { codeId: 1461, unlockLevel: 10, stage: 1 }   # 바위피부
-      - { codeId: 1462, unlockLevel: 20, stage: 1 }   # 오만
+      - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
+      - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
       - { codeId: 41,   unlockLevel: 30, stage: 1 }   # 투사
       - { codeId: 188,  unlockLevel: 40, stage: 1 }   # 원소 숙련 - 풀
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6,    unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
-      - { codeId: 1464, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
+      - { codeId: 1524, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
     portrait: VOID_BOAR_DENDRO_PORTRAIT
     standing: VOID_BOAR_DENDRO_STANDING
 
@@ -2109,17 +2109,17 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1460, normal: 1460, ultimate: 1466 }
+    codes: { passive: 1520, normal: 1520, ultimate: 1526 }
     levelPassives:
-      - { codeId: 1461, unlockLevel: 10, stage: 1 }   # 바위피부
-      - { codeId: 1462, unlockLevel: 20, stage: 1 }   # 오만
+      - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
+      - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
       - { codeId: 41,   unlockLevel: 30, stage: 1 }   # 투사
       - { codeId: 74,   unlockLevel: 40, stage: 1 }   # 원소 숙련 - 얼음
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6,    unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
-      - { codeId: 1464, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
+      - { codeId: 1524, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
     portrait: VOID_BOAR_CRYO_PORTRAIT
     standing: VOID_BOAR_CRYO_STANDING
 
@@ -2143,17 +2143,17 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1460, normal: 1460, ultimate: 1467 }
+    codes: { passive: 1520, normal: 1520, ultimate: 1527 }
     levelPassives:
-      - { codeId: 1461, unlockLevel: 10, stage: 1 }   # 바위피부
-      - { codeId: 1462, unlockLevel: 20, stage: 1 }   # 오만
+      - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
+      - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
       - { codeId: 41,   unlockLevel: 30, stage: 1 }   # 투사
       - { codeId: 189,  unlockLevel: 40, stage: 1 }   # 원소 숙련 - 바위
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6,    unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
-      - { codeId: 1464, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
+      - { codeId: 1524, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
     portrait: VOID_BOAR_GEO_PORTRAIT
     standing: VOID_BOAR_GEO_STANDING
 
@@ -2180,15 +2180,15 @@ enemies:
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
-    codes: { passive: 1470, normal: 1470, ultimate: 1470 }
+    codes: { passive: 1530, normal: 1530, ultimate: 1530 }
     levelPassives:
-      - { codeId: 1471, unlockLevel: 10, stage: 1 }   # 흡혈귀
+      - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
       - { codeId: 17,   unlockLevel: 20, stage: 1 }   # 예리함
       - { codeId: 27,   unlockLevel: 30, stage: 1 }   # 투명
-      - { codeId: 1472, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
+      - { codeId: 1532, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
       - { codeId: 1016, unlockLevel: 50, stage: 1 }   # 저주
       - { codeId: 51,   unlockLevel: 60, stage: 1 }   # 약자 멸시
-      - { codeId: 1451, unlockLevel: 70, stage: 1 }   # 가속
+      - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1424, unlockLevel: 90, stage: 1 }   # 강타
     portrait: VOID_WOLF_PORTRAIT
@@ -2214,16 +2214,16 @@ enemies:
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
-    codes: { passive: 1470, normal: 1470, ultimate: 1471 }
+    codes: { passive: 1530, normal: 1530, ultimate: 1531 }
     levelPassives:
-      - { codeId: 1471, unlockLevel: 10, stage: 1 }   # 흡혈귀
+      - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
       - { codeId: 17,   unlockLevel: 20, stage: 1 }   # 예리함
       - { codeId: 58,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 27,   unlockLevel: 30, stage: 1 }   # 투명
-      - { codeId: 1472, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
+      - { codeId: 1532, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
       - { codeId: 1016, unlockLevel: 50, stage: 1 }   # 저주
       - { codeId: 51,   unlockLevel: 60, stage: 1 }   # 약자 멸시
-      - { codeId: 1451, unlockLevel: 70, stage: 1 }   # 가속
+      - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1424, unlockLevel: 90, stage: 1 }   # 강타
     portrait: VOID_WOLF_PYRO_PORTRAIT
@@ -2249,16 +2249,16 @@ enemies:
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
-    codes: { passive: 1470, normal: 1470, ultimate: 1472 }
+    codes: { passive: 1530, normal: 1530, ultimate: 1532 }
     levelPassives:
-      - { codeId: 1471, unlockLevel: 10, stage: 1 }   # 흡혈귀
+      - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
       - { codeId: 17,   unlockLevel: 20, stage: 1 }   # 예리함
       - { codeId: 186,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
       - { codeId: 27,   unlockLevel: 30, stage: 1 }   # 투명
-      - { codeId: 1472, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
+      - { codeId: 1532, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
       - { codeId: 1016, unlockLevel: 50, stage: 1 }   # 저주
       - { codeId: 51,   unlockLevel: 60, stage: 1 }   # 약자 멸시
-      - { codeId: 1451, unlockLevel: 70, stage: 1 }   # 가속
+      - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1424, unlockLevel: 90, stage: 1 }   # 강타
     portrait: VOID_WOLF_HYDRO_PORTRAIT
@@ -2284,16 +2284,16 @@ enemies:
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
-    codes: { passive: 1470, normal: 1470, ultimate: 1473 }
+    codes: { passive: 1530, normal: 1530, ultimate: 1533 }
     levelPassives:
-      - { codeId: 1471, unlockLevel: 10, stage: 1 }   # 흡혈귀
+      - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
       - { codeId: 17,   unlockLevel: 20, stage: 1 }   # 예리함
       - { codeId: 187,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
       - { codeId: 27,   unlockLevel: 30, stage: 1 }   # 투명
-      - { codeId: 1472, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
+      - { codeId: 1532, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
       - { codeId: 1016, unlockLevel: 50, stage: 1 }   # 저주
       - { codeId: 51,   unlockLevel: 60, stage: 1 }   # 약자 멸시
-      - { codeId: 1451, unlockLevel: 70, stage: 1 }   # 가속
+      - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1424, unlockLevel: 90, stage: 1 }   # 강타
     portrait: VOID_WOLF_ANEMO_PORTRAIT
@@ -2319,16 +2319,16 @@ enemies:
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
-    codes: { passive: 1470, normal: 1470, ultimate: 1474 }
+    codes: { passive: 1530, normal: 1530, ultimate: 1534 }
     levelPassives:
-      - { codeId: 1471, unlockLevel: 10, stage: 1 }   # 흡혈귀
+      - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
       - { codeId: 17,   unlockLevel: 20, stage: 1 }   # 예리함
       - { codeId: 57,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 번개
       - { codeId: 27,   unlockLevel: 30, stage: 1 }   # 투명
-      - { codeId: 1472, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
+      - { codeId: 1532, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
       - { codeId: 1016, unlockLevel: 50, stage: 1 }   # 저주
       - { codeId: 51,   unlockLevel: 60, stage: 1 }   # 약자 멸시
-      - { codeId: 1451, unlockLevel: 70, stage: 1 }   # 가속
+      - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1424, unlockLevel: 90, stage: 1 }   # 강타
     portrait: VOID_WOLF_ELECTRO_PORTRAIT
@@ -2354,16 +2354,16 @@ enemies:
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
-    codes: { passive: 1470, normal: 1470, ultimate: 1475 }
+    codes: { passive: 1530, normal: 1530, ultimate: 1535 }
     levelPassives:
-      - { codeId: 1471, unlockLevel: 10, stage: 1 }   # 흡혈귀
+      - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
       - { codeId: 17,   unlockLevel: 20, stage: 1 }   # 예리함
       - { codeId: 188,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
       - { codeId: 27,   unlockLevel: 30, stage: 1 }   # 투명
-      - { codeId: 1472, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
+      - { codeId: 1532, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
       - { codeId: 1016, unlockLevel: 50, stage: 1 }   # 저주
       - { codeId: 51,   unlockLevel: 60, stage: 1 }   # 약자 멸시
-      - { codeId: 1451, unlockLevel: 70, stage: 1 }   # 가속
+      - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1424, unlockLevel: 90, stage: 1 }   # 강타
     portrait: VOID_WOLF_DENDRO_PORTRAIT
@@ -2389,16 +2389,16 @@ enemies:
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
-    codes: { passive: 1470, normal: 1470, ultimate: 1476 }
+    codes: { passive: 1530, normal: 1530, ultimate: 1536 }
     levelPassives:
-      - { codeId: 1471, unlockLevel: 10, stage: 1 }   # 흡혈귀
+      - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
       - { codeId: 17,   unlockLevel: 20, stage: 1 }   # 예리함
       - { codeId: 74,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
       - { codeId: 27,   unlockLevel: 30, stage: 1 }   # 투명
-      - { codeId: 1472, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
+      - { codeId: 1532, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
       - { codeId: 1016, unlockLevel: 50, stage: 1 }   # 저주
       - { codeId: 51,   unlockLevel: 60, stage: 1 }   # 약자 멸시
-      - { codeId: 1451, unlockLevel: 70, stage: 1 }   # 가속
+      - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1424, unlockLevel: 90, stage: 1 }   # 강타
     portrait: VOID_WOLF_CRYO_PORTRAIT
@@ -2424,16 +2424,16 @@ enemies:
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
-    codes: { passive: 1470, normal: 1470, ultimate: 1477 }
+    codes: { passive: 1530, normal: 1530, ultimate: 1537 }
     levelPassives:
-      - { codeId: 1471, unlockLevel: 10, stage: 1 }   # 흡혈귀
+      - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
       - { codeId: 17,   unlockLevel: 20, stage: 1 }   # 예리함
       - { codeId: 189,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
       - { codeId: 27,   unlockLevel: 30, stage: 1 }   # 투명
-      - { codeId: 1472, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
+      - { codeId: 1532, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
       - { codeId: 1016, unlockLevel: 50, stage: 1 }   # 저주
       - { codeId: 51,   unlockLevel: 60, stage: 1 }   # 약자 멸시
-      - { codeId: 1451, unlockLevel: 70, stage: 1 }   # 가속
+      - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1424, unlockLevel: 90, stage: 1 }   # 강타
     portrait: VOID_WOLF_GEO_PORTRAIT
@@ -2462,17 +2462,17 @@ enemies:
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
-    codes: { passive: 1490, normal: 1490, ultimate: 1490 }
+    codes: { passive: 1550, normal: 1550, ultimate: 1550 }
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
       - { codeId: 1, unlockLevel: 20, stage: 1 }   # 성채
       - { codeId: 9, unlockLevel: 30, stage: 1 }   # 검의 달인
-      - { codeId: 1461, unlockLevel: 40, stage: 1 }   # 바위피부
+      - { codeId: 1521, unlockLevel: 40, stage: 1 }   # 바위피부
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6, unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29, unlockLevel: 80, stage: 1 }   # 파죽지세
-      - { codeId: 1462, unlockLevel: 90, stage: 1 }   # 오만
+      - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 오만
     portrait: VOID_KNIGHT_PORTRAIT
     standing: VOID_KNIGHT_STANDING
 
@@ -2496,18 +2496,18 @@ enemies:
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
-    codes: { passive: 1490, normal: 1490, ultimate: 1491 }
+    codes: { passive: 1550, normal: 1550, ultimate: 1551 }
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
       - { codeId: 1, unlockLevel: 20, stage: 1 }   # 성채
       - { codeId: 58, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 9, unlockLevel: 30, stage: 1 }   # 검의 달인
-      - { codeId: 1461, unlockLevel: 40, stage: 1 }   # 바위피부
+      - { codeId: 1521, unlockLevel: 40, stage: 1 }   # 바위피부
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6, unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29, unlockLevel: 80, stage: 1 }   # 파죽지세
-      - { codeId: 1462, unlockLevel: 90, stage: 1 }   # 오만
+      - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 오만
     portrait: VOID_KNIGHT_PYRO_PORTRAIT
     standing: VOID_KNIGHT_PYRO_STANDING
 
@@ -2531,18 +2531,18 @@ enemies:
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
-    codes: { passive: 1490, normal: 1490, ultimate: 1492 }
+    codes: { passive: 1550, normal: 1550, ultimate: 1552 }
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
       - { codeId: 1, unlockLevel: 20, stage: 1 }   # 성채
       - { codeId: 186, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
       - { codeId: 9, unlockLevel: 30, stage: 1 }   # 검의 달인
-      - { codeId: 1461, unlockLevel: 40, stage: 1 }   # 바위피부
+      - { codeId: 1521, unlockLevel: 40, stage: 1 }   # 바위피부
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6, unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29, unlockLevel: 80, stage: 1 }   # 파죽지세
-      - { codeId: 1462, unlockLevel: 90, stage: 1 }   # 오만
+      - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 오만
     portrait: VOID_KNIGHT_HYDRO_PORTRAIT
     standing: VOID_KNIGHT_HYDRO_STANDING
 
@@ -2566,18 +2566,18 @@ enemies:
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
-    codes: { passive: 1490, normal: 1490, ultimate: 1493 }
+    codes: { passive: 1550, normal: 1550, ultimate: 1553 }
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
       - { codeId: 1, unlockLevel: 20, stage: 1 }   # 성채
       - { codeId: 187, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
       - { codeId: 9, unlockLevel: 30, stage: 1 }   # 검의 달인
-      - { codeId: 1461, unlockLevel: 40, stage: 1 }   # 바위피부
+      - { codeId: 1521, unlockLevel: 40, stage: 1 }   # 바위피부
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6, unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29, unlockLevel: 80, stage: 1 }   # 파죽지세
-      - { codeId: 1462, unlockLevel: 90, stage: 1 }   # 오만
+      - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 오만
     portrait: VOID_KNIGHT_ANEMO_PORTRAIT
     standing: VOID_KNIGHT_ANEMO_STANDING
 
@@ -2601,18 +2601,18 @@ enemies:
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
-    codes: { passive: 1490, normal: 1490, ultimate: 1494 }
+    codes: { passive: 1550, normal: 1550, ultimate: 1554 }
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
       - { codeId: 1, unlockLevel: 20, stage: 1 }   # 성채
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 번개
       - { codeId: 9, unlockLevel: 30, stage: 1 }   # 검의 달인
-      - { codeId: 1461, unlockLevel: 40, stage: 1 }   # 바위피부
+      - { codeId: 1521, unlockLevel: 40, stage: 1 }   # 바위피부
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6, unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29, unlockLevel: 80, stage: 1 }   # 파죽지세
-      - { codeId: 1462, unlockLevel: 90, stage: 1 }   # 오만
+      - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 오만
     portrait: VOID_KNIGHT_ELECTRO_PORTRAIT
     standing: VOID_KNIGHT_ELECTRO_STANDING
 
@@ -2636,18 +2636,18 @@ enemies:
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
-    codes: { passive: 1490, normal: 1490, ultimate: 1495 }
+    codes: { passive: 1550, normal: 1550, ultimate: 1555 }
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
       - { codeId: 1, unlockLevel: 20, stage: 1 }   # 성채
       - { codeId: 188, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
       - { codeId: 9, unlockLevel: 30, stage: 1 }   # 검의 달인
-      - { codeId: 1461, unlockLevel: 40, stage: 1 }   # 바위피부
+      - { codeId: 1521, unlockLevel: 40, stage: 1 }   # 바위피부
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6, unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29, unlockLevel: 80, stage: 1 }   # 파죽지세
-      - { codeId: 1462, unlockLevel: 90, stage: 1 }   # 오만
+      - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 오만
     portrait: VOID_KNIGHT_DENDRO_PORTRAIT
     standing: VOID_KNIGHT_DENDRO_STANDING
 
@@ -2671,18 +2671,18 @@ enemies:
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
-    codes: { passive: 1490, normal: 1490, ultimate: 1496 }
+    codes: { passive: 1550, normal: 1550, ultimate: 1556 }
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
       - { codeId: 1, unlockLevel: 20, stage: 1 }   # 성채
       - { codeId: 74, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
       - { codeId: 9, unlockLevel: 30, stage: 1 }   # 검의 달인
-      - { codeId: 1461, unlockLevel: 40, stage: 1 }   # 바위피부
+      - { codeId: 1521, unlockLevel: 40, stage: 1 }   # 바위피부
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6, unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29, unlockLevel: 80, stage: 1 }   # 파죽지세
-      - { codeId: 1462, unlockLevel: 90, stage: 1 }   # 오만
+      - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 오만
     portrait: VOID_KNIGHT_CRYO_PORTRAIT
     standing: VOID_KNIGHT_CRYO_STANDING
 
@@ -2706,18 +2706,18 @@ enemies:
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
-    codes: { passive: 1490, normal: 1490, ultimate: 1497 }
+    codes: { passive: 1550, normal: 1550, ultimate: 1557 }
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
       - { codeId: 1, unlockLevel: 20, stage: 1 }   # 성채
       - { codeId: 189, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
       - { codeId: 9, unlockLevel: 30, stage: 1 }   # 검의 달인
-      - { codeId: 1461, unlockLevel: 40, stage: 1 }   # 바위피부
+      - { codeId: 1521, unlockLevel: 40, stage: 1 }   # 바위피부
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6, unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29, unlockLevel: 80, stage: 1 }   # 파죽지세
-      - { codeId: 1462, unlockLevel: 90, stage: 1 }   # 오만
+      - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 오만
     portrait: VOID_KNIGHT_GEO_PORTRAIT
     standing: VOID_KNIGHT_GEO_STANDING
 
@@ -2744,14 +2744,14 @@ enemies:
     intBase: 6
     lukBase: 18
     lukIncrementLvl: 1
-    codes: { passive: 1500, normal: 1500, ultimate: 1500 }
+    codes: { passive: 1560, normal: 1560, ultimate: 1560 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 49, unlockLevel: 20, stage: 1 }   # 저격수
       - { codeId: 45, unlockLevel: 30, stage: 1 }   # 민첩함
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
-      - { codeId: 86, unlockLevel: 50, stage: 1 }   # 관통사격
-      - { codeId: 1451, unlockLevel: 60, stage: 1 }   # 가속
+      - { codeId: 86, unlockLevel: 50, stage: 1 }   # 빈틈의 실
+      - { codeId: 1511, unlockLevel: 60, stage: 1 }   # 가속
       - { codeId: 51, unlockLevel: 70, stage: 1 }   # 약자 멸시
       - { codeId: 28, unlockLevel: 80, stage: 1 }   # 폭죽놀이
       - { codeId: 11, unlockLevel: 90, stage: 1 }   # 천살성
@@ -2778,15 +2778,15 @@ enemies:
     intBase: 6
     lukBase: 18
     lukIncrementLvl: 1
-    codes: { passive: 1500, normal: 1500, ultimate: 1501 }
+    codes: { passive: 1560, normal: 1560, ultimate: 1561 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 49, unlockLevel: 20, stage: 1 }   # 저격수
       - { codeId: 58, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 45, unlockLevel: 30, stage: 1 }   # 민첩함
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
-      - { codeId: 86, unlockLevel: 50, stage: 1 }   # 관통사격
-      - { codeId: 1451, unlockLevel: 60, stage: 1 }   # 가속
+      - { codeId: 86, unlockLevel: 50, stage: 1 }   # 빈틈의 실
+      - { codeId: 1511, unlockLevel: 60, stage: 1 }   # 가속
       - { codeId: 51, unlockLevel: 70, stage: 1 }   # 약자 멸시
       - { codeId: 28, unlockLevel: 80, stage: 1 }   # 폭죽놀이
       - { codeId: 11, unlockLevel: 90, stage: 1 }   # 천살성
@@ -2813,15 +2813,15 @@ enemies:
     intBase: 6
     lukBase: 18
     lukIncrementLvl: 1
-    codes: { passive: 1500, normal: 1500, ultimate: 1502 }
+    codes: { passive: 1560, normal: 1560, ultimate: 1562 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 49, unlockLevel: 20, stage: 1 }   # 저격수
       - { codeId: 186, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
       - { codeId: 45, unlockLevel: 30, stage: 1 }   # 민첩함
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
-      - { codeId: 86, unlockLevel: 50, stage: 1 }   # 관통사격
-      - { codeId: 1451, unlockLevel: 60, stage: 1 }   # 가속
+      - { codeId: 86, unlockLevel: 50, stage: 1 }   # 빈틈의 실
+      - { codeId: 1511, unlockLevel: 60, stage: 1 }   # 가속
       - { codeId: 51, unlockLevel: 70, stage: 1 }   # 약자 멸시
       - { codeId: 28, unlockLevel: 80, stage: 1 }   # 폭죽놀이
       - { codeId: 11, unlockLevel: 90, stage: 1 }   # 천살성
@@ -2848,15 +2848,15 @@ enemies:
     intBase: 6
     lukBase: 18
     lukIncrementLvl: 1
-    codes: { passive: 1500, normal: 1500, ultimate: 1503 }
+    codes: { passive: 1560, normal: 1560, ultimate: 1563 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 49, unlockLevel: 20, stage: 1 }   # 저격수
       - { codeId: 187, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
       - { codeId: 45, unlockLevel: 30, stage: 1 }   # 민첩함
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
-      - { codeId: 86, unlockLevel: 50, stage: 1 }   # 관통사격
-      - { codeId: 1451, unlockLevel: 60, stage: 1 }   # 가속
+      - { codeId: 86, unlockLevel: 50, stage: 1 }   # 빈틈의 실
+      - { codeId: 1511, unlockLevel: 60, stage: 1 }   # 가속
       - { codeId: 51, unlockLevel: 70, stage: 1 }   # 약자 멸시
       - { codeId: 28, unlockLevel: 80, stage: 1 }   # 폭죽놀이
       - { codeId: 11, unlockLevel: 90, stage: 1 }   # 천살성
@@ -2883,15 +2883,15 @@ enemies:
     intBase: 6
     lukBase: 18
     lukIncrementLvl: 1
-    codes: { passive: 1500, normal: 1500, ultimate: 1504 }
+    codes: { passive: 1560, normal: 1560, ultimate: 1564 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 49, unlockLevel: 20, stage: 1 }   # 저격수
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 번개
       - { codeId: 45, unlockLevel: 30, stage: 1 }   # 민첩함
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
-      - { codeId: 86, unlockLevel: 50, stage: 1 }   # 관통사격
-      - { codeId: 1451, unlockLevel: 60, stage: 1 }   # 가속
+      - { codeId: 86, unlockLevel: 50, stage: 1 }   # 빈틈의 실
+      - { codeId: 1511, unlockLevel: 60, stage: 1 }   # 가속
       - { codeId: 51, unlockLevel: 70, stage: 1 }   # 약자 멸시
       - { codeId: 28, unlockLevel: 80, stage: 1 }   # 폭죽놀이
       - { codeId: 11, unlockLevel: 90, stage: 1 }   # 천살성
@@ -2919,15 +2919,15 @@ enemies:
     intBase: 6
     lukBase: 18
     lukIncrementLvl: 1
-    codes: { passive: 1500, normal: 1500, ultimate: 1505 }
+    codes: { passive: 1560, normal: 1560, ultimate: 1565 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 49, unlockLevel: 20, stage: 1 }   # 저격수
       - { codeId: 188, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
       - { codeId: 45, unlockLevel: 30, stage: 1 }   # 민첩함
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
-      - { codeId: 86, unlockLevel: 50, stage: 1 }   # 관통사격
-      - { codeId: 1451, unlockLevel: 60, stage: 1 }   # 가속
+      - { codeId: 86, unlockLevel: 50, stage: 1 }   # 빈틈의 실
+      - { codeId: 1511, unlockLevel: 60, stage: 1 }   # 가속
       - { codeId: 51, unlockLevel: 70, stage: 1 }   # 약자 멸시
       - { codeId: 28, unlockLevel: 80, stage: 1 }   # 폭죽놀이
       - { codeId: 11, unlockLevel: 90, stage: 1 }   # 천살성
@@ -2954,15 +2954,15 @@ enemies:
     intBase: 6
     lukBase: 18
     lukIncrementLvl: 1
-    codes: { passive: 1500, normal: 1500, ultimate: 1506 }
+    codes: { passive: 1560, normal: 1560, ultimate: 1566 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 49, unlockLevel: 20, stage: 1 }   # 저격수
       - { codeId: 74, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
       - { codeId: 45, unlockLevel: 30, stage: 1 }   # 민첩함
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
-      - { codeId: 86, unlockLevel: 50, stage: 1 }   # 관통사격
-      - { codeId: 1451, unlockLevel: 60, stage: 1 }   # 가속
+      - { codeId: 86, unlockLevel: 50, stage: 1 }   # 빈틈의 실
+      - { codeId: 1511, unlockLevel: 60, stage: 1 }   # 가속
       - { codeId: 51, unlockLevel: 70, stage: 1 }   # 약자 멸시
       - { codeId: 28, unlockLevel: 80, stage: 1 }   # 폭죽놀이
       - { codeId: 11, unlockLevel: 90, stage: 1 }   # 천살성
@@ -2989,15 +2989,15 @@ enemies:
     intBase: 6
     lukBase: 18
     lukIncrementLvl: 1
-    codes: { passive: 1500, normal: 1500, ultimate: 1507 }
+    codes: { passive: 1560, normal: 1560, ultimate: 1567 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 49, unlockLevel: 20, stage: 1 }   # 저격수
       - { codeId: 189, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
       - { codeId: 45, unlockLevel: 30, stage: 1 }   # 민첩함
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
-      - { codeId: 86, unlockLevel: 50, stage: 1 }   # 관통사격
-      - { codeId: 1451, unlockLevel: 60, stage: 1 }   # 가속
+      - { codeId: 86, unlockLevel: 50, stage: 1 }   # 빈틈의 실
+      - { codeId: 1511, unlockLevel: 60, stage: 1 }   # 가속
       - { codeId: 51, unlockLevel: 70, stage: 1 }   # 약자 멸시
       - { codeId: 28, unlockLevel: 80, stage: 1 }   # 폭죽놀이
       - { codeId: 11, unlockLevel: 90, stage: 1 }   # 천살성
@@ -3029,15 +3029,15 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
-    codes: { passive: 1510, normal: 1510, ultimate: 1510 }
+    codes: { passive: 1570, normal: 1570, ultimate: 1570 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
       - { codeId: 6, unlockLevel: 20, stage: 1 }   # 철벽
-      - { codeId: 1461, unlockLevel: 30, stage: 1 }   # 바위피부
+      - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 바위피부
       - { codeId: 2, unlockLevel: 40, stage: 1 }   # 기사회생
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
-      - { codeId: 1511, unlockLevel: 60, stage: 1 }   # 방진
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1571, unlockLevel: 60, stage: 1 }   # 방진
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 22, unlockLevel: 80, stage: 1 }   # 파수꾼
       - { codeId: 103, unlockLevel: 90, stage: 1 }   # 완벽한 재기 — 기사회생 대체
     portrait: VOID_VANGUARD_PORTRAIT
@@ -3063,16 +3063,16 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
-    codes: { passive: 1510, normal: 1510, ultimate: 1510 }
+    codes: { passive: 1570, normal: 1570, ultimate: 1570 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
       - { codeId: 6, unlockLevel: 20, stage: 1 }   # 철벽
       - { codeId: 58, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
-      - { codeId: 1461, unlockLevel: 30, stage: 1 }   # 바위피부
+      - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 바위피부
       - { codeId: 2, unlockLevel: 40, stage: 1 }   # 기사회생
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
-      - { codeId: 1511, unlockLevel: 60, stage: 1 }   # 방진
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1571, unlockLevel: 60, stage: 1 }   # 방진
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 22, unlockLevel: 80, stage: 1 }   # 파수꾼
       - { codeId: 103, unlockLevel: 90, stage: 1 }   # 완벽한 재기 — 기사회생 대체
     portrait: VOID_VANGUARD_PYRO_PORTRAIT
@@ -3099,16 +3099,16 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
-    codes: { passive: 1510, normal: 1510, ultimate: 1510 }
+    codes: { passive: 1570, normal: 1570, ultimate: 1570 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
       - { codeId: 6, unlockLevel: 20, stage: 1 }   # 철벽
       - { codeId: 186, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
-      - { codeId: 1461, unlockLevel: 30, stage: 1 }   # 바위피부
+      - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 바위피부
       - { codeId: 2, unlockLevel: 40, stage: 1 }   # 기사회생
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
-      - { codeId: 1511, unlockLevel: 60, stage: 1 }   # 방진
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1571, unlockLevel: 60, stage: 1 }   # 방진
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 22, unlockLevel: 80, stage: 1 }   # 파수꾼
       - { codeId: 103, unlockLevel: 90, stage: 1 }   # 완벽한 재기 — 기사회생 대체
     portrait: VOID_VANGUARD_HYDRO_PORTRAIT
@@ -3134,16 +3134,16 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
-    codes: { passive: 1510, normal: 1510, ultimate: 1510 }
+    codes: { passive: 1570, normal: 1570, ultimate: 1570 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
       - { codeId: 6, unlockLevel: 20, stage: 1 }   # 철벽
       - { codeId: 187, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
-      - { codeId: 1461, unlockLevel: 30, stage: 1 }   # 바위피부
+      - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 바위피부
       - { codeId: 2, unlockLevel: 40, stage: 1 }   # 기사회생
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
-      - { codeId: 1511, unlockLevel: 60, stage: 1 }   # 방진
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1571, unlockLevel: 60, stage: 1 }   # 방진
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 22, unlockLevel: 80, stage: 1 }   # 파수꾼
       - { codeId: 103, unlockLevel: 90, stage: 1 }   # 완벽한 재기 — 기사회생 대체
     portrait: VOID_VANGUARD_ANEMO_PORTRAIT
@@ -3169,16 +3169,16 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
-    codes: { passive: 1510, normal: 1510, ultimate: 1510 }
+    codes: { passive: 1570, normal: 1570, ultimate: 1570 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
       - { codeId: 6, unlockLevel: 20, stage: 1 }   # 철벽
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 번개
-      - { codeId: 1461, unlockLevel: 30, stage: 1 }   # 바위피부
+      - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 바위피부
       - { codeId: 2, unlockLevel: 40, stage: 1 }   # 기사회생
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
-      - { codeId: 1511, unlockLevel: 60, stage: 1 }   # 방진
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1571, unlockLevel: 60, stage: 1 }   # 방진
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 22, unlockLevel: 80, stage: 1 }   # 파수꾼
       - { codeId: 103, unlockLevel: 90, stage: 1 }   # 완벽한 재기 — 기사회생 대체
     portrait: VOID_VANGUARD_ELECTRO_PORTRAIT
@@ -3204,16 +3204,16 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
-    codes: { passive: 1510, normal: 1510, ultimate: 1510 }
+    codes: { passive: 1570, normal: 1570, ultimate: 1570 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
       - { codeId: 6, unlockLevel: 20, stage: 1 }   # 철벽
       - { codeId: 188, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
-      - { codeId: 1461, unlockLevel: 30, stage: 1 }   # 바위피부
+      - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 바위피부
       - { codeId: 2, unlockLevel: 40, stage: 1 }   # 기사회생
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
-      - { codeId: 1511, unlockLevel: 60, stage: 1 }   # 방진
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1571, unlockLevel: 60, stage: 1 }   # 방진
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 22, unlockLevel: 80, stage: 1 }   # 파수꾼
       - { codeId: 103, unlockLevel: 90, stage: 1 }   # 완벽한 재기 — 기사회생 대체
     portrait: VOID_VANGUARD_DENDRO_PORTRAIT
@@ -3239,16 +3239,16 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
-    codes: { passive: 1510, normal: 1510, ultimate: 1510 }
+    codes: { passive: 1570, normal: 1570, ultimate: 1570 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
       - { codeId: 6, unlockLevel: 20, stage: 1 }   # 철벽
       - { codeId: 74, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
-      - { codeId: 1461, unlockLevel: 30, stage: 1 }   # 바위피부
+      - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 바위피부
       - { codeId: 2, unlockLevel: 40, stage: 1 }   # 기사회생
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
-      - { codeId: 1511, unlockLevel: 60, stage: 1 }   # 방진
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1571, unlockLevel: 60, stage: 1 }   # 방진
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 22, unlockLevel: 80, stage: 1 }   # 파수꾼
       - { codeId: 103, unlockLevel: 90, stage: 1 }   # 완벽한 재기 — 기사회생 대체
     portrait: VOID_VANGUARD_CRYO_PORTRAIT
@@ -3274,16 +3274,16 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
-    codes: { passive: 1510, normal: 1510, ultimate: 1510 }
+    codes: { passive: 1570, normal: 1570, ultimate: 1570 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
       - { codeId: 6, unlockLevel: 20, stage: 1 }   # 철벽
       - { codeId: 189, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
-      - { codeId: 1461, unlockLevel: 30, stage: 1 }   # 바위피부
+      - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 바위피부
       - { codeId: 2, unlockLevel: 40, stage: 1 }   # 기사회생
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
-      - { codeId: 1511, unlockLevel: 60, stage: 1 }   # 방진
-      - { codeId: 1463, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
+      - { codeId: 1571, unlockLevel: 60, stage: 1 }   # 방진
+      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 22, unlockLevel: 80, stage: 1 }   # 파수꾼
       - { codeId: 103, unlockLevel: 90, stage: 1 }   # 완벽한 재기 — 기사회생 대체
     portrait: VOID_VANGUARD_GEO_PORTRAIT
@@ -3315,17 +3315,17 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1480, normal: 1480, ultimate: 1480 }
+    codes: { passive: 1540, normal: 1540, ultimate: 1540 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
-      - { codeId: 1481, unlockLevel: 20, stage: 1 }   # 알파 개체
-      - { codeId: 1482, unlockLevel: 30, stage: 1 }   # 폭풍
+      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
+      - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 11, unlockLevel: 50, stage: 1 }   # 천살성
-      - { codeId: 1483, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
-      - { codeId: 1484, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
-      - { codeId: 1485, unlockLevel: 80, stage: 1 }   # 위압감
-      - { codeId: 1486, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
+      - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
+      - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
+      - { codeId: 1546, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
     portrait: VOID_DEER_PORTRAIT
     standing: VOID_DEER_STANDING
 
@@ -3350,18 +3350,18 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1480, normal: 1481, ultimate: 1481 }
+    codes: { passive: 1540, normal: 1541, ultimate: 1541 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
-      - { codeId: 1481, unlockLevel: 20, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 58, unlockLevel: 25, stage: 1 }   # 원소 숙련
-      - { codeId: 1482, unlockLevel: 30, stage: 1 }   # 폭풍
+      - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 11, unlockLevel: 50, stage: 1 }   # 천살성
-      - { codeId: 1483, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
-      - { codeId: 1484, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
-      - { codeId: 1485, unlockLevel: 80, stage: 1 }   # 위압감
-      - { codeId: 1486, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
+      - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
+      - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
+      - { codeId: 1546, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
     portrait: VOID_DEER_PYRO_PORTRAIT
     standing: VOID_DEER_PYRO_STANDING
 
@@ -3386,18 +3386,18 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1480, normal: 1482, ultimate: 1482 }
+    codes: { passive: 1540, normal: 1542, ultimate: 1542 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
-      - { codeId: 1481, unlockLevel: 20, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 186, unlockLevel: 25, stage: 1 }   # 원소 숙련
-      - { codeId: 1482, unlockLevel: 30, stage: 1 }   # 폭풍
+      - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 11, unlockLevel: 50, stage: 1 }   # 천살성
-      - { codeId: 1483, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
-      - { codeId: 1484, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
-      - { codeId: 1485, unlockLevel: 80, stage: 1 }   # 위압감
-      - { codeId: 1486, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
+      - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
+      - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
+      - { codeId: 1546, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
     portrait: VOID_DEER_HYDRO_PORTRAIT
     standing: VOID_DEER_HYDRO_STANDING
 
@@ -3422,18 +3422,18 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1480, normal: 1483, ultimate: 1483 }
+    codes: { passive: 1540, normal: 1543, ultimate: 1543 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
-      - { codeId: 1481, unlockLevel: 20, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 187, unlockLevel: 25, stage: 1 }   # 원소 숙련
-      - { codeId: 1482, unlockLevel: 30, stage: 1 }   # 폭풍
+      - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 11, unlockLevel: 50, stage: 1 }   # 천살성
-      - { codeId: 1483, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
-      - { codeId: 1484, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
-      - { codeId: 1485, unlockLevel: 80, stage: 1 }   # 위압감
-      - { codeId: 1486, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
+      - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
+      - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
+      - { codeId: 1546, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
     portrait: VOID_DEER_ANEMO_PORTRAIT
     standing: VOID_DEER_ANEMO_STANDING
 
@@ -3458,18 +3458,18 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1480, normal: 1484, ultimate: 1484 }
+    codes: { passive: 1540, normal: 1544, ultimate: 1544 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
-      - { codeId: 1481, unlockLevel: 20, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
-      - { codeId: 1482, unlockLevel: 30, stage: 1 }   # 폭풍
+      - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 11, unlockLevel: 50, stage: 1 }   # 천살성
-      - { codeId: 1483, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
-      - { codeId: 1484, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
-      - { codeId: 1485, unlockLevel: 80, stage: 1 }   # 위압감
-      - { codeId: 1486, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
+      - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
+      - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
+      - { codeId: 1546, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
     portrait: VOID_DEER_ELECTRO_PORTRAIT
     standing: VOID_DEER_ELECTRO_STANDING
 
@@ -3494,18 +3494,18 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1480, normal: 1485, ultimate: 1485 }
+    codes: { passive: 1540, normal: 1545, ultimate: 1545 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
-      - { codeId: 1481, unlockLevel: 20, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 188, unlockLevel: 25, stage: 1 }   # 원소 숙련
-      - { codeId: 1482, unlockLevel: 30, stage: 1 }   # 폭풍
+      - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 11, unlockLevel: 50, stage: 1 }   # 천살성
-      - { codeId: 1483, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
-      - { codeId: 1484, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
-      - { codeId: 1485, unlockLevel: 80, stage: 1 }   # 위압감
-      - { codeId: 1486, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
+      - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
+      - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
+      - { codeId: 1546, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
     portrait: VOID_DEER_DENDRO_PORTRAIT
     standing: VOID_DEER_DENDRO_STANDING
 
@@ -3530,18 +3530,18 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1480, normal: 1486, ultimate: 1486 }
+    codes: { passive: 1540, normal: 1546, ultimate: 1546 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
-      - { codeId: 1481, unlockLevel: 20, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 74, unlockLevel: 25, stage: 1 }   # 원소 숙련
-      - { codeId: 1482, unlockLevel: 30, stage: 1 }   # 폭풍
+      - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 11, unlockLevel: 50, stage: 1 }   # 천살성
-      - { codeId: 1483, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
-      - { codeId: 1484, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
-      - { codeId: 1485, unlockLevel: 80, stage: 1 }   # 위압감
-      - { codeId: 1486, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
+      - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
+      - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
+      - { codeId: 1546, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
     portrait: VOID_DEER_CRYO_PORTRAIT
     standing: VOID_DEER_CRYO_STANDING
 
@@ -3566,18 +3566,18 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
-    codes: { passive: 1480, normal: 1487, ultimate: 1487 }
+    codes: { passive: 1540, normal: 1547, ultimate: 1547 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
-      - { codeId: 1481, unlockLevel: 20, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 189, unlockLevel: 25, stage: 1 }   # 원소 숙련
-      - { codeId: 1482, unlockLevel: 30, stage: 1 }   # 폭풍
+      - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 11, unlockLevel: 50, stage: 1 }   # 천살성
-      - { codeId: 1483, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
-      - { codeId: 1484, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
-      - { codeId: 1485, unlockLevel: 80, stage: 1 }   # 위압감
-      - { codeId: 1486, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
+      - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
+      - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
+      - { codeId: 1546, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
     portrait: VOID_DEER_GEO_PORTRAIT
     standing: VOID_DEER_GEO_STANDING
 
@@ -3604,17 +3604,17 @@ enemies:
     intBase: 8
     lukBase: 14
     lukIncrementLvl: 2
-    codes: { passive: 1520, normal: 1520, ultimate: 1520 }
+    codes: { passive: 1580, normal: 1580, ultimate: 1580 }
     levelPassives:
-      - { codeId: 1481, unlockLevel: 10, stage: 1 }   # 알파 개체
-      - { codeId: 1463, unlockLevel: 20, stage: 1 }   # 강철피부
-      - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 궁극의 신체
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
+      - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
       - { codeId: 103, unlockLevel: 40, stage: 1 }   # 완벽한 재기
-      - { codeId: 1460, unlockLevel: 50, stage: 1 }   # 우격다짐
+      - { codeId: 1520, unlockLevel: 50, stage: 1 }   # 우격다짐
       - { codeId: 6, unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 적응 장갑
-      - { codeId: 1486, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
-      - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
+      - { codeId: 1583, unlockLevel: 70, stage: 1 }   # 적응 장갑
+      - { codeId: 1546, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1582, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
     portrait: VOID_CRUSHER_PORTRAIT
     standing: VOID_CRUSHER_STANDING
 
@@ -3638,18 +3638,18 @@ enemies:
     intBase: 8
     lukBase: 14
     lukIncrementLvl: 2
-    codes: { passive: 1520, normal: 1520, ultimate: 1521 }
+    codes: { passive: 1580, normal: 1580, ultimate: 1581 }
     levelPassives:
-      - { codeId: 1481, unlockLevel: 10, stage: 1 }   # 알파 개체
-      - { codeId: 1463, unlockLevel: 20, stage: 1 }   # 강철피부
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
       - { codeId: 58, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
-      - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 궁극의 신체
+      - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
       - { codeId: 103, unlockLevel: 40, stage: 1 }   # 완벽한 재기
-      - { codeId: 1460, unlockLevel: 50, stage: 1 }   # 우격다짐
+      - { codeId: 1520, unlockLevel: 50, stage: 1 }   # 우격다짐
       - { codeId: 6, unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 적응 장갑
-      - { codeId: 1486, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
-      - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
+      - { codeId: 1583, unlockLevel: 70, stage: 1 }   # 적응 장갑
+      - { codeId: 1546, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1582, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
     portrait: VOID_CRUSHER_PYRO_PORTRAIT
     standing: VOID_CRUSHER_PYRO_STANDING
 
@@ -3673,18 +3673,18 @@ enemies:
     intBase: 8
     lukBase: 14
     lukIncrementLvl: 2
-    codes: { passive: 1520, normal: 1520, ultimate: 1522 }
+    codes: { passive: 1580, normal: 1580, ultimate: 1582 }
     levelPassives:
-      - { codeId: 1481, unlockLevel: 10, stage: 1 }   # 알파 개체
-      - { codeId: 1463, unlockLevel: 20, stage: 1 }   # 강철피부
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
       - { codeId: 186, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
-      - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 궁극의 신체
+      - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
       - { codeId: 103, unlockLevel: 40, stage: 1 }   # 완벽한 재기
-      - { codeId: 1460, unlockLevel: 50, stage: 1 }   # 우격다짐
+      - { codeId: 1520, unlockLevel: 50, stage: 1 }   # 우격다짐
       - { codeId: 6, unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 적응 장갑
-      - { codeId: 1486, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
-      - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
+      - { codeId: 1583, unlockLevel: 70, stage: 1 }   # 적응 장갑
+      - { codeId: 1546, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1582, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
     portrait: VOID_CRUSHER_HYDRO_PORTRAIT
     standing: VOID_CRUSHER_HYDRO_STANDING
 
@@ -3708,18 +3708,18 @@ enemies:
     intBase: 8
     lukBase: 14
     lukIncrementLvl: 2
-    codes: { passive: 1520, normal: 1520, ultimate: 1523 }
+    codes: { passive: 1580, normal: 1580, ultimate: 1583 }
     levelPassives:
-      - { codeId: 1481, unlockLevel: 10, stage: 1 }   # 알파 개체
-      - { codeId: 1463, unlockLevel: 20, stage: 1 }   # 강철피부
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
       - { codeId: 187, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
-      - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 궁극의 신체
+      - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
       - { codeId: 103, unlockLevel: 40, stage: 1 }   # 완벽한 재기
-      - { codeId: 1460, unlockLevel: 50, stage: 1 }   # 우격다짐
+      - { codeId: 1520, unlockLevel: 50, stage: 1 }   # 우격다짐
       - { codeId: 6, unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 적응 장갑
-      - { codeId: 1486, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
-      - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
+      - { codeId: 1583, unlockLevel: 70, stage: 1 }   # 적응 장갑
+      - { codeId: 1546, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1582, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
     portrait: VOID_CRUSHER_ANEMO_PORTRAIT
     standing: VOID_CRUSHER_ANEMO_STANDING
 
@@ -3743,18 +3743,18 @@ enemies:
     intBase: 8
     lukBase: 14
     lukIncrementLvl: 2
-    codes: { passive: 1520, normal: 1520, ultimate: 1524 }
+    codes: { passive: 1580, normal: 1580, ultimate: 1584 }
     levelPassives:
-      - { codeId: 1481, unlockLevel: 10, stage: 1 }   # 알파 개체
-      - { codeId: 1463, unlockLevel: 20, stage: 1 }   # 강철피부
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 번개
-      - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 궁극의 신체
+      - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
       - { codeId: 103, unlockLevel: 40, stage: 1 }   # 완벽한 재기
-      - { codeId: 1460, unlockLevel: 50, stage: 1 }   # 우격다짐
+      - { codeId: 1520, unlockLevel: 50, stage: 1 }   # 우격다짐
       - { codeId: 6, unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 적응 장갑
-      - { codeId: 1486, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
-      - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
+      - { codeId: 1583, unlockLevel: 70, stage: 1 }   # 적응 장갑
+      - { codeId: 1546, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1582, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
     portrait: VOID_CRUSHER_ELECTRO_PORTRAIT
     standing: VOID_CRUSHER_ELECTRO_STANDING
 
@@ -3778,18 +3778,18 @@ enemies:
     intBase: 8
     lukBase: 14
     lukIncrementLvl: 2
-    codes: { passive: 1520, normal: 1520, ultimate: 1525 }
+    codes: { passive: 1580, normal: 1580, ultimate: 1585 }
     levelPassives:
-      - { codeId: 1481, unlockLevel: 10, stage: 1 }   # 알파 개체
-      - { codeId: 1463, unlockLevel: 20, stage: 1 }   # 강철피부
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
       - { codeId: 188, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
-      - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 궁극의 신체
+      - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
       - { codeId: 103, unlockLevel: 40, stage: 1 }   # 완벽한 재기
-      - { codeId: 1460, unlockLevel: 50, stage: 1 }   # 우격다짐
+      - { codeId: 1520, unlockLevel: 50, stage: 1 }   # 우격다짐
       - { codeId: 6, unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 적응 장갑
-      - { codeId: 1486, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
-      - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
+      - { codeId: 1583, unlockLevel: 70, stage: 1 }   # 적응 장갑
+      - { codeId: 1546, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1582, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
     portrait: VOID_CRUSHER_DENDRO_PORTRAIT
     standing: VOID_CRUSHER_DENDRO_STANDING
 
@@ -3813,18 +3813,18 @@ enemies:
     intBase: 8
     lukBase: 14
     lukIncrementLvl: 2
-    codes: { passive: 1520, normal: 1520, ultimate: 1526 }
+    codes: { passive: 1580, normal: 1580, ultimate: 1586 }
     levelPassives:
-      - { codeId: 1481, unlockLevel: 10, stage: 1 }   # 알파 개체
-      - { codeId: 1463, unlockLevel: 20, stage: 1 }   # 강철피부
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
       - { codeId: 74, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
-      - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 궁극의 신체
+      - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
       - { codeId: 103, unlockLevel: 40, stage: 1 }   # 완벽한 재기
-      - { codeId: 1460, unlockLevel: 50, stage: 1 }   # 우격다짐
+      - { codeId: 1520, unlockLevel: 50, stage: 1 }   # 우격다짐
       - { codeId: 6, unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 적응 장갑
-      - { codeId: 1486, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
-      - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
+      - { codeId: 1583, unlockLevel: 70, stage: 1 }   # 적응 장갑
+      - { codeId: 1546, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1582, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
     portrait: VOID_CRUSHER_CRYO_PORTRAIT
     standing: VOID_CRUSHER_CRYO_STANDING
 
@@ -3848,18 +3848,18 @@ enemies:
     intBase: 8
     lukBase: 14
     lukIncrementLvl: 2
-    codes: { passive: 1520, normal: 1520, ultimate: 1527 }
+    codes: { passive: 1580, normal: 1580, ultimate: 1587 }
     levelPassives:
-      - { codeId: 1481, unlockLevel: 10, stage: 1 }   # 알파 개체
-      - { codeId: 1463, unlockLevel: 20, stage: 1 }   # 강철피부
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
       - { codeId: 189, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
-      - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 궁극의 신체
+      - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
       - { codeId: 103, unlockLevel: 40, stage: 1 }   # 완벽한 재기
-      - { codeId: 1460, unlockLevel: 50, stage: 1 }   # 우격다짐
+      - { codeId: 1520, unlockLevel: 50, stage: 1 }   # 우격다짐
       - { codeId: 6, unlockLevel: 60, stage: 1 }   # 철벽
-      - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 적응 장갑
-      - { codeId: 1486, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
-      - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
+      - { codeId: 1583, unlockLevel: 70, stage: 1 }   # 적응 장갑
+      - { codeId: 1546, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1582, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
     portrait: VOID_CRUSHER_GEO_PORTRAIT
     standing: VOID_CRUSHER_GEO_STANDING
 
@@ -3887,17 +3887,17 @@ enemies:
     intIncrementLvl: 5
     lukBase: 20
     lukIncrementLvl: 2
-    codes: { passive: 1530, normal: 1530, ultimate: 1530 }
+    codes: { passive: 1590, normal: 1590, ultimate: 1590 }
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
-      - { codeId: 1481, unlockLevel: 20, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
-      - { codeId: 1482, unlockLevel: 40, stage: 1 }   # 폭풍
-      - { codeId: 1483, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
-      - { codeId: 1531, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
-      - { codeId: 1486, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
-      - { codeId: 1533, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
-      - { codeId: 1532, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
+      - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
+      - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
+      - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
+      - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
     portrait: VOID_DRAGON_PORTRAIT
     standing: VOID_DRAGON_STANDING
 
@@ -3922,18 +3922,18 @@ enemies:
     intIncrementLvl: 5
     lukBase: 20
     lukIncrementLvl: 2
-    codes: { passive: 1530, normal: 1531, ultimate: 1531 }
+    codes: { passive: 1590, normal: 1591, ultimate: 1591 }
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
-      - { codeId: 1481, unlockLevel: 20, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 58, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
-      - { codeId: 1482, unlockLevel: 40, stage: 1 }   # 폭풍
-      - { codeId: 1483, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
-      - { codeId: 1531, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
-      - { codeId: 1486, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
-      - { codeId: 1533, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
-      - { codeId: 1532, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
+      - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
+      - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
+      - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
+      - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
     portrait: VOID_DRAGON_PYRO_PORTRAIT
     standing: VOID_DRAGON_PYRO_STANDING
 
@@ -3958,18 +3958,18 @@ enemies:
     intIncrementLvl: 5
     lukBase: 20
     lukIncrementLvl: 2
-    codes: { passive: 1530, normal: 1532, ultimate: 1532 }
+    codes: { passive: 1590, normal: 1592, ultimate: 1592 }
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
-      - { codeId: 1481, unlockLevel: 20, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 186, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
-      - { codeId: 1482, unlockLevel: 40, stage: 1 }   # 폭풍
-      - { codeId: 1483, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
-      - { codeId: 1531, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
-      - { codeId: 1486, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
-      - { codeId: 1533, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
-      - { codeId: 1532, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
+      - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
+      - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
+      - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
+      - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
     portrait: VOID_DRAGON_HYDRO_PORTRAIT
     standing: VOID_DRAGON_HYDRO_STANDING
 
@@ -3994,18 +3994,18 @@ enemies:
     intIncrementLvl: 5
     lukBase: 20
     lukIncrementLvl: 2
-    codes: { passive: 1530, normal: 1533, ultimate: 1533 }
+    codes: { passive: 1590, normal: 1593, ultimate: 1593 }
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
-      - { codeId: 1481, unlockLevel: 20, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 187, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
-      - { codeId: 1482, unlockLevel: 40, stage: 1 }   # 폭풍
-      - { codeId: 1483, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
-      - { codeId: 1531, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
-      - { codeId: 1486, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
-      - { codeId: 1533, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
-      - { codeId: 1532, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
+      - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
+      - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
+      - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
+      - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
     portrait: VOID_DRAGON_ANEMO_PORTRAIT
     standing: VOID_DRAGON_ANEMO_STANDING
 
@@ -4030,18 +4030,18 @@ enemies:
     intIncrementLvl: 5
     lukBase: 20
     lukIncrementLvl: 2
-    codes: { passive: 1530, normal: 1534, ultimate: 1534 }
+    codes: { passive: 1590, normal: 1594, ultimate: 1594 }
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
-      - { codeId: 1481, unlockLevel: 20, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
-      - { codeId: 1482, unlockLevel: 40, stage: 1 }   # 폭풍
-      - { codeId: 1483, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
-      - { codeId: 1531, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
-      - { codeId: 1486, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
-      - { codeId: 1533, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
-      - { codeId: 1532, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
+      - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
+      - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
+      - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
+      - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
     portrait: VOID_DRAGON_ELECTRO_PORTRAIT
     standing: VOID_DRAGON_ELECTRO_STANDING
 
@@ -4066,18 +4066,18 @@ enemies:
     intIncrementLvl: 5
     lukBase: 20
     lukIncrementLvl: 2
-    codes: { passive: 1530, normal: 1535, ultimate: 1535 }
+    codes: { passive: 1590, normal: 1595, ultimate: 1595 }
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
-      - { codeId: 1481, unlockLevel: 20, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 188, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
-      - { codeId: 1482, unlockLevel: 40, stage: 1 }   # 폭풍
-      - { codeId: 1483, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
-      - { codeId: 1531, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
-      - { codeId: 1486, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
-      - { codeId: 1533, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
-      - { codeId: 1532, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
+      - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
+      - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
+      - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
+      - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
     portrait: VOID_DRAGON_DENDRO_PORTRAIT
     standing: VOID_DRAGON_DENDRO_STANDING
 
@@ -4102,18 +4102,18 @@ enemies:
     intIncrementLvl: 5
     lukBase: 20
     lukIncrementLvl: 2
-    codes: { passive: 1530, normal: 1536, ultimate: 1536 }
+    codes: { passive: 1590, normal: 1596, ultimate: 1596 }
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
-      - { codeId: 1481, unlockLevel: 20, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 74, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
-      - { codeId: 1482, unlockLevel: 40, stage: 1 }   # 폭풍
-      - { codeId: 1483, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
-      - { codeId: 1531, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
-      - { codeId: 1486, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
-      - { codeId: 1533, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
-      - { codeId: 1532, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
+      - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
+      - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
+      - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
+      - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
     portrait: VOID_DRAGON_CRYO_PORTRAIT
     standing: VOID_DRAGON_CRYO_STANDING
 
@@ -4138,17 +4138,17 @@ enemies:
     intIncrementLvl: 5
     lukBase: 20
     lukIncrementLvl: 2
-    codes: { passive: 1530, normal: 1537, ultimate: 1537 }
+    codes: { passive: 1590, normal: 1597, ultimate: 1597 }
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
-      - { codeId: 1481, unlockLevel: 20, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 189, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
-      - { codeId: 1482, unlockLevel: 40, stage: 1 }   # 폭풍
-      - { codeId: 1483, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
-      - { codeId: 1531, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
-      - { codeId: 1486, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
-      - { codeId: 1533, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
-      - { codeId: 1532, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
+      - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
+      - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
+      - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
+      - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
+      - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
     portrait: VOID_DRAGON_GEO_PORTRAIT
     standing: VOID_DRAGON_GEO_STANDING

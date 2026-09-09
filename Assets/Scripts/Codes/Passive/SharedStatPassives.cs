@@ -66,8 +66,8 @@ namespace Codes.Passive
             _cleanupHandler = _ => StopCode();
             Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
-            OnRegistered();
             _registered = true;
+            OnRegistered();
         }
 
         protected virtual void OnRegistered() { }
@@ -96,15 +96,7 @@ namespace Codes.Passive
         public GiantPassive(PassiveCodeContext context)
             : base(context, SharedStatStatusIds.Giant, "giant", "거인", "STR +5%") { }
 
-        protected override BaseEffect CreateInitialEffect() => new GiantEffect();
-    }
-
-    internal sealed class GiantEffect : BaseEffect
-    {
-        public GiantEffect() : base(0, GiantPassive.Multiplier) { }
-
-        public override float PrimaryStatMultiplierModifier(Unit unit, BaseEnums.PrimaryStat stat)
-            => unit == Target && stat == BaseEnums.PrimaryStat.STR ? GiantPassive.Multiplier : 1f;
+        protected override BaseEffect CreateInitialEffect() => new PrimaryStatMultiplierEffect(GiantPassive.Multiplier, BaseEnums.PrimaryStat.STR);
     }
 
     /// <summary>
@@ -178,7 +170,6 @@ namespace Codes.Passive
         {
         }
 
-        protected override BaseEffect CreateInitialEffect() => new DotAmplifyEffect(Multiplier);
+        protected override BaseEffect CreateInitialEffect() => new DamageOverTimeApplicationEffect(Multiplier);
     }
-
 }

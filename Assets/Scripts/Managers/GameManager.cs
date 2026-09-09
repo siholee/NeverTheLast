@@ -401,20 +401,106 @@ namespace Managers
             // 육성 페이즈는 키 입력이 아니라 집중 스탯 버튼 선택으로 진행한다
             // (UIManager 훈련 패널 -> GameManager.CompleteTrainingPhaseWithFocus).
 
-#if UNITY_EDITOR
-            HandleDebugInput();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (Core.DebugMode.SessionActive) Managers.UI.DevTools.DebugOverlay.EnsureBanner();
+            if (!Core.DebugMode.SuiteRunning) HandleDebugInput();
 #endif
         }
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary>보상/사건/시전 중에도 다음 시나리오를 같은 출발 상태에서 시작한다.</summary>
+        public void DebugResetBattle()
+        {
+            Core.DebugMode.BeginSession();
+            bool restoreField = gameState == GameState.RoundInProgress && allyFieldSnapshot?.Count > 0;
+            gameState = GameState.Preparation;
+            StopAllCoroutines();
+            _roundManager?.StopRound();
+            ActionScheduler.EndRound();
+            isPreparationTimerActive = isRoundProgressTimerActive = false;
+            pendingPartyExp = 0;
+            eventBattleInProgress = false;
+            currentStageEvent = null;
+            pendingEventChoice = null;
+            _eventResumeAction = null;
+            _eventScheduler.Clear();
+            _pendingTrainingResult = default;   // 값 형식이라 null을 넣을 수 없다
+            preparationActionUsed = false;
+            uiManager?.HidePreparationPhasePanel();
+            uiManager?.HideRewardPanel();
+            uiManager?.HideTrainingPhasePanel();
+            uiManager?.HideTrainingResultPanel();
+            uiManager?.HideCharacterSelection();
+            uiManager?.HideEventStagePanel();
+            if (gridManager != null)
+            {
+                foreach (Unit unit in gridManager.heroList.Concat(gridManager.enemyList).Where(u => u != null).ToList())
+                    unit.DebugResetCombatState();
+                gridManager.OnRoundEnd();
+                if (restoreField) RestoreAllyFieldState();
+                gridManager.ClearActiveEnemies();
+            }
+            allyFieldSnapshot?.Clear();
+        }
+
+        public void DebugLoadStage(int stage)
+        {
+            if (_roundManager == null) return;
+            DebugResetBattle();
+            _roundManager.InitializeStage(Mathf.Max(1, stage));
+            _roundManager.LoadRound(Mathf.Max(1, stage));
+            EnterNextStageAfterLoad();
+        }
+
+        public void DebugEndBattle(bool victory)
+        {
+            Core.DebugMode.BeginSession();
+            if (gameState != GameState.RoundInProgress)
+            {
+                Debug.Log("[디버그] 승패 처리는 전투 중에만 가능합니다.");
+                return;
+            }
+            // Die()를 반복하면 사망 분열/소환이 새 적을 만들 수 있다. 라운드 종료 경로로 처리한다.
+            if (victory) EndRoundByEnemyDefeat();
+            else EndRoundByAllyDefeat();
+        }
+
         /// <summary>
-        /// 에디터 전용 디버그 입력. 빌드에는 포함되지 않는다.
-        /// F9: 현재 테마의 사건을 즉시 실행(사건 연출 확인용). 테마 사건이 없으면 첫 사건을 사용한다.
+        /// 디버그 입력. 에디터와 개발 빌드에만 들어간다.
+        ///
+        /// F1: 디버그 패널 열기/닫기 (조작은 전부 패널에 있다)
+        /// F2: 적 전멸 — 지금 전투를 즉시 이긴다
+        /// F3: 아군 무적 토글
+        /// F4: 배속 순환 1 → 4 → 8배
+        /// F9: 현재 테마의 사건을 즉시 실행(사건 연출 확인용)
         /// </summary>
         private void HandleDebugInput()
         {
+            if (UnityEngine.Input.GetKeyDown(UnityEngine.KeyCode.F1))
+            {
+                UI.DevTools.DebugOverlay.Toggle();
+                return;
+            }
+            if (UnityEngine.Input.GetKeyDown(UnityEngine.KeyCode.F2))
+            {
+                DebugEndBattle(true);
+                return;
+            }
+            if (UnityEngine.Input.GetKeyDown(UnityEngine.KeyCode.F3))
+            {
+                UI.DevTools.DebugOverlay.ToggleAllyInvincible();
+                return;
+            }
+            if (UnityEngine.Input.GetKeyDown(UnityEngine.KeyCode.F4))
+            {
+                float next = Time.timeScale < 1.5f ? 4f : Time.timeScale < 6f ? 8f : 1f;
+                Core.DebugMode.SetTimeScale(next);
+                return;
+            }
+
             if (!UnityEngine.Input.GetKeyDown(UnityEngine.KeyCode.F9)) return;
             if (gameState == GameState.EventStage) return;
+            Core.DebugMode.BeginSession();
 
             StageEventData sample = _roundManager?.GetDebugSampleEvent() ?? BuildFallbackEvent();
             GameState previousState = gameState;

@@ -57,7 +57,7 @@ namespace Codes.Passive
 
         public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
             PygmalionStatusIds.SlowAndSteady, "pygmalion_slow_and_steady", CodeName,
-            Caster, Caster, new PygmalionDotApplicationEffect(1.25f),
+            Caster, Caster, new DamageOverTimeApplicationEffect(1.25f),
             stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
             isBeneficial: true,
             description: "자신이 부여하는 지속피해가 25% 증가합니다."));
@@ -98,9 +98,9 @@ namespace Codes.Passive
     /// <summary>궁극기 장미의 가시: 피해 감소·도발·접촉 반격 화상.</summary>
     internal sealed class RoseThornsEffect : BaseEffect
     {
-        private const float BurnInternalCooldown = 1;
+        private const int BurnCooldownTurns = 1;
         private Action<EventContext> _damageHandler;
-        private readonly Dictionary<Unit, float> _nextBurnTimeByAttacker = new();
+        private readonly Combat.TargetTurnCooldown _burnCooldown = new(BurnCooldownTurns);
 
         public RoseThornsEffect() : base(0) { }
 
@@ -115,16 +115,15 @@ namespace Codes.Passive
             if (!PygmalionCombat.IsContactDamage(context?.DmgCtx)) return;
             Unit attacker = context.DmgCtx.Attacker;
             if (attacker == null) return;
-            if (_nextBurnTimeByAttacker.TryGetValue(attacker, out float nextTime) && Time.time < nextTime) return;
+            if (!_burnCooldown.TryUse(Target, attacker)) return;
 
-            _nextBurnTimeByAttacker[attacker] = Time.time + BurnInternalCooldown;
             PygmalionCombat.ApplyBurn(Target, attacker);
         }
 
         public override void OnRemove()
         {
             Target?.RemoveListener(BaseEnums.UnitEventType.OnTakingDamage, _damageHandler);
-            _nextBurnTimeByAttacker.Clear();
+            _burnCooldown.Clear();
         }
 
         public override float ReceivingDamageModifier(Unit unit) => unit == Target ? 0.5f : 1f;
@@ -143,13 +142,6 @@ namespace Codes.Passive
         }
     }
 
-    internal sealed class PygmalionDotApplicationEffect : BaseEffect
-    {
-        private readonly float _multiplier;
-        public PygmalionDotApplicationEffect(float multiplier) : base(0, multiplier) => _multiplier = multiplier;
-        public override float DamageOverTimeApplicationMultiplier(Unit unit) => unit == Target ? _multiplier : 1f;
-    }
-
     internal sealed class SharpThornsEffect : BaseEffect
     {
         private Action<EventContext> _damageHandler;
@@ -165,7 +157,7 @@ namespace Codes.Passive
         private void OnTakingDamage(EventContext context)
         {
             if (!PygmalionCombat.IsContactDamage(context?.DmgCtx)) return;
-            HealingReductionStatus.Apply(context.DmgCtx.Attacker, Target, 2, "날카로운 가시");   // 3초 → 2턴
+            HealingReductionStatus.Apply(context.DmgCtx.Attacker, Target, 2, "날카로운 가시");
         }
 
         public override void OnRemove()
@@ -182,5 +174,4 @@ namespace Codes.Passive
         public override float ReceivingDamageModifier(Unit unit, DamageContext context)
             => unit == Target && PygmalionCombat.IsContactDamage(context) ? _multiplier : 1f;
     }
-
 }

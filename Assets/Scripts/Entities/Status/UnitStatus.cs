@@ -160,7 +160,7 @@ namespace Entities.Status
                     Category = BaseEnums.StatusCategory.Negative;
                     StackPolicy = BaseEnums.StatusStackPolicy.Stack; // 중첩 허용
                     CanStack = true; // 복수 보유 가능
-                    Duration = 2;   // 3초 → 2턴
+                    Duration = 2;
                     // Effects는 외부에서 추가
                     break;
                     
@@ -183,7 +183,7 @@ namespace Entities.Status
                     Category = BaseEnums.StatusCategory.Negative;
                     StackPolicy = BaseEnums.StatusStackPolicy.Stack; // 중첩 허용
                     CanStack = true; // 복수 보유 가능
-                    Duration = 2;   // 3초 → 2턴
+                    Duration = 2;
                     // Effects는 외부에서 추가 (EffectId=1001, DOT)
                     break;
                     
@@ -195,7 +195,7 @@ namespace Entities.Status
                     Category = BaseEnums.StatusCategory.Neutral;
                     StackPolicy = BaseEnums.StatusStackPolicy.Ignore; // 중복 무시
                     CanStack = false; // 복수 보유 불가
-                    Duration = 4;   // 8초 → 4턴
+                    Duration = 4;
                     // Effects는 외부에서 추가
                     break;
                     
@@ -208,7 +208,7 @@ namespace Entities.Status
                     Category = BaseEnums.StatusCategory.Neutral;
                     StackPolicy = BaseEnums.StatusStackPolicy.Stack;
                     CanStack = false;
-                    Duration = 1;   // 1초 → 1턴
+                    Duration = 1;
                     break;
             }
         }

@@ -171,7 +171,7 @@ namespace Codes.Ultimate
 
             Caster.AddStatus(BuffStatus.Create(
                 7660, $"tezcatlipoca_vulnerability_{Guid.NewGuid():N}", "현현의 균열",
-                Caster, Caster, new TezcatlipocaVulnerabilityEffect(),
+                Caster, Caster, new ReceivingDamageMultiplierEffect(1.5f),
                 stackPolicy: BaseEnums.StatusStackPolicy.Stack,
                 isBeneficial: false,
                 category: BaseEnums.StatusCategory.Negative,

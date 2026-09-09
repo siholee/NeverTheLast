@@ -108,7 +108,7 @@ namespace Codes.Ultimate
             global::Target.GetAllEnemies(Caster).Any(unit => unit != null && unit.isActive && !unit.IsUntargetable);
     }
 
-    /// <summary>바스테트 U — 우선 지정한 아군의 추가공격·반격을 전군 추격으로 연결한다.</summary>
+    /// <summary>바스테트 U — 우선 지정한 아군의 추가행동·반격을 전군 추격으로 연결한다.</summary>
     public sealed class BastetApexExecution : UltimateCode
     {
         private Unit _selectedAlly;

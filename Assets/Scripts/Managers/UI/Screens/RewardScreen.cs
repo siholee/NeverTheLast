@@ -101,11 +101,14 @@ namespace Managers.UI.Screens
                 {
                     if (bonus == null || bonus.amount == 0) continue;
 
-                    Color color = Enum.TryParse(bonus.stat, true, out BaseEnums.PrimaryStat stat)
-                        ? UITheme.Stat(stat)
-                        : UITheme.TextPrimary;
-                    rows.Add(new Row(bonus.stat.ToUpperInvariant(),
-                        (bonus.amount > 0 ? "+" : "") + bonus.amount, color));
+                    bool isPrimary = bonus.TryGetPrimary(out BaseEnums.PrimaryStat stat);
+                    Color color = isPrimary ? UITheme.Stat(stat) : UITheme.TextPrimary;
+                    string label = isPrimary
+                        ? bonus.stat.ToUpperInvariant()
+                        : EquipmentStatKeys.DisplayName(bonus.stat);
+                    rows.Add(new Row(label,
+                        (bonus.amount > 0 ? "+" : "") + bonus.amount + EquipmentStatKeys.DisplaySuffix(bonus.stat),
+                        color));
                 }
 
                 return rows;

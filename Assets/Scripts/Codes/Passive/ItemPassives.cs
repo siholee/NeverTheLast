@@ -57,7 +57,7 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>코페쉬 — 기본공격 적중마다 2턴 동안 DEX +8, 최대 4중첩.</summary>
+    /// <summary>코페쉬 — 일반행동 적중마다 2턴 동안 DEX +8, 최대 4중첩.</summary>
     public sealed class KhopeshItemPassive : ItemStatusPassive
     {
         private const string BuffKey = "item_khopesh_dex";
@@ -267,16 +267,8 @@ namespace Codes.Passive
         protected override string StatusKey => "item_ariadne_thread";
         public AriadneThreadItemPassive(PassiveCodeContext context) : base(context, "아리아드네의 실타래") { }
         public override void CastCode() => AddPermanentStatus(
-            ItemPassiveIds.AriadneThread, new AttackSelfHealingEffect(1.25f),
+            ItemPassiveIds.AriadneThread, new AttackTriggeredHealingEffect(1.25f),
             "공격으로 자신을 회복할 때 회복량이 25% 증가합니다.");
-    }
-
-    internal sealed class AttackSelfHealingEffect : BaseEffect
-    {
-        private readonly float _multiplier;
-        public AttackSelfHealingEffect(float multiplier) : base(0, multiplier) => _multiplier = multiplier;
-        public override float HealingReceivedMultiplierModifier(Unit unit, Unit source, bool attackTriggered)
-            => unit == Target && source == unit && attackTriggered ? _multiplier : 1f;
     }
 
     public sealed class OuroborosBranchItemPassive : ItemStatusPassive
@@ -301,15 +293,8 @@ namespace Codes.Passive
         protected override string StatusKey => "item_aegeus_sword";
         public AegeusSwordItemPassive(PassiveCodeContext context) : base(context, "에게우스의 검") { }
         public override void CastCode() => AddPermanentStatus(
-            ItemPassiveIds.AegeusSword, new CritDamageEffect(0.5f),
+            ItemPassiveIds.AegeusSword, new CritMultiplierBonusEffect(0.5f),
             "치명타 피해가 50% 증가합니다.");
-    }
-
-    internal sealed class CritDamageEffect : BaseEffect
-    {
-        private readonly float _amount;
-        public CritDamageEffect(float amount) : base(0, amount) => _amount = amount;
-        public override float CritMultiplierAdditiveModifier(Unit unit) => unit == Target ? _amount : 0f;
     }
 
     /// <summary>오귀스트의 시계 — 보유자가 부여하는 모든 유한 턴 상태의 지속시간 +1.</summary>

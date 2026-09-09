@@ -13,7 +13,11 @@ namespace Codes.Base
     public string CodeName; // 코드 이름
     public Unit Caster; // 시전유닛
     public List<Unit> TargetUnits; // 시전대상유닛
-    public float Cooldown; // 쿨감 임마 쿨감
+    /// <summary>
+    /// 재사용 대기 <b>턴</b> 수. 궁극기 전용이다 — 일반행동은 DEX가 정하는 행동 주기가 전부라
+    /// 쿨다운을 갖지 않는다. <see cref="Entities.Unit.ultimateCooldown"/>이 자기 턴마다 줄어든다.
+    /// </summary>
+    public float Cooldown;
     public float CastingDelay; // 시전시간(동안 쿨안돔)
     public int CurrentStage { get; private set; } = 1;
     public int MaxStage { get; protected set; } = 1;

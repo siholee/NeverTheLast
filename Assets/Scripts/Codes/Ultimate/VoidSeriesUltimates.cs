@@ -61,7 +61,7 @@ namespace Codes.Ultimate
     }
 
     /// <summary>
-    /// 공허의 사수 U 관통 사격 — 단일 적에게 100 + DEX×1.0 위력의 비접촉 물리 피해.
+    /// 공허의 사수 U 공허의 일격 — 단일 적에게 100 + DEX×1.0 위력의 비접촉 물리 피해.
     /// <b>내구를 무시한다</b> — 내구로 버티는 전열 뒤에 숨어도 소용이 없다.
     /// </summary>
     public sealed class VoidMarksmanUltimate : SimpleUltimate
@@ -69,7 +69,7 @@ namespace Codes.Ultimate
         private readonly BaseEnums.UnitElement _attachedElement;
 
         public VoidMarksmanUltimate(UltimateCodeContext context, BaseEnums.UnitElement attachedElement)
-            : base(context, "관통 사격", 4, 0.5f)
+            : base(context, "공허의 일격", 4, 0.5f)
         {
             _attachedElement = attachedElement;
             Power = 100;
@@ -184,7 +184,7 @@ namespace Codes.Ultimate
     /// 공허의 용 U 원소 붕괴 — 적 전체에게 120 + INT×1.4 위력의 비접촉 특수 피해.
     /// 대상이 <b>용과 같은 원소를 두르고 있으면 1.5배</b>가 된다.
     ///
-    /// 일반공격 브레스가 자기 원소를 깔아 두므로, 용은 스스로 조건을 만들고 스스로 터뜨린다.
+    /// 일반행동 브레스가 자기 원소를 깔아 두므로, 용은 스스로 조건을 만들고 스스로 터뜨린다.
     /// 플레이어는 원소를 지우거나 덮어씌워 이 연결을 끊는다.
     /// </summary>
     public sealed class VoidDragonUltimate : SimpleUltimate

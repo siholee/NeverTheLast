@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Codes.Base;
 using Entities;
+using Helpers;
 using Managers.UI.Core;
 using Managers.UI.Theme;
 using TMPro;
@@ -347,9 +348,7 @@ namespace Managers.UI.Screens
             // 초상화. 슬롯 두 줄 사이의 남은 자리를 채운다.
             float portraitLeft = 10f + EquipSlot + 8f;
             float portraitWidth = width - portraitLeft * 2f;
-            Sprite portrait = string.IsNullOrEmpty(unit.PortraitPath)
-                ? null
-                : Resources.Load<Sprite>(unit.PortraitPath);
+            Sprite portrait = SpriteResource.LoadPortrait(unit.PortraitPath);
             if (portrait != null && portraitWidth > 20f)
             {
                 var go = new GameObject("Portrait", typeof(RectTransform), typeof(Image));
@@ -841,7 +840,10 @@ namespace Managers.UI.Screens
                 AddDetailLine("스탯 보정", ref y, UITheme.Accent);
                 foreach (var bonus in item.statBonuses)
                 {
-                    AddDetailLine($"{bonus.stat}  {(bonus.amount >= 0 ? "+" : "")}{bonus.amount}", ref y);
+                    AddDetailLine(
+                        $"{BaseClasses.EquipmentStatKeys.DisplayName(bonus.stat)}  " +
+                        $"{(bonus.amount >= 0 ? "+" : "")}{bonus.amount}" +
+                        BaseClasses.EquipmentStatKeys.DisplaySuffix(bonus.stat), ref y);
                 }
             }
 

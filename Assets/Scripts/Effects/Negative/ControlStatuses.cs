@@ -106,6 +106,46 @@ namespace Effects.Negative
                 false);
         }
 
+        // ── 제어 분쇄 ─────────────────────────────────────────────
+
+        /// <summary>
+        /// 회차별 지속시간 배율. 배열을 넘어서면 <b>면역</b>이다(4회차부터).
+        ///
+        /// 자동 전투라 플레이어가 제어를 끊을 수단이 없다. 바위 파티가 진동을 연달아 터뜨리거나
+        /// 폭풍(1542)이 궁극기마다 전체 기절을 거는 식으로 <b>손 쓸 수 없는 제어 루프</b>가
+        /// 만들어지는 것을 막는다. 모든 제어가 <see cref="ApplyControl"/>을 지나므로
+        /// 원소 반응이든 패시브든 궁극기든 같은 규칙을 받는다.
+        /// </summary>
+        private static readonly float[] DiminishMultipliers = { 1f, 0.6f, 0.3f };
+
+        /// <summary>제어에 걸리지 않은 채 자기 턴을 이만큼 보내면 회차가 초기화된다.</summary>
+        public const int DiminishResetTurns = 3;
+
+        /// <summary>회차가 초기화될 만큼 제어 없이 버텼는지.</summary>
+        private static bool HasRecovered(Unit target)
+            => target.TurnCount - target.LastControlledTurn >= DiminishResetTurns;
+
+        /// <summary>분쇄를 적용한 지속 턴 수. 0이면 면역이다.</summary>
+        public static int DiminishedTurns(Unit target, int turns)
+        {
+            if (target == null) return turns;
+
+            int count = HasRecovered(target) ? 0 : target.ControlAppliedCount;
+            if (count >= DiminishMultipliers.Length) return 0;
+
+            // 반올림이라 1턴짜리 제어는 2회차까지만 통한다(1 → 1 → 0).
+            return Mathf.RoundToInt(turns * DiminishMultipliers[count]);
+        }
+
+        /// <summary>제어가 실제로 걸렸을 때만 회차를 올린다. 갱신에 실패한 재부여는 세지 않는다.</summary>
+        private static void RegisterControl(Unit target)
+        {
+            if (target == null) return;
+            if (HasRecovered(target)) target.ControlAppliedCount = 0;
+            target.ControlAppliedCount++;
+            target.LastControlledTurn = target.TurnCount;
+        }
+
         // ── 공통 ──────────────────────────────────────────────────
 
         private static bool ApplyControl(
@@ -116,6 +156,14 @@ namespace Effects.Negative
             if (immune)
             {
                 Debug.Log($"[{name}] {target.UnitName}은(는) 면역입니다.");
+                return false;
+            }
+
+            int requested = turns;
+            turns = DiminishedTurns(target, turns);
+            if (turns <= 0)
+            {
+                Debug.Log($"[{name}] {target.UnitName} — 제어 분쇄로 무효 ({target.ControlAppliedCount}회차)");
                 return false;
             }
 
@@ -140,8 +188,11 @@ namespace Effects.Negative
             var status = new UnitStatus(definition, source, target);
             status.AddEffect(new ActionLockEffect(turns, source));
             target.AddStatus(status);
+            RegisterControl(target);
 
-            Debug.Log($"[{name}] {target.UnitName} — {turns}턴");
+            Debug.Log(turns == requested
+                ? $"[{name}] {target.UnitName} — {turns}턴"
+                : $"[{name}] {target.UnitName} — {turns}턴 (분쇄 {target.ControlAppliedCount}회차, 원래 {requested}턴)");
             return true;
         }
     }

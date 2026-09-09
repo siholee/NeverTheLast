@@ -13,11 +13,11 @@ namespace Codes.Passive
 {
     public static class VoidPrismCodeIds
     {
-        public const int Core = 1440;
-        public const int Resonance = 1441;
-        public const int Split = 1442;
-        public const int DeathEcho = 1443;
-        public const int DestructionRay = 1444;
+        public const int Core = 1500;
+        public const int Resonance = 1501;
+        public const int Split = 1502;
+        public const int DeathEcho = 1503;
+        public const int DestructionRay = 1504;
     }
 
     public static class VoidPrismStatusIds
@@ -361,20 +361,12 @@ namespace Codes.Passive
 
             context.Target.AddStatus(BuffStatus.Create(
                 VoidPrismStatusIds.DestroyedArmor, "void_prism_destroyed_armor", "파괴광선 — 방어 붕괴",
-                Target, context.Target, new VoidPrismArmorShredEffect(),
+                Target, context.Target, new ArmorShredEffect(0.6f),
                 duration: 3,
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 category: BaseEnums.StatusCategory.Negative,
                 isBeneficial: false,
                 description: "방어력이 40% 감소합니다."));
         }
-    }
-
-    internal sealed class VoidPrismArmorShredEffect : BaseEffect
-    {
-        public VoidPrismArmorShredEffect() : base(0, 0.6f) { }
-
-        public override float OwnedDefenseStatMultiplierModifier(Unit unit, DamageContext context)
-            => unit == Target ? 0.6f : 1f;
     }
 }

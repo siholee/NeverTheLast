@@ -1051,6 +1051,20 @@ namespace Managers
                 unit.DismissSummons();
             }
 
+            // 죽은 자리의 예약을 푼다.
+            //
+            // 예약은 '전투 중에 죽은 자리로 곧바로 다시 소환되는 것'을 막으려는 장치라,
+            // 라운드 경계를 넘길 이유가 없다. 그대로 두면 시간으로만 풀리므로
+            // 라운드 종료 직후 같은 프레임에 배치하는 경로(스테이지 점프·다음 라운드 적 배치)에서
+            // <b>그 칸이 통째로 비어 적이 사양보다 적게 선다.</b>
+            if (_fieldCellManager != null)
+            {
+                foreach (Cell cell in _fieldCellManager)
+                {
+                    if (cell != null) cell.reservedTime = 0f;
+                }
+            }
+
             // 다시 편성할 수 있도록 대기석을 되돌린다.
             SetBenchVisible(true);
         }

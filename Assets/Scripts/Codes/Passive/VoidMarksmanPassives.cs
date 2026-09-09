@@ -8,7 +8,7 @@ namespace Codes.Passive
 {
     public static class VoidMarksmanCodeIds
     {
-        public const int SightLine = 1500;
+        public const int SightLine = 1560;
     }
 
     public static class VoidMarksmanStatusIds

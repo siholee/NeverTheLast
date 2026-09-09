@@ -124,7 +124,7 @@ namespace Codes.Passive
                 : 0;
     }
 
-    /// <summary>바스테트 P — 아군의 추가공격·반격으로 야수의 시선 스택을 쌓는다.</summary>
+    /// <summary>바스테트 P — 아군의 추가행동·반격으로 야수의 시선 스택을 쌓는다.</summary>
     public sealed class BastetAirborneHunter : UniquePassiveCode
     {
         public const string ResourceId = "bastet_beast_gaze";
@@ -221,7 +221,7 @@ namespace Codes.Passive
     public sealed class EgyptianPiercingShot : PassiveCode
     {
         public EgyptianPiercingShot(PassiveCodeContext context) : base(context)
-        { CodeType = BaseEnums.CodeType.Passive; CodeName = "관통사격"; IgnoresActivationChance = true; }
+        { CodeType = BaseEnums.CodeType.Passive; CodeName = "빈틈의 실"; IgnoresActivationChance = true; }
 
         public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
             EgyptianStatusIds.PiercingShot, "egypt_piercing_shot", CodeName,
@@ -392,7 +392,7 @@ namespace Codes.Passive
             EgyptianStatusIds.Selfish, "bastet_selfish", CodeName,
             Caster, Caster, new BastetSelfishEffect(),
             stackPolicy: BaseEnums.StatusStackPolicy.Ignore, isBeneficial: true,
-            description: "추가공격으로 가하는 피해가 20% 증가합니다."));
+            description: "추가행동으로 가하는 피해가 20% 증가합니다."));
     }
 
     internal sealed class BastetSelfishEffect : BaseEffect
@@ -403,14 +403,15 @@ namespace Codes.Passive
                 ? 1.20f : 1f;
     }
 
-    /// <summary>세트 P — 전투 시간 8초마다 다음 단일 접촉 피해에 고정 피해와 자가 회복을 붙인다.</summary>
+    /// <summary>세트 P — 4턴마다 다음 단일 접촉 피해에 고정 피해와 자가 회복을 붙인다.</summary>
     public sealed class SetBloodOfTheDesert : UniquePassiveCode
     {
-        private const float IntervalSeconds = 8f;
-        private float _nextReadyAt;
+        private const int IntervalTurns = 4;
+        private int _turnsSinceUse;
         private bool _registered;
         private bool _resolving;
         private Action<DamageResolvedContext> _damageHandler;
+        private Action<EventContext> _turnHandler;
         private Action<EventContext> _cleanupHandler;
 
         public SetBloodOfTheDesert(PassiveCodeContext context) : base(context)
@@ -424,10 +425,12 @@ namespace Codes.Passive
         public override void CastCode()
         {
             if (Caster == null || _registered) return;
-            _nextReadyAt = (GameManager.Instance?.ActionScheduler?.CombatSeconds ?? 0f) + IntervalSeconds;
+            _turnsSinceUse = 0;
             _damageHandler = OnDamageDealt;
+            _turnHandler = _ => _turnsSinceUse++;
             _cleanupHandler = _ => StopCode();
             Caster.AddListener(BaseEnums.UnitEventType.OnDamageDealt, _damageHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             _registered = true;
@@ -441,9 +444,8 @@ namespace Codes.Passive
             if (tags == null || !tags.Contains(DamageTag.SingleTarget) ||
                 !tags.Contains(DamageTag.ContactAttack)) return;
 
-            float now = GameManager.Instance?.ActionScheduler?.CombatSeconds ?? 0f;
-            if (now + 0.0001f < _nextReadyAt) return;
-            _nextReadyAt = now + IntervalSeconds;
+            if (_turnsSinceUse < IntervalTurns) return;
+            _turnsSinceUse = 0;
 
             int bonus = Mathf.Max(1, Caster.SkillDamage(20, BaseEnums.PrimaryStat.STR));
             if (context.Target.isActive && context.Target.HpCurr > 0)
@@ -468,6 +470,7 @@ namespace Codes.Passive
         {
             if (!_registered || Caster == null) return;
             Caster.RemoveListener(BaseEnums.UnitEventType.OnDamageDealt, _damageHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             _registered = false;

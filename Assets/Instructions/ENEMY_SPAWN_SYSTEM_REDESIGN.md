@@ -219,7 +219,7 @@ _roundManager.LoadRound(roundNumber);
 
 ⚠️ **코드 의존성**
 - 적 코드(패시브/일반/궁극기)가 구현되어 있어야 함
-- 적 초상화 이미지가 Resources/Sprite/Portraits/에 있어야 함
+- 적 초상화 이미지가 tier에 맞는 Resources/Sprite/Portraits/Enemies/{Normal,Elite,Boss}/에 있어야 함
 
 ---
 

@@ -12,10 +12,10 @@ namespace Codes.Passive
 {
     public static class VoidDragonCodeIds
     {
-        public const int VoidOrigin = 1530;
-        public const int Aether = 1531;
-        public const int PerfectResurrection = 1532;
-        public const int ElementalMastery = 1533;
+        public const int VoidOrigin = 1590;
+        public const int Aether = 1591;
+        public const int PerfectResurrection = 1592;
+        public const int ElementalMastery = 1593;
     }
 
     public static class VoidDragonStatusIds
@@ -82,7 +82,7 @@ namespace Codes.Passive
             float bonus = 1f + PerAlly * VoidAllyCount();
             Caster.AddStatus(BuffStatus.Create(
                 StatusId, StatusKey, CodeName, Caster, Caster,
-                new AllStatMultiplierEffect(bonus),
+                new PrimaryStatMultiplierEffect(bonus),
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
                 description: $"올스탯 +{(bonus - 1f) * 100f:F0}%"));
@@ -99,12 +99,12 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// 에테르(1531) — 원소술사(76)의 금색 상위. 아군 전체가 원소 반응으로 만든 피해 +40%.
+    /// 에테르(1591) — 원소술사(76)의 금색 상위. 아군 전체가 원소 반응으로 만든 피해 +40%.
     /// 같은 상태 키를 써서 원소술사·대해의 판결과 겹치지 않고 높은 쪽만 남는다.
     /// </summary>
     public sealed class VoidAether : PassiveCode
     {
-        public const int CodeId = 1531;
+        public const int CodeId = 1591;
         private const float Bonus = 0.40f;
 
         public VoidAether(PassiveCodeContext context) : base(context)
@@ -125,14 +125,14 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// 완전한 부활(1532) — 명계의 재림(1403)의 금색 상위.
+    /// 완전한 부활(1592) — 명계의 재림(1403)의 금색 상위.
     ///
     /// 원본은 <b>다음 자기 턴</b>에 되살아나 그 사이 한 턴을 잃는다. 이쪽은 그 자리에서
     /// 일어나고 2턴 동안 받는 피해까지 줄어, 부활 직후 다시 눕는 일이 없다.
     /// </summary>
     public sealed class VoidPerfectResurrection : PassiveCode
     {
-        public const int CodeId = 1532;
+        public const int CodeId = 1592;
 
         public VoidPerfectResurrection(PassiveCodeContext context) : base(context)
         {
@@ -177,7 +177,7 @@ namespace Codes.Passive
             Target.ModifyHp(Target.HpMax, Target);
             Target.AddStatus(BuffStatus.Create(
                 VoidDragonStatusIds.ResurrectionWard, "void_resurrection_ward", "완전한 부활",
-                Target, Target, new FlatMitigationEffect(WardReduction),
+                Target, Target, new ReceivingDamageMultiplierEffect(1f - WardReduction),
                 duration: WardTurns,
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
@@ -189,14 +189,14 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// 원소 정통(1533) — 원소 숙련(58·186·187·57·188·74·189)의 금색 상위.
+    /// 원소 정통(1593) — 원소 숙련(58·186·187·57·188·74·189)의 금색 상위.
     ///
     /// 숙련은 원소마다 코드가 따로라 상위도 일곱 개가 되어야 한다. 대신 이 코드는
     /// <b>보유자 자신의 고유 원소</b>를 읽어 하나로 여덟 변형을 모두 덮는다.
     /// </summary>
     public sealed class VoidElementalMastery : PassiveCode
     {
-        public const int CodeId = 1533;
+        public const int CodeId = 1593;
         private const float Bonus = 0.25f;
 
         public VoidElementalMastery(PassiveCodeContext context) : base(context)

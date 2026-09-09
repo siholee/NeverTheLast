@@ -11,7 +11,7 @@ namespace Codes.Normal
     {
         public GenericGiantNormalAttack(NormalCodeContext context, int power) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = power;
             CodeTags = new List<int> { DamageTag.ContactAttack, DamageTag.Physical };
         }

@@ -83,7 +83,7 @@ namespace Codes.Passive
             {
                 // 무르밀로
                 case 140:
-                    AddSelf(new PeriodicShieldEffect(0.10f, 6f));
+                    AddSelf(new PeriodicShieldEffect(0.10f, 3));
                     break;
                 case 141:
                     foreach (Unit ally in ColosseumCombat.Allies(Caster).Where(unit => unit != Caster))
@@ -97,7 +97,7 @@ namespace Codes.Passive
                     AddSelf(new ShieldBreakHealingEffect(0.08f));
                     break;
                 case 143:
-                    AddSelf(new LowHealthPeriodicShieldEffect(0.12f, 6f, 3f, 0.3f));
+                    AddSelf(new LowHealthPeriodicShieldEffect(0.12f, 3, 2, 0.3f));
                     break;
 
                 // 호플로마쿠스
@@ -112,7 +112,7 @@ namespace Codes.Passive
                     AddSelf(new SameTargetRampEffect(0.08f, 4));
                     break;
                 case 147:
-                    AddSelf(new ShieldBreakCooldownEffect(2f));
+                    AddSelf(new ShieldBreakCooldownEffect(0.5f));
                     break;
 
                 // 트라엑스
@@ -188,8 +188,10 @@ namespace Codes.Passive
                     AddSelf(new SabinaMarkControllerEffect());
                     break;
                 case 1105:
+                    AddSelf(new WhipCheckEffect());
+                    break;
                 case 1106:
-                    // 공격력 감소와 표식 집중 공격은 액티브 코드에서 처리한다.
+                    // 표식 대상 집중 공격은 궁극기(1107)가 아군 전체에 걸어 준다.
                     break;
                 case 1107:
                     AddSelf(new SabinaMarkControllerEffect(true));
@@ -293,8 +295,8 @@ namespace Codes.Passive
         public static void ApplyCapture(Unit caster, Unit target, int duration, bool vulnerable)
         {
             BaseEffect effect = vulnerable
-                ? new CompositeEffect(new CodeAccelerationEffect(-0.25f), new ColosseumReceivingDamageEffect(1.2f))
-                : new CodeAccelerationEffect(-0.25f);
+                ? new CompositeEffect(new CodeAccelerationBuffEffect(-0.25f), new ReceivingDamageMultiplierEffect(1.2f))
+                : new CodeAccelerationBuffEffect(-0.25f);
             AddStatus(
                 caster,
                 target,
@@ -310,7 +312,7 @@ namespace Codes.Passive
                     : "코드 가속이 25% 감소합니다.");
         }
 
-        public static void ApplyBleed(Unit caster, Unit target, int duration = 3)   // 5초 → 3턴
+        public static void ApplyBleed(Unit caster, Unit target, int duration = 3)
         {
             AddStatus(
                 caster,
@@ -395,20 +397,6 @@ namespace Codes.Passive
         }
     }
 
-    internal sealed class CodeAccelerationEffect : BaseEffect
-    {
-        private readonly float _amount;
-        public CodeAccelerationEffect(float amount) : base(0, amount) => _amount = amount;
-        public override float CodeAccelerationAdditiveModifier(Unit unit) => unit == Target ? _amount : 0f;
-    }
-
-    internal sealed class ColosseumReceivingDamageEffect : BaseEffect
-    {
-        private readonly float _multiplier;
-        public ColosseumReceivingDamageEffect(float multiplier) : base(0, multiplier) => _multiplier = multiplier;
-        public override float ReceivingDamageModifier(Unit unit) => unit == Target ? _multiplier : 1f;
-    }
-
     internal sealed class ConditionalOutgoingDamageEffect : BaseEffect
     {
         private readonly Func<Unit, Unit, DamageContext, float> _modifier;
@@ -453,13 +441,13 @@ namespace Codes.Passive
     internal class PeriodicShieldEffect : BaseEffect
     {
         protected readonly float ShieldRatio;
-        protected float Interval;
+        protected int IntervalTurnCount;
         protected int TurnsSinceShield;
 
-        public PeriodicShieldEffect(float shieldRatio, float interval) : base(0, shieldRatio)
+        public PeriodicShieldEffect(float shieldRatio, int intervalTurns) : base(0, shieldRatio)
         {
             ShieldRatio = shieldRatio;
-            Interval = interval;
+            IntervalTurnCount = Mathf.Max(1, intervalTurns);
         }
 
         public override void OnApply()
@@ -477,29 +465,26 @@ namespace Codes.Passive
             Target.AddShield(Mathf.Max(1, Mathf.RoundToInt(Target.HpMax * ShieldRatio)), Caster ?? Target);
         }
 
-        /// <summary>초로 적힌 간격을 턴으로 환산한다(1턴 = 2초).</summary>
-        protected int IntervalTurns() => Mathf.Max(1, Mathf.RoundToInt(CurrentInterval() * 0.5f));
-
-        protected virtual float CurrentInterval() => Interval;
+        protected virtual int IntervalTurns() => IntervalTurnCount;
     }
 
     internal sealed class LowHealthPeriodicShieldEffect : PeriodicShieldEffect
     {
-        private readonly float _lowInterval;
+        private readonly int _lowIntervalTurns;
         private readonly float _threshold;
 
         public LowHealthPeriodicShieldEffect(
             float shieldRatio,
-            float normalInterval,
-            float lowInterval,
-            float threshold) : base(shieldRatio, normalInterval)
+            int normalIntervalTurns,
+            int lowIntervalTurns,
+            float threshold) : base(shieldRatio, normalIntervalTurns)
         {
-            _lowInterval = lowInterval;
+            _lowIntervalTurns = Mathf.Max(1, lowIntervalTurns);
             _threshold = threshold;
         }
 
-        protected override float CurrentInterval()
-            => ColosseumCombat.HealthRatio(Target) < _threshold ? _lowInterval : Interval;
+        protected override int IntervalTurns()
+            => ColosseumCombat.HealthRatio(Target) < _threshold ? _lowIntervalTurns : IntervalTurnCount;
     }
 
     internal sealed class ShieldBreakHealingEffect : BaseEffect
@@ -532,28 +517,33 @@ namespace Codes.Passive
         }
     }
 
+    /// <summary>
+    /// 적의 보호막을 깨뜨리면 자기 행동을 앞당긴다.
+    ///
+    /// 원래는 <c>normalCooldown</c>을 0으로 되돌렸다. 그 값은 턴제로 오면서 <b>아무도 읽지 않는
+    /// 죽은 필드</b>가 되어 이 코드가 통째로 무효였다. 행동 주기를 AV가 전담하므로
+    /// "다음 공격을 앞당긴다"는 원래 의도는 AV를 깎는 쪽으로 옮긴다.
+    /// </summary>
     internal sealed class ShieldBreakCooldownEffect : BaseEffect
     {
-        private readonly float _internalCooldown;
-        private float _remaining;
+        private readonly float _advanceRatio;
+        private readonly Combat.TurnCooldown _cooldown = new(1);
         private Action<DamageResolvedContext> _handler;
 
-        public ShieldBreakCooldownEffect(float internalCooldown) : base(0, internalCooldown)
-            => _internalCooldown = internalCooldown;
+        public ShieldBreakCooldownEffect(float advanceRatio) : base(0, advanceRatio)
+            => _advanceRatio = advanceRatio;
 
         public override void OnApply()
         {
             _handler = context =>
             {
-                if (_remaining > 0f || context?.Attacker != Target || context.Target == null) return;
+                if (context?.Attacker != Target || context.Target == null) return;
                 if (context.Target.ShieldCurr > 0) return;
-                Target.normalCooldown = 0;
-                _remaining = _internalCooldown;
+                if (!_cooldown.TryUse(Target)) return;
+                Managers.GameManager.Instance?.ActionScheduler?.AdvanceAction(Target, _advanceRatio);
             };
             Target.AddListener(BaseEnums.UnitEventType.OnDamageDealt, _handler);
         }
-
-        public override void OnOwnerTurn() => _remaining = Mathf.Max(0f, _remaining - 2f);
 
         public override void OnRemove()
         {
@@ -685,8 +675,8 @@ namespace Codes.Passive
             _handler = _ =>
             {
                 if (Target == null) return;
-                Target.normalCooldown = 0;
                 Target.ultimateCooldown = 0;
+                Managers.GameManager.Instance?.ActionScheduler?.AdvanceAction(Target, 1f);
             };
             Target.AddListener(BaseEnums.UnitEventType.OnKill, _handler);
         }
@@ -710,7 +700,7 @@ namespace Codes.Passive
                 foreach (Unit enemy in ColosseumCombat.Enemies(Target)
                              .OrderBy(unit => ColosseumCombat.HealthRatio(unit)).Take(2))
                 {
-                    ColosseumCombat.ApplyCapture(Target, enemy, 2, false);   // 4초 → 2턴
+                    ColosseumCombat.ApplyCapture(Target, enemy, 2, false);
                 }
             };
             Target.AddListener(BaseEnums.UnitEventType.OnDeath, _handler);
@@ -768,8 +758,8 @@ namespace Codes.Passive
 
     internal sealed class CriticalTempoEffect : BaseEffect
     {
+        private readonly Combat.TurnCooldown _cooldown = new(1);
         private Action<DamageResolvedContext> _handler;
-        private float _internalCooldown;
 
         public CriticalTempoEffect() : base(0) { }
 
@@ -777,18 +767,14 @@ namespace Codes.Passive
         {
             _handler = context =>
             {
-                if (_internalCooldown > 0f || context?.Attacker != Target ||
-                    context.DamageContext?.IsCrit != true) return;
+                if (context?.Attacker != Target || context.DamageContext?.IsCrit != true) return;
+                if (!_cooldown.TryUse(Target)) return;
                 ColosseumCombat.AddStatus(
                     Target, Target, 6262, "colosseum_critical_tempo", "박수갈채",
-                    new CodeAccelerationEffect(0.2f), 2);   // 4초 → 2턴
-                _internalCooldown = 1;
+                    new CodeAccelerationBuffEffect(0.2f), 2);
             };
             Target.AddListener(BaseEnums.UnitEventType.OnDamageDealt, _handler);
         }
-
-        public override void OnOwnerTurn()
-            => _internalCooldown = Mathf.Max(0f, _internalCooldown - 2f);
 
         public override void OnRemove()
         {
@@ -833,6 +819,53 @@ namespace Codes.Passive
         }
     }
 
+    /// <summary>
+    /// 169 채찍 견제 — 일반행동으로 때린 적이 3턴간 주는 피해가 20% 줄어든다.
+    ///
+    /// 예전에는 "액티브 코드에서 처리한다"는 주석만 있고 <b>구현이 없었다.</b>
+    /// 사비나는 콜로세움 유일한 견제형이라 이 코드가 없으면 병종 자체가 성립하지 않는다.
+    /// </summary>
+    internal sealed class WhipCheckEffect : BaseEffect
+    {
+        private const float Reduction = 0.20f;
+        private const int Turns = 3;
+
+        private Action<DamageResolvedContext> _handler;
+
+        public WhipCheckEffect() : base(0, Reduction) { }
+
+        public override void OnApply()
+        {
+            if (Target == null) return;
+            _handler = OnDamageDealt;
+            Target.AddListener(BaseEnums.UnitEventType.OnDamageDealt, _handler);
+        }
+
+        public override void OnRemove()
+        {
+            Target?.RemoveListener(BaseEnums.UnitEventType.OnDamageDealt, _handler);
+            _handler = null;
+        }
+
+        private void OnDamageDealt(DamageResolvedContext context)
+        {
+            if (context?.Attacker != Target || context.Target == null || context.DamageDealt <= 0) return;
+            if (context.DamageContext?.CodeType != BaseEnums.CodeType.Normal) return;
+
+            ColosseumCombat.AddStatus(
+                Target,
+                context.Target,
+                6269,
+                "colosseum_whip_check",
+                "채찍 견제",
+                new OutgoingDamageMultiplierEffect(1f - Reduction),
+                Turns,
+                BaseEnums.StatusCategory.Negative,
+                false,
+                description: $"주는 피해가 {Reduction * 100f:F0}% 감소합니다.");
+        }
+    }
+
     internal sealed class SabinaMarkControllerEffect : BaseEffect
     {
         private readonly bool _reassign;
@@ -864,7 +897,7 @@ namespace Codes.Passive
                 6268,
                 ColosseumCombat.SabinaMarkKey,
                 "사냥꾼의 표식",
-                new ColosseumReceivingDamageEffect(1.2f),
+                new ReceivingDamageMultiplierEffect(1.2f),
                 -1,
                 BaseEnums.StatusCategory.Negative,
                 false,
@@ -946,9 +979,9 @@ namespace Codes.Passive
 
     internal sealed class SpartacusWarmUpEffect : BaseEffect
     {
+        private readonly Combat.TurnCooldown _gainCooldown = new(1);
         private Action<DamageResolvedContext> _dealt;
         private Action<EventContext> _taken;
-        private float _gainCooldown;
 
         public SpartacusWarmUpEffect() : base(0) { }
 
@@ -965,7 +998,6 @@ namespace Codes.Passive
 
         public override void OnOwnerTurn()
         {
-            _gainCooldown = 0;   // 스택 획득 제한은 턴 경계에서 풀린다
             int stacks = Target?.GetCombatResource(ColosseumCombat.WarmUpResource) ?? 0;
             if (stacks <= 0) return;
 
@@ -983,9 +1015,8 @@ namespace Codes.Passive
 
         private void GainStack()
         {
-            if (_gainCooldown > 0f || Target == null) return;
+            if (Target == null || !_gainCooldown.TryUse(Target)) return;
             Target.AddCombatResource(ColosseumCombat.WarmUpResource, 1);
-            _gainCooldown = 1;
         }
 
         public override void OnRemove()
@@ -1002,7 +1033,7 @@ namespace Codes.Passive
         public BleedEffect(float atkRatio) : base(0, atkRatio) => _atkRatio = atkRatio;
         public override bool IsDamageOverTime => true;
 
-        /// <summary>1턴 = 2초이므로 예전 '매초' 값의 2배를 준다.</summary>
+        /// <summary>턴 하나가 예전 2초에 해당하므로 값도 2배다.</summary>
         public override int EstimateDamagePerTurn()
             => Caster == null ? 0 : Mathf.Max(1, Caster.SkillDamage(Mathf.RoundToInt(_atkRatio * 100f)));
 

@@ -14,12 +14,12 @@ namespace Codes.Passive
     /// <summary>공허 계열 여럿이 나눠 쓰는 코드. 한 병종 전용은 각자의 파일에 둔다.</summary>
     public static class VoidSharedCodeIds
     {
-        public const int AlphaSpecimen = 1481;
-        public const int Storm = 1482;
-        public const int UltimateBarrier = 1483;
-        public const int VanguardAura = 1484;
-        public const int Intimidation = 1485;
-        public const int Perfection = 1486;
+        public const int AlphaSpecimen = 1541;
+        public const int Storm = 1542;
+        public const int UltimateBarrier = 1543;
+        public const int VanguardAura = 1544;
+        public const int Intimidation = 1545;
+        public const int Perfection = 1546;
     }
 
     public static class VoidSharedStatusIds
@@ -33,7 +33,7 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// 알파 개체(1481)와 그 금색 상위 코드 완전함(1486).
+    /// 알파 개체(1541)와 그 금색 상위 코드 완전함(1546).
     ///
     /// CON이 주는 최대 체력을 배로 불리고 <b>한 방에 깎이는 양</b>에 상한을 건다.
     /// 체력 바도 같은 수만큼 칸으로 끊어 그려 남은 단계가 눈에 보이게 한다 —
@@ -100,7 +100,7 @@ namespace Codes.Passive
         protected abstract void OnUltimateUsed();
     }
 
-    /// <summary>폭풍(1482) — 궁극기를 쓰면 모든 적에게 CON 대결로 기절을 시도한다.</summary>
+    /// <summary>폭풍(1542) — 궁극기를 쓰면 모든 적에게 CON 대결로 기절을 시도한다.</summary>
     public sealed class VoidStorm : UltimateReactionPassive
     {
         public VoidStorm(PassiveCodeContext context)
@@ -116,7 +116,7 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>궁극의 보호막(1483) — 궁극기를 쓰면 자신에게 CON 비례 보호막.</summary>
+    /// <summary>궁극의 보호막(1543) — 궁극기를 쓰면 자신에게 CON 비례 보호막.</summary>
     public sealed class VoidUltimateBarrier : UltimateReactionPassive
     {
         private const float ShieldConCoefficient = 1.2f;
@@ -130,7 +130,7 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// 공허의 선봉장(1484) — 일반행동을 마칠 때마다 필드의 공허 괴수 전원이 올스탯 +3%.
+    /// 공허의 선봉장(1544) — 일반행동을 마칠 때마다 필드의 공허 괴수 전원이 올스탯 +3%.
     /// 하위 코드가 없는 <b>금색 단독</b>이다.
     /// </summary>
     public sealed class VoidVanguardAura : PersistentStatusPassive
@@ -175,7 +175,7 @@ namespace Codes.Passive
             {
                 ally.AddStatus(BuffStatus.Create(
                     StatusId, StatusKey, CodeName, Caster, ally,
-                    new AllStatMultiplierEffect(bonus),
+                    new PrimaryStatMultiplierEffect(bonus),
                     stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                     isBeneficial: true,
                     description: $"올스탯 +{(bonus - 1f) * 100f:F0}% ({_stacks}중첩)"));
@@ -183,17 +183,8 @@ namespace Codes.Passive
         }
     }
 
-    internal sealed class AllStatMultiplierEffect : BaseEffect
-    {
-        private readonly float _multiplier;
-        public AllStatMultiplierEffect(float multiplier) : base(0, multiplier) => _multiplier = multiplier;
-
-        public override float PrimaryStatMultiplierModifier(Unit unit, BaseEnums.PrimaryStat stat)
-            => unit == Target ? _multiplier : 1f;
-    }
-
     /// <summary>
-    /// 위압감(1485) — 필드에 있는 동안 모든 적의 INT 마나 회복 기여분이 20% 줄어든다.
+    /// 위압감(1545) — 필드에 있는 동안 모든 적의 INT 마나 회복 기여분이 20% 줄어든다.
     /// 자기 턴마다 다시 훑어 전투 도중 들어온 적에게도 걸린다.
     /// </summary>
     public sealed class VoidIntimidation : PersistentStatusPassive
@@ -236,26 +227,12 @@ namespace Codes.Passive
             {
                 target.AddStatus(BuffStatus.Create(
                     StatusId, StatusKey, CodeName, Caster, target,
-                    new ManaEfficiencyDebuffEffect(Multiplier),
+                    new ManaEfficiencyEffect(Multiplier),
                     stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                     category: BaseEnums.StatusCategory.Negative,
                     isBeneficial: false,
                     description: Description));
             }
         }
-    }
-
-    internal sealed class ManaEfficiencyDebuffEffect : BaseEffect
-    {
-        private readonly float _multiplier;
-
-        public ManaEfficiencyDebuffEffect(float multiplier) : base(0, multiplier)
-        {
-            _multiplier = multiplier;
-            Category = BaseEnums.EffectCategory.Negative;
-        }
-
-        public override float ManaRecoveryIntContributionMultiplierModifier(Unit unit)
-            => unit == Target ? _multiplier : 1f;
     }
 }

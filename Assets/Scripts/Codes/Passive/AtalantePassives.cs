@@ -92,19 +92,11 @@ namespace Codes.Passive
         {
             Caster?.AddStatus(BuffStatus.Create(
                 AtalanteStatusIds.Agility, "atalante_agility", CodeName,
-                Caster, Caster, new AgilityDexEffect(),
+                Caster, Caster, new PrimaryStatMultiplierEffect(1.05f, BaseEnums.PrimaryStat.DEX),
                 stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
                 isBeneficial: true,
                 description: "DEX +5%."));
         }
-    }
-
-    internal sealed class AgilityDexEffect : BaseEffect
-    {
-        public AgilityDexEffect() : base(0, 1.05f) { }
-
-        public override float PrimaryStatMultiplierModifier(Unit unit, BaseEnums.PrimaryStat stat)
-            => unit == Target && stat == BaseEnums.PrimaryStat.DEX ? 1.05f : 1f;
     }
 
     /// <summary>Lv.10: 최대 체력 -25%, 방어력 20% 무시.</summary>
@@ -151,7 +143,7 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>Lv.30: 스킬 공격 적중 시 맹독을 3초간 부여.</summary>
+    /// <summary>Lv.30: 스킬 공격 적중 시 맹독을 2턴간 부여.</summary>
     public sealed class AtalanteVirulentPoison : PassiveCode
     {
         private Action<DamageResolvedContext> _damageHandler;
@@ -200,7 +192,7 @@ namespace Codes.Passive
                 Description = "2턴 동안 턴마다 40 + 시전자 CON의 10%에 해당하는 지속피해를 받습니다.",
                 Category = BaseEnums.StatusCategory.Negative,
                 StackPolicy = BaseEnums.StatusStackPolicy.Replace,
-                Duration = 2,   // 3초 → 2턴
+                Duration = 2,
             }, Caster, target);
             status.AddEffect(new AtalanteVenomEffect());
             target.AddStatus(status);
@@ -309,7 +301,7 @@ namespace Codes.Passive
 
         public AtalanteVenomEffect() : base(0) { }
 
-        /// <summary>대상의 턴마다 한 번. 1턴 = 2초이므로 예전 '매초' 값의 2배를 준다.</summary>
+        /// <summary>대상의 턴마다 한 번 터진다. 턴 하나가 예전 2초에 해당하므로 값도 2배다.</summary>
         public override void OnOwnerTurn() => DealTick();
 
         public override int EstimateDamagePerTurn() => CalculateDamage();

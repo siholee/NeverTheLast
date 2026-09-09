@@ -1,3 +1,4 @@
+using Effects.Buffs;
 using System;
 using System.Linq;
 using BaseClasses;
@@ -12,8 +13,8 @@ namespace Codes.Passive
 {
     public static class VoidVanguardCodeIds
     {
-        public const int VoidOath = 1510;
-        public const int PhalanxFormation = 1511;
+        public const int VoidOath = 1570;
+        public const int PhalanxFormation = 1571;
     }
 
     public static class VoidVanguardStatusIds
@@ -87,7 +88,7 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// 방진(1511) — 자신이 전열에 서 있으면 <b>후열 아군</b>이 받는 피해가 10% 줄어든다.
+    /// 방진(1571) — 자신이 전열에 서 있으면 <b>후열 아군</b>이 받는 피해가 10% 줄어든다.
     /// 앞줄이 버티는 동안 뒷줄이 오래 사는 진형 코드다.
     /// </summary>
     public sealed class VoidPhalanxFormation : PersistentStatusPassive
@@ -135,7 +136,7 @@ namespace Codes.Passive
             {
                 ally.AddStatus(Effects.Buffs.BuffStatus.Create(
                     StatusId, StatusKey, CodeName, Caster, ally,
-                    new FlatMitigationEffect(Reduction),
+                    new ReceivingDamageMultiplierEffect(1f - Reduction),
                     stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                     isBeneficial: true,
                     description: Description));
@@ -149,14 +150,5 @@ namespace Codes.Passive
                 ally.RemoveStatusByKey(StatusKey);
             }
         }
-    }
-
-    internal sealed class FlatMitigationEffect : BaseEffect
-    {
-        private readonly float _reduction;
-        public FlatMitigationEffect(float reduction) : base(0, reduction) => _reduction = reduction;
-
-        public override float ReceivingDamageModifier(Unit unit)
-            => unit == Target ? 1f - _reduction : 1f;
     }
 }

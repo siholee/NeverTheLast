@@ -69,11 +69,88 @@ namespace BaseClasses
         }
     }
 
+    /// <summary>
+    /// 장비의 <c>statBonuses</c>가 5스탯 대신 실을 수 있는 부가 수치.
+    ///
+    /// 장비 한 점은 <b>어떤 수치를 올릴지만</b> 고르고 그 크기는 티어가 정한다
+    /// (Detail_14 §2). 5스탯이 아닌 것을 고르면 여기의 항목이 된다.
+    /// </summary>
+    public enum EquipmentSecondaryStat
+    {
+        None,
+
+        /// <summary>치명타 확률(%p).</summary>
+        CritRate,
+
+        /// <summary>치명타 피해(%p).</summary>
+        CritDamage,
+
+        /// <summary>내구 — 받는 피해에서 고정으로 깎는 값. 방어구의 분류 내구에 더해진다.</summary>
+        Durability,
+    }
+
     [Serializable]
     public class EquipmentStatBonus
     {
         public string stat;
         public int amount;
+
+        /// <summary>5스탯이면 그 값, 아니면 false. 부가 수치는 <see cref="Secondary"/>가 받는다.</summary>
+        public bool TryGetPrimary(out BaseEnums.PrimaryStat primary)
+        {
+            primary = default;
+            return !string.IsNullOrWhiteSpace(stat) && Enum.TryParse(stat, true, out primary);
+        }
+
+        public EquipmentSecondaryStat Secondary => EquipmentStatKeys.ParseSecondary(stat);
+    }
+
+    /// <summary>
+    /// 데이터에 적히는 스탯 키를 해석하고 화면에 쓸 이름을 낸다.
+    /// 기획서가 한국어로 적혀 있어 한국어 표기도 함께 받는다.
+    /// </summary>
+    public static class EquipmentStatKeys
+    {
+        public static EquipmentSecondaryStat ParseSecondary(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return EquipmentSecondaryStat.None;
+
+            return key.Trim().Replace("_", string.Empty).ToLowerInvariant() switch
+            {
+                "critrate" or "critchance" or "치명타확률" or "치확" => EquipmentSecondaryStat.CritRate,
+                "critdamage" or "critdmg" or "치명타피해" or "치피" => EquipmentSecondaryStat.CritDamage,
+                "durability" or "내구" or "내구도" => EquipmentSecondaryStat.Durability,
+                _ => EquipmentSecondaryStat.None,
+            };
+        }
+
+        /// <summary>툴팁·보상 화면에 그대로 찍는 이름. 5스탯은 영문 약어를 유지한다.</summary>
+        public static string DisplayName(string key)
+        {
+            return ParseSecondary(key) switch
+            {
+                EquipmentSecondaryStat.CritRate => "치명타 확률",
+                EquipmentSecondaryStat.CritDamage => "치명타 피해",
+                EquipmentSecondaryStat.Durability => "내구",
+                _ => key,
+            };
+        }
+
+        /// <summary>치명타 계열은 %p 단위라 접미사가 붙는다.</summary>
+        public static string DisplaySuffix(string key)
+        {
+            return ParseSecondary(key) switch
+            {
+                EquipmentSecondaryStat.CritRate or EquipmentSecondaryStat.CritDamage => "%",
+                _ => string.Empty,
+            };
+        }
+
+        /// <summary>"치명타 피해 +10%" 꼴의 한 줄.</summary>
+        public static string Describe(EquipmentStatBonus bonus)
+            => bonus == null
+                ? string.Empty
+                : $"{DisplayName(bonus.stat)} +{bonus.amount}{DisplaySuffix(bonus.stat)}";
     }
 
     [Serializable]

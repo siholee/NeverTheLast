@@ -22,8 +22,7 @@ namespace Codes.Normal
 
         public SurtrScorchingSlash(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
-            Cooldown = 0;
+            CodeName = "일반행동";
             CastingDelay = 0.4f;
             MaxStage = 1;
             Power = NormalPower;

@@ -14,13 +14,13 @@ namespace Codes.Ultimate
     /// <summary>
     /// 세이 궁극기 — 창세.
     ///
-    /// 8초간 아군 전체가 피해를 가할 때마다 세이 INT ×3의 고정 피해를 추가한다.
+    /// 4턴간 아군 전체가 피해를 가할 때마다 세이 INT ×3의 고정 피해를 추가한다.
     /// </summary>
     public sealed class SeiSanctuary : UltimateCode
     {
         private const int StatusId = 5110;
         private const string StatusKey = "sei_genesis";
-        private const int Duration = 4;   // 8초 → 4턴
+        private const int Duration = 4;
         private const float IntRatio = 3f;
 
         private readonly List<(Unit ally, Action<DamageResolvedContext> handler)> _hooks = new();
@@ -60,7 +60,7 @@ namespace Codes.Ultimate
             foreach (Unit ally in Target.GetAllAllies(Caster).Where(unit => unit != null && unit.isActive))
             {
                 // 속성이 바위인 아군에게도 그대로 부착한다. 고유 원소는 판정 축에만 있어
-                // 공명(부착된 바위 + 부착된 바위)의 재료가 아니다.
+                // 진동(부착된 바위 + 부착된 바위)의 재료가 아니다.
                 ally.GrantCombatElement(
                     BaseEnums.UnitElement.Geo, Unit.CommonElementAuraDuration, Caster);
 

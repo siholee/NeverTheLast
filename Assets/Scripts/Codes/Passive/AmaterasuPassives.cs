@@ -17,7 +17,7 @@ namespace Codes.Passive
         public const int Breakthrough = 5703;
     }
 
-    /// <summary>기본공격마다 6초간 DEX +4, 최대 6중첩.</summary>
+    /// <summary>일반행동마다 3턴간 DEX +4, 최대 6중첩.</summary>
     public sealed class AmaterasuSunRhythm : UniquePassiveCode
     {
         private Action<EventContext> _hitHandler;
@@ -48,7 +48,7 @@ namespace Codes.Passive
             Caster.AddStatus(BuffStatus.Create(
                 AmaterasuStatusIds.SunRhythm, "amaterasu_sun_rhythm", CodeName,
                 Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.DEX, 4),
-                duration: 3,   // 6초 → 3턴
+                duration: 3,
                 stackPolicy: BaseEnums.StatusStackPolicy.Stack,
                 isBeneficial: true,
                 description: "DEX +4 (최대 6중첩)."));
@@ -174,7 +174,7 @@ namespace Codes.Passive
                 AmaterasuStatusIds.Breakthrough, "amaterasu_breakthrough", CodeName,
                 // 주스탯이 DEX가 아닌 보유자(로키 등)도 온전히 쓸 수 있도록 주스탯으로 일반화했다.
                 Caster, Caster, new PrimaryStatBonusBuffEffect(Caster.MainPrimaryStat, 12),
-                duration: 2,   // 4초 → 2턴
+                duration: 2,
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
                 description: "DEX +12."));

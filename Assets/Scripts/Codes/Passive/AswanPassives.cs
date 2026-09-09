@@ -84,23 +84,27 @@ namespace Codes.Passive
         }
 
         /// <summary>
-        /// 불 원소 부착. 아군에 이단심문관(화형 선고)이 서 있고 대상이 이미 불 원소를 지녔다면
-        /// 부착 대신 화상으로 바꾼다. 원소 부착 훅이 따로 없어 부여하는 쪽에서 판정한다.
+        /// 아스완의 불 원소 부착.
+        ///
+        /// <b>부착은 언제나 정상으로 한다.</b> 예전에는 대상이 이미 불을 지녔으면 부착 대신
+        /// 화상으로 바꿨는데, 그것은 불 + 불이 기본 반응이 아니던 시절의 임시방편이었다.
+        /// 지금은 불 + 불 = 화상이 전역 규칙이므로 여기서 가로챌 이유가 없다.
+        ///
+        /// 화형 선고는 그 위에 <b>화상을 하나 더 얹는다.</b> 반응을 대체하는 것이 아니라 겹치는
+        /// 것이라, 부착된 불이 소모되지 않고 남아 성기사의 <c>화형 심판</c>이 노리는
+        /// "불 보유 + 화상"이 동시에 성립한다. 반응만으로는 불이 소모되어 절반만 성립한다.
         /// </summary>
         public static void GrantPyro(Unit source, Unit target, int duration = Unit.CommonElementAuraDuration)
         {
             if (source == null || target == null || !target.isActive) return;
 
-            if (target.HasCombatElement(BaseEnums.UnitElement.Pyro) && HasPyreSentenceAlly(source))
-            {
-                if (!ElementalReaction.TryApplyBurn(source, target))
-                {
-                    Debug.Log($"[화형 선고] {target.UnitName}이(가) 화상에 저항했습니다.");
-                }
-                return;
-            }
-
             target.GrantCombatElement(BaseEnums.UnitElement.Pyro, duration, source);
+
+            if (!HasPyreSentenceAlly(source) || !target.isActive) return;
+            if (!ElementalReaction.TryApplyBurn(source, target))
+            {
+                Debug.Log($"[화형 선고] {target.UnitName}이(가) 화상에 저항했습니다.");
+            }
         }
 
         private static bool HasPyreSentenceAlly(Unit source)
@@ -295,8 +299,13 @@ namespace Codes.Passive
     // ══════════════════════════════════════════════════════════════
 
     /// <summary>
-    /// 362 화형 선고 — 이미 불 원소가 붙은 대상에게 불을 다시 부착하면 화상으로 바꾼다.
-    /// 실제 변환은 <see cref="AswanCombat.GrantPyro"/>가 이 상태를 보고 처리한다.
+    /// 1402 화형 선고 — 필드에 있는 동안 <b>아군이 부여하는 불 원소가 화상을 함께 건다.</b>
+    ///
+    /// 불 + 불 = 화상은 이제 누구나 일으키는 기본 반응이다. 이단심문관의 값은
+    /// <b>불을 소모하지 않고 화상을 얹는다</b>는 데 있다. 그래야 같은 대상에게
+    /// 불과 화상이 동시에 남아 성기사의 <c>화형 심판</c>이 방어력 40%를 온전히 무시한다.
+    ///
+    /// 실제 처리는 <see cref="AswanCombat.GrantPyro"/>가 이 상태를 보고 한다.
     /// 상태 자체는 표식이므로 스탯 훅이 없다.
     /// </summary>
     public sealed class AswanPyreSentence : PassiveCode
@@ -311,14 +320,9 @@ namespace Codes.Passive
 
         public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
             AswanStatusIds.PyreSentence, "aswan_pyre_sentence", CodeName,
-            Caster, Caster, new AswanPyreSentenceEffect(),
+            Caster, Caster, new MarkerBuffEffect(),
             stackPolicy: BaseEnums.StatusStackPolicy.Ignore, isBeneficial: true,
-            description: "이미 불 원소를 지닌 대상에게 불을 부착하면 화상으로 바뀝니다."));
-    }
-
-    internal sealed class AswanPyreSentenceEffect : BaseEffect
-    {
-        public AswanPyreSentenceEffect() : base(0) { }
+            description: "아군이 부여하는 불 원소가 화상을 함께 겁니다. 불 원소는 소모되지 않습니다."));
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -619,7 +623,7 @@ namespace Codes.Passive
     /// <summary>
     /// 368 초월 — 전투 시간 15초가 지나면 최대 체력이 20% 늘고 늘어난 만큼 회복한다.
     ///
-    /// 🔸 원문은 '전투 후 15초 후'다. 전투가 턴제로 바뀐 뒤 벽시계 초는 남아 있지 않으므로
+    /// 🔸 원문은 '전투 후 15초 후'다. 전투가 턴제로 바뀐 뒤 초 축은 남아 있지 않으므로
     ///    스케줄러의 <b>전투 시간</b>(AV가 흐른 만큼만 늘어나는 축)으로 읽었다.
     /// </summary>
     public sealed class AmunRaTranscendence : PassiveCode
@@ -631,15 +635,16 @@ namespace Codes.Passive
             AswanStatusIds.Transcendence, "amunra_transcendence", CodeName,
             Caster, Caster, new AmunRaTranscendenceEffect(),
             stackPolicy: BaseEnums.StatusStackPolicy.Ignore, isBeneficial: true,
-            description: "전투 시간 15초가 지나면 최대 체력이 20% 증가하고 그만큼 회복합니다."));
+            description: "전투를 8턴 치르면 최대 체력이 20% 증가하고 그만큼 회복합니다."));
     }
 
     internal sealed class AmunRaTranscendenceEffect : BaseEffect
     {
-        private const float TriggerSeconds = 15f;
+        private const int TriggerTurns = 8;
         private const float HpBonus = 0.20f;
 
         private bool _triggered;
+        private int _turns;
 
         public AmunRaTranscendenceEffect() : base(0) { }
 
@@ -649,7 +654,7 @@ namespace Codes.Passive
         public override void OnOwnerTurn()
         {
             if (_triggered || Target == null || !Target.isActive) return;
-            if ((GameManager.Instance?.ActionScheduler?.CombatSeconds ?? 0f) < TriggerSeconds) return;
+            if (++_turns < TriggerTurns) return;
 
             int hpMaxBefore = Target.HpMax;
             int hpBefore = Target.HpCurr;
@@ -703,8 +708,8 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// 370 지옥불 — 강화 일반공격을 쓴 뒤 '승천' 스택 수만큼 무작위 단일 적에게 칼날을 더 날린다.
-    /// 표식 상태이며, 실제 발사는 강화 일반공격(<c>AmunRaEmpoweredNormal</c>)이 끝낼 때 처리한다.
+    /// 370 지옥불 — 강화 일반행동을 쓴 뒤 '승천' 스택 수만큼 무작위 단일 적에게 칼날을 더 날린다.
+    /// 표식 상태이며, 실제 발사는 강화 일반행동(<c>AmunRaEmpoweredNormal</c>)이 끝낼 때 처리한다.
     /// </summary>
     public sealed class AmunRaHellfire : PassiveCode
     {
@@ -713,13 +718,8 @@ namespace Codes.Passive
 
         public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
             AswanStatusIds.Hellfire, "amunra_hellfire", CodeName,
-            Caster, Caster, new AmunRaHellfireEffect(),
+            Caster, Caster, new MarkerBuffEffect(),
             stackPolicy: BaseEnums.StatusStackPolicy.Ignore, isBeneficial: true,
-            description: "강화 일반공격 이후 '승천' 스택만큼 무작위 적에게 칼날을 추가로 발사합니다."));
-    }
-
-    internal sealed class AmunRaHellfireEffect : BaseEffect
-    {
-        public AmunRaHellfireEffect() : base(0) { }
+            description: "강화 일반행동 이후 '승천' 스택만큼 무작위 적에게 칼날을 추가로 발사합니다."));
     }
 }

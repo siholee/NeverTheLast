@@ -9,7 +9,7 @@ namespace Codes.Normal
     {
         public Sachi(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             MaxStage = 1;
             Power = 40;
             CodeTags = new List<int> { DamageTag.Special };

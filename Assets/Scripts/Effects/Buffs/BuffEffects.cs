@@ -21,14 +21,6 @@ namespace Effects.Buffs
         public const int LastStandFormation = 103;
         public const int IronWall = 104;
         public const int AnemoImbue = 106;
-        public const int ForestGrace = 107;
-        public const int SpellSniper = 108;
-        public const int RootingCon = 109;
-        public const int RootingInt = 110;
-        public const int Scholar = 111;
-        public const int Transcendence = 112;
-        public const int GuardianWill = 113;
-        public const int CipactliSlayer = 114;
     }
 
     /// <summary>
@@ -67,13 +59,13 @@ namespace Effects.Buffs
         }
     }
 
-    /// <summary>치명타 확률 가산 버프 (홀리 인챈트 등)</summary>
     /// <summary>수치 효과 없이 상태를 화면에 표시하기 위한 표식용 효과.</summary>
     public class MarkerBuffEffect : BaseEffect
     {
         public MarkerBuffEffect() : base(0) { }
     }
 
+    /// <summary>치명타 확률 가산 버프 (홀리 인챈트 등)</summary>
     public class CritChanceBuffEffect : BaseEffect
     {
         private readonly float _amount;
@@ -84,7 +76,7 @@ namespace Effects.Buffs
             _amount = amount;
         }
 
-        public override float CritChanceAdditiveModifier(Unit unit) => _amount;
+        public override float CritChanceAdditiveModifier(Unit unit) => unit == Target ? _amount : 0f;
     }
 
     /// <summary>만종: 시전자 자신에게 DEX +Level×2 (상태 지속 동안)</summary>
@@ -114,7 +106,7 @@ namespace Effects.Buffs
             _amount = amount;
         }
 
-        public override float CodeAccelerationAdditiveModifier(Unit unit) => _amount;
+        public override float CodeAccelerationAdditiveModifier(Unit unit) => unit == Target ? _amount : 0f;
     }
 
     /// <summary>5대 기본 스탯 고정 가산 버프 (보유자에게 적용)</summary>
@@ -172,69 +164,8 @@ namespace Effects.Buffs
         }
     }
 
-    /// <summary>숲의 은총: 시전자가 Dendro 원소 보유 시 CON/INT ×1.5</summary>
-    public class ForestGraceBuffEffect : BaseEffect
-    {
-        public ForestGraceBuffEffect() : base(0) { }
 
-        public override float PrimaryStatMultiplierModifier(Unit unit, BaseEnums.PrimaryStat stat)
-        {
-            if (unit != Caster || !unit.HasCombatElement(BaseEnums.UnitElement.Dendro)) return 1f;
-            return stat == BaseEnums.PrimaryStat.CON || stat == BaseEnums.PrimaryStat.INT ? 1.5f : 1f;
-        }
-    }
 
-    /// <summary>학자: 시전자 자신의 마나 회복 ×1.5</summary>
-    public class ScholarBuffEffect : BaseEffect
-    {
-        public ScholarBuffEffect() : base(0) { }
 
-        public override float ManaRecoveryMultiplierModifier(Unit unit) => unit == Caster ? 1.5f : 1f;
-    }
 
-    /// <summary>주문 저격수: 후열 → 후열 공격 시 주는 피해 ×1.5</summary>
-    public class SpellSniperBuffEffect : BaseEffect
-    {
-        public SpellSniperBuffEffect() : base(0) { }
-
-        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
-        {
-            if (attacker != Caster || attacker.currentCell == null || target?.currentCell == null || Managers.GridManager.Instance == null)
-            {
-                return 1f;
-            }
-            int attackerRear = Managers.GridManager.Instance.GetRearColumn(attacker.IsEnemy);
-            int targetRear = Managers.GridManager.Instance.GetRearColumn(target.IsEnemy);
-            return attacker.currentCell.xPos == attackerRear && target.currentCell.xPos == targetRear ? 1.5f : 1f;
-        }
-    }
-
-    /// <summary>수호자의 의지: 아군에 1010/1011이 살아있으면 받는 피해 ×0.7</summary>
-    public class GuardianWillBuffEffect : BaseEffect
-    {
-        public GuardianWillBuffEffect() : base(0) { }
-
-        public override float ReceivingDamageModifier(Unit unit)
-        {
-            if (unit != Caster || Managers.GridManager.Instance == null) return 1f;
-            foreach (Unit ally in global::Target.GetAllAllies(unit))
-            {
-                if (ally != null && ally.isActive && (ally.ID == 1010 || ally.ID == 1011)) return 0.7f;
-            }
-            return 1f;
-        }
-    }
-
-    /// <summary>시팍틀리를 살해한 자: 시전자가 살아있는 동안 Dendro 보유 아군의 5스탯 ×2</summary>
-    public class CipactliSlayerBuffEffect : BaseEffect
-    {
-        public CipactliSlayerBuffEffect() : base(0) { }
-
-        public override float PrimaryStatMultiplierModifier(Unit unit, BaseEnums.PrimaryStat stat)
-        {
-            return Caster != null && Caster.isActive && unit != null && unit.HasCombatElement(BaseEnums.UnitElement.Dendro)
-                ? 2f
-                : 1f;
-        }
-    }
 }

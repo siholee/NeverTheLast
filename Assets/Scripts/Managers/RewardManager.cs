@@ -138,7 +138,7 @@ namespace Managers
         {
             string stats = item.statBonuses == null || item.statBonuses.Count == 0
                 ? ""
-                : string.Join(", ", item.statBonuses.Select(bonus => $"{bonus.stat} +{bonus.amount}"));
+                : string.Join(", ", item.statBonuses.Select(BaseClasses.EquipmentStatKeys.Describe));
             string suffix = string.IsNullOrWhiteSpace(stats) ? "" : $" | {stats}";
             return $"{item.category} | 중량 {Mathf.Max(0, item.weight)}{suffix}";
         }

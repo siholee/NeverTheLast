@@ -17,7 +17,7 @@ namespace Codes.Normal
     {
         public AswanPaladinSlash(NormalCodeContext context, int power) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = power;
         }
 
@@ -40,7 +40,7 @@ namespace Codes.Normal
     {
         public AswanInquisitorPrayer(NormalCodeContext context, int power) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = power;
             CodeTags = new List<int> { DamageTag.Special };
         }
@@ -80,7 +80,7 @@ namespace Codes.Normal
         private const int BleedTurns = 5;
 
         public AswanWraithClaw(NormalCodeContext context) : base(context)
-        { CodeName = "일반공격"; Power = 90; }
+        { CodeName = "일반행동"; Power = 90; }
 
         protected override int CalculateDamage(float critMultiplier)
             => Mathf.Max(1, Mathf.RoundToInt(
@@ -106,7 +106,7 @@ namespace Codes.Normal
     public sealed class AswanFallenPriestRite : BaseNormalCode
     {
         public AswanFallenPriestRite(NormalCodeContext context) : base(context)
-        { CodeName = "일반공격"; Power = 80; }
+        { CodeName = "일반행동"; Power = 80; }
 
         protected override int CalculateDamage(float critMultiplier)
             => Mathf.Max(1, Mathf.RoundToInt(
@@ -151,7 +151,7 @@ namespace Codes.Normal
     /// 아문·라 N / N+ — 칼날 세례.
     ///
     /// 기본형은 칼날 셋을 던져 서로 다른 적 3명을 때린다. 그 공격이 치명타로 터지면
-    /// <b>강화 일반공격(N+)</b>을 곧바로 추가행동으로 예약한다. 강화형은 단일 대상이며,
+    /// <b>강화 일반행동(N+)</b>을 곧바로 추가행동으로 예약한다. 강화형은 단일 대상이며,
     /// '지옥불'(370)을 배웠다면 강화형이 끝난 뒤 '승천' 스택 수만큼 칼날을 더 날린다.
     ///
     /// N+를 따로 등록할 수 있도록 코드 ID 308도 이 클래스를 상시 강화형으로 만들어 준다.
@@ -170,7 +170,7 @@ namespace Codes.Normal
         public AmunRaBladeVolley(NormalCodeContext context, bool alwaysEmpowered = false) : base(context)
         {
             _alwaysEmpowered = alwaysEmpowered;
-            CodeName = alwaysEmpowered ? "강화 일반공격" : "일반공격";
+            CodeName = alwaysEmpowered ? "강화 일반행동" : "일반행동";
             Power = BladePower;
         }
 
@@ -178,7 +178,7 @@ namespace Codes.Normal
         {
             _empoweredNow = _alwaysEmpowered || _queuedEmpowered;
             _queuedEmpowered = false;
-            CodeName = _empoweredNow ? "강화 일반공격" : "일반공격";
+            CodeName = _empoweredNow ? "강화 일반행동" : "일반행동";
             base.CastCode();
         }
 
@@ -215,18 +215,18 @@ namespace Codes.Normal
                 yield break;
             }
 
-            // 치명타가 하나라도 터지면 강화 일반공격을 즉시 큐에 예약한다.
+            // 치명타가 하나라도 터지면 강화 일반행동을 즉시 큐에 예약한다.
             if (!context.IsCrit) yield break;
 
             _queuedEmpowered = true;
             Managers.GameManager.Instance?.ActionScheduler.EnqueueAdditional(
                 Caster,
                 $"amunra_empowered_{Caster.GetEntityId()}",
-                "강화 일반공격",
+                "강화 일반행동",
                 Caster.CastNormalCode);
         }
 
-        /// <summary>370 지옥불 — 강화 일반공격 뒤 '승천' 스택만큼 무작위 단일 적에게 칼날을 더 날린다.</summary>
+        /// <summary>370 지옥불 — 강화 일반행동 뒤 '승천' 스택만큼 무작위 단일 적에게 칼날을 더 날린다.</summary>
         private IEnumerator FireHellfire()
         {
             if (Caster == null || !Caster.HasStatus(AswanStatusIds.Hellfire)) yield break;

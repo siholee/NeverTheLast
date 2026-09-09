@@ -53,10 +53,10 @@ namespace Codes.Passive
             int growthStep = (_codeId - 101) % 4;
             BaseEffect effect = growthStep switch
             {
-                0 => new EnemyCommonOutgoingDamageEffect(1.05f),
-                1 => new EnemyCommonReceivingDamageEffect(0.95f),
-                2 => new EnemyCommonOutgoingDamageEffect(1.10f),
-                3 => new EnemyCommonCodeAccelerationEffect(0.10f),
+                0 => new OutgoingDamageMultiplierEffect(1.05f),
+                1 => new ReceivingDamageMultiplierEffect(0.95f),
+                2 => new OutgoingDamageMultiplierEffect(1.10f),
+                3 => new CodeAccelerationBuffEffect(0.10f),
                 _ => null,
             };
 
@@ -72,44 +72,5 @@ namespace Codes.Passive
                 stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
                 isBeneficial: true));
         }
-    }
-
-    internal sealed class EnemyCommonOutgoingDamageEffect : BaseEffect
-    {
-        private readonly float _multiplier;
-
-        public EnemyCommonOutgoingDamageEffect(float multiplier) : base(0, multiplier)
-        {
-            _multiplier = multiplier;
-        }
-
-        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
-            => attacker == Target ? _multiplier : 1f;
-    }
-
-    internal sealed class EnemyCommonReceivingDamageEffect : BaseEffect
-    {
-        private readonly float _multiplier;
-
-        public EnemyCommonReceivingDamageEffect(float multiplier) : base(0, multiplier)
-        {
-            _multiplier = multiplier;
-        }
-
-        public override float ReceivingDamageModifier(Unit unit)
-            => unit == Target ? _multiplier : 1f;
-    }
-
-    internal sealed class EnemyCommonCodeAccelerationEffect : BaseEffect
-    {
-        private readonly float _amount;
-
-        public EnemyCommonCodeAccelerationEffect(float amount) : base(0, amount)
-        {
-            _amount = amount;
-        }
-
-        public override float CodeAccelerationAdditiveModifier(Unit unit)
-            => unit == Target ? _amount : 0f;
     }
 }

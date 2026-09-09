@@ -134,7 +134,7 @@
 
 초상화 지정 규칙(`dialogue` 항목):
 
-1. `portrait`를 직접 지정하면 그 값을 사용한다(`Resources/Sprite/Portraits` 기준, 확장자 제외).
+1. `portrait`를 직접 지정하면 그 키를 사용한다(`Resources/Sprite/Portraits`의 분류 폴더·확장자 제외).
 2. 지정하지 않으면 `speaker` 이름을 `10_units.yaml`의 유닛 `name`과 대조해 자동 해석한다.
 3. 둘 다 해당 없으면 초상화 없이 내레이션처럼 표시된다(예: 화자가 `일행`인 경우).
 
@@ -160,7 +160,7 @@
 
 | 필드 | 설명 |
 | --- | --- |
-| `portrait` | 초상화 파일명(`Resources/Sprite/Portraits` 기준, 확장자 제외) |
+| `portrait` | 초상화 키(`Resources/Sprite/Portraits`의 분류 폴더·확장자 제외) |
 | `emotion` | 표정. `{portrait}_{emotion}` 파일을 우선 사용하고, 없으면 기본 초상화로 폴백 |
 | `effect` | `shake`(흔들림) / `bounce`(톡 튀기) / `flash`(화면 번쩍) / `none` |
 | `sfx` | 1회 재생할 효과음 (`Resources/Audio/SFX/{sfx}`) |
@@ -309,7 +309,7 @@ rewardTierOdds:
 BG3식 클래스 레벨/서브클래스 육성 시스템은 복잡도 문제로 제거되었다.
 
 - `unitClass`는 단순 식별 문자열 태그로만 유지한다.
-- 용도: 일반공격 접촉/비접촉 판정(`ClassCatalog.IsContactCombatClass`), 장비 숙련도, 육성 특기 스탯(`ClassCatalog.GetPrimaryStat`).
+- 용도: 일반행동 접촉/비접촉 판정(`ClassCatalog.IsContactCombatClass`), 장비 숙련도, 육성 특기 스탯(`ClassCatalog.GetPrimaryStat`).
 - `classLevels`/`subclasses` 필드는 유닛/적 데이터와 저장 데이터에서 제거되었다. YAML에 남아 있어도 `IgnoreUnmatchedProperties`로 무시된다.
 - 유닛 성장은 육성(트레이닝) 시스템과 보상/업그레이드로만 이루어진다.
 
@@ -347,7 +347,7 @@ lukIncrementUpgrade: 1
 
 현재 파생 스탯 계산:
 
-- STR: 일반공격 공격력, 방어력
+- STR: 일반행동 공격력, 방어력
 - DEX: 속도, 회피율
 - CON: 최대 체력, 치유 보너스, 보호막 보너스
 - INT: 스킬 발동율, 마나 효율
@@ -411,7 +411,7 @@ lukIncrementUpgrade: 1
 코드는 세 종류로 구분한다.
 
 - `PassiveCode`: 패시브 코드
-- `NormalCode`: 일반공격/일반 코드
+- `NormalCode`: 일반행동/일반 코드
 - `UltimateCode`: 궁극기 코드
 
 `CodeActivationType`:
@@ -435,7 +435,7 @@ lukIncrementUpgrade: 1
 
 ### 발동률 규칙
 
-- 일반공격/일반 코드는 발동 실패하지 않는다.
+- 일반행동/일반 코드는 발동 실패하지 않는다.
 - 궁극기 코드는 발동 실패하지 않는다.
 - INT 기반 발동률은 현재 패시브 코드에만 적용된다.
 - 조건부 스킬은 조건을 만족해야 하며, 조건을 만족한 뒤에도 패시브라면 INT 기반 발동 판정을 통과해야 한다.
@@ -596,7 +596,7 @@ CON은 최대 체력과 치유 보너스에 더해 보호막 보너스에도 연
 - `element`는 `None`, `Fire`, `Water`, `Grass`, `Wind`, `Electric`, `Ice`, `Rock` 중 하나를 사용한다.
 - `unitClass`는 현재 문자열 기반으로 관리하며 BG3식 클래스 이름을 사용한다. 예: `Ranger`, `Wizard`, `Cleric`, `Fighter`.
 - `codes`는 `20_codes.yaml`과 `CodeFactory`에 모두 연결되어야 한다.
-- `portrait`는 `Resources/Sprite/Portraits/{portrait}` 경로에서 로드된다.
+- `portrait`는 `SpriteResource`가 `Resources/Sprite/Portraits`의 아군·일반·엘리트·보스 폴더에서 찾는다.
 - 새 데이터는 5스탯 필드를 직접 작성한다.
 
 ### 2. 선택 UI/저장 조건 확인
@@ -658,7 +658,7 @@ CON은 최대 체력과 치유 보너스에 더해 보호막 보너스에도 연
 - `id`는 기존 적과 겹치면 안 된다.
 - `themeId`는 테마의 `enemyThemeId`와 매칭된다.
 - `archetype`은 라운드 패턴의 `archetypes`와 매칭된다.
-- `element`와 `unitClass`는 유닛 정체성 및 일반공격 접촉/비접촉 판정에 사용된다.
+- `element`와 `unitClass`는 유닛 정체성 및 일반행동 접촉/비접촉 판정에 사용된다.
 - `tier`는 일반 적 검색에서 `"normal"`을 사용한다.
 - 중간 보스/보스는 테마에서 직접 ID로 지정한다.
 
@@ -715,7 +715,7 @@ stageThemes:
 - `Assets/Scripts/Codes/Normal`
 - `NormalCode` 상속
 - 발동 실패하지 않음
-- 일반공격과 같은 행동 주기에서 사용
+- 일반행동과 같은 행동 주기에서 사용
 
 궁극기:
 

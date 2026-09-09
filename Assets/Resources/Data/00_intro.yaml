@@ -3,7 +3,7 @@
 # choices가 없으면 마지막 대사 후 자동으로 종료되고 다음 흐름(캐릭터 선택)으로 넘어간다.
 #
 # 대사에 쓸 수 있는 연출 필드:
-#   portrait  : 초상화 파일명 (Resources/Sprite/Portraits 기준, 확장자 제외)
+#   portrait  : 초상화 키 (Resources/Sprite/Portraits의 분류 폴더·확장자 제외)
 #               생략 시 speaker 이름을 유닛 이름과 대조해 자동 해석. 둘 다 없으면 내레이션.
 #   emotion   : 표정. "{portrait}_{emotion}" 파일을 우선 사용하고 없으면 기본 초상화로 폴백
 #   effect    : shake(흔들림) / bounce(톡 튀기) / flash(화면 번쩍) / none

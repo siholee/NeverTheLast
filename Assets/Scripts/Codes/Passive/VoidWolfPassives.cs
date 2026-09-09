@@ -1,3 +1,4 @@
+using Effects.Buffs;
 using System;
 using BaseClasses;
 using Codes.Base;
@@ -11,9 +12,9 @@ namespace Codes.Passive
     /// <summary>공허의 늑대 계열 코드 ID.</summary>
     public static class VoidWolfCodeIds
     {
-        public const int BloodScent = 1470;
-        public const int Vampire = 1471;
-        public const int DarkLord = 1472;
+        public const int BloodScent = 1530;
+        public const int Vampire = 1531;
+        public const int DarkLord = 1532;
     }
 
     public static class VoidWolfStatusIds
@@ -67,7 +68,7 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// 흡혈귀(1471)와 그 금색 상위 코드 어둠의 군주(1472) —
+    /// 흡혈귀(1531)와 그 금색 상위 코드 어둠의 군주(1532) —
     /// <b>공격으로 자신을 회복할 때만</b> 회복량이 늘어난다.
     ///
     /// 판정은 <c>Unit.ModifyHp</c>가 넘겨 주는 <c>attackTriggered</c>를 쓴다. 즉 회복이
@@ -89,15 +90,6 @@ namespace Codes.Passive
             SupersededByCodeId = supersededByCodeId;
         }
 
-        protected override BaseEffect CreateInitialEffect() => new AttackLifestealBonusEffect(_multiplier);
-    }
-
-    internal sealed class AttackLifestealBonusEffect : BaseEffect
-    {
-        private readonly float _multiplier;
-        public AttackLifestealBonusEffect(float multiplier) : base(0, multiplier) => _multiplier = multiplier;
-
-        public override float HealingReceivedMultiplierModifier(Unit unit, Unit source, bool attackTriggered)
-            => unit == Target && source == unit && attackTriggered ? _multiplier : 1f;
+        protected override BaseEffect CreateInitialEffect() => new AttackTriggeredHealingEffect(_multiplier);
     }
 }

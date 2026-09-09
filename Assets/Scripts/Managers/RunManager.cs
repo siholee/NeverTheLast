@@ -78,6 +78,17 @@ namespace Managers
                 return false;
             }
 
+            RestoreRun(save);
+            return true;
+        }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        public RunSaveData CaptureDebugSnapshot() => BuildSaveData();
+        public void RestoreDebugSnapshot(RunSaveData save) => RestoreRun(save);
+#endif
+
+        private void RestoreRun(RunSaveData save)
+        {
             RunActive = true;
             CurrentMode = (GameMode)save.gameMode;
             GameManager.Instance.life = save.life;
@@ -100,7 +111,6 @@ namespace Managers
             GameManager.Instance.EnterNextStageAfterLoad();
             GameManager.Instance.RestorePreparationActionState(save.preparationActionUsed);
             Debug.Log($"[RunManager] 저장 런 복원 - Stage {save.currentStage}, Round {save.currentRound}");
-            return true;
         }
 
         /// <summary>

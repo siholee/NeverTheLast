@@ -12,9 +12,9 @@ namespace Codes.Passive
 {
     public static class VoidMonstrousBirdCodeIds
     {
-        public const int Rebirth = 1450;
-        public const int Acceleration = 1451;
-        public const int SharpBeak = 1452;
+        public const int Rebirth = 1510;
+        public const int Acceleration = 1511;
+        public const int SharpBeak = 1512;
     }
 
     public static class VoidMonstrousBirdStatusIds

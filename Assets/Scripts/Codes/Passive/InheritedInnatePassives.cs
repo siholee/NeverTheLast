@@ -48,7 +48,7 @@ namespace Codes.Passive
                 InheritedInnateStatusIds.AsclepiusNashorsTooth,
                 "inherited_asclepius_nashors_tooth", CodeName,
                 Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.DEX, 20),
-                duration: 2,   // 5초 → 2턴
+                duration: 2,
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
                 description: "궁극기 사용 후 2턴간 DEX가 20 증가합니다."));

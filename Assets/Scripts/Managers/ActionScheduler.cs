@@ -19,16 +19,16 @@ namespace Managers
     /// 그래서 프레임 수·연출 길이가 순서에 영향을 주지 않는다.
     ///
     /// 우선순위 — 낮을수록 먼저다.
-    ///   0 패시브 발동 → 1 추가공격 → 2 궁극기 → 3 일반공격
+    ///   0 패시브 발동 → 1 추가행동 → 2 궁극기 → 3 일반행동
     /// 유닛의 턴이 열리면 상태·주기 효과가 먼저 진행되고(패시브가 여기서 줄을 선다),
-    /// 그 다음 추가공격, 마지막으로 그 턴의 일반공격이 나간다.
+    /// 그 다음 추가행동, 마지막으로 그 턴의 일반행동이 나간다.
     ///
     /// <b>궁극기는 턴을 쓰지 않는다.</b> 자원이 차는 즉시 누구의 턴이든 상관없이 줄을 서고,
-    /// 발동해도 AV가 리셋되지 않아 원래 예정된 일반공격 차례는 그대로 남는다.
+    /// 발동해도 AV가 리셋되지 않아 원래 예정된 일반행동 차례는 그대로 남는다.
     /// 행동 횟수가 적은 저DEX·고INT 유닛도 궁극기로 화력을 낼 수 있게 하기 위한 구조다.
     ///
     /// 중복 방지 — 같은 (유닛 + 종류 + 이름) 조합은 큐에 하나만 존재한다.
-    /// 추가공격이 여러 번 겹쳐 터지거나, 한 턴에 본 행동이 두 번 잡히지 않는다.
+    /// 추가행동이 여러 번 겹쳐 터지거나, 한 턴에 본 행동이 두 번 잡히지 않는다.
     /// </summary>
     public class ActionScheduler
     {
@@ -43,6 +43,8 @@ namespace Managers
         ///
         /// 실시간 모델이던 시절의 초당 AV 감소량을 그대로 환산 계수로 쓴다.
         /// 속도 100(DEX 0)이면 AV 100 → 2.5초마다 행동한다는 감각이 유지된다.
+        /// <b>남은 용도는 궁극기 자원 충전 하나뿐이다.</b> 지속시간·주기·내부 쿨다운은
+        /// 전부 <see cref="Unit.TurnCount"/> 축으로 옮겼다.
         /// </summary>
         public const float ActionValuePerSecond = 40f;
 
@@ -103,21 +105,10 @@ namespace Managers
         public int CurrentActionId => _currentActionId >= 0 ? _currentActionId : ActionCount;
 
         /// <summary>
-        /// 이번 라운드에 열린 <b>턴</b>의 수(전역). 추가공격·패시브 발동은 세지 않는다.
+        /// 이번 라운드에 열린 <b>턴</b>의 수(전역). 추가행동·패시브 발동은 세지 않는다.
         /// 라운드 제한 시간을 대체하는 축이다.
         /// </summary>
         public int TurnsTaken { get; private set; }
-
-        /// <summary>
-        /// 이번 라운드의 누적 <b>전투 시간(초)</b>.
-        ///
-        /// 벽시계가 아니다. AV가 흐른 만큼만 늘어나므로
-        /// <b>누군가 행동하는 동안에는 멈춘다.</b> 연출 길이·프레임 수는 영향을 주지 않는다.
-        /// 추가공격·패시브 발동처럼 AV를 소비하지 않는 행동도 시간을 흘리지 않는다.
-        ///
-        /// 초 단위로 기획된 주기형 효과가 턴 경계에서 이 축을 누적한다.
-        /// </summary>
-        public float CombatSeconds { get; private set; }
 
         /// <summary>현재 행동 중인 유닛. 없으면 null.</summary>
         public Unit ActingUnit => _acting;
@@ -139,7 +130,6 @@ namespace Managers
             _currentActionId = -1;
             ActionCount = 0;
             TurnsTaken = 0;
-            CombatSeconds = 0f;
 
             foreach (Unit unit in Participants())
             {
@@ -258,11 +248,11 @@ namespace Managers
             => unit != null && _queue.Any(entry => entry.Unit == unit && entry.Kind == ActionKind.Ultimate);
 
         // ══════════════════════════════════════════════════════════
-        // 외부 예약 API — 패시브와 추가공격이 여기로 들어온다
+        // 외부 예약 API — 패시브와 추가행동이 여기로 들어온다
         // ══════════════════════════════════════════════════════════
 
         /// <summary>
-        /// 추가공격을 예약한다. 대기 중인 본 행동보다 먼저 나가지만
+        /// 추가행동을 예약한다. 대기 중인 본 행동보다 먼저 나가지만
         /// <b>진행 중인 행동을 끊지는 않는다.</b>
         /// </summary>
         /// <param name="key">중복 판정용 식별자. 같은 키가 큐에 있으면 무시된다.</param>
@@ -400,9 +390,18 @@ namespace Managers
 
                 _actingElapsed = 0f;
                 _currentActionId = ActionCount + 1;
+
+                // 추가행동은 자기 턴을 쓰지 않아 OnTurnStart로는 잡히지 않는다.
+                // '행동마다' 도는 효과(풍화)가 셀 수 있도록 시작을 알린다.
+                if (next.Kind == ActionKind.Additional)
+                {
+                    next.Unit.Invoke(BaseEnums.UnitEventType.OnAdditionalActivates,
+                        new EventContext(next.Unit));
+                }
+
                 next.Run();
 
-                // 코드에 따라서는 코루틴 없이 즉시 끝난다(자원만 쌓는 궁극기, 즉발 추가공격 등).
+                // 코드에 따라서는 코루틴 없이 즉시 끝난다(자원만 쌓는 궁극기, 즉발 추가행동 등).
                 // 그런 경우 isCasting이 서지 않으므로 붙잡지 않고 바로 다음으로 넘어간다.
                 _acting = next.Unit.isCasting ? next.Unit : null;
                 ActionCount++;
@@ -445,11 +444,8 @@ namespace Managers
                 {
                     _actionValues[unit] = Mathf.Max(0f, _actionValues[unit] - lowest);
                 }
-                float advanced = lowest / ActionValuePerSecond;
-                CombatSeconds += advanced;
-
                 // 궁극기 자원은 행동 횟수가 아니라 흐른 전투 시간으로 찬다.
-                AccrueUltimateResources(advanced);
+                AccrueUltimateResources(lowest / ActionValuePerSecond);
             }
 
             // 행동을 소비했으므로 AV를 다시 채운다.
@@ -474,7 +470,7 @@ namespace Managers
         }
 
         /// <summary>
-        /// 그 턴의 본 행동을 예약한다. <b>일반공격만</b> 여기서 잡는다.
+        /// 그 턴의 본 행동을 예약한다. <b>일반행동만</b> 여기서 잡는다.
         /// 궁극기는 턴을 쓰지 않으므로 <see cref="ReserveReadyUltimates"/>가 따로 관리한다.
         /// </summary>
         private void ReserveMainAction(Unit unit)

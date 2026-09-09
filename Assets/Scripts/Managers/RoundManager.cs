@@ -224,6 +224,16 @@ namespace Managers
             List<StageThemeData> themes = ActiveThemes();
             int themeIndex = (Round - 1) % themes.Count;
             StageThemeData selectedTheme = themes[themeIndex];
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // 디버그로 테마를 고정했으면 라운드 계산을 무시한다. 꺼져 있는 테마도 고를 수 있어야
+            // 리메이크 중인 테마를 확인할 수 있다.
+            if (Core.DebugMode.ForcedThemeId > 0)
+            {
+                StageThemeData forced = _stageThemeDataList.stageThemes
+                    .FirstOrDefault(theme => theme.id == Core.DebugMode.ForcedThemeId);
+                if (forced != null) selectedTheme = forced;
+            }
+#endif
             if (_currentStageTheme?.id == selectedTheme.id) return;
 
             _currentStageTheme = selectedTheme;

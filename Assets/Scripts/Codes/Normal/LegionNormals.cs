@@ -27,7 +27,7 @@ namespace Codes.Normal
     }
 
     /// <summary>
-    /// '로마' 테마 병종의 일반공격. 적과 아군(아그리파·옥타비아·카이사르)이 함께 쓴다.
+    /// '로마' 테마 병종의 일반행동. 적과 아군(아그리파·옥타비아·카이사르)이 함께 쓴다.
     ///
     /// 위력은 <b>고정값 + 주스탯 × 계수</b> 형식이다.
     /// 고정값이 저점을 보장하고 계수가 작아 고점이 억제된다.
@@ -41,7 +41,7 @@ namespace Codes.Normal
         public LegionNormal(NormalCodeContext context, LegionNormalStyle style) : base(context)
         {
             _style = style;
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             CastingDelay = 0.4f;
             MaxStage = 1;
 
@@ -167,7 +167,7 @@ namespace Codes.Normal
 
             target.AddStatus(BuffStatus.Create(
                 6269, $"legion_agrippa_focus_{Caster.GetEntityId()}", "집중 지휘",
-                Caster, target, new CritDamageBuffEffect(0.2f),
+                Caster, target, new CritMultiplierBonusEffect(0.2f),
                 duration: 1,
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
@@ -180,7 +180,6 @@ namespace Codes.Normal
             }
 
             // 피해가 없으므로 코루틴 없이 즉시 끝난다. OnNormalActivates는 Unit.CastNormalCode가 발행한다.
-            Caster.normalCooldown = Cooldown;
         }
     }
 
@@ -206,16 +205,5 @@ namespace Codes.Normal
                 .FirstOrDefault(unit => unit != null && unit.isActive &&
                                         unit.ID == SecondInCommandEffect.OctaviaEnemyId);
         }
-    }
-
-    /// <summary>치명타 피해 가산 버프.</summary>
-    internal sealed class CritDamageBuffEffect : BaseEffect
-    {
-        private readonly float _amount;
-        public override bool IsBeneficial => true;
-
-        public CritDamageBuffEffect(float amount) : base(0, amount) => _amount = amount;
-
-        public override float CritMultiplierAdditiveModifier(Unit unit) => unit == Target ? _amount : 0f;
     }
 }

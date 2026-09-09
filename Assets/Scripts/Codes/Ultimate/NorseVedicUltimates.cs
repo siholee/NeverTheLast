@@ -21,12 +21,12 @@ namespace Codes.Ultimate
     /// 프레이아 U — 풍요의 산물.
     ///
     /// 이번 전투에서 프레이아가 실제로 채운 체력(순수치유량)을 자원으로 쓴다.
-    /// `순수치유량 ÷ (프레이아 최대 체력 × 10%)`만큼 아군 전체에게 STR을 7초간 주고 기록을 비운다.
+    /// `순수치유량 ÷ (프레이아 최대 체력 × 10%)`만큼 아군 전체에게 STR을 4턴간 주고 기록을 비운다.
     /// 분모가 최대 체력에 연동되므로 레벨이 올라도 체감 배율이 유지된다.
     /// </summary>
     public sealed class FreyaHarvest : UltimateCode
     {
-        private const int Duration = 4;   // 7초 → 4턴
+        private const int Duration = 4;
         private const float HpRatioPerPoint = 0.1f;
         private const int MaxBonus = 25;
 
@@ -99,12 +99,12 @@ namespace Codes.Ultimate
 
     /// <summary>
     /// 로키 U — 발드르의 살해자.
-    /// 최대 체력이 가장 높은 적 하나에게 STR 위력 120 + 받는 치유량 −50%(6초).
+    /// 최대 체력이 가장 높은 적 하나에게 STR 위력 120 + 받는 치유량 −50%(3턴).
     /// </summary>
     public sealed class LokiBaldrSlayer : SimpleUltimate
     {
         private const int SlashPower = 120;
-        private const int HealCutDuration = 3;   // 6초 → 3턴
+        private const int HealCutDuration = 3;
 
         public LokiBaldrSlayer(UltimateCodeContext context)
             : base(context, "발드르의 살해자", 4, 0.5f) { Power = SlashPower; }
@@ -199,15 +199,15 @@ namespace Codes.Ultimate
 
     /// <summary>
     /// 바루나 U — 마카라.
-    /// 소환수 마카라를 8초간 부른다. 2초마다 적 전체에게 바루나 INT 위력 40 + 물 원소를 뿌린다.
+    /// 소환수 마카라를 4턴간 부른다. 턴마다 적 전체에게 바루나 INT 위력 40 + 물 원소를 뿌린다.
     ///
     /// 소환수는 칸을 차지하지 않으므로 별도 유닛을 만들지 않고 코루틴으로 굴린다.
     /// 피해는 <see cref="Combat.Summons"/>를 거치므로 바루나의 주는 피해 버프를 물려받지 않는다.
     /// </summary>
     public sealed class VarunaMakara : UltimateCode
     {
-        private const int Duration = 4;   // 8초 → 4턴
-        private const int IntervalTurns = 1;   // 2초 → 1턴
+        private const int Duration = 4;
+        private const int IntervalTurns = 1;
         private const int TickPower = 40;
 
         public VarunaMakara(UltimateCodeContext context) : base(context)

@@ -88,7 +88,7 @@ namespace Codes.Normal
     {
         public FlyerNormalAttack(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = 60;
             CodeTags = new List<int> { DamageTag.Special, DamageTag.NonContactAttack };
         }
@@ -123,7 +123,7 @@ namespace Codes.Normal
 
         public GaudiNormalAttack(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = NormalPower;
             CodeTags = new List<int> { DamageTag.Special };
         }
@@ -154,7 +154,7 @@ namespace Codes.Normal
         private void SetEmpowered(bool empowered)
         {
             _empowered = empowered;
-            CodeName = empowered ? "강화 일반공격" : "일반공격";
+            CodeName = empowered ? "강화 일반행동" : "일반행동";
             Power = empowered ? EmpoweredPower : NormalPower;
         }
 
@@ -181,7 +181,7 @@ namespace Codes.Normal
     {
         public AsclepiusNormalAttack(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = 60;
             CodeTags = new List<int> { DamageTag.Special };
         }
@@ -200,7 +200,7 @@ namespace Codes.Normal
     {
         public AmaterasuNormalAttack(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반공격";
+            CodeName = "일반행동";
             Power = 70;
             CodeTags = new List<int> { DamageTag.Physical };
         }

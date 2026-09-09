@@ -55,6 +55,7 @@
 | [Detail_12_Code_Weapon_Catalog.md](Detail_12_Code_Weapon_Catalog.md) | 플레이어 코드 슬롯 규칙과 무기·방어구 숙련의 관리 목록 |
 | [Detail_13_Reward_Catalog.md](Detail_13_Reward_Catalog.md) | 보상 풀, 티어 확률, 테마 전용·사건 전용 보상의 관리 목록 |
 | [Detail_14_Equipment_Catalog.md](Detail_14_Equipment_Catalog.md) | 장비 ID·숙련·중량과 캐릭터별 시작 무기 목록 |
+| [Detail_15_Party_Synergy.md](Detail_15_Party_Synergy.md) | 역할군, 조합 아키타입, 메인별 추천 편성, 로스터의 빈 구멍 |
 
 ### 미결 — 기획 백로그
 

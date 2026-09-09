@@ -123,18 +123,11 @@ namespace Codes.Passive
         {
             Caster?.AddStatus(BuffStatus.Create(
                 SabahIcariaStatusIds.SabahAssassin, "sabah_assassin", CodeName,
-                Caster, Caster, new SabahAssassinEffect(),
+                Caster, Caster, new ExcessCritConversionEffect(1f),
                 stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
                 isBeneficial: true,
                 description: "100%를 초과한 치명타 확률을 같은 비율의 치명타 피해로 전환합니다."));
         }
-    }
-
-    internal sealed class SabahAssassinEffect : BaseEffect
-    {
-        public SabahAssassinEffect() : base(0, 1f) { }
-        public override float ExcessCritChanceConversionMultiplier(Unit unit)
-            => unit == Target ? 1f : 0f;
     }
 
     /// <summary>이카리아 고유 패시브 — 공격 체력 비용 ×2, 실제 소모 비율만큼 피해 증가.</summary>

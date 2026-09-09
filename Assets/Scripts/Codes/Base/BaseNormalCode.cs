@@ -12,7 +12,7 @@ using Effects.Projectiles;
 namespace Codes.Base
 {
     /// <summary>
-    /// 모든 일반공격의 기본 클래스
+    /// 모든 일반행동의 기본 클래스
     /// 공통 로직과 기본 구현을 제공하고, 상속 클래스에서 필요한 부분을 오버라이드
     /// </summary>
     public abstract class BaseNormalCode : NormalCode
@@ -23,10 +23,9 @@ namespace Codes.Base
         {
             CodeType = BaseEnums.CodeType.Normal;
             Caster = context.Caster;
-            Cooldown = 1;
             CastingDelay = 0.5f;
             CodeTags = new List<int> { BaseClasses.DamageTag.Physical };
-            Power = 50;   // 기본 일반공격 위력
+            Power = 50;   // 기본 일반행동 위력
             _prefab = GameManager.Instance.sfxManager.ProjectilePrefabs["FireBlast"];
         }
 
@@ -80,10 +79,11 @@ namespace Codes.Base
             
             // 디버그 로그
             string contactType = damageTags.Contains(BaseClasses.DamageTag.ContactAttack) ? "접촉" : "비접촉";
-            Debug.Log($"{Caster.UnitName}이 {TargetUnits[0].UnitName}에게 {contactType} 일반공격을 시전했습니다.");
+            Debug.Log($"{Caster.UnitName}이 {TargetUnits[0].UnitName}에게 {contactType} 일반행동을 시전했습니다.");
             
             DamageContext context = CreateDamageContext(damage, damageTags, isCrit);
-            Caster.StartCoroutine(FireProjectile(TargetUnits, 0.5f, context));
+            // 실제 적중까지 현재 행동을 유지한다. 발사만 하고 끝내면 다음 행동/턴과 피해가 겹친다.
+            yield return FireProjectile(TargetUnits, 0.5f, context);
             
             // 추가 효과 처리 (하위 클래스에서 오버라이드 가능)
             yield return ApplyAdditionalEffects(TargetUnits[0], context);
@@ -105,7 +105,6 @@ namespace Codes.Base
 
         public override void StopCode()
         {
-            Caster.normalCooldown = Cooldown;
             Caster.isCasting = false;
         }
 
@@ -211,7 +210,7 @@ namespace Codes.Base
         }
         
         /// <summary>
-        /// 기본 일반공격 데미지 태그
+        /// 기본 일반행동 데미지 태그
         /// </summary>
         protected virtual List<int> GetDamageTags()
         {

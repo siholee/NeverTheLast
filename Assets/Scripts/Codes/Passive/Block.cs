@@ -1,80 +1,28 @@
-using System;
 using BaseClasses;
 using Codes.Base;
 using UnityEngine;
 
 namespace Codes.Passive
 {
-    public class Block : PassiveCode
+    /// <summary>공용 해금 패시브 182 막기 — 2턴마다 단계별 확률로 CON 비례 방어막을 얻는다.</summary>
+    public class Block : PeriodicTurnPassive
     {
-        private const float TickInterval = 4f;
+        private const int IntervalTurnCount = 2;
 
-        private bool _isRegistered;
-        private float _elapsed;
-        private Action<EventContext> _turnHandler;
-        private Action<EventContext> _roundEndHandler;
-
-        public Block(PassiveCodeContext context) : base(context)
+        public Block(PassiveCodeContext context) : base(context, IntervalTurnCount)
         {
-            CodeType = BaseEnums.CodeType.Passive;
             CodeName = "막기";
             MaxStage = 3;
             CodeTags = new System.Collections.Generic.List<int> { DamageTag.Physical };
         }
 
-        public override void CastCode()
+        protected override void OnPeriodElapsed()
         {
-            if (_isRegistered) return;
-
-            _turnHandler = OnOwnerTurnStart;
-            _roundEndHandler = OnRoundEnd;
-            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _roundEndHandler);
-            _isRegistered = true;
-            _elapsed = 0f;
-        }
-
-        public override void StopCode()
-        {
-            if (!_isRegistered) return;
-
-            if (_turnHandler != null)
-            {
-                Caster.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
-            }
-
-            if (_roundEndHandler != null)
-            {
-                Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _roundEndHandler);
-            }
-
-            _turnHandler = null;
-            _roundEndHandler = null;
-            _isRegistered = false;
-            _elapsed = 0f;
-        }
-
-        private void OnOwnerTurnStart(EventContext context)
-        {
-            if (context.Grantee != Caster || !Caster.isActive) return;
-
-            _elapsed += Caster.LastTurnSeconds;
-            if (_elapsed < TickInterval) return;
-
-            _elapsed -= TickInterval;
             if (UnityEngine.Random.value > GetStageChance()) return;
 
             int shieldAmount = Caster.SkillDamage(40, BaseEnums.PrimaryStat.CON) + Mathf.RoundToInt(GetStageShieldBonus());
             Caster.AddShield(shieldAmount, Caster);
             Debug.Log($"[막기] {Caster.UnitName}이 {shieldAmount} 방어막 획득");
-        }
-
-        private void OnRoundEnd(EventContext context)
-        {
-            if (context.Grantee == Caster)
-            {
-                _elapsed = 0f;
-            }
         }
 
         private float GetStageChance()

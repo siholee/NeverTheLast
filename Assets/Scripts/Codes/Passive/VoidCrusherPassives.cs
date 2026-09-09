@@ -11,10 +11,10 @@ namespace Codes.Passive
 {
     public static class VoidCrusherCodeIds
     {
-        public const int Mass = 1520;
-        public const int UltimateBody = 1521;
-        public const int TranscendentBody = 1522;
-        public const int AdaptiveArmor = 1523;
+        public const int Mass = 1580;
+        public const int UltimateBody = 1581;
+        public const int TranscendentBody = 1582;
+        public const int AdaptiveArmor = 1583;
     }
 
     public static class VoidCrusherStatusIds
@@ -31,7 +31,7 @@ namespace Codes.Passive
     ///
     /// 상한이 핵심이다. 9스테이지의 단독 엘리트라 상한이 없으면 광역 폭딜 한 번으로
     /// 전투가 끝나 버린다. 상한을 걸면 <b>지구전</b>이 강제되고, 그 지구전을
-    /// 적응 장갑(1523)이 다시 어렵게 만든다.
+    /// 적응 장갑(1583)이 다시 어렵게 만든다.
     /// </summary>
     public sealed class VoidCrusherMass : PersistentStatusPassive
     {
@@ -74,7 +74,7 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// 궁극의 신체(1521)와 그 금색 상위 코드 천무지체(1522) —
+    /// 궁극의 신체(1581)와 그 금색 상위 코드 천무지체(1582) —
     /// 모든 공격에 자신의 최대 체력 비례 물리 피해가 얹힌다.
     ///
     /// 최대 체력을 불리는 알파 개체·완전함과 곱해지므로 <b>체력이 곧 화력</b>이 된다.
@@ -147,11 +147,11 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// 적응 장갑(1523) — <b>같은 기술</b>에 맞을수록 그 기술에게서 받는 피해가 줄어든다.
+    /// 적응 장갑(1583) — <b>같은 기술</b>에 맞을수록 그 기술에게서 받는 피해가 줄어든다.
     ///
     /// 리그 오브 레전드의 적응형 투구와 같은 축이다. 단독 엘리트라 플레이어가 한 캐릭터의
     /// 가장 센 코드만 반복해 넣는 상황이 자연스럽게 나오는데, 그 최적해를 깎아 파티를
-    /// 돌려쓰게 만든다. 질량(1520)의 한 방 상한과 짝이 되어 <b>지구전을 길게</b> 만든다.
+    /// 돌려쓰게 만든다. 질량(1580)의 한 방 상한과 짝이 되어 <b>지구전을 길게</b> 만든다.
     ///
     /// '같은 기술'은 <see cref="DamageContext"/>에 코드 식별자가 없어
     /// <b>시전자 + 코드 종류 + 피해 태그 조합</b>으로 갈음한다.

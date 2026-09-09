@@ -185,13 +185,13 @@ namespace Codes.Ultimate
     /// <summary>
     /// 바유 U — 남풍.
     /// 적 전체에게 DEX 기반 위력 50 + 바람 원소 부여 + 방어력 20% 감소.
-    /// 이후 6초간 매초 CON 기반 위력 25의 잔풍 피해를 남긴다.
+    /// 이후 3턴간 턴마다 CON 기반 위력 25의 잔풍 피해를 남긴다.
     /// </summary>
     public sealed class VayuSouthWind : SimpleUltimate
     {
         private const int BurstPower = 50;
         private const int LingerPower = 25;
-        private const int LingerDuration = 3;   // 6초 → 3턴
+        private const int LingerDuration = 3;
         private const int ArmorShredStatusId = 6100;
 
         public VayuSouthWind(UltimateCodeContext context)

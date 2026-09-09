@@ -125,7 +125,7 @@ AUTO / SKIP은 선택지·결과 화면에서 숨겨진다.
 
 | 필드 | 설명 |
 | --- | --- |
-| `portrait` | 초상화 파일명 (`Resources/Sprite/Portraits` 기준, 확장자 제외) |
+| `portrait` | 초상화 키 (`Resources/Sprite/Portraits`의 분류 폴더·확장자 제외) |
 | `standing` | 스탠딩 CG 파일명 |
 | `emotion` | 표정. `{portrait}_{emotion}` 파일 우선, 없으면 기본 초상화로 폴백 |
 | `effect` | `shake`(흔들림) / `bounce`(톡 튀기) / `flash`(화면 번쩍) / `none` |

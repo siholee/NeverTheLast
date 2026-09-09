@@ -110,12 +110,16 @@ def main() -> None:
     parser.add_argument("--project-root", type=Path, default=Path(__file__).resolve().parents[2])
     args = parser.parse_args()
 
-    standing_dir = args.project_root / "Assets/Resources/Sprite/Standings"
-    portrait_dir = args.project_root / "Assets/Resources/Sprite/Portraits"
-    standing_dir.mkdir(parents=True, exist_ok=True)
-    portrait_dir.mkdir(parents=True, exist_ok=True)
-    standing_meta_template = standing_dir / "AGNI_STANDING.png.meta"
-    portrait_meta_template = portrait_dir / "AGNI_PORTRAIT.png.meta"
+    standing_root = args.project_root / "Assets/Resources/Sprite/Standings"
+    portrait_root = args.project_root / "Assets/Resources/Sprite/Portraits"
+    ally_standing_dir = standing_root / "Allies"
+    ally_portrait_dir = portrait_root / "Allies"
+    normal_standing_dir = standing_root / "Enemies/Normal"
+    normal_portrait_dir = portrait_root / "Enemies/Normal"
+    for directory in (ally_standing_dir, ally_portrait_dir, normal_standing_dir, normal_portrait_dir):
+        directory.mkdir(parents=True, exist_ok=True)
+    standing_meta_template = ally_standing_dir / "AGNI_STANDING.png.meta"
+    portrait_meta_template = ally_portrait_dir / "AGNI_PORTRAIT.png.meta"
 
     for spec in SPECS:
         source = args.source_dir / spec.source_name
@@ -125,6 +129,8 @@ def main() -> None:
         with Image.open(source) as image:
             standing = resize_exact(image, spec.exact_box) if spec.exact_box else resize_unique(image)
 
+        standing_dir = ally_standing_dir if spec.group == "unique" else normal_standing_dir
+        portrait_dir = ally_portrait_dir if spec.group == "unique" else normal_portrait_dir
         standing_path = standing_dir / f"{spec.key}_STANDING.png"
         standing.save(standing_path, optimize=True)
         write_unity_meta(standing_path, standing_meta_template, args.project_root)

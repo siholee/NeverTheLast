@@ -29,7 +29,7 @@ namespace Codes.Normal
         public AztecNormal(NormalCodeContext context, AztecNormalStyle style) : base(context)
         {
             _style = style;
-            CodeName = style == AztecNormalStyle.Tezcatlipoca ? "전열 칙령" : "일반공격";
+            CodeName = style == AztecNormalStyle.Tezcatlipoca ? "전열 칙령" : "일반행동";
             CastingDelay = style == AztecNormalStyle.Tezcatlipoca ? 0f : 0.4f;
             MaxStage = 1;
 
@@ -117,7 +117,7 @@ namespace Codes.Normal
 
             target.AddStatus(BuffStatus.Create(
                 7650, $"tezcatlipoca_command_{Caster.GetEntityId()}", "전열 칙령",
-                Caster, target, new TezcatlipocaCommandDamageEffect(),
+                Caster, target, new OutgoingDamageMultiplierEffect(1.5f),
                 duration: 1,
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
@@ -131,7 +131,6 @@ namespace Codes.Normal
                 "테스카틀리포카의 칙령",
                 target.CastNormalCode);
 
-            Caster.normalCooldown = Cooldown;
             Caster.isCasting = false;
         }
     }
