@@ -53,8 +53,8 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// Lv.21 직감 — DEX 집중 훈련 효율 +10%.
-    /// 🔸 인드라의 '천재'(INT)와 같은 선언형 코드다. 훈련 계산이 아직 이 값을 읽지 않는다.
+    /// 직감 — DEX 집중 훈련 효율 +10%. <c>TrainingManager</c>가 읽는다.
+    /// 사바흐의 '손재주'(95)와 같은 효과였으므로 이쪽으로 합쳤다.
     /// </summary>
     public sealed class Intuition : PassiveCode
     {

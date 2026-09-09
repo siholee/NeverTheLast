@@ -42,6 +42,9 @@ namespace BaseClasses
         Longsword,
         Mace,
         Spear,
+
+        /// <summary>단창 — 한손 창. 장창(Spear)과 달리 부무장 슬롯을 비우지 않는다.</summary>
+        Shortspear,
     }
 
     public static class EquipmentProficiencyRules
@@ -58,7 +61,8 @@ namespace BaseClasses
                 or EquipmentProficiency.Shield
                 or EquipmentProficiency.Longsword
                 or EquipmentProficiency.Mace
-                or EquipmentProficiency.Spear;
+                or EquipmentProficiency.Spear
+                or EquipmentProficiency.Shortspear;
         }
 
         public static bool IsBow(this EquipmentProficiency proficiency)

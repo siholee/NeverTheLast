@@ -127,28 +127,6 @@ namespace Effects.Buffs
         }
     }
 
-    /// <summary>니샤카라: 시전자 자신의 INT 일정 비율만큼 CON 가산</summary>
-    public class NishakaraBuffEffect : BaseEffect
-    {
-        private readonly float _intToConRatio;
-
-        public NishakaraBuffEffect(float intToConRatio) : base(0, intToConRatio)
-        {
-            _intToConRatio = intToConRatio;
-        }
-
-        public override int PrimaryStatAdditiveModifier(Unit unit, BaseEnums.PrimaryStat stat)
-        {
-            if (unit == null || unit != Caster || stat != BaseEnums.PrimaryStat.CON)
-            {
-                return 0;
-            }
-
-            return Mathf.RoundToInt(unit.GetBaseInt() * _intToConRatio);
-        }
-    }
-
-    /// <summary>성채: 시전자 자신의 보호막 부여량 가산</summary>
     public class ShieldBonusBuffEffect : BaseEffect
     {
         private readonly float _bonus;

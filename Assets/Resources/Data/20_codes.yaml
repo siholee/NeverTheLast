@@ -15,10 +15,7 @@ codes:
     - { id: 48, verbalName: 맹독, codeName: AtalanteVirulentPoison, description: "스킬 공격 적중 시 2턴간 턴마다 20+CON의 5% 지속피해를 부여한다." }
     - { id: 49, verbalName: 저격수, codeName: AtalanteSniper, description: "후열에서 적 후열 공격 시 가하는 피해 +20%." }
     - { id: 50, verbalName: 사냥신의 가호, codeName: AtalanteHuntressBlessing, description: "최대 체력이 아닌 적과 지속피해 대상에게 조건당 가하는 피해 +20%." }
-    - id: 260
-      verbalName: 니샤카라
-      codeName: ChandraNishakara
-      description: "<전수 불가능> INT의 [25/50/100]%에 해당하는 CON을 획득한다."
+    - { id: 260, verbalName: 니샤카라, codeName: ChandraNishakara, description: "<고유 패시브> <전수 불가능> 전투 시작 시 자신의 CON 10%를 아군 전체에게 부여한다." }
     - id: 220
       verbalName: 갈라테아
       codeName: GalateaPassive
@@ -60,14 +57,17 @@ codes:
       verbalName: 목욕제계
       codeName: ChandraPurificationBath
       description: "전투 페이즈 종료 후, 모든 아군의 체력을 최대 체력의 CON%만큼 치유"
+    - { id: 267, verbalName: 사비타, codeName: SuryaSavitr, description: "<고유 패시브> <전수 불가> 고유 중첩(최대 100). 햇빛 필드에서 자신과 원소·무기 숙련·속성이 일치하는 아군이 행동하면 일치한 수만큼 중첩을 얻는다. 최대 중첩에 닿으면 즉시 일반행동(라비)을 추가행동으로 발동한다." }
+    - { id: 110, verbalName: 특별함, codeName: SuryaDistinction, description: "특수행동을 할 때마다 올스탯 +3%. 중첩된다." }
+    - { id: 111, verbalName: 폭주, codeName: SuryaOverrun, description: "과부하 원소반응으로 가하는 피해가 25% 증가한다." }
+    - { id: 112, verbalName: 면벽수련, codeName: SuryaWallMeditation, description: "서포트 카드로서 CON 집중 훈련에 배치되면 CON 훈련 효율 +10%." }
+    - { id: 113, verbalName: 미트라, codeName: SuryaMitra, description: "봉우(108)의 금색 상위 코드. 우정 훈련이 발동하면 우정 보너스가 75% 증가한다." }
+    - { id: 109, verbalName: 카피바라, codeName: ChandraCapybara, description: "우정도 획득량이 25% 증가한다." }
+    - { id: 108, verbalName: 봉우, codeName: ChandraSwornFriend, description: "우정 훈련이 발동하면 우정 보너스가 50% 증가한다." }
     - id: 6
       verbalName: 철벽
       codeName: IronWallPassive
       description: "일반행동을 할 때마다 이번 전투 동안 CON +2. 중첩된다."
-    - id: 14
-      verbalName: 월광
-      codeName: ChandraMoonlight
-      description: "아군에게 이로운 효과를 부여할 경우, 바람 원소 부여"
     - { id: 340, verbalName: 풍요의 축복, codeName: QuetzalcoatlBounty, description: "필드의 풀 아군 1명당 아군 전체의 가하는 피해가 [5/10/15]% 증가한다. <전수 불가능>" }
     - { id: 15, verbalName: 학식, codeName: ScholarshipPassive, description: "서포트 카드로서 INT 집중 훈련에 배치되면 INT 훈련 효율 +10%." }
     - { id: 16, verbalName: 행운아, codeName: QuetzalcoatlLucky, description: "LUK +4." }
@@ -152,11 +152,6 @@ codes:
       codeName: SurtrTwilight
       description: "적을 공격할 때 공격한 대상마다 아군 전체에게 50+STR×0.5의 방어막을 부여한다. <고유 패시브> <전수 불가능>"
     - { id: 39, verbalName: 거인, codeName: GiantPassive, description: "STR +5%." }
-    - { id: 185, verbalName: 원소 숙련 - 불, codeName: SurtrFireMastery, description: "불 원소를 보유한 적에게 주는 피해가 10% 증가한다." }
-    - { id: 186, verbalName: 원소 숙련 - 물, codeName: HydroMastery, description: "물 원소를 보유한 적에게 주는 피해가 10% 증가한다." }
-    - { id: 187, verbalName: 원소 숙련 - 바람, codeName: AnemoMastery, description: "바람 원소를 보유한 적에게 주는 피해가 10% 증가한다." }
-    - { id: 188, verbalName: 원소 숙련 - 풀, codeName: DendroMastery, description: "풀 원소를 보유한 적에게 주는 피해가 10% 증가한다." }
-    - { id: 189, verbalName: 원소 숙련 - 바위, codeName: GeoMastery, description: "바위 원소를 보유한 적에게 주는 피해가 10% 증가한다." }
     - { id: 40, verbalName: 천상의 신체, codeName: SurtrCelestialBody, description: "받는 치유와 보호막 효과가 25% 증가한다." }
     - { id: 41, verbalName: 투사, codeName: LifestealFighter, description: "가한 피해의 8%만큼 체력을 회복한다." }
     - { id: 42, verbalName: 클러치 플레이어, codeName: SurtrClutchPlayer, description: "잃은 체력 비율의 50%만큼 주는 피해가 증가한다." }
@@ -189,11 +184,9 @@ codes:
     # ── 베다 진영 ──
     - { id: 261, verbalName: 죽음의 계약, codeName: YamaDeathContract, description: "야마가 필드에 있는 동안 모든 아군이 가하는 지속피해 +30%. 저주(123)의 강화 등급이며 높은 쪽만 적용된다. <고유 패시브> <전수 불가능>" }
     - { id: 56, verbalName: 지혜, codeName: VedicWisdom, description: "INT +3%." }
-    - { id: 57, verbalName: 원소 숙련 - 번개, codeName: ElectroMastery, description: "번개 원소를 보유한 적에게 주는 피해가 10% 증가한다." }
-    - { id: 58, verbalName: 원소 숙련 - 불, codeName: PyroMastery, description: "불 원소를 보유한 적에게 주는 피해가 10% 증가한다." }
+    - { id: 57, verbalName: 원소 숙련, codeName: ElementMastery, description: "자신의 원소를 보유한 적에게 주는 피해가 10% 증가한다. 상위 코드는 원소 정통(1593)이다." }
     - { id: 59, verbalName: 고전압, codeName: YamaHighVoltage, description: "감전을 생성하면 3턴간 주는 피해 +25%." }
     - { id: 60, verbalName: 충전, codeName: YamaCharge, description: "감전으로 피해를 입히면 마나를 회복한다. 재사용 대기시간 2턴." }
-    - { id: 61, verbalName: 전부 아니면 전무, codeName: AllOrNothing, description: "덱 전원이 로카팔라이거나 자신만 로카팔라일 경우, 레벨에 따른 성장 스탯이 1.2배가 된다." }
     - { id: 262, verbalName: 영원히 타오르는 불꽃, codeName: AgniEternalFlame, description: "필드의 불 원소 아군이 가하는 피해 +20%. 동일·하위 코드와 중복되지 않고 높은 쪽만 적용된다. <고유 패시브>" }
     - { id: 62, verbalName: 대마법사, codeName: AgniArchmage, description: "필드의 보주 숙련 아군이 가하는 특수 피해의 치명타 피해 +25%. 동일·하위 코드와 중복되지 않고 높은 쪽만 적용된다." }
     - { id: 263, verbalName: 뇌정 각인, codeName: IndraThunderMark, description: "<전수 불가능> 적을 타격할 때마다 2턴간 유지되는 표식을 남긴다. 표식이 4가 되면 INT의 40%에 해당하는 고정 피해를 입힌다. 치명타가 적용되지 않는다. <고유 패시브>" }
@@ -215,7 +208,6 @@ codes:
     - { id: 73, verbalName: 소환사, codeName: LokiSummoner, description: "필드에 있는 모든 소환수가 가하는 피해 +25%. 중첩되지 않는다." }
     # ── 스카디 ──
     - { id: 283, verbalName: 북방의 수호자, codeName: SkadiNorthernGuardian, description: "일반행동을 해결할 때마다 반격 스택을 최대치(3)로 충전한다. 적에게 피격되면 반격을 예약하고, 실제로 반격이 나갈 때 1스택을 소비해 공격자에게 STR×0.8 피해를 입힌다. #접촉 #물리 #추가행동 #반격 <고유 패시브> <전수 불가능>" }
-    - { id: 74, verbalName: 원소 숙련 - 얼음, codeName: CryoMastery, description: "얼음 원소를 보유한 적에게 주는 피해가 10% 증가한다." }
     - { id: 75, verbalName: 원소 친화 - 얼음, codeName: SkadiCryoAffinity, description: "얼음 원소를 보유한 동안 빙결된 적을 공격하면 확정 치명타가 된다." }
     - { id: 76, verbalName: 원소술사, codeName: SkadiElementalist, description: "필드에 있을 경우, 모든 아군이 원소 반응으로 만들어낸 피해 +25%. 상위 코드와 중복 적용되지 않는다." }
     # ── 쿠베라 ──
@@ -236,7 +228,7 @@ codes:
     # ── 로마 테마에서 도입한 공용 해금 패시브 ──
     - { id: 1218, verbalName: 야습, codeName: NightRaid, description: "전투 시작 시 자신의 행동 게이지를 50% 채운다. 첫 행동이 두 배 빨리 온다." }
     - { id: 83, verbalName: 카리스마, codeName: Charisma, description: "전투 종료 후 모든 아군의 획득 EXP +10%. 선두주자·음유시인과 더해진다." }
-    - { id: 84, verbalName: 직감, codeName: Intuition, description: "DEX 집중 훈련 효율 +10%." }
+    - { id: 84, verbalName: 직감, codeName: Intuition, description: "DEX 집중 훈련 효율 +10%. 사바흐의 손재주(95)를 여기로 합쳤다." }
     - { id: 85, verbalName: 전술가, codeName: Tactician, description: "필드에 있는 동안 아군 전체가 적 방어력의 10%를 무시한다." }
     - { id: 1219, verbalName: 심안, codeName: MindsEye, description: "원소가 부착된 적을 공격하면 내구를 무시하고 피해를 준 뒤 그 원소를 지운다." }
     # ── 로마(레기온) 적 고유 패시브 ──
@@ -375,7 +367,7 @@ codes:
     - { id: 1590, verbalName: 공허의 근원, codeName: VoidDragonOrigin, description: "필드의 공허 괴수 아군 하나당 올스탯 +3%. 자신이 쓰러지면 남은 공허 괴수 아군이 최대 체력의 50%를 회복한다. <고유 패시브> <적 전용> <전수 불가능>" }
     - { id: 1591, verbalName: 에테르, codeName: VoidAether, description: "원소술사(76)의 금색 상위 코드. 아군 전체가 원소 반응으로 만든 피해 +40%. <적 전용>" }
     - { id: 1592, verbalName: 완전한 부활, codeName: VoidPerfectResurrection, description: "명계의 재림(1403)의 금색 상위 코드. 치명 피해 시 전투당 1회 즉시 부활하며 해로운 상태를 잃고 체력이 가득 찬 뒤 2턴간 받는 피해가 30% 감소한다. <적 전용>" }
-    - { id: 1593, verbalName: 원소 정통, codeName: VoidElementalMastery, description: "원소 숙련의 금색 상위 코드. 자신의 원소를 보유한 적에게 주는 피해 +25%. 보유자의 고유 원소를 읽어 여덟 변형을 하나로 덮는다. <적 전용>" }
+    - { id: 1593, verbalName: 원소 정통, codeName: VoidElementalMastery, description: "원소 숙련의 금색 상위 코드. 자신의 원소를 보유한 적에게 주는 피해 +25%. 보유자의 고유 원소를 읽어 여덟 변형을 하나로 덮는다." }
 
     # ── 장비 전용 패시브 ──
     # 공격속도는 독립 스탯이 없으므로 1%p = DEX 1 규칙으로 환산했다.
@@ -393,7 +385,6 @@ codes:
     - { id: 411, verbalName: 알라무트 요새, codeName: AlamutFortressItemPassive, description: "적 처치 또는 강인도 파괴 시 행동 게이지를 100% 앞당긴다. <장비 전용> <전수 불가능>" }
     - { id: 412, verbalName: 오귀스트의 시계, codeName: AugusteWatchItemPassive, description: "부여하는 모든 유한 턴 상태의 지속시간 +1턴. <장비 전용> <전수 불가능>" }
     - { id: 203, verbalName: 빈틈 포착, codeName: SabahDebuffHunter, description: "공격 시 대상의 디버프 1개당 가하는 피해 +2%. 아군이 적에게 디버프를 부여하면 아즈라엘 스택 +1. <고유> <전수 불가능>" }
-    - { id: 95, verbalName: 손재주, codeName: SabahDexterity, description: "DEX 훈련 효율 +10%." }
     - { id: 226, verbalName: 무모한 도전, codeName: IcariaRecklessChallenge, description: "공격으로 체력을 소모하면 실제 최대 체력 소모 비율만큼 해당 공격 피해가 증가한다. 공격 체력 소모량은 2배가 된다. <고유> <전수 불가능>" }
     - { id: 96, verbalName: 정신력, codeName: IcariaMentalStrength, description: "해로운 상태가 적용될 때 10% 확률로 저항한다." }
     - { id: 97, verbalName: 원소 친화 - 불, codeName: IcariaPyroAffinity, description: "불 원소를 보유한 채 공격하면 최대 체력의 5%를 소모하고(부족하면 체력 1까지 소모) 가하는 피해가 20% 증가한다." }
@@ -432,6 +423,7 @@ codes:
       verbalName: 일반행동
       codeName: JeanIronFist
       description: "단일 적에게 STR×0.6의 피해를 입히고 30%의 고정 확률로 얼음 원소를 부착한다. 벌크업 보유 시 전투 후 첫 일반행동이 대체행동으로 바뀌어 자신의 STR을 10% 올린다. #물리 #접촉"
+    - { id: 67, verbalName: 라비, codeName: SuryaRavi, description: "중첩을 모두 소모하고 무작위 단일 대상에게 CON×0.8의 피해를 (중첩÷10)회 튕긴다. 중첩이 10에 못 미쳐 한 발도 쏠 수 없으면 대체행동 바스카르로 바뀌어 (레벨÷10, 최소 1)만큼 중첩을 얻는다. #특수 #비접촉 #바운스" }
     - id: 500
       verbalName: 일반행동
       codeName: FlyerNormalAttack
@@ -486,7 +478,6 @@ codes:
       description: "단일 적에게 DEX 기반 위력 80의 피해를 입힌다. 강화 시 충격파로 적 전체에 DEX 기반 위력 60의 추가 피해를 입힌다. #접촉 #물리"
     - { id: 24, verbalName: 일반행동, codeName: AsclepiusNormalAttack, description: "단일 적에게 INT 기반 위력 60의 특수 피해를 입힌다. #비접촉 #특수" }
     - { id: 40, verbalName: 일반행동, codeName: AmaterasuNormalAttack, description: "단일 적에게 DEX 기반 위력 70의 물리 피해를 입힌다. #비접촉 #물리" }
-
     - { id: 61, verbalName: 일반행동, codeName: YamaNormalAttack, description: "단일 적에게 DEX 기반 위력 60의 물리 피해를 입힌다. #물리 #베기 #접촉" }
     - { id: 62, verbalName: 일반행동, codeName: AgniNormalAttack, description: "단일 적에게 INT 기반 위력 60의 특수 피해를 입힌다. #특수 #비접촉" }
     - { id: 63, verbalName: 일반행동, codeName: IndraNormalAttack, description: "단일 적에게 INT 기반 위력 50의 특수 피해를 입힌다. #특수 #비접촉" }
@@ -571,10 +562,21 @@ codes:
     - { id: 26, verbalName: 무모한 찌르기, codeName: IcariaRecklessThrust, description: "단일 적에게 INT×0.6의 피해를 입힌다. 최대 체력의 10%를 소모할 수 있으면 소모하고 위력이 INT×0.9로 변한다. #물리 #접촉 #찌르기" }
     - { id: 160, verbalName: 장교의 사격, codeName: MariePistolShot, description: "단일 적에게 LUK×0.5의 피해를 입힌다. #물리 #화살 #비접촉" }
 
+  # 특수행동(SP) — 인드라의 궁극기 '신들의 왕'만이 연다. 추가행동과 별개의 판정이다.
+  special:
+    - { id: 60, verbalName: 소마의 잔, codeName: ChandraAegis, description: "아군 전체에게 CON×1.5의 방어막을 주고 INT의 50%만큼 마나를 부여한다." }
+    - { id: 61, verbalName: 죽음의 순회, codeName: YamaBounceStrike, description: "DEX×1.2의 단일 공격을 이번에 특수행동을 하는 유닛 수만큼 튕긴다. 각 타격은 30% 확률로 번개 원소를 부여한다. #특수 #비접촉" }
+    - { id: 62, verbalName: 겁화, codeName: AgniConflagration, description: "적 전체에게 INT×0.8의 피해를 입히고 3턴간 특수 공격에게 받는 피해 +50%를 건다. 대상이 불 원소를 보유했다면 화상(3턴)을 추가로 부여한다. #특수 #비접촉" }
+    - { id: 63, verbalName: 천벌, codeName: IndraThunderbolt, description: "단일 대상에게 INT의 [레벨]%에 해당하는 피해를 입히고, 계수를 20%p씩 깎으며 다른 적에게 튕긴다. #특수 #비접촉" }
+    - { id: 64, verbalName: 선봉의 바람, codeName: VayuVanguardWind, description: "특수행동이 개방되면 가장 먼저 나서서 아군 전체에게 이번 개방이 끝날 때까지 올스탯 +10%를 부여한다." }
+    - { id: 65, verbalName: 골드 러쉬, codeName: KuberaGoldRush, description: "적 전체에게 STR×0.6 + CON×0.6의 피해를 입히고 3턴간 물리 공격에게 받는 피해 +50%를 건다. 전투 종료 시 획득 골드 +5%. 중첩된다. #물리 #접촉" }
+    - { id: 67, verbalName: 일천, codeName: SuryaIlcheon, description: "중첩을 소모하지 않고 최대 중첩분(10발)의 라비를 발동한다. 이 공격은 특수행동으로만 간주한다. #특수 #비접촉 #바운스" }
+    - { id: 66, verbalName: 정화의 밀물, codeName: VarunaTide, description: "아군 전체를 CON×1.5만큼 치유하고 해로운 효과를 모두 제거한다." }
+
   ultimate:
-    - { id: 61, verbalName: 언젠가 다다를 마지막, codeName: YamaFinalArrival, description: "적 전체를 베어 DEX 기반 위력 60의 피해를 입히고 번개 원소를 부여한다. 이후 대상의 지속피해를 즉시 정산해 INT의 80%만큼 추가 피해를 만든다. #특수 #베기 #접촉" }
+    - { id: 61, verbalName: 언젠가 다다를 마지막, codeName: YamaFinalArrival, description: "적 전체를 베어 DEX 기반 위력 60의 피해를 입히고 번개 원소를 부여한다. 이후 대상의 지속피해를 즉시 정산해 (턴당 지속피해 × INT × 0.8%)만큼 추가 피해를 만든다. #특수 #베기 #접촉" }
     - { id: 62, verbalName: 백화, codeName: AgniWhiteFlame, description: "적 전체에게 INT 기반 위력 65의 피해를 입히고 불 원소를 부여한다. #특수 #비접촉" }
-    - { id: 63, verbalName: 천벌, codeName: IndraThunderbolt, description: "단일 대상에게 INT의 [레벨]%에 해당하는 피해를 입히고, 계수를 20%p씩 깎으며 다른 적에게 튕긴다. 계수가 0이 되거나 남은 적이 없으면 멈춘다. #특수 #비접촉" }
+    - { id: 63, verbalName: 신들의 왕, codeName: IndraKingOfGods, description: "필드에 있는 모든 로카팔라 아군의 특수행동을 발동시킨다. 피해를 내지 않으며, 같이 나설 로카팔라가 없으면 자원을 태우지 않는다." }
     - { id: 81, verbalName: 풍요의 산물, codeName: FreyaHarvest, description: "이번 전투의 순수치유량을 정산해 프레이아 최대 체력의 10%마다 아군 전체 STR +1(최대 +25)을 4턴간 부여하고 기록을 비운다." }
     - { id: 82, verbalName: 발드르의 살해자, codeName: LokiBaldrSlayer, description: "최대 체력이 가장 높은 단일 적에게 STR 기반 위력 120의 피해를 입히고 치유량 감소 -50%(3턴)를 부여한다." }
     - { id: 83, verbalName: 고드름 스파이크, codeName: SkadiIcicleSpike, description: "적 전체에게 STR×0.8의 피해를 입히고 얼음 원소를 부착한다. #물리 #접촉" }
@@ -619,6 +621,7 @@ codes:
       verbalName: 오를레앙의 성녀
       codeName: JeanMaidOfOrleans
       description: "최고의 방어 중첩을 최대치까지 회복하고 STR +5%를 획득한다. 중첩된다."
+    - { id: 67, verbalName: 디바카르, codeName: SuryaDivakara, description: "전장을 햇빛으로 바꾼다. 수리야 기준 3턴 지속. 햇빛에서는 불 속성 유닛의 가하는 피해 +20%, 물·풀·얼음 속성 유닛의 가하는 피해 -20%." }
     - id: 500
       verbalName: 낙하
       codeName: FlyerSkyfall

@@ -20,26 +20,40 @@ namespace Codes.Passive
             IgnoresActivationChance = true;
         }
 
+        /// <summary>아군에게 나눠 주는 찬드라 CON의 비율.</summary>
+        private const float ShareRatio = 0.10f;
+
+        /// <summary>
+        /// 전투가 열릴 때 자신의 CON 10%를 아군 전체에게 나눠 준다.
+        ///
+        /// 예전에는 자기 INT를 CON으로 환산해 혼자 두꺼워졌다. 지금은 그 두께를 편성 전체로
+        /// 흘려 보낸다 — 찬드라를 키울수록 파티 전원의 체력이 함께 오르는 구조다.
+        /// 값은 <b>시전 시점의 CON</b>으로 굳힌다. 매 프레임 다시 재면 자기 자신도 대상이라
+        /// CON이 CON을 부풀리는 되먹임이 생긴다.
+        /// </summary>
         public override void CastCode()
         {
-            Caster.AddStatus(BuffStatus.Create(
-                BuffStatusIds.Nishakara, "ChandraNishakara", "니샤카라",
-                Caster, Caster, new NishakaraBuffEffect(GetRatio())));
+            if (Caster == null) return;
+
+            int share = Mathf.Max(1, Mathf.RoundToInt(Caster.GetBaseCon() * ShareRatio));
+            foreach (Unit ally in Combat.CombatTargets.AliveAlliesIncludingSelf(Caster))
+            {
+                ally.AddStatus(BuffStatus.Create(
+                    BuffStatusIds.Nishakara, "ChandraNishakara", "니샤카라",
+                    Caster, ally, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.CON, share),
+                    stackPolicy: BaseEnums.StatusStackPolicy.Replace,
+                    isBeneficial: true,
+                    description: $"찬드라가 나눈 CON +{share}"));
+            }
         }
 
         public override void StopCode()
         {
-            Caster.RemoveStatusByKey("ChandraNishakara");
-        }
-
-        private float GetRatio()
-        {
-            return Mathf.Clamp(CurrentStage, 1, MaxStage) switch
+            if (Caster == null) return;
+            foreach (Unit ally in Combat.CombatTargets.AliveAlliesIncludingSelf(Caster))
             {
-                1 => 0.25f,
-                2 => 0.5f,
-                _ => 1f,
-            };
+                ally.RemoveStatusByKey("ChandraNishakara");
+            }
         }
     }
 
@@ -281,54 +295,42 @@ namespace Codes.Passive
         }
     }
 
-    public class ChandraMoonlight : PassiveCode
+
+    /// <summary>
+    /// Lv.10 카피바라 — 우정도 획득 +25%.
+    ///
+    /// 훈련 강화량이 아니라 <b>쌓이는 속도</b>를 건드린다. 우정 훈련(75)에 더 빨리 닿게 하는
+    /// 코드라, 런이 길수록 값이 커진다. <c>TrainingManager</c>가 필드에서 읽는다.
+    /// </summary>
+    public sealed class ChandraCapybara : PassiveCode
     {
-        private const int ImbueDuration = 2;
+        public const float BondBonus = 0.25f;
 
-        private bool _isRegistered;
-        private Action<EventContext> _beneficialGrantedHandler;
-
-        public ChandraMoonlight(PassiveCodeContext context) : base(context)
+        public ChandraCapybara(PassiveCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "월광";
+            CodeName = "카피바라";
             IgnoresActivationChance = true;
         }
+    }
 
-        public override void CastCode()
+    /// <summary>
+    /// Lv.27 봉우 — 우정 훈련이 발동하면 그 보너스가 +50%.
+    ///
+    /// 카피바라가 우정 훈련에 <b>닿는 속도</b>를 올린다면, 봉우는 닿은 뒤의 <b>한 번의 크기</b>를
+    /// 올린다. 둘을 함께 들면 앞뒤가 맞물린다.
+    /// </summary>
+    public sealed class ChandraSwornFriend : PassiveCode
+    {
+        public const float FriendshipBonus = 0.50f;
+
+        public ChandraSwornFriend(PassiveCodeContext context) : base(context)
         {
-            if (_isRegistered) return;
-
-            _beneficialGrantedHandler = OnBeneficialEffectGranted;
-            Caster.AddListener(BaseEnums.UnitEventType.OnBeneficialEffectGranted, _beneficialGrantedHandler);
-            _isRegistered = true;
-        }
-
-        public override void StopCode()
-        {
-            if (!_isRegistered) return;
-
-            if (_beneficialGrantedHandler != null)
-            {
-                Caster.RemoveListener(BaseEnums.UnitEventType.OnBeneficialEffectGranted, _beneficialGrantedHandler);
-            }
-
-            _beneficialGrantedHandler = null;
-            _isRegistered = false;
-        }
-
-        private void OnBeneficialEffectGranted(EventContext context)
-        {
-            Unit target = context.Grantor;
-            if (context.Grantee != Caster || target == null || !target.isActive) return;
-            if (!Target.GetAllAllies(Caster).Contains(target)) return;
-
-            // 바람 부여 마커 상태 (효과 객체 없음). Replace 정책으로 재부여 시 지속시간 갱신.
-            string statusKey = $"AnemoImbue_{Caster.GetEntityId()}";
-            target.AddStatus(BuffStatus.Create(
-                BuffStatusIds.AnemoImbue, statusKey, "월광",
-                Caster, target, null,
-                duration: ImbueDuration));
+            CodeType = BaseEnums.CodeType.Passive;
+            CodeName = "봉우";
+            IgnoresActivationChance = true;
+            // 미트라(113)가 금색 상위다. 둘을 함께 들면 이쪽은 발동하지 않는다.
+            SupersededByCodeId = SuryaCodeIds.Mitra;
         }
     }
 }

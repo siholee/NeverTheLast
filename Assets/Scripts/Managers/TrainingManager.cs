@@ -423,8 +423,42 @@ namespace Managers
                     code is Codes.Passive.MarieOfficer),
                 BaseEnums.PrimaryStat.STR => support.ActivePassiveCodes.Any(code =>
                     code is Codes.Passive.JeanPhysicalCoach),
+                BaseEnums.PrimaryStat.CON => support.ActivePassiveCodes.Any(code =>
+                    code is Codes.Passive.SuryaWallMeditation),
                 _ => false,
             };
+        }
+
+        /// <summary>
+        /// 카피바라(109) — 필드의 아군이 들고 있으면 우정도 획득이 늘어난다.
+        /// 여러 명이 들어도 가장 큰 하나만 센다.
+        /// </summary>
+        private static float BondGainMultiplier()
+            => 1f + FieldPassiveBonus(code => code is Codes.Passive.ChandraCapybara,
+                Codes.Passive.ChandraCapybara.BondBonus);
+
+        /// <summary>
+        /// 봉우(108)와 그 상위 미트라(113) — 우정 훈련이 터졌을 때의 보너스를 키운다.
+        /// 둘을 함께 들어도 <b>높은 쪽 하나만</b> 센다.
+        /// </summary>
+        private static float FriendshipBonusMultiplier()
+            => 1f + Mathf.Max(
+                FieldPassiveBonus(code => code is Codes.Passive.SuryaMitra,
+                    Codes.Passive.SuryaMitra.FriendshipBonus),
+                FieldPassiveBonus(code => code is Codes.Passive.ChandraSwornFriend,
+                    Codes.Passive.ChandraSwornFriend.FriendshipBonus));
+
+        private static float FieldPassiveBonus(System.Func<Codes.Base.PassiveCode, bool> match, float bonus)
+        {
+            var grid = GridManager.Instance;
+            if (grid?.heroList == null) return 0f;
+
+            foreach (Unit hero in grid.heroList)
+            {
+                if (hero == null || !hero.isActive) continue;
+                if (hero.ActivePassiveCodes.Any(code => code != null && match(code))) return bonus;
+            }
+            return 0f;
         }
 
         private static float GetPersonalTrainingMultiplier(Unit main, BaseEnums.PrimaryStat focus)
@@ -433,7 +467,7 @@ namespace Managers
             if (focus == BaseEnums.PrimaryStat.LUK &&
                 main.ActivePassiveCodes.Any(code => code is Codes.Passive.BastetMasterThief)) return 1.10f;
             if (focus == BaseEnums.PrimaryStat.DEX &&
-                main.ActivePassiveCodes.Any(code => code is Codes.Passive.SabahDexterity)) return 1.10f;
+                main.ActivePassiveCodes.Any(code => code is Codes.Passive.Intuition)) return 1.10f;
             return 1f;
         }
 
@@ -596,11 +630,15 @@ namespace Managers
                             statBonus += Mathf.Max(0, card.specialtyBonus);
                             if (previousBond >= 75)
                             {
-                                statBonus += Mathf.Max(0, card.friendshipBonus);
+                                // 봉우 — 우정 훈련이 실제로 터질 때만 그 몫을 키운다.
+                                statBonus += Mathf.Max(0, Mathf.RoundToInt(
+                                    card.friendshipBonus * FriendshipBonusMultiplier()));
                             }
                         }
 
-                        int bondGain = Mathf.Max(1, card.bondGainRate);
+                        // 카피바라 — 쌓이는 우정도 자체를 키운다.
+                        int bondGain = Mathf.Max(1, Mathf.RoundToInt(
+                            card.bondGainRate * BondGainMultiplier()));
                         if (specialtyMatch) bondGain += 1;
                         newBond = Mathf.Clamp(previousBond + bondGain, 0, MaxBond);
                         Bonds.Set(support.ID, newBond);

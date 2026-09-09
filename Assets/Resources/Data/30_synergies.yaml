@@ -7,11 +7,11 @@
 #   파티는 메인 1 + 서포트 4, 다섯 명 전원이 필드에 선다.
 #   메인 슬롯   : characterType이 Support가 아니고, 해금되었거나 육성 완료된 캐릭터
 #   서포트 슬롯 : canStartAsSupport(= Support 유형) 또는 해금/육성 완료된 캐릭터
-#   → 런 1회차에는 메인 후보 7명(Starter), 서포트 후보 15명(Support)뿐이다.
+#   → 런 1회차에는 메인 후보 7명(Starter), 서포트 후보 17명(Support)뿐이다.
 #
 # ─ 두 가지 조합 ──────────────────────────────────────────────────────
 #   best  (고점) : 전 캐릭터 해금 + 코드 전수까지 끝났다는 가정. 서포트를 38명에서 고른다
-#   basic (대체) : 최초 로스터만. 서포트를 Support 유형 15명에서 고르고, 전수 코드는 없다고 본다
+#   basic (대체) : 최초 로스터만. 서포트를 Support 유형 17명에서 고르고, 전수 코드는 없다고 본다
 #
 # ─ 점수 축 ───────────────────────────────────────────────────────────
 #   combat   전투 기여 (필드에서 실제로 만들어 내는 것)
@@ -101,14 +101,19 @@ roles:
   - id: ECON
     name: 경제
     description: 골드·EXP 획득을 올린다.
+  - id: SPECIAL
+    name: 특수행동
+    description: >
+      인드라의 궁극기 <신들의 왕>만이 여는 행동. 필드의 로카팔라가 한꺼번에 나선다.
+      추가행동과 판정이 다르며, 세울수록 인드라 궁극기 한 번의 값이 커진다.
 
 # 훈련 특기 — 서포트 카드의 specialtyTraining은 80% 확률로 그 캐릭터의 최고 스탯이 된다.
 # 집중 스탯이 특기와 일치해야 특기 보너스·우정 훈련·패시브 전수가 모두 열린다.
 trainerCoverage:
   STR: [7]                                  # 잔
   DEX: [100]                                # 아그리파
-  CON: [5, 60, 65, 66, 83, 125]             # 라이트·찬드라·쿠베라·바루나·스카디·이시스
-  INT: [1, 4, 6, 81, 124]                   # 세이·가우디·니콜·프레이아·토트
+  CON: [5, 60, 64, 65, 66, 83, 125]         # 라이트·찬드라·바유·쿠베라·바루나·스카디·이시스
+  INT: [1, 4, 6, 62, 81, 124]               # 세이·가우디·니콜·아그니·프레이아·토트
   LUK: [25, 160]                            # 오르페우스·마리
 
 # ══════════════════════════════════════════════════════════════════════
@@ -223,9 +228,11 @@ units:
     mainStat: CON
     topStat: CON
     row: Rear
-    roles: [SHIELD, AMP_DMG, BULWARK]
+    roles: [SPECIAL, SHIELD, AMP_DMG, BULWARK]
     supportValue: { combat: 3, training: 4 }
     provides:
+      - key: SPECIAL_ACTION
+        text: \"특수행동 소마의 잔 — 아군 전체에게 CON×1.5 방어막과 INT 절반의 마나\"
       - key: SOMA
         text: "궁극기 소마 — 이번 전투 최대 딜러에게 3턴간 INT의 25%만큼 올스탯. 주스탯·DEX·LUK를 한 번에 올린다"
     wants: [DPS_ST]
@@ -272,9 +279,11 @@ units:
     mainStat: CON
     topStat: CON
     row: Front
-    roles: [CONTROL, BULWARK, ECON]
+    roles: [SPECIAL, CONTROL, BULWARK, ECON]
     supportValue: { combat: 4, training: 4 }
     provides:
+      - key: SPECIAL_ACTION
+        text: \"특수행동 골드 러쉬 — 적 전체 물리 취약 +50%, 획득 골드 +5% 중첩\"
       - key: MASS_AIRBORNE
         text: "궁극기가 적 전체 에어본 — 광역 행동 정지"
       - key: AIRBORNE_AMP
@@ -283,6 +292,29 @@ units:
         text: "상인(Lv32) 전투 골드 +25%"
     wants: [CONTROL]
 
+  - id: 67
+    name: 수리야
+    type: Locked
+    element: Pyro
+    mainStat: CON
+    topStat: CON
+    row: Rear
+    roles: [SPECIAL, DPS_ST, MULTIHIT, AMP_DMG, AMP_REACT]
+    supportValue: { combat: 4, training: 5 }
+    provides:
+      - key: SUNLIGHT_FIELD
+        text: "궁극기 디바카르 — 전장을 햇빛으로. 불 아군 +20%, 물·풀·얼음 아군 -20%. 3턴"
+      - key: SAVITR_STACK
+        text: "햇빛에서 자신과 원소·무기 숙련·속성이 겹치는 아군이 행동할 때마다 겹친 수만큼 중첩. 100에서 라비가 터진다"
+      - key: SPECIAL_ACTION
+        text: "특수행동 일천 — 중첩을 태우지 않고 10발을 쏜다. 인드라의 개방이 곧 두 배의 값"
+      - key: CON_TRAINER
+        text: "면벽수련(Lv41) — CON 특기를 훈련 효율까지 갖춘 유일한 서포트"
+    wants: [SPECIAL, ELEM_APPLY]
+    caution: >
+      사비타는 햇빛에서만 돈다. 디바카르를 깔기 전에는 중첩이 전혀 쌓이지 않으므로
+      궁극기 회전이 곧 가동률이다. 편성을 불·보주·베다로 맞출수록 중첩이 빨리 찬다.
+
   - id: 66
     name: 바루나
     type: Support
@@ -290,9 +322,11 @@ units:
     mainStat: CON
     topStat: CON
     row: Rear
-    roles: [AMP_REACT, SUMMON, DPS_AOE, ELEM_APPLY]
+    roles: [SPECIAL, AMP_REACT, SUMMON, DPS_AOE, ELEM_APPLY]
     supportValue: { combat: 5, training: 4 }
     provides:
+      - key: SPECIAL_ACTION
+        text: \"특수행동 정화의 밀물 — 아군 전체 CON×1.5 치유 + 해로운 효과 전부 제거\"
       - key: REACTION_40
         text: "고유 패시브 대해의 판결 — 아군 전체의 원소 반응 피해 +40%. 반응 빌드의 단일 코어다"
       - key: MAKARA
@@ -454,7 +488,7 @@ units:
 
   - id: 64
     name: 바유
-    type: Starter
+    type: Support
     element: Anemo
     mainStat: CON
     topStat: CON
@@ -612,14 +646,16 @@ units:
 
   - id: 61
     name: 야마
-    type: Locked
+    type: Starter
     element: Electro
     mainStat: INT
     topStat: INT
     row: Front
-    roles: [DOT, DPS_AOE, AMP_DMG]
+    roles: [SPECIAL, DOT, DPS_AOE, AMP_DMG]
     supportValue: { combat: 4, training: 4 }
     provides:
+      - key: SPECIAL_ACTION
+        text: \"특수행동 죽음의 순회 — 함께 나선 로카팔라 수만큼 DEX×1.2를 튕긴다\"
       - key: DEATH_PACT
         text: "고유 패시브 죽음의 계약 — 아군 전체의 지속피해 +30%. 지속피해 빌드의 단일 코어다"
       - key: DOT_DETONATE
@@ -628,14 +664,16 @@ units:
 
   - id: 62
     name: 아그니
-    type: Locked
+    type: Support
     element: Pyro
     mainStat: INT
     topStat: INT
     row: Rear
-    roles: [AMP_DMG, DPS_AOE, ELEM_APPLY]
+    roles: [SPECIAL, AMP_DMG, DPS_AOE, ELEM_APPLY]
     supportValue: { combat: 4, training: 4 }
     provides:
+      - key: SPECIAL_ACTION
+        text: \"특수행동 겁화 — 적 전체 특수 취약 +50%. 불을 두른 적에게는 화상까지\"
       - key: ETERNAL_FLAME
         text: "고유 패시브 — 필드의 불 원소 아군이 가하는 피해 +20%"
       - key: ARCHMAGE
@@ -650,9 +688,11 @@ units:
     mainStat: INT
     topStat: INT
     row: Rear
-    roles: [DPS_AOE, DPS_ST, ULT_BATTERY]
+    roles: [SPECIAL, DPS_AOE, DPS_ST, ULT_BATTERY]
     supportValue: { combat: 4, training: 4 }
     provides:
+      - key: SPECIAL_ACTION
+        text: \"궁극기 신들의 왕이 로카팔라 전원의 특수행동을 연다. 자신의 천벌도 함께 나간다\"
       - key: THUNDER_MARK
         text: "고유 패시브 뇌정 각인 — 4타마다 INT의 40% 고정 피해"
       - key: CHAIN_JUDGE
@@ -846,6 +886,16 @@ archetypes:
     partners: [40, 22, 63]
     counterplay: "강인도 0은 처치 판정만 발행하고 실제로 죽이지 않는다. 골드·EXP는 나오지 않는다"
 
+  - id: SPECIAL_GATE
+    name: 특수행동 개방
+    core: [63]
+    description: >
+      인드라의 궁극기 <신들의 왕>이 필드의 로카팔라 전원에게 특수행동을 연다.
+      바유가 가장 먼저 나서 올스탯 +10%를 두르고, 야마의 바운스 타수는 함께 나선 인원수가 정한다.
+      로카팔라를 몇 명 세웠는지가 그대로 궁극기 한 번의 값이 된다.
+    partners: [64, 61, 60, 62, 65, 66, 67]
+    counterplay: "문을 여는 것은 인드라뿐이다. 인드라가 빠지면 여섯의 특수행동이 통째로 잠긴다"
+
   - id: FORTRESS
     name: 도발 요새
     core: [80, 83]
@@ -860,7 +910,7 @@ archetypes:
 # ══════════════════════════════════════════════════════════════════════
 # 4. 메인별 추천 조합
 #    best  — 전 캐릭터 해금 + 코드 전수 완료 가정
-#    basic — 최초 로스터(Support 15명)만, 전수 코드 없음 가정
+#    basic — 최초 로스터(Support 17명)만, 전수 코드 없음 가정
 #    members는 서포트 4명. 순서가 곧 우선순위다.
 # ══════════════════════════════════════════════════════════════════════
 recommendations:
@@ -1007,23 +1057,6 @@ recommendations:
       reason: "DEX 공급원 자체가 최초 로스터에 다 있다. 고점과 같은 조합이 그대로 선다"
     warning: "아군 DEX 버프원이 마리·찬드라 둘뿐이다. 고유 패시브의 상한이 여기서 막힌다"
 
-  # ── CON 메인 ───────────────────────────────────────────────────────
-  - mainId: 64
-    mainName: 바유
-    axis: "광역 확산 · 방어 감소"
-    best:
-      archetype: REACTION
-      members: [66, 125, 83, 160]
-      rows: { 64: Rear, 83: Front, 66: Rear, 125: Rear, 160: Rear }
-      reason: >
-        이시스가 바위, 스카디가 얼음, 바루나가 물을 깔아 두면 남풍의 바람이 확산으로
-        적 전체에 퍼뜨린다. 대해의 판결이 그 반응을 +40% 올린다.
-        CON 특기 서포트가 넷이라 훈련 효율도 아군 최상급이다.
-    basic:
-      members: [66, 125, 83, 160]
-      rows: { 64: Rear, 83: Front, 66: Rear, 125: Rear, 160: Rear }
-      reason: "축을 이루는 넷이 전원 Support 유형이다. 런 1회차부터 완성형으로 선다"
-
   - mainId: 121
     mainName: 아누비스
     axis: "전열 방벽 · 영구 성장"
@@ -1103,6 +1136,27 @@ recommendations:
         감전(지속피해)을 만들고 그것을 월식 정산이 받아 먹는 축으로 대체한다.
         니콜의 일렉트릭 필드는 번개 속성인 츠쿠요미에게 상시로 걸린다.
 
+  - mainId: 67
+    mainName: 수리야
+    axis: "햇빛 · 중첩 폭발"
+    best:
+      archetype: SPECIAL_GATE
+      members: [63, 62, 60, 66]
+      rows: { 67: Rear, 63: Rear, 62: Rear, 60: Rear, 66: Rear }
+      reason: >
+        인드라가 문을 열면 로카팔라 넷이 한꺼번에 나서고, 수리야는 중첩을 태우지 않는
+        일천 10발을 얹는다. 아그니는 불·보주·베다·로카팔라 넷이 겹쳐 사비타 중첩을
+        행동당 4씩 밀어 올린다. 찬드라·바루나가 방어막과 정화로 판을 유지한다.
+    basic:
+      members: [62, 60, 66, 64]
+      rows: { 67: Rear, 62: Rear, 60: Rear, 66: Rear, 64: Rear }
+      reason: >
+        인드라가 없으면 특수행동이 통째로 잠긴다. 대신 햇빛 아래 아그니(4중첩)와
+        찬드라·바루나·바유를 세워 사비타를 자력으로 돌리고 디바카르 회전에 기댄다.
+    warning: >
+      인드라 없이는 일천이 영영 나가지 않는다. 사비타도 햇빛에서만 돌므로
+      디바카르를 깔기 전까지는 중첩이 0이다.
+
   - mainId: 61
     mainName: 야마
     axis: "지속피해 정산 브루저"
@@ -1119,22 +1173,6 @@ recommendations:
       reason: >
         니콜의 번개와 바루나의 물이 감전을 만들어 <죽음의 계약> +30%가 얹힐 지속피해를 공급한다.
         번개 속성인 야마는 일렉트릭 필드의 +20%도 상시로 받는다.
-
-  - mainId: 62
-    mainName: 아그니
-    axis: "불 파티 증폭"
-    best:
-      archetype: CRIT
-      members: [80, 40, 26, 160]
-      rows: { 62: Rear, 80: Front, 26: Front, 40: Rear, 160: Rear }
-      reason: >
-        영원히 타오르는 불꽃이 불 원소 아군의 피해를 +20% 올린다. 수르트·아마테라스·이카리아가
-        전원 불이라 편성 전체가 대상이 된다. 대마법사는 보주 숙련인 자신에게 되돌아온다.
-    basic:
-      members: [160, 81, 100, 1]
-      rows: { 62: Rear, 160: Rear, 81: Rear, 100: Rear, 1: Rear }
-      reason: "Support 유형 13명 중 불 원소가 0명이다. 고유 패시브를 포기하고 범용 증폭으로 간다"
-    warning: "불 원소 서포트가 존재하지 않아, 해금 전에는 고유 패시브가 자기 자신에게만 걸린다"
 
   - mainId: 63
     mainName: 인드라

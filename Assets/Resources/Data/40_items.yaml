@@ -11,7 +11,7 @@
 #
 # 2) 무게는 분류가 정한다. 같은 분류면 티어가 올라도 무게가 그대로다.
 #      1: 단검 · 지팡이 · 보주 · 목걸이 · 반지
-#      2: 한손검 · 단궁 · 경갑 · 투구 · 신발
+#      2: 한손검 · 단궁 · 단창 · 경갑 · 투구 · 신발
 #      3: 창 · 둔기 · 장궁 · 방패
 #      4: 대검 · 쇠뇌 · 평갑
 #      6: 중갑
@@ -123,6 +123,15 @@ items:
     rarity: 1
     weight: 1
     statBonuses: [{ stat: INT, amount: 1 }]
+
+  - id: 4115
+    name: 무딘 단창
+    slot: MainHand
+    category: Shortspear
+    requiredProficiency: Shortspear
+    rarity: 1
+    weight: 2
+    statBonuses: [{ stat: DEX, amount: 1 }]
 
   - id: 4110
     name: 버려진 방패

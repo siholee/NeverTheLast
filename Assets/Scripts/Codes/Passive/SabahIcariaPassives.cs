@@ -11,7 +11,6 @@ namespace Codes.Passive
     public static class SabahIcariaCodeIds
     {
         public const int SabahInnate = 203;
-        public const int SabahDexterity = 95;
         public const int IcariaInnate = 226;
         public const int IcariaMentalStrength = 96;
         public const int IcariaPyroAffinity = 97;
@@ -93,19 +92,6 @@ namespace Codes.Passive
             int debuffs = target.GetAllStatuses()
                 .Count(status => status.Category == BaseEnums.StatusCategory.Negative);
             return 1f + debuffs * 0.02f;
-        }
-    }
-
-    /// <summary>DEX 집중 훈련 효율 +10%. TrainingManager가 선언형으로 읽는다.</summary>
-    public sealed class SabahDexterity : PassiveCode
-    {
-        public const float TrainingBonus = 0.10f;
-
-        public SabahDexterity(PassiveCodeContext context) : base(context)
-        {
-            CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "손재주";
-            IgnoresActivationChance = true;
         }
     }
 

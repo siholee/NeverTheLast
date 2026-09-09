@@ -20,6 +20,12 @@ namespace BaseClasses
     public Unit Caster;
   }
 
+  /// <summary>특수행동(SP) 코드의 생성 인자. 인드라의 궁극기만이 이 행동을 부른다.</summary>
+  public class SpecialCodeContext
+  {
+    public Unit Caster;
+  }
+
   public class DamageContext
   {
     private readonly HashSet<EntityId> _visualizedTargetIds = new();

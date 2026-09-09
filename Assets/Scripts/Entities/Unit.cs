@@ -317,6 +317,9 @@ namespace Entities
         protected List<PassiveCode> ItemPassiveCodes = new();
         protected NormalCode NormalCode;
         protected UltimateCode UltimateCode;
+
+        /// <summary>특수행동(SP). 인드라의 궁극기만이 부른다. 없는 유닛이 대부분이다.</summary>
+        protected SpecialCode SpecialCode;
         public float ultimateCooldown;
         protected EquipmentLoadout EquipmentLoadout;
         /// <summary>원소 부착 기본 지속 <b>턴</b> 수. 부착자가 아니라 <b>부착된 유닛</b>의 턴으로 센다.</summary>
@@ -377,6 +380,9 @@ namespace Entities
         // 코드/장비 컨테이너는 protected로 유지하고, 화면이 필요로 하는 조회만 공개한다.
         public NormalCode ActiveNormalCode => NormalCode;
         public UltimateCode ActiveUltimateCode => UltimateCode;
+        public SpecialCode ActiveSpecialCode => SpecialCode;
+        /// <summary>특수행동을 가진 유닛인가. 인드라의 궁극기가 대상을 고를 때 본다.</summary>
+        public bool HasSpecialAction => SpecialCode != null;
         public IReadOnlyList<PassiveCode> ActivePassiveCodes => PassiveCodes;
         public IReadOnlyList<PassiveCode> ActiveItemPassiveCodes => ItemPassiveCodes;
         /// <summary>현재 걸린 상태(버프/디버프) 목록. HUD의 Modifier 표시가 읽는다.</summary>
@@ -563,6 +569,10 @@ namespace Entities
                 _baseUltimateCodeId = data.codes["ultimate"];
                 NormalCode = CodeFactory.CreateNormalCode(_baseNormalCodeId, new NormalCodeContext { Caster = this });
                 UltimateCode = CodeFactory.CreateUltimateCode(_baseUltimateCodeId, new UltimateCodeContext { Caster = this });
+                // 특수행동은 로카팔라만 갖는다. 없는 유닛은 키 자체가 없다.
+                SpecialCode = data.codes.TryGetValue("special", out int specialId)
+                    ? CodeFactory.CreateSpecialCode(specialId, new SpecialCodeContext { Caster = this })
+                    : null;
                 ApplyCodeStages(data.codeStages);
                 EquipStartingItems(data.startingItemIds);
                 ultimateCooldown = UltimateCode.Cooldown;
@@ -832,6 +842,12 @@ namespace Entities
         /// </summary>
         public bool IsExecutable =>
             IsEnemy && string.Equals(unitTier, "normal", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>속성 태그 목록. 수리야의 '사비타'가 닮은 정도를 셀 때 읽는다.</summary>
+        public IReadOnlyList<string> UnitTags => unitTags;
+
+        /// <summary>시작 숙련 목록(무기·방어구 모두). 읽기 전용.</summary>
+        public IReadOnlyList<string> StartingProficiencies => startingProficiencies;
 
         public bool HasUnitTag(string tag)
         {
@@ -1631,6 +1647,16 @@ namespace Entities
             Invoke(BaseEnums.UnitEventType.OnNormalActivates, new EventContext(this));
         }
 
+        /// <summary>
+        /// 특수행동을 실행한다. 예약은 <see cref="Managers.ActionScheduler.EnqueueSpecial"/>가 하고,
+        /// 신호는 스케줄러가 <c>OnSpecialActivates</c>로 이미 냈다.
+        /// </summary>
+        public virtual void CastSpecialCode()
+        {
+            if (SpecialCode == null || !SpecialCode.HasValidTarget()) return;
+            SpecialCode.CastCode();
+        }
+
         public virtual void CastUltimateCode()
         {
             // 예약과 실행 사이에 앞선 추가행동이 마지막 적을 지웠을 수 있다.
@@ -2188,6 +2214,8 @@ namespace Entities
             }
 
             StatusController.TickTurn();
+            // 전장 상태는 깐 유닛의 턴으로 지속을 센다.
+            Combat.Battlefield.OnAnchorTurn(this);
             Invoke(BaseEnums.UnitEventType.OnTurnStart, new EventContext(this));
         }
 
@@ -2578,6 +2606,10 @@ namespace Entities
 
             if (dmgCtx.Attacker != null)
             {
+                // 전장 상태(햇빛 등)는 유닛이 아니라 판에 걸려 있으므로 여기서 한 번 곱한다.
+                // 소환수의 공격도 판 위에서 벌어지는 일이라 함께 받는다.
+                outgoingDamageModifier *= Combat.Battlefield.OutgoingMultiplier(dmgCtx.Attacker);
+
                 foreach (var effect in dmgCtx.Attacker.ActiveEffectObjects())
                 {
                     if (!isSummonAttack)

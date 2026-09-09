@@ -100,6 +100,18 @@
 | 초기값 | 카드의 `initialBond` (없으면 0) |
 | 증가 | 등장 시 `bondGainRate`, 특기 일치면 **+1 추가** |
 | 우정 훈련 발동 | **75 이상** |
+
+### 4.1 우정도를 건드리는 코드
+
+찬드라가 둘을 나눠 갖는다. **앞뒤가 맞물린다** — 하나는 닿는 속도를, 하나는 닿은 뒤의 크기를 올린다.
+
+| 코드 | Lv | 효과 | 곱해지는 자리 |
+| --- | ---: | --- | --- |
+| 109 카피바라 | 10 | 우정도 획득 **+25%** | `bondGainRate` |
+| 108 봉우 | 27 | 우정 훈련 보너스 **+50%** | `friendshipBonus` |
+
+둘 다 **필드에 서 있기만 하면** 적용된다(`TrainingManager.BondGainMultiplier` ·
+`FriendshipBonusMultiplier`). 여러 명이 들어도 가장 큰 하나만 센다.
 | 초기화 | 런 시작 시 (`StartRun` → `SupportBonds.Clear()`) |
 | 저장/복원 | `RunSaveData.supportBonds` |
 

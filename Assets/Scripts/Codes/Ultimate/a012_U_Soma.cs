@@ -13,8 +13,8 @@ namespace Codes.Ultimate
 {
     public class a012_U_Soma : UltimateCode
     {
-        /// <summary>사양 "CON의 n%에 해당하는 방어막" = 위력 100.</summary>
-        private const int SelfShieldPower = 100;
+        /// <summary>사양 "CON × 1.2에 해당하는 방어막" = 위력 120.</summary>
+        private const int SelfShieldPower = 120;
 
         /// <summary>최다 피해 아군에게 주는 올스탯 = 찬드라 INT의 25%.</summary>
         private const float AllStatIntRatio = 0.25f;

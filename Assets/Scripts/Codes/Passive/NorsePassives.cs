@@ -314,14 +314,6 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>Lv.10 원소 숙련 - 얼음 — 얼음 원소를 보유한 적에게 주는 피해 +10%.</summary>
-    public sealed class CryoMastery : ElementMasteryPassive
-    {
-        public CryoMastery(PassiveCodeContext context) : base(
-            context, "원소 숙련 - 얼음", BaseEnums.UnitElement.Cryo,
-            NorseStatusIds.CryoMastery, "mastery_cryo") { }
-    }
-
     /// <summary>Lv.12 원소 친화 - 얼음 — 자신이 얼음을 보유한 동안 빙결된 적을 때리면 확정 치명타.</summary>
     public sealed class SkadiCryoAffinity : PassiveCode
     {

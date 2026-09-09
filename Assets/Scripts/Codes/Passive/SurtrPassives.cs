@@ -108,13 +108,6 @@ namespace Codes.Passive
         }
     }
 
-    public sealed class SurtrFireMastery : SurtrStatusPassive
-    {
-        public SurtrFireMastery(PassiveCodeContext context) : base(
-            context, 134, "surtr_fire_mastery", "원소 숙련 - 불", "불 원소를 보유한 적에게 주는 피해가 10% 증가합니다.") { }
-        protected override BaseEffect CreateEffect() => new SurtrFireMasteryEffect();
-    }
-
     internal sealed class SurtrFireMasteryEffect : BaseEffect
     {
         public SurtrFireMasteryEffect() : base(0) { }

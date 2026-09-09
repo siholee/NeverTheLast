@@ -600,15 +600,15 @@ units:
     name: 찬드라
     characterType: Support
     element: Geo
-    startingProficiencies: [Orb, LightArmor]
-    startingItemIds: [4109]
-    tags: [Vedic]
+    startingProficiencies: [Shortspear, LightArmor]
+    startingItemIds: [4115]
+    tags: [Vedic, Lokapala]
     canStartAsMain: false
     canStartAsSupport: true
     canUseInInfinite: false
     mainStat: CON
-    subStat: LUK
-    subStats: [LUK]
+    subStat: INT
+    subStats: [INT]
     mainStatTrainingBonus: 0.20
     subStatTrainingBonus: 0.10
     strBase: 10
@@ -621,15 +621,16 @@ units:
     conIncrementLvl: 2
     conIncrementUpgrade: 1
     intBase: 18
-    intIncrementLvl: 1
+    intIncrementLvl: 2
     intIncrementUpgrade: 1
     lukBase: 14
-    lukIncrementLvl: 2
+    lukIncrementLvl: 1
     lukIncrementUpgrade: 1
     codes:
       passive: 260
       normal: 60
       ultimate: 60
+      special: 60
     codeStages:
       passive: 3
       normal: 1
@@ -644,17 +645,17 @@ units:
       - codeId: 3
         unlockLevel: 20
         stage: 1
-      - codeId: 4
+      - codeId: 108
         unlockLevel: 27
+        stage: 1
+      - codeId: 109
+        unlockLevel: 10
         stage: 1
       - codeId: 5
         unlockLevel: 35
         stage: 1
       - codeId: 6
         unlockLevel: 38
-        stage: 1
-      - codeId: 14
-        unlockLevel: 62
         stage: 1
     portrait: CHANDRA_PORTRAIT
     standing: CHANDRA_STANDING
@@ -820,14 +821,14 @@ units:
   # 지속피해 코어. 수동적인 지속피해를 능동적으로 터뜨린다.
   - id: 61
     name: 야마
-    characterType: Locked
+    characterType: Starter
     element: Electro
     startingProficiencies: [Spear, MediumArmor]
     startingItemIds: [4104]
     tags: [Vedic, Lokapala]
-    canStartAsMain: false
+    canStartAsMain: true
     canStartAsSupport: false
-    canUseInInfinite: false
+    canUseInInfinite: true
     mainStat: INT
     subStat: DEX
     subStats: [DEX, CON]
@@ -848,7 +849,7 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    codes: { passive: 261, normal: 61, ultimate: 61 }
+    codes: { passive: 261, normal: 61, ultimate: 61, special: 61 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
       - { codeId: 56, unlockLevel: 4,  stage: 1 }   # 지혜
@@ -856,20 +857,19 @@ units:
       - { codeId: 33, unlockLevel: 12, stage: 1 }   # 주문 보호막
       - { codeId: 59, unlockLevel: 44, stage: 1 }   # 고전압
       - { codeId: 60, unlockLevel: 65, stage: 1 }   # 충전
-      - { codeId: 61, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
     portrait: YAMA_PORTRAIT
     standing: YAMA_STANDING
 
   # 베다/캐스터 파티의 서브 딜러.
   - id: 62
     name: 아그니
-    characterType: Locked
+    characterType: Support
     element: Pyro
     startingProficiencies: [Orb]
     startingItemIds: [4109]
     tags: [Vedic, Lokapala]
     canStartAsMain: false
-    canStartAsSupport: false
+    canStartAsSupport: true
     canUseInInfinite: false
     mainStat: INT
     subStat: LUK
@@ -891,13 +891,14 @@ units:
     lukBase: 18
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
-    codes: { passive: 262, normal: 62, ultimate: 62 }
+    codes: { passive: 262, normal: 62, ultimate: 62, special: 62 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 58, unlockLevel: 8,  stage: 1 }   # 원소 숙련 - 불
-      - { codeId: 33, unlockLevel: 12, stage: 1 }   # 주문 보호막
+      - { codeId: 57, unlockLevel: 8,  stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 33, unlockLevel: 12, stage: 1 }
+      - { codeId: 15, unlockLevel: 15, stage: 1 }   # 학식
+      - { codeId: 1593, unlockLevel: 50, stage: 1 } # 원소 정통   # 주문 보호막
       - { codeId: 62, unlockLevel: 71, stage: 1 }   # 대마법사
-      - { codeId: 61, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
     portrait: AGNI_PORTRAIT
     standing: AGNI_STANDING
 
@@ -932,14 +933,13 @@ units:
     lukBase: 16
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
-    codes: { passive: 263, normal: 63, ultimate: 63 }
+    codes: { passive: 263, normal: 63, ultimate: 63, special: 63 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
       - { codeId: 63, unlockLevel: 11, stage: 1 }   # 선두주자
       - { codeId: 64, unlockLevel: 20, stage: 1 }   # 천재
       - { codeId: 65, unlockLevel: 30, stage: 1 }   # 용살자
       - { codeId: 66, unlockLevel: 45, stage: 1 }   # 자기과신
-      - { codeId: 61, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
       - { codeId: 67, unlockLevel: 92, stage: 1 }   # 인도자
     portrait: INDRA_PORTRAIT
     standing: INDRA_STANDING
@@ -947,14 +947,14 @@ units:
   # 범용 방어형 서포터.
   - id: 64
     name: 바유
-    characterType: Starter
+    characterType: Support
     element: Anemo
     startingProficiencies: [Longbow, LightArmor]
     startingItemIds: [4106]
     tags: [Vedic, Lokapala]
-    canStartAsMain: true
-    canStartAsSupport: false
-    canUseInInfinite: true
+    canStartAsMain: false
+    canStartAsSupport: true
+    canUseInInfinite: false
     mainStat: CON
     subStat: DEX
     subStats: [DEX]
@@ -975,14 +975,13 @@ units:
     lukBase: 14
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    codes: { passive: 264, normal: 64, ultimate: 64 }
+    codes: { passive: 264, normal: 64, ultimate: 64, special: 64 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
       - { codeId: 44, unlockLevel: 4,  stage: 1 }   # 궁수
       - { codeId: 68, unlockLevel: 13, stage: 1 }   # 재기의 바람
       - { codeId: 34, unlockLevel: 15, stage: 1 }   # 변덕쟁이
       - { codeId: 69, unlockLevel: 30, stage: 1 }   # 기습
-      - { codeId: 61, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
     portrait: VAYU_PORTRAIT
     standing: VAYU_STANDING
 
@@ -1105,7 +1104,7 @@ units:
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
       - { codeId: 39, unlockLevel: 4,  stage: 1 }   # 거인
-      - { codeId: 74, unlockLevel: 10, stage: 1 }   # 원소 숙련 - 얼음
+      - { codeId: 57, unlockLevel: 10, stage: 1 }   # 원소 숙련 - 얼음
       - { codeId: 75, unlockLevel: 12, stage: 1 }   # 원소 친화 - 얼음
       - { codeId: 6,  unlockLevel: 30, stage: 1 }   # 철벽
       - { codeId: 76, unlockLevel: 60, stage: 1 }   # 원소술사
@@ -1142,7 +1141,7 @@ units:
     lukBase: 10
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    codes: { passive: 265, normal: 65, ultimate: 65 }
+    codes: { passive: 265, normal: 65, ultimate: 65, special: 65 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
       - { codeId: 77, unlockLevel: 5,  stage: 1 }   # 원소 친화 - 바위
@@ -1150,7 +1149,6 @@ units:
       - { codeId: 78, unlockLevel: 27, stage: 1 }   # 뿌리박기
       - { codeId: 79, unlockLevel: 32, stage: 1 }   # 상인
       - { codeId: 6,  unlockLevel: 38, stage: 1 }   # 철벽
-      - { codeId: 61, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
     portrait: KUBERA_PORTRAIT
     standing: KUBERA_STANDING
 
@@ -1184,16 +1182,57 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    codes: { passive: 266, normal: 66, ultimate: 66 }
+    codes: { passive: 266, normal: 66, ultimate: 66, special: 66 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
       - { codeId: 33, unlockLevel: 12, stage: 1 }   # 주문 보호막
       - { codeId: 36, unlockLevel: 38, stage: 1 }   # 고통스러운 상처
       - { codeId: 59, unlockLevel: 44, stage: 1 }   # 고전압
       - { codeId: 80, unlockLevel: 50, stage: 1 }   # 수천
-      - { codeId: 61, unlockLevel: 80, stage: 1 }   # 전부 아니면 전무
     portrait: VARUNA_PORTRAIT
     standing: VARUNA_STANDING
+
+  - id: 67
+    name: 수리야
+    characterType: Locked
+    element: Pyro
+    startingProficiencies: [Orb, MediumArmor]
+    startingItemIds: [4109]
+    tags: [Vedic, Lokapala]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: CON
+    subStat: INT
+    subStats: [INT]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 9
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 12
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 22
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 18
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 14
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    codes: { passive: 267, normal: 67, ultimate: 67, special: 67 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 110, unlockLevel: 16, stage: 1 }  # 특별함
+      - { codeId: 108, unlockLevel: 22, stage: 1 }  # 봉우
+      - { codeId: 111, unlockLevel: 30, stage: 1 }  # 폭주
+      - { codeId: 112, unlockLevel: 41, stage: 1 }  # 면벽수련
+      - { codeId: 91,  unlockLevel: 55, stage: 1 }  # 이기적
+      - { codeId: 113, unlockLevel: 70, stage: 1 }  # 미트라
+    portrait: SURYA_PORTRAIT
+    standing: SURYA_STANDING
 
   - id: 25
     name: 오르페우스
@@ -1695,7 +1734,7 @@ units:
     ultimateResourceName: 아즈라엘
     ultimateResourceMax: 7
     levelPassives:
-      - { codeId: 95, unlockLevel: 5,  stage: 1 }   # 손재주
+      - { codeId: 84, unlockLevel: 5,  stage: 1 }   # 손재주
       - { codeId: 9,  unlockLevel: 12, stage: 1 }   # 검의 달인
       - { codeId: 98, unlockLevel: 18, stage: 1 }   # 암살자
       - { codeId: 69, unlockLevel: 30, stage: 1 }   # 기습

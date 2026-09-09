@@ -1,6 +1,7 @@
 using BaseClasses;
 using Codes.Normal;
 using Codes.Passive;
+using Codes.Special;
 using Codes.Ultimate;
 using Codes.Test;
 
@@ -16,15 +17,9 @@ namespace Codes.Base
         // ── 베다 진영 (야마·아그니·인드라·바유) ──
         261 => new YamaDeathContract(context),
         56 => new VedicWisdom(context),
-        57 => new ElectroMastery(context),
-        58 => new PyroMastery(context),
-        186 => new HydroMastery(context),
-        187 => new AnemoMastery(context),
-        188 => new DendroMastery(context),
-        189 => new GeoMastery(context),
+        57 => new ElementMastery(context),   // 원소 숙련 — 일곱 갈래를 하나로 합쳤다
         59 => new YamaHighVoltage(context),
         60 => new YamaCharge(context),
-        61 => new AllOrNothing(context),
         262 => new AgniEternalFlame(context),
         62 => new AgniArchmage(context),
         263 => new IndraThunderMark(context),
@@ -70,8 +65,14 @@ namespace Codes.Base
         3 => new ChandraBulwark(context),
         4 => new ChandraLastStandFormation(context),
         5 => new ChandraPurificationBath(context),
+        267 => new SuryaSavitr(context),      // 수리야 초기 패시브 — 사비타
+        110 => new SuryaDistinction(context),
+        111 => new SuryaOverrun(context),
+        112 => new SuryaWallMeditation(context),
+        113 => new SuryaMitra(context),
+        108 => new ChandraSwornFriend(context),
+        109 => new ChandraCapybara(context),
         6 => new IronWallPassive(context),      // 공용 — 일반행동마다 CON +2
-        14 => new ChandraMoonlight(context),
         340 => new QuetzalcoatlBounty(context),
         15 => new ScholarshipPassive(context),
         16 => new QuetzalcoatlLucky(context),
@@ -107,7 +108,6 @@ namespace Codes.Base
         282 => new LokiFenrir(context),
         73 => new LokiSummoner(context),
         283 => new SkadiNorthernGuardian(context),
-        74 => new CryoMastery(context),
         75 => new SkadiCryoAffinity(context),
         76 => new SkadiElementalist(context),
         // ── 쿠베라·바루나·오르페우스·스사노오 ──
@@ -134,7 +134,6 @@ namespace Codes.Base
         38 => new TsukuyomiFullMoon(context),
         280 => new SurtrTwilight(context),
         39 => new GiantPassive(context),        // 공용 — STR +5%
-        185 => new SurtrFireMastery(context),
         40 => new SurtrCelestialBody(context),
         41 => new LifestealFighter(context, 0.08f, "투사", VoidBeastCodeIds.AllDayLong,
             BaseEnums.CodeGrade.Normal),
@@ -273,7 +272,6 @@ namespace Codes.Base
         412 => new AugusteWatchItemPassive(context),
         // ── 사바흐·이카리아 ──
         203 => new SabahDebuffHunter(context),
-        95 => new SabahDexterity(context),
         226 => new IcariaRecklessChallenge(context),
         96 => new IcariaMentalStrength(context),
         97 => new IcariaPyroAffinity(context),
@@ -313,6 +311,7 @@ namespace Codes.Base
         5 => new LightNormalAttack(context), // 라이트 일반행동/플라이어 소환
         6 => new NicoleArcShot(context), // 니콜 일반행동
         7 => new JeanIronFist(context), // 잔 일반행동/대체행동
+        67 => new SuryaRavi(context),   // 수리야 라비/대체행동 바스카르
         500 => new FlyerNormalAttack(context), // 소환수 — 플라이어 일반행동
         501 => new FenrirBite(context), // 소환수 — 펜리르 일반행동
         900 => new MagicBolt(context),
@@ -403,6 +402,26 @@ namespace Codes.Base
       };
     }
 
+    /// <summary>
+    /// 특수행동(SP) 코드. 지금은 로카팔라 일곱만 갖는다 — 인드라의 궁극기가 한꺼번에 연다.
+    /// ID는 소유자의 유닛 ID를 그대로 쓴다(일반·궁극기와 같은 규칙).
+    /// </summary>
+    public static SpecialCode CreateSpecialCode(int codeId, SpecialCodeContext context)
+    {
+      return codeId switch
+      {
+        60 => new ChandraAegis(context),        // 찬드라 — 아군 전체 방어막·마나
+        61 => new YamaBounceStrike(context),    // 야마 — 특수행동 인원수만큼 바운스
+        62 => new AgniConflagration(context),   // 아그니 — 광역 + 특수 취약
+        63 => new IndraThunderbolt(context),    // 인드라 — 옛 궁극기 천벌
+        64 => new VayuVanguardWind(context),    // 바유 — 가장 먼저 나서는 올스탯 버프
+        65 => new KuberaGoldRush(context),      // 쿠베라 — 광역 + 물리 취약 + 골드
+        66 => new VarunaTide(context),          // 바루나 — 아군 전체 치유·정화
+        67 => new SuryaIlcheon(context),        // 수리야 — 중첩을 태우지 않는 10발
+        _ => null,
+      };
+    }
+
     public static UltimateCode CreateUltimateCode(int codeId, UltimateCodeContext context)
     {
       return codeId switch
@@ -419,8 +438,9 @@ namespace Codes.Base
         500 => new FlyerSkyfall(context), // 소환수 — 플라이어 궁극기
         61 => new YamaFinalArrival(context),
         62 => new AgniWhiteFlame(context),
-        63 => new IndraThunderbolt(context),
+        63 => new IndraKingOfGods(context),   // 인드라 U — 로카팔라 특수행동 개방
         64 => new VayuSouthWind(context),
+        67 => new SuryaDivakara(context),     // 수리야 U — 전장을 햇빛으로
         81 => new FreyaHarvest(context),
         82 => new LokiBaldrSlayer(context),
         83 => new SkadiIcicleSpike(context),

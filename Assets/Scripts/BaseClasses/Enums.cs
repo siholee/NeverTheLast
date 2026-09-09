@@ -7,6 +7,9 @@ namespace BaseClasses
       Passive,
       Normal,
       Ultimate,
+
+      /// <summary>특수행동 — 인드라의 궁극기만이 부르는 행동. 추가행동과 별개의 판정이다.</summary>
+      Special,
       Effect,
     }
 
@@ -15,6 +18,7 @@ namespace BaseClasses
       Active,
       Passive,
       Ultimate,
+      Special,
     }
 
     /// <summary>
@@ -52,6 +56,7 @@ namespace BaseClasses
       OnNormalActivates, // Unit(자신)
       OnUltimateActivates, // Unit(자신)
       OnAdditionalActivates, // Unit(자신) — 예약된 추가행동이 시작될 때
+      OnSpecialActivates, // Unit(자신) — 특수행동이 시작될 때. 추가행동과 별개의 판정이다
       OnTargeted, // Unit(자신=대상), Unit(공격자) — 행동의 대상으로 지정된 순간. 피해가 들어가기 전이다
       OnNormalAttackHit, // Unit(자신), Unit(대상), DamageContext(일반행동 적중 정보)
       OnNormalActionResolved, // Unit(자신) — 일반행동이 실제로 끝났을 때. 공격하지 않는 일반행동도 포함한다

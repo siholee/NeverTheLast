@@ -14,12 +14,10 @@ namespace Codes.Passive
     {
         // 상태 ID 대역 (6000~) — 베다 진영 전용
         public const int YamaCurse = 6000;
-        public const int ElementMasteryElectro = 6001;
-        public const int ElementMasteryPyro = 6002;
+        public const int ElementMastery = 6001;
         public const int HighVoltage = 6003;
         public const int AgniFlame = 6004;
         public const int Archmage = 6005;
-        public const int AllOrNothing = 6006;
         public const int IndraMark = 6007;
         public const int IndraOverconfidence = 6008;
         public const int VayuCharge = 6009;
@@ -103,78 +101,31 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>원소 숙련 — 지정 원소를 가진 적에게 주는 피해 +10%.</summary>
-    public abstract class ElementMasteryPassive : PassiveCode
+    /// <summary>
+    /// 원소 숙련 — <b>자신의 원소</b>를 보유한 적에게 주는 피해 +10%.
+    ///
+    /// 예전에는 원소마다 코드가 따로여서 일곱 개였다. 어느 캐릭터든 자기 원소짜리 하나만
+    /// 골라 들었으므로 갈라 둘 이유가 없었고, 새 원소가 늘 때마다 코드도 함께 늘었다.
+    /// 보유자의 원소를 읽는 방식으로 합쳤다 — 상위 코드 <c>원소 정통</c>(1593)과 같은 축이다.
+    /// </summary>
+    public sealed class ElementMastery : PassiveCode
     {
-        private readonly BaseEnums.UnitElement _element;
-        private readonly int _statusId;
-        private readonly string _key;
+        private const float Bonus = 0.10f;
 
-        protected ElementMasteryPassive(PassiveCodeContext context, string name,
-            BaseEnums.UnitElement element, int statusId, string key) : base(context)
+        public ElementMastery(PassiveCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Passive;
-            CodeName = name;
+            CodeName = "원소 숙련";
             IgnoresActivationChance = true;
-            _element = element;
-            _statusId = statusId;
-            _key = key;
-            // 원소마다 코드가 따로라 상위도 일곱이 되어야 한다. 대신 '원소 정통'(1593)이
-            // 보유자 자신의 원소를 읽어 하나로 덮으므로 그쪽을 상위로 둔다.
             SupersededByCodeId = VoidElementalMastery.CodeId;
         }
 
-        public override void CastCode()
-        {
-            Caster?.AddStatus(BuffStatus.Create(
-                _statusId, _key, CodeName, Caster, Caster,
-                new ElementMasteryEffect(_element),
-                stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
-                isBeneficial: true,
-                description: $"{_element} 원소를 보유한 적에게 주는 피해 +10%"));
-        }
-    }
-
-    public sealed class ElectroMastery : ElementMasteryPassive
-    {
-        public ElectroMastery(PassiveCodeContext context) : base(
-            context, "원소 숙련 - 번개", BaseEnums.UnitElement.Electro,
-            VedicIds.ElementMasteryElectro, "mastery_electro") { }
-    }
-
-    public sealed class PyroMastery : ElementMasteryPassive
-    {
-        public PyroMastery(PassiveCodeContext context) : base(
-            context, "원소 숙련 - 불", BaseEnums.UnitElement.Pyro,
-            VedicIds.ElementMasteryPyro, "mastery_pyro") { }
-    }
-
-    public sealed class HydroMastery : ElementMasteryPassive
-    {
-        public HydroMastery(PassiveCodeContext context) : base(
-            context, "원소 숙련 - 물", BaseEnums.UnitElement.Hydro,
-            VedicIds.ElementMasteryHydro, "mastery_hydro") { }
-    }
-
-    public sealed class AnemoMastery : ElementMasteryPassive
-    {
-        public AnemoMastery(PassiveCodeContext context) : base(
-            context, "원소 숙련 - 바람", BaseEnums.UnitElement.Anemo,
-            VedicIds.ElementMasteryAnemo, "mastery_anemo") { }
-    }
-
-    public sealed class DendroMastery : ElementMasteryPassive
-    {
-        public DendroMastery(PassiveCodeContext context) : base(
-            context, "원소 숙련 - 풀", BaseEnums.UnitElement.Dendro,
-            VedicIds.ElementMasteryDendro, "mastery_dendro") { }
-    }
-
-    public sealed class GeoMastery : ElementMasteryPassive
-    {
-        public GeoMastery(PassiveCodeContext context) : base(
-            context, "원소 숙련 - 바위", BaseEnums.UnitElement.Geo,
-            VedicIds.ElementMasteryGeo, "mastery_geo") { }
+        public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
+            VedicIds.ElementMastery, "element_mastery", CodeName, Caster, Caster,
+            new SelfElementMasteryEffect(Bonus),
+            stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
+            isBeneficial: true,
+            description: $"자신의 원소를 보유한 적에게 주는 피해 +{Bonus * 100f:F0}%."));
     }
 
     /// <summary>Lv.44 고전압 — 감전을 생성하면 주는 피해 +25%(3턴).</summary>
@@ -270,42 +221,6 @@ namespace Codes.Passive
 
             _cooldown.Use(Caster);
             Caster.RecoverMana(ManaGain);
-        }
-    }
-
-    /// <summary>
-    /// Lv.80 전부 아니면 전무 — 덱 전원이 로카팔라이거나 자신만 로카팔라일 때
-    /// 레벨 성장분이 1.2배가 된다.
-    /// </summary>
-    public sealed class AllOrNothing : PassiveCode
-    {
-        public const string LokapalaTag = "Lokapala";
-
-        public AllOrNothing(PassiveCodeContext context) : base(context)
-        {
-            CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "전부 아니면 전무";
-            IgnoresActivationChance = true;
-        }
-
-        public override void CastCode()
-        {
-            if (Caster == null) return;
-
-            List<Unit> allies = Target.GetAllAllies(Caster)
-                .Where(unit => unit != null && unit.isActive).ToList();
-            int lokapala = allies.Count(unit => unit.HasUnitTag(LokapalaTag));
-
-            bool allLokapala = lokapala == allies.Count;
-            bool onlySelf = lokapala == 1 && Caster.HasUnitTag(LokapalaTag);
-            if (!allLokapala && !onlySelf) return;
-
-            Caster.AddStatus(BuffStatus.Create(
-                VedicIds.AllOrNothing, "all_or_nothing", CodeName, Caster, Caster,
-                new GrowthMultiplierEffect(1.2f),
-                stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
-                isBeneficial: true,
-                description: "레벨에 따른 성장 스탯이 1.2배가 됩니다."));
         }
     }
 
@@ -660,12 +575,34 @@ namespace Codes.Passive
             TryCleanse();
         }
 
+        /// <summary>
+        /// 충전을 태워 정화하는 것은 <b>추가행동</b>이다.
+        ///
+        /// 예전에는 궁극기가 끝나는 자리에서 곧바로 지워 버렸다. 그러면 정화가 어느 행동에도
+        /// 속하지 않아 화면에 잡히지 않고, 추가행동을 세는 코드(니콜·바스테트)도 놓쳤다.
+        /// 이제 큐에 한 번 올린 뒤 자기 차례에 지운다 — 예약과 실행이 나뉘므로
+        /// <b>대상은 실행 시점에 다시 고른다.</b> 줄 서는 사이에 다른 아군이 정화됐을 수 있다.
+        /// </summary>
         private void TryCleanse()
         {
-            if (_charge < 1f) return;
+            if (_charge < 1f || Caster == null || !Caster.isActive) return;
+            if (!HasAfflictedAlly()) return;
+
+            Managers.GameManager.Instance?.ActionScheduler.EnqueueAdditional(
+                Caster, "vayu_purifying_wind", CodeName, ResolveCleanse);
+        }
+
+        private bool HasAfflictedAlly()
+            => Target.GetAllAllies(Caster)
+                .Any(unit => unit != null && unit.isActive && unit.HasNegativeStatus());
+
+        private void ResolveCleanse()
+        {
+            if (Caster == null || !Caster.isActive || _charge < 1f) return;
 
             Unit afflicted = Target.GetAllAllies(Caster)
                 .FirstOrDefault(unit => unit != null && unit.isActive && unit.HasNegativeStatus());
+            // 줄 서 있는 사이에 아무도 안 아프게 됐다면 충전을 태우지 않는다.
             if (afflicted == null) return;
 
             _charge -= 1f;
@@ -720,14 +657,6 @@ namespace Codes.Passive
     // 효과
     // ══════════════════════════════════════════════════════════════
 
-    internal sealed class ElementMasteryEffect : BaseEffect
-    {
-        private readonly BaseEnums.UnitElement _element;
-        public ElementMasteryEffect(BaseEnums.UnitElement element) : base(0) => _element = element;
-
-        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
-            => attacker == Target && target != null && target.HasCombatElement(_element) ? 1.1f : 1f;
-    }
 
     internal sealed class SpecialDamageEffect : BaseEffect
     {

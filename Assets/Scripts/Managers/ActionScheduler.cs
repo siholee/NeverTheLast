@@ -70,14 +70,20 @@ namespace Managers
             /// <summary>패시브가 부른 추가행동. 같은 턴의 다른 행동보다 먼저 나간다.</summary>
             PriorityAdditional = 0,
 
+            /// <summary>
+            /// 특수행동. 인드라의 궁극기만이 부르며, 열리는 즉시 나가야 하므로 추가행동보다 앞이다.
+            /// 턴을 쓰지 않는 것은 추가행동과 같지만 <b>판정은 별개</b>다.
+            /// </summary>
+            Special = 1,
+
             /// <summary>추가행동. 턴을 쓰지 않는다.</summary>
-            Additional = 1,
+            Additional = 2,
 
             /// <summary>궁극기. 턴을 쓰지 않고 AV도 리셋하지 않는다.</summary>
-            Ultimate = 2,
+            Ultimate = 3,
 
             /// <summary>일반행동 — 또는 그 자리를 대신 쓰는 <b>대체행동</b>. 턴을 쓴다.</summary>
-            Normal = 3,
+            Normal = 4,
         }
 
         /// <summary>턴을 쓰지 않는 추가행동 계열인가. 우선 추가행동도 성질은 같다.</summary>
@@ -284,6 +290,13 @@ namespace Managers
         public bool EnqueuePriorityAdditional(Unit unit, string key, string label, Action run)
             => Enqueue(unit, ActionKind.PriorityAdditional, key, label, run);
 
+        /// <summary>
+        /// 특수행동을 예약한다. <b>인드라의 궁극기만이</b> 이 문을 연다.
+        /// 열린 순간 전원이 함께 나가야 하므로 추가행동보다 앞 순위다.
+        /// </summary>
+        public bool EnqueueSpecial(Unit unit, string key, string label, Action run)
+            => Enqueue(unit, ActionKind.Special, key, label, run);
+
         private bool Enqueue(Unit unit, ActionKind kind, string key, string label, Action run)
         {
             if (unit == null || run == null) return false;
@@ -418,6 +431,12 @@ namespace Managers
                 if (IsAdditional(next.Kind))
                 {
                     next.Unit.Invoke(BaseEnums.UnitEventType.OnAdditionalActivates,
+                        new EventContext(next.Unit));
+                }
+                else if (next.Kind == ActionKind.Special)
+                {
+                    // 추가행동 카운터에는 잡히지 않아야 하므로 전용 신호를 따로 낸다.
+                    next.Unit.Invoke(BaseEnums.UnitEventType.OnSpecialActivates,
                         new EventContext(next.Unit));
                 }
 

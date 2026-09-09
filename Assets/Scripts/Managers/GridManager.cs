@@ -1040,6 +1040,9 @@ namespace Managers
 
         public void OnRoundEnd()
         {
+            // 판에 깔린 상태는 라운드를 넘기지 않는다.
+            Combat.Battlefield.Clear();
+
             foreach (Unit unit in heroList.Concat(enemyList).Where(unit => unit != null && unit.isActive).ToList())
             {
                 unit.Invoke(BaseEnums.UnitEventType.OnRoundEnd, new EventContext(unit));

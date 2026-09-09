@@ -91,13 +91,17 @@ Combat is not real time. `Managers/ActionScheduler.cs` owns the clock.
 
 - Speed = `100 × ActionSpeedCurr`, action value `AV = 10000 / speed` (lower acts sooner).
   Time is not advanced continuously — everyone's AV is decremented by exactly what the next actor needs.
-- **Actions vs. triggers.** Only four things are *actions* — they take a scheduler slot and resolve:
+- **Actions vs. triggers.** Only five things are *actions* — they take a scheduler slot and resolve:
   **일반행동** (normal), **대체행동** (substitute — takes the normal action's slot), **추가행동**
-  (additional), **궁극기** (ultimate). Passive codes, effects and event hooks are *triggers*: they
-  never act, they only queue an action or change a value. See `Detail_03 §4.5-A`.
-- Action priority: `PriorityAdditional(0) → Additional(1) → Ultimate(2) → Normal(3)`.
-  0 is just "an additional action a passive queued" — same nature as 1, and both fire
+  (additional), **특수행동** (special), **궁극기** (ultimate). Passive codes, effects and event hooks
+  are *triggers*: they never act, they only queue an action or change a value. See `Detail_03 §4.5-A`.
+- Action priority: `PriorityAdditional(0) → Special(1) → Additional(2) → Ultimate(3) → Normal(4)`.
+  0 is just "an additional action a passive queued" — same nature as 2, and both fire
   `OnAdditionalActivates` (`ActionScheduler.IsAdditional`).
+- **특수행동 is opened by exactly one thing** — Indra's ultimate `신들의 왕`. It hands every
+  Lokapala on the field their SP code. It skips a turn like an additional action but fires
+  `OnSpecialActivates` instead, so additional-action counters do not see it. Always go through
+  `Combat.SpecialAction.OpenGate`; never call `EnqueueSpecial` directly. See `Detail_03 §4.5-C`.
 - **Ultimates do not consume a turn.** They queue as soon as the resource fills and do not reset AV.
 - A **대체행동** still counts as one normal action — call `NotifyActionResolved()` even when it
   deals no damage. The old term 강화 일반행동 and the `Empowered*` identifiers are gone.
@@ -175,6 +179,8 @@ resolves them in separate switches.
 | Unit ID | 20-slot block per faction — Akasha 1~, Greek 20~, Takamagahara 40~, Vedic 60~, Nord 80~, Rome 100~, Egypt 120~, Mexica 140~, Gaul 160~ |
 | Ally normal / ultimate | **same number as the owner's unit ID** (Orion = 22 → N 22, U 22) |
 | Ally unique passive | **owner's unit ID + 200** (Orion → 222) |
+| Ally special action (SP) | **same number as the owner's unit ID**, Lokapala only |
+| Field state | `Combat.Battlefield` — a board-wide state, not a `UnitStatus`. Duration counts the caster's turns; cleared on round end |
 | Ally shared unlock passive | 1~179 |
 | Equipment-granted passive | 400~499 |
 | Summon codes (normal / ultimate) | 500~599 |
@@ -243,7 +249,7 @@ A unit with **two sub stats** splits that budget instead of doubling it — each
 training bonus is +5% per sub rather than +10%. Eight units do this: 라이트 · 니콜 · 피그말리온 ·
 아스클레피아 · 아마테라스 · 야마 · 이카리아 · 마리.
 
-**39 units in total**, with two standing exceptions. **Gaudi** has no sub stat at all
+**40 units in total**, with two standing exceptions. **Gaudi** has no sub stat at all
 (main +2, everything else +1). **Jean** has no weapon proficiency at all, by design — she fights
 bare-handed and carries no starting weapon, so any weapon she holds contributes weight and
 nothing else. **Do not add a martial-arts proficiency**; the empty weapon slot is the condition

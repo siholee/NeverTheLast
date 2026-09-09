@@ -408,8 +408,18 @@ namespace Effects.Negative
             }
 
             int damage = Mathf.Max(1, Mathf.RoundToInt(
-                source.SkillDamage(BurstPower, BaseEnums.PrimaryStat.CON) * FieldReactionMultiplier(source)));
+                source.SkillDamage(BurstPower, BaseEnums.PrimaryStat.CON) *
+                FieldReactionMultiplier(source) * OverloadMultiplier(source, reaction)));
             DealReactionDamage(target, source, damage);
+        }
+
+        /// <summary>수리야의 '폭주'(111) — 과부하만 골라 키운다.</summary>
+        private static float OverloadMultiplier(Unit source, Reaction reaction)
+        {
+            if (reaction.Id != ReactionId.Overload || source == null) return 1f;
+            return source.ActivePassiveCodes.Any(code => code is Codes.Passive.SuryaOverrun)
+                ? 1f + Codes.Passive.SuryaOverrun.Bonus
+                : 1f;
         }
 
         private static void ResolveDot(Unit target, Reaction reaction, Unit source)

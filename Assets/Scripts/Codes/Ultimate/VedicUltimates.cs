@@ -90,12 +90,14 @@ namespace Codes.Ultimate
 
                 target.GrantCombatElement(BaseEnums.UnitElement.Electro, Unit.CommonElementAuraDuration, Caster);
 
-                // 지속피해 즉시 정산 — 대상이 받고 있던 초당 피해를 INT 비례로 터뜨린다.
-                int dotPerSecond = target.GetEstimatedDamageOverTimePerTurn();
-                if (dotPerSecond <= 0) continue;
+                // 지속피해 즉시 정산 — 대상이 받고 있던 <b>턴당</b> 피해를 INT 비례로 터뜨린다.
+                // 초가 아니라 턴이다. 이 게임의 시간 축은 턴 하나뿐이다.
+                int dotPerTurn = target.GetEstimatedDamageOverTimePerTurn();
+                if (dotPerTurn <= 0) continue;
 
+                // 턴당 지속피해 × INT × 0.8%. INT가 오를수록 정산이 커지는 것이 설계 의도다.
                 int detonate = Mathf.Max(1, Mathf.RoundToInt(
-                    dotPerSecond * Caster.GetBaseInt() * DetonateRatio * 0.01f));
+                    dotPerTurn * Caster.GetBaseInt() * DetonateRatio * 0.01f));
                 target.TakeDamage(new DamageContext(
                     Caster, detonate, BaseEnums.CodeType.Ultimate,
                     new List<int> { DamageTag.SingleTarget, DamageTag.Special }));
@@ -140,53 +142,25 @@ namespace Codes.Ultimate
     /// 단일 대상에게 `INT × 레벨%` 피해를 주고, 계수를 20%p씩 깎으며 다른 적에게 튕긴다.
     /// 계수가 0이 되거나 남은 적이 없으면 멈춘다.
     /// </summary>
-    public sealed class IndraThunderbolt : SimpleUltimate
+    /// <summary>
+    /// 인드라 U — 신들의 왕.
+    ///
+    /// 피해를 내지 않는다. <b>필드의 로카팔라 전원에게 특수행동을 연다</b> — 그것이 전부다.
+    /// 예전의 천벌은 인드라 자신의 특수행동으로 내려갔으므로, 이 궁극기를 쓰면
+    /// 천벌도 함께 나간다. 로카팔라를 몇 명 세웠는지가 그대로 이 한 방의 값이 된다.
+    /// </summary>
+    public sealed class IndraKingOfGods : SimpleUltimate
     {
-        public IndraThunderbolt(UltimateCodeContext context)
-            : base(context, "천벌", 4, 0.4f) { }
+        public IndraKingOfGods(UltimateCodeContext context)
+            : base(context, "신들의 왕", 4, 0.4f) { }
 
-        protected override void Resolve()
-        {
-            List<Unit> pool = Enemies();
-            if (pool.Count == 0) return;
+        protected override void Resolve() => Combat.SpecialAction.OpenGate(Caster);
 
-            // 1차 계수 = 인드라의 레벨(%) → 위력으로 그대로 읽는다.
-            int power = Mathf.Max(1, Caster.Level);
-            int decay = Mathf.Max(1, Mathf.RoundToInt(power * 0.2f));
-
-            Unit target = pool[Random.Range(0, pool.Count)];
-            var hit = new HashSet<Unit>();
-
-            var tags = new List<int>
-            {
-                DamageTag.SingleTarget, DamageTag.UltAttack,
-                DamageTag.Special, DamageTag.NonContactAttack,
-            };
-
-            while (power > 0 && target != null && target.isActive)
-            {
-                bool isCrit = Random.value <= Caster.CritChanceCurr;
-                float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
-                int damage = Mathf.Max(1, Mathf.RoundToInt(
-                    Caster.SkillDamage(power, BaseEnums.PrimaryStat.INT) * critMultiplier));
-                target.TakeDamage(new DamageContext(Caster, damage, BaseEnums.CodeType.Ultimate, tags, isCrit));
-                hit.Add(target);
-
-                power -= decay;
-                if (power <= 0) break;
-
-                List<Unit> remaining = Enemies().Where(unit => !hit.Contains(unit)).ToList();
-                if (remaining.Count == 0) break;
-                target = remaining[Random.Range(0, remaining.Count)];
-            }
-        }
+        /// <summary>같이 나설 로카팔라가 하나도 없으면 자원을 태우지 않는다.</summary>
+        public override bool HasValidTarget()
+            => Caster != null && Caster.isActive && Combat.SpecialAction.ParticipantCount(Caster) > 0;
     }
 
-    /// <summary>
-    /// 바유 U — 남풍.
-    /// 적 전체에게 DEX 기반 위력 50 + 바람 원소 부여 + 방어력 20% 감소.
-    /// 이후 3턴간 턴마다 CON 기반 위력 25의 잔풍 피해를 남긴다.
-    /// </summary>
     public sealed class VayuSouthWind : SimpleUltimate
     {
         private const int BurstPower = 50;

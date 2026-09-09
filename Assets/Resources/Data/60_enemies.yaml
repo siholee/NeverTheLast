@@ -873,7 +873,7 @@ enemies:
     levelPassives:
       - { codeId: 20,  unlockLevel: 10, stage: 1 }   # 중갑병
       - { codeId: 2,  unlockLevel: 20, stage: 1 }   # 기사회생
-      - { codeId: 58, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 57, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 6,  unlockLevel: 40, stage: 1 }   # 철벽
     portrait: RUIN_PALADIN_PORTRAIT
     standing: RUIN_PALADIN_STANDING
@@ -902,7 +902,7 @@ enemies:
     levelPassives:
       - { codeId: 20,  unlockLevel: 10, stage: 1 }   # 중갑병
       - { codeId: 2,  unlockLevel: 20, stage: 1 }   # 기사회생
-      - { codeId: 58, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 57, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 6,  unlockLevel: 40, stage: 1 }   # 철벽
       - { codeId: 1406, unlockLevel: 50, stage: 1 }   # 성스러운 칼날
       - { codeId: 1407, unlockLevel: 60, stage: 1 }   # 까칠한 피부
@@ -931,7 +931,7 @@ enemies:
     lukIncrementLvl: 1
     codes: { passive: 1402, normal: 1402, ultimate: 1401 }
     levelPassives:
-      - { codeId: 58, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 57, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
     portrait: RUIN_INQUISITOR_PORTRAIT
     standing: RUIN_INQUISITOR_STANDING
 
@@ -957,7 +957,7 @@ enemies:
     lukIncrementLvl: 1
     codes: { passive: 1402, normal: 1403, ultimate: 1402 }
     levelPassives:
-      - { codeId: 58, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 57, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 40, unlockLevel: 50, stage: 1 }   # 천상의 신체
     portrait: APOCALYPSE_INQUISITOR_PORTRAIT
     standing: APOCALYPSE_INQUISITOR_STANDING
@@ -1018,7 +1018,7 @@ enemies:
     lukIncrementLvl: 1
     codes: { passive: 1411, normal: 1405, ultimate: 1404 }
     levelPassives:
-      - { codeId: 58, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 57, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 37, unlockLevel: 50, stage: 1 }   # 순환
     portrait: FALLEN_PRIEST_PORTRAIT
     standing: FALLEN_PRIEST_STANDING
@@ -1207,7 +1207,7 @@ enemies:
     codes: { passive: 1422, normal: 1421, ultimate: 1421 }
     levelPassives:
       - { codeId: 39,   unlockLevel: 10, stage: 1 }   # 거인
-      - { codeId: 74,   unlockLevel: 20, stage: 1 }   # 원소 숙련 - 얼음
+      - { codeId: 57,   unlockLevel: 20, stage: 1 }   # 원소 숙련 - 얼음
       - { codeId: 20,   unlockLevel: 30, stage: 1 }   # 중갑병
       - { codeId: 1424, unlockLevel: 40, stage: 1 }   # 강타
       - { codeId: 6,    unlockLevel: 50, stage: 1 }   # 철벽
@@ -1374,7 +1374,7 @@ enemies:
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
       - { codeId: 1501, unlockLevel: 20, stage: 1 }
-      - { codeId: 58, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
@@ -1410,7 +1410,7 @@ enemies:
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
       - { codeId: 1501, unlockLevel: 20, stage: 1 }
-      - { codeId: 186, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
@@ -1446,7 +1446,7 @@ enemies:
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
       - { codeId: 1501, unlockLevel: 20, stage: 1 }
-      - { codeId: 187, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
@@ -1518,7 +1518,7 @@ enemies:
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
       - { codeId: 1501, unlockLevel: 20, stage: 1 }
-      - { codeId: 188, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
@@ -1554,7 +1554,7 @@ enemies:
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
       - { codeId: 1501, unlockLevel: 20, stage: 1 }
-      - { codeId: 74, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
@@ -1590,7 +1590,7 @@ enemies:
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
       - { codeId: 1501, unlockLevel: 20, stage: 1 }
-      - { codeId: 189, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
@@ -1661,7 +1661,7 @@ enemies:
     codes: { passive: 1510, normal: 1510, ultimate: 1511 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
-      - { codeId: 58, unlockLevel: 20, stage: 1 }
+      - { codeId: 57, unlockLevel: 20, stage: 1 }
       - { codeId: 1511, unlockLevel: 30, stage: 1 }
       - { codeId: 1512, unlockLevel: 40, stage: 1 }
       - { codeId: 28, unlockLevel: 50, stage: 1 }
@@ -1696,7 +1696,7 @@ enemies:
     codes: { passive: 1510, normal: 1510, ultimate: 1512 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
-      - { codeId: 186, unlockLevel: 20, stage: 1 }
+      - { codeId: 57, unlockLevel: 20, stage: 1 }
       - { codeId: 1511, unlockLevel: 30, stage: 1 }
       - { codeId: 1512, unlockLevel: 40, stage: 1 }
       - { codeId: 28, unlockLevel: 50, stage: 1 }
@@ -1731,7 +1731,7 @@ enemies:
     codes: { passive: 1510, normal: 1510, ultimate: 1513 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
-      - { codeId: 187, unlockLevel: 20, stage: 1 }
+      - { codeId: 57, unlockLevel: 20, stage: 1 }
       - { codeId: 1511, unlockLevel: 30, stage: 1 }
       - { codeId: 1512, unlockLevel: 40, stage: 1 }
       - { codeId: 28, unlockLevel: 50, stage: 1 }
@@ -1801,7 +1801,7 @@ enemies:
     codes: { passive: 1510, normal: 1510, ultimate: 1515 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
-      - { codeId: 188, unlockLevel: 20, stage: 1 }
+      - { codeId: 57, unlockLevel: 20, stage: 1 }
       - { codeId: 1511, unlockLevel: 30, stage: 1 }
       - { codeId: 1512, unlockLevel: 40, stage: 1 }
       - { codeId: 28, unlockLevel: 50, stage: 1 }
@@ -1836,7 +1836,7 @@ enemies:
     codes: { passive: 1510, normal: 1510, ultimate: 1516 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
-      - { codeId: 74, unlockLevel: 20, stage: 1 }
+      - { codeId: 57, unlockLevel: 20, stage: 1 }
       - { codeId: 1511, unlockLevel: 30, stage: 1 }
       - { codeId: 1512, unlockLevel: 40, stage: 1 }
       - { codeId: 28, unlockLevel: 50, stage: 1 }
@@ -1871,7 +1871,7 @@ enemies:
     codes: { passive: 1510, normal: 1510, ultimate: 1517 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
-      - { codeId: 189, unlockLevel: 20, stage: 1 }
+      - { codeId: 57, unlockLevel: 20, stage: 1 }
       - { codeId: 1511, unlockLevel: 30, stage: 1 }
       - { codeId: 1512, unlockLevel: 40, stage: 1 }
       - { codeId: 28, unlockLevel: 50, stage: 1 }
@@ -1944,7 +1944,7 @@ enemies:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
       - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
       - { codeId: 41,   unlockLevel: 30, stage: 1 }   # 투사
-      - { codeId: 58,   unlockLevel: 40, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 57,   unlockLevel: 40, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6,    unlockLevel: 60, stage: 1 }   # 철벽
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
@@ -1978,7 +1978,7 @@ enemies:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
       - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
       - { codeId: 41,   unlockLevel: 30, stage: 1 }   # 투사
-      - { codeId: 186,  unlockLevel: 40, stage: 1 }   # 원소 숙련 - 물
+      - { codeId: 57,  unlockLevel: 40, stage: 1 }   # 원소 숙련 - 물
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6,    unlockLevel: 60, stage: 1 }   # 철벽
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
@@ -2012,7 +2012,7 @@ enemies:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
       - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
       - { codeId: 41,   unlockLevel: 30, stage: 1 }   # 투사
-      - { codeId: 187,  unlockLevel: 40, stage: 1 }   # 원소 숙련 - 바람
+      - { codeId: 57,  unlockLevel: 40, stage: 1 }   # 원소 숙련 - 바람
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6,    unlockLevel: 60, stage: 1 }   # 철벽
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
@@ -2080,7 +2080,7 @@ enemies:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
       - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
       - { codeId: 41,   unlockLevel: 30, stage: 1 }   # 투사
-      - { codeId: 188,  unlockLevel: 40, stage: 1 }   # 원소 숙련 - 풀
+      - { codeId: 57,  unlockLevel: 40, stage: 1 }   # 원소 숙련 - 풀
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6,    unlockLevel: 60, stage: 1 }   # 철벽
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
@@ -2114,7 +2114,7 @@ enemies:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
       - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
       - { codeId: 41,   unlockLevel: 30, stage: 1 }   # 투사
-      - { codeId: 74,   unlockLevel: 40, stage: 1 }   # 원소 숙련 - 얼음
+      - { codeId: 57,   unlockLevel: 40, stage: 1 }   # 원소 숙련 - 얼음
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6,    unlockLevel: 60, stage: 1 }   # 철벽
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
@@ -2148,7 +2148,7 @@ enemies:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
       - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
       - { codeId: 41,   unlockLevel: 30, stage: 1 }   # 투사
-      - { codeId: 189,  unlockLevel: 40, stage: 1 }   # 원소 숙련 - 바위
+      - { codeId: 57,  unlockLevel: 40, stage: 1 }   # 원소 숙련 - 바위
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
       - { codeId: 6,    unlockLevel: 60, stage: 1 }   # 철벽
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
@@ -2218,7 +2218,7 @@ enemies:
     levelPassives:
       - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
       - { codeId: 17,   unlockLevel: 20, stage: 1 }   # 예리함
-      - { codeId: 58,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 57,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 27,   unlockLevel: 30, stage: 1 }   # 투명
       - { codeId: 1532, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
       - { codeId: 1016, unlockLevel: 50, stage: 1 }   # 저주
@@ -2253,7 +2253,7 @@ enemies:
     levelPassives:
       - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
       - { codeId: 17,   unlockLevel: 20, stage: 1 }   # 예리함
-      - { codeId: 186,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
+      - { codeId: 57,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
       - { codeId: 27,   unlockLevel: 30, stage: 1 }   # 투명
       - { codeId: 1532, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
       - { codeId: 1016, unlockLevel: 50, stage: 1 }   # 저주
@@ -2288,7 +2288,7 @@ enemies:
     levelPassives:
       - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
       - { codeId: 17,   unlockLevel: 20, stage: 1 }   # 예리함
-      - { codeId: 187,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
+      - { codeId: 57,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
       - { codeId: 27,   unlockLevel: 30, stage: 1 }   # 투명
       - { codeId: 1532, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
       - { codeId: 1016, unlockLevel: 50, stage: 1 }   # 저주
@@ -2358,7 +2358,7 @@ enemies:
     levelPassives:
       - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
       - { codeId: 17,   unlockLevel: 20, stage: 1 }   # 예리함
-      - { codeId: 188,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
+      - { codeId: 57,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
       - { codeId: 27,   unlockLevel: 30, stage: 1 }   # 투명
       - { codeId: 1532, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
       - { codeId: 1016, unlockLevel: 50, stage: 1 }   # 저주
@@ -2393,7 +2393,7 @@ enemies:
     levelPassives:
       - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
       - { codeId: 17,   unlockLevel: 20, stage: 1 }   # 예리함
-      - { codeId: 74,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
+      - { codeId: 57,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
       - { codeId: 27,   unlockLevel: 30, stage: 1 }   # 투명
       - { codeId: 1532, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
       - { codeId: 1016, unlockLevel: 50, stage: 1 }   # 저주
@@ -2428,7 +2428,7 @@ enemies:
     levelPassives:
       - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
       - { codeId: 17,   unlockLevel: 20, stage: 1 }   # 예리함
-      - { codeId: 189,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
+      - { codeId: 57,   unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
       - { codeId: 27,   unlockLevel: 30, stage: 1 }   # 투명
       - { codeId: 1532, unlockLevel: 40, stage: 1 }   # 어둠의 군주 — 흡혈귀 대체
       - { codeId: 1016, unlockLevel: 50, stage: 1 }   # 저주
@@ -2500,7 +2500,7 @@ enemies:
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
       - { codeId: 1, unlockLevel: 20, stage: 1 }   # 성채
-      - { codeId: 58, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 9, unlockLevel: 30, stage: 1 }   # 검의 달인
       - { codeId: 1521, unlockLevel: 40, stage: 1 }   # 바위피부
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
@@ -2535,7 +2535,7 @@ enemies:
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
       - { codeId: 1, unlockLevel: 20, stage: 1 }   # 성채
-      - { codeId: 186, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
       - { codeId: 9, unlockLevel: 30, stage: 1 }   # 검의 달인
       - { codeId: 1521, unlockLevel: 40, stage: 1 }   # 바위피부
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
@@ -2570,7 +2570,7 @@ enemies:
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
       - { codeId: 1, unlockLevel: 20, stage: 1 }   # 성채
-      - { codeId: 187, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
       - { codeId: 9, unlockLevel: 30, stage: 1 }   # 검의 달인
       - { codeId: 1521, unlockLevel: 40, stage: 1 }   # 바위피부
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
@@ -2640,7 +2640,7 @@ enemies:
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
       - { codeId: 1, unlockLevel: 20, stage: 1 }   # 성채
-      - { codeId: 188, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
       - { codeId: 9, unlockLevel: 30, stage: 1 }   # 검의 달인
       - { codeId: 1521, unlockLevel: 40, stage: 1 }   # 바위피부
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
@@ -2675,7 +2675,7 @@ enemies:
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
       - { codeId: 1, unlockLevel: 20, stage: 1 }   # 성채
-      - { codeId: 74, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
       - { codeId: 9, unlockLevel: 30, stage: 1 }   # 검의 달인
       - { codeId: 1521, unlockLevel: 40, stage: 1 }   # 바위피부
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
@@ -2710,7 +2710,7 @@ enemies:
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
       - { codeId: 1, unlockLevel: 20, stage: 1 }   # 성채
-      - { codeId: 189, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
       - { codeId: 9, unlockLevel: 30, stage: 1 }   # 검의 달인
       - { codeId: 1521, unlockLevel: 40, stage: 1 }   # 바위피부
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
@@ -2782,7 +2782,7 @@ enemies:
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 49, unlockLevel: 20, stage: 1 }   # 저격수
-      - { codeId: 58, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 45, unlockLevel: 30, stage: 1 }   # 민첩함
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 86, unlockLevel: 50, stage: 1 }   # 빈틈의 실
@@ -2817,7 +2817,7 @@ enemies:
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 49, unlockLevel: 20, stage: 1 }   # 저격수
-      - { codeId: 186, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
       - { codeId: 45, unlockLevel: 30, stage: 1 }   # 민첩함
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 86, unlockLevel: 50, stage: 1 }   # 빈틈의 실
@@ -2852,7 +2852,7 @@ enemies:
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 49, unlockLevel: 20, stage: 1 }   # 저격수
-      - { codeId: 187, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
       - { codeId: 45, unlockLevel: 30, stage: 1 }   # 민첩함
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 86, unlockLevel: 50, stage: 1 }   # 빈틈의 실
@@ -2923,7 +2923,7 @@ enemies:
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 49, unlockLevel: 20, stage: 1 }   # 저격수
-      - { codeId: 188, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
       - { codeId: 45, unlockLevel: 30, stage: 1 }   # 민첩함
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 86, unlockLevel: 50, stage: 1 }   # 빈틈의 실
@@ -2958,7 +2958,7 @@ enemies:
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 49, unlockLevel: 20, stage: 1 }   # 저격수
-      - { codeId: 74, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
       - { codeId: 45, unlockLevel: 30, stage: 1 }   # 민첩함
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 86, unlockLevel: 50, stage: 1 }   # 빈틈의 실
@@ -2993,7 +2993,7 @@ enemies:
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 49, unlockLevel: 20, stage: 1 }   # 저격수
-      - { codeId: 189, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
       - { codeId: 45, unlockLevel: 30, stage: 1 }   # 민첩함
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 86, unlockLevel: 50, stage: 1 }   # 빈틈의 실
@@ -3067,7 +3067,7 @@ enemies:
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
       - { codeId: 6, unlockLevel: 20, stage: 1 }   # 철벽
-      - { codeId: 58, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 바위피부
       - { codeId: 2, unlockLevel: 40, stage: 1 }   # 기사회생
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
@@ -3103,7 +3103,7 @@ enemies:
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
       - { codeId: 6, unlockLevel: 20, stage: 1 }   # 철벽
-      - { codeId: 186, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
       - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 바위피부
       - { codeId: 2, unlockLevel: 40, stage: 1 }   # 기사회생
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
@@ -3138,7 +3138,7 @@ enemies:
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
       - { codeId: 6, unlockLevel: 20, stage: 1 }   # 철벽
-      - { codeId: 187, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
       - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 바위피부
       - { codeId: 2, unlockLevel: 40, stage: 1 }   # 기사회생
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
@@ -3208,7 +3208,7 @@ enemies:
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
       - { codeId: 6, unlockLevel: 20, stage: 1 }   # 철벽
-      - { codeId: 188, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
       - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 바위피부
       - { codeId: 2, unlockLevel: 40, stage: 1 }   # 기사회생
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
@@ -3243,7 +3243,7 @@ enemies:
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
       - { codeId: 6, unlockLevel: 20, stage: 1 }   # 철벽
-      - { codeId: 74, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
       - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 바위피부
       - { codeId: 2, unlockLevel: 40, stage: 1 }   # 기사회생
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
@@ -3278,7 +3278,7 @@ enemies:
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
       - { codeId: 6, unlockLevel: 20, stage: 1 }   # 철벽
-      - { codeId: 189, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
       - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 바위피부
       - { codeId: 2, unlockLevel: 40, stage: 1 }   # 기사회생
       - { codeId: 1424, unlockLevel: 50, stage: 1 }   # 강타
@@ -3354,7 +3354,7 @@ enemies:
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
-      - { codeId: 58, unlockLevel: 25, stage: 1 }   # 원소 숙련
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 11, unlockLevel: 50, stage: 1 }   # 천살성
@@ -3390,7 +3390,7 @@ enemies:
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
-      - { codeId: 186, unlockLevel: 25, stage: 1 }   # 원소 숙련
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 11, unlockLevel: 50, stage: 1 }   # 천살성
@@ -3426,7 +3426,7 @@ enemies:
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
-      - { codeId: 187, unlockLevel: 25, stage: 1 }   # 원소 숙련
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 11, unlockLevel: 50, stage: 1 }   # 천살성
@@ -3498,7 +3498,7 @@ enemies:
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
-      - { codeId: 188, unlockLevel: 25, stage: 1 }   # 원소 숙련
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 11, unlockLevel: 50, stage: 1 }   # 천살성
@@ -3534,7 +3534,7 @@ enemies:
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
-      - { codeId: 74, unlockLevel: 25, stage: 1 }   # 원소 숙련
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 11, unlockLevel: 50, stage: 1 }   # 천살성
@@ -3570,7 +3570,7 @@ enemies:
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
-      - { codeId: 189, unlockLevel: 25, stage: 1 }   # 원소 숙련
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 11, unlockLevel: 50, stage: 1 }   # 천살성
@@ -3642,7 +3642,7 @@ enemies:
     levelPassives:
       - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
       - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
-      - { codeId: 58, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
       - { codeId: 103, unlockLevel: 40, stage: 1 }   # 완벽한 재기
       - { codeId: 1520, unlockLevel: 50, stage: 1 }   # 우격다짐
@@ -3677,7 +3677,7 @@ enemies:
     levelPassives:
       - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
       - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
-      - { codeId: 186, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
       - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
       - { codeId: 103, unlockLevel: 40, stage: 1 }   # 완벽한 재기
       - { codeId: 1520, unlockLevel: 50, stage: 1 }   # 우격다짐
@@ -3712,7 +3712,7 @@ enemies:
     levelPassives:
       - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
       - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
-      - { codeId: 187, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
       - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
       - { codeId: 103, unlockLevel: 40, stage: 1 }   # 완벽한 재기
       - { codeId: 1520, unlockLevel: 50, stage: 1 }   # 우격다짐
@@ -3782,7 +3782,7 @@ enemies:
     levelPassives:
       - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
       - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
-      - { codeId: 188, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
       - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
       - { codeId: 103, unlockLevel: 40, stage: 1 }   # 완벽한 재기
       - { codeId: 1520, unlockLevel: 50, stage: 1 }   # 우격다짐
@@ -3817,7 +3817,7 @@ enemies:
     levelPassives:
       - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
       - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
-      - { codeId: 74, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
       - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
       - { codeId: 103, unlockLevel: 40, stage: 1 }   # 완벽한 재기
       - { codeId: 1520, unlockLevel: 50, stage: 1 }   # 우격다짐
@@ -3852,7 +3852,7 @@ enemies:
     levelPassives:
       - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
       - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
-      - { codeId: 189, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
       - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
       - { codeId: 103, unlockLevel: 40, stage: 1 }   # 완벽한 재기
       - { codeId: 1520, unlockLevel: 50, stage: 1 }   # 우격다짐
@@ -3926,7 +3926,7 @@ enemies:
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
       - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
-      - { codeId: 58, unlockLevel: 25, stage: 1 }   # 원소 숙련
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
       - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
       - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
@@ -3962,7 +3962,7 @@ enemies:
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
       - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
-      - { codeId: 186, unlockLevel: 25, stage: 1 }   # 원소 숙련
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
       - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
       - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
@@ -3998,7 +3998,7 @@ enemies:
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
       - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
-      - { codeId: 187, unlockLevel: 25, stage: 1 }   # 원소 숙련
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
       - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
       - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
@@ -4070,7 +4070,7 @@ enemies:
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
       - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
-      - { codeId: 188, unlockLevel: 25, stage: 1 }   # 원소 숙련
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
       - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
       - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
@@ -4106,7 +4106,7 @@ enemies:
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
       - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
-      - { codeId: 74, unlockLevel: 25, stage: 1 }   # 원소 숙련
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
       - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
       - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
@@ -4142,7 +4142,7 @@ enemies:
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
       - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
-      - { codeId: 189, unlockLevel: 25, stage: 1 }   # 원소 숙련
+      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
       - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
       - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
