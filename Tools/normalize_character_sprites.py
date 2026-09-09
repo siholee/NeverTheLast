@@ -19,6 +19,10 @@ ROOT = Path(__file__).resolve().parents[1]
 STANDINGS = ROOT / "Assets/Resources/Sprite/Standings"
 PORTRAITS = ROOT / "Assets/Resources/Sprite/Portraits"
 
+# 인간형 초상화는 머리부터 허리선까지의 상반신만 담는다. 이전 0.50 비율은
+# 니콜처럼 세로로 긴 전신 원화에서 허벅지까지 노출되어 카드 초상화가 작아 보였다.
+TORSO_PORTRAIT_HEIGHT_RATIO = 0.40
+
 SPRITE_CATEGORY_DIRECTORIES = {
     "ally": Path("Allies"),
     "normal": Path("Enemies/Normal"),
@@ -457,11 +461,13 @@ def portrait_from_standing(standing: Image.Image, full_figure: bool = False) -> 
 
     left, top, right, bottom = alpha_bbox(standing)
     height = bottom - top
-    upper_bottom = min(bottom, top + round(height * 0.52))
+    upper_bottom = min(bottom, top + round(height * TORSO_PORTRAIT_HEIGHT_RATIO))
     alpha = np.asarray(standing.getchannel("A"))
     ys, xs = np.where(alpha[top:upper_bottom] > 12)
-    center_x = int(np.median(xs + left)) if len(xs) else (left + right) // 2
-    crop_size = max(1, round(height * 0.5))
+    # Y만 잘라 조사했으므로 xs는 이미 캔버스의 절대 X 좌표다. left를 다시 더하면
+    # 니콜·가우디처럼 폭이 넓은 상반신이 우측으로 밀려 왼팔과 후드가 잘린다.
+    center_x = int(np.median(xs)) if len(xs) else (left + right) // 2
+    crop_size = max(1, round(height * TORSO_PORTRAIT_HEIGHT_RATIO))
     crop_left = max(0, min(standing.width - crop_size, center_x - crop_size // 2))
     crop_top = max(0, top)
     crop = standing.crop((crop_left, crop_top, min(standing.width, crop_left + crop_size), min(standing.height, crop_top + crop_size)))

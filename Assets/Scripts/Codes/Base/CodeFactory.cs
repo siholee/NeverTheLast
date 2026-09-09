@@ -40,6 +40,11 @@ namespace Codes.Base
         204 => new GaudiSagradaFamilia(context), // 가우디 초기 패시브 — 사그리다 파밀리아
         205 => new LightGreatFlight(context), // 라이트 초기 패시브 — 위대한 비행
         206 => new NicoleElectricField(context), // 니콜 초기 패시브 — 일렉트릭 필드
+        207 => new JeanBestDefense(context),  // 잔 초기 패시브 — 최고의 방어
+        104 => new JeanMisfireGuard(context),
+        105 => new JeanPhysicalCoach(context),
+        106 => new JeanBulkUp(context),
+        107 => new JeanStandardbearer(context),
         7 => new SeiPreparation(context),    // 세이 Lv.50 사전준비
         8 => new SeiFirstSong(context),      // 세이 Lv.92 최초의 노래
         221 => new AtalanteWeaknessTracker(context), // 아탈란테 패시브
@@ -304,9 +309,10 @@ namespace Codes.Base
         21 => new a005_NAtlanta(context), // 아탈란테 일반행동
         20 => new a004_NPygmalion(context), // 피그말리온 일반행동
         1 => new SeiRadiantBolt(context), // 세이 일반행동
-        4 => new GaudiNormalAttack(context), // 가우디 일반/강화 일반행동
+        4 => new GaudiNormalAttack(context), // 가우디 일반/대체행동
         5 => new LightNormalAttack(context), // 라이트 일반행동/플라이어 소환
         6 => new NicoleArcShot(context), // 니콜 일반행동
+        7 => new JeanIronFist(context), // 잔 일반행동/대체행동
         500 => new FlyerNormalAttack(context), // 소환수 — 플라이어 일반행동
         501 => new FenrirBite(context), // 소환수 — 펜리르 일반행동
         900 => new MagicBolt(context),
@@ -389,7 +395,7 @@ namespace Codes.Base
         1595 => new VoidDragonNormal(context, BaseEnums.UnitElement.Dendro),
         1596 => new VoidDragonNormal(context, BaseEnums.UnitElement.Cryo),
         1597 => new VoidDragonNormal(context, BaseEnums.UnitElement.Geo),
-        902 => new AmunRaBladeVolley(context, alwaysEmpowered: true),
+        902 => new AmunRaBladeVolley(context, alwaysSubstitute: true),
         3 => new SabahLightningSlash(context),
         26 => new IcariaRecklessThrust(context),
         160 => new MariePistolShot(context),
@@ -409,6 +415,7 @@ namespace Codes.Base
         4 => new GaudiImmortalLegacy(context), // 가우디 궁극기
         5 => new LightFlyingDream(context), // 라이트 궁극기
         6 => new NicoleOvercharge(context), // 니콜 궁극기
+        7 => new JeanMaidOfOrleans(context), // 잔 궁극기
         500 => new FlyerSkyfall(context), // 소환수 — 플라이어 궁극기
         61 => new YamaFinalArrival(context),
         62 => new AgniWhiteFlame(context),

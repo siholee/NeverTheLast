@@ -269,9 +269,23 @@ namespace Effects.Negative
 
             if (best == null) return false;
 
+            // 오사방지 — 아군이 아군에게 만든 해로운 반응은 없던 일이 된다.
+            // 부착은 이미 끝난 뒤이므로 재료는 그대로 남고 반응만 쉰다.
+            if (IsHarmful(best.Value.Kind) && actor != null && actor != target &&
+                actor.IsEnemy == target.IsEnemy &&
+                Effects.Neutral.FriendlyReactionGuard.Protects(target))
+            {
+                return false;
+            }
+
             Trigger(target, best.Value, bestPartner, applied, actor);
             return true;
         }
+
+        /// <summary>대상에게 해로운 계열인가. 버프·보호막·무효는 맞아도 손해가 없다.</summary>
+        private static bool IsHarmful(ReactionKind kind)
+            => kind is ReactionKind.Control or ReactionKind.Burst
+                or ReactionKind.Dot or ReactionKind.Debuff;
 
         /// <summary>이 쌍이 성립하면 상대 원소를, 아니면 None을 돌려준다.</summary>
         private static BaseEnums.UnitElement Partner(

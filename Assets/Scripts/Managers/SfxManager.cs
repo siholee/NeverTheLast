@@ -208,7 +208,7 @@ namespace Managers
         : ElementalProjectiles.ColorFor(element);
       ProjectileVisualStyle style = context?.DamageTags?.Contains(DamageTag.Arrow) == true
         ? (context.DamageTags.Contains(DamageTag.UltAttack)
-          ? ProjectileVisualStyle.EmpoweredArrow
+          ? ProjectileVisualStyle.UltimateArrow
           : ProjectileVisualStyle.Arrow)
         : ProjectileVisualStyle.Bolt;
       CardProjectile.Fire(unitFrom, unitTo, color, duration,
@@ -234,7 +234,7 @@ namespace Managers
         : ElementalProjectiles.ColorFor(element);
       ProjectileVisualStyle style = context?.DamageTags?.Contains(DamageTag.Arrow) == true
         ? (context.DamageTags.Contains(DamageTag.UltAttack)
-          ? ProjectileVisualStyle.EmpoweredArrow
+          ? ProjectileVisualStyle.UltimateArrow
           : ProjectileVisualStyle.Arrow)
         : ProjectileVisualStyle.Bolt;
       CardProjectile.FireFrom(origin, unitFrom, unitTo, color, duration,

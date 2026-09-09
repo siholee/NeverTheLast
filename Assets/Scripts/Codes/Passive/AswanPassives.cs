@@ -708,8 +708,8 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// 370 지옥불 — 강화 일반행동을 쓴 뒤 '승천' 스택 수만큼 무작위 단일 적에게 칼날을 더 날린다.
-    /// 표식 상태이며, 실제 발사는 강화 일반행동(<c>AmunRaEmpoweredNormal</c>)이 끝낼 때 처리한다.
+    /// 370 지옥불 — 대체행동을 쓴 뒤 '승천' 스택 수만큼 무작위 단일 적에게 칼날을 더 날린다.
+    /// 표식 상태이며, 실제 발사는 대체행동(<c>AmunRaSubstituteNormal</c>)이 끝낼 때 처리한다.
     /// </summary>
     public sealed class AmunRaHellfire : PassiveCode
     {
@@ -720,6 +720,6 @@ namespace Codes.Passive
             AswanStatusIds.Hellfire, "amunra_hellfire", CodeName,
             Caster, Caster, new MarkerBuffEffect(),
             stackPolicy: BaseEnums.StatusStackPolicy.Ignore, isBeneficial: true,
-            description: "강화 일반행동 이후 '승천' 스택만큼 무작위 적에게 칼날을 추가로 발사합니다."));
+            description: "대체행동 이후 '승천' 스택만큼 무작위 적에게 칼날을 추가로 발사합니다."));
     }
 }

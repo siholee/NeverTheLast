@@ -7,10 +7,10 @@ using UnityEngine;
 
 namespace Codes.Normal
 {
-    /// <summary>호루스 N — STR×1.0 화살. 네 번째 사격은 우제트로 강화된다.</summary>
+    /// <summary>호루스 N / N+ — STR×1.0 화살. 네 번째 사격은 우제트 대체행동이 된다.</summary>
     public sealed class HorusNormalAttack : BaseNormalCode
     {
-        private bool _empowered;
+        private bool _substitute;
 
         public HorusNormalAttack(NormalCodeContext context) : base(context)
         {
@@ -20,19 +20,20 @@ namespace Codes.Normal
 
         protected override List<int> GetDamageTags()
         {
-            _empowered = Caster.ManaCurr >= 3;
+            _substitute = Caster.ManaCurr >= 3;
+            CodeName = _substitute ? "대체행동" : "일반행동";
             var tags = new List<int>
             {
                 DamageTag.SingleTarget, DamageTag.NormalAttack,
                 DamageTag.Physical, DamageTag.NonContactAttack, DamageTag.Arrow,
             };
-            if (_empowered) tags.Add(DamageTag.UltAttack);
+            if (_substitute) tags.Add(DamageTag.UltAttack);
             return tags;
         }
 
         protected override int CalculateDamage(float critMultiplier)
         {
-            int power = _empowered ? 160 : 100;
+            int power = _substitute ? 160 : 100;
             return Mathf.Max(1, Mathf.RoundToInt(
                 Caster.SkillDamage(power, BaseEnums.PrimaryStat.STR) * critMultiplier));
         }
@@ -40,14 +41,14 @@ namespace Codes.Normal
         protected override DamageContext CreateDamageContext(int damage, List<int> damageTags, bool isCrit)
         {
             var context = base.CreateDamageContext(damage, damageTags, isCrit);
-            if (_empowered) context.DefenseStatMultiplier = 0.8f;
+            if (_substitute) context.DefenseStatMultiplier = 0.8f;
             return context;
         }
 
         protected override void OnAttackResolved(Unit target, DamageContext context)
         {
             Caster.AddUltimateResource(1);
-            if (_empowered) Caster.StartCoroutine(ClearWadjetGauge());
+            if (_substitute) Caster.StartCoroutine(ClearWadjetGauge());
         }
 
         private IEnumerator ClearWadjetGauge()

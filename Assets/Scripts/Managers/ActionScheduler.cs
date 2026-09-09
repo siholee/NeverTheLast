@@ -55,14 +55,34 @@ namespace Managers
         /// </summary>
         private const float ActionWatchdogSeconds = 8f;
 
-        /// <summary>행동 종류. 값이 작을수록 먼저 실행된다.</summary>
+        /// <summary>
+        /// <b>행동</b>의 종류. 값이 작을수록 먼저 실행된다.
+        ///
+        /// 여기 있는 넷은 전부 <b>행동을 하는 영역</b>이다 — 스케줄러 슬롯을 차지하고 실제로 해결된다.
+        /// 패시브 코드처럼 <b>행동을 호출하는 영역</b>은 이 목록에 없다. 패시브는 스스로 행동하지 않고
+        /// 여기에 행동을 하나 얹을 뿐이다.
+        ///
+        /// <see cref="PriorityAdditional"/>은 패시브가 부른 추가행동이라 먼저 나갈 뿐,
+        /// <b>성질은 추가행동과 같다</b>. 둘 다 턴을 쓰지 않고 <c>OnAdditionalActivates</c>를 발행한다.
+        /// </summary>
         public enum ActionKind
         {
-            Passive = 0,
+            /// <summary>패시브가 부른 추가행동. 같은 턴의 다른 행동보다 먼저 나간다.</summary>
+            PriorityAdditional = 0,
+
+            /// <summary>추가행동. 턴을 쓰지 않는다.</summary>
             Additional = 1,
+
+            /// <summary>궁극기. 턴을 쓰지 않고 AV도 리셋하지 않는다.</summary>
             Ultimate = 2,
+
+            /// <summary>일반행동 — 또는 그 자리를 대신 쓰는 <b>대체행동</b>. 턴을 쓴다.</summary>
             Normal = 3,
         }
+
+        /// <summary>턴을 쓰지 않는 추가행동 계열인가. 우선 추가행동도 성질은 같다.</summary>
+        public static bool IsAdditional(ActionKind kind)
+            => kind is ActionKind.Additional or ActionKind.PriorityAdditional;
 
         /// <summary>큐에 올라간 행동 하나.</summary>
         private sealed class PendingAction
@@ -260,8 +280,9 @@ namespace Managers
             => Enqueue(unit, ActionKind.Additional, key, label, run);
 
         /// <summary>조건을 만족한 패시브 발동을 예약한다. 모든 행동보다 먼저 실행된다.</summary>
-        public bool EnqueuePassive(Unit unit, string key, string label, Action run)
-            => Enqueue(unit, ActionKind.Passive, key, label, run);
+        /// <summary>패시브가 부르는 추가행동. 같은 턴의 다른 행동보다 먼저 나간다.</summary>
+        public bool EnqueuePriorityAdditional(Unit unit, string key, string label, Action run)
+            => Enqueue(unit, ActionKind.PriorityAdditional, key, label, run);
 
         private bool Enqueue(Unit unit, ActionKind kind, string key, string label, Action run)
         {
@@ -392,8 +413,9 @@ namespace Managers
                 _currentActionId = ActionCount + 1;
 
                 // 추가행동은 자기 턴을 쓰지 않아 OnTurnStart로는 잡히지 않는다.
-                // '행동마다' 도는 효과(풍화)가 셀 수 있도록 시작을 알린다.
-                if (next.Kind == ActionKind.Additional)
+                // '행동마다' 도는 효과(풍화·니콜 일렉트릭 필드·바스테트 야수의 시선)가 셀 수 있도록
+                // 시작을 알린다. 패시브가 부른 우선 추가행동도 성질이 같으므로 함께 발행한다.
+                if (IsAdditional(next.Kind))
                 {
                     next.Unit.Invoke(BaseEnums.UnitEventType.OnAdditionalActivates,
                         new EventContext(next.Unit));

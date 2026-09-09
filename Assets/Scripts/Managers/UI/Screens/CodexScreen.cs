@@ -30,6 +30,7 @@ namespace Managers.UI.Screens
             Equipment,
             Skills,
             Sheet,
+            Synergy,
         }
 
         // ── 치수(1920x1080 기준) ─────────────────────────────────────
@@ -84,6 +85,7 @@ namespace Managers.UI.Screens
         private Button _equipmentTab;
         private Button _skillTab;
         private Button _sheetTab;
+        private Button _synergyTab;
 
         private Tab _tab = Tab.Equipment;
 
@@ -183,6 +185,7 @@ namespace Managers.UI.Screens
             _equipmentTab = MakeTab(panel, "장비", 0, () => SetTab(Tab.Equipment));
             _skillTab = MakeTab(panel, "코드", 1, () => SetTab(Tab.Skills));
             _sheetTab = MakeTab(panel, "캐릭터 시트", 2, () => SetTab(Tab.Sheet));
+            _synergyTab = MakeTab(panel, "추천 조합", 3, () => SetTab(Tab.Synergy));
         }
 
         private static Button MakeTab(Transform panel, string text, int index, System.Action onClick)
@@ -213,7 +216,16 @@ namespace Managers.UI.Screens
             List<int> shared = SharedStorage();
 
             int columns = allies.Count + (shared.Count > 0 ? 1 : 0);
-            if (columns == 0) return;
+            if (columns == 0)
+            {
+                // 그냥 비워 두면 "화면이 깨졌다"와 구별이 안 된다. 왜 빈지 적어 준다.
+                TextMeshProUGUI empty = UIBuild.Text("Empty", _columnArea,
+                    "표시할 아군이 없다.\n자료실은 필드에 선 파티를 그린다 — " +
+                    "편성 전이거나 전투 사이라면 비어 있다.",
+                    UITheme.FontCaption, UITheme.TextMuted, TextAlignmentOptions.Center, true);
+                UIBuild.Anchor(empty.rectTransform, new Vector2(0.1f, 0.4f), new Vector2(0.9f, 0.6f));
+                return;
+            }
 
             float available = UITheme.ReferenceResolution.x * (0.97f - 0.03f) - PanelPad * 2f;
             float width = Mathf.Min(ColumnMaxWidth,
@@ -237,6 +249,7 @@ namespace Managers.UI.Screens
             Tint(_equipmentTab, _tab == Tab.Equipment);
             Tint(_skillTab, _tab == Tab.Skills);
             Tint(_sheetTab, _tab == Tab.Sheet);
+            Tint(_synergyTab, _tab == Tab.Synergy);
         }
 
         private static void Tint(Button button, bool active)
@@ -282,9 +295,13 @@ namespace Managers.UI.Screens
             {
                 BuildCodeList(column.transform, unit, y);
             }
-            else
+            else if (_tab == Tab.Sheet)
             {
                 BuildSheet(column.transform, unit, y);
+            }
+            else
+            {
+                BuildSynergy(column.transform, unit, width, y);
             }
         }
 
@@ -349,7 +366,10 @@ namespace Managers.UI.Screens
             float portraitLeft = 10f + EquipSlot + 8f;
             float portraitWidth = width - portraitLeft * 2f;
             Sprite portrait = SpriteResource.LoadPortrait(unit.PortraitPath);
-            if (portrait != null && portraitWidth > 20f)
+            var portraitSize = new Vector2(portraitWidth, DollHeight - EquipSlot - 12f);
+            var portraitAt = new Vector2(portraitLeft, -top);
+
+            if (portraitWidth > 20f && portrait != null)
             {
                 var go = new GameObject("Portrait", typeof(RectTransform), typeof(Image));
                 go.transform.SetParent(column, false);
@@ -357,9 +377,21 @@ namespace Managers.UI.Screens
                 image.sprite = portrait;
                 image.preserveAspect = true;
                 image.raycastTarget = false;
-                UIBuild.Pin(image.rectTransform, new Vector2(0f, 1f),
-                    new Vector2(portraitWidth, DollHeight - EquipSlot - 12f),
-                    new Vector2(portraitLeft, -top));
+                UIBuild.Pin(image.rectTransform, new Vector2(0f, 1f), portraitSize, portraitAt);
+            }
+            else if (portraitWidth > 20f)
+            {
+                // 초상화가 없으면 조용히 비우지 않는다. 어떤 키를 못 찾았는지 그 자리에 적어야
+                // "왜 안 보이지"가 곧바로 "이 키가 없다"로 좁혀진다.
+                Image frame = UIBuild.Panel("PortraitMissing", column, UITheme.SurfaceSunken,
+                    UIShapes.Corner.Diagonal, 6, UITheme.Danger, 1);
+                UIBuild.Pin(frame.rectTransform, new Vector2(0f, 1f), portraitSize, portraitAt);
+
+                string key = string.IsNullOrWhiteSpace(unit.PortraitPath) ? "(경로 없음)" : unit.PortraitPath;
+                TextMeshProUGUI note = UIBuild.Text("Key", frame.transform, $"초상화 없음\n{key}",
+                    UITheme.FontMicro, UITheme.Danger, TextAlignmentOptions.Center, true);
+                UIBuild.Stretch(note.rectTransform, 4f, 4f);
+                Debug.LogWarning($"[자료실] {unit.UnitName} 초상화를 찾지 못했다: {key}");
             }
 
             // 무기 쌍은 인형 아래 가운데. 발더스 게이트의 '근접' 칸 자리다.
@@ -759,6 +791,187 @@ namespace Managers.UI.Screens
 
                 y += 20f;
             }
+        }
+
+        // ── 추천 조합 ────────────────────────────────────────────────
+
+        /// <summary>
+        /// 이 캐릭터를 어떻게 쓰는가. `30_synergies.yaml`이 원본이다.
+        ///
+        /// 메인으로 설 수 있는 캐릭터에게는 <b>고점·대체 두 벌의 편성</b>을 보여 주고,
+        /// 서포트 전용 캐릭터에게는 <b>어떤 메인이 이 캐릭터를 부르는가</b>를 보여 준다.
+        /// 아직 손에 넣지 못한 이름은 흐리게 찍어 "지금 짤 수 있는 조합"이 한눈에 보이게 한다.
+        /// </summary>
+        private void BuildSynergy(Transform column, Unit unit, float width, float top)
+        {
+            float y = top;
+            SynergyUnitData profile = SynergyCatalog.UnitOf(unit.ID);
+
+            if (profile == null)
+            {
+                // 표가 통째로 안 읽힌 것과 이 캐릭터만 빠진 것은 원인이 전혀 다르다. 갈라서 적는다.
+                AddListHeading(column, "추천 조합", ref y);
+                string reason = SynergyCatalog.IsLoaded
+                    ? $"30_synergies.yaml의 units에 ID {unit.ID}({unit.UnitName})가 없다."
+                    : "30_synergies.yaml을 읽지 못했다. 콘솔 로그를 확인한다.";
+                AddNote(column, reason, width, ref y, UITheme.Danger);
+                Debug.LogWarning($"[자료실] 추천 조합 없음 — {reason}");
+                return;
+            }
+
+            if (profile.roles is { Count: > 0 })
+            {
+                AddListHeading(column, "역할", ref y);
+                AddNote(column, string.Join(" · ", profile.roles.Select(SynergyCatalog.RoleName)),
+                    width, ref y, UITheme.TextPrimary);
+            }
+
+            if (profile.supportValue != null)
+            {
+                AddListRow(column, "전투 기여", Pips(profile.supportValue.combat), ref y);
+                AddListRow(column, "육성 기여", Pips(profile.supportValue.training), ref y);
+                AddListRow(column, "권장 열", profile.row == "Front" ? "전열" : "후열", ref y);
+            }
+
+            if (profile.provides is { Count: > 0 })
+            {
+                y += 6f;
+                AddListHeading(column, "강점", ref y);
+                foreach (SynergyProvideData provide in profile.provides)
+                {
+                    if (!string.IsNullOrWhiteSpace(provide?.text))
+                        AddNote(column, $"· {provide.text}", width, ref y, UITheme.TextSecondary);
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(profile.caution))
+            {
+                y += 6f;
+                AddListHeading(column, "주의", ref y);
+                AddNote(column, profile.caution.Trim(), width, ref y, UITheme.Danger);
+            }
+
+            SynergyRecommendationData recommendation = SynergyCatalog.RecommendationFor(unit.ID);
+            if (recommendation != null)
+            {
+                BuildRecommendedLineups(column, unit, recommendation, width, ref y);
+            }
+            else
+            {
+                BuildCalledBy(column, unit, width, ref y);
+            }
+        }
+
+        private void BuildRecommendedLineups(Transform column, Unit unit,
+            SynergyRecommendationData recommendation, float width, ref float y)
+        {
+            if (!string.IsNullOrWhiteSpace(recommendation.axis))
+            {
+                y += 6f;
+                AddListHeading(column, "축", ref y);
+                AddNote(column, recommendation.axis.Trim(), width, ref y, UITheme.TextPrimary);
+            }
+
+            AddLineup(column, "고점 조합", recommendation.best, unit, width, ref y);
+            AddLineup(column, "대체 조합", recommendation.basic, unit, width, ref y);
+
+            if (!string.IsNullOrWhiteSpace(recommendation.warning))
+            {
+                y += 6f;
+                AddNote(column, $"⚠ {recommendation.warning.Trim()}", width, ref y, UITheme.Danger);
+            }
+        }
+
+        private static void AddLineup(Transform column, string title, SynergyLineupData lineup,
+            Unit main, float width, ref float y)
+        {
+            if (lineup?.members == null || lineup.members.Count == 0) return;
+
+            y += 6f;
+            string archetype = SynergyCatalog.ArchetypeName(lineup.archetype);
+            AddListHeading(column,
+                string.IsNullOrWhiteSpace(archetype) ? title : $"{title} — {archetype}", ref y);
+
+            AddListRow(column, main.UnitName, RowLabel(lineup, main.ID) + "  (메인)", ref y,
+                UITheme.Accent);
+
+            foreach (int memberId in lineup.members)
+            {
+                bool owned = SynergyCatalog.IsAvailable(memberId);
+                AddListRow(column, SynergyCatalog.NameOf(memberId), RowLabel(lineup, memberId), ref y,
+                    owned ? UITheme.TextPrimary : UITheme.TextMuted);
+            }
+
+            if (!string.IsNullOrWhiteSpace(lineup.reason))
+            {
+                AddNote(column, lineup.reason.Trim(), width, ref y, UITheme.TextMuted);
+            }
+        }
+
+        private static string RowLabel(SynergyLineupData lineup, int unitId)
+        {
+            if (lineup.rows != null && lineup.rows.TryGetValue(unitId, out string row))
+            {
+                return row == "Front" ? "전열" : "후열";
+            }
+
+            return SynergyCatalog.UnitOf(unitId)?.row == "Front" ? "전열" : "후열";
+        }
+
+        /// <summary>서포트 전용 캐릭터가 어떤 메인의 추천에 들어가는가.</summary>
+        private static void BuildCalledBy(Transform column, Unit unit, float width, ref float y)
+        {
+            List<(string MainName, bool IsBest)> callers = SynergyCatalog.RecommendedFor(unit.ID);
+
+            y += 6f;
+            AddListHeading(column, $"추천되는 메인 {callers.Count}명", ref y);
+
+            if (callers.Count == 0)
+            {
+                AddNote(column, "아직 어떤 메인의 추천 조합에도 들어가지 않는다.", width, ref y, UITheme.TextMuted);
+                return;
+            }
+
+            foreach ((string mainName, bool isBest) in callers)
+            {
+                AddListRow(column, mainName, isBest ? "고점" : "대체", ref y,
+                    isBest ? UITheme.Accent : UITheme.TextSecondary);
+            }
+        }
+
+        /// <summary>0~5를 눈금으로. 숫자보다 한눈에 들어온다.</summary>
+        private static string Pips(int value)
+        {
+            int filled = Mathf.Clamp(value, 0, 5);
+            return new string('●', filled) + new string('○', 5 - filled);
+        }
+
+        /// <summary>
+        /// 여러 줄로 접히는 설명 한 덩어리.
+        ///
+        /// <b>줄바꿈은 <c>UIBuild.Text</c>의 wrap 인자로 켠다.</b> 이 프로젝트의 TMP는
+        /// <c>textWrappingMode</c>를 쓰므로, 사용이 중단된 <c>enableWordWrapping</c>을 켜 봐야
+        /// 한 줄로 흘러 칸 밖으로 삐져나간다.
+        ///
+        /// 높이는 <b>실제 칸 폭</b>으로 미리 재야 한다. 파티가 다섯이면 칸이 300px 아래로
+        /// 좁아지는데 400 기준으로 재면 접힌 줄 수가 모자라 다음 줄과 겹친다.
+        /// </summary>
+        private static void AddNote(Transform column, string text, float columnWidth, ref float y,
+            Color tint)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return;
+
+            float inner = Mathf.Max(80f, columnWidth - 24f);
+            TextMeshProUGUI label = UIBuild.Text("Note", column, text, UITheme.FontMicro, tint,
+                TextAlignmentOptions.TopLeft, true);
+            label.rectTransform.anchorMin = new Vector2(0f, 1f);
+            label.rectTransform.anchorMax = new Vector2(1f, 1f);
+            label.rectTransform.pivot = new Vector2(0.5f, 1f);
+
+            float height = Mathf.Max(16f, label.GetPreferredValues(text, inner, 0f).y);
+            label.rectTransform.sizeDelta = new Vector2(-24f, height);
+            label.rectTransform.anchoredPosition = new Vector2(0f, -y);
+            y += height + 4f;
         }
 
         private static void AddListHeading(Transform column, string text, ref float y)

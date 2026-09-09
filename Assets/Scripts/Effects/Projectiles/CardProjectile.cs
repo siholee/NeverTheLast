@@ -9,7 +9,7 @@ namespace Effects.Projectiles
     {
         Bolt,
         Arrow,
-        EmpoweredArrow,
+        UltimateArrow,
     }
 
     /// <summary>
@@ -129,7 +129,7 @@ namespace Effects.Projectiles
             _path = path;
             _data = data;
             _style = style;
-            _scale = Mathf.Max(0.2f, scale) * (style == ProjectileVisualStyle.EmpoweredArrow ? 1.45f : 1f);
+            _scale = Mathf.Max(0.2f, scale) * (style == ProjectileVisualStyle.UltimateArrow ? 1.45f : 1f);
             _start = origin ?? from.transform.position;
             _end = to.transform.position;
 
@@ -167,7 +167,7 @@ namespace Effects.Projectiles
                 _upperFletching.transform.localRotation = Quaternion.Euler(0f, 0f, 32f);
                 _lowerFletching.transform.localRotation = Quaternion.Euler(0f, 0f, -32f);
 
-                if (style == ProjectileVisualStyle.EmpoweredArrow)
+                if (style == ProjectileVisualStyle.UltimateArrow)
                 {
                     _streak.transform.localScale = new Vector3(_scale * 2.15f, _scale * 0.92f, 1f);
                 }

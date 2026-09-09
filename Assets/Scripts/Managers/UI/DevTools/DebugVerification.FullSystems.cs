@@ -119,6 +119,14 @@ namespace Managers.UI.DevTools
             if(unit==null)return;
             Assert("unit "+id+" portrait",SpriteResource.LoadPortrait(portrait)!=null,"Sprite",portrait);
             Assert("unit "+id+" standing",SpriteResource.LoadStanding(standing)!=null,"Sprite",standing);
+            // 자료실은 데이터가 아니라 살아 있는 Unit을 그린다. 데이터가 멀쩡해도
+            // 스폰된 유닛의 PortraitPath나 ID가 어긋나면 화면에서만 비어 보인다.
+            Assert("unit "+id+" spawned ID",unit.ID==id,id.ToString(),unit.ID.ToString());
+            Assert("unit "+id+" spawned portrait path",
+                SpriteResource.LoadPortrait(unit.PortraitPath)!=null,"Sprite",unit.PortraitPath);
+            Assert("unit "+id+" synergy lookup",
+                Managers.SynergyCatalog.UnitOf(unit.ID)!=null,"profile",
+                Managers.SynergyCatalog.NameOf(unit.ID));
             Assert("unit "+id+" normal/ultimate",unit.ActiveNormalCode!=null&&unit.ActiveUltimateCode!=null,"both",unit.ActiveNormalCode?.GetType().Name+"/"+unit.ActiveUltimateCode?.GetType().Name);
             foreach(int level in new[]{1,30,60,90,1})
             {
@@ -139,7 +147,7 @@ namespace Managers.UI.DevTools
             var order=new List<string>();
             Assert("queue accepts additional",scheduler.EnqueueAdditional(hero,"same","test",()=>order.Add("additional")),"true","enqueue");
             Assert("queue rejects duplicate",!scheduler.EnqueueAdditional(hero,"same","test",()=>order.Add("duplicate")),"false","enqueue");
-            scheduler.EnqueuePassive(hero,"same","test",()=>order.Add("passive"));
+            scheduler.EnqueuePriorityAdditional(hero,"same","test",()=>order.Add("passive"));
             scheduler.Tick(0);scheduler.Tick(0);
             Assert("passive before additional",order.SequenceEqual(new[]{"passive","additional"}),"passive,additional",string.Join(",",order));
             scheduler.EndRound();scheduler.BeginRound();

@@ -99,7 +99,7 @@ namespace Codes.Normal
         private const float ShieldFlat = 100f;
         private const float ShieldStrCoefficient = 1.2f;
 
-        private bool _empowered;
+        private bool _substitute;
 
         public SkadiNormalAttack(NormalCodeContext context) : base(context)
         {
@@ -110,14 +110,14 @@ namespace Codes.Normal
 
         public override void CastCode()
         {
-            _empowered = !Taunt.Has(Caster);
-            CodeName = _empowered ? "강화 일반행동" : "일반행동";
+            _substitute = !Taunt.Has(Caster);
+            CodeName = _substitute ? "대체행동" : "일반행동";
             base.CastCode();
         }
 
         protected override IEnumerator SkillCoroutine()
         {
-            if (!_empowered)
+            if (!_substitute)
             {
                 yield return base.SkillCoroutine();
                 yield break;

@@ -136,6 +136,7 @@ namespace Managers.UI.DevTools
             DebugMode.SetTimeScale(8f);
             UnityEngine.Random.InitState(20260908);
             yield return SpriteCoverage();
+            yield return SynergyCoverage();
             yield return Transitions();
             yield return DataAndLevels();
             yield return Actions();
@@ -223,6 +224,76 @@ namespace Managers.UI.DevTools
             foreach (string key in new[] { "FLYER_PORTRAIT", "FENRIR_PORTRAIT" })
             {
                 Assert($"summon {key}", SpriteResource.LoadPortrait(key) != null, "Sprite", key);
+            }
+            yield return null;
+        }
+
+        /// <summary>
+        /// 자료실 <c>추천 조합</c> 탭이 읽는 30_synergies.yaml이 유닛 데이터와 어긋나지 않는지 본다.
+        ///
+        /// 유닛을 추가하고 이 표를 안 고치면 탭이 조용히 빈 칸으로 나온다.
+        /// 참조가 깨진 ID는 화면에 <c>#7</c> 같은 날것으로 찍히므로 여기서 먼저 잡는다.
+        /// </summary>
+        private IEnumerator SynergyCoverage()
+        {
+            Status = "추천 조합 데이터";
+
+            SynergyCatalog.Invalidate();
+            var units = game.dataManager.FetchUnitDataList().units;
+            var synergy = game.dataManager.FetchSynergyDataList();
+
+            Assert("synergy data loads", synergy?.units != null, "SynergyDataList", synergy == null ? "null" : "loaded");
+            if (synergy?.units == null) yield break;
+
+            Equal("synergy unit rows", units.Count, synergy.units.Count);
+
+            foreach (var unit in units)
+            {
+                SynergyUnitData profile = SynergyCatalog.UnitOf(unit.id);
+                Assert($"synergy {unit.id} {unit.name} tagged", profile != null, "profile", profile?.name);
+                if (profile == null) continue;
+
+                Assert($"synergy {unit.id} name", profile.name == unit.name, unit.name, profile.name);
+                Assert($"synergy {unit.id} type", profile.type == unit.characterType,
+                    unit.characterType, profile.type);
+                Assert($"synergy {unit.id} roles named", profile.roles != null && profile.roles.Count > 0 &&
+                    profile.roles.TrueForAll(role => SynergyCatalog.RoleName(role) != role),
+                    "all roles defined", string.Join(",", profile.roles ?? new List<string>()));
+            }
+            yield return null;
+
+            // 메인이 될 수 있는 캐릭터는 전부 추천 한 벌씩 있어야 한다.
+            foreach (var unit in units)
+            {
+                if (unit.characterType == "Support") continue;
+
+                SynergyRecommendationData entry = SynergyCatalog.RecommendationFor(unit.id);
+                Assert($"synergy {unit.id} {unit.name} recommendation", entry != null, "recommendation",
+                    entry?.mainName);
+                if (entry == null) continue;
+
+                foreach (var (label, lineup) in new[] { ("best", entry.best), ("basic", entry.basic) })
+                {
+                    Assert($"synergy {unit.id} {label} size", lineup?.members?.Count == 4, "4",
+                        lineup?.members?.Count.ToString());
+                    if (lineup?.members == null) continue;
+
+                    foreach (int memberId in lineup.members)
+                    {
+                        Assert($"synergy {unit.id} {label} member {memberId}",
+                            SynergyCatalog.UnitOf(memberId) != null, "known unit",
+                            SynergyCatalog.NameOf(memberId));
+                    }
+
+                    // 대체 조합은 최초 로스터만으로 짤 수 있어야 한다.
+                    if (label != "basic") continue;
+                    foreach (int memberId in lineup.members)
+                    {
+                        Assert($"synergy {unit.id} basic starter-only {memberId}",
+                            SynergyCatalog.UnitOf(memberId)?.type == "Support", "Support",
+                            SynergyCatalog.UnitOf(memberId)?.type);
+                    }
+                }
             }
             yield return null;
         }

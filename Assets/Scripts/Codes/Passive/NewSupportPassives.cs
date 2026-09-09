@@ -99,7 +99,7 @@ namespace Codes.Passive
         private Action<EventContext> _cleanupHandler;
         private bool _registered;
 
-        public bool IsEmpowered => Caster != null &&
+        public bool IsSubstitute => Caster != null &&
             Caster.GetCombatResource(ResourceId) >= MaxStacks;
 
         public GaudiSagradaFamilia(PassiveCodeContext context) : base(context)
@@ -129,8 +129,8 @@ namespace Codes.Passive
             if (Caster == null || target == null || context.DmgCtx == null ||
                 context.DmgCtx.ResolvedDamage <= 0) return;
 
-            // 강화 일반행동(N+)은 충전 스택을 소비할 뿐, 각 타격으로 다시 쌓지 않는다.
-            if (Caster.ActiveNormalCode is GaudiNormalAttack { IsEmpoweredAttack: true }) return;
+            // 대체행동(N+)은 충전 스택을 소비할 뿐, 각 타격으로 다시 쌓지 않는다.
+            if (Caster.ActiveNormalCode is GaudiNormalAttack { IsSubstituteAttack: true }) return;
 
             int gain = Caster.HasCombatElement(BaseEnums.UnitElement.Geo) ||
                        target.HasCombatElement(BaseEnums.UnitElement.Geo)
@@ -141,10 +141,10 @@ namespace Codes.Passive
             Debug.Log($"[사그리다 파밀리아] {Caster.UnitName} {stacks}/{MaxStacks} (+{gain})");
         }
 
-        /// <summary>강화 일반행동이 실제 대상을 확보한 순간 6스택을 소비한다.</summary>
+        /// <summary>대체행동이 실제 대상을 확보한 순간 6스택을 소비한다.</summary>
         public bool TryConsumeEmpowerment()
         {
-            if (!IsEmpowered || !Caster.TryConsumeCombatResource(ResourceId, MaxStacks)) return false;
+            if (!IsSubstitute || !Caster.TryConsumeCombatResource(ResourceId, MaxStacks)) return false;
             RefreshNormalAttackName();
             return true;
         }
@@ -152,7 +152,7 @@ namespace Codes.Passive
         private void RefreshNormalAttackName()
         {
             if (Caster?.ActiveNormalCode != null)
-                Caster.ActiveNormalCode.CodeName = IsEmpowered ? "강화 일반행동" : "일반행동";
+                Caster.ActiveNormalCode.CodeName = IsSubstitute ? "대체행동" : "일반행동";
         }
 
         public override void StopCode()

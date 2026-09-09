@@ -213,6 +213,48 @@ units:
     portrait: NICOLE_PORTRAIT
     standing: NICOLE_STANDING
 
+  - id: 7
+    name: 잔
+    characterType: Support
+    element: Cryo
+    startingProficiencies: [HeavyArmor]
+    startingItemIds: []
+    tags: [Akasha, Gaul, Human]
+    canStartAsMain: false
+    canStartAsSupport: true
+    canUseInInfinite: false
+    mainStat: STR
+    subStat: LUK
+    subStats: [LUK]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 22
+    strIncrementLvl: 2
+    strIncrementUpgrade: 1
+    dexBase: 12
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 20
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 8
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 16
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 1
+    codes: { passive: 207, normal: 7, ultimate: 7 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 104, unlockLevel: 7,  stage: 1 }   # 오사방지
+      - { codeId: 105, unlockLevel: 11, stage: 1 }   # 피지컬 코치
+      - { codeId: 106, unlockLevel: 26, stage: 1 }   # 벌크업
+      - { codeId: 75,  unlockLevel: 35, stage: 1 }   # 원소 친화 - 얼음
+      - { codeId: 107, unlockLevel: 45, stage: 1 }   # 기수
+      - { codeId: 20,  unlockLevel: 62, stage: 1 }   # 중갑병
+    portrait: JEAN_PORTRAIT
+    standing: JEAN_STANDING
+
   - id: 2
     name: 시
     characterType: Locked

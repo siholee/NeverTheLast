@@ -79,9 +79,9 @@ namespace Codes.Passive
         }
 
         /// <summary>
-        /// 세이의 턴마다 세고, 주기가 차면 <b>스케줄러에 패시브로 예약</b>한다.
+        /// 세이의 턴마다 세고, 주기가 차면 <b>우선 추가행동으로 예약</b>한다.
         /// 그 자리에서 터뜨리지 않는 이유는 한 번에 하나만 행동해야 하기 때문이다.
-        /// 예약된 패시브는 추가행동·본 행동보다 먼저 나간다.
+        /// 패시브는 행동을 호출할 뿐이고, 실제로 행동하는 것은 예약된 추가행동 쪽이다.
         /// </summary>
         public override void OnOwnerTurn()
         {
@@ -92,7 +92,7 @@ namespace Codes.Passive
             if (RandomEnemy() == null) return;
 
             _turnsSinceFire = 0;
-            Managers.GameManager.Instance?.ActionScheduler.EnqueuePassive(
+            Managers.GameManager.Instance?.ActionScheduler.EnqueuePriorityAdditional(
                 Target, "sei_big_bang", "빅뱅",
                 () => Target.StartCoroutine(FireVolley()));
         }

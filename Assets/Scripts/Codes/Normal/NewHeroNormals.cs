@@ -113,13 +113,13 @@ namespace Codes.Normal
     public sealed class GaudiNormalAttack : BaseNormalCode
     {
         private const int NormalPower = 60;
-        private const int EmpoweredPower = 80;
-        private const int EmpoweredTargetCount = 3;
+        private const int SubstitutePower = 80;
+        private const int SubstituteTargetCount = 3;
 
         private GaudiSagradaFamilia _passive;
-        private bool _empowered;
+        private bool _substitute;
 
-        public bool IsEmpoweredAttack => _empowered;
+        public bool IsSubstituteAttack => _substitute;
 
         public GaudiNormalAttack(NormalCodeContext context) : base(context)
         {
@@ -131,31 +131,31 @@ namespace Codes.Normal
         public override void CastCode()
         {
             _passive = Caster.ActivePassiveCodes.OfType<GaudiSagradaFamilia>().FirstOrDefault();
-            SetEmpowered(_passive?.IsEmpowered == true);
+            SetSubstitute(_passive?.IsSubstitute == true);
             base.CastCode();
         }
 
         protected override List<Unit> SelectTarget()
         {
-            if (!_empowered) return base.SelectTarget();
+            if (!_substitute) return base.SelectTarget();
 
             List<Unit> remaining = GetAvailableEnemies();
             if (remaining.Count == 0) return new List<Unit>();
             if (_passive?.TryConsumeEmpowerment() != true)
             {
-                SetEmpowered(false);
+                SetSubstitute(false);
                 return base.SelectTarget();
             }
 
-            return CombatTargets.PickByPriority(remaining, EmpoweredTargetCount);
+            return CombatTargets.PickByPriority(remaining, SubstituteTargetCount);
         }
 
         /// <summary>강화 여부에 따라 이름과 위력을 함께 갈아 끼운다. 위력은 CurrentPower로만 읽는다.</summary>
-        private void SetEmpowered(bool empowered)
+        private void SetSubstitute(bool substitute)
         {
-            _empowered = empowered;
-            CodeName = empowered ? "강화 일반행동" : "일반행동";
-            Power = empowered ? EmpoweredPower : NormalPower;
+            _substitute = substitute;
+            CodeName = substitute ? "대체행동" : "일반행동";
+            Power = substitute ? SubstitutePower : NormalPower;
         }
 
         protected override int CalculateDamage(float critMultiplier)
@@ -166,13 +166,13 @@ namespace Codes.Normal
         // '단일 대상 피해'를 조건으로 삼는 코드(부관의 신호 등)가 잘못 발동한다.
         protected override List<int> GetDamageTags() => new()
         {
-            _empowered ? DamageTag.MultiTarget : DamageTag.SingleTarget,
+            _substitute ? DamageTag.MultiTarget : DamageTag.SingleTarget,
             DamageTag.NormalAttack, DamageTag.Special, DamageTag.NonContactAttack,
         };
 
         protected override void OnAttackResolved(Unit target, DamageContext context)
         {
-            if (_empowered && target != null && target.isActive)
+            if (_substitute && target != null && target.isActive)
                 target.GrantCombatElement(BaseEnums.UnitElement.Dendro, Unit.CommonElementAuraDuration, Caster);
         }
     }

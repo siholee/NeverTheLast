@@ -421,6 +421,8 @@ namespace Managers
                     code is Codes.Passive.ScholarshipPassive),
                 BaseEnums.PrimaryStat.DEX => support.ActivePassiveCodes.Any(code =>
                     code is Codes.Passive.MarieOfficer),
+                BaseEnums.PrimaryStat.STR => support.ActivePassiveCodes.Any(code =>
+                    code is Codes.Passive.JeanPhysicalCoach),
                 _ => false,
             };
         }

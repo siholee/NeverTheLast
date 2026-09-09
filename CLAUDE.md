@@ -91,8 +91,16 @@ Combat is not real time. `Managers/ActionScheduler.cs` owns the clock.
 
 - Speed = `100 × ActionSpeedCurr`, action value `AV = 10000 / speed` (lower acts sooner).
   Time is not advanced continuously — everyone's AV is decremented by exactly what the next actor needs.
-- Action priority: `Passive(0) → Additional(1) → Ultimate(2) → Normal(3)`.
+- **Actions vs. triggers.** Only four things are *actions* — they take a scheduler slot and resolve:
+  **일반행동** (normal), **대체행동** (substitute — takes the normal action's slot), **추가행동**
+  (additional), **궁극기** (ultimate). Passive codes, effects and event hooks are *triggers*: they
+  never act, they only queue an action or change a value. See `Detail_03 §4.5-A`.
+- Action priority: `PriorityAdditional(0) → Additional(1) → Ultimate(2) → Normal(3)`.
+  0 is just "an additional action a passive queued" — same nature as 1, and both fire
+  `OnAdditionalActivates` (`ActionScheduler.IsAdditional`).
 - **Ultimates do not consume a turn.** They queue as soon as the resource fills and do not reset AV.
+- A **대체행동** still counts as one normal action — call `NotifyActionResolved()` even when it
+  deals no damage. The old term 강화 일반행동 and the `Empowered*` identifiers are gone.
 - Duplicate suppression: one `(unit + kind + key)` may sit in the queue at a time.
 - **Turns are the only gameplay time axis.** Durations, periodic passives and internal cooldowns
   all count `Unit.TurnCount`. Seconds survive in exactly one place: ultimate-resource accrual,
@@ -149,7 +157,7 @@ Singletons via `Manager.Instance`, in `Assets/Scripts/Managers/`.
 | `00_intro.yaml` | Intro sequence | `IntroData.cs` |
 | `10_units.yaml` | Player units | `UnitData.cs` |
 | `20_codes.yaml` | Code display data (passive/normal/ultimate) | — |
-| `30_synergies.yaml` | Party roles, archetypes, per-main recommended lineups | 🔴 not loaded yet |
+| `30_synergies.yaml` | Party roles, archetypes, per-main recommended lineups | `SynergyData.cs` |
 | `40_items.yaml` | Equipment (= reward pool) | `ItemData.cs` |
 | `50_tokens.yaml` | Token definitions | `TokenData.cs` |
 | `60_enemies.yaml` | Enemies (normal/elite/boss) | `EnemyData.cs` |
@@ -233,9 +241,14 @@ The **ten-thousands digit is the category**; an attack takes one from each band.
 Growth must follow the rule in `Detail_08`: **main +2, sub +2, others +1** (Sei/Shi: main +3, sub +2).
 A unit with **two sub stats** splits that budget instead of doubling it — each sub grows +1 and the
 training bonus is +5% per sub rather than +10%. Eight units do this: 라이트 · 니콜 · 피그말리온 ·
-아스클레피아 · 아마테라스 · 야마 · 이카리아 · 마리. 38 units in total, and **Gaudi** is the only real exception —
-no sub stat at all (main +2, everything else +1). Gaudi's and Light's base stats were not in the
-original design and are marked 🟡 in `Detail_08` as provisional.
+아스클레피아 · 아마테라스 · 야마 · 이카리아 · 마리.
+
+**39 units in total**, with two standing exceptions. **Gaudi** has no sub stat at all
+(main +2, everything else +1). **Jean** has no weapon proficiency at all, by design — she fights
+bare-handed and carries no starting weapon, so any weapon she holds contributes weight and
+nothing else. **Do not add a martial-arts proficiency**; the empty weapon slot is the condition
+future bare-hand-only codes will key off.
+Gaudi's and Light's base stats were not in the original design and are marked 🟡 in `Detail_08`.
 
 ### Adding a theme
 

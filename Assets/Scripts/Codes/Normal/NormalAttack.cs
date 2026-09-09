@@ -58,6 +58,13 @@ namespace Codes.Normal
         yield break;
       }
 
+      // 대상 지정 공지. 잔의 '최고의 방어'가 여기서 상대보다 먼저 끼어든다.
+      if (!Combat.Targeting.Announce(Caster, TargetUnits))
+      {
+        StopCode();
+        yield break;
+      }
+
       bool isCrit = Random.value <= Caster.CritChanceCurr;
       float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
       

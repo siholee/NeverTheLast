@@ -182,20 +182,20 @@ namespace Codes.Normal
 
     /// <summary>
     /// 공허의 사슴 N — 단일 적에게 200 + STR×1.2 위력의 비접촉 특수 피해.
-    /// 자기 원소를 부착하고, 행동을 마친 뒤 30% 확률로 <b>강화 일반행동</b>이 즉시 이어진다.
-    /// 강화 일반행동은 서로 다른 세 대상에게 100 + STR×0.8씩 나눠 때린다.
+    /// 자기 원소를 부착하고, 행동을 마친 뒤 30% 확률로 <b>대체행동</b>이 즉시 이어진다.
+    /// 대체행동은 서로 다른 세 대상에게 100 + STR×0.8씩 나눠 때린다.
     /// </summary>
     public sealed class VoidDeerNormal : BaseNormalCode
     {
         private const int BasePower = 200;
         private const float BaseCoefficient = 1.2f;
-        private const int EmpoweredPower = 100;
-        private const float EmpoweredCoefficient = 0.8f;
+        private const int SubstitutePower = 100;
+        private const float SubstituteCoefficient = 0.8f;
         private const float FollowUpChance = 0.30f;
-        private const int EmpoweredTargets = 3;
+        private const int SubstituteTargets = 3;
 
         private readonly BaseEnums.UnitElement _attachedElement;
-        private bool _empowered;
+        private bool _substitute;
 
         public VoidDeerNormal(NormalCodeContext context, BaseEnums.UnitElement attachedElement)
             : base(context)
@@ -215,7 +215,7 @@ namespace Codes.Normal
 
         protected override List<int> GetDamageTags() => new()
         {
-            _empowered ? DamageTag.MultiTarget : DamageTag.SingleTarget,
+            _substitute ? DamageTag.MultiTarget : DamageTag.SingleTarget,
             DamageTag.NormalAttack, DamageTag.Special, DamageTag.NonContactAttack,
         };
 
@@ -224,12 +224,12 @@ namespace Codes.Normal
             List<Unit> enemies = GetAvailableEnemies();
             if (enemies.Count == 0) return new List<Unit>();
 
-            if (!_empowered)
+            if (!_substitute)
             {
                 Unit picked = CombatTargets.PickByPriority(enemies);
                 return picked != null ? new List<Unit> { picked } : new List<Unit>();
             }
-            return CombatTargets.PickByPriority(enemies, EmpoweredTargets);
+            return CombatTargets.PickByPriority(enemies, SubstituteTargets);
         }
 
         protected override void OnAttackResolved(Unit target, DamageContext context)
@@ -239,19 +239,19 @@ namespace Codes.Normal
                 target.GrantCombatElement(_attachedElement, Unit.CommonElementAuraDuration, Caster);
             }
 
-            // 강화 일반행동은 30% 확률로 <b>같은 행동 안에서</b> 이어진다.
+            // 대체행동은 30% 확률로 <b>같은 행동 안에서</b> 이어진다.
             // 코루틴을 다시 태우면 행동 순서가 한 번 더 소비되므로, 여기서 즉시 해결한다.
-            if (_empowered || Random.value >= FollowUpChance) return;
-            FireEmpowered();
+            if (_substitute || Random.value >= FollowUpChance) return;
+            FireSubstitute();
         }
 
-        private void FireEmpowered()
+        private void FireSubstitute()
         {
-            _empowered = true;
+            _substitute = true;
             try
             {
-                int power = EmpoweredPower + Mathf.RoundToInt(
-                    Caster.GetBasePrimaryStat(BaseEnums.PrimaryStat.STR) * EmpoweredCoefficient);
+                int power = SubstitutePower + Mathf.RoundToInt(
+                    Caster.GetBasePrimaryStat(BaseEnums.PrimaryStat.STR) * SubstituteCoefficient);
                 bool isCrit = Random.value <= Caster.CritChanceCurr;
                 float crit = isCrit ? Caster.CritMultiplierCurr : 1f;
                 int damage = Mathf.Max(1, Mathf.RoundToInt(
@@ -262,7 +262,7 @@ namespace Codes.Normal
                     DamageTag.MultiTarget, DamageTag.NormalAttack,
                     DamageTag.Special, DamageTag.NonContactAttack,
                 };
-                foreach (Unit extra in CombatTargets.PickByPriority(GetAvailableEnemies(), EmpoweredTargets))
+                foreach (Unit extra in CombatTargets.PickByPriority(GetAvailableEnemies(), SubstituteTargets))
                 {
                     extra.TakeDamage(new DamageContext(
                         Caster, damage, BaseEnums.CodeType.Normal, new List<int>(tags), isCrit));
@@ -272,12 +272,12 @@ namespace Codes.Normal
                     }
                 }
 
-                // 공허의 선봉장(1544)처럼 '강화 일반행동을 마칠 때'를 세는 코드가 이 신호를 본다.
+                // 공허의 선봉장(1544)처럼 '대체행동을 마칠 때'를 세는 코드가 이 신호를 본다.
                 NotifyActionResolved();
             }
             finally
             {
-                _empowered = false;
+                _substitute = false;
             }
         }
     }

@@ -61,6 +61,14 @@ namespace Codes.Base
                 yield break;
             }
 
+            // 대상이 정해진 순간을 알린다. 잔의 '최고의 방어'처럼 상대 행동보다 먼저
+            // 끼어드는 코드가 여기서 결판을 내며, 되받아치기에 쓰러지면 이 행동은 접는다.
+            if (!Combat.Targeting.Announce(Caster, TargetUnits))
+            {
+                StopCode();
+                yield break;
+            }
+
             // 크리티컬 계산
             bool isCrit = Random.value <= Caster.CritChanceCurr;
             float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;

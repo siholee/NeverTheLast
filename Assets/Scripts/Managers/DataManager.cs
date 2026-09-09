@@ -26,6 +26,9 @@ namespace Managers
 
         public UnitDataList FetchUnitDataList() => Load<UnitDataList>("Data/10_units");
 
+        /// <summary>파티 시너지·추천 편성. 자료실이 유닛마다 이 표를 읽는다.</summary>
+        public SynergyDataList FetchSynergyDataList() => Load<SynergyDataList>("Data/30_synergies");
+
         public ItemDataList FetchItemDataList() => Load<ItemDataList>("Data/40_items");
 
         public ResourceTokenDataList FetchTokenDataList()
