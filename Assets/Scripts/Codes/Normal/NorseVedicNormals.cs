@@ -50,6 +50,7 @@ namespace Codes.Normal
             }
 
             Debug.Log($"[프레이아] 아군 전체를 {heal}만큼 치유했습니다.");
+            NotifyActionResolved();
             StopCode();
         }
 

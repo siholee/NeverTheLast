@@ -332,6 +332,7 @@ namespace Codes.Passive
         private Unit _holder;
         private int _stacks;
         private Action<EventContext> _handler;
+        private bool _granting;
 
         public ConcordiaEffect() : base(0, DamageBonus) { }
 
@@ -340,7 +341,7 @@ namespace Codes.Passive
             // OnBeneficialEffectGranted는 Grantee = 부여자, Grantor = 받은 쪽으로 발행된다.
             _handler = context =>
             {
-                if (context == null || context.Grantee != Target) return;
+                if (_granting || context == null || context.Grantee != Target) return;
                 Unit receiver = context.Grantor;
                 if (receiver == null || receiver == Target || !receiver.isActive) return;
                 Grant(receiver);
@@ -364,10 +365,16 @@ namespace Codes.Passive
 
             _holder = receiver;
             _stacks = MaxStacks;
-            ColosseumCombat.AddStatus(
-                Target, receiver, 6309, LegionCombat.ConcordiaKey, "화합",
-                new ConcordiaDamageEffect(DamageBonus),
-                description: "가하는 피해가 25% 증가합니다.");
+            // 화합 자체도 이로운 효과다. 부여 중 발생한 같은 신호로 재진입하지 않는다.
+            _granting = true;
+            try
+            {
+                ColosseumCombat.AddStatus(
+                    Target, receiver, 6309, LegionCombat.ConcordiaKey, "화합",
+                    new ConcordiaDamageEffect(DamageBonus),
+                    description: "가하는 피해가 25% 증가합니다.");
+            }
+            finally { _granting = false; }
         }
 
         private void Clear()

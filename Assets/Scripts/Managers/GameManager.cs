@@ -1079,6 +1079,7 @@ namespace Managers
             if (life <= 0)
             {
                 pendingPartyExp = 0;
+                gameState = GameState.GameOver;
                 SaveSystem.DeleteSave();
                 return;
             }
@@ -1111,8 +1112,11 @@ namespace Managers
             }
             else
             {
+                // 패배 시 같은 스테이지를 다시 준비한다. 정리한 적을 재생성하지 않으면
+                // 다음 전투가 빈 필드에서 즉시 승리한다.
+                _roundManager?.LoadRound(_roundManager.Stage);
+                EnterPreparationAfterReward();
                 runManager?.SaveCurrentRun();
-                NextGameState(false);
             }
         }
 

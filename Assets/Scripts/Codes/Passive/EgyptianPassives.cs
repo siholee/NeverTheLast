@@ -55,8 +55,14 @@ namespace Codes.Passive
         public override int PrimaryStatAdditiveModifier(Unit unit, BaseEnums.PrimaryStat stat)
         {
             if (unit != Target || stat != BaseEnums.PrimaryStat.STR) return 0;
-            float excess = Mathf.Max(0f, unit.GetDerivedActionSpeed() - 1f);
-            return Mathf.FloorToInt(excess * 100f + 0.0001f);
+            // 행동 속도 = 1 + DEX * .01 이므로 초과 속도 1%는 DEX 1과 같다.
+            // 중량 적용 전 값을 변환하고 최종 STR에서 중량을 한 번 적용한다.
+            // 최종 DEX를 읽으면 중량 한도 → STR → DEX → 중량 한도가 재귀한다.
+            int converted = unit.GetUnburdenedBaseDex();
+            // 상태의 가산치는 캐릭터 주/부스탯 보정 전에 들어간다. 여기서 역산해야
+            // 최종 STR 증가량이 설명에 적힌 DEX와 정확히 같아진다.
+            return Mathf.RoundToInt(converted /
+                Mathf.Max(0.01f, unit.GetCharacterStatMultiplier(BaseEnums.PrimaryStat.STR)));
         }
 
         public override float ActionSpeedModifier(Unit unit, float calculatedSpeed)

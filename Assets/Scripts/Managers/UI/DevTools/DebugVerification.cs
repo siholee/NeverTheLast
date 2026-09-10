@@ -46,13 +46,17 @@ namespace Managers.UI.DevTools
         private int originalHasSave;
         private string originalTrained;
         private UnityEngine.Random.State randomState;
+        private bool integrationOnly;
+        private bool campaignOnly;
 
-        public static void StartSuite()
+        public static void StartSuite(bool integrationOnly = false, bool campaignOnly = false)
         {
             if (DebugMode.SuiteRunning) return;
             DebugMode.BeginSession();
             DebugMode.SuiteRunning = true;
             var host = new GameObject("DebugVerification").AddComponent<DebugVerification>();
+            host.integrationOnly = integrationOnly;
+            host.campaignOnly = campaignOnly;
             DontDestroyOnLoad(host.gameObject);
             host.StartCoroutine(host.GuardedRun());
         }
@@ -105,7 +109,7 @@ namespace Managers.UI.DevTools
                 Status = $"{report.passed} PASS / {report.failed} FAIL / completed={report.completed}";
                 string directory = Path.GetFullPath(Path.Combine(Application.dataPath, "../Logs"));
                 Directory.CreateDirectory(directory);
-                File.WriteAllText(Path.Combine(directory, "DebugVerification.json"), JsonUtility.ToJson(report, true));
+                File.WriteAllText(Path.Combine(directory, integrationOnly ? "IntegrationVerification.json" : "DebugVerification.json"), JsonUtility.ToJson(report, true));
                 Debug.Log("[DebugVerification] " + Status);
                 Destroy(gameObject);
             }
@@ -135,6 +139,13 @@ namespace Managers.UI.DevTools
             grid = game.gridManager;
             DebugMode.SetTimeScale(8f);
             UnityEngine.Random.InitState(20260908);
+            if (integrationOnly)
+            {
+                if (campaignOnly) yield return Campaign();
+                else yield return IntegrationCoverage();
+                report.completed = true;
+                yield break;
+            }
             yield return SpriteCoverage();
             yield return SynergyCoverage();
             yield return Transitions();

@@ -132,6 +132,7 @@ namespace Codes.Normal
                 target.CastNormalCode);
 
             Caster.isCasting = false;
+            NotifyActionResolved();
         }
     }
 }

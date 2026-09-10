@@ -206,8 +206,10 @@ namespace Managers
 
         public void EndRound()
         {
+            _acting?.ActiveSpecialCode?.StopCode();
             _actionValues.Clear();
             ClearQueue();
+            Combat.SpecialAction.Reset();
             _acting = null;
             _currentActionId = -1;
             TurnOwner = null;
@@ -215,6 +217,8 @@ namespace Managers
 
         private void ClearQueue()
         {
+            foreach (var pending in _queue)
+                if (pending.Kind == ActionKind.Special) Combat.SpecialAction.NotifyResolved(pending.Unit);
             _queue.Clear();
             _queuedKeys.Clear();
         }
@@ -338,6 +342,7 @@ namespace Managers
                 {
                     Debug.LogWarning($"[ActionScheduler] {_acting.UnitName}의 행동이 {ActionWatchdogSeconds}초를 넘겨 강제 종료합니다.");
                     _acting.isCasting = false;
+                    _acting.ActiveSpecialCode?.StopCode();
                 }
 
                 _acting = null;
@@ -394,12 +399,14 @@ namespace Managers
             for (int i = _queue.Count - 1; i >= 0; i--)
             {
                 if (_queue[i].Unit != null && _queue[i].Unit.isActive) continue;
+                if (_queue[i].Kind == ActionKind.Special) Combat.SpecialAction.NotifyResolved(_queue[i].Unit);
                 _queuedKeys.Remove(_queue[i].Key);
                 _queue.RemoveAt(i);
             }
 
             if (_acting != null && !_acting.isActive)
             {
+                _acting.ActiveSpecialCode?.StopCode();
                 _acting = null;
                 _currentActionId = -1;
             }
@@ -419,8 +426,11 @@ namespace Managers
                 _queue.Remove(next);
                 _queuedKeys.Remove(next.Key);
 
-                if (next.Unit == null || !next.Unit.isActive) continue;
-                if (next.Unit.isControlled) continue;   // 제어 중이면 예약을 버린다
+                if (next.Unit == null || !next.Unit.isActive || next.Unit.isControlled)
+                {
+                    if (next.Kind == ActionKind.Special) Combat.SpecialAction.NotifyResolved(next.Unit);
+                    continue;
+                }
 
                 _actingElapsed = 0f;
                 _currentActionId = ActionCount + 1;
@@ -441,6 +451,8 @@ namespace Managers
                 }
 
                 next.Run();
+                if (next.Kind == ActionKind.Special && !next.Unit.isCasting)
+                    Combat.SpecialAction.NotifyResolved(next.Unit);
 
                 // 코드에 따라서는 코루틴 없이 즉시 끝난다(자원만 쌓는 궁극기, 즉발 추가행동 등).
                 // 그런 경우 isCasting이 서지 않으므로 붙잡지 않고 바로 다음으로 넘어간다.

@@ -60,25 +60,25 @@ namespace Combat
                 .OrderBy(unit => unit.ActiveSpecialCode.OpenOrder)
                 .ToList();
 
-            _batchRemaining = 0;
             int opened = 0;
             foreach (Unit unit in lineup)
             {
+                if (_pending.Contains(unit)) continue;
                 // 같은 유닛의 특수행동이 큐에 둘 이상 쌓이지 않도록 키를 유닛으로 고정한다.
                 if (scheduler.EnqueueSpecial(unit, "special", unit.ActiveSpecialCode.CodeName,
                         unit.CastSpecialCode))
                 {
+                    _pending.Add(unit);
                     opened++;
                 }
             }
 
-            _batchRemaining = opened;
             Debug.Log($"[특수행동] {caster?.UnitName}이(가) 문을 열어 로카팔라 {opened}명이 나선다");
             return opened;
         }
 
         /// <summary>이번 개방에서 아직 나서지 않은 인원.</summary>
-        private static int _batchRemaining;
+        private static readonly HashSet<Unit> _pending = new();
 
         /// <summary>이번 개방이 끝날 때 함께 걷을 것들.</summary>
         private static readonly List<System.Action> _batchCleanups = new();
@@ -90,13 +90,23 @@ namespace Combat
         }
 
         /// <summary>특수행동 하나가 끝났음을 알린다. <see cref="Codes.Base.SpecialCode.StopCode"/>가 부른다.</summary>
-        public static void NotifyResolved()
+        public static void NotifyResolved(Unit unit)
         {
-            if (_batchRemaining <= 0) return;
-            if (--_batchRemaining > 0) return;
+            if (!_pending.Remove(unit) || _pending.Count > 0) return;
+            RunCleanups();
+        }
 
-            foreach (System.Action cleanup in _batchCleanups) cleanup?.Invoke();
+        public static void Reset()
+        {
+            _pending.Clear();
+            RunCleanups();
+        }
+
+        private static void RunCleanups()
+        {
+            var callbacks = _batchCleanups.ToArray();
             _batchCleanups.Clear();
+            foreach (System.Action cleanup in callbacks) cleanup?.Invoke();
         }
 
         /// <summary>쿠베라의 골드 러쉬가 쌓는 골드 배율. 중첩된다.</summary>

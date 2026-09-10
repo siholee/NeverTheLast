@@ -33,10 +33,15 @@ namespace Codes.Base
 
         public override void StopCode()
         {
+            if (Caster != null && CurrSkillCoroutine != null)
+            {
+                Caster.StopCoroutine(CurrSkillCoroutine);
+                CurrSkillCoroutine = null;
+            }
             if (Caster != null) Caster.isCasting = false;
             // 이번 개방에서 몇 명이 남았는지는 여기서만 셀 수 있다. 예약 시점이 아니라
             // <b>실제로 끝난 시점</b>이라야 바유의 버프가 마지막 한 명까지 살아 있다.
-            Combat.SpecialAction.NotifyResolved();
+            Combat.SpecialAction.NotifyResolved(Caster);
         }
     }
 }

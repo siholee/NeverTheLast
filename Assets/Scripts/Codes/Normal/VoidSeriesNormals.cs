@@ -181,16 +181,16 @@ namespace Codes.Normal
     }
 
     /// <summary>
-    /// 공허의 사슴 N — 단일 적에게 200 + STR×1.2 위력의 비접촉 특수 피해.
+    /// 공허의 사슴 N — 단일 적에게 80 + STR×0.6 위력의 비접촉 특수 피해.
     /// 자기 원소를 부착하고, 행동을 마친 뒤 30% 확률로 <b>대체행동</b>이 즉시 이어진다.
-    /// 대체행동은 서로 다른 세 대상에게 100 + STR×0.8씩 나눠 때린다.
+    /// 대체행동은 서로 다른 세 대상에게 50 + STR×0.4씩 나눠 때린다.
     /// </summary>
     public sealed class VoidDeerNormal : BaseNormalCode
     {
-        private const int BasePower = 200;
-        private const float BaseCoefficient = 1.2f;
-        private const int SubstitutePower = 100;
-        private const float SubstituteCoefficient = 0.8f;
+        private const int BasePower = 80;
+        private const float BaseCoefficient = 0.6f;
+        private const int SubstitutePower = 50;
+        private const float SubstituteCoefficient = 0.4f;
         private const float FollowUpChance = 0.30f;
         private const int SubstituteTargets = 3;
 

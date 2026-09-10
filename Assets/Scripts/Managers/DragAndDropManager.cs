@@ -30,11 +30,7 @@ namespace Managers
             {
                 Instance = this;
                 
-                // 런타임에만 DontDestroyOnLoad 적용
-                if (Application.isPlaying)
-                {
-                    DontDestroyOnLoad(gameObject);
-                }
+                // 셀·카메라 참조는 Game 씬과 함께 수명을 끝낸다.
                 
                 // 드래그 프리뷰를 미리 생성 (비활성화 상태로)
                 CreateDragPreview();
@@ -46,6 +42,11 @@ namespace Managers
             }
             
             mainCamera = Camera.main;
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
         }
         
         public void StartDrag(Cell cell)

@@ -1278,6 +1278,7 @@ namespace Entities
         public void DebugResetCombatState()
         {
             StopAllCoroutines();
+            SpecialCode?.StopCode();
             NormalCode?.StopCode();
             UltimateCode?.StopCode();
             Invoke(BaseEnums.UnitEventType.OnRoundEnd, new EventContext(this));
@@ -2389,6 +2390,8 @@ namespace Entities
             {
                 RemoveStatus(status.StatusId);
             }
+            // 제어 상태는 별도 타이머도 사용한다. 상태만 지우면 정화 뒤에도 행동 불가가 남는다.
+            if (isControlled) ControlEnds();
         }
 
         private int ApplyShieldBonus(int amount)
@@ -2775,6 +2778,8 @@ namespace Entities
         public float GetDerivedCritDamage() => stats.GetDerivedCritDamage();
         public float GetDerivedCodeAcceleration() => stats.GetDerivedCodeAcceleration();
         public float GetDerivedActionSpeed() => stats.GetDerivedActionSpeed();
+        internal int GetUnburdenedBaseDex() => stats.GetUnburdenedBaseDex();
+        internal float GetCharacterStatMultiplier(BaseEnums.PrimaryStat stat) => stats.GetCharacterStatMultiplier(stat);
         public float GetDerivedEvasionChance() => stats.GetDerivedEvasionChance();
         public float GetDerivedHealingBonus() => stats.GetDerivedHealingBonus();
         public float GetDerivedShieldBonus() => stats.GetDerivedShieldBonus();

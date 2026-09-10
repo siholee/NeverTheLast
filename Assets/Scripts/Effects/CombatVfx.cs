@@ -209,6 +209,7 @@ namespace Effects
 
         private static void ConfigureRisingParticles(ParticleSystem particles, Color wind)
         {
+            particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             var main = particles.main;
             main.loop = true;
             main.duration = 1f;

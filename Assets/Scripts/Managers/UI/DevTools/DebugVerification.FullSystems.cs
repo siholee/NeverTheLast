@@ -106,6 +106,7 @@ namespace Managers.UI.DevTools
                         "passive"=>CodeFactory.CreatePassiveCode(entry.id,new PassiveCodeContext{Caster=caster}),
                         "normal"=>CodeFactory.CreateNormalCode(entry.id,new NormalCodeContext{Caster=caster}),
                         "ultimate"=>CodeFactory.CreateUltimateCode(entry.id,new UltimateCodeContext{Caster=caster}),
+                        "special"=>CodeFactory.CreateSpecialCode(entry.id,new SpecialCodeContext{Caster=caster}),
                         _=>null
                     };
                     Assert("catalog factory "+slot.Key+" "+entry.id,code!=null,"implementation",code?.GetType().Name);
@@ -124,11 +125,13 @@ namespace Managers.UI.DevTools
             Assert("unit "+id+" spawned ID",unit.ID==id,id.ToString(),unit.ID.ToString());
             Assert("unit "+id+" spawned portrait path",
                 SpriteResource.LoadPortrait(unit.PortraitPath)!=null,"Sprite",unit.PortraitPath);
-            Assert("unit "+id+" synergy lookup",
-                Managers.SynergyCatalog.UnitOf(unit.ID)!=null,"profile",
-                Managers.SynergyCatalog.NameOf(unit.ID));
+            // 추천 조합은 편성 가능한 아군 카탈로그이며 적은 포함하지 않는다.
+            if (!unit.IsEnemy)
+                Assert("unit "+id+" synergy lookup",
+                    Managers.SynergyCatalog.UnitOf(unit.ID)!=null,"profile",
+                    Managers.SynergyCatalog.NameOf(unit.ID));
             Assert("unit "+id+" normal/ultimate",unit.ActiveNormalCode!=null&&unit.ActiveUltimateCode!=null,"both",unit.ActiveNormalCode?.GetType().Name+"/"+unit.ActiveUltimateCode?.GetType().Name);
-            foreach(int level in new[]{1,30,60,90,1})
+            foreach(int level in new[]{1,30,60,90,100,1})
             {
                 unit.DebugSetLevel(level);
                 var expected=new HashSet<int>((passives??new()).Where(p=>p.unlockLevel<=level).Select(p=>p.codeId)){codes["passive"]};
@@ -401,6 +404,7 @@ namespace Managers.UI.DevTools
                 float deadline=Time.realtimeSinceStartup+30;
                 while(GameManager.Instance?.RoundManager==null&&Time.realtimeSinceStartup<deadline)yield return null;
                 game=GameManager.Instance;grid=game.gridManager;
+                Assert("scene cycle "+i+" grid binding", grid == GridManager.Instance, "same instance", "compared");
                 Equal("scene cycle "+i+" one GameManager",1,FindObjectsByType<GameManager>(FindObjectsSortMode.None).Length);
                 Equal("scene cycle "+i+" one GridManager",1,FindObjectsByType<GridManager>(FindObjectsSortMode.None).Length);
                 Equal("scene cycle "+i+" one RunManager",1,FindObjectsByType<RunManager>(FindObjectsSortMode.None).Length);

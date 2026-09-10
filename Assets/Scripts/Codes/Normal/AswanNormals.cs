@@ -66,6 +66,7 @@ namespace Codes.Normal
             }
 
             Debug.Log($"[{Caster.UnitName}] 아군 전체를 {heal}만큼 치유했습니다.");
+            NotifyActionResolved();
             StopCode();
         }
 

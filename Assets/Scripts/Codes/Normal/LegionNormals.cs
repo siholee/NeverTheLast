@@ -180,6 +180,7 @@ namespace Codes.Normal
             }
 
             // 피해가 없으므로 코루틴 없이 즉시 끝난다. OnNormalActivates는 Unit.CastNormalCode가 발행한다.
+            NotifyActionResolved();
         }
     }
 

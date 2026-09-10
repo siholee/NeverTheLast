@@ -45,7 +45,7 @@ namespace Managers
             if (Instance == null)
             {
                 Instance = this;
-                DontDestroyOnLoad(gameObject); // Persist through scene changes
+                // 셀과 유닛은 Game 씬 소유다. 메뉴로 나갈 때 함께 정리한다.
             }
             else
             {
@@ -59,6 +59,11 @@ namespace Managers
             heroList = new List<Unit>();
             enemyList = new List<Unit>();
             SetGrid();
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
         }
 
         // 에디터에서 수동으로 그리드를 재생성할 수 있는 퍼블릭 메서드

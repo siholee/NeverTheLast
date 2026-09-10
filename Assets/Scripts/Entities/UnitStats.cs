@@ -155,6 +155,11 @@ namespace Entities
         /// <summary>캐릭터별 트레이닝 보너스. 주/부 스탯과 보너스율은 영웅 데이터가 결정한다.</summary>
         private int ApplyCharacterStatBonus(BaseEnums.PrimaryStat stat, int rawValue)
         {
+            return Mathf.Max(0, Mathf.RoundToInt(rawValue * GetCharacterStatMultiplier(stat)));
+        }
+
+        internal float GetCharacterStatMultiplier(BaseEnums.PrimaryStat stat)
+        {
             float multiplier = 1f;
             if (IsCharacterStatTag(_owner.MainStat, stat))
             {
@@ -164,8 +169,7 @@ namespace Entities
             {
                 multiplier += _owner.SubStatTrainingBonus;
             }
-
-            return Mathf.Max(0, Mathf.RoundToInt(rawValue * multiplier));
+            return multiplier;
         }
 
         private static bool IsCharacterStatTag(string statName, BaseEnums.PrimaryStat stat)
@@ -205,9 +209,14 @@ namespace Entities
 
         public int GetBaseDex()
         {
+            return _owner.ApplyEncumbranceStatMultiplier(BaseEnums.PrimaryStat.DEX, GetUnburdenedBaseDex());
+        }
+
+        internal int GetUnburdenedBaseDex()
+        {
             int raw = dexBase + dexIncrementLvl * GetStatGrowthLevel() + dexIncrementUpgrade * dexUpgrade
                 + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.DEX) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.DEX);
-            return _owner.ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.DEX, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.DEX, raw));
+            return _owner.ApplyStatusPrimaryStatMultipliers(BaseEnums.PrimaryStat.DEX, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.DEX, raw));
         }
 
         public int GetBaseCon()
