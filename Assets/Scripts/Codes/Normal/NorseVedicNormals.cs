@@ -13,14 +13,17 @@ namespace Codes.Normal
 {
     /// <summary>
     /// 프레이아 일반행동 — 유일하게 <b>적을 때리지 않는 일반행동</b>이다.
-    /// 아군 전체를 INT 기반 위력 40만큼 치유한다.
+    /// 아군 전체를 CON 기반 위력 60만큼 치유한다.
+    ///
+    /// 치유가 주스탯을 타므로 최대 체력과 치유량이 같은 축에서 자란다.
+    /// 체력을 태우는 아군에게 얼마를 돌려주는지가 레벨이 올라도 흔들리지 않는다.
     ///
     /// 대상이 아군이므로 <see cref="BaseNormalCode"/>의 적 타겟팅 흐름을 그대로 쓸 수 없다.
     /// 시전 지연과 마나 회복만 공유하고 해결부는 새로 짠다.
     /// </summary>
     public sealed class FreyaNormalAttack : BaseNormalCode
     {
-        private const int HealPower = 40;
+        private const int HealPower = 60;
 
         public FreyaNormalAttack(NormalCodeContext context) : base(context)
         {
@@ -43,7 +46,7 @@ namespace Codes.Normal
                 yield return null;
             }
 
-            int heal = Mathf.Max(1, Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.INT));
+            int heal = Mathf.Max(1, Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.CON));
             foreach (Unit ally in Allies())
             {
                 ally.ModifyHp(ally.HpCurr + heal, Caster);

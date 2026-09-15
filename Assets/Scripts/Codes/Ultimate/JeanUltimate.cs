@@ -15,7 +15,7 @@ namespace Codes.Ultimate
         private const float StrMultiplier = 1.05f;
 
         public JeanMaidOfOrleans(UltimateCodeContext context)
-            : base(context, "오를레앙의 성녀", 4f, 0.35f) { }
+            : base(context, "오를레앙의 성녀", 0.35f) { }
 
         protected override void Resolve()
         {

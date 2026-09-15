@@ -23,7 +23,6 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "달빛 추격";
-            Cooldown = 3;
             CastingDelay = 1f;
             Power = 100;
             CodeTags = new List<int> { DamageTag.Physical, DamageTag.NonContactAttack, DamageTag.Arrow };
@@ -129,7 +128,6 @@ namespace Codes.Ultimate
         public override void StopCode()
         {
             if (Caster == null) return;
-            Caster.ultimateCooldown = Cooldown;
             Caster.isCasting = false;
         }
 

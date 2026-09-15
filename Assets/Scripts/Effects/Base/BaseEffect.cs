@@ -116,6 +116,22 @@ namespace Effects.Base
         /// <summary>자신의 공격 때문에 지불하는 체력 비용 배율 (1 = 변화 없음).</summary>
         public virtual float AttackSelfHpCostMultiplier(Unit unit) => 1f;
 
+        /// <summary>
+        /// 처형선에 더해지는 비율. 0.04면 8%가 12%가 된다.
+        ///
+        /// 처형선을 <b>덮어쓰지 않고 더하는</b> 이유는 코드와 장비가 각자 쌓일 수 있어야 해서다.
+        /// 덮어쓰면 둘을 함께 들었을 때 큰 쪽 하나만 남아 장비가 죽는다.
+        /// </summary>
+        public virtual float ExecuteThresholdAdditiveModifier(Unit unit) => 0f;
+
+        /// <summary>
+        /// 치유량 감소가 실제로 깎는 몫을 얼마나 덜어 내는가. 0.5면 절반만 깎인다.
+        ///
+        /// 받는 치유 배율을 거꾸로 올리는 방식으로는 못 만든다. 그렇게 하면 감소가 없을 때도
+        /// 치유가 늘어 버린다. 감소를 <b>거는 쪽</b>이 이 값을 읽어 제 몫을 줄이는 것이 옳다.
+        /// </summary>
+        public virtual float HealingReductionResistanceModifier(Unit unit) => 0f;
+
         /// <summary>해로운 상태가 최종 적용되기 직전의 저항 확률 가산치.</summary>
         public virtual float NegativeStatusResistanceChanceModifier(
             Unit unit, Entities.Status.UnitStatus status) => 0f;
@@ -160,6 +176,15 @@ namespace Effects.Base
         /// 보유자가 새로 부여하는 유한 턴 상태의 지속시간 가산치.
         /// 무한 상태(Duration &lt;= 0)에는 적용되지 않으며, 상태 하나당 최초 부여 시 한 번만 읽힌다.
         /// </summary>
+        /// <summary>
+        /// 이 효과의 주인이 <b>다른 유닛에게 붙이는 원소</b>의 지속에 더하는 턴.
+        ///
+        /// 상태 지속(<see cref="GrantedStatusDurationAdditiveModifier"/>)과 축이 다르다.
+        /// 부착은 <c>UnitStatus</c>가 아니라 <c>Unit</c>이 직접 들고 있는 타이머라서,
+        /// 상태 쪽 훅으로는 닿지 않는다.
+        /// </summary>
+        public virtual int GrantedElementDurationAdditiveModifier(Unit source) => 0;
+
         public virtual int GrantedStatusDurationAdditiveModifier(
             Unit source, Entities.Status.UnitStatus status) => 0;
 
@@ -223,6 +248,12 @@ namespace Effects.Base
         /// 훅을 따로 둔다. 여러 효과가 걸리면 <b>가장 낮은 비율</b>이 이긴다.
         /// </summary>
         public virtual float IncomingDamageCapRatio(Unit unit, DamageContext context) => 0f;
+
+        /// <summary>
+        /// 전장 상태가 주는 <b>불리한</b> 배율을 무시하는가. 유리한 쪽은 그대로 받는다.
+        /// 혹한의 갑주처럼 "이 판에서만 안 아픈" 장비가 쓴다.
+        /// </summary>
+        public virtual bool IgnoresFieldPenalty(Unit unit) => false;
 
         /// <summary>치명 피해를 막으면 true. 사망 직전 효과(황혼 등)에서 사용한다.</summary>
         public virtual bool TryPreventDeath(Unit unit, Unit attacker) => false;

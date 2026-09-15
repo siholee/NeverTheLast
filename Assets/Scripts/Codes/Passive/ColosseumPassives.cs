@@ -153,7 +153,7 @@ namespace Codes.Passive
                     AddSelf(new SameTargetRampEffect(0.08f, 4));
                     break;
                 case 159:
-                    AddSelf(new KillCooldownResetEffect());
+                    AddSelf(new KillUltimateChargeEffect());
                     break;
 
                 // 디마카이루스
@@ -664,18 +664,24 @@ namespace Codes.Passive
         }
     }
 
-    internal sealed class KillCooldownResetEffect : BaseEffect
+    /// <summary>
+    /// 처치하면 즉시 다시 나서고 궁극기가 준비된다.
+    ///
+    /// 예전에는 궁극기 쿨다운을 0으로 되돌렸다. 쿨다운 자체가 사라지면서
+    /// 같은 뜻을 <b>자원을 가득 채우는 것</b>으로 옮겼다.
+    /// </summary>
+    internal sealed class KillUltimateChargeEffect : BaseEffect
     {
         private Action<EventContext> _handler;
 
-        public KillCooldownResetEffect() : base(0) { }
+        public KillUltimateChargeEffect() : base(0) { }
 
         public override void OnApply()
         {
             _handler = _ =>
             {
                 if (Target == null) return;
-                Target.ultimateCooldown = 0;
+                Target.AddUltimateResource(Target.ManaMax);
                 Managers.GameManager.Instance?.ActionScheduler?.AdvanceAction(Target, 1f);
             };
             Target.AddListener(BaseEnums.UnitEventType.OnKill, _handler);
@@ -797,13 +803,13 @@ namespace Codes.Passive
     {
         private readonly float _threshold;
         private readonly float _damageMultiplier;
-        private readonly float _cooldownBonus;
+        private readonly float _advanceRatio;
 
-        public LowHealthOffenseEffect(float threshold, float damageMultiplier, float cooldownBonus) : base(0)
+        public LowHealthOffenseEffect(float threshold, float damageMultiplier, float advanceRatio) : base(0)
         {
             _threshold = threshold;
             _damageMultiplier = damageMultiplier;
-            _cooldownBonus = cooldownBonus;
+            _advanceRatio = advanceRatio;
         }
 
         public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
@@ -814,8 +820,7 @@ namespace Codes.Passive
         public override void OnOwnerTurn()
         {
             if (Target == null || ColosseumCombat.HealthRatio(Target) >= _threshold) return;
-            Managers.GameManager.Instance?.ActionScheduler.AdvanceAction(Target, _cooldownBonus);
-            Target.ultimateCooldown = Mathf.Max(0f, Target.ultimateCooldown - _cooldownBonus);
+            Managers.GameManager.Instance?.ActionScheduler.AdvanceAction(Target, _advanceRatio);
         }
     }
 
@@ -928,7 +933,6 @@ namespace Codes.Passive
             if (_used || unit != Target) return false;
             _used = true;
             _recoveryPending = !_fixedOneHp;
-            unit.ultimateCooldown = 0;
             unit.AddUltimateResource(unit.ManaMax);
             return true;
         }

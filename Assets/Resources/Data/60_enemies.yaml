@@ -37,6 +37,7 @@ enemies:
     intBase: 6
     lukBase: 8
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1008, normal: 1000, ultimate: 1100 }
     levelPassives:
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
@@ -62,6 +63,7 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1008, normal: 1001, ultimate: 1101 }
     levelPassives:
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
@@ -87,6 +89,7 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1008, normal: 1002, ultimate: 1102 }
     levelPassives:
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
@@ -113,6 +116,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 12
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1008, normal: 1003, ultimate: 1103 }
     levelPassives:
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
@@ -138,6 +142,7 @@ enemies:
     intBase: 6
     lukBase: 11
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1008, normal: 1002, ultimate: 1104 }
     levelPassives:
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
@@ -163,6 +168,7 @@ enemies:
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1008, normal: 1001, ultimate: 1105 }
     levelPassives:
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
@@ -191,6 +197,7 @@ enemies:
     intBase: 8
     lukBase: 16
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1100, normal: 1000, ultimate: 1106 }
     levelPassives:
       - { codeId: 1101, unlockLevel: 20, stage: 1 }
@@ -217,6 +224,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 18
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1104, normal: 1003, ultimate: 1107 }
     levelPassives:
       - { codeId: 1105, unlockLevel: 20, stage: 1 }
@@ -243,6 +251,7 @@ enemies:
     intBase: 8
     lukBase: 20
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1112, normal: 1001, ultimate: 1109 }
     levelPassives:
       - { codeId: 1113, unlockLevel: 20, stage: 1 }
@@ -275,6 +284,7 @@ enemies:
     intBase: 6
     lukBase: 8
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1200, normal: 1200, ultimate: 1200 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }
@@ -301,6 +311,7 @@ enemies:
     intBase: 6
     lukBase: 8
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1201, normal: 1201, ultimate: 1201 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }
@@ -328,6 +339,7 @@ enemies:
     intBase: 7
     lukBase: 9
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1202, normal: 1202, ultimate: 1202 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }
@@ -358,6 +370,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 18
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1206, normal: 1206, ultimate: 1206 }
     levelPassives:
       - { codeId: 27, unlockLevel: 10, stage: 1 }
@@ -386,6 +399,7 @@ enemies:
     intBase: 8
     lukBase: 10
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1203, normal: 1203, ultimate: 1203 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }
@@ -417,6 +431,7 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1204, normal: 1204, ultimate: 1204 }
     levelPassives:
       - { codeId: 1012, unlockLevel: 20, stage: 1 }
@@ -443,6 +458,7 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1205, normal: 1205, ultimate: 1205 }
     levelPassives:
       - { codeId: 1013, unlockLevel: 20, stage: 1 }
@@ -470,6 +486,7 @@ enemies:
     intIncrementLvl: 2
     lukBase: 10
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1207, normal: 1207, ultimate: 1207 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }
@@ -497,6 +514,7 @@ enemies:
     intIncrementLvl: 2
     lukBase: 12
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1208, normal: 1208, ultimate: 1208 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }
@@ -529,6 +547,7 @@ enemies:
     intIncrementLvl: 2
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 300, normal: 100, ultimate: 100 }
     levelPassives:
       - { codeId: 1212, unlockLevel: 1, stage: 1 }
@@ -559,6 +578,7 @@ enemies:
     intIncrementLvl: 3
     lukBase: 24
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 301, normal: 101, ultimate: 101 }
     levelPassives:
       - { codeId: 1213, unlockLevel: 1, stage: 1 }
@@ -591,6 +611,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 40
     lukIncrementLvl: 4
+    manaMax: 100
     codes: { passive: 302, normal: 102, ultimate: 102 }
     levelPassives:
       - { codeId: 1214, unlockLevel: 1, stage: 1 }
@@ -628,6 +649,7 @@ enemies:
     intBase: 6
     lukBase: 8
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1300, normal: 1300, ultimate: 1300 }
     ultimateResourceMax: 100
     levelPassives:
@@ -658,6 +680,7 @@ enemies:
     intBase: 8
     lukBase: 10
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1300, normal: 1301, ultimate: 1301 }
     levelPassives:
       - { codeId: 1304, unlockLevel: 10, stage: 1 }
@@ -689,6 +712,7 @@ enemies:
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1301, normal: 1302, ultimate: 1302 }
     levelPassives:
       - { codeId: 44, unlockLevel: 10, stage: 1 }
@@ -718,6 +742,7 @@ enemies:
     intBase: 8
     lukBase: 16
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1301, normal: 1303, ultimate: 1303 }
     levelPassives:
       - { codeId: 44, unlockLevel: 10, stage: 1 }
@@ -749,6 +774,7 @@ enemies:
     intIncrementLvl: 2
     lukBase: 12
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1302, normal: 1304, ultimate: 1304 }
     levelPassives:
       - { codeId: 70, unlockLevel: 10, stage: 1 }
@@ -780,6 +806,7 @@ enemies:
     intIncrementLvl: 3
     lukBase: 16
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1302, normal: 1305, ultimate: 1305 }
     levelPassives:
       - { codeId: 70, unlockLevel: 10, stage: 1 }
@@ -812,6 +839,7 @@ enemies:
     intIncrementLvl: 4
     lukBase: 22
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 340, normal: 140, ultimate: 140 }
     levelPassives:
       - { codeId: 18, unlockLevel: 30, stage: 1 }
@@ -835,6 +863,7 @@ enemies:
     intBase: 45
     intIncrementLvl: 5
     lukBase: 18
+    manaMax: 100
     codes: { passive: 1303, normal: 1306, ultimate: 1306 }
     ultimateResourceType: Stack
     ultimateResourceName: 흡연경
@@ -869,6 +898,7 @@ enemies:
     intBase: 8
     lukBase: 8
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1400, normal: 1400, ultimate: 1400 }
     levelPassives:
       - { codeId: 20,  unlockLevel: 10, stage: 1 }   # 중갑병
@@ -898,6 +928,7 @@ enemies:
     intBase: 10
     lukBase: 10
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1401, normal: 1401, ultimate: 1400 }
     levelPassives:
       - { codeId: 20,  unlockLevel: 10, stage: 1 }   # 중갑병
@@ -929,6 +960,7 @@ enemies:
     intIncrementLvl: 2
     lukBase: 10
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1402, normal: 1402, ultimate: 1401 }
     levelPassives:
       - { codeId: 57, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
@@ -955,6 +987,7 @@ enemies:
     intIncrementLvl: 3
     lukBase: 12
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1402, normal: 1403, ultimate: 1402 }
     levelPassives:
       - { codeId: 57, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
@@ -983,6 +1016,7 @@ enemies:
     intBase: 8
     lukBase: 22
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1403, normal: 1404, ultimate: 1403 }
     levelPassives:
       - { codeId: 34, unlockLevel: 1,  stage: 1 }   # 변덕쟁이
@@ -1016,6 +1050,7 @@ enemies:
     intIncrementLvl: 2
     lukBase: 12
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1411, normal: 1405, ultimate: 1404 }
     levelPassives:
       - { codeId: 57, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
@@ -1045,6 +1080,7 @@ enemies:
     intBase: 14
     lukBase: 18
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 320, normal: 120, ultimate: 120 }
     ultimateResourceType: Stack
     ultimateResourceName: 우제트
@@ -1081,6 +1117,7 @@ enemies:
     intIncrementLvl: 4
     lukBase: 24
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1404, normal: 1406, ultimate: 1405 }
     levelPassives:
       - { codeId: 37, unlockLevel: 40, stage: 1 }   # 순환
@@ -1108,6 +1145,7 @@ enemies:
     intIncrementLvl: 5
     lukBase: 26
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1405, normal: 1407, ultimate: 1406 }
     levelPassives:
       - { codeId: 29,  unlockLevel: 10, stage: 1 }   # 파죽지세
@@ -1139,6 +1177,7 @@ enemies:
     intBase: 6
     lukBase: 8
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1420, normal: 1420, ultimate: 1420 }
     levelPassives:
       - { codeId: 39,   unlockLevel: 10, stage: 1 }   # 거인
@@ -1170,6 +1209,7 @@ enemies:
     intBase: 8
     lukBase: 10
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1421, normal: 1421, ultimate: 1421 }
     levelPassives:
       - { codeId: 39,   unlockLevel: 10, stage: 1 }   # 거인
@@ -1204,6 +1244,7 @@ enemies:
     intBase: 8
     lukBase: 10
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1422, normal: 1421, ultimate: 1421 }
     levelPassives:
       - { codeId: 39,   unlockLevel: 10, stage: 1 }   # 거인
@@ -1239,6 +1280,7 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1430, normal: 1430, ultimate: 1430 }
     levelPassives:
       - { codeId: 45,   unlockLevel: 10, stage: 1 }   # 민첩함 — DEX +5%
@@ -1269,6 +1311,7 @@ enemies:
     intBase: 8
     lukBase: 18
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1431, normal: 1430, ultimate: 1430 }
     levelPassives:
       - { codeId: 45,   unlockLevel: 10, stage: 1 }   # 민첩함 — DEX +5%
@@ -1301,6 +1344,7 @@ enemies:
     intBase: 8
     lukBase: 18
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1432, normal: 1430, ultimate: 1431 }
     levelPassives:
       - { codeId: 45,   unlockLevel: 10, stage: 1 }   # 민첩함 — DEX +5%
@@ -1335,6 +1379,7 @@ enemies:
     intIncrementLvl: 2
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1500, normal: 1500, ultimate: 1500 }
     levelPassives:
       - { codeId: 45,   unlockLevel: 10, stage: 1 }   # 민첩함
@@ -1370,6 +1415,7 @@ enemies:
     intIncrementLvl: 2
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1500, normal: 1500, ultimate: 1501 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
@@ -1406,6 +1452,7 @@ enemies:
     intIncrementLvl: 2
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1500, normal: 1500, ultimate: 1502 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
@@ -1442,6 +1489,7 @@ enemies:
     intIncrementLvl: 2
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1500, normal: 1500, ultimate: 1503 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
@@ -1478,6 +1526,7 @@ enemies:
     intIncrementLvl: 2
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1500, normal: 1500, ultimate: 1504 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
@@ -1514,6 +1563,7 @@ enemies:
     intIncrementLvl: 2
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1500, normal: 1500, ultimate: 1505 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
@@ -1550,6 +1600,7 @@ enemies:
     intIncrementLvl: 2
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1500, normal: 1500, ultimate: 1506 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
@@ -1586,6 +1637,7 @@ enemies:
     intIncrementLvl: 2
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1500, normal: 1500, ultimate: 1507 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
@@ -1624,6 +1676,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1510, normal: 1510, ultimate: 1510 }
     levelPassives:
       - { codeId: 17,   unlockLevel: 10, stage: 1 }   # 예리함
@@ -1658,6 +1711,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1510, normal: 1510, ultimate: 1511 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
@@ -1693,6 +1747,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1510, normal: 1510, ultimate: 1512 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
@@ -1728,6 +1783,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1510, normal: 1510, ultimate: 1513 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
@@ -1763,6 +1819,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1510, normal: 1510, ultimate: 1514 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
@@ -1798,6 +1855,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1510, normal: 1510, ultimate: 1515 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
@@ -1833,6 +1891,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1510, normal: 1510, ultimate: 1516 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
@@ -1868,6 +1927,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1510, normal: 1510, ultimate: 1517 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }
@@ -1906,6 +1966,7 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1520, normal: 1520, ultimate: 1520 }
     levelPassives:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
@@ -1939,6 +2000,7 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1520, normal: 1520, ultimate: 1521 }
     levelPassives:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
@@ -1973,6 +2035,7 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1520, normal: 1520, ultimate: 1522 }
     levelPassives:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
@@ -2007,6 +2070,7 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1520, normal: 1520, ultimate: 1523 }
     levelPassives:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
@@ -2041,6 +2105,7 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1520, normal: 1520, ultimate: 1524 }
     levelPassives:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
@@ -2075,6 +2140,7 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1520, normal: 1520, ultimate: 1525 }
     levelPassives:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
@@ -2109,6 +2175,7 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1520, normal: 1520, ultimate: 1526 }
     levelPassives:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
@@ -2143,6 +2210,7 @@ enemies:
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1520, normal: 1520, ultimate: 1527 }
     levelPassives:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
@@ -2180,6 +2248,7 @@ enemies:
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1530, normal: 1530, ultimate: 1530 }
     levelPassives:
       - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
@@ -2214,6 +2283,7 @@ enemies:
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1530, normal: 1530, ultimate: 1531 }
     levelPassives:
       - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
@@ -2249,6 +2319,7 @@ enemies:
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1530, normal: 1530, ultimate: 1532 }
     levelPassives:
       - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
@@ -2284,6 +2355,7 @@ enemies:
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1530, normal: 1530, ultimate: 1533 }
     levelPassives:
       - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
@@ -2319,6 +2391,7 @@ enemies:
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1530, normal: 1530, ultimate: 1534 }
     levelPassives:
       - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
@@ -2354,6 +2427,7 @@ enemies:
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1530, normal: 1530, ultimate: 1535 }
     levelPassives:
       - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
@@ -2389,6 +2463,7 @@ enemies:
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1530, normal: 1530, ultimate: 1536 }
     levelPassives:
       - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
@@ -2424,6 +2499,7 @@ enemies:
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1530, normal: 1530, ultimate: 1537 }
     levelPassives:
       - { codeId: 1531, unlockLevel: 10, stage: 1 }   # 흡혈귀
@@ -2462,6 +2538,7 @@ enemies:
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1550, normal: 1550, ultimate: 1550 }
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
@@ -2496,6 +2573,7 @@ enemies:
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1550, normal: 1550, ultimate: 1551 }
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
@@ -2531,6 +2609,7 @@ enemies:
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1550, normal: 1550, ultimate: 1552 }
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
@@ -2566,6 +2645,7 @@ enemies:
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1550, normal: 1550, ultimate: 1553 }
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
@@ -2601,6 +2681,7 @@ enemies:
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1550, normal: 1550, ultimate: 1554 }
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
@@ -2636,6 +2717,7 @@ enemies:
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1550, normal: 1550, ultimate: 1555 }
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
@@ -2671,6 +2753,7 @@ enemies:
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1550, normal: 1550, ultimate: 1556 }
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
@@ -2706,6 +2789,7 @@ enemies:
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1550, normal: 1550, ultimate: 1557 }
     levelPassives:
       - { codeId: 39, unlockLevel: 10, stage: 1 }   # 거인
@@ -2744,6 +2828,7 @@ enemies:
     intBase: 6
     lukBase: 18
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1560, normal: 1560, ultimate: 1560 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
@@ -2778,6 +2863,7 @@ enemies:
     intBase: 6
     lukBase: 18
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1560, normal: 1560, ultimate: 1561 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
@@ -2813,6 +2899,7 @@ enemies:
     intBase: 6
     lukBase: 18
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1560, normal: 1560, ultimate: 1562 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
@@ -2848,6 +2935,7 @@ enemies:
     intBase: 6
     lukBase: 18
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1560, normal: 1560, ultimate: 1563 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
@@ -2883,6 +2971,7 @@ enemies:
     intBase: 6
     lukBase: 18
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1560, normal: 1560, ultimate: 1564 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
@@ -2919,6 +3008,7 @@ enemies:
     intBase: 6
     lukBase: 18
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1560, normal: 1560, ultimate: 1565 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
@@ -2954,6 +3044,7 @@ enemies:
     intBase: 6
     lukBase: 18
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1560, normal: 1560, ultimate: 1566 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
@@ -2989,6 +3080,7 @@ enemies:
     intBase: 6
     lukBase: 18
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1560, normal: 1560, ultimate: 1567 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
@@ -3029,6 +3121,7 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1570, normal: 1570, ultimate: 1570 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
@@ -3063,6 +3156,7 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1570, normal: 1570, ultimate: 1570 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
@@ -3099,6 +3193,7 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1570, normal: 1570, ultimate: 1570 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
@@ -3134,6 +3229,7 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1570, normal: 1570, ultimate: 1570 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
@@ -3169,6 +3265,7 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1570, normal: 1570, ultimate: 1570 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
@@ -3204,6 +3301,7 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1570, normal: 1570, ultimate: 1570 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
@@ -3239,6 +3337,7 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1570, normal: 1570, ultimate: 1570 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
@@ -3274,6 +3373,7 @@ enemies:
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1570, normal: 1570, ultimate: 1570 }
     levelPassives:
       - { codeId: 1, unlockLevel: 10, stage: 1 }   # 성채
@@ -3315,6 +3415,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1540, normal: 1540, ultimate: 1540 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
@@ -3350,6 +3451,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1540, normal: 1541, ultimate: 1541 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
@@ -3386,6 +3488,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1540, normal: 1542, ultimate: 1542 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
@@ -3422,6 +3525,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1540, normal: 1543, ultimate: 1543 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
@@ -3458,6 +3562,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1540, normal: 1544, ultimate: 1544 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
@@ -3494,6 +3599,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1540, normal: 1545, ultimate: 1545 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
@@ -3530,6 +3636,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1540, normal: 1546, ultimate: 1546 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
@@ -3566,6 +3673,7 @@ enemies:
     intIncrementLvl: 1
     lukBase: 14
     lukIncrementLvl: 1
+    manaMax: 100
     codes: { passive: 1540, normal: 1547, ultimate: 1547 }
     levelPassives:
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
@@ -3604,6 +3712,7 @@ enemies:
     intBase: 8
     lukBase: 14
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1580, normal: 1580, ultimate: 1580 }
     levelPassives:
       - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
@@ -3638,6 +3747,7 @@ enemies:
     intBase: 8
     lukBase: 14
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1580, normal: 1580, ultimate: 1581 }
     levelPassives:
       - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
@@ -3673,6 +3783,7 @@ enemies:
     intBase: 8
     lukBase: 14
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1580, normal: 1580, ultimate: 1582 }
     levelPassives:
       - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
@@ -3708,6 +3819,7 @@ enemies:
     intBase: 8
     lukBase: 14
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1580, normal: 1580, ultimate: 1583 }
     levelPassives:
       - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
@@ -3743,6 +3855,7 @@ enemies:
     intBase: 8
     lukBase: 14
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1580, normal: 1580, ultimate: 1584 }
     levelPassives:
       - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
@@ -3778,6 +3891,7 @@ enemies:
     intBase: 8
     lukBase: 14
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1580, normal: 1580, ultimate: 1585 }
     levelPassives:
       - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
@@ -3813,6 +3927,7 @@ enemies:
     intBase: 8
     lukBase: 14
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1580, normal: 1580, ultimate: 1586 }
     levelPassives:
       - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
@@ -3848,6 +3963,7 @@ enemies:
     intBase: 8
     lukBase: 14
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1580, normal: 1580, ultimate: 1587 }
     levelPassives:
       - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
@@ -3887,6 +4003,7 @@ enemies:
     intIncrementLvl: 5
     lukBase: 20
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1590, normal: 1590, ultimate: 1590 }
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
@@ -3922,6 +4039,7 @@ enemies:
     intIncrementLvl: 5
     lukBase: 20
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1590, normal: 1591, ultimate: 1591 }
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
@@ -3958,6 +4076,7 @@ enemies:
     intIncrementLvl: 5
     lukBase: 20
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1590, normal: 1592, ultimate: 1592 }
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
@@ -3994,6 +4113,7 @@ enemies:
     intIncrementLvl: 5
     lukBase: 20
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1590, normal: 1593, ultimate: 1593 }
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
@@ -4030,6 +4150,7 @@ enemies:
     intIncrementLvl: 5
     lukBase: 20
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1590, normal: 1594, ultimate: 1594 }
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
@@ -4066,6 +4187,7 @@ enemies:
     intIncrementLvl: 5
     lukBase: 20
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1590, normal: 1595, ultimate: 1595 }
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
@@ -4102,6 +4224,7 @@ enemies:
     intIncrementLvl: 5
     lukBase: 20
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1590, normal: 1596, ultimate: 1596 }
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
@@ -4138,6 +4261,7 @@ enemies:
     intIncrementLvl: 5
     lukBase: 20
     lukIncrementLvl: 2
+    manaMax: 100
     codes: { passive: 1590, normal: 1597, ultimate: 1597 }
     levelPassives:
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
@@ -4152,3 +4276,281 @@ enemies:
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
     portrait: VOID_DRAGON_GEO_PORTRAIT
     standing: VOID_DRAGON_GEO_STANDING
+
+  # ── 노르드 테마 (themeId 17) ──────────────────────────────────────
+  # 프레이아의 영역을 약탈하는 인간 무리. 얼음은 속성이 아니라 코드가 건다.
+  # 볼바가 깔아 둔 얼음 위에 광전사의 불이 얹히면 융해가 터진다 — 이 테마의 화력원이다.
+  # 🔴 테마(stageThemes id 16)가 아직 없어 소환되지 않는다. 유닛 일곱은 전부 준비되어 있다.
+  - id: 1120
+    name: 광전사
+    themeId: 17
+    archetype: 7
+    element: Pyro
+    tier: normal
+    tags: [Nord, Human, Berserker]
+    startingItemIds: []
+    startingItemsByLevel:
+      - { itemId: 4220, minLevel: 20 }   # 약탈자의 가죽옷
+      - { itemId: 4306, minLevel: 40 }   # 바이킹 도끼
+    startingProficiencies: [Mace, MediumArmor]
+    mainStat: STR
+    subStats: [CON, LUK]
+    strBase: 18
+    strIncrementLvl: 2
+    dexBase: 14
+    dexIncrementLvl: 1
+    conBase: 20
+    conIncrementLvl: 2
+    intBase: 6
+    lukBase: 12
+    lukIncrementLvl: 1
+    manaMax: 100
+    codes: { passive: 1600, normal: 1600, ultimate: 1600 }
+    levelPassives:
+      - { codeId: 26,   unlockLevel: 10, stage: 1 }   # 과다치유
+      - { codeId: 40,   unlockLevel: 20, stage: 1 }   # 천상의 신체
+      - { codeId: 42,   unlockLevel: 30, stage: 1 }   # 클러치 플레이어
+      - { codeId: 1424, unlockLevel: 40, stage: 1 }   # 강타
+      - { codeId: 1601, unlockLevel: 50, stage: 1 }   # 설인
+      - { codeId: 1602, unlockLevel: 60, stage: 1 }   # 최후의 발악
+      - { codeId: 1531, unlockLevel: 70, stage: 1 }   # 흡혈귀
+      - { codeId: 1541, unlockLevel: 80, stage: 1 }   # 알파 개체
+    portrait: BERSERKER_PORTRAIT
+    standing: BERSERKER_STANDING
+
+  - id: 1122
+    name: 볼바
+    themeId: 17
+    archetype: 11
+    element: Cryo
+    tier: normal
+    tags: [Nord, Human, Volva]
+    startingItemIds: []
+    startingItemsByLevel:
+      - { itemId: 4307, minLevel: 40 }   # 세이드스타프르
+    startingProficiencies: [Orb, MediumArmor]
+    mainStat: CON
+    subStats: [INT]
+    strBase: 8
+    dexBase: 12
+    dexIncrementLvl: 1
+    conBase: 18
+    conIncrementLvl: 2
+    intBase: 20
+    intIncrementLvl: 2
+    lukBase: 10
+    lukIncrementLvl: 1
+    manaMax: 100
+    codes: { passive: 1610, normal: 1610, ultimate: 1610 }
+    levelPassives:
+      - { codeId: 18,   unlockLevel: 10, stage: 1 }   # 명상
+      - { codeId: 70,   unlockLevel: 20, stage: 1 }   # 의술
+      - { codeId: 7,    unlockLevel: 30, stage: 1 }   # 사전준비
+      - { codeId: 48,   unlockLevel: 40, stage: 1 }   # 맹독
+      - { codeId: 1611, unlockLevel: 50, stage: 1 }   # 눈바라기
+      - { codeId: 1612, unlockLevel: 60, stage: 1 }   # 민간요법
+      - { codeId: 1613, unlockLevel: 70, stage: 1 }   # 혹한의 사제
+      - { codeId: 1614, unlockLevel: 80, stage: 1 }   # 완벽한 치료
+    portrait: VOLVA_PORTRAIT
+    standing: VOLVA_STANDING
+
+  # 에인하르 — 광전사의 상위 유닛. 같은 코드를 더 굵은 스탯으로 쓰고 금색 상위를 먼저 든다.
+  - id: 1121
+    name: 에인하르
+    themeId: 17
+    archetype: 7
+    element: Pyro
+    tier: normal
+    tags: [Nord, Human, Berserker]
+    startingItemIds: []
+    startingItemsByLevel:
+      - { itemId: 4220, minLevel: 15 }   # 약탈자의 가죽옷
+      - { itemId: 4306, minLevel: 30 }   # 바이킹 도끼
+    startingProficiencies: [Mace, MediumArmor]
+    mainStat: STR
+    subStats: [CON, LUK]
+    strBase: 24
+    strIncrementLvl: 2
+    dexBase: 16
+    dexIncrementLvl: 1
+    conBase: 26
+    conIncrementLvl: 2
+    intBase: 6
+    lukBase: 14
+    lukIncrementLvl: 1
+    manaMax: 100
+    codes: { passive: 1600, normal: 1600, ultimate: 1600 }
+    levelPassives:
+      - { codeId: 26,   unlockLevel: 10, stage: 1 }   # 과다치유
+      - { codeId: 40,   unlockLevel: 20, stage: 1 }   # 천상의 신체
+      - { codeId: 1602, unlockLevel: 30, stage: 1 }   # 최후의 발악 (광전사는 42부터 시작한다)
+      - { codeId: 1424, unlockLevel: 40, stage: 1 }   # 강타
+      - { codeId: 1601, unlockLevel: 50, stage: 1 }   # 설인
+      - { codeId: 1531, unlockLevel: 60, stage: 1 }   # 흡혈귀
+      - { codeId: 1541, unlockLevel: 70, stage: 1 }   # 알파 개체
+      - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
+    portrait: EINHAR_PORTRAIT
+    standing: EINHAR_STANDING
+
+  # 토르 — 노르드 1의 최종 보스. 길어질수록 커진다.
+  # CON 기초를 보스치고 낮게 잡은 것은 두께를 알파 개체·완전함의 배수가 만들기 때문이다.
+  # 궁극기가 CON을 타므로 대체행동으로 쌓는 CON이 곧 화력이기도 하다.
+  - id: 3060
+    name: 토르
+    themeId: 17
+    archetype: 8
+    element: Electro
+    tier: boss
+    tags: [Nord, Divine]
+    startingItemIds: []
+    startingItemsByLevel:
+      - { itemId: 4308, minLevel: 20 }   # 메기오르드
+      - { itemId: 4309, minLevel: 30 }   # 혹한의 갑주
+      - { itemId: 4506, minLevel: 60 }   # 묠니르
+    startingProficiencies: [Mace, MediumArmor]
+    mainStat: STR
+    subStats: [CON]
+    strBase: 36
+    strIncrementLvl: 3
+    dexBase: 22
+    dexIncrementLvl: 2
+    conBase: 34
+    conIncrementLvl: 4
+    intBase: 12
+    intIncrementLvl: 1
+    lukBase: 22
+    lukIncrementLvl: 2
+    manaMax: 100
+    codes: { passive: 1620, normal: 1620, ultimate: 1620 }
+    levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1621, unlockLevel: 10, stage: 1 }   # 노르드의 왕자
+      - { codeId: 1306, unlockLevel: 20, stage: 1 }   # 망치 나가신다!
+      - { codeId: 39,   unlockLevel: 20, stage: 1 }   # 거인
+      - { codeId: 66,   unlockLevel: 30, stage: 1 }   # 자기과신
+      - { codeId: 1622, unlockLevel: 30, stage: 1 }   # 승승장구
+      - { codeId: 1601, unlockLevel: 40, stage: 1 }   # 설인
+      - { codeId: 1623, unlockLevel: 50, stage: 1 }   # 겨울바람
+      - { codeId: 1546, unlockLevel: 60, stage: 1 }   # 완전함
+      - { codeId: 1531, unlockLevel: 70, stage: 1 }   # 흡혈귀
+      - { codeId: 26,   unlockLevel: 80, stage: 1 }   # 과다치유
+      - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활
+    portrait: THOR_PORTRAIT
+    standing: THOR_STANDING
+
+  # 노른 — 볼바의 상위 유닛. 같은 코드(1610)를 더 굵은 스탯으로 쓴다.
+  # 🟡 고유 컨셉이 따로 정해지지 않아 에인하르와 같은 방식(상위 스탯 + 금색 선행 해금)으로 잡았다.
+  - id: 1123
+    name: 노른
+    themeId: 17
+    archetype: 11
+    element: Cryo
+    tier: normal
+    tags: [Nord, Human, Volva]
+    startingItemIds: []
+    startingItemsByLevel:
+      - { itemId: 4307, minLevel: 30 }   # 세이드스타프르
+    startingProficiencies: [Orb, MediumArmor]
+    mainStat: CON
+    subStats: [INT]
+    strBase: 8
+    dexBase: 14
+    dexIncrementLvl: 1
+    conBase: 24
+    conIncrementLvl: 2
+    intBase: 26
+    intIncrementLvl: 2
+    lukBase: 12
+    lukIncrementLvl: 1
+    manaMax: 100
+    codes: { passive: 1610, normal: 1610, ultimate: 1610 }
+    levelPassives:
+      - { codeId: 18,   unlockLevel: 10, stage: 1 }   # 명상
+      - { codeId: 70,   unlockLevel: 20, stage: 1 }   # 의술
+      - { codeId: 7,    unlockLevel: 25, stage: 1 }   # 사전준비 (볼바보다 5레벨 빠르다)
+      - { codeId: 48,   unlockLevel: 35, stage: 1 }   # 맹독
+      - { codeId: 1611, unlockLevel: 45, stage: 1 }   # 눈바라기
+      - { codeId: 1614, unlockLevel: 55, stage: 1 }   # 완벽한 치료 (볼바의 민간요법 대신 금색)
+      - { codeId: 1613, unlockLevel: 65, stage: 1 }   # 혹한의 사제
+      - { codeId: 1541, unlockLevel: 80, stage: 1 }   # 알파 개체
+    portrait: NORN_PORTRAIT
+    standing: NORN_STANDING
+
+  # 발키리 — 편성이 클수록 세지는 사수. 토르가 서 있으면 치명타까지 얻는다.
+  - id: 1124
+    name: 발키리
+    themeId: 17
+    archetype: 10
+    element: Cryo
+    tier: normal
+    tags: [Nord]
+    startingItemIds: [4221]
+    startingItemsByLevel:
+      - { itemId: 4310, minLevel: 40 }   # 발키리의 투구
+    startingProficiencies: [Longbow, HeavyArmor]
+    mainStat: STR
+    subStats: [DEX, LUK]
+    strBase: 20
+    strIncrementLvl: 2
+    dexBase: 16
+    dexIncrementLvl: 1
+    conBase: 22
+    conIncrementLvl: 1
+    intBase: 6
+    lukBase: 14
+    lukIncrementLvl: 1
+    manaMax: 100
+    codes: { passive: 1630, normal: 1630, ultimate: 1630 }
+    levelPassives:
+      - { codeId: 1631, unlockLevel: 10, stage: 1 }   # 승전보
+      - { codeId: 17,   unlockLevel: 20, stage: 1 }   # 예리함
+      - { codeId: 21,   unlockLevel: 30, stage: 1 }   # 명사수
+      - { codeId: 57,   unlockLevel: 40, stage: 1 }   # 원소 숙련
+      - { codeId: 1423, unlockLevel: 50, stage: 1 }   # 파쇄
+      - { codeId: 69,   unlockLevel: 60, stage: 1 }   # 기습
+      - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
+      - { codeId: 1541, unlockLevel: 80, stage: 1 }   # 알파 개체
+      - { codeId: 1622, unlockLevel: 90, stage: 1 }   # 승승장구
+    portrait: VALKYRIE_PORTRAIT
+    standing: VALKYRIE_STANDING
+
+  # 라그나르 — 4슬롯 중간 보스. 광전사의 키트를 그대로 쓰고 숫자만 굵다.
+  # 엘리트라 천살성 처형이 통하지 않는다. 앞 세 슬롯이 가르친 답이 여기서 한 번 막힌다.
+  - id: 2050
+    name: 라그나르
+    themeId: 17
+    archetype: 7
+    element: Pyro
+    tier: elite
+    tags: [Nord, Human, Berserker]
+    startingItemIds: []
+    startingItemsByLevel:
+      - { itemId: 4220, minLevel: 10 }   # 약탈자의 가죽옷
+      - { itemId: 4306, minLevel: 20 }   # 바이킹 도끼
+      - { itemId: 4405, minLevel: 40 }   # 타르에 절인 털가죽 바지
+    startingProficiencies: [Mace, MediumArmor]
+    mainStat: STR
+    subStats: [CON, LUK]
+    strBase: 30
+    strIncrementLvl: 3
+    dexBase: 18
+    dexIncrementLvl: 2
+    conBase: 48
+    conIncrementLvl: 4
+    intBase: 8
+    lukBase: 18
+    lukIncrementLvl: 2
+    manaMax: 100
+    codes: { passive: 1604, normal: 1600, ultimate: 1600 }
+    levelPassives:
+      - { codeId: 1605, unlockLevel: 1,  stage: 1 }   # 왕의 함성
+      - { codeId: 39,   unlockLevel: 10, stage: 1 }   # 거인
+      - { codeId: 42,   unlockLevel: 20, stage: 1 }   # 클러치 플레이어
+      - { codeId: 1424, unlockLevel: 30, stage: 1 }   # 강타
+      - { codeId: 1601, unlockLevel: 40, stage: 1 }   # 설인
+      - { codeId: 1602, unlockLevel: 50, stage: 1 }   # 최후의 발악
+      - { codeId: 1531, unlockLevel: 60, stage: 1 }   # 흡혈귀
+      - { codeId: 1541, unlockLevel: 70, stage: 1 }   # 알파 개체
+      - { codeId: 1306, unlockLevel: 80, stage: 1 }   # 망치 나가신다!
+    portrait: RAGNAR_PORTRAIT
+    standing: RAGNAR_STANDING

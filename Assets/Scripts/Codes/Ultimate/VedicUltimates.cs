@@ -11,12 +11,11 @@ namespace Codes.Ultimate
     /// <summary>공통 골격 — 시전 지연 후 한 번 해결하고 끝나는 궁극기.</summary>
     public abstract class SimpleUltimate : UltimateCode
     {
-        protected SimpleUltimate(UltimateCodeContext context, string name, float cooldown, float delay)
+        protected SimpleUltimate(UltimateCodeContext context, string name, float delay)
             : base(context)
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = name;
-            Cooldown = cooldown;
             CastingDelay = delay;
         }
 
@@ -49,7 +48,6 @@ namespace Codes.Ultimate
         public override void StopCode()
         {
             if (Caster == null) return;
-            Caster.ultimateCooldown = Cooldown;
             Caster.isCasting = false;
         }
 
@@ -68,7 +66,7 @@ namespace Codes.Ultimate
         private const float DetonateRatio = 0.8f;
 
         public YamaFinalArrival(UltimateCodeContext context)
-            : base(context, "언젠가 다다를 마지막", 4, 0.5f) { }
+            : base(context, "언젠가 다다를 마지막", 0.5f) { }
 
         protected override void Resolve()
         {
@@ -111,7 +109,7 @@ namespace Codes.Ultimate
         private const int FlamePower = 65;
 
         public AgniWhiteFlame(UltimateCodeContext context)
-            : base(context, "백화", 4, 0.5f) { }
+            : base(context, "백화", 0.5f) { }
 
         protected override void Resolve()
         {
@@ -152,7 +150,7 @@ namespace Codes.Ultimate
     public sealed class IndraKingOfGods : SimpleUltimate
     {
         public IndraKingOfGods(UltimateCodeContext context)
-            : base(context, "신들의 왕", 4, 0.4f) { }
+            : base(context, "신들의 왕", 0.4f) { }
 
         protected override void Resolve() => Combat.SpecialAction.OpenGate(Caster);
 
@@ -169,7 +167,7 @@ namespace Codes.Ultimate
         private const int ArmorShredStatusId = 6100;
 
         public VayuSouthWind(UltimateCodeContext context)
-            : base(context, "남풍", 4, 0.5f) { }
+            : base(context, "남풍", 0.5f) { }
 
         protected override void Resolve()
         {

@@ -14,7 +14,7 @@ namespace Codes.Ultimate
         private const int FieldTurns = 3;
 
         public SuryaDivakara(UltimateCodeContext context)
-            : base(context, "디바카르", 4, 0.4f) { }
+            : base(context, "디바카르", 0.4f) { }
 
         protected override void Resolve() => Battlefield.Set(FieldKind.Sunlight, Caster, FieldTurns);
     }

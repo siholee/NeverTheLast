@@ -25,11 +25,17 @@ namespace BaseClasses
         Legendary = 5,
     }
 
+    /// <summary>
+    /// 장비 숙련.
+    ///
+    /// <b>완드는 없앴다.</b> 지팡이·완드 형태의 무기는 창 계열이 받는다 —
+    /// 양손 지팡이는 장창(<see cref="Spear"/>), 한손 완드는 단창(<see cref="Shortspear"/>)이다.
+    /// 분류를 따로 두면 법사가 들 수 있는 무기 칸만 늘고 실제로 고를 것은 없었다.
+    /// </summary>
     public enum EquipmentProficiency
     {
         None,
         Dagger,
-        Wand,
         Orb,
         Greatsword,
         Longbow,
@@ -52,7 +58,6 @@ namespace BaseClasses
         public static bool IsWeapon(this EquipmentProficiency proficiency)
         {
             return proficiency is EquipmentProficiency.Dagger
-                or EquipmentProficiency.Wand
                 or EquipmentProficiency.Orb
                 or EquipmentProficiency.Greatsword
                 or EquipmentProficiency.Longbow

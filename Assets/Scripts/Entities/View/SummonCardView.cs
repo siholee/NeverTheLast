@@ -124,6 +124,10 @@ namespace Entities.View
         /// <summary>투사체 착탄·근접 타격 시점의 카드 반응. 칸의 같은 이름 진입점과 짝이다.</summary>
         public void PlayAttackReaction(float strength = 1f) => _card?.PlayAttackReaction(strength);
 
+        /// <summary>피해가 들어간 순간의 카드 반응. 칸의 같은 이름 진입점과 짝이다.</summary>
+        public void PlayHitReaction(float strength, bool physical, bool crit)
+            => _card?.PlayHitReaction(strength, physical, crit);
+
         private void Update()
         {
             // 칸이 매 프레임 카드를 따라가듯(Cell.Update), 소환수 카드도 스스로 따라간다.

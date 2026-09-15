@@ -35,6 +35,7 @@ namespace Managers.UI.HUD
         private const float BaseTimeScale = 0.5f;
 
         private TopStatusBar _topBar;
+        private FeatureEnemyBanner _featureBanner;
         private ActionQueuePanel _queue;
         private CodexScreen _codex;
 
@@ -58,6 +59,7 @@ namespace Managers.UI.HUD
             _queue = new ActionQueuePanel(canvas.transform);
             _topBar = new TopStatusBar(canvas.transform, CycleSpeed, ToggleCodex, OpenSettings);
             BuildResourceStrip(canvas.transform);
+            _featureBanner = new FeatureEnemyBanner(canvas.transform);
 
             _codex = new CodexScreen();
             ApplySpeed();
@@ -101,6 +103,7 @@ namespace Managers.UI.HUD
         {
             _topBar?.Tick();
             _queue?.Tick();
+            _featureBanner?.Refresh();
 
             if (Input.GetKeyDown(KeyCode.Tab)) ToggleCodex();
             if (Input.GetKeyDown(KeyCode.Escape) && _codex != null && _codex.IsOpen) _codex.Hide();

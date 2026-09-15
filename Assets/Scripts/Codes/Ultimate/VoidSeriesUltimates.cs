@@ -20,7 +20,7 @@ namespace Codes.Ultimate
         private readonly BaseEnums.UnitElement _attachedElement;
 
         public VoidKnightUltimate(UltimateCodeContext context, BaseEnums.UnitElement attachedElement)
-            : base(context, "파쇄격", 4, 0.45f)
+            : base(context, "파쇄격", 0.45f)
         {
             _attachedElement = attachedElement;
             Power = 130;
@@ -69,7 +69,7 @@ namespace Codes.Ultimate
         private readonly BaseEnums.UnitElement _attachedElement;
 
         public VoidMarksmanUltimate(UltimateCodeContext context, BaseEnums.UnitElement attachedElement)
-            : base(context, "공허의 일격", 4, 0.5f)
+            : base(context, "공허의 일격", 0.5f)
         {
             _attachedElement = attachedElement;
             Power = 100;
@@ -118,7 +118,7 @@ namespace Codes.Ultimate
         private const float ShieldConCoefficient = 0.8f;
 
         public VoidVanguardUltimate(UltimateCodeContext context)
-            : base(context, "방벽 전개", 4, 0.4f)
+            : base(context, "방벽 전개", 0.4f)
         {
             CodeTags = new List<int>();
         }
@@ -143,7 +143,7 @@ namespace Codes.Ultimate
         private readonly BaseEnums.UnitElement _attachedElement;
 
         public VoidCrusherUltimate(UltimateCodeContext context, BaseEnums.UnitElement attachedElement)
-            : base(context, "분쇄", 4, 0.55f)
+            : base(context, "분쇄", 0.55f)
         {
             _attachedElement = attachedElement;
             Power = 150;
@@ -194,7 +194,7 @@ namespace Codes.Ultimate
         private readonly BaseEnums.UnitElement _attachedElement;
 
         public VoidDragonUltimate(UltimateCodeContext context, BaseEnums.UnitElement attachedElement)
-            : base(context, "원소 붕괴", 4, 0.6f)
+            : base(context, "원소 붕괴", 0.6f)
         {
             _attachedElement = attachedElement;
             Power = 120;
@@ -250,7 +250,7 @@ namespace Codes.Ultimate
         private readonly int _elementOffset;
 
         public VoidDeerUltimate(UltimateCodeContext context, int elementOffset)
-            : base(context, "무리 부르기", 5, 0.6f)
+            : base(context, "무리 부르기", 0.6f)
         {
             _elementOffset = Mathf.Clamp(elementOffset, 0, 7);
             CodeTags = new List<int>();

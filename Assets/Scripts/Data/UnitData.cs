@@ -39,6 +39,12 @@ namespace Managers
         public int lukBase;
         public int lukIncrementLvl;
         public int lukIncrementUpgrade;
+        /// <summary>
+        /// 최대 마나. <b>유닛 고유 스탯</b>이라 레벨·강화·훈련·버프가 일절 관여하지 않는다.
+        /// 스택형 자원을 쓰는 유닛에게는 의미가 없다(그쪽은 ultimateResourceMax를 본다).
+        /// 비워 두면 기본값 100이다.
+        /// </summary>
+        public int manaMax;
         public string ultimateResourceType;
         public string ultimateResourceName;
         public int ultimateResourceMax;

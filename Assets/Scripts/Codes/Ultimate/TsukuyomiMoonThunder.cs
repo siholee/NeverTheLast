@@ -18,7 +18,6 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "월뢰만천";
-            Cooldown = 3;
             CastingDelay = 1f;
             CodeTags = new List<int> { DamageTag.Special };
         }
@@ -65,7 +64,6 @@ namespace Codes.Ultimate
 
         public override void StopCode()
         {
-            Caster.ultimateCooldown = Cooldown;
             Caster.isCasting = false;
         }
 

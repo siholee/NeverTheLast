@@ -62,7 +62,6 @@ namespace Codes.Ultimate
                 LegionUltimateStyle.Caesar => "주사위는 던져졌다",
                 _ => "군단의 비기",
             };
-            Cooldown = style is LegionUltimateStyle.Octavia or LegionUltimateStyle.Caesar ? 5f : 4f;
             CastingDelay = style == LegionUltimateStyle.Octavia ? 0.9f : 0.65f;
             MaxStage = 1;
 
@@ -290,7 +289,6 @@ namespace Codes.Ultimate
         public override void StopCode()
         {
             if (Caster == null) return;
-            Caster.ultimateCooldown = Cooldown;
             Caster.isCasting = false;
         }
 

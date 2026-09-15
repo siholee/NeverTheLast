@@ -16,6 +16,22 @@ namespace Managers
         /// 그 테마를 참조하는 사건·적·보상 데이터가 함께 죽어 되살리기 번거롭다.
         /// </summary>
         public bool enabled = true;
+
+        /// <summary>
+        /// 룰렛에서 이 테마가 뽑혔을 때 <b>대신 시작할</b> 테마. 0이면 자기 자신이다.
+        ///
+        /// 연작 테마의 확률을 올리는 장치다. 노르드 2·3도 룰렛에 그대로 들어가되
+        /// 뽑히면 노르드 1로 치환되므로, 균등 추첨을 유지한 채 노르드 1의 등장 확률만
+        /// 세 배가 된다. 추첨표를 손대지 않고 무게를 주는 방법이다.
+        /// </summary>
+        public int rotationRedirectThemeId;
+
+        /// <summary>
+        /// 이 테마의 라운드가 끝나면 <b>추첨 없이</b> 이어질 테마. 0이면 다시 추첨한다.
+        /// 노르드 1 → 2 → 3처럼 순서가 있는 연작을 묶는다.
+        /// </summary>
+        public int chainNextThemeId;
+
         public int enemyThemeId;
         public string description;
         public int midBossId;
@@ -26,8 +42,24 @@ namespace Managers
         /// </summary>
         public int midBossStageInRound;
         public int bossId;
+
+        /// <summary>
+        /// 전장 환경광 색(#RRGGBB). 비워 두면 무채색 기본값을 쓴다.
+        ///
+        /// 전장 배경이 검기만 하면 대비는 좋아도 <b>어느 테마에서 싸우는지</b>가 사라진다.
+        /// 낮은 명도로 깔아 카드 실루엣을 죽이지 않으면서 분위기만 얹는 값이다.
+        /// </summary>
+        public string ambientColor;
+
         public List<string> tags;
         public List<ThemeStagePatternData> stagePatterns;
+
+        /// <summary>파싱한 환경광. 값이 없거나 형식이 틀리면 기본 회청색이다.</summary>
+        public UnityEngine.Color Ambient =>
+            !string.IsNullOrWhiteSpace(ambientColor) &&
+            UnityEngine.ColorUtility.TryParseHtmlString(ambientColor.Trim(), out UnityEngine.Color parsed)
+                ? parsed
+                : new UnityEngine.Color(0.13f, 0.15f, 0.20f);
     }
 
     [Serializable]

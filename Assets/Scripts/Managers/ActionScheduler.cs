@@ -564,7 +564,6 @@ namespace Managers
                    && unit.isActive
                    && !unit.isControlled
                    && !unit.isCasting
-                   && unit.ultimateCooldown <= 0f
                    && unit.ActiveUltimateCode != null
                    && unit.ActiveUltimateCode.IsAutoCast
                    && unit.ActiveUltimateCode.HasValidTarget()

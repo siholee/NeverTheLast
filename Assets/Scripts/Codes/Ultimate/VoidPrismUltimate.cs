@@ -15,7 +15,7 @@ namespace Codes.Ultimate
         private readonly BaseEnums.UnitElement _attachedElement;
 
         public VoidPrismUltimate(UltimateCodeContext context, BaseEnums.UnitElement attachedElement)
-            : base(context, "프리즘 파동", 4, 0.5f)
+            : base(context, "프리즘 파동", 0.5f)
         {
             _attachedElement = attachedElement;
             Power = 150;

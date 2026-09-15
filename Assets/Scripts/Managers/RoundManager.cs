@@ -43,6 +43,10 @@ namespace Managers
         public int ContentSlotInRound => ContentSlot(Stage);
         public int CurrentThemeId => _currentStageTheme?.id ?? 0;
         public string CurrentThemeName => _currentStageTheme?.name ?? "";
+
+        /// <summary>현재 테마의 전장 환경광. 테마가 없으면 무채색 기본값이다.</summary>
+        public UnityEngine.Color CurrentThemeAmbient =>
+            _currentStageTheme?.Ambient ?? new UnityEngine.Color(0.13f, 0.15f, 0.20f);
         public bool IsCurrentBossStage => IsBossStage(Stage);
         public bool IsRoundInProgress { get; private set; }
         private int _cachedEventStage = int.MinValue;
@@ -104,6 +108,9 @@ namespace Managers
 
         private StageThemeDataList _stageThemeDataList;
         private StageThemeData _currentStageTheme;
+
+        /// <summary>테마를 뽑아 둔 라운드. 같은 라운드 안에서는 다시 뽑지 않는다.</summary>
+        private int _themeDecidedForRound;
         private List<StageThemeData> _activeThemes;
         private EnemyDataList _enemyDataList;
         private RoundTypeDataList _roundTypeDataList;
@@ -213,6 +220,14 @@ namespace Managers
             _roundTypeDataList ??= _dataManager.FetchRoundTypeDataList();
         }
 
+        /// <summary>
+        /// 이번 라운드의 테마를 정한다. <b>라운드가 바뀔 때 한 번만</b> 뽑는다.
+        ///
+        /// 예전에는 <c>stageThemes[(Round − 1) % 테마 수]</c>로 매번 다시 계산했다.
+        /// 추첨으로 바뀐 뒤에는 그렇게 하면 같은 라운드 안에서도 주사위가 다시 굴러
+        /// 스테이지마다 테마가 갈린다. 그래서 뽑은 결과를 <see cref="_themeDecidedForRound"/>에
+        /// 묶어 두고, 저장에서 되돌릴 때는 <see cref="RestoreTheme"/>로 그 값을 심는다.
+        /// </summary>
         private void EnsureThemeForCurrentRound()
         {
             if (_stageThemeDataList?.stageThemes == null || _stageThemeDataList.stageThemes.Count == 0)
@@ -221,23 +236,91 @@ namespace Managers
                 return;
             }
 
-            List<StageThemeData> themes = ActiveThemes();
-            int themeIndex = (Round - 1) % themes.Count;
-            StageThemeData selectedTheme = themes[themeIndex];
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            // 디버그로 테마를 고정했으면 라운드 계산을 무시한다. 꺼져 있는 테마도 고를 수 있어야
+            // 디버그로 테마를 고정했으면 추첨을 건너뛴다. 꺼져 있는 테마도 고를 수 있어야
             // 리메이크 중인 테마를 확인할 수 있다.
             if (Core.DebugMode.ForcedThemeId > 0)
             {
                 StageThemeData forced = _stageThemeDataList.stageThemes
                     .FirstOrDefault(theme => theme.id == Core.DebugMode.ForcedThemeId);
-                if (forced != null) selectedTheme = forced;
+                if (forced != null)
+                {
+                    _currentStageTheme = forced;
+                    _themeDecidedForRound = Round;
+                    return;
+                }
             }
 #endif
+            if (_currentStageTheme != null && _themeDecidedForRound == Round) return;
+
+            StageThemeData selectedTheme = PickThemeForNewRound();
+            if (selectedTheme == null) return;
+
+            _themeDecidedForRound = Round;
             if (_currentStageTheme?.id == selectedTheme.id) return;
 
             _currentStageTheme = selectedTheme;
             Debug.Log($"Round {Round} theme: {_currentStageTheme.name}");
+        }
+
+        /// <summary>
+        /// 새 라운드의 테마를 고른다. 앞 테마가 연작을 물고 있으면 추첨하지 않고 그쪽을 잇는다.
+        ///
+        /// 추첨은 <b>균등</b>이다. 연작의 등장 확률은 가중치가 아니라
+        /// <see cref="StageThemeData.rotationRedirectThemeId"/>로 올린다 —
+        /// 노르드 2·3이 뽑혀도 노르드 1로 치환되므로 추첨표를 손대지 않고 세 배가 된다.
+        /// </summary>
+        private StageThemeData PickThemeForNewRound()
+        {
+            List<StageThemeData> themes = ActiveThemes();
+            if (themes.Count == 0) return _currentStageTheme;
+
+            // 연작의 다음 편. 추첨을 건너뛴다.
+            if (_currentStageTheme != null && _currentStageTheme.chainNextThemeId > 0)
+            {
+                StageThemeData next = FindTheme(_currentStageTheme.chainNextThemeId);
+                if (next != null) return next;
+
+                Debug.LogWarning($"[RoundManager] 테마 {_currentStageTheme.id}의 다음 편 " +
+                                 $"{_currentStageTheme.chainNextThemeId}를 찾지 못해 추첨으로 넘어갑니다.");
+            }
+
+            StageThemeData drawn = themes[Random.Range(0, themes.Count)];
+            if (drawn.rotationRedirectThemeId <= 0) return drawn;
+
+            StageThemeData entry = FindTheme(drawn.rotationRedirectThemeId);
+            if (entry == null)
+            {
+                Debug.LogWarning($"[RoundManager] 테마 {drawn.id}의 치환 대상 " +
+                                 $"{drawn.rotationRedirectThemeId}를 찾지 못해 그대로 씁니다.");
+                return drawn;
+            }
+
+            Debug.Log($"[RoundManager] 추첨은 {drawn.name}이지만 연작 시작인 {entry.name}으로 치환합니다.");
+            return entry;
+        }
+
+        private StageThemeData FindTheme(int themeId) => _stageThemeDataList?.stageThemes?
+            .FirstOrDefault(theme => theme != null && theme.id == themeId);
+
+        /// <summary>
+        /// 저장에서 되돌린 테마를 그대로 심는다. 추첨을 다시 굴리지 않는다.
+        /// 테마를 저장하지 않던 시절의 저장본은 <paramref name="themeId"/>가 0이라 그냥 추첨한다.
+        /// </summary>
+        public void RestoreTheme(int themeId)
+        {
+            if (themeId <= 0) return;
+
+            EnsureDataLoaded();
+            StageThemeData restored = FindTheme(themeId);
+            if (restored == null)
+            {
+                Debug.LogWarning($"[RoundManager] 저장된 테마 {themeId}를 찾지 못했습니다. 새로 뽑습니다.");
+                return;
+            }
+
+            _currentStageTheme = restored;
+            _themeDecidedForRound = Round;
         }
 
         /// <summary>
@@ -503,7 +586,8 @@ namespace Managers
             // 보스 라운드
             if (roundType.isBoss)
             {
-                enemyIdsToSpawn.Add(selectedPattern.bossId);
+                int bossId = ResolveFallbackEnemy(selectedPattern.bossId, "boss");
+                if (bossId > 0) enemyIdsToSpawn.Add(bossId);
                 
                 // 보스 호위 추가 (패턴의 archetypes)
                 if (selectedPattern.archetypes != null)
@@ -523,7 +607,8 @@ namespace Managers
                 {
                     foreach (int eliteId in selectedPattern.eliteIds)
                     {
-                        enemyIdsToSpawn.Add(eliteId);
+                        int resolved = ResolveFallbackEnemy(eliteId, "elite");
+                        if (resolved > 0) enemyIdsToSpawn.Add(resolved);
                     }
                 }
                 
@@ -584,6 +669,34 @@ namespace Managers
         }
 
         /// <summary>
+        /// 폴백 편성(<c>70_rounds.yaml</c>)에 박힌 적 ID를 <b>현재 테마의 적</b>으로 바꾼다.
+        ///
+        /// 폴백의 엘리트·보스 ID는 콜로세움 시절 값이 그대로 남아 있다. 그대로 쓰면
+        /// stagePatterns가 없는 슬롯 하나만 생겨도 꺼 둔 테마의 적이 튀어나온다.
+        /// 지금은 슬롯 5(사건)만 비어 있어 이 길로 내려오지 않지만,
+        /// 테마를 새로 넣을 때 그 사고가 나지 않게 여기서 막는다.
+        ///
+        /// 주어진 ID가 이미 현재 테마의 적이면 그대로 두고, 아니면 같은 등급에서 하나 고른다.
+        /// </summary>
+        private int ResolveFallbackEnemy(int enemyId, string tier)
+        {
+            int themeId = _currentStageTheme?.enemyThemeId ?? 0;
+            EnemyData given = _enemyDataList?.enemies?.FirstOrDefault(enemy => enemy.id == enemyId);
+            if (given != null && given.themeId == themeId) return enemyId;
+
+            List<EnemyData> candidates = _enemyDataList?.enemies?
+                .Where(enemy => enemy.themeId == themeId && enemy.tier == tier)
+                .ToList();
+            if (candidates == null || candidates.Count == 0)
+            {
+                Debug.LogWarning($"[RoundManager] 테마 {themeId}에 {tier} 등급 적이 없어 폴백 편성을 비웁니다.");
+                return 0;
+            }
+
+            return candidates[Random.Range(0, candidates.Count)].id;
+        }
+
+        /// <summary>
         /// 테마와 적 분류로 랜덤 적 ID를 가져옴
         /// </summary>
         private int GetRandomEnemyByThemeAndArchetype(int themeId, int archetypeId)
@@ -637,6 +750,23 @@ namespace Managers
         {
             PlaceColumn(1, frontIds);
             PlaceColumn(2, rearIds);
+            ApplyFeaturePresentation();
+        }
+
+        /// <summary>
+        /// 엘리트·보스가 <b>단독이나 2인조로만</b> 서는 판이면 그 카드를 키운다.
+        /// 커진 카드는 옆 칸을 침범하므로 잡졸이 함께 선 판에서는 켜지 않는다.
+        /// 상단 체력 띠는 조건이 더 느슨해서 중간 보스에서도 뜬다.
+        /// </summary>
+        private void ApplyFeaturePresentation()
+        {
+            List<Unit> featured = Combat.FeatureEnemies.SoloStageTargets();
+            if (featured.Count == 0) return;
+
+            foreach (Unit unit in featured)
+            {
+                unit.currentCell?.SetFeatureScale(Cell.FeatureCardScale);
+            }
         }
 
         private void PlaceColumn(int xPos, List<int> enemyIds)

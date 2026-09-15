@@ -16,7 +16,7 @@ namespace Codes.Ultimate
     public sealed class NicoleOvercharge : SimpleUltimate
     {
         public NicoleOvercharge(UltimateCodeContext context)
-            : base(context, "오버차지", 4f, 0.35f) { }
+            : base(context, "오버차지", 0.35f) { }
 
         protected override void Resolve()
         {

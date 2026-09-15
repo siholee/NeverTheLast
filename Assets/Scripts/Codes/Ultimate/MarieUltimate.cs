@@ -11,7 +11,7 @@ namespace Codes.Ultimate
         private const int StatusId = 6513;
 
         public MarieSongOfRevolution(UltimateCodeContext context)
-            : base(context, "혁명의 노래", 4f, 0.35f) { }
+            : base(context, "혁명의 노래", 0.35f) { }
 
         protected override void Resolve()
         {

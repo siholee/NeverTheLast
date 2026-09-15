@@ -18,7 +18,7 @@ namespace Codes.Ultimate
     {
         public override bool IsAutoCast => false;
         public HorusWadjet(UltimateCodeContext context) : base(context)
-        { CodeType = BaseEnums.CodeType.Ultimate; CodeName = "우제트"; Cooldown = 0; CastingDelay = 0f; }
+        { CodeType = BaseEnums.CodeType.Ultimate; CodeName = "우제트"; CastingDelay = 0f; }
         public override bool HasValidTarget() => false;
     }
 
@@ -29,7 +29,6 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "저승의 바위 창";
-            Cooldown = 4;
             CastingDelay = 0.55f;
             Power = 80;
         }
@@ -100,7 +99,6 @@ namespace Codes.Ultimate
         public override void StopCode()
         {
             if (Caster == null) return;
-            Caster.ultimateCooldown = Cooldown;
             Caster.isCasting = false;
         }
 
@@ -119,7 +117,7 @@ namespace Codes.Ultimate
 
         public override bool IsAutoCast => false;
         public BastetApexExecution(UltimateCodeContext context) : base(context)
-        { CodeType = BaseEnums.CodeType.Ultimate; CodeName = "야수의 추격"; Cooldown = 0; CastingDelay = 0f; }
+        { CodeType = BaseEnums.CodeType.Ultimate; CodeName = "야수의 추격"; CastingDelay = 0f; }
 
         public void StartPassive()
         {
@@ -211,7 +209,6 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "화염 참격";
-            Cooldown = 4;
             CastingDelay = 0.5f;
             Power = 120;
         }
@@ -263,7 +260,6 @@ namespace Codes.Ultimate
         public override void StopCode()
         {
             if (Caster == null) return;
-            Caster.ultimateCooldown = Cooldown;
             Caster.isCasting = false;
         }
 
@@ -278,7 +274,6 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "지혜의 눈";
-            Cooldown = 4;
             CastingDelay = 0.5f;
         }
 
@@ -312,7 +307,6 @@ namespace Codes.Ultimate
         public override void StopCode()
         {
             if (Caster == null) return;
-            Caster.ultimateCooldown = Cooldown;
             Caster.isCasting = false;
         }
 
@@ -326,7 +320,6 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "사막의 격류";
-            Cooldown = 4;
             CastingDelay = 0.55f;
             Power = 40;
         }
@@ -380,7 +373,6 @@ namespace Codes.Ultimate
         public override void StopCode()
         {
             if (Caster == null) return;
-            Caster.ultimateCooldown = Cooldown;
             Caster.isCasting = false;
         }
 

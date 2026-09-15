@@ -14,7 +14,6 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             Caster = context.Caster;
-            Cooldown = 4;
             CodeName = "만종";
             CastingDelay = 0f;
         }
@@ -43,7 +42,6 @@ namespace Codes.Ultimate
 
         public override void StopCode()
         {
-            Caster.ultimateCooldown = Cooldown;
             Caster.isCasting = false;
         }
 

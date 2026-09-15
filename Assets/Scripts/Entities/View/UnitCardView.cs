@@ -65,6 +65,12 @@ namespace Entities.View
         /// <summary>스택 칸을 가르는 선. 물이 찼든 안 찼든 같은 색으로 보이게 어둡다.</summary>
         private static readonly Color RingTick = new(0.067f, 0.071f, 0.082f, 1f);
 
+        /// <summary>상태 아이콘 받침. 초상화 위에서도 그림이 뜨도록 거의 검다.</summary>
+        private static readonly Color DotBacking = new(0.047f, 0.051f, 0.059f, 0.84f);
+
+        /// <summary>충전 중인 궁극기 표식. 물 위에 흐리게 깔린다.</summary>
+        private static readonly Color MarkIdle = new(1f, 1f, 1f, 0.26f);
+
         /// <summary>
         /// 칸 나누기를 그려 줄 스택 수의 상한. 이보다 많으면 칸이 선 두께만큼도 안 남아
         /// 줄무늬로만 보이므로 그냥 연속 게이지로 둔다.
@@ -88,9 +94,18 @@ namespace Entities.View
         private const float ActionHeight = 2.9f;
         private const float DotTop = 117.0f;
 
-        /// <summary>상태 아이콘 한 변. 그림이 들어가면서 점일 때보다 조금 키웠다.</summary>
-        private const float DotSize = 12f;
-        private const float DotGap = 14f;
+        /// <summary>
+        /// 상태 아이콘 한 변. 8배속에서 읽으려면 12로는 모자랐다.
+        /// 받침까지 합쳐 카드 한 변의 15%를 준다.
+        /// </summary>
+        private const float DotSize = 15f;
+        private const float DotGap = 17f;
+
+        /// <summary>아이콘 받침 안에서 그림이 차지하는 비율. 나머지는 여백이다.</summary>
+        private const float DotIconRatio = 0.74f;
+
+        /// <summary>중첩 수 글자의 한 변(캔버스 단위).</summary>
+        private const float DotCountSize = 8.5f;
 
         private static TMP_FontAsset _font;
         private static bool _fontSearched;
@@ -115,6 +130,9 @@ namespace Entities.View
 
         /// <summary>링 색을 다시 계산할지 판단할 때 쓰는 직전 원소 이름.</summary>
         private string _ringElementName;
+
+        /// <summary>충전 중일 때의 링 색. 다 차면 금색으로 바뀌므로 되돌릴 값을 들고 있는다.</summary>
+        private Color _ringColor = UITheme.Mana;
         private Image _hpFill;
         private Image _shieldFill;
         private RectTransform _hpTicks;
@@ -123,6 +141,15 @@ namespace Entities.View
         private int _hpTickCount = -1;
         private Image _actionFill;
         private readonly Image[] _dots = new Image[MaxDots];
+        private readonly Image[] _dotBacks = new Image[MaxDots];
+        private readonly Image[] _dotCounts = new Image[MaxDots];
+
+        /// <summary>한 칸에 모은 상태와 그 중첩 수. 매 프레임 다시 채우므로 새로 만들지 않는다.</summary>
+        private readonly List<UnitStatus> _dotStatuses = new();
+        private readonly List<int> _dotStackCounts = new();
+
+        /// <summary>궁극기 게이지 안의 표식. 이 자리가 충전량임을 알린다.</summary>
+        private Image _ultMark;
         private Image _hitFlash;
 
         // ── 타격 · 시전 반응 ─────────────────────────────────────────
@@ -132,6 +159,15 @@ namespace Entities.View
         private const float PunchAmount = 0.07f; // 커지는 비율
         private const float LungeDistance = 0.9f;
         private const float RecoilDistance = 0.55f;
+
+        /// <summary>물리 타격에 카드가 떠는 시간. 길면 '맞았다'가 아니라 '고장났다'로 보인다.</summary>
+        private const float ShakeTime = 0.20f;
+
+        /// <summary>떨림의 최대 진폭(월드 단위). 찍기(0.9)보다 작아야 반응이 겹쳐도 읽힌다.</summary>
+        private const float ShakeDistance = 0.62f;
+
+        /// <summary>가로 떨림의 주파수(Hz). 세로는 이보다 느려 한 방향으로만 떨지 않는다.</summary>
+        private const float ShakeFrequency = 32f;
         private const float AirborneRiseTime = 0.16f;
         private const float AirborneFallTime = 0.22f;
 
@@ -141,6 +177,11 @@ namespace Entities.View
         private float _punch;
         private float _lunge;
         private float _recoil;
+
+        /// <summary>물리 타격의 떨림. 1에서 0으로 줄며, 남은 값이 곧 진폭이다.</summary>
+        private float _shake;
+        private float _shakeStrength;
+        private float _shakeSeed;
         private float _airborneLift;
         private int _facing = 1;
         private int _lastHp = -1;
@@ -316,6 +357,14 @@ namespace Entities.View
             _ultTicks = UIBuild.Container("Ticks", _ultRoot);
             UIBuild.Stretch(_ultTicks, RingEdge, RingEdge);
 
+            // 게이지 안의 표식(⌃⌃). 원소색 원반 하나만 있으면 "원소 표시"인지 "충전량"인지
+            // 색만으로는 갈리지 않는다. 방향을 가진 표식이 들어가야 차오르는 자리로 읽힌다.
+            // 충전 중에는 흐리게 깔려 있다가 다 차면 또렷해진다.
+            _ultMark = NewImage(_ultRoot, "Mark", Color.white);
+            _ultMark.sprite = UIShapes.Chevron(96, Color.white);
+            _ultMark.preserveAspect = true;
+            UIBuild.Stretch(_ultMark.rectTransform, RingEdge * 3.2f, RingEdge * 3.2f);
+
             // 테두리는 가장 위에. 수위와 무관하게 늘 같은 굵기다.
             // 색은 유닛의 원소를 따라가므로 Bind에서 다시 칠한다.
             _ultOutline = NewImage(_ultRoot, "Outline", UITheme.Mana);
@@ -338,16 +387,38 @@ namespace Entities.View
             _actionFill = NewImage(actionTrack.transform, "ActionFill", UITheme.ActionYellow);
 
             // ── 상태 아이콘 ──
-            // 예전에는 초록·적색 점이라 "뭔가 걸려 있다"까지만 읽혔다. 지금은 그림이 붙어
-            // 무엇이 걸렸는지도 함께 읽힌다. 색은 그대로 분류를 나타낸다.
+            // 예전에는 초록·적색 점이라 "뭔가 걸려 있다"까지만 읽혔다. 지금은 그림이 붙고,
+            // 어두운 받침 위에 얹혀 초상화 위에서도 형태가 뜬다.
+            // 색이 분류를 말한다 — 이로움 초록 · 해로움 적색 · 행동 불가 보라.
             for (int i = 0; i < MaxDots; i++)
             {
-                Image dot = UIBuild.Solid($"Status{i}", root, UITheme.TextMuted);
+                Image back = NewImage(root, $"StatusBack{i}", DotBacking);
+                back.sprite = UIShapes.Disc(64, Color.white);
+                back.type = Image.Type.Simple;
+                Place(back.rectTransform, i * DotGap, DotTop, DotSize, DotSize);
+                back.enabled = false;
+                _dotBacks[i] = back;
+
+                Image dot = NewImage(back.transform, $"Status{i}", UITheme.TextMuted);
                 dot.type = Image.Type.Simple;
                 dot.preserveAspect = true;
-                Place(dot.rectTransform, i * DotGap, DotTop, DotSize, DotSize);
+                UIBuild.Stretch(dot.rectTransform,
+                    DotSize * (1f - DotIconRatio) * 0.5f, DotSize * (1f - DotIconRatio) * 0.5f);
                 dot.enabled = false;
                 _dots[i] = dot;
+
+                // 중첩 수는 오른쪽 아래 구석에 붙는다. 1이면 그리지 않는다 —
+                // 모든 아이콘에 1이 붙으면 숫자가 배경 무늬가 된다.
+                Image count = NewImage(back.transform, $"StatusCount{i}", Color.white);
+                count.preserveAspect = true;
+                count.type = Image.Type.Simple;
+                count.rectTransform.anchorMin = new Vector2(1f, 0f);
+                count.rectTransform.anchorMax = new Vector2(1f, 0f);
+                count.rectTransform.pivot = new Vector2(1f, 0f);
+                count.rectTransform.sizeDelta = new Vector2(DotCountSize, DotCountSize);
+                count.rectTransform.anchoredPosition = new Vector2(DotCountSize * 0.30f, -DotCountSize * 0.22f);
+                count.enabled = false;
+                _dotCounts[i] = count;
             }
 
             // 맞았을 때 카드 전체가 하얗게 번쩍인다. 카드 위 무엇보다 나중에 만들어 맨 앞에 둔다.
@@ -451,6 +522,8 @@ namespace Entities.View
             if (!combatHud)
             {
                 foreach (Image dot in _dots) dot.enabled = false;
+                foreach (Image back in _dotBacks) back.enabled = false;
+                foreach (Image count in _dotCounts) count.enabled = false;
                 _actingOutline.enabled = false;
             }
 
@@ -499,6 +572,7 @@ namespace Entities.View
             // 아닌 유닛의 수위가 실제와 어긋났다.
             int resourceMax = _unit.ManaMax > 0 ? _unit.ManaMax : _unit.GetUltimateResourceMax();
             _ultFill.fillAmount = resourceMax > 0 ? Mathf.Clamp01(_unit.ManaCurr / (float)resourceMax) : 0f;
+            RefreshUltimateReady(_ultFill.fillAmount >= 0.999f);
 
             // ── 행동 게이지 ──
             ActionScheduler scheduler = GameManager.Instance?.ActionScheduler;
@@ -532,18 +606,66 @@ namespace Entities.View
             }
         }
 
+        /// <summary>
+        /// 상태 아이콘을 다시 그린다.
+        ///
+        /// <b>같은 Key는 한 칸에 모으고 수를 적는다.</b> 중첩은 같은 상태를 여러 개
+        /// 들고 있는 것으로 구현돼 있어(<c>StatusStackPolicy.Stack</c>), 예전처럼 목록을
+        /// 그대로 늘어놓으면 화상 5중첩 하나가 다섯 칸을 전부 먹었다.
+        /// </summary>
         private void RefreshStatusDots()
         {
+            _dotStatuses.Clear();
+            _dotStackCounts.Clear();
+
             IReadOnlyList<UnitStatus> statuses = _unit.ActiveStatuses;
+            if (statuses != null)
+            {
+                for (int i = 0; i < statuses.Count; i++)
+                {
+                    UnitStatus status = statuses[i];
+                    if (status == null) continue;
+
+                    int slot = IndexOfKey(status.Key);
+                    if (slot >= 0)
+                    {
+                        _dotStackCounts[slot]++;
+                        continue;
+                    }
+
+                    if (_dotStatuses.Count >= MaxDots) continue;
+                    _dotStatuses.Add(status);
+                    _dotStackCounts.Add(1);
+                }
+            }
+
             for (int i = 0; i < _dots.Length; i++)
             {
-                bool has = statuses != null && i < statuses.Count && statuses[i] != null;
+                bool has = i < _dotStatuses.Count;
+                _dotBacks[i].enabled = has;
                 _dots[i].enabled = has;
+                _dotCounts[i].enabled = has && _dotStackCounts[i] > 1;
                 if (!has) continue;
 
-                _dots[i].sprite = StatusIcons.For(statuses[i]);
-                _dots[i].color = StatusIcons.Tint(statuses[i]);
+                Color tint = StatusIcons.Tint(_dotStatuses[i]);
+                _dots[i].sprite = StatusIcons.For(_dotStatuses[i]);
+                _dots[i].color = tint;
+
+                if (!_dotCounts[i].enabled) continue;
+                _dotCounts[i].sprite = UIShapes.Digit(_dotStackCounts[i], Color.white);
+                // 숫자는 아이콘보다 밝게 둔다. 같은 색이면 그림에 섞여 읽히지 않는다.
+                _dotCounts[i].color = Color.Lerp(tint, Color.white, 0.55f);
             }
+        }
+
+        private int IndexOfKey(string key)
+        {
+            for (int i = 0; i < _dotStatuses.Count; i++)
+            {
+                if (string.Equals(_dotStatuses[i].Key, key, System.StringComparison.Ordinal)) return i;
+            }
+
+            return -1;
         }
 
         private void Show(bool visible)
@@ -590,17 +712,40 @@ namespace Entities.View
         /// </summary>
         public void PlayAttackReaction(float strength = 1f) => PlayCast(strength);
 
-        /// <summary>맞는 순간 하얗게 번쩍이며 뒤로 밀린다.</summary>
-        private void PlayHit()
+        /// <summary>
+        /// 맞는 순간의 반응. 하얗게 번쩍이며 뒤로 밀리고, <b>물리 타격이면 떤다</b>.
+        ///
+        /// 세기는 <see cref="Effects.CombatFeedback"/>가 '최대 체력의 몇 할을 잃었는가'로 잰다.
+        /// 잔매와 한 방이 같은 크기로 흔들리면 무엇이 아팠는지 알 수 없다.
+        /// </summary>
+        /// <param name="strength">0~1 남짓의 세기. 1이 한 방에 가깝다.</param>
+        /// <param name="physical">베기·찌르기·타격 등 물리인가. 마법은 떨지 않고 번쩍이기만 한다.</param>
+        /// <param name="crit">치명타면 떨림을 한 번 더 키운다.</param>
+        public void PlayHitReaction(float strength, bool physical, bool crit)
         {
+            float scaled = Mathf.Clamp(strength, 0.2f, 1.4f);
+
             _flash = 1f;
-            _punch = 1f;
-            _recoil = 1f;
+            _punch = Mathf.Max(_punch, Mathf.Min(1f, 0.7f + 0.3f * scaled));
+            _recoil = Mathf.Max(_recoil, Mathf.Min(1f, scaled));
+
+            if (physical)
+            {
+                _shake = 1f;
+                _shakeStrength = Mathf.Min(1.3f, scaled * (crit ? 1.3f : 1f));
+                _shakeSeed = Random.value * 10f;
+            }
+
+            // 체력 변화로 잡는 자동 감지와 겹치지 않게 기준값을 맞춰 둔다.
+            if (_unit != null) _lastHp = _unit.HpCurr;
         }
+
+        /// <summary>체력이 줄어든 것만 보고 잡아내는 기본 반응. 출처를 모르는 피해가 여기로 온다.</summary>
+        private void PlayHit() => PlayHitReaction(0.6f, physical: false, crit: false);
 
         private void ResetReaction()
         {
-            _flash = _punch = _lunge = _recoil = 0f;
+            _flash = _punch = _lunge = _recoil = _shake = 0f;
             _airborneLift = 0f;
             _lastHp = -1;
             ApplyReaction();
@@ -617,7 +762,7 @@ namespace Entities.View
             float airborneStep = Cell.CardSize * 0.13f * deltaTime / airborneTime;
             float nextAirborne = Mathf.MoveTowards(_airborneLift, airborneTarget, airborneStep);
 
-            bool moving = _flash > 0f || _punch > 0f || _lunge > 0f || _recoil > 0f
+            bool moving = _flash > 0f || _punch > 0f || _lunge > 0f || _recoil > 0f || _shake > 0f
                 || !Mathf.Approximately(nextAirborne, _airborneLift);
             if (!moving) return;
 
@@ -626,6 +771,7 @@ namespace Entities.View
             _punch = Mathf.Max(0f, _punch - deltaTime / PunchTime);
             _lunge = Mathf.Max(0f, _lunge - deltaTime / LungeTime);
             _recoil = Mathf.Max(0f, _recoil - deltaTime / PunchTime);
+            _shake = Mathf.Max(0f, _shake - deltaTime / ShakeTime);
             ApplyReaction();
         }
 
@@ -646,7 +792,19 @@ namespace Entities.View
             // 찍기는 나갔다 돌아오는 모양(0 → 1 → 0), 밀림은 곧바로 사그라든다.
             float lungeShape = Mathf.Sin(Mathf.PI * (1f - _lunge));
             float offsetX = _facing * (LungeDistance * lungeShape - RecoilDistance * _recoil);
-            var offset = new Vector3(offsetX, _airborneLift, 0f);
+            float offsetY = _airborneLift;
+
+            // 떨림은 남은 시간을 위상으로 삼아 흔든다. 진폭은 제곱으로 줄어 끝이 깔끔하다.
+            if (_shake > 0f)
+            {
+                float elapsed = (1f - _shake) * ShakeTime;
+                float amplitude = ShakeDistance * _shakeStrength * _shake * _shake;
+                offsetX += Mathf.Sin((elapsed + _shakeSeed) * ShakeFrequency * Mathf.PI * 2f) * amplitude;
+                offsetY += Mathf.Sin((elapsed + _shakeSeed) * ShakeFrequency * 0.72f * Mathf.PI * 2f + 1.3f)
+                           * amplitude * 0.55f;
+            }
+
+            var offset = new Vector3(offsetX, offsetY, 0f);
 
             transform.localPosition = offset;
             transform.localScale = Vector3.one * scale;
@@ -680,8 +838,33 @@ namespace Entities.View
                 ? UITheme.Mana
                 : Effects.Projectiles.ElementalProjectiles.PastelColorFor(element);
 
+            _ringColor = ring;
             _ultOutline.color = ring;
             _ultFill.color = ring;
+        }
+
+        /// <summary>
+        /// 다 찼는지를 색과 맥동으로 알린다.
+        ///
+        /// 궁극기는 자원이 차는 즉시 예약되므로 '준비됨'은 길어야 한 박자다.
+        /// 그래도 표시가 필요한 것은, 그 한 박자가 <b>지금 큰 것이 나온다</b>는 유일한 예고이기 때문이다.
+        /// 맥동은 <c>unscaledTime</c>으로 센다 — 8배속에서 전투 시간으로 세면 깜빡임이 된다.
+        /// </summary>
+        private void RefreshUltimateReady(bool ready)
+        {
+            if (_ultMark == null) return;
+
+            if (!ready)
+            {
+                // 충전 중에는 표식이 물 아래 흐리게 깔려 있다. 자리가 무엇인지만 알리면 된다.
+                _ultMark.color = MarkIdle;
+                _ultOutline.color = _ringColor;
+                return;
+            }
+
+            float pulse = 0.74f + 0.26f * Mathf.Sin(Time.unscaledTime * 6.6f);
+            _ultMark.color = new Color(1f, 1f, 1f, pulse);
+            _ultOutline.color = Color.Lerp(_ringColor, UITheme.Accent, 0.75f);
         }
 
         /// <summary>

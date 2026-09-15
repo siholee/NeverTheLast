@@ -78,8 +78,17 @@ public class Cell : MonoBehaviour
     /// <summary>같은 행 안에서 렌더링 순서를 나누는 간격.</summary>
     private const int DepthSortingStep = 10;
 
+    /// <summary>
+    /// 엘리트·보스 단독 편성에서 카드와 초상화를 키우는 배율.
+    ///
+    /// 한 칸에 하나씩 서는 판에서 보스가 잡졸과 같은 크기로 나오면 무게가 실리지 않는다.
+    /// 옆 칸이 비어 있을 때만 켜지므로 커진 카드가 다른 유닛을 가리지 않는다.
+    /// </summary>
+    public const float FeatureCardScale = 1.5f;
+
     private SpriteRenderer _groundPad;
     private UnitCardView _card;
+    private float _featureScale = 1f;
 
     /// <summary>이 칸의 렌더링 순서 기준값. 칸 위에 얹는 카드가 이 값에서 출발한다.</summary>
     public int DepthOrder { get; private set; }
@@ -106,6 +115,23 @@ public class Cell : MonoBehaviour
         // 체력 · 마나 · 방어막 바는 이제 카드(UnitCardView)가 들고 있다.
         // 프리팹에 남아 있는 옛 바 오브젝트는 카드와 겹쳐 보이므로 통째로 꺼 둔다.
         if (uiObject != null) uiObject.SetActive(false);
+    }
+
+    /// <summary>
+    /// 이 칸의 카드·초상화 배율을 바꾼다. 1이면 보통 크기다.
+    /// 편성이 확정된 뒤 <see cref="Managers.GridManager"/>가 한 번 부른다.
+    /// </summary>
+    public void SetFeatureScale(float scale)
+    {
+        float next = Mathf.Max(0.1f, scale);
+        if (Mathf.Approximately(_featureScale, next)) return;
+
+        _featureScale = next;
+        EnsureCard();
+        _card.Resize(CardSize * _featureScale);
+
+        // 초상화는 카드와 별개의 렌더러라 같은 배율을 직접 다시 먹여야 한다.
+        if (portraitRenderer != null) SetPortrait(portraitRenderer.sprite);
     }
 
     private void EnsureCard()
@@ -199,7 +225,7 @@ public class Cell : MonoBehaviour
             return;
         }
 
-        float scale = PortraitScaleFor(sprite);
+        float scale = PortraitScaleFor(sprite) * _featureScale;
         portraitRenderer.transform.localScale = new Vector3(scale, scale, 1f);
 
         // 칸 한가운데에 세운다. 예전처럼 발밑을 타일 중심에 맞추면 캐릭터가 칸 위로 솟아
@@ -373,6 +399,13 @@ public class Cell : MonoBehaviour
     {
         EnsureCard();
         _card?.PlayAttackReaction(strength);
+    }
+
+    /// <summary>피해가 들어간 순간의 카드 반응. 물리면 떨림까지 함께 친다.</summary>
+    public void PlayHitReaction(float strength, bool physical, bool crit)
+    {
+        EnsureCard();
+        _card?.PlayHitReaction(strength, physical, crit);
     }
 
     // ── 예전 프리팹 바 진입점 ────────────────────────────────────────

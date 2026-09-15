@@ -40,6 +40,10 @@ FULL_FIGURE_PORTRAIT_ASSETS = {
 # 생성 원본이 피사체 알파와 함께 매우 낮은 불투명도의 조명 배경까지 포함한 경우다.
 # 피사체는 대부분 alpha 250 이상이므로 낮은 알파만 제거하고 가장자리는 다시 매핑한다.
 LOW_OPACITY_BACKDROP_ASSETS = {
+    "RAGNAR_STANDING.png",
+    "THOR_STANDING.png",
+    "NORN_STANDING.png",
+    "VALKYRIE_STANDING.png",
     "VOID_MARKSMAN_STANDING.png",
     "APOCALYPSE_MARKSMAN_STANDING.png",
     "VOID_MARKSMAN_NATURE_STANDING.png",

@@ -51,9 +51,15 @@ namespace Managers.UI.DevTools
         {
             Status="전체 데이터/스케줄러/훈련/경제/저장 검증";
             yield return AllData();
+            RewardHealing();
+            RewardRevival();
             SchedulerRules();
             StatsAndEffects();
             TrainingEquipmentEconomy();
+            TrainingEnergyAndRest();
+            SkillHintsAndLearning();
+            TonicsAndShop();
+            CandiesValuablesAndStock();
             SelectionAndSave();
             PeriodicCodes();
             GridAndEffects();
@@ -114,6 +120,123 @@ namespace Managers.UI.DevTools
             }
         }
         public sealed class CatalogEntry { public int id; public string verbalName; public string codeName; public string description; }
+
+        private void RewardHealing()
+        {
+            RewardDataList data=game.dataManager.FetchRewardDataList();
+            var healing=(data?.rewards??new List<RewardDef>()).Where(r=>r?.IsHealingReward==true).ToList();
+            Equal("healing reward count",5,healing.Count);
+            Equal("healing reward unique IDs",healing.Count,healing.Select(r=>r.id).Distinct().Count());
+            Assert("healing reward tiers T1-T5",new HashSet<int>(healing.Select(r=>r.tier)).SetEquals(new[]{1,2,3,4,5}),
+                "1,2,3,4,5",string.Join(",",healing.Select(r=>r.tier).OrderBy(x=>x)));
+            Assert("healing rewards universal",healing.All(r=>r.themeIds==null||r.themeIds.Count==0),
+                "empty themeIds","checked");
+            Assert("healing bottle art loads",healing.All(r=>!string.IsNullOrWhiteSpace(r.artPath)&&Resources.Load<Sprite>(r.artPath)!=null),
+                "all sprites","checked");
+
+            foreach(var pair in new[]{("healing_domain_t1",.2f),("healing_domain_t2",.5f),("healing_domain_t3",.8f)})
+            {
+                RewardDef reward=healing.FirstOrDefault(r=>r.id==pair.Item1);
+                Assert(pair.Item1+" target selection",reward?.RequiresTargetSelection==true,"true",reward?.RequiresTargetSelection.ToString());
+                Near(pair.Item1+" heal ratio",pair.Item2,reward?.healPercent??0f);
+            }
+            RewardDef top=healing.FirstOrDefault(r=>r.id=="healing_domain_t4");
+            Assert("T4 single full heal",top?.fullHealTarget==true&&top.fullHealParty==false,
+                "single target full","checked");
+            RewardDef elixir=healing.FirstOrDefault(r=>r.id=="healing_elixir_t5");
+            Assert("T5 elixir party full heal",elixir?.fullHealParty==true&&!elixir.RequiresTargetSelection,
+                "party full without target","checked");
+
+            Clear();
+            Unit first=SpawnHero(); Unit second=SpawnHero(-2,1);
+            first.ModifyHp(first.HpMax/4); second.ModifyHp(second.HpMax/3);
+            int firstBefore=first.HpCurr,secondBefore=second.HpCurr,stageBefore=game.RoundManager.Stage;
+            RewardDef medium=healing.First(r=>r.id=="healing_domain_t2");
+            game.rewardManager.ApplyReward(medium);
+            Equal("target heal rejects missing target stage",stageBefore,game.RoundManager.Stage);
+            Equal("target heal rejects missing target HP",firstBefore,first.HpCurr);
+            int expectedFirst=Mathf.Min(first.HpMax,firstBefore+RewardManager.CalculateHealingAmount(medium,first));
+            game.rewardManager.ApplyReward(medium,first);
+            Equal("target heal applies selected ally",expectedFirst,first.HpCurr);
+            Equal("target heal leaves other ally",secondBefore,second.HpCurr);
+
+            // 범용 보상은 테마와 무관하게 풀에 들어가며, 모두 건강할 때는 무효 카드가 나오지 않는다.
+            first.ModifyHp(first.HpMax/2);
+            var offered=game.rewardManager.GenerateRewards(999,10,GameMode.Training,8);
+            Assert("healing rewards enter any theme pool",healing.All(h=>offered.Any(r=>r.id==h.id)),
+                "all healing IDs",string.Join(",",offered.Where(r=>r.IsHealingReward).Select(r=>r.id)));
+
+            first.ModifyHp(first.HpMax); second.ModifyHp(second.HpMax);
+            var healthyOffer=game.rewardManager.GenerateRewards(999,10,GameMode.Training,8);
+            Assert("healing rewards hidden for healthy party",healthyOffer.All(r=>!r.IsHealingReward),
+                "no healing reward",string.Join(",",healthyOffer.Where(r=>r.IsHealingReward).Select(r=>r.id)));
+
+            first.ModifyHp(first.HpMax/5); second.ModifyHp(second.HpMax/5);
+            game.rewardManager.ApplyReward(elixir);
+            Equal("elixir heals first ally",first.HpMax,first.HpCurr);
+            Equal("elixir heals entire party",second.HpMax,second.HpCurr);
+            Clear();
+        }
+
+        private void RewardRevival()
+        {
+            RewardDataList data=game.dataManager.FetchRewardDataList();
+            var revival=(data?.rewards??new List<RewardDef>()).Where(r=>r?.IsRevivalReward==true).ToList();
+            Equal("revival reward count",5,revival.Count);
+            Equal("revival reward unique IDs",revival.Count,revival.Select(r=>r.id).Distinct().Count());
+            Assert("revival reward tiers T1-T5",new HashSet<int>(revival.Select(r=>r.tier)).SetEquals(new[]{1,2,3,4,5}),
+                "1,2,3,4,5",string.Join(",",revival.Select(r=>r.tier).OrderBy(x=>x)));
+            Assert("revival rewards universal",revival.All(r=>r.themeIds==null||r.themeIds.Count==0),
+                "empty themeIds","checked");
+            Assert("revival bottle art loads",revival.All(r=>!string.IsNullOrWhiteSpace(r.artPath)&&Resources.Load<Sprite>(r.artPath)!=null),
+                "all sprites","checked");
+
+            foreach(var pair in new[]{("revival_medicine_t1",.1f),("revival_medicine_t2",.5f),
+                         ("revival_medicine_t3",1f),("revival_medicine_t4",1f)})
+            {
+                RewardDef reward=revival.FirstOrDefault(r=>r.id==pair.Item1);
+                Assert(pair.Item1+" target selection",reward?.RequiresReviveTargetSelection==true,
+                    "true",reward?.RequiresReviveTargetSelection.ToString());
+                Near(pair.Item1+" revive ratio",pair.Item2,reward?.revivePercent??0f);
+            }
+            RewardDef aether=revival.FirstOrDefault(r=>r.id=="revival_aether_t5");
+            Assert("T5 aether party full revive",aether?.fullReviveParty==true&&!aether.RequiresTargetSelection,
+                "party full without target","checked");
+
+            Clear();
+            Unit survivor=SpawnHero(); Unit fallen=SpawnHero(-2,1); Unit otherFallen=SpawnHero(-2,2);
+            fallen.Die(null); otherFallen.Die(null);
+            int stageBefore=game.RoundManager.Stage;
+            RewardDef beginner=revival.First(r=>r.id=="revival_medicine_t1");
+            game.rewardManager.ApplyReward(beginner);
+            Equal("target revive rejects missing target stage",stageBefore,game.RoundManager.Stage);
+            Assert("target revive rejects missing target",!fallen.isActive,"fallen","active");
+            int expected=RewardManager.CalculateReviveHp(beginner,fallen);
+            game.rewardManager.ApplyReward(beginner,fallen);
+            Assert("target revive activates selected ally",fallen.isActive,"active","fallen");
+            Equal("target revive applies exact HP",expected,fallen.HpCurr);
+            Assert("target revive leaves other ally fallen",!otherFallen.isActive,"fallen","active");
+
+            Clear();
+            survivor=SpawnHero(); fallen=SpawnHero(-2,1); otherFallen=SpawnHero(-2,2);
+            fallen.Die(null); otherFallen.Die(null);
+            var offered=game.rewardManager.GenerateRewards(999,10,GameMode.Training,8);
+            Assert("revival rewards enter any theme pool",revival.All(r=>offered.Any(candidate=>candidate.id==r.id)),
+                "all revival IDs",string.Join(",",offered.Where(r=>r.IsRevivalReward).Select(r=>r.id)));
+            game.rewardManager.ApplyReward(aether);
+            Equal("aether revives first fallen ally",fallen.HpMax,fallen.HpCurr);
+            Equal("aether revives entire fallen party",otherFallen.HpMax,otherFallen.HpCurr);
+            Assert("aether activates all fallen allies",fallen.isActive&&otherFallen.isActive,"all active","fallen remains");
+            Equal("aether leaves living ally at full HP",survivor.HpMax,survivor.HpCurr);
+
+            Clear();
+            SpawnHero(); SpawnHero(-2,1);
+            var livingOffer=game.rewardManager.GenerateRewards(999,10,GameMode.Training,8);
+            Assert("revival rewards hidden without fallen ally",livingOffer.All(r=>!r.IsRevivalReward),
+                "no revival reward",string.Join(",",livingOffer.Where(r=>r.IsRevivalReward).Select(r=>r.id)));
+            Clear();
+        }
+
         private void VerifyUnitDefinition(Unit unit,int id,string portrait,string standing,Dictionary<string,int> codes,List<LevelPassiveData> passives)
         {
             Assert("unit "+id+" instantiated",unit!=null,"Unit",unit?.UnitName);
@@ -251,6 +374,14 @@ namespace Managers.UI.DevTools
             foreach(int id in hero.EquippedItemIds.ToList())hero.TryUnequip(id,false);
             foreach(var item in game.itemDataList.items)
             {
+                // 귀중품은 입는 물건이 아니다. 장착이 <b>거절되는 것</b>이 올바른 동작이다.
+                if(item.IsValuable)
+                {
+                    Assert("valuable "+item.id+" not equippable",!hero.TryEquipItem(item.id,out _),
+                        "rejected","equipped");
+                    continue;
+                }
+
                 bool equipped=hero.TryEquipItem(item.id,out string reason);
                 Assert("equipment "+item.id+" valid slot",equipped,"equippable",reason);
                 if(!equipped)continue;
@@ -265,6 +396,341 @@ namespace Managers.UI.DevTools
             for(int i=0;i<100&& !hero.IsOverCarryWeightMax;i++)hero.TryStoreItem(heavy.id,out _);
             Assert("weight overcap detected",hero.IsOverCarryWeightMax,"over cap",hero.CarryWeightCurrent+"/"+hero.CarryWeightMax);
             Equal("weight tier 2",2,hero.EncumbranceTier);
+        }
+
+        private void TrainingEnergyAndRest()
+        {
+            TrainingState state=TrainingManager.State;
+
+            // 실패율 곡선의 경계. 화면에 띄우는 숫자와 같은 함수다.
+            state.Reset();
+            Equal("no failure at full energy",0,TrainingManager.GetFailureRate(PrimaryStat.STR));
+            state.SpendEnergy(40);
+            Equal("no failure at the safe floor",0,TrainingManager.GetFailureRate(PrimaryStat.STR));
+            state.SpendEnergy(1);
+            Equal("failure starts below sixty",1,TrainingManager.GetFailureRate(PrimaryStat.STR));
+            state.SpendEnergy(29);
+            Equal("failure at the warning floor",18,TrainingManager.GetFailureRate(PrimaryStat.STR));
+            state.SpendEnergy(30);
+            Equal("failure peaks on empty",66,TrainingManager.GetFailureRate(PrimaryStat.STR));
+            Equal("INT training never fails",0,TrainingManager.GetFailureRate(PrimaryStat.INT));
+
+            // 컨디션 — 실패는 확정 하락, 휴식만 확정 회복.
+            state.Reset();
+            int normal=state.ConditionIndex;
+            state.DriftCondition(true);
+            Equal("failed training worsens condition",normal+1,state.ConditionIndex);
+            state.ImproveCondition();
+            Equal("condition repair undoes it",normal,state.ConditionIndex);
+            for(int i=0;i<6;i++)state.ImproveCondition();
+            Equal("condition tops out",0,state.ConditionIndex);
+            for(int i=0;i<8;i++)state.WorsenCondition();
+            Equal("condition bottoms out",TrainingState.ConditionNames.Length-1,state.ConditionIndex);
+
+            // 훈련 3회 : 휴식 1회. 가장 비싼 훈련도 세 번째까지 안전지대에서 출발한다.
+            state.Reset();
+            int launched=0;
+            while(TrainingManager.GetFailureRate(PrimaryStat.STR)==0)
+            {
+                state.SpendEnergy(TrainingManager.GetEnergyCost(PrimaryStat.STR));
+                launched++;
+                if(launched>10)break;
+            }
+            Equal("three safe strength trainings per full bar",3,launched);
+            Assert("one rest covers that cycle",
+                GameManager.RestEnergyRecovery>=3*TrainingManager.GetEnergyCost(PrimaryStat.CON),
+                ">= 3 x 16",GameManager.RestEnergyRecovery.ToString());
+
+            // 휴식 — 체력 · 컨디션 · 파티 체력 셋을 한 번에 돌려준다.
+            Clear();
+            game.RoundManager.InitializeStage(3);
+            game.RestorePreparationActionState(false,0);
+            Unit hero=SpawnHero();
+            hero.ModifyHp(hero.HpMax/10);
+            state.Reset();
+            state.SpendEnergy(60);
+            state.WorsenCondition();
+            int energyBefore=state.Energy,conditionBefore=state.ConditionIndex,hpBefore=hero.HpCurr;
+            int expectedHeal=Mathf.CeilToInt(hero.HpMax*GameManager.RestPartyHealRatio);
+
+            game.RestFromPreparation();
+            Equal("rest restores training energy",
+                Mathf.Min(TrainingState.MaxEnergy,energyBefore+GameManager.RestEnergyRecovery),state.Energy);
+            Equal("rest repairs one condition step",conditionBefore-1,state.ConditionIndex);
+            Equal("rest heals a fraction of max HP",Mathf.Min(hero.HpMax,hpBefore+expectedHeal),hero.HpCurr);
+            Assert("rest is not a free elixir",hero.HpCurr<hero.HpMax,"partial heal",
+                hero.HpCurr+"/"+hero.HpMax);
+            Assert("rest spends the preparation action",game.PreparationActionUsed,"used","free");
+            Assert("rest re-rolls the support placement",!state.PlacementReady,"invalidated","kept");
+
+            state.Reset();
+            game.RestorePreparationActionState(false,0);
+            Clear();
+        }
+
+        private void SkillHintsAndLearning()
+        {
+            Clear();
+            Unit main=SpawnHero();
+            SkillHintState hints=TrainingManager.Hints;hints.Clear();
+            TrainingState state=TrainingManager.State;state.Reset();
+
+            // 은금 사다리 역색인 — 은 코드의 SupersededByCodeId 선언 한 줄이 곧 선행 조건이다.
+            Equal("gold 13 requires silver 11",11,PassiveCatalog.RequiredCodeIdFor(13,main));
+            Equal("gold 32 requires silver 70",70,PassiveCatalog.RequiredCodeIdFor(32,main));
+            Equal("gold 103 requires silver 2",2,PassiveCatalog.RequiredCodeIdFor(103,main));
+            Equal("silver needs no prerequisite",0,PassiveCatalog.RequiredCodeIdFor(11,main));
+            Assert("catalog reads the enhanced grade",PassiveCatalog.Get(13,main).Grade==CodeGrade.Enhanced,
+                "Enhanced",PassiveCatalog.Get(13,main).Grade.ToString());
+            Assert("unique passives are never hinted",!PassiveCatalog.Get(221,main).CanBeHinted,
+                "blocked","hintable");
+
+            // 힌트가 없으면 어떤 코드도 살 수 없다.
+            Assert("no purchase without a hint",!TrainingManager.TryLearnSkill(11,out string noHint),
+                "rejected",noHint);
+
+            // 힌트 레벨이 값을 깎는다.
+            hints.Add(11,1,"검증");
+            Equal("silver base cost",TrainingManager.SilverSkillCost,TrainingManager.GetSkillCost(11));
+            hints.Add(11,1,"검증");
+            Equal("hint level two discount",
+                Mathf.CeilToInt(TrainingManager.SilverSkillCost*SkillHintState.CostMultipliers[1]),
+                TrainingManager.GetSkillCost(11));
+            hints.Add(11,1,"검증");hints.Add(11,1,"검증");
+            Equal("hint level caps",SkillHintState.MaxLevel,hints.LevelOf(11));
+            Equal("hint level three discount",
+                Mathf.CeilToInt(TrainingManager.SilverSkillCost*SkillHintState.CostMultipliers[2]),
+                TrainingManager.GetSkillCost(11));
+
+            Assert("cannot buy without points",!TrainingManager.TryLearnSkill(11,out string broke),
+                "rejected",broke);
+            Equal("a failed purchase spends nothing",0,state.SkillPoints);
+
+            int cost=TrainingManager.GetSkillCost(11);
+            state.GainSkillPoints(cost);
+            Assert("silver purchase succeeds",TrainingManager.TryLearnSkill(11,out string silverBuy),
+                "learned",silverBuy);
+            Equal("purchase spends the points",0,state.SkillPoints);
+            Assert("purchased skill is owned",main.HasLearnedPassiveCode(11),"owned","missing");
+            // 영구 경로로 들어가야 라운드 종료 후 스냅샷 복원에서 살아남는다.
+            Assert("purchase survives the round snapshot",main.GrantedPassiveCodeIds.Contains(11),
+                "persisted","lost");
+            Equal("a learned hint leaves the list",0,hints.LevelOf(11));
+
+            // 금은 은을 밟고 올라간다.
+            hints.Clear();hints.Add(32,1,"검증");
+            state.GainSkillPoints(TrainingManager.EnhancedSkillCost*2);
+            Assert("gold without its silver is blocked",!TrainingManager.TryLearnSkill(32,out string locked),
+                "blocked",locked);
+            Assert("the block names the prerequisite",locked!=null&&locked.Contains("선행"),"선행 필요",locked);
+
+            hints.Add(70,1,"검증");
+            Assert("the silver prerequisite can be bought",TrainingManager.TryLearnSkill(70,out string silverStep),
+                "learned",silverStep);
+            Assert("gold opens once the silver is owned",TrainingManager.TryLearnSkill(32,out string goldBuy),
+                "learned",goldBuy);
+            Assert("gold is owned",main.HasLearnedPassiveCode(32),"owned","missing");
+
+            // 이미 배운 코드는 목록에서 잠긴다.
+            hints.Add(32,1,"검증");
+            var offers=TrainingManager.GetSkillOffers();
+            Assert("owned skills stay locked in the list",
+                offers.All(offer=>offer.CodeId!=32||offer.BlockedReason=="이미 보유"),
+                "이미 보유",string.Join(",",offers.Select(offer=>offer.CodeId+":"+offer.BlockedReason)));
+
+            // 런 도중 합류한 동료도 그 턴부터 서포트다. 영입은 벤치로 들어온다.
+            Clear();
+            Unit lead=SpawnHero();
+            TrainingManager.State.InvalidatePlacement();
+            TrainingManager.EnsureSupportPlacement();
+            int supportsBefore=TrainingManager.GetSupportCount();
+            int joinerId=game.unitDataList.units.First(def=>def.id!=lead.ID).id;
+            Unit joiner=grid.SpawnUnit(0,0,false,joinerId,true);
+            Assert("recruit spawns on the bench",joiner!=null,"spawned","null");
+            Equal("recruit counts as a support",supportsBefore+1,TrainingManager.GetSupportCount());
+            Assert("recruit has no seat yet",!TrainingManager.State.WasPlacementRolled(joiner.ID),
+                "unrolled","rolled");
+            TrainingManager.EnsureSupportPlacement();
+            Assert("recruit gets a seat in the same turn",
+                TrainingManager.State.WasPlacementRolled(joiner.ID),"rolled","unrolled");
+
+            TrainingManager.State.SetPlacement(joiner.ID,PrimaryStat.STR);
+            Assert("a seated recruit joins that training",
+                TrainingManager.GetSupportsOn(PrimaryStat.STR).Contains(joiner),"seated","absent");
+            Assert("a seated recruit adds its bonus",
+                TrainingManager.GetBaseSupportBonus(PrimaryStat.STR)>=TrainingManager.SupportStatBonusPerUnit,
+                ">=1",TrainingManager.GetBaseSupportBonus(PrimaryStat.STR).ToString());
+
+            hints.Clear();state.Reset();
+            Clear();
+        }
+
+        private void TonicsAndShop()
+        {
+            RewardDataList data=game.dataManager.FetchRewardDataList();
+            var all=data?.rewards??new List<RewardDef>();
+            var tonics=all.Where(r=>r?.IsTonic==true).ToList();
+            Equal("tonic count",25,tonics.Count);
+            Equal("tonic unique IDs",tonics.Count,tonics.Select(r=>r.id).Distinct().Count());
+            Assert("tonics stay out of the shop",tonics.All(r=>r.goldCost==0),"no price","checked");
+            foreach(var stat in Enum.GetValues(typeof(PrimaryStat)).Cast<PrimaryStat>())
+            {
+                var family=tonics.Where(r=>r.TryGetTonicStat(out var parsed)&&parsed==stat).ToList();
+                Equal("tonic family "+stat,5,family.Count);
+                Assert("tonic family "+stat+" spans T1-T5",new HashSet<int>(family.Select(r=>r.tier)).SetEquals(new[]{1,2,3,4,5}),
+                    "1,2,3,4,5",string.Join(",",family.Select(r=>r.tier).OrderBy(x=>x)));
+                Assert("tonic "+stat+" T1-T3 additive",family.Where(r=>r.tier<=3).All(r=>r.tonicFlat>0&&r.tonicMultiplier<=1f),
+                    "flat only","checked");
+                Assert("tonic "+stat+" T4-T5 multiplicative",family.Where(r=>r.tier>=4).All(r=>r.tonicMultiplier>1f&&r.tonicFlat==0),
+                    "multiplier only","checked");
+            }
+
+            // 강화제는 런이 들고 있다. 세이(주 INT·부 DEX)의 STR에는 캐릭터 보너스가 없어
+            // 합연산 값이 그대로 드러나므로 검증 스탯으로 쓴다.
+            Clear();
+            PartyTonicState state=RunManager.Instance?.PartyTonics;
+            Assert("party tonic state exists",state!=null,"state","null");
+            if(state==null)return;
+            state.Clear();
+
+            Unit hero=SpawnHero();
+            Unit enemy=SpawnEnemy(game.dataManager.FetchEnemyDataList().enemies[0].id);
+            int heroBase=hero.GetBaseStr(),enemyBase=enemy.GetBaseStr();
+            RewardDef low=tonics.First(r=>r.id=="tonic_str_t1");
+            RewardDef mid=tonics.First(r=>r.id=="tonic_str_t2");
+            RewardDef high=tonics.First(r=>r.id=="tonic_str_t4");
+
+            Assert("tonic applies",game.rewardManager.ApplyRewardEffect(low),"true","rejected");
+            Equal("tonic raises ally stat",heroBase+low.tonicFlat,hero.GetBaseStr());
+            Equal("tonic spares enemies",enemyBase,enemy.GetBaseStr());
+
+            game.rewardManager.ApplyRewardEffect(mid);
+            Equal("stronger tonic replaces weaker",heroBase+mid.tonicFlat,hero.GetBaseStr());
+            game.rewardManager.ApplyRewardEffect(low);
+            Equal("weaker tonic does not stack",heroBase+mid.tonicFlat,hero.GetBaseStr());
+            Equal("one bottle per stat and kind",1,state.Active.Count);
+
+            game.rewardManager.ApplyRewardEffect(high);
+            Equal("multiplicative tonic stacks on additive",
+                Mathf.RoundToInt((heroBase+mid.tonicFlat)*high.tonicMultiplier),hero.GetBaseStr());
+            Equal("additive and multiplicative coexist",2,state.Active.Count);
+
+            var saved=state.BuildSaveData();
+            state.Clear();
+            Equal("cleared tonics stop applying",heroBase,hero.GetBaseStr());
+            state.Restore(saved);
+            Equal("tonic save round trip",
+                Mathf.RoundToInt((heroBase+mid.tonicFlat)*high.tonicMultiplier),hero.GetBaseStr());
+
+            for(int i=0;i<PartyTonicState.BattleDuration-1;i++)state.ConsumeBattle();
+            Assert("tonic survives until the last battle",state.HasAny,"active","expired");
+            state.ConsumeBattle();
+            Assert("tonic expires after five battles",!state.HasAny,"expired","active");
+            Equal("expired tonic restores stat",heroBase,hero.GetBaseStr());
+
+            // 상점 — 매대와 가격.
+            var goods=game.rewardManager.BuildShopGoods();
+            Equal("shop goods count",9,goods.Count);
+            Assert("shop sells potions only",goods.All(g=>g.IsHealingReward||g.IsRevivalReward),"potions","checked");
+            Assert("every shop good is priced",goods.All(g=>g.goldCost>0),"priced","checked");
+            RewardDef potion=goods.First(g=>g.id=="healing_domain_t2");
+            Equal("shop price scales with stage",potion.goldCost*7,RewardManager.ShopPrice(potion,7));
+            Equal("shop price floors at stage 1",potion.goldCost,RewardManager.ShopPrice(potion,0));
+            Equal("revival costs half again",
+                goods.First(g=>g.id=="healing_domain_t1").goldCost*3/2,
+                goods.First(g=>g.id=="revival_medicine_t1").goldCost);
+
+            game.RestorePreparationActionState(false,0);
+            Equal("shop purchases start full",GameManager.MaxShopPurchases,game.ShopPurchasesLeft);
+            for(int i=0;i<GameManager.MaxShopPurchases+1;i++)game.NotifyShopPurchase();
+            Equal("shop purchase limit holds",0,game.ShopPurchasesLeft);
+            game.RestorePreparationActionState(false,0);
+
+            // 3택에 소모품이 두 장 이상 섞이지 않는다.
+            hero.ModifyHp(hero.HpMax/2);
+            int worst=0;
+            for(int i=0;i<20;i++)
+            {
+                var offer=game.rewardManager.GenerateRewards(3,10,GameMode.Training,8);
+                worst=Mathf.Max(worst,offer.Count(r=>r.IsConsumable));
+            }
+            Assert("at most one consumable per offer",worst<=1,"<=1",worst.ToString());
+
+            state.Clear();
+            Clear();
+        }
+
+        /// <summary>이상한 사탕 · 귀중품 주머니 · 상점 장비 매대.</summary>
+        private void CandiesValuablesAndStock()
+        {
+            Clear();
+            var all=game.dataManager.FetchRewardDataList()?.rewards??new List<RewardDef>();
+            var candies=all.Where(r=>r?.IsLevelGrant==true).ToList();
+            Equal("candy count",2,candies.Count);
+            Assert("candies start at T3",candies.All(r=>r.tier>=3),">=3",
+                string.Join(",",candies.Select(r=>r.tier)));
+
+            RewardDef single=candies.First(r=>!r.levelGrantParty);
+            RewardDef party=candies.First(r=>r.levelGrantParty);
+            Equal("single candy tier",3,single.tier);
+            Equal("party candy tier",4,party.tier);
+            Assert("single candy needs a target",single.RequiresLevelTargetSelection,"true","no pick");
+            Assert("party candy needs no target",!party.RequiresLevelTargetSelection,"false","asks");
+
+            Unit first=SpawnHero(); Unit second=SpawnHero(-2,1);
+            first.DebugSetLevel(10); second.DebugSetLevel(10);
+            int exp=first.Exp;
+
+            Assert("single candy applies",game.rewardManager.ApplyRewardEffect(single,first),"true","rejected");
+            Equal("single candy raises target",11,first.Level);
+            Equal("single candy spares others",10,second.Level);
+            Equal("single candy keeps stored EXP",exp,first.Exp);
+
+            game.rewardManager.ApplyRewardEffect(party);
+            Equal("party candy raises everyone",13,first.Level);
+            Equal("party candy raises second ally",12,second.Level);
+
+            // 쓰러진 아군도 사탕을 받는다. 한 판 진 것으로 성장만 뒤처지면 되돌릴 수 없다.
+            second.Die(null);
+            game.rewardManager.ApplyRewardEffect(party);
+            Equal("party candy reaches fallen ally",14,second.Level);
+
+            // 귀중품 — 주머니로 들어가고, 값은 주울 때 확정된다.
+            InventoryManager inventory=game.inventoryManager;
+            var valuables=game.itemDataList.items.Where(i=>i.IsValuable).ToList();
+            Assert("valuable catalogue exists",valuables.Count>0,">0","none");
+            Assert("valuables carry no weight",valuables.All(i=>i.weight==0),"0",
+                string.Join(",",valuables.Select(i=>i.weight)));
+
+            int goldBefore=inventory.Gold;
+            int pouchBefore=inventory.Valuables.Count;
+            ItemData sample=valuables[0];
+            var pickup=new RewardDef{id="probe",itemId=sample.id,item=sample,tier=sample.rarity};
+            Assert("valuable pickup applies",game.rewardManager.ApplyRewardEffect(pickup),"true","rejected");
+            Equal("valuable enters the pouch",pouchBefore+1,inventory.Valuables.Count);
+            Equal("valuable pays nothing on pickup",goldBefore,inventory.Gold);
+            Assert("valuable never reaches a unit",
+                !first.CarriedItemIds.Contains(sample.id),"not carried","carried");
+
+            int worth=inventory.Valuables[inventory.Valuables.Count-1].gold;
+            Equal("valuable worth uses stage price",
+                RewardManager.ValuablePrice(sample,Mathf.Max(1,game.RoundManager?.Stage??1)),worth);
+            Assert("valuable sells",inventory.TrySellValuable(inventory.Valuables.Count-1,out int paid),
+                "true","refused");
+            Equal("valuable pays what it was worth",worth,paid);
+            Equal("valuable leaves the pouch",pouchBefore,inventory.Valuables.Count);
+            Equal("valuable adds gold",goldBefore+worth,inventory.Gold);
+
+            // 상점 장비 매대 — 테마 전용은 오르지 않는다.
+            var stock=game.rewardManager.BuildShopEquipment();
+            Assert("shop stock exists",stock.Count>0,">0","empty");
+            Assert("shop stock is theme-free",
+                stock.All(r=>r.item?.themeIds==null||r.item.themeIds.Count==0),"no themeIds",
+                string.Join(",",stock.Where(r=>r.item?.themeIds!=null&&r.item.themeIds.Count>0).Select(r=>r.id)));
+            Assert("shop stock is priced",stock.All(r=>r.goldCost>0),">0","free item");
+            Assert("shop stock holds no valuables",stock.All(r=>r.item?.IsValuable!=true),"none","valuable listed");
+
+            Clear();
         }
 
         private void SelectionAndSave()
@@ -405,9 +871,9 @@ namespace Managers.UI.DevTools
                 while(GameManager.Instance?.RoundManager==null&&Time.realtimeSinceStartup<deadline)yield return null;
                 game=GameManager.Instance;grid=game.gridManager;
                 Assert("scene cycle "+i+" grid binding", grid == GridManager.Instance, "same instance", "compared");
-                Equal("scene cycle "+i+" one GameManager",1,FindObjectsByType<GameManager>(FindObjectsSortMode.None).Length);
-                Equal("scene cycle "+i+" one GridManager",1,FindObjectsByType<GridManager>(FindObjectsSortMode.None).Length);
-                Equal("scene cycle "+i+" one RunManager",1,FindObjectsByType<RunManager>(FindObjectsSortMode.None).Length);
+                Equal("scene cycle "+i+" one GameManager",1,FindObjectsByType<GameManager>().Length);
+                Equal("scene cycle "+i+" one GridManager",1,FindObjectsByType<GridManager>().Length);
+                Equal("scene cycle "+i+" one RunManager",1,FindObjectsByType<RunManager>().Length);
                 Assert("scene cycle "+i+" save protected",DebugMode.SessionActive,"protected","checked");
             }
         }

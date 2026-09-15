@@ -28,11 +28,26 @@ namespace Managers
         /// </summary>
         public List<int> themeIds;
         public bool twoHanded;
+
+        /// <summary>
+        /// 상점 매대에 오르는 기본가. 0이면 상점에 올리지 않는다.
+        /// 실제 가격은 <see cref="RewardManager.ShopPrice(int,int)"/>가 스테이지를 곱해 정한다.
+        /// </summary>
+        public int shopPrice;
+
+        /// <summary>
+        /// 귀중품의 기본 판매가. 0보다 크면 <b>장비가 아니라 팔아 치우는 물건</b>이다.
+        /// 값은 주울 때의 스테이지로 확정되므로 오래 들고 있어도 값이 오르지 않는다.
+        /// </summary>
+        public int sellPrice;
         public List<BaseClasses.EquipmentStatBonus> statBonuses;
         public List<BaseClasses.EquipmentCodeGrant> codeGrants;
 
         public bool IsWeapon => string.Equals(slot, "MainHand", StringComparison.OrdinalIgnoreCase)
             || string.Equals(slot, "OffHand", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>귀중품 — 입지 못하고 팔기만 하는 물건.</summary>
+        public bool IsValuable => sellPrice > 0;
 
         public BaseClasses.EquipmentProficiency RequiredProficiency
         {

@@ -103,6 +103,11 @@ Combat is not real time. `Managers/ActionScheduler.cs` owns the clock.
   `OnSpecialActivates` instead, so additional-action counters do not see it. Always go through
   `Combat.SpecialAction.OpenGate`; never call `EnqueueSpecial` directly. See `Detail_03 §4.5-C`.
 - **Ultimates do not consume a turn.** They queue as soon as the resource fills and do not reset AV.
+  There is no second gate — resource is the only thing standing between a unit and its ultimate.
+  A mana unit's total is `manaMax` in its YAML entry: an **inherent per-unit stat** that level,
+  upgrades, training and effects never touch, so it does not pass through `UnitStats` or
+  `AttributesUpdate`. With cooldowns gone it is the one knob for ultimate cadence (INT sets the
+  fill rate, `manaMax` sets the amount). Everyone sits at 100 today.
 - A **대체행동** still counts as one normal action — call `NotifyActionResolved()` even when it
   deals no damage. The old term 강화 일반행동 and the `Empowered*` identifiers are gone.
 - Duplicate suppression: one `(unit + kind + key)` may sit in the queue at a time.
@@ -184,7 +189,7 @@ resolves them in separate switches.
 | Ally shared unlock passive | 1~179 |
 | Equipment-granted passive | 400~499 |
 | Summon codes (normal / ultimate) | 500~599 |
-| Enemy codes | 1000+ in per-theme 100-slot blocks (공용 1000 · 콜로세움 1100 · 로마 1200 · 메히코 1300 · 아스완 1400 · 공허 1500) |
+| Enemy codes | 1000+ in per-theme 100-slot blocks (공용 1000 · 콜로세움 1100 · 로마 1200 · 메히코 1300 · 아스완 1400 · 공허 1500 · 노르드 1600) |
 
 Enemy codes are dispatched by **range arms whose ID gaps are the style index**
 (`(LegionNormalStyle)(codeId - 1200)`), so append new enemy codes at the end of a family —
@@ -202,8 +207,9 @@ highest-level unlocks on low-INT units; that gate is gone and INT now only drive
 - `CodeFactory` maps numeric IDs to classes — three switches, one per slot.
 - `UniquePassiveCode` sets `Transferable = false`. **Unique passives are never transferred**;
   support cards can only pass on unlock passives. (The old degraded-transfer system is gone.)
-- Normal attacks have **no cooldown** — DEX-driven action value sets the cadence.
-  `Code.Cooldown` is ultimate-only; setting it on a normal code does nothing.
+- **No code has a cooldown.** DEX-driven action value sets the cadence of normal actions,
+  and the ultimate resource sets the cadence of ultimates. `Code.Cooldown` and
+  `Unit.ultimateCooldown` are gone: an ultimate queues the moment its resource fills.
 - Codes carry a **grade**: `CodeGrade.Normal` (silver), `Enhanced` (gold), or `Unique` (purple).
   A silver code sets `SupersededByCodeId` to the gold code that replaces it, and
   `Unit.TryCastPassiveCode` refuses to fire it when the owner has learned that gold code.
@@ -246,8 +252,8 @@ The **ten-thousands digit is the category**; an attack takes one from each band.
 
 Growth must follow the rule in `Detail_08`: **main +2, sub +2, others +1** (Sei/Shi: main +3, sub +2).
 A unit with **two sub stats** splits that budget instead of doubling it — each sub grows +1 and the
-training bonus is +5% per sub rather than +10%. Eight units do this: 라이트 · 니콜 · 피그말리온 ·
-아스클레피아 · 아마테라스 · 야마 · 이카리아 · 마리.
+training bonus is +5% per sub rather than +10%. Nine units do this: 라이트 · 니콜 · 피그말리온 ·
+아스클레피아 · 아마테라스 · 야마 · 이카리아 · 마리 · 프레이아.
 
 **40 units in total**, with two standing exceptions. **Gaudi** has no sub stat at all
 (main +2, everything else +1). **Jean** has no weapon proficiency at all, by design — she fights
@@ -261,6 +267,7 @@ Gaudi's and Light's base stats were not in the original design and are marked �
 1. Enemy portraits first — a theme without art does not ship
 2. `60_enemies.yaml` — register normal/elite/boss under a new enemy `themeId`
 3. `80_stages.yaml` — add to `stageThemes` with `enemyThemeId` matching, plus `stagePatterns`
+   and an `ambientColor` (#RRGGBB) for the battlefield backdrop — see `Detail_07 §1.12`
 4. Add a 5-slot event under `events`
 5. Update `Detail_09` (roster/composition), `Detail_10` (bosses), `Detail_01` (theme table)
 

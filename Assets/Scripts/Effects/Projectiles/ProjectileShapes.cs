@@ -150,6 +150,76 @@ namespace Effects.Projectiles
             return Build(key, pixels, length, width);
         }
 
+        /// <summary>
+        /// 가운데가 빈 고리. 착탄 지점에서 퍼지는 충격파에 쓴다.
+        /// 둔기·투척처럼 <b>방향이 없는 물리 타격</b>은 베기선 대신 이 고리로 읽힌다.
+        /// </summary>
+        /// <param name="diameter">바깥 지름(px).</param>
+        /// <param name="thickness">고리 두께(px).</param>
+        public static Sprite Ring(int diameter = 96, int thickness = 7)
+        {
+            diameter = Mathf.Max(diameter, 12);
+            thickness = Mathf.Clamp(thickness, 2, diameter / 2);
+
+            string key = $"rg_{diameter}_{thickness}";
+            if (Cache.TryGetValue(key, out Sprite cached) && cached != null) return cached;
+
+            var pixels = new Color[diameter * diameter];
+            float radius = diameter * 0.5f;
+            float center = radius - thickness * 0.5f;
+            float half = thickness * 0.5f;
+
+            for (int y = 0; y < diameter; y++)
+            {
+                for (int x = 0; x < diameter; x++)
+                {
+                    float dx = x + 0.5f - radius;
+                    float dy = y + 0.5f - radius;
+                    float distance = Mathf.Sqrt(dx * dx + dy * dy);
+
+                    // 고리 한가운데가 가장 진하고 안팎으로 갈수록 사라진다.
+                    float offset = Mathf.Abs(distance - center) / half;
+                    float alpha = Mathf.Clamp01(1f - offset);
+                    pixels[y * diameter + x] = new Color(1f, 1f, 1f, alpha * alpha);
+                }
+            }
+
+            return Build(key, pixels, diameter, diameter);
+        }
+
+        /// <summary>
+        /// 위를 가리키는 갈매기표(∧). 떠오름·상승을 <b>정지 화면에서도</b> 읽히게 하는 표식이다.
+        /// 링과 파티클만으로는 "뜬 상태"가 전달되지 않아 방향을 가진 도형이 하나 필요하다.
+        /// </summary>
+        /// <param name="width">가로 폭(px). 높이는 그 절반이다.</param>
+        /// <param name="thickness">선 굵기(px).</param>
+        public static Sprite Chevron(int width = 120, int thickness = 16)
+        {
+            width = Mathf.Max(width, 12);
+            thickness = Mathf.Clamp(thickness, 2, width / 3);
+
+            int height = width / 2 + thickness;
+            string key = $"cv_{width}_{thickness}";
+            if (Cache.TryGetValue(key, out Sprite cached) && cached != null) return cached;
+
+            var pixels = new Color[width * height];
+            float half = width * 0.5f;
+            float stroke = thickness * 0.5f;
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    // 꼭짓점이 위(높은 y)에 오도록 그린다.
+                    float line = height - stroke - Mathf.Abs(x + 0.5f - half);
+                    float distance = Mathf.Abs(y + 0.5f - line);
+                    pixels[y * width + x] = new Color(1f, 1f, 1f, Mathf.Clamp01(stroke - distance));
+                }
+            }
+
+            return Build(key, pixels, width, height);
+        }
+
         private static Sprite Build(string key, Color[] pixels, int width, int height)
         {
             var texture = new Texture2D(width, height, TextureFormat.RGBA32, false)

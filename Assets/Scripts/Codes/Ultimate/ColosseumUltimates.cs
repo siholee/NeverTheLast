@@ -46,7 +46,6 @@ namespace Codes.Ultimate
                 ColosseumUltimateStyle.Spartacus => "한판 뒤집기",
                 _ => "검투사의 비기",
             };
-            Cooldown = style == ColosseumUltimateStyle.Spartacus ? 10f : 8f;
             CastingDelay = style == ColosseumUltimateStyle.Spartacus ? 0.9f : 0.65f;
             MaxStage = 1;
             CodeTags = new List<int> { DamageTag.Physical, DamageTag.ContactAttack };
@@ -315,7 +314,6 @@ namespace Codes.Ultimate
         public override void StopCode()
         {
             if (Caster == null) return;
-            Caster.ultimateCooldown = Cooldown;
             Caster.isCasting = false;
         }
 

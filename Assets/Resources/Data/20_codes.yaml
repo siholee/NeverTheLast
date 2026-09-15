@@ -150,7 +150,7 @@ codes:
     - id: 280
       verbalName: 황혼
       codeName: SurtrTwilight
-      description: "적을 공격할 때 공격한 대상마다 아군 전체에게 50+STR×0.5의 방어막을 부여한다. <고유 패시브> <전수 불가능>"
+      description: "적을 공격할 때 최대 체력의 20%를 소모하고 그 행동이 가하는 피해를 40% 증가시킨다. 체력이 모자라 소모할 수 없으면 발동하지 않는다. <고유 패시브> <전수 불가능>"
     - { id: 39, verbalName: 거인, codeName: GiantPassive, description: "STR +5%." }
     - { id: 40, verbalName: 천상의 신체, codeName: SurtrCelestialBody, description: "받는 치유와 보호막 효과가 25% 증가한다." }
     - { id: 41, verbalName: 투사, codeName: LifestealFighter, description: "가한 피해의 8%만큼 체력을 회복한다." }
@@ -199,12 +199,12 @@ codes:
     - { id: 68, verbalName: 재기의 바람, codeName: VayuSecondWind, description: "체력이 40% 이하로 떨어지면 2턴에 걸쳐 최대 체력의 40%를 회복한다. 전투 중 1회." }
     - { id: 69, verbalName: 기습, codeName: VayuAmbush, description: "최대 체력인 적을 공격하면 확정 치명타가 발생하고 치명타 확률의 2배가 치명타 피해에 더해진다." }
     # ── 프레이아 ──
-    - { id: 281, verbalName: 피톤치드, codeName: FreyaPhytoncide, description: "치유한 아군이 1턴에 걸쳐 최대 체력의 5%를 추가로 회복한다. 회복이 남아 있는 대상에게는 다시 걸리지 않는다. <고유 패시브> <전수 불가능>" }
+    - { id: 281, verbalName: 피톤치드, codeName: FreyaPhytoncide, description: "전투 중 순수치유량을 기록한다. 기록을 정산할 때 프레이아 최대 체력의 10%마다 아군 전체에게 STR +1(최대 +25)을 2턴간 부여한다. <고유 패시브> <전수 불가능>" }
     - { id: 70, verbalName: 의술, codeName: FreyaMedicine, description: "부여하는 치유와 보호막이 25% 증가한다. 의신의 가호(98)의 하위 코드이며 중복 적용되지 않는다." }
     - { id: 71, verbalName: 리더쉽, codeName: FreyaLeadership, description: "필드에 있을 경우, 모든 아군이 가하는 피해 +10%. 중첩되지 않는다." }
     - { id: 72, verbalName: 전사장, codeName: FreyaWarChief, description: "모든 전열 아군에게 STR +8." }
     # ── 로키 ──
-    - { id: 282, verbalName: 펜리르, codeName: LokiFenrir, description: "소환수 펜리르를 불러낸다. 펜리르는 칸을 차지하지 않지만 체력을 가지고 피격 대상이 되며, 자기 DEX로 행동해 현재 체력이 가장 낮은 적을 문다. 로키가 쓰러지면 함께 사라진다. <고유 패시브> <전수 불가능>" }
+    - { id: 282, verbalName: 펜리르, codeName: LokiFenrir, description: "소환수 펜리르를 불러낸다. 펜리르는 칸을 차지하지 않지만 체력을 가지고 피격 대상이 되며, 자기 DEX로 행동해 현재 체력이 가장 낮은 적을 문다. 여기에 더해 로키가 표식을 새긴 적이 아군에게 공격받으면 추가행동으로 위력 40의 피해를 입히고 펜리르의 LUK% 확률로 2턴 출혈을 남긴다. 방아쇠는 아군 한 명당 한 번이며 로키의 일반행동이 끝나면 되돌아온다. 로키와 펜리르 자신은 방아쇠가 되지 않는다. <고유 패시브> <전수 불가능>" }
     - { id: 73, verbalName: 소환사, codeName: LokiSummoner, description: "필드에 있는 모든 소환수가 가하는 피해 +25%. 중첩되지 않는다." }
     # ── 스카디 ──
     - { id: 283, verbalName: 북방의 수호자, codeName: SkadiNorthernGuardian, description: "일반행동을 해결할 때마다 반격 스택을 최대치(3)로 충전한다. 적에게 피격되면 반격을 예약하고, 실제로 반격이 나갈 때 1스택을 소비해 공격자에게 STR×0.8 피해를 입힌다. #접촉 #물리 #추가행동 #반격 <고유 패시브> <전수 불가능>" }
@@ -299,7 +299,7 @@ codes:
     # ── 범용 거인 패시브 ──
     - { id: 1420, verbalName: 거인의 방벽, codeName: GenericGiantBulwark, description: "전투 시작 시 최대 체력의 10%만큼 방어막을 얻는다. <적 전용> <전수 불가능>" }
     - { id: 1421, verbalName: 거인의 방벽, codeName: GenericGiantBulwark, description: "전투 시작 시 최대 체력의 20%만큼 방어막을 얻는다. <적 전용> <전수 불가능>" }
-    - { id: 1422, verbalName: 혹한의 노심, codeName: FrostGiantCore, description: "턴 시작 시 자신에게 얼음 원소를 부착한다. 얼음이 부착된 채 Snow 태그 필드에 있으면 STR·CON의 레벨 성장분이 1.5배가 된다. <적 전용> <전수 불가능>" }
+    - { id: 1422, verbalName: 혹한의 노심, codeName: FrostGiantCore, description: "턴 시작 시 눈 필드를 2턴 깔고 자신에게 얼음 원소를 부착한다. 얼음이 부착된 채 눈 필드에 있으면 STR·CON의 레벨 성장분이 1.5배가 된다. <적 전용> <전수 불가능>" }
     - { id: 1423, verbalName: 파쇄, codeName: GiantShatter, description: "단일 대상 궁극기 적중 후 대상의 방어력을 3턴 동안 20% 감소시킨다. <적 전용>" }
     - { id: 1424, verbalName: 강타, codeName: GiantStunningBlow, description: "단일 대상 궁극기 적중 후 대상을 1턴 기절시킨다. <적 전용>" }
     - { id: 1425, verbalName: 병상첨병, codeName: GiantCoupDeGrace, description: "행동불능 상태의 적을 공격할 때 치명타 피해 +40%. <적 전용>" }
@@ -308,9 +308,9 @@ codes:
     # ── 범용 씨앗 패시브 ──
     - { id: 1430, verbalName: 가변 장갑진, codeName: GenericSeedFormation, description: "전열에서는 레벨×1 CON, 후열에서는 레벨×1 DEX를 얻는다. <적 전용> <전수 불가능>" }
     - { id: 1431, verbalName: 가변 장갑진, codeName: GenericSeedFormation, description: "전열에서는 레벨×2 CON, 후열에서는 레벨×2 DEX를 얻는다. <적 전용> <전수 불가능>" }
-    - { id: 1432, verbalName: 혹한의 동력로, codeName: FrostSeedCore, description: "Snow 태그 필드에서 DEX +30%, CON +15%. <적 전용> <전수 불가능>" }
-    - { id: 1433, verbalName: 자폭, codeName: SeedSelfDestruct, description: "치명 피해 시 적 진영 중앙에서 최대 체력의 20%만큼 범위 고정 피해를 주고 파괴된다. #추가행동 #특수 #비접촉 <적 전용>" }
-    - { id: 1434, verbalName: 대폭발, codeName: SeedSelfDestruct, description: "자폭의 금색 상위 코드. 치명 피해 시 적 진영 중앙에서 최대 체력의 40%만큼 범위 고정 피해를 주고 피격된 적에게 치유량 감소 50%를 3턴 부여한 뒤 파괴된다. #추가행동 #특수 #비접촉 <적 전용>" }
+    - { id: 1432, verbalName: 혹한의 동력로, codeName: FrostSeedCore, description: "턴 시작 시 눈 필드를 2턴 깐다. 눈 필드에 있는 동안 DEX +30%, CON +15%. <적 전용> <전수 불가능>" }
+    - { id: 1433, verbalName: 자폭, codeName: SeedSelfDestruct, description: "치명 피해 시 적 진영 중앙에서 최대 체력의 8%만큼 범위 고정 피해를 주고 파괴된다. #추가행동 #특수 #비접촉 <적 전용>" }
+    - { id: 1434, verbalName: 대폭발, codeName: SeedSelfDestruct, description: "자폭의 금색 상위 코드. 치명 피해 시 적 진영 중앙에서 최대 체력의 16%만큼 범위 고정 피해를 주고 피격된 적에게 치유량 감소 50%를 3턴 부여한 뒤 파괴된다. #추가행동 #특수 #비접촉 <적 전용>" }
     - { id: 1435, verbalName: 오버로드, codeName: SeedOverload, description: "체력이 30% 이하일 때 과부하 궁극기의 지속시간 동안 DEX 증가량이 25%가 된다. <적 전용>" }
     - { id: 1436, verbalName: 서리광선, codeName: SeedFrostRay, description: "얼음 원소를 부착할 때 대상에게 2턴 둔화를 부여한다. 둔화는 DEX가 제공하는 행동 속도를 2/3으로 줄인다. <적 전용>" }
 
@@ -394,6 +394,34 @@ codes:
     - { id: 100, verbalName: 장교, codeName: MarieOfficer, description: "서포트 카드로서 DEX 집중 훈련에 배치되면 DEX 훈련 효율 +10%." }
     - { id: 101, verbalName: 개선문, codeName: MarieArcDeTriomphe, description: "전투 시작 시 발동하는 패시브 코드가 3개 이상이면 아군 전체에게 4턴간 치명타 확률 +100%." }
 
+    # ── 노르드 적 (1600 광전사 · 1610 볼바) ──
+    - { id: 1600, verbalName: 광전사의 격노, codeName: BerserkerRage, description: "잃은 체력에 비례해 DEX와 흡혈률이 증가한다. 흡혈은 잃은 체력 10%p마다 남은 비흡혈분의 4%를 가져가는 곱연산이라 쌓을수록 효율이 줄어든다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1601, verbalName: 설인, codeName: BerserkerYeti, description: "눈 필드에 있는 동안 DEX가 2배가 된다. <적 전용>" }
+    - { id: 1602, verbalName: 최후의 발악, codeName: BerserkerLastGasp, description: "클러치 플레이어(42)의 금색 상위 코드. 잃은 체력 비율의 80%만큼 주는 피해가 증가한다. <적 전용>" }
+    - { id: 1610, verbalName: 스팀팩, codeName: VolvaStimpack, description: "아군을 치유하면 대상이 1턴 동안 볼바 INT의 30%만큼 DEX를 얻는다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1611, verbalName: 눈바라기, codeName: VolvaSnowcaller, description: "전투 시작 시 전장을 3턴 동안 눈으로 덮는다. 눈에서는 얼음이 세지고 불·풀이 약해진다. <적 전용>" }
+    - { id: 1612, verbalName: 민간요법, codeName: VolvaFolkRemedy, description: "치유할 때 대상의 해로운 상태를 최대 2개까지 정화한다. 상위는 완벽한 치료(1614). <적 전용>" }
+    - { id: 1613, verbalName: 혹한의 사제, codeName: VolvaFrostPriest, description: "눈 필드에 있는 동안 부여하는 치유량이 50% 증가한다. <적 전용>" }
+    - { id: 1614, verbalName: 완벽한 치료, codeName: VolvaPerfectCure, description: "민간요법(1612)의 금색 상위 코드. 치유할 때 대상의 해로운 상태를 모두 정화한다. <적 전용>" }
+    - { id: 413, verbalName: 숙련된 의자, codeName: SkilledChairItemPassive, description: "자신이 아닌 아군을 치유할 때마다 CON이 1씩 증가한다." }
+    - { id: 1620, verbalName: 뇌신의 박자, codeName: ThorMjolnirRhythm, description: "일반행동을 2회 하면 다음 일반행동이 대체행동으로 바뀐다. 대체행동이 나갈 때마다 STR과 CON이 3씩 영구히 증가한다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1621, verbalName: 노르드의 왕자, codeName: ThorPrinceOfNord, description: "체력 칸이 처음 깨질 때 전장을 3턴 동안 눈으로 덮는다. <적 전용>" }
+    - { id: 1622, verbalName: 승승장구, codeName: ThorMomentum, description: "적 처치 시 물리 태그로 가하는 피해 +5%. 중첩된다. 자기과신(66)의 물리 짝이다. <적 전용>" }
+    - { id: 1623, verbalName: 겨울바람, codeName: ThorWinterWind, description: "눈 필드에 있는 동안 2턴마다 전장의 모든 유닛에게 CON 위력 40의 피해를 주고 얼음 원소를 부착한다. 적아를 가리지 않는다. <적 전용>" }
+    - { id: 414, verbalName: 혹한의 갑주, codeName: FrostplateArmorItemPassive, description: "전장 상태가 주는 불리한 배율을 받지 않는다. 유리한 배율은 그대로 받는다." }
+    - { id: 415, verbalName: 묠니르, codeName: MjolnirItemPassive, description: "번개 원소를 부여하는 공격이 확정 치명타가 되고, 대상의 방어력을 2턴간 20% 감소시킨다." }
+    - { id: 1630, verbalName: 전장의 선택자, codeName: ValkyrieChooser, description: "필드의 노르드 아군 하나당 STR +3%, 신성 아군 하나당 LUK +3%. 자기 자신도 센다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1631, verbalName: 승전보, codeName: ValkyrieVictorySong, description: "적을 처치하면 최대 체력의 100%, 처치에 관여하면 50%를 회복한다. <적 전용>" }
+    - { id: 416, verbalName: 칼춤, codeName: SwordDanceItemPassive, description: "치명타 확률이 15%p 증가한다." }
+    - { id: 417, verbalName: 서리꾼의 장화, codeName: SnowTreaderItemPassive, description: "둔화에 걸리지 않는다." }
+    - { id: 418, verbalName: 살점 뜯개, codeName: FleshRipperItemPassive, description: "처형선이 4%p 증가한다. 덮어쓰지 않고 더해지므로 천살성(8%)이면 12%, 당연한 운명(12%)이면 16%가 된다." }
+    - { id: 419, verbalName: 서리 비늘 갑주, codeName: FrostscaleMailItemPassive, description: "얼음 원소가 부착된 동안 받는 물리 피해가 15% 감소한다. 속성이 아니라 부착이 조건이다." }
+    - { id: 420, verbalName: 타르에 절인 털가죽 바지, codeName: LodbrokItemPassive, description: "지속피해로 받는 피해가 10% 감소하고, 받는 치유량 감소의 폭이 절반이 된다." }
+    - { id: 421, verbalName: 크러셔의 팔, codeName: CrusherArmItemPassive, description: "단일 대상 공격의 피해가 15% 증가한다. 광역 공격에는 적용되지 않는다. <장비 전용> <전수 불가능>" }
+    - { id: 422, verbalName: 탈피한 비늘, codeName: ShedScaleItemPassive, description: "한 번에 받는 피해가 최대 체력의 40%를 넘지 않는다. <장비 전용> <전수 불가능>" }
+    - { id: 423, verbalName: 여덟 갈래 고리, codeName: EightfoldRingItemPassive, description: "자신이 부착하는 원소의 지속이 1턴 늘어난다. <장비 전용> <전수 불가능>" }
+    - { id: 1604, verbalName: 왕의 격노, codeName: KingsRage, description: "잃은 체력에 비례해 DEX와 흡혈률이 증가한다. 광전사의 격노와 같은 구조이며 계수가 크다(DEX 최대 +90%, 흡혈 한 겹 5%). <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1605, verbalName: 왕의 함성, codeName: KingsShout, description: "필드의 광전사 계열(Berserker) 아군이 내는 격노 계수가 1.5배가 된다. 여럿이 들어도 가장 큰 하나만 센다. <적 전용>" }
   normal:
     - id: 21
       verbalName: 일반행동
@@ -455,7 +483,7 @@ codes:
     - id: 80
       verbalName: 일반행동
       codeName: SurtrScorchingSlash
-      description: "도발 상태가 아니면 대체행동을 한다. 도발 상태라면 단일 적에게 STR×0.6의 피해를 입힌다. 대체행동은 자신에게 3턴 도발(우선도 +1)과 80+STR×1.5의 방어막을 부여한다. #베기 #접촉 #물리"
+      description: "단일 적에게 STR×0.9의 피해를 입힌다. #베기 #접촉 #물리"
     - { id: 1000, verbalName: 파수꾼의 타격, codeName: EnemySentinelNormal, description: "단일 적에게 위력 42의 물리 피해를 입힌다. #접촉 #물리" }
     - { id: 1001, verbalName: 투사의 공격, codeName: EnemyFighterNormal, description: "단일 적에게 위력 50의 물리 피해를 입힌다. #접촉 #물리" }
     - { id: 1002, verbalName: 처형자의 일격, codeName: EnemyExecutionerNormal, description: "단일 적에게 위력 55의 물리 피해를 입힌다. #접촉 #물리" }
@@ -482,7 +510,7 @@ codes:
     - { id: 62, verbalName: 일반행동, codeName: AgniNormalAttack, description: "단일 적에게 INT 기반 위력 60의 특수 피해를 입힌다. #특수 #비접촉" }
     - { id: 63, verbalName: 일반행동, codeName: IndraNormalAttack, description: "단일 적에게 INT 기반 위력 50의 특수 피해를 입힌다. #특수 #비접촉" }
     - { id: 64, verbalName: 일반행동, codeName: VayuNormalAttack, description: "단일 적에게 CON 기반 위력 60의 물리 피해를 입힌다. #물리 #비접촉" }
-    - { id: 81, verbalName: 일반행동, codeName: FreyaNormalAttack, description: "아군 전체를 INT 기반 위력 40만큼 치유한다." }
+    - { id: 81, verbalName: 일반행동, codeName: FreyaNormalAttack, description: "아군 전체를 CON×0.6만큼 치유한다." }
     - { id: 82, verbalName: 일반행동, codeName: LokiNormalAttack, description: "단일 적에게 STR 기반 위력 80의 피해를 입힌다. #비접촉 #물리" }
     - { id: 83, verbalName: 일반행동, codeName: SkadiNormalAttack, description: "도발 중이면 단일 적에게 STR×0.8의 피해를 입힌다. 도발 중이 아니라면 대체행동으로 바뀌어 자신에게 100+STR×1.2의 방어막과 3턴 도발(우선도 +1)을 부여한다. #접촉 #물리" }
     - { id: 65, verbalName: 일반행동, codeName: KuberaNormalAttack, description: "단일 적에게 STR 기반 위력 70의 피해를 입힌다. #접촉 #물리" }
@@ -563,6 +591,11 @@ codes:
     - { id: 160, verbalName: 장교의 사격, codeName: MariePistolShot, description: "단일 적에게 LUK×0.5의 피해를 입힌다. #물리 #화살 #비접촉" }
 
   # 특수행동(SP) — 인드라의 궁극기 '신들의 왕'만이 연다. 추가행동과 별개의 판정이다.
+    # ── 노르드 적 ──
+    - { id: 1600, verbalName: 도끼질, codeName: BerserkerAxe, description: "단일 적에게 80 + STR×0.8 위력의 피해를 입힌다. 3번째 일반행동마다 고정 피해로 바뀌고, 최대 체력의 15%를 소모할 수 있으면 소모해 소모량의 3배만큼 피해가 증가하며 불 원소를 부착한다. #베기 #접촉 #물리" }
+    - { id: 1610, verbalName: 서리의 노래, codeName: VolvaFrostSong, description: "체력 비율이 가장 낮은 아군 하나를 CON×0.6만큼 치유한다." }
+    - { id: 1620, verbalName: 망치질, codeName: ThorNormalAttack, description: "단일 적에게 100 + STR×0.8 위력의 피해를 입힌다. 2회 뒤의 일반행동은 대체행동 '뇌전 도약'이 되어 STR 위력 120의 바운스를 5회 튕기며 적중한 적마다 번개 원소를 부착한다. #물리 #접촉" }
+    - { id: 1630, verbalName: 창 던지기, codeName: ValkyrieJavelin, description: "단일 적에게 60 + STR×0.6 위력의 피해를 입힌다. #화살 #비접촉 #물리" }
   special:
     - { id: 60, verbalName: 소마의 잔, codeName: ChandraAegis, description: "아군 전체에게 CON×1.5의 방어막을 주고 INT의 50%만큼 마나를 부여한다." }
     - { id: 61, verbalName: 죽음의 순회, codeName: YamaBounceStrike, description: "DEX×1.2의 단일 공격을 이번에 특수행동을 하는 유닛 수만큼 튕긴다. 각 타격은 30% 확률로 번개 원소를 부여한다. #특수 #비접촉" }
@@ -577,8 +610,8 @@ codes:
     - { id: 61, verbalName: 언젠가 다다를 마지막, codeName: YamaFinalArrival, description: "적 전체를 베어 DEX 기반 위력 60의 피해를 입히고 번개 원소를 부여한다. 이후 대상의 지속피해를 즉시 정산해 (턴당 지속피해 × INT × 0.8%)만큼 추가 피해를 만든다. #특수 #베기 #접촉" }
     - { id: 62, verbalName: 백화, codeName: AgniWhiteFlame, description: "적 전체에게 INT 기반 위력 65의 피해를 입히고 불 원소를 부여한다. #특수 #비접촉" }
     - { id: 63, verbalName: 신들의 왕, codeName: IndraKingOfGods, description: "필드에 있는 모든 로카팔라 아군의 특수행동을 발동시킨다. 피해를 내지 않으며, 같이 나설 로카팔라가 없으면 자원을 태우지 않는다." }
-    - { id: 81, verbalName: 풍요의 산물, codeName: FreyaHarvest, description: "이번 전투의 순수치유량을 정산해 프레이아 최대 체력의 10%마다 아군 전체 STR +1(최대 +25)을 4턴간 부여하고 기록을 비운다." }
-    - { id: 82, verbalName: 발드르의 살해자, codeName: LokiBaldrSlayer, description: "최대 체력이 가장 높은 단일 적에게 STR 기반 위력 120의 피해를 입히고 치유량 감소 -50%(3턴)를 부여한다." }
+    - { id: 81, verbalName: 풍요의 산물, codeName: FreyaHarvest, description: "적 전체에게 INT×0.6의 피해를 입히고, 쌓인 순수치유량에 비례해 피해가 최대 2배까지 커진다. 적중한 모든 적에게 풀 원소를 부착하고 기록을 비운다. #비접촉 #특수" }
+    - { id: 82, verbalName: 발드르의 살해자, codeName: LokiBaldrSlayer, description: "최대 체력이 가장 높은 단일 적에게 STR 기반 위력 120의 피해를 입히고 표식을 남긴다. 표식을 가진 적은 받는 치유량 -25%와 방어력 -20%를 얻는다. 표식은 로키가 쓰러지거나 다른 대상에게 다시 새길 때까지 남는다. #비접촉 #물리" }
     - { id: 83, verbalName: 고드름 스파이크, codeName: SkadiIcicleSpike, description: "적 전체에게 STR×0.8의 피해를 입히고 얼음 원소를 부착한다. #물리 #접촉" }
     - { id: 65, verbalName: 황금의 지진, codeName: KuberaGoldenQuake, description: "적 전체에게 STR 기반 위력 70의 피해를 입히고 에어본 상태이상을 부여한다. #특수 #비접촉" }
     - { id: 66, verbalName: 마카라, codeName: VarunaMakara, description: "소환수 마카라를 4턴간 소환한다. 마카라는 턴마다 적 전체에게 INT 기반 위력 40의 피해를 입히고 물 원소를 부여한다." }
@@ -779,3 +812,8 @@ codes:
     - { id: 3, verbalName: 아즈라엘, codeName: SabahAzrael, description: "아군이 적에게 디버프를 부여할 때 얻는 아즈라엘 스택이 7이 되면 모두 소모해 적 전체에게 DEX×1.0의 피해를 입힌다. #베기 #접촉 #물리" }
     - { id: 26, verbalName: 창공에 대한 도전, codeName: IcariaChallengeTheSky, description: "적 전체에게 INT×1.1의 피해를 입힌다. 최대 체력의 20%를 소모할 수 있으면 소모하고 위력이 INT×1.4로 변한다. #특수 #접촉 #찌르기" }
     - { id: 160, verbalName: 혁명의 노래, codeName: MarieSongOfRevolution, description: "아군 전체에게 3턴간 일반행동으로 가하는 피해 +20%, DEX +10을 부여한다." }
+    # ── 노르드 적 ──
+    - { id: 1600, verbalName: 광란, codeName: BerserkerFrenzy, description: "단일 적을 STR 위력 80으로 4번 벤다. 최대 체력의 20%를 소모할 수 있으면 소모해 소모량의 3배만큼 피해가 증가하고, 대상에게 방어력 20% 감소(2턴)를 부여한다. #물리 #접촉 #베기" }
+    - { id: 1610, verbalName: 셰이드, codeName: VolvaShade, description: "아군 전체를 CON×0.5만큼 치유하고, 단일 적에게 INT×0.7의 피해와 얼음 원소를 부여한 뒤 적 전체에게 INT×0.4의 피해를 준다. #비접촉 #특수" }
+    - { id: 1620, verbalName: 천둥의 신, codeName: ThorGodOfThunder, description: "적 전체에게 CON×1.5의 피해를 입히고 치유량 감소 -25%(3턴)를 부여한다. #특수 #비접촉" }
+    - { id: 1630, verbalName: 서리창, codeName: ValkyrieFrostLance, description: "단일 적에게 150 + STR×0.8 위력의 피해를 입히고 얼음 원소를 부착한다. #화살 #비접촉 #물리" }

@@ -1,24 +1,19 @@
-using System.Collections;
 using System.Collections.Generic;
 using BaseClasses;
 using Codes.Base;
-using Effects.Neutral;
 using UnityEngine;
 
 namespace Codes.Normal
 {
     /// <summary>
-    /// 수르트 N / N+ — 도발 여부에 따라 단일 공격 또는 방어막·도발 행동으로 바뀐다.
-    /// 도발은 스카디와 같은 방식으로 <b>자신에게</b> 걸어 우선도를 올린다.
+    /// 수르트 N — 단일 적에게 STR 기반 위력 90의 접촉 물리 베기.
+    ///
+    /// 도발과 방어막을 두르던 대체행동은 사라졌다. 수르트는 전열 수호자가 아니라
+    /// 체력을 태워 때리는 딜러이며, 황혼(280)이 이 한 방의 값을 매 행동 치른다.
     /// </summary>
     public sealed class SurtrScorchingSlash : BaseNormalCode
     {
-        private const int NormalPower = 60;
-        private const int TauntDurationTurns = 3;
-        private const float ShieldFlat = 80f;
-        private const float ShieldStrCoefficient = 1.5f;
-
-        private bool _substitute;
+        private const int NormalPower = 90;
 
         public SurtrScorchingSlash(NormalCodeContext context) : base(context)
         {
@@ -27,38 +22,6 @@ namespace Codes.Normal
             MaxStage = 1;
             Power = NormalPower;
             CodeTags = new List<int> { DamageTag.Physical, DamageTag.Slash };
-        }
-
-        public override void CastCode()
-        {
-            _substitute = !Taunt.Has(Caster);
-            CodeName = _substitute ? "대체행동" : "일반행동";
-            base.CastCode();
-        }
-
-        protected override IEnumerator SkillCoroutine()
-        {
-            if (!_substitute)
-            {
-                yield return base.SkillCoroutine();
-                yield break;
-            }
-
-            bool cast = false;
-            yield return WaitForCast(result => cast = result);
-            if (!cast)
-            {
-                StopCode();
-                yield break;
-            }
-
-            int shield = Mathf.Max(1, Mathf.RoundToInt(
-                ShieldFlat + Caster.GetBaseStr() * ShieldStrCoefficient));
-            Caster.AddShield(shield, Caster);
-            Taunt.Apply(Caster, Caster, TauntDurationTurns);
-
-            NotifyActionResolved();
-            StopCode();
         }
 
         protected override int CalculateDamage(float critMultiplier)
@@ -73,9 +36,5 @@ namespace Codes.Normal
             DamageTag.ContactAttack,
             DamageTag.Slash,
         };
-
-        // 도발 중이 아니면 적이 없어도 방어막·도발 행동은 성립한다.
-        public override bool HasValidTarget()
-            => Caster != null && Caster.isActive && (!Taunt.Has(Caster) || base.HasValidTarget());
     }
 }

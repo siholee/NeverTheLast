@@ -44,7 +44,6 @@ namespace Codes.Ultimate
                 AztecUltimateStyle.Tezcatlipoca => "검은 태양의 전열",
                 _ => "메히코 비기",
             };
-            Cooldown = style == AztecUltimateStyle.Tezcatlipoca ? 0f : 4f;
             CastingDelay = style == AztecUltimateStyle.Tezcatlipoca ? 0.9f : 0.6f;
             MaxStage = 1;
 
@@ -195,7 +194,6 @@ namespace Codes.Ultimate
         public override void StopCode()
         {
             if (Caster == null) return;
-            Caster.ultimateCooldown = Cooldown;
             Caster.isCasting = false;
         }
 

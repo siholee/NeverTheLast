@@ -13,7 +13,7 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public static class CombatVfxPreviewExporter
 {
-    private const int Width = 1400;
+    private const int Width = 1800;
     private const int Height = 700;
 
     [MenuItem("Tools/Combat VFX/Export Preview %&v")]
@@ -21,7 +21,12 @@ public static class CombatVfxPreviewExporter
     {
         // PreviewScene은 일반 Camera.Render에서 컬링될 수 있어, 열린 작업 씬을 건드리지 않는
         // 임시 Additive Scene을 사용한다. 렌더 직후 바로 닫는다.
-        Scene previewScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+        // EditorSceneManager.NewScene은 Play Mode에서 예외를 던진다. 전투를 보다가 곧바로
+        // 프리뷰를 뽑는 것이 이 도구의 주 사용법이므로 런타임에는 일반 additive Scene을 쓴다.
+        bool playing = EditorApplication.isPlaying;
+        Scene previewScene = playing
+            ? SceneManager.CreateScene("Combat VFX Preview")
+            : EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
         Camera camera = null;
         Sprite cardSprite = null;
         RenderTexture renderTexture = null;
@@ -33,14 +38,32 @@ public static class CombatVfxPreviewExporter
             camera = CreateCamera(previewScene);
             cardSprite = CreateCardSprite();
 
-            Unit attacker = CreateBareUnit(previewScene, "Slash Attacker", new Vector3(-10f, 0f));
-            Unit slashTarget = CreateUnit(previewScene, "Slash Target", new Vector3(-5f, 0f), cardSprite,
+            Unit attacker = CreateBareUnit(previewScene, "Slash Attacker", new Vector3(-20f, 0f));
+            Unit slashTarget = CreateUnit(previewScene, "Slash Target", new Vector3(-15f, 0f), cardSprite,
                 new Color(0.31f, 0.16f, 0.18f));
             SlashEffect slash = SlashEffect.Play(attacker, slashTarget, new Color(1f, 0.38f, 0.12f));
             SceneManager.MoveGameObjectToScene(slash.gameObject, previewScene);
             slash.SetPreviewTime(0.13f);
 
-            Unit airborneTarget = CreateUnit(previewScene, "Airborne Target", new Vector3(5f, 0f), cardSprite,
+            // 찌르기 — 공격 방향을 따라 들어왔다 빠진다.
+            Unit thrustAttacker = CreateBareUnit(previewScene, "Thrust Attacker", new Vector3(-10f, 0f));
+            Unit thrustTarget = CreateUnit(previewScene, "Thrust Target", new Vector3(-5f, 0f), cardSprite,
+                new Color(0.18f, 0.22f, 0.30f));
+            ThrustEffect thrust = ThrustEffect.Play(
+                thrustAttacker, thrustTarget, new Color(0.60f, 0.90f, 0.97f));
+            SceneManager.MoveGameObjectToScene(thrust.gameObject, previewScene);
+            thrust.SetPreviewTime(0.12f);
+
+            // 타격 — 방향 없이 퍼지는 충격 고리.
+            Unit impactAttacker = CreateBareUnit(previewScene, "Impact Attacker", new Vector3(0f, 0f));
+            Unit impactTarget = CreateUnit(previewScene, "Impact Target", new Vector3(5f, 0f), cardSprite,
+                new Color(0.26f, 0.22f, 0.14f));
+            ImpactEffect impact = ImpactEffect.Play(
+                impactAttacker, impactTarget, new Color(1f, 0.78f, 0.21f));
+            SceneManager.MoveGameObjectToScene(impact.gameObject, previewScene);
+            impact.SetPreviewTime(0.11f);
+
+            Unit airborneTarget = CreateUnit(previewScene, "Airborne Target", new Vector3(15f, 0f), cardSprite,
                 new Color(0.12f, 0.24f, 0.34f));
             // 프리뷰에서는 UnitCardView 대신 카드 스프라이트만 실제 상승 높이만큼 올린다.
             airborneTarget.transform.GetChild(0).localPosition = Vector3.up * (Cell.CardSize * 0.13f);
@@ -69,21 +92,35 @@ public static class CombatVfxPreviewExporter
             // 순서가 반대면 "Releasing render texture that is set as Camera.targetTexture"가 발생한다.
             if (camera != null) camera.targetTexture = null;
             if (RenderTexture.active == renderTexture) RenderTexture.active = previousActive;
-            EditorSceneManager.CloseScene(previewScene, true);
+            if (playing)
+            {
+                SceneManager.UnloadSceneAsync(previewScene);
+            }
+            else
+            {
+                EditorSceneManager.CloseScene(previewScene, true);
+            }
 
-            if (capture != null) Object.DestroyImmediate(capture);
+            if (capture != null) DestroyTemporary(capture, playing);
             if (cardSprite != null)
             {
                 Texture2D cardTexture = cardSprite.texture;
-                Object.DestroyImmediate(cardSprite);
-                if (cardTexture != null) Object.DestroyImmediate(cardTexture);
+                DestroyTemporary(cardSprite, playing);
+                if (cardTexture != null) DestroyTemporary(cardTexture, playing);
             }
             if (renderTexture != null)
             {
                 renderTexture.Release();
-                Object.DestroyImmediate(renderTexture);
+                DestroyTemporary(renderTexture, playing);
             }
         }
+    }
+
+    private static void DestroyTemporary(Object target, bool playing)
+    {
+        if (target == null) return;
+        if (playing) Object.Destroy(target);
+        else Object.DestroyImmediate(target);
     }
 
     private static Camera CreateCamera(Scene scene)
@@ -92,7 +129,7 @@ public static class CombatVfxPreviewExporter
         SceneManager.MoveGameObjectToScene(go, scene);
         Camera camera = go.AddComponent<Camera>();
         camera.orthographic = true;
-        camera.orthographicSize = 6.4f;
+        camera.orthographicSize = 7.6f;
         camera.transform.position = new Vector3(0f, 0.4f, -10f);
         camera.clearFlags = CameraClearFlags.SolidColor;
         camera.backgroundColor = new Color(0.025f, 0.031f, 0.045f, 1f);

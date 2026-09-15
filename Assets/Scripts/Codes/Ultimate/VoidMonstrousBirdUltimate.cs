@@ -14,7 +14,7 @@ namespace Codes.Ultimate
         private readonly BaseEnums.UnitElement _attachedElement;
 
         public VoidMonstrousBirdUltimate(UltimateCodeContext context, BaseEnums.UnitElement attachedElement)
-            : base(context, "공허 강습", 4, 0.45f)
+            : base(context, "공허 강습", 0.45f)
         {
             _attachedElement = attachedElement;
             Power = 80;

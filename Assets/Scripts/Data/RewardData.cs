@@ -14,5 +14,6 @@ namespace Managers
     public class RewardDataList
     {
         public List<RewardTierOddsData> rewardTierOdds;
+        public List<RewardDef> rewards;
     }
 }

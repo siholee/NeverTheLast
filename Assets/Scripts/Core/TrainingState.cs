@@ -80,17 +80,48 @@ namespace Core
         }
 
         /// <summary>
+        /// 스킬 Pt를 치른다. 모자라면 아무것도 쓰지 않고 false.
+        /// 유일한 소비처는 스킬 힌트 습득이다(<see cref="Managers.TrainingManager.TryLearnSkill"/>).
+        /// </summary>
+        public bool TrySpendSkillPoints(int amount)
+        {
+            amount = Mathf.Max(0, amount);
+            if (SkillPoints < amount) return false;
+
+            SkillPoints -= amount;
+            return true;
+        }
+
+        /// <summary>
         /// 훈련이 끝날 때마다 컨디션이 한 칸 흔들린다.
         /// 체력이 낮으면 나빠지는 쪽으로 기운다 — 무리해서 굴리면 대가가 따른다.
+        ///
+        /// <b>실패는 흔들지 않고 확정으로 한 칸 떨어뜨린다.</b> 체력을 바닥까지 끌어 쓴 대가가
+        /// 그 턴 안에서 끝나면, 실패율 60%를 감수하고 굴리는 쪽이 늘 이득이 된다.
         /// </summary>
-        public void DriftCondition()
+        public void DriftCondition(bool failed = false)
         {
+            if (failed)
+            {
+                WorsenCondition();
+                return;
+            }
+
             int roll = Random.Range(0, 100);
             if (roll < 55) return;
 
             bool worsen = Energy < 40 ? roll < 85 : roll < 78;
             ConditionIndex = Mathf.Clamp(ConditionIndex + (worsen ? 1 : -1), 0, ConditionNames.Length - 1);
         }
+
+        /// <summary>
+        /// 컨디션을 한 칸 끌어올린다. <b>휴식만 이걸 할 수 있다</b> —
+        /// 훈련은 흔들기만 하므로, 나빠진 컨디션을 되돌릴 확실한 수단이 하나는 있어야 한다.
+        /// </summary>
+        public void ImproveCondition() => ConditionIndex = Mathf.Max(0, ConditionIndex - 1);
+
+        public void WorsenCondition() =>
+            ConditionIndex = Mathf.Min(ConditionNames.Length - 1, ConditionIndex + 1);
 
         /// <summary>이 서포트가 이번 턴에 앉은 훈련. 나오지 않았거나 아직 안 굴렸으면 false.</summary>
         public bool TryGetPlacement(int unitId, out BaseEnums.PrimaryStat stat)

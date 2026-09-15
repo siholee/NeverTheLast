@@ -53,6 +53,33 @@ public static class DebugVerificationMenu
     private static void LaunchPending()
     {
         if (!SessionState.GetBool(Pending, false)) return;
+
+        // Edit Mode에서 단축키를 누르면 현재 열려 있던 씬으로 Play Mode가 시작된다.
+        // MainMenu에는 GameManager가 없으므로 그대로 검증을 시작하면 30초 동안 기다린 뒤
+        // 초기화 실패로 끝난다. 요청 플래그를 유지한 채 실제 게임 씬을 먼저 연 다음,
+        // 이 콜백이 다시 불렸을 때 스위트를 시작한다.
+        if (SceneManager.GetActiveScene().name != SceneNames.Game)
+        {
+            SceneManager.sceneLoaded -= LaunchAfterGameSceneLoaded;
+            SceneManager.sceneLoaded += LaunchAfterGameSceneLoaded;
+            GameStartIntent.Current = GameStartIntent.Intent.DirectStart;
+            SceneManager.LoadScene(SceneNames.Game);
+            return;
+        }
+
+        StartPendingSuite();
+    }
+
+    private static void LaunchAfterGameSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name != SceneNames.Game || !SessionState.GetBool(Pending, false)) return;
+
+        SceneManager.sceneLoaded -= LaunchAfterGameSceneLoaded;
+        StartPendingSuite();
+    }
+
+    private static void StartPendingSuite()
+    {
         SessionState.SetBool(Pending, false);
         // GameManager.Start()의 StartRun/DeleteSave보다 먼저 저장을 격리한다.
         DebugMode.BeginSession();

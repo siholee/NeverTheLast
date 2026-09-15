@@ -20,7 +20,6 @@ namespace Codes.Ultimate
         protected AswanUltimate(UltimateCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Ultimate;
-            Cooldown = 4;
             CastingDelay = 0.5f;
         }
 
@@ -49,7 +48,6 @@ namespace Codes.Ultimate
         public override void StopCode()
         {
             if (Caster == null) return;
-            Caster.ultimateCooldown = Cooldown;
             Caster.isCasting = false;
         }
 
@@ -153,7 +151,6 @@ namespace Codes.Ultimate
         public AswanWraithSummon(UltimateCodeContext context) : base(context)
         {
             CodeName = "사령 소환";
-            Cooldown = 4;
             CastingDelay = 0.45f;
         }
 

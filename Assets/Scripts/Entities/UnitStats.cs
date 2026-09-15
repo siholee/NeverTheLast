@@ -203,7 +203,8 @@ namespace Entities
         internal int GetUnburdenedBaseStr()
         {
             int raw = strBase + strIncrementLvl * GetStatGrowthLevel() + strIncrementUpgrade * strUpgrade
-                + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.STR) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.STR);
+                + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.STR) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.STR)
+                + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.STR);
             return _owner.ApplyStatusPrimaryStatMultipliers(BaseEnums.PrimaryStat.STR, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.STR, raw));
         }
 
@@ -215,28 +216,32 @@ namespace Entities
         internal int GetUnburdenedBaseDex()
         {
             int raw = dexBase + dexIncrementLvl * GetStatGrowthLevel() + dexIncrementUpgrade * dexUpgrade
-                + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.DEX) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.DEX);
+                + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.DEX) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.DEX)
+                + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.DEX);
             return _owner.ApplyStatusPrimaryStatMultipliers(BaseEnums.PrimaryStat.DEX, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.DEX, raw));
         }
 
         public int GetBaseCon()
         {
             int raw = conBase + conIncrementLvl * GetStatGrowthLevel() + conIncrementUpgrade * conUpgrade
-                + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.CON) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.CON);
+                + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.CON) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.CON)
+                + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.CON);
             return _owner.ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.CON, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.CON, raw));
         }
 
         public int GetBaseInt()
         {
             int raw = intBase + intIncrementLvl * GetStatGrowthLevel() + intIncrementUpgrade * intUpgrade
-                + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.INT) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.INT);
+                + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.INT) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.INT)
+                + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.INT);
             return _owner.ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.INT, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.INT, raw));
         }
 
         public int GetBaseLuk()
         {
             int raw = lukBase + lukIncrementLvl * GetStatGrowthLevel() + lukIncrementUpgrade * lukUpgrade
-                + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.LUK) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.LUK);
+                + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.LUK) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.LUK)
+                + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.LUK);
             return _owner.ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.LUK, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.LUK, raw));
         }
 
@@ -273,8 +278,6 @@ namespace Entities
         // ===== 파생 스탯 =====
 
         public int GetDerivedHp() => Mathf.Max(1, GetBaseCon() * HpPerConPoint);
-
-        public int GetDerivedMana() => 100;
 
         /// <summary>방어력. STR에서 파생된다.</summary>
         public int GetDerivedDef()

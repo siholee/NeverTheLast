@@ -271,6 +271,11 @@ namespace Managers.UI.Theme
         public static Color Tint(UnitStatus status)
         {
             if (status == null) return UITheme.TextMuted;
+
+            // 행동 불가는 이로움/해로움보다 먼저 갈린다. 기절한 유닛을 찾는 눈이
+            // 다른 디버프 사이에서 적색 하나를 더 골라내야 하면 8배속에서 놓친다.
+            if (IsControl(Resolve(status).Glyph)) return UITheme.Control;
+
             if (status.IsBeneficial
                 || status.Category == BaseClasses.BaseEnums.StatusCategory.Positive)
             {
@@ -281,6 +286,14 @@ namespace Managers.UI.Theme
                 ? UITheme.Danger
                 : UITheme.TextSecondary;
         }
+
+        /// <summary>행동을 묶는 상태인가. 색 분류가 여기서 갈린다.</summary>
+        public static bool IsControl(StatusGlyph glyph) => glyph is StatusGlyph.Stun
+            or StatusGlyph.Freeze
+            or StatusGlyph.Airborne
+            or StatusGlyph.Silence
+            or StatusGlyph.Root
+            or StatusGlyph.Taunt;
 
         private static string EffectTypeNames(UnitStatus status)
         {

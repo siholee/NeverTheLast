@@ -13,7 +13,7 @@ namespace Managers
     /// 구성:
     ///   <see cref="BattleHud"/>       — 상시 표시되는 전투 HUD(파티/로그/상단바/TAB 코덱스)
     ///   <see cref="PreparationScreen"/> — 준비 페이즈 하단 바
-    ///   나머지 ModalScreen 파생 화면들 — 보상/육성/캐릭터 선택/사건
+    ///   나머지 ModalScreen 파생 화면들 — 보상/상점/스킬/육성/캐릭터 선택/사건
     ///
     /// 화면 객체는 전부 지연 생성이라, 실제로 열리기 전까지 GameObject를 만들지 않는다.
     /// </summary>
@@ -22,6 +22,8 @@ namespace Managers
         private BattleHud _hud;
         private readonly PreparationScreen _preparation = new();
         private readonly RewardScreen _reward = new();
+        private readonly ShopScreen _shop = new();
+        private readonly SkillScreen _skill = new();
         private readonly TrainingScreen _training = new();
         private readonly TrainingResultScreen _trainingResult = new();
         private readonly CharacterSelectScreen _characterSelect = new();
@@ -120,6 +122,30 @@ namespace Managers
         public void HideRewardPanel()
         {
             _reward.Hide();
+        }
+
+        // ── 상점 ─────────────────────────────────────────────────────
+
+        public void ShowShopPanel()
+        {
+            _shop.Show();
+        }
+
+        public void HideShopPanel()
+        {
+            _shop.Hide();
+        }
+
+        // ── 스킬 ─────────────────────────────────────────────────────
+
+        public void ShowSkillPanel()
+        {
+            _skill.Show();
+        }
+
+        public void HideSkillPanel()
+        {
+            _skill.Hide();
         }
 
         // ── 육성 ─────────────────────────────────────────────────────

@@ -68,12 +68,20 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>Snow 필드에서 DEX +30%, CON +15%.</summary>
+    /// <summary>
+    /// 혹한의 동력로 — 눈을 직접 깔고 그 위에서 DEX +30%, CON +15%.
+    ///
+    /// 혹한의 노심과 같은 이유로 테마 태그 판정을 판 판정으로 옮겼다.
+    /// 거인이 없는 슬롯에서도 혼자 눈을 만들 수 있어야 이 씨앗이 엘리트 값을 한다.
+    /// </summary>
     public sealed class FrostSeedCore : PersistentStatusPassive
     {
+        /// <summary>자기 턴마다 새로 매기는 눈의 지속.</summary>
+        public const int SnowTurns = 2;
+
         public FrostSeedCore(PassiveCodeContext context)
             : base(context, GenericSeedStatusIds.FrostCore, "frost_seed_core", "혹한의 동력로",
-                "눈 필드에서 DEX가 30%, CON이 15% 증가합니다.")
+                "턴 시작 시 눈 필드를 깝니다. 눈 필드에 있는 동안 DEX가 30%, CON이 15% 증가합니다.")
         {
             IsUniquePassive = true;
             Transferable = false;
@@ -86,9 +94,15 @@ namespace Codes.Passive
     {
         public FrostSeedCoreEffect() : base(0) { }
 
+        public override void OnOwnerTurn()
+        {
+            if (Target == null || !Target.isActive) return;
+            Combat.Battlefield.Set(Combat.FieldKind.Snow, Target, FrostSeedCore.SnowTurns);
+        }
+
         public override float PrimaryStatMultiplierModifier(Unit unit, BaseEnums.PrimaryStat stat)
         {
-            if (unit != Target || GameManager.Instance?.RoundManager?.CurrentThemeHasTag("Snow") != true) return 1f;
+            if (unit != Target || !Combat.Battlefield.Is(Combat.FieldKind.Snow)) return 1f;
             return stat switch
             {
                 BaseEnums.PrimaryStat.DEX => 1.30f,
@@ -110,10 +124,14 @@ namespace Codes.Passive
                 enhanced ? "seed_greater_explosion" : "seed_self_destruct",
                 enhanced ? "대폭발" : "자폭",
                 enhanced
-                    ? "치명 피해 시 적 전체에 최대 체력의 40% 고정 피해를 주고 치유량 감소를 3턴 부여한 뒤 파괴됩니다."
-                    : "치명 피해 시 적 전체에 최대 체력의 20% 고정 피해를 주고 파괴됩니다.")
+                    ? "치명 피해 시 적 전체에 최대 체력의 16% 고정 피해를 주고 치유량 감소를 3턴 부여한 뒤 파괴됩니다."
+                    : "치명 피해 시 적 전체에 최대 체력의 8% 고정 피해를 주고 파괴됩니다.")
         {
-            _maxHpRatio = enhanced ? 0.40f : 0.20f;
+            // 20%/40%는 후열을 그냥 지웠다 — 대폭발 하나가 비CON 아군 최대 체력의 2배를 넘었다.
+            // 8%/16%는 <b>방어막으로 받아 내는 크기</b>다. 대폭발 한 방이 후열 체력의 85~90%라
+            // 맨몸이면 빈사가 되고 방어막 한 겹이면 넘어간다. 일반 씨앗은 셋이 동시에 터져야
+            // 위험해지므로 한 마리씩 끊는 쪽이 여전히 정답이다.
+            _maxHpRatio = enhanced ? 0.16f : 0.08f;
             _healingReduction = enhanced;
             if (enhanced) Grade = BaseEnums.CodeGrade.Enhanced;
             else SupersededByCodeId = GenericSeedCodeIds.GreaterExplosion;

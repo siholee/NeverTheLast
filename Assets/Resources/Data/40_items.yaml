@@ -41,6 +41,7 @@ items:
   # T1 무기 — 효과는 의도적으로 5스탯 +1만 제공한다.
   - id: 4101
     name: 의식용 단검
+    icon: ITEM_CEREMONIAL_DAGGER
     slot: MainHand
     category: Dagger
     requiredProficiency: Dagger
@@ -50,6 +51,7 @@ items:
 
   - id: 4102
     name: 이빨 빠진 검
+    icon: ITEM_CHIPPED_SWORD
     slot: MainHand
     category: Longsword
     requiredProficiency: Longsword
@@ -59,6 +61,7 @@ items:
 
   - id: 4103
     name: 녹슨 대검
+    icon: ITEM_RUSTY_GREATSWORD
     slot: MainHand
     category: Greatsword
     requiredProficiency: Greatsword
@@ -69,6 +72,7 @@ items:
 
   - id: 4104
     name: 훈련용 장창
+    icon: ITEM_TRAINING_SPEAR
     slot: MainHand
     category: Spear
     requiredProficiency: Spear
@@ -79,6 +83,7 @@ items:
 
   - id: 4105
     name: 망가진 망치
+    icon: ITEM_BROKEN_HAMMER
     slot: MainHand
     category: Mace
     requiredProficiency: Mace
@@ -88,6 +93,7 @@ items:
 
   - id: 4106
     name: 버려진 활
+    icon: ITEM_DISCARDED_LONGBOW
     slot: MainHand
     category: Longbow
     requiredProficiency: Longbow
@@ -98,6 +104,7 @@ items:
 
   - id: 4107
     name: 견습 사냥꾼의 활
+    icon: ITEM_APPRENTICE_HUNTER_BOW
     slot: MainHand
     category: Shortbow
     requiredProficiency: Shortbow
@@ -107,6 +114,7 @@ items:
 
   - id: 4108
     name: 초심자용 쇠뇌
+    icon: ITEM_NOVICE_CROSSBOW
     slot: MainHand
     category: Crossbow
     requiredProficiency: Crossbow
@@ -117,6 +125,7 @@ items:
 
   - id: 4109
     name: 유리 구슬
+    icon: ITEM_GLASS_ORB
     slot: MainHand
     category: Orb
     requiredProficiency: Orb
@@ -126,6 +135,7 @@ items:
 
   - id: 4115
     name: 무딘 단창
+    icon: ITEM_BLUNT_SHORTSPEAR
     slot: MainHand
     category: Shortspear
     requiredProficiency: Shortspear
@@ -135,6 +145,7 @@ items:
 
   - id: 4110
     name: 버려진 방패
+    icon: ITEM_DISCARDED_SHIELD
     slot: OffHand
     category: Shield
     requiredProficiency: Shield
@@ -146,6 +157,7 @@ items:
   # T1 방어구 — 의복은 숙련을 요구하지 않는다.
   - id: 4111
     name: 평범한 로브
+    icon: ITEM_PLAIN_ROBE
     slot: Armor
     category: Clothing
     rarity: 1
@@ -155,6 +167,7 @@ items:
 
   - id: 4112
     name: 헤진 가죽 갑옷
+    icon: ITEM_WORN_LEATHER_ARMOR
     slot: Armor
     category: LightArmor
     requiredProficiency: LightArmor
@@ -165,6 +178,7 @@ items:
 
   - id: 4113
     name: 망가진 비늘 갑옷
+    icon: ITEM_BROKEN_SCALE_ARMOR
     slot: Armor
     category: MediumArmor
     requiredProficiency: MediumArmor
@@ -175,6 +189,7 @@ items:
 
   - id: 4114
     name: 녹슨 판금 갑옷
+    icon: ITEM_RUSTY_PLATE_ARMOR
     slot: Armor
     category: HeavyArmor
     requiredProficiency: HeavyArmor
@@ -188,6 +203,7 @@ items:
   # T2는 codeGrants를 주지 않는다. 스탯 증가와 내구도만 제공한다.
   - id: 4201
     name: 레기온 한손검
+    icon: ITEM_LEGION_LONGSWORD
     slot: MainHand
     category: Longsword
     requiredProficiency: Longsword
@@ -198,6 +214,7 @@ items:
 
   - id: 4202
     name: 레기온 두손검
+    icon: ITEM_LEGION_GREATSWORD
     slot: MainHand
     category: Greatsword
     requiredProficiency: Greatsword
@@ -209,6 +226,7 @@ items:
 
   - id: 4203
     name: 레기온 장창
+    icon: ITEM_LEGION_SPEAR
     slot: MainHand
     category: Spear
     requiredProficiency: Spear
@@ -220,6 +238,7 @@ items:
 
   - id: 4204
     name: 레기온 쇠뇌
+    icon: ITEM_LEGION_CROSSBOW
     slot: MainHand
     category: Crossbow
     requiredProficiency: Crossbow
@@ -231,6 +250,7 @@ items:
 
   - id: 4205
     name: 레기온 보주
+    icon: ITEM_LEGION_ORB
     slot: MainHand
     category: Orb
     requiredProficiency: Orb
@@ -241,6 +261,7 @@ items:
 
   - id: 4206
     name: 레기온 방패
+    icon: ITEM_LEGION_SHIELD
     slot: OffHand
     category: Shield
     requiredProficiency: Shield
@@ -252,6 +273,7 @@ items:
 
   - id: 4207
     name: 레기온 경갑
+    icon: ITEM_LEGION_LIGHT_ARMOR
     slot: Armor
     category: LightArmor
     requiredProficiency: LightArmor
@@ -263,6 +285,7 @@ items:
 
   - id: 4208
     name: 레기온 평갑
+    icon: ITEM_LEGION_MEDIUM_ARMOR
     slot: Armor
     category: MediumArmor
     requiredProficiency: MediumArmor
@@ -274,6 +297,7 @@ items:
 
   - id: 4209
     name: 레기온 중갑
+    icon: ITEM_LEGION_HEAVY_ARMOR
     slot: Armor
     category: HeavyArmor
     requiredProficiency: HeavyArmor
@@ -288,6 +312,7 @@ items:
   # T2는 레기온 세트와 같은 규칙으로 codeGrants 없이 스탯만 올린다.
   - id: 4210
     name: 독수리 전사의 활
+    icon: ITEM_EAGLE_WARRIOR_BOW
     slot: MainHand
     category: Longbow
     requiredProficiency: Longbow
@@ -299,6 +324,7 @@ items:
 
   - id: 4211
     name: 재규어 전사의 몽둥이
+    icon: ITEM_JAGUAR_WARRIOR_CLUB
     slot: MainHand
     category: Mace
     requiredProficiency: Mace
@@ -309,6 +335,7 @@ items:
 
   - id: 4212
     name: 뱀 사제의 지팡이
+    icon: ITEM_SERPENT_PRIEST_STAFF
     slot: MainHand
     category: Spear
     requiredProficiency: Spear
@@ -331,6 +358,7 @@ items:
   # 5스탯이 아닌 수치를 고른 장비이며 T2 계수는 2P = 6이다.
   - id: 4217
     name: 결투자의 인장
+    icon: ITEM_DUELIST_SEAL
     slot: Necklace
     category: Necklace
     rarity: 2
@@ -339,6 +367,7 @@ items:
 
   - id: 4218
     name: 사냥꾼의 이빨 목걸이
+    icon: ITEM_HUNTER_FANG_NECKLACE
     slot: Necklace
     category: Necklace
     rarity: 2
@@ -347,6 +376,7 @@ items:
 
   - id: 4219
     name: 무쇠 부적
+    icon: ITEM_IRON_TALISMAN
     slot: Necklace
     category: Necklace
     rarity: 2
@@ -360,6 +390,7 @@ items:
   # 셋 다 진영을 가리지 않는 효과라 아군이 들어도 그대로 동작한다.
   - id: 4213
     name: 정예 독수리 전사의 활
+    icon: ITEM_ELITE_EAGLE_WARRIOR_BOW
     slot: MainHand
     category: Longbow
     requiredProficiency: Longbow
@@ -373,6 +404,7 @@ items:
 
   - id: 4214
     name: 정예 재규어 전사의 몽둥이
+    icon: ITEM_ELITE_JAGUAR_WARRIOR_CLUB
     slot: MainHand
     category: Mace
     requiredProficiency: Mace
@@ -385,6 +417,7 @@ items:
 
   - id: 4215
     name: 정예 뱀 사제의 지팡이
+    icon: ITEM_ELITE_SERPENT_PRIEST_STAFF
     slot: MainHand
     category: Spear
     requiredProficiency: Spear
@@ -421,7 +454,161 @@ items:
     codeGrants:
       - { slot: passive, codeId: 409, stage: 1 }
 
+  # ── 노르드 장비 (테마 16 전용) ─────────────────────────────────
+  # 광전사와 볼바가 레벨이 오르면 장비하고 나타나며, 잡으면 같은 것이 보상으로 나온다.
+  - id: 4220
+    name: 약탈자의 가죽옷
+    icon: ITEM_RAIDER_LEATHER_ARMOR
+    slot: Armor
+    category: MediumArmor
+    requiredProficiency: MediumArmor
+    rarity: 2
+    weight: 4
+    durability: 20
+    themeIds: [16]
+    statBonuses: [{ stat: STR, amount: 3 }]
+
+  - id: 4306
+    name: 바이킹 도끼
+    icon: ITEM_VIKING_AXE
+    slot: MainHand
+    category: Mace
+    requiredProficiency: Mace
+    rarity: 3
+    weight: 3
+    themeIds: [16]
+    statBonuses: [{ stat: STR, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 41, stage: 1 }
+
+  - id: 4307
+    name: 세이드스타프르
+    icon: ITEM_SEIDRSTAFFR
+    slot: MainHand
+    category: Orb
+    requiredProficiency: Orb
+    rarity: 3
+    weight: 1
+    themeIds: [16]
+    statBonuses: [{ stat: INT, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 413, stage: 1 }
+
+  - id: 4308
+    name: 메기오르드
+    icon: ITEM_MEGINGJORD
+    slot: Necklace
+    category: Necklace
+    rarity: 3
+    weight: 1
+    themeIds: [16]
+    statBonuses: [{ stat: STR, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 39, stage: 1 }
+
+  - id: 4309
+    name: 혹한의 갑주
+    icon: ITEM_FROST_ARMOR
+    slot: Armor
+    category: MediumArmor
+    requiredProficiency: MediumArmor
+    rarity: 3
+    weight: 4
+    durability: 33
+    themeIds: [16]
+    statBonuses: [{ stat: Durability, amount: 10 }]
+    codeGrants:
+      - { slot: passive, codeId: 414, stage: 1 }
+
+  - id: 4221
+    name: 발키리의 활
+    icon: ITEM_VALKYRIE_BOW
+    slot: MainHand
+    category: Longbow
+    requiredProficiency: Longbow
+    rarity: 2
+    weight: 3
+    twoHanded: true
+    themeIds: [16]
+    statBonuses: [{ stat: STR, amount: 3 }]
+
+  - id: 4310
+    name: 발키리의 투구
+    icon: ITEM_VALKYRIE_HELMET
+    slot: Head
+    category: Helmet
+    rarity: 3
+    weight: 2
+    durability: 10
+    themeIds: [16]
+    statBonuses: [{ stat: STR, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 416, stage: 1 }
+
+  - id: 4222
+    name: 룬을 새긴 반지
+    icon: ITEM_RUNED_RING
+    slot: Ring
+    category: Ring
+    rarity: 2
+    weight: 1
+    themeIds: [16]
+    statBonuses: [{ stat: INT, amount: 3 }]
+
+  - id: 4311
+    name: 서리꾼의 장화
+    icon: ITEM_FROSTWALKER_BOOTS
+    slot: Shoes
+    category: Shoes
+    rarity: 3
+    weight: 2
+    themeIds: [16]
+    statBonuses: [{ stat: DEX, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 417, stage: 1 }
+
+  - id: 4312
+    name: 살점 뜯개
+    icon: ITEM_FLESH_RIPPER
+    slot: MainHand
+    category: Dagger
+    requiredProficiency: Dagger
+    rarity: 3
+    weight: 1
+    themeIds: [16]
+    statBonuses: [{ stat: LUK, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 418, stage: 1 }
+
+  - id: 4313
+    name: 서리 비늘 갑주
+    icon: ITEM_FROST_SCALE_ARMOR
+    slot: Armor
+    category: HeavyArmor
+    requiredProficiency: HeavyArmor
+    rarity: 3
+    weight: 6
+    durability: 52
+    themeIds: [16]
+    statBonuses: [{ stat: CON, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 419, stage: 1 }
+
   # ── T4 고유 장비 ────────────────────────────────────────────────
+  - id: 4405
+    name: 타르에 절인 털가죽 바지
+    icon: ITEM_TARRED_FUR_TROUSERS
+    slot: Armor
+    category: MediumArmor
+    requiredProficiency: MediumArmor
+    rarity: 4
+    weight: 4
+    durability: 48
+    themeIds: [16]
+    statBonuses: [{ stat: CON, amount: 7 }]
+    codeGrants:
+      - { slot: passive, codeId: 420, stage: 1 }
+
   - id: 4401
     name: 황금 사과
     icon: ITEM_GOLDEN_APPLE
@@ -566,3 +753,391 @@ items:
     statBonuses: [{ stat: LUK, amount: 9 }]
     codeGrants:
       - { slot: passive, codeId: 411, stage: 1 }
+
+  - id: 4506
+    name: 묠니르
+    icon: ITEM_MJOLNIR
+    slot: MainHand
+    category: Mace
+    requiredProficiency: Mace
+    rarity: 5
+    weight: 3
+    themeIds: [16]
+    statBonuses: [{ stat: CON, amount: 9 }]
+    codeGrants:
+      - { slot: passive, codeId: 415, stage: 1 }
+
+  # ══════════════════════════════════════════════════════════════════
+  # 공허 부품 — 공허 여덟 테마와 노르드 북부가 나눠 쓰는 한 세트
+  #
+  # 원소 변형은 같은 병종에 색만 칠한 것이라 여덟 벌을 따로 두면 8배 물량에 1배 정체성이 된다.
+  # T4·T5는 없다. 역사적 유물이 아니면 T4를 주지 않는 규칙을 그대로 따르면 공허는 역사가 없어
+  # T3이 천장이다 — 노르드가 T4·T5를 갖는 것과 '흔하고 중간치 / 드물고 정점'으로 갈린다.
+  # ══════════════════════════════════════════════════════════════════
+
+  - id: 4223
+    name: 꺼진 프리즘
+    icon: ITEM_DIMMED_PRISM
+    slot: MainHand
+    category: Orb
+    requiredProficiency: Orb
+    rarity: 2
+    weight: 1
+    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17]
+    statBonuses: [{ stat: INT, amount: 3 }]
+
+  - id: 4224
+    name: 사수의 조준경
+    icon: ITEM_MARKSMAN_SCOPE
+    slot: Head
+    category: Helmet
+    rarity: 2
+    weight: 2
+    durability: 6
+    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17]
+    statBonuses: [{ stat: DEX, amount: 3 }]
+
+  - id: 4225
+    name: 박리 장갑판
+    icon: ITEM_DELAMINATED_PLATE
+    slot: Armor
+    category: LightArmor
+    requiredProficiency: LightArmor
+    rarity: 2
+    weight: 2
+    durability: 10
+    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17]
+    statBonuses: [{ stat: Durability, amount: 6 }]
+
+  # 공허의 크러셔 팔을 뜯어 양손검으로 쓴다. 대검은 지금 T2가 천장이라 이 칸이 비어 있었다.
+  - id: 4314
+    name: 크러셔의 팔
+    icon: ITEM_CRUSHER_ARM
+    slot: MainHand
+    category: Greatsword
+    requiredProficiency: Greatsword
+    rarity: 3
+    weight: 4
+    twoHanded: true
+    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17]
+    statBonuses: [{ stat: STR, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 421, stage: 1 }
+
+  - id: 4315
+    name: 탈피한 비늘
+    icon: ITEM_SHED_SCALE
+    slot: Armor
+    category: LightArmor
+    requiredProficiency: LightArmor
+    rarity: 3
+    weight: 2
+    durability: 16
+    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17]
+    statBonuses: [{ stat: CON, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 422, stage: 1 }
+
+  # 여덟 원소를 한 고리에 꿴 물건. 부착이 한 턴 더 남으면 두 번째 원소를 얹을 여유가 생긴다.
+  - id: 4316
+    name: 여덟 갈래 고리
+    icon: ITEM_EIGHTFOLD_RING
+    slot: Ring
+    category: Ring
+    rarity: 3
+    weight: 1
+    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17]
+    statBonuses: [{ stat: INT, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 423, stage: 1 }
+
+  # ══════════════════════════════════════════════════════════════════
+  # 범용 T2 — 상점 매대
+  #
+  # 테마를 타지 않는 기본기다. 보상으로도 나오고 상점에서도 산다(shopPrice).
+  # 모든 분류를 한 벌씩 채워, T1에서 갈아 끼울 것이 없어 멈추는 자리를 없앤다.
+  # 창은 둘로 갈린다 — 물리 창병용과 법사용 지팡이/완드가 장창·단창에 각각 하나씩이다.
+  # ══════════════════════════════════════════════════════════════════
+
+  - id: 4230
+    name: 강철 단검
+    icon: ITEM_STEEL_DAGGER
+    slot: MainHand
+    category: Dagger
+    requiredProficiency: Dagger
+    rarity: 2
+    weight: 1
+    shopPrice: 90
+    statBonuses: [{ stat: LUK, amount: 3 }]
+
+  - id: 4231
+    name: 강철 한손검
+    icon: ITEM_STEEL_LONGSWORD
+    slot: MainHand
+    category: Longsword
+    requiredProficiency: Longsword
+    rarity: 2
+    weight: 2
+    shopPrice: 90
+    statBonuses: [{ stat: STR, amount: 3 }]
+
+  - id: 4232
+    name: 강철 대검
+    icon: ITEM_STEEL_GREATSWORD
+    slot: MainHand
+    category: Greatsword
+    requiredProficiency: Greatsword
+    rarity: 2
+    weight: 4
+    twoHanded: true
+    shopPrice: 90
+    statBonuses: [{ stat: STR, amount: 3 }]
+
+  - id: 4233
+    name: 강철 장창
+    icon: ITEM_STEEL_SPEAR
+    slot: MainHand
+    category: Spear
+    requiredProficiency: Spear
+    rarity: 2
+    weight: 3
+    twoHanded: true
+    shopPrice: 90
+    statBonuses: [{ stat: DEX, amount: 3 }]
+
+  # 장창 숙련의 지팡이. 완드 분류를 없애고 창 계열로 편입했기 때문에 같은 칸을 쓴다.
+  - id: 4234
+    name: 서리주목 지팡이
+    icon: ITEM_YEW_STAFF
+    slot: MainHand
+    category: Spear
+    requiredProficiency: Spear
+    rarity: 2
+    weight: 3
+    twoHanded: true
+    shopPrice: 90
+    statBonuses: [{ stat: INT, amount: 3 }]
+
+  - id: 4235
+    name: 강철 단창
+    icon: ITEM_STEEL_SHORTSPEAR
+    slot: MainHand
+    category: Shortspear
+    requiredProficiency: Shortspear
+    rarity: 2
+    weight: 2
+    shopPrice: 90
+    statBonuses: [{ stat: DEX, amount: 3 }]
+
+  # 단창 숙련의 완드. 한손이라 부무장을 비우지 않는다.
+  - id: 4236
+    name: 옻칠한 완드
+    icon: ITEM_LACQUERED_WAND
+    slot: MainHand
+    category: Shortspear
+    requiredProficiency: Shortspear
+    rarity: 2
+    weight: 2
+    shopPrice: 90
+    statBonuses: [{ stat: INT, amount: 3 }]
+
+  - id: 4237
+    name: 강철 둔기
+    icon: ITEM_STEEL_MACE
+    slot: MainHand
+    category: Mace
+    requiredProficiency: Mace
+    rarity: 2
+    weight: 3
+    shopPrice: 90
+    statBonuses: [{ stat: CON, amount: 3 }]
+
+  - id: 4238
+    name: 물푸레 장궁
+    icon: ITEM_ASH_LONGBOW
+    slot: MainHand
+    category: Longbow
+    requiredProficiency: Longbow
+    rarity: 2
+    weight: 3
+    twoHanded: true
+    shopPrice: 90
+    statBonuses: [{ stat: DEX, amount: 3 }]
+
+  - id: 4239
+    name: 물푸레 단궁
+    icon: ITEM_ASH_SHORTBOW
+    slot: MainHand
+    category: Shortbow
+    requiredProficiency: Shortbow
+    rarity: 2
+    weight: 2
+    shopPrice: 90
+    statBonuses: [{ stat: DEX, amount: 3 }]
+
+  - id: 4240
+    name: 강철 쇠뇌
+    icon: ITEM_STEEL_CROSSBOW
+    slot: MainHand
+    category: Crossbow
+    requiredProficiency: Crossbow
+    rarity: 2
+    weight: 4
+    twoHanded: true
+    shopPrice: 90
+    statBonuses: [{ stat: DEX, amount: 3 }]
+
+  - id: 4241
+    name: 맑은 보주
+    icon: ITEM_CLEAR_ORB
+    slot: MainHand
+    category: Orb
+    requiredProficiency: Orb
+    rarity: 2
+    weight: 1
+    shopPrice: 90
+    statBonuses: [{ stat: INT, amount: 3 }]
+
+  - id: 4242
+    name: 강철 방패
+    icon: ITEM_STEEL_SHIELD
+    slot: OffHand
+    category: Shield
+    requiredProficiency: Shield
+    rarity: 2
+    weight: 3
+    durability: 12
+    shopPrice: 90
+    statBonuses: [{ stat: STR, amount: 3 }]
+
+  - id: 4243
+    name: 물들인 로브
+    icon: ITEM_DYED_ROBE
+    slot: Armor
+    category: Clothing
+    rarity: 2
+    weight: 1
+    durability: 4
+    shopPrice: 90
+    statBonuses: [{ stat: INT, amount: 3 }]
+
+  - id: 4244
+    name: 무두질한 경갑
+    icon: ITEM_TANNED_LIGHT_ARMOR
+    slot: Armor
+    category: LightArmor
+    requiredProficiency: LightArmor
+    rarity: 2
+    weight: 2
+    durability: 10
+    shopPrice: 90
+    statBonuses: [{ stat: DEX, amount: 3 }]
+
+  - id: 4245
+    name: 겹친 평갑
+    icon: ITEM_LAYERED_MEDIUM_ARMOR
+    slot: Armor
+    category: MediumArmor
+    requiredProficiency: MediumArmor
+    rarity: 2
+    weight: 4
+    durability: 20
+    shopPrice: 90
+    statBonuses: [{ stat: CON, amount: 3 }]
+
+  - id: 4246
+    name: 두드린 중갑
+    icon: ITEM_HAMMERED_HEAVY_ARMOR
+    slot: Armor
+    category: HeavyArmor
+    requiredProficiency: HeavyArmor
+    rarity: 2
+    weight: 6
+    durability: 32
+    shopPrice: 90
+    statBonuses: [{ stat: STR, amount: 3 }]
+
+  - id: 4247
+    name: 강철 투구
+    icon: ITEM_STEEL_HELMET
+    slot: Head
+    category: Helmet
+    rarity: 2
+    weight: 2
+    durability: 6
+    shopPrice: 90
+    statBonuses: [{ stat: CON, amount: 3 }]
+
+  - id: 4248
+    name: 무명 반지
+    icon: ITEM_PLAIN_RING
+    slot: Ring
+    category: Ring
+    rarity: 2
+    weight: 1
+    shopPrice: 90
+    statBonuses: [{ stat: LUK, amount: 3 }]
+
+  - id: 4249
+    name: 징 박은 신발
+    icon: ITEM_STUDDED_SHOES
+    slot: Shoes
+    category: Shoes
+    rarity: 2
+    weight: 2
+    shopPrice: 90
+    statBonuses: [{ stat: DEX, amount: 3 }]
+
+  # ══════════════════════════════════════════════════════════════════
+  # 귀중품 — 입지 못하고 팔기만 하는 물건
+  #
+  # `sellPrice`가 0보다 크면 장비가 아니다. 주우면 유닛이 아니라 주머니로 가고,
+  # 값은 <b>주운 스테이지로 확정</b>된다 — 파는 시점으로 계산하면 후반까지 쌓아 두는 쪽이
+  # 이득이 되어 주머니가 저금통이 된다. slot/category가 장비 슬롯으로 해석되지 않으므로
+  # 장착 시도는 그 자리에서 막힌다.
+  # ══════════════════════════════════════════════════════════════════
+
+  - id: 4901
+    name: 이 빠진 은화
+    icon: ITEM_CHIPPED_SILVER_COIN
+    slot: Valuable
+    category: Valuable
+    rarity: 1
+    weight: 0
+    sellPrice: 30
+
+  - id: 4902
+    name: 부러진 인장 반지
+    icon: ITEM_BROKEN_SIGNET
+    slot: Valuable
+    category: Valuable
+    rarity: 2
+    weight: 0
+    sellPrice: 70
+
+  - id: 4903
+    name: 봉인된 향유병
+    icon: ITEM_SEALED_PHIAL
+    slot: Valuable
+    category: Valuable
+    rarity: 3
+    weight: 0
+    sellPrice: 150
+
+  - id: 4904
+    name: 금박 입힌 두개골
+    icon: ITEM_GILDED_SKULL
+    slot: Valuable
+    category: Valuable
+    rarity: 4
+    weight: 0
+    sellPrice: 320
+
+  - id: 4905
+    name: 별을 담은 유리구
+    icon: ITEM_STARGLASS_ORB
+    slot: Valuable
+    category: Valuable
+    rarity: 5
+    weight: 0
+    sellPrice: 650

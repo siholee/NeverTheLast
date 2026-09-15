@@ -26,6 +26,14 @@ namespace Codes.Passive
         public const int Jambiya = 6410;
         public const int AlamutFortress = 6411;
         public const int AugusteWatch = 6412;
+        public const int SkilledChair = 6413;
+        public const int FrostplateArmor = 6414;
+        public const int Mjolnir = 6415;
+        public const int SwordDance = 6416;
+        public const int SnowTreader = 6417;
+        public const int FleshRipper = 6418;
+        public const int FrostscaleMail = 6419;
+        public const int Lodbrok = 6420;
     }
 
     /// <summary>장비를 벗으면 자신이 만든 상시 상태도 함께 걷어 내는 아이템 패시브 공통형.</summary>
@@ -315,6 +323,338 @@ namespace Codes.Passive
 
         public override int GrantedStatusDurationAdditiveModifier(Unit source, UnitStatus status)
             => source == Target && status != null && status.Duration > 0 ? _turns : 0;
+    }
+
+    /// <summary>
+    /// 세이드스타프르 — 숙련된 의자.
+    ///
+    /// <b>자신이 아닌 아군</b>을 치유할 때마다 CON이 1씩 영구히 쌓인다.
+    /// 자기 자신을 빼 둔 것은 자기 치유로 혼자 불어나는 길을 막기 위해서다.
+    /// CON은 최대 체력이자 치유량의 축이라, 남을 살릴수록 더 잘 살리게 된다.
+    /// </summary>
+    public sealed class SkilledChairItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_skilled_chair";
+        public SkilledChairItemPassive(PassiveCodeContext context) : base(context, "숙련된 의자") { }
+
+        public override void CastCode() => AddPermanentStatus(
+            ItemPassiveIds.SkilledChair, new HealOtherStatGrowthEffect(BaseEnums.PrimaryStat.CON, 1),
+            "자신이 아닌 아군을 치유할 때마다 CON이 1씩 증가합니다.");
+    }
+
+    /// <summary>다른 아군을 치유할 때마다 지정한 스탯이 쌓인다.</summary>
+    internal sealed class HealOtherStatGrowthEffect : BaseEffect
+    {
+        private readonly BaseEnums.PrimaryStat _stat;
+        private readonly int _amountPerHeal;
+        private int _accumulated;
+
+        public HealOtherStatGrowthEffect(BaseEnums.PrimaryStat stat, int amountPerHeal) : base(0, amountPerHeal)
+        {
+            _stat = stat;
+            _amountPerHeal = Mathf.Max(1, amountPerHeal);
+        }
+
+        public override bool IsBeneficial => true;
+
+        public override void OnHealingOrShieldGranted(Unit source, Unit target)
+        {
+            if (source != Target || target == null || target == source) return;
+
+            _accumulated += _amountPerHeal;
+            source.RefreshDerivedAttributes();
+        }
+
+        public override int PrimaryStatAdditiveModifier(Unit unit, BaseEnums.PrimaryStat stat)
+            => unit == Target && stat == _stat ? _accumulated : 0;
+    }
+
+    /// <summary>
+    /// 혹한의 갑주 — 전장 상태가 주는 불리한 배율을 무시한다.
+    ///
+    /// 눈밭에서 불·풀이 20%를 잃는 것을 없던 일로 만든다. 유리한 배율은 그대로 받으므로
+    /// 얼음 유닛이 입어도 손해가 없다. 노르드 3부작 내내 눈이 깔리는 판에서
+    /// <b>불 딜러를 데려갈 수 있게 하는 유일한 길</b>이다.
+    /// </summary>
+    public sealed class FrostplateArmorItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_frostplate_armor";
+        public FrostplateArmorItemPassive(PassiveCodeContext context) : base(context, "혹한의 갑주") { }
+
+        public override void CastCode() => AddPermanentStatus(
+            ItemPassiveIds.FrostplateArmor, new FieldPenaltyImmunityEffect(),
+            "전장 상태가 주는 불리한 효과를 받지 않습니다.");
+    }
+
+    internal sealed class FieldPenaltyImmunityEffect : BaseEffect
+    {
+        public FieldPenaltyImmunityEffect() : base(0) { }
+
+        public override bool IsBeneficial => true;
+
+        public override bool IgnoresFieldPenalty(Unit unit) => unit == Target;
+    }
+
+    /// <summary>
+    /// 묠니르 — 번개를 부착하는 공격은 확정 치명타가 되고 방어력을 2턴간 20% 깎는다.
+    ///
+    /// 치명타 확률은 <c>AttributesUpdate</c> 시점에 한 번 굳으므로 대상별 조건을 담을 수 없다.
+    /// 잔의 `원소 친화 - 얼음`과 같은 방식으로, 피해를 계산하는 자리에서 대상을 보고
+    /// 치명타가 아니었다면 배율을 보정해 결과적으로 확정 치명타로 만든다.
+    ///
+    /// 판정은 <b>부착 직후</b>가 아니라 <b>부착 직전</b>이다. 번개를 거는 공격이 곧 조건이므로
+    /// 이미 번개를 두른 대상을 다시 치는 것으로는 켜지지 않는다.
+    /// </summary>
+    public sealed class MjolnirItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_mjolnir";
+        public MjolnirItemPassive(PassiveCodeContext context) : base(context, "묠니르") { }
+
+        public override void CastCode() => AddPermanentStatus(
+            ItemPassiveIds.Mjolnir, new MjolnirEffect(),
+            "번개 원소를 부여하는 공격이 확정 치명타가 되고 대상의 방어력을 2턴간 20% 감소시킵니다.");
+    }
+
+    internal sealed class MjolnirEffect : BaseEffect
+    {
+        private const float ArmorMultiplier = 0.80f;
+        private const int ArmorBreakTurns = 2;
+        private const int StatusId = 8025;
+
+        private Action<Unit, Unit, BaseEnums.UnitElement> _grantHandler;
+
+        public MjolnirEffect() : base(0) { }
+
+        public override bool IsBeneficial => true;
+
+        public override void OnApply()
+        {
+            _grantHandler = OnElementGranted;
+            Unit.AnyCombatElementGranted += _grantHandler;
+        }
+
+        public override void OnRemove()
+        {
+            if (_grantHandler == null) return;
+            Unit.AnyCombatElementGranted -= _grantHandler;
+            _grantHandler = null;
+        }
+
+        /// <summary>
+        /// 확정 치명타. 치명타 판정은 이미 끝났으므로 배율 쪽에서 보정한다.
+        /// 치명타가 아니었던 공격에만 모자란 만큼을 채워 결과를 같게 만든다.
+        /// </summary>
+        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
+        {
+            if (attacker != Target || context == null || context.IsCrit) return 1f;
+            if (!GrantsElectro(context)) return 1f;
+            return Mathf.Max(1f, attacker.CritMultiplierCurr);
+        }
+
+        /// <summary>
+        /// 번개를 거는 공격인지는 <b>대상에게 아직 번개가 붙어 있지 않은가</b>로 가른다.
+        /// 부착은 피해 뒤에 오므로 피해 계산 시점에는 아직 붙기 전이다.
+        /// </summary>
+        private static bool GrantsElectro(DamageContext context)
+            => context.DamageTags != null && context.DamageTags.Contains(DamageTag.Special);
+
+        private void OnElementGranted(Unit source, Unit target, BaseEnums.UnitElement element)
+        {
+            if (source != Target || target == null || !target.isActive) return;
+            if (element != BaseEnums.UnitElement.Electro) return;
+
+            target.AddStatus(BuffStatus.Create(
+                StatusId, "item_mjolnir_armor", "묠니르",
+                source, target, new ArmorShredEffect(ArmorMultiplier),
+                duration: ArmorBreakTurns,
+                stackPolicy: BaseEnums.StatusStackPolicy.Replace,
+                category: BaseEnums.StatusCategory.Negative,
+                description: "방어력이 20% 감소합니다."));
+        }
+    }
+
+    /// <summary>
+    /// 칼춤 — 치명타 확률이 오른다.
+    ///
+    /// 발키리가 `예리함`(17)으로 100%를 넘긴 치명타 확률을 치명타 피해로 바꾸므로,
+    /// 확률이 이미 가득 찬 뒤에도 이 장비가 죽지 않는다. 초과분을 쓰는 코드와 짝이다.
+    /// </summary>
+    public sealed class SwordDanceItemPassive : ItemStatusPassive
+    {
+        private const float CritChanceBonus = 0.15f;
+
+        protected override string StatusKey => "item_sword_dance";
+        public SwordDanceItemPassive(PassiveCodeContext context) : base(context, "칼춤") { }
+
+        public override void CastCode() => AddPermanentStatus(
+            ItemPassiveIds.SwordDance, new CritChanceBonusEffect(CritChanceBonus),
+            "치명타 확률이 15%p 증가합니다.");
+    }
+
+    internal sealed class CritChanceBonusEffect : BaseEffect
+    {
+        private readonly float _bonus;
+
+        public CritChanceBonusEffect(float bonus) : base(0, bonus) => _bonus = bonus;
+
+        public override bool IsBeneficial => true;
+
+        public override float CritChanceAdditiveModifier(Unit unit) => unit == Target ? _bonus : 0f;
+    }
+
+    /// <summary>
+    /// 서리꾼의 장화 — 둔화에 걸리지 않는다.
+    ///
+    /// 둔화는 얼음이 두 번 붙어 일어나는 반응이라 노르드 판에서 저절로 쌓인다.
+    /// DEX를 깎으므로 행동이 느려지는데, 자동 전투라 걸린 뒤에는 손쓸 수가 없다.
+    /// 빙결이 아니라 둔화만 막는 것은 T3가 감당할 무게를 넘지 않기 위해서다.
+    /// </summary>
+    public sealed class SnowTreaderItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_snow_treader";
+        public SnowTreaderItemPassive(PassiveCodeContext context) : base(context, "서리꾼의 장화") { }
+
+        public override void CastCode() => AddPermanentStatus(
+            ItemPassiveIds.SnowTreader, new StatusKeyImmunityEffect("reaction_Slow"),
+            "둔화에 걸리지 않습니다.");
+    }
+
+    /// <summary>특정 키의 해로운 상태만 막는다. 저항이 아니라 확정이다.</summary>
+    internal sealed class StatusKeyImmunityEffect : BaseEffect
+    {
+        private readonly string _key;
+
+        public StatusKeyImmunityEffect(string key) : base(0) => _key = key;
+
+        public override bool IsBeneficial => true;
+
+        public override float NegativeStatusResistanceChanceModifier(
+            Unit unit, Entities.Status.UnitStatus status)
+            => unit == Target && status != null && status.Key == _key ? 1f : 0f;
+    }
+
+    /// <summary>
+    /// 살점 뜯개 — 처형선을 4%p 넓힌다.
+    ///
+    /// 덮어쓰지 않고 <b>더한다.</b> 천살성(8%)이면 12%, 당연한 운명(12%)이면 16%가 된다.
+    /// 처형을 이미 들고 있어야 값을 하므로 처형 축을 고른 파티에만 붙는 보상이다.
+    /// </summary>
+    public sealed class FleshRipperItemPassive : ItemStatusPassive
+    {
+        private const float ThresholdBonus = 0.04f;
+
+        protected override string StatusKey => "item_flesh_ripper";
+        public FleshRipperItemPassive(PassiveCodeContext context) : base(context, "살점 뜯개") { }
+
+        public override void CastCode() => AddPermanentStatus(
+            ItemPassiveIds.FleshRipper, new ExecuteThresholdBonusEffect(ThresholdBonus),
+            "처형선이 4%p 증가합니다.");
+    }
+
+    internal sealed class ExecuteThresholdBonusEffect : BaseEffect
+    {
+        private readonly float _bonus;
+
+        public ExecuteThresholdBonusEffect(float bonus) : base(0, bonus) => _bonus = bonus;
+
+        public override bool IsBeneficial => true;
+
+        public override float ExecuteThresholdAdditiveModifier(Unit unit)
+            => unit == Target ? _bonus : 0f;
+    }
+
+    /// <summary>
+    /// 서리 비늘 갑주 — 얼음이 부착된 동안 받는 물리 피해가 15% 줄어든다.
+    ///
+    /// 적이 얼음을 걸어 주는 테마라 조건이 저절로 채워진다. <b>디버프가 방어구의 조건이 되는 역전</b>이고,
+    /// 초전도(전기+얼음)로 물리에 약해지는 판에서 정확히 반대 방향으로 선다.
+    /// </summary>
+    public sealed class FrostscaleMailItemPassive : ItemStatusPassive
+    {
+        private const float Multiplier = 0.85f;
+
+        protected override string StatusKey => "item_frostscale_mail";
+        public FrostscaleMailItemPassive(PassiveCodeContext context) : base(context, "서리 비늘 갑주") { }
+
+        public override void CastCode() => AddPermanentStatus(
+            ItemPassiveIds.FrostscaleMail,
+            new ElementGatedTaggedMitigationEffect(BaseEnums.UnitElement.Cryo, DamageTag.Physical, Multiplier),
+            "얼음 원소가 부착된 동안 받는 물리 피해가 15% 감소합니다.");
+    }
+
+    /// <summary>지정한 원소를 두른 동안, 지정한 태그의 피해만 덜 받는다.</summary>
+    internal sealed class ElementGatedTaggedMitigationEffect : BaseEffect
+    {
+        private readonly BaseEnums.UnitElement _element;
+        private readonly int _tag;
+        private readonly float _multiplier;
+
+        public ElementGatedTaggedMitigationEffect(
+            BaseEnums.UnitElement element, int tag, float multiplier) : base(0, multiplier)
+        {
+            _element = element;
+            _tag = tag;
+            _multiplier = multiplier;
+        }
+
+        public override bool IsBeneficial => true;
+
+        public override float ReceivingDamageModifier(Unit unit, DamageContext context)
+        {
+            if (unit != Target || context?.DamageTags == null) return 1f;
+            if (!context.DamageTags.Contains(_tag)) return 1f;
+
+            // 조건은 <b>부착</b>이다. 속성만으로는 켜지지 않는다 — 얼음 유닛이 공짜로 얻으면
+            // 장비가 아니라 속성이 방어를 주는 꼴이 된다.
+            return Target.HasAttachedElement(_element) ? _multiplier : 1f;
+        }
+    }
+
+    /// <summary>
+    /// 타르에 절인 털가죽 바지 — 독이 덜 밴다.
+    ///
+    /// 라그나르 로드브로크의 별명이 곧 이 물건이다. 뱀을 잡으러 갈 때 타르에 절여 입었다는
+    /// 털가죽 바지가 독을 막아 주었다는 전승을 그대로 옮겼다.
+    ///
+    /// <b>지속피해 10% 경감, 치유량 감소 절반.</b> 둘은 같은 것의 앞뒤다 — 천천히 갉는 수단과
+    /// 회복을 끊는 수단이라, 흡혈로 버티는 유닛을 무너뜨리는 정석 둘이 함께 무뎌진다.
+    /// 막는 것이 아니라 무디게 하는 것이라, 지속피해 축이 통째로 죽지는 않는다.
+    /// </summary>
+    public sealed class LodbrokItemPassive : ItemStatusPassive
+    {
+        private const float DotMultiplier = 0.9f;
+        private const float HealingReductionResistance = 0.5f;
+
+        protected override string StatusKey => "item_lodbrok";
+        public LodbrokItemPassive(PassiveCodeContext context) : base(context, "타르에 절인 털가죽 바지") { }
+
+        public override void CastCode() => AddPermanentStatus(
+            ItemPassiveIds.Lodbrok, new VenomWardEffect(DotMultiplier, HealingReductionResistance),
+            "지속피해로 받는 피해가 10% 감소하고 치유량 감소량이 절반이 됩니다.");
+    }
+
+    /// <summary>지속피해를 덜 받고 치유량 감소를 덜어 낸다. 타르 바지가 쓰는 한 쌍.</summary>
+    internal sealed class VenomWardEffect : BaseEffect
+    {
+        private readonly float _dotMultiplier;
+        private readonly float _healingReductionResistance;
+
+        public VenomWardEffect(float dotMultiplier, float healingReductionResistance) : base(0, dotMultiplier)
+        {
+            _dotMultiplier = dotMultiplier;
+            _healingReductionResistance = healingReductionResistance;
+        }
+
+        public override bool IsBeneficial => true;
+
+        /// <summary>지속피해는 태그 목록이 비어 있는 <see cref="BaseEnums.CodeType.Effect"/>다.</summary>
+        public override float ReceivingDamageModifier(Unit unit, DamageContext context)
+            => unit == Target && context != null && context.CodeType == BaseEnums.CodeType.Effect
+                ? _dotMultiplier
+                : 1f;
+
+        public override float HealingReductionResistanceModifier(Unit unit)
+            => unit == Target ? _healingReductionResistance : 0f;
     }
 
     public sealed class PeriphetesClubItemPassive : ItemStatusPassive

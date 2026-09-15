@@ -48,10 +48,24 @@ namespace Managers.UI.Theme
         public static readonly Color Danger = new(0.902f, 0.286f, 0.243f, 1f);
         public static readonly Color Positive = new(0.400f, 0.788f, 0.545f, 1f);
 
+        /// <summary>
+        /// 행동 불가 계열(기절·빙결·에어본·침묵·속박·도발).
+        /// 이로움/해로움과는 다른 축이라 적색에 섞어 두면 "그냥 나쁜 것"으로만 읽힌다.
+        /// 8배속에서 카드를 훑을 때 <b>지금 못 움직이는 유닛</b>이 먼저 눈에 들어와야 한다.
+        /// </summary>
+        public static readonly Color Control = new(0.780f, 0.510f, 0.988f, 1f);
+
         // ── 텍스트 ───────────────────────────────────────────────────
         public static readonly Color TextPrimary = new(0.957f, 0.961f, 0.965f, 1f);
         public static readonly Color TextSecondary = new(0.667f, 0.686f, 0.706f, 1f);
-        public static readonly Color TextMuted = new(0.427f, 0.443f, 0.459f, 1f);
+        /// <summary>
+        /// 보조 텍스트. 카드의 부연 설명 · 캡션 · 잠김 사유가 전부 이 색을 쓴다.
+        ///
+        /// 예전 값(0.427)은 <see cref="SurfaceSunken"/> 위에서 대비가 <b>3.9:1</b>이라
+        /// 작은 글자 기준선(4.5:1)에 못 미쳤다. 축소된 에디터 화면에서 특히 읽기 어려웠다.
+        /// 한 단계 올려 <b>5.9:1</b>로 맞췄다. 더 올리면 본문(TextSecondary, 8.7:1)과 구분이 사라진다.
+        /// </summary>
+        public static readonly Color TextMuted = new(0.545f, 0.561f, 0.576f, 1f);
         public static readonly Color TextOnAccent = new(0.071f, 0.071f, 0.071f, 1f);
 
         // ── 코드 등급 ────────────────────────────────────────────────

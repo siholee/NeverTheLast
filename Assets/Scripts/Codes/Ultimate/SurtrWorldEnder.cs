@@ -12,8 +12,10 @@ namespace Codes.Ultimate
     /// 수르트 U — 라그나로크. 단일 적에게 STR 위력 120을 가한 뒤
     /// 적 전체에게 STR 위력 80과 불 원소를 부여한다.
     ///
-    /// 최초 단일 대상이 광역 단계까지 살아 있으면 같은 대상을 두 번 때린 것으로 계산한다 —
-    /// 고유 패시브 '황혼'의 방어막도 그만큼 두 번 발동한다.
+    /// 최초 단일 대상이 광역 단계까지 살아 있으면 같은 대상을 두 번 때린다.
+    ///
+    /// 고유 패시브 '황혼'의 체력 소모는 <b>행동에 한 번</b>이라 때린 횟수와 무관하다.
+    /// 적이 몇이든 값이 같으므로 라그나로크는 황혼을 가장 싸게 쓰는 행동이다.
     /// </summary>
     public sealed class SurtrRagnarok : UltimateCode
     {
@@ -24,7 +26,6 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "라그나로크";
-            Cooldown = 5;
             CastingDelay = 0.6f;
             MaxStage = 1;
             Power = SingleTargetPower;
@@ -103,7 +104,6 @@ namespace Codes.Ultimate
         public override void StopCode()
         {
             if (Caster == null) return;
-            Caster.ultimateCooldown = Cooldown;
             Caster.isCasting = false;
         }
 

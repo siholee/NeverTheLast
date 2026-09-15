@@ -13,7 +13,6 @@ namespace Codes.Ultimate
         public a004_U_LovesPrize(UltimateCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Ultimate;
-            Cooldown = 4;
             CodeName = "장미의 가시";
             CastingDelay = 0f;
         }
@@ -41,7 +40,6 @@ namespace Codes.Ultimate
         public override void StopCode()
         {
             if (Caster == null) return;
-            Caster.ultimateCooldown = Cooldown;
             Caster.isCasting = false;
         }
 

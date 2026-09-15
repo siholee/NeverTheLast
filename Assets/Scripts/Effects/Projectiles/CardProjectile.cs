@@ -5,11 +5,25 @@ using UnityEngine;
 
 namespace Effects.Projectiles
 {
+    /// <summary>
+    /// 투사체 외형. <see cref="Effects.AttackVisuals"/>가 무기 분류에서 골라 넘긴다.
+    /// </summary>
     public enum ProjectileVisualStyle
     {
+        /// <summary>마법·특수. 날 선 마름모 하나가 곧게 간다.</summary>
         Bolt,
+
+        /// <summary>화살. 깃이 달려 작은 화면에서도 실루엣이 읽힌다.</summary>
         Arrow,
+
+        /// <summary>궁극기 화살. 같은 모양을 크게 쓴다.</summary>
         UltimateArrow,
+
+        /// <summary>투척 — 맨손·둔기의 원거리 물리. 뭉툭한 덩어리가 <b>돌며</b> 날아가 고리로 터진다.</summary>
+        Thrown,
+
+        /// <summary>투창 — 날아가는 찌르기. 가늘고 길게 뻗어 관통하는 인상을 준다.</summary>
+        Lance,
     }
 
     /// <summary>
@@ -42,6 +56,7 @@ namespace Effects.Projectiles
         private SpriteRenderer _upperFletching;
         private SpriteRenderer _lowerFletching;
         private SpriteRenderer _core;
+        private SpriteRenderer _ring;
         private readonly SpriteRenderer[] _shards = new SpriteRenderer[ShardCount];
         private readonly float[] _shardAngles = new float[ShardCount];
 
@@ -57,6 +72,10 @@ namespace Effects.Projectiles
         private ProjectilePathType _path;
         private ProjectilePathData _data;
         private ProjectileVisualStyle _style;
+
+        /// <summary>비행 중 머리가 도는 속도(도/초). 투척만 0이 아니다.</summary>
+        private float _spin;
+        private float _spinAngle;
 
         /// <summary>머리가 대상에 닿는 순간 한 번 부른다. 피해는 여기에 맞춰 들어간다.</summary>
         private Action _onImpact;
@@ -130,6 +149,8 @@ namespace Effects.Projectiles
             _data = data;
             _style = style;
             _scale = Mathf.Max(0.2f, scale) * (style == ProjectileVisualStyle.UltimateArrow ? 1.45f : 1f);
+            // 투척만 돈다. 화살이나 마법이 돌면 겨냥이 어긋나 보인다.
+            _spin = style == ProjectileVisualStyle.Thrown ? 640f : 0f;
             _start = origin ?? from.transform.position;
             _end = to.transform.position;
 
@@ -141,19 +162,40 @@ namespace Effects.Projectiles
             _sortingLayer = reference != null ? reference.sortingLayerID : 0;
 
             // 잔광이 몸통 뒤에 깔리도록 먼저 만든다(같은 정렬 순서면 나중 것이 위).
+            // 투척은 꼬리를 짧게 문다 — 덩어리가 도는 모양을 잔광이 덮으면 안 된다.
+            Vector2 streakSize = style switch
+            {
+                ProjectileVisualStyle.UltimateArrow => new Vector2(2.15f, 0.92f),
+                ProjectileVisualStyle.Thrown => new Vector2(0.85f, 0.55f),
+                ProjectileVisualStyle.Lance => new Vector2(2.00f, 0.45f),
+                _ => new Vector2(1.50f, 0.70f),
+            };
             _streak = NewRenderer("Streak", ProjectileShapes.Streak(), color, 0.5f, OverlaySortingOrder);
-            _streak.transform.localScale = new Vector3(_scale * 1.5f, _scale * 0.7f, 1f);
+            _streak.transform.localScale = new Vector3(_scale * streakSize.x, _scale * streakSize.y, 1f);
             // 잔광 스프라이트는 가운데가 원점이라 그대로 두면 절반이 머리 앞으로 튀어나온다.
             // 뒤로 반 칸 밀어 꼬리로만 보이게 한다.
-            float streakLength = ProjectileShapes.Streak().bounds.size.x * _scale * 1.5f;
+            float streakLength = ProjectileShapes.Streak().bounds.size.x * _scale * streakSize.x;
             _streak.transform.localPosition = new Vector3(-streakLength * 0.5f, 0f, 0f);
 
-            _head = NewRenderer("Head", ProjectileShapes.Sliver(), color, 1f, OverlaySortingOrder + 1);
-            _head.transform.localScale = style == ProjectileVisualStyle.Bolt
-                ? Vector3.one * _scale
-                : new Vector3(_scale * 1.18f, _scale * 0.48f, 1f);
+            // 머리 실루엣이 곧 무기 분류다. 화살은 가늘고 길게, 투창은 더 길게,
+            // 투척은 뭉툭한 덩어리로, 마법은 날 선 마름모로 간다.
+            Sprite headSprite = style switch
+            {
+                ProjectileVisualStyle.Thrown => ProjectileShapes.Sliver(110, 78),
+                ProjectileVisualStyle.Lance => ProjectileShapes.Sliver(320, 14),
+                _ => ProjectileShapes.Sliver(),
+            };
+            Vector2 headSize = style switch
+            {
+                ProjectileVisualStyle.Bolt => new Vector2(1.00f, 1.00f),
+                ProjectileVisualStyle.Thrown => new Vector2(0.62f, 0.62f),
+                ProjectileVisualStyle.Lance => new Vector2(0.77f, 0.85f),
+                _ => new Vector2(1.18f, 0.48f),
+            };
+            _head = NewRenderer("Head", headSprite, color, 1f, OverlaySortingOrder + 1);
+            _head.transform.localScale = new Vector3(_scale * headSize.x, _scale * headSize.y, 1f);
 
-            if (style != ProjectileVisualStyle.Bolt)
+            if (style is ProjectileVisualStyle.Arrow or ProjectileVisualStyle.UltimateArrow)
             {
                 // 긴 몸통 뒤에 두 개의 깃을 붙여 작은 화면에서도 '화살' 실루엣이 읽히게 한다.
                 Sprite fletching = ProjectileShapes.Shard(42, 8);
@@ -166,16 +208,19 @@ namespace Effects.Projectiles
                 _lowerFletching.transform.localPosition = new Vector3(rear, -_scale * 0.10f, 0f);
                 _upperFletching.transform.localRotation = Quaternion.Euler(0f, 0f, 32f);
                 _lowerFletching.transform.localRotation = Quaternion.Euler(0f, 0f, -32f);
-
-                if (style == ProjectileVisualStyle.UltimateArrow)
-                {
-                    _streak.transform.localScale = new Vector3(_scale * 2.15f, _scale * 0.92f, 1f);
-                }
             }
 
             // 착탄 조각은 미리 만들어 두고 꺼 둔다. 터질 때 켜기만 하면 된다.
             _core = NewRenderer("Core", ProjectileShapes.Core(), Color.white, 0f, OverlaySortingOrder + 3);
             _core.enabled = false;
+
+            // 투척은 방향 없는 충격이라 파편보다 고리가 먼저 읽힌다.
+            if (style == ProjectileVisualStyle.Thrown)
+            {
+                _ring = NewRenderer("ImpactRing", ProjectileShapes.Ring(), color, 0f,
+                    OverlaySortingOrder + 2);
+                _ring.enabled = false;
+            }
 
             for (int i = 0; i < ShardCount; i++)
             {
@@ -220,6 +265,13 @@ namespace Effects.Projectiles
             transform.position = PointAt(t);
             Aim(transform.position - previous);
 
+            // 도는 것은 머리뿐이다. 루트를 돌리면 잔광 꼬리까지 함께 돌아 궤적이 읽히지 않는다.
+            if (_spin != 0f)
+            {
+                _spinAngle += _spin * Time.deltaTime;
+                _head.transform.localRotation = Quaternion.Euler(0f, 0f, _spinAngle);
+            }
+
             if (t < 1f) return;
 
             BeginImpact();
@@ -260,6 +312,7 @@ namespace Effects.Projectiles
             if (_lowerFletching != null) _lowerFletching.enabled = false;
 
             _core.enabled = true;
+            if (_ring != null) _ring.enabled = true;
             for (int i = 0; i < ShardCount; i++) _shards[i].enabled = true;
 
             // 착탄 지점에서 회전을 풀어 파편이 화면 기준으로 흩어지게 한다.
@@ -287,6 +340,16 @@ namespace Effects.Projectiles
                 Live.Remove(this);
                 Destroy(gameObject);
                 return;
+            }
+
+            // 충격 고리는 빠르게 넓어지며 얇아진다. 방향이 없는 물리 타격의 신호다.
+            if (_ring != null)
+            {
+                float ringFade = Mathf.Clamp01(1f - t * 1.25f);
+                Color ringColor = _ring.color;
+                ringColor.a = ringFade * ringFade * 0.9f;
+                _ring.color = ringColor;
+                _ring.transform.localScale = Vector3.one * _scale * (0.5f + 2.6f * t);
             }
 
             // 핵은 아주 짧게 번쩍이고 사라진다 — 오래 남으면 뿌옇게 보인다.

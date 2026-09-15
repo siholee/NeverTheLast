@@ -147,11 +147,15 @@ namespace Effects
         private const string SparkPath = "SFX/Combat/SlashSpark";
         private const string AirborneKey = "cc_airborne";
 
+        /// <summary>떠오르는 갈매기표 수. 정지 화면에서도 '떴다'가 읽히게 하는 표식이다.</summary>
+        private const int ChevronCount = 3;
+
         private static readonly Dictionary<EntityId, AirborneEffect> Live = new();
 
         private Unit _target;
         private SpriteRenderer _lowerRing;
         private SpriteRenderer _upperRing;
+        private readonly SpriteRenderer[] _chevrons = new SpriteRenderer[ChevronCount];
         private ParticleSystem _particles;
         private Transform _portrait;
         private Vector3 _portraitBasePosition;
@@ -200,11 +204,38 @@ namespace Effects
                 transform, "UpperWindRing", ring, Color.white, layer,
                 CardProjectile.OverlaySortingOrder + 2);
 
+            // 링과 반짝임만으로는 '떠 있다'가 전달되지 않는다 — 정지 화면에서는 특히 그렇다.
+            // 방향을 가진 도형이 하나 있어야 위로 뜬 상태로 읽힌다.
+            for (int i = 0; i < ChevronCount; i++)
+            {
+                _chevrons[i] = CombatVfxAssets.NewRenderer(
+                    transform, $"Chevron{i}", ProjectileShapes.Chevron(120, 18), wind,
+                    layer, CardProjectile.OverlaySortingOrder + 2);
+                _chevrons[i].transform.localScale =
+                    new Vector3(Cell.CardSize * 0.26f, Cell.CardSize * 0.11f, 1f);
+            }
+
             _particles = CombatVfxAssets.NewParticles(
                 transform, "RisingWind", CombatVfxAssets.Texture(SparkPath), layer,
                 CardProjectile.OverlaySortingOrder + 3);
             ConfigureRisingParticles(_particles, wind);
             _particles.Play();
+        }
+
+        /// <summary>갈매기표를 아래에서 위로 흘려보낸다. 세 개가 시차를 두고 올라간다.</summary>
+        private void ApplyChevrons(float fade)
+        {
+            for (int i = 0; i < ChevronCount; i++)
+            {
+                SpriteRenderer chevron = _chevrons[i];
+                if (chevron == null) continue;
+
+                float phase = Mathf.Repeat(_time * 1.35f + i / (float)ChevronCount, 1f);
+                chevron.transform.localPosition = new Vector3(
+                    0f, Mathf.Lerp(-Cell.CardSize * 0.34f, Cell.CardSize * 0.16f, phase), 0f);
+                // 가운데에서 가장 진하다. 끝에서 갑자기 사라지면 깜빡이는 것으로 보인다.
+                CombatVfxAssets.SetAlpha(chevron, Mathf.Sin(Mathf.PI * phase) * fade * 0.95f);
+            }
         }
 
         private static void ConfigureRisingParticles(ParticleSystem particles, Color wind)
@@ -309,10 +340,11 @@ namespace Effects
             }
 
             float pulse = 0.5f + 0.5f * Mathf.Sin(_time * 11f);
-            ApplyRing(_lowerRing, Cell.CardSize * Mathf.Lerp(0.58f, 0.76f, pulse),
-                Cell.CardSize * 0.10f, -Cell.CardSize * 0.34f, _fade * 0.62f);
-            ApplyRing(_upperRing, Cell.CardSize * Mathf.Lerp(0.42f, 0.58f, 1f - pulse),
-                Cell.CardSize * 0.075f, -Cell.CardSize * 0.16f, _fade * 0.46f);
+            ApplyRing(_lowerRing, Cell.CardSize * Mathf.Lerp(0.62f, 0.82f, pulse),
+                Cell.CardSize * 0.16f, -Cell.CardSize * 0.34f, _fade * 0.92f);
+            ApplyRing(_upperRing, Cell.CardSize * Mathf.Lerp(0.46f, 0.62f, 1f - pulse),
+                Cell.CardSize * 0.12f, -Cell.CardSize * 0.16f, _fade * 0.70f);
+            ApplyChevrons(_fade);
 
             var emission = _particles.emission;
             emission.rateOverTime = 16f * _fade;
@@ -338,10 +370,11 @@ namespace Effects
             }
 
             float pulse = 0.5f + 0.5f * Mathf.Sin(_time * 11f);
-            ApplyRing(_lowerRing, Cell.CardSize * Mathf.Lerp(0.58f, 0.76f, pulse),
-                Cell.CardSize * 0.10f, -Cell.CardSize * 0.34f, 0.62f);
-            ApplyRing(_upperRing, Cell.CardSize * Mathf.Lerp(0.42f, 0.58f, 1f - pulse),
-                Cell.CardSize * 0.075f, -Cell.CardSize * 0.16f, 0.46f);
+            ApplyRing(_lowerRing, Cell.CardSize * Mathf.Lerp(0.62f, 0.82f, pulse),
+                Cell.CardSize * 0.16f, -Cell.CardSize * 0.34f, 0.92f);
+            ApplyRing(_upperRing, Cell.CardSize * Mathf.Lerp(0.46f, 0.62f, 1f - pulse),
+                Cell.CardSize * 0.12f, -Cell.CardSize * 0.16f, 0.70f);
+            ApplyChevrons(1f);
             _particles.Simulate(_time, true, true, true);
         }
 #endif
@@ -374,7 +407,11 @@ namespace Effects
             if (unit == null) return Vector3.zero;
             if (unit.currentCell?.portraitRenderer != null)
                 return unit.currentCell.portraitRenderer.transform.position;
-            return unit.currentCell != null ? unit.currentCell.transform.position : unit.transform.position;
+            if (unit.currentCell != null) return unit.currentCell.transform.position;
+            // 소환수는 칸이 없고 유닛 트랜스폼도 소환자 자리에 그대로 서 있다.
+            // 연출이 맞아야 할 곳은 소환자 카드 모서리에 붙은 소형 카드다.
+            if (unit.SummonView != null) return unit.SummonView.transform.position;
+            return unit.transform.position;
         }
 
         public static int SortingLayer(Unit unit)

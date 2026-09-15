@@ -19,3 +19,302 @@ rewardTierOdds:
     tierWeights: [0, 10, 25, 45, 20]
   - round: 10
     tierWeights: [0, 5, 20, 45, 30]
+
+# themeIds가 비어 있는 범용 전투 보상. 현재 HP 스케일에 맞춰 포켓로그 회복약의
+# 가치 단계를 비율로 옮겼다. T1~T4는 한 명을 지정하고, T5만 파티 전체에 적용한다.
+rewards:
+  - id: healing_domain_t1
+    displayName: 하급 치료의 영역
+    description: 지정한 아군의 최대 체력 20% 회복
+    tier: 1
+    themeIds: []
+    healPercent: 0.20
+    goldCost: 60
+    artPath: Sprite/Rewards/HEALING_DOMAIN_BOTTLE
+  - id: healing_domain_t2
+    displayName: 중급 치료의 영역
+    description: 지정한 아군의 최대 체력 50% 회복
+    tier: 2
+    themeIds: []
+    healPercent: 0.50
+    goldCost: 120
+    artPath: Sprite/Rewards/HEALING_DOMAIN_BOTTLE
+  - id: healing_domain_t3
+    displayName: 고급 치료의 영역
+    description: 지정한 아군의 최대 체력 80% 회복
+    tier: 3
+    themeIds: []
+    healPercent: 0.80
+    goldCost: 250
+    artPath: Sprite/Rewards/HEALING_DOMAIN_BOTTLE
+  - id: healing_domain_t4
+    displayName: 최상급 치료의 영역
+    description: 지정한 아군 완전 회복
+    tier: 4
+    themeIds: []
+    fullHealTarget: true
+    goldCost: 450
+    artPath: Sprite/Rewards/HEALING_DOMAIN_BOTTLE
+  - id: healing_elixir_t5
+    displayName: 엘릭서
+    description: 전체 아군 완전 회복
+    tier: 5
+    themeIds: []
+    isRare: true
+    fullHealParty: true
+    goldCost: 1000
+    artPath: Sprite/Rewards/HEALING_DOMAIN_BOTTLE
+
+  - id: revival_medicine_t1
+    displayName: 초급 부활의 신약
+    description: 쓰러진 아군 하나를 최대 체력 10%로 부활
+    tier: 1
+    themeIds: []
+    revivePercent: 0.10
+    goldCost: 90
+    artPath: Sprite/Rewards/REVIVAL_MEDICINE_BOTTLE
+  - id: revival_medicine_t2
+    displayName: 중급 부활의 신약
+    description: 쓰러진 아군 하나를 최대 체력 50%로 부활
+    tier: 2
+    themeIds: []
+    revivePercent: 0.50
+    goldCost: 180
+    artPath: Sprite/Rewards/REVIVAL_MEDICINE_BOTTLE
+  - id: revival_medicine_t3
+    displayName: 고급 부활의 신약
+    description: 쓰러진 아군 하나를 최대 체력 100%로 부활
+    tier: 3
+    themeIds: []
+    revivePercent: 1.00
+    goldCost: 375
+    artPath: Sprite/Rewards/REVIVAL_MEDICINE_BOTTLE
+  - id: revival_medicine_t4
+    displayName: 최상급 부활의 신약
+    description: 쓰러진 아군 하나를 최대 체력 100%로 부활
+    tier: 4
+    themeIds: []
+    revivePercent: 1.00
+    artPath: Sprite/Rewards/REVIVAL_MEDICINE_BOTTLE
+  - id: revival_aether_t5
+    displayName: 에테르
+    description: 쓰러진 모든 아군을 최대 체력 100%로 부활
+    tier: 5
+    themeIds: []
+    isRare: true
+    fullReviveParty: true
+    goldCost: 1500
+    artPath: Sprite/Rewards/REVIVAL_MEDICINE_BOTTLE
+
+# 강화제 — 파티 전체의 5스탯 하나를 <5전투 동안> 올린다. 포켓로그의 플러스 파워 계열이다.
+#   T1~T3은 합연산(tonicFlat), T4~T5는 곱연산(tonicMultiplier)이다.
+#   합연산은 초반에, 곱연산은 스탯이 커지는 후반에 강하다 — 티어가 곧 <언제 쓰는 물건인가>다.
+#   지속 전투 수는 코드 상수(PartyTonicState.BattleDuration)가 한 벌만 들고 있다.
+#   상점에는 올리지 않는다(goldCost 없음). 보상 카드로만 얻는다.
+
+  - id: tonic_str_t1
+    displayName: 하급 완력제
+    description: 아군 전원의 STR +2 (5전투)
+    tier: 1
+    themeIds: []
+    tonicStat: STR
+    tonicFlat: 2
+  - id: tonic_str_t2
+    displayName: 중급 완력제
+    description: 아군 전원의 STR +4 (5전투)
+    tier: 2
+    themeIds: []
+    tonicStat: STR
+    tonicFlat: 4
+  - id: tonic_str_t3
+    displayName: 상급 완력제
+    description: 아군 전원의 STR +6 (5전투)
+    tier: 3
+    themeIds: []
+    tonicStat: STR
+    tonicFlat: 6
+  - id: tonic_str_t4
+    displayName: 완력의 비약
+    description: 아군 전원의 STR ×1.12 (5전투)
+    tier: 4
+    themeIds: []
+    tonicStat: STR
+    tonicMultiplier: 1.12
+  - id: tonic_str_t5
+    displayName: 완력의 신주
+    description: 아군 전원의 STR ×1.20 (5전투)
+    tier: 5
+    themeIds: []
+    isRare: true
+    tonicStat: STR
+    tonicMultiplier: 1.20
+
+  - id: tonic_dex_t1
+    displayName: 하급 신속제
+    description: 아군 전원의 DEX +2 (5전투)
+    tier: 1
+    themeIds: []
+    tonicStat: DEX
+    tonicFlat: 2
+  - id: tonic_dex_t2
+    displayName: 중급 신속제
+    description: 아군 전원의 DEX +4 (5전투)
+    tier: 2
+    themeIds: []
+    tonicStat: DEX
+    tonicFlat: 4
+  - id: tonic_dex_t3
+    displayName: 상급 신속제
+    description: 아군 전원의 DEX +6 (5전투)
+    tier: 3
+    themeIds: []
+    tonicStat: DEX
+    tonicFlat: 6
+  - id: tonic_dex_t4
+    displayName: 신속의 비약
+    description: 아군 전원의 DEX ×1.12 (5전투)
+    tier: 4
+    themeIds: []
+    tonicStat: DEX
+    tonicMultiplier: 1.12
+  - id: tonic_dex_t5
+    displayName: 신속의 신주
+    description: 아군 전원의 DEX ×1.20 (5전투)
+    tier: 5
+    themeIds: []
+    isRare: true
+    tonicStat: DEX
+    tonicMultiplier: 1.20
+
+  - id: tonic_con_t1
+    displayName: 하급 강건제
+    description: 아군 전원의 CON +2 (5전투)
+    tier: 1
+    themeIds: []
+    tonicStat: CON
+    tonicFlat: 2
+  - id: tonic_con_t2
+    displayName: 중급 강건제
+    description: 아군 전원의 CON +4 (5전투)
+    tier: 2
+    themeIds: []
+    tonicStat: CON
+    tonicFlat: 4
+  - id: tonic_con_t3
+    displayName: 상급 강건제
+    description: 아군 전원의 CON +6 (5전투)
+    tier: 3
+    themeIds: []
+    tonicStat: CON
+    tonicFlat: 6
+  - id: tonic_con_t4
+    displayName: 강건의 비약
+    description: 아군 전원의 CON ×1.12 (5전투)
+    tier: 4
+    themeIds: []
+    tonicStat: CON
+    tonicMultiplier: 1.12
+  - id: tonic_con_t5
+    displayName: 강건의 신주
+    description: 아군 전원의 CON ×1.20 (5전투)
+    tier: 5
+    themeIds: []
+    isRare: true
+    tonicStat: CON
+    tonicMultiplier: 1.20
+
+  - id: tonic_int_t1
+    displayName: 하급 명석제
+    description: 아군 전원의 INT +2 (5전투)
+    tier: 1
+    themeIds: []
+    tonicStat: INT
+    tonicFlat: 2
+  - id: tonic_int_t2
+    displayName: 중급 명석제
+    description: 아군 전원의 INT +4 (5전투)
+    tier: 2
+    themeIds: []
+    tonicStat: INT
+    tonicFlat: 4
+  - id: tonic_int_t3
+    displayName: 상급 명석제
+    description: 아군 전원의 INT +6 (5전투)
+    tier: 3
+    themeIds: []
+    tonicStat: INT
+    tonicFlat: 6
+  - id: tonic_int_t4
+    displayName: 명석의 비약
+    description: 아군 전원의 INT ×1.12 (5전투)
+    tier: 4
+    themeIds: []
+    tonicStat: INT
+    tonicMultiplier: 1.12
+  - id: tonic_int_t5
+    displayName: 명석의 신주
+    description: 아군 전원의 INT ×1.20 (5전투)
+    tier: 5
+    themeIds: []
+    isRare: true
+    tonicStat: INT
+    tonicMultiplier: 1.20
+
+  - id: tonic_luk_t1
+    displayName: 하급 행운제
+    description: 아군 전원의 LUK +2 (5전투)
+    tier: 1
+    themeIds: []
+    tonicStat: LUK
+    tonicFlat: 2
+  - id: tonic_luk_t2
+    displayName: 중급 행운제
+    description: 아군 전원의 LUK +4 (5전투)
+    tier: 2
+    themeIds: []
+    tonicStat: LUK
+    tonicFlat: 4
+  - id: tonic_luk_t3
+    displayName: 상급 행운제
+    description: 아군 전원의 LUK +6 (5전투)
+    tier: 3
+    themeIds: []
+    tonicStat: LUK
+    tonicFlat: 6
+  - id: tonic_luk_t4
+    displayName: 행운의 비약
+    description: 아군 전원의 LUK ×1.12 (5전투)
+    tier: 4
+    themeIds: []
+    tonicStat: LUK
+    tonicMultiplier: 1.12
+  - id: tonic_luk_t5
+    displayName: 행운의 신주
+    description: 아군 전원의 LUK ×1.20 (5전투)
+    tier: 5
+    themeIds: []
+    isRare: true
+    tonicStat: LUK
+    tonicMultiplier: 1.20
+
+# 이상한 사탕 — 경험치를 건너뛰고 레벨을 직접 올린다.
+#   T3부터 나온다. 쌓아 둔 EXP는 그대로 두므로 "먹기 전에 레벨을 올려 두는 것이 이득"이
+#   되지 않는다. 전체 사탕은 쓰러진 아군에게도 들어간다 — 한 판 진 것 때문에 성장에서만
+#   뒤처지면 되돌릴 방법이 없기 때문이다.
+#   상점가는 소모품 중 가장 비싸다. 레벨은 런의 주축이라 값싸게 사 모을 수 있으면 안 된다.
+
+  - id: rare_candy_t3
+    displayName: 이상한 사탕
+    description: 지정한 아군의 레벨 +1
+    tier: 3
+    themeIds: []
+    levelGrant: 1
+    goldCost: 400
+  - id: rare_candy_t4
+    displayName: 이상한 사탕 다발
+    description: 아군 전원의 레벨 +2
+    tier: 4
+    themeIds: []
+    levelGrant: 2
+    levelGrantParty: true
+    goldCost: 900

@@ -28,6 +28,7 @@ stageThemes:
     description: 로마 각지의 인간 검투사와 속주에서 붙잡아 온 괴수가 맞붙는 대축제입니다.
     midBossId: 2005
     bossId: 3003
+    ambientColor: "#5A3A1E"   # 콜로세움 — 모래와 횃불
     stagePatterns:
       - stageInRound: 1
         patterns:
@@ -69,6 +70,7 @@ stageThemes:
     midBossId: 2006
     midBossStageInRound: 9
     bossId: 3004
+    ambientColor: "#4A2226"   # 로마 군단 — 쇠와 피
     stagePatterns:
       - stageInRound: 1
         patterns:
@@ -105,6 +107,7 @@ stageThemes:
     enemyThemeId: 7
     description: 재규어와 독수리 전사들이 전열을 세우고 뱀 사제와 두 신이 의식을 완성합니다.
     bossId: 3010
+    ambientColor: "#1E4230"   # 메히코 — 정글과 흑요석
     stagePatterns:
       - stageInRound: 1
         patterns:
@@ -152,6 +155,7 @@ stageThemes:
     midBossId: 3011
     midBossStageInRound: 9
     bossId: 3012
+    ambientColor: "#5A4418"   # 아스완 — 사막과 금
     stagePatterns:
       - stageInRound: 1
         patterns:
@@ -194,6 +198,7 @@ stageThemes:
     midBossId: 2034
     midBossStageInRound: 6
     bossId: 3050
+    ambientColor: "#33224E"   # 공허 — 보랏빛 균열
     stagePatterns:
       - stageInRound: 1
         patterns:
@@ -231,6 +236,7 @@ stageThemes:
     midBossId: 2035
     midBossStageInRound: 6
     bossId: 3051
+    ambientColor: "#5A2418"   # 공허 불
     stagePatterns:
       - stageInRound: 1
         patterns:
@@ -268,6 +274,7 @@ stageThemes:
     midBossId: 2036
     midBossStageInRound: 6
     bossId: 3052
+    ambientColor: "#163A5A"   # 공허 물
     stagePatterns:
       - stageInRound: 1
         patterns:
@@ -305,6 +312,7 @@ stageThemes:
     midBossId: 2037
     midBossStageInRound: 6
     bossId: 3053
+    ambientColor: "#1A4A42"   # 공허 바람
     stagePatterns:
       - stageInRound: 1
         patterns:
@@ -342,6 +350,7 @@ stageThemes:
     midBossId: 2038
     midBossStageInRound: 6
     bossId: 3054
+    ambientColor: "#3A2258"   # 공허 번개
     stagePatterns:
       - stageInRound: 1
         patterns:
@@ -379,6 +388,7 @@ stageThemes:
     midBossId: 2039
     midBossStageInRound: 6
     bossId: 3055
+    ambientColor: "#2C4C1E"   # 공허 풀
     stagePatterns:
       - stageInRound: 1
         patterns:
@@ -416,6 +426,7 @@ stageThemes:
     midBossId: 2040
     midBossStageInRound: 6
     bossId: 3056
+    ambientColor: "#1E4658"   # 공허 얼음
     stagePatterns:
       - stageInRound: 1
         patterns:
@@ -453,6 +464,7 @@ stageThemes:
     midBossId: 2041
     midBossStageInRound: 6
     bossId: 3057
+    ambientColor: "#54461A"   # 공허 바위
     stagePatterns:
       - stageInRound: 1
         patterns:
@@ -481,6 +493,103 @@ stageThemes:
       - stageInRound: 10
         patterns:
           - { frontIds: [3057], weight: 100 }
+
+  # ── 노르드 3부작 ────────────────────────────────────────────────
+  # 16이 연작의 시작이고 17이 체인으로 따라온다. 17은 룰렛에 들어가되 뽑히면 16으로
+  # 치환되므로, 균등 추첨을 유지한 채 16의 등장 확률만 두 배가 된다.
+  # 18(노르드 중부)이 서면 같은 방식으로 세 배가 된다.
+  - id: 16
+    name: 노르드
+    tags: [Nord, Human]
+    enemyThemeId: 17
+    description: "약탈 무리가 눈밭을 건너온다. 볼바가 얼음을 깔고 광전사가 그 위에 불을 얹는다."
+    midBossId: 2050
+    midBossStageInRound: 4
+    bossId: 3060
+    chainNextThemeId: 17
+    ambientColor: "#2A3B4E"   # 노르드 — 눈과 쇠
+    stagePatterns:
+      # 1~3슬롯은 약탈 무리다. 볼바가 1에서 2로 늘어나는 3슬롯이 첫 학습 지점이다 —
+      # 하나일 때는 밀어붙여도 되지만 둘이 겹치면 회복량이 화력을 넘는다.
+      - stageInRound: 1
+        patterns:
+          - { frontIds: [1120, 1120], rearIds: [1122], weight: 100 }
+      - stageInRound: 2
+        patterns:
+          - { frontIds: [1120, 1120, 1120], rearIds: [1122], weight: 100 }
+      - stageInRound: 3
+        patterns:
+          - { frontIds: [1120, 1120, 1120], rearIds: [1122, 1122], weight: 100 }
+      # 4슬롯 — 두목. 중간 보스를 8이 아니라 여기 둔 것은 3슬롯의 시험을 바로 이어받기 위해서다.
+      - stageInRound: 4
+        patterns:
+          - { frontIds: [2050, 1120, 1120], rearIds: [1122, 1122], weight: 100 }
+      # 6슬롯부터 판이 갈린다. 광전사가 에인하르로, 볼바가 노른으로 바뀌고 발키리가 선다.
+      # 발키리의 전장의 선택자가 노르드 수를 세므로 편성이 커질수록 세진다.
+      - stageInRound: 6
+        patterns:
+          - { frontIds: [1121, 1121], rearIds: [1123, 1124], weight: 100 }
+      - stageInRound: 7
+        patterns:
+          - { frontIds: [1121, 1121, 1121], rearIds: [1123, 1124, 1124], weight: 100 }
+      - stageInRound: 8
+        patterns:
+          - { frontIds: [1121, 1121], rearIds: [1124, 1124, 1124], weight: 100 }
+      - stageInRound: 9
+        patterns:
+          - { frontIds: [1121, 1121, 1121], rearIds: [1123, 1123, 1124, 1124], weight: 100 }
+      - stageInRound: 10
+        patterns:
+          - { frontIds: [3060], weight: 100 }
+
+  # 노르드 북부 — 스카디의 영토.
+  # 새 적을 하나도 만들지 않았다. 얼음 공허 변형(적 themeId 15)과 범용 씨앗·거인(themeId 0)만 쓴다.
+  # enemyThemeId를 15로 둔 것은 편성을 전부 명시 ID로 못 박아 소환에는 읽히지 않고,
+  # 슬롯을 빠뜨렸을 때 폴백이 얼음 공허 적을 대신 세우게 하기 위해서다.
+  # 🔸 보스 자리는 혹한의 거인이 대신 선다. 3061 공허의 거인이 서면 그때 바꿔 끼운다.
+  # 🔸 chainNextThemeId는 노르드 중부(18)가 생기면 18로 적는다. 지금은 여기서 연작이 끝난다.
+  - id: 17
+    name: 노르드 북부
+    tags: [Nord, Void]
+    enemyThemeId: 15
+    description: "눈이 그치지 않는 북부다. 혹한 계열이 판에 눈을 깔고 그 위에서 몸집을 불린다."
+    midBossId: 2033
+    midBossStageInRound: 8
+    bossId: 2031
+    rotationRedirectThemeId: 16
+    ambientColor: "#1A2E3E"   # 노르드 북부 — 밤의 눈보라
+    stagePatterns:
+      - stageInRound: 1
+        patterns:
+          - { frontIds: [1068, 1068], rearIds: [1068, 1068, 1068], weight: 100 }
+      - stageInRound: 2
+        patterns:
+          - { frontIds: [1092, 1092, 1092], rearIds: [1076, 1076], weight: 100 }
+      # 3슬롯이 씨앗을 처음 가르치는 방이다. 광역으로 한 번에 쓸면 자폭이 동시에 겹친다.
+      # 넷이 함께 터지면 후열 체력을 넘으므로, 한 마리씩 끊거나 방어막을 두르는 것이 답이다.
+      - stageInRound: 3
+        patterns:
+          - { frontIds: [1061, 1061], rearIds: [1061, 1061], weight: 100 }
+      - stageInRound: 4
+        patterns:
+          - { frontIds: [1084, 1084, 1084], rearIds: [1108, 1108], weight: 100 }
+      - stageInRound: 6
+        patterns:
+          - { frontIds: [1100, 1100, 1100], rearIds: [1108, 1108], weight: 100 }
+      - stageInRound: 7
+        patterns:
+          - { frontIds: [1116, 1116, 1116], rearIds: [1068, 1068], weight: 100 }
+      # 8슬롯 — 중간 보스. 3슬롯의 함정을 엘리트로 키운 방이다.
+      # 혹한의 씨앗이 혼자 눈을 깔아 자기 DEX·CON을 올리므로 먼저 끊을수록 판이 식는다.
+      - stageInRound: 8
+        patterns:
+          - { frontIds: [1061, 1061], rearIds: [2033, 1076, 1076], weight: 100 }
+      - stageInRound: 9
+        patterns:
+          - { frontIds: [1092, 1092, 1084], rearIds: [1108, 1108], weight: 100 }
+      - stageInRound: 10
+        patterns:
+          - { frontIds: [2031], weight: 100 }
 
 events:
   - id: colosseum_masked_gladiator
@@ -683,4 +792,51 @@ events:
 # 🔸 '고정 보스 라운드에서는 2번 스테이지를 건너뛰고 이후 스테이지를 1씩 당긴다'는
 #    규칙이 기획에 있으나 아직 구현하지 않았다. 현재 엔진은 그 대신
 #    보스 슬롯을 10 → 9로 당기는 기존 방식을 쓴다. Design_Backlog 항목 13을 볼 것.
+
+  - id: nord_the_raiders_fire
+    themeId: 16
+    stageInRound: 5
+    oncePerRun: true
+    title: 꺼지지 않는 불
+    dialogue:
+      - speaker: 일행
+        text: 눈밭 한가운데 모닥불이 타고 있다. 주인은 보이지 않는데 불은 조금도 사그라들지 않는다. 둘레의 눈만 녹지 않고 그대로다.
+      - speaker: 볼바
+        text: 손을 쬐고 가라. 우리는 저 불로 얼음을 녹이지 않는다. 얼음 위에 얹을 뿐이지.
+        portrait: VOLVA_PORTRAIT
+        standing: VOLVA_STANDING
+      - speaker: 일행
+        text: 노파는 지팡이로 불을 한 번 휘젓고, 튄 불똥이 눈에 닿자 그 자리가 하얗게 터진다. 광전사들이 왜 그렇게 달려드는지 이제야 알겠다.
+    choices:
+      - id: nord_warm_hands
+        text: 불을 쬐고 간다.
+        action: continue
+        successText: 언 손이 풀렸다. 다음 싸움의 첫 수가 한 박자 빨라질 것 같다.
+      - id: nord_douse_the_fire
+        text: 불을 눈으로 덮어 끈다.
+        action: continue
+        successText: 불은 꺼졌지만 노파는 웃기만 했다. 얼음 위에 불을 얹는 수는 그들이 먼저 배운 것이다.
+
+  - id: nord_north_the_white_silence
+    themeId: 17
+    stageInRound: 5
+    oncePerRun: true
+    title: 그치지 않는 눈
+    dialogue:
+      - speaker: 일행
+        text: 사흘째 눈이 그치지 않는다. 발밑에서 무언가 규칙적으로 울린다. 눈을 걷어 내자 금속 껍질이 드러난다.
+      - speaker: 일행
+        text: 씨앗이다. 아직 깨어나지 않았고, 껍질 안쪽에서 천천히 빛이 돈다. 건드리면 깨어날 것이고 깨어나면 터질 것이다.
+      - speaker: 일행
+        text: 북쪽으로 갈수록 눈이 두꺼워진다. 이 추위는 하늘이 아니라 땅에서 올라오고 있다.
+    choices:
+      - id: nord_north_leave_the_seed
+        text: 덮어 두고 돌아간다.
+        action: continue
+        successText: 눈을 다시 덮었다. 깨우지 않는 것도 한 가지 답이다.
+      - id: nord_north_break_the_shell
+        text: 껍질을 깨 본다.
+        action: continue
+        successText: 껍질 안은 비어 있었다. 대신 안쪽 벽에 서리가 낀 무늬가 있다 — 터질 때 무엇이 퍼지는지 미리 본 셈이다.
+
 fixedBossStages: []

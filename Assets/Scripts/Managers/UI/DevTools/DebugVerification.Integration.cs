@@ -303,9 +303,13 @@ namespace Managers.UI.DevTools
         private IEnumerator Campaign()
         {
             Status = "공허 3테마 연속 새 게임";
+            // 전체 통합 검증 앞 구간이 소비한 난수량과 무관하게 단독 실행과 같은 캠페인이어야 한다.
+            UnityEngine.Random.InitState(20260908);
             Clear(); DebugMode.ResetAll(); DebugMode.SetTimeScale(8);
-            GameManager.LoadMainMenuScene();
-            yield return null; yield return null;
+            // 통합 검증의 직전 DefeatRecovery가 GameOver 상태로 끝난다. 여기서 MainMenu를
+            // 한 번 거쳐 다시 Game으로 들어가면, 파괴 예약된 런 매니저들이 남은 프레임에
+            // 장면을 재차 바꾸면서 이 검증 호스트의 코루틴까지 끊길 수 있다. 새 게임 의도를
+            // 먼저 세우고 Battle 장면을 한 번만 다시 로드해 완전히 새 런을 만든다.
             GameStartIntent.Current = GameStartIntent.Intent.NewGame;
             DebugMode.ForcedThemeId = 8;
             GameManager.LoadBattleScene();
@@ -393,7 +397,10 @@ namespace Managers.UI.DevTools
                 }
                 yield return null;
             }
-            Assert("campaign natural progress reaches first elite", lastStage >= 6, ">=6", lastStage.ToString());
+            // 이 루프의 목적은 30스테이지 자연 완주다. 첫 엘리트(6)만 넘기면 성공으로
+            // 처리하면 중도 GameOver도 녹색 보고서가 되어 실제 캠페인 회귀를 숨긴다.
+            Assert("campaign natural progress reaches stage 30", lastStage >= 30,
+                ">=30", $"{lastStage} ({game.gameState}, life {game.life})");
             Assert("campaign training exercised", trainings > 0, ">0", trainings.ToString());
             Assert("campaign events exercised", events > 0, ">0", events.ToString());
             Assert("campaign rewards exercised", rewards > 0, ">0", rewards.ToString());

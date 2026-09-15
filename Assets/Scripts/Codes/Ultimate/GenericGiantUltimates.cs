@@ -12,7 +12,7 @@ namespace Codes.Ultimate
         private readonly int _flatDamage;
 
         public GenericGiantHammerfall(UltimateCodeContext context, int flatDamage, int statPower)
-            : base(context, "거인의 철퇴", 4, 0.55f)
+            : base(context, "거인의 철퇴", 0.55f)
         {
             _flatDamage = flatDamage;
             Power = statPower;

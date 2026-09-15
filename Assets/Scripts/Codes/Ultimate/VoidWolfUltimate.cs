@@ -18,7 +18,7 @@ namespace Codes.Ultimate
         private readonly BaseEnums.UnitElement _attachedElement;
 
         public VoidWolfUltimate(UltimateCodeContext context, BaseEnums.UnitElement attachedElement)
-            : base(context, "피의 포식", 4, 0.45f)
+            : base(context, "피의 포식", 0.45f)
         {
             _attachedElement = attachedElement;
             Power = 120;

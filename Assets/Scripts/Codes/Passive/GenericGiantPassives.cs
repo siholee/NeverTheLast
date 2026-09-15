@@ -4,6 +4,7 @@ using BaseClasses;
 using Codes.Base;
 using Effects.Base;
 using Effects.Buffs;
+using Combat;
 using Effects.Negative;
 using Entities;
 using Managers;
@@ -51,12 +52,24 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>혹한의 거인 — 자기 턴마다 얼음을 부착하고 Snow 필드에서 STR·CON 레벨 성장량 +50%.</summary>
+    /// <summary>
+    /// 혹한의 거인 — 자기 턴마다 <b>눈을 직접 깔고</b> 얼음을 부착한다.
+    /// 눈 위에서 얼음을 두르고 있으면 STR·CON 레벨 성장량이 1.5배가 된다.
+    ///
+    /// 예전에는 테마 태그 <c>Snow</c>를 봤다. 그 태그를 단 테마가 하나도 없어 <b>한 번도 켜진 적이 없었고</b>,
+    /// 태그는 판이 아니라 스테이지에 붙는 것이라 플레이어가 손댈 수 없는 조건이기도 했다.
+    /// 지금은 자기가 깐 판을 본다 — 수리야가 햇빛으로 덮으면 그대로 꺼지고,
+    /// 물을 걸어 빙결로 얼음을 태우면 부착 조건이 깨진다. <b>두 갈래 다 플레이어의 답이다.</b>
+    /// </summary>
     public sealed class FrostGiantCore : PersistentStatusPassive
     {
+        /// <summary>자기 턴마다 새로 매기는 눈의 지속.</summary>
+        public const int SnowTurns = 2;
+
         public FrostGiantCore(PassiveCodeContext context)
             : base(context, GenericGiantStatusIds.FrostCore, "frost_giant_core", "혹한의 노심",
-                "턴 시작 시 얼음 원소를 부착합니다. 얼음이 부착된 채 눈 필드에 있으면 STR·CON의 레벨 성장량이 1.5배가 됩니다.")
+                "턴 시작 시 눈 필드를 깔고 자신에게 얼음 원소를 부착합니다. " +
+                "얼음이 부착된 채 눈 필드에 있으면 STR·CON의 레벨 성장량이 1.5배가 됩니다.")
         {
             IsUniquePassive = true;
             Transferable = false;
@@ -71,14 +84,18 @@ namespace Codes.Passive
 
         public override void OnOwnerTurn()
         {
-            Target?.GrantCombatElement(BaseEnums.UnitElement.Cryo, Unit.CommonElementAuraDuration, Caster ?? Target);
+            if (Target == null || !Target.isActive) return;
+
+            // 판을 자기 기준으로 새로 매긴다. 쓰러지면 Battlefield가 스스로 걷는다.
+            Battlefield.Set(FieldKind.Snow, Target, FrostGiantCore.SnowTurns);
+            Target.GrantCombatElement(BaseEnums.UnitElement.Cryo, Unit.CommonElementAuraDuration, Caster ?? Target);
         }
 
         public override int PrimaryStatAdditiveModifier(Unit unit, BaseEnums.PrimaryStat stat)
         {
             if (unit != Target || (stat != BaseEnums.PrimaryStat.STR && stat != BaseEnums.PrimaryStat.CON)) return 0;
             if (!unit.HasAttachedElement(BaseEnums.UnitElement.Cryo)) return 0;
-            if (GameManager.Instance?.RoundManager?.CurrentThemeHasTag("Snow") != true) return 0;
+            if (!Battlefield.Is(FieldKind.Snow)) return 0;
             return Mathf.RoundToInt(unit.GetLevelGrowthStatValue(stat) * 0.5f);
         }
     }

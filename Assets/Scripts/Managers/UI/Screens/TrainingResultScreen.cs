@@ -14,7 +14,7 @@ namespace Managers.UI.Screens
     ///
     ///   위   — 성공 / 실패. 화면에서 제일 먼저 읽혀야 하는 한 가지다.
     ///   가운데 — 오른 스탯, 스킬 Pt, 훈련 레벨, 체력, 컨디션 변화
-    ///   아래 — 이 훈련에 참여한 서포트별 기여와 우정 변화, 전수받은 패시브
+    ///   아래 — 이 훈련에 참여한 서포트별 기여와 우정 변화, 흘러나온 스킬 힌트
     ///
     /// 예전에는 준비 페이즈 안내줄에 한 문장으로 흘려보냈다. 실패했는지조차
     /// 눈에 띄지 않아, 체력을 20 쓰고 아무것도 못 얻은 턴을 그냥 지나치게 됐다.
@@ -207,14 +207,19 @@ namespace Managers.UI.Screens
                 ? $"참여 서포트 {supports.Count}명"
                 : "이번 훈련에 참여한 서포트가 없습니다";
 
-            // 전수는 드물게 일어난다. 일어났을 때만 한 줄을 내준다.
+            // 힌트는 매번 나오지 않는다. 나왔을 때만 한 줄을 내준다.
             var names = new List<string>();
             foreach (TrainingManager.SupportOutcome support in supports)
             {
-                if (!string.IsNullOrEmpty(support.TransferredName)) names.Add(support.TransferredName);
+                if (!string.IsNullOrEmpty(support.HintedName))
+                {
+                    names.Add($"{support.HintedName} Lv.{support.HintedLevel}");
+                }
             }
 
-            _transferLine.text = names.Count > 0 ? $"패시브 전수 — {string.Join(", ", names)}" : "";
+            _transferLine.text = names.Count > 0
+                ? $"스킬 힌트 — {string.Join(", ", names)} (준비 페이즈에서 스킬 Pt로 습득)"
+                : "";
         }
 
         /// <summary>서포트 한 명의 결과 줄. 초상화 · 이름 · 기여 · 우정 변화.</summary>

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Entities;
+using Helpers;
 using Managers.UI.Core;
+using PartyTonicState = Core.PartyTonicState;
 using Managers.UI.Theme;
 using TMPro;
 using UnityEngine;
@@ -22,7 +24,7 @@ namespace Managers.UI.Screens
     /// 카드가 제원을 다 이고 있을 자리가 없어졌고, 무엇보다 <b>그림이 먼저 눈에 들어와야</b>
     /// 세 장을 훑는 속도가 빨라진다. 숫자와 조건은 마우스를 올렸을 때 툴팁으로 보인다.
     ///
-    /// 장비가 아닌 보상(회복·토큰 등)은 그릴 그림이 없으므로 예전처럼 항목을 줄로 세운다.
+    /// 장비가 아닌 보상도 일러스트 경로가 있으면 같은 카드 구조를 사용한다.
     /// </summary>
     public class RewardScreen : ModalScreen
     {
@@ -39,13 +41,20 @@ namespace Managers.UI.Screens
 
         private readonly List<Card> _cards = new();
         private List<RewardDef> _rewards = new();
+        private RectTransform _cardsRoot;
+        private UnitTargetPicker _targetPicker;
+        private RewardDef _pendingTargetReward;
 
         protected override void Build()
         {
+            _cardsRoot = UIBuild.Container("RewardCards", Body);
+            UIBuild.Stretch(_cardsRoot);
             for (int i = 0; i < CardCount; i++)
             {
-                _cards.Add(new Card(Body, i, OnPick));
+                _cards.Add(new Card(_cardsRoot, i, OnPick));
             }
+
+            _targetPicker = new UnitTargetPicker(Body, OnTargetPicked, ShowRewardCards, "보상 카드로 돌아가기");
         }
 
         public void Show(List<RewardDef> rewards)
@@ -58,6 +67,7 @@ namespace Managers.UI.Screens
                 _cards[i].Bind(i < _rewards.Count ? _rewards[i] : null);
             }
 
+            ShowRewardCards();
             Show();
         }
 
@@ -65,10 +75,91 @@ namespace Managers.UI.Screens
         {
             if (index < 0 || index >= _rewards.Count) return;
 
-            // 보상 대상은 필드 위 첫 아군으로 둔다(기존 동작 유지).
+            RewardDef reward = _rewards[index];
+            if (reward.RequiresTargetSelection)
+            {
+                ShowRewardTargets(reward);
+                return;
+            }
+
+            // 장비 등 기존 단일 대상 보상은 기존 동작대로 필드 위 첫 아군을 사용한다.
             Unit target = GridManager.Instance?.heroList
                 ?.FirstOrDefault(hero => hero != null && hero.isActive && !hero.IsEnemy);
-            GameManager.Instance?.rewardManager?.ApplyReward(_rewards[index], target);
+            GameManager.Instance?.rewardManager?.ApplyReward(reward, target);
+        }
+
+        private void ShowRewardTargets(RewardDef reward)
+        {
+            List<Unit> candidates = TargetCandidates(reward);
+            if (candidates.Count == 0) return;
+
+            _pendingTargetReward = reward;
+            _cardsRoot.gameObject.SetActive(false);
+            SetTitle(reward.displayName + " — 대상 선택");
+            _targetPicker.Show(candidates, TargetGuide(reward), unit => TargetPreview(reward, unit));
+        }
+
+        /// <summary>대상 선택 판의 안내문. 상점도 같은 문구를 쓴다.</summary>
+        public static string TargetGuide(RewardDef reward)
+        {
+            if (reward.RequiresLevelTargetSelection)
+                return "레벨을 올릴 아군을 선택하세요. 오른 뒤의 레벨을 함께 표시합니다.";
+
+            return reward.RequiresReviveTargetSelection
+                ? "부활시킬 아군을 선택하세요. 부활 후 체력을 함께 표시합니다."
+                : "회복할 아군을 선택하세요. 현재 체력과 회복 후 체력을 함께 표시합니다.";
+        }
+
+        /// <summary>카드 아래 한 줄. 쓰고 나면 체력이 어떻게 되는지를 미리 보여 준다.</summary>
+        public static string TargetPreview(RewardDef reward, Unit unit)
+        {
+            if (reward.RequiresLevelTargetSelection)
+            {
+                return $"Lv.{unit.Level}\n→ Lv.{unit.Level + reward.levelGrant}";
+            }
+
+            if (reward.RequiresReviveTargetSelection)
+            {
+                int after = RewardManager.CalculateReviveHp(reward, unit);
+                return $"전투 불능\n→ HP {after:N0} / {unit.HpMax:N0}";
+            }
+
+            int amount = RewardManager.CalculateHealingAmount(reward, unit);
+            int healed = Mathf.Min(unit.HpMax, unit.HpCurr + amount);
+            return $"HP {unit.HpCurr:N0} / {unit.HpMax:N0}\n→ {healed:N0} / {unit.HpMax:N0}";
+        }
+
+        /// <summary>회복·부활 대상 후보. 상점도 같은 조건을 쓴다.</summary>
+        public static List<Unit> TargetCandidates(RewardDef reward)
+        {
+            if (reward.RequiresLevelTargetSelection) return RewardManager.LevelGrantCandidates();
+
+            return GridManager.Instance?.heroList?
+                .Where(hero => reward.RequiresReviveTargetSelection
+                    ? RewardManager.IsValidReviveTarget(hero)
+                    : RewardManager.IsValidHealingTarget(hero) && hero.HpCurr < hero.HpMax)
+                .ToList() ?? new List<Unit>();
+        }
+
+        private void OnTargetPicked(Unit target)
+        {
+            if (_pendingTargetReward == null) return;
+            bool valid = _pendingTargetReward.RequiresLevelTargetSelection
+                ? RewardManager.IsValidLevelTarget(target)
+                : _pendingTargetReward.RequiresReviveTargetSelection
+                    ? RewardManager.IsValidReviveTarget(target)
+                    : RewardManager.IsValidHealingTarget(target);
+            if (!valid) return;
+            GameManager.Instance?.rewardManager?.ApplyReward(_pendingTargetReward, target);
+            _pendingTargetReward = null;
+        }
+
+        private void ShowRewardCards()
+        {
+            _pendingTargetReward = null;
+            SetTitle(Title);
+            if (_cardsRoot != null) _cardsRoot.gameObject.SetActive(true);
+            _targetPicker?.SetActive(false);
         }
 
         // ── 표시할 값 뽑기 ───────────────────────────────────────────
@@ -116,9 +207,44 @@ namespace Managers.UI.Screens
 
             // 장비가 아닌 보상. RewardManager.ApplyReward의 우선순위와 Unit.AddRunBonus의
             // 매핑을 그대로 따라간다 — 카드가 실제로 일어날 일만 약속하게 하려는 것이다.
+            if (reward.IsTonic && reward.TryGetTonicStat(out BaseEnums.PrimaryStat tonicStat))
+            {
+                // 합연산과 곱연산은 읽는 법이 다르다. 기호를 그대로 보여 줘야 둘을 헷갈리지 않는다.
+                string amount = reward.tonicMultiplier > 1f
+                    ? $"×{reward.tonicMultiplier:0.00}"
+                    : $"+{reward.tonicFlat}";
+                rows.Add(new Row($"파티 {tonicStat}", amount, UITheme.Stat(tonicStat)));
+                rows.Add(new Row("지속", $"{PartyTonicState.BattleDuration}전투", UITheme.TextSecondary));
+                return rows;
+            }
+
             if (reward.fullHealParty)
             {
                 rows.Add(new Row("파티 전체", "완전 회복", UITheme.Hp));
+                return rows;
+            }
+
+            if (reward.fullReviveParty)
+            {
+                rows.Add(new Row("파티 전체", "체력 100%로 부활", UITheme.Hp));
+                return rows;
+            }
+
+            if (reward.revivePercent > 0f)
+            {
+                rows.Add(new Row("지정 아군", $"체력 {Mathf.RoundToInt(reward.revivePercent * 100f)}%로 부활", UITheme.Hp));
+                return rows;
+            }
+
+            if (reward.fullHealTarget)
+            {
+                rows.Add(new Row("지정 아군", "완전 회복", UITheme.Hp));
+                return rows;
+            }
+
+            if (reward.healPercent > 0f)
+            {
+                rows.Add(new Row("지정 아군", $"+{Mathf.RoundToInt(reward.healPercent * 100f)}%", UITheme.Hp));
                 return rows;
             }
 
@@ -350,7 +476,7 @@ namespace Managers.UI.Screens
                 List<Row> stats = StatRows(reward);
                 List<Row> specs = SpecRows(reward);
 
-                Sprite art = ItemTooltip.LoadArt(reward.item);
+                Sprite art = LoadRewardArt(reward);
                 _art.sprite = art;
                 _art.enabled = art != null;
 
@@ -359,6 +485,14 @@ namespace Managers.UI.Screens
                     () => TooltipLines(reward, stats, specs), rarity);
 
                 BindArtLayout(art != null, stats, specs);
+            }
+
+            private static Sprite LoadRewardArt(RewardDef reward)
+            {
+                if (reward?.item != null) return ItemTooltip.LoadArt(reward.item);
+                return string.IsNullOrWhiteSpace(reward?.artPath)
+                    ? null
+                    : Resources.Load<Sprite>(reward.artPath);
             }
 
             /// <summary>그림이 있으면 요약 한 줄, 없으면 예전처럼 표를 세운다.</summary>
@@ -425,6 +559,11 @@ namespace Managers.UI.Screens
                 {
                     UITooltip.Line.Note(MetaLine(reward), UITheme.TextMuted),
                 };
+
+                if (!string.IsNullOrWhiteSpace(reward.description))
+                {
+                    lines.Add(UITooltip.Line.Note(reward.description, UITheme.TextSecondary));
+                }
 
                 foreach (Row row in stats) lines.Add(new UITooltip.Line(row.Label, row.Value, row.Color));
                 foreach (Row row in specs) lines.Add(new UITooltip.Line(row.Label, row.Value, row.Color));

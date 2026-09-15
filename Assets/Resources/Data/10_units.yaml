@@ -65,6 +65,7 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes:
       passive: 201
       normal: 1
@@ -115,6 +116,7 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes:
       passive: 204
       normal: 4
@@ -158,6 +160,7 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes:
       passive: 205
       normal: 5
@@ -201,6 +204,7 @@ units:
     lukBase: 16
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 206, normal: 6, ultimate: 6 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -243,6 +247,7 @@ units:
     lukBase: 16
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 207, normal: 7, ultimate: 7 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -285,6 +290,7 @@ units:
     lukBase: 20
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes:
       passive: 202
       normal: 2
@@ -333,6 +339,7 @@ units:
     lukBase: 10
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes:
       passive: 220
       normal: 20
@@ -380,6 +387,7 @@ units:
     lukBase: 24
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes:
       passive: 221
       normal: 21
@@ -430,6 +438,7 @@ units:
     lukBase: 14
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes:
       passive: 222
       normal: 22
@@ -481,6 +490,7 @@ units:
     lukBase: 14
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes:
       passive: 223
       normal: 23
@@ -528,6 +538,7 @@ units:
     lukBase: 16
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes:
       passive: 224
       normal: 24
@@ -577,6 +588,7 @@ units:
     lukBase: 16
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes:
       passive: 240
       normal: 40
@@ -626,6 +638,7 @@ units:
     lukBase: 14
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes:
       passive: 260
       normal: 60
@@ -690,6 +703,7 @@ units:
     lukBase: 12
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes:
       passive: 340
       normal: 140
@@ -739,6 +753,7 @@ units:
     lukBase: 18
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes:
       passive: 241
       normal: 41
@@ -797,6 +812,7 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes:
       passive: 280
       normal: 80
@@ -849,6 +865,7 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 261, normal: 61, ultimate: 61, special: 61 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -891,6 +908,7 @@ units:
     lukBase: 18
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 262, normal: 62, ultimate: 62, special: 62 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -933,6 +951,7 @@ units:
     lukBase: 16
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 263, normal: 63, ultimate: 63, special: 63 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -975,6 +994,7 @@ units:
     lukBase: 14
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 264, normal: 64, ultimate: 64, special: 64 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -999,33 +1019,36 @@ units:
     canStartAsMain: false
     canStartAsSupport: true
     canUseInInfinite: false
-    mainStat: INT
+    mainStat: CON
     subStat: DEX
-    subStats: [DEX]
+    subStats: [DEX, INT]
     mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
+    subStatTrainingBonus: 0.05
     strBase: 8
     strIncrementLvl: 1
     strIncrementUpgrade: 1
     dexBase: 16
-    dexIncrementLvl: 2
+    dexIncrementLvl: 1
     dexIncrementUpgrade: 1
-    conBase: 18
-    conIncrementLvl: 1
+    conBase: 22
+    conIncrementLvl: 2
     conIncrementUpgrade: 1
-    intBase: 22
-    intIncrementLvl: 2
+    intBase: 18
+    intIncrementLvl: 1
     intIncrementUpgrade: 1
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 281, normal: 81, ultimate: 81 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
+      - { codeId: 109, unlockLevel: 1,  stage: 1 }   # 카피바라
+      - { codeId: 105, unlockLevel: 12, stage: 1 }   # 피지컬 코치
       - { codeId: 18,  unlockLevel: 22, stage: 1 }   # 명상
-      - { codeId: 70, unlockLevel: 30, stage: 1 }   # 의술
-      - { codeId: 71, unlockLevel: 40, stage: 1 }   # 리더쉽
-      - { codeId: 72, unlockLevel: 61, stage: 1 }   # 전사장
+      - { codeId: 112, unlockLevel: 27, stage: 1 }   # 면벽수련
+      - { codeId: 70,  unlockLevel: 30, stage: 1 }   # 의술
+      - { codeId: 71,  unlockLevel: 40, stage: 1 }   # 리더쉽
     portrait: FREYA_PORTRAIT
     standing: FREYA_STANDING
 
@@ -1059,6 +1082,7 @@ units:
     lukBase: 22
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 282, normal: 82, ultimate: 82 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -1100,6 +1124,7 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 283, normal: 83, ultimate: 83 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -1141,6 +1166,7 @@ units:
     lukBase: 10
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 265, normal: 65, ultimate: 65, special: 65 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -1182,6 +1208,7 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 266, normal: 66, ultimate: 66, special: 66 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -1222,6 +1249,7 @@ units:
     lukBase: 14
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 267, normal: 67, ultimate: 67, special: 67 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -1264,6 +1292,7 @@ units:
     lukBase: 22
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 225, normal: 25, ultimate: 25 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -1305,6 +1334,7 @@ units:
     lukBase: 24
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 242, normal: 42, ultimate: 42 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -1349,6 +1379,7 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 300, normal: 100, ultimate: 100 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -1391,6 +1422,7 @@ units:
     lukBase: 18
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 301, normal: 101, ultimate: 101 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -1432,6 +1464,7 @@ units:
     lukBase: 22
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 302, normal: 102, ultimate: 102 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -1481,6 +1514,7 @@ units:
     ultimateResourceType: Stack
     ultimateResourceName: 우제트
     ultimateResourceMax: 4
+    manaMax: 100
     codes: { passive: 320, normal: 120, ultimate: 120 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -1523,6 +1557,7 @@ units:
     lukBase: 10
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 321, normal: 121, ultimate: 121 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -1565,6 +1600,7 @@ units:
     lukBase: 24
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 322, normal: 122, ultimate: 122 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -1608,6 +1644,7 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 323, normal: 123, ultimate: 123 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -1648,6 +1685,7 @@ units:
     lukBase: 14
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 324, normal: 124, ultimate: 124 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -1688,6 +1726,7 @@ units:
     lukBase: 12
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 325, normal: 125, ultimate: 125 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -1728,6 +1767,7 @@ units:
     lukBase: 24
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 203, normal: 3, ultimate: 3 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     ultimateResourceType: Stack
@@ -1772,6 +1812,7 @@ units:
     lukBase: 16
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 226, normal: 26, ultimate: 26 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
@@ -1812,6 +1853,7 @@ units:
     lukBase: 24
     lukIncrementLvl: 2
     lukIncrementUpgrade: 1
+    manaMax: 100
     codes: { passive: 360, normal: 160, ultimate: 160 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:

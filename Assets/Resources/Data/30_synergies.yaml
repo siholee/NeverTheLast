@@ -28,7 +28,7 @@
 roles:
   - id: TAUNT
     name: 도발
-    description: 대상 지정 우선도를 끌어와 아군 후열을 가린다. 아군 전체에서 수르트·스카디뿐이다.
+    description: 대상 지정 우선도를 끌어와 아군 후열을 가린다. 아군 전체에서 스카디·잔뿐이다.
   - id: BULWARK
     name: 방벽
     description: 도발 없이 방어막·피해 경감으로 전열을 유지한다.
@@ -112,8 +112,8 @@ roles:
 trainerCoverage:
   STR: [7]                                  # 잔
   DEX: [100]                                # 아그리파
-  CON: [5, 60, 64, 65, 66, 83, 125]         # 라이트·찬드라·바유·쿠베라·바루나·스카디·이시스
-  INT: [1, 4, 6, 62, 81, 124]               # 세이·가우디·니콜·아그니·프레이아·토트
+  CON: [5, 60, 64, 65, 66, 81, 83, 125]     # 라이트·찬드라·바유·쿠베라·바루나·프레이아·스카디·이시스
+  INT: [1, 4, 6, 62, 124]                   # 세이·가우디·니콜·아그니·토트
   LUK: [25, 160]                            # 오르페우스·마리
 
 # ══════════════════════════════════════════════════════════════════════
@@ -241,17 +241,19 @@ units:
     name: 프레이아
     type: Support
     element: Dendro
-    mainStat: INT
-    topStat: INT
+    mainStat: CON
+    topStat: CON
     row: Rear
-    roles: [HEAL, AMP_DMG, ELEM_APPLY]
+    roles: [HEAL, AMP_DMG, DPS_AOE, ELEM_APPLY]
     supportValue: { combat: 4, training: 4 }
     provides:
       - key: PARTY_HEAL
-        text: "일반행동 자체가 아군 전체 치유 — 아군 전체에서 유일한 상시 힐러다"
+        text: "일반행동 자체가 아군 전체 CON×0.6 치유 — 아군 전체에서 유일한 상시 힐러다"
       - key: ABUNDANCE
-        text: "궁극기가 누적 순수치유량을 아군 전체 STR(최대 +25)로 환산"
-    wants: [HEAL]
+        text: "궁극기가 누적 순수치유량을 광역 피해와 아군 전체 STR(최대 +25)로 함께 환산"
+      - key: DENDRO_APPLY
+        text: "궁극기가 적 전체에 풀 부착 — 불을 까는 아군과 겹치면 연소가 터진다"
+    wants: [HEAL, ELEM_APPLY]
 
   - id: 83
     name: 스카디
@@ -475,16 +477,15 @@ units:
     mainStat: STR
     topStat: STR
     row: Front
-    roles: [TAUNT, SHIELD, DPS_AOE, ELEM_APPLY]
+    roles: [DPS_AOE, DPS_ST, ELEM_APPLY]
     supportValue: { combat: 5, training: 1 }
     provides:
       - key: TWILIGHT
-        text: "고유 패시브 황혼 — 공격한 대상 수만큼 아군 전체에 50+STR×0.5 방어막"
-      - key: TAUNT_WALL
-        text: "대체행동이 자기 도발 + 80+STR×1.5 방어막"
+        text: "고유 패시브 황혼 — 행동마다 최대 체력 20%를 태우고 그 행동의 피해 +40%"
       - key: PYRO_APPLY
         text: "궁극기가 적 전체에 불 부착"
     wants: [HEAL, ELEM_APPLY]
+    caution: "체력을 태우지 못하면 황혼이 꺼진다. 상시 힐러 없이는 네 번째 공격부터 맨몸이다"
 
   - id: 64
     name: 바유
@@ -706,14 +707,16 @@ units:
     mainStat: LUK
     topStat: LUK
     row: Rear
-    roles: [SUMMON, AMP_SUMMON, DPS_ST]
+    roles: [SUMMON, AMP_SUMMON, DPS_ST, DEF_SHRED, DOT]
     supportValue: { combat: 4, training: 3 }
     provides:
       - key: SUMMONER
         text: "소환사(Lv25) — 필드의 모든 소환수 피해 +25%. 소환 축의 유일한 증폭원이다"
       - key: FENRIR
-        text: "고유 패시브 펜리르 — 칸을 쓰지 않는 상시 소환수"
-    wants: [SUMMON]
+        text: "고유 패시브 펜리르 — 칸을 쓰지 않는 상시 소환수. 표식이 박힌 적을 아군이 때릴 때마다 함께 문다"
+      - key: BALDR_MARK
+        text: "궁극기 표식 — 최대 체력이 가장 높은 적에게 치유 -25%, 방어력 -20%. 광역 딜러의 보스전을 연다"
+    wants: [SUMMON, DPS_AOE]
 
   - id: 101
     name: 옥타비아
@@ -898,10 +901,10 @@ archetypes:
 
   - id: FORTRESS
     name: 도발 요새
-    core: [80, 83]
+    core: [83, 7]
     description: >
       도발로 대상 지정을 모으고 방어막으로 받아 낸다. 아군 전체에서 도발을 거는 것은
-      수르트와 스카디 둘뿐이다.
+      스카디와 잔 둘뿐이며, 잔만 상시 도발이다.
     partners: [81, 121, 60, 65]
     counterplay: >
       도발이 둘 이상이면 지정이 나뉘어 각자의 방어막·반격 회전이 함께 느려진다.

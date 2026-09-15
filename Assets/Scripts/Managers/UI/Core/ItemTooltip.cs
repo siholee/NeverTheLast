@@ -110,7 +110,6 @@ namespace Managers.UI.Core
         public static string ProficiencyName(EquipmentProficiency proficiency) => proficiency switch
         {
             EquipmentProficiency.Dagger => "단검",
-            EquipmentProficiency.Wand => "완드",
             EquipmentProficiency.Orb => "보주",
             EquipmentProficiency.Greatsword => "대검",
             EquipmentProficiency.Longbow => "장궁",
@@ -123,6 +122,7 @@ namespace Managers.UI.Core
             EquipmentProficiency.Longsword => "한손검",
             EquipmentProficiency.Mace => "둔기",
             EquipmentProficiency.Spear => "장창",
+            EquipmentProficiency.Shortspear => "단창",
             _ => proficiency.ToString(),
         };
 

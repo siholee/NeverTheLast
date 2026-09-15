@@ -51,5 +51,34 @@ namespace Managers
         {
             _pending.Clear();
         }
+
+        /// <summary>
+        /// 대기 중인 사건의 ID를 예약 순서 그대로 돌려준다. 저장에 쓴다.
+        ///
+        /// 큐가 메모리에만 있으면 <b>전투에서 이긴 직후 예약된 합류 사건이 종료와 함께 사라진다.</b>
+        /// 시구르드·브륀힐드처럼 전투 승리가 곧 해금인 구조에서는 그 한 번이 전부라 저장해야 한다.
+        /// </summary>
+        public List<string> BuildSaveData()
+        {
+            var ids = new List<string>();
+            foreach (StageEventData pending in _pending)
+            {
+                if (!string.IsNullOrWhiteSpace(pending?.id)) ids.Add(pending.id);
+            }
+            return ids;
+        }
+
+        /// <summary>저장된 ID 목록으로 큐를 되돌린다. 찾지 못한 ID는 건너뛴다.</summary>
+        public void Restore(IEnumerable<string> eventIds, System.Func<string, StageEventData> resolve)
+        {
+            _pending.Clear();
+            if (eventIds == null || resolve == null) return;
+
+            foreach (string id in eventIds)
+            {
+                StageEventData data = resolve(id);
+                if (data != null) _pending.Enqueue(data);
+            }
+        }
     }
 }

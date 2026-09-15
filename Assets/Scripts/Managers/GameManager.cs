@@ -258,6 +258,13 @@ namespace Managers
         public const int ExpPerTrainingBase = 30;
         public const int ExpPerTrainingPerStage = 5;
 
+        // ── 골드 수급 ──────────────────────────────────────────────
+        // 소모품 가격이 스테이지에 비례하므로(RewardManager.ShopPrice) 수입도 스테이지에 비례한다.
+        // 적 4기 기준 한 전투에 125 × 스테이지 + 50이 들어온다.
+        public const int GoldPerKillPerStage = 25;
+        public const int GoldPerClearBase = 50;
+        public const int GoldPerClearPerStage = 25;
+
         // 전투 중 획득한 EXP는 즉시 주지 않고 모아 둔다.
         // 라운드 종료 시 아군 필드를 전투 시작 시점 스냅샷으로 되돌리므로,
         // 복원이 끝난 뒤에 지급해야 성장이 사라지지 않는다.
@@ -288,7 +295,8 @@ namespace Managers
             KillCount++;
             // 상인(273)이 필드에 있으면 획득 골드가 늘어난다.
             int gold = Mathf.RoundToInt(
-                25 * Mathf.Max(1, _roundManager?.Stage ?? 1) * Codes.Passive.RewardModifiers.GoldMultiplier());
+                GoldPerKillPerStage * Mathf.Max(1, _roundManager?.Stage ?? 1) *
+                Codes.Passive.RewardModifiers.GoldMultiplier());
             inventoryManager?.AddGold(gold);
             pendingPartyExp += ExpPerKillBase + ExpPerKillPerStage * CurrentStageForExp;
             
@@ -426,8 +434,11 @@ namespace Managers
             _eventScheduler.Clear();
             _pendingTrainingResult = default;   // 값 형식이라 null을 넣을 수 없다
             preparationActionUsed = false;
+            ShopPurchaseCount = 0;
             uiManager?.HidePreparationPhasePanel();
             uiManager?.HideRewardPanel();
+            uiManager?.HideShopPanel();
+            uiManager?.HideSkillPanel();
             uiManager?.HideTrainingPhasePanel();
             uiManager?.HideTrainingResultPanel();
             uiManager?.HideCharacterSelection();
@@ -544,6 +555,7 @@ namespace Managers
         {
             gameState = GameState.Preparation;
             preparationActionUsed = false;
+            ShopPurchaseCount = 0;
             StartPreparationTimer();
             uiManager?.UpdateLifeText();
         }
@@ -837,6 +849,13 @@ namespace Managers
                 BuildTrainingResultMessage(_pendingTrainingResult));
         }
 
+        /// <summary>
+        /// 지금 훈련을 열 수 있는가. 조건은 <see cref="OpenTrainingFromPreparation"/>과 같다.
+        /// 스킬 화면의 빈 상태가 "훈련하러 가기"를 켤지 결정할 때 묻는다.
+        /// </summary>
+        public bool CanOpenTraining => gameState == GameState.Preparation && !preparationActionUsed
+                                       && !IsPreparationLimitedToDeck() && !HasOverburdenedHeroes;
+
         public void OpenTrainingFromPreparation()
         {
             if (gameState != GameState.Preparation || preparationActionUsed || IsPreparationLimitedToDeck()) return;
@@ -848,18 +867,34 @@ namespace Managers
             uiManager?.ShowTrainingPhasePanel();
         }
 
-        /// <summary>휴식 한 번이 되찾아 주는 훈련 체력.</summary>
-        public const int RestEnergyRecovery = 40;
+        /// <summary>
+        /// 휴식 한 번이 되찾아 주는 훈련 체력.
+        ///
+        /// 훈련 평균 비용이 17이므로 이 값은 곧 <b>훈련 3회마다 휴식 1회</b>라는 리듬이다.
+        /// 올리면 훈련 가동률이 오르고, 내리면 성장 총량이 줄어든다.
+        /// </summary>
+        public const int RestEnergyRecovery = 50;
+
+        /// <summary>
+        /// 휴식이 되돌리는 파티 체력 비율.
+        ///
+        /// 예전에는 <b>완전 회복</b>이었다. 그러면 스테이지마다 공짜 엘릭서를 쓰는 셈이라
+        /// 상점의 회복약과 회복 보상이 통째로 무의미해진다. 휴식은 최후의 안전판으로 남기고
+        /// 완전 회복은 값을 치르는 쪽(상점 · 보상)의 몫으로 돌렸다.
+        /// </summary>
+        public const float RestPartyHealRatio = 0.30f;
 
         public void RestFromPreparation()
         {
             if (gameState != GameState.Preparation || preparationActionUsed || IsPreparationLimitedToDeck()) return;
             if (!AllowProgressWhileWithinCarryLimit()) return;
 
-            HealAllActiveHeroes();
+            HealActiveHeroesByRatio(RestPartyHealRatio);
 
-            // 훈련 체력도 함께 회복한다. 우마무스메의 휴식이 하는 일이 이것이다.
+            // 휴식이 하는 일은 셋이다 — 훈련 체력 · 컨디션 · 파티 체력.
+            // 컨디션을 확실히 올리는 수단은 휴식뿐이다(훈련은 흔들기만 한다).
             TrainingManager.State.RestoreEnergy(RestEnergyRecovery);
+            TrainingManager.State.ImproveCondition();
 
             // 휴식도 턴을 쓴다. 서포트는 다음 훈련에서 다른 자리에 앉는다.
             TrainingManager.InvalidateSupportPlacement();
@@ -867,8 +902,9 @@ namespace Managers
             preparationActionUsed = true;
             runManager?.SaveCurrentRun();
             uiManager?.ShowPreparationPhasePanel(IsPreparationLimitedToDeck(), preparationActionUsed,
-                $"휴식 완료: 아군 체력을 회복하고 훈련 체력을 {RestEnergyRecovery} 되찾았습니다 " +
-                $"(현재 {TrainingManager.State.Energy}).");
+                $"휴식 완료: 훈련 체력 +{RestEnergyRecovery} (현재 {TrainingManager.State.Energy}) · " +
+                $"컨디션 {TrainingManager.State.ConditionName} · " +
+                $"파티 체력 {Mathf.RoundToInt(RestPartyHealRatio * 100f)}% 회복.");
         }
 
         public void BeginAdditionalBattleFromPreparation()
@@ -889,6 +925,62 @@ namespace Managers
                 IsPreparationLimitedToDeck(),
                 preparationActionUsed,
                 "덱 구성: 필드에서 배치를 정리한 뒤 전투 시작을 누르세요.");
+        }
+
+        // ── 상점 ─────────────────────────────────────────────────────
+
+        /// <summary>
+        /// 준비 페이즈 한 번에 살 수 있는 횟수.
+        ///
+        /// 가격만으로는 후반을 막지 못한다 — 누적 골드가 스테이지 제곱으로 불어나므로
+        /// 횟수를 묶지 않으면 스테이지마다 파티를 완전 회복시킬 수 있고, 그러면 체력 소모가
+        /// 런의 압박에서 빠진다. 훈련·휴식과 달리 <b>준비 행동을 쓰지는 않는다</b>.
+        /// </summary>
+        public const int MaxShopPurchases = 2;
+
+        /// <summary>이번 준비 페이즈에 이미 산 횟수.</summary>
+        public int ShopPurchaseCount { get; private set; }
+
+        public int ShopPurchasesLeft => Mathf.Max(0, MaxShopPurchases - ShopPurchaseCount);
+
+        /// <summary>보스전 준비에서도 연다. 보스 앞에서 회복약을 사는 것이 상점의 쓸모다.</summary>
+        public bool CanOpenShop => gameState == GameState.Preparation && !HasOverburdenedHeroes;
+
+        public void OpenShopFromPreparation()
+        {
+            if (!CanOpenShop) return;
+            if (!AllowProgressWhileWithinCarryLimit()) return;
+
+            uiManager?.ShowShopPanel();
+        }
+
+        /// <summary>상점에서 한 번 샀다. 횟수는 준비 페이즈가 바뀔 때 0으로 돌아간다.</summary>
+        public void NotifyShopPurchase()
+        {
+            ShopPurchaseCount = Mathf.Min(MaxShopPurchases, ShopPurchaseCount + 1);
+            runManager?.SaveCurrentRun();
+        }
+
+        // ── 스킬 ─────────────────────────────────────────────────────
+
+        /// <summary>
+        /// 힌트받은 스킬을 스킬 Pt로 배우는 화면. 상점과 마찬가지로 준비 행동을 쓰지 않는다.
+        /// 보스전 준비에서도 열린다 — 이미 번 스킬 Pt를 쓰는 일까지 막을 이유가 없다.
+        /// </summary>
+        public bool CanOpenSkillScreen => gameState == GameState.Preparation && !HasOverburdenedHeroes;
+
+        public void OpenSkillScreenFromPreparation()
+        {
+            if (!CanOpenSkillScreen) return;
+            if (!AllowProgressWhileWithinCarryLimit()) return;
+
+            uiManager?.ShowSkillPanel();
+        }
+
+        /// <summary>스킬을 하나 배웠다. 런 상태가 바뀌었으므로 바로 저장한다.</summary>
+        public void NotifySkillLearned()
+        {
+            runManager?.SaveCurrentRun();
         }
 
         public void OpenEquipmentFromPreparation()
@@ -934,30 +1026,32 @@ namespace Managers
                 IsPreparationLimitedToDeck(), preparationActionUsed, CarryWeightBlockMessage);
         }
 
-        public void RestorePreparationActionState(bool actionUsed)
+        public void RestorePreparationActionState(bool actionUsed, int shopPurchaseCount = 0)
         {
             preparationActionUsed = actionUsed;
+            ShopPurchaseCount = Mathf.Clamp(shopPurchaseCount, 0, MaxShopPurchases);
             if (gameState == GameState.Preparation)
             {
                 uiManager?.ShowPreparationPhasePanel(IsPreparationLimitedToDeck(), preparationActionUsed);
             }
         }
 
-        private void HealAllActiveHeroes()
+        /// <summary>출전 중인 아군의 최대 체력 대비 비율만큼 회복한다. 쓰러진 유닛은 일어나지 않는다.</summary>
+        private void HealActiveHeroesByRatio(float ratio)
         {
             foreach (Unit hero in GridManager.Instance.heroList)
             {
                 if (hero != null && hero.isActive && !hero.IsEnemy)
                 {
-                    hero.ModifyHp(hero.HpMax);
+                    hero.RestoreHpOutsideCombat(Mathf.CeilToInt(hero.HpMax * Mathf.Clamp01(ratio)));
                 }
             }
         }
 
         private static string BuildTrainingResultMessage(TrainingManager.TrainingResult result)
         {
-            string transferred = result.TransferredPassiveIds != null && result.TransferredPassiveIds.Count > 0
-                ? $" / 전수 스킬 {string.Join(", ", result.TransferredPassiveIds)}"
+            string transferred = result.HintedCodeIds != null && result.HintedCodeIds.Count > 0
+                ? $" / 스킬 힌트 {string.Join(", ", result.HintedCodeIds)}"
                 : "";
             string supports = result.SupportMessages != null && result.SupportMessages.Count > 0
                 ? $" / 서포트 {result.SupportMessages.Count}명 판정"
@@ -1093,8 +1187,12 @@ namespace Managers
             }
             GrantExpToParty(earnedExp);
 
+            // 강화제는 <전투 횟수>로 산다. 이기든 지든 전투 하나를 치렀으므로 여기서 한 번만 깎는다.
+            ConsumePartyTonicBattle();
+
             if (victory)
             {
+                GrantClearGold();
                 QueueFirstAmunRaClearEvent();
             }
 
@@ -1118,6 +1216,25 @@ namespace Managers
                 EnterPreparationAfterReward();
                 runManager?.SaveCurrentRun();
             }
+        }
+
+        /// <summary>전투 승리 보수. 처치 골드와 함께 상인(273) 패시브의 배율을 받는다.</summary>
+        private void GrantClearGold()
+        {
+            int gold = Mathf.RoundToInt(
+                (GoldPerClearBase + GoldPerClearPerStage * CurrentStageForExp) *
+                Codes.Passive.RewardModifiers.GoldMultiplier());
+            inventoryManager?.AddGold(gold);
+            Debug.Log($"[골드] 전투 승리 보수 {gold} 획득 (현재 {inventoryManager?.Gold})");
+        }
+
+        /// <summary>걸려 있는 강화제의 남은 전투 수를 하나 깎는다. 끊긴 병이 있으면 스탯을 다시 돌린다.</summary>
+        private static void ConsumePartyTonicBattle()
+        {
+            Core.PartyTonicState tonics = RunManager.Instance?.PartyTonics;
+            if (tonics == null || !tonics.HasAny) return;
+
+            if (tonics.ConsumeBattle()) GridManager.Instance?.RefreshAllyAttributes();
         }
 
         private void ShowRewardSelection()

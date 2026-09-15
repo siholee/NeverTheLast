@@ -21,7 +21,7 @@ namespace Codes.Ultimate
     public sealed class GenericSeedOverdrive : SimpleUltimate
     {
         public GenericSeedOverdrive(UltimateCodeContext context)
-            : base(context, "과부하", 4, 0.35f) { }
+            : base(context, "과부하", 0.35f) { }
 
         protected override void Resolve()
         {
@@ -46,7 +46,7 @@ namespace Codes.Ultimate
         private const int BeamPower = 150;
 
         public FrostSeedBeam(UltimateCodeContext context)
-            : base(context, "빙결포", 4, 0.45f)
+            : base(context, "빙결포", 0.45f)
         {
             Power = BeamPower;
             CodeTags = new List<int>

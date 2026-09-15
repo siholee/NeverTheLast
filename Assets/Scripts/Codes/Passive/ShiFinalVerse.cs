@@ -345,7 +345,9 @@ namespace Codes.Passive
             // 처형은 일반 등급의 적에게만 통한다. 엘리트·보스·아군은 대상이 아니다.
             if (!target.IsExecutable) return;
 
-            if ((float)target.HpCurr / target.HpMax < _threshold)
+            // 장비가 올린 몫을 더한다. 천살성 8%에 살점 뜯개 4%p가 얹히면 12%가 된다.
+            float threshold = _threshold + Caster.ExecuteThresholdBonus;
+            if ((float)target.HpCurr / target.HpMax < threshold)
             {
                 target.Die(Caster);
             }

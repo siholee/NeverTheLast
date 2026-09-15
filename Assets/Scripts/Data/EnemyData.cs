@@ -3,6 +3,16 @@ using System.Collections.Generic;
 
 namespace Managers
 {
+    /// <summary>레벨 조건이 붙은 장비 한 칸.</summary>
+    [Serializable]
+    public class LeveledItemData
+    {
+        public int itemId;
+
+        /// <summary>이 레벨 이상일 때만 장착하고 나온다.</summary>
+        public int minLevel;
+    }
+
     [Serializable]
     public class EnemyData
     {
@@ -36,6 +46,19 @@ namespace Managers
         public int lukBase;
         public int lukIncrementLvl;
         public int lukIncrementUpgrade;
+        /// <summary>
+        /// 최대 마나. <b>유닛 고유 스탯</b>이라 레벨·강화·훈련·버프가 일절 관여하지 않는다.
+        /// 스택형 자원을 쓰는 유닛에게는 의미가 없다(그쪽은 ultimateResourceMax를 본다).
+        /// 비워 두면 기본값 100이다.
+        /// </summary>
+        /// <summary>
+        /// 레벨 조건이 붙는 시작 장비. 적의 Level은 현재 스테이지와 같으므로
+        /// <b>후반 스테이지에서만 무장하고 나오는 병종</b>을 이것으로 표현한다.
+        /// 조건 없이 항상 드는 장비는 <see cref="startingItemIds"/>에 둔다.
+        /// </summary>
+        public List<LeveledItemData> startingItemsByLevel;
+
+        public int manaMax;
         public string ultimateResourceType;
         public string ultimateResourceName;
         public int ultimateResourceMax;

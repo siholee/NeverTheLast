@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
+using Codes.Base;
 using Core;
 using Entities;
 using UnityEngine;
@@ -125,8 +126,9 @@ namespace Managers
             public int BondAfter;
             public bool Friendship;
 
-            /// <summary>이번 훈련에서 전수받은 패시브. 없으면 null.</summary>
-            public string TransferredName;
+            /// <summary>이번 훈련에서 흘린 스킬 힌트. 없으면 null.</summary>
+            public string HintedName;
+            public int HintedLevel;
         }
 
         public struct TrainingResult
@@ -146,7 +148,9 @@ namespace Managers
             public int SkillPointsGained;
             public int NewFocusTrainingLevel;
             public List<string> SupportMessages;
-            public List<int> TransferredPassiveIds;
+
+            /// <summary>이번 훈련에서 새로 얻거나 레벨이 오른 힌트의 코드 ID.</summary>
+            public List<int> HintedCodeIds;
 
             /// <summary>훈련 전후 컨디션 이름. 결과 화면이 변화를 보여 준다.</summary>
             public string ConditionBefore;
@@ -167,10 +171,12 @@ namespace Managers
             public int StatBonus;
             public int PreviousBond;
             public int NewBond;
-            public LearnedPassiveSaveData TransferredPassive;
+            /// <summary>이번에 흘린 힌트의 코드 ID. 없으면 0이다.</summary>
+            public int HintedCodeId;
 
-            /// <summary>전수된 패시브의 이름. 유닛에 붙은 코드 인스턴스에서 읽어 온다.</summary>
-            public string TransferredName;
+            /// <summary>힌트받은 패시브의 이름과 오른 레벨. 결과 화면이 그대로 쓴다.</summary>
+            public string HintedName;
+            public int HintedLevel;
         }
 
         /// <summary>현재 살아있는 메인 유닛 인스턴스를 찾는다. 없으면 첫 활성 아군을 반환.</summary>
@@ -567,12 +573,12 @@ namespace Managers
                 {
                     main.AddStatUpgrade(focus, gain);
                     main.GainTrainingLevel(TrainingLevelGain);
-                    ApplySkillTransfers(main, rolls);
+                    ApplySkillHints(main, rolls);
                 }
             }
 
             string conditionBefore = state.ConditionName;
-            state.DriftCondition();
+            state.DriftCondition(failed);
 
             // 턴이 지났다. 다음 훈련 화면은 배치를 새로 굴린다.
             InvalidateSupportPlacement();
@@ -595,9 +601,9 @@ namespace Managers
                 SkillPointsGained = failed ? 0 : option.SkillPoints,
                 NewFocusTrainingLevel = state.GetLevel(focus),
                 SupportMessages = BuildSupportMessages(rolls),
-                TransferredPassiveIds = rolls
-                    .Where(roll => roll.TransferredPassive != null)
-                    .Select(roll => roll.TransferredPassive.codeId)
+                HintedCodeIds = rolls
+                    .Where(roll => roll.HintedCodeId > 0)
+                    .Select(roll => roll.HintedCodeId)
                     .ToList(),
             };
         }
@@ -692,41 +698,264 @@ namespace Managers
             }
         }
 
-        private static void ApplySkillTransfers(Unit main, List<SupportTrainingRoll> rolls)
+        // ── 스킬 힌트 ────────────────────────────────────────────────
+
+        /// <summary>특기 훈련에 앉은 서포트가 힌트를 흘릴 확률에 더해지는 값(%p).</summary>
+        public const int HintSpecialtyBonus = 15;
+
+        /// <summary>
+        /// 서포트 카드가 없는 동료가 힌트를 흘릴 확률(%).
+        ///
+        /// <b>카드는 편성이 아니라 완주 기록이 만든다.</b> 메인 외 넷은 언제나 서포트로 참여하지만,
+        /// 그 넷의 <see cref="SupportCardSaveData"/>는 그 캐릭터가 육성을 완주했을 때만 생긴다.
+        /// 그래서 완주 기록이 하나도 없는 동안에는 네 명 전부 이 확률을 쓴다 — 카드가 붙기 전까지
+        /// 힌트가 아예 흐르지 않으면 첫 런에서는 스킬 화면이 늘 비어 있게 된다.
+        /// </summary>
+        public const int CardlessHintRate = 20;
+
+        /// <summary>
+        /// 힌트가 떴을 때 그것이 <b>금 코드</b>일 확률(%).
+        ///
+        /// 금은 은을 배운 뒤에야 배울 수 있으므로, 힌트까지 흔하면 쓸 수 없는 목록만 길어진다.
+        /// 낮게 두어 금 힌트 하나가 사건이 되게 한다.
+        /// </summary>
+        public const int EnhancedHintChance = 20;
+
+        /// <summary>
+        /// 등장한 서포트마다 힌트를 한 번 굴린다.
+        ///
+        /// 예전에는 여기서 패시브를 <b>즉시 전수</b>했다. 그 경로에는 문제가 둘 있었다 —
+        /// 플레이어가 개입할 여지가 없었고, 배운 코드가 <c>grantedPassiveCodeIds</c>에 들어가지
+        /// 않아 <b>라운드가 끝나 유닛을 스냅샷에서 다시 세우는 순간 사라졌다</b>.
+        /// 지금은 힌트만 남기고, 습득은 <see cref="TryLearnSkill"/>이 영구 경로로 처리한다.
+        /// </summary>
+        private static void ApplySkillHints(Unit main, List<SupportTrainingRoll> rolls)
         {
+            if (main == null) return;
+
+            SkillHintState hints = Hints;
             foreach (SupportTrainingRoll roll in rolls)
             {
-                if (!roll.Appeared || !roll.SpecialtyMatch || !HasSupportCard(roll.Card) || roll.Record?.ownedPassiveCodes == null)
-                {
-                    continue;
-                }
+                if (!roll.Appeared || roll.Support == null) continue;
 
-                int transferRate = Mathf.Clamp(roll.Card.skillTransferRate, 0, 100);
-                if (Random.Range(0, 100) >= transferRate)
-                {
-                    continue;
-                }
+                bool hasCard = HasSupportCard(roll.Card);
+                int rate = hasCard ? Mathf.Clamp(roll.Card.skillTransferRate, 0, 100) : CardlessHintRate;
+                if (roll.SpecialtyMatch) rate += HintSpecialtyBonus;
+                if (Random.Range(0, 100) >= rate) continue;
 
-                List<LearnedPassiveSaveData> candidates = roll.Record.ownedPassiveCodes
-                    .Where(passive => passive != null && passive.transferable && passive.codeId > 0)
-                    .Where(passive => !main.LearnedPassiveRecords.Any(known => known != null && known.codeId == passive.codeId))
-                    .ToList();
-                if (candidates.Count == 0)
-                {
-                    continue;
-                }
+                int codeId = PickHintCandidate(main, roll);
+                if (codeId <= 0) continue;
 
-                LearnedPassiveSaveData selected = candidates[Random.Range(0, candidates.Count)];
-                // 코드 인스턴스에는 원본 ID가 없다. 배우기 전후를 비교해 새로 붙은 것을 집는다.
-                var before = new HashSet<Codes.Base.PassiveCode>(main.ActivePassiveCodes);
-                if (main.LearnTransferredPassive(selected.codeId, selected.stage))
-                {
-                    roll.TransferredPassive = selected;
-                    roll.TransferredName = main.ActivePassiveCodes
-                        .FirstOrDefault(code => code != null && !before.Contains(code))?.CodeName
-                        ?? $"패시브 #{selected.codeId}";
-                }
+                if (!hints.Add(codeId, HintStage(roll, codeId), roll.Support.UnitName)) continue;
+
+                roll.HintedCodeId = codeId;
+                roll.HintedName = PassiveCatalog.Get(codeId, main).Name;
+                roll.HintedLevel = hints.LevelOf(codeId);
             }
+        }
+
+        /// <summary>
+        /// 이 서포트가 흘릴 수 있는 코드 하나를 고른다.
+        /// 금과 은을 먼저 갈라 놓고 <see cref="EnhancedHintChance"/>로 금 쪽을 뽑는다.
+        /// 후보를 한 통에 섞으면 금이 몇 개냐에 따라 금 힌트 빈도가 제멋대로 흔들린다.
+        /// </summary>
+        private static int PickHintCandidate(Unit main, SupportTrainingRoll roll)
+        {
+            var silver = new List<int>();
+            var gold = new List<int>();
+
+            foreach (int codeId in HintSourceCodeIds(roll))
+            {
+                if (codeId < PassiveCatalog.MinSharedId || codeId > PassiveCatalog.MaxSharedId) continue;
+                if (main.HasLearnedPassiveCode(codeId)) continue;
+                // 이미 최대 레벨인 힌트는 더 받아도 달라지는 것이 없다.
+                if (Hints.LevelOf(codeId) >= SkillHintState.MaxLevel) continue;
+
+                PassiveCatalog.Entry entry = PassiveCatalog.Get(codeId, main);
+                if (!entry.CanBeHinted) continue;
+
+                if (entry.Grade == BaseEnums.CodeGrade.Enhanced) gold.Add(codeId);
+                else silver.Add(codeId);
+            }
+
+            bool takeGold = gold.Count > 0 && (silver.Count == 0 || Random.Range(0, 100) < EnhancedHintChance);
+            List<int> pool = takeGold ? gold : silver;
+            return pool.Count == 0 ? 0 : pool[Random.Range(0, pool.Count)];
+        }
+
+        /// <summary>
+        /// 힌트가 나올 수 있는 코드 목록.
+        /// 카드가 있으면 그 카드가 남긴 패시브에서, 없으면 그 동료의 해금 패시브 정의에서 나온다.
+        /// 둘 다 결국 <b>그 동료가 가진 해금 패시브</b>다 — 카드는 목록을 바꾸는 것이 아니라
+        /// 확률과 보너스를 얹는다.
+        /// </summary>
+        private static IEnumerable<int> HintSourceCodeIds(SupportTrainingRoll roll)
+        {
+            if (HasSupportCard(roll.Card) && roll.Record?.ownedPassiveCodes != null)
+            {
+                return roll.Record.ownedPassiveCodes
+                    .Where(passive => passive != null && passive.transferable && passive.codeId > 0)
+                    .Select(passive => passive.codeId);
+            }
+
+            return GetUnitDefinition(roll.Support)?.levelPassives?
+                .Where(passive => passive != null && passive.codeId > 0)
+                .Select(passive => passive.codeId) ?? Enumerable.Empty<int>();
+        }
+
+        /// <summary>힌트가 가리키는 코드 단계. 카드가 들고 있던 단계를 그대로 물려준다.</summary>
+        private static int HintStage(SupportTrainingRoll roll, int codeId)
+        {
+            LearnedPassiveSaveData owned = roll.Record?.ownedPassiveCodes?
+                .FirstOrDefault(passive => passive != null && passive.codeId == codeId);
+            if (owned != null) return Mathf.Max(1, owned.stage);
+
+            LevelPassiveData level = GetUnitDefinition(roll.Support)?.levelPassives?
+                .FirstOrDefault(passive => passive != null && passive.codeId == codeId);
+            return Mathf.Max(1, level?.stage ?? 1);
+        }
+
+        private static UnitData GetUnitDefinition(Unit unit)
+        {
+            if (unit == null) return null;
+            return GameManager.Instance?.unitDataList?.units?
+                .FirstOrDefault(definition => definition != null && definition.id == unit.ID);
+        }
+
+        // ── 스킬 습득 ────────────────────────────────────────────────
+
+        /// <summary>일반(은) 등급 패시브 하나의 스킬 Pt 값.</summary>
+        public const int SilverSkillCost = 20;
+
+        /// <summary>강화(금) 등급 패시브 하나의 스킬 Pt 값. 은 셋과 맞먹는다.</summary>
+        public const int EnhancedSkillCost = 60;
+
+        private static readonly SkillHintState FallbackHints = new();
+
+        /// <summary>힌트도 런 범위 상태다. RunManager가 없을 때를 위한 폴백.</summary>
+        public static SkillHintState Hints =>
+            RunManager.Instance != null ? RunManager.Instance.SkillHints : FallbackHints;
+
+        /// <summary>스킬 화면 한 줄. 값과 잠김 사유를 함께 들고 다닌다.</summary>
+        public readonly struct SkillOffer
+        {
+            public readonly int CodeId;
+            public readonly string Name;
+            public readonly BaseEnums.CodeGrade Grade;
+            public readonly int HintLevel;
+            public readonly int Cost;
+
+            /// <summary>배울 수 없는 이유. 배울 수 있으면 null이다.</summary>
+            public readonly string BlockedReason;
+
+            public SkillOffer(int codeId, string name, BaseEnums.CodeGrade grade, int hintLevel,
+                int cost, string blockedReason)
+            {
+                CodeId = codeId;
+                Name = name;
+                Grade = grade;
+                HintLevel = hintLevel;
+                Cost = cost;
+                BlockedReason = blockedReason;
+            }
+
+            public bool CanLearn => BlockedReason == null;
+        }
+
+        /// <summary>기본 비용에 힌트 할인을 먹인 값.</summary>
+        public static int GetSkillCost(int codeId)
+        {
+            PassiveCatalog.Entry entry = PassiveCatalog.Get(codeId, GetMainUnit());
+            int baseCost = entry.Grade == BaseEnums.CodeGrade.Enhanced ? EnhancedSkillCost : SilverSkillCost;
+            return Mathf.Max(1, Mathf.CeilToInt(baseCost * Hints.CostMultiplier(codeId)));
+        }
+
+        /// <summary>
+        /// 스킬 화면에 세울 목록. 힌트를 받은 코드만 오른다 — 힌트 없이는 어떤 코드도 살 수 없다.
+        /// 금이 앞에 오고, 같은 등급이면 싼 것이 앞이다.
+        /// </summary>
+        public static List<SkillOffer> GetSkillOffers()
+        {
+            var offers = new List<SkillOffer>();
+            Unit main = GetMainUnit();
+            if (main == null) return offers;
+
+            foreach (SkillHintState.Hint hint in Hints.Hints)
+            {
+                PassiveCatalog.Entry entry = PassiveCatalog.Get(hint.CodeId, main);
+                if (!entry.Exists) continue;
+
+                offers.Add(new SkillOffer(hint.CodeId, entry.Name, entry.Grade, hint.Level,
+                    GetSkillCost(hint.CodeId), DescribeSkillBlock(main, hint.CodeId, entry)));
+            }
+
+            return offers
+                .OrderByDescending(offer => offer.Grade == BaseEnums.CodeGrade.Enhanced)
+                .ThenBy(offer => offer.Cost)
+                .ToList();
+        }
+
+        /// <summary>배울 수 없는 이유. 배울 수 있으면 null.</summary>
+        private static string DescribeSkillBlock(Unit main, int codeId, PassiveCatalog.Entry entry)
+        {
+            if (!entry.CanBeHinted) return "습득 불가";
+            if (main.HasLearnedPassiveCode(codeId)) return "이미 보유";
+
+            // 금은 은을 밟고 올라간다. 선행 은 코드가 없으면 배울 수 없다.
+            int required = PassiveCatalog.RequiredCodeIdFor(codeId, main);
+            if (required > 0 && !main.HasLearnedPassiveCode(required))
+            {
+                return $"선행 필요: {PassiveCatalog.Get(required, main).Name}";
+            }
+
+            if (State.SkillPoints < GetSkillCost(codeId)) return "스킬 Pt 부족";
+            return null;
+        }
+
+        /// <summary>
+        /// 힌트받은 스킬을 스킬 Pt로 배운다. 준비 페이즈에서만 부른다.
+        ///
+        /// <see cref="Unit.GrantPermanentPassive"/>를 쓴다. 그 경로만 저장 스냅샷에 실려
+        /// 라운드가 바뀌어도 남는다.
+        /// </summary>
+        public static bool TryLearnSkill(int codeId, out string reason)
+        {
+            reason = null;
+            Unit main = GetMainUnit();
+            if (main == null)
+            {
+                reason = "메인 캐릭터가 없습니다.";
+                return false;
+            }
+
+            if (Hints.LevelOf(codeId) <= 0)
+            {
+                reason = "힌트를 받지 않은 스킬입니다.";
+                return false;
+            }
+
+            PassiveCatalog.Entry entry = PassiveCatalog.Get(codeId, main);
+            reason = DescribeSkillBlock(main, codeId, entry);
+            if (reason != null) return false;
+
+            int cost = GetSkillCost(codeId);
+            if (!State.TrySpendSkillPoints(cost))
+            {
+                reason = "스킬 Pt 부족";
+                return false;
+            }
+
+            int stage = Hints.Get(codeId)?.Stage ?? 1;
+            if (!main.GrantPermanentPassive(codeId, stage))
+            {
+                State.GainSkillPoints(cost);
+                reason = "코드를 붙이지 못했습니다.";
+                return false;
+            }
+
+            Hints.Remove(codeId);
+            Debug.Log($"[스킬] {main.UnitName}이(가) {entry.Name}을(를) 스킬 Pt {cost}로 습득했습니다.");
+            return true;
         }
 
         /// <summary>결과 화면용 서포트 목록. 이번 훈련에 실제로 앉아 있던 서포트만 담는다.</summary>
@@ -745,7 +974,8 @@ namespace Managers
                     BondBefore = roll.PreviousBond,
                     BondAfter = roll.NewBond,
                     Friendship = roll.FriendshipTraining,
-                    TransferredName = roll.TransferredName,
+                    HintedName = roll.HintedName,
+                    HintedLevel = roll.HintedLevel,
                 });
             }
 
@@ -762,8 +992,10 @@ namespace Managers
                 string appearance = roll.Appeared ? "참여" : "다른 훈련";
                 string bond = roll.Appeared ? $"우정 {roll.PreviousBond}->{roll.NewBond}" : $"우정 {roll.PreviousBond}";
                 string friendship = roll.FriendshipTraining ? " / 우정 훈련" : "";
-                string transfer = roll.TransferredPassive != null ? $" / 패시브 {roll.TransferredPassive.codeId} 전수" : "";
-                messages.Add($"{roll.Support.UnitName}: {appearance}, +{roll.StatBonus}, {bond}{friendship}{transfer}");
+                string hint = roll.HintedCodeId > 0
+                    ? $" / 힌트 {roll.HintedName} Lv.{roll.HintedLevel}"
+                    : "";
+                messages.Add($"{roll.Support.UnitName}: {appearance}, +{roll.StatBonus}, {bond}{friendship}{hint}");
             }
 
             return messages;

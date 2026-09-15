@@ -72,49 +72,52 @@ namespace Managers
     public const float MeleeImpactDelay = SlashEffect.ImpactDelay;
 
     /// <summary>
-    /// 이 공격이 투사체 대신 대상 위치 베기를 사용할지 판정한다.
-    /// Slash 태그는 코드 종류와 무관하게 우선하며, 일반행동은 검 기본 숙련,
-    /// 로마/메히코 근접 병종의 접촉 공격도 베기로 표시한다.
+    /// 이 공격이 투사체 대신 대상 위 근접 연출을 쓸지 판정한다.
+    ///
+    /// 판정은 <see cref="AttackVisuals"/> 한 곳이 한다 — 무기 분류 태그가 있으면 그것을,
+    /// 없으면 손에 든 무기를 본다. 예전에는 "검 숙련이면 베기, 로마·메히코면 베기"라는
+    /// 두 줄짜리 예외만 있어서 창병도 둔기병도 똑같은 빛덩이를 쏘았다.
     /// </summary>
-    public static bool ShouldUseSlash(Unit attacker, DamageContext context)
+    public static bool ShouldPlayMelee(Unit attacker, DamageContext context)
     {
       if (attacker == null || context?.DamageTags == null) return false;
-      if (context.DamageTags.Contains(DamageTag.Slash)) return true;
-
-      bool swordNormal = context.CodeType == BaseEnums.CodeType.Normal &&
-        (attacker.HasProficiency(EquipmentProficiency.Longsword) ||
-         attacker.HasProficiency(EquipmentProficiency.Greatsword));
-      if (swordNormal) return true;
-
-      bool factionMelee = context.DamageTags.Contains(DamageTag.ContactAttack) &&
-        (attacker.HasUnitTag("Rome") || attacker.HasUnitTag("Mexica"));
-      return factionMelee;
+      return AttackVisuals.IsMelee(attacker, context, AttackVisuals.Classify(attacker, context));
     }
 
     /// <summary>
-    /// 근접 공격이면 베기를 재생하고 true를 반환한다. 공격 코드에서는 true일 때
-    /// 투사체를 만들지 않고 <see cref="MeleeImpactDelay"/> 뒤 피해를 적용하면 된다.
+    /// 근접 공격이면 무기 분류에 맞는 연출을 재생하고 true를 반환한다. 공격 코드에서는
+    /// true일 때 투사체를 만들지 않고 <see cref="MeleeImpactDelay"/> 뒤 피해를 적용하면 된다.
     /// </summary>
     public bool TryPlayMeleeAttack(Unit attacker, Unit target, DamageContext context)
     {
-      if (target == null || !ShouldUseSlash(attacker, context)) return false;
+      if (target == null || !ShouldPlayMelee(attacker, context)) return false;
 
       if (context.TryMarkImpactVfx(target))
       {
-        BaseEnums.UnitElement element = ElementalProjectiles.Parse(attacker.Element);
-        Color accent = element == BaseEnums.UnitElement.None
-          ? new Color(0.72f, 0.82f, 0.92f)
-          : (context.CodeType == BaseEnums.CodeType.Ultimate ||
-             context.DamageTags.Contains(DamageTag.UltAttack)
-            ? ElementalProjectiles.PastelColorFor(element)
-            : ElementalProjectiles.ColorFor(element));
-        SlashEffect.Play(attacker, target, accent);
+        AttackVisualForm form = AttackVisuals.Classify(attacker, context);
+        Color accent = AttackVisuals.AccentFor(attacker, context, form);
+
+        switch (form)
+        {
+          case AttackVisualForm.Thrust:
+            ThrustEffect.Play(attacker, target, accent);
+            break;
+          case AttackVisualForm.Impact:
+            ImpactEffect.Play(attacker, target, accent);
+            break;
+          default:
+            SlashEffect.Play(attacker, target, accent);
+            break;
+        }
+
+        // 때리는 쪽도 움직인다. 맞는 카드만 흔들리면 누가 쳤는지가 화면에서 사라진다.
         attacker.currentCell?.PlayAttackReaction(1.15f);
+        if (attacker.currentCell == null) attacker.SummonView?.PlayAttackReaction(1.15f);
       }
       return true;
     }
 
-    /// <summary>즉시 피해형 스킬이 별도 발사 루틴을 거치지 않아도 베기 태그를 시각화한다.</summary>
+    /// <summary>즉시 피해형 스킬이 별도 발사 루틴을 거치지 않아도 근접 연출을 얻는다.</summary>
     public void PlayDamageImpact(Unit target, DamageContext context)
     {
       if (context?.Attacker == null || target == null) return;
@@ -201,18 +204,14 @@ namespace Managers
     {
       if (unitFrom == null || unitTo == null) return;
 
-      BaseEnums.UnitElement element = ElementalProjectiles.Parse(unitFrom.Element);
-      Color color = context?.CodeType == BaseEnums.CodeType.Ultimate ||
-                    context?.DamageTags?.Contains(DamageTag.UltAttack) == true
-        ? ElementalProjectiles.PastelColorFor(element)
-        : ElementalProjectiles.ColorFor(element);
-      ProjectileVisualStyle style = context?.DamageTags?.Contains(DamageTag.Arrow) == true
-        ? (context.DamageTags.Contains(DamageTag.UltAttack)
-          ? ProjectileVisualStyle.UltimateArrow
-          : ProjectileVisualStyle.Arrow)
-        : ProjectileVisualStyle.Bolt;
+      AttackVisualForm form = AttackVisuals.Classify(unitFrom, context);
+      Color color = AttackVisuals.AccentFor(unitFrom, context, form);
+      ProjectileVisualStyle style = AttackVisuals.StyleFor(form, context);
       CardProjectile.Fire(unitFrom, unitTo, color, duration,
         pathType, pathData ?? new ProjectilePathData(), ProjectileScale, onImpact, style);
+
+      // 물리 원거리는 쏘는 반동이 있다. 활을 놓는 순간 카드가 조금 물러나야 던진 티가 난다.
+      if (AttackVisuals.IsPhysical(form)) unitFrom.currentCell?.PlayAttackReaction(0.8f);
     }
 
     /// <summary>
@@ -227,16 +226,9 @@ namespace Managers
     {
       if (unitFrom == null || unitTo == null) return;
 
-      BaseEnums.UnitElement element = ElementalProjectiles.Parse(unitFrom.Element);
-      Color color = context?.CodeType == BaseEnums.CodeType.Ultimate ||
-                    context?.DamageTags?.Contains(DamageTag.UltAttack) == true
-        ? ElementalProjectiles.PastelColorFor(element)
-        : ElementalProjectiles.ColorFor(element);
-      ProjectileVisualStyle style = context?.DamageTags?.Contains(DamageTag.Arrow) == true
-        ? (context.DamageTags.Contains(DamageTag.UltAttack)
-          ? ProjectileVisualStyle.UltimateArrow
-          : ProjectileVisualStyle.Arrow)
-        : ProjectileVisualStyle.Bolt;
+      AttackVisualForm form = AttackVisuals.Classify(unitFrom, context);
+      Color color = AttackVisuals.AccentFor(unitFrom, context, form);
+      ProjectileVisualStyle style = AttackVisuals.StyleFor(form, context);
       CardProjectile.FireFrom(origin, unitFrom, unitTo, color, duration,
         pathType, pathData ?? new ProjectilePathData(), ProjectileScale, onImpact, style);
     }

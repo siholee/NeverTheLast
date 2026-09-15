@@ -8,12 +8,41 @@ using UnityEngine;
 
 namespace Managers
 {
+    /// <summary>주머니에 든 귀중품 하나. 값은 주운 시점에 확정된다.</summary>
+    [Serializable]
+    public class ValuableHolding
+    {
+        public int itemId;
+        public int gold;
+    }
+
     public class InventoryManager: MonoBehaviour
     {
         public int rerollTicketCount;
         public int Gold { get; private set; }
         [SerializeField] public List<int> ItemIdsInHand;
         [SerializeField] public IntIntDictionary TokensInHand;
+
+        /// <summary>
+        /// 귀중품 주머니. 장비가 아니라 <b>팔아서 골드로 바꾸는 물건</b>이라 유닛이 들지 않는다.
+        ///
+        /// 값을 주울 때 확정해 함께 넣어 둔다. 판매가가 스테이지에 비례하는데 파는 시점으로
+        /// 계산하면 "후반까지 쌓아 두는 쪽이 이득"이 되어 주머니가 저금통이 된다.
+        /// </summary>
+        private readonly List<ValuableHolding> _valuables = new();
+
+        public IReadOnlyList<ValuableHolding> Valuables => _valuables;
+
+        /// <summary>주머니에 든 귀중품을 전부 팔았을 때 받는 골드.</summary>
+        public int ValuableTotalGold
+        {
+            get
+            {
+                int total = 0;
+                for (int i = 0; i < _valuables.Count; i++) total += _valuables[i].gold;
+                return total;
+            }
+        }
 
 
         public void Initialize()
@@ -32,7 +61,8 @@ namespace Managers
 
             if (ItemIdsInHand == null) ItemIdsInHand = new List<int>();
             ItemIdsInHand.Clear();
-            
+            _valuables.Clear();
+
             RefreshPanel();
         }
     
@@ -79,6 +109,47 @@ namespace Managers
         {
             Gold = Mathf.Max(0, amount);
             RefreshPanel();
+        }
+
+        /// <summary>귀중품을 주머니에 넣는다. 값은 지금 스테이지로 확정한다.</summary>
+        public void AddValuable(int itemId, int gold)
+        {
+            if (itemId <= 0) return;
+            _valuables.Add(new ValuableHolding { itemId = itemId, gold = Mathf.Max(0, gold) });
+            RefreshPanel();
+        }
+
+        /// <summary>주머니의 n번째 귀중품을 판다. 값은 넣을 때 확정한 그대로다.</summary>
+        public bool TrySellValuable(int index, out int gold)
+        {
+            gold = 0;
+            if (index < 0 || index >= _valuables.Count) return false;
+
+            gold = _valuables[index].gold;
+            _valuables.RemoveAt(index);
+            AddGold(gold);
+            return true;
+        }
+
+        /// <summary>주머니를 통째로 판다. 받은 골드를 돌려준다.</summary>
+        public int SellAllValuables()
+        {
+            int total = ValuableTotalGold;
+            _valuables.Clear();
+            if (total > 0) AddGold(total);
+            else RefreshPanel();
+            return total;
+        }
+
+        public void RestoreValuables(IEnumerable<ValuableHolding> saved)
+        {
+            _valuables.Clear();
+            if (saved == null) return;
+            foreach (ValuableHolding holding in saved)
+            {
+                if (holding == null || holding.itemId <= 0) continue;
+                _valuables.Add(new ValuableHolding { itemId = holding.itemId, gold = Mathf.Max(0, holding.gold) });
+            }
         }
 
         public bool AddItem(int itemId, Unit preferredCarrier = null)

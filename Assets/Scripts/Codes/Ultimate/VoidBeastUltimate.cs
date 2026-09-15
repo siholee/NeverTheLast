@@ -15,7 +15,7 @@ namespace Codes.Ultimate
         private readonly BaseEnums.UnitElement _attachedElement;
 
         public VoidBeastUltimate(UltimateCodeContext context, BaseEnums.UnitElement attachedElement)
-            : base(context, "광란의 일격", 4, 0.5f)
+            : base(context, "광란의 일격", 0.5f)
         {
             _attachedElement = attachedElement;
             Power = 120;

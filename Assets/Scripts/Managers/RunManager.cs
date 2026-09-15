@@ -21,6 +21,12 @@ namespace Managers
 
         // 런 범위 상태: 훈련 체력 · 훈련 레벨 · 스킬 Pt · 컨디션 (저장/복원 대상)
         public TrainingState Training { get; } = new();
+
+        // 런 범위 상태: 강화제. 전투가 끝날 때마다 남은 전투 수가 하나씩 줄어든다.
+        public PartyTonicState PartyTonics { get; } = new();
+
+        // 런 범위 상태: 스킬 힌트. 훈련에서 쌓고 준비 페이즈에서 스킬 Pt로 배운다.
+        public SkillHintState SkillHints { get; } = new();
         private readonly HashSet<string> _triggeredEventIds = new();
 
         public static void DestroyInstance()
@@ -59,6 +65,8 @@ namespace Managers
             RunActive = true;
             SupportBonds.Clear();
             Training.Reset();
+            PartyTonics.Clear();
+            SkillHints.Clear();
             _triggeredEventIds.Clear();
             SaveSystem.DeleteSave();
         }
@@ -96,6 +104,8 @@ namespace Managers
             RestoreInventory(save);
             SupportBonds.Restore(save.supportBonds);
             Training.Restore(save.training);
+            PartyTonics.Restore(save.partyTonics);
+            SkillHints.Restore(save.skillHints);
             _triggeredEventIds.Clear();
             foreach (string eventId in save.triggeredEventIds ?? new List<string>())
             {
@@ -104,12 +114,18 @@ namespace Managers
 
             RoundManager roundManager = GameManager.Instance.RoundManager;
             roundManager.InitializeStage(Mathf.Max(1, save.currentStage));
+
+            // 편성을 짜기 전에 테마부터 되돌린다. LoadRound가 테마를 보고 적을 세우므로
+            // 여기서 심어 두지 않으면 불러올 때마다 추첨이 다시 굴러 라운드 도중에 테마가 갈린다.
+            roundManager.RestoreTheme(save.currentThemeId);
+            GameManager.Instance.EventScheduler?.Restore(save.pendingEventIds, roundManager.GetEventById);
+
             RestoreHeroes(save.heroUnits);
             roundManager.LoadRound(Mathf.Max(1, save.currentStage));
 
             GameManager.Instance.uiManager?.UpdateLifeText();
             GameManager.Instance.EnterNextStageAfterLoad();
-            GameManager.Instance.RestorePreparationActionState(save.preparationActionUsed);
+            GameManager.Instance.RestorePreparationActionState(save.preparationActionUsed, save.shopPurchaseCount);
             Debug.Log($"[RunManager] 저장 런 복원 - Stage {save.currentStage}, Round {save.currentRound}");
         }
 
@@ -362,12 +378,18 @@ namespace Managers
                 rerollTicketCount = GameManager.Instance.inventoryManager?.rerollTicketCount ?? 0,
                 gold = GameManager.Instance.inventoryManager?.Gold ?? 0,
                 preparationActionUsed = GameManager.Instance.PreparationActionUsed,
+                shopPurchaseCount = GameManager.Instance.ShopPurchaseCount,
                 tokens = BuildTokenSaveData(),
                 storedItemIds = GameManager.Instance.inventoryManager?.ItemIdsInHand?.ToList() ?? new List<int>(),
                 supportBonds = SupportBonds.BuildSaveData(),
+                partyTonics = PartyTonics.BuildSaveData(),
+                skillHints = SkillHints.BuildSaveData(),
                 training = Training.BuildSaveData(),
                 heroUnits = BuildHeroSaveData(),
                 triggeredEventIds = _triggeredEventIds.ToList(),
+                currentThemeId = roundManager?.CurrentThemeId ?? 0,
+                pendingEventIds = GameManager.Instance.EventScheduler?.BuildSaveData() ?? new List<string>(),
+                valuables = GameManager.Instance.inventoryManager?.Valuables?.ToList() ?? new List<ValuableHolding>(),
             };
         }
 
@@ -448,6 +470,7 @@ namespace Managers
             inventory.rerollTicketCount = save.rerollTicketCount;
             inventory.RestoreGold(save.gold);
             inventory.ItemIdsInHand = save.storedItemIds?.ToList() ?? new List<int>();
+            inventory.RestoreValuables(save.valuables);
             inventory.RefreshPanel();
         }
 

@@ -523,6 +523,9 @@ namespace Managers
             Camera camera = Camera.main;
             if (camera == null || !camera.orthographic) return;
 
+            // 배경은 카메라에 붙어 따라다닌다. 프레이밍을 잡는 자리에서 함께 세운다.
+            Effects.BattlefieldBackdrop.Ensure();
+
             bool any = false;
             float minX = 0f, maxX = 0f, minY = 0f, maxY = 0f;
 
@@ -1110,6 +1113,20 @@ namespace Managers
         {
             heroList?.RemoveAll(unit => unit == null);
             enemyList?.RemoveAll(unit => unit == null);
+        }
+
+        /// <summary>
+        /// 아군 전원의 파생 스탯을 다시 돌린다. 강화제처럼 <b>전투 밖에서</b> 파티 전체의
+        /// 스탯을 건드리는 효과가 걸리거나 풀린 직후에 부른다.
+        /// CON이 바뀌면 최대 체력이 바뀌므로, 체력 비율을 보존하는 AttributesUpdate를 거쳐야 한다.
+        /// </summary>
+        public void RefreshAllyAttributes()
+        {
+            foreach (Unit hero in heroList)
+            {
+                if (hero == null || hero.IsEnemy) continue;
+                hero.RefreshDerivedAttributes();
+            }
         }
 
         /// <summary>라운드가 끝나면 적을 전부 물린다. 죽어서 이미 비활성인 개체도 함께 정리한다.</summary>

@@ -264,6 +264,7 @@ namespace Entities
         // 파생/자원 최대치 (스탯 원본은 UnitStats가 소유)
         [SerializeField] private int hpMax;
         [SerializeField] private int ultimateResourceMax;
+        [SerializeField] private int manaMaxBase = DefaultManaMax;
         [SerializeField] private int manaMax;
 
         // 스탯 접근 위임 (외부 호출 호환용)
@@ -302,6 +303,14 @@ namespace Entities
         }
 
         public int UltimateResourceMax { get => ultimateResourceMax; protected set => ultimateResourceMax = value; }
+
+        /// <summary>
+        /// 유닛 데이터가 정한 최대 마나. <b>어떤 것도 이 값을 바꾸지 않는다</b> —
+        /// 레벨도 강화도 훈련도 버프도 관여하지 않는 고유 스탯이라
+        /// <see cref="AttributesUpdate"/>의 효과 합산 경로를 타지 않는다.
+        /// 궁극기 회전을 유닛별로 조이는 유일한 손잡이다.
+        /// </summary>
+        public int ManaMaxBase { get => manaMaxBase; protected set => manaMaxBase = value; }
         public int ManaMax { get => manaMax; protected set => manaMax = value; }
         // 공격력/방어력 스탯은 존재하지 않는다. 피해는 SkillDamage(위력)로 그때그때 산출한다.
 
@@ -320,8 +329,10 @@ namespace Entities
 
         /// <summary>특수행동(SP). 인드라의 궁극기만이 부른다. 없는 유닛이 대부분이다.</summary>
         protected SpecialCode SpecialCode;
-        public float ultimateCooldown;
         protected EquipmentLoadout EquipmentLoadout;
+        /// <summary>유닛 데이터가 최대 마나를 적지 않았을 때 쓰는 값.</summary>
+        public const int DefaultManaMax = 100;
+
         /// <summary>원소 부착 기본 지속 <b>턴</b> 수. 부착자가 아니라 <b>부착된 유닛</b>의 턴으로 센다.</summary>
         public const int CommonElementAuraDuration = 5;
         private readonly HashSet<BaseEnums.UnitElement> _combatElements = new();
@@ -508,7 +519,8 @@ namespace Entities
                     enemyData.conBase, enemyData.conIncrementLvl, enemyData.conIncrementUpgrade,
                     enemyData.intBase, enemyData.intIncrementLvl, enemyData.intIncrementUpgrade,
                     enemyData.lukBase, enemyData.lukIncrementLvl, enemyData.lukIncrementUpgrade);
-                ConfigureUltimateResource(enemyData.ultimateResourceType, enemyData.ultimateResourceName, enemyData.ultimateResourceMax);
+                ConfigureUltimateResource(enemyData.ultimateResourceType, enemyData.ultimateResourceName,
+                    enemyData.ultimateResourceMax, enemyData.manaMax);
                 CodeAcceleration = 1f;
 
                 isCasting = false;
@@ -524,7 +536,7 @@ namespace Entities
                 UltimateCode = CodeFactory.CreateUltimateCode(_baseUltimateCodeId, new UltimateCodeContext { Caster = this });
                 ApplyCodeStages(enemyData.codeStages);
                 EquipStartingItems(enemyData.startingItemIds);
-                ultimateCooldown = UltimateCode.Cooldown;
+                EquipLeveledItems(enemyData.startingItemsByLevel);
             }
             // 아군(영웅) 유닛인 경우 기존 UnitData에서 로드
             else
@@ -555,7 +567,8 @@ namespace Entities
                     data.conBase, data.conIncrementLvl, data.conIncrementUpgrade,
                     data.intBase, data.intIncrementLvl, data.intIncrementUpgrade,
                     data.lukBase, data.lukIncrementLvl, data.lukIncrementUpgrade);
-                ConfigureUltimateResource(data.ultimateResourceType, data.ultimateResourceName, data.ultimateResourceMax);
+                ConfigureUltimateResource(data.ultimateResourceType, data.ultimateResourceName,
+                    data.ultimateResourceMax, data.manaMax);
                 CodeAcceleration = 1f;
 
                 isCasting = false;
@@ -575,7 +588,6 @@ namespace Entities
                     : null;
                 ApplyCodeStages(data.codeStages);
                 EquipStartingItems(data.startingItemIds);
-                ultimateCooldown = UltimateCode.Cooldown;
                 
                 // 유닛별 패시브 StatusEffect 적용
                 ApplyPassiveStatusEffect();
@@ -594,6 +606,25 @@ namespace Entities
                 if (!TryEquipItem(itemId, out string reason))
                 {
                     Debug.LogWarning($"[장비] {UnitName} 시작 아이템 {itemId} 장착 실패: {reason}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// 레벨 조건을 넘긴 시작 장비만 추가로 채운다. 적의 Level은 현재 스테이지와 같으므로
+        /// <b>같은 병종이라도 뒤 스테이지에서 더 무장하고 나온다.</b>
+        /// <see cref="EquipStartingItems"/>가 이미 칸을 비워 둔 뒤에 부른다.
+        /// </summary>
+        private void EquipLeveledItems(List<Managers.LeveledItemData> leveledItems)
+        {
+            if (leveledItems == null) return;
+
+            foreach (Managers.LeveledItemData entry in leveledItems)
+            {
+                if (entry == null || entry.itemId <= 0 || Level < entry.minLevel) continue;
+                if (!TryEquipItem(entry.itemId, out string reason))
+                {
+                    Debug.LogWarning($"[장비] {UnitName} 레벨 장비 {entry.itemId} 장착 실패: {reason}");
                 }
             }
         }
@@ -901,7 +932,6 @@ namespace Entities
                         UltimateCode?.StopCode();
                         UltimateCode = CodeFactory.CreateUltimateCode(codeGrant.codeId, new UltimateCodeContext { Caster = this });
                         UltimateCode?.SetStage(codeGrant.stage);
-                        ultimateCooldown = UltimateCode?.Cooldown ?? 0f;
                         break;
                 }
             }
@@ -1011,7 +1041,8 @@ namespace Entities
             return total;
         }
 
-        private void ConfigureUltimateResource(string resourceType, string resourceName, int resourceMax)
+        private void ConfigureUltimateResource(
+            string resourceType, string resourceName, int resourceMax, int manaMax)
         {
             UltimateResourceType = string.Equals(resourceType, "Stack", StringComparison.OrdinalIgnoreCase)
                 ? BaseEnums.UltimateResourceType.Stack
@@ -1019,7 +1050,8 @@ namespace Entities
             UltimateResourceName = string.IsNullOrWhiteSpace(resourceName)
                 ? (UltimateResourceType == BaseEnums.UltimateResourceType.Mana ? "마나" : "스택")
                 : resourceName;
-            UltimateResourceMax = resourceMax > 0 ? resourceMax : 100;
+            UltimateResourceMax = resourceMax > 0 ? resourceMax : DefaultManaMax;
+            ManaMaxBase = manaMax > 0 ? manaMax : DefaultManaMax;
         }
 
         private void ApplyCodeStages(Dictionary<string, int> codeStages)
@@ -1114,6 +1146,14 @@ namespace Entities
 
             foreach (LevelPassiveData def in eligible)
             {
+                // 스킬 Pt로 먼저 사 둔 코드는 레벨 해금이 다시 붙이지 않는다.
+                // 붙이면 같은 패시브가 두 벌 돌아 효과가 두 번 적용된다.
+                if (grantedPassiveCodeIds.Contains(def.codeId))
+                {
+                    PendingLevelPassives.Remove(def);
+                    continue;
+                }
+
                 PassiveCode code = CodeFactory.CreatePassiveCode(def.codeId, new PassiveCodeContext { Caster = this });
                 if (code != null)
                 {
@@ -1149,25 +1189,11 @@ namespace Entities
             });
         }
 
-        public bool LearnTransferredPassive(int codeId, int stage)
-        {
-            if (codeId <= 0) return false;
-            if (learnedPassiveRecords.Any(record => record != null && record.codeId == codeId))
-            {
-                return false;
-            }
+        // 예전에는 훈련이 패시브를 즉시 전수하는 LearnTransferredPassive가 있었다. 그 경로는
+        // grantedPassiveCodeIds에 기록을 남기지 않아, 라운드가 끝나 유닛을 스냅샷에서 다시
+        // 세우는 순간 배운 코드가 사라졌다. 습득은 전부 아래 영구 경로로 모았다.
 
-            PassiveCode code = CodeFactory.CreatePassiveCode(codeId, new PassiveCodeContext { Caster = this });
-            if (code == null) return false;
-            if (!code.Transferable || code.IsUniquePassive) return false;
-
-            code.SetStage(stage);
-            PassiveCodes.Add(code);
-            AddLearnedPassiveRecord(codeId, code.CurrentStage, code.Transferable);
-            return true;
-        }
-
-        /// <summary>사건/보상으로 획득한 런 영구 패시브를 추가한다.</summary>
+        /// <summary>사건·보상·스킬 Pt 습득으로 얻은 런 영구 패시브를 추가한다.</summary>
         public bool GrantPermanentPassive(int codeId, int stage = 1)
         {
             if (codeId <= 0 || grantedPassiveCodeIds.Contains(codeId)) return false;
@@ -1251,6 +1277,30 @@ namespace Entities
             return levelsGained;
         }
 
+        /// <summary>
+        /// EXP를 건너뛰고 레벨을 직접 올린다. '이상한 사탕' 계열 보상이 쓴다.
+        ///
+        /// 모아 둔 EXP는 <b>그대로 둔다.</b> 사탕이 다음 레벨까지의 진척을 지워 버리면
+        /// "먹기 전에 레벨을 올려 두는 것이 이득"이라는 역방향 최적화가 생긴다.
+        /// </summary>
+        public int GrantLevels(int levels)
+        {
+            if (IsEnemy || levels <= 0) return 0;
+
+            int previousHpMax = HpMax;
+            int before = Level;
+            Level += levels;
+
+            RefreshLevelPassives();
+            AttributesUpdate();
+            // 레벨업으로 늘어난 최대 체력만큼 현재 체력도 함께 올려 준다.
+            HpCurr = Mathf.Clamp(HpCurr + Mathf.Max(0, HpMax - previousHpMax), 0, HpMax);
+            currentCell?.UpdateUI();
+
+            Debug.Log($"[레벨업] {UnitName} Lv.{before} → Lv.{Level} (사탕)");
+            return Level - before;
+        }
+
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         /// <summary>
         /// 디버그 전용 — 레벨을 원하는 값으로 바로 맞춘다.
@@ -1286,7 +1336,6 @@ namespace Entities
             isCasting = false;
             isControlled = false;
             controlTurns = 0;
-            ultimateCooldown = 0;
             currentNormalTarget = null;
         }
 #endif
@@ -1463,7 +1512,8 @@ namespace Entities
             spec.ResolveStats(owner, out int str, out int dex, out int con, out int intel, out int luk);
             // 증가분 0 — 소환수는 레벨도 강화도 없다.
             LoadStatData(str, 0, 0, dex, 0, 0, con, 0, 0, intel, 0, 0, luk, 0, 0);
-            ConfigureUltimateResource(null, null, 0);   // 마나형 기본값
+            // 소환수는 데이터 파일이 없다. 마나형 기본값을 그대로 쓴다.
+            ConfigureUltimateResource(null, null, 0, 0);
             CodeAcceleration = 1f;
 
             isCasting = false;
@@ -1476,7 +1526,6 @@ namespace Entities
             _baseUltimateCodeId = spec.UltimateCodeId;
             NormalCode = CodeFactory.CreateNormalCode(_baseNormalCodeId, new NormalCodeContext { Caster = this });
             UltimateCode = CodeFactory.CreateUltimateCode(_baseUltimateCodeId, new UltimateCodeContext { Caster = this });
-            ultimateCooldown = UltimateCode?.Cooldown ?? 0f;
 
             AttributesUpdate();
             HpCurr = HpMax;
@@ -1701,9 +1750,14 @@ namespace Entities
         /// <summary>
         /// 전투 시간 1초당 회복하는 궁극기 자원.
         /// DEX는 관여하지 않는다. INT가 유일한 충전 속도 스탯이다.
+        ///
+        /// <see cref="CodeAcceleration"/>이 여기에 곱해진다. 궁극기 쿨다운이 사라지면서
+        /// 코드 가속이 앞당길 것은 자원 충전밖에 남지 않았기 때문이다.
+        /// 상한 안쪽에서 곱하므로 <b>전투 시간 5초</b>라는 최단 충전 주기는 그대로 지켜진다.
         /// </summary>
         public float ManaPerCombatSecond => Mathf.Min(ManaRegenCap,
-            (ManaRegenBase + Mathf.Max(0, GetBaseInt()) * ManaRegenPerInt) * ManaEfficiencyCurr);
+            (ManaRegenBase + Mathf.Max(0, GetBaseInt()) * ManaRegenPerInt)
+            * ManaEfficiencyCurr * Mathf.Max(0.1f, CodeAcceleration));
 
         /// <summary>흐른 전투 시간만큼 궁극기 자원을 채운다. 소수점은 다음 정산으로 넘긴다.</summary>
         public void AccrueUltimateResource(float combatSeconds)
@@ -1776,6 +1830,23 @@ namespace Entities
         public void GrantCombatElement(BaseEnums.UnitElement elementToGrant, int duration = CommonElementAuraDuration)
             => GrantCombatElement(elementToGrant, duration, null);
 
+        /// <summary>
+        /// 부착을 건 쪽이 지속에 더하는 턴. 여럿이 겹치면 합산한다.
+        /// 지금은 장비 하나(여덟 갈래 고리)만 쓴다.
+        /// </summary>
+        private static int GrantedElementDurationBonus(Unit source)
+        {
+            if (source == null) return 0;
+
+            int bonus = 0;
+            foreach (var effect in source.ActiveEffectObjects())
+            {
+                bonus += effect.GrantedElementDurationAdditiveModifier(source);
+            }
+
+            return bonus;
+        }
+
         /// <param name="source">부착을 일으킨 유닛. 원소 반응 피해가 이 유닛의 CON에 비례한다.</param>
         /// <param name="suppressReaction">
         /// 반응 판정을 건너뛴다. <b>확산이 뿌리는 부착</b>이 다시 반응을 일으켜
@@ -1789,7 +1860,9 @@ namespace Entities
             // 자기 고유 원소를 받더라도 다른 원소와 똑같은 '부착'이다. 고유 원소는 판정 축에만
             // 살아 있으므로, 여기서 예외를 두면 지속시간 없는 영구 부착이 생겨 축이 다시 섞인다.
             bool added = _combatElements.Add(elementToGrant);
-            _temporaryElementDurations[elementToGrant] = duration > 0 ? duration : CommonElementAuraDuration;
+            int finalDuration = (duration > 0 ? duration : CommonElementAuraDuration)
+                                + GrantedElementDurationBonus(source);
+            _temporaryElementDurations[elementToGrant] = Mathf.Max(1, finalDuration);
             if (added)
             {
                 AttributesUpdate();
@@ -1995,6 +2068,9 @@ namespace Entities
                     source.RoundEffectiveHealingDone += effectiveHealing;
                 }
 
+                // 회복도 숫자로 띄운다. 피해만 뜨면 힐러가 한 일이 화면에 남지 않는다.
+                Effects.CombatFeedback.PlayHeal(this, effectiveHealing);
+
                 NotifyHealingOrShieldGranted(source, healingAmount);
             }
             else
@@ -2004,6 +2080,21 @@ namespace Entities
             int hpSpent = Mathf.Max(0, hpBefore - HpCurr);
             if (hpSpent > 0) AnyHpSpent?.Invoke(this, hpSpent);
             currentCell?.UpdateUI();
+        }
+
+        /// <summary>
+        /// 전투 밖의 회복(전투 종료 보상·휴식)에 사용한다. 전투용 치유량/받는 치유량 보정을
+        /// 적용하지 않아 UI가 약속한 고정 수치나 비율을 정확히 회복한다.
+        /// </summary>
+        public int RestoreHpOutsideCombat(int amount)
+        {
+            if (amount <= 0 || HpCurr <= 0) return 0;
+            int before = HpCurr;
+            HpCurr = Mathf.Clamp(HpCurr + amount, 0, HpMax);
+            int restored = HpCurr - before;
+            if (restored > 0) Effects.CombatFeedback.PlayHeal(this, restored);
+            currentCell?.UpdateUI();
+            return restored;
         }
 
         /// <summary>
@@ -2044,6 +2135,34 @@ namespace Entities
             if (spent > 0) AnyHpSpent?.Invoke(this, spent);
             currentCell?.UpdateUI();
             return true;
+        }
+
+        /// <summary>치유량 감소를 덜어 내는 몫(0~1). 감소를 거는 효과가 제 몫을 줄일 때 읽는다.</summary>
+        public float HealingReductionResistance
+        {
+            get
+            {
+                float resistance = 0f;
+                foreach (var effect in ActiveEffectObjects())
+                {
+                    resistance += Mathf.Max(0f, effect.HealingReductionResistanceModifier(this));
+                }
+                return Mathf.Clamp01(resistance);
+            }
+        }
+
+        /// <summary>장비·코드가 더해 준 처형선 보정. 기본 처형선에 그대로 더해진다.</summary>
+        public float ExecuteThresholdBonus
+        {
+            get
+            {
+                float bonus = 0f;
+                foreach (var effect in ActiveEffectObjects())
+                {
+                    bonus += Mathf.Max(0f, effect.ExecuteThresholdAdditiveModifier(this));
+                }
+                return bonus;
+            }
         }
 
         internal bool ResistsNegativeStatus(Status.UnitStatus status)
@@ -2208,12 +2327,6 @@ namespace Entities
             TickControlTurn();
             TickTemporaryCombatElements();
 
-            // 궁극기 쿨다운도 턴 단위다. 코드 가속은 턴당 감소량을 키운다.
-            if (ultimateCooldown > 0f)
-            {
-                ultimateCooldown = Mathf.Max(0f, ultimateCooldown - Mathf.Max(1f, CodeAcceleration));
-            }
-
             StatusController.TickTurn();
             // 전장 상태는 깐 유닛의 턴으로 지속을 센다.
             Combat.Battlefield.OnAnchorTurn(this);
@@ -2264,6 +2377,16 @@ namespace Entities
 
             float chance = Mathf.Clamp01((code.ActivationChance + statBonus) * code.ActivationChanceMultiplier);
             return UnityEngine.Random.value <= chance;
+        }
+
+        /// <summary>
+        /// 전투 밖에서 파티 범위 보정(강화제 등)이 걸리거나 풀렸을 때 파생 스탯을 다시 돌린다.
+        /// <c>AttributesUpdate</c>는 체력 비율을 보존하므로 최대 체력이 바뀌어도 현재 체력이 함께 움직인다.
+        /// </summary>
+        public void RefreshDerivedAttributes()
+        {
+            AttributesUpdate();
+            currentCell?.UpdateUI();
         }
 
         public void AddRunBonus(
@@ -2488,6 +2611,8 @@ namespace Entities
             if (canEvade && UnityEngine.Random.value < evasionChance)
             {
                 currentCell?.UpdateUI();
+                // 회피는 아무 일도 일어나지 않은 것처럼 보인다. 숫자 자리에 '회피'를 띄워 알린다.
+                Effects.CombatFeedback.PlayEvade(self);
                 Debug.Log($"{self.UnitName}이(가) 공격을 회피했습니다. 회피율: {evasionChance * 100f:F1}%");
                 return;
             }
@@ -2539,8 +2664,14 @@ namespace Entities
             // Cell의 통합 UI 업데이트 메서드 사용
             self.RefreshView();
 
-            int damageDealt = Mathf.Max(0, hpBeforeHit - self.HpCurr) + Mathf.Max(0, shieldBeforeHit - self.ShieldCurr);
+            int hpLost = Mathf.Max(0, hpBeforeHit - self.HpCurr);
+            int shieldLost = Mathf.Max(0, shieldBeforeHit - self.ShieldCurr);
+            int damageDealt = hpLost + shieldLost;
             dmgCtx.ResolvedDamage = damageDealt;
+
+            // 맞은 쪽의 반응(숫자·카드 떨림·화면 흔들림)은 전부 여기 한 곳에서 난다.
+            // 지속피해든 반격이든 즉시 피해든 이 정산을 지나므로 빠지는 경로가 없다.
+            Effects.CombatFeedback.PlayDamage(self, dmgCtx, hpLost, shieldLost);
 
             // 강인도는 체력과 병렬로 깎인다. 피해를 흡수하지 않으므로 위 계산에는 관여하지 않는다.
             int toughnessReduced = self.ReduceToughness(damageDealt, dmgCtx.Attacker, dmgCtx);
@@ -2735,6 +2866,16 @@ namespace Entities
             return total;
         }
 
+        /// <summary>
+        /// 강화제의 5스탯 가산 보정 (UnitStats에서 역참조).
+        /// 런이 들고 있는 파티 단위 보정이라 적에게는 걸리지 않는다.
+        /// </summary>
+        internal int GetPartyTonicStatBonus(BaseEnums.PrimaryStat stat)
+        {
+            if (IsEnemy) return 0;
+            return RunManager.Instance?.PartyTonics.FlatBonus(stat) ?? 0;
+        }
+
         /// <summary>상태 효과의 5스탯 배율 보정 적용 (UnitStats에서 역참조)</summary>
         internal int ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat stat, int value)
         {
@@ -2748,6 +2889,14 @@ namespace Entities
             {
                 multiplier *= effect.PrimaryStatMultiplierModifier(this, stat);
             }
+
+            // 곱연산 강화제(T4·T5)도 같은 층에서 곱한다. 상태와 층을 나누면 곱하는 순서가
+            // 스탯마다 달라져 같은 병을 마셔도 유닛마다 다른 값이 나온다.
+            if (!IsEnemy)
+            {
+                multiplier *= RunManager.Instance?.PartyTonics.Multiplier(stat) ?? 1f;
+            }
+
             return Mathf.Max(0, Mathf.RoundToInt(value * multiplier));
         }
 
@@ -2762,12 +2911,15 @@ namespace Entities
         }
 
         public int GetDerivedHp() => stats.GetDerivedHp();
-        public int GetDerivedMana() => stats.GetDerivedMana();
 
+        /// <summary>
+        /// 궁극기 자원의 최대치. 마나형은 유닛 고유 스탯인 <see cref="ManaMaxBase"/>를 그대로 쓴다.
+        /// 스탯에서 파생되지 않으므로 <c>UnitStats</c>를 거치지 않는다.
+        /// </summary>
         public int GetUltimateResourceMax()
         {
             return UltimateResourceType == BaseEnums.UltimateResourceType.Mana
-                ? stats.GetDerivedMana()
+                ? Mathf.Max(1, ManaMaxBase)
                 : Mathf.Max(1, UltimateResourceMax);
         }
 
@@ -2838,13 +2990,13 @@ namespace Entities
         /// 회복 배율을 타면 과다치유가 보호막으로 새므로 체력은 직접 채운다.
         /// </summary>
         /// <returns>실제로 되살아났으면 true.</returns>
-        public bool ReviveAfterBattle()
+        public bool ReviveAfterBattle(float hpRatio = 1f)
         {
             if (isActive || IsSummon || currentCell == null || LastActiveId <= 0) return false;
 
             ID = LastActiveId;
             ActivateUnit();
-            HpCurr = HpMax;
+            HpCurr = Mathf.Clamp(Mathf.CeilToInt(HpMax * Mathf.Clamp01(hpRatio)), 1, HpMax);
             RefreshView();
             return true;
         }

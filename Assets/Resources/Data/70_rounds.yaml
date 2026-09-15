@@ -10,8 +10,13 @@
 #   10 후열 - 레티아리우스, 사비나 / 벨리테스, 스콜피오
 #   11 후열 - 옵티오, 트리뷴, 아그리파, 옥타비아 (지휘·지원형)
 # 아래 roundTypes는 stagePatterns가 없는 스테이지 슬롯의 폴백일 뿐이다.
-# 로마 군단 테마는 전투 스테이지 전부에 stagePatterns가 있어 여기까지 내려오지 않는다.
+# 운영 테마는 전투 슬롯 전부에 stagePatterns가 있어 여기까지 내려오지 않는다.
 # 새 분류를 쓰려면 60_enemies.yaml에 해당 archetype의 적을 먼저 등록할 것.
+#
+# eliteIds / bossId에 적힌 숫자는 콜로세움 시절에 박아 둔 값이라 그대로 쓰면
+# 꺼 둔 테마의 적이 나온다. RoundManager.ResolveFallbackEnemy가 이 ID를
+# 현재 테마의 같은 등급 적으로 바꿔 끼우므로, 여기서 의미가 있는 것은
+# <몇 마리를 세우는가>뿐이다. 숫자 자체는 읽히지 않는다.
 
 roundTypes:
   - id: 1

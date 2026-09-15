@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Codes.Base;
+using Codes.Passive;
 using Effects.Buffs;
 using Effects.Negative;
 using Entities;
@@ -13,7 +14,6 @@ namespace Codes.Ultimate
     /// <summary>신규 캐릭터군이 쓰는 상태 ID 대역.</summary>
     public static class NewWaveStatusIds
     {
-        public const int FreyaHarvest = 5300;
         public const int VarunaMakara = 5302;
     }
 
@@ -21,93 +21,86 @@ namespace Codes.Ultimate
     /// 프레이아 U — 풍요의 산물.
     ///
     /// 이번 전투에서 프레이아가 실제로 채운 체력(순수치유량)을 자원으로 쓴다.
-    /// `순수치유량 ÷ (프레이아 최대 체력 × 10%)`만큼 아군 전체에게 STR을 4턴간 주고 기록을 비운다.
-    /// 분모가 최대 체력에 연동되므로 레벨이 올라도 체감 배율이 유지된다.
+    /// 적 전체를 INT 위력 60으로 때리되 <b>쌓인 순수치유량에 비례해 피해가 커지고</b>,
+    /// 적중한 모든 적에게 풀 원소를 부착한 뒤 기록을 비운다.
+    ///
+    /// 기록을 비우는 순간이 곧 고유 패시브 <c>피톤치드</c>의 정산 시점이다.
+    /// 그래서 같은 자원이 이 한 번의 피해와 아군 전체의 STR을 함께 산다.
+    ///
+    /// 부착이 피해 <b>뒤</b>에 오는 것은 연소를 노린 순서다. 수르트가 먼저 불을 깔아 두면
+    /// 풀이 덮이는 순간 유발자가 프레이아가 되어 그녀의 CON이 연소 위력을 정한다.
     /// </summary>
-    public sealed class FreyaHarvest : UltimateCode
+    public sealed class FreyaHarvest : SimpleUltimate
     {
-        private const int Duration = 4;
-        private const float HpRatioPerPoint = 0.1f;
-        private const int MaxBonus = 25;
+        private const int HarvestPower = 60;
 
-        public FreyaHarvest(UltimateCodeContext context) : base(context)
-        {
-            CodeType = BaseEnums.CodeType.Ultimate;
-            CodeName = "풍요의 산물";
-            Power = 0;   // 피해를 주지 않는 궁극기
-            Cooldown = 4;
-            CastingDelay = 0.5f;
-        }
+        /// <summary>피해 배율이 두 배가 되는 데 필요한 순수치유량 = 최대 체력의 이 배수.</summary>
+        private const float FullScaleHpMultiple = 2f;
 
-        public override void CastCode()
-        {
-            if (!HasValidTarget()) return;
-            Caster.isCasting = true;
-            CurrSkillCoroutine = Caster.StartCoroutine(SkillCoroutine());
-        }
+        /// <summary>순수치유량이 더해 줄 수 있는 배율의 상한. 1이면 최대 두 배다.</summary>
+        private const float MaxBonusScale = 1f;
 
-        protected override IEnumerator SkillCoroutine()
+        public FreyaHarvest(UltimateCodeContext context)
+            : base(context, "풍요의 산물", 0.5f) { Power = HarvestPower; }
+
+        protected override void Resolve()
         {
-            float elapsed = 0f;
-            while (elapsed < CastingDelay)
+            // 정산 전 기록을 먼저 붙든다. 피해와 STR 버프가 같은 값을 봐야 한다.
+            int record = Caster.RoundEffectiveHealingDone;
+            float scale = 1f + Mathf.Min(
+                MaxBonusScale, record / Mathf.Max(1f, Caster.HpMax * FullScaleHpMultiple));
+
+            bool isCrit = Random.value <= Caster.CritChanceCurr;
+            float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
+            int damage = Mathf.Max(1, Mathf.RoundToInt(
+                Caster.SkillDamage(HarvestPower, BaseEnums.PrimaryStat.INT) * critMultiplier * scale));
+
+            var tags = new List<int>
             {
-                if (Caster == null || !Caster.isActive || Caster.isControlled) { StopCode(); yield break; }
-                elapsed += Time.deltaTime;
-                yield return null;
-            }
+                DamageTag.AllTarget, DamageTag.UltAttack,
+                DamageTag.NonContactAttack, DamageTag.Special,
+            };
 
-            int divisor = Mathf.Max(1, Mathf.RoundToInt(Caster.HpMax * HpRatioPerPoint));
-            int bonus = Mathf.Clamp(Caster.RoundEffectiveHealingDone / divisor, 0, MaxBonus);
-            Caster.ResetEffectiveHealingRecord();
-
-            if (bonus > 0)
+            foreach (Unit target in Enemies())
             {
-                foreach (Unit ally in Allies())
+                target.TakeDamage(new DamageContext(Caster, damage, BaseEnums.CodeType.Ultimate, tags, isCrit));
+                if (target != null && target.isActive)
                 {
-                    ally.AddStatus(BuffStatus.Create(
-                        NewWaveStatusIds.FreyaHarvest, "freya_harvest", CodeName,
-                        Caster, ally, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.STR, bonus),
-                        duration: Duration,
-                        stackPolicy: BaseEnums.StatusStackPolicy.Replace,
-                        isBeneficial: true,
-                        description: $"STR이 {bonus} 증가합니다."));
+                    target.GrantCombatElement(
+                        BaseEnums.UnitElement.Dendro, Unit.CommonElementAuraDuration, Caster);
                 }
             }
 
-            Debug.Log($"[풍요의 산물] 순수치유량 정산 → 아군 전체 STR +{bonus} ({Duration}턴)");
-            StopCode();
+            Caster.ActivePassiveCodes.OfType<FreyaPhytoncide>().FirstOrDefault()?.Settle(record);
+            Caster.ResetEffectiveHealingRecord();
+
+            Debug.Log($"[풍요의 산물] 순수치유량 {record} 정산 → 피해 배율 {scale:0.00}");
         }
 
-        private List<Unit> Allies()
-        {
-            List<Unit> allies = global::Target.GetAllAllies(Caster)
-                .Where(unit => unit != null && unit.isActive)
-                .ToList();
-            if (!allies.Contains(Caster)) allies.Add(Caster);
-            return allies;
-        }
-
-        public override void StopCode()
-        {
-            if (Caster == null) return;
-            Caster.ultimateCooldown = Cooldown;
-            Caster.isCasting = false;
-        }
-
-        public override bool HasValidTarget() => Caster != null && Caster.isActive;
+        /// <summary>
+        /// 적이 없으면 쓰지 않는다. 발동은 곧 기록 정산이라, 때릴 대상이 없는데 나가면
+        /// 쌓아 둔 순수치유량이 아무것도 사지 못하고 사라진다.
+        /// </summary>
+        public override bool HasValidTarget()
+            => Caster != null && Caster.isActive && Enemies().Count > 0;
     }
 
     /// <summary>
     /// 로키 U — 발드르의 살해자.
-    /// 최대 체력이 가장 높은 적 하나에게 STR 위력 120 + 받는 치유량 −50%(3턴).
+    ///
+    /// 최대 체력이 가장 높은 적에게 STR 위력 120을 꽂고 <b>표식</b>을 남긴다.
+    /// 표식은 지속시간이 없다. 로키가 쓰러지거나 다른 대상에게 다시 새길 때까지 남으며,
+    /// 표식이 붙은 적은 받는 치유량 −25%와 방어력 −20%를 지고 펜리르에게 물린다.
+    ///
+    /// 표식의 관리는 고유 패시브 <c>펜리르</c>가 통째로 맡는다. 반응 물기와 표식이
+    /// 한 곳에서 붙고 떨어져야 아군 방아쇠 기록도 함께 초기화되기 때문이다.
     /// </summary>
     public sealed class LokiBaldrSlayer : SimpleUltimate
     {
         private const int SlashPower = 120;
-        private const int HealCutDuration = 3;
 
         public LokiBaldrSlayer(UltimateCodeContext context)
-            : base(context, "발드르의 살해자", 4, 0.5f) { Power = SlashPower; }
+            : base(context, "발드르의 살해자", 0.5f) { Power = SlashPower; }
 
         protected override void Resolve()
         {
@@ -125,11 +118,9 @@ namespace Codes.Ultimate
                 DamageTag.NonContactAttack, DamageTag.Physical,
             }, isCrit));
 
-            if (target.isActive)
-            {
-                // 공용 치유량 감소 상태를 쓴다. 중첩되지 않고 남은 시간이 긴 쪽만 남는다.
-                HealingReductionStatus.Apply(target, Caster, HealCutDuration, CodeName);
-            }
+            if (!target.isActive) return;
+
+            Caster.ActivePassiveCodes.OfType<LokiFenrir>().FirstOrDefault()?.MarkTarget(target);
         }
     }
 
@@ -139,7 +130,7 @@ namespace Codes.Ultimate
         private const int SpikePower = 80;
 
         public SkadiIcicleSpike(UltimateCodeContext context)
-            : base(context, "고드름 스파이크", 4, 0.6f) { Power = SpikePower; }
+            : base(context, "고드름 스파이크", 0.6f) { Power = SpikePower; }
 
         protected override void Resolve()
         {
@@ -171,7 +162,7 @@ namespace Codes.Ultimate
         private const int QuakePower = 70;
 
         public KuberaGoldenQuake(UltimateCodeContext context)
-            : base(context, "황금의 지진", 4, 0.6f) { Power = QuakePower; }
+            : base(context, "황금의 지진", 0.6f) { Power = QuakePower; }
 
         protected override void Resolve()
         {
@@ -215,7 +206,6 @@ namespace Codes.Ultimate
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "마카라";
             Power = TickPower;
-            Cooldown = 5;
             CastingDelay = 0.5f;
         }
 
@@ -253,7 +243,6 @@ namespace Codes.Ultimate
         public override void StopCode()
         {
             if (Caster == null) return;
-            Caster.ultimateCooldown = Cooldown;
             Caster.isCasting = false;
         }
 
@@ -269,7 +258,7 @@ namespace Codes.Ultimate
         private const int IntRatio = 12;
 
         public OrpheusLament(UltimateCodeContext context)
-            : base(context, "비탄의 연주", 5, 0.5f) { Power = 0; }   // 피해를 주지 않는 궁극기
+            : base(context, "비탄의 연주", 0.5f) { Power = 0; }   // 피해를 주지 않는 궁극기
 
         protected override void Resolve()
         {
@@ -334,7 +323,6 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "천총운검";
-            Cooldown = 0;
             CastingDelay = 0f;
         }
 

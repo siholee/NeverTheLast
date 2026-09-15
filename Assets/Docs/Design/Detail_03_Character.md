@@ -69,7 +69,7 @@ raw = base
 | 마나 효율 | `1 + INT × 0.02` × 효과 배율 | |
 | 코드 발동률 | `1.0` 고정 | 🔸 INT 연동 무효 |
 | 코드 가속 | `max(0.1, 1.0 + 런 보너스 + 효과 가산)` | |
-| 최대 마나 | `100` | |
+| 최대 마나 | 파생이 아니다 — 유닛 데이터의 `manaMax` | §4.3 |
 
 ### 2.1 피해 산출 (포켓몬식)
 
@@ -191,7 +191,7 @@ RequiredExp(N) = 100 + 28 × (N − 1)
 | --- | --- | --- | --- | --- |
 | 패시브 | `PassiveCode` | `Passive` | 라운드 시작 시 활성화 | 조건부 스킬은 조건 판정 |
 | 일반 | `NormalCode` | `Active` | **행동 차례** (쿨다운 없음) | **없음** |
-| 궁극기 | `UltimateCode` | `Ultimate` | 자원 최대 + 행동 가능 | **없음** |
+| 궁극기 | `UltimateCode` | `Ultimate` | 자원 최대 + 행동 가능 (쿨다운 없음) | **없음** |
 
 > **일반·궁극기 코드에 발동 실패 판정을 직접 넣지 않는다.**
 
@@ -204,8 +204,7 @@ public abstract class Code
     public string CodeName;
     public Unit Caster;
     public List<Unit> TargetUnits;
-    public float Cooldown;       // 궁극기 전용. 일반행동은 쿨다운을 쓰지 않는다
-    public float CastingDelay;
+    public float CastingDelay;   // 재사용 대기 시간은 어떤 코드에도 없다
 
     public virtual void CastCode() { }
     protected virtual IEnumerator SkillCoroutine() { yield return null; }
@@ -220,12 +219,27 @@ public abstract class Code
 
 | 타입 | 회복 방식 | 최대치 |
 | --- | --- | --- |
-| `Mana` | `RecoverMana()` 자동 회복 (마나 효율 배율) | 100 |
+| `Mana` | `RecoverMana()` 자동 회복 (마나 효율 배율) | 유닛 데이터의 **`manaMax`** (생략하면 100) |
 | `Stack` | 코드/이벤트에서 `AddUltimateResource(n)` 호출 | `ultimateResourceMax` |
 
 - 자원이 최대치에 도달해도 **즉시 시전하지 않는다**
 - `!isControlled && !isCasting` 조건 안에서 시전을 검사한다
 - 예약된 궁극기는 대기 중인 일반 행동을 제친다
+
+#### 최대 마나는 유닛 고유 스탯이다
+
+**레벨도 강화도 훈련도 버프도 이 값을 건드리지 않는다.** 5스탯에서 파생되지도 않으므로
+`UnitStats`를 거치지 않고 `Unit.ManaMaxBase`가 데이터 값을 그대로 들고 있으며,
+`AttributesUpdate`의 효과 합산 경로를 타지 않는다. 바꾸는 길은 YAML 한 곳뿐이다.
+
+> **궁극기 쿨다운이 사라지면서 이 값이 궁극기 회전을 조이는 유일한 손잡이가 됐다.**
+> 충전 속도는 INT가, 충전해야 할 총량은 `manaMax`가 정한다. 큰 궁극기를 가진 유닛의
+> 회전을 늦추고 싶으면 위력을 깎는 대신 이 값을 올린다.
+>
+> 🔸 지금은 아군 40명과 적 124기 전원이 **100으로 동일**하다. 유닛별 조정은 아직 하지 않았다.
+
+마나 총량 비례로 채워 주는 코드(아그리파 `제 2의 건국자` 20/40%, 라이트 `하늘을 나는 꿈`)는
+`Unit.ManaMax`를 읽으므로 유닛별 값이 들어가면 자동으로 따라간다.
 
 현재 아군 영웅의 스택형 궁극기 예시는 호루스의 **우제트**다. 수르트의 라그나로크는 리메이크 후 일반 마나형 발동 궁극기다.
 
@@ -275,7 +289,7 @@ levelPassives:        # 레벨로 해금되는 별도 패시브들
 | --- | --- |
 | 장비 부여 | `ItemPassiveCodes` |
 | 사건 부여 | `GrantedPassiveCodeIds` |
-| 서포트 전수 | `LearnedPassiveRecords` |
+| 스킬 Pt 습득 | `LearnedPassiveRecords` · `GrantedPassiveCodeIds` |
 
 ### 4.5 코드 등록 절차
 
@@ -382,22 +396,21 @@ ID는 같은 분류 안에서 중복되면 안 된다.
 
 | 보유자 | 조건 | 대체행동 내용 |
 | --- | --- | --- |
-| 수르트 | 도발 중이 아닐 때 | 자기 도발 + 방어막 |
 | 스카디 | 도발 중이 아닐 때 | 자기 도발 + 방어막 |
 | 가우디 | 스택 6 | 3인 타격 + 풀 부착 |
 | 잔 | 전투 후 첫 일반행동 (벌크업) | 자신의 STR +10% |
 | 호루스 | 네 번째 일반행동 (우제트) | 추가 피해 + 방어 20% 무시 |
 | 아문·라 | 치명타 발생 후 | 단일 강타 + 지옥불 |
 
-### 4.6 일반행동에는 쿨타임이 없다
+### 4.6 어떤 코드에도 쿨타임이 없다
 
-일반행동의 발동 주기는 **DEX가 만드는 행동치(AV)가 전담**한다.
-일반행동은 쿨다운을 갖지 않으며, 실제 시전 시점은 `ActionScheduler`가 정한다.
+**관문은 코드마다 하나뿐이다.** 일반행동은 DEX가 만드는 행동치(AV)가, 궁극기는 자원이
+발동 주기를 정한다. 실제 시전 시점은 두 경우 모두 `ActionScheduler`가 정한다.
 
-> 과거에는 AV와 쿨다운이라는 두 개의 관문이 겹쳐 있어 DEX의 체감이 흐려졌다.
-> 관문을 하나로 줄여 **DEX = 공격 빈도**가 직관적으로 성립하게 했다.
-
-궁극기는 여전히 `Cooldown`을 쓴다(자원이 가득 차도 재시전을 막는 최소 간격).
+> 과거에는 AV와 쿨다운이라는 두 관문이 겹쳐 있어 DEX의 체감이 흐려졌다. 궁극기도 같은 문제를
+> 안고 있었다 — 쿨다운이 4턴인데 자원이 3턴에 차면 남은 1턴은 INT를 올려도 줄지 않는다.
+> 두 슬롯 모두 관문을 하나로 줄여 **DEX = 공격 빈도**, **INT = 궁극기 빈도**가
+> 그대로 성립하게 했다. `Code.Cooldown`과 `Unit.ultimateCooldown`은 삭제됐다.
 
 ## 5. 캐릭터 분류
 
@@ -454,9 +467,10 @@ ID는 같은 분류 안에서 중복되면 안 된다.
   strIncrementLvl: 1
   strIncrementUpgrade: 1
   # dex / con / int / luk 동일 구조
+  manaMax: 100                  # 최대 마나. 유닛 고유 스탯이라 훈련·강화·버프가 관여하지 않는다
   ultimateResourceType: Stack   # 선택. 생략하면 마나형
   ultimateResourceName: 우제트   # 선택. 스택형 게이지의 표시 이름
-  ultimateResourceMax: 4        # 선택
+  ultimateResourceMax: 4        # 선택. 스택형 전용
   codes:
     passive: 2
     normal: 1
@@ -490,7 +504,7 @@ ID는 같은 분류 안에서 중복되면 안 된다.
 | 21 | 아탈란테 | Starter | Dendro | DEX / CON | 후열 사수 · 지속피해 딜러 |
 | 22 | 오리온 | Starter | Geo | STR / CON | 전열 탱커 · 힘사수 딜탱 |
 | 23 | 테세우스 | Starter | Hydro | DEX / CON | 범용 전열 딜러 |
-| 80 | 수르트 | Starter | Pyro | STR / CON | 도발·광역 방어막 전열 수호자 |
+| 80 | 수르트 | Starter | Pyro | STR / CON | 체력을 태워 때리는 전열 딜러 |
 | 64 | 바유 | Starter | Anemo | CON / DEX | 정화형 방어 서포터 |
 | 121 | 아누비스 | Starter | Geo | CON / STR | 전열 탱커 · 사령 특효 |
 | 3 | 사바흐 | Starter | Electro | LUK / DEX | 디버프 연계 치명타 딜러 |
@@ -500,7 +514,7 @@ ID는 같은 분류 안에서 중복되면 안 된다.
 | 7 | 잔 | Support | Cryo | STR / LUK | 노려지면 먼저 때리는 상시 도발 딜탱 |
 | 5 | 라이트 | Support | Anemo | CON / DEX·INT | 궁극기 연계 정화·소환 서포터 |
 | 60 | 찬드라 | Support | Geo | CON / LUK | 방어형 스타터 서포터 |
-| 81 | 프레이아 | Support | Dendro | INT / DEX | 체력 감소 파티의 코어 힐러 |
+| 81 | 프레이아 | Support | Dendro | CON / DEX · INT | 체력을 태우는 파티의 코어 힐러 |
 | 83 | 스카디 | Support | Cryo | STR / CON | 도발·방어막·반격 전열 서포터 |
 | 65 | 쿠베라 | Support | Geo | CON / STR | 베다·에어본 파티 탱커 |
 | 66 | 바루나 | Support | Hydro | CON / INT | 감전 파티 코어 · 물 부여 |
@@ -553,9 +567,9 @@ ID는 같은 분류 안에서 중복되면 안 된다.
 | ---: | --- |
 | 8 | 세이 · 오리온 |
 | 7 | 아탈란테 · 찬드라 · 바스테트 |
-| 6 | 시 · 아스클레피아 · 아마테라스 · 케찰코아틀 · 수르트 · 야마 · 인드라 · 쿠베라 · 아그리파 · 카이사르 · 아누비스 |
+| 6 | 시 · 아스클레피아 · 아마테라스 · 케찰코아틀 · 수르트 · 프레이아 · 야마 · 인드라 · 쿠베라 · 아그리파 · 카이사르 · 아누비스 |
 | 5 | 피그말리온 · 츠쿠요미 · 바유 · 로키 · 스카디 · 바루나 · 오르페우스 · 스사노오 · 옥타비아 · 호루스 · 사바흐 |
-| 4 | 테세우스 · 아그니 · 프레이아 · 세트 · 토트 · 이시스 · 이카리아 · 마리 |
+| 4 | 테세우스 · 아그니 · 세트 · 토트 · 이시스 · 이카리아 · 마리 |
 | 0 | 가우디 · 라이트 (해금 패시브 미기획) |
 
 팔랑크스(183)는 이 수에 포함하지 않는다. 해금 패시브가 아니라 **Greek 속성 유닛이 전원
@@ -591,7 +605,7 @@ ID는 같은 분류 안에서 중복되면 안 된다.
 ### 7.5 코드 등급 — 일반(은색)과 강화(금색)
 
 같은 효과 계열에 두 코드가 있으면 **강화 등급이 일반 등급을 대체한다.**
-서포터 전수로 두 등급을 함께 들 수 있기 때문에, 일반 등급 코드는
+스킬 Pt 습득으로 두 등급을 함께 들 수 있기 때문에, 일반 등급 코드는
 `PassiveCode.SupersededByCodeId`에 자신을 덮는 강화 코드 ID를 적어 둔다.
 `Unit.TryCastPassiveCode`가 발동 직전에 그 코드를 배웠는지 보고 아예 발동시키지 않는다.
 

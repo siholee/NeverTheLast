@@ -68,6 +68,27 @@ namespace Core
         public int amount;
     }
 
+    /// <summary>걸려 있는 강화제 한 병. 런 범위 상태라 유닛이 아니라 런 세이브에 실린다.</summary>
+    [Serializable]
+    public class PartyTonicSaveData
+    {
+        public int stat;
+        public int flat;
+        public float multiplier = 1f;
+        public int remainingBattles;
+        public string sourceName;
+    }
+
+    /// <summary>받아 둔 스킬 힌트 하나. 아직 배우지 않은 후보라 런 세이브에 실린다.</summary>
+    [Serializable]
+    public class SkillHintSaveData
+    {
+        public int codeId;
+        public int level = 1;
+        public int stage = 1;
+        public string sourceName;
+    }
+
     [Serializable]
     public class SupportBondSaveData
     {
@@ -138,7 +159,11 @@ namespace Core
         // v5: 유닛 ID를 소속별 블록으로 재배치.
         // v6: 코드 ID를 계열별 구간으로 재배치. ownedPassiveCodes에 담긴 codeId의 뜻이 바뀌었고,
         //     스카디의 주·부 스탯과 수르트의 궁극기 자원 종류도 함께 바뀌었다.
-        public const int CurrentVersion = 6;
+        // v7: 테마 순환이 라운드 번호 계산에서 무작위 추첨으로 바뀌었다. 테마를 저장하지 않으면
+        //     불러올 때마다 주사위가 다시 굴러 라운드 도중에 테마가 갈린다.
+        // v8: 귀중품 주머니와 상점 매대 장비가 들어왔다. 주머니를 저장하지 않으면
+        //     불러올 때 주운 물건이 사라진다.
+        public const int CurrentVersion = 8;
         public int gameMode;
         public int currentStage;
         public int currentRound;
@@ -147,13 +172,31 @@ namespace Core
         public int rerollTicketCount;
         public int gold;
         public bool preparationActionUsed;
+
+        /// <summary>이번 준비 페이즈에 상점에서 산 횟수. 한도는 GameManager.MaxShopPurchases다.</summary>
+        public int shopPurchaseCount;
         public List<TokenSaveData> tokens = new();
         public List<int> storedItemIds = new();
         public List<SupportBondSaveData> supportBonds = new();
+
+        /// <summary>걸려 있는 강화제. v7 이전 저장본에는 없던 필드라 비어 있는 채로 채워진다.</summary>
+        public List<PartyTonicSaveData> partyTonics = new();
+
+        /// <summary>아직 스킬 Pt를 치르지 않은 힌트. 배우고 나면 목록에서 빠진다.</summary>
+        public List<SkillHintSaveData> skillHints = new();
 
         // 훈련 상태. v4 저장본에는 없던 필드라 기본값으로 채워진다(버전은 올리지 않는다).
         public TrainingSaveData training = new();
         public List<UnitSaveData> heroUnits = new();
         public List<string> triggeredEventIds = new();
+
+        /// <summary>이번 라운드의 테마. 0이면 불러온 뒤 새로 뽑는다(v6 이하 저장본).</summary>
+        public int currentThemeId;
+
+        /// <summary>아직 발생하지 않은 예약 사건의 ID. 순서를 그대로 보존한다.</summary>
+        public List<string> pendingEventIds = new();
+
+        /// <summary>귀중품 주머니. 값은 주울 때 확정된 것을 그대로 들고 간다.</summary>
+        public List<Managers.ValuableHolding> valuables = new();
     }
 }

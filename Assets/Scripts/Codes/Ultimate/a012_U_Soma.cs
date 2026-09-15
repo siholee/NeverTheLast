@@ -25,7 +25,6 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             Caster = context.Caster;
-            Cooldown = 4;
             CodeName = "소마";
             CastingDelay = 0.5f;
         }
@@ -88,7 +87,6 @@ namespace Codes.Ultimate
 
         public override void StopCode()
         {
-            Caster.ultimateCooldown = Cooldown;
             Caster.isCasting = false;
         }
 
@@ -138,7 +136,6 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "초록빛 심판";
-            Cooldown = 4;
             CastingDelay = 0.6f;
             Power = 80;
             CodeTags = new List<int> { DamageTag.Special, DamageTag.NonContactAttack };
@@ -199,7 +196,6 @@ namespace Codes.Ultimate
         public override void StopCode()
         {
             if (Caster == null) return;
-            Caster.ultimateCooldown = Cooldown;
             Caster.isCasting = false;
         }
 

@@ -114,6 +114,24 @@ namespace Managers.UI.DevTools
                 ("적 무적", ToggleEnemyInvincible),
                 ("아군 회복", HealAllies));
 
+            Section("회복 보상 미리보기", ref y);
+            Row(ref y,
+                ("T1 하급", () => PreviewHealingRewards(1)),
+                ("T2 중급", () => PreviewHealingRewards(2)),
+                ("T3 고급", () => PreviewHealingRewards(3)));
+            Row(ref y,
+                ("T4 최상급", () => PreviewHealingRewards(4)),
+                ("T5 엘릭서", () => PreviewHealingRewards(5)));
+
+            Section("부활 보상 미리보기", ref y);
+            Row(ref y,
+                ("T1 초급", () => PreviewRevivalRewards(1)),
+                ("T2 중급", () => PreviewRevivalRewards(2)),
+                ("T3 고급", () => PreviewRevivalRewards(3)));
+            Row(ref y,
+                ("T4 최상급", () => PreviewRevivalRewards(4)),
+                ("T5 에테르", () => PreviewRevivalRewards(5)));
+
             Section("아군 레벨", ref y);
             Row(ref y,
                 ("Lv.1", () => SetPartyLevel(1)),
@@ -284,6 +302,57 @@ namespace Managers.UI.DevTools
             DebugMode.BeginSession();
             foreach (Unit ally in AliveUnits(false)) ally.ModifyHp(ally.HpMax, ally);
             Debug.Log("[디버그] 아군을 모두 회복시켰다.");
+        }
+
+        /// <summary>회복 카드와 대상 선택 화면을 정상 보상 UI 진입점으로 즉시 확인한다.</summary>
+        private static void PreviewHealingRewards(int focusTier)
+        {
+            GameManager game = GameManager.Instance;
+            List<RewardDef> healing = game?.dataManager?.FetchRewardDataList()?.rewards?
+                .Where(reward => reward?.IsHealingReward == true)
+                .OrderBy(reward => Mathf.Abs(reward.tier - focusTier))
+                .ThenBy(reward => reward.tier)
+                .Take(3)
+                .ToList() ?? new List<RewardDef>();
+            if (game == null || healing.Count == 0) return;
+
+            DebugMode.BeginSession();
+            game.DebugResetBattle();
+            foreach (Unit ally in AliveUnits(false)) ally.ModifyHp(Mathf.Max(1, ally.HpMax / 4));
+            game.gameState = BaseEnums.GameState.RewardSelection;
+            game.uiManager?.ShowRewardPanel(healing);
+            DebugMode.PanelOpen = false;
+            if (_instance?._viewport != null) _instance._viewport.gameObject.SetActive(false);
+            Debug.Log($"[디버그] T{focusTier} 중심 회복 보상 미리보기를 열었다.");
+        }
+
+        /// <summary>아군 일부를 쓰러뜨린 뒤 부활 카드와 대상 선택 화면을 즉시 확인한다.</summary>
+        private static void PreviewRevivalRewards(int focusTier)
+        {
+            GameManager game = GameManager.Instance;
+            List<RewardDef> revival = game?.dataManager?.FetchRewardDataList()?.rewards?
+                .Where(reward => reward?.IsRevivalReward == true)
+                .OrderBy(reward => Mathf.Abs(reward.tier - focusTier))
+                .ThenBy(reward => reward.tier)
+                .Take(3)
+                .ToList() ?? new List<RewardDef>();
+            if (game == null || revival.Count == 0) return;
+
+            DebugMode.BeginSession();
+            game.DebugResetBattle();
+            List<Unit> allies = AliveUnits(false);
+            if (allies.Count < 2)
+            {
+                Debug.LogWarning("[디버그] 부활 보상 미리보기에는 아군이 2명 이상 필요하다.");
+                return;
+            }
+
+            foreach (Unit ally in allies.Skip(1)) ally.Die(null);
+            game.gameState = BaseEnums.GameState.RewardSelection;
+            game.uiManager?.ShowRewardPanel(revival);
+            DebugMode.PanelOpen = false;
+            if (_instance?._viewport != null) _instance._viewport.gameObject.SetActive(false);
+            Debug.Log($"[디버그] T{focusTier} 중심 부활 보상 미리보기를 열었다.");
         }
 
         /// <summary><paramref name="level"/>이 음수면 그 절댓값만큼 올린다.</summary>

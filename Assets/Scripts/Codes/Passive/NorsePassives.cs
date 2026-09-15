@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Codes.Base;
+using Combat;
 using Effects.Base;
 using Effects.Buffs;
 using Effects.Negative;
@@ -17,10 +18,11 @@ namespace Codes.Passive
     public static class NorseStatusIds
     {
         public const int Phytoncide = 5320;
-        public const int PhytoncideRegen = 5321;
+        public const int PhytoncideHarvest = 5321;
         public const int Medicine = 5322;
         public const int Leadership = 5323;
         public const int WarChief = 5324;
+        public const int BaldrMark = 5325;
         public const int Summoner = 5326;
         public const int CryoMastery = 5328;
         public const int CryoAffinity = 5329;
@@ -33,11 +35,21 @@ namespace Codes.Passive
 
     /// <summary>
     /// 프레이아 고유 P — 피톤치드.
-    /// 프레이아가 치유한 아군에게 1턴에 걸쳐 최대 체력의 5%를 더 회복시킨다.
-    /// 회복이 아직 남아 있는 대상은 건너뛰므로 광역 힐 한 번이 여러 번 겹쳐 터지지 않는다.
+    ///
+    /// 전투 중 쌓인 순수치유량을 궁극기가 정산하는 순간, 그 양에 비례한 STR을
+    /// 아군 전체에게 2턴간 얹는다. 기록 자체는 <see cref="Unit.RoundEffectiveHealingDone"/>이
+    /// 이미 들고 있으므로 여기서는 <b>환산과 지급만</b> 한다.
+    ///
+    /// 분모가 프레이아의 최대 체력에 연동되어 레벨이 올라도 체감 배율이 유지된다.
+    /// CON이 주스탯이 되면서 최대 체력과 치유량이 같은 스탯을 타므로 비율은 저절로 맞는다.
     /// </summary>
     public sealed class FreyaPhytoncide : UniquePassiveCode
     {
+        /// <summary>STR 1을 사는 데 필요한 순수치유량 = 최대 체력의 이 비율.</summary>
+        private const float HpRatioPerPoint = 0.1f;
+        private const int MaxBonus = 25;
+        private const int Duration = 2;
+
         public FreyaPhytoncide(PassiveCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Passive;
@@ -47,10 +59,37 @@ namespace Codes.Passive
 
         public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
             NorseStatusIds.Phytoncide, "freya_phytoncide", CodeName,
-            Caster, Caster, new PhytoncideEffect(),
+            Caster, Caster, new MarkerBuffEffect(),
             stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
             isBeneficial: true,
-            description: "치유한 아군이 1턴에 걸쳐 최대 체력의 5%를 추가로 회복합니다."));
+            description: "순수치유량을 기록합니다. 정산하면 아군 전체가 그 양에 비례한 STR을 2턴간 얻습니다."));
+
+        /// <summary>
+        /// 궁극기가 기록을 비울 때 부른다. 기록을 비우는 쪽이 정산의 주인이라
+        /// 여기서는 값만 환산하고 <see cref="Unit.ResetEffectiveHealingRecord"/>는 건드리지 않는다.
+        /// </summary>
+        public int Settle(int effectiveHealing)
+        {
+            if (Caster == null || !Caster.isActive) return 0;
+
+            int divisor = Mathf.Max(1, Mathf.RoundToInt(Caster.HpMax * HpRatioPerPoint));
+            int bonus = Mathf.Clamp(effectiveHealing / divisor, 0, MaxBonus);
+            if (bonus <= 0) return 0;
+
+            foreach (Unit ally in CombatTargets.AliveAlliesIncludingSelf(Caster))
+            {
+                ally.AddStatus(BuffStatus.Create(
+                    NorseStatusIds.PhytoncideHarvest, "freya_phytoncide_harvest", CodeName,
+                    Caster, ally, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.STR, bonus),
+                    duration: Duration,
+                    stackPolicy: BaseEnums.StatusStackPolicy.Replace,
+                    isBeneficial: true,
+                    description: $"STR이 {bonus} 증가합니다."));
+            }
+
+            Debug.Log($"[피톤치드] 순수치유량 {effectiveHealing} 정산 → 아군 전체 STR +{bonus} ({Duration}턴)");
+            return bonus;
+        }
     }
 
     /// <summary>Lv.30 의술 — 부여하는 치유·보호막 +25%. `의신의 가호`(32)의 일반 등급.</summary>
@@ -132,16 +171,59 @@ namespace Codes.Passive
     // ══════════════════════════════════════════════════════════════
 
     /// <summary>
+    /// 로키의 표식. 발드르의 살해자가 남긴다.
+    /// 치유량 −25%와 방어력 −20%를 한 상태에 함께 담아 표식 하나가 통째로 붙고 떨어지게 한다.
+    ///
+    /// 공용 <see cref="HealingReductionStatus"/>(−50%)를 쓰지 않는 것은 의도적이다.
+    /// 표식은 지속시간이 없고 로키가 거두기 전까지 남으므로 턴을 세는 공용 상태와 수명이 다르다.
+    /// </summary>
+    internal sealed class LokiMarkEffect : BaseEffect
+    {
+        private const float HealingMultiplier = 0.75f;
+        private const float DefenseMultiplier = 0.8f;
+
+        public LokiMarkEffect() : base(0) => Category = BaseEnums.EffectCategory.Negative;
+
+        public override float HealingReceivedMultiplierModifier(Unit unit)
+            => unit == Target ? HealingMultiplier : 1f;
+
+        public override float OwnedDefenseStatMultiplierModifier(Unit unit, DamageContext context)
+            => unit == Target ? DefenseMultiplier : 1f;
+    }
+
+    /// <summary>
     /// 로키 고유 P — 펜리르.
-    /// 소환수 펜리르가 2턴마다 현재 체력이 가장 낮은 적을 문다.
-    /// 칸을 차지하지 않아야 하므로 별도 유닛을 만들지 않고 로키에 붙는 상태로 굴린다.
+    ///
+    /// 소환수 펜리르를 거느린다. 펜리르는 제 DEX로 움직이며 스스로 물어뜯고(501),
+    /// 여기에 더해 <b>로키가 표식을 새긴 적이 공격받을 때</b> 추가행동으로 한 번 더 문다.
+    ///
+    /// 방아쇠는 <b>아군 한 명당 한 번</b>이고 로키가 일반행동을 해결할 때 전부 되돌아온다.
+    /// 로키와 펜리르 자신은 방아쇠에서 빠지므로 한 주기의 상한은 넷이다.
+    /// 이 제한이 없으면 다타수 아군 하나가 한 행동에 열 번 넘게 물게 해 위력이 무너진다.
     /// </summary>
     public sealed class LokiFenrir : UniquePassiveCode
     {
-        private Action<EventContext> _turnHandler;
-        private Action<EventContext> _cleanupHandler;
+        /// <summary>표식 반응 물기의 위력. 무는 것은 펜리르라 펜리르의 STR로 친다.</summary>
+        private const int BitePower = 40;
+
+        private const int BleedTurns = 2;
+
+        /// <summary>출혈 강도는 공허 늑대 계열과 같은 규격(턴당 최대 체력 3%)을 쓴다.</summary>
+        private const float BleedMaxHpPercent = 3f;
+
+        private const string MarkKey = "loki_baldr_mark";
+
+        private readonly HashSet<Unit> _spentTriggers = new();
+        private Unit _marked;
+        private int _biteSequence;
         private bool _summonedThisRound;
         private bool _registered;
+
+        private Action<EventContext> _turnHandler;
+        private Action<EventContext> _normalResolvedHandler;
+        private Action<EventContext> _markedDamageHandler;
+        private Action<EventContext> _markedDeathHandler;
+        private Action<EventContext> _cleanupHandler;
 
         public LokiFenrir(PassiveCodeContext context) : base(context)
         {
@@ -156,8 +238,12 @@ namespace Codes.Passive
 
             _summonedThisRound = false;
             _turnHandler = OnOwnerTurnStart;
+            _normalResolvedHandler = OnOwnerNormalActionResolved;
+            _markedDamageHandler = OnMarkedDamaged;
+            _markedDeathHandler = _ => ClearMark();
             _cleanupHandler = _ => StopCode();
             Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnNormalActionResolved, _normalResolvedHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             _registered = true;
@@ -176,13 +262,103 @@ namespace Codes.Passive
             if (context?.Grantee != Caster || !Caster.IsOnField) return;
 
             _summonedThisRound = true;
-            Managers.GridManager.Instance?.SpawnSummon(Caster, Combat.SummonCatalog.Fenrir(Caster));
+            GridManager.Instance?.SpawnSummon(Caster, SummonCatalog.Fenrir(Caster));
         }
+
+        /// <summary>로키가 일반행동을 마치면 아군 전원의 방아쇠가 되돌아온다.</summary>
+        private void OnOwnerNormalActionResolved(EventContext context)
+        {
+            if (Caster == null || !_registered || context?.Grantee != Caster) return;
+            _spentTriggers.Clear();
+        }
+
+        /// <summary>
+        /// 표식을 옮긴다. 표식은 언제나 하나뿐이라 새로 새기면 앞의 것은 사라진다.
+        /// 궁극기 <c>발드르의 살해자</c>만 부른다.
+        /// </summary>
+        public void MarkTarget(Unit target)
+        {
+            if (Caster == null || !_registered || target == null || !target.isActive) return;
+
+            ClearMark();
+
+            _marked = target;
+            _spentTriggers.Clear();
+            target.AddStatus(BuffStatus.Create(
+                NorseStatusIds.BaldrMark, MarkKey, "표식",
+                Caster, target, new LokiMarkEffect(),
+                stackPolicy: BaseEnums.StatusStackPolicy.Replace,
+                category: BaseEnums.StatusCategory.Negative,
+                description: "받는 치유량 25% 감소, 방어력 20% 감소. 펜리르가 이 대상을 노립니다."));
+
+            target.AddListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _markedDamageHandler);
+            target.AddListener(BaseEnums.UnitEventType.OnDeath, _markedDeathHandler);
+        }
+
+        private void ClearMark()
+        {
+            if (_marked == null) return;
+
+            _marked.RemoveListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _markedDamageHandler);
+            _marked.RemoveListener(BaseEnums.UnitEventType.OnDeath, _markedDeathHandler);
+            _marked.RemoveStatusByKey(MarkKey);
+            _marked = null;
+            _spentTriggers.Clear();
+        }
+
+        /// <summary>
+        /// 표식 대상이 맞았다. 때린 아군 하나당 한 번 펜리르의 추가행동을 예약한다.
+        ///
+        /// 지속피해는 <see cref="BaseEnums.CodeType.Effect"/>라 여기서 걸러진다.
+        /// 로키와 펜리르가 빠지는 것은 자기 공격이 자기 추가행동을 부르는 되먹임을 끊기 위해서다.
+        /// </summary>
+        private void OnMarkedDamaged(EventContext context)
+        {
+            Unit attacker = context?.Grantor;
+            if (Caster == null || !_registered || _marked == null || context?.Grantee != _marked) return;
+            if (attacker == null || !attacker.isActive || attacker.IsEnemy == _marked.IsEnemy) return;
+            if (context.DmgCtx == null || context.DmgCtx.ResolvedDamage <= 0 ||
+                context.DmgCtx.CodeType == BaseEnums.CodeType.Effect) return;
+
+            Unit fenrir = Fenrir();
+            if (fenrir == null || attacker == Caster || attacker == fenrir) return;
+            if (!_spentTriggers.Add(attacker)) return;
+
+            ActionScheduler scheduler = GameManager.Instance?.ActionScheduler;
+            if (scheduler == null) return;
+
+            Unit prey = _marked;
+            scheduler.EnqueueAdditional(fenrir, $"loki_fenrir_bite_{_biteSequence++}", CodeName,
+                () => ResolveBite(prey));
+        }
+
+        private void ResolveBite(Unit prey)
+        {
+            Unit fenrir = Fenrir();
+            if (fenrir == null || prey == null || !prey.isActive || prey.IsUntargetable) return;
+
+            Summons.Deal(fenrir, prey, BitePower, BaseEnums.PrimaryStat.STR,
+                DamageTag.ContactAttack, DamageTag.Physical);
+
+            if (!prey.isActive) return;
+
+            // 출혈 판정은 무는 쪽의 현재 LUK%다. 공허 늑대 계열과 같은 규격이다.
+            float chance = Mathf.Clamp01(fenrir.GetBaseLuk() * 0.01f);
+            if (UnityEngine.Random.value >= chance) return;
+
+            BleedStatus.Apply(prey, fenrir, BleedTurns, BleedMaxHpPercent, CodeName);
+        }
+
+        private Unit Fenrir() => Caster?.ActiveSummons
+            .FirstOrDefault(summon => summon != null && summon.isActive);
 
         public override void StopCode()
         {
             if (Caster == null || !_registered) return;
+
+            ClearMark();
             Caster.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnNormalActionResolved, _normalResolvedHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             _summonedThisRound = false;
@@ -367,50 +543,6 @@ namespace Codes.Passive
                 .ToList();
             if (caster != null && caster.isActive && !allies.Contains(caster)) allies.Add(caster);
             return allies;
-        }
-    }
-
-    /// <summary>피톤치드 — 프레이아가 치유를 넣을 때마다 대상에게 회복 상태를 얹는다.</summary>
-    internal sealed class PhytoncideEffect : BaseEffect
-    {
-        private const int RegenDurationTurns = 1;
-        private const float MaxHpRatio = 0.05f;
-
-        public PhytoncideEffect() : base(0) { }
-
-        public override void OnHealingOrShieldGranted(Unit source, Unit target)
-        {
-            if (source != Target || target == null || !target.isActive) return;
-
-            // 피톤치드가 만든 회복이 다시 피톤치드를 부르지 않도록,
-            // 이미 회복 상태가 붙어 있는 대상은 건너뛴다.
-            if (target.HasStatus(NorseStatusIds.PhytoncideRegen)) return;
-
-            int total = Mathf.Max(1, Mathf.RoundToInt(target.HpMax * MaxHpRatio));
-            target.AddStatus(BuffStatus.Create(
-                NorseStatusIds.PhytoncideRegen, "freya_phytoncide_regen", "피톤치드",
-                source, target, new TimedRegenEffect(total, RegenDurationTurns),
-                duration: RegenDurationTurns,
-                stackPolicy: BaseEnums.StatusStackPolicy.Replace,
-                isBeneficial: true,
-                description: $"{RegenDurationTurns}턴에 걸쳐 {total}을 회복합니다."));
-        }
-    }
-
-    /// <summary>지정한 총량을 지속 턴에 걸쳐 균등하게 회복시킨다.</summary>
-    internal sealed class TimedRegenEffect : BaseEffect
-    {
-        private readonly int _perTurn;
-
-        public TimedRegenEffect(int total, int durationTurns) : base(0, total)
-        {
-            _perTurn = Mathf.Max(1, Mathf.RoundToInt(total / (float)Mathf.Max(1, durationTurns)));
-        }
-
-        public override void OnOwnerTurn()
-        {
-            if (Target == null || !Target.isActive) return;
-            Target.ModifyHp(Target.HpCurr + _perTurn, Caster ?? Target);
         }
     }
 

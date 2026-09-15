@@ -9,7 +9,7 @@ namespace Codes.Ultimate
     public sealed class SabahAzrael : SimpleUltimate
     {
         public SabahAzrael(UltimateCodeContext context)
-            : base(context, "아즈라엘", 0f, 0.4f) { }
+            : base(context, "아즈라엘", 0.4f) { }
 
         protected override void Resolve()
         {
@@ -35,7 +35,7 @@ namespace Codes.Ultimate
     public sealed class IcariaChallengeTheSky : SimpleUltimate
     {
         public IcariaChallengeTheSky(UltimateCodeContext context)
-            : base(context, "창공에 대한 도전", 4f, 0.5f) { }
+            : base(context, "창공에 대한 도전", 0.5f) { }
 
         protected override void Resolve()
         {

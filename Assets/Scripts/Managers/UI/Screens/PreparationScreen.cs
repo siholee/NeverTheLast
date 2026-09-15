@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Core;
 using Managers.UI.Core;
 using Managers.UI.Theme;
 using TMPro;
@@ -18,6 +20,8 @@ namespace Managers.UI.Screens
         private TextMeshProUGUI _info;
         private Button _training;
         private Button _rest;
+        private Button _shop;
+        private Button _skill;
         private Button _deck;
         private Button _start;
 
@@ -46,8 +50,8 @@ namespace Managers.UI.Screens
                 UIShapes.Corner.Diagonal, 12, UITheme.Outline, 1);
             _root = panel.gameObject;
             // 하단 가운데. 좌하단 파티 카드와 겹치지 않도록 폭을 제한한다.
-            // 버튼 4개(훈련 · 휴식 · 덱 구성 · 전투 시작)가 좌우 여백 안에 딱 들어가는 폭이다.
-            UIBuild.Pin(panel.rectTransform, new Vector2(0.5f, 0f), new Vector2(788f, 132f),
+            // 버튼 6개(훈련 · 휴식 · 상점 · 스킬 · 덱 구성 · 전투 시작)가 좌우 여백 안에 들어가는 폭이다.
+            UIBuild.Pin(panel.rectTransform, new Vector2(0.5f, 0f), new Vector2(1046f, 132f),
                 new Vector2(0f, 24f));
 
             TextMeshProUGUI title = UIBuild.Label("Title", panel.transform, "준비 페이즈",
@@ -65,9 +69,15 @@ namespace Managers.UI.Screens
                 () => GameManager.Instance?.OpenTrainingFromPreparation());
             _rest = MakeButton(panel.transform, 1, "휴식",
                 () => GameManager.Instance?.RestFromPreparation());
-            _deck = MakeButton(panel.transform, 2, "덱 구성",
+            // 상점은 준비 행동을 쓰지 않는다. 훈련을 했든 보스전이든 언제나 열린다.
+            _shop = MakeButton(panel.transform, 2, "상점",
+                () => GameManager.Instance?.OpenShopFromPreparation());
+            // 스킬도 준비 행동을 쓰지 않는다. 힌트받은 패시브를 스킬 Pt로 배우는 자리다.
+            _skill = MakeButton(panel.transform, 3, "스킬",
+                () => GameManager.Instance?.OpenSkillScreenFromPreparation());
+            _deck = MakeButton(panel.transform, 4, "덱 구성",
                 () => GameManager.Instance?.OpenDeckSetupFromPreparation());
-            _start = MakeButton(panel.transform, 3, "전투 시작", StartRequested, primary: true);
+            _start = MakeButton(panel.transform, 5, "전투 시작", StartRequested, primary: true);
 
             _root.SetActive(false);
         }
@@ -75,7 +85,7 @@ namespace Managers.UI.Screens
         private static Button MakeButton(Transform parent, int index, string text, Action onClick,
             bool primary = false)
         {
-            const float width = 178f;
+            const float width = 160f;
             const float gap = 10f;
             Button button = UIBuild.Button($"Prep{index}", parent, text, onClick, primary);
             UIBuild.Pin(button.image.rectTransform, new Vector2(0f, 0f), new Vector2(width, 48f),
@@ -123,9 +133,25 @@ namespace Managers.UI.Screens
                         ? "준비 행동 완료: 덱을 정리한 뒤 전투를 시작하세요."
                         : "훈련과 휴식 중 하나를 선택하거나 바로 전투를 시작하세요.";
 
+            // 훈련이냐 휴식이냐를 고르는 자리가 여기다. 판단에 필요한 두 값을 함께 띄운다.
+            // 이 값을 보려고 훈련 화면을 열었다 닫는 왕복이 원래 있었다.
+            TrainingState training = TrainingManager.State;
+            _info.text += $"\n훈련 체력 {training.Energy} / {TrainingState.MaxEnergy}" +
+                          $" · 컨디션 {training.ConditionName} · 스킬 Pt {training.SkillPoints}";
+
+            // 배울 수 있는 힌트가 있으면 그 사실이 버튼 이름보다 먼저 눈에 들어와야 한다.
+            int learnable = TrainingManager.GetSkillOffers().Count(offer => offer.CanLearn);
+            if (learnable > 0) _info.text += $" · 습득 가능한 스킬 {learnable}개";
+
+            // 걸려 있는 강화제도 준비 페이즈에서만 확인할 수 있다.
+            string tonics = RunManager.Instance?.PartyTonics.DescribeShort();
+            if (!string.IsNullOrEmpty(tonics)) _info.text += $" · 강화제 {tonics}";
+
             bool actionAvailable = !carryBlocked && !deckOnly && !actionUsed;
             SetEnabled(_training, actionAvailable);
             SetEnabled(_rest, actionAvailable);
+            SetEnabled(_shop, GameManager.Instance?.CanOpenShop == true);
+            SetEnabled(_skill, GameManager.Instance?.CanOpenSkillScreen == true);
             SetEnabled(_deck, !carryBlocked);
             SetEnabled(_start, !carryBlocked);
         }
