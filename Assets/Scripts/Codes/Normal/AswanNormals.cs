@@ -30,6 +30,11 @@ namespace Codes.Normal
             DamageTag.SingleTarget, DamageTag.NormalAttack,
             DamageTag.Physical, DamageTag.ContactAttack, DamageTag.Slash,
         };
+
+        /// <summary>불을 얹는다. 겹치면 화상이 돌아 최대 체력 비례로 깎인다 —
+        /// 아스완 앞 절반이 "화상으로 방어력을 벗겨 낸다"고 적힌 그 축이다.</summary>
+        protected override void OnAttackResolved(Unit target, DamageContext context)
+            => AswanCombat.GrantPyro(Caster, target);
     }
 
     /// <summary>
@@ -100,6 +105,8 @@ namespace Codes.Normal
             {
                 Debug.Log($"[명계의 사령] {target.UnitName}이(가) 출혈에 저항했습니다.");
             }
+
+            AswanCombat.GrantPyro(Caster, target);
         }
     }
 
@@ -253,6 +260,14 @@ namespace Codes.Normal
                         DamageTag.SingleTarget, DamageTag.AdditionalAttack,
                         DamageTag.Special, DamageTag.NonContactAttack, DamageTag.Slash,
                     }, isCrit));
+
+                // 전기를 얹는다. 앞 절반이 깔아 둔 불과 만나면 과부하가 터진다 —
+                // 테마의 두 절반이 최종 보스 앞에서 한 번 이어지는 자리다.
+                if (target.isActive)
+                {
+                    target.GrantCombatElement(
+                        BaseEnums.UnitElement.Electro, Unit.CommonElementAuraDuration, Caster);
+                }
 
                 // 연출 간격은 짧게 잡는다. 스택이 많이 쌓인 상태에서도
                 // 스케줄러의 행동 감시 시간(8초)을 넘기지 않아야 한다.

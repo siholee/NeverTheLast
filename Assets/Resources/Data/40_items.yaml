@@ -783,7 +783,7 @@ items:
     requiredProficiency: Orb
     rarity: 2
     weight: 1
-    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17]
+    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17, 18]
     statBonuses: [{ stat: INT, amount: 3 }]
 
   - id: 4224
@@ -794,7 +794,7 @@ items:
     rarity: 2
     weight: 2
     durability: 6
-    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17]
+    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17, 18]
     statBonuses: [{ stat: DEX, amount: 3 }]
 
   - id: 4225
@@ -806,7 +806,7 @@ items:
     rarity: 2
     weight: 2
     durability: 10
-    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17]
+    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17, 18]
     statBonuses: [{ stat: Durability, amount: 6 }]
 
   # 공허의 크러셔 팔을 뜯어 양손검으로 쓴다. 대검은 지금 T2가 천장이라 이 칸이 비어 있었다.
@@ -819,7 +819,7 @@ items:
     rarity: 3
     weight: 4
     twoHanded: true
-    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17]
+    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17, 18]
     statBonuses: [{ stat: STR, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 421, stage: 1 }
@@ -833,7 +833,7 @@ items:
     rarity: 3
     weight: 2
     durability: 16
-    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17]
+    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17, 18]
     statBonuses: [{ stat: CON, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 422, stage: 1 }
@@ -846,7 +846,7 @@ items:
     category: Ring
     rarity: 3
     weight: 1
-    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17]
+    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17, 18]
     statBonuses: [{ stat: INT, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 423, stage: 1 }
@@ -1141,3 +1141,140 @@ items:
     rarity: 5
     weight: 0
     sellPrice: 650
+
+  # ── 시구르드·브륀힐드의 전용 장비 ────────────────────────────────
+  # 테마를 타지 않는다. 공통 보상 풀에 들어가 어느 테마에서나 나오며,
+  # 적 버전은 startingItemsByLevel로 레벨에 맞춰 입는다.
+
+  - id: 4317
+    name: 파프니르의 피
+    icon: ITEM_FAFNIRS_BLOOD
+    slot: Armor
+    category: Clothing
+    rarity: 3
+    weight: 1
+    durability: 7
+    statBonuses: [{ stat: CON, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 425, stage: 1 }
+
+  - id: 4318
+    name: 바프르로기
+    icon: ITEM_VAFRLOGI
+    slot: Ring
+    category: Ring
+    rarity: 3
+    weight: 1
+    statBonuses: [{ stat: INT, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 426, stage: 1 }
+
+  # 역사적 유물이라 T4를 준다.
+  - id: 4406
+    name: 그람
+    icon: ITEM_GRAM
+    slot: MainHand
+    category: Longsword
+    requiredProficiency: Longsword
+    rarity: 4
+    weight: 2
+    statBonuses: [{ stat: STR, amount: 7 }]
+    codeGrants:
+      - { slot: passive, codeId: 424, stage: 1 }
+
+  # 궁니르 — 오딘에게서 뺏은 창. 역사적 유물이라 T5다.
+  # 회피는 파생값이 0이라 상태·장비로만 생기는데, 이 창이 그 판정 자체를 지운다.
+  - id: 4507
+    name: 궁니르
+    icon: ITEM_GUNGNIR
+    slot: MainHand
+    category: Spear
+    requiredProficiency: Spear
+    rarity: 5
+    weight: 3
+    twoHanded: true
+    statBonuses: [{ stat: STR, amount: 9 }]
+    codeGrants:
+      - { slot: passive, codeId: 427, stage: 1 }
+
+  # ══════════════════════════════════════════════════════════════════
+  # 아스완 세트 (`themeIds: [7]`)
+  #
+  # 테마 전용 장비가 하나도 없던 유일한 운영 테마였다. 성격은 둘로 갈린다 —
+  # 앞 절반의 종말의 사도(불·화상)와 뒤 절반의 사령(되살아남)이다.
+  # T4는 역사적 유물에만 주므로 아문·라의 홀만 T4이고 나머지는 T2·T3다.
+  # ══════════════════════════════════════════════════════════════════
+
+  - id: 4226
+    name: 사도의 화인
+    icon: ITEM_APOSTLE_BRAND
+    slot: Necklace
+    category: Necklace
+    rarity: 2
+    weight: 1
+    themeIds: [7]
+    statBonuses: [{ stat: INT, amount: 3 }]
+
+  - id: 4227
+    name: 사자의 아마포
+    icon: ITEM_FUNERARY_LINEN
+    slot: Armor
+    category: Clothing
+    rarity: 2
+    weight: 1
+    durability: 4
+    themeIds: [7]
+    statBonuses: [{ stat: CON, amount: 3 }]
+
+  - id: 4319
+    name: 봉인된 카노푸스
+    icon: ITEM_CANOPIC_JAR
+    slot: MainHand
+    category: Orb
+    requiredProficiency: Orb
+    rarity: 3
+    weight: 1
+    themeIds: [7]
+    statBonuses: [{ stat: INT, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 428, stage: 1 }
+
+  - id: 4320
+    name: 재의 코페쉬
+    icon: ITEM_ASHEN_KHOPESH
+    slot: MainHand
+    category: Longsword
+    requiredProficiency: Longsword
+    rarity: 3
+    weight: 2
+    themeIds: [7]
+    statBonuses: [{ stat: STR, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 429, stage: 1 }
+
+  - id: 4321
+    name: 사령의 각반
+    icon: ITEM_WRAITH_GREAVES
+    slot: Shoes
+    category: Shoes
+    rarity: 3
+    weight: 2
+    themeIds: [7]
+    statBonuses: [{ stat: DEX, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 430, stage: 1 }
+
+  # 역사적 유물이라 T4다.
+  - id: 4407
+    name: 아문의 홀
+    icon: ITEM_SCEPTRE_OF_AMUN
+    slot: MainHand
+    category: Spear
+    requiredProficiency: Spear
+    rarity: 4
+    weight: 3
+    twoHanded: true
+    themeIds: [7]
+    statBonuses: [{ stat: INT, amount: 7 }]
+    codeGrants:
+      - { slot: passive, codeId: 431, stage: 1 }

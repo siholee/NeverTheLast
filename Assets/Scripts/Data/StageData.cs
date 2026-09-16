@@ -139,6 +139,15 @@ namespace Managers
         public bool grantPassiveToAll;
         public string successText;
         public string failureText;
+
+        /// <summary>
+        /// 영입(<see cref="grantUnitId"/>) 선택지에서 <b>자리가 하나도 없을 때</b> 띄울 문구.
+        ///
+        /// 자리가 없다고 조용히 실패시키면 플레이어는 합류를 골랐는데 아무 일도 없었다고 읽는다.
+        /// 이 문구를 띄운 뒤 누구를 떠나보낼지 고르게 하거나 합류를 포기하게 한다.
+        /// 비워 두면 범용 기본 문구를 쓴다.
+        /// </summary>
+        public string rosterFullText;
     }
 
     [Serializable]
@@ -151,12 +160,58 @@ namespace Managers
         public int tier;
         /// <summary>이 보스를 영구 기록상 격파한 뒤에만 사건 풀에 들어간다.</summary>
         public int requiresBossDefeatId;
+
+        /// <summary>
+        /// 이 보스를 넘어선 직후 <b>추첨 없이 예약되는</b> 사건. 0이면 스테이지 슬롯 추첨만 탄다.
+        ///
+        /// 이 값이 붙은 사건은 <c>themeId</c>·<c>stageInRound</c>를 보지 않고
+        /// 슬롯 풀에서도 빠진다. 보스 격파가 곰 해금인 영입 사건이 여기 속한다.
+        /// </summary>
+        public int triggerBossId;
         public string title;
         public bool oncePerRun;
         public List<int> blockedUnitIds;
         public List<string> randomSpeakers;
         public List<StageEventDialogueData> dialogue;
         public List<StageEventChoiceData> choices;
+
+        /// <summary>
+        /// 이 사건이 영입을 제안하는 유닛 ID. 영입 선택지가 없으면 0이다.
+        ///
+        /// <b>사건 하나는 한 명만 제안한다</b>는 규칙을 전제로 첫 값만 읽는다.
+        /// 해금 여부·중복 판정을 여러 곳에서 같은 모양으로 캐물었어서 한 군데로 모았다.
+        /// </summary>
+        public int RecruitUnitId
+        {
+            get
+            {
+                if (choices == null) return 0;
+                foreach (StageEventChoiceData choice in choices)
+                {
+                    if ((choice?.grantUnitId ?? 0) > 0) return choice.grantUnitId;
+                }
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// 이 사건이 제안하는 <b>모든</b> 영입 대상.
+        ///
+        /// 시구르드·브륀힐드처럼 한 사건이 둘을 함께 내미는 경우가 생겼다.
+        /// <see cref="RecruitUnitId"/>는 "지금 띄울 수 있는가"를 묻는 자리가 쓰는 대표값이고,
+        /// 이쪽은 <b>해금</b>이 쓴다 — 만난 사람은 전부 해금되어야 하기 때문이다.
+        /// </summary>
+        public IEnumerable<int> RecruitUnitIds
+        {
+            get
+            {
+                if (choices == null) yield break;
+                foreach (StageEventChoiceData choice in choices)
+                {
+                    if ((choice?.grantUnitId ?? 0) > 0) yield return choice.grantUnitId;
+                }
+            }
+        }
     }
 
     [Serializable]

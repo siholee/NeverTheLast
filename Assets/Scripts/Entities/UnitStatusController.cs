@@ -85,6 +85,8 @@ namespace Entities
                     {
                         int oldRemaining = existing.RemainingTurns;
                         existing.Duration = existing.ElapsedTurns + oldRemaining + status.Duration;
+                        if (status.Duration > 0 && oldRemaining != int.MaxValue)
+                            _owner.Chemistry?.ReceiveBuff(existing, status.Caster);
                         if (status.Category == BaseEnums.StatusCategory.Negative)
                         {
                             _notifyNegative?.Invoke(status.Caster, status);
@@ -178,6 +180,8 @@ namespace Entities
             status.OnApply();
             // 스탯 질의 훅을 가진 효과가 즉시 반영되도록 스탯 캐시 갱신
             _onChanged?.Invoke();
+
+            _owner.Chemistry?.ReceiveBuff(status);
 
             if (status.IsBeneficial)
             {

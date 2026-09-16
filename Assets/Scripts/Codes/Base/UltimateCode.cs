@@ -9,6 +9,8 @@ namespace Codes.Base
     /// 천총운검처럼 패시브가 직접 굴리는 상시형 궁극기는 false를 사용한다.
     /// </summary>
     public virtual bool IsAutoCast => true;
+    /// <summary>복합 자원 궁극기는 정상 해결 시점에 직접 소비한다.</summary>
+    public virtual bool ConsumesResourceOnResolve => false;
 
     public UltimateCode(UltimateCodeContext context)
     {

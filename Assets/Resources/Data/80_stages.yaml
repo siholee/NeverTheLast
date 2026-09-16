@@ -20,40 +20,54 @@ stageThemes:
   # ── 콜로세움 (일시 비활성) ─────────────────────────────────────────
   # 리메이크 예정이라 런 로테이션에서 빼두었다. 편성·보스·사건은 손대지 않았으므로
   # enabled를 true로 되돌리면 그대로 돌아온다.
+  # ── 콜로세움 ──────────────────────────────────────────────────────
+  # 아홉 전투 슬롯에 <b>한 명씩</b> 선다. 검투사 여섯을 엘리트로 올려
+  # 테마 전체가 엘리트·보스로만 채워지는 유일한 구성이다.
+  #
+  #   * 천살성(11)은 일반 등급만 잡으므로 이 테마에서는 한 번도 통하지 않는다.
+  #   * 광역은 값을 잃고 단일 화력이 그대로 산다. 편성의 성격을 정면으로 시험한다.
+  #   * 적이 하나뿐이라 상단 체력 띠와 카드 확대가 매 판 켜진다.
+  #
+  # 검투사마다 다른 원소를 두르고 자기 원소를 부착하므로, 겹치면 자기 짝 반응이 터진다 —
+  # 진동(기절) · 착근(지연) · 화상(지속피해) · 확산(전파) · 둔화를 결투마다 하나씩 배운다.
+  # 물(정수 INT+)과 전기(축전 LUK+)는 버프가 되므로 쓰지 않는다.
   - id: 4
     name: 콜로세움
-    enabled: false
     tags: [Colosseum, Rome, Festival]
     enemyThemeId: 5
-    description: 로마 각지의 인간 검투사와 속주에서 붙잡아 온 괴수가 맞붙는 대축제입니다.
-    midBossId: 2005
+    description: 로마 각지의 검투사가 하나씩 모래 위에 선다. 여럿을 상대할 일은 없고, 매번 한 명이다.
+    midBossId: 2004
+    midBossStageInRound: 8
     bossId: 3003
     ambientColor: "#5A3A1E"   # 콜로세움 — 모래와 횃불
     stagePatterns:
       - stageInRound: 1
         patterns:
-          - { enemyIds: [1020, 1023], weight: 100 }
+          - { frontIds: [1020], weight: 100 }   # 무르밀로 — 바위 · 진동
       - stageInRound: 2
         patterns:
-          - { enemyIds: [1021, 1022], weight: 100 }
+          - { frontIds: [1021], weight: 100 }   # 호플로마쿠스 — 풀 · 착근
       - stageInRound: 3
         patterns:
-          - { enemyIds: [1023, 1024, 1020], weight: 60 }
-          - { enemyIds: [1025, 1021, 1020], weight: 40 }
+          - { frontIds: [1022], weight: 100 }   # 트라엑스 — 불 · 화상
       - stageInRound: 4
         patterns:
-          - { enemyIds: [2004, 1023], weight: 100 }
+          - { rearIds: [1023], weight: 100 }    # 레티아리우스 — 바람 · 확산. 그물잡이라 후열이다
       - stageInRound: 6
         patterns:
-          - { enemyIds: [1020, 1025, 1023, 1024], weight: 50 }
-          - { enemyIds: [1021, 1022, 1023, 1024], weight: 50 }
+          - { frontIds: [1024], weight: 100 }   # 세쿠토르 — 얼음 · 둔화
       - stageInRound: 7
         patterns:
-          - { enemyIds: [1020, 1021, 1023, 1024, 1025], weight: 100 }
+          - { frontIds: [1025], weight: 100 }   # 디마카이루스 — 불 · 화상
+      - stageInRound: 8
+        patterns:
+          - { frontIds: [2004], weight: 100 }   # 프리무스 팔루스 마르켈루스 — 중간 보스
       - stageInRound: 9
         patterns:
-          - { enemyIds: [2004, 1022, 1024, 1025], weight: 50 }
-          - { enemyIds: [1020, 1021, 1023, 1024, 1025], weight: 50 }
+          - { rearIds: [2005], weight: 100 }    # 베스티아리우스 사비나
+      - stageInRound: 10
+        patterns:
+          - { frontIds: [3003], weight: 100 }   # 스파르타쿠스
 
   # ── 로마 군단 ──────────────────────────────────────────────────────
   # 콜로세움이 '축제'라면 이쪽은 '전쟁'이다. 전열 사다리를 그대로 밟아 올라가는 편성이라
@@ -105,37 +119,44 @@ stageThemes:
     name: 메히코
     tags: [Mexica, Ritual, Obsidian]
     enemyThemeId: 7
-    description: 재규어와 독수리 전사들이 전열을 세우고 뱀 사제와 두 신이 의식을 완성합니다.
+    description: 재규어와 독수리 전사가 전열을 세우고 뱀 사제가 의식을 완성합니다.
+    midBossId: 3201
+    midBossStageInRound: 9
     bossId: 3010
     ambientColor: "#1E4230"   # 메히코 — 정글과 흑요석
     stagePatterns:
+      # 정예 병종은 <b>본대가 아니라 호위</b>다. 예전에는 3~8슬롯이 전부 정예 재규어였는데,
+      # 엘리트를 본대로 쓰면 등급이 뜻을 잃고 천살성 같은 코드가 통째로 죽는다.
+      #
+      # 뱀 사제가 풀을 겹쳐 착근으로 묶고, 9슬롯의 케찰코아틀이 그 위에 얹힌다.
       - stageInRound: 1
         patterns:
-          - { enemyIds: [1040, 1040, 1040, 1041, 1041], weight: 100 }
+          - { frontIds: [1040, 1040], rearIds: [1041, 1041], weight: 100 }
       - stageInRound: 2
         patterns:
-          - { enemyIds: [1040, 1040, 1040, 1040, 2011], weight: 100 }
+          - { frontIds: [1040, 1040, 1040], rearIds: [1041, 1041], weight: 100 }
       - stageInRound: 3
         patterns:
-          - { enemyIds: [2010, 2010, 2010, 2011, 2011], weight: 100 }
+          - { frontIds: [1040, 1040, 1040], rearIds: [1042, 1042], weight: 100 }
       - stageInRound: 4
         patterns:
-          - { enemyIds: [2010, 2010, 2010, 2010, 1042], weight: 100 }
+          - { frontIds: [1040, 1040, 2010], rearIds: [1042, 1042], weight: 100 }
       - stageInRound: 6
         patterns:
-          - { enemyIds: [2010, 2010, 2010, 2010, 2012], weight: 100 }
+          - { frontIds: [1040, 1040, 1040], rearIds: [1041, 1041, 1042], weight: 100 }
       - stageInRound: 7
         patterns:
-          - { enemyIds: [2010, 2010, 2010, 2012, 2012], weight: 100 }
+          - { frontIds: [2010, 2010, 1040], rearIds: [2011, 2011], weight: 100 }
       - stageInRound: 8
         patterns:
-          - { enemyIds: [2010, 2010, 2011, 2012, 2012], weight: 100 }
+          - { frontIds: [2010, 2010, 1040], rearIds: [2012, 2012], weight: 100 }
+      # 9슬롯 — 중간 보스. 케찰코아틀이 후열에서 의식을 마무리한다.
       - stageInRound: 9
         patterns:
-          - { enemyIds: [2010, 2010, 2011, 2012, 3201], weight: 100 }
+          - { frontIds: [2010, 2010], rearIds: [3201, 2012], weight: 100 }
       - stageInRound: 10
         patterns:
-          - { enemyIds: [2010, 2010, 3010], weight: 100 }
+          - { frontIds: [3010], weight: 100 }
 
   # ── 아스완 ────────────────────────────────────────────────────────
   # 한 테마 안에서 성격이 두 번 바뀐다.
@@ -553,43 +574,100 @@ stageThemes:
     tags: [Nord, Void]
     enemyThemeId: 15
     description: "눈이 그치지 않는 북부다. 혹한 계열이 판에 눈을 깔고 그 위에서 몸집을 불린다."
-    midBossId: 2033
+    midBossId: 2030
     midBossStageInRound: 8
-    bossId: 2031
+    bossId: 3061
+    chainNextThemeId: 18
     rotationRedirectThemeId: 16
     ambientColor: "#1A2E3E"   # 노르드 북부 — 밤의 눈보라
     stagePatterns:
+      # ── 사건 앞: 살아 있는 공허 괴수만 ────────────────────────────
+      # 짐승과 프리즘뿐이다. 기계는 5슬롯의 사건에서 씨앗을 처음 본 뒤에 나온다.
+      # 눈을 걷어내자 금속 껍질이 드러나는 그 사건이 판을 가르는 경첩이다.
       - stageInRound: 1
         patterns:
           - { frontIds: [1068, 1068], rearIds: [1068, 1068, 1068], weight: 100 }
       - stageInRound: 2
         patterns:
           - { frontIds: [1092, 1092, 1092], rearIds: [1076, 1076], weight: 100 }
-      # 3슬롯이 씨앗을 처음 가르치는 방이다. 광역으로 한 번에 쓸면 자폭이 동시에 겹친다.
-      # 넷이 함께 터지면 후열 체력을 넘으므로, 한 마리씩 끊거나 방어막을 두르는 것이 답이다.
       - stageInRound: 3
         patterns:
-          - { frontIds: [1061, 1061], rearIds: [1061, 1061], weight: 100 }
+          - { frontIds: [1084, 1084, 1084], rearIds: [1076, 1076], weight: 100 }
       - stageInRound: 4
         patterns:
-          - { frontIds: [1084, 1084, 1084], rearIds: [1108, 1108], weight: 100 }
+          - { frontIds: [1092, 1092, 1084, 1084], rearIds: [1068, 1068], weight: 100 }
+      # ── 사건 뒤: 기계가 깨어난다 ─────────────────────────────────
+      # 6슬롯이 씨앗을 처음 가르치는 방이다. 넷이 함께 터지면 후열이 죽으므로
+      # 한 마리씩 끊거나 방어막을 두르게 된다.
       - stageInRound: 6
         patterns:
-          - { frontIds: [1100, 1100, 1100], rearIds: [1108, 1108], weight: 100 }
+          - { frontIds: [1061, 1061], rearIds: [1061, 1061], weight: 100 }
       - stageInRound: 7
         patterns:
-          - { frontIds: [1116, 1116, 1116], rearIds: [1068, 1068], weight: 100 }
-      # 8슬롯 — 중간 보스. 3슬롯의 함정을 엘리트로 키운 방이다.
-      # 혹한의 씨앗이 혼자 눈을 깔아 자기 DEX·CON을 올리므로 먼저 끊을수록 판이 식는다.
+          - { frontIds: [1100, 1100, 1100], rearIds: [1108, 1108], weight: 100 }
+      # 8슬롯 — 중간 보스. 종말의 거인은 불 속성이라 사방의 얼음과 만나 융해가 돈다.
+      # 씨앗 둘이 앞에 서 있어 거인을 때리려면 그 둘을 지나야 한다.
       - stageInRound: 8
         patterns:
-          - { frontIds: [1061, 1061], rearIds: [2033, 1076, 1076], weight: 100 }
+          - { frontIds: [2030, 1061, 1061], rearIds: [1108, 1108], weight: 100 }
       - stageInRound: 9
         patterns:
-          - { frontIds: [1092, 1092, 1084], rearIds: [1108, 1108], weight: 100 }
+          - { frontIds: [1116, 1116], rearIds: [2033, 1108, 1108], weight: 100 }
       - stageInRound: 10
         patterns:
-          - { frontIds: [2031], weight: 100 }
+          - { frontIds: [3061], weight: 100 }
+
+  # 노르드 중부 — 3부작의 마지막.
+  #
+  # 앞 절반은 광전사·볼바의 상위판(에인하르·노른·발키리)으로 노르드 1의 구도를 다시 치르고,
+  # 6슬롯의 합류 분기를 지나면 뒤 절반이 통째로 공허가 된다. 오딘이 문을 열어 줬기 때문이며,
+  # 그 사실은 10슬롯에서 그의 속성이 번개에서 공허로 바뀔 때 드러난다.
+  #
+  # enemyThemeId는 19다. 편성을 전부 명시 ID로 못 박아 소환에는 읽히지 않고,
+  # 노르드 1(17)로 두면 오딘·시구르드가 그쪽 폴백 풀에 섞이기 때문에 따로 둔다.
+  #
+  # chainNextThemeId가 없다 — 여기서 연작이 끝나고 다시 추첨으로 돌아간다.
+  - id: 18
+    name: 노르드 중부
+    tags: [Nord, Void]
+    enemyThemeId: 19
+    description: "폭군의 땅이다. 노르드의 병사들 뒤에 공허가 서 있고, 그 문을 연 것은 오딘 자신이다."
+    midBossId: 2051
+    midBossStageInRound: 6
+    bossId: 3001
+    rotationRedirectThemeId: 16
+    ambientColor: "#2B2438"   # 노르드 중부 — 재와 보랏빛
+    stagePatterns:
+      # 1~4슬롯 — 노르드 1의 구도를 상위 병종으로 다시 치른다.
+      - stageInRound: 1
+        patterns:
+          - { frontIds: [1121, 1121], rearIds: [1123], weight: 100 }
+      - stageInRound: 2
+        patterns:
+          - { frontIds: [1121, 1121, 1121], rearIds: [1123, 1123], weight: 100 }
+      - stageInRound: 3
+        patterns:
+          - { frontIds: [1121, 1121], rearIds: [1123, 1123, 1124], weight: 100 }
+      - stageInRound: 4
+        patterns:
+          - { frontIds: [1121, 1121], rearIds: [1124, 1124, 1123], weight: 100 }
+      # 6슬롯 — 합류 분기. 이기면 곧바로 합류 사건이 예약된다(triggerBossId 2051).
+      - stageInRound: 6
+        patterns:
+          - { frontIds: [2051], rearIds: [2052], weight: 100 }
+      # 7~9슬롯 — 문이 열린 뒤. 노르드가 사라지고 공허만 남는다.
+      - stageInRound: 7
+        patterns:
+          - { frontIds: [1086, 1086, 1086], rearIds: [1070, 1070], weight: 100 }
+      - stageInRound: 8
+        patterns:
+          - { frontIds: [1094, 1094, 1094], rearIds: [1102, 1102], weight: 100 }
+      - stageInRound: 9
+        patterns:
+          - { frontIds: [1110, 1110, 1110], rearIds: [1062, 1062], weight: 100 }
+      - stageInRound: 10
+        patterns:
+          - { frontIds: [3001], weight: 100 }
 
 events:
   - id: colosseum_masked_gladiator
@@ -704,7 +782,7 @@ events:
   - id: aswan_bastet_first_amun_ra_clear
     themeId: 0
     stageInRound: 0
-    requiresBossDefeatId: 3012
+    triggerBossId: 3012
     title: 모래 위의 고양이 발자국
     dialogue:
       - speaker: 일행
@@ -726,7 +804,7 @@ events:
       - id: decline_bastet_after_amun_ra
         text: 이번에는 각자의 길을 간다.
         action: continue
-        successText: 바스테트는 아쉬운 듯 웃더니 모래바람 속으로 사라졌다.
+        successText: 바스테트는 아쉬운 듯 웃더니 모래바람 속으로 사라졌다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
 
   # 아문·라 격파 이후 모든 테마의 사건 슬롯에서 출현 가능한 별개의 T4 영입 사건.
   - id: t4_horus_falcon_without_throne
@@ -756,7 +834,7 @@ events:
       - id: decline_horus_after_amun_ra
         text: 아직은 각자의 전장을 지킨다.
         action: continue
-        successText: 호루스는 매의 울음과 함께 하늘 너머로 사라졌다.
+        successText: 호루스는 매의 울음과 함께 하늘 너머로 사라졌다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
 
   - id: t4_set_red_desert_compact
     themeId: 0
@@ -785,7 +863,7 @@ events:
       - id: decline_set_after_amun_ra
         text: 혼돈과 손잡지 않는다.
         action: continue
-        successText: 세트는 다음 선택은 달라질 거라며 붉은 모래 속으로 돌아갔다.
+        successText: 세트는 다음 선택은 달라질 거라며 붉은 모래 속으로 돌아갔다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
 
 # 고정 보스는 현재 없다.
 # 25/50/75/100 지점의 고정 보스는 아직 설계되지 않았다.
@@ -817,6 +895,44 @@ events:
         action: continue
         successText: 불은 꺼졌지만 노파는 웃기만 했다. 얼음 위에 불을 얹는 수는 그들이 먼저 배운 것이다.
 
+  # triggerBossId가 방아쇠다 — 토르(3060)를 넘어선 직후 추첨 없이 예약된다.
+  # 슬롯 추첨을 타지 않으므로 themeId/stageInRound는 0이다.
+  #
+  # 거절해도 로키는 해금된다. 사건을 끝까지 본 것만으로 다음 런부터 골라 쓸 수 있으므로,
+  # '정중하게 거절한다'는 이번 런에 데려가지 않겠다는 뜻일 뿐 함정이 아니다.
+  - id: nord_loki_after_thor
+    themeId: 0
+    stageInRound: 0
+    triggerBossId: 3060
+    title: 형의 뒤에 서 있던 자
+    dialogue:
+      - speaker: 일행
+        text: 천둥이 그친 자리에 눈이 도로 내려앉는다. 쓰러진 토르 너머, 아까까지 아무도 없던 바위 위에 한 사람이 앉아 있다.
+      - speaker: 로키
+        text: 형이 넘어지는 건 처음 봤어. 그것도 이런 애들한테. 재미있네.
+        portrait: LOKI_PORTRAIT
+        standing: LOKI_STANDING
+      - speaker: 로키
+        text: 나는 저쪽 편도, 이쪽 편도 아니었어. 그냥 끝이 어떻게 오는지 보고 싶었을 뿐이야.
+        portrait: LOKI_PORTRAIT
+        standing: LOKI_STANDING
+      - speaker: 로키
+        text: 그런데 너희를 보니, 구경만 하기엔 아까운 길인 것 같거든. 나도 끼워 줄래?
+        portrait: LOKI_PORTRAIT
+        standing: LOKI_STANDING
+    choices:
+      - id: welcome_loki_after_thor
+        text: 합류를 환영한다.
+        action: continue
+        grantUnitId: 82
+        rosterFullText: 자리가 없다. 로키를 영입하기 위해서는 누군가가 떠나야 할 것 같다.
+        successText: 로키가 아군에 합류했다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
+        failureText: 결국 자리를 비우지 못했다. 로키는 어깨를 으쓱하고 눈보라 속으로 사라졌다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
+      - id: decline_loki_after_thor
+        text: 정중하게 거절한다.
+        action: continue
+        successText: 로키는 기분 나빠 하지도 않았다. "그럼 다음에 보자"는 말만 남기고 눈 위의 발자국까지 지우고 갔다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
+
   - id: nord_north_the_white_silence
     themeId: 17
     stageInRound: 5
@@ -838,5 +954,128 @@ events:
         text: 껍질을 깨 본다.
         action: continue
         successText: 껍질 안은 비어 있었다. 대신 안쪽 벽에 서리가 낀 무늬가 있다 — 터질 때 무엇이 퍼지는지 미리 본 셈이다.
+
+  # 씨앗 사건 — 테마를 가리지 않는다(themeId 0). 한 런에 한 번만 뜬다.
+  #
+  # tier가 붙은 범용 사건이라 그 스테이지의 테마 사건보다 먼저 잡힌다. 1로 둔 것은
+  # 영입 사건(T4)이 뜰 자리를 빼앗지 않기 위해서다.
+  #
+  # 덮어 두는 쪽은 아무것도 주지 않는다. "안전하게 넘어갔다"가 곧 보상이며,
+  # 되돌아올 수 없다. 깨는 쪽은 강화된 씨앗(종말의 씨앗)과 싸우고 귀중품을 얻는다.
+  - id: seed_beneath_the_ground
+    themeId: 0
+    stageInRound: 5
+    tier: 1
+    oncePerRun: true
+    title: 땅속의 것
+    dialogue:
+      - speaker: 일행
+        text: 발밑에서 규칙적인 진동이 올라온다. 흙을 걷어내자 금속 껍질이 드러난다. 이음매마다 서리가 껴 있고, 안쪽에서 무언가 천천히 빛이 돈다.
+      - speaker: 일행
+        text: 아직 깨어나지 않았다. 건드리면 깨어날 것이고, 깨어나면 터질 것이다. 그리고 이런 껍질 안에는 대개 값나가는 것이 함께 봉인되어 있다.
+      - speaker: 일행
+        text: 진동이 조금 빨라진다. 오래 볼 수 있는 물건은 아니다.
+    choices:
+      - id: seed_leave_it_buried
+        text: 덮어 두고 간다.
+        action: continue
+        successText: 흙을 다시 덮었다. 몇 걸음 걷자 진동은 들리지 않았다. 무엇이 들어 있었는지는 끝내 알 수 없다.
+      - id: seed_crack_the_shell
+        text: 껍질을 깬다.
+        action: continue
+        battleEnemyId: 2032
+        successText: 껍질이 갈라지며 씨앗이 일어섰다. 쓰러뜨리고 나니 이음매 안쪽에 봉인된 병이 하나 남아 있다.
+        failureText: 씨앗은 터지지 않았고, 우리가 물러섰다. 땅속의 것은 그대로 남았다.
+        grantItemId: 4903
+
+  - id: nord_central_the_kings_road
+    themeId: 18
+    stageInRound: 5
+    oncePerRun: true
+    title: 왕의 길
+    dialogue:
+      - speaker: 일행
+        text: 길 양쪽에 창이 꽂혀 있다. 창마다 노르드의 문장이 걸려 있는데, 자루를 감은 천 아래로 익숙한 보랏빛이 배어 나온다.
+      - speaker: 일행
+        text: 공허다. 이 땅의 병사들이 쓰는 무기에 이미 섞여 있었다. 누가 들여왔는지는 길 끝에 있을 것이다.
+      - speaker: 일행
+        text: 앞쪽에서 두 사람이 길을 막고 서 있다. 창을 내리지 않은 것을 보면 여기서부터는 통행이 아니라 시험이다.
+    choices:
+      - id: nord_central_read_the_banner
+        text: 문장을 확인하고 간다.
+        action: continue
+        successText: 왕의 문장이 맞다. 다만 아래에 덧대인 무늬는 노르드의 것이 아니었다.
+      - id: nord_central_press_on
+        text: 그냥 지나간다.
+        action: continue
+        successText: 창을 지나쳤다. 등 뒤에서 천이 바람에 들리는 소리가 오래 따라왔다.
+
+  # 합류 사건 — 6슬롯의 시구르드·브륀힐드를 이기면 예약된다.
+  # 둘 중 하나만 데려가도 <b>양쪽 모두</b> 영구 해금된다. 만났다는 사실이 해금 조건이다.
+  - id: nord_central_oathbound_pair
+    themeId: 0
+    triggerBossId: 2051
+    oncePerRun: true
+    title: 맹세한 자들
+    dialogue:
+      - speaker: 일행
+        text: 두 사람은 무기를 내려놓지 않았다. 다만 겨누지도 않는다. 창끝이 우리를 지나 길 끝을 향해 있다.
+      - speaker: 브륀힐드
+        text: 우리는 저 사람을 막으라고 세워진 것이 아니라, 저 사람에게 세워진 거다. 그 차이를 이제야 알았다.
+        portrait: BRYNHILD_PORTRAIT
+        standing: BRYNHILD_STANDING
+      - speaker: 시구르드
+        text: 맹세는 아직 유효하다. 다만 대상이 바뀌었을 뿐이지. 한 사람은 남아 길을 지켜야 하니, 데려갈 쪽을 골라라.
+        portrait: SIGURD_PORTRAIT
+        standing: SIGURD_STANDING
+    choices:
+      - id: nord_central_take_sigurd
+        text: 시구르드를 데려간다.
+        action: continue
+        grantUnitId: 84
+        successText: 시구르드가 그람을 들고 뒤를 따랐다. 브륀힐드는 길에 남아 창을 세웠다.
+      - id: nord_central_take_brynhild
+        text: 브륀힐드를 데려간다.
+        action: continue
+        grantUnitId: 85
+        successText: 브륀힐드가 창을 고쳐 쥐고 앞장섰다. 시구르드는 길에 남아 검을 세웠다.
+      - id: nord_central_take_neither
+        text: 둘 다 두고 간다.
+        action: continue
+        successText: 두 사람은 길을 비켜 주었다. 다음에 만날 때는 같은 편일 것이다.
+
+  # 케찰코아틀 합류 — 메히코 9슬롯(중간 보스)을 이기면 예약된다.
+  #
+  # 10슬롯의 테스카틀리포카가 이 테마의 최종 보스이고 둘은 형제다.
+  # 깃털 뱀은 제 뜻으로 길을 막은 것이 아니라 거울에 비친 명령을 따르고 있었다 —
+  # 그 명령이 끊기는 자리가 곧 합류 분기다.
+  - id: mexica_quetzalcoatl_after_duel
+    themeId: 0
+    triggerBossId: 3201
+    oncePerRun: true
+    title: 거울에서 풀려난 깃털
+    dialogue:
+      - speaker: 일행
+        text: 깃털 뱀이 무너지자 몸을 감고 있던 검은 실이 한 올씩 풀린다. 흑요석 거울의 무늬였다.
+      - speaker: 케찰코아틀
+        text: 고맙다고 해야 하나. 저 거울에 비친 명령을 듣고 있었을 뿐, 너희를 막고 싶었던 적은 없었다.
+        portrait: QUETZALCOATL_PORTRAIT
+        standing: QUETZALCOATL_STANDING
+      - speaker: 케찰코아틀
+        text: 형은 아직 위에 있다. 내가 못 끊은 것을 너희가 끊었으니, 이번엔 내가 따라가 볼 차례겠지.
+        portrait: QUETZALCOATL_PORTRAIT
+        standing: QUETZALCOATL_STANDING
+    choices:
+      - id: welcome_quetzalcoatl
+        text: 함께 올라가자고 답한다.
+        action: continue
+        grantUnitId: 140
+        rosterFullText: 자리가 없다. 케찰코아틀을 영입하려면 누군가가 떠나야 할 것 같다.
+        successText: 케찰코아틀이 아군에 합류했다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
+        failureText: 자리를 비우지 못했다. 깃털 뱀은 고개를 끄덕이고 먼저 계단을 올랐다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
+      - id: decline_quetzalcoatl
+        text: 여기서 쉬라고 말한다.
+        action: continue
+        successText: 깃털 뱀은 풀린 실을 손에 쥔 채 남았다. "위에서 보자"고만 했다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
 
 fixedBossStages: []

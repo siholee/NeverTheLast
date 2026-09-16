@@ -36,6 +36,7 @@ namespace Codes.Base
         205 => new LightGreatFlight(context), // 라이트 초기 패시브 — 위대한 비행
         206 => new NicoleElectricField(context), // 니콜 초기 패시브 — 일렉트릭 필드
         207 => new JeanBestDefense(context),  // 잔 초기 패시브 — 최고의 방어
+        208 => new LavoisierMassConservation(context),
         104 => new JeanMisfireGuard(context),
         105 => new JeanPhysicalCoach(context),
         106 => new JeanBulkUp(context),
@@ -108,6 +109,11 @@ namespace Codes.Base
         282 => new LokiFenrir(context),
         73 => new LokiSummoner(context),
         283 => new SkadiNorthernGuardian(context),
+        284 => new SigurdOath(context),
+        285 => new BrynhildOath(context),
+        3001 => new OdinVoidPact(context),
+        3002 => new OdinHuginnMuninn(context),
+        3003 => new OdinForesight(context),
         75 => new SkadiCryoAffinity(context),
         76 => new SkadiElementalist(context),
         // ── 쿠베라·바루나·오르페우스·스사노오 ──
@@ -204,6 +210,8 @@ namespace Codes.Base
         1424 => new GiantStunningBlow(context),
         1425 => new GiantCoupDeGrace(context),
         1426 => new GiantAdaptability(context),
+        1427 => new GiantPermafrost(context),
+        1428 => new GiantFrozenSowing(context),
         // ── 범용 씨앗 ──
         1430 => new GenericSeedFormation(context, 1),
         1431 => new GenericSeedFormation(context, 2),
@@ -299,6 +307,14 @@ namespace Codes.Base
         421 => new CrusherArmItemPassive(context),
         422 => new ShedScaleItemPassive(context),
         423 => new EightfoldRingItemPassive(context),
+        424 => new GramItemPassive(context),
+        425 => new FafnirsBloodItemPassive(context),
+        426 => new VafrlogiItemPassive(context),
+        427 => new GungnirItemPassive(context),
+        428 => new CanopicJarItemPassive(context),
+        429 => new AshenKhopeshItemPassive(context),
+        430 => new WraithGreavesItemPassive(context),
+        431 => new SceptreOfAmunItemPassive(context),
         // ── 사바흐·이카리아 ──
         203 => new SabahDebuffHunter(context),
         226 => new IcariaRecklessChallenge(context),
@@ -340,6 +356,7 @@ namespace Codes.Base
         5 => new LightNormalAttack(context), // 라이트 일반행동/플라이어 소환
         6 => new NicoleArcShot(context), // 니콜 일반행동
         7 => new JeanIronFist(context), // 잔 일반행동/대체행동
+        8 => new LavoisierFlask(context),
         67 => new SuryaRavi(context),   // 수리야 라비/대체행동 바스카르
         500 => new FlyerNormalAttack(context), // 소환수 — 플라이어 일반행동
         501 => new FenrirBite(context), // 소환수 — 펜리르 일반행동
@@ -354,6 +371,9 @@ namespace Codes.Base
         81 => new FreyaNormalAttack(context),
         82 => new LokiNormalAttack(context),
         83 => new SkadiNormalAttack(context),
+        84 => new SigurdGram(context),
+        85 => new BrynhildValkyrieSpear(context),
+        3001 => new OdinGungnir(context),
         65 => new KuberaNormalAttack(context),
         66 => new VarunaNormalAttack(context),
         42 => new SusanooNormalAttack(context),
@@ -401,6 +421,7 @@ namespace Codes.Base
         // ── 범용 거인 ──
         1420 => new GenericGiantNormalAttack(context, 80),
         1421 => new GenericGiantNormalAttack(context, 100),
+        1427 => new FrostGiantStomp(context),
         // ── 범용 씨앗 ──
         1430 => new GenericSeedVolley(context),
         // ── 공허의 프리즘 ──
@@ -469,6 +490,7 @@ namespace Codes.Base
         5 => new LightFlyingDream(context), // 라이트 궁극기
         6 => new NicoleOvercharge(context), // 니콜 궁극기
         7 => new JeanMaidOfOrleans(context), // 잔 궁극기
+        8 => new LavoisierExperiment(context),
         500 => new FlyerSkyfall(context), // 소환수 — 플라이어 궁극기
         61 => new YamaFinalArrival(context),
         62 => new AgniWhiteFlame(context),
@@ -478,6 +500,9 @@ namespace Codes.Base
         81 => new FreyaHarvest(context),
         82 => new LokiBaldrSlayer(context),
         83 => new SkadiIcicleSpike(context),
+        84 => new SigurdFafnirsBane(context),
+        85 => new BrynhildVerdict(context),
+        3001 => new OdinFinalRune(context),
         65 => new KuberaGoldenQuake(context),
         66 => new VarunaMakara(context),
         42 => new SusanooAmenoMurakumo(context),
@@ -524,6 +549,7 @@ namespace Codes.Base
         // ── 범용 거인 ──
         1420 => new GenericGiantHammerfall(context, 80, 130),
         1421 => new GenericGiantHammerfall(context, 100, 150),
+        1427 => new FrostGiantAdvent(context),
         // ── 범용 씨앗 ──
         1430 => new GenericSeedOverdrive(context),
         1431 => new FrostSeedBeam(context),

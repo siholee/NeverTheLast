@@ -274,6 +274,29 @@ public class Cell : MonoBehaviour
             }
         }
     }
+
+    private void OnMouseOver()
+    {
+        var chemistry = unit != null ? unit.GetComponent<Unit>()?.Chemistry : null;
+        if (!isOccupied || chemistry == null || !chemistry.Active ||
+            (UnityEngine.EventSystems.EventSystem.current != null &&
+             UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject()))
+        {
+            Managers.UI.Core.UITooltip.Hide(this);
+            return;
+        }
+        var lines = new System.Collections.Generic.List<Managers.UI.Core.UITooltip.Line>
+        {
+            Managers.UI.Core.UITooltip.Line.Note(chemistry.Summary, Color.white),
+            Managers.UI.Core.UITooltip.Line.Note(chemistry.WaitingReason, Managers.UI.Theme.UITheme.Accent),
+            Managers.UI.Core.UITooltip.Line.Note($"현재 배합량 {chemistry.Reagents.Batch:0.##}\n예상 기본 피해 {chemistry.PreviewDamage:0}\n치명타·방어·피해 보정 전, 적 1명 기준", Color.white),
+            Managers.UI.Core.UITooltip.Line.Note("치유 → 연료 / 보호막 → 안정제 / 버프 → 촉매\n일반행동 2회마다 가장 적은 시약을 합성", Managers.UI.Theme.UITheme.TextSecondary),
+        };
+        Managers.UI.Core.UITooltip.Show(this, "라부아지에 · 실험대", lines, Managers.UI.Theme.UITheme.Accent);
+    }
+
+    private void OnMouseExit() => Managers.UI.Core.UITooltip.Hide(this);
+    private void OnDisable() => Managers.UI.Core.UITooltip.Hide(this);
     
     private void OnMouseDrag()
     {

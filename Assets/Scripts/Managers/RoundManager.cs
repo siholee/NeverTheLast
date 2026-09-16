@@ -76,6 +76,22 @@ namespace Managers
                 : _stageThemeDataList?.events?.FirstOrDefault(data => data?.id == eventId);
         }
 
+        /// <summary>
+        /// 이 보스를 넘어선 직후 예약할 사건들. 정의 순서를 그대로 지킨다.
+        ///
+        /// 보스 하나가 둘 이상을 데려오는 경우를 막을 이유가 없어 목록을 돌려준다 —
+        /// 한 명만 돌려주면 같은 보스에 두 번째 사건을 달 때 무엇이 사라지는지 알 수 없다.
+        /// </summary>
+        public List<StageEventData> GetEventsTriggeredByBoss(int bossId)
+        {
+            EnsureDataLoaded();
+            if (bossId <= 0) return new List<StageEventData>();
+
+            return _stageThemeDataList?.events?
+                .Where(data => data != null && data.triggerBossId == bossId)
+                .ToList() ?? new List<StageEventData>();
+        }
+
         private StageEventData SelectCurrentEventData()
         {
             if (_cachedEventStage == Stage) return _cachedEvent;
@@ -374,13 +390,13 @@ namespace Managers
         private static bool IsEventEligible(StageEventData stageEvent)
         {
             if (stageEvent == null) return false;
+            // 보스 격파로 예약되는 사건은 코드가 땅기는 것이라 슬롯 추첨에 끼워주지 않는다.
+            if (stageEvent.triggerBossId > 0) return false;
             if (stageEvent.requiresBossDefeatId > 0 &&
                 !SaveSystem.HasDefeatedBoss(stageEvent.requiresBossDefeatId)) return false;
             RunManager runManager = GameManager.Instance?.runManager;
             if (stageEvent.oncePerRun && runManager != null && runManager.HasTriggeredEvent(stageEvent.id)) return false;
-            int recruitUnitId = stageEvent.choices?
-                .Select(choice => choice?.grantUnitId ?? 0)
-                .FirstOrDefault(unitId => unitId > 0) ?? 0;
+            int recruitUnitId = stageEvent.RecruitUnitId;
             if (recruitUnitId > 0 && SaveSystem.IsStarterUnlocked(recruitUnitId)) return false;
             return !IsBlockedByDeck(stageEvent);
         }
@@ -449,6 +465,16 @@ namespace Managers
                 return ContentSlotInRound == 10 ? _currentStageTheme?.bossId ?? 0 : 0;
             }
         }
+
+        /// <summary>
+        /// 이번 스테이지의 중간 보스 ID. 중간 보스 슬롯이 아니면 0이다.
+        ///
+        /// <see cref="CurrentBossId"/>가 10슬롯만 보기 때문에 따로 둔다.
+        /// 시구르드·브륀힐드처럼 <b>합류 분기가 중간 보스 자리</b>에 있는 경우가 생겼고,
+        /// 그 승리도 사건 방아쇠가 되어야 한다.
+        /// </summary>
+        public int CurrentMidBossId =>
+            ContentSlotInRound == MidBossStageInRound ? _currentStageTheme?.midBossId ?? 0 : 0;
 
         private int GetFixedBossId(int stage)
         {

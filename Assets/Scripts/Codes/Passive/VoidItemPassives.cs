@@ -128,4 +128,326 @@ namespace Codes.Passive
         public override int GrantedElementDurationAdditiveModifier(Unit source)
             => source == Target ? _extraTurns : 0;
     }
+
+    /// <summary>시구르드·브륀힐드의 전용 장비가 주는 코드. 공통 보상 풀에 들어간다.</summary>
+    public static class OathItemCodeIds
+    {
+        public const int Gram = 424;
+        public const int FafnirsBlood = 425;
+        public const int Vafrlogi = 426;
+    }
+
+    public static class OathItemStatusIds
+    {
+        public const int Gram = 6424;
+        public const int FafnirsBlood = 6425;
+        public const int Vafrlogi = 6426;
+    }
+
+    /// <summary>
+    /// 그람 — 베기 분류 공격이 대상의 내구를 무시한다.
+    ///
+    /// 시구르드의 N·U·협공 몫이 전부 베기라 본인에게 가장 크지만,
+    /// 한손검·대검을 든 아군이면 누구나 값을 본다. T4는 역사적 유물에만 주는 규칙에 맞는다.
+    /// </summary>
+    public sealed class GramItemPassive : PersistentStatusPassive
+    {
+        public GramItemPassive(PassiveCodeContext context)
+            : base(context, OathItemStatusIds.Gram, "item_gram", "그람",
+                "베기 분류 공격이 대상의 내구를 무시합니다.")
+        {
+            Transferable = false;
+        }
+
+        protected override BaseEffect CreateInitialEffect() => new GramEffect();
+    }
+
+    internal sealed class GramEffect : BaseEffect
+    {
+        public GramEffect() : base(0) { }
+
+        public override bool IsBeneficial => true;
+
+        public override int DurabilityPenetrationModifier(Unit attacker, Unit target, DamageContext context)
+        {
+            if (attacker != Target || context?.DamageTags == null) return 0;
+            if (!context.DamageTags.Contains(DamageTag.Slash)) return 0;
+            // 내구 전량을 무시한다. 대상의 내구를 읽을 수 없으면 충분히 큰 값으로 덮는다.
+            return target != null ? Mathf.Max(0, target.DurabilityCurr) : 0;
+        }
+    }
+
+    /// <summary>
+    /// 파프니르의 피 — 잔타는 튕겨 내고 <b>큰 한 방에는 뚫린다.</b>
+    ///
+    /// 용의 피로 굳은 살갗에 <b>등의 한 점</b>만 남았다는 신화를 그대로 옮겼다.
+    /// 다타수 적에게 강하고 보스의 한 방에 약한, 성격이 뚜렷한 방어구가 된다.
+    /// </summary>
+    public sealed class FafnirsBloodItemPassive : PersistentStatusPassive
+    {
+        /// <summary>물리 피해 감소폭.</summary>
+        public const float Reduction = 0.20f;
+
+        /// <summary>이 비율 이상을 한 번에 받으면 감소가 통째로 꺼진다.</summary>
+        public const float BreakpointRatio = 0.20f;
+
+        public FafnirsBloodItemPassive(PassiveCodeContext context)
+            : base(context, OathItemStatusIds.FafnirsBlood, "item_fafnirs_blood", "파프니르의 피",
+                "받는 물리 피해가 20% 감소합니다. 단 한 번에 최대 체력의 20% 이상을 받으면 적용되지 않습니다.")
+        {
+            Transferable = false;
+        }
+
+        protected override BaseEffect CreateInitialEffect() => new FafnirsBloodEffect(Reduction, BreakpointRatio);
+    }
+
+    internal sealed class FafnirsBloodEffect : BaseEffect
+    {
+        private readonly float _reduction;
+        private readonly float _breakpoint;
+
+        public FafnirsBloodEffect(float reduction, float breakpoint) : base(0, reduction)
+        {
+            _reduction = reduction;
+            _breakpoint = breakpoint;
+        }
+
+        public override bool IsBeneficial => true;
+
+        public override float ReceivingDamageModifier(Unit unit, DamageContext context)
+        {
+            if (unit != Target || context?.DamageTags == null) return 1f;
+            if (!context.DamageTags.Contains(DamageTag.Physical)) return 1f;
+            if (Target.HpMax <= 0) return 1f;
+
+            // 한 방이 문턱을 넘으면 비늘이 뚫린다 — 등의 한 점이다.
+            if (context.Damage >= Target.HpMax * _breakpoint) return 1f;
+            return 1f - _reduction;
+        }
+    }
+
+    /// <summary>바프르로기 — 궁극기를 쓰면 2턴간 받는 피해가 30% 줄어든다. 불의 고리가 둘러선다.</summary>
+    public sealed class VafrlogiItemPassive : PersistentStatusPassive
+    {
+        public const float Reduction = 0.30f;
+        public const int DurationTurns = 2;
+
+        public VafrlogiItemPassive(PassiveCodeContext context)
+            : base(context, OathItemStatusIds.Vafrlogi, "item_vafrlogi", "바프르로기",
+                "궁극기를 사용하면 2턴 동안 받는 피해가 30% 감소합니다.")
+        {
+            Transferable = false;
+        }
+
+        protected override BaseEffect CreateInitialEffect() => new VafrlogiEffect(Reduction, DurationTurns);
+    }
+
+    internal sealed class VafrlogiEffect : BaseEffect
+    {
+        private const int RingStatusId = 6427;
+
+        private readonly float _reduction;
+        private readonly int _durationTurns;
+        private System.Action<EventContext> _handler;
+
+        public VafrlogiEffect(float reduction, int durationTurns) : base(0, reduction)
+        {
+            _reduction = reduction;
+            _durationTurns = durationTurns;
+        }
+
+        public override bool IsBeneficial => true;
+
+        public override void OnApply()
+        {
+            if (Target == null) return;
+            _handler = _ => RaiseRing();
+            Target.AddListener(BaseEnums.UnitEventType.OnUltimateActivates, _handler);
+        }
+
+        public override void OnRemove()
+        {
+            if (Target == null || _handler == null) return;
+            Target.RemoveListener(BaseEnums.UnitEventType.OnUltimateActivates, _handler);
+            _handler = null;
+        }
+
+        private void RaiseRing()
+        {
+            if (Target == null || !Target.isActive) return;
+            Target.AddStatus(Effects.Buffs.BuffStatus.Create(
+                RingStatusId, "item_vafrlogi_ring", "바프르로기", Target, Target,
+                new Effects.Buffs.ReceivingDamageMultiplierEffect(1f - _reduction), _durationTurns));
+        }
+    }
+
+    /// <summary>
+    /// 궁니르 — <b>자신의 공격은 회피되지 않는다.</b>
+    ///
+    /// 오딘에게서 뺏은 창이다. 그가 `예언`으로 앞을 보고 피하던 그 창은
+    /// 애초에 빗나가지 않는 물건이었다.
+    ///
+    /// 회피는 파생값이 0이라 상태·장비로만 생긴다. 지금 출처는 에퀴테스의 `기병의 회피`와
+    /// 오딘의 `예언` 둘뿐이며, 이 창이 그 둘을 한꺼번에 지운다.
+    /// </summary>
+    public sealed class GungnirItemPassive : PersistentStatusPassive
+    {
+        public const int CodeId = 427;
+        public const int StatusId = 6428;
+
+        public GungnirItemPassive(PassiveCodeContext context)
+            : base(context, StatusId, "item_gungnir", "궁니르",
+                "자신의 공격은 회피되지 않습니다.")
+        {
+            Transferable = false;
+        }
+
+        protected override BaseEffect CreateInitialEffect() => new GungnirEffect();
+    }
+
+    internal sealed class GungnirEffect : BaseEffect
+    {
+        public GungnirEffect() : base(0) { }
+
+        public override bool IsBeneficial => true;
+
+        public override bool IgnoresEvasion(Unit attacker) => attacker == Target;
+    }
+
+    /// <summary>아스완 세트가 주는 장비 전용 패시브. 테마의 두 축(화상·사령)을 그대로 쓴다.</summary>
+    public static class AswanItemCodeIds
+    {
+        public const int CanopicJar = 428;
+        public const int AshenKhopesh = 429;
+        public const int WraithGreaves = 430;
+        public const int SceptreOfAmun = 431;
+    }
+
+    /// <summary>봉인된 카노푸스 — 자신이 부여하는 지속피해가 25% 증가한다.</summary>
+    public sealed class CanopicJarItemPassive : PersistentStatusPassive
+    {
+        public const float Bonus = 0.25f;
+
+        public CanopicJarItemPassive(PassiveCodeContext context)
+            : base(context, 6429, "item_canopic_jar", "봉인된 카노푸스",
+                "자신이 부여하는 지속피해가 25% 증가합니다.")
+        {
+            Transferable = false;
+        }
+
+        protected override BaseEffect CreateInitialEffect()
+            => new Effects.Buffs.DamageOverTimeApplicationEffect(1f + Bonus);
+    }
+
+    /// <summary>
+    /// 재의 코페쉬 — <b>불이 붙은 적에게</b> 주는 피해 +25%.
+    ///
+    /// 아스완 앞 절반이 화상을 깔아 놓는 테마라 그 판에서 가장 값을 하지만,
+    /// 불을 다루는 아군(수르트·아그니)이 들면 어디서든 자기 힘으로 조건을 만든다.
+    /// </summary>
+    public sealed class AshenKhopeshItemPassive : PersistentStatusPassive
+    {
+        public const float Bonus = 0.25f;
+
+        public AshenKhopeshItemPassive(PassiveCodeContext context)
+            : base(context, 6430, "item_ashen_khopesh", "재의 코페쉬",
+                "불 원소가 부착된 적에게 주는 피해가 25% 증가합니다.")
+        {
+            Transferable = false;
+        }
+
+        protected override BaseEffect CreateInitialEffect() => new AshenKhopeshEffect(Bonus);
+    }
+
+    internal sealed class AshenKhopeshEffect : BaseEffect
+    {
+        private readonly float _bonus;
+
+        public AshenKhopeshEffect(float bonus) : base(0, bonus) => _bonus = bonus;
+
+        public override bool IsBeneficial => true;
+
+        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
+            => attacker == Target && target != null &&
+               target.HasAttachedElement(BaseEnums.UnitElement.Pyro)
+                ? 1f + _bonus
+                : 1f;
+    }
+
+    /// <summary>
+    /// 사령의 각반 — 전투당 한 번, 치명 피해를 막고 최대 체력의 30%로 일어선다.
+    ///
+    /// 되살아나는 사령에게서 벗겨 낸 물건이다. `명계의 재림`과 같은 축이지만
+    /// 장비라 누구나 한 번은 버틴다.
+    /// </summary>
+    public sealed class WraithGreavesItemPassive : PersistentStatusPassive
+    {
+        public const float ReviveRatio = 0.30f;
+
+        public WraithGreavesItemPassive(PassiveCodeContext context)
+            : base(context, 6431, "item_wraith_greaves", "사령의 각반",
+                "전투당 1회, 치명 피해를 막고 최대 체력의 30%로 일어섭니다.")
+        {
+            Transferable = false;
+        }
+
+        protected override BaseEffect CreateInitialEffect() => new WraithGreavesEffect(ReviveRatio);
+    }
+
+    internal sealed class WraithGreavesEffect : BaseEffect
+    {
+        private readonly float _ratio;
+        private bool _used;
+
+        public WraithGreavesEffect(float ratio) : base(0, ratio) => _ratio = ratio;
+
+        public override bool IsBeneficial => true;
+
+        public override void OnApply() => _used = false;
+
+        public override bool TryPreventDeath(Unit unit, Unit attacker)
+        {
+            if (_used || unit != Target) return false;
+
+            _used = true;
+            Target.ModifyHp(Mathf.Max(1, Mathf.RoundToInt(Target.HpMax * _ratio)), Target);
+            Debug.Log($"[사령의 각반] {Target.UnitName}이(가) 한 번 일어섰다");
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// 아문의 홀 — 궁극기로 주는 피해 +30%.
+    ///
+    /// 스택을 모아 한 번에 터뜨리는 아문·라의 축을 장비로 옮겼다.
+    /// 역사적 유물이라 T4를 받는다.
+    /// </summary>
+    public sealed class SceptreOfAmunItemPassive : PersistentStatusPassive
+    {
+        public const float Bonus = 0.30f;
+
+        public SceptreOfAmunItemPassive(PassiveCodeContext context)
+            : base(context, 6432, "item_sceptre_of_amun", "아문의 홀",
+                "궁극기로 주는 피해가 30% 증가합니다.")
+        {
+            Transferable = false;
+        }
+
+        protected override BaseEffect CreateInitialEffect() => new SceptreOfAmunEffect(Bonus);
+    }
+
+    internal sealed class SceptreOfAmunEffect : BaseEffect
+    {
+        private readonly float _bonus;
+
+        public SceptreOfAmunEffect(float bonus) : base(0, bonus) => _bonus = bonus;
+
+        public override bool IsBeneficial => true;
+
+        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
+            => attacker == Target && context?.DamageTags != null &&
+               context.DamageTags.Contains(DamageTag.UltAttack)
+                ? 1f + _bonus
+                : 1f;
+    }
 }

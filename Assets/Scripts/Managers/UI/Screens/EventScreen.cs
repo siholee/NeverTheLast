@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Entities;
 using Helpers;
 using Managers.UI.Core;
 using Managers.UI.Theme;
@@ -601,6 +602,81 @@ namespace Managers.UI.Screens
             if (choice.grantItemId > 0) return "장비 획득";
             if (choice.grantPassiveCodeId > 0) return choice.grantPassiveToAll ? "전원 패시브" : "패시브";
             return null;
+        }
+
+        // ── 자리 비우기 ──────────────────────────────────────────────
+
+        /// <summary>
+        /// 자리가 꽉 차 영입이 막혔을 때 여는 화면. 떠나보낼 사람을 고르거나 합류를 포기한다.
+        ///
+        /// 선택지처럼 세로로 쌓으면 최대 12명이 화면 밖으로 밀려나므로 격자로 깐다.
+        /// 메인 캐릭터는 애초에 후보에 없다 — 런의 축을 실수로 내보낼 수 있으면 안 된다.
+        /// </summary>
+        public void ShowRosterPrompt(string message, List<Unit> candidates)
+        {
+            const int columns = 3;
+            const float cardWidth = 250f;
+            const float cardHeight = 62f;
+            const float gapX = 14f;
+            const float gapY = 12f;
+
+            Show();
+
+            SetSpeaker(null);
+            _body.text = message ?? "";
+            _progress.text = "";
+            SetAdvanceEnabled(false);
+            StopAuto();
+            UIBuild.Clear(_choiceArea);
+
+            if (candidates == null || candidates.Count == 0) return;
+
+            int rows = (candidates.Count + columns - 1) / columns;
+
+            // 아래에서부터 쌓되, 포기 버튼 한 줄을 대사 상자 위에 먼저 비워 둔다.
+            const float declineHeight = 52f;
+            float gridBottom = BoxBottom + BoxHeight + 46f + declineHeight + gapY;
+
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                Unit candidate = candidates[i];
+                if (candidate == null) continue;
+                int unitId = candidate.ID;
+
+                int row = i / columns;
+                int column = i % columns;
+
+                // 마지막 줄이 덜 찼으면 그 줄만 가운데로 모은다.
+                int inRow = Mathf.Min(columns, candidates.Count - row * columns);
+                float rowWidth = inRow * cardWidth + (inRow - 1) * gapX;
+                float x = -rowWidth * 0.5f + cardWidth * 0.5f + column * (cardWidth + gapX);
+                float y = gridBottom + (rows - 1 - row) * (cardHeight + gapY);
+
+                Image frame = UIBuild.Panel($"Leave{i}", _choiceArea,
+                    new Color(0.043f, 0.051f, 0.063f, 0.94f), UIShapes.Corner.Diagonal, 10,
+                    UITheme.Outline, 1);
+                UIBuild.Pin(frame.rectTransform, new Vector2(0.5f, 0f),
+                    new Vector2(cardWidth, cardHeight), new Vector2(x, y));
+
+                TextMeshProUGUI name = UIBuild.Text("Name", frame.transform, candidate.UnitName ?? "",
+                    19f, UITheme.TextPrimary);
+                UIBuild.Stretch(name.rectTransform);
+                name.rectTransform.offsetMin = new Vector2(18f, 0f);
+                name.rectTransform.offsetMax = new Vector2(-72f, 0f);
+
+                TextMeshProUGUI level = UIBuild.Label("Level", frame.transform, $"Lv {candidate.Level}",
+                    UITheme.FontMicro, UITheme.TextMuted, TextAlignmentOptions.MidlineRight);
+                UIBuild.Stretch(level.rectTransform);
+                level.rectTransform.offsetMax = new Vector2(-18f, 0f);
+
+                UIBuild.OnClick(frame.gameObject,
+                    () => GameManager.Instance?.DismissUnitForRecruit(unitId));
+            }
+
+            Button decline = UIBuild.Button("DeclineRecruit", _choiceArea, "아무도 보내지 않는다",
+                () => GameManager.Instance?.CancelRecruitForRoster());
+            UIBuild.Pin(decline.image.rectTransform, new Vector2(0.5f, 0f),
+                new Vector2(360f, declineHeight), new Vector2(0f, BoxBottom + BoxHeight + 46f));
         }
 
         // ── 안내 / 결말 ──────────────────────────────────────────────

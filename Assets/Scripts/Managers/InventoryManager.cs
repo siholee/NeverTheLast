@@ -111,6 +111,16 @@ namespace Managers
             RefreshPanel();
         }
 
+        private static int CurrentStage => Mathf.Max(1, GameManager.Instance?.RoundManager?.Stage ?? 1);
+
+        /// <summary>귀중품이면 그 데이터를, 장비거나 없는 ID면 null을 돌려준다.</summary>
+        private static ItemData FindValuable(int itemId)
+        {
+            ItemData data = GameManager.Instance?.itemDataList?.items?
+                .FirstOrDefault(item => item != null && item.id == itemId);
+            return data != null && data.IsValuable ? data : null;
+        }
+
         /// <summary>귀중품을 주머니에 넣는다. 값은 지금 스테이지로 확정한다.</summary>
         public void AddValuable(int itemId, int gold)
         {
@@ -155,6 +165,16 @@ namespace Managers
         public bool AddItem(int itemId, Unit preferredCarrier = null)
         {
             if (itemId <= 0) return false;
+
+            // 귀중품은 입는 물건이 아니다. 유닛에게 넘기지 않고 주머니로 보낸다.
+            // 여기서 한 번 걸러야 보상·상점·사건이 모두 같은 자리로 들어온다 —
+            // 사건 보상은 RewardManager를 거치지 않고 이 메서드를 직접 부른다.
+            ItemData valuable = FindValuable(itemId);
+            if (valuable != null)
+            {
+                AddValuable(itemId, RewardManager.ValuablePrice(valuable, CurrentStage));
+                return true;
+            }
 
             var candidates = new List<Unit>();
             if (preferredCarrier != null) candidates.Add(preferredCarrier);

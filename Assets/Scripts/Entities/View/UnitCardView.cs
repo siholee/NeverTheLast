@@ -120,6 +120,7 @@ namespace Entities.View
         private Image _actingOutline;
         private TextMeshPro _nameLabel;
         private MeshRenderer _nameRenderer;
+        private readonly Image[] _reagentBars = new Image[3];
         private RectTransform _ultRoot;
         private Image _ultFill;
         private Image _ultOutline;
@@ -325,6 +326,17 @@ namespace Entities.View
             _nameLabel.raycastTarget = false;
             LayOutName(cardSize);
 
+            Color[] reagentColors = { UITheme.Danger, UITheme.Mana, UITheme.Accent };
+            for (int i = 0; i < 3; i++)
+            {
+                var track = UIBuild.Solid("Reagent" + i, root, UITheme.SurfaceSunken);
+                Place(track.rectTransform, 8f + i * 29f, 73f, 25f, 3f);
+                var fill = UIBuild.Solid("Fill", track.transform, reagentColors[i]);
+                UIBuild.Stretch(fill.rectTransform);
+                _reagentBars[i] = fill;
+                track.gameObject.SetActive(false);
+            }
+
             // ── 궁극기 충전 ──
             // 붕괴: 스타레일 방식이다. 테두리는 늘 또렷하게 그려 두고,
             // 안쪽이 아래에서 위로 차오른다.
@@ -519,6 +531,7 @@ namespace Entities.View
             _ultRoot.gameObject.SetActive(combatHud);
             _hpFill.transform.parent.gameObject.SetActive(combatHud);
             _actionFill.transform.parent.gameObject.SetActive(combatHud);
+            foreach (Image reagent in _reagentBars) reagent.transform.parent.gameObject.SetActive(false);
             if (!combatHud)
             {
                 foreach (Image dot in _dots) dot.enabled = false;
@@ -572,7 +585,15 @@ namespace Entities.View
             // 아닌 유닛의 수위가 실제와 어긋났다.
             int resourceMax = _unit.ManaMax > 0 ? _unit.ManaMax : _unit.GetUltimateResourceMax();
             _ultFill.fillAmount = resourceMax > 0 ? Mathf.Clamp01(_unit.ManaCurr / (float)resourceMax) : 0f;
-            RefreshUltimateReady(_ultFill.fillAmount >= 0.999f);
+            RefreshUltimateReady(_unit.Chemistry != null ? _unit.Chemistry.CanReact : _ultFill.fillAmount >= 0.999f);
+            for (int i = 0; i < _reagentBars.Length; i++)
+            {
+                bool visible = _combatHud && _unit.Chemistry != null;
+                _reagentBars[i].transform.parent.gameObject.SetActive(visible);
+                if (visible)
+                    SetSpan(_reagentBars[i].rectTransform, 0f,
+                        _unit.Chemistry.Reagents[(ReagentKind)i] / _unit.Chemistry.Reagents.Capacity);
+            }
 
             // ── 행동 게이지 ──
             ActionScheduler scheduler = GameManager.Instance?.ActionScheduler;
@@ -592,6 +613,11 @@ namespace Entities.View
                 _nameLabel.text = combatResourceMax > 0
                     ? $"{_unit.UnitName}  ◆{_unit.GetCombatResource(combatResourceId)}/{combatResourceMax}"
                     : _unit.UnitName;
+                if (_unit.Chemistry != null && _combatHud)
+                {
+                    var reagents = _unit.Chemistry.Reagents;
+                    _nameLabel.text = $"{_unit.UnitName}\n<size=75%><color=#E6493E>연 {reagents[ReagentKind.Fuel]:0.##}</color>  <color=#52ABEF>안 {reagents[ReagentKind.Stabilizer]:0.##}</color>  <color=#FFCD3D>촉 {reagents[ReagentKind.Catalyst]:0.##}</color></size>";
+                }
 
                 // 이름표는 캔버스 밖이라 CanvasGroup이 닿지 않는다. 알파를 직접 맞춘다.
                 Color nameColor = UITheme.TextPrimary;

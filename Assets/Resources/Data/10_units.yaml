@@ -1863,3 +1863,140 @@ units:
       - { codeId: 101, unlockLevel: 30, stage: 1 }   # 개선문
     portrait: MARIE_PORTRAIT
     standing: MARIE_STANDING
+
+  - id: 8
+    name: 라부아지에
+    characterType: Locked
+    element: Pyro
+    startingProficiencies: [Orb]
+    startingItemIds: [4109]
+    tags: [Akasha, Gaul, Human]
+    canStartAsMain: false
+    canStartAsSupport: false
+    # 실제 무한 모드 선택은 본인의 육성 완료 기록도 요구한다.
+    canUseInInfinite: true
+    mainStat: INT
+    subStat: DEX
+    subStats: [DEX, CON]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.05
+    strBase: 9
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 16
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 18
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 22
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 15
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    manaMax: 3
+    ultimateResourceType: Stack
+    ultimateResourceName: 반응 준비도
+    ultimateResourceMax: 3
+    codes: { passive: 208, normal: 8, ultimate: 8 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 15, unlockLevel: 4, stage: 1 }
+      - { codeId: 16, unlockLevel: 9, stage: 1 }
+      - { codeId: 18, unlockLevel: 22, stage: 1 }
+      - { codeId: 40, unlockLevel: 30, stage: 1 }
+      - { codeId: 27, unlockLevel: 40, stage: 1 }
+      - { codeId: 17, unlockLevel: 50, stage: 1 }
+    portrait: LAVOISIER_PORTRAIT
+    standing: LAVOISIER_STANDING
+
+  # ── 시구르드 · 브륀힐드 ──────────────────────────────────────────
+  # 맹세(284·285)를 공유하는 2인조. 둘이 함께 서야 공명이 쌓이고 협동행동이 나간다.
+  # 혼자 선 쪽은 평범한 유닛이며, 짝을 잃은 뒤에만 복수가 그 자리를 대신한다.
+  # 불(시구르드)과 얼음(브륀힐드)을 나눠 가져 협공 한 번에 융해가 터진다.
+  - id: 84
+    name: 시구르드
+    characterType: Locked
+    element: Pyro
+    startingProficiencies: [Longsword, MediumArmor]
+    startingItemIds: [4102]
+    tags: [Nord, Human]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: STR
+    subStat: CON
+    subStats: [CON]
+    mainStatTrainingBonus: 0.2
+    subStatTrainingBonus: 0.1
+    strBase: 24
+    strIncrementLvl: 2
+    strIncrementUpgrade: 1
+    dexBase: 14
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 20
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 8
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 14
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    manaMax: 100
+    codes: { passive: 284, normal: 84, ultimate: 84 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 39, unlockLevel: 4,  stage: 1 }   # 거인
+      - { codeId: 9,  unlockLevel: 15, stage: 1 }   # 검의 달인 — N·U·협공이 전부 베기다
+      - { codeId: 65, unlockLevel: 28, stage: 1 }   # 용살자 — 파프니르 살해자의 정체성
+      - { codeId: 41, unlockLevel: 40, stage: 1 }   # 투사
+      - { codeId: 43, unlockLevel: 55, stage: 1 }   # 신살자
+      - { codeId: 29, unlockLevel: 70, stage: 1 }   # 파죽지세
+    portrait: SIGURD_PORTRAIT
+    standing: SIGURD_STANDING
+
+  - id: 85
+    name: 브륀힐드
+    characterType: Locked
+    element: Cryo
+    startingProficiencies: [Spear, LightArmor]
+    startingItemIds: [4104]
+    tags: [Nord, Divine]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: DEX
+    subStat: INT
+    subStats: [INT]
+    mainStatTrainingBonus: 0.2
+    subStatTrainingBonus: 0.1
+    strBase: 10
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 24
+    dexIncrementLvl: 2
+    dexIncrementUpgrade: 1
+    conBase: 16
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 18
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 12
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    manaMax: 100
+    codes: { passive: 285, normal: 85, ultimate: 85 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 45, unlockLevel: 4,  stage: 1 }   # 민첩함
+      - { codeId: 17, unlockLevel: 12, stage: 1 }   # 예리함
+      - { codeId: 55, unlockLevel: 25, stage: 1 }   # 생명의 물 — 응수 직후가 가장 빠르다
+      - { codeId: 69, unlockLevel: 38, stage: 1 }   # 기습
+      - { codeId: 67, unlockLevel: 52, stage: 1 }   # 인도자 — 짝의 궁극기를 당긴다
+      - { codeId: 71, unlockLevel: 68, stage: 1 }   # 리더쉽
+    portrait: BRYNHILD_PORTRAIT
+    standing: BRYNHILD_STANDING

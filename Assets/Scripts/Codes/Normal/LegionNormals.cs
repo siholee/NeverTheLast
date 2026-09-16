@@ -79,6 +79,36 @@ namespace Codes.Normal
             _ => BaseEnums.PrimaryStat.STR,
         };
 
+        /// <summary>
+        /// 병종이 두르는 원소를 부착한다.
+        ///
+        /// 바위는 겹치면 <b>진동</b>(기절), 바람은 <b>확산</b>으로 진영 전체에 원소를 퍼뜨린다.
+        /// 군단의 전열이 바위를 쌓고 경보병이 그것을 퍼뜨리는 그림이다.
+        ///
+        /// <b>불 병종(에퀴테스·트리뷴)은 일부러 부착하지 않는다.</b> 불과 바위가 만나면
+        /// 단조(DEX 증가)가 되는데, 버프 반응은 부착된 유닛이 가져가므로 아군을 이롭게 한다.
+        /// </summary>
+        private static BaseEnums.UnitElement AttachOf(LegionNormalStyle style) => style switch
+        {
+            LegionNormalStyle.Principes or LegionNormalStyle.Triarii or
+            LegionNormalStyle.Centurion or LegionNormalStyle.Scorpio => BaseEnums.UnitElement.Geo,
+
+            LegionNormalStyle.Hastati or LegionNormalStyle.Velites or
+            LegionNormalStyle.Optio or LegionNormalStyle.Octavia or
+            LegionNormalStyle.Caesar => BaseEnums.UnitElement.Anemo,
+
+            _ => BaseEnums.UnitElement.None,
+        };
+
+        protected override void OnAttackResolved(Unit target, DamageContext context)
+        {
+            if (target == null || !target.isActive) return;
+
+            BaseEnums.UnitElement element = AttachOf(_style);
+            if (element == BaseEnums.UnitElement.None) return;
+            target.GrantCombatElement(element, Unit.CommonElementAuraDuration, Caster);
+        }
+
         public override void CastCode()
         {
             // 아그리파는 적을 때리지 않는다. 아군 하나를 강화하고 턴을 마친다.

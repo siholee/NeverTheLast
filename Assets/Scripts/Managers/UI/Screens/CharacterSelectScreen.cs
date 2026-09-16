@@ -193,7 +193,7 @@ namespace Managers.UI.Screens
                 UIBuild.Anchor(nameStrip.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.20f), 3f, 3f);
                 nameStrip.raycastTarget = false;
 
-                TextMeshProUGUI label = UIBuild.Text("Name", tile.transform, unit.name,
+                TextMeshProUGUI label = UIBuild.Text("Name", tile.transform, IsLavoisierLocked(unit.id) ? "미해금 · 라부아지에" : unit.name,
                     UITheme.FontMicro, UITheme.TextPrimary, TextAlignmentOptions.Center);
                 UIBuild.Anchor(label.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.20f), 3f, 3f);
 
@@ -215,6 +215,12 @@ namespace Managers.UI.Screens
             if (manager == null) return;
 
             _hovered = unitId;
+
+            if (IsLavoisierLocked(unitId))
+            {
+                RefreshPreview();
+                return;
+            }
 
             bool alreadyPicked = manager.Lineup.Any(entry => entry.UnitId == unitId);
             if (alreadyPicked)
@@ -273,6 +279,8 @@ namespace Managers.UI.Screens
             {
                 bool isSelected = manager.Lineup.Any(entry => entry.UnitId == pair.Key);
                 bool isMain = manager.MainUnitId == pair.Key;
+                if (_tileArts.TryGetValue(pair.Key, out Image tileArt))
+                    tileArt.color = IsLavoisierLocked(pair.Key) ? new Color(.35f, .35f, .35f) : Color.white;
 
                 Color fill = isMain ? UITheme.Accent : isSelected ? UITheme.AccentFaint : UITheme.SurfaceRaised;
                 Color line = isSelected ? UITheme.Accent : UITheme.Outline;
@@ -326,9 +334,13 @@ namespace Managers.UI.Screens
 
         private static string RoleText(UnitData unit)
         {
+            if (IsLavoisierLocked(unit.id)) return "육성 모드를 처음 클리어하면 해금";
+            if (unit.id == Entities.LavoisierChemistry.UnitId) return "해금됨 — 메인·서포터 / 시약 배합형 고급 딜러";
             if (unit.canStartAsMain) return "스타터 — 메인으로 시작할 수 있다";
             if (unit.canStartAsSupport) return "서포트 — 서포터 카드 전용";
             if (CharacterSelectionManager.IsTemporarilyUnlocked(unit)) return "테스트 해금 — 메인으로 시작할 수 있다";
+            // 영입 사건이 아직 없는 Locked. 잠가 두면 영영 쓸 수 없어 열어 둔다.
+            if (CharacterSelectionManager.HasNoUnlockPath(unit)) return "영입 사건 준비 중 — 지금은 바로 쓸 수 있다";
             return SaveSystem.IsStarterUnlocked(unit.id) ? "해금됨 — 메인으로 쓸 수 있다" : "미해금";
         }
 
@@ -370,7 +382,8 @@ namespace Managers.UI.Screens
                     .Where(unit => !CharacterSelectionManager.IsSupportOnly(unit))
                     .Where(unit => unit.canStartAsMain ||
                                    CharacterSelectionManager.IsTemporarilyUnlocked(unit) ||
-                                   SaveSystem.IsStarterUnlocked(unit.id))
+                                   CharacterSelectionManager.HasNoUnlockPath(unit) ||
+                                   SaveSystem.IsStarterUnlocked(unit.id) || unit.id == Entities.LavoisierChemistry.UnitId)
                     .OrderBy(unit => unit.id)
                     .ToList();
             }
@@ -381,6 +394,8 @@ namespace Managers.UI.Screens
 
             return units
                 .Where(unit => unit.canStartAsSupport ||
+                               CharacterSelectionManager.HasNoUnlockPath(unit) ||
+                               SaveSystem.IsStarterUnlocked(unit.id) ||
                                SaveSystem.IsCharacterTrained(unit.id))
                 .Where(unit => unit.id != mainUnitId)
                 .OrderBy(unit => unit.id)
@@ -389,6 +404,9 @@ namespace Managers.UI.Screens
 
         private static Sprite LoadPortrait(string spriteName)
             => SpriteResource.LoadPortrait(spriteName);
+
+        private static bool IsLavoisierLocked(int id) => id == Entities.LavoisierChemistry.UnitId &&
+            !SaveSystem.IsStarterUnlocked(id) && !SaveSystem.IsCharacterTrained(id);
 
         private static string UnitName(int unitId)
         {

@@ -48,8 +48,9 @@ namespace Managers.UI.DevTools
         private UnityEngine.Random.State randomState;
         private bool integrationOnly;
         private bool campaignOnly;
+        private bool lavoisierOnly;
 
-        public static void StartSuite(bool integrationOnly = false, bool campaignOnly = false)
+        public static void StartSuite(bool integrationOnly = false, bool campaignOnly = false, bool lavoisierOnly = false)
         {
             if (DebugMode.SuiteRunning) return;
             DebugMode.BeginSession();
@@ -57,6 +58,7 @@ namespace Managers.UI.DevTools
             var host = new GameObject("DebugVerification").AddComponent<DebugVerification>();
             host.integrationOnly = integrationOnly;
             host.campaignOnly = campaignOnly;
+            host.lavoisierOnly = lavoisierOnly;
             DontDestroyOnLoad(host.gameObject);
             host.StartCoroutine(host.GuardedRun());
         }
@@ -109,7 +111,7 @@ namespace Managers.UI.DevTools
                 Status = $"{report.passed} PASS / {report.failed} FAIL / completed={report.completed}";
                 string directory = Path.GetFullPath(Path.Combine(Application.dataPath, "../Logs"));
                 Directory.CreateDirectory(directory);
-                File.WriteAllText(Path.Combine(directory, integrationOnly ? "IntegrationVerification.json" : "DebugVerification.json"), JsonUtility.ToJson(report, true));
+                File.WriteAllText(Path.Combine(directory, lavoisierOnly ? "LavoisierVerification.json" : integrationOnly ? "IntegrationVerification.json" : "DebugVerification.json"), JsonUtility.ToJson(report, true));
                 Debug.Log("[DebugVerification] " + Status);
                 Destroy(gameObject);
             }
@@ -139,6 +141,12 @@ namespace Managers.UI.DevTools
             grid = game.gridManager;
             DebugMode.SetTimeScale(8f);
             UnityEngine.Random.InitState(20260908);
+            if (lavoisierOnly)
+            {
+                yield return LavoisierCoverage();
+                report.completed = true;
+                yield break;
+            }
             if (integrationOnly)
             {
                 if (campaignOnly) yield return Campaign();

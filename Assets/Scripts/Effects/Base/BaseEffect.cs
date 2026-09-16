@@ -35,6 +35,8 @@ namespace Effects.Base
 
         /// <summary>이로운 효과 여부 (OnBeneficialEffectReceived 이벤트 발행 판정)</summary>
         public virtual bool IsBeneficial => false;
+        /// <summary>외부 이로운 상태 수신 시 촉매로 세는가. 회복 틱/표식은 제외한다.</summary>
+        public virtual bool CountsAsReagentBuff => true;
 
         /// <summary>
         /// 생성자
@@ -141,6 +143,14 @@ namespace Effects.Base
         /// (에퀴테스 '기병의 회피'는 접촉 기술만 회피한다).
         /// </summary>
         public virtual float EvasionChanceAdditiveModifier(Unit unit, DamageContext context) => 0f;
+
+        /// <summary>
+        /// 이 효과의 주인이 <b>가하는</b> 공격을 회피할 수 없게 만드는가.
+        ///
+        /// 회피 판정은 맞는 쪽에서 돌지만 이 훅은 <b>공격자</b> 쪽을 본다 —
+        /// 궁니르처럼 "이 무기는 빗나가지 않는다"를 적으려면 창을 든 쪽에 적혀야 한다.
+        /// </summary>
+        public virtual bool IgnoresEvasion(Unit attacker) => false;
 
         /// <summary>
         /// 전투 시작 시 행동 게이지 보정. 양수면 그 유닛의 첫 행동을 앞당기고, 음수면 늦춘다.

@@ -21,6 +21,14 @@ namespace Codes.Passive
         public const int CoupDeGrace = 7854;
         public const int Adaptability = 7855;
         public const int ShatteredArmor = 7856;
+        public const int Permafrost = 7857;
+        public const int FrozenSowing = 7858;
+    }
+
+    /// <summary>파종이 세우는 씨앗을 바꾸는 쪽이 다는 표식.</summary>
+    internal interface IFrostSowingUpgrade
+    {
+        int SeedEnemyId { get; }
     }
 
     /// <summary>파멸·종말의 거인 — 전투 시작 시 최대 체력 비례 방어막.</summary>
@@ -249,5 +257,136 @@ namespace Codes.Passive
 
         public override float PrimaryStatMultiplierModifier(Unit unit, BaseEnums.PrimaryStat stat)
             => unit == Target && stat == BaseEnums.PrimaryStat.STR ? 1f + _stacks * 0.01f : 1f;
+    }
+
+    /// <summary>
+    /// 영구동토 — 체력 칸이 깨질 때마다 후열에 씨앗을 세운다.
+    ///
+    /// <b>3슬롯을 10슬롯으로 되돌리는 장치다.</b> 플레이어는 이미 배웠다 — 씨앗을 한꺼번에
+    /// 쓸면 자폭이 겹쳐 후열이 죽는다. 그런데 보스를 빨리 깎을수록 칸이 빨리 깨지고 씨앗이
+    /// 더 자주 선다. <b>급하게 미는 것이 곧 벌인</b> 구조이며, 새 규칙은 하나도 없다.
+    ///
+    /// 소환 체계를 쓰지 않고 <c>SpawnUnit</c>으로 진짜 적을 세운다. 그래야 자폭(1433)까지
+    /// 데이터 그대로 따라온다 — 3슬롯에서 본 그 씨앗이 맞아야 학습이 이어진다.
+    /// </summary>
+    public sealed class GiantPermafrost : PersistentStatusPassive
+    {
+        /// <summary>칸 하나가 깨질 때 세우는 수.</summary>
+        public const int SeedsPerBreak = 2;
+
+        /// <summary>기본으로 세우는 씨앗. 얼어붙은 파종이 있으면 그쪽이 덮는다.</summary>
+        public const int DefaultSeedId = 1061;
+
+        public GiantPermafrost(PassiveCodeContext context)
+            : base(context, GenericGiantStatusIds.Permafrost, "giant_permafrost", "영구동토",
+                "체력 칸이 깨질 때마다 적 후열에 공허의 씨앗을 2기 세웁니다.")
+        {
+        }
+
+        protected override BaseEffect CreateInitialEffect() => new GiantPermafrostEffect(SeedsPerBreak);
+    }
+
+    internal sealed class GiantPermafrostEffect : BaseEffect
+    {
+        /// <summary>체력 칸을 나누는 코드가 없을 때 쓰는 기본 칸 수.</summary>
+        private const int FallbackSegments = 2;
+
+        private readonly int _seedsPerBreak;
+        private Action<EventContext> _handler;
+        private int _brokenSegments;
+
+        public GiantPermafrostEffect(int seedsPerBreak) : base(0, seedsPerBreak)
+            => _seedsPerBreak = seedsPerBreak;
+
+        public override void OnApply()
+        {
+            if (Target == null) return;
+            _brokenSegments = 0;
+            _handler = _ => CheckBreak();
+            Target.AddListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _handler);
+        }
+
+        public override void OnRemove()
+        {
+            if (Target == null || _handler == null) return;
+            Target.RemoveListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _handler);
+            _handler = null;
+        }
+
+        private void CheckBreak()
+        {
+            if (Target == null || !Target.isActive || Target.HpMax <= 0) return;
+
+            int segments = Mathf.Max(FallbackSegments, Target.HpSegmentCount);
+            // 남은 칸 수를 세어, 지난번보다 더 깨졌을 때만 심는다.
+            int broken = segments - Mathf.CeilToInt(Target.HpCurr / (Target.HpMax / (float)segments));
+            broken = Mathf.Clamp(broken, 0, segments - 1);
+            if (broken <= _brokenSegments) return;
+
+            _brokenSegments = broken;
+            Sow();
+        }
+
+        private void Sow()
+        {
+            GridManager grid = GridManager.Instance;
+            if (grid == null) return;
+
+            int seedId = ResolveSeedId();
+            int rear = grid.GetRearColumn(true);
+            int planted = 0;
+
+            for (int y = 1; y <= 4 && planted < _seedsPerBreak; y++)
+            {
+                if (!grid.IsCellAvailable(rear, y)) continue;
+                if (grid.SpawnUnit(rear, y, true, seedId) != null) planted++;
+            }
+
+            if (planted > 0)
+            {
+                Debug.Log($"[영구동토] {Target.UnitName}의 칸이 깨져 씨앗 {planted}기가 솟았다");
+            }
+        }
+
+        /// <summary>얼어붙은 파종이 서 있으면 혹한의 씨앗으로 바뀐다.</summary>
+        private int ResolveSeedId()
+        {
+            if (Target == null) return GiantPermafrost.DefaultSeedId;
+
+            foreach (var status in Target.ActiveStatuses)
+            {
+                foreach (var effect in status.Effects)
+                {
+                    if (effect.EffectObject is IFrostSowingUpgrade upgrade) return upgrade.SeedEnemyId;
+                }
+            }
+
+            return GiantPermafrost.DefaultSeedId;
+        }
+    }
+
+    /// <summary>얼어붙은 파종 — 영구동토가 세우는 씨앗이 혹한의 씨앗이 된다.</summary>
+    public sealed class GiantFrozenSowing : PersistentStatusPassive
+    {
+        /// <summary>혹한의 씨앗. 엘리트 등급이라 같은 두 기로도 판이 크게 달라진다.</summary>
+        public const int FrostSeedId = 2033;
+
+        public GiantFrozenSowing(PassiveCodeContext context)
+            : base(context, GenericGiantStatusIds.FrozenSowing, "giant_frozen_sowing", "얼어붙은 파종",
+                "영구동토가 세우는 씨앗이 혹한의 씨앗이 됩니다.")
+        {
+            Grade = BaseEnums.CodeGrade.Enhanced;
+        }
+
+        protected override BaseEffect CreateInitialEffect() => new GiantFrozenSowingEffect(FrostSeedId);
+    }
+
+    internal sealed class GiantFrozenSowingEffect : BaseEffect, IFrostSowingUpgrade
+    {
+        public GiantFrozenSowingEffect(int seedEnemyId) : base(0, seedEnemyId) => SeedEnemyId = seedEnemyId;
+
+        public override bool IsBeneficial => true;
+
+        public int SeedEnemyId { get; }
     }
 }

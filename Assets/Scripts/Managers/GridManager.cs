@@ -775,6 +775,8 @@ namespace Managers
 
         private static void UnlockStarterIfJoinedDuringRun(bool isEnemy, int unitId)
         {
+            // 라부아지에는 합류가 아닌 계정 첫 육성 완주로만 해금한다.
+            if (unitId == LavoisierChemistry.UnitId) return;
             if (isEnemy || unitId <= 0 || GameManager.Instance == null) return;
             if (GameManager.Instance.CurrentMode != BaseClasses.BaseEnums.GameMode.Training) return;
 
@@ -808,6 +810,9 @@ namespace Managers
 
         public void OnRoundStart()
         {
+            // 목록 순서와 무관하게 아군 개전 오라보다 수신기를 먼저 연다.
+            foreach (Unit unit in heroList.Concat(enemyList).Where(unit => unit != null && unit.isActive && !unit.IsBench))
+                unit.PrepareRoundResources();
             Debug.Log("[GridManager] OnRoundStart 호출됨");
 
             // 전투 중에는 대기석을 쓸 수 없다. 숨기고 그만큼 전장을 확대한다.
@@ -931,6 +936,27 @@ namespace Managers
             return false;
         }
 
+        /// <summary>
+        /// 아군을 하나 더 받을 자리가 있는가. 대기석을 먼저 보고, 없으면 아군 필드의 빈 칸을 본다.
+        ///
+        /// 영입 사건이 <b>선택지를 보여 주기 전에</b> 물어야 하는 질문이다.
+        /// 합류를 고른 뒤에야 자리가 없다는 걸 알면 플레이어는 아무 일도 일어나지 않았다고 읽는다.
+        /// </summary>
+        public bool HasAvailableAllySlot()
+        {
+            if (HasAvailableBenchSlot()) return true;
+
+            for (int x = GetRearColumn(false); x <= GetFrontColumn(false); x++)
+            {
+                if (x == 0) continue;
+                for (int y = yMin; y <= yMax; y++)
+                {
+                    if (IsCellAvailable(x, y)) return true;
+                }
+            }
+            return false;
+        }
+
         public bool PlaceUnitOnBench(Unit unit)
         {
             if (unit == null) return false;
@@ -1048,8 +1074,12 @@ namespace Managers
 
         public void OnRoundEnd()
         {
+            foreach (Unit unit in heroList.Concat(enemyList).Where(unit => unit != null))
+                unit.Chemistry?.EndRound();
             // 판에 깔린 상태는 라운드를 넘기지 않는다.
             Combat.Battlefield.Clear();
+            // 공명도 같은 성질이다. 진영마다 한 자리에만 적혀 있으므로 여기서 함께 걷는다.
+            Codes.Passive.OathBond.Clear();
 
             foreach (Unit unit in heroList.Concat(enemyList).Where(unit => unit != null && unit.isActive).ToList())
             {

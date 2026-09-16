@@ -20,6 +20,48 @@ namespace Managers
             => UnlockLockedCharactersForTesting && data != null && data.characterType == "Locked";
 
         /// <summary>
+        /// <b>해금할 방법이 없는</b> Locked 유닛인가. 그런 유닛은 편성에 올린다.
+        ///
+        /// Locked는 "영입 사건을 만나면 열린다"는 뜻인데, 아직 그 사건이 없는 유닛까지
+        /// 잠가 두면 <b>영영 쓸 수 없는 데이터</b>가 된다. 분류는 Locked로 남기고
+        /// 자격만 열어 둔다 — 사건이 생기면 <c>80_stages.yaml</c>이 바뀌는 것만으로
+        /// 저절로 다시 잠긴다. 코드에 이름을 적지 않는 이유다.
+        ///
+        /// 라부아지에는 예외다. 사건이 아니라 <b>첫 완주</b>가 해금 조건이라 경로가 있다.
+        /// </summary>
+        public static bool HasNoUnlockPath(UnitData data)
+        {
+            if (data == null || data.characterType != "Locked") return false;
+            if (data.id == Entities.LavoisierChemistry.UnitId) return false;
+            return !RecruitableUnitIds.Contains(data.id);
+        }
+
+        private static HashSet<int> _recruitableUnitIds;
+
+        /// <summary>영입 사건이 제안하는 유닛 ID 전부. 사건 데이터에서 읽는다.</summary>
+        private static HashSet<int> RecruitableUnitIds
+        {
+            get
+            {
+                if (_recruitableUnitIds != null) return _recruitableUnitIds;
+
+                _recruitableUnitIds = new HashSet<int>();
+                var events = GameManager.Instance?.dataManager?.FetchStageThemeDataList()?.events;
+                if (events == null) return _recruitableUnitIds;
+
+                foreach (StageEventData stageEvent in events)
+                {
+                    foreach (int unitId in stageEvent?.RecruitUnitIds ?? System.Linq.Enumerable.Empty<int>())
+                    {
+                        _recruitableUnitIds.Add(unitId);
+                    }
+                }
+
+                return _recruitableUnitIds;
+            }
+        }
+
+        /// <summary>
         /// 초기 서포트 카드(characterType: Support)인가.
         ///
         /// 이 부류는 <b>서포터 칸에만</b> 오른다. 육성으로 해금되거나 스타터 해금 기록이
@@ -289,8 +331,10 @@ namespace Managers
             return role switch
             {
                 CharacterRole.Main => !IsSupportOnly(data) &&
-                    (data.canStartAsMain || IsTemporarilyUnlocked(data) || SaveSystem.IsStarterUnlocked(unitId) || SaveSystem.IsCharacterTrained(unitId)),
-                CharacterRole.Support => data.canStartAsSupport || SaveSystem.IsStarterUnlocked(unitId) || SaveSystem.IsCharacterTrained(unitId),
+                    (data.canStartAsMain || IsTemporarilyUnlocked(data) || HasNoUnlockPath(data) ||
+                     SaveSystem.IsStarterUnlocked(unitId) || SaveSystem.IsCharacterTrained(unitId)),
+                CharacterRole.Support => data.canStartAsSupport || HasNoUnlockPath(data) ||
+                    SaveSystem.IsStarterUnlocked(unitId) || SaveSystem.IsCharacterTrained(unitId),
                 _ => false,
             };
         }

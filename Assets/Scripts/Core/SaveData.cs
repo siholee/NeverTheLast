@@ -9,6 +9,7 @@ namespace Core
     {
         public List<int> unitIds = new();
         public List<int> unlockedStarterUnitIds = new();
+        public List<int> pendingCharacterUnlockIds = new();
         public List<TrainedCharacterRecord> records = new();
     }
 

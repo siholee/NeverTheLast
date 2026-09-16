@@ -62,6 +62,7 @@ namespace Effects.Buffs
     /// <summary>수치 효과 없이 상태를 화면에 표시하기 위한 표식용 효과.</summary>
     public class MarkerBuffEffect : BaseEffect
     {
+        public override bool CountsAsReagentBuff => false;
         public MarkerBuffEffect() : base(0) { }
     }
 

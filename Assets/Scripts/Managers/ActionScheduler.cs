@@ -58,7 +58,7 @@ namespace Managers
         /// <summary>
         /// <b>행동</b>의 종류. 값이 작을수록 먼저 실행된다.
         ///
-        /// 여기 있는 넷은 전부 <b>행동을 하는 영역</b>이다 — 스케줄러 슬롯을 차지하고 실제로 해결된다.
+        /// 여기 있는 것들은 전부 <b>행동을 하는 영역</b>이다 — 스케줄러 슬롯을 차지하고 실제로 해결된다.
         /// 패시브 코드처럼 <b>행동을 호출하는 영역</b>은 이 목록에 없다. 패시브는 스스로 행동하지 않고
         /// 여기에 행동을 하나 얹을 뿐이다.
         ///
@@ -79,11 +79,22 @@ namespace Managers
             /// <summary>추가행동. 턴을 쓰지 않는다.</summary>
             Additional = 2,
 
+            /// <summary>
+            /// 협동행동. 짝이 행동할 때 끼어들어 함께 친다. 턴을 쓰지 않는다.
+            ///
+            /// <b>추가행동과 판정을 나눈 이유는 트리거다.</b> <c>OnAdditionalActivates</c>를 듣는 코드가
+            /// 이미 여럿인데, 협공이 그것들을 전부 켜면 듀오 하나 때문에 다른 코드의 균형이 흔들린다.
+            /// 특수행동이 성질은 추가행동과 같으면서 판정을 따로 가진 것과 같은 이유다.
+            ///
+            /// 자기를 부른 일반행동 <b>바로 뒤에</b> 붙어야 하므로 추가행동보다 뒤, 궁극기보다 앞이다.
+            /// </summary>
+            Coordinated = 3,
+
             /// <summary>궁극기. 턴을 쓰지 않고 AV도 리셋하지 않는다.</summary>
-            Ultimate = 3,
+            Ultimate = 4,
 
             /// <summary>일반행동 — 또는 그 자리를 대신 쓰는 <b>대체행동</b>. 턴을 쓴다.</summary>
-            Normal = 4,
+            Normal = 5,
         }
 
         /// <summary>턴을 쓰지 않는 추가행동 계열인가. 우선 추가행동도 성질은 같다.</summary>
@@ -124,6 +135,10 @@ namespace Managers
         private float _actingElapsed;
         private int _sequence;
         private int _currentActionId = -1;
+        public ActionKind ActingKind { get; private set; }
+        private Unit _executingUnit;
+        /// <summary>코루틴뿐 아니라 즉발 행동의 콜백 안에서도 현재 실행자를 식별한다.</summary>
+        public Unit ExecutingUnit => _currentActionId >= 0 ? _executingUnit : null;
 
         /// <summary>이번 라운드에 해결된 행동 수. 전역 행동 카운트다.</summary>
         public int ActionCount { get; private set; }
@@ -295,6 +310,13 @@ namespace Managers
             => Enqueue(unit, ActionKind.PriorityAdditional, key, label, run);
 
         /// <summary>
+        /// 협동행동을 예약한다. 짝의 행동에 끼어들어 함께 치는 자리다.
+        /// 추가행동 카운터에 잡히지 않도록 <c>OnCoordinatedActivates</c>만 발행한다.
+        /// </summary>
+        public bool EnqueueCoordinated(Unit unit, string key, string label, Action run)
+            => Enqueue(unit, ActionKind.Coordinated, key, label, run);
+
+        /// <summary>
         /// 특수행동을 예약한다. <b>인드라의 궁극기만이</b> 이 문을 연다.
         /// 열린 순간 전원이 함께 나가야 하므로 추가행동보다 앞 순위다.
         /// </summary>
@@ -434,6 +456,8 @@ namespace Managers
 
                 _actingElapsed = 0f;
                 _currentActionId = ActionCount + 1;
+                ActingKind = next.Kind;
+                _executingUnit = next.Unit;
 
                 // 추가행동은 자기 턴을 쓰지 않아 OnTurnStart로는 잡히지 않는다.
                 // '행동마다' 도는 효과(풍화·니콜 일렉트릭 필드·바스테트 야수의 시선)가 셀 수 있도록
@@ -447,6 +471,11 @@ namespace Managers
                 {
                     // 추가행동 카운터에는 잡히지 않아야 하므로 전용 신호를 따로 낸다.
                     next.Unit.Invoke(BaseEnums.UnitEventType.OnSpecialActivates,
+                        new EventContext(next.Unit));
+                }
+                else if (next.Kind == ActionKind.Coordinated)
+                {
+                    next.Unit.Invoke(BaseEnums.UnitEventType.OnCoordinatedActivates,
                         new EventContext(next.Unit));
                 }
 

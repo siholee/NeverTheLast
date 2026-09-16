@@ -26,6 +26,9 @@ namespace Entities
 
         public bool isActive = false;
 
+        public LavoisierChemistry Chemistry { get; internal set; }
+        public bool IsBench => currentCell != null && currentCell.yPos <= 0;
+
         // 기본 식별정보
         [SerializeField] private int id;
         [SerializeField] private bool isEnemy;
@@ -435,6 +438,8 @@ namespace Entities
 
         public virtual void InitializeUnit(bool _isEnemy, int _id)
         {
+            Chemistry?.EndRound();
+            Chemistry = null;
             _eventDict = new Dictionary<BaseEnums.UnitEventType, Delegate>();
             InitializeStatusController();
             PassiveCodes = new List<PassiveCode>();
@@ -1338,6 +1343,16 @@ namespace Entities
             controlTurns = 0;
             currentNormalTarget = null;
         }
+
+        /// <summary>
+        /// 디버그 전용 — 걸려 있는 상태만 전부 걷는다.
+        ///
+        /// <see cref="DebugResetCombatState"/>는 라운드 종료를 통째로 흉내 내느라 원소·자원까지
+        /// 함께 지운다. 검증에서 "상태만 비운 자리"를 만들려면 그보다 좁은 문이 필요하다.
+        /// <c>StatusController</c>를 공개하지 않고 여기로만 여는 것은
+        /// 출하 빌드의 공개 표면을 넓히지 않기 위해서다.
+        /// </summary>
+        public void DebugClearStatuses() => StatusController.ClearAll();
 #endif
 
         private void LoadStatData(
@@ -1375,6 +1390,24 @@ namespace Entities
             // 연출 방향도 스프라이트가 아니라 카드가 반응하고 발사하는 쪽으로 잡았다.
             // 타격·시전 반응은 UnitCardView가 카드 자체를 흔들어 처리한다.
             currentCell?.SetPortrait(portrait);
+        }
+
+        /// <summary>
+        /// 전투 중 페이즈 전환처럼 유닛 정의를 다시 읽지 않고 초상화만 교체한다.
+        /// 경로 해석에 실패하면 현재 초상화를 유지해 전장이 빈 카드로 바뀌지 않게 한다.
+        /// </summary>
+        public bool ChangePortraitSprite(string portraitKey)
+        {
+            Sprite portrait = SpriteResource.LoadPortrait(portraitKey, out string path);
+            if (portrait == null)
+            {
+                Debug.LogWarning($"Portrait sprite not found: {portraitKey}");
+                return false;
+            }
+
+            PortraitPath = path;
+            currentCell?.SetPortrait(portrait);
+            return true;
         }
 
         /// <summary>
@@ -1446,6 +1479,7 @@ namespace Entities
 
             // hp 비율 복구
             HpCurr = Mathf.RoundToInt(HpMax * healthRatio);
+            Chemistry?.Resize();
             
             // 방어막 바 업데이트
             UpdateShieldBar();
@@ -1717,11 +1751,26 @@ namespace Entities
                 return;
             }
 
-            ConsumeUltimateResource();
+            if (UltimateCode == null) return;
+            if (!UltimateCode.ConsumesResourceOnResolve) ConsumeUltimateResource();
             // Cell의 통합 UI 시스템 사용
             RefreshView();
 
             UltimateCode.CastCode();
+            if (!UltimateCode.ConsumesResourceOnResolve) NotifyUltimateActivated();
+        }
+
+        internal void ClearUltimateResource() => ManaCurr = 0;
+
+        internal void ResolveDeferredUltimate()
+        {
+            ConsumeUltimateResource();
+            RefreshView();
+            NotifyUltimateActivated();
+        }
+
+        private void NotifyUltimateActivated()
+        {
             Invoke(BaseEnums.UnitEventType.OnUltimateActivates, new EventContext(this));
             if (UltimateCode.IsAutoCast) AnyActiveUltimateActivated?.Invoke(this);
         }
@@ -1824,6 +1873,42 @@ namespace Entities
             {
                 _judgementElements.Add(innateElement);
             }
+        }
+
+        /// <summary>공격자가 회피를 지우는 물건을 들었는가. 궁니르가 유일한 출처다.</summary>
+        private static bool IgnoresEvasion(Unit attacker)
+        {
+            if (attacker == null) return false;
+
+            foreach (var effect in attacker.ActiveEffectObjects())
+            {
+                if (effect.IgnoresEvasion(attacker)) return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 전투 도중에 <b>고유 원소 자체를</b> 바꾼다. 페이즈가 갈리는 보스가 쓴다.
+        ///
+        /// 판정축(<c>_judgementElements</c>)에서 옛 속성을 빼고 새 속성을 넣는다.
+        /// 부착 원소는 건드리지 않는다 — 속성과 부착은 별개의 축이고,
+        /// 페이즈가 바뀐다고 이미 걸려 있던 반응 재료까지 사라지면 안 된다.
+        /// </summary>
+        public void ChangeInnateElement(BaseEnums.UnitElement newElement)
+        {
+            if (Enum.TryParse(Element, true, out BaseEnums.UnitElement previous) &&
+                previous != BaseEnums.UnitElement.None)
+            {
+                _judgementElements.Remove(previous);
+            }
+
+            Element = newElement == BaseEnums.UnitElement.None ? "None" : newElement.ToString();
+            if (newElement != BaseEnums.UnitElement.None) _judgementElements.Add(newElement);
+
+            AttributesUpdate();
+            currentCell?.UpdateUI();
+            Debug.Log($"[속성 전환] {UnitName}의 속성이 {newElement}(으)로 바뀌었다");
         }
 
         /// <summary>원소를 부착한다. 부착 직후 원소 반응을 검사한다.</summary>
@@ -2058,7 +2143,7 @@ namespace Entities
                 HpCurr = Mathf.Clamp(HpCurr + healingAmount, 0, HpMax);
                 if (overheal > 0 && overhealShieldRatio > 0f)
                 {
-                    AddShield(Mathf.RoundToInt(overheal * overhealShieldRatio), source);
+                    AddShield(Mathf.RoundToInt(overheal * overhealShieldRatio), source, true);
                 }
 
                 // 순수치유량 — 오버힐을 뺀 실제 회복분만 부여자에게 누적한다.
@@ -2072,6 +2157,7 @@ namespace Entities
                 Effects.CombatFeedback.PlayHeal(this, effectiveHealing);
 
                 NotifyHealingOrShieldGranted(source, healingAmount);
+                if (healingAmount > 0) Chemistry?.Receive(source, ReagentKind.Fuel);
             }
             else
             {
@@ -2442,7 +2528,7 @@ namespace Entities
         /// 방어막을 추가하는 메서드
         /// </summary>
         /// <param name="amount">추가할 방어막 양</param>
-        public virtual void AddShield(int amount, Unit source = null)
+        public virtual void AddShield(int amount, Unit source = null, bool fromHealingConversion = false)
         {
             amount = ApplyShieldBonus(Mathf.RoundToInt(amount * GetOutgoingSupportMultiplier(source, true)));
             amount = ApplyHealingShieldCritical(amount, source);
@@ -2457,6 +2543,7 @@ namespace Entities
             UpdateShieldBar(); // 방어막 바 시각 업데이트
             Debug.Log($"[AddShield] {UnitName}: Max {previousShieldMax}→{ShieldMax}, Curr {previousShieldCurr}→{ShieldCurr} (HP: {HpCurr}/{HpMax})");
             NotifyHealingOrShieldGranted(source, amount);
+            if (amount > 0 && !fromHealingConversion) Chemistry?.Receive(source, ReagentKind.Stabilizer);
         }
 
         /// <summary>
@@ -2465,6 +2552,7 @@ namespace Entities
         /// <param name="amount">설정할 방어막 양</param>
         public virtual void SetShield(int amount, Unit source = null)
         {
+            int previousShield = ShieldCurr;
             amount = ApplyShieldBonus(Mathf.RoundToInt(amount * GetOutgoingSupportMultiplier(source, true)));
             amount = ApplyHealingShieldCritical(amount, source);
             ShieldMax = amount;
@@ -2473,6 +2561,7 @@ namespace Entities
             UpdateShieldBar(); // 방어막 바 시각 업데이트
             Debug.Log($"[SetShield] {UnitName}의 방어막이 {amount}로 설정되었습니다 (Max={ShieldMax}, Curr={ShieldCurr})");
             NotifyHealingOrShieldGranted(source, amount);
+            if (amount > previousShield) Chemistry?.Receive(source, ReagentKind.Stabilizer);
         }
 
         private float GetOutgoingSupportMultiplier(Unit source, bool shield)
@@ -2602,7 +2691,8 @@ namespace Entities
                 receivingDamageModifier *= effect.ReceivingDamageModifier(self, dmgCtx);
             }
             
-            bool canEvade = dmgCtx.CodeType != BaseEnums.CodeType.Effect;
+            bool canEvade = dmgCtx.CodeType != BaseEnums.CodeType.Effect
+                            && !IgnoresEvasion(dmgCtx.Attacker);
             float evasionChance = self.EvasionChanceCurr;
             foreach (var effect in ActiveEffectObjects())
             {
@@ -2798,6 +2888,12 @@ namespace Entities
         /// <summary>
         /// 라운드 시작 처리 이벤트
         /// </summary>
+        internal void PrepareRoundResources()
+        {
+            TurnCount = 0;
+            Chemistry?.BeginRound();
+        }
+
         protected void DefaultRoundStartEvent(EventContext context)
         {
             Debug.Log($"[라운드 시작] {UnitName}의 DefaultRoundStartEvent 호출됨");
@@ -2820,6 +2916,7 @@ namespace Entities
         /// </summary>
         protected void DefaultRoundEndEvent(EventContext context)
         {
+            Chemistry?.EndRound();
             // 상태를 라운드 종료 시 정리 (OnRemove 호출로 이벤트 리스너 등 해제)
             StatusController.ClearAll();
             ResetCombatElements();
@@ -2951,6 +3048,7 @@ namespace Entities
 
         public void DeactivateUnit()
         {
+            Chemistry?.EndRound();
             isActive = false;
             untargetableSourceCount = 0;
             if (ID > 0) LastActiveId = ID;
@@ -2996,6 +3094,8 @@ namespace Entities
 
             ID = LastActiveId;
             ActivateUnit();
+            // 사망 시 비운 카드 그림을 다시 불러온다. 스탯/시약은 복구하지 않는다.
+            LoadSprite(PortraitPath, IsEnemy);
             HpCurr = Mathf.Clamp(Mathf.CeilToInt(HpMax * Mathf.Clamp01(hpRatio)), 1, HpMax);
             RefreshView();
             return true;

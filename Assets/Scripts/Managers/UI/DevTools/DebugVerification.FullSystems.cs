@@ -60,6 +60,7 @@ namespace Managers.UI.DevTools
             SkillHintsAndLearning();
             TonicsAndShop();
             CandiesValuablesAndStock();
+            NordTrilogyWiring();
             SelectionAndSave();
             PeriodicCodes();
             GridAndEffects();
@@ -730,6 +731,55 @@ namespace Managers.UI.DevTools
             Assert("shop stock is priced",stock.All(r=>r.goldCost>0),">0","free item");
             Assert("shop stock holds no valuables",stock.All(r=>r.item?.IsValuable!=true),"none","valuable listed");
 
+            Clear();
+        }
+
+        /// <summary>노르드 3부작의 배선 — 체인 · 중간 보스 방아쇠 · 다인 영입 해금.</summary>
+        private void NordTrilogyWiring()
+        {
+            var themes = game.dataManager.FetchStageThemeDataList();
+            var all = themes?.stageThemes ?? new List<StageThemeData>();
+            StageThemeData nord1 = all.FirstOrDefault(t => t.id == 16);
+            StageThemeData nord2 = all.FirstOrDefault(t => t.id == 17);
+            StageThemeData nord3 = all.FirstOrDefault(t => t.id == 18);
+            Assert("nord trilogy themes exist", nord1 != null && nord2 != null && nord3 != null, "3 themes", "missing");
+            if (nord1 == null || nord2 == null || nord3 == null) return;
+
+            // 체인은 16 → 17 → 18에서 끝나고, 17·18만 룰렛에서 16으로 치환된다.
+            Equal("nord1 chains to nord2", 17, nord1.chainNextThemeId);
+            Equal("nord2 chains to nord3", 18, nord2.chainNextThemeId);
+            Equal("nord3 ends the chain", 0, nord3.chainNextThemeId);
+            Equal("nord1 is the chain entry", 0, nord1.rotationRedirectThemeId);
+            Equal("nord2 redirects to nord1", 16, nord2.rotationRedirectThemeId);
+            Equal("nord3 redirects to nord1", 16, nord3.rotationRedirectThemeId);
+
+            // 합류 분기는 6슬롯 중간 보스 자리다. 10슬롯만 보던 방아쇠로는 잡히지 않는다.
+            Equal("nord3 midboss slot", 6, nord3.midBossStageInRound);
+            Equal("nord3 midboss is sigurd", 2051, nord3.midBossId);
+
+            var recruit = themes.events?.FirstOrDefault(e => e.triggerBossId == nord3.midBossId);
+            Assert("midboss triggers a recruit event", recruit != null, "found", "none");
+            if (recruit == null) return;
+
+            // 사건 하나가 둘을 내민다. 해금은 <b>전원</b>에게 돌아가야 한다.
+            var offered = recruit.RecruitUnitIds.ToList();
+            Equal("pair event offers two units", 2, offered.Count);
+            Assert("pair event offers sigurd and brynhild", offered.Contains(84) && offered.Contains(85),
+                "84,85", string.Join(",", offered));
+            Equal("representative recruit id", 84, recruit.RecruitUnitId);
+
+            // 디버그 저장소만 시드한다. 실제 PlayerPrefs에는 쓰지 않는다.
+            var write = typeof(SaveSystem).GetMethod("WriteString", BindingFlags.Static | BindingFlags.NonPublic);
+            write.Invoke(null, new object[] { "NTL_TrainedCharacters", "{}" });
+            Assert("pair starts locked", !SaveSystem.IsStarterUnlocked(84) && !SaveSystem.IsStarterUnlocked(85),
+                "locked", "checked");
+
+            var grant = typeof(GameManager).GetMethod("GrantRecruitUnlock", BindingFlags.Instance | BindingFlags.NonPublic);
+            grant.Invoke(game, new object[] { recruit });
+            Assert("meeting the pair unlocks both",
+                SaveSystem.IsStarterUnlocked(84) && SaveSystem.IsStarterUnlocked(85), "both", "checked");
+
+            write.Invoke(null, new object[] { "NTL_TrainedCharacters", "{}" });
             Clear();
         }
 

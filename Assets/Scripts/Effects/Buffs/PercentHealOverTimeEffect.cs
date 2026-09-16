@@ -13,6 +13,7 @@ namespace Effects.Buffs
     /// </summary>
     public sealed class PercentHealOverTimeEffect : BaseEffect
     {
+        public override bool CountsAsReagentBuff => false;
         private readonly float _percentPerTurn;
 
         public PercentHealOverTimeEffect(float percentPerTurn) : base(0, percentPerTurn)

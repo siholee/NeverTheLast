@@ -71,6 +71,7 @@ namespace Managers.UI
             SettingsUI existing = GetComponent<SettingsUI>();
             _settings = existing != null ? existing : gameObject.AddComponent<SettingsUI>();
             BuildMenu();
+            Screens.CharacterUnlockDialog.ShowPending();
         }
 
         /// <summary>씬에 남아 있는 구형 UI 캔버스를 끈다.</summary>

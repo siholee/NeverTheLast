@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using BaseClasses;
 using Codes.Base;
+using Entities;
 using UnityEngine;
 
 namespace Codes.Normal
@@ -60,6 +61,22 @@ namespace Codes.Normal
             };
             Power = Mathf.RoundToInt(ratio * 50f);
             return RollDamage(critMultiplier);
+        }
+
+        /// <summary>
+        /// <b>자기 속성을 부착한다.</b> 이 코드는 콜로세움 검투사만 쓴다.
+        ///
+        /// 매 판 한 명씩 서는 테마라 적끼리 원소를 섞을 수 없다. 대신 같은 원소가 겹쳐
+        /// <b>자기 짝 반응</b>이 터진다 — 바위는 진동, 불은 화상, 얼음은 둔화다.
+        /// 결투마다 반응 하나를 배우는 구조이며, 속성이 <c>None</c>인 유닛은 아무 일도 없다.
+        /// </summary>
+        protected override void OnAttackResolved(Unit target, DamageContext context)
+        {
+            if (target == null || !target.isActive || Caster == null) return;
+            if (!System.Enum.TryParse(Caster.Element, true, out BaseEnums.UnitElement element)) return;
+            if (element == BaseEnums.UnitElement.None) return;
+
+            target.GrantCombatElement(element, Unit.CommonElementAuraDuration, Caster);
         }
 
         protected override List<int> GetDamageTags()

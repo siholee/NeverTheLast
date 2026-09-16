@@ -207,6 +207,12 @@ namespace Managers
             _event.ShowResolution(message);
         }
 
+        /// <summary>자리가 없어 영입이 막혔을 때, 떠나보낼 사람을 고르는 화면.</summary>
+        public void ShowEventRosterPrompt(string message, List<Unit> candidates)
+        {
+            _event.ShowRosterPrompt(message, candidates);
+        }
+
         public void HideEventStagePanel()
         {
             _event.Hide();

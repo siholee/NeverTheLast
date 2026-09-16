@@ -54,6 +54,26 @@ namespace Codes.Normal
         private bool IsEagle => _style is AztecNormalStyle.Eagle or AztecNormalStyle.EliteEagle;
         private bool IsSerpent => _style is AztecNormalStyle.SerpentPriest or AztecNormalStyle.EliteSerpentPriest;
 
+        /// <summary>
+        /// 풀을 겹쳐 <b>착근</b>(행동 지연)을 만들고, 테스카틀리포카의 전기가 그 위에 얹혀
+        /// <b>활성</b>(특수 피해 취약)으로 바뀐다. 의식이 상대를 묶어 두는 그림이다.
+        ///
+        /// <b>재규어(바위)는 일부러 부착하지 않는다.</b> 풀과 바위가 만나면 성장(STR 증가)이
+        /// 되는데, 버프 반응은 부착된 유닛이 가져가므로 아군을 이롭게 한다.
+        /// </summary>
+        private BaseEnums.UnitElement AttachElement => IsEagle || IsSerpent
+            ? BaseEnums.UnitElement.Dendro
+            : _style == AztecNormalStyle.Tezcatlipoca
+                ? BaseEnums.UnitElement.Electro
+                : BaseEnums.UnitElement.None;
+
+        protected override void OnAttackResolved(Unit target, DamageContext context)
+        {
+            if (target == null || !target.isActive) return;
+            if (AttachElement == BaseEnums.UnitElement.None) return;
+            target.GrantCombatElement(AttachElement, Unit.CommonElementAuraDuration, Caster);
+        }
+
         public override void CastCode()
         {
             if (_style == AztecNormalStyle.Tezcatlipoca)

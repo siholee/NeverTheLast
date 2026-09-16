@@ -107,7 +107,18 @@ namespace Core
             }
 
             TrainedCharacterCollection data = JsonUtility.FromJson<TrainedCharacterCollection>(json);
-            return NormalizeTrainedCharacterCollection(data);
+            bool hadLavoisier = data?.unlockedStarterUnitIds?.Contains(Entities.LavoisierChemistry.UnitId) == true;
+            data = NormalizeTrainedCharacterCollection(data);
+            // 이전 버전의 완주 기록에도 최초 클리어 해금을 소급 적용한다.
+            if (!hadLavoisier && data.unlockedStarterUnitIds.Contains(Entities.LavoisierChemistry.UnitId))
+                SaveTrainedCharacterCollection(data);
+            return data;
+        }
+
+        public static void AcknowledgeCharacterUnlock(int unitId)
+        {
+            var data = LoadTrainedCharacters();
+            if (data.pendingCharacterUnlockIds.Remove(unitId)) SaveTrainedCharacterCollection(data);
         }
 
         public static bool IsCharacterTrained(int unitId)
@@ -201,6 +212,7 @@ namespace Core
             data.unitIds ??= new System.Collections.Generic.List<int>();
             data.unlockedStarterUnitIds ??= new System.Collections.Generic.List<int>();
             data.records ??= new System.Collections.Generic.List<TrainedCharacterRecord>();
+            data.pendingCharacterUnlockIds ??= new System.Collections.Generic.List<int>();
 
             foreach (TrainedCharacterRecord record in data.records)
             {
@@ -212,6 +224,13 @@ namespace Core
                 record.supportCard ??= new SupportCardSaveData();
             }
 
+            if (data.unitIds.Exists(id => id > 0) &&
+                !data.unlockedStarterUnitIds.Contains(Entities.LavoisierChemistry.UnitId))
+            {
+                data.unlockedStarterUnitIds.Add(Entities.LavoisierChemistry.UnitId);
+                if (!data.pendingCharacterUnlockIds.Contains(Entities.LavoisierChemistry.UnitId))
+                    data.pendingCharacterUnlockIds.Add(Entities.LavoisierChemistry.UnitId);
+            }
             data.unitIds.Sort();
             data.unlockedStarterUnitIds.Sort();
             return data;

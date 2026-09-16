@@ -109,6 +109,11 @@ namespace Managers
         private float trainingPhaseEnteredAt;
         private StageEventData currentStageEvent;
         private StageEventChoiceData pendingEventChoice;
+
+        /// <summary>
+        /// 자리가 없어 <b>떠나보낼 사람을 고르는 중</b>인 영입 선택지. 고르거나 포기하면 비워진다.
+        /// </summary>
+        private StageEventChoiceData pendingRecruitChoice;
         private int eventDialogueIndex;
         private bool eventBattleInProgress;
 
@@ -430,6 +435,7 @@ namespace Managers
             eventBattleInProgress = false;
             currentStageEvent = null;
             pendingEventChoice = null;
+            pendingRecruitChoice = null;
             _eventResumeAction = null;
             _eventScheduler.Clear();
             _pendingTrainingResult = default;   // 값 형식이라 null을 넣을 수 없다
@@ -729,9 +735,109 @@ namespace Managers
                 return;
             }
 
+            // 자리가 없는 채로 합류시키면 영입이 조용히 실패한다. 먼저 자리를 묻는다.
+            if (choice.grantUnitId > 0 && !HasRoomForRecruit(choice.grantUnitId))
+            {
+                BeginRecruitRosterPrompt(choice);
+                return;
+            }
+
             ApplyEventChoiceRewards(choice);
             runManager?.SaveCurrentRun();
             uiManager?.ShowEventResolution(choice.successText ?? "사건이 끝났다.");
+        }
+
+        // ── 영입 자리 비우기 ─────────────────────────────────────────
+
+        /// <summary>이 유닛을 지금 받을 수 있는가. 이미 일행이면 자리를 묻지 않는다.</summary>
+        private static bool HasRoomForRecruit(int unitId)
+        {
+            GridManager grid = GridManager.Instance;
+            if (grid == null) return false;
+            if (grid.heroList.Any(hero => hero != null && hero.isActive && !hero.IsEnemy && hero.ID == unitId))
+            {
+                return true;
+            }
+            return grid.HasAvailableAllySlot();
+        }
+
+        /// <summary>자리가 없다고 알리고, 떠나보낼 사람을 고르거나 합류를 포기하게 한다.</summary>
+        private void BeginRecruitRosterPrompt(StageEventChoiceData choice)
+        {
+            List<Unit> leavable = GetDismissableUnits();
+            if (leavable.Count == 0)
+            {
+                // 메인 혼자 자리를 다 채우는 편성은 없지만, 그래도 막다른 길을 만들지 않는다.
+                uiManager?.ShowEventResolution(string.IsNullOrWhiteSpace(choice.failureText)
+                    ? "자리를 비울 수 없었다. 합류는 없던 일이 되었다."
+                    : choice.failureText);
+                return;
+            }
+
+            pendingRecruitChoice = choice;
+            uiManager?.ShowEventRosterPrompt(
+                string.IsNullOrWhiteSpace(choice.rosterFullText)
+                    ? "자리가 꽉 찼다. 새로 맞이하려면 누군가가 떠나야 할 것 같다."
+                    : choice.rosterFullText,
+                leavable);
+        }
+
+        /// <summary>떠나보낼 수 있는 아군. 메인 캐릭터와 소환수는 뺀다 — 런의 축이거나 자리를 차지하지 않는다.</summary>
+        private static List<Unit> GetDismissableUnits()
+        {
+            GridManager grid = GridManager.Instance;
+            if (grid == null) return new List<Unit>();
+
+            int mainUnitId = CharacterSelectionManager.Instance?.MainUnitId ?? 0;
+            return grid.heroList
+                .Where(hero => hero != null && hero.isActive && !hero.IsEnemy && !hero.IsSummon &&
+                               hero.ID != mainUnitId)
+                .ToList();
+        }
+
+        /// <summary>한 명을 떠나보내고 기다리던 합류를 마무리한다. 사건 화면이 부른다.</summary>
+        public void DismissUnitForRecruit(int unitId)
+        {
+            if (gameState != GameState.EventStage) return;
+            StageEventChoiceData choice = pendingRecruitChoice;
+            if (choice == null) return;
+
+            Unit leaving = GetDismissableUnits().FirstOrDefault(hero => hero.ID == unitId);
+            if (leaving == null) return;
+
+            string leavingName = leaving.UnitName;
+            Cell vacated = leaving.currentCell;
+            GridManager.Instance.RetireUnit(leaving);
+            GridManager.Instance.PruneUnitLists();
+
+            // 비운 칸의 예약을 즉시 푼다.
+            //
+            // <see cref="Unit.DeactivateUnit"/>가 죽은 자리를 2초간 잠그는 것은
+            // <b>전투 중에 그 자리로 곧바로 다시 소환되는 것</b>을 막기 위해서다.
+            // 여기는 사건 중이라 그 이유가 없고, 풀지 않으면 같은 프레임에 이어지는 영입이
+            // 방금 비운 칸을 못 보고 조용히 실패한다.
+            if (vacated != null) vacated.reservedTime = 0f;
+
+            pendingRecruitChoice = null;
+            ApplyEventChoiceRewards(choice);
+            runManager?.SaveCurrentRun();
+            string joined = choice.successText ?? "새로운 동료가 합류했다.";
+            uiManager?.ShowEventResolution($"{leavingName}은(는) 일행과 헤어졌다.\n{joined}");
+        }
+
+        /// <summary>자리를 비우지 않고 합류를 포기한다. 사건 화면이 부른다.</summary>
+        public void CancelRecruitForRoster()
+        {
+            if (gameState != GameState.EventStage) return;
+            StageEventChoiceData choice = pendingRecruitChoice;
+            if (choice == null) return;
+
+            pendingRecruitChoice = null;
+            MarkCurrentEventTriggered();
+            runManager?.SaveCurrentRun();
+            uiManager?.ShowEventResolution(string.IsNullOrWhiteSpace(choice.failureText)
+                ? "자리를 비우지 않기로 했다. 합류는 없던 일이 되었다."
+                : choice.failureText);
         }
 
         private void BeginEventBattle(StageEventChoiceData choice)
@@ -757,8 +863,15 @@ namespace Managers
         {
             if (gameState != GameState.EventStage) return;
             uiManager?.HideEventStagePanel();
+
+            // 사건을 비우기 전에 해금을 먼저 찍는다.
+            // 어느 선택지로 끝났든 — 합류·거절·자리 부족·전투 패배 — 이 한 지점을 지나므로
+            // 여기서 한 번만 다룬다.
+            GrantRecruitUnlock(currentStageEvent);
+
             currentStageEvent = null;
             pendingEventChoice = null;
+            pendingRecruitChoice = null;
             eventDialogueIndex = 0;
 
             // 사건 진입 시 지정한 연속 동작으로 흐름을 이어간다.
@@ -1193,7 +1306,7 @@ namespace Managers
             if (victory)
             {
                 GrantClearGold();
-                QueueFirstAmunRaClearEvent();
+                QueueBossClearEvents();
             }
 
             if (eventBattleInProgress)
@@ -1246,23 +1359,74 @@ namespace Managers
             uiManager?.ShowRewardPanel(rewards);
         }
 
-        private void QueueFirstAmunRaClearEvent()
+        /// <summary>
+        /// 보스를 넘어선 직후 사건을 예약한다. <b>유닛 이름이 코드에 들어 있지 않다</b> —
+        /// 사건 데이터의 <c>triggerBossId</c>가 방아쇠를 들고 있으므로,
+        /// 새 영입 사건은 <c>80_stages.yaml</c>에 한 줄 더하는 것으로 끝난다.
+        /// </summary>
+        private void QueueBossClearEvents()
         {
-            const int AmunRaBossId = 3012;
-            if (_roundManager?.CurrentBossId != AmunRaBossId) return;
-            if (SaveSystem.HasDefeatedBoss(AmunRaBossId)) return;
+            // 최종 보스와 중간 보스 둘 다 방아쇠가 된다.
+            // 노르드 중부의 합류 분기(시구르드·브륀힐드)가 6슬롯 중간 보스 자리에 있다.
+            QueueClearEventsFor(_roundManager?.CurrentBossId ?? 0);
+            QueueClearEventsFor(_roundManager?.CurrentMidBossId ?? 0);
+        }
 
-            // 사건을 확인한 뒤에 기록을 남긴다. 먼저 기록하면 사건을 못 찾았을 때
-            // 최초 격파가 소진되어 바스테트 합류가 영영 사라진다.
-            StageEventData bastetEvent = _roundManager.GetEventById("aswan_bastet_first_amun_ra_clear");
-            if (bastetEvent == null)
+        private void QueueClearEventsFor(int enemyId)
+        {
+            if (enemyId <= 0 || _roundManager == null) return;
+
+            // 격파 기록부터 남긴다. <c>requiresBossDefeatId</c>로 열리는 사건들이 이 기록을 본다.
+            //
+            // 예전에는 '최초 격파' 자체가 합류 사건의 일회성이라 사건을 찾은 뒤에 기록해야
+            // 했다. 지금은 <b>해금 여부</b>가 일회성을 맡으므로 기록이 무엇도 소진하지 않는다.
+            SaveSystem.MarkBossDefeated(enemyId);
+
+            foreach (StageEventData triggered in _roundManager.GetEventsTriggeredByBoss(enemyId))
             {
-                Debug.LogWarning("[사건] 아문·라 최초 격파 사건(aswan_bastet_first_amun_ra_clear)을 찾지 못했다.");
-                return;
+                if (CanOfferEvent(triggered)) RequestEvent(triggered);
             }
+        }
 
-            if (!SaveSystem.MarkBossDefeated(AmunRaBossId)) return;
-            RequestEvent(bastetEvent);
+        /// <summary>
+        /// 이 사건을 지금 띄울 수 있는가.
+        /// 영입 사건이라면 <b>이미 해금했거나 일행에 있는</b> 유닛을 다시 제안하지 않는다.
+        /// </summary>
+        private bool CanOfferEvent(StageEventData stageEvent)
+        {
+            if (stageEvent == null) return false;
+            if (stageEvent.oncePerRun && runManager != null &&
+                runManager.HasTriggeredEvent(stageEvent.id)) return false;
+
+            int recruitUnitId = stageEvent.RecruitUnitId;
+            if (recruitUnitId <= 0) return true;
+
+            if (SaveSystem.IsStarterUnlocked(recruitUnitId)) return false;
+            return GridManager.Instance == null || !GridManager.Instance.heroList.Any(hero =>
+                hero != null && hero.isActive && !hero.IsEnemy && hero.ID == recruitUnitId);
+        }
+
+        /// <summary>
+        /// 영입 사건을 끝까지 본 것만으로 그 유닛을 영구 해금한다.
+        ///
+        /// <b>합류시켰든 거절했든 같다 — 만났다는 사실이 해금 조건이다.</b>
+        /// 거절이 해금까지 빼앗으면 선택지가 아니라 함정이 된다 — 그 런에 자리가 없거나
+        /// 지금 필요하지 않다는 이유로 거절해도 다음 런부터는 골라 쓸 수 있어야 한다.
+        ///
+        /// 육성 모드에서만 남긴다 — 런 중 합류가 해금으로 이어지는 다른 경로(<see cref="GridManager"/>)와 같은 줄을 쓴다.
+        /// </summary>
+        private void GrantRecruitUnlock(StageEventData stageEvent)
+        {
+            if (CurrentMode != GameMode.Training) return;
+
+            if (stageEvent == null) return;
+
+            // 사건이 여럿을 내밀면 <b>전원</b>을 해금한다. 만났다는 사실이 조건이므로
+            // 한 명만 데려가도 나머지가 다음 런에서 사라지면 안 된다.
+            foreach (int recruitUnitId in stageEvent.RecruitUnitIds)
+            {
+                SaveSystem.AddStarterUnlock(recruitUnitId);
+            }
         }
 
         private void ResolveEventBattle(bool victory)

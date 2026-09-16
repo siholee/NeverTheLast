@@ -24,22 +24,24 @@ enemies:
     name: 무르밀로
     themeId: 5
     archetype: 7
-    element: None
-    tier: normal
+    element: Geo
+    tier: elite
     mainStat: STR
     subStat: CON
     strBase: 12
     strIncrementLvl: 1
     dexBase: 9
     dexIncrementLvl: 1
-    conBase: 26
-    conIncrementLvl: 2
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 6
     lukBase: 8
     lukIncrementLvl: 1
     manaMax: 100
     codes: { passive: 1008, normal: 1000, ultimate: 1100 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
       - { codeId: 1010, unlockLevel: 40, stage: 1 }
       - { codeId: 1011, unlockLevel: 70, stage: 1 }
@@ -50,22 +52,24 @@ enemies:
     name: 호플로마쿠스
     themeId: 5
     archetype: 8
-    element: None
-    tier: normal
+    element: Dendro
+    tier: elite
     mainStat: STR
     subStat: DEX
     strBase: 16
     strIncrementLvl: 2
     dexBase: 13
     dexIncrementLvl: 1
-    conBase: 18
-    conIncrementLvl: 1
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 6
     lukBase: 10
     lukIncrementLvl: 1
     manaMax: 100
     codes: { passive: 1008, normal: 1001, ultimate: 1101 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
       - { codeId: 1010, unlockLevel: 40, stage: 1 }
       - { codeId: 1011, unlockLevel: 70, stage: 1 }
@@ -76,22 +80,24 @@ enemies:
     name: 트라엑스
     themeId: 5
     archetype: 9
-    element: None
-    tier: normal
+    element: Pyro
+    tier: elite
     mainStat: STR
     subStat: LUK
     strBase: 19
     strIncrementLvl: 2
     dexBase: 16
     dexIncrementLvl: 1
-    conBase: 14
-    conIncrementLvl: 1
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
     manaMax: 100
     codes: { passive: 1008, normal: 1002, ultimate: 1102 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
       - { codeId: 1010, unlockLevel: 40, stage: 1 }
       - { codeId: 1011, unlockLevel: 70, stage: 1 }
@@ -102,16 +108,16 @@ enemies:
     name: 레티아리우스
     themeId: 5
     archetype: 10
-    element: None
-    tier: normal
+    element: Anemo
+    tier: elite
     mainStat: DEX
     subStat: INT
     strBase: 13
     strIncrementLvl: 1
     dexBase: 17
     dexIncrementLvl: 2
-    conBase: 12
-    conIncrementLvl: 1
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 8
     intIncrementLvl: 1
     lukBase: 12
@@ -119,6 +125,8 @@ enemies:
     manaMax: 100
     codes: { passive: 1008, normal: 1003, ultimate: 1103 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
       - { codeId: 1010, unlockLevel: 40, stage: 1 }
       - { codeId: 1011, unlockLevel: 70, stage: 1 }
@@ -129,22 +137,24 @@ enemies:
     name: 세쿠토르
     themeId: 5
     archetype: 9
-    element: None
-    tier: normal
+    element: Cryo
+    tier: elite
     mainStat: STR
     subStat: DEX
     strBase: 18
     strIncrementLvl: 2
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 16
-    conIncrementLvl: 1
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 6
     lukBase: 11
     lukIncrementLvl: 1
     manaMax: 100
     codes: { passive: 1008, normal: 1002, ultimate: 1104 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
       - { codeId: 1010, unlockLevel: 40, stage: 1 }
       - { codeId: 1011, unlockLevel: 70, stage: 1 }
@@ -155,22 +165,24 @@ enemies:
     name: 디마카이루스
     themeId: 5
     archetype: 8
-    element: None
-    tier: normal
+    element: Pyro
+    tier: elite
     mainStat: DEX
     subStat: LUK
     strBase: 17
     strIncrementLvl: 2
     dexBase: 20
     dexIncrementLvl: 2
-    conBase: 12
-    conIncrementLvl: 1
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 6
     lukBase: 16
     lukIncrementLvl: 1
     manaMax: 100
     codes: { passive: 1008, normal: 1001, ultimate: 1105 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
       - { codeId: 1010, unlockLevel: 40, stage: 1 }
       - { codeId: 1011, unlockLevel: 70, stage: 1 }
@@ -184,7 +196,7 @@ enemies:
     name: 프리무스 팔루스 마르켈루스
     themeId: 5
     archetype: 7
-    element: None
+    element: Geo
     tier: elite
     mainStat: STR
     subStat: CON
@@ -192,14 +204,16 @@ enemies:
     strIncrementLvl: 2
     dexBase: 18
     dexIncrementLvl: 1
-    conBase: 54
-    conIncrementLvl: 4
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 8
     lukBase: 16
     lukIncrementLvl: 1
     manaMax: 100
     codes: { passive: 1100, normal: 1000, ultimate: 1106 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1101, unlockLevel: 20, stage: 1 }
       - { codeId: 1102, unlockLevel: 40, stage: 1 }
       - { codeId: 1103, unlockLevel: 70, stage: 1 }
@@ -210,7 +224,7 @@ enemies:
     name: 베스티아리우스 사비나
     themeId: 5
     archetype: 10
-    element: None
+    element: Dendro
     tier: elite
     mainStat: DEX
     subStat: LUK
@@ -218,8 +232,8 @@ enemies:
     strIncrementLvl: 2
     dexBase: 24
     dexIncrementLvl: 2
-    conBase: 95
-    conIncrementLvl: 13
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 12
     intIncrementLvl: 1
     lukBase: 18
@@ -227,6 +241,8 @@ enemies:
     manaMax: 100
     codes: { passive: 1104, normal: 1003, ultimate: 1107 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1105, unlockLevel: 20, stage: 1 }
       - { codeId: 1106, unlockLevel: 40, stage: 1 }
       - { codeId: 1107, unlockLevel: 70, stage: 1 }
@@ -238,7 +254,7 @@ enemies:
     name: 스파르타쿠스
     themeId: 5
     archetype: 8
-    element: None
+    element: Pyro
     tier: boss
     mainStat: STR
     subStat: LUK
@@ -246,14 +262,16 @@ enemies:
     strIncrementLvl: 4
     dexBase: 20
     dexIncrementLvl: 2
-    conBase: 100
-    conIncrementLvl: 15
+    conBase: 71
+    conIncrementLvl: 8
     intBase: 8
     lukBase: 20
     lukIncrementLvl: 1
     manaMax: 100
     codes: { passive: 1112, normal: 1001, ultimate: 1109 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1113, unlockLevel: 20, stage: 1 }
       - { codeId: 1114, unlockLevel: 40, stage: 1 }
       - { codeId: 1115, unlockLevel: 70, stage: 1 }
@@ -541,8 +559,8 @@ enemies:
     strIncrementLvl: 1
     dexBase: 30
     dexIncrementLvl: 3
-    conBase: 70
-    conIncrementLvl: 9
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 26
     intIncrementLvl: 2
     lukBase: 14
@@ -550,6 +568,8 @@ enemies:
     manaMax: 100
     codes: { passive: 300, normal: 100, ultimate: 100 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1212, unlockLevel: 1, stage: 1 }
       - { codeId: 2, unlockLevel: 12, stage: 1 }
       - { codeId: 31, unlockLevel: 30, stage: 1 }
@@ -605,8 +625,8 @@ enemies:
     strIncrementLvl: 2
     dexBase: 26
     dexIncrementLvl: 2
-    conBase: 105
-    conIncrementLvl: 15
+    conBase: 71
+    conIncrementLvl: 8
     intBase: 16
     intIncrementLvl: 1
     lukBase: 40
@@ -614,6 +634,8 @@ enemies:
     manaMax: 100
     codes: { passive: 302, normal: 102, ultimate: 102 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1214, unlockLevel: 1, stage: 1 }
       - { codeId: 1215, unlockLevel: 1, stage: 1 }
       - { codeId: 1216, unlockLevel: 1, stage: 1 }
@@ -831,10 +853,11 @@ enemies:
     mainStat: INT
     subStat: CON
     strBase: 12
+    strIncrementLvl: 2
     dexBase: 18
     dexIncrementLvl: 1
-    conBase: 55
-    conIncrementLvl: 6
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 38
     intIncrementLvl: 4
     lukBase: 22
@@ -842,6 +865,8 @@ enemies:
     manaMax: 100
     codes: { passive: 340, normal: 140, ultimate: 140 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 18, unlockLevel: 30, stage: 1 }
       - { codeId: 19, unlockLevel: 60, stage: 1 }
     portrait: QUETZALCOATL_PORTRAIT
@@ -858,12 +883,19 @@ enemies:
     startingProficiencies: [Spear, LightArmor]
     mainStat: INT
     strBase: 14
+    strIncrementLvl: 2
     dexBase: 14
-    conBase: 60
+    dexIncrementLvl: 2
+    conBase: 71
+    conIncrementLvl: 8
     intBase: 45
     intIncrementLvl: 5
     lukBase: 18
+    lukIncrementLvl: 2
     manaMax: 100
+    levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
     codes: { passive: 1303, normal: 1306, ultimate: 1306 }
     ultimateResourceType: Stack
     ultimateResourceName: 흡연경
@@ -1075,8 +1107,8 @@ enemies:
     strIncrementLvl: 2
     dexBase: 28
     dexIncrementLvl: 3
-    conBase: 34
-    conIncrementLvl: 4
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 14
     lukBase: 18
     lukIncrementLvl: 2
@@ -1086,6 +1118,8 @@ enemies:
     ultimateResourceName: 우제트
     ultimateResourceMax: 4
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 86, unlockLevel: 14, stage: 1 }   # 빈틈의 실
       - { codeId: 49, unlockLevel: 41, stage: 1 }   # 저격수
     portrait: HORUS_PORTRAIT
@@ -1111,8 +1145,8 @@ enemies:
     # CON은 14배로 불어나므로 기본값을 낮게 잡았다. 불완전한 부활(364)이 배율을 얹는다.
     # 9스테이지(Level 9) 기준 CON 16 → 최대 체력 16,000. 받는 피해가 2.4배에서 시작하므로
     # 체감 체력은 약 6,700이며, 부위를 깰수록 남은 몫이 점점 단단해진다.
-    conBase: 8
-    conIncrementLvl: 1
+    conBase: 73
+    conIncrementLvl: 9
     intBase: 40
     intIncrementLvl: 4
     lukBase: 24
@@ -1139,8 +1173,8 @@ enemies:
     strIncrementLvl: 2
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 70
-    conIncrementLvl: 7
+    conBase: 71
+    conIncrementLvl: 8
     intBase: 44
     intIncrementLvl: 5
     lukBase: 26
@@ -1148,6 +1182,8 @@ enemies:
     manaMax: 100
     codes: { passive: 1405, normal: 1407, ultimate: 1406 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 29,  unlockLevel: 10, stage: 1 }   # 파죽지세
       - { codeId: 1408, unlockLevel: 30, stage: 1 }   # 초월
       - { codeId: 1409, unlockLevel: 50, stage: 1 }   # 영혼 흡수
@@ -1204,14 +1240,16 @@ enemies:
     strIncrementLvl: 4
     dexBase: 9
     dexIncrementLvl: 1
-    conBase: 58
-    conIncrementLvl: 6
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 8
     lukBase: 10
     lukIncrementLvl: 1
     manaMax: 100
     codes: { passive: 1421, normal: 1421, ultimate: 1421 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 39,   unlockLevel: 10, stage: 1 }   # 거인
       - { codeId: 1423, unlockLevel: 20, stage: 1 }   # 파쇄
       - { codeId: 20,   unlockLevel: 30, stage: 1 }   # 중갑병
@@ -1224,42 +1262,6 @@ enemies:
     portrait: APOCALYPSE_GIANT_PORTRAIT
     standing: APOCALYPSE_GIANT_STANDING
 
-  - id: 2031
-    name: 혹한의 거인
-    themeId: 0
-    archetype: 7
-    element: Cryo
-    tier: elite
-    tags: [Apostle, Giant, Machine]
-    startingItemIds: [4105, 4114]
-    startingProficiencies: [Mace, HeavyArmor]
-    mainStat: STR
-    subStat: CON
-    strBase: 34
-    strIncrementLvl: 4
-    dexBase: 9
-    dexIncrementLvl: 1
-    conBase: 56
-    conIncrementLvl: 6
-    intBase: 8
-    lukBase: 10
-    lukIncrementLvl: 1
-    manaMax: 100
-    codes: { passive: 1422, normal: 1421, ultimate: 1421 }
-    levelPassives:
-      - { codeId: 39,   unlockLevel: 10, stage: 1 }   # 거인
-      - { codeId: 57,   unlockLevel: 20, stage: 1 }   # 원소 숙련 - 얼음
-      - { codeId: 20,   unlockLevel: 30, stage: 1 }   # 중갑병
-      - { codeId: 1424, unlockLevel: 40, stage: 1 }   # 강타
-      - { codeId: 6,    unlockLevel: 50, stage: 1 }   # 철벽
-      - { codeId: 75,   unlockLevel: 60, stage: 1 }   # 원소 친화 - 얼음
-      - { codeId: 1426, unlockLevel: 70, stage: 1 }   # 적응력
-      - { codeId: 1425, unlockLevel: 80, stage: 1 }   # 병상첨병
-    portrait: FROST_GIANT_PORTRAIT
-    standing: FROST_GIANT_STANDING
-
-  # ── 범용 씨앗 (themeId 0: 테마 자동 편성 제외) ────────────────────
-  # 전·후열 배치에 따라 방어/사격 모드가 바뀌는 소형 기계 병종이다.
   - id: 1061
     name: 공허의 씨앗
     themeId: 0
@@ -3409,8 +3411,8 @@ enemies:
     strIncrementLvl: 5
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 48
-    conIncrementLvl: 5
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 10
     intIncrementLvl: 1
     lukBase: 14
@@ -3418,15 +3420,15 @@ enemies:
     manaMax: 100
     codes: { passive: 1540, normal: 1540, ultimate: 1540 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
-      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 11, unlockLevel: 50, stage: 1 }   # 천살성
       - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
       - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
       - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
-      - { codeId: 1546, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
     portrait: VOID_DEER_PORTRAIT
     standing: VOID_DEER_STANDING
 
@@ -3445,8 +3447,8 @@ enemies:
     strIncrementLvl: 5
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 48
-    conIncrementLvl: 5
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 10
     intIncrementLvl: 1
     lukBase: 14
@@ -3454,8 +3456,9 @@ enemies:
     manaMax: 100
     codes: { passive: 1540, normal: 1541, ultimate: 1541 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
-      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
@@ -3463,7 +3466,6 @@ enemies:
       - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
       - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
       - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
-      - { codeId: 1546, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
     portrait: VOID_DEER_PYRO_PORTRAIT
     standing: VOID_DEER_PYRO_STANDING
 
@@ -3482,8 +3484,8 @@ enemies:
     strIncrementLvl: 5
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 48
-    conIncrementLvl: 5
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 10
     intIncrementLvl: 1
     lukBase: 14
@@ -3491,8 +3493,9 @@ enemies:
     manaMax: 100
     codes: { passive: 1540, normal: 1542, ultimate: 1542 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
-      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
@@ -3500,7 +3503,6 @@ enemies:
       - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
       - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
       - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
-      - { codeId: 1546, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
     portrait: VOID_DEER_HYDRO_PORTRAIT
     standing: VOID_DEER_HYDRO_STANDING
 
@@ -3519,8 +3521,8 @@ enemies:
     strIncrementLvl: 5
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 48
-    conIncrementLvl: 5
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 10
     intIncrementLvl: 1
     lukBase: 14
@@ -3528,8 +3530,9 @@ enemies:
     manaMax: 100
     codes: { passive: 1540, normal: 1543, ultimate: 1543 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
-      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
@@ -3537,7 +3540,6 @@ enemies:
       - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
       - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
       - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
-      - { codeId: 1546, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
     portrait: VOID_DEER_ANEMO_PORTRAIT
     standing: VOID_DEER_ANEMO_STANDING
 
@@ -3556,8 +3558,8 @@ enemies:
     strIncrementLvl: 5
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 48
-    conIncrementLvl: 5
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 10
     intIncrementLvl: 1
     lukBase: 14
@@ -3565,8 +3567,9 @@ enemies:
     manaMax: 100
     codes: { passive: 1540, normal: 1544, ultimate: 1544 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
-      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
@@ -3574,7 +3577,6 @@ enemies:
       - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
       - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
       - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
-      - { codeId: 1546, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
     portrait: VOID_DEER_ELECTRO_PORTRAIT
     standing: VOID_DEER_ELECTRO_STANDING
 
@@ -3593,8 +3595,8 @@ enemies:
     strIncrementLvl: 5
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 48
-    conIncrementLvl: 5
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 10
     intIncrementLvl: 1
     lukBase: 14
@@ -3602,8 +3604,9 @@ enemies:
     manaMax: 100
     codes: { passive: 1540, normal: 1545, ultimate: 1545 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
-      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
@@ -3611,7 +3614,6 @@ enemies:
       - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
       - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
       - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
-      - { codeId: 1546, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
     portrait: VOID_DEER_DENDRO_PORTRAIT
     standing: VOID_DEER_DENDRO_STANDING
 
@@ -3630,8 +3632,8 @@ enemies:
     strIncrementLvl: 5
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 48
-    conIncrementLvl: 5
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 10
     intIncrementLvl: 1
     lukBase: 14
@@ -3639,8 +3641,9 @@ enemies:
     manaMax: 100
     codes: { passive: 1540, normal: 1546, ultimate: 1546 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
-      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
@@ -3648,7 +3651,6 @@ enemies:
       - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
       - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
       - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
-      - { codeId: 1546, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
     portrait: VOID_DEER_CRYO_PORTRAIT
     standing: VOID_DEER_CRYO_STANDING
 
@@ -3667,8 +3669,8 @@ enemies:
     strIncrementLvl: 5
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 48
-    conIncrementLvl: 5
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 10
     intIncrementLvl: 1
     lukBase: 14
@@ -3676,8 +3678,9 @@ enemies:
     manaMax: 100
     codes: { passive: 1540, normal: 1547, ultimate: 1547 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
-      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
       - { codeId: 69, unlockLevel: 40, stage: 1 }   # 기습
@@ -3685,7 +3688,6 @@ enemies:
       - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
       - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
       - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
-      - { codeId: 1546, unlockLevel: 90, stage: 1 }   # 완전함 — 알파 개체 대체
     portrait: VOID_DEER_GEO_PORTRAIT
     standing: VOID_DEER_GEO_STANDING
 
@@ -3997,8 +3999,8 @@ enemies:
     strIncrementLvl: 3
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 72
-    conIncrementLvl: 8
+    conBase: 62
+    conIncrementLvl: 7
     intBase: 46
     intIncrementLvl: 5
     lukBase: 20
@@ -4006,13 +4008,13 @@ enemies:
     manaMax: 100
     codes: { passive: 1590, normal: 1590, ultimate: 1590 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
-      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
       - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
       - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
       - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
-      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
       - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
     portrait: VOID_DRAGON_PORTRAIT
@@ -4033,8 +4035,8 @@ enemies:
     strIncrementLvl: 3
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 72
-    conIncrementLvl: 8
+    conBase: 62
+    conIncrementLvl: 7
     intBase: 46
     intIncrementLvl: 5
     lukBase: 20
@@ -4042,14 +4044,14 @@ enemies:
     manaMax: 100
     codes: { passive: 1590, normal: 1591, ultimate: 1591 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
-      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
       - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
       - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
       - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
-      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
       - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
     portrait: VOID_DRAGON_PYRO_PORTRAIT
@@ -4070,8 +4072,8 @@ enemies:
     strIncrementLvl: 3
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 72
-    conIncrementLvl: 8
+    conBase: 62
+    conIncrementLvl: 7
     intBase: 46
     intIncrementLvl: 5
     lukBase: 20
@@ -4079,14 +4081,14 @@ enemies:
     manaMax: 100
     codes: { passive: 1590, normal: 1592, ultimate: 1592 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
-      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
       - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
       - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
       - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
-      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
       - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
     portrait: VOID_DRAGON_HYDRO_PORTRAIT
@@ -4107,8 +4109,8 @@ enemies:
     strIncrementLvl: 3
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 72
-    conIncrementLvl: 8
+    conBase: 62
+    conIncrementLvl: 7
     intBase: 46
     intIncrementLvl: 5
     lukBase: 20
@@ -4116,14 +4118,14 @@ enemies:
     manaMax: 100
     codes: { passive: 1590, normal: 1593, ultimate: 1593 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
-      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
       - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
       - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
       - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
-      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
       - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
     portrait: VOID_DRAGON_ANEMO_PORTRAIT
@@ -4144,8 +4146,8 @@ enemies:
     strIncrementLvl: 3
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 72
-    conIncrementLvl: 8
+    conBase: 62
+    conIncrementLvl: 7
     intBase: 46
     intIncrementLvl: 5
     lukBase: 20
@@ -4153,14 +4155,14 @@ enemies:
     manaMax: 100
     codes: { passive: 1590, normal: 1594, ultimate: 1594 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
-      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
       - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
       - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
       - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
-      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
       - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
     portrait: VOID_DRAGON_ELECTRO_PORTRAIT
@@ -4181,8 +4183,8 @@ enemies:
     strIncrementLvl: 3
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 72
-    conIncrementLvl: 8
+    conBase: 62
+    conIncrementLvl: 7
     intBase: 46
     intIncrementLvl: 5
     lukBase: 20
@@ -4190,14 +4192,14 @@ enemies:
     manaMax: 100
     codes: { passive: 1590, normal: 1595, ultimate: 1595 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
-      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
       - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
       - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
       - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
-      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
       - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
     portrait: VOID_DRAGON_DENDRO_PORTRAIT
@@ -4218,8 +4220,8 @@ enemies:
     strIncrementLvl: 3
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 72
-    conIncrementLvl: 8
+    conBase: 62
+    conIncrementLvl: 7
     intBase: 46
     intIncrementLvl: 5
     lukBase: 20
@@ -4227,14 +4229,14 @@ enemies:
     manaMax: 100
     codes: { passive: 1590, normal: 1596, ultimate: 1596 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
-      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
       - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
       - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
       - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
-      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
       - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
     portrait: VOID_DRAGON_CRYO_PORTRAIT
@@ -4255,8 +4257,8 @@ enemies:
     strIncrementLvl: 3
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 72
-    conIncrementLvl: 8
+    conBase: 62
+    conIncrementLvl: 7
     intBase: 46
     intIncrementLvl: 5
     lukBase: 20
@@ -4264,14 +4266,14 @@ enemies:
     manaMax: 100
     codes: { passive: 1590, normal: 1597, ultimate: 1597 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
-      - { codeId: 1541, unlockLevel: 20, stage: 1 }   # 알파 개체
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
       - { codeId: 1542, unlockLevel: 40, stage: 1 }   # 폭풍
       - { codeId: 1543, unlockLevel: 50, stage: 1 }   # 궁극의 보호막
       - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
-      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함 — 알파 개체 대체
       - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
     portrait: VOID_DRAGON_GEO_PORTRAIT
@@ -4299,8 +4301,8 @@ enemies:
     strIncrementLvl: 2
     dexBase: 14
     dexIncrementLvl: 1
-    conBase: 20
-    conIncrementLvl: 2
+    conBase: 12
+    conIncrementLvl: 1
     intBase: 6
     lukBase: 12
     lukIncrementLvl: 1
@@ -4334,8 +4336,8 @@ enemies:
     strBase: 8
     dexBase: 12
     dexIncrementLvl: 1
-    conBase: 18
-    conIncrementLvl: 2
+    conBase: 11
+    conIncrementLvl: 1
     intBase: 20
     intIncrementLvl: 2
     lukBase: 10
@@ -4373,8 +4375,8 @@ enemies:
     strIncrementLvl: 2
     dexBase: 16
     dexIncrementLvl: 1
-    conBase: 26
-    conIncrementLvl: 2
+    conBase: 17
+    conIncrementLvl: 1
     intBase: 6
     lukBase: 14
     lukIncrementLvl: 1
@@ -4414,8 +4416,8 @@ enemies:
     strIncrementLvl: 3
     dexBase: 22
     dexIncrementLvl: 2
-    conBase: 34
-    conIncrementLvl: 4
+    conBase: 62
+    conIncrementLvl: 7
     intBase: 12
     intIncrementLvl: 1
     lukBase: 22
@@ -4424,6 +4426,7 @@ enemies:
     codes: { passive: 1620, normal: 1620, ultimate: 1620 }
     levelPassives:
       - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1621, unlockLevel: 10, stage: 1 }   # 노르드의 왕자
       - { codeId: 1306, unlockLevel: 20, stage: 1 }   # 망치 나가신다!
       - { codeId: 39,   unlockLevel: 20, stage: 1 }   # 거인
@@ -4431,7 +4434,6 @@ enemies:
       - { codeId: 1622, unlockLevel: 30, stage: 1 }   # 승승장구
       - { codeId: 1601, unlockLevel: 40, stage: 1 }   # 설인
       - { codeId: 1623, unlockLevel: 50, stage: 1 }   # 겨울바람
-      - { codeId: 1546, unlockLevel: 60, stage: 1 }   # 완전함
       - { codeId: 1531, unlockLevel: 70, stage: 1 }   # 흡혈귀
       - { codeId: 26,   unlockLevel: 80, stage: 1 }   # 과다치유
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활
@@ -4456,8 +4458,8 @@ enemies:
     strBase: 8
     dexBase: 14
     dexIncrementLvl: 1
-    conBase: 24
-    conIncrementLvl: 2
+    conBase: 16
+    conIncrementLvl: 1
     intBase: 26
     intIncrementLvl: 2
     lukBase: 12
@@ -4494,7 +4496,7 @@ enemies:
     strIncrementLvl: 2
     dexBase: 16
     dexIncrementLvl: 1
-    conBase: 22
+    conBase: 14
     conIncrementLvl: 1
     intBase: 6
     lukBase: 14
@@ -4535,14 +4537,16 @@ enemies:
     strIncrementLvl: 3
     dexBase: 18
     dexIncrementLvl: 2
-    conBase: 48
-    conIncrementLvl: 4
+    conBase: 27
+    conIncrementLvl: 3
     intBase: 8
     lukBase: 18
     lukIncrementLvl: 2
     manaMax: 100
     codes: { passive: 1604, normal: 1600, ultimate: 1600 }
     levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1605, unlockLevel: 1,  stage: 1 }   # 왕의 함성
       - { codeId: 39,   unlockLevel: 10, stage: 1 }   # 거인
       - { codeId: 42,   unlockLevel: 20, stage: 1 }   # 클러치 플레이어
@@ -4550,7 +4554,183 @@ enemies:
       - { codeId: 1601, unlockLevel: 40, stage: 1 }   # 설인
       - { codeId: 1602, unlockLevel: 50, stage: 1 }   # 최후의 발악
       - { codeId: 1531, unlockLevel: 60, stage: 1 }   # 흡혈귀
-      - { codeId: 1541, unlockLevel: 70, stage: 1 }   # 알파 개체
       - { codeId: 1306, unlockLevel: 80, stage: 1 }   # 망치 나가신다!
     portrait: RAGNAR_PORTRAIT
     standing: RAGNAR_STANDING
+
+  # 혹한의 거인 — 노르드 북부(테마 17)의 최종 보스.
+  #
+  # 엘리트였던 2031을 보스 등급으로 다시 세운 것이다. 사도 계열은 '종말 = 엘리트'가
+  # 다섯 유닛에 걸쳐 굳어 있어서, 거인 줄의 꼭대기는 얼음을 두른 '혹한'이 맡는다.
+  # 계보는 파멸(일반) → 종말(엘리트) → 혹한(보스)으로 이어진다.
+  #
+  # DEX 10이 설계의 핵심이다. 한 대가 무겁지만 좀처럼 오지 않고, 그 빈 시간을
+  # 영구동토가 세우는 씨앗이 채운다. 빨리 깎을수록 칸이 빨리 깨져 씨앗이 더 자주 선다.
+  - id: 3061
+    name: 혹한의 거인
+    themeId: 15
+    archetype: 7
+    element: Cryo
+    tier: boss
+    tags: [Apostle, Giant, Machine]
+    startingItemIds: []
+    startingItemsByLevel:
+      - { itemId: 4237, minLevel: 20 }   # 강철 둔기
+      - { itemId: 4246, minLevel: 40 }   # 두드린 중갑
+    startingProficiencies: [Mace, HeavyArmor]
+    mainStat: STR
+    subStat: CON
+    strBase: 42
+    strIncrementLvl: 4
+    dexBase: 10
+    dexIncrementLvl: 1
+    conBase: 62
+    conIncrementLvl: 7
+    intBase: 8
+    lukBase: 12
+    lukIncrementLvl: 1
+    manaMax: 100
+    codes: { passive: 1422, normal: 1427, ultimate: 1427 }
+    levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
+      - { codeId: 1427, unlockLevel: 20, stage: 1 }   # 영구동토
+      - { codeId: 1423, unlockLevel: 30, stage: 1 }   # 파쇄
+      - { codeId: 1424, unlockLevel: 40, stage: 1 }   # 강타
+      - { codeId: 1426, unlockLevel: 50, stage: 1 }   # 적응력
+      - { codeId: 1428, unlockLevel: 60, stage: 1 }   # 얼어붙은 파종
+      - { codeId: 1425, unlockLevel: 80, stage: 1 }   # 병상첨병
+      - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활
+    portrait: FROST_GIANT_PORTRAIT
+    standing: FROST_GIANT_STANDING
+
+  # ── 시구르드 · 브륀힐드 (노르드 중부 6슬롯 엘리트 2인조) ──────────
+  # 아군과 <b>같은 코드</b>를 쓴다. 이기면 합류 사건이 예약된다.
+  #
+  # 한쪽을 죽여도 복수가 즉시 켜져 협공 주기가 유지되고 역할까지 계승된다.
+  # 몸 하나를 줄인 보상이 화력 절감이 아니라 방어 저하(+25% 피해)로만 돌아온다.
+  - id: 2051
+    name: 시구르드
+    themeId: 19
+    archetype: 7
+    element: Pyro
+    tier: elite
+    tags: [Nord, Human]
+    startingItemIds: []
+    startingItemsByLevel:
+      - { itemId: 4317, minLevel: 20 }   # 파프니르의 피
+      - { itemId: 4406, minLevel: 50 }   # 그람
+    startingProficiencies: [Longsword, MediumArmor]
+    mainStat: STR
+    subStat: CON
+    strBase: 34
+    strIncrementLvl: 4
+    dexBase: 18
+    dexIncrementLvl: 2
+    conBase: 27
+    conIncrementLvl: 3
+    intBase: 8
+    lukBase: 16
+    lukIncrementLvl: 1
+    manaMax: 100
+    codes: { passive: 284, normal: 84, ultimate: 84 }
+    levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
+      - { codeId: 39,   unlockLevel: 10, stage: 1 }   # 거인
+      - { codeId: 9,    unlockLevel: 20, stage: 1 }   # 검의 달인
+      - { codeId: 107,  unlockLevel: 30, stage: 1 }   # 기수 — 브륀힐드를 가린다
+      - { codeId: 65,   unlockLevel: 40, stage: 1 }   # 용살자
+      - { codeId: 41,   unlockLevel: 50, stage: 1 }   # 투사
+      - { codeId: 1426, unlockLevel: 60, stage: 1 }   # 적응력 — 근접으로 오래 때릴수록 되돌아온다
+      - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
+      - { codeId: 2,    unlockLevel: 90, stage: 1 }   # 기사회생
+    portrait: SIGURD_PORTRAIT
+    standing: SIGURD_STANDING
+
+  - id: 2052
+    name: 브륀힐드
+    themeId: 19
+    archetype: 10
+    element: Cryo
+    tier: elite
+    tags: [Nord, Divine]
+    startingItemIds: []
+    startingItemsByLevel:
+      - { itemId: 4318, minLevel: 30 }   # 바프르로기
+    startingProficiencies: [Spear, LightArmor]
+    mainStat: DEX
+    subStat: INT
+    strBase: 12
+    strIncrementLvl: 1
+    dexBase: 34
+    dexIncrementLvl: 4
+    conBase: 32
+    conIncrementLvl: 3
+    intBase: 26
+    intIncrementLvl: 2
+    lukBase: 20
+    lukIncrementLvl: 2
+    manaMax: 100
+    codes: { passive: 285, normal: 85, ultimate: 85 }
+    levelPassives:
+      - { codeId: 45,   unlockLevel: 10, stage: 1 }   # 민첩함
+      - { codeId: 17,   unlockLevel: 20, stage: 1 }   # 예리함
+      - { codeId: 69,   unlockLevel: 30, stage: 1 }   # 기습
+      - { codeId: 55,   unlockLevel: 40, stage: 1 }   # 생명의 물
+      - { codeId: 67,   unlockLevel: 50, stage: 1 }   # 인도자 — 짝의 궁극기를 당긴다
+      - { codeId: 49,   unlockLevel: 60, stage: 1 }   # 저격수
+      - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
+      - { codeId: 57,   unlockLevel: 80, stage: 1 }   # 원소 숙련
+      - { codeId: 8,    unlockLevel: 90, stage: 1 }   # 창세의 노래 — 보스 전용. 아군 브륀힐드는 들지 않는다
+    portrait: BRYNHILD_PORTRAIT
+    standing: BRYNHILD_STANDING
+
+  # ── 오딘 — 노르드 중부(테마 18)의 최종 보스 ──────────────────────
+  #
+  # 노르드의 폭군. 세계수의 지식을 훔쳐본 것이 아니라 공허와 계약한 배신자다.
+  # 체력은 세 칸이다. 1페이즈에서는 번개를 두른 노르드의 신이지만, 두 칸이 깨지면
+  # 속성과 모습이 공허로 바뀌고
+  # 그때부터 까마귀(공허의 괴조)를 부른다. 중부 7~9슬롯이 공허인 것도 그가 문을 열어서다.
+  #
+  # 위협은 두께가 아니라 순환이다 — 파티는 못 채우는데 오딘은 채운다.
+  # 로키의 `발드르의 살해자`가 최대 체력이 가장 높은 적을 자동으로 겨눠 그 순환을 끊고,
+  # 수르트는 회복에 기대지 않는 화력과 광역으로 까마귀를 쓴다.
+  - id: 3001
+    name: 오딘
+    themeId: 19
+    archetype: 8
+    element: Electro
+    tier: boss
+    tags: [Nord, Divine, Void]
+    startingItemIds: []
+    startingItemsByLevel:
+      - { itemId: 4246, minLevel: 20 }   # 두드린 중갑
+      - { itemId: 4507, minLevel: 40 }   # 궁니르
+    startingProficiencies: [Spear, HeavyArmor]
+    mainStat: STR
+    subStat: CON
+    strBase: 46
+    strIncrementLvl: 5
+    dexBase: 12
+    dexIncrementLvl: 1
+    conBase: 62
+    conIncrementLvl: 7
+    intBase: 20
+    intIncrementLvl: 2
+    lukBase: 16
+    lukIncrementLvl: 1
+    manaMax: 100
+    codes: { passive: 3001, normal: 3001, ultimate: 3001 }
+    levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
+      - { codeId: 3002, unlockLevel: 20, stage: 1 }   # 후긴과 무닌 — 2페이즈부터 까마귀
+      - { codeId: 39,   unlockLevel: 30, stage: 1 }   # 거인
+      - { codeId: 20,   unlockLevel: 40, stage: 1 }   # 중갑병 — 잔타가 통하지 않는다
+      - { codeId: 3003, unlockLevel: 50, stage: 1 }   # 예언 — 회피 15%
+      - { codeId: 1545, unlockLevel: 60, stage: 1 }   # 위압감 — 궁극기를 늦춘다
+      - { codeId: 1425, unlockLevel: 80, stage: 1 }   # 병상첨병
+      - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활
+    portrait: ODIN_PHASE1_PORTRAIT
+    standing: ODIN_PHASE1_STANDING

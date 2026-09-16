@@ -39,8 +39,8 @@ namespace Managers.UI.Screens
         private const int EquipmentOnDisplay = 6;
 
         /// <summary>행상인 자산 키. 아직 그림이 없으면 이름표만 선다.</summary>
-        private const string MerchantStanding = "MERCHANT_STANDING";
-        private const string MerchantName = "행상인";
+        private const string MerchantStanding = "LAVOISIER_STANDING";
+        private const string MerchantName = "라부아지에";
 
         private enum Tab
         {
@@ -284,20 +284,20 @@ namespace Managers.UI.Screens
             {
                 int count = Inventory?.Valuables?.Count ?? 0;
                 return count == 0
-                    ? "팔 만한 건 안 가져왔군. 다음에 오게."
-                    : $"{count}점인가. 값은 자네가 주운 자리에서 이미 정해졌네.";
+                    ? "파실 물건은 없네요… 그래도 들러주신 건 좋았어요."
+                    : $"{count}점이네요! 감정은 정확해요. 저, 이런 건 잘하거든요…";
             }
 
             if (_tab == Tab.Equipment)
             {
                 return _equipment.Count == 0
-                    ? "오늘은 물건이 안 들어왔네."
-                    : "숙련이 없으면 무게만 지고 가는 거야. 확인하고 사게.";
+                    ? "아직 물건이 안 들어왔어요. 제가 잊은 건 아니고요…!"
+                    : "숙련부터 확인하세요. 도움 됐죠? 그럼… 칭찬도 조금만.";
             }
 
             return (GameManager.Instance?.ShopPurchasesLeft ?? 0) <= 0
-                ? "오늘 몫은 여기까지. 다음 준비 때 다시 오게."
-                : "값은 스테이지를 타네. 늦게 산다고 싸지진 않아.";
+                ? "이번 구매는 여기까지예요. 다음 준비 때도 저 잊지 마세요…"
+                : "가격은 스테이지에 따라 올라가요. 설명 잘한다고요? 헤헤…";
         }
 
         /// <summary>살 수 없는 이유. 살 수 있으면 null이다.</summary>

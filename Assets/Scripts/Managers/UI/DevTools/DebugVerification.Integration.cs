@@ -79,6 +79,13 @@ namespace Managers.UI.DevTools
                 if (isEnemy) SpawnHero(); else SpawnEnemy(1062, 100);
             }
             if (id == 3012) unit.AddCombatResource(AswanCombat.AscensionResource, 1);
+            if (unit.Chemistry != null)
+            {
+                // 복합 자원 궁극기: 마나/준비도만 채워서는 발동하지 않는다.
+                unit.Chemistry.Receive(ally, ReagentKind.Fuel);
+                unit.Chemistry.Receive(ally, ReagentKind.Stabilizer);
+                unit.Chemistry.Receive(ally, ReagentKind.Catalyst);
+            }
             unit.FillUltimateResource(false);
             bool valid = unit.ActiveUltimateCode.HasValidTarget();
             Assert($"action {id} ultimate target", valid || !unit.ActiveUltimateCode.IsAutoCast,
