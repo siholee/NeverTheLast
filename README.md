@@ -5,7 +5,7 @@
 
 ## 데모 다운로드 (Windows)
 
-**현재 데모 버전: 0.3** — 일본 해안 전선과 아베노 세이메이·스사노오 합류, 적 처치 드랍 보상이 추가되었습니다(천공 전선 0.2 포함). 버전별 변경 사항은 [패치노트](PATCH_NOTES.md)를 보세요.
+**현재 데모 버전: 0.3.1** — macOS 빌드를 함께 배포합니다. 0.3에서 일본 해안 전선과 아베노 세이메이·스사노오 합류, 적 처치 드랍 보상이 추가되었습니다(천공 전선 0.2 포함). 버전별 변경 사항은 [패치노트](PATCH_NOTES.md)를 보세요.
 
 1. [**Releases 페이지**](https://github.com/siholee/NeverTheLast/releases/latest)로 갑니다.
 2. **Assets**에서 `NeverTheLast_Demo_Win64.zip`을 내려받습니다.
@@ -17,6 +17,28 @@
 
 저장 데이터는 게임 폴더가 아니라 Windows 레지스트리(`HKEY_CURRENT_USER\Software\DefaultCompany\NeverTheLast`)에 남습니다.
 그래서 게임 폴더를 지우거나 새 버전으로 덮어써도 진행과 서포트 카드가 유지됩니다.
+
+## 데모 다운로드 (macOS)
+
+1. [**Releases 페이지**](https://github.com/siholee/NeverTheLast/releases/latest)의 **Assets**에서 `NeverTheLast_Demo_Mac.zip`을 내려받습니다.
+2. 압축을 풀면 `NeverTheLast.app`이 나옵니다. **응용 프로그램** 폴더 등 원하는 곳으로 옮깁니다.
+3. **처음 한 번만** 터미널을 열고 아래를 실행합니다(앱을 옮긴 경로에 맞게 바꾸세요).
+
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/NeverTheLast.app
+   ```
+
+4. `NeverTheLast.app`을 엽니다.
+
+> 인텔 Mac · 애플 실리콘 모두 지원하는 유니버설 앱, macOS 12 이상. Apple 개발자 서명·공증을 받지 않은 앱이라
+> 3번을 건너뛰면 "손상되었기 때문에 열 수 없습니다"라는 경고가 뜹니다.
+> 3번 뒤에도 애플 실리콘 Mac에서 열리지 않으면 아래를 한 번 더 실행해 주세요.
+>
+> ```bash
+> codesign --force --deep -s - /Applications/NeverTheLast.app
+> ```
+
+저장 데이터는 `~/Library/Preferences/unity.DefaultCompany.NeverTheLast.plist`에 남아 앱을 새 버전으로 바꿔도 유지됩니다. Windows 저장과는 이어지지 않습니다.
 
 ## 데모에서 해 볼 수 있는 것
 
@@ -48,3 +70,10 @@
   ```
 
   결과물은 `Builds/NeverTheLast_Demo_Win64/`에 생기며 저장소에는 올리지 않습니다(`.gitignore`). 배포는 이 폴더를 zip으로 묶어 Releases에 올립니다.
+- **macOS 데모 빌드:** Unity Hub에서 **Mac Build Support (Mono)** 모듈을 설치한 뒤 `Tools > NeverTheLast > Build Mac Demo`, 또는 명령줄
+
+  ```
+  Unity.exe -batchmode -quit -projectPath . -buildTarget OSXUniversal -executeMethod DemoBuild.BuildMac -logFile Logs/DemoBuildMac.log
+  ```
+
+  결과물은 `Builds/NeverTheLast_Demo_Mac/NeverTheLast.app`입니다. Windows에서 zip으로 묶을 때 **실행 권한(`Contents/MacOS/*` 755)을 보존**해야 Mac에서 열립니다.
