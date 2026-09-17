@@ -20,7 +20,7 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "화살비";
-            Power = 10;
+            Power = 12;   // 12발 합계 144. 대상이 무작위로 흩어지므로 단일 기준(150)보다 조금 낮게 둔다
             CastingDelay = 0.5f;
             CodeTags = new List<int> { DamageTag.Physical, DamageTag.NonContactAttack, DamageTag.Arrow };
         }
@@ -56,7 +56,7 @@ namespace Codes.Ultimate
                 Unit target = enemies[Random.Range(0, enemies.Count)];
                 bool isCrit = Random.value <= Caster.CritChanceCurr;
                 int damage = Mathf.Max(1, Mathf.RoundToInt(
-                    Caster.SkillDamage(Power, BaseEnums.PrimaryStat.STR) *
+                    Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.STR) *
                     (isCrit ? Caster.CritMultiplierCurr : 1f)));
                 target.TakeDamage(new DamageContext(
                     Caster, damage, BaseEnums.CodeType.Ultimate,
@@ -91,7 +91,7 @@ namespace Codes.Ultimate
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "회복의 일격";
-            Power = 100;
+            Power = 150;
             CastingDelay = 0.5f;
             CodeTags = new List<int> { DamageTag.Physical, DamageTag.ContactAttack };
         }
@@ -128,7 +128,7 @@ namespace Codes.Ultimate
             }
 
             bool isCrit = Random.value <= Caster.CritChanceCurr;
-            int damage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(Power, BaseEnums.PrimaryStat.DEX) *
+            int damage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.DEX) *
                                                        (isCrit ? Caster.CritMultiplierCurr : 1f)));
             if (GameManager.Instance?.sfxManager?.ProjectilePrefabs != null &&
                 GameManager.Instance.sfxManager.ProjectilePrefabs.TryGetValue("FireBlast", out var prefab))

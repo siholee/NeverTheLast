@@ -21,6 +21,56 @@ namespace Codes.Passive
         public const int Cycle = 123;
         public const int FullMoon = 124;
         public const int WidenWound = 126;
+        public const int Moonrot = 127;
+        public const int Eclipse = 128;
+    }
+
+    /// <summary>
+    /// 츠쿠요미가 거는 지속피해 두 갈래.
+    ///
+    /// 츠쿠요미는 <b>원소를 부착하지 않는 순수 지속피해 서포터</b>다. 예전에는 궁극기가 번개를 붙였는데,
+    /// 그러면 정산(월식 정산)·상처 벌리기가 기대는 지속피해를 스스로 만들지 못하면서
+    /// 엉뚱하게 반응 재료만 뿌렸다. 이제 일반행동과 궁극기가 직접 지속피해를 남긴다.
+    ///
+    /// 두 상태는 키가 다르다. 궁극기의 긴 월식이 일반행동의 짧은 침식에 덮여 줄어들지 않도록,
+    /// 같은 대상에 나란히 쌓인다.
+    /// </summary>
+    internal static class TsukuyomiMoonlight
+    {
+        /// <summary>일반행동 — 월광 침식. 턴당 위력 20(= 기준 50의 40%), 2턴.</summary>
+        public const int MoonrotTurns = 2;
+        public const float MoonrotCoefficient = 40f;
+
+        /// <summary>궁극기 — 월식. 턴당 위력 40(= 기준 50의 80%), 3턴, 적 전체.</summary>
+        public const int EclipseTurns = 3;
+        public const float EclipseCoefficient = 80f;
+
+        public static void ApplyMoonrot(Unit caster, Unit target) =>
+            Apply(caster, target, TsukuyomiStatusIds.Moonrot, "tsukuyomi_moonrot", "월광 침식",
+                MoonrotTurns, MoonrotCoefficient);
+
+        public static void ApplyEclipse(Unit caster, Unit target) =>
+            Apply(caster, target, TsukuyomiStatusIds.Eclipse, "tsukuyomi_eclipse", "월식",
+                EclipseTurns, EclipseCoefficient);
+
+        private static void Apply(Unit caster, Unit target, int id, string key, string name,
+            int turns, float coefficient)
+        {
+            if (caster == null || target == null || !target.isActive || target.HpCurr <= 0) return;
+
+            var status = new UnitStatus(new StatusDefinition
+            {
+                Id = id,
+                Key = $"{key}_{caster.GetEntityId()}",
+                Name = name,
+                Description = $"{turns}턴 동안 턴마다 츠쿠요미 INT 기반 위력 {coefficient * 0.5f:0}의 지속피해를 받습니다.",
+                Category = BaseEnums.StatusCategory.Negative,
+                StackPolicy = BaseEnums.StatusStackPolicy.Replace,
+                Duration = turns,
+            }, caster, target);
+            status.AddEffect(new DamageOverTimeEffect(0, coefficient));
+            target.AddStatus(status);
+        }
     }
 
     /// <summary>처치된 적의 지속피해를 1턴 정산해 주변 3×3 범위에 폭발시킨다.</summary>

@@ -62,18 +62,18 @@ namespace Codes.Ultimate
     /// </summary>
     public sealed class YamaFinalArrival : SimpleUltimate
     {
-        private const int SlashPower = 60;
+        private const int SlashPower = 80;
         private const float DetonateRatio = 0.8f;
 
         public YamaFinalArrival(UltimateCodeContext context)
-            : base(context, "언젠가 다다를 마지막", 0.5f) { }
+            : base(context, "언젠가 다다를 마지막", 0.5f) { Power = SlashPower; }
 
         protected override void Resolve()
         {
             bool isCrit = Random.value <= Caster.CritChanceCurr;
             float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
             int slash = Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(SlashPower, BaseEnums.PrimaryStat.DEX) * critMultiplier));
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.DEX) * critMultiplier));
 
             var tags = new List<int>
             {

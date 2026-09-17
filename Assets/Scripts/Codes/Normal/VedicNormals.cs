@@ -10,7 +10,7 @@ namespace Codes.Normal
         public YamaNormalAttack(NormalCodeContext context) : base(context)
         {
             CodeName = "일반행동";
-            Power = 60;
+            Power = 90;
             CodeTags = new List<int> { DamageTag.Physical };
         }
 

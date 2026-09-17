@@ -443,7 +443,7 @@ codes:
     - id: 21
       verbalName: 일반행동
       codeName: a005_NAtlanta
-      description: "단일 적에게 DEX 기반 위력 60의 피해를 입힌다. #비접촉 #물리"
+      description: "단일 적에게 DEX 기반 위력 90의 피해를 입힌다. #비접촉 #물리"
     - id: 20
       verbalName: 일반행동
       codeName: a004_NPygmalion
@@ -496,7 +496,7 @@ codes:
     - id: 41
       verbalName: 일반행동
       codeName: TsukuyomiLightningBolt
-      description: "단일 적에게 INT의 40%에 해당하는 피해를 입힌다. #비접촉 #특수"
+      description: "단일 적에게 INT 기반 위력 40의 피해를 입히고 2턴간 월광 침식(턴마다 위력 20의 지속피해)을 남긴다. 원소를 부착하지 않는다. #비접촉 #특수"
     - id: 80
       verbalName: 일반행동
       codeName: SurtrScorchingSlash
@@ -512,30 +512,30 @@ codes:
     - id: 2
       verbalName: 일반행동
       codeName: ShiVoidSlash
-      description: "단일 적에게 DEX 기반 단계별 위력 38/46/54의 피해를 입힌다. 타수 자체가 '시의 종언' 자원이라 행동 속도가 곧 화력이 된다. #접촉 #물리 #베기"
+      description: "단일 적에게 DEX 기반 위력 38의 피해를 입힌다. 타수 자체가 '시의 종언' 자원이라 행동 속도가 곧 화력이 된다. #접촉 #물리 #베기"
     - id: 22
       verbalName: 일반행동
       codeName: OrionNormalAttack
-      description: "단일 적에게 STR 기반 위력 80의 피해를 입힌다. #비접촉 #화살 #물리"
+      description: "단일 적에게 STR 기반 위력 90의 피해를 입힌다. #비접촉 #화살 #물리"
     - id: 23
       verbalName: 일반행동
       codeName: TheseusNormalAttack
-      description: "단일 적에게 DEX 기반 위력 80의 피해를 입힌다. 강화 시 충격파로 적 전체에 DEX 기반 위력 60의 추가 피해를 입힌다. #접촉 #물리"
+      description: "단일 적에게 DEX 기반 위력 90의 피해를 입힌다. 강화 시 충격파로 적 전체에 DEX 기반 위력 60의 추가 피해를 입히고 물 원소를 부착한다. #접촉 #물리"
     - { id: 24, verbalName: 일반행동, codeName: AsclepiusNormalAttack, description: "단일 적에게 INT 기반 위력 60의 특수 피해를 입힌다. #비접촉 #특수" }
-    - { id: 40, verbalName: 일반행동, codeName: AmaterasuNormalAttack, description: "단일 적에게 DEX 기반 위력 70의 물리 피해를 입힌다. #비접촉 #물리" }
-    - { id: 61, verbalName: 일반행동, codeName: YamaNormalAttack, description: "단일 적에게 DEX 기반 위력 60의 물리 피해를 입힌다. #물리 #베기 #접촉" }
+    - { id: 40, verbalName: 일반행동, codeName: AmaterasuNormalAttack, description: "단일 적에게 DEX 기반 위력 90의 물리 피해를 입힌다. #비접촉 #물리" }
+    - { id: 61, verbalName: 일반행동, codeName: YamaNormalAttack, description: "단일 적에게 DEX 기반 위력 90의 물리 피해를 입힌다. #물리 #베기 #접촉" }
     - { id: 62, verbalName: 일반행동, codeName: AgniNormalAttack, description: "단일 적에게 INT 기반 위력 60의 특수 피해를 입힌다. #특수 #비접촉" }
     - { id: 63, verbalName: 일반행동, codeName: IndraNormalAttack, description: "단일 적에게 INT 기반 위력 50의 특수 피해를 입힌다. #특수 #비접촉" }
     - { id: 64, verbalName: 일반행동, codeName: VayuNormalAttack, description: "단일 적에게 CON 기반 위력 60의 물리 피해를 입힌다. #물리 #비접촉" }
     - { id: 81, verbalName: 일반행동, codeName: FreyaNormalAttack, description: "아군 전체를 CON×0.6만큼 치유한다." }
-    - { id: 82, verbalName: 일반행동, codeName: LokiNormalAttack, description: "단일 적에게 STR 기반 위력 80의 피해를 입힌다. #비접촉 #물리" }
+    - { id: 82, verbalName: 일반행동, codeName: LokiNormalAttack, description: "단일 적에게 STR 기반 위력 90의 피해를 입힌다. #비접촉 #물리" }
     - { id: 83, verbalName: 일반행동, codeName: SkadiNormalAttack, description: "도발 중이면 단일 적에게 STR×0.8의 피해를 입힌다. 도발 중이 아니라면 대체행동으로 바뀌어 자신에게 100+STR×1.2의 방어막과 3턴 도발(우선도 +1)을 부여한다. #접촉 #물리" }
     - { id: 84, verbalName: 그람, codeName: SigurdGram, description: "단일 적에게 STR 기반 위력 90의 피해를 입히고 불 원소를 부착한다. #베기 #접촉 #물리" }
     - { id: 85, verbalName: 발키리의 창, codeName: BrynhildValkyrieSpear, description: "단일 적에게 DEX 기반 위력 90의 피해를 입히고 얼음 원소를 부착한다. #찌르기 #접촉 #물리" }
     - { id: 3001, verbalName: 궁니르, codeName: OdinGungnir, description: "단일 적에게 STR 기반 위력 160의 피해를 입힌다. 회피되지 않는다. #찌르기 #접촉 #물리" }
     - { id: 65, verbalName: 일반행동, codeName: KuberaNormalAttack, description: "단일 적에게 STR 기반 위력 70의 피해를 입힌다. #접촉 #물리" }
     - { id: 66, verbalName: 일반행동, codeName: VarunaNormalAttack, description: "단일 적에게 CON 기반 위력 60의 피해를 입힌다. #특수 #비접촉" }
-    - { id: 42, verbalName: 일반행동, codeName: SusanooNormalAttack, description: "단일 적에게 DEX 기반 위력 60의 피해를 입힌다. #물리 #접촉 #베기" }
+    - { id: 42, verbalName: 일반행동, codeName: SusanooNormalAttack, description: "단일 적에게 DEX 기반 위력 90의 피해를 입힌다. #물리 #접촉 #베기" }
     - { id: 25, verbalName: 일반행동, codeName: OrpheusNormalAttack, description: "단일 적에게 LUK 기반 위력 50의 피해를 입힌다. #특수 #비접촉" }
 
     # ── 로마(레기온) 적 일반행동 ──
@@ -629,11 +629,11 @@ codes:
 
   ultimate:
     - { id: 8, verbalName: 실험 결과를 발표하겠습니다!, codeName: LavoisierExperiment, description: "반응 준비도 3과 세 시약이 모두 필요하다. 시약 중 최소량 Q만큼을 각각 소모하고 적 전체에게 INT×(8+0.3Q)×(1+LUK/(100+LUK))의 피해를 입힌다. 치명타 가능. 적중 후 불 원소를 5턴 부착한다. #특수 #비접촉 #전체공격" }
-    - { id: 61, verbalName: 언젠가 다다를 마지막, codeName: YamaFinalArrival, description: "적 전체를 베어 DEX 기반 위력 60의 피해를 입히고 번개 원소를 부여한다. 이후 대상의 지속피해를 즉시 정산해 (턴당 지속피해 × INT × 0.8%)만큼 추가 피해를 만든다. #특수 #베기 #접촉" }
+    - { id: 61, verbalName: 언젠가 다다를 마지막, codeName: YamaFinalArrival, description: "적 전체를 베어 DEX 기반 위력 80의 피해를 입히고 번개 원소를 부여한다. 이후 대상의 지속피해를 즉시 정산해 (턴당 지속피해 × INT × 0.8%)만큼 추가 피해를 만든다. #특수 #베기 #접촉" }
     - { id: 62, verbalName: 백화, codeName: AgniWhiteFlame, description: "적 전체에게 INT 기반 위력 65의 피해를 입히고 불 원소를 부여한다. #특수 #비접촉" }
     - { id: 63, verbalName: 신들의 왕, codeName: IndraKingOfGods, description: "필드에 있는 모든 로카팔라 아군의 특수행동을 발동시킨다. 피해를 내지 않으며, 같이 나설 로카팔라가 없으면 자원을 태우지 않는다." }
     - { id: 81, verbalName: 풍요의 산물, codeName: FreyaHarvest, description: "적 전체에게 INT×0.6의 피해를 입히고, 쌓인 순수치유량에 비례해 피해가 최대 2배까지 커진다. 적중한 모든 적에게 풀 원소를 부착하고 기록을 비운다. #비접촉 #특수" }
-    - { id: 82, verbalName: 발드르의 살해자, codeName: LokiBaldrSlayer, description: "최대 체력이 가장 높은 단일 적에게 STR 기반 위력 120의 피해를 입히고 표식을 남긴다. 표식을 가진 적은 받는 치유량 -25%와 방어력 -20%를 얻는다. 표식은 로키가 쓰러지거나 다른 대상에게 다시 새길 때까지 남는다. #비접촉 #물리" }
+    - { id: 82, verbalName: 발드르의 살해자, codeName: LokiBaldrSlayer, description: "최대 체력이 가장 높은 단일 적에게 STR 기반 위력 150의 피해를 입히고 표식을 남긴다. 표식을 가진 적은 받는 치유량 -25%와 방어력 -20%를 얻는다. 표식은 로키가 쓰러지거나 다른 대상에게 다시 새길 때까지 남는다. #비접촉 #물리" }
     - { id: 83, verbalName: 고드름 스파이크, codeName: SkadiIcicleSpike, description: "적 전체에게 STR×0.8의 피해를 입히고 얼음 원소를 부착한다. #물리 #접촉" }
     - { id: 84, verbalName: 파프니르 살해, codeName: SigurdFafnirsBane, description: "단일 적에게 STR 기반 위력 150의 피해를 입히고 대상의 내구를 무시하며 불 원소를 부착한다. 이후 맹세가 협공을 한 번 불러온다. #베기 #접촉 #물리" }
     - { id: 85, verbalName: 선고, codeName: BrynhildVerdict, description: "적 전체에게 DEX 기반 위력 80의 피해를 입히고 얼음 원소를 부착한다. 이후 맹세가 협공을 한 번 불러온다. #찌르기 #비접촉 #물리" }
@@ -646,7 +646,7 @@ codes:
     - id: 21
       verbalName: 달빛 추격
       codeName: a005_U_Moonfall
-      description: "전열 단일 적에게 DEX 기반 위력 100 피해 후 후열 전체에 위력 60 피해. 전열이 비었으면 후열 단일 최초 타격만 발동한다. #비접촉 #물리 #화살"
+      description: "전열 단일 적에게 DEX 기반 위력 150 피해 후 후열 전체에 위력 80 피해. 전열이 비었으면 후열 단일 최초 타격만 발동한다. #비접촉 #물리 #화살"
     - id: 60
       verbalName: 소마
       codeName: a012_U_Soma
@@ -695,21 +695,21 @@ codes:
     - id: 22
       verbalName: 화살비
       codeName: OrionHeavyBlow
-      description: "무작위 단일 대상을 향해 화살 12발을 쏘며, 각 화살은 STR 기반 위력 10의 피해를 입힌다. #비접촉 #화살 #물리"
+      description: "무작위 단일 대상을 향해 화살 12발을 쏘며, 각 화살은 STR 기반 위력 12의 피해를 입힌다. #비접촉 #화살 #물리"
     - id: 23
       verbalName: 회복의 일격
       codeName: TheseusRecoveryStrike
-      description: "단일 적에게 DEX 기반 위력 100의 피해를 입히고 잃은 체력의 25%+CON*10만큼 회복한다. (계수 임시) #접촉 #물리"
+      description: "단일 적에게 DEX 기반 위력 150의 피해를 입히고 잃은 체력의 25%+CON*10만큼 회복한다. (계수 임시) #접촉 #물리"
     - { id: 24, verbalName: 의신의 영약, codeName: AsclepiusFlask, description: "단일 적에게 INT 위력 80 피해 후 주변에 위력 60 범위 피해. 투사체가 관통한 아군은 CON 위력 120 보호막을 얻는다. #비접촉 #특수" }
-    - { id: 40, verbalName: 태양문 개방, codeName: AmaterasuPortalBarrage, description: "3턴간 차원문 4개를 연다. 일반행동을 맞힐 때마다 아군 진영 허공의 차원문에서 화살 8발(차원문마다 같은 무작위 대상에게 2발씩)을 한 번에 쏜다. 화살 한 발은 그 일반행동 최종 피해의 0.1배를 추가행동으로 준다. #비접촉 #물리 #화살" }
+    - { id: 40, verbalName: 태양문 개방, codeName: AmaterasuPortalBarrage, description: "3턴간 차원문 4개를 연다. 일반행동을 맞힐 때마다 아군 진영 허공의 차원문에서 화살 8발(차원문마다 같은 무작위 대상에게 2발씩)을 한 번에 쏜다. 화살 한 발은 그 일반행동 최종 피해의 0.1배를 추가행동으로 준다. 화살 8발이 적중할 때마다 그 대상에게 불 원소를 부착한다. #비접촉 #물리 #화살" }
     - id: 41
       verbalName: 월뢰만천
       codeName: TsukuyomiMoonThunder
-      description: "모든 적에게 INT의 80%에 해당하는 범위 피해를 입히고 번개 원소를 부여한다."
+      description: "모든 적에게 INT 기반 위력 80의 피해를 입히고 3턴간 월식(턴마다 위력 40의 지속피해)을 남긴다. 원소를 부착하지 않는다. #비접촉 #특수"
     - id: 80
       verbalName: 라그나로크
       codeName: SurtrRagnarok
-      description: "단일 적에게 STR×1.2의 피해를 입힌 후 적 전체에게 STR×0.8의 피해를 입히고 불 원소를 부착한다. #베기 #접촉 #물리"
+      description: "단일 적에게 STR×1.5의 피해를 입힌 후 적 전체에게 STR×0.8의 피해를 입히고 불 원소를 부착한다. #베기 #접촉 #물리"
     - { id: 1100, verbalName: 철벽 진형, codeName: ColosseumMurmilloUltimate, description: "자신과 체력이 가장 낮은 아군에게 최대 체력 비례 방어막을 부여한다." }
     - { id: 1101, verbalName: 대열 붕괴, codeName: ColosseumHoplomachusUltimate, description: "한 행을 공격하고 3턴간 받는 피해를 증가시킨다." }
     - { id: 1102, verbalName: 일대일 지명, codeName: ColosseumThraexUltimate, description: "최대 체력이 가장 높은 적을 지명하고 4턴간 그 대상에게 주는 피해가 증가한다." }

@@ -16,8 +16,9 @@ namespace Codes.Normal
         {
             CodeName = "일반행동";
             CastingDelay = 0.35f;
-            MaxStage = 3;
-            StagePowers = new[] { 38, 46, 54 };
+            // 코드 단계(1~3)는 더 이상 오르지 않는다. 늘 1단계 값이던 38을 고정 위력으로 둔다.
+            MaxStage = 1;
+            Power = 38;
             CodeTags = new List<int> { DamageTag.Physical };
         }
 

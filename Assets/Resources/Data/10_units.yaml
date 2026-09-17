@@ -82,7 +82,7 @@ units:
       - { codeId: 31,  unlockLevel: 30, stage: 1 }   # 마나 호흡법
       - { codeId: 6,  unlockLevel: 38, stage: 1 }   # 철벽
       - { codeId: 7,  unlockLevel: 50, stage: 1 }   # 사전준비
-      - { codeId: 8,  unlockLevel: 92, stage: 1 }   # 창세의 노래
+      - { codeId: 8,  unlockLevel: 70, stage: 1 }   # 창세의 노래
     portrait: SEI_PORTRAIT
     standing: SEI_STANDING
 
@@ -304,8 +304,8 @@ units:
       - { codeId: 10,  unlockLevel: 28, stage: 1 }   # 신속
       - { codeId: 35, unlockLevel: 31, stage: 1 }   # 상처 벌리기
       - { codeId: 11,  unlockLevel: 44, stage: 1 }   # 천살성
-      - { codeId: 12,  unlockLevel: 78, stage: 1 }   # 화무십일홍
-      - { codeId: 13,  unlockLevel: 82, stage: 1 }   # 당연한 운명
+      - { codeId: 12,  unlockLevel: 57, stage: 1 }   # 화무십일홍
+      - { codeId: 13,  unlockLevel: 70, stage: 1 }   # 당연한 운명
     portrait: SHI_PORTRAIT
     standing: SHI_STANDING
 
@@ -353,7 +353,7 @@ units:
       - { codeId: 51, unlockLevel: 39, stage: 1 }   # 약자 멸시
       - { codeId: 52, unlockLevel: 45, stage: 1 }   # 천천히 꾸준히
       - { codeId: 53, unlockLevel: 68, stage: 1 }   # 날카로운 가시
-      - { codeId: 54, unlockLevel: 76, stage: 1 }   # 사랑신의 가호
+      - { codeId: 54, unlockLevel: 70, stage: 1 }   # 사랑신의 가호
     portrait: PYGMALION_PORTRAIT
     standing: PYGMALION_STANDING
 
@@ -652,6 +652,9 @@ units:
       - codeId: 1
         unlockLevel: 8
         stage: 1
+      - codeId: 109
+        unlockLevel: 10
+        stage: 1
       - codeId: 2
         unlockLevel: 12
         stage: 1
@@ -660,9 +663,6 @@ units:
         stage: 1
       - codeId: 108
         unlockLevel: 27
-        stage: 1
-      - codeId: 109
-        unlockLevel: 10
         stage: 1
       - codeId: 5
         unlockLevel: 35
@@ -718,7 +718,7 @@ units:
       - { codeId: 17, unlockLevel: 18, stage: 1 }   # 학자
       - { codeId: 18, unlockLevel: 22, stage: 1 }   # 명상
       - { codeId: 7, unlockLevel: 48, stage: 1 }   # 사전 준비 (세이와 공용)
-      - { codeId: 19, unlockLevel: 90, stage: 1 }   # 날개 달린 뱀
+      - { codeId: 19, unlockLevel: 70, stage: 1 }   # 날개 달린 뱀
     portrait: QUETZALCOATL_PORTRAIT
     standing: QUETZALCOATL_STANDING
 
@@ -776,7 +776,7 @@ units:
         unlockLevel: 44
         stage: 1
       - codeId: 38
-        unlockLevel: 72
+        unlockLevel: 70
         stage: 1
     portrait: TSUKUYOMI_PORTRAIT
     standing: TSUKUYOMI_STANDING
@@ -916,7 +916,7 @@ units:
       - { codeId: 33, unlockLevel: 12, stage: 1 }
       - { codeId: 15, unlockLevel: 15, stage: 1 }   # 학식
       - { codeId: 1593, unlockLevel: 50, stage: 1 } # 원소 정통   # 주문 보호막
-      - { codeId: 62, unlockLevel: 71, stage: 1 }   # 대마법사
+      - { codeId: 62, unlockLevel: 70, stage: 1 }   # 대마법사
     portrait: AGNI_PORTRAIT
     standing: AGNI_STANDING
 
@@ -959,7 +959,7 @@ units:
       - { codeId: 64, unlockLevel: 20, stage: 1 }   # 천재
       - { codeId: 65, unlockLevel: 30, stage: 1 }   # 용살자
       - { codeId: 66, unlockLevel: 45, stage: 1 }   # 자기과신
-      - { codeId: 67, unlockLevel: 92, stage: 1 }   # 인도자
+      - { codeId: 67, unlockLevel: 70, stage: 1 }   # 인도자
     portrait: INDRA_PORTRAIT
     standing: INDRA_STANDING
 
@@ -1388,7 +1388,7 @@ units:
       - { codeId: 85, unlockLevel: 46, stage: 1 }   # 전술가
       - { codeId: 26,  unlockLevel: 50, stage: 1 }   # 과다치유
       - { codeId: 7,  unlockLevel: 52, stage: 1 }   # 사전준비
-      - { codeId: 67, unlockLevel: 92, stage: 1 }   # 인도자
+      - { codeId: 67, unlockLevel: 70, stage: 1 }   # 인도자
     portrait: AGRIPPA_PORTRAIT
     standing: AGRIPPA_STANDING
 
@@ -1430,7 +1430,7 @@ units:
       - { codeId: 17,  unlockLevel: 18, stage: 1 }   # 예리함
       - { codeId: 64, unlockLevel: 20, stage: 1 }   # 천재
       - { codeId: 71, unlockLevel: 40, stage: 1 }   # 리더쉽
-      - { codeId: 62, unlockLevel: 71, stage: 1 }   # 대마법사
+      - { codeId: 62, unlockLevel: 70, stage: 1 }   # 대마법사
     portrait: OCTAVIA_PORTRAIT
     standing: OCTAVIA_STANDING
 
@@ -1473,7 +1473,7 @@ units:
       - { codeId: 84, unlockLevel: 21, stage: 1 }   # 직감
       - { codeId: 42, unlockLevel: 55, stage: 1 }   # 클러치 플레이어
       - { codeId: 29,  unlockLevel: 68, stage: 1 }   # 파죽지세
-      - { codeId: 67, unlockLevel: 92, stage: 1 }   # 인도자
+      - { codeId: 67, unlockLevel: 70, stage: 1 }   # 인도자
     portrait: CAESAR_PORTRAIT
     standing: CAESAR_STANDING
 

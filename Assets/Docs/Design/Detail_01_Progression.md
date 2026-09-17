@@ -309,14 +309,21 @@ stageThemes:
 | --- | --- | --- |
 | enum | `GameMode.Training` | `GameMode.Infinite` |
 | 편성 상한 | 5명 (`MaxSelection`) | 5명 |
-| 편성 하한 | 1명 (`MinSelection`) | — |
+| 편성 하한 | 1명 (`MinSelection`) | **5명** — 카드 5장이 모두 차야 시작 |
 | 메인 수 | 1명 (`MainSelection`) | 메인 개념 없음 |
 | 중복 편성 | 불가 | 불가 |
-| 편성 자격 | `canStartAsMain` / `canStartAsSupport` | `canUseInInfinite` + 육성 완료 기록 보유 |
+| 편성 자격 | `canStartAsMain` / `canStartAsSupport` | 육성 완료 기록 보유 + (`canUseInInfinite` 또는 Locked) — `CharacterSelectionManager.IsInfiniteEligible` |
+| 진입 조건 | 없음 | 메인 메뉴에서 **자격 있는 육성 완료 카드 5장**이 모여야 열린다 |
 | 스테이지 상한 | **100** (`GameManager.MaxTrainingStage`) | 없음 |
 | 육성 페이즈 | 있음 | 없음 |
 | 보상 확률 | 현재 라운드 확률 | 10라운드 확률 고정 |
 | 종료 처리 | 메인을 `TrainedCharacterRecord`로 저장 | 라운드 데이터 소진 시 종료 |
+
+> **같은 캐릭터를 다시 완주하면 카드가 새 기록으로 교체된다**(`SaveSystem.AddTrainedCharacterRecord`).
+> 그래서 무한 모드를 열려면 **서로 다른 캐릭터 5명**을 완주해야 한다.
+>
+> 예전에는 메뉴가 늘 열려 있어, 카드가 모자란 채 들어가면 편성 화면에 고를 카드도 되돌아갈 버튼도 없이 멈췄다.
+> Locked 캐릭터(해금한 로키·데모에서 열린 시 등)는 끝까지 키워도 무한 모드 카드로 세지 않았다.
 
 ### 스테이지 전진 단일 진입점
 

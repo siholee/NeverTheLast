@@ -3,12 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Codes.Base;
+using Codes.Passive;
 using Entities;
 using UnityEngine;
 
 namespace Codes.Ultimate
 {
-    /// <summary>모든 적에게 INT 80% 범위 피해를 입히고 번개 원소를 부여한다.</summary>
+    /// <summary>
+    /// 모든 적에게 INT 기반 위력 80의 피해를 입히고 월식(3턴 지속피해)을 남긴다.
+    ///
+    /// 예전에는 번개 원소를 부여했다. 츠쿠요미는 원소 반응에 끼지 않는 지속피해 서포터로
+    /// 정리했으므로, 궁극기의 몫은 적 전체에 지속피해를 한 번에 까는 것이다.
+    /// </summary>
     public sealed class TsukuyomiMoonThunder : UltimateCode
     {
         /// <summary>사양 "INT의 80%"에 대응하는 고정 위력.</summary>
@@ -54,10 +60,7 @@ namespace Codes.Ultimate
             foreach (Unit target in targets)
             {
                 target.TakeDamage(new DamageContext(Caster, damage, BaseEnums.CodeType.Ultimate, tags, isCrit));
-                if (target != null && target.isActive)
-                {
-                    target.GrantCombatElement(BaseEnums.UnitElement.Electro);
-                }
+                TsukuyomiMoonlight.ApplyEclipse(Caster, target);
             }
             StopCode();
         }

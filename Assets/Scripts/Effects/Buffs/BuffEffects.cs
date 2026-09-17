@@ -1,3 +1,4 @@
+using System;
 using BaseClasses;
 using Effects.Base;
 using Entities;
@@ -64,6 +65,27 @@ namespace Effects.Buffs
     {
         public override bool CountsAsReagentBuff => false;
         public MarkerBuffEffect() : base(0) { }
+    }
+
+    /// <summary>
+    /// 표식이면서, <b>상태가 사라지는 순간</b> 콜백을 부른다.
+    ///
+    /// 코드가 이벤트 훅을 직접 달고 "N턴 뒤에 뗀다"를 해야 할 때 쓴다. 훅의 수명을 상태의
+    /// 턴 수명에 묶으면 만료·교체·라운드 종료가 모두 한 경로로 정리된다.
+    /// 예전에는 <c>WaitForSeconds(턴 수)</c>로 떼서, 표시는 4턴인데 효과는 4초 만에 꺼졌다.
+    /// </summary>
+    public sealed class LifetimeMarkerEffect : BaseEffect
+    {
+        private Action _onRemove;
+        public override bool CountsAsReagentBuff => false;
+        public LifetimeMarkerEffect(Action onRemove) : base(0) { _onRemove = onRemove; }
+
+        public override void OnRemove()
+        {
+            Action callback = _onRemove;
+            _onRemove = null;
+            callback?.Invoke();
+        }
     }
 
     /// <summary>치명타 확률 가산 버프 (홀리 인챈트 등)</summary>

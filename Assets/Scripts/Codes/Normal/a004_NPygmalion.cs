@@ -18,6 +18,7 @@ namespace Codes.Normal
         public a004_NPygmalion(NormalCodeContext context) : base(context)
         {
             CodeName = "일반행동";
+            Power = 60;
         }
 
         /// <summary>
@@ -27,7 +28,7 @@ namespace Codes.Normal
         {
             // 피그말리온은 방어형 컨셉이므로 CON을 근거로 때린다.
             return Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(60, BaseEnums.PrimaryStat.CON) * critMultiplier));
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.CON) * critMultiplier));
         }
         
         protected override IEnumerator FireProjectile(List<Unit> targets, float delay, DamageContext context)

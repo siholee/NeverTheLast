@@ -146,7 +146,7 @@ namespace Managers
 
             if (GameManager.Instance != null &&
                 GameManager.Instance.CurrentMode == BaseClasses.BaseEnums.GameMode.Infinite &&
-                (!CanUseInInfinite(unitId) || !SaveSystem.IsCharacterTrained(unitId)))
+                !CanUseInInfinite(unitId))
             {
                 Debug.Log($"[CharSel] 무한 모드는 육성 완료 캐릭터만 선택 가능: {unitId}");
                 return false;
@@ -311,18 +311,32 @@ namespace Managers
             }
         }
 
-        private static bool CanUseInInfinite(int unitId)
-        {
-            UnitData data = GetUnitData(unitId);
-            return data != null && data.canUseInInfinite;
-        }
+        /// <summary>무한 모드를 여는 데 필요한 육성 완료 카드 수. 무한 모드는 서포트 카드 5장으로만 편성한다.</summary>
+        public const int InfiniteRequiredCards = MaxSelection;
+
+        private static bool CanUseInInfinite(int unitId) => IsInfiniteEligible(GetUnitData(unitId));
+
+        /// <summary>
+        /// 무한 모드에 서포트 카드로 설 수 있는가 — 분류가 허락하고 <b>육성을 마쳤을 때</b>.
+        ///
+        /// Locked는 해금되면 Starter처럼 메인으로 키울 수 있으므로 무한 모드에도 선다.
+        /// 예전에는 데이터의 <c>canUseInInfinite</c>만 봐서, 해금한 로키나 데모에서 열린 시를
+        /// 끝까지 키워도 무한 모드 카드로 세지 않았다. Support 유형은 메인이 될 수 없어 육성 기록이 생기지 않는다.
+        /// </summary>
+        public static bool IsInfiniteEligible(UnitData data) =>
+            data != null && (data.canUseInInfinite || data.characterType == "Locked") &&
+            SaveSystem.IsCharacterTrained(data.id);
+
+        /// <summary>무한 모드에 쓸 수 있는 육성 완료 카드 수. 메인 메뉴가 무한 모드를 열지 정할 때 묻는다.</summary>
+        public static int CountInfiniteEligibleCards(IEnumerable<UnitData> units) =>
+            units?.Count(IsInfiniteEligible) ?? 0;
 
         private static bool CanSelectForRole(int unitId, CharacterRole role)
         {
             if (GameManager.Instance != null &&
                 GameManager.Instance.CurrentMode == BaseClasses.BaseEnums.GameMode.Infinite)
             {
-                return CanUseInInfinite(unitId) && SaveSystem.IsCharacterTrained(unitId);
+                return CanUseInInfinite(unitId);
             }
 
             UnitData data = GetUnitData(unitId);

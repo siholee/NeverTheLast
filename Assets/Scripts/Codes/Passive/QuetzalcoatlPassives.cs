@@ -128,7 +128,7 @@ namespace Codes.Passive
             description: "전투 중 1턴마다 INT가 1 증가합니다."));
     }
 
-    /// <summary>Lv.90 날개 달린 뱀 — 10턴마다 아군 전체에게 3턴짜리 마나 재생을 다시 건다.</summary>
+    /// <summary>Lv.70 날개 달린 뱀 — 10턴마다 아군 전체에게 3턴짜리 마나 재생을 다시 건다.</summary>
     public sealed class QuetzalcoatlWingedSerpent : PeriodicTurnPassive
     {
         private const int IntervalTurnCount = 10;

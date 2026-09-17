@@ -26,6 +26,12 @@ namespace Managers
 
         public UnitDataList FetchUnitDataList() => Load<UnitDataList>("Data/10_units");
 
+        /// <summary>
+        /// 인스턴스 없이 유닛 목록을 읽는다. 메인 메뉴 씬에는 DataManager 오브젝트가 없어
+        /// 무한 모드 개방 여부를 판단할 때 이 경로를 쓴다.
+        /// </summary>
+        public static UnitDataList LoadUnitDataList() => Load<UnitDataList>("Data/10_units");
+
         /// <summary>파티 시너지·추천 편성. 자료실이 유닛마다 이 표를 읽는다.</summary>
         public SynergyDataList FetchSynergyDataList() => Load<SynergyDataList>("Data/30_synergies");
 

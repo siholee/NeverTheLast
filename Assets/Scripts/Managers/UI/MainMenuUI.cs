@@ -60,6 +60,7 @@ namespace Managers.UI
             public TextMeshProUGUI Label;
             public TextMeshProUGUI Latin;
             public string Hint;
+            public string DisabledHint;
             public bool Enabled = true;
         }
 
@@ -321,7 +322,7 @@ namespace Managers.UI
             {
                 _hint.text = _rows[index].Enabled
                     ? _rows[index].Hint
-                    : "저장된 런이 없습니다. 새로운 여정으로 시작하세요.";
+                    : _rows[index].DisabledHint ?? "저장된 런이 없습니다. 새로운 여정으로 시작하세요.";
             }
         }
 
@@ -330,7 +331,7 @@ namespace Managers.UI
         private static void BuildFooter(Transform root)
         {
             TextMeshProUGUI version = UIBuild.Label("Version", root,
-                $"VER {Application.version}      BUILD 2026.08      ANDROID · IL2CPP",
+                $"VER {Application.version}      DEMO      {Application.platform}",
                 UITheme.FontMicro, new Color(0.263f, 0.275f, 0.290f));
             version.characterSpacing = 16f;
             UIBuild.Pin(version.rectTransform, new Vector2(0f, 0f), new Vector2(760f, 16f),
@@ -376,6 +377,20 @@ namespace Managers.UI
             if (_rows == null || _rows.Length < 2) return;
 
             _rows[1].Enabled = SaveSystem.HasSave();
+
+            // 무한 모드는 육성 완료 카드 5장이 모여야 열린다. 모자란 채로 들어가면 편성 화면에서
+            // 고를 카드가 없고 되돌아갈 버튼도 없어 그대로 멈췄다.
+            if (_rows.Length > 2)
+            {
+                int cards = CharacterSelectionManager.CountInfiniteEligibleCards(
+                    DataManager.LoadUnitDataList()?.units);
+                int required = CharacterSelectionManager.InfiniteRequiredCards;
+                _rows[2].Enabled = cards >= required;
+                _rows[2].DisabledHint =
+                    $"육성을 마친 캐릭터 {required}명이 필요합니다. 지금 {cards} / {required}. " +
+                    "새로운 여정에서 100스테이지를 완주하면 메인이 서포트 카드로 남습니다.";
+            }
+
             Highlight(_hovered);
         }
 

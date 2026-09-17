@@ -42,7 +42,7 @@ namespace Codes.Base
         106 => new JeanBulkUp(context),
         107 => new JeanStandardbearer(context),
         7 => new SeiPreparation(context),    // 세이 Lv.50 사전준비
-        8 => new SeiFirstSong(context),      // 세이 Lv.92 최초의 노래
+        8 => new SeiFirstSong(context),      // 세이 Lv.70 창세의 노래
         221 => new AtalanteWeaknessTracker(context), // 아탈란테 패시브
         44 => new AtalanteArcher(context),
         45 => new AtalanteAgility(context),

@@ -296,7 +296,10 @@ namespace Managers.UI.Screens
                 : $"메인  {mainText}\n서포터  {supportText}";
 
             // 버튼 상태
-            bool canProceed = mainPhase ? manager.MainUnitId > 0 : supportCount > 0;
+            // 무한 모드는 카드 5장이 모두 차야 시작된다(ConfirmSelection이 그렇게 막는다).
+            // 버튼이 먼저 켜지면 눌러도 아무 일이 없어 멈춘 것처럼 보인다.
+            bool canProceed = mainPhase ? manager.MainUnitId > 0
+                : IsInfinite ? supportCount >= supportTarget : supportCount > 0;
             SetButton(_primaryButton, mainPhase ? "다음 →" : "여정 시작", canProceed);
             SetButtonVisible(_backButton, !IsInfinite && !mainPhase);
 
@@ -365,14 +368,12 @@ namespace Managers.UI.Screens
 
         private List<UnitData> Candidates()
         {
-            List<UnitData> units = GameManager.Instance?.unitDataList?.units?
-                .FindAll(unit => unit.id < 100) ?? new List<UnitData>();
+            // 예전에는 id < 100만 띄웠다. 유닛 ID가 진영별 20칸 블록으로 넓어진 뒤로는
+            // 로마(100~)·이집트(120~)·메히코(140~)·갈리아(160~)가 통째로 빠져, Starter인 아누비스조차 고를 수 없었다.
+            List<UnitData> units = GameManager.Instance?.unitDataList?.units ?? new List<UnitData>();
 
             if (IsInfinite)
-            {
-                List<int> trained = SaveSystem.LoadTrainedCharacters().unitIds;
-                return units.Where(unit => unit.canUseInInfinite && trained.Contains(unit.id)).ToList();
-            }
+                return units.Where(CharacterSelectionManager.IsInfiniteEligible).ToList();
 
             // 육성 모드 1단계는 메인이 될 수 있는 캐릭터만, 2단계는 서포터 후보만 보여준다.
             if (_phase == Phase.Main)

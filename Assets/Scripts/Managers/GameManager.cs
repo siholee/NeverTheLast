@@ -256,12 +256,19 @@ namespace Managers
         // ── 경험치 지급량 ──────────────────────────────────────────
         // 아군 레벨이 스테이지 진행과 대략 보조를 맞추도록 스테이지 비례로 준다.
         // 적 레벨 = 스테이지이므로, 이 곡선이 아군/적 격차를 결정한다.
-        public const int ExpPerKillBase = 10;
-        public const int ExpPerKillPerStage = 2;
-        public const int ExpPerStageClearBase = 50;
-        public const int ExpPerStageClearPerStage = 10;
-        public const int ExpPerTrainingBase = 30;
-        public const int ExpPerTrainingPerStage = 5;
+        //
+        // 두 갈래로 나뉜다.
+        //   전투(처치·클리어) — 필드의 파티 전원이 받는다.
+        //   훈련             — 메인과 <b>그 훈련에 서포트 카드로 앉은</b> 서포트만 받는다.
+        // 무게를 훈련 쪽에 실어 서포트가 메인의 약 80% 레벨에 머물게 한다.
+        // 메인의 곡선은 예전(전원 동일 지급)과 같다 — 100스테이지 Lv.86 · 50스테이지 Lv.44.
+        // 서포트는 참여율에 따라 100스테이지 Lv.65~75(참여율 5~45%)에 선다.
+        public const int ExpPerKillBase = 4;
+        public const int ExpPerKillPerStage = 1;
+        public const int ExpPerStageClearBase = 25;
+        public const int ExpPerStageClearPerStage = 9;
+        public const int ExpPerTrainingBase = 90;
+        public const int ExpPerTrainingPerStage = 11;
 
         // ── 골드 수급 ──────────────────────────────────────────────
         // 소모품 가격이 스테이지에 비례하므로(RewardManager.ShopPrice) 수입도 스테이지에 비례한다.
@@ -281,12 +288,19 @@ namespace Managers
         /// </summary>
         public void GrantExpToParty(int amount)
         {
-            if (amount <= 0 || GridManager.Instance == null) return;
+            if (GridManager.Instance == null) return;
+            GrantExpTo(GridManager.Instance.heroList, amount);
+        }
+
+        /// <summary>지정한 아군에게만 EXP를 지급한다. 배율 규칙은 <see cref="GrantExpToParty"/>와 같다.</summary>
+        private static void GrantExpTo(IEnumerable<Unit> heroes, int amount)
+        {
+            if (amount <= 0 || heroes == null) return;
 
             int scaled = Mathf.Max(1, Mathf.RoundToInt(
                 amount * Codes.Passive.RewardModifiers.ExpMultiplier()));
 
-            foreach (Unit hero in GridManager.Instance.heroList)
+            foreach (Unit hero in heroes.Distinct())
             {
                 if (hero == null || hero.IsEnemy || !hero.isActive) continue;
                 hero.AddExp(scaled);
@@ -932,13 +946,17 @@ namespace Managers
                 return;
             }
 
+            // 이번 훈련에 앉은 서포트는 훈련을 적용하기 <b>전에</b> 읽는다.
+            // ApplyTraining이 턴을 넘기며 배치를 무효화하기 때문이다.
+            var trainees = new List<Unit> { TrainingManager.GetMainUnit() };
+            trainees.AddRange(TrainingManager.GetSupportsOn(focus));
+
             TrainingManager.TrainingResult result = TrainingManager.ApplyTraining(focus);
 
-            // 육성 EXP도 파티 전체가 나눠 받는다.
-            // 메인에게만 주면 서포터가 100스테이지에서 26레벨까지 뒤처져,
-            // 후반에 서포터가 제 몫을 못 하는 구조가 된다. 성장 속도는 5인이 동일하다.
-            // (집중 훈련의 스탯 보너스는 여전히 메인에게만 붙는다 — 차별화는 그쪽이 담당한다.)
-            GrantExpToParty(ExpPerTrainingBase + ExpPerTrainingPerStage * CurrentStageForExp);
+            // 육성 EXP는 메인과 <b>이 훈련에 참여한 서포트</b>만 받는다.
+            // 예전에는 5인이 똑같이 받아 서포트가 메인과 같은 레벨로 자랐다. 서포트는 전투 EXP를
+            // 늘 함께 받고, 훈련 EXP는 참여할 때만 받아 메인의 약 80% 레벨에 선다.
+            GrantExpTo(trainees, ExpPerTrainingBase + ExpPerTrainingPerStage * CurrentStageForExp);
             runManager?.SaveCurrentRun();
 
             // 결과를 한 장으로 보여 준 다음에 준비 페이즈로 넘어간다.

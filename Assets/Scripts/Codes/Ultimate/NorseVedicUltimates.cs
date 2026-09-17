@@ -97,7 +97,7 @@ namespace Codes.Ultimate
     /// </summary>
     public sealed class LokiBaldrSlayer : SimpleUltimate
     {
-        private const int SlashPower = 120;
+        private const int SlashPower = 150;
 
         public LokiBaldrSlayer(UltimateCodeContext context)
             : base(context, "발드르의 살해자", 0.5f) { Power = SlashPower; }
@@ -110,7 +110,7 @@ namespace Codes.Ultimate
             bool isCrit = Random.value <= Caster.CritChanceCurr;
             float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
             int damage = Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(SlashPower, BaseEnums.PrimaryStat.STR) * critMultiplier));
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.STR) * critMultiplier));
 
             target.TakeDamage(new DamageContext(Caster, damage, BaseEnums.CodeType.Ultimate, new List<int>
             {

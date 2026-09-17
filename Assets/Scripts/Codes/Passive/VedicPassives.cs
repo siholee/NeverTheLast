@@ -264,7 +264,7 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>Lv.71 대마법사 — 보주 숙련 아군의 특수 피해 치명타 피해 +25%.</summary>
+    /// <summary>Lv.70 대마법사 — 보주 숙련 아군의 특수 피해 치명타 피해 +25%.</summary>
     public sealed class AgniArchmage : PassiveCode
     {
         public const string SharedKey = "orb_crit_damage_aura";
@@ -468,7 +468,7 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>Lv.92 인도자 — 궁극기 발동 후 다른 아군에게 마나를 나눠 준다.</summary>
+    /// <summary>Lv.70 인도자 — 궁극기 발동 후 다른 아군에게 마나를 나눠 준다.</summary>
     public sealed class IndraGuide : PassiveCode
     {
         private const int ManaGrant = 20;

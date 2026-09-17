@@ -319,6 +319,15 @@ namespace Codes.Ultimate
         /// <summary>같은 차원문에서 나온 화살이 겹쳐 보이지 않게 벌리는 거리(월드 단위).</summary>
         private const float ArrowSpread = 1.6f;
 
+        /// <summary>
+        /// 화살 몇 발이 적중할 때마다 불을 한 번 붙이는가. 한 번의 일제사격(8발)에 한 번꼴이다.
+        ///
+        /// 화살마다 붙이면 불+불 화상이 매 사격에 연달아 터진다. 셈은 시전 동안 사격을 넘어 이어진다.
+        /// </summary>
+        private const int ArrowsPerPyroAttach = 8;
+
+        private int _arrowHitCount;
+
         private Action<EventContext> _normalHitHandler;
         private Action<EventContext> _cleanupHandler;
 
@@ -341,14 +350,12 @@ namespace Codes.Ultimate
             yield return new WaitForSeconds(CastingDelay);
             if (Caster == null || !Caster.isActive || Caster.isControlled) { StopCode(); yield break; }
             ClearPortalHook();
-            _normalHitHandler = OnNormalHit;
-            _cleanupHandler = _ => ClearPortalHook();
-            Caster.AddListener(BaseEnums.UnitEventType.OnNormalAttackHit, _normalHitHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _arrowHitCount = 0;
+            // 상태를 먼저 건다. 재시전으로 이전 상태가 교체되며 부르는 정리가
+            // 방금 단 새 훅까지 떼어 내지 않도록, 훅은 교체가 끝난 뒤에 단다.
             Caster.AddStatus(BuffStatus.Create(
                 5750, "amaterasu_portals", CodeName,
-                Caster, Caster, new MarkerBuffEffect(),
+                Caster, Caster, new LifetimeMarkerEffect(ClearPortalHook),
                 duration: Duration,
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
@@ -356,7 +363,11 @@ namespace Codes.Ultimate
                              $"화살 {PortalCount * ArrowsPerPortal}발을 한 번에 쏜다. 차원문마다 대상을 무작위로 " +
                              "정하고, 한 차원문의 화살은 같은 대상을 노린다. 화살 한 발은 그 일반행동 " +
                              $"최종 피해의 {ArrowDamageRatio:0.#}배를 추가행동으로 준다."));
-            Caster.StartCoroutine(ExpirePortals());
+            _normalHitHandler = OnNormalHit;
+            _cleanupHandler = _ => ClearPortalHook();
+            Caster.AddListener(BaseEnums.UnitEventType.OnNormalAttackHit, _normalHitHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             StopCode();
         }
 
@@ -427,12 +438,9 @@ namespace Codes.Ultimate
                     DamageTag.Physical, DamageTag.NonContactAttack, DamageTag.Arrow,
                 },
                 isCrit));
-        }
 
-        private IEnumerator ExpirePortals()
-        {
-            yield return new WaitForSeconds(Duration);
-            ClearPortalHook();
+            if (++_arrowHitCount % ArrowsPerPyroAttach == 0 && target.isActive)
+                target.GrantCombatElement(BaseEnums.UnitElement.Pyro, Unit.CommonElementAuraDuration, Caster);
         }
 
         /// <summary>

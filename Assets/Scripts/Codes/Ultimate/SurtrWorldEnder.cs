@@ -19,7 +19,7 @@ namespace Codes.Ultimate
     /// </summary>
     public sealed class SurtrRagnarok : UltimateCode
     {
-        private const int SingleTargetPower = 120;
+        private const int SingleTargetPower = 150;
         private const int AreaPower = 80;
 
         public SurtrRagnarok(UltimateCodeContext context) : base(context)

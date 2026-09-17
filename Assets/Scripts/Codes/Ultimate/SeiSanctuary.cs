@@ -63,32 +63,31 @@ namespace Codes.Ultimate
                 ally.GrantCombatElement(
                     BaseEnums.UnitElement.Geo, Unit.CommonElementAuraDuration, Caster);
 
+                Unit bound = ally;
+                Action<DamageResolvedContext> handler = ctx => OnAllyDamageDealt(bound, ctx);
+
+                // 훅의 수명은 상태에 묶는다. 교체로 이전 상태가 걷히면 그 상태가 달았던 훅만 떨어진다.
                 var status = BuffStatus.Create(
                     StatusId, StatusKey, CodeName,
-                    Caster, ally, new MarkerBuffEffect(),
+                    Caster, ally, new LifetimeMarkerEffect(() => DetachHook(bound, handler)),
                     duration: Duration,
                     stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                     isBeneficial: true,
                     description: $"가하는 피해에 세이 INT ×{IntRatio:0.#}의 고정 피해가 추가됩니다.");
                 ally.AddStatus(status);
 
-                Unit bound = ally;
-                Action<DamageResolvedContext> handler = ctx => OnAllyDamageDealt(bound, ctx);
                 bound.AddListener(BaseEnums.UnitEventType.OnDamageDealt, handler);
                 _hooks.Add((bound, handler));
             }
-
-            // 지속시간이 끝나면 추가 피해 훅을 회수한다.
-            Caster.StartCoroutine(ExpireAfter(Duration));
 
             Debug.Log($"[창세] 아군 전체 추가 고정 피해 INT×{IntRatio:0.#}, {Duration}턴");
             StopCode();
         }
 
-        private IEnumerator ExpireAfter(float seconds)
+        private void DetachHook(Unit ally, Action<DamageResolvedContext> handler)
         {
-            yield return new WaitForSeconds(seconds);
-            ClearHooks();
+            ally?.RemoveListener(BaseEnums.UnitEventType.OnDamageDealt, handler);
+            _hooks.Remove((ally, handler));
         }
 
         private void ClearHooks()

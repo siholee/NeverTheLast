@@ -184,7 +184,7 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// 창세의 노래 (Lv.92) — 전투 중 <b>최초로</b> 궁극기를 발동하면 아군 전체의 궁극기 충전량이 100%가 된다.
+    /// 창세의 노래 (Lv.70) — 전투 중 <b>최초로</b> 궁극기를 발동하면 아군 전체의 궁극기 충전량이 100%가 된다.
     /// 마나를 쓰지 않는 특수 궁극기 보유자에게도 적용된다.
     /// </summary>
     public sealed class SeiFirstSong : PassiveCode

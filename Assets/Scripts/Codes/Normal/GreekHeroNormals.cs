@@ -14,7 +14,7 @@ namespace Codes.Normal
         public OrionNormalAttack(NormalCodeContext context) : base(context)
         {
             CodeName = "일반행동";
-            Power = 80;
+            Power = 90;
             CodeTags = new List<int> { DamageTag.Physical };
         }
 
@@ -30,12 +30,15 @@ namespace Codes.Normal
 
     public sealed class TheseusNormalAttack : BaseNormalCode
     {
+        /// <summary>강화 일반행동이 뒤에 붙이는 충격파(적 전체). 주 타격과 별개의 부가 위력이다.</summary>
+        private const int ShockwavePower = 60;
+
         private bool _isEnhanced;
 
         public TheseusNormalAttack(NormalCodeContext context) : base(context)
         {
             CodeName = "일반행동";
-            Power = 80;
+            Power = 90;
             CodeTags = new List<int> { DamageTag.Physical };
         }
 
@@ -67,7 +70,7 @@ namespace Codes.Normal
             bool isCrit = Random.value <= Caster.CritChanceCurr;
             float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
             int shockwaveDamage = Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(60, BaseEnums.PrimaryStat.DEX) * critMultiplier));
+                Caster.SkillDamage(ShockwavePower, BaseEnums.PrimaryStat.DEX) * critMultiplier));
             List<int> tags = new()
             {
                 DamageTag.AllTarget,
@@ -80,6 +83,11 @@ namespace Codes.Normal
                          .Where(unit => unit != null && unit.isActive).ToList())
             {
                 enemy.TakeDamage(new DamageContext(Caster, shockwaveDamage, BaseEnums.CodeType.Normal, tags, isCrit));
+
+                // 충격파가 적 전체에 물을 남긴다. 강화 일반행동(코드 직조 스택)에만 붙으므로
+                // 빈도가 저절로 묶이고, 불·전기·얼음 딜러가 증발·감전·빙결을 이어받는다.
+                if (enemy.isActive)
+                    enemy.GrantCombatElement(BaseEnums.UnitElement.Hydro, Unit.CommonElementAuraDuration, Caster);
             }
         }
 

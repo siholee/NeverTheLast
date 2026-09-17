@@ -244,7 +244,7 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>Lv.78: 체력 10% 미만 대상 공격은 확정 치명타이며 치명타 확률×2를 치명타 피해에 더한다.</summary>
+    /// <summary>Lv.57: 체력 10% 미만 대상 공격은 확정 치명타이며 치명타 확률×2를 치명타 피해에 더한다.</summary>
     public sealed class ShiTenDaysNoFlower : ShiStatusPassive
     {
         public const int CodeId = 12;
@@ -281,7 +281,7 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>Lv.82: 천살성을 보유한 경우 처형선을 12%로 대체한다.</summary>
+    /// <summary>Lv.70: 천살성을 보유한 경우 처형선을 12%로 대체한다.</summary>
     public sealed class ShiCertainDestiny : ExecuteThresholdPassive
     {
         public const int CodeId = 13;

@@ -17,6 +17,11 @@ namespace Codes.Ultimate
     /// </summary>
     public sealed class a005_U_Moonfall : UltimateCode
     {
+        private const int PrimaryPower = 150;
+
+        /// <summary>후열 전체 타격. 단일 위력에 비례해 움직여 위력 증가 효과를 함께 받는다.</summary>
+        private const int RearPower = 80;
+
         private readonly HS_Poolable _prefab;
 
         public a005_U_Moonfall(UltimateCodeContext context) : base(context)
@@ -24,7 +29,7 @@ namespace Codes.Ultimate
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "달빛 추격";
             CastingDelay = 1f;
-            Power = 100;
+            Power = PrimaryPower;
             CodeTags = new List<int> { DamageTag.Physical, DamageTag.NonContactAttack, DamageTag.Arrow };
             GameManager.Instance?.sfxManager?.ProjectilePrefabs?.TryGetValue("Levateinn", out _prefab);
         }
@@ -71,7 +76,7 @@ namespace Codes.Ultimate
 
             bool isCrit = Random.value <= Caster.CritChanceCurr;
             float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
-            int primaryDamage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(100, BaseEnums.PrimaryStat.DEX) * critMultiplier));
+            int primaryDamage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.DEX) * critMultiplier));
             var primaryContext = new DamageContext(
                 Caster, primaryDamage, BaseEnums.CodeType.Ultimate,
                 new List<int>
@@ -98,7 +103,7 @@ namespace Codes.Ultimate
                 List<Unit> rearEnemies = enemies
                     .Where(unit => unit != null && unit.isActive && unit.currentCell.xPos == rearColumn)
                     .ToList();
-                int rearDamage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(60, BaseEnums.PrimaryStat.DEX) * critMultiplier));
+                int rearDamage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(Mathf.Max(1, Mathf.RoundToInt(CurrentPower * ((float)RearPower / PrimaryPower))), BaseEnums.PrimaryStat.DEX) * critMultiplier));
                 var rearContext = new DamageContext(
                     Caster, rearDamage, BaseEnums.CodeType.Ultimate,
                     new List<int>

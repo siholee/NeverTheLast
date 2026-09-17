@@ -201,13 +201,13 @@ namespace Codes.Normal
         public AmaterasuNormalAttack(NormalCodeContext context) : base(context)
         {
             CodeName = "일반행동";
-            Power = 70;
+            Power = 90;
             CodeTags = new List<int> { DamageTag.Physical };
         }
 
         protected override int CalculateDamage(float critMultiplier)
             => UnityEngine.Mathf.Max(1, UnityEngine.Mathf.RoundToInt(
-                Caster.SkillDamage(Power, BaseEnums.PrimaryStat.DEX) * critMultiplier));
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.DEX) * critMultiplier));
 
         protected override List<int> GetDamageTags() => new()
         {
