@@ -35,8 +35,9 @@
 #      평갑   10   20   33   48   65
 #      중갑   16   32   52   76  104
 #
-# themeIds: 테마 전용 보상. 비어 있으면 모든 테마의 보상 풀에 등장한다.
-#   값은 80_stages.yaml의 stageThemes[].id다 (적 themeId가 아니다).
+# 보상은 드랍으로 나온다. 적의 drops(60_enemies.yaml)와 공용 드랍 commonDropItemIds(90_rewards.yaml)에
+#   오른 장비만 보상 후보가 된다(3~6장). 테마 보상 풀(themeIds)은 폐지했다 — Detail_13 §1.
+# requiredUnitIds: 캐릭터 전용 장비. 목록의 유닛이 파티·대기석·선발 덱에 있을 때만 후보가 된다.
 items:
   # T1 무기 — 효과는 의도적으로 5스탯 +1만 제공한다.
   - id: 4101
@@ -198,7 +199,7 @@ items:
     durability: 16
     statBonuses: [{ stat: STR, amount: 1 }]
 
-  # ── T2 레기온 세트 — '로마' 테마 전용 보상 (themeIds: [5]) ──────────
+  # ── T2 레기온 세트 — 로마 군단 병사가 떨군다 ──────────
   # 군단 규격 생산품이라 T1 대응품과 중량이 같고 스탯만 올라간다.
   # T2는 codeGrants를 주지 않는다. 스탯 증가와 내구도만 제공한다.
   - id: 4201
@@ -209,7 +210,6 @@ items:
     requiredProficiency: Longsword
     rarity: 2
     weight: 2
-    themeIds: [5]
     statBonuses: [{ stat: STR, amount: 3 }]
 
   - id: 4202
@@ -221,7 +221,6 @@ items:
     rarity: 2
     weight: 4
     twoHanded: true
-    themeIds: [5]
     statBonuses: [{ stat: STR, amount: 3 }]
 
   - id: 4203
@@ -233,7 +232,6 @@ items:
     rarity: 2
     weight: 3
     twoHanded: true
-    themeIds: [5]
     statBonuses: [{ stat: DEX, amount: 3 }]
 
   - id: 4204
@@ -245,7 +243,6 @@ items:
     rarity: 2
     weight: 4
     twoHanded: true
-    themeIds: [5]
     statBonuses: [{ stat: DEX, amount: 3 }]
 
   - id: 4205
@@ -256,7 +253,6 @@ items:
     requiredProficiency: Orb
     rarity: 2
     weight: 1
-    themeIds: [5]
     statBonuses: [{ stat: INT, amount: 3 }]
 
   - id: 4206
@@ -268,7 +264,6 @@ items:
     rarity: 2
     weight: 3
     durability: 12
-    themeIds: [5]
     statBonuses: [{ stat: STR, amount: 3 }]
 
   - id: 4207
@@ -280,7 +275,6 @@ items:
     rarity: 2
     weight: 2
     durability: 10
-    themeIds: [5]
     statBonuses: [{ stat: DEX, amount: 3 }]
 
   - id: 4208
@@ -292,7 +286,6 @@ items:
     rarity: 2
     weight: 4
     durability: 20
-    themeIds: [5]
     statBonuses: [{ stat: CON, amount: 3 }]
 
   - id: 4209
@@ -304,10 +297,9 @@ items:
     rarity: 2
     weight: 6
     durability: 32
-    themeIds: [5]
     statBonuses: [{ stat: STR, amount: 3 }]
 
-  # ── T2 메히코 세트 — '메히코' 테마 전용 보상 (themeIds: [6]) ──────────
+  # ── T2 메히코 세트 — 메히코 전사가 떨군다 ──────────
   # 아즈텍 전사 계열이 실제로 드는 무기다. 스탯은 그 계열이 쓰는 주스탯을 따른다.
   # T2는 레기온 세트와 같은 규칙으로 codeGrants 없이 스탯만 올린다.
   - id: 4210
@@ -319,7 +311,6 @@ items:
     rarity: 2
     weight: 3
     twoHanded: true
-    themeIds: [6]
     statBonuses: [{ stat: DEX, amount: 3 }]
 
   - id: 4211
@@ -330,7 +321,6 @@ items:
     requiredProficiency: Mace
     rarity: 2
     weight: 3
-    themeIds: [6]
     statBonuses: [{ stat: STR, amount: 3 }]
 
   - id: 4212
@@ -342,7 +332,6 @@ items:
     rarity: 2
     weight: 3
     twoHanded: true
-    themeIds: [6]
     statBonuses: [{ stat: INT, amount: 3 }]
 
   - id: 4216
@@ -397,7 +386,6 @@ items:
     rarity: 3
     weight: 3
     twoHanded: true
-    themeIds: [6]
     statBonuses: [{ stat: DEX, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 1301, stage: 1 }
@@ -410,7 +398,6 @@ items:
     requiredProficiency: Mace
     rarity: 3
     weight: 3
-    themeIds: [6]
     statBonuses: [{ stat: STR, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 1300, stage: 1 }
@@ -424,7 +411,6 @@ items:
     rarity: 3
     weight: 3
     twoHanded: true
-    themeIds: [6]
     statBonuses: [{ stat: INT, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 1302, stage: 1 }
@@ -465,7 +451,6 @@ items:
     rarity: 2
     weight: 4
     durability: 20
-    themeIds: [16]
     statBonuses: [{ stat: STR, amount: 3 }]
 
   - id: 4306
@@ -476,7 +461,6 @@ items:
     requiredProficiency: Mace
     rarity: 3
     weight: 3
-    themeIds: [16]
     statBonuses: [{ stat: STR, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 41, stage: 1 }
@@ -489,7 +473,6 @@ items:
     requiredProficiency: Orb
     rarity: 3
     weight: 1
-    themeIds: [16]
     statBonuses: [{ stat: INT, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 413, stage: 1 }
@@ -501,7 +484,6 @@ items:
     category: Necklace
     rarity: 3
     weight: 1
-    themeIds: [16]
     statBonuses: [{ stat: STR, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 39, stage: 1 }
@@ -515,7 +497,6 @@ items:
     rarity: 3
     weight: 4
     durability: 33
-    themeIds: [16]
     statBonuses: [{ stat: Durability, amount: 10 }]
     codeGrants:
       - { slot: passive, codeId: 414, stage: 1 }
@@ -529,7 +510,6 @@ items:
     rarity: 2
     weight: 3
     twoHanded: true
-    themeIds: [16]
     statBonuses: [{ stat: STR, amount: 3 }]
 
   - id: 4310
@@ -540,7 +520,6 @@ items:
     rarity: 3
     weight: 2
     durability: 10
-    themeIds: [16]
     statBonuses: [{ stat: STR, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 416, stage: 1 }
@@ -552,7 +531,6 @@ items:
     category: Ring
     rarity: 2
     weight: 1
-    themeIds: [16]
     statBonuses: [{ stat: INT, amount: 3 }]
 
   - id: 4311
@@ -562,7 +540,6 @@ items:
     category: Shoes
     rarity: 3
     weight: 2
-    themeIds: [16]
     statBonuses: [{ stat: DEX, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 417, stage: 1 }
@@ -575,7 +552,6 @@ items:
     requiredProficiency: Dagger
     rarity: 3
     weight: 1
-    themeIds: [16]
     statBonuses: [{ stat: LUK, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 418, stage: 1 }
@@ -589,7 +565,6 @@ items:
     rarity: 3
     weight: 6
     durability: 52
-    themeIds: [16]
     statBonuses: [{ stat: CON, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 419, stage: 1 }
@@ -604,7 +579,6 @@ items:
     rarity: 4
     weight: 4
     durability: 48
-    themeIds: [16]
     statBonuses: [{ stat: CON, amount: 7 }]
     codeGrants:
       - { slot: passive, codeId: 420, stage: 1 }
@@ -713,6 +687,7 @@ items:
     category: Longsword
     requiredProficiency: Longsword
     rarity: 3
+    requiredUnitIds: [3]
     weight: 2
     statBonuses: [{ stat: LUK, amount: 5 }]
     codeGrants:
@@ -725,6 +700,7 @@ items:
     category: Longsword
     requiredProficiency: Longsword
     rarity: 3
+    requiredUnitIds: [3]
     weight: 2
     statBonuses: [{ stat: DEX, amount: 5 }]
     codeGrants:
@@ -762,13 +738,12 @@ items:
     requiredProficiency: Mace
     rarity: 5
     weight: 3
-    themeIds: [16]
     statBonuses: [{ stat: CON, amount: 9 }]
     codeGrants:
       - { slot: passive, codeId: 415, stage: 1 }
 
   # ══════════════════════════════════════════════════════════════════
-  # 공허 부품 — 공허 여덟 테마와 노르드 북부가 나눠 쓰는 한 세트
+  # 공허 부품 — 공허 여덟 테마와 노르드 북부·중부, 천공·해안 전선이 나눠 쓰는 한 세트
   #
   # 원소 변형은 같은 병종에 색만 칠한 것이라 여덟 벌을 따로 두면 8배 물량에 1배 정체성이 된다.
   # T4·T5는 없다. 역사적 유물이 아니면 T4를 주지 않는 규칙을 그대로 따르면 공허는 역사가 없어
@@ -783,7 +758,6 @@ items:
     requiredProficiency: Orb
     rarity: 2
     weight: 1
-    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17, 18]
     statBonuses: [{ stat: INT, amount: 3 }]
 
   - id: 4224
@@ -794,7 +768,6 @@ items:
     rarity: 2
     weight: 2
     durability: 6
-    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17, 18]
     statBonuses: [{ stat: DEX, amount: 3 }]
 
   - id: 4225
@@ -806,7 +779,6 @@ items:
     rarity: 2
     weight: 2
     durability: 10
-    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17, 18]
     statBonuses: [{ stat: Durability, amount: 6 }]
 
   # 공허의 크러셔 팔을 뜯어 양손검으로 쓴다. 대검은 지금 T2가 천장이라 이 칸이 비어 있었다.
@@ -819,7 +791,6 @@ items:
     rarity: 3
     weight: 4
     twoHanded: true
-    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17, 18]
     statBonuses: [{ stat: STR, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 421, stage: 1 }
@@ -833,7 +804,6 @@ items:
     rarity: 3
     weight: 2
     durability: 16
-    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17, 18]
     statBonuses: [{ stat: CON, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 422, stage: 1 }
@@ -846,7 +816,6 @@ items:
     category: Ring
     rarity: 3
     weight: 1
-    themeIds: [8, 9, 10, 11, 12, 13, 14, 15, 17, 18]
     statBonuses: [{ stat: INT, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 423, stage: 1 }
@@ -1143,8 +1112,8 @@ items:
     sellPrice: 650
 
   # ── 시구르드·브륀힐드의 전용 장비 ────────────────────────────────
-  # 테마를 타지 않는다. 공통 보상 풀에 들어가 어느 테마에서나 나오며,
-  # 적 버전은 startingItemsByLevel로 레벨에 맞춰 입는다.
+  # 공용 드랍이지만 주인(시구르드 84 · 브륀힐드 85)이 덱에 있을 때만 보상 후보가 된다.
+  # 적 버전은 startingItemsByLevel로 레벨에 맞춰 입고, 그 적을 처치하면 드랍으로도 오른다.
 
   - id: 4317
     name: 파프니르의 피
@@ -1152,6 +1121,7 @@ items:
     slot: Armor
     category: Clothing
     rarity: 3
+    requiredUnitIds: [84]
     weight: 1
     durability: 7
     statBonuses: [{ stat: CON, amount: 5 }]
@@ -1164,6 +1134,7 @@ items:
     slot: Ring
     category: Ring
     rarity: 3
+    requiredUnitIds: [85]
     weight: 1
     statBonuses: [{ stat: INT, amount: 5 }]
     codeGrants:
@@ -1177,6 +1148,7 @@ items:
     category: Longsword
     requiredProficiency: Longsword
     rarity: 4
+    requiredUnitIds: [84]
     weight: 2
     statBonuses: [{ stat: STR, amount: 7 }]
     codeGrants:
@@ -1198,7 +1170,7 @@ items:
       - { slot: passive, codeId: 427, stage: 1 }
 
   # ══════════════════════════════════════════════════════════════════
-  # 아스완 세트 (`themeIds: [7]`)
+  # 아스완 세트 — 아스완 적이 떨군다
   #
   # 테마 전용 장비가 하나도 없던 유일한 운영 테마였다. 성격은 둘로 갈린다 —
   # 앞 절반의 종말의 사도(불·화상)와 뒤 절반의 사령(되살아남)이다.
@@ -1212,7 +1184,6 @@ items:
     category: Necklace
     rarity: 2
     weight: 1
-    themeIds: [7]
     statBonuses: [{ stat: INT, amount: 3 }]
 
   - id: 4227
@@ -1223,7 +1194,6 @@ items:
     rarity: 2
     weight: 1
     durability: 4
-    themeIds: [7]
     statBonuses: [{ stat: CON, amount: 3 }]
 
   - id: 4319
@@ -1234,7 +1204,6 @@ items:
     requiredProficiency: Orb
     rarity: 3
     weight: 1
-    themeIds: [7]
     statBonuses: [{ stat: INT, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 428, stage: 1 }
@@ -1247,7 +1216,6 @@ items:
     requiredProficiency: Longsword
     rarity: 3
     weight: 2
-    themeIds: [7]
     statBonuses: [{ stat: STR, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 429, stage: 1 }
@@ -1259,7 +1227,6 @@ items:
     category: Shoes
     rarity: 3
     weight: 2
-    themeIds: [7]
     statBonuses: [{ stat: DEX, amount: 5 }]
     codeGrants:
       - { slot: passive, codeId: 430, stage: 1 }
@@ -1274,7 +1241,351 @@ items:
     rarity: 4
     weight: 3
     twoHanded: true
-    themeIds: [7]
     statBonuses: [{ stat: INT, amount: 7 }]
     codeGrants:
       - { slot: passive, codeId: 431, stage: 1 }
+
+  # ══════════════════════════════════════════════════════════════════
+  # 적 전용 T1 — 무뎌진 무기 (enemyOnly)
+  #
+  # 해안 전선에서 원소를 붙이는 적이 Lv40까지만 든다. 드랍하지 않는다(enemyOnly). 착용자가 일으키는 해로운 원소 반응을 절반으로,
+  # 빙결·진동 기절·화상을 1턴으로 줄인다(무뎌진 결정 432). Lv41부터는 같은 분류의 범용 T2로 갈아 든다.
+  # 준비가 덜 된 극초반 파티가 빙결 연쇄로 무너지지 않게 하되, 반응 자체는 보여 주기 위해서다.
+  #
+  # ⚠ T1이 codeGrants를 갖는 유일한 예외다. 보상·상점에 나오지 않으므로 플레이어 장비 규격을 흔들지 않는다.
+  # ══════════════════════════════════════════════════════════════════
+
+  - id: 4181
+    name: 무딘 공허검
+    icon: ITEM_CHIPPED_SWORD
+    slot: MainHand
+    category: Longsword
+    requiredProficiency: Longsword
+    rarity: 1
+    weight: 2
+    enemyOnly: true
+    statBonuses: [{ stat: STR, amount: 1 }]
+    codeGrants:
+      - { slot: passive, codeId: 432, stage: 1 }
+
+  - id: 4182
+    name: 무딘 공허 단궁
+    icon: ITEM_APPRENTICE_HUNTER_BOW
+    slot: MainHand
+    category: Shortbow
+    requiredProficiency: Shortbow
+    rarity: 1
+    weight: 2
+    enemyOnly: true
+    statBonuses: [{ stat: DEX, amount: 1 }]
+    codeGrants:
+      - { slot: passive, codeId: 432, stage: 1 }
+
+  - id: 4183
+    name: 흐린 결정 보주
+    icon: ITEM_GLASS_ORB
+    slot: MainHand
+    category: Orb
+    requiredProficiency: Orb
+    rarity: 1
+    weight: 1
+    enemyOnly: true
+    statBonuses: [{ stat: INT, amount: 1 }]
+    codeGrants:
+      - { slot: passive, codeId: 432, stage: 1 }
+
+  - id: 4184
+    name: 무딘 집게날
+    icon: ITEM_BROKEN_HAMMER
+    slot: MainHand
+    category: Mace
+    requiredProficiency: Mace
+    rarity: 1
+    weight: 3
+    enemyOnly: true
+    statBonuses: [{ stat: STR, amount: 1 }]
+    codeGrants:
+      - { slot: passive, codeId: 432, stage: 1 }
+
+  - id: 4185
+    name: 무딘 송곳니
+    icon: ITEM_CEREMONIAL_DAGGER
+    slot: MainHand
+    category: Dagger
+    requiredProficiency: Dagger
+    rarity: 1
+    weight: 1
+    enemyOnly: true
+    statBonuses: [{ stat: LUK, amount: 1 }]
+    codeGrants:
+      - { slot: passive, codeId: 432, stage: 1 }
+
+  # ══════════════════════════════════════════════════════════════════
+  # 일본 세 사람의 전용 장비 — 공용 드랍 · 주인이 덱에 있을 때만 (requiredUnitIds)
+  #
+  # 신화 유물이라 T4·T5다. 효과는 주인의 전투 축에 맞췄지만 같은 전투 축을 쓰는 누구든 들 수 있다.
+  # 전용 아이콘 등록 완료.
+  # ══════════════════════════════════════════════════════════════════
+
+  # 쿠사나기노츠루기 — 불길을 풀째 베어 낸 검. 떠 있는 적 곁을 함께 벤다.
+  - id: 4508
+    name: 쿠사나기노츠루기
+    icon: ITEM_KUSANAGI
+    slot: MainHand
+    category: Greatsword
+    requiredProficiency: Greatsword
+    rarity: 5
+    requiredUnitIds: [42]
+    weight: 4
+    twoHanded: true
+    statBonuses: [{ stat: LUK, amount: 9 }]
+    codeGrants:
+      - { slot: passive, codeId: 433, stage: 1 }
+
+  # 도츠카노츠루기 — 술에 취한 야마타노오로치를 벤 검.
+  - id: 4408
+    name: 도츠카노츠루기
+    icon: ITEM_TOTSUKA
+    slot: MainHand
+    category: Greatsword
+    requiredProficiency: Greatsword
+    rarity: 4
+    requiredUnitIds: [42]
+    weight: 4
+    twoHanded: true
+    statBonuses: [{ stat: LUK, amount: 7 }]
+    codeGrants:
+      - { slot: passive, codeId: 434, stage: 1 }
+
+  # 아메노누보코 — 혼돈의 바다를 휘저어 땅을 만든 창.
+  - id: 4509
+    name: 아메노누보코
+    icon: ITEM_AMENONUHOKO
+    slot: MainHand
+    category: Spear
+    requiredProficiency: Spear
+    rarity: 5
+    requiredUnitIds: [41]
+    weight: 3
+    twoHanded: true
+    statBonuses: [{ stat: INT, amount: 9 }]
+    codeGrants:
+      - { slot: passive, codeId: 435, stage: 1 }
+
+  # 마스미노카가미 — 흐림 없이 비추는 거울. 조건이 없는 목걸이다.
+  - id: 4409
+    name: 마스미노카가미
+    icon: ITEM_MASUMI_MIRROR
+    slot: Necklace
+    category: Necklace
+    rarity: 4
+    requiredUnitIds: [41]
+    weight: 1
+    statBonuses: [{ stat: INT, amount: 7 }]
+    codeGrants:
+      - { slot: passive, codeId: 436, stage: 1 }
+
+  # 육임식반 — 음양사의 점술판.
+  - id: 4410
+    name: 육임식반
+    icon: ITEM_SHIKIBAN
+    slot: MainHand
+    category: Orb
+    requiredProficiency: Orb
+    rarity: 4
+    requiredUnitIds: [43]
+    weight: 1
+    statBonuses: [{ stat: CON, amount: 7 }]
+    codeGrants:
+      - { slot: passive, codeId: 437, stage: 1 }
+
+  # ══════════════════════════════════════════════════════════════════
+  # 천공 전선 전리품 — 등불나방·고치·나비·포식자가 떨군다
+  #
+  # 무적 횟수를 깎는 다단·지속피해 파티에 맞춘 보상이다.
+  # ══════════════════════════════════════════════════════════════════
+
+  - id: 4250
+    name: 등불나방 날개 로브
+    icon: ITEM_LANTERN_MOTH_ROBE
+    slot: Armor
+    category: Clothing
+    rarity: 2
+    weight: 1
+    durability: 4
+    statBonuses: [{ stat: INT, amount: 3 }]
+
+  - id: 4251
+    name: 포식자 깃 단궁
+    icon: ITEM_PREDATOR_FEATHER_BOW
+    slot: MainHand
+    category: Shortbow
+    requiredProficiency: Shortbow
+    rarity: 2
+    weight: 2
+    statBonuses: [{ stat: DEX, amount: 3 }]
+
+  - id: 4252
+    name: 결정 파편 투구
+    icon: ITEM_CRYSTAL_SHARD_HELM
+    slot: Head
+    category: Helmet
+    rarity: 2
+    weight: 2
+    durability: 6
+    statBonuses: [{ stat: CON, amount: 3 }]
+
+  - id: 4322
+    name: 고치 실 반지
+    icon: ITEM_COCOON_THREAD_RING
+    slot: Ring
+    category: Ring
+    rarity: 3
+    weight: 1
+    statBonuses: [{ stat: INT, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 438, stage: 1 }
+
+  - id: 4323
+    name: 불씨 인분 단검
+    icon: ITEM_EMBER_SCALE_DAGGER
+    slot: MainHand
+    category: Dagger
+    requiredProficiency: Dagger
+    rarity: 3
+    weight: 1
+    statBonuses: [{ stat: LUK, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 439, stage: 1 }
+
+  - id: 4324
+    name: 포식자의 깃털 망토
+    icon: ITEM_PREDATOR_FEATHER_CLOAK
+    slot: Armor
+    category: Clothing
+    rarity: 3
+    weight: 1
+    durability: 7
+    statBonuses: [{ stat: DEX, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 440, stage: 1 }
+
+  # ══════════════════════════════════════════════════════════════════
+  # 해안 전선 전리품 — 돌격대장·선봉대장·사냥꾼·공포·집정관이 떨군다
+  #
+  # 공허의 갑주(보호막)를 두드려 넘기는 쪽과 해일을 견디는 쪽에 맞춘 보상이다.
+  # ══════════════════════════════════════════════════════════════════
+
+  - id: 4253
+    name: 부서진 집게
+    icon: ITEM_BROKEN_PINCER
+    slot: MainHand
+    category: Mace
+    requiredProficiency: Mace
+    rarity: 2
+    weight: 3
+    statBonuses: [{ stat: STR, amount: 3 }]
+
+  - id: 4254
+    name: 따개비 방패
+    icon: ITEM_BARNACLE_SHIELD
+    slot: OffHand
+    category: Shield
+    requiredProficiency: Shield
+    rarity: 2
+    weight: 3
+    durability: 12
+    statBonuses: [{ stat: CON, amount: 3 }]
+
+  - id: 4255
+    name: 해초 엮은 로브
+    icon: ITEM_SEAWEED_ROBE
+    slot: Armor
+    category: Clothing
+    rarity: 2
+    weight: 1
+    durability: 4
+    statBonuses: [{ stat: INT, amount: 3 }]
+
+  - id: 4326
+    name: 상어 이빨 단검
+    icon: ITEM_SHARK_TOOTH_DAGGER
+    slot: MainHand
+    category: Dagger
+    requiredProficiency: Dagger
+    rarity: 3
+    weight: 1
+    statBonuses: [{ stat: LUK, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 441, stage: 1 }
+
+  - id: 4327
+    name: 따개비 박힌 등갑
+    icon: ITEM_BARNACLE_CARAPACE
+    slot: Armor
+    category: LightArmor
+    requiredProficiency: LightArmor
+    rarity: 3
+    weight: 2
+    durability: 16
+    statBonuses: [{ stat: CON, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 442, stage: 1 }
+
+  # ══════════════════════════════════════════════════════════════════
+  # 천공·해안 귀중품 — 그 전선의 적만 떨군다. 값은 티어 규격(30/70/150/320)을 따른다.
+  # ══════════════════════════════════════════════════════════════════
+
+  - id: 4906
+    name: 빛바랜 등불 인분
+    icon: ITEM_FADED_LANTERN_DUST
+    slot: Valuable
+    category: Valuable
+    rarity: 1
+    weight: 0
+    sellPrice: 30
+
+  - id: 4907
+    name: 굳은 달빛 결정
+    icon: ITEM_HARDENED_MOONLIGHT
+    slot: Valuable
+    category: Valuable
+    rarity: 3
+    weight: 0
+    sellPrice: 150
+
+  - id: 4908
+    name: 천공 포식자의 결정 발톱
+    icon: ITEM_SKY_PREDATOR_TALON
+    slot: Valuable
+    category: Valuable
+    rarity: 4
+    weight: 0
+    sellPrice: 320
+
+  - id: 4909
+    name: 공허 진주
+    icon: ITEM_VOID_PEARL
+    slot: Valuable
+    category: Valuable
+    rarity: 2
+    weight: 0
+    sellPrice: 70
+
+  - id: 4910
+    name: 심연 먹물 호박
+    icon: ITEM_ABYSS_INK_AMBER
+    slot: Valuable
+    category: Valuable
+    rarity: 3
+    weight: 0
+    sellPrice: 150
+
+  - id: 4911
+    name: 집정관의 결정 비늘
+    icon: ITEM_ARCHON_CRYSTAL_SCALE
+    slot: Valuable
+    category: Valuable
+    rarity: 4
+    weight: 0
+    sellPrice: 320

@@ -81,6 +81,14 @@ namespace Effects
             DamagePopup.Show(target, 0, false, Color.white, CombatNumberKind.Miss);
         }
 
+        /// <summary>횟수제 무적이 타격을 지웠다. 회피와 달리 맞기는 맞았으므로 카드는 가볍게 흔든다.</summary>
+        public static void PlayNullified(Unit target)
+        {
+            if (target == null) return;
+            DamagePopup.Show(target, 0, false, Color.white, CombatNumberKind.Nullified);
+            PlayCardHit(target, 0.15f, false, false);
+        }
+
         /// <summary>회복량을 띄운다.</summary>
         public static void PlayHeal(Unit target, int amount)
         {

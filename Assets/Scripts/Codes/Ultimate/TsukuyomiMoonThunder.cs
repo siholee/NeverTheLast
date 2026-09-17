@@ -10,10 +10,11 @@ using UnityEngine;
 namespace Codes.Ultimate
 {
     /// <summary>
-    /// 모든 적에게 INT 기반 위력 80의 피해를 입히고 월식(3턴 지속피해)을 남긴다.
+    /// 모든 적에게 INT 기반 위력 80의 피해를 입히고 월식(3턴 지속피해)과 달의 위상 디버프 세 가지를 남긴다.
     ///
     /// 예전에는 번개 원소를 부여했다. 츠쿠요미는 원소 반응에 끼지 않는 지속피해 서포터로
-    /// 정리했으므로, 궁극기의 몫은 적 전체에 지속피해를 한 번에 까는 것이다.
+    /// 정리했으므로, 궁극기의 몫은 적 전체에 지속피해와 디버프를 한 번에 까는 것이다.
+    /// 월식·위상 셋이 한 적에게 네 칸을 채워 달의 인력(241)을 거의 상한까지 올린다.
     /// </summary>
     public sealed class TsukuyomiMoonThunder : UltimateCode
     {
@@ -61,6 +62,7 @@ namespace Codes.Ultimate
             {
                 target.TakeDamage(new DamageContext(Caster, damage, BaseEnums.CodeType.Ultimate, tags, isCrit));
                 TsukuyomiMoonlight.ApplyEclipse(Caster, target);
+                TsukuyomiMoonlight.ApplyAllPhases(Caster, target);
             }
             StopCode();
         }

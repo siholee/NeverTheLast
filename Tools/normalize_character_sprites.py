@@ -35,6 +35,19 @@ FULL_FIGURE_PORTRAIT_ASSETS = {
     "VOID_SEED_STANDING.png",
     "APOCALYPSE_SEED_STANDING.png",
     "FROST_SEED_STANDING.png",
+    "VOID_LANTERN_MOTH_STANDING.png",
+    "VOID_COCOON_STANDING.png",
+    "VOID_BUTTERFLY_STANDING.png",
+    "VOID_PREDATOR_STANDING.png",
+    "APOCALYPSE_PREDATOR_STANDING.png",
+    "SKY_PREDATOR_STANDING.png",
+    "HUNGER_CRYSTAL_STANDING.png",
+    "RUPTURE_SCALE_STANDING.png",
+    "VOID_ASSAULT_CAPTAIN_STANDING.png",
+    "VOID_SPEARHEAD_CAPTAIN_STANDING.png",
+    "ABYSS_HUNTER_STANDING.png",
+    "ABYSS_HORROR_STANDING.png",
+    "ABYSS_ARCHON_STANDING.png",
 }
 
 # 생성 원본이 피사체 알파와 함께 매우 낮은 불투명도의 조명 배경까지 포함한 경우다.
@@ -58,6 +71,15 @@ LOW_OPACITY_BACKDROP_ASSETS = {
     "APOCALYPSE_BEAST_STANDING.png",
     "VOID_KNIGHT_ELECTRO_STANDING.png",
     "APOCALYPSE_BEAST_CONDUCTION_STANDING.png",
+    "APOCALYPSE_PREDATOR_STANDING.png",
+    "VOID_LANTERN_MOTH_STANDING.png",
+    # 해안 전선 — 결정 조각 주변에 옅은 발광 번짐이 알파로 남아 있다.
+    "VOID_ASSAULT_CAPTAIN_STANDING.png",
+    "VOID_SPEARHEAD_CAPTAIN_STANDING.png",
+    "ABYSS_HUNTER_STANDING.png",
+    "ABYSS_HORROR_STANDING.png",
+    "ABYSS_ARCHON_STANDING.png",
+    "SEIMEI_STANDING.png",
 }
 
 # 원화는 우향으로 제공되었지만 적 스프라이트는 화면 왼쪽을 바라보는 것이 규칙이다.
@@ -65,6 +87,26 @@ LEFT_FACING_FLIP_ASSETS = {
     "VOID_MONSTROUS_BIRD_STANDING.png",
     "VOID_MARKSMAN_STANDING.png",
     "VOID_MARKSMAN_NATURE_STANDING.png",
+}
+
+# 동일한 고정 캔버스에서도 가로로 긴 보스와 세로로 긴 비행체의 체감 크기가
+# 크게 달라진다. 원화 자체는 손대지 않고 투명 캔버스 안의 점유율만 보정한다.
+STANDING_CONTENT_SCALE = {
+    "VOID_LANTERN_MOTH_STANDING.png": 0.75,
+    "SKY_PREDATOR_STANDING.png": 2.20,
+    "ABYSS_ARCHON_STANDING.png": 1.20,
+}
+
+PORTRAIT_CONTENT_SCALE = {
+    "SKY_PREDATOR_STANDING.png": 2.30,
+    "ABYSS_ARCHON_STANDING.png": 1.10,
+}
+
+# 스탠딩을 확대하면서 화면 밖으로 나간 날개가 초상화에도 이중으로 잘리지 않도록
+# 초상화는 투명화된 원본에서 독립적으로 만든다.
+PORTRAIT_FROM_SOURCE_ASSETS = {
+    "SKY_PREDATOR_STANDING.png",
+    "ABYSS_ARCHON_STANDING.png",
 }
 
 NEW_ASSETS = {
@@ -421,15 +463,48 @@ def alpha_bbox(image: Image.Image) -> tuple[int, int, int, int]:
     return (int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1)
 
 
-def fit_to_canvas(image: Image.Image, size: tuple[int, int], margin: tuple[int, int], bottom_align: bool) -> Image.Image:
+def fit_to_canvas(
+    image: Image.Image,
+    size: tuple[int, int],
+    margin: tuple[int, int],
+    bottom_align: bool,
+    content_scale: float = 1.0,
+) -> Image.Image:
+    """여백 안에 맞춘 뒤 content_scale만큼 더 키운다.
+
+    맞춤과 확대를 한 번의 리샘플로 끝낸다. 캔버스에 맞춘 결과를 다시 키우면 원본보다 작은
+    중간본을 확대하게 되어, 크게 키워야 하는 가로형 보스일수록 선이 뭉개진다.
+    1을 넘기면 캔버스 밖으로 나간 부분은 잘리고, 경계에서 떨어져 나온 작은 조각은 지운다.
+    """
     crop = image.crop(alpha_bbox(image))
     max_width = size[0] - margin[0] * 2
     max_height = size[1] - margin[1] * 2
-    scale = min(max_width / crop.width, max_height / crop.height)
+    scale = min(max_width / crop.width, max_height / crop.height) * content_scale
     resized = crop.resize((max(1, round(crop.width * scale)), max(1, round(crop.height * scale))), Image.Resampling.LANCZOS)
     canvas = Image.new("RGBA", size, (0, 0, 0, 0))
     x = (size[0] - resized.width) // 2
     y = size[1] - margin[1] - resized.height if bottom_align else (size[1] - resized.height) // 2
+    # alpha_composite는 음수 위치를 받지 않으므로, 넘친 쪽을 먼저 잘라 내고 붙인다.
+    source_box = (max(0, -x), max(0, -y), min(resized.width, size[0] - x), min(resized.height, size[1] - y))
+    canvas.alpha_composite(resized.crop(source_box), (max(0, x), max(0, y)))
+    if content_scale > 1.0:
+        canvas = remove_crop_boundary_fragments(canvas)
+    return canvas
+
+
+def scale_content_on_canvas(image: Image.Image, scale: float, bottom_align: bool) -> Image.Image:
+    """캔버스 규격은 유지하면서 불투명 콘텐츠만 중앙 기준으로 확대·축소한다."""
+    if abs(scale - 1.0) < 0.001:
+        return image.convert("RGBA")
+
+    crop = image.convert("RGBA").crop(alpha_bbox(image))
+    resized = crop.resize(
+        (max(1, round(crop.width * scale)), max(1, round(crop.height * scale))),
+        Image.Resampling.LANCZOS,
+    )
+    canvas = Image.new("RGBA", image.size, (0, 0, 0, 0))
+    x = (image.width - resized.width) // 2
+    y = image.height - 38 - resized.height if bottom_align else (image.height - resized.height) // 2
     canvas.alpha_composite(resized, (x, y))
     return canvas
 
@@ -597,13 +672,22 @@ def import_assets(assets: dict[str, Path], category: str = "ally") -> None:
         transparent = remove_small_detached_fragments(transparent, standing_path.name)
         if standing_path.name in LEFT_FACING_FLIP_ASSETS:
             transparent = transparent.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
-        standing = fit_to_canvas(transparent, (1024, 1536), (54, 38), bottom_align=True)
+        standing = fit_to_canvas(
+            transparent, (1024, 1536), (54, 38), bottom_align=True,
+            content_scale=STANDING_CONTENT_SCALE.get(standing_path.name, 1.0))
         standing = remove_enclosed_white_background(standing, standing_path.name)
         standing = remove_large_checkerboard_residue(standing, standing_path.name)
         standing = apply_palette_swap_reference_alpha(standing, standing_path.name)
+        portrait_scale = PORTRAIT_CONTENT_SCALE.get(standing_path.name, 1.0)
+        if standing_path.name in PORTRAIT_FROM_SOURCE_ASSETS:
+            # 확대된 스탠딩을 다시 자르면 날개가 이중으로 잘리므로 원본에서 곧바로 만든다.
+            portrait = fit_to_canvas(
+                transparent, (1024, 1024), (42, 42), bottom_align=False, content_scale=portrait_scale)
+        else:
+            portrait = portrait_from_standing(standing, is_full_figure_portrait(standing_path.name))
+            portrait = scale_content_on_canvas(portrait, portrait_scale, bottom_align=False)
         save_png(standing, standing_path)
-        save_png(portrait_from_standing(
-            standing, is_full_figure_portrait(standing_path.name)), portrait_path)
+        save_png(portrait, portrait_path)
         unity_meta(standing_path)
         unity_meta(portrait_path)
 

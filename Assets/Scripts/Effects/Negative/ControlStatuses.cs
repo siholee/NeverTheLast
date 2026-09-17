@@ -20,6 +20,12 @@ namespace Effects.Negative
     {
         /// <summary>에어본 연출이 최고점에 도달했을 때. (source, target)</summary>
         public static event Action<Unit, Unit> AirborneApexReached;
+
+        /// <summary>
+        /// 행동불능이 <b>실제로 걸린</b> 직후. (source, target) 분쇄·면역으로 무효가 된 시도는 알리지 않는다.
+        /// 걸린 뒤의 보상(육임식반의 마나)만 여기서 듣는다 — 분쇄 규칙 자체는 이 이벤트가 바꿀 수 없다.
+        /// </summary>
+        public static event Action<Unit, Unit> ControlApplied;
         public const int FrozenStatusId = 5920;
         public const int AirborneStatusId = 5921;
         public const int StunStatusId = 5922;
@@ -189,6 +195,7 @@ namespace Effects.Negative
             status.AddEffect(new ActionLockEffect(turns, source));
             target.AddStatus(status);
             RegisterControl(target);
+            ControlApplied?.Invoke(source, target);
 
             Debug.Log(turns == requested
                 ? $"[{name}] {target.UnitName} — {turns}턴"

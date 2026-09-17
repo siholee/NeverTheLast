@@ -355,7 +355,7 @@ namespace Effects.Negative
             int flat = Mathf.Max(1, Mathf.RoundToInt(
                 source.SkillDamage(AmplifyPower, BaseEnums.PrimaryStat.CON) * FieldReactionMultiplier(source)));
 
-            DealReactionDamage(target, source, flat + bonus);
+            DealReactionDamage(target, source, Mathf.Max(1, Mathf.RoundToInt((flat + bonus) * HarmfulPotency(source))));
         }
 
         /// <summary>확산 — 부착된 유닛과 <b>같은 진영 전체</b>에 원소를 퍼뜨린다.</summary>
@@ -376,14 +376,23 @@ namespace Effects.Negative
             switch (reaction.Id)
             {
                 case ReactionId.Freeze:
-                    ControlStatuses.ApplyFreeze(target, source, ControlStatuses.FreezeTurns(source));
+                {
+                    int turns = ControlStatuses.FreezeTurns(source);
+                    int cap = ControlTurnCap(source);
+                    ControlStatuses.ApplyFreeze(target, source, cap > 0 ? Mathf.Min(turns, cap) : turns);
                     break;
+                }
                 case ReactionId.Vibration:
-                    ControlStatuses.ApplyStun(target, source, ResonanceConMultiplier(source));
+                {
+                    int cap = ControlTurnCap(source);
+                    if (cap > 0) ControlStatuses.ApplyFixedStun(target, source, cap);
+                    else ControlStatuses.ApplyStun(target, source, ResonanceConMultiplier(source));
                     break;
+                }
                 case ReactionId.Rooting:
                     // 착근은 행동을 막지 않고 뒤로 민다. 제어 분쇄의 대상이 아닌 유일한 제어다.
-                    Managers.GameManager.Instance?.ActionScheduler?.DelayAction(target, RootingDelayRatio);
+                    Managers.GameManager.Instance?.ActionScheduler?.DelayAction(
+                        target, RootingDelayRatio * HarmfulPotency(source));
                     break;
             }
         }
@@ -397,7 +406,7 @@ namespace Effects.Negative
             {
                 int splash = Mathf.Max(1, Mathf.RoundToInt(
                     source.SkillDamage(DiffusionBurstPower, BaseEnums.PrimaryStat.CON) *
-                    FieldReactionMultiplier(source)));
+                    FieldReactionMultiplier(source) * HarmfulPotency(source)));
 
                 foreach (Unit unit in global::Target.GetAllAllies(target)
                              .Where(u => u != null && u.isActive && u.HpCurr > 0))
@@ -409,7 +418,7 @@ namespace Effects.Negative
 
             int damage = Mathf.Max(1, Mathf.RoundToInt(
                 source.SkillDamage(BurstPower, BaseEnums.PrimaryStat.CON) *
-                FieldReactionMultiplier(source) * OverloadMultiplier(source, reaction)));
+                FieldReactionMultiplier(source) * OverloadMultiplier(source, reaction) * HarmfulPotency(source)));
             DealReactionDamage(target, source, damage);
         }
 
@@ -426,12 +435,15 @@ namespace Effects.Negative
         {
             if (reaction.Id == ReactionId.Burn)
             {
-                TryApplyBurn(source, target, DotDuration);
+                // 화상은 대상 최대 체력 비례라 위력을 깎을 곳이 없다. 대신 무뎌진 유발자는 1턴만 태운다.
+                int cap = ControlTurnCap(source);
+                TryApplyBurn(source, target, cap > 0 ? Mathf.Min(DotDuration, cap) : DotDuration);
                 return;
             }
 
             int perTurn = Mathf.Max(1, Mathf.RoundToInt(
-                source.SkillDamage(DotPower, BaseEnums.PrimaryStat.CON) * FieldReactionMultiplier(source)));
+                source.SkillDamage(DotPower, BaseEnums.PrimaryStat.CON) * FieldReactionMultiplier(source) *
+                HarmfulPotency(source)));
 
             if (reaction.Id == ReactionId.Weathering)
             {
@@ -458,7 +470,7 @@ namespace Effects.Negative
 
         private static void ResolveDebuff(Unit target, Reaction reaction, Unit source)
         {
-            float ratio = StatRatio(source);
+            float ratio = StatRatio(source) * HarmfulPotency(source);
             if (ratio <= 0f) return;
 
             // 둔화만 스탯을 깎고, 활성·초전도는 특정 분류의 피해를 더 받게 한다.
@@ -562,6 +574,20 @@ namespace Effects.Negative
             if (source == null || target == null || !target.isActive || duration <= 0) return false;
             if (!EffectContest.PassesConCheck(source, target)) return false;
 
+            ApplyBurnWithoutContest(source, target, duration);
+            return true;
+        }
+
+        /// <summary>
+        /// CON 대결 없이 화상을 확정으로 건다. 피해·기간·연장 규칙은 <see cref="TryApplyBurn"/>과 같다.
+        ///
+        /// 범용 화상 상향이 아니다. 처치 보상으로 약속된 화상(공허의 나비의 사망 전파)이
+        /// 운에 따라 사라지면 보상 자체가 성립하지 않아서 따로 둔다.
+        /// </summary>
+        public static void ApplyBurnWithoutContest(Unit source, Unit target, int duration = DotDuration)
+        {
+            if (source == null || target == null || !target.isActive || duration <= 0) return;
+
             target.AddStatus(BuffStatus.Create(
                 BurnStatusId, BurnStatusKey, "화상",
                 source, target, new PercentDamageOverTimeEffect(0, BurnMaxHpPercent),
@@ -570,7 +596,42 @@ namespace Effects.Negative
                 category: BaseEnums.StatusCategory.Negative,
                 isBeneficial: false,
                 description: $"{duration}턴간 턴마다 최대 체력의 {BurnMaxHpPercent:0.#}%에 해당하는 화상 피해를 받습니다."));
-            return true;
+        }
+
+        /// <summary>
+        /// 유발자가 무뎌진 장비를 들었을 때 <b>해로운 반응</b>(증폭·즉발·지속피해·디버프·착근)의 위력 배율.
+        /// 여러 개면 가장 약한 값 하나만 쓴다. 버프 반응은 받는 쪽의 이득이라 건드리지 않는다.
+        /// </summary>
+        public static float HarmfulPotency(Unit source)
+        {
+            float potency = 1f;
+            foreach (IReactionDampener dampener in Dampeners(source))
+                potency = Mathf.Min(potency, Mathf.Clamp01(dampener.HarmfulReactionPotency));
+            return potency;
+        }
+
+        /// <summary>유발자가 일으킨 행동불능 반응(빙결·진동)과 화상의 턴 상한. 0이면 상한이 없다.</summary>
+        public static int ControlTurnCap(Unit source)
+        {
+            int cap = 0;
+            foreach (IReactionDampener dampener in Dampeners(source))
+            {
+                if (dampener.ReactionTurnCap <= 0) continue;
+                cap = cap == 0 ? dampener.ReactionTurnCap : Mathf.Min(cap, dampener.ReactionTurnCap);
+            }
+            return cap;
+        }
+
+        private static IEnumerable<IReactionDampener> Dampeners(Unit source)
+        {
+            if (source == null) yield break;
+            foreach (var status in source.ActiveStatuses)
+            {
+                foreach (var effect in status.Effects)
+                {
+                    if (effect.EffectObject is IReactionDampener dampener) yield return dampener;
+                }
+            }
         }
 
         /// <summary>진동 기절 계산에만 적용되는 시전자 CON 배율. 여러 효과가 있어도 가장 높은 값 하나만 쓴다.</summary>
@@ -619,6 +680,19 @@ namespace Effects.Negative
     public interface IResonanceConMultiplier
     {
         float ResonanceConMultiplier { get; }
+    }
+
+    /// <summary>
+    /// 유발자가 일으키는 해로운 원소 반응을 약하게 만드는 효과. 초반 적 전용 무뎌진 장비(432)가 쓴다.
+    /// 준비가 덜 된 극초반 파티가 빙결 연쇄로 무너지지 않게 하되, 반응이 무엇인지는 그대로 보여 준다.
+    /// </summary>
+    public interface IReactionDampener
+    {
+        /// <summary>해로운 반응 위력 배율. 0.5 = 절반.</summary>
+        float HarmfulReactionPotency { get; }
+
+        /// <summary>행동불능 반응·화상의 턴 상한. 0이면 상한 없음.</summary>
+        int ReactionTurnCap { get; }
     }
 
     /// <summary>반응이 남기는 지속피해. 대상의 턴마다 한 번 터진다.</summary>

@@ -34,6 +34,17 @@ namespace Codes.Passive
         public const int FleshRipper = 6418;
         public const int FrostscaleMail = 6419;
         public const int Lodbrok = 6420;
+        public const int DulledCrystal = 6421;
+        public const int Kusanagi = 6422;
+        public const int Totsuka = 6423;
+        public const int Amenonuhoko = 6424;
+        public const int Masumi = 6425;
+        public const int Shikiban = 6426;
+        public const int CocoonThread = 6427;
+        public const int EmberScale = 6428;
+        public const int PredatorCloak = 6429;
+        public const int SharkTooth = 6430;
+        public const int BarnacleShell = 6431;
     }
 
     /// <summary>장비를 벗으면 자신이 만든 상시 상태도 함께 걷어 내는 아이템 패시브 공통형.</summary>
@@ -778,5 +789,34 @@ namespace Codes.Passive
             _cleanupHandler = null;
             _registered = false;
         }
+    }
+
+    /// <summary>
+    /// 무뎌진 결정(432) — 초반 적 전용 T1 무기가 준다. 착용자가 일으키는 해로운 원소 반응의 위력이 절반이 되고,
+    /// 빙결·진동 기절·화상은 1턴으로 끝난다.
+    ///
+    /// 극초반(Lv40까지)의 파티는 반응 대책이 없는 경우가 많다. 반응을 없애지 않고 약하게만 남겨
+    /// "적이 나를 얼린다"는 경험과 행동제어의 힌트는 그대로 준다. 적은 Lv41부터 온전한 무기로 갈아 든다.
+    /// </summary>
+    public sealed class DulledCrystalItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_dulled_crystal";
+
+        public DulledCrystalItemPassive(PassiveCodeContext context) : base(context, "무뎌진 결정") { }
+
+        public override void CastCode()
+        {
+            if (Caster == null || Caster.HasStatus(ItemPassiveIds.DulledCrystal)) return;
+            AddPermanentStatus(ItemPassiveIds.DulledCrystal, new DulledCrystalEffect(),
+                "일으키는 해로운 원소 반응의 위력이 50% 감소하고, 빙결·진동 기절·화상이 1턴으로 끝납니다.");
+        }
+    }
+
+    internal sealed class DulledCrystalEffect : BaseEffect, Effects.Negative.IReactionDampener
+    {
+        public DulledCrystalEffect() : base(0) { }
+        public override bool CountsAsReagentBuff => false;
+        public float HarmfulReactionPotency => 0.5f;
+        public int ReactionTurnCap => 1;
     }
 }

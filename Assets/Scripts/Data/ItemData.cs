@@ -22,11 +22,18 @@ namespace Managers
         /// </summary>
         public int durability;
         public bool eventOnly;
+
         /// <summary>
-        /// 테마 전용 보상. 비어 있으면 모든 테마의 보상 풀에 등장한다.
-        /// 값은 <c>80_stages.yaml</c>의 <c>stageThemes[].id</c>다(적 themeId가 아니다).
+        /// 적만 드는 장비. 보상·상점 어디에도 나오지 않는다.
+        /// 초반 적의 무뎌진 무기처럼 적의 성능을 조절하려고 입히는 것이라 플레이어 손에 들어가면 안 된다.
         /// </summary>
-        public List<int> themeIds;
+        public bool enemyOnly;
+
+        /// <summary>
+        /// 캐릭터 전용 장비. 목록의 유닛 중 하나가 파티·대기석·선발 덱에 있을 때만 보상 후보가 된다.
+        /// 비어 있으면 조건이 없다. 어느 적이 떨궜든, 공용 드랍이든 같은 조건을 받는다.
+        /// </summary>
+        public List<int> requiredUnitIds;
         public bool twoHanded;
 
         /// <summary>

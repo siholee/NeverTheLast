@@ -5,6 +5,8 @@
 
 ## 데모 다운로드 (Windows)
 
+**현재 데모 버전: 0.3** — 일본 해안 전선과 아베노 세이메이·스사노오 합류, 적 처치 드랍 보상이 추가되었습니다(천공 전선 0.2 포함). 버전별 변경 사항은 [패치노트](PATCH_NOTES.md)를 보세요.
+
 1. [**Releases 페이지**](https://github.com/siholee/NeverTheLast/releases/latest)로 갑니다.
 2. **Assets**에서 `NeverTheLast_Demo_Win64.zip`을 내려받습니다.
 3. 압축을 **폴더째** 풉니다. `NeverTheLast.exe` 옆의 `NeverTheLast_Data` 폴더가 함께 있어야 실행됩니다.

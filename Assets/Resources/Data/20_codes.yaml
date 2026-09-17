@@ -113,9 +113,13 @@ codes:
     - { id: 1014, verbalName: 규율 숙련, codeName: LegionCommonMastery, description: "주는 피해가 10% 증가한다. <적 전용> <전수 불가능>" }
     - { id: 1015, verbalName: 백인대의 노련함, codeName: LegionCommonVeteran, description: "코드 가속이 10% 증가한다. <적 전용> <전수 불가능>" }
     - id: 241
+      verbalName: 달의 인력
+      codeName: TsukuyomiMoonPull
+      description: "필드에 있는 동안 아군 전체가 적에게 주는 피해가 그 적의 해로운 상태 1개당 [3/4/5]% 증가한다(최대 5개). 같은 상태의 중첩은 1개로 센다. <고유 패시브> <전수 불가능>"
+    - id: 114
       verbalName: 월식 정산
       codeName: TsukuyomiMoonReckoning
-      description: "필드에 있는 동안 지속피해 상태의 적이 처치되면 1턴간 받을 지속피해의 [50/75/100]%를 주변에 범위 피해로 입힌다. <전수 불가능>"
+      description: "필드에 있는 동안 지속피해 상태의 적이 처치되면 1턴간 받을 지속피해의 75%를 주변 3×3에 범위 피해로 입힌다. <전수 불가능>"
     - id: 33
       verbalName: 주문 보호막
       codeName: TsukuyomiSpellShield
@@ -356,7 +360,7 @@ codes:
     - { id: 1546, verbalName: 완전함, codeName: VoidAlphaSpecimen, description: "알파 개체의 금색 상위 코드. CON이 제공하는 최대 체력이 3배가 되고, 한 번에 최대 체력의 1/3을 넘는 피해를 받지 않는다. 체력 바도 3칸으로 나뉜다. <적 전용>" }
 
     # ── 공허의 기사 패시브 ──
-    - { id: 1550, verbalName: 공허의 갑주, codeName: VoidKnightArmor, description: "보호막을 보유한 동안 가하는 피해 +30%. 자기 턴 시작 시 보호막이 없으면 CON×0.5의 보호막을 얻는다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1550, verbalName: 기사의 갑주, codeName: VoidKnightArmor, description: "보호막을 보유한 동안 가하는 피해 +30%. 자기 턴 시작 시 보호막이 없으면 CON×0.5의 보호막을 얻는다. <고유 패시브> <적 전용> <전수 불가능>" }
 
     # ── 공허의 사수 패시브 ──
     - { id: 1560, verbalName: 조준선, codeName: VoidMarksmanSightLine, description: "같은 대상을 연속으로 공격할 때마다 그 대상에게 주는 피해 +8%(최대 5중첩). 대상을 바꾸면 초기화된다. <고유 패시브> <적 전용> <전수 불가능>" }
@@ -435,9 +439,70 @@ codes:
     - { id: 428, verbalName: 봉인된 카노푸스, codeName: CanopicJarItemPassive, description: "자신이 부여하는 지속피해가 25% 증가한다. <장비 전용> <전수 불가능>" }
     - { id: 429, verbalName: 재의 코페쉬, codeName: AshenKhopeshItemPassive, description: "불 원소가 부착된 적에게 주는 피해가 25% 증가한다. <장비 전용> <전수 불가능>" }
     - { id: 430, verbalName: 사령의 각반, codeName: WraithGreavesItemPassive, description: "전투당 1회, 치명 피해를 막고 최대 체력의 30%로 일어선다. <장비 전용> <전수 불가능>" }
+    - { id: 432, verbalName: 무뎌진 결정, codeName: DulledCrystalItemPassive, description: "일으키는 해로운 원소 반응(제어·즉발·지속피해·디버프·증폭)의 위력이 50% 감소하고, 빙결·진동 기절·화상이 1턴으로 끝난다. 버프 반응은 그대로다. <적 전용 장비> <전수 불가능>" }
+    - { id: 433, verbalName: 풀베기, codeName: KusanagiItemPassive, description: "에어본 상태의 적에게 피해를 주면 대상 주변 3×3의 다른 적에게 그 피해의 40%를 준다. 번진 피해는 다시 번지지 않는다. <장비 전용> <전수 불가능>" }
+    - { id: 434, verbalName: 취한 뱀 베기, codeName: TotsukaItemPassive, description: "행동불능(기절·빙결·에어본) 상태의 적에게 주는 피해가 25% 증가한다. <장비 전용> <전수 불가능>" }
+    - { id: 435, verbalName: 창세의 휘저음, codeName: AmenonuhokoItemPassive, description: "적에게 거는 해로운 상태의 지속시간이 1턴 증가한다. 행동불능(빙결·기절·에어본)은 늘어나지 않는다. <장비 전용> <전수 불가능>" }
+    - { id: 436, verbalName: 맑은 달거울, codeName: MasumiMirrorItemPassive, description: "지속피해 상태의 적에게 주는 피해가 20% 증가한다. <장비 전용> <전수 불가능>" }
+    - { id: 437, verbalName: 점술반, codeName: ShikibanItemPassive, description: "새 행동불능을 실제로 걸 때마다 마나를 15 회복한다(행동당 1회). 제어 분쇄로 무효가 된 시도는 세지 않는다. <장비 전용> <전수 불가능>" }
+    - { id: 438, verbalName: 고치 실, codeName: CocoonThreadItemPassive, description: "같은 대상을 연달아 공격하면 두 번째 타격부터 피해가 15% 증가한다. 대상을 바꾸면 끊긴다. <장비 전용> <전수 불가능>" }
+    - { id: 439, verbalName: 불씨 인분, codeName: EmberScaleItemPassive, description: "일반행동 적중 시 25% 확률로 화상 1턴을 시도한다(CON 대결). <장비 전용> <전수 불가능>" }
+    - { id: 440, verbalName: 포식자의 깃털, codeName: PredatorCloakItemPassive, description: "타격이 횟수제 무적에 막힐 때마다 DEX가 3% 증가한다(최대 5중첩, 전투 끝까지). <장비 전용> <전수 불가능>" }
+    - { id: 441, verbalName: 상어 이빨, codeName: SharkToothItemPassive, description: "보호막을 가진 적에게 주는 피해가 20% 증가한다. <장비 전용> <전수 불가능>" }
+    - { id: 442, verbalName: 따개비 등갑, codeName: BarnacleShellItemPassive, description: "전투당 1회, 체력이 50% 아래로 떨어지면 최대 체력 15%의 보호막을 얻는다. <장비 전용> <전수 불가능>" }
     - { id: 431, verbalName: 아문의 홀, codeName: SceptreOfAmunItemPassive, description: "궁극기로 주는 피해가 30% 증가한다. <장비 전용> <전수 불가능>" }
     - { id: 1604, verbalName: 왕의 격노, codeName: KingsRage, description: "잃은 체력에 비례해 DEX와 흡혈률이 증가한다. 광전사의 격노와 같은 구조이며 계수가 크다(DEX 최대 +90%, 흡혈 한 겹 5%). <고유 패시브> <적 전용> <전수 불가능>" }
     - { id: 1605, verbalName: 왕의 함성, codeName: KingsShout, description: "필드의 광전사 계열(Berserker) 아군이 내는 격노 계수가 1.5배가 된다. 여럿이 들어도 가장 큰 하나만 센다. <적 전용>" }
+    # ── 일본 천공 전선 (1700 공용 · 1710 등불나방 · 1720 고치 · 1730 나비 · 1740~1760 포식자 · 1770 소환체) ──
+    - { id: 1700, verbalName: 결정 완충, codeName: SkyCrystalCushion, description: "받는 치명타의 추가 피해분이 50% 줄어든다(3배 치명타 → 2배). 치명타 판정은 그대로다. 상위는 완전한 결정 완충(1701). <적 전용> <전수 불가능>" }
+    - { id: 1701, verbalName: 완전한 결정 완충, codeName: SkyCrystalCushion, description: "결정 완충(1700)의 금색 상위 코드. 받는 치명타의 추가 피해분이 65% 줄어든다(3배 치명타 → 1.7배). <적 전용> <전수 불가능>" }
+    - { id: 1702, verbalName: 결정 피막, codeName: SkyCrystalFilm, description: "전투 시작 시 자기 최대 체력 10%의 보호막을 두른다. 무적과는 따로 센다. <적 전용> <전수 불가능>" }
+    - { id: 1703, verbalName: 응축된 깃, codeName: SkyMarkerPassive, description: "궁극기를 쓸 때마다 자기 최대 체력 1%의 보호막을 두른다. <적 전용> <전수 불가능>" }
+    - { id: 1710, verbalName: 흔들리는 등불, codeName: SkyFlickeringLantern, description: "일반행동 2회마다 주변 3×3에서 체력 비율이 가장 낮은 동료를 최대 체력 1.5% 치유한다. 직전 자기 턴 이후 지속피해를 받았다면 그 회차의 치유는 취소된다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1711, verbalName: 작은 등불, codeName: SkySmallLantern, description: "전투 시작 시 자신의 CON만큼 보호막을 두른다. <적 전용> <전수 불가능>" }
+    - { id: 1712, verbalName: 등불의 군집, codeName: SkyMarkerPassive, description: "모여드는 등불의 대상이 1명에서 2명으로 늘어난다. 대상당 치유량은 같다. <적 전용> <전수 불가능>" }
+    - { id: 1713, verbalName: 남겨진 빛, codeName: SkyMarkerPassive, description: "모여드는 등불로 실제로 치유한 대상에게 자신의 CON×0.8 보호막을 더한다. <적 전용> <전수 불가능>" }
+    - { id: 1720, verbalName: 봉합된 핵, codeName: SkySealedCore, description: "전투 시작 시 무적 6회. 최대 체력이 25%가 된다. 포식자 하나와 연결되어 일반행동으로 그 최대 체력 2%를 치유하고, 연결 대상이 쓰러지면 붕괴해 떠난다(처치가 아니다). <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1721, verbalName: 봉합된 핵, codeName: SkySealedCore, description: "종말의 포식자전 고치. 전투 시작 시 무적 8회, 최대 체력 25%. 연결 대상의 최대 체력 1.5%를 치유한다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1722, verbalName: 응축 봉합, codeName: SkyMarkerPassive, description: "결정 봉합의 보호막이 최대 체력 1%에서 1.25%로 늘어난다. <적 전용> <전수 불가능>" }
+    - { id: 1730, verbalName: 불씨를 품은 날개, codeName: SkyEmberWings, description: "전투 시작 시 무적 4회. 최대 체력이 25%가 된다. 실제로 처치되면 같은 진영의 다른 생존자 전원에게 화상(2턴)을 CON 대결 없이 건다. 시전자는 처치한 쪽이다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1731, verbalName: 타오르는 인분, codeName: SkyMarkerPassive, description: "불씨 인분이 이미 불 원소를 지닌 대상에게 화상(2턴)을 시도한다. CON 대결을 거친다. <적 전용> <전수 불가능>" }
+    - { id: 1732, verbalName: 오래 남는 불씨, codeName: SkyMarkerPassive, description: "처치 시 퍼뜨리는 화상이 2턴에서 3턴이 된다. 일반행동의 화상은 그대로다. <적 전용> <전수 불가능>" }
+    - { id: 1740, verbalName: 포식자의 외피, codeName: SkyPredatorHide, description: "전투 시작 시 최대 체력 3% 보호막과 무적 3회. 궁극기를 마칠 때마다 무적을 3회로 갱신한다(합산하지 않는다). <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1741, verbalName: 상처 추적, codeName: SkyWoundTracker, description: "현재 체력 50% 이하인 대상에게 일반행동 피해가 10% 증가한다. <적 전용> <전수 불가능>" }
+    - { id: 1742, verbalName: 깊은 급강하, codeName: SkyMarkerPassive, description: "파쇄 급강하의 중심 위력이 150에서 170이 된다. 주변은 70 그대로다. <적 전용> <전수 불가능>" }
+    - { id: 1750, verbalName: 종말의 외피, codeName: SkyApocalypseHide, description: "전투 시작 시 최대 체력 3% 보호막. 무적은 없다 — 연결된 고치가 무적 부담을 맡는다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1751, verbalName: 깊은 종말, codeName: SkyMarkerPassive, description: "종말 급강하의 중심 위력이 160에서 180이 된다. 주변은 80 그대로다. <적 전용> <전수 불가능>" }
+    - { id: 1752, verbalName: 쌍발톱, codeName: SkyMarkerPassive, description: "종말의 발톱이 같은 대상에게 STR 위력 60을 두 번 치는 공격으로 바뀐다. <적 전용> <전수 불가능>" }
+    - { id: 1760, verbalName: 천공의 산란, codeName: SkySpawning, description: "전투 시작 시 허기 결정과 파열 비늘을 하나씩 전열에 떨구고, 일반행동 3회마다 하나씩 더 떨군다(파열 → 허기 교대, 종류별 2개·합계 3개까지). 허기 결정을 삼킨 포만 1개당 주는 피해 +20%. 쓰러지면 남은 결정은 발동 없이 떠난다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1761, verbalName: 단단한 결정, codeName: SkyMarkerPassive, description: "떨구는 결정의 무적이 2회 늘어난다(허기 10→12, 파열 8→10). <적 전용> <전수 불가능>" }
+    - { id: 1762, verbalName: 사냥의 절정, codeName: SkyMarkerPassive, description: "체력이 처음 50% 이하가 되면 결정을 떨구는 주기가 일반행동 3회에서 2회로 줄어든다. 치유로 다시 올라가도 되돌리지 않는다. <적 전용> <전수 불가능>" }
+    - { id: 1763, verbalName: 탐욕, codeName: SkyMarkerPassive, description: "허기 결정을 삼킬 때의 회복이 최대 체력 10%에서 15%로, 포만 1개당 피해 증가가 20%에서 25%로 늘어난다. <적 전용> <전수 불가능>" }
+    - { id: 1770, verbalName: 맥동하는 결정, codeName: SkyCrystalCore, description: "무적 10회. 자기 턴 3번이 지나면 천공의 포식자가 삼켜 최대 체력 10%를 회복하고 포만을 얻는다. 최대 체력은 본체의 3%, 행동 속도는 본체를 따라간다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1771, verbalName: 부푼 비늘, codeName: SkyCrystalCore, description: "무적 8회. 자기 턴 3번이 지나면 터져 상대 전원에게 각자 최대 체력 35%의 피해를 준다. 방어력·피해 배율을 무시하고 회피할 수 없으며 보호막은 흡수한다. <고유 패시브> <적 전용> <전수 불가능>" }
+    # ── 일본 해안 전선 (1800 공용 · 1810 돌격대장 · 1820 선봉대장 · 1830 사냥꾼 · 1840 공포 · 1850 집정관) ──
+    # ── 아베노 세이메이 (43) ──
+    - { id: 243, verbalName: 결계 해독, codeName: SeimeiBarrierDecode, description: "필드에 서 있는 동안 자신을 포함한 아군 전체의 피해가 보호막을 건너뛴다. 방어력·내구·체력 구간은 그대로 받는다. 판정은 피해가 들어가는 순간이다. <고유 패시브> <전수 불가능>" }
+    - { id: 115, verbalName: 봉인의 잔향, codeName: SeimeiSealEcho, description: "봉인부가 준비된 일반행동이 대상에게 주는 피해 -10%(2턴)를 건다. 기절이 실패해도 건다." }
+    - { id: 116, verbalName: 드러난 틈, codeName: SeimeiExposedGap, description: "자신이 새 행동불능을 건 적은 받는 피해가 10% 증가한다(2턴). 같은 효과는 겹치지 않는다." }
+    - { id: 117, verbalName: 수호의 방진, codeName: SeimeiGuardianFormation, description: "천지반전의 보호막을 받은 아군은 받는 피해가 10% 감소한다(1턴)." }
+    - { id: 118, verbalName: 남겨진 결계, codeName: SeimeiLingeringBarrier, description: "전투에서 처음 쓰러질 때 살아 있는 아군 전원에게 자신의 CON×1.2 보호막을 준다. 관통은 남기지 않는다." }
+    - { id: 1800, verbalName: 공허의 갑주, codeName: CoastVoidArmor, description: "전투 시작 시 STR +40%와 최대 체력 20% 기준의 보호막을 두른다(받는 쪽 보너스 적용). 빙결·기절·에어본 같은 행동불능에 실제로 걸리면 STR 강화와 갑주가 준 남은 보호막이 함께 벗겨지고, 이 전투에서는 다시 두르지 않는다. 보호막만 깨서는 STR 강화가 남는다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1811, verbalName: 날선 집게, codeName: CoastMarkerPassive, description: "집게 압착의 피해가 10% 증가한다. <적 전용> <전수 불가능>" }
+    - { id: 1812, verbalName: 조류의 압력, codeName: CoastMarkerPassive, description: "조류 집게의 위력이 130에서 150이 된다. <적 전용> <전수 불가능>" }
+    - { id: 1813, verbalName: 쌍집게, codeName: CoastMarkerPassive, description: "조류 집게가 같은 대상에게 STR 위력 80을 두 번 치는 공격으로 바뀐다. <적 전용> <전수 불가능>" }
+    - { id: 1821, verbalName: 무거운 등갑, codeName: CoastMarkerPassive, description: "등갑 밀치기의 위력이 70에서 80이 된다. <적 전용> <전수 불가능>" }
+    - { id: 1822, verbalName: 밀려오는 암초, codeName: CoastMarkerPassive, description: "암초 충돌의 위력이 90에서 100이 된다. <적 전용> <전수 불가능>" }
+    - { id: 1823, verbalName: 되받는 등갑, codeName: CoastMarkerPassive, description: "암초 충돌 뒤 첫 등갑 밀치기의 위력이 100이 된다. <적 전용> <전수 불가능>" }
+    - { id: 1831, verbalName: 피 냄새, codeName: CoastBloodScent, description: "현재 체력 50% 이하인 대상에게 주는 피해가 15% 증가한다. <적 전용> <전수 불가능>" }
+    - { id: 1832, verbalName: 깊은 물어뜯기, codeName: CoastMarkerPassive, description: "핏빛 추격의 위력이 70에서 80이 된다. <적 전용> <전수 불가능>" }
+    - { id: 1833, verbalName: 붉은 조류, codeName: CoastMarkerPassive, description: "혈조 돌진의 위력이 60에서 70이 된다. <적 전용> <전수 불가능>" }
+    - { id: 1841, verbalName: 굵은 촉수, codeName: CoastMarkerPassive, description: "심연의 촉수의 위력이 50에서 55가 된다. <적 전용> <전수 불가능>" }
+    - { id: 1842, verbalName: 폭풍의 눈, codeName: CoastMarkerPassive, description: "촉수 폭풍의 위력이 110에서 120이 된다. <적 전용> <전수 불가능>" }
+    - { id: 1850, verbalName: 심연의 집정권, codeName: CoastArchonDominion, description: "체력이 6구간으로 나뉜다. 한 번의 피해는 보호막 흡수 뒤 현재 구간의 끝까지만 체력을 깎는다. 구간이 부서질 때마다 남은 갑주 보호막을 걷고 한 구간 체력 기준의 공허의 갑주를 다시 두르며, 이미 행동불능이면 새 갑주는 곧바로 벗겨진다. 마지막 구간의 끝은 실제 사망이다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1851, verbalName: 무거운 꼬리, codeName: CoastMarkerPassive, description: "꼬리 휩쓸기의 위력이 75에서 85가 된다. <적 전용> <전수 불가능>" }
+    - { id: 1852, verbalName: 큰 해일, codeName: CoastMarkerPassive, description: "해일의 피해가 10% 증가한다. <적 전용> <전수 불가능>" }
+
   normal:
     - { id: 8, verbalName: 일반행동, codeName: LavoisierFlask, description: "단일 적에게 INT 기반 위력 30의 피해를 입힌다. 일반행동 해결 시 반응 준비도 +1(최대 3). 2회마다 가장 적은 시약을 저장 한도의 25%만큼 합성한다. #특수 #비접촉" }
     - id: 21
@@ -496,7 +561,7 @@ codes:
     - id: 41
       verbalName: 일반행동
       codeName: TsukuyomiLightningBolt
-      description: "단일 적에게 INT 기반 위력 40의 피해를 입히고 2턴간 월광 침식(턴마다 위력 20의 지속피해)을 남긴다. 원소를 부착하지 않는다. #비접촉 #특수"
+      description: "단일 적에게 INT 기반 위력 40의 피해를 입히고 2턴간 월광 침식(턴마다 위력 20의 지속피해)을 남긴다. 맞힐 때마다 달의 위상 디버프 하나를 2턴간 차례로 건다 — 상현(방어력 -25%) → 보름(받는 피해 +10%) → 하현(가하는 피해 -15%). 원소를 부착하지 않는다. #비접촉 #특수"
     - id: 80
       verbalName: 일반행동
       codeName: SurtrScorchingSlash
@@ -617,6 +682,21 @@ codes:
     - { id: 1610, verbalName: 서리의 노래, codeName: VolvaFrostSong, description: "체력 비율이 가장 낮은 아군 하나를 CON×0.6만큼 치유한다." }
     - { id: 1620, verbalName: 망치질, codeName: ThorNormalAttack, description: "단일 적에게 100 + STR×0.8 위력의 피해를 입힌다. 2회 뒤의 일반행동은 대체행동 '뇌전 도약'이 되어 STR 위력 120의 바운스를 5회 튕기며 적중한 적마다 번개 원소를 부착한다. #물리 #접촉" }
     - { id: 1630, verbalName: 창 던지기, codeName: ValkyrieJavelin, description: "단일 적에게 60 + STR×0.6 위력의 피해를 입힌다. #화살 #비접촉 #물리" }
+    # ── 일본 천공 전선 ──
+    - { id: 1710, verbalName: 인분탄, codeName: SkyLanternScaleShot, description: "단일 적에게 INT 위력 45의 피해를 입힌다. 원소를 부착하지 않는다. #특수 #비접촉" }
+    - { id: 1720, verbalName: 생명 맥동, codeName: SkyLifePulse, description: "공격하지 않는다. 연결 대상의 최대 체력 2%(종말전 1.5%)를 치유한다." }
+    - { id: 1730, verbalName: 불씨 인분, codeName: SkyEmberScales, description: "단일 적에게 INT 위력 40의 피해를 입힌다. 원소를 부착하지 않는다. #특수 #비접촉" }
+    - { id: 1740, verbalName: 포식의 발톱, codeName: SkyPredatorTalon, description: "단일 적에게 STR 위력 110의 피해를 입힌다. #물리 #접촉" }
+    - { id: 1750, verbalName: 종말의 발톱, codeName: SkyApocalypseTalon, description: "단일 적에게 STR 위력 110의 피해를 입힌다. 쌍발톱(1752)을 배우면 같은 대상에게 위력 60을 두 번 친다. #물리 #접촉" }
+    - { id: 1760, verbalName: 찢는 부리, codeName: SkyTearingBeak, description: "단일 적에게 STR 위력 110의 피해를 입힌다. 후열에서 전열 너머를 친다. #특수 #비접촉" }
+    - { id: 1770, verbalName: 카운트다운, codeName: SkyCrystalCountdown, description: "공격하지 않는다. 남은 턴을 하나 줄이고, 0이 되면 흡수 또는 파열을 일으키고 떠난다. 떠나는 것은 처치가 아니다." }
+    # ── 일본 해안 전선 ──
+    - { id: 43, verbalName: 봉인부, codeName: SeimeiSealTalisman, description: "단일 적에게 CON 기반 위력 45의 피해를 입힌다. 첫 일반행동과 이후 3회마다 봉인부가 준비되어 피해 뒤 기절 1턴을 시도한다(제어 분쇄 적용). 준비된 회차에는 준비 공격 중인 적 → 공허의 갑주를 두른 적 → 제어가 통하는 적 순으로 노린다. #특수 #비접촉" }
+    - { id: 1810, verbalName: 집게 압착, codeName: CoastPincerCrush, description: "단일 적에게 STR 위력 80의 피해를 입힌다. #물리 #접촉" }
+    - { id: 1820, verbalName: 등갑 밀치기, codeName: CoastShellShove, description: "단일 적에게 STR 위력 70의 피해를 입힌다. #물리 #접촉" }
+    - { id: 1830, verbalName: 핏빛 추격, codeName: CoastBloodChase, description: "상대 후열을 먼저 노려 DEX 위력 70의 피해를 입힌다. 후열이 비었으면 보통 대상을 고른다. #물리 #접촉" }
+    - { id: 1840, verbalName: 심연의 촉수, codeName: CoastAbyssTentacles, description: "서로 다른 적 둘에게 INT 위력 50의 피해를 입힌다. 촉수 폭풍을 준비했다면 대체행동으로 상대 전원에게 INT 위력 110의 피해와 바람 원소를 준다. #특수 #접촉" }
+    - { id: 1850, verbalName: 방파제 파쇄, codeName: CoastBreakwaterCrush, description: "단일 적에게 STR 위력 100의 피해를 입힌다. 매 3번째는 상대 전열 전체에 STR 위력 75의 꼬리 휩쓸기가 된다. 대호흡을 준비했다면 대체행동으로 상대 전원에게 고정 120 + STR 위력 125의 해일을 친다(원소 부착 없음). #물리 #접촉" }
   special:
     - { id: 60, verbalName: 소마의 잔, codeName: ChandraAegis, description: "아군 전체에게 CON×1.5의 방어막을 주고 INT의 50%만큼 마나를 부여한다." }
     - { id: 61, verbalName: 죽음의 순회, codeName: YamaBounceStrike, description: "DEX×1.2의 단일 공격을 이번에 특수행동을 하는 유닛 수만큼 튕긴다. 각 타격은 30% 확률로 번개 원소를 부여한다. #특수 #비접촉" }
@@ -705,7 +785,7 @@ codes:
     - id: 41
       verbalName: 월뢰만천
       codeName: TsukuyomiMoonThunder
-      description: "모든 적에게 INT 기반 위력 80의 피해를 입히고 3턴간 월식(턴마다 위력 40의 지속피해)을 남긴다. 원소를 부착하지 않는다. #비접촉 #특수"
+      description: "모든 적에게 INT 기반 위력 80의 피해를 입히고 3턴간 월식(턴마다 위력 40의 지속피해)과 2턴간 달의 위상 디버프 세 가지(상현·보름·하현)를 모두 남긴다. 원소를 부착하지 않는다. #비접촉 #특수"
     - id: 80
       verbalName: 라그나로크
       codeName: SurtrRagnarok
@@ -843,3 +923,18 @@ codes:
     - { id: 1610, verbalName: 셰이드, codeName: VolvaShade, description: "아군 전체를 CON×0.5만큼 치유하고, 단일 적에게 INT×0.7의 피해와 얼음 원소를 부여한 뒤 적 전체에게 INT×0.4의 피해를 준다. #비접촉 #특수" }
     - { id: 1620, verbalName: 천둥의 신, codeName: ThorGodOfThunder, description: "적 전체에게 CON×1.5의 피해를 입히고 치유량 감소 -25%(3턴)를 부여한다. #특수 #비접촉" }
     - { id: 1630, verbalName: 서리창, codeName: ValkyrieFrostLance, description: "단일 적에게 150 + STR×0.8 위력의 피해를 입히고 얼음 원소를 부착한다. #화살 #비접촉 #물리" }
+    # ── 일본 천공 전선 ──
+    - { id: 1710, verbalName: 모여드는 등불, codeName: SkyGatheringLanterns, description: "주변 3×3에서 체력 비율이 가장 낮은 동료 하나를 최대 체력 2% 치유한다. 흔들리는 등불의 지속피해 조건에 걸려 있으면 쓰지 않고 자원을 유지한다." }
+    - { id: 1720, verbalName: 결정 봉합, codeName: SkyCrystalSeal, description: "연결 대상에게 그 최대 체력 1%의 보호막을 준다. 치유·무적 복구·정화는 하지 않는다." }
+    - { id: 1730, verbalName: 화염 비산, codeName: SkyFlameScatter, description: "대상과 주변 3×3에 INT 위력 55의 피해를 한 번씩 입히고 불 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1740, verbalName: 파쇄 급강하, codeName: SkyShatterDive, description: "대상에게 STR 위력 150, 주변 3×3의 다른 적에게 위력 70의 피해를 입히고 바람 원소를 부착한다. 끝나면 무적을 3회로 갱신한다. #물리 #접촉" }
+    - { id: 1750, verbalName: 종말 급강하, codeName: SkyApocalypseDive, description: "대상에게 STR 위력 160, 주변 3×3의 다른 적에게 위력 80의 피해를 입히고 바람 원소를 부착한다. #물리 #접촉" }
+    - { id: 1760, verbalName: 공허 강하, codeName: SkyVoidDescent, description: "상대 전원에게 고정 120 + STR 위력 90의 피해를 입히고 바람 원소를 부착한 뒤, 살아 있는 결정의 카운트다운을 1씩 당긴다(1 남은 결정은 제외). 입장 후 일반행동 2회 전에는 쓰지 않는다. #특수 #비접촉" }
+    - { id: 1770, verbalName: 없음, codeName: SkyInertUltimate, description: "결정에게는 궁극기가 없다." }
+    # ── 일본 해안 전선 ──
+    - { id: 43, verbalName: 천지반전, codeName: SeimeiHeavenEarthReversal, description: "아군 전체에 CON×1.2 보호막을 먼저 주고, 적 전체에 CON 기반 위력 40의 피해와 에어본을 시도한다. 에어본이 실패해도 보호막은 남는다. #특수 #비접촉" }
+    - { id: 1810, verbalName: 조류 집게, codeName: CoastTidalPincer, description: "단일 적에게 STR 위력 130의 피해를 입히고 물 원소를 부착한다. #물리 #접촉" }
+    - { id: 1820, verbalName: 암초 충돌, codeName: CoastReefCollision, description: "상대 전열 전체(비었으면 전원)에 STR 위력 90의 피해를 입히고 바위 원소를 부착한다. #물리 #접촉" }
+    - { id: 1830, verbalName: 혈조 돌진, codeName: CoastBloodTide, description: "상대 후열 전체(비었으면 전원)에 DEX 위력 60의 피해를 입히고 불 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1840, verbalName: 촉수 폭풍, codeName: CoastTentacleStorm, description: "피해 없이 준비만 한다. 다음 일반행동이 상대 전원 공격으로 바뀐다. 준비 중 행동불능이 되면 취소되고 자원은 돌아오지 않는다." }
+    - { id: 1850, verbalName: 해연의 대호흡, codeName: CoastAbyssalBreath, description: "피해 없이 준비만 한다. 다음 일반행동이 해일로 바뀐다. 입장 후 일반행동 2회 전에는 쓰지 않는다. 준비 중 행동불능이 되면 취소되고 자원은 돌아오지 않으며, 체력 구간 브레이크로는 취소되지 않는다." }

@@ -11,6 +11,12 @@ namespace Managers
 
         /// <summary>이 레벨 이상일 때만 장착하고 나온다.</summary>
         public int minLevel;
+
+        /// <summary>
+        /// 이 레벨 이하일 때만 장착하고 나온다. 0이면 상한이 없다.
+        /// 초반에만 드는 무뎌진 무기를 뒤 스테이지에서 온전한 무기로 <b>갈아 들게</b> 하려고 둔다.
+        /// </summary>
+        public int maxLevel;
     }
 
     [Serializable]
@@ -57,6 +63,12 @@ namespace Managers
         /// 조건 없이 항상 드는 장비는 <see cref="startingItemIds"/>에 둔다.
         /// </summary>
         public List<LeveledItemData> startingItemsByLevel;
+
+        /// <summary>
+        /// 이 적을 <b>처치했을 때</b> 보상 후보에 오르는 장비·귀중품 ID. 전리품이라 대개 들고 있던 장비다.
+        /// 한 전투에서 처치한 적들의 드랍 + 공용 드랍 + 소모품이 한 풀로 합쳐진 뒤 티어 확률로 3장이 뽑힌다.
+        /// </summary>
+        public List<int> drops;
 
         public int manaMax;
         public string ultimateResourceType;

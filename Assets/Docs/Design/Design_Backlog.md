@@ -63,7 +63,7 @@
 | `RoundManager.ContentSlotInRound` — 고정 보스 라운드 슬롯 시프트 | 기획의 '2번 슬롯 스킵' 규칙 |
 | `stagePatterns`가 중간 보스·보스 단독 스폰보다 우선 | 보스에게 호위를 붙이기 위해 (항목 14의 처방) |
 | `midBossStageInRound` (기본 8) | 로마 군단은 중간 보스가 9스테이지 |
-| `ItemData.themeIds` + 보상 풀 필터 | 테마 전용 보상 (항목 6의 '테마 고유 보상' 공백) |
+| ~~`ItemData.themeIds` + 보상 풀 필터~~ → 적 `drops` + 공용 드랍 | 테마 전용 보상은 그 테마 적이 떨군다(2026-09-17 전환) |
 | `DamageTag.DurabilityPenetration` · `Pierce` | 심안(내구 무시)과 찌르기 분류 |
 | `BaseEffect.EvasionChanceAdditiveModifier` | 조건부 회피 (에퀴테스 '기병의 회피') |
 | `BaseEffect.RoundStartActionAdjustment` · `ActionScheduler.DelayAction` | 전투 시작 시 행동 게이지 조작 (야습) |
@@ -315,7 +315,7 @@ T3~T4는 그대로 비어 있다.
 
 ### 관련 미해결
 
-테마 전용 보상 구조는 `ItemData.themeIds`로 만들어졌고 로마 군단이 첫 사례다.
+테마 전용 보상 구조는 `ItemData.themeIds`로 만들어졌다가 2026-09-17 **적 드랍표(`EnemyData.drops`)로 전환**했다.
 **콜로세움 전용 보상은 아직 없다.** 테마마다 전리품 세트를 주는 방향으로 갈지,
 테마 무관 T2를 따로 채울지 정해야 한다.
 

@@ -92,6 +92,22 @@ namespace Managers
                 .ToList() ?? new List<StageEventData>();
         }
 
+        /// <summary>
+        /// 지금 테마의 지금 내용 슬롯을 이긴 직후 예약할 사건들. 정의 순서를 지킨다.
+        /// 스테이지가 넘어가기 전(승리 처리 중)에 불러야 테마·슬롯이 어긋나지 않는다.
+        /// </summary>
+        public List<StageEventData> GetEventsTriggeredByCurrentSlotClear()
+        {
+            EnsureDataLoaded();
+            int themeId = CurrentThemeId;
+            int slot = ContentSlotInRound;
+            if (themeId <= 0 || IsFixedBossStage(Stage)) return new List<StageEventData>();
+
+            return _stageThemeDataList?.events?
+                .Where(data => data != null && data.triggerThemeId == themeId && data.triggerStageInRound == slot)
+                .ToList() ?? new List<StageEventData>();
+        }
+
         private StageEventData SelectCurrentEventData()
         {
             if (_cachedEventStage == Stage) return _cachedEvent;
@@ -391,7 +407,7 @@ namespace Managers
         {
             if (stageEvent == null) return false;
             // 보스 격파로 예약되는 사건은 코드가 땅기는 것이라 슬롯 추첨에 끼워주지 않는다.
-            if (stageEvent.triggerBossId > 0) return false;
+            if (stageEvent.triggerBossId > 0 || stageEvent.triggerThemeId > 0) return false;
             if (stageEvent.requiresBossDefeatId > 0 &&
                 !SaveSystem.HasDefeatedBoss(stageEvent.requiresBossDefeatId)) return false;
             RunManager runManager = GameManager.Instance?.runManager;
@@ -401,7 +417,7 @@ namespace Managers
             return !IsBlockedByDeck(stageEvent);
         }
 
-        private static bool IsBlockedByDeck(StageEventData stageEvent)
+        internal static bool IsBlockedByDeck(StageEventData stageEvent)
         {
             if (stageEvent?.blockedUnitIds == null || stageEvent.blockedUnitIds.Count == 0) return false;
             return GridManager.Instance != null && GridManager.Instance.heroList.Any(hero =>

@@ -32,7 +32,7 @@
 #   Locked  → 셋 다 false (해금되면 런타임에서 Starter로 승격)
 #
 # 획득처 미정 캐릭터도 기획이 끝났다면 Locked로 등록해 둔다.
-# 일본·노르드 테마를 다시 추가할 때 영입 사건을 붙여 획득 경로를 부여한다.
+# 새 테마를 추가할 때 영입 사건을 붙여 획득 경로를 부여한다.
 
 units:
   - id: 1
@@ -722,7 +722,7 @@ units:
     portrait: QUETZALCOATL_PORTRAIT
     standing: QUETZALCOATL_STANDING
 
-  # ── 보관: 획득 경로 없음 (일본 테마 제거) ────────────────────────
+  # ── 츠쿠요미: 천공 전선(테마 19) 1슬롯 승리 뒤 합류 사건으로 해금 ──────
   - id: 41
     name: 츠쿠요미
     characterType: Locked
@@ -763,17 +763,17 @@ units:
       normal: 1
       ultimate: 1
     levelPassives:
-      - codeId: 34
+      - codeId: 36
         unlockLevel: 15
         stage: 1
       - codeId: 35
         unlockLevel: 33
         stage: 1
-      - codeId: 36
-        unlockLevel: 38
-        stage: 1
-      - codeId: 37
+      - codeId: 114
         unlockLevel: 44
+        stage: 1
+      - codeId: 7
+        unlockLevel: 55
         stage: 1
       - codeId: 38
         unlockLevel: 70
@@ -1345,6 +1345,51 @@ units:
       - { codeId: 11,  unlockLevel: 44, stage: 1 }   # 천살성
     portrait: SUSANOO_PORTRAIT
     standing: SUSANOO_STANDING
+  # ── 아베노 세이메이 ───────────────────────────────────────────────
+  # 해안 전선 1슬롯 승리 뒤 합류한다. 필드에 서 있는 것만으로 아군 전체에 방어막 관통을 준다.
+  # 공허의 갑주를 제어 없이 넘기는 해법이라 진행에 필요한 서포터다.
+  - id: 43
+    name: 아베노 세이메이
+    characterType: Locked
+    element: Anemo
+    startingProficiencies: [Orb]
+    startingItemIds: [4109]
+    tags: [Takamagahara, Human]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: CON
+    subStat: INT
+    subStats: [INT, DEX]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.05
+    strBase: 8
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 14
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 24
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 20
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 10
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    manaMax: 100
+    codes: { passive: 243, normal: 43, ultimate: 43 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 70,  unlockLevel: 10, stage: 1 }   # 의술 — 부여하는 보호막 +25%
+      - { codeId: 56,  unlockLevel: 20, stage: 1 }   # 지혜
+      - { codeId: 115, unlockLevel: 30, stage: 1 }   # 봉인의 잔향
+      - { codeId: 116, unlockLevel: 45, stage: 1 }   # 드러난 틈
+      - { codeId: 117, unlockLevel: 60, stage: 1 }   # 수호의 방진
+      - { codeId: 118, unlockLevel: 75, stage: 1 }   # 남겨진 결계
+    portrait: SEIMEI_PORTRAIT
+    standing: SEIMEI_STANDING
   # ── 로마 3인 ──────────────────────────────────────────────────────
   # 적(60_enemies.yaml 2006 / 2007 / 3004)과 코드를 공유한다.
   # 보스로 등장할 때만 붙는 패시브(312~317 · 284 심안)는 여기 없다.

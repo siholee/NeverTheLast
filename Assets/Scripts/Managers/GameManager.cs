@@ -238,6 +238,9 @@ namespace Managers
             isPreparationTimerActive = false;
             uiManager?.HidePreparationPhasePanel();
 
+            // 드랍은 이번 전투에서 쓰러뜨린 적만 센다.
+            _battleKilledEnemyIds.Clear();
+
             // 아군 필드 상태 저장 (라운드 종료 후 복원용)
             SaveAllyFieldState();
             runManager?.SaveCurrentRun();
@@ -309,9 +312,15 @@ namespace Managers
 
         private int CurrentStageForExp => Mathf.Max(1, _roundManager?.Stage ?? 1);
 
-        public void OnKillEnemy()
+        /// <summary>이번 전투에서 처치한 적의 데이터 ID. 중복을 지우지 않는다 — 같은 적을 둘 잡아도 드랍표는 한 벌이다.</summary>
+        private readonly List<int> _battleKilledEnemyIds = new();
+
+        public IReadOnlyList<int> BattleKilledEnemyIds => _battleKilledEnemyIds;
+
+        public void OnKillEnemy(Unit killed = null)
         {
             KillCount++;
+            if (killed != null && killed.IsEnemy) _battleKilledEnemyIds.Add(killed.ID);
             // 상인(273)이 필드에 있으면 획득 골드가 늘어난다.
             int gold = Mathf.RoundToInt(
                 GoldPerKillPerStage * Mathf.Max(1, _roundManager?.Stage ?? 1) *
@@ -636,6 +645,12 @@ namespace Managers
                 stageInRound = source.stageInRound,
                 tier = source.tier,
                 requiresBossDefeatId = source.requiresBossDefeatId,
+                triggerBossId = source.triggerBossId,
+                triggerThemeId = source.triggerThemeId,
+                triggerStageInRound = source.triggerStageInRound,
+                requiresRunEventIds = source.requiresRunEventIds,
+                allowUnlockedRecruit = source.allowUnlockedRecruit,
+                requiresUnitInParty = source.requiresUnitInParty,
                 title = source.title?.Replace("{deity}", speaker),
                 oncePerRun = source.oncePerRun,
                 blockedUnitIds = source.blockedUnitIds,
@@ -1325,6 +1340,8 @@ namespace Managers
             {
                 GrantClearGold();
                 QueueBossClearEvents();
+                // 사건 안의 임시 전투는 그 슬롯을 이긴 것이 아니다.
+                if (!eventBattleInProgress) QueueSlotClearEvents();
             }
 
             if (eventBattleInProgress)
@@ -1372,7 +1389,8 @@ namespace Managers
         {
             gameState = GameState.RewardSelection;
             var rewards = rewardManager != null
-                ? rewardManager.GenerateRewards(3, _roundManager?.Round ?? 1, CurrentMode, _roundManager?.CurrentThemeId ?? 0)
+                ? rewardManager.GenerateRewards(RewardManager.RewardCountForStage(_roundManager?.Stage ?? 1),
+                    _roundManager?.Round ?? 1, CurrentMode, _battleKilledEnemyIds)
                 : new List<RewardDef>();
             uiManager?.ShowRewardPanel(rewards);
         }
@@ -1407,6 +1425,20 @@ namespace Managers
         }
 
         /// <summary>
+        /// 테마의 특정 내용 슬롯을 이긴 직후 사건을 예약한다(<c>triggerThemeId</c> + <c>triggerStageInRound</c>).
+        /// 천공 1슬롯의 츠쿠요미 합류처럼 범용 적만 서는 전투가 방아쇠일 때 쓴다.
+        /// 스테이지가 넘어가기 전이라 테마와 슬롯은 방금 이긴 전투의 값이다.
+        /// </summary>
+        private void QueueSlotClearEvents()
+        {
+            if (_roundManager == null) return;
+            foreach (StageEventData triggered in _roundManager.GetEventsTriggeredByCurrentSlotClear())
+            {
+                if (CanOfferEvent(triggered)) RequestEvent(triggered);
+            }
+        }
+
+        /// <summary>
         /// 이 사건을 지금 띄울 수 있는가.
         /// 영입 사건이라면 <b>이미 해금했거나 일행에 있는</b> 유닛을 다시 제안하지 않는다.
         /// </summary>
@@ -1416,13 +1448,23 @@ namespace Managers
             if (stageEvent.oncePerRun && runManager != null &&
                 runManager.HasTriggeredEvent(stageEvent.id)) return false;
 
+            // 체인의 앞 사건을 이번 런에 봤는가. 목록 중 하나면 된다.
+            if (stageEvent.requiresRunEventIds != null && stageEvent.requiresRunEventIds.Count > 0 &&
+                (runManager == null || !stageEvent.requiresRunEventIds.Any(runManager.HasTriggeredEvent))) return false;
+
+            if (RoundManager.IsBlockedByDeck(stageEvent)) return false;
+            if (stageEvent.requiresUnitInParty > 0 && !IsUnitInParty(stageEvent.requiresUnitInParty)) return false;
+
             int recruitUnitId = stageEvent.RecruitUnitId;
             if (recruitUnitId <= 0) return true;
 
-            if (SaveSystem.IsStarterUnlocked(recruitUnitId)) return false;
-            return GridManager.Instance == null || !GridManager.Instance.heroList.Any(hero =>
-                hero != null && hero.isActive && !hero.IsEnemy && hero.ID == recruitUnitId);
+            if (!stageEvent.allowUnlockedRecruit && SaveSystem.IsStarterUnlocked(recruitUnitId)) return false;
+            return !IsUnitInParty(recruitUnitId);
         }
+
+        private static bool IsUnitInParty(int unitId)
+            => GridManager.Instance != null && GridManager.Instance.heroList.Any(hero =>
+                hero != null && hero.isActive && !hero.IsEnemy && hero.ID == unitId);
 
         /// <summary>
         /// 영입 사건을 끝까지 본 것만으로 그 유닛을 영구 해금한다.

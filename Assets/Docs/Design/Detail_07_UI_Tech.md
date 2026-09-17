@@ -17,7 +17,7 @@
 | 메인 메뉴 | `UI/MainMenuUI.cs` | 새 여정 / 이어하기 / 설정 |
 | 캐릭터 선택 | `UI/Screens/CharacterSelectScreen.cs` | 철권식 2단계 셀렉트. 아래 §1.6 |
 | 준비 | `UI/Screens/PreparationScreen.cs` | 행동 선택, 상점, 스킬, 덱 구성, 장비 |
-| 보상 | `UI/Screens/RewardScreen.cs` | 3택 1 |
+| 보상 | `UI/Screens/RewardScreen.cs` | 3~6택 1 — 넷부터 3열 두 줄 |
 | 상점 | `UI/Screens/ShopScreen.cs` | 준비 페이즈 거래. 행상인과 세 탭(소모품·장비·판매) |
 | 스킬 | `UI/Screens/SkillScreen.cs` | 힌트받은 패시브를 스킬 Pt로 습득. 4×2 쪽 넘김 |
 | 육성 | `UI/Screens/TrainingScreen.cs` | 5스탯 집중 버튼, 서포트 등장/우정 표시 |
@@ -223,10 +223,14 @@ HUD가 판을 덮지 않도록 위아래로 여유를 더 준다.
 
 | 반응 | 내용 |
 | --- | --- |
-| **숫자** | 맞은 자리에서 튀어 올랐다 떠오르며 사라진다(`DamagePopup`). 체력에 들어간 피해는 흰색, 방어막이 대신 받으면 방어막색, 회피는 '회피', 치명타는 **금색 + 굵게 + 1.35배** |
+| **숫자** | 맞은 자리에서 튀어 올랐다 떠오르며 사라진다(`DamagePopup`). 체력에 들어간 피해는 흰색, 방어막이 대신 받으면 방어막색, 회피는 '회피', 횟수제 무적이 막으면 방어막색 '무효', 치명타는 **금색 + 굵게 + 1.35배** |
 | **카드** | 하얗게 번쩍이며 뒤로 밀리고, **물리 타격이면 떤다**(`UnitCardView.PlayHitReaction`). 마법은 떨지 않고 번쩍이기만 한다 |
 | **화면** | 큰 한 방에만 아주 짧게 흔들린다(`CameraShake`) |
 | **시간** | 치명타 · 궁극기 · 한 방이 큰 공격에서만 **30~50ms** 멈춘다(`HitStop`) |
+
+**전투 자원은 카드 이름표에 붙는다**(`Combat.CombatResourceLabels`). 이름이 등록된 자원은 전부 띄우고
+0이면 숨긴다 — 천공 전선의 `무적 N` · `발동까지 N` · `포만 N`, 해안 전선의 `구간 N/6`. 켜짐만 알리면 되는 자원은 숫자 없이 이름만 띄운다 — 해안의 `갑주` · `준비`. 이름이 없는 자원(가우디의 스택 등)은
+예전처럼 첫 하나만 `◆현재/최대`로 띄운다. 소환체는 무적과 카운트다운을 **함께** 보여야 우선순위를 읽을 수 있어서다.
 
 > 🔸 **숫자는 대상을 따라가고, 대상을 잃으면 화면 좌표에 못 박는다.**
 > 생성 시점의 월드 좌표를 붙들고 있으면 허공에 숫자가 남는다 — 유닛이 쓰러지면 칸이 비고,
@@ -391,7 +395,7 @@ currHpRenderer.sortingOrder = maxHpRenderer.sortingOrder + 1;
 | `GridManager` | 셀 생성, 유닛 스폰/활성화, 타겟팅, `heroList` / `enemyList` |
 | `ActionScheduler` | 행동치 기반 행동 예약·직렬 실행 (MonoBehaviour 아님, `GameManager`가 소유) |
 | `TrainingManager` | 집중 훈련, 서포트 판정, 스킬 힌트와 습득 (**정적 클래스**) |
-| `RewardManager` | 보상 풀 생성 및 적용 |
+| `RewardManager` | 적 드랍 기반 보상 선택지(3~6장) 생성 및 적용 |
 | `CharacterSelectionManager` | 편성 규칙 검증 (최대 5, 메인 1, 중복 불가) |
 | `InventoryManager` | 골드/토큰/티켓/보관 아이템, 장비 착용 검증 |
 | `DataManager` | YAML 제네릭 로더 (`Load<T>`) |
@@ -440,7 +444,7 @@ if (육성 모드) {
 | `10_units.yaml` | 아군 유닛 | `UnitData.cs` |
 | `20_codes.yaml` | 코드 표시 데이터 (패시브/일반/궁극기) | — |
 | `30_synergies.yaml` | 역할군·아키타입·메인별 추천 편성 ([Detail_15](Detail_15_Party_Synergy.md)) | `SynergyData.cs` |
-| `40_items.yaml` | 아이템 (= 전투 보상 풀) | `ItemData.cs` |
+| `40_items.yaml` | 아이템 (보상은 적 `drops` + 공용 드랍) | `ItemData.cs` |
 | `50_tokens.yaml` | 토큰 정의 | `TokenData.cs` |
 | `60_enemies.yaml` | 적 (normal/elite/boss) | `EnemyData.cs` |
 | `70_rounds.yaml` | 라운드 타입/편성 패턴 (폴백 전용) | `RoundData.cs` |

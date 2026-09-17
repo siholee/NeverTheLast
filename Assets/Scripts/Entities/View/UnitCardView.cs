@@ -606,13 +606,9 @@ namespace Entities.View
             _group.alpha = alive ? 1f : 0.38f;
             if (_nameLabel != null)
             {
-                // 궁극기 링과 별개인 캐릭터 전투 자원(가우디의 사그리다 스택 등)을
-                // 이름 띠에서 항상 확인할 수 있게 한다. 여러 자원이면 먼저 등록된 하나를 대표로 표시한다.
-                string combatResourceId = _unit.CombatResourceIds.Count > 0 ? _unit.CombatResourceIds[0] : null;
-                int combatResourceMax = _unit.GetCombatResourceMaximum(combatResourceId);
-                _nameLabel.text = combatResourceMax > 0
-                    ? $"{_unit.UnitName}  ◆{_unit.GetCombatResource(combatResourceId)}/{combatResourceMax}"
-                    : _unit.UnitName;
+                // 궁극기 링과 별개인 캐릭터 전투 자원(가우디의 사그리다 스택, 천공의 무적 횟수 등)을
+                // 이름 띠에서 항상 확인할 수 있게 한다. 규칙은 CombatResourceLabels가 정한다.
+                _nameLabel.text = Combat.CombatResourceLabels.Compose(_unit);
                 if (_unit.Chemistry != null && _combatHud)
                 {
                     var reagents = _unit.Chemistry.Reagents;

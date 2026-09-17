@@ -620,15 +620,19 @@ units:
     mainStat: INT
     topStat: INT
     row: Rear
-    roles: [DPS_AOE, DOT, DEF_SHRED]
+    roles: [DOT, AMP_DMG, DEF_SHRED, DPS_AOE]
     supportValue: { combat: 4, training: 4 }
     provides:
-      - key: ECLIPSE
-        text: "고유 패시브 월식 정산 — 지속피해 상태의 적이 죽으면 남은 지속피해를 범위로 터뜨린다"
-      - key: WOUND_OPEN
-        text: "상처 벌리기(Lv33) 지속피해 대상 방어력 45% 무시"
+      - key: MOON_PULL
+        text: "고유 패시브 달의 인력 — 적의 해로운 상태 1개당 아군 전체가 그 적에게 주는 피해 +3~5%(최대 5개). 누가 건 디버프든 센다"
+      - key: MOON_PHASES
+        text: "일반행동이 위상 디버프를 하나씩 돌려 걸고(방어력 -25% · 받는 피해 +10% · 가하는 피해 -15%), 궁극기가 적 전체에 셋 모두를 건다"
       - key: MOONLIGHT_DOT
         text: "일반행동이 월광 침식(2턴), 궁극기가 적 전체 월식(3턴) — 지속피해를 스스로 깐다. 원소는 붙이지 않는다"
+      - key: WOUND_OPEN
+        text: "상처 벌리기(Lv33) 지속피해 대상 방어력 45% 무시"
+      - key: ECLIPSE
+        text: "월식 정산(Lv44) — 지속피해 상태의 적이 죽으면 남은 지속피해를 범위로 터뜨린다"
     wants: [DOT]
 
   - id: 42
@@ -646,6 +650,24 @@ units:
       - key: TRI_ELEMENT
         text: "고유 패시브로 물·바람·번개 판정을 동시에 받는다 (바루나 수천의 대상)"
     wants: [CONTROL]
+
+  - id: 43
+    name: 아베노 세이메이
+    type: Locked
+    element: Anemo
+    mainStat: CON
+    topStat: CON
+    row: Rear
+    roles: [SHIELD, CONTROL]
+    supportValue: { combat: 4, training: 3 }
+    provides:
+      - key: BARRIER_DECODE
+        text: "고유 패시브 결계 해독 — 필드에 있는 동안 아군 전체의 피해가 보호막을 건너뛴다. 해안 전선의 공허의 갑주를 제어 없이 넘긴다"
+      - key: SEAL_TALISMAN
+        text: "일반행동 3회마다 기절 1턴 — 준비 공격 중인 적과 갑주를 두른 적을 먼저 노린다"
+      - key: HEAVEN_EARTH
+        text: "궁극기가 아군 전체 보호막 뒤 적 전체 에어본 — 스사노오의 천총운검을 연다"
+    wants: [DPS_AOE, MULTIHIT]
 
   - id: 61
     name: 야마

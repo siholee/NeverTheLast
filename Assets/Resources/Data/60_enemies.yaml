@@ -10,8 +10,8 @@
 #   · 적의 Level은 현재 스테이지와 같다. 즉 1스테이지 = Level 1 = 성장분 0.
 #   · mainStat ×1.2 / subStat ×1.1 배율은 아군과 동일하게 적용된다.
 #
-# 현재 운영 적 테마는 콜로세움(themeId 5), 로마 군단(themeId 6), 메히코(themeId 7), 아스완(themeId 8)이다.
-# 노르드·일본 테마의 적은 전용 스프라이트가 없어 제거된 상태다.
+# 적 themeId와 스테이지 테마 id는 다르다. 대응은 80_stages.yaml의 enemyThemeId가 정한다.
+# 일본은 천공 전선(적 themeId 20)과 해안 전선(적 themeId 21)이 돌아왔다. 지상 전선은 아직 없다.
 #
 # 🔸 로마 군단 12종은 기존 스프라이트를 임시로 돌려 쓴다.
 #    아스완 8종은 전용 자산을 적용했고, 호루스 조우는 영웅 호루스 자산을 의도적으로 재사용한다.
@@ -45,6 +45,7 @@ enemies:
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
       - { codeId: 1010, unlockLevel: 40, stage: 1 }
       - { codeId: 1011, unlockLevel: 70, stage: 1 }
+    drops: [4102, 4110]
     portrait: MURMILLO_PORTRAIT
     standing: MURMILLO_STANDING
 
@@ -73,6 +74,7 @@ enemies:
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
       - { codeId: 1010, unlockLevel: 40, stage: 1 }
       - { codeId: 1011, unlockLevel: 70, stage: 1 }
+    drops: [4104, 4110]
     portrait: HOPLOMACHUS_PORTRAIT
     standing: HOPLOMACHUS_STANDING
 
@@ -101,6 +103,7 @@ enemies:
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
       - { codeId: 1010, unlockLevel: 40, stage: 1 }
       - { codeId: 1011, unlockLevel: 70, stage: 1 }
+    drops: [4102]
     portrait: THRAEX_PORTRAIT
     standing: THRAEX_STANDING
 
@@ -130,6 +133,7 @@ enemies:
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
       - { codeId: 1010, unlockLevel: 40, stage: 1 }
       - { codeId: 1011, unlockLevel: 70, stage: 1 }
+    drops: [4104]
     portrait: RETIARIUS_PORTRAIT
     standing: RETIARIUS_STANDING
 
@@ -158,6 +162,7 @@ enemies:
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
       - { codeId: 1010, unlockLevel: 40, stage: 1 }
       - { codeId: 1011, unlockLevel: 70, stage: 1 }
+    drops: [4102, 4110]
     portrait: SECUTOR_PORTRAIT
     standing: SECUTOR_STANDING
 
@@ -186,6 +191,7 @@ enemies:
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
       - { codeId: 1010, unlockLevel: 40, stage: 1 }
       - { codeId: 1011, unlockLevel: 70, stage: 1 }
+    drops: [4101]
     portrait: DIMACHAERUS_PORTRAIT
     standing: DIMACHAERUS_STANDING
 
@@ -217,6 +223,7 @@ enemies:
       - { codeId: 1101, unlockLevel: 20, stage: 1 }
       - { codeId: 1102, unlockLevel: 40, stage: 1 }
       - { codeId: 1103, unlockLevel: 70, stage: 1 }
+    drops: [4102, 4110]
     portrait: MARCELLUS_PORTRAIT
     standing: MARCELLUS_STANDING
 
@@ -246,6 +253,7 @@ enemies:
       - { codeId: 1105, unlockLevel: 20, stage: 1 }
       - { codeId: 1106, unlockLevel: 40, stage: 1 }
       - { codeId: 1107, unlockLevel: 70, stage: 1 }
+    drops: [4106]
     portrait: SABINA_PORTRAIT
     standing: SABINA_STANDING
 
@@ -275,6 +283,7 @@ enemies:
       - { codeId: 1113, unlockLevel: 20, stage: 1 }
       - { codeId: 1114, unlockLevel: 40, stage: 1 }
       - { codeId: 1115, unlockLevel: 70, stage: 1 }
+    drops: [4103]
     portrait: SPARTACUS_PORTRAIT
     standing: SPARTACUS_STANDING
   # ── 로마 군단 테마 (themeId 6) ────────────────────────────────────
@@ -308,6 +317,7 @@ enemies:
       - { codeId: 1, unlockLevel: 10, stage: 1 }
       - { codeId: 2, unlockLevel: 30, stage: 1 }
       - { codeId: 6, unlockLevel: 40, stage: 1 }
+    drops: [4201, 4207]
     portrait: HASTATI_PORTRAIT
     standing: HASTATI_STANDING
 
@@ -336,6 +346,7 @@ enemies:
       - { codeId: 20, unlockLevel: 20, stage: 1 }
       - { codeId: 2, unlockLevel: 30, stage: 1 }
       - { codeId: 6, unlockLevel: 40, stage: 1 }
+    drops: [4201, 4206]
     portrait: PRINCIPES_PORTRAIT
     standing: PRINCIPES_STANDING
 
@@ -366,6 +377,7 @@ enemies:
       - { codeId: 6, unlockLevel: 40, stage: 1 }
       - { codeId: 22, unlockLevel: 50, stage: 1 }
       - { codeId: 68, unlockLevel: 60, stage: 1 }
+    drops: [4203, 4208]
     portrait: TRIARII_PORTRAIT
     standing: TRIARII_STANDING
 
@@ -396,6 +408,7 @@ enemies:
       - { codeId: 68, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 11, unlockLevel: 60, stage: 1 }
+    drops: [4203, 4207]
     portrait: EQUITES_PORTRAIT
     standing: EQUITES_STANDING
 
@@ -428,6 +441,7 @@ enemies:
       - { codeId: 68, unlockLevel: 60, stage: 1 }
       - { codeId: 71, unlockLevel: 70, stage: 1 }
       - { codeId: 72, unlockLevel: 80, stage: 1 }
+    drops: [4202, 4209]
     portrait: CENTURION_PORTRAIT
     standing: CENTURION_STANDING
 
@@ -455,6 +469,7 @@ enemies:
       - { codeId: 1012, unlockLevel: 20, stage: 1 }
       - { codeId: 1013, unlockLevel: 40, stage: 1 }
       - { codeId: 1014, unlockLevel: 70, stage: 1 }
+    drops: [4207]
     portrait: VELITES_PORTRAIT
     standing: VELITES_STANDING
 
@@ -482,6 +497,7 @@ enemies:
       - { codeId: 1013, unlockLevel: 20, stage: 1 }
       - { codeId: 1014, unlockLevel: 40, stage: 1 }
       - { codeId: 1015, unlockLevel: 70, stage: 1 }
+    drops: [4204]
     portrait: SCORPIO_PORTRAIT
     standing: SCORPIO_STANDING
 
@@ -510,6 +526,7 @@ enemies:
       - { codeId: 1, unlockLevel: 10, stage: 1 }
       - { codeId: 33, unlockLevel: 20, stage: 1 }
       - { codeId: 7, unlockLevel: 30, stage: 1 }
+    drops: [4201, 4208]
     portrait: OPTIO_PORTRAIT
     standing: OPTIO_STANDING
 
@@ -540,6 +557,7 @@ enemies:
       - { codeId: 7, unlockLevel: 30, stage: 1 }
       - { codeId: 9, unlockLevel: 40, stage: 1 }
       - { codeId: 67, unlockLevel: 80, stage: 1 }
+    drops: [4205, 4208]
     portrait: TRIBUNE_PORTRAIT
     standing: TRIBUNE_STANDING
 
@@ -577,6 +595,7 @@ enemies:
       - { codeId: 26, unlockLevel: 50, stage: 1 }
       - { codeId: 7, unlockLevel: 52, stage: 1 }
       - { codeId: 67, unlockLevel: 92, stage: 1 }
+    drops: [4202, 4209]
     portrait: AGRIPPA_PORTRAIT
     standing: AGRIPPA_STANDING
 
@@ -608,6 +627,7 @@ enemies:
       - { codeId: 64, unlockLevel: 20, stage: 1 }
       - { codeId: 71, unlockLevel: 40, stage: 1 }
       - { codeId: 62, unlockLevel: 71, stage: 1 }
+    drops: [4205, 4206]
     portrait: OCTAVIA_PORTRAIT
     standing: OCTAVIA_STANDING
 
@@ -646,6 +666,7 @@ enemies:
       - { codeId: 42, unlockLevel: 55, stage: 1 }
       - { codeId: 29, unlockLevel: 68, stage: 1 }
       - { codeId: 67, unlockLevel: 92, stage: 1 }
+    drops: [4202, 4205, 4209]
     portrait: CAESAR_PORTRAIT
     standing: CAESAR_STANDING
 
@@ -679,6 +700,7 @@ enemies:
       - { codeId: 1305, unlockLevel: 20, stage: 1 }
       - { codeId: 1306, unlockLevel: 30, stage: 1 }
       - { codeId: 41, unlockLevel: 60, stage: 1 }   # 투사
+    drops: [4211]
     portrait: AZTEC_JAGUAR_PORTRAIT
     standing: AZTEC_JAGUAR_STANDING
 
@@ -711,6 +733,7 @@ enemies:
       - { codeId: 1307, unlockLevel: 40, stage: 1 }
       - { codeId: 40, unlockLevel: 50, stage: 1 }
       - { codeId: 41, unlockLevel: 60, stage: 1 }   # 투사
+    drops: [4211, 4214]
     portrait: AZTEC_ELITE_JAGUAR_PORTRAIT
     standing: AZTEC_ELITE_JAGUAR_STANDING
 
@@ -741,6 +764,7 @@ enemies:
       - { codeId: 1304, unlockLevel: 20, stage: 1 }
       - { codeId: 1016, unlockLevel: 40, stage: 1 }
       - { codeId: 52, unlockLevel: 60, stage: 1 }
+    drops: [4210]
     portrait: AZTEC_EAGLE_PORTRAIT
     standing: AZTEC_EAGLE_STANDING
 
@@ -773,6 +797,7 @@ enemies:
       - { codeId: 1016, unlockLevel: 40, stage: 1 }
       - { codeId: 69, unlockLevel: 50, stage: 1 }
       - { codeId: 52, unlockLevel: 60, stage: 1 }
+    drops: [4210, 4213]
     portrait: AZTEC_ELITE_EAGLE_PORTRAIT
     standing: AZTEC_ELITE_EAGLE_STANDING
 
@@ -805,6 +830,7 @@ enemies:
       - { codeId: 62, unlockLevel: 40, stage: 1 }
       - { codeId: 7, unlockLevel: 50, stage: 1 }
       - { codeId: 340, unlockLevel: 60, stage: 1 }
+    drops: [4212]
     portrait: AZTEC_SERPENT_PRIEST_PORTRAIT
     standing: AZTEC_SERPENT_PRIEST_STANDING
 
@@ -837,6 +863,7 @@ enemies:
       - { codeId: 62, unlockLevel: 40, stage: 1 }
       - { codeId: 7, unlockLevel: 50, stage: 1 }
       - { codeId: 340, unlockLevel: 60, stage: 1 }
+    drops: [4212, 4215]
     portrait: AZTEC_ELITE_SERPENT_PRIEST_PORTRAIT
     standing: AZTEC_ELITE_SERPENT_PRIEST_STANDING
 
@@ -869,6 +896,7 @@ enemies:
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 18, unlockLevel: 30, stage: 1 }
       - { codeId: 19, unlockLevel: 60, stage: 1 }
+    drops: [4213, 4215]
     portrait: QUETZALCOATL_PORTRAIT
     standing: QUETZALCOATL_STANDING
 
@@ -900,6 +928,7 @@ enemies:
     ultimateResourceType: Stack
     ultimateResourceName: 흡연경
     ultimateResourceMax: 8
+    drops: [4214, 4215]
     portrait: AZTEC_TEZCATLIPOCA_PORTRAIT
     standing: AZTEC_TEZCATLIPOCA_STANDING
 
@@ -937,6 +966,7 @@ enemies:
       - { codeId: 2,  unlockLevel: 20, stage: 1 }   # 기사회생
       - { codeId: 57, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 6,  unlockLevel: 40, stage: 1 }   # 철벽
+    drops: [4226]
     portrait: RUIN_PALADIN_PORTRAIT
     standing: RUIN_PALADIN_STANDING
 
@@ -969,6 +999,7 @@ enemies:
       - { codeId: 6,  unlockLevel: 40, stage: 1 }   # 철벽
       - { codeId: 1406, unlockLevel: 50, stage: 1 }   # 성스러운 칼날
       - { codeId: 1407, unlockLevel: 60, stage: 1 }   # 까칠한 피부
+    drops: [4226, 4320]
     portrait: APOCALYPSE_PALADIN_PORTRAIT
     standing: APOCALYPSE_PALADIN_STANDING
 
@@ -996,6 +1027,7 @@ enemies:
     codes: { passive: 1402, normal: 1402, ultimate: 1401 }
     levelPassives:
       - { codeId: 57, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
+    drops: [4226]
     portrait: RUIN_INQUISITOR_PORTRAIT
     standing: RUIN_INQUISITOR_STANDING
 
@@ -1024,6 +1056,7 @@ enemies:
     levelPassives:
       - { codeId: 57, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 40, unlockLevel: 50, stage: 1 }   # 천상의 신체
+    drops: [4226, 4320]
     portrait: APOCALYPSE_INQUISITOR_PORTRAIT
     standing: APOCALYPSE_INQUISITOR_STANDING
 
@@ -1058,6 +1091,7 @@ enemies:
       - { codeId: 41,  unlockLevel: 40, stage: 1 }   # 투사
       - { codeId: 29,  unlockLevel: 50, stage: 1 }   # 파죽지세
       - { codeId: 37, unlockLevel: 60, stage: 1 }   # 순환
+    drops: [4227, 4321]
     portrait: NETHER_WRAITH_PORTRAIT
     standing: NETHER_WRAITH_STANDING
 
@@ -1087,6 +1121,7 @@ enemies:
     levelPassives:
       - { codeId: 57, unlockLevel: 30, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 37, unlockLevel: 50, stage: 1 }   # 순환
+    drops: [4227, 4319]
     portrait: FALLEN_PRIEST_PORTRAIT
     standing: FALLEN_PRIEST_STANDING
 
@@ -1122,6 +1157,7 @@ enemies:
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 86, unlockLevel: 14, stage: 1 }   # 빈틈의 실
       - { codeId: 49, unlockLevel: 41, stage: 1 }   # 저격수
+    drops: [4320]
     portrait: HORUS_PORTRAIT
     standing: HORUS_STANDING
 
@@ -1155,6 +1191,7 @@ enemies:
     codes: { passive: 1404, normal: 1406, ultimate: 1405 }
     levelPassives:
       - { codeId: 37, unlockLevel: 40, stage: 1 }   # 순환
+    drops: [4319, 4321]
     portrait: OSIRIS_PORTRAIT
     standing: OSIRIS_STANDING
 
@@ -1188,6 +1225,7 @@ enemies:
       - { codeId: 1408, unlockLevel: 30, stage: 1 }   # 초월
       - { codeId: 1409, unlockLevel: 50, stage: 1 }   # 영혼 흡수
       - { codeId: 1410, unlockLevel: 70, stage: 1 }   # 지옥불
+    drops: [4407, 4319]
     portrait: AMUN_RA_PORTRAIT
     standing: AMUN_RA_STANDING
 
@@ -1222,6 +1260,7 @@ enemies:
       - { codeId: 1424, unlockLevel: 40, stage: 1 }   # 강타
       - { codeId: 6,    unlockLevel: 50, stage: 1 }   # 철벽
       - { codeId: 1407, unlockLevel: 60, stage: 1 }   # 까칠한 피부
+    drops: [4105, 4114]
     portrait: RUIN_GIANT_PORTRAIT
     standing: RUIN_GIANT_STANDING
 
@@ -1259,6 +1298,7 @@ enemies:
       - { codeId: 7,    unlockLevel: 70, stage: 1 }   # 사전준비
       - { codeId: 1425, unlockLevel: 80, stage: 1 }   # 병상첨병
       - { codeId: 1504, unlockLevel: 90, stage: 1 }   # 파괴광선 — 파쇄 대체
+    drops: [4237, 4246]
     portrait: APOCALYPSE_GIANT_PORTRAIT
     standing: APOCALYPSE_GIANT_STANDING
 
@@ -1290,6 +1330,7 @@ enemies:
       - { codeId: 1218, unlockLevel: 30, stage: 1 }   # 야습
       - { codeId: 69,   unlockLevel: 40, stage: 1 }   # 기습
       - { codeId: 17,   unlockLevel: 50, stage: 1 }   # 예리함
+    drops: [4107]
     portrait: VOID_SEED_PORTRAIT
     standing: VOID_SEED_STANDING
 
@@ -1323,6 +1364,7 @@ enemies:
       - { codeId: 17,   unlockLevel: 50, stage: 1 }   # 예리함
       - { codeId: 1434, unlockLevel: 60, stage: 1 }   # 대폭발(금) — 자폭 대체
       - { codeId: 1435, unlockLevel: 80, stage: 1 }   # 오버로드
+    drops: [4107]
     portrait: APOCALYPSE_SEED_PORTRAIT
     standing: APOCALYPSE_SEED_STANDING
 
@@ -1355,6 +1397,7 @@ enemies:
       - { codeId: 17,   unlockLevel: 40, stage: 1 }   # 예리함
       - { codeId: 69,   unlockLevel: 50, stage: 1 }   # 기습
       - { codeId: 1218, unlockLevel: 60, stage: 1 }   # 야습
+    drops: [4311]
     portrait: FROST_SEED_PORTRAIT
     standing: FROST_SEED_STANDING
 
@@ -1393,6 +1436,7 @@ enemies:
       - { codeId: 1502, unlockLevel: 70, stage: 1 }   # 분열
       - { codeId: 1503, unlockLevel: 80, stage: 1 }   # 죽음의 메아리 — 공명 대체
       - { codeId: 1504, unlockLevel: 90, stage: 1 }   # 파괴광선 — 파쇄 대체
+    drops: [4223]
     portrait: VOID_PRISM_PORTRAIT
     standing: VOID_PRISM_STANDING
 
@@ -1404,7 +1448,10 @@ enemies:
     tier: normal
     tags: [Monster, VoidMonster, VoidPrism]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4183, minLevel: 1, maxLevel: 40 }   # 흐린 결정 보주 — 반응 약화(적 전용)
+      - { itemId: 4241, minLevel: 41 }   # 맑은 보주
+    startingProficiencies: [Orb]
     mainStat: DEX
     subStats: [INT, LUK]
     strBase: 8
@@ -1430,6 +1477,7 @@ enemies:
       - { codeId: 1502, unlockLevel: 70, stage: 1 }
       - { codeId: 1503, unlockLevel: 80, stage: 1 }
       - { codeId: 1504, unlockLevel: 90, stage: 1 }
+    drops: [4223]
     portrait: VOID_PRISM_PYRO_PORTRAIT
     standing: VOID_PRISM_PYRO_STANDING
 
@@ -1441,7 +1489,10 @@ enemies:
     tier: normal
     tags: [Monster, VoidMonster, VoidPrism]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4183, minLevel: 1, maxLevel: 40 }   # 흐린 결정 보주 — 반응 약화(적 전용)
+      - { itemId: 4241, minLevel: 41 }   # 맑은 보주
+    startingProficiencies: [Orb]
     mainStat: DEX
     subStats: [INT, LUK]
     strBase: 8
@@ -1467,6 +1518,7 @@ enemies:
       - { codeId: 1502, unlockLevel: 70, stage: 1 }
       - { codeId: 1503, unlockLevel: 80, stage: 1 }
       - { codeId: 1504, unlockLevel: 90, stage: 1 }
+    drops: [4223]
     portrait: VOID_PRISM_HYDRO_PORTRAIT
     standing: VOID_PRISM_HYDRO_STANDING
 
@@ -1478,7 +1530,10 @@ enemies:
     tier: normal
     tags: [Monster, VoidMonster, VoidPrism]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4183, minLevel: 1, maxLevel: 40 }   # 흐린 결정 보주 — 반응 약화(적 전용)
+      - { itemId: 4241, minLevel: 41 }   # 맑은 보주
+    startingProficiencies: [Orb]
     mainStat: DEX
     subStats: [INT, LUK]
     strBase: 8
@@ -1504,6 +1559,7 @@ enemies:
       - { codeId: 1502, unlockLevel: 70, stage: 1 }
       - { codeId: 1503, unlockLevel: 80, stage: 1 }
       - { codeId: 1504, unlockLevel: 90, stage: 1 }
+    drops: [4223]
     portrait: VOID_PRISM_ANEMO_PORTRAIT
     standing: VOID_PRISM_ANEMO_STANDING
 
@@ -1515,7 +1571,10 @@ enemies:
     tier: normal
     tags: [Monster, VoidMonster, VoidPrism]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4183, minLevel: 1, maxLevel: 40 }   # 흐린 결정 보주 — 반응 약화(적 전용)
+      - { itemId: 4241, minLevel: 41 }   # 맑은 보주
+    startingProficiencies: [Orb]
     mainStat: DEX
     subStats: [INT, LUK]
     strBase: 8
@@ -1541,6 +1600,7 @@ enemies:
       - { codeId: 1502, unlockLevel: 70, stage: 1 }
       - { codeId: 1503, unlockLevel: 80, stage: 1 }
       - { codeId: 1504, unlockLevel: 90, stage: 1 }
+    drops: [4223]
     portrait: VOID_PRISM_ELECTRO_PORTRAIT
     standing: VOID_PRISM_ELECTRO_STANDING
 
@@ -1552,7 +1612,10 @@ enemies:
     tier: normal
     tags: [Monster, VoidMonster, VoidPrism]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4183, minLevel: 1, maxLevel: 40 }   # 흐린 결정 보주 — 반응 약화(적 전용)
+      - { itemId: 4241, minLevel: 41 }   # 맑은 보주
+    startingProficiencies: [Orb]
     mainStat: DEX
     subStats: [INT, LUK]
     strBase: 8
@@ -1578,6 +1641,7 @@ enemies:
       - { codeId: 1502, unlockLevel: 70, stage: 1 }
       - { codeId: 1503, unlockLevel: 80, stage: 1 }
       - { codeId: 1504, unlockLevel: 90, stage: 1 }
+    drops: [4223]
     portrait: VOID_PRISM_DENDRO_PORTRAIT
     standing: VOID_PRISM_DENDRO_STANDING
 
@@ -1589,7 +1653,10 @@ enemies:
     tier: normal
     tags: [Monster, VoidMonster, VoidPrism]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4183, minLevel: 1, maxLevel: 40 }   # 흐린 결정 보주 — 반응 약화(적 전용)
+      - { itemId: 4241, minLevel: 41 }   # 맑은 보주
+    startingProficiencies: [Orb]
     mainStat: DEX
     subStats: [INT, LUK]
     strBase: 8
@@ -1615,6 +1682,7 @@ enemies:
       - { codeId: 1502, unlockLevel: 70, stage: 1 }
       - { codeId: 1503, unlockLevel: 80, stage: 1 }
       - { codeId: 1504, unlockLevel: 90, stage: 1 }
+    drops: [4223]
     portrait: VOID_PRISM_CRYO_PORTRAIT
     standing: VOID_PRISM_CRYO_STANDING
 
@@ -1626,7 +1694,10 @@ enemies:
     tier: normal
     tags: [Monster, VoidMonster, VoidPrism]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4183, minLevel: 1, maxLevel: 40 }   # 흐린 결정 보주 — 반응 약화(적 전용)
+      - { itemId: 4241, minLevel: 41 }   # 맑은 보주
+    startingProficiencies: [Orb]
     mainStat: DEX
     subStats: [INT, LUK]
     strBase: 8
@@ -1652,6 +1723,7 @@ enemies:
       - { codeId: 1502, unlockLevel: 70, stage: 1 }
       - { codeId: 1503, unlockLevel: 80, stage: 1 }
       - { codeId: 1504, unlockLevel: 90, stage: 1 }
+    drops: [4223]
     portrait: VOID_PRISM_GEO_PORTRAIT
     standing: VOID_PRISM_GEO_STANDING
 
@@ -1689,6 +1761,7 @@ enemies:
       - { codeId: 51,   unlockLevel: 70, stage: 1 }   # 약자 멸시
       - { codeId: 36,   unlockLevel: 80, stage: 1 }   # 고통스러운 상처
       - { codeId: 1016, unlockLevel: 90, stage: 1 }   # 저주
+    drops: [4315]
     portrait: VOID_MONSTROUS_BIRD_PORTRAIT
     standing: VOID_MONSTROUS_BIRD_STANDING
 
@@ -1725,6 +1798,7 @@ enemies:
       - { codeId: 51, unlockLevel: 70, stage: 1 }
       - { codeId: 36, unlockLevel: 80, stage: 1 }
       - { codeId: 1016, unlockLevel: 90, stage: 1 }
+    drops: [4315]
     portrait: VOID_MONSTROUS_BIRD_PYRO_PORTRAIT
     standing: VOID_MONSTROUS_BIRD_PYRO_STANDING
 
@@ -1761,6 +1835,7 @@ enemies:
       - { codeId: 51, unlockLevel: 70, stage: 1 }
       - { codeId: 36, unlockLevel: 80, stage: 1 }
       - { codeId: 1016, unlockLevel: 90, stage: 1 }
+    drops: [4315]
     portrait: VOID_MONSTROUS_BIRD_HYDRO_PORTRAIT
     standing: VOID_MONSTROUS_BIRD_HYDRO_STANDING
 
@@ -1797,6 +1872,7 @@ enemies:
       - { codeId: 51, unlockLevel: 70, stage: 1 }
       - { codeId: 36, unlockLevel: 80, stage: 1 }
       - { codeId: 1016, unlockLevel: 90, stage: 1 }
+    drops: [4315]
     portrait: VOID_MONSTROUS_BIRD_ANEMO_PORTRAIT
     standing: VOID_MONSTROUS_BIRD_ANEMO_STANDING
 
@@ -1833,6 +1909,7 @@ enemies:
       - { codeId: 51, unlockLevel: 70, stage: 1 }
       - { codeId: 36, unlockLevel: 80, stage: 1 }
       - { codeId: 1016, unlockLevel: 90, stage: 1 }
+    drops: [4315]
     portrait: VOID_MONSTROUS_BIRD_ELECTRO_PORTRAIT
     standing: VOID_MONSTROUS_BIRD_ELECTRO_STANDING
 
@@ -1869,6 +1946,7 @@ enemies:
       - { codeId: 51, unlockLevel: 70, stage: 1 }
       - { codeId: 36, unlockLevel: 80, stage: 1 }
       - { codeId: 1016, unlockLevel: 90, stage: 1 }
+    drops: [4315]
     portrait: VOID_MONSTROUS_BIRD_DENDRO_PORTRAIT
     standing: VOID_MONSTROUS_BIRD_DENDRO_STANDING
 
@@ -1905,6 +1983,7 @@ enemies:
       - { codeId: 51, unlockLevel: 70, stage: 1 }
       - { codeId: 36, unlockLevel: 80, stage: 1 }
       - { codeId: 1016, unlockLevel: 90, stage: 1 }
+    drops: [4315]
     portrait: VOID_MONSTROUS_BIRD_CRYO_PORTRAIT
     standing: VOID_MONSTROUS_BIRD_CRYO_STANDING
 
@@ -1941,6 +2020,7 @@ enemies:
       - { codeId: 51, unlockLevel: 70, stage: 1 }
       - { codeId: 36, unlockLevel: 80, stage: 1 }
       - { codeId: 1016, unlockLevel: 90, stage: 1 }
+    drops: [4315]
     portrait: VOID_MONSTROUS_BIRD_GEO_PORTRAIT
     standing: VOID_MONSTROUS_BIRD_GEO_STANDING
 
@@ -1979,6 +2059,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1524, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
+    drops: [4225]
     portrait: VOID_BOAR_PORTRAIT
     standing: VOID_BOAR_STANDING
 
@@ -2014,6 +2095,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1524, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
+    drops: [4225]
     portrait: VOID_BOAR_PYRO_PORTRAIT
     standing: VOID_BOAR_PYRO_STANDING
 
@@ -2049,6 +2131,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1524, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
+    drops: [4225]
     portrait: VOID_BOAR_HYDRO_PORTRAIT
     standing: VOID_BOAR_HYDRO_STANDING
 
@@ -2084,6 +2167,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1524, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
+    drops: [4225]
     portrait: VOID_BOAR_ANEMO_PORTRAIT
     standing: VOID_BOAR_ANEMO_STANDING
 
@@ -2119,6 +2203,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1524, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
+    drops: [4225]
     portrait: VOID_BOAR_ELECTRO_PORTRAIT
     standing: VOID_BOAR_ELECTRO_STANDING
 
@@ -2154,6 +2239,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1524, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
+    drops: [4225]
     portrait: VOID_BOAR_DENDRO_PORTRAIT
     standing: VOID_BOAR_DENDRO_STANDING
 
@@ -2189,6 +2275,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1524, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
+    drops: [4225]
     portrait: VOID_BOAR_CRYO_PORTRAIT
     standing: VOID_BOAR_CRYO_STANDING
 
@@ -2224,6 +2311,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1524, unlockLevel: 90, stage: 1 }   # 하루종일도 할 수 있어 — 투사 대체
+    drops: [4225]
     portrait: VOID_BOAR_GEO_PORTRAIT
     standing: VOID_BOAR_GEO_STANDING
 
@@ -2262,6 +2350,7 @@ enemies:
       - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1424, unlockLevel: 90, stage: 1 }   # 강타
+    drops: [4315]
     portrait: VOID_WOLF_PORTRAIT
     standing: VOID_WOLF_STANDING
 
@@ -2298,6 +2387,7 @@ enemies:
       - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1424, unlockLevel: 90, stage: 1 }   # 강타
+    drops: [4315]
     portrait: VOID_WOLF_PYRO_PORTRAIT
     standing: VOID_WOLF_PYRO_STANDING
 
@@ -2334,6 +2424,7 @@ enemies:
       - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1424, unlockLevel: 90, stage: 1 }   # 강타
+    drops: [4315]
     portrait: VOID_WOLF_HYDRO_PORTRAIT
     standing: VOID_WOLF_HYDRO_STANDING
 
@@ -2370,6 +2461,7 @@ enemies:
       - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1424, unlockLevel: 90, stage: 1 }   # 강타
+    drops: [4315]
     portrait: VOID_WOLF_ANEMO_PORTRAIT
     standing: VOID_WOLF_ANEMO_STANDING
 
@@ -2406,6 +2498,7 @@ enemies:
       - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1424, unlockLevel: 90, stage: 1 }   # 강타
+    drops: [4315]
     portrait: VOID_WOLF_ELECTRO_PORTRAIT
     standing: VOID_WOLF_ELECTRO_STANDING
 
@@ -2442,6 +2535,7 @@ enemies:
       - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1424, unlockLevel: 90, stage: 1 }   # 강타
+    drops: [4315]
     portrait: VOID_WOLF_DENDRO_PORTRAIT
     standing: VOID_WOLF_DENDRO_STANDING
 
@@ -2478,6 +2572,7 @@ enemies:
       - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1424, unlockLevel: 90, stage: 1 }   # 강타
+    drops: [4315]
     portrait: VOID_WOLF_CRYO_PORTRAIT
     standing: VOID_WOLF_CRYO_STANDING
 
@@ -2514,6 +2609,7 @@ enemies:
       - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1424, unlockLevel: 90, stage: 1 }   # 강타
+    drops: [4315]
     portrait: VOID_WOLF_GEO_PORTRAIT
     standing: VOID_WOLF_GEO_STANDING
 
@@ -2552,6 +2648,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29, unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 오만
+    drops: [4225]
     portrait: VOID_KNIGHT_PORTRAIT
     standing: VOID_KNIGHT_STANDING
 
@@ -2563,7 +2660,10 @@ enemies:
     tier: normal
     tags: [VoidMonster, Machine]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4181, minLevel: 1, maxLevel: 40 }   # 무딘 공허검 — 반응 약화(적 전용)
+      - { itemId: 4231, minLevel: 41 }   # 강철 한손검
+    startingProficiencies: [Longsword]
     mainStat: STR
     subStats: [CON, DEX]
     strBase: 24
@@ -2588,6 +2688,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29, unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 오만
+    drops: [4225]
     portrait: VOID_KNIGHT_PYRO_PORTRAIT
     standing: VOID_KNIGHT_PYRO_STANDING
 
@@ -2599,7 +2700,10 @@ enemies:
     tier: normal
     tags: [VoidMonster, Machine]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4181, minLevel: 1, maxLevel: 40 }   # 무딘 공허검 — 반응 약화(적 전용)
+      - { itemId: 4231, minLevel: 41 }   # 강철 한손검
+    startingProficiencies: [Longsword]
     mainStat: STR
     subStats: [CON, DEX]
     strBase: 24
@@ -2624,6 +2728,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29, unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 오만
+    drops: [4225]
     portrait: VOID_KNIGHT_HYDRO_PORTRAIT
     standing: VOID_KNIGHT_HYDRO_STANDING
 
@@ -2635,7 +2740,10 @@ enemies:
     tier: normal
     tags: [VoidMonster, Machine]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4181, minLevel: 1, maxLevel: 40 }   # 무딘 공허검 — 반응 약화(적 전용)
+      - { itemId: 4231, minLevel: 41 }   # 강철 한손검
+    startingProficiencies: [Longsword]
     mainStat: STR
     subStats: [CON, DEX]
     strBase: 24
@@ -2660,6 +2768,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29, unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 오만
+    drops: [4225]
     portrait: VOID_KNIGHT_ANEMO_PORTRAIT
     standing: VOID_KNIGHT_ANEMO_STANDING
 
@@ -2671,7 +2780,10 @@ enemies:
     tier: normal
     tags: [VoidMonster, Machine]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4181, minLevel: 1, maxLevel: 40 }   # 무딘 공허검 — 반응 약화(적 전용)
+      - { itemId: 4231, minLevel: 41 }   # 강철 한손검
+    startingProficiencies: [Longsword]
     mainStat: STR
     subStats: [CON, DEX]
     strBase: 24
@@ -2696,6 +2808,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29, unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 오만
+    drops: [4225]
     portrait: VOID_KNIGHT_ELECTRO_PORTRAIT
     standing: VOID_KNIGHT_ELECTRO_STANDING
 
@@ -2707,7 +2820,10 @@ enemies:
     tier: normal
     tags: [VoidMonster, Machine]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4181, minLevel: 1, maxLevel: 40 }   # 무딘 공허검 — 반응 약화(적 전용)
+      - { itemId: 4231, minLevel: 41 }   # 강철 한손검
+    startingProficiencies: [Longsword]
     mainStat: STR
     subStats: [CON, DEX]
     strBase: 24
@@ -2732,6 +2848,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29, unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 오만
+    drops: [4225]
     portrait: VOID_KNIGHT_DENDRO_PORTRAIT
     standing: VOID_KNIGHT_DENDRO_STANDING
 
@@ -2743,7 +2860,10 @@ enemies:
     tier: normal
     tags: [VoidMonster, Machine]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4181, minLevel: 1, maxLevel: 40 }   # 무딘 공허검 — 반응 약화(적 전용)
+      - { itemId: 4231, minLevel: 41 }   # 강철 한손검
+    startingProficiencies: [Longsword]
     mainStat: STR
     subStats: [CON, DEX]
     strBase: 24
@@ -2768,6 +2888,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29, unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 오만
+    drops: [4225]
     portrait: VOID_KNIGHT_CRYO_PORTRAIT
     standing: VOID_KNIGHT_CRYO_STANDING
 
@@ -2779,7 +2900,10 @@ enemies:
     tier: normal
     tags: [VoidMonster, Machine]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4181, minLevel: 1, maxLevel: 40 }   # 무딘 공허검 — 반응 약화(적 전용)
+      - { itemId: 4231, minLevel: 41 }   # 강철 한손검
+    startingProficiencies: [Longsword]
     mainStat: STR
     subStats: [CON, DEX]
     strBase: 24
@@ -2804,6 +2928,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 29, unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 1522, unlockLevel: 90, stage: 1 }   # 오만
+    drops: [4225]
     portrait: VOID_KNIGHT_GEO_PORTRAIT
     standing: VOID_KNIGHT_GEO_STANDING
 
@@ -2842,6 +2967,7 @@ enemies:
       - { codeId: 51, unlockLevel: 70, stage: 1 }   # 약자 멸시
       - { codeId: 28, unlockLevel: 80, stage: 1 }   # 폭죽놀이
       - { codeId: 11, unlockLevel: 90, stage: 1 }   # 천살성
+    drops: [4224]
     portrait: VOID_MARKSMAN_PORTRAIT
     standing: VOID_MARKSMAN_STANDING
 
@@ -2853,7 +2979,10 @@ enemies:
     tier: normal
     tags: [VoidMonster, Machine]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4182, minLevel: 1, maxLevel: 40 }   # 무딘 공허 단궁 — 반응 약화(적 전용)
+      - { itemId: 4239, minLevel: 41 }   # 물푸레 단궁
+    startingProficiencies: [Shortbow]
     mainStat: DEX
     subStats: [STR, LUK]
     strBase: 16
@@ -2878,6 +3007,7 @@ enemies:
       - { codeId: 51, unlockLevel: 70, stage: 1 }   # 약자 멸시
       - { codeId: 28, unlockLevel: 80, stage: 1 }   # 폭죽놀이
       - { codeId: 11, unlockLevel: 90, stage: 1 }   # 천살성
+    drops: [4224]
     portrait: VOID_MARKSMAN_PYRO_PORTRAIT
     standing: VOID_MARKSMAN_PYRO_STANDING
 
@@ -2889,7 +3019,10 @@ enemies:
     tier: normal
     tags: [VoidMonster, Machine]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4182, minLevel: 1, maxLevel: 40 }   # 무딘 공허 단궁 — 반응 약화(적 전용)
+      - { itemId: 4239, minLevel: 41 }   # 물푸레 단궁
+    startingProficiencies: [Shortbow]
     mainStat: DEX
     subStats: [STR, LUK]
     strBase: 16
@@ -2914,6 +3047,7 @@ enemies:
       - { codeId: 51, unlockLevel: 70, stage: 1 }   # 약자 멸시
       - { codeId: 28, unlockLevel: 80, stage: 1 }   # 폭죽놀이
       - { codeId: 11, unlockLevel: 90, stage: 1 }   # 천살성
+    drops: [4224]
     portrait: VOID_MARKSMAN_HYDRO_PORTRAIT
     standing: VOID_MARKSMAN_HYDRO_STANDING
 
@@ -2925,7 +3059,10 @@ enemies:
     tier: normal
     tags: [VoidMonster, Machine]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4182, minLevel: 1, maxLevel: 40 }   # 무딘 공허 단궁 — 반응 약화(적 전용)
+      - { itemId: 4239, minLevel: 41 }   # 물푸레 단궁
+    startingProficiencies: [Shortbow]
     mainStat: DEX
     subStats: [STR, LUK]
     strBase: 16
@@ -2950,6 +3087,7 @@ enemies:
       - { codeId: 51, unlockLevel: 70, stage: 1 }   # 약자 멸시
       - { codeId: 28, unlockLevel: 80, stage: 1 }   # 폭죽놀이
       - { codeId: 11, unlockLevel: 90, stage: 1 }   # 천살성
+    drops: [4224]
     portrait: VOID_MARKSMAN_ANEMO_PORTRAIT
     standing: VOID_MARKSMAN_ANEMO_STANDING
 
@@ -2961,7 +3099,10 @@ enemies:
     tier: normal
     tags: [VoidMonster, Machine]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4182, minLevel: 1, maxLevel: 40 }   # 무딘 공허 단궁 — 반응 약화(적 전용)
+      - { itemId: 4239, minLevel: 41 }   # 물푸레 단궁
+    startingProficiencies: [Shortbow]
     mainStat: DEX
     subStats: [STR, LUK]
     strBase: 16
@@ -2986,6 +3127,7 @@ enemies:
       - { codeId: 51, unlockLevel: 70, stage: 1 }   # 약자 멸시
       - { codeId: 28, unlockLevel: 80, stage: 1 }   # 폭죽놀이
       - { codeId: 11, unlockLevel: 90, stage: 1 }   # 천살성
+    drops: [4224]
     portrait: VOID_MARKSMAN_ELECTRO_PORTRAIT
     standing: VOID_MARKSMAN_ELECTRO_STANDING
 
@@ -2998,7 +3140,10 @@ enemies:
     tier: normal
     tags: [VoidMonster, Machine]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4182, minLevel: 1, maxLevel: 40 }   # 무딘 공허 단궁 — 반응 약화(적 전용)
+      - { itemId: 4239, minLevel: 41 }   # 물푸레 단궁
+    startingProficiencies: [Shortbow]
     mainStat: DEX
     subStats: [STR, LUK]
     strBase: 16
@@ -3023,6 +3168,7 @@ enemies:
       - { codeId: 51, unlockLevel: 70, stage: 1 }   # 약자 멸시
       - { codeId: 28, unlockLevel: 80, stage: 1 }   # 폭죽놀이
       - { codeId: 11, unlockLevel: 90, stage: 1 }   # 천살성
+    drops: [4224]
     portrait: VOID_MARKSMAN_DENDRO_PORTRAIT
     standing: VOID_MARKSMAN_DENDRO_STANDING
 
@@ -3034,7 +3180,10 @@ enemies:
     tier: normal
     tags: [VoidMonster, Machine]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4182, minLevel: 1, maxLevel: 40 }   # 무딘 공허 단궁 — 반응 약화(적 전용)
+      - { itemId: 4239, minLevel: 41 }   # 물푸레 단궁
+    startingProficiencies: [Shortbow]
     mainStat: DEX
     subStats: [STR, LUK]
     strBase: 16
@@ -3059,6 +3208,7 @@ enemies:
       - { codeId: 51, unlockLevel: 70, stage: 1 }   # 약자 멸시
       - { codeId: 28, unlockLevel: 80, stage: 1 }   # 폭죽놀이
       - { codeId: 11, unlockLevel: 90, stage: 1 }   # 천살성
+    drops: [4224]
     portrait: VOID_MARKSMAN_CRYO_PORTRAIT
     standing: VOID_MARKSMAN_CRYO_STANDING
 
@@ -3070,7 +3220,10 @@ enemies:
     tier: normal
     tags: [VoidMonster, Machine]
     startingItemIds: []
-    startingProficiencies: []
+    startingItemsByLevel:
+      - { itemId: 4182, minLevel: 1, maxLevel: 40 }   # 무딘 공허 단궁 — 반응 약화(적 전용)
+      - { itemId: 4239, minLevel: 41 }   # 물푸레 단궁
+    startingProficiencies: [Shortbow]
     mainStat: DEX
     subStats: [STR, LUK]
     strBase: 16
@@ -3095,6 +3248,7 @@ enemies:
       - { codeId: 51, unlockLevel: 70, stage: 1 }   # 약자 멸시
       - { codeId: 28, unlockLevel: 80, stage: 1 }   # 폭죽놀이
       - { codeId: 11, unlockLevel: 90, stage: 1 }   # 천살성
+    drops: [4224]
     portrait: VOID_MARKSMAN_GEO_PORTRAIT
     standing: VOID_MARKSMAN_GEO_STANDING
 
@@ -3135,6 +3289,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 22, unlockLevel: 80, stage: 1 }   # 파수꾼
       - { codeId: 103, unlockLevel: 90, stage: 1 }   # 완벽한 재기 — 기사회생 대체
+    drops: [4225]
     portrait: VOID_VANGUARD_PORTRAIT
     standing: VOID_VANGUARD_STANDING
 
@@ -3171,6 +3326,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 22, unlockLevel: 80, stage: 1 }   # 파수꾼
       - { codeId: 103, unlockLevel: 90, stage: 1 }   # 완벽한 재기 — 기사회생 대체
+    drops: [4225]
     portrait: VOID_VANGUARD_PYRO_PORTRAIT
     standing: VOID_VANGUARD_PYRO_STANDING
 
@@ -3208,6 +3364,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 22, unlockLevel: 80, stage: 1 }   # 파수꾼
       - { codeId: 103, unlockLevel: 90, stage: 1 }   # 완벽한 재기 — 기사회생 대체
+    drops: [4225]
     portrait: VOID_VANGUARD_HYDRO_PORTRAIT
     standing: VOID_VANGUARD_HYDRO_STANDING
 
@@ -3244,6 +3401,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 22, unlockLevel: 80, stage: 1 }   # 파수꾼
       - { codeId: 103, unlockLevel: 90, stage: 1 }   # 완벽한 재기 — 기사회생 대체
+    drops: [4225]
     portrait: VOID_VANGUARD_ANEMO_PORTRAIT
     standing: VOID_VANGUARD_ANEMO_STANDING
 
@@ -3280,6 +3438,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 22, unlockLevel: 80, stage: 1 }   # 파수꾼
       - { codeId: 103, unlockLevel: 90, stage: 1 }   # 완벽한 재기 — 기사회생 대체
+    drops: [4225]
     portrait: VOID_VANGUARD_ELECTRO_PORTRAIT
     standing: VOID_VANGUARD_ELECTRO_STANDING
 
@@ -3316,6 +3475,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 22, unlockLevel: 80, stage: 1 }   # 파수꾼
       - { codeId: 103, unlockLevel: 90, stage: 1 }   # 완벽한 재기 — 기사회생 대체
+    drops: [4225]
     portrait: VOID_VANGUARD_DENDRO_PORTRAIT
     standing: VOID_VANGUARD_DENDRO_STANDING
 
@@ -3352,6 +3512,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 22, unlockLevel: 80, stage: 1 }   # 파수꾼
       - { codeId: 103, unlockLevel: 90, stage: 1 }   # 완벽한 재기 — 기사회생 대체
+    drops: [4225]
     portrait: VOID_VANGUARD_CRYO_PORTRAIT
     standing: VOID_VANGUARD_CRYO_STANDING
 
@@ -3388,6 +3549,7 @@ enemies:
       - { codeId: 1523, unlockLevel: 70, stage: 1 }   # 강철피부 — 바위피부 대체
       - { codeId: 22, unlockLevel: 80, stage: 1 }   # 파수꾼
       - { codeId: 103, unlockLevel: 90, stage: 1 }   # 완벽한 재기 — 기사회생 대체
+    drops: [4225]
     portrait: VOID_VANGUARD_GEO_PORTRAIT
     standing: VOID_VANGUARD_GEO_STANDING
 
@@ -3429,6 +3591,7 @@ enemies:
       - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
       - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
       - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
+    drops: [4316]
     portrait: VOID_DEER_PORTRAIT
     standing: VOID_DEER_STANDING
 
@@ -3466,6 +3629,7 @@ enemies:
       - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
       - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
       - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
+    drops: [4316]
     portrait: VOID_DEER_PYRO_PORTRAIT
     standing: VOID_DEER_PYRO_STANDING
 
@@ -3503,6 +3667,7 @@ enemies:
       - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
       - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
       - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
+    drops: [4316]
     portrait: VOID_DEER_HYDRO_PORTRAIT
     standing: VOID_DEER_HYDRO_STANDING
 
@@ -3540,6 +3705,7 @@ enemies:
       - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
       - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
       - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
+    drops: [4316]
     portrait: VOID_DEER_ANEMO_PORTRAIT
     standing: VOID_DEER_ANEMO_STANDING
 
@@ -3577,6 +3743,7 @@ enemies:
       - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
       - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
       - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
+    drops: [4316]
     portrait: VOID_DEER_ELECTRO_PORTRAIT
     standing: VOID_DEER_ELECTRO_STANDING
 
@@ -3614,6 +3781,7 @@ enemies:
       - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
       - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
       - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
+    drops: [4316]
     portrait: VOID_DEER_DENDRO_PORTRAIT
     standing: VOID_DEER_DENDRO_STANDING
 
@@ -3651,6 +3819,7 @@ enemies:
       - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
       - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
       - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
+    drops: [4316]
     portrait: VOID_DEER_CRYO_PORTRAIT
     standing: VOID_DEER_CRYO_STANDING
 
@@ -3688,6 +3857,7 @@ enemies:
       - { codeId: 1543, unlockLevel: 60, stage: 1 }   # 궁극의 보호막
       - { codeId: 1544, unlockLevel: 70, stage: 1 }   # 공허의 선봉장
       - { codeId: 1545, unlockLevel: 80, stage: 1 }   # 위압감
+    drops: [4316]
     portrait: VOID_DEER_GEO_PORTRAIT
     standing: VOID_DEER_GEO_STANDING
 
@@ -3726,6 +3896,7 @@ enemies:
       - { codeId: 1583, unlockLevel: 70, stage: 1 }   # 적응 장갑
       - { codeId: 1546, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
       - { codeId: 1582, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
+    drops: [4314]
     portrait: VOID_CRUSHER_PORTRAIT
     standing: VOID_CRUSHER_STANDING
 
@@ -3762,6 +3933,7 @@ enemies:
       - { codeId: 1583, unlockLevel: 70, stage: 1 }   # 적응 장갑
       - { codeId: 1546, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
       - { codeId: 1582, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
+    drops: [4314]
     portrait: VOID_CRUSHER_PYRO_PORTRAIT
     standing: VOID_CRUSHER_PYRO_STANDING
 
@@ -3798,6 +3970,7 @@ enemies:
       - { codeId: 1583, unlockLevel: 70, stage: 1 }   # 적응 장갑
       - { codeId: 1546, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
       - { codeId: 1582, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
+    drops: [4314]
     portrait: VOID_CRUSHER_HYDRO_PORTRAIT
     standing: VOID_CRUSHER_HYDRO_STANDING
 
@@ -3834,6 +4007,7 @@ enemies:
       - { codeId: 1583, unlockLevel: 70, stage: 1 }   # 적응 장갑
       - { codeId: 1546, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
       - { codeId: 1582, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
+    drops: [4314]
     portrait: VOID_CRUSHER_ANEMO_PORTRAIT
     standing: VOID_CRUSHER_ANEMO_STANDING
 
@@ -3870,6 +4044,7 @@ enemies:
       - { codeId: 1583, unlockLevel: 70, stage: 1 }   # 적응 장갑
       - { codeId: 1546, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
       - { codeId: 1582, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
+    drops: [4314]
     portrait: VOID_CRUSHER_ELECTRO_PORTRAIT
     standing: VOID_CRUSHER_ELECTRO_STANDING
 
@@ -3906,6 +4081,7 @@ enemies:
       - { codeId: 1583, unlockLevel: 70, stage: 1 }   # 적응 장갑
       - { codeId: 1546, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
       - { codeId: 1582, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
+    drops: [4314]
     portrait: VOID_CRUSHER_DENDRO_PORTRAIT
     standing: VOID_CRUSHER_DENDRO_STANDING
 
@@ -3942,6 +4118,7 @@ enemies:
       - { codeId: 1583, unlockLevel: 70, stage: 1 }   # 적응 장갑
       - { codeId: 1546, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
       - { codeId: 1582, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
+    drops: [4314]
     portrait: VOID_CRUSHER_CRYO_PORTRAIT
     standing: VOID_CRUSHER_CRYO_STANDING
 
@@ -3978,6 +4155,7 @@ enemies:
       - { codeId: 1583, unlockLevel: 70, stage: 1 }   # 적응 장갑
       - { codeId: 1546, unlockLevel: 80, stage: 1 }   # 완전함 — 알파 개체 대체
       - { codeId: 1582, unlockLevel: 90, stage: 1 }   # 천무지체 — 궁극의 신체 대체
+    drops: [4314]
     portrait: VOID_CRUSHER_GEO_PORTRAIT
     standing: VOID_CRUSHER_GEO_STANDING
 
@@ -4017,6 +4195,7 @@ enemies:
       - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
       - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
+    drops: [4314, 4315, 4316]
     portrait: VOID_DRAGON_PORTRAIT
     standing: VOID_DRAGON_STANDING
 
@@ -4054,6 +4233,7 @@ enemies:
       - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
       - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
+    drops: [4314, 4315, 4316]
     portrait: VOID_DRAGON_PYRO_PORTRAIT
     standing: VOID_DRAGON_PYRO_STANDING
 
@@ -4091,6 +4271,7 @@ enemies:
       - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
       - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
+    drops: [4314, 4315, 4316]
     portrait: VOID_DRAGON_HYDRO_PORTRAIT
     standing: VOID_DRAGON_HYDRO_STANDING
 
@@ -4128,6 +4309,7 @@ enemies:
       - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
       - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
+    drops: [4314, 4315, 4316]
     portrait: VOID_DRAGON_ANEMO_PORTRAIT
     standing: VOID_DRAGON_ANEMO_STANDING
 
@@ -4165,6 +4347,7 @@ enemies:
       - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
       - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
+    drops: [4314, 4315, 4316]
     portrait: VOID_DRAGON_ELECTRO_PORTRAIT
     standing: VOID_DRAGON_ELECTRO_STANDING
 
@@ -4202,6 +4385,7 @@ enemies:
       - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
       - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
+    drops: [4314, 4315, 4316]
     portrait: VOID_DRAGON_DENDRO_PORTRAIT
     standing: VOID_DRAGON_DENDRO_STANDING
 
@@ -4239,6 +4423,7 @@ enemies:
       - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
       - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
+    drops: [4314, 4315, 4316]
     portrait: VOID_DRAGON_CRYO_PORTRAIT
     standing: VOID_DRAGON_CRYO_STANDING
 
@@ -4276,6 +4461,7 @@ enemies:
       - { codeId: 1591, unlockLevel: 60, stage: 1 }   # 에테르 — 원소술사 대체
       - { codeId: 1593, unlockLevel: 80, stage: 1 }   # 원소 정통 — 원소 숙련 대체
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활 — 명계의 재림 대체
+    drops: [4314, 4315, 4316]
     portrait: VOID_DRAGON_GEO_PORTRAIT
     standing: VOID_DRAGON_GEO_STANDING
 
@@ -4317,6 +4503,7 @@ enemies:
       - { codeId: 1602, unlockLevel: 60, stage: 1 }   # 최후의 발악
       - { codeId: 1531, unlockLevel: 70, stage: 1 }   # 흡혈귀
       - { codeId: 1541, unlockLevel: 80, stage: 1 }   # 알파 개체
+    drops: [4220, 4306, 4312]
     portrait: BERSERKER_PORTRAIT
     standing: BERSERKER_STANDING
 
@@ -4353,6 +4540,7 @@ enemies:
       - { codeId: 1612, unlockLevel: 60, stage: 1 }   # 민간요법
       - { codeId: 1613, unlockLevel: 70, stage: 1 }   # 혹한의 사제
       - { codeId: 1614, unlockLevel: 80, stage: 1 }   # 완벽한 치료
+    drops: [4307, 4222]
     portrait: VOLVA_PORTRAIT
     standing: VOLVA_STANDING
 
@@ -4391,6 +4579,7 @@ enemies:
       - { codeId: 1531, unlockLevel: 60, stage: 1 }   # 흡혈귀
       - { codeId: 1541, unlockLevel: 70, stage: 1 }   # 알파 개체
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
+    drops: [4220, 4306]
     portrait: EINHAR_PORTRAIT
     standing: EINHAR_STANDING
 
@@ -4437,6 +4626,7 @@ enemies:
       - { codeId: 1531, unlockLevel: 70, stage: 1 }   # 흡혈귀
       - { codeId: 26,   unlockLevel: 80, stage: 1 }   # 과다치유
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활
+    drops: [4308, 4309, 4506]
     portrait: THOR_PORTRAIT
     standing: THOR_STANDING
 
@@ -4475,6 +4665,7 @@ enemies:
       - { codeId: 1614, unlockLevel: 55, stage: 1 }   # 완벽한 치료 (볼바의 민간요법 대신 금색)
       - { codeId: 1613, unlockLevel: 65, stage: 1 }   # 혹한의 사제
       - { codeId: 1541, unlockLevel: 80, stage: 1 }   # 알파 개체
+    drops: [4307, 4222]
     portrait: NORN_PORTRAIT
     standing: NORN_STANDING
 
@@ -4513,6 +4704,7 @@ enemies:
       - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
       - { codeId: 1541, unlockLevel: 80, stage: 1 }   # 알파 개체
       - { codeId: 1622, unlockLevel: 90, stage: 1 }   # 승승장구
+    drops: [4221, 4310]
     portrait: VALKYRIE_PORTRAIT
     standing: VALKYRIE_STANDING
 
@@ -4555,6 +4747,7 @@ enemies:
       - { codeId: 1602, unlockLevel: 50, stage: 1 }   # 최후의 발악
       - { codeId: 1531, unlockLevel: 60, stage: 1 }   # 흡혈귀
       - { codeId: 1306, unlockLevel: 80, stage: 1 }   # 망치 나가신다!
+    drops: [4220, 4306, 4405]
     portrait: RAGNAR_PORTRAIT
     standing: RAGNAR_STANDING
 
@@ -4601,6 +4794,7 @@ enemies:
       - { codeId: 1428, unlockLevel: 60, stage: 1 }   # 얼어붙은 파종
       - { codeId: 1425, unlockLevel: 80, stage: 1 }   # 병상첨병
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활
+    drops: [4313, 4311, 4246]
     portrait: FROST_GIANT_PORTRAIT
     standing: FROST_GIANT_STANDING
 
@@ -4645,6 +4839,7 @@ enemies:
       - { codeId: 1426, unlockLevel: 60, stage: 1 }   # 적응력 — 근접으로 오래 때릴수록 되돌아온다
       - { codeId: 29,   unlockLevel: 80, stage: 1 }   # 파죽지세
       - { codeId: 2,    unlockLevel: 90, stage: 1 }   # 기사회생
+    drops: [4317, 4406]
     portrait: SIGURD_PORTRAIT
     standing: SIGURD_STANDING
 
@@ -4683,6 +4878,7 @@ enemies:
       - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속
       - { codeId: 57,   unlockLevel: 80, stage: 1 }   # 원소 숙련
       - { codeId: 8,    unlockLevel: 90, stage: 1 }   # 창세의 노래 — 보스 전용. 아군 브륀힐드는 들지 않는다
+    drops: [4318]
     portrait: BRYNHILD_PORTRAIT
     standing: BRYNHILD_STANDING
 
@@ -4732,5 +4928,491 @@ enemies:
       - { codeId: 1545, unlockLevel: 60, stage: 1 }   # 위압감 — 궁극기를 늦춘다
       - { codeId: 1425, unlockLevel: 80, stage: 1 }   # 병상첨병
       - { codeId: 1592, unlockLevel: 90, stage: 1 }   # 완전한 부활
+    drops: [4246, 4507]
     portrait: ODIN_PHASE1_PORTRAIT
     standing: ODIN_PHASE1_STANDING
+
+  # ── 일본 천공 전선 (적 themeId 20 · 스테이지 테마 19) ──────────────
+  #
+  # 츠쿠요미가 공허 괴수의 공중 침공을 막는 동부 최전선. 설계 원본은 Theme_Japan_Sky_Frontline.md다.
+  # 이 테마는 여러 번 때리거나 지속피해를 까는 파티가 이긴다. 방어의 대부분이 타격 횟수로
+  # 깎이는 무적이라 한 방이 아무리 커도 1회로만 센다.
+  #
+  # 기본 병력은 범용 괴조(1070)를 그대로 편성한다 — 여기에 사본을 만들지 않는다.
+  # 결정 완충(1700/1701)은 이 테마의 신규 적에게만 붙는다. 괴조와 소환체에는 없다.
+  - id: 1130
+    name: 공허의 등불나방
+    themeId: 20
+    archetype: 11
+    element: Dendro
+    tier: normal
+    tags: [VoidMonster, Beast, Insect]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: INT
+    subStat: CON
+    strBase: 6
+    dexBase: 14
+    dexIncrementLvl: 1
+    conBase: 10
+    conIncrementLvl: 1
+    intBase: 18
+    intIncrementLvl: 2
+    lukBase: 8
+    lukIncrementLvl: 1
+    manaMax: 100
+    codes: { passive: 1710, normal: 1710, ultimate: 1710 }
+    levelPassives:
+      - { codeId: 1711, unlockLevel: 10, stage: 1 }   # 작은 등불
+      - { codeId: 1700, unlockLevel: 20, stage: 1 }   # 결정 완충
+      - { codeId: 1712, unlockLevel: 40, stage: 1 }   # 등불의 군집
+      - { codeId: 1713, unlockLevel: 60, stage: 1 }   # 남겨진 빛
+      - { codeId: 1701, unlockLevel: 70, stage: 1 }   # 완전한 결정 완충
+    drops: [4250, 4906]
+    portrait: VOID_LANTERN_MOTH_PORTRAIT
+    standing: VOID_LANTERN_MOTH_STANDING
+
+  # 고치는 공격하지 않는다. 포식자 하나와 연결되어 치유·보호막을 공급하고,
+  # 무적이 다 벗겨져도 살아 있는 한 멈추지 않는다. 연결 대상이 쓰러지면 붕괴해 떠난다.
+  - id: 1131
+    name: 공허의 고치
+    themeId: 20
+    archetype: 7
+    element: Geo
+    tier: normal
+    tags: [VoidMonster, Beast, Insect]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: CON
+    subStat: INT
+    strBase: 4
+    dexBase: 8
+    dexIncrementLvl: 1
+    conBase: 8
+    conIncrementLvl: 1
+    intBase: 12
+    intIncrementLvl: 1
+    lukBase: 4
+    manaMax: 150
+    codes: { passive: 1720, normal: 1720, ultimate: 1720 }
+    levelPassives:
+      - { codeId: 1700, unlockLevel: 20, stage: 1 }   # 결정 완충
+      - { codeId: 1702, unlockLevel: 30, stage: 1 }   # 결정 피막
+      - { codeId: 1722, unlockLevel: 50, stage: 1 }   # 응축 봉합
+      - { codeId: 1701, unlockLevel: 70, stage: 1 }   # 완전한 결정 완충
+    drops: [4252, 4322]
+    portrait: VOID_COCOON_PORTRAIT
+    standing: VOID_COCOON_STANDING
+
+  # 종말의 포식자전 고치. 스탯은 같고 고유 패시브만 다르다 — 무적 8회, 치유 1.5%.
+  # 폴백 풀에 섞이지 않도록 themeId 0으로 둔다.
+  - id: 1132
+    name: 공허의 고치
+    themeId: 0
+    archetype: 7
+    element: Geo
+    tier: normal
+    tags: [VoidMonster, Beast, Insect]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: CON
+    subStat: INT
+    strBase: 4
+    dexBase: 8
+    dexIncrementLvl: 1
+    conBase: 8
+    conIncrementLvl: 1
+    intBase: 12
+    intIncrementLvl: 1
+    lukBase: 4
+    manaMax: 150
+    codes: { passive: 1721, normal: 1720, ultimate: 1720 }
+    levelPassives:
+      - { codeId: 1700, unlockLevel: 20, stage: 1 }   # 결정 완충
+      - { codeId: 1702, unlockLevel: 30, stage: 1 }   # 결정 피막
+      - { codeId: 1722, unlockLevel: 50, stage: 1 }   # 응축 봉합
+      - { codeId: 1701, unlockLevel: 70, stage: 1 }   # 완전한 결정 완충
+    drops: [4252, 4322]
+    portrait: VOID_COCOON_PORTRAIT
+    standing: VOID_COCOON_STANDING
+
+  # 나비는 쓰러지는 순간 같은 진영 전체에 화상을 확정으로 퍼뜨린다. 먼저 깨면 고치와
+  # 포식자의 무적이 화상 틱으로 함께 벗겨진다.
+  - id: 1133
+    name: 공허의 나비
+    themeId: 20
+    archetype: 7
+    element: Pyro
+    tier: normal
+    tags: [VoidMonster, Beast, Insect]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: INT
+    subStats: [DEX, CON]
+    strBase: 6
+    dexBase: 18
+    dexIncrementLvl: 2
+    conBase: 8
+    conIncrementLvl: 1
+    intBase: 16
+    intIncrementLvl: 2
+    lukBase: 10
+    lukIncrementLvl: 1
+    manaMax: 120
+    codes: { passive: 1730, normal: 1730, ultimate: 1730 }
+    levelPassives:
+      - { codeId: 1702, unlockLevel: 10, stage: 1 }   # 결정 피막
+      - { codeId: 1700, unlockLevel: 20, stage: 1 }   # 결정 완충
+      - { codeId: 1731, unlockLevel: 40, stage: 1 }   # 타오르는 인분
+      - { codeId: 1732, unlockLevel: 60, stage: 1 }   # 오래 남는 불씨
+      - { codeId: 1701, unlockLevel: 70, stage: 1 }   # 완전한 결정 완충
+    drops: [4323, 4250, 4906]
+    portrait: VOID_BUTTERFLY_PORTRAIT
+    standing: VOID_BUTTERFLY_STANDING
+
+  # 급강하 뒤마다 깃털 결정을 다시 두른다. 한 방 화력은 매번 3회를 헛치고,
+  # 다단·지속피해는 갱신 사이의 틈에 본체를 깎는다.
+  - id: 1134
+    name: 공허의 포식자
+    themeId: 20
+    archetype: 7
+    element: Anemo
+    tier: normal
+    tags: [VoidMonster, Bird, Beast]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: STR
+    subStats: [CON, DEX]
+    strBase: 26
+    strIncrementLvl: 3
+    dexBase: 16
+    dexIncrementLvl: 1
+    conBase: 24
+    conIncrementLvl: 2
+    intBase: 10
+    intIncrementLvl: 1
+    lukBase: 14
+    lukIncrementLvl: 1
+    manaMax: 100
+    codes: { passive: 1740, normal: 1740, ultimate: 1740 }
+    levelPassives:
+      - { codeId: 1741, unlockLevel: 10, stage: 1 }   # 상처 추적
+      - { codeId: 1700, unlockLevel: 20, stage: 1 }   # 결정 완충
+      - { codeId: 1512, unlockLevel: 30, stage: 1 }   # 날카로운 부리
+      - { codeId: 1742, unlockLevel: 40, stage: 1 }   # 깊은 급강하
+      - { codeId: 1703, unlockLevel: 60, stage: 1 }   # 응축된 깃
+      - { codeId: 1701, unlockLevel: 70, stage: 1 }   # 완전한 결정 완충
+    drops: [4251, 4324]
+    portrait: VOID_PREDATOR_PORTRAIT
+    standing: VOID_PREDATOR_STANDING
+
+  # 9슬롯 엘리트. 자기 무적은 없고, 연결된 고치 둘이 무적 부담을 맡는다.
+  - id: 2060
+    name: 종말의 포식자
+    themeId: 20
+    archetype: 7
+    element: Anemo
+    tier: elite
+    tags: [VoidMonster, Bird, Beast]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: STR
+    subStat: CON
+    strBase: 36
+    strIncrementLvl: 4
+    dexBase: 16
+    dexIncrementLvl: 1
+    conBase: 26
+    conIncrementLvl: 3
+    intBase: 12
+    intIncrementLvl: 1
+    lukBase: 16
+    lukIncrementLvl: 1
+    manaMax: 120
+    codes: { passive: 1750, normal: 1750, ultimate: 1750 }
+    levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1700, unlockLevel: 20, stage: 1 }   # 결정 완충
+      - { codeId: 1751, unlockLevel: 30, stage: 1 }   # 깊은 종말
+      - { codeId: 1512, unlockLevel: 40, stage: 1 }   # 날카로운 부리
+      - { codeId: 1703, unlockLevel: 50, stage: 1 }   # 응축된 깃
+      - { codeId: 1752, unlockLevel: 60, stage: 1 }   # 쌍발톱
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
+      - { codeId: 1701, unlockLevel: 70, stage: 1 }   # 완전한 결정 완충
+    drops: [4324, 4323, 4907]
+    portrait: APOCALYPSE_PREDATOR_PORTRAIT
+    standing: APOCALYPSE_PREDATOR_STANDING
+
+  # 10슬롯 최종 보스. 후열에 서서 전열에 두 종류의 결정을 떨군다.
+  # 허기 결정을 놓치면 삼켜 강해지고, 파열 비늘을 놓치면 파티 전체에서 터진다.
+  # 체력은 기존 최종 보스들의 약 72~74%다 — 파티 행동의 상당 부분이 소환체 처리에 쓰이기 때문이다.
+  - id: 3070
+    name: 천공의 포식자
+    themeId: 20
+    archetype: 11
+    element: Anemo
+    tier: boss
+    tags: [VoidMonster, Beast, Reptile]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: STR
+    subStat: CON
+    strBase: 42
+    strIncrementLvl: 4
+    dexBase: 16
+    dexIncrementLvl: 1
+    conBase: 50
+    conIncrementLvl: 5
+    intBase: 14
+    intIncrementLvl: 1
+    lukBase: 16
+    lukIncrementLvl: 1
+    manaMax: 140
+    codes: { passive: 1760, normal: 1760, ultimate: 1760 }
+    levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1700, unlockLevel: 20, stage: 1 }   # 결정 완충
+      - { codeId: 1761, unlockLevel: 30, stage: 1 }   # 단단한 결정 — 소환체 무적 +2
+      - { codeId: 1703, unlockLevel: 40, stage: 1 }   # 응축된 깃
+      - { codeId: 1762, unlockLevel: 50, stage: 1 }   # 사냥의 절정 — 50% 이하에서 소환 주기 2회
+      - { codeId: 1763, unlockLevel: 60, stage: 1 }   # 탐욕 — 흡수 15% · 포만 +25%
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
+      - { codeId: 1701, unlockLevel: 70, stage: 1 }   # 완전한 결정 완충
+    drops: [4322, 4324, 4908]
+    portrait: SKY_PREDATOR_PORTRAIT
+    standing: SKY_PREDATOR_STANDING
+
+  # ── 천공의 포식자 소환체 ────────────────────────────────────────
+  # 편성에 직접 적지 않는다(themeId 0). 최대 체력은 소환 시점 본체 최대 체력의 3%로,
+  # 행동 속도는 본체를 따라가도록 소환하는 쪽이 덮어쓴다. 아래 CON·DEX는 자리만 채운 값이다.
+  # 궁극기는 없다(1770은 예약되지 않는 빈 코드). 처치해도 보수를 주지 않는다(Summon 태그).
+  - id: 1135
+    name: 허기 결정
+    themeId: 0
+    archetype: 7
+    element: Void
+    tier: normal
+    tags: [VoidMonster, Summon]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: CON
+    subStat: DEX
+    strBase: 1
+    dexBase: 16
+    dexIncrementLvl: 1
+    conBase: 10
+    conIncrementLvl: 1
+    intBase: 1
+    lukBase: 1
+    manaMax: 999
+    codes: { passive: 1770, normal: 1770, ultimate: 1770 }
+    levelPassives: []
+    drops: []
+    portrait: HUNGER_CRYSTAL_PORTRAIT
+    standing: HUNGER_CRYSTAL_STANDING
+
+  - id: 1136
+    name: 파열 비늘
+    themeId: 0
+    archetype: 7
+    element: Anemo
+    tier: normal
+    tags: [VoidMonster, Summon]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: CON
+    subStat: DEX
+    strBase: 1
+    dexBase: 16
+    dexIncrementLvl: 1
+    conBase: 10
+    conIncrementLvl: 1
+    intBase: 1
+    lukBase: 1
+    manaMax: 999
+    codes: { passive: 1771, normal: 1770, ultimate: 1770 }
+    levelPassives: []
+    drops: []
+    portrait: RUPTURE_SCALE_PORTRAIT
+    standing: RUPTURE_SCALE_STANDING
+
+  # ── 일본 해안 전선 (적 themeId 21 · 스테이지 테마 20) ──────────────
+  #
+  # 공허 괴수의 상륙을 막는 동부 최전선. 설계 원본은 Theme_Japan_Coastal_Frontline.md다.
+  # 새 병종은 전부 공허의 갑주(1800) 하나를 공유한다 — STR +40%와 보호막을 두르고,
+  # 실제 행동불능(빙결·기절·에어본)에 들어가는 순간 둘 다 벗는다. 보호막만 깨서는 STR 강화가 남는다.
+  #
+  # 초반 병력은 기존 공허의 기사·사수·프리즘의 물·얼음 변형을 그대로 편성한다 — 사본을 만들지 않는다.
+  # 물과 얼음이 아군에게 겹쳐 빙결이 걸리는 것을 먼저 겪게 해, 뒤에 나올 갑주의 해법을 몸으로 가르친다.
+  - id: 1140
+    name: 공허의 돌격대장
+    themeId: 21
+    archetype: 7
+    element: Hydro
+    tier: normal
+    tags: [VoidMonster, Beast, Crustacean]
+    startingItemIds: []
+    startingItemsByLevel:
+      - { itemId: 4184, minLevel: 1, maxLevel: 40 }   # 무딘 집게날 — 반응 약화(적 전용)
+      - { itemId: 4237, minLevel: 41 }   # 강철 둔기
+    startingProficiencies: [Mace]
+    mainStat: CON
+    subStat: STR
+    strBase: 22
+    strIncrementLvl: 2
+    dexBase: 8
+    dexIncrementLvl: 1
+    conBase: 24
+    conIncrementLvl: 3
+    intBase: 6
+    lukBase: 8
+    lukIncrementLvl: 1
+    manaMax: 100
+    codes: { passive: 1800, normal: 1810, ultimate: 1810 }
+    levelPassives:
+      - { codeId: 1811, unlockLevel: 20, stage: 1 }   # 날선 집게
+      - { codeId: 1812, unlockLevel: 40, stage: 1 }   # 조류의 압력
+      - { codeId: 1813, unlockLevel: 60, stage: 1 }   # 쌍집게
+    drops: [4253]
+    portrait: VOID_ASSAULT_CAPTAIN_PORTRAIT
+    standing: VOID_ASSAULT_CAPTAIN_STANDING
+
+  # 느리고 두꺼운 벽. CON이 높아 입장 보호막이 크다.
+  - id: 1141
+    name: 공허의 선봉대장
+    themeId: 21
+    archetype: 8
+    element: Geo
+    tier: normal
+    tags: [VoidMonster, Beast, Reptile]
+    startingItemIds: []
+    startingItemsByLevel:
+      - { itemId: 4184, minLevel: 1, maxLevel: 40 }   # 무딘 집게날 — 반응 약화(적 전용)
+      - { itemId: 4237, minLevel: 41 }   # 강철 둔기
+    startingProficiencies: [Mace]
+    mainStat: CON
+    subStat: STR
+    strBase: 14
+    strIncrementLvl: 1
+    dexBase: 6
+    dexIncrementLvl: 1
+    conBase: 28
+    conIncrementLvl: 3
+    intBase: 10
+    intIncrementLvl: 1
+    lukBase: 6
+    manaMax: 120
+    codes: { passive: 1800, normal: 1820, ultimate: 1820 }
+    levelPassives:
+      - { codeId: 1821, unlockLevel: 20, stage: 1 }   # 무거운 등갑
+      - { codeId: 1822, unlockLevel: 40, stage: 1 }   # 밀려오는 암초
+      - { codeId: 1823, unlockLevel: 60, stage: 1 }   # 되받는 등갑
+    drops: [4254, 4327]
+    portrait: VOID_SPEARHEAD_CAPTAIN_PORTRAIT
+    standing: VOID_SPEARHEAD_CAPTAIN_STANDING
+
+  # 후열을 무는 일반 병종. 주공격이 DEX라 갑주를 벗겨도 화력은 크게 줄지 않는다 — 방어가 약해질 뿐이다.
+  - id: 1142
+    name: 심연의 사냥꾼
+    themeId: 21
+    archetype: 10
+    element: Pyro
+    tier: normal
+    tags: [VoidMonster, Beast, Fish]
+    startingItemIds: []
+    startingItemsByLevel:
+      - { itemId: 4185, minLevel: 1, maxLevel: 40 }   # 무딘 송곳니 — 반응 약화(적 전용)
+      - { itemId: 4230, minLevel: 41 }   # 강철 단검
+    startingProficiencies: [Dagger]
+    mainStat: DEX
+    subStats: [CON, LUK]
+    strBase: 18
+    strIncrementLvl: 2
+    dexBase: 24
+    dexIncrementLvl: 2
+    conBase: 18
+    conIncrementLvl: 2
+    intBase: 10
+    intIncrementLvl: 1
+    lukBase: 16
+    lukIncrementLvl: 1
+    manaMax: 100
+    codes: { passive: 1800, normal: 1830, ultimate: 1830 }
+    levelPassives:
+      - { codeId: 1831, unlockLevel: 20, stage: 1 }   # 피 냄새
+      - { codeId: 1832, unlockLevel: 40, stage: 1 }   # 깊은 물어뜯기
+      - { codeId: 1833, unlockLevel: 60, stage: 1 }   # 붉은 조류
+    drops: [4326, 4909]
+    portrait: ABYSS_HUNTER_PORTRAIT
+    standing: ABYSS_HUNTER_STANDING
+
+  # 8슬롯 중간 보스. 제어를 앞의 갑주에 쓸지 촉수 폭풍 준비를 끊는 데 쓸지 고르게 한다.
+  - id: 2071
+    name: 심연의 공포
+    themeId: 21
+    archetype: 11
+    element: Anemo
+    tier: elite
+    tags: [VoidMonster, Beast, Mollusk]
+    startingItemIds: []
+    startingItemsByLevel:
+      - { itemId: 4183, minLevel: 1, maxLevel: 40 }   # 흐린 결정 보주 — 반응 약화(적 전용)
+      - { itemId: 4241, minLevel: 41 }   # 맑은 보주
+    startingProficiencies: [Orb]
+    mainStat: INT
+    subStats: [CON, STR]
+    strBase: 20
+    strIncrementLvl: 2
+    dexBase: 10
+    dexIncrementLvl: 1
+    conBase: 28
+    conIncrementLvl: 3
+    intBase: 34
+    intIncrementLvl: 4
+    lukBase: 12
+    lukIncrementLvl: 1
+    manaMax: 120
+    codes: { passive: 1800, normal: 1840, ultimate: 1840 }
+    levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1841, unlockLevel: 30, stage: 1 }   # 굵은 촉수
+      - { codeId: 1842, unlockLevel: 50, stage: 1 }   # 폭풍의 눈
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
+    drops: [4255, 4326, 4910]
+    portrait: ABYSS_HORROR_PORTRAIT
+    standing: ABYSS_HORROR_STANDING
+
+  # 10슬롯 최종 보스. 체력 6구간마다 갑주를 다시 두르고, 대호흡 뒤 해일을 친다.
+  # 원소를 붙이지 않는다 — 무뎌진 무기도 들지 않는다. 대신 해일 위력이 크다.
+  # 체력은 기존 최종 보스의 약 85%다 — 반복 갑주와 구간 경계의 초과 피해 손실을 감안했다.
+  - id: 3080
+    name: 심연의 집정관
+    themeId: 21
+    archetype: 8
+    element: Hydro
+    tier: boss
+    tags: [VoidMonster, Beast, Whale]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: STR
+    subStat: CON
+    strBase: 40
+    strIncrementLvl: 4
+    dexBase: 8
+    dexIncrementLvl: 1
+    conBase: 52
+    conIncrementLvl: 6
+    intBase: 12
+    intIncrementLvl: 1
+    lukBase: 12
+    lukIncrementLvl: 1
+    manaMax: 140
+    codes: { passive: 1850, normal: 1850, ultimate: 1850 }
+    levelPassives:
+      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1851, unlockLevel: 30, stage: 1 }   # 무거운 꼬리
+      - { codeId: 1852, unlockLevel: 50, stage: 1 }   # 큰 해일
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
+    drops: [4327, 4254, 4911]
+    portrait: ABYSS_ARCHON_PORTRAIT
+    standing: ABYSS_ARCHON_STANDING

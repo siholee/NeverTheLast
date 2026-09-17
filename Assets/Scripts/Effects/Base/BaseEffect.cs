@@ -260,6 +260,21 @@ namespace Effects.Base
         public virtual float IncomingDamageCapRatio(Unit unit, DamageContext context) => 0f;
 
         /// <summary>
+        /// 한 번의 피해가 <b>체력을</b> 이 값 아래로 내리지 못한다. 0이면 제한이 없다.
+        ///
+        /// <see cref="IncomingDamageCapRatio"/>는 보호막 처리 전의 피해량을 자르므로, 경계 바로 앞에서
+        /// 큰 공격이 보호막에도 조금밖에 못 들어가는 문제가 생긴다. 이 훅은 보호막 흡수가 끝난 뒤
+        /// <b>체력 손실에만</b> 적용된다. 심연의 집정관의 체력 구간이 쓴다. 여러 효과가 걸리면 가장 높은 값이 이긴다.
+        /// </summary>
+        public virtual int HpLossFloor(Unit unit, DamageContext context) => 0;
+
+        /// <summary>
+        /// 이 효과의 주인이 필드에 서 있는 동안 같은 진영 <paramref name="attacker"/>의 피해가 보호막을 건너뛰는가.
+        /// 세이메이의 결계 해독처럼 <b>공격자가 아닌 곳에 붙은 오라</b>가 쓴다. 피해가 해결되는 순간에 묻는다.
+        /// </summary>
+        public virtual bool GrantsAlliedShieldPenetration(Unit owner, Unit attacker) => false;
+
+        /// <summary>
         /// 전장 상태가 주는 <b>불리한</b> 배율을 무시하는가. 유리한 쪽은 그대로 받는다.
         /// 혹한의 갑주처럼 "이 판에서만 안 아픈" 장비가 쓴다.
         /// </summary>
@@ -267,6 +282,15 @@ namespace Effects.Base
 
         /// <summary>치명 피해를 막으면 true. 사망 직전 효과(황혼 등)에서 사용한다.</summary>
         public virtual bool TryPreventDeath(Unit unit, Unit attacker) => false;
+
+        /// <summary>
+        /// 적중이 확정된 피해 한 번을 <b>통째로 무효화</b>하면 true. 천공 전선의 횟수제 무적이 쓴다.
+        ///
+        /// 회피 판정 뒤, 피해 계산 앞에서 묻는다. 빗나간 공격이 횟수를 깎으면 안 되고,
+        /// 무효화된 타격이 보호막·체력·흡혈을 건드려서도 안 되기 때문이다.
+        /// 받는 피해 배율 훅으로는 0을 만들 수 없다 — 최종 피해는 최소 1로 올려진다.
+        /// </summary>
+        public virtual bool TryNullifyHit(Unit unit, DamageContext context) => false;
 
         /// <summary>
         /// 보유자가 소환한 소환수의 피해 배율 보정 (1 = 변화 없음).

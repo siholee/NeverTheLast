@@ -163,12 +163,12 @@ namespace Managers.UI.DevTools
 
             // 범용 보상은 테마와 무관하게 풀에 들어가며, 모두 건강할 때는 무효 카드가 나오지 않는다.
             first.ModifyHp(first.HpMax/2);
-            var offered=game.rewardManager.GenerateRewards(999,10,GameMode.Training,8);
+            var offered=game.rewardManager.GenerateRewards(999,10,GameMode.Training,null);
             Assert("healing rewards enter any theme pool",healing.All(h=>offered.Any(r=>r.id==h.id)),
                 "all healing IDs",string.Join(",",offered.Where(r=>r.IsHealingReward).Select(r=>r.id)));
 
             first.ModifyHp(first.HpMax); second.ModifyHp(second.HpMax);
-            var healthyOffer=game.rewardManager.GenerateRewards(999,10,GameMode.Training,8);
+            var healthyOffer=game.rewardManager.GenerateRewards(999,10,GameMode.Training,null);
             Assert("healing rewards hidden for healthy party",healthyOffer.All(r=>!r.IsHealingReward),
                 "no healing reward",string.Join(",",healthyOffer.Where(r=>r.IsHealingReward).Select(r=>r.id)));
 
@@ -221,7 +221,7 @@ namespace Managers.UI.DevTools
             Clear();
             survivor=SpawnHero(); fallen=SpawnHero(-2,1); otherFallen=SpawnHero(-2,2);
             fallen.Die(null); otherFallen.Die(null);
-            var offered=game.rewardManager.GenerateRewards(999,10,GameMode.Training,8);
+            var offered=game.rewardManager.GenerateRewards(999,10,GameMode.Training,null);
             Assert("revival rewards enter any theme pool",revival.All(r=>offered.Any(candidate=>candidate.id==r.id)),
                 "all revival IDs",string.Join(",",offered.Where(r=>r.IsRevivalReward).Select(r=>r.id)));
             game.rewardManager.ApplyReward(aether);
@@ -232,7 +232,7 @@ namespace Managers.UI.DevTools
 
             Clear();
             SpawnHero(); SpawnHero(-2,1);
-            var livingOffer=game.rewardManager.GenerateRewards(999,10,GameMode.Training,8);
+            var livingOffer=game.rewardManager.GenerateRewards(999,10,GameMode.Training,null);
             Assert("revival rewards hidden without fallen ally",livingOffer.All(r=>!r.IsRevivalReward),
                 "no revival reward",string.Join(",",livingOffer.Where(r=>r.IsRevivalReward).Select(r=>r.id)));
             Clear();
@@ -647,15 +647,15 @@ namespace Managers.UI.DevTools
             Equal("shop purchase limit holds",0,game.ShopPurchasesLeft);
             game.RestorePreparationActionState(false,0);
 
-            // 3택에 소모품이 두 장 이상 섞이지 않는다.
+            // 보상 장수는 25스테이지마다 +1, 6장에서 멈춘다. 소모품 장수 상한은 없다.
+            Equal("reward count stage 1",3,RewardManager.RewardCountForStage(1));
+            Equal("reward count stage 25",4,RewardManager.RewardCountForStage(25));
+            Equal("reward count stage 75",6,RewardManager.RewardCountForStage(75));
+            Equal("reward count caps at 6",6,RewardManager.RewardCountForStage(300));
             hero.ModifyHp(hero.HpMax/2);
-            int worst=0;
-            for(int i=0;i<20;i++)
-            {
-                var offer=game.rewardManager.GenerateRewards(3,10,GameMode.Training,8);
-                worst=Mathf.Max(worst,offer.Count(r=>r.IsConsumable));
-            }
-            Assert("at most one consumable per offer",worst<=1,"<=1",worst.ToString());
+            var offer=game.rewardManager.GenerateRewards(6,10,GameMode.Training,null);
+            Equal("six-card offer fills",6,offer.Count);
+            Assert("offer never lists enemy-only gear",offer.All(r=>r.item?.enemyOnly!=true),"none","enemy-only listed");
 
             state.Clear();
             Clear();
@@ -722,12 +722,12 @@ namespace Managers.UI.DevTools
             Equal("valuable leaves the pouch",pouchBefore,inventory.Valuables.Count);
             Equal("valuable adds gold",goldBefore+worth,inventory.Gold);
 
-            // 상점 장비 매대 — 테마 전용은 오르지 않는다.
+            // 상점 장비 매대 — 캐릭터 전용은 오르지 않는다.
             var stock=game.rewardManager.BuildShopEquipment();
             Assert("shop stock exists",stock.Count>0,">0","empty");
-            Assert("shop stock is theme-free",
-                stock.All(r=>r.item?.themeIds==null||r.item.themeIds.Count==0),"no themeIds",
-                string.Join(",",stock.Where(r=>r.item?.themeIds!=null&&r.item.themeIds.Count>0).Select(r=>r.id)));
+            Assert("shop stock has no character-only gear",
+                stock.All(r=>r.item?.requiredUnitIds==null||r.item.requiredUnitIds.Count==0),"no requiredUnitIds",
+                string.Join(",",stock.Where(r=>r.item?.requiredUnitIds!=null&&r.item.requiredUnitIds.Count>0).Select(r=>r.id)));
             Assert("shop stock is priced",stock.All(r=>r.goldCost>0),">0","free item");
             Assert("shop stock holds no valuables",stock.All(r=>r.item?.IsValuable!=true),"none","valuable listed");
 

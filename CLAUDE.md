@@ -167,12 +167,12 @@ Singletons via `Manager.Instance`, in `Assets/Scripts/Managers/`.
 | `10_units.yaml` | Player units | `UnitData.cs` |
 | `20_codes.yaml` | Code display data (passive/normal/ultimate) | — |
 | `30_synergies.yaml` | Party roles, archetypes, per-main recommended lineups | `SynergyData.cs` |
-| `40_items.yaml` | Equipment (= reward pool) | `ItemData.cs` |
+| `40_items.yaml` | Equipment (rewards come from enemy `drops` + `commonDropItemIds`) | `ItemData.cs` |
 | `50_tokens.yaml` | Token definitions | `TokenData.cs` |
-| `60_enemies.yaml` | Enemies (normal/elite/boss) | `EnemyData.cs` |
+| `60_enemies.yaml` | Enemies (normal/elite/boss) and their `drops` | `EnemyData.cs` |
 | `70_rounds.yaml` | Round types / composition patterns (fallback only) | `RoundData.cs` |
 | `80_stages.yaml` | Themes, events, fixed bosses | `StageData.cs` |
-| `90_rewards.yaml` | Per-round reward tier odds | `RewardData.cs` |
+| `90_rewards.yaml` | Per-round reward tier odds, common drops, consumables | `RewardData.cs` |
 
 **Code IDs are per-slot namespaces.** Passive 22 and ultimate 22 are unrelated; `CodeFactory`
 resolves them in separate switches.
@@ -189,7 +189,7 @@ resolves them in separate switches.
 | Ally shared unlock passive | 1~179 |
 | Equipment-granted passive | 400~499 |
 | Summon codes (normal / ultimate) | 500~599 |
-| Enemy codes | 1000+ in per-theme 100-slot blocks (공용 1000 · 콜로세움 1100 · 로마 1200 · 메히코 1300 · 아스완 1400 · 공허 1500 · 노르드 1600) |
+| Enemy codes | 1000+ in per-theme 100-slot blocks (공용 1000 · 콜로세움 1100 · 로마 1200 · 메히코 1300 · 아스완 1400 · 공허 1500 · 노르드 1600 · 일본 천공 1700) |
 
 Enemy codes are dispatched by **range arms whose ID gaps are the style index**
 (`(LegionNormalStyle)(codeId - 1200)`), so append new enemy codes at the end of a family —
@@ -221,7 +221,7 @@ highest-level unlocks on low-INT units; that gate is gone and INT now only drive
 ### Effects and statuses
 
 `BaseEffect` (`Effects/Base/`) is one class with **many optional query hooks** — stat modifiers,
-incoming/outgoing damage multipliers, healing/shield multipliers, `TryPreventDeath`,
+incoming/outgoing damage multipliers, healing/shield multipliers, `TryPreventDeath`, `TryNullifyHit` (hit-count invulnerability),
 `MaxHpMultiplierModifier`, `HpSegmentCount`, and lifecycle (`OnApply` / `OnOwnerTurn` / `OnRemove`).
 Override only what a code needs. `Unit` aggregates every active effect when computing a value.
 
@@ -255,7 +255,7 @@ A unit with **two sub stats** splits that budget instead of doubling it — each
 training bonus is +5% per sub rather than +10%. Nine units do this: 라이트 · 니콜 · 피그말리온 ·
 아스클레피아 · 아마테라스 · 야마 · 이카리아 · 마리 · 프레이아.
 
-**40 units in total**, with two standing exceptions. **Gaudi** has no sub stat at all
+**41 units in total**, with two standing exceptions. **Gaudi** has no sub stat at all
 (main +2, everything else +1). **Jean** has no weapon proficiency at all, by design — she fights
 bare-handed and carries no starting weapon, so any weapon she holds contributes weight and
 nothing else. **Do not add a martial-arts proficiency**; the empty weapon slot is the condition

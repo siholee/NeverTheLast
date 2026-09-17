@@ -28,7 +28,8 @@ namespace Managers.UI.Screens
     /// </summary>
     public class RewardScreen : ModalScreen
     {
-        private const int CardCount = 3;
+        /// <summary>한 줄에 놓는 카드 수. 넷 이상이면 두 줄로 나눈다.</summary>
+        private const int CardsPerRow = 3;
         private const int MaxStatRows = 4;
         private const int MaxSpecRows = 4;
 
@@ -49,7 +50,7 @@ namespace Managers.UI.Screens
         {
             _cardsRoot = UIBuild.Container("RewardCards", Body);
             UIBuild.Stretch(_cardsRoot);
-            for (int i = 0; i < CardCount; i++)
+            for (int i = 0; i < RewardManager.MaxRewardCount; i++)
             {
                 _cards.Add(new Card(_cardsRoot, i, OnPick));
             }
@@ -62,9 +63,14 @@ namespace Managers.UI.Screens
             EnsureBuilt();
             _rewards = rewards ?? new List<RewardDef>();
 
+            // 보상은 스테이지가 오를수록 3장에서 6장까지 는다. 셋까지는 한 줄, 넷부터는 3열 두 줄이다.
+            int shown = Mathf.Min(_rewards.Count, _cards.Count);
+            int columns = Mathf.Clamp(shown, 1, CardsPerRow);
+            int rows = Mathf.Max(1, Mathf.CeilToInt(shown / (float)CardsPerRow));
             for (int i = 0; i < _cards.Count; i++)
             {
-                _cards[i].Bind(i < _rewards.Count ? _rewards[i] : null);
+                if (i < shown) _cards[i].Layout(i % CardsPerRow, i / CardsPerRow, columns, rows);
+                _cards[i].Bind(i < shown ? _rewards[i] : null);
             }
 
             ShowRewardCards();
@@ -330,6 +336,7 @@ namespace Managers.UI.Screens
         private sealed class Card
         {
             private readonly GameObject _root;
+            private readonly RectTransform _rect;
             private readonly Image _rarityStrip;
             private readonly TextMeshProUGUI _meta;
             private readonly TextMeshProUGUI _name;
@@ -349,10 +356,8 @@ namespace Managers.UI.Screens
                     UIShapes.Corner.Diagonal, 12, UITheme.Outline, 1);
                 _root = panel.gameObject;
 
-                float width = 1f / CardCount;
-                UIBuild.Anchor(panel.rectTransform,
-                    new Vector2(index * width, 0f),
-                    new Vector2((index + 1) * width, 1f), 14f, 0f);
+                _rect = panel.rectTransform;
+                Layout(index, 0, CardsPerRow, 1);
 
                 // 카드 어디를 눌러도 고를 수 있다. 아래 버튼은 그 사실을 알리는 표지다.
                 UIBuild.OnClick(_root, () => onPick(index));
@@ -459,6 +464,17 @@ namespace Managers.UI.Screens
                 UIBuild.Anchor(value.rectTransform,
                     new Vector2(0.58f, top - 0.058f), new Vector2(1f, top), 18f, 0f);
                 return value;
+            }
+
+            /// <summary>격자 칸에 맞춰 카드를 놓는다. 위 줄부터 채운다.</summary>
+            public void Layout(int column, int row, int columns, int rows)
+            {
+                float width = 1f / Mathf.Max(1, columns);
+                float height = 1f / Mathf.Max(1, rows);
+                float top = 1f - row * height;
+                UIBuild.Anchor(_rect,
+                    new Vector2(column * width, top - height),
+                    new Vector2((column + 1) * width, top), 14f, rows > 1 ? 7f : 0f);
             }
 
             public void Bind(RewardDef reward)

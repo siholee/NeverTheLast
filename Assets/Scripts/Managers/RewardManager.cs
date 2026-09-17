@@ -95,8 +95,26 @@ namespace Managers
 
     public class RewardManager : MonoBehaviour
     {
-        private const int SabahUnitId = 3;
-        private static readonly HashSet<int> SabahRewardItemIds = new() { 4303, 4304 };
+        /// <summary>보상 3택의 기본 장수.</summary>
+        public const int BaseRewardCount = 3;
+
+        /// <summary>
+        /// 이만큼 스테이지를 넘길 때마다 보상 카드가 한 장 는다.
+        /// 포켓로그는 200웨이브 동안 50웨이브마다 황금 몬스터볼로 선택지를 +1(최대 +3) 한다.
+        /// 우리 런은 100스테이지이므로 같은 비율로 25스테이지마다 +1이다.
+        /// </summary>
+        public const int RewardCountStageStep = 25;
+
+        /// <summary>보상 카드 최대 장수. 포켓로그와 같이 기본 3 + 3.</summary>
+        public const int MaxRewardCount = 6;
+
+        /// <summary>
+        /// 이 스테이지를 이긴 뒤 보여 줄 보상 장수. 1~24: 3 · 25~49: 4 · 50~74: 5 · 75~: 6.
+        /// 무한 모드도 6에서 멈춘다.
+        /// </summary>
+        public static int RewardCountForStage(int stage)
+            => Mathf.Clamp(BaseRewardCount + Mathf.Max(0, stage) / RewardCountStageStep, BaseRewardCount, MaxRewardCount);
+
 
         public static RewardManager Instance { get; private set; }
 
@@ -133,13 +151,26 @@ namespace Managers
             }
         }
 
-        public List<RewardDef> GenerateRewards(int count = 3, int rewardRound = 1, GameMode mode = GameMode.Training, int themeId = 0)
+        /// <summary>
+        /// 전투 보상 3택.
+        ///
+        /// <b>후보는 이번 전투에서 처치한 적의 드랍 + 공용 드랍 + 소모품을 한 풀로 합친 것이다.</b>
+        /// 그 풀에서 라운드 티어 확률로 티어를 굴려 뽑으므로, 적 드랍이 안 나올 수도 소모품이 안 나올 수도 있다.
+        /// 소모품 장수에는 상한이 없다 — 드랍과 소모품은 같은 풀의 동등한 후보다.
+        /// 적 전용 장비(<c>enemyOnly</c>, 초반의 무뎌진 무기)는 드랍표에 잘못 적혀 있어도 여기서 빠진다.
+        /// 테마 보상 풀(<c>themeIds</c>)은 폐지했다 — 테마 장비는 그 테마 적이 떨군다.
+        /// </summary>
+        public List<RewardDef> GenerateRewards(int count, int rewardRound, GameMode mode, IEnumerable<int> killedEnemyIds)
         {
             EnsureRewardData();
             _itemDataList ??= GameManager.Instance?.itemDataList ?? GameManager.Instance?.dataManager?.FetchItemDataList();
+
+            var dropIds = new HashSet<int>(_rewardDataList?.commonDropItemIds ?? new List<int>());
+            foreach (int itemId in EnemyDropIds(killedEnemyIds)) dropIds.Add(itemId);
+
             var pool = (_itemDataList?.items ?? new List<ItemData>())
-                .Where(item => item != null && !item.eventOnly && IsAvailableInTheme(item, themeId) &&
-                               IsAvailableForRoster(item))
+                .Where(item => item != null && dropIds.Contains(item.id) &&
+                               !item.eventOnly && !item.enemyOnly && IsAvailableForRoster(item))
                 .Select(item => new RewardDef
                 {
                     id = $"item_{item.id}",
@@ -155,16 +186,10 @@ namespace Managers
             {
                 pool.AddRange(_rewardDataList.rewards.Where(reward =>
                     reward != null &&
-                    IsAvailableInTheme(reward.themeIds, themeId) &&
                     (!reward.IsHealingReward || HasInjuredHero()) &&
                     (!reward.IsRevivalReward || HasFallenHero())));
             }
             var result = new List<RewardDef>();
-
-            // 소모품은 카드 세 장마다 한 장까지만 섞는다. 회복약·부활약·강화제를 다 합치면
-            // 소모품이 장비보다 많아서, 거르지 않으면 3택이 통째로 소모품으로 채워진다.
-            int consumableLimit = Mathf.Max(1, Mathf.CeilToInt(count / 3f));
-            int consumablesPicked = 0;
 
             for (int i = 0; i < count && pool.Count > 0; i++)
             {
@@ -178,14 +203,24 @@ namespace Managers
                 var reward = candidates[Random.Range(0, candidates.Count)];
                 result.Add(reward);
                 pool.Remove(reward);
-
-                if (reward.IsConsumable && ++consumablesPicked >= consumableLimit)
-                {
-                    pool.RemoveAll(candidate => candidate.IsConsumable);
-                }
             }
 
             return result;
+        }
+
+        /// <summary>처치한 적들의 드랍표를 합친다. 알 수 없는 적 ID는 건너뛴다.</summary>
+        private static IEnumerable<int> EnemyDropIds(IEnumerable<int> killedEnemyIds)
+        {
+            if (killedEnemyIds == null) yield break;
+            List<EnemyData> enemies = GameManager.Instance?.dataManager?.FetchEnemyDataList()?.enemies;
+            if (enemies == null) yield break;
+
+            foreach (int enemyId in killedEnemyIds.Distinct())
+            {
+                EnemyData data = enemies.FirstOrDefault(enemy => enemy.id == enemyId);
+                if (data?.drops == null) continue;
+                foreach (int itemId in data.drops) yield return itemId;
+            }
         }
 
         // ── 상점 ─────────────────────────────────────────────────────
@@ -280,16 +315,16 @@ namespace Managers
         /// <summary>
         /// 상점 장비 매대. <c>shopPrice</c>를 가진 장비만 올라간다.
         ///
-        /// 테마 전용 장비는 올리지 않는다 — 상점은 어느 테마에서나 같은 물건을 파는 자리이고,
-        /// 테마 전용은 <b>그 테마를 이겨서</b> 얻는 것이라야 뜻이 산다.
+        /// 캐릭터 전용 장비는 올리지 않는다 — 상점은 누구의 덱이든 같은 물건을 파는 자리이고,
+        /// 적 드랍 장비는 <b>그 적을 이겨서</b> 얻는 것이라야 뜻이 산다(가격이 없으니 애초에 오르지 않는다).
         /// </summary>
         public List<RewardDef> BuildShopEquipment()
         {
             _itemDataList ??= GameManager.Instance?.itemDataList
                               ?? GameManager.Instance?.dataManager?.FetchItemDataList();
             return (_itemDataList?.items ?? new List<ItemData>())
-                .Where(item => item != null && item.shopPrice > 0 && !item.eventOnly &&
-                               (item.themeIds == null || item.themeIds.Count == 0))
+                .Where(item => item != null && item.shopPrice > 0 && !item.eventOnly && !item.enemyOnly &&
+                               (item.requiredUnitIds == null || item.requiredUnitIds.Count == 0))
                 .Select(item => new RewardDef
                 {
                     id = $"item_{item.id}",
@@ -303,21 +338,6 @@ namespace Managers
                 .ToList();
         }
 
-        /// <summary>
-        /// 테마 전용 보상 필터. <c>themeIds</c>가 비어 있으면 어느 테마에서나 나온다.
-        /// 테마를 특정할 수 없는 호출(themeId == 0)에서는 전용 보상을 제외한다.
-        /// </summary>
-        private static bool IsAvailableInTheme(ItemData item, int themeId)
-        {
-            return item != null && IsAvailableInTheme(item.themeIds, themeId);
-        }
-
-        private static bool IsAvailableInTheme(IReadOnlyCollection<int> themeIds, int themeId)
-        {
-            if (themeIds == null || themeIds.Count == 0) return true;
-            return themeId != 0 && themeIds.Contains(themeId);
-        }
-
         private static bool HasInjuredHero()
         {
             return GridManager.Instance?.heroList?.Any(hero =>
@@ -329,17 +349,20 @@ namespace Managers
             return GridManager.Instance?.heroList?.Any(IsValidReviveTarget) == true;
         }
 
-        /// <summary>칸자르와 잠비야는 사바흐가 현재 파티·대기석·선발 덱에 있을 때만 등장한다.</summary>
+        /// <summary>
+        /// 캐릭터 전용 장비(<c>requiredUnitIds</c>)는 주인 중 하나가 현재 파티·대기석·선발 덱에 있을 때만 후보가 된다.
+        /// 칸자르·잠비야(사바흐)와 시구르드·브륀힐드·일본 세 사람의 장비가 같은 규칙을 쓴다.
+        /// </summary>
         private static bool IsAvailableForRoster(ItemData item)
         {
-            if (item == null || !SabahRewardItemIds.Contains(item.id)) return true;
+            if (item?.requiredUnitIds == null || item.requiredUnitIds.Count == 0) return item != null;
 
             bool inPartyOrBench = GridManager.Instance?.heroList?.Any(unit =>
-                unit != null && !unit.IsEnemy && unit.ID == SabahUnitId) == true;
+                unit != null && !unit.IsEnemy && item.requiredUnitIds.Contains(unit.ID)) == true;
             if (inPartyOrBench) return true;
 
             return CharacterSelectionManager.Instance?.Lineup?.Any(entry =>
-                entry != null && entry.UnitId == SabahUnitId) == true;
+                entry != null && item.requiredUnitIds.Contains(entry.UnitId)) == true;
         }
 
         private static string BuildItemDescription(ItemData item)

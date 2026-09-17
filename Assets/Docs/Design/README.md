@@ -45,7 +45,7 @@
 | [Detail_02_Combat.md](Detail_02_Combat.md) | 전장, 행동치, 피해 공식, 보호막, 원소, 상태, 이벤트 훅 |
 | [Detail_03_Character.md](Detail_03_Character.md) | 5스탯과 파생, 코드 3분류, 패시브 해금, 캐릭터 데이터 스키마 |
 | [Detail_04_Training.md](Detail_04_Training.md) | 집중 훈련, 서포트 카드, 우정도, 패시브 전수, 육성 완료 계승 |
-| [Detail_05_Economy.md](Detail_05_Economy.md) | 골드·토큰·티켓, 장비, 전투 보상 풀과 티어 확률 |
+| [Detail_05_Economy.md](Detail_05_Economy.md) | 골드·토큰·티켓, 장비, 적 드랍 보상과 티어 확률 |
 | [Detail_06_Events.md](Detail_06_Events.md) | 사건 데이터 스키마, 선택지 액션, VN 연출 필드, 현재 사건 |
 | [Detail_07_UI_Tech.md](Detail_07_UI_Tech.md) | UI 화면 구성, 매니저 구조, 데이터 파일, 저장 시스템 |
 | [Detail_08_Confirmed_Characters.md](Detail_08_Confirmed_Characters.md) | 확정 캐릭터의 전투 사양, 해금 패시브, 아트 자산과 남은 작업 |

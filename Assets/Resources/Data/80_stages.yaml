@@ -1,9 +1,9 @@
 # 테마 / 사건 / 고정 보스 정의
 #
-# 운영 테마는 로마 군단(id 5), 메히코(id 6), 아스완(id 7)이다.
+# 운영 테마는 로마 군단(5)·메히코(6)·아스완(7)·공허 8종(8~15)·노르드 3부작(16~18)·천공 전선(19)·해안 전선(20)이다.
 # 콜로세움(id 4)은 리메이크가 필요해 enabled: false로 잠시 빼두었다.
 #   데이터는 그대로 두었으므로 다시 켤 때는 그 줄만 지우거나 true로 바꾸면 된다.
-# 노르드·일본 테마는 전용 적 스프라이트가 없어 제거되었다.
+# 일본은 천공·해안 전선이 돌아왔다. 지상(아마테라스) 전선은 아직 없다.
 # 케찰코아틀은 메히코 9스테이지 조우로 복귀했으며, 영웅 획득 경로는 아직 별도다.
 #
 # 테마를 다시 늘릴 때 필요한 것:
@@ -18,8 +18,8 @@
 
 stageThemes:
   # ── 콜로세움 (일시 비활성) ─────────────────────────────────────────
-  # 리메이크 예정이라 런 로테이션에서 빼두었다. 편성·보스·사건은 손대지 않았으므로
-  # enabled를 true로 되돌리면 그대로 돌아온다.
+  # 리메이크 예정이라 런 로테이션에서 빼두었다. 편성·보스는 그대로 두었다.
+  # 5슬롯 사건(가면 쓴 검투사)은 리메이크 때 새로 쓰기 위해 삭제했다 — 다시 켜면 5슬롯이 비어 있다.
   # ── 콜로세움 ──────────────────────────────────────────────────────
   # 아홉 전투 슬롯에 <b>한 명씩</b> 선다. 검투사 여섯을 엘리트로 올려
   # 테마 전체가 엘리트·보스로만 채워지는 유일한 구성이다.
@@ -669,37 +669,121 @@ stageThemes:
         patterns:
           - { frontIds: [3001], weight: 100 }
 
-events:
-  - id: colosseum_masked_gladiator
-    themeId: 4
-    stageInRound: 5
-    oncePerRun: true
-    title: 가면 쓴 검투사
-    dialogue:
-      - speaker: 일행
-        text: 축제의 함성이 경기장 밖까지 울린다. 다음 시합을 기다리는 검투사들 사이에서 유난히 여유로운 사내 하나가 손을 흔든다.
-      - speaker: 가면 쓴 검투사
-        text: 처음 보는 얼굴들이군. 오늘은 오래 버티는 쪽이 이기는 날이라던데, 내기는 했나?
-        portrait: SHI_PORTRAIT
-        standing: SPARTACUS_STANDING
-      - speaker: 일행
-        text: 트라키아식 억양, 목에 남은 오래된 사슬 자국, 그리고 자유를 말할 때만 잠깐 사라지는 웃음. 역사에서 읽었던 인물이 떠오른다.
-      - speaker: 주인공
-        text: 스파르타쿠스.
-      - speaker: 스파르타쿠스
-        text: 하하, 들켰나? 이름 하나 숨기는 게 칼 휘두르는 것보다 어렵군. 그래도 축제는 끝까지 즐겨야지. 결승에서 보자고.
-        portrait: SPARTACUS_PORTRAIT
-        standing: SPARTACUS_STANDING
-    choices:
-      - id: keep_spartacus_secret
-        text: 관중 앞에서는 모르는 척한다.
-        action: continue
-        successText: 스파르타쿠스는 웃으며 경기장으로 돌아갔다. 결승전에서 그의 진짜 실력을 확인하게 될 것이다.
-      - id: warn_spartacus
-        text: 로마 경비대가 눈치채기 전에 떠나라고 경고한다.
-        action: continue
-        successText: 그는 고맙다는 듯 고개를 끄덕였지만, 받은 의뢰와 결승전은 끝내겠다며 자리를 지켰다.
+  # ── 일본 천공 전선 ────────────────────────────────────────────────
+  # 츠쿠요미가 공허 괴수의 공중 침공을 막는 동부 최전선. 설계 원본은 Theme_Japan_Sky_Frontline.md다.
+  #
+  # 적의 방어 대부분이 <b>타격 횟수로 깎이는 무적</b>이라 여러 번 때리거나 지속피해를 까는 파티가 이긴다.
+  #   1~4  괴조 물량 + 등불나방 — 지속피해로 치유를 막는 법을 먼저 배운다.
+  #   5    사건 — 전용 사건을 두지 않고 공용 사건 목록을 탄다.
+  #   6~8  포식자 + 고치 + 나비 — 무적·치유 연결·처치 화상 전파.
+  #   9    종말의 포식자 + 고치 둘 + 나비 — 엘리트 종합전.
+  #   10   천공의 포식자 — 허기 결정·파열 비늘을 제때 깨는 최종전. 소환체는 본체가 스스로 떨군다.
+  #
+  # 1슬롯을 이기면 츠쿠요미 합류 사건이 예약된다(triggerThemeId 19 · triggerStageInRound 1).
+  # 다단도 지속피해도 없는 파티가 이 테마를 넘을 탈출구다.
+  #
+  # 괴조는 범용 1070을 그대로 쓴다. 후열이 넷뿐이라 다섯 이상은 둘을 전열로 올린다.
+  - id: 19
+    name: 천공 전선
+    tags: [Japan, Void]
+    enemyThemeId: 20
+    description: "달빛 아래 하늘이 갈라지고, 공허의 날짐승이 무리 지어 내려온다. 한 방보다 여러 번이 통하는 전장이다."
+    midBossId: 2060
+    midBossStageInRound: 9
+    bossId: 3070
+    ambientColor: "#22294A"   # 천공 전선 — 달밤의 하늘
+    stagePatterns:
+      - stageInRound: 1
+        patterns:
+          - { rearIds: [1070, 1070, 1070], weight: 100 }
+      - stageInRound: 2
+        patterns:
+          - { rearIds: [1070, 1070, 1070, 1130], weight: 100 }
+      - stageInRound: 3
+        patterns:
+          - { frontIds: [1070, 1070], rearIds: [1070, 1070, 1130], weight: 100 }
+      - stageInRound: 4
+        patterns:
+          - { frontIds: [1070, 1070], rearIds: [1070, 1070, 1130, 1130], weight: 100 }
+      # 6슬롯부터 무적. 포식자의 3회는 급강하 뒤마다 갱신되고, 고치의 6회는 한 번 벗기면 끝이다.
+      - stageInRound: 6
+        patterns:
+          - { frontIds: [1134, 1131], rearIds: [1070], weight: 100 }
+      - stageInRound: 7
+        patterns:
+          - { frontIds: [1134, 1131, 1133], weight: 100 }
+      - stageInRound: 8
+        patterns:
+          - { frontIds: [1134, 1131, 1133], rearIds: [1070, 1070], weight: 100 }
+      # 9슬롯 — 중간 보스. 고치는 종말전 변형(1132, 무적 8회 · 치유 1.5%)이다.
+      - stageInRound: 9
+        patterns:
+          - { frontIds: [2060, 1132, 1132, 1133], weight: 100 }
+      # 10슬롯 — 본체는 후열. 전열은 입장 소환(허기 결정 1 · 파열 비늘 1)이 채운다.
+      - stageInRound: 10
+        patterns:
+          - { rearIds: [3070], weight: 100 }
 
+
+  # ── 일본 해안 전선 ────────────────────────────────────────────────
+  # 공허 괴수의 상륙을 막는 동부 최전선. 설계 원본은 Theme_Japan_Coastal_Frontline.md다.
+  #
+  # 새 병종은 전부 <b>공허의 갑주</b>를 두른다 — STR +40%와 보호막. 행동불능에 걸리면 둘 다 벗는다.
+  #   1~2  기사(물) 하나와 얼음 기사·사수·프리즘 — 아군이 먼저 빙결을 겪으며 제어가 무엇인지 배운다.
+  #   3~4  돌격대장 합류 — 갑주 첫 등장. 얼리면 벗겨진다.
+  #   5    사건 — 전용 사건을 두지 않고 공용 사건 목록을 탄다.
+  #   6~7  선봉대장·심연의 사냥꾼 — 두꺼운 벽 뒤에서 후열을 문다.
+  #   8    심연의 공포 — 제어를 갑주에 쓸지 촉수 폭풍 준비를 끊는 데 쓸지.
+  #   9    최종전 전 복합전.
+  #   10   심연의 집정관 — 6구간마다 다시 두르는 갑주와 대호흡 뒤의 해일.
+  #
+  # 1슬롯을 이기면 아베노 세이메이 합류 사건이 예약된다 — 아군 전체 방어막 관통이 갑주의 두 번째 해법이다.
+  # 원소를 붙이는 적은 Lv40까지 무뎌진 무기(반응 절반·빙결 1턴)를 들고, Lv41부터 온전한 무기로 갈아 든다.
+  - id: 20
+    name: 해안 전선
+    tags: [Japan, Void, Coast]
+    enemyThemeId: 21
+    description: "파도가 갈라지고 갑주를 두른 공허의 짐승들이 뭍으로 기어오른다. 얼리고 멈춰 세워야 껍질이 벗겨진다."
+    midBossId: 2071
+    midBossStageInRound: 8
+    bossId: 3080
+    ambientColor: "#15303D"   # 해안 전선 — 새벽 물안개의 바다
+    stagePatterns:
+      # 버프 반응은 원소가 붙은 쪽이 가져간다. 적끼리 아군에게 버프를 만들어 주지 않도록 짝을 고른다.
+      #   물은 슬롯마다 한 곳에서만 붙인다(물+물=정수, INT 버프). 나머지는 얼음 — 빙결·둔화.
+      #   바위(선봉대장)는 불·얼음과 한 슬롯에 두지 않거나 열을 나눈다(단조·경화). 바위끼리는 진동(기절)이다.
+      - stageInRound: 1
+        patterns:
+          - { frontIds: [1096], rearIds: [1108, 1068], weight: 100 }
+      - stageInRound: 2
+        patterns:
+          - { frontIds: [1096, 1100], rearIds: [1108, 1068], weight: 100 }
+      # 3슬롯부터 공허의 갑주. 돌격대장이 물을 맡고 얼음 기사·사수·프리즘이 뒤따른다.
+      - stageInRound: 3
+        patterns:
+          - { frontIds: [1140, 1100], rearIds: [1108, 1068], weight: 100 }
+      - stageInRound: 4
+        patterns:
+          - { frontIds: [1140, 1100], rearIds: [1108, 1108, 1068], weight: 100 }
+      # 선봉대장은 전열에만 바위를, 사냥꾼은 후열에만 불을 붙인다 — 열이 달라 단조가 잘 나지 않는다.
+      - stageInRound: 6
+        patterns:
+          - { frontIds: [1141, 1141], rearIds: [1142], weight: 100 }
+      - stageInRound: 7
+        patterns:
+          - { frontIds: [1140, 1141], rearIds: [1142, 1108], weight: 100 }
+      # 8슬롯 — 중간 보스.
+      - stageInRound: 8
+        patterns:
+          - { frontIds: [1140], rearIds: [2071, 1142], weight: 100 }
+      - stageInRound: 9
+        patterns:
+          - { frontIds: [1140, 1141, 1141], rearIds: [1142], weight: 100 }
+      - stageInRound: 10
+        patterns:
+          - { frontIds: [3080], weight: 100 }
+
+events:
   - id: legion_crossing_the_rubicon
     themeId: 5
     stageInRound: 5
@@ -1077,5 +1161,300 @@ events:
         text: 여기서 쉬라고 말한다.
         action: continue
         successText: 깃털 뱀은 풀린 실을 손에 쥔 채 남았다. "위에서 보자"고만 했다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
+
+  # ── 천공 전선 — 츠쿠요미 합류 체인 ────────────────────────────────
+  # 슬롯 추첨을 타지 않는다. 방아쇠는 테마 19의 내용 슬롯 승리다(triggerThemeId + triggerStageInRound).
+  #
+  # A  1슬롯 승리 — 합류. 츠쿠요미가 일행에 없을 때(해금 여부와 무관하게 다시 제안한다).
+  # A' 1슬롯 승리 — 이미 동행 중일 때의 대사만. 중복 영입·추가 보상은 없다.
+  # B  6슬롯 승리 — 고치의 연결과 나비의 인분을 예고한다.
+  # C  9슬롯 승리 — 익룡이 떨구는 두 결정을 예고한다.
+  # D  10슬롯 승리 — 방어선 확보. 기본 보스 보상 외에 주는 것은 없다.
+  #
+  # 거절해도 츠쿠요미는 해금된다. 만났다는 사실이 해금 조건이다.
+  - id: japan_sky_moonlit_reinforcement
+    themeId: 0
+    stageInRound: 0
+    triggerThemeId: 19
+    triggerStageInRound: 1
+    allowUnlockedRecruit: true
+    oncePerRun: true
+    title: 달빛 아래의 증원
+    dialogue:
+      - speaker: 일행
+        text: 떨어진 괴조의 깃이 땅에 닿기도 전에 푸른 빛에 삭아 사라진다. 올려다보니 갈라진 하늘 가장자리에 누군가 서 있다.
+      - speaker: 츠쿠요미
+        text: …처음 내려온 무리치고는 잘 막았다. 하지만 저건 선발대다.
+        portrait: TSUKUYOMI_PORTRAIT
+        standing: TSUKUYOMI_STANDING
+      - speaker: 츠쿠요미
+        text: 이 뒤로 오는 것들은 한 번 베어서는 쓰러지지 않는다. 결정을 두르고, 서로를 꿰매고, 쓰러지면서 불을 뿌린다.
+        portrait: TSUKUYOMI_PORTRAIT
+        standing: TSUKUYOMI_STANDING
+      - speaker: 츠쿠요미
+        text: 상처를 남겨 둬라. 달빛이 닿는 곳이라면 누구의 칼이든 더 깊이 들어가게 해 주지.
+        portrait: TSUKUYOMI_PORTRAIT
+        standing: TSUKUYOMI_STANDING
+    choices:
+      - id: japan_sky_hold_the_line_together
+        text: 함께 전선을 지킨다.
+        action: continue
+        grantUnitId: 41
+        rosterFullText: 자리가 없다. 츠쿠요미를 맞이하려면 누군가가 떠나야 할 것 같다.
+        successText: 츠쿠요미가 아군에 합류했다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
+        failureText: 자리를 비우지 못했다. 츠쿠요미는 말없이 하늘로 돌아갔다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
+      - id: japan_sky_move_separately
+        text: 이번에는 따로 움직인다.
+        action: continue
+        successText: 츠쿠요미는 고개만 한 번 끄덕였다. "그럼 초소에서 보겠다." 이후 런부터 메인 캐릭터로 선택할 수 있다.
+
+  - id: japan_sky_moonlit_reinforcement_companion
+    themeId: 0
+    stageInRound: 0
+    triggerThemeId: 19
+    triggerStageInRound: 1
+    requiresUnitInParty: 41
+    oncePerRun: true
+    title: 달빛 아래의 전선
+    dialogue:
+      - speaker: 일행
+        text: 떨어진 괴조의 깃이 땅에 닿기도 전에 푸른 빛에 삭아 사라진다. 츠쿠요미가 갈라진 하늘을 오래 올려다본다.
+      - speaker: 츠쿠요미
+        text: 내 전선이다. 선발대가 이 정도면 뒤는 한 번 베어서 쓰러지지 않는 것들이 온다.
+        portrait: TSUKUYOMI_PORTRAIT
+        standing: TSUKUYOMI_STANDING
+      - speaker: 츠쿠요미
+        text: 상처를 남겨 둬라. 그 위에 달빛을 얹는 건 내 몫이다.
+        portrait: TSUKUYOMI_PORTRAIT
+        standing: TSUKUYOMI_STANDING
+    choices:
+      - id: japan_sky_companion_onward
+        text: 고개를 끄덕이고 앞으로 나아간다.
+        action: continue
+        successText: 달빛이 한층 짙어졌다. 다음 무리가 내려오기 전에 자리를 잡는다.
+
+  - id: japan_sky_sever_the_connection
+    themeId: 0
+    stageInRound: 0
+    triggerThemeId: 19
+    triggerStageInRound: 6
+    requiresRunEventIds: [japan_sky_moonlit_reinforcement, japan_sky_moonlit_reinforcement_companion]
+    oncePerRun: true
+    title: 꿰매는 고치
+    dialogue:
+      - speaker: 일행
+        text: 쓰러진 포식자 곁에 매달려 있던 고치가 금이 간 채 흔들린다. 안쪽에서 끊어진 실 한 가닥이 아직 빛을 낸다.
+      - speaker: 츠쿠요미
+        text: 저 실이 포식자를 꿰매고 있었다. 무적을 다 벗겨도 고치가 살아 있는 한 상처는 다시 닫힌다.
+        portrait: TSUKUYOMI_PORTRAIT
+        standing: TSUKUYOMI_STANDING
+      - speaker: 츠쿠요미
+        text: 다음은 붉은 나비가 섞인다. 쓰러질 때 인분이 제 편을 태운다. 먼저 깰지 나중에 깰지는 네가 정해라.
+        portrait: TSUKUYOMI_PORTRAIT
+        standing: TSUKUYOMI_STANDING
+    choices:
+      - id: japan_sky_noted_the_thread
+        text: 실과 인분을 기억해 둔다.
+        action: continue
+        successText: 끊어진 실은 곧 빛을 잃었다.
+
+  - id: japan_sky_falling_scales
+    themeId: 0
+    stageInRound: 0
+    triggerThemeId: 19
+    triggerStageInRound: 9
+    requiresRunEventIds: [japan_sky_moonlit_reinforcement, japan_sky_moonlit_reinforcement_companion]
+    oncePerRun: true
+    title: 떨어지는 결정
+    dialogue:
+      - speaker: 일행
+        text: 하늘 높은 곳에서 무언가가 떨어져 바위에 박힌다. 하나는 맥동하는 붉은 결정이고, 하나는 바람을 머금어 부푼 비늘이다.
+      - speaker: 츠쿠요미
+        text: 익룡이 떨군 것이다. 저 위에서 싸우는 내내 계속 떨굴 거다.
+        portrait: TSUKUYOMI_PORTRAIT
+        standing: TSUKUYOMI_STANDING
+      - speaker: 츠쿠요미
+        text: 붉은 것은 삼키고, 부푼 것은 터진다. 둘 다 몇 번이고 막아 내지만 몸은 얇다. 셋을 세기 전에 깨라.
+        portrait: TSUKUYOMI_PORTRAIT
+        standing: TSUKUYOMI_STANDING
+    choices:
+      - id: japan_sky_ready_for_the_wyvern
+        text: 결정을 깨뜨리고 올라간다.
+        action: continue
+        successText: 부서진 비늘에서 새어 나온 바람이 한참을 울었다.
+
+  - id: japan_sky_frontline_secured
+    themeId: 0
+    stageInRound: 0
+    triggerThemeId: 19
+    triggerStageInRound: 10
+    requiresRunEventIds: [japan_sky_moonlit_reinforcement, japan_sky_moonlit_reinforcement_companion]
+    oncePerRun: true
+    title: 되찾은 밤하늘
+    dialogue:
+      - speaker: 일행
+        text: 익룡이 떨어진 자리에서 결정 조각들이 한꺼번에 빛을 잃는다. 갈라졌던 하늘이 천천히 닫힌다.
+      - speaker: 츠쿠요미
+        text: 방어선은 지켰다. 오늘 밤은 달이 온전히 뜨겠군.
+        portrait: TSUKUYOMI_PORTRAIT
+        standing: TSUKUYOMI_STANDING
+    choices:
+      - id: japan_sky_look_at_the_moon
+        text: 닫힌 하늘을 올려다본다.
+        action: continue
+        successText: 구름 사이로 둥근 달이 떠올랐다.
+
+  # ── 해안 전선 — 세이메이 합류 · 예고 · 스사노오 합류 ─────────────────
+  # 슬롯 추첨을 타지 않는다. 1슬롯 승리 뒤 세이메이, 2·8슬롯 승리 뒤 예고, 집정관 격파 뒤 스사노오.
+  # 거절해도 해금된다. 만났다는 사실이 해금 조건이다.
+  #
+  # 세이메이는 테마의 안전장치다. 제어가 없는 파티도 관통으로 갑주를 넘기게, 해금 뒤에도 이번 런에 없으면 다시 제안한다.
+  - id: japan_coast_seimei_on_the_shore
+    themeId: 0
+    stageInRound: 0
+    triggerThemeId: 20
+    triggerStageInRound: 1
+    allowUnlockedRecruit: true
+    oncePerRun: true
+    title: 물가의 음양사
+    dialogue:
+      - speaker: 일행
+        text: 쓰러진 공허의 기사 곁 모래 위에 종이 부적 몇 장이 꽂혀 있다. 밀려온 파도가 부적 앞에서만 둘로 갈라진다.
+      - speaker: 아베노 세이메이
+        text: 결계가 버텨 준 덕에 한숨 돌렸군요. 저것들은 선발대입니다. 뒤따라오는 것들은 갑주를 두르고 올라옵니다.
+        portrait: SEIMEI_PORTRAIT
+        standing: SEIMEI_STANDING
+      - speaker: 아베노 세이메이
+        text: 갑주는 멈춰 세우면 벗겨지지만, 매번 멈출 수는 없겠지요. 그럴 때는 제가 틈을 엽니다. 제가 서 있는 동안은 여러분의 칼끝이 껍질을 지나갈 겁니다.
+        portrait: SEIMEI_PORTRAIT
+        standing: SEIMEI_STANDING
+    choices:
+      - id: japan_coast_walk_with_seimei
+        text: 함께 해안을 지킨다.
+        action: continue
+        grantUnitId: 43
+        rosterFullText: 자리가 없다. 세이메이를 맞이하려면 누군가가 떠나야 할 것 같다.
+        successText: 아베노 세이메이가 아군에 합류했다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
+        failureText: 자리를 비우지 못했다. 세이메이는 부적 한 장을 남기고 안개 속으로 물러났다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
+      - id: japan_coast_part_with_seimei
+        text: 이번에는 따로 움직인다.
+        action: continue
+        successText: 세이메이는 부채로 입가를 가리고 웃었다. "그럼 결계 너머에서 뵙지요." 이후 런부터 메인 캐릭터로 선택할 수 있다.
+
+  - id: japan_coast_seimei_companion
+    themeId: 0
+    stageInRound: 0
+    triggerThemeId: 20
+    triggerStageInRound: 1
+    requiresUnitInParty: 43
+    oncePerRun: true
+    title: 물가의 결계
+    dialogue:
+      - speaker: 일행
+        text: 세이메이가 모래 위에 부적을 꽂자 밀려오던 파도가 둘로 갈라진다.
+      - speaker: 아베노 세이메이
+        text: 뒤따라오는 것들은 갑주를 두르고 올라옵니다. 제가 서 있는 동안은 여러분의 칼끝이 껍질을 지나갈 겁니다.
+        portrait: SEIMEI_PORTRAIT
+        standing: SEIMEI_STANDING
+    choices:
+      - id: japan_coast_seimei_companion_onward
+        text: 결계를 뒤로하고 나아간다.
+        action: continue
+        successText: 갈라진 파도가 천천히 다시 닫혔다.
+
+  - id: japan_coast_cracked_shells
+    themeId: 0
+    stageInRound: 0
+    triggerThemeId: 20
+    triggerStageInRound: 2
+    oncePerRun: true
+    title: 금이 간 껍질
+    dialogue:
+      - speaker: 일행
+        text: 물러난 파도가 부서진 껍질 조각들을 모래 위에 남긴다. 결정처럼 반짝이는 갑각 한쪽에만 서리가 앉아 있고, 그 자리가 거미줄처럼 갈라져 있다.
+      - speaker: 일행
+        text: 방금 전 우리 편이 얼어붙었을 때는 한 발짝도 움직일 수 없었다. 저 껍질의 주인들도 마찬가지였던 모양이다. 멈춰 선 순간 갑주가 제 몸을 지탱하지 못했다.
+      - speaker: 일행
+        text: 수평선 너머에서 더 큰 껍질들이 올라오고 있다. 때려 부수기 전에, 먼저 멈춰 세워야 한다.
+    choices:
+      - id: japan_coast_remember_the_frost
+        text: 얼음이 갑주를 가른다는 것을 기억해 둔다.
+        action: continue
+        successText: 서리 앉은 조각은 손끝에서 바스러졌다.
+
+  - id: japan_coast_deep_breath
+    themeId: 0
+    stageInRound: 0
+    triggerThemeId: 20
+    triggerStageInRound: 8
+    oncePerRun: true
+    title: 들이쉬는 바다
+    dialogue:
+      - speaker: 일행
+        text: 촉수가 모래 속으로 가라앉자 바다가 조용해진다. 파도가 밀려오지 않는다. 오히려 먼바다 쪽으로 물이 빨려 나가고 있다.
+      - speaker: 일행
+        text: 무언가 거대한 것이 숨을 들이쉬고 있다. 저 숨이 다시 나오는 순간 해안 전체가 잠길 것이다.
+      - speaker: 일행
+        text: 촉수가 폭풍을 모을 때 멈춰 세우자 폭풍은 흩어졌다. 숨을 들이쉬는 동안이라면, 같은 방법이 통할지도 모른다.
+    choices:
+      - id: japan_coast_hold_the_line
+        text: 숨을 끊을 준비를 하고 물가로 나아간다.
+        action: continue
+        successText: 빠져나간 물이 드러낸 바닥에 거대한 그림자가 떠올랐다.
+
+  - id: japan_coast_susanoo_after_archon
+    themeId: 0
+    stageInRound: 0
+    triggerBossId: 3080
+    allowUnlockedRecruit: true
+    oncePerRun: true
+    title: 폭풍을 몰고 온 자
+    dialogue:
+      - speaker: 일행
+        text: 집정관의 몸이 결정 조각이 되어 흩어지자, 멎어 있던 바다가 한꺼번에 뒤집힌다. 거센 비바람 한가운데로 누군가 파도를 밟고 걸어 나온다.
+      - speaker: 스사노오
+        text: 하! 저 고래를 뭍에서 쓰러뜨린 게 너희란 말이냐? 내가 바다 밑까지 쫓아가려던 참이었는데.
+        portrait: SUSANOO_PORTRAIT
+        standing: SUSANOO_STANDING
+      - speaker: 스사노오
+        text: 멈춰 세우고, 벗기고, 베어 넘겼군. 누님들이 보면 칭찬하겠어. 나는 칭찬 대신 칼을 빌려주지.
+        portrait: SUSANOO_PORTRAIT
+        standing: SUSANOO_STANDING
+      - speaker: 스사노오
+        text: 파도가 또 올라온다면 내가 먼저 띄워 주마. 떨어지는 놈을 베는 건 내 특기거든.
+        portrait: SUSANOO_PORTRAIT
+        standing: SUSANOO_STANDING
+    choices:
+      - id: japan_coast_welcome_susanoo
+        text: 함께 폭풍을 건넌다.
+        action: continue
+        grantUnitId: 42
+        rosterFullText: 자리가 없다. 스사노오를 맞이하려면 누군가가 떠나야 할 것 같다.
+        successText: 스사노오가 아군에 합류했다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
+        failureText: 자리를 비우지 못했다. 스사노오는 호탕하게 웃으며 파도 너머로 사라졌다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
+      - id: japan_coast_part_with_susanoo
+        text: 이번에는 각자의 길을 간다.
+        action: continue
+        successText: 스사노오는 어깨를 한 번 으쓱하고 폭풍 속으로 걸어 들어갔다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
+
+  - id: japan_coast_susanoo_companion
+    themeId: 0
+    stageInRound: 0
+    triggerBossId: 3080
+    requiresUnitInParty: 42
+    oncePerRun: true
+    title: 잠잠해진 바다
+    dialogue:
+      - speaker: 일행
+        text: 집정관의 몸이 결정 조각이 되어 흩어진다. 스사노오가 칼끝으로 조각 하나를 튕겨 올리더니 바다로 던진다.
+      - speaker: 스사노오
+        text: 바다 밑에서 올라온 건 바다로 돌려보내야지. 오늘 파도는 이걸로 끝이다.
+        portrait: SUSANOO_PORTRAIT
+        standing: SUSANOO_STANDING
+    choices:
+      - id: japan_coast_companion_onward
+        text: 잠잠해진 해안을 뒤로하고 떠난다.
+        action: continue
+        successText: 비바람이 걷히고 수평선이 다시 반듯해졌다.
 
 fixedBossStages: []

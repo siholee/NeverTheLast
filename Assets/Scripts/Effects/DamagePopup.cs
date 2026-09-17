@@ -21,6 +21,9 @@ namespace Effects
 
         /// <summary>빗나감 등 숫자가 없는 알림.</summary>
         Miss,
+
+        /// <summary>횟수제 무적이 막은 타격. 숫자가 없다.</summary>
+        Nullified,
     }
 
     /// <summary>
@@ -92,7 +95,7 @@ namespace Effects
             CombatNumberKind kind = CombatNumberKind.Damage, float weight = 0f)
         {
             if (target == null) return;
-            if (kind != CombatNumberKind.Miss && amount <= 0) return;
+            if (kind != CombatNumberKind.Miss && kind != CombatNumberKind.Nullified && amount <= 0) return;
 
             Trim();
 
@@ -137,7 +140,12 @@ namespace Effects
             rect.sizeDelta = new Vector2(cardSize * 1.20f, cardSize * 0.26f);
 
             _label.font = Font;
-            _label.text = kind == CombatNumberKind.Miss ? "회피" : amount.ToString();
+            _label.text = kind switch
+            {
+                CombatNumberKind.Miss => "회피",
+                CombatNumberKind.Nullified => "무효",
+                _ => amount.ToString(),
+            };
             _label.alignment = TextAlignmentOptions.Center;
             _label.textWrappingMode = TextWrappingModes.NoWrap;
             _label.raycastTarget = false;
@@ -154,7 +162,8 @@ namespace Effects
 
             // 큰 피해일수록 크게 뜬다. 치명타는 그 위에 한 번 더 얹는다.
             _baseScale = Mathf.Lerp(0.72f, 1.25f, weight) * (isCrit ? 1.35f : 1f);
-            if (kind == CombatNumberKind.Shielded || kind == CombatNumberKind.Miss)
+            if (kind == CombatNumberKind.Shielded || kind == CombatNumberKind.Miss ||
+                kind == CombatNumberKind.Nullified)
             {
                 _baseScale *= 0.8f;
             }
@@ -173,6 +182,7 @@ namespace Effects
             switch (kind)
             {
                 case CombatNumberKind.Shielded:
+                case CombatNumberKind.Nullified:
                     return UITheme.Shield;
                 case CombatNumberKind.Heal:
                     return UITheme.Positive;

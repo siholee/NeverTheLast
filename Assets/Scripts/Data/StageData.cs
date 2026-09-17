@@ -168,6 +168,34 @@ namespace Managers
         /// 슬롯 풀에서도 빠진다. 보스 격파가 곰 해금인 영입 사건이 여기 속한다.
         /// </summary>
         public int triggerBossId;
+
+        /// <summary>
+        /// 이 테마의 <see cref="triggerStageInRound"/> 내용 슬롯을 <b>이긴 직후</b> 추첨 없이 예약되는 사건.
+        /// 0이면 쓰지 않는다.
+        ///
+        /// <see cref="triggerBossId"/>는 보스 격파만 표현한다. 천공 1슬롯처럼 범용 적(괴조)만 서는
+        /// 전투는 적 ID로 가를 수 없어 테마와 슬롯으로 잡는다. 이 값이 붙은 사건도 슬롯 풀에서 빠진다.
+        /// </summary>
+        public int triggerThemeId;
+
+        /// <summary><see cref="triggerThemeId"/>와 함께 쓰는 내용 슬롯(1~10). 승리 시점에 잰다.</summary>
+        public int triggerStageInRound;
+
+        /// <summary>
+        /// 같은 런에서 <b>이 중 하나라도</b> 이미 본 뒤에만 띄운다. 비어 있으면 조건이 없다.
+        /// 체인 사건이 앞 사건을 건너뛰고 뜨지 않게 한다. 합류/동행처럼 갈래가 둘인 앞 사건을 한 줄로 받으려고 목록이다.
+        /// </summary>
+        public List<string> requiresRunEventIds;
+
+        /// <summary>
+        /// 영구 해금한 유닛이라도 <b>이번 런에 없으면</b> 다시 합류를 제안한다.
+        /// 기본 영입 사건은 해금한 유닛을 다시 내밀지 않는다. 테마를 넘을 수단을 합류로 보장하는 사건만 켠다.
+        /// </summary>
+        public bool allowUnlockedRecruit;
+
+        /// <summary>이 유닛이 일행에 있을 때만 띄운다. 0이면 조건이 없다. 동행 중일 때의 대사 갈래가 쓴다.</summary>
+        public int requiresUnitInParty;
+
         public string title;
         public bool oncePerRun;
         public List<int> blockedUnitIds;

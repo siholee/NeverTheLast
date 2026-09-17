@@ -21,6 +21,9 @@ namespace Entities
         public static event Action<Unit, Unit, Status.UnitStatus> AnyNegativeStatusGranted;
         /// <summary>어느 유닛이든 실제 피해를 가한 순간.</summary>
         public static event Action<DamageResolvedContext> AnyDamageDealt;
+
+        /// <summary>횟수제 무적이 타격 하나를 통째로 막았을 때. (공격자, 막은 쪽)</summary>
+        public static event Action<Unit, Unit> AnyHitNullified;
         /// <summary>피해 판정이 아닌 효과나 공격 비용으로 체력을 실제 소비한 순간.</summary>
         public static event Action<Unit, int> AnyHpSpent;
 
@@ -627,6 +630,7 @@ namespace Entities
             foreach (Managers.LeveledItemData entry in leveledItems)
             {
                 if (entry == null || entry.itemId <= 0 || Level < entry.minLevel) continue;
+                if (entry.maxLevel > 0 && Level > entry.maxLevel) continue;
                 if (!TryEquipItem(entry.itemId, out string reason))
                 {
                     Debug.LogWarning($"[장비] {UnitName} 레벨 장비 {entry.itemId} 장착 실패: {reason}");
@@ -1620,7 +1624,9 @@ namespace Entities
             {
                 attacker.Invoke(BaseEnums.UnitEventType.OnKill, new EventContext(attacker, this));
             }
-            if (isEnemy) GameManager.Instance.OnKillEnemy();
+            // 전투 중에 끝없이 불려 나오는 적 소환체(허기 결정 등)는 처치 보수를 주지 않는다.
+            // 보스전이 길어질수록 골드·경험치·토큰이 불어나는 농사 구멍이 되기 때문이다.
+            if (isEnemy && !HasUnitTag("Summon")) GameManager.Instance.OnKillEnemy(this);
             DeactivateUnit();
 
             if (_postDeathActions.Count == 0) return;
@@ -1630,6 +1636,20 @@ namespace Entities
             {
                 action?.Invoke();
             }
+        }
+
+        /// <summary>
+        /// 쓰러지지 않고 <b>전장을 떠난다</b>. 처치가 아니다.
+        ///
+        /// 소환체의 카운트다운 발동, 연결 대상을 잃은 고치의 붕괴처럼 "사라지지만 누가 죽인 것은
+        /// 아닌" 퇴장이 쓴다. <see cref="Die"/>를 부르면 사망 이벤트를 듣는 처치 보상·사망 전파·
+        /// 월식 정산이 전부 따라 터지므로 따로 둔다.
+        /// </summary>
+        public void Withdraw()
+        {
+            if (!isActive) return;
+            Debug.Log($"[퇴장] {UnitName}이(가) 처치되지 않고 전장을 떠났습니다.");
+            DeactivateUnit();
         }
 
         /// <summary>사망 이벤트가 끝나고 원래 칸이 비워진 직후 실행할 작업을 예약한다.</summary>
@@ -2706,13 +2726,30 @@ namespace Entities
                 Debug.Log($"{self.UnitName}이(가) 공격을 회피했습니다. 회피율: {evasionChance * 100f:F1}%");
                 return;
             }
-            
+
+            // 횟수제 무적. 적중이 확정된 양수 피해만 한 번씩 센다 — 빗나감은 위에서 이미 빠졌다.
+            // 막힌 타격은 보호막·체력·강인도를 건드리지 않고 OnDamageDealt도 내지 않으므로
+            // 흡혈·처형·피해량 비례 효과가 따라붙지 않는다.
+            if (dmgCtx.Damage > 0)
+            {
+                foreach (var effect in ActiveEffectObjects().ToList())
+                {
+                    if (!effect.TryNullifyHit(self, dmgCtx)) continue;
+                    dmgCtx.ResolvedDamage = 0;
+                    AnyHitNullified?.Invoke(dmgCtx.Attacker, self);
+                    Effects.CombatFeedback.PlayNullified(self);
+                    self.RefreshView();
+                    return;
+                }
+            }
+
             int damageReceived = self.CalculateFinalDamage(dmgCtx, receivingDamageModifier);
             int hpBeforeHit = self.HpCurr;
             int shieldBeforeHit = self.ShieldCurr;
             
             // 방어막 처리
-            bool hasShieldPenetration = dmgCtx.DamageTags.Contains(BaseClasses.DamageTag.ShieldPenetration);
+            bool hasShieldPenetration = dmgCtx.DamageTags.Contains(BaseClasses.DamageTag.ShieldPenetration) ||
+                                        HasAlliedShieldPenetration(dmgCtx.Attacker);
             bool isDamageOverTime = dmgCtx.CodeType == BaseEnums.CodeType.Effect; // 지속피해 (맹독, 화상 등)
             
             if (self.ShieldCurr > 0 && !hasShieldPenetration && !isDamageOverTime)
@@ -2738,6 +2775,17 @@ namespace Entities
             {
                 // 방어막 무시하고 체력에서 직접 차감
                 self.HpCurr -= damageReceived;
+            }
+
+            // 체력 구간 경계. 보호막이 먼저 제 몫을 흡수한 뒤 체력 손실만 자른다.
+            int hpLossFloor = 0;
+            foreach (var effect in ActiveEffectObjects())
+            {
+                hpLossFloor = Mathf.Max(hpLossFloor, effect.HpLossFloor(self, dmgCtx));
+            }
+            if (hpLossFloor > 0 && hpBeforeHit > hpLossFloor && self.HpCurr < hpLossFloor)
+            {
+                self.HpCurr = hpLossFloor;
             }
 
             if (self.HpCurr <= 0)
@@ -2812,6 +2860,24 @@ namespace Entities
         }
 
         /// <summary>
+        /// 공격자 진영의 필드 유닛 중 누군가가 방어막 관통 오라를 두르고 있는가.
+        /// 공유 스킬의 태그를 고치지 않고 해결 시점에 묻는다 — 오라 주인이 쓰러지거나 퇴장하면 곧바로 끊긴다.
+        /// </summary>
+        private static bool HasAlliedShieldPenetration(Unit attacker)
+        {
+            if (attacker == null) return false;
+            foreach (Unit ally in Combat.CombatTargets.AliveAlliesIncludingSelf(attacker))
+            {
+                if (ally == null || !ally.IsOnField) continue;
+                foreach (var effect in ally.ActiveEffectObjects())
+                {
+                    if (effect.GrantsAlliedShieldPenetration(ally, attacker)) return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
         /// 최종 피해량 산출.
         ///   1) 공격자의 주는 피해 보정
         ///   2) 롤 방식 방어력 감쇠 — 관통과 방어 무시 배율을 반영한 뒤 적용
@@ -2827,6 +2893,13 @@ namespace Entities
             // 대신 소환수 전용 배율(소환사 등)만 적용된다.
             bool isSummonAttack = dmgCtx.DamageTags != null &&
                                   dmgCtx.DamageTags.Contains(BaseClasses.DamageTag.SummonAttack);
+
+            // 비율 폭발은 정해 둔 몫이 그대로 들어가야 한다. 버프·디버프·방어력·내구가
+            // 끼어들면 "최대 체력의 35%"라는 약속이 사람마다 달라진다. 한 방 상한만 남긴다.
+            if (dmgCtx.DamageTags != null && dmgCtx.DamageTags.Contains(BaseClasses.DamageTag.FixedRatioBurst))
+            {
+                return Mathf.Max(1, Mathf.RoundToInt(ApplyIncomingDamageCap(dmgCtx, dmgCtx.Damage)));
+            }
 
             if (dmgCtx.Attacker != null)
             {
@@ -2872,17 +2945,22 @@ namespace Entities
                 scaled -= Mathf.Max(0, DurabilityCurr - durabilityPenetration);
             }
 
-            // 한 방 상한. 감쇠·내구를 전부 통과한 뒤에 자른다 — '알파 개체'처럼
-            // 체력이 단계로 끊기는 유닛이 광역 폭딜 한 번에 무너지지 않게 하는 장치다.
+            return Mathf.Max(1, Mathf.RoundToInt(ApplyIncomingDamageCap(dmgCtx, scaled)));
+        }
+
+        /// <summary>
+        /// 한 방 상한. 감쇠·내구를 전부 통과한 뒤에 자른다 — '알파 개체'처럼
+        /// 체력이 단계로 끊기는 유닛이 광역 폭딜 한 번에 무너지지 않게 하는 장치다.
+        /// </summary>
+        private float ApplyIncomingDamageCap(DamageContext dmgCtx, float scaled)
+        {
             float capRatio = 0f;
             foreach (var effect in ActiveEffectObjects())
             {
                 float ratio = effect.IncomingDamageCapRatio(this, dmgCtx);
                 if (ratio > 0f && (capRatio <= 0f || ratio < capRatio)) capRatio = ratio;
             }
-            if (capRatio > 0f) scaled = Mathf.Min(scaled, HpMax * capRatio);
-
-            return Mathf.Max(1, Mathf.RoundToInt(scaled));
+            return capRatio > 0f ? Mathf.Min(scaled, HpMax * capRatio) : scaled;
         }
 
         /// <summary>

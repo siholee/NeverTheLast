@@ -20,20 +20,31 @@ namespace Codes.Passive
         public const int PainfulWound = 122;
         public const int Cycle = 123;
         public const int FullMoon = 124;
+        public const int MoonPull = 125;
         public const int WidenWound = 126;
         public const int Moonrot = 127;
         public const int Eclipse = 128;
+        public const int PhaseWaxing = 129;
+        public const int PhaseFull = 130;
+        public const int PhaseWaning = 131;
+    }
+
+    /// <summary>일반행동이 차례로 돌려 거는 달의 위상. 순서가 곧 enum 값이다.</summary>
+    internal enum TsukuyomiPhase
+    {
+        Waxing = 0,   // 상현 — 방어력 감소
+        Full = 1,     // 보름 — 받는 피해 증가
+        Waning = 2,   // 하현 — 가하는 피해 감소
     }
 
     /// <summary>
-    /// 츠쿠요미가 거는 지속피해 두 갈래.
+    /// 츠쿠요미가 거는 지속피해 두 갈래와 달의 위상 디버프 세 갈래.
     ///
-    /// 츠쿠요미는 <b>원소를 부착하지 않는 순수 지속피해 서포터</b>다. 예전에는 궁극기가 번개를 붙였는데,
-    /// 그러면 정산(월식 정산)·상처 벌리기가 기대는 지속피해를 스스로 만들지 못하면서
-    /// 엉뚱하게 반응 재료만 뿌렸다. 이제 일반행동과 궁극기가 직접 지속피해를 남긴다.
+    /// 츠쿠요미는 <b>원소를 부착하지 않는 지속피해 겸 디버프 서포터</b>다. 지속피해는 횟수제 무적을
+    /// 매 턴 깎는 몫이고, 위상 디버프는 지속피해 파티 밖의 딜러·탱커까지 돕는 몫이다.
     ///
-    /// 두 상태는 키가 다르다. 궁극기의 긴 월식이 일반행동의 짧은 침식에 덮여 줄어들지 않도록,
-    /// 같은 대상에 나란히 쌓인다.
+    /// 다섯 상태는 모두 키가 다르다. 궁극기의 긴 월식이 일반행동의 짧은 침식에 덮여 줄어들지 않고,
+    /// 고유 패시브 달의 인력이 해로운 상태를 키 단위로 세므로 각각이 한 칸씩 채운다.
     /// </summary>
     internal static class TsukuyomiMoonlight
     {
@@ -52,6 +63,65 @@ namespace Codes.Passive
         public static void ApplyEclipse(Unit caster, Unit target) =>
             Apply(caster, target, TsukuyomiStatusIds.Eclipse, "tsukuyomi_eclipse", "월식",
                 EclipseTurns, EclipseCoefficient);
+
+        /// <summary>위상 디버프 지속 턴. 일반행동 세 번이면 한 바퀴를 도는 박자에 맞췄다.</summary>
+        public const int PhaseTurns = 2;
+        public const float WaxingDefenseMultiplier = 0.75f;
+        public const float FullReceivingMultiplier = 1.10f;
+        public const float WaningOutgoingMultiplier = 0.85f;
+
+        public static void ApplyAllPhases(Unit caster, Unit target)
+        {
+            ApplyPhase(caster, target, TsukuyomiPhase.Waxing);
+            ApplyPhase(caster, target, TsukuyomiPhase.Full);
+            ApplyPhase(caster, target, TsukuyomiPhase.Waning);
+        }
+
+        /// <summary>
+        /// 같은 위상은 Replace — 다시 걸어도 수치는 쌓이지 않고 지속시간만 새로 센다.
+        /// 계산은 흔한 디버프라 공용 배율 클래스를 그대로 쓴다.
+        /// </summary>
+        public static void ApplyPhase(Unit caster, Unit target, TsukuyomiPhase phase)
+        {
+            if (caster == null || target == null || !target.isActive || target.HpCurr <= 0) return;
+
+            int id;
+            string key;
+            string name;
+            string description;
+            BaseEffect effect;
+            switch (phase)
+            {
+                case TsukuyomiPhase.Waxing:
+                    id = TsukuyomiStatusIds.PhaseWaxing;
+                    key = "tsukuyomi_phase_waxing";
+                    name = "상현 — 갈라진 빛";
+                    description = "방어력이 25% 감소합니다.";
+                    effect = new ArmorShredEffect(WaxingDefenseMultiplier);
+                    break;
+                case TsukuyomiPhase.Full:
+                    id = TsukuyomiStatusIds.PhaseFull;
+                    key = "tsukuyomi_phase_full";
+                    name = "보름 — 드러난 윤곽";
+                    description = "받는 피해가 10% 증가합니다.";
+                    effect = new ReceivingDamageMultiplierEffect(FullReceivingMultiplier);
+                    break;
+                default:
+                    id = TsukuyomiStatusIds.PhaseWaning;
+                    key = "tsukuyomi_phase_waning";
+                    name = "하현 — 기우는 힘";
+                    description = "가하는 피해가 15% 감소합니다.";
+                    effect = new OutgoingDamageMultiplierEffect(WaningOutgoingMultiplier);
+                    break;
+            }
+
+            target.AddStatus(BuffStatus.Create(
+                id, $"{key}_{caster.GetEntityId()}", name, caster, target, effect,
+                duration: PhaseTurns,
+                stackPolicy: BaseEnums.StatusStackPolicy.Replace,
+                category: BaseEnums.StatusCategory.Negative,
+                description: $"{PhaseTurns}턴 동안 {description}"));
+        }
 
         private static void Apply(Unit caster, Unit target, int id, string key, string name,
             int turns, float coefficient)
@@ -73,9 +143,83 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>처치된 적의 지속피해를 1턴 정산해 주변 3×3 범위에 폭발시킨다.</summary>
-    public sealed class TsukuyomiMoonReckoning : UniquePassiveCode
+    /// <summary>
+    /// 달의 인력(241) — 적이 가진 해로운 상태 수만큼 <b>아군 전체</b>가 그 적에게 주는 피해를 올린다.
+    ///
+    /// 츠쿠요미가 거는 디버프만이 아니라 다른 아군이 건 것도 센다. 누구와 서도 값을 하는
+    /// 범용 서포터가 되는 것이 이 패시브의 몫이다. 해로운 상태는 키 단위로 세서,
+    /// 출혈처럼 한 키에 스택이 쌓이는 상태 하나로 상한을 채우지 못하게 한다.
+    /// </summary>
+    public sealed class TsukuyomiMoonPull : UniquePassiveCode
     {
+        private static readonly float[] PerDebuffBonuses = { 0.03f, 0.04f, 0.05f };
+        public const int MaxCountedDebuffs = 5;
+
+        private Action<EventContext> _cleanupHandler;
+        private bool _registered;
+
+        public TsukuyomiMoonPull(PassiveCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Passive;
+            CodeName = "달의 인력";
+            MaxStage = 3;
+            IgnoresActivationChance = true;
+            Transferable = false;
+        }
+
+        private string StatusKey => $"tsukuyomi_moon_pull_{Caster.GetEntityId()}";
+
+        public override void CastCode()
+        {
+            if (Caster == null || _registered) return;
+            float perDebuff = PerDebuffBonuses[Mathf.Clamp(CurrentStage, 1, MaxStage) - 1];
+            foreach (Unit ally in global::Target.GetAllAllies(Caster).Where(unit => unit != null && unit.isActive))
+            {
+                ally.AddStatus(BuffStatus.Create(
+                    TsukuyomiStatusIds.MoonPull, StatusKey, CodeName, Caster, ally,
+                    new MoonPullEffect(perDebuff),
+                    stackPolicy: BaseEnums.StatusStackPolicy.Replace,
+                    isBeneficial: true,
+                    description: $"적의 해로운 상태 1개당 그 적에게 주는 피해가 {perDebuff:P0} 증가합니다(최대 {MaxCountedDebuffs}개)."));
+            }
+
+            _cleanupHandler = _ => StopCode();
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = true;
+        }
+
+        public override void StopCode()
+        {
+            if (!_registered || Caster == null) return;
+            foreach (Unit ally in global::Target.GetAllAllies(Caster)) ally?.RemoveStatusByKey(StatusKey);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = false;
+        }
+
+        /// <summary>해로운 상태의 종류 수. 같은 키에 쌓인 스택은 1개로 센다.</summary>
+        public static int CountDebuffKinds(Unit unit)
+        {
+            if (unit == null) return 0;
+            return unit.GetAllStatuses()
+                .Where(status => status != null && status.Category == BaseEnums.StatusCategory.Negative)
+                .Select(status => status.Key)
+                .Distinct(StringComparer.Ordinal)
+                .Count();
+        }
+    }
+
+    /// <summary>
+    /// 월식 정산(114) — 처치된 적의 지속피해를 1턴 정산해 주변 3×3 범위에 폭발시킨다.
+    ///
+    /// 예전 고유 패시브(241)였다. 츠쿠요미가 디버프 서포터로 바뀌면서 고유 자리를 달의 인력에 넘기고
+    /// 해금 패시브로 내려왔다. 단계가 없으므로 예전 2단계 값(75%)으로 고정한다.
+    /// </summary>
+    public sealed class TsukuyomiMoonReckoning : PassiveCode
+    {
+        private const float ReckoningRatio = 0.75f;
+
         private bool _registered;
         private Action<EventContext> _cleanupHandler;
 
@@ -83,7 +227,6 @@ namespace Codes.Passive
         {
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "월식 정산";
-            MaxStage = 3;
             IgnoresActivationChance = true;
             Transferable = false;
         }
@@ -113,8 +256,7 @@ namespace Codes.Passive
             int dotPerSecond = dead.GetEstimatedDamageOverTimePerTurn();
             if (dotPerSecond <= 0 || dead.currentCell == null) return;
 
-            float[] ratios = { 0.5f, 0.75f, 1f };
-            int damage = Mathf.Max(1, Mathf.RoundToInt(dotPerSecond * ratios[Mathf.Clamp(CurrentStage, 1, 3) - 1]));
+            int damage = Mathf.Max(1, Mathf.RoundToInt(dotPerSecond * ReckoningRatio));
             int centerX = dead.currentCell.xPos;
             int centerY = dead.currentCell.yPos;
             var tags = new List<int> { DamageTag.MultiTarget, DamageTag.Special, DamageTag.NonContactAttack };
@@ -400,6 +542,25 @@ namespace Codes.Passive
         public WidenWoundEffect() : base(0) { }
         public override float DefenseStatMultiplierModifier(Unit attacker, Unit target, DamageContext context)
             => target != null && target.HasDamageOverTimeStatus() ? 0.55f : 1f;
+    }
+
+    /// <summary>
+    /// 달의 인력의 아군 쪽 효과. 주는 피해 배율은 공격자의 효과에서만 모이므로(<c>CalculateFinalDamage</c>),
+    /// 적에게 거는 대신 아군 각자에게 붙이고 피격 대상의 해로운 상태를 그때그때 센다.
+    /// </summary>
+    internal sealed class MoonPullEffect : BaseEffect
+    {
+        private readonly float _perDebuff;
+        public MoonPullEffect(float perDebuff) : base(0, perDebuff) => _perDebuff = perDebuff;
+
+        public override bool IsBeneficial => true;
+
+        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
+        {
+            if (attacker != Target || target == null || Caster == null || !Caster.isActive) return 1f;
+            int kinds = Mathf.Min(TsukuyomiMoonPull.MaxCountedDebuffs, TsukuyomiMoonPull.CountDebuffKinds(target));
+            return 1f + kinds * _perDebuff;
+        }
     }
 
     internal sealed class ThemeDamageEffect : BaseEffect

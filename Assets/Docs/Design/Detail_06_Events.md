@@ -41,6 +41,11 @@ events:
     themeId: 4                    # 실재하는 테마 ID
     stageInRound: 5
     triggerBossId: 0              # >0이면 그 보스 격파 직후 예약(슬롯 추첨을 타지 않음)
+    triggerThemeId: 0             # >0이면 이 테마의 triggerStageInRound 슬롯 승리 직후 예약(슬롯 추첨을 타지 않음)
+    triggerStageInRound: 0        # triggerThemeId와 함께 쓰는 내용 슬롯(1~10)
+    requiresRunEventIds: []       # 이번 런에 이 중 하나라도 본 뒤에만 뜬다(체인)
+    allowUnlockedRecruit: false   # true면 영구 해금한 유닛도 이번 런에 없으면 다시 합류를 제안
+    requiresUnitInParty: 0        # >0이면 그 유닛이 일행에 있을 때만 뜬다(동행 대사 갈래)
     oncePerRun: true
     blockedUnitIds: [24]          # 이미 보유 중이면 사건 자체가 발생하지 않음
     title: 사건 제목
@@ -206,10 +211,10 @@ dialogue:
 ## 6. 현재 사건 목록
 
 **테마마다 하나씩, 5스테이지 슬롯에 하나씩 있다.** 전부 `oncePerRun`이다.
+🔸 콜로세움(테마 4)은 리메이크 대기 중이라 사건이 없다 — 옛 `colosseum_masked_gladiator`는 삭제했고 리메이크 때 새로 쓴다.
 
 | id | 테마 | 제목 | 유형 |
 | --- | --- | --- | --- |
-| `colosseum_masked_gladiator` | 4 콜로세움 | 가면 쓴 검투사 | 복선형 |
 | `legion_crossing_the_rubicon` | 5 로마 군단 | 강가의 야영지 | 복선형 |
 | `mexica_smoking_mirror` | 6 메히코 | 연기 나는 거울 | 복선형 |
 | `aswan_the_first_seal` | 7 아스완 | 첫 번째 봉인 | 복선형 |
@@ -219,7 +224,8 @@ dialogue:
 | `nord_central_the_kings_road` | 18 노르드 중부 | 왕의 길 | 복선형 |
 
 영입 사건은 여기 세지 않는다(`aswan_bastet_*`, `t4_horus_*`, `t4_set_*`, `nord_loki_after_thor`,
-`nord_central_oathbound_pair`, `mexica_quetzalcoatl_after_duel`).
+`nord_central_oathbound_pair`, `mexica_quetzalcoatl_after_duel`). 슬롯 승리 예약형 체인(`japan_sky_*`)도 따로 본다(§6.11).
+천공 전선(테마 19)과 해안 전선(테마 20)은 **5슬롯 전용 사건을 두지 않는다** — 공용 사건 목록을 탄다.
 
 ### 6.0 보스 격파 예약 사건 — `triggerBossId`
 
@@ -233,6 +239,7 @@ dialogue:
 | `nord_loki_after_thor` | 토르 3060 | 로키(82) |
 | `nord_central_oathbound_pair` | 시구르드 2051 (중간 보스) | 시구르드(84) · 브륀힐드(85) |
 | `mexica_quetzalcoatl_after_duel` | 케찰코아틀 3201 (중간 보스) | 케찰코아틀(140) |
+| `japan_coast_susanoo_after_archon` | 심연의 집정관 3080 | 스사노오(42) — §6.12 |
 
 한 보스에 여러 사건을 달아도 된다. 정의 순서대로 전부 예약된다.
 
@@ -260,13 +267,6 @@ dialogue:
 그 결과 **영입 사건은 어느 방식이든 평생 한 번만 뜬다** — `RoundManager.IsEventEligible`과
 `GameManager.CanOfferEvent`가 둘 다 `SaveSystem.IsStarterUnlocked`로 거르기 때문이다.
 보스 예약형과 T4 슬롯형(`t4_horus_*`, `t4_set_*`)이 같은 규칙을 쓴다.
-
-> ✅ 콜로세움이 운영으로 돌아오면서 이 사건도 함께 돌아왔다.
-
-### 6.1 가면 쓴 검투사 (`colosseum_masked_gladiator`)
-
-보스 스파르타쿠스의 정체를 미리 흘리는 복선형. 대사에서 `portrait`와 `standing`을
-직접 지정해 정체를 밝히기 전후를 연출한다(`SHI_PORTRAIT` → `SPARTACUS_PORTRAIT`).
 
 ### 6.2 강가의 야영지 (`legion_crossing_the_rubicon`)
 
@@ -356,6 +356,50 @@ dialogue:
 > `CharacterSelectionManager.HasNoUnlockPath`는 "해금 경로가 데이터에 없으면 열어 준다"는
 > 규칙이므로, 경로가 생기는 순간 저절로 다시 잠긴다. 의도된 자기 유지 동작이다.
 
+### 6.11 천공 전선 츠쿠요미 체인 (`japan_sky_*`) — 슬롯 승리 예약
+
+**보스가 아니라 슬롯이 방아쇠다.** 천공 1슬롯에는 범용 괴조만 서서 적 ID로 가를 수 없으므로
+`triggerThemeId` + `triggerStageInRound`로 잡는다. `GameManager.QueueSlotClearEvents`가 승리 직후,
+스테이지가 넘어가기 전에 테마와 내용 슬롯을 읽는다. 사건 안의 임시 전투는 방아쇠가 아니다.
+이 두 값이 붙은 사건은 슬롯 풀에서 빠진다.
+
+| id | 방아쇠 | 조건 | 내용 |
+| --- | --- | --- | --- |
+| `japan_sky_moonlit_reinforcement` | 19 · 1슬롯 | 츠쿠요미가 일행에 없음(`allowUnlockedRecruit`) | **합류** — 츠쿠요미(41). 거절해도 해금 |
+| `japan_sky_moonlit_reinforcement_companion` | 19 · 1슬롯 | 츠쿠요미가 일행에 있음(`requiresUnitInParty: 41`) | 동행 대사만. 중복 영입·보상 없음 |
+| `japan_sky_sever_the_connection` | 19 · 6슬롯 | 위 둘 중 하나를 봤음(`requiresRunEventIds`) | 고치의 연결과 나비의 인분 예고 |
+| `japan_sky_falling_scales` | 19 · 9슬롯 | 같음 | 허기 결정·파열 비늘 예고 |
+| `japan_sky_frontline_secured` | 19 · 10슬롯 | 같음 | 방어선 확보. 추가 보상 없음 |
+
+**츠쿠요미 합류는 테마의 안전장치다.** 천공의 적은 다단·지속피해가 없는 파티를 의도적으로 막으므로,
+어떤 메인으로 들어왔든 1슬롯 뒤에 넘을 수단을 한 명은 확보하게 한다. 그래서 다른 영입 사건과 달리
+**영구 해금한 뒤에도 이번 런에 없으면 다시 제안한다**(`allowUnlockedRecruit`). 런당 한 번이다.
+
+B·C·D는 선택지가 하나뿐인 짧은 후속 대사다. 선택지를 하나 둔 것은 `oncePerRun` 기록이
+선택지 처리에서 남기 때문이다 — 선택지 없는 사건은 기록되지 않는다.
+
+> **부수 효과**: 이 체인이 생기면서 츠쿠요미(41)는 **데모 즉시 사용 목록에서 빠진다**(6.10과 같은 동작).
+> 영구 해금·육성 기록이 있는 프로필은 그대로다.
+
+### 6.12 해안 전선 예고와 스사노오 합류 (`japan_coast_*`)
+
+세이메이 합류는 슬롯 승리형, 스사노오 합류는 보스 격파형이다. 두 예고는 선행 사건 조건 없이 뜬다 —
+세이메이를 거절한 런에서도 갑주·대호흡의 힌트는 받아야 하기 때문이다.
+
+| id | 방아쇠 | 조건 | 내용 |
+| --- | --- | --- | --- |
+| `japan_coast_seimei_on_the_shore` | 20 · 1슬롯 | 세이메이가 일행에 없음(`allowUnlockedRecruit`) | **합류** — 아베노 세이메이(43). 거절해도 해금 |
+| `japan_coast_seimei_companion` | 20 · 1슬롯 | 세이메이가 일행에 있음(`requiresUnitInParty: 43`) | 동행 대사만 |
+| `japan_coast_cracked_shells` | 20 · 2슬롯 | — | 서리 앉은 곳부터 갈라진 껍질. 3슬롯에서 처음 나오는 **공허의 갑주를 얼려서 벗긴다**는 예고 |
+| `japan_coast_deep_breath` | 20 · 8슬롯 | — | 물이 빠져나가는 바다. **대호흡을 행동불능으로 끊는다**는 예고 |
+| `japan_coast_susanoo_after_archon` | 보스 3080 | 스사노오가 일행에 없음(`allowUnlockedRecruit`) | **합류** — 스사노오(42). 거절해도 해금 |
+| `japan_coast_susanoo_companion` | 보스 3080 | 스사노오가 일행에 있음(`requiresUnitInParty: 42`) | 동행 대사만 |
+
+**세이메이 합류는 테마의 안전장치다.** 관통이 제어 없는 파티의 탈출구이므로 츠쿠요미처럼 해금 뒤에도 이번 런에 없으면 다시 제안한다.
+스사노오도 같은 규칙이다.
+
+> **부수 효과**: 스사노오(42)·세이메이(43)는 해금 경로가 있어 **데모 즉시 사용 목록에 들지 않는다**(6.10과 같은 동작).
+
 ## 7. 사건 설계 가이드
 
 | 유형 | 역할 | 사례 |
@@ -373,7 +417,7 @@ dialogue:
 1. `id`가 고유한가 (`oncePerRun` 추적 키다)
 2. `themeId`가 실재하는 테마인가
 3. 영입 사건이면 `blockedUnitIds`에 해당 유닛을 넣었는가
-   (보스 격파형이면 `triggerBossId`를 적고 `themeId`/`stageInRound`를 0으로 두었는가)
+   (보스 격파형이면 `triggerBossId`를, 슬롯 승리형이면 `triggerThemeId`·`triggerStageInRound`를 적고 `themeId`/`stageInRound`를 0으로 두었는가)
 4. `battle_*` 액션의 `battleEnemyId`가 `60_enemies.yaml`에 존재하는가
 5. `grantItemId` / `grantUnitId` / `grantPassiveCodeId`가 실재하는가
 6. 실패 분기(`failureText`)를 작성했는가
@@ -389,4 +433,4 @@ dialogue:
 | 🔸 Locked 17인 중 13인 획득 불가 | 영입 경로가 생긴 것은 바스테트(122) · 호루스(120) · 세트(123) · 로키(82)뿐이다. 나머지 `characterType: Locked` 캐릭터는 여전히 편성 불가다 — [Design_Backlog](Design_Backlog.md) 항목 5·21 |
 | 🔸 테마당 1개 고정 | 한 테마의 런에서는 늘 같은 사건이 나온다. 테마마다 둘 이상 두고 굴려야 반복이 줄어든다 |
 | 🔸 `randomSpeakers` 미사용 | 치환 기능이 구현되어 있으나 실제 데이터에 쓰이지 않는다 |
-| 🔸 사건 스케줄러 활용 | 임의 지점 삽입 기능이 있으나 5스테이지 고정 슬롯 외 사용 사례가 없다 |
+| 🔸 사건 스케줄러 활용 | 보스 격파 예약과 슬롯 승리 예약(천공 체인·해안 예고)이 쓴다. 전투 도중 삽입 사례는 아직 없다 |

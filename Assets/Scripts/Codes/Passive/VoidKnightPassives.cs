@@ -33,7 +33,7 @@ namespace Codes.Passive
         private Action<EventContext> _turnHandler;
 
         public VoidKnightArmor(PassiveCodeContext context)
-            : base(context, VoidKnightStatusIds.VoidArmor, "void_knight_armor", "공허의 갑주",
+            : base(context, VoidKnightStatusIds.VoidArmor, "void_knight_armor", "기사의 갑주",
                 $"보호막을 보유한 동안 가하는 피해가 {DamageBonus * 100f:F0}% 증가합니다. "
                 + $"자기 턴 시작 시 보호막이 없으면 CON×{ShieldConCoefficient}의 보호막을 얻습니다.")
         {
