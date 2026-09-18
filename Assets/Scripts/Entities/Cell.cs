@@ -48,6 +48,14 @@ public class Cell : MonoBehaviour
     private Vector3 mouseDownPosition;
     private float mouseDownTime;
     private bool isDraggingStarted = false;
+
+    // OnMouse* 메시지는 UI 위에서도 콜라이더로 그대로 내려온다. 상점 같은 화면 위를 눌렀는데
+    // 그 아래 유닛 카드가 눌려 코덱스가 뜨지 않도록, 누른 순간 UI 위였는지를 기억해 둔다.
+    private bool pressStartedOnField;
+
+    private static bool IsPointerOverUI() =>
+        UnityEngine.EventSystems.EventSystem.current != null &&
+        UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject();
     
     [Header("Drag Threshold Settings")]
     [Tooltip("드래그로 인식할 최소 마우스 이동 거리 (픽셀)")]
@@ -261,6 +269,9 @@ public class Cell : MonoBehaviour
 
     private void OnMouseDown()
     {
+        pressStartedOnField = !IsPointerOverUI();
+        if (!pressStartedOnField) return;
+
         // 유닛이 있는지 확인
         if (isOccupied && unit != null)
         {
@@ -301,7 +312,7 @@ public class Cell : MonoBehaviour
     private void OnMouseDrag()
     {
         // 이미 드래그를 시작했거나 유닛이 없으면 무시
-        if (isDraggingStarted || !isOccupied || unit == null) return;
+        if (!pressStartedOnField || isDraggingStarted || !isOccupied || unit == null) return;
         
         Unit cellUnit = unit.GetComponent<Unit>();
         if (cellUnit == null || !cellUnit.isActive) return;
@@ -339,7 +350,7 @@ public class Cell : MonoBehaviour
                 DragAndDropManager.Instance.EndDrag();
             }
         }
-        else
+        else if (pressStartedOnField && !IsPointerOverUI())
         {
             // 짧은 클릭 처리 - 해당 유닛 기준으로 코덱스(상세 화면)를 연다.
             if (isOccupied && unit != null)
@@ -354,6 +365,7 @@ public class Cell : MonoBehaviour
         
         // 상태 초기화
         isDraggingStarted = false;
+        pressStartedOnField = false;
     }
     
     /// <summary>

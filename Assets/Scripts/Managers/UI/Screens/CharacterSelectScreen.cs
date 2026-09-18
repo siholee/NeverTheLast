@@ -54,6 +54,15 @@ namespace Managers.UI.Screens
         private TextMeshProUGUI _phaseLabel;
         private Button _primaryButton;
         private Button _backButton;
+        private Button _recommendButton;
+
+        /// <summary>
+        /// 고른 메인에게 추천하는 서포터(우선순위 순). 30_synergies.yaml의 고점 조합에서
+        /// 지금 고를 수 있는 사람을 먼저 담고, 모자라면 대체 조합으로 채운다.
+        /// </summary>
+        private readonly List<int> _recommended = new();
+        private string _recommendReason = "";
+        private string _recommendArchetype = "";
 
         private readonly Dictionary<int, Image> _tiles = new();
         private readonly Dictionary<int, Image> _tileArts = new();
@@ -74,7 +83,7 @@ namespace Managers.UI.Screens
 
             // 미리보기도 정사각형. AspectRatioFitter가 슬롯 안에서 1:1을 유지하도록 크기를 잡는다.
             RectTransform previewSlot = UIBuild.Container("PreviewSlot", previewPane.transform);
-            UIBuild.Anchor(previewSlot, new Vector2(0.04f, 0.30f), new Vector2(0.96f, 0.97f));
+            UIBuild.Anchor(previewSlot, new Vector2(0.04f, 0.42f), new Vector2(0.96f, 0.97f));
 
             _preview = UIBuild.Solid("PreviewArt", previewSlot, Color.white);
             var previewFitter = _preview.gameObject.AddComponent<AspectRatioFitter>();
@@ -85,18 +94,21 @@ namespace Managers.UI.Screens
 
             _previewName = UIBuild.Text("PreviewName", previewPane.transform, "",
                 UITheme.FontHeading, UITheme.Accent, TextAlignmentOptions.Center);
-            UIBuild.Anchor(_previewName.rectTransform, new Vector2(0f, 0.20f), new Vector2(1f, 0.29f));
+            UIBuild.Anchor(_previewName.rectTransform, new Vector2(0f, 0.34f), new Vector2(1f, 0.41f));
 
+            // 한 줄 소개 · 원소와 스탯 · 운용 축 · 편성 자격을 차례로 싣는다. 예전에는 원소와 스탯뿐이라
+            // "이 캐릭터가 뭘 하는가"를 알 수 없다는 제보가 있었다.
             _previewInfo = UIBuild.Text("PreviewInfo", previewPane.transform, "",
                 UITheme.FontCaption, UITheme.TextSecondary, TextAlignmentOptions.Top, wrap: true);
-            UIBuild.Anchor(_previewInfo.rectTransform, new Vector2(0.06f, 0.02f), new Vector2(0.94f, 0.19f));
+            _previewInfo.richText = true;
+            UIBuild.Anchor(_previewInfo.rectTransform, new Vector2(0.06f, 0.02f), new Vector2(0.94f, 0.33f));
 
             // 우: 단계 안내 + 후보 격자
             _phaseLabel = UIBuild.Text("Phase", Body, "", UITheme.FontBody, UITheme.Accent);
             UIBuild.Anchor(_phaseLabel.rectTransform, new Vector2(0.32f, 0.93f), new Vector2(1f, 1f));
 
             _grid = UIBuild.Container("Grid", Body);
-            UIBuild.Anchor(_grid, new Vector2(0.32f, 0.22f), new Vector2(1f, 0.92f));
+            UIBuild.Anchor(_grid, new Vector2(0.32f, 0.26f), new Vector2(1f, 0.92f));
 
             // 타일 배치는 GridLayoutGroup에 맡기고, 칸 크기는 SquareGridSizer가 정사각형으로 유지한다.
             var layout = _grid.gameObject.AddComponent<GridLayoutGroup>();
@@ -111,13 +123,16 @@ namespace Managers.UI.Screens
 
             _summary = UIBuild.Text("Summary", Body, "", UITheme.FontCaption, UITheme.TextPrimary,
                 TextAlignmentOptions.TopLeft, wrap: true);
-            UIBuild.Anchor(_summary.rectTransform, new Vector2(0.32f, 0.13f), new Vector2(1f, 0.21f));
+            UIBuild.Anchor(_summary.rectTransform, new Vector2(0.32f, 0.12f), new Vector2(1f, 0.25f));
 
             _backButton = UIBuild.Button("Back", Body, "← 메인 다시 고르기", GoBackToMain);
-            UIBuild.Anchor(_backButton.image.rectTransform, new Vector2(0.32f, 0.02f), new Vector2(0.56f, 0.11f));
+            UIBuild.Anchor(_backButton.image.rectTransform, new Vector2(0.32f, 0.02f), new Vector2(0.52f, 0.11f));
+
+            _recommendButton = UIBuild.Button("Recommend", Body, "★ 추천 편성", ApplyRecommendation);
+            UIBuild.Anchor(_recommendButton.image.rectTransform, new Vector2(0.54f, 0.02f), new Vector2(0.74f, 0.11f));
 
             _primaryButton = UIBuild.Button("Primary", Body, "다음", OnPrimary, primary: true);
-            UIBuild.Anchor(_primaryButton.image.rectTransform, new Vector2(0.60f, 0.02f), new Vector2(1f, 0.11f));
+            UIBuild.Anchor(_primaryButton.image.rectTransform, new Vector2(0.76f, 0.02f), new Vector2(1f, 0.11f));
         }
 
         public override void Show()
@@ -128,6 +143,7 @@ namespace Managers.UI.Screens
             // 무한 모드에는 메인 단계가 없다.
             _phase = IsInfinite ? Phase.Support : Phase.Main;
             _hovered = 0;
+            _recommended.Clear();
 
             base.Show();
             RebuildGrid();
@@ -145,6 +161,8 @@ namespace Managers.UI.Screens
             {
                 if (manager.MainUnitId <= 0) return;   // 메인을 골라야 넘어간다
                 _phase = Phase.Support;
+                _hovered = 0;
+                BuildRecommendation(manager.MainUnitId);
                 RebuildGrid();
                 RefreshVisuals();
                 return;
@@ -159,6 +177,7 @@ namespace Managers.UI.Screens
 
             CharacterSelectionManager.Instance?.ClearLineup();
             _phase = Phase.Main;
+            _recommended.Clear();
             RebuildGrid();
             RefreshVisuals();
         }
@@ -196,6 +215,18 @@ namespace Managers.UI.Screens
                 TextMeshProUGUI label = UIBuild.Text("Name", tile.transform, IsLavoisierLocked(unit.id) ? "미해금 · 라부아지에" : unit.name,
                     UITheme.FontMicro, UITheme.TextPrimary, TextAlignmentOptions.Center);
                 UIBuild.Anchor(label.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.20f), 3f, 3f);
+
+                int rank = _recommended.IndexOf(unit.id);
+                if (rank >= 0)
+                {
+                    Image badge = UIBuild.Solid("RecommendBadge", tile.transform, UITheme.Accent);
+                    UIBuild.Anchor(badge.rectTransform, new Vector2(0f, 0.82f), new Vector2(0.62f, 1f), 3f, 3f);
+                    badge.raycastTarget = false;
+                    TextMeshProUGUI badgeLabel = UIBuild.Text("RecommendLabel", badge.transform, $"★ 추천 {rank + 1}",
+                        UITheme.FontMicro, UITheme.TextOnAccent, TextAlignmentOptions.Center);
+                    UIBuild.Stretch(badgeLabel.rectTransform);
+                    badgeLabel.raycastTarget = false;
+                }
 
                 int captured = unit.id;
                 UIBuild.OnClick(tile.gameObject, () => OnTileClicked(captured));
@@ -291,9 +322,11 @@ namespace Managers.UI.Screens
             string supportText = supportCount > 0
                 ? string.Join(", ", manager.SupportUnitIds.Select(UnitName))
                 : "미선택";
+            string recommendText = RecommendationSummary();
             _summary.text = IsInfinite
                 ? $"서포터  {supportText}"
-                : $"메인  {mainText}\n서포터  {supportText}";
+                : $"메인  {mainText}\n서포터  {supportText}" +
+                  (recommendText.Length > 0 ? $"\n{Colored("추천", UITheme.Accent)}  {recommendText}" : "");
 
             // 버튼 상태
             // 무한 모드는 카드 5장이 모두 차야 시작된다(ConfirmSelection이 그렇게 막는다).
@@ -302,6 +335,8 @@ namespace Managers.UI.Screens
                 : IsInfinite ? supportCount >= supportTarget : supportCount > 0;
             SetButton(_primaryButton, mainPhase ? "다음 →" : "여정 시작", canProceed);
             SetButtonVisible(_backButton, !IsInfinite && !mainPhase);
+            SetButtonVisible(_recommendButton, !mainPhase && _recommended.Count > 0);
+            SetButton(_recommendButton, "★ 추천 편성", !IsRecommendationApplied(manager), onAccent: false);
 
             RefreshPreview();
         }
@@ -331,8 +366,21 @@ namespace Managers.UI.Screens
             string statText = subStats.Count == 0
                 ? $"주 {unit.mainStat} (단일)"
                 : $"주 {unit.mainStat} · 부 {string.Join(" · ", subStats)}";
-            _previewInfo.text =
-                $"{unit.element}   {statText}\n{RoleText(unit)}";
+
+            var lines = new List<string>();
+            if (!string.IsNullOrWhiteSpace(unit.tagline) && !IsLavoisierLocked(unit.id))
+                lines.Add(Colored(unit.tagline, UITheme.TextPrimary));
+            lines.Add($"{ElementName(unit.element)}   {statText}");
+
+            // 메인 단계에서는 "이 캐릭터로 어떻게 이기는가"를, 서포터 단계에서는 추천 여부를 붙인다.
+            SynergyRecommendationData recommendation = SynergyCatalog.RecommendationFor(unit.id);
+            if (_phase == Phase.Main && !IsInfinite && !string.IsNullOrWhiteSpace(recommendation?.axis))
+                lines.Add($"운용  {recommendation.axis}");
+            if (_phase == Phase.Support && _recommended.Contains(unit.id))
+                lines.Add(Colored($"★ {UnitName(CharacterSelectionManager.Instance?.MainUnitId ?? 0)}의 추천 서포터", UITheme.Accent));
+
+            lines.Add(Colored(RoleText(unit), UITheme.TextMuted));
+            _previewInfo.text = string.Join("\n", lines);
         }
 
         private static string RoleText(UnitData unit)
@@ -347,7 +395,7 @@ namespace Managers.UI.Screens
             return SaveSystem.IsStarterUnlocked(unit.id) ? "해금됨 — 메인으로 쓸 수 있다" : "미해금";
         }
 
-        private static void SetButton(Button button, string label, bool interactable)
+        private static void SetButton(Button button, string label, bool interactable, bool onAccent = true)
         {
             if (button == null) return;
             button.interactable = interactable;
@@ -355,9 +403,96 @@ namespace Managers.UI.Screens
             if (text != null)
             {
                 text.text = label;
-                text.color = interactable ? UITheme.TextOnAccent : UITheme.TextMuted;
+                text.color = !interactable ? UITheme.TextMuted
+                    : onAccent ? UITheme.TextOnAccent : UITheme.TextPrimary;
             }
         }
+
+        // ── 추천 조합 ────────────────────────────────────────────────
+
+        /// <summary>
+        /// 메인의 추천 서포터 넷을 정한다. 고점 조합(전 캐릭터 해금 가정)에서 지금 격자에 오른 사람을
+        /// 먼저 담고, 빈자리는 최초 로스터만 쓰는 대체 조합으로 채운다. 해금이 덜 된 계정에서도
+        /// 네 자리가 비지 않게 하려는 것이다.
+        /// </summary>
+        private void BuildRecommendation(int mainUnitId)
+        {
+            _recommended.Clear();
+            _recommendReason = "";
+            _recommendArchetype = "";
+
+            SynergyRecommendationData entry = SynergyCatalog.RecommendationFor(mainUnitId);
+            if (entry == null) return;
+
+            var available = new HashSet<int>(Candidates()
+                .Where(unit => !IsLavoisierLocked(unit.id))
+                .Select(unit => unit.id));
+
+            IEnumerable<int> Pick(SynergyLineupData lineup) =>
+                lineup?.members?.Where(available.Contains) ?? Enumerable.Empty<int>();
+
+            foreach (int id in Pick(entry.best).Concat(Pick(entry.basic)))
+            {
+                if (_recommended.Count >= MaxParty - 1) break;
+                if (!_recommended.Contains(id)) _recommended.Add(id);
+            }
+
+            // 고점 조합이 통째로 들어갔으면 그 이유를, 아니면 대체 조합의 이유를 보여 준다.
+            bool bestComplete = entry.best?.members != null && entry.best.members.All(available.Contains);
+            SynergyLineupData shown = bestComplete ? entry.best : entry.basic ?? entry.best;
+            _recommendReason = shown?.reason?.Trim() ?? "";
+            _recommendArchetype = string.IsNullOrWhiteSpace(shown?.archetype)
+                ? ""
+                : SynergyCatalog.ArchetypeName(shown.archetype);
+        }
+
+        /// <summary>추천 서포터로 서포터 칸을 통째로 다시 채운다. 메인은 그대로 둔다.</summary>
+        private void ApplyRecommendation()
+        {
+            CharacterSelectionManager manager = CharacterSelectionManager.Instance;
+            if (manager == null || _recommended.Count == 0) return;
+
+            foreach (int id in manager.SupportUnitIds.ToList()) manager.RemoveHero(id);
+            foreach (int id in _recommended) manager.AddHero(id);
+            RefreshVisuals();
+        }
+
+        private bool IsRecommendationApplied(CharacterSelectionManager manager) =>
+            manager != null && _recommended.Count > 0 &&
+            manager.SupportUnitIds.Count == _recommended.Count &&
+            _recommended.All(id => manager.SupportUnitIds.Contains(id));
+
+        private string RecommendationSummary()
+        {
+            if (_phase != Phase.Support || _recommended.Count == 0) return "";
+            string names = string.Join(" · ", _recommended.Select(UnitName));
+            string archetype = string.IsNullOrWhiteSpace(_recommendArchetype) ? "" : $" ({_recommendArchetype})";
+            string reason = string.IsNullOrWhiteSpace(_recommendReason) ? "" : $" — {FirstSentence(_recommendReason)}";
+            return names + archetype + reason;
+        }
+
+        /// <summary>추천 이유는 여러 문장이라 요약 칸에는 첫 문장만 싣는다.</summary>
+        private static string FirstSentence(string text)
+        {
+            string flat = text.Replace("\r", "").Replace("\n", " ").Trim();
+            int end = flat.IndexOf(". ", System.StringComparison.Ordinal);
+            return end > 0 ? flat.Substring(0, end + 1) : flat;
+        }
+
+        private static string Colored(string text, Color color) =>
+            $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{text}</color>";
+
+        private static string ElementName(string element) => element switch
+        {
+            "Pyro" => "불",
+            "Hydro" => "물",
+            "Anemo" => "바람",
+            "Electro" => "번개",
+            "Dendro" => "풀",
+            "Cryo" => "얼음",
+            "Geo" => "바위",
+            _ => string.IsNullOrWhiteSpace(element) ? "무속성" : element,
+        };
 
         private static void SetButtonVisible(Button button, bool visible)
         {

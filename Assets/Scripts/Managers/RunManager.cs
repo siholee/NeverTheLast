@@ -71,6 +71,24 @@ namespace Managers
             SaveSystem.DeleteSave();
         }
 
+        /// <summary>
+        /// 플레이어가 직접 저장하거나 게임을 끌 때 지금 상태를 저장해도 되는지.
+        /// 전투 중에는 쓰러진 아군이 저장본에서 빠지고, 보상 선택 중에는 경험치를 받은 채
+        /// 같은 전투로 되돌아가며, 캐릭터 선택 중에는 파티가 비어 있다.
+        /// 그때는 전투 직전·사건·훈련 때 찍어 둔 자동 저장을 그대로 둔다.
+        /// </summary>
+        public bool CanSaveNow
+        {
+            get
+            {
+                if (!RunActive || GameManager.Instance == null) return false;
+                GameState state = GameManager.Instance.gameState;
+                return state == GameState.Preparation
+                    || state == GameState.TrainingPhase
+                    || state == GameState.EventStage;
+            }
+        }
+
         public void SaveCurrentRun()
         {
             if (!RunActive || GameManager.Instance == null) return;
@@ -354,7 +372,7 @@ namespace Managers
 
         private void OnApplicationPause(bool pauseStatus)
         {
-            if (pauseStatus)
+            if (pauseStatus && CanSaveNow)
             {
                 SaveCurrentRun();
             }
@@ -362,7 +380,7 @@ namespace Managers
 
         private void OnApplicationQuit()
         {
-            SaveCurrentRun();
+            if (CanSaveNow) SaveCurrentRun();
         }
 
         private RunSaveData BuildSaveData()

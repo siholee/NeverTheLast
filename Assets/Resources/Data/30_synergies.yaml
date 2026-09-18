@@ -966,7 +966,7 @@ recommendations:
 
   - mainId: 80
     mainName: 수르트
-    axis: "도발 요새 · 불 부착"
+    axis: "체력을 태우는 전열 딜 · 불 부착"
     best:
       archetype: REACTION
       members: [66, 62, 160, 81]

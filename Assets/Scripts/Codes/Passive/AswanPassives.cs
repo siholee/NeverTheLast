@@ -101,7 +101,10 @@ namespace Codes.Passive
             target.GrantCombatElement(BaseEnums.UnitElement.Pyro, duration, source);
 
             if (!HasPyreSentenceAlly(source) || !target.isActive) return;
-            if (!ElementalReaction.TryApplyBurn(source, target))
+            // 반응을 거치지 않고 화상을 바로 거는 길이라, 무뎌진 장비의 1턴 상한을 여기서도 지킨다.
+            int cap = ElementalReaction.ControlTurnCap(source);
+            int turns = cap > 0 ? Mathf.Min(ElementalReaction.DotDuration, cap) : ElementalReaction.DotDuration;
+            if (!ElementalReaction.TryApplyBurn(source, target, turns))
             {
                 Debug.Log($"[화형 선고] {target.UnitName}이(가) 화상에 저항했습니다.");
             }

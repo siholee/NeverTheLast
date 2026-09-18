@@ -14,8 +14,12 @@ namespace Codes.Passive
     /// <summary>
     /// 수르트 고유 P — 황혼.
     ///
-    /// 공격 행동을 시작할 때 최대 체력의 20%를 태우고 그 행동이 주는 피해를 40% 올린다.
-    /// 체력이 모자라 태우지 못하면 증가도 없다 — 치유가 곧 화력 재장전이 되게 하는 장치다.
+    /// 공격 행동을 시작할 때 최대 체력의 15%를 태우고 그 행동이 주는 피해를 40% 올린다.
+    /// 태운 뒤 체력이 최대 체력의 30% 아래로 떨어지면 태우지 않고 증가도 없다 — 치유가 곧 화력 재장전이다.
+    ///
+    /// 예전에는 20%를 태우고 바닥이 없었다. 체력 21%에서도 값을 치러 1%로 떨어졌고,
+    /// 도발이 사라진 전열에서 수르트가 스스로 빈사가 되어 파티째 무너졌다.
+    /// 바닥을 두어 황혼이 만든 빈틈은 30%에서 멈추고, 그 아래는 적에게 맞은 몫뿐이다.
     ///
     /// 값은 <b>행동마다 한 번</b>만 치른다. 피해 판정마다 태우면 라그나로크처럼
     /// 적 전체를 때리는 행동이 인원수만큼 비싸져 적이 많을수록 못 쓰게 된다.
@@ -23,7 +27,10 @@ namespace Codes.Passive
     public sealed class SurtrTwilight : UniquePassiveCode
     {
         /// <summary>행동 한 번에 태우는 최대 체력 비율.</summary>
-        private const float HpCostRatio = 0.2f;
+        private const float HpCostRatio = 0.15f;
+
+        /// <summary>값을 치른 뒤에도 남아 있어야 하는 최대 체력 비율.</summary>
+        private const float HpFloorRatio = 0.3f;
 
         private const int StatusId = 136;
         private const string StatusKey = "surtr_twilight";
@@ -51,7 +58,7 @@ namespace Codes.Passive
                 StatusId, StatusKey, CodeName, Caster, Caster, _effect,
                 stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
                 isBeneficial: true,
-                description: "공격할 때 최대 체력의 20%를 소모하고 그 행동이 주는 피해가 40% 증가합니다."));
+                description: "공격할 때 최대 체력의 15%를 소모하고 그 행동이 주는 피해가 40% 증가합니다. 소모 뒤 체력이 30% 미만이 되면 발동하지 않습니다."));
 
             _normalHandler = _ => Pay(BaseEnums.CodeType.Normal);
             _ultimateHandler = _ => Pay(BaseEnums.CodeType.Ultimate);
@@ -64,14 +71,16 @@ namespace Codes.Passive
         }
 
         /// <summary>
-        /// 행동이 열리는 순간 값을 치른다. 체력이 최대 체력의 20%를 넘지 않으면
-        /// <see cref="Unit.TryConsumeAttackHp"/>가 false를 돌려주고 그 행동은 맨몸으로 나간다.
+        /// 행동이 열리는 순간 값을 치른다. 치른 뒤 체력이 바닥(30%) 아래로 내려가면 치르지 않고,
+        /// 그 행동은 맨몸으로 나간다.
         /// </summary>
         private void Pay(BaseEnums.CodeType codeType)
         {
             if (Caster == null || _effect == null) return;
-            _effect.EmpoweredCodeType =
-                Caster.TryConsumeAttackHp(HpCostRatio, false, out _) ? codeType : (BaseEnums.CodeType?)null;
+            bool aboveFloor = Caster.HpCurr - Caster.HpMax * HpCostRatio >= Caster.HpMax * HpFloorRatio;
+            _effect.EmpoweredCodeType = aboveFloor && Caster.TryConsumeAttackHp(HpCostRatio, false, out _)
+                ? codeType
+                : (BaseEnums.CodeType?)null;
         }
 
         public override void StopCode()

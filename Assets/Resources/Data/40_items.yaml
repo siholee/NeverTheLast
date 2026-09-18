@@ -1320,6 +1320,35 @@ items:
     codeGrants:
       - { slot: passive, codeId: 432, stage: 1 }
 
+  # 아스완 앞 절반(1~3슬롯)의 사도가 Lv40까지 든다. 궁극기 피해·주는 치유 절반, 반응 절반·화상 1턴(식어 가는 불씨 443).
+  # 이단심문관의 광역 치유가 전투를 끌고 성기사의 광역 궁극기가 파티를 지우는 조합이 극초반에 너무 무겁다.
+  # Lv41부터는 원래 들던 녹슨 대검(4103)·이빨 빠진 검(4102)으로 돌아간다.
+  - id: 4186
+    name: 그을린 대검
+    icon: ITEM_RUSTY_GREATSWORD
+    slot: MainHand
+    category: Greatsword
+    requiredProficiency: Greatsword
+    rarity: 1
+    weight: 4
+    enemyOnly: true
+    statBonuses: [{ stat: STR, amount: 1 }]
+    codeGrants:
+      - { slot: passive, codeId: 443, stage: 1 }
+
+  - id: 4187
+    name: 금 간 심문검
+    icon: ITEM_CHIPPED_SWORD
+    slot: MainHand
+    category: Longsword
+    requiredProficiency: Longsword
+    rarity: 1
+    weight: 2
+    enemyOnly: true
+    statBonuses: [{ stat: STR, amount: 1 }]
+    codeGrants:
+      - { slot: passive, codeId: 443, stage: 1 }
+
   # ══════════════════════════════════════════════════════════════════
   # 일본 세 사람의 전용 장비 — 공용 드랍 · 주인이 덱에 있을 때만 (requiredUnitIds)
   #

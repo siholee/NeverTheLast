@@ -42,33 +42,24 @@ public static class LavoisierVerificationMenu
     [MenuItem("Tools/NeverTheLast/Import Lavoisier Art")]
     public static void ImportArt()
     {
-        ConfigureArt("Assets/Resources/Sprite/Standings/Allies/LAVOISIER_STANDING.png", false);
-        ConfigureArt("Assets/Resources/Sprite/Portraits/Allies/LAVOISIER_PORTRAIT.png", true);
+        ConfigureArt("Assets/Resources/Sprite/Standings/Allies/LAVOISIER_STANDING.png");
+        ConfigureArt("Assets/Resources/Sprite/Portraits/Allies/LAVOISIER_PORTRAIT.png");
         AssetDatabase.SaveAssets();
     }
 
-    private static void ConfigureArt(string path, bool portrait)
+    // 초상화는 전용 1024×1024 원화로 바뀌었다. 예전처럼 입상에서 잘라 쓰는 Multiple 영역을 두면
+    // 영역이 원화 밖으로 나가 스프라이트가 통째로 사라지므로, 다른 캐릭터와 같은 Single로 둔다.
+    private static void ConfigureArt(string path)
     {
         AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
         var importer = (TextureImporter)AssetImporter.GetAtPath(path);
         importer.textureType = TextureImporterType.Sprite;
-        importer.spriteImportMode = portrait ? SpriteImportMode.Multiple : SpriteImportMode.Single;
+        importer.spriteImportMode = SpriteImportMode.Single;
         importer.mipmapEnabled = false;
         importer.alphaIsTransparency = true;
         importer.npotScale = TextureImporterNPOTScale.None;
         importer.maxTextureSize = 2048;
         importer.spritePixelsPerUnit = 100;
-        if (portrait)
-        {
-#pragma warning disable CS0618
-            // 픽셀 원본은 보존하고 Unity의 스프라이트 영역만 지정한다.
-            importer.spritesheet = new[] { new SpriteMetaData
-            {
-                name = "LAVOISIER_PORTRAIT", rect = new Rect(230, 976, 560, 560),
-                alignment = (int)SpriteAlignment.Center, pivot = new Vector2(.5f, .5f),
-            }};
-#pragma warning restore CS0618
-        }
         importer.SaveAndReimport();
     }
 

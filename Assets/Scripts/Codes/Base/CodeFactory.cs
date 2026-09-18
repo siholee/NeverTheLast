@@ -9,7 +9,21 @@ namespace Codes.Base
 {
   public static class CodeFactory
   {
+    /// <summary>
+    /// 만든 코드에 요청한 ID를 새긴다. 코드 클래스는 제 ID를 모르고, 공유 구현(레기온 등)은
+    /// 한 클래스가 여러 ID를 맡으므로 <b>ID는 여기서만 정확히 알 수 있다.</b>
+    /// 화면이 `20_codes.yaml`의 설명을 찾아 붙일 때 이 값을 쓴다.
+    /// </summary>
+    private static T Tag<T>(T code, int codeId) where T : Code
+    {
+      if (code != null) code.CatalogId = codeId;
+      return code;
+    }
+
     public static PassiveCode CreatePassiveCode(int codeId, PassiveCodeContext context)
+      => Tag(BuildPassive(codeId, context), codeId);
+
+    private static PassiveCode BuildPassive(int codeId, PassiveCodeContext context)
     {
       return codeId switch
       {
@@ -374,6 +388,7 @@ namespace Codes.Base
         440 => new PredatorCloakItemPassive(context),
         441 => new SharkToothItemPassive(context),
         442 => new BarnacleShellItemPassive(context),
+        443 => new DyingEmbersItemPassive(context),
         431 => new SceptreOfAmunItemPassive(context),
         // ── 사바흐·이카리아 ──
         203 => new SabahDebuffHunter(context),
@@ -406,6 +421,9 @@ namespace Codes.Base
     }
 
     public static NormalCode CreateNormalCode(int codeId, NormalCodeContext context)
+      => Tag(BuildNormal(codeId, context), codeId);
+
+    private static NormalCode BuildNormal(int codeId, NormalCodeContext context)
     {
       return codeId switch
       {
@@ -537,6 +555,9 @@ namespace Codes.Base
     /// ID는 소유자의 유닛 ID를 그대로 쓴다(일반·궁극기와 같은 규칙).
     /// </summary>
     public static SpecialCode CreateSpecialCode(int codeId, SpecialCodeContext context)
+      => Tag(BuildSpecial(codeId, context), codeId);
+
+    private static SpecialCode BuildSpecial(int codeId, SpecialCodeContext context)
     {
       return codeId switch
       {
@@ -553,6 +574,9 @@ namespace Codes.Base
     }
 
     public static UltimateCode CreateUltimateCode(int codeId, UltimateCodeContext context)
+      => Tag(BuildUltimate(codeId, context), codeId);
+
+    private static UltimateCode BuildUltimate(int codeId, UltimateCodeContext context)
     {
       return codeId switch
       {

@@ -114,7 +114,7 @@ namespace Effects.Negative
         private const int BarrierPower = 100;
 
         /// <summary>지속피해·즉발 반응의 기본 지속 턴.</summary>
-        private const int DotDuration = 2;
+        public const int DotDuration = 2;
 
         /// <summary>버프·디버프 반응의 지속 턴.</summary>
         private const int StatDuration = 3;

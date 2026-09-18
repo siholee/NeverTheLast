@@ -481,6 +481,7 @@ ID는 같은 분류 안에서 중복되면 안 된다.
 ```yaml
 - id: 5
   name: 아탈란테
+  tagline: "..."                # 캐릭터 선택 화면의 한 줄 소개. 무엇을 하는 캐릭터인가만 적는다
   characterType: Starter        # Starter / Support / Locked
   element: Dendro
   startingProficiencies: [Longbow, MediumArmor]

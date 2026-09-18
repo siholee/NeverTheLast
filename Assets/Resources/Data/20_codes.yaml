@@ -155,7 +155,7 @@ codes:
     - id: 280
       verbalName: 황혼
       codeName: SurtrTwilight
-      description: "적을 공격할 때 최대 체력의 20%를 소모하고 그 행동이 가하는 피해를 40% 증가시킨다. 체력이 모자라 소모할 수 없으면 발동하지 않는다. <고유 패시브> <전수 불가능>"
+      description: "적을 공격할 때 최대 체력의 15%를 소모하고 그 행동이 가하는 피해를 40% 증가시킨다. 소모 뒤 체력이 최대 체력의 30% 미만이 되면 발동하지 않는다. <고유 패시브> <전수 불가능>"
     - { id: 39, verbalName: 거인, codeName: GiantPassive, description: "STR +5%." }
     - { id: 40, verbalName: 천상의 신체, codeName: SurtrCelestialBody, description: "받는 치유와 보호막 효과가 25% 증가한다." }
     - { id: 41, verbalName: 투사, codeName: LifestealFighter, description: "가한 피해의 8%만큼 체력을 회복한다." }
@@ -449,6 +449,7 @@ codes:
     - { id: 439, verbalName: 불씨 인분, codeName: EmberScaleItemPassive, description: "일반행동 적중 시 25% 확률로 화상 1턴을 시도한다(CON 대결). <장비 전용> <전수 불가능>" }
     - { id: 440, verbalName: 포식자의 깃털, codeName: PredatorCloakItemPassive, description: "타격이 횟수제 무적에 막힐 때마다 DEX가 3% 증가한다(최대 5중첩, 전투 끝까지). <장비 전용> <전수 불가능>" }
     - { id: 441, verbalName: 상어 이빨, codeName: SharkToothItemPassive, description: "보호막을 가진 적에게 주는 피해가 20% 증가한다. <장비 전용> <전수 불가능>" }
+    - { id: 443, verbalName: 식어 가는 불씨, codeName: DyingEmbersItemPassive, description: "궁극기 피해와 주는 치유가 50% 감소한다. 일으키는 해로운 원소 반응의 위력이 50% 감소하고 화상은 1턴으로 끝난다. <적 전용 장비> <전수 불가능>" }
     - { id: 442, verbalName: 따개비 등갑, codeName: BarnacleShellItemPassive, description: "전투당 1회, 체력이 50% 아래로 떨어지면 최대 체력 15%의 보호막을 얻는다. <장비 전용> <전수 불가능>" }
     - { id: 431, verbalName: 아문의 홀, codeName: SceptreOfAmunItemPassive, description: "궁극기로 주는 피해가 30% 증가한다. <장비 전용> <전수 불가능>" }
     - { id: 1604, verbalName: 왕의 격노, codeName: KingsRage, description: "잃은 체력에 비례해 DEX와 흡혈률이 증가한다. 광전사의 격노와 같은 구조이며 계수가 크다(DEX 최대 +90%, 흡혈 한 겹 5%). <고유 패시브> <적 전용> <전수 불가능>" }

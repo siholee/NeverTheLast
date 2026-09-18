@@ -45,6 +45,7 @@ namespace Codes.Passive
         public const int PredatorCloak = 6429;
         public const int SharkTooth = 6430;
         public const int BarnacleShell = 6431;
+        public const int DyingEmbers = 6433;
     }
 
     /// <summary>장비를 벗으면 자신이 만든 상시 상태도 함께 걷어 내는 아이템 패시브 공통형.</summary>
@@ -818,5 +819,44 @@ namespace Codes.Passive
         public override bool CountsAsReagentBuff => false;
         public float HarmfulReactionPotency => 0.5f;
         public int ReactionTurnCap => 1;
+    }
+
+    /// <summary>
+    /// 식어 가는 불씨(443) — 아스완 앞 절반의 사도(성기사·이단심문관)가 Lv40까지 드는 적 전용 T1 무기가 준다.
+    /// 궁극기 피해와 주는 치유가 절반이 되고, 해로운 원소 반응은 무뎌진 결정(432)과 같이 절반·1턴으로 줄어든다.
+    ///
+    /// 사도 편성은 이단심문관이 일반행동마다 적 전체를 치유해 전투를 끌고, 그 사이 차오른 성기사의
+    /// 광역 궁극기가 파티를 한 번에 지운다. 다른 테마의 초반 궁극기가 단일 대상인 것과 비교하면
+    /// 극초반 파티가 감당할 몫이 아니라서, 두 축을 모두 반으로 꺾는다. Lv41부터는 원래 무기로 갈아 든다.
+    /// </summary>
+    public sealed class DyingEmbersItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_dying_embers";
+
+        public DyingEmbersItemPassive(PassiveCodeContext context) : base(context, "식어 가는 불씨") { }
+
+        public override void CastCode()
+        {
+            if (Caster == null || Caster.HasStatus(ItemPassiveIds.DyingEmbers)) return;
+            AddPermanentStatus(ItemPassiveIds.DyingEmbers, new DyingEmbersEffect(),
+                "궁극기 피해와 주는 치유가 50% 감소합니다. 일으키는 해로운 원소 반응의 위력이 50% 감소하고 화상은 1턴으로 끝납니다.");
+        }
+    }
+
+    internal sealed class DyingEmbersEffect : BaseEffect, Effects.Negative.IReactionDampener
+    {
+        private const float Ratio = 0.5f;
+
+        public DyingEmbersEffect() : base(0) { }
+        public override bool CountsAsReagentBuff => false;
+        public float HarmfulReactionPotency => Ratio;
+        public int ReactionTurnCap => 1;
+
+        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
+            => attacker == Target && context != null && context.CodeType == BaseEnums.CodeType.Ultimate
+                ? Ratio : 1f;
+
+        public override float OutgoingHealingMultiplierModifier(Unit source, Unit target)
+            => source == Target ? Ratio : 1f;
     }
 }

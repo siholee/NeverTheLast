@@ -37,6 +37,7 @@
 units:
   - id: 1
     name: 세이
+    tagline: "아군이 때릴 때마다 고정 피해를 얹는 창세의 증폭기. 타수가 많은 파티일수록 강해진다"
     characterType: Support
     element: Geo
     startingProficiencies: [Orb]
@@ -88,6 +89,7 @@ units:
 
   - id: 4
     name: 가우디
+    tagline: "적과 아군 셋에게 풀을 까는 광역 부착 담당. 풀 반응 파티의 재료를 댄다"
     characterType: Support
     element: Dendro
     startingProficiencies: [Longsword]
@@ -132,6 +134,7 @@ units:
 
   - id: 5
     name: 라이트
+    tagline: "궁극기로 아군 캐스터의 마나를 채우고 해로운 상태를 씻어 내는 바람의 배터리"
     characterType: Support
     element: Anemo
     startingProficiencies: [Orb, Shield, LightArmor]
@@ -176,6 +179,7 @@ units:
 
   - id: 6
     name: 니콜
+    tagline: "아군에게 번개를 둘러 피해와 치명타 피해를 끌어올리는 전기장 버퍼"
     characterType: Support
     element: Electro
     startingProficiencies: [Shortbow, LightArmor]
@@ -219,6 +223,7 @@ units:
 
   - id: 7
     name: 잔
+    tagline: "노려지는 순간 먼저 받아치는 맨손 전열. 성장하면 꺼지지 않는 도발로 후열을 지킨다"
     characterType: Support
     element: Cryo
     startingProficiencies: [HeavyArmor]
@@ -262,6 +267,7 @@ units:
 
   - id: 2
     name: 시
+    tagline: "행동 속도가 곧 화력인 쾌속 검사. 빈사가 된 적을 처형으로 정리한다"
     characterType: Locked
     element: Anemo
     startingProficiencies: [Longsword, LightArmor]
@@ -311,6 +317,7 @@ units:
 
   - id: 20
     name: 피그말리온
+    tagline: "스스로 소환수 판정을 받는 방벽. 궁극기로 피해를 반으로 줄이고 접촉한 적을 태운다"
     characterType: Locked
     element: Pyro
     startingProficiencies: [Orb, MediumArmor]
@@ -359,6 +366,7 @@ units:
 
   - id: 21
     name: 아탈란테
+    tagline: "후열에서 활을 쏘며 디버프를 쌓아 방어를 무시하는 저격수"
     characterType: Starter
     element: Dendro
     startingProficiencies: [Longbow, MediumArmor]
@@ -410,6 +418,7 @@ units:
   # 그리스 스타터. 전열 탱커 또는 활 계열 힘사수 딜탱.
   - id: 22
     name: 오리온
+    tagline: "피격을 세어 적 전체에 반격하고 궁극기로 화살비 12발을 쏟는 다타수 궁수"
     characterType: Starter
     element: Geo
     startingProficiencies: [Longbow, HeavyArmor]
@@ -462,6 +471,7 @@ units:
   # 그리스 스타터. 딜/탱 비중을 자유롭게 조절하는 범용 전열 딜러.
   - id: 23
     name: 테세우스
+    tagline: "궁극기와 자가 치유로 힐러 없이도 버티는 광역 전열 전사"
     characterType: Starter
     element: Hydro
     startingProficiencies: [Longsword, HeavyArmor]
@@ -510,6 +520,7 @@ units:
   # 그리스 미해금. 치유와 공격을 겸하는 하이브리드 지원가.
   - id: 24
     name: 아스클레피아
+    tagline: "치유와 보호막에 치명타가 터지는 의신. 해로운 상태까지 걷어 낸다"
     characterType: Locked
     element: Electro
     startingProficiencies: [Spear]
@@ -560,6 +571,7 @@ units:
   # 타카미가하라 미해금. 일반행동을 증폭하는 후열 사수.
   - id: 40
     name: 아마테라스
+    tagline: "일반행동을 맞힐 때마다 화살 8발이 따라 나가는 추가행동 폭발 궁수"
     characterType: Locked
     element: Pyro
     startingProficiencies: [Longbow, LightArmor]
@@ -610,6 +622,7 @@ units:
   # 스타터 서포터. 방어막을 부여하는 방어형 지원 역할을 맡는다.
   - id: 60
     name: 찬드라
+    tagline: "특수행동으로 아군 전체에 보호막과 마나를, 궁극기로 최대 딜러에게 올스탯을 준다"
     characterType: Support
     element: Geo
     startingProficiencies: [Shortspear, LightArmor]
@@ -676,6 +689,7 @@ units:
   # ── 보관: 영웅 획득 경로 미정 ─────────────────────────────────────
   - id: 140
     name: 케찰코아틀
+    tagline: "필드의 풀 아군 수만큼 아군 전체 피해를 올리는 풀 파티의 중심"
     characterType: Locked
     element: Dendro
     startingProficiencies: [Orb]
@@ -725,6 +739,7 @@ units:
   # ── 츠쿠요미: 천공 전선(테마 19) 1슬롯 승리 뒤 합류 사건으로 해금 ──────
   - id: 41
     name: 츠쿠요미
+    tagline: "지속피해와 달의 위상 디버프를 뿌려 아군 모두의 칼을 깊게 만드는 술사"
     characterType: Locked
     element: Electro
     startingProficiencies: [Spear]
@@ -784,6 +799,7 @@ units:
   # ── 노르드 스타터 ─────────────────────────────────────────────
   - id: 80
     name: 수르트
+    tagline: "자기 체력을 태워 화력으로 바꾸는 전열 딜러. 치유가 곧 탄약이다"
     characterType: Starter
     element: Pyro
     startingProficiencies: [Greatsword, MediumArmor]
@@ -837,6 +853,7 @@ units:
   # 지속피해 코어. 수동적인 지속피해를 능동적으로 터뜨린다.
   - id: 61
     name: 야마
+    tagline: "아군 전체의 지속피해를 키우고 궁극기로 한 번에 정산하는 브루저"
     characterType: Starter
     element: Electro
     startingProficiencies: [Spear, MediumArmor]
@@ -880,6 +897,7 @@ units:
   # 베다/캐스터 파티의 서브 딜러.
   - id: 62
     name: 아그니
+    tagline: "적 전체를 특수 피해에 취약하게 만들고 불 원소 아군의 피해를 올리는 불의 신"
     characterType: Support
     element: Pyro
     startingProficiencies: [Orb]
@@ -923,6 +941,7 @@ units:
   # 클래식 번개 하이퍼캐리.
   - id: 63
     name: 인드라
+    tagline: "궁극기로 로카팔라 전원의 특수행동을 여는 천둥의 왕. 적 사이를 튕기는 천벌을 쏜다"
     characterType: Locked
     element: Electro
     startingProficiencies: [Orb, LightArmor]
@@ -966,6 +985,7 @@ units:
   # 범용 방어형 서포터.
   - id: 64
     name: 바유
+    tagline: "적 전체에 바람을 붙이고 방어력을 깎으며 잔풍으로 지속피해를 남긴다"
     characterType: Support
     element: Anemo
     startingProficiencies: [Longbow, LightArmor]
@@ -1011,6 +1031,7 @@ units:
 
   - id: 81
     name: 프레이아
+    tagline: "일반행동이 곧 아군 전체 치유인 유일한 상시 힐러. 모은 치유량을 광역 피해로 바꾼다"
     characterType: Support
     element: Dendro
     startingProficiencies: [Spear, LightArmor]
@@ -1054,6 +1075,7 @@ units:
 
   - id: 82
     name: 로키
+    tagline: "칸을 차지하지 않는 펜리르를 부리고 소환수 피해를 키우는 소환사"
     characterType: Locked
     element: Pyro
     startingProficiencies: [Longbow, MediumArmor]
@@ -1096,6 +1118,7 @@ units:
 
   - id: 83
     name: 스카디
+    tagline: "스스로 도발하고 방어막을 두르는 전열 탱커. 서포트 슬롯에 드는 도발 담당"
     characterType: Support
     element: Cryo
     startingProficiencies: [Orb, Shield, HeavyArmor]
@@ -1138,6 +1161,7 @@ units:
 
   - id: 65
     name: 쿠베라
+    tagline: "적을 물리 취약으로 만들고 궁극기로 전체를 띄우는 제어 겸 금고지기"
     characterType: Support
     element: Geo
     startingProficiencies: [Shield, Longsword, HeavyArmor]
@@ -1180,6 +1204,7 @@ units:
 
   - id: 66
     name: 바루나
+    tagline: "아군 전체의 원소 반응 피해를 +40% 올리는 반응 파티의 핵심. 치유와 정화도 맡는다"
     characterType: Support
     element: Hydro
     startingProficiencies: [Spear, MediumArmor]
@@ -1221,6 +1246,7 @@ units:
 
   - id: 67
     name: 수리야
+    tagline: "햇빛 아래 아군 행동마다 중첩을 쌓아 한 번에 터뜨리는 태양신"
     characterType: Locked
     element: Pyro
     startingProficiencies: [Orb, MediumArmor]
@@ -1264,6 +1290,7 @@ units:
 
   - id: 25
     name: 오르페우스
+    tagline: "전투가 시작되자마자 궁극기로 적 전체의 강인도를 깎아 놓는 음유시인"
     characterType: Support
     element: Anemo
     startingProficiencies: [Longsword, LightArmor]
@@ -1306,6 +1333,7 @@ units:
 
   - id: 42
     name: 스사노오
+    tagline: "공중에 뜬 적이 있는 한 궁극기로 계속 베어 처형하는 폭풍의 신"
     characterType: Locked
     element: Hydro
     startingProficiencies: [Greatsword, LightArmor]
@@ -1350,6 +1378,7 @@ units:
   # 공허의 갑주를 제어 없이 넘기는 해법이라 진행에 필요한 서포터다.
   - id: 43
     name: 아베노 세이메이
+    tagline: "아군 피해가 보호막을 건너뛰게 하고, 기절과 에어본으로 적을 묶는 음양사"
     characterType: Locked
     element: Anemo
     startingProficiencies: [Orb]
@@ -1396,6 +1425,7 @@ units:
   # 전용 로마 스프라이트를 적 버전과 공유한다.
   - id: 100
     name: 아그리파
+    tagline: "궁극기로 아군 전체의 궁극기 자원을 채우고 버프받은 아군의 피해를 키운다"
     characterType: Support
     element: Geo
     startingProficiencies: [Greatsword, MediumArmor]
@@ -1439,6 +1469,7 @@ units:
 
   - id: 101
     name: 옥타비아
+    tagline: "적 전체를 INT×1.5로 폭격하는 대형 광역 궁극기 캐스터"
     characterType: Locked
     element: Anemo
     startingProficiencies: [Orb, LightArmor]
@@ -1481,6 +1512,7 @@ units:
 
   - id: 102
     name: 카이사르
+    tagline: "궁극기로 아군 전체의 행동 게이지를 채우고 처치할 때마다 로마 아군을 강화한다"
     characterType: Locked
     element: Anemo
     startingProficiencies: [Longsword, LightArmor]
@@ -1528,6 +1560,7 @@ units:
 
   - id: 120
     name: 호루스
+    tagline: "넘치는 행동 속도를 STR로 바꾸는 특이한 단일 딜러. DEX 버프가 곧 화력이다"
     characterType: Locked
     element: Pyro
     startingProficiencies: [Longbow, LightArmor]
@@ -1573,6 +1606,7 @@ units:
 
   - id: 121
     name: 아누비스
+    tagline: "적 전열을 치며 아군 전열에 방어막을 씌우는 방벽. 쓰러진 아군을 되살린다"
     characterType: Starter
     element: Geo
     # 현재 장비 분류의 Spear/MediumArmor가 단창/평갑을 포괄한다.
@@ -1617,6 +1651,7 @@ units:
 
   - id: 122
     name: 바스테트
+    tagline: "아군의 추가행동·반격이 쌓일수록 폭발하는 반격 파티의 마무리 담당"
     characterType: Locked
     element: Geo
     startingProficiencies: [Dagger, LightArmor]
@@ -1661,6 +1696,7 @@ units:
 
   - id: 123
     name: 세트
+    tagline: "궁극기로 긴 화상을 직접 거는 화상 지속피해 브루저"
     characterType: Locked
     element: Pyro
     startingProficiencies: [Greatsword, MediumArmor]
@@ -1702,6 +1738,7 @@ units:
 
   - id: 124
     name: 토트
+    tagline: "강인도 효율을 올리고 깎은 강인도를 실제 피해로 바꾸는 지혜의 신"
     characterType: Support
     element: Hydro
     startingProficiencies: [Orb]
@@ -1743,6 +1780,7 @@ units:
 
   - id: 125
     name: 이시스
+    tagline: "적 전체를 세 번 치며 바위를 붙이고 행동 게이지를 늦추는 제어형 딜러"
     characterType: Support
     element: Geo
     startingProficiencies: [Orb]
@@ -1784,6 +1822,7 @@ units:
 
   - id: 3
     name: 사바흐
+    tagline: "아군이 건 디버프 수를 자원으로 삼아 적을 정리하는 마무리 딜러"
     characterType: Starter
     element: Electro
     startingProficiencies: [Longsword, LightArmor]
@@ -1829,6 +1868,7 @@ units:
 
   - id: 26
     name: 이카리아
+    tagline: "체력을 태워 피해로 바꾸는 후열 폭딜. 소모한 만큼 배율이 커진다"
     characterType: Locked
     element: Pyro
     startingProficiencies: [Spear]
@@ -1870,6 +1910,7 @@ units:
 
   - id: 160
     name: 마리
+    tagline: "아군 전체의 치명타 피해를 자기 LUK만큼 올리는 치명타 파티의 장교"
     characterType: Support
     element: Cryo
     startingProficiencies: [Longsword, LightArmor]
@@ -1911,6 +1952,7 @@ units:
 
   - id: 8
     name: 라부아지에
+    tagline: "아군이 준 치유·보호막·버프를 시약으로 모아 한 번에 터뜨리는 연금술 딜러"
     characterType: Locked
     element: Pyro
     startingProficiencies: [Orb]
@@ -1962,6 +2004,7 @@ units:
   # 불(시구르드)과 얼음(브륀힐드)을 나눠 가져 협공 한 번에 융해가 터진다.
   - id: 84
     name: 시구르드
+    tagline: "브륀힐드와 공명을 쌓아 협공하는 용살자. 불로 베고 단일 궁극기로 내구를 무시한다"
     characterType: Locked
     element: Pyro
     startingProficiencies: [Longsword, MediumArmor]
@@ -2005,6 +2048,7 @@ units:
 
   - id: 85
     name: 브륀힐드
+    tagline: "시구르드와 공명을 쌓아 협공하는 발키리. 얼음 창으로 협공의 절반을 맡는다"
     characterType: Locked
     element: Cryo
     startingProficiencies: [Spear, LightArmor]

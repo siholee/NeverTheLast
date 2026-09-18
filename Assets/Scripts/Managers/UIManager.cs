@@ -220,12 +220,26 @@ namespace Managers
 
         // ── 설정 ─────────────────────────────────────────────────────
 
+        /// <summary>우상단 ≡ 버튼과 ESC가 여는 인게임 메뉴. 설정은 메인 메뉴와 같은 패널을 쓴다.</summary>
         public void ShowSettings()
         {
-            // 인게임 설정은 아직 별도 화면이 없다. 메인 메뉴의 설정 화면을 재사용하기 전까지는
-            // 배속/일시정지 같은 최소 동작만 HUD가 담당한다.
-            Debug.Log("[UIManager] 인게임 설정 화면은 아직 준비되지 않았습니다.");
+            PauseMenu.Toggle();
         }
+
+        public bool IsPauseMenuOpen => _pauseMenu != null && _pauseMenu.IsVisible;
+
+        /// <summary>ESC 한 번에 가장 위의 것 하나만 닫는다. 설정이 떠 있으면 설정부터.</summary>
+        public void HandleEscape()
+        {
+            if (_settingsUI != null && _settingsUI.IsOpen) _settingsUI.Close();
+            else PauseMenu.Toggle();
+        }
+
+        private PauseMenuScreen _pauseMenu;
+        private UI.SettingsUI _settingsUI;
+
+        private PauseMenuScreen PauseMenu => _pauseMenu ??= new PauseMenuScreen(() =>
+            _settingsUI != null ? _settingsUI : _settingsUI = gameObject.AddComponent<UI.SettingsUI>());
 
     }
 }

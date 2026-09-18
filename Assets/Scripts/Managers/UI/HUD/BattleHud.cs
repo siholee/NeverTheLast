@@ -106,7 +106,11 @@ namespace Managers.UI.HUD
             _featureBanner?.Refresh();
 
             if (Input.GetKeyDown(KeyCode.Tab)) ToggleCodex();
-            if (Input.GetKeyDown(KeyCode.Escape) && _codex != null && _codex.IsOpen) _codex.Hide();
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                if (_codex != null && _codex.IsOpen) _codex.Hide();
+                else GameManager.Instance?.uiManager?.HandleEscape();
+            }
         }
 
         // ── 외부(UIManager)에서 호출하는 갱신 ────────────────────────

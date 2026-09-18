@@ -8,6 +8,9 @@ namespace Managers
     {
         public int id;
         public string name;
+
+        /// <summary>캐릭터 선택 화면의 한 줄 소개. "뭐 하는 캐릭터인가"만 적는다.</summary>
+        public string tagline;
         public string element;
         public List<int> startingItemIds;
         // 시작 숙련은 무기 1종을 원칙으로 하며 방어구 숙련은 캐릭터별 사양이다. 추가 숙련은 패시브가 연다.

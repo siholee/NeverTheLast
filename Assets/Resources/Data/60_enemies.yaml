@@ -946,7 +946,10 @@ enemies:
     element: Pyro
     tier: normal
     tags: [Apostle]
-    startingItemIds: [4103, 4114]
+    startingItemIds: [4114]
+    startingItemsByLevel:
+      - { itemId: 4186, minLevel: 1, maxLevel: 40 }   # 그을린 대검 — 궁극기·치유 약화(적 전용)
+      - { itemId: 4103, minLevel: 41 }   # 녹슨 대검
     startingProficiencies: [Greatsword, HeavyArmor]
     mainStat: STR
     subStat: CON
@@ -977,7 +980,10 @@ enemies:
     element: Pyro
     tier: elite
     tags: [Apostle]
-    startingItemIds: [4103, 4114]
+    startingItemIds: [4114]
+    startingItemsByLevel:
+      - { itemId: 4186, minLevel: 1, maxLevel: 40 }   # 그을린 대검 — 궁극기·치유 약화(적 전용)
+      - { itemId: 4103, minLevel: 41 }   # 녹슨 대검
     startingProficiencies: [Greatsword, HeavyArmor]
     mainStat: STR
     subStat: CON
@@ -1010,7 +1016,10 @@ enemies:
     element: Pyro
     tier: normal
     tags: [Apostle]
-    startingItemIds: [4102, 4113]
+    startingItemIds: [4113]
+    startingItemsByLevel:
+      - { itemId: 4187, minLevel: 1, maxLevel: 40 }   # 금 간 심문검 — 궁극기·치유 약화(적 전용)
+      - { itemId: 4102, minLevel: 41 }   # 이빨 빠진 검
     startingProficiencies: [Longsword, MediumArmor]
     mainStat: CON
     subStat: INT
@@ -1038,7 +1047,10 @@ enemies:
     element: Pyro
     tier: elite
     tags: [Apostle]
-    startingItemIds: [4102, 4113]
+    startingItemIds: [4113]
+    startingItemsByLevel:
+      - { itemId: 4187, minLevel: 1, maxLevel: 40 }   # 금 간 심문검 — 궁극기·치유 약화(적 전용)
+      - { itemId: 4102, minLevel: 41 }   # 이빨 빠진 검
     startingProficiencies: [Longsword, MediumArmor]
     mainStat: CON
     subStat: INT
