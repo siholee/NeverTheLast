@@ -19,8 +19,8 @@ namespace Managers.UI.Screens
 
         protected override string CanvasName => "ConfirmCanvas";
 
-        /// <summary>준비 페이즈 패널(40)이나 다른 모달(70대)보다 위에 떠야 한다.</summary>
-        protected override int SortingOrder => 90;
+        /// <summary>어떤 화면보다도 위 — ESC 메뉴의 불러오기·나가기도 이 창으로 되묻는다.</summary>
+        protected override int SortingOrder => UITheme.LayerConfirm;
 
         protected override string Title => "확인";
         protected override string Caption => "CONFIRM";

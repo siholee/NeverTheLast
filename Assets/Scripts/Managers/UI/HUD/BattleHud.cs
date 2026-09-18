@@ -57,7 +57,7 @@ namespace Managers.UI.HUD
             transform.SetParent(canvas.transform, false);
 
             _queue = new ActionQueuePanel(canvas.transform);
-            _topBar = new TopStatusBar(canvas.transform, CycleSpeed, ToggleCodex, OpenSettings);
+            _topBar = new TopStatusBar(canvas.transform, CycleSpeed, ToggleCodex, OpenMenu);
             BuildResourceStrip(canvas.transform);
             _featureBanner = new FeatureEnemyBanner(canvas.transform);
 
@@ -105,12 +105,13 @@ namespace Managers.UI.HUD
             _queue?.Tick();
             _featureBanner?.Refresh();
 
-            if (Input.GetKeyDown(KeyCode.Tab)) ToggleCodex();
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                if (_codex != null && _codex.IsOpen) _codex.Hide();
-                else GameManager.Instance?.uiManager?.HandleEscape();
-            }
+            // ESC 메뉴(와 그 위의 자료실)가 떠 있는 동안에는 TAB을 받지 않는다. 캐릭터 창은
+            // 메뉴보다 위 캔버스라, 받으면 자료실 검색창에 타이핑하다 창이 덮어 버린다.
+            bool menuOpen = GameManager.Instance?.uiManager?.IsPauseMenuOpen == true;
+            if (Input.GetKeyDown(KeyCode.Tab) && !menuOpen) ToggleCodex();
+            // ESC는 캐릭터 창을 닫지 않는다. 캐릭터 창이 떠 있어도 그 위에 메뉴를 띄운다.
+            // 캐릭터 창은 TAB · × · 바깥 클릭으로 닫는다.
+            if (Input.GetKeyDown(KeyCode.Escape)) OpenMenu();
         }
 
         // ── 외부(UIManager)에서 호출하는 갱신 ────────────────────────
@@ -165,6 +166,8 @@ namespace Managers.UI.HUD
             _topBar?.SetSpeedLabel(speed);
         }
 
+        public bool IsCodexOpen => _codex != null && _codex.IsOpen;
+
         public void ToggleCodex()
         {
             if (_codex == null) return;
@@ -177,9 +180,10 @@ namespace Managers.UI.HUD
             _codex?.Show(unit);
         }
 
-        private static void OpenSettings()
+        /// <summary>ESC와 우상단 ≡ 버튼은 같은 입력이다. 둘 다 여기로 온다.</summary>
+        private static void OpenMenu()
         {
-            GameManager.Instance?.uiManager?.ShowSettings();
+            GameManager.Instance?.uiManager?.HandleEscape();
         }
     }
 }

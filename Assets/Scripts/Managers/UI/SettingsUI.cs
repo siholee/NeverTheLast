@@ -38,7 +38,7 @@ namespace Managers.UI
         {
             if (_panel != null) return;
 
-            Canvas canvas = UIBuild.Canvas("SettingsCanvas", 90);
+            Canvas canvas = UIBuild.Canvas("SettingsCanvas", UITheme.LayerSettings);
             _panel = new GameObject("SettingsPanel", typeof(RectTransform));
             _panel.transform.SetParent(canvas.transform, false);
             UIBuild.Stretch(_panel.GetComponent<RectTransform>());

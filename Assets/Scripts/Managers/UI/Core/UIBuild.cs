@@ -63,6 +63,42 @@ namespace Managers.UI.Core
             return go.GetComponent<RectTransform>();
         }
 
+        /// <summary>
+        /// 세로 스크롤 영역. 돌려준 content 아래를 위에서부터 채우고, 다 채운 뒤
+        /// content의 높이(<c>sizeDelta.y</c>)를 호출한 쪽이 직접 정한다.
+        /// 배치는 돌려받은 <paramref name="scroll"/>의 RectTransform으로 잡는다.
+        ///
+        /// <b>안에 넣는 항목의 클릭은 <see cref="OnClick"/>이 아니라 Button으로 받는다.</b>
+        /// EventTrigger는 휠 이벤트까지 먹어 버려, 항목 위에서 굴리면 목록이 움직이지 않는다.
+        /// </summary>
+        public static RectTransform ScrollArea(string name, Transform parent, out ScrollRect scroll)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(RectMask2D),
+                typeof(ScrollRect));
+            go.transform.SetParent(parent, false);
+
+            // 투명해도 레이캐스트는 받아야 빈 곳에서 굴려도 휠이 들어온다.
+            var image = go.GetComponent<Image>();
+            image.color = new Color(0f, 0f, 0f, 0f);
+
+            RectTransform content = Container("Content", go.transform);
+            content.anchorMin = new Vector2(0f, 1f);
+            content.anchorMax = new Vector2(1f, 1f);
+            content.pivot = new Vector2(0.5f, 1f);
+            content.sizeDelta = Vector2.zero;
+            content.anchoredPosition = Vector2.zero;
+
+            scroll = go.GetComponent<ScrollRect>();
+            scroll.viewport = go.GetComponent<RectTransform>();
+            scroll.content = content;
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.inertia = false;
+            scroll.scrollSensitivity = 40f;
+            return content;
+        }
+
         // ── 패널 ─────────────────────────────────────────────────────
 
         /// <summary>컷코너 패널. 이 UI의 기본 면(surface).</summary>

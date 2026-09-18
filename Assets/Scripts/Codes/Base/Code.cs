@@ -11,6 +11,12 @@ namespace Codes.Base
     public BaseEnums.CodeType CodeType;
     public BaseEnums.CodeActivationType ActivationType;
     public string CodeName; // 코드 이름
+    /// <summary>
+    /// <see cref="CodeFactory"/>가 만들 때 새긴 ID. 슬롯마다 네임스페이스가 따로라
+    /// 패시브 22와 궁극기 22는 다른 코드다 — 조회할 때 슬롯(타입)과 함께 본다.
+    /// 팩토리를 거치지 않고 직접 만든 코드(소환수 등)는 0이다.
+    /// </summary>
+    public int CatalogId { get; internal set; }
     public Unit Caster; // 시전유닛
     public List<Unit> TargetUnits; // 시전대상유닛
     // 재사용 대기 시간은 어떤 코드에도 없다. 일반행동은 DEX가 정하는 행동 주기가,

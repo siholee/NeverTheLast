@@ -139,5 +139,15 @@ namespace Managers.UI.Theme
         public const float PanelPad = 20f;    // 패널 내부 여백
 
         public static readonly Vector2 ReferenceResolution = new(1920f, 1080f);
+
+        // ── 캔버스 층 ────────────────────────────────────────────────
+        // TAB 캐릭터 창 위에 ESC 메뉴 묶음이 온다. ESC는 어느 화면 위에서든 메뉴를 띄워야 하므로
+        // 메뉴와 그 위에서 여는 자료실 · 설정 · 확인 창은 전부 캐릭터 창보다 높다.
+        // 진행 모달(보상 70 · 선택 80 등)은 둘 다보다 낮다.
+        public const int LayerCharacterSheet = 120;
+        public const int LayerMenu = 130;
+        public const int LayerWiki = 133;
+        public const int LayerSettings = 136;
+        public const int LayerConfirm = 140;
     }
 }

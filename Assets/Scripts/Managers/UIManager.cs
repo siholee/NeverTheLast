@@ -11,7 +11,8 @@ namespace Managers
     /// UI 진입점. 화면을 직접 그리지 않고, 각 화면 객체에 위임한다.
     ///
     /// 구성:
-    ///   <see cref="BattleHud"/>       — 상시 표시되는 전투 HUD(파티/로그/상단바/TAB 코덱스)
+    ///   <see cref="BattleHud"/>       — 상시 표시되는 전투 HUD(파티/로그/상단바/TAB 캐릭터 창)
+    ///   <see cref="PauseMenuScreen"/> — ESC 메뉴. 설정과 자료실(<see cref="WikiScreen"/>)을 여기서 연다
     ///   <see cref="PreparationScreen"/> — 준비 페이즈 하단 바
     ///   나머지 ModalScreen 파생 화면들 — 보상/상점/스킬/육성/캐릭터 선택/사건
     ///
@@ -186,10 +187,14 @@ namespace Managers
 
         // ── 사건 ─────────────────────────────────────────────────────
 
-        /// <summary>사건 화면의 자동 진행 타이머를 굴린다. 화면 자체는 MonoBehaviour가 아니다.</summary>
+        /// <summary>
+        /// 사건 화면의 자동 진행 타이머와 캐릭터 선택의 키보드·패드 입력을 굴린다.
+        /// 두 화면 모두 MonoBehaviour가 아니다.
+        /// </summary>
         private void Update()
         {
             _event.Tick(Time.deltaTime);
+            _characterSelect.Tick();
         }
 
         public void ShowEventStagePanel(StageEventData eventData, int dialogueIndex)
@@ -220,26 +225,35 @@ namespace Managers
 
         // ── 설정 ─────────────────────────────────────────────────────
 
-        /// <summary>우상단 ≡ 버튼과 ESC가 여는 인게임 메뉴. 설정은 메인 메뉴와 같은 패널을 쓴다.</summary>
-        public void ShowSettings()
-        {
-            PauseMenu.Toggle();
-        }
-
         public bool IsPauseMenuOpen => _pauseMenu != null && _pauseMenu.IsVisible;
 
-        /// <summary>ESC 한 번에 가장 위의 것 하나만 닫는다. 설정이 떠 있으면 설정부터.</summary>
+        /// <summary>
+        /// 아래 화면의 키보드·패드 입력을 가로채는 창이 떠 있는가 — ESC 메뉴(과 그 위의 자료실·설정) 또는
+        /// TAB 캐릭터 창. 캐릭터 선택처럼 스스로 입력을 읽는 화면이 이걸 보고 멈춘다.
+        /// </summary>
+        public bool IsOverlayOpen => IsPauseMenuOpen || (_hud != null && _hud.IsCodexOpen);
+
+        /// <summary>
+        /// ESC와 우상단 ≡ 버튼의 단일 진입점. 메뉴 묶음 안에서는 가장 위의 것 하나만 닫고
+        /// (설정 → 자료실 → 메뉴), 메뉴가 닫혀 있으면 연다. TAB 캐릭터 창은 건드리지 않는다 —
+        /// 메뉴가 그 위 층에 뜨고, 메뉴를 닫으면 캐릭터 창이 그대로 남아 있다.
+        /// 설정은 메인 메뉴와 같은 패널을 쓴다.
+        /// </summary>
         public void HandleEscape()
         {
             if (_settingsUI != null && _settingsUI.IsOpen) _settingsUI.Close();
+            else if (_wiki.IsVisible) _wiki.Hide();
             else PauseMenu.Toggle();
         }
 
         private PauseMenuScreen _pauseMenu;
         private UI.SettingsUI _settingsUI;
 
+        /// <summary>자료실(게임 내 위키). ESC 메뉴에서 연다.</summary>
+        private readonly WikiScreen _wiki = new();
+
         private PauseMenuScreen PauseMenu => _pauseMenu ??= new PauseMenuScreen(() =>
-            _settingsUI != null ? _settingsUI : _settingsUI = gameObject.AddComponent<UI.SettingsUI>());
+            _settingsUI != null ? _settingsUI : _settingsUI = gameObject.AddComponent<UI.SettingsUI>(), _wiki);
 
     }
 }

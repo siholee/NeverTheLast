@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using BaseClasses;
+using Codes.Base;
 using Core;
 using Helpers;
 using Managers.UI.Core;
@@ -24,6 +26,15 @@ namespace Managers.UI.Screens
     /// 모드에 따라 단계가 다르다.
     ///   육성 모드 — 1단계 메인 1명 → [다음] → 2단계 서포터 4명 → [시작]
     ///   무한 모드 — 메인 단계 없이 서포터 5명을 바로 고른다
+    ///
+    /// 좌측 미리보기는 두 모드를 오간다(버튼 · Q · 패드 Y).
+    ///   요약 — 큰 초상화 + 한 줄 소개 · 원소와 스탯 · 운용 축
+    ///   기술 — 고유 패시브 · 일반행동 · (특수행동) · 궁극기 설명과 해금 패시브 목록
+    /// 한 번 켜면 다른 캐릭터로 커서를 옮겨도 유지된다. 여러 캐릭터의 기술을 견줘 보는 용도다.
+    ///
+    /// 마우스 없이도 고를 수 있다(<see cref="UINavInput"/>). 커서는 격자와 아래 버튼 줄을 오가며,
+    /// 격자 맨 아랫줄에서 아래로 내리면 버튼 줄로 넘어간다. 결정은 Space · Enter · 패드 A,
+    /// 메인 다시 고르기는 Backspace · 패드 B, 패드 Start는 [다음]/[여정 시작]이다.
     /// </summary>
     public class CharacterSelectScreen : ModalScreen
     {
@@ -55,6 +66,22 @@ namespace Managers.UI.Screens
         private Button _primaryButton;
         private Button _backButton;
         private Button _recommendButton;
+        private Button _detailButton;
+
+        private RectTransform _previewSlot;
+        private GameObject _detailView;
+        private RectTransform _detailContent;
+        private TextMeshProUGUI _detailText;
+        private bool _detailMode;
+
+        /// <summary>키보드·패드 커서. 한 장을 격자 타일이나 버튼 위로 옮겨 다닌다.</summary>
+        private Image _cursor;
+        private bool _cursorOnButtons;
+        private int _buttonIndex;
+        private readonly UINavInput _nav = new();
+
+        /// <summary>격자에 그린 순서. 방향키 이동은 이 순서의 인덱스로 계산한다.</summary>
+        private readonly List<int> _order = new();
 
         /// <summary>
         /// 고른 메인에게 추천하는 서포터(우선순위 순). 30_synergies.yaml의 고점 조합에서
@@ -84,6 +111,7 @@ namespace Managers.UI.Screens
             // 미리보기도 정사각형. AspectRatioFitter가 슬롯 안에서 1:1을 유지하도록 크기를 잡는다.
             RectTransform previewSlot = UIBuild.Container("PreviewSlot", previewPane.transform);
             UIBuild.Anchor(previewSlot, new Vector2(0.04f, 0.42f), new Vector2(0.96f, 0.97f));
+            _previewSlot = previewSlot;
 
             _preview = UIBuild.Solid("PreviewArt", previewSlot, Color.white);
             var previewFitter = _preview.gameObject.AddComponent<AspectRatioFitter>();
@@ -102,6 +130,22 @@ namespace Managers.UI.Screens
                 UITheme.FontCaption, UITheme.TextSecondary, TextAlignmentOptions.Top, wrap: true);
             _previewInfo.richText = true;
             UIBuild.Anchor(_previewInfo.rectTransform, new Vector2(0.06f, 0.02f), new Vector2(0.94f, 0.33f));
+
+            // 기술 상세. 코드 설명 네 덩어리는 요약 칸에 들어가지 않으므로 초상화 자리까지 쓰고 굴린다.
+            _detailContent = UIBuild.ScrollArea("Detail", previewPane.transform, out ScrollRect detailScroll);
+            _detailView = detailScroll.gameObject;
+            UIBuild.Anchor((RectTransform)detailScroll.transform, new Vector2(0.05f, 0.02f), new Vector2(0.95f, 0.89f));
+            _detailText = UIBuild.Text("DetailText", _detailContent, "", UITheme.FontBody, UITheme.TextPrimary,
+                TextAlignmentOptions.TopLeft, wrap: true);
+            _detailText.richText = true;
+            _detailText.rectTransform.anchorMin = new Vector2(0f, 1f);
+            _detailText.rectTransform.anchorMax = new Vector2(1f, 1f);
+            _detailText.rectTransform.pivot = new Vector2(0.5f, 1f);
+            _detailText.rectTransform.anchoredPosition = Vector2.zero;
+            _detailView.SetActive(false);
+
+            _detailButton = UIBuild.Button("DetailToggle", Body, "", ToggleDetail);
+            UIBuild.Anchor(_detailButton.image.rectTransform, new Vector2(0f, 0.02f), new Vector2(0.30f, 0.11f), 4f, 0f);
 
             // 우: 단계 안내 + 후보 격자
             _phaseLabel = UIBuild.Text("Phase", Body, "", UITheme.FontBody, UITheme.Accent);
@@ -133,6 +177,13 @@ namespace Managers.UI.Screens
 
             _primaryButton = UIBuild.Button("Primary", Body, "다음", OnPrimary, primary: true);
             UIBuild.Anchor(_primaryButton.image.rectTransform, new Vector2(0.76f, 0.02f), new Vector2(1f, 0.11f));
+
+            _cursor = UIBuild.Solid("NavCursor", Body, Color.white);
+            _cursor.sprite = UIShapes.CutCorner(8, new Color(1f, 1f, 1f, 0f), UIShapes.Corner.Diagonal,
+                UITheme.TextPrimary, 3);
+            _cursor.type = Image.Type.Sliced;
+            _cursor.raycastTarget = false;
+            _cursor.gameObject.SetActive(false);
         }
 
         public override void Show()
@@ -144,8 +195,10 @@ namespace Managers.UI.Screens
             _phase = IsInfinite ? Phase.Support : Phase.Main;
             _hovered = 0;
             _recommended.Clear();
+            _cursorOnButtons = false;
 
             base.Show();
+            _nav.Reset();
             RebuildGrid();
             RefreshVisuals();
         }
@@ -162,6 +215,7 @@ namespace Managers.UI.Screens
                 if (manager.MainUnitId <= 0) return;   // 메인을 골라야 넘어간다
                 _phase = Phase.Support;
                 _hovered = 0;
+                _cursorOnButtons = false;
                 BuildRecommendation(manager.MainUnitId);
                 RebuildGrid();
                 RefreshVisuals();
@@ -178,6 +232,7 @@ namespace Managers.UI.Screens
             CharacterSelectionManager.Instance?.ClearLineup();
             _phase = Phase.Main;
             _recommended.Clear();
+            _cursorOnButtons = false;
             RebuildGrid();
             RefreshVisuals();
         }
@@ -186,9 +241,14 @@ namespace Managers.UI.Screens
 
         private void RebuildGrid()
         {
+            // 커서가 타일의 자식이면 타일과 함께 지워진다. 지우기 전에 빼 둔다.
+            _cursor.transform.SetParent(Body, false);
+            _cursor.gameObject.SetActive(false);
+
             UIBuild.Clear(_grid);
             _tiles.Clear();
             _tileArts.Clear();
+            _order.Clear();
 
             List<UnitData> units = Candidates();
 
@@ -233,6 +293,7 @@ namespace Managers.UI.Screens
                 AddHoverPreview(tile.gameObject, captured);
 
                 _tiles[unit.id] = tile;
+                _order.Add(unit.id);
                 if (_hovered == 0) _hovered = unit.id;
             }
 
@@ -282,7 +343,9 @@ namespace Managers.UI.Screens
             entry.callback.AddListener(_ =>
             {
                 _hovered = unitId;
+                _cursorOnButtons = false;
                 RefreshPreview();
+                PlaceCursor();
             });
             trigger.triggers.Add(entry);
         }
@@ -339,16 +402,27 @@ namespace Managers.UI.Screens
             SetButton(_recommendButton, "★ 추천 편성", !IsRecommendationApplied(manager), onAccent: false);
 
             RefreshPreview();
+            PlaceCursor();
         }
 
         private void RefreshPreview()
         {
+            ApplyPreviewMode();
+
             UnitData unit = Candidates().FirstOrDefault(candidate => candidate.id == _hovered);
             if (unit == null)
             {
                 _preview.enabled = false;
                 _previewName.text = "";
                 _previewInfo.text = "";
+                _detailText.text = "";
+                return;
+            }
+
+            if (_detailMode)
+            {
+                _previewName.text = unit.name;
+                ShowDetail(unit);
                 return;
             }
 
@@ -381,6 +455,237 @@ namespace Managers.UI.Screens
 
             lines.Add(Colored(RoleText(unit), UITheme.TextMuted));
             _previewInfo.text = string.Join("\n", lines);
+        }
+
+        // ── 기술 상세 ────────────────────────────────────────────────
+
+        private void ToggleDetail()
+        {
+            _detailMode = !_detailMode;
+            RefreshPreview();
+        }
+
+        /// <summary>요약은 초상화 + 짧은 글, 기술은 이름을 위로 올리고 나머지 자리를 설명에 준다.</summary>
+        private void ApplyPreviewMode()
+        {
+            _previewSlot.gameObject.SetActive(!_detailMode);
+            _previewInfo.gameObject.SetActive(!_detailMode);
+            _detailView.SetActive(_detailMode);
+
+            UIBuild.Anchor(_previewName.rectTransform,
+                _detailMode ? new Vector2(0f, 0.905f) : new Vector2(0f, 0.34f),
+                _detailMode ? new Vector2(1f, 0.985f) : new Vector2(1f, 0.41f));
+
+            TextMeshProUGUI label = _detailButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (label != null) label.text = _detailMode ? "요약 보기  [Q]" : "기술 보기  [Q]";
+        }
+
+        /// <summary>
+        /// 고유 패시브 · 일반행동 · 특수행동 · 궁극기를 설명과 함께. 해금 패시브는 이름과 레벨만 —
+        /// 전부 풀어 쓰면 칸이 넘치고, 자세한 설명은 자료실에 있다.
+        /// </summary>
+        private void ShowDetail(UnitData unit)
+        {
+            var sb = new StringBuilder();
+
+            if (IsLavoisierLocked(unit.id))
+            {
+                sb.Append(CodeText.Paint(RoleText(unit), UITheme.TextMuted));
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(unit.tagline))
+                    sb.Append($"<size={UITheme.FontCaption}>{CodeText.Paint(CodeText.Plain(unit.tagline), UITheme.TextSecondary)}</size>\n\n");
+
+                if (unit.codes != null)
+                {
+                    if (unit.codes.TryGetValue("passive", out int passive))
+                        CodeText.AppendBlock(sb, CodeCatalog.Slot.Passive, passive, "고유 패시브");
+                    if (unit.codes.TryGetValue("normal", out int normal))
+                        CodeText.AppendBlock(sb, CodeCatalog.Slot.Normal, normal, "일반행동");
+                    if (unit.codes.TryGetValue("special", out int special))
+                        CodeText.AppendBlock(sb, CodeCatalog.Slot.Special, special, "특수행동");
+                    if (unit.codes.TryGetValue("ultimate", out int ultimate))
+                        CodeText.AppendBlock(sb, CodeCatalog.Slot.Ultimate, ultimate, "궁극기");
+                }
+
+                List<LevelPassiveData> unlocks = unit.levelPassives?
+                    .Where(passive => passive != null)
+                    .OrderBy(passive => passive.unlockLevel)
+                    .ToList() ?? new List<LevelPassiveData>();
+                if (unlocks.Count > 0)
+                {
+                    sb.Append($"<b>{CodeText.Paint($"해금 패시브 {unlocks.Count}개", UITheme.Accent)}</b>\n");
+                    IEnumerable<string> names = unlocks.Select(passive =>
+                        $"Lv.{passive.unlockLevel} " +
+                        (CodeCatalog.Find(CodeCatalog.Slot.Passive, passive.codeId)?.verbalName ?? $"#{passive.codeId}"));
+                    sb.Append($"<size={UITheme.FontCaption}>{CodeText.Paint(CodeText.Plain(string.Join(" · ", names)), UITheme.TextSecondary)}</size>\n");
+                    sb.Append($"<size={UITheme.FontMicro}>{CodeText.Paint("각 코드의 설명은 ESC 메뉴 › 자료실에서 볼 수 있다.", UITheme.TextMuted)}</size>");
+                }
+            }
+
+            string text = sb.ToString();
+            _detailText.text = text;
+
+            // 처음 여는 프레임엔 캔버스 크기가 덜 잡혀 폭이 틀리게 읽힌다. 틀리면 줄 수를 적게 재 끝이 잘린다.
+            Canvas.ForceUpdateCanvases();
+            float width = Mathf.Max(160f, _detailContent.rect.width);
+            float height = _detailText.GetPreferredValues(text, width, 0f).y;
+            _detailText.rectTransform.sizeDelta = new Vector2(0f, height);
+            _detailContent.sizeDelta = new Vector2(0f, height + 12f);
+            _detailContent.anchoredPosition = Vector2.zero;
+        }
+
+        // ── 키보드 · 패드 ────────────────────────────────────────────
+
+        /// <summary>UIManager가 매 프레임 부른다. 이 화면은 MonoBehaviour가 아니다.</summary>
+        public void Tick()
+        {
+            if (!IsVisible) return;
+
+            // 메뉴·캐릭터 창이 위에 떠 있으면 그쪽 입력이다. 뒤에서 커서가 움직이면 안 된다.
+            if (GameManager.Instance?.uiManager?.IsOverlayOpen == true) return;
+
+            // 마우스로 버튼을 누르면 EventSystem이 그 버튼을 '선택'해 두고, 이후 Space·Enter·패드 A를
+            // 그 버튼의 클릭으로 보낸다. 여기서도 결정을 처리하므로 두 번 눌리게 된다. 선택을 늘 비운다.
+            EventSystem events = EventSystem.current;
+            if (events != null && events.currentSelectedGameObject != null &&
+                events.currentSelectedGameObject.transform.IsChildOf(Body))
+            {
+                events.SetSelectedGameObject(null);
+            }
+
+            _nav.Poll();
+            if (!_nav.Any) return;
+
+            if (_nav.Info)
+            {
+                ToggleDetail();
+            }
+
+            if (_nav.Cancel)
+            {
+                GoBackToMain();
+                return;
+            }
+
+            if (_nav.Start)
+            {
+                if (_primaryButton.interactable) OnPrimary();
+                return;
+            }
+
+            if (_nav.Move != Vector2Int.zero)
+            {
+                if (_cursorOnButtons) MoveOnButtons(_nav.Move);
+                else MoveOnGrid(_nav.Move);
+                RefreshPreview();
+                PlaceCursor();
+            }
+
+            if (_nav.Submit)
+            {
+                if (_cursorOnButtons)
+                {
+                    List<Button> buttons = NavButtons();
+                    if (_buttonIndex < buttons.Count && buttons[_buttonIndex].interactable)
+                        buttons[_buttonIndex].onClick.Invoke();
+                }
+                else if (_hovered != 0)
+                {
+                    OnTileClicked(_hovered);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 격자 안의 이동. 좌우는 줄을 넘어 이어지고, 맨 아랫줄에서 더 내리면 버튼 줄로 간다.
+        /// 아랫줄이 덜 찬 격자에서 그 위 칸이 내려갈 자리가 없으면 마지막 타일로 붙는다.
+        /// </summary>
+        private void MoveOnGrid(Vector2Int move)
+        {
+            if (_order.Count == 0)
+            {
+                _cursorOnButtons = true;
+                return;
+            }
+
+            int columns = Mathf.Clamp(_order.Count, 1, Columns);
+            int index = Mathf.Max(0, _order.IndexOf(_hovered));
+            int rows = Mathf.CeilToInt(_order.Count / (float)columns);
+
+            if (move.x != 0)
+            {
+                index = Mathf.Clamp(index + move.x, 0, _order.Count - 1);
+            }
+            else if (move.y > 0)
+            {
+                if (index - columns >= 0) index -= columns;
+            }
+            else if (move.y < 0)
+            {
+                if (index / columns >= rows - 1)
+                {
+                    _cursorOnButtons = true;
+                    _buttonIndex = DefaultButtonIndex();
+                    return;
+                }
+
+                index = Mathf.Min(index + columns, _order.Count - 1);
+            }
+
+            _hovered = _order[index];
+        }
+
+        private void MoveOnButtons(Vector2Int move)
+        {
+            List<Button> buttons = NavButtons();
+            if (move.y > 0 || buttons.Count == 0)
+            {
+                _cursorOnButtons = false;
+                return;
+            }
+
+            if (move.x != 0) _buttonIndex = Mathf.Clamp(_buttonIndex + move.x, 0, buttons.Count - 1);
+        }
+
+        /// <summary>지금 보이는 버튼, 화면 왼쪽부터. 기술 보기 버튼도 같은 줄이다.</summary>
+        private List<Button> NavButtons() =>
+            new[] { _detailButton, _backButton, _recommendButton, _primaryButton }
+                .Where(button => button != null && button.gameObject.activeSelf)
+                .ToList();
+
+        /// <summary>버튼 줄에 내려오면 [다음]/[여정 시작]에 먼저 선다. 가장 자주 누를 버튼이다.</summary>
+        private int DefaultButtonIndex() => Mathf.Max(0, NavButtons().IndexOf(_primaryButton));
+
+        /// <summary>커서 테두리를 지금 가리키는 타일이나 버튼 위로 옮긴다.</summary>
+        private void PlaceCursor()
+        {
+            if (_cursor == null) return;
+
+            RectTransform target = null;
+            if (_cursorOnButtons)
+            {
+                List<Button> buttons = NavButtons();
+                if (buttons.Count == 0) _cursorOnButtons = false;
+                else target = buttons[Mathf.Clamp(_buttonIndex, 0, buttons.Count - 1)].image.rectTransform;
+            }
+
+            if (!_cursorOnButtons && _tiles.TryGetValue(_hovered, out Image tile))
+            {
+                target = tile.rectTransform;
+            }
+
+            if (target == null)
+            {
+                _cursor.gameObject.SetActive(false);
+                return;
+            }
+
+            _cursor.transform.SetParent(target, false);
+            UIBuild.Stretch(_cursor.rectTransform, -4f, -4f);
+            _cursor.transform.SetAsLastSibling();
+            _cursor.gameObject.SetActive(true);
         }
 
         private static string RoleText(UnitData unit)

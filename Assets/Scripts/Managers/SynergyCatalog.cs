@@ -113,5 +113,25 @@ namespace Managers
         }
 
         public static string NameOf(int unitId) => UnitOf(unitId)?.name ?? $"#{unitId}";
+
+        /// <summary>역할군 정의 전체. 자료실의 편성 용어 항목이 읽는다. 파일 순서 그대로.</summary>
+        public static IReadOnlyList<SynergyRoleData> Roles
+        {
+            get
+            {
+                EnsureLoaded();
+                return _data.roles ?? new List<SynergyRoleData>();
+            }
+        }
+
+        /// <summary>조합 유형 정의 전체. 파일 순서 그대로.</summary>
+        public static IReadOnlyList<SynergyArchetypeData> Archetypes
+        {
+            get
+            {
+                EnsureLoaded();
+                return _data.archetypes ?? new List<SynergyArchetypeData>();
+            }
+        }
     }
 }

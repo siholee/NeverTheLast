@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using BaseClasses;
+using Codes.Base;
 using Entities;
 using Managers.UI.Theme;
 using UnityEngine;
@@ -71,9 +72,15 @@ namespace Managers.UI.Core
                     ProficiencyName(item.RequiredProficiency), UITheme.TextPrimary));
             }
 
-            if (item.codeGrants is { Count: > 0 })
+            // 개수만 적으면 무엇을 주는지 알려고 장착해 봐야 했다. 이름과 한 줄 설명을 함께 싣는다.
+            foreach (EquipmentCodeGrant grant in item.codeGrants ?? new List<EquipmentCodeGrant>())
             {
-                lines.Add(new UITooltip.Line("부여 코드", item.codeGrants.Count + "개", UITheme.Accent));
+                if (grant == null) continue;
+                CodeCatalog.Entry entry = CodeCatalog.Find(CodeCatalog.ParseSlot(grant.slot), grant.codeId);
+                lines.Add(new UITooltip.Line("부여 코드", entry?.verbalName ?? $"#{grant.codeId}", UITheme.Accent));
+
+                string summary = CodeCatalog.Summary(entry?.description);
+                if (summary.Length > 0) lines.Add(UITooltip.Line.Note(summary, UITheme.TextSecondary));
             }
 
             if (item.twoHanded)
