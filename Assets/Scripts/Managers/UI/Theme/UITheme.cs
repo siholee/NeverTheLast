@@ -48,8 +48,12 @@ namespace Managers.UI.Theme
         /// </summary>
         public static readonly Color Mana = new(0.129f, 0.431f, 0.741f, 1f);
 
-        /// <summary>방어막. 체력 바 <b>오른쪽에 이어 붙는</b> 회백색.</summary>
-        public static readonly Color Shield = new(0.420f, 0.486f, 0.553f, 1f);
+        /// <summary>
+        /// 방어막. 체력 바 <b>오른쪽에 이어 붙는</b> 밝은 하늘색(블루 아카이브식).
+        /// 예전의 회백색은 어두운 체력 트랙 위에서 빈칸과 구분되지 않았다. 자원 파랑(Mana)보다
+        /// 훨씬 밝고 채도가 높아 궁극기 링과 섞여 읽히지 않는다.
+        /// </summary>
+        public static readonly Color Shield = new(0.200f, 0.690f, 1.000f, 1f);
 
         public static readonly Color ActionYellow = new(0.835f, 0.580f, 0.000f, 1f);
         public static readonly Color Enemy = new(0.760f, 0.180f, 0.245f, 1f);

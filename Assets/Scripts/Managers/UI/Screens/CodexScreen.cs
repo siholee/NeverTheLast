@@ -948,6 +948,8 @@ namespace Managers.UI.Screens
             _detailCard.anchorMax = new Vector2(0.5f, 0.5f);
             _detailCard.pivot = new Vector2(0f, 1f);
             _detailCard.sizeDelta = new Vector2(280f, 240f);
+            // 바깥을 누르면 닫힌다. 예전에는 탭을 옮기거나 창을 닫아야만 사라졌다.
+            card.gameObject.AddComponent<UIDismissOnOutsideClick>();
             _detailCard.gameObject.SetActive(false);
         }
 
@@ -964,6 +966,8 @@ namespace Managers.UI.Screens
         {
             if (_detailCard == null || item == null) return;
 
+            // 호버 툴팁이 상세 카드 위에 겹쳐 [장착] 글자를 가렸다. 카드가 뜨면 툴팁은 접는다.
+            UITooltip.HideAny();
             UIBuild.Clear(_detailCard);
             _detailCard.gameObject.SetActive(true);
             _detailCard.SetAsLastSibling();

@@ -21,7 +21,7 @@ namespace Entities.View
     ///   · 이름 띠
     ///   · 궁극기 게이지 — 우상단에 걸치는 원형. 테두리는 고정이고 안쪽이 아래에서
     ///     위로 차오른다(스타레일식). 충전 중·완료·예약이 모두 같은 색이다.
-    ///   · 체력 바 — 그 <b>오른쪽에 이어 붙는</b> 방어막(회백)
+    ///   · 체력 바 — 그 <b>오른쪽에 이어 붙는</b> 방어막(하늘색)
     ///   · 행동 게이지 — 체력 바 절반 높이
     ///   · 상태 아이콘 — 이로운 것 초록, 해로운 것 적색(<see cref="StatusIcons"/>)
     ///
@@ -51,8 +51,9 @@ namespace Entities.View
         private const int MaxDots = 6;
 
         // 캔버스 좌표(좌상단 기준). 디자인 캔버스의 퍼센트를 그대로 옮겼다.
-        private const float NameBandTop = 72f;
-        private const float NameBandHeight = 28f;
+        // 이름 받침은 한 줄이다. 체력 수치는 바가 대신 말하므로 적지 않는다.
+        private const float NameBandTop = 78f;
+        private const float NameBandHeight = 20f;
         private const float RingSize = 23f;
         private const float RingOverhang = 2f;
 
@@ -127,8 +128,6 @@ namespace Entities.View
         private Image _actingOutline;
         private TextMeshPro _nameLabel;
         private MeshRenderer _nameRenderer;
-        private TextMeshPro _hpLabel;
-        private MeshRenderer _hpRenderer;
         private readonly Image[] _reagentBars = new Image[3];
         private readonly GameObject[] _reagentTracks = new GameObject[3];
         private RectTransform _ultRoot;
@@ -292,15 +291,13 @@ namespace Entities.View
             Place(_actingOutline.rectTransform, 8f, 88f, 84f, 15f);
             _actingOutline.enabled = false;
 
-            Image nameBand = NewImage(root, "NameBand", Color.white);
-            nameBand.sprite = UIShapes.CutCorner(7,
-                new Color(0.975f, 0.965f, 0.925f, 0.96f), UIShapes.Corner.Diagonal,
-                new Color(0.14f, 0.28f, 0.30f, 0.42f), 1);
-            nameBand.type = Image.Type.Sliced;
+            // 글라스 받침. 초상화 위에 얹히므로 HUD 글라스보다 조금 더 불투명하게 잡아 글자가 선다.
+            Image nameBand = UIBuild.Glass("NameBand", root, 7, 0.74f);
+            nameBand.raycastTarget = false;
             Place(nameBand.rectTransform, 0f, NameBandTop, CanvasWidth, NameBandHeight);
 
             Image nameAccent = UIBuild.Solid("NameAccent", root, UITheme.Accent);
-            Place(nameAccent.rectTransform, 7f, NameBandTop + 6f, 2f, 12f);
+            Place(nameAccent.rectTransform, 7f, NameBandTop + 4f, 2f, 12f);
 
             // 이름표만은 캔버스 밖의 월드 TextMeshPro다.
             // TextMeshProUGUI는 이 월드 스페이스 캔버스에서 아예 그려지지 않았다
@@ -319,16 +316,6 @@ namespace Entities.View
             _nameLabel.raycastTarget = false;
             LayOutName(cardSize);
 
-            var hpTextObject = new GameObject("HpValue", typeof(RectTransform), typeof(TextMeshPro));
-            hpTextObject.transform.SetParent(transform, false);
-            _hpLabel = hpTextObject.GetComponent<TextMeshPro>();
-            _hpRenderer = hpTextObject.GetComponent<MeshRenderer>();
-            UIBuild.ApplyFont(_hpLabel);
-            _hpLabel.color = new Color(0.075f, 0.12f, 0.13f, 0.90f);
-            _hpLabel.alignment = TextAlignmentOptions.MidlineLeft;
-            _hpLabel.textWrappingMode = TextWrappingModes.NoWrap;
-            _hpLabel.raycastTarget = false;
-            LayOutHpValue(cardSize);
 
             Color[] reagentColors = { UITheme.Danger, UITheme.Mana, UITheme.Accent };
             for (int i = 0; i < 3; i++)
@@ -397,6 +384,14 @@ namespace Entities.View
             // 체력이 단계로 끊기는 유닛(오시리스의 부위 파괴)만 칸 나누기를 얻는다.
             // 채움 뒤에 만들어야 물 위에 선이 놓인다.
             _hpTicks = UIBuild.Stretch(UIBuild.Container("HpTicks", hpTrack.transform));
+
+            // 글라스 반사광. 체력 · 방어막 위 윗부분에 옅은 흰 띠를 얹어 바가 유리관처럼 읽힌다.
+            Image hpSheen = UIBuild.Solid("HpSheen", hpTrack.transform, new Color(1f, 1f, 1f, 0.26f));
+            hpSheen.raycastTarget = false;
+            hpSheen.rectTransform.anchorMin = new Vector2(0f, 0.55f);
+            hpSheen.rectTransform.anchorMax = new Vector2(1f, 1f);
+            hpSheen.rectTransform.offsetMin = Vector2.zero;
+            hpSheen.rectTransform.offsetMax = Vector2.zero;
 
             // ── 행동 게이지 ──
             Image actionTrack = UIBuild.Solid("ActionTrack", root, new Color(0.08f, 0.15f, 0.16f, 0.34f));
@@ -488,7 +483,6 @@ namespace Entities.View
             canvasRect.localPosition = new Vector3(0f, cardSize * 0.5f, -0.01f);
 
             LayOutName(cardSize);
-            LayOutHpValue(cardSize);
         }
 
         /// <summary>이름표를 카드 하단 이름 띠 위에 얹는다. 캔버스와 같은 비율을 쓴다.</summary>
@@ -500,8 +494,9 @@ namespace Entities.View
             rect.pivot = new Vector2(0.5f, 0.5f);
             // 왼쪽 민트 액센트(7~9%)와 첫 글자가 겹치지 않도록 그 오른쪽부터 시작한다.
             rect.sizeDelta = new Vector2(cardSize * 0.79f, cardSize * 0.14f);
-            // 이름 받침의 윗줄. 좌우를 HP와 나누지 않고 전체 폭을 쓴다.
-            rect.localPosition = new Vector3(cardSize * 0.055f, cardSize * (0.5f - 0.79f), -0.02f);
+            // 한 줄짜리 이름 받침의 가운데.
+            rect.localPosition = new Vector3(cardSize * 0.055f,
+                cardSize * (0.5f - (NameBandTop + NameBandHeight * 0.5f) / CanvasWidth), -0.02f);
 
             // 월드 TMP 자동 맞춤에 행보다 큰 최소값을 주면 Truncate/Ellipsis가 첫 글자부터
             // 모두 버려 mesh characterCount가 0이 된다. 48px 받침의 윗행에 안전하게 들어오는
@@ -509,21 +504,6 @@ namespace Entities.View
             _nameLabel.enableAutoSizing = false;
             _nameLabel.fontSize = cardSize * 0.82f;
             _nameLabel.overflowMode = TextOverflowModes.Ellipsis;
-        }
-
-        private void LayOutHpValue(float cardSize)
-        {
-            if (_hpLabel == null) return;
-
-            var rect = (RectTransform)_hpLabel.transform;
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.sizeDelta = new Vector2(cardSize * 0.79f, cardSize * 0.12f);
-            // HP와 전투 자원은 아랫줄 전체 폭. HP를 문자열 맨 앞에 두어 자원이 길어져도 남는다.
-            rect.localPosition = new Vector3(cardSize * 0.055f, cardSize * (0.5f - 0.93f), -0.02f);
-            _hpLabel.enableAutoSizing = false;
-            _hpLabel.fontSize = cardSize * 0.72f;
-            _hpLabel.characterSpacing = -2f;
-            _hpLabel.overflowMode = TextOverflowModes.Ellipsis;
         }
 
         /// <summary>앞줄이 뒷줄을 가리도록 정렬 순서를 맞춘다. 초상화는 <c>order + 1</c>이다.</summary>
@@ -547,11 +527,6 @@ namespace Entities.View
                 // 이름 띠(캔버스, order + 5) 바로 위에 올린다.
                 _nameRenderer.sortingLayerID = sortingLayerId;
                 _nameRenderer.sortingOrder = order + 6;
-            }
-            if (_hpRenderer != null)
-            {
-                _hpRenderer.sortingLayerID = sortingLayerId;
-                _hpRenderer.sortingOrder = order + 6;
             }
         }
 
@@ -583,7 +558,6 @@ namespace Entities.View
             _ultRoot.gameObject.SetActive(combatHud);
             _hpFill.transform.parent.gameObject.SetActive(combatHud);
             _actionFill.transform.parent.gameObject.SetActive(combatHud);
-            if (_hpLabel != null) _hpLabel.gameObject.SetActive(combatHud);
             for (int i = 0; i < _reagentTracks.Length; i++)
                 if (_reagentTracks[i] != null) _reagentTracks[i].SetActive(false);
             if (!combatHud)
@@ -664,32 +638,20 @@ namespace Entities.View
             _group.alpha = alive ? 1f : 0.38f;
             if (_nameLabel != null)
             {
-                // 이름은 윗줄 전체를 단독으로 쓴다. 전투 자원이 이름 크기를 밀어내지 않는다.
-                _nameLabel.text = _unit.UnitName;
+                // 이름표는 이름 한 줄이다. 체력 수치는 바가 대신 말하므로 적지 않고,
+                // 고유 패시브 스택 같은 전투 자원이 있을 때만 이름 뒤에 작게 붙인다.
+                // (라부아지에의 시약은 카드 위 세 막대가 따로 보여 준다.)
+                string resources = _combatHud ? Combat.CombatResourceLabels.Compose(_unit) : "";
+                if (resources.StartsWith(_unit.UnitName, System.StringComparison.Ordinal))
+                    resources = resources.Substring(_unit.UnitName.Length).Trim();
+                _nameLabel.text = string.IsNullOrWhiteSpace(resources)
+                    ? _unit.UnitName
+                    : $"{_unit.UnitName}  <size=78%><color=#1B5E5A>{resources}</color></size>";
 
                 // 이름표는 캔버스 밖이라 CanvasGroup이 닿지 않는다. 알파를 직접 맞춘다.
                 Color nameColor = new Color(0.075f, 0.12f, 0.13f, 1f);
                 nameColor.a = alive ? 1f : 0.38f;
                 _nameLabel.color = nameColor;
-            }
-            if (_hpLabel != null)
-            {
-                string hp = $"HP {Mathf.Max(0, _unit.HpCurr):N0}/{Mathf.Max(0, _unit.HpMax):N0}";
-                string resources = Combat.CombatResourceLabels.Compose(_unit);
-                if (resources.StartsWith(_unit.UnitName, System.StringComparison.Ordinal))
-                    resources = resources.Substring(_unit.UnitName.Length).Trim();
-
-                if (_unit.Chemistry != null && _combatHud)
-                {
-                    var reagents = _unit.Chemistry.Reagents;
-                    resources = $"<color=#B83229>연 {reagents[ReagentKind.Fuel]:0.##}</color>  " +
-                                $"<color=#236B91>안 {reagents[ReagentKind.Stabilizer]:0.##}</color>  " +
-                                $"<color=#80620A>촉 {reagents[ReagentKind.Catalyst]:0.##}</color>";
-                }
-
-                _hpLabel.text = string.IsNullOrWhiteSpace(resources) ? hp : $"{hp}  ·  {resources}";
-                Color hpTextColor = new Color(0.075f, 0.12f, 0.13f, alive ? 0.90f : 0.34f);
-                _hpLabel.color = hpTextColor;
             }
             if (_frame != null)
             {
@@ -822,7 +784,6 @@ namespace Entities.View
             if (_frame != null) _frame.enabled = false;
             if (_canvas != null) _canvas.gameObject.SetActive(visible);
             if (_nameLabel != null) _nameLabel.gameObject.SetActive(visible);
-            if (_hpLabel != null) _hpLabel.gameObject.SetActive(visible);
         }
 
         // ── 타격 · 시전 반응 ─────────────────────────────────────────

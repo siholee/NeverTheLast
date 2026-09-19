@@ -82,8 +82,7 @@ namespace Managers.UI.HUD
 
             public Slot(Transform parent, int index)
             {
-                _frame = UIBuild.Panel($"Slot{index}", parent, UITheme.HudBar,
-                    UIShapes.Corner.Diagonal, 6);
+                _frame = UIBuild.Glass($"Slot{index}", parent, 8);
                 _rect = _frame.rectTransform;
                 UIBuild.Pin(_rect, new Vector2(0f, 1f), new Vector2(PanelWidth, SlotHeight),
                     new Vector2(0f, -index * (SlotHeight + SlotGap)));

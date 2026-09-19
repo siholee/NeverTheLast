@@ -405,18 +405,14 @@ namespace Managers.UI.Screens
         /// <summary>커서가 타일 위에 올라가면 좌측 큰 초상화를 갈아 끼운다.</summary>
         private void AddHoverPreview(GameObject target, int unitId)
         {
-            // ??는 UnityEngine.Object의 수명 검사를 건너뛴다. == 오버로드를 타야 한다.
-            EventTrigger existing = target.GetComponent<EventTrigger>();
-            EventTrigger trigger = existing != null ? existing : target.AddComponent<EventTrigger>();
-            var entry = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
-            entry.callback.AddListener(_ =>
+            // EventTrigger를 붙이면 타일이 휠까지 먹어, 커서가 초상화 위에 있을 때 명단이 굴러가지 않았다.
+            UIPointerEvents.On(target).Entered += () =>
             {
                 _hovered = unitId;
                 _cursorOnButtons = false;
                 RefreshPreview();
                 PlaceCursor();
-            });
-            trigger.triggers.Add(entry);
+            };
         }
 
         // ── 갱신 ─────────────────────────────────────────────────────

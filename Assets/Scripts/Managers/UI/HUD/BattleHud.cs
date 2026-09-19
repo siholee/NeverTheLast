@@ -16,6 +16,7 @@ namespace Managers.UI.HUD
     ///   좌상단 — 행동서열
     ///   상단중앙 — 생명력 / 골드 / 현재 단계
     ///   우상단 — 라운드 + 진행 게이지 · 진행 예고 · 배속/인벤/설정
+    ///   우측 — 딜 그래프(전투 중에만)
     ///   하단 — 준비 페이즈 바(PreparationScreen)만. 전투 중에는 비어 있다.
     ///
     /// 아군 파티 카드는 없다. 유닛의 체력 · 방어막 · 행동 게이지 · 궁극기 충전은
@@ -37,6 +38,7 @@ namespace Managers.UI.HUD
         private TopStatusBar _topBar;
         private FeatureEnemyBanner _featureBanner;
         private ActionQueuePanel _queue;
+        private DamageMeterPanel _damageMeter;
         private CodexScreen _codex;
 
         private TextMeshProUGUI _lifeLabel;
@@ -58,6 +60,7 @@ namespace Managers.UI.HUD
             RectTransform safeRoot = UIBuild.SafeArea(canvas);
 
             _queue = new ActionQueuePanel(safeRoot);
+            _damageMeter = new DamageMeterPanel(safeRoot);
             _topBar = new TopStatusBar(safeRoot, CycleSpeed, ToggleCodex, OpenMenu);
             BuildResourceStrip(safeRoot);
             _featureBanner = new FeatureEnemyBanner(safeRoot);
@@ -75,8 +78,7 @@ namespace Managers.UI.HUD
         /// <summary>상단 중앙의 생명력/골드/단계 표시.</summary>
         private void BuildResourceStrip(Transform parent)
         {
-            Image strip = UIBuild.Panel("ResourceStrip", parent, UITheme.HudBar,
-                UIShapes.Corner.Diagonal, 8);
+            Image strip = UIBuild.Glass("ResourceStrip", parent, 12);
             strip.rectTransform.anchorMin = new Vector2(0.29f, 1f);
             strip.rectTransform.anchorMax = new Vector2(0.61f, 1f);
             strip.rectTransform.pivot = new Vector2(0.5f, 1f);
@@ -107,6 +109,7 @@ namespace Managers.UI.HUD
         {
             _topBar?.Tick();
             _queue?.Tick();
+            _damageMeter?.Tick();
             _featureBanner?.Refresh();
 
             // ESC 메뉴(와 그 위의 자료실)가 떠 있는 동안에는 TAB을 받지 않는다. 캐릭터 창은

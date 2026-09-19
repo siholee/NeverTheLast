@@ -41,8 +41,7 @@ namespace Managers.UI.HUD
             _root.sizeDelta = new Vector2(0f, BarHeight);
             _root.anchoredPosition = new Vector2(0f, -18f);
 
-            Image background = UIBuild.Panel("HeaderBand", _root, UITheme.HudBar,
-                UIShapes.Corner.Diagonal, 10, UITheme.Outline, 1);
+            Image background = UIBuild.Glass("HeaderBand", _root, 14);
             UIBuild.Stretch(background.rectTransform);
 
             // ── 오른쪽: 진행 예고 + 손가락으로 누르기 충분한 3개 조작 ──
@@ -82,8 +81,7 @@ namespace Managers.UI.HUD
                 new Vector2(0f, 14f));
 
             // ── 왼쪽: 라운드 표시 + 진행 원형게이지 ──
-            var roundBlock = UIBuild.Panel("RoundBlock", _root, UITheme.HudBar,
-                UIShapes.Corner.Diagonal, 8);
+            var roundBlock = UIBuild.Glass("RoundBlock", _root, 10, 0.45f);
             UIBuild.Anchor(roundBlock.rectTransform, new Vector2(0.01f, 0.08f), new Vector2(0.28f, 0.92f), 4f, 4f);
 
             // 원형 게이지: 남은 시간이 시계방향으로 줄어든다.

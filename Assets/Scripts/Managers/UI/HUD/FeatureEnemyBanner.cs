@@ -94,8 +94,7 @@ namespace Managers.UI.HUD
 
             public Slot(Transform parent, int index)
             {
-                Image panel = UIBuild.Panel($"Slot{index}", parent, UITheme.HudBar,
-                    UIShapes.Corner.Diagonal, 6);
+                Image panel = UIBuild.Glass($"Slot{index}", parent, 8);
                 _rect = panel.rectTransform;
 
                 _name = UIBuild.Text($"Name{index}", panel.transform, "", UITheme.FontCaption,

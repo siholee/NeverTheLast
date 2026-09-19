@@ -1114,6 +1114,69 @@ namespace Managers
             return false;
         }
 
+        /// <summary>
+        /// 유닛을 <b>같은 오브젝트 그대로</b> 다른 칸으로 옮긴다. 대상 칸이 차 있으면 두 유닛을 맞바꾼다.
+        ///
+        /// 예전 배치 이동은 원래 유닛을 끄고 같은 ID로 새로 스폰했다. 스폰은 데이터 파일에서 유닛을
+        /// 처음부터 다시 만들므로 레벨 · 훈련 · 장비 · 현재 체력이 모두 초기값으로 돌아갔다 —
+        /// 전열에서 후열로 옮기면 체력이 줄어 보이던 원인이다. 전열/후열 규칙은 체력을 건드리지 않는다.
+        /// </summary>
+        public bool RelocateUnit(Unit unit, Cell target)
+        {
+            if (unit == null || target == null) return false;
+            Cell source = unit.currentCell;
+            if (source == null || source == target) return false;
+
+            Unit other = target.isOccupied && target.unit != null ? target.unit.GetComponent<Unit>() : null;
+            Sprite unitPortrait = source.portraitRenderer != null ? source.portraitRenderer.sprite : null;
+            Sprite otherPortrait = target.portraitRenderer != null ? target.portraitRenderer.sprite : null;
+
+            Vacate(source);
+            Vacate(target);
+
+            Occupy(target, unit, unitPortrait);
+            if (other != null) Occupy(source, other, otherPortrait);
+
+            RequestFieldLayoutRefresh();
+            return true;
+        }
+
+        private static void Vacate(Cell cell)
+        {
+            cell.isOccupied = false;
+            cell.unit = null;
+            cell.SetPortrait(null);
+            cell.SetOccupiedUnit(null);
+        }
+
+        private void Occupy(Cell cell, Unit unit, Sprite portrait)
+        {
+            unit.transform.SetParent(IsBenchCell(cell) ? Bench : Field);
+            unit.transform.position = cell.transform.position;
+
+            cell.isOccupied = true;
+            cell.unit = unit.gameObject;
+            unit.currentCell = cell;
+            cell.SetPortrait(portrait);
+            cell.SetOccupiedUnit(unit);
+        }
+
+        /// <summary>
+        /// 모든 전장 칸의 카드 배율을 보통 크기로 되돌린다.
+        ///
+        /// 배율은 칸에 붙어 있고 유닛이 죽거나 판이 바뀌어도 풀리지 않았다. 그래서 한 번 엘리트 단독
+        /// 판을 치른 칸은 이후 그 자리에 서는 잡졸까지 크게 그렸다(메히코의 독수리 전사 하나만 커지던 원인).
+        /// 적 편성을 새로 깔 때마다 먼저 부른다.
+        /// </summary>
+        public void ResetFeatureScales()
+        {
+            if (_fieldCellManager == null) return;
+            foreach (Cell cell in _fieldCellManager)
+            {
+                if (cell != null) cell.SetFeatureScale(1f);
+            }
+        }
+
         public bool AreAllEnemySideCellsEmpty()
         {
             // 적 측 셀이 모두 비어있는지 확인

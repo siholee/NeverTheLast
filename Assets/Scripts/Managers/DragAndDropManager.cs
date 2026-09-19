@@ -236,52 +236,25 @@ namespace Managers
             return GridManager.Instance != null && GridManager.Instance.IsBenchCell(cell);
         }
         
+        // 이동과 교환은 같은 Unit 오브젝트를 옮긴다. 예전처럼 끄고 새로 스폰하면
+        // 레벨 · 훈련 · 장비 · 현재 체력이 데이터 초기값으로 돌아갔다(GridManager.RelocateUnit).
         private void SwapUnits(Cell sourceCell, Cell targetCell)
         {
             Unit sourceUnit = sourceCell.unit.GetComponent<Unit>();
-            Unit targetUnit = targetCell.unit.GetComponent<Unit>();
-            
-            if (sourceUnit == null || targetUnit == null) return;
-            
-            // 두 유닛의 정보 저장
-            int sourceUnitId = sourceUnit.ID;
-            bool sourceIsEnemy = sourceUnit.IsEnemy;
-            int targetUnitId = targetUnit.ID;
-            bool targetIsEnemy = targetUnit.IsEnemy;
-            
-            // 두 유닛 모두 비활성화
-            sourceUnit.DeactivateUnit();
-            targetUnit.DeactivateUnit();
-            
-            // 위치 교환하여 새롭게 스폰
-            bool sourceIsBench = IsBenchCell(sourceCell);
-            bool targetIsBench = IsBenchCell(targetCell);
-            
-            GridManager.Instance.SpawnUnit(targetCell.xPos, targetCell.yPos, sourceIsEnemy, sourceUnitId, targetIsBench);
-            GridManager.Instance.SpawnUnit(sourceCell.xPos, sourceCell.yPos, targetIsEnemy, targetUnitId, sourceIsBench);
-            
-            Debug.Log($"유닛 위치 교환: {sourceUnit.UnitName} <-> {targetUnit.UnitName}");
+            if (sourceUnit == null || targetCell.unit.GetComponent<Unit>() == null) return;
+            // 끄는 동안 흐리게 만든 초상화는 원래 칸의 렌더러다. 옮기기 전에 되돌려야 그 칸에 남지 않는다.
+            SetUnitAlpha(sourceUnit, 1f);
+            GridManager.Instance.RelocateUnit(sourceUnit, targetCell);
         }
-        
+
         private void MoveUnit(Cell sourceCell, Cell targetCell)
         {
             Unit unit = sourceCell.unit.GetComponent<Unit>();
             if (unit == null) return;
-            
-            // 유닛 정보 저장
-            int unitId = unit.ID;
-            bool isEnemy = unit.IsEnemy;
-            
-            // 기존 유닛 비활성화
-            unit.DeactivateUnit();
-            
-            // 새 위치에 스폰
-            bool isBench = IsBenchCell(targetCell);
-            GridManager.Instance.SpawnUnit(targetCell.xPos, targetCell.yPos, isEnemy, unitId, isBench);
-            
-            // Debug.Log($"유닛 이동: {unit.UnitName} -> ({targetCell.xPos}, {targetCell.yPos})");
+            SetUnitAlpha(unit, 1f);
+            GridManager.Instance.RelocateUnit(unit, targetCell);
         }
-        
+
         private void CreateDragPreview()
         {
             // 드래그 프리뷰 오브젝트 생성

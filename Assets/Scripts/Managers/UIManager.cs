@@ -210,6 +210,7 @@ namespace Managers
             _event.Tick(Time.deltaTime);
             _characterSelect.Tick();
             _battleResult.Tick();
+            _preparation.Tick();
         }
 
         public void ShowEventStagePanel(StageEventData eventData, int dialogueIndex)
@@ -266,6 +267,11 @@ namespace Managers
             // 캐릭터 창이 떠 있으면 그 아래 층 창은 건드리지 않고 예전처럼 메뉴를 그 위에 띄운다.
             int floor = _hud != null && _hud.IsCodexOpen ? UI.Theme.UITheme.LayerMenu : int.MinValue;
             if (ModalScreen.TryEscapeTop(floor)) return;
+
+            // 전투 결과는 확인이 다음 진행을 여는 잠금 화면이다. OnEscape가 false라서 위의 공통 모달
+            // 처리가 닫지 않았더라도, 여기서 입력을 소비하지 않으면 일시정지 메뉴가 결과 위에 겹친다.
+            // 전투 로그가 떠 있으면 공통 처리에서 먼저 닫히므로 이 분기는 결과 화면 자체만 지킨다.
+            if (_battleResult.IsAwaitingConfirmation) return;
 
             // 덱 구성 모드는 창이 아니지만 입력을 바꾸는 모드다. ESC로 빠져나올 수 있어야 한다.
             if (floor == int.MinValue && _preparation.TryExitDeckMode()) return;

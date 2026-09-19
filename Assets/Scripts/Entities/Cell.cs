@@ -285,12 +285,19 @@ public class Cell : MonoBehaviour
         var lines = new System.Collections.Generic.List<Managers.UI.Core.UITooltip.Line>();
         Color muted = Managers.UI.Theme.UITheme.TextMuted;
 
-        int shownMax = hovered.ProjectedHpMax;
-        lines.Add(new Managers.UI.Core.UITooltip.Line("체력",
-            hovered.ShieldCurr > 0
-                ? $"{hovered.HpCurr:N0} / {hovered.HpMax:N0}  (+방어막 {hovered.ShieldCurr:N0})"
-                : $"{hovered.HpCurr:N0} / {shownMax:N0}",
-            Managers.UI.Theme.UITheme.TextPrimary));
+        // 체력은 카드의 바가 이미 보여 주므로 적지 않는다. 대신 "누구인가"를 먼저 소개한다 —
+        // 원소 / 숙련 · 주스탯 · 부스탯 / 한 줄 소개. 그 아래로 걸린 상태가 이어진다.
+        Color primary = Managers.UI.Theme.UITheme.TextPrimary;
+        lines.Add(new Managers.UI.Core.UITooltip.Line("원소",
+            Managers.UI.Core.UnitInfoText.ElementName(hovered.Element), primary));
+        if (!hovered.IsEnemy)
+            lines.Add(new Managers.UI.Core.UITooltip.Line("숙련",
+                Managers.UI.Core.UnitInfoText.Proficiencies(hovered), primary));
+        string stats = Managers.UI.Core.UnitInfoText.Stats(hovered);
+        if (stats.Length > 0) lines.Add(new Managers.UI.Core.UITooltip.Line("스탯", stats, primary));
+        string tagline = Managers.UI.Core.UnitInfoText.Tagline(hovered);
+        if (!string.IsNullOrWhiteSpace(tagline))
+            lines.Add(Managers.UI.Core.UITooltip.Line.Note(tagline.Trim(), Managers.UI.Theme.UITheme.TextSecondary));
 
         var groups = new System.Collections.Generic.List<(Entities.Status.UnitStatus Status, int Count)>();
         foreach (Entities.Status.UnitStatus status in hovered.ActiveStatuses)
@@ -299,11 +306,6 @@ public class Cell : MonoBehaviour
             int index = groups.FindIndex(g => g.Status.Key == status.Key);
             if (index >= 0) groups[index] = (groups[index].Status, groups[index].Count + 1);
             else groups.Add((status, 1));
-        }
-
-        if (groups.Count == 0)
-        {
-            lines.Add(Managers.UI.Core.UITooltip.Line.Note("걸린 상태 없음", muted));
         }
 
         foreach ((Entities.Status.UnitStatus status, int count) in groups)

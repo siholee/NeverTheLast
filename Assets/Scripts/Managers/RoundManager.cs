@@ -802,6 +802,9 @@ namespace Managers
         /// </summary>
         private void ApplyFeaturePresentation()
         {
+            // 지난 판에 키운 칸이 그대로 남지 않게 먼저 모두 되돌린다.
+            GameManager.Instance?.gridManager?.ResetFeatureScales();
+
             List<Unit> featured = Combat.FeatureEnemies.SoloStageTargets();
             if (featured.Count == 0) return;
 

@@ -147,8 +147,8 @@ namespace Managers.UI.Core
         /// content의 높이(<c>sizeDelta.y</c>)를 호출한 쪽이 직접 정한다.
         /// 배치는 돌려받은 <paramref name="scroll"/>의 RectTransform으로 잡는다.
         ///
-        /// <b>안에 넣는 항목의 클릭은 <see cref="OnClick"/>이 아니라 Button으로 받는다.</b>
-        /// EventTrigger는 휠 이벤트까지 먹어 버려, 항목 위에서 굴리면 목록이 움직이지 않는다.
+        /// 안에 넣는 항목의 클릭은 Button이나 <see cref="OnClick"/>으로 받는다. EventTrigger는 휠까지
+        /// 먹어 버려 항목 위에서 굴리면 목록이 움직이지 않으니 붙이지 않는다.
         /// </summary>
         public static RectTransform ScrollArea(string name, Transform parent, out ScrollRect scroll)
         {
@@ -219,6 +219,38 @@ namespace Managers.UI.Core
             image.type = Image.Type.Sliced;
             // 스프라이트에 색이 이미 구워져 있으므로 tint는 흰색으로 둔다.
             image.color = Color.white;
+            return image;
+        }
+
+        /// <summary>
+        /// 애플 리퀴드 글라스풍 면. 반투명 백색 판 + 또렷한 흰 테두리(빛이 모서리에 맺힌 선) +
+        /// 윗부분의 옅은 반사광 한 겹으로 이루어진다. 뒤의 전장이 비쳐 보여 HUD가 무대를 덜 가린다.
+        ///
+        /// UGUI에는 배경 흐림이 없어 진짜 굴절은 흉내 내지 않는다. 그 대신 판의 불투명도를 낮추고
+        /// 테두리 · 반사광을 밝게 잡아 "유리 한 장이 떠 있다"로 읽히게 한다.
+        /// 반사광은 첫 자식이므로 호출한 쪽이 나중에 붙이는 내용물은 모두 그 위에 그려진다.
+        /// </summary>
+        public static Image Glass(string name, Transform parent, int radius = 12, float opacity = 0.55f)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(parent, false);
+            var image = go.GetComponent<Image>();
+            image.sprite = UIShapes.RoundedRect(radius, new Color(0.975f, 0.985f, 0.990f, opacity),
+                new Color(1f, 1f, 1f, 0.92f), 1);
+            image.type = Image.Type.Sliced;
+            image.color = Color.white;
+
+            var sheenGo = new GameObject("GlassSheen", typeof(RectTransform), typeof(Image));
+            sheenGo.transform.SetParent(go.transform, false);
+            var sheen = sheenGo.GetComponent<Image>();
+            sheen.sprite = UIShapes.RoundedRect(Mathf.Max(2, radius - 1), new Color(1f, 1f, 1f, 0.30f));
+            sheen.type = Image.Type.Sliced;
+            sheen.raycastTarget = false;
+            RectTransform sheenRect = sheen.rectTransform;
+            sheenRect.anchorMin = new Vector2(0f, 0.52f);
+            sheenRect.anchorMax = new Vector2(1f, 1f);
+            sheenRect.offsetMin = new Vector2(2f, 0f);
+            sheenRect.offsetMax = new Vector2(-2f, -2f);
             return image;
         }
 
@@ -534,10 +566,8 @@ namespace Managers.UI.Core
         public static void OnClick(GameObject target, Action callback)
         {
             if (target == null || callback == null) return;
-            EventTrigger trigger = Ensure<EventTrigger>(target);
-            var entry = new EventTrigger.Entry { eventID = EventTriggerType.PointerClick };
-            entry.callback.AddListener(_ => callback());
-            trigger.triggers.Add(entry);
+            // EventTrigger는 휠 · 드래그까지 먹어 스크롤 목록 안에서 쓸 수 없었다. 클릭만 받는 수신기를 쓴다.
+            UIPointerEvents.On(target).Clicked += callback;
 
             if (target.name != "Backdrop") Ensure<UIHoverRing>(target);
         }

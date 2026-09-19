@@ -136,6 +136,17 @@ namespace Managers.UI.Core
             tip.FollowCursor();
         }
 
+        /// <summary>
+        /// 누가 띄웠든 지금 떠 있는 툴팁을 닫는다. 누르면 뜨는 상세 카드가 열릴 때 부른다 —
+        /// 커서가 아직 칸 위에 있어 호버 툴팁이 상세 카드를 덮어 버튼 글자를 가렸다.
+        /// 커서가 칸을 나갔다 다시 들어오면 평소처럼 다시 뜬다.
+        /// </summary>
+        public static void HideAny()
+        {
+            if (_instance == null || _instance._owner == null) return;
+            Hide(_instance._owner);
+        }
+
         /// <summary>이 소유자가 띄운 툴팁만 닫는다. 다른 위젯이 이미 가져갔으면 두고 나간다.</summary>
         public static void Hide(object owner)
         {
@@ -354,7 +365,7 @@ namespace Managers.UI.Core
             _touchTooltipShown = false;
         }
 
-        private static bool IsTouch(PointerEventData eventData) => eventData != null && eventData.pointerId >= 0;
+        private static bool IsTouch(PointerEventData eventData) => UIPointerKind.IsTouch(eventData);
 
         private void OnDisable()
         {

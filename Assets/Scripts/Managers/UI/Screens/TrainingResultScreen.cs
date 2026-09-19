@@ -35,8 +35,10 @@ namespace Managers.UI.Screens
         private TextMeshProUGUI _verdictLabel;
         private TextMeshProUGUI _verdictSub;
 
+        private Image _gainCard;
         private TextMeshProUGUI _gainValue;
         private TextMeshProUGUI _gainStat;
+        private TextMeshProUGUI _gainSecondary;
         private readonly TextMeshProUGUI[] _rowKeys = new TextMeshProUGUI[4];
         private readonly TextMeshProUGUI[] _rowValues = new TextMeshProUGUI[4];
 
@@ -73,17 +75,34 @@ namespace Managers.UI.Screens
 
         // ── 상승 · 소모 ──────────────────────────────────────────────
 
+        /// <summary>
+        /// 왼쪽은 오른 스탯 카드(스탯 이름 · 큰 +수치 · 부가 상승), 오른쪽은 변화 네 줄이다.
+        ///
+        /// 예전에는 "+5  (INT +1 · LUK +1)"를 54pt 한 줄로 32% 폭 칸에 넣었다. 글자 자동 맞춤은
+        /// 기준의 82%까지만 줄어들어 문장이 칸을 뚫고 오른쪽 표 위로 쏟아졌다. 큰 숫자는 주 상승만
+        /// 들고, 부가 상승은 그 아래 작은 줄로 나눈다.
+        /// </summary>
         private void BuildGain()
         {
             RectTransform block = UIBuild.Container("Gain", Body);
             UIBuild.Anchor(block, new Vector2(0f, 0.52f), new Vector2(1f, 0.77f));
 
-            _gainValue = UIBuild.Text("Value", block, "", 54f, UITheme.Accent,
-                TextAlignmentOptions.MidlineLeft);
-            UIBuild.Anchor(_gainValue.rectTransform, new Vector2(0f, 0.35f), new Vector2(0.32f, 1f), 8f, 0f);
+            _gainCard = UIBuild.Panel("GainCard", block, UITheme.SurfaceSunken, UIShapes.Corner.Diagonal, 10);
+            UIBuild.Anchor(_gainCard.rectTransform, new Vector2(0f, 0f), new Vector2(0.36f, 1f));
 
-            _gainStat = UIBuild.Label("Stat", block, "", UITheme.FontHeading, UITheme.TextSecondary);
-            UIBuild.Anchor(_gainStat.rectTransform, new Vector2(0f, 0f), new Vector2(0.32f, 0.35f), 12f, 0f);
+            _gainStat = UIBuild.Label("Stat", _gainCard.transform, "", UITheme.FontCaption,
+                UITheme.TextSecondary, TextAlignmentOptions.Center);
+            UIBuild.Anchor(_gainStat.rectTransform, new Vector2(0f, 0.72f), new Vector2(1f, 0.96f), 8f, 0f);
+
+            _gainValue = UIBuild.Text("Value", _gainCard.transform, "", 48f, UITheme.Accent,
+                TextAlignmentOptions.Center);
+            UIBuild.Anchor(_gainValue.rectTransform, new Vector2(0f, 0.30f), new Vector2(1f, 0.74f), 8f, 0f);
+            _gainValue.fontSizeMin = UITheme.FontHeading;
+
+            _gainSecondary = UIBuild.Text("Secondary", _gainCard.transform, "", UITheme.FontCaption,
+                UITheme.TextSecondary, TextAlignmentOptions.Center);
+            UIBuild.Anchor(_gainSecondary.rectTransform, new Vector2(0f, 0.06f), new Vector2(1f, 0.30f), 8f, 0f);
+            _gainSecondary.overflowMode = TextOverflowModes.Ellipsis;
 
             for (int i = 0; i < _rowKeys.Length; i++)
             {
@@ -91,16 +110,15 @@ namespace Managers.UI.Screens
 
                 _rowKeys[i] = UIBuild.Text($"Key{i}", block, "", UITheme.FontCaption, UITheme.TextMuted);
                 UIBuild.Anchor(_rowKeys[i].rectTransform,
-                    new Vector2(0.34f, top - 0.24f), new Vector2(0.58f, top));
+                    new Vector2(0.41f, top - 0.24f), new Vector2(0.62f, top));
 
                 _rowValues[i] = UIBuild.Text($"Value{i}", block, "", UITheme.FontBody,
                     UITheme.TextPrimary, TextAlignmentOptions.MidlineRight);
                 UIBuild.Anchor(_rowValues[i].rectTransform,
-                    new Vector2(0.58f, top - 0.24f), new Vector2(1f, top), 16f, 0f);
+                    new Vector2(0.62f, top - 0.24f), new Vector2(1f, top), 8f, 0f);
                 // 체력 변화처럼 "-14 (남은 86)"보다 긴 값도 작은 창에서 한 줄로 보인다.
-                _rowValues[i].enableAutoSizing = true;
-                _rowValues[i].fontSizeMin = UITheme.FontCaption;
-                _rowValues[i].fontSizeMax = UITheme.FontBody;
+                _rowValues[i].fontSizeMin = UITheme.FontFloor;
+                _rowValues[i].overflowMode = TextOverflowModes.Ellipsis;
             }
         }
 
@@ -166,12 +184,15 @@ namespace Managers.UI.Screens
                 ? $"{result.FocusName} 훈련에 실패했습니다 · 성공률 {100 - result.FailureRate}%"
                 : $"{result.FocusName} 훈련 · 성공률 {100 - result.FailureRate}%";
 
-            _gainValue.text = failed ? "+0"
-                : result.SecondaryText.Length > 0 ? $"+{result.StatGain}  ({result.SecondaryText})"
-                : $"+{result.StatGain}";
-            _gainValue.color = failed ? UITheme.TextMuted : UITheme.Stat(result.Focus);
-            _gainStat.text = result.Focus.ToString();
-            _gainStat.color = failed ? UITheme.TextMuted : UITheme.Stat(result.Focus);
+            Color statColor = failed ? UITheme.TextMuted : UITheme.Stat(result.Focus);
+            _gainValue.text = failed ? "+0" : $"+{result.StatGain}";
+            _gainValue.color = statColor;
+            _gainStat.text = $"{result.Focus} 상승";
+            _gainStat.color = statColor;
+            _gainSecondary.text = !failed && result.SecondaryText.Length > 0 ? result.SecondaryText : "";
+            _gainCard.sprite = UIShapes.CutCorner(10,
+                failed ? UITheme.SurfaceSunken : new Color(statColor.r, statColor.g, statColor.b, 0.10f),
+                UIShapes.Corner.Diagonal, failed ? UITheme.Outline : statColor, 1);
 
             SetRow(0, "스킬 Pt", failed ? "—" : $"+{result.SkillPointsGained}",
                 failed ? UITheme.TextMuted : UITheme.Positive);
@@ -231,6 +252,9 @@ namespace Managers.UI.Screens
         /// <summary>서포트 한 명의 결과 줄. 초상화 · 이름 · 기여 · 우정 변화.</summary>
         private sealed class SupportResultRow
         {
+            private const float RowHeight = 36f;
+            private const float RowGap = 5f;
+
             private readonly Image _frame;
             private readonly Image _portrait;
             private readonly TextMeshProUGUI _name;
@@ -239,23 +263,29 @@ namespace Managers.UI.Screens
 
             public SupportResultRow(Transform parent, int index, int count)
             {
-                float height = 1f / count;
-                float top = 1f - index * height;
-
+                // 칸 높이를 고정해 위에서부터 쌓는다. 영역을 5등분하면 창 크기에 따라 줄이
+                // 납작해져 초상화가 점만 해졌다.
                 _frame = UIBuild.Panel($"Support{index}", parent, UITheme.SurfaceSunken,
                     UIShapes.Corner.Diagonal, 6);
-                UIBuild.Anchor(_frame.rectTransform,
-                    new Vector2(0f, top - height + 0.02f), new Vector2(1f, top));
+                RectTransform rect = _frame.rectTransform;
+                rect.anchorMin = new Vector2(0f, 1f);
+                rect.anchorMax = new Vector2(1f, 1f);
+                rect.pivot = new Vector2(0.5f, 1f);
+                rect.sizeDelta = new Vector2(0f, RowHeight);
+                rect.anchoredPosition = new Vector2(0f, -index * (RowHeight + RowGap));
 
                 var portraitObject = new GameObject("Portrait", typeof(RectTransform), typeof(Image));
                 portraitObject.transform.SetParent(_frame.transform, false);
                 _portrait = portraitObject.GetComponent<Image>();
                 _portrait.preserveAspect = true;
                 _portrait.raycastTarget = false;
-                UIBuild.Anchor(_portrait.rectTransform, new Vector2(0f, 0.08f), new Vector2(0.10f, 0.92f), 6f, 0f);
+                UIBuild.Pin(_portrait.rectTransform, new Vector2(0f, 0.5f),
+                    new Vector2(RowHeight - 6f, RowHeight - 6f), new Vector2(8f, 0f));
 
                 _name = UIBuild.Text("Name", _frame.transform, "", UITheme.FontBody, UITheme.TextPrimary);
-                UIBuild.Anchor(_name.rectTransform, new Vector2(0.12f, 0f), new Vector2(0.52f, 1f));
+                UIBuild.Anchor(_name.rectTransform, new Vector2(0f, 0f), new Vector2(0.52f, 1f));
+                _name.rectTransform.offsetMin = new Vector2(RowHeight + 12f, 0f);
+                _name.overflowMode = TextOverflowModes.Ellipsis;
 
                 _bonus = UIBuild.Text("Bonus", _frame.transform, "", UITheme.FontBody, UITheme.Positive,
                     TextAlignmentOptions.MidlineRight);

@@ -887,6 +887,8 @@ namespace Managers
                 return;
             }
 
+            // 사건 전투도 결과 화면과 딜 그래프를 쓴다. 시작 시점 값을 여기서도 잡아야 지난 전투 값이 남지 않는다.
+            CaptureBattleStart();
             gameState = GameState.RoundInProgress;
             remainingRoundTurns = roundTurnLimit;
             isRoundProgressTimerActive = true;
@@ -1340,6 +1342,8 @@ namespace Managers
         {
             _roundManager?.StopRound();
             gameState = GameState.RoundEnd;
+            Combat.DamageMeter.End();
+            Combat.CombatLog.End(victory, _battleEndReason ?? (victory ? "적 전멸" : "패배"));
             // 쓰러진 아군은 필드 복원이 되살리기 전에 세어야 한다.
             BattleResultData result = BeginBattleResult(victory);
             // 궁극기 자원만 전투 종료 정리보다 먼저 회수한다. 상태이상·방어막·고유 전투 자원은
@@ -1440,6 +1444,8 @@ namespace Managers
                 if (hero.currentCell == null || GridManager.Instance.IsBenchCell(hero.currentCell)) continue;
                 _battleParty.Add(hero);
             }
+            Combat.DamageMeter.Begin(_battleParty);
+            Combat.CombatLog.Begin(_battleParty);
         }
 
         /// <summary>전투가 끝난 직후 — 필드 복원 전에 — 판정과 쓰러진 아군을 적는다.</summary>
@@ -1462,6 +1468,13 @@ namespace Managers
                 if (hero == null) continue;
                 bool fallen = !hero.isActive || hero.HpCurr <= 0;
                 result.Party.Add(new BattleResultData.Member(hero.UnitName, hero.PortraitPath, fallen));
+            }
+
+            // 딜 그래프. 전투 중 우측 그래프와 같은 값을 많이 넣은 순서로 옮긴다.
+            foreach (Combat.DamageMeter.Entry entry in Combat.DamageMeter.Sorted())
+            {
+                bool fallen = entry.Unit == null || !entry.Unit.isActive || entry.Unit.HpCurr <= 0;
+                result.Damage.Add(new BattleResultData.DamageLine(entry.Name, entry.Portrait, entry.Damage, fallen));
             }
 
             return result;

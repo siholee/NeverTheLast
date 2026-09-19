@@ -24,6 +24,9 @@ namespace Entities
 
         /// <summary>횟수제 무적이 타격 하나를 통째로 막았을 때. (공격자, 막은 쪽)</summary>
         public static event Action<Unit, Unit> AnyHitNullified;
+
+        /// <summary>회피가 났다(공격자, 회피한 쪽). 전투 로그가 듣는다.</summary>
+        public static event Action<Unit, Unit> AnyEvaded;
         /// <summary>피해 판정이 아닌 효과나 공격 비용으로 체력을 실제 소비한 순간.</summary>
         public static event Action<Unit, int> AnyHpSpent;
 
@@ -2762,6 +2765,7 @@ namespace Entities
                 currentCell?.UpdateUI();
                 // 회피는 아무 일도 일어나지 않은 것처럼 보인다. 숫자 자리에 '회피'를 띄워 알린다.
                 Effects.CombatFeedback.PlayEvade(self);
+                AnyEvaded?.Invoke(dmgCtx.Attacker, self);
                 Debug.Log($"{self.UnitName}이(가) 공격을 회피했습니다. 회피율: {evasionChance * 100f:F1}%");
                 return;
             }

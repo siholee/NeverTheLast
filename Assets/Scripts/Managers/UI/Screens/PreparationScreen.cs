@@ -157,6 +157,24 @@ namespace Managers.UI.Screens
                 () => GameManager.Instance?.StartRound());
         }
 
+        /// <summary>갱신 주기(초, 실시간). 스킬 Pt · 습득 가능 수 같은 값을 놓치지 않을 만큼만 자주 본다.</summary>
+        private const float RefreshInterval = 0.25f;
+        private float _nextRefreshAt;
+
+        /// <summary>
+        /// 떠 있는 동안 표시 값을 현재치로 맞춘다.
+        ///
+        /// 예전에는 바가 열릴 때 한 번만 값을 읽어, 스킬을 배우거나 스킬 Pt를 얻은 뒤에도
+        /// "스킬 Pt 20 · 습득 가능 2"가 그대로 남았다. 값이 바뀌는 경로(스킬 창 · 훈련 결과 · 보상 · 이벤트)가
+        /// 여럿이라 각자 알리게 하는 대신 여기서 짧은 주기로 다시 읽는다.
+        /// </summary>
+        public void Tick()
+        {
+            if (!IsVisible || Time.unscaledTime < _nextRefreshAt) return;
+            _nextRefreshAt = Time.unscaledTime + RefreshInterval;
+            Refresh(_deckOnly, _actionUsed, _message);
+        }
+
         /// <summary>덱 구성 모드만 끄고 안내 줄을 되돌린다. ESC가 부른다.</summary>
         public bool TryExitDeckMode()
         {

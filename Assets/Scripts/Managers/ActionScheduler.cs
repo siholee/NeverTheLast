@@ -97,6 +97,12 @@ namespace Managers
             Normal = 5,
         }
 
+        /// <summary>
+        /// 행동 하나가 막 나가려 한다(유닛 · 종류 · 예약 이름). 전투 로그가 듣는다.
+        /// 트리거가 아니다 — 여기서 게임 상태를 바꾸면 안 된다.
+        /// </summary>
+        public static event Action<Unit, ActionKind, string> AnyActionStarted;
+
         /// <summary>턴을 쓰지 않는 추가행동 계열인가. 우선 추가행동도 성질은 같다.</summary>
         public static bool IsAdditional(ActionKind kind)
             => kind is ActionKind.Additional or ActionKind.PriorityAdditional;
@@ -510,6 +516,7 @@ namespace Managers
                         new EventContext(next.Unit));
                 }
 
+                AnyActionStarted?.Invoke(next.Unit, next.Kind, next.Label);
                 next.Run();
                 if (next.Kind == ActionKind.Special && !next.Unit.isCasting)
                     Combat.SpecialAction.NotifyResolved(next.Unit);

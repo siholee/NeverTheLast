@@ -41,7 +41,9 @@ namespace Managers.UI.Core
         public void OnPointerDown(PointerEventData eventData)
         {
             if (Payload == null) return;
-            UIDragRuntime.Arm(this, eventData.position, eventData.pointerId);
+            // 오른쪽 버튼으로는 집지 않는다. 마우스는 왼쪽 버튼 상태로 끌기를 따라간다.
+            if (eventData.button != PointerEventData.InputButton.Left) return;
+            UIDragRuntime.Arm(this, eventData.position, UIPointerKind.TouchId(eventData));
         }
     }
 
@@ -128,7 +130,10 @@ namespace Managers.UI.Core
 
         private static readonly List<RaycastResult> Hits = new();
 
-        /// <summary>눌렸다. 아직 끌기는 아니다 — 문턱을 넘어야 시작한다.</summary>
+        /// <summary>
+        /// 눌렸다. 아직 끌기는 아니다 — 문턱을 넘어야 시작한다.
+        /// <paramref name="pointerId"/>는 터치의 손가락 번호이고, 마우스면 -1이다(<see cref="UIPointerKind"/>).
+        /// </summary>
         internal static void Arm(UIDragSource source, Vector2 screenPoint, int pointerId)
         {
             EnsureInstance();
