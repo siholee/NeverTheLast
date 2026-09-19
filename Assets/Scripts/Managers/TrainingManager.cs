@@ -83,16 +83,51 @@ namespace Managers
         }
 
         /// <summary>
-        /// 훈련 5종. 지능만 체력을 회복하고 스킬 Pt를 많이 준다 — 우마무스메의 지능 훈련 역할이다.
+        /// 훈련 5종. 지능만 체력을 회복한다.
+        ///
+        /// 근력·체력·행운은 부 스탯을 함께 올리고(<see cref="SecondaryShares"/>), 부 스탯이 없는
+        /// 민첩·지능은 그 대신 스킬 Pt를 두 배로 준다 — 한 훈련이 스탯 총량과 스킬 Pt 중
+        /// 하나를 고르게 하는 구조다.
         /// </summary>
         public static readonly TrainingOption[] Options =
         {
             new(BaseEnums.PrimaryStat.STR, "근력", "방어력 · 장비 중량 한도", 20, 2, new[] { 3, 4, 5, 6, 8 }),
-            new(BaseEnums.PrimaryStat.DEX, "민첩", "행동 속도", 18, 2, new[] { 3, 4, 5, 6, 8 }),
+            new(BaseEnums.PrimaryStat.DEX, "민첩", "행동 속도", 18, 4, new[] { 3, 4, 5, 6, 8 }),
             new(BaseEnums.PrimaryStat.CON, "체력", "최대 체력", 16, 2, new[] { 3, 4, 5, 6, 8 }),
             new(BaseEnums.PrimaryStat.INT, "지능", "마나 획득 효율", -5, 4, new[] { 2, 3, 4, 5, 6 }),
-            new(BaseEnums.PrimaryStat.LUK, "행운", "치명타 확률", 14, 3, new[] { 3, 4, 5, 6, 8 }),
+            new(BaseEnums.PrimaryStat.LUK, "행운", "치명타 확률", 14, 2, new[] { 3, 4, 5, 6, 8 }),
         };
+
+        /// <summary>훈련이 함께 올린 부 스탯 하나.</summary>
+        public struct SecondaryGain
+        {
+            public BaseEnums.PrimaryStat Stat;
+            public int Amount;
+        }
+
+        /// <summary>
+        /// 훈련이 함께 올리는 부 스탯과 그 몫. 우마무스메의 스피드 훈련이 파워를 함께 올리는 것과 같다.
+        ///
+        ///   근력 → CON 50%        체력 → INT 25% · LUK 25%        행운 → DEX 25% · CON 25%
+        ///
+        /// 몫은 <b>순수 상승량</b>(훈련 레벨 기본치 + 서포트 보너스)에 곱한다. 그 뒤 스탯마다
+        /// <b>그 스탯의</b> 훈련 효율(서포트 코드·메인 코드)과 컨디션을 따로 곱한다 —
+        /// CON 훈련의 INT 몫에는 INT 효율이, LUK 몫에는 LUK 효율이 붙는다.
+        /// </summary>
+        private static readonly SecondaryGain[] NoSecondary = System.Array.Empty<SecondaryGain>();
+
+        public static (BaseEnums.PrimaryStat Stat, float Share)[] SecondaryShares(BaseEnums.PrimaryStat focus)
+            => focus switch
+            {
+                BaseEnums.PrimaryStat.STR => new[] { (BaseEnums.PrimaryStat.CON, 0.50f) },
+                BaseEnums.PrimaryStat.CON => new[] { (BaseEnums.PrimaryStat.INT, 0.25f), (BaseEnums.PrimaryStat.LUK, 0.25f) },
+                BaseEnums.PrimaryStat.LUK => new[] { (BaseEnums.PrimaryStat.DEX, 0.25f), (BaseEnums.PrimaryStat.CON, 0.25f) },
+                _ => System.Array.Empty<(BaseEnums.PrimaryStat, float)>(),
+            };
+
+        /// <summary>"CON +3 · INT +1" 꼴. 없으면 빈 문자열.</summary>
+        public static string FormatSecondary(IReadOnlyList<SecondaryGain> gains)
+            => gains == null ? "" : string.Join(" · ", gains.Where(g => g.Amount > 0).Select(g => $"{g.Stat} +{g.Amount}"));
 
         public static TrainingOption GetOption(BaseEnums.PrimaryStat stat)
         {
@@ -138,6 +173,11 @@ namespace Managers
             /// <summary>훈련 이름("근력" 등).</summary>
             public string FocusName;
             public int StatGain;
+            /// <summary>함께 오른 부 스탯. 민첩·지능은 비어 있다.</summary>
+            public SecondaryGain[] SecondaryGains;
+
+            /// <summary>"CON +3 · INT +1" 꼴. 없으면 빈 문자열.</summary>
+            public string SecondaryText => FormatSecondary(SecondaryGains);
             public int SupportBonus;
             public int AffinityBonus;
             public int NewTrainingLevel;
@@ -404,35 +444,74 @@ namespace Managers
         }
 
         private static float GetSupportTrainingEfficiencyMultiplier(BaseEnums.PrimaryStat focus)
-        {
-            int bonusCount = GetSupportsOn(focus).Count(support =>
-                HasTrainingEfficiencyPassive(support, focus));
-            return 1f + bonusCount * 0.10f;
-        }
+            => EfficiencyFrom(GetSupportsOn(focus), focus);
 
         private static float GetSupportTrainingEfficiencyMultiplier(
             BaseEnums.PrimaryStat focus, IEnumerable<SupportTrainingRoll> rolls)
+            => EfficiencyFrom(rolls.Where(roll => roll.Appeared).Select(roll => roll.Support), focus);
+
+        /// <summary>
+        /// 훈련에 앉은 서포트가 <paramref name="stat"/> 상승량에 주는 효율.
+        ///
+        /// 훈련 코드는 <b>어느 훈련에 앉든</b> 자기 스탯에 붙는다(<see cref="Codes.Base.PassiveCode.SupportTrainingBonus"/>).
+        /// 예전처럼 "LUK 훈련에 배치될 때만"이 아니다 — 행운아(16)를 든 서포트가 체력 훈련에 앉으면
+        /// 그 훈련의 LUK 몫이 오른다. 숙련된 조교(14)처럼 스탯을 가리지 않는 코드는 모든 몫에 붙는다.
+        /// 은색 코드는 상위 금색을 함께 배웠으면 세지 않는다(행운아 → 사랑 신의 가호).
+        /// </summary>
+        private static float EfficiencyFrom(IEnumerable<Unit> supports, BaseEnums.PrimaryStat stat)
         {
-            int bonusCount = rolls.Count(roll => roll.Appeared && roll.Support != null &&
-                HasTrainingEfficiencyPassive(roll.Support, focus));
-            return 1f + bonusCount * 0.10f;
+            float bonus = 0f;
+            foreach (Unit support in supports)
+            {
+                if (support == null) continue;
+                bonus += CodeTrainingBonus(support, code => code.SupportTrainingBonus(stat));
+            }
+            return 1f + bonus;
         }
 
-        private static bool HasTrainingEfficiencyPassive(Unit support, BaseEnums.PrimaryStat focus)
+        private static float CodeTrainingBonus(Unit owner, System.Func<Codes.Base.PassiveCode, float> read)
         {
-            if (support == null) return false;
-            return focus switch
+            float bonus = 0f;
+            foreach (Codes.Base.PassiveCode code in owner.ActivePassiveCodes)
             {
-                BaseEnums.PrimaryStat.INT => support.ActivePassiveCodes.Any(code =>
-                    code is Codes.Passive.ScholarshipPassive),
-                BaseEnums.PrimaryStat.DEX => support.ActivePassiveCodes.Any(code =>
-                    code is Codes.Passive.MarieOfficer),
-                BaseEnums.PrimaryStat.STR => support.ActivePassiveCodes.Any(code =>
-                    code is Codes.Passive.JeanPhysicalCoach),
-                BaseEnums.PrimaryStat.CON => support.ActivePassiveCodes.Any(code =>
-                    code is Codes.Passive.SuryaWallMeditation),
-                _ => false,
-            };
+                if (code == null) continue;
+                if (code.SupersededByCodeId > 0 && owner.HasLearnedPassiveCode(code.SupersededByCodeId)) continue;
+                bonus += read(code);
+            }
+            return bonus;
+        }
+
+        /// <summary>이번 훈련이 함께 올릴 부 스탯 예측. 화면·봇이 쓴다.</summary>
+        public static SecondaryGain[] GetProjectedSecondaryGains(BaseEnums.PrimaryStat focus)
+        {
+            int raw = GetOption(focus).BaseGain(State.GetLevel(focus)) + GetSupportBonus(focus);
+            return SecondaryGainsFor(focus, raw, GetSupportsOn(focus).ToList());
+        }
+
+        /// <summary>부 스탯 상승 합계. 봇이 훈련 가치를 잴 때 쓴다.</summary>
+        public static int GetProjectedSecondaryGain(BaseEnums.PrimaryStat focus)
+            => GetProjectedSecondaryGains(focus).Sum(gain => gain.Amount);
+
+        private static SecondaryGain[] SecondaryGainsFor(BaseEnums.PrimaryStat focus, int raw,
+            List<Unit> supportsOnTraining)
+        {
+            var shares = SecondaryShares(focus);
+            if (shares.Length == 0) return NoSecondary;
+
+            Unit main = GetMainUnit();
+            var gains = new SecondaryGain[shares.Length];
+            for (int i = 0; i < shares.Length; i++)
+            {
+                var (stat, share) = shares[i];
+                gains[i] = new SecondaryGain
+                {
+                    Stat = stat,
+                    Amount = Mathf.Max(0, Mathf.FloorToInt(
+                        raw * share * State.ConditionMultiplier *
+                        GetPersonalTrainingMultiplier(main, stat) * EfficiencyFrom(supportsOnTraining, stat))),
+                };
+            }
+            return gains;
         }
 
         /// <summary>
@@ -467,15 +546,12 @@ namespace Managers
             return 0f;
         }
 
-        private static float GetPersonalTrainingMultiplier(Unit main, BaseEnums.PrimaryStat focus)
-        {
-            if (main == null) return 1f;
-            if (focus == BaseEnums.PrimaryStat.LUK &&
-                main.ActivePassiveCodes.Any(code => code is Codes.Passive.BastetMasterThief)) return 1.10f;
-            if (focus == BaseEnums.PrimaryStat.DEX &&
-                main.ActivePassiveCodes.Any(code => code is Codes.Passive.Intuition)) return 1.10f;
-            return 1f;
-        }
+        /// <summary>
+        /// 메인 본인이 든 훈련 코드(직감·대도·광신도)가 <paramref name="stat"/> 상승량에 주는 배율.
+        /// 어느 훈련에서 오르든 그 스탯이면 붙는다.
+        /// </summary>
+        private static float GetPersonalTrainingMultiplier(Unit main, BaseEnums.PrimaryStat stat)
+            => main == null ? 1f : 1f + CodeTrainingBonus(main, code => code.MainTrainingBonus(stat));
 
         /// <summary>예전 이름. 화면 코드가 쓰던 진입점이라 남겨 둔다.</summary>
         public static int GetFocusStatGain(BaseEnums.PrimaryStat focus) => GetProjectedGain(focus);
@@ -547,10 +623,14 @@ namespace Managers
             int totalSupport = rolls.Where(roll => roll.Appeared).Sum(roll => roll.StatBonus);
             int affinity = Mathf.Max(0, totalSupport - baseSupport);
 
+            int pureGain = option.BaseGain(state.GetLevel(focus)) + totalSupport;
             int gain = Mathf.Max(1, Mathf.FloorToInt(
-                (option.BaseGain(state.GetLevel(focus)) + totalSupport) * state.ConditionMultiplier *
+                pureGain * state.ConditionMultiplier *
                 GetPersonalTrainingMultiplier(GetMainUnit(), focus) *
                 GetSupportTrainingEfficiencyMultiplier(focus, rolls)));
+            // 레벨을 올리기 전에 잰다 — 화면에 보여 준 값과 같아야 한다.
+            SecondaryGain[] secondary = SecondaryGainsFor(focus, pureGain,
+                rolls.Where(roll => roll.Appeared).Select(roll => roll.Support).ToList());
 
             // 실패 판정은 체력을 쓰기 전 값으로 한다. 화면에 보여 준 확률과 같아야 한다.
             int failureRate = GetFailureRate(focus);
@@ -563,6 +643,7 @@ namespace Managers
             if (failed)
             {
                 gain = 0;
+                secondary = NoSecondary;
             }
             else
             {
@@ -572,6 +653,10 @@ namespace Managers
                 if (main != null)
                 {
                     main.AddStatUpgrade(focus, gain);
+                    foreach (SecondaryGain extra in secondary)
+                    {
+                        if (extra.Amount > 0) main.AddStatUpgrade(extra.Stat, extra.Amount);
+                    }
                     main.GainTrainingLevel(TrainingLevelGain);
                     ApplySkillHints(main, rolls);
                 }
@@ -591,6 +676,7 @@ namespace Managers
                 ConditionAfter = state.ConditionName,
                 Supports = BuildSupportOutcomes(rolls),
                 StatGain = gain,
+                SecondaryGains = secondary,
                 SupportBonus = totalSupport,
                 AffinityBonus = affinity,
                 NewTrainingLevel = main != null ? main.TrainingLevel : 0,
@@ -734,6 +820,7 @@ namespace Managers
             if (main == null) return;
 
             SkillHintState hints = Hints;
+            bool gotHint = false;
             foreach (SupportTrainingRoll roll in rolls)
             {
                 if (!roll.Appeared || roll.Support == null) continue;
@@ -741,17 +828,37 @@ namespace Managers
                 bool hasCard = HasSupportCard(roll.Card);
                 int rate = hasCard ? Mathf.Clamp(roll.Card.skillTransferRate, 0, 100) : CardlessHintRate;
                 if (roll.SpecialtyMatch) rate += HintSpecialtyBonus;
+                if (roll.Support.ActivePassiveCodes.Any(code => code is Codes.Passive.Inspiration))
+                    rate = Mathf.RoundToInt(rate * (1f + Codes.Passive.Inspiration.HintRateBonus));
                 if (Random.Range(0, 100) >= rate) continue;
 
-                int codeId = PickHintCandidate(main, roll);
-                if (codeId <= 0) continue;
-
-                if (!hints.Add(codeId, HintStage(roll, codeId), roll.Support.UnitName)) continue;
-
-                roll.HintedCodeId = codeId;
-                roll.HintedName = PassiveCatalog.Get(codeId, main).Name;
-                roll.HintedLevel = hints.LevelOf(codeId);
+                gotHint |= TryGiveHint(main, roll);
             }
+
+            // 천장 — 힌트 없는 훈련이 쌓였으면 이번에는 반드시 하나 준다. 이번 훈련에 앉은 서포트가
+            // 먼저, 줄 것이 없으면 파티의 다른 서포트가 준다(훈련 배치 운까지 겹쳐 다시 비는 일이 없게).
+            if (!gotHint && hints.PityReady)
+            {
+                foreach (SupportTrainingRoll roll in rolls.OrderByDescending(roll => roll.Appeared))
+                {
+                    if (roll.Support == null) continue;
+                    if (TryGiveHint(main, roll)) { gotHint = true; break; }
+                }
+            }
+
+            hints.RecordTraining(gotHint);
+        }
+
+        private static bool TryGiveHint(Unit main, SupportTrainingRoll roll)
+        {
+            int codeId = PickHintCandidate(main, roll);
+            if (codeId <= 0) return false;
+            if (!Hints.Add(codeId, HintStage(roll, codeId), roll.Support.UnitName)) return false;
+
+            roll.HintedCodeId = codeId;
+            roll.HintedName = PassiveCatalog.Get(codeId, main).Name;
+            roll.HintedLevel = Hints.LevelOf(codeId);
+            return true;
         }
 
         /// <summary>

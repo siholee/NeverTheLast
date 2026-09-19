@@ -14,7 +14,6 @@ namespace Codes.Passive
     {
         public const int Bounty = 5270;
         public const int Wisdom = 5271;
-        public const int Lucky = 5272;
         public const int Scholar = 5273;
         public const int Meditation = 5274;
         public const int WingedSerpent = 5275;
@@ -77,23 +76,29 @@ namespace Codes.Passive
             IgnoresActivationChance = true;
         }
 
-        // 전투 효과는 없다. TrainingManager가 서포트 카드의 활성 패시브를 확인해
-        // INT 집중 훈련 효율 +10%를 적용한다.
+        // 전투 효과는 없다. 서포트 카드로 어느 훈련에 앉든 그 훈련의 INT 몫 +10%.
+        public override float SupportTrainingBonus(BaseEnums.PrimaryStat stat)
+            => stat == BaseEnums.PrimaryStat.INT ? 0.10f : 0f;
     }
 
+    /// <summary>
+    /// 행운아(16) — 서포트 카드로 어느 훈련에 앉든 그 훈련의 LUK 몫 +10%.
+    /// 예전의 전투 LUK +4는 훈련 코드로 바뀌며 사라졌다. 상위 금색은 사랑 신의 가호(54).
+    /// </summary>
     public sealed class QuetzalcoatlLucky : PassiveCode
     {
+        public const float TrainingBonus = 0.10f;
+
         public QuetzalcoatlLucky(PassiveCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "행운아";
             IgnoresActivationChance = true;
+            SupersededByCodeId = 54;
         }
 
-        public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
-            QuetzalcoatlStatusIds.Lucky, "quetzalcoatl_lucky", CodeName,
-            Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.LUK, 4),
-            stackPolicy: BaseEnums.StatusStackPolicy.Ignore, isBeneficial: true, description: "LUK +4"));
+        public override float SupportTrainingBonus(BaseEnums.PrimaryStat stat)
+            => stat == BaseEnums.PrimaryStat.LUK ? TrainingBonus : 0f;
     }
 
     public sealed class QuetzalcoatlOvercritScholar : PassiveCode

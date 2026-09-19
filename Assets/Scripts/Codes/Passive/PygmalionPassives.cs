@@ -15,7 +15,6 @@ namespace Codes.Passive
         public const int WeaklingContempt = 5800;
         public const int SlowAndSteady = 5801;
         public const int SharpThorns = 5802;
-        public const int LoveGodBlessing = 5803;
         public const int RoseThorns = 5804;
     }
 
@@ -79,20 +78,23 @@ namespace Codes.Passive
             description: "접촉 피해를 받으면 공격자에게 2턴간 치유량 50% 감소를 부여합니다."));
     }
 
+    /// <summary>
+    /// 사랑 신의 가호(54) — 행운아(16)의 금색 상위. 서포트 카드로 어느 훈련에 앉든 그 훈련의 LUK 몫 +20%.
+    /// 예전의 접촉 피해 −25%를 대체했다. 피그말리온이 초기 서포터가 되면서 LUK 훈련 요원 몫을 맡는다.
+    /// </summary>
     public sealed class PygmalionLoveGodBlessing : PassiveCode
     {
+        public const float TrainingBonus = 0.20f;
+
         public PygmalionLoveGodBlessing(PassiveCodeContext context) : base(context)
         {
-            CodeName = "사랑신의 가호";
+            CodeName = "사랑 신의 가호";
             IgnoresActivationChance = true;
+            Grade = BaseEnums.CodeGrade.Enhanced;
         }
 
-        public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
-            PygmalionStatusIds.LoveGodBlessing, "pygmalion_love_god_blessing", CodeName,
-            Caster, Caster, new ContactDamageReductionEffect(0.75f),
-            stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
-            isBeneficial: true,
-            description: "접촉 분류 기술에게 받는 피해가 25% 감소합니다."));
+        public override float SupportTrainingBonus(BaseEnums.PrimaryStat stat)
+            => stat == BaseEnums.PrimaryStat.LUK ? TrainingBonus : 0f;
     }
 
     /// <summary>궁극기 장미의 가시: 피해 감소·도발·접촉 반격 화상.</summary>
@@ -166,12 +168,4 @@ namespace Codes.Passive
         }
     }
 
-    internal sealed class ContactDamageReductionEffect : BaseEffect
-    {
-        private readonly float _multiplier;
-        public ContactDamageReductionEffect(float multiplier) : base(0, multiplier) => _multiplier = multiplier;
-
-        public override float ReceivingDamageModifier(Unit unit, DamageContext context)
-            => unit == Target && PygmalionCombat.IsContactDamage(context) ? _multiplier : 1f;
-    }
 }

@@ -343,7 +343,11 @@ namespace Managers.UI.Screens
             _energyLabel.text = $"{state.Energy} / {TrainingState.MaxEnergy}";
 
             _conditionLabel.text = $"컨디션 {state.ConditionName} · ×{state.ConditionMultiplier:0.00}";
-            _skillPointLabel.text = $"스킬 Pt {state.SkillPoints}";
+            // 힌트 천장이 어디쯤인지 보여 준다. 힌트가 운이라 "언제 오느냐"를 모르면 Pt만 쌓이는 느낌이 든다.
+            global::Core.SkillHintState hints = TrainingManager.Hints;
+            _skillPointLabel.text = hints.PityReady
+                ? $"스킬 Pt {state.SkillPoints} · 이번 훈련 힌트 보장"
+                : $"스킬 Pt {state.SkillPoints} · 힌트 보장까지 {hints.TrainingsUntilPity}회";
         }
 
         private void RefreshDetail(TrainingState state, TrainingManager.TrainingOption option)
@@ -365,9 +369,11 @@ namespace Managers.UI.Screens
                 _levelPips[i].color = i < level ? UITheme.Stat(_selected) : UITheme.Divider;
             }
 
+            string secondary = TrainingManager.FormatSecondary(TrainingManager.GetProjectedSecondaryGains(_selected));
             _gainValue.text = $"+{gain}";
             _gainValue.color = UITheme.Stat(_selected);
-            _gainStat.text = _selected.ToString();
+            // 근력·체력·행운은 부 스탯도 함께 오른다. 그 몫이 스탯 이름 옆에 붙어야 훈련끼리 비교가 된다.
+            _gainStat.text = secondary.Length > 0 ? $"{_selected}  · {secondary}" : _selected.ToString();
 
             SetBreakdown(0, $"기본 (Lv {level})", $"+{baseGain}", UITheme.TextPrimary);
             SetBreakdown(1, "서포트 보너스", support > 0 ? $"+{support}" : "—",
@@ -390,7 +396,9 @@ namespace Managers.UI.Screens
                 : failure < 20 ? new Color(0.878f, 0.647f, 0.290f)
                 : UITheme.Danger;
 
-            _decideHint.text = $"{option.Name} +{gain} · 성공 {success}%";
+            _decideHint.text = secondary.Length > 0
+                ? $"{option.Name} +{gain} · {secondary} · 성공 {success}%"
+                : $"{option.Name} +{gain} · 성공 {success}%";
         }
 
         private void SetBreakdown(int index, string key, string value, Color color)

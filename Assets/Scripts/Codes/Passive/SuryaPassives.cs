@@ -249,6 +249,9 @@ namespace Codes.Passive
             CodeName = "면벽수련";
             IgnoresActivationChance = true;
         }
+
+        public override float SupportTrainingBonus(BaseEnums.PrimaryStat stat)
+            => stat == BaseEnums.PrimaryStat.CON ? TrainingBonus : 0f;
     }
 
     /// <summary>

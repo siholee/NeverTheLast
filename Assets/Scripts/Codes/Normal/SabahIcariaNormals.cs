@@ -7,13 +7,21 @@ using UnityEngine;
 
 namespace Codes.Normal
 {
-    /// <summary>사바흐 N — 우선도가 높은 적부터 최대 3명을 베고 번개 원소를 부여한다.</summary>
+    /// <summary>
+    /// 사바흐 N — 우선도가 높은 적부터 최대 3명을 베고 번개 원소를 부여한다.
+    /// 위력은 고정 110 + DEX×1.0. 수르트 입문 개편과 같은 저점 보강이다.
+    /// </summary>
     public sealed class SabahLightningSlash : BaseNormalCode
     {
+        private const int NormalFlatPower = 110;
+        private const float NormalDexCoefficient = 1.0f;
+
         public SabahLightningSlash(NormalCodeContext context) : base(context)
         {
             CodeName = "번개 베기";
-            Power = 90;
+            Power = NormalFlatPower;
+            PowerStatCoefficient = NormalDexCoefficient;
+            PowerStat = BaseEnums.PrimaryStat.DEX;
             CodeTags = new List<int> { DamageTag.Physical };
         }
 

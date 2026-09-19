@@ -79,8 +79,11 @@ namespace Managers.UI.Core
                 UIShapes.Corner.Diagonal, 8, UITheme.Outline, 1);
             _panel = panel.rectTransform;
             _panel.pivot = new Vector2(0f, 1f);
-            _panel.anchorMin = new Vector2(0f, 0f);
-            _panel.anchorMax = new Vector2(0f, 0f);
+            // ScreenPointToLocalPointInRectangle이 돌려주는 좌표는 캔버스 중심 기준이다.
+            // 패널 앵커가 좌하단이면 같은 값을 anchoredPosition에 넣는 순간 캔버스 반 폭/높이만큼
+            // 다시 밀려, 화면 하단의 슬롯에서 띄운 툴팁이 좌하단 밖으로 잘렸다.
+            _panel.anchorMin = new Vector2(0.5f, 0.5f);
+            _panel.anchorMax = new Vector2(0.5f, 0.5f);
 
             _rarityStrip = UIBuild.Solid("Rarity", _panel, UITheme.Accent);
             _rarityStrip.rectTransform.anchorMin = new Vector2(0f, 1f);

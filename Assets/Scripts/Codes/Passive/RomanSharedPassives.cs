@@ -66,6 +66,9 @@ namespace Codes.Passive
             CodeName = "직감";
             IgnoresActivationChance = true;
         }
+
+        public override float MainTrainingBonus(BaseEnums.PrimaryStat stat)
+            => stat == BaseEnums.PrimaryStat.DEX ? TrainingBonus : 0f;
     }
 
     /// <summary>Lv.46 전술가 — 필드에 있는 동안 아군 전체가 적 방어력 10%를 무시한다.</summary>

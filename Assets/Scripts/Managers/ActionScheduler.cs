@@ -128,6 +128,23 @@ namespace Managers
         }
 
         private readonly Dictionary<Unit, float> _actionValues = new();
+
+        /// <summary>
+        /// 이번 라운드에 각 유닛이 연 턴 수. <b>추월 제한</b>에 쓴다.
+        ///
+        /// AV만으로 돌리면 속도 1.3배 차이에서도 빠른 쪽이 몇 턴마다 한 바퀴를 앞질러
+        /// 느린 쪽이 한 번 행동하는 사이에 두 번 행동한다. 초반처럼 DEX 차이가 작은 구간에서
+        /// "한 캐릭터가 턴을 잡으면 다른 캐릭터도 잡는다"가 깨졌다(기획 요청).
+        /// 그래서 A는 B보다 <c>floor(A속도 / B속도)</c>번까지만 앞설 수 있다 —
+        /// 2배 미만이면 번갈아 행동하고 DEX는 <b>순서</b>만 정한다. 2배 이상부터 두 번씩 행동한다.
+        /// </summary>
+        private readonly Dictionary<Unit, int> _turnCounts = new();
+
+        /// <summary>
+        /// 행동 게이지를 앞당기는 효과(<see cref="AdvanceAction"/>)가 준 추월 몫.
+        /// 추월 제한에 막혀 앞당김이 사라지지 않도록, 앞당긴 비율만큼 한도를 넘어 설 수 있게 한다.
+        /// </summary>
+        private readonly Dictionary<Unit, float> _lapCredit = new();
         private readonly List<PendingAction> _queue = new();
         private readonly HashSet<string> _queuedKeys = new();
 
@@ -164,6 +181,8 @@ namespace Managers
         public void BeginRound()
         {
             _actionValues.Clear();
+            _turnCounts.Clear();
+            _lapCredit.Clear();
             ClearQueue();
             _acting = null;
             TurnOwner = null;
@@ -223,6 +242,8 @@ namespace Managers
         {
             _acting?.ActiveSpecialCode?.StopCode();
             _actionValues.Clear();
+            _turnCounts.Clear();
+            _lapCredit.Clear();
             ClearQueue();
             Combat.SpecialAction.Reset();
             _acting = null;
@@ -273,6 +294,7 @@ namespace Managers
             if (unit == null || ratio <= 0f) return;
             if (!_actionValues.TryGetValue(unit, out float remaining)) return;
             _actionValues[unit] = Mathf.Max(0f, remaining - FullActionValue(unit) * ratio);
+            _lapCredit[unit] = _lapCredit.GetValueOrDefault(unit) + ratio;
         }
 
         /// <summary>
@@ -410,12 +432,21 @@ namespace Managers
             foreach (Unit unit in current)
             {
                 // 라운드 도중 소환된 유닛은 가득 찬 AV로 합류한다.
-                if (!_actionValues.ContainsKey(unit)) _actionValues[unit] = FullActionValue(unit);
+                if (_actionValues.ContainsKey(unit)) continue;
+                _actionValues[unit] = FullActionValue(unit);
+                // 턴 수는 지금 가장 적게 행동한 유닛에 맞춘다. 0으로 들이면 모두가 새 유닛을
+                // 기다리느라 멈추고, 가장 많이 행동한 쪽에 맞추면 새 유닛이 한 바퀴 늦게 선다.
+                _turnCounts[unit] = _turnCounts.Count > 0 ? _turnCounts.Values.Min() : 0;
             }
 
             // 죽거나 벤치로 내려간 유닛은 제외한다.
             List<Unit> stale = _actionValues.Keys.Where(unit => unit == null || !current.Contains(unit)).ToList();
-            foreach (Unit unit in stale) _actionValues.Remove(unit);
+            foreach (Unit unit in stale)
+            {
+                _actionValues.Remove(unit);
+                _turnCounts.Remove(unit);
+                _lapCredit.Remove(unit);
+            }
 
             // 쓰러진 유닛의 예약은 큐에서 걷어낸다.
             for (int i = _queue.Count - 1; i >= 0; i--)
@@ -502,21 +533,13 @@ namespace Managers
         {
             if (_actionValues.Count == 0) return;
 
-            Unit next = null;
-            float lowest = float.MaxValue;
-
-            foreach (KeyValuePair<Unit, float> pair in _actionValues)
-            {
-                // 동점이면 속도가 빠른 쪽이 먼저 행동한다.
-                if (pair.Value > lowest) continue;
-                if (Mathf.Approximately(pair.Value, lowest) &&
-                    next != null && SpeedOf(pair.Key) <= SpeedOf(next)) continue;
-
-                lowest = pair.Value;
-                next = pair.Key;
-            }
-
+            Unit next = PickNext(_actionValues, _turnCounts, _lapCredit, out float lowest);
             if (next == null) return;
+
+            // 추월 몫을 써서 선 것이면 그만큼 깎는다.
+            if (NeedsCredit(next, _turnCounts, _actionValues.Keys))
+                _lapCredit[next] = Mathf.Max(0f, _lapCredit.GetValueOrDefault(next) - 1f);
+            _turnCounts[next] = _turnCounts.GetValueOrDefault(next) + 1;
 
             // 다음 행동자가 0에 닿을 만큼만 전원을 앞당긴다.
             // 이때 깎인 AV가 곧 흐른 전투 시간이다. 시계는 여기서만 움직인다.
@@ -550,6 +573,59 @@ namespace Managers
 
             ReserveMainAction(next);
         }
+
+        /// <summary>
+        /// 다음 턴의 주인을 고른다. 추월 제한을 지키는 유닛 가운데 AV가 가장 적은 쪽이다.
+        /// 동점이면 속도가 빠른 쪽. 가장 적게 행동한 유닛은 늘 자격이 있으므로 비는 일은 없다.
+        /// </summary>
+        private static Unit PickNext(Dictionary<Unit, float> values, Dictionary<Unit, int> counts,
+            Dictionary<Unit, float> credit, out float lowest)
+        {
+            Unit next = null;
+            lowest = float.MaxValue;
+
+            foreach (KeyValuePair<Unit, float> pair in values)
+            {
+                if (!MayTakeTurn(pair.Key, counts, credit, values.Keys)) continue;
+                if (pair.Value > lowest) continue;
+                if (Mathf.Approximately(pair.Value, lowest) &&
+                    next != null && SpeedOf(pair.Key) <= SpeedOf(next)) continue;
+
+                lowest = pair.Value;
+                next = pair.Key;
+            }
+            return next;
+        }
+
+        /// <summary>이 유닛이 지금 턴을 열어도 누구도 허용치 넘게 추월하지 않는가.</summary>
+        private static bool MayTakeTurn(Unit unit, Dictionary<Unit, int> counts,
+            Dictionary<Unit, float> credit, IEnumerable<Unit> participants)
+        {
+            int mine = counts.GetValueOrDefault(unit);
+            int bonus = Mathf.FloorToInt(credit.GetValueOrDefault(unit));
+            foreach (Unit other in participants)
+            {
+                if (other == null || ReferenceEquals(other, unit)) continue;
+                if (mine - counts.GetValueOrDefault(other) >= LapAllowance(unit, other) + bonus) return false;
+            }
+            return true;
+        }
+
+        /// <summary>추월 몫 없이는 설 수 없었는가 — 몫을 깎을지 판단한다.</summary>
+        private static bool NeedsCredit(Unit unit, Dictionary<Unit, int> counts, IEnumerable<Unit> participants)
+        {
+            int mine = counts.GetValueOrDefault(unit);
+            foreach (Unit other in participants)
+            {
+                if (other == null || ReferenceEquals(other, unit)) continue;
+                if (mine - counts.GetValueOrDefault(other) >= LapAllowance(unit, other)) return true;
+            }
+            return false;
+        }
+
+        /// <summary>A가 B보다 앞설 수 있는 턴 수. 속도 2배 미만이면 1(번갈아), 2배면 2.</summary>
+        private static int LapAllowance(Unit fast, Unit slow)
+            => Mathf.Max(1, Mathf.FloorToInt(SpeedOf(fast) / SpeedOf(slow) + 0.0001f));
 
         /// <summary>
         /// 그 턴의 본 행동을 예약한다. <b>일반행동만</b> 여기서 잡는다.
@@ -643,22 +719,18 @@ namespace Managers
             var simulated = _actionValues
                 .Where(pair => pair.Key != null && pair.Key.isActive)
                 .ToDictionary(pair => pair.Key, pair => pair.Value);
+            // 추월 제한도 사본으로 함께 굴린다. 서열 UI가 실제 순서와 어긋나지 않아야 한다.
+            var simCounts = simulated.Keys.ToDictionary(unit => unit, unit => _turnCounts.GetValueOrDefault(unit));
+            var simCredit = simulated.Keys.ToDictionary(unit => unit, unit => _lapCredit.GetValueOrDefault(unit));
 
             float elapsed = 0f;
             while (result.Count < count && simulated.Count > 0)
             {
-                Unit next = null;
-                float lowest = float.MaxValue;
-                foreach (KeyValuePair<Unit, float> pair in simulated)
-                {
-                    if (pair.Value > lowest) continue;
-                    if (Mathf.Approximately(pair.Value, lowest) &&
-                        next != null && SpeedOf(pair.Key) <= SpeedOf(next)) continue;
-                    lowest = pair.Value;
-                    next = pair.Key;
-                }
-
+                Unit next = PickNext(simulated, simCounts, simCredit, out float lowest);
                 if (next == null) break;
+                if (NeedsCredit(next, simCounts, simulated.Keys))
+                    simCredit[next] = Mathf.Max(0f, simCredit[next] - 1f);
+                simCounts[next] = simCounts[next] + 1;
 
                 elapsed += lowest;
                 foreach (Unit unit in simulated.Keys.ToList())

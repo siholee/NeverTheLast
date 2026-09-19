@@ -398,6 +398,9 @@ namespace Codes.Passive
             CodeName = "천재";
             IgnoresActivationChance = true;
         }
+
+        public override float MainTrainingBonus(BaseEnums.PrimaryStat stat)
+            => stat == BaseEnums.PrimaryStat.INT ? TrainingBonus : 0f;
     }
 
     /// <summary>Lv.30 용살자 — '용' 속성 유닛에게 주는 피해 +40%.</summary>

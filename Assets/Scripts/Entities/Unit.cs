@@ -261,7 +261,14 @@ namespace Entities
         {
             get
             {
-                int modifier = ActiveEffectObjects().Sum(effect => effect.TargetPriorityAdditiveModifier(this));
+                // 양 진영 모두 중앙에 가까운 열(|x| == 1)이 전열이다. 전열에 선 것 자체가
+                // 우선도 +1을 주므로, 탱커 한 명의 도발 유무에 전선 전체가 매이지 않는다.
+                // 대기석(y <= 0)과 소환 대기 상태에는 적용하지 않는다.
+                int frontline = currentCell != null && currentCell.yPos > 0 && Mathf.Abs(currentCell.xPos) == 1
+                    ? 1
+                    : 0;
+                int modifier = frontline
+                    + ActiveEffectObjects().Sum(effect => effect.TargetPriorityAdditiveModifier(this));
                 return Mathf.Clamp(priority + modifier, -3, 3);
             }
             set => priority = Mathf.Clamp(value, -3, 3);
@@ -290,6 +297,32 @@ namespace Entities
         public int LukIncrementLvl { get => stats.LukIncrementLvl; protected set => stats.LukIncrementLvl = value; }
         public int LukIncrementUpgrade { get => stats.LukIncrementUpgrade; protected set => stats.LukIncrementUpgrade = value; }
         public int HpMax { get => hpMax; protected set => hpMax = value; }
+
+        /// <summary>
+        /// 전투에서 실제로 마주할 최대 체력. 표시 전용이다.
+        ///
+        /// 알파 개체 같은 체력 배수 패시브는 라운드 시작에 걸린다. 그래서 준비 화면의 체력은
+        /// 배수가 빠진 값이었고, 14,300으로 보이던 보스가 전투에서 28,600으로 서 있었다.
+        /// 이미 배수가 걸려 있으면(전투 중) <see cref="HpMax"/>를 그대로 돌려준다.
+        /// 상위 등급에 눌리는 코드(알파 개체 → 완전함)는 세지 않는다.
+        /// </summary>
+        public int ProjectedHpMax
+        {
+            get
+            {
+                if (ActiveEffectObjects().Any(effect => !Mathf.Approximately(effect.MaxHpMultiplierModifier(this), 1f)))
+                    return HpMax;
+
+                float multiplier = 1f;
+                foreach (PassiveCode code in PassiveCodes)
+                {
+                    if (code == null || code.PreviewMaxHpMultiplier <= 1f) continue;
+                    if (code.SupersededByCodeId > 0 && HasLearnedPassiveCode(code.SupersededByCodeId)) continue;
+                    multiplier *= code.PreviewMaxHpMultiplier;
+                }
+                return Mathf.RoundToInt(HpMax * multiplier);
+            }
+        }
 
         /// <summary>
         /// 체력 바를 나눠 그릴 칸 수. 0이면 보통의 연속 게이지다.
@@ -1780,7 +1813,11 @@ namespace Entities
             if (!UltimateCode.ConsumesResourceOnResolve) NotifyUltimateActivated();
         }
 
-        internal void ClearUltimateResource() => ManaCurr = 0;
+        internal void ClearUltimateResource()
+        {
+            ManaCurr = 0;
+            currentCell?.UpdateUI();
+        }
 
         internal void ResolveDeferredUltimate()
         {
@@ -2542,6 +2579,8 @@ namespace Entities
             carriedItemIds = saveData.carriedItemIds?.ToList() ?? new List<int>();
             AttributesUpdate();
             ModifyHp(saveData.currentHP);
+            ManaCurr = Mathf.Clamp(saveData.ultimateResource, 0, ManaMax);
+            currentCell?.UpdateUI();
         }
 
         /// <summary>
@@ -2899,6 +2938,16 @@ namespace Entities
             if (dmgCtx.DamageTags != null && dmgCtx.DamageTags.Contains(BaseClasses.DamageTag.FixedRatioBurst))
             {
                 return Mathf.Max(1, Mathf.RoundToInt(ApplyIncomingDamageCap(dmgCtx, dmgCtx.Damage)));
+            }
+
+            // 입문 구간은 적의 수가 빠르게 늘지만 영웅의 육성·장비는 아직 갖춰지지 않는다.
+            // 적이 영웅에게 가하는 피해만 1스테이지 50%에서 40스테이지 100%까지 선형으로
+            // 되돌린다. 40 이후의 기존 밸런스와 적끼리의 피해, 비율 고정 피해는 건드리지 않는다.
+            if (dmgCtx.Attacker != null && dmgCtx.Attacker.IsEnemy && !IsEnemy)
+            {
+                int stage = GameManager.Instance?.RoundManager?.Stage ?? 40;
+                float earlyEnemyDamage = Mathf.Lerp(0.5f, 1f, Mathf.InverseLerp(1f, 40f, stage));
+                outgoingDamageModifier *= earlyEnemyDamage;
             }
 
             if (dmgCtx.Attacker != null)

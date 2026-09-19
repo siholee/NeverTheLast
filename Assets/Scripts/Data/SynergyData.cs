@@ -83,6 +83,9 @@ namespace Managers
         /// <summary>이 메인이 무엇으로 이기는가. 한 줄 요약.</summary>
         public string axis;
 
+        /// <summary>처음 하는 사람에게 권하는 메인인가. 캐릭터 선택 1단계 타일에 추천 띠가 붙는다.</summary>
+        public bool starterRecommended;
+
         /// <summary>전 캐릭터 해금 + 코드 전수 완료 가정.</summary>
         public SynergyLineupData best;
 

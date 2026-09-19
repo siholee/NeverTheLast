@@ -148,7 +148,12 @@ namespace Managers.UI.HUD
                 float ratio = unit.HpMax > 0 ? Mathf.Clamp01((float)unit.HpCurr / unit.HpMax) : 0f;
                 _hpFill.fillAmount = ratio;
                 _hpFill.color = UITheme.HpColor(ratio);
-                _hpText.text = $"{unit.HpCurr:N0} / {unit.HpMax:N0}";
+                // 준비 화면에서는 체력 배수 패시브가 아직 걸리지 않았다. 전투에서 마주할 값으로 보여 준다.
+                int shownMax = unit.ProjectedHpMax;
+                int shownCurr = shownMax == unit.HpMax || unit.HpMax <= 0
+                    ? unit.HpCurr
+                    : Mathf.RoundToInt(unit.HpCurr * (shownMax / (float)unit.HpMax));
+                _hpText.text = $"{shownCurr:N0} / {shownMax:N0}";
 
                 float shieldRatio = unit.HpMax > 0
                     ? Mathf.Clamp01((float)unit.ShieldCurr / unit.HpMax)

@@ -195,7 +195,7 @@ namespace Codes.Ultimate
     }
 
     /// <summary>
-    /// 306 재생의 격류 — 적 전체에게 INT×2.0의 피해를 입히고 다음 행동을 절반만큼 늦춘다.
+    /// 306 재생의 격류 — 적 전체에게 INT×1.5의 피해를 입히고 다음 행동을 절반만큼 늦춘다.
     ///
     /// 🔸 원안은 '행동 게이지를 50% 증가시킨다'이지만, 대상이 <b>적</b>이므로 그대로 읽으면
     ///    상대를 도와주는 효과가 된다. 이시스의 '사막의 격류'와 같은 방향(50% 지연)으로 맞췄다.
@@ -206,12 +206,12 @@ namespace Codes.Ultimate
         {
             CodeName = "재생의 격류";
             CastingDelay = 0.55f;
-            Power = 200;
+            Power = 150;
         }
 
         protected override IEnumerator Resolve()
         {
-            yield return StrikeAll(200, BaseEnums.PrimaryStat.INT, new List<int>
+            yield return StrikeAll(150, BaseEnums.PrimaryStat.INT, new List<int>
             {
                 DamageTag.AllTarget, DamageTag.UltAttack,
                 DamageTag.Special, DamageTag.NonContactAttack,

@@ -391,7 +391,7 @@ namespace Codes.Passive
     /// <summary>
     /// 스카디 고유 P — 북방의 수호자.
     /// 일반행동을 해결할 때마다 반격 스택을 최대치까지 채운다. 적에게 피격되면 한 스택을
-    /// 소비해 공격자에게 STR 위력 80의 접촉 물리 반격을 예약한다.
+    /// 소비해 공격자에게 고정 위력 80 + STR×0.5의 접촉 물리 반격을 예약한다.
     /// </summary>
     public sealed class SkadiNorthernGuardian : UniquePassiveCode, ICounterAttackProvider
     {
@@ -409,6 +409,8 @@ namespace Codes.Passive
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "북방의 수호자";
             Power = 80;
+            PowerStatCoefficient = 0.5f;
+            PowerStat = BaseEnums.PrimaryStat.STR;
             IgnoresActivationChance = true;
         }
 

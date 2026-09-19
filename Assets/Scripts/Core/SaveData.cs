@@ -135,6 +135,8 @@ namespace Core
         public int xPos;
         public int yPos;
         public bool isBench;
+        /// <summary>전투 사이와 저장/불러오기에서 유지되는 궁극기 자원.</summary>
+        public int ultimateResource;
         // 유닛 레벨과 누적 경험치. 아군 성장 곡선의 단일 축이다.
         public int level = 1;
         public int exp;
@@ -176,6 +178,7 @@ namespace Core
 
         /// <summary>이번 준비 페이즈에 상점에서 산 횟수. 한도는 GameManager.MaxShopPurchases다.</summary>
         public int shopPurchaseCount;
+
         public List<TokenSaveData> tokens = new();
         public List<int> storedItemIds = new();
         public List<SupportBondSaveData> supportBonds = new();
@@ -185,6 +188,9 @@ namespace Core
 
         /// <summary>아직 스킬 Pt를 치르지 않은 힌트. 배우고 나면 목록에서 빠진다.</summary>
         public List<SkillHintSaveData> skillHints = new();
+
+        /// <summary>힌트 천장 — 마지막 힌트 이후 힌트 없이 끝난 성공 훈련 수. 없던 저장본은 0이다.</summary>
+        public int hintDryTrainings;
 
         // 훈련 상태. v4 저장본에는 없던 필드라 기본값으로 채워진다(버전은 올리지 않는다).
         public TrainingSaveData training = new();

@@ -87,7 +87,8 @@ namespace Entities
                         existing.Duration = existing.ElapsedTurns + oldRemaining + status.Duration;
                         if (status.Duration > 0 && oldRemaining != int.MaxValue)
                             _owner.Chemistry?.ReceiveBuff(existing, status.Caster);
-                        if (status.Category == BaseEnums.StatusCategory.Negative)
+                        // 들어온 쪽은 아직 효과 객체가 없을 수 있다. 지속피해 판정은 이미 붙어 있는 쪽으로 한다.
+                        if (status.CountsAsDebuff || existing.CountsAsDebuff)
                         {
                             _notifyNegative?.Invoke(status.Caster, status);
                         }
@@ -187,7 +188,7 @@ namespace Entities
             {
                 _notifyBeneficial?.Invoke(status.Caster);
             }
-            if (status.Category == BaseEnums.StatusCategory.Negative)
+            if (status.CountsAsDebuff)
             {
                 _notifyNegative?.Invoke(status.Caster, status);
             }

@@ -45,7 +45,10 @@ namespace Codes.Base
         264 => new VayuPurifyingWind(context),
         68 => new VayuSecondWind(context),
         69 => new VayuAmbush(context),
-        201 => new SeiBigBang(context),        // 세이 초기 패시브 — 빅뱅
+        201 => new SeiBigBang(context),
+        24 => new SabahFanatic(context),        // 광신도 — 메인 LUK 훈련 효율 +10%
+        119 => new Inspiration(context),        // 영감 — 서포트 힌트 발생률 +50%
+        14 => new SkilledInstructor(context),   // 숙련된 조교 — 배치된 훈련 효율 +10%        // 세이 초기 패시브 — 빅뱅
         204 => new GaudiSagradaFamilia(context), // 가우디 초기 패시브 — 사그리다 파밀리아
         205 => new LightGreatFlight(context), // 라이트 초기 패시브 — 위대한 비행
         206 => new NicoleElectricField(context), // 니콜 초기 패시브 — 일렉트릭 필드
@@ -389,6 +392,7 @@ namespace Codes.Base
         441 => new SharkToothItemPassive(context),
         442 => new BarnacleShellItemPassive(context),
         443 => new DyingEmbersItemPassive(context),
+        444 => new FracturedAnkhItemPassive(context),
         431 => new SceptreOfAmunItemPassive(context),
         // ── 사바흐·이카리아 ──
         203 => new SabahDebuffHunter(context),

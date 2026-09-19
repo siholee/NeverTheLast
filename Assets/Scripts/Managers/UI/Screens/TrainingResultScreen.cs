@@ -162,7 +162,9 @@ namespace Managers.UI.Screens
                 ? $"{result.FocusName} 훈련에 실패했습니다 · 성공률 {100 - result.FailureRate}%"
                 : $"{result.FocusName} 훈련 · 성공률 {100 - result.FailureRate}%";
 
-            _gainValue.text = failed ? "+0" : $"+{result.StatGain}";
+            _gainValue.text = failed ? "+0"
+                : result.SecondaryText.Length > 0 ? $"+{result.StatGain}  ({result.SecondaryText})"
+                : $"+{result.StatGain}";
             _gainValue.color = failed ? UITheme.TextMuted : UITheme.Stat(result.Focus);
             _gainStat.text = result.Focus.ToString();
             _gainStat.color = failed ? UITheme.TextMuted : UITheme.Stat(result.Focus);

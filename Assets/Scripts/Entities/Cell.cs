@@ -95,6 +95,14 @@ public class Cell : MonoBehaviour
     public const float FeatureCardScale = 1.5f;
 
     private SpriteRenderer _groundPad;
+    private Color _groundPadBase;
+
+    /// <summary>
+    /// 덱 구성 모드. 켜져 있으면 아군이 놓일 수 있는 빈 칸과 벤치가 앰버로 숨쉰다.
+    /// 예전에는 [덱 구성]을 눌러도 하단 문구만 바뀌어, 어디에 무엇을 끌어다 놓는지 알 수 없다는 QA가 있었다.
+    /// 끌고 있는 동안에도 같은 표시가 켜진다.
+    /// </summary>
+    public static bool PlacementModeActive;
     private UnitCardView _card;
     private float _featureScale = 1f;
 
@@ -174,6 +182,7 @@ public class Cell : MonoBehaviour
         _groundPad = padObject.AddComponent<SpriteRenderer>();
         _groundPad.sprite = rootFrame.sprite;
         _groundPad.color = rootFrame.color;
+        _groundPadBase = rootFrame.color;
         _groundPad.sortingLayerID = rootFrame.sortingLayerID;
         _groundPad.sortingOrder = rootFrame.sortingOrder;
 
@@ -265,6 +274,8 @@ public class Cell : MonoBehaviour
 
         // 카드가 살아 있는 동안 체력 · 방어막 · 행동 게이지를 계속 따라간다.
         if (occupiedUnit != null) UpdateUI();
+
+        UpdatePlacementGlow();
     }
 
     private void OnMouseDown()
@@ -414,6 +425,23 @@ public class Cell : MonoBehaviour
     /// 바닥 타일(배치 슬롯)을 보이거나 감춘다.
     /// 빈 칸을 아예 지우는 정렬을 <see cref="Managers.GridManager"/>가 이걸로 처리한다.
     /// </summary>
+    private void UpdatePlacementGlow()
+    {
+        if (_groundPad == null || !_groundPad.enabled) return;
+
+        bool dragging = DragAndDropManager.Instance != null && DragAndDropManager.Instance.IsDragging();
+        bool allySlot = xPos < 0 || (GridManager.Instance != null && GridManager.Instance.IsBenchCell(this));
+        if ((PlacementModeActive || dragging) && allySlot)
+        {
+            float pulse = 0.35f + 0.25f * Mathf.Sin(Time.unscaledTime * 4f);
+            _groundPad.color = Color.Lerp(_groundPadBase, Managers.UI.Theme.UITheme.Accent, pulse);
+        }
+        else if (_groundPad.color != _groundPadBase)
+        {
+            _groundPad.color = _groundPadBase;
+        }
+    }
+
     public void SetGroundPadVisible(bool visible)
     {
         BuildGroundPad();

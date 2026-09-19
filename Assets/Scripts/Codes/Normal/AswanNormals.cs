@@ -130,17 +130,17 @@ namespace Codes.Normal
             => AswanCombat.GrantPyro(Caster, target);
     }
 
-    /// <summary>오시리스 N — 적 전체에게 INT×1.2의 피해를 입히고 바위 원소를 부여한다.</summary>
+    /// <summary>오시리스 N — 적 전체에게 INT×0.9의 피해를 입히고 바위 원소를 부여한다.</summary>
     public sealed class OsirisEarthRequiem : BaseNormalCode
     {
         public OsirisEarthRequiem(NormalCodeContext context) : base(context)
-        { CodeName = "대지의 진혼"; Power = 120; }
+        { CodeName = "대지의 진혼"; Power = 90; }
 
         protected override List<Unit> SelectTarget() => AswanCombat.Enemies(Caster);
 
         protected override int CalculateDamage(float critMultiplier)
             => Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(120, BaseEnums.PrimaryStat.INT) * critMultiplier));
+                Caster.SkillDamage(90, BaseEnums.PrimaryStat.INT) * critMultiplier));
 
         protected override List<int> GetDamageTags() => new()
         {

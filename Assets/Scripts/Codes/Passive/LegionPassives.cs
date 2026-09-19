@@ -322,12 +322,12 @@ namespace Codes.Passive
 
     /// <summary>
     /// 화합(Concordia) — 아그리파가 단일 아군에게 이로운 효과를 주면 그 아군에게 '화합' 2스택을 준다.
-    /// 화합 보유자는 가하는 피해 +25%. 아그리파의 턴마다 1스택 줄고, 새로 부여하면 이전 보유자가 잃는다.
+    /// 화합 보유자는 가하는 피해 +50%. 아그리파의 턴마다 1스택 줄고, 새로 부여하면 이전 보유자가 잃는다.
     /// </summary>
     internal sealed class ConcordiaEffect : BaseEffect
     {
         private const int MaxStacks = 2;
-        private const float DamageBonus = 0.25f;
+        private const float DamageBonus = 0.5f;
 
         private Unit _holder;
         private int _stacks;
@@ -372,7 +372,7 @@ namespace Codes.Passive
                 ColosseumCombat.AddStatus(
                     Target, receiver, 6309, LegionCombat.ConcordiaKey, "화합",
                     new ConcordiaDamageEffect(DamageBonus),
-                    description: "가하는 피해가 25% 증가합니다.");
+                    description: "가하는 피해가 50% 증가합니다.");
             }
             finally { _granting = false; }
         }

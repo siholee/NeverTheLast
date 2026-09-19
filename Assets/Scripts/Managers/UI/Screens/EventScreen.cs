@@ -575,16 +575,25 @@ namespace Managers.UI.Screens
                     20f, UITheme.TextPrimary);
                 UIBuild.Stretch(label.rectTransform);
                 label.rectTransform.offsetMin = new Vector2(50f, 0f);
-                label.rectTransform.offsetMax = new Vector2(-190f, 0f);
+                label.rectTransform.offsetMax = new Vector2(-300f, 0f);
 
                 string note = ChoiceNote(choice);
                 if (!string.IsNullOrEmpty(note))
                 {
                     TextMeshProUGUI hint = UIBuild.Label("Note", frame.transform, note,
                         UITheme.FontMicro, UITheme.TextMuted, TextAlignmentOptions.MidlineRight);
-                    hint.characterSpacing = 10f;
-                    UIBuild.Stretch(hint.rectTransform);
-                    hint.rectTransform.offsetMax = new Vector2(-30f, 0f);
+                    hint.characterSpacing = 2f;
+                    // 적 이름·보상까지 싣게 되어 길어졌다. 오른쪽 칸에 가두고 줄바꿈·축소로 맞춘다.
+                    RectTransform hintRect = hint.rectTransform;
+                    hintRect.anchorMin = new Vector2(1f, 0f);
+                    hintRect.anchorMax = new Vector2(1f, 1f);
+                    hintRect.pivot = new Vector2(1f, 0.5f);
+                    hintRect.sizeDelta = new Vector2(260f, -8f);
+                    hintRect.anchoredPosition = new Vector2(-24f, 0f);
+                    hint.textWrappingMode = TextWrappingModes.Normal;
+                    hint.enableAutoSizing = true;
+                    hint.fontSizeMin = 10f;
+                    hint.fontSizeMax = UITheme.FontCaption;
                 }
 
                 UIBuild.OnClick(frame.gameObject,
@@ -592,17 +601,58 @@ namespace Managers.UI.Screens
             }
         }
 
-        /// <summary>선택지 오른쪽 꼬리표. 데이터에 적힌 대가/보상을 그대로 요약한다.</summary>
+        /// <summary>
+        /// 선택지 오른쪽 꼬리표. 데이터에 적힌 대가/보상을 요약한다.
+        ///
+        /// 예전에는 "전투"·"골드 N × 스테이지"만 적혀, 누구와 싸우는지·얼마를 내는지·이기면 무엇을 받는지
+        /// 고르기 전에 알 수 없었다(QA). 지금 스테이지로 값을 확정하고 적의 이름·등급과 보상을 함께 싣는다.
+        /// </summary>
         private static string ChoiceNote(StageEventChoiceData choice)
         {
             if (choice == null) return null;
-            if (choice.goldCostPerStage > 0) return $"골드 {choice.goldCostPerStage} × 스테이지";
-            if (choice.battleEnemyId > 0) return "전투";
+            int stage = Mathf.Max(1, GameManager.Instance?.RoundManager?.Stage ?? 1);
+            string reward = RewardNote(choice);
+
+            if (choice.goldCostPerStage > 0)
+            {
+                string cost = $"골드 {choice.goldCostPerStage * stage:N0}";
+                return string.IsNullOrEmpty(reward) ? cost : $"{cost} → {reward}";
+            }
+            if (choice.battleEnemyId > 0)
+            {
+                EnemyData enemy = FindEnemy(choice.battleEnemyId);
+                string foe = enemy == null ? "전투" : $"전투 · {enemy.name}({TierName(enemy.tier)})";
+                return string.IsNullOrEmpty(reward) ? foe : $"{foe} → 승리 시 {reward}";
+            }
+            return reward;
+        }
+
+        private static string RewardNote(StageEventChoiceData choice)
+        {
             if (choice.grantUnitId > 0) return "동료 합류";
-            if (choice.grantItemId > 0) return "장비 획득";
+            if (choice.grantItemId > 0)
+            {
+                ItemData item = GameManager.Instance?.itemDataList?.items?.Find(entry => entry != null && entry.id == choice.grantItemId);
+                return item != null ? $"장비 {item.name}" : "장비 획득";
+            }
             if (choice.grantPassiveCodeId > 0) return choice.grantPassiveToAll ? "전원 패시브" : "패시브";
             return null;
         }
+
+        private static List<EnemyData> _enemies;
+
+        private static EnemyData FindEnemy(int id)
+        {
+            _enemies ??= GameManager.Instance?.dataManager?.FetchEnemyDataList()?.enemies;
+            return _enemies?.Find(enemy => enemy != null && enemy.id == id);
+        }
+
+        private static string TierName(string tier) => tier switch
+        {
+            "boss" => "보스",
+            "elite" => "엘리트",
+            _ => "일반",
+        };
 
         // ── 자리 비우기 ──────────────────────────────────────────────
 

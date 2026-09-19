@@ -1349,6 +1349,19 @@ items:
     codeGrants:
       - { slot: passive, codeId: 443, stage: 1 }
 
+  # 오시리스가 Lv40까지만 착용한다. 14부위 구조는 유지하고 초반 최대 체력만 10%로 제한한다.
+  - id: 4188
+    name: 금 간 생명의 앙크
+    icon: ITEM_PLAIN_RING
+    slot: Ring
+    category: Ring
+    rarity: 1
+    weight: 1
+    enemyOnly: true
+    statBonuses: []
+    codeGrants:
+      - { slot: passive, codeId: 444, stage: 1 }
+
   # ══════════════════════════════════════════════════════════════════
   # 일본 세 사람의 전용 장비 — 공용 드랍 · 주인이 덱에 있을 때만 (requiredUnitIds)
   #

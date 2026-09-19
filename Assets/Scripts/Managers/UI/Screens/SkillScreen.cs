@@ -149,8 +149,12 @@ namespace Managers.UI.Screens
             int points = TrainingManager.State.SkillPoints;
             bool empty = _offers.Count == 0;
 
+            SkillHintState hintState = TrainingManager.Hints;
+            string pity = hintState.PityReady
+                ? "다음 훈련은 힌트 보장"
+                : $"힌트 보장까지 훈련 {hintState.TrainingsUntilPity}회";
             _wallet.text = empty
-                ? $"스킬 Pt {points}"
+                ? $"스킬 Pt {points}   ·   {pity}"
                 : $"스킬 Pt {points}   ·   힌트 {_offers.Count}개   ·   힌트 레벨이 오를수록 값이 싸집니다";
 
             for (int i = 0; i < _cards.Count; i++)
@@ -179,11 +183,16 @@ namespace Managers.UI.Screens
         {
             _emptyRoot.gameObject.SetActive(empty);
             if (!empty) return;
+            SkillHintState hintState = TrainingManager.Hints;
+            string pity = hintState.PityReady
+                ? "다음 훈련은 힌트 보장"
+                : $"힌트 보장까지 훈련 {hintState.TrainingsUntilPity}회";
 
             bool canTrain = GameManager.Instance?.CanOpenTraining == true;
             _emptyBody.text =
                 "훈련에 앉은 서포트가 확률로 힌트를 흘립니다. 특기 훈련에 앉은 서포트일수록 잘 흘리고, " +
-                "같은 힌트를 다시 받으면 값이 싸집니다." +
+                "같은 힌트를 다시 받으면 값이 싸집니다.\n" +
+                $"힌트 없이 끝난 훈련이 {SkillHintState.PityTrainings}번 쌓이면 다음 훈련은 반드시 힌트를 줍니다 — {pity}." +
                 (canTrain ? "" : "\n\n이번 준비 페이즈의 행동은 이미 썼습니다. 다음 스테이지에서 훈련하세요.");
 
             _emptyAction.interactable = canTrain;

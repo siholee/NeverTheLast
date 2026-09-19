@@ -35,6 +35,28 @@ namespace Core
 
         private readonly List<Hint> _hints = new();
 
+        /// <summary>
+        /// 힌트 천장. 성공한 훈련이 이만큼 연달아 힌트 없이 끝나면 다음 성공 훈련은 힌트를 반드시 준다.
+        ///
+        /// 첫 런의 힌트 기대치는 훈련 1회당 약 0.11개라, 훈련 7번에 하나도 못 받는 경우가 절반에 가깝다.
+        /// 스킬 Pt만 쌓이고 쓸 곳이 없는 채로 첫 보스에 닿는다는 QA가 있어 바닥을 깔았다.
+        /// </summary>
+        public const int PityTrainings = 4;
+
+        /// <summary>마지막 힌트 이후 힌트 없이 끝난 성공 훈련 수.</summary>
+        public int DryTrainings { get; private set; }
+
+        /// <summary>다음 성공 훈련이 힌트를 반드시 주는가.</summary>
+        public bool PityReady => DryTrainings >= PityTrainings;
+
+        /// <summary>힌트 보장까지 남은 성공 훈련 수(이번 것 포함). 화면 표시용.</summary>
+        public int TrainingsUntilPity => Mathf.Max(1, PityTrainings + 1 - DryTrainings);
+
+        /// <summary>훈련 한 번이 끝났다. 힌트를 받았으면 천장을 되돌리고, 아니면 한 칸 쌓는다.</summary>
+        public void RecordTraining(bool gotHint) => DryTrainings = gotHint ? 0 : DryTrainings + 1;
+
+        public void RestoreDryTrainings(int value) => DryTrainings = Mathf.Max(0, value);
+
         public IReadOnlyList<Hint> Hints => _hints;
 
         public bool HasAny => _hints.Count > 0;
@@ -80,7 +102,11 @@ namespace Core
         /// <summary>배우고 나면 목록에서 뺀다. 이미 가진 코드는 코덱스가 보여 준다.</summary>
         public void Remove(int codeId) => _hints.RemoveAll(hint => hint.CodeId == codeId);
 
-        public void Clear() => _hints.Clear();
+        public void Clear()
+        {
+            _hints.Clear();
+            DryTrainings = 0;
+        }
 
         public List<SkillHintSaveData> BuildSaveData()
         {

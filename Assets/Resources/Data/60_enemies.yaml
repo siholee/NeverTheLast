@@ -6,7 +6,8 @@
 #       최대체력 = CON × 100
 #       방어력   = STR × 1      (롤 방식: 받는 피해 배율 = 기준값 / (기준값 + 방어력))
 #     기준값은 레벨에 비례해 커지므로 감소율은 레벨과 무관하게 일정하다.
-#   · 스탯 = base + incrementLvl × (Level − 1)
+#   · Lv.1~41: 스탯 = base + incrementLvl × (Level − 1)
+#   · Lv.42+: 41을 넘긴 뒤의 레벨 성장분은 ×1.8 (UnitStats 공통 규칙)
 #   · 적의 Level은 현재 스테이지와 같다. 즉 1스테이지 = Level 1 = 성장분 0.
 #   · mainStat ×1.2 / subStat ×1.1 배율은 아군과 동일하게 적용된다.
 #
@@ -40,7 +41,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1008, normal: 1000, ultimate: 1100 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
       - { codeId: 1010, unlockLevel: 40, stage: 1 }
@@ -69,7 +70,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1008, normal: 1001, ultimate: 1101 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
       - { codeId: 1010, unlockLevel: 40, stage: 1 }
@@ -98,7 +99,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1008, normal: 1002, ultimate: 1102 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
       - { codeId: 1010, unlockLevel: 40, stage: 1 }
@@ -128,7 +129,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1008, normal: 1003, ultimate: 1103 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
       - { codeId: 1010, unlockLevel: 40, stage: 1 }
@@ -157,7 +158,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1008, normal: 1002, ultimate: 1104 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
       - { codeId: 1010, unlockLevel: 40, stage: 1 }
@@ -186,7 +187,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1008, normal: 1001, ultimate: 1105 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1009, unlockLevel: 20, stage: 1 }
       - { codeId: 1010, unlockLevel: 40, stage: 1 }
@@ -218,7 +219,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1100, normal: 1000, ultimate: 1106 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1101, unlockLevel: 20, stage: 1 }
       - { codeId: 1102, unlockLevel: 40, stage: 1 }
@@ -248,7 +249,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1104, normal: 1003, ultimate: 1107 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1105, unlockLevel: 20, stage: 1 }
       - { codeId: 1106, unlockLevel: 40, stage: 1 }
@@ -278,7 +279,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1112, normal: 1001, ultimate: 1109 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1113, unlockLevel: 20, stage: 1 }
       - { codeId: 1114, unlockLevel: 40, stage: 1 }
@@ -586,7 +587,7 @@ enemies:
     manaMax: 100
     codes: { passive: 300, normal: 100, ultimate: 100 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1212, unlockLevel: 1, stage: 1 }
       - { codeId: 2, unlockLevel: 12, stage: 1 }
@@ -654,13 +655,12 @@ enemies:
     manaMax: 100
     codes: { passive: 302, normal: 102, ultimate: 102 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1214, unlockLevel: 1, stage: 1 }
       - { codeId: 1215, unlockLevel: 1, stage: 1 }
       - { codeId: 1216, unlockLevel: 1, stage: 1 }
       - { codeId: 1217, unlockLevel: 1, stage: 1 }
-      - { codeId: 16, unlockLevel: 9, stage: 1 }
       - { codeId: 83, unlockLevel: 12, stage: 1 }
       - { codeId: 84, unlockLevel: 21, stage: 1 }
       - { codeId: 42, unlockLevel: 55, stage: 1 }
@@ -892,7 +892,7 @@ enemies:
     manaMax: 100
     codes: { passive: 340, normal: 140, ultimate: 140 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 18, unlockLevel: 30, stage: 1 }
       - { codeId: 19, unlockLevel: 60, stage: 1 }
@@ -922,7 +922,7 @@ enemies:
     lukIncrementLvl: 2
     manaMax: 100
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
     codes: { passive: 1303, normal: 1306, ultimate: 1306 }
     ultimateResourceType: Stack
@@ -1165,7 +1165,7 @@ enemies:
     ultimateResourceName: 우제트
     ultimateResourceMax: 4
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 86, unlockLevel: 14, stage: 1 }   # 빈틈의 실
       - { codeId: 49, unlockLevel: 41, stage: 1 }   # 저격수
@@ -1183,6 +1183,8 @@ enemies:
     tier: boss
     tags: [Aswan, Egypt, Undead]
     startingItemIds: [4104, 4112]
+    startingItemsByLevel:
+      - { itemId: 4188, minLevel: 1, maxLevel: 40 }   # 금 간 생명의 앙크 — 최대 체력 90% 감소
     startingProficiencies: [Spear, LightArmor]
     mainStat: INT
     subStat: LUK
@@ -1190,9 +1192,9 @@ enemies:
     strIncrementLvl: 2
     dexBase: 14
     dexIncrementLvl: 1
-    # CON은 14배로 불어나므로 기본값을 낮게 잡았다. 불완전한 부활(364)이 배율을 얹는다.
-    # 9스테이지(Level 9) 기준 CON 16 → 최대 체력 16,000. 받는 피해가 2.4배에서 시작하므로
-    # 체감 체력은 약 6,700이며, 부위를 깰수록 남은 몫이 점점 단단해진다.
+    # 높은 CON 성장치는 Lv41 이후 보스 스케일을 맡고, Lv40까지는 금 간 생명의 앙크가
+    # 14부위 최대 체력을 10%로 눌러 초반 화력 곡선에 맞춘다. Lv9 기준 CON 145 →
+    # 최대 체력 20,300(14배 적용 뒤 10%). 시작 받는 피해 2.4배 기준 체감 체력은 약 8,460.
     conBase: 73
     conIncrementLvl: 9
     intBase: 40
@@ -1231,7 +1233,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1405, normal: 1407, ultimate: 1406 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 29,  unlockLevel: 10, stage: 1 }   # 파죽지세
       - { codeId: 1408, unlockLevel: 30, stage: 1 }   # 초월
@@ -1299,7 +1301,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1421, normal: 1421, ultimate: 1421 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 39,   unlockLevel: 10, stage: 1 }   # 거인
       - { codeId: 1423, unlockLevel: 20, stage: 1 }   # 파쇄
@@ -3594,7 +3596,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1540, normal: 1540, ultimate: 1540 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 1542, unlockLevel: 30, stage: 1 }   # 폭풍
@@ -3631,7 +3633,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1540, normal: 1541, ultimate: 1541 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
@@ -3669,7 +3671,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1540, normal: 1542, ultimate: 1542 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
@@ -3707,7 +3709,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1540, normal: 1543, ultimate: 1543 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
@@ -3745,7 +3747,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1540, normal: 1544, ultimate: 1544 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
@@ -3783,7 +3785,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1540, normal: 1545, ultimate: 1545 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
@@ -3821,7 +3823,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1540, normal: 1546, ultimate: 1546 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
@@ -3859,7 +3861,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1540, normal: 1547, ultimate: 1547 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 17, unlockLevel: 10, stage: 1 }   # 예리함
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
@@ -3899,7 +3901,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1580, normal: 1580, ultimate: 1580 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
       - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
       - { codeId: 103, unlockLevel: 40, stage: 1 }   # 완벽한 재기
@@ -3935,7 +3937,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1580, normal: 1580, ultimate: 1581 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
@@ -3972,7 +3974,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1580, normal: 1580, ultimate: 1582 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
       - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
@@ -4009,7 +4011,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1580, normal: 1580, ultimate: 1583 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
       - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
@@ -4046,7 +4048,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1580, normal: 1580, ultimate: 1584 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 번개
       - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
@@ -4083,7 +4085,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1580, normal: 1580, ultimate: 1585 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
       - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
@@ -4120,7 +4122,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1580, normal: 1580, ultimate: 1586 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
       - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
@@ -4157,7 +4159,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1580, normal: 1580, ultimate: 1587 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1523, unlockLevel: 20, stage: 1 }   # 강철피부
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
       - { codeId: 1581, unlockLevel: 30, stage: 1 }   # 궁극의 신체
@@ -4198,7 +4200,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1590, normal: 1590, ultimate: 1590 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
       - { codeId: 1403, unlockLevel: 30, stage: 1 }   # 명계의 재림
@@ -4235,7 +4237,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1590, normal: 1591, ultimate: 1591 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
@@ -4273,7 +4275,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1590, normal: 1592, ultimate: 1592 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
@@ -4311,7 +4313,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1590, normal: 1593, ultimate: 1593 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
@@ -4349,7 +4351,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1590, normal: 1594, ultimate: 1594 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
@@ -4387,7 +4389,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1590, normal: 1595, ultimate: 1595 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
@@ -4425,7 +4427,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1590, normal: 1596, ultimate: 1596 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
@@ -4463,7 +4465,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1590, normal: 1597, ultimate: 1597 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 76, unlockLevel: 10, stage: 1 }   # 원소술사
       - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련
@@ -4626,7 +4628,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1620, normal: 1620, ultimate: 1620 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1621, unlockLevel: 10, stage: 1 }   # 노르드의 왕자
       - { codeId: 1306, unlockLevel: 20, stage: 1 }   # 망치 나가신다!
@@ -4749,7 +4751,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1604, normal: 1600, ultimate: 1600 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1605, unlockLevel: 1,  stage: 1 }   # 왕의 함성
       - { codeId: 39,   unlockLevel: 10, stage: 1 }   # 거인
@@ -4797,7 +4799,7 @@ enemies:
     manaMax: 100
     codes: { passive: 1422, normal: 1427, ultimate: 1427 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 1427, unlockLevel: 20, stage: 1 }   # 영구동토
       - { codeId: 1423, unlockLevel: 30, stage: 1 }   # 파쇄
@@ -4841,7 +4843,7 @@ enemies:
     manaMax: 100
     codes: { passive: 284, normal: 84, ultimate: 84 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 39,   unlockLevel: 10, stage: 1 }   # 거인
       - { codeId: 9,    unlockLevel: 20, stage: 1 }   # 검의 달인
@@ -4931,7 +4933,7 @@ enemies:
     manaMax: 100
     codes: { passive: 3001, normal: 3001, ultimate: 3001 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
       - { codeId: 3002, unlockLevel: 20, stage: 1 }   # 후긴과 무닌 — 2페이즈부터 까마귀
       - { codeId: 39,   unlockLevel: 30, stage: 1 }   # 거인
@@ -5143,7 +5145,7 @@ enemies:
     manaMax: 120
     codes: { passive: 1750, normal: 1750, ultimate: 1750 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1700, unlockLevel: 20, stage: 1 }   # 결정 완충
       - { codeId: 1751, unlockLevel: 30, stage: 1 }   # 깊은 종말
       - { codeId: 1512, unlockLevel: 40, stage: 1 }   # 날카로운 부리
@@ -5182,7 +5184,7 @@ enemies:
     manaMax: 140
     codes: { passive: 1760, normal: 1760, ultimate: 1760 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1700, unlockLevel: 20, stage: 1 }   # 결정 완충
       - { codeId: 1761, unlockLevel: 30, stage: 1 }   # 단단한 결정 — 소환체 무적 +2
       - { codeId: 1703, unlockLevel: 40, stage: 1 }   # 응축된 깃
@@ -5386,7 +5388,7 @@ enemies:
     manaMax: 120
     codes: { passive: 1800, normal: 1840, ultimate: 1840 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1841, unlockLevel: 30, stage: 1 }   # 굵은 촉수
       - { codeId: 1842, unlockLevel: 50, stage: 1 }   # 폭풍의 눈
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함
@@ -5421,7 +5423,7 @@ enemies:
     manaMax: 140
     codes: { passive: 1850, normal: 1850, ultimate: 1850 }
     levelPassives:
-      - { codeId: 1541, unlockLevel: 10, stage: 1 }   # 알파 개체
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체
       - { codeId: 1851, unlockLevel: 30, stage: 1 }   # 무거운 꼬리
       - { codeId: 1852, unlockLevel: 50, stage: 1 }   # 큰 해일
       - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함

@@ -76,12 +76,16 @@ units:
       normal: 1
       ultimate: 1
     levelPassives:
+      - { codeId: 14, unlockLevel: 1, stage: 1 }   # 숙련된 조교
+      - { codeId: 109, unlockLevel: 1, stage: 1 }   # 카피바라
       - { codeId: 1,   unlockLevel: 8,  stage: 1 }   # 성채
       - { codeId: 33, unlockLevel: 12, stage: 1 }   # 주문 보호막
+      - { codeId: 108, unlockLevel: 20, stage: 1 }   # 봉우
       - { codeId: 18,  unlockLevel: 22, stage: 1 }   # 명상
       - { codeId: 27,  unlockLevel: 25, stage: 1 }   # 투명
       - { codeId: 31,  unlockLevel: 30, stage: 1 }   # 마나 호흡법
       - { codeId: 6,  unlockLevel: 38, stage: 1 }   # 철벽
+      - { codeId: 113, unlockLevel: 40, stage: 1 }   # 미트라
       - { codeId: 7,  unlockLevel: 50, stage: 1 }   # 사전준비
       - { codeId: 8,  unlockLevel: 70, stage: 1 }   # 창세의 노래
     portrait: SEI_PORTRAIT
@@ -212,12 +216,13 @@ units:
     codes: { passive: 206, normal: 6, ultimate: 6 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
+      - { codeId: 16, unlockLevel: 1,  stage: 1 }   # 행운아
       - { codeId: 15, unlockLevel: 4,  stage: 1 }   # 학식
       - { codeId: 57, unlockLevel: 9,  stage: 1 }   # 원소 숙련 - 번개
-      - { codeId: 16, unlockLevel: 12, stage: 1 }   # 행운아
+      - { codeId: 17, unlockLevel: 12, stage: 1 }   # 예리함
+      - { codeId: 119, unlockLevel: 20, stage: 1 }  # 영감
       - { codeId: 18, unlockLevel: 22, stage: 1 }   # 명상
       - { codeId: 59, unlockLevel: 33, stage: 1 }   # 고전압
-      - { codeId: 17, unlockLevel: 40, stage: 1 }   # 예리함
     portrait: NICOLE_PORTRAIT
     standing: NICOLE_STANDING
 
@@ -318,13 +323,13 @@ units:
   - id: 20
     name: 피그말리온
     tagline: "스스로 소환수 판정을 받는 방벽. 궁극기로 피해를 반으로 줄이고 접촉한 적을 태운다"
-    characterType: Locked
+    characterType: Support
     element: Pyro
     startingProficiencies: [Orb, MediumArmor]
     startingItemIds: [4109]
     tags: [Greek]
     canStartAsMain: false
-    canStartAsSupport: false
+    canStartAsSupport: true
     canUseInInfinite: false
     mainStat: CON
     subStat: STR
@@ -356,11 +361,13 @@ units:
       normal: 1
       ultimate: 1
     levelPassives:
+      - { codeId: 16, unlockLevel: 1,  stage: 1 }   # 행운아
       - { codeId: 2,  unlockLevel: 12, stage: 1 }   # 기사회생
+      - { codeId: 54, unlockLevel: 20, stage: 1 }   # 사랑 신의 가호 — 행운아의 금색 상위
+      - { codeId: 119, unlockLevel: 22, stage: 1 }  # 영감
       - { codeId: 51, unlockLevel: 39, stage: 1 }   # 약자 멸시
       - { codeId: 52, unlockLevel: 45, stage: 1 }   # 천천히 꾸준히
       - { codeId: 53, unlockLevel: 68, stage: 1 }   # 날카로운 가시
-      - { codeId: 54, unlockLevel: 70, stage: 1 }   # 사랑신의 가호
     portrait: PYGMALION_PORTRAIT
     standing: PYGMALION_STANDING
 
@@ -728,7 +735,6 @@ units:
       ultimate: 1
     levelPassives:
       - { codeId: 15, unlockLevel: 4,  stage: 1 }   # 지혜
-      - { codeId: 16, unlockLevel: 9,  stage: 1 }   # 행운아
       - { codeId: 17, unlockLevel: 18, stage: 1 }   # 학자
       - { codeId: 18, unlockLevel: 22, stage: 1 }   # 명상
       - { codeId: 7, unlockLevel: 48, stage: 1 }   # 사전 준비 (세이와 공용)
@@ -1065,7 +1071,7 @@ units:
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
       - { codeId: 109, unlockLevel: 1,  stage: 1 }   # 카피바라
-      - { codeId: 105, unlockLevel: 12, stage: 1 }   # 피지컬 코치
+      - { codeId: 105, unlockLevel: 1, stage: 1 }   # 피지컬 코치
       - { codeId: 18,  unlockLevel: 22, stage: 1 }   # 명상
       - { codeId: 112, unlockLevel: 27, stage: 1 }   # 면벽수련
       - { codeId: 70,  unlockLevel: 30, stage: 1 }   # 의술
@@ -1118,7 +1124,7 @@ units:
 
   - id: 83
     name: 스카디
-    tagline: "스스로 도발하고 방어막을 두르는 전열 탱커. 서포트 슬롯에 드는 도발 담당"
+    tagline: "방어막으로 전열을 받치는 서브 탱커이자 범용 얼음 부착 요원"
     characterType: Support
     element: Cryo
     startingProficiencies: [Orb, Shield, HeavyArmor]
@@ -1151,6 +1157,8 @@ units:
     codes: { passive: 283, normal: 83, ultimate: 83 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
+      - { codeId: 105, unlockLevel: 1, stage: 1 }   # 피지컬 코치
+      - { codeId: 112, unlockLevel: 1, stage: 1 }   # 면벽수련
       - { codeId: 39, unlockLevel: 4,  stage: 1 }   # 거인
       - { codeId: 57, unlockLevel: 10, stage: 1 }   # 원소 숙련 - 얼음
       - { codeId: 75, unlockLevel: 12, stage: 1 }   # 원소 친화 - 얼음
@@ -1323,7 +1331,6 @@ units:
     codes: { passive: 225, normal: 25, ultimate: 25 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 16,  unlockLevel: 9,  stage: 1 }   # 행운아
       - { codeId: 68, unlockLevel: 13, stage: 1 }   # 재기의 바람
       - { codeId: 27,  unlockLevel: 25, stage: 1 }   # 투명
       - { codeId: 10,  unlockLevel: 28, stage: 1 }   # 신속
@@ -1366,7 +1373,6 @@ units:
     codes: { passive: 242, normal: 42, ultimate: 42 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 16,  unlockLevel: 9,  stage: 1 }   # 행운아
       - { codeId: 9,  unlockLevel: 10, stage: 1 }   # 검의 달인
       - { codeId: 17,  unlockLevel: 18, stage: 1 }   # 예리함
       - { codeId: 82, unlockLevel: 22, stage: 1 }   # 파도베기
@@ -1458,7 +1464,9 @@ units:
     codes: { passive: 300, normal: 100, ultimate: 100 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
+      - { codeId: 112, unlockLevel: 1, stage: 1 }   # 면벽수련
       - { codeId: 2,  unlockLevel: 12, stage: 1 }   # 기사회생
+      - { codeId: 108, unlockLevel: 20, stage: 1 }   # 봉우
       - { codeId: 31,  unlockLevel: 30, stage: 1 }   # 마나 호흡법
       - { codeId: 85, unlockLevel: 46, stage: 1 }   # 전술가
       - { codeId: 26,  unlockLevel: 50, stage: 1 }   # 과다치유
@@ -1545,7 +1553,6 @@ units:
     codes: { passive: 302, normal: 102, ultimate: 102 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 16,  unlockLevel: 9,  stage: 1 }   # 행운아
       - { codeId: 83, unlockLevel: 12, stage: 1 }   # 카리스마
       - { codeId: 84, unlockLevel: 21, stage: 1 }   # 직감
       - { codeId: 42, unlockLevel: 55, stage: 1 }   # 클러치 플레이어
@@ -1858,7 +1865,8 @@ units:
     ultimateResourceName: 아즈라엘
     ultimateResourceMax: 7
     levelPassives:
-      - { codeId: 84, unlockLevel: 5,  stage: 1 }   # 손재주
+      - { codeId: 24, unlockLevel: 4,  stage: 1 }   # 광신도
+      - { codeId: 84, unlockLevel: 5,  stage: 1 }   # 직감
       - { codeId: 9,  unlockLevel: 12, stage: 1 }   # 검의 달인
       - { codeId: 98, unlockLevel: 18, stage: 1 }   # 암살자
       - { codeId: 69, unlockLevel: 30, stage: 1 }   # 기습

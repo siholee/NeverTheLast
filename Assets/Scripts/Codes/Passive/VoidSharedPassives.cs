@@ -56,6 +56,8 @@ namespace Codes.Passive
         }
 
         protected override BaseEffect CreateInitialEffect() => new HpSegmentEffect(_segments);
+
+        public override float PreviewMaxHpMultiplier => _segments;
     }
 
     internal sealed class HpSegmentEffect : BaseEffect

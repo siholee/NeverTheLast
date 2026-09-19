@@ -77,7 +77,7 @@ namespace Effects.Negative
     /// <b>원소 친화력</b>이다. 보편적인 탱커는 STR을 주스탯으로 잡으므로 실질적으로는
     /// 서포터가 반응을 키우는 자리를 가져간다.
     ///
-    /// 전체 표는 <c>Detail_02 §6.3</c>에 있다.
+    /// 전체 표는 <c>Detail_16 §4</c>에 있다.
     /// </summary>
     public static class ElementalReaction
     {

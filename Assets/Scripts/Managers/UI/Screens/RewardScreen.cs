@@ -304,13 +304,27 @@ namespace Managers.UI.Screens
 
             if (item.RequiredProficiency != EquipmentProficiency.None)
             {
-                rows.Add(new Row("요구 숙련", ItemTooltip.ProficiencyName(item.RequiredProficiency), UITheme.TextPrimary));
+                // 누가 효과를 받는지가 고를지 말지를 가른다. 숙련이 없으면 중량만 진다.
+                // 행 수가 카드 높이에 묶여 있어 같은 줄에 보유자를 붙인다.
+                var holders = GridManager.Instance?.heroList?
+                    .Where(unit => unit != null && unit.isActive && !unit.IsEnemy &&
+                                   unit.HasProficiency(item.RequiredProficiency))
+                    .Select(unit => unit.UnitName)
+                    .Distinct()
+                    .ToList() ?? new List<string>();
+                string proficiency = ItemTooltip.ProficiencyName(item.RequiredProficiency);
+                rows.Add(new Row("요구 숙련",
+                    holders.Count > 0 ? $"{proficiency} · {string.Join(", ", holders)}" : $"{proficiency} · 보유자 없음",
+                    holders.Count > 0 ? UITheme.TextPrimary : UITheme.Danger));
             }
 
             // 부여 코드가 이 장비를 고를 가장 큰 이유다. 양손 여부보다 먼저 적는다.
             if (item.codeGrants is { Count: > 0 } && rows.Count < MaxSpecRows)
             {
-                rows.Add(new Row("부여 코드", item.codeGrants.Count + "개", UITheme.Accent));
+                // 개수만 적으면 무엇을 주는지 알 수 없다. 첫 코드의 이름을 싣는다(T3+는 하나뿐이다).
+                var grant = item.codeGrants[0];
+                string grantName = Codes.Base.CodeCatalog.Find(Codes.Base.CodeCatalog.ParseSlot(grant.slot), grant.codeId)?.verbalName;
+                rows.Add(new Row("부여 코드", string.IsNullOrWhiteSpace(grantName) ? item.codeGrants.Count + "개" : grantName, UITheme.Accent));
             }
 
             if (item.twoHanded && rows.Count < MaxSpecRows)

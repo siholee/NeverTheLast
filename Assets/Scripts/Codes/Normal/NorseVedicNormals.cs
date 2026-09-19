@@ -5,7 +5,6 @@ using BaseClasses;
 using Codes.Base;
 using Codes.Passive;
 using Effects.Buffs;
-using Effects.Neutral;
 using Entities;
 using UnityEngine;
 
@@ -13,7 +12,7 @@ namespace Codes.Normal
 {
     /// <summary>
     /// 프레이아 일반행동 — 유일하게 <b>적을 때리지 않는 일반행동</b>이다.
-    /// 아군 전체를 CON 기반 위력 60만큼 치유한다.
+    /// 아군 전체를 고정 300 + CON 기반 위력 50만큼 치유한다.
     ///
     /// 치유가 주스탯을 타므로 최대 체력과 치유량이 같은 축에서 자란다.
     /// 체력을 태우는 아군에게 얼마를 돌려주는지가 레벨이 올라도 흔들리지 않는다.
@@ -23,7 +22,15 @@ namespace Codes.Normal
     /// </summary>
     public sealed class FreyaNormalAttack : BaseNormalCode
     {
-        private const int HealPower = 60;
+        private const int HealPower = 50;
+
+        /// <summary>
+        /// 치유의 고정 몫. 예전에는 CON 비례(위력 60)뿐이라 1레벨 치유가 약 320 — 수르트 최대 체력의 11%로,
+        /// 수르트가 행동마다 태우는 15%도 메우지 못했다. 고정 200을 깔고 계수를 조금 줄여
+        /// 초반을 받치고, 후반 증가는 계수가 맡는다. 추가 QA에서 저점 보강이 더 필요해
+        /// 고정 몫을 300으로 올렸다.
+        /// </summary>
+        private const int HealFlat = 300;
 
         public FreyaNormalAttack(NormalCodeContext context) : base(context)
         {
@@ -46,7 +53,7 @@ namespace Codes.Normal
                 yield return null;
             }
 
-            int heal = Mathf.Max(1, Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.CON));
+            int heal = Mathf.Max(1, HealFlat + Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.CON));
             foreach (Unit ally in Allies())
             {
                 ally.ModifyHp(ally.HpCurr + heal, Caster);
@@ -93,13 +100,14 @@ namespace Codes.Normal
 
     /// <summary>
     /// 스카디 N / N+.
-    /// 도발 중에는 단일 적에게 STR 위력 80의 접촉 물리 피해를 입힌다.
-    /// 도발 중이 아니라면 공격 대신 자신에게 방어막과 3턴 도발을 부여한다.
+    /// 방어막이 있으면 단일 적에게 고정 위력 80 + STR×0.5의 접촉 물리 피해를 입힌다.
+    /// 방어막이 없으면 공격 대신 자신에게 방어막을 부여한다. 전열 우선도는 공용 진형 규칙이
+    /// 맡으며, 도발은 육성으로 별도 패시브를 배웠을 때만 생긴다.
     /// </summary>
     public sealed class SkadiNormalAttack : BaseNormalCode
     {
-        private const int NormalPower = 80;
-        private const int TauntDurationTurns = 3;
+        private const int NormalFlatPower = 80;
+        private const float NormalStrCoefficient = 0.5f;
         private const float ShieldFlat = 100f;
         private const float ShieldStrCoefficient = 1.2f;
 
@@ -108,13 +116,15 @@ namespace Codes.Normal
         public SkadiNormalAttack(NormalCodeContext context) : base(context)
         {
             CodeName = "일반행동";
-            Power = NormalPower;
+            Power = NormalFlatPower;
+            PowerStatCoefficient = NormalStrCoefficient;
+            PowerStat = BaseEnums.PrimaryStat.STR;
             CodeTags = new List<int> { DamageTag.Physical };
         }
 
         public override void CastCode()
         {
-            _substitute = !Taunt.Has(Caster);
+            _substitute = Caster != null && Caster.ShieldCurr <= 0;
             CodeName = _substitute ? "대체행동" : "일반행동";
             base.CastCode();
         }
@@ -138,7 +148,6 @@ namespace Codes.Normal
             int shield = Mathf.Max(1, Mathf.RoundToInt(
                 ShieldFlat + Caster.GetBaseStr() * ShieldStrCoefficient));
             Caster.AddShield(shield, Caster);
-            Taunt.Apply(Caster, Caster, TauntDurationTurns);
 
             NotifyActionResolved();
             StopCode();
@@ -154,9 +163,9 @@ namespace Codes.Normal
             DamageTag.ContactAttack, DamageTag.Physical,
         };
 
-        // 도발 중이 아니면 적이 없어도 방어막·도발 행동은 성립한다.
+        // 방어막이 없으면 적이 없어도 방어행동은 성립한다.
         public override bool HasValidTarget()
-            => Caster != null && Caster.isActive && (!Taunt.Has(Caster) || base.HasValidTarget());
+            => Caster != null && Caster.isActive && (Caster.ShieldCurr <= 0 || base.HasValidTarget());
     }
 
     /// <summary>

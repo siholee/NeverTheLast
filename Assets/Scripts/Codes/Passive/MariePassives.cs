@@ -121,6 +121,9 @@ namespace Codes.Passive
             CodeName = "장교";
             IgnoresActivationChance = true;
         }
+
+        public override float SupportTrainingBonus(BaseEnums.PrimaryStat stat)
+            => stat == BaseEnums.PrimaryStat.DEX ? 0.10f : 0f;
     }
 
     public sealed class MarieArcDeTriomphe : PassiveCode

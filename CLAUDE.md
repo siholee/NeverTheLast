@@ -44,7 +44,7 @@ Before changing gameplay, read the relevant chapter; after changing gameplay, up
 | `README.md` | Doc hierarchy and writing rules |
 | `GDD_Main.md` / `GDD_Sub_Concepts.md` | Vision (no numbers) / concept definitions |
 | `Detail_01_Progression.md` | Run structure, stages, themes, enemy scaling, life |
-| `Detail_02_Combat.md` | Battlefield, action values, damage formula, shields, elements, damage tags |
+| `Detail_02_Combat.md` | Battlefield, action values, damage formula, shields, damage tags |
 | `Detail_03_Character.md` | 5-stat model, derived stats, code system, unit schema |
 | `Detail_04_Training.md` | Focused training, support cards, bond, passive transfer |
 | `Detail_05_Economy.md` | Gold/tokens/tickets, equipment, reward flow |
@@ -55,6 +55,7 @@ Before changing gameplay, read the relevant chapter; after changing gameplay, up
 | `Detail_11` / `Detail_12` | Code catalogue by ID / player code & proficiency index |
 | `Detail_13` / `Detail_14` | Reward pool & tier odds / equipment tier spec & list |
 | `Detail_15_Party_Synergy.md` | Role taxonomy, composition archetypes, per-main recommended lineups |
+| `Detail_16_Elements.md` | Innate vs. attached element, 28 elemental reactions, reaction codes, field states |
 | `Design_Backlog.md` | Open design decisions that block work |
 
 Writing rules that matter when editing: **a number lives in exactly one document**, unimplemented

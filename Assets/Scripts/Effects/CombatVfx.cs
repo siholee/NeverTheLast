@@ -496,17 +496,29 @@ namespace Effects
 
             // 재사용한 Hovl 텍스처는 검정을 투명으로 쓰는 additive 에셋이다.
             // 알파 블렌드 셰이더를 쓰면 검은 사각형이 보여 Hovl 원본 셰이더를 우선한다.
-            Shader shader = Shader.Find("Hovl/Particles/Add_CenterGlow")
-                ?? Shader.Find("Sprites/Default")
-                ?? Shader.Find("Universal Render Pipeline/Particles/Unlit");
-            if (shader == null) return null;
-
-            var material = new Material(shader)
+            //
+            // <b>빌드에서는 Shader.Find만으로 이 셰이더를 찾을 수 없다.</b> 어떤 머티리얼도 참조하지 않는
+            // 셰이더는 빌드에서 빠지므로, 에디터에서는 멀쩡하던 연출이 빌드에서만 Sprites/Default로
+            // 떨어져 검은 사각형이 캐릭터와 피해 숫자를 가렸다(QA). Resources의 머티리얼이 셰이더를
+            // 빌드에 붙잡아 두고, 그것을 원본으로 복제한다.
+            Material template = Resources.Load<Material>("Materials/CombatVfxAdditive");
+            Material material;
+            if (template != null && template.shader != null && template.shader.isSupported)
             {
-                name = $"CombatVfx_{key}",
-                mainTexture = texture,
-                hideFlags = HideFlags.HideAndDontSave,
-            };
+                material = new Material(template);
+            }
+            else
+            {
+                Shader shader = Shader.Find("Hovl/Particles/Add_CenterGlow")
+                    ?? Shader.Find("Sprites/Default")
+                    ?? Shader.Find("Universal Render Pipeline/Particles/Unlit");
+                if (shader == null) return null;
+                material = new Material(shader);
+            }
+
+            material.name = $"CombatVfx_{key}";
+            material.mainTexture = texture;
+            material.hideFlags = HideFlags.HideAndDontSave;
             if (material.HasProperty("_MainTex")) material.SetTexture("_MainTex", texture);
             if (material.HasProperty("_Emission")) material.SetFloat("_Emission", 1.4f);
             if (material.HasProperty("_Color")) material.SetColor("_Color", Color.white);

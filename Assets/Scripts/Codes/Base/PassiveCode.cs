@@ -44,6 +44,23 @@ namespace Codes.Base
     /// </summary>
     public int SupersededByCodeId { get; protected set; }
 
+    /// <summary>
+    /// 전투가 시작되면 이 패시브가 최대 체력에 곱할 배율. 표시 전용이다.
+    /// 패시브는 라운드 시작에 걸리므로, 준비 화면이 보여 주는 체력은 이 배율을 모른다.
+    /// <see cref="Entities.Unit.ProjectedHpMax"/>가 이 값으로 "전투에서 실제로 마주할 체력"을 미리 계산한다.
+    /// </summary>
+    public virtual float PreviewMaxHpMultiplier => 1f;
+
+    /// <summary>
+    /// 서포트 카드로 훈련에 앉았을 때 <paramref name="stat"/> 상승량에 더하는 효율(0.10 = +10%).
+    /// <b>어느 훈련에 앉든</b> 그 훈련이 올리는 해당 스탯 몫에 붙는다 — 부 스탯 몫도 포함한다.
+    /// 전투 효과가 없는 훈련 코드가 여기만 덮는다. <see cref="Managers.TrainingManager"/>가 읽는다.
+    /// </summary>
+    public virtual float SupportTrainingBonus(BaseEnums.PrimaryStat stat) => 0f;
+
+    /// <summary>메인 본인이 훈련받을 때 <paramref name="stat"/> 상승량에 더하는 효율. 직감·대도·광신도.</summary>
+    public virtual float MainTrainingBonus(BaseEnums.PrimaryStat stat) => 0f;
+
     public PassiveCode(PassiveCodeContext context)
     {
       Caster = context.Caster;

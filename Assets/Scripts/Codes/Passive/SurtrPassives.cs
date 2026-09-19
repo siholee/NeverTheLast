@@ -12,33 +12,46 @@ using UnityEngine;
 namespace Codes.Passive
 {
     /// <summary>
-    /// 수르트 고유 P — 황혼.
+    /// 수르트의 체력 연소. 일반행동과 궁극기 라그나로크가 <b>각자</b> 행동을 열 때 한 번 치른다.
     ///
-    /// 공격 행동을 시작할 때 최대 체력의 15%를 태우고 그 행동이 주는 피해를 40% 올린다.
-    /// 태운 뒤 체력이 최대 체력의 30% 아래로 떨어지면 태우지 않고 증가도 없다 — 치유가 곧 화력 재장전이다.
+    /// 최대 체력의 15%를 태우고 그 행동이 주는 피해를 40% 올린다. 태운 뒤 체력이 최대 체력의 30%
+    /// 아래로 내려가면 태우지 않고 증가도 없다. 예전에는 고유 패시브 '황혼'이 이 일을 했는데,
+    /// 연소는 두 공격 코드의 성질로 옮기고 '황혼'은 보호막 패시브로 바꿨다(초보자용 안정성).
+    /// </summary>
+    public static class SurtrBurn
+    {
+        public const float HpCostRatio = 0.15f;
+        public const float HpFloorRatio = 0.30f;
+        public const float DamageMultiplier = 1.4f;
+
+        /// <summary>값을 치렀으면 피해 배율(1.4)을, 못 치렀으면 1을 돌려준다.</summary>
+        public static float Pay(Unit caster)
+        {
+            if (caster == null || caster.HpMax <= 0) return 1f;
+            bool aboveFloor = caster.HpCurr - caster.HpMax * HpCostRatio >= caster.HpMax * HpFloorRatio;
+            return aboveFloor && caster.TryConsumeAttackHp(HpCostRatio, false, out _) ? DamageMultiplier : 1f;
+        }
+    }
+
+    /// <summary>
+    /// 수르트 고유 P — 황혼. 붕괴: 스타레일의 화염 개척자(보존)를 참고했다.
     ///
-    /// 예전에는 20%를 태우고 바닥이 없었다. 체력 21%에서도 값을 치러 1%로 떨어졌고,
-    /// 도발이 사라진 전열에서 수르트가 스스로 빈사가 되어 파티째 무너졌다.
-    /// 바닥을 두어 황혼이 만든 빈틈은 30%에서 멈추고, 그 아래는 적에게 맞은 몫뿐이다.
+    /// 일반행동이나 궁극기로 적에게 피해를 주면 <b>맞힌 적 하나마다</b> STR×5의 보호막을 얻는다.
+    /// 한 행동에서 같은 적을 두 번 때려도(라그나로크의 단일 + 광역) 한 번만 센다.
+    /// 보호막은 최대 체력의 40%까지 쌓인다.
     ///
-    /// 값은 <b>행동마다 한 번</b>만 치른다. 피해 판정마다 태우면 라그나로크처럼
-    /// 적 전체를 때리는 행동이 인원수만큼 비싸져 적이 많을수록 못 쓰게 된다.
+    /// 연소(<see cref="SurtrBurn"/>)가 빼 가는 체력을 보호막이 되돌려 주는 짝이다. 적이 많을수록
+    /// 라그나로크 한 번이 크게 두르므로, 초보자가 광역 궁극기로 전열을 버티는 흐름이 저절로 생긴다.
     /// </summary>
     public sealed class SurtrTwilight : UniquePassiveCode
     {
-        /// <summary>행동 한 번에 태우는 최대 체력 비율.</summary>
-        private const float HpCostRatio = 0.15f;
+        public const float ShieldStrCoefficient = 5f;
+        public const float ShieldCapRatio = 0.40f;
 
-        /// <summary>값을 치른 뒤에도 남아 있어야 하는 최대 체력 비율.</summary>
-        private const float HpFloorRatio = 0.3f;
-
-        private const int StatusId = 136;
-        private const string StatusKey = "surtr_twilight";
-
-        private SurtrTwilightEffect _effect;
+        private readonly HashSet<Unit> _hitThisAction = new();
         private bool _registered;
-        private Action<EventContext> _normalHandler;
-        private Action<EventContext> _ultimateHandler;
+        private Action<DamageResolvedContext> _damageHandler;
+        private Action<EventContext> _actionHandler;
         private Action<EventContext> _cleanupHandler;
 
         public SurtrTwilight(PassiveCodeContext context) : base(context)
@@ -53,65 +66,43 @@ namespace Codes.Passive
         {
             if (Caster == null || _registered) return;
 
-            _effect = new SurtrTwilightEffect();
-            Caster.AddStatus(BuffStatus.Create(
-                StatusId, StatusKey, CodeName, Caster, Caster, _effect,
-                stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
-                isBeneficial: true,
-                description: "공격할 때 최대 체력의 15%를 소모하고 그 행동이 주는 피해가 40% 증가합니다. 소모 뒤 체력이 30% 미만이 되면 발동하지 않습니다."));
-
-            _normalHandler = _ => Pay(BaseEnums.CodeType.Normal);
-            _ultimateHandler = _ => Pay(BaseEnums.CodeType.Ultimate);
+            _damageHandler = OnDamageDealt;
+            _actionHandler = _ => _hitThisAction.Clear();
             _cleanupHandler = _ => StopCode();
-            Caster.AddListener(BaseEnums.UnitEventType.OnNormalActivates, _normalHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnUltimateActivates, _ultimateHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnDamageDealt, _damageHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnNormalActivates, _actionHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnUltimateActivates, _actionHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             _registered = true;
         }
 
-        /// <summary>
-        /// 행동이 열리는 순간 값을 치른다. 치른 뒤 체력이 바닥(30%) 아래로 내려가면 치르지 않고,
-        /// 그 행동은 맨몸으로 나간다.
-        /// </summary>
-        private void Pay(BaseEnums.CodeType codeType)
+        private void OnDamageDealt(DamageResolvedContext context)
         {
-            if (Caster == null || _effect == null) return;
-            bool aboveFloor = Caster.HpCurr - Caster.HpMax * HpCostRatio >= Caster.HpMax * HpFloorRatio;
-            _effect.EmpoweredCodeType = aboveFloor && Caster.TryConsumeAttackHp(HpCostRatio, false, out _)
-                ? codeType
-                : (BaseEnums.CodeType?)null;
+            if (Caster == null || !Caster.isActive || context?.Attacker != Caster || context.Target == null) return;
+            BaseEnums.CodeType type = context.DamageContext?.CodeType ?? BaseEnums.CodeType.Passive;
+            if (type != BaseEnums.CodeType.Normal && type != BaseEnums.CodeType.Ultimate) return;
+            if (!_hitThisAction.Add(context.Target)) return;
+
+            int cap = Mathf.RoundToInt(Caster.HpMax * ShieldCapRatio);
+            int room = cap - Caster.ShieldCurr;
+            if (room <= 0) return;
+
+            int shield = Mathf.Min(room, Mathf.Max(1, Mathf.RoundToInt(Caster.GetBaseStr() * ShieldStrCoefficient)));
+            Caster.AddShield(shield, Caster);
         }
 
         public override void StopCode()
         {
             if (Caster == null || !_registered) return;
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnNormalActivates, _normalHandler);
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnUltimateActivates, _ultimateHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnDamageDealt, _damageHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnNormalActivates, _actionHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnUltimateActivates, _actionHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
-            Caster.RemoveStatusByKey(StatusKey);
-            _effect = null;
+            _hitThisAction.Clear();
             _registered = false;
         }
-    }
-
-    /// <summary>
-    /// 황혼의 피해 증가. 값을 치른 행동에만 붙어야 하므로 <b>어떤 종류의 행동이 냈는가</b>를 들고 있는다.
-    /// 반격·지속피해처럼 행동이 아닌 피해는 종류가 달라 저절로 걸러진다.
-    /// </summary>
-    internal sealed class SurtrTwilightEffect : BaseEffect
-    {
-        private const float Multiplier = 1.4f;
-
-        public BaseEnums.CodeType? EmpoweredCodeType;
-
-        public SurtrTwilightEffect() : base(0, Multiplier) { }
-
-        public override bool IsBeneficial => true;
-
-        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
-            => attacker == Caster && context != null && EmpoweredCodeType == context.CodeType ? Multiplier : 1f;
     }
 
     public abstract class SurtrStatusPassive : PassiveCode

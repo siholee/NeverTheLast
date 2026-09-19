@@ -837,7 +837,13 @@ namespace Managers.UI.Screens
 
             y += 8f;
             AddListHeading(column, "상세", ref y);
-            AddListRow(column, "체력", $"{unit.HpCurr} / {unit.HpMax}", ref y);
+            int shownMax = unit.ProjectedHpMax;
+            int shownCurr = shownMax == unit.HpMax || unit.HpMax <= 0
+                ? unit.HpCurr
+                : Mathf.RoundToInt(unit.HpCurr * (shownMax / (float)unit.HpMax));
+            AddListRow(column, "체력", shownMax == unit.HpMax
+                ? $"{shownCurr} / {shownMax}"
+                : $"{shownCurr} / {shownMax} (전투 시)", ref y);
             AddListRow(column, "방어력", $"{unit.DefCurr}", ref y);
             AddListRow(column, "내구", $"{unit.DurabilityCurr}", ref y);
             AddListRow(column, "위력 100 피해", $"{unit.SkillDamage(100)}", ref y);

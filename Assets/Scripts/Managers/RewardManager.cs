@@ -368,7 +368,8 @@ namespace Managers
         private static string BuildItemDescription(ItemData item)
         {
             // 귀중품은 부위도 중량도 없다. 얼마에 팔리는지가 전부다.
-            if (item.IsValuable) return $"귀중품 | 팔면 {item.sellPrice}G × 스테이지";
+            // 계산식만 적어 두면 값을 가늠할 수 없다는 QA가 있었다. 지금 스테이지 값으로 확정해 보여 준다.
+            if (item.IsValuable) return $"귀중품 | 판매가 {ValuablePrice(item, CurrentShopStage):N0}G";
 
             string stats = item.statBonuses == null || item.statBonuses.Count == 0
                 ? ""

@@ -3,7 +3,7 @@
 > **3계층 문서.** UI 화면 구성, 매니저 구조, 데이터 파일, 저장 시스템, 아트/사운드 규약.
 > 개념 정의는 [서브 기획서](GDD_Sub_Concepts.md) 7장을 본다.
 
-최종 갱신: 2026-08-30
+최종 갱신: 2026-09-19
 관련 코드: `Assets/Scripts/Managers/`, `Assets/Scripts/Core/`, `Assets/Scripts/Data/`
 
 ---
@@ -28,6 +28,22 @@
 | 대상 선택 | `UI/Core/UnitTargetPicker.cs` | 화면이 아니라 부품. 보상·상점이 같은 판을 쓴다 |
 | 설정 | `UI/SettingsUI.cs` | Music / Sfx 볼륨 등. 메인 메뉴와 인게임 메뉴가 같은 패널을 쓴다 |
 | 인게임 메뉴(ESC) | `UI/Screens/PauseMenuScreen.cs` | ESC = 우상단 ≡. 계속하기 · 설정 · 자료실 · 저장 · 불러오기 · 저장 후 나가기 · 나가기 · 바탕화면으로 나가기. 열려 있는 동안 `Time.timeScale = 0`. 아래 §1.5-A |
+
+### 1.1-A 0.3.4 QA 대응 — 가시성·조작
+
+| 문제 | 조치 | 코드 |
+| --- | --- | --- |
+| 준비 화면 보스 체력(14,300)과 전투 체력(28,600)이 다름 | 체력 배수 패시브를 미리 반영한 **전투 시 체력**을 보여 준다 | `Unit.ProjectedHpMax` · `PassiveCode.PreviewMaxHpMultiplier` |
+| 소환수가 본체 카드·체력을 가림 | 소환수 카드를 본체 카드의 **왼쪽 위** 모서리로 옮겼다 | `SummonCardView` |
+| 빌드에서 전투 연출이 검은 사각형·흰 섬광으로 보임 | Hovl 가산 셰이더가 어떤 머티리얼에도 참조되지 않아 **빌드에서 빠졌다.** `Resources/Materials/CombatVfxAdditive.mat`가 셰이더를 붙잡고, 연출은 그것을 복제한다 | `CombatVfxAssets.AdditiveMaterial` |
+| [덱 구성]을 눌러도 달라지는 것이 없음 | 누르면 **배치 모드**가 켜져 놓을 수 있는 빈 칸·벤치가 앰버로 숨쉰다(끌고 있는 동안에도). 문구가 끌어 옮기기·자리 바꾸기·짧게 눌러 캐릭터 창을 설명한다 | `Cell.PlacementModeActive` |
+| 보스전 준비 문구가 "덱 구성만"이라 상점도 잠긴 줄 앎 | 상점·스킬·덱 구성은 된다고 적는다. 패배는 재도전 없이 다음 스테이지로 진행한다 | `PreparationScreen` |
+| 귀중품 보상에 값이 없음 | 지금 스테이지로 확정한 **판매가**를 적는다 | `RewardManager.BuildItemDescription` |
+| 보상 장비의 숙련·장착 가능 여부를 모름 | `요구 숙련` 줄에 **숙련을 가진 동료 이름**(없으면 `보유자 없음`)을, `부여 코드` 줄에 코드 이름을 싣는다 | `RewardScreen` |
+| 사건 선택지가 "전투"만 알려 줌 | 적 이름·등급, 이번 스테이지 골드 값, 이기면 받는 것(동료·장비 이름·패시브)을 꼬리표에 싣는다 | `EventScreen.ChoiceNote` |
+
+> 🔸 **2560×1440에서 하단 버튼의 위쪽을 누르면 반응하지 않는다**는 QA는 재현하지 못했다.
+> 준비 패널 안에는 버튼 위로 겹치는 그래픽이 없다. 빌드에서 다시 확인이 필요하다.
 
 ### 1.5-A ESC 메뉴와 TAB 창의 분리
 
@@ -209,6 +225,10 @@ Space·A가 그 버튼까지 눌러 두 번 처리되므로, 화면이 떠 있�
 추천 타일에는 `★ 추천 N` 띠가 붙고, 요약 줄에 이름·조합명·이유의 첫 문장이 뜬다.
 `★ 추천 편성`은 서포터 칸을 추천 넷으로 통째로 바꾼다. 메인은 건드리지 않는다.
 무한 모드는 메인이 없으므로 추천도 없다.
+
+**입문 추천 메인.** 1단계에서 `30_synergies.yaml`의 `starterRecommended: true` 메인(수르트·사바흐)에 `★ 입문 추천` 띠가 붙고,
+미리보기에 "처음이라면 이 캐릭터로 시작해 보세요"가 뜬다. 수르트는 아그리파·프레이아·세이·스카디,
+사바흐는 스카디·니콜·세이·프레이아가 추천 서포터로 표시되며 `★ 추천 편성`으로 한 번에 채울 수 있다.
 
 **모드별 흐름**
 
@@ -594,7 +614,7 @@ v7 테마 추첨 결과와 예약 사건 큐 저장 · **v8 귀중품 주머니*
 
 ### 4.2 유닛 저장 (`UnitSaveData`)
 
-`unitId`, `currentHP`, `xPos` / `yPos` / `isBench`, `level` / `exp`, `trainingLevel`,
+`unitId`, `currentHP`, `xPos` / `yPos` / `isBench`, `ultimateResource`, `level` / `exp`, `trainingLevel`,
 `strUpgrade` ~ `lukUpgrade`, `codeAccelerationBonus`, `equippedItemIds`, `carriedItemIds`, `grantedPassiveCodeIds`
 
 ### 4.3 영구 저장 (`TrainedCharacterRecord`)

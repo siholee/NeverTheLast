@@ -124,20 +124,25 @@ namespace Codes.Ultimate
         }
     }
 
-    /// <summary>스카디 U — 고드름 스파이크. 적 전체에 STR 위력 80 + 얼음 원소 부착.</summary>
+    /// <summary>스카디 U — 고드름 스파이크. 적 전체에 고정 위력 80 + STR×0.5 + 얼음 원소 부착.</summary>
     public sealed class SkadiIcicleSpike : SimpleUltimate
     {
         private const int SpikePower = 80;
 
         public SkadiIcicleSpike(UltimateCodeContext context)
-            : base(context, "고드름 스파이크", 0.6f) { Power = SpikePower; }
+            : base(context, "고드름 스파이크", 0.6f)
+        {
+            Power = SpikePower;
+            PowerStatCoefficient = 0.5f;
+            PowerStat = BaseEnums.PrimaryStat.STR;
+        }
 
         protected override void Resolve()
         {
             bool isCrit = Random.value <= Caster.CritChanceCurr;
             float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
             int damage = Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(SpikePower, BaseEnums.PrimaryStat.STR) * critMultiplier));
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.STR) * critMultiplier));
 
             var tags = new List<int>
             {

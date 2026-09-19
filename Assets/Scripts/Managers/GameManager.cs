@@ -235,6 +235,7 @@ namespace Managers
         private void StartBattle()
         {
             gameState = GameState.RoundInProgress;
+            Cell.PlacementModeActive = false;
             isPreparationTimerActive = false;
             uiManager?.HidePreparationPhasePanel();
 
@@ -585,6 +586,7 @@ namespace Managers
             gameState = GameState.Preparation;
             preparationActionUsed = false;
             ShopPurchaseCount = 0;
+            Cell.PlacementModeActive = false;
             StartPreparationTimer();
             uiManager?.UpdateLifeText();
         }
@@ -1067,10 +1069,14 @@ namespace Managers
             if (gameState != GameState.Preparation) return;
             if (!AllowProgressWhileWithinCarryLimit()) return;
 
+            // 배치 모드를 켜 놓일 자리를 빛낸다. 다시 누르면 끈다.
+            Cell.PlacementModeActive = !Cell.PlacementModeActive;
             uiManager?.ShowPreparationPhasePanel(
                 IsPreparationLimitedToDeck(),
                 preparationActionUsed,
-                "덱 구성: 필드에서 배치를 정리한 뒤 전투 시작을 누르세요.");
+                Cell.PlacementModeActive
+                    ? "덱 구성: 빛나는 칸이 놓을 수 있는 자리입니다. 카드를 끌어 옮기고(다른 카드 위에 놓으면 자리를 바꿉니다), 짧게 누르면 캐릭터 창이 열립니다."
+                    : "덱 구성을 닫았습니다. 준비 중에는 언제든 카드를 끌어 배치를 바꿀 수 있습니다.");
         }
 
         // ── 상점 ─────────────────────────────────────────────────────
@@ -1209,7 +1215,8 @@ namespace Managers
                        $"체력 {result.EnergySpent} 소모 (남은 체력 {result.EnergyAfter}){supports}";
             }
 
-            return $"훈련 완료: {FormatPrimaryStat(result.Focus)} +{result.StatGain}, " +
+            string conPart = result.SecondaryText.Length > 0 ? $" ({result.SecondaryText})" : "";
+            return $"훈련 완료: {FormatPrimaryStat(result.Focus)} +{result.StatGain}{conPart}, " +
                    $"스킬 Pt +{result.SkillPointsGained}, 훈련 Lv.{result.NewFocusTrainingLevel}, " +
                    $"남은 체력 {result.EnergyAfter}{supports}{transferred}";
         }
@@ -1307,6 +1314,9 @@ namespace Managers
         {
             _roundManager?.StopRound();
             gameState = GameState.RoundEnd;
+            // 궁극기 자원만 전투 종료 정리보다 먼저 회수한다. 상태이상·방어막·고유 전투 자원은
+            // 기존 OnRoundEnd 정리를 그대로 거쳐 다음 전투로 넘어가지 않는다.
+            CaptureAllyUltimateResources();
             GridManager.Instance?.OnRoundEnd();
             
             // 아군 필드 상태 복원 (게임 오버가 아닌 경우에만)
@@ -1333,8 +1343,9 @@ namespace Managers
             }
             GrantExpToParty(earnedExp);
 
-            // 강화제는 <전투 횟수>로 산다. 이기든 지든 전투 하나를 치렀으므로 여기서 한 번만 깎는다.
-            ConsumePartyTonicBattle();
+            // 강화제는 <이긴 전투 수>로 산다. 예전에는 져도 깎여, 막힌 벽 앞에서 다시 도전할수록
+            // 버프가 먼저 사라져 더 불리해졌다.
+            if (victory) ConsumePartyTonicBattle();
 
             if (victory)
             {
@@ -1358,11 +1369,8 @@ namespace Managers
             }
             else
             {
-                // 패배 시 같은 스테이지를 다시 준비한다. 정리한 적을 재생성하지 않으면
-                // 다음 전투가 빈 필드에서 즉시 승리한다.
-                _roundManager?.LoadRound(_roundManager.Stage);
-                EnterPreparationAfterReward();
-                runManager?.SaveCurrentRun();
+                // 패배도 해당 스테이지의 확정 결과다. 클리어 보상은 지급하지 않고 다음 스테이지로 진행한다.
+                runManager?.AdvanceToNextStage();
             }
         }
 
@@ -1598,6 +1606,27 @@ namespace Managers
             Debug.Log($"아군 필드 상태 저장됨: {allyFieldSnapshot.Count}개 유닛");
         }
 
+        /// <summary>
+        /// 전투가 끝난 시점의 궁극기 자원을 전투 전 스냅샷에 덮어쓴다.
+        /// 사망한 영웅도 heroList에는 남아 있으므로 패배 때 쌓은 자원까지 보존된다.
+        /// </summary>
+        private void CaptureAllyUltimateResources()
+        {
+            if (allyFieldSnapshot == null || GridManager.Instance == null) return;
+
+            foreach (UnitSaveData saved in allyFieldSnapshot)
+            {
+                Unit ally = GridManager.Instance.heroList.LastOrDefault(hero =>
+                    hero != null && !hero.IsEnemy && !hero.IsSummon && hero.ID == saved.unitId &&
+                    hero.currentCell != null && hero.currentCell.xPos == saved.xPos && hero.currentCell.yPos == saved.yPos);
+
+                ally ??= GridManager.Instance.heroList.LastOrDefault(hero =>
+                    hero != null && !hero.IsEnemy && !hero.IsSummon && hero.ID == saved.unitId);
+
+                if (ally != null) saved.ultimateResource = ally.ManaCurr;
+            }
+        }
+
         public void RestoreAllyFieldState()
         {
             if (gameState == GameState.GameOver) return; // 게임 오버 시에는 복원하지 않음
@@ -1637,6 +1666,7 @@ namespace Managers
                 xPos = unit.currentCell.xPos,
                 yPos = unit.currentCell.yPos,
                 isBench = isBench,
+                ultimateResource = unit.ManaCurr,
                 // 레벨/EXP를 빠뜨리면 라운드 종료 복원에서 성장이 초기화된다.
                 level = unit.Level,
                 exp = unit.Exp,

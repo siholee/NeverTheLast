@@ -285,17 +285,34 @@ namespace Managers.UI.DevTools
 
         private IEnumerator DefeatRecovery()
         {
-            Status = "패배 재도전/게임 오버";
-            Clear(); SpawnHero();
+            Status = "패배 전진/궁극기 보존/게임 오버";
+            Clear();
+            Unit hero = SpawnHero();
+            int heroId = hero?.ID ?? 0;
             DebugMode.ForcedThemeId = 8;
             game.life = 20;
             game.DebugLoadStage(1);
             game.StartRound();
+            hero = Heroes.FirstOrDefault(unit => unit.ID == heroId);
+            hero?.FillUltimateResource(false);
             game.DebugEndBattle(false);
-            Equal("defeat remains on same stage", 1, game.RoundManager.Stage);
+            Equal("defeat advances to next stage", 2, game.RoundManager.Stage);
             Equal("defeat costs remaining enemies", 15, game.life);
-            Assert("defeat respawns enemies", Enemies.Count > 0, "enemies present", Enemies.Count.ToString());
+            Assert("defeat loads next enemies", Enemies.Count > 0, "enemies present", Enemies.Count.ToString());
             Assert("defeat allows preparation", game.gameState == GameState.Preparation && !game.PreparationActionUsed, "preparation available", game.gameState.ToString());
+            hero = Heroes.FirstOrDefault(unit => unit.ID == heroId);
+            Equal("defeat preserves ultimate resource", hero?.ManaMax ?? 0, hero?.ManaCurr ?? -1);
+
+            game.life = 20;
+            game.DebugLoadStage(10);
+            hero = Heroes.FirstOrDefault(unit => unit.ID == heroId);
+            hero?.FillUltimateResource(false);
+            game.StartRound();
+            game.DebugEndBattle(false);
+            Equal("theme boundary advances to stage 11", 11, game.RoundManager.Stage);
+            hero = Heroes.FirstOrDefault(unit => unit.ID == heroId);
+            Equal("theme boundary clears ultimate resource", 0, hero?.ManaCurr ?? -1);
+
             game.life = 1;
             game.StartRound();
             game.DebugEndBattle(false);

@@ -5,18 +5,26 @@ using UnityEngine;
 
 namespace Codes.Ultimate
 {
-    /// <summary>사바흐 U — 아즈라엘 7스택을 모두 소모해 적 전체를 벤다.</summary>
+    /// <summary>사바흐 U — 아즈라엘 7스택을 모두 소모해 적 전체를 고정 위력 150 + DEX×1.0으로 벤다.</summary>
     public sealed class SabahAzrael : SimpleUltimate
     {
+        private const int AzraelFlatPower = 150;
+        private const float DexCoefficient = 1.0f;
+
         public SabahAzrael(UltimateCodeContext context)
-            : base(context, "아즈라엘", 0.4f) { }
+            : base(context, "아즈라엘", 0.4f)
+        {
+            Power = AzraelFlatPower;
+            PowerStatCoefficient = DexCoefficient;
+            PowerStat = BaseEnums.PrimaryStat.DEX;
+        }
 
         protected override void Resolve()
         {
             bool isCrit = Random.value <= Caster.CritChanceCurr;
             float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
             int damage = Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(100, BaseEnums.PrimaryStat.DEX) * critMultiplier));
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.DEX) * critMultiplier));
             var tags = new List<int>
             {
                 DamageTag.AllTarget, DamageTag.UltAttack,

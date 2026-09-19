@@ -159,6 +159,9 @@ namespace Codes.Passive
             CodeName = "피지컬 코치";
             IgnoresActivationChance = true;
         }
+
+        public override float SupportTrainingBonus(BaseEnums.PrimaryStat stat)
+            => stat == BaseEnums.PrimaryStat.STR ? TrainingBonus : 0f;
     }
 
     /// <summary>

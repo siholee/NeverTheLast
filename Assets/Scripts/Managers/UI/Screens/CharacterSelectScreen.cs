@@ -277,7 +277,20 @@ namespace Managers.UI.Screens
                 UIBuild.Anchor(label.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.20f), 3f, 3f);
 
                 int rank = _recommended.IndexOf(unit.id);
-                if (rank >= 0)
+                // 1단계에서는 입문 추천 메인(30_synergies.yaml의 starterRecommended)에 띠를 붙인다.
+                bool starterPick = _phase == Phase.Main && !IsInfinite &&
+                                   SynergyCatalog.RecommendationFor(unit.id)?.starterRecommended == true;
+                if (starterPick)
+                {
+                    Image badge = UIBuild.Solid("RecommendBadge", tile.transform, UITheme.Accent);
+                    UIBuild.Anchor(badge.rectTransform, new Vector2(0f, 0.82f), new Vector2(0.62f, 1f), 3f, 3f);
+                    badge.raycastTarget = false;
+                    TextMeshProUGUI badgeLabel = UIBuild.Text("RecommendLabel", badge.transform, "★ 입문 추천",
+                        UITheme.FontMicro, UITheme.TextOnAccent, TextAlignmentOptions.Center);
+                    UIBuild.Stretch(badgeLabel.rectTransform);
+                    badgeLabel.raycastTarget = false;
+                }
+                else if (rank >= 0)
                 {
                     Image badge = UIBuild.Solid("RecommendBadge", tile.transform, UITheme.Accent);
                     UIBuild.Anchor(badge.rectTransform, new Vector2(0f, 0.82f), new Vector2(0.62f, 1f), 3f, 3f);
@@ -450,6 +463,8 @@ namespace Managers.UI.Screens
             SynergyRecommendationData recommendation = SynergyCatalog.RecommendationFor(unit.id);
             if (_phase == Phase.Main && !IsInfinite && !string.IsNullOrWhiteSpace(recommendation?.axis))
                 lines.Add($"운용  {recommendation.axis}");
+            if (_phase == Phase.Main && !IsInfinite && recommendation?.starterRecommended == true)
+                lines.Add(Colored("★ 입문 추천 — 처음이라면 이 캐릭터로 시작해 보세요", UITheme.Accent));
             if (_phase == Phase.Support && _recommended.Contains(unit.id))
                 lines.Add(Colored($"★ {UnitName(CharacterSelectionManager.Instance?.MainUnitId ?? 0)}의 추천 서포터", UITheme.Accent));
 

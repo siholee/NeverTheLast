@@ -6,27 +6,32 @@ using UnityEngine;
 namespace Codes.Normal
 {
     /// <summary>
-    /// 수르트 N — 단일 적에게 STR 기반 위력 90의 접촉 물리 베기.
+    /// 수르트 N — 단일 적에게 고정 위력 110 + STR×0.8의 접촉 물리 베기.
     ///
-    /// 도발과 방어막을 두르던 대체행동은 사라졌다. 수르트는 전열 수호자가 아니라
-    /// 체력을 태워 때리는 딜러이며, 황혼(280)이 이 한 방의 값을 매 행동 치른다.
+    /// 행동을 열 때 체력을 태운다(<see cref="Passive.SurtrBurn"/>) — 최대 체력 15%로 피해 +40%,
+    /// 태운 뒤 30% 아래가 되면 태우지 않는다. 예전에는 고유 패시브 '황혼'이 하던 일이다.
     /// </summary>
     public sealed class SurtrScorchingSlash : BaseNormalCode
     {
-        private const int NormalPower = 90;
+        private const int NormalFlatPower = 110;
+        private const float NormalStrCoefficient = 0.8f;
 
         public SurtrScorchingSlash(NormalCodeContext context) : base(context)
         {
             CodeName = "일반행동";
             CastingDelay = 0.4f;
             MaxStage = 1;
-            Power = NormalPower;
+            Power = NormalFlatPower;
+            PowerStatCoefficient = NormalStrCoefficient;
+            PowerStat = BaseEnums.PrimaryStat.STR;
             CodeTags = new List<int> { DamageTag.Physical, DamageTag.Slash };
         }
 
+        // CalculateDamage는 행동 하나에 한 번 불린다. 연소 값도 여기서 한 번 치른다.
         protected override int CalculateDamage(float critMultiplier)
             => Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.STR) * critMultiplier));
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.STR) * critMultiplier *
+                Passive.SurtrBurn.Pay(Caster)));
 
         protected override List<int> GetDamageTags() => new()
         {

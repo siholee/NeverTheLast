@@ -17,13 +17,14 @@ namespace Codes.Passive
     {
         public const int ElectricField = 6520;
         public const int Overcharge = 6521;
+        public const int ArmorBreak = 6522;
     }
 
     /// <summary>
     /// 니콜 고유 P — 일렉트릭 필드.
     ///
     /// 두 가지를 한 상태로 묶는다.
-    ///   · 전기를 두른 아군의 가하는 피해 +20%
+    ///   · 번개 속성(고유 원소)이거나 전기를 두른 아군의 가하는 피해 +20% — <c>HasCombatElement</c>가 두 축을 함께 본다
     ///   · 아군이 <b>스스로 5회 행동</b>할 때마다 전기 원소를 부착
     ///
     /// 전기를 두른 아군의 집합이 전투 도중 계속 바뀌므로, 아그니의 오라처럼 시전 시점에
@@ -55,7 +56,7 @@ namespace Codes.Passive
                     Caster, ally, new NicoleElectricFieldEffect(),
                     stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                     isBeneficial: true,
-                    description: "번개 원소를 두르면 가하는 피해 +20%. 5회 행동마다 번개 원소를 얻습니다."));
+                    description: "번개 속성이거나 번개 원소를 두르면 가하는 피해 +20%. 5회 행동마다 번개 원소를 얻습니다."));
             }
 
             _cleanupHandler = _ => StopCode();

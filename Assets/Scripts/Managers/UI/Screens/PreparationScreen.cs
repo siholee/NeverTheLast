@@ -128,7 +128,8 @@ namespace Managers.UI.Screens
                 : !string.IsNullOrWhiteSpace(message)
                 ? message
                 : deckOnly
-                    ? "보스전 준비: 덱 구성과 전투 시작만 가능합니다."
+                    // 상점·스킬은 보스전에도 열려 있다. "덱 구성만"이라고 적어 두었더니 상점도 잠긴 줄 알았다는 QA가 있었다.
+                    ? "보스전 준비: 훈련·휴식은 막혀 있습니다. 상점 · 스킬 · 덱 구성은 쓸 수 있습니다."
                     : actionUsed
                         ? "준비 행동 완료: 덱을 정리한 뒤 전투를 시작하세요."
                         : "훈련과 휴식 중 하나를 선택하거나 바로 전투를 시작하세요.";

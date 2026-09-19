@@ -124,6 +124,7 @@ namespace Managers
             Training.Restore(save.training);
             PartyTonics.Restore(save.partyTonics);
             SkillHints.Restore(save.skillHints);
+            SkillHints.RestoreDryTrainings(save.hintDryTrainings);
             _triggeredEventIds.Clear();
             foreach (string eventId in save.triggeredEventIds ?? new List<string>())
             {
@@ -155,6 +156,8 @@ namespace Managers
         {
             if (!RunActive) return;
 
+            int previousRound = GameManager.Instance.RoundManager.Round;
+
             if (CurrentMode == GameMode.Training)
             {
                 if (GameManager.Instance.RoundManager.Stage >= GameManager.MaxTrainingStage ||
@@ -164,6 +167,7 @@ namespace Managers
                     return;
                 }
 
+                ResetUltimateResourcesOnThemeTransition(previousRound);
                 SaveCurrentRun();
                 GameManager.Instance.EnterNextStageAfterLoad();
                 return;
@@ -179,8 +183,20 @@ namespace Managers
                 return;
             }
 
+            ResetUltimateResourcesOnThemeTransition(previousRound);
             SaveCurrentRun();
             GameManager.Instance.EnterNextStageAfterLoad();
+        }
+
+        /// <summary>1-10 → 2-1처럼 10스테이지 테마 라운드가 바뀔 때 궁극기 자원을 완전히 비운다.</summary>
+        private static void ResetUltimateResourcesOnThemeTransition(int previousRound)
+        {
+            if (GameManager.Instance.RoundManager.Round == previousRound) return;
+
+            foreach (Unit hero in GridManager.Instance.heroList)
+            {
+                if (hero != null && hero.isActive && !hero.IsEnemy) hero.ClearUltimateResource();
+            }
         }
 
         private void CompleteTrainingRun()
@@ -211,6 +227,11 @@ namespace Managers
             RunActive = false;
             SaveSystem.DeleteSave();
             GameManager.Instance.gameState = GameState.RunComplete;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // 실제 런을 끝까지 돌리는 검증 도구는 결과를 기록할 한 프레임이 더 필요하다.
+            // 검증 세션에서만 Game 씬을 유지하고, 일반 플레이는 종전대로 메인 메뉴로 돌아간다.
+            if (DebugMode.SuiteRunning) return;
+#endif
             GameManager.LoadMainMenuScene();
         }
 
@@ -402,6 +423,7 @@ namespace Managers
                 supportBonds = SupportBonds.BuildSaveData(),
                 partyTonics = PartyTonics.BuildSaveData(),
                 skillHints = SkillHints.BuildSaveData(),
+                hintDryTrainings = SkillHints.DryTrainings,
                 training = Training.BuildSaveData(),
                 heroUnits = BuildHeroSaveData(),
                 triggeredEventIds = _triggeredEventIds.ToList(),
@@ -451,6 +473,7 @@ namespace Managers
                     xPos = hero.currentCell.xPos,
                     yPos = hero.currentCell.yPos,
                     isBench = GridManager.Instance.IsBenchCell(hero.currentCell),
+                    ultimateResource = hero.ManaCurr,
                     level = hero.Level,
                     exp = hero.Exp,
                     trainingLevel = hero.TrainingLevel,

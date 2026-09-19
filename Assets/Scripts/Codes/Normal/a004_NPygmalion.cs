@@ -11,18 +11,23 @@ namespace Codes.Normal
 {
     /// <summary>
     /// 피그말리온의 일반행동: a004-N피그말리온
-    /// CON 기반 위력 60의 단일공격
+    /// 고정 위력 75 + CON×0.5의 CON 기반 단일공격. 초기 서포터 승격과 함께 저점을 올렸다.
     /// </summary>
     public class a004_NPygmalion : BaseNormalCode
     {
+        private const int NormalFlatPower = 75;
+        private const float NormalConCoefficient = 0.5f;
+
         public a004_NPygmalion(NormalCodeContext context) : base(context)
         {
             CodeName = "일반행동";
-            Power = 60;
+            Power = NormalFlatPower;
+            PowerStatCoefficient = NormalConCoefficient;
+            PowerStat = BaseEnums.PrimaryStat.CON;
         }
 
         /// <summary>
-        /// 피그말리온은 CON을 근거로 위력 60의 피해를 계산한다.
+        /// 피그말리온은 CON을 근거로 피해를 계산한다.
         /// </summary>
         protected override int CalculateDamage(float critMultiplier)
         {

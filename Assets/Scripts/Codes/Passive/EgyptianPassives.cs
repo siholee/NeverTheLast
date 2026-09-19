@@ -370,6 +370,9 @@ namespace Codes.Passive
     {
         public BastetMasterThief(PassiveCodeContext context) : base(context)
         { CodeType = BaseEnums.CodeType.Passive; CodeName = "대도"; IgnoresActivationChance = true; }
+
+        public override float MainTrainingBonus(BaseEnums.PrimaryStat stat)
+            => stat == BaseEnums.PrimaryStat.LUK ? 0.10f : 0f;
     }
 
     public sealed class BastetLightArmament : PassiveCode

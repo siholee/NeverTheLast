@@ -85,6 +85,15 @@ namespace Entities.Status
         
         /// <summary>효과 목록 (EffectId%계수 형식)</summary>
         public List<EffectInstance> Effects { get; private set; }
+
+        /// <summary>
+        /// 디버프로 세는가. 부정 분류이거나 <b>지속피해를 품은 상태</b>면 디버프다.
+        /// 화상처럼 분류를 따로 달지 않은 지속피해도 '해로운 상태'로 읽혀야 사바흐 같은
+        /// 디버프 연계가 지속피해 파티에서 끊기지 않는다.
+        /// </summary>
+        public bool CountsAsDebuff
+            => Category == BaseEnums.StatusCategory.Negative ||
+               (Effects != null && Effects.Exists(instance => instance.EffectObject?.IsDamageOverTime == true));
         
         /// <summary>
         /// 효과 인스턴스 (ID + 계수)

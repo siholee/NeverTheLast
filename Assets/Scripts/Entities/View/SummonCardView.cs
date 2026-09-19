@@ -16,8 +16,9 @@ namespace Entities.View
     /// 한 변이 1/3이면 체력 바가 몇 픽셀로 뭉개져 "곧 죽는다"를 눈으로 알 수 없다.
     /// 1/2은 종속 관계가 분명히 보이면서 바가 살아 있는 가장 작은 크기다.
     ///
-    /// 서는 쪽은 <b>소환자의 등 뒤</b>다 — 아군은 왼쪽 아래, 적은 오른쪽 아래.
-    /// 카드가 공격할 때 적 방향으로 전진하므로, 반대편에 두어야 연출과 겹치지 않는다.
+    /// 서는 자리는 <b>소환자 카드의 왼쪽 위 모서리</b>다. 예전에는 아래 모서리였는데, 카드 아래로
+    /// 체력·행동 게이지와 상태 아이콘이 붙어 있어 소환수가 소환자의 체력을 가렸다(QA).
+    /// 오른쪽 위에는 궁극기 게이지가 있으므로 왼쪽 위가 카드에서 유일하게 빈 모서리다.
     /// </summary>
     public sealed class SummonCardView : MonoBehaviour
     {
@@ -54,10 +55,9 @@ namespace Entities.View
             var go = new GameObject($"SummonCard_{summon.UnitName}");
             go.transform.SetParent(owner.currentCell.transform, false);
 
-            // 아군 소환수는 왼쪽 아래, 적 소환수는 오른쪽 아래. 소환자의 등 뒤에 선다.
-            float side = summon.IsEnemy ? 1f : -1f;
+            // 왼쪽 위 모서리. 아래쪽 게이지 · 상태 줄과 오른쪽 위 궁극기 게이지를 피한다.
             float inset = Cell.CardSize * 0.5f - cardSize * (0.5f - OverhangRatio);
-            go.transform.localPosition = new Vector3(side * inset, -inset, 0f);
+            go.transform.localPosition = new Vector3(-inset, inset, 0f);
 
             var host = go.AddComponent<SummonCardView>();
             host._unit = summon;

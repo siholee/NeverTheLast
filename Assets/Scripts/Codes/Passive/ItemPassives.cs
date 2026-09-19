@@ -46,6 +46,7 @@ namespace Codes.Passive
         public const int SharkTooth = 6430;
         public const int BarnacleShell = 6431;
         public const int DyingEmbers = 6433;
+        public const int FracturedAnkh = 6434;
     }
 
     /// <summary>장비를 벗으면 자신이 만든 상시 상태도 함께 걷어 내는 아이템 패시브 공통형.</summary>
@@ -858,5 +859,34 @@ namespace Codes.Passive
 
         public override float OutgoingHealingMultiplierModifier(Unit source, Unit target)
             => source == Target ? Ratio : 1f;
+    }
+
+    /// <summary>
+    /// 금 간 생명의 앙크(444) — Lv40 이하 오시리스만 장착하는 적 전용 조정 장비.
+    /// 불완전한 부활의 14부위·사령 소환 구조는 유지하면서 초반의 과도한 최대 체력만 10%로 낮춘다.
+    /// Lv41부터는 장비 정의의 레벨 제한으로 빠져 원래 체력을 되찾는다.
+    /// </summary>
+    public sealed class FracturedAnkhItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_fractured_ankh";
+
+        public FracturedAnkhItemPassive(PassiveCodeContext context) : base(context, "금 간 생명의 앙크") { }
+
+        public override void CastCode()
+        {
+            if (Caster == null || Caster.HasStatus(ItemPassiveIds.FracturedAnkh)) return;
+            AddPermanentStatus(ItemPassiveIds.FracturedAnkh, new FracturedAnkhEffect(),
+                "최대 체력이 90% 감소합니다. Lv40 이하 오시리스 전용 조정 장비입니다.");
+        }
+    }
+
+    internal sealed class FracturedAnkhEffect : BaseEffect
+    {
+        private const float MaxHpRatio = 0.10f;
+
+        public FracturedAnkhEffect() : base(0, MaxHpRatio) { }
+
+        public override float MaxHpMultiplierModifier(Unit unit)
+            => unit == Target ? MaxHpRatio : 1f;
     }
 }
