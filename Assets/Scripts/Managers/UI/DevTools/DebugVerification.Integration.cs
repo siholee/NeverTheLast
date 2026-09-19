@@ -342,14 +342,17 @@ namespace Managers.UI.DevTools
             game = GameManager.Instance; grid = game.gridManager;
             var selection = CharacterSelectionManager.Instance;
             selection.ClearLineup();
-            // 자료실의 수르트 추천 편성: 전열 도발 + 후열 원소 반응/치유.
-            foreach (int id in new[] { 80, 66, 62, 160, 81 })
+            // 현행 수르트 입문 추천 편성: 수르트 · 아그리파 · 세이 · 스카디 · 프레이아.
+            // 추천 데이터가 바뀌었는데 과거 피그말리온 편성을 남기면 캠페인 검증만 10스테이지에서
+            // 조기 종료되어 실제 초보자 동선을 검증하지 못한다.
+            foreach (int id in new[] { 80, 100, 1, 83, 81 })
                 Assert("campaign legal roster " + id, selection.AddHero(id), "accepted", "checked");
             int rearRow = 1;
             foreach (var entry in selection.Lineup)
             {
-                entry.XPos = entry.UnitId == 80 ? -1 : -2;
-                entry.YPos = entry.UnitId == 80 ? 2 : rearRow++;
+                bool front = entry.UnitId == 80 || entry.UnitId == 83;
+                entry.XPos = front ? -1 : -2;
+                entry.YPos = entry.UnitId == 80 ? 2 : entry.UnitId == 83 ? 3 : rearRow++;
             }
             selection.ConfirmSelection();
             DebugMode.SetTimeScale(8);

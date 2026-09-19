@@ -8,8 +8,10 @@ namespace Managers.UI.Theme
     /// 만들어진 스프라이트는 9-슬라이스라 어떤 크기로 늘려도 모서리가 뭉개지지 않는다
     /// (반드시 Image.type = Sliced 로 쓸 것. <see cref="UIBuild"/>가 알아서 설정한다).
     ///
-    /// 명일방주풍의 핵심은 "둥근 모서리가 아니라 잘라낸 모서리"다.
-    /// 그래서 기본 도형은 <see cref="CutCorner"/>이고, 둥근 사각형은 보조로만 쓴다.
+    /// 기본 면은 <b>둥근 모서리 + 1px 헤어라인 + 위쪽 안쪽 하이라이트</b>다(Tailwind UI 계열).
+    /// 예전의 명일방주식 잘라낸 모서리는 계단 현상이 보이고 면마다 방향이 달라 화면이 산만했다.
+    /// 호출부가 많아 이름(<see cref="CutCorner"/>)과 인자는 그대로 두고 그리는 모양만 바꿨다 —
+    /// <see cref="Corner.None"/>을 준 곳(게이지 트랙 등)만 각진 사각형으로 남는다.
     /// 같은 파라미터 조합은 캐시해 재사용한다.
     /// </summary>
     public static class UIShapes
@@ -30,17 +32,61 @@ namespace Managers.UI.Theme
         }
 
         /// <summary>
-        /// 컷코너 사각형. 이 UI의 기본 패널 형태.
+        /// 이 UI의 기본 면. 둥근 모서리 사각형에 테두리(헤어라인)와 위쪽 안쪽 하이라이트를 얹는다.
         /// </summary>
-        /// <param name="cut">잘라낼 크기(px).</param>
-        /// <param name="corners">자를 모서리 조합.</param>
+        /// <param name="cut">모서리 반지름(px). 예전에는 잘라낼 크기였다.</param>
+        /// <param name="corners"><see cref="Corner.None"/>이면 각진 사각형. 그 밖의 값은 모두 둥근 모서리다.</param>
         /// <param name="borderWidth">0보다 크면 테두리를 그린다.</param>
         public static Sprite CutCorner(int cut, Color fill, Corner corners = Corner.Diagonal,
             Color border = default, int borderWidth = 0)
         {
-            cut = Mathf.Max(cut, 1);
-            int size = cut * 2 + 4; // 9-슬라이스 중앙부 최소 2px 확보
-            string key = $"cc_{size}_{cut}_{(int)corners}_{Key(fill)}_{Key(border)}_{borderWidth}";
+            int radius = corners == Corner.None ? 0 : Mathf.Clamp(cut, 3, 16);
+            int size = Mathf.Max(Mathf.Max(radius * 2 + 4, borderWidth * 2 + 4), 6); // 9-슬라이스 중앙부 최소 2px 확보
+            string key = $"sf_{size}_{radius}_{Key(fill)}_{Key(border)}_{borderWidth}";
+            if (Cache.TryGetValue(key, out Sprite cached) && cached != null) return cached;
+
+            // 불투명에 가까운 면만 하이라이트를 받는다. 반투명 면(띠 · 강조 배경)에 얹으면 선으로 튄다.
+            bool highlight = fill.a >= 0.85f && radius > 0;
+            int highlightRow = size - 2 - Mathf.Max(borderWidth, 0);
+
+            var pixels = new Color[size * size];
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float distance = radius > 0
+                        ? RoundedRectDistance(x + 0.5f, y + 0.5f, size, radius)
+                        : Mathf.Max(Mathf.Max(-x, x + 1f - size), Mathf.Max(-y, y + 1f - size));
+                    Color color = Shade(distance, fill, border, borderWidth);
+
+                    // 위쪽 안쪽 1px — 면이 한 겹 떠 있는 것처럼 읽힌다(inset 0 1px white/5%).
+                    if (highlight && y == highlightRow && distance < -(borderWidth + 0.5f))
+                    {
+                        float a = color.a;
+                        color = Color.Lerp(color, Color.white, 0.07f);
+                        color.a = a;
+                    }
+
+                    pixels[y * size + x] = color;
+                }
+            }
+
+            int slice = Mathf.Max(radius, borderWidth) + 1;
+            return Build(key, pixels, size, size, new Vector4(slice, slice, slice, slice));
+        }
+
+        /// <summary>
+        /// 부드러운 그림자. 면 뒤에 깔아 한 층 떠 있게 만든다.
+        /// 도형 가장자리에서 <paramref name="blur"/>px에 걸쳐 알파가 부드럽게 사그라든다.
+        /// 9-슬라이스라 어떤 크기의 면 뒤에도 깔린다(UIBuild.Elevate).
+        /// </summary>
+        public static Sprite SoftShadow(int radius, int blur, float alpha)
+        {
+            radius = Mathf.Clamp(radius, 1, 16);
+            blur = Mathf.Clamp(blur, 2, 48);
+            int inner = radius * 2 + 4;
+            int size = inner + blur * 2;
+            string key = $"sh_{size}_{radius}_{blur}_{alpha:F2}";
             if (Cache.TryGetValue(key, out Sprite cached) && cached != null) return cached;
 
             var pixels = new Color[size * size];
@@ -48,12 +94,44 @@ namespace Managers.UI.Theme
             {
                 for (int x = 0; x < size; x++)
                 {
-                    float distance = CutCornerDistance(x + 0.5f, y + 0.5f, size, cut, corners);
-                    pixels[y * size + x] = Shade(distance, fill, border, borderWidth);
+                    float distance = RoundedRectDistance(x + 0.5f - blur, y + 0.5f - blur, inner, radius);
+                    // 도형 안쪽부터 바깥 blur까지 부드럽게 — 가우시안 대신 smoothstep.
+                    float t = Mathf.InverseLerp(blur, -blur * 0.35f, distance);
+                    float a = alpha * t * t * (3f - 2f * t);
+                    pixels[y * size + x] = new Color(0f, 0f, 0f, a);
                 }
             }
 
-            return Build(key, pixels, size, size, new Vector4(cut + 1, cut + 1, cut + 1, cut + 1));
+            int slice = blur + radius + 1;
+            return Build(key, pixels, size, size, new Vector4(slice, slice, slice, slice));
+        }
+
+        /// <summary>
+        /// 둥근 빛 번짐. Radiant의 흐린 그라데이션 덩어리처럼 면 한쪽 구석에 옅게 깐다.
+        /// 늘리면 타원이 되므로 9-슬라이스 없이 쓴다.
+        /// </summary>
+        public static Sprite Glow(int size, Color color)
+        {
+            size = Mathf.Clamp(size, 16, 256);
+            string key = $"gl_{size}_{Key(color)}";
+            if (Cache.TryGetValue(key, out Sprite cached) && cached != null) return cached;
+
+            float half = size * 0.5f;
+            var pixels = new Color[size * size];
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = (x + 0.5f - half) / half;
+                    float dy = (y + 0.5f - half) / half;
+                    float t = Mathf.Clamp01(1f - Mathf.Sqrt(dx * dx + dy * dy));
+                    Color c = color;
+                    c.a *= t * t;
+                    pixels[y * size + x] = c;
+                }
+            }
+
+            return Build(key, pixels, size, size, Vector4.zero);
         }
 
         /// <summary>둥근 모서리 사각형. 초상화 프레임처럼 부드러움이 필요한 곳에만 쓴다.</summary>

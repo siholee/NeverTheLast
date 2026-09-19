@@ -44,24 +44,8 @@ public class Cell : MonoBehaviour
     
     private Unit occupiedUnit;  // 점유 중인 유닛 참조
     
-    // 클릭/드래그 구분용 필드
-    private Vector3 mouseDownPosition;
-    private float mouseDownTime;
-    private bool isDraggingStarted = false;
-
-    // OnMouse* 메시지는 UI 위에서도 콜라이더로 그대로 내려온다. 상점 같은 화면 위를 눌렀는데
-    // 그 아래 유닛 카드가 눌려 코덱스가 뜨지 않도록, 누른 순간 UI 위였는지를 기억해 둔다.
-    private bool pressStartedOnField;
-
-    private static bool IsPointerOverUI() =>
-        UnityEngine.EventSystems.EventSystem.current != null &&
-        UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject();
-    
-    [Header("Drag Threshold Settings")]
-    [Tooltip("드래그로 인식할 최소 마우스 이동 거리 (픽셀)")]
-    public float dragDistanceThreshold = 10f;
-    [Tooltip("드래그로 인식할 최소 시간 (초)")]
-    public float dragTimeThreshold = 0.15f;
+    // 클릭 · 드래그 · 호버 판정은 Managers.FieldPointerInput이 한 곳에서 한다.
+    // 칸마다 OnMouse* 메시지를 받던 방식은 UI 위 판정이 한 프레임 늦어 버튼 클릭이 카드로 새어 들어왔다.
 
     /// <summary>칸 한 변(월드 단위). 칸 테두리 스프라이트의 크기다.</summary>
     public const float CellSize = 10.16f;
@@ -75,13 +59,13 @@ public class Cell : MonoBehaviour
     /// 초상화는 SpriteRenderer라 잘라낼 수 없으므로 카드 <b>안쪽에 맞춰</b> 줄인다(contain).
     /// 초상화가 정사각이면 카드를 거의 꽉 채우고, 세로로 긴 그림은 좌우에 여백이 남는다.
     /// </summary>
-    public const float PortraitFitSize = CardSize * 0.86f;
+    public const float PortraitFitSize = CardSize * 1.03f;
 
     public const float StandingHeight = PortraitFitSize;
     public const float StandingWidth = PortraitFitSize;
 
     /// <summary>바닥 타일을 눕히는 비율. 1이면 정사각형 칸 그대로다.</summary>
-    public const float GroundPadFlatten = 1f;
+    public const float GroundPadFlatten = 0.18f;
 
     /// <summary>같은 행 안에서 렌더링 순서를 나누는 간격.</summary>
     private const int DepthSortingStep = 10;
@@ -105,6 +89,9 @@ public class Cell : MonoBehaviour
     public static bool PlacementModeActive;
     private UnitCardView _card;
     private float _featureScale = 1f;
+
+    /// <summary>카드 배율. 카메라가 가장 큰 카드 기준으로 여백을 잡을 때 읽는다.</summary>
+    public float FeatureScale => _featureScale;
 
     /// <summary>이 칸의 렌더링 순서 기준값. 칸 위에 얹는 카드가 이 값에서 출발한다.</summary>
     public int DepthOrder { get; private set; }
@@ -181,8 +168,9 @@ public class Cell : MonoBehaviour
 
         _groundPad = padObject.AddComponent<SpriteRenderer>();
         _groundPad.sprite = rootFrame.sprite;
-        _groundPad.color = rootFrame.color;
-        _groundPadBase = rootFrame.color;
+        // 빈 칸은 검은 사각형이 아니라 얇은 청록 레인 표식으로만 남긴다.
+        _groundPad.color = new Color(0.18f, 0.48f, 0.49f, 0.22f);
+        _groundPadBase = _groundPad.color;
         _groundPad.sortingLayerID = rootFrame.sortingLayerID;
         _groundPad.sortingOrder = rootFrame.sortingOrder;
 
@@ -278,106 +266,73 @@ public class Cell : MonoBehaviour
         UpdatePlacementGlow();
     }
 
-    private void OnMouseDown()
+    /// <summary>
+    /// 카드에 마우스를 올리면 그 유닛의 상태를 하나씩 풀어 적는다.
+    ///
+    /// 카드 위 아이콘은 같은 모양끼리 한 칸에 모이고 칸 수도 제한되어 있어, 아이콘만으로는
+    /// 무엇이 걸렸는지 다 알 수 없다는 QA가 있었다. 이름 · 중첩 · 남은 턴과 설명을 여기서 보여 준다.
+    /// 라부아지에는 실험대 정보가 여기에 함께 붙는다.
+    /// </summary>
+    public void ShowHoverTooltip()
     {
-        pressStartedOnField = !IsPointerOverUI();
-        if (!pressStartedOnField) return;
-
-        // 유닛이 있는지 확인
-        if (isOccupied && unit != null)
-        {
-            Unit cellUnit = unit.GetComponent<Unit>();
-            if (cellUnit != null && cellUnit.isActive)
-            {
-                // 기본적으로 클릭 처리를 위한 초기값 저장
-                mouseDownPosition = Input.mousePosition;
-                mouseDownTime = Time.time;
-                isDraggingStarted = false;
-            }
-        }
-    }
-
-    private void OnMouseOver()
-    {
-        var chemistry = unit != null ? unit.GetComponent<Unit>()?.Chemistry : null;
-        if (!isOccupied || chemistry == null || !chemistry.Active ||
-            (UnityEngine.EventSystems.EventSystem.current != null &&
-             UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject()))
+        Unit hovered = isOccupied && unit != null ? unit.GetComponent<Unit>() : null;
+        if (hovered == null || !hovered.isActive)
         {
             Managers.UI.Core.UITooltip.Hide(this);
             return;
         }
-        var lines = new System.Collections.Generic.List<Managers.UI.Core.UITooltip.Line>
+
+        var lines = new System.Collections.Generic.List<Managers.UI.Core.UITooltip.Line>();
+        Color muted = Managers.UI.Theme.UITheme.TextMuted;
+
+        int shownMax = hovered.ProjectedHpMax;
+        lines.Add(new Managers.UI.Core.UITooltip.Line("체력",
+            hovered.ShieldCurr > 0
+                ? $"{hovered.HpCurr:N0} / {hovered.HpMax:N0}  (+방어막 {hovered.ShieldCurr:N0})"
+                : $"{hovered.HpCurr:N0} / {shownMax:N0}",
+            Managers.UI.Theme.UITheme.TextPrimary));
+
+        var groups = new System.Collections.Generic.List<(Entities.Status.UnitStatus Status, int Count)>();
+        foreach (Entities.Status.UnitStatus status in hovered.ActiveStatuses)
         {
-            Managers.UI.Core.UITooltip.Line.Note(chemistry.Summary, Color.white),
-            Managers.UI.Core.UITooltip.Line.Note(chemistry.WaitingReason, Managers.UI.Theme.UITheme.Accent),
-            Managers.UI.Core.UITooltip.Line.Note($"현재 배합량 {chemistry.Reagents.Batch:0.##}\n예상 기본 피해 {chemistry.PreviewDamage:0}\n치명타·방어·피해 보정 전, 적 1명 기준", Color.white),
-            Managers.UI.Core.UITooltip.Line.Note("치유 → 연료 / 보호막 → 안정제 / 버프 → 촉매\n일반행동 2회마다 가장 적은 시약을 합성", Managers.UI.Theme.UITheme.TextSecondary),
-        };
-        Managers.UI.Core.UITooltip.Show(this, "라부아지에 · 실험대", lines, Managers.UI.Theme.UITheme.Accent);
+            if (status == null) continue;
+            int index = groups.FindIndex(g => g.Status.Key == status.Key);
+            if (index >= 0) groups[index] = (groups[index].Status, groups[index].Count + 1);
+            else groups.Add((status, 1));
+        }
+
+        if (groups.Count == 0)
+        {
+            lines.Add(Managers.UI.Core.UITooltip.Line.Note("걸린 상태 없음", muted));
+        }
+
+        foreach ((Entities.Status.UnitStatus status, int count) in groups)
+        {
+            string turns = status.Duration > 0 ? $"{status.RemainingTurns}턴" : "지속";
+            string stacks = count > 1 ? $"{count}중첩 · " : "";
+            lines.Add(new Managers.UI.Core.UITooltip.Line(status.StatusName, stacks + turns,
+                Managers.UI.Theme.StatusIcons.Tint(status)));
+            if (!string.IsNullOrWhiteSpace(status.StatusDescription))
+                lines.Add(Managers.UI.Core.UITooltip.Line.Note("   " + status.StatusDescription.Trim(), muted));
+        }
+
+        var chemistry = hovered.Chemistry;
+        if (chemistry != null && chemistry.Active)
+        {
+            lines.Add(Managers.UI.Core.UITooltip.Line.Note(chemistry.Summary, Color.white));
+            lines.Add(Managers.UI.Core.UITooltip.Line.Note(chemistry.WaitingReason, Managers.UI.Theme.UITheme.Accent));
+            lines.Add(Managers.UI.Core.UITooltip.Line.Note($"현재 배합량 {chemistry.Reagents.Batch:0.##}\n예상 기본 피해 {chemistry.PreviewDamage:0}\n치명타·방어·피해 보정 전, 적 1명 기준", Color.white));
+            lines.Add(Managers.UI.Core.UITooltip.Line.Note("치유 → 연료 / 보호막 → 안정제 / 버프 → 촉매\n일반행동 2회마다 가장 적은 시약을 합성", Managers.UI.Theme.UITheme.TextSecondary));
+        }
+
+        lines.Add(Managers.UI.Core.UITooltip.Line.Note("클릭: 캐릭터 창", muted));
+
+        Managers.UI.Core.UITooltip.Show(this, $"{hovered.UnitName}  Lv.{hovered.Level}", lines,
+            hovered.IsEnemy ? Managers.UI.Theme.UITheme.Enemy : Managers.UI.Theme.UITheme.Accent);
     }
 
-    private void OnMouseExit() => Managers.UI.Core.UITooltip.Hide(this);
+    public void HideHoverTooltip() => Managers.UI.Core.UITooltip.Hide(this);
     private void OnDisable() => Managers.UI.Core.UITooltip.Hide(this);
-    
-    private void OnMouseDrag()
-    {
-        // 이미 드래그를 시작했거나 유닛이 없으면 무시
-        if (!pressStartedOnField || isDraggingStarted || !isOccupied || unit == null) return;
-        
-        Unit cellUnit = unit.GetComponent<Unit>();
-        if (cellUnit == null || !cellUnit.isActive) return;
-        
-        // 적군은 드래그 불가
-        if (cellUnit.IsEnemy) return;
-        
-        // 아군만 드래그 가능하며, Preparation 상태에서만 가능
-        if (GameManager.Instance == null || 
-            GameManager.Instance.gameState != BaseClasses.BaseEnums.GameState.Preparation)
-        {
-            return;
-        }
-        
-        // 거리와 시간 체크
-        float distance = Vector3.Distance(Input.mousePosition, mouseDownPosition);
-        float holdTime = Time.time - mouseDownTime;
-        
-        // 하이브리드: 거리 OR 시간 중 하나를 만족하면 드래그 시작
-        if (distance > dragDistanceThreshold || holdTime > dragTimeThreshold)
-        {
-            DragAndDropManager.Instance?.StartDrag(this);
-            isDraggingStarted = true;
-        }
-    }
-
-    private void OnMouseUp()
-    {
-        if (isDraggingStarted)
-        {
-            // 드래그 종료
-            if (DragAndDropManager.Instance != null && 
-                DragAndDropManager.Instance.IsDragging())
-            {
-                DragAndDropManager.Instance.EndDrag();
-            }
-        }
-        else if (pressStartedOnField && !IsPointerOverUI())
-        {
-            // 짧은 클릭 처리 - 해당 유닛 기준으로 코덱스(상세 화면)를 연다.
-            if (isOccupied && unit != null)
-            {
-                Unit cellUnit = unit.GetComponent<Unit>();
-                if (cellUnit != null && cellUnit.isActive)
-                {
-                    GameManager.Instance?.uiManager?.ShowUnitDetail(cellUnit);
-                }
-            }
-        }
-        
-        // 상태 초기화
-        isDraggingStarted = false;
-        pressStartedOnField = false;
-    }
     
     /// <summary>
     /// 셀에 유닛 배치 시 호출
@@ -387,6 +342,9 @@ public class Cell : MonoBehaviour
     {
         occupiedUnit = unit;
         isOccupied = unit != null;
+        // 기본 준비 화면에서는 빈 칸 GameObject 자체를 꺼 둔다. 그 자리에 새 유닛이 오면
+        // 카드·콜라이더·입력이 함께 돌아오도록 점유 설정이 직접 다시 켠다.
+        if (unit != null && !gameObject.activeSelf) gameObject.SetActive(true);
 
         // 점유가 바뀌면 열 정렬이 달라진다(빈 칸은 자리를 차지하지 않는다).
         GridManager.Instance?.RequestFieldLayoutRefresh();

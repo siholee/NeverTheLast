@@ -78,3 +78,7 @@ crashlytics-build.properties
 Artifacts/
 __pycache__/
 *.pyc
+
+# Unity Test Framework가 플레이어 빌드 중 생성하는 임시 설정
+/Assets/Resources/PerformanceTestRunInfo.json*
+/Assets/Resources/PerformanceTestRunSettings.json*

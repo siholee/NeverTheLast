@@ -102,6 +102,18 @@ namespace Managers.UI.Screens
         private TextMeshProUGUI _bodyText;
         private Image _portrait;
 
+        // 본문 위에 고정되는 머리. 굴려도 사라지지 않는다.
+        private TextMeshProUGUI _breadcrumb;
+        private CanvasGroup _stickyIdentity;
+        private Image _stickyPortrait;
+        private TextMeshProUGUI _stickyTitle;
+
+        /// <summary>고정 머리의 높이. 본문 스크롤 영역이 이만큼 아래에서 시작한다.</summary>
+        private const float StickyHeight = 58f;
+
+        /// <summary>본문을 이만큼 굴리면 큰 제목이 가려진 것으로 보고 고정 머리에 이름을 띄운다.</summary>
+        private const float StickyRevealScroll = 70f;
+
         // ── 조립 ─────────────────────────────────────────────────────
 
         protected override void Build()
@@ -177,8 +189,12 @@ namespace Managers.UI.Screens
             frame.rectTransform.offsetMin = new Vector2(12f, 0f);
             frame.rectTransform.offsetMax = new Vector2(0f, -(TabRowHeight + 8f));
 
+            BuildStickyHeader(frame.transform);
+
             _bodyContent = UIBuild.ScrollArea("Body", frame.transform, out _bodyScroll);
             UIBuild.Stretch((RectTransform)_bodyScroll.transform, 20f, 14f);
+            ((RectTransform)_bodyScroll.transform).offsetMax = new Vector2(-20f, -StickyHeight - 6f);
+            _bodyScroll.onValueChanged.AddListener(_ => RefreshStickyIdentity());
 
             var portraitObject = new GameObject("Portrait", typeof(RectTransform), typeof(Image));
             portraitObject.transform.SetParent(_bodyContent, false);
@@ -195,6 +211,84 @@ namespace Managers.UI.Screens
             _bodyText.rectTransform.anchorMax = new Vector2(1f, 1f);
             _bodyText.rectTransform.pivot = new Vector2(0.5f, 1f);
             _bodyText.rectTransform.anchoredPosition = Vector2.zero;
+        }
+
+        /// <summary>
+        /// 본문 위 고정 머리 — 지금 어디를 보고 있는가(자료실 › 분류 › 무리 · 몇 번째)와,
+        /// 본문을 굴려 큰 제목이 사라진 뒤에는 대상의 작은 초상화와 이름.
+        ///
+        /// 예전에는 본문 안에만 이름과 초상화가 있어, 긴 캐릭터 문서를 굴리면 누구의 문서인지와
+        /// 현재 위치가 함께 사라졌다(QA).
+        /// </summary>
+        private void BuildStickyHeader(Transform frame)
+        {
+            Image bar = UIBuild.Panel("Sticky", frame, UITheme.Surface, UIShapes.Corner.Diagonal, 8);
+            bar.raycastTarget = false;
+            RectTransform rect = bar.rectTransform;
+            rect.anchorMin = new Vector2(0f, 1f);
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(0.5f, 1f);
+            rect.sizeDelta = new Vector2(-12f, StickyHeight);
+            rect.anchoredPosition = new Vector2(0f, -6f);
+
+            Image rule = UIBuild.Divider("Rule", bar.transform);
+            UIBuild.Anchor(rule.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), 14f, 0f);
+            rule.rectTransform.sizeDelta = new Vector2(rule.rectTransform.sizeDelta.x, 1f);
+
+            _breadcrumb = UIBuild.Text("Breadcrumb", bar.transform, "", UITheme.FontCaption, UITheme.TextMuted,
+                TextAlignmentOptions.MidlineRight);
+            _breadcrumb.richText = true;
+            UIBuild.Anchor(_breadcrumb.rectTransform, new Vector2(0.45f, 0f), new Vector2(1f, 1f), 16f, 0f);
+
+            RectTransform identity = UIBuild.Container("Identity", bar.transform);
+            UIBuild.Anchor(identity, new Vector2(0f, 0f), new Vector2(0.55f, 1f), 12f, 0f);
+            _stickyIdentity = UIBuild.Group(identity.gameObject);
+            _stickyIdentity.blocksRaycasts = false;
+            _stickyIdentity.alpha = 0f;
+
+            var portraitObject = new GameObject("Portrait", typeof(RectTransform), typeof(Image));
+            portraitObject.transform.SetParent(identity, false);
+            _stickyPortrait = portraitObject.GetComponent<Image>();
+            _stickyPortrait.preserveAspect = true;
+            _stickyPortrait.raycastTarget = false;
+            UIBuild.Pin(_stickyPortrait.rectTransform, new Vector2(0f, 0.5f), new Vector2(44f, 44f), Vector2.zero);
+
+            _stickyTitle = UIBuild.Text("Title", identity, "", UITheme.FontHeading, UITheme.TextPrimary);
+            UIBuild.Stretch(_stickyTitle.rectTransform);
+            _stickyTitle.rectTransform.offsetMin = new Vector2(54f, 0f);
+            _stickyTitle.overflowMode = TextOverflowModes.Ellipsis;
+        }
+
+        private void RefreshStickyHeader(Entry entry)
+        {
+            if (_breadcrumb == null) return;
+
+            string category = Categories.FirstOrDefault(pair => pair.Category == _category).Label ?? "";
+            string location = $"자료실  ›  {category}";
+            if (!string.IsNullOrEmpty(entry?.Group)) location += $"  ›  {entry.Group}";
+
+            List<Entry> visible = VisibleEntries();
+            int index = entry == null ? -1 : visible.IndexOf(entry);
+            if (index >= 0)
+            {
+                location += $"   <color=#{ColorUtility.ToHtmlStringRGB(UITheme.TextSecondary)}>{index + 1} / {visible.Count}</color>";
+            }
+            _breadcrumb.text = location;
+
+            Sprite portrait = entry == null ? null : SpriteResource.LoadPortrait(entry.Portrait);
+            _stickyPortrait.sprite = portrait;
+            _stickyPortrait.enabled = portrait != null;
+            _stickyTitle.text = entry?.Title ?? "";
+            _stickyTitle.color = entry?.Tint ?? UITheme.TextPrimary;
+            _stickyTitle.rectTransform.offsetMin = new Vector2(portrait != null ? 54f : 0f, 0f);
+            RefreshStickyIdentity();
+        }
+
+        /// <summary>큰 제목이 보이는 동안에는 숨겨 둔다. 같은 이름이 두 번 나란히 보이지 않게.</summary>
+        private void RefreshStickyIdentity()
+        {
+            if (_stickyIdentity == null || _bodyContent == null) return;
+            _stickyIdentity.alpha = _bodyContent.anchoredPosition.y > StickyRevealScroll ? 1f : 0f;
         }
 
         // ── 열고 닫기 ────────────────────────────────────────────────
@@ -252,10 +346,7 @@ namespace Managers.UI.Screens
             UIBuild.Clear(_listContent);
             _rows.Clear();
 
-            List<Entry> entries = EntriesOf(_category)
-                .Where(entry => _filter.Length == 0 ||
-                                entry.Search.IndexOf(_filter, StringComparison.OrdinalIgnoreCase) >= 0)
-                .ToList();
+            List<Entry> entries = VisibleEntries();
 
             float y = 0f;
             string group = null;
@@ -290,6 +381,12 @@ namespace Managers.UI.Screens
             ShowEntry(_selected);
             HighlightSelection();
         }
+
+        /// <summary>지금 분류에서 검색어에 맞는 항목. 목록과 고정 머리의 "몇 번째"가 같은 목록을 센다.</summary>
+        private List<Entry> VisibleEntries() => EntriesOf(_category)
+            .Where(entry => _filter.Length == 0 ||
+                            entry.Search.IndexOf(_filter, StringComparison.OrdinalIgnoreCase) >= 0)
+            .ToList();
 
         private void AddGroupHeading(string text, ref float y)
         {
@@ -381,6 +478,7 @@ namespace Managers.UI.Screens
             _bodyText.rectTransform.sizeDelta = new Vector2(0f, height);
             _bodyContent.sizeDelta = new Vector2(0f, height + 24f);
             _bodyContent.anchoredPosition = Vector2.zero;
+            RefreshStickyHeader(entry);
         }
 
         // ── 본문 조판 ────────────────────────────────────────────────
@@ -771,19 +869,7 @@ namespace Managers.UI.Screens
                 .ToList();
         }
 
-        private static string CategoryName(ItemData item) =>
-            Enum.TryParse(item.category, true, out EquipmentProficiency proficiency)
-                ? ItemTooltip.ProficiencyName(proficiency)
-                : item.category switch
-                {
-                    "Clothing" => "의복",
-                    "Helmet" => "투구",
-                    "Necklace" => "목걸이",
-                    "Ring" => "반지",
-                    "Shoes" => "신발",
-                    "Valuable" => "귀중품",
-                    _ => item.category,
-                };
+        private static string CategoryName(ItemData item) => ItemTooltip.CategoryName(item.category);
 
         private static string ItemBody(ItemData item)
         {

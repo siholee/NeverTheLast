@@ -4,6 +4,7 @@ using System.Linq;
 using BaseClasses;
 using Core;
 using Entities;
+using Managers.UI.Screens;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using static BaseClasses.BaseEnums;
@@ -241,6 +242,7 @@ namespace Managers
 
             // 드랍은 이번 전투에서 쓰러뜨린 적만 센다.
             _battleKilledEnemyIds.Clear();
+            CaptureBattleStart();
 
             // 아군 필드 상태 저장 (라운드 종료 후 복원용)
             SaveAllyFieldState();
@@ -473,6 +475,7 @@ namespace Managers
             uiManager?.HideTrainingResultPanel();
             uiManager?.HideCharacterSelection();
             uiManager?.HideEventStagePanel();
+            uiManager?.HideBattleResult();
             if (gridManager != null)
             {
                 foreach (Unit unit in gridManager.heroList.Concat(gridManager.enemyList).Where(u => u != null).ToList())
@@ -1016,6 +1019,23 @@ namespace Managers
         }
 
         /// <summary>
+        /// 훈련 화면을 닫고 준비 페이즈로 돌아간다. 준비 행동은 쓰지 않는다.
+        ///
+        /// 예전에는 훈련 화면에 뒤로 가는 길이 없었다. ESC를 누르면 일시정지 메뉴가 떠서
+        /// 결정을 누르는 것 말고는 빠져나갈 수 없었다(QA). 서포트 배치는 그대로 남으므로
+        /// 다시 열어도 같은 자리가 나온다.
+        /// </summary>
+        public void CancelTrainingFromPreparation()
+        {
+            if (gameState != GameState.TrainingPhase) return;
+
+            uiManager?.HideTrainingPhasePanel();
+            gameState = GameState.Preparation;
+            uiManager?.ShowPreparationPhasePanel(IsPreparationLimitedToDeck(), preparationActionUsed,
+                "훈련을 열었다가 닫았습니다. 준비 행동은 쓰지 않았습니다.");
+        }
+
+        /// <summary>
         /// 휴식 한 번이 되찾아 주는 훈련 체력.
         ///
         /// 훈련 평균 비용이 17이므로 이 값은 곧 <b>훈련 3회마다 휴식 1회</b>라는 리듬이다.
@@ -1279,8 +1299,10 @@ namespace Managers
             
             // 남은 적 수만큼 생명력 차감
             int remainingEnemies = GetRemainingEnemyCount();
+            _battleEndReason = $"턴 초과 — {roundTurnLimit}턴 안에 적을 모두 쓰러뜨리지 못했습니다";
+            _battleEnemiesLeft = remainingEnemies;
             TakeDamage(remainingEnemies);
-            
+
             Debug.Log($"라운드 시간 초과! 남은 적 {remainingEnemies}마리만큼 생명력 차감. 현재 생명력: {life}");
             
             // 라운드 종료 처리
@@ -1292,6 +1314,8 @@ namespace Managers
             // 적 전멸로 인한 라운드 종료 (생명력 차감 없음)
             isRoundProgressTimerActive = false;
             Debug.Log("모든 적을 처치했습니다! 라운드 승리!");
+            _battleEndReason = "적 전멸";
+            _battleEnemiesLeft = 0;
             EndRound(true);
         }
 
@@ -1302,8 +1326,10 @@ namespace Managers
             
             // 남은 적 수만큼 생명력 차감 (패배 페널티)
             int remainingEnemies = GetRemainingEnemyCount();
+            _battleEndReason = "아군 전멸";
+            _battleEnemiesLeft = remainingEnemies;
             TakeDamage(remainingEnemies);
-            
+
             Debug.Log($"아군이 전멸했습니다! 남은 적 {remainingEnemies}마리만큼 생명력 차감. 현재 생명력: {life}");
             
             // 라운드 종료 처리
@@ -1314,6 +1340,8 @@ namespace Managers
         {
             _roundManager?.StopRound();
             gameState = GameState.RoundEnd;
+            // 쓰러진 아군은 필드 복원이 되살리기 전에 세어야 한다.
+            BattleResultData result = BeginBattleResult(victory);
             // 궁극기 자원만 전투 종료 정리보다 먼저 회수한다. 상태이상·방어막·고유 전투 자원은
             // 기존 OnRoundEnd 정리를 그대로 거쳐 다음 전투로 넘어가지 않는다.
             CaptureAllyUltimateResources();
@@ -1331,6 +1359,10 @@ namespace Managers
                 pendingPartyExp = 0;
                 gameState = GameState.GameOver;
                 SaveSystem.DeleteSave();
+                FinishBattleResult(result);
+                result.GameOver = true;
+                // 예전에는 여기서 아무 화면 없이 멈췄다. 결과 화면이 런 종료를 알리고 메인 메뉴로 보낸다.
+                PresentBattleResult(result, LoadMainMenuScene);
                 return;
             }
 
@@ -1342,6 +1374,9 @@ namespace Managers
                 earnedExp += ExpPerStageClearBase + ExpPerStageClearPerStage * CurrentStageForExp;
             }
             GrantExpToParty(earnedExp);
+            result.ExpGained = earnedExp > 0
+                ? Mathf.Max(1, Mathf.RoundToInt(earnedExp * Codes.Passive.RewardModifiers.ExpMultiplier()))
+                : 0;
 
             // 강화제는 <이긴 전투 수>로 산다. 예전에는 져도 깎여, 막힌 벽 앞에서 다시 도전할수록
             // 버프가 먼저 사라져 더 불리해졌다.
@@ -1355,9 +1390,11 @@ namespace Managers
                 if (!eventBattleInProgress) QueueSlotClearEvents();
             }
 
+            FinishBattleResult(result);
+
             if (eventBattleInProgress)
             {
-                ResolveEventBattle(victory);
+                PresentBattleResult(result, () => ResolveEventBattle(victory));
                 return;
             }
 
@@ -1365,13 +1402,99 @@ namespace Managers
             {
                 // 전투 승리 직후·보상 표시 직전(after battle, before reward)은 사건 발생 지점이다.
                 // 예약된 사건이 있으면 먼저 처리하고, 끝나면 보상 화면을 연다.
-                RunEventCheckpoint(ShowRewardSelection);
+                result.NextStep = "보상 선택";
+                PresentBattleResult(result, () => RunEventCheckpoint(ShowRewardSelection));
             }
             else
             {
                 // 패배도 해당 스테이지의 확정 결과다. 클리어 보상은 지급하지 않고 다음 스테이지로 진행한다.
-                runManager?.AdvanceToNextStage();
+                result.NextStep = "다음 스테이지";
+                PresentBattleResult(result, () => runManager?.AdvanceToNextStage());
             }
+        }
+
+        // ── 전투 결과 정산 ───────────────────────────────────────────
+        // 결과 화면(BattleResultScreen)에 넘길 값을 전투 시작과 끝에서 모은다.
+        // 전투 중 골드는 처치마다 바로 들어오므로 시작 시점과의 차로 잰다.
+
+        private int _battleStartLife;
+        private int _battleStartGold;
+        private int _battleStartKills;
+        private string _battleEndReason;
+        private int _battleEnemiesLeft;
+        private readonly List<Unit> _battleParty = new();
+
+        private void CaptureBattleStart()
+        {
+            _battleStartLife = life;
+            _battleStartGold = inventoryManager != null ? inventoryManager.Gold : 0;
+            _battleStartKills = KillCount;
+            _battleEndReason = null;
+            _battleEnemiesLeft = 0;
+
+            _battleParty.Clear();
+            if (GridManager.Instance == null) return;
+            foreach (Unit hero in GridManager.Instance.heroList)
+            {
+                if (hero == null || !hero.isActive || hero.IsEnemy || hero.IsSummon) continue;
+                if (hero.currentCell == null || GridManager.Instance.IsBenchCell(hero.currentCell)) continue;
+                _battleParty.Add(hero);
+            }
+        }
+
+        /// <summary>전투가 끝난 직후 — 필드 복원 전에 — 판정과 쓰러진 아군을 적는다.</summary>
+        private BattleResultData BeginBattleResult(bool victory)
+        {
+            var result = new BattleResultData
+            {
+                Victory = victory,
+                Reason = _battleEndReason ?? (victory ? "적 전멸" : "패배"),
+                LifeBefore = _battleStartLife,
+                LifeAfter = life,
+                EnemiesLeft = _battleEnemiesLeft,
+                StageLabel = _roundManager != null ? $"{_roundManager.Round}-{_roundManager.StageInRound}" : "",
+                ThemeName = _roundManager?.CurrentThemeName,
+            };
+
+            // 쓰러지면 DeactivateUnit이 isActive를 끈다. 이름은 전투 시작 때 잡아 둔 참조에서 읽는다.
+            foreach (Unit hero in _battleParty)
+            {
+                if (hero == null) continue;
+                bool fallen = !hero.isActive || hero.HpCurr <= 0;
+                result.Party.Add(new BattleResultData.Member(hero.UnitName, hero.PortraitPath, fallen));
+            }
+
+            return result;
+        }
+
+        /// <summary>보수 지급이 끝난 뒤의 값(목숨 · 골드 · 처치 · 토큰)을 채운다.</summary>
+        private void FinishBattleResult(BattleResultData result)
+        {
+            result.LifeAfter = life;
+            result.GoldGained = Mathf.Max(0, (inventoryManager != null ? inventoryManager.Gold : 0) - _battleStartGold);
+            result.Kills = Mathf.Max(0, KillCount - _battleStartKills);
+            // 처치 3의 배수마다 무작위 토큰 5개(OnKillEnemy).
+            result.TokensGained = Mathf.Max(0, KillCount / 3 - _battleStartKills / 3) * 5;
+        }
+
+        /// <summary>
+        /// 결과 화면을 띄우고, 확인을 누르면 <paramref name="continuation"/>으로 넘어간다.
+        /// 자동 검증 도구가 전투를 연달아 돌릴 때는 화면 없이 곧바로 넘어간다 — 누를 사람이 없다.
+        /// </summary>
+        private void PresentBattleResult(BattleResultData result, Action continuation)
+        {
+            bool skip = uiManager == null;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            skip |= Core.DebugMode.SuiteRunning;
+#endif
+            if (skip)
+            {
+                // 검증 도구는 런 종료 뒤에도 씬을 유지해 결과를 읽는다. 메인 메뉴로 보내지 않는다.
+                if (!result.GameOver) continuation?.Invoke();
+                return;
+            }
+
+            uiManager.ShowBattleResult(result, continuation);
         }
 
         /// <summary>전투 승리 보수. 처치 골드와 함께 상인(273) 패시브의 배율을 받는다.</summary>

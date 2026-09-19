@@ -484,10 +484,18 @@ namespace Managers.UI.Screens
                     TextAlignmentOptions.Center);
                 UIBuild.Anchor(_price.rectTransform, new Vector2(0f, 0.12f), new Vector2(1f, 0.23f), 8f, 0f);
 
-                _state = UIBuild.Text("State", panel.transform, "", UITheme.FontMicro, UITheme.TextMuted,
-                    TextAlignmentOptions.Center);
-                UIBuild.Anchor(_state.rectTransform, new Vector2(0f, 0.02f), new Vector2(1f, 0.11f), 8f, 0f);
+                // 구매 상태 · 막힌 이유. 예전에는 11px 회색 한 줄이라 2560×1440에서도 읽히지 않았다(QA).
+                // 막혔으면 띠를 깔고 두 줄까지 감싼다 — 이유가 가격보다 먼저 눈에 들어와야 헛클릭이 준다.
+                _stateBand = UIBuild.Panel("StateBand", panel.transform, Color.clear, UIShapes.Corner.Diagonal, 6);
+                _stateBand.raycastTarget = false;
+                UIBuild.Anchor(_stateBand.rectTransform, new Vector2(0f, 0.015f), new Vector2(1f, 0.115f), 6f, 0f);
+
+                _state = UIBuild.Text("State", _stateBand.transform, "", UITheme.FontCaption, UITheme.TextMuted,
+                    TextAlignmentOptions.Center, wrap: true);
+                UIBuild.Stretch(_state.rectTransform, 6f, 1f);
             }
+
+            private readonly Image _stateBand;
 
             public void Bind(RewardDef good, int price, string blockedReason, bool selling)
             {
@@ -507,7 +515,12 @@ namespace Managers.UI.Screens
                 _price.text = $"{price:N0} G";
                 _price.color = actionable ? UITheme.Accent : UITheme.TextMuted;
                 _state.text = selling ? "판매" : actionable ? "구매" : blockedReason;
-                _state.color = actionable ? UITheme.Positive : UITheme.TextMuted;
+                _state.color = actionable ? UITheme.Positive : UITheme.Accent;
+                _stateBand.sprite = UIShapes.CutCorner(6,
+                    actionable ? new Color(1f, 1f, 1f, 0f) : new Color(1f, 0.804f, 0.239f, 0.10f),
+                    UIShapes.Corner.Diagonal);
+                // 못 사는 물건은 그림을 가라앉힌다. 매대를 훑을 때 살 수 있는 것이 먼저 보인다.
+                _art.color = actionable ? Color.white : new Color(1f, 1f, 1f, 0.45f);
             }
 
             /// <summary>소모품은 <c>artPath</c>를, 장비는 <c>icon</c>을 본다.</summary>

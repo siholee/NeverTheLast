@@ -7,30 +7,25 @@ namespace Entities.View
     /// 칸을 차지하지 않는 소환수의 카드 자리.
     ///
     /// 일반 유닛의 카드는 <see cref="Cell"/>이 만들어 준다(<c>Cell.EnsureCard</c>).
-    /// 소환수는 칸이 없으므로 <b>소환자 카드의 아래 모서리에 겹치는 소형 카드</b>로 세운다.
+    /// 소환수는 칸이 없으므로 <b>소환자 카드 바깥쪽에 붙는 소형 카드</b>로 세운다.
     /// 카드는 프리팹이 아니라 코드로 조립되므로(<see cref="UnitCardView.Attach"/>)
     /// 칸이 아닌 트랜스폼에도 같은 카드를 그대로 얹을 수 있다.
     ///
-    /// <b>크기는 소환자 카드의 1/4(한 변 1/2)이다.</b> 1/9(한 변 1/3)도 후보였지만,
-    /// 소환수는 체력을 가지고 격파당하므로 <b>체력 바를 읽을 수 있어야 한다.</b>
-    /// 한 변이 1/3이면 체력 바가 몇 픽셀로 뭉개져 "곧 죽는다"를 눈으로 알 수 없다.
-    /// 1/2은 종속 관계가 분명히 보이면서 바가 살아 있는 가장 작은 크기다.
+    /// <b>크기는 소환자 카드 한 변의 42%다.</b> 1/3이면 체력 바가 몇 픽셀로 뭉개져 "곧 죽는다"를
+    /// 눈으로 알 수 없고, 1/2이면 열 사이 틈에 들어가지 않는다.
     ///
-    /// 서는 자리는 <b>소환자 카드의 왼쪽 위 모서리</b>다. 예전에는 아래 모서리였는데, 카드 아래로
-    /// 체력·행동 게이지와 상태 아이콘이 붙어 있어 소환수가 소환자의 체력을 가렸다(QA).
-    /// 오른쪽 위에는 궁극기 게이지가 있으므로 왼쪽 위가 카드에서 유일하게 빈 모서리다.
+    /// 서는 자리는 <b>소환자 카드의 바깥쪽(적에게서 먼 쪽) 위</b>다. 예전에는 소환자 카드의
+    /// 모서리에 겹쳐 세웠는데, 어느 모서리든 카드 위에는 초상화 · 이름 · 게이지가 있어 5인 편성에서
+    /// 라이트의 소환수가 라이트의 정보를 가렸다(QA). 전장의 열 간격을 넓혀(<see cref="Managers.GridManager"/>)
+    /// 카드 사이에 소형 카드가 들어갈 틈을 만들었다. 둘째 소환수는 그 아래에 선다.
     /// </summary>
     public sealed class SummonCardView : MonoBehaviour
     {
-        /// <summary>소환자 카드 한 변 대비 비율. 면적으로는 1/4이다.</summary>
-        public const float ScaleRatio = 0.5f;
+        /// <summary>소환자 카드 한 변 대비 비율.</summary>
+        public const float ScaleRatio = 0.42f;
 
-        /// <summary>
-        /// 모서리에서 얼마나 밖으로 걸치는가(소형 카드 한 변 기준).
-        /// 0이면 소환자 카드의 1/4을 정확히 덮는다. 조금 흘려 두면 초상화를 덜 가리면서
-        /// '붙어 있는 작은 카드'로 읽힌다.
-        /// </summary>
-        private const float OverhangRatio = 0.22f;
+        /// <summary>소환자 카드와 소형 카드 사이의 틈(월드 단위).</summary>
+        private const float Gap = 0.2f;
 
         /// <summary>소환자 카드(order+6까지 씀) 위에 얹는 깊이 오프셋.</summary>
         private const int DepthOffset = 7;
@@ -43,7 +38,7 @@ namespace Entities.View
         private int _appliedLayer;
 
         /// <summary>
-        /// 소환자 카드의 아래 모서리에 소환수 카드를 세운다.
+        /// 소환자 카드 바깥쪽에 소환수 카드를 세운다.
         /// 소환자가 칸에 없으면 붙일 자리가 없으므로 만들지 않는다.
         /// </summary>
         public static SummonCardView Attach(Unit summon, Unit owner)
@@ -52,12 +47,18 @@ namespace Entities.View
 
             float cardSize = Cell.CardSize * ScaleRatio;
 
+            // 이미 붙어 있는 소환수 수. 둘째부터는 첫째 아래로 내려 선다.
+            int stacked = owner.currentCell.GetComponentsInChildren<SummonCardView>().Length;
+
             var go = new GameObject($"SummonCard_{summon.UnitName}");
             go.transform.SetParent(owner.currentCell.transform, false);
 
-            // 왼쪽 위 모서리. 아래쪽 게이지 · 상태 줄과 오른쪽 위 궁극기 게이지를 피한다.
-            float inset = Cell.CardSize * 0.5f - cardSize * (0.5f - OverhangRatio);
-            go.transform.localPosition = new Vector3(-inset, inset, 0f);
+            // 바깥쪽 = 적에게서 먼 쪽. 아군은 왼쪽, 적은 오른쪽이다.
+            float outward = owner.IsEnemy ? 1f : -1f;
+            float x = outward * (Cell.CardSize * 0.5f + Gap + cardSize * 0.5f);
+            float step = cardSize + UnitCardView.HudBelow(cardSize) + 0.3f;
+            float y = Cell.CardSize * 0.5f - cardSize * 0.5f - stacked * step;
+            go.transform.localPosition = new Vector3(x, y, 0f);
 
             var host = go.AddComponent<SummonCardView>();
             host._unit = summon;
@@ -90,7 +91,7 @@ namespace Entities.View
             _portrait = portraitObject.GetComponent<SpriteRenderer>();
             _portrait.sprite = sprite;
 
-            float fit = cardSize * 0.86f;   // Cell.PortraitFitSize와 같은 여백 비율
+            float fit = cardSize * 1.03f;   // 일반 유닛처럼 카드 면 없이 원화를 조금 크게 세운다.
             float scale = Mathf.Min(
                 fit / Mathf.Max(0.0001f, sprite.bounds.size.y),
                 fit / Mathf.Max(0.0001f, sprite.bounds.size.x));

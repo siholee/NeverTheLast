@@ -134,6 +134,8 @@ namespace Managers.UI.Screens
             Image panel = UIBuild.Panel("Panel", _rootObject.transform, UITheme.Surface,
                 UIShapes.Corner.Diagonal, 16, UITheme.Outline, 1);
             UIBuild.Anchor(panel.rectTransform, new Vector2(0.03f, 0.05f), new Vector2(0.97f, 0.95f));
+            UIBuild.Elevate(panel, 40, 0.6f, 14f);
+            _rootObject.AddComponent<UIPopIn>().Panel = panel.rectTransform;
 
             BuildHeader(panel.transform);
 
@@ -148,11 +150,7 @@ namespace Managers.UI.Screens
 
         private void BuildHeader(Transform panel)
         {
-            Image stripes = UIBuild.Solid("HeaderStripes", panel, Color.white);
-            stripes.sprite = UIShapes.DiagonalStripes(12, new Color(0.086f, 0.090f, 0.098f), Color.clear);
-            stripes.type = Image.Type.Tiled;
-            stripes.raycastTarget = false;
-            UIBuild.Anchor(stripes.rectTransform, new Vector2(0.70f, 0.90f), new Vector2(1f, 1f));
+            // 예전 사선 빗금 장식은 둥근 면으로 바꾸며 걷어 냈다(ModalScreen과 같은 이유).
 
             Image bar = UIBuild.Solid("HeaderBar", panel, UITheme.Accent);
             UIBuild.Pin(bar.rectTransform, new Vector2(0f, 1f), new Vector2(3f, 26f),
@@ -316,7 +314,7 @@ namespace Managers.UI.Screens
                 new Vector2(0f, -36f));
 
             // 경험치 막대. 발더스 게이트가 이름 밑에 두는 그 줄이다.
-            Image track = UIBuild.Solid("ExpTrack", column, new Color(1f, 1f, 1f, 0.07f));
+            Image track = UIBuild.Solid("ExpTrack", column, UITheme.Track);
             track.raycastTarget = false;
             UIBuild.Pin(track.rectTransform, new Vector2(0f, 1f), new Vector2(width - 24f, 3f),
                 new Vector2(12f, -52f));
@@ -484,7 +482,7 @@ namespace Managers.UI.Screens
             row.sizeDelta = new Vector2(-20f, WeightBarHeight);
             row.anchoredPosition = new Vector2(0f, 8f);
 
-            Image track = UIBuild.Solid("Track", row, new Color(1f, 1f, 1f, 0.07f));
+            Image track = UIBuild.Solid("Track", row, UITheme.Track);
             track.raycastTarget = false;
             UIBuild.Anchor(track.rectTransform, new Vector2(0f, 0.62f), new Vector2(1f, 1f));
 
@@ -558,7 +556,7 @@ namespace Managers.UI.Screens
         {
             bool filled = item != null;
 
-            Color fill = filled ? UITheme.SurfaceRaised : new Color(0.055f, 0.058f, 0.063f, 0.98f);
+            Color fill = filled ? UITheme.SurfaceRaised : UITheme.SurfaceSunken;
             Color border = !filled ? UITheme.Outline
                 : isEquipped ? UITheme.Accent
                 : UITheme.Rarity(item.rarity);
@@ -587,7 +585,7 @@ namespace Managers.UI.Screens
                 if (!string.IsNullOrEmpty(emptyLabel))
                 {
                     TextMeshProUGUI hint = UIBuild.Text("Hint", slot.transform, emptyLabel,
-                        UITheme.FontMicro, new Color(0.35f, 0.36f, 0.38f), TextAlignmentOptions.Center);
+                        UITheme.FontMicro, UITheme.TextDisabled, TextAlignmentOptions.Center);
                     UIBuild.Stretch(hint.rectTransform, 2f, 2f);
                 }
 
@@ -753,11 +751,11 @@ namespace Managers.UI.Screens
             head.anchorMin = new Vector2(0f, 1f);
             head.anchorMax = new Vector2(1f, 1f);
             head.pivot = new Vector2(0.5f, 1f);
-            head.sizeDelta = new Vector2(-24f, 20f);
+            head.sizeDelta = new Vector2(-24f, 26f);
             head.anchoredPosition = new Vector2(0f, -y);
 
             TextMeshProUGUI nameLabel = UIBuild.Text("Name", head, superseded ? $"{name} (대체됨)" : name,
-                UITheme.FontCaption, tint);
+                UITheme.FontBody, tint);
             nameLabel.overflowMode = TextOverflowModes.Ellipsis;
             UIBuild.Anchor(nameLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0.72f, 1f), 4f, 0f);
 
@@ -765,20 +763,20 @@ namespace Managers.UI.Screens
             TextMeshProUGUI kindLabel = UIBuild.Text("Kind", head, name == kind ? "" : kind, UITheme.FontMicro, UITheme.TextMuted,
                 TextAlignmentOptions.MidlineRight);
             UIBuild.Anchor(kindLabel.rectTransform, new Vector2(0.72f, 0f), new Vector2(1f, 1f), 4f, 0f);
-            y += 20f;
+            y += 26f;
 
-            TextMeshProUGUI line = UIBuild.Text("Summary", parent, summary, UITheme.FontMicro,
+            // 예전에는 두 줄에서 말줄임했다. 칸 아래가 텅 비어 있는데 설명은 '...'으로 잘린다는 QA가 있었다.
+            // 목록은 칸 안에서 굴러가므로 자리를 아낄 이유가 없다 — 전문을 다 싣는다.
+            TextMeshProUGUI line = UIBuild.Text("Summary", parent, summary, UITheme.FontCaption,
                 superseded ? UITheme.TextMuted : UITheme.TextSecondary, TextAlignmentOptions.TopLeft, true);
             line.richText = false;
-            line.overflowMode = TextOverflowModes.Ellipsis;
-            line.maxVisibleLines = 2;
+            line.overflowMode = TextOverflowModes.Overflow;
             line.rectTransform.anchorMin = new Vector2(0f, 1f);
             line.rectTransform.anchorMax = new Vector2(1f, 1f);
             line.rectTransform.pivot = new Vector2(0.5f, 1f);
 
             // 높이는 실제 칸 폭으로 재야 한다. 파티가 다섯이면 칸이 좁아져 줄 수가 늘어난다.
-            float twoLines = line.GetPreferredValues("가\n가", inner, 0f).y;
-            float height = Mathf.Min(twoLines, Mathf.Max(14f, line.GetPreferredValues(summary, inner, 0f).y));
+            float height = Mathf.Max(16f, line.GetPreferredValues(summary, inner, 0f).y);
             line.rectTransform.sizeDelta = new Vector2(-32f, height);
             line.rectTransform.anchoredPosition = new Vector2(0f, -y);
             y += height + 8f;
@@ -972,7 +970,8 @@ namespace Managers.UI.Screens
 
             float y = 12f;
             AddDetailTitle(item.name, ref y, UITheme.Rarity(item.rarity));
-            AddDetailLine($"{item.slot} · {item.category} · 중량 {item.weight}", ref y, UITheme.TextSecondary);
+            AddDetailLine($"{ItemTooltip.SlotName(item.slot)} · {ItemTooltip.CategoryName(item.category)} · 중량 {item.weight}",
+                ref y, UITheme.TextSecondary);
 
             if (owner != null && !owner.CanUseEquipmentEffects(item))
             {

@@ -96,7 +96,7 @@ namespace Managers.UI.Core
         {
             var parts = new List<string> { $"TIER {Mathf.Max(1, item.rarity)}" };
             if (!string.IsNullOrWhiteSpace(item.slot)) parts.Add(SlotName(item.slot));
-            if (!string.IsNullOrWhiteSpace(item.category)) parts.Add(item.category);
+            if (!string.IsNullOrWhiteSpace(item.category)) parts.Add(CategoryName(item.category));
             return string.Join(" · ", parts);
         }
 
@@ -112,6 +112,33 @@ namespace Managers.UI.Core
             "Shoes" => "신발",
             _ => slot,
         };
+
+        /// <summary>
+        /// 장비 분류의 한글 이름. 데이터(40_items.yaml)는 영문 키라 여기서만 옮긴다.
+        ///
+        /// 예전에는 상점 · 캐릭터 창이 키를 그대로 찍어 <c>Shoes</c> · <c>HeavyArmor</c> · <c>Longbow</c>가
+        /// 한글 사이에 섞여 나왔다(QA). 무기·방어구 분류는 숙련 이름과 같으므로 숙련 표를 그대로 쓴다.
+        /// </summary>
+        public static string CategoryName(string category)
+        {
+            if (string.IsNullOrWhiteSpace(category)) return "";
+            if (Enum.TryParse(category, true, out EquipmentProficiency proficiency) &&
+                proficiency != EquipmentProficiency.None)
+            {
+                return ProficiencyName(proficiency);
+            }
+
+            return category switch
+            {
+                "Clothing" => "의복",
+                "Helmet" => "투구",
+                "Necklace" => "목걸이",
+                "Ring" => "반지",
+                "Shoes" => "신발",
+                "Valuable" => "귀중품",
+                _ => category,
+            };
+        }
 
         /// <summary>요구 숙련의 한글 이름.</summary>
         public static string ProficiencyName(EquipmentProficiency proficiency) => proficiency switch

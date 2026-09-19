@@ -218,7 +218,8 @@ namespace Managers.UI.DevTools
             rect.anchorMax = new Vector2(0.5f, 1f);
             rect.pivot = new Vector2(0.5f, 1f);
             rect.sizeDelta = new Vector2(720f, 22f);
-            rect.anchoredPosition = new Vector2(0f, -4f);
+            // 글꼴의 ascender가 화면 밖으로 잘리지 않도록 상단 안전 여백을 둔다.
+            rect.anchoredPosition = new Vector2(0f, -12f);
             _banner.gameObject.SetActive(false);
         }
 

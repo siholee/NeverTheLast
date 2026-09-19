@@ -335,6 +335,78 @@ namespace Managers.UI.Screens
             return rows;
         }
 
+        /// <summary>
+        /// 장비를 고를 근거 세 줄 — 중량과 분류, 누가 제대로 쓸 수 있는가, 그 사람이 지금 그 부위에 무엇을 들었는가.
+        ///
+        /// 보상 카드는 그림이 커서 보기에는 좋았지만, 스탯 한 줄만 보고 골라야 했다(QA).
+        /// 이 장비가 파티에서 누구에게 가고 무엇을 대체하는지가 고르는 이유의 대부분이다.
+        /// </summary>
+        private static string FitText(RewardDef reward)
+        {
+            ItemData item = reward?.item;
+            if (item == null || item.IsValuable) return "";
+
+            var lines = new List<string>();
+            string muted = Hex(UITheme.TextMuted);
+
+            string category = ItemTooltip.CategoryName(item.category);
+            string weight = $"중량 {Mathf.Max(0, item.weight)}";
+            lines.Add(string.IsNullOrEmpty(category)
+                ? $"<color=#{muted}>{weight}</color>"
+                : $"<color=#{muted}>{category} · {weight}</color>");
+
+            List<Unit> party = GridManager.Instance?.heroList?
+                .Where(unit => unit != null && unit.isActive && !unit.IsEnemy && !unit.IsSummon)
+                .GroupBy(unit => unit.ID).Select(group => group.First())
+                .ToList() ?? new List<Unit>();
+            List<Unit> holders = party.Where(unit => unit.CanUseEquipmentEffects(item)).ToList();
+
+            if (holders.Count == 0)
+            {
+                lines.Add($"<color=#{Hex(UITheme.Danger)}>숙련 보유자 없음 — 중량만 적용</color>");
+                return string.Join("\n", lines);
+            }
+
+            bool needsProficiency = item.RequiredProficiency != EquipmentProficiency.None;
+            string who = holders.Count <= 3
+                ? string.Join(", ", holders.Select(unit => unit.UnitName))
+                : $"{string.Join(", ", holders.Take(3).Select(unit => unit.UnitName))} 외 {holders.Count - 3}";
+            lines.Add(needsProficiency
+                ? $"<color=#{Hex(UITheme.Positive)}>숙련 보유</color>  {who}"
+                : $"<color=#{Hex(UITheme.Positive)}>누구나 착용</color>");
+
+            // 비교 대상 — 그 부위가 비어 있는 보유자가 있으면 그 사람, 없으면 첫 보유자.
+            Unit target = holders.FirstOrDefault(unit => EquippedIn(unit, item.slot) == null) ?? holders[0];
+            ItemData current = EquippedIn(target, item.slot);
+            string slot = ItemTooltip.SlotName(item.slot);
+            lines.Add(current == null
+                ? $"{target.UnitName} · {slot} <color=#{Hex(UITheme.Positive)}>비어 있음</color>"
+                : $"{target.UnitName} · {slot} <color=#{muted}>현재</color> {current.name} {StatShort(current)}");
+
+            return string.Join("\n", lines);
+        }
+
+        private static ItemData EquippedIn(Unit unit, string slot)
+        {
+            if (unit == null || string.IsNullOrWhiteSpace(slot)) return null;
+            return unit.EquippedItems.FirstOrDefault(equipped =>
+                equipped != null && string.Equals(equipped.slot, slot, StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>장비 스탯 요약. 비교 줄에서 새 장비의 스탯과 나란히 읽히도록 짧게.</summary>
+        private static string StatShort(ItemData item)
+        {
+            if (item?.statBonuses == null) return "";
+            IEnumerable<string> parts = item.statBonuses
+                .Where(bonus => bonus != null && bonus.amount != 0)
+                .Select(bonus => $"{(bonus.TryGetPrimary(out _) ? bonus.stat.ToUpperInvariant() : EquipmentStatKeys.DisplayName(bonus.stat))} " +
+                                 $"{(bonus.amount > 0 ? "+" : "")}{bonus.amount}{EquipmentStatKeys.DisplaySuffix(bonus.stat)}");
+            string joined = string.Join(" ", parts);
+            return joined.Length == 0 ? "" : $"<color=#{Hex(UITheme.TextMuted)}>({joined})</color>";
+        }
+
+        private static string Hex(Color color) => ColorUtility.ToHtmlStringRGB(color);
+
         /// <summary>등급 · 부위 · 분류를 한 줄로. 세 장이 같은 자리에서 비교된다.</summary>
         private static string MetaLine(RewardDef reward)
         {
@@ -342,6 +414,7 @@ namespace Managers.UI.Screens
             var parts = new List<string> { $"TIER {tier}" };
 
             if (!string.IsNullOrWhiteSpace(reward.item?.slot)) parts.Add(ItemTooltip.SlotName(reward.item.slot));
+            if (!string.IsNullOrWhiteSpace(reward.item?.category)) parts.Add(ItemTooltip.CategoryName(reward.item.category));
             if (reward.isRare) parts.Add("RARE");
 
             return string.Join(" · ", parts);
@@ -363,6 +436,7 @@ namespace Managers.UI.Screens
             private readonly TextMeshProUGUI[] _specValues = new TextMeshProUGUI[MaxSpecRows];
             private readonly Image _art;
             private readonly TextMeshProUGUI _summary;
+            private readonly TextMeshProUGUI _fit;
 
             public Card(Transform parent, int index, Action<int> onPick)
             {
@@ -406,12 +480,18 @@ namespace Managers.UI.Screens
                 _art = artObject.GetComponent<Image>();
                 _art.preserveAspect = true;
                 _art.raycastTarget = false;
-                UIBuild.Anchor(_art.rectTransform, new Vector2(0f, 0.30f), new Vector2(1f, 0.755f), 22f, 0f);
+                UIBuild.Anchor(_art.rectTransform, new Vector2(0f, 0.44f), new Vector2(1f, 0.765f), 22f, 0f);
 
                 // 그림 아래 한 줄 요약. 세 장을 비교할 때 가장 자주 보는 값만 남긴다.
-                _summary = UIBuild.Text("Summary", root, "", UITheme.FontCaption, UITheme.TextSecondary,
+                _summary = UIBuild.Text("Summary", root, "", UITheme.FontBody, UITheme.TextSecondary,
                     TextAlignmentOptions.Center, wrap: true);
-                UIBuild.Anchor(_summary.rectTransform, new Vector2(0f, 0.17f), new Vector2(1f, 0.29f), 16f, 0f);
+                UIBuild.Anchor(_summary.rectTransform, new Vector2(0f, 0.365f), new Vector2(1f, 0.44f), 16f, 0f);
+
+                // 고를 근거 — 분류 · 중량, 숙련 보유자, 그 사람의 현재 장비. 요약과 선택 버튼 사이.
+                _fit = UIBuild.Text("Fit", root, "", UITheme.FontCaption, UITheme.TextPrimary,
+                    TextAlignmentOptions.TopLeft, wrap: true);
+                _fit.richText = true;
+                UIBuild.Anchor(_fit.rectTransform, new Vector2(0f, 0.14f), new Vector2(1f, 0.355f), 20f, 0f);
 
                 _specRule = Rule(root, "Rule2", 0.415f);
 
@@ -506,6 +586,8 @@ namespace Managers.UI.Screens
                 List<Row> stats = StatRows(reward);
                 List<Row> specs = SpecRows(reward);
 
+                _fit.text = FitText(reward);
+
                 Sprite art = LoadRewardArt(reward);
                 _art.sprite = art;
                 _art.enabled = art != null;
@@ -529,6 +611,7 @@ namespace Managers.UI.Screens
             private void BindArtLayout(bool hasArt, List<Row> stats, List<Row> specs)
             {
                 _summary.gameObject.SetActive(hasArt);
+                _fit.gameObject.SetActive(hasArt && _fit.text.Length > 0);
                 // 이름 아래 구분선은 그림이 있을 때도 남긴다. 제목과 본문을 가르는 선이다.
                 _statCaption.gameObject.SetActive(!hasArt);
                 _specCaption.gameObject.SetActive(!hasArt && specs.Count > 0);
@@ -597,6 +680,10 @@ namespace Managers.UI.Screens
 
                 foreach (Row row in stats) lines.Add(new UITooltip.Line(row.Label, row.Value, row.Color));
                 foreach (Row row in specs) lines.Add(new UITooltip.Line(row.Label, row.Value, row.Color));
+
+                // 그림이 없는 카드에는 근거 블록이 없다. 비교는 툴팁으로라도 보이게 한다.
+                string fit = FitText(reward);
+                if (fit.Length > 0) lines.Add(UITooltip.Line.Note(fit, UITheme.TextPrimary));
 
                 if (reward.item?.twoHanded == true)
                 {

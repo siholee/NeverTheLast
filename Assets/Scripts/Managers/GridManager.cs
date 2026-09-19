@@ -59,6 +59,8 @@ namespace Managers
             heroList = new List<Unit>();
             enemyList = new List<Unit>();
             SetGrid();
+            // 전장 카드의 클릭 · 드래그 · 호버는 칸이 아니라 이 한 곳에서 판정한다.
+            FieldPointerInput.Ensure();
         }
 
         private void OnDestroy()
@@ -313,17 +315,32 @@ namespace Managers
         // 10.16 월드 단위라 간격이 칸 크기보다 작아져 **칸과 스탠딩이 서로 겹쳐 보였다.**
         // 지금은 간격을 항상 칸 크기보다 크게 잡아 격자가 또렷하게 떨어진다.
 
-        /// <summary>같은 진영 두 열 사이의 간격. 칸 크기(10.16)보다 커야 겹치지 않는다.</summary>
-        private const float ColumnSpacing = 11.6f;
+        /// <summary>
+        /// 같은 진영 두 열 사이의 간격. 카드(8.94) 사이에 <b>소환수 소형 카드가 들어갈 틈</b>을 남긴다.
+        ///
+        /// 예전(11.6)에는 틈이 2.7뿐이라 소환수 카드를 소환자 카드 위에 겹쳐 세웠고,
+        /// 5인 편성에서 라이트의 소환수가 라이트의 초상화·이름을 가렸다(QA).
+        /// 이제 소환수는 소환자 카드의 바깥쪽 틈에 선다(<see cref="Entities.View.SummonCardView"/>).
+        /// </summary>
+        private const float ColumnSpacing = 13.2f;
 
-        /// <summary>한 열 안에서 위아래로 늘어선 4명의 간격.</summary>
-        private const float SlotSpacing = 11.6f;
+        /// <summary>
+        /// 한 열 안에서 위아래로 늘어선 4명의 간격.
+        ///
+        /// 카드 아래로 체력 · 행동 게이지 · 상태 아이콘이 카드 한 변의 32%만큼 붙고, 위로 궁극기
+        /// 게이지가 5% 걸친다. 카드 한 장의 세로 영역은 12.2다. 예전 11.6은 그보다 작아
+        /// 4명이 선 열에서 윗사람의 상태 아이콘이 아랫사람의 게이지를 덮었다.
+        /// </summary>
+        private const float SlotSpacing = 12.8f;
 
         /// <summary>양 진영 사이(아군 전열 ↔ 적 전열)에 추가로 벌리는 거리.</summary>
         private const float CenterGap = 7f;
 
-        /// <summary>전장 최하단에서 대기석까지 내려가는 거리.</summary>
-        private const float BenchOffsetY = 14f;
+        /// <summary>대기석 칸 사이 간격. 대기석 카드는 전투 HUD가 없어 전장보다 촘촘해도 된다.</summary>
+        private const float BenchSpacing = 11.6f;
+
+        /// <summary>전장 최하단에서 대기석까지 내려가는 거리. 최하단 카드의 상태 아이콘 줄을 비켜야 한다.</summary>
+        private const float BenchOffsetY = 14.5f;
 
         /// <summary>
         /// 칸 하나의 좌표. |x| = 1이 전열(중앙 쪽), 2가 후열이며 y는 위에서 아래로 1~4다.
@@ -351,26 +368,40 @@ namespace Managers
         {
             float rowCenter = (yMin + yMax) * 0.5f;
             float fieldBottom = (rowCenter - yMax) * SlotSpacing;   // 최하단 행의 y 좌표
-            return new Vector3(x * ColumnSpacing, fieldBottom - BenchOffsetY, 0f);
+            return new Vector3(x * BenchSpacing, fieldBottom - BenchOffsetY, 0f);
         }
 
         /// <summary>칸 하나의 반지름(월드 단위). 셀 테두리 스프라이트가 10.16이다.</summary>
         private const float CellExtent = 5.08f;
 
         /// <summary>전장 바깥에 남길 여백(월드 단위).</summary>
-        private const float CameraMargin = 2f;
+        private const float CameraMargin = 1.2f;
 
-        /// <summary>칸 위로 삐져나오는 체력·마나 바의 높이(월드 단위).</summary>
-        private const float BarOverhang = 2.5f;
+        // ── HUD가 차지하는 화면 영역(1920×1080 기준 px) ─────────────
+        // 예전에는 "전장 높이의 7% · 16%"처럼 전장 크기에 비례해 여유를 줬다. HUD는 전장과 무관하게
+        // 픽셀로 고정된 크기라, 인원이 늘어 전장이 커질수록 계산이 어긋났다. 5대5에서 맨 아래 카드의
+        // 체력·상태 줄이 화면 밖으로, 맨 위 적 카드가 상단 체력 띠 아래로 들어간 원인이다.
+        // 이제 HUD를 픽셀로 비워 두고 남은 영역에 전장을 맞춘다.
+
+        /// <summary>상단 — 자원 띠(60) · 우상단 바(76) · 엘리트 체력 띠(112) 아래까지.</summary>
+        private const float TopHudPixels = 172f;
+
+        /// <summary>하단 — 전투 중에는 가장자리 여백만.</summary>
+        private const float BottomHudPixelsBattle = 28f;
+
+        /// <summary>하단 — 준비 페이즈 바(<see cref="UI.Screens.PreparationScreen"/>)와 그 위 여백.</summary>
+        private static float BottomHudPixelsPreparation =>
+            UI.Screens.PreparationScreen.PanelBottom + UI.Screens.PreparationScreen.PanelHeight + 14f;
 
         /// <summary>
-        /// 화면 아래 HUD(준비 페이즈 바)에 가리지 않도록 아래쪽에만 더 주는 여유.
-        /// 화면 높이 대비 비율이며, 대기석이 HUD 뒤로 숨지 않을 만큼 잡는다.
+        /// 좌우 — 228px 행동 서열과 12px 안전 간격을 확보한다.
+        /// 4:3에서는 기존 160px 예약으로 아군 후열과 행동 카드 사이가 20px 남짓까지 붙고,
+        /// 반대편 대형 적도 화면 끝에서 잘렸으므로 실제 HUD 폭을 기준으로 잡는다.
         /// </summary>
-        private const float CameraBottomHudFraction = 0.16f;
+        private const float SideHudPixels = 240f;
 
-        /// <summary>상단 상태바(생명력·골드·스테이지)에 최상단 행이 가리지 않도록 두는 여유.</summary>
-        private const float CameraTopHudFraction = 0.07f;
+        /// <summary>소환수 소형 카드가 소환자 카드 바깥으로 걸치는 폭(월드 단위).</summary>
+        private static float SummonOverhang => Cell.CardSize * Entities.View.SummonCardView.ScaleRatio + 0.4f;
 
         /// <summary>대기석이 지금 화면에 나와 있는지.</summary>
         private bool _benchVisible = true;
@@ -384,10 +415,37 @@ namespace Managers
         /// <summary>마지막으로 정렬할 때 빈 칸을 보여 주고 있었는지.</summary>
         private bool _lastShowEmpty = true;
 
+        /// <summary>마지막으로 카메라를 맞춘 화면 크기. 창 크기를 바꾸면 HUD 비율이 달라져 다시 맞춘다.</summary>
+        private Vector2Int _framedScreen;
+        private float _framedHudScale = 1f;
+        private BaseEnums.GameState _lastLayoutState = (BaseEnums.GameState)(-1);
+
+        // 전투 중 사망으로 점유 칸이 줄어도 카메라가 매번 당겨지지 않도록 시작 경계를 고정한다.
+        private bool _battleBoundsValid;
+        private float _battleMinX, _battleMaxX, _battleMinY, _battleMaxY;
+        private float _battleFeatureScale = 1f;
+
         private void LateUpdate()
         {
             // 게임 상태가 바뀌면(준비 ↔ 전투) 빈 칸을 보여 줄지가 달라지므로 그때도 다시 세운다.
             bool showEmpty = ShouldShowEmptyCells();
+            BaseEnums.GameState state = GameManager.Instance != null
+                ? GameManager.Instance.gameState
+                : BaseEnums.GameState.Preparation;
+            if (state != _lastLayoutState)
+            {
+                _lastLayoutState = state;
+                _battleBoundsValid = false;
+                _layoutDirty = true;
+            }
+            var screen = new Vector2Int(Screen.width, Screen.height);
+            float hudScale = UI.Theme.UITheme.HudScale;
+            if (screen != _framedScreen || !Mathf.Approximately(hudScale, _framedHudScale))
+            {
+                _framedScreen = screen;
+                _framedHudScale = hudScale;
+                _layoutDirty = true;
+            }
             if (!_layoutDirty && showEmpty == _lastShowEmpty) return;
 
             _layoutDirty = false;
@@ -398,8 +456,9 @@ namespace Managers
         /// <summary>배치를 만질 수 있는 동안에만 빈 칸(=놓을 자리)을 보여 준다.</summary>
         private static bool ShouldShowEmptyCells()
         {
-            return GameManager.Instance == null ||
-                   GameManager.Instance.gameState == BaseEnums.GameState.Preparation;
+            return Cell.PlacementModeActive &&
+                   (GameManager.Instance == null ||
+                    GameManager.Instance.gameState == BaseEnums.GameState.Preparation);
         }
 
         /// <summary>
@@ -415,6 +474,7 @@ namespace Managers
 
             bool showEmpty = ShouldShowEmptyCells();
             _lastShowEmpty = showEmpty;
+            ApplyBenchVisibility(_benchVisible && showEmpty);
 
             for (int columnIndex = 0; columnIndex < 2; columnIndex++)
             {
@@ -448,6 +508,7 @@ namespace Managers
             for (int i = 0; i < ordered.Count; i++)
             {
                 Cell cell = ordered[i];
+                if (!cell.gameObject.activeSelf) cell.gameObject.SetActive(true);
                 float slot = i - half;   // 위가 음수, 아래가 양수 — yPos와 같은 방향이다.
 
                 cell.transform.position = new Vector3(posX, -slot * SlotSpacing, 0f);
@@ -471,6 +532,8 @@ namespace Managers
             {
                 cell.IsLaidOut = false;
                 cell.SetGroundPadVisible(false);
+                // 보이지 않는 빈 칸의 Collider2D가 모바일 드롭 대상으로 남지 않게 함께 끈다.
+                cell.gameObject.SetActive(false);
             }
         }
 
@@ -498,15 +561,16 @@ namespace Managers
             _benchVisible = visible;
             RequestFieldLayoutRefresh();
 
-            if (_benchCellManager != null)
-            {
-                foreach (Cell cell in _benchCellManager)
-                {
-                    if (cell != null) cell.gameObject.SetActive(visible);
-                }
-            }
+            ApplyBenchVisibility(visible && ShouldShowEmptyCells());
 
             FrameCamera();
+        }
+
+        private void ApplyBenchVisibility(bool visible)
+        {
+            if (_benchCellManager == null) return;
+            foreach (Cell cell in _benchCellManager)
+                if (cell != null) cell.gameObject.SetActive(visible);
         }
 
         /// <summary>
@@ -528,12 +592,21 @@ namespace Managers
 
             bool any = false;
             float minX = 0f, maxX = 0f, minY = 0f, maxY = 0f;
+            bool includeSlots = ShouldShowEmptyCells();
+            bool inBattle = GameManager.Instance != null &&
+                            GameManager.Instance.gameState == BaseEnums.GameState.RoundInProgress;
+            bool hasAlly = false, hasEnemy = false;
 
             void Include(Cell cell)
             {
                 // 전투 중 지워진 빈 칸은 프레이밍에서 뺀다.
-                if (cell == null || !cell.IsLaidOut) return;
+                if (cell == null || !cell.IsLaidOut || (!includeSlots && !cell.isOccupied)) return;
                 Vector3 position = cell.transform.position;
+                if (cell.isOccupied)
+                {
+                    hasAlly |= cell.xPos < 0;
+                    hasEnemy |= cell.xPos > 0;
+                }
                 if (!any)
                 {
                     minX = maxX = position.x;
@@ -547,42 +620,92 @@ namespace Managers
                 maxY = Mathf.Max(maxY, position.y);
             }
 
-            if (_fieldCellManager != null) foreach (Cell cell in _fieldCellManager) Include(cell);
-            if (_benchVisible && _benchCellManager != null)
+            _largestFeatureScale = 1f;
+            if (inBattle && _battleBoundsValid)
+            {
+                any = true;
+                minX = _battleMinX; maxX = _battleMaxX;
+                minY = _battleMinY; maxY = _battleMaxY;
+                _largestFeatureScale = _battleFeatureScale;
+            }
+            else if (_fieldCellManager != null)
+            {
+                foreach (Cell cell in _fieldCellManager)
+                {
+                    Include(cell);
+                    if (cell != null && cell.IsLaidOut && cell.isOccupied)
+                        _largestFeatureScale = Mathf.Max(_largestFeatureScale, cell.FeatureScale);
+                }
+            }
+            if (_benchVisible && includeSlots && _benchCellManager != null)
             {
                 foreach (Cell cell in _benchCellManager) Include(cell);
             }
             if (!any) return;
 
-            // 전장은 x = 0을 기준으로 좌우 대칭이다. 한쪽 열이 비어 화면에서 지워져도
-            // 프레이밍까지 한쪽으로 쏠리면 안 되므로 가로 경계를 대칭으로 되돌린다.
-            float halfWidth = Mathf.Max(Mathf.Abs(minX), Mathf.Abs(maxX));
-            minX = -halfWidth;
-            maxX = halfWidth;
+            if (inBattle && !_battleBoundsValid && hasAlly && hasEnemy)
+            {
+                _battleMinX = minX; _battleMaxX = maxX;
+                _battleMinY = minY; _battleMaxY = maxY;
+                _battleFeatureScale = _largestFeatureScale;
+                _battleBoundsValid = true;
+            }
 
-            // 셀 중심 좌표를 모았으니 반 칸씩 넓히고 여백을 더한다.
-            float pad = CellExtent + CameraMargin;
-            minX -= pad; maxX += pad;
-            minY -= pad;
-            // 체력·마나 바는 칸 위로 조금 삐져나온다. 그만큼만 위를 더 연다.
-            // 예전에는 캐릭터 키 전체(13)를 더했는데, 이제 캐릭터가 칸 안에 들어가므로
-            // 그대로 두면 전장이 화면 아래쪽으로 쏠린다.
-            maxY += BarOverhang + CameraMargin;
+            // 전투/편성 화면은 양 진영 축을 고정한다. 준비 기본 화면은 실제 아군만 가운데로 당겨
+            // 빈 적 진영 때문에 캐릭터가 절반 크기로 줄지 않게 한다.
+            float cameraX;
+            if (inBattle || includeSlots)
+            {
+                float halfWidth = Mathf.Max(Mathf.Abs(minX), Mathf.Abs(maxX));
+                minX = -halfWidth;
+                maxX = halfWidth;
+                cameraX = 0f;
+            }
+            else
+            {
+                cameraX = (minX + maxX) * 0.5f;
+            }
+            minX -= CellExtent + SummonOverhang + CameraMargin;
+            maxX += CellExtent + SummonOverhang + CameraMargin;
 
-            // HUD가 판을 덮지 않도록 위아래로 더 벌린다.
-            // 상단 상태바는 늘 떠 있고, 준비 페이즈 바는 전투 중에 사라지므로 그때는 아래 여유가 없어도 된다.
-            float span = maxY - minY;
-            maxY += span * CameraTopHudFraction;
-            if (_benchVisible) minY -= span * CameraBottomHudFraction;
+            // 셀 중심 좌표를 모았으니 카드가 실제로 덮는 세로 영역으로 넓힌다.
+            // 위로는 궁극기 게이지가 걸치고, 아래로는 체력 · 행동 · 상태 아이콘 줄이 붙는다.
+            // 보스 단독 편성은 카드가 커지므로(FeatureScale) 가장 큰 카드 기준으로 잰다.
+            float card = Cell.CardSize * _largestFeatureScale;
+            maxY += card * 0.5f + Entities.View.UnitCardView.HudAbove(card) + CameraMargin;
+            minY -= card * 0.5f + Entities.View.UnitCardView.HudBelow(card) + CameraMargin;
 
-            float width = maxX - minX;
-            float height = maxY - minY;
+            // HUD가 덮는 픽셀을 화면 비율로 바꾼다. CanvasScaler(0.5 매칭)와 같은 식이어야
+            // 해상도·화면비가 달라도 HUD 가장자리와 전장 가장자리가 맞는다.
+            float screenWidth = Mathf.Max(1f, Screen.width);
+            float screenHeight = Mathf.Max(1f, Screen.height);
+            float canvasScale = Mathf.Sqrt(screenWidth / UI.Theme.UITheme.ReferenceResolution.x *
+                                           (screenHeight / UI.Theme.UITheme.ReferenceResolution.y));
+            // HUD 크기 설정만큼 HUD가 커지므로 비워 둘 자리도 같이 커진다.
+            canvasScale *= UI.Theme.UITheme.HudScale;
+            float top = TopHudPixels * canvasScale / screenHeight;
+            bool preparation = GameManager.Instance != null &&
+                               GameManager.Instance.gameState == BaseEnums.GameState.Preparation;
+            float bottom = (preparation ? BottomHudPixelsPreparation : BottomHudPixelsBattle) * canvasScale / screenHeight;
+            float side = SideHudPixels * canvasScale / screenWidth;
+
+            float usableHeight = Mathf.Max(0.3f, 1f - top - bottom);
+            float usableWidth = Mathf.Max(0.3f, 1f - side * 2f);
             float aspect = camera.aspect > 0f ? camera.aspect : 16f / 9f;
 
-            camera.orthographicSize = Mathf.Max(height * 0.5f, width * 0.5f / aspect);
-            camera.transform.position = new Vector3(
-                (minX + maxX) * 0.5f, (minY + maxY) * 0.5f, camera.transform.position.z);
+            float viewHeight = Mathf.Max((maxY - minY) / usableHeight, (maxX - minX) / usableWidth / aspect);
+            camera.orthographicSize = viewHeight * 0.5f;
+
+            // 전장을 HUD 사이 빈 영역의 가운데에 둔다. 화면 아래 bottom 비율만큼 비우고,
+            // 남은 영역에서 전장이 세로 가운데에 오도록 카메라 중심을 잡는다.
+            float freeCenter = (bottom + (1f - top)) * 0.5f;          // 빈 영역 중심(화면 비율)
+            float contentCenter = (minY + maxY) * 0.5f;
+            float cameraY = contentCenter + (0.5f - freeCenter) * viewHeight;
+            camera.transform.position = new Vector3(cameraX, cameraY, camera.transform.position.z);
         }
+
+        /// <summary>지금 전장에 선 칸 중 가장 큰 카드 배율. 보스 단독 편성에서 1.5가 된다.</summary>
+        private float _largestFeatureScale = 1f;
 
         /// <summary>
         /// 한 진영이 화면에서 차지하는 영역(월드 좌표). 시전자와 떨어진 지점에서
@@ -730,7 +853,9 @@ namespace Managers
                 unitObj = Instantiate(heroPrefab, cell.transform.position, Quaternion.identity);
                 unitObj.name = $"Hero_{unitId}";
             }
-            unitObj.transform.SetParent(cell.transform);
+            // 기본 준비 화면에서는 빈 셀 GameObject가 꺼져 있을 수 있다. 그 아래에 잠깐이라도
+            // 붙이면 새 유닛이 OnDisable/OnEnable을 왕복하므로, 실제 수명 부모에 바로 붙인다.
+            unitObj.transform.SetParent(isBench ? Bench : Field);
             
             // Assign unit to cell
             cell.isOccupied = true;
@@ -740,18 +865,6 @@ namespace Managers
             Unit unitComponent = unitObj.GetComponent<Unit>();
             if (unitComponent != null)
             {
-                // Set parent based on location
-                if (isBench)
-                {
-                    // 벤치 유닛은 Bench를 부모로 설정
-                    unitObj.transform.SetParent(Bench);
-                }
-                else
-                {
-                    // 필드 유닛은 Field를 부모로 설정
-                    unitObj.transform.SetParent(Field);
-                }
-                
                 // Add to appropriate list
                 if (isEnemy)
                 {
@@ -974,9 +1087,7 @@ namespace Managers
                     
                     // 유닛의 위치를 셀 위치로 설정
                     unit.transform.position = cell.transform.position;
-                    unit.transform.SetParent(cell.transform);
-                    
-                    // 유닛의 부모를 벤치로 설정
+                    // 빈 벤치 셀은 숨겨져 있을 수 있으므로 셀 자식으로 잠깐 붙이지 않는다.
                     unit.transform.SetParent(Bench);
                     
                     // 유닛을 활성화

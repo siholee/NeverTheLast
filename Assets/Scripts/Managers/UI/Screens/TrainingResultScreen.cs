@@ -91,12 +91,16 @@ namespace Managers.UI.Screens
 
                 _rowKeys[i] = UIBuild.Text($"Key{i}", block, "", UITheme.FontCaption, UITheme.TextMuted);
                 UIBuild.Anchor(_rowKeys[i].rectTransform,
-                    new Vector2(0.34f, top - 0.24f), new Vector2(0.70f, top));
+                    new Vector2(0.34f, top - 0.24f), new Vector2(0.58f, top));
 
                 _rowValues[i] = UIBuild.Text($"Value{i}", block, "", UITheme.FontBody,
                     UITheme.TextPrimary, TextAlignmentOptions.MidlineRight);
                 UIBuild.Anchor(_rowValues[i].rectTransform,
-                    new Vector2(0.70f, top - 0.24f), new Vector2(1f, top), 8f, 0f);
+                    new Vector2(0.58f, top - 0.24f), new Vector2(1f, top), 16f, 0f);
+                // 체력 변화처럼 "-14 (남은 86)"보다 긴 값도 작은 창에서 한 줄로 보인다.
+                _rowValues[i].enableAutoSizing = true;
+                _rowValues[i].fontSizeMin = UITheme.FontCaption;
+                _rowValues[i].fontSizeMax = UITheme.FontBody;
             }
         }
 
@@ -151,7 +155,7 @@ namespace Managers.UI.Screens
             bool failed = result.Failed;
 
             _verdictPanel.sprite = UIShapes.CutCorner(12,
-                failed ? new Color(0.180f, 0.075f, 0.078f, 0.98f) : new Color(0.075f, 0.145f, 0.098f, 0.98f),
+                failed ? new Color(0.992f, 0.941f, 0.945f, 1f) : new Color(0.925f, 0.976f, 0.949f, 1f),
                 UIShapes.Corner.Diagonal,
                 failed ? UITheme.Danger : UITheme.Positive, 2);
 

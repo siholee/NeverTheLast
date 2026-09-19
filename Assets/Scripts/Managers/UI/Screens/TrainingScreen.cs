@@ -80,6 +80,13 @@ namespace Managers.UI.Screens
 
         protected override void Build()
         {
+            // 명시적인 뒤로 가기. 머리 오른쪽 위 — 모달 제목과 같은 줄이다.
+            Button back = UIBuild.Button("Back", Body.parent, "돌아가기  <size=70%>ESC</size>",
+                () => GameManager.Instance?.CancelTrainingFromPreparation(), false, UITheme.FontBody);
+            back.GetComponentInChildren<TextMeshProUGUI>().richText = true;
+            UIBuild.Pin(back.image.rectTransform, new Vector2(1f, 1f), new Vector2(170f, 42f),
+                new Vector2(-UITheme.PanelPad, -18f));
+
             BuildTopStrip();
             BuildDetailPanel();
             BuildMainColumn();
@@ -103,6 +110,13 @@ namespace Managers.UI.Screens
             }
 
             Refresh();
+        }
+
+        /// <summary>ESC는 [돌아가기]와 같다. 준비 행동을 쓰지 않고 준비 페이즈로 돌아간다.</summary>
+        protected override bool OnEscape()
+        {
+            GameManager.Instance?.CancelTrainingFromPreparation();
+            return true;
         }
 
         /// <summary>처음 열릴 때는 메인의 주스탯을 골라 둔다.</summary>
@@ -132,7 +146,7 @@ namespace Managers.UI.Screens
                 UITheme.FontMicro, UITheme.TextMuted);
             UIBuild.Anchor(energyCaption.rectTransform, new Vector2(0.24f, 0.55f), new Vector2(0.40f, 1f));
 
-            Image track = UIBuild.Bar("Energy", strip, UITheme.Hp, new Color(1f, 1f, 1f, 0.07f));
+            Image track = UIBuild.Bar("Energy", strip, UITheme.Hp, UITheme.Track);
             _energyFill = track;
             var energyTrack = (RectTransform)track.rectTransform.parent;
             UIBuild.Anchor(energyTrack, new Vector2(0.24f, 0.16f), new Vector2(0.55f, 0.5f));
@@ -298,7 +312,8 @@ namespace Managers.UI.Screens
             UIBuild.Anchor(label.rectTransform, new Vector2(0f, 0.42f), new Vector2(1f, 0.92f));
 
             _decideHint = UIBuild.Text("Hint", decide.transform, "", UITheme.FontMicro,
-                new Color(0.071f, 0.071f, 0.071f, 0.62f), TextAlignmentOptions.Center);
+                new Color(UITheme.TextOnAccent.r, UITheme.TextOnAccent.g, UITheme.TextOnAccent.b, 0.72f),
+                TextAlignmentOptions.Center);
             UIBuild.Anchor(_decideHint.rectTransform, new Vector2(0f, 0.10f), new Vector2(1f, 0.42f));
         }
 

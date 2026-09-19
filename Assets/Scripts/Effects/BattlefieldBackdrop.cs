@@ -5,15 +5,14 @@ using UnityEngine;
 namespace Effects
 {
     /// <summary>
-    /// 전장 뒤에 테마 환경광을 깐다.
+    /// 전장 뒤에 밝은 아이보리·쿨 틸 환경광을 깐다.
     ///
     /// 완전한 검정 배경은 카드 대비에는 가장 유리하지만, <b>어디서 싸우는지</b>가 사라진다.
     /// 로마 군단도 공허 얼음도 같은 검은 방에서 싸우는 것처럼 보인다.
     ///
-    /// 그래서 명도를 아주 낮게 유지한 채 세 겹만 깐다.
-    ///   · 하늘 — 위는 거의 검고 아래로 갈수록 테마 색이 밴다
-    ///   · 바닥 — 사선 빗금이 아주 옅게 깔려 평면이 바닥으로 읽힌다
-    ///   · 광원 — 전장 가운데에 넓고 부드러운 빛 웅덩이
+    ///   · 하늘 — 아이보리 바탕 위에 아래로 갈수록 쿨 틸 대기가 밴다
+    ///   · 바닥 — 전열/후열을 암시하는 얇은 레인 마커만 남긴다
+    ///   · 광원 — 전장 가운데에 넓고 부드러운 백색 빛 웅덩이
     ///
     /// 세 겹 모두 카드보다 훨씬 뒤에 그린다. 적 실루엣은 아래쪽이 밝아진 만큼 또렷해진다.
     /// </summary>
@@ -24,7 +23,10 @@ namespace Effects
         private const int BackdropSortingOrder = -900;
 
         /// <summary>환경광이 실제로 화면에 얹히는 최대 세기. 넘기면 카드 대비가 무너진다.</summary>
-        private const float MaxAmbientAlpha = 0.30f;
+        private const float MaxAmbientAlpha = 0.42f;
+
+        private static readonly Color Ivory = new(0.955f, 0.945f, 0.895f, 1f);
+        private static readonly Color CoolTeal = new(0.33f, 0.68f, 0.68f, 1f);
 
         private static BattlefieldBackdrop _instance;
 
@@ -53,6 +55,11 @@ namespace Effects
         private void Awake()
         {
             _camera = GetComponent<Camera>();
+            if (_camera != null)
+            {
+                _camera.clearFlags = CameraClearFlags.SolidColor;
+                _camera.backgroundColor = Ivory;
+            }
             Build();
         }
 
@@ -87,14 +94,15 @@ namespace Effects
             return _fade;
         }
 
-        /// <summary>아주 옅은 사선 빗금. 평면이 '바닥'으로 읽히게 하는 결이다.</summary>
+        /// <summary>아주 옅은 수평 레인. 검은 칸 없이도 전열/후열의 흐름을 읽게 한다.</summary>
         private static Sprite Hatch()
         {
             if (_hatch != null) return _hatch;
 
             const int width = 256;
             const int height = 128;
-            const int period = 24;
+            const int rowPeriod = 32;
+            const int columnPeriod = 64;
 
             var pixels = new Color[width * height];
             for (int y = 0; y < height; y++)
@@ -103,9 +111,12 @@ namespace Effects
                 float depth = Mathf.Pow(1f - y / (float)(height - 1), 1.6f);
                 for (int x = 0; x < width; x++)
                 {
-                    int phase = (x + y) % period;
-                    float line = phase < 2 ? 1f - phase * 0.5f : 0f;
-                    pixels[y * width + x] = new Color(1f, 1f, 1f, line * depth);
+                    int rowPhase = y % rowPeriod;
+                    int columnPhase = x % columnPeriod;
+                    float row = rowPhase < 2 ? 1f - rowPhase * 0.5f : 0f;
+                    float column = columnPhase == 0 ? 0.28f : 0f;
+                    pixels[y * width + x] = new Color(1f, 1f, 1f,
+                        Mathf.Max(row, column) * depth);
                 }
             }
 
@@ -181,14 +192,15 @@ namespace Effects
             if (themeId == _appliedThemeId) return;
 
             _appliedThemeId = themeId;
-            Color ambient = rounds?.CurrentThemeAmbient ?? new Color(0.13f, 0.15f, 0.20f);
+            Color ambient = rounds?.CurrentThemeAmbient ?? CoolTeal;
+            Color themedTeal = Color.Lerp(CoolTeal, ambient, 0.22f);
 
             // 하늘은 아래가 진하다. VerticalFade가 아래로 갈수록 알파를 올려 둔다.
-            _sky.color = new Color(ambient.r, ambient.g, ambient.b, MaxAmbientAlpha);
-            _floor.color = new Color(ambient.r, ambient.g, ambient.b, 0.13f);
+            _sky.color = new Color(themedTeal.r, themedTeal.g, themedTeal.b, MaxAmbientAlpha);
+            _floor.color = new Color(0.12f, 0.40f, 0.42f, 0.14f);
             // 웅덩이는 색을 한 번 더 밝혀 빛으로 읽히게 한다.
-            Color glow = Color.Lerp(ambient, Color.white, 0.25f);
-            _pool.color = new Color(glow.r, glow.g, glow.b, 0.18f);
+            Color glow = Color.Lerp(themedTeal, Color.white, 0.82f);
+            _pool.color = new Color(glow.r, glow.g, glow.b, 0.34f);
         }
     }
 }

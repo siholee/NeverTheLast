@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace Managers.UI.HUD
 {
     /// <summary>
-    /// 우상단 상태 바. 왼쪽부터 순서대로:
+    /// 화면 상단을 한 줄로 묶는 탐색/상태 헤더. 왼쪽부터 순서대로:
     /// [라운드 1-1 + 진행 원형게이지] · [앞으로 나올 적 예고] · [배속] [인벤] [설정]
     ///
     /// 진행 예고는 TFT의 라운드 트랙을 따른다. 이 게임은 적이 스테이지 시작 시 한 번에
@@ -20,8 +20,7 @@ namespace Managers.UI.HUD
         private const int PreviewSlots = 6;
         private const float SlotSize = 26f;
         private const float SlotGap = 5f;
-        private const float ButtonSize = 44f;
-        private const float BarHeight = 56f;
+        private const float BarHeight = 96f;
 
         private readonly RectTransform _root;
         private readonly TextMeshProUGUI _roundLabel;
@@ -36,63 +35,62 @@ namespace Managers.UI.HUD
         public TopStatusBar(Transform parent, Action onSpeed, Action onCodex, Action onSettings)
         {
             _root = UIBuild.Container("TopStatusBar", parent);
-            UIBuild.Pin(_root, new Vector2(1f, 1f), new Vector2(760f, BarHeight),
-                new Vector2(-20f, -20f));
+            _root.anchorMin = new Vector2(0.015f, 1f);
+            _root.anchorMax = new Vector2(0.985f, 1f);
+            _root.pivot = new Vector2(0.5f, 1f);
+            _root.sizeDelta = new Vector2(0f, BarHeight);
+            _root.anchoredPosition = new Vector2(0f, -18f);
 
-            // ── 오른쪽 끝: 버튼 3개 (설정 ← 인벤 ← 배속 순으로 붙인다) ──
-            float cursor = 0f;
-            Button settings = UIBuild.IconButton("SettingsButton", _root, "≡", onSettings);
-            UIBuild.Pin(settings.image.rectTransform, new Vector2(1f, 0.5f),
-                new Vector2(ButtonSize, ButtonSize), new Vector2(cursor, 0f));
-            cursor -= ButtonSize + 6f;
+            Image background = UIBuild.Panel("HeaderBand", _root, UITheme.HudBar,
+                UIShapes.Corner.Diagonal, 10, UITheme.Outline, 1);
+            UIBuild.Stretch(background.rectTransform);
 
-            Button codex = UIBuild.IconButton("CodexButton", _root, "▤", onCodex);
-            UIBuild.Pin(codex.image.rectTransform, new Vector2(1f, 0.5f),
-                new Vector2(ButtonSize, ButtonSize), new Vector2(cursor, 0f));
+            // ── 오른쪽: 진행 예고 + 손가락으로 누르기 충분한 3개 조작 ──
+            RectTransform right = UIBuild.Container("Navigation", _root);
+            UIBuild.Anchor(right, new Vector2(0.62f, 0f), new Vector2(0.99f, 1f), 8f, 8f);
+
+            Button settings = UIBuild.IconButton("SettingsButton", right, "메뉴", onSettings);
+            UIBuild.Anchor(settings.image.rectTransform, new Vector2(0.84f, 0.12f), new Vector2(1f, 0.88f), 3f, 3f);
+
+            Button codex = UIBuild.IconButton("CodexButton", right, "파티", onCodex);
+            UIBuild.Anchor(codex.image.rectTransform, new Vector2(0.68f, 0.12f), new Vector2(0.835f, 0.88f), 3f, 3f);
             // TAB으로도 열리는 화면이므로 버튼에 키 힌트를 겹쳐 표시한다.
             TextMeshProUGUI hint = UIBuild.Text("KeyHint", codex.transform, "TAB",
                 UITheme.FontMicro, UITheme.TextMuted, TextAlignmentOptions.Center);
-            UIBuild.Pin(hint.rectTransform, new Vector2(0.5f, 0f), new Vector2(ButtonSize, 12f),
-                new Vector2(0f, -2f));
-            cursor -= ButtonSize + 6f;
+            UIBuild.Anchor(hint.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.25f));
 
-            Button speed = UIBuild.IconButton("SpeedButton", _root, "", onSpeed);
-            UIBuild.Pin(speed.image.rectTransform, new Vector2(1f, 0.5f),
-                new Vector2(ButtonSize, ButtonSize), new Vector2(cursor, 0f));
+            Button speed = UIBuild.IconButton("SpeedButton", right, "", onSpeed);
+            UIBuild.Anchor(speed.image.rectTransform, new Vector2(0.52f, 0.12f), new Vector2(0.675f, 0.88f), 3f, 3f);
             _speedLabel = UIBuild.Text("SpeedLabel", speed.transform, "1×", UITheme.FontHeading,
                 UITheme.TextPrimary, TextAlignmentOptions.Center);
             UIBuild.Stretch(_speedLabel.rectTransform);
-            cursor -= ButtonSize + 14f;
 
             // ── 가운데: 진행 예고 칸 ──
-            var previewRoot = UIBuild.Container("StagePreview", _root);
+            var previewRoot = UIBuild.Container("StagePreview", right);
             float previewWidth = PreviewSlots * SlotSize + (PreviewSlots - 1) * SlotGap;
-            UIBuild.Pin(previewRoot, new Vector2(1f, 0.5f), new Vector2(previewWidth, SlotSize),
-                new Vector2(cursor, -4f));
+            UIBuild.Pin(previewRoot, new Vector2(0f, 0.5f), new Vector2(previewWidth, SlotSize),
+                new Vector2(4f, -7f));
 
             for (int i = 0; i < PreviewSlots; i++)
             {
                 _slots.Add(new Slot(previewRoot, i));
             }
 
-            TextMeshProUGUI previewCaption = UIBuild.Label("PreviewCaption", previewRoot, "NEXT",
+            TextMeshProUGUI previewCaption = UIBuild.Label("PreviewCaption", previewRoot, "진행 예고",
                 UITheme.FontMicro, UITheme.TextMuted);
             UIBuild.Pin(previewCaption.rectTransform, new Vector2(0f, 1f), new Vector2(60f, 12f),
                 new Vector2(0f, 14f));
 
-            cursor -= previewWidth + 16f;
-
             // ── 왼쪽: 라운드 표시 + 진행 원형게이지 ──
             var roundBlock = UIBuild.Panel("RoundBlock", _root, UITheme.HudBar,
                 UIShapes.Corner.Diagonal, 8);
-            UIBuild.Pin(roundBlock.rectTransform, new Vector2(1f, 0.5f),
-                new Vector2(190f, BarHeight), new Vector2(cursor, 0f));
+            UIBuild.Anchor(roundBlock.rectTransform, new Vector2(0.01f, 0.08f), new Vector2(0.28f, 0.92f), 4f, 4f);
 
             // 원형 게이지: 남은 시간이 시계방향으로 줄어든다.
             _timerRing = UIBuild.RadialBar("Timer", roundBlock.transform, UITheme.Accent,
-                new Color(1f, 1f, 1f, 0.12f), 96, 0.74f);
+                UITheme.Track, 96, 0.74f);
             RectTransform ringTrack = _timerRing.rectTransform.parent as RectTransform;
-            UIBuild.Pin(ringTrack, new Vector2(0f, 0.5f), new Vector2(40f, 40f), new Vector2(9f, 0f));
+            UIBuild.Pin(ringTrack, new Vector2(0f, 0.5f), new Vector2(56f, 56f), new Vector2(12f, 0f));
 
             _timerLabel = UIBuild.Text("TimerText", ringTrack, "", UITheme.FontCaption,
                 UITheme.TextSecondary, TextAlignmentOptions.Center);
@@ -101,12 +99,12 @@ namespace Managers.UI.HUD
             _roundLabel = UIBuild.Text("RoundLabel", roundBlock.transform, "1-1",
                 UITheme.FontTitle, UITheme.TextPrimary);
             UIBuild.Anchor(_roundLabel.rectTransform, new Vector2(0f, 0.46f), new Vector2(1f, 1f), 0f, 0f);
-            _roundLabel.rectTransform.offsetMin = new Vector2(56f, _roundLabel.rectTransform.offsetMin.y);
+            _roundLabel.rectTransform.offsetMin = new Vector2(78f, _roundLabel.rectTransform.offsetMin.y);
 
             _themeLabel = UIBuild.Text("ThemeLabel", roundBlock.transform, "",
                 UITheme.FontMicro, UITheme.TextMuted);
             UIBuild.Anchor(_themeLabel.rectTransform, new Vector2(0f, 0.06f), new Vector2(1f, 0.46f), 0f, 0f);
-            _themeLabel.rectTransform.offsetMin = new Vector2(56f, _themeLabel.rectTransform.offsetMin.y);
+            _themeLabel.rectTransform.offsetMin = new Vector2(78f, _themeLabel.rectTransform.offsetMin.y);
             _themeLabel.overflowMode = TextOverflowModes.Ellipsis;
         }
 

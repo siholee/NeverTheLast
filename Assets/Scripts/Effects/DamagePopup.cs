@@ -78,7 +78,9 @@ namespace Effects
             {
                 if (_fontSearched) return _font;
                 _fontSearched = true;
-                _font = Resources.Load<TMP_FontAsset>("Font/NotoSansKR-VariableFont_wght SDF")
+                _font = Resources.Load<TMP_FontAsset>("Font/Maplestory Light SDF")
+                        ?? Resources.Load<TMP_FontAsset>("Font/NotoSansKR-Regular SDF")
+                        ?? Resources.Load<TMP_FontAsset>("Font/NotoSansKR-VariableFont_wght SDF")
                         ?? TMP_Settings.defaultFontAsset;
                 return _font;
             }

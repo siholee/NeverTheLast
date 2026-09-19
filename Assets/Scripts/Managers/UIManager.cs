@@ -29,6 +29,7 @@ namespace Managers
         private readonly TrainingResultScreen _trainingResult = new();
         private readonly CharacterSelectScreen _characterSelect = new();
         private readonly EventScreen _event = new();
+        private readonly BattleResultScreen _battleResult = new();
 
         private BattleHud Hud => _hud != null ? _hud : _hud = BattleHud.Create();
 
@@ -113,6 +114,19 @@ namespace Managers
             _preparation.Hide();
         }
 
+        // ── 전투 결과 ────────────────────────────────────────────────
+
+        /// <summary>전투 정산 화면. 확인을 누르면 <paramref name="onContinue"/>가 다음 단계를 이어 간다.</summary>
+        public void ShowBattleResult(BattleResultData result, System.Action onContinue)
+        {
+            _battleResult.Show(result, onContinue);
+        }
+
+        public void HideBattleResult()
+        {
+            _battleResult.Hide();
+        }
+
         // ── 보상 ─────────────────────────────────────────────────────
 
         public void ShowRewardPanel(List<RewardDef> rewards)
@@ -195,6 +209,7 @@ namespace Managers
         {
             _event.Tick(Time.deltaTime);
             _characterSelect.Tick();
+            _battleResult.Tick();
         }
 
         public void ShowEventStagePanel(StageEventData eventData, int dialogueIndex)
@@ -241,9 +256,21 @@ namespace Managers
         /// </summary>
         public void HandleEscape()
         {
-            if (_settingsUI != null && _settingsUI.IsOpen) _settingsUI.Close();
-            else if (_wiki.IsVisible) _wiki.Hide();
-            else PauseMenu.Toggle();
+            if (_settingsUI != null && _settingsUI.IsOpen)
+            {
+                _settingsUI.Close();
+                return;
+            }
+
+            // 떠 있는 창 중 가장 위의 것부터 닫는다(자료실 → 메뉴 → 확인 → 상점·스킬·훈련).
+            // 캐릭터 창이 떠 있으면 그 아래 층 창은 건드리지 않고 예전처럼 메뉴를 그 위에 띄운다.
+            int floor = _hud != null && _hud.IsCodexOpen ? UI.Theme.UITheme.LayerMenu : int.MinValue;
+            if (ModalScreen.TryEscapeTop(floor)) return;
+
+            // 덱 구성 모드는 창이 아니지만 입력을 바꾸는 모드다. ESC로 빠져나올 수 있어야 한다.
+            if (floor == int.MinValue && _preparation.TryExitDeckMode()) return;
+
+            PauseMenu.Toggle();
         }
 
         private PauseMenuScreen _pauseMenu;

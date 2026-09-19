@@ -23,6 +23,8 @@ namespace Managers
         // 드래그 중인 유닛의 시각적 표현
         private GameObject dragPreview = null;
         private SpriteRenderer dragPreviewRenderer = null;
+        private Vector2 dragScreenPosition;
+        private bool hasExternalPointer;
         
         private void Awake()
         {
@@ -51,6 +53,17 @@ namespace Managers
         
         public void StartDrag(Cell cell)
         {
+            StartDrag(cell, default, false);
+        }
+
+        /// <summary>터치 등 외부 포인터의 현재 화면 좌표로 드래그를 시작한다.</summary>
+        public void StartDrag(Cell cell, Vector2 screenPosition)
+        {
+            StartDrag(cell, screenPosition, true);
+        }
+
+        private void StartDrag(Cell cell, Vector2 screenPosition, bool externalPointer)
+        {
             if (cell == null || !cell.isOccupied || cell.unit == null) return;
             
             Unit unit = cell.unit.GetComponent<Unit>();
@@ -70,6 +83,8 @@ namespace Managers
             isDragging = true;
             draggedUnit = unit;
             sourceCell = cell;
+            hasExternalPointer = externalPointer;
+            if (externalPointer) dragScreenPosition = screenPosition;
             
             // 드래그 프리뷰 설정 및 활성화
             SetupDragPreview(unit);
@@ -80,10 +95,15 @@ namespace Managers
         
         public void EndDrag()
         {
+            EndDrag(CurrentPointerPosition());
+        }
+
+        public void EndDrag(Vector2 screenPosition)
+        {
             if (!isDragging || draggedUnit == null) return;
-            
-            Vector2 mousePosition = Input.mousePosition;
-            Vector3 worldPosition = mainCamera.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, -mainCamera.transform.position.z));
+
+            dragScreenPosition = screenPosition;
+            Vector3 worldPosition = mainCamera.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y, -mainCamera.transform.position.z));
             
             // 레이캐스트로 드롭 대상 셀 찾기
             RaycastHit2D hit = Physics2D.Raycast(worldPosition, Vector2.zero, Mathf.Infinity, cellLayerMask);
@@ -97,6 +117,26 @@ namespace Managers
                 }
             }
             
+            FinishDrag();
+        }
+
+        /// <summary>OS가 터치를 취소했거나 모달 UI 위에서 놓았을 때 이동 없이 원상 복구한다.</summary>
+        public void CancelDrag()
+        {
+            if (!isDragging) return;
+            FinishDrag();
+        }
+
+        public void UpdateDragPointer(Vector2 screenPosition)
+        {
+            if (!isDragging) return;
+            hasExternalPointer = true;
+            dragScreenPosition = screenPosition;
+            MoveDragPreview(screenPosition);
+        }
+
+        private void FinishDrag()
+        {
             // 드래그 프리뷰 숨기기 및 원본 유닛 복원
             HideDragPreview();
             if (draggedUnit != null)
@@ -108,6 +148,7 @@ namespace Managers
             isDragging = false;
             draggedUnit = null;
             sourceCell = null;
+            hasExternalPointer = false;
         }
         
         private void Update()
@@ -115,11 +156,26 @@ namespace Managers
             // 드래그 중일 때 프리뷰를 마우스 위치로 이동
             if (isDragging && dragPreview != null)
             {
-                Vector3 mousePosition = Input.mousePosition;
-                mousePosition.z = -mainCamera.transform.position.z; // 카메라로부터의 거리 설정
-                Vector3 worldPosition = mainCamera.ScreenToWorldPoint(mousePosition);
-                dragPreview.transform.position = worldPosition;
+                MoveDragPreview(CurrentPointerPosition());
             }
+        }
+
+        private void MoveDragPreview(Vector2 screenPosition)
+        {
+            if (mainCamera == null || dragPreview == null) return;
+            Vector3 point = new(screenPosition.x, screenPosition.y, -mainCamera.transform.position.z);
+            dragPreview.transform.position = mainCamera.ScreenToWorldPoint(point);
+        }
+
+        private Vector2 CurrentPointerPosition()
+        {
+            if (hasExternalPointer) return dragScreenPosition;
+#if ENABLE_INPUT_SYSTEM
+            UnityEngine.InputSystem.Mouse mouse = UnityEngine.InputSystem.Mouse.current;
+            return mouse != null ? mouse.position.ReadValue() : Vector2.zero;
+#else
+            return Input.mousePosition;
+#endif
         }
         
         private void HandleDrop(Cell targetCell)

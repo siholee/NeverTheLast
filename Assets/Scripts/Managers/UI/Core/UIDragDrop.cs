@@ -41,7 +41,7 @@ namespace Managers.UI.Core
         public void OnPointerDown(PointerEventData eventData)
         {
             if (Payload == null) return;
-            UIDragRuntime.Arm(this, eventData.position);
+            UIDragRuntime.Arm(this, eventData.position, eventData.pointerId);
         }
     }
 
@@ -117,6 +117,8 @@ namespace Managers.UI.Core
         private static UIDragRuntime _instance;
         private static UIDragSource _armed;
         private static Vector2 _armedAt;
+        private static Vector2 _lastPointer;
+        private static int _pointerId;
 
         public static object Payload { get; private set; }
 
@@ -127,11 +129,13 @@ namespace Managers.UI.Core
         private static readonly List<RaycastResult> Hits = new();
 
         /// <summary>눌렸다. 아직 끌기는 아니다 — 문턱을 넘어야 시작한다.</summary>
-        internal static void Arm(UIDragSource source, Vector2 screenPoint)
+        internal static void Arm(UIDragSource source, Vector2 screenPoint, int pointerId)
         {
             EnsureInstance();
             _armed = source;
             _armedAt = screenPoint;
+            _lastPointer = screenPoint;
+            _pointerId = pointerId;
         }
 
         private static void EnsureInstance()
@@ -145,8 +149,9 @@ namespace Managers.UI.Core
 
         private void Update()
         {
-            Vector2 pointer = Input.mousePosition;
-            bool held = Input.GetMouseButton(0);
+            bool held = TryReadPointer(_pointerId, out Vector2 pointer);
+            if (held) _lastPointer = pointer;
+            else pointer = _lastPointer;
 
             if (Payload == null)
             {
@@ -159,7 +164,8 @@ namespace Managers.UI.Core
                     return;
                 }
 
-                if ((pointer - _armedAt).sqrMagnitude < DragThreshold * DragThreshold) return;
+                float threshold = _pointerId >= 0 ? DragThreshold * 2f : DragThreshold;
+                if ((pointer - _armedAt).sqrMagnitude < threshold * threshold) return;
 
                 StartDrag(pointer);
                 return;
@@ -167,6 +173,56 @@ namespace Managers.UI.Core
 
             MoveGhost(pointer);
             if (!held) Drop(pointer);
+        }
+
+        private static bool TryReadPointer(int pointerId, out Vector2 position)
+        {
+#if ENABLE_INPUT_SYSTEM
+            if (pointerId >= 0)
+            {
+                UnityEngine.InputSystem.Touchscreen screen = UnityEngine.InputSystem.Touchscreen.current;
+                if (screen != null)
+                {
+                    foreach (UnityEngine.InputSystem.Controls.TouchControl touch in screen.touches)
+                    {
+                        if (!touch.press.isPressed || touch.touchId.ReadValue() != pointerId) continue;
+                        position = touch.position.ReadValue();
+                        return true;
+                    }
+
+                    // 입력 모듈의 포인터 ID가 기기의 touchId와 다를 수 있어 활성 주 터치를 보조로 쓴다.
+                    if (screen.primaryTouch.press.isPressed)
+                    {
+                        position = screen.primaryTouch.position.ReadValue();
+                        return true;
+                    }
+                }
+
+                position = _armedAt;
+                return false;
+            }
+
+            UnityEngine.InputSystem.Mouse mouse = UnityEngine.InputSystem.Mouse.current;
+            position = mouse != null ? mouse.position.ReadValue() : Vector2.zero;
+            return mouse != null && mouse.leftButton.isPressed;
+#else
+            if (pointerId >= 0)
+            {
+                for (int i = 0; i < Input.touchCount; i++)
+                {
+                    Touch touch = Input.GetTouch(i);
+                    if (touch.fingerId != pointerId) continue;
+                    position = touch.position;
+                    return touch.phase != TouchPhase.Ended && touch.phase != TouchPhase.Canceled;
+                }
+
+                position = _armedAt;
+                return false;
+            }
+
+            position = Input.mousePosition;
+            return Input.GetMouseButton(0);
+#endif
         }
 
         private static void StartDrag(Vector2 pointer)

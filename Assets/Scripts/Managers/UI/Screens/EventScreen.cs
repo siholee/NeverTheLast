@@ -14,7 +14,7 @@ namespace Managers.UI.Screens
     ///
     /// 레이아웃은 블루 아카이브식이다 — 스탠딩이 좌우에 서고, 화면 아래를 가로지르는
     /// 넓은 대사 상자가 깔리며, 이름표가 그 상자 위 왼쪽에 걸친다.
-    /// 색과 톤은 나머지 화면과 같은 명일방주 계열이다(무채색 면 + 헤어라인 + 앰버 하나).
+    /// 색과 톤은 나머지 화면과 같은 밝은 웹 앱 계열이다(백색 카드 + 헤어라인 + 딥 틸 하나).
     ///
     /// 말하지 않는 쪽은 어둡게 눌러 뒤로 물린다. 이름표를 읽지 않아도
     /// <b>누가 말하는지가 밝기로 먼저 읽히는</b> 것이 이 배치의 핵심이다.
@@ -42,16 +42,11 @@ namespace Managers.UI.Screens
         private const float StandHeight = 1000f;
         private const float StandCenterX = 520f; // 화면 바깥쪽 끝에서 잰 스탠딩 중심
 
-        /// <summary>
-        /// 빗금 색. <b>흰색 + 낮은 알파를 쓰면 안 된다.</b>
-        /// 선형 색공간에서 렌더링하므로 거의 검정인 배경 위에 알파 2%짜리 흰색을 얹으면
-        /// sRGB로 되돌아올 때 밝기가 서너 배로 튀어 의도보다 훨씬 진하게 보인다.
-        /// 면 색보다 한 단계만 밝은 <b>불투명</b> 회색을 쓰면 계산이 어긋날 일이 없다.
-        /// </summary>
-        private static readonly Color StripeInk = new(0.086f, 0.090f, 0.098f, 1f);
+        private static readonly Color PagePaper = new(0.957f, 0.969f, 0.973f, 1f);
+        private static readonly Color StripeInk = new(0.047f, 0.451f, 0.404f, 0.08f);
 
         /// <summary>말하지 않는 쪽에 곱하는 색. 밝기를 3분의 1로 눌러 뒤로 보낸다.</summary>
-        private static readonly Color StandDim = new(0.34f, 0.36f, 0.38f, 0.85f);
+        private static readonly Color StandDim = new(0.62f, 0.65f, 0.66f, 0.82f);
         private static readonly Color StandLit = Color.white;
 
         private GameObject _root;
@@ -124,7 +119,7 @@ namespace Managers.UI.Screens
 
         private static void BuildBackdrop(Transform root)
         {
-            Image background = UIBuild.Solid("Background", root, new Color(0.039f, 0.043f, 0.047f, 1f));
+            Image background = UIBuild.Solid("Background", root, PagePaper);
             UIBuild.Stretch(background.rectTransform);
 
             Image stripes = UIBuild.Solid("TopStripes", root, Color.white);
@@ -144,12 +139,12 @@ namespace Managers.UI.Screens
             _leftStand = MakeStanding(root, "LeftStanding", -1);
             _rightStand = MakeStanding(root, "RightStanding", 1);
 
-            // 발치를 화면에 녹이는 암전. 대사 상자와 인물 사이의 경계를 지운다.
+            // 발치를 밝은 페이지에 녹이는 페이드. 대사 상자와 인물 사이의 경계를 지운다.
             var fadeGo = new GameObject("BottomFade", typeof(RectTransform), typeof(Image));
             fadeGo.transform.SetParent(root, false);
             var fade = fadeGo.GetComponent<Image>();
             fade.sprite = UIShapes.VerticalGradient(64,
-                new Color(0.031f, 0.035f, 0.039f, 0f), new Color(0.031f, 0.035f, 0.039f, 1f));
+                new Color(PagePaper.r, PagePaper.g, PagePaper.b, 0f), PagePaper);
             fade.type = Image.Type.Simple;   // 1xN 스프라이트라 9-슬라이스가 없다
             fade.raycastTarget = false;
             fade.rectTransform.anchorMin = new Vector2(0f, 0f);
@@ -181,7 +176,8 @@ namespace Managers.UI.Screens
 
         private void BuildBox(Transform root)
         {
-            Image box = UIBuild.Panel("Box", root, new Color(0.043f, 0.051f, 0.063f, 0.92f),
+            Image box = UIBuild.Panel("Box", root,
+                new Color(UITheme.SurfaceRaised.r, UITheme.SurfaceRaised.g, UITheme.SurfaceRaised.b, 0.96f),
                 UIShapes.Corner.Diagonal, 16, UITheme.Outline, 1);
             box.raycastTarget = false;
             RectTransform rect = box.rectTransform;
@@ -203,15 +199,14 @@ namespace Managers.UI.Screens
             UIBuild.Pin(stripes.rectTransform, new Vector2(1f, 1f), new Vector2(280f, 150f),
                 new Vector2(-2f, -2f));
 
-            _body = UIBuild.Text("Body", box.transform, "", 26f, new Color(0.902f, 0.914f, 0.925f),
+            _body = UIBuild.Text("Body", box.transform, "", 26f, UITheme.TextPrimary,
                 TextAlignmentOptions.TopLeft, wrap: true);
             _body.lineSpacing = 22f;
             UIBuild.Stretch(_body.rectTransform);
             _body.rectTransform.offsetMin = new Vector2(40f, 44f);
             _body.rectTransform.offsetMax = new Vector2(-70f, -40f);
 
-            _progress = UIBuild.Label("Progress", box.transform, "", UITheme.FontMicro,
-                new Color(0.263f, 0.275f, 0.290f));
+            _progress = UIBuild.Label("Progress", box.transform, "", UITheme.FontMicro, UITheme.TextMuted);
             _progress.characterSpacing = 18f;
             UIBuild.Pin(_progress.rectTransform, new Vector2(0f, 0f), new Vector2(160f, 14f),
                 new Vector2(40f, 22f));
@@ -225,7 +220,7 @@ namespace Managers.UI.Screens
         /// <summary>이름표. 상자 윗변에 걸쳐 놓아 화자가 바뀐 것이 제일 먼저 보인다.</summary>
         private void BuildPlate(Transform root)
         {
-            Image plate = UIBuild.Panel("NamePlate", root, new Color(0.063f, 0.075f, 0.090f, 0.98f),
+            Image plate = UIBuild.Panel("NamePlate", root, UITheme.SurfaceRaised,
                 UIShapes.Corner.Diagonal, 12, UITheme.Outline, 1);
             plate.raycastTarget = false;
             _plate = plate.rectTransform;
@@ -274,7 +269,7 @@ namespace Managers.UI.Screens
         {
             Button button = UIBuild.Button(name, root, text, onClick, false, UITheme.FontCaption);
             button.image.sprite = UIShapes.CutCorner(8,
-                new Color(0.039f, 0.043f, 0.051f, 0.86f), UIShapes.Corner.Diagonal,
+                UITheme.SurfaceRaised, UIShapes.Corner.Diagonal,
                 UITheme.Outline, 1);
             UIBuild.Pin(button.image.rectTransform, new Vector2(1f, 1f), new Vector2(100f, 40f),
                 new Vector2(x, -48f));
@@ -561,7 +556,7 @@ namespace Managers.UI.Screens
                 string choiceId = choice.id;
 
                 Image frame = UIBuild.Panel($"Choice{i}", _choiceArea,
-                    new Color(0.043f, 0.051f, 0.063f, 0.94f), UIShapes.Corner.Diagonal, 12,
+                    UITheme.SurfaceRaised, UIShapes.Corner.Diagonal, 12,
                     UITheme.Accent, 1);
                 UIBuild.Pin(frame.rectTransform, new Vector2(0.5f, 0f), new Vector2(width, height),
                     new Vector2(0f, bottom + (choices.Count - 1 - i) * (height + gap)));
@@ -703,7 +698,7 @@ namespace Managers.UI.Screens
                 float y = gridBottom + (rows - 1 - row) * (cardHeight + gapY);
 
                 Image frame = UIBuild.Panel($"Leave{i}", _choiceArea,
-                    new Color(0.043f, 0.051f, 0.063f, 0.94f), UIShapes.Corner.Diagonal, 10,
+                    UITheme.SurfaceRaised, UIShapes.Corner.Diagonal, 10,
                     UITheme.Outline, 1);
                 UIBuild.Pin(frame.rectTransform, new Vector2(0.5f, 0f),
                     new Vector2(cardWidth, cardHeight), new Vector2(x, y));

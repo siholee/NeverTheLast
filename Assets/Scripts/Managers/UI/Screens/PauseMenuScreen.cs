@@ -15,9 +15,13 @@ namespace Managers.UI.Screens
     /// TAB 캐릭터 창과는 별개의 창이다. 캐릭터 창이 떠 있어도 ESC는 그것을 닫지 않고
     /// 그 <b>위에</b> 메뉴를 띄운다(<see cref="UITheme.LayerMenu"/>). 메뉴를 닫으면 캐릭터 창으로 돌아온다.
     ///
-    ///   저장 후 나가기 — 저장하고 메인 메뉴로
-    ///   나가기         — 저장하지 않고 메인 메뉴로
-    ///   바탕화면으로   — 저장하지 않고 게임 종료
+    ///   저장하고 메인 메뉴로   — 저장하고 메인 메뉴로
+    ///   저장 없이 메인 메뉴로  — 저장하지 않고 메인 메뉴로
+    ///   게임 종료             — 저장하지 않고 게임 종료
+    ///
+    /// 나가기 셋은 예전에 "저장 후 나가기 · 나가기 · 바탕화면으로 나가기"였다. 이름만으로는
+    /// 무엇이 저장되고 어디로 가는지 갈리지 않는다는 QA가 있어, 이름에 결과를 적고
+    /// 버튼 오른쪽에 한 줄 설명을 붙였다. "나가기" 묶음은 머리글로 따로 떼었다.
     ///
     /// 열려 있는 동안 시간을 멈춘다. 전투는 자동이라 메뉴를 보는 사이에 파티가 쓰러지면 안 된다.
     /// 저장은 <see cref="RunManager.CanSaveNow"/>가 허락하는 순간에만 된다 — 전투 중에 저장하면
@@ -32,12 +36,12 @@ namespace Managers.UI.Screens
 
         protected override string Title => "메뉴";
         protected override string Caption => "MENU";
-        protected override Vector2 AnchorMin => new(0.36f, 0.10f);
-        protected override Vector2 AnchorMax => new(0.64f, 0.90f);
+        protected override Vector2 AnchorMin => new(0.32f, 0.08f);
+        protected override Vector2 AnchorMax => new(0.68f, 0.92f);
         protected override bool CloseOnBackdrop => true;
 
-        private const float RowHeight = 48f;
-        private const float RowGap = 10f;
+        private const float RowHeight = 50f;
+        private const float RowGap = 8f;
 
         private readonly Func<SettingsUI> _settings;
         private readonly WikiScreen _wiki;
@@ -55,15 +59,25 @@ namespace Managers.UI.Screens
 
         protected override void Build()
         {
-            int row = 0;
-            AddRow("Resume", "계속하기", Hide, ref row, primary: true);
-            AddRow("Settings", "설정", OpenSettings, ref row);
-            AddRow("Wiki", "자료실", OpenWiki, ref row);
-            _save = AddRow("Save", "저장", Save, ref row);
-            _load = AddRow("Load", "불러오기", AskLoad, ref row);
-            _saveAndExit = AddRow("SaveAndExit", "저장 후 나가기", AskSaveAndExit, ref row);
-            AddRow("Exit", "나가기", AskExit, ref row);
-            AddRow("Desktop", "바탕화면으로 나가기", AskDesktop, ref row);
+            float y = 0f;
+            AddRow("Resume", "계속하기", "ESC", Hide, ref y, primary: true);
+            AddRow("Settings", "설정", "소리 · 글자 크기", OpenSettings, ref y);
+            AddRow("Wiki", "자료실", "캐릭터 · 코드 · 장비 · 적", OpenWiki, ref y);
+            _save = AddRow("Save", "저장", "지금 상태를 저장", Save, ref y);
+            _load = AddRow("Load", "불러오기", "마지막 저장으로 되돌리기", AskLoad, ref y);
+
+            y += 10f;
+            TextMeshProUGUI heading = UIBuild.Label("ExitHeading", Body, "나가기", UITheme.FontCaption, UITheme.Accent);
+            heading.rectTransform.anchorMin = new Vector2(0f, 1f);
+            heading.rectTransform.anchorMax = new Vector2(1f, 1f);
+            heading.rectTransform.pivot = new Vector2(0.5f, 1f);
+            heading.rectTransform.sizeDelta = new Vector2(0f, 24f);
+            heading.rectTransform.anchoredPosition = new Vector2(0f, -y);
+            y += 30f;
+
+            _saveAndExit = AddRow("SaveAndExit", "저장하고 메인 메뉴로", "이어하기로 여기서 계속", AskSaveAndExit, ref y);
+            AddRow("Exit", "저장 없이 메인 메뉴로", "마지막 저장 이후는 사라짐", AskExit, ref y);
+            AddRow("Desktop", "게임 종료", "저장하지 않고 끔", AskDesktop, ref y);
 
             _status = UIBuild.Text("Status", Body, "", UITheme.FontCaption, UITheme.TextMuted,
                 TextAlignmentOptions.Center, wrap: true);
@@ -72,7 +86,9 @@ namespace Managers.UI.Screens
             _status.rectTransform.anchoredPosition = new Vector2(0f, 22f);
         }
 
-        private Button AddRow(string name, string label, Action onClick, ref int row, bool primary = false)
+        /// <summary>메뉴 한 줄. 왼쪽에 이름, 오른쪽에 누르면 무엇이 되는지 한 줄.</summary>
+        private Button AddRow(string name, string label, string description, Action onClick, ref float y,
+            bool primary = false)
         {
             Button button = UIBuild.Button(name, Body, label, onClick, primary);
             RectTransform rect = button.image.rectTransform;
@@ -80,8 +96,21 @@ namespace Managers.UI.Screens
             rect.anchorMax = new Vector2(1f, 1f);
             rect.pivot = new Vector2(0.5f, 1f);
             rect.sizeDelta = new Vector2(0f, RowHeight);
-            rect.anchoredPosition = new Vector2(0f, -row * (RowHeight + RowGap));
-            row++;
+            rect.anchoredPosition = new Vector2(0f, -y);
+            y += RowHeight + RowGap;
+
+            TextMeshProUGUI title = button.GetComponentInChildren<TextMeshProUGUI>();
+            title.alignment = TextAlignmentOptions.MidlineLeft;
+            UIBuild.Stretch(title.rectTransform, 18f, 4f);
+
+            if (!string.IsNullOrEmpty(description))
+            {
+                TextMeshProUGUI hint = UIBuild.Text("Description", button.transform, description, UITheme.FontCaption,
+                    primary ? new Color(UITheme.TextOnAccent.r, UITheme.TextOnAccent.g, UITheme.TextOnAccent.b, 0.72f) : UITheme.TextMuted,
+                    TextAlignmentOptions.MidlineRight);
+                UIBuild.Stretch(hint.rectTransform, 18f, 4f);
+            }
+
             return button;
         }
 
@@ -125,12 +154,11 @@ namespace Managers.UI.Screens
             else _status.text = "";
         }
 
+        /// <summary>꺼진 모습은 UIButtonStyle이 그린다.</summary>
         private static void SetEnabled(Button button, bool enabled)
         {
             if (button == null) return;
             button.interactable = enabled;
-            TextMeshProUGUI label = button.GetComponentInChildren<TextMeshProUGUI>();
-            if (label != null) label.alpha = enabled ? 1f : 0.4f;
         }
 
         // ── 동작 ─────────────────────────────────────────────────────
@@ -179,7 +207,7 @@ namespace Managers.UI.Screens
         /// <summary>저장하고 메인 메뉴로. 저장할 수 없는 때(전투 중)에는 버튼이 꺼져 있다.</summary>
         private void AskSaveAndExit()
         {
-            ConfirmDialog.Ask("저장 후 나가기",
+            ConfirmDialog.Ask("저장하고 메인 메뉴로",
                 "지금 상태를 저장하고 메인 메뉴로 나갑니다.\n메인 메뉴의 이어하기로 여기서부터 계속할 수 있습니다.",
                 "나가기", () =>
                 {
@@ -196,7 +224,7 @@ namespace Managers.UI.Screens
 
         private void AskExit()
         {
-            ConfirmDialog.Ask("나가기",
+            ConfirmDialog.Ask("저장 없이 메인 메뉴로",
                 "저장하지 않고 메인 메뉴로 나갑니다.\n마지막 저장 이후의 진행은 사라지며, 메인 메뉴의 이어하기로 그 시점부터 다시 할 수 있습니다.",
                 "나가기", () =>
                 {
@@ -211,7 +239,7 @@ namespace Managers.UI.Screens
         /// </summary>
         private void AskDesktop()
         {
-            ConfirmDialog.Ask("바탕화면으로 나가기",
+            ConfirmDialog.Ask("게임 종료",
                 "저장하지 않고 게임을 종료합니다.\n마지막 저장 이후의 진행은 사라집니다.",
                 "종료", () =>
                 {

@@ -13,7 +13,7 @@ using UnityEngine.UI;
 namespace Entities.View
 {
     /// <summary>
-    /// 전장(과 대기석)의 유닛 한 명을 <b>정사각 카드 + 전투 HUD</b>로 그린다.
+    /// 전장(과 대기석)의 유닛 한 명을 <b>자유롭게 선 원화 + 가벼운 전투 HUD</b>로 그린다.
     ///
     /// 우하단 파티 카드를 없애면서 그쪽이 들고 있던 정보가 전부 이리로 왔다.
     /// 한 장에 담기는 것:
@@ -36,7 +36,7 @@ namespace Entities.View
     public sealed class UnitCardView : MonoBehaviour
     {
         /// <summary>칸 한 변 대비 카드 한 변의 비율.</summary>
-        public const float CardRatio = 0.88f;
+        public const float CardRatio = 0.96f;
 
         /// <summary>캔버스 안의 작업 단위. 카드 한 변이 100이 되도록 잡는다.</summary>
         private const float CanvasWidth = 100f;
@@ -44,13 +44,17 @@ namespace Entities.View
         /// <summary>카드(100) + 그 아래 바 영역까지의 높이.</summary>
         private const float CanvasHeight = 130f;
 
-        private const int MaxDots = 5;
+        /// <summary>
+        /// 상태 아이콘 칸 수. 마지막 칸은 넘친 수(+N)를 적는 자리로도 쓴다.
+        /// 다섯 칸에서 조용히 잘리면 여섯 번째 디버프가 있는지조차 알 수 없었다.
+        /// </summary>
+        private const int MaxDots = 6;
 
         // 캔버스 좌표(좌상단 기준). 디자인 캔버스의 퍼센트를 그대로 옮겼다.
         private const float NameBandTop = 72f;
         private const float NameBandHeight = 28f;
-        private const float RingSize = 27f;
-        private const float RingOverhang = 5f;
+        private const float RingSize = 23f;
+        private const float RingOverhang = 2f;
 
         /// <summary>테두리 안쪽으로 물이 들어갈 여백(캔버스 단위).</summary>
         private const float RingEdge = 1.6f;
@@ -99,7 +103,7 @@ namespace Entities.View
         /// 받침까지 합쳐 카드 한 변의 15%를 준다.
         /// </summary>
         private const float DotSize = 15f;
-        private const float DotGap = 17f;
+        private const float DotGap = 16.8f;
 
         /// <summary>아이콘 받침 안에서 그림이 차지하는 비율. 나머지는 여백이다.</summary>
         private const float DotIconRatio = 0.74f;
@@ -107,8 +111,11 @@ namespace Entities.View
         /// <summary>중첩 수 글자의 한 변(캔버스 단위).</summary>
         private const float DotCountSize = 8.5f;
 
-        private static TMP_FontAsset _font;
-        private static bool _fontSearched;
+        /// <summary>카드 위로 걸치는 HUD(궁극기 게이지)의 높이. 카메라가 이만큼 위를 비운다.</summary>
+        public static float HudAbove(float cardSize) => cardSize * RingOverhang / CanvasWidth;
+
+        /// <summary>카드 아래로 붙는 HUD(체력 · 행동 · 상태 아이콘)의 높이. 카메라가 이만큼 아래를 비운다.</summary>
+        public static float HudBelow(float cardSize) => cardSize * (DotTop + DotSize - CanvasWidth) / CanvasWidth;
 
         private Unit _unit;
         private bool _combatHud;
@@ -120,7 +127,10 @@ namespace Entities.View
         private Image _actingOutline;
         private TextMeshPro _nameLabel;
         private MeshRenderer _nameRenderer;
+        private TextMeshPro _hpLabel;
+        private MeshRenderer _hpRenderer;
         private readonly Image[] _reagentBars = new Image[3];
+        private readonly GameObject[] _reagentTracks = new GameObject[3];
         private RectTransform _ultRoot;
         private Image _ultFill;
         private Image _ultOutline;
@@ -187,27 +197,6 @@ namespace Entities.View
         private int _facing = 1;
         private int _lastHp = -1;
 
-        /// <summary>한글이 나오는 폰트를 찾는다. Resources에 없으면 TMP 기본값으로 떨어진다.</summary>
-        private static TMP_FontAsset Font
-        {
-            get
-            {
-                if (_fontSearched) return _font;
-                _fontSearched = true;
-
-                _font = Resources.Load<TMP_FontAsset>("Font/NotoSansKR-VariableFont_wght SDF");
-                if (_font == null)
-                {
-                    _font = TMP_Settings.defaultFontAsset;
-                    Debug.LogWarning(
-                        "[UnitCardView] Resources/Font 아래에서 한글 폰트를 찾지 못했습니다. " +
-                        "카드 이름이 네모로 나오면 NotoSansKR SDF를 그 경로에 두세요.");
-                }
-
-                return _font;
-            }
-        }
-
         /// <summary>칸에 카드 뷰를 붙인다(이미 있으면 그대로 쓴다).</summary>
         public static UnitCardView Attach(Transform cell, float cellSize)
         {
@@ -242,7 +231,8 @@ namespace Entities.View
 
         private void Build(float cardSize)
         {
-            if (_frame != null)
+            RecoverReagentReferences();
+            if (_frame != null && _canvas != null && _hpFill != null && _actionFill != null && ReagentsBuilt())
             {
                 Resize(cardSize);
                 return;
@@ -256,12 +246,9 @@ namespace Entities.View
             var frameObject = new GameObject("Frame", typeof(SpriteRenderer));
             frameObject.transform.SetParent(transform, false);
             _frame = frameObject.GetComponent<SpriteRenderer>();
-            _frame.sprite = UIShapes.CutCorner(
+            _frame.sprite = UIShapes.CutCornerOutline(
                 Mathf.RoundToInt(cardSize * 0.09f * 100f),
-                UITheme.SurfaceRaised,
-                UIShapes.Corner.Diagonal,
-                UITheme.Outline,
-                3);
+                new Color(0.20f, 0.43f, 0.46f, 0.18f), 1);
             _frame.drawMode = SpriteDrawMode.Sliced;
             _frame.size = new Vector2(cardSize, cardSize);
 
@@ -292,23 +279,28 @@ namespace Entities.View
 
             // 초상화가 카드 면을 거의 덮으므로 테두리는 초상화 '위'에 그린다.
             // 흰 배경 초상화에서도 카드 형태(컷코너)가 보이게 하기 위한 것이다.
-            Image cardOutline = NewImage(root, "CardOutline", Color.white);
-            cardOutline.sprite = UIShapes.CutCornerOutline(9, UITheme.Outline, 1);
-            cardOutline.type = Image.Type.Sliced;
-            Place(cardOutline.rectTransform, 0f, 0f, CanvasWidth, CanvasWidth);
+            // 원화 뒤를 막던 불투명 정사각 카드 면은 두지 않는다. 캐릭터는 무대 위에 직접 서고,
+            // 정보는 아래의 작은 아이보리 받침 하나에만 모인다.
+            Image baseShadow = NewImage(root, "BaseShadow", new Color(0.05f, 0.16f, 0.17f, 0.14f));
+            baseShadow.sprite = UIShapes.Disc(96, Color.white);
+            Place(baseShadow.rectTransform, 10f, 91f, 80f, 11f);
 
             // 지금 행동 중인 유닛을 알리는 앰버 테두리.
             _actingOutline = NewImage(root, "ActingOutline", Color.white);
-            _actingOutline.sprite = UIShapes.CutCornerOutline(9, UITheme.Accent, 2);
-            _actingOutline.type = Image.Type.Sliced;
-            Place(_actingOutline.rectTransform, 0f, 0f, CanvasWidth, CanvasWidth);
+            _actingOutline.sprite = UIShapes.Disc(96, UITheme.Accent, 0.78f);
+            _actingOutline.type = Image.Type.Simple;
+            Place(_actingOutline.rectTransform, 8f, 88f, 84f, 15f);
             _actingOutline.enabled = false;
 
-            Image nameBand = UIBuild.Solid("NameBand", root, new Color(0.035f, 0.039f, 0.043f, 0.86f));
+            Image nameBand = NewImage(root, "NameBand", Color.white);
+            nameBand.sprite = UIShapes.CutCorner(7,
+                new Color(0.975f, 0.965f, 0.925f, 0.96f), UIShapes.Corner.Diagonal,
+                new Color(0.14f, 0.28f, 0.30f, 0.42f), 1);
+            nameBand.type = Image.Type.Sliced;
             Place(nameBand.rectTransform, 0f, NameBandTop, CanvasWidth, NameBandHeight);
 
-            Image nameAccent = UIBuild.Solid("NameAccent", root, new Color(1f, 1f, 1f, 0.30f));
-            Place(nameAccent.rectTransform, 7f, NameBandTop + 14f, 2f, 11f);
+            Image nameAccent = UIBuild.Solid("NameAccent", root, UITheme.Accent);
+            Place(nameAccent.rectTransform, 7f, NameBandTop + 6f, 2f, 12f);
 
             // 이름표만은 캔버스 밖의 월드 TextMeshPro다.
             // TextMeshProUGUI는 이 월드 스페이스 캔버스에서 아예 그려지지 않았다
@@ -319,12 +311,24 @@ namespace Entities.View
             nameObject.transform.SetParent(transform, false);
             _nameLabel = nameObject.GetComponent<TextMeshPro>();
             _nameRenderer = nameObject.GetComponent<MeshRenderer>();
-            _nameLabel.font = Font;
-            _nameLabel.color = UITheme.TextPrimary;
+            UIBuild.ApplyFont(_nameLabel);
+            _nameLabel.color = new Color(0.075f, 0.12f, 0.13f, 1f);
             _nameLabel.alignment = TextAlignmentOptions.MidlineLeft;
+            _nameLabel.fontStyle = FontStyles.Bold;
             _nameLabel.textWrappingMode = TextWrappingModes.NoWrap;
             _nameLabel.raycastTarget = false;
             LayOutName(cardSize);
+
+            var hpTextObject = new GameObject("HpValue", typeof(RectTransform), typeof(TextMeshPro));
+            hpTextObject.transform.SetParent(transform, false);
+            _hpLabel = hpTextObject.GetComponent<TextMeshPro>();
+            _hpRenderer = hpTextObject.GetComponent<MeshRenderer>();
+            UIBuild.ApplyFont(_hpLabel);
+            _hpLabel.color = new Color(0.075f, 0.12f, 0.13f, 0.90f);
+            _hpLabel.alignment = TextAlignmentOptions.MidlineLeft;
+            _hpLabel.textWrappingMode = TextWrappingModes.NoWrap;
+            _hpLabel.raycastTarget = false;
+            LayOutHpValue(cardSize);
 
             Color[] reagentColors = { UITheme.Danger, UITheme.Mana, UITheme.Accent };
             for (int i = 0; i < 3; i++)
@@ -334,6 +338,7 @@ namespace Entities.View
                 var fill = UIBuild.Solid("Fill", track.transform, reagentColors[i]);
                 UIBuild.Stretch(fill.rectTransform);
                 _reagentBars[i] = fill;
+                _reagentTracks[i] = track.gameObject;
                 track.gameObject.SetActive(false);
             }
 
@@ -384,7 +389,7 @@ namespace Entities.View
             UIBuild.Stretch(_ultOutline.rectTransform);
 
             // ── 체력 + 방어막(같은 트랙, 방어막이 오른쪽에 이어 붙는다) ──
-            Image hpTrack = UIBuild.Solid("HpTrack", root, new Color(1f, 1f, 1f, 0.07f));
+            Image hpTrack = UIBuild.Solid("HpTrack", root, new Color(0.08f, 0.15f, 0.16f, 0.82f));
             Place(hpTrack.rectTransform, 0f, HpTop, CanvasWidth, HpHeight);
             _hpFill = NewImage(hpTrack.transform, "HpFill", UITheme.Hp);
             _shieldFill = NewImage(hpTrack.transform, "ShieldFill", UITheme.Shield);
@@ -394,7 +399,7 @@ namespace Entities.View
             _hpTicks = UIBuild.Stretch(UIBuild.Container("HpTicks", hpTrack.transform));
 
             // ── 행동 게이지 ──
-            Image actionTrack = UIBuild.Solid("ActionTrack", root, new Color(1f, 1f, 1f, 0.07f));
+            Image actionTrack = UIBuild.Solid("ActionTrack", root, new Color(0.08f, 0.15f, 0.16f, 0.34f));
             Place(actionTrack.rectTransform, 0f, ActionTop, CanvasWidth, ActionHeight);
             _actionFill = NewImage(actionTrack.transform, "ActionFill", UITheme.ActionYellow);
 
@@ -443,6 +448,33 @@ namespace Entities.View
             Show(false);
         }
 
+        /// <summary>
+        /// 플레이 모드 스크립트 재로드 뒤에는 런타임으로 만든 자식은 남아 있어도 배열 원소가
+        /// 비어 있을 수 있다. 시약 트랙을 부모 역참조로 추측하지 않고 이름으로 한 번 복구한다.
+        /// </summary>
+        private void RecoverReagentReferences()
+        {
+            if (_canvas == null) return;
+
+            for (int i = 0; i < _reagentBars.Length; i++)
+            {
+                if (_reagentBars[i] != null && _reagentTracks[i] != null) continue;
+
+                Transform track = _canvas.transform.Find("Reagent" + i);
+                if (track == null) continue;
+                _reagentTracks[i] = track.gameObject;
+                Transform fill = track.Find("Fill");
+                _reagentBars[i] = fill != null ? fill.GetComponent<Image>() : null;
+            }
+        }
+
+        private bool ReagentsBuilt()
+        {
+            for (int i = 0; i < _reagentBars.Length; i++)
+                if (_reagentBars[i] == null || _reagentTracks[i] == null) return false;
+            return true;
+        }
+
         /// <summary>칸 크기가 바뀌었을 때(카메라 프레이밍 변경 등) 카드 치수를 다시 잡는다.</summary>
         public void Resize(float cardSize)
         {
@@ -456,6 +488,7 @@ namespace Entities.View
             canvasRect.localPosition = new Vector3(0f, cardSize * 0.5f, -0.01f);
 
             LayOutName(cardSize);
+            LayOutHpValue(cardSize);
         }
 
         /// <summary>이름표를 카드 하단 이름 띠 위에 얹는다. 캔버스와 같은 비율을 쓴다.</summary>
@@ -465,18 +498,32 @@ namespace Entities.View
 
             var rect = (RectTransform)_nameLabel.transform;
             rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.sizeDelta = new Vector2(cardSize * 0.81f, cardSize * 0.16f);
-            // 이름 띠(카드 위에서 72~100%)의 한가운데.
-            rect.localPosition = new Vector3(cardSize * 0.025f, cardSize * (0.5f - 0.86f), -0.02f);
+            // 왼쪽 민트 액센트(7~9%)와 첫 글자가 겹치지 않도록 그 오른쪽부터 시작한다.
+            rect.sizeDelta = new Vector2(cardSize * 0.79f, cardSize * 0.14f);
+            // 이름 받침의 윗줄. 좌우를 HP와 나누지 않고 전체 폭을 쓴다.
+            rect.localPosition = new Vector3(cardSize * 0.055f, cardSize * (0.5f - 0.79f), -0.02f);
 
-            // 글자 크기를 직접 주지 않고 상자에 맞춰 키우게 한다.
-            // 이 프로젝트의 NotoSansKR 가변폰트 SDF는 월드 공간에서 메트릭이 기대보다
-            // 훨씬 작게 잡혀(같은 글자의 preferredWidth가 1/10 수준) 직접 준 크기로는
-            // 몇 픽셀짜리로 그려져 보이지 않았다. 자동 맞춤이면 그 차이를 알아서 흡수한다.
-            _nameLabel.enableAutoSizing = true;
-            _nameLabel.fontSizeMin = 0.02f;
-            _nameLabel.fontSizeMax = cardSize * 0.6f;
-            _nameLabel.overflowMode = TextOverflowModes.Truncate;
+            // 월드 TMP 자동 맞춤에 행보다 큰 최소값을 주면 Truncate/Ellipsis가 첫 글자부터
+            // 모두 버려 mesh characterCount가 0이 된다. 48px 받침의 윗행에 안전하게 들어오는
+            // 고정값을 쓰고, 긴 이름만 말줄임한다.
+            _nameLabel.enableAutoSizing = false;
+            _nameLabel.fontSize = cardSize * 0.82f;
+            _nameLabel.overflowMode = TextOverflowModes.Ellipsis;
+        }
+
+        private void LayOutHpValue(float cardSize)
+        {
+            if (_hpLabel == null) return;
+
+            var rect = (RectTransform)_hpLabel.transform;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.sizeDelta = new Vector2(cardSize * 0.79f, cardSize * 0.12f);
+            // HP와 전투 자원은 아랫줄 전체 폭. HP를 문자열 맨 앞에 두어 자원이 길어져도 남는다.
+            rect.localPosition = new Vector3(cardSize * 0.055f, cardSize * (0.5f - 0.93f), -0.02f);
+            _hpLabel.enableAutoSizing = false;
+            _hpLabel.fontSize = cardSize * 0.72f;
+            _hpLabel.characterSpacing = -2f;
+            _hpLabel.overflowMode = TextOverflowModes.Ellipsis;
         }
 
         /// <summary>앞줄이 뒷줄을 가리도록 정렬 순서를 맞춘다. 초상화는 <c>order + 1</c>이다.</summary>
@@ -500,6 +547,11 @@ namespace Entities.View
                 // 이름 띠(캔버스, order + 5) 바로 위에 올린다.
                 _nameRenderer.sortingLayerID = sortingLayerId;
                 _nameRenderer.sortingOrder = order + 6;
+            }
+            if (_hpRenderer != null)
+            {
+                _hpRenderer.sortingLayerID = sortingLayerId;
+                _hpRenderer.sortingOrder = order + 6;
             }
         }
 
@@ -531,7 +583,9 @@ namespace Entities.View
             _ultRoot.gameObject.SetActive(combatHud);
             _hpFill.transform.parent.gameObject.SetActive(combatHud);
             _actionFill.transform.parent.gameObject.SetActive(combatHud);
-            foreach (Image reagent in _reagentBars) reagent.transform.parent.gameObject.SetActive(false);
+            if (_hpLabel != null) _hpLabel.gameObject.SetActive(combatHud);
+            for (int i = 0; i < _reagentTracks.Length; i++)
+                if (_reagentTracks[i] != null) _reagentTracks[i].SetActive(false);
             if (!combatHud)
             {
                 foreach (Image dot in _dots) dot.enabled = false;
@@ -546,6 +600,8 @@ namespace Entities.View
         public void Tick()
         {
             if (_unit == null) return;
+
+            if (!ReagentsBuilt()) RecoverReagentReferences();
 
             AdvanceReaction(Time.deltaTime);
             if (!_combatHud) return;
@@ -589,9 +645,11 @@ namespace Entities.View
             for (int i = 0; i < _reagentBars.Length; i++)
             {
                 bool visible = _combatHud && _unit.Chemistry != null;
-                _reagentBars[i].transform.parent.gameObject.SetActive(visible);
-                if (visible)
-                    SetSpan(_reagentBars[i].rectTransform, 0f,
+                GameObject trackObject = _reagentTracks[i];
+                Image fill = _reagentBars[i];
+                if (trackObject != null) trackObject.SetActive(visible);
+                if (visible && fill != null)
+                    SetSpan(fill.rectTransform, 0f,
                         _unit.Chemistry.Reagents[(ReagentKind)i] / _unit.Chemistry.Reagents.Capacity);
             }
 
@@ -606,19 +664,32 @@ namespace Entities.View
             _group.alpha = alive ? 1f : 0.38f;
             if (_nameLabel != null)
             {
-                // 궁극기 링과 별개인 캐릭터 전투 자원(가우디의 사그리다 스택, 천공의 무적 횟수 등)을
-                // 이름 띠에서 항상 확인할 수 있게 한다. 규칙은 CombatResourceLabels가 정한다.
-                _nameLabel.text = Combat.CombatResourceLabels.Compose(_unit);
+                // 이름은 윗줄 전체를 단독으로 쓴다. 전투 자원이 이름 크기를 밀어내지 않는다.
+                _nameLabel.text = _unit.UnitName;
+
+                // 이름표는 캔버스 밖이라 CanvasGroup이 닿지 않는다. 알파를 직접 맞춘다.
+                Color nameColor = new Color(0.075f, 0.12f, 0.13f, 1f);
+                nameColor.a = alive ? 1f : 0.38f;
+                _nameLabel.color = nameColor;
+            }
+            if (_hpLabel != null)
+            {
+                string hp = $"HP {Mathf.Max(0, _unit.HpCurr):N0}/{Mathf.Max(0, _unit.HpMax):N0}";
+                string resources = Combat.CombatResourceLabels.Compose(_unit);
+                if (resources.StartsWith(_unit.UnitName, System.StringComparison.Ordinal))
+                    resources = resources.Substring(_unit.UnitName.Length).Trim();
+
                 if (_unit.Chemistry != null && _combatHud)
                 {
                     var reagents = _unit.Chemistry.Reagents;
-                    _nameLabel.text = $"{_unit.UnitName}\n<size=75%><color=#E6493E>연 {reagents[ReagentKind.Fuel]:0.##}</color>  <color=#52ABEF>안 {reagents[ReagentKind.Stabilizer]:0.##}</color>  <color=#FFCD3D>촉 {reagents[ReagentKind.Catalyst]:0.##}</color></size>";
+                    resources = $"<color=#B83229>연 {reagents[ReagentKind.Fuel]:0.##}</color>  " +
+                                $"<color=#236B91>안 {reagents[ReagentKind.Stabilizer]:0.##}</color>  " +
+                                $"<color=#80620A>촉 {reagents[ReagentKind.Catalyst]:0.##}</color>";
                 }
 
-                // 이름표는 캔버스 밖이라 CanvasGroup이 닿지 않는다. 알파를 직접 맞춘다.
-                Color nameColor = UITheme.TextPrimary;
-                nameColor.a = alive ? 1f : 0.38f;
-                _nameLabel.color = nameColor;
+                _hpLabel.text = string.IsNullOrWhiteSpace(resources) ? hp : $"{hp}  ·  {resources}";
+                Color hpTextColor = new Color(0.075f, 0.12f, 0.13f, alive ? 0.90f : 0.34f);
+                _hpLabel.color = hpTextColor;
             }
             if (_frame != null)
             {
@@ -631,9 +702,14 @@ namespace Entities.View
         /// <summary>
         /// 상태 아이콘을 다시 그린다.
         ///
-        /// <b>같은 Key는 한 칸에 모으고 수를 적는다.</b> 중첩은 같은 상태를 여러 개
+        /// <b>같은 그림으로 보이는 것은 한 칸에 모으고 수를 적는다.</b> 중첩은 같은 상태를 여러 개
         /// 들고 있는 것으로 구현돼 있어(<c>StatusStackPolicy.Stack</c>), 예전처럼 목록을
-        /// 그대로 늘어놓으면 화상 5중첩 하나가 다섯 칸을 전부 먹었다.
+        /// 그대로 늘어놓으면 화상 5중첩 하나가 다섯 칸을 전부 먹었다. Key로만 모으면
+        /// 출처가 다른 같은 공격력 증가 둘이 똑같은 아이콘 두 칸으로 나란히 서서, 같은 모양이
+        /// 겹쳐 보인다는 QA가 있었다. 이제 그림 · 방향 · 색이 같으면 한 칸이다.
+        /// 무엇이 모였는지는 카드에 마우스를 올리면 툴팁으로 하나씩 보인다(<see cref="Cell"/>).
+        ///
+        /// 순서는 행동 불가 → 해로움 → 이로움. 칸이 모자라면 마지막 칸이 남은 수를 적는다.
         /// </summary>
         private void RefreshStatusDots()
         {
@@ -648,53 +724,105 @@ namespace Entities.View
                     UnitStatus status = statuses[i];
                     if (status == null) continue;
 
-                    int slot = IndexOfKey(status.Key);
+                    int slot = IndexOfLook(status);
                     if (slot >= 0)
                     {
                         _dotStackCounts[slot]++;
                         continue;
                     }
 
-                    if (_dotStatuses.Count >= MaxDots) continue;
                     _dotStatuses.Add(status);
                     _dotStackCounts.Add(1);
                 }
             }
 
+            SortDotsByUrgency();
+
+            bool overflow = _dotStatuses.Count > MaxDots;
+            int iconSlots = overflow ? MaxDots - 1 : _dotStatuses.Count;
+
             for (int i = 0; i < _dots.Length; i++)
             {
-                bool has = i < _dotStatuses.Count;
+                bool isOverflow = overflow && i == MaxDots - 1;
+                bool has = i < iconSlots || isOverflow;
                 _dotBacks[i].enabled = has;
                 _dots[i].enabled = has;
-                _dotCounts[i].enabled = has && _dotStackCounts[i] > 1;
+                _dotCounts[i].enabled = has && !isOverflow && _dotStackCounts[i] > 1;
                 if (!has) continue;
+
+                if (isOverflow)
+                {
+                    // 넘친 수. 그림 대신 숫자만 흰색으로 — 아이콘이 아니라는 것이 한눈에 갈린다.
+                    _dots[i].sprite = UIShapes.Digit(Mathf.Min(9, _dotStatuses.Count - iconSlots), Color.white);
+                    _dots[i].color = UITheme.TextPrimary;
+                    continue;
+                }
 
                 Color tint = StatusIcons.Tint(_dotStatuses[i]);
                 _dots[i].sprite = StatusIcons.For(_dotStatuses[i]);
                 _dots[i].color = tint;
 
                 if (!_dotCounts[i].enabled) continue;
-                _dotCounts[i].sprite = UIShapes.Digit(_dotStackCounts[i], Color.white);
+                _dotCounts[i].sprite = UIShapes.Digit(Mathf.Min(9, _dotStackCounts[i]), Color.white);
                 // 숫자는 아이콘보다 밝게 둔다. 같은 색이면 그림에 섞여 읽히지 않는다.
                 _dotCounts[i].color = Color.Lerp(tint, Color.white, 0.55f);
             }
         }
 
-        private int IndexOfKey(string key)
+        /// <summary>그림 · 방향 · 색이 같은 칸을 찾는다. 셋이 같으면 눈으로는 같은 상태다.</summary>
+        private int IndexOfLook(UnitStatus status)
         {
+            (StatusGlyph glyph, StatusArrow arrow) = StatusIcons.Resolve(status);
+            Color tint = StatusIcons.Tint(status);
+
             for (int i = 0; i < _dotStatuses.Count; i++)
             {
-                if (string.Equals(_dotStatuses[i].Key, key, System.StringComparison.Ordinal)) return i;
+                UnitStatus other = _dotStatuses[i];
+                if (string.Equals(other.Key, status.Key, System.StringComparison.Ordinal)) return i;
+
+                (StatusGlyph otherGlyph, StatusArrow otherArrow) = StatusIcons.Resolve(other);
+                if (otherGlyph == glyph && otherArrow == arrow && StatusIcons.Tint(other) == tint) return i;
             }
 
             return -1;
         }
 
+        /// <summary>행동 불가 → 해로움 → 기타 → 이로움. 같은 급이면 원래 순서를 지킨다(삽입 정렬).</summary>
+        private void SortDotsByUrgency()
+        {
+            for (int i = 1; i < _dotStatuses.Count; i++)
+            {
+                UnitStatus status = _dotStatuses[i];
+                int count = _dotStackCounts[i];
+                int rank = Urgency(status);
+                int j = i - 1;
+                while (j >= 0 && Urgency(_dotStatuses[j]) > rank)
+                {
+                    _dotStatuses[j + 1] = _dotStatuses[j];
+                    _dotStackCounts[j + 1] = _dotStackCounts[j];
+                    j--;
+                }
+                _dotStatuses[j + 1] = status;
+                _dotStackCounts[j + 1] = count;
+            }
+        }
+
+        private static int Urgency(UnitStatus status)
+        {
+            Color tint = StatusIcons.Tint(status);
+            if (tint == UITheme.Control) return 0;
+            if (tint == UITheme.Danger) return 1;
+            if (tint == UITheme.Positive) return 3;
+            return 2;
+        }
+
         private void Show(bool visible)
         {
-            if (_frame != null) _frame.enabled = visible;
+            // 프레임 렌더러는 조립/리사이즈 기준으로만 남긴다. 화면에는 정사각 카드 면을 그리지 않는다.
+            if (_frame != null) _frame.enabled = false;
             if (_canvas != null) _canvas.gameObject.SetActive(visible);
             if (_nameLabel != null) _nameLabel.gameObject.SetActive(visible);
+            if (_hpLabel != null) _hpLabel.gameObject.SetActive(visible);
         }
 
         // ── 타격 · 시전 반응 ─────────────────────────────────────────

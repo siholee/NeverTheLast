@@ -55,11 +55,12 @@ namespace Managers.UI.HUD
         {
             Canvas canvas = UIBuild.Canvas("BattleHudCanvas", 10);
             transform.SetParent(canvas.transform, false);
+            RectTransform safeRoot = UIBuild.SafeArea(canvas);
 
-            _queue = new ActionQueuePanel(canvas.transform);
-            _topBar = new TopStatusBar(canvas.transform, CycleSpeed, ToggleCodex, OpenMenu);
-            BuildResourceStrip(canvas.transform);
-            _featureBanner = new FeatureEnemyBanner(canvas.transform);
+            _queue = new ActionQueuePanel(safeRoot);
+            _topBar = new TopStatusBar(safeRoot, CycleSpeed, ToggleCodex, OpenMenu);
+            BuildResourceStrip(safeRoot);
+            _featureBanner = new FeatureEnemyBanner(safeRoot);
 
             _codex = new CodexScreen();
             ApplySpeed();
@@ -76,8 +77,11 @@ namespace Managers.UI.HUD
         {
             Image strip = UIBuild.Panel("ResourceStrip", parent, UITheme.HudBar,
                 UIShapes.Corner.Diagonal, 8);
-            UIBuild.Pin(strip.rectTransform, new Vector2(0.5f, 1f), new Vector2(420f, 40f),
-                new Vector2(0f, -20f));
+            strip.rectTransform.anchorMin = new Vector2(0.29f, 1f);
+            strip.rectTransform.anchorMax = new Vector2(0.61f, 1f);
+            strip.rectTransform.pivot = new Vector2(0.5f, 1f);
+            strip.rectTransform.sizeDelta = new Vector2(0f, 72f);
+            strip.rectTransform.anchoredPosition = new Vector2(0f, -30f);
 
             _lifeLabel = UIBuild.Text("Life", strip.transform, "♥ 20", UITheme.FontHeading,
                 UITheme.TextPrimary, TextAlignmentOptions.Center);

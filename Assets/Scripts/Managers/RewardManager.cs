@@ -375,7 +375,7 @@ namespace Managers
                 ? ""
                 : string.Join(", ", item.statBonuses.Select(BaseClasses.EquipmentStatKeys.Describe));
             string suffix = string.IsNullOrWhiteSpace(stats) ? "" : $" | {stats}";
-            return $"{item.category} | 중량 {Mathf.Max(0, item.weight)}{suffix}";
+            return $"{UI.Core.ItemTooltip.CategoryName(item.category)} | 중량 {Mathf.Max(0, item.weight)}{suffix}";
         }
 
         private void EnsureRewardData()

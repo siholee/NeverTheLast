@@ -27,8 +27,8 @@ namespace Managers.UI.HUD
         private const float SlotHeight = 46f;
         private const float SlotGap = 10f;
 
-        /// <summary>자원 표시줄(상단 중앙) 아래로 내려 앉히는 거리.</summary>
-        private const float TopOffset = -66f;
+        /// <summary>96px 상단 헤더와 간섭하지 않도록 안전 영역 위에서 내리는 거리.</summary>
+        private const float TopOffset = -118f;
 
         private const int MaxDots = 6;
         private const float DotSize = 20f;
