@@ -33,7 +33,7 @@ namespace Managers.UI.Core
             var lines = new List<UITooltip.Line>();
             if (item == null) return lines;
 
-            lines.Add(UITooltip.Line.Note(HeadLine(item), UITheme.TextMuted));
+            lines.Add(UITooltip.Line.Note(TooltipHead(item), UITheme.TextMuted));
 
             // 못 쓰는 장비인지가 가장 먼저 보여야 한다. 중량만 먹고 효과는 없다.
             if (owner != null && !owner.CanUseEquipmentEffects(item))
@@ -89,6 +89,24 @@ namespace Managers.UI.Core
             }
 
             return lines;
+        }
+
+        /// <summary>
+        /// 툴팁 머리말. <b>영문(TIER · RARE)은 윗줄, 한글(부위 · 분류)은 아랫줄</b>로 나눈다.
+        /// 한 줄에 <c>TIER 3 · 주무기 · 장궁</c>으로 이어 붙였더니 영문과 한글이 섞여 읽혔다.
+        /// </summary>
+        public static string TooltipHead(ItemData item)
+        {
+            string slot = string.IsNullOrWhiteSpace(item.slot) ? "" : SlotName(item.slot);
+            string category = string.IsNullOrWhiteSpace(item.category) ? "" : CategoryName(item.category);
+            return SplitHead($"TIER {Mathf.Max(1, item.rarity)}", slot, category);
+        }
+
+        /// <summary>영문 줄 아래에 비어 있지 않은 한글 조각을 <c> · </c>으로 이어 한 줄 더 붙인다.</summary>
+        public static string SplitHead(string english, params string[] korean)
+        {
+            string tail = string.Join(" · ", System.Array.FindAll(korean, part => !string.IsNullOrEmpty(part)));
+            return tail.Length == 0 ? english : english + "\n" + tail;
         }
 
         /// <summary>등급 · 부위 · 분류를 한 줄로.</summary>

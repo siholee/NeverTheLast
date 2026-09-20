@@ -50,6 +50,8 @@
 
 **행동을 소모하지 않는 것**: 덱 구성(`OpenDeckSetupFromPreparation`), 장비 창(`OpenEquipmentFromPreparation`),
 **상점**(`OpenShopFromPreparation`), **스킬**(`OpenSkillScreenFromPreparation`)
+— 상점이 골드를 물건으로 바꾸듯 스킬 화면은 **스킬 Pt를 스킬로 바꿀 뿐**이라 행동을 쓰지 않는다.
+두 화면은 같은 모양(왼쪽에 창구 NPC — 상점은 라부아지에, 스킬은 세이)이다.
 
 상점은 준비 행동을 쓰지 않지만 **준비 페이즈당 2회**라는 자체 한도가 있다
 (`GameManager.MaxShopPurchases`). 보스전 준비에서도 열린다 —

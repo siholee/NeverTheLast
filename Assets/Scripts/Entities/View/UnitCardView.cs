@@ -170,6 +170,15 @@ namespace Entities.View
         private const float LungeDistance = 0.9f;
         private const float RecoilDistance = 0.55f;
 
+        // 일반행동은 "뒤로 뺐다 → 앞으로 찍는 순간 발사" 순서로 보인다.
+        // 예전에는 시전이 시작되는 순간 앞으로 찍고 시전 시간(0.5초)이 지난 뒤에야 투사체가 나가
+        // 카드가 움직인 뒤 한참 있다가 발사되는 어색한 간격이 생겼다.
+        private const float WindupDistance = 0.5f;      // 뒤로 빼는 거리
+        private const float WindupReleaseTime = 0.07f;  // 빼 둔 자세가 풀리는 시간(찍는 동작과 겹친다)
+        private const float WindupGrace = 0.05f;        // 발사 신호가 없을 때 시전 시간 뒤 기다려 주는 여유
+        private const float ThrustDebounce = 0.12f;     // 막 찍었으면 같은 발사의 중복 신호를 무시하는 시간
+        private const float MinWindupCast = 0.08f;      // 이보다 짧은 시전에는 뒤로 뺄 틈이 없다
+
         /// <summary>물리 타격에 카드가 떠는 시간. 길면 '맞았다'가 아니라 '고장났다'로 보인다.</summary>
         private const float ShakeTime = 0.20f;
 
@@ -187,6 +196,16 @@ namespace Entities.View
         private float _punch;
         private float _lunge;
         private float _recoil;
+
+        /// <summary>뒤로 빼 둔 정도(0~1). 시전 시간 동안 차오르고, 발사 순간 풀린다.</summary>
+        private float _windup;
+        private float _windupElapsed;
+        private float _windupDuration;
+
+        /// <summary>발사 신호를 기다리며 자세를 잡고 있는가.</summary>
+        private bool _windupHeld;
+
+        private float _lastThrustTime = float.NegativeInfinity;
 
         /// <summary>물리 타격의 떨림. 1에서 0으로 줄며, 남은 값이 곧 진폭이다.</summary>
         private float _shake;
@@ -806,22 +825,81 @@ namespace Entities.View
             _unit.RemoveListener<EventContext>(BaseEnums.UnitEventType.OnUltimateActivates, OnUltimateCast);
         }
 
-        private void OnCast(EventContext _) => PlayCast(1f);
+        /// <summary>
+        /// 일반행동이 시작됐다. 바로 앞으로 찍지 않고 <b>시전 시간 동안 뒤로 빼 두었다가</b>,
+        /// 발사 신호(<see cref="PlayAttackReaction"/>)가 오는 순간 앞으로 찍는다.
+        /// 투사체와 베기 연출은 그 신호와 같은 프레임에 나가므로 카드의 찍기와 발사가 맞물린다.
+        /// </summary>
+        private void OnCast(EventContext _)
+        {
+            float castTime = _unit?.ActiveNormalCode?.CastingDelay ?? 0f;
+            if (castTime < MinWindupCast)
+            {
+                PlayCast(1f);
+                return;
+            }
 
-        private void OnUltimateCast(EventContext _) => PlayCast(1.6f);
+            _windupHeld = true;
+            _windupElapsed = 0f;
+            _windupDuration = castTime;
+        }
+
+        private void OnUltimateCast(EventContext _)
+        {
+            // 궁극기가 시작되면 일반행동의 뒤로 빼기는 접는다.
+            _windupHeld = false;
+            PlayCast(1.6f);
+        }
 
         /// <summary>쏘는 순간 카드가 적 쪽으로 찍고 살짝 커진다.</summary>
         private void PlayCast(float strength)
         {
+            _windupHeld = false;
+            _lastThrustTime = Time.time;
             _lunge = Mathf.Min(1f, strength);
             _punch = Mathf.Max(_punch, 0.6f * Mathf.Min(1f, strength));
         }
 
         /// <summary>
-        /// 실제 발사/베기 시점에 쓰는 공개 진입점. 시전 시작 이벤트의 기본 찍기와 별개로
-        /// 타격 순간에도 공격자가 조금 전진해 근접 공격의 거리감을 살린다.
+        /// 실제 발사/베기 시점에 쓰는 공개 진입점. 뒤로 빼 둔 자세가 있으면 그 자세에서 앞으로 찍고,
+        /// 없으면(궁극기·다단 공격) 그 자리에서 조금 전진해 근접 공격의 거리감을 살린다.
         /// </summary>
-        public void PlayAttackReaction(float strength = 1f) => PlayCast(strength);
+        public void PlayAttackReaction(float strength = 1f)
+        {
+            // 시전 시간이 끝나 이미 찍었는데 같은 발사의 신호가 뒤따라오면 다시 찍지 않는다.
+            // 다시 찍으면 진행 중인 동작이 처음으로 되감겨 카드가 한 번 더 튄다.
+            if (!_windupHeld && Time.time - _lastThrustTime < ThrustDebounce) return;
+
+            PlayCast(strength);
+        }
+
+        /// <summary>
+        /// 뒤로 빼 둔 자세의 진행. 시전 시간 동안 차오르다 발사 신호가 없으면 시전 시간이 끝난 직후
+        /// 스스로 찍는다(마법 일반행동처럼 반동 신호를 내지 않는 공격도 같은 박자로 움직이게).
+        /// 시전자가 쓰러지거나 제어당했으면 찍지 않고 자세만 푼다.
+        /// </summary>
+        private void AdvanceWindup(float deltaTime)
+        {
+            if (_windupHeld)
+            {
+                if (_unit == null || !_unit.isActive || _unit.isControlled)
+                {
+                    _windupHeld = false;
+                }
+                else
+                {
+                    _windupElapsed += deltaTime;
+                    float t = Mathf.Clamp01(_windupElapsed / _windupDuration);
+                    // 빨리 물러나 자세를 잡고 그 뒤로는 버틴다. 균등하게 물러나면 발사 직전에야 뒤에 닿는다.
+                    _windup = t * (2f - t);
+
+                    if (_windupElapsed >= _windupDuration + WindupGrace) PlayCast(1f);
+                    return;
+                }
+            }
+
+            if (_windup > 0f) _windup = Mathf.MoveTowards(_windup, 0f, deltaTime / WindupReleaseTime);
+        }
 
         /// <summary>
         /// 맞는 순간의 반응. 하얗게 번쩍이며 뒤로 밀리고, <b>물리 타격이면 떤다</b>.
@@ -857,6 +935,8 @@ namespace Entities.View
         private void ResetReaction()
         {
             _flash = _punch = _lunge = _recoil = _shake = 0f;
+            _windup = 0f;
+            _windupHeld = false;
             _airborneLift = 0f;
             _lastHp = -1;
             ApplyReaction();
@@ -873,7 +953,10 @@ namespace Entities.View
             float airborneStep = Cell.CardSize * 0.13f * deltaTime / airborneTime;
             float nextAirborne = Mathf.MoveTowards(_airborneLift, airborneTarget, airborneStep);
 
+            AdvanceWindup(deltaTime);
+
             bool moving = _flash > 0f || _punch > 0f || _lunge > 0f || _recoil > 0f || _shake > 0f
+                || _windup > 0f || _windupHeld
                 || !Mathf.Approximately(nextAirborne, _airborneLift);
             if (!moving) return;
 
@@ -902,7 +985,8 @@ namespace Entities.View
 
             // 찍기는 나갔다 돌아오는 모양(0 → 1 → 0), 밀림은 곧바로 사그라든다.
             float lungeShape = Mathf.Sin(Mathf.PI * (1f - _lunge));
-            float offsetX = _facing * (LungeDistance * lungeShape - RecoilDistance * _recoil);
+            float offsetX = _facing * (LungeDistance * lungeShape - RecoilDistance * _recoil
+                                       - WindupDistance * _windup);
             float offsetY = _airborneLift;
 
             // 떨림은 남은 시간을 위상으로 삼아 흔든다. 진폭은 제곱으로 줄어 끝이 깔끔하다.

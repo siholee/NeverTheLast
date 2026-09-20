@@ -44,6 +44,13 @@ namespace Managers.UI.Screens
         private const float ColumnMaxWidth = 400f;
 
         private const float HeaderHeight = 58f;
+
+        /// <summary>
+        /// 경험치 막대와 장비 인형 사이의 여백. 헤더 바로 밑에 슬롯과 그림을 붙였더니
+        /// 막대에 닿을 듯 답답하게 읽혔다.
+        /// </summary>
+        private const float DollTopGap = 16f;
+
         private const float DollHeight = 198f;
         private const float EquipSlot = 46f;
         private const float EquipGap = 4f;
@@ -71,6 +78,14 @@ namespace Managers.UI.Screens
             (BaseClasses.EquipmentSlot.MainHand, "주무기"),
             (BaseClasses.EquipmentSlot.OffHand, "보조"),
         };
+
+        /// <summary>
+        /// 아무것도 없는 칸의 테두리. <b>짙은 선</b>이라 채워진 칸과 한눈에 갈린다 — 안쪽은 칠하지 않고 비운다.
+        /// 밝은 테마 위에서 15% 농도의 옅은 선이던 예전 빈 칸은 '꺼진 칸'인지 '빈 칸'인지 구분되지 않았다.
+        /// </summary>
+        private static readonly Color EmptySlotBorder = new(0.010f, 0.012f, 0.016f, 1f);
+
+        private const int EmptySlotBorderWidth = 2;
 
         private static readonly BaseClasses.BaseEnums.PrimaryStat[] StatOrder =
         {
@@ -280,6 +295,7 @@ namespace Managers.UI.Screens
             float y = HeaderHeight;
             if (_tab == Tab.Equipment)
             {
+                y += DollTopGap;
                 BuildDoll(column.transform, unit, width, y);
                 y += DollHeight + 10f;
 
@@ -357,10 +373,12 @@ namespace Managers.UI.Screens
             }
 
             // 초상화. 슬롯 두 줄 사이의 남은 자리를 채운다.
+            // 높이를 왼쪽 슬롯 줄 전체와 같게 잡아, 그림이 두 줄의 한가운데에 서게 한다.
             float portraitLeft = 10f + EquipSlot + 8f;
             float portraitWidth = width - portraitLeft * 2f;
             Sprite portrait = SpriteResource.LoadPortrait(unit.PortraitPath);
-            var portraitSize = new Vector2(portraitWidth, DollHeight - EquipSlot - 12f);
+            float stackHeight = LeftSlots.Length * EquipSlot + (LeftSlots.Length - 1) * EquipGap;
+            var portraitSize = new Vector2(portraitWidth, stackHeight);
             var portraitAt = new Vector2(portraitLeft, -top);
 
             if (portraitWidth > 20f && portrait != null)
@@ -392,12 +410,17 @@ namespace Managers.UI.Screens
             float weaponsWidth = EquipSlot * 2f + EquipGap;
             float weaponsX = (width - weaponsWidth) * 0.5f;
             float weaponsY = top + DollHeight - EquipSlot;
+            // 양손 무기(둔기·장창·대검 등)를 들면 보조 슬롯은 쓸 수 없다. 빈 칸(검정)과 달리
+            // 회색으로 꺼 두어 "비었다"가 아니라 "막혔다"로 읽히게 하고, 무엇도 놓이지 않게 한다.
+            bool twoHandedMain = bySlot.TryGetValue(BaseClasses.EquipmentSlot.MainHand, out ItemData mainHand)
+                                 && mainHand.twoHanded;
             for (int i = 0; i < WeaponSlots.Length; i++)
             {
                 (BaseClasses.EquipmentSlot slot, string label) = WeaponSlots[i];
                 bySlot.TryGetValue(slot, out ItemData item);
+                bool blocked = slot == BaseClasses.EquipmentSlot.OffHand && twoHandedMain;
                 CreateSlot(column, unit, item, weaponsX + i * (EquipSlot + EquipGap), weaponsY,
-                    EquipSlot, label, true, slot);
+                    EquipSlot, blocked ? "양손" : label, true, slot, blocked);
             }
         }
 
@@ -550,28 +573,38 @@ namespace Managers.UI.Screens
         /// <summary>
         /// 슬롯 하나. <paramref name="item"/>이 null이면 빈 칸이다.
         /// <paramref name="equipSlot"/>이 있으면 장착 슬롯이라 그 부위만 받는다.
+        /// <paramref name="blocked"/>는 양손 무기에 막힌 보조 슬롯이다 — 회색으로 꺼지고 아무것도 받지 않는다.
         /// </summary>
         private void CreateSlot(Transform column, Unit owner, ItemData item, float x, float y, float size,
-            string emptyLabel, bool isEquipped, BaseClasses.EquipmentSlot? equipSlot)
+            string emptyLabel, bool isEquipped, BaseClasses.EquipmentSlot? equipSlot, bool blocked = false)
         {
             bool filled = item != null;
 
-            Color fill = filled ? UITheme.SurfaceRaised : UITheme.SurfaceSunken;
-            Color border = !filled ? UITheme.Outline
+            // 빈 칸은 안쪽이 투명하고 짙은 테두리만 둘렀다. 막힌 칸은 예전 그대로의 회색 면,
+            // 채워진 칸은 흰 면이다.
+            bool empty = !filled && !blocked;
+            Color fill = filled ? UITheme.SurfaceRaised : blocked ? UITheme.SurfaceSunken : Color.clear;
+            Color border = empty ? EmptySlotBorder
+                : !filled ? UITheme.Outline
                 : isEquipped ? UITheme.Accent
                 : UITheme.Rarity(item.rarity);
+            int borderWidth = empty ? EmptySlotBorderWidth : filled && isEquipped ? 2 : 1;
 
             Image slot = UIBuild.Panel(filled ? $"Slot_{item.name}" : "Slot", column, fill,
-                UIShapes.Corner.Diagonal, 5, border, filled && isEquipped ? 2 : 1);
+                UIShapes.Corner.Diagonal, 5, border, borderWidth);
             UIBuild.Pin(slot.rectTransform, new Vector2(0f, 1f), new Vector2(size, size),
                 new Vector2(x, -y));
 
-            if (equipSlot.HasValue && owner != null)
+            if (equipSlot.HasValue && owner != null && !blocked)
             {
                 BaseClasses.EquipmentSlot target = equipSlot.Value;
                 MakeDropTarget(slot,
                     drag => FitsSlot(drag.Item, target) && !(drag.Equipped && drag.From == owner),
                     drag => EquipFromDrag(drag, owner), cut: 5, highlightFill: fill);
+            }
+            else if (blocked)
+            {
+                // 받는 자리가 아니다. 드롭 대상을 아예 달지 않으니 강조도 켜지지 않는다.
             }
             else if (owner != null)
             {
@@ -632,6 +665,7 @@ namespace Managers.UI.Screens
             if (source == null) source = slot.gameObject.AddComponent<UIDragSource>();
             source.Payload = new ItemDrag { Item = item, From = owner, Equipped = isEquipped };
             source.Label = item.name;
+            source.Icon = itemSprite;
             source.Tint = UITheme.Rarity(item.rarity);
         }
 

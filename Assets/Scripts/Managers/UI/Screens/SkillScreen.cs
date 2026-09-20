@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using BaseClasses;
+using Helpers;
 using Managers.UI.Core;
 using Managers.UI.Theme;
 using TMPro;
@@ -14,6 +16,10 @@ namespace Managers.UI.Screens
     ///
     /// 우마무스메와 같은 구조다 — 훈련은 힌트만 흘리고, 무엇을 배울지는 준비 페이즈에서
     /// 플레이어가 고른다. 힌트가 없는 코드는 이 목록에 아예 오르지 않는다.
+    ///
+    /// <b>상점과 같은 모양이다.</b> 상점이 골드를 물건으로 바꾸듯 여기서는 스킬 Pt를 스킬로 바꿀 뿐이라
+    /// 준비 행동을 쓰지 않는다. 그 사실이 화면에서도 읽히도록 왼쪽에 <b>세이</b>가 창구에 서고
+    /// 오른쪽에 진열대가 놓인다(<see cref="ShopScreen"/>과 같은 배치).
     ///
     /// 금(강화) 코드는 대응하는 은(일반) 코드를 이미 배운 뒤에만 살 수 있다.
     /// 선행 코드가 없으면 카드에 <c>선행 필요: ○○</c>가 붙고 눌러도 값이 나가지 않는다.
@@ -31,12 +37,19 @@ namespace Managers.UI.Screens
         protected override int SortingOrder => 73;
         protected override string Title => "스킬";
         protected override string Caption => "SKILL";
-        protected override Vector2 AnchorMin => new(0.10f, 0.16f);
-        protected override Vector2 AnchorMax => new(0.90f, 0.84f);
+        // 상점과 같은 창 크기 — 두 화면을 오갈 때 창이 들썩이지 않는다.
+        protected override Vector2 AnchorMin => new(0.08f, 0.14f);
+        protected override Vector2 AnchorMax => new(0.92f, 0.86f);
         protected override bool CloseOnBackdrop => true;
+
+        /// <summary>창구에 서는 사람. 그림은 <c>SEI_STANDING</c>이다.</summary>
+        private const string ClerkStanding = "SEI_STANDING";
+        private const string ClerkName = "세이";
 
         private readonly List<Card> _cards = new();
         private List<TrainingManager.SkillOffer> _offers = new();
+        private RectTransform _goodsRoot;
+        private TextMeshProUGUI _clerkLine;
         private TextMeshProUGUI _wallet;
         private TextMeshProUGUI _message;
         private TextMeshProUGUI _pageLabel;
@@ -54,36 +67,83 @@ namespace Managers.UI.Screens
 
         protected override void Build()
         {
-            _wallet = UIBuild.Text("Wallet", Body, "", UITheme.FontBody, UITheme.TextSecondary,
+            BuildClerk();
+
+            _goodsRoot = UIBuild.Container("SkillGoods", Body);
+            UIBuild.Anchor(_goodsRoot, new Vector2(0.26f, 0f), Vector2.one);
+
+            _wallet = UIBuild.Text("Wallet", _goodsRoot, "", UITheme.FontBody, UITheme.TextSecondary,
                 TextAlignmentOptions.Center);
             UIBuild.Anchor(_wallet.rectTransform, new Vector2(0f, 0.90f), Vector2.one);
 
             for (int i = 0; i < PageSize; i++)
             {
-                _cards.Add(new Card(Body, i, OnPick));
+                _cards.Add(new Card(_goodsRoot, i, OnPick));
             }
 
-            _message = UIBuild.Text("Message", Body, "", UITheme.FontCaption, UITheme.TextMuted,
+            _message = UIBuild.Text("Message", _goodsRoot, "", UITheme.FontCaption, UITheme.TextMuted,
                 TextAlignmentOptions.Center, wrap: true);
             UIBuild.Anchor(_message.rectTransform, new Vector2(0f, 0.10f), new Vector2(1f, 0.16f));
 
-            _prev = UIBuild.Button("Prev", Body, "◀", () => TurnPage(-1));
+            _prev = UIBuild.Button("Prev", _goodsRoot, "◀", () => TurnPage(-1));
             UIBuild.Anchor(_prev.GetComponent<RectTransform>(),
-                new Vector2(0.24f, 0.01f), new Vector2(0.32f, 0.09f));
+                new Vector2(0.10f, 0.01f), new Vector2(0.20f, 0.09f));
 
-            _pageLabel = UIBuild.Text("Page", Body, "", UITheme.FontCaption, UITheme.TextSecondary,
+            _pageLabel = UIBuild.Text("Page", _goodsRoot, "", UITheme.FontCaption, UITheme.TextSecondary,
                 TextAlignmentOptions.Center);
-            UIBuild.Anchor(_pageLabel.rectTransform, new Vector2(0.33f, 0.01f), new Vector2(0.43f, 0.09f));
+            UIBuild.Anchor(_pageLabel.rectTransform, new Vector2(0.21f, 0.01f), new Vector2(0.33f, 0.09f));
 
-            _next = UIBuild.Button("Next", Body, "▶", () => TurnPage(1));
+            _next = UIBuild.Button("Next", _goodsRoot, "▶", () => TurnPage(1));
             UIBuild.Anchor(_next.GetComponent<RectTransform>(),
-                new Vector2(0.44f, 0.01f), new Vector2(0.52f, 0.09f));
+                new Vector2(0.34f, 0.01f), new Vector2(0.44f, 0.09f));
 
-            Button close = UIBuild.Button("Close", Body, "닫기", Hide, primary: true);
+            Button close = UIBuild.Button("Close", _goodsRoot, "닫기", Hide, primary: true);
             UIBuild.Anchor(close.GetComponent<RectTransform>(),
-                new Vector2(0.58f, 0.01f), new Vector2(0.76f, 0.09f));
+                new Vector2(0.56f, 0.01f), new Vector2(0.76f, 0.09f));
 
             BuildEmptyState();
+        }
+
+        /// <summary>왼쪽 기둥 — 창구의 세이. 상점의 행상인 기둥과 같은 치수다.</summary>
+        private void BuildClerk()
+        {
+            RectTransform column = UIBuild.Container("Clerk", Body);
+            UIBuild.Anchor(column, Vector2.zero, new Vector2(0.24f, 1f));
+
+            var artObject = new GameObject("Art", typeof(RectTransform), typeof(Image));
+            artObject.transform.SetParent(column, false);
+            var art = artObject.GetComponent<Image>();
+            art.preserveAspect = true;
+            art.raycastTarget = false;
+            UIBuild.Anchor(art.rectTransform, new Vector2(0f, 0.30f), new Vector2(1f, 0.96f));
+
+            Sprite standing = SpriteResource.LoadStanding(ClerkStanding);
+            art.sprite = standing;
+            art.enabled = standing != null;
+
+            TextMeshProUGUI name = UIBuild.Text("Name", column, ClerkName, UITheme.FontHeading,
+                UITheme.TextPrimary, TextAlignmentOptions.Center);
+            UIBuild.Anchor(name.rectTransform, new Vector2(0f, 0.20f), new Vector2(1f, 0.29f));
+
+            _clerkLine = UIBuild.Text("Line", column, "", UITheme.FontCaption, UITheme.TextSecondary,
+                TextAlignmentOptions.Top, wrap: true);
+            UIBuild.Anchor(_clerkLine.rectTransform, new Vector2(0f, 0.02f), new Vector2(1f, 0.19f), 8f, 0f);
+        }
+
+        /// <summary>
+        /// 창구 대사. 힌트가 없을 때와 살 수 있을 때, 살 수 없을 때를 가른다.
+        /// 어느 쪽이든 <b>행동을 쓰지 않는다</b>는 사실을 한 번은 말해 준다 —
+        /// 훈련·휴식과 같은 줄에 놓인 버튼이라 행동을 쓰는 줄로 오해하기 쉽다.
+        /// </summary>
+        private string Banter()
+        {
+            if (_offers.Count == 0)
+                return "아직 받아 둔 힌트가 없어요. 훈련하고 오시면 그때 다시 봐요.";
+
+            int affordable = _offers.Count(offer => offer.CanLearn);
+            return affordable > 0
+                ? "Pt만 있으면 바로 배울 수 있어요. 행동은 쓰지 않으니 마음 편히 고르세요."
+                : "지금은 배울 수 있는 게 없네요. Pt나 선행 스킬이 모자란 거예요.";
         }
 
         /// <summary>
@@ -92,7 +152,7 @@ namespace Managers.UI.Screens
         /// </summary>
         private void BuildEmptyState()
         {
-            _emptyRoot = UIBuild.Container("EmptyState", Body);
+            _emptyRoot = UIBuild.Container("EmptyState", _goodsRoot);
             UIBuild.Anchor(_emptyRoot, new Vector2(0f, 0.16f), new Vector2(1f, 0.88f));
 
             Image ring = UIBuild.Solid("Ring", _emptyRoot, Color.white);
@@ -164,6 +224,8 @@ namespace Managers.UI.Screens
                     index < _offers.Count);
             }
 
+            _clerkLine.text = Banter();
+
             // 빈 판과 쪽 넘김은 서로 배타적이다. 힌트가 없으면 쪽 번호도 의미가 없다.
             RefreshEmptyState(empty);
             _pageLabel.gameObject.SetActive(!empty);
@@ -193,7 +255,7 @@ namespace Managers.UI.Screens
                 "훈련에 앉은 서포트가 확률로 힌트를 흘립니다. 특기 훈련에 앉은 서포트일수록 잘 흘리고, " +
                 "같은 힌트를 다시 받으면 값이 싸집니다.\n" +
                 $"힌트 없이 끝난 훈련이 {SkillHintState.PityTrainings}번 쌓이면 다음 훈련은 반드시 힌트를 줍니다 — {pity}." +
-                (canTrain ? "" : "\n\n이번 준비 페이즈의 행동은 이미 썼습니다. 다음 스테이지에서 훈련하세요.");
+                (canTrain ? "" : "\n\n훈련은 준비 행동을 쓰는데, 이번 준비 페이즈의 행동은 이미 썼습니다. 다음 스테이지에서 훈련하세요.");
 
             _emptyAction.interactable = canTrain;
             TextMeshProUGUI label = _emptyAction.GetComponentInChildren<TextMeshProUGUI>();

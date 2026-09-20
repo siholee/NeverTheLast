@@ -327,8 +327,6 @@ public class Cell : MonoBehaviour
             lines.Add(Managers.UI.Core.UITooltip.Line.Note("치유 → 연료 / 보호막 → 안정제 / 버프 → 촉매\n일반행동 2회마다 가장 적은 시약을 합성", Managers.UI.Theme.UITheme.TextSecondary));
         }
 
-        lines.Add(Managers.UI.Core.UITooltip.Line.Note("클릭: 캐릭터 창", muted));
-
         Managers.UI.Core.UITooltip.Show(this, $"{hovered.UnitName}  Lv.{hovered.Level}", lines,
             hovered.IsEnemy ? Managers.UI.Theme.UITheme.Enemy : Managers.UI.Theme.UITheme.Accent);
     }

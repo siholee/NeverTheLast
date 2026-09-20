@@ -29,8 +29,14 @@ namespace Managers.UI.Core
         /// <summary>이 손잡이가 들고 있는 것. 놓는 쪽이 해석한다.</summary>
         public object Payload;
 
-        /// <summary>유령에 쓸 이름.</summary>
+        /// <summary>유령에 쓸 이름. <see cref="Icon"/>이 없을 때만 글자 유령으로 보인다.</summary>
         public string Label;
+
+        /// <summary>
+        /// 끌고 다닐 그림. 있으면 <b>글자 상자 대신 이 그림 자체</b>가 커서를 따라간다 —
+        /// 무엇을 들고 있는지는 이름표가 아니라 모양으로 읽혀야 한다.
+        /// </summary>
+        public Sprite Icon;
 
         /// <summary>유령 테두리 색. 보통 등급 색을 쓴다.</summary>
         public Color Tint = UITheme.Outline;
@@ -124,9 +130,14 @@ namespace Managers.UI.Core
 
         public static object Payload { get; private set; }
 
+        /// <summary>그림 유령의 한 변(px, 기준 해상도). 슬롯보다 살짝 커서 손에 든 느낌이 난다.</summary>
+        private const float GhostIconSize = 64f;
+
         private static GameObject _ghost;
         private static RectTransform _ghostRect;
         private static Canvas _ghostCanvas;
+        private static GameObject _ghostCard;
+        private static Image _ghostArt;
 
         private static readonly List<RaycastResult> Hits = new();
 
@@ -282,17 +293,34 @@ namespace Managers.UI.Core
                 if (_ghost != null) Destroy(_ghost);
 
                 _ghostCanvas = canvas;
-                Image body = UIBuild.Panel("DragGhost", canvas.transform, UITheme.SurfaceRaised,
-                    UIShapes.Corner.Diagonal, 6, UITheme.Accent, 2);
-                body.raycastTarget = false;
-                _ghost = body.gameObject;
-                _ghostRect = body.rectTransform;
+
+                // 루트는 자리만 잡는 빈 상자다. 그림 유령과 글자 유령은 그 아래에서 번갈아 켠다.
+                var root = new GameObject("DragGhost", typeof(RectTransform));
+                root.transform.SetParent(canvas.transform, false);
+                _ghost = root;
+                _ghostRect = (RectTransform)root.transform;
                 _ghostRect.anchorMin = new Vector2(0.5f, 0.5f);
                 _ghostRect.anchorMax = new Vector2(0.5f, 0.5f);
                 _ghostRect.pivot = new Vector2(0.5f, 0.5f);
-                _ghostRect.sizeDelta = new Vector2(170f, 38f);
 
-                TextMeshProUGUI label = UIBuild.Text("Label", _ghost.transform, "",
+                var artObject = new GameObject("Art", typeof(RectTransform), typeof(Image));
+                artObject.transform.SetParent(root.transform, false);
+                _ghostArt = artObject.GetComponent<Image>();
+                _ghostArt.preserveAspect = true;
+                _ghostArt.raycastTarget = false;
+                var artRect = _ghostArt.rectTransform;
+                artRect.anchorMin = artRect.anchorMax = artRect.pivot = new Vector2(0.5f, 0.5f);
+                artRect.sizeDelta = new Vector2(GhostIconSize, GhostIconSize);
+
+                Image card = UIBuild.Panel("Card", root.transform, UITheme.SurfaceRaised,
+                    UIShapes.Corner.Diagonal, 6, UITheme.Accent, 2);
+                card.raycastTarget = false;
+                _ghostCard = card.gameObject;
+                var cardRect = card.rectTransform;
+                cardRect.anchorMin = cardRect.anchorMax = cardRect.pivot = new Vector2(0.5f, 0.5f);
+                cardRect.sizeDelta = new Vector2(170f, 38f);
+
+                TextMeshProUGUI label = UIBuild.Text("Label", _ghostCard.transform, "",
                     UITheme.FontCaption, UITheme.TextPrimary, TextAlignmentOptions.Center);
                 UIBuild.Stretch(label.rectTransform, 6f, 4f);
                 label.overflowMode = TextOverflowModes.Ellipsis;
@@ -301,10 +329,23 @@ namespace Managers.UI.Core
             _ghost.SetActive(true);
             _ghost.transform.SetAsLastSibling();
 
-            var text = _ghost.GetComponentInChildren<TextMeshProUGUI>();
+            // 그림이 있으면 그림만 끌고 다닌다. 그림이 없는 물건만 이름표로 물러난다.
+            bool hasIcon = source.Icon != null;
+            _ghostArt.gameObject.SetActive(hasIcon);
+            _ghostCard.SetActive(!hasIcon);
+
+            if (hasIcon)
+            {
+                _ghostArt.sprite = source.Icon;
+                // 커서 밑에서 슬롯이 비치도록 살짝 투명하게 둔다.
+                _ghostArt.color = new Color(1f, 1f, 1f, 0.92f);
+                return;
+            }
+
+            var text = _ghostCard.GetComponentInChildren<TextMeshProUGUI>();
             if (text != null) text.text = source.Label ?? "";
 
-            var image = _ghost.GetComponent<Image>();
+            var image = _ghostCard.GetComponent<Image>();
             if (image != null)
             {
                 image.sprite = UIShapes.CutCorner(6, UITheme.SurfaceRaised,

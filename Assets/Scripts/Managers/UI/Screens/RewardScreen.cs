@@ -420,6 +420,19 @@ namespace Managers.UI.Screens
             return string.Join(" · ", parts);
         }
 
+        /// <summary>툴팁용 머리말. 영문(TIER · RARE)은 윗줄, 한글(부위 · 분류)은 아랫줄로 나눈다.</summary>
+        private static string MetaHead(RewardDef reward)
+        {
+            int tier = Mathf.Max(1, reward.tier);
+            string english = reward.isRare ? $"TIER {tier} · RARE" : $"TIER {tier}";
+
+            string slot = string.IsNullOrWhiteSpace(reward.item?.slot) ? "" : ItemTooltip.SlotName(reward.item.slot);
+            string category = string.IsNullOrWhiteSpace(reward.item?.category)
+                ? ""
+                : ItemTooltip.CategoryName(reward.item.category);
+            return ItemTooltip.SplitHead(english, slot, category);
+        }
+
         private sealed class Card
         {
             private readonly GameObject _root;
@@ -670,7 +683,7 @@ namespace Managers.UI.Screens
             {
                 var lines = new List<UITooltip.Line>
                 {
-                    UITooltip.Line.Note(MetaLine(reward), UITheme.TextMuted),
+                    UITooltip.Line.Note(MetaHead(reward), UITheme.TextMuted),
                 };
 
                 if (!string.IsNullOrWhiteSpace(reward.description))
