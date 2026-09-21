@@ -99,20 +99,13 @@ namespace Codes.Normal
     }
 
     /// <summary>
-    /// 스카디 N / N+.
-    /// 방어막이 있으면 단일 적에게 고정 위력 80 + STR×0.5의 접촉 물리 피해를 입힌다.
-    /// 방어막이 없으면 공격 대신 자신에게 방어막을 부여한다. 전열 우선도는 공용 진형 규칙이
-    /// 맡으며, 도발은 육성으로 별도 패시브를 배웠을 때만 생긴다.
+    /// 스카디 N. 단일 적에게 고정 위력 80 + STR×0.5의 접촉 물리 피해를 입히고
+    /// 북방의 수호자 고유 중첩을 최대치까지 충전한다.
     /// </summary>
     public sealed class SkadiNormalAttack : BaseNormalCode
     {
         private const int NormalFlatPower = 80;
         private const float NormalStrCoefficient = 0.5f;
-        private const float ShieldFlat = 100f;
-        private const float ShieldStrCoefficient = 1.2f;
-
-        private bool _substitute;
-
         public SkadiNormalAttack(NormalCodeContext context) : base(context)
         {
             CodeName = "일반행동";
@@ -120,37 +113,6 @@ namespace Codes.Normal
             PowerStatCoefficient = NormalStrCoefficient;
             PowerStat = BaseEnums.PrimaryStat.STR;
             CodeTags = new List<int> { DamageTag.Physical };
-        }
-
-        public override void CastCode()
-        {
-            _substitute = Caster != null && Caster.ShieldCurr <= 0;
-            CodeName = _substitute ? "대체행동" : "일반행동";
-            base.CastCode();
-        }
-
-        protected override IEnumerator SkillCoroutine()
-        {
-            if (!_substitute)
-            {
-                yield return base.SkillCoroutine();
-                yield break;
-            }
-
-            bool cast = false;
-            yield return WaitForCast(result => cast = result);
-            if (!cast)
-            {
-                StopCode();
-                yield break;
-            }
-
-            int shield = Mathf.Max(1, Mathf.RoundToInt(
-                ShieldFlat + Caster.GetBaseStr() * ShieldStrCoefficient));
-            Caster.AddShield(shield, Caster);
-
-            NotifyActionResolved();
-            StopCode();
         }
 
         protected override int CalculateDamage(float critMultiplier)
@@ -163,9 +125,9 @@ namespace Codes.Normal
             DamageTag.ContactAttack, DamageTag.Physical,
         };
 
-        // 방어막이 없으면 적이 없어도 방어행동은 성립한다.
-        public override bool HasValidTarget()
-            => Caster != null && Caster.isActive && (Caster.ShieldCurr <= 0 || base.HasValidTarget());
+        protected override void OnAttackResolved(Unit target, DamageContext context)
+            => Caster?.AddCombatResource(
+                SkadiNorthernGuardian.ResourceId, SkadiNorthernGuardian.MaxStacks);
     }
 
     /// <summary>

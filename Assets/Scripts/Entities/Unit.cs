@@ -1660,6 +1660,8 @@ namespace Entities
             {
                 attacker.Invoke(BaseEnums.UnitEventType.OnKill, new EventContext(attacker, this));
             }
+            // 메인이 쓰러졌는지 육성이 기록한다 — 전투가 끝날 때 컨디션이 한 칸 내려간다.
+            if (!isEnemy) TrainingManager.NoteAllyDeath(this);
             // 전투 중에 끝없이 불려 나오는 적 소환체(허기 결정 등)는 처치 보수를 주지 않는다.
             // 보스전이 길어질수록 골드·경험치·토큰이 불어나는 농사 구멍이 되기 때문이다.
             if (isEnemy && !HasUnitTag("Summon")) GameManager.Instance.OnKillEnemy(this);

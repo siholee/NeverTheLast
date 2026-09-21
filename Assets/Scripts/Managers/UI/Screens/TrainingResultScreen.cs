@@ -204,11 +204,12 @@ namespace Managers.UI.Screens
                     ? $"-{result.EnergySpent}   (남은 {result.EnergyAfter})"
                     : $"+{-result.EnergySpent} 회복   (남은 {result.EnergyAfter})",
                 result.EnergySpent > 0 ? new Color(0.878f, 0.647f, 0.290f) : UITheme.Positive);
+            // 훈련은 컨디션을 바꾸지 않는다. 대신 이번 훈련이 쓴 트레이닝 노트가 있으면 그것을 적는다.
             SetRow(3, "컨디션",
-                result.ConditionBefore == result.ConditionAfter
-                    ? result.ConditionAfter
-                    : $"{result.ConditionBefore} → {result.ConditionAfter}",
-                UITheme.TextPrimary);
+                result.NoteBonusUsed > 0
+                    ? $"{result.ConditionAfter} · 노트 +{result.NoteBonusUsed}% 사용"
+                    : result.ConditionAfter,
+                result.NoteBonusUsed > 0 ? UITheme.Positive : UITheme.TextPrimary);
 
             RefreshSupports(result);
         }

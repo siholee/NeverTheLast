@@ -112,6 +112,9 @@ namespace Core
         public int energy = TrainingState.MaxEnergy;
         public int skillPoints;
         public int conditionIndex = TrainingState.NormalConditionIndex;
+
+        /// <summary>다음 훈련에 붙을 트레이닝 노트 보너스(%). 이전 저장본에는 없어 0으로 읽힌다.</summary>
+        public int notePercent;
         public List<TrainingLevelSaveData> levels = new();
 
         // 이번 훈련 턴의 서포트 배치. 화면을 다시 열 때마다 자리가 바뀌면 안 되므로

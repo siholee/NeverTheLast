@@ -3,7 +3,7 @@
 > **3계층 문서.** 5스탯과 파생, 레벨·EXP, 코드 3분류, 패시브 해금, 캐릭터 데이터 스키마.
 > 개념 정의는 [서브 기획서](GDD_Sub_Concepts.md) 3장을 본다.
 
-최종 갱신: 2026-09-19
+최종 갱신: 2026-09-21
 관련 코드: `Unit.cs`, `UnitStats.cs`, `Code.cs`, `CodeFactory.cs`, `GameManager.cs`
 관련 데이터: `10_units.yaml`, `20_codes.yaml`, `60_enemies.yaml`
 
@@ -435,7 +435,6 @@ ID는 같은 분류 안에서 중복되면 안 된다.
 
 | 보유자 | 조건 | 대체행동 내용 |
 | --- | --- | --- |
-| 스카디 | 방어막이 없을 때 | 자기 방어막 |
 | 가우디 | 스택 6 | 3인 타격 + 풀 부착 |
 | 잔 | 전투 후 첫 일반행동 (벌크업) | 자신의 STR +10% |
 | 호루스 | 네 번째 일반행동 (우제트) | 추가 피해 + 방어 20% 무시 |
@@ -458,8 +457,13 @@ ID는 같은 분류 안에서 중복되면 안 된다.
 | 분류 | 초기 사용 | 무한 모드 | 설명 |
 | --- | --- | --- | --- |
 | **Starter** | 메인으로 즉시 | O | 육성 완료 시 **서포트 카드에도 추가**되며, 그 카드는 무한 모드에서 쓸 수 있다 |
-| **Support** | 서포터 카드로만 | ✕ | 게임 초기부터 편성 가능하지만 무한 모드에는 나오지 않는다 |
-| **Locked** | 불가 | (해금 후) | 육성 모드 중 아군으로 합류하면(포켓로그식) **영구 해금**되어 이후 Starter처럼 쓴다 |
+| **Support** | 서포터 카드로만 | ✕ | 게임 초기부터 편성 가능하지만 무한 모드에는 나오지 않는다. `unlocksAsStarterOnClear`가 붙은 둘(니콜·프레이아)만 **서포트로 완주시키면** 메인 후보로 열린다 — [Detail_08 §31.2](Detail_08_Confirmed_Characters.md) |
+| **Locked** | 불가 | (해금 후) | **영입 사건을 만나면**(거절해도) 영구 해금되어 이후 Starter처럼 쓴다. 해금은 사건이 결판날 때 `GameManager.GrantRecruitUnlock`이 준다 |
+
+> **해금 경로는 셋뿐이다** — 영입 사건 · 계정 첫 완주(라부아지에) · 서포트 완주(니콜·프레이아).
+> 예전에는 `GridManager.SpawnUnit`이 "런 도중 스폰된 아군"을 무조건 해금하는 훅을 하나 더 갖고 있었는데,
+> 합류 판정을 편성 기록(`CharacterSelectionManager.Lineup`)으로 물어서 **불러온 런에서는 전투가 끝날 때마다
+> 파티 전원이 해금**됐다. 영입 해금은 사건 쪽이 이미 온전히 주고 있어 훅째로 걷어냈다.
 
 **플래그 대응**
 
@@ -484,6 +488,26 @@ ID는 같은 분류 안에서 중복되면 안 된다.
 합류시킬 영입 사건도 하나도 없다. **실제로 편성 가능한 것은 Starter 7 + Support 13 = 20명뿐이다.**
 [Design_Backlog](Design_Backlog.md) 항목 5·21.
 
+### 5.2 전투 성향 UI 태그
+
+종족·진영·분류 판정에 쓰는 `tags`와 별개로, `archetypeTags`는 플레이어에게 캐릭터의
+전투 방식을 짧게 설명한다. 캐릭터 선택 쇼케이스와 아군 카드 툴팁에 `[아이콘 | 이름]` 칩으로 표시한다.
+
+| 키 | 표시 | 설명 |
+| --- | --- | --- |
+| `Burst` | 방출 | 강력한 궁극기 위주의 전투 방식 |
+| `Precision` | 정밀 | 지속적인 피해를 입힘 |
+| `FollowUp` | 연속 | 추가 행동을 주로 사용 |
+| `Support` | 지원 | 아군 지원에 특화 |
+| `Control` | 제어 | 적 방해·약화에 특화 |
+| `Healing` | 치유 | 아군 체력 회복 가능 |
+| `Shielding` | 방어 | 아군에게 방어막 부여 가능 |
+| `Infusion` | 부여 | 적에게 원소 부여에 특화 |
+| `Sturdy` | 견고 | 매우 높은 생존력 |
+
+표시 이름·설명·아이콘 경로의 원본은 `UnitTagCatalog`다. 아이콘은 흰색 알파 마스크로 저장해
+화면 상태에 따라 틴트를 바꾼다. 아직 태그를 확정하지 않은 캐릭터는 `archetypeTags`를 생략할 수 있다.
+
 ## 6. 캐릭터 데이터 스키마 (`10_units.yaml`)
 
 ```yaml
@@ -495,6 +519,7 @@ ID는 같은 분류 안에서 중복되면 안 된다.
   startingProficiencies: [Longbow, MediumArmor]
   startingItemIds: [4106]       # 선택. 없으면 맨손으로 시작한다
   tags: [Greek]
+  archetypeTags: [Precision]    # 선택. 플레이어에게 보여 주는 전투 성향 UI 태그
   canStartAsMain: true
   canStartAsSupport: false
   canUseInInfinite: true
@@ -555,7 +580,7 @@ ID는 같은 분류 안에서 중복되면 안 된다.
 | 5 | 라이트 | Support | Anemo | CON / DEX·INT | 궁극기 연계 정화·소환 서포터 |
 | 60 | 찬드라 | Support | Geo | CON / LUK | 방어형 스타터 서포터 |
 | 81 | 프레이아 | Support | Dendro | CON / DEX · INT | 체력을 태우는 파티의 코어 힐러 |
-| 83 | 스카디 | Support | Cryo | STR / CON | 방어막·반격·얼음 부착 전열 서포터 |
+| 83 | 스카디 | Support | Cryo | STR / CON | 피격 반격·얼음 부착 전열 서포터 |
 | 65 | 쿠베라 | Support | Geo | CON / STR | 베다·에어본 파티 탱커 |
 | 66 | 바루나 | Support | Hydro | CON / INT | 감전 파티 코어 · 물 부여 |
 | 25 | 오르페우스 | Support | Anemo | LUK / INT | 강인도를 부여하는 특수 서포터 |

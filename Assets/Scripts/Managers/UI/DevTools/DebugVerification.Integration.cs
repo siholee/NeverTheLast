@@ -25,6 +25,9 @@ namespace Managers.UI.DevTools
             yield return PassiveUltimateMechanics();
             yield return DefeatRecovery();
             SaveIntegrationCheckpoint();
+            // 에디터 배치 폴러가 체크포인트를 감지할 프레임을 보장한다. 같은 프레임에
+            // 새 Game 씬을 다시 로드하면 headless 에디터가 종료 요청 전에 교착될 수 있다.
+            yield return null;
             yield return Campaign();
 }
         private void SaveIntegrationCheckpoint()
@@ -72,6 +75,28 @@ namespace Managers.UI.DevTools
             Assert($"action {id} normal completion", resolved > 0 && !unit.isCasting,
                 "resolved and released", $"{resolved}/{unit.isCasting}");
             unit.RemoveListener(UnitEventType.OnNormalActionResolved, onResolved);
+            if (!isEnemy && id == 83)
+            {
+                Equal("Skadi normal fills counter stacks", SkadiNorthernGuardian.MaxStacks,
+                    unit.GetCombatResource(SkadiNorthernGuardian.ResourceId));
+                Unit attacker = Enemies.FirstOrDefault();
+                if (attacker != null)
+                {
+                    int hpBefore = attacker.HpCurr;
+                    game.ActionScheduler.BeginRound();
+                    unit.TakeDamage(new DamageContext(attacker, 1, CodeType.Normal,
+                        new List<int> { DamageTag.SingleTarget, DamageTag.Physical, DamageTag.NonContactAttack }));
+                    Equal("Skadi hit consumes one stack on reservation", SkadiNorthernGuardian.MaxStacks - 1,
+                        unit.GetCombatResource(SkadiNorthernGuardian.ResourceId));
+                    game.ActionScheduler.Tick(0f);
+                    yield return Settle(1f);
+                    Assert("Skadi counter damages attacker", attacker.HpCurr < hpBefore,
+                        "HP decreased", (hpBefore - attacker.HpCurr).ToString());
+                    Assert("Skadi counter applies Cryo", attacker.HasAttachedElement(UnitElement.Cryo),
+                        "Cryo attached", attacker.GetCombatElementDisplay());
+                    game.ActionScheduler.EndRound();
+                }
+            }
             // 강한 보스의 일반행동이 표적을 전멸시켰다면 다음 행동용 표적을 다시 준비한다.
             if (!(isEnemy ? Heroes : Enemies).Any())
             {

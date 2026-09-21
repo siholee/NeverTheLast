@@ -168,6 +168,8 @@ namespace Managers
                 }
 
                 ResetUltimateResourcesOnThemeTransition(previousRound);
+                // 스테이지 사이의 드문 컨디션 사건. 저장 전에 굴려야 불러오기로 결과를 물릴 수 없다.
+                GameManager.Instance.RollStageConditionEvent();
                 SaveCurrentRun();
                 GameManager.Instance.EnterNextStageAfterLoad();
                 return;
@@ -224,6 +226,8 @@ namespace Managers
                 SaveSystem.AddTrainedCharacter(mainUnitId);
             }
 
+            GrantSupportStarterUnlocks(mainUnitId);
+
             RunActive = false;
             SaveSystem.DeleteSave();
             GameManager.Instance.gameState = GameState.RunComplete;
@@ -233,6 +237,44 @@ namespace Managers
             if (DebugMode.SuiteRunning) return;
 #endif
             GameManager.LoadMainMenuScene();
+        }
+
+        /// <summary>
+        /// 완주한 런에 <b>서포트로 함께 선</b> 동료 중 <c>unlocksAsStarterOnClear</c>가 붙은 이를
+        /// 스타팅 후보로 연다. 우마무스메의 육성마와 같은 결 — 곁에서 한 런을 끝까지 본 서포트가
+        /// 다음 런의 주인공이 된다. 지금은 니콜(6)·프레이아(81)가 이 경로를 쓴다.
+        ///
+        /// <b>메인은 세지 않는다</b> — 메인은 육성 기록 자체가 자격이다.
+        /// 편성 기록(<c>SupportUnitIds</c>)과 실제 로스터를 함께 본다. 불러오기로 이어 온 런은
+        /// 편성 기록이 비어 있고, 반대로 쓰러진 채 끝난 아군은 <c>ID</c>가 0이라 서로를 메운다.
+        /// </summary>
+        private static void GrantSupportStarterUnlocks(int mainUnitId)
+        {
+            var partyIds = new HashSet<int>();
+            foreach (int unitId in CharacterSelectionManager.Instance?.SupportUnitIds ?? new List<int>())
+            {
+                if (unitId > 0) partyIds.Add(unitId);
+            }
+            foreach (Unit hero in GridManager.Instance?.heroList ?? new List<Unit>())
+            {
+                if (hero == null || hero.IsEnemy || hero.IsSummon) continue;
+                int unitId = hero.ID > 0 ? hero.ID : hero.LastActiveId;
+                if (unitId > 0) partyIds.Add(unitId);
+            }
+            partyIds.Remove(mainUnitId);
+
+            List<UnitData> units = GameManager.Instance?.unitDataList?.units;
+            if (units == null) return;
+
+            foreach (int unitId in partyIds)
+            {
+                UnitData data = units.FirstOrDefault(unit => unit != null && unit.id == unitId);
+                if (data == null || !data.unlocksAsStarterOnClear) continue;
+                if (SaveSystem.IsStarterUnlocked(unitId)) continue;
+
+                SaveSystem.AddStarterUnlock(unitId, announce: true);
+                Debug.Log($"[RunManager] 서포트 완주 해금 — {data.name}({unitId})이 스타팅 후보가 되었다");
+            }
         }
 
         private static TrainedCharacterRecord BuildTrainedCharacterRecord(Unit mainUnit)

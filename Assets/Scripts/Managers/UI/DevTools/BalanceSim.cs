@@ -49,10 +49,28 @@ namespace Managers.UI.DevTools
         private float _timeScale;
         private bool _sabahProbe;
 
+        /// <summary>
+        /// 아군 무적으로 돌린다. <b>밸런스를 재는 용도가 아니라 끝까지 가는 용도다</b> —
+        /// 완주해야만 열리는 것(육성 기록 · 서포트 카드 · 서포트 완주 해금)을 확인할 때 쓴다.
+        /// 켜면 전투 결과가 전부 승리가 되므로 리포트의 생존·딜 지표는 읽지 않는다.
+        /// </summary>
+        private bool _invincible;
+
         private GameManager game;
         private GridManager grid;
         private int _mainUltimateCasts;
         private int _stageUltimateStart;
+        private RunReport _auditReport;
+        private StageRecord _auditStage;
+        private readonly Dictionary<string, int> _elementApplicationsBySource = new();
+        private readonly Dictionary<string, int> _superconductBySource = new();
+
+        [Serializable]
+        public class NamedCounter
+        {
+            public string name;
+            public int count;
+        }
 
         [Serializable]
         public class StageRecord
@@ -85,12 +103,16 @@ namespace Managers.UI.DevTools
             public int mainUltimateCasts;     // 이 스테이지의 메인 캐릭터 궁극기 발동 횟수
             public int mainUltimateBeforeBattle;
             public int mainUltimateAfterBattle;
+            public int elementalApplications;
+            public int superconductReactions;
         }
 
         [Serializable]
         public class RunReport
         {
             public int seed;
+            /// <summary>아군 무적으로 돌렸는가. true면 전투 지표는 밸런스 근거가 되지 못한다.</summary>
+            public bool invincible;
             public int reachedStage;
             public int finalLife;
             public bool gameOver;
@@ -103,11 +125,32 @@ namespace Managers.UI.DevTools
             public int sabahDebuffResource;
             public int sabahSuperconductResource;
             public int sabahDamageOverTimeResource;
+            public int battleStages;
+            public int elementalApplications;
+            public float elementalApplicationsPerBattleStage;
+            public int superconductReactions;
+            public float superconductPerBattleStage;
+            public List<NamedCounter> elementalApplicationsBySource = new();
+            public List<NamedCounter> superconductBySource = new();
+
+            // ── 완주 뒤의 계정 상태. 육성 완료가 실제로 무엇을 남겼는지 기록만 한다. ──
+            /// <summary>메인의 육성 완료 기록이 남았는가.</summary>
+            public bool mainTrained;
+            /// <summary>메인의 서포트 카드가 만들어졌는가 — 다음 런에 서포트로 설 수 있다는 뜻이다.</summary>
+            public bool mainSupportCard;
+            /// <summary>서포트 카드 한 줄 요약(특기 스탯 · 등급 · 위력).</summary>
+            public string mainSupportCardSummary;
+            /// <summary>이 완주로 열린 스타팅 후보 전부(이미 열려 있던 것 포함).</summary>
+            public List<string> unlockedStarters = new();
+            /// <summary>완주 뒤 <b>메인으로</b> 고를 수 있는 유닛 전부. 해금이 실제로 닿았는지 본다.</summary>
+            public List<string> mainEligible = new();
+
             public List<StageRecord> stages = new();
         }
 
         public static void Begin(int runs, int maxStage, int seedBase, float timeScale,
-            string lineup = null, string front = null, bool sabahProbe = false)
+            string lineup = null, string front = null, bool sabahProbe = false,
+            bool invincible = false)
         {
             if (Running) return;
             int[] parsed = ParseIds(lineup);
@@ -121,6 +164,7 @@ namespace Managers.UI.DevTools
             host._seedBase = seedBase;
             host._timeScale = Mathf.Clamp(timeScale, 1f, 20f);
             host._sabahProbe = sabahProbe;
+            host._invincible = invincible;
             host.StartCoroutine(host.RunAll());
         }
 
@@ -135,7 +179,7 @@ namespace Managers.UI.DevTools
             for (int i = 0; i < _runs; i++)
             {
                 int seed = _seedBase + i;
-                var report = new RunReport { seed = seed };
+                var report = new RunReport { seed = seed, invincible = _invincible };
                 float started = Time.realtimeSinceStartup;
                 _mainUltimateCasts = 0;
                 Action<Unit> ultimateHandler = unit =>
@@ -143,16 +187,19 @@ namespace Managers.UI.DevTools
                     if (unit != null && !unit.IsEnemy && unit.ID == MainId) _mainUltimateCasts++;
                 };
                 Unit.AnyActiveUltimateActivated += ultimateHandler;
+                BeginElementAudit(report);
                 yield return RunOne(report);
+                FinishElementAudit(report);
                 Unit.AnyActiveUltimateActivated -= ultimateHandler;
                 report.mainUltimateCasts = _mainUltimateCasts;
                 report.realSeconds = Time.realtimeSinceStartup - started;
 
                 string path = Path.Combine(ReportDir, $"run_{seed}.json");
                 File.WriteAllText(path, JsonUtility.ToJson(report, true));
-                string line = $"seed={seed} reached={report.reachedStage} life={report.finalLife} gameOver={report.gameOver} " +
+                string line = $"seed={seed}{(_invincible ? " [무적]" : "")} reached={report.reachedStage} life={report.finalLife} gameOver={report.gameOver} " +
                               $"end={report.endReason} trainings={report.trainings} rests={report.rests} skills={report.skillsLearned} " +
-                              $"mainUlts={report.mainUltimateCasts} " +
+                              $"mainUlts={report.mainUltimateCasts} elem/stage={report.elementalApplicationsPerBattleStage:0.00} " +
+                              $"superconduct={report.superconductReactions} " +
                               $"real={report.realSeconds:0}s";
                 summary.Add(line);
                 File.AppendAllText(Path.Combine(ReportDir, "summary.txt"), line + Environment.NewLine);
@@ -170,6 +217,11 @@ namespace Managers.UI.DevTools
             SabahDebuffHunter.ResetAuditCounters();
             UnityEngine.Random.InitState(report.seed);
             DebugMode.ResetAll();
+            // ResetAll이 무적을 끄므로 반드시 그 뒤에 켠다.
+            DebugMode.AllyInvincible = _invincible;
+            // 해금·완주 기록은 빈 계정에서 출발해야 이 런이 만든 것만 남는다.
+            // 디버그 저장소는 읽기가 copy-on-write라, 시드하지 않으면 실제 세이브가 비쳐 든다.
+            SaveSystem.SeedEmptyDebugAccount();
             GameStartIntent.Current = GameStartIntent.Intent.NewGame;
             GameManager.LoadBattleScene();
 
@@ -223,6 +275,7 @@ namespace Managers.UI.DevTools
                 {
                     if (current != null) FinishRecord(current);
                     current = NewRecord(stage);
+                    _auditStage = current;
                     report.stages.Add(current);
                     report.reachedStage = stage;
                     lastStage = stage;
@@ -291,7 +344,116 @@ namespace Managers.UI.DevTools
             if (current != null) FinishRecord(current);
             report.finalLife = game != null ? game.life : 0;
             CaptureSabahResourceAudit(report);
+            CaptureCompletionState(report);
         }
+
+        private void BeginElementAudit(RunReport report)
+        {
+            _auditReport = report;
+            _auditStage = null;
+            _elementApplicationsBySource.Clear();
+            _superconductBySource.Clear();
+            Unit.AnyCombatElementGranted += OnCombatElementGranted;
+            Unit.AnyElementalReaction += OnElementalReaction;
+        }
+
+        private void FinishElementAudit(RunReport report)
+        {
+            Unit.AnyCombatElementGranted -= OnCombatElementGranted;
+            Unit.AnyElementalReaction -= OnElementalReaction;
+            report.battleStages = report.stages.Count(stage => stage.attempts > 0);
+            int divisor = Mathf.Max(1, report.battleStages);
+            report.elementalApplicationsPerBattleStage = report.elementalApplications / (float)divisor;
+            report.superconductPerBattleStage = report.superconductReactions / (float)divisor;
+            report.elementalApplicationsBySource = Counters(_elementApplicationsBySource);
+            report.superconductBySource = Counters(_superconductBySource);
+            _auditReport = null;
+            _auditStage = null;
+        }
+
+        private void OnCombatElementGranted(Unit source, Unit target, UnitElement element)
+        {
+            if (!IsPartyCombatEvent(source, target)) return;
+            string label = AuditUnitLabel(source);
+            _auditReport.elementalApplications++;
+            _auditStage.elementalApplications++;
+            Increment(_elementApplicationsBySource, label);
+        }
+
+        private void OnElementalReaction(Unit source, Unit target, string reactionName)
+        {
+            if (reactionName != "초전도" || !IsPartyCombatEvent(source, target)) return;
+            string label = AuditUnitLabel(source);
+            _auditReport.superconductReactions++;
+            _auditStage.superconductReactions++;
+            Increment(_superconductBySource, label);
+        }
+
+        private bool IsPartyCombatEvent(Unit source, Unit target)
+            => _auditReport != null && _auditStage != null &&
+               game?.gameState == GameState.RoundInProgress &&
+               source != null && target != null && !source.IsEnemy && target.IsEnemy;
+
+        private static string AuditUnitLabel(Unit unit)
+        {
+            if (unit == null) return "알 수 없음";
+            int id = unit.ID > 0 ? unit.ID : unit.LastActiveId;
+            return id > 0 ? $"{unit.UnitName}({id})" : unit.UnitName;
+        }
+
+        private static void Increment(Dictionary<string, int> counters, string key)
+        {
+            counters.TryGetValue(key, out int count);
+            counters[key] = count + 1;
+        }
+
+        private static List<NamedCounter> Counters(Dictionary<string, int> source)
+            => source.OrderByDescending(pair => pair.Value)
+                .ThenBy(pair => pair.Key)
+                .Select(pair => new NamedCounter { name = pair.Key, count = pair.Value })
+                .ToList();
+
+
+        /// <summary>
+        /// 완주가 계정에 남긴 것을 적는다 — 육성 기록 · 서포트 카드 · 스타팅 해금,
+        /// 그리고 그 결과로 <b>다음 런에서 메인으로 고를 수 있는 얼굴들</b>.
+        /// 판정하지 않고 기록만 한다. 완주하지 못한 런에서도 그대로 찍어 두어야
+        /// "해금이 안 됐다"와 "거기까지 못 갔다"를 구분할 수 있다.
+        /// </summary>
+        private void CaptureCompletionState(RunReport report)
+        {
+            var saved = SaveSystem.LoadTrainedCharacters();
+            report.mainTrained = SaveSystem.IsCharacterTrained(MainId);
+
+            SupportCardSaveData card = SaveSystem.GetSupportCard(MainId);
+            report.mainSupportCard = card != null && card.sourceUnitId > 0;
+            if (report.mainSupportCard)
+            {
+                report.mainSupportCardSummary =
+                    $"{card.sourceUnitName} 특기 {card.specialtyTraining} · 훈련보너스 {card.trainingBonus}" +
+                    $" · 전수율 {card.skillTransferRate} · 위력 {card.sourcePower}";
+            }
+
+            foreach (int unitId in saved.unlockedStarterUnitIds ?? new List<int>())
+            {
+                report.unlockedStarters.Add($"{UnitName(unitId)}({unitId})");
+            }
+
+            List<UnitData> units = game?.unitDataList?.units ?? new List<UnitData>();
+            foreach (UnitData data in units)
+            {
+                if (data == null || CharacterSelectionManager.IsSupportOnly(data)) continue;
+                bool eligible = data.canStartAsMain ||
+                                CharacterSelectionManager.HasNoUnlockPath(data) ||
+                                SaveSystem.IsStarterUnlocked(data.id) ||
+                                SaveSystem.IsCharacterTrained(data.id);
+                if (eligible) report.mainEligible.Add($"{data.name}({data.id})");
+            }
+        }
+
+        private static string UnitName(int unitId)
+            => GameManager.Instance?.unitDataList?.units?
+                   .FirstOrDefault(unit => unit != null && unit.id == unitId)?.name ?? unitId.ToString();
 
         private void CaptureSabahResourceAudit(RunReport report)
         {

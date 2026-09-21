@@ -7,11 +7,11 @@
 #   파티는 메인 1 + 서포트 4, 다섯 명 전원이 필드에 선다.
 #   메인 슬롯   : characterType이 Support가 아니고, 해금되었거나 육성 완료된 캐릭터
 #   서포트 슬롯 : canStartAsSupport(= Support 유형) 또는 해금/육성 완료된 캐릭터
-#   → 런 1회차에는 메인 후보 7명(Starter), 서포트 후보 17명(Support)뿐이다.
+#   → 런 1회차에는 메인 후보 7명(Starter), 서포트 후보 18명(Support)뿐이다.
 #
 # ─ 두 가지 조합 ──────────────────────────────────────────────────────
-#   best  (고점) : 전 캐릭터 해금 + 코드 전수까지 끝났다는 가정. 서포트를 38명에서 고른다
-#   basic (대체) : 최초 로스터만. 서포트를 Support 유형 17명에서 고르고, 전수 코드는 없다고 본다
+#   best  (고점) : 전 캐릭터 해금 + 코드 전수까지 끝났다는 가정. 메인을 뺀 43명에서 고른다
+#   basic (대체) : 최초 로스터만. 서포트를 Support 유형 18명에서 고르고, 전수 코드는 없다고 본다
 #
 # ─ 점수 축 ───────────────────────────────────────────────────────────
 #   combat   전투 기여 (필드에서 실제로 만들어 내는 것)
@@ -28,7 +28,7 @@
 roles:
   - id: TAUNT
     name: 도발
-    description: 대상 지정 우선도를 끌어와 아군 후열을 가린다. 아군 전체에서 스카디·잔뿐이다.
+    description: 대상 지정 우선도를 끌어와 아군 후열을 가린다. 초기 서포트 중에는 잔이 담당한다.
   - id: BULWARK
     name: 방벽
     description: 도발 없이 방어막·피해 경감으로 전열을 유지한다.
@@ -262,15 +262,13 @@ units:
     mainStat: STR
     topStat: CON
     row: Front
-    roles: [TAUNT, BULWARK, EXTRA_ACT, ELEM_APPLY]
+    roles: [BULWARK, DPS_ST, DPS_AOE, EXTRA_ACT, ELEM_APPLY]
     supportValue: { combat: 4, training: 4 }
     provides:
-      - key: TAUNT_WALL
-        text: "대체행동이 자기 도발 + 100+STR×1.2 방어막. 서포트 슬롯에 들어가는 유일한 도발 탱커"
       - key: COUNTER
-        text: "고유 패시브 북방의 수호자 반격 — 바스테트 야수의 시선 스택원"
+        text: "일반행동으로 3중첩을 채운 뒤 피격마다 1중첩을 소비해 반격하고 얼음을 부착한다"
       - key: CRYO_APPLY
-        text: "궁극기가 적 전체에 얼음 부착"
+        text: "반격은 단일 공격자, 궁극기는 적 전체에 얼음을 부착한다"
     wants: [HEAL]
     caution: "주스탯은 STR인데 최고 스탯은 CON이다. 카드 특기가 CON으로 굴러 STR 메인을 도와주지 못한다"
 
@@ -552,7 +550,7 @@ units:
 
   - id: 20
     name: 피그말리온
-    type: Locked
+    type: Support
     element: Pyro
     mainStat: CON
     topStat: CON
@@ -839,6 +837,57 @@ units:
     wants: [ELEM_APPLY]
     caution: "풀 원소 아군은 가우디·프레이아·아탈란테·케찰코아틀 넷뿐이다. 그 넷이 곧 최대치다"
 
+  - id: 8
+    name: 라부아지에
+    type: Locked
+    element: Pyro
+    mainStat: INT
+    topStat: INT
+    row: Rear
+    roles: [DPS_AOE, ELEM_APPLY]
+    supportValue: { combat: 4, training: 4 }
+    provides:
+      - key: REAGENT_ENGINE
+        text: "외부 치유·보호막·버프를 연료·안정제·촉매로 저장해 궁극기 계수로 바꾼다"
+      - key: REACTION_RESULT
+        text: "준비도 3과 시약 3종을 소비해 적 전체를 공격하고 불을 부착한다"
+    wants: [HEAL, SHIELD, AMP_DMG, ULT_BATTERY]
+    caution: "외부 공급이 없으면 시약이 차지 않아 궁극기를 쓸 수 없다"
+
+  - id: 84
+    name: 시구르드
+    type: Locked
+    element: Pyro
+    mainStat: STR
+    topStat: STR
+    row: Front
+    roles: [DPS_ST, ELEM_APPLY]
+    supportValue: { combat: 4, training: 3 }
+    provides:
+      - key: OATH_SIGURD
+        text: "브륀힐드와 함께 서면 공명 3마다 협공하고, 궁극기로 즉시 협공을 부른다"
+      - key: FAFNIR_BANE
+        text: "궁극기가 단일 적의 내구를 무시하고 불을 부착한다"
+    wants: [AMP_CRIT, ULT_BATTERY]
+    caution: "브륀힐드가 없으면 공명과 협공이 전부 잠긴다"
+
+  - id: 85
+    name: 브륀힐드
+    type: Locked
+    element: Cryo
+    mainStat: DEX
+    topStat: DEX
+    row: Front
+    roles: [DPS_ST, DPS_AOE, ELEM_APPLY, ULT_BATTERY]
+    supportValue: { combat: 4, training: 4 }
+    provides:
+      - key: OATH_BRYNHILD
+        text: "시구르드와 함께 서면 공명 3마다 협공하고, 불·얼음으로 융해를 만든다"
+      - key: VERDICT
+        text: "궁극기가 적 전체를 공격하고 얼음을 부착한 뒤 즉시 협공을 부른다"
+    wants: [AMP_CRIT, ULT_BATTERY]
+    caution: "시구르드가 없으면 공명과 협공이 전부 잠긴다"
+
 # ══════════════════════════════════════════════════════════════════════
 # 3. 아키타입 — 조합이 성립하는 아홉 갈래
 # ══════════════════════════════════════════════════════════════════════
@@ -927,17 +976,17 @@ archetypes:
     name: 도발 요새
     core: [83, 7]
     description: >
-      전열의 공용 우선도 +1로 대상 지정을 나누고 방어막으로 받아 낸다. 잔은 기본 도발을,
-      스카디는 자기 방어막을 맡으며 스카디를 반격탱으로 키울 때는 도발 패시브를 별도로 배운다.
+      전열의 공용 우선도 +1로 대상 지정을 나눈다. 잔은 기본 도발과 방어를 맡고,
+      스카디는 높은 CON·중갑·방패 숙련으로 버티며 피격 반격으로 얼음을 공급한다.
     partners: [81, 121, 60, 65]
     counterplay: >
-      도발이 둘 이상이면 지정이 나뉘어 각자의 방어막·반격 회전이 함께 느려진다.
-      되받아치기 자체는 적의 공격을 지우지 않으므로 피격 자원과는 부딪히지 않는다.
+      도발을 추가로 겹치면 지정이 나뉘어 스카디의 반격 회전이 느려진다.
+      반격 자체는 적의 공격을 지우지 않으므로 피격 자원과는 부딪히지 않는다.
 
 # ══════════════════════════════════════════════════════════════════════
 # 4. 메인별 추천 조합
 #    best  — 전 캐릭터 해금 + 코드 전수 완료 가정
-#    basic — 최초 로스터(Support 17명)만, 전수 코드 없음 가정
+#    basic — 최초 로스터(Support 18명)만, 전수 코드 없음 가정
 #    members는 서포트 4명. 순서가 곧 우선순위다.
 # ══════════════════════════════════════════════════════════════════════
 recommendations:
@@ -976,7 +1025,7 @@ recommendations:
       rows: { 80: Front, 83: Front, 100: Front, 81: Rear, 1: Rear }
       reason: >
         아그리파가 라그나로크를 당겨 오고 서브 탱커로 전열을 나눈다. 프레이아가 태운 체력을 되돌리고,
-        세이의 빅뱅이 아군 전체에 보호막을 씌우며, 스카디가 자기 방어막과 얼음 부착으로 전열을 받친다.
+        세이의 빅뱅이 아군 전체에 보호막을 씌우며, 스카디가 반격과 얼음 부착으로 전열을 받친다.
         훈련에서는 아그리파·스카디의 면벽수련, 프레이아·스카디의 피지컬 코치, 세이의 숙련된 조교가
         수르트의 STR·CON 훈련을 함께 키운다.
     basic:
@@ -985,7 +1034,7 @@ recommendations:
       rows: { 80: Front, 83: Front, 100: Front, 81: Rear, 1: Rear }
       reason: >
         아그리파가 라그나로크를 당겨 오고 서브 탱커로 전열을 나눈다. 프레이아가 태운 체력을 되돌리고,
-        세이의 빅뱅이 아군 전체에 보호막을 씌우며, 스카디가 자기 방어막과 얼음 부착으로 전열을 받친다.
+        세이의 빅뱅이 아군 전체에 보호막을 씌우며, 스카디가 반격과 얼음 부착으로 전열을 받친다.
         훈련에서는 아그리파·스카디의 면벽수련, 프레이아·스카디의 피지컬 코치, 세이의 숙련된 조교가
         수르트의 STR·CON 훈련을 함께 키운다.
 
@@ -1098,27 +1147,12 @@ recommendations:
       members: [83, 81, 102, 160]
       rows: { 121: Front, 83: Front, 102: Front, 81: Rear, 160: Rear }
       reason: >
-        전열 공용 우선도 +1이 아누비스·스카디에게 대상 지정을 나누고, 각자의 방어막을 실제로
-        값하게 만든다. 카이사르가 행동 게이지를 밀어 부족한 화력을 메운다.
+        전열 공용 우선도 +1이 아누비스·스카디에게 대상 지정을 나누고, 아누비스의 방어막과
+        스카디의 피격 반격을 실제로 값하게 만든다. 카이사르가 행동 게이지를 밀어 부족한 화력을 메운다.
     basic:
       members: [83, 81, 160, 60]
       rows: { 121: Front, 83: Front, 81: Rear, 160: Rear, 60: Rear }
       reason: "찬드라의 소마가 화력 부족을 메우고, CON 특기 넷이 훈련 강화량을 최대로 만든다"
-
-  - mainId: 20
-    mainName: 피그말리온
-    axis: "소환수 판정 방벽 · 반사 지속피해"
-    best:
-      archetype: SUMMON
-      members: [82, 61, 81, 160]
-      rows: { 20: Front, 82: Rear, 61: Front, 81: Rear, 160: Rear }
-      reason: >
-        갈라테아로 본인이 소환수 판정을 받으므로 로키의 소환사 +25%를 통째로 받는다.
-        야마가 반사 화상과 천천히 꾸준히의 지속피해를 다시 +30% 올린다.
-    basic:
-      members: [81, 160, 60, 66]
-      rows: { 20: Front, 81: Rear, 160: Rear, 60: Rear, 66: Rear }
-      reason: "소환 증폭(로키)과 지속피해 증폭(야마)이 최초 로스터에 없다. 범용 생존·치명타로 대체한다"
 
   # ── INT 메인 ───────────────────────────────────────────────────────
   - mainId: 140
@@ -1339,3 +1373,67 @@ recommendations:
       rows: { 122: Front, 83: Front, 1: Rear, 66: Rear, 160: Rear }
       reason: "아마테라스 자리를 마카라(소환 타격 = 추가행동 태그)로 메운다"
     warning: "추가행동 공급이 부족하면 100스택을 한 런 안에 못 채운다"
+
+  # ── 최근 합류 메인 ───────────────────────────────────
+  - mainId: 43
+    mainName: 아베노 세이메이
+    axis: "보호막 관통 · 기절과 에어본 제어"
+    best:
+      archetype: FORTRESS
+      members: [42, 160, 100, 81]
+      rows: { 43: Rear, 42: Front, 160: Rear, 100: Rear, 81: Rear }
+      reason: >
+        천지반전의 적 전체 에어본이 스사노오의 천총운검을 계속 연다.
+        마리가 치명타를, 아그리파가 궁극기 회전을, 프레이아가 실피 회복을 맡는다.
+    basic:
+      members: [81, 160, 100, 60]
+      rows: { 43: Rear, 81: Rear, 160: Rear, 100: Rear, 60: Rear }
+      reason: "스사노오가 없을 때는 치유·치명타·궁극기 회전·추가 보호막으로 범용 방어 지원에 집중한다"
+
+  - mainId: 8
+    mainName: 라부아지에
+    axis: "외부 지원을 시약으로 바꾸는 반응 광역 딜러"
+    best:
+      archetype: REACTION
+      members: [24, 60, 160, 100]
+      rows: { 8: Rear, 24: Rear, 60: Rear, 160: Rear, 100: Rear }
+      reason: >
+        아스클레피아의 치유·보호막, 찬드라의 보호막, 마리의 버프가 세 시약을 반복 공급한다.
+        아그리파가 준비도와 시약을 모은 뒤의 궁극기 회전을 앞당긴다.
+    basic:
+      members: [81, 60, 160, 100]
+      rows: { 8: Rear, 81: Rear, 60: Rear, 160: Rear, 100: Rear }
+      reason: "프레이아가 치유, 찬드라가 보호막, 마리가 버프, 아그리파가 궁극기 회전을 맡아 세 시약을 초기 로스터로 모두 채운다"
+    warning: "외부 치유·보호막·버프 공급이 하나라도 비면 가장 적은 시약이 궁극기 최종 계수를 묶어 두다"
+
+  - mainId: 84
+    mainName: 시구르드
+    axis: "맹세 협공 · 내구 무시 단일 딜"
+    best:
+      archetype: CRIT
+      members: [85, 160, 100, 81]
+      rows: { 84: Front, 85: Front, 160: Rear, 100: Rear, 81: Rear }
+      reason: >
+        브륀힐드와 같은 열에 서서 협공 위력 ×1.3과 불·얼음 융해를 동시에 얻는다.
+        마리가 치명타를, 아그리파가 파프니르 살해와 응수 협공의 회전을 올린다.
+    basic:
+      members: [7, 160, 100, 81]
+      rows: { 84: Front, 7: Front, 160: Rear, 100: Rear, 81: Rear }
+      reason: "브륀힐드가 없어 맹세는 잠기지만, STR 특기 잔과 치명타·궁극기 회전·치유로 단일 딜러 저점을 받친다"
+    warning: "고점 조합의 핵심은 브륀힐드다. 혼자서는 공명과 협공이 발생하지 않는다"
+
+  - mainId: 85
+    mainName: 브륀힐드
+    axis: "맹세 협공 · 얼음 광역 딜"
+    best:
+      archetype: CRIT
+      members: [84, 160, 100, 81]
+      rows: { 85: Front, 84: Front, 160: Rear, 100: Rear, 81: Rear }
+      reason: >
+        시구르드와 같은 열에 서서 협공 위력 ×1.3과 불·얼음 융해를 동시에 얻는다.
+        마리의 치명타와 아그리파의 궁극기 자원이 선고·응수 협공을 반복시킨다.
+    basic:
+      members: [100, 160, 81, 60]
+      rows: { 85: Front, 100: Rear, 160: Rear, 81: Rear, 60: Rear }
+      reason: "시구르드가 없어 맹세는 잠기지만, DEX 특기 아그리파와 치명타·치유·보호막으로 광역 딜러 저점을 받친다"
+    warning: "고점 조합의 핵심은 시구르드다. 혼자서는 공명과 협공이 발생하지 않는다"

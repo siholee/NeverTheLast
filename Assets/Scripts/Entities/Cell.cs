@@ -328,7 +328,8 @@ public class Cell : MonoBehaviour
         }
 
         Managers.UI.Core.UITooltip.Show(this, $"{hovered.UnitName}  Lv.{hovered.Level}", lines,
-            hovered.IsEnemy ? Managers.UI.Theme.UITheme.Enemy : Managers.UI.Theme.UITheme.Accent);
+            hovered.IsEnemy ? Managers.UI.Theme.UITheme.Enemy : Managers.UI.Theme.UITheme.Accent,
+            Managers.UI.Core.UnitInfoText.ArchetypeTags(hovered));
     }
 
     public void HideHoverTooltip() => Managers.UI.Core.UITooltip.Hide(this);

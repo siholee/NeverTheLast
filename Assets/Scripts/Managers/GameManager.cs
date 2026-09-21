@@ -215,7 +215,8 @@ namespace Managers
         {
             currentPreparationTime = preparationTime;
             isPreparationTimerActive = false;
-            uiManager?.ShowPreparationPhasePanel(IsPreparationLimitedToDeck(), preparationActionUsed);
+            uiManager?.ShowPreparationPhasePanel(IsPreparationLimitedToDeck(), preparationActionUsed,
+                TakePreparationNote());
         }
 
         public void StartRound()
@@ -1061,10 +1062,10 @@ namespace Managers
 
             HealActiveHeroesByRatio(RestPartyHealRatio);
 
-            // 휴식이 하는 일은 셋이다 — 훈련 체력 · 컨디션 · 파티 체력.
-            // 컨디션을 확실히 올리는 수단은 휴식뿐이다(훈련은 흔들기만 한다).
+            // 휴식(휴식+외출)이 하는 일은 셋이다 — 훈련 체력 · 파티 체력, 그리고 덤으로 낮은 확률의 컨디션.
+            // 훈련은 컨디션을 건드리지 않으므로, 컨디션은 이 덤과 영약·드문 사건으로만 오른다.
             TrainingManager.State.RestoreEnergy(RestEnergyRecovery);
-            TrainingManager.State.ImproveCondition();
+            bool moodUp = TrainingManager.RollRestConditionUp();
 
             // 휴식도 턴을 쓴다. 서포트는 다음 훈련에서 다른 자리에 앉는다.
             TrainingManager.InvalidateSupportPlacement();
@@ -1073,8 +1074,30 @@ namespace Managers
             runManager?.SaveCurrentRun();
             uiManager?.ShowPreparationPhasePanel(IsPreparationLimitedToDeck(), preparationActionUsed,
                 $"휴식 완료: 훈련 체력 +{RestEnergyRecovery} (현재 {TrainingManager.State.Energy}) · " +
-                $"컨디션 {TrainingManager.State.ConditionName} · " +
-                $"파티 체력 {Mathf.RoundToInt(RestPartyHealRatio * 100f)}% 회복.");
+                $"파티 체력 {Mathf.RoundToInt(RestPartyHealRatio * 100f)}% 회복" +
+                (moodUp ? $" · 외출도 다녀와 컨디션이 좋아졌습니다 → {TrainingManager.State.ConditionName}." : "."));
+        }
+
+        /// <summary>
+        /// 스테이지가 넘어갈 때 컨디션 사건을 한 번 굴린다(육성 모드 전용).
+        /// 일어났으면 준비 화면 안내 줄에 띄울 문장을 <see cref="_pendingPreparationNote"/>에 담아 둔다.
+        /// </summary>
+        public void RollStageConditionEvent()
+        {
+            if (CurrentMode != GameMode.Training) return;
+
+            string note = TrainingManager.RollStageConditionEvent();
+            if (!string.IsNullOrEmpty(note)) _pendingPreparationNote = note;
+        }
+
+        /// <summary>준비 화면이 다음에 뜰 때 안내 줄에 얹을 문장. 한 번 읽으면 비운다.</summary>
+        private string _pendingPreparationNote;
+
+        private string TakePreparationNote()
+        {
+            string note = _pendingPreparationNote;
+            _pendingPreparationNote = null;
+            return note;
         }
 
         public void BeginAdditionalBattleFromPreparation()
@@ -1346,6 +1369,8 @@ namespace Managers
             Combat.CombatLog.End(victory, _battleEndReason ?? (victory ? "적 전멸" : "패배"));
             // 쓰러진 아군은 필드 복원이 되살리기 전에 세어야 한다.
             BattleResultData result = BeginBattleResult(victory);
+            // 메인이 이 전투에서 쓰러졌으면 컨디션이 한 칸 내려간다(우마무스메의 컨디션 하락과 같은 결).
+            result.ConditionNote = TrainingManager.ResolveBattleCondition();
             // 궁극기 자원만 전투 종료 정리보다 먼저 회수한다. 상태이상·방어막·고유 전투 자원은
             // 기존 OnRoundEnd 정리를 그대로 거쳐 다음 전투로 넘어가지 않는다.
             CaptureAllyUltimateResources();
@@ -1435,6 +1460,7 @@ namespace Managers
             _battleStartKills = KillCount;
             _battleEndReason = null;
             _battleEnemiesLeft = 0;
+            TrainingManager.BeginBattleConditionWatch();
 
             _battleParty.Clear();
             if (GridManager.Instance == null) return;

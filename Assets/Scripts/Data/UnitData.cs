@@ -17,10 +17,25 @@ namespace Managers
         public List<string> startingProficiencies;
         // 사냥꾼 등 분류 조건에 사용하는 데이터 태그(예: Beast, Monster).
         public List<string> tags;
+        /// <summary>
+        /// 플레이어에게 전투 성향을 설명하는 UI 태그(예: Burst, Support, Sturdy).
+        /// 종족·진영 판정에 쓰는 tags와 섞지 않는다.
+        /// </summary>
+        public List<string> archetypeTags;
         /// <summary>Starter / Support / Locked. 편성 자격의 단일 출처다.</summary>
         public string characterType;
         public bool canStartAsMain;
         public bool canStartAsSupport;
+
+        /// <summary>
+        /// <b>서포트로 출전한 런을 완주하면 스타팅(메인 후보)으로 열리는가.</b>
+        ///
+        /// 우마무스메의 육성마와 같은 결이다 — 곁에서 한 런을 끝까지 본 서포트가 다음 런의 주인공이 된다.
+        /// 영입 사건(<c>80_stages.yaml</c>)이 없는 초기 서포트 카드에게 주는 해금 경로라,
+        /// 조건을 코드가 아니라 여기에 적는다. 해금되면 <c>canStartAsMain</c>이 false여도
+        /// 메인 격자에 오른다(<see cref="Managers.CharacterSelectionManager.IsSupportOnly"/>).
+        /// </summary>
+        public bool unlocksAsStarterOnClear;
         public bool canUseInInfinite;
         public string mainStat;
         public string subStat;

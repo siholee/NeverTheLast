@@ -41,6 +41,18 @@ namespace Managers
         /// <summary>사탕을 파티 전원에게 먹인다. 대상 선택이 없어진다.</summary>
         public bool levelGrantParty;
 
+        /// <summary>
+        /// 컨디션을 올려 주는 칸 수(활력의 영약). 0이면 해당 없음.
+        /// 육성 모드 전용이라 무한 모드의 보상 풀과 상점에는 오르지 않는다.
+        /// </summary>
+        public int conditionUp;
+
+        /// <summary>훈련 체력을 채워 주는 양(에너지 드링크). 0이면 해당 없음. 육성 모드 전용.</summary>
+        public int energyRestore;
+
+        /// <summary>다음 훈련 한 번에 붙는 보너스 %(트레이닝 노트). 0이면 해당 없음. 육성 모드 전용.</summary>
+        public int trainingNotePercent;
+
         /// <summary>강화제가 올리는 5스탯. 비어 있으면 강화제가 아니다.</summary>
         public string tonicStat;
         /// <summary>강화제의 합연산 보정(T1~T3).</summary>
@@ -61,6 +73,9 @@ namespace Managers
         public int itemId;
 
         public bool IsTonic => !string.IsNullOrWhiteSpace(tonicStat);
+
+        /// <summary>훈련 상태(컨디션 · 훈련 체력 · 트레이닝 노트)를 만지는 육성 전용 소모품인가.</summary>
+        public bool IsTrainingSupply => conditionUp > 0 || energyRestore > 0 || trainingNotePercent > 0;
 
         /// <summary>레벨을 올려 주는 보상인가.</summary>
         public bool IsLevelGrant => levelGrant > 0;
@@ -187,7 +202,9 @@ namespace Managers
                 pool.AddRange(_rewardDataList.rewards.Where(reward =>
                     reward != null &&
                     (!reward.IsHealingReward || HasInjuredHero()) &&
-                    (!reward.IsRevivalReward || HasFallenHero())));
+                    (!reward.IsRevivalReward || HasFallenHero()) &&
+                    // 육성 소모품은 육성 모드에서, 써서 달라지는 것만 후보가 된다(회복약이 다친 아군을 요구하는 것과 같다).
+                    (!reward.IsTrainingSupply || TrainingManager.TrainingSupplyBlockReason(reward) == null)));
             }
             var result = new List<RewardDef>();
 
@@ -226,14 +243,29 @@ namespace Managers
         // ── 상점 ─────────────────────────────────────────────────────
 
         /// <summary>
-        /// 상점 매대. <c>goldCost</c>를 가진 보상만 올라간다.
+        /// 상점 소모품 매대. <c>goldCost</c>를 가진 보상만 올라간다.
         /// 순서는 yaml에 적힌 순서를 그대로 따른다(회복약 → 부활약, 티어 오름차순).
+        /// 육성 소모품은 따로 <see cref="BuildShopTrainingSupplies"/> 탭이 맡는다.
         /// </summary>
         public List<RewardDef> BuildShopGoods()
         {
             EnsureRewardData();
             return _rewardDataList?.rewards?
-                .Where(reward => reward != null && reward.goldCost > 0)
+                .Where(reward => reward != null && reward.goldCost > 0 && !reward.IsTrainingSupply)
+                .ToList() ?? new List<RewardDef>();
+        }
+
+        /// <summary>
+        /// 상점 육성 매대 — 활력의 영약 · 에너지 드링크 · 트레이닝 노트. 육성 모드에서만 채워진다.
+        /// 여덟 종이라 소모품 탭에 섞으면 한 화면(8칸)을 넘어 뒤가 잘리므로 탭을 따로 둔다.
+        /// </summary>
+        public List<RewardDef> BuildShopTrainingSupplies()
+        {
+            EnsureRewardData();
+            if (GameManager.Instance?.CurrentMode != GameMode.Training) return new List<RewardDef>();
+
+            return _rewardDataList?.rewards?
+                .Where(reward => reward != null && reward.goldCost > 0 && reward.IsTrainingSupply)
                 .ToList() ?? new List<RewardDef>();
         }
 
@@ -278,7 +310,8 @@ namespace Managers
         }
 
         public static bool IsValidLevelTarget(Unit unit)
-            => unit != null && !unit.IsEnemy && unit.ID > 0;
+            => unit != null && !unit.IsEnemy && !unit.IsSummon &&
+               (unit.ID > 0 || unit.LastActiveId > 0);
 
         /// <summary>
         /// 아이템 보상. 귀중품은 입는 물건이 아니라 <b>주머니</b>로 간다.
@@ -465,7 +498,12 @@ namespace Managers
                 return false;
             }
 
-            if (reward.IsTonic)
+            if (reward.IsTrainingSupply)
+            {
+                // 컨디션이 최상인데 영약을 먹는 식으로 아무 일도 없으면 false — 상점이 값을 물리지 않는다.
+                if (!TrainingManager.ApplyTrainingSupply(reward)) return false;
+            }
+            else if (reward.IsTonic)
             {
                 ApplyTonic(reward);
             }

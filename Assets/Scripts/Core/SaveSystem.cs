@@ -8,9 +8,33 @@ namespace Core
     public static class SaveSystem
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // 디버그 세션의 저장소. <b>쓰기만 격리되고 읽기는 copy-on-write다</b> —
+        // 아직 쓴 적 없는 키는 실제 PlayerPrefs가 그대로 비쳐 보인다.
+        // F1 디버그로 진행 중인 런을 들여다볼 때는 그게 맞다(내 계정 상태를 봐야 하니까).
+        // 반대로 "완주하면 해금되는가"처럼 <b>빈 계정에서 출발해야 뜻이 있는</b> 검증에서는
+        // 실제 해금이 비쳐 들어와 거짓 통과가 된다. 그런 자리는 <see cref="SeedEmptyDebugAccount"/>로
+        // 계정 키를 먼저 덮어 두어야 한다.
         private static readonly System.Collections.Generic.Dictionary<string, string> DebugStrings = new();
         private static readonly System.Collections.Generic.Dictionary<string, int> DebugInts = new();
         internal static void ResetDebugStorage() { DebugStrings.Clear(); DebugInts.Clear(); }
+
+        /// <summary>
+        /// 디버그 저장소를 <b>아무것도 없는 계정</b>으로 시드한다. 해금·완주 기록·저장된 런이
+        /// 전부 빈 상태에서 시작하므로, 이 세션이 만들어 낸 것만 남는다.
+        /// 실제 PlayerPrefs는 건드리지 않는다.
+        /// </summary>
+        public static void SeedEmptyDebugAccount()
+        {
+            if (!DebugMode.SessionActive)
+            {
+                Debug.LogWarning("[SaveSystem] 디버그 세션이 아닌데 빈 계정 시드를 요청했다 — 무시한다.");
+                return;
+            }
+            DebugStrings[KeyTrainedCharacters] = JsonUtility.ToJson(new TrainedCharacterCollection());
+            DebugStrings[KeyJson] = "";
+            DebugInts[KeyExists] = 0;
+            Debug.Log("[SaveSystem] 디버그 계정을 비웠다 — 해금·완주 기록 없음에서 출발한다.");
+        }
 #endif
         private static int ReadInt(string key, int fallback = 0)
         {
@@ -133,15 +157,37 @@ namespace Core
             return data.unlockedStarterUnitIds.Contains(unitId);
         }
 
-        public static void AddStarterUnlock(int unitId)
+        /// <summary><c>10_units.yaml</c>에 실제로 있는 유닛 ID인가.</summary>
+        private static bool UnitExists(int unitId)
+        {
+            var units = Managers.GameManager.Instance?.unitDataList?.units;
+            if (units == null) return true;   // 데이터가 아직 없으면 판단을 미루고 통과시킨다
+            return units.Exists(unit => unit != null && unit.id == unitId);
+        }
+
+        /// <summary>
+        /// 스타팅 후보로 연다. <paramref name="announce"/>면 안내 대기열에도 올려
+        /// 메인 메뉴가 <see cref="Managers.UI.Screens.CharacterUnlockDialog"/>로 알리게 한다 —
+        /// 해금을 모른 채 지나가면 열린 것이나 마찬가지가 아니기 때문이다.
+        /// </summary>
+        public static void AddStarterUnlock(int unitId, bool announce = false)
         {
             if (unitId <= 0) return;
+            // 유닛 데이터에 없는 ID는 받지 않는다. 예전에 스폰 훅이 소환체·복원 유닛까지
+            // 무차별로 넘겨 존재하지 않는 ID가 해금 목록에 쌓인 적이 있다.
+            if (Managers.GameManager.Instance != null && !UnitExists(unitId))
+            {
+                Debug.LogWarning($"[SaveSystem] 해금 요청 무시 — 유닛 {unitId}는 데이터에 없다");
+                return;
+            }
 
             TrainedCharacterCollection data = LoadTrainedCharacters();
             data.unlockedStarterUnitIds ??= new System.Collections.Generic.List<int>();
             if (data.unlockedStarterUnitIds.Contains(unitId)) return;
 
             data.unlockedStarterUnitIds.Add(unitId);
+            if (announce && !data.pendingCharacterUnlockIds.Contains(unitId))
+                data.pendingCharacterUnlockIds.Add(unitId);
             SaveTrainedCharacterCollection(data);
             Debug.Log($"[SaveSystem] 스타팅 후보 해금: {unitId}");
         }

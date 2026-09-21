@@ -390,8 +390,9 @@ namespace Codes.Passive
 
     /// <summary>
     /// 스카디 고유 P — 북방의 수호자.
-    /// 일반행동을 해결할 때마다 반격 스택을 최대치까지 채운다. 적에게 피격되면 한 스택을
-    /// 소비해 공격자에게 고정 위력 80 + STR×0.5의 접촉 물리 반격을 예약한다.
+    /// 일반행동이 충전한 고유 중첩을 최대 3개 보관한다. 중첩이 있는 상태에서 적에게
+    /// 피격되면 즉시 1개를 소비해 공격자에게 고정 위력 80 + STR×0.5의 접촉 물리 반격을
+    /// 예약하고, 적중한 공격자에게 얼음 원소를 부착한다.
     /// </summary>
     public sealed class SkadiNorthernGuardian : UniquePassiveCode, ICounterAttackProvider
     {
@@ -399,7 +400,6 @@ namespace Codes.Passive
         public const int MaxStacks = 3;
 
         private Action<EventContext> _damageHandler;
-        private Action<EventContext> _actionHandler;
         private Action<EventContext> _cleanupHandler;
         private int _counterSequence;
         private bool _registered;
@@ -421,19 +421,11 @@ namespace Codes.Passive
             Caster.SetCombatResourceMaximum(ResourceId, MaxStacks, resetCurrent: true);
             _counterSequence = 0;
             _damageHandler = OnAfterDamageTaken;
-            _actionHandler = OnNormalActionResolved;
             _cleanupHandler = _ => StopCode();
             Caster.AddListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _damageHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnNormalActionResolved, _actionHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             _registered = true;
-        }
-
-        private void OnNormalActionResolved(EventContext context)
-        {
-            if (Caster == null || !_registered || context?.Grantee != Caster) return;
-            Caster.AddCombatResource(ResourceId, MaxStacks);
         }
 
         private void OnAfterDamageTaken(EventContext context)
@@ -448,19 +440,14 @@ namespace Codes.Passive
             if (scheduler == null) return;
 
             string key = $"skadi_northern_guardian_{_counterSequence++}";
-            scheduler.EnqueueAdditional(Caster, key, CodeName, () => ResolveCounter(attacker));
+            if (!scheduler.EnqueueAdditional(Caster, key, CodeName, () => ResolveCounter(attacker))) return;
+            Caster.TryConsumeCombatResource(ResourceId, 1);
         }
 
-        /// <summary>
-        /// 스택은 <b>예약이 아니라 실제 반격이 나갈 때</b> 태운다.
-        /// 큐가 풀리기 전에 공격자가 쓰러지면 반격이 통째로 취소되는데,
-        /// 예약 시점에 태우면 아무 일도 없이 스택만 사라진다.
-        /// </summary>
         private void ResolveCounter(Unit attacker)
         {
             if (Caster == null || !Caster.isActive || attacker == null || !attacker.isActive ||
                 attacker.IsUntargetable) return;
-            if (!Caster.TryConsumeCombatResource(ResourceId, 1)) return;
 
             bool isCrit = UnityEngine.Random.value <= Caster.CritChanceCurr;
             float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
@@ -474,6 +461,11 @@ namespace Codes.Passive
                     DamageTag.ContactAttack, DamageTag.Physical,
                 },
                 isCrit));
+            if (attacker.isActive)
+            {
+                attacker.GrantCombatElement(
+                    BaseEnums.UnitElement.Cryo, Unit.CommonElementAuraDuration, Caster);
+            }
         }
 
         public override void StopCode()
@@ -482,7 +474,6 @@ namespace Codes.Passive
             if (_registered)
             {
                 Caster.RemoveListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _damageHandler);
-                Caster.RemoveListener(BaseEnums.UnitEventType.OnNormalActionResolved, _actionHandler);
                 Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
                 Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             }

@@ -45,7 +45,7 @@
 | 행동 | 효과 | 메서드 |
 | --- | --- | --- |
 | 육성 | 육성 페이즈로 진입해 집중 훈련 1회 | `OpenTrainingFromPreparation()` |
-| 휴식 | 훈련 체력 +50 · 컨디션 1단계 개선 · 파티 체력 30% 회복 | `RestFromPreparation()` |
+| 휴식 | 훈련 체력 +50 · 파티 체력 30% 회복 · **20% 확률로 컨디션 1단계 개선**(휴식+외출) | `RestFromPreparation()` |
 | 추가 전투 | 즉시 전투 시작 (보상 기회 추가) | `BeginAdditionalBattleFromPreparation()` |
 
 **행동을 소모하지 않는 것**: 덱 구성(`OpenDeckSetupFromPreparation`), 장비 창(`OpenEquipmentFromPreparation`),

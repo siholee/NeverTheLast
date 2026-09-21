@@ -877,7 +877,6 @@ namespace Managers
                 
                 unitComponent.currentCell = cell;
                 unitComponent.Spawn(cell, isEnemy, unitId);
-                UnlockStarterIfJoinedDuringRun(isEnemy, unitId);
                 // Debug.Log($"Spawned {(isEnemy ? "enemy" : "hero")} unit {unitComponent.UnitName} at {(isBench ? "bench" : $"({xPos}, {yPos})")}");
                 return unitComponent;
             }
@@ -886,19 +885,17 @@ namespace Managers
             return null;
         }
 
-        private static void UnlockStarterIfJoinedDuringRun(bool isEnemy, int unitId)
-        {
-            // 라부아지에는 합류가 아닌 계정 첫 육성 완주로만 해금한다.
-            if (unitId == LavoisierChemistry.UnitId) return;
-            if (isEnemy || unitId <= 0 || GameManager.Instance == null) return;
-            if (GameManager.Instance.CurrentMode != BaseClasses.BaseEnums.GameMode.Training) return;
-
-            bool selectedAtStart = CharacterSelectionManager.Instance?.Lineup
-                .Any(entry => entry.UnitId == unitId) ?? false;
-            if (selectedAtStart) return;
-
-            SaveSystem.AddStarterUnlock(unitId);
-        }
+        // 예전에는 여기서 "런 도중 합류한 아군"을 스타팅으로 해금했다. 없앤 이유는 둘이다.
+        //
+        //   1. <b>합류 판정이 틀렸다.</b> "처음부터 편성됐는가"를 CharacterSelectionManager.Lineup으로
+        //      물었는데, 세이브를 불러오면 그 편성 기록이 비어 있다. 그래서 불러온 런에서는
+        //      전투가 끝나 아군 필드를 복원할 때마다(GameManager.RestoreAllyFieldState)
+        //      <b>파티 전원이 영구 해금</b>됐다. 완주 해금이 통째로 무의미해지는 구멍이었다.
+        //   2. <b>필요가 없다.</b> 영입 사건의 해금은 GameManager.GrantRecruitUnlock이
+        //      사건이 내민 전원에게 확정으로 준다. 만났다는 사실이 조건이므로 스폰을 볼 이유가 없다.
+        //
+        // 해금 경로는 이제 셋뿐이다 — 영입 사건 · 계정 첫 완주(라부아지에) ·
+        // 서포트로 완주(RunManager.GrantSupportStarterUnlocks).
         
         public void SelectUnit(int xPos, int yPos)
         {

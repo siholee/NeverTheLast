@@ -337,3 +337,70 @@ rewards:
     levelGrant: 2
     levelGrantParty: true
     goldCost: 900
+
+# 육성 소모품 — 육성 모드에서만 나온다(무한 모드의 보상 풀 · 상점에는 오르지 않는다).
+#   훈련은 체력만 쓰고 컨디션을 건드리지 않는다. 컨디션은 휴식(낮은 확률) · 드문 사건으로 오르고,
+#   메인이 전투에서 쓰러지면 내려간다 — 영약은 그것을 확실히 되돌리는 수단이다.
+#   써도 달라지는 것이 없으면(컨디션 최상 · 체력 가득 · 노트 상한) 보상 후보에도, 상점에서도 막힌다.
+#   상점에서는 소모품 탭이 8칸을 넘어 잘리므로 [육성] 탭에 따로 진열한다.
+#   값(체력 20/40/65 · 노트 +20/40/60%)은 우마무스메의 비타민 · 노트 단계를 옮겼다.
+
+  - id: vitality_elixir_t2
+    displayName: 활력의 영약
+    description: 컨디션 +1단계
+    tier: 2
+    themeIds: []
+    conditionUp: 1
+    goldCost: 150
+  - id: vitality_elixir_t3
+    displayName: 고급 활력의 영약
+    description: 컨디션 +2단계
+    tier: 3
+    themeIds: []
+    conditionUp: 2
+    goldCost: 320
+
+  - id: energy_drink_t2
+    displayName: 하급 에너지 드링크
+    description: 훈련 체력 +20
+    tier: 2
+    themeIds: []
+    energyRestore: 20
+    goldCost: 80
+  - id: energy_drink_t3
+    displayName: 중급 에너지 드링크
+    description: 훈련 체력 +40
+    tier: 3
+    themeIds: []
+    energyRestore: 40
+    goldCost: 170
+  - id: energy_drink_t4
+    displayName: 고급 에너지 드링크
+    description: 훈련 체력 +65
+    tier: 4
+    themeIds: []
+    energyRestore: 65
+    goldCost: 300
+
+  - id: training_note_t3
+    displayName: 하급 트레이닝 노트
+    description: 다음 훈련의 상승량 +20%
+    tier: 3
+    themeIds: []
+    trainingNotePercent: 20
+    goldCost: 250
+  - id: training_note_t4
+    displayName: 중급 트레이닝 노트
+    description: 다음 훈련의 상승량 +40%
+    tier: 4
+    themeIds: []
+    trainingNotePercent: 40
+    goldCost: 450
+  - id: training_note_t5
+    displayName: 고급 트레이닝 노트
+    description: 다음 훈련의 상승량 +60%
+    tier: 5
+    themeIds: []
+    isRare: true
+    trainingNotePercent: 60
+    goldCost: 800

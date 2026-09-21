@@ -543,6 +543,8 @@ namespace Managers.UI.Screens
                 .Select(unit =>
                 {
                     bool available = SynergyCatalog.IsAvailable(unit.id);
+                    string archetypes = string.Join(" ", UnitTagCatalog.Resolve(unit.archetypeTags)
+                        .Select(tag => tag.Name));
                     return new Entry
                     {
                         Group = FactionOf(unit.id),
@@ -551,7 +553,7 @@ namespace Managers.UI.Screens
                         Tint = available ? UITheme.TextPrimary : UITheme.TextMuted,
                         Portrait = unit.portrait,
                         Body = () => CharacterBody(unit),
-                        Search = $"{unit.name} {unit.tagline} {FactionOf(unit.id)} {ElementName(unit.element)}",
+                        Search = $"{unit.name} {unit.tagline} {FactionOf(unit.id)} {ElementName(unit.element)} {archetypes}",
                     };
                 })
                 .ToList();
@@ -588,6 +590,9 @@ namespace Managers.UI.Screens
             Field(sb, "해금", SynergyCatalog.IsAvailable(unit.id) ? "편성 가능" : "아직 손에 넣지 못했다",
                 SynergyCatalog.IsAvailable(unit.id) ? UITheme.Positive : UITheme.TextMuted);
             Field(sb, "원소", ElementName(unit.element));
+            IReadOnlyList<UnitTagCatalog.Definition> archetypes = UnitTagCatalog.Resolve(unit.archetypeTags);
+            if (archetypes.Count > 0)
+                Field(sb, "전투 성향", string.Join(" · ", archetypes.Select(tag => tag.Name)), UITheme.Accent);
 
             List<string> subs = unit.subStats is { Count: > 0 } ? unit.subStats
                 : string.IsNullOrWhiteSpace(unit.subStat) ? new List<string>() : new List<string> { unit.subStat };

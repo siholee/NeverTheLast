@@ -61,6 +61,7 @@ namespace Managers.UI.DevTools
             TonicsAndShop();
             CandiesValuablesAndStock();
             NordTrilogyWiring();
+            SupportStarterUnlock();
             SelectionAndSave();
             PeriodicCodes();
             GridAndEffects();
@@ -416,17 +417,48 @@ namespace Managers.UI.DevTools
             Equal("failure peaks on empty",66,TrainingManager.GetFailureRate(PrimaryStat.STR));
             Equal("INT training never fails",0,TrainingManager.GetFailureRate(PrimaryStat.INT));
 
-            // 컨디션 — 실패는 확정 하락, 휴식만 확정 회복.
+            // 컨디션 — 훈련은 건드리지 않는다. 메인 사망(하락)과 영약·휴식(상승)만 움직인다.
             state.Reset();
             int normal=state.ConditionIndex;
-            state.DriftCondition(true);
-            Equal("failed training worsens condition",normal+1,state.ConditionIndex);
+            state.WorsenCondition();
+            Equal("condition worsens one step",normal+1,state.ConditionIndex);
             state.ImproveCondition();
             Equal("condition repair undoes it",normal,state.ConditionIndex);
+            state.ImproveCondition(2);
+            Equal("two-step elixir climbs two",Mathf.Max(0,normal-2),state.ConditionIndex);
             for(int i=0;i<6;i++)state.ImproveCondition();
             Equal("condition tops out",0,state.ConditionIndex);
+            Assert("best condition blocks the elixir",state.IsConditionBest,"best","not best");
             for(int i=0;i<8;i++)state.WorsenCondition();
             Equal("condition bottoms out",TrainingState.ConditionNames.Length-1,state.ConditionIndex);
+
+            // 트레이닝 노트 — 다음 훈련 한 번에 붙고, 쓰면 비며, 상한이 있다.
+            state.Reset();
+            Assert("no note by default",state.NotePercent==0&&Mathf.Approximately(state.TrainingMultiplier,state.ConditionMultiplier),
+                "x1.00","note "+state.NotePercent);
+            state.AddNote(20);
+            Assert("note multiplies the training gain",
+                Mathf.Approximately(state.TrainingMultiplier,state.ConditionMultiplier*1.2f),"x1.20",state.TrainingMultiplier.ToString());
+            state.AddNote(200);
+            Equal("notes stop at the cap",TrainingState.MaxNotePercent,state.NotePercent);
+            Assert("capped notes block another",!state.CanAddNote,"blocked","open");
+            Equal("using a note empties it",TrainingState.MaxNotePercent,state.ConsumeNote());
+            Equal("note is gone after use",0,state.NotePercent);
+
+            // 육성 소모품 — 써서 달라지는 것만 쓸 수 있다.
+            state.Reset();
+            state.SpendEnergy(50);
+            var drink=new RewardDef{displayName="test drink",energyRestore=20};
+            Assert("drink works below full energy",TrainingManager.ApplyTrainingSupply(drink),"applied","blocked");
+            Equal("drink restores training energy",70,state.Energy);
+            state.Reset();
+            Assert("full energy blocks the drink",TrainingManager.TrainingSupplyBlockReason(drink)!=null,"blocked","open");
+            var elixir=new RewardDef{displayName="test elixir",conditionUp=2};
+            Assert("elixir is open at a normal condition",
+                TrainingManager.TrainingSupplyBlockReason(elixir)==null,"open","blocked");
+            state.WorsenCondition(2);
+            Assert("elixir works on a bad condition",TrainingManager.ApplyTrainingSupply(elixir),"applied","blocked");
+            Equal("elixir restores two steps",TrainingState.NormalConditionIndex,state.ConditionIndex);
 
             // 훈련 3회 : 휴식 1회. 가장 비싼 훈련도 세 번째까지 안전지대에서 출발한다.
             state.Reset();
@@ -442,7 +474,7 @@ namespace Managers.UI.DevTools
                 GameManager.RestEnergyRecovery>=3*TrainingManager.GetEnergyCost(PrimaryStat.CON),
                 ">= 3 x 16",GameManager.RestEnergyRecovery.ToString());
 
-            // 휴식 — 체력 · 컨디션 · 파티 체력 셋을 한 번에 돌려준다.
+            // 휴식 — 체력 · 파티 체력을 돌려주고, 컨디션은 낮은 확률로 덤이다.
             Clear();
             game.RoundManager.InitializeStage(3);
             game.RestorePreparationActionState(false,0);
@@ -457,7 +489,10 @@ namespace Managers.UI.DevTools
             game.RestFromPreparation();
             Equal("rest restores training energy",
                 Mathf.Min(TrainingState.MaxEnergy,energyBefore+GameManager.RestEnergyRecovery),state.Energy);
-            Equal("rest repairs one condition step",conditionBefore-1,state.ConditionIndex);
+            // 컨디션은 낮은 확률의 덤이다 — 오르지 않을 수도, 한 칸 오를 수도 있지만 내려가지는 않는다.
+            Assert("rest never worsens condition",
+                state.ConditionIndex==conditionBefore||state.ConditionIndex==conditionBefore-1,
+                "same or one step up",conditionBefore+" -> "+state.ConditionIndex);
             Equal("rest heals a fraction of max HP",Mathf.Min(hero.HpMax,hpBefore+expectedHeal),hero.HpCurr);
             Assert("rest is not a free elixir",hero.HpCurr<hero.HpMax,"partial heal",
                 hero.HpCurr+"/"+hero.HpMax);
@@ -631,8 +666,10 @@ namespace Managers.UI.DevTools
 
             // 상점 — 매대와 가격.
             var goods=game.rewardManager.BuildShopGoods();
-            Equal("shop goods count",9,goods.Count);
-            Assert("shop sells potions only",goods.All(g=>g.IsHealingReward||g.IsRevivalReward),"potions","checked");
+            Equal("shop goods count",11,goods.Count);
+            Assert("shop sells supported consumables",
+                goods.All(g=>g.IsHealingReward||g.IsRevivalReward||g.IsLevelGrant),
+                "healing/revival/candy","checked");
             Assert("every shop good is priced",goods.All(g=>g.goldCost>0),"priced","checked");
             RewardDef potion=goods.First(g=>g.id=="healing_domain_t2");
             Equal("shop price scales with stage",potion.goldCost*7,RewardManager.ShopPrice(potion,7));
@@ -782,6 +819,63 @@ namespace Managers.UI.DevTools
             write.Invoke(null, new object[] { "NTL_TrainedCharacters", "{}" });
             Clear();
         }
+
+        /// <summary>
+        /// 서포트로 완주하면 스타팅이 열리는 경로(니콜 6 · 프레이아 81).
+        /// 우마무스메의 육성마처럼 <b>곁에서 한 런을 끝까지 본 서포트</b>가 다음 런의 주인공이 된다.
+        /// 해금 전에는 메인 격자에 오르지 않고, 해금 뒤에는 올라야 한다.
+        /// </summary>
+        private void SupportStarterUnlock()
+        {
+            Clear();
+            var defs=game.unitDataList.units;
+            var nicole=defs.FirstOrDefault(d=>d.id==6);
+            var freyja=defs.FirstOrDefault(d=>d.id==81);
+            Assert("nicole and freyja exist",nicole!=null&&freyja!=null,"both","missing");
+            if(nicole==null||freyja==null)return;
+
+            Assert("both are flagged for the support-clear unlock",
+                nicole.unlocksAsStarterOnClear&&freyja.unlocksAsStarterOnClear,"flagged","checked");
+            Assert("both start as support cards only",
+                !nicole.canStartAsMain&&!freyja.canStartAsMain,"support only","checked");
+
+            // 디버그 저장소만 시드한다. 실제 PlayerPrefs에는 쓰지 않는다.
+            var write=typeof(SaveSystem).GetMethod("WriteString",BindingFlags.Static|BindingFlags.NonPublic);
+            write.Invoke(null,new object[]{"NTL_TrainedCharacters","{}"});
+
+            Assert("locked pair is support-only",
+                CharacterSelectionManager.IsSupportOnly(nicole)&&CharacterSelectionManager.IsSupportOnly(freyja),
+                "support only","checked");
+            Assert("locked pair cannot be main",
+                !CanBeMain(nicole)&&!CanBeMain(freyja),"rejected","checked");
+
+            // 해금은 완주가 한다. 대기 안내까지 함께 올라야 플레이어가 알게 된다.
+            SaveSystem.AddStarterUnlock(6,announce:true);
+            Assert("unlock is recorded",SaveSystem.IsStarterUnlocked(6),"unlocked","checked");
+            Equal("unlock queues one announcement",1,
+                SaveSystem.LoadTrainedCharacters().pendingCharacterUnlockIds.Count(id=>id==6));
+            Assert("unlocked support leaves the support-only pen",
+                !CharacterSelectionManager.IsSupportOnly(nicole),"free","still penned");
+            Assert("unlocked support can be main",CanBeMain(nicole),"accept","rejected");
+            Assert("the other one stays locked",
+                CharacterSelectionManager.IsSupportOnly(freyja)&&!CanBeMain(freyja),"locked","leaked");
+            Assert("unlocked support still stands as a support card",
+                CanBeSupport(nicole),"accept","rejected");
+
+            write.Invoke(null,new object[]{"NTL_TrainedCharacters","{}"});
+            Clear();
+        }
+
+        /// <summary>선택 화면이 메인 격자에 올릴 유닛인가 — 화면과 매니저가 쓰는 조건 그대로.</summary>
+        private static bool CanBeMain(UnitData data)
+            => !CharacterSelectionManager.IsSupportOnly(data) &&
+               (data.canStartAsMain||CharacterSelectionManager.IsTemporarilyUnlocked(data)||
+                CharacterSelectionManager.HasNoUnlockPath(data)||
+                SaveSystem.IsStarterUnlocked(data.id)||SaveSystem.IsCharacterTrained(data.id));
+
+        private static bool CanBeSupport(UnitData data)
+            => data.canStartAsSupport||CharacterSelectionManager.HasNoUnlockPath(data)||
+               SaveSystem.IsStarterUnlocked(data.id)||SaveSystem.IsCharacterTrained(data.id);
 
         private void SelectionAndSave()
         {

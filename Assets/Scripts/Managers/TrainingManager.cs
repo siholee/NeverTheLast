@@ -13,8 +13,9 @@ namespace Managers
     /// <b>훈련 하나는 대응하는 스탯 하나만</b> 올린다.
     ///
     /// 한 번의 훈련은 이렇게 계산된다:
-    ///   상승 = floor( (훈련 레벨 기본치 + 서포트 보너스) × 컨디션 배율 )
+    ///   상승 = floor( (훈련 레벨 기본치 + 서포트 보너스) × 컨디션 배율 × (1 + 트레이닝 노트) )
     ///   체력 = 훈련별 소모(지능만 회복) + 실패 시 추가 소모
+    ///   <b>훈련이 치르는 것은 체력뿐이다.</b> 컨디션은 훈련으로 오르내리지 않는다.
     ///   실패율 = 체력이 60 미만부터 오르고 30 미만에서 급증
     ///
     /// 메인 캐릭터가 육성 페이즈마다 하나의 5스탯을 집중 훈련하여 성장한다.
@@ -45,6 +46,18 @@ namespace Managers
         private const int MaxBond = SupportBondState.MaxBond;
         /// <summary>훈련에 실패하면 체력을 이만큼 더 잃는다.</summary>
         public const int FailureEnergyPenalty = 10;
+
+        /// <summary>
+        /// 휴식(우마무스메의 휴식+외출)이 컨디션을 한 칸 올릴 확률(%).
+        /// 체력을 채우는 것이 본업이라 컨디션은 <b>덤</b>으로 낮게 둔다.
+        /// </summary>
+        public const int RestConditionUpChance = 20;
+
+        /// <summary>
+        /// 스테이지가 넘어갈 때 컨디션이 사건으로 움직일 확률(%). 오를지 내릴지는 반반이다.
+        /// 우마무스메의 랜덤 이벤트처럼 <b>매우 드물게</b> 일어난다 — 100스테이지에 세 번 안팎.
+        /// </summary>
+        public const int StageConditionEventChance = 3;
 
         /// <summary>
         /// 훈련 하나는 <b>대응하는 스탯 하나만</b> 올린다.
@@ -192,9 +205,12 @@ namespace Managers
             /// <summary>이번 훈련에서 새로 얻거나 레벨이 오른 힌트의 코드 ID.</summary>
             public List<int> HintedCodeIds;
 
-            /// <summary>훈련 전후 컨디션 이름. 결과 화면이 변화를 보여 준다.</summary>
+            /// <summary>훈련 전후 컨디션 이름. 훈련은 컨디션을 바꾸지 않으므로 늘 같다(결과 화면 호환용).</summary>
             public string ConditionBefore;
             public string ConditionAfter;
+
+            /// <summary>이번 훈련이 쓴 트레이닝 노트 보너스(%). 없으면 0.</summary>
+            public int NoteBonusUsed;
 
             /// <summary>이 훈련에 참여한 서포트들. 다른 자리에 앉은 서포트는 들어오지 않는다.</summary>
             public List<SupportOutcome> Supports;
@@ -428,7 +444,7 @@ namespace Managers
         /// <summary>
         /// 이번 훈련으로 오를 강화량.
         ///
-        ///   (훈련 레벨 기본치 + 서포트 보너스) × 컨디션
+        ///   (훈련 레벨 기본치 + 서포트 보너스) × 컨디션 × (1 + 트레이닝 노트)
         ///
         /// <b>주/부 스탯 배율은 여기서 곱하지 않는다.</b>
         /// <see cref="Entities.UnitStats"/>가 최종 스탯을 낼 때 이미 곱하고 있어서
@@ -439,7 +455,7 @@ namespace Managers
         {
             int raw = GetOption(focus).BaseGain(State.GetLevel(focus)) + GetSupportBonus(focus);
             return Mathf.Max(1, Mathf.FloorToInt(
-                raw * State.ConditionMultiplier * GetPersonalTrainingMultiplier(GetMainUnit(), focus) *
+                raw * State.TrainingMultiplier * GetPersonalTrainingMultiplier(GetMainUnit(), focus) *
                 GetSupportTrainingEfficiencyMultiplier(focus)));
         }
 
@@ -507,7 +523,7 @@ namespace Managers
                 {
                     Stat = stat,
                     Amount = Mathf.Max(0, Mathf.FloorToInt(
-                        raw * share * State.ConditionMultiplier *
+                        raw * share * State.TrainingMultiplier *
                         GetPersonalTrainingMultiplier(main, stat) * EfficiencyFrom(supportsOnTraining, stat))),
                 };
             }
@@ -607,6 +623,116 @@ namespace Managers
                 && parsed == stat;
         }
 
+        // ── 컨디션 변동 ──────────────────────────────────────────────
+        //
+        // 훈련은 컨디션을 건드리지 않는다. 우마무스메처럼 드문 일이 있을 때만 움직인다.
+
+        /// <summary>
+        /// 휴식(휴식+외출) 한 번의 컨디션 판정. <see cref="RestConditionUpChance"/>% 확률로 한 칸 오른다.
+        /// 이미 최상이면 굴리지 않는다. 올랐으면 true.
+        /// </summary>
+        public static bool RollRestConditionUp()
+        {
+            TrainingState state = State;
+            if (state.IsConditionBest) return false;
+            if (Random.Range(0, 100) >= RestConditionUpChance) return false;
+
+            state.ImproveCondition();
+            return true;
+        }
+
+        /// <summary>
+        /// 스테이지가 넘어갈 때 굴리는 드문 사건. 컨디션이 한 칸 오르거나 내린다(반반).
+        /// 이미 끝에 닿아 그 방향으로 갈 수 없으면 일어나지 않은 것으로 친다.
+        /// 움직였으면 준비 화면에 띄울 문장을, 아니면 null을 돌려준다.
+        /// </summary>
+        public static string RollStageConditionEvent()
+        {
+            if (Random.Range(0, 100) >= StageConditionEventChance) return null;
+
+            TrainingState state = State;
+            if (Random.value < 0.5f)
+            {
+                if (state.IsConditionBest) return null;
+                state.ImproveCondition();
+                return $"뜻밖의 좋은 일이 있었습니다. 컨디션이 좋아졌습니다 → {state.ConditionName}";
+            }
+
+            if (state.ConditionIndex >= TrainingState.ConditionNames.Length - 1) return null;
+            state.WorsenCondition();
+            return $"몸이 무거운 하루였습니다. 컨디션이 나빠졌습니다 → {state.ConditionName}";
+        }
+
+        // 메인이 이번 전투에서 쓰러졌는가. Unit.Die가 알리고, 전투가 끝날 때 한 번만 정산한다.
+        // 전투 중에 되살아나도 쓰러진 것은 쓰러진 것이라, 끝나는 순간의 생사를 보지 않고 사건으로 센다.
+        private static bool _mainFellInBattle;
+
+        /// <summary>새 전투가 시작됐다. 지난 전투의 기록을 비운다.</summary>
+        public static void BeginBattleConditionWatch() => _mainFellInBattle = false;
+
+        /// <summary>아군이 쓰러졌다. 메인이면 이번 전투의 기록에 남긴다(육성 모드에서만).</summary>
+        public static void NoteAllyDeath(Unit unit)
+        {
+            if (unit == null || unit.IsEnemy || unit.IsSummon) return;
+            if (GameManager.Instance == null || GameManager.Instance.CurrentMode != BaseEnums.GameMode.Training) return;
+
+            int mainId = CharacterSelectionManager.Instance?.MainUnitId ?? 0;
+            if (mainId > 0 && unit.ID == mainId) _mainFellInBattle = true;
+        }
+
+        /// <summary>
+        /// 전투가 끝났다. 메인이 쓰러졌었다면 컨디션을 한 칸 떨어뜨리고 결과 화면에 띄울 문장을 돌려준다.
+        /// 쓰러지지 않았으면 null이다.
+        /// </summary>
+        public static string ResolveBattleCondition()
+        {
+            if (!_mainFellInBattle) return null;
+            _mainFellInBattle = false;
+
+            TrainingState state = State;
+            if (state.ConditionIndex >= TrainingState.ConditionNames.Length - 1)
+                return "메인이 쓰러졌습니다. 컨디션은 이미 최악입니다.";
+
+            state.WorsenCondition();
+            return $"메인이 쓰러져 컨디션이 나빠졌습니다 → {state.ConditionName}";
+        }
+
+        /// <summary>
+        /// 이 소모품을 지금 쓸 수 있는가. 쓸 수 없으면 사유를, 쓸 수 있으면 null을 돌려준다.
+        /// 상점은 사기 전에, 보상 풀은 후보를 고를 때 묻는다 — 써도 아무 일이 없는 것을 사거나 받지 않게.
+        /// </summary>
+        public static string TrainingSupplyBlockReason(RewardDef supply)
+        {
+            if (supply == null || !supply.IsTrainingSupply) return null;
+            if (GameManager.Instance == null || GameManager.Instance.CurrentMode != BaseEnums.GameMode.Training)
+                return "육성 전용";
+
+            TrainingState state = State;
+            if (supply.conditionUp > 0 && state.IsConditionBest) return "컨디션 최상";
+            if (supply.energyRestore > 0 && state.Energy >= TrainingState.MaxEnergy) return "체력이 가득 참";
+            if (supply.trainingNotePercent > 0 && !state.CanAddNote) return "노트가 가득 참";
+            return null;
+        }
+
+        /// <summary>
+        /// 육성 소모품의 효과를 건다. 컨디션·체력은 곧바로 바뀌고, 노트는 다음 훈련을 기다린다.
+        /// 쓸 수 없으면 아무것도 바꾸지 않고 false다.
+        /// </summary>
+        public static bool ApplyTrainingSupply(RewardDef supply)
+        {
+            // 육성 소모품이 아니면 막을 사유도 없어 BlockReason이 null이다 — 여기서 따로 걸러낸다.
+            if (supply == null || !supply.IsTrainingSupply) return false;
+            if (TrainingSupplyBlockReason(supply) != null) return false;
+
+            TrainingState state = State;
+            if (supply.conditionUp > 0) state.ImproveCondition(supply.conditionUp);
+            if (supply.energyRestore > 0) state.RestoreEnergy(supply.energyRestore);
+            if (supply.trainingNotePercent > 0) state.AddNote(supply.trainingNotePercent);
+
+            Debug.Log($"[육성] {supply.displayName} — 체력 {state.Energy} · 컨디션 {state.ConditionName} · 노트 +{state.NotePercent}%");
+            return true;
+        }
+
         /// <summary>
         /// 집중 스탯 훈련을 메인 캐릭터에 적용한다.
         /// 집중 스탯 강화 + 트레이닝 레벨 상승(레벨 해금 패시브 갱신)을 수행한다.
@@ -625,7 +751,7 @@ namespace Managers
 
             int pureGain = option.BaseGain(state.GetLevel(focus)) + totalSupport;
             int gain = Mathf.Max(1, Mathf.FloorToInt(
-                pureGain * state.ConditionMultiplier *
+                pureGain * state.TrainingMultiplier *
                 GetPersonalTrainingMultiplier(GetMainUnit(), focus) *
                 GetSupportTrainingEfficiencyMultiplier(focus, rolls)));
             // 레벨을 올리기 전에 잰다 — 화면에 보여 준 값과 같아야 한다.
@@ -662,8 +788,9 @@ namespace Managers
                 }
             }
 
-            string conditionBefore = state.ConditionName;
-            state.DriftCondition(failed);
+            // 훈련은 컨디션을 건드리지 않는다. 치른 것은 체력뿐이다(실패의 추가 체력 −10 포함).
+            // 트레이닝 노트는 성공이든 실패든 이 훈련에서 쓰인 것으로 친다 — 상승량은 위에서 이미 쟀다.
+            int noteUsed = state.ConsumeNote();
 
             // 턴이 지났다. 다음 훈련 화면은 배치를 새로 굴린다.
             InvalidateSupportPlacement();
@@ -672,8 +799,9 @@ namespace Managers
             {
                 Focus = focus,
                 FocusName = option.Name,
-                ConditionBefore = conditionBefore,
+                ConditionBefore = state.ConditionName,
                 ConditionAfter = state.ConditionName,
+                NoteBonusUsed = noteUsed,
                 Supports = BuildSupportOutcomes(rolls),
                 StatGain = gain,
                 SecondaryGains = secondary,

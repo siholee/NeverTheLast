@@ -37,12 +37,13 @@
 units:
   - id: 1
     name: 세이
-    tagline: "아군이 때릴 때마다 고정 피해를 얹는 창세의 증폭기. 타수가 많은 파티일수록 강해진다"
+    tagline: "보호막과 모든 공격에 추가 피해를 더하는 지원가이자, 지속 피해를 입히는 추가 행동 딜러를 겸비한 만능형 유닛."
     characterType: Support
     element: Geo
     startingProficiencies: [Orb]
     startingItemIds: [4109]
     tags: [Akasha, Divine]
+    archetypeTags: [Precision, FollowUp, Support, Shielding]
     canStartAsMain: false
     canStartAsSupport: true
     canUseInInfinite: false
@@ -183,15 +184,17 @@ units:
 
   - id: 6
     name: 니콜
-    tagline: "아군에게 번개를 둘러 피해와 치명타 피해를 끌어올리는 전기장 버퍼"
+    tagline: "번개 속성 아군을 지원하면서 자신도 꾸준히 적에게 피해를 입히는 공수겸장의 지원형 딜러."
     characterType: Support
     element: Electro
     startingProficiencies: [Shortbow, LightArmor]
     startingItemIds: [4107]
     tags: [Akasha, Human]
+    archetypeTags: [Precision, Support]
     canStartAsMain: false
     canStartAsSupport: true
     canUseInInfinite: false
+    unlocksAsStarterOnClear: true   # 서포트로 완주하면 스타팅 해금
     mainStat: INT
     subStat: DEX
     subStats: [DEX, LUK]
@@ -805,12 +808,13 @@ units:
   # ── 노르드 스타터 ─────────────────────────────────────────────
   - id: 80
     name: 수르트
-    tagline: "자기 체력을 태워 화력으로 바꾸는 전열 딜러. 치유가 곧 탄약이다"
+    tagline: "자신의 체력을 소모해 강력한 일격을 날리는 궁극기 딜러."
     characterType: Starter
     element: Pyro
     startingProficiencies: [Greatsword, MediumArmor]
     startingItemIds: [4103]
     tags: [Nord, Giant]
+    archetypeTags: [Sturdy, Shielding, Burst]
     canStartAsMain: true
     canStartAsSupport: false
     canUseInInfinite: true
@@ -1037,15 +1041,17 @@ units:
 
   - id: 81
     name: 프레이아
-    tagline: "일반행동이 곧 아군 전체 치유인 유일한 상시 힐러. 모은 치유량을 광역 피해로 바꾼다"
+    tagline: "치유량을 아군 지원으로 전환하는 수비형 서포터. 자신의 체력을 소모하는 유닛과 궁합이 좋다."
     characterType: Support
     element: Dendro
     startingProficiencies: [Spear, LightArmor]
     startingItemIds: [4104]
     tags: [Nord]
+    archetypeTags: [Support, Healing]
     canStartAsMain: false
     canStartAsSupport: true
     canUseInInfinite: false
+    unlocksAsStarterOnClear: true   # 서포트로 완주하면 스타팅 해금
     mainStat: CON
     subStat: DEX
     subStats: [DEX, INT]
@@ -1124,12 +1130,13 @@ units:
 
   - id: 83
     name: 스카디
-    tagline: "방어막으로 전열을 받치는 서브 탱커이자 범용 얼음 부착 요원"
+    tagline: "든든하게 전열에서 적의 공격을 막아 내며 적 전체에게 얼음 원소를 부여한다."
     characterType: Support
     element: Cryo
     startingProficiencies: [Orb, Shield, HeavyArmor]
     startingItemIds: [4109]
     tags: [Nord, Giant]
+    archetypeTags: [Sturdy, Infusion]
     canStartAsMain: false
     canStartAsSupport: true
     canUseInInfinite: false
@@ -1431,12 +1438,13 @@ units:
   # 전용 로마 스프라이트를 적 버전과 공유한다.
   - id: 100
     name: 아그리파
-    tagline: "궁극기로 아군 전체의 궁극기 자원을 채우고 버프받은 아군의 피해를 키운다"
+    tagline: "아군 한 명의 궁극기 자원을 채우고 위력을 강화하는 서포터."
     characterType: Support
     element: Geo
     startingProficiencies: [Greatsword, MediumArmor]
     startingItemIds: [4103]
     tags: [Rome]
+    archetypeTags: [Support]
     canStartAsMain: false
     canStartAsSupport: true
     canUseInInfinite: false
@@ -1829,12 +1837,13 @@ units:
 
   - id: 3
     name: 사바흐
-    tagline: "아군이 건 디버프 수를 자원으로 삼아 적을 정리하는 마무리 딜러"
+    tagline: "아군이 부여한 디버프를 기반으로 궁극기를 발동하는 고화력 딜러."
     characterType: Starter
     element: Electro
     startingProficiencies: [Longsword, LightArmor]
     startingItemIds: [4102]
     tags: [Akasha]
+    archetypeTags: [Control, Burst]
     canStartAsMain: true
     canStartAsSupport: false
     canUseInInfinite: true

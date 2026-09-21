@@ -36,6 +36,9 @@ namespace Managers.UI.Screens
         /// <summary>승리 뒤 이어지는 것(보상 선택)을 버튼에 적는다.</summary>
         public string NextStep;
 
+        /// <summary>메인이 쓰러져 컨디션이 내려갔을 때의 안내 한 줄. 없으면 null.</summary>
+        public string ConditionNote;
+
         public readonly List<Member> Party = new();
 
         /// <summary>아군별 딜량. 많이 넣은 순서다(<see cref="Combat.DamageMeter"/>).</summary>
@@ -332,6 +335,7 @@ namespace Managers.UI.Screens
                 : result.Victory
                     ? "전투 불능이 된 아군은 전투가 끝나면 전투 시작 때의 체력으로 돌아옵니다."
                     : "패배해도 다음 스테이지로 넘어갑니다. 승리 보수와 보상 선택은 없고, 남은 적 1기마다 목숨이 1 줄어듭니다.";
+            if (!string.IsNullOrEmpty(result.ConditionNote)) _note.text += "\n" + result.ConditionNote;
 
             string next = result.GameOver ? "메인 메뉴로"
                 : string.IsNullOrEmpty(result.NextStep) ? "다음 단계" : result.NextStep;

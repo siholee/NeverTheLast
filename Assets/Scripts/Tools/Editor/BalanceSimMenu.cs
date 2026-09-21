@@ -24,6 +24,7 @@ public static class BalanceSimMenu
     private const string LineupKey = "NTL.BalanceSim.Lineup";
     private const string FrontKey = "NTL.BalanceSim.Front";
     private const string SabahProbeKey = "NTL.BalanceSim.SabahProbe";
+    private const string InvincibleKey = "NTL.BalanceSim.Invincible";
 
     static BalanceSimMenu() => EditorApplication.update += Poll;
 
@@ -38,6 +39,8 @@ public static class BalanceSimMenu
         SessionState.SetString(LineupKey, ArgString("-simLineup"));
         SessionState.SetString(FrontKey, ArgString("-simFront"));
         SessionState.SetBool(SabahProbeKey, ArgFlag("-simSabahProbe"));
+        // -simInvincible — 아군 무적. 완주해야 열리는 것을 확인할 때만 쓴다(밸런스 측정용 아님).
+        SessionState.SetBool(InvincibleKey, ArgFlag("-simInvincible"));
         Launch();
     }
 
@@ -51,16 +54,24 @@ public static class BalanceSimMenu
         SessionState.SetString(LineupKey, "");
         SessionState.SetString(FrontKey, "");
         SessionState.SetBool(SabahProbeKey, false);
+        SessionState.SetBool(InvincibleKey, false);
         Launch();
     }
 
     private static void Launch()
     {
         if (EditorApplication.isPlaying) return;
+        // 자기 산출물만 지운다. 예전에는 폴더를 통째로 비워서, -logFile을 이 폴더로 잡으면
+        // Unity가 자기 로그를 지우려다 IOException으로 죽었다.
         string dir = BalanceSim.ReportDir;
         if (Directory.Exists(dir))
         {
-            foreach (string file in Directory.GetFiles(dir)) File.Delete(file);
+            foreach (string file in Directory.GetFiles(dir, "run_*.json")) File.Delete(file);
+            foreach (string name in new[] { "summary.txt", "DONE" })
+            {
+                string path = Path.Combine(dir, name);
+                if (File.Exists(path)) File.Delete(path);
+            }
         }
         EditorSceneManager.OpenScene("Assets/Scenes/Game.unity");
         SessionState.SetBool(Pending, true);
@@ -84,7 +95,8 @@ public static class BalanceSimMenu
             SessionState.GetFloat(Scale, 20f),
             SessionState.GetString(LineupKey, ""),
             SessionState.GetString(FrontKey, ""),
-            SessionState.GetBool(SabahProbeKey, false));
+            SessionState.GetBool(SabahProbeKey, false),
+            SessionState.GetBool(InvincibleKey, false));
     }
 
     private static void Poll()

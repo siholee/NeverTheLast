@@ -26,7 +26,7 @@ namespace Managers.UI.Screens
     ///   무한 모드 — 메인 단계 없이 서포터 5명을 바로 고른다
     ///
     /// 좌측 미리보기는 두 모드를 오간다(버튼 · Q · 패드 Y).
-    ///   요약 — 큰 초상화 + 한 줄 소개 · 원소와 스탯 · 운용 축
+    ///   요약 — 큰 초상화 + 전투 성향 태그 · 한 줄 소개 · 원소와 스탯
     ///   기술 — 고유 패시브 · 일반행동 · (특수행동) · 궁극기 설명과 해금 패시브 목록
     /// 한 번 켜면 다른 캐릭터로 커서를 옮겨도 유지된다. 여러 캐릭터의 기술을 견줘 보는 용도다.
     ///
@@ -60,6 +60,7 @@ namespace Managers.UI.Screens
         private Image _preview;
         private TextMeshProUGUI _previewName;
         private TextMeshProUGUI _previewInfo;
+        private RectTransform _tagStrip;
         private TextMeshProUGUI _summary;
         private TextMeshProUGUI _phaseLabel;
         private TextMeshProUGUI _stepLabel;
@@ -72,6 +73,9 @@ namespace Managers.UI.Screens
         private GameObject _detailView;
         private RectTransform _detailContent;
         private TextMeshProUGUI _detailText;
+        private ScrollRect _detailScroll;
+        private float _detailWidth;
+        private float _detailScale;
         private bool _detailMode;
         private readonly List<Image> _partySlots = new();
         private readonly List<Image> _partyArts = new();
@@ -109,15 +113,21 @@ namespace Managers.UI.Screens
             // 좌 40%: 선택 후보를 한 명씩 크게 보여 주는 캐릭터 쇼케이스.
             Image previewPane = UIBuild.Panel("PreviewPane", Body, UITheme.SurfaceSunken,
                 UIShapes.Corner.Diagonal, 8, UITheme.Outline, 1);
-            UIBuild.Anchor(previewPane.rectTransform, new Vector2(0f, 0.21f), new Vector2(0.39f, 1f), 4f, 4f);
+            UIBuild.Anchor(previewPane.rectTransform, Vector2.zero, new Vector2(0.39f, 1f));
+            previewPane.rectTransform.offsetMin = new Vector2(4f, 128f);
+            previewPane.rectTransform.offsetMax = new Vector2(-4f, -4f);
 
             TextMeshProUGUI showcaseEyebrow = UIBuild.Text("ShowcaseEyebrow", previewPane.transform,
                 "CHARACTER / PROFILE", UITheme.FontMicro, UITheme.Accent, TextAlignmentOptions.Left);
-            UIBuild.Anchor(showcaseEyebrow.rectTransform, new Vector2(0.055f, 0.925f), new Vector2(0.94f, 0.98f));
+            UIBuild.Anchor(showcaseEyebrow.rectTransform, new Vector2(0f, 1f), Vector2.one);
+            showcaseEyebrow.rectTransform.offsetMin = new Vector2(24f, -40f);
+            showcaseEyebrow.rectTransform.offsetMax = new Vector2(-24f, -16f);
 
-            // 미리보기도 정사각형. AspectRatioFitter가 슬롯 안에서 1:1을 유지하도록 크기를 잡는다.
+            // 설명과 버튼은 고정된 하단 구역에 두고 원화가 남은 높이를 쓴다.
             RectTransform previewSlot = UIBuild.Container("PreviewSlot", previewPane.transform);
-            UIBuild.Anchor(previewSlot, new Vector2(0.04f, 0.35f), new Vector2(0.96f, 0.92f));
+            UIBuild.Stretch(previewSlot);
+            previewSlot.offsetMin = new Vector2(24f, 244f);
+            previewSlot.offsetMax = new Vector2(-24f, -48f);
             _previewSlot = previewSlot;
 
             _preview = UIBuild.Solid("PreviewArt", previewSlot, Color.white);
@@ -128,50 +138,62 @@ namespace Managers.UI.Screens
 
             _previewName = UIBuild.Text("PreviewName", previewPane.transform, "",
                 UITheme.FontHeading, UITheme.Accent, TextAlignmentOptions.Center);
-            UIBuild.Anchor(_previewName.rectTransform, new Vector2(0.055f, 0.27f), new Vector2(0.945f, 0.35f));
+            AnchorFooter(_previewName.rectTransform, 202f, 236f);
             _previewName.alignment = TextAlignmentOptions.Left;
 
-            // 한 줄 소개 · 원소와 스탯 · 운용 축 · 편성 자격을 차례로 싣는다. 예전에는 원소와 스탯뿐이라
-            // "이 캐릭터가 뭘 하는가"를 알 수 없다는 제보가 있었다.
+            _tagStrip = UIBuild.Container("ArchetypeTags", previewPane.transform);
+            AnchorFooter(_tagStrip, 160f, 192f);
+
+            // 소개와 기본 정보만 보여 준다. 편성 추천은 오른쪽 서포터 영역에서만 다룬다.
             _previewInfo = UIBuild.Text("PreviewInfo", previewPane.transform, "",
-                UITheme.FontCaption, UITheme.TextSecondary, TextAlignmentOptions.Top, wrap: true);
+                UITheme.FontCaption, UITheme.TextSecondary, TextAlignmentOptions.TopLeft, wrap: true);
             _previewInfo.richText = true;
-            UIBuild.Anchor(_previewInfo.rectTransform, new Vector2(0.055f, 0.065f), new Vector2(0.945f, 0.265f));
+            AnchorFooter(_previewInfo.rectTransform, 78f, 152f);
 
             // 기술 상세. 코드 설명 네 덩어리는 요약 칸에 들어가지 않으므로 초상화 자리까지 쓰고 굴린다.
             _detailContent = UIBuild.ScrollArea("Detail", previewPane.transform, out ScrollRect detailScroll);
             _detailView = detailScroll.gameObject;
-            UIBuild.Anchor((RectTransform)detailScroll.transform, new Vector2(0.05f, 0.105f), new Vector2(0.95f, 0.84f));
+            _detailScroll = detailScroll;
+            UIBuild.Stretch(detailScroll.viewport);
+            detailScroll.viewport.offsetMin = new Vector2(24f, 84f);
+            detailScroll.viewport.offsetMax = new Vector2(-24f, -106f);
             _detailText = UIBuild.Text("DetailText", _detailContent, "", UITheme.FontBody, UITheme.TextPrimary,
                 TextAlignmentOptions.TopLeft, wrap: true);
             _detailText.richText = true;
             _detailText.rectTransform.anchorMin = new Vector2(0f, 1f);
             _detailText.rectTransform.anchorMax = new Vector2(1f, 1f);
             _detailText.rectTransform.pivot = new Vector2(0.5f, 1f);
-            _detailText.rectTransform.anchoredPosition = Vector2.zero;
+            _detailText.rectTransform.anchoredPosition = new Vector2(-8f, -8f);
             _detailView.SetActive(false);
 
             // 빈 문자열로 만들면 UIBuild.Button이 라벨 자체를 만들지 않아 이후 갱신할 글자가 없다.
-            _detailButton = UIBuild.Button("DetailToggle", Body, "기술 보기  [Q]", ToggleDetail);
-            UIBuild.Anchor(_detailButton.image.rectTransform, new Vector2(0.02f, 0.215f), new Vector2(0.37f, 0.285f), 4f, 0f);
+            _detailButton = UIBuild.Button("DetailToggle", previewPane.transform, "기술 보기  [Q]", ToggleDetail);
+            AnchorFooter(_detailButton.image.rectTransform, 18f, 66f);
 
             // 우 60%: 명확한 단계 표시, 후보 로스터, 필요할 때만 읽는 추천 근거.
             Image rosterPane = UIBuild.Panel("RosterPane", Body, UITheme.SurfaceRaised,
                 UIShapes.Corner.Diagonal, 8, UITheme.Outline, 1);
-            UIBuild.Anchor(rosterPane.rectTransform, new Vector2(0.405f, 0.21f), new Vector2(1f, 1f), 4f, 4f);
+            UIBuild.Anchor(rosterPane.rectTransform, new Vector2(0.398f, 0f), Vector2.one);
+            rosterPane.rectTransform.offsetMin = new Vector2(4f, 128f);
+            rosterPane.rectTransform.offsetMax = new Vector2(-4f, -4f);
 
             _stepLabel = UIBuild.Text("Step", rosterPane.transform, "", UITheme.FontMicro, UITheme.Accent,
                 TextAlignmentOptions.Left);
-            UIBuild.Anchor(_stepLabel.rectTransform, new Vector2(0.035f, 0.925f), new Vector2(0.965f, 0.98f));
+            UIBuild.Anchor(_stepLabel.rectTransform, new Vector2(0f, 1f), Vector2.one);
+            _stepLabel.rectTransform.offsetMin = new Vector2(20f, -38f);
+            _stepLabel.rectTransform.offsetMax = new Vector2(-20f, -14f);
 
             _phaseLabel = UIBuild.Text("Phase", rosterPane.transform, "", UITheme.FontBody, UITheme.TextPrimary,
                 TextAlignmentOptions.Left);
-            UIBuild.Anchor(_phaseLabel.rectTransform, new Vector2(0.035f, 0.855f), new Vector2(0.965f, 0.93f));
+            UIBuild.Anchor(_phaseLabel.rectTransform, new Vector2(0f, 1f), Vector2.one);
+            _phaseLabel.rectTransform.offsetMin = new Vector2(20f, -74f);
+            _phaseLabel.rectTransform.offsetMax = new Vector2(-20f, -42f);
 
             _grid = UIBuild.ScrollArea("RosterScroll", rosterPane.transform, out ScrollRect rosterScroll);
             _rosterScroll = rosterScroll;
-            UIBuild.Anchor((RectTransform)rosterScroll.transform,
-                new Vector2(0.035f, 0.295f), new Vector2(0.965f, 0.84f));
+            UIBuild.Stretch(rosterScroll.viewport);
+            rosterScroll.viewport.offsetMin = new Vector2(16f, 16f);
+            rosterScroll.viewport.offsetMax = new Vector2(-16f, -88f);
 
             // 타일 배치는 GridLayoutGroup에 맡기고, 칸 크기는 SquareGridSizer가 정사각형으로 유지한다.
             var layout = _grid.gameObject.AddComponent<GridLayoutGroup>();
@@ -179,6 +201,8 @@ namespace Managers.UI.Screens
             layout.constraintCount = Columns;
             layout.spacing = new Vector2(TileGap, TileGap);
             layout.childAlignment = TextAnchor.UpperCenter;
+            // 커서 외곽 4px와 오른쪽 스크롤 막대가 마스크에 잘리지 않도록 비운다.
+            layout.padding = new RectOffset(6, 18, 6, 6);
 
             _sizer = _grid.gameObject.AddComponent<SquareGridSizer>();
             _sizer.MaxColumns = Columns;
@@ -187,16 +211,22 @@ namespace Managers.UI.Screens
 
             _summary = UIBuild.Text("Summary", rosterPane.transform, "", UITheme.FontCaption, UITheme.TextPrimary,
                 TextAlignmentOptions.TopLeft, wrap: true);
-            UIBuild.Anchor(_summary.rectTransform, new Vector2(0.035f, 0.025f), new Vector2(0.965f, 0.16f));
+            AnchorFooter(_summary.rectTransform, 16f, 78f);
 
             _backButton = UIBuild.Button("Back", rosterPane.transform, "← 메인 변경", GoBackToMain);
-            UIBuild.Anchor(_backButton.image.rectTransform, new Vector2(0.035f, 0.18f), new Vector2(0.31f, 0.275f));
+            UIBuild.Anchor(_backButton.image.rectTransform, Vector2.zero, new Vector2(0.35f, 0f));
+            _backButton.image.rectTransform.offsetMin = new Vector2(24f, 88f);
+            _backButton.image.rectTransform.offsetMax = new Vector2(-6f, 132f);
 
             _recommendButton = UIBuild.Button("Recommend", rosterPane.transform, "★ 추천 4명 채우기", ApplyRecommendation);
-            UIBuild.Anchor(_recommendButton.image.rectTransform, new Vector2(0.325f, 0.18f), new Vector2(0.69f, 0.275f));
+            UIBuild.Anchor(_recommendButton.image.rectTransform, new Vector2(0.35f, 0f), new Vector2(0.78f, 0f));
+            _recommendButton.image.rectTransform.offsetMin = new Vector2(6f, 88f);
+            _recommendButton.image.rectTransform.offsetMax = new Vector2(-6f, 132f);
 
             _primaryButton = UIBuild.Button("Primary", Body, "다음", OnPrimary, primary: true);
-            UIBuild.Anchor(_primaryButton.image.rectTransform, new Vector2(0.78f, 0.02f), new Vector2(1f, 0.18f), 0f, 2f);
+            UIBuild.Anchor(_primaryButton.image.rectTransform, new Vector2(0.80f, 0f), new Vector2(1f, 0f));
+            _primaryButton.image.rectTransform.offsetMin = new Vector2(4f, 4f);
+            _primaryButton.image.rectTransform.offsetMax = new Vector2(-4f, 112f);
 
             BuildPartyRail();
 
@@ -208,11 +238,20 @@ namespace Managers.UI.Screens
             _cursor.gameObject.SetActive(false);
         }
 
+        private static void AnchorFooter(RectTransform rect, float bottom, float top)
+        {
+            UIBuild.Anchor(rect, Vector2.zero, new Vector2(1f, 0f));
+            rect.offsetMin = new Vector2(24f, bottom);
+            rect.offsetMax = new Vector2(-24f, top);
+        }
+
         private void BuildPartyRail()
         {
             Image rail = UIBuild.Panel("PartyRail", Body, UITheme.SurfaceSunken,
                 UIShapes.Corner.Diagonal, 8, UITheme.Outline, 1);
-            UIBuild.Anchor(rail.rectTransform, new Vector2(0f, 0.02f), new Vector2(0.765f, 0.18f), 4f, 2f);
+            UIBuild.Anchor(rail.rectTransform, Vector2.zero, new Vector2(0.79f, 0f));
+            rail.rectTransform.offsetMin = new Vector2(4f, 4f);
+            rail.rectTransform.offsetMax = new Vector2(-4f, 112f);
 
             TextMeshProUGUI label = UIBuild.Text("PartyLabel", rail.transform, "PARTY  /  출전 편성",
                 UITheme.FontMicro, UITheme.Accent, TextAlignmentOptions.Left);
@@ -332,20 +371,8 @@ namespace Managers.UI.Screens
                 UIBuild.Anchor(label.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.20f), 3f, 3f);
 
                 int rank = _recommended.IndexOf(unit.id);
-                // 1단계에서는 입문 추천 메인(30_synergies.yaml의 starterRecommended)에 띠를 붙인다.
-                bool starterPick = _phase == Phase.Main && !IsInfinite &&
-                                   SynergyCatalog.RecommendationFor(unit.id)?.starterRecommended == true;
-                if (starterPick)
-                {
-                    Image badge = UIBuild.Solid("RecommendBadge", tile.transform, UITheme.Accent);
-                    UIBuild.Anchor(badge.rectTransform, new Vector2(0f, 0.82f), new Vector2(0.62f, 1f), 3f, 3f);
-                    badge.raycastTarget = false;
-                    TextMeshProUGUI badgeLabel = UIBuild.Text("RecommendLabel", badge.transform, "★ 입문 추천",
-                        UITheme.FontMicro, UITheme.TextOnAccent, TextAlignmentOptions.Center);
-                    UIBuild.Stretch(badgeLabel.rectTransform);
-                    badgeLabel.raycastTarget = false;
-                }
-                else if (rank >= 0)
+                // 서포터 단계의 추천 편성 순위만 표시한다.
+                if (rank >= 0)
                 {
                     Image badge = UIBuild.Solid("RecommendBadge", tile.transform, UITheme.Accent);
                     UIBuild.Anchor(badge.rectTransform, new Vector2(0f, 0.82f), new Vector2(0.62f, 1f), 3f, 3f);
@@ -450,11 +477,13 @@ namespace Managers.UI.Screens
             }
 
             string recommendText = RecommendationSummary();
-            _summary.text = mainPhase
-                ? $"{Colored("선택 가이드", UITheme.Accent)}  역할과 운용 축을 비교한 뒤 한 명을 확정하세요."
-                : recommendText.Length > 0
+            _summary.text = recommendText.Length > 0
                     ? $"{Colored("추천 조합", UITheme.Accent)}  {recommendText}"
                     : $"{Colored("편성 가이드", UITheme.Accent)}  서로 다른 역할을 조합해 빈틈을 보완하세요.";
+            _summary.gameObject.SetActive(!mainPhase);
+            // 메인 단계에는 비어 있는 추천/버튼 공간까지 로스터에 돌려준다.
+            _rosterScroll.viewport.offsetMin = new Vector2(16f, mainPhase ? 16f : IsInfinite ? 88f : 144f);
+            _sizer.Apply();
 
             RefreshPartyRail(manager);
 
@@ -506,6 +535,7 @@ namespace Managers.UI.Screens
                 _preview.enabled = false;
                 _previewName.text = "";
                 _previewInfo.text = "";
+                UIBuild.Clear(_tagStrip);
                 _detailText.text = "";
                 return;
             }
@@ -524,6 +554,11 @@ namespace Managers.UI.Screens
             if (portrait != null) _preview.sprite = portrait;
 
             _previewName.text = unit.name;
+            UnitTagCatalog.BuildChips(_tagStrip,
+                IsLavoisierLocked(unit.id)
+                    ? System.Array.Empty<UnitTagCatalog.Definition>()
+                    : UnitTagCatalog.Resolve(unit.archetypeTags),
+                UITheme.Accent);
             List<string> subStats = unit.subStats?
                 .Where(stat => !string.IsNullOrWhiteSpace(stat))
                 .ToList() ?? new List<string>();
@@ -538,16 +573,8 @@ namespace Managers.UI.Screens
                 lines.Add(Colored(unit.tagline, UITheme.TextPrimary));
             lines.Add($"{ElementName(unit.element)}   {statText}");
 
-            // 메인 단계에서는 "이 캐릭터로 어떻게 이기는가"를, 서포터 단계에서는 추천 여부를 붙인다.
-            SynergyRecommendationData recommendation = SynergyCatalog.RecommendationFor(unit.id);
-            if (_phase == Phase.Main && !IsInfinite && !string.IsNullOrWhiteSpace(recommendation?.axis))
-                lines.Add($"운용  {recommendation.axis}");
-            if (_phase == Phase.Main && !IsInfinite && recommendation?.starterRecommended == true)
-                lines.Add(Colored("★ 입문 추천 — 처음이라면 이 캐릭터로 시작해 보세요", UITheme.Accent));
-            if (_phase == Phase.Support && _recommended.Contains(unit.id))
-                lines.Add(Colored($"★ {UnitName(CharacterSelectionManager.Instance?.MainUnitId ?? 0)}의 추천 서포터", UITheme.Accent));
-
-            lines.Add(Colored(RoleText(unit), UITheme.TextMuted));
+            if (IsLavoisierLocked(unit.id))
+                lines.Add(Colored(RoleText(unit), UITheme.TextMuted));
             _previewInfo.text = string.Join("\n", lines);
         }
 
@@ -564,11 +591,16 @@ namespace Managers.UI.Screens
         {
             _previewSlot.gameObject.SetActive(!_detailMode);
             _previewInfo.gameObject.SetActive(!_detailMode);
+            _tagStrip.gameObject.SetActive(!_detailMode);
             _detailView.SetActive(_detailMode);
 
-            UIBuild.Anchor(_previewName.rectTransform,
-                _detailMode ? new Vector2(0.055f, 0.85f) : new Vector2(0.055f, 0.27f),
-                _detailMode ? new Vector2(0.945f, 0.92f) : new Vector2(0.945f, 0.35f));
+            if (_detailMode)
+            {
+                UIBuild.Anchor(_previewName.rectTransform, new Vector2(0f, 1f), Vector2.one);
+                _previewName.rectTransform.offsetMin = new Vector2(24f, -94f);
+                _previewName.rectTransform.offsetMax = new Vector2(-24f, -48f);
+            }
+            else AnchorFooter(_previewName.rectTransform, 202f, 236f);
 
             TextMeshProUGUI label = _detailButton.GetComponentInChildren<TextMeshProUGUI>();
             if (label != null) label.text = _detailMode ? "요약 보기  [Q]" : "기술 보기  [Q]";
@@ -623,11 +655,22 @@ namespace Managers.UI.Screens
 
             // 처음 여는 프레임엔 캔버스 크기가 덜 잡혀 폭이 틀리게 읽힌다. 틀리면 줄 수를 적게 재 끝이 잘린다.
             Canvas.ForceUpdateCanvases();
-            float width = Mathf.Max(160f, _detailContent.rect.width);
-            float height = _detailText.GetPreferredValues(text, width, 0f).y;
-            _detailText.rectTransform.sizeDelta = new Vector2(0f, height);
-            _detailContent.sizeDelta = new Vector2(0f, height + 12f);
+            ResizeDetail();
+            _detailScroll.StopMovement();
             _detailContent.anchoredPosition = Vector2.zero;
+        }
+
+        private void ResizeDetail()
+        {
+            _detailWidth = _detailContent.rect.width;
+            _detailScale = UITheme.TextScale;
+            float width = Mathf.Max(1f, _detailWidth - 16f);
+            // 스크롤 본문은 글자를 축소하지 않고 전체 높이를 확보한다.
+            _detailText.enableAutoSizing = false;
+            _detailText.fontSize = UITheme.FontBody * _detailScale;
+            float height = Mathf.Ceil(_detailText.GetPreferredValues(_detailText.text, width, 0f).y);
+            _detailText.rectTransform.sizeDelta = new Vector2(-16f, height);
+            _detailContent.sizeDelta = new Vector2(0f, height + 40f);
         }
 
         // ── 키보드 · 패드 ────────────────────────────────────────────
@@ -636,6 +679,9 @@ namespace Managers.UI.Screens
         public void Tick()
         {
             if (!IsVisible) return;
+            if (_detailMode && (Mathf.Abs(_detailWidth - _detailContent.rect.width) > 0.5f ||
+                                !Mathf.Approximately(_detailScale, UITheme.TextScale)))
+                ResizeDetail();
 
             // 메뉴·캐릭터 창이 위에 떠 있으면 그쪽 입력이다. 뒤에서 커서가 움직이면 안 된다.
             if (GameManager.Instance?.uiManager?.IsOverlayOpen == true) return;
@@ -794,13 +840,7 @@ namespace Managers.UI.Screens
         private static string RoleText(UnitData unit)
         {
             if (IsLavoisierLocked(unit.id)) return "육성 모드를 처음 클리어하면 해금";
-            if (unit.id == Entities.LavoisierChemistry.UnitId) return "해금됨 — 메인·서포터 / 시약 배합형 고급 딜러";
-            if (unit.canStartAsMain) return "스타터 — 메인으로 시작할 수 있다";
-            if (unit.canStartAsSupport) return "서포트 — 서포터 카드 전용";
-            if (CharacterSelectionManager.IsTemporarilyUnlocked(unit)) return "테스트 해금 — 메인으로 시작할 수 있다";
-            // 영입 사건이 아직 없는 Locked. 잠가 두면 영영 쓸 수 없어 열어 둔다.
-            if (CharacterSelectionManager.HasNoUnlockPath(unit)) return "영입 사건 준비 중 — 지금은 바로 쓸 수 있다";
-            return SaveSystem.IsStarterUnlocked(unit.id) ? "해금됨 — 메인으로 쓸 수 있다" : "미해금";
+            return "";
         }
 
         private static void SetButton(Button button, string label, bool interactable, bool onAccent = true)
@@ -922,7 +962,8 @@ namespace Managers.UI.Screens
             if (_phase == Phase.Main)
             {
                 return units
-                    // 초기 서포트 카드는 육성이 끝나 해금 기록이 남아도 메인 격자에 오르지 않는다.
+                    // 초기 서포트 카드는 육성이 끝나 기록이 남아도 메인 격자에 오르지 않는다.
+                    // 스스로 얻어 낸 스타팅 해금(니콜·프레이아)만 예외로 올라온다 — IsSupportOnly가 판단한다.
                     .Where(unit => !CharacterSelectionManager.IsSupportOnly(unit))
                     .Where(unit => unit.canStartAsMain ||
                                    CharacterSelectionManager.IsTemporarilyUnlocked(unit) ||
@@ -970,14 +1011,13 @@ namespace Managers.UI.Screens
     ///
     /// 격자 영역의 실제 픽셀 크기는 캔버스 스케일이 확정된 뒤에야 알 수 있고 창 크기에 따라 또 바뀐다.
     /// 한 번만 재면 첫 프레임에 어긋나므로, 영역 크기가 바뀔 때마다 다시 계산한다.
-    /// 가로·세로 어느 쪽으로도 넘치지 않는 변 길이를 골라 후보 수와 무관하게 1:1을 지킨다.
+    /// 스크롤 목록은 가로폭을 채우고, 고정 영역은 가로·세로에 맞춰 1:1을 지킨다.
     /// </summary>
     internal sealed class SquareGridSizer : UIBehaviour
     {
         public int MaxColumns = 6;
         public float Gap = 10f;
         public bool ScrollContent;
-        public float MaxScrollCellSize = 120f;
 
         /// <summary>
         /// 이번에 배치할 타일 수. 격자를 다시 그리는 쪽이 직접 알려 준다.
@@ -1046,24 +1086,22 @@ namespace Managers.UI.Screens
                 ? viewport.rect.height
                 : height;
 
-            float widthSide = (width - Gap * (columns - 1)) / columns;
+            float widthSide = (width - _layout.padding.horizontal - Gap * (columns - 1)) / columns;
             float side;
             if (ScrollContent)
             {
-                // 5열 정사각 타일을 폭만으로 정하면 16:9와 4:3 모두 세 번째 줄의 이름표만
-                // 잘려 보였다. 첫 화면에는 최대 세 줄이 온전히 들어오게 하고, 그보다 긴 목록만 스크롤한다.
-                int visibleRows = Mathf.Min(3, rows);
-                float heightSide = (viewportHeight - Gap * (visibleRows - 1)) / visibleRows;
-                side = Mathf.Max(72f, Mathf.Min(widthSide, heightSide, MaxScrollCellSize));
+                // 스크롤 목록은 가로폭을 모두 쓴다. 행 수 때문에 초상화를 축소하지 않는다.
+                side = Mathf.Max(1f, widthSide);
             }
             else
             {
-                side = Mathf.Max(1f, Mathf.Min(widthSide, (height - Gap * (rows - 1)) / rows));
+                side = Mathf.Max(1f, Mathf.Min(widthSide,
+                    (height - _layout.padding.vertical - Gap * (rows - 1)) / rows));
             }
 
             if (ScrollContent)
             {
-                float contentHeight = rows * side + Gap * (rows - 1);
+                float contentHeight = rows * side + Gap * (rows - 1) + _layout.padding.vertical;
                 if (!Mathf.Approximately(_rect.sizeDelta.y, contentHeight))
                     _rect.sizeDelta = new Vector2(_rect.sizeDelta.x, contentHeight);
             }

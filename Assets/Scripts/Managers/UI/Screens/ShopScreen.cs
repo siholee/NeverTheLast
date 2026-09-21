@@ -42,10 +42,12 @@ namespace Managers.UI.Screens
         private const string MerchantStanding = "LAVOISIER_STANDING";
         private const string MerchantName = "라부아지에";
 
+        // 순서가 곧 탭이 늘어선 순서다(밑줄이 <c>(int)_tab</c>으로 찾는다).
         private enum Tab
         {
             Consumable,
             Equipment,
+            Training,
             Sell,
         }
 
@@ -62,6 +64,7 @@ namespace Managers.UI.Screens
         private readonly List<RectTransform> _tabMarks = new();
 
         private List<RewardDef> _consumables = new();
+        private List<RewardDef> _trainingSupplies = new();
         private List<RewardDef> _equipment = new();
         private int _equipmentStage = -1;
 
@@ -145,6 +148,7 @@ namespace Managers.UI.Screens
             {
                 (Tab.Consumable, "소모품"),
                 (Tab.Equipment, "장비"),
+                (Tab.Training, "육성"),
                 (Tab.Sell, "판매"),
             };
 
@@ -168,6 +172,9 @@ namespace Managers.UI.Screens
         {
             EnsureBuilt();
             _consumables = GameManager.Instance?.rewardManager?.BuildShopGoods() ?? new List<RewardDef>();
+            // 육성 모드가 아니면 비어 있고, 그러면 [육성] 탭은 꺼진다.
+            _trainingSupplies = GameManager.Instance?.rewardManager?.BuildShopTrainingSupplies()
+                                ?? new List<RewardDef>();
             EnsureEquipmentStock();
             _message.text = "";
             _tab = Tab.Consumable;
@@ -212,6 +219,7 @@ namespace Managers.UI.Screens
         private List<RewardDef> CurrentGoods => _tab switch
         {
             Tab.Equipment => _equipment,
+            Tab.Training => _trainingSupplies,
             Tab.Sell => BuildSellCards(),
             _ => _consumables,
         };
@@ -257,6 +265,9 @@ namespace Managers.UI.Screens
                 _tabMarks[i].gameObject.SetActive(i == (int)_tab);
             }
 
+            // 육성 소모품은 육성 모드에서만 판다. 무한 모드에서는 탭이 꺼진다.
+            _tabButtons[(int)Tab.Training].interactable = _trainingSupplies.Count > 0;
+
             _sellAll.gameObject.SetActive(_tab == Tab.Sell);
             _sellAll.interactable = (Inventory?.Valuables?.Count ?? 0) > 0;
             _merchantLine.text = Banter();
@@ -288,6 +299,11 @@ namespace Managers.UI.Screens
                     : $"{count}점이네요! 감정은 정확해요. 저, 이런 건 잘하거든요…";
             }
 
+            if (_tab == Tab.Training)
+            {
+                return "몸을 챙기는 물건들이에요. 노트는 다음 훈련 한 번에만 듣는다는 것, 잊지 마세요…";
+            }
+
             if (_tab == Tab.Equipment)
             {
                 return _equipment.Count == 0
@@ -305,6 +321,10 @@ namespace Managers.UI.Screens
         {
             if (good == null) return null;
             if ((GameManager.Instance?.ShopPurchasesLeft ?? 0) <= 0) return "구매 한도";
+
+            // 써도 달라지는 것이 없는 육성 소모품(체력 가득 · 컨디션 최상 · 노트 상한)은 사기 전에 막는다.
+            string unusable = TrainingManager.TrainingSupplyBlockReason(good);
+            if (unusable != null) return unusable;
 
             int price = RewardManager.ShopPrice(good, CurrentStage);
             if ((Inventory?.Gold ?? 0) < price) return "골드 부족";

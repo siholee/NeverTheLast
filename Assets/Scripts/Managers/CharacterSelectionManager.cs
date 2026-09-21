@@ -62,14 +62,18 @@ namespace Managers
         }
 
         /// <summary>
-        /// 초기 서포트 카드(characterType: Support)인가.
+        /// 아직 <b>서포터 칸에만</b> 오르는 초기 서포트 카드(characterType: Support)인가.
         ///
-        /// 이 부류는 <b>서포터 칸에만</b> 오른다. 육성으로 해금되거나 스타터 해금 기록이
-        /// 남더라도 메인 캐릭터 후보에는 절대 넣지 않는다 — 미해금(Locked)을 테스트용으로
-        /// 열어 둔 것과는 다른 이야기다.
+        /// 기본적으로 이 부류는 메인 후보가 되지 않는다. 육성 완료 기록이 남아도 마찬가지다 —
+        /// 서포트는 메인이 될 수 없어 기록이 곧 자격이 되면 앞뒤가 맞지 않기 때문이다.
+        ///
+        /// <b>예외는 스스로 얻어 낸 스타팅 해금뿐이다.</b> <c>unlocksAsStarterOnClear</c>가 붙은
+        /// 서포트(니콜·프레이아)는 서포트로 한 런을 완주시키면 스타팅 후보로 열리고
+        /// (<see cref="RunManager"/>), 그 뒤로는 메인 격자에 선다.
         /// </summary>
         public static bool IsSupportOnly(UnitData data)
-            => data != null && !data.canStartAsMain && data.characterType == "Support";
+            => data != null && !data.canStartAsMain && data.characterType == "Support" &&
+               !SaveSystem.IsStarterUnlocked(data.id);
 
         public static void DestroyInstance()
         {
@@ -324,7 +328,9 @@ namespace Managers
         /// 끝까지 키워도 무한 모드 카드로 세지 않았다. Support 유형은 메인이 될 수 없어 육성 기록이 생기지 않는다.
         /// </summary>
         public static bool IsInfiniteEligible(UnitData data) =>
-            data != null && (data.canUseInInfinite || data.characterType == "Locked") &&
+            data != null &&
+            (data.canUseInInfinite || data.characterType == "Locked" ||
+             SaveSystem.IsStarterUnlocked(data.id)) &&
             SaveSystem.IsCharacterTrained(data.id);
 
         /// <summary>무한 모드에 쓸 수 있는 육성 완료 카드 수. 메인 메뉴가 무한 모드를 열지 정할 때 묻는다.</summary>

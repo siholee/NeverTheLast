@@ -360,7 +360,7 @@ namespace Managers.UI.DevTools
         {
             Status = "공허 데이터/팩토리/아트/레벨";
             var definitions=game.dataManager.FetchEnemyDataList().enemies.Where(e=>e.tags?.Contains("VoidMonster")==true).ToList();
-            Equal("void themed enemy definitions (generic seed excluded)",80,definitions.Count(e=>e.themeId>0));
+            Equal("void themed enemy definitions (generic seed excluded)",91,definitions.Count(e=>e.themeId>0));
             Equal("generic void seed",1,definitions.Count(e=>e.id==1061));
             foreach(var def in definitions)
             {

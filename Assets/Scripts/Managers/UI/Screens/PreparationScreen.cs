@@ -239,6 +239,8 @@ namespace Managers.UI.Screens
                 $"컨디션 {training.ConditionName}",
                 $"스킬 Pt {training.SkillPoints}",
             };
+            // 다음 훈련에 붙을 노트. 훈련하러 들어가기 전에 무엇이 걸려 있는지 보여야 한다.
+            if (training.NotePercent > 0) resources.Add($"트레이닝 노트 +{training.NotePercent}%");
             string tonics = RunManager.Instance?.PartyTonics.DescribeShort();
             if (!string.IsNullOrEmpty(tonics)) resources.Add($"강화제 {tonics}");
             _resources.text = string.Join("   ·   ", resources);

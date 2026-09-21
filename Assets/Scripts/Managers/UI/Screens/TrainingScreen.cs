@@ -357,7 +357,8 @@ namespace Managers.UI.Screens
                 : UITheme.Danger;
             _energyLabel.text = $"{state.Energy} / {TrainingState.MaxEnergy}";
 
-            _conditionLabel.text = $"컨디션 {state.ConditionName} · ×{state.ConditionMultiplier:0.00}";
+            _conditionLabel.text = $"컨디션 {state.ConditionName} · ×{state.ConditionMultiplier:0.00}" +
+                                   (state.NotePercent > 0 ? $" · 노트 +{state.NotePercent}%" : "");
             // 힌트 천장이 어디쯤인지 보여 준다. 힌트가 운이라 "언제 오느냐"를 모르면 Pt만 쌓이는 느낌이 든다.
             global::Core.SkillHintState hints = TrainingManager.Hints;
             _skillPointLabel.text = hints.PityReady
@@ -393,7 +394,16 @@ namespace Managers.UI.Screens
             SetBreakdown(0, $"기본 (Lv {level})", $"+{baseGain}", UITheme.TextPrimary);
             SetBreakdown(1, "서포트 보너스", support > 0 ? $"+{support}" : "—",
                 support > 0 ? UITheme.Positive : UITheme.TextMuted);
-            SetBreakdown(2, "컨디션", $"×{state.ConditionMultiplier:0.00}", UITheme.TextPrimary);
+            // 트레이닝 노트가 있으면 컨디션 줄에 함께 적는다 — 이번 훈련에 곱해지는 배율은 둘이 한 벌이다.
+            if (state.NotePercent > 0)
+            {
+                SetBreakdown(2, "컨디션 · 노트", $"×{state.ConditionMultiplier:0.00} · +{state.NotePercent}%",
+                    UITheme.Positive);
+            }
+            else
+            {
+                SetBreakdown(2, "컨디션", $"×{state.ConditionMultiplier:0.00}", UITheme.TextPrimary);
+            }
             // 주/부 스탯 배율은 여기서 곱하지 않는다. 최종 스탯을 낼 때 UnitStats가 곱한다.
             SetBreakdown(3, "최종 스탯 배율", $"×{specialty:0.00}",
                 specialty > 1f ? UITheme.Accent : UITheme.TextMuted);

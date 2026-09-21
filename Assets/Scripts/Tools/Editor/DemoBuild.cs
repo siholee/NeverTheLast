@@ -67,6 +67,12 @@ public static class DemoBuild
         Debug.Log($"[DemoBuild] {target} 결과 {summary.result} · 오류 {summary.totalErrors} · 경고 {summary.totalWarnings} · " +
                   $"{summary.totalSize / (1024f * 1024f):0.0}MB · {summary.totalTime}");
 
+        if (summary.result == BuildResult.Succeeded)
+        {
+            // 다음 증분 패치가 설치본 버전을 사람이 확인할 수 있게 빌드 루트에 남긴다.
+            File.WriteAllText(Path.Combine(outputDirectory, "version.txt"), Application.version + Environment.NewLine);
+        }
+
         if (summary.result != BuildResult.Succeeded && Application.isBatchMode)
             EditorApplication.Exit(1);
     }

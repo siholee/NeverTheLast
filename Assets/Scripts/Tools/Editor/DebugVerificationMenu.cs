@@ -1,3 +1,4 @@
+using System.IO;
 using Core;
 using Managers;
 using Managers.UI.DevTools;
@@ -6,11 +7,32 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>현재 열려 있는 Editor의 Play Mode에서 실제 게임 코드를 검증한다.</summary>
+[InitializeOnLoad]
 public static class DebugVerificationMenu
 {
     private const string Pending = "NTL.DebugVerification.Pending";
     private const string Integration = "NTL.DebugVerification.Integration";
     private const string Campaign = "NTL.DebugVerification.Campaign";
+    private const string Batch = "NTL.DebugVerification.Batch";
+    private const string Started = "NTL.DebugVerification.Started";
+
+    private static string IntegrationReportPath
+        => Path.GetFullPath(Path.Combine(Application.dataPath, "../Logs/IntegrationVerification.json"));
+    private static string IntegrationCheckpointPath
+        => Path.GetFullPath(Path.Combine(Application.dataPath, "../Logs/IntegrationVerification-checkpoint.json"));
+
+    static DebugVerificationMenu() => EditorApplication.update += PollBatch;
+
+    /// <summary>화면을 열지 않는 CI/배치 검증 진입점.</summary>
+    public static void RunIntegrationBatch()
+    {
+        string reportPath = IntegrationReportPath;
+        if (File.Exists(reportPath)) File.Delete(reportPath);
+        if (File.Exists(IntegrationCheckpointPath)) File.Delete(IntegrationCheckpointPath);
+        SessionState.SetBool(Batch, true);
+        SessionState.SetBool(Started, false);
+        RunIntegration();
+    }
 
     [MenuItem("Tools/NeverTheLast/Run Campaign Verification %F8")]
     public static void RunCampaign()
@@ -87,6 +109,27 @@ public static class DebugVerificationMenu
         SessionState.SetBool(Integration, false);
         bool campaign = SessionState.GetBool(Campaign, false);
         SessionState.SetBool(Campaign, false);
+        if (SessionState.GetBool(Batch, false)) SessionState.SetBool(Started, true);
         DebugVerification.StartSuite(integration, campaign);
+    }
+
+    private static void PollBatch()
+    {
+        if (!SessionState.GetBool(Batch, false) || !SessionState.GetBool(Started, false)) return;
+        // 통합 검증의 자연 캠페인 구간은 별도 BalanceSim 배치가 담당한다. 배치 모드에서는
+        // 모든 유닛/행동/패배 복구까지 기록한 체크포인트에서 종료해 씬 재로딩 교착을 피한다.
+        string reportPath = File.Exists(IntegrationReportPath)
+            ? IntegrationReportPath
+            : IntegrationCheckpointPath;
+        if (!File.Exists(reportPath)) return;
+
+        string json = File.ReadAllText(reportPath);
+        bool checkpoint = string.Equals(reportPath, IntegrationCheckpointPath,
+            System.StringComparison.OrdinalIgnoreCase);
+        bool passed = json.Contains("\"failed\": 0") && json.Contains("\"exceptions\": []") &&
+            (checkpoint || json.Contains("\"completed\": true"));
+        SessionState.SetBool(Batch, false);
+        SessionState.SetBool(Started, false);
+        EditorApplication.Exit(passed ? 0 : 1);
     }
 }

@@ -54,5 +54,14 @@ namespace Managers.UI.Core
             return GameManager.Instance?.unitDataList?.units?
                 .FirstOrDefault(data => data.id == unit.ID)?.tagline ?? "";
         }
+
+        /// <summary>아군의 전투 성향 UI 태그. 종족·진영 판정용 tags와는 별개다.</summary>
+        public static IReadOnlyList<UnitTagCatalog.Definition> ArchetypeTags(Unit unit)
+        {
+            if (unit == null || unit.IsEnemy) return Array.Empty<UnitTagCatalog.Definition>();
+            UnitData data = GameManager.Instance?.unitDataList?.units?
+                .FirstOrDefault(candidate => candidate.id == unit.ID);
+            return UnitTagCatalog.Resolve(data?.archetypeTags);
+        }
     }
 }

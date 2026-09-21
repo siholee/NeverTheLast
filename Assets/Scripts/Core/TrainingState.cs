@@ -10,7 +10,8 @@ namespace Core
     ///   · 체력  — 훈련하면 줄고 휴식하면 찬다. 낮을수록 실패율이 오른다.
     ///   · 훈련 레벨 — 같은 훈련을 반복하면 오르고, 오를수록 기본 상승치가 커진다.
     ///   · 스킬 Pt — 훈련마다 쌓인다.
-    ///   · 컨디션 — 훈련 결과에 배율로 곱해진다.
+    ///   · 컨디션 — 훈련 결과에 배율로 곱해진다. 훈련은 컨디션을 건드리지 않는다.
+    ///   · 트레이닝 노트 — 다음 훈련 한 번에 붙는 보너스.
     ///
     ///   · 서포트 배치 — 이번 턴에 어떤 서포트가 어느 훈련에 앉았는지.
     ///
@@ -92,36 +93,51 @@ namespace Core
             return true;
         }
 
+        // ── 컨디션 ───────────────────────────────────────────────────
+        //
+        // <b>훈련은 컨디션을 건드리지 않는다</b> — 훈련이 치르는 것은 체력뿐이다.
+        // 컨디션은 우마무스메처럼 드문 일이 있을 때만 움직인다.
+        //   오르는 길: 휴식(낮은 확률) · 스테이지 사이의 드문 사건 · 활력의 영약
+        //   내리는 길: 메인이 전투에서 쓰러졌을 때 · 스테이지 사이의 드문 사건
+
+        /// <summary>컨디션을 <paramref name="steps"/>칸 끌어올린다. 최상에서 멈춘다.</summary>
+        public void ImproveCondition(int steps = 1)
+            => ConditionIndex = Mathf.Max(0, ConditionIndex - Mathf.Max(0, steps));
+
+        /// <summary>컨디션을 <paramref name="steps"/>칸 떨어뜨린다. 최악에서 멈춘다.</summary>
+        public void WorsenCondition(int steps = 1)
+            => ConditionIndex = Mathf.Min(ConditionNames.Length - 1, ConditionIndex + Mathf.Max(0, steps));
+
+        /// <summary>컨디션이 이미 최상이라 더 오를 수 없는가.</summary>
+        public bool IsConditionBest => ConditionIndex <= 0;
+
+        // ── 트레이닝 노트 ────────────────────────────────────────────
+
+        /// <summary>노트 보너스가 쌓일 수 있는 상한(%). 상급 노트를 여럿 모아 한 번에 쓰는 것을 막는다.</summary>
+        public const int MaxNotePercent = 100;
+
         /// <summary>
-        /// 훈련이 끝날 때마다 컨디션이 한 칸 흔들린다.
-        /// 체력이 낮으면 나빠지는 쪽으로 기운다 — 무리해서 굴리면 대가가 따른다.
-        ///
-        /// <b>실패는 흔들지 않고 확정으로 한 칸 떨어뜨린다.</b> 체력을 바닥까지 끌어 쓴 대가가
-        /// 그 턴 안에서 끝나면, 실패율 60%를 감수하고 굴리는 쪽이 늘 이득이 된다.
+        /// 다음 훈련에 붙을 보너스(%). 훈련 상승량에 <c>1 + 값/100</c>으로 곱해지며
+        /// <b>훈련을 한 번 하면(성공이든 실패든) 통째로 사라진다</b>.
         /// </summary>
-        public void DriftCondition(bool failed = false)
+        public int NotePercent { get; private set; }
+
+        /// <summary>훈련 상승량에 곱해지는 총 배율. 컨디션과 노트를 함께 담는다.</summary>
+        public float TrainingMultiplier => ConditionMultiplier * (1f + NotePercent / 100f);
+
+        /// <summary>노트를 더 얹을 수 있는가.</summary>
+        public bool CanAddNote => NotePercent < MaxNotePercent;
+
+        public void AddNote(int percent)
+            => NotePercent = Mathf.Clamp(NotePercent + Mathf.Max(0, percent), 0, MaxNotePercent);
+
+        /// <summary>훈련이 노트를 썼다. 쓴 값을 돌려주고 비운다.</summary>
+        public int ConsumeNote()
         {
-            if (failed)
-            {
-                WorsenCondition();
-                return;
-            }
-
-            int roll = Random.Range(0, 100);
-            if (roll < 55) return;
-
-            bool worsen = Energy < 40 ? roll < 85 : roll < 78;
-            ConditionIndex = Mathf.Clamp(ConditionIndex + (worsen ? 1 : -1), 0, ConditionNames.Length - 1);
+            int used = NotePercent;
+            NotePercent = 0;
+            return used;
         }
-
-        /// <summary>
-        /// 컨디션을 한 칸 끌어올린다. <b>휴식만 이걸 할 수 있다</b> —
-        /// 훈련은 흔들기만 하므로, 나빠진 컨디션을 되돌릴 확실한 수단이 하나는 있어야 한다.
-        /// </summary>
-        public void ImproveCondition() => ConditionIndex = Mathf.Max(0, ConditionIndex - 1);
-
-        public void WorsenCondition() =>
-            ConditionIndex = Mathf.Min(ConditionNames.Length - 1, ConditionIndex + 1);
 
         /// <summary>이 서포트가 이번 턴에 앉은 훈련. 나오지 않았거나 아직 안 굴렸으면 false.</summary>
         public bool TryGetPlacement(int unitId, out BaseEnums.PrimaryStat stat)
@@ -160,6 +176,7 @@ namespace Core
             Energy = MaxEnergy;
             SkillPoints = 0;
             ConditionIndex = NormalConditionIndex;
+            NotePercent = 0;
         }
 
         // ── 저장 · 복원 ──────────────────────────────────────────────
@@ -171,6 +188,7 @@ namespace Core
                 energy = Energy,
                 skillPoints = SkillPoints,
                 conditionIndex = ConditionIndex,
+                notePercent = NotePercent,
                 levels = new List<TrainingLevelSaveData>(),
                 placementReady = PlacementReady,
                 placements = new List<TrainingPlacementSaveData>(),
@@ -209,6 +227,7 @@ namespace Core
             Energy = Mathf.Clamp(saved.energy, 0, MaxEnergy);
             SkillPoints = Mathf.Max(0, saved.skillPoints);
             ConditionIndex = Mathf.Clamp(saved.conditionIndex, 0, ConditionNames.Length - 1);
+            NotePercent = Mathf.Clamp(saved.notePercent, 0, MaxNotePercent);
 
             PlacementReady = saved.placementReady;
             if (saved.placements != null)
