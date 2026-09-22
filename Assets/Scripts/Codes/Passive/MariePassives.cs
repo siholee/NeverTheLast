@@ -15,6 +15,7 @@ namespace Codes.Passive
         public const int NobleBloodline = 99;
         public const int Officer = 100;
         public const int ArcDeTriomphe = 101;
+        public const int Caring = 132;
     }
 
     internal static class MarieStatusIds
@@ -24,7 +25,7 @@ namespace Codes.Passive
         public const int ArcDeTriomphe = 6512;
     }
 
-    /// <summary>필드에 있는 동안 마리의 LUK%만큼 모든 아군의 치명타 피해를 높인다.</summary>
+    /// <summary>필드에 있는 동안 화살 공격의 치명타 피해를 마리의 LUK%만큼 높인다.</summary>
     public sealed class MarieCriticalCommand : UniquePassiveCode
     {
         private Action<EventContext> _cleanupHandler;
@@ -48,7 +49,7 @@ namespace Codes.Passive
                     Caster, ally, new MarieCriticalCommandEffect(),
                     stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                     isBeneficial: true,
-                    description: "마리의 LUK%만큼 치명타 피해가 증가합니다."));
+                    description: "화살 공격의 치명타 피해가 마리의 LUK%만큼 증가합니다."));
             }
 
             _cleanupHandler = _ => StopCode();
@@ -82,10 +83,18 @@ namespace Codes.Passive
     internal sealed class MarieCriticalCommandEffect : BaseEffect
     {
         public MarieCriticalCommandEffect() : base(0) { }
-        public override float CritMultiplierAdditiveModifier(Unit unit)
-            => unit == Target && Caster != null && Caster.isActive
-                ? Mathf.Max(0, Caster.GetBaseLuk()) * 0.01f
-                : 0f;
+
+        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
+        {
+            if (attacker != Target || Caster == null || !Caster.isActive || context?.IsCrit != true ||
+                context.DamageTags?.Contains(DamageTag.Arrow) != true) return 1f;
+
+            // 피해 원본에는 이미 공격자의 기본 치명타 배율이 곱해져 있다. 마리의 LUK를
+            // 치명타 배율에 가산한 결과가 되도록 두 배율의 비를 최종 피해에 곱한다.
+            float baseCritMultiplier = Mathf.Max(1f, attacker.CritMultiplierCurr);
+            float bonus = Mathf.Max(0, Caster.GetBaseLuk()) * 0.01f;
+            return (baseCritMultiplier + bonus) / baseCritMultiplier;
+        }
     }
 
     public sealed class MarieNobleBloodline : PassiveCode
@@ -107,8 +116,7 @@ namespace Codes.Passive
                 isBeneficial: true,
                 description: "LUK가 5% 증가합니다."));
 
-            // 고유 오라가 먼저 적용되므로, 상승한 LUK를 아군의 치명타 피해 캐시에 다시 반영한다.
-            foreach (Unit ally in MarieCriticalCommand.Allies(Caster)) ally.RefreshAttributes();
+            // 혁명의 장교는 피해 시점에 마리의 현재 LUK를 읽는다.
         }
     }
 
@@ -124,6 +132,19 @@ namespace Codes.Passive
 
         public override float SupportTrainingBonus(BaseEnums.PrimaryStat stat)
             => stat == BaseEnums.PrimaryStat.DEX ? 0.10f : 0f;
+    }
+
+    /// <summary>서포트 카드로 앉아 있는 훈련의 기본 체력 소모를 20% 줄인다.</summary>
+    public sealed class MarieCaring : PassiveCode
+    {
+        public MarieCaring(PassiveCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Passive;
+            CodeName = "보살핌";
+            IgnoresActivationChance = true;
+        }
+
+        public override float SupportTrainingEnergyCostMultiplier => 0.8f;
     }
 
     public sealed class MarieArcDeTriomphe : PassiveCode

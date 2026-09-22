@@ -97,10 +97,16 @@ namespace Codes.Ultimate
     /// </summary>
     public sealed class LokiBaldrSlayer : SimpleUltimate
     {
-        private const int SlashPower = 150;
+        private const int SlashPower = 92;
+        private const float SlashStrCoefficient = 0.27f;
 
         public LokiBaldrSlayer(UltimateCodeContext context)
-            : base(context, "발드르의 살해자", 0.5f) { Power = SlashPower; }
+            : base(context, "발드르의 살해자", 0.5f)
+        {
+            Power = SlashPower;
+            PowerStatCoefficient = SlashStrCoefficient;
+            PowerStat = BaseEnums.PrimaryStat.STR;
+        }
 
         protected override void Resolve()
         {

@@ -68,6 +68,9 @@ namespace Managers.UI.Screens
         private Button _backButton;
         private Button _recommendButton;
         private Button _detailButton;
+        private Button _previousCardButton;
+        private Button _nextCardButton;
+        private TextMeshProUGUI _cardLabel;
 
         private RectTransform _previewSlot;
         private GameObject _detailView;
@@ -100,6 +103,7 @@ namespace Managers.UI.Screens
 
         private readonly Dictionary<int, Image> _tiles = new();
         private readonly Dictionary<int, Image> _tileArts = new();
+        private readonly Dictionary<int, int> _cardIndexByUnit = new();
         private Phase _phase = Phase.Main;
         private int _hovered;
 
@@ -148,7 +152,23 @@ namespace Managers.UI.Screens
             _previewInfo = UIBuild.Text("PreviewInfo", previewPane.transform, "",
                 UITheme.FontCaption, UITheme.TextSecondary, TextAlignmentOptions.TopLeft, wrap: true);
             _previewInfo.richText = true;
-            AnchorFooter(_previewInfo.rectTransform, 78f, 152f);
+            AnchorFooter(_previewInfo.rectTransform, 108f, 158f);
+
+            _previousCardButton = UIBuild.Button("PreviousCard", previewPane.transform, "‹", () => CycleCard(-1));
+            UIBuild.Anchor(_previousCardButton.image.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f));
+            _previousCardButton.image.rectTransform.offsetMin = new Vector2(24f, 70f);
+            _previousCardButton.image.rectTransform.offsetMax = new Vector2(70f, 104f);
+
+            _cardLabel = UIBuild.Text("SelectedCard", previewPane.transform, "", UITheme.FontMicro,
+                UITheme.TextSecondary, TextAlignmentOptions.Center, wrap: true);
+            AnchorFooter(_cardLabel.rectTransform, 70f, 104f);
+            _cardLabel.rectTransform.offsetMin = new Vector2(76f, 70f);
+            _cardLabel.rectTransform.offsetMax = new Vector2(-76f, 104f);
+
+            _nextCardButton = UIBuild.Button("NextCard", previewPane.transform, "›", () => CycleCard(1));
+            UIBuild.Anchor(_nextCardButton.image.rectTransform, new Vector2(1f, 0f), new Vector2(1f, 0f));
+            _nextCardButton.image.rectTransform.offsetMin = new Vector2(-70f, 70f);
+            _nextCardButton.image.rectTransform.offsetMax = new Vector2(-24f, 104f);
 
             // 기술 상세. 코드 설명 네 덩어리는 요약 칸에 들어가지 않으므로 초상화 자리까지 쓰고 굴린다.
             _detailContent = UIBuild.ScrollArea("Detail", previewPane.transform, out ScrollRect detailScroll);
@@ -289,6 +309,7 @@ namespace Managers.UI.Screens
             _phase = IsInfinite ? Phase.Support : Phase.Main;
             _hovered = 0;
             _recommended.Clear();
+            _cardIndexByUnit.Clear();
             _cursorOnButtons = false;
 
             base.Show();
@@ -383,6 +404,18 @@ namespace Managers.UI.Screens
                     badgeLabel.raycastTarget = false;
                 }
 
+                int cardCount = SaveSystem.GetTrainedCharacterRecords(unit.id).Count;
+                if (cardCount > 0)
+                {
+                    Image countBadge = UIBuild.Solid("CardCountBadge", tile.transform, UITheme.Surface);
+                    UIBuild.Anchor(countBadge.rectTransform, new Vector2(0.58f, 0.82f), Vector2.one, 3f, 3f);
+                    countBadge.raycastTarget = false;
+                    TextMeshProUGUI countLabel = UIBuild.Text("CardCount", countBadge.transform, $"육성 ×{cardCount}",
+                        UITheme.FontMicro, UITheme.Accent, TextAlignmentOptions.Center);
+                    UIBuild.Stretch(countLabel.rectTransform);
+                    countLabel.raycastTarget = false;
+                }
+
                 int captured = unit.id;
                 UIBuild.OnClick(tile.gameObject, () => OnTileClicked(captured));
                 AddHoverPreview(tile.gameObject, captured);
@@ -419,11 +452,11 @@ namespace Managers.UI.Screens
             {
                 // 메인 단계에서는 항상 한 명만 남긴다.
                 manager.ClearLineup();
-                manager.AddHero(unitId);
+                manager.AddHero(unitId, SelectedSupportId(unitId));
             }
             else
             {
-                manager.AddHero(unitId);
+                manager.AddHero(unitId, SelectedSupportId(unitId));
             }
 
             RefreshVisuals();
@@ -451,7 +484,7 @@ namespace Managers.UI.Screens
 
             bool mainPhase = _phase == Phase.Main;
             int supportTarget = IsInfinite ? MaxParty : MaxParty - 1;
-            int supportCount = manager.SupportUnitIds.Count;
+            int supportCount = IsInfinite ? manager.Lineup.Count : manager.SupportUnitIds.Count;
 
             SetTitle(IsInfinite
                 ? "무한 모드 — 서포터 카드 5장 선택"
@@ -503,11 +536,12 @@ namespace Managers.UI.Screens
 
         private void RefreshPartyRail(CharacterSelectionManager manager)
         {
-            List<int> ids = manager.Lineup.Select(entry => entry.UnitId).Take(MaxParty).ToList();
+            List<CharacterSelectionManager.LineupEntry> entries = manager.Lineup.Take(MaxParty).ToList();
             for (int i = 0; i < _partySlots.Count; i++)
             {
-                bool filled = i < ids.Count;
-                int id = filled ? ids[i] : 0;
+                bool filled = i < entries.Count;
+                CharacterSelectionManager.LineupEntry entry = filled ? entries[i] : null;
+                int id = entry?.UnitId ?? 0;
                 UnitData unit = filled
                     ? GameManager.Instance?.unitDataList?.units?.FirstOrDefault(candidate => candidate.id == id)
                     : null;
@@ -515,8 +549,9 @@ namespace Managers.UI.Screens
                 Sprite portrait = unit != null ? LoadPortrait(unit.portrait) : null;
                 _partyArts[i].enabled = portrait != null;
                 if (portrait != null) _partyArts[i].sprite = portrait;
+                string variant = filled ? CardVariantLabel(id, entry.SupportId) : "";
                 _partyNames[i].text = filled
-                    ? (manager.MainUnitId == id ? $"MAIN · {UnitName(id)}" : UnitName(id))
+                    ? (manager.MainUnitId == id ? $"MAIN · {UnitName(id)}{variant}" : $"{UnitName(id)}{variant}")
                     : $"{i + 1}  비어 있음";
                 _partyNames[i].color = filled ? UITheme.TextPrimary : UITheme.TextMuted;
                 Color fill = manager.MainUnitId == id ? UITheme.AccentFaint : UITheme.SurfaceRaised;
@@ -537,12 +572,14 @@ namespace Managers.UI.Screens
                 _previewInfo.text = "";
                 UIBuild.Clear(_tagStrip);
                 _detailText.text = "";
+                RefreshCardSelector(null);
                 return;
             }
 
             if (_detailMode)
             {
                 _previewName.text = unit.name;
+                RefreshCardSelector(unit);
                 ShowDetail(unit);
                 return;
             }
@@ -576,6 +613,75 @@ namespace Managers.UI.Screens
             if (IsLavoisierLocked(unit.id))
                 lines.Add(Colored(RoleText(unit), UITheme.TextMuted));
             _previewInfo.text = string.Join("\n", lines);
+            RefreshCardSelector(unit);
+        }
+
+        private void CycleCard(int direction)
+        {
+            List<TrainedCharacterRecord> records = SaveSystem.GetTrainedCharacterRecords(_hovered);
+            if (records.Count <= 1) return;
+
+            int current = SelectedCardIndex(_hovered, records.Count);
+            _cardIndexByUnit[_hovered] = (current + direction + records.Count) % records.Count;
+            CharacterSelectionManager.Instance?.SetSelectedSupportCard(_hovered, SelectedSupportId(_hovered));
+            RefreshVisuals();
+        }
+
+        private void RefreshCardSelector(UnitData unit)
+        {
+            bool visible = !_detailMode && unit != null && !IsLavoisierLocked(unit.id);
+            _cardLabel.gameObject.SetActive(visible);
+            if (!visible)
+            {
+                _previousCardButton.gameObject.SetActive(false);
+                _nextCardButton.gameObject.SetActive(false);
+                return;
+            }
+
+            List<TrainedCharacterRecord> records = SaveSystem.GetTrainedCharacterRecords(unit.id);
+            bool multiple = records.Count > 1;
+            _previousCardButton.gameObject.SetActive(multiple);
+            _nextCardButton.gameObject.SetActive(multiple);
+            if (records.Count == 0)
+            {
+                _cardLabel.text = _phase == Phase.Main ? "신규 육성" : "기본 지원 카드";
+                return;
+            }
+
+            int index = SelectedCardIndex(unit.id, records.Count);
+            SupportCardSaveData card = records[index].supportCard;
+            _cardLabel.text = $"육성 카드 {index + 1} / {records.Count} · 특기 {card.specialtyTraining} · 훈련 +{card.trainingBonus}";
+        }
+
+        private int SelectedCardIndex(int unitId, int count)
+        {
+            if (count <= 0) return -1;
+            if (!_cardIndexByUnit.TryGetValue(unitId, out int index))
+            {
+                string selected = CharacterSelectionManager.Instance?.Lineup
+                    .FirstOrDefault(entry => entry.UnitId == unitId)?.SupportId;
+                List<TrainedCharacterRecord> records = SaveSystem.GetTrainedCharacterRecords(unitId);
+                index = records.FindIndex(record => record.supportCard?.supportId == selected);
+                if (index < 0) index = count - 1;
+            }
+            index = Mathf.Clamp(index, 0, count - 1);
+            _cardIndexByUnit[unitId] = index;
+            return index;
+        }
+
+        private string SelectedSupportId(int unitId)
+        {
+            List<TrainedCharacterRecord> records = SaveSystem.GetTrainedCharacterRecords(unitId);
+            int index = SelectedCardIndex(unitId, records.Count);
+            return index >= 0 ? records[index].supportCard?.supportId : "";
+        }
+
+        private static string CardVariantLabel(int unitId, string supportId)
+        {
+            List<TrainedCharacterRecord> records = SaveSystem.GetTrainedCharacterRecords(unitId);
+            if (records.Count == 0 || string.IsNullOrWhiteSpace(supportId)) return "";
+            int index = records.FindIndex(record => record.supportCard?.supportId == supportId);
+            return index >= 0 ? $" · #{index + 1}" : "";
         }
 
         // ── 기술 상세 ────────────────────────────────────────────────
@@ -592,6 +698,9 @@ namespace Managers.UI.Screens
             _previewSlot.gameObject.SetActive(!_detailMode);
             _previewInfo.gameObject.SetActive(!_detailMode);
             _tagStrip.gameObject.SetActive(!_detailMode);
+            _cardLabel.gameObject.SetActive(!_detailMode);
+            _previousCardButton.gameObject.SetActive(!_detailMode);
+            _nextCardButton.gameObject.SetActive(!_detailMode);
             _detailView.SetActive(_detailMode);
 
             if (_detailMode)
@@ -963,7 +1072,7 @@ namespace Managers.UI.Screens
             {
                 return units
                     // 초기 서포트 카드는 육성이 끝나 기록이 남아도 메인 격자에 오르지 않는다.
-                    // 스스로 얻어 낸 스타팅 해금(니콜·프레이아)만 예외로 올라온다 — IsSupportOnly가 판단한다.
+                    // 스스로 얻어 낸 스타팅 해금(니콜·프레이아·마리)만 예외로 올라온다 — IsSupportOnly가 판단한다.
                     .Where(unit => !CharacterSelectionManager.IsSupportOnly(unit))
                     .Where(unit => unit.canStartAsMain ||
                                    CharacterSelectionManager.IsTemporarilyUnlocked(unit) ||

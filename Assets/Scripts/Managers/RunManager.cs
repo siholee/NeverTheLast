@@ -11,6 +11,7 @@ namespace Managers
 {
     public class RunManager : MonoBehaviour
     {
+        public const int YamaUnitId = 61;
         public static RunManager Instance { get; private set; }
 
         public bool RunActive { get; private set; }
@@ -178,6 +179,7 @@ namespace Managers
             bool hasNextRound = GameManager.Instance.RoundManager.TryLoadNextRound();
             if (!hasNextRound)
             {
+                GrantAnyRunCompletionUnlocks();
                 RunActive = false;
                 SaveSystem.DeleteSave();
                 GameManager.Instance.gameState = BaseClasses.BaseEnums.GameState.RunComplete;
@@ -227,6 +229,7 @@ namespace Managers
             }
 
             GrantSupportStarterUnlocks(mainUnitId);
+            GrantAnyRunCompletionUnlocks();
 
             RunActive = false;
             SaveSystem.DeleteSave();
@@ -240,9 +243,20 @@ namespace Managers
         }
 
         /// <summary>
+        /// 성공·실패나 모드와 무관하게 한 번의 런이 끝났을 때 열리는 영구 해금.
+        /// 현재는 야마가 이 경로를 사용한다.
+        /// </summary>
+        internal static void GrantAnyRunCompletionUnlocks()
+        {
+            if (!SaveSystem.IsStarterUnlocked(YamaUnitId))
+                SaveSystem.AddStarterUnlock(YamaUnitId, announce: true);
+        }
+
+        /// <summary>
         /// 완주한 런에 <b>서포트로 함께 선</b> 동료 중 <c>unlocksAsStarterOnClear</c>가 붙은 이를
         /// 스타팅 후보로 연다. 우마무스메의 육성마와 같은 결 — 곁에서 한 런을 끝까지 본 서포트가
-        /// 다음 런의 주인공이 된다. 지금은 니콜(6)·프레이아(81)가 이 경로를 쓴다.
+        /// 다음 런의 주인공이 된다. <c>unlocksUnitIdsOnClear</c>가 있으면 이아손→옥타비아처럼
+        /// 서포터와 연결된 별도의 메인 캐릭터도 함께 연다.
         ///
         /// <b>메인은 세지 않는다</b> — 메인은 육성 기록 자체가 자격이다.
         /// 편성 기록(<c>SupportUnitIds</c>)과 실제 로스터를 함께 본다. 불러오기로 이어 온 런은
@@ -269,11 +283,22 @@ namespace Managers
             foreach (int unitId in partyIds)
             {
                 UnitData data = units.FirstOrDefault(unit => unit != null && unit.id == unitId);
-                if (data == null || !data.unlocksAsStarterOnClear) continue;
-                if (SaveSystem.IsStarterUnlocked(unitId)) continue;
+                if (data == null) continue;
 
-                SaveSystem.AddStarterUnlock(unitId, announce: true);
-                Debug.Log($"[RunManager] 서포트 완주 해금 — {data.name}({unitId})이 스타팅 후보가 되었다");
+                if (data.unlocksAsStarterOnClear && !SaveSystem.IsStarterUnlocked(unitId))
+                {
+                    SaveSystem.AddStarterUnlock(unitId, announce: true);
+                    Debug.Log($"[RunManager] 서포트 완주 해금 — {data.name}({unitId})이 스타팅 후보가 되었다");
+                }
+
+                foreach (int targetId in data.unlocksUnitIdsOnClear ?? new List<int>())
+                {
+                    if (targetId <= 0 || SaveSystem.IsStarterUnlocked(targetId)) continue;
+                    UnitData target = units.FirstOrDefault(unit => unit != null && unit.id == targetId);
+                    SaveSystem.AddStarterUnlock(targetId, announce: true);
+                    Debug.Log($"[RunManager] 연계 완주 해금 — {data.name}과 함께 완주하여 " +
+                              $"{target?.name ?? targetId.ToString()}({targetId})이 스타팅 후보가 되었다");
+                }
             }
         }
 
@@ -511,6 +536,7 @@ namespace Managers
                 result.Add(new UnitSaveData
                 {
                     unitId = hero.ID,
+                    selectedSupportId = hero.SelectedSupportCardId,
                     currentHP = hero.HpCurr,
                     xPos = hero.currentCell.xPos,
                     yPos = hero.currentCell.yPos,

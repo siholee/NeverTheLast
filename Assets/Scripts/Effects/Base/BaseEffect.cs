@@ -88,6 +88,13 @@ namespace Effects.Base
         /// <summary>주는 피해 배율 보정 (공격자의 효과에서 질의, 1 = 변화 없음)</summary>
         public virtual float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context) => 1f;
 
+        /// <summary>
+        /// 궁극기 시전 직전에 한 번 계산하는 피해 배율. 체력 지불처럼 시전당 한 번만 일어나야 하는
+        /// 비용은 일반 <see cref="OutgoingDamageModifier"/>에서 처리하면 다단·광역 타격마다 반복되므로
+        /// 이 훅을 사용한다.
+        /// </summary>
+        public virtual float PrepareUltimateDamageMultiplier(Unit unit) => 1f;
+
         /// <summary>공격 시 대상 방어력 적용 배율 보정 (공격자의 효과에서 질의, 1 = 변화 없음)</summary>
         public virtual float DefenseStatMultiplierModifier(Unit attacker, Unit target, DamageContext context) => 1f;
 
@@ -222,6 +229,12 @@ namespace Effects.Base
         /// <summary>5대 기본 스탯 배율 보정 (1 = 변화 없음)</summary>
         public virtual float PrimaryStatMultiplierModifier(Unit unit, BaseEnums.PrimaryStat stat) => 1f;
 
+        /// <summary>
+        /// YAML에 기록된 초기 5대 스탯에만 적용하는 배율. 레벨 성장·강화·훈련·장비 스탯은 제외한다.
+        /// 일리아스처럼 태생 스테이터스만 증폭하는 효과가 사용한다.
+        /// </summary>
+        public virtual float InitialPrimaryStatMultiplierModifier(Unit unit, BaseEnums.PrimaryStat stat) => 1f;
+
         /// <summary>마나(궁극기 자원) 회복 배율 보정 (1 = 변화 없음)</summary>
         public virtual float ManaRecoveryMultiplierModifier(Unit unit) => 1f;
 
@@ -300,6 +313,12 @@ namespace Effects.Base
 
         /// <summary>보유자가 아군 전체의 소환수에게 제공하는 피해 배율 보정 (1 = 변화 없음).</summary>
         public virtual float AlliedSummonDamageMultiplierModifier(Unit unit, Unit summonOwner) => 1f;
+
+        /// <summary>
+        /// 보유자가 아군 전체 소환수에게 더하는 중첩 가능 피해 보너스.
+        /// 0.10이면 다른 보유자의 같은 효과와 합산해 +10%를 더한다.
+        /// </summary>
+        public virtual float AlliedSummonDamageBonusAdditive(Unit unit, Unit summonOwner) => 0f;
 
         /// <summary>효과가 유닛 분류 태그를 동적으로 부여하는지 여부.</summary>
         public virtual bool GrantsUnitTag(Unit unit, string tag) => false;

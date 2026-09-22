@@ -10,8 +10,8 @@ namespace Codes.Passive
 {
     public class ShiFinalVerse : UniquePassiveCode
     {
-        // 종언 스택 도달 시 터지는 세 단계의 위력.
-        private const int FinisherPower = 60;
+        // 3중첩 종언은 저레벨 위력 20에서 시작해 후반으로 갈수록 성장 폭이 커진다.
+        // 일반행동의 고정 피해와 역할을 나눠 고레벨 정밀 딜러의 성장성을 보존한다.
         private const int SplitPower1 = 100;
         private const int SplitPower2 = 150;
 
@@ -67,7 +67,7 @@ namespace Codes.Passive
             // 한 번에 하나만 행동해야 하고, 같은 키라 한 턴에 두 번 겹쳐 들어가지 않는다.
             if (previousStack < 3 && _verseStack >= 3)
             {
-                EnqueueVerse("shi_verse_3", () => DealLowestHpDamage(FinisherPower));
+                EnqueueVerse("shi_verse_3", () => DealLowestHpDamage(FinisherPower()));
             }
             else if (stage >= 2 && previousStack < 6 && _verseStack >= 6)
             {
@@ -82,6 +82,13 @@ namespace Codes.Passive
             {
                 _verseStack = 0;
             }
+        }
+
+        private int FinisherPower()
+        {
+            float levelOffset = Mathf.Max(0, Caster.Level - 1);
+            return 20 + Mathf.RoundToInt(
+                -0.031f * levelOffset + 0.00521f * levelOffset * levelOffset);
         }
 
         private void EnqueueVerse(string key, System.Action run)

@@ -94,12 +94,13 @@ units:
 
   - id: 4
     name: 가우디
-    tagline: "적과 아군 셋에게 풀을 까는 광역 부착 담당. 풀 반응 파티의 재료를 댄다"
+    tagline: "적에게 풀 원소를 부여하는 서브딜러"
     characterType: Support
     element: Dendro
     startingProficiencies: [Longsword]
     startingItemIds: [4102]
     tags: [Vaitica, Akasha, Human]
+    archetypeTags: [Precision, Infusion]
     canStartAsMain: false
     canStartAsSupport: true
     canUseInInfinite: false
@@ -132,22 +133,30 @@ units:
       passive: 1
       normal: 1
       ultimate: 1
-    # 해금 패시브는 아직 기획되지 않았다. 고유 P/N/U만 우선 구현한다.
-    levelPassives: []
+    levelPassives:
+      - { codeId: 56,  unlockLevel: 1,  stage: 1 }   # 지혜
+      - { codeId: 64,  unlockLevel: 8,  stage: 1 }   # 천재
+      - { codeId: 133, unlockLevel: 14, stage: 1 }   # 부여사
+      - { codeId: 119, unlockLevel: 25, stage: 1 }   # 영감
+      - { codeId: 134, unlockLevel: 33, stage: 1 }   # 자연에 대한 이해
+      - { codeId: 135, unlockLevel: 46, stage: 1 }   # 재충전
+      - { codeId: 136, unlockLevel: 52, stage: 1 }   # 해커
     portrait: GAUDI_PORTRAIT
     standing: GAUDI_STANDING
 
   - id: 5
     name: 라이트
-    tagline: "궁극기로 아군 캐스터의 마나를 채우고 해로운 상태를 씻어 내는 바람의 배터리"
+    tagline: "두 명 이상의 방출형 딜러에게 적합한 회복 서포터."
     characterType: Support
     element: Anemo
     startingProficiencies: [Orb, Shield, LightArmor]
     startingItemIds: [4109]
     tags: [Akasha, Human]
+    archetypeTags: [Summon, Support, Healing]
     canStartAsMain: false
     canStartAsSupport: true
     canUseInInfinite: false
+    unlocksAsStarterOnClear: true   # 서포트로 완주하면 스타팅 해금
     mainStat: CON
     subStat: DEX
     subStats: [DEX, INT]
@@ -177,8 +186,13 @@ units:
       passive: 1
       normal: 1
       ultimate: 1
-    # 기본 능력치·해금 패시브와 플라이어의 독립 행동 규칙은 임시안이다.
-    levelPassives: []
+    levelPassives:
+      - { codeId: 112, unlockLevel: 1,  stage: 1 }  # 면벽수련
+      - { codeId: 137, unlockLevel: 1,  stage: 1 }  # 근성
+      - { codeId: 68,  unlockLevel: 15, stage: 1 }  # 재기의 바람
+      - { codeId: 22,  unlockLevel: 20, stage: 1 }  # 영감
+      - { codeId: 138, unlockLevel: 32, stage: 1 }  # 소환술사
+      - { codeId: 5,   unlockLevel: 35, stage: 1 }  # 목욕재계
     portrait: LIGHT_PORTRAIT
     standing: LIGHT_STANDING
 
@@ -281,6 +295,7 @@ units:
     startingProficiencies: [Longsword, LightArmor]
     startingItemIds: [4102]
     tags: [Divine]
+    archetypeTags: [Precision]
     canStartAsMain: false
     canStartAsSupport: false
     canUseInInfinite: false
@@ -425,18 +440,19 @@ units:
     portrait: ATALANTE_PORTRAIT
     standing: ATALANTE_STANDING
 
-  # 그리스 스타터. 전열 탱커 또는 활 계열 힘사수 딜탱.
+  # 초기 서포터 카드. 반격 탱커이자 활 계열 힘사수 딜탱.
   - id: 22
     name: 오리온
     tagline: "피격을 세어 적 전체에 반격하고 궁극기로 화살비 12발을 쏟는 다타수 궁수"
-    characterType: Starter
+    characterType: Support
     element: Geo
     startingProficiencies: [Longbow, HeavyArmor]
     startingItemIds: [4106]
     tags: [Greek]
-    canStartAsMain: true
-    canStartAsSupport: false
-    canUseInInfinite: true
+    archetypeTags: [Precision, Sturdy, Swift]
+    canStartAsMain: false
+    canStartAsSupport: true
+    canUseInInfinite: false
     mainStat: STR
     subStat: CON
     subStats: [CON]
@@ -457,7 +473,7 @@ units:
     lukBase: 14
     lukIncrementLvl: 1
     lukIncrementUpgrade: 1
-    manaMax: 100
+    manaMax: 35
     codes:
       passive: 222
       normal: 22
@@ -536,6 +552,7 @@ units:
     startingProficiencies: [Spear]
     startingItemIds: [4104]
     tags: [Greek, Human]
+    archetypeTags: [Precision, Healing]
     canStartAsMain: false
     canStartAsSupport: false
     canUseInInfinite: false
@@ -587,6 +604,7 @@ units:
     startingProficiencies: [Longbow, LightArmor]
     startingItemIds: [4106]
     tags: [Takamagahara, ThreeNobles]
+    archetypeTags: [Precision]
     canStartAsMain: true   # 임시: 투사체 궤적 확인용
     canStartAsSupport: false
     canUseInInfinite: false
@@ -814,7 +832,7 @@ units:
     startingProficiencies: [Greatsword, MediumArmor]
     startingItemIds: [4103]
     tags: [Nord, Giant]
-    archetypeTags: [Sturdy, Shielding, Burst]
+    archetypeTags: [Sturdy, Shielding, Burst, Indomitable]
     canStartAsMain: true
     canStartAsSupport: false
     canUseInInfinite: true
@@ -864,14 +882,14 @@ units:
   - id: 61
     name: 야마
     tagline: "아군 전체의 지속피해를 키우고 궁극기로 한 번에 정산하는 브루저"
-    characterType: Starter
+    characterType: Locked
     element: Electro
     startingProficiencies: [Spear, MediumArmor]
     startingItemIds: [4104]
     tags: [Vedic, Lokapala]
-    canStartAsMain: true
+    canStartAsMain: false
     canStartAsSupport: false
-    canUseInInfinite: true
+    canUseInInfinite: false
     mainStat: INT
     subStat: DEX
     subStats: [DEX, CON]
@@ -1047,7 +1065,7 @@ units:
     startingProficiencies: [Spear, LightArmor]
     startingItemIds: [4104]
     tags: [Nord]
-    archetypeTags: [Support, Healing]
+    archetypeTags: [Support, Healing, Indomitable]
     canStartAsMain: false
     canStartAsSupport: true
     canUseInInfinite: false
@@ -1093,6 +1111,7 @@ units:
     startingProficiencies: [Longbow, MediumArmor]
     startingItemIds: [4106]
     tags: [Nord]
+    archetypeTags: [Swift, Precision, Control]
     canStartAsMain: false
     canStartAsSupport: false
     canUseInInfinite: false
@@ -1485,12 +1504,13 @@ units:
 
   - id: 101
     name: 옥타비아
-    tagline: "적 전체를 INT×1.5로 폭격하는 대형 광역 궁극기 캐스터"
+    tagline: "강력한 궁극기를 기반으로 한 클래식 딜러."
     characterType: Locked
     element: Anemo
     startingProficiencies: [Orb, LightArmor]
     startingItemIds: [4109]
     tags: [Rome, Emperor]
+    archetypeTags: [Burst]
     canStartAsMain: false
     canStartAsSupport: false
     canUseInInfinite: false
@@ -1519,12 +1539,57 @@ units:
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
       - { codeId: 46, unlockLevel: 10, stage: 1 }   # 유리대포
-      - { codeId: 17,  unlockLevel: 18, stage: 1 }   # 예리함
       - { codeId: 64, unlockLevel: 20, stage: 1 }   # 천재
       - { codeId: 71, unlockLevel: 40, stage: 1 }   # 리더쉽
       - { codeId: 62, unlockLevel: 70, stage: 1 }   # 대마법사
     portrait: OCTAVIA_PORTRAIT
     standing: OCTAVIA_STANDING
+
+  - id: 103
+    name: 이아손
+    tagline: "방출 속성의 아군을 지원하는 공격형 서포터."
+    characterType: Support
+    element: Hydro
+    startingProficiencies: [Longsword, Shield, MediumArmor]
+    startingItemIds: [4102]
+    tags: [Greek, Human]
+    archetypeTags: [Burst, Swift, Support]
+    canStartAsMain: false
+    canStartAsSupport: true
+    unlocksUnitIdsOnClear: [101]   # 이아손을 서포트로 육성 완주하면 옥타비아 해금
+    canUseInInfinite: false
+    mainStat: LUK
+    subStat: INT
+    subStats: [INT, STR]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 16
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 18
+    dexIncrementLvl: 2
+    dexIncrementUpgrade: 1
+    conBase: 16
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 18
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 20
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 1
+    manaMax: 100
+    codes: { passive: 303, special: 103, normal: 103, ultimate: 103 }
+    codeStages: { passive: 1, special: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 109, unlockLevel: 1,  stage: 1 }   # 카피바라
+      - { codeId: 139, unlockLevel: 10, stage: 1 }   # 가정 신의 가호
+      - { codeId: 16,  unlockLevel: 14, stage: 1 }   # 행운아
+      - { codeId: 27,  unlockLevel: 15, stage: 1 }   # 투명
+      - { codeId: 141, unlockLevel: 45, stage: 1 }   # 포수
+      - { codeId: 67,  unlockLevel: 70, stage: 1 }   # 인도자
+    portrait: JASON_PORTRAIT
+    standing: JASON_STANDING
 
   - id: 102
     name: 카이사르
@@ -1666,15 +1731,16 @@ units:
 
   - id: 122
     name: 바스테트
-    tagline: "아군의 추가행동·반격이 쌓일수록 폭발하는 반격 파티의 마무리 담당"
-    characterType: Locked
+    tagline: "반격을 가진 탱커에 반응하는 추가공격 딜러"
+    characterType: Starter
     element: Geo
     startingProficiencies: [Dagger, LightArmor]
     startingItemIds: [4101]
     tags: [Egypt]
-    canStartAsMain: false
+    archetypeTags: [Precision, Swift]
+    canStartAsMain: true
     canStartAsSupport: false
-    canUseInInfinite: false
+    canUseInInfinite: true
     mainStat: LUK
     subStat: DEX
     subStats: [DEX]
@@ -1927,8 +1993,9 @@ units:
 
   - id: 160
     name: 마리
-    tagline: "아군 전체의 치명타 피해를 자기 LUK만큼 올리는 치명타 파티의 장교"
+    tagline: "활 분류 무기를 사용하는 궁수들을 지원해주는 특화 서포터"
     characterType: Support
+    archetypeTags: [Precision, Support]
     element: Cryo
     startingProficiencies: [Longsword, LightArmor]
     startingItemIds: [4102]
@@ -1936,6 +2003,7 @@ units:
     canStartAsMain: false
     canStartAsSupport: true
     canUseInInfinite: false
+    unlocksAsStarterOnClear: true   # 서포트로 완주하면 스타팅 해금
     mainStat: LUK
     subStat: DEX
     subStats: [DEX, STR]
@@ -1961,7 +2029,9 @@ units:
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
       - { codeId: 99, unlockLevel: 1,  stage: 1 }   # 고귀한 혈통
+      - { codeId: 16, unlockLevel: 2,  stage: 1 }   # 행운아
       - { codeId: 100, unlockLevel: 5,  stage: 1 }   # 장교
+      - { codeId: 132, unlockLevel: 5,  stage: 1 }   # 보살핌
       - { codeId: 75, unlockLevel: 12, stage: 1 }   # 원소 친화 - 얼음
       - { codeId: 101, unlockLevel: 30, stage: 1 }   # 개선문
     portrait: MARIE_PORTRAIT

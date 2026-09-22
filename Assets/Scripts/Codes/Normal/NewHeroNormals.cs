@@ -14,22 +14,22 @@ using UnityEngine;
 namespace Codes.Normal
 {
     /// <summary>
-    /// 라이트 N — 플라이어가 없으면 불러내고, 이미 있으면 단일 적에게 INT 위력 60 피해.
+    /// 라이트 N — 플라이어가 없으면 불러내고, 이미 있으면 아군 전체를 300 + CON×0.5 치유.
     ///
     /// 플라이어는 <b>칸을 차지하지 않는 실제 유닛</b>이다. 자기 DEX로 행동 순서를 얻고
     /// INT로 궁극기를 채우며 적에게 맞아 쓰러질 수도 있다 — 자세한 규칙은 <c>Combat.SummonSpec</c>.
     /// </summary>
     public sealed class LightNormalAttack : BaseNormalCode
     {
-        private const int AttackPower = 60;
+        private const int HealFlat = 300;
+        private const float HealConCoefficient = 0.5f;
 
         private bool _summoning;
 
         public LightNormalAttack(NormalCodeContext context) : base(context)
         {
             CodeName = "일반행동";
-            Power = AttackPower;
-            CodeTags = new List<int> { DamageTag.Special, DamageTag.NonContactAttack };
+            Power = 0;
         }
 
         /// <summary>이 라이트가 지금 플라이어를 데리고 있는가.</summary>
@@ -40,18 +40,12 @@ namespace Codes.Normal
         public override void CastCode()
         {
             _summoning = !HasFlyer;
-            CodeName = _summoning ? "플라이어 소환" : "일반행동";
+            CodeName = _summoning ? "플라이어 소환" : "전체 치유";
             base.CastCode();
         }
 
         protected override IEnumerator SkillCoroutine()
         {
-            if (!_summoning)
-            {
-                yield return base.SkillCoroutine();
-                yield break;
-            }
-
             bool cast = false;
             yield return WaitForCast(result => cast = result);
             if (!cast)
@@ -60,30 +54,28 @@ namespace Codes.Normal
                 yield break;
             }
 
-            GridManager.Instance?.SpawnSummon(Caster, SummonCatalog.Flyer(Caster));
+            if (_summoning)
+            {
+                GridManager.Instance?.SpawnSummon(Caster, SummonCatalog.Flyer(Caster));
+            }
+            else
+            {
+                int healing = Mathf.Max(1,
+                    HealFlat + Mathf.RoundToInt(Caster.GetBaseCon() * HealConCoefficient));
+                foreach (Unit ally in CombatTargets.AliveAlliesIncludingSelf(Caster))
+                {
+                    ally.ModifyHp(ally.HpCurr + healing, Caster);
+                }
+            }
 
             NotifyActionResolved();
             StopCode();
         }
 
-        protected override int CalculateDamage(float critMultiplier)
-            => Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.INT) * critMultiplier));
-
-        protected override List<int> GetDamageTags() => new()
-        {
-            DamageTag.SingleTarget,
-            DamageTag.NormalAttack,
-            DamageTag.Special,
-            DamageTag.NonContactAttack,
-        };
-
-        // 플라이어가 없으면 적이 없어도 소환 행동은 성립한다.
-        public override bool HasValidTarget()
-            => Caster != null && Caster.isActive && (!HasFlyer || base.HasValidTarget());
+        public override bool HasValidTarget() => Caster != null && Caster.isActive;
     }
 
-    /// <summary>플라이어 N(500) — 단일 적에게 DEX 위력 60. 소환수 공격이다.</summary>
+    /// <summary>플라이어 N(500) — 단일 적에게 INT 위력 60. 소환수 공격이다.</summary>
     public sealed class FlyerNormalAttack : BaseNormalCode
     {
         public FlyerNormalAttack(NormalCodeContext context) : base(context)
@@ -95,7 +87,7 @@ namespace Codes.Normal
 
         protected override int CalculateDamage(float critMultiplier)
             => Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.DEX)
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.INT)
                 * critMultiplier * Summons.DamageMultiplier(Caster.SummonOwner)));
 
         protected override List<int> GetDamageTags() => new()
@@ -112,8 +104,10 @@ namespace Codes.Normal
     /// </summary>
     public sealed class GaudiNormalAttack : BaseNormalCode
     {
-        private const int NormalPower = 60;
-        private const int SubstitutePower = 80;
+        private const int NormalPower = 10;
+        private const float NormalIntCoefficient = 2.5f;
+        private const int SubstitutePower = 20;
+        private const float SubstituteIntCoefficient = 3.3f;
         private const int SubstituteTargetCount = 3;
 
         private GaudiSagradaFamilia _passive;
@@ -125,6 +119,8 @@ namespace Codes.Normal
         {
             CodeName = "일반행동";
             Power = NormalPower;
+            PowerStat = BaseEnums.PrimaryStat.INT;
+            PowerStatCoefficient = NormalIntCoefficient;
             CodeTags = new List<int> { DamageTag.Special };
         }
 
@@ -156,6 +152,7 @@ namespace Codes.Normal
             _substitute = substitute;
             CodeName = substitute ? "대체행동" : "일반행동";
             Power = substitute ? SubstitutePower : NormalPower;
+            PowerStatCoefficient = substitute ? SubstituteIntCoefficient : NormalIntCoefficient;
         }
 
         protected override int CalculateDamage(float critMultiplier)
@@ -182,13 +179,15 @@ namespace Codes.Normal
         public AsclepiusNormalAttack(NormalCodeContext context) : base(context)
         {
             CodeName = "일반행동";
-            Power = 60;
+            Power = 48;
+            PowerStatCoefficient = 0.3f;
+            PowerStat = BaseEnums.PrimaryStat.INT;
             CodeTags = new List<int> { DamageTag.Special };
         }
 
         protected override int CalculateDamage(float critMultiplier)
             => UnityEngine.Mathf.Max(1, UnityEngine.Mathf.RoundToInt(
-                Caster.SkillDamage(Power, BaseEnums.PrimaryStat.INT) * critMultiplier));
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.INT) * critMultiplier));
 
         protected override List<int> GetDamageTags() => new()
         {
@@ -201,7 +200,9 @@ namespace Codes.Normal
         public AmaterasuNormalAttack(NormalCodeContext context) : base(context)
         {
             CodeName = "일반행동";
-            Power = 90;
+            Power = 43;
+            PowerStatCoefficient = 0.4f;
+            PowerStat = BaseEnums.PrimaryStat.DEX;
             CodeTags = new List<int> { DamageTag.Physical };
         }
 

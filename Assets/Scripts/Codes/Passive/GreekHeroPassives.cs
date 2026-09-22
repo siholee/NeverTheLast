@@ -36,6 +36,8 @@ namespace Codes.Passive
     /// <summary>오리온 P — 피해를 받거나 체력을 소비한 행동마다 시리우스 충전 1스택.</summary>
     public sealed class OrionGeoAffinity : UniquePassiveCode, ICounterAttackProvider
     {
+        private const float SiriusStrCoefficient = 1.2f;
+
         private Action<EventContext> _damageHandler;
         private Action<Unit, int> _hpSpentHandler;
         private Action<EventContext> _cleanupHandler;
@@ -46,6 +48,9 @@ namespace Codes.Passive
         {
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "시리우스";
+            Power = 0;
+            PowerStatCoefficient = SiriusStrCoefficient;
+            PowerStat = BaseEnums.PrimaryStat.STR;
             IgnoresActivationChance = true;
         }
 
@@ -114,9 +119,8 @@ namespace Codes.Passive
 
             bool isCrit = UnityEngine.Random.value <= Caster.CritChanceCurr;
             int damage = Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(120, BaseEnums.PrimaryStat.STR) *
-                (isCrit ? Caster.CritMultiplierCurr : 1f) *
-                Combat.Summons.DamageMultiplier(Caster)));
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.STR) *
+                (isCrit ? Caster.CritMultiplierCurr : 1f)));
             foreach (Unit enemy in global::Target.GetAllEnemies(Caster)
                          .Where(unit => unit != null && unit.isActive && !unit.IsUntargetable).ToList())
             {
@@ -125,7 +129,7 @@ namespace Codes.Passive
                     new List<int>
                     {
                         DamageTag.AllTarget, DamageTag.AdditionalAttack, DamageTag.CounterAttack,
-                        DamageTag.SummonAttack, DamageTag.Physical, DamageTag.ContactAttack,
+                        DamageTag.Physical, DamageTag.ContactAttack,
                     },
                     isCrit));
             }

@@ -5,7 +5,7 @@ using Entities;
 
 namespace Codes.Ultimate
 {
-    /// <summary>마리 U — 아군 전체에게 3턴간 일반행동 피해 +20%, DEX +10.</summary>
+    /// <summary>마리 U — 아군 전체 피해 +20%, 활 사용자에게 추가 +20% (3턴).</summary>
     public sealed class MarieSongOfRevolution : SimpleUltimate
     {
         private const int StatusId = 6513;
@@ -23,7 +23,9 @@ namespace Codes.Ultimate
                     duration: 3,
                     stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                     isBeneficial: true,
-                    description: "일반행동 피해 +20%, DEX +10 (3턴)."));
+                    description: ally.HasEquippedBow()
+                        ? "가하는 피해 +40% (활 추가 보너스 포함, 3턴)."
+                        : "가하는 피해 +20% (3턴)."));
             }
         }
     }
@@ -32,12 +34,7 @@ namespace Codes.Ultimate
     {
         public MarieRevolutionEffect() : base(0) { }
 
-        public override int PrimaryStatAdditiveModifier(Unit unit, BaseEnums.PrimaryStat stat)
-            => unit == Target && stat == BaseEnums.PrimaryStat.DEX ? 10 : 0;
-
         public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
-            => attacker == Target && context?.DamageTags?.Contains(DamageTag.NormalAttack) == true
-                ? 1.2f
-                : 1f;
+            => attacker == Target ? (attacker.HasEquippedBow() ? 1.4f : 1.2f) : 1f;
     }
 }

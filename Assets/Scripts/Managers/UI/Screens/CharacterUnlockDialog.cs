@@ -14,7 +14,7 @@ namespace Managers.UI.Screens
     /// 해금 안내. 확인 전까지 저장해 두어 종료 후에도 안내를 놓치지 않는다.
     ///
     /// 라부아지에(최초 완주)뿐 아니라 <c>unlocksAsStarterOnClear</c>로 열린 서포트
-    /// (니콜 · 프레이아)도 이 창으로 알린다 — <b>모르고 지나간 해금은 열리지 않은 것과 같다</b>.
+    /// (라이트 · 니콜 · 프레이아 · 마리)도 이 창으로 알린다 — <b>모르고 지나간 해금은 열리지 않은 것과 같다</b>.
     /// 대기열에 여럿이면 하나씩 뜬다. 문구는 유닛 데이터에서 읽고, 라부아지에만 전용 대사를 쓴다.
     /// </summary>
     public static class CharacterUnlockDialog

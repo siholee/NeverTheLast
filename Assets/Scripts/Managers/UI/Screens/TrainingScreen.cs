@@ -408,8 +408,9 @@ namespace Managers.UI.Screens
             SetBreakdown(3, "최종 스탯 배율", $"×{specialty:0.00}",
                 specialty > 1f ? UITheme.Accent : UITheme.TextMuted);
 
-            _costValue.text = option.EnergyCost < 0 ? $"+{-option.EnergyCost}" : $"-{option.EnergyCost}";
-            _costValue.color = option.EnergyCost < 0 ? UITheme.Positive : new Color(0.878f, 0.647f, 0.290f);
+            int energyCost = TrainingManager.GetEnergyCost(_selected);
+            _costValue.text = energyCost < 0 ? $"+{-energyCost}" : $"-{energyCost}";
+            _costValue.color = energyCost < 0 ? UITheme.Positive : new Color(0.878f, 0.647f, 0.290f);
 
             _skillValue.text = $"+{option.SkillPoints}";
             _skillValue.color = UITheme.Positive;
@@ -680,8 +681,9 @@ namespace Managers.UI.Screens
                     active ? 2 : 1);
 
                 _name.color = active ? UITheme.TextPrimary : UITheme.TextSecondary;
+                int energyCost = TrainingManager.GetEnergyCost(_stat);
                 _meta.text = $"Lv {state.GetLevel(_stat)} · 체력 " +
-                             (option.EnergyCost < 0 ? $"+{-option.EnergyCost}" : $"-{option.EnergyCost}");
+                             (energyCost < 0 ? $"+{-energyCost}" : $"-{energyCost}");
 
                 _gain.text = $"+{TrainingManager.GetProjectedGain(_stat)}";
                 _gain.color = active ? UITheme.Stat(_stat) : UITheme.TextMuted;

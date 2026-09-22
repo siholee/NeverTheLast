@@ -12,6 +12,7 @@ namespace Managers.UI
     public class MainMenuUI : MonoBehaviour
     {
         private SettingsUI _settings;
+        private Screens.SupportCardArchiveUI _archive;
         private void Start()
         {
             transform.SetParent(null, false);
@@ -19,6 +20,8 @@ namespace Managers.UI
                 old.gameObject.SetActive(false);
             _settings = GetComponent<SettingsUI>();
             if (_settings == null) _settings = gameObject.AddComponent<SettingsUI>();
+            _archive = GetComponent<Screens.SupportCardArchiveUI>();
+            if (_archive == null) _archive = gameObject.AddComponent<Screens.SupportCardArchiveUI>();
             BuildMenu();
             Screens.CharacterUnlockDialog.ShowPending();
         }
@@ -70,7 +73,9 @@ namespace Managers.UI
             // 캐릭터 발을 반투명하게 비치면 실수로 잘린 것처럼 보인다. 푸터가 명확히 전경에 오도록 완전 불투명 처리한다.
             Image footer = UIBuild.Solid("Footer", root, Color.white);
             UIBuild.Anchor(footer.rectTransform, Vector2.zero, new Vector2(1, 0.095f));
-            Copy(footer.transform, "Version", $"NEVER THE LAST   /   DEMO {Application.version}", 15, UITheme.TextMuted, 0.035f, 0, 0.57f, 1);
+            Copy(footer.transform, "Version", $"NEVER THE LAST   /   DEMO {Application.version}", 15, UITheme.TextMuted, 0.035f, 0, 0.47f, 1);
+            Button archive = UIBuild.Button("CardArchive", footer.transform, "육성 카드 열람실", OnArchive, fontSize: 20);
+            UIBuild.Anchor(archive.image.rectTransform, new Vector2(0.49f, 0.15f), new Vector2(0.66f, 0.85f));
             Button settings = UIBuild.Button("Settings", footer.transform, "설정", OnSettings, fontSize: 22);
             UIBuild.Anchor(settings.image.rectTransform, new Vector2(0.68f, 0.15f), new Vector2(0.82f, 0.85f));
             Button quit = UIBuild.Button("Quit", footer.transform, "종료", OnQuit, fontSize: 22);
@@ -129,7 +134,13 @@ namespace Managers.UI
             GameManager.LoadBattleScene();
         }
         private void OnSettings() => _settings?.Open();
+        private void OnArchive() => _archive?.Open();
         private static void OnQuit() => Application.Quit();
         public void CloseSettings() => _settings?.Close();
+
+        private void Update()
+        {
+            if (_archive?.IsOpen == true && Input.GetKeyDown(KeyCode.Escape)) _archive.Close();
+        }
     }
 }

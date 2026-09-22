@@ -51,14 +51,15 @@ namespace Combat
         }
 
         /// <summary>
-        /// 소환자 개인 효과와 필드 전체 효과 중 가장 높은 소환수 피해 배율.
-        /// 같은 효과를 여럿이 들고 있어도 중첩되지 않는다.
+        /// 소환자 개인 효과와 중첩 불가 필드 효과 중 가장 높은 보너스에,
+        /// 중첩 가능 필드 보너스를 합산한 소환수 피해 배율.
         /// </summary>
         public static float DamageMultiplier(Unit owner)
         {
             if (owner == null) return 1f;
 
             float bonus = 0f;
+            float additiveBonus = 0f;
             foreach (var effect in owner.ActiveStatuses.SelectMany(status => status.Effects))
             {
                 if (effect.EffectObject == null) continue;
@@ -67,15 +68,19 @@ namespace Combat
 
             foreach (Unit ally in CombatTargets.AliveAlliesIncludingSelf(owner))
             {
-                if (ally == owner) continue;
                 foreach (var effect in ally.ActiveStatuses.SelectMany(status => status.Effects))
                 {
                     if (effect.EffectObject == null) continue;
-                    bonus = Mathf.Max(bonus,
-                        effect.EffectObject.AlliedSummonDamageMultiplierModifier(ally, owner) - 1f);
+                    if (ally != owner)
+                    {
+                        bonus = Mathf.Max(bonus,
+                            effect.EffectObject.AlliedSummonDamageMultiplierModifier(ally, owner) - 1f);
+                    }
+                    additiveBonus += Mathf.Max(0f,
+                        effect.EffectObject.AlliedSummonDamageBonusAdditive(ally, owner));
                 }
             }
-            return 1f + Mathf.Max(0f, bonus);
+            return 1f + Mathf.Max(0f, bonus) + additiveBonus;
         }
     }
 }

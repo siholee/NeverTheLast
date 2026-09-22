@@ -49,8 +49,11 @@ namespace Managers.UI.DevTools
         private bool integrationOnly;
         private bool campaignOnly;
         private bool lavoisierOnly;
+        private bool dpmOnly;
+        private bool newItemsOnly;
 
-        public static void StartSuite(bool integrationOnly = false, bool campaignOnly = false, bool lavoisierOnly = false)
+        public static void StartSuite(bool integrationOnly = false, bool campaignOnly = false,
+            bool lavoisierOnly = false, bool dpmOnly = false, bool newItemsOnly = false)
         {
             if (DebugMode.SuiteRunning) return;
             DebugMode.BeginSession();
@@ -59,6 +62,8 @@ namespace Managers.UI.DevTools
             host.integrationOnly = integrationOnly;
             host.campaignOnly = campaignOnly;
             host.lavoisierOnly = lavoisierOnly;
+            host.dpmOnly = dpmOnly;
+            host.newItemsOnly = newItemsOnly;
             DontDestroyOnLoad(host.gameObject);
             host.StartCoroutine(host.GuardedRun());
         }
@@ -111,7 +116,12 @@ namespace Managers.UI.DevTools
                 Status = $"{report.passed} PASS / {report.failed} FAIL / completed={report.completed}";
                 string directory = Path.GetFullPath(Path.Combine(Application.dataPath, "../Logs"));
                 Directory.CreateDirectory(directory);
-                File.WriteAllText(Path.Combine(directory, lavoisierOnly ? "LavoisierVerification.json" : integrationOnly ? "IntegrationVerification.json" : "DebugVerification.json"), JsonUtility.ToJson(report, true));
+                string reportName = newItemsOnly ? "NewItemsVerification.json"
+                    : dpmOnly ? "DpmVerification.json"
+                    : lavoisierOnly ? "LavoisierVerification.json"
+                    : integrationOnly ? "IntegrationVerification.json"
+                    : "DebugVerification.json";
+                File.WriteAllText(Path.Combine(directory, reportName), JsonUtility.ToJson(report, true));
                 Debug.Log("[DebugVerification] " + Status);
                 Destroy(gameObject);
             }
@@ -141,9 +151,21 @@ namespace Managers.UI.DevTools
             grid = game.gridManager;
             DebugMode.SetTimeScale(8f);
             UnityEngine.Random.InitState(20260908);
+            if (newItemsOnly)
+            {
+                yield return NewEquipmentItems();
+                report.completed = true;
+                yield break;
+            }
             if (lavoisierOnly)
             {
                 yield return LavoisierCoverage();
+                report.completed = true;
+                yield break;
+            }
+            if (dpmOnly)
+            {
+                yield return SoloDpmAudit();
                 report.completed = true;
                 yield break;
             }
@@ -162,6 +184,7 @@ namespace Managers.UI.DevTools
             yield return Mechanics();
             yield return Reactions();
             yield return FullSystems();
+            yield return SoloDpmAudit();
             yield return LiveBattle();
             yield return SceneCycles();
             report.completed = true;

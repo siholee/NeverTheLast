@@ -30,10 +30,22 @@ namespace Managers
         public bool enemyOnly;
 
         /// <summary>
-        /// 캐릭터 전용 장비. 목록의 유닛 중 하나가 파티·대기석·선발 덱에 있을 때만 보상 후보가 된다.
+        /// 캐릭터 연계 장비. 목록의 유닛 중 하나가 파티·대기석·선발 덱에 있을 때만 보상 후보가 된다.
         /// 비어 있으면 조건이 없다. 어느 적이 떨궜든, 공용 드랍이든 같은 조건을 받는다.
         /// </summary>
         public List<int> requiredUnitIds;
+
+        /// <summary>
+        /// <see cref="requiredUnitIds"/>의 주인이 현재 덱에 없어도 계정에서 스타팅 해금·육성 완료된
+        /// 경우 허용할지 여부. 라이트·니콜 연동 공용 장비가 사용한다.
+        /// </summary>
+        public bool allowUnlockedRequiredUnits;
+
+        /// <summary>
+        /// 현재 덱과 무관하게 목록 중 하나가 계정에서 스타팅 해금 또는 육성 완료되어야 등장하는 장비.
+        /// 비어 있으면 계정 해금 조건이 없다.
+        /// </summary>
+        public List<int> requiredUnlockedUnitIds;
         public bool twoHanded;
 
         /// <summary>

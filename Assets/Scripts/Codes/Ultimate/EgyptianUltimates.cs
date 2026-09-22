@@ -106,10 +106,10 @@ namespace Codes.Ultimate
             global::Target.GetAllEnemies(Caster).Any(unit => unit != null && unit.isActive && !unit.IsUntargetable);
     }
 
-    /// <summary>바스테트 U — 우선 지정한 아군의 추가행동·반격을 전군 추격으로 연결한다.</summary>
+    /// <summary>바스테트 U — 반격을 보유한 모든 아군의 추가행동·반격을 추격으로 연결한다.</summary>
     public sealed class BastetApexExecution : UltimateCode
     {
-        private Unit _selectedAlly;
+        private readonly HashSet<Unit> _linkedAllies = new();
         private System.Action<DamageResolvedContext> _damageHandler;
         private int _lastTriggeredAction = int.MinValue;
         private bool _registered;
@@ -122,12 +122,13 @@ namespace Codes.Ultimate
         public void StartPassive()
         {
             if (Caster == null || _registered) return;
-            _selectedAlly = global::Target.GetAllAllies(Caster)
+            foreach (Unit ally in global::Target.GetAllAllies(Caster)
                 .Where(unit => unit != null && unit.isActive && unit.currentCell != null && unit.currentCell.yPos > 0)
-                .OrderByDescending(HasCounterAttack)
-                .ThenByDescending(unit => unit.GetBaseDex())
-                .FirstOrDefault();
-            if (_selectedAlly == null) return;
+                .Where(HasCounterAttack))
+            {
+                _linkedAllies.Add(ally);
+            }
+            if (_linkedAllies.Count == 0) return;
 
             _lastTriggeredAction = int.MinValue;
             _damageHandler = OnAnyDamageDealt;
@@ -139,7 +140,7 @@ namespace Codes.Ultimate
         {
             if (!_registered) return;
             Unit.AnyDamageDealt -= _damageHandler;
-            _selectedAlly = null;
+            _linkedAllies.Clear();
             _damageHandler = null;
             _registered = false;
             _resolving = false;
@@ -154,8 +155,9 @@ namespace Codes.Ultimate
         private void OnAnyDamageDealt(DamageResolvedContext context)
         {
             List<int> tags = context?.DamageContext?.DamageTags;
-            if (_resolving || Caster == null || !Caster.isActive || _selectedAlly == null ||
-                !_selectedAlly.isActive || context?.Attacker != _selectedAlly || context.DamageDealt <= 0 ||
+            if (_resolving || Caster == null || !Caster.isActive ||
+                context?.Attacker == null || !_linkedAllies.Contains(context.Attacker) ||
+                !context.Attacker.isActive || context.DamageDealt <= 0 ||
                 tags == null ||
                 (!tags.Contains(DamageTag.AdditionalAttack) && !tags.Contains(DamageTag.CounterAttack))) return;
 
@@ -175,8 +177,10 @@ namespace Codes.Ultimate
             if (enemies.Count == 0) return;
 
             bool isCrit = UnityEngine.Random.value <= Caster.CritChanceCurr;
+            int pursuitPower = 45 + Mathf.RoundToInt(
+                Caster.GetBaseDex() * 4f * (Mathf.Min(enemies.Count, 4) - 1));
             int damage = Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(120, BaseEnums.PrimaryStat.DEX) *
+                Caster.SkillDamage(pursuitPower, BaseEnums.PrimaryStat.DEX) *
                 (isCrit ? Caster.CritMultiplierCurr : 1f)));
             _resolving = true;
             try

@@ -103,35 +103,20 @@ namespace Codes.Ultimate
         public override bool HasValidTarget() => Caster != null && Caster.isActive;
     }
 
-    /// <summary>플라이어 U(500) — 적 전체에게 INT 위력 80. 소환수 공격이다.</summary>
+    /// <summary>플라이어 U(500) — 아군 전체에게 플라이어의 INT만큼 마나를 주입한다.</summary>
     public sealed class FlyerSkyfall : SimpleUltimate
     {
-        private const int SkyfallPower = 80;
-
-        public FlyerSkyfall(UltimateCodeContext context) : base(context, "낙하", 0.4f)
-        {
-            Power = SkyfallPower;
-            CodeTags = new List<int> { DamageTag.Special, DamageTag.NonContactAttack };
-        }
+        public FlyerSkyfall(UltimateCodeContext context) : base(context, "마나 주입", 0.4f) { }
 
         protected override void Resolve()
         {
-            bool isCrit = UnityEngine.Random.value <= Caster.CritChanceCurr;
-            float crit = isCrit ? Caster.CritMultiplierCurr : 1f;
-            int damage = Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.INT)
-                * crit * Summons.DamageMultiplier(Caster.SummonOwner)));
-
-            foreach (Unit target in Enemies())
+            int mana = Mathf.Max(0, Caster.GetBaseInt());
+            foreach (Unit ally in CombatTargets.AliveAlliesIncludingSelf(Caster))
             {
-                target.TakeDamage(new DamageContext(
-                    Caster, damage, BaseEnums.CodeType.Ultimate,
-                    new List<int>
-                    {
-                        DamageTag.AllTarget, DamageTag.UltAttack, DamageTag.SummonAttack,
-                        DamageTag.Special, DamageTag.NonContactAttack,
-                    },
-                    isCrit));
+                // 자원 이름이 스택인 영웅도 전투 UI상 궁극기 자원으로 동일하게 취급한다.
+                // 플라이어 자신에게 되돌려 무한 연쇄하는 경우만 막는다.
+                if (ally != Caster)
+                    ally.AddUltimateResource(mana);
             }
         }
     }
@@ -144,7 +129,9 @@ namespace Codes.Ultimate
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "불멸의 유산";
             CastingDelay = 0.5f;
-            Power = 80;
+            Power = 20;
+            PowerStat = BaseEnums.PrimaryStat.INT;
+            PowerStatCoefficient = 3.3f;
             CodeTags = new List<int> { DamageTag.Special, DamageTag.NonContactAttack };
         }
 
@@ -242,12 +229,12 @@ namespace Codes.Ultimate
 
             bool isCrit = UnityEngine.Random.value <= Caster.CritChanceCurr;
             float crit = isCrit ? Caster.CritMultiplierCurr : 1f;
-            Deal(primary, 80, DamageTag.SingleTarget, isCrit, crit);
+            Deal(primary, ScaledPower(65, 0.25f), DamageTag.SingleTarget, isCrit, crit);
 
             foreach (Unit enemy in global::Target.GetAllEnemies(Caster)
                          .Where(unit => IsInBlast(primary, unit)).ToList())
             {
-                Deal(enemy, 60, DamageTag.MultiTarget, isCrit, crit);
+                Deal(enemy, ScaledPower(45, 0.25f), DamageTag.MultiTarget, isCrit, crit);
             }
             StopCode();
         }
@@ -278,6 +265,10 @@ namespace Codes.Ultimate
                 new List<int> { targetTag, DamageTag.UltAttack, DamageTag.Special, DamageTag.NonContactAttack },
                 isCrit));
         }
+
+        private int ScaledPower(int fixedPower, float intCoefficient)
+            => fixedPower + Mathf.RoundToInt(
+                Caster.GetBaseInt() * intCoefficient);
 
         /// <summary>의신의 영약은 특수 피해라 직선형이다.</summary>
         private void FireProjectile(Unit target, float delay)

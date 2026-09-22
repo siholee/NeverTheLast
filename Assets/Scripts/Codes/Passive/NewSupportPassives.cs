@@ -19,6 +19,17 @@ namespace Codes.Passive
         public const int PurificationCost = 3;
     }
 
+    public static class LightPassiveIds
+    {
+        public const int Grit = 137;
+        public const int Summoner = 138;
+    }
+
+    internal static class LightStatusIds
+    {
+        public const int Summoner = 5340;
+    }
+
     /// <summary>
     /// 라이트 고유 P — 위대한 비행.
     /// 필드 아군의 발동형 궁극기마다 1스택을 얻고, 라이트의 궁극기가 원소를 정화할 때
@@ -83,6 +94,56 @@ namespace Codes.Passive
                 resetCurrent: true);
             _registered = false;
         }
+    }
+
+    /// <summary>라이트 Lv.1 — 앉아 있는 훈련의 실패율을 25% 줄인다.</summary>
+    public sealed class LightGrit : PassiveCode
+    {
+        public const float FailureRateMultiplier = 0.75f;
+
+        public LightGrit(PassiveCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Passive;
+            CodeName = "근성";
+            IgnoresActivationChance = true;
+        }
+
+        public override float SupportTrainingFailureRateMultiplier => FailureRateMultiplier;
+        public override void CastCode() { }
+    }
+
+    /// <summary>라이트 Lv.32 — 필드에 있는 동안 모든 아군 소환수 피해 +10%. 여러 보유자가 중첩된다.</summary>
+    public sealed class LightSummoner : PassiveCode
+    {
+        public const float SummonDamageBonus = 0.10f;
+
+        public LightSummoner(PassiveCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Passive;
+            CodeName = "소환술사";
+            IgnoresActivationChance = true;
+        }
+
+        public override void CastCode()
+        {
+            if (Caster == null) return;
+            Caster.AddStatus(BuffStatus.Create(
+                LightStatusIds.Summoner, $"light_summoner_{Caster.GetEntityId()}", CodeName,
+                Caster, Caster, new LightSummonerEffect(SummonDamageBonus),
+                stackPolicy: BaseEnums.StatusStackPolicy.Replace,
+                isBeneficial: true,
+                description: "모든 아군 소환수가 가하는 피해 +10%. 다른 소환술사와 중첩됩니다."));
+        }
+    }
+
+    internal sealed class LightSummonerEffect : BaseEffect
+    {
+        private readonly float _bonus;
+
+        public LightSummonerEffect(float bonus) : base(0, bonus) => _bonus = bonus;
+
+        public override float AlliedSummonDamageBonusAdditive(Unit unit, Unit summonOwner)
+            => unit == Target && unit.isActive && unit.IsOnField ? _bonus : 0f;
     }
 
     /// <summary>
@@ -167,6 +228,169 @@ namespace Codes.Passive
             Caster.SetCombatResourceMaximum(ResourceId, MaxStacks, resetCurrent: true);
             _registered = false;
             RefreshNormalAttackName();
+        }
+    }
+
+    public static class GaudiPassiveIds
+    {
+        public const int Infuser = 133;
+        public const int NatureUnderstanding = 134;
+        public const int Recharge = 135;
+        public const int Hacker = 136;
+    }
+
+    internal static class GaudiStatusIds
+    {
+        public const int Infuser = 5338;
+        public const int Hacker = 5339;
+    }
+
+    /// <summary>가우디 Lv.14 — 적에게 원소를 부착하면 2턴간 CON +10.</summary>
+    public sealed class GaudiInfuser : PassiveCode
+    {
+        private Action<Unit, Unit, BaseEnums.UnitElement> _elementHandler;
+        private Action<EventContext> _cleanupHandler;
+        private bool _registered;
+
+        public GaudiInfuser(PassiveCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Passive;
+            CodeName = "부여사";
+            IgnoresActivationChance = true;
+        }
+
+        public override void CastCode()
+        {
+            if (Caster == null || _registered) return;
+            _elementHandler = OnElementGranted;
+            _cleanupHandler = _ => StopCode();
+            Unit.AnyCombatElementGranted += _elementHandler;
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = true;
+        }
+
+        private void OnElementGranted(Unit source, Unit target, BaseEnums.UnitElement element)
+        {
+            if (source != Caster || target == null || target.IsEnemy == Caster.IsEnemy) return;
+            Caster.AddStatus(BuffStatus.Create(
+                GaudiStatusIds.Infuser, "gaudi_infuser", CodeName,
+                Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.CON, 10),
+                duration: 2,
+                stackPolicy: BaseEnums.StatusStackPolicy.Replace,
+                isBeneficial: true,
+                description: "적에게 원소를 부착해 2턴 동안 CON +10."));
+        }
+
+        public override void StopCode()
+        {
+            if (!_registered) return;
+            Unit.AnyCombatElementGranted -= _elementHandler;
+            Caster?.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster?.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = false;
+        }
+    }
+
+    /// <summary>가우디 Lv.33 — 턴 시작에 부착 원소가 없으면 자신에게 바위를 부착한다.</summary>
+    public sealed class GaudiNatureUnderstanding : PassiveCode
+    {
+        private Action<EventContext> _turnHandler;
+        private Action<EventContext> _cleanupHandler;
+        private bool _registered;
+
+        public GaudiNatureUnderstanding(PassiveCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Passive;
+            CodeName = "자연에 대한 이해";
+            IgnoresActivationChance = true;
+        }
+
+        public override void CastCode()
+        {
+            if (Caster == null || _registered) return;
+            _turnHandler = OnTurnStart;
+            _cleanupHandler = _ => StopCode();
+            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = true;
+        }
+
+        private void OnTurnStart(EventContext context)
+        {
+            if (Caster == null || !Caster.isActive || Caster.HasAnyCombatElement) return;
+            Caster.GrantCombatElement(BaseEnums.UnitElement.Geo, Unit.CommonElementAuraDuration, Caster);
+        }
+
+        public override void StopCode()
+        {
+            if (!_registered) return;
+            Caster?.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
+            Caster?.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster?.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = false;
+        }
+    }
+
+    /// <summary>가우디 Lv.46 — 휴식의 컨디션 상승 확률을 높인다. 판정은 TrainingManager가 읽는다.</summary>
+    public sealed class GaudiRecharge : PassiveCode
+    {
+        public const int ConditionChanceBonus = 20;
+
+        public GaudiRecharge(PassiveCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Passive;
+            CodeName = "재충전";
+            IgnoresActivationChance = true;
+        }
+    }
+
+    /// <summary>가우디 Lv.52 — 적에게 원소를 부착하면 그 적의 방어력을 2턴간 20% 낮춘다.</summary>
+    public sealed class GaudiHacker : PassiveCode
+    {
+        private Action<Unit, Unit, BaseEnums.UnitElement> _elementHandler;
+        private Action<EventContext> _cleanupHandler;
+        private bool _registered;
+
+        public GaudiHacker(PassiveCodeContext context) : base(context)
+        {
+            CodeType = BaseEnums.CodeType.Passive;
+            CodeName = "해커";
+            IgnoresActivationChance = true;
+        }
+
+        public override void CastCode()
+        {
+            if (Caster == null || _registered) return;
+            _elementHandler = OnElementGranted;
+            _cleanupHandler = _ => StopCode();
+            Unit.AnyCombatElementGranted += _elementHandler;
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = true;
+        }
+
+        private void OnElementGranted(Unit source, Unit target, BaseEnums.UnitElement element)
+        {
+            if (source != Caster || target == null || target.IsEnemy == Caster.IsEnemy) return;
+            target.AddStatus(BuffStatus.Create(
+                GaudiStatusIds.Hacker, $"gaudi_hacker_{Caster.GetEntityId()}", CodeName,
+                Caster, target, new ArmorShredEffect(0.8f),
+                duration: 2,
+                stackPolicy: BaseEnums.StatusStackPolicy.Replace,
+                category: BaseEnums.StatusCategory.Negative,
+                isBeneficial: false,
+                description: "2턴 동안 방어력 -20%."));
+        }
+
+        public override void StopCode()
+        {
+            if (!_registered) return;
+            Unit.AnyCombatElementGranted -= _elementHandler;
+            Caster?.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster?.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = false;
         }
     }
 

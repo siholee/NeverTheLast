@@ -174,6 +174,13 @@ namespace Managers
         /// </summary>
         public int TurnsTaken { get; private set; }
 
+        /// <summary>
+        /// 이번 라운드에서 행동치가 실제로 전진한 전투 시간(초).
+        /// 연출의 벽시계와 무관하며, 궁극기 자원 충전에 사용한 것과 정확히 같은 축이다.
+        /// 밸런스 검증은 이 값을 기준으로 DPM을 환산한다.
+        /// </summary>
+        public float CombatSecondsElapsed { get; private set; }
+
         /// <summary>현재 행동 중인 유닛. 없으면 null.</summary>
         public Unit ActingUnit => _acting;
 
@@ -196,6 +203,7 @@ namespace Managers
             _currentActionId = -1;
             ActionCount = 0;
             TurnsTaken = 0;
+            CombatSecondsElapsed = 0f;
 
             foreach (Unit unit in Participants())
             {
@@ -557,7 +565,9 @@ namespace Managers
                     _actionValues[unit] = Mathf.Max(0f, _actionValues[unit] - lowest);
                 }
                 // 궁극기 자원은 행동 횟수가 아니라 흐른 전투 시간으로 찬다.
-                AccrueUltimateResources(lowest / ActionValuePerSecond);
+                float combatSeconds = lowest / ActionValuePerSecond;
+                CombatSecondsElapsed += combatSeconds;
+                AccrueUltimateResources(combatSeconds);
             }
 
             // 행동을 소비했으므로 AV를 다시 채운다.

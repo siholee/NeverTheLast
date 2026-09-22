@@ -162,6 +162,7 @@ namespace Codes.Passive
             : base(context, ThorIds.StatusMomentum, "thor_momentum", "승승장구",
                 "적을 처치할 때마다 물리 태그로 가하는 피해가 5%씩 증가합니다. 중첩됩니다.")
         {
+            SupersededByCodeId = 445;
         }
 
         protected override BaseEffect CreateInitialEffect() => new KillStackTaggedDamageEffect(

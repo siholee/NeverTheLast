@@ -55,13 +55,17 @@ namespace Managers.UI.DevTools
             RewardRevival();
             SchedulerRules();
             StatsAndEffects();
+            OrionRework();
+            MarieRework();
             TrainingEquipmentEconomy();
+            yield return NewEquipmentItems();
             TrainingEnergyAndRest();
             SkillHintsAndLearning();
             TonicsAndShop();
             CandiesValuablesAndStock();
             NordTrilogyWiring();
             SupportStarterUnlock();
+            MultipleSupportCards();
             SelectionAndSave();
             PeriodicCodes();
             GridAndEffects();
@@ -349,6 +353,131 @@ namespace Managers.UI.DevTools
             RoundStart(enemy);Equal("control round start reset",0,enemy.ControlAppliedCount);
         }
 
+        private void OrionRework()
+        {
+            Clear();
+            Unit orion = grid.SpawnUnit(-1, 1, false, 22);
+            Assert("Orion spawns for rework verification", orion != null, "unit 22", orion?.ID.ToString());
+            if (orion == null) return;
+            orion.DebugSetLevel(1);
+
+            UnitData definition = game.unitDataList.units.FirstOrDefault(unit => unit.id == 22);
+            Assert("Orion archetype tags",
+                definition?.archetypeTags != null &&
+                new HashSet<string>(definition.archetypeTags).SetEquals(new[] { "Precision", "Sturdy", "Swift" }),
+                "Precision,Sturdy,Swift", string.Join(",", definition?.archetypeTags ?? new List<string>()));
+            var swift = Managers.UI.Core.UnitTagCatalog.Resolve(new[] { "Swift" }).SingleOrDefault();
+            Assert("Swift archetype catalog", swift.Key == "Swift" && swift.Name == "신속",
+                "Swift/신속", $"{swift.Key}/{swift.Name}");
+            Assert("Swift archetype icon", Managers.UI.Core.UnitTagCatalog.Icon(swift) != null,
+                "loaded sprite", swift.IconPath);
+
+            var normal = orion.ActiveNormalCode;
+            var ultimate = orion.ActiveUltimateCode;
+            var passive = new OrionGeoAffinity(new PassiveCodeContext { Caster = orion });
+            int str = orion.GetBaseStr();
+            Equal("Orion low-cost ultimate resource", 35, orion.ManaMaxBase);
+            Equal("Orion N dynamic power", 40 + Mathf.RoundToInt(str * 0.9f), normal.CurrentPower);
+            Equal("Orion U arrow dynamic power", 10 + Mathf.RoundToInt(str * 0.6f), ultimate.CurrentPower);
+            Equal("Orion P dynamic power", Mathf.RoundToInt(str * 1.2f), passive.CurrentPower);
+
+            var normalTags = (List<int>)normal.GetType()
+                .GetMethod("GetDamageTags", BindingFlags.Instance | BindingFlags.NonPublic)
+                ?.Invoke(normal, null);
+            Assert("Orion N tags", normalTags != null &&
+                normalTags.Contains(DamageTag.SingleTarget) && normalTags.Contains(DamageTag.NormalAttack) &&
+                normalTags.Contains(DamageTag.Physical) && normalTags.Contains(DamageTag.NonContactAttack) &&
+                normalTags.Contains(DamageTag.Arrow) && !normalTags.Contains(DamageTag.ContactAttack),
+                "single,normal,physical,non-contact,arrow", string.Join(",", normalTags ?? new List<int>()));
+            Assert("Orion U tags", ultimate.CodeTags.Contains(DamageTag.Physical) &&
+                ultimate.CodeTags.Contains(DamageTag.NonContactAttack) && ultimate.CodeTags.Contains(DamageTag.Arrow),
+                "physical,non-contact,arrow", string.Join(",", ultimate.CodeTags));
+
+            for (int y = 1; y <= 3; y++) SpawnEnemy(1062, 1, 1, y);
+            var siriusHits = new List<DamageResolvedContext>();
+            Action<DamageResolvedContext> handler = context =>
+            {
+                if (context?.Attacker == orion && context.DamageContext?.DamageTags?.Contains(DamageTag.CounterAttack) == true)
+                    siriusHits.Add(context);
+            };
+            Unit.AnyDamageDealt += handler;
+            orion.SetCombatResourceMaximum(GreekHeroCombat.OrionSiriusResource, GreekHeroCombat.OrionSiriusMaximum, true);
+            orion.AddCombatResource(GreekHeroCombat.OrionSiriusResource, GreekHeroCombat.OrionSiriusMaximum);
+            passive.GetType().GetMethod("ResolveSirius", BindingFlags.Instance | BindingFlags.NonPublic)
+                ?.Invoke(passive, null);
+            Unit.AnyDamageDealt -= handler;
+            Equal("Orion P hits all enemies", 3, siriusHits.Count);
+            Assert("Orion P requested tags", siriusHits.All(hit =>
+                    hit.DamageContext.DamageTags.Contains(DamageTag.AllTarget) &&
+                    hit.DamageContext.DamageTags.Contains(DamageTag.AdditionalAttack) &&
+                    hit.DamageContext.DamageTags.Contains(DamageTag.CounterAttack) &&
+                    hit.DamageContext.DamageTags.Contains(DamageTag.Physical) &&
+                    hit.DamageContext.DamageTags.Contains(DamageTag.ContactAttack) &&
+                    !hit.DamageContext.DamageTags.Contains(DamageTag.SummonAttack)),
+                "all/additional/counter/physical/contact; not summon", "checked");
+            Equal("Orion P consumes five charges", 0,
+                orion.GetCombatResource(GreekHeroCombat.OrionSiriusResource));
+        }
+
+        private void MarieRework()
+        {
+            Clear();
+            Unit orion = grid.SpawnUnit(-1, 1, false, 22);
+            Unit marie = grid.SpawnUnit(-2, 1, false, 160);
+            Assert("Marie rework units spawn", orion != null && marie != null,
+                "Orion and Marie", $"{orion?.ID}/{marie?.ID}");
+            if (orion == null || marie == null) return;
+
+            orion.DebugSetLevel(1);
+            marie.DebugSetLevel(5);
+            Assert("Orion starts with a usable bow", orion.HasEquippedBow(), "bow", "missing");
+
+            UnitData definition = game.unitDataList.units.FirstOrDefault(unit => unit.id == 160);
+            Assert("Marie archetype tags", definition?.archetypeTags != null &&
+                new HashSet<string>(definition.archetypeTags).SetEquals(new[] { "Precision", "Support" }),
+                "Precision,Support", string.Join(",", definition?.archetypeTags ?? new List<string>()));
+            Assert("Marie support-clear starter unlock flag", definition?.unlocksAsStarterOnClear == true,
+                "flagged", "missing");
+            Assert("Marie requested level passives", definition?.levelPassives != null &&
+                definition.levelPassives.Any(code => code.codeId == 16 && code.unlockLevel == 2) &&
+                definition.levelPassives.Any(code => code.codeId == 132 && code.unlockLevel == 5),
+                "Lucky@2,Caring@5", "missing");
+
+            var arrowCrit = new DamageContext(orion, 100, CodeType.Normal,
+                new List<int> { DamageTag.Arrow, DamageTag.Physical }, true);
+            var nonArrowCrit = new DamageContext(orion, 100, CodeType.Normal,
+                new List<int> { DamageTag.Physical }, true);
+            var arrowNormal = new DamageContext(orion, 100, CodeType.Normal,
+                new List<int> { DamageTag.Arrow, DamageTag.Physical }, false);
+            var command = new MarieCriticalCommandEffect { Caster = marie, Target = orion };
+            float expectedCritRatio = (orion.CritMultiplierCurr + marie.GetBaseLuk() * 0.01f) /
+                                      orion.CritMultiplierCurr;
+            Near("Marie P boosts critical Arrow damage", expectedCritRatio,
+                command.OutgoingDamageModifier(orion, null, arrowCrit));
+            Near("Marie P ignores non-Arrow critical damage", 1f,
+                command.OutgoingDamageModifier(orion, null, nonArrowCrit));
+            Near("Marie P ignores non-critical Arrow damage", 1f,
+                command.OutgoingDamageModifier(orion, null, arrowNormal));
+
+            var bowRevolution = new Codes.Ultimate.MarieRevolutionEffect { Caster = marie, Target = orion };
+            var generalRevolution = new Codes.Ultimate.MarieRevolutionEffect { Caster = marie, Target = marie };
+            Near("Marie U grants bow users total +40% damage", 1.4f,
+                bowRevolution.OutgoingDamageModifier(orion, null, arrowNormal));
+            Near("Marie U grants non-bow allies +20% damage", 1.2f,
+                generalRevolution.OutgoingDamageModifier(marie, null, arrowNormal));
+
+            TrainingManager.State.Reset();
+            TrainingManager.State.SetPlacement(marie.ID, PrimaryStat.STR);
+            Equal("Marie Caring reduces seated STR energy cost", 16,
+                TrainingManager.GetEnergyCost(PrimaryStat.STR));
+            Equal("Marie Caring does not amplify INT recovery", -5,
+                TrainingManager.GetEnergyCost(PrimaryStat.INT));
+            TrainingManager.TrainingResult result = TrainingManager.ApplyTraining(PrimaryStat.STR);
+            Equal("Marie Caring actual cost matches preview", 16, result.EnergySpent);
+            Equal("Marie Caring leaves 84 energy", 84, result.EnergyAfter);
+            Clear();
+        }
+
         private void TrainingEquipmentEconomy()
         {
             Clear();CharacterSelectionManager.Instance?.ClearLineup();var hero=SpawnHero();
@@ -584,6 +713,19 @@ namespace Managers.UI.DevTools
             Unit joiner=grid.SpawnUnit(0,0,false,joinerId,true);
             Assert("recruit spawns on the bench",joiner!=null,"spawned","null");
             Equal("recruit counts as a support",supportsBefore+1,TrainingManager.GetSupportCount());
+            var recruitMethod=typeof(GameManager).GetMethod("RecruitSupportUnit",BindingFlags.Instance|BindingFlags.NonPublic);
+            int sameUnitBefore=Heroes.Count(unit=>unit.ID==joinerId);
+            bool duplicateRecruit=(bool)recruitMethod.Invoke(game,new object[]{joinerId});
+            Assert("recruit rejects a unit already in the party",!duplicateRecruit,"rejected","accepted");
+            Equal("recruit rejection keeps one copy",sameUnitBefore,Heroes.Count(unit=>unit.ID==joinerId));
+            var duplicateOffer=new StageEventData
+            {
+                id="verification_duplicate_recruit",allowUnlockedRecruit=true,
+                choices=new List<StageEventChoiceData>{new StageEventChoiceData{id="join",grantUnitId=joinerId}},
+            };
+            var offerMethod=typeof(GameManager).GetMethod("CanOfferEvent",BindingFlags.Instance|BindingFlags.NonPublic);
+            Assert("recruit event candidate is hidden for an existing unit",
+                !(bool)offerMethod.Invoke(game,new object[]{duplicateOffer}),"hidden","offered");
             Assert("recruit has no seat yet",!TrainingManager.State.WasPlacementRolled(joiner.ID),
                 "unrolled","rolled");
             TrainingManager.EnsureSupportPlacement();
@@ -821,7 +963,7 @@ namespace Managers.UI.DevTools
         }
 
         /// <summary>
-        /// 서포트로 완주하면 스타팅이 열리는 경로(니콜 6 · 프레이아 81).
+        /// 서포트로 완주하면 스타팅이 열리는 경로(라이트 5 · 니콜 6 · 프레이아 81 · 마리 160).
         /// 우마무스메의 육성마처럼 <b>곁에서 한 런을 끝까지 본 서포트</b>가 다음 런의 주인공이 된다.
         /// 해금 전에는 메인 격자에 오르지 않고, 해금 뒤에는 올라야 한다.
         /// </summary>
@@ -829,22 +971,25 @@ namespace Managers.UI.DevTools
         {
             Clear();
             var defs=game.unitDataList.units;
+            var light=defs.FirstOrDefault(d=>d.id==5);
             var nicole=defs.FirstOrDefault(d=>d.id==6);
             var freyja=defs.FirstOrDefault(d=>d.id==81);
-            Assert("nicole and freyja exist",nicole!=null&&freyja!=null,"both","missing");
-            if(nicole==null||freyja==null)return;
+            var marie=defs.FirstOrDefault(d=>d.id==160);
+            Assert("support-clear starter quartet exists",light!=null&&nicole!=null&&freyja!=null&&marie!=null,"all four","missing");
+            if(light==null||nicole==null||freyja==null||marie==null)return;
 
-            Assert("both are flagged for the support-clear unlock",
-                nicole.unlocksAsStarterOnClear&&freyja.unlocksAsStarterOnClear,"flagged","checked");
-            Assert("both start as support cards only",
-                !nicole.canStartAsMain&&!freyja.canStartAsMain,"support only","checked");
+            Assert("support-clear starter quartet is flagged",
+                light.unlocksAsStarterOnClear&&nicole.unlocksAsStarterOnClear&&freyja.unlocksAsStarterOnClear&&marie.unlocksAsStarterOnClear,"flagged","checked");
+            Assert("support-clear starter quartet begins support-only",
+                !light.canStartAsMain&&!nicole.canStartAsMain&&!freyja.canStartAsMain&&!marie.canStartAsMain,"support only","checked");
 
             // 디버그 저장소만 시드한다. 실제 PlayerPrefs에는 쓰지 않는다.
             var write=typeof(SaveSystem).GetMethod("WriteString",BindingFlags.Static|BindingFlags.NonPublic);
             write.Invoke(null,new object[]{"NTL_TrainedCharacters","{}"});
 
             Assert("locked pair is support-only",
-                CharacterSelectionManager.IsSupportOnly(nicole)&&CharacterSelectionManager.IsSupportOnly(freyja),
+                CharacterSelectionManager.IsSupportOnly(light)&&CharacterSelectionManager.IsSupportOnly(nicole)&&CharacterSelectionManager.IsSupportOnly(freyja)&&
+                CharacterSelectionManager.IsSupportOnly(marie),
                 "support only","checked");
             Assert("locked pair cannot be main",
                 !CanBeMain(nicole)&&!CanBeMain(freyja),"rejected","checked");
@@ -877,6 +1022,39 @@ namespace Managers.UI.DevTools
             => data.canStartAsSupport||CharacterSelectionManager.HasNoUnlockPath(data)||
                SaveSystem.IsStarterUnlocked(data.id)||SaveSystem.IsCharacterTrained(data.id);
 
+        private void MultipleSupportCards()
+        {
+            var write=typeof(SaveSystem).GetMethod("WriteString",BindingFlags.Static|BindingFlags.NonPublic);
+            write.Invoke(null,new object[]{"NTL_TrainedCharacters","{}"});
+
+            TrainedCharacterRecord Card(string id,int power)=>new TrainedCharacterRecord
+            {
+                unitId=3,unitName="사바흐",createdAtUnixSeconds=power,
+                supportCard=new SupportCardSaveData
+                {
+                    supportId=id,sourceUnitId=3,sourceUnitName="사바흐",specialtyTraining="LUK",sourcePower=power,
+                },
+            };
+            SaveSystem.AddTrainedCharacterRecord(Card("sabah_first",100));
+            SaveSystem.AddTrainedCharacterRecord(Card("sabah_second",200));
+            Equal("repeat clears keep both support cards",2,SaveSystem.GetTrainedCharacterRecords(3).Count);
+            Assert("latest support card is the default",SaveSystem.GetSupportCard(3)?.supportId=="sabah_second",
+                "sabah_second",SaveSystem.GetSupportCard(3)?.supportId);
+            Assert("an older support card remains addressable",SaveSystem.GetSupportCard(3,"sabah_first")?.sourcePower==100,
+                "100",SaveSystem.GetSupportCard(3,"sabah_first")?.sourcePower.ToString());
+
+            CharacterSelectionManager selection=CharacterSelectionManager.Instance;
+            if(selection==null)selection=new GameObject("CharacterSelectionManager").AddComponent<CharacterSelectionManager>();
+            selection.ClearLineup();
+            Assert("a chosen trained variant enters the lineup",selection.AddHero(3,"sabah_first"),"accepted","rejected");
+            Assert("the lineup keeps the selected support id",
+                selection.Lineup.First().SupportId=="sabah_first","sabah_first",selection.Lineup.First().SupportId);
+            Assert("another card of the same unit is still a duplicate",
+                !selection.AddHero(3,"sabah_second"),"rejected","accepted");
+            selection.ClearLineup();
+            write.Invoke(null,new object[]{"NTL_TrainedCharacters","{}"});
+        }
+
         private void SelectionAndSave()
         {
             Clear();var selection=CharacterSelectionManager.Instance;
@@ -893,7 +1071,7 @@ namespace Managers.UI.DevTools
             Equal("party capacity",5,selection.Lineup.Count);
             Assert("sixth party member rejected",!selection.AddHero(main.id),"reject","attempt");
             selection.ClearLineup();
-            var hero=SpawnHero();game.DebugLoadStage(31);
+            var hero=SpawnHero();hero.SelectSupportCard("verification_card");game.DebugLoadStage(31);
             game.runManager.MarkEventTriggered("verification_event");
             var save=game.runManager.CaptureDebugSnapshot();
             SaveSystem.SaveRun(save);var loaded=SaveSystem.LoadRun();
@@ -901,6 +1079,9 @@ namespace Managers.UI.DevTools
             game.DebugLoadStage(32);game.runManager.RestoreDebugSnapshot(loaded);
             Equal("restore stage",31,game.RoundManager.Stage);
             Equal("restore party count",save.heroUnits.Count,Heroes.Count);
+            Assert("selected support card survives save and load",
+                Heroes.FirstOrDefault()?.SelectedSupportCardId=="verification_card",
+                "verification_card",Heroes.FirstOrDefault()?.SelectedSupportCardId);
             Assert("restore event history",game.runManager.HasTriggeredEvent("verification_event"),"true","history");
             SaveSystem.SaveRun(new RunSaveData{version=RunSaveData.CurrentVersion-1});
             Assert("old save clean rejection",SaveSystem.LoadRun()==null&&!SaveSystem.HasSave(),"null and no save","checked");

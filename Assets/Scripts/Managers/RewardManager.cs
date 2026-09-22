@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
+using Core;
 using Entities;
 using UnityEngine;
 using static BaseClasses.BaseEnums;
@@ -383,20 +384,38 @@ namespace Managers
         }
 
         /// <summary>
-        /// 캐릭터 전용 장비(<c>requiredUnitIds</c>)는 주인 중 하나가 현재 파티·대기석·선발 덱에 있을 때만 후보가 된다.
-        /// 칸자르·잠비야(사바흐)와 시구르드·브륀힐드·일본 세 사람의 장비가 같은 규칙을 쓴다.
+        /// 캐릭터 연계 장비는 현재 덱, 계정 해금 또는 둘 중 데이터가 지정한 조건을 만족해야 후보가 된다.
+        /// 기존 전용 장비는 <c>requiredUnitIds</c>만 사용하므로 종전처럼 덱 보유를 요구한다.
         /// </summary>
-        private static bool IsAvailableForRoster(ItemData item)
+        internal static bool IsAvailableForRoster(ItemData item)
         {
-            if (item?.requiredUnitIds == null || item.requiredUnitIds.Count == 0) return item != null;
+            if (item == null) return false;
 
-            bool inPartyOrBench = GridManager.Instance?.heroList?.Any(unit =>
-                unit != null && !unit.IsEnemy && item.requiredUnitIds.Contains(unit.ID)) == true;
-            if (inPartyOrBench) return true;
+            bool hasRosterCondition = item.requiredUnitIds is { Count: > 0 };
+            bool hasUnlockCondition = item.requiredUnlockedUnitIds is { Count: > 0 };
 
-            return CharacterSelectionManager.Instance?.Lineup?.Any(entry =>
-                entry != null && item.requiredUnitIds.Contains(entry.UnitId)) == true;
+            if (hasRosterCondition)
+            {
+                bool inPartyOrBench = GridManager.Instance?.heroList?.Any(unit =>
+                    unit != null && !unit.IsEnemy && item.requiredUnitIds.Contains(unit.ID)) == true;
+
+                bool inLineup = CharacterSelectionManager.Instance?.Lineup?.Any(entry =>
+                    entry != null && item.requiredUnitIds.Contains(entry.UnitId)) == true;
+
+                bool ownerUnlocked = item.allowUnlockedRequiredUnits &&
+                    item.requiredUnitIds.Any(IsAccountUnitUnlocked);
+
+                if (!inPartyOrBench && !inLineup && !ownerUnlocked) return false;
+            }
+
+            if (hasUnlockCondition && !item.requiredUnlockedUnitIds.Any(IsAccountUnitUnlocked))
+                return false;
+
+            return true;
         }
+
+        private static bool IsAccountUnitUnlocked(int unitId)
+            => SaveSystem.IsStarterUnlocked(unitId) || SaveSystem.IsCharacterTrained(unitId);
 
         private static string BuildItemDescription(ItemData item)
         {

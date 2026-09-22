@@ -1,13 +1,58 @@
-param([string]$GameDir = (Split-Path $PSScriptRoot -Parent))
+﻿param([string]$GameDir = '')
 
 $ErrorActionPreference = 'Stop'
+
+# 실패해도 PowerShell 원본 오류 덤프 대신 한 줄짜리 사유만 보여 준다.
+trap {
+    Write-Host ''
+    Write-Host "패치를 적용하지 못했습니다: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
 $manifestPath = Join-Path $PSScriptRoot 'patch-manifest.json'
 $payloadRoot = Join-Path $PSScriptRoot 'payload'
-$gameRoot = [IO.Path]::GetFullPath($GameDir)
-$manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+if (-not (Test-Path -LiteralPath $manifestPath)) {
+    throw 'patch-manifest.json이 없습니다. 패치 ZIP을 통째로 다시 풀어 주세요.'
+}
+$manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
+
+# 설치본을 알아보는 기준 파일 — 이전 버전에도 있던 파일 하나, 없으면 실행 파일.
+$marker = ($manifest.files | Where-Object { $_.baseSha256 } | Select-Object -First 1).path
+if (-not $marker) {
+    $marker = if ($manifest.platform -eq 'Windows') { 'NeverTheLast.exe' } else { 'NeverTheLast.app' }
+}
+$marker = $marker.Replace('/', [IO.Path]::DirectorySeparatorChar)
+
+# 패치 폴더째로 풀었든 게임 폴더에 바로 풀었든 설치본을 찾아낸다.
+function Find-GameRoot {
+    $candidate = $PSScriptRoot
+    for ($depth = 0; $depth -lt 4 -and $candidate; $depth++) {
+        if (Test-Path -LiteralPath (Join-Path $candidate $marker)) { return $candidate }
+        $candidate = Split-Path $candidate -Parent
+    }
+    return $null
+}
+
+if ($GameDir) {
+    $gameRoot = [IO.Path]::GetFullPath($GameDir)
+}
+else {
+    $found = Find-GameRoot
+    if (-not $found) {
+        throw '게임 폴더를 찾지 못했습니다. 패치 파일을 NeverTheLast.exe가 있는 폴더(또는 그 안의 하위 폴더)에 풀어 주세요.'
+    }
+    $gameRoot = [IO.Path]::GetFullPath($found)
+}
 
 function Get-Sha256([string]$path) {
-    return (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant()
+    # Get-FileHash 대신 .NET을 직접 쓴다 — 모듈 해석에 기대지 않고 대용량에서도 빠르다.
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try {
+        $stream = [IO.File]::OpenRead($path)
+        try { return [BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-', '').ToLowerInvariant() }
+        finally { $stream.Dispose() }
+    }
+    finally { $sha.Dispose() }
 }
 
 function Get-Target([string]$relative) {
@@ -23,7 +68,7 @@ if (-not (Test-Path -LiteralPath $gameRoot -PathType Container)) {
     throw "게임 폴더를 찾을 수 없습니다: $gameRoot"
 }
 if ($manifest.platform -eq 'Windows' -and -not (Test-Path -LiteralPath (Join-Path $gameRoot 'NeverTheLast.exe'))) {
-    throw "NeverTheLast.exe를 찾을 수 없습니다. 패치 폴더를 기존 게임 폴더 안에 풀어 주세요."
+    throw "NeverTheLast.exe를 찾을 수 없습니다: $gameRoot"
 }
 if (Get-Process -Name 'NeverTheLast' -ErrorAction SilentlyContinue) {
     throw '게임을 종료한 뒤 패치를 다시 실행해 주세요.'
@@ -110,7 +155,12 @@ try {
             throw "패치 후 검증에 실패했습니다: $($item.path)"
         }
     }
-    Set-Content -LiteralPath (Join-Path $gameRoot 'version.txt') -Value $manifest.toVersion -Encoding UTF8
+    # payload에 version.txt가 있으면 그 바이트가 정답이다 — 여기서 다시 쓰면 BOM이 붙어
+    # 다음 패치의 기준 해시와 어긋난다. 없을 때만 빌드와 같은 형식(BOM 없는 UTF-8 + CRLF)으로 남긴다.
+    if (-not ($manifest.files | Where-Object { $_.path -eq 'version.txt' })) {
+        [IO.File]::WriteAllText((Join-Path $gameRoot 'version.txt'), $manifest.toVersion + "`r`n",
+            (New-Object Text.UTF8Encoding $false))
+    }
     Write-Host "NeverTheLast $($manifest.toVersion) 패치가 완료되었습니다."
     Write-Host "복구용 백업: $backupRoot"
 }

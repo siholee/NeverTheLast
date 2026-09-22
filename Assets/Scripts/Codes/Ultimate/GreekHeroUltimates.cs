@@ -15,12 +15,16 @@ namespace Codes.Ultimate
     public sealed class OrionHeavyBlow : UltimateCode
     {
         private const int ArrowCount = 12;
+        private const int ArrowFlatDamagePower = 10;
+        private const float ArrowStrCoefficient = 0.6f;
 
         public OrionHeavyBlow(UltimateCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Ultimate;
             CodeName = "화살비";
-            Power = 12;   // 12발 합계 144. 대상이 무작위로 흩어지므로 단일 기준(150)보다 조금 낮게 둔다
+            Power = ArrowFlatDamagePower;
+            PowerStatCoefficient = ArrowStrCoefficient;
+            PowerStat = BaseEnums.PrimaryStat.STR;
             CastingDelay = 0.5f;
             CodeTags = new List<int> { DamageTag.Physical, DamageTag.NonContactAttack, DamageTag.Arrow };
         }

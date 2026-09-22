@@ -477,7 +477,9 @@ namespace Codes.Passive
         private const int ManaGrant = 20;
 
         private bool _registered;
+        private bool _ready;
         private Action<EventContext> _ultimateHandler;
+        private Action<EventContext> _turnHandler;
         private Action<EventContext> _cleanupHandler;
 
         public IndraGuide(PassiveCodeContext context) : base(context)
@@ -491,8 +493,11 @@ namespace Codes.Passive
         {
             if (Caster == null || _registered) return;
             _ultimateHandler = _ => GrantMana();
+            _turnHandler = _ => _ready = true;
             _cleanupHandler = _ => StopCode();
+            _ready = true;
             Caster.AddListener(BaseEnums.UnitEventType.OnUltimateActivates, _ultimateHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             _registered = true;
@@ -502,13 +507,19 @@ namespace Codes.Passive
         {
             if (!_registered) return;
             Caster.RemoveListener(BaseEnums.UnitEventType.OnUltimateActivates, _ultimateHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnTurnStart, _turnHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             _registered = false;
+            _ready = false;
         }
 
         private void GrantMana()
         {
+            // 인도자 둘과 파티 마나 주입 궁극기가 함께 있을 때 같은 행동 시각 안에서
+            // 서로의 궁극기를 무한히 재충전하지 않도록, 소유자 턴당 한 번만 나눈다.
+            if (!_ready) return;
+            _ready = false;
             foreach (Unit ally in Target.GetAllAllies(Caster)
                          .Where(unit => unit != null && unit != Caster && unit.isActive))
             {

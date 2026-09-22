@@ -3,7 +3,7 @@
 > **3계층 문서.** UI 화면 구성, 매니저 구조, 데이터 파일, 저장 시스템, 아트/사운드 규약.
 > 개념 정의는 [서브 기획서](GDD_Sub_Concepts.md) 7장을 본다.
 
-최종 갱신: 2026-09-21
+최종 갱신: 2026-09-22
 관련 코드: `Assets/Scripts/Managers/`, `Assets/Scripts/Core/`, `Assets/Scripts/Data/`
 
 ---
@@ -39,8 +39,9 @@
 
 | 화면 | 스크립트 | 역할 |
 | --- | --- | --- |
-| 메인 메뉴 | `UI/MainMenuUI.cs` | 새 여정 / 이어하기 / 설정 |
-| 캐릭터 선택 | `UI/Screens/CharacterSelectScreen.cs` | 대형 스탠딩 쇼케이스 · 스크롤 로스터 · 5인 파티 레일. 아래 §1.6 |
+| 메인 메뉴 | `UI/MainMenuUI.cs` | 새 여정 / 이어하기 / 육성 카드 열람실 / 설정 |
+| 육성 카드 열람실 | `UI/Screens/SupportCardArchiveUI.cs` | 직접 완주해 만든 카드 전부를 캐릭터별 여러 장으로 열람. 기본 지원 카드는 제외 |
+| 캐릭터 선택 | `UI/Screens/CharacterSelectScreen.cs` | 대형 스탠딩 쇼케이스 · 스크롤 로스터 · 보유 카드 전환 · 5인 파티 레일. 아래 §1.6 |
 | 준비 | `UI/Screens/PreparationScreen.cs` | 행동 선택, 상점, 스킬, 덱 구성, 장비. 아래 §1.1-C |
 | 전투 결과 | `UI/Screens/BattleResultScreen.cs` | 판정 띠(전투 승리/패배) → 판정 · 목숨 변화 · 골드 · EXP · 처치 · 아군 딜 그래프. 확인해야 다음으로. 아래 §1.1-D |
 | 보상 | `UI/Screens/RewardScreen.cs` | 3~6택 1 — 넷부터 3열 두 줄 |
@@ -969,9 +970,9 @@ Lv.90 해금 코드를 보려면 런을 거의 완주해야 한다. 그래서 �
 
 | 항목 | 내용 |
 | --- | --- |
-| 엔진 | Unity Editor (CLI 빌드 명령 미구성) |
-| 메인 씬 | `Assets/Scenes/SampleScene.unity` |
-| 플랫폼 | Android, 패키지 `com.solid.autochess` |
+| 엔진 | Unity 6000.4.9f1 |
+| 메인 씬 | `Assets/Scenes/MainMenu.unity` → `Assets/Scenes/Game.unity` |
+| 플랫폼 | Windows / macOS 데모, Android |
 | 스크립팅 백엔드 | IL2CPP |
 | 입력 | Unity 신규 Input System (active input handler: 2) |
 
@@ -988,6 +989,19 @@ dotnet build Assembly-CSharp-Editor.csproj
 > Unity가 `.csproj`를 재생성할 수 있다. 파일 삭제 후 IDE 빌드에서 삭제된 `.cs`를 찾는 오류가 나면
 > 프로젝트 파일 재생성 또는 Compile 항목 정리를 확인한다.
 
+**Play Mode 검증 메뉴**
+
+| 메뉴 | 목적 | 출력 |
+| --- | --- | --- |
+| `Run Debug Verification` | 전체 시스템 회귀 | `Logs/DebugVerification.json` |
+| `Run Integration Verification` | 진행·전투 통합 | `Logs/IntegrationVerification.json` |
+| `Run Campaign Verification` | 캠페인 진행 | `Logs/IntegrationVerification.json` |
+| `Run Solo DPM Audit` | Lv.1/50/100 단독 딜러 180초 실측 | `Logs/DpmVerification.json`, `Logs/SoloDpmAudit.json` |
+| `Run Balance Sim (5 runs)` | 덱별 장기 진행 분포 | `Logs/BalanceSim/` |
+
+단독 DPM 감사는 행동치가 전진한 전투 시간을 기준으로 일반행동·궁극기·추가행동·패시브 피해를
+분리해 기록한다. 허수아비는 방어·내구·회피·행동이 없으며 최대 체력 비례 지속/반응 피해는 제외한다.
+
 ## 8. 디버깅 진입점
 
 | 대상 | 방법 |
@@ -1003,7 +1017,6 @@ dotnet build Assembly-CSharp-Editor.csproj
 
 | 항목 | 내용 |
 | --- | --- |
-| 🔸 자동 테스트 없음 | 회귀 검증이 전적으로 수동 플레이에 의존한다 |
-| 🔸 밸런스 시뮬레이터 없음 | 스테이지별 예상 전투 길이/승률을 계산할 수단이 없다 |
+| 🔸 실기기 자동화 없음 | 에디터 검증은 있으나 모바일 터치·성능 회귀는 여전히 수동이다 |
 | 🔸 `RewardDef` 필드명 | 옛 스탯 체계 이름이 남아 실제 효과와 어긋난다 |
 | 🔸 메인 사망 시 폴백 | 첫 활성 아군이 메인으로 승격된다. 정책 명시 필요 |

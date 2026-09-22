@@ -311,6 +311,7 @@ namespace Codes.Passive
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "카피바라";
             IgnoresActivationChance = true;
+            SupersededByCodeId = 139;
         }
     }
 

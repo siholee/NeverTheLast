@@ -1058,6 +1058,136 @@ items:
     statBonuses: [{ stat: DEX, amount: 3 }]
 
   # ══════════════════════════════════════════════════════════════════
+  # 신규 공용 고유 장비 — 일부는 캐릭터 보유·해금 상태에 따라 공용 풀에 열린다.
+  # ══════════════════════════════════════════════════════════════════
+
+  - id: 4510
+    name: 생트 카트린의 검
+    icon: ITEM_AEGEUS_SWORD
+    slot: MainHand
+    category: Longsword
+    requiredProficiency: Longsword
+    rarity: 5
+    requiredUnitIds: [7]
+    weight: 2
+    statBonuses: [{ stat: CritDamage, amount: 18 }]
+    codeGrants:
+      - { slot: passive, codeId: 445, stage: 1 }
+
+  - id: 4328
+    name: 구국의 깃발
+    icon: ITEM_GUNGNIR
+    slot: MainHand
+    category: Spear
+    requiredProficiency: Spear
+    rarity: 3
+    requiredUnlockedUnitIds: [7]
+    weight: 3
+    twoHanded: true
+    statBonuses: [{ stat: INT, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 446, stage: 1 }
+
+  - id: 4329
+    name: 수호부
+    icon: ITEM_YATA_MIRROR
+    slot: Necklace
+    category: Necklace
+    rarity: 3
+    weight: 1
+    statBonuses: [{ stat: INT, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 447, stage: 1 }
+
+  - id: 4330
+    name: 천상의 과일
+    icon: ITEM_GOLDEN_APPLE
+    slot: Necklace
+    category: Necklace
+    rarity: 3
+    weight: 1
+    statBonuses: [{ stat: Durability, amount: 10 }]
+    codeGrants:
+      - { slot: passive, codeId: 448, stage: 1 }
+
+  - id: 4331
+    name: 정령의 축복이 담긴 반지
+    icon: ITEM_RUNED_RING
+    slot: Ring
+    category: Ring
+    rarity: 3
+    weight: 1
+    statBonuses:
+      [{ stat: STR, amount: 5 }, { stat: DEX, amount: 5 }, { stat: CON, amount: 5 },
+       { stat: INT, amount: 5 }, { stat: LUK, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 449, stage: 1 }
+
+  - id: 4332
+    name: 키티호크의 기적
+    icon: ITEM_LUCKY_COIN
+    slot: Ring
+    category: Ring
+    rarity: 3
+    requiredUnitIds: [5]
+    allowUnlockedRequiredUnits: true
+    weight: 1
+    statBonuses: [{ stat: CON, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 450, stage: 1 }
+
+  - id: 4411
+    name: 교류 발전 장치
+    icon: ITEM_AUGUSTE_WATCH
+    slot: Necklace
+    category: Necklace
+    rarity: 4
+    requiredUnitIds: [6]
+    allowUnlockedRequiredUnits: true
+    weight: 1
+    statBonuses: [{ stat: CritDamage, amount: 14 }]
+    codeGrants:
+      - { slot: passive, codeId: 451, stage: 1 }
+
+  - id: 4511
+    name: 겨울의 대삼각형
+    icon: ITEM_YASAKANI_MAGATAMA
+    slot: Necklace
+    category: Necklace
+    rarity: 5
+    weight: 1
+    statBonuses: [{ stat: CritDamage, amount: 18 }]
+    codeGrants:
+      - { slot: passive, codeId: 452, stage: 1 }
+
+  - id: 4512
+    name: 콜키스의 황금양모
+    icon: ITEM_GOLDEN_FLEECE
+    slot: Armor
+    category: MediumArmor
+    requiredProficiency: MediumArmor
+    rarity: 5
+    weight: 4
+    durability: 65
+    statBonuses: [{ stat: LUK, amount: 9 }]
+    codeGrants:
+      - { slot: passive, codeId: 454, stage: 1 }
+
+  - id: 4333
+    name: 일리아스
+    icon: ITEM_LEGION_ORB
+    slot: MainHand
+    category: Orb
+    requiredProficiency: Orb
+    rarity: 3
+    weight: 1
+    statBonuses:
+      [{ stat: STR, amount: 5 }, { stat: DEX, amount: 5 }, { stat: CON, amount: 5 },
+       { stat: INT, amount: 5 }, { stat: LUK, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 453, stage: 1 }
+
+  # ══════════════════════════════════════════════════════════════════
   # 귀중품 — 입지 못하고 팔기만 하는 물건
   #
   # `sellPrice`가 0보다 크면 장비가 아니다. 주우면 유닛이 아니라 주머니로 가고,

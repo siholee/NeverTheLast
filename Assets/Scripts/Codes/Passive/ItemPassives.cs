@@ -199,10 +199,11 @@ namespace Codes.Passive
     internal sealed class YataReviveEffect : BaseEffect
     {
         private const int StaggerTurns = 2;
+        private readonly Action _onTriggered;
         private bool _used;
         private int _remaining;
 
-        public YataReviveEffect() : base(0) { }
+        public YataReviveEffect(Action onTriggered = null) : base(0) => _onTriggered = onTriggered;
 
         public override bool TryPreventDeath(Unit unit, Unit attacker)
         {
@@ -211,6 +212,7 @@ namespace Codes.Passive
             _remaining = StaggerTurns;
             unit.AddUntargetableSource();
             unit.ControlStarts(new ControlContext(attacker, StaggerTurns));
+            _onTriggered?.Invoke();
             return true;
         }
 

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using BaseClasses;
 using Codes.Base;
+using UnityEngine;
 
 namespace Codes.Normal
 {
@@ -12,14 +13,24 @@ namespace Codes.Normal
     /// </summary>
     public sealed class ShiVoidSlash : BaseNormalCode
     {
+        private const int FixedDamage = 200;
+        private const float DexDamageCoefficient = 4.9f;
+
         public ShiVoidSlash(NormalCodeContext context) : base(context)
         {
             CodeName = "일반행동";
             CastingDelay = 0.35f;
-            // 코드 단계(1~3)는 더 이상 오르지 않는다. 늘 1단계 값이던 38을 고정 위력으로 둔다.
+            // 저레벨의 지나치게 낮은 저점을 고정 피해로 보완하고, DEX 성장분은 직접 계수로 반영한다.
             MaxStage = 1;
-            Power = 38;
+            Power = FixedDamage;
             CodeTags = new List<int> { DamageTag.Physical };
+        }
+
+        protected override int CalculateDamage(float critMultiplier)
+        {
+            int dex = Caster.GetBaseDex();
+            return Mathf.Max(1, Mathf.RoundToInt(
+                (FixedDamage + dex * DexDamageCoefficient) * critMultiplier));
         }
 
         protected override List<int> GetDamageTags()

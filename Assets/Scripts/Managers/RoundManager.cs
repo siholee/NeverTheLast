@@ -414,6 +414,8 @@ namespace Managers
             if (stageEvent.oncePerRun && runManager != null && runManager.HasTriggeredEvent(stageEvent.id)) return false;
             int recruitUnitId = stageEvent.RecruitUnitId;
             if (recruitUnitId > 0 && SaveSystem.IsStarterUnlocked(recruitUnitId)) return false;
+            if (recruitUnitId > 0 && GridManager.Instance != null && GridManager.Instance.heroList.Any(hero =>
+                    hero != null && hero.isActive && !hero.IsEnemy && hero.ID == recruitUnitId)) return false;
             return !IsBlockedByDeck(stageEvent);
         }
 

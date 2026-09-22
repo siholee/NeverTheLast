@@ -14,12 +14,24 @@ public static class DebugVerificationMenu
     private const string Integration = "NTL.DebugVerification.Integration";
     private const string Campaign = "NTL.DebugVerification.Campaign";
     private const string Batch = "NTL.DebugVerification.Batch";
+    private const string FullBatch = "NTL.DebugVerification.FullBatch";
+    private const string Dpm = "NTL.DebugVerification.Dpm";
+    private const string DpmBatch = "NTL.DebugVerification.DpmBatch";
+    private const string NewItems = "NTL.DebugVerification.NewItems";
+    private const string NewItemsBatch = "NTL.DebugVerification.NewItemsBatch";
     private const string Started = "NTL.DebugVerification.Started";
+
+    private static string FullReportPath
+        => Path.GetFullPath(Path.Combine(Application.dataPath, "../Logs/DebugVerification.json"));
 
     private static string IntegrationReportPath
         => Path.GetFullPath(Path.Combine(Application.dataPath, "../Logs/IntegrationVerification.json"));
     private static string IntegrationCheckpointPath
         => Path.GetFullPath(Path.Combine(Application.dataPath, "../Logs/IntegrationVerification-checkpoint.json"));
+    private static string DpmReportPath
+        => Path.GetFullPath(Path.Combine(Application.dataPath, "../Logs/DpmVerification.json"));
+    private static string NewItemsReportPath
+        => Path.GetFullPath(Path.Combine(Application.dataPath, "../Logs/NewItemsVerification.json"));
 
     static DebugVerificationMenu() => EditorApplication.update += PollBatch;
 
@@ -32,6 +44,62 @@ public static class DebugVerificationMenu
         SessionState.SetBool(Batch, true);
         SessionState.SetBool(Started, false);
         RunIntegration();
+    }
+
+    /// <summary>전체 시스템 검증의 배치 진입점.</summary>
+    public static void RunBatch()
+    {
+        if (File.Exists(FullReportPath)) File.Delete(FullReportPath);
+        SessionState.SetBool(Batch, true);
+        SessionState.SetBool(FullBatch, true);
+        SessionState.SetBool(Started, false);
+        Run();
+    }
+
+    /// <summary>단독 딜러 DPM 검증의 배치 진입점.</summary>
+    public static void RunDpmBatch()
+    {
+        if (File.Exists(DpmReportPath)) File.Delete(DpmReportPath);
+        SessionState.SetBool(Batch, true);
+        SessionState.SetBool(DpmBatch, true);
+        SessionState.SetBool(Started, false);
+        RunDpm();
+    }
+
+    /// <summary>신규 장비와 조건부 해금만 빠르게 확인하는 배치 진입점.</summary>
+    public static void RunNewItemsBatch()
+    {
+        if (File.Exists(NewItemsReportPath)) File.Delete(NewItemsReportPath);
+        SessionState.SetBool(Batch, true);
+        SessionState.SetBool(NewItemsBatch, true);
+        SessionState.SetBool(Started, false);
+        RunNewItems();
+    }
+
+    [MenuItem("Tools/NeverTheLast/Run New Equipment Verification")]
+    public static void RunNewItems()
+    {
+        if (EditorApplication.isPlaying)
+        {
+            if (!DebugMode.SuiteRunning) DebugVerification.StartSuite(newItemsOnly: true);
+            return;
+        }
+        SessionState.SetBool(NewItems, true);
+        SessionState.SetBool(Pending, true);
+        EditorApplication.isPlaying = true;
+    }
+
+    [MenuItem("Tools/NeverTheLast/Run Solo DPM Audit")]
+    public static void RunDpm()
+    {
+        if (EditorApplication.isPlaying)
+        {
+            if (!DebugMode.SuiteRunning) DebugVerification.StartSuite(dpmOnly: true);
+            return;
+        }
+        SessionState.SetBool(Dpm, true);
+        SessionState.SetBool(Pending, true);
+        EditorApplication.isPlaying = true;
     }
 
     [MenuItem("Tools/NeverTheLast/Run Campaign Verification %F8")]
@@ -109,8 +177,12 @@ public static class DebugVerificationMenu
         SessionState.SetBool(Integration, false);
         bool campaign = SessionState.GetBool(Campaign, false);
         SessionState.SetBool(Campaign, false);
+        bool dpm = SessionState.GetBool(Dpm, false);
+        SessionState.SetBool(Dpm, false);
+        bool newItems = SessionState.GetBool(NewItems, false);
+        SessionState.SetBool(NewItems, false);
         if (SessionState.GetBool(Batch, false)) SessionState.SetBool(Started, true);
-        DebugVerification.StartSuite(integration, campaign);
+        DebugVerification.StartSuite(integration, campaign, dpmOnly: dpm, newItemsOnly: newItems);
     }
 
     private static void PollBatch()
@@ -118,17 +190,27 @@ public static class DebugVerificationMenu
         if (!SessionState.GetBool(Batch, false) || !SessionState.GetBool(Started, false)) return;
         // 통합 검증의 자연 캠페인 구간은 별도 BalanceSim 배치가 담당한다. 배치 모드에서는
         // 모든 유닛/행동/패배 복구까지 기록한 체크포인트에서 종료해 씬 재로딩 교착을 피한다.
-        string reportPath = File.Exists(IntegrationReportPath)
-            ? IntegrationReportPath
-            : IntegrationCheckpointPath;
+        bool full = SessionState.GetBool(FullBatch, false);
+        bool dpm = SessionState.GetBool(DpmBatch, false);
+        bool newItems = SessionState.GetBool(NewItemsBatch, false);
+        string reportPath = newItems
+            ? NewItemsReportPath
+            : dpm
+            ? DpmReportPath
+            : full
+            ? FullReportPath
+            : File.Exists(IntegrationReportPath) ? IntegrationReportPath : IntegrationCheckpointPath;
         if (!File.Exists(reportPath)) return;
 
         string json = File.ReadAllText(reportPath);
-        bool checkpoint = string.Equals(reportPath, IntegrationCheckpointPath,
+        bool checkpoint = !full && string.Equals(reportPath, IntegrationCheckpointPath,
             System.StringComparison.OrdinalIgnoreCase);
         bool passed = json.Contains("\"failed\": 0") && json.Contains("\"exceptions\": []") &&
             (checkpoint || json.Contains("\"completed\": true"));
         SessionState.SetBool(Batch, false);
+        SessionState.SetBool(FullBatch, false);
+        SessionState.SetBool(DpmBatch, false);
+        SessionState.SetBool(NewItemsBatch, false);
         SessionState.SetBool(Started, false);
         EditorApplication.Exit(passed ? 0 : 1);
     }

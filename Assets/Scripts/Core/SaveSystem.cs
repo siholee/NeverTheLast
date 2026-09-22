@@ -226,18 +226,25 @@ namespace Core
             TrainedCharacterCollection data = LoadTrainedCharacters();
             AddUnitIdIfMissing(data, record.unitId);
 
-            int existingIndex = data.records.FindIndex(existing => existing != null && existing.unitId == record.unitId);
-            if (existingIndex >= 0)
-            {
-                data.records[existingIndex] = record;
-            }
-            else
-            {
-                data.records.Add(record);
-            }
+            record.supportCard ??= new SupportCardSaveData();
+            record.supportCard.sourceUnitId = record.unitId;
+            if (string.IsNullOrWhiteSpace(record.supportCard.sourceUnitName))
+                record.supportCard.sourceUnitName = record.unitName;
+
+            // 같은 캐릭터도 완주할 때마다 별개의 육성 카드로 남긴다.
+            // supportId는 편성·열람실에서 카드 한 장을 가리키는 영구 키이므로 충돌하면 새 접미사를 붙인다.
+            string baseId = string.IsNullOrWhiteSpace(record.supportCard.supportId)
+                ? $"{record.unitId}_{record.createdAtUnixSeconds}"
+                : record.supportCard.supportId;
+            string supportId = baseId;
+            int suffix = 2;
+            while (data.records.Exists(existing => existing?.supportCard?.supportId == supportId))
+                supportId = $"{baseId}_{suffix++}";
+            record.supportCard.supportId = supportId;
+            data.records.Add(record);
 
             SaveTrainedCharacterCollection(data);
-            Debug.Log($"[SaveSystem] 육성 완료 기록 저장: {record.unitName}({record.unitId})");
+            Debug.Log($"[SaveSystem] 육성 완료 기록 저장: {record.unitName}({record.unitId}) / {supportId}");
         }
 
         public static SupportCardSaveData GetSupportCard(int unitId)
@@ -245,11 +252,35 @@ namespace Core
             return GetTrainedCharacterRecord(unitId)?.supportCard;
         }
 
+        public static SupportCardSaveData GetSupportCard(int unitId, string supportId)
+        {
+            return GetTrainedCharacterRecord(unitId, supportId)?.supportCard;
+        }
+
         public static TrainedCharacterRecord GetTrainedCharacterRecord(int unitId)
         {
-            return LoadTrainedCharacters()
-                .records
-                .Find(existing => existing != null && existing.unitId == unitId);
+            return GetTrainedCharacterRecord(unitId, null);
+        }
+
+        /// <summary>
+        /// 캐릭터의 특정 육성 카드 기록. ID가 없으면 가장 최근 완주 기록을 돌려
+        /// 이전 저장과 카드 선택 UI가 없던 호출부도 자연스럽게 최신 카드를 쓴다.
+        /// </summary>
+        public static TrainedCharacterRecord GetTrainedCharacterRecord(int unitId, string supportId)
+        {
+            System.Collections.Generic.List<TrainedCharacterRecord> records = GetTrainedCharacterRecords(unitId);
+            if (!string.IsNullOrWhiteSpace(supportId))
+            {
+                TrainedCharacterRecord exact = records.Find(record => record.supportCard?.supportId == supportId);
+                if (exact != null) return exact;
+            }
+            return records.Count > 0 ? records[records.Count - 1] : null;
+        }
+
+        /// <summary>같은 캐릭터로 완주한 모든 기록. 오래된 카드부터 저장 순서대로 돌려준다.</summary>
+        public static System.Collections.Generic.List<TrainedCharacterRecord> GetTrainedCharacterRecords(int unitId)
+        {
+            return LoadTrainedCharacters().records.FindAll(record => record != null && record.unitId == unitId);
         }
 
         private static TrainedCharacterCollection NormalizeTrainedCharacterCollection(TrainedCharacterCollection data)
@@ -260,14 +291,27 @@ namespace Core
             data.records ??= new System.Collections.Generic.List<TrainedCharacterRecord>();
             data.pendingCharacterUnlockIds ??= new System.Collections.Generic.List<int>();
 
-            foreach (TrainedCharacterRecord record in data.records)
+            var usedSupportIds = new System.Collections.Generic.HashSet<string>();
+            for (int i = 0; i < data.records.Count; i++)
             {
+                TrainedCharacterRecord record = data.records[i];
                 if (record == null) continue;
                 AddUnitIdIfMissing(data, record.unitId);
                 record.finalPrimaryStats ??= new PrimaryStatSaveData();
                 record.titleIds ??= new System.Collections.Generic.List<string>();
                 record.ownedPassiveCodes ??= new System.Collections.Generic.List<LearnedPassiveSaveData>();
                 record.supportCard ??= new SupportCardSaveData();
+                record.supportCard.sourceUnitId = record.unitId;
+                if (string.IsNullOrWhiteSpace(record.supportCard.sourceUnitName))
+                    record.supportCard.sourceUnitName = record.unitName;
+
+                string baseId = string.IsNullOrWhiteSpace(record.supportCard.supportId)
+                    ? $"legacy_{record.unitId}_{record.createdAtUnixSeconds}_{i + 1}"
+                    : record.supportCard.supportId;
+                string supportId = baseId;
+                int suffix = 2;
+                while (!usedSupportIds.Add(supportId)) supportId = $"{baseId}_{suffix++}";
+                record.supportCard.supportId = supportId;
             }
 
             if (data.unitIds.Exists(id => id > 0) &&

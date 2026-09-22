@@ -220,7 +220,8 @@ namespace Entities
         /// <summary>휴대 한도 산정용 STR. 중량 페널티만 제외하고 성장·장비·상태 배율은 반영한다.</summary>
         internal int GetUnburdenedBaseStr()
         {
-            int raw = strBase + GetLevelGrowth(strIncrementLvl) + strIncrementUpgrade * strUpgrade
+            int raw = _owner.ApplyInitialPrimaryStatMultipliers(BaseEnums.PrimaryStat.STR, strBase)
+                + GetLevelGrowth(strIncrementLvl) + strIncrementUpgrade * strUpgrade
                 + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.STR) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.STR)
                 + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.STR);
             return _owner.ApplyStatusPrimaryStatMultipliers(BaseEnums.PrimaryStat.STR, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.STR, raw));
@@ -233,7 +234,8 @@ namespace Entities
 
         internal int GetUnburdenedBaseDex()
         {
-            int raw = dexBase + GetLevelGrowth(dexIncrementLvl) + dexIncrementUpgrade * dexUpgrade
+            int raw = _owner.ApplyInitialPrimaryStatMultipliers(BaseEnums.PrimaryStat.DEX, dexBase)
+                + GetLevelGrowth(dexIncrementLvl) + dexIncrementUpgrade * dexUpgrade
                 + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.DEX) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.DEX)
                 + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.DEX);
             return _owner.ApplyStatusPrimaryStatMultipliers(BaseEnums.PrimaryStat.DEX, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.DEX, raw));
@@ -241,7 +243,8 @@ namespace Entities
 
         public int GetBaseCon()
         {
-            int raw = conBase + GetLevelGrowth(conIncrementLvl) + conIncrementUpgrade * conUpgrade
+            int raw = _owner.ApplyInitialPrimaryStatMultipliers(BaseEnums.PrimaryStat.CON, conBase)
+                + GetLevelGrowth(conIncrementLvl) + conIncrementUpgrade * conUpgrade
                 + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.CON) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.CON)
                 + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.CON);
             return _owner.ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.CON, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.CON, raw));
@@ -249,7 +252,8 @@ namespace Entities
 
         public int GetBaseInt()
         {
-            int raw = intBase + GetLevelGrowth(intIncrementLvl) + intIncrementUpgrade * intUpgrade
+            int raw = _owner.ApplyInitialPrimaryStatMultipliers(BaseEnums.PrimaryStat.INT, intBase)
+                + GetLevelGrowth(intIncrementLvl) + intIncrementUpgrade * intUpgrade
                 + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.INT) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.INT)
                 + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.INT);
             return _owner.ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.INT, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.INT, raw));
@@ -257,7 +261,8 @@ namespace Entities
 
         public int GetBaseLuk()
         {
-            int raw = lukBase + GetLevelGrowth(lukIncrementLvl) + lukIncrementUpgrade * lukUpgrade
+            int raw = _owner.ApplyInitialPrimaryStatMultipliers(BaseEnums.PrimaryStat.LUK, lukBase)
+                + GetLevelGrowth(lukIncrementLvl) + lukIncrementUpgrade * lukUpgrade
                 + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.LUK) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.LUK)
                 + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.LUK);
             return _owner.ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.LUK, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.LUK, raw));

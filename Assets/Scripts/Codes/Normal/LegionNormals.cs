@@ -64,7 +64,7 @@ namespace Codes.Normal
             LegionNormalStyle.Optio => (0, 0.6f),
             LegionNormalStyle.Tribune => (0, 0.8f),
             LegionNormalStyle.Agrippa => (0, 0f),
-            LegionNormalStyle.Octavia => (0, 0.9f),
+            LegionNormalStyle.Octavia => (37, 0.31f),
             LegionNormalStyle.Caesar => (0, 0.6f),
             _ => (50, 0f),
         };
@@ -174,20 +174,36 @@ namespace Codes.Normal
         // ── 아그리파 ─────────────────────────────────────────────────
 
         /// <summary>
-        /// 필드에서 INT가 가장 높은 아군. '최고의 2인자'를 들고 있고 옥타비아가 있으면
-        /// INT와 무관하게 옥타비아를 지목한다.
+        /// 방출 아군을 먼저 고르고, 같은 조건에서는 마나 최대치와 INT 순으로 고른다.
+        /// '최고의 2인자'를 들고 있고 옥타비아가 있으면 이 규칙보다 먼저 옥타비아를 지목한다.
         /// </summary>
         private Unit AgrippaTarget()
+            => SelectAgrippaSupportTarget(Caster);
+
+        internal static Unit SelectAgrippaSupportTarget(Unit caster)
         {
-            Unit preferred = LegionAttack.SecondInCommandTarget(Caster);
+            Unit preferred = LegionAttack.SecondInCommandTarget(caster);
             if (preferred != null) return preferred;
 
-            return global::Target.GetAllAllies(Caster)
+            return global::Target.GetAllAllies(caster)
                 .Where(unit => unit != null && unit.isActive)
-                .Concat(new[] { Caster })
+                .Concat(new[] { caster })
                 .Distinct()
-                .OrderByDescending(unit => unit.GetBaseInt())
+                .OrderByDescending(IsBurstUnit)
+                .ThenByDescending(unit => unit.UltimateResourceType == BaseEnums.UltimateResourceType.Mana
+                    ? unit.ManaMax
+                    : 0)
+                .ThenByDescending(unit => unit.GetBaseInt())
                 .FirstOrDefault();
+        }
+
+        private static bool IsBurstUnit(Unit unit)
+        {
+            if (unit == null || Managers.GameManager.Instance?.unitDataList?.units == null) return false;
+            Managers.UnitData definition = Managers.GameManager.Instance.unitDataList.units
+                .FirstOrDefault(data => data.id == unit.ID);
+            return definition?.archetypeTags?.Any(tag =>
+                string.Equals(tag, "Burst", System.StringComparison.OrdinalIgnoreCase)) == true;
         }
 
         private void CastAgrippaSupport()

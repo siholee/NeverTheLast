@@ -114,7 +114,7 @@ trainerCoverage:
   DEX: [100]                                # 아그리파
   CON: [5, 60, 64, 65, 66, 81, 83, 125]     # 라이트·찬드라·바유·쿠베라·바루나·프레이아·스카디·이시스
   INT: [1, 4, 6, 62, 124]                   # 세이·가우디·니콜·아그니·토트
-  LUK: [25, 160]                            # 오르페우스·마리
+  LUK: [25, 103, 160]                       # 오르페우스·이아손·마리
 
 # ══════════════════════════════════════════════════════════════════════
 # 2. 유닛별 역할 태그
@@ -164,7 +164,7 @@ units:
     mainStat: CON
     topStat: CON
     row: Rear
-    roles: [CLEANSE, ULT_BATTERY, SUMMON, ELEM_APPLY]
+    roles: [HEAL, CLEANSE, ULT_BATTERY, SUMMON, ELEM_APPLY]
     supportValue: { combat: 3, training: 3 }
     provides:
       - key: MANA_POUR
@@ -173,8 +173,12 @@ units:
         text: "아군 전체에 바람 부착 (신속 등 바람 조건 코드를 상시로 만든다)"
       - key: FULL_CLEANSE
         text: "3스택부터 아군 전체 해로운 상태 제거"
-    wants: [ULT_BATTERY]
-    caution: "궁극기가 아군의 모든 원소를 먼저 제거한다. 세이의 창세 바위·자기 부착 반응 빌드와 충돌한다"
+      - key: FLYER_HEAL
+        text: "플라이어가 이미 있다면 일반행동마다 아군 전체를 300 + CON×0.5 치유"
+      - key: SUMMON_AMP
+        text: "Lv.32부터 모든 아군 소환수 피해 +10%. 여러 소환술사가 중첩"
+    wants: [BURST, ULT_BATTERY]
+    caution: "두 명 이상의 방출 딜러에게 특히 유리하다. 궁극기가 아군의 모든 원소를 먼저 제거하므로 세이의 창세 바위·자기 부착 반응 빌드와 충돌한다"
 
   - id: 6
     name: 니콜
@@ -369,6 +373,27 @@ units:
     wants: [ULT_BATTERY]
     caution: "일반행동이 피해를 내지 않는다. 순수 화력으로는 한 자리를 비우는 셈이다"
 
+  - id: 103
+    name: 이아손
+    type: Support
+    element: Hydro
+    mainStat: LUK
+    topStat: LUK
+    row: Front
+    roles: [EXTRA_ACT, AMP_DMG, DPS_AOE, ULT_BATTERY]
+    supportValue: { combat: 5, training: 5 }
+    provides:
+      - key: ARGONAUT_RESPONSE
+        text: "아군 궁극기에 반응해 광역 추가행동을 하고, 아군 전체 궁극기 피해 +1%를 전투 동안 중첩한다"
+      - key: ARGO_DEPARTURE
+        text: "궁극기 아르고 호 출항 — 적 전체 공격 후 2턴간 아군 전체 INT에 자신의 INT 절반을 부여"
+      - key: GUNNER
+        text: "포수(Lv45) — 필드의 모든 아군 궁극기 피해 +10%. 여러 보유자가 중첩 가능"
+      - key: LUK_TRAINER
+        text: "행운아와 가정 신의 가호로 LUK 훈련과 우정도 성장을 함께 지원"
+    wants: [DPS_AOE, ULT_BATTERY]
+    caution: "궁극기 반응은 자신의 턴마다 한 번만 재충전된다. 짧은 구간에 궁극기를 몰아 써도 연속 반응하지 않는다"
+
   - id: 124
     name: 토트
     type: Support
@@ -407,16 +432,18 @@ units:
     mainStat: LUK
     topStat: LUK
     row: Rear
-    roles: [AMP_CRIT, AMP_DMG, ACT_ACCEL]
-    supportValue: { combat: 5, training: 3 }
+    roles: [AMP_CRIT, AMP_DMG]
+    supportValue: { combat: 5, training: 4 }
     provides:
       - key: CRIT_DMG_LUK
-        text: "고유 패시브 혁명의 장교 — 아군 전체 치명타 피해가 마리의 LUK%만큼 증가. 조건 없는 최대 배율원이다"
+        text: "고유 패시브 혁명의 장교 — 아군의 화살 공격이 치명타일 때 치명타 피해가 마리의 LUK%만큼 증가"
       - key: TRIUMPH_ARCH
         text: "개선문(Lv30) — 전투 시작 패시브 3개 이상이면 아군 전체 4턴간 치명타 확률 +100%"
       - key: REVOLUTION
-        text: "궁극기 — 아군 전체 3턴간 일반행동 피해 +20%, DEX +10"
-    wants: [AMP_CRIT]
+        text: "궁극기 — 아군 전체 3턴간 모든 피해 +20%, 숙련 활 사용자라면 총 +40%"
+      - key: CARING
+        text: "보살핌(Lv5) — 앉아 있는 훈련의 기본 체력 소모 -20%"
+    wants: [DPS_ST, MULTIHIT, AMP_CRIT]
 
   # ── Starter (메인 후보, 육성 완료 후 서포트 슬롯도 가능) ──────────
   - id: 21
@@ -436,7 +463,7 @@ units:
 
   - id: 22
     name: 오리온
-    type: Starter
+    type: Support
     element: Geo
     mainStat: STR
     topStat: STR
@@ -445,7 +472,7 @@ units:
     supportValue: { combat: 4, training: 1 }
     provides:
       - key: SIRIUS
-        text: "고유 패시브 시리우스 — 피격 5회마다 적 전체 STR×1.2 반격(추가행동 태그)"
+        text: "고유 패시브 시리우스 — 피격·HP 소모 행동 5회마다 적 전체 STR×1.2 반격(추가행동 태그)"
       - key: ARROW_RAIN
         text: "궁극기 화살비 12발 — 타격당 고정 효과의 최대 수혜자"
     wants: [AMP_DMG, HEAL]
@@ -669,7 +696,7 @@ units:
 
   - id: 61
     name: 야마
-    type: Starter
+    type: Locked
     element: Electro
     mainStat: INT
     topStat: INT
@@ -791,7 +818,7 @@ units:
 
   - id: 122
     name: 바스테트
-    type: Locked
+    type: Starter
     element: Geo
     mainStat: LUK
     topStat: LUK
@@ -986,32 +1013,34 @@ archetypes:
 # ══════════════════════════════════════════════════════════════════════
 # 4. 메인별 추천 조합
 #    best  — 전 캐릭터 해금 + 코드 전수 완료 가정
-#    basic — 최초 로스터(Support 18명)만, 전수 코드 없음 가정
+#    basic — 최초 로스터(Support 19명)만, 전수 코드 없음 가정
 #    members는 서포트 4명. 순서가 곧 우선순위다.
 # ══════════════════════════════════════════════════════════════════════
 recommendations:
   # ── STR 메인 ───────────────────────────────────────────────────────
-  - mainId: 22
-    mainName: 오리온
-    axis: "다타수 · 피격 반격"
+  - mainId: 122
+    mainName: 바스테트
+    starterRecommended: true
+    axis: "추가행동 · 반격"
     best:
-      archetype: FLAT_HIT
-      members: [1, 160, 100, 122]
-      rows: { 22: Front, 1: Rear, 160: Rear, 100: Rear, 122: Front }
+      archetype: EXTRA_ACT
+      members: [22, 7, 1, 5]
+      rows: { 122: Rear, 22: Front, 7: Front, 1: Rear, 5: Rear }
       reason: >
-        화살비 12발과 시리우스 반격이 창세의 타격당 고정 피해와 곱해진다.
-        마리가 치명타 확률과 피해를 동시에 올리고, 아그리파가 화살비 회전을 앞당기며,
-        바스테트가 시리우스·빅뱅의 추가행동을 스택으로 회수한다.
+        오리온과 잔의 반격이 메인 바스테트의 추격을 계속 열고, 세이가 보호막과 추가행동을 보탠다.
+        라이트는 플라이어를 유지하는 동안 아군 전체를 회복해 초보 편성의 장기 생존을 맡는다.
+        추후 신속 특화 힐러가 추가되면 해금 후 라이트 자리를 교체하는 구성이다.
     basic:
-      members: [1, 160, 100, 7]
-      rows: { 22: Front, 7: Front, 1: Rear, 160: Rear, 100: Rear }
+      archetype: EXTRA_ACT
+      members: [22, 7, 1, 5]
+      rows: { 122: Rear, 22: Front, 7: Front, 1: Rear, 5: Rear }
       reason: >
-        바스테트 자리를 잔으로 바꾼다. 잔은 오리온의 유일한 STR 특기 서포트라 집중 훈련
-        강화량을 두 배로 만들고 패시브 전수를 처음으로 연다. 철권제재는 적의 공격을 지우지
-        않으므로 오리온의 시리우스 충전과도 부딪히지 않는다.
+        오리온과 잔의 반격이 메인 바스테트의 추격을 계속 열고, 세이가 보호막과 추가행동을 보탠다.
+        라이트는 플라이어를 유지하는 동안 아군 전체를 회복해 초보 편성의 장기 생존을 맡는다.
+        추후 신속 특화 힐러가 추가되면 해금 후 라이트 자리를 교체하는 구성이다.
     warning: >
-      STR 특기 서포트는 잔 하나뿐이라 STR 메인의 훈련 자리는 사실상 고정된다.
-      아그리파는 DEX 특기라 오리온의 집중 훈련에는 보탬이 되지 않는다 — 궁극기 회전만 값한다.
+      라이트의 배터리는 방출 딜러가 둘 이상일 때 가장 효율적이라 이 반격 편성에서는 회복이 주 역할이다.
+      메인 바스테트는 후열에 두어 오리온·잔이 피격과 반격을 맡게 한다.
 
   # 입문 추천 메인. 밸런스의 기준 편성이기도 하다 — 초기 로스터만으로 30~40라운드를 넘기는 것이 목표다.
   # best와 basic이 같은 것은 의도다. 화면은 best에서 먼저 고르므로, 다르면 입문 편성이 가려진다.
@@ -1264,16 +1293,16 @@ recommendations:
     axis: "대형 궁극기 폭격"
     best:
       archetype: ULT_LOOP
-      members: [100, 5, 102, 160]
-      rows: { 101: Rear, 102: Front, 100: Rear, 5: Rear, 160: Rear }
+      members: [100, 103, 60, 5]
+      rows: { 101: Rear, 100: Rear, 103: Front, 60: Front, 5: Rear }
       reason: >
-        고유 패시브가 DEX를 25% 깎는 대신 궁극기 피해를 +25% 올린다. 아그리파의 자원 충전과
-        라이트의 마나 주유가 존엄한 자를 한 라운드에 두 번 이상 쓰게 만든다.
-        카이사르는 같은 로마라 고유 패시브 중첩도 받는다.
+        아그리파와 라이트가 존엄한 자의 회전을 당기고, 이아손은 궁극기에 반응해 광역 추가행동과
+        궁극기 피해 중첩을 쌓는다. 찬드라의 보호막·마나가 전열과 회전을 함께 보완한다.
     basic:
-      members: [100, 5, 160, 81]
-      rows: { 101: Rear, 100: Rear, 5: Rear, 160: Rear, 81: Rear }
-      reason: "카이사르 자리를 프레이아로 바꾼다. 궁극기 회전 축은 최초 로스터로 완성된다"
+      archetype: ULT_LOOP
+      members: [100, 103, 60, 5]
+      rows: { 101: Rear, 100: Rear, 103: Front, 60: Front, 5: Rear }
+      reason: "아그리파·이아손·찬드라·라이트로 궁극기 회전, 추가행동, 보호막과 치유를 모두 갖춘 권장 편성이다."
 
   - mainId: 26
     mainName: 이카리아
@@ -1299,18 +1328,18 @@ recommendations:
     axis: "디버퍼의 지원을 받는 처형 딜러 · 초전도로 채우는 아즈라엘"
     best:
       archetype: BALANCED
-      members: [83, 6, 1, 81]
-      rows: { 3: Rear, 83: Front, 6: Rear, 1: Rear, 81: Rear }
+      members: [6, 83, 64, 1]
+      rows: { 3: Rear, 6: Rear, 83: Front, 64: Rear, 1: Rear }
       reason: >
         스카디는 얼음을 걸어 사바흐의 번개와 초전도를 일으키며 서브 탱커를 맡고,
         니콜은 번개 속성인 사바흐의 피해를 올리고 궁극기로 적 전체의 방어력을 깎는다.
-        세이의 보호막과 프레이아의 치유를 기본 방어축으로 함께 둔다. 훈련에서는 니콜의 행운아와
-        세이의 숙련된 조교가 사바흐의 LUK 훈련을 키운다.
+        바유는 적의 행동을 늦추고 디버프를 더해 아즈라엘 충전을 돕는다. 세이는 보호막으로 전열을 지키며,
+        훈련에서는 니콜의 행운아와 세이의 숙련된 조교가 사바흐의 LUK 훈련을 키운다.
     basic:
       archetype: BALANCED
-      members: [83, 6, 1, 81]
-      rows: { 3: Rear, 83: Front, 6: Rear, 1: Rear, 81: Rear }
-      reason: "초기 추천은 힐러와 실더를 함께 편성한다. 방어형 서포터를 충분히 육성한 뒤에는 한 자리로 줄일 수 있다."
+      members: [6, 83, 64, 1]
+      rows: { 3: Rear, 6: Rear, 83: Front, 64: Rear, 1: Rear }
+      reason: "니콜·스카디의 초전도 축에 바유의 범용 디버프와 세이의 보호막을 더한 추천 편성이다."
 
   - mainId: 82
     mainName: 로키
@@ -1357,22 +1386,6 @@ recommendations:
       members: [100, 160, 81, 125]
       rows: { 102: Front, 100: Rear, 160: Rear, 81: Rear, 125: Rear }
       reason: "로마는 아그리파뿐이다. 고유 패시브 수혜 대상이 둘로 줄어든다"
-
-  - mainId: 122
-    mainName: 바스테트
-    axis: "추가행동 · 반격"
-    best:
-      archetype: EXTRA_ACT
-      members: [40, 1, 83, 160]
-      rows: { 122: Front, 83: Front, 40: Rear, 1: Rear, 160: Rear }
-      reason: >
-        야수의 시선은 아군의 추가행동·반격을 100회 세어 터뜨린다. 아마테라스의 차원문 8발,
-        세이의 빅뱅 6발, 스카디의 반격이 전부 스택원이다. 궁극기는 반격을 가진 스카디를 지정한다.
-    basic:
-      members: [1, 83, 66, 160]
-      rows: { 122: Front, 83: Front, 1: Rear, 66: Rear, 160: Rear }
-      reason: "아마테라스 자리를 마카라(소환 타격 = 추가행동 태그)로 메운다"
-    warning: "추가행동 공급이 부족하면 100스택을 한 런 안에 못 채운다"
 
   # ── 최근 합류 메인 ───────────────────────────────────
   - mainId: 43

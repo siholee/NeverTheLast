@@ -164,6 +164,7 @@ namespace Managers
             if (isGameOver)
             {
                 gameState = GameState.GameOver;
+                RunManager.GrantAnyRunCompletionUnlocks();
             }
             else
             {
@@ -197,11 +198,13 @@ namespace Managers
                         RunEventCheckpoint(() => runManager?.AdvanceToNextStage());
                         break;
                     case GameState.RunComplete:
+                        RunManager.GrantAnyRunCompletionUnlocks();
                         _eventScheduler.Clear();
                         SaveSystem.DeleteSave();
                         LoadMainMenuScene();
                         break;
                     case GameState.GameOver:
+                        RunManager.GrantAnyRunCompletionUnlocks();
                         _eventScheduler.Clear();
                         SaveSystem.DeleteSave();
                         break;
@@ -767,6 +770,15 @@ namespace Managers
             {
                 MarkCurrentEventTriggered();
                 BeginEventBattle(choice);
+                return;
+            }
+
+            // 사건이 예약된 뒤 편성이 바뀌거나 구버전 저장을 불러와도 같은 유닛은 다시 합류할 수 없다.
+            if (choice.grantUnitId > 0 && IsUnitInParty(choice.grantUnitId))
+            {
+                MarkCurrentEventTriggered();
+                runManager?.SaveCurrentRun();
+                uiManager?.ShowEventResolution("이미 일행에 있는 동료입니다. 같은 캐릭터는 한 명만 합류할 수 있습니다.");
                 return;
             }
 
@@ -1387,6 +1399,7 @@ namespace Managers
             {
                 pendingPartyExp = 0;
                 gameState = GameState.GameOver;
+                RunManager.GrantAnyRunCompletionUnlocks();
                 SaveSystem.DeleteSave();
                 FinishBattleResult(result);
                 result.GameOver = true;
@@ -1708,7 +1721,8 @@ namespace Managers
             if (unitId <= 0 || GridManager.Instance == null) return false;
             if (GridManager.Instance.heroList.Any(hero => hero != null && hero.isActive && !hero.IsEnemy && hero.ID == unitId))
             {
-                return true;
+                Debug.LogWarning($"[사건] 서포트 유닛 {unitId} 영입 차단: 이미 일행에 있습니다.");
+                return false;
             }
             if (!GridManager.Instance.HasAvailableBenchSlot())
             {
@@ -1718,14 +1732,16 @@ namespace Managers
                     for (int y = GridManager.Instance.yMin; y <= GridManager.Instance.yMax; y++)
                     {
                         if (!GridManager.Instance.IsCellAvailable(x, y)) continue;
-                        GridManager.Instance.SpawnUnit(x, y, false, unitId);
-                        return true;
+                        Unit joined = GridManager.Instance.SpawnUnit(x, y, false, unitId);
+                        joined?.SelectSupportCard(SaveSystem.GetSupportCard(unitId)?.supportId);
+                        return joined != null;
                     }
                 }
                 Debug.LogWarning($"[사건] 서포트 유닛 {unitId} 영입 실패: 빈 슬롯이 없습니다.");
                 return false;
             }
-            GridManager.Instance.SpawnUnit(0, 0, false, unitId, true);
+            Unit recruited = GridManager.Instance.SpawnUnit(0, 0, false, unitId, true);
+            recruited?.SelectSupportCard(SaveSystem.GetSupportCard(unitId)?.supportId);
             return GridManager.Instance.heroList.Any(hero => hero != null && hero.isActive && !hero.IsEnemy && hero.ID == unitId);
         }
 
@@ -1744,6 +1760,7 @@ namespace Managers
             {
                 gameState = GameState.GameOver;
                 Debug.Log("생명력이 0이 되었습니다. 게임 오버!");
+                RunManager.GrantAnyRunCompletionUnlocks();
                 SaveSystem.DeleteSave();
             }
         }
@@ -1824,6 +1841,7 @@ namespace Managers
             return new UnitSaveData
             {
                 unitId = unit.ID,
+                selectedSupportId = unit.SelectedSupportCardId,
                 currentHP = unit.HpCurr,
                 xPos = unit.currentCell.xPos,
                 yPos = unit.currentCell.yPos,

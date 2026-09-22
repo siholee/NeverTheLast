@@ -58,6 +58,18 @@ namespace Codes.Base
     /// </summary>
     public virtual float SupportTrainingBonus(BaseEnums.PrimaryStat stat) => 0f;
 
+    /// <summary>
+    /// 서포트 카드로 앉아 있는 훈련의 체력 소모 배율. 0.8이면 체력 소모 -20%다.
+    /// 회복형 훈련과 실패 추가 소모에는 적용하지 않는다.
+    /// </summary>
+    public virtual float SupportTrainingEnergyCostMultiplier => 1f;
+
+    /// <summary>
+    /// 서포트 카드로 앉아 있는 훈련의 실패율 배율. 0.75면 표시·실제 실패율이 25% 감소한다.
+    /// 해당 훈련에 배치되지 않은 서포트의 효과는 적용하지 않는다.
+    /// </summary>
+    public virtual float SupportTrainingFailureRateMultiplier => 1f;
+
     /// <summary>메인 본인이 훈련받을 때 <paramref name="stat"/> 상승량에 더하는 효율. 직감·대도·광신도.</summary>
     public virtual float MainTrainingBonus(BaseEnums.PrimaryStat stat) => 0f;
 

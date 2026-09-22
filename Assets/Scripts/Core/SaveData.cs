@@ -134,6 +134,8 @@ namespace Core
     public class UnitSaveData
     {
         public int unitId;
+        /// <summary>이 런에 편성한 육성 카드. 비어 있으면 기본 카드 또는 최신 기록을 사용한다.</summary>
+        public string selectedSupportId;
         public int currentHP;
         public int xPos;
         public int yPos;

@@ -77,13 +77,15 @@ namespace Codes.Normal
         }
     }
 
-    /// <summary>로키 일반행동 — STR 기반 위력 80. 비접촉·물리.</summary>
+    /// <summary>로키 일반행동 — 고정 위력 55 + STR×0.15. 비접촉·물리.</summary>
     public sealed class LokiNormalAttack : BaseNormalCode
     {
         public LokiNormalAttack(NormalCodeContext context) : base(context)
         {
             CodeName = "일반행동";
-            Power = 90;
+            Power = 55;
+            PowerStatCoefficient = 0.15f;
+            PowerStat = BaseEnums.PrimaryStat.STR;
             CodeTags = new List<int> { DamageTag.Physical };
         }
 

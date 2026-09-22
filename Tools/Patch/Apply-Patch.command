@@ -2,12 +2,32 @@
 set -euo pipefail
 
 PATCH_DIR="$(cd "$(dirname "$0")" && pwd)"
-GAME_DIR="$(cd "$PATCH_DIR/.." && pwd)"
 MANIFEST="$PATCH_DIR/patch-manifest.tsv"
 PAYLOAD="$PATCH_DIR/payload"
 STAMP="$(date +%Y%m%d-%H%M%S)"
-BACKUP="$GAME_DIR/.ntl-patch-backup-$STAMP"
 XDELTA="$PATCH_DIR/tools/xdelta3"
+
+if [ ! -f "$MANIFEST" ]; then
+  echo "Patch manifest is missing." >&2
+  exit 1
+fi
+
+# Locate the installation whether the patch folder sits inside it or was unzipped into it.
+MARKER="$(awk -F'	' '$1 == "file" && $3 != "-" { print $2; exit }' "$MANIFEST")"
+[ -n "$MARKER" ] || MARKER="NeverTheLast.app"
+GAME_DIR=""
+candidate="$PATCH_DIR"
+for _ in 1 2 3 4; do
+  if [ -e "$candidate/$MARKER" ]; then GAME_DIR="$candidate"; break; fi
+  parent="$(dirname "$candidate")"
+  [ "$parent" = "$candidate" ] && break
+  candidate="$parent"
+done
+if [ -z "$GAME_DIR" ]; then
+  echo "Game folder not found. Unzip the patch into the folder that holds NeverTheLast.app." >&2
+  exit 1
+fi
+BACKUP="$GAME_DIR/.ntl-patch-backup-$STAMP"
 
 sha256_file() { shasum -a 256 "$1" | awk '{print tolower($1)}'; }
 target_path() {
@@ -16,11 +36,6 @@ target_path() {
   esac
   printf '%s/%s' "$GAME_DIR" "$1"
 }
-
-if [ ! -f "$MANIFEST" ]; then
-  echo "Patch manifest is missing." >&2
-  exit 1
-fi
 
 # Validate everything before changing the installation.
 while IFS=$'\t' read -r kind rel base target mode payload_rel payload_sha; do

@@ -85,7 +85,7 @@ namespace Codes.Ultimate
             LegionUltimateStyle.Optio => (0, 1.2f),
             LegionUltimateStyle.Tribune => (0, 1.6f),
             LegionUltimateStyle.Agrippa => (0, 0f),
-            LegionUltimateStyle.Octavia => (0, 1.5f),
+            LegionUltimateStyle.Octavia => (61, 0.51f),
             LegionUltimateStyle.Caesar => (0, 0.1f),
             _ => (0, 0f),
         };

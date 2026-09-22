@@ -27,12 +27,16 @@ namespace Managers
         /// 자격만 열어 둔다 — 사건이 생기면 <c>80_stages.yaml</c>이 바뀌는 것만으로
         /// 저절로 다시 잠긴다. 코드에 이름을 적지 않는 이유다.
         ///
-        /// 라부아지에는 예외다. 사건이 아니라 <b>첫 완주</b>가 해금 조건이라 경로가 있다.
+        /// 라부아지에와 야마는 예외다. 사건이 아니라 각각 <b>첫 육성 완주</b>,
+        /// <b>아무 런 1회 종료</b>가 해금 조건이라 경로가 있다.
         /// </summary>
         public static bool HasNoUnlockPath(UnitData data)
         {
             if (data == null || data.characterType != "Locked") return false;
-            if (data.id == Entities.LavoisierChemistry.UnitId) return false;
+            if (data.id == Entities.LavoisierChemistry.UnitId || data.id == RunManager.YamaUnitId) return false;
+            if (GameManager.Instance?.unitDataList?.units?.Any(source =>
+                    source?.unlocksUnitIdsOnClear?.Contains(data.id) == true) == true)
+                return false;
             return !RecruitableUnitIds.Contains(data.id);
         }
 
@@ -68,7 +72,7 @@ namespace Managers
         /// 서포트는 메인이 될 수 없어 기록이 곧 자격이 되면 앞뒤가 맞지 않기 때문이다.
         ///
         /// <b>예외는 스스로 얻어 낸 스타팅 해금뿐이다.</b> <c>unlocksAsStarterOnClear</c>가 붙은
-        /// 서포트(니콜·프레이아)는 서포트로 한 런을 완주시키면 스타팅 후보로 열리고
+        /// 일부 서포트(라이트·니콜·프레이아·마리)는 서포트로 한 런을 완주시키면 스타팅 후보로 열리고
         /// (<see cref="RunManager"/>), 그 뒤로는 메인 격자에 선다.
         /// </summary>
         public static bool IsSupportOnly(UnitData data)
@@ -93,6 +97,7 @@ namespace Managers
         public class LineupEntry
         {
             public int UnitId;
+            public string SupportId;
             public int XPos;
             public int YPos;
             public CharacterRole Role;
@@ -129,6 +134,14 @@ namespace Managers
 
         public bool AddHero(int unitId)
         {
+            return AddHero(unitId, SaveSystem.GetSupportCard(unitId)?.supportId);
+        }
+
+        /// <summary>
+        /// 캐릭터와 그 캐릭터의 육성 카드 한 장을 편성한다. 동일 유닛은 카드가 달라도 두 번 넣지 않는다.
+        /// </summary>
+        public bool AddHero(int unitId, string supportId)
+        {
             if (_lineup.Count >= MaxSelection)
             {
                 Debug.Log("[CharSel] 최대 편성 인원 초과");
@@ -156,14 +169,48 @@ namespace Managers
                 return false;
             }
 
+            if (!string.IsNullOrWhiteSpace(supportId) &&
+                !SaveSystem.GetTrainedCharacterRecords(unitId)
+                    .Any(record => record.supportCard?.supportId == supportId))
+            {
+                Debug.LogWarning($"[CharSel] {unitId}의 카드가 아닌 supportId: {supportId}");
+                return false;
+            }
+
+            if (GameManager.Instance != null &&
+                GameManager.Instance.CurrentMode == BaseClasses.BaseEnums.GameMode.Infinite &&
+                string.IsNullOrWhiteSpace(supportId))
+            {
+                Debug.LogWarning($"[CharSel] 무한 모드는 육성 카드 한 장을 지정해야 합니다: {unitId}");
+                return false;
+            }
+
             if (!TryFindOpenAllyPosition(out int xPos, out int yPos))
             {
                 Debug.LogWarning("[CharSel] 배치 가능한 아군 좌표가 없습니다.");
                 return false;
             }
 
-            _lineup.Add(new LineupEntry { UnitId = unitId, XPos = xPos, YPos = yPos, Role = role });
-            Debug.Log($"[CharSel] {role} {unitId} 추가 -> ({xPos}, {yPos})");
+            _lineup.Add(new LineupEntry
+            {
+                UnitId = unitId,
+                SupportId = supportId ?? "",
+                XPos = xPos,
+                YPos = yPos,
+                Role = role,
+            });
+            Debug.Log($"[CharSel] {role} {unitId} 추가 -> ({xPos}, {yPos}) / 카드 {supportId ?? "기본"}");
+            return true;
+        }
+
+        public bool SetSelectedSupportCard(int unitId, string supportId)
+        {
+            LineupEntry entry = _lineup.FirstOrDefault(candidate => candidate.UnitId == unitId);
+            if (entry == null) return false;
+            if (!string.IsNullOrWhiteSpace(supportId) &&
+                !SaveSystem.GetTrainedCharacterRecords(unitId)
+                    .Any(record => record.supportCard?.supportId == supportId)) return false;
+            entry.SupportId = supportId ?? "";
             return true;
         }
 
@@ -245,7 +292,8 @@ namespace Managers
 
             foreach (var entry in _lineup)
             {
-                GridManager.Instance.SpawnUnit(entry.XPos, entry.YPos, false, entry.UnitId);
+                var spawned = GridManager.Instance.SpawnUnit(entry.XPos, entry.YPos, false, entry.UnitId);
+                spawned?.SelectSupportCard(entry.SupportId);
             }
 
             GameManager.Instance.uiManager?.HideCharacterSelection();
@@ -307,11 +355,11 @@ namespace Managers
 
         private void RebuildPositions()
         {
-            var unitIds = _lineup.Select(entry => entry.UnitId).ToList();
+            var selections = _lineup.Select(entry => (entry.UnitId, entry.SupportId)).ToList();
             _lineup.Clear();
-            foreach (int unitId in unitIds)
+            foreach ((int unitId, string supportId) in selections)
             {
-                AddHero(unitId);
+                AddHero(unitId, supportId);
             }
         }
 
@@ -331,7 +379,7 @@ namespace Managers
             data != null &&
             (data.canUseInInfinite || data.characterType == "Locked" ||
              SaveSystem.IsStarterUnlocked(data.id)) &&
-            SaveSystem.IsCharacterTrained(data.id);
+            SaveSystem.GetTrainedCharacterRecords(data.id).Count > 0;
 
         /// <summary>무한 모드에 쓸 수 있는 육성 완료 카드 수. 메인 메뉴가 무한 모드를 열지 정할 때 묻는다.</summary>
         public static int CountInfiniteEligibleCards(IEnumerable<UnitData> units) =>

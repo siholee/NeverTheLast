@@ -3,7 +3,7 @@
 > **3계층 문서.** 사건 데이터 스키마, 선택지 액션, VN 연출 필드, 인트로 시퀀스, 현재 사건 목록.
 > 개념 정의는 [서브 기획서](GDD_Sub_Concepts.md) 6장을 본다.
 
-최종 갱신: 2026-08-30
+최종 갱신: 2026-09-21
 관련 코드: `GameManager.cs`, `EventScheduler.cs`, `EventVisualNovelScreen.cs`, `UIManager.cs`, `AudioManager.cs`
 관련 데이터: `80_stages.yaml` (`events`), `00_intro.yaml`
 
@@ -92,6 +92,10 @@ events:
 (`GridManager.HasAvailableAllySlot()` — 대기석 5칸, 없으면 아군 필드 8칸).
 
 자리가 하나도 없으면 합류 대신 **떠나보낼 사람을 고르는 화면**이 열린다.
+
+같은 유닛이 이미 메인·필드·대기석 어디에든 있으면 영입 후보에서 제외한다. 예약 뒤 편성이
+바뀌거나 구버전 저장으로 선택지가 남아 있어도 선택 확정과 실제 스폰에서 다시 검사하여
+동일 캐릭터의 두 번째 합류를 허용하지 않는다.
 
 | 요소 | 내용 |
 | --- | --- |
@@ -430,7 +434,7 @@ B·C·D는 선택지가 하나뿐인 짧은 후속 대사다. 선택지를 하�
 | 공백 | 내용 |
 | --- | --- |
 | 🔴 전력 변화 사건 없음 | 네 사건 모두 `action: continue`뿐이다. `grantUnitId` · `grantItemId` · `grantPassiveCodeId` · `battle_*`가 **스키마에만 있고 데이터에 한 번도 쓰이지 않는다** |
-| 🔸 Locked 17인 중 13인 획득 불가 | 영입 경로가 생긴 것은 바스테트(122) · 호루스(120) · 세트(123) · 로키(82)뿐이다. 나머지 `characterType: Locked` 캐릭터는 여전히 편성 불가다 — [Design_Backlog](Design_Backlog.md) 항목 5·21 |
+| 🔸 획득 경로 없는 Locked 8인 | 바스테트(122)는 초기 메인, 오리온(22)은 초기 Support다. 경로 없는 Locked는 데모에서 `HasNoUnlockPath`로 임시 개방한다 — [Design_Backlog](Design_Backlog.md) 항목 5·21 |
 | 🔸 테마당 1개 고정 | 한 테마의 런에서는 늘 같은 사건이 나온다. 테마마다 둘 이상 두고 굴려야 반복이 줄어든다 |
 | 🔸 `randomSpeakers` 미사용 | 치환 기능이 구현되어 있으나 실제 데이터에 쓰이지 않는다 |
 | 🔸 사건 스케줄러 활용 | 보스 격파 예약과 슬롯 승리 예약(천공 체인·해안 예고)이 쓴다. 전투 도중 삽입 사례는 아직 없다 |

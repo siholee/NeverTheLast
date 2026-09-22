@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
@@ -75,6 +76,8 @@ namespace Entities
         public IReadOnlyList<int> CarriedItemIds => carriedItemIds;
         public IReadOnlyList<LearnedPassiveSaveData> LearnedPassiveRecords => learnedPassiveRecords;
         public IReadOnlyList<int> GrantedPassiveCodeIds => grantedPassiveCodeIds;
+        /// <summary>이번 런에서 이 유닛 대표로 편성한 육성 카드 ID.</summary>
+        public string SelectedSupportCardId { get; private set; }
         // 유닛 레벨. 적은 현재 스테이지가, 아군은 누적 EXP가 결정한다.
         public int Level { get => level; protected set => level = value; }
         // 레벨업 EXP 곡선: Lv N → N+1 에 필요한 EXP = Base + PerLevel × (N − 1)
@@ -448,6 +451,7 @@ namespace Entities
         // 이벤트
         private Dictionary<BaseEnums.UnitEventType, Delegate> _eventDict;
         private bool _resolvingDamageDealtEvent;
+        private float _activeUltimateDamageMultiplier = 1f;
         // OnDeath 리스너가 사망 칸이 비워진 뒤 실행해야 하는 작업(분열 등)을 한 번만 예약한다.
         private readonly List<Action> _postDeathActions = new();
 
@@ -772,6 +776,23 @@ namespace Entities
             AttributesUpdate();
             currentCell?.UpdateUI();
             return true;
+        }
+
+        /// <summary>
+        /// 발동하면서 소모되는 장비를 피해 이벤트 열거가 끝난 다음 프레임에 파괴한다.
+        /// 즉시 벗기면 현재 상태·리스너 컬렉션을 순회하는 도중 장비 패시브가 제거될 수 있다.
+        /// </summary>
+        internal void ScheduleEquippedItemDestruction(int itemId)
+        {
+            if (!IsEquipped(itemId)) return;
+            StartCoroutine(DestroyEquippedItemNextFrame(itemId));
+        }
+
+        private IEnumerator DestroyEquippedItemNextFrame(int itemId)
+        {
+            yield return null;
+            if (!TryUnequip(itemId, storeToCarried: false)) yield break;
+            Debug.Log($"[장비 파괴] {UnitName}의 {GetItemData(itemId)?.name ?? itemId.ToString()}이(가) 파괴되었습니다.");
         }
 
         /// <summary>이 유닛이 이 아이템을 장착 중인지.</summary>
@@ -1768,7 +1789,8 @@ namespace Entities
 
             // 같은 계열의 강화 등급을 이미 배웠으면 일반 등급은 발동하지 않는다.
             if (passiveCode.SupersededByCodeId > 0 &&
-                HasLearnedPassiveCode(passiveCode.SupersededByCodeId))
+                (HasLearnedPassiveCode(passiveCode.SupersededByCodeId) ||
+                 ItemPassiveCodes.Any(code => code?.CatalogId == passiveCode.SupersededByCodeId)))
             {
                 Debug.Log($"{UnitName}의 {passiveCode.CodeName}은(는) 강화 등급 코드에 대체되어 발동하지 않는다");
                 return;
@@ -1810,6 +1832,12 @@ namespace Entities
             }
 
             if (UltimateCode == null) return;
+            _activeUltimateDamageMultiplier = 1f;
+            foreach (var effect in ActiveEffectObjects().ToList())
+            {
+                _activeUltimateDamageMultiplier *= Mathf.Max(0f,
+                    effect.PrepareUltimateDamageMultiplier(this));
+            }
             if (!UltimateCode.ConsumesResourceOnResolve) ConsumeUltimateResource();
             // Cell의 통합 UI 시스템 사용
             RefreshView();
@@ -2561,6 +2589,8 @@ namespace Entities
         {
             if (saveData == null) return;
 
+            SelectedSupportCardId = saveData.selectedSupportId ?? "";
+
             foreach (int passiveCodeId in saveData.grantedPassiveCodeIds ?? new List<int>())
             {
                 GrantPermanentPassive(passiveCodeId);
@@ -2586,6 +2616,12 @@ namespace Entities
             ModifyHp(saveData.currentHP);
             ManaCurr = Mathf.Clamp(saveData.ultimateResource, 0, ManaMax);
             currentCell?.UpdateUI();
+        }
+
+        /// <summary>캐릭터 선택 화면 또는 합류 처리에서 이번 런의 대표 카드를 지정한다.</summary>
+        public void SelectSupportCard(string supportId)
+        {
+            SelectedSupportCardId = supportId ?? "";
         }
 
         /// <summary>
@@ -2931,6 +2967,8 @@ namespace Entities
         private int CalculateFinalDamage(DamageContext dmgCtx, float receivingDamageModifier)
         {
             float outgoingDamageModifier = Mathf.Max(0f, dmgCtx.OutgoingDamageMultiplier);
+            if (dmgCtx.CodeType == BaseEnums.CodeType.Ultimate)
+                outgoingDamageModifier *= Mathf.Max(0f, _activeUltimateDamageMultiplier);
             float defenseStatMultiplier = dmgCtx.DefenseStatMultiplier;
             int durabilityPenetration = Mathf.Max(0, dmgCtx.DurabilityPenetration);
 
@@ -3127,6 +3165,15 @@ namespace Entities
                 multiplier *= RunManager.Instance?.PartyTonics.Multiplier(stat) ?? 1f;
             }
 
+            return Mathf.Max(0, Mathf.RoundToInt(value * multiplier));
+        }
+
+        /// <summary>레벨·훈련·장비를 더하기 전, 캐릭터 정의의 초기 스탯에만 상태 배율을 적용한다.</summary>
+        internal int ApplyInitialPrimaryStatMultipliers(BaseEnums.PrimaryStat stat, int value)
+        {
+            float multiplier = 1f;
+            foreach (var effect in ActiveEffectObjects())
+                multiplier *= effect.InitialPrimaryStatMultiplierModifier(this, stat);
             return Mathf.Max(0, Mathf.RoundToInt(value * multiplier));
         }
 

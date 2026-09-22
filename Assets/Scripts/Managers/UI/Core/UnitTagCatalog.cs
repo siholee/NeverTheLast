@@ -36,12 +36,15 @@ namespace Managers.UI.Core
             new("Burst", "방출", "해당 유닛은 강력한 궁극기 위주의 전투 방식을 사용합니다.", "TAG_BURST"),
             new("Precision", "정밀", "해당 유닛은 지속적인 피해를 입힙니다.", "TAG_PRECISION"),
             new("FollowUp", "연속", "해당 유닛은 추가 행동을 주로 사용합니다.", "TAG_FOLLOW_UP"),
+            new("Swift", "신속", "해당 인물은 추가행동을 하거나, 추가행동을 지원하는데 특화되어 있습니다.", "TAG_SWIFT"),
             new("Support", "지원", "해당 유닛은 아군을 지원하는 데 특화되어 있습니다.", "TAG_SUPPORT"),
             new("Control", "제어", "해당 유닛은 적을 방해하고 약화하는 데 특화되어 있습니다.", "TAG_CONTROL"),
             new("Healing", "치유", "해당 유닛은 아군의 체력을 회복시킬 수 있습니다.", "TAG_HEALING"),
             new("Shielding", "방어", "해당 유닛은 아군에게 방어막을 부여할 수 있습니다.", "TAG_SHIELDING"),
             new("Infusion", "부여", "해당 유닛은 적에게 원소를 부여하는 데 특화되어 있습니다.", "TAG_INFUSION"),
             new("Sturdy", "견고", "해당 유닛은 매우 튼튼합니다.", "TAG_STURDY"),
+            new("Summon", "소환", "해당 유닛은 소환수와 관련된 능력을 보유하고 있습니다.", "TAG_SUMMON"),
+            new("Indomitable", "불굴", "해당 유닛은 자신의 체력을 자원으로 소모하거나 그와 연관되어 있습니다.", "TAG_INDOMITABLE"),
         };
 
         private static readonly Dictionary<string, Definition> ByKey = All.ToDictionary(

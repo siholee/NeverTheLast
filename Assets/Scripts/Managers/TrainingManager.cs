@@ -294,7 +294,7 @@ namespace Managers
         private static void RollPlacement(TrainingState state, Unit support)
         {
             BaseEnums.PrimaryStat specialty = GetSupportSpecialty(support);
-            SupportCardSaveData card = SaveSystem.GetSupportCard(support.ID);
+            SupportCardSaveData card = GetSelectedSupportRecord(support)?.supportCard;
             int specialtyRate = HasSupportCard(card)
                 ? Mathf.Clamp(card.specialtyRate, 0, 100)
                 : DefaultSpecialtyRate;
@@ -345,7 +345,7 @@ namespace Managers
             int bonus = 0;
             foreach (Unit support in GetSupportsOn(focus))
             {
-                SupportCardSaveData card = SaveSystem.GetSupportCard(support.ID);
+                SupportCardSaveData card = GetSelectedSupportRecord(support)?.supportCard;
                 bonus += HasSupportCard(card)
                     ? Mathf.Max(0, card.trainingBonus)
                     : SupportStatBonusPerUnit;
@@ -364,7 +364,7 @@ namespace Managers
             int bonus = 0;
             foreach (Unit support in GetSupportsOn(focus))
             {
-                SupportCardSaveData card = SaveSystem.GetSupportCard(support.ID);
+                SupportCardSaveData card = GetSelectedSupportRecord(support)?.supportCard;
                 if (HasSupportCard(card))
                 {
                     bonus += Mathf.Max(0, card.trainingBonus);
@@ -411,7 +411,7 @@ namespace Managers
         {
             if (support == null) return BaseEnums.PrimaryStat.STR;
 
-            SupportCardSaveData card = SaveSystem.GetSupportCard(support.ID);
+            SupportCardSaveData card = GetSelectedSupportRecord(support)?.supportCard;
             if (HasSupportCard(card)
                 && System.Enum.TryParse(card.specialtyTraining, true, out BaseEnums.PrimaryStat specialty))
             {
@@ -435,7 +435,7 @@ namespace Managers
                 return bond;
             }
 
-            SupportCardSaveData card = SaveSystem.GetSupportCard(support.ID);
+            SupportCardSaveData card = GetSelectedSupportRecord(support)?.supportCard;
             int initialBond = HasSupportCard(card) ? Mathf.Clamp(card.initialBond, 0, MaxBond) : 0;
             Bonds.Set(support.ID, initialBond);
             return initialBond;
@@ -531,12 +531,15 @@ namespace Managers
         }
 
         /// <summary>
-        /// 카피바라(109) — 필드의 아군이 들고 있으면 우정도 획득이 늘어난다.
-        /// 여러 명이 들어도 가장 큰 하나만 센다.
+        /// 카피바라(109)와 금색 상위 가정 신의 가호(139) — 필드의 아군이 들고 있으면
+        /// 우정도 획득이 늘어난다. 여러 명이 들어도 가장 큰 하나만 센다.
         /// </summary>
         private static float BondGainMultiplier()
-            => 1f + FieldPassiveBonus(code => code is Codes.Passive.ChandraCapybara,
-                Codes.Passive.ChandraCapybara.BondBonus);
+            => 1f + Mathf.Max(
+                FieldPassiveBonus(code => code is Codes.Passive.JasonHouseholdBlessing,
+                    Codes.Passive.JasonHouseholdBlessing.BondBonus),
+                FieldPassiveBonus(code => code is Codes.Passive.ChandraCapybara,
+                    Codes.Passive.ChandraCapybara.BondBonus));
 
         /// <summary>
         /// 봉우(108)와 그 상위 미트라(113) — 우정 훈련이 터졌을 때의 보너스를 키운다.
@@ -572,8 +575,37 @@ namespace Managers
         /// <summary>예전 이름. 화면 코드가 쓰던 진입점이라 남겨 둔다.</summary>
         public static int GetFocusStatGain(BaseEnums.PrimaryStat focus) => GetProjectedGain(focus);
 
-        /// <summary>이 훈련에 드는 체력. 음수면 회복이다.</summary>
-        public static int GetEnergyCost(BaseEnums.PrimaryStat focus) => GetOption(focus).EnergyCost;
+        /// <summary>
+        /// 이 훈련에 드는 체력. 음수면 회복이다. 그 훈련에 앉은 서포트 카드의
+        /// 체력 소모 감소를 반영하므로 화면 예측과 실제 결산이 같은 값을 쓴다.
+        /// </summary>
+        public static int GetEnergyCost(BaseEnums.PrimaryStat focus)
+            => EnergyCostFor(GetOption(focus).EnergyCost, GetSupportsOn(focus));
+
+        private static int EnergyCostFor(int baseCost, IEnumerable<Unit> supports)
+        {
+            if (baseCost <= 0) return baseCost;
+
+            float multiplier = 1f;
+            foreach (Unit support in supports)
+            {
+                if (support == null) continue;
+                multiplier *= CodeTrainingCostMultiplier(support);
+            }
+            return Mathf.Max(0, Mathf.RoundToInt(baseCost * multiplier));
+        }
+
+        private static float CodeTrainingCostMultiplier(Unit owner)
+        {
+            float multiplier = 1f;
+            foreach (Codes.Base.PassiveCode code in owner.ActivePassiveCodes)
+            {
+                if (code == null) continue;
+                if (code.SupersededByCodeId > 0 && owner.HasLearnedPassiveCode(code.SupersededByCodeId)) continue;
+                multiplier *= Mathf.Max(0f, code.SupportTrainingEnergyCostMultiplier);
+            }
+            return multiplier;
+        }
 
         /// <summary>성공률(%). 화면에는 실패율보다 이쪽을 크게 보여 준다.</summary>
         public static int GetSuccessRate(BaseEnums.PrimaryStat focus) => 100 - GetFailureRate(focus);
@@ -587,10 +619,23 @@ namespace Managers
             if (GetOption(focus).EnergyCost <= 0) return 0;
 
             int energy = State.Energy;
-            if (energy >= 60) return 0;
-            if (energy >= 30) return Mathf.RoundToInt((60 - energy) * 0.6f);
+            int baseRate;
+            if (energy >= 60) baseRate = 0;
+            else if (energy >= 30) baseRate = Mathf.RoundToInt((60 - energy) * 0.6f);
+            else baseRate = Mathf.Min(85, Mathf.RoundToInt(18 + (30 - energy) * 1.6f));
 
-            return Mathf.Min(85, Mathf.RoundToInt(18 + (30 - energy) * 1.6f));
+            float multiplier = 1f;
+            foreach (Unit support in GetSupportsOn(focus))
+            {
+                if (support == null) continue;
+                foreach (Codes.Base.PassiveCode code in support.ActivePassiveCodes)
+                {
+                    if (code == null) continue;
+                    if (code.SupersededByCodeId > 0 && support.HasLearnedPassiveCode(code.SupersededByCodeId)) continue;
+                    multiplier *= Mathf.Max(0f, code.SupportTrainingFailureRateMultiplier);
+                }
+            }
+            return Mathf.Clamp(Mathf.RoundToInt(baseRate * multiplier), 0, 85);
         }
 
         /// <summary>
@@ -635,10 +680,22 @@ namespace Managers
         {
             TrainingState state = State;
             if (state.IsConditionBest) return false;
-            if (Random.Range(0, 100) >= RestConditionUpChance) return false;
+            int chance = GetRestConditionUpChance();
+            if (Random.Range(0, 100) >= Mathf.Clamp(chance, 0, 100)) return false;
 
             state.ImproveCondition();
             return true;
+        }
+
+        /// <summary>활성 파티에 재충전 보유자가 있으면 휴식 컨디션 상승 확률을 한 번만 더한다.</summary>
+        public static int GetRestConditionUpChance()
+        {
+            bool hasRecharge = GridManager.Instance?.heroList.Any(hero =>
+                hero != null && hero.isActive && !hero.IsEnemy &&
+                hero.HasLearnedPassiveCode(Codes.Passive.GaudiPassiveIds.Recharge)) == true;
+            return Mathf.Clamp(RestConditionUpChance + (hasRecharge
+                ? Codes.Passive.GaudiRecharge.ConditionChanceBonus
+                : 0), 0, 100);
         }
 
         /// <summary>
@@ -762,7 +819,9 @@ namespace Managers
             int failureRate = GetFailureRate(focus);
             bool failed = Random.Range(0, 100) < failureRate;
 
-            int energySpent = option.EnergyCost + (failed ? FailureEnergyPenalty : 0);
+            int energySpent = EnergyCostFor(option.EnergyCost,
+                rolls.Where(roll => roll.Appeared).Select(roll => roll.Support))
+                + (failed ? FailureEnergyPenalty : 0);
             state.SpendEnergy(energySpent);
 
             Unit main = GetMainUnit();
@@ -827,7 +886,7 @@ namespace Managers
             var rolls = new List<SupportTrainingRoll>();
             foreach (Unit support in GetSupportUnits())
             {
-                TrainedCharacterRecord record = SaveSystem.GetTrainedCharacterRecord(support.ID);
+                TrainedCharacterRecord record = GetSelectedSupportRecord(support);
                 SupportCardSaveData card = record?.supportCard;
                 bool hasCard = HasSupportCard(card);
                 bool specialtyMatch = hasCard && IsCardSpecialty(card, focus);
@@ -888,6 +947,16 @@ namespace Managers
             }
 
             return rolls;
+        }
+
+        /// <summary>
+        /// 편성 화면에서 고른 카드 한 장을 사용한다. 구버전 런처럼 선택 ID가 없으면 최신 카드를 쓴다.
+        /// </summary>
+        private static TrainedCharacterRecord GetSelectedSupportRecord(Unit support)
+        {
+            return support == null
+                ? null
+                : SaveSystem.GetTrainedCharacterRecord(support.ID, support.SelectedSupportCardId);
         }
 
         private static BaseEnums.PrimaryStat GetHighestPrimaryStat(Unit unit)

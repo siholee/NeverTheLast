@@ -11,10 +11,15 @@ namespace Codes.Normal
 {
     public sealed class OrionNormalAttack : BaseNormalCode
     {
+        private const int FlatDamagePower = 40;
+        private const float StrCoefficient = 0.9f;
+
         public OrionNormalAttack(NormalCodeContext context) : base(context)
         {
             CodeName = "일반행동";
-            Power = 90;
+            Power = FlatDamagePower;
+            PowerStatCoefficient = StrCoefficient;
+            PowerStat = BaseEnums.PrimaryStat.STR;
             CodeTags = new List<int> { DamageTag.Physical };
         }
 

@@ -59,6 +59,12 @@ namespace Managers.UI.DevTools
         private GameManager game;
         private GridManager grid;
         private int _mainUltimateCasts;
+        private long _mainCounterDamage;
+        private long _mainNormalDamage;
+        private long _mainUltimateDamage;
+        private long _mainOtherDamage;
+        private long _partyDamage;
+        private float _totalBattleSeconds;
         private int _stageUltimateStart;
         private RunReport _auditReport;
         private StageRecord _auditStage;
@@ -122,6 +128,18 @@ namespace Managers.UI.DevTools
             public int rests;
             public int skillsLearned;
             public int mainUltimateCasts;
+            public long mainCounterDamage;
+            public long mainNormalDamage;
+            public long mainUltimateDamage;
+            public long mainOtherDamage;
+            public long mainDamage;
+            public long partyDamage;
+            public float battleSeconds;
+            public float mainDpm;
+            public float partyDpm;
+            public float mainCounterDamagePercent;
+            public float mainNormalDamagePercent;
+            public float mainUltimateDamagePercent;
             public int sabahDebuffResource;
             public int sabahSuperconductResource;
             public int sabahDamageOverTimeResource;
@@ -182,16 +200,26 @@ namespace Managers.UI.DevTools
                 var report = new RunReport { seed = seed, invincible = _invincible };
                 float started = Time.realtimeSinceStartup;
                 _mainUltimateCasts = 0;
+                _mainCounterDamage = 0;
+                _mainNormalDamage = 0;
+                _mainUltimateDamage = 0;
+                _mainOtherDamage = 0;
+                _partyDamage = 0;
+                _totalBattleSeconds = 0f;
                 Action<Unit> ultimateHandler = unit =>
                 {
                     if (unit != null && !unit.IsEnemy && unit.ID == MainId) _mainUltimateCasts++;
                 };
+                Action<DamageResolvedContext> damageHandler = RecordMainDamage;
                 Unit.AnyActiveUltimateActivated += ultimateHandler;
+                Unit.AnyDamageDealt += damageHandler;
                 BeginElementAudit(report);
                 yield return RunOne(report);
                 FinishElementAudit(report);
                 Unit.AnyActiveUltimateActivated -= ultimateHandler;
+                Unit.AnyDamageDealt -= damageHandler;
                 report.mainUltimateCasts = _mainUltimateCasts;
+                FinishMainDamageAudit(report);
                 report.realSeconds = Time.realtimeSinceStartup - started;
 
                 string path = Path.Combine(ReportDir, $"run_{seed}.json");
@@ -199,6 +227,8 @@ namespace Managers.UI.DevTools
                 string line = $"seed={seed}{(_invincible ? " [무적]" : "")} reached={report.reachedStage} life={report.finalLife} gameOver={report.gameOver} " +
                               $"end={report.endReason} trainings={report.trainings} rests={report.rests} skills={report.skillsLearned} " +
                               $"mainUlts={report.mainUltimateCasts} elem/stage={report.elementalApplicationsPerBattleStage:0.00} " +
+                              $"mainDmg(P/N/U)={report.mainCounterDamagePercent:0.0}/{report.mainNormalDamagePercent:0.0}/{report.mainUltimateDamagePercent:0.0}% " +
+                              $"partyDpm={report.partyDpm:0} mainDpm={report.mainDpm:0} " +
                               $"superconduct={report.superconductReactions} " +
                               $"real={report.realSeconds:0}s";
                 summary.Add(line);
@@ -212,6 +242,46 @@ namespace Managers.UI.DevTools
             Running = false;
         }
 
+        private void RecordMainDamage(DamageResolvedContext context)
+        {
+            if (context?.Attacker == null || context.Target == null || !context.Target.IsEnemy ||
+                context.Attacker.IsEnemy || context.DamageDealt <= 0) return;
+
+            _partyDamage += context.DamageDealt;
+            if (context.Attacker.ID != MainId) return;
+
+            List<int> tags = context.DamageContext?.DamageTags;
+            if (tags?.Contains(DamageTag.CounterAttack) == true)
+                _mainCounterDamage += context.DamageDealt;
+            else if (context.DamageContext?.CodeType == CodeType.Normal)
+                _mainNormalDamage += context.DamageDealt;
+            else if (context.DamageContext?.CodeType == CodeType.Ultimate)
+                _mainUltimateDamage += context.DamageDealt;
+            else
+                _mainOtherDamage += context.DamageDealt;
+        }
+
+        private void FinishMainDamageAudit(RunReport report)
+        {
+            report.mainCounterDamage = _mainCounterDamage;
+            report.mainNormalDamage = _mainNormalDamage;
+            report.mainUltimateDamage = _mainUltimateDamage;
+            report.mainOtherDamage = _mainOtherDamage;
+            report.mainDamage = _mainCounterDamage + _mainNormalDamage + _mainUltimateDamage + _mainOtherDamage;
+            report.partyDamage = _partyDamage;
+            report.battleSeconds = _totalBattleSeconds;
+            if (_totalBattleSeconds > 0f)
+            {
+                report.mainDpm = report.mainDamage * 60f / _totalBattleSeconds;
+                report.partyDpm = report.partyDamage * 60f / _totalBattleSeconds;
+            }
+            long classified = _mainCounterDamage + _mainNormalDamage + _mainUltimateDamage;
+            if (classified <= 0) return;
+            report.mainCounterDamagePercent = _mainCounterDamage * 100f / classified;
+            report.mainNormalDamagePercent = _mainNormalDamage * 100f / classified;
+            report.mainUltimateDamagePercent = _mainUltimateDamage * 100f / classified;
+        }
+
         private IEnumerator RunOne(RunReport report)
         {
             SabahDebuffHunter.ResetAuditCounters();
@@ -222,6 +292,17 @@ namespace Managers.UI.DevTools
             // 해금·완주 기록은 빈 계정에서 출발해야 이 런이 만든 것만 남는다.
             // 디버그 저장소는 읽기가 copy-on-write라, 시드하지 않으면 실제 세이브가 비쳐 든다.
             SaveSystem.SeedEmptyDebugAccount();
+
+            // 같은 Game 씬을 즉시 다시 로드하면 이전 씬의 Destroy 예약 객체와 새 싱글턴이 한 프레임
+            // 겹칠 수 있다. 전체 시스템 검증과 같은 방식으로 메뉴 씬을 거쳐 런 수명을 완전히 끊는다.
+            if (GameManager.Instance != null)
+            {
+                GameManager.LoadMainMenuScene();
+                float cleanupDeadline = Time.realtimeSinceStartup + 30f;
+                while (GameManager.Instance != null && Time.realtimeSinceStartup < cleanupDeadline) yield return null;
+                yield return null;
+            }
+
             GameStartIntent.Current = GameStartIntent.Intent.NewGame;
             GameManager.LoadBattleScene();
 
@@ -333,7 +414,7 @@ namespace Managers.UI.DevTools
 
                     case GameState.TrainingPhase:
                         // 사건·보상 뒤에 훈련 화면이 남아 있으면 결과를 확정한다.
-                        game.CompleteTrainingPhaseWithFocus(PrimaryStat.STR);
+                        game.CompleteTrainingPhaseWithFocus(PickFocus());
                         game.CompleteTrainingResult();
                         break;
                 }
@@ -551,6 +632,7 @@ namespace Managers.UI.DevTools
         private IEnumerator WaitWhileBattle(StageRecord record = null)
         {
             float deadline = Time.realtimeSinceStartup + 300f;
+            float battleStarted = Time.time;
             var startEnemies = Enemies;
             // 사바흐 회귀 검증에서는 피그말리온 궁극기를 즉시 열어 실제 반격 화상과
             // 지속피해 틱이 아즈라엘을 채우는 전투 이벤트 경로를 짧게 재현한다.
@@ -596,6 +678,7 @@ namespace Managers.UI.DevTools
                 Debug.LogWarning("[BalanceSim] 전투가 실시간 300초를 넘어 패배로 끝낸다");
                 game.DebugEndBattle(false);
             }
+            _totalBattleSeconds += Mathf.Max(0f, Time.time - battleStarted);
         }
 
         // ── 사건 ─────────────────────────────────────────────────────

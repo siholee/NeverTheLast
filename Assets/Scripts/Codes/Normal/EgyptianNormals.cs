@@ -76,15 +76,15 @@ namespace Codes.Normal
         };
     }
 
-    /// <summary>바스테트 N — DEX×0.8 물리·접촉·베기.</summary>
+    /// <summary>바스테트 N — DEX 기반 위력 50의 물리·접촉·베기.</summary>
     public sealed class BastetNormalAttack : BaseNormalCode
     {
         public BastetNormalAttack(NormalCodeContext context) : base(context)
-        { CodeName = "일반행동"; Power = 80; }
+        { CodeName = "일반행동"; Power = 50; }
 
         protected override int CalculateDamage(float critMultiplier)
             => Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(80, BaseEnums.PrimaryStat.DEX) * critMultiplier));
+                Caster.SkillDamage(50, BaseEnums.PrimaryStat.DEX) * critMultiplier));
 
         protected override List<int> GetDamageTags() => new()
         {

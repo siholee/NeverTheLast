@@ -50,6 +50,10 @@ namespace Codes.Base
         119 => new Inspiration(context),        // 영감 — 서포트 힌트 발생률 +50%
         14 => new SkilledInstructor(context),   // 숙련된 조교 — 배치된 훈련 효율 +10%        // 세이 초기 패시브 — 빅뱅
         204 => new GaudiSagradaFamilia(context), // 가우디 초기 패시브 — 사그리다 파밀리아
+        133 => new GaudiInfuser(context),
+        134 => new GaudiNatureUnderstanding(context),
+        135 => new GaudiRecharge(context),
+        136 => new GaudiHacker(context),
         205 => new LightGreatFlight(context), // 라이트 초기 패시브 — 위대한 비행
         206 => new NicoleElectricField(context), // 니콜 초기 패시브 — 일렉트릭 필드
         207 => new JeanBestDefense(context),  // 잔 초기 패시브 — 최고의 방어
@@ -393,6 +397,16 @@ namespace Codes.Base
         442 => new BarnacleShellItemPassive(context),
         443 => new DyingEmbersItemPassive(context),
         444 => new FracturedAnkhItemPassive(context),
+        445 => new ConquestItemPassive(context),
+        446 => new BombardMeItemPassive(context),
+        447 => new GuardianTalismanItemPassive(context),
+        448 => new HeavenlyFruitItemPassive(context),
+        449 => new SpiritBlessingRingItemPassive(context),
+        450 => new KittyHawkMiracleItemPassive(context),
+        451 => new AlternatingCurrentDeviceItemPassive(context),
+        452 => new WinterTriangleItemPassive(context),
+        453 => new IliadItemPassive(context),
+        454 => new GoldenFleeceItemPassive(context),
         431 => new SceptreOfAmunItemPassive(context),
         // ── 사바흐·이카리아 ──
         203 => new SabahDebuffHunter(context),
@@ -405,6 +419,14 @@ namespace Codes.Base
         99 => new MarieNobleBloodline(context),
         100 => new MarieOfficer(context),
         101 => new MarieArcDeTriomphe(context),
+        132 => new MarieCaring(context),
+        // ── 라이트 훈련·소환 지원 ──
+        137 => new LightGrit(context),
+        138 => new LightSummoner(context),
+        // ── 이아손 ──
+        303 => new JasonArgonautResponse(context),
+        139 => new JasonHouseholdBlessing(context),
+        141 => new JasonGunner(context),
         // ── 로마 (레기온) ──
         1218 => new NightRaid(context),
         83 => new Charisma(context),
@@ -460,6 +482,7 @@ namespace Codes.Base
         66 => new VarunaNormalAttack(context),
         42 => new SusanooNormalAttack(context),
         43 => new SeimeiSealTalisman(context),
+        103 => new JasonNormalAttack(context),
         25 => new OrpheusNormalAttack(context),
         140 => new QuetzalcoatlBall(context),
         22 => new OrionNormalAttack(context),
@@ -573,6 +596,7 @@ namespace Codes.Base
         65 => new KuberaGoldRush(context),      // 쿠베라 — 광역 + 물리 취약 + 골드
         66 => new VarunaTide(context),          // 바루나 — 아군 전체 치유·정화
         67 => new SuryaIlcheon(context),        // 수리야 — 중첩을 태우지 않는 10발
+        103 => new JasonArgonautSupport(context), // 이아손 — 궁극기 반응 추가행동
         _ => null,
       };
     }
@@ -628,6 +652,7 @@ namespace Codes.Base
         100 => new LegionUltimate(context, LegionUltimateStyle.Agrippa),
         101 => new LegionUltimate(context, LegionUltimateStyle.Octavia),
         102 => new LegionUltimate(context, LegionUltimateStyle.Caesar),
+        103 => new JasonArgoDeparture(context),
         >= 1200 and <= 1211 => new LegionUltimate(
           context,
           (LegionUltimateStyle)(codeId - 1200)),
