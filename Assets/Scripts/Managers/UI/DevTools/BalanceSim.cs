@@ -316,6 +316,9 @@ namespace Managers.UI.DevTools
 
             var selection = CharacterSelectionManager.Instance;
             selection.ClearLineup();
+            // 명시 편성 시뮬레이션은 아직 해금하지 않은 신규 메인도 검증할 수 있어야 한다.
+            // DebugMode 세션의 격리 저장에만 기록되므로 실제 사용자 해금 상태에는 닿지 않는다.
+            if (Lineup.Length > 0) SaveSystem.AddStarterUnlock(MainId);
             foreach (int id in Lineup)
             {
                 if (!selection.AddHero(id)) { report.endReason = "lineup rejected " + id; yield break; }

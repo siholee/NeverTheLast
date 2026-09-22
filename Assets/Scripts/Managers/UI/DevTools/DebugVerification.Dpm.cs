@@ -8,6 +8,7 @@ using System.Reflection;
 using BaseClasses;
 using Codes.Base;
 using Codes.Normal;
+using Codes.Ultimate;
 using Combat;
 using Core;
 using Effects.Buffs;
@@ -265,11 +266,35 @@ namespace Managers.UI.DevTools
                 octavia.ActiveStatuses.Count(status => status.Key == "jason_argonaut_support_stack"));
 
             int intBefore = octavia.GetBaseInt();
-            int expectedIntBonus = Mathf.FloorToInt(jason.GetBaseInt() * 0.5f);
+            // 20배속에서는 시전 연출 중에도 여러 턴이 지나 2턴 상태가 검증 전에 만료될 수 있다.
+            DebugMode.SetTimeScale(1f);
             jason.FillUltimateResource(false);
             jason.CastUltimateCode();
-            yield return Settle(1.2f);
-            Equal("Jason ultimate grants half INT", intBefore + expectedIntBonus, octavia.GetBaseInt());
+            float ultimateTimeout = Time.realtimeSinceStartup + 5f;
+            while (jason.isCasting && Time.realtimeSinceStartup < ultimateTimeout)
+                yield return null;
+            yield return null;
+            DebugMode.SetTimeScale(20f);
+            JasonGrantedIntEffect octaviaGrant = octavia.ActiveStatuses
+                .Where(status => status.Key == "jason_argo_departure_int")
+                .SelectMany(status => status.Effects)
+                .Select(instance => instance.EffectObject)
+                .OfType<JasonGrantedIntEffect>()
+                .FirstOrDefault();
+            JasonGrantedIntEffect selfGrant = jason.ActiveStatuses
+                .Where(status => status.Key == "jason_argo_departure_int")
+                .SelectMany(status => status.Effects)
+                .Select(instance => instance.EffectObject)
+                .OfType<JasonGrantedIntEffect>()
+                .FirstOrDefault();
+            int grantedInt = octaviaGrant?.Amount ?? 0;
+            jason.RemoveStatusByKey("jason_argo_departure_int");
+            int sourceInt = jason.GetBaseInt();
+            Equal("Jason ultimate snapshots half source INT", Mathf.FloorToInt(sourceInt * 0.5f), grantedInt);
+            Assert("Jason ultimate grants recorded INT",
+                selfGrant != null && octaviaGrant != null && grantedInt > 0 && octavia.GetBaseInt() > intBefore,
+                "positive matching status and increased target INT",
+                $"self={selfGrant?.Amount ?? 0}/target={grantedInt}/INT={intBefore}->{octavia.GetBaseInt()}");
         }
 
         private IEnumerator MeasurePartyDpm(

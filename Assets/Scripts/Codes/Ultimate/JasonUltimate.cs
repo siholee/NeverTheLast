@@ -50,15 +50,10 @@ namespace Codes.Ultimate
                 }, isCrit));
             }
 
-            // 자기 자신도 이 버프를 받으므로 현재 표시 INT를 그대로 다시 읽으면 시전할 때마다
-            // 이전 아르고 버프가 복리로 불어난다. 같은 키의 기존 부여분만 제외하고 새 값을 계산한다.
-            int previousArgoBonus = Caster.ActiveStatuses
-                .Where(status => status.Key == "jason_argo_departure_int")
-                .SelectMany(status => status.Effects)
-                .Select(instance => instance.EffectObject)
-                .OfType<JasonGrantedIntEffect>()
-                .Sum(effect => effect.Amount);
-            int sourceInt = Mathf.Max(0, Caster.GetBaseInt() - previousArgoBonus);
+            // 자기 자신도 이 버프를 받는다. 표시 INT에서 원시 가산값을 빼면 각종 % 스탯 배율 때문에
+            // 정확한 원래 INT로 돌아가지 않으므로, 이전 아르고 버프를 먼저 제거하고 새 값을 스냅샷한다.
+            Caster.RemoveStatusByKey("jason_argo_departure_int");
+            int sourceInt = Mathf.Max(0, Caster.GetBaseInt());
             int intBonus = Mathf.Max(0, Mathf.FloorToInt(sourceInt * 0.5f));
             foreach (Unit ally in Combat.CombatTargets.AliveAlliesIncludingSelf(Caster))
             {
