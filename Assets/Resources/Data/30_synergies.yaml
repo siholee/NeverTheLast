@@ -113,7 +113,7 @@ trainerCoverage:
   STR: [7]                                  # 잔
   DEX: [100]                                # 아그리파
   CON: [5, 60, 64, 65, 66, 81, 83, 125]     # 라이트·찬드라·바유·쿠베라·바루나·프레이아·스카디·이시스
-  INT: [1, 4, 6, 62, 124]                   # 세이·가우디·니콜·아그니·토트
+  INT: [1, 4, 6, 9, 62, 124]                # 세이·가우디·니콜·위고·아그니·토트
   LUK: [25, 103, 160]                       # 오르페우스·이아손·마리
 
 # ══════════════════════════════════════════════════════════════════════
@@ -178,6 +178,25 @@ units:
       - key: SUMMON_AMP
         text: "Lv.32부터 모든 아군 소환수 피해 +10%. 여러 소환술사가 중첩"
     wants: [BURST, ULT_BATTERY]
+
+  - id: 9
+    name: 위고
+    type: Support
+    element: Hydro
+    mainStat: INT
+    topStat: INT
+    row: Rear
+    roles: [HEAL, SUMMON, AMP_SUMMON]
+    supportValue: { combat: 4, training: 3 }
+    provides:
+      - key: ENSEMBLE
+        text: "군상극이 기본 소환수 피해 +1%를 주고, 아군 소환마다 전투 중 +1%를 누적한다"
+      - key: PENSEE
+        text: "팡세가 체력이 낮은 아군을 크게 치유하고 궁극기로 3턴간 받는 피해를 25% 줄인다"
+      - key: PARTY_HEAL
+        text: "일반행동마다 아군 전체를 100 + CON×0.5 치유한다"
+    wants: [SUMMON]
+    caution: "소환수가 적은 편성에서는 군상극과 레미제라블의 고점이 낮다"
     caution: "두 명 이상의 방출 딜러에게 특히 유리하다. 궁극기가 아군의 모든 원소를 먼저 제거하므로 세이의 창세 바위·자기 부착 반응 빌드와 충돌한다"
 
   - id: 6
@@ -530,7 +549,7 @@ units:
 
   - id: 121
     name: 아누비스
-    type: Starter
+    type: Support
     element: Geo
     mainStat: CON
     topStat: CON
@@ -677,7 +696,7 @@ units:
     wants: [CONTROL]
 
   - id: 43
-    name: 아베노 세이메이
+    name: 세이메이
     type: Locked
     element: Anemo
     mainStat: CON
@@ -915,6 +934,23 @@ units:
     wants: [AMP_CRIT, ULT_BATTERY]
     caution: "시구르드가 없으면 공명과 협공이 전부 잠긴다"
 
+  - id: 180
+    name: 우사
+    type: Starter
+    element: Anemo
+    mainStat: INT
+    topStat: INT
+    row: Rear
+    roles: [DPS_ST, SUMMON, EXTRA_ACT]
+    supportValue: { combat: 4, training: 2 }
+    provides:
+      - key: CLONES
+        text: "분신을 최대 3기까지 불러 각자 행동시키고, 피격 한 번을 분신 하나로 완전히 무효화한다"
+      - key: CLONE_RALLY
+        text: "궁극기로 분신을 강화하고 즉시 추가행동을 예약한다"
+    wants: [HEAL, SHIELD, AMP_SUMMON]
+    caution: "분신이 모두 사라진 뒤에는 피격 무효화가 작동하지 않는다"
+
 # ══════════════════════════════════════════════════════════════════════
 # 3. 아키타입 — 조합이 성립하는 아홉 갈래
 # ══════════════════════════════════════════════════════════════════════
@@ -1017,6 +1053,24 @@ archetypes:
 #    members는 서포트 4명. 순서가 곧 우선순위다.
 # ══════════════════════════════════════════════════════════════════════
 recommendations:
+  - mainId: 180
+    mainName: 우사
+    starterRecommended: true
+    axis: "분신 다수 운용 · 소환수 피해 증폭"
+    best:
+      archetype: SUMMON
+      members: [1, 121, 5, 9]
+      rows: { 180: Rear, 1: Rear, 121: Front, 5: Rear, 9: Rear }
+      reason: >
+        세이가 보호막과 추가타를, 아누비스가 소환수 소멸을 영혼으로 바꾸고, 라이트와 위고가
+        이중 치유와 소환수 피해 증폭을 맡는다. 분신·플라이어·팡세를 계속 꺼내 군상극을 빠르게 쌓는다.
+    basic:
+      archetype: SUMMON
+      members: [1, 121, 5, 9]
+      rows: { 180: Rear, 1: Rear, 121: Front, 5: Rear, 9: Rear }
+      reason: "세이·아누비스·라이트·위고로 보호막, 전열, 이중 치유와 소환 증폭을 모두 갖춘 입문 편성이다."
+    warning: "분신이 피격을 대신 받는 것이 아니라 한 기를 소모해 우사에게 들어올 타격 자체를 0으로 만든다."
+
   # ── STR 메인 ───────────────────────────────────────────────────────
   - mainId: 122
     mainName: 바스테트
@@ -1389,7 +1443,7 @@ recommendations:
 
   # ── 최근 합류 메인 ───────────────────────────────────
   - mainId: 43
-    mainName: 아베노 세이메이
+    mainName: 세이메이
     axis: "보호막 관통 · 기절과 에어본 제어"
     best:
       archetype: FORTRESS

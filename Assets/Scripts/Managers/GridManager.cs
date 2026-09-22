@@ -1238,6 +1238,8 @@ namespace Managers
 
             summon.currentCell = null;   // 칸을 차지하지 않는다
             summon.SpawnAsSummon(owner, spec);
+            if (!owner.IsEnemy && GameManager.Instance?.gameState == BaseEnums.GameState.RoundInProgress)
+                Core.SaveSystem.RecordCombatSummon();
             Entities.View.SummonCardView.Attach(summon, owner);
             Debug.Log($"[소환] {owner.UnitName}이(가) {spec.Name}을(를) 불러냈다");
             return summon;

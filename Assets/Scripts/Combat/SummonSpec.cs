@@ -65,6 +65,10 @@ namespace Combat
         public const int FlyerNormalCodeId = 500;
         public const int FlyerUltimateCodeId = 500;
         public const int FenrirNormalCodeId = 501;
+        public const int CloneNormalCodeId = 502;
+        public const int CloneUltimateCodeId = 502;
+        public const int PenseeNormalCodeId = 503;
+        public const int PenseeUltimateCodeId = 503;
 
         /// <summary>라이트의 플라이어. 소환 시점 라이트 능력치의 50%를 물려받는다.</summary>
         public static SummonSpec Flyer(Unit owner) => new()
@@ -76,6 +80,36 @@ namespace Combat
             NormalCodeId = FlyerNormalCodeId,
             UltimateCodeId = FlyerUltimateCodeId,
             Portrait = "FLYER_PORTRAIT",
+            LifetimeTurns = 3,
+        };
+
+        /// <summary>
+        /// 우사의 분신. 여러 기를 동시에 거느리되, 입문 편성이 초반 적 수 증가를 따라갈 수 있도록
+        /// 본체 능력치를 그대로 물려받는다.
+        /// 수명이 없어 흩어지기 전까지 남고, 치명적인 피해를 막는 데 대신 쓰인다.
+        /// </summary>
+        public static SummonSpec Clone(Unit owner) => new()
+        {
+            Name = "분신",
+            StatRatio = 1f,
+            MainStat = BaseEnums.PrimaryStat.INT.ToString(),
+            Element = owner != null ? owner.Element : "Anemo",
+            NormalCodeId = CloneNormalCodeId,
+            UltimateCodeId = CloneUltimateCodeId,
+            Portrait = "CLONE_PORTRAIT",
+            LifetimeTurns = 0,       // 흩어질 때까지
+        };
+
+        /// <summary>위고의 팡세. 3턴 동안 가장 약한 아군을 돌보고 피해 경감 궁극기를 사용한다.</summary>
+        public static SummonSpec Pensee(Unit owner) => new()
+        {
+            Name = "팡세",
+            StatRatio = 0.5f,
+            MainStat = BaseEnums.PrimaryStat.INT.ToString(),
+            Element = owner != null ? owner.Element : "Hydro",
+            NormalCodeId = PenseeNormalCodeId,
+            UltimateCodeId = PenseeUltimateCodeId,
+            Portrait = "PENSEE_PORTRAIT",
             LifetimeTurns = 3,
         };
 

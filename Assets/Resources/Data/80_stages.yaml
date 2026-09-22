@@ -737,7 +737,7 @@ stageThemes:
   #   9    최종전 전 복합전.
   #   10   심연의 집정관 — 6구간마다 다시 두르는 갑주와 대호흡 뒤의 해일.
   #
-  # 1슬롯을 이기면 아베노 세이메이 합류 사건이 예약된다 — 아군 전체 방어막 관통이 갑주의 두 번째 해법이다.
+  # 1슬롯을 이기면 세이메이 합류 사건이 예약된다 — 아군 전체 방어막 관통이 갑주의 두 번째 해법이다.
   # 원소를 붙이는 적은 Lv40까지 무뎌진 무기(반응 절반·빙결 1턴)를 들고, Lv41부터 온전한 무기로 갈아 든다.
   - id: 20
     name: 해안 전선
@@ -1320,11 +1320,11 @@ events:
     dialogue:
       - speaker: 일행
         text: 쓰러진 공허의 기사 곁 모래 위에 종이 부적 몇 장이 꽂혀 있다. 밀려온 파도가 부적 앞에서만 둘로 갈라진다.
-      - speaker: 아베노 세이메이
+      - speaker: 세이메이
         text: 결계가 버텨 준 덕에 한숨 돌렸군요. 저것들은 선발대입니다. 뒤따라오는 것들은 갑주를 두르고 올라옵니다.
         portrait: SEIMEI_PORTRAIT
         standing: SEIMEI_STANDING
-      - speaker: 아베노 세이메이
+      - speaker: 세이메이
         text: 갑주는 멈춰 세우면 벗겨지지만, 매번 멈출 수는 없겠지요. 그럴 때는 제가 틈을 엽니다. 제가 서 있는 동안은 여러분의 칼끝이 껍질을 지나갈 겁니다.
         portrait: SEIMEI_PORTRAIT
         standing: SEIMEI_STANDING
@@ -1334,7 +1334,7 @@ events:
         action: continue
         grantUnitId: 43
         rosterFullText: 자리가 없다. 세이메이를 맞이하려면 누군가가 떠나야 할 것 같다.
-        successText: 아베노 세이메이가 아군에 합류했다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
+        successText: 세이메이가 아군에 합류했다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
         failureText: 자리를 비우지 못했다. 세이메이는 부적 한 장을 남기고 안개 속으로 물러났다. 이후 런부터 메인 캐릭터로 선택할 수 있다.
       - id: japan_coast_part_with_seimei
         text: 이번에는 따로 움직인다.
@@ -1352,7 +1352,7 @@ events:
     dialogue:
       - speaker: 일행
         text: 세이메이가 모래 위에 부적을 꽂자 밀려오던 파도가 둘로 갈라진다.
-      - speaker: 아베노 세이메이
+      - speaker: 세이메이
         text: 뒤따라오는 것들은 갑주를 두르고 올라옵니다. 제가 서 있는 동안은 여러분의 칼끝이 껍질을 지나갈 겁니다.
         portrait: SEIMEI_PORTRAIT
         standing: SEIMEI_STANDING

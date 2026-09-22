@@ -34,7 +34,7 @@ namespace Combat
             if (target == null || !target.isActive || target.IsUntargetable) return;
 
             bool isCrit = Random.value <= owner.CritChanceCurr;
-            float critMultiplier = isCrit ? owner.CritMultiplierCurr : 1f;
+            float critMultiplier = isCrit ? CritMultiplier(owner, owner.CritMultiplierCurr) : 1f;
 
             int damage = Mathf.Max(1, Mathf.RoundToInt(
                 owner.SkillDamage(power, stat) * critMultiplier * DamageMultiplier(owner)));
@@ -81,6 +81,19 @@ namespace Combat
                 }
             }
             return 1f + Mathf.Max(0f, bonus) + additiveBonus;
+        }
+
+        /// <summary>소환자에게 붙은 소환수 전용 치명타 피해 보너스를 적용한다.</summary>
+        public static float CritMultiplier(Unit owner, float baseMultiplier)
+        {
+            if (owner == null) return baseMultiplier;
+            float additive = 0f;
+            foreach (var effect in owner.ActiveStatuses.SelectMany(status => status.Effects))
+            {
+                if (effect.EffectObject != null)
+                    additive += Mathf.Max(0f, effect.EffectObject.SummonCritMultiplierAdditiveModifier(owner));
+            }
+            return Mathf.Max(1f, baseMultiplier + additive);
         }
     }
 }

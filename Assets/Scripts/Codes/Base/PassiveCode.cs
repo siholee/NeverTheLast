@@ -73,6 +73,13 @@ namespace Codes.Base
     /// <summary>메인 본인이 훈련받을 때 <paramref name="stat"/> 상승량에 더하는 효율. 직감·대도·광신도.</summary>
     public virtual float MainTrainingBonus(BaseEnums.PrimaryStat stat) => 0f;
 
+    /// <summary>
+    /// 메인 본인이 받는 훈련의 체력 소모 배율. 0.75면 소모 -25%다.
+    /// 서포트 쪽 <see cref="SupportTrainingEnergyCostMultiplier"/>와 곱해져 함께 적용되고,
+    /// 회복형 훈련과 실패 추가 소모에는 붙지 않는다.
+    /// </summary>
+    public virtual float MainTrainingEnergyCostMultiplier => 1f;
+
     public PassiveCode(PassiveCodeContext context)
     {
       Caster = context.Caster;

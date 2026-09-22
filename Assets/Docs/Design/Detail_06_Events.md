@@ -392,7 +392,7 @@ B·C·D는 선택지가 하나뿐인 짧은 후속 대사다. 선택지를 하�
 
 | id | 방아쇠 | 조건 | 내용 |
 | --- | --- | --- | --- |
-| `japan_coast_seimei_on_the_shore` | 20 · 1슬롯 | 세이메이가 일행에 없음(`allowUnlockedRecruit`) | **합류** — 아베노 세이메이(43). 거절해도 해금 |
+| `japan_coast_seimei_on_the_shore` | 20 · 1슬롯 | 세이메이가 일행에 없음(`allowUnlockedRecruit`) | **합류** — 세이메이(43). 거절해도 해금 |
 | `japan_coast_seimei_companion` | 20 · 1슬롯 | 세이메이가 일행에 있음(`requiresUnitInParty: 43`) | 동행 대사만 |
 | `japan_coast_cracked_shells` | 20 · 2슬롯 | — | 서리 앉은 곳부터 갈라진 껍질. 3슬롯에서 처음 나오는 **공허의 갑주를 얼려서 벗긴다**는 예고 |
 | `japan_coast_deep_breath` | 20 · 8슬롯 | — | 물이 빠져나가는 바다. **대호흡을 행동불능으로 끊는다**는 예고 |

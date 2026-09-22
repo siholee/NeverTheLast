@@ -248,7 +248,9 @@ namespace Managers.UI.DevTools
                 context.Attacker.IsEnemy || context.DamageDealt <= 0) return;
 
             _partyDamage += context.DamageDealt;
-            if (context.Attacker.ID != MainId) return;
+            // 소환 딜러는 본체가 직접 공격하지 않으므로, 소환수의 피해도 소유자 메인에게 귀속한다.
+            Unit damageOwner = context.Attacker.SummonOwner ?? context.Attacker;
+            if (damageOwner.ID != MainId) return;
 
             List<int> tags = context.DamageContext?.DamageTags;
             if (tags?.Contains(DamageTag.CounterAttack) == true)

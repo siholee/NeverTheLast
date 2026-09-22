@@ -88,7 +88,8 @@ namespace Codes.Normal
         protected override int CalculateDamage(float critMultiplier)
             => Mathf.Max(1, Mathf.RoundToInt(
                 Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.INT)
-                * critMultiplier * Summons.DamageMultiplier(Caster.SummonOwner)));
+                * (critMultiplier > 1f ? Summons.CritMultiplier(Caster.SummonOwner, critMultiplier) : 1f)
+                * Summons.DamageMultiplier(Caster.SummonOwner)));
 
         protected override List<int> GetDamageTags() => new()
         {

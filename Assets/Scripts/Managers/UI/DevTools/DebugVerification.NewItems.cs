@@ -7,6 +7,7 @@ using System.Reflection;
 using BaseClasses;
 using Codes.Base;
 using Codes.Passive;
+using Combat;
 using Core;
 using Effects.Base;
 using Entities;
@@ -21,8 +22,8 @@ namespace Managers.UI.DevTools
         {
             Status = "신규 장비/조건부 드랍 검증";
 
-            int[] itemIds = { 4510, 4328, 4329, 4330, 4331, 4332, 4411, 4511, 4333, 4512 };
-            int[] codeIds = { 445, 446, 447, 448, 449, 450, 451, 452, 453, 454 };
+            int[] itemIds = { 4510, 4328, 4329, 4330, 4331, 4332, 4411, 4511, 4333, 4512, 4513, 4514, 4412 };
+            int[] codeIds = { 445, 446, 447, 448, 449, 450, 451, 452, 453, 454, 455, 456, 457 };
             var items = game.itemDataList.items.Where(item => itemIds.Contains(item.id)).ToList();
             Equal("new equipment count", itemIds.Length, items.Count);
             Assert("new equipment IDs", new HashSet<int>(itemIds).SetEquals(items.Select(item => item.id)),
@@ -33,7 +34,7 @@ namespace Managers.UI.DevTools
                 string.Join(",", items.SelectMany(item => item.codeGrants ?? new List<EquipmentCodeGrant>()).Select(grant => grant.codeId)));
             Assert("new equipment is in common reward pool",
                 itemIds.All(id => game.dataManager.FetchRewardDataList().commonDropItemIds.Contains(id)),
-                "all 10", "missing reward ID");
+                "all 13", "missing reward ID");
 
             ItemData Spec(int id) => items.First(item => item.id == id);
             bool HasSecondary(int id, EquipmentSecondaryStat stat, int amount) =>
@@ -71,6 +72,12 @@ namespace Managers.UI.DevTools
                 Spec(4512).rarity == 5 && Spec(4512).category == "MediumArmor" &&
                 Spec(4512).durability == 65 && HasPrimary(4512, PrimaryStat.LUK, 9),
                 "T5 MediumArmor Durability65 LUK+9", "mismatch");
+            Assert("Hugo equipment metadata",
+                Spec(4514).rarity == 5 && Spec(4514).category == "Clothing" &&
+                Spec(4514).durability == 30 && HasPrimary(4514, PrimaryStat.CON, 9) &&
+                Spec(4412).rarity == 4 && Spec(4412).category == "Orb" &&
+                HasPrimary(4412, PrimaryStat.INT, 7),
+                "Notre-Dame T5 Clothing CON+9 / Les Miserables T4 Orb INT+7", "mismatch");
 
             foreach (int codeId in codeIds)
             {
@@ -313,6 +320,107 @@ namespace Managers.UI.DevTools
             Assert("Indomitable tag icon", Managers.UI.Core.UnitTagCatalog.Icon(indomitable) != null,
                 "loaded", "missing");
             write?.Invoke(null, new object[] { "NTL_TrainedCharacters", "{}" });
+
+            // 위고 — 소환 100회 계정 해금과 코드 팩토리 연결.
+            UnitData hugoData = game.unitDataList.units.FirstOrDefault(unit => unit.id == 9);
+            Assert("Hugo support/unlock metadata",
+                hugoData?.characterType == "Support" && hugoData.canStartAsSupport &&
+                hugoData.unlockAfterSummonCount == 100,
+                "Support / 100 summons", hugoData == null ? "missing" :
+                    $"{hugoData.characterType}/{hugoData.unlockAfterSummonCount}");
+            for (int i = 0; i < 99; i++) SaveSystem.RecordCombatSummon();
+            Assert("Hugo remains main-locked at 99 summons", !SaveSystem.IsStarterUnlocked(9),
+                "locked", "unlocked early");
+            SaveSystem.RecordCombatSummon();
+            Assert("Hugo unlocks at 100 summons", SaveSystem.IsStarterUnlocked(9),
+                "unlocked", "locked");
+            Assert("Hugo and Pensee codes are registered",
+                CodeFactory.CreatePassiveCode(209, new PassiveCodeContext()) is HugoEnsemble &&
+                CodeFactory.CreateNormalCode(9, new NormalCodeContext()) is Codes.Normal.HugoPartyHeal &&
+                CodeFactory.CreateUltimateCode(9, new UltimateCodeContext()) is Codes.Ultimate.HugoBraveAdvocate &&
+                CodeFactory.CreateNormalCode(503, new NormalCodeContext()) is Codes.Normal.PenseeHeal &&
+                CodeFactory.CreateUltimateCode(503, new UltimateCodeContext()) is Codes.Ultimate.PenseeProtection,
+                "all registered", "missing factory branch");
+
+            Clear();
+            Unit hugo = grid.SpawnUnit(-2, 1, false, 9);
+            Unit hugoAlly = grid.SpawnUnit(-1, 1, false, 1);
+            Unit hugoEnemy = SpawnEnemy(1062, 30);
+            hugo?.DebugSetLevel(100);
+            Assert("Hugo mechanics fixture", hugo != null && hugoAlly != null && hugoEnemy != null,
+                "Hugo/ally/enemy", $"{hugo != null}/{hugoAlly != null}/{hugoEnemy != null}");
+            if (hugo != null && hugoAlly != null && hugoEnemy != null)
+            {
+                grid.OnRoundStart();
+                Near("Hugo Ensemble starts at summon damage +1%", 1.01f, Summons.DamageMultiplier(hugo));
+                Unit firstPensee = grid.SpawnSummon(hugo, SummonCatalog.Pensee(hugo));
+                Near("Hugo Ensemble gains +1% per allied summon", 1.02f, Summons.DamageMultiplier(hugo));
+
+                int hurtHp = Mathf.Max(1, hugoAlly.HpMax / 3);
+                hugoAlly.ModifyHp(hurtHp);
+                hugo.CastNormalCode();
+                yield return Settle(2f);
+                Assert("Hugo normal heals the party", hugoAlly.HpCurr > hurtHp,
+                    $">{hurtHp}", hugoAlly.HpCurr.ToString());
+
+                int summonsBeforeUltimate = hugo.ActiveSummons.Count(summon => summon != null && summon.isActive);
+                hugo.FillUltimateResource(false);
+                hugo.CastUltimateCode();
+                yield return Settle(2f);
+                Assert("Hugo ultimate summons Pensee for three turns",
+                    hugo.ActiveSummons.Count(summon => summon != null && summon.isActive && summon.UnitName == "팡세")
+                    > summonsBeforeUltimate,
+                    "additional Pensee", string.Join(",", hugo.ActiveSummons.Where(s => s != null).Select(s => s.UnitName)));
+
+                if (firstPensee != null && firstPensee.isActive)
+                {
+                    int lowerHp = Mathf.Max(1, hugoAlly.HpMax / 4);
+                    hugoAlly.ModifyHp(lowerHp);
+                    firstPensee.CastNormalCode();
+                    yield return Settle(2f);
+                    Assert("Pensee normal heals the lowest-HP ally", hugoAlly.HpCurr > lowerHp,
+                        $">{lowerHp}", hugoAlly.HpCurr.ToString());
+
+                    firstPensee.FillUltimateResource(false);
+                    firstPensee.CastUltimateCode();
+                    yield return Settle(2f);
+                    Assert("Pensee ultimate grants party damage reduction",
+                        hugoAlly.ActiveStatuses.Any(status => status.Key.StartsWith("pensee_defense_")),
+                        "damage reduction status", "missing");
+                }
+
+                Assert("equip Les Miserables", hugo.TryEquipItem(4412, out _), "equipped", "failed");
+                RoundStart(hugo);
+                LesMiserablesEffect lesMiserables = EffectOf<LesMiserablesEffect>(hugo);
+                int ownedSummons = hugo.ActiveSummons.Count(summon => summon != null && summon.isActive);
+                Near("Les Miserables grants +10% per owned summon", 1f + ownedSummons * 0.10f,
+                    lesMiserables?.SummonDamageMultiplierModifier(hugo) ?? 0f);
+            }
+            write?.Invoke(null, new object[] { "NTL_TrainedCharacters", "{}" });
+
+            // 우사 — 분신 한 기가 치명상뿐 아니라 적중 한 번 자체를 0으로 만든다.
+            Clear();
+            Unit usa = grid.SpawnUnit(-1, 1, false, 180);
+            Unit usaAttacker = SpawnEnemy(1062, 20);
+            RoundStart(usa);
+            Assert("Usha clone fixture", UsaTaoistNature.SummonClones(usa, 1) == 1,
+                "one clone", "summon failed");
+            int usaHp = usa.HpCurr;
+            int clonesBefore = UsaTaoistNature.CloneCount(usa);
+            usa.TakeDamage(new DamageContext(usaAttacker, Mathf.Max(10, usa.HpMax / 4), CodeType.Normal,
+                new List<int> { DamageTag.Physical }));
+            Equal("Usha clone nullifies hit before HP loss", usaHp, usa.HpCurr);
+            Equal("Usha clone is consumed", clonesBefore - 1, UsaTaoistNature.CloneCount(usa));
+
+            // 아누비스 — 처치되지 않고 흩어진 소환수도 영혼 수확에 포함된다.
+            Clear();
+            Unit anubis = grid.SpawnUnit(-1, 1, false, 121);
+            Unit summoner = grid.SpawnUnit(-2, 1, false, 180);
+            RoundStart(anubis);
+            int anubisStr = anubis.GetBaseStr();
+            for (int i = 0; i < 4; i++)
+                grid.SpawnSummon(summoner, Combat.SummonCatalog.Clone(summoner))?.Withdraw();
+            Equal("Anubis gains STR from four summon disappearances", anubisStr + 1, anubis.GetBaseStr());
 
             Clear();
         }

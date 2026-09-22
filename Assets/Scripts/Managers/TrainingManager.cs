@@ -43,6 +43,13 @@ namespace Managers
 
         /// <summary>서포트 카드가 없는 동료의 특기율(%). 카드가 붙으면 카드 값을 쓴다.</summary>
         private const int DefaultSpecialtyRate = 45;
+        /// <summary>
+        /// 서포트 카드가 없는 동료가 함께 훈련할 때 쌓는 우정도. 카드의 <c>bondGainRate</c>(1~6)보다
+        /// 낮게 두고 시작 우정도도 0이라, 직접 키운 카드가 여전히 더 빨리 우정 훈련에 닿는다.
+        /// </summary>
+        private const int DefaultBondGainRate = 2;
+        /// <summary>카드 없는 동료의 우정 훈련 보너스. 카드의 <c>friendshipBonus</c>(1~8) 최솟값을 쓴다.</summary>
+        private const int DefaultFriendshipBonus = 1;
         private const int MaxBond = SupportBondState.MaxBond;
         /// <summary>훈련에 실패하면 체력을 이만큼 더 잃는다.</summary>
         public const int FailureEnergyPenalty = 10;
@@ -365,24 +372,16 @@ namespace Managers
             foreach (Unit support in GetSupportsOn(focus))
             {
                 SupportCardSaveData card = GetSelectedSupportRecord(support)?.supportCard;
-                if (HasSupportCard(card))
-                {
-                    bonus += Mathf.Max(0, card.trainingBonus);
-                    if (IsCardSpecialty(card, focus))
-                    {
-                        bonus += Mathf.Max(0, card.specialtyBonus);
-                        if (GetSupportBond(support) >= 75)
-                        {
-                            bonus += Mathf.Max(0, card.friendshipBonus);
-                        }
-                    }
-                    continue;
-                }
+                bool hasCard = HasSupportCard(card);
+                bool specialtyMatch = IsSupportSpecialty(support, focus);
 
-                bonus += SupportStatBonusPerUnit;
-                if (GetHighestPrimaryStat(support) == focus)
+                bonus += hasCard ? Mathf.Max(0, card.trainingBonus) : SupportStatBonusPerUnit;
+                if (!specialtyMatch) continue;
+
+                bonus += hasCard ? Mathf.Max(0, card.specialtyBonus) : AffinityBonusPerUnit;
+                if (GetSupportBond(support) >= FriendshipBondThreshold)
                 {
-                    bonus += AffinityBonusPerUnit;
+                    bonus += hasCard ? Mathf.Max(0, card.friendshipBonus) : DefaultFriendshipBonus;
                 }
             }
             return bonus;
@@ -391,13 +390,6 @@ namespace Managers
         private static bool HasSupportCard(SupportCardSaveData card)
         {
             return card != null && card.sourceUnitId > 0 && !string.IsNullOrWhiteSpace(card.specialtyTraining);
-        }
-
-        private static bool IsCardSpecialty(SupportCardSaveData card, BaseEnums.PrimaryStat focus)
-        {
-            return HasSupportCard(card)
-                && System.Enum.TryParse(card.specialtyTraining, true, out BaseEnums.PrimaryStat specialty)
-                && specialty == focus;
         }
 
         /// <summary>우정 훈련이 붙기 시작하는 우정도.</summary>
@@ -586,7 +578,8 @@ namespace Managers
         {
             if (baseCost <= 0) return baseCost;
 
-            float multiplier = 1f;
+            // 메인 본인의 감소(느긋함)와 그 훈련에 앉은 서포트의 감소(보살핌)를 함께 곱한다.
+            float multiplier = MainTrainingCostMultiplier(GetMainUnit());
             foreach (Unit support in supports)
             {
                 if (support == null) continue;
@@ -596,13 +589,22 @@ namespace Managers
         }
 
         private static float CodeTrainingCostMultiplier(Unit owner)
+            => TrainingCostMultiplier(owner, code => code.SupportTrainingEnergyCostMultiplier);
+
+        private static float MainTrainingCostMultiplier(Unit main)
+            => TrainingCostMultiplier(main, code => code.MainTrainingEnergyCostMultiplier);
+
+        private static float TrainingCostMultiplier(
+            Unit owner, System.Func<Codes.Base.PassiveCode, float> select)
         {
+            if (owner == null) return 1f;
+
             float multiplier = 1f;
             foreach (Codes.Base.PassiveCode code in owner.ActivePassiveCodes)
             {
                 if (code == null) continue;
                 if (code.SupersededByCodeId > 0 && owner.HasLearnedPassiveCode(code.SupersededByCodeId)) continue;
-                multiplier *= Mathf.Max(0f, code.SupportTrainingEnergyCostMultiplier);
+                multiplier *= Mathf.Max(0f, select(code));
             }
             return multiplier;
         }
@@ -889,47 +891,41 @@ namespace Managers
                 TrainedCharacterRecord record = GetSelectedSupportRecord(support);
                 SupportCardSaveData card = record?.supportCard;
                 bool hasCard = HasSupportCard(card);
-                bool specialtyMatch = hasCard && IsCardSpecialty(card, focus);
+                // 특기는 카드가 있으면 카드 값, 없으면 지금 가장 높은 스탯이다(GetSupportSpecialty).
+                // 카드 유무로 갈라 두면 카드 없는 동료가 영영 우정 훈련에 닿지 못한다.
+                bool specialtyMatch = IsSupportSpecialty(support, focus);
 
                 // 참여 여부는 여기서 굴리지 않는다. 이번 턴 배치는 화면을 열 때 이미 정해졌고,
                 // 플레이어는 그 배치를 보고 훈련을 골랐다. 지금 다시 굴리면 화면에 보여 준
                 // 보너스와 실제 결과가 어긋난다.
                 bool appeared = GetPlacement(support) == focus;
-                int previousBond = hasCard ? GetSupportBond(support) : 0;
+                int previousBond = GetSupportBond(support);
                 int newBond = previousBond;
                 int statBonus = 0;
 
                 if (appeared)
                 {
-                    if (hasCard)
+                    statBonus += hasCard ? Mathf.Max(0, card.trainingBonus) : SupportStatBonusPerUnit;
+                    if (specialtyMatch)
                     {
-                        statBonus += Mathf.Max(0, card.trainingBonus);
-                        if (specialtyMatch)
+                        statBonus += hasCard ? Mathf.Max(0, card.specialtyBonus) : AffinityBonusPerUnit;
+                        if (previousBond >= FriendshipBondThreshold)
                         {
-                            statBonus += Mathf.Max(0, card.specialtyBonus);
-                            if (previousBond >= 75)
-                            {
-                                // 봉우 — 우정 훈련이 실제로 터질 때만 그 몫을 키운다.
-                                statBonus += Mathf.Max(0, Mathf.RoundToInt(
-                                    card.friendshipBonus * FriendshipBonusMultiplier()));
-                            }
+                            // 봉우 — 우정 훈련이 실제로 터질 때만 그 몫을 키운다.
+                            int friendshipBonus = hasCard
+                                ? Mathf.Max(0, card.friendshipBonus)
+                                : DefaultFriendshipBonus;
+                            statBonus += Mathf.Max(0, Mathf.RoundToInt(
+                                friendshipBonus * FriendshipBonusMultiplier()));
                         }
+                    }
 
-                        // 카피바라 — 쌓이는 우정도 자체를 키운다.
-                        int bondGain = Mathf.Max(1, Mathf.RoundToInt(
-                            card.bondGainRate * BondGainMultiplier()));
-                        if (specialtyMatch) bondGain += 1;
-                        newBond = Mathf.Clamp(previousBond + bondGain, 0, MaxBond);
-                        Bonds.Set(support.ID, newBond);
-                    }
-                    else
-                    {
-                        statBonus += SupportStatBonusPerUnit;
-                        if (GetHighestPrimaryStat(support) == focus)
-                        {
-                            statBonus += AffinityBonusPerUnit;
-                        }
-                    }
+                    // 카피바라 — 쌓이는 우정도 자체를 키운다. 카드가 없으면 기본 상승치를 쓴다.
+                    int bondGain = Mathf.Max(1, Mathf.RoundToInt(
+                        (hasCard ? card.bondGainRate : DefaultBondGainRate) * BondGainMultiplier()));
+                    if (specialtyMatch) bondGain += 1;
+                    newBond = Mathf.Clamp(previousBond + bondGain, 0, MaxBond);
+                    Bonds.Set(support.ID, newBond);
                 }
 
                 rolls.Add(new SupportTrainingRoll
@@ -939,7 +935,7 @@ namespace Managers
                     Record = record,
                     Appeared = appeared,
                     SpecialtyMatch = specialtyMatch,
-                    FriendshipTraining = appeared && specialtyMatch && previousBond >= 75,
+                    FriendshipTraining = appeared && specialtyMatch && previousBond >= FriendshipBondThreshold,
                     StatBonus = statBonus,
                     PreviousBond = previousBond,
                     NewBond = newBond,

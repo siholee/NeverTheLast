@@ -227,6 +227,32 @@ namespace Effects.Negative
             new(Anemo, Anemo,     ReactionId.DiffusionBurst, "확산", ReactionKind.Burst),
         };
 
+        /// <summary>자료실이 보여 줄 반응 한 줄. 표가 곧 원본이라 화면에서 다시 적지 않는다.</summary>
+        public readonly struct Listing
+        {
+            public readonly BaseEnums.UnitElement A;
+            public readonly BaseEnums.UnitElement B;
+            public readonly string Name;
+            public readonly ReactionKind Kind;
+            public readonly BaseEnums.PrimaryStat Stat;
+
+            internal Listing(BaseEnums.UnitElement a, BaseEnums.UnitElement b,
+                string name, ReactionKind kind, BaseEnums.PrimaryStat stat)
+            {
+                A = a; B = b; Name = name; Kind = kind; Stat = stat;
+            }
+        }
+
+        /// <summary>28쌍 전부를 표에 적힌 순서 그대로 돌려준다.</summary>
+        public static IEnumerable<Listing> AllReactions()
+        {
+            foreach (Reaction reaction in Table)
+            {
+                yield return new Listing(
+                    reaction.A, reaction.B, reaction.Name, reaction.Kind, reaction.Stat);
+            }
+        }
+
         // ── 판정 ──────────────────────────────────────────────────
 
         /// <summary>

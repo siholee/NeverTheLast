@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using BaseClasses;
 using Codes.Base;
 using Effects.Base;
@@ -21,6 +22,9 @@ namespace Codes.Passive
         public const int WinterTriangle = 4511;
         public const int Iliad = 4333;
         public const int GoldenFleece = 4512;
+        public const int FoxBead = 4513;
+        public const int NotreDame = 4514;
+        public const int LesMiserables = 4412;
     }
 
     internal static class NewItemStatusIds
@@ -35,6 +39,9 @@ namespace Codes.Passive
         public const int WinterTriangle = 6452;
         public const int Iliad = 6453;
         public const int GoldenFleece = 6454;
+        public const int FoxBead = 6455;
+        public const int Grace = 6456;
+        public const int LesMiserables = 6457;
     }
 
     /// <summary>정복 — 승승장구의 금색 상위. 처치마다 물리 피해 +10%.</summary>
@@ -272,5 +279,115 @@ namespace Codes.Passive
         public LuckDurabilityEffect() : base(0) { }
         public override int DurabilityAdditiveModifier(Unit unit)
             => unit == Target ? Mathf.Max(0, unit.GetBaseLuk()) : 0;
+    }
+
+    /// <summary>여우구슬 — 거느린 소환수로 LUK을, 필드 전체의 소환수로 INT를 불린다.</summary>
+    public sealed class FoxBeadItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_fox_bead";
+        public FoxBeadItemPassive(PassiveCodeContext context) : base(context, "여우구슬") { }
+        public override void CastCode() => AddPermanentStatus(
+            NewItemStatusIds.FoxBead, new FoxBeadSummonScalingEffect(),
+            "자신이 거느린 소환수 1기마다 LUK +3%, 필드 위 모든 소환수 1기마다 INT +2를 얻습니다.");
+    }
+
+    internal sealed class FoxBeadSummonScalingEffect : BaseEffect
+    {
+        private const float LukRatePerOwnSummon = 0.03f;
+        private const int IntPerFieldSummon = 2;
+
+        public FoxBeadSummonScalingEffect() : base(0) { }
+
+        public override float PrimaryStatMultiplierModifier(Unit unit, BaseEnums.PrimaryStat stat)
+            => unit == Target && stat == BaseEnums.PrimaryStat.LUK
+                ? 1f + LukRatePerOwnSummon * CountSummons(unit)
+                : 1f;
+
+        public override int PrimaryStatAdditiveModifier(Unit unit, BaseEnums.PrimaryStat stat)
+            => unit == Target && stat == BaseEnums.PrimaryStat.INT
+                ? IntPerFieldSummon * CountFieldSummons(unit)
+                : 0;
+
+        private static int CountSummons(Unit owner)
+        {
+            if (owner?.ActiveSummons == null) return 0;
+
+            int count = 0;
+            foreach (Unit summon in owner.ActiveSummons)
+            {
+                if (summon != null && summon.isActive) count++;
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// 양 진영을 통틀어 살아 있는 소환수의 수. 소환수 자신은 아무것도 거느리지 않으므로
+        /// 주인 쪽에서만 세면 목록에 소환수가 섞여 있어도 이중으로 세지 않는다.
+        /// 세는 동안 스탯을 읽지 않아 스탯 계산과 서로를 부르지 않는다.
+        /// </summary>
+        private static int CountFieldSummons(Unit unit)
+        {
+            if (unit == null) return 0;
+
+            int count = 0;
+            foreach (Unit ally in Combat.CombatTargets.AliveAlliesIncludingSelf(unit))
+            {
+                count += CountSummons(ally);
+            }
+            foreach (Unit enemy in Combat.CombatTargets.AliveEnemies(unit))
+            {
+                count += CountSummons(enemy);
+            }
+            return count;
+        }
+    }
+
+    /// <summary>은총 — 자가치유의 금색 상위. 매 턴 CON×2를 회복한다.</summary>
+    public sealed class GraceItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_grace";
+        public GraceItemPassive(PassiveCodeContext context) : base(context, "은총")
+        {
+            Grade = BaseEnums.CodeGrade.Enhanced;
+        }
+
+        public override void CastCode()
+        {
+            Caster?.RemoveStatusByKey("theseus_self_healing");
+            AddPermanentStatus(NewItemStatusIds.Grace, new GraceRegenerationEffect(),
+                "자신의 턴마다 CON×2만큼 회복합니다.");
+        }
+    }
+
+    internal sealed class GraceRegenerationEffect : BaseEffect
+    {
+        public GraceRegenerationEffect() : base(0) { }
+        public override void OnOwnerTurn()
+        {
+            if (Target == null || !Target.isActive) return;
+            int healing = Mathf.Max(1, Target.GetBaseCon() * 2);
+            Target.ModifyHp(Target.HpCurr + healing, Caster ?? Target);
+        }
+    }
+
+    /// <summary>레미제라블 — 보유 소환수 하나마다 그 소환수들이 가하는 피해 +10%.</summary>
+    public sealed class LesMiserablesItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_les_miserables";
+        public LesMiserablesItemPassive(PassiveCodeContext context) : base(context, "레미제라블") { }
+        public override void CastCode() => AddPermanentStatus(
+            NewItemStatusIds.LesMiserables, new LesMiserablesEffect(),
+            "자신이 보유한 소환수 하나마다 자신의 소환수가 가하는 피해 +10%.");
+    }
+
+    internal sealed class LesMiserablesEffect : BaseEffect
+    {
+        public LesMiserablesEffect() : base(0) { }
+        public override float SummonDamageMultiplierModifier(Unit unit)
+        {
+            if (unit == null || unit != Target) return 1f;
+            int count = unit.ActiveSummons.Count(summon => summon != null && summon.isActive);
+            return 1f + count * 0.10f;
+        }
     }
 }

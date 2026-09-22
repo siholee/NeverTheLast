@@ -18,6 +18,10 @@ namespace Entities
     {
         /// <summary>모든 진영의 사망을 관찰해야 하는 필드 패시브용 전역 전투 이벤트.</summary>
         public static event Action<Unit, Unit> AnyUnitDied;
+        /// <summary>소환수가 전장에 나타난 순간. (소환자, 소환수)</summary>
+        public static event Action<Unit, Unit> AnySummonSpawned;
+        /// <summary>처치 판정 없이 전장을 떠난 순간. 소환수 소멸을 영혼 수확 등이 관찰한다.</summary>
+        public static event Action<Unit> AnyUnitWithdrew;
         /// <summary>해로운 상태가 실제로 적용되거나 지속시간이 갱신된 순간.</summary>
         public static event Action<Unit, Unit, Status.UnitStatus> AnyNegativeStatusGranted;
         /// <summary>어느 유닛이든 실제 피해를 가한 순간.</summary>
@@ -1637,6 +1641,7 @@ namespace Entities
 
             BindSummonLifetime(owner, spec.LifetimeTurns);
             Invoke(BaseEnums.UnitEventType.OnSpawn, new EventContext(this));
+            AnySummonSpawned?.Invoke(owner, this);
         }
 
         // ── 소환수 수명 ───────────────────────────────────────────
@@ -1708,6 +1713,7 @@ namespace Entities
         {
             if (!isActive) return;
             Debug.Log($"[퇴장] {UnitName}이(가) 처치되지 않고 전장을 떠났습니다.");
+            AnyUnitWithdrew?.Invoke(this);
             DeactivateUnit();
         }
 

@@ -311,6 +311,9 @@ namespace Effects.Base
         /// </summary>
         public virtual float SummonDamageMultiplierModifier(Unit unit) => 1f;
 
+        /// <summary>보유자가 거느린 소환수의 치명타 피해 배율에 더하는 값.</summary>
+        public virtual float SummonCritMultiplierAdditiveModifier(Unit unit) => 0f;
+
         /// <summary>보유자가 아군 전체의 소환수에게 제공하는 피해 배율 보정 (1 = 변화 없음).</summary>
         public virtual float AlliedSummonDamageMultiplierModifier(Unit unit, Unit summonOwner) => 1f;
 

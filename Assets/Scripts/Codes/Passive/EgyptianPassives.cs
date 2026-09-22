@@ -95,6 +95,7 @@ namespace Codes.Passive
 
             if (_registered) return;
             Unit.AnyUnitDied += OnAnyUnitDied;
+            Unit.AnyUnitWithdrew += OnAnyUnitWithdrew;
             _cleanupHandler = _ => StopCode();
             Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
@@ -108,10 +109,18 @@ namespace Codes.Passive
             Caster.RefreshAttributes();
         }
 
+        private void OnAnyUnitWithdrew(Unit withdrawn)
+        {
+            if (Caster == null || !Caster.isActive || withdrawn?.IsSummon != true) return;
+            _soulStacks++;
+            Caster.RefreshAttributes();
+        }
+
         public override void StopCode()
         {
             if (!_registered || Caster == null) return;
             Unit.AnyUnitDied -= OnAnyUnitDied;
+            Unit.AnyUnitWithdrew -= OnAnyUnitWithdrew;
             Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
             Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
             _cleanupHandler = null;

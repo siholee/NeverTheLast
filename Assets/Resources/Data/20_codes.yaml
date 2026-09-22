@@ -5,6 +5,11 @@ codes:
     - { id: 141, verbalName: 포수, codeName: JasonGunner, description: "필드에 배치되어 있을 경우 모든 아군의 궁극기 피해 +10%. 여러 포수 효과는 중첩된다." }
     - { id: 454, verbalName: 황금양모의 광휘, codeName: GoldenFleeceItemPassive, description: "착용자의 LUK만큼 내구도를 얻는다. <장비 전용>" }
     - { id: 208, verbalName: 질량 보존, codeName: LavoisierMassConservation, description: "<고유 패시브> <전수 불가> 아군의 치유·보호막·버프를 받으면 각각 연료·안정제·촉매를 얻는다. 저장 한도는 각 20+CON, 수신량은 한도의 50%. 같은 아군·종류는 자신의 턴 간격마다 1회. 과잉 치유는 연료로만 센다. 자가 지원은 제외. 마나 대신 일반행동으로 반응 준비도를 얻는다." }
+    - { id: 209, verbalName: 군상극, codeName: HugoEnsemble, description: "필드에 존재하면 모든 아군 소환수 피해 +1%. 아군이 소환수를 소환할 때마다 소환수 피해 +1%가 전투 중 중첩된다. <고유 패시브> <전수 불가능>" }
+    - { id: 144, verbalName: 시인, codeName: HugoPoet, description: "자신의 소환수가 공격할 때 치명타 피해 +20%. 상위: 대문호(145)." }
+    - { id: 145, verbalName: 대문호, codeName: HugoGreatWriter, description: "시인의 금색 상위 코드. 자신의 소환수가 공격할 때 치명타 피해 +40%." }
+    - { id: 456, verbalName: 은총, codeName: GraceItemPassive, description: "자가치유의 금색 상위 코드. 자신의 턴마다 CON×2만큼 회복한다. <장비 전용> <전수 불가능>" }
+    - { id: 457, verbalName: 레미제라블, codeName: LesMiserablesItemPassive, description: "보유한 소환수 하나마다 착용자가 보유한 소환수의 피해 +10%. <장비 전용> <전수 불가능>" }
     - id: 180
       verbalName: 홀리 인챈트
       codeName: HolyEnchant
@@ -109,6 +114,9 @@ codes:
     - { id: 136, verbalName: 해커, codeName: GaudiHacker, description: "적에게 원소를 부착하면 대상에게 2턴간 방어력 -20%를 부여한다." }
     - { id: 137, verbalName: 근성, codeName: LightGrit, description: "서포트 카드로서 배치된 훈련의 실패율이 25% 감소한다." }
     - { id: 138, verbalName: 소환술사, codeName: LightSummoner, description: "필드에 있다면 모든 아군 소환수가 가하는 피해 +10%. 여러 소환술사가 중첩된다." }
+    - { id: 142, verbalName: 느긋함, codeName: UsaLeisurely, description: "메인 카드로 배치되면 훈련 보너스 -25%, 훈련 체력 소모 -25%." }
+    - { id: 143, verbalName: 정기 회복, codeName: UsaEssenceRecovery, description: "필드에서 적이 쓰러지면 그 적의 최대 체력만큼 자신을 치유한다." }
+    - { id: 380, verbalName: 도사란 무엇인가, codeName: UsaTaoistNature, description: "고유 소환수 '분신'을 최대 3기까지 거느린다. 피격 시 분신 하나를 소모해 그 타격을 완전히 무효화한다. <고유 패시브> <전수 불가능>" }
     # 옛 열화 전수본(230·231·233)은 제도 폐지와 함께 삭제했다.
     # 232만 이시스의 독립 해금 패시브 '생명의 물'로 남는다.
     - { id: 55, verbalName: 생명의 물, codeName: InheritedAsclepiusNashorsTooth, description: "궁극기 사용 후 2턴간 DEX가 20 증가한다." }
@@ -476,6 +484,7 @@ codes:
     - { id: 451, verbalName: 교류 발전, codeName: AlternatingCurrentDeviceItemPassive, description: "장착자가 번개 원소일 경우 가하는 피해 +7%. <장비 전용> <전수 불가능>" }
     - { id: 452, verbalName: 겨울의 대삼각형, codeName: WinterTriangleItemPassive, description: "반격 태그로 가하는 피해 +25%. <장비 전용> <전수 불가능>" }
     - { id: 453, verbalName: 일리아스, codeName: IliadItemPassive, description: "그리스 속성이라면 성장·훈련 스탯을 제외한 초기 5대 스탯이 1.5배가 된다. <장비 전용> <전수 불가능>" }
+    - { id: 455, verbalName: 여우구슬, codeName: FoxBeadItemPassive, description: "자신이 거느린 소환수 1기마다 LUK +3%, 필드 위 모든 소환수 1기마다 INT +2. <장비 전용> <전수 불가능>" }
     - { id: 1604, verbalName: 왕의 격노, codeName: KingsRage, description: "잃은 체력에 비례해 DEX와 흡혈률이 증가한다. 광전사의 격노와 같은 구조이며 계수가 크다(DEX 최대 +90%, 흡혈 한 겹 5%). <고유 패시브> <적 전용> <전수 불가능>" }
     - { id: 1605, verbalName: 왕의 함성, codeName: KingsShout, description: "필드의 광전사 계열(Berserker) 아군이 내는 격노 계수가 1.5배가 된다. 여럿이 들어도 가장 큰 하나만 센다. <적 전용>" }
     # ── 일본 천공 전선 (1700 공용 · 1710 등불나방 · 1720 고치 · 1730 나비 · 1740~1760 포식자 · 1770 소환체) ──
@@ -506,7 +515,7 @@ codes:
     - { id: 1770, verbalName: 맥동하는 결정, codeName: SkyCrystalCore, description: "무적 10회. 자기 턴 3번이 지나면 천공의 포식자가 삼켜 최대 체력 10%를 회복하고 포만을 얻는다. 최대 체력은 본체의 3%, 행동 속도는 본체를 따라간다. <고유 패시브> <적 전용> <전수 불가능>" }
     - { id: 1771, verbalName: 부푼 비늘, codeName: SkyCrystalCore, description: "무적 8회. 자기 턴 3번이 지나면 터져 상대 전원에게 각자 최대 체력 35%의 피해를 준다. 방어력·피해 배율을 무시하고 회피할 수 없으며 보호막은 흡수한다. <고유 패시브> <적 전용> <전수 불가능>" }
     # ── 일본 해안 전선 (1800 공용 · 1810 돌격대장 · 1820 선봉대장 · 1830 사냥꾼 · 1840 공포 · 1850 집정관) ──
-    # ── 아베노 세이메이 (43) ──
+    # ── 세이메이 (43) ──
     - { id: 243, verbalName: 결계 해독, codeName: SeimeiBarrierDecode, description: "필드에 서 있는 동안 자신을 포함한 아군 전체의 피해가 보호막을 건너뛴다. 방어력·내구·체력 구간은 그대로 받는다. 판정은 피해가 들어가는 순간이다. <고유 패시브> <전수 불가능>" }
     - { id: 115, verbalName: 봉인의 잔향, codeName: SeimeiSealEcho, description: "봉인부가 준비된 일반행동이 대상에게 주는 피해 -10%(2턴)를 건다. 기절이 실패해도 건다." }
     - { id: 116, verbalName: 드러난 틈, codeName: SeimeiExposedGap, description: "자신이 새 행동불능을 건 적은 받는 피해가 10% 증가한다(2턴). 같은 효과는 겹치지 않는다." }
@@ -568,6 +577,8 @@ codes:
       verbalName: 물어뜯기
       codeName: FenrirBite
       description: "소환수 — 현재 체력이 가장 낮은 적에게 STR×0.4의 피해를 입힌다. #소환수 #접촉 #물리"
+    - { id: 9, verbalName: 함께 걷는 길, codeName: HugoPartyHeal, description: "아군 전체를 100 + CON×0.5만큼 치유한다." }
+    - { id: 503, verbalName: 사색의 손길, codeName: PenseeHeal, description: "소환수 팡세 — 체력 비율이 가장 낮은 단일 아군을 500 + INT×1.2만큼 치유한다." }
     - id: 900
       verbalName: 일반행동
       codeName: MagicBolt
@@ -656,6 +667,8 @@ codes:
     - { id: 120, verbalName: 일반행동, codeName: HorusNormalAttack, description: "단일 적에게 STR×1.0의 물리 피해를 입힌다. 네 번째 공격은 우제트 대체행동이 된다. #물리 #비접촉 #화살" }
     - { id: 121, verbalName: 일반행동, codeName: AnubisNormalAttack, description: "단일 적에게 CON×0.8의 피해를 입힌다. #접촉 #물리 #찌르기" }
     - { id: 122, verbalName: 일반행동, codeName: BastetNormalAttack, description: "단일 적에게 DEX×0.5의 피해를 입힌다. #접촉 #물리 #베기" }
+    - { id: 180, verbalName: 분신 소환, codeName: UsaNormalAttack, description: "소환수 '분신'을 1기 소환한다. 이미 3기를 거느리고 있으면 더 늘어나지 않는다." }
+    - { id: 502, verbalName: 일반행동, codeName: CloneNormalAttack, description: "소환수 — 단일 적에게 고정 위력 160 + INT×0.5의 피해를 입힌다. #소환수 #특수 #접촉" }
     - { id: 123, verbalName: 일반행동, codeName: SetNormalAttack, description: "단일 적에게 STR×0.8의 피해를 입힌다. #접촉 #물리 #베기" }
     - { id: 124, verbalName: 일반행동, codeName: ThothNormalAttack, description: "단일 적에게 INT×0.8의 피해를 입힌다. #비접촉 #특수" }
     - { id: 125, verbalName: 일반행동, codeName: IsisNormalAttack, description: "단일 적에게 INT×0.6의 피해를 입힌다. 세 번째 적중마다 바위 원소를 부여한다. #비접촉 #특수" }
@@ -735,6 +748,8 @@ codes:
     - { id: 66, verbalName: 정화의 밀물, codeName: VarunaTide, description: "아군 전체를 CON×1.5만큼 치유하고 해로운 효과를 모두 제거한다." }
 
   ultimate:
+    - { id: 9, verbalName: 용기 있는 변호사, codeName: HugoBraveAdvocate, description: "소환수 팡세를 3턴간 소환한다." }
+    - { id: 503, verbalName: 사유의 방벽, codeName: PenseeProtection, description: "소환수 팡세 — 아군 전체에게 받는 피해 25% 감소를 3턴 부여한다." }
     - { id: 103, verbalName: 아르고 호 출항, codeName: JasonArgoDeparture, description: "적 전체에게 고정 위력 100 + INT×0.6의 피해를 입히고 아군 전체에게 이아손 INT의 절반만큼 INT를 부여한다. (2턴) #물리 #비접촉" }
     - { id: 8, verbalName: 실험 결과를 발표하겠습니다!, codeName: LavoisierExperiment, description: "반응 준비도 3과 세 시약이 모두 필요하다. 시약 중 최소량 Q만큼을 각각 소모하고 적 전체에게 INT×(8+0.3Q)×(1+LUK/(100+LUK))의 피해를 입힌다. 치명타 가능. 적중 후 불 원소를 5턴 부착한다. #특수 #비접촉 #전체공격" }
     - { id: 61, verbalName: 언젠가 다다를 마지막, codeName: YamaFinalArrival, description: "적 전체를 베어 DEX 기반 위력 80의 피해를 입히고 번개 원소를 부여한다. 이후 대상의 지속피해를 즉시 정산해 (턴당 지속피해 × INT × 0.8%)만큼 추가 피해를 만든다. #특수 #베기 #접촉" }
@@ -852,6 +867,8 @@ codes:
     - { id: 120, verbalName: 우제트, codeName: HorusWadjet, description: "상시형 궁극기. 네 번째 일반행동에 STR×0.6 피해를 더하고 적 방어력을 20% 무시한다. 일반행동마다 우제트 게이지가 1/4씩 찬다. #물리 #비접촉 #화살" }
     - { id: 121, verbalName: 저승의 바위 창, codeName: AnubisStoneSpear, description: "적 전열 전체(비어 있으면 후열 전체)에 STR×0.8의 피해를 입힌다. 아누비스가 전열이면 전열 아군 전체에게 CON×1.4 보호막을 부여한다. #특수 #비접촉" }
     - { id: 122, verbalName: 야수의 추격, codeName: BastetApexExecution, description: "패시브형 궁극기. 반격 코드를 가진 모든 아군이 추가행동 또는 반격을 하면 적 전체에게 기본 위력 45 + DEX×4×(추가 대상 수, 최대 3)의 추가행동을 가한다. 단일 적 기준 위력 45이며 같은 행동의 다단 적중에는 한 번만 반응한다. #접촉 #물리 #베기 #추가행동" }
+    - { id: 180, verbalName: "분신술 — 만천화우", codeName: UsaCloneRally, description: "거느린 모든 분신에게 3턴간 치명타 피해 +40%를 부여하고 즉시 행동하게 한다. 분신이 하나도 없으면 즉시 행동 대신 분신을 2기 소환한다." }
+    - { id: 502, verbalName: 분신 일격, codeName: CloneBurst, description: "소환수 — 단일 적에게 고정 위력 240 + INT×0.7의 피해를 입힌다. #소환수 #특수 #접촉" }
     - { id: 123, verbalName: 화염 참격, codeName: SetBurningSlash, description: "단일 적에게 STR×1.2의 피해를 입히고 CON 명중 판정에 성공하면 화상(3턴)을 부여한다. #접촉 #물리 #베기 #디버프" }
     - { id: 124, verbalName: 지혜의 눈, codeName: ThothEyeOfWisdom, description: "3턴간 아군 전체가 감소시킨 강인도의 30%를 실제 피해로 더한다." }
     - { id: 125, verbalName: 사막의 격류, codeName: IsisDesertDeluge, description: "적 전체에게 INT×0.4의 피해를 3회 입히고 바위 원소를 부여한 뒤 행동 게이지를 50% 지연시킨다. #비접촉 #특수 #디버프" }

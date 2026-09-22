@@ -327,6 +327,7 @@ namespace Codes.Passive
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "자가치유";
             IgnoresActivationChance = true;
+            SupersededByCodeId = 456;
         }
 
         public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
@@ -427,13 +428,13 @@ namespace Codes.Passive
     {
         public TheseusSelfHealingEffect() : base(0) { }
 
-        /// <summary>턴마다 CON의 2배를 회복한다. 턴 하나가 예전 2초에 해당한다.</summary>
+        /// <summary>턴마다 CON만큼 회복한다. 물·풀 원소가 있으면 2배가 된다.</summary>
         public override void OnOwnerTurn()
         {
             if (Target == null || !Target.isActive) return;
             bool doubled = Target.HasCombatElement(BaseEnums.UnitElement.Hydro) ||
                            Target.HasCombatElement(BaseEnums.UnitElement.Dendro);
-            int heal = Mathf.Max(1, Target.GetBaseCon()) * 2 * (doubled ? 2 : 1);
+            int heal = Mathf.Max(1, Target.GetBaseCon()) * (doubled ? 2 : 1);
             Target.ModifyHp(Target.HpCurr + heal, Caster ?? Target);
         }
     }

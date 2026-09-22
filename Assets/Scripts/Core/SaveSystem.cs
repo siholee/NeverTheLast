@@ -157,6 +157,32 @@ namespace Core
             return data.unlockedStarterUnitIds.Contains(unitId);
         }
 
+        /// <summary>아군이 전투에서 소환한 누적 횟수를 기록하고 조건을 만족한 스타팅 후보를 연다.</summary>
+        public static void RecordCombatSummon()
+        {
+            TrainedCharacterCollection data = LoadTrainedCharacters();
+            data.combatSummonCount = System.Math.Max(0, data.combatSummonCount) + 1;
+
+            var units = Managers.GameManager.Instance?.unitDataList?.units;
+            if (units != null)
+            {
+                foreach (var unit in units)
+                {
+                    if (unit == null || unit.unlockAfterSummonCount <= 0 ||
+                        data.combatSummonCount < unit.unlockAfterSummonCount ||
+                        data.unlockedStarterUnitIds.Contains(unit.id)) continue;
+                    data.unlockedStarterUnitIds.Add(unit.id);
+                    if (!data.pendingCharacterUnlockIds.Contains(unit.id))
+                        data.pendingCharacterUnlockIds.Add(unit.id);
+                    Debug.Log($"[SaveSystem] 소환 {data.combatSummonCount}회 달성 — {unit.name} 스타팅 해금");
+                }
+            }
+
+            SaveTrainedCharacterCollection(data);
+        }
+
+        public static int GetCombatSummonCount() => LoadTrainedCharacters().combatSummonCount;
+
         /// <summary><c>10_units.yaml</c>에 실제로 있는 유닛 ID인가.</summary>
         private static bool UnitExists(int unitId)
         {
@@ -290,6 +316,7 @@ namespace Core
             data.unlockedStarterUnitIds ??= new System.Collections.Generic.List<int>();
             data.records ??= new System.Collections.Generic.List<TrainedCharacterRecord>();
             data.pendingCharacterUnlockIds ??= new System.Collections.Generic.List<int>();
+            data.combatSummonCount = System.Math.Max(0, data.combatSummonCount);
 
             var usedSupportIds = new System.Collections.Generic.HashSet<string>();
             for (int i = 0; i < data.records.Count; i++)

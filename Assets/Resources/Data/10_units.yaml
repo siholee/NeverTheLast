@@ -287,6 +287,53 @@ units:
     portrait: JEAN_PORTRAIT
     standing: JEAN_STANDING
 
+  - id: 9
+    name: 위고
+    tagline: "소환수를 보유한 유닛이 많을수록 강해지는 치유형 소환 서포터"
+    characterType: Support
+    element: Hydro
+    startingProficiencies: [Orb]
+    startingItemIds: [4109]
+    tags: [Akasha, Gaul, Human]
+    archetypeTags: [Summon, Healing]
+    canStartAsMain: false
+    canStartAsSupport: true
+    canUseInInfinite: false
+    unlockAfterSummonCount: 100
+    mainStat: INT
+    subStat: CON
+    subStats: [CON]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 9
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 14
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 20
+    conIncrementLvl: 2
+    conIncrementUpgrade: 1
+    intBase: 24
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 14
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    manaMax: 100
+    codes: { passive: 209, normal: 9, ultimate: 9 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 109, unlockLevel: 1,  stage: 1 }   # 카피바라
+      - { codeId: 25,  unlockLevel: 7,  stage: 1 }   # 자가치유
+      - { codeId: 90,  unlockLevel: 8,  stage: 1 }   # 가벼운 무장
+      - { codeId: 104, unlockLevel: 15, stage: 1 }   # 오사방지
+      - { codeId: 119, unlockLevel: 21, stage: 1 }   # 영감
+      - { codeId: 144, unlockLevel: 30, stage: 1 }   # 시인
+      - { codeId: 145, unlockLevel: 60, stage: 1 }   # 대문호
+    portrait: HUGO_PORTRAIT
+    standing: HUGO_STANDING
+
   - id: 2
     name: 시
     tagline: "행동 속도가 곧 화력인 쾌속 검사. 빈사가 된 적을 처형으로 정리한다"
@@ -1405,11 +1452,11 @@ units:
       - { codeId: 11,  unlockLevel: 44, stage: 1 }   # 천살성
     portrait: SUSANOO_PORTRAIT
     standing: SUSANOO_STANDING
-  # ── 아베노 세이메이 ───────────────────────────────────────────────
+  # ── 세이메이 ─────────────────────────────────────────────────────
   # 해안 전선 1슬롯 승리 뒤 합류한다. 필드에 서 있는 것만으로 아군 전체에 방어막 관통을 준다.
   # 공허의 갑주를 제어 없이 넘기는 해법이라 진행에 필요한 서포터다.
   - id: 43
-    name: 아베노 세이메이
+    name: 세이메이
     tagline: "아군 피해가 보호막을 건너뛰게 하고, 기절과 에어본으로 적을 묶는 음양사"
     characterType: Locked
     element: Anemo
@@ -1694,7 +1741,7 @@ units:
     startingItemIds: [4104]
     tags: [Egypt]
     canStartAsMain: true
-    canStartAsSupport: false
+    canStartAsSupport: true
     canUseInInfinite: true
     mainStat: CON
     subStat: STR
@@ -2036,6 +2083,51 @@ units:
       - { codeId: 101, unlockLevel: 30, stage: 1 }   # 개선문
     portrait: MARIE_PORTRAIT
     standing: MARIE_STANDING
+
+  # 화령 스타터. 분신을 늘려 머릿수로 때리는 소환 특화 딜러.
+  - id: 180
+    name: 우사
+    tagline: "분신을 셋까지 늘려 함께 두들기고, 치명적인 일격은 분신으로 흘리는 도사"
+    characterType: Starter
+    archetypeTags: [Summon, Precision]
+    element: Anemo
+    startingProficiencies: [Orb, LightArmor]
+    startingItemIds: [4109]
+    tags: [Hwaryeong, Beast]
+    canStartAsMain: true
+    canStartAsSupport: false
+    canUseInInfinite: true
+    mainStat: INT
+    subStat: LUK
+    subStats: [LUK]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 12
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 16
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 16
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 24
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 20
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 1
+    manaMax: 100
+    codes: { passive: 380, normal: 180, ultimate: 180 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 142, unlockLevel: 1,  stage: 1 }   # 느긋함
+      - { codeId: 143, unlockLevel: 8,  stage: 1 }   # 정기 회복
+      - { codeId: 26,  unlockLevel: 12, stage: 1 }   # 과다치유
+      - { codeId: 89,  unlockLevel: 20, stage: 1 }   # 대도
+      - { codeId: 55,  unlockLevel: 40, stage: 1 }   # 생명의 물
+    portrait: USA_PORTRAIT
+    standing: USA_STANDING
 
   - id: 8
     name: 라부아지에

@@ -58,6 +58,11 @@ namespace Codes.Base
         206 => new NicoleElectricField(context), // 니콜 초기 패시브 — 일렉트릭 필드
         207 => new JeanBestDefense(context),  // 잔 초기 패시브 — 최고의 방어
         208 => new LavoisierMassConservation(context),
+        209 => new HugoEnsemble(context),
+        144 => new HugoPoet(context),
+        145 => new HugoGreatWriter(context),
+        456 => new GraceItemPassive(context),
+        457 => new LesMiserablesItemPassive(context),
         104 => new JeanMisfireGuard(context),
         105 => new JeanPhysicalCoach(context),
         106 => new JeanBulkUp(context),
@@ -407,6 +412,10 @@ namespace Codes.Base
         452 => new WinterTriangleItemPassive(context),
         453 => new IliadItemPassive(context),
         454 => new GoldenFleeceItemPassive(context),
+        455 => new FoxBeadItemPassive(context),
+        142 => new UsaLeisurely(context),
+        143 => new UsaEssenceRecovery(context),
+        380 => new UsaTaoistNature(context),
         431 => new SceptreOfAmunItemPassive(context),
         // ── 사바흐·이카리아 ──
         203 => new SabahDebuffHunter(context),
@@ -462,8 +471,12 @@ namespace Codes.Base
         7 => new JeanIronFist(context), // 잔 일반행동/대체행동
         8 => new LavoisierFlask(context),
         67 => new SuryaRavi(context),   // 수리야 라비/대체행동 바스카르
+        180 => new UsaNormalAttack(context), // 우사 일반행동 — 분신 소환
+        9 => new HugoPartyHeal(context),
         500 => new FlyerNormalAttack(context), // 소환수 — 플라이어 일반행동
         501 => new FenrirBite(context), // 소환수 — 펜리르 일반행동
+        502 => new CloneNormalAttack(context), // 소환수 — 분신 일반행동
+        503 => new PenseeHeal(context), // 소환수 — 팡세 치유
         900 => new MagicBolt(context),
         901 => new Shoot(context),
         60 => new Sachi(context),
@@ -618,7 +631,11 @@ namespace Codes.Base
         6 => new NicoleOvercharge(context), // 니콜 궁극기
         7 => new JeanMaidOfOrleans(context), // 잔 궁극기
         8 => new LavoisierExperiment(context),
+        180 => new UsaCloneRally(context),
+        9 => new HugoBraveAdvocate(context),
         500 => new FlyerSkyfall(context), // 소환수 — 플라이어 궁극기
+        502 => new CloneBurst(context), // 소환수 — 분신 궁극기
+        503 => new PenseeProtection(context), // 소환수 — 팡세 피해 경감
         61 => new YamaFinalArrival(context),
         62 => new AgniWhiteFlame(context),
         63 => new IndraKingOfGods(context),   // 인드라 U — 로카팔라 특수행동 개방

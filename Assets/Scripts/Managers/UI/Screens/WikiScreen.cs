@@ -5,6 +5,7 @@ using System.Text;
 using BaseClasses;
 using Codes.Base;
 using Core;
+using Effects.Negative;
 using Helpers;
 using Managers.UI.Core;
 using static Managers.UI.Core.CodeText;
@@ -1065,6 +1066,44 @@ namespace Managers.UI.Screens
                 });
             }
 
+            foreach ((string title, string body) in TrainingRules)
+            {
+                string entryTitle = title;
+                string entryBody = body;
+                entries.Add(new Entry
+                {
+                    Group = "육성",
+                    Title = entryTitle,
+                    Body = () =>
+                    {
+                        var sb = new StringBuilder();
+                        Headline(sb, entryTitle, "육성", UITheme.TextPrimary);
+                        Paragraph(sb, entryBody, UITheme.TextPrimary);
+                        return sb.ToString();
+                    },
+                    Search = $"{entryTitle} {entryBody}",
+                });
+            }
+
+            entries.Add(new Entry
+            {
+                Group = "원소 반응",
+                Title = "반응이란",
+                Body = ReactionOverviewBody,
+                Search = "원소 반응 부착 반응표",
+            });
+            foreach (string reactionName in ReactionNames())
+            {
+                string name = reactionName;
+                entries.Add(new Entry
+                {
+                    Group = "원소 반응",
+                    Title = name,
+                    Body = () => ReactionBody(name),
+                    Search = $"원소 반응 {name}",
+                });
+            }
+
             foreach (SynergyRoleData role in SynergyCatalog.Roles.Where(role => role != null))
             {
                 entries.Add(new Entry
@@ -1135,6 +1174,128 @@ namespace Managers.UI.Screens
 
             return sb.ToString();
         }
+
+        // ── 원소 반응 ─────────────────────────────────────────────
+
+        /// <summary>표에 적힌 순서대로. 이름이 겹치는 확산은 한 번만 센다.</summary>
+        private static IEnumerable<string> ReactionNames()
+            => ElementalReaction.AllReactions().Select(reaction => reaction.Name).Distinct();
+
+        private static string ElementName(BaseEnums.UnitElement element) => element switch
+        {
+            BaseEnums.UnitElement.Pyro => "불",
+            BaseEnums.UnitElement.Hydro => "물",
+            BaseEnums.UnitElement.Dendro => "풀",
+            BaseEnums.UnitElement.Electro => "전기",
+            BaseEnums.UnitElement.Cryo => "얼음",
+            BaseEnums.UnitElement.Geo => "바위",
+            BaseEnums.UnitElement.Anemo => "바람",
+            _ => element.ToString(),
+        };
+
+        private static string KindName(ReactionKind kind) => kind switch
+        {
+            ReactionKind.Amplify => "증폭 — 방금 그 공격의 피해를 키운다",
+            ReactionKind.Spread => "확산 — 원소를 주변으로 퍼뜨린다",
+            ReactionKind.Control => "제어 — 상대의 행동을 막거나 늦춘다",
+            ReactionKind.Burst => "즉발 — 그 자리에서 피해를 준다",
+            ReactionKind.Dot => "지속피해 — 턴마다 깎는다",
+            ReactionKind.Buff => "강화 — 스탯을 올린다",
+            ReactionKind.Debuff => "약화 — 대상의 스탯을 내린다",
+            _ => "무효 — 붙은 원소를 지운다",
+        };
+
+        private static string ReactionOverviewBody()
+        {
+            var sb = new StringBuilder();
+            Headline(sb, "원소 반응", "28쌍", UITheme.TextPrimary);
+            Paragraph(sb,
+                "캐릭터마다 타고난 원소가 있고, 공격은 대상에게 원소를 부착한다." + "\n" +
+                "이미 다른 원소가 붙어 있는 대상에게 원소를 부착하면 두 원소가 반응한다.",
+                UITheme.TextPrimary);
+
+            Section(sb, "세기");
+            Paragraph(sb,
+                "반응의 세기는 반응을 일으킨 쪽의 CON에 비례한다. 상대와의 차이가 아니라 절대값이라 " +
+                "레벨이 올라도 묻히지 않는다.");
+
+            Section(sb, "겹칠 때");
+            Paragraph(sb,
+                "성립하는 쌍이 둘 이상이면 하나만 터진다. 증폭 · 확산 · 제어 · 즉발 · 지속피해 순으로 고른다. " +
+                "증폭이 가장 앞인 것은 방금 들어간 그 공격에만 얹을 수 있어 놓치면 사라지기 때문이다.");
+
+            Section(sb, "바람");
+            Paragraph(sb, "바람이 낀 여섯 쌍은 모두 같은 확산이다. 바람 + 바람만 광역 피해가 된다.");
+
+            Section(sb, $"전체 {ElementalReaction.AllReactions().Count()}쌍");
+            foreach (ElementalReaction.Listing reaction in ElementalReaction.AllReactions())
+            {
+                Paragraph(sb, $"{ElementName(reaction.A)} + {ElementName(reaction.B)} = {reaction.Name}");
+            }
+            return sb.ToString();
+        }
+
+        private static string ReactionBody(string name)
+        {
+            var sb = new StringBuilder();
+            List<ElementalReaction.Listing> pairs = ElementalReaction.AllReactions()
+                .Where(reaction => reaction.Name == name)
+                .ToList();
+
+            Headline(sb, name, "원소 반응", UITheme.TextPrimary);
+            if (pairs.Count == 0) return sb.ToString();
+
+            Section(sb, "계열");
+            Paragraph(sb, KindName(pairs[0].Kind), UITheme.TextPrimary);
+
+            if (pairs[0].Kind == ReactionKind.Buff || pairs[0].Kind == ReactionKind.Debuff)
+            {
+                Section(sb, "건드리는 스탯");
+                Paragraph(sb, pairs[0].Stat.ToString());
+            }
+
+            Section(sb, pairs.Count > 1 ? $"성립하는 조합 {pairs.Count}쌍" : "성립하는 조합");
+            foreach (ElementalReaction.Listing pair in pairs)
+            {
+                Paragraph(sb, $"{ElementName(pair.A)} + {ElementName(pair.B)}");
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 육성 설명. 수치의 원본은 Detail_04이며 공식이 바뀌면 여기도 함께 고친다.
+        /// </summary>
+        private static readonly (string Title, string Body)[] TrainingRules =
+        {
+            ("집중 훈련",
+                "육성 페이즈마다 STR · DEX · CON · INT · LUK 중 하나를 골라 메인을 키운다." + "\n" +
+                "고른 훈련은 그 스탯을 올리고 트레이닝 레벨도 함께 올린다. 트레이닝 레벨이 오를수록 " +
+                "같은 훈련이 주는 기본 상승량이 커진다." + "\n" + "\n" +
+                "상승량 = (훈련 레벨 기본치 + 서포트 보너스) × 컨디션 × (1 + 트레이닝 노트)"),
+            ("체력과 실패",
+                "훈련은 체력을 쓴다. 체력이 낮을수록 실패율이 가파르게 오르고, 실패하면 상승량을 잃고 " +
+                $"체력을 {Managers.TrainingManager.FailureEnergyPenalty} 더 잃는다." + "\n" +
+                "지능 훈련은 체력을 회복하는 훈련이라 실패하지 않는다. 휴식은 체력을 채우면서 낮은 확률로 " +
+                "컨디션도 한 칸 올린다."),
+            ("컨디션",
+                "컨디션은 상승량에 곱해지는 배율이다. 휴식으로 올리고, 스테이지가 넘어갈 때 아주 드물게 " +
+                "사건으로 오르내린다."),
+            ("서포트 카드",
+                "동료는 육성 페이즈마다 다섯 훈련 중 한 자리에 앉거나 쉰다. 내가 고른 훈련에 앉아 있는 " +
+                "동료만 보너스를 준다." + "\n" + "\n" +
+                "직접 완주해 만든 육성 카드를 가진 동료는 카드의 훈련 보너스를, 카드가 없는 동료는 기본 보너스를 " +
+                "준다. 동료의 특기 훈련과 내가 고른 훈련이 맞으면 보너스가 더 붙는다."),
+            ("우정도와 우정 훈련",
+                "함께 훈련한 동료와는 우정도가 쌓인다. 카드가 있으면 카드의 상승치로, 없으면 기본 상승치로 오르고 " +
+                "특기가 맞으면 조금 더 오른다." + "\n" + "\n" +
+                $"우정도가 {Managers.TrainingManager.FriendshipBondThreshold} 이상인 동료가 자기 특기 훈련에 앉으면 " +
+                "우정 훈련이 되어 상승량이 한 번 더 크게 붙는다. 직접 키운 카드는 시작 우정도가 이미 높아 " +
+                "우정 훈련에 훨씬 빨리 닿는다."),
+            ("힌트와 전수",
+                "훈련에 앉은 동료는 자기가 가진 해금 패시브를 힌트로 흘릴 수 있다. 받은 힌트는 육성을 마칠 때 " +
+                "메인이 실제로 배운다." + "\n" +
+                "고유 패시브는 전수되지 않는다 — 카드가 넘겨 줄 수 있는 것은 해금 패시브뿐이다."),
+        };
 
         /// <summary>
         /// 데이터 파일에 없는 유일한 문장. 수치의 원본은 Detail_02 · Detail_03이며

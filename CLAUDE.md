@@ -256,7 +256,7 @@ A unit with **two sub stats** splits that budget instead of doubling it — each
 training bonus is +5% per sub rather than +10%. Nine units do this: 라이트 · 니콜 · 피그말리온 ·
 아스클레피아 · 아마테라스 · 야마 · 이카리아 · 마리 · 프레이아.
 
-**44 units in total**, with two standing exceptions. **Gaudi** has no sub stat at all
+**46 units in total**, with two standing exceptions. **Gaudi** has no sub stat at all
 (main +2, everything else +1). **Jean** has no weapon proficiency at all, by design — she fights
 bare-handed and carries no starting weapon, so any weapon she holds contributes weight and
 nothing else. **Do not add a martial-arts proficiency**; the empty weapon slot is the condition

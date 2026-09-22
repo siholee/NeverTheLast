@@ -36,6 +36,8 @@ namespace Managers
         /// 메인 격자에 오른다(<see cref="Managers.CharacterSelectionManager.IsSupportOnly"/>).
         /// </summary>
         public bool unlocksAsStarterOnClear;
+        /// <summary>계정 누적 전투 소환 횟수가 이 값에 닿으면 스타팅 후보로 해금된다. 0이면 사용하지 않는다.</summary>
+        public int unlockAfterSummonCount;
         /// <summary>
         /// 이 유닛이 서포트로 참가한 육성 모드를 완주했을 때 영구 해금할 다른 유닛 ID.
         /// 서포터 자신을 스타팅으로 여는 <see cref="unlocksAsStarterOnClear"/>와 구분한다.

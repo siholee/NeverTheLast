@@ -1173,6 +1173,42 @@ items:
     codeGrants:
       - { slot: passive, codeId: 454, stage: 1 }
 
+  - id: 4513
+    name: 여우구슬
+    icon: ITEM_FOX_BEAD
+    slot: MainHand
+    category: Orb
+    requiredProficiency: Orb
+    rarity: 5
+    weight: 1
+    statBonuses: [{ stat: LUK, amount: 9 }]
+    codeGrants:
+      - { slot: passive, codeId: 455, stage: 1 }
+
+  - id: 4514
+    name: 노트드람 대성당
+    icon: ITEM_NOTRE_DAME
+    slot: Armor
+    category: Clothing
+    rarity: 5
+    weight: 1
+    durability: 30
+    statBonuses: [{ stat: CON, amount: 9 }]
+    codeGrants:
+      - { slot: passive, codeId: 456, stage: 3 }
+
+  - id: 4412
+    name: 레미제라블
+    icon: ITEM_LES_MISERABLES
+    slot: MainHand
+    category: Orb
+    requiredProficiency: Orb
+    rarity: 4
+    weight: 1
+    statBonuses: [{ stat: INT, amount: 7 }]
+    codeGrants:
+      - { slot: passive, codeId: 457, stage: 1 }
+
   - id: 4333
     name: 일리아스
     icon: ITEM_LEGION_ORB
@@ -1678,6 +1714,16 @@ items:
     weight: 1
     durability: 4
     statBonuses: [{ stat: INT, amount: 3 }]
+
+  - id: 4256
+    name: 도사의 옷
+    icon: ITEM_TAOIST_ROBE
+    slot: Armor
+    category: Clothing
+    rarity: 2
+    weight: 1
+    durability: 4
+    statBonuses: [{ stat: LUK, amount: 3 }]
 
   - id: 4326
     name: 상어 이빨 단검

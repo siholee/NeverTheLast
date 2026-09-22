@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Codes.Passive
 {
-    /// <summary>아베노 세이메이(43)의 코드와 상태 ID.</summary>
+    /// <summary>세이메이(43)의 코드와 상태 ID.</summary>
     public static class SeimeiIds
     {
         public const int UnitId = 43;
@@ -49,7 +49,7 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// 아베노 세이메이 P — 결계 해독(243). 세이메이가 필드에 살아 있는 동안 자신을 포함한
+    /// 세이메이 P — 결계 해독(243). 세이메이가 필드에 살아 있는 동안 자신을 포함한
     /// 같은 진영 전원의 피해가 보호막을 건너뛴다.
     ///
     /// 방어막 관통은 방어력 관통이 아니다 — 방어력·내구·체력 구간 경계는 그대로 받는다.
