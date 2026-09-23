@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using BaseClasses;
 using Codes.Base;
+using Combat;
 using Entities;
 using Managers;
 using UnityEngine;
@@ -32,9 +33,20 @@ namespace Codes.Normal
         protected override int CalculateDamage(float critMultiplier)
         {
             // 피그말리온은 방어형 컨셉이므로 CON을 근거로 때린다.
+            float summonCrit = critMultiplier > 1f
+                ? Summons.CritMultiplier(Caster, critMultiplier)
+                : 1f;
             return Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.CON) * critMultiplier));
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.CON) * summonCrit *
+                Summons.DamageMultiplier(Caster)));
         }
+
+        protected override List<int> GetDamageTags()
+            => new()
+            {
+                DamageTag.SingleTarget, DamageTag.NormalAttack, DamageTag.Physical,
+                DamageTag.ContactAttack, DamageTag.SummonAttack,
+            };
         
         protected override IEnumerator FireProjectile(List<Unit> targets, float delay, DamageContext context)
         {

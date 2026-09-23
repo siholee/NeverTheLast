@@ -66,6 +66,12 @@ namespace Effects.Base
         /// <summary>효과 제거 시 호출</summary>
         public virtual void OnRemove() { }
 
+        /// <summary>
+        /// 보유자의 궁극기 자원이 변한 직후 호출된다. 가상 자원처럼 실제 마나와 합산해
+        /// 임계점을 판정해야 하는 효과가 다음 행동/이벤트까지 지연되지 않도록 하는 훅이다.
+        /// </summary>
+        public virtual void OnUltimateResourceChanged(Unit unit) { }
+
         // ===== 스탯 질의 훅 (구 StatusEffect의 modifier 계열) =====
         // unit 파라미터는 질의 대상(효과 보유자)이다. 시전자 한정 효과는 unit == Caster를 확인한다.
 
@@ -211,6 +217,20 @@ namespace Effects.Base
         /// <summary>보유자가 실제 치유 또는 보호막을 부여한 직후 호출된다.</summary>
         public virtual void OnHealingOrShieldGranted(Unit source, Unit target) { }
 
+        /// <summary>
+        /// 보유자가 오버힐을 제외한 실제 체력 회복을 부여한 직후 호출된다.
+        /// 치유에만 반응해 보호막을 덧씌우거나 자원을 채우는 효과가 공통 보호막 훅을
+        /// 다시 밟아 재귀하지 않도록 별도로 둔다.
+        /// </summary>
+        public virtual void OnEffectiveHealingGranted(
+            Unit source, Unit target, int effectiveHealing, int hpBeforeHealing) { }
+
+        /// <summary>
+        /// 효과 보유자가 필드에 있는 동안 같은 진영 공격자가 특정 대상을 때릴 때 더하는
+        /// 피해 보너스. 세이메이의 봉인진처럼 공격자가 아닌 서포터에게 붙은 오라가 사용한다.
+        /// </summary>
+        public virtual float AlliedConditionalDamageBonusAdditive(Unit owner, Unit attacker, Unit target) => 0f;
+
         /// <summary>대상 지정 우선도 가산 보정.</summary>
         public virtual int TargetPriorityAdditiveModifier(Unit unit) => 0;
 
@@ -283,7 +303,7 @@ namespace Effects.Base
 
         /// <summary>
         /// 이 효과의 주인이 필드에 서 있는 동안 같은 진영 <paramref name="attacker"/>의 피해가 보호막을 건너뛰는가.
-        /// 세이메이의 결계 해독처럼 <b>공격자가 아닌 곳에 붙은 오라</b>가 쓴다. 피해가 해결되는 순간에 묻는다.
+        /// 공격자가 아닌 곳에 붙은 아군 오라가 쓴다. 피해가 해결되는 순간에 묻는다.
         /// </summary>
         public virtual bool GrantsAlliedShieldPenetration(Unit owner, Unit attacker) => false;
 
@@ -322,6 +342,12 @@ namespace Effects.Base
         /// 0.10이면 다른 보유자의 같은 효과와 합산해 +10%를 더한다.
         /// </summary>
         public virtual float AlliedSummonDamageBonusAdditive(Unit unit, Unit summonOwner) => 0f;
+
+        /// <summary>
+        /// 아군 소환수의 다음 공격을 확정 치명타로 바꿀 수 있으면 true.
+        /// 셰익스피어처럼 공격이 해결되는 순간 자원을 소비하는 필드 지원이 사용한다.
+        /// </summary>
+        public virtual bool TryConsumeAlliedSummonCritical(Unit owner, Unit summonAttacker) => false;
 
         /// <summary>효과가 유닛 분류 태그를 동적으로 부여하는지 여부.</summary>
         public virtual bool GrantsUnitTag(Unit unit, string tag) => false;

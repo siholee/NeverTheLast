@@ -65,6 +65,15 @@ namespace Managers
         public int lukIncrementLvl;
         public int lukIncrementUpgrade;
         /// <summary>
+        /// 정수 성장치 사이를 세밀하게 조정하는 선택 배율. 0 또는 미지정은 1배다.
+        /// 레벨 성장분에만 적용되며 기초·강화·훈련·장비에는 적용하지 않는다.
+        /// </summary>
+        public float strLevelGrowthScale;
+        public float dexLevelGrowthScale;
+        public float conLevelGrowthScale;
+        public float intLevelGrowthScale;
+        public float lukLevelGrowthScale;
+        /// <summary>
         /// 최대 마나. <b>유닛 고유 스탯</b>이라 레벨·강화·훈련·버프가 일절 관여하지 않는다.
         /// 스택형 자원을 쓰는 유닛에게는 의미가 없다(그쪽은 ultimateResourceMax를 본다).
         /// 비워 두면 기본값 100이다.

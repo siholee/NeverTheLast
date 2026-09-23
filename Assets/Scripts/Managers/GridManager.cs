@@ -1296,10 +1296,23 @@ namespace Managers
         {
             if (unit == null) return;
 
+            Cell occupiedCell = unit.currentCell;
+
             // 소환수는 칸이 없다. 칸 유무로 거르면 영영 비활성화되지 않는다.
             if (unit.isActive)
             {
                 unit.DeactivateUnit();
+            }
+
+            // 이미 비활성화된 유닛도 아직 자기 칸의 GameObject 참조를 붙들고 있을 수 있다.
+            // 이 경우 DeactivateUnit을 다시 부르지 않으면 점유 플래그가 영구히 남아 다음 편성이
+            // 실패한다. 다만 그 사이 다른 유닛이 들어온 칸을 지우면 안 되므로 소유권을 확인한다.
+            if (occupiedCell != null && occupiedCell.unit == unit.gameObject)
+            {
+                occupiedCell.isOccupied = false;
+                occupiedCell.unit = null;
+                occupiedCell.SetPortrait(null);
+                occupiedCell.SetOccupiedUnit(null);
             }
 
             heroList.Remove(unit);

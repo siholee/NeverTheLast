@@ -25,6 +25,12 @@ namespace Codes.Passive
         public const int FoxBead = 4513;
         public const int NotreDame = 4514;
         public const int LesMiserables = 4412;
+        public const int NamelessMercenaryShield = 4413;
+        public const int CursedCrown = 4334;
+        public const int JustinianCrown = 4515;
+        public const int ReplicatorCloak = 4335;
+        public const int GoldenArmor = 4336;
+        public const int ManekiNeko = 4337;
     }
 
     internal static class NewItemStatusIds
@@ -42,6 +48,12 @@ namespace Codes.Passive
         public const int FoxBead = 6455;
         public const int Grace = 6456;
         public const int LesMiserables = 6457;
+        public const int NamelessMercenaryShield = 6458;
+        public const int CursedCrown = 6459;
+        public const int ImperialEcho = 6460;
+        public const int SpellReplication = 6461;
+        public const int GoldenArmor = 6462;
+        public const int ManekiNeko = 6463;
     }
 
     /// <summary>정복 — 승승장구의 금색 상위. 처치마다 물리 피해 +10%.</summary>
@@ -389,5 +401,171 @@ namespace Codes.Passive
             int count = unit.ActiveSummons.Count(summon => summon != null && summon.isActive);
             return 1f + count * 0.10f;
         }
+    }
+
+    /// <summary>이름모를 용병의 방패 — 내구로 완전히 막은 타격마다 영속 내구 중첩 +1.</summary>
+    public sealed class NamelessMercenaryShieldItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_nameless_mercenary_shield";
+        public NamelessMercenaryShieldItemPassive(PassiveCodeContext context)
+            : base(context, "이름모를 용병의 방패") { }
+
+        public override void CastCode() => AddPermanentStatus(
+            NewItemStatusIds.NamelessMercenaryShield,
+            new NamelessMercenaryShieldEffect(NewItemIds.NamelessMercenaryShield),
+            "내구로 타격을 완전히 상쇄할 때마다 영속 중첩 +1. 중첩마다 내구 +1. 장착 해제·소유자 변경 시 초기화됩니다.");
+    }
+
+    internal sealed class NamelessMercenaryShieldEffect : BaseEffect
+    {
+        private readonly int _itemId;
+        private Action<EventContext> _handler;
+
+        public NamelessMercenaryShieldEffect(int itemId) : base(0) => _itemId = itemId;
+
+        public override void OnApply()
+        {
+            _handler = context =>
+            {
+                if (Target == null || context?.DmgCtx == null || context.DmgCtx.IsCancelled ||
+                    !context.DmgCtx.DurabilityFullyAbsorbed) return;
+                Target.AddPersistentEquipmentStack(_itemId, 1);
+            };
+            Target?.AddListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _handler);
+        }
+
+        public override void OnRemove()
+        {
+            Target?.RemoveListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _handler);
+        }
+
+        public override int DurabilityAdditiveModifier(Unit unit)
+            => unit == Target ? unit.GetPersistentEquipmentStack(_itemId) : 0;
+    }
+
+    /// <summary>저주받은 왕관 — 치명타가 대상 내구 50%를 무시한다.</summary>
+    public sealed class CursedCrownItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_cursed_crown";
+        public CursedCrownItemPassive(PassiveCodeContext context) : base(context, "저주받은 왕관") { }
+
+        public override void CastCode() => AddPermanentStatus(
+            NewItemStatusIds.CursedCrown, new CursedCrownEffect(),
+            "치명타는 대상 내구의 50%를 무시합니다. 이 장비를 착용한 채 전투에서 패배하면 LIFE 감소량이 2배가 됩니다.");
+    }
+
+    internal sealed class CursedCrownEffect : BaseEffect
+    {
+        public CursedCrownEffect() : base(0) { }
+
+        public override int DurabilityPenetrationModifier(Unit attacker, Unit target, DamageContext context)
+            => attacker == Target && target != null && context?.IsCrit == true
+                ? Mathf.CeilToInt(target.DurabilityCurr * 0.5f)
+                : 0;
+    }
+
+    /// <summary>주문 복제 — 공격 코드의 순수 피해 부분만 20% 위력으로 즉시 반복한다.</summary>
+    public sealed class SpellReplicationItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_spell_replication";
+
+        public SpellReplicationItemPassive(PassiveCodeContext context) : base(context, "주문 복제")
+            => SupersededByCodeId = 461;
+
+        public override void CastCode() => AddPermanentStatus(
+            NewItemStatusIds.SpellReplication, new ReplicatedAttackEffect(0.20f),
+            "공격 코드의 피해를 20% 위력으로 즉시 한 번 반복합니다. 부가 효과는 반복하지 않습니다.");
+    }
+
+    /// <summary>제국의 메아리 — 주문 복제의 강화 등급. 반복 위력이 40%다.</summary>
+    public sealed class ImperialEchoItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_imperial_echo";
+
+        public ImperialEchoItemPassive(PassiveCodeContext context) : base(context, "제국의 메아리")
+        {
+            Grade = BaseEnums.CodeGrade.Enhanced;
+        }
+
+        public override void CastCode()
+        {
+            Caster?.RemoveStatusByKey("item_spell_replication");
+            AddPermanentStatus(NewItemStatusIds.ImperialEcho, new ReplicatedAttackEffect(0.40f),
+                "공격 코드의 피해를 40% 위력으로 즉시 한 번 반복합니다. 부가 효과는 반복하지 않습니다.");
+        }
+    }
+
+    internal sealed class ReplicatedAttackEffect : BaseEffect
+    {
+        private readonly float _powerRatio;
+        private Action<DamageResolvedContext> _damageHandler;
+
+        public ReplicatedAttackEffect(float powerRatio) : base(0, powerRatio)
+            => _powerRatio = Mathf.Clamp01(powerRatio);
+
+        public override void OnApply()
+        {
+            _damageHandler = OnDamageDealt;
+            Target?.AddListener(BaseEnums.UnitEventType.OnDamageDealt, _damageHandler);
+        }
+
+        private void OnDamageDealt(DamageResolvedContext resolved)
+        {
+            DamageContext source = resolved?.DamageContext;
+            if (Target == null || resolved?.Attacker != Target || resolved.Target == null ||
+                !resolved.Target.isActive || source == null || source.IsCancelled || source.Damage <= 0 ||
+                source.DamageTags?.Contains(DamageTag.ReplicatedAttack) == true ||
+                source.CodeType is not (BaseEnums.CodeType.Normal or BaseEnums.CodeType.Ultimate or BaseEnums.CodeType.Special))
+                return;
+
+            List<int> tags = source.DamageTags != null
+                ? new List<int>(source.DamageTags)
+                : new List<int>();
+            tags.Add(DamageTag.ReplicatedAttack);
+            int repeatedPower = Mathf.Max(1, Mathf.RoundToInt(source.Damage * _powerRatio));
+            var repeated = new DamageContext(Target, repeatedPower, source.CodeType, tags,
+                source.IsCrit, source.Penetration, source.DurabilityPenetration)
+            {
+                OutgoingDamageMultiplier = source.OutgoingDamageMultiplier,
+            };
+            resolved.Target.TakeDamage(repeated);
+        }
+
+        public override void OnRemove()
+        {
+            Target?.RemoveListener(BaseEnums.UnitEventType.OnDamageDealt, _damageHandler);
+            _damageHandler = null;
+        }
+    }
+
+    public sealed class GoldenArmorItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_golden_armor";
+        public GoldenArmorItemPassive(PassiveCodeContext context) : base(context, "황금 갑주") { }
+        public override void CastCode() => AddPermanentStatus(
+            NewItemStatusIds.GoldenArmor, new GoldScaledDamageEffect(),
+            "현재 파티 골드 1당 가하는 피해가 0.1% 증가합니다.");
+    }
+
+    internal sealed class GoldScaledDamageEffect : BaseEffect
+    {
+        public GoldScaledDamageEffect() : base(0, 0.001f) { }
+
+        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
+        {
+            if (attacker != Target) return 1f;
+            int gold = Mathf.Max(0, global::Managers.GameManager.Instance?.inventoryManager?.Gold ?? 0);
+            return 1f + gold * 0.001f;
+        }
+    }
+
+    public sealed class ManekiNekoItemPassive : ItemStatusPassive
+    {
+        public const float GoldBonus = 0.20f;
+        protected override string StatusKey => "item_maneki_neko";
+        public ManekiNekoItemPassive(PassiveCodeContext context) : base(context, "마네키네코") { }
+        public override void CastCode() => AddPermanentStatus(
+            NewItemStatusIds.ManekiNeko, new MarkerBuffEffect(),
+            "전투 후 획득하는 골드가 20% 증가합니다.");
     }
 }

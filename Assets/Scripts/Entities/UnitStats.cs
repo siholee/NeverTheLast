@@ -69,6 +69,11 @@ namespace Entities
         [SerializeField] private int lukBase;
         [SerializeField] private int lukIncrementLvl;
         [SerializeField] private int lukIncrementUpgrade;
+        [SerializeField] private float strLevelGrowthScale = 1f;
+        [SerializeField] private float dexLevelGrowthScale = 1f;
+        [SerializeField] private float conLevelGrowthScale = 1f;
+        [SerializeField] private float intLevelGrowthScale = 1f;
+        [SerializeField] private float lukLevelGrowthScale = 1f;
 
         // 강화 횟수 (육성/보상)
         [SerializeField] private int strUpgrade;
@@ -103,6 +108,15 @@ namespace Entities
             _owner = owner;
         }
 
+        public void SetLevelGrowthScales(float str, float dex, float con, float intelligence, float luk)
+        {
+            strLevelGrowthScale = str > 0f ? str : 1f;
+            dexLevelGrowthScale = dex > 0f ? dex : 1f;
+            conLevelGrowthScale = con > 0f ? con : 1f;
+            intLevelGrowthScale = intelligence > 0f ? intelligence : 1f;
+            lukLevelGrowthScale = luk > 0f ? luk : 1f;
+        }
+
         /// <summary>YAML 데이터에서 스탯 로드</summary>
         public void Load(
             int dataStrBase, int dataStrIncrementLvl, int dataStrIncrementUpgrade,
@@ -132,6 +146,7 @@ namespace Entities
             lukBase = dataLukBase;
             lukIncrementLvl = dataLukIncrementLvl;
             lukIncrementUpgrade = dataLukIncrementUpgrade;
+            SetLevelGrowthScales(1f, 1f, 1f, 1f, 1f);
         }
 
         /// <summary>지정한 5스탯의 강화 수치를 증가</summary>
@@ -159,15 +174,16 @@ namespace Entities
             return Mathf.Max(0, _owner.Level - 1);
         }
 
-        private int GetLevelGrowth(int incrementPerLevel)
+        private int GetLevelGrowth(int incrementPerLevel, float scale = 1f)
         {
             int growthLevel = GetStatGrowthLevel();
-            if (_owner == null || !_owner.IsEnemy) return incrementPerLevel * growthLevel;
+            if (_owner == null || !_owner.IsEnemy)
+                return Mathf.RoundToInt(incrementPerLevel * growthLevel * scale);
 
             int normalGrowthLevels = Mathf.Min(growthLevel, EnemyAcceleratedGrowthStartLevel - 2);
             int acceleratedGrowthLevels = Mathf.Max(0, growthLevel - normalGrowthLevels);
             return Mathf.RoundToInt(incrementPerLevel *
-                (normalGrowthLevels + acceleratedGrowthLevels * EnemyAcceleratedGrowthMultiplier));
+                (normalGrowthLevels + acceleratedGrowthLevels * EnemyAcceleratedGrowthMultiplier) * scale);
         }
 
         /// <summary>캐릭터별 트레이닝 보너스. 주/부 스탯과 보너스율은 영웅 데이터가 결정한다.</summary>
@@ -221,7 +237,7 @@ namespace Entities
         internal int GetUnburdenedBaseStr()
         {
             int raw = _owner.ApplyInitialPrimaryStatMultipliers(BaseEnums.PrimaryStat.STR, strBase)
-                + GetLevelGrowth(strIncrementLvl) + strIncrementUpgrade * strUpgrade
+                + GetLevelGrowth(strIncrementLvl, strLevelGrowthScale) + strIncrementUpgrade * strUpgrade
                 + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.STR) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.STR)
                 + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.STR);
             return _owner.ApplyStatusPrimaryStatMultipliers(BaseEnums.PrimaryStat.STR, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.STR, raw));
@@ -235,7 +251,7 @@ namespace Entities
         internal int GetUnburdenedBaseDex()
         {
             int raw = _owner.ApplyInitialPrimaryStatMultipliers(BaseEnums.PrimaryStat.DEX, dexBase)
-                + GetLevelGrowth(dexIncrementLvl) + dexIncrementUpgrade * dexUpgrade
+                + GetLevelGrowth(dexIncrementLvl, dexLevelGrowthScale) + dexIncrementUpgrade * dexUpgrade
                 + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.DEX) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.DEX)
                 + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.DEX);
             return _owner.ApplyStatusPrimaryStatMultipliers(BaseEnums.PrimaryStat.DEX, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.DEX, raw));
@@ -244,7 +260,7 @@ namespace Entities
         public int GetBaseCon()
         {
             int raw = _owner.ApplyInitialPrimaryStatMultipliers(BaseEnums.PrimaryStat.CON, conBase)
-                + GetLevelGrowth(conIncrementLvl) + conIncrementUpgrade * conUpgrade
+                + GetLevelGrowth(conIncrementLvl, conLevelGrowthScale) + conIncrementUpgrade * conUpgrade
                 + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.CON) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.CON)
                 + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.CON);
             return _owner.ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.CON, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.CON, raw));
@@ -253,7 +269,7 @@ namespace Entities
         public int GetBaseInt()
         {
             int raw = _owner.ApplyInitialPrimaryStatMultipliers(BaseEnums.PrimaryStat.INT, intBase)
-                + GetLevelGrowth(intIncrementLvl) + intIncrementUpgrade * intUpgrade
+                + GetLevelGrowth(intIncrementLvl, intLevelGrowthScale) + intIncrementUpgrade * intUpgrade
                 + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.INT) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.INT)
                 + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.INT);
             return _owner.ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.INT, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.INT, raw));
@@ -262,7 +278,7 @@ namespace Entities
         public int GetBaseLuk()
         {
             int raw = _owner.ApplyInitialPrimaryStatMultipliers(BaseEnums.PrimaryStat.LUK, lukBase)
-                + GetLevelGrowth(lukIncrementLvl) + lukIncrementUpgrade * lukUpgrade
+                + GetLevelGrowth(lukIncrementLvl, lukLevelGrowthScale) + lukIncrementUpgrade * lukUpgrade
                 + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.LUK) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.LUK)
                 + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.LUK);
             return _owner.ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.LUK, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.LUK, raw));
@@ -273,11 +289,11 @@ namespace Entities
         {
             return stat switch
             {
-                BaseEnums.PrimaryStat.STR => GetLevelGrowth(strIncrementLvl) + strIncrementUpgrade * strUpgrade,
-                BaseEnums.PrimaryStat.DEX => GetLevelGrowth(dexIncrementLvl) + dexIncrementUpgrade * dexUpgrade,
-                BaseEnums.PrimaryStat.CON => GetLevelGrowth(conIncrementLvl) + conIncrementUpgrade * conUpgrade,
-                BaseEnums.PrimaryStat.INT => GetLevelGrowth(intIncrementLvl) + intIncrementUpgrade * intUpgrade,
-                BaseEnums.PrimaryStat.LUK => GetLevelGrowth(lukIncrementLvl) + lukIncrementUpgrade * lukUpgrade,
+                BaseEnums.PrimaryStat.STR => GetLevelGrowth(strIncrementLvl, strLevelGrowthScale) + strIncrementUpgrade * strUpgrade,
+                BaseEnums.PrimaryStat.DEX => GetLevelGrowth(dexIncrementLvl, dexLevelGrowthScale) + dexIncrementUpgrade * dexUpgrade,
+                BaseEnums.PrimaryStat.CON => GetLevelGrowth(conIncrementLvl, conLevelGrowthScale) + conIncrementUpgrade * conUpgrade,
+                BaseEnums.PrimaryStat.INT => GetLevelGrowth(intIncrementLvl, intLevelGrowthScale) + intIncrementUpgrade * intUpgrade,
+                BaseEnums.PrimaryStat.LUK => GetLevelGrowth(lukIncrementLvl, lukLevelGrowthScale) + lukIncrementUpgrade * lukUpgrade,
                 _ => 0,
             };
         }
@@ -287,11 +303,11 @@ namespace Entities
         {
             return stat switch
             {
-                BaseEnums.PrimaryStat.STR => GetLevelGrowth(strIncrementLvl),
-                BaseEnums.PrimaryStat.DEX => GetLevelGrowth(dexIncrementLvl),
-                BaseEnums.PrimaryStat.CON => GetLevelGrowth(conIncrementLvl),
-                BaseEnums.PrimaryStat.INT => GetLevelGrowth(intIncrementLvl),
-                BaseEnums.PrimaryStat.LUK => GetLevelGrowth(lukIncrementLvl),
+                BaseEnums.PrimaryStat.STR => GetLevelGrowth(strIncrementLvl, strLevelGrowthScale),
+                BaseEnums.PrimaryStat.DEX => GetLevelGrowth(dexIncrementLvl, dexLevelGrowthScale),
+                BaseEnums.PrimaryStat.CON => GetLevelGrowth(conIncrementLvl, conLevelGrowthScale),
+                BaseEnums.PrimaryStat.INT => GetLevelGrowth(intIncrementLvl, intLevelGrowthScale),
+                BaseEnums.PrimaryStat.LUK => GetLevelGrowth(lukIncrementLvl, lukLevelGrowthScale),
                 _ => 0,
             };
         }

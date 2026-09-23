@@ -132,6 +132,13 @@ namespace Core
     }
 
     [Serializable]
+    public class EquipmentStackSaveData
+    {
+        public int itemId;
+        public int stacks;
+    }
+
+    [Serializable]
     public class UnitSaveData
     {
         public int unitId;
@@ -155,6 +162,7 @@ namespace Core
         public float codeAccelerationBonus;
         public List<int> equippedItemIds = new();
         public List<int> carriedItemIds = new();
+        public List<EquipmentStackSaveData> equipmentStacks = new();
         public List<int> grantedPassiveCodeIds = new();
     }
 

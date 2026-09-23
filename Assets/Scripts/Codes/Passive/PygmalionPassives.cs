@@ -102,6 +102,7 @@ namespace Codes.Passive
     {
         private const int BurnCooldownTurns = 1;
         private Action<EventContext> _damageHandler;
+        private Action<EventContext> _afterDamageHandler;
         private readonly Combat.TargetTurnCooldown _burnCooldown = new(BurnCooldownTurns);
 
         public RoseThornsEffect() : base(0) { }
@@ -110,6 +111,8 @@ namespace Codes.Passive
         {
             _damageHandler = OnTakingDamage;
             Target?.AddListener(BaseEnums.UnitEventType.OnTakingDamage, _damageHandler);
+            _afterDamageHandler = OnAfterDamageTaken;
+            Target?.AddListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _afterDamageHandler);
         }
 
         private void OnTakingDamage(EventContext context)
@@ -122,14 +125,23 @@ namespace Codes.Passive
             PygmalionCombat.ApplyBurn(Target, attacker);
         }
 
+        private void OnAfterDamageTaken(EventContext context)
+        {
+            // 피격 보너스 마나의 기본 단위(1)를 궁극기 상태에서 두 배로 지급한다.
+            if (Target == null || context?.DmgCtx?.ResolvedDamage <= 0) return;
+            Target.AddUltimateResource(2);
+        }
+
         public override void OnRemove()
         {
             Target?.RemoveListener(BaseEnums.UnitEventType.OnTakingDamage, _damageHandler);
+            Target?.RemoveListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _afterDamageHandler);
             _burnCooldown.Clear();
         }
 
         public override float ReceivingDamageModifier(Unit unit) => unit == Target ? 0.5f : 1f;
         public override int TargetPriorityAdditiveModifier(Unit unit) => unit == Target ? 1 : 0;
+        public override bool BlocksNormalAttack(Unit unit) => unit == Target;
     }
 
     internal sealed class WeaklingContemptEffect : BaseEffect

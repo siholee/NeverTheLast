@@ -24,8 +24,7 @@ namespace Codes.Ultimate
     /// 적 전체를 INT 위력 60으로 때리되 <b>쌓인 순수치유량에 비례해 피해가 커지고</b>,
     /// 적중한 모든 적에게 풀 원소를 부착한 뒤 기록을 비운다.
     ///
-    /// 기록을 비우는 순간이 곧 고유 패시브 <c>피톤치드</c>의 정산 시점이다.
-    /// 그래서 같은 자원이 이 한 번의 피해와 아군 전체의 STR을 함께 산다.
+    /// 순수치유량 기록과 정산은 이 궁극기 자체가 전담한다. 피톤치드는 전투 중 CON 오라다.
     ///
     /// 부착이 피해 <b>뒤</b>에 오는 것은 연소를 노린 순서다. 수르트가 먼저 불을 깔아 두면
     /// 풀이 덮이는 순간 유발자가 프레이아가 되어 그녀의 CON이 연소 위력을 정한다.
@@ -45,7 +44,7 @@ namespace Codes.Ultimate
 
         protected override void Resolve()
         {
-            // 정산 전 기록을 먼저 붙든다. 피해와 STR 버프가 같은 값을 봐야 한다.
+            // 정산 전 기록을 먼저 붙든다. 피해 계산 뒤 이 궁극기가 직접 기록을 비운다.
             int record = Caster.RoundEffectiveHealingDone;
             float scale = 1f + Mathf.Min(
                 MaxBonusScale, record / Mathf.Max(1f, Caster.HpMax * FullScaleHpMultiple));
@@ -71,7 +70,6 @@ namespace Codes.Ultimate
                 }
             }
 
-            Caster.ActivePassiveCodes.OfType<FreyaPhytoncide>().FirstOrDefault()?.Settle(record);
             Caster.ResetEffectiveHealingRecord();
 
             Debug.Log($"[풍요의 산물] 순수치유량 {record} 정산 → 피해 배율 {scale:0.00}");

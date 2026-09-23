@@ -25,7 +25,7 @@ namespace Codes.Ultimate
         private const int AreaFlatPower = 100;
         private const float AreaStrCoefficient = 0.6f;
 
-        private float _burnMultiplier = 1f;
+        private int _burnBonusPower;
 
         public SurtrRagnarok(UltimateCodeContext context) : base(context)
         {
@@ -64,15 +64,15 @@ namespace Codes.Ultimate
             }
 
             Unit primary = CombatTargets.PickByPriority(enemies);
-            _burnMultiplier = Passive.SurtrBurn.Pay(Caster);
+            _burnBonusPower = Passive.SurtrBurn.PayForBonusPower(Caster);
 
             bool isCrit = Random.value <= Caster.CritChanceCurr;
             float crit = isCrit ? Caster.CritMultiplierCurr : 1f;
 
             // 두 타격 모두 고정 몫으로 초반 저점을 보장하되, 후속 광역의 STR 계수는 조금 낮춘다.
-            int singlePower = CurrentPower;
+            int singlePower = CurrentPower + _burnBonusPower;
             int areaPower = Mathf.Max(1, AreaFlatPower + Mathf.RoundToInt(
-                Caster.GetBaseStr() * AreaStrCoefficient));
+                Caster.GetBaseStr() * AreaStrCoefficient) + _burnBonusPower);
 
             Deal(primary, singlePower, DamageTag.SingleTarget, isCrit, crit);
 
@@ -93,7 +93,7 @@ namespace Codes.Ultimate
         {
             if (target == null || !target.isActive || target.IsUntargetable) return;
             int damage = Mathf.Max(1, Mathf.RoundToInt(
-                Caster.SkillDamage(power, BaseEnums.PrimaryStat.STR) * crit * _burnMultiplier));
+                Caster.SkillDamage(power, BaseEnums.PrimaryStat.STR) * crit));
             target.TakeDamage(new DamageContext(
                 Caster,
                 damage,

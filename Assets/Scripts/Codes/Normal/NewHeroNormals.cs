@@ -179,16 +179,16 @@ namespace Codes.Normal
     {
         public AsclepiusNormalAttack(NormalCodeContext context) : base(context)
         {
-            CodeName = "일반행동";
-            Power = 48;
-            PowerStatCoefficient = 0.3f;
-            PowerStat = BaseEnums.PrimaryStat.INT;
-            CodeTags = new List<int> { DamageTag.Special };
+            CodeName = "의신의 쇠뇌";
+            Power = 55;
+            PowerStatCoefficient = 0.8f;
+            PowerStat = BaseEnums.PrimaryStat.STR;
+            CodeTags = new List<int> { DamageTag.Special, DamageTag.NonContactAttack };
         }
 
         protected override int CalculateDamage(float critMultiplier)
             => UnityEngine.Mathf.Max(1, UnityEngine.Mathf.RoundToInt(
-                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.INT) * critMultiplier));
+                Caster.SkillDamage(CurrentPower, BaseEnums.PrimaryStat.STR) * critMultiplier));
 
         protected override List<int> GetDamageTags() => new()
         {
@@ -201,7 +201,7 @@ namespace Codes.Normal
         public AmaterasuNormalAttack(NormalCodeContext context) : base(context)
         {
             CodeName = "일반행동";
-            Power = 43;
+            Power = 38;
             PowerStatCoefficient = 0.4f;
             PowerStat = BaseEnums.PrimaryStat.DEX;
             CodeTags = new List<int> { DamageTag.Physical };

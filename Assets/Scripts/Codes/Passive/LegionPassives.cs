@@ -402,28 +402,58 @@ namespace Codes.Passive
     }
 
     /// <summary>
-    /// 천천히 서둘러라(Festina lente) — 자신의 DEX −25%, 궁극기로 가하는 피해 +25%.
-    ///
-    /// 느려지는 대신 한 방이 커진다. DEX가 행동 속도를 전담하므로 턴이 덜 돌아오고,
-    /// 궁극기 자원은 행동 횟수가 아니라 전투 시간에 비례해 차므로 손해가 상쇄된다.
-    /// '저스핏 고화력 궁극기 딜러'라는 컨셉이 이 한 쌍으로 성립한다.
+    /// 천천히 서둘러라(Festina lente) — 별도의 가상 마나 게이지를 운용한다.
+    /// 필드의 아군이 궁극기를 발동할 때마다 5%를 얻고, 실제 마나와 합쳐 100%에 닿으면
+    /// 실제 마나를 즉시 최대치로 만든 뒤 가상 마나를 비운다. 전투 자원이라 라운드 종료 시 사라진다.
     /// </summary>
     internal sealed class FestinaLenteEffect : BaseEffect
     {
-        private const float DexMultiplier = 0.75f;
-        private const float UltimateDamageMultiplier = 1.25f;
+        public const string VirtualManaResource = "octavia_virtual_mana";
+        public const int VirtualManaMaximum = 100;
+        public const int VirtualManaPerUltimate = 5;
+        private Action<Unit> _ultimateHandler;
 
-        public FestinaLenteEffect() : base(0, UltimateDamageMultiplier) { }
+        public FestinaLenteEffect() : base(0, VirtualManaPerUltimate) { }
 
-        public override float PrimaryStatMultiplierModifier(Unit unit, BaseEnums.PrimaryStat stat)
-            => unit == Target && stat == BaseEnums.PrimaryStat.DEX ? DexMultiplier : 1f;
-
-        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
+        public override void OnApply()
         {
-            if (attacker != Target || context == null) return 1f;
-            bool isUltimate = context.CodeType == BaseEnums.CodeType.Ultimate ||
-                              (context.DamageTags != null && context.DamageTags.Contains(DamageTag.UltAttack));
-            return isUltimate ? UltimateDamageMultiplier : 1f;
+            if (Target == null) return;
+            Target.SetCombatResourceMaximum(VirtualManaResource, VirtualManaMaximum, resetCurrent: true);
+            _ultimateHandler = OnUltimateActivated;
+            Unit.AnyActiveUltimateActivated += _ultimateHandler;
+        }
+
+        private void OnUltimateActivated(Unit user)
+        {
+            if (Target == null || !Target.isActive || !Target.IsOnField ||
+                user == null || !user.isActive || !user.IsOnField || user.IsEnemy != Target.IsEnemy) return;
+
+            Target.AddCombatResource(VirtualManaResource, VirtualManaPerUltimate);
+            TryConvertVirtualMana();
+        }
+
+        public override void OnUltimateResourceChanged(Unit unit)
+        {
+            if (unit == Target) TryConvertVirtualMana();
+        }
+
+        private void TryConvertVirtualMana()
+        {
+            if (Target == null || !Target.isActive) return;
+            int virtualPercent = Target.GetCombatResource(VirtualManaResource);
+            if (virtualPercent <= 0) return;
+            float realPercent = Target.ManaMax <= 0 ? 0f : Target.ManaCurr * 100f / Target.ManaMax;
+            if (realPercent + virtualPercent < 100f) return;
+
+            // FillUltimateResource도 자원 변화 훅을 부르므로 가상 게이지를 먼저 비워 재진입을 막는다.
+            Target.TryConsumeCombatResource(VirtualManaResource, virtualPercent);
+            Target.FillUltimateResource(manaOnly: false);
+        }
+
+        public override void OnRemove()
+        {
+            if (_ultimateHandler != null) Unit.AnyActiveUltimateActivated -= _ultimateHandler;
+            _ultimateHandler = null;
         }
     }
 

@@ -59,10 +59,17 @@ namespace Codes.Base
         207 => new JeanBestDefense(context),  // 잔 초기 패시브 — 최고의 방어
         208 => new LavoisierMassConservation(context),
         209 => new HugoEnsemble(context),
+        210 => new ShakespeareLanguageCreator(context),
         144 => new HugoPoet(context),
         145 => new HugoGreatWriter(context),
         456 => new GraceItemPassive(context),
         457 => new LesMiserablesItemPassive(context),
+        458 => new NamelessMercenaryShieldItemPassive(context),
+        459 => new CursedCrownItemPassive(context),
+        460 => new SpellReplicationItemPassive(context),
+        461 => new ImperialEchoItemPassive(context),
+        462 => new GoldenArmorItemPassive(context),
+        463 => new ManekiNekoItemPassive(context),
         104 => new JeanMisfireGuard(context),
         105 => new JeanPhysicalCoach(context),
         106 => new JeanBulkUp(context),
@@ -115,7 +122,7 @@ namespace Codes.Base
         183 => new GreekPhalanx(context),
         25 => new TheseusSelfHealing(context),
         26 => new TheseusOverheal(context),
-        224 => new AsclepiusNashorsTooth(context),
+        224 => new AsclepiusChaliceOfLife(context),
         240 => new AmaterasuSunRhythm(context),
         27 => new AmaterasuConcealment(context),
         28 => new AmaterasuFireworks(context),
@@ -152,11 +159,11 @@ namespace Codes.Base
         225 => new OrpheusCheatedDeath(context),
         81 => new OrpheusBard(context),
         242 => new SusanooRaijin(context),
-        243 => new SeimeiBarrierDecode(context),
-        115 => new SeimeiSealEcho(context),
+        243 => new SeimeiTripleSeal(context),
         116 => new SeimeiExposedGap(context),
-        117 => new SeimeiGuardianFormation(context),
-        118 => new SeimeiLingeringBarrier(context),
+        146 => new SeimeiSealFormation(context),
+        147 => new SeimeiEmergencyTreatment(context),
+        148 => new SeimeiEmergencyRoom(context),
         82 => new SusanooWaveCut(context),
         55 => new InheritedAsclepiusNashorsTooth(context),
         (>= 1000 and <= 1003) or (>= 1008 and <= 1015) => new EnemyCommonPassive(context, codeId),
@@ -471,8 +478,9 @@ namespace Codes.Base
         7 => new JeanIronFist(context), // 잔 일반행동/대체행동
         8 => new LavoisierFlask(context),
         67 => new SuryaRavi(context),   // 수리야 라비/대체행동 바스카르
-        180 => new UsaNormalAttack(context), // 우사 일반행동 — 분신 소환
+        180 => new UsaNormalAttack(context), // 우치 일반행동 — 분신 소환
         9 => new HugoPartyHeal(context),
+        10 => new ShakespeareInspiration(context),
         500 => new FlyerNormalAttack(context), // 소환수 — 플라이어 일반행동
         501 => new FenrirBite(context), // 소환수 — 펜리르 일반행동
         502 => new CloneNormalAttack(context), // 소환수 — 분신 일반행동
@@ -633,6 +641,7 @@ namespace Codes.Base
         8 => new LavoisierExperiment(context),
         180 => new UsaCloneRally(context),
         9 => new HugoBraveAdvocate(context),
+        10 => new ShakespeareQuestion(context),
         500 => new FlyerSkyfall(context), // 소환수 — 플라이어 궁극기
         502 => new CloneBurst(context), // 소환수 — 분신 궁극기
         503 => new PenseeProtection(context), // 소환수 — 팡세 피해 경감

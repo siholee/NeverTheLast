@@ -85,7 +85,9 @@ namespace Codes.Ultimate
             LegionUltimateStyle.Optio => (0, 1.2f),
             LegionUltimateStyle.Tribune => (0, 1.6f),
             LegionUltimateStyle.Agrippa => (0, 0f),
-            LegionUltimateStyle.Octavia => (61, 0.51f),
+            // 가상 마나 리워크 뒤에도 단독 딜러 평탄화 허용 범위(+20%) 안에서
+            // 실전 저점을 보완한다. 기존 61+INT×0.51 대비 약 1.5배다.
+            LegionUltimateStyle.Octavia => (92, 0.77f),
             LegionUltimateStyle.Caesar => (0, 0.1f),
             _ => (0, 0f),
         };

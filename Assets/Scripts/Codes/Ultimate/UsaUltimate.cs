@@ -11,7 +11,7 @@ using UnityEngine;
 namespace Codes.Ultimate
 {
     /// <summary>
-    /// 우사 U(180) — 거느린 분신에게 치명타 피해 +40%(3턴)를 두르고 즉시 한 번 더 움직이게 한다.
+    /// 우치 U(180) — 거느린 분신에게 치명타 피해 +40%(3턴)를 두르고 즉시 한 번 더 움직이게 한다.
     /// 분신이 하나도 없으면 즉시 행동 대신 분신 2기를 부른다 — 빈손으로 터뜨려도 손해만 보지 않는다.
     /// </summary>
     public sealed class UsaCloneRally : SimpleUltimate

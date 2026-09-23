@@ -7,6 +7,7 @@ using Codes.Base;
 using Codes.Normal;
 using Codes.Passive;
 using Core;
+using Effects.Base;
 using Helpers;
 using Managers;
 using UnityEngine;
@@ -56,6 +57,7 @@ namespace Entities
         [SerializeField] private string unitTier = "";
         [SerializeField] private List<int> equippedItemIds = new();
         [SerializeField] private List<int> carriedItemIds = new();
+        private readonly Dictionary<int, int> _persistentEquipmentStacks = new();
         [SerializeField] private List<LearnedPassiveSaveData> learnedPassiveRecords = new();
         [SerializeField] private List<int> grantedPassiveCodeIds = new();
         [SerializeField] private int level;
@@ -78,6 +80,7 @@ namespace Entities
         public float SubStatTrainingBonus => subStatTrainingBonus;
         public IReadOnlyList<int> EquippedItemIds => equippedItemIds;
         public IReadOnlyList<int> CarriedItemIds => carriedItemIds;
+        public IReadOnlyDictionary<int, int> PersistentEquipmentStacks => _persistentEquipmentStacks;
         public IReadOnlyList<LearnedPassiveSaveData> LearnedPassiveRecords => learnedPassiveRecords;
         public IReadOnlyList<int> GrantedPassiveCodeIds => grantedPassiveCodeIds;
         /// <summary>이번 런에서 이 유닛 대표로 편성한 육성 카드 ID.</summary>
@@ -619,6 +622,9 @@ namespace Entities
                     data.conBase, data.conIncrementLvl, data.conIncrementUpgrade,
                     data.intBase, data.intIncrementLvl, data.intIncrementUpgrade,
                     data.lukBase, data.lukIncrementLvl, data.lukIncrementUpgrade);
+                stats.SetLevelGrowthScales(
+                    data.strLevelGrowthScale, data.dexLevelGrowthScale, data.conLevelGrowthScale,
+                    data.intLevelGrowthScale, data.lukLevelGrowthScale);
                 ConfigureUltimateResource(data.ultimateResourceType, data.ultimateResourceName,
                     data.ultimateResourceMax, data.manaMax);
                 CodeAcceleration = 1f;
@@ -649,6 +655,7 @@ namespace Entities
         private void EquipStartingItems(List<int> startingItemIds)
         {
             equippedItemIds.Clear();
+            _persistentEquipmentStacks.Clear();
             EquipmentLoadout = new EquipmentLoadout();
             ItemPassiveCodes?.Clear();
             if (startingItemIds == null) return;
@@ -692,12 +699,16 @@ namespace Entities
                 return false;
             }
 
+            List<int> previouslyEquipped = equippedItemIds.ToList();
             if (!EquipmentLoadout.TryEquip(itemData, out reason))
             {
                 return false;
             }
 
             RefreshEquippedItemIds();
+            foreach (int removedId in previouslyEquipped.Where(id => !equippedItemIds.Contains(id)))
+                _persistentEquipmentStacks.Remove(removedId);
+            if (!previouslyEquipped.Contains(itemId)) _persistentEquipmentStacks.Remove(itemId);
             RefreshEquipmentCodeGrants();
             AttributesUpdate();
             currentCell?.UpdateUI();
@@ -767,6 +778,7 @@ namespace Entities
         public bool TryUnequip(int itemId, bool storeToCarried)
         {
             if (EquipmentLoadout == null || !EquipmentLoadout.Unequip(itemId)) return false;
+            _persistentEquipmentStacks.Remove(itemId);
 
             // 적은 보관함이 없다. 벗은 장비는 그대로 사라진다.
             if (storeToCarried && UsesCarryWeight)
@@ -810,6 +822,18 @@ namespace Entities
             }
 
             return false;
+        }
+
+        public int GetPersistentEquipmentStack(int itemId)
+            => _persistentEquipmentStacks.TryGetValue(itemId, out int value) ? Mathf.Max(0, value) : 0;
+
+        public int AddPersistentEquipmentStack(int itemId, int amount)
+        {
+            if (amount <= 0 || !IsEquipped(itemId)) return GetPersistentEquipmentStack(itemId);
+            int next = Mathf.Max(0, GetPersistentEquipmentStack(itemId) + amount);
+            _persistentEquipmentStacks[itemId] = next;
+            RefreshView();
+            return next;
         }
 
         public bool RemoveCarriedItem(int itemId)
@@ -1733,6 +1757,7 @@ namespace Entities
             if (context == null) return;
             // 광역 공격은 같은 컨텍스트를 여러 대상에게 재사용할 수 있으므로 대상마다 초기화한다.
             context.ResolvedDamage = 0;
+            context.DurabilityFullyAbsorbed = false;
             if (IsUntargetable)
             {
                 context.IsCancelled = true;
@@ -1946,6 +1971,8 @@ namespace Entities
         public virtual void AddUltimateResource(int amount)
         {
             ManaCurr = Mathf.Clamp(ManaCurr + amount, 0, ManaMax);
+            foreach (BaseEffect effect in ActiveEffectObjects().ToList())
+                effect.OnUltimateResourceChanged(this);
             // Cell의 통합 UI 시스템 사용
             RefreshView();
         }
@@ -2247,6 +2274,8 @@ namespace Entities
                 if (source != null && effectiveHealing > 0)
                 {
                     source.RoundEffectiveHealingDone += effectiveHealing;
+                    foreach (var effect in source.ActiveEffectObjects().ToList())
+                        effect.OnEffectiveHealingGranted(source, this, effectiveHealing, hpBefore);
                 }
 
                 // 회복도 숫자로 띄운다. 피해만 뜨면 힐러가 한 일이 화면에 남지 않는다.
@@ -2616,6 +2645,12 @@ namespace Entities
             if (saveData.equippedItemIds != null && saveData.equippedItemIds.Count > 0)
             {
                 EquipStartingItems(saveData.equippedItemIds);
+            }
+            _persistentEquipmentStacks.Clear();
+            foreach (EquipmentStackSaveData stack in saveData.equipmentStacks ?? new List<EquipmentStackSaveData>())
+            {
+                if (stack != null && stack.stacks > 0 && IsEquipped(stack.itemId))
+                    _persistentEquipmentStacks[stack.itemId] = stack.stacks;
             }
             carriedItemIds = saveData.carriedItemIds?.ToList() ?? new List<int>();
             AttributesUpdate();
@@ -3016,6 +3051,18 @@ namespace Entities
                     durabilityPenetration += Mathf.Max(0,
                         effect.DurabilityPenetrationModifier(dmgCtx.Attacker, this, dmgCtx));
                 }
+
+                // 공격자가 아닌 필드 서포터가 제공하는 조건부 피해 오라. 여러 명이 제공하면
+                // 문구대로 가산 중첩하고, 쓰러지거나 벤치로 물러난 즉시 계산에서 빠진다.
+                float alliedBonus = 0f;
+                foreach (Unit ally in Combat.CombatTargets.AliveAlliesIncludingSelf(dmgCtx.Attacker))
+                {
+                    if (ally == null || !ally.IsOnField) continue;
+                    foreach (var effect in ally.ActiveEffectObjects())
+                        alliedBonus += Mathf.Max(0f,
+                            effect.AlliedConditionalDamageBonusAdditive(ally, dmgCtx.Attacker, this));
+                }
+                outgoingDamageModifier *= 1f + alliedBonus;
             }
 
             foreach (var effect in ActiveEffectObjects())
@@ -3041,9 +3088,19 @@ namespace Entities
                                       dmgCtx.DamageTags.Contains(BaseClasses.DamageTag.DurabilityPenetration));
             if (!ignoresDurability)
             {
-                scaled -= Mathf.Max(0, DurabilityCurr - durabilityPenetration);
+                int effectiveDurability = Mathf.Max(0, DurabilityCurr - durabilityPenetration);
+                if (scaled > 0f && effectiveDurability >= scaled)
+                {
+                    dmgCtx.DurabilityFullyAbsorbed = true;
+                    scaled = 0f;
+                }
+                else
+                {
+                    scaled -= effectiveDurability;
+                }
             }
 
+            if (scaled <= 0f) return 0;
             return Mathf.Max(1, Mathf.RoundToInt(ApplyIncomingDamageCap(dmgCtx, scaled)));
         }
 

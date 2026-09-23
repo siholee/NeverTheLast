@@ -255,7 +255,7 @@ namespace Managers
         /// <summary>
         /// 완주한 런에 <b>서포트로 함께 선</b> 동료 중 <c>unlocksAsStarterOnClear</c>가 붙은 이를
         /// 스타팅 후보로 연다. 우마무스메의 육성마와 같은 결 — 곁에서 한 런을 끝까지 본 서포트가
-        /// 다음 런의 주인공이 된다. <c>unlocksUnitIdsOnClear</c>가 있으면 이아손→옥타비아처럼
+        /// 다음 런의 주인공이 된다. <c>unlocksUnitIdsOnClear</c>가 있으면
         /// 서포터와 연결된 별도의 메인 캐릭터도 함께 연다.
         ///
         /// <b>메인은 세지 않는다</b> — 메인은 육성 기록 자체가 자격이다.
@@ -553,6 +553,10 @@ namespace Managers
                     codeAccelerationBonus = hero.CodeAccelerationRunBonus,
                     equippedItemIds = hero.EquippedItemIds.ToList(),
                     carriedItemIds = hero.CarriedItemIds.ToList(),
+                    equipmentStacks = hero.PersistentEquipmentStacks
+                        .Where(pair => pair.Value > 0 && hero.EquippedItemIds.Contains(pair.Key))
+                        .Select(pair => new EquipmentStackSaveData { itemId = pair.Key, stacks = pair.Value })
+                        .ToList(),
                     grantedPassiveCodeIds = hero.GrantedPassiveCodeIds.ToList(),
                 });
             }

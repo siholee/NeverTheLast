@@ -46,6 +46,8 @@ namespace BaseClasses
     public bool IsCancelled;
     /// <summary>방어막과 체력에서 실제로 감소한 피해량. 피해 처리 후 이벤트가 읽는다.</summary>
     public int ResolvedDamage { get; internal set; }
+    /// <summary>내구가 이 타격의 최종 피해를 전부 흡수했는지.</summary>
+    public bool DurabilityFullyAbsorbed { get; internal set; }
 
     /// <summary>
     /// 같은 피해 컨텍스트가 광역 대상에 재사용되더라도 대상별 타격 VFX는 한 번씩 재생한다.

@@ -199,6 +199,23 @@ units:
     caution: "소환수가 적은 편성에서는 군상극과 레미제라블의 고점이 낮다"
     caution: "두 명 이상의 방출 딜러에게 특히 유리하다. 궁극기가 아군의 모든 원소를 먼저 제거하므로 세이의 창세 바위·자기 부착 반응 빌드와 충돌한다"
 
+  - id: 10
+    name: 셰익스피어
+    type: Starter
+    element: Geo
+    mainStat: LUK
+    topStat: LUK
+    row: Rear
+    roles: [SUMMON, AMP_SUMMON, AMP_CRIT, REVIVE]
+    supportValue: { combat: 5, training: 3 }
+    provides:
+      - key: LANGUAGE_CREATOR
+        text: "소환수의 생성·소멸·행동을 중첩으로 바꾸고, 공격마다 중첩을 써서 확정 치명타를 제공한다"
+      - key: SUMMON_FIELD
+        text: "궁극기 결계가 3턴간 소환수 피해 +25%와 소환수별 1회 부활을 제공한다"
+    wants: [SUMMON, HEAL, SHIELD]
+    caution: "소환수가 없는 편성에서는 일반행동과 궁극기의 가치가 크게 떨어진다"
+
   - id: 6
     name: 니콜
     type: Support
@@ -273,7 +290,9 @@ units:
       - key: PARTY_HEAL
         text: "일반행동 자체가 아군 전체 CON×0.6 치유 — 아군 전체에서 유일한 상시 힐러다"
       - key: ABUNDANCE
-        text: "궁극기가 누적 순수치유량을 광역 피해와 아군 전체 STR(최대 +25)로 함께 환산"
+        text: "궁극기가 누적 순수치유량에 비례해 광역 피해를 최대 2배까지 증폭하고 기록을 정산"
+      - key: PHYTONCIDE
+        text: "필드에 있는 동안 모든 아군의 CON을 프레이아의 전투 시작 CON 75%만큼 증가"
       - key: DENDRO_APPLY
         text: "궁극기가 적 전체에 풀 부착 — 불을 까는 아군과 겹치면 연소가 터진다"
     wants: [HEAL, ELEM_APPLY]
@@ -501,7 +520,7 @@ units:
 
   - id: 23
     name: 테세우스
-    type: Starter
+    type: Locked
     element: Hydro
     mainStat: DEX
     topStat: DEX
@@ -525,11 +544,11 @@ units:
     supportValue: { combat: 5, training: 1 }
     provides:
       - key: TWILIGHT
-        text: "고유 패시브 황혼 — 행동마다 최대 체력 20%를 태우고 그 행동의 피해 +40%"
+        text: "고유 패시브 황혼 — 행동마다 최대 체력 15%를 태우고 일반행동·궁극기 위력에 CON×2를 추가"
       - key: PYRO_APPLY
         text: "궁극기가 적 전체에 불 부착"
     wants: [HEAL, ELEM_APPLY]
-    caution: "체력을 태우지 못하면 황혼이 꺼진다. 상시 힐러 없이는 네 번째 공격부터 맨몸이다"
+    caution: "현재 체력이 30% 아래로 내려가면 체력을 더 태우지 못해 CON 추가 위력을 잃는다. 상시 치유로 화력 구간을 유지해야 한다"
 
   - id: 64
     name: 바유
@@ -549,7 +568,7 @@ units:
 
   - id: 121
     name: 아누비스
-    type: Support
+    type: Locked
     element: Geo
     mainStat: CON
     topStat: CON
@@ -614,16 +633,18 @@ units:
     name: 아스클레피아
     type: Locked
     element: Electro
-    mainStat: INT
-    topStat: INT
+    mainStat: LUK
+    topStat: LUK
     row: Rear
-    roles: [HEAL, SHIELD, CLEANSE, DPS_AOE]
+    roles: [HEAL, CLEANSE, DPS_ST, DPS_AOE]
     supportValue: { combat: 4, training: 4 }
     provides:
       - key: CRIT_HEAL
-        text: "치명적인 치유(Lv40) 치유·보호막이 치명타 판정을 받는다 — 마리의 치확 +100%와 곱해진다"
+        text: "치명적인 치유(Lv40) 치유가 치명타 판정을 받는다 — 마리의 치확 +100%와 곱해진다"
+      - key: CHALICE_OF_LIFE
+        text: "체력이 부족한 아군의 행동마다 반응 치유하고 유효 치유 행동당 궁극기 자원 5%를 얻는다"
       - key: DIVINE_GRACE
-        text: "의신의 가호(Lv58) 치유·보호막 +50% + 부정 상태 제거"
+        text: "의신의 가호(Lv50) 치유·보호막 +50% + 부정 상태 제거"
     wants: [AMP_CRIT]
 
   - id: 26
@@ -702,16 +723,16 @@ units:
     mainStat: CON
     topStat: CON
     row: Rear
-    roles: [SHIELD, CONTROL]
+    roles: [HEAL, CONTROL]
     supportValue: { combat: 4, training: 3 }
     provides:
-      - key: BARRIER_DECODE
-        text: "고유 패시브 결계 해독 — 필드에 있는 동안 아군 전체의 피해가 보호막을 건너뛴다. 해안 전선의 공허의 갑주를 제어 없이 넘긴다"
+      - key: TRIPLE_SEAL
+        text: "한 대상의 봉인부가 3중첩되면 다음 턴 직전까지 속박한다"
       - key: SEAL_TALISMAN
-        text: "일반행동 3회마다 기절 1턴 — 준비 공격 중인 적과 갑주를 두른 적을 먼저 노린다"
+        text: "일반행동마다 단일 적에게 봉인부를 쌓는다"
       - key: HEAVEN_EARTH
-        text: "궁극기가 아군 전체 보호막 뒤 적 전체 에어본 — 스사노오의 천총운검을 연다"
-    wants: [DPS_AOE, MULTIHIT]
+        text: "궁극기가 3턴 재생과 공격 시 봉인부 부여를 아군 전체에 건다"
+    wants: [DPS_AOE, EXTRA_ACT]
 
   - id: 61
     name: 야마
@@ -788,7 +809,7 @@ units:
 
   - id: 101
     name: 옥타비아
-    type: Locked
+    type: Starter
     element: Anemo
     mainStat: INT
     topStat: INT
@@ -935,7 +956,7 @@ units:
     caution: "시구르드가 없으면 공명과 협공이 전부 잠긴다"
 
   - id: 180
-    name: 우사
+    name: 우치
     type: Starter
     element: Anemo
     mainStat: INT
@@ -1053,23 +1074,41 @@ archetypes:
 #    members는 서포트 4명. 순서가 곧 우선순위다.
 # ══════════════════════════════════════════════════════════════════════
 recommendations:
+  - mainId: 10
+    mainName: 셰익스피어
+    starterRecommended: true
+    axis: "소환수 확정 치명타 · 부활 결계"
+    best:
+      archetype: SUMMON
+      members: [180, 20, 5, 9]
+      rows: { 10: Rear, 180: Rear, 20: Front, 5: Rear, 9: Rear }
+      reason: >
+        우치의 분신과 라이트의 플라이어·위고의 팡세가 언어 중첩과 결계의 수혜를 반복해서 받는다.
+        피그말리온은 소환수 피해 +30%와 전열 탱킹을 동시에 맡는다.
+    basic:
+      archetype: SUMMON
+      members: [1, 20, 5, 9]
+      rows: { 10: Rear, 1: Rear, 20: Front, 5: Rear, 9: Rear }
+      reason: "초기 서포트만으로 피그말리온·플라이어·팡세의 소환 축과 세이의 보호막을 갖춘다."
+    warning: "소환수가 없는 편성에서는 언어 소비와 결계 피해 증폭의 가치가 크게 떨어진다."
+
   - mainId: 180
-    mainName: 우사
+    mainName: 우치
     starterRecommended: true
     axis: "분신 다수 운용 · 소환수 피해 증폭"
     best:
       archetype: SUMMON
-      members: [1, 121, 5, 9]
-      rows: { 180: Rear, 1: Rear, 121: Front, 5: Rear, 9: Rear }
+      members: [10, 1, 20, 9]
+      rows: { 180: Rear, 10: Rear, 1: Rear, 20: Front, 9: Rear }
       reason: >
-        세이가 보호막과 추가타를, 아누비스가 소환수 소멸을 영혼으로 바꾸고, 라이트와 위고가
-        이중 치유와 소환수 피해 증폭을 맡는다. 분신·플라이어·팡세를 계속 꺼내 군상극을 빠르게 쌓는다.
+        셰익스피어가 분신 행동을 확정 치명타와 부활 결계로 바꾸고, 피그말리온이 소환수 피해 +30%와
+        전열 탱킹을 맡는다. 세이의 보호막과 위고의 광역 치유·팡세가 파티를 유지한다.
     basic:
       archetype: SUMMON
-      members: [1, 121, 5, 9]
-      rows: { 180: Rear, 1: Rear, 121: Front, 5: Rear, 9: Rear }
-      reason: "세이·아누비스·라이트·위고로 보호막, 전열, 이중 치유와 소환 증폭을 모두 갖춘 입문 편성이다."
-    warning: "분신이 피격을 대신 받는 것이 아니라 한 기를 소모해 우사에게 들어올 타격 자체를 0으로 만든다."
+      members: [1, 20, 5, 9]
+      rows: { 180: Rear, 1: Rear, 20: Front, 5: Rear, 9: Rear }
+      reason: "초기 서포트인 세이·피그말리온·라이트·위고로 보호막, 전열, 이중 치유와 소환 증폭을 갖춘다."
+    warning: "분신이 피격을 대신 받는 것이 아니라 한 기를 소모해 우치에게 들어올 타격 자체를 0으로 만든다."
 
   # ── STR 메인 ───────────────────────────────────────────────────────
   - mainId: 122
@@ -1255,7 +1294,7 @@ recommendations:
 
   - mainId: 24
     mainName: 아스클레피아
-    axis: "치명타 치유 · 보호막"
+    axis: "일반공격 · 행동 반응 치유 · 광역 생명선"
     best:
       archetype: CRIT
       members: [160, 81, 100, 60]
@@ -1367,7 +1406,7 @@ recommendations:
       rows: { 26: Front, 81: Rear, 24: Rear, 62: Rear, 160: Rear }
       reason: >
         소모한 체력 비율이 그대로 피해 배율이 되므로 치유가 곧 화력이다.
-        프레이아의 상시 힐과 아스클레피아의 보호막이 소모 사이클을 유지시키고,
+        프레이아의 상시 힐과 아스클레피아의 행동 반응 치유가 소모 사이클을 유지시키고,
         아그니가 불 원소인 이카리아의 피해를 +20% 올린다.
     basic:
       members: [81, 60, 160, 125]
@@ -1444,18 +1483,18 @@ recommendations:
   # ── 최근 합류 메인 ───────────────────────────────────
   - mainId: 43
     mainName: 세이메이
-    axis: "보호막 관통 · 기절과 에어본 제어"
+    axis: "봉인부 속박 · 재생과 응급 보호막"
     best:
       archetype: FORTRESS
       members: [42, 160, 100, 81]
       rows: { 43: Rear, 42: Front, 160: Rear, 100: Rear, 81: Rear }
       reason: >
-        천지반전의 적 전체 에어본이 스사노오의 천총운검을 계속 연다.
-        마리가 치명타를, 아그리파가 궁극기 회전을, 프레이아가 실피 회복을 맡는다.
+        빠른 행동과 광역 공격으로 태산부군제의 봉인부를 여러 대상에 빠르게 누적한다.
+        마리가 치명타를, 아그리파가 궁극기 회전을, 프레이아가 재생 공백의 회복을 맡는다.
     basic:
       members: [81, 160, 100, 60]
       rows: { 43: Rear, 81: Rear, 160: Rear, 100: Rear, 60: Rear }
-      reason: "스사노오가 없을 때는 치유·치명타·궁극기 회전·추가 보호막으로 범용 방어 지원에 집중한다"
+      reason: "범용 딜러와 치명타·궁극기 회전을 묶고 세이메이 단독 치유와 속박으로 전선을 유지한다"
 
   - mainId: 8
     mainName: 라부아지에

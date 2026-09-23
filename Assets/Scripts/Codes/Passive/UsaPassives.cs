@@ -10,14 +10,14 @@ using UnityEngine;
 
 namespace Codes.Passive
 {
-    /// <summary>우사 관련 상태 ID. 다른 테마의 ID 묶음과 겹치지 않는 구간을 쓴다.</summary>
+    /// <summary>우치 관련 상태 ID. 다른 테마의 ID 묶음과 겹치지 않는 구간을 쓴다.</summary>
     internal static class UsaStatusIds
     {
         public const int TaoistClones = 6480;
     }
 
     /// <summary>
-    /// 우사 P(380) — 도사란 무엇인가.
+    /// 우치 P(380) — 도사란 무엇인가.
     ///
     /// 분신을 최대 <see cref="MaxClones"/>기까지 거느리고, 적중한 공격을 받으면 분신 하나를
     /// 대신 흩어 그 타격을 무효화한다. 분신 자체는 <see cref="SummonCatalog.Clone"/>이 세우는 실제 소환수이므로

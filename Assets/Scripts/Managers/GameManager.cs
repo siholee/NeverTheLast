@@ -1747,6 +1747,10 @@ namespace Managers
 
         private void TakeDamage(int damage)
         {
+            bool cursedCrownEquipped = GridManager.Instance?.heroList?.Any(unit =>
+                unit != null && !unit.IsEnemy && !unit.IsSummon &&
+                unit.IsEquipped(Codes.Passive.NewItemIds.CursedCrown)) == true;
+            if (cursedCrownEquipped) damage *= 2;
             life = Mathf.Max(0, life - damage);
             
             // UI 업데이트
@@ -1820,7 +1824,12 @@ namespace Managers
 
             foreach (Unit ally in fieldAllies)
             {
+                Cell vacated = ally.currentCell;
                 GridManager.Instance.RetireUnit(ally);
+                // 전투 중 사망과 달리 전투 종료 복원은 같은 프레임에 같은 칸을 다시 쓴다.
+                // DeactivateUnit이 남긴 2초 예약을 그대로 두면 두 번째 파티원부터 복원이
+                // 조용히 실패하므로, 실제로 비운 칸만 즉시 다시 열어 둔다.
+                if (vacated != null) vacated.reservedTime = 0f;
             }
             GridManager.Instance.PruneUnitLists();
             

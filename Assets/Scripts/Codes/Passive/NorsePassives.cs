@@ -36,19 +36,16 @@ namespace Codes.Passive
     /// <summary>
     /// 프레이아 고유 P — 피톤치드.
     ///
-    /// 전투 중 쌓인 순수치유량을 궁극기가 정산하는 순간, 그 양에 비례한 STR을
-    /// 아군 전체에게 2턴간 얹는다. 기록 자체는 <see cref="Unit.RoundEffectiveHealingDone"/>이
-    /// 이미 들고 있으므로 여기서는 <b>환산과 지급만</b> 한다.
-    ///
-    /// 분모가 프레이아의 최대 체력에 연동되어 레벨이 올라도 체감 배율이 유지된다.
-    /// CON이 주스탯이 되면서 최대 체력과 치유량이 같은 스탯을 타므로 비율은 저절로 맞는다.
+    /// 필드에 있는 동안 전 아군의 CON을 프레이아 CON의 75%만큼 올린다.
+    /// 전투 시작 시점의 장비·레벨·훈련을 반영해 한 번 산출하며, 자기 오라가 자기 자신을
+    /// 다시 참조해 무한 증폭하지 않도록 적용 전 값을 스냅샷한다.
     /// </summary>
     public sealed class FreyaPhytoncide : UniquePassiveCode
     {
-        /// <summary>STR 1을 사는 데 필요한 순수치유량 = 최대 체력의 이 비율.</summary>
-        private const float HpRatioPerPoint = 0.1f;
-        private const int MaxBonus = 25;
-        private const int Duration = 2;
+        public const float ConShareRatio = 0.75f;
+        private readonly List<Unit> _targets = new();
+        private Action<EventContext> _cleanupHandler;
+        private bool _registered;
 
         public FreyaPhytoncide(PassiveCodeContext context) : base(context)
         {
@@ -57,38 +54,41 @@ namespace Codes.Passive
             IgnoresActivationChance = true;
         }
 
-        public override void CastCode() => Caster?.AddStatus(BuffStatus.Create(
-            NorseStatusIds.Phytoncide, "freya_phytoncide", CodeName,
-            Caster, Caster, new MarkerBuffEffect(),
-            stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
-            isBeneficial: true,
-            description: "순수치유량을 기록합니다. 정산하면 아군 전체가 그 양에 비례한 STR을 2턴간 얻습니다."));
-
-        /// <summary>
-        /// 궁극기가 기록을 비울 때 부른다. 기록을 비우는 쪽이 정산의 주인이라
-        /// 여기서는 값만 환산하고 <see cref="Unit.ResetEffectiveHealingRecord"/>는 건드리지 않는다.
-        /// </summary>
-        public int Settle(int effectiveHealing)
+        public override void CastCode()
         {
-            if (Caster == null || !Caster.isActive) return 0;
-
-            int divisor = Mathf.Max(1, Mathf.RoundToInt(Caster.HpMax * HpRatioPerPoint));
-            int bonus = Mathf.Clamp(effectiveHealing / divisor, 0, MaxBonus);
-            if (bonus <= 0) return 0;
+            if (Caster == null || !Caster.isActive || _registered) return;
+            int bonus = Mathf.Max(0, Mathf.RoundToInt(Caster.GetBaseCon() * ConShareRatio));
+            string key = $"freya_phytoncide_{Caster.GetEntityId()}";
 
             foreach (Unit ally in CombatTargets.AliveAlliesIncludingSelf(Caster))
             {
+                if (ally == null || _targets.Contains(ally)) continue;
                 ally.AddStatus(BuffStatus.Create(
-                    NorseStatusIds.PhytoncideHarvest, "freya_phytoncide_harvest", CodeName,
-                    Caster, ally, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.STR, bonus),
-                    duration: Duration,
+                    NorseStatusIds.Phytoncide, key, CodeName,
+                    Caster, ally, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.CON, bonus),
                     stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                     isBeneficial: true,
-                    description: $"STR이 {bonus} 증가합니다."));
+                    description: $"CON이 프레이아의 CON 75%만큼 증가합니다. (현재 +{bonus})"));
+                _targets.Add(ally);
             }
 
-            Debug.Log($"[피톤치드] 순수치유량 {effectiveHealing} 정산 → 아군 전체 STR +{bonus} ({Duration}턴)");
-            return bonus;
+            _cleanupHandler = _ => StopCode();
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _registered = true;
+        }
+
+        public override void StopCode()
+        {
+            if (Caster == null || !_registered) return;
+            string key = $"freya_phytoncide_{Caster.GetEntityId()}";
+            foreach (Unit ally in _targets.Where(unit => unit != null).ToList())
+                ally.RemoveStatusByKey(key);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            _targets.Clear();
+            _cleanupHandler = null;
+            _registered = false;
         }
     }
 

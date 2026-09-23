@@ -2,6 +2,7 @@ using BaseClasses;
 using Codes.Base;
 using Effects.Base;
 using Effects.Buffs;
+using Entities;
 
 namespace Codes.Passive
 {
@@ -41,7 +42,23 @@ namespace Codes.Passive
         {
             if (Caster == null) return;
             Caster.GrantUnitTag("Summon");
+            Caster.AddStatus(BuffStatus.Create(
+                5003, "pygmalion_summon_support", CodeName,
+                Caster, Caster, new PygmalionSummonSupportEffect(),
+                stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
+                isBeneficial: true,
+                description: "필드에 있는 동안 모든 아군 소환수가 가하는 피해가 30% 증가합니다. 자신도 소환수 대상 효과를 받습니다."));
         }
+    }
+
+    internal sealed class PygmalionSummonSupportEffect : BaseEffect
+    {
+        public PygmalionSummonSupportEffect() : base(0) { }
+
+        public override float AlliedSummonDamageBonusAdditive(Unit unit, Unit summonOwner)
+            => unit == Target && unit != null && unit.IsOnField && Combat.Summons.IsSummonLike(summonOwner)
+                ? 0.30f
+                : 0f;
     }
 
     public sealed class ArmorTrainingPassive : PassiveCode

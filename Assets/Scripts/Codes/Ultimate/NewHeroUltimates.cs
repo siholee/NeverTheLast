@@ -195,7 +195,7 @@ namespace Codes.Ultimate
         public AsclepiusFlask(UltimateCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Ultimate;
-            CodeName = "의신의 영약";
+            CodeName = "구원의 생명선";
             CastingDelay = 0.5f;
             CodeTags = new List<int> { DamageTag.Special, DamageTag.NonContactAttack };
         }
@@ -218,59 +218,33 @@ namespace Codes.Ultimate
                 .FirstOrDefault();
             if (primary == null) { StopCode(); yield break; }
 
-            FireProjectile(primary, 0.3f);
-            yield return new WaitForSeconds(0.3f);
+            const float projectileDelay = 0.18f;
+            FireProjectile(primary, projectileDelay);
+            yield return new WaitForSeconds(projectileDelay);
 
-            foreach (Unit ally in PiercedAllies(primary))
-            {
-                int shield = Mathf.Max(1, Caster.SkillDamage(120, BaseEnums.PrimaryStat.CON));
-                ally.AddShield(shield, Caster);
-            }
+            int heal = Mathf.Max(1, 200 + Mathf.RoundToInt(Caster.GetBaseCon() * 1.2f));
+            foreach (Unit ally in CombatTargets.AliveAlliesIncludingSelf(Caster).ToList())
+                ally.ModifyHp(ally.HpCurr + heal, Caster);
 
             bool isCrit = UnityEngine.Random.value <= Caster.CritChanceCurr;
             float crit = isCrit ? Caster.CritMultiplierCurr : 1f;
-            Deal(primary, ScaledPower(65, 0.25f), DamageTag.SingleTarget, isCrit, crit);
-
+            int power = 150 + Mathf.RoundToInt(Caster.GetBaseStr() * 1.2f);
             foreach (Unit enemy in global::Target.GetAllEnemies(Caster)
-                         .Where(unit => IsInBlast(primary, unit)).ToList())
-            {
-                Deal(enemy, ScaledPower(45, 0.25f), DamageTag.MultiTarget, isCrit, crit);
-            }
+                         .Where(unit => unit != null && unit.isActive && !unit.IsUntargetable).ToList())
+                Deal(enemy, power, isCrit, crit);
             StopCode();
         }
 
-        private IEnumerable<Unit> PiercedAllies(Unit target)
+        private void Deal(Unit target, int power, bool isCrit, float crit)
         {
-            if (Caster.currentCell == null || target?.currentCell == null) return Enumerable.Empty<Unit>();
-            int minX = Mathf.Min(Caster.currentCell.xPos, target.currentCell.xPos);
-            int maxX = Mathf.Max(Caster.currentCell.xPos, target.currentCell.xPos);
-            int row = Caster.currentCell.yPos;
-            return global::Target.GetAllAllies(Caster).Where(ally =>
-                ally != null && ally != Caster && ally.isActive && ally.currentCell != null &&
-                ally.currentCell.yPos == row && ally.currentCell.xPos >= minX && ally.currentCell.xPos <= maxX);
-        }
-
-        private static bool IsInBlast(Unit center, Unit target)
-        {
-            if (center?.currentCell == null || target?.currentCell == null || !target.isActive) return false;
-            return Mathf.Abs(center.currentCell.xPos - target.currentCell.xPos) +
-                   Mathf.Abs(center.currentCell.yPos - target.currentCell.yPos) <= 1;
-        }
-
-        private void Deal(Unit target, int power, int targetTag, bool isCrit, float crit)
-        {
-            int damage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(power, BaseEnums.PrimaryStat.INT) * crit));
+            int damage = Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(power, BaseEnums.PrimaryStat.STR) * crit));
             target.TakeDamage(new DamageContext(
                 Caster, damage, BaseEnums.CodeType.Ultimate,
-                new List<int> { targetTag, DamageTag.UltAttack, DamageTag.Special, DamageTag.NonContactAttack },
+                new List<int> { DamageTag.AllTarget, DamageTag.UltAttack, DamageTag.Special, DamageTag.NonContactAttack },
                 isCrit));
         }
 
-        private int ScaledPower(int fixedPower, float intCoefficient)
-            => fixedPower + Mathf.RoundToInt(
-                Caster.GetBaseInt() * intCoefficient);
-
-        /// <summary>의신의 영약은 특수 피해라 직선형이다.</summary>
+        /// <summary>구원의 생명선은 특수 피해라 직선형이다.</summary>
         private void FireProjectile(Unit target, float delay)
         {
             if (GameManager.Instance?.sfxManager?.ProjectilePrefabs != null &&

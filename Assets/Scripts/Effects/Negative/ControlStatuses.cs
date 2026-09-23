@@ -29,10 +29,12 @@ namespace Effects.Negative
         public const int FrozenStatusId = 5920;
         public const int AirborneStatusId = 5921;
         public const int StunStatusId = 5922;
+        public const int BindStatusId = 5923;
 
         public const string FrozenKey = "cc_frozen";
         public const string AirborneKey = "cc_airborne";
         public const string StunKey = "cc_stun";
+        public const string BindKey = "cc_bind";
 
         // ── 빙결 ──────────────────────────────────────────────────
 
@@ -109,6 +111,20 @@ namespace Effects.Negative
         {
             return ApplyControl(target, source, Mathf.Max(1, turns), StunStatusId, StunKey, "기절",
                 "행동할 수 없습니다. 피격과 대상 지정은 정상입니다.",
+                false);
+        }
+
+        // ── 속박 ──────────────────────────────────────────────────
+
+        /// <summary>
+        /// 대상의 다음 턴이 오기 전까지만 행동불능으로 만든다. 턴 시작 경계에서 제어가
+        /// 먼저 풀리므로 그 턴의 본 행동은 정상적으로 수행한다. 기절처럼 턴 자체를 소비시키지
+        /// 않는다는 점이 핵심이며, 제어 분쇄와 행동불능 판정에는 다른 제어와 동일하게 참여한다.
+        /// </summary>
+        public static bool ApplyBind(Unit target, Unit source)
+        {
+            return ApplyControl(target, source, 1, BindStatusId, BindKey, "속박",
+                "다음 턴이 오기 전까지 행동할 수 없습니다. 턴이 시작되면 즉시 해제됩니다.",
                 false);
         }
 

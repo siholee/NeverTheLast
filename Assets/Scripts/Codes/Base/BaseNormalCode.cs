@@ -70,8 +70,7 @@ namespace Codes.Base
             }
 
             // 크리티컬 계산
-            bool isCrit = Random.value <= Caster.CritChanceCurr;
-            float critMultiplier = isCrit ? Caster.CritMultiplierCurr : 1f;
+            ResolveCritical(out bool isCrit, out float critMultiplier);
             
             // 접촉/비접촉 태그 결정
             List<int> damageTags = GetDamageTags();
@@ -122,6 +121,23 @@ namespace Codes.Base
         protected virtual int CalculateDamage(float critMultiplier)
         {
             return RollDamage(critMultiplier);
+        }
+
+        /// <summary>
+        /// 일반 치명타와 소환수 전용 확정 치명타를 한 곳에서 해결한다.
+        /// 셰익스피어의 강화가 발동하면 현재 치명타 확률을 치명타 피해 배율에 그대로 더한다.
+        /// </summary>
+        protected virtual void ResolveCritical(out bool isCrit, out float critMultiplier)
+        {
+            bool guaranteedCrit = Combat.Summons.TryConsumeGuaranteedCritical(Caster);
+            isCrit = guaranteedCrit || Random.value <= Caster.CritChanceCurr;
+            if (!isCrit)
+            {
+                critMultiplier = 1f;
+                return;
+            }
+
+            critMultiplier = Caster.CritMultiplierCurr + (guaranteedCrit ? Caster.CritChanceCurr : 0f);
         }
 
         /// <summary>캐릭터별 방어 무시·관통 같은 공격 단위 보정을 붙일 수 있는 생성 훅.</summary>

@@ -1,8 +1,11 @@
+using System;
 using BaseClasses;
 using Codes.Base;
 using Effects.Base;
 using Effects.Buffs;
 using Entities;
+using Managers;
+using UnityEngine;
 
 namespace Codes.Passive
 {
@@ -11,53 +14,65 @@ namespace Codes.Passive
         public const int ManaBreathing = 5600;
         public const int CriticalTreatment = 5601;
         public const int DivineMedicine = 5602;
-        public const int NashorsTooth = 5603;
+        public const int ChaliceOfLife = 5603;
     }
 
-    /// <summary>내셔의 이빨: 궁극기 사용 후 2턴간 DEX +40.</summary>
-    public sealed class AsclepiusNashorsTooth : UniquePassiveCode
+    /// <summary>
+    /// 생명의 잔(224) — 체력이 부족한 아군이 행동할 때 반응 치유한다.
+    /// 아스클레피아가 실제 치유를 발생시킨 행동마다 궁극기 자원 5%를 한 번만 얻는다.
+    /// </summary>
+    public sealed class AsclepiusChaliceOfLife : PersistentStatusPassive
     {
-        private System.Action<EventContext> _castHandler;
-        private System.Action<EventContext> _cleanupHandler;
-        private bool _registered;
-
-        public AsclepiusNashorsTooth(PassiveCodeContext context) : base(context)
+        public AsclepiusChaliceOfLife(PassiveCodeContext context)
+            : base(context, AsclepiusStatusIds.ChaliceOfLife, "asclepius_chalice_of_life", "생명의 잔",
+                "체력이 부족한 아군이 행동하면 20 + CON×0.6만큼 치유하고, 유효 치유 행동마다 궁극기 자원을 5% 회복합니다.")
         {
-            CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "생명의 잔";
-            IgnoresActivationChance = true;
+            IsUniquePassive = true;
         }
 
-        public override void CastCode()
+        protected override BaseEffect CreateInitialEffect() => new ChaliceOfLifeEffect();
+    }
+
+    internal sealed class ChaliceOfLifeEffect : BaseEffect
+    {
+        private Action<Unit, ActionScheduler.ActionKind, string> _actionHandler;
+        private int _lastResourceActionId = int.MinValue;
+
+        public ChaliceOfLifeEffect() : base(0) { }
+        public override bool IsBeneficial => true;
+
+        public override void OnApply()
         {
-            if (Caster == null || _registered) return;
-            _castHandler = _ => ApplyDexBuff();
-            _cleanupHandler = _ => StopCode();
-            Caster.AddListener(BaseEnums.UnitEventType.OnUltimateActivates, _castHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
-            _registered = true;
+            _actionHandler = OnAnyActionStarted;
+            ActionScheduler.AnyActionStarted += _actionHandler;
         }
 
-        private void ApplyDexBuff()
+        public override void OnRemove()
         {
-            Caster?.AddStatus(BuffStatus.Create(
-                AsclepiusStatusIds.NashorsTooth, "asclepius_nashors_tooth", CodeName,
-                Caster, Caster, new PrimaryStatBonusBuffEffect(BaseEnums.PrimaryStat.DEX, 40),
-                duration: 2,
-                stackPolicy: BaseEnums.StatusStackPolicy.Replace,
-                isBeneficial: true,
-                description: "궁극기 사용 후 2턴간 DEX가 40 증가합니다."));
+            if (_actionHandler != null) ActionScheduler.AnyActionStarted -= _actionHandler;
         }
 
-        public override void StopCode()
+        private void OnAnyActionStarted(Unit actor, ActionScheduler.ActionKind kind, string label)
         {
-            if (!_registered || Caster == null) return;
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnUltimateActivates, _castHandler);
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
-            Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
-            Caster.RemoveStatusByKey("asclepius_nashors_tooth");
-            _registered = false;
+            if (Target == null || !Target.isActive || !Target.IsOnField || actor == null ||
+                !actor.isActive || actor.IsEnemy != Target.IsEnemy || actor.HpCurr >= actor.HpMax)
+                return;
+
+            int heal = Mathf.Max(1, Mathf.RoundToInt(20f + Target.GetBaseCon() * 0.6f));
+            actor.ModifyHp(actor.HpCurr + heal, Target);
+        }
+
+        public override void OnEffectiveHealingGranted(
+            Unit source, Unit target, int effectiveHealing, int hpBeforeHealing)
+        {
+            if (source != Target || effectiveHealing <= 0 || Target == null || !Target.isActive) return;
+
+            int actionId = GameManager.Instance?.ActionScheduler?.CurrentActionId ?? 0;
+            if (_lastResourceActionId == actionId) return;
+            _lastResourceActionId = actionId;
+
+            int resource = Mathf.Max(1, Mathf.CeilToInt(Target.ManaMax * 0.05f));
+            Target.AddUltimateResource(resource);
         }
     }
 
@@ -104,7 +119,6 @@ namespace Codes.Passive
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "의신의 가호";
             IgnoresActivationChance = true;
-            // 의술(70)의 강화 등급.
             Grade = BaseEnums.CodeGrade.Enhanced;
         }
 

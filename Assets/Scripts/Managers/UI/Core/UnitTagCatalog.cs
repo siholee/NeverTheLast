@@ -44,6 +44,7 @@ namespace Managers.UI.Core
             new("Infusion", "부여", "해당 유닛은 적에게 원소를 부여하는 데 특화되어 있습니다.", "TAG_INFUSION"),
             new("Sturdy", "견고", "해당 유닛은 매우 튼튼합니다.", "TAG_STURDY"),
             new("Summon", "소환", "해당 유닛은 소환수와 관련된 능력을 보유하고 있습니다.", "TAG_SUMMON"),
+            new("Domination", "지배", "해당 유닛은 지속피해나 행동 방해 상태를 부여합니다.", "TAG_CONTROL"),
             new("Indomitable", "불굴", "해당 유닛은 자신의 체력을 자원으로 소모하거나 그와 연관되어 있습니다.", "TAG_INDOMITABLE"),
         };
 

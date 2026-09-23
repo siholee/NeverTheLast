@@ -1,38 +1,58 @@
-using System;
 using System.Linq;
 using BaseClasses;
 using Codes.Base;
 using Effects.Base;
 using Effects.Buffs;
+using Effects.Negative;
 using Entities;
 using UnityEngine;
 
 namespace Codes.Passive
 {
-    /// <summary>세이메이(43)의 코드와 상태 ID.</summary>
+    /// <summary>세이메이(43)의 봉인·치유 코드와 상태 ID.</summary>
     public static class SeimeiIds
     {
         public const int UnitId = 43;
 
-        public const int BarrierDecode = 243;
-        public const int SealEcho = 115;
+        public const int TripleSeal = 243;
+        public const int SealFormation = 146;
+        public const int EmergencyTreatment = 147;
+        public const int EmergencyRoom = 148;
         public const int ExposedGap = 116;
-        public const int GuardianFormation = 117;
-        public const int LingeringBarrier = 118;
 
-        public const int AuraStatus = 9810;
-        public const int SealEchoStatus = 9811;
-        public const int ExposedGapStatus = 9812;
-        public const int GuardianStatus = 9813;
-        public const int LingeringBarrierStatus = 9814;
+        public const int InnateStatus = 9810;
+        public const int SealStatus = 9811;
+        public const int SealFormationStatus = 9812;
+        public const int EmergencyTreatmentStatus = 9813;
+        public const int EmergencyRoomStatus = 9814;
+        public const int ExposedGapStatus = 9815;
 
-        /// <summary>천지반전 · 남겨진 결계가 주는 보호막의 CON 계수.</summary>
-        public const float ShieldConRatio = 1.2f;
+        public const string SealKey = "seimei_seal_talisman";
+        public const int SealTriggerStacks = 3;
 
-        /// <summary>
-        /// 새 제어를 건 뒤의 후처리. 드러난 틈(116)을 배웠으면 받는 피해 +10% 2턴.
-        /// 봉인부와 천지반전이 같은 규칙을 쓰도록 여기 모았다.
-        /// </summary>
+        /// <summary>봉인부를 한 장 붙이고 3중첩이면 전부 거둔 뒤 속박으로 바꾼다.</summary>
+        public static bool ApplySeal(Unit seimei, Unit target)
+        {
+            if (seimei == null || target == null || !target.isActive || target.IsEnemy == seimei.IsEnemy)
+                return false;
+
+            int stacks = target.GetAllStatuses().Count(status => status.Key == SealKey);
+            target.AddStatus(BuffStatus.Create(
+                SealStatus, SealKey, "봉인부", seimei, target,
+                new SealMarkerEffect(),
+                stackPolicy: BaseEnums.StatusStackPolicy.Stack,
+                category: BaseEnums.StatusCategory.Negative,
+                description: $"3중첩이 되면 속박됩니다. ({Mathf.Min(SealTriggerStacks, stacks + 1)}/{SealTriggerStacks})"));
+
+            stacks = target.GetAllStatuses().Count(status => status.Key == SealKey);
+            if (stacks < SealTriggerStacks) return true;
+
+            target.RemoveStatusByKey(SealKey);
+            if (ControlStatuses.ApplyBind(target, seimei)) OnControlLanded(seimei, target);
+            return true;
+        }
+
+        /// <summary>새 행동불능을 건 뒤 드러난 틈(116)을 적용한다.</summary>
         public static void OnControlLanded(Unit seimei, Unit target)
         {
             if (seimei == null || target == null || !target.isActive) return;
@@ -48,55 +68,97 @@ namespace Codes.Passive
         }
     }
 
-    /// <summary>
-    /// 세이메이 P — 결계 해독(243). 세이메이가 필드에 살아 있는 동안 자신을 포함한
-    /// 같은 진영 전원의 피해가 보호막을 건너뛴다.
-    ///
-    /// 방어막 관통은 방어력 관통이 아니다 — 방어력·내구·체력 구간 경계는 그대로 받는다.
-    /// 판정은 피해 해결 시점이라 세이메이가 쓰러진 뒤 도착한 공격은 관통하지 않는다.
-    /// 해안 전선의 공허의 갑주를 제어 없이 넘기는 두 번째 해법이다.
-    /// </summary>
-    public sealed class SeimeiBarrierDecode : PersistentStatusPassive
+    internal sealed class SealMarkerEffect : BaseEffect
     {
-        public SeimeiBarrierDecode(PassiveCodeContext context)
-            : base(context, SeimeiIds.AuraStatus, "seimei_barrier_decode", "결계 해독",
-                "필드에 있는 동안 자신을 포함한 아군 전체의 피해가 보호막을 건너뜁니다. 방어력은 그대로 받습니다.")
+        public SealMarkerEffect() : base(0) => Category = BaseEnums.EffectCategory.Negative;
+    }
+
+    /// <summary>세이메이 P — 봉인부 3장을 속박으로 바꾸는 고유 패시브.</summary>
+    public sealed class SeimeiTripleSeal : PersistentStatusPassive
+    {
+        public SeimeiTripleSeal(PassiveCodeContext context)
+            : base(context, SeimeiIds.InnateStatus, "seimei_triple_seal", "삼중봉인",
+                "봉인부가 한 대상에게 3중첩되면 모두 소비하고 다음 턴 전까지 속박합니다.")
         {
             IsUniquePassive = true;
         }
 
-        protected override BaseEffect CreateInitialEffect() => new BarrierDecodeAuraEffect();
+        protected override BaseEffect CreateInitialEffect() => new SealMarkerEffect();
     }
 
-    internal sealed class BarrierDecodeAuraEffect : BaseEffect
+    /// <summary>봉인진(146) — 행동불능인 적에게 아군이 가하는 피해 +10%.</summary>
+    public sealed class SeimeiSealFormation : PersistentStatusPassive
     {
-        public BarrierDecodeAuraEffect() : base(0) { }
+        public SeimeiSealFormation(PassiveCodeContext context)
+            : base(context, SeimeiIds.SealFormationStatus, "seimei_seal_formation", "봉인진",
+                "필드에 있는 동안 모든 아군이 행동불능인 적에게 가하는 피해가 10% 증가합니다.") { }
 
+        protected override BaseEffect CreateInitialEffect() => new SealFormationEffect();
+    }
+
+    internal sealed class SealFormationEffect : BaseEffect
+    {
+        public SealFormationEffect() : base(0, 0.1f) { }
         public override bool CountsAsReagentBuff => false;
         public override bool IsBeneficial => true;
 
-        public override bool GrantsAlliedShieldPenetration(Unit owner, Unit attacker)
-            => owner == Target && owner.isActive && owner.HpCurr > 0 &&
-               attacker != null && attacker.IsEnemy == owner.IsEnemy;
+        public override float AlliedConditionalDamageBonusAdditive(Unit owner, Unit attacker, Unit target)
+            => owner == Target && owner.isActive && owner.IsOnField &&
+               attacker != null && attacker.IsEnemy == owner.IsEnemy &&
+               target != null && target.isControlled ? 0.1f : 0f;
     }
 
-    /// <summary>
-    /// 봉인의 잔향(115). 봉인부 회차의 일반행동이 대상에게 주는 피해 −10%(2턴)를 건다.
-    /// 효과는 봉인부(43)가 이 코드를 배웠는지로 직접 읽는다.
-    /// </summary>
-    public sealed class SeimeiSealEcho : PassiveCode
+    /// <summary>응급치료(147) — 유효 치유마다 세이메이 CON만큼 보호막을 덧씌운다.</summary>
+    public sealed class SeimeiEmergencyTreatment : PersistentStatusPassive
     {
-        public SeimeiSealEcho(PassiveCodeContext context) : base(context)
-        {
-            CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "봉인의 잔향";
-            IgnoresActivationChance = true;
-        }
+        public SeimeiEmergencyTreatment(PassiveCodeContext context)
+            : base(context, SeimeiIds.EmergencyTreatmentStatus, "seimei_emergency_treatment", "응급치료",
+                "아군을 실제로 치유하면 자신의 CON만큼 보호막을 추가로 부여합니다.") { }
 
-        public override void CastCode() { }
+        protected override BaseEffect CreateInitialEffect() => new EmergencyTreatmentEffect();
     }
 
-    /// <summary>드러난 틈(116). 세이메이가 새 제어를 건 적은 받는 피해 +10%(2턴). <see cref="SeimeiIds.OnControlLanded"/>가 읽는다.</summary>
+    internal sealed class EmergencyTreatmentEffect : BaseEffect
+    {
+        public EmergencyTreatmentEffect() : base(0) { }
+        public override bool IsBeneficial => true;
+
+        public override void OnEffectiveHealingGranted(
+            Unit source, Unit target, int effectiveHealing, int hpBeforeHealing)
+        {
+            if (source != Target || target == null || effectiveHealing <= 0 || !target.isActive) return;
+
+            float multiplier = source.HasLearnedPassiveCode(SeimeiIds.EmergencyRoom) &&
+                               hpBeforeHealing <= Mathf.FloorToInt(target.HpMax * 0.3f)
+                ? 1.5f
+                : 1f;
+            int shield = Mathf.Max(1, Mathf.RoundToInt(source.GetBaseCon() * multiplier));
+            target.AddShield(shield, source);
+        }
+    }
+
+    /// <summary>응급실(148) — 체력 30% 이하 대상에 대한 치유량 +50%.</summary>
+    public sealed class SeimeiEmergencyRoom : PersistentStatusPassive
+    {
+        public SeimeiEmergencyRoom(PassiveCodeContext context)
+            : base(context, SeimeiIds.EmergencyRoomStatus, "seimei_emergency_room", "응급실",
+                "체력이 30% 이하인 대상을 치유할 때 치유량과 응급치료 보호막이 50% 증가합니다.") { }
+
+        protected override BaseEffect CreateInitialEffect() => new EmergencyRoomEffect();
+    }
+
+    internal sealed class EmergencyRoomEffect : BaseEffect
+    {
+        public EmergencyRoomEffect() : base(0, 1.5f) { }
+        public override bool IsBeneficial => true;
+
+        public override float OutgoingHealingMultiplierModifier(Unit source, Unit target)
+            => source == Target && target != null && target.HpCurr <= Mathf.FloorToInt(target.HpMax * 0.3f)
+                ? 1.5f
+                : 1f;
+    }
+
+    /// <summary>드러난 틈(116) — 새 행동불능 대상이 받는 피해 +10%.</summary>
     public sealed class SeimeiExposedGap : PassiveCode
     {
         public SeimeiExposedGap(PassiveCodeContext context) : base(context)
@@ -107,72 +169,5 @@ namespace Codes.Passive
         }
 
         public override void CastCode() { }
-    }
-
-    /// <summary>수호의 방진(117). 천지반전의 보호막을 받은 아군은 받는 피해 −10%(1턴). 천지반전이 읽는다.</summary>
-    public sealed class SeimeiGuardianFormation : PassiveCode
-    {
-        public SeimeiGuardianFormation(PassiveCodeContext context) : base(context)
-        {
-            CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "수호의 방진";
-            IgnoresActivationChance = true;
-        }
-
-        public override void CastCode() { }
-    }
-
-    /// <summary>
-    /// 남겨진 결계(118). 전투에서 처음 쓰러질 때 살아 있는 아군 전원에게 자신의 CON×1.2 기준 보호막을 한 번 준다.
-    /// 관통 오라는 사망과 함께 끊긴다 — 결계는 보호막으로만 남는다.
-    /// </summary>
-    public sealed class SeimeiLingeringBarrier : PassiveCode
-    {
-        private Action<EventContext> _deathHandler;
-        private Action<EventContext> _cleanupHandler;
-        private bool _used;
-
-        public SeimeiLingeringBarrier(PassiveCodeContext context) : base(context)
-        {
-            CodeType = BaseEnums.CodeType.Passive;
-            CodeName = "남겨진 결계";
-            IgnoresActivationChance = true;
-        }
-
-        public override void CastCode()
-        {
-            if (Caster == null || _deathHandler != null) return;
-            _used = false;
-            _deathHandler = _ => Release();
-            _cleanupHandler = _ => StopCode();
-            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _deathHandler);
-            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
-        }
-
-        private void Release()
-        {
-            if (_used || Caster == null) return;
-            _used = true;
-
-            int amount = Mathf.Max(1, Mathf.RoundToInt(Caster.GetBaseCon() * SeimeiIds.ShieldConRatio));
-            foreach (Unit ally in Combat.CombatTargets.AliveAlliesIncludingSelf(Caster)
-                         .Where(unit => unit != Caster && unit.HpCurr > 0).ToList())
-            {
-                ally.AddShield(amount, Caster);
-            }
-            Debug.Log($"[남겨진 결계] {Caster.UnitName}이(가) 쓰러지며 아군에게 보호막 {amount}을(를) 남겼습니다.");
-            StopCode();
-        }
-
-        public override void StopCode()
-        {
-            if (Caster != null)
-            {
-                Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _deathHandler);
-                Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
-            }
-            _deathHandler = null;
-            _cleanupHandler = null;
-        }
     }
 }

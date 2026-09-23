@@ -33,6 +33,8 @@ namespace Managers
         public static bool HasNoUnlockPath(UnitData data)
         {
             if (data == null || data.characterType != "Locked") return false;
+            // 기획상 미해금으로 되돌린 둘은 영입 경로가 붙기 전에도 후보에 노출하지 않는다.
+            if (data.id is 23 or 121) return false;
             if (data.id == Entities.LavoisierChemistry.UnitId || data.id == RunManager.YamaUnitId) return false;
             if (GameManager.Instance?.unitDataList?.units?.Any(source =>
                     source?.unlocksUnitIdsOnClear?.Contains(data.id) == true) == true)

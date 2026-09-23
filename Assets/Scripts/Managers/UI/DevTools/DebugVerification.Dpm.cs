@@ -181,15 +181,23 @@ namespace Managers.UI.DevTools
                     sample.key == "surtr_recommended" && sample.level == level);
                 PartyDpmSample sabah = output.partySamples.FirstOrDefault(sample =>
                     sample.key == "sabah_recommended" && sample.level == level);
-                Assert($"Bastet counter party exceeds Surtr Lv.{level}",
-                    counter != null && surtr != null && counter.dpm > surtr.dpm,
-                    $">{surtr?.dpm:0}", $"{counter?.dpm:0}");
                 float sabahRatio = counter == null || sabah == null || sabah.dpm <= 0f
                     ? 0f
                     : counter.dpm / sabah.dpm;
                 Assert($"Bastet counter party is comparable to Sabah Lv.{level}",
                     sabahRatio >= 0.8f,
                     ">=80%", $"{sabahRatio * 100f:0.0}%");
+
+                if (level == 100)
+                {
+                    float highPointPeer = Mathf.Max(counter?.dpm ?? 0f, sabah?.dpm ?? 0f);
+                    float surtrHighPointRatio = surtr == null || highPointPeer <= 0f
+                        ? 0f
+                        : surtr.dpm / highPointPeer;
+                    Assert("Surtr high-point party trails peers by 10-20 percent",
+                        surtrHighPointRatio >= 0.8f && surtrHighPointRatio <= 0.9f,
+                        "80%..90%", $"{surtrHighPointRatio * 100f:0.0}%");
+                }
             }
 
             // 편차 계산 결과까지 보고서에 남긴다.
@@ -208,6 +216,9 @@ namespace Managers.UI.DevTools
             // 이아손·찬드라 전열, 옥타비아·아그리파·라이트 후열.
             yield return ("octavia_recommended", "옥타비아-아그리파-이아손-찬드라-라이트",
                 new[] { 103, 60, 101, 100, 5 }, 4);
+            // 피그말리온만 전열, 우치·셰익스피어·세이·위고 후열.
+            yield return ("uchi_summon", "우치-셰익스피어-세이-피그말리온-위고",
+                new[] { 20, 180, 10, 1, 9 }, 4);
         }
 
         /// <summary>이아손의 궁극기 반응 제한·턴 리셋·누적 버프·궁극기 INT 버프를 실제 행동으로 검증한다.</summary>
@@ -266,6 +277,14 @@ namespace Managers.UI.DevTools
                 octavia.ActiveStatuses.Count(status => status.Key == "jason_argonaut_support_stack"));
 
             int intBefore = octavia.GetBaseInt();
+            // 이후는 궁극기 자체의 스냅샷 검증이다. 자동 스케줄러가 같은 프레임에 일반행동을
+            // 잡아 isCasting을 선점하면 직접 시전이 조용히 무시되므로 먼저 라운드를 멈춘다.
+            game.ActionScheduler.EndRound();
+            game.gameState = GameState.Preparation;
+            // 장시간 전체 스위트에서는 이미 멈춘 스케줄러의 코루틴이 isCasting을 늦게 반납하는
+            // 경우가 있다. 기다리는 시간에 의존하지 말고 해당 유닛의 전투 코루틴을 명시적으로
+            // 끝내 동일한 출발 상태에서 궁극기를 확인한다.
+            jason.DebugResetCombatState();
             // 20배속에서는 시전 연출 중에도 여러 턴이 지나 2턴 상태가 검증 전에 만료될 수 있다.
             DebugMode.SetTimeScale(1f);
             jason.FillUltimateResource(false);
@@ -307,7 +326,7 @@ namespace Managers.UI.DevTools
             var heroes = new List<Unit>();
             for (int i = 0; i < unitIds.Length; i++)
             {
-                bool soloFrontline = key == "sabah_recommended";
+                bool soloFrontline = key is "sabah_recommended" or "uchi_summon";
                 int frontCount = soloFrontline ? 1 : 2;
                 int x = i < frontCount ? -1 : -2;
                 int y = i < frontCount ? i + 1 : i - frontCount + 1;
@@ -620,10 +639,10 @@ namespace Managers.UI.DevTools
                     new HashSet<string>(jason.archetypeTags ?? new List<string>())
                         .SetEquals(new[] { "Burst", "Swift", "Support" }),
                 "Support/Burst,Swift,Support", $"{jason?.characterType}/{string.Join(",", jason?.archetypeTags ?? new List<string>())}");
-            Assert("Jason unlocks Octavia on support clear",
-                jason?.unlocksUnitIdsOnClear?.SequenceEqual(new[] { 101 }) == true &&
-                octavia != null && !CharacterSelectionManager.HasNoUnlockPath(octavia),
-                "Jason -> Octavia explicit path", "missing");
+            Assert("Octavia is initial Starter and Jason has no linked unlock",
+                octavia?.characterType == "Starter" && octavia.canStartAsMain && octavia.canUseInInfinite &&
+                (jason?.unlocksUnitIdsOnClear == null || jason.unlocksUnitIdsOnClear.Count == 0),
+                "Octavia Starter / no linked unlock", $"{octavia?.characterType}/{jason?.unlocksUnitIdsOnClear?.Count ?? 0}");
             Assert("Jason unlock progression", jason?.levelPassives != null &&
                     jason.levelPassives.Select(passive => passive.codeId).SequenceEqual(jasonCodes) &&
                     jason.levelPassives.Select(passive => passive.unlockLevel).SequenceEqual(jasonLevels),

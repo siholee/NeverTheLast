@@ -334,6 +334,49 @@ units:
     portrait: HUGO_PORTRAIT
     standing: HUGO_STANDING
 
+  - id: 10
+    name: 셰익스피어
+    tagline: "소환수의 행동을 언어로 엮어 확정 치명타와 부활 결계를 제공하는 공격형 서포터"
+    characterType: Starter
+    element: Geo
+    startingProficiencies: [Orb]
+    startingItemIds: [4109]
+    tags: [Akasha, Victoria]
+    archetypeTags: [Summon, Support]
+    canStartAsMain: true
+    canStartAsSupport: false
+    canUseInInfinite: true
+    mainStat: LUK
+    subStat: DEX
+    subStats: [DEX, INT]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.05
+    strBase: 10
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 18
+    dexIncrementLvl: 2
+    dexIncrementUpgrade: 1
+    conBase: 14
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 18
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 24
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 1
+    manaMax: 100
+    codes: { passive: 210, normal: 10, ultimate: 10 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 18,  unlockLevel: 8,  stage: 1 }   # 명상
+      - { codeId: 119, unlockLevel: 11, stage: 1 }   # 영감
+      - { codeId: 27,  unlockLevel: 15, stage: 1 }   # 투명
+      - { codeId: 135, unlockLevel: 30, stage: 1 }   # 재충전
+    portrait: SHAKESPEARE_PORTRAIT
+    standing: SHAKESPEARE_STANDING
+
   - id: 2
     name: 시
     tagline: "행동 속도가 곧 화력인 쾌속 검사. 빈사가 된 적을 처형으로 정리한다"
@@ -387,12 +430,13 @@ units:
 
   - id: 20
     name: 피그말리온
-    tagline: "스스로 소환수 판정을 받는 방벽. 궁극기로 피해를 반으로 줄이고 접촉한 적을 태운다"
+    tagline: "아군 소환수를 지원하면서 적을 도발하고 지속피해를 부여하는 탱커"
     characterType: Support
     element: Pyro
     startingProficiencies: [Orb, MediumArmor]
     startingItemIds: [4109]
     tags: [Greek]
+    archetypeTags: [Summon, Domination, Sturdy]
     canStartAsMain: false
     canStartAsSupport: true
     canUseInInfinite: false
@@ -545,14 +589,14 @@ units:
   - id: 23
     name: 테세우스
     tagline: "궁극기와 자가 치유로 힐러 없이도 버티는 광역 전열 전사"
-    characterType: Starter
+    characterType: Locked
     element: Hydro
     startingProficiencies: [Longsword, HeavyArmor]
     startingItemIds: [4102]
     tags: [Greek]
-    canStartAsMain: true
+    canStartAsMain: false
     canStartAsSupport: false
-    canUseInInfinite: true
+    canUseInInfinite: false
     mainStat: DEX
     subStat: CON
     subStats: [CON]
@@ -590,26 +634,27 @@ units:
     portrait: THESEUS_PORTRAIT
     standing: THESEUS_STANDING
 
-  # 그리스 미해금. 치유와 공격을 겸하는 하이브리드 지원가.
+  # 그리스 미해금. 일반공격과 반응 치유를 겸하는 고점형 하이브리드.
   - id: 24
     name: 아스클레피아
-    tagline: "치유와 보호막에 치명타가 터지는 의신. 해로운 상태까지 걷어 낸다"
+    tagline: "일반공격 딜러와 힐러의 모습을 겸비한 고점형 하이브리드 유닛"
     characterType: Locked
     element: Electro
-    startingProficiencies: [Spear]
-    startingItemIds: [4104]
-    tags: [Greek, Human]
+    startingProficiencies: [Crossbow]
+    startingItemIds: [4108]
+    tags: [Akasha, Greek, Human]
     archetypeTags: [Precision, Healing]
     canStartAsMain: false
     canStartAsSupport: false
     canUseInInfinite: false
-    mainStat: INT
-    subStat: CON
-    subStats: [CON, LUK]
+    mainStat: LUK
+    subStat: STR
+    subStats: [STR, CON]
     mainStatTrainingBonus: 0.20
     subStatTrainingBonus: 0.05
-    strBase: 9
+    strBase: 16
     strIncrementLvl: 1
+    strLevelGrowthScale: 1.55
     strIncrementUpgrade: 1
     dexBase: 12
     dexIncrementLvl: 1
@@ -617,11 +662,11 @@ units:
     conBase: 16
     conIncrementLvl: 1
     conIncrementUpgrade: 1
-    intBase: 20
-    intIncrementLvl: 2
+    intBase: 9
+    intIncrementLvl: 1
     intIncrementUpgrade: 1
-    lukBase: 16
-    lukIncrementLvl: 1
+    lukBase: 20
+    lukIncrementLvl: 2
     lukIncrementUpgrade: 1
     manaMax: 100
     codes:
@@ -633,12 +678,11 @@ units:
       normal: 1
       ultimate: 1
     levelPassives:
-      - { codeId: 15, unlockLevel: 4,  stage: 1 }   # 지혜
-      - { codeId: 31, unlockLevel: 30, stage: 1 }   # 마나 호흡법
-      - { codeId: 5, unlockLevel: 35, stage: 1 }   # 목욕제계
+      - { codeId: 55, unlockLevel: 2,  stage: 1 }   # 주문 가속
+      - { codeId: 5, unlockLevel: 15, stage: 1 }   # 목욕제계
       - { codeId: 30, unlockLevel: 40, stage: 1 }   # 치명적인 치유
       - { codeId: 37, unlockLevel: 44, stage: 1 }  # 순환
-      - { codeId: 32, unlockLevel: 58, stage: 1 }   # 의신의 가호
+      - { codeId: 32, unlockLevel: 50, stage: 1 }   # 의신의 가호
     portrait: ASCLEPIUS_PORTRAIT
     standing: ASCLEPIUS_STANDING
 
@@ -1453,16 +1497,16 @@ units:
     portrait: SUSANOO_PORTRAIT
     standing: SUSANOO_STANDING
   # ── 세이메이 ─────────────────────────────────────────────────────
-  # 해안 전선 1슬롯 승리 뒤 합류한다. 필드에 서 있는 것만으로 아군 전체에 방어막 관통을 준다.
-  # 공허의 갑주를 제어 없이 넘기는 해법이라 진행에 필요한 서포터다.
+  # 해안 전선 1슬롯 승리 뒤 합류한다. 봉인부를 쌓아 속박하고 재생으로 파티를 유지한다.
   - id: 43
     name: 세이메이
-    tagline: "아군 피해가 보호막을 건너뛰게 하고, 기절과 에어본으로 적을 묶는 음양사"
+    tagline: "봉인부를 쌓아 적의 행동을 방해하고 재생과 응급 보호막으로 전열을 지키는 음양사"
     characterType: Locked
     element: Anemo
     startingProficiencies: [Orb]
     startingItemIds: [4109]
     tags: [Takamagahara, Human]
+    archetypeTags: [Domination, Healing]
     canStartAsMain: false
     canStartAsSupport: false
     canUseInInfinite: false
@@ -1490,12 +1534,13 @@ units:
     codes: { passive: 243, normal: 43, ultimate: 43 }
     codeStages: { passive: 1, normal: 1, ultimate: 1 }
     levelPassives:
-      - { codeId: 70,  unlockLevel: 10, stage: 1 }   # 의술 — 부여하는 보호막 +25%
-      - { codeId: 56,  unlockLevel: 20, stage: 1 }   # 지혜
-      - { codeId: 115, unlockLevel: 30, stage: 1 }   # 봉인의 잔향
-      - { codeId: 116, unlockLevel: 45, stage: 1 }   # 드러난 틈
-      - { codeId: 117, unlockLevel: 60, stage: 1 }   # 수호의 방진
-      - { codeId: 118, unlockLevel: 75, stage: 1 }   # 남겨진 결계
+      - { codeId: 56,  unlockLevel: 3,  stage: 1 }   # 지혜 (현행 카탈로그 ID)
+      - { codeId: 70,  unlockLevel: 10, stage: 1 }   # 의술
+      - { codeId: 146, unlockLevel: 15, stage: 1 }   # 봉인진
+      - { codeId: 147, unlockLevel: 23, stage: 1 }   # 응급치료
+      - { codeId: 116, unlockLevel: 30, stage: 1 }   # 드러난 틈
+      - { codeId: 148, unlockLevel: 45, stage: 1 }   # 응급실
+      - { codeId: 55,  unlockLevel: 52, stage: 1 }   # 주문 가속
     portrait: SEIMEI_PORTRAIT
     standing: SEIMEI_STANDING
   # ── 로마 3인 ──────────────────────────────────────────────────────
@@ -1552,15 +1597,15 @@ units:
   - id: 101
     name: 옥타비아
     tagline: "강력한 궁극기를 기반으로 한 클래식 딜러."
-    characterType: Locked
+    characterType: Starter
     element: Anemo
     startingProficiencies: [Orb, LightArmor]
     startingItemIds: [4109]
     tags: [Rome, Emperor]
     archetypeTags: [Burst]
-    canStartAsMain: false
+    canStartAsMain: true
     canStartAsSupport: false
-    canUseInInfinite: false
+    canUseInInfinite: true
     mainStat: INT
     subStat: LUK
     subStats: [LUK]
@@ -1603,7 +1648,6 @@ units:
     archetypeTags: [Burst, Swift, Support]
     canStartAsMain: false
     canStartAsSupport: true
-    unlocksUnitIdsOnClear: [101]   # 이아손을 서포트로 육성 완주하면 옥타비아 해금
     canUseInInfinite: false
     mainStat: LUK
     subStat: INT
@@ -1734,15 +1778,15 @@ units:
   - id: 121
     name: 아누비스
     tagline: "적 전열을 치며 아군 전열에 방어막을 씌우는 방벽. 쓰러진 아군을 되살린다"
-    characterType: Starter
+    characterType: Locked
     element: Geo
     # 현재 장비 분류의 Spear/MediumArmor가 단창/평갑을 포괄한다.
     startingProficiencies: [Spear, MediumArmor]
     startingItemIds: [4104]
     tags: [Egypt]
-    canStartAsMain: true
-    canStartAsSupport: true
-    canUseInInfinite: true
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
     mainStat: CON
     subStat: STR
     subStats: [STR]
@@ -1798,6 +1842,7 @@ units:
     strIncrementUpgrade: 1
     dexBase: 22
     dexIncrementLvl: 2
+    dexLevelGrowthScale: 0.90
     dexIncrementUpgrade: 1
     conBase: 12
     conIncrementLvl: 1
@@ -1944,7 +1989,7 @@ units:
       - { codeId: 15,  unlockLevel: 1,  stage: 1 }   # 지혜
       - { codeId: 94, unlockLevel: 12, stage: 1 }   # 원소 (효과 미정)
       - { codeId: 5,  unlockLevel: 35, stage: 1 }   # 목욕재계
-      - { codeId: 55, unlockLevel: 70, stage: 1 }   # 생명의 물
+      - { codeId: 55, unlockLevel: 70, stage: 1 }   # 주문 가속
     portrait: ISIS_PORTRAIT
     standing: ISIS_STANDING
 
@@ -2086,7 +2131,7 @@ units:
 
   # 화령 스타터. 분신을 늘려 머릿수로 때리는 소환 특화 딜러.
   - id: 180
-    name: 우사
+    name: 우치
     tagline: "분신을 셋까지 늘려 함께 두들기고, 치명적인 일격은 분신으로 흘리는 도사"
     characterType: Starter
     archetypeTags: [Summon, Precision]
@@ -2112,10 +2157,10 @@ units:
     conIncrementLvl: 1
     conIncrementUpgrade: 1
     intBase: 24
-    intIncrementLvl: 2
+    intIncrementLvl: 3
     intIncrementUpgrade: 1
     lukBase: 20
-    lukIncrementLvl: 2
+    lukIncrementLvl: 3
     lukIncrementUpgrade: 1
     manaMax: 100
     codes: { passive: 380, normal: 180, ultimate: 180 }
@@ -2125,7 +2170,7 @@ units:
       - { codeId: 143, unlockLevel: 8,  stage: 1 }   # 정기 회복
       - { codeId: 26,  unlockLevel: 12, stage: 1 }   # 과다치유
       - { codeId: 89,  unlockLevel: 20, stage: 1 }   # 대도
-      - { codeId: 55,  unlockLevel: 40, stage: 1 }   # 생명의 물
+      - { codeId: 55,  unlockLevel: 40, stage: 1 }   # 주문 가속
     portrait: USA_PORTRAIT
     standing: USA_STANDING
 
@@ -2262,7 +2307,7 @@ units:
     levelPassives:
       - { codeId: 45, unlockLevel: 4,  stage: 1 }   # 민첩함
       - { codeId: 17, unlockLevel: 12, stage: 1 }   # 예리함
-      - { codeId: 55, unlockLevel: 25, stage: 1 }   # 생명의 물 — 응수 직후가 가장 빠르다
+      - { codeId: 55, unlockLevel: 25, stage: 1 }   # 주문 가속 — 응수 직후가 가장 빠르다
       - { codeId: 69, unlockLevel: 38, stage: 1 }   # 기습
       - { codeId: 67, unlockLevel: 52, stage: 1 }   # 인도자 — 짝의 궁극기를 당긴다
       - { codeId: 71, unlockLevel: 68, stage: 1 }   # 리더쉽

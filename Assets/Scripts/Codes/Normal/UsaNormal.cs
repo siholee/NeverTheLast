@@ -10,7 +10,7 @@ using UnityEngine;
 namespace Codes.Normal
 {
     /// <summary>
-    /// 우사 N(180) — 분신을 1기 부른다. 피해를 주지 않는 일반행동이다.
+    /// 우치 N(180) — 분신을 1기 부른다. 피해를 주지 않는 일반행동이다.
     ///
     /// 상한(<see cref="UsaTaoistNature.MaxClones"/>)에 닿아 더 부를 수 없어도 행동은 소모된다.
     /// 자리 상황을 보고 다른 일을 하지는 않는다 — 분신을 늘리는 것이 이 캐릭터의 본업이다.

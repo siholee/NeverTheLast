@@ -154,6 +154,8 @@ namespace Managers.UI.DevTools
             if (newItemsOnly)
             {
                 yield return NewEquipmentItems();
+                yield return ReworkedHealers();
+                yield return LatestBalanceMechanics();
                 report.completed = true;
                 yield break;
             }
@@ -182,6 +184,8 @@ namespace Managers.UI.DevTools
             yield return DataAndLevels();
             yield return Actions();
             yield return Mechanics();
+            yield return ReworkedHealers();
+            yield return LatestBalanceMechanics();
             yield return Reactions();
             yield return FullSystems();
             yield return SoloDpmAudit();
@@ -194,6 +198,10 @@ namespace Managers.UI.DevTools
         {
             game.DebugResetBattle();
             foreach (var hero in grid.heroList.ToList()) grid.RetireUnit(hero);
+            // RetireUnit은 전투 중 재소환 방지용으로 칸을 2초 예약한다. 검증 시나리오는 같은
+            // 프레임에 다음 픽스처를 세우므로, 전원을 물린 뒤 라운드 경계 처리를 한 번 더 거쳐
+            // 예약만 즉시 해제한다.
+            grid.OnRoundEnd();
             game.RoundManager.StopRound();
             game.gameState = GameState.Preparation;
         }
@@ -263,7 +271,7 @@ namespace Managers.UI.DevTools
             }
 
             // 소환수는 데이터가 아니라 코드가 키를 들고 있어 위 순회에 걸리지 않는다.
-            foreach (string key in new[] { "FLYER_PORTRAIT", "FENRIR_PORTRAIT" })
+            foreach (string key in new[] { "FLYER_PORTRAIT", "FENRIR_PORTRAIT", "PENSEE_PORTRAIT" })
             {
                 Assert($"summon {key}", SpriteResource.LoadPortrait(key) != null, "Sprite", key);
             }

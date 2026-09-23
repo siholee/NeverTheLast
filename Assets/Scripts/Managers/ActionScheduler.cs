@@ -98,8 +98,8 @@ namespace Managers
         }
 
         /// <summary>
-        /// 행동 하나가 막 나가려 한다(유닛 · 종류 · 예약 이름). 전투 로그가 듣는다.
-        /// 트리거가 아니다 — 여기서 게임 상태를 바꾸면 안 된다.
+        /// 행동 하나가 막 나가려 한다(유닛 · 종류 · 예약 이름).
+        /// 전투 로그와 행동 시작에 반응하는 패시브가 듣는다. 같은 행동을 다시 예약하는 재진입은 금지한다.
         /// </summary>
         public static event Action<Unit, ActionKind, string> AnyActionStarted;
 

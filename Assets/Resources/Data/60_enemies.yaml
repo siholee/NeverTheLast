@@ -4886,7 +4886,7 @@ enemies:
       - { codeId: 45,   unlockLevel: 10, stage: 1 }   # 민첩함
       - { codeId: 17,   unlockLevel: 20, stage: 1 }   # 예리함
       - { codeId: 69,   unlockLevel: 30, stage: 1 }   # 기습
-      - { codeId: 55,   unlockLevel: 40, stage: 1 }   # 생명의 물
+      - { codeId: 55,   unlockLevel: 40, stage: 1 }   # 주문 가속
       - { codeId: 67,   unlockLevel: 50, stage: 1 }   # 인도자 — 짝의 궁극기를 당긴다
       - { codeId: 49,   unlockLevel: 60, stage: 1 }   # 저격수
       - { codeId: 1511, unlockLevel: 70, stage: 1 }   # 가속

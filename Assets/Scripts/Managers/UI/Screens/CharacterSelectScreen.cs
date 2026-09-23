@@ -1061,7 +1061,7 @@ namespace Managers.UI.Screens
         private List<UnitData> Candidates()
         {
             // 예전에는 id < 100만 띄웠다. 유닛 ID가 진영별 20칸 블록으로 넓어진 뒤로는
-            // 로마(100~)·이집트(120~)·메히코(140~)·갈리아(160~)가 통째로 빠져, Starter인 아누비스조차 고를 수 없었다.
+            // 로마(100~)·이집트(120~)·메히코(140~)·갈리아(160~)가 통째로 빠져, 후반 ID 블록의 스타터를 고를 수 없었다.
             List<UnitData> units = GameManager.Instance?.unitDataList?.units ?? new List<UnitData>();
 
             if (IsInfinite)

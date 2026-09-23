@@ -6,10 +6,17 @@ codes:
     - { id: 454, verbalName: 황금양모의 광휘, codeName: GoldenFleeceItemPassive, description: "착용자의 LUK만큼 내구도를 얻는다. <장비 전용>" }
     - { id: 208, verbalName: 질량 보존, codeName: LavoisierMassConservation, description: "<고유 패시브> <전수 불가> 아군의 치유·보호막·버프를 받으면 각각 연료·안정제·촉매를 얻는다. 저장 한도는 각 20+CON, 수신량은 한도의 50%. 같은 아군·종류는 자신의 턴 간격마다 1회. 과잉 치유는 연료로만 센다. 자가 지원은 제외. 마나 대신 일반행동으로 반응 준비도를 얻는다." }
     - { id: 209, verbalName: 군상극, codeName: HugoEnsemble, description: "필드에 존재하면 모든 아군 소환수 피해 +1%. 아군이 소환수를 소환할 때마다 소환수 피해 +1%가 전투 중 중첩된다. <고유 패시브> <전수 불가능>" }
+    - { id: 210, verbalName: 언어의 창조자, codeName: ShakespeareLanguageCreator, description: "아군 소환수가 생성·소멸·행동할 때 언어 1을 얻는다. 아군 소환수의 공격 시 언어 1을 소비해 확정 치명타를 만들고, 기존 치명타 확률을 치명타 피해로 전환한다. <고유 패시브> <전수 불가능>" }
     - { id: 144, verbalName: 시인, codeName: HugoPoet, description: "자신의 소환수가 공격할 때 치명타 피해 +20%. 상위: 대문호(145)." }
     - { id: 145, verbalName: 대문호, codeName: HugoGreatWriter, description: "시인의 금색 상위 코드. 자신의 소환수가 공격할 때 치명타 피해 +40%." }
     - { id: 456, verbalName: 은총, codeName: GraceItemPassive, description: "자가치유의 금색 상위 코드. 자신의 턴마다 CON×2만큼 회복한다. <장비 전용> <전수 불가능>" }
     - { id: 457, verbalName: 레미제라블, codeName: LesMiserablesItemPassive, description: "보유한 소환수 하나마다 착용자가 보유한 소환수의 피해 +10%. <장비 전용> <전수 불가능>" }
+    - { id: 458, verbalName: 이름모를 용병의 방패, codeName: NamelessMercenaryShieldItemPassive, description: "내구로 타격을 완전히 상쇄할 때마다 영속 중첩 +1. 중첩마다 내구 +1. 전투가 끝나도 유지되며 장착 해제·소유자 변경 시 초기화된다. <장비 전용> <전수 불가능>" }
+    - { id: 459, verbalName: 저주받은 왕관, codeName: CursedCrownItemPassive, description: "치명타는 대상 내구의 50%를 무시한다. 착용한 채 전투 패배로 LIFE가 감소하면 감소량이 2배가 된다. <장비 전용> <전수 불가능>" }
+    - { id: 460, verbalName: 주문 복제, codeName: SpellReplicationItemPassive, description: "공격 코드를 발동하면 그 공격의 순수 피해만 20% 위력으로 즉시 반복한다. 부가 효과는 반복하지 않으며 이전 공격과 하나의 행동으로 취급한다. <장비 전용> <전수 불가능>" }
+    - { id: 461, verbalName: 제국의 메아리, codeName: ImperialEchoItemPassive, description: "주문 복제의 금색 상위 코드. 공격 코드를 발동하면 그 공격의 순수 피해만 40% 위력으로 즉시 반복한다. <장비 전용> <전수 불가능>" }
+    - { id: 462, verbalName: 황금 갑주, codeName: GoldenArmorItemPassive, description: "현재 파티가 보유한 골드 1당 착용자가 가하는 피해가 0.1% 증가한다. <장비 전용> <전수 불가능>" }
+    - { id: 463, verbalName: 마네키네코, codeName: ManekiNekoItemPassive, description: "전투 후 획득하는 골드가 20% 증가한다. <장비 전용> <전수 불가능>" }
     - id: 180
       verbalName: 홀리 인챈트
       codeName: HolyEnchant
@@ -29,7 +36,7 @@ codes:
     - id: 220
       verbalName: 갈라테아
       codeName: GalateaPassive
-      description: "피그말리온이 소환수 판정을 받아 소환수 대상 효과를 적용받는다. <고유 패시브> <전수 불가능>"
+      description: "필드에 배치되어 있으면 모든 아군 소환수가 가하는 피해 +30%. 피그말리온도 소환수 판정을 받아 소환수 대상 효과를 적용받는다. <고유 패시브> <전수 불가능>"
     - id: 202
       verbalName: 시의 종언
       codeName: ShiFinalVerse
@@ -94,7 +101,7 @@ codes:
     - { id: 183, verbalName: 팔랑크스, codeName: GreekPhalanx, description: "팔랑크스를 가진 필드의 아군 수 n에 비례해 전투 시작 시 CON 기반 위력 30*n의 보호막을 얻고, 상시 가하는 피해가 5%*n 증가한다. 모든 Greek 유닛이 자동 보유. <전수 불가능>" }
     - { id: 25, verbalName: 자가치유, codeName: TheseusSelfHealing, description: "턴마다 CON만큼 회복한다. 물 또는 풀 원소 보유 시 2배이며 두 원소가 중첩되어도 2배를 넘지 않는다." }
     - { id: 26, verbalName: 과다치유, codeName: TheseusOverheal, description: "최대 체력을 넘긴 회복량의 25%를 보호막으로 전환한다." }
-    - { id: 224, verbalName: 생명의 잔, codeName: AsclepiusNashorsTooth, description: "궁극기 사용 후 2턴간 DEX가 40 증가한다. <고유 패시브> <전수 불가능>" }
+    - { id: 224, verbalName: 생명의 잔, codeName: AsclepiusChaliceOfLife, description: "현재 체력이 부족한 아군이 행동하면 20 + CON×0.6만큼 치유한다. 유효 치유를 한 행동마다 궁극기 자원을 5% 회복한다. 다수를 치유해도 한 행동에는 1회만 적용한다. <고유 패시브> <전수 불가능>" }
     - { id: 240, verbalName: 태양의 박자, codeName: AmaterasuSunRhythm, description: "일반행동 적중 시 3턴간 DEX +4. 최대 6중첩. <고유 패시브> <전수 불가능>" }
     - { id: 27, verbalName: 투명, codeName: AmaterasuConcealment, description: "체력이 35% 이하일 때 대상 지정 우선도 -1." }
     - { id: 28, verbalName: 폭죽놀이, codeName: AmaterasuFireworks, description: "4번째 일반행동마다 무작위 적에게 DEX 기반 위력 20의 단일 피해를 주는 폭죽 4발을 발사한다." }
@@ -118,8 +125,8 @@ codes:
     - { id: 143, verbalName: 정기 회복, codeName: UsaEssenceRecovery, description: "필드에서 적이 쓰러지면 그 적의 최대 체력만큼 자신을 치유한다." }
     - { id: 380, verbalName: 도사란 무엇인가, codeName: UsaTaoistNature, description: "고유 소환수 '분신'을 최대 3기까지 거느린다. 피격 시 분신 하나를 소모해 그 타격을 완전히 무효화한다. <고유 패시브> <전수 불가능>" }
     # 옛 열화 전수본(230·231·233)은 제도 폐지와 함께 삭제했다.
-    # 232만 이시스의 독립 해금 패시브 '생명의 물'로 남는다.
-    - { id: 55, verbalName: 생명의 물, codeName: InheritedAsclepiusNashorsTooth, description: "궁극기 사용 후 2턴간 DEX가 20 증가한다." }
+    # 232의 기능만 전수 가능한 독립 해금 패시브 '주문 가속'(55)으로 남는다.
+    - { id: 55, verbalName: 주문 가속, codeName: InheritedAsclepiusNashorsTooth, description: "궁극기 사용 후 2턴간 DEX가 20 증가한다. <전수 가능>" }
     # 일반 등급 적은 테마별로 아래 네 단계 성장 패시브를 공유한다.
     - { id: 1000, verbalName: 북방의 기세, codeName: NordCommonSpirit, description: "주는 피해가 5% 증가한다. <적 전용> <전수 불가능>" }
     - { id: 1001, verbalName: 혹한의 강인함, codeName: NordCommonToughness, description: "받는 피해가 5% 감소한다. <적 전용> <전수 불가능>" }
@@ -176,7 +183,7 @@ codes:
     - id: 280
       verbalName: 황혼
       codeName: SurtrTwilight
-      description: "일반행동이나 궁극기로 적에게 피해를 주면 맞힌 적 하나마다 STR×5의 보호막을 얻는다. 한 행동에서 같은 적은 한 번만 센다. 보호막은 최대 체력의 40%까지 쌓인다. <고유 패시브> <전수 불가능>"
+      description: "일반행동이나 궁극기로 적에게 피해를 주면 맞힌 적 하나마다 STR×5의 보호막을 얻는다. 한 행동에서 같은 적은 한 번만 세며 보호막 누적 상한은 없다. <고유 패시브> <전수 불가능>"
     - { id: 39, verbalName: 거인, codeName: GiantPassive, description: "STR +5%." }
     - { id: 40, verbalName: 천상의 신체, codeName: SurtrCelestialBody, description: "받는 치유와 보호막 효과가 25% 증가한다." }
     - { id: 41, verbalName: 투사, codeName: LifestealFighter, description: "가한 피해의 8%만큼 체력을 회복한다." }
@@ -225,7 +232,7 @@ codes:
     - { id: 68, verbalName: 재기의 바람, codeName: VayuSecondWind, description: "체력이 40% 이하로 떨어지면 2턴에 걸쳐 최대 체력의 40%를 회복한다. 전투 중 1회." }
     - { id: 69, verbalName: 기습, codeName: VayuAmbush, description: "최대 체력인 적을 공격하면 확정 치명타가 발생하고 치명타 확률의 2배가 치명타 피해에 더해진다." }
     # ── 프레이아 ──
-    - { id: 281, verbalName: 피톤치드, codeName: FreyaPhytoncide, description: "전투 중 순수치유량을 기록한다. 기록을 정산할 때 프레이아 최대 체력의 10%마다 아군 전체에게 STR +1(최대 +25)을 2턴간 부여한다. <고유 패시브> <전수 불가능>" }
+    - { id: 281, verbalName: 피톤치드, codeName: FreyaPhytoncide, description: "프레이아가 필드에 있을 경우 모든 아군의 CON이 전투 시작 시 프레이아 CON의 75%만큼 증가한다. <고유 패시브> <전수 불가능>" }
     - { id: 70, verbalName: 의술, codeName: FreyaMedicine, description: "부여하는 치유와 보호막이 25% 증가한다. 의신의 가호(98)의 하위 코드이며 중복 적용되지 않는다." }
     - { id: 71, verbalName: 리더쉽, codeName: FreyaLeadership, description: "필드에 있을 경우, 모든 아군이 가하는 피해 +10%. 중첩되지 않는다." }
     - { id: 72, verbalName: 전사장, codeName: FreyaWarChief, description: "모든 전열 아군에게 STR +8." }
@@ -273,7 +280,7 @@ codes:
     - { id: 1207, verbalName: 부관의 신호, codeName: LegionOptioPassive, description: "전투 시작 시 CON+STR이 가장 높은 전열 아군을 지정한다. 지정된 아군이 단일 피해를 가하면 같은 대상에게 추가행동으로 일반행동을 넣는다. <적 전용> <전수 불가능>" }
     - { id: 1208, verbalName: 천부장의 신호, codeName: LegionTribunePassive, description: "전투 시작 시 CON+STR이 가장 높은 전열 아군을 지정한다. 지정된 아군이 단일 피해를 가하면 같은 대상에게 추가행동으로 일반행동을 넣는다. <적 전용> <전수 불가능>" }
     - { id: 300, verbalName: 화합, codeName: LegionConcordia, description: "단일 아군에게 이로운 효과를 부여하면 그 아군에게 '화합' 2스택을 준다. 화합 보유자는 가하는 피해 +50%. 자기 턴마다 1스택 감소하고, 새로 부여하면 이전 보유자가 잃는다. <고유 패시브> <전수 불가능>" }
-    - { id: 301, verbalName: 천천히 서둘러라, codeName: LegionFestinaLente, description: "자신의 DEX가 25% 감소하고 궁극기로 가하는 피해가 25% 증가한다. <고유 패시브> <전수 불가능>" }
+    - { id: 301, verbalName: 천천히 서둘러라, codeName: LegionFestinaLente, description: "별도의 가상 마나 게이지를 가진다. 필드의 아군이 궁극기를 발동할 때마다 5%를 충전하며, 실제 마나와 합쳐 100%가 되면 실제 마나를 즉시 최대치로 만들고 가상 마나를 비운다. 가상 마나는 전투 종료 시 초기화된다. <고유 패시브> <전수 불가능>" }
     - { id: 302, verbalName: "왔노라, 보았노라, 이겼노라", codeName: LegionVeniVidiVici, description: "적을 처치할 때마다 모든 '로마' 아군의 가하는 피해가 10% 증가한다. 상한 없이 중첩된다. <고유 패시브> <전수 불가능>" }
     - { id: 1212, verbalName: 최고의 2인자, codeName: LegionSecondInCommand, description: "필드에 옥타비아가 있으면 일반행동이 무조건 옥타비아를 향하고, 추가로 옥타비아의 행동 게이지를 100% 채운다. <보스 전용> <전수 불가능>" }
     - { id: 1213, verbalName: 팍스 로마나, codeName: LegionPaxRomana, description: "공격이 적중한 대상 수 하나당 궁극기 자원을 최대치의 2% 채운다. <보스 전용> <전수 불가능>" }
@@ -516,11 +523,11 @@ codes:
     - { id: 1771, verbalName: 부푼 비늘, codeName: SkyCrystalCore, description: "무적 8회. 자기 턴 3번이 지나면 터져 상대 전원에게 각자 최대 체력 35%의 피해를 준다. 방어력·피해 배율을 무시하고 회피할 수 없으며 보호막은 흡수한다. <고유 패시브> <적 전용> <전수 불가능>" }
     # ── 일본 해안 전선 (1800 공용 · 1810 돌격대장 · 1820 선봉대장 · 1830 사냥꾼 · 1840 공포 · 1850 집정관) ──
     # ── 세이메이 (43) ──
-    - { id: 243, verbalName: 결계 해독, codeName: SeimeiBarrierDecode, description: "필드에 서 있는 동안 자신을 포함한 아군 전체의 피해가 보호막을 건너뛴다. 방어력·내구·체력 구간은 그대로 받는다. 판정은 피해가 들어가는 순간이다. <고유 패시브> <전수 불가능>" }
-    - { id: 115, verbalName: 봉인의 잔향, codeName: SeimeiSealEcho, description: "봉인부가 준비된 일반행동이 대상에게 주는 피해 -10%(2턴)를 건다. 기절이 실패해도 건다." }
+    - { id: 243, verbalName: 삼중봉인, codeName: SeimeiTripleSeal, description: "적에게 봉인부를 쌓는다. 한 대상이 3중첩에 도달하면 모두 소비하고, 그 대상의 다음 턴이 올 때까지 속박한다. <고유 패시브> <전수 불가능>" }
     - { id: 116, verbalName: 드러난 틈, codeName: SeimeiExposedGap, description: "자신이 새 행동불능을 건 적은 받는 피해가 10% 증가한다(2턴). 같은 효과는 겹치지 않는다." }
-    - { id: 117, verbalName: 수호의 방진, codeName: SeimeiGuardianFormation, description: "천지반전의 보호막을 받은 아군은 받는 피해가 10% 감소한다(1턴)." }
-    - { id: 118, verbalName: 남겨진 결계, codeName: SeimeiLingeringBarrier, description: "전투에서 처음 쓰러질 때 살아 있는 아군 전원에게 자신의 CON×1.2 보호막을 준다. 관통은 남기지 않는다." }
+    - { id: 146, verbalName: 봉인진, codeName: SeimeiSealFormation, description: "필드에 있는 동안 모든 아군이 행동불능 상태인 적에게 가하는 피해가 10% 증가한다. 여러 세이메이가 있으면 중첩된다." }
+    - { id: 147, verbalName: 응급치료, codeName: SeimeiEmergencyTreatment, description: "아군을 유효 치유할 때 자신의 CON만큼 보호막을 추가로 부여한다." }
+    - { id: 148, verbalName: 응급실, codeName: SeimeiEmergencyRoom, description: "체력이 30% 이하인 대상을 치유할 때 치유량과 응급치료 보호막이 50% 증가한다." }
     - { id: 1800, verbalName: 공허의 갑주, codeName: CoastVoidArmor, description: "전투 시작 시 STR +40%와 최대 체력 20% 기준의 보호막을 두른다(받는 쪽 보너스 적용). 빙결·기절·에어본 같은 행동불능에 실제로 걸리면 STR 강화와 갑주가 준 남은 보호막이 함께 벗겨지고, 이 전투에서는 다시 두르지 않는다. 보호막만 깨서는 STR 강화가 남는다. <고유 패시브> <적 전용> <전수 불가능>" }
     - { id: 1811, verbalName: 날선 집게, codeName: CoastMarkerPassive, description: "집게 압착의 피해가 10% 증가한다. <적 전용> <전수 불가능>" }
     - { id: 1812, verbalName: 조류의 압력, codeName: CoastMarkerPassive, description: "조류 집게의 위력이 130에서 150이 된다. <적 전용> <전수 불가능>" }
@@ -540,6 +547,7 @@ codes:
   normal:
     - { id: 103, verbalName: 일반행동, codeName: JasonNormalAttack, description: "단일 적에게 고정 위력 10 + STR×0.8의 피해를 입힌다. #물리 #접촉" }
     - { id: 8, verbalName: 일반행동, codeName: LavoisierFlask, description: "단일 적에게 INT 기반 위력 30의 피해를 입힌다. 일반행동 해결 시 반응 준비도 +1(최대 3). 2회마다 가장 적은 시약을 저장 한도의 25%만큼 합성한다. #특수 #비접촉" }
+    - { id: 10, verbalName: 영감의 기록, codeName: ShakespeareInspiration, description: "언어 중첩을 3 획득한다." }
     - id: 21
       verbalName: 일반행동
       codeName: a005_NAtlanta
@@ -547,7 +555,7 @@ codes:
     - id: 20
       verbalName: 일반행동
       codeName: a004_NPygmalion
-      description: "단일 적에게 CON 기반 위력 75 + CON×0.5의 물리 피해를 입힌다. #비접촉 #물리"
+      description: "단일 적에게 CON 기반 위력 75 + CON×0.5의 물리 피해를 입힌다. 소환수 공격 판정을 받아 소환수 전용 증폭이 적용된다. #접촉 #물리 #소환수"
     - id: 1
       verbalName: 일반행동
       codeName: SeiRadiantBolt
@@ -602,7 +610,7 @@ codes:
     - id: 80
       verbalName: 일반행동
       codeName: SurtrScorchingSlash
-      description: "단일 적에게 고정 위력 110 + STR×0.8의 피해를 입힌다. 행동을 열 때 최대 체력의 15%를 태워 피해가 40% 증가한다(태운 뒤 30% 미만이 되면 태우지 않는다). #베기 #접촉 #물리"
+      description: "단일 적에게 고정 위력 110 + STR×0.8의 피해를 입힌다. 행동을 열 때 최대 체력의 15%를 태울 수 있다면 추가로 CON×2의 위력을 더한다(태운 뒤 30% 미만이 되면 태우지 않는다). #베기 #접촉 #물리"
     - { id: 1000, verbalName: 파수꾼의 타격, codeName: EnemySentinelNormal, description: "단일 적에게 위력 42의 물리 피해를 입힌다. #접촉 #물리" }
     - { id: 1001, verbalName: 투사의 공격, codeName: EnemyFighterNormal, description: "단일 적에게 위력 50의 물리 피해를 입힌다. #접촉 #물리" }
     - { id: 1002, verbalName: 처형자의 일격, codeName: EnemyExecutionerNormal, description: "단일 적에게 위력 55의 물리 피해를 입힌다. #접촉 #물리" }
@@ -623,8 +631,8 @@ codes:
       verbalName: 일반행동
       codeName: TheseusNormalAttack
       description: "단일 적에게 DEX 기반 위력 90의 피해를 입힌다. 강화 시 충격파로 적 전체에 DEX 기반 위력 60의 추가 피해를 입히고 물 원소를 부착한다. #접촉 #물리"
-    - { id: 24, verbalName: 일반행동, codeName: AsclepiusNormalAttack, description: "단일 적에게 고정 위력 48 + INT×0.3의 특수 피해를 입힌다. #비접촉 #특수" }
-    - { id: 40, verbalName: 일반행동, codeName: AmaterasuNormalAttack, description: "단일 적에게 고정 위력 43 + DEX×0.4의 물리 피해를 입힌다. #비접촉 #물리" }
+    - { id: 24, verbalName: 의신의 쇠뇌, codeName: AsclepiusNormalAttack, description: "단일 적에게 고정 위력 55 + STR×0.8의 특수 피해를 입힌다. #비접촉 #특수" }
+    - { id: 40, verbalName: 일반행동, codeName: AmaterasuNormalAttack, description: "단일 적에게 고정 위력 38 + DEX×0.4의 물리 피해를 입힌다. #비접촉 #물리" }
     - { id: 61, verbalName: 일반행동, codeName: YamaNormalAttack, description: "단일 적에게 DEX 기반 위력 90의 물리 피해를 입힌다. #물리 #베기 #접촉" }
     - { id: 62, verbalName: 일반행동, codeName: AgniNormalAttack, description: "단일 적에게 INT 기반 위력 60의 특수 피해를 입힌다. #특수 #비접촉" }
     - { id: 63, verbalName: 일반행동, codeName: IndraNormalAttack, description: "단일 적에게 INT 기반 위력 50의 특수 피해를 입힌다. #특수 #비접촉" }
@@ -730,7 +738,7 @@ codes:
     - { id: 1760, verbalName: 찢는 부리, codeName: SkyTearingBeak, description: "단일 적에게 STR 위력 110의 피해를 입힌다. 후열에서 전열 너머를 친다. #특수 #비접촉" }
     - { id: 1770, verbalName: 카운트다운, codeName: SkyCrystalCountdown, description: "공격하지 않는다. 남은 턴을 하나 줄이고, 0이 되면 흡수 또는 파열을 일으키고 떠난다. 떠나는 것은 처치가 아니다." }
     # ── 일본 해안 전선 ──
-    - { id: 43, verbalName: 봉인부, codeName: SeimeiSealTalisman, description: "단일 적에게 CON 기반 위력 45의 피해를 입힌다. 첫 일반행동과 이후 3회마다 봉인부가 준비되어 피해 뒤 기절 1턴을 시도한다(제어 분쇄 적용). 준비된 회차에는 준비 공격 중인 적 → 공허의 갑주를 두른 적 → 제어가 통하는 적 순으로 노린다. #특수 #비접촉" }
+    - { id: 43, verbalName: 금박 봉인부, codeName: SeimeiSealTalisman, description: "단일 적에게 CON 기반 위력 45의 피해를 입히고 봉인부 1중첩을 부착한다. #특수 #비접촉" }
     - { id: 1810, verbalName: 집게 압착, codeName: CoastPincerCrush, description: "단일 적에게 STR 위력 80의 피해를 입힌다. #물리 #접촉" }
     - { id: 1820, verbalName: 등갑 밀치기, codeName: CoastShellShove, description: "단일 적에게 STR 위력 70의 피해를 입힌다. #물리 #접촉" }
     - { id: 1830, verbalName: 핏빛 추격, codeName: CoastBloodChase, description: "상대 후열을 먼저 노려 DEX 위력 70의 피해를 입힌다. 후열이 비었으면 보통 대상을 고른다. #물리 #접촉" }
@@ -777,7 +785,8 @@ codes:
     - id: 20
       verbalName: 장미의 가시
       codeName: a004_U_LovesPrize
-      description: "4턴간 받는 피해 50% 감소, 대상 지정 우선도 +1. 접촉 피해를 받으면 공격자에게 CON 명중 판정 후 기본 2턴 화상을 부여한다. 공격자별 재부여 내부 쿨다운 1턴."
+      description: "3턴간 받는 피해 50% 감소, 우선도 +1. 일반행동을 할 수 없고 피격 보너스 마나를 2 얻는다. 접촉 피해를 받으면 공격자에게 기본 2턴 화상을 부여한다. 공격자별 재부여 내부 쿨다운 1턴."
+    - { id: 10, verbalName: "사느냐, 죽느냐, 그것이 문제로다", codeName: ShakespeareQuestion, description: "3턴간 결계를 펼친다. 모든 아군 소환수가 가하는 피해 +25%. 결계 동안 각 소환수는 처음 쓰러질 때 최대 체력으로 한 번 부활한다." }
     - id: 2
       verbalName: 만종
       codeName: a002_U_FinalBell
@@ -823,7 +832,7 @@ codes:
       verbalName: 회복의 일격
       codeName: TheseusRecoveryStrike
       description: "단일 적에게 DEX 기반 위력 150의 피해를 입히고 잃은 체력의 25%+CON*10만큼 회복한다. (계수 임시) #접촉 #물리"
-    - { id: 24, verbalName: 의신의 영약, codeName: AsclepiusFlask, description: "단일 적에게 고정 위력 65 + INT×0.25 피해 후 주변에 고정 위력 45 + INT×0.25 범위 피해. 투사체가 관통한 아군은 CON 위력 120 보호막을 얻는다. #비접촉 #특수" }
+    - { id: 24, verbalName: 구원의 생명선, codeName: AsclepiusFlask, description: "전장을 가르는 투사체를 발사한다. 모든 아군은 200 + CON×1.2만큼 회복하고, 모든 적은 150 + STR×1.2의 피해를 받는다. #비접촉 #특수" }
     - { id: 40, verbalName: 태양문 개방, codeName: AmaterasuPortalBarrage, description: "3턴간 차원문 4개를 연다. 일반행동을 맞힐 때마다 아군 진영 허공의 차원문에서 화살 8발(차원문마다 같은 무작위 대상에게 2발씩)을 한 번에 쏜다. 화살 한 발은 그 일반행동 최종 피해의 0.1배를 추가행동으로 준다. 화살 8발이 적중할 때마다 그 대상에게 불 원소를 부착한다. #비접촉 #물리 #화살" }
     - id: 41
       verbalName: 월뢰만천
@@ -832,7 +841,7 @@ codes:
     - id: 80
       verbalName: 라그나로크
       codeName: SurtrRagnarok
-      description: "단일 적에게 고정 위력 180 + STR×0.8의 피해를 입힌 후 적 전체에게 고정 위력 100 + STR×0.6의 피해를 입히고 불 원소를 부착한다. 행동을 열 때 최대 체력의 15%를 태워 피해가 40% 증가한다(태운 뒤 30% 미만이 되면 태우지 않는다). #베기 #접촉 #물리"
+      description: "단일 적에게 고정 위력 180 + STR×0.8의 피해를 입힌 후 적 전체에게 고정 위력 100 + STR×0.6의 피해를 입히고 불 원소를 부착한다. 행동을 열 때 최대 체력의 15%를 태울 수 있다면 두 공격의 위력에 각각 CON×2를 더한다(태운 뒤 30% 미만이 되면 태우지 않는다). #베기 #접촉 #물리"
     - { id: 1100, verbalName: 철벽 진형, codeName: ColosseumMurmilloUltimate, description: "자신과 체력이 가장 낮은 아군에게 최대 체력 비례 방어막을 부여한다." }
     - { id: 1101, verbalName: 대열 붕괴, codeName: ColosseumHoplomachusUltimate, description: "한 행을 공격하고 3턴간 받는 피해를 증가시킨다." }
     - { id: 1102, verbalName: 일대일 지명, codeName: ColosseumThraexUltimate, description: "최대 체력이 가장 높은 적을 지명하고 4턴간 그 대상에게 주는 피해가 증가한다." }
@@ -861,12 +870,12 @@ codes:
     - { id: 1207, verbalName: 방벽 지시, codeName: LegionOptioUltimate, description: "아군 전체에게 위력 INT×1.2의 보호막을 부여한다." }
     - { id: 1208, verbalName: 천부장의 방벽, codeName: LegionTribuneUltimate, description: "아군 전체에게 위력 INT×1.6의 보호막을 부여한다." }
     - { id: 100, verbalName: 제 2의 건국자, codeName: LegionAgrippaUltimate, description: "아군 전체의 궁극기 자원을 최대치의 20%만큼 채운다. '화합' 보유자는 두 배(40%)를 받는다." }
-    - { id: 101, verbalName: 존엄한 자, codeName: LegionOctaviaUltimate, description: "모든 적에게 고정 위력 61 + INT×0.51의 특수 피해를 입힌다. #특수 #비접촉" }
+    - { id: 101, verbalName: 존엄한 자, codeName: LegionOctaviaUltimate, description: "모든 적에게 고정 위력 92 + INT×0.77의 특수 피해를 입힌다. #특수 #비접촉" }
     - { id: 102, verbalName: 주사위는 던져졌다, codeName: LegionCaesarUltimate, description: "아군 전체의 행동 게이지를 100% 채우고, 2턴(독재관 보유 시 3턴)간 아군이 치명타를 낼 때마다 위력 LUK×0.1에 해당하는 고정 피해를 추가한다." }
     # ── 이집트 신규 궁극기 ──
     - { id: 120, verbalName: 우제트, codeName: HorusWadjet, description: "상시형 궁극기. 네 번째 일반행동에 STR×0.6 피해를 더하고 적 방어력을 20% 무시한다. 일반행동마다 우제트 게이지가 1/4씩 찬다. #물리 #비접촉 #화살" }
     - { id: 121, verbalName: 저승의 바위 창, codeName: AnubisStoneSpear, description: "적 전열 전체(비어 있으면 후열 전체)에 STR×0.8의 피해를 입힌다. 아누비스가 전열이면 전열 아군 전체에게 CON×1.4 보호막을 부여한다. #특수 #비접촉" }
-    - { id: 122, verbalName: 야수의 추격, codeName: BastetApexExecution, description: "패시브형 궁극기. 반격 코드를 가진 모든 아군이 추가행동 또는 반격을 하면 적 전체에게 기본 위력 45 + DEX×4×(추가 대상 수, 최대 3)의 추가행동을 가한다. 단일 적 기준 위력 45이며 같은 행동의 다단 적중에는 한 번만 반응한다. #접촉 #물리 #베기 #추가행동" }
+    - { id: 122, verbalName: 야수의 추격, codeName: BastetApexExecution, description: "패시브형 궁극기. 반격 코드를 가진 모든 아군이 추가행동 또는 반격을 하면 적 전체에게 기본 위력 47 + DEX×4×(추가 대상 수, 최대 3)의 추가행동을 가한다. 단일 적 기준 위력 47이며 같은 행동의 다단 적중에는 한 번만 반응한다. #접촉 #물리 #베기 #추가행동" }
     - { id: 180, verbalName: "분신술 — 만천화우", codeName: UsaCloneRally, description: "거느린 모든 분신에게 3턴간 치명타 피해 +40%를 부여하고 즉시 행동하게 한다. 분신이 하나도 없으면 즉시 행동 대신 분신을 2기 소환한다." }
     - { id: 502, verbalName: 분신 일격, codeName: CloneBurst, description: "소환수 — 단일 적에게 고정 위력 240 + INT×0.7의 피해를 입힌다. #소환수 #특수 #접촉" }
     - { id: 123, verbalName: 화염 참격, codeName: SetBurningSlash, description: "단일 적에게 STR×1.2의 피해를 입히고 CON 명중 판정에 성공하면 화상(3턴)을 부여한다. #접촉 #물리 #베기 #디버프" }
@@ -977,7 +986,7 @@ codes:
     - { id: 1760, verbalName: 공허 강하, codeName: SkyVoidDescent, description: "상대 전원에게 고정 120 + STR 위력 90의 피해를 입히고 바람 원소를 부착한 뒤, 살아 있는 결정의 카운트다운을 1씩 당긴다(1 남은 결정은 제외). 입장 후 일반행동 2회 전에는 쓰지 않는다. #특수 #비접촉" }
     - { id: 1770, verbalName: 없음, codeName: SkyInertUltimate, description: "결정에게는 궁극기가 없다." }
     # ── 일본 해안 전선 ──
-    - { id: 43, verbalName: 천지반전, codeName: SeimeiHeavenEarthReversal, description: "아군 전체에 CON×1.2 보호막을 먼저 주고, 적 전체에 CON 기반 위력 40의 피해와 에어본을 시도한다. 에어본이 실패해도 보호막은 남는다. #특수 #비접촉" }
+    - { id: 43, verbalName: 태산부군제, codeName: SeimeiHeavenEarthReversal, description: "아군 전체에게 3턴간 턴 시작 시 최대 체력의 1/8을 회복하는 재생과, 다음 자기 행동이 끝날 때까지 공격한 적에게 봉인부를 부착하는 부적을 부여한다." }
     - { id: 1810, verbalName: 조류 집게, codeName: CoastTidalPincer, description: "단일 적에게 STR 위력 130의 피해를 입히고 물 원소를 부착한다. #물리 #접촉" }
     - { id: 1820, verbalName: 암초 충돌, codeName: CoastReefCollision, description: "상대 전열 전체(비었으면 전원)에 STR 위력 90의 피해를 입히고 바위 원소를 부착한다. #물리 #접촉" }
     - { id: 1830, verbalName: 혈조 돌진, codeName: CoastBloodTide, description: "상대 후열 전체(비었으면 전원)에 DEX 위력 60의 피해를 입히고 불 원소를 부착한다. #특수 #비접촉" }

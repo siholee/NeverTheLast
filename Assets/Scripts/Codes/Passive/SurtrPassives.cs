@@ -14,22 +14,24 @@ namespace Codes.Passive
     /// <summary>
     /// 수르트의 체력 연소. 일반행동과 궁극기 라그나로크가 <b>각자</b> 행동을 열 때 한 번 치른다.
     ///
-    /// 최대 체력의 15%를 태우고 그 행동이 주는 피해를 40% 올린다. 태운 뒤 체력이 최대 체력의 30%
-    /// 아래로 내려가면 태우지 않고 증가도 없다. 예전에는 고유 패시브 '황혼'이 이 일을 했는데,
+    /// 최대 체력의 15%를 태우고 그 행동의 위력에 CON 비례 성분을 더한다. 태운 뒤 체력이 최대 체력의 30%
+    /// 아래로 내려가면 태우지 않고 추가 위력도 없다. 예전에는 고유 패시브 '황혼'이 이 일을 했는데,
     /// 연소는 두 공격 코드의 성질로 옮기고 '황혼'은 보호막 패시브로 바꿨다(초보자용 안정성).
     /// </summary>
     public static class SurtrBurn
     {
         public const float HpCostRatio = 0.15f;
         public const float HpFloorRatio = 0.30f;
-        public const float DamageMultiplier = 1.4f;
+        public const float ConPowerCoefficient = 2f;
 
-        /// <summary>값을 치렀으면 피해 배율(1.4)을, 못 치렀으면 1을 돌려준다.</summary>
-        public static float Pay(Unit caster)
+        /// <summary>값을 치렀으면 CON 비례 추가 위력을, 못 치렀으면 0을 돌려준다.</summary>
+        public static int PayForBonusPower(Unit caster)
         {
-            if (caster == null || caster.HpMax <= 0) return 1f;
+            if (caster == null || caster.HpMax <= 0) return 0;
             bool aboveFloor = caster.HpCurr - caster.HpMax * HpCostRatio >= caster.HpMax * HpFloorRatio;
-            return aboveFloor && caster.TryConsumeAttackHp(HpCostRatio, false, out _) ? DamageMultiplier : 1f;
+            return aboveFloor && caster.TryConsumeAttackHp(HpCostRatio, false, out _)
+                ? Mathf.Max(0, Mathf.RoundToInt(caster.GetBaseCon() * ConPowerCoefficient))
+                : 0;
         }
     }
 
@@ -38,7 +40,7 @@ namespace Codes.Passive
     ///
     /// 일반행동이나 궁극기로 적에게 피해를 주면 <b>맞힌 적 하나마다</b> STR×5의 보호막을 얻는다.
     /// 한 행동에서 같은 적을 두 번 때려도(라그나로크의 단일 + 광역) 한 번만 센다.
-    /// 보호막은 최대 체력의 40%까지 쌓인다.
+    /// 보호막에는 상한이 없으며, 계속 공격하는 동안 누적된다.
     ///
     /// 연소(<see cref="SurtrBurn"/>)가 빼 가는 체력을 보호막이 되돌려 주는 짝이다. 적이 많을수록
     /// 라그나로크 한 번이 크게 두르므로, 초보자가 광역 궁극기로 전열을 버티는 흐름이 저절로 생긴다.
@@ -46,8 +48,6 @@ namespace Codes.Passive
     public sealed class SurtrTwilight : UniquePassiveCode
     {
         public const float ShieldStrCoefficient = 5f;
-        public const float ShieldCapRatio = 0.40f;
-
         private readonly HashSet<Unit> _hitThisAction = new();
         private bool _registered;
         private Action<DamageResolvedContext> _damageHandler;
@@ -84,11 +84,7 @@ namespace Codes.Passive
             if (type != BaseEnums.CodeType.Normal && type != BaseEnums.CodeType.Ultimate) return;
             if (!_hitThisAction.Add(context.Target)) return;
 
-            int cap = Mathf.RoundToInt(Caster.HpMax * ShieldCapRatio);
-            int room = cap - Caster.ShieldCurr;
-            if (room <= 0) return;
-
-            int shield = Mathf.Min(room, Mathf.Max(1, Mathf.RoundToInt(Caster.GetBaseStr() * ShieldStrCoefficient)));
+            int shield = Mathf.Max(1, Mathf.RoundToInt(Caster.GetBaseStr() * ShieldStrCoefficient));
             Caster.AddShield(shield, Caster);
         }
 

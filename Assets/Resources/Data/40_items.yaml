@@ -1223,6 +1223,85 @@ items:
     codeGrants:
       - { slot: passive, codeId: 453, stage: 1 }
 
+  - id: 4413
+    name: 이름모를 용병의 방패
+    icon: ITEM_NAMELESS_MERCENARY_SHIELD
+    slot: OffHand
+    category: Shield
+    requiredProficiency: Shield
+    rarity: 4
+    weight: 3
+    durability: 29
+    shopPrice: 320
+    statBonuses: [{ stat: Durability, amount: 14 }]
+    codeGrants:
+      - { slot: passive, codeId: 458, stage: 1 }
+
+  - id: 4334
+    name: 저주받은 왕관
+    icon: ITEM_CURSED_CROWN
+    slot: Head
+    category: Helmet
+    rarity: 3
+    weight: 2
+    durability: 10
+    shopPrice: 180
+    statBonuses: [{ stat: CritChance, amount: 10 }]
+    codeGrants:
+      - { slot: passive, codeId: 459, stage: 1 }
+
+  - id: 4515
+    name: 유스티니아누스의 왕관
+    icon: ITEM_JUSTINIAN_CROWN
+    slot: Head
+    category: Helmet
+    rarity: 5
+    weight: 3
+    durability: 20
+    statBonuses: [{ stat: INT, amount: 9 }]
+    codeGrants:
+      - { slot: passive, codeId: 461, stage: 1 }
+
+  - id: 4335
+    name: 복제자의 망토
+    icon: ITEM_REPLICATOR_CLOAK
+    slot: Armor
+    category: LightArmor
+    requiredProficiency: LightArmor
+    rarity: 3
+    weight: 2
+    durability: 16
+    shopPrice: 180
+    statBonuses: [{ stat: INT, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 460, stage: 1 }
+
+  - id: 4336
+    name: 황금 갑주
+    icon: ITEM_GOLDEN_ARMOR
+    slot: Armor
+    category: HeavyArmor
+    requiredProficiency: HeavyArmor
+    rarity: 3
+    weight: 6
+    durability: 52
+    shopPrice: 180
+    statBonuses: [{ stat: CON, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 462, stage: 1 }
+
+  - id: 4337
+    name: 마네키네코
+    icon: ITEM_MANEKI_NEKO
+    slot: Necklace
+    category: Necklace
+    rarity: 3
+    weight: 1
+    shopPrice: 180
+    statBonuses: [{ stat: LUK, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 463, stage: 1 }
+
   # ══════════════════════════════════════════════════════════════════
   # 귀중품 — 입지 못하고 팔기만 하는 물건
   #

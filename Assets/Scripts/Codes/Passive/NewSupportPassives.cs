@@ -817,6 +817,11 @@ namespace Codes.Passive
                 {
                     bonus = Mathf.Max(bonus, KuberaMerchant.GoldBonus);
                 }
+                if (hero.ActivePassiveCodes.Concat(hero.ActiveItemPassiveCodes)
+                    .Any(code => code is ManekiNekoItemPassive))
+                {
+                    bonus += ManekiNekoItemPassive.GoldBonus;
+                }
             }
             // 쿠베라의 골드 러쉬는 상인과 계열이 다르다 — 쓴 횟수만큼 곱해 쌓인다.
             return (1f + bonus) * Combat.SpecialAction.GoldRushMultiplier();

@@ -21,6 +21,27 @@ namespace Combat
     /// </summary>
     public static class Summons
     {
+        /// <summary>실제 소환수이거나, 갈라테아처럼 소환수 대상 효과를 받는 유닛.</summary>
+        public static bool IsSummonLike(Unit unit)
+            => unit != null && (unit.IsSummon || unit.HasUnitTag("Summon"));
+
+        /// <summary>아군 필드 효과가 소환수 공격을 강화하면 자원을 소비한다.</summary>
+        public static bool TryConsumeGuaranteedCritical(Unit summonAttacker, bool logicalSummon = false)
+        {
+            if (!logicalSummon && !IsSummonLike(summonAttacker)) return false;
+            Unit owner = summonAttacker.SummonOwner ?? summonAttacker;
+            foreach (Unit ally in CombatTargets.AliveAlliesIncludingSelf(owner))
+            {
+                if (ally == null || !ally.IsOnField) continue;
+                foreach (var effect in ally.ActiveStatuses.SelectMany(status => status.Effects))
+                {
+                    if (effect.EffectObject?.TryConsumeAlliedSummonCritical(ally, summonAttacker) == true)
+                        return true;
+                }
+            }
+            return false;
+        }
+
         /// <summary>소환수 공격 하나를 해결한다. 실제로 들어간 피해 컨텍스트를 만들어 넘긴다.</summary>
         /// <param name="owner">소환자. 피해 계수의 기준이 된다.</param>
         /// <param name="target">대상.</param>
@@ -33,8 +54,11 @@ namespace Combat
             if (owner == null || !owner.isActive) return;
             if (target == null || !target.isActive || target.IsUntargetable) return;
 
-            bool isCrit = Random.value <= owner.CritChanceCurr;
-            float critMultiplier = isCrit ? CritMultiplier(owner, owner.CritMultiplierCurr) : 1f;
+            bool guaranteedCrit = TryConsumeGuaranteedCritical(owner, logicalSummon: true);
+            bool isCrit = guaranteedCrit || Random.value <= owner.CritChanceCurr;
+            float baseCritMultiplier = owner.CritMultiplierCurr +
+                                       (guaranteedCrit ? owner.CritChanceCurr : 0f);
+            float critMultiplier = isCrit ? CritMultiplier(owner, baseCritMultiplier) : 1f;
 
             int damage = Mathf.Max(1, Mathf.RoundToInt(
                 owner.SkillDamage(power, stat) * critMultiplier * DamageMultiplier(owner)));

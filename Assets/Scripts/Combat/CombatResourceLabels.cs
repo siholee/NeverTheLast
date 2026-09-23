@@ -30,6 +30,8 @@ namespace Combat
             { CoastFrontlineResources.Armor, new Label { Text = "갑주", NameOnly = true } },
             { CoastFrontlineResources.Charge, new Label { Text = "준비", NameOnly = true } },
             { CoastFrontlineResources.Phase, new Label { Text = "구간", ShowMaximum = true } },
+            { Codes.Passive.ShakespeareCombat.LanguageResource, new Label { Text = "언어", ShowMaximum = false } },
+            { Codes.Passive.FestinaLenteEffect.VirtualManaResource, new Label { Text = "가상 마나", ShowMaximum = true } },
         };
 
         /// <summary>이름표 문자열. 보여 줄 자원이 없으면 이름만 돌려준다.</summary>

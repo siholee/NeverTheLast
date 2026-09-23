@@ -177,7 +177,7 @@ namespace Codes.Ultimate
             if (enemies.Count == 0) return;
 
             bool isCrit = UnityEngine.Random.value <= Caster.CritChanceCurr;
-            int pursuitPower = 45 + Mathf.RoundToInt(
+            int pursuitPower = 47 + Mathf.RoundToInt(
                 Caster.GetBaseDex() * 4f * (Mathf.Min(enemies.Count, 4) - 1));
             int damage = Mathf.Max(1, Mathf.RoundToInt(
                 Caster.SkillDamage(pursuitPower, BaseEnums.PrimaryStat.DEX) *
