@@ -364,13 +364,13 @@ namespace Managers.UI.DevTools
             UnitData definition = game.unitDataList.units.FirstOrDefault(unit => unit.id == 22);
             Assert("Orion archetype tags",
                 definition?.archetypeTags != null &&
-                new HashSet<string>(definition.archetypeTags).SetEquals(new[] { "Precision", "Sturdy", "Swift" }),
-                "Precision,Sturdy,Swift", string.Join(",", definition?.archetypeTags ?? new List<string>()));
-            var swift = Managers.UI.Core.UnitTagCatalog.Resolve(new[] { "Swift" }).SingleOrDefault();
-            Assert("Swift archetype catalog", swift.Key == "Swift" && swift.Name == "신속",
-                "Swift/신속", $"{swift.Key}/{swift.Name}");
-            Assert("Swift archetype icon", Managers.UI.Core.UnitTagCatalog.Icon(swift) != null,
-                "loaded sprite", swift.IconPath);
+                new HashSet<string>(definition.archetypeTags).SetEquals(new[] { "Precision", "Sturdy", "FollowUp" }),
+                "Precision,Sturdy,FollowUp", string.Join(",", definition?.archetypeTags ?? new List<string>()));
+            var followUp = Managers.UI.Core.UnitTagCatalog.Resolve(new[] { "FollowUp" }).SingleOrDefault();
+            Assert("FollowUp archetype catalog", followUp.Key == "FollowUp" && followUp.Name == "연속",
+                "FollowUp/연속", $"{followUp.Key}/{followUp.Name}");
+            Assert("FollowUp archetype icon", Managers.UI.Core.UnitTagCatalog.Icon(followUp) != null,
+                "loaded sprite", followUp.IconPath);
 
             var normal = orion.ActiveNormalCode;
             var ultimate = orion.ActiveUltimateCode;

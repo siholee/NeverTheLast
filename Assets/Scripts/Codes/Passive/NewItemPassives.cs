@@ -31,6 +31,10 @@ namespace Codes.Passive
         public const int ReplicatorCloak = 4335;
         public const int GoldenArmor = 4336;
         public const int ManekiNeko = 4337;
+        public const int PirateDrum = 4338;
+        public const int AmazonArmor = 4339;
+        public const int AmazonSpear = 4340;
+        public const int VowOfChastity = 4414;
     }
 
     internal static class NewItemStatusIds
@@ -54,6 +58,10 @@ namespace Codes.Passive
         public const int SpellReplication = 6461;
         public const int GoldenArmor = 6462;
         public const int ManekiNeko = 6463;
+        public const int PirateDrum = 6464;
+        public const int AmazonArmor = 6465;
+        public const int AmazonSpear = 6466;
+        public const int VowOfChastity = 6467;
     }
 
     /// <summary>정복 — 승승장구의 금색 상위. 처치마다 물리 피해 +10%.</summary>
@@ -567,5 +575,135 @@ namespace Codes.Passive
         public override void CastCode() => AddPermanentStatus(
             NewItemStatusIds.ManekiNeko, new MarkerBuffEffect(),
             "전투 후 획득하는 골드가 20% 증가합니다.");
+    }
+
+    /// <summary>해적의 북 — 받는 피해를 착용자의 LUK만큼 고정으로 덜어 낸다.</summary>
+    public sealed class PirateDrumItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_pirate_drum";
+        public PirateDrumItemPassive(PassiveCodeContext context) : base(context, "지구온난화의 원흉") { }
+        public override void CastCode() => AddPermanentStatus(
+            NewItemStatusIds.PirateDrum, new LuckDurabilityEffect(),
+            "받는 피해를 착용자의 LUK만큼 덜어 냅니다.");
+    }
+
+    /// <summary>아마존 전사의 갑옷 — 지속피해로 받는 몫만 절반으로 줄인다.</summary>
+    public sealed class AmazonArmorItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_amazon_armor";
+        public AmazonArmorItemPassive(PassiveCodeContext context) : base(context, "아마존의 가죽") { }
+        public override void CastCode() => AddPermanentStatus(
+            NewItemStatusIds.AmazonArmor, new DamageOverTimeResistanceEffect(0.5f),
+            "지속피해로 받는 피해가 50% 감소합니다.");
+    }
+
+    internal sealed class DamageOverTimeResistanceEffect : BaseEffect
+    {
+        private readonly float _multiplier;
+        public DamageOverTimeResistanceEffect(float multiplier) : base(0, multiplier) => _multiplier = multiplier;
+        public override bool IsBeneficial => true;
+
+        public override float ReceivingDamageModifier(Unit unit, DamageContext context)
+        {
+            // 지속피해는 CodeType.Effect로 들어온다. 태그 목록이 비어 있어 태그로는 가릴 수 없다.
+            if (unit != Target || context == null) return 1f;
+            return context.CodeType == BaseEnums.CodeType.Effect ? _multiplier : 1f;
+        }
+    }
+
+    /// <summary>아마존 전사의 장창 — 찌르기 태그로 가하는 피해를 키운다.</summary>
+    public sealed class AmazonSpearItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_amazon_spear";
+        public AmazonSpearItemPassive(PassiveCodeContext context) : base(context, "찰(扎)") { }
+        public override void CastCode() => AddPermanentStatus(
+            NewItemStatusIds.AmazonSpear, new TaggedOutgoingDamageEffect(DamageTag.Pierce, 0.10f),
+            "찌르기 태그 공격이 가하는 피해가 10% 증가합니다.");
+    }
+
+    internal sealed class TaggedOutgoingDamageEffect : BaseEffect
+    {
+        private readonly int _tag;
+        private readonly float _bonus;
+
+        public TaggedOutgoingDamageEffect(int tag, float bonus) : base(0, bonus)
+        {
+            _tag = tag;
+            _bonus = bonus;
+        }
+
+        public override bool IsBeneficial => true;
+
+        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
+        {
+            if (attacker != Target || context?.DamageTags == null) return 1f;
+            return context.DamageTags.Contains(_tag) ? 1f + _bonus : 1f;
+        }
+    }
+
+    /// <summary>
+    /// 순결의 서약 — 이번 전투에서 적에게 체력을 깎이지 않은 동안 가하는 피해가 커진다.
+    /// 스스로 소모한 체력은 세지 않는다. 라운드가 끝나면 다시 깨끗한 상태로 돌아간다.
+    /// </summary>
+    public sealed class VowOfChastityItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_vow_of_chastity";
+        public VowOfChastityItemPassive(PassiveCodeContext context) : base(context, "순결의 서약") { }
+        public override void CastCode() => AddPermanentStatus(
+            NewItemStatusIds.VowOfChastity, new UnharmedDamageEffect(0.25f),
+            "적의 피해로 체력이 줄지 않은 동안 가하는 피해가 25% 증가합니다. 전투가 끝나면 초기화됩니다.");
+    }
+
+    internal sealed class UnharmedDamageEffect : BaseEffect
+    {
+        private readonly float _bonus;
+        private System.Action<EventContext> _damagedHandler;
+        private System.Action<EventContext> _beforeHandler;
+        private System.Action<EventContext> _roundHandler;
+        private int _hpBefore;
+        private bool _harmed;
+
+        public UnharmedDamageEffect(float bonus) : base(0, bonus) => _bonus = bonus;
+
+        public override bool IsBeneficial => true;
+
+        public override void OnApply()
+        {
+            if (Target == null) return;
+
+            _damagedHandler = context =>
+            {
+                // 적이 실제로 체력을 깎았을 때만 서약이 깨진다.
+                // 스스로 소모한 체력은 이 훅을 타지 않으므로 따로 거르지 않아도 된다.
+                if (context?.Grantee != Target) return;
+                Unit attacker = context.DmgCtx?.Attacker;
+                // ResolvedDamage는 체력 손실 + 방어막 손실이다. 서약은 '체력'만 보므로
+                // 방어막으로 전부 막아 낸 타격으로는 깨지지 않아야 한다.
+                if (attacker != null && attacker.IsEnemy != Target.IsEnemy &&
+                    _hpBefore > Target.HpCurr) _harmed = true;
+            };
+            // 맞기 직전 체력을 적어 둬야 방어막만 깎인 타격과 구분할 수 있다.
+            _beforeHandler = _ => _hpBefore = Target != null ? Target.HpCurr : 0;
+            _roundHandler = _ => _harmed = false;
+            Target.AddListener(BaseEnums.UnitEventType.OnBeforeDamageTaken, _beforeHandler);
+            Target.AddListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _damagedHandler);
+            Target.AddListener(BaseEnums.UnitEventType.OnRoundStart, _roundHandler);
+            Target.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _roundHandler);
+        }
+
+        public override void OnRemove()
+        {
+            if (Target == null) return;
+            Target.RemoveListener(BaseEnums.UnitEventType.OnBeforeDamageTaken, _beforeHandler);
+            Target.RemoveListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _damagedHandler);
+            Target.RemoveListener(BaseEnums.UnitEventType.OnRoundStart, _roundHandler);
+            Target.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _roundHandler);
+            _damagedHandler = null;
+            _beforeHandler = null;
+            _roundHandler = null;
+        }
+
+        public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
+            => attacker == Target && !_harmed ? 1f + _bonus : 1f;
     }
 }

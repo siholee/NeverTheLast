@@ -387,7 +387,7 @@ namespace Managers.UI.Screens
                 UIBuild.Anchor(nameStrip.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.20f), 3f, 3f);
                 nameStrip.raycastTarget = false;
 
-                TextMeshProUGUI label = UIBuild.Text("Name", tile.transform, IsLavoisierLocked(unit.id) ? "미해금 · 라부아지에" : unit.name,
+                TextMeshProUGUI label = UIBuild.Text("Name", tile.transform, IsLavoisierLocked(unit.id) ? $"미해금 · {unit.name}" : unit.name,
                     UITheme.FontMicro, UITheme.TextPrimary, TextAlignmentOptions.Center);
                 UIBuild.Anchor(label.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.20f), 3f, 3f);
 
@@ -947,10 +947,7 @@ namespace Managers.UI.Screens
         }
 
         private static string RoleText(UnitData unit)
-        {
-            if (IsLavoisierLocked(unit.id)) return "육성 모드를 처음 클리어하면 해금";
-            return "";
-        }
+            => CharacterSelectionManager.UnlockConditionText(unit);
 
         private static void SetButton(Button button, string label, bool interactable, bool onAccent = true)
         {
@@ -1077,7 +1074,8 @@ namespace Managers.UI.Screens
                     .Where(unit => unit.canStartAsMain ||
                                    CharacterSelectionManager.IsTemporarilyUnlocked(unit) ||
                                    CharacterSelectionManager.HasNoUnlockPath(unit) ||
-                                   SaveSystem.IsStarterUnlocked(unit.id) || unit.id == Entities.LavoisierChemistry.UnitId)
+                                   SaveSystem.IsStarterUnlocked(unit.id) ||
+                                   CharacterSelectionManager.IsPendingUnlock(unit))
                     .OrderBy(unit => unit.id)
                     .ToList();
             }
@@ -1099,8 +1097,8 @@ namespace Managers.UI.Screens
         private static Sprite LoadPortrait(string spriteName)
             => SpriteResource.LoadPortrait(spriteName);
 
-        private static bool IsLavoisierLocked(int id) => id == Entities.LavoisierChemistry.UnitId &&
-            !SaveSystem.IsStarterUnlocked(id) && !SaveSystem.IsCharacterTrained(id);
+        /// <summary>해금 조건이 남아 있는 유닛인가. 판정은 CharacterSelectionManager가 갖는다.</summary>
+        private static bool IsLavoisierLocked(int id) => CharacterSelectionManager.IsPendingUnlock(id);
 
         private static string UnitName(int unitId)
         {

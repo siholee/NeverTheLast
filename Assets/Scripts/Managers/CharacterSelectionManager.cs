@@ -77,6 +77,21 @@ namespace Managers
         /// 일부 서포트(라이트·니콜·프레이아·마리)는 서포트로 한 런을 완주시키면 스타팅 후보로 열리고
         /// (<see cref="RunManager"/>), 그 뒤로는 메인 격자에 선다.
         /// </summary>
+        /// <summary>
+        /// 해금 조건이 적혀 있는데 아직 못 얻은 유닛인가. 선택 화면이 미해금 타일로 띄운다.
+        /// 한 번이라도 육성을 끝냈거나 스타팅으로 열렸으면 더는 잠긴 것이 아니다.
+        /// </summary>
+        public static bool IsPendingUnlock(UnitData data)
+            => data != null && !string.IsNullOrWhiteSpace(data.unlockCondition) &&
+               !SaveSystem.IsStarterUnlocked(data.id) && !SaveSystem.IsCharacterTrained(data.id);
+
+        public static bool IsPendingUnlock(int unitId)
+            => IsPendingUnlock(GetUnitData(unitId));
+
+        /// <summary>미해금 타일에 띄울 조건 문구. 잠겨 있지 않으면 빈 문자열.</summary>
+        public static string UnlockConditionText(UnitData data)
+            => IsPendingUnlock(data) ? data.unlockCondition : "";
+
         public static bool IsSupportOnly(UnitData data)
             => data != null && !data.canStartAsMain && data.characterType == "Support" &&
                !SaveSystem.IsStarterUnlocked(data.id);

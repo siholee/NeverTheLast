@@ -35,8 +35,7 @@ namespace Managers.UI.Core
         {
             new("Burst", "방출", "해당 유닛은 강력한 궁극기 위주의 전투 방식을 사용합니다.", "TAG_BURST"),
             new("Precision", "정밀", "해당 유닛은 지속적인 피해를 입힙니다.", "TAG_PRECISION"),
-            new("FollowUp", "연속", "해당 유닛은 추가 행동을 주로 사용합니다.", "TAG_FOLLOW_UP"),
-            new("Swift", "신속", "해당 인물은 추가행동을 하거나, 추가행동을 지원하는데 특화되어 있습니다.", "TAG_SWIFT"),
+            new("FollowUp", "연속", "해당 유닛은 추가행동을 하거나, 추가행동을 지원하는 데 특화되어 있습니다.", "TAG_FOLLOW_UP"),
             new("Support", "지원", "해당 유닛은 아군을 지원하는 데 특화되어 있습니다.", "TAG_SUPPORT"),
             new("Control", "제어", "해당 유닛은 적을 방해하고 약화하는 데 특화되어 있습니다.", "TAG_CONTROL"),
             new("Healing", "치유", "해당 유닛은 아군의 체력을 회복시킬 수 있습니다.", "TAG_HEALING"),

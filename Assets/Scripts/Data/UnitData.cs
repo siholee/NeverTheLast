@@ -39,6 +39,16 @@ namespace Managers
         /// <summary>계정 누적 전투 소환 횟수가 이 값에 닿으면 스타팅 후보로 해금된다. 0이면 사용하지 않는다.</summary>
         public int unlockAfterSummonCount;
         /// <summary>
+        /// 아직 못 얻은 동안 선택 화면에 띄울 해금 조건 한 줄. 비어 있으면 잠금 표시를 하지 않는다.
+        /// <b>이 문구가 있는 유닛이 곧 "해금 경로가 있는 유닛"</b>이라, 화면은 이 칸만 보고
+        /// 미해금 타일을 띄운다 — 코드에 이름을 적지 않는다.
+        /// </summary>
+        public string unlockCondition;
+        /// <summary>계정 누적 단일 피해 타격 수가 이 값에 닿으면 해금된다. 0이면 사용하지 않는다.</summary>
+        public int unlockAfterSingleTargetHits;
+        /// <summary>계정 누적 방어막 부여 횟수가 이 값에 닿으면 해금된다. 0이면 사용하지 않는다.</summary>
+        public int unlockAfterShieldGrants;
+        /// <summary>
         /// 이 유닛이 서포트로 참가한 육성 모드를 완주했을 때 영구 해금할 다른 유닛 ID.
         /// 서포터 자신을 스타팅으로 여는 <see cref="unlocksAsStarterOnClear"/>와 구분한다.
         /// </summary>

@@ -612,7 +612,7 @@ namespace Managers.UI.DevTools
                 [2] = new[] { "Precision" },
                 [24] = new[] { "Precision", "Healing" },
                 [40] = new[] { "Precision" },
-                [82] = new[] { "Swift", "Precision", "Control" },
+                [82] = new[] { "FollowUp", "Precision", "Control" },
                 [101] = new[] { "Burst" },
             };
 
@@ -634,11 +634,11 @@ namespace Managers.UI.DevTools
             UnitData jason = game.unitDataList.units.FirstOrDefault(unit => unit.id == 103);
             int[] jasonCodes = { 109, 139, 16, 27, 141, 67 };
             int[] jasonLevels = { 1, 10, 14, 15, 45, 70 };
-            Assert("Jason is initial Burst/Swift/Support card", jason?.characterType == "Support" &&
+            Assert("Jason is initial Burst/FollowUp/Support card", jason?.characterType == "Support" &&
                     jason.canStartAsSupport && !jason.canStartAsMain &&
                     new HashSet<string>(jason.archetypeTags ?? new List<string>())
-                        .SetEquals(new[] { "Burst", "Swift", "Support" }),
-                "Support/Burst,Swift,Support", $"{jason?.characterType}/{string.Join(",", jason?.archetypeTags ?? new List<string>())}");
+                        .SetEquals(new[] { "Burst", "FollowUp", "Support" }),
+                "Support/Burst,FollowUp,Support", $"{jason?.characterType}/{string.Join(",", jason?.archetypeTags ?? new List<string>())}");
             Assert("Octavia is initial Starter and Jason has no linked unlock",
                 octavia?.characterType == "Starter" && octavia.canStartAsMain && octavia.canUseInInfinite &&
                 (jason?.unlocksUnitIdsOnClear == null || jason.unlocksUnitIdsOnClear.Count == 0),
@@ -684,8 +684,8 @@ namespace Managers.UI.DevTools
                     orionData.canStartAsSupport && !orionData.canStartAsMain && !orionData.canUseInInfinite,
                 "Support/support-only", $"{orionData?.characterType}/{orionData?.canStartAsSupport}");
             Assert("Bastet archetype tags", bastetData?.archetypeTags != null &&
-                    new HashSet<string>(bastetData.archetypeTags).SetEquals(new[] { "Precision", "Swift" }),
-                "Precision,Swift", string.Join(",", bastetData?.archetypeTags ?? new List<string>()));
+                    new HashSet<string>(bastetData.archetypeTags).SetEquals(new[] { "Precision", "FollowUp" }),
+                "Precision,FollowUp", string.Join(",", bastetData?.archetypeTags ?? new List<string>()));
 
             SynergyRecommendationData sabah = SynergyCatalog.RecommendationFor(3);
             var expectedSabah = new HashSet<int> { 6, 83, 64, 1 };

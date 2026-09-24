@@ -11,6 +11,10 @@ namespace Core
         public List<int> unlockedStarterUnitIds = new();
         public List<int> pendingCharacterUnlockIds = new();
         public int combatSummonCount;
+        /// <summary>아군이 단일 대상에게 가한 누적 타격 수. 드레이크 해금 조건.</summary>
+        public int singleTargetHitCount;
+        /// <summary>아군이 방어막을 부여한 누적 횟수. 엘리자베스 해금 조건.</summary>
+        public int shieldGrantCount;
         public List<TrainedCharacterRecord> records = new();
     }
 

@@ -17,6 +17,10 @@ codes:
     - { id: 461, verbalName: 제국의 메아리, codeName: ImperialEchoItemPassive, description: "주문 복제의 금색 상위 코드. 공격 코드를 발동하면 그 공격의 순수 피해만 40% 위력으로 즉시 반복한다. <장비 전용> <전수 불가능>" }
     - { id: 462, verbalName: 황금 갑주, codeName: GoldenArmorItemPassive, description: "현재 파티가 보유한 골드 1당 착용자가 가하는 피해가 0.1% 증가한다. <장비 전용> <전수 불가능>" }
     - { id: 463, verbalName: 마네키네코, codeName: ManekiNekoItemPassive, description: "전투 후 획득하는 골드가 20% 증가한다. <장비 전용> <전수 불가능>" }
+    - { id: 464, verbalName: 지구온난화의 원흉, codeName: PirateDrumItemPassive, description: "받는 피해를 착용자의 LUK만큼 덜어 낸다. <장비 전용> <전수 불가능>" }
+    - { id: 465, verbalName: 아마존의 가죽, codeName: AmazonArmorItemPassive, description: "지속피해로 받는 피해가 50% 감소한다. <장비 전용> <전수 불가능>" }
+    - { id: 466, verbalName: 찰(扎), codeName: AmazonSpearItemPassive, description: "찌르기 태그 공격이 가하는 피해 +10%. <장비 전용> <전수 불가능>" }
+    - { id: 467, verbalName: 순결의 서약, codeName: VowOfChastityItemPassive, description: "적의 피해로 체력이 줄지 않은 동안 가하는 피해 +25%. 전투가 끝나면 초기화된다. <장비 전용> <전수 불가능>" }
     - id: 180
       verbalName: 홀리 인챈트
       codeName: HolyEnchant
@@ -123,6 +127,11 @@ codes:
     - { id: 138, verbalName: 소환술사, codeName: LightSummoner, description: "필드에 있다면 모든 아군 소환수가 가하는 피해 +10%. 여러 소환술사가 중첩된다." }
     - { id: 142, verbalName: 느긋함, codeName: UsaLeisurely, description: "메인 카드로 배치되면 훈련 보너스 -25%, 훈련 체력 소모 -25%." }
     - { id: 143, verbalName: 정기 회복, codeName: UsaEssenceRecovery, description: "필드에서 적이 쓰러지면 그 적의 최대 체력만큼 자신을 치유한다." }
+    - { id: 149, verbalName: 약탈, codeName: DrakePlunder, description: "필드에서 적이 처치될 때마다 전투 후 획득 골드 +5%. 중첩된다." }
+    - { id: 211, verbalName: 사략면장, codeName: DrakePrivateerCharter, description: "아군의 공격 뒤 그 대상이 최대 체력 25% 이하로 남으면 추가행동 골드 하운드를 발동한다. 이 공격으로 처치하면 대상 레벨×10의 골드를 얻는다. <고유 패시브> <전수 불가능>" }
+    - { id: 212, verbalName: 고결한 장미, codeName: ElizabethNobleRose, description: "자신 외 아군이 공격하면 적 하나에 장미 문장을 남긴다(1행동당 1장). 필드에 12장이 모이면 추가행동 제국주의의 선봉장을 발동한다. <고유 패시브> <전수 불가능>" }
+    - { id: 227, verbalName: 아마조네스, codeName: HippolyteAmazoness, description: "필드에 사냥감이 없으면 추가행동 공세 명령으로 찍고, 사냥감이 맞을 때마다 추가행동 공세 지원을 발동한다. 사냥감은 방어력 -10%, 받는 치유량 -20%, 대상 우선도 +2를 얻는다. <고유 패시브> <전수 불가능>" }
+    - { id: 244, verbalName: 신탁, codeName: HimikoOracle, description: "아군이 추가행동을 할 때마다 그 아군의 신탁 중첩이 1 오른다. 중첩 하나마다 그 아군의 추가공격 피해 +5%. <고유 패시브> <전수 불가능>" }
     - { id: 380, verbalName: 도사란 무엇인가, codeName: UsaTaoistNature, description: "고유 소환수 '분신'을 최대 3기까지 거느린다. 피격 시 분신 하나를 소모해 그 타격을 완전히 무효화한다. <고유 패시브> <전수 불가능>" }
     # 옛 열화 전수본(230·231·233)은 제도 폐지와 함께 삭제했다.
     # 232의 기능만 전수 가능한 독립 해금 패시브 '주문 가속'(55)으로 남는다.
@@ -676,6 +685,10 @@ codes:
     - { id: 121, verbalName: 일반행동, codeName: AnubisNormalAttack, description: "단일 적에게 CON×0.8의 피해를 입힌다. #접촉 #물리 #찌르기" }
     - { id: 122, verbalName: 일반행동, codeName: BastetNormalAttack, description: "단일 적에게 DEX×0.5의 피해를 입힌다. #접촉 #물리 #베기" }
     - { id: 180, verbalName: 분신 소환, codeName: UsaNormalAttack, description: "소환수 '분신'을 1기 소환한다. 이미 3기를 거느리고 있으면 더 늘어나지 않는다." }
+    - { id: 11, verbalName: 일반행동, codeName: DrakeNegotiation, description: "단일 적에게 고정 위력 50 + STR×0.5의 피해를 입힌 뒤 추가행동 가장 합리적인 협상(50 + DEX×0.5)을 발동한다. 협상은 같은 대상을 따라가며 일반공격으로 간주된다. #물리 #접촉 #베기" }
+    - { id: 12, verbalName: 장미의 방벽, codeName: ElizabethAegis, description: "아군 전체에게 200 + STR×0.8의 방어막을 부여한다. 피해를 주지 않는다." }
+    - { id: 27, verbalName: 일반행동, codeName: HippolyteThrust, description: "단일 적에게 고정 위력 50 + STR×0.8의 피해를 입힌다. #물리 #접촉 #찌르기" }
+    - { id: 44, verbalName: 신탁 개방, codeName: HimikoOracleBurst, description: "아군 전체의 신탁 중첩을 모두 거둬 0으로 만들고, 거둔 중첩 하나마다 적 전체에게 INT×0.2의 피해를 입힌다. #특수 #비접촉" }
     - { id: 502, verbalName: 일반행동, codeName: CloneNormalAttack, description: "소환수 — 단일 적에게 고정 위력 160 + INT×0.5의 피해를 입힌다. #소환수 #특수 #접촉" }
     - { id: 123, verbalName: 일반행동, codeName: SetNormalAttack, description: "단일 적에게 STR×0.8의 피해를 입힌다. #접촉 #물리 #베기" }
     - { id: 124, verbalName: 일반행동, codeName: ThothNormalAttack, description: "단일 적에게 INT×0.8의 피해를 입힌다. #비접촉 #특수" }
@@ -877,6 +890,10 @@ codes:
     - { id: 121, verbalName: 저승의 바위 창, codeName: AnubisStoneSpear, description: "적 전열 전체(비어 있으면 후열 전체)에 STR×0.8의 피해를 입힌다. 아누비스가 전열이면 전열 아군 전체에게 CON×1.4 보호막을 부여한다. #특수 #비접촉" }
     - { id: 122, verbalName: 야수의 추격, codeName: BastetApexExecution, description: "패시브형 궁극기. 반격 코드를 가진 모든 아군이 추가행동 또는 반격을 하면 적 전체에게 기본 위력 47 + DEX×4×(추가 대상 수, 최대 3)의 추가행동을 가한다. 단일 적 기준 위력 47이며 같은 행동의 다단 적중에는 한 번만 반응한다. #접촉 #물리 #베기 #추가행동" }
     - { id: 180, verbalName: "분신술 — 만천화우", codeName: UsaCloneRally, description: "거느린 모든 분신에게 3턴간 치명타 피해 +40%를 부여하고 즉시 행동하게 한다. 분신이 하나도 없으면 즉시 행동 대신 분신을 2기 소환한다." }
+    - { id: 11, verbalName: 럭키세븐, codeName: DrakeLuckySeven, description: "아군이 추가행동을 할 때마다 1중첩. 7중첩에서 발동해 단일 적에게 50 + DEX×0.5의 피해를 중첩 수만큼 연속으로 입힌다. 대상이 쓰러지면 다음 상대로 옮긴다. #물리 #비접촉" }
+    - { id: 12, verbalName: 처녀 여왕, codeName: ElizabethVirginQueen, description: "아군 전체가 보유한 방어막 총량에 비례해 적 전체에게 피해를 입힌다. 방어막은 소모하지 않는다. #특수 #비접촉" }
+    - { id: 27, verbalName: 밀림의 가호, codeName: HippolyteJungleBlessing, description: "패시브형 궁극기. 사냥감이 붙은 적이 쓰러지면 아군 전체가 DEX +3%를 얻는다. 아마조네스 속성은 두 배를 받는다. 중첩된다." }
+    - { id: 44, verbalName: 신탁의 칙령, codeName: HimikoDivineDecree, description: "아군 전체에게 3턴간 적 방어력 20% 무시를 부여한다." }
     - { id: 502, verbalName: 분신 일격, codeName: CloneBurst, description: "소환수 — 단일 적에게 고정 위력 240 + INT×0.7의 피해를 입힌다. #소환수 #특수 #접촉" }
     - { id: 123, verbalName: 화염 참격, codeName: SetBurningSlash, description: "단일 적에게 STR×1.2의 피해를 입히고 CON 명중 판정에 성공하면 화상(3턴)을 부여한다. #접촉 #물리 #베기 #디버프" }
     - { id: 124, verbalName: 지혜의 눈, codeName: ThothEyeOfWisdom, description: "3턴간 아군 전체가 감소시킨 강인도의 30%를 실제 피해로 더한다." }

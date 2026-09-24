@@ -822,6 +822,11 @@ namespace Codes.Passive
                 {
                     bonus += ManekiNekoItemPassive.GoldBonus;
                 }
+                // 약탈 — 이번 전투에서 센 처치 수만큼 더해진다. 보유자가 여럿이면 각자 더한다.
+                foreach (var plunder in hero.ActivePassiveCodes.OfType<DrakePlunder>())
+                {
+                    bonus += plunder.Stacks * DrakePlunder.GoldBonusPerKill;
+                }
             }
             // 쿠베라의 골드 러쉬는 상인과 계열이 다르다 — 쓴 횟수만큼 곱해 쌓인다.
             return (1f + bonus) * Combat.SpecialAction.GoldRushMultiplier();

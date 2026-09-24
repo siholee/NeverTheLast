@@ -183,6 +183,65 @@ namespace Core
 
         public static int GetCombatSummonCount() => LoadTrainedCharacters().combatSummonCount;
 
+        // ── 누적 해금 카운터 ──────────────────────────────────────
+        //
+        // 단일 타격은 한 전투에서만 수백 번 일어난다. 타격마다 PlayerPrefs를 쓰면 전투가 끊기므로
+        // 메모리에 모아 두었다가 라운드가 끝날 때 FlushUnlockCounters로 한 번에 기록한다.
+
+        private static int _pendingSingleTargetHits;
+        private static int _pendingShieldGrants;
+
+        /// <summary>아군의 단일 대상 타격 하나를 센다. 실제 기록은 라운드 끝에 한다.</summary>
+        public static void RecordSingleTargetHit() => _pendingSingleTargetHits++;
+
+        /// <summary>아군이 방어막을 한 번 부여했음을 센다. 실제 기록은 라운드 끝에 한다.</summary>
+        public static void RecordShieldGrant() => _pendingShieldGrants++;
+
+        /// <summary>모아 둔 카운터를 계정 저장에 반영하고, 새로 닿은 해금을 연다.</summary>
+        public static void FlushUnlockCounters()
+        {
+            if (_pendingSingleTargetHits <= 0 && _pendingShieldGrants <= 0) return;
+
+            TrainedCharacterCollection data = LoadTrainedCharacters();
+            data.singleTargetHitCount = System.Math.Max(0, data.singleTargetHitCount) + _pendingSingleTargetHits;
+            data.shieldGrantCount = System.Math.Max(0, data.shieldGrantCount) + _pendingShieldGrants;
+            _pendingSingleTargetHits = 0;
+            _pendingShieldGrants = 0;
+
+            OpenCountedUnlocks(data);
+            SaveTrainedCharacterCollection(data);
+        }
+
+        /// <summary>누적 수치로 열리는 스타팅 후보를 연다. 이미 열린 유닛은 건너뛴다.</summary>
+        private static void OpenCountedUnlocks(TrainedCharacterCollection data)
+        {
+            var units = Managers.GameManager.Instance?.unitDataList?.units;
+            if (units == null) return;
+
+            foreach (var unit in units)
+            {
+                if (unit == null || data.unlockedStarterUnitIds.Contains(unit.id)) continue;
+
+                bool reached =
+                    (unit.unlockAfterSingleTargetHits > 0 &&
+                     data.singleTargetHitCount >= unit.unlockAfterSingleTargetHits) ||
+                    (unit.unlockAfterShieldGrants > 0 &&
+                     data.shieldGrantCount >= unit.unlockAfterShieldGrants);
+                if (!reached) continue;
+
+                data.unlockedStarterUnitIds.Add(unit.id);
+                if (!data.pendingCharacterUnlockIds.Contains(unit.id))
+                    data.pendingCharacterUnlockIds.Add(unit.id);
+                Debug.Log($"[SaveSystem] 누적 조건 달성 — {unit.name} 해금");
+            }
+        }
+
+        public static int GetSingleTargetHitCount()
+            => LoadTrainedCharacters().singleTargetHitCount + _pendingSingleTargetHits;
+
+        public static int GetShieldGrantCount()
+            => LoadTrainedCharacters().shieldGrantCount + _pendingShieldGrants;
+
         /// <summary><c>10_units.yaml</c>에 실제로 있는 유닛 ID인가.</summary>
         private static bool UnitExists(int unitId)
         {
@@ -317,6 +376,8 @@ namespace Core
             data.records ??= new System.Collections.Generic.List<TrainedCharacterRecord>();
             data.pendingCharacterUnlockIds ??= new System.Collections.Generic.List<int>();
             data.combatSummonCount = System.Math.Max(0, data.combatSummonCount);
+            data.singleTargetHitCount = System.Math.Max(0, data.singleTargetHitCount);
+            data.shieldGrantCount = System.Math.Max(0, data.shieldGrantCount);
 
             var usedSupportIds = new System.Collections.Generic.HashSet<string>();
             for (int i = 0; i < data.records.Count; i++)

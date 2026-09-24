@@ -1886,3 +1886,65 @@ items:
     rarity: 4
     weight: 0
     sellPrice: 320
+
+  # ── 0.4.8 신규 장비 ────────────────────────────────────────────
+  - id: 4338
+    name: 해적의 북
+    icon: ITEM_PIRATE_DRUM
+    slot: OffHand
+    category: Shield
+    requiredProficiency: Shield
+    rarity: 3
+    weight: 3
+    durability: 20
+    statBonuses: [{ stat: LUK, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 464, stage: 1 }
+
+  - id: 4257
+    name: 해적의 반지
+    icon: ITEM_PIRATE_RING
+    slot: Ring
+    category: Ring
+    rarity: 2
+    weight: 1
+    shopPrice: 90
+    statBonuses: [{ stat: LUK, amount: 3 }]
+
+  - id: 4339
+    name: 아마존 전사의 갑옷
+    icon: ITEM_AMAZON_ARMOR
+    slot: Armor
+    category: MediumArmor
+    requiredProficiency: MediumArmor
+    rarity: 3
+    weight: 4
+    durability: 33
+    statBonuses: [{ stat: LUK, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 465, stage: 1 }
+
+  - id: 4340
+    name: 아마존 전사의 장창
+    icon: ITEM_AMAZON_SPEAR
+    slot: MainHand
+    category: Spear
+    requiredProficiency: Spear
+    rarity: 3
+    weight: 3
+    shopPrice: 180
+    statBonuses: [{ stat: STR, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 466, stage: 1 }
+
+  - id: 4414
+    name: 순결의 서약
+    icon: ITEM_VOW_OF_CHASTITY
+    slot: Ring
+    category: Ring
+    rarity: 4
+    weight: 1
+    shopPrice: 320
+    statBonuses: [{ stat: Durability, amount: 14 }]
+    codeGrants:
+      - { slot: passive, codeId: 467, stage: 1 }

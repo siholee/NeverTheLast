@@ -337,15 +337,15 @@ units:
   - id: 10
     name: 셰익스피어
     tagline: "소환수의 행동을 언어로 엮어 확정 치명타와 부활 결계를 제공하는 공격형 서포터"
-    characterType: Starter
+    characterType: Support
     element: Geo
     startingProficiencies: [Orb]
     startingItemIds: [4109]
     tags: [Akasha, Victoria]
     archetypeTags: [Summon, Support]
-    canStartAsMain: true
-    canStartAsSupport: false
-    canUseInInfinite: true
+    canStartAsMain: false
+    canStartAsSupport: true
+    canUseInInfinite: false
     mainStat: LUK
     subStat: DEX
     subStats: [DEX, INT]
@@ -540,7 +540,7 @@ units:
     startingProficiencies: [Longbow, HeavyArmor]
     startingItemIds: [4106]
     tags: [Greek]
-    archetypeTags: [Precision, Sturdy, Swift]
+    archetypeTags: [Precision, Sturdy, FollowUp]
     canStartAsMain: false
     canStartAsSupport: true
     canUseInInfinite: false
@@ -597,6 +597,7 @@ units:
     canStartAsMain: false
     canStartAsSupport: false
     canUseInInfinite: false
+    unlocksUnitIdsOnClear: [27]
     mainStat: DEX
     subStat: CON
     subStats: [CON]
@@ -699,6 +700,7 @@ units:
     canStartAsMain: true   # 임시: 투사체 궤적 확인용
     canStartAsSupport: false
     canUseInInfinite: false
+    unlocksUnitIdsOnClear: [44]
     mainStat: DEX
     subStat: STR
     subStats: [STR, LUK]
@@ -974,6 +976,7 @@ units:
     name: 야마
     tagline: "아군 전체의 지속피해를 키우고 궁극기로 한 번에 정산하는 브루저"
     characterType: Locked
+    unlockCondition: "런을 한 번 끝내면 해금"
     element: Electro
     startingProficiencies: [Spear, MediumArmor]
     startingItemIds: [4104]
@@ -1202,7 +1205,7 @@ units:
     startingProficiencies: [Longbow, MediumArmor]
     startingItemIds: [4106]
     tags: [Nord]
-    archetypeTags: [Swift, Precision, Control]
+    archetypeTags: [FollowUp, Precision, Control]
     canStartAsMain: false
     canStartAsSupport: false
     canUseInInfinite: false
@@ -1645,7 +1648,7 @@ units:
     startingProficiencies: [Longsword, Shield, MediumArmor]
     startingItemIds: [4102]
     tags: [Greek, Human]
-    archetypeTags: [Burst, Swift, Support]
+    archetypeTags: [Burst, FollowUp, Support]
     canStartAsMain: false
     canStartAsSupport: true
     canUseInInfinite: false
@@ -1828,7 +1831,7 @@ units:
     startingProficiencies: [Dagger, LightArmor]
     startingItemIds: [4101]
     tags: [Egypt]
-    archetypeTags: [Precision, Swift]
+    archetypeTags: [Precision, FollowUp]
     canStartAsMain: true
     canStartAsSupport: false
     canUseInInfinite: true
@@ -2178,6 +2181,7 @@ units:
     name: 라부아지에
     tagline: "아군이 준 치유·보호막·버프를 시약으로 모아 한 번에 터뜨리는 연금술 딜러"
     characterType: Locked
+    unlockCondition: "육성 모드를 처음 완주하면 해금"
     element: Pyro
     startingProficiencies: [Orb]
     startingItemIds: [4109]
@@ -2313,3 +2317,184 @@ units:
       - { codeId: 71, unlockLevel: 68, stage: 1 }   # 리더쉽
     portrait: BRYNHILD_PORTRAIT
     standing: BRYNHILD_STANDING
+
+  # ── 0.4.8 신규 캐릭터 ──────────────────────────────────────────
+  # 드레이크 — 아군의 마무리를 가로채 현상금을 챙기는 추가행동 딜러.
+  - id: 11
+    name: 드레이크
+    tagline: "빈사의 적을 가로채 현상금을 챙기고, 협상으로 같은 상대를 물고 늘어지는 사략선장"
+    characterType: Locked
+    unlockCondition: "단일 피해를 10,000회 가하면 해금"
+    unlockAfterSingleTargetHits: 10000
+    archetypeTags: [Precision, FollowUp]
+    element: Hydro
+    startingProficiencies: [Longsword, Crossbow, LightArmor]
+    startingItemIds: [4102]
+    tags: [Akasha, Victoria]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: LUK
+    subStat: STR
+    subStats: [STR, DEX]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.05
+    strBase: 18
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 20
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 14
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 12
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 24
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 1
+    manaMax: 100
+    codes: { passive: 211, normal: 11, ultimate: 11 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 89,  unlockLevel: 9,  stage: 1 }   # 대도
+      - { codeId: 135, unlockLevel: 12, stage: 1 }   # 재충전
+      - { codeId: 149, unlockLevel: 27, stage: 1 }   # 약탈
+      - { codeId: 69,  unlockLevel: 42, stage: 1 }   # 기습
+      - { codeId: 29,  unlockLevel: 75, stage: 1 }   # 파죽지세
+    portrait: DRAKE_PORTRAIT
+    standing: DRAKE_STANDING
+
+  # 엘리자베스 — 아군의 공격을 장미 문장으로 모아 방어막과 광역 피해로 바꾼다.
+  - id: 12
+    name: 엘리자베스
+    tagline: "아군의 공격마다 장미를 남겨 방어막을 쌓고, 그 방어막을 통째로 쏟아 내는 공격형 쉴더"
+    characterType: Locked
+    unlockCondition: "방어막을 100회 생성하면 해금"
+    unlockAfterShieldGrants: 100
+    archetypeTags: [FollowUp, Shielding]
+    element: Anemo
+    startingProficiencies: [Greatsword, MediumArmor]
+    startingItemIds: [4103]
+    tags: [Akasha, Victoria]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: STR
+    subStat: CON
+    subStats: [CON, LUK]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.05
+    strBase: 24
+    strIncrementLvl: 2
+    strIncrementUpgrade: 1
+    dexBase: 12
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 20
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 12
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 16
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    manaMax: 100
+    codes: { passive: 212, normal: 12, ultimate: 12 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 6,   unlockLevel: 1,  stage: 1 }
+      - { codeId: 26,  unlockLevel: 14, stage: 1 }   # 과다치유
+      - { codeId: 135, unlockLevel: 30, stage: 1 }   # 재충전
+    portrait: ELIZABETH_PORTRAIT
+    standing: ELIZABETH_STANDING
+
+  # 히폴리테 — '사냥감'을 찍고 아군의 타격마다 덧붙여 때리는 보조 딜러.
+  - id: 27
+    name: 히폴리테
+    tagline: "사냥감을 찍어 방어를 허물고, 아군이 때릴 때마다 창을 보태는 아마조네스 여왕"
+    characterType: Locked
+    unlockCondition: "테세우스 육성을 완료하면 해금"
+    archetypeTags: [Precision, Control, FollowUp]
+    element: Dendro
+    startingProficiencies: [Shortspear, Shield, MediumArmor]
+    startingItemIds: [4115]
+    tags: [Greek, Amazoness, Demigod]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: STR
+    subStat: CON
+    subStats: [CON, LUK]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.05
+    strBase: 24
+    strIncrementLvl: 2
+    strIncrementUpgrade: 1
+    dexBase: 16
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 18
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 10
+    intIncrementLvl: 1
+    intIncrementUpgrade: 1
+    lukBase: 16
+    lukIncrementLvl: 1
+    lukIncrementUpgrade: 1
+    manaMax: 100
+    codes: { passive: 227, normal: 27, ultimate: 27 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 1,   unlockLevel: 1,  stage: 1 }
+      - { codeId: 69,  unlockLevel: 16, stage: 1 }   # 기습
+      - { codeId: 29,  unlockLevel: 38, stage: 1 }   # 파죽지세
+    portrait: HIPPOLYTE_PORTRAIT
+    standing: HIPPOLYTE_STANDING
+
+  # 히미코 — 아군의 추가행동을 신탁으로 모아 한 번에 터뜨리는 공격형 서포터.
+  - id: 44
+    name: 히미코
+    tagline: "아군의 추가행동마다 신탁을 쌓아 추가공격을 키우고, 모은 신탁을 광역으로 쏟는 무녀"
+    characterType: Locked
+    unlockCondition: "아마테라스 육성을 완료하면 해금"
+    archetypeTags: [FollowUp, Support]
+    element: Geo
+    startingProficiencies: [Shortbow, LightArmor]
+    startingItemIds: [4107]
+    tags: [Yamato, Human]
+    canStartAsMain: false
+    canStartAsSupport: false
+    canUseInInfinite: false
+    mainStat: INT
+    subStat: LUK
+    subStats: [LUK]
+    mainStatTrainingBonus: 0.20
+    subStatTrainingBonus: 0.10
+    strBase: 10
+    strIncrementLvl: 1
+    strIncrementUpgrade: 1
+    dexBase: 16
+    dexIncrementLvl: 1
+    dexIncrementUpgrade: 1
+    conBase: 14
+    conIncrementLvl: 1
+    conIncrementUpgrade: 1
+    intBase: 26
+    intIncrementLvl: 2
+    intIncrementUpgrade: 1
+    lukBase: 20
+    lukIncrementLvl: 2
+    lukIncrementUpgrade: 1
+    manaMax: 100
+    codes: { passive: 244, normal: 44, ultimate: 44 }
+    codeStages: { passive: 1, normal: 1, ultimate: 1 }
+    levelPassives:
+      - { codeId: 56,  unlockLevel: 1,  stage: 1 }
+      - { codeId: 135, unlockLevel: 18, stage: 1 }   # 재충전
+      - { codeId: 55,  unlockLevel: 40, stage: 1 }   # 주문 가속
+    portrait: HIMIKO_PORTRAIT
+    standing: HIMIKO_STANDING

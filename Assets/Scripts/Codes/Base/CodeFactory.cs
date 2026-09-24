@@ -70,6 +70,15 @@ namespace Codes.Base
         461 => new ImperialEchoItemPassive(context),
         462 => new GoldenArmorItemPassive(context),
         463 => new ManekiNekoItemPassive(context),
+        464 => new PirateDrumItemPassive(context),
+        465 => new AmazonArmorItemPassive(context),
+        466 => new AmazonSpearItemPassive(context),
+        467 => new VowOfChastityItemPassive(context),
+        149 => new DrakePlunder(context),
+        211 => new DrakePrivateerCharter(context),
+        212 => new ElizabethNobleRose(context),
+        227 => new HippolyteAmazoness(context),
+        244 => new HimikoOracle(context),
         104 => new JeanMisfireGuard(context),
         105 => new JeanPhysicalCoach(context),
         106 => new JeanBulkUp(context),
@@ -478,6 +487,10 @@ namespace Codes.Base
         7 => new JeanIronFist(context), // 잔 일반행동/대체행동
         8 => new LavoisierFlask(context),
         67 => new SuryaRavi(context),   // 수리야 라비/대체행동 바스카르
+        11 => new DrakeNegotiation(context),
+        12 => new ElizabethAegis(context),
+        27 => new HippolyteThrust(context),
+        44 => new HimikoOracleBurst(context),
         180 => new UsaNormalAttack(context), // 우치 일반행동 — 분신 소환
         9 => new HugoPartyHeal(context),
         10 => new ShakespeareInspiration(context),
@@ -639,6 +652,10 @@ namespace Codes.Base
         6 => new NicoleOvercharge(context), // 니콜 궁극기
         7 => new JeanMaidOfOrleans(context), // 잔 궁극기
         8 => new LavoisierExperiment(context),
+        11 => new DrakeLuckySeven(context),
+        12 => new ElizabethVirginQueen(context),
+        27 => new HippolyteJungleBlessing(context),
+        44 => new HimikoDivineDecree(context),
         180 => new UsaCloneRally(context),
         9 => new HugoBraveAdvocate(context),
         10 => new ShakespeareQuestion(context),

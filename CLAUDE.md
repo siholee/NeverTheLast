@@ -252,11 +252,10 @@ The **ten-thousands digit is the category**; an attack takes one from each band.
 5. Update `Detail_08` (spec) and `Detail_12` (index)
 
 Growth must follow the rule in `Detail_08`: **main +2, sub +2, others +1** (Sei/Shi: main +3, sub +2).
-A unit with **two sub stats** splits that budget instead of doubling it — each sub grows +1 and the
-training bonus is +5% per sub rather than +10%. Nine units do this: 라이트 · 니콜 · 피그말리온 ·
-아스클레피아 · 아마테라스 · 야마 · 이카리아 · 마리 · 프레이아.
+A unit with **two sub stats** splits that budget instead of doubling it - each sub grows +1 and the
+training bonus is +5% per sub rather than +10%. 16 units do this: 라이트 / 니콜 / 셰익스피어 / 피그말리온 / 아스클레피아 / 아마테라스 / 야마 / 프레이아 / 세이메이 / 이아손 / 이카리아 / 마리 / 라부아지에 / 드레이크 / 엘리자베스 / 히폴리테.
 
-**46 units in total**, with two standing exceptions. **Gaudi** has no sub stat at all
+**52 units in total**, with two standing exceptions. **Gaudi** has no sub stat at all
 (main +2, everything else +1). **Jean** has no weapon proficiency at all, by design — she fights
 bare-handed and carries no starting weapon, so any weapon she holds contributes weight and
 nothing else. **Do not add a martial-arts proficiency**; the empty weapon slot is the condition

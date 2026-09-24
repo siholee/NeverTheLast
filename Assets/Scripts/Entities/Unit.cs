@@ -2669,6 +2669,20 @@ namespace Entities
         /// 방어막을 추가하는 메서드
         /// </summary>
         /// <param name="amount">추가할 방어막 양</param>
+        /// <summary>
+        /// 드레이크 해금용 누적 집계. <b>아군이 적에게</b> 단일 대상 태그로 실제로 피해를 입힌
+        /// 타격만 센다. 소환수 공격도 아군의 것으로 함께 센다(계정 누적 · 아군 전체 기준).
+        /// 기록은 라운드가 끝날 때 한 번에 한다 — <c>SaveSystem.FlushUnlockCounters</c>.
+        /// </summary>
+        private static void CountSingleTargetHitForUnlock(DamageContext context, int damageDealt)
+        {
+            if (context?.Attacker == null || damageDealt <= 0) return;
+            if (context.Attacker.IsEnemy) return;
+            if (context.DamageTags == null || !context.DamageTags.Contains(DamageTag.SingleTarget)) return;
+
+            Core.SaveSystem.RecordSingleTargetHit();
+        }
+
         public virtual void AddShield(int amount, Unit source = null, bool fromHealingConversion = false)
         {
             amount = ApplyShieldBonus(Mathf.RoundToInt(amount * GetOutgoingSupportMultiplier(source, true)));
@@ -2684,6 +2698,8 @@ namespace Entities
             UpdateShieldBar(); // 방어막 바 시각 업데이트
             Debug.Log($"[AddShield] {UnitName}: Max {previousShieldMax}→{ShieldMax}, Curr {previousShieldCurr}→{ShieldCurr} (HP: {HpCurr}/{HpMax})");
             NotifyHealingOrShieldGranted(source, amount);
+            // 엘리자베스 해금용 누적 집계. 치유 전환분은 방어막을 '생성'한 것이 아니라 세지 않는다.
+            if (amount > 0 && !fromHealingConversion && !IsEnemy) Core.SaveSystem.RecordShieldGrant();
             if (amount > 0 && !fromHealingConversion) Chemistry?.Receive(source, ReagentKind.Stabilizer);
         }
 
@@ -2947,6 +2963,7 @@ namespace Entities
                     BaseEnums.UnitEventType.OnDamageDealt,
                     resolvedContext);
                 AnyDamageDealt?.Invoke(resolvedContext);
+                CountSingleTargetHitForUnlock(dmgCtx, damageDealt);
             }
 
             // 강인도 감소량의 일부를 실제 피해로 바꾸는 효과. 전환 피해는 다시 강인도를

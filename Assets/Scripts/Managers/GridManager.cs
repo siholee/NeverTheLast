@@ -1247,6 +1247,8 @@ namespace Managers
 
         public void OnRoundEnd()
         {
+            // 전투 중 모아 둔 누적 해금 카운터를 여기서 한 번에 기록한다.
+            Core.SaveSystem.FlushUnlockCounters();
             foreach (Unit unit in heroList.Concat(enemyList).Where(unit => unit != null))
                 unit.Chemistry?.EndRound();
             // 판에 깔린 상태는 라운드를 넘기지 않는다.
