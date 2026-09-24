@@ -1458,7 +1458,7 @@ enemies:
     name: 공허의 프리즘 (불)
     themeId: 10
     archetype: 11
-    element: Void
+    element: Pyro
     tier: normal
     tags: [Monster, VoidMonster, VoidPrism]
     startingItemIds: []
@@ -1479,11 +1479,10 @@ enemies:
     lukBase: 14
     lukIncrementLvl: 1
     manaMax: 100
-    codes: { passive: 1500, normal: 1500, ultimate: 1501 }
+    codes: { passive: 1500, normal: 1500, ultimate: 1500 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
       - { codeId: 1501, unlockLevel: 20, stage: 1 }
-      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 불
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
@@ -1499,7 +1498,7 @@ enemies:
     name: 공허의 프리즘 (물)
     themeId: 11
     archetype: 11
-    element: Void
+    element: Hydro
     tier: normal
     tags: [Monster, VoidMonster, VoidPrism]
     startingItemIds: []
@@ -1520,11 +1519,10 @@ enemies:
     lukBase: 14
     lukIncrementLvl: 1
     manaMax: 100
-    codes: { passive: 1500, normal: 1500, ultimate: 1502 }
+    codes: { passive: 1500, normal: 1500, ultimate: 1500 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
       - { codeId: 1501, unlockLevel: 20, stage: 1 }
-      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 물
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
@@ -1540,7 +1538,7 @@ enemies:
     name: 공허의 프리즘 (바람)
     themeId: 12
     archetype: 11
-    element: Void
+    element: Anemo
     tier: normal
     tags: [Monster, VoidMonster, VoidPrism]
     startingItemIds: []
@@ -1561,11 +1559,10 @@ enemies:
     lukBase: 14
     lukIncrementLvl: 1
     manaMax: 100
-    codes: { passive: 1500, normal: 1500, ultimate: 1503 }
+    codes: { passive: 1500, normal: 1500, ultimate: 1500 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
       - { codeId: 1501, unlockLevel: 20, stage: 1 }
-      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바람
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
@@ -1581,7 +1578,7 @@ enemies:
     name: 공허의 프리즘 (번개)
     themeId: 13
     archetype: 11
-    element: Void
+    element: Electro
     tier: normal
     tags: [Monster, VoidMonster, VoidPrism]
     startingItemIds: []
@@ -1602,11 +1599,10 @@ enemies:
     lukBase: 14
     lukIncrementLvl: 1
     manaMax: 100
-    codes: { passive: 1500, normal: 1500, ultimate: 1504 }
+    codes: { passive: 1500, normal: 1500, ultimate: 1500 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
       - { codeId: 1501, unlockLevel: 20, stage: 1 }
-      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 번개
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
@@ -1622,7 +1618,7 @@ enemies:
     name: 공허의 프리즘 (풀)
     themeId: 14
     archetype: 11
-    element: Void
+    element: Dendro
     tier: normal
     tags: [Monster, VoidMonster, VoidPrism]
     startingItemIds: []
@@ -1643,11 +1639,10 @@ enemies:
     lukBase: 14
     lukIncrementLvl: 1
     manaMax: 100
-    codes: { passive: 1500, normal: 1500, ultimate: 1505 }
+    codes: { passive: 1500, normal: 1500, ultimate: 1500 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
       - { codeId: 1501, unlockLevel: 20, stage: 1 }
-      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 풀
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
@@ -1663,7 +1658,7 @@ enemies:
     name: 공허의 프리즘 (얼음)
     themeId: 15
     archetype: 11
-    element: Void
+    element: Cryo
     tier: normal
     tags: [Monster, VoidMonster, VoidPrism]
     startingItemIds: []
@@ -1684,11 +1679,10 @@ enemies:
     lukBase: 14
     lukIncrementLvl: 1
     manaMax: 100
-    codes: { passive: 1500, normal: 1500, ultimate: 1506 }
+    codes: { passive: 1500, normal: 1500, ultimate: 1500 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
       - { codeId: 1501, unlockLevel: 20, stage: 1 }
-      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 얼음
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
@@ -1704,7 +1698,7 @@ enemies:
     name: 공허의 프리즘 (바위)
     themeId: 16
     archetype: 11
-    element: Void
+    element: Geo
     tier: normal
     tags: [Monster, VoidMonster, VoidPrism]
     startingItemIds: []
@@ -1725,11 +1719,10 @@ enemies:
     lukBase: 14
     lukIncrementLvl: 1
     manaMax: 100
-    codes: { passive: 1500, normal: 1500, ultimate: 1507 }
+    codes: { passive: 1500, normal: 1500, ultimate: 1500 }
     levelPassives:
       - { codeId: 45, unlockLevel: 10, stage: 1 }
       - { codeId: 1501, unlockLevel: 20, stage: 1 }
-      - { codeId: 57, unlockLevel: 25, stage: 1 }   # 원소 숙련 - 바위
       - { codeId: 1423, unlockLevel: 30, stage: 1 }
       - { codeId: 69, unlockLevel: 40, stage: 1 }
       - { codeId: 1218, unlockLevel: 50, stage: 1 }
@@ -2052,7 +2045,7 @@ enemies:
     startingItemIds: []
     startingProficiencies: []
     mainStat: CON
-    subStats: [STR, LUK]
+    subStats: [STR]
     strBase: 20
     strIncrementLvl: 2
     dexBase: 12
@@ -2081,13 +2074,13 @@ enemies:
     name: 공허의 멧돼지 (불)
     themeId: 10
     archetype: 9
-    element: Void
+    element: Pyro
     tier: normal
     tags: [VoidMonster, Beast]
     startingItemIds: []
     startingProficiencies: []
     mainStat: CON
-    subStats: [STR, LUK]
+    subStats: [STR]
     strBase: 20
     strIncrementLvl: 2
     dexBase: 12
@@ -2098,7 +2091,7 @@ enemies:
     lukBase: 14
     lukIncrementLvl: 1
     manaMax: 100
-    codes: { passive: 1520, normal: 1520, ultimate: 1521 }
+    codes: { passive: 1520, normal: 1520, ultimate: 1520 }
     levelPassives:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
       - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
@@ -2117,13 +2110,13 @@ enemies:
     name: 공허의 멧돼지 (물)
     themeId: 11
     archetype: 9
-    element: Void
+    element: Hydro
     tier: normal
     tags: [VoidMonster, Beast]
     startingItemIds: []
     startingProficiencies: []
     mainStat: CON
-    subStats: [STR, LUK]
+    subStats: [STR]
     strBase: 20
     strIncrementLvl: 2
     dexBase: 12
@@ -2134,7 +2127,7 @@ enemies:
     lukBase: 14
     lukIncrementLvl: 1
     manaMax: 100
-    codes: { passive: 1520, normal: 1520, ultimate: 1522 }
+    codes: { passive: 1520, normal: 1520, ultimate: 1520 }
     levelPassives:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
       - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
@@ -2153,13 +2146,13 @@ enemies:
     name: 공허의 멧돼지 (바람)
     themeId: 12
     archetype: 9
-    element: Void
+    element: Anemo
     tier: normal
     tags: [VoidMonster, Beast]
     startingItemIds: []
     startingProficiencies: []
     mainStat: CON
-    subStats: [STR, LUK]
+    subStats: [STR]
     strBase: 20
     strIncrementLvl: 2
     dexBase: 12
@@ -2170,7 +2163,7 @@ enemies:
     lukBase: 14
     lukIncrementLvl: 1
     manaMax: 100
-    codes: { passive: 1520, normal: 1520, ultimate: 1523 }
+    codes: { passive: 1520, normal: 1520, ultimate: 1520 }
     levelPassives:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
       - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
@@ -2189,13 +2182,13 @@ enemies:
     name: 공허의 멧돼지 (번개)
     themeId: 13
     archetype: 9
-    element: Void
+    element: Electro
     tier: normal
     tags: [VoidMonster, Beast]
     startingItemIds: []
     startingProficiencies: []
     mainStat: CON
-    subStats: [STR, LUK]
+    subStats: [STR]
     strBase: 20
     strIncrementLvl: 2
     dexBase: 12
@@ -2206,7 +2199,7 @@ enemies:
     lukBase: 14
     lukIncrementLvl: 1
     manaMax: 100
-    codes: { passive: 1520, normal: 1520, ultimate: 1524 }
+    codes: { passive: 1520, normal: 1520, ultimate: 1520 }
     levelPassives:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
       - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
@@ -2225,13 +2218,13 @@ enemies:
     name: 공허의 멧돼지 (풀)
     themeId: 14
     archetype: 9
-    element: Void
+    element: Dendro
     tier: normal
     tags: [VoidMonster, Beast]
     startingItemIds: []
     startingProficiencies: []
     mainStat: CON
-    subStats: [STR, LUK]
+    subStats: [STR]
     strBase: 20
     strIncrementLvl: 2
     dexBase: 12
@@ -2242,7 +2235,7 @@ enemies:
     lukBase: 14
     lukIncrementLvl: 1
     manaMax: 100
-    codes: { passive: 1520, normal: 1520, ultimate: 1525 }
+    codes: { passive: 1520, normal: 1520, ultimate: 1520 }
     levelPassives:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
       - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
@@ -2261,13 +2254,13 @@ enemies:
     name: 공허의 멧돼지 (얼음)
     themeId: 15
     archetype: 9
-    element: Void
+    element: Cryo
     tier: normal
     tags: [VoidMonster, Beast]
     startingItemIds: []
     startingProficiencies: []
     mainStat: CON
-    subStats: [STR, LUK]
+    subStats: [STR]
     strBase: 20
     strIncrementLvl: 2
     dexBase: 12
@@ -2278,7 +2271,7 @@ enemies:
     lukBase: 14
     lukIncrementLvl: 1
     manaMax: 100
-    codes: { passive: 1520, normal: 1520, ultimate: 1526 }
+    codes: { passive: 1520, normal: 1520, ultimate: 1520 }
     levelPassives:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
       - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
@@ -2297,13 +2290,13 @@ enemies:
     name: 공허의 멧돼지 (바위)
     themeId: 16
     archetype: 9
-    element: Void
+    element: Geo
     tier: normal
     tags: [VoidMonster, Beast]
     startingItemIds: []
     startingProficiencies: []
     mainStat: CON
-    subStats: [STR, LUK]
+    subStats: [STR]
     strBase: 20
     strIncrementLvl: 2
     dexBase: 12
@@ -2314,7 +2307,7 @@ enemies:
     lukBase: 14
     lukIncrementLvl: 1
     manaMax: 100
-    codes: { passive: 1520, normal: 1520, ultimate: 1527 }
+    codes: { passive: 1520, normal: 1520, ultimate: 1520 }
     levelPassives:
       - { codeId: 1521, unlockLevel: 10, stage: 1 }   # 바위피부
       - { codeId: 1522, unlockLevel: 20, stage: 1 }   # 오만
@@ -5327,7 +5320,7 @@ enemies:
 
   # 후열을 무는 일반 병종. 주공격이 DEX라 갑주를 벗겨도 화력은 크게 줄지 않는다 — 방어가 약해질 뿐이다.
   - id: 1142
-    name: 심연의 사냥꾼
+    name: 공허의 사냥꾼
     themeId: 21
     archetype: 10
     element: Pyro
@@ -5430,3 +5423,238 @@ enemies:
     drops: [4327, 4254, 4911]
     portrait: ABYSS_ARCHON_PORTRAIT
     standing: ABYSS_ARCHON_STANDING
+
+  # ── 오디세이 I ─────────────────────────────────────────────────
+  # 80_stages.yaml의 테마 21(enemyThemeId 22)이 이 블록을 쓴다.
+  - id: 1143
+    name: 공허의 정찰병
+    # 전투 팁(표시 경로 없음): 큰 특징이 없는 공허 괴수다. 안심하고 처리하자.
+    portrait: VOID_SCOUT_PORTRAIT
+    standing: VOID_SCOUT_STANDING
+    element: Electro
+    tier: normal
+    themeId: 22
+    archetype: 11
+    tags: [Monster, VoidMonster]
+    mainStat: INT
+    subStats: [DEX, LUK]
+    strBase: 8
+    strIncrementLvl: 1
+    dexBase: 20
+    dexIncrementLvl: 2
+    conBase: 16
+    conIncrementLvl: 2
+    intBase: 20
+    intIncrementLvl: 2
+    lukBase: 14
+    lukIncrementLvl: 1
+    manaMax: 100
+    startingProficiencies: []
+    startingItemIds: []
+    drops: [4915, 4914]
+    codes: { passive: 1910, normal: 1500, ultimate: 1500 }
+    levelPassives:
+      - { codeId: 45,   unlockLevel: 10, stage: 1 }   # 민첩함
+      - { codeId: 1501, unlockLevel: 20, stage: 1 }   # 공명
+      - { codeId: 57,   unlockLevel: 30, stage: 1 }   # 원소 숙련
+      - { codeId: 1423, unlockLevel: 40, stage: 1 }   # 파쇄
+      - { codeId: 1900, unlockLevel: 50, stage: 1 }   # 유연함
+      - { codeId: 17,   unlockLevel: 60, stage: 1 }   # 예리함
+      - { codeId: 27,   unlockLevel: 70, stage: 1 }   # 투명
+      - { codeId: 1503, unlockLevel: 80, stage: 1 }   # 죽음의 메아리
+      - { codeId: 1504, unlockLevel: 90, stage: 1 }   # 파괴광선
+
+  - id: 1144
+    name: 공허의 학살자
+    # 전투 팁(표시 경로 없음): 적을 처치하면 강해진다. 최대한 아군을 보호하도록 하자.
+    portrait: VOID_SLAUGHTERER_PORTRAIT
+    standing: VOID_SLAUGHTERER_STANDING
+    element: Electro
+    tier: normal
+    themeId: 22
+    archetype: 11
+    tags: [Monster, VoidMonster]
+    mainStat: INT
+    subStats: [DEX, LUK]
+    strBase: 10
+    strIncrementLvl: 1
+    dexBase: 22
+    dexIncrementLvl: 2
+    conBase: 18
+    conIncrementLvl: 2
+    intBase: 22
+    intIncrementLvl: 2
+    lukBase: 16
+    lukIncrementLvl: 1
+    manaMax: 100
+    startingProficiencies: []
+    startingItemIds: []
+    drops: [4912]
+    codes: { passive: 1911, normal: 1500, ultimate: 1911 }
+    levelPassives:
+      - { codeId: 1511, unlockLevel: 10, stage: 1 }   # 가속
+      - { codeId: 66,   unlockLevel: 20, stage: 1 }   # 자기과신
+      - { codeId: 1521, unlockLevel: 30, stage: 1 }   # 바위피부
+      - { codeId: 1560, unlockLevel: 40, stage: 1 }   # 조준선
+      - { codeId: 57,   unlockLevel: 50, stage: 1 }   # 원소 숙련
+      - { codeId: 1902, unlockLevel: 60, stage: 1 }   # 메스암페타민
+      - { codeId: 17,   unlockLevel: 70, stage: 1 }   # 예리함
+      - { codeId: 27,   unlockLevel: 80, stage: 1 }   # 투명
+      - { codeId: 1501, unlockLevel: 90, stage: 1 }   # 공명
+
+  - id: 1145
+    name: 세이렌
+    # 전투 팁(표시 경로 없음): 세이렌이 궁극기를 사용할수록 점차 강해진다. 빠르게 처치하거나 행동 제어기로 돌림노래를 끊자.
+    portrait: SIREN_PORTRAIT
+    standing: SIREN_STANDING
+    element: Hydro
+    tier: normal
+    themeId: 22
+    archetype: 11
+    tags: [Monster, VoidMonster, Greek]
+    mainStat: INT
+    subStats: [DEX]
+    strBase: 8
+    strIncrementLvl: 1
+    dexBase: 20
+    dexIncrementLvl: 2
+    conBase: 18
+    conIncrementLvl: 2
+    intBase: 24
+    intIncrementLvl: 2
+    lukBase: 14
+    lukIncrementLvl: 1
+    manaMax: 100
+    startingProficiencies: []
+    startingItemIds: []
+    drops: [4913]
+    codes: { passive: 1912, normal: 1500, ultimate: 1912 }
+    levelPassives:
+      - { codeId: 1900, unlockLevel: 10, stage: 1 }   # 유연함
+      - { codeId: 57,   unlockLevel: 20, stage: 1 }   # 원소 숙련
+      - { codeId: 1501, unlockLevel: 30, stage: 1 }   # 공명
+      - { codeId: 1511, unlockLevel: 40, stage: 1 }   # 가속
+      - { codeId: 17,   unlockLevel: 50, stage: 1 }   # 예리함
+      - { codeId: 1593, unlockLevel: 60, stage: 1 }   # 원소 정통
+      - { codeId: 1901, unlockLevel: 70, stage: 1 }   # 매혹
+      - { codeId: 66,   unlockLevel: 80, stage: 1 }   # 자기과신
+      - { codeId: 1503, unlockLevel: 90, stage: 1 }   # 죽음의 메아리
+
+  - id: 1146
+    name: 히포캅투스
+    # 전투 팁(표시 경로 없음): 아군을 지키는 튼튼한 공허 괴수. 자체 공격력은 형편없다.
+    portrait: HIPPOCAMPUS_PORTRAIT
+    standing: HIPPOCAMPUS_STANDING
+    element: Geo
+    tier: normal
+    themeId: 22
+    archetype: 11
+    tags: [Monster, VoidMonster]
+    mainStat: CON
+    subStats: [STR]
+    strBase: 18
+    strIncrementLvl: 1
+    dexBase: 12
+    dexIncrementLvl: 1
+    conBase: 26
+    conIncrementLvl: 2
+    intBase: 8
+    intIncrementLvl: 1
+    lukBase: 10
+    lukIncrementLvl: 1
+    manaMax: 100
+    startingProficiencies: []
+    startingItemIds: []
+    drops: [4914]
+    codes: { passive: 1913, normal: 1913, ultimate: 1520 }
+    levelPassives:
+      - { codeId: 6,    unlockLevel: 10, stage: 1 }   # 철벽
+      - { codeId: 1521, unlockLevel: 20, stage: 1 }   # 바위피부
+      - { codeId: 1702, unlockLevel: 30, stage: 1 }   # 결정 피막
+      - { codeId: 1407, unlockLevel: 40, stage: 1 }   # 까칠한 피부
+      - { codeId: 77,   unlockLevel: 50, stage: 1 }   # 원소 친화 - 바위
+      - { codeId: 1523, unlockLevel: 60, stage: 1 }   # 강철피부
+      - { codeId: 1903, unlockLevel: 70, stage: 1 }   # 통곡의 벽
+      - { codeId: 2,    unlockLevel: 80, stage: 1 }   # 기사회생
+      - { codeId: 25,   unlockLevel: 90, stage: 1 }   # 자가치유
+
+  - id: 1147
+    name: 케토스
+    # 전투 팁(표시 경로 없음): 특수 피해를 가하는 평범한 공허 괴수지만 '활성' 원소반응은 주의할 것.
+    portrait: KETOS_PORTRAIT
+    standing: KETOS_STANDING
+    element: Dendro
+    tier: normal
+    themeId: 22
+    archetype: 11
+    tags: [Monster, VoidMonster]
+    mainStat: INT
+    subStats: [DEX]
+    strBase: 10
+    strIncrementLvl: 1
+    dexBase: 20
+    dexIncrementLvl: 2
+    conBase: 18
+    conIncrementLvl: 2
+    intBase: 22
+    intIncrementLvl: 2
+    lukBase: 14
+    lukIncrementLvl: 1
+    manaMax: 100
+    startingProficiencies: []
+    startingItemIds: []
+    drops: [4915, 4912]
+    codes: { passive: 1914, normal: 1500, ultimate: 1914 }
+    levelPassives:
+      - { codeId: 57,   unlockLevel: 10, stage: 1 }   # 원소 숙련
+      - { codeId: 1900, unlockLevel: 20, stage: 1 }   # 유연함
+      - { codeId: 1831, unlockLevel: 30, stage: 1 }   # 피 냄새
+      - { codeId: 1702, unlockLevel: 40, stage: 1 }   # 결정 피막
+      - { codeId: 69,   unlockLevel: 50, stage: 1 }   # 기습
+      - { codeId: 1904, unlockLevel: 60, stage: 1 }   # 과성장
+      - { codeId: 1218, unlockLevel: 70, stage: 1 }   # 야습
+      - { codeId: 1905, unlockLevel: 80, stage: 1 }   # 복수심
+      - { codeId: 1906, unlockLevel: 90, stage: 1 }   # 끝없는 허기
+
+  # 10슬롯 최종 보스. 체력 바가 세 칸으로 끊기고, 칸이 깨질 때마다 권능이 하나씩 열린다.
+  # 들어오는 순간부터 공허의 파도가 판을 적시므로, 1브레이크 이후의 소용돌이는 곧 전체 감전이다.
+  # 체력은 심연의 집정관보다 낮다 — 구간 경계에서 초과 피해가 버려지는 몫을 감안했다.
+  - id: 3090
+    name: 스킬라
+    # 전투 팁(표시 경로 없음): 체력 구간이 깨질 때마다 새 권능이 열린다. 판이 물에 젖은 채 전기를 맞지 않도록 끊어 내자.
+    portrait: SCYLLA_PORTRAIT
+    standing: SCYLLA_STANDING
+    element: Hydro
+    tier: boss
+    themeId: 22
+    archetype: 11
+    tags: [Monster, VoidMonster, Greek, Mollusk]
+    startingItemIds: []
+    startingProficiencies: []
+    mainStat: INT
+    subStats: [CON]
+    strBase: 20
+    strIncrementLvl: 2
+    dexBase: 14
+    dexIncrementLvl: 1
+    conBase: 54
+    conIncrementLvl: 6
+    intBase: 38
+    intIncrementLvl: 4
+    lukBase: 14
+    lukIncrementLvl: 1
+    manaMax: 140
+    codes: { passive: 1920, normal: 1920, ultimate: 1920 }
+    levelPassives:
+      - { codeId: 133,  unlockLevel: 1,  stage: 1 }   # 부여사
+      - { codeId: 1541, unlockLevel: 11, stage: 1 }   # 알파 개체 — 체력 배수 규격(Detail_01 §13.1)
+      - { codeId: 136,  unlockLevel: 20, stage: 1 }   # 해커
+      - { codeId: 60,   unlockLevel: 30, stage: 1 }   # 충전
+      - { codeId: 59,   unlockLevel: 40, stage: 1 }   # 고전압
+      - { codeId: 17,   unlockLevel: 50, stage: 1 }   # 예리함
+      - { codeId: 35,   unlockLevel: 60, stage: 1 }   # 상처 벌리기
+      - { codeId: 1546, unlockLevel: 70, stage: 1 }   # 완전함 — 체력 배수 규격
+      - { codeId: 25,   unlockLevel: 80, stage: 1 }   # 자가치유
+      - { codeId: 1901, unlockLevel: 90, stage: 1 }   # 매혹
+      - { codeId: 2,    unlockLevel: 99, stage: 1 }   # 기사회생
+    drops: [4916, 4913, 4912]

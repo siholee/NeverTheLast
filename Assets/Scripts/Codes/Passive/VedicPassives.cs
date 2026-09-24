@@ -435,6 +435,8 @@ namespace Codes.Passive
             CodeType = BaseEnums.CodeType.Passive;
             CodeName = "자기과신";
             IgnoresActivationChance = true;
+            // 금색 상위 코드를 배우면 이쪽은 발동하지 않는다 — 둘이 겹쳐 더해지지 않게 한다.
+            SupersededByCodeId = 1902;
         }
 
         public override void CastCode()

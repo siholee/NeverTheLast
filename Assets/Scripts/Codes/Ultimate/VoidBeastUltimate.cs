@@ -12,12 +12,9 @@ namespace Codes.Ultimate
     /// </summary>
     public sealed class VoidBeastUltimate : SimpleUltimate
     {
-        private readonly BaseEnums.UnitElement _attachedElement;
-
-        public VoidBeastUltimate(UltimateCodeContext context, BaseEnums.UnitElement attachedElement)
+        public VoidBeastUltimate(UltimateCodeContext context)
             : base(context, "광란의 일격", 0.5f)
         {
-            _attachedElement = attachedElement;
             Power = 120;
             PowerStatCoefficient = 1.5f;
             PowerStat = BaseEnums.PrimaryStat.STR;
@@ -41,10 +38,12 @@ namespace Codes.Ultimate
                 Caster, damage, BaseEnums.CodeType.Ultimate,
                 new List<int>(CodeTags), isCrit));
 
-            if (_attachedElement != BaseEnums.UnitElement.None && target.isActive)
-            {
-                target.GrantCombatElement(_attachedElement, Unit.CommonElementAuraDuration, Caster);
-            }
+            // 부착 원소는 시전자 자신의 원소다. 공허 속성이면 아무것도 붙이지 않는다.
+            if (!target.isActive) return;
+            if (!System.Enum.TryParse(Caster.Element, true, out BaseEnums.UnitElement own)) return;
+            if (own is BaseEnums.UnitElement.None or BaseEnums.UnitElement.Void) return;
+
+            target.GrantCombatElement(own, Unit.CommonElementAuraDuration, Caster);
         }
 
         public override bool HasValidTarget() => base.HasValidTarget() && Enemies().Count > 0;

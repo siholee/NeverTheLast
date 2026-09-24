@@ -94,6 +94,8 @@ namespace Codes.Passive
                 "현재 체력 50% 이하인 대상에게 주는 피해가 15% 증가합니다.")
         {
             Transferable = false;
+            // 끝없는 허기(1906)를 배우면 이쪽은 발동하지 않는다.
+            SupersededByCodeId = 1906;
         }
 
         protected override BaseEffect CreateInitialEffect() => new BloodScentEffect();

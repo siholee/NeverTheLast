@@ -117,7 +117,11 @@ namespace Codes.Passive
 
         public IronWallPassive(PassiveCodeContext context)
             : base(context, SharedStatStatusIds.IronWall, "iron_wall", "철벽",
-                $"일반행동을 할 때마다 이번 전투 동안 CON +{ConPerAction}. 중첩된다") { }
+                $"일반행동을 할 때마다 이번 전투 동안 CON +{ConPerAction}. 중첩된다")
+        {
+            // 통곡의 벽(1903)을 배우면 이쪽은 발동하지 않는다.
+            SupersededByCodeId = 1903;
+        }
 
         // 행동에 반응해 처음 붙는다. 전투 시작 시점에는 아직 아무 효과도 없다.
         protected override BaseEffect CreateInitialEffect() => null;

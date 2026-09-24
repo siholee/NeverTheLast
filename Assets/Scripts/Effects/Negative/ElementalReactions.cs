@@ -91,6 +91,8 @@ namespace Effects.Negative
         public const int VulnerableStatusId = 5914;
 
         public const string BurnStatusKey = "burn";
+        /// <summary>활성 반응이 대상에게 남기는 약화 상태의 키. 케토스가 이 표식을 본다.</summary>
+        public const string ActivationStatusKey = "reaction_Activation";
         public const string WeatheringStatusKey = "reaction_weathering";
 
         // ── 위력 ──────────────────────────────────────────────────
@@ -513,8 +515,12 @@ namespace Effects.Negative
                 return;
             }
 
-            int tag = reaction.Id == ReactionId.Activation ? DamageTag.Special : DamageTag.Physical;
-            string label = reaction.Id == ReactionId.Activation ? "특수" : "물리";
+            bool isActivation = reaction.Id == ReactionId.Activation;
+            // 과성장(1904)은 활성의 약화 몫만 키운다. 초전도는 건드리지 않는다.
+            if (isActivation) ratio = Mathf.Min(1f, ratio * ActivationAmplifier(source));
+
+            int tag = isActivation ? DamageTag.Special : DamageTag.Physical;
+            string label = isActivation ? "특수" : "물리";
             target.AddStatus(BuffStatus.Create(
                 VulnerableStatusId, $"reaction_{reaction.Id}", reaction.Name,
                 source, target, new TaggedVulnerabilityEffect(tag, 1f + ratio),
@@ -546,6 +552,23 @@ namespace Effects.Negative
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
                 description: $"{reaction.Stat}가 {ratio * 100f:0.#}% 증가합니다."));
+        }
+
+        /// <summary>유발자가 지닌 활성 약화 배율 중 가장 큰 값. 같은 코드가 겹쳐도 한 번만 센다.</summary>
+        private static float ActivationAmplifier(Unit source)
+        {
+            if (source == null) return 1f;
+
+            float multiplier = 1f;
+            foreach (var status in source.ActiveStatuses)
+            {
+                foreach (var effect in status.Effects)
+                {
+                    if (effect?.EffectObject == null) continue;
+                    multiplier = Mathf.Max(multiplier, effect.EffectObject.ActivationDebuffMultiplier(source));
+                }
+            }
+            return multiplier;
         }
 
         /// <summary>버프·디버프가 공유하는 CON 비례 배율.</summary>

@@ -783,7 +783,88 @@ stageThemes:
         patterns:
           - { frontIds: [3080], weight: 100 }
 
+  # ── 오디세이 I ────────────────────────────────────────────────────
+  # 공허가 삼킨 바다를 건넌다. 이 테마가 가르치는 것은 <b>원소가 붙은 판</b>이다.
+  #   1~2  공허의 정찰병 — 특징이 없는 대신 처치되면 제 진영을 함께 태운다. 몰아 잡으면 손해다.
+  #   3~5  공허의 사냥꾼(불)이 전열을 맡고, 그 뒤에서 학살자·세이렌이 불어난다.
+  #        세이렌은 노래할수록 세진다 — 빠르게 끊거나 행동 제어로 중첩을 지워야 한다.
+  #   6    사건 — 이타케로 돌아가려는 자의 이야기.
+  #   7    케토스(풀) + 정찰병(번개) — 활성 약화가 처음으로 아군을 갉는다.
+  #   8    히포캅투스가 전열을 통째로 막고 그 뒤에서 세이렌이 노래한다. 도발을 뚫을 수단이 필요하다.
+  #   9    심연의 공포 — 해안 전선에서 이미 만나 본 엘리트다.
+  #   10   스킬라 — 체력 세 칸. 칸이 깨질 때마다 권능이 하나씩 열린다.
+  #
+  # 공허의 파도가 매 턴 판 전체를 적신다. 1브레이크 이후의 혼돈의 소용돌이는 곧 전체 감전이므로,
+  # 물을 씻어낼 수단이 없다면 브레이크 직후의 궁극기를 끊는 것이 유일한 해법이다.
+  - id: 21
+    name: 오디세이
+    tags: [Greek, Void, Sea]
+    enemyThemeId: 22
+    description: "공허가 삼킨 바다. 파도는 쉬지 않고 판을 적시고, 그 위로 번개가 떨어진다."
+    midBossId: 2071
+    midBossStageInRound: 9
+    bossId: 3090
+    ambientColor: "#0F2A2E"   # 오디세이 — 빛이 닿지 않는 심해의 청록
+    stagePatterns:
+      - stageInRound: 1
+        patterns:
+          - { frontIds: [1143], rearIds: [1143, 1143], weight: 100 }
+      - stageInRound: 2
+        patterns:
+          - { frontIds: [1143, 1143], rearIds: [1143, 1143, 1143], weight: 100 }
+      # 3슬롯부터 공허의 사냥꾼이 앞을 맡는다. 뒤에 무엇이 서느냐로 반응이 갈린다.
+      - stageInRound: 3
+        patterns:
+          - { frontIds: [1142, 1142], rearIds: [1143, 1143, 1143], weight: 100 }
+      # 불(사냥꾼) + 번개(학살자) = 과부하. 뭉쳐 서면 아군이 통째로 밀려난다.
+      - stageInRound: 4
+        patterns:
+          - { frontIds: [1142, 1142], rearIds: [1144, 1144, 1144], weight: 100 }
+      # 불(사냥꾼) + 물(세이렌) = 증발. 노래가 쌓이기 전에 후열을 끊어야 한다.
+      - stageInRound: 5
+        patterns:
+          - { frontIds: [1142, 1142], rearIds: [1145, 1145, 1145], weight: 100 }
+      # 풀(케토스) + 번개(정찰병) = 활성. 케토스의 생명의 메아리가 그 약화를 그대로 되먹는다.
+      - stageInRound: 7
+        patterns:
+          - { frontIds: [1143, 1143, 1143], rearIds: [1147, 1147], weight: 100 }
+      # 히포캅투스가 도발로 전열을 통째로 붙잡고, 그 뒤에서 세이렌이 안전하게 노래한다.
+      - stageInRound: 8
+        patterns:
+          - { frontIds: [1146, 1146, 1146], rearIds: [1145, 1145], weight: 100 }
+      # 9슬롯 — 중간 보스.
+      - stageInRound: 9
+        patterns:
+          - { frontIds: [1146], rearIds: [2071, 1145], weight: 100 }
+      - stageInRound: 10
+        patterns:
+          - { frontIds: [3090], weight: 100 }
+
 events:
+  - id: odyssey_the_long_way_home
+    themeId: 21
+    stageInRound: 6
+    oncePerRun: true
+    title: 돌아가지 못한 배
+    dialogue:
+      - speaker: 일행
+        text: 부서진 뱃머리가 모래에 반쯤 묻혀 있다. 삭은 밧줄에 아직 사람 손자국이 남아 있는 것을 보면, 버려진 지 오래된 배는 아니다.
+      - speaker: 일행
+        text: 뱃전에 칼끝으로 긁은 글자가 줄줄이 새겨져 있다. 날짜다. 스무 해치가 넘는다. 마지막 줄만 숫자가 없고, 대신 한 문장이 있다.
+      - speaker: 일행
+        text: "「집이 어디였는지 잊기 전에 돌아간다.」"
+      - speaker: 일행
+        text: 파도가 밀려와 글자 절반을 지우고 물러난다. 바닷물이 닿은 자리에서 희미하게 푸른 빛이 번진다. 공허다.
+    choices:
+      - id: odyssey_carve_the_date
+        text: 빈 자리에 오늘 날짜를 새겨 넣는다.
+        action: continue
+        successText: 칼끝이 삭은 나무를 파고든다. 누군가 이 배를 다시 찾는다면, 적어도 여기서 끝나지 않았다는 것은 알 것이다.
+      - id: odyssey_push_the_hull
+        text: 뱃머리를 파도 쪽으로 밀어 준다.
+        action: continue
+        successText: 배는 몇 번 흔들리다 물살에 실려 나간다. 돌아갈 곳을 찾지 못하더라도, 모래에 묻혀 있는 것보다는 낫다.
+
   - id: legion_crossing_the_rubicon
     themeId: 5
     stageInRound: 5

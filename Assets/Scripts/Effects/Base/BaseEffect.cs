@@ -237,6 +237,12 @@ namespace Effects.Base
         /// <summary>보유자가 부여하는 지속피해량 배율 보정 (1 = 변화 없음)</summary>
         public virtual float DamageOverTimeApplicationMultiplier(Unit unit) => 1f;
 
+        /// <summary>
+        /// 이 유닛이 일으킨 <b>활성</b> 반응의 약화량 배율. 과성장(1904)이 2를 돌려준다.
+        /// 다른 반응에는 관여하지 않는다.
+        /// </summary>
+        public virtual float ActivationDebuffMultiplier(Unit source) => 1f;
+
         /// <summary>지속피해 효과 여부. 처치 시 남은 지속피해 정산 등에 사용한다.</summary>
         public virtual bool IsDamageOverTime => false;
 

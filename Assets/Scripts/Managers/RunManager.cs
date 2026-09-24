@@ -531,13 +531,15 @@ namespace Managers
             var result = new List<UnitSaveData>();
             foreach (var hero in GridManager.Instance.heroList)
             {
-                if (hero == null || !hero.isActive || hero.IsEnemy || hero.currentCell == null) continue;
+                // 쓰러진 아군도 남긴다. 빼면 불러오기에서 그 유닛이 통째로 사라진다.
+                if (hero == null || hero.IsEnemy || hero.IsSummon || hero.currentCell == null) continue;
+                if (hero.ID <= 0 && hero.LastActiveId <= 0) continue;
 
                 result.Add(new UnitSaveData
                 {
-                    unitId = hero.ID,
+                    unitId = hero.ID > 0 ? hero.ID : hero.LastActiveId,
                     selectedSupportId = hero.SelectedSupportCardId,
-                    currentHP = hero.HpCurr,
+                    currentHP = hero.isActive ? hero.HpCurr : 0,
                     xPos = hero.currentCell.xPos,
                     yPos = hero.currentCell.yPos,
                     isBench = GridManager.Instance.IsBenchCell(hero.currentCell),
@@ -613,6 +615,8 @@ namespace Managers
                     continue;
                 }
                 restored.RestoreRunState(saved);
+                // 체력 0으로 저장된 아군은 쓰러진 채였다. 그대로 눕혀 부활 대상으로 남긴다.
+                if (saved.currentHP <= 0) restored.DeactivateUnit();
             }
         }
     }

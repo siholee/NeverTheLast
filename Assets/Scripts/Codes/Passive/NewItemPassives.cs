@@ -35,6 +35,8 @@ namespace Codes.Passive
         public const int AmazonArmor = 4339;
         public const int AmazonSpear = 4340;
         public const int VowOfChastity = 4414;
+        public const int PredatorFangNecklace = 4912;
+        public const int SeaSongOrb = 4913;
     }
 
     internal static class NewItemStatusIds
@@ -62,6 +64,8 @@ namespace Codes.Passive
         public const int AmazonArmor = 6465;
         public const int AmazonSpear = 6466;
         public const int VowOfChastity = 6467;
+        public const int PredatorFang = 6468;
+        public const int SeaSong = 6469;
     }
 
     /// <summary>정복 — 승승장구의 금색 상위. 처치마다 물리 피해 +10%.</summary>
@@ -705,5 +709,63 @@ namespace Codes.Passive
 
         public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
             => attacker == Target && !_harmed ? 1f + _bonus : 1f;
+    }
+
+    /// <summary>포식자의 이빨 목걸이 — 적을 처치할 때마다 특수 태그 피해가 늘고 중첩된다.</summary>
+    public sealed class PredatorFangItemPassive : ItemStatusPassive
+    {
+        protected override string StatusKey => "item_predator_fang";
+        public PredatorFangItemPassive(PassiveCodeContext context) : base(context, "포식자의 이빨") { }
+        public override void CastCode() => AddPermanentStatus(
+            NewItemStatusIds.PredatorFang,
+            new KillStackTaggedDamageEffect(DamageTag.Special, 0.08f),
+            "적을 처치할 때마다 특수 태그로 가하는 피해 +8%. 중첩됩니다.");
+    }
+
+    /// <summary>바다의 노랫결 — 궁극기를 쓸 때마다 이번 전투 동안 INT가 는다.</summary>
+    public sealed class SeaSongItemPassive : ItemStatusPassive
+    {
+        private const float IntPerUltimate = 0.06f;
+
+        private System.Action<EventContext> _ultimateHandler;
+        private System.Action<EventContext> _cleanupHandler;
+
+        protected override string StatusKey => "item_sea_song";
+        public SeaSongItemPassive(PassiveCodeContext context) : base(context, "바다의 노랫결") { }
+
+        public override void CastCode()
+        {
+            if (Caster == null || _ultimateHandler != null) return;
+
+            _ultimateHandler = _ => Swell();
+            _cleanupHandler = _ => StopCode();
+            Caster.AddListener(BaseEnums.UnitEventType.OnUltimateActivates, _ultimateHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+            Caster.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+        }
+
+        public override void StopCode()
+        {
+            if (Caster != null && _ultimateHandler != null)
+            {
+                Caster.RemoveListener(BaseEnums.UnitEventType.OnUltimateActivates, _ultimateHandler);
+                Caster.RemoveListener(BaseEnums.UnitEventType.OnDeath, _cleanupHandler);
+                Caster.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _cleanupHandler);
+            }
+            _ultimateHandler = null;
+            _cleanupHandler = null;
+            base.StopCode();
+        }
+
+        private void Swell()
+        {
+            if (Caster == null || !Caster.isActive) return;
+            Caster.AddStatus(BuffStatus.Create(
+                NewItemStatusIds.SeaSong, StatusKey, CodeName, Caster, Caster,
+                new PrimaryStatMultiplierEffect(1f + IntPerUltimate, BaseEnums.PrimaryStat.INT),
+                stackPolicy: BaseEnums.StatusStackPolicy.Stack,
+                isBeneficial: true,
+                description: "궁극기를 쓸 때마다 이번 전투 동안 INT +6%. 중첩됩니다."));
+        }
     }
 }

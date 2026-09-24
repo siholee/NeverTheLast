@@ -517,8 +517,25 @@ namespace Managers
             if (slot == 10) return StageKind.Boss;
             // 중보스 여부는 테마마다 다르지만, 예고는 현재 테마 기준으로만 근사한다.
             if (slot == MidBossStageInRound && (_currentStageTheme?.midBossId ?? 0) > 0) return StageKind.MidBoss;
-            if (slot == 5) return StageKind.Event;
+            if (HasEventAtSlot(slot)) return StageKind.Event;
             return StageKind.Normal;
+        }
+
+        /// <summary>
+        /// 이 슬롯이 사건 슬롯인가. 슬롯 번호를 못 박지 않고 데이터에서 읽는다 —
+        /// 오디세이처럼 5가 아닌 슬롯에 사건을 둔 테마가 예고에서 전투로 잘못 표시되기 때문이다.
+        /// 5는 사건이 등록되지 않은 테마를 위한 기존 규약이다(<see cref="IsEventStage"/>와 같다).
+        /// </summary>
+        private bool HasEventAtSlot(int slot)
+        {
+            List<StageEventData> events = _stageThemeDataList?.events;
+            if (events == null) return slot == 5;
+
+            int themeId = CurrentThemeId;
+            bool themeHasOwnEvent = events.Any(data => data != null && data.themeId == themeId);
+            if (!themeHasOwnEvent) return slot == 5;
+
+            return events.Any(data => data != null && data.themeId == themeId && data.stageInRound == slot);
         }
 
         /// <summary>현재 스테이지부터 count개의 진행 예고를 반환한다.</summary>

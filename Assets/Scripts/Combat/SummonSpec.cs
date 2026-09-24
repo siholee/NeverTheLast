@@ -37,6 +37,12 @@ namespace Combat
         /// <summary>몇 턴 뒤 스스로 사라지는가. 0 이하면 소환자가 살아 있는 한 유지된다.</summary>
         public int LifetimeTurns;
 
+        /// <summary>
+        /// 소환자와 무관하게 고정할 스탯. 비어 있으면 <see cref="StatRatio"/>로 물려받는다.
+        /// 스킬라의 공허의 파도처럼 '보스가 커져도 변하지 않는' 개체가 쓴다.
+        /// </summary>
+        public int? FixedStr, FixedDex, FixedCon, FixedInt, FixedLuk;
+
         /// <summary>소환자 기준으로 실제 기본 스탯 다섯 개를 계산한다.</summary>
         public void ResolveStats(Unit owner, out int str, out int dex, out int con, out int intel, out int luk)
         {
@@ -46,6 +52,13 @@ namespace Combat
             con = Scale(owner.GetBaseCon(), ratio);
             intel = Scale(owner.GetBaseInt(), ratio);
             luk = Scale(owner.GetBaseLuk(), ratio);
+
+            // 고정값이 있으면 물려받은 값을 덮는다.
+            if (FixedStr.HasValue) str = Mathf.Max(1, FixedStr.Value);
+            if (FixedDex.HasValue) dex = Mathf.Max(1, FixedDex.Value);
+            if (FixedCon.HasValue) con = Mathf.Max(1, FixedCon.Value);
+            if (FixedInt.HasValue) intel = Mathf.Max(1, FixedInt.Value);
+            if (FixedLuk.HasValue) luk = Mathf.Max(1, FixedLuk.Value);
         }
 
         // 스탯이 0이면 UnitStats가 데이터 오류로 보고 오류 로그를 뱉는다. 최소 1을 남긴다.
@@ -66,6 +79,7 @@ namespace Combat
         public const int FlyerUltimateCodeId = 500;
         public const int FenrirNormalCodeId = 501;
         public const int CloneNormalCodeId = 502;
+        public const int VoidWaveNormalCodeId = 504;
         public const int CloneUltimateCodeId = 502;
         public const int PenseeNormalCodeId = 503;
         public const int PenseeUltimateCodeId = 503;
@@ -111,6 +125,27 @@ namespace Combat
             UltimateCodeId = PenseeUltimateCodeId,
             Portrait = "PENSEE_PORTRAIT",
             LifetimeTurns = 3,
+        };
+
+        /// <summary>
+        /// 스킬라의 공허의 파도. 소환자의 능력치를 전혀 물려받지 않는 고정 개체다.
+        /// 제 차례마다 필드 전체에 물을 끼얹는 것 말고는 아무것도 하지 않는다.
+        /// </summary>
+        public static SummonSpec VoidWave(Unit owner) => new()
+        {
+            Name = "공허의 파도",
+            StatRatio = 0f,
+            FixedStr = 1,
+            FixedDex = Codes.Passive.ScyllaCombat.WaveDex,
+            FixedCon = Codes.Passive.ScyllaCombat.WaveCon,
+            FixedInt = 1,
+            FixedLuk = 1,
+            MainStat = BaseEnums.PrimaryStat.CON.ToString(),
+            Element = "Hydro",
+            NormalCodeId = VoidWaveNormalCodeId,
+            UltimateCodeId = 0,
+            Portrait = "SCYLLA_PORTRAIT",
+            LifetimeTurns = 0,
         };
 
         /// <summary>

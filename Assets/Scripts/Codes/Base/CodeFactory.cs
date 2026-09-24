@@ -74,6 +74,8 @@ namespace Codes.Base
         465 => new AmazonArmorItemPassive(context),
         466 => new AmazonSpearItemPassive(context),
         467 => new VowOfChastityItemPassive(context),
+        468 => new PredatorFangItemPassive(context),
+        469 => new SeaSongItemPassive(context),
         149 => new DrakePlunder(context),
         211 => new DrakePrivateerCharter(context),
         212 => new ElizabethNobleRose(context),
@@ -312,6 +314,20 @@ namespace Codes.Base
         1435 => new SeedOverload(context),
         1436 => new SeedFrostRay(context),
         // ── 공허의 프리즘 ──
+        // ── 오디세이 (1900~) ──
+        1900 => new OdysseySupple(context),
+        1901 => new OdysseyFascination(context),
+        1902 => new OdysseyMethamphetamine(context),
+        1903 => new OdysseyWailingWall(context),
+        1904 => new OdysseyOvergrowth(context),
+        1905 => new OdysseyVengeance(context),
+        1906 => new OdysseyEndlessHunger(context),
+        1910 => new VoidScoutMeltdown(context),
+        1911 => new VoidSlaughtererPredation(context),
+        1912 => new SirenChorus(context),
+        1913 => new HippocampusLookAtMe(context),
+        1914 => new KetosLifeEcho(context),
+        1920 => new ScyllaUnknownDread(context),
         1500 => new VoidPrismCore(context),
         1501 => new VoidPrismResonance(context),
         1502 => new VoidPrismSplit(context),
@@ -497,6 +513,7 @@ namespace Codes.Base
         500 => new FlyerNormalAttack(context), // 소환수 — 플라이어 일반행동
         501 => new FenrirBite(context), // 소환수 — 펜리르 일반행동
         502 => new CloneNormalAttack(context), // 소환수 — 분신 일반행동
+        504 => new VoidWaveNormal(context), // 소환수 — 공허의 파도
         503 => new PenseeHeal(context), // 소환수 — 팡세 치유
         900 => new MagicBolt(context),
         901 => new Shoot(context),
@@ -580,6 +597,8 @@ namespace Codes.Base
         1430 => new GenericSeedVolley(context),
         // ── 공허의 프리즘 ──
         1500 => new VoidPrismNormal(context),
+        1913 => new HippocampusStrike(context),
+        1920 => new ScyllaQueensRay(context),
         1510 => new VoidMonstrousBirdNormal(context),
         1520 => new VoidBeastNormal(context),
         1530 => new VoidWolfNormal(context),
@@ -740,14 +759,8 @@ namespace Codes.Base
         1430 => new GenericSeedOverdrive(context),
         1431 => new FrostSeedBeam(context),
         // ── 공허의 프리즘. 기본형은 부착 없음, 팔레트 변형만 해당 원소를 부착한다. ──
-        1500 => new VoidPrismUltimate(context, BaseEnums.UnitElement.None),
-        1501 => new VoidPrismUltimate(context, BaseEnums.UnitElement.Pyro),
-        1502 => new VoidPrismUltimate(context, BaseEnums.UnitElement.Hydro),
-        1503 => new VoidPrismUltimate(context, BaseEnums.UnitElement.Anemo),
-        1504 => new VoidPrismUltimate(context, BaseEnums.UnitElement.Electro),
-        1505 => new VoidPrismUltimate(context, BaseEnums.UnitElement.Dendro),
-        1506 => new VoidPrismUltimate(context, BaseEnums.UnitElement.Cryo),
-        1507 => new VoidPrismUltimate(context, BaseEnums.UnitElement.Geo),
+        // 프리즘은 시전자 자신의 원소를 부착한다. 예전에는 원소마다 ID가 따로였다.
+        >= 1500 and <= 1507 => new VoidPrismUltimate(context),
         1510 => new VoidMonstrousBirdUltimate(context, BaseEnums.UnitElement.None),
         1511 => new VoidMonstrousBirdUltimate(context, BaseEnums.UnitElement.Pyro),
         1512 => new VoidMonstrousBirdUltimate(context, BaseEnums.UnitElement.Hydro),
@@ -756,14 +769,12 @@ namespace Codes.Base
         1515 => new VoidMonstrousBirdUltimate(context, BaseEnums.UnitElement.Dendro),
         1516 => new VoidMonstrousBirdUltimate(context, BaseEnums.UnitElement.Cryo),
         1517 => new VoidMonstrousBirdUltimate(context, BaseEnums.UnitElement.Geo),
-        1520 => new VoidBeastUltimate(context, BaseEnums.UnitElement.None),
-        1521 => new VoidBeastUltimate(context, BaseEnums.UnitElement.Pyro),
-        1522 => new VoidBeastUltimate(context, BaseEnums.UnitElement.Hydro),
-        1523 => new VoidBeastUltimate(context, BaseEnums.UnitElement.Anemo),
-        1524 => new VoidBeastUltimate(context, BaseEnums.UnitElement.Electro),
-        1525 => new VoidBeastUltimate(context, BaseEnums.UnitElement.Dendro),
-        1526 => new VoidBeastUltimate(context, BaseEnums.UnitElement.Cryo),
-        1527 => new VoidBeastUltimate(context, BaseEnums.UnitElement.Geo),
+        // 멧돼지도 시전자 자신의 원소를 부착한다. 예전에는 원소마다 ID가 따로였다.
+        >= 1520 and <= 1527 => new VoidBeastUltimate(context),
+        1911 => new VoidSlaughtererPreciseBarrage(context),
+        1912 => new SirenRoundelay(context),
+        1914 => new KetosScatterBarrage(context),
+        1920 => new ScyllaChaosMaelstrom(context),
         1530 => new VoidWolfUltimate(context, BaseEnums.UnitElement.None),
         1531 => new VoidWolfUltimate(context, BaseEnums.UnitElement.Pyro),
         1532 => new VoidWolfUltimate(context, BaseEnums.UnitElement.Hydro),

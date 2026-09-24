@@ -11,8 +11,8 @@ namespace Codes.Normal
     {
         public VoidPrismNormal(NormalCodeContext context) : base(context)
         {
-            CodeName = "프리즘 광선";
-            Power = 100;
+            CodeName = "공허 광선";
+            Power = 20;
             PowerStatCoefficient = 0.6f;
             PowerStat = BaseEnums.PrimaryStat.INT;
             CastingDelay = 0.4f;

@@ -12,12 +12,9 @@ namespace Codes.Ultimate
     /// </summary>
     public sealed class VoidPrismUltimate : SimpleUltimate
     {
-        private readonly BaseEnums.UnitElement _attachedElement;
-
-        public VoidPrismUltimate(UltimateCodeContext context, BaseEnums.UnitElement attachedElement)
-            : base(context, "프리즘 파동", 0.5f)
+        public VoidPrismUltimate(UltimateCodeContext context)
+            : base(context, "공허 포격", 0.5f)
         {
-            _attachedElement = attachedElement;
             Power = 150;
             PowerStatCoefficient = 1.2f;
             PowerStat = BaseEnums.PrimaryStat.INT;
@@ -41,10 +38,12 @@ namespace Codes.Ultimate
                 Caster, damage, BaseEnums.CodeType.Ultimate,
                 new List<int>(CodeTags), isCrit));
 
-            if (_attachedElement != BaseEnums.UnitElement.None && target.isActive)
-            {
-                target.GrantCombatElement(_attachedElement, Unit.CommonElementAuraDuration, Caster);
-            }
+            // 부착 원소는 시전자 자신의 원소다. 원종 프리즘은 공허 속성이라 아무것도 붙이지 않는다.
+            if (!target.isActive) return;
+            if (!System.Enum.TryParse(Caster.Element, true, out BaseEnums.UnitElement own)) return;
+            if (own is BaseEnums.UnitElement.None or BaseEnums.UnitElement.Void) return;
+
+            target.GrantCombatElement(own, Unit.CommonElementAuraDuration, Caster);
         }
 
         public override bool HasValidTarget() => base.HasValidTarget() && Enemies().Count > 0;

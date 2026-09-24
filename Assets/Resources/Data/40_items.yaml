@@ -1948,3 +1948,55 @@ items:
     statBonuses: [{ stat: Durability, amount: 14 }]
     codeGrants:
       - { slot: passive, codeId: 467, stage: 1 }
+
+  # ── 오디세이 I 드랍 ────────────────────────────────────────────
+  - id: 4915
+    name: 식지 않는 노심
+    icon: ITEM_UNCOOLED_CORE
+    slot: Valuable
+    category: Valuable
+    rarity: 2
+    weight: 0
+    sellPrice: 90
+
+  - id: 4912
+    name: 포식자의 이빨 목걸이
+    icon: ITEM_PREDATOR_FANG_NECKLACE
+    slot: Necklace
+    category: Necklace
+    rarity: 3
+    weight: 1
+    statBonuses: [{ stat: INT, amount: 5 }]
+    codeGrants:
+      - { slot: passive, codeId: 468, stage: 1 }
+
+  - id: 4913
+    name: 바다의 노랫결
+    icon: ITEM_SEA_SONG_ORB
+    slot: MainHand
+    category: Orb
+    requiredProficiency: Orb
+    rarity: 4
+    weight: 1
+    statBonuses: [{ stat: INT, amount: 7 }]
+    codeGrants:
+      - { slot: passive, codeId: 469, stage: 1 }
+
+  - id: 4914
+    name: 해파리 갓
+    icon: ITEM_JELLYFISH_BELL
+    slot: Armor
+    category: Clothing
+    rarity: 2
+    weight: 1
+    durability: 4
+    statBonuses: [{ stat: CON, amount: 3 }]
+
+  - id: 4916
+    name: 소용돌이의 핵
+    icon: ITEM_MAELSTROM_CORE
+    slot: Valuable
+    category: Valuable
+    rarity: 5
+    weight: 0
+    sellPrice: 520

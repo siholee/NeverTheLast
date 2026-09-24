@@ -369,6 +369,22 @@ codes:
     - { id: 1502, verbalName: 분열, codeName: VoidPrismSplit, description: "처치될 경우 자신이 서 있던 칸을 포함한 빈칸 최대 둘에 모든 스탯이 절반인 같은 공허의 프리즘을 생성한다. 빈칸이 부족하면 생성 가능한 수만 생성한다. 분열체는 다시 분열하지 않는다. <적 전용>" }
     - { id: 1503, verbalName: 죽음의 메아리, codeName: VoidPrismDeathEcho, description: "공명의 금색 상위 코드. 처치될 경우 공허 괴수 속성 아군의 행동 게이지를 50% 감소시키고 자신의 현재 스탯 절반을 부여한다. <적 전용>" }
     - { id: 1504, verbalName: 파괴광선, codeName: VoidPrismDestructionRay, description: "파쇄의 금색 상위 코드. 단일 대상 궁극기 적중 후 대상의 방어력을 3턴 동안 40% 감소시킨다. <적 전용>" }
+    # ── 오디세이 (1900~) ──
+    - { id: 1900, verbalName: 유연함, codeName: OdysseySupple, description: "접촉 공격으로 받는 피해가 25% 감소한다. <적 전용>" }
+    - { id: 1901, verbalName: 매혹, codeName: OdysseyFascination, description: "유연함의 금색 상위 코드. 접촉 공격으로 받는 피해가 50% 감소한다. <적 전용>" }
+    - { id: 1902, verbalName: 메스암페타민, codeName: OdysseyMethamphetamine, description: "자기과신의 금색 상위 코드. 적 처치 시 특수 태그로 가하는 피해 +10%. 중첩된다. <적 전용>" }
+    - { id: 1903, verbalName: 통곡의 벽, codeName: OdysseyWailingWall, description: "철벽의 금색 상위 코드. 일반행동을 할 때마다 이번 전투 동안 CON +2%. 중첩된다. <적 전용>" }
+    - { id: 1904, verbalName: 과성장, codeName: OdysseyOvergrowth, description: "자신이 일으킨 활성 반응의 약화량이 2배가 된다. <적 전용>" }
+    - { id: 1905, verbalName: 복수심, codeName: OdysseyVengeance, description: "같은 진영의 유닛이 쓰러지면 주는 피해 +10%. 중첩된다. <적 전용>" }
+    - { id: 1906, verbalName: 끝없는 허기, codeName: OdysseyEndlessHunger, description: "피 냄새의 금색 상위 코드. 현재 체력 50% 이하인 대상에게 주는 피해 +30%. <적 전용>" }
+    - { id: 1910, verbalName: 노심융해, codeName: VoidScoutMeltdown, description: "처치될 경우, 같은 진영 전체에게 CON×0.5의 피해를 입힌다. #특수 #비접촉 <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1911, verbalName: 포식, codeName: VoidSlaughtererPredation, description: "적 처치 시 INT와 DEX가 10% 상승한다. 중첩된다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1912, verbalName: 돌림노래, codeName: SirenChorus, description: "필드 위 같은 진영이 돌림노래를 시전하면 중첩이 1 증가한다. 행동 제어를 당하면 초기화된다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1913, verbalName: "나를 봐!", codeName: HippocampusLookAtMe, description: "전투 시작 시 자신에게 대상 우선도 +3을 건다. 지속 제한이 없다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1914, verbalName: 생명의 메아리, codeName: KetosLifeEcho, description: "활성 반응 약화를 지닌 적에게 가하는 피해가 1.2배가 된다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1920, verbalName: 미지의 공포, codeName: ScyllaUnknownDread, description: "체력 바가 3칸으로 나뉜다. 1칸째가 깨지면 「여왕의 진노」로 세이렌 둘을 불러내고 혼돈의 소용돌이에 전기 부착이 붙으며, 2칸째가 깨지면 「외신 동조」로 올스탯이 10% 오르고 일반행동 뒤에 「모든 것을 먼지로」가 따라붙는다. 전투 시작 시 고정 CON 20 · DEX 20의 「공허의 파도」를 세운다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 468, verbalName: 포식자의 이빨, codeName: PredatorFangItemPassive, description: "적을 처치할 때마다 특수 태그로 가하는 피해 +8%. 중첩된다. <장비 전용>" }
+    - { id: 469, verbalName: 바다의 노랫결, codeName: SeaSongItemPassive, description: "궁극기를 쓸 때마다 이번 전투 동안 INT +6%. 중첩된다. <장비 전용>" }
 
     # ── 공허의 괴조 패시브 ──
     - { id: 1510, verbalName: 괴조의 부활, codeName: VoidMonstrousBirdRebirth, description: "전투 중 단 한 번 치명적인 피해를 입으면 최대 체력으로 부활한다. <고유 패시브> <적 전용> <전수 불가능>" }
@@ -383,7 +399,7 @@ codes:
     - { id: 1524, verbalName: 하루종일도 할 수 있어, codeName: LifestealFighter, description: "투사(41)의 금색 상위 코드. 가한 피해의 12%만큼 체력을 회복한다. <적 전용> <전수 불가능>" }
 
     # ── 공허의 늑대 패시브 ──
-    - { id: 1530, verbalName: 피 냄새, codeName: VoidWolfBloodScent, description: "자신이 출혈을 부여하면 같은 턴 수만큼 치유량 감소(-50%)도 확정으로 부여한다. <고유 패시브> <적 전용> <전수 불가능>" }
+    - { id: 1530, verbalName: 상처 후비기, codeName: VoidWolfBloodScent, description: "자신이 출혈을 부여하면 같은 턴 수만큼 치유량 감소(-50%)도 확정으로 부여한다. <고유 패시브> <적 전용> <전수 불가능>" }
     - { id: 1531, verbalName: 흡혈귀, codeName: VoidWolfBloodthirst, description: "적에게 피해를 입혀 자신을 회복할 때 회복량 +25%. <적 전용> <전수 불가능>" }
     - { id: 1532, verbalName: 어둠의 군주, codeName: VoidWolfBloodthirst, description: "흡혈귀의 금색 상위 코드. 적에게 피해를 입혀 자신을 회복할 때 회복량 +50%. <적 전용> <전수 불가능>" }
 
@@ -491,7 +507,7 @@ codes:
     - { id: 444, verbalName: 금 간 생명의 앙크, codeName: FracturedAnkhItemPassive, description: "최대 체력이 90% 감소한다. Lv40 이하 오시리스만 착용하며 41레벨부터는 장비가 빠진다. <적 전용 장비> <전수 불가능>" }
     - { id: 442, verbalName: 따개비 등갑, codeName: BarnacleShellItemPassive, description: "전투당 1회, 체력이 50% 아래로 떨어지면 최대 체력 15%의 보호막을 얻는다. <장비 전용> <전수 불가능>" }
     - { id: 431, verbalName: 아문의 홀, codeName: SceptreOfAmunItemPassive, description: "궁극기로 주는 피해가 30% 증가한다. <장비 전용> <전수 불가능>" }
-    - { id: 445, verbalName: 정복, codeName: ConquestItemPassive, description: "승승장구의 강화 등급. 적 처치 시 물리 태그로 가하는 피해 +10%. 중첩된다. <장비 전용> <전수 불가능>" }
+    - { id: 445, verbalName: 정복, codeName: ConquestItemPassive, description: "승승장구의 강화 등급. 적 처치 시 물리 태그로 가하는 피해 +10%. 중첩된다." }
     - { id: 446, verbalName: 내 머리 위에 포격을, codeName: BombardMeItemPassive, description: "궁극기 발동 시 최대 체력의 5%를 소모할 수 있다면 소모하고 해당 궁극기의 피해 +25%. <장비 전용> <전수 불가능>" }
     - { id: 447, verbalName: 수호부, codeName: GuardianTalismanItemPassive, description: "전투당 1회 치명 피해를 막고 2턴 경직 후 최대 체력으로 부활한다. 발동하면 장비가 파괴된다. <장비 전용> <전수 불가능>" }
     - { id: 448, verbalName: 천상의 과일, codeName: HeavenlyFruitItemPassive, description: "체력이 25% 이하가 되면 최대 체력의 50%를 회복하고 장비가 파괴된다. <장비 전용> <전수 불가능>" }
@@ -707,7 +723,10 @@ codes:
     - { id: 1421, verbalName: 일반행동, codeName: GenericGiantNormalAttack, description: "단일 적에게 STR×1.0의 피해를 입힌다. #접촉 #물리" }
     - { id: 1427, verbalName: 서리 짓밟기, codeName: FrostGiantStomp, description: "적 전열 전체에 100 + STR×0.8의 피해를 입히고 얼음 원소를 부착한다. #광역 #접촉 #물리" }
     - { id: 1430, verbalName: 연속 사격, codeName: GenericSeedVolley, description: "단일 적에게 DEX×0.2의 피해를 3발 가한다. 과부하 중에는 4발이 된다. #물리 #비접촉 #화살" }
-    - { id: 1500, verbalName: 프리즘 광선, codeName: VoidPrismNormal, description: "단일 적에게 100 + INT×0.6 위력의 피해를 입힌다. #특수 #비접촉" }
+    - { id: 1500, verbalName: 공허 광선, codeName: VoidPrismNormal, description: "단일 적에게 고정 위력 20 + INT×0.6의 피해를 입힌다. #특수 #비접촉 <적 전용>" }
+    - { id: 1913, verbalName: 들이받기, codeName: HippocampusStrike, description: "단일 적에게 고정 위력 50 + STR×0.8의 피해를 입힌다. #물리 #접촉 <적 전용>" }
+    - { id: 504, verbalName: 공허의 파도, codeName: VoidWaveNormal, description: "필드 위 모든 유닛에게 물 원소를 부여한다. 피해는 없다. <소환수 전용>" }
+    - { id: 1920, verbalName: 여왕의 광선, codeName: ScyllaQueensRay, description: "적 전체에게 고정 위력 100 + INT×2.5의 피해를 입힌다. 외신 동조 상태라면 추가행동 「모든 것을 먼지로」로 무작위 단일 적을 6회, 각각 고정 위력 50 + INT×1.2로 때린다. #특수 #비접촉 <적 전용>" }
     - { id: 1510, verbalName: 괴조의 발톱, codeName: VoidMonstrousBirdNormal, description: "단일 적에게 100 + STR×0.6 위력의 피해를 입힌다. #물리 #접촉" }
     - { id: 1520, verbalName: 멧돼지의 엄니, codeName: VoidBeastNormal, description: "단일 적에게 80 + STR×0.6 위력의 피해를 입힌다. #물리 #접촉" }
     - { id: 1530, verbalName: 늑대의 송곳니, codeName: VoidWolfNormal, description: "단일 적에게 80 + STR×0.9 위력의 피해를 입히고 현재 LUK% 확률로 출혈(2턴)을 부여한다. #물리 #접촉" }
@@ -913,14 +932,7 @@ codes:
     - { id: 1427, verbalName: 혹한의 강림, codeName: FrostGiantAdvent, description: "적 전체에 140 + STR×1.2의 피해를 입히고 얼음을 부착하며 전장을 3턴 동안 눈으로 덮는다. #광역 #특수 #비접촉" }
     - { id: 1430, verbalName: 과부하, codeName: GenericSeedOverdrive, description: "2턴 동안 DEX +5% 및 일반행동 발사 수 +1. 오버로드 조건에서는 DEX +25%." }
     - { id: 1431, verbalName: 빙결포, codeName: FrostSeedBeam, description: "단일 적에게 DEX×1.5의 피해를 입히고 얼음 원소를 부착한다. #물리 #비접촉 #화살" }
-    - { id: 1500, verbalName: 프리즘 파동, codeName: VoidPrismUltimate, description: "단일 적에게 150 + INT×1.2 위력의 피해를 입힌다. #특수 #비접촉" }
-    - { id: 1501, verbalName: 프리즘 파동 · 불, codeName: VoidPrismUltimate, description: "단일 적에게 150 + INT×1.2 위력의 피해를 입히고 불 원소를 부착한다. #특수 #비접촉" }
-    - { id: 1502, verbalName: 프리즘 파동 · 물, codeName: VoidPrismUltimate, description: "단일 적에게 150 + INT×1.2 위력의 피해를 입히고 물 원소를 부착한다. #특수 #비접촉" }
-    - { id: 1503, verbalName: 프리즘 파동 · 바람, codeName: VoidPrismUltimate, description: "단일 적에게 150 + INT×1.2 위력의 피해를 입히고 바람 원소를 부착한다. #특수 #비접촉" }
-    - { id: 1504, verbalName: 프리즘 파동 · 번개, codeName: VoidPrismUltimate, description: "단일 적에게 150 + INT×1.2 위력의 피해를 입히고 번개 원소를 부착한다. #특수 #비접촉" }
-    - { id: 1505, verbalName: 프리즘 파동 · 풀, codeName: VoidPrismUltimate, description: "단일 적에게 150 + INT×1.2 위력의 피해를 입히고 풀 원소를 부착한다. #특수 #비접촉" }
-    - { id: 1506, verbalName: 프리즘 파동 · 얼음, codeName: VoidPrismUltimate, description: "단일 적에게 150 + INT×1.2 위력의 피해를 입히고 얼음 원소를 부착한다. #특수 #비접촉" }
-    - { id: 1507, verbalName: 프리즘 파동 · 바위, codeName: VoidPrismUltimate, description: "단일 적에게 150 + INT×1.2 위력의 피해를 입히고 바위 원소를 부착한다. #특수 #비접촉" }
+    - { id: 1500, verbalName: 공허 포격, codeName: VoidPrismUltimate, description: "단일 적에게 고정 위력 100 + INT×1.2의 피해를 입히고 자신의 원소를 부착한다. 공허 속성이면 부착하지 않는다. #특수 #비접촉 <적 전용>" }
     - { id: 1510, verbalName: 공허 강습, codeName: VoidMonstrousBirdUltimate, description: "전체 적에게 80 + STR×0.8 위력의 피해를 입힌다. #물리 #접촉" }
     - { id: 1511, verbalName: 공허 강습 · 불, codeName: VoidMonstrousBirdUltimate, description: "전체 적에게 80 + STR×0.8 위력의 피해를 입히고 불 원소를 부착한다. #물리 #접촉" }
     - { id: 1512, verbalName: 공허 강습 · 물, codeName: VoidMonstrousBirdUltimate, description: "전체 적에게 80 + STR×0.8 위력의 피해를 입히고 물 원소를 부착한다. #물리 #접촉" }
@@ -929,14 +941,11 @@ codes:
     - { id: 1515, verbalName: 공허 강습 · 풀, codeName: VoidMonstrousBirdUltimate, description: "전체 적에게 80 + STR×0.8 위력의 피해를 입히고 풀 원소를 부착한다. #물리 #접촉" }
     - { id: 1516, verbalName: 공허 강습 · 얼음, codeName: VoidMonstrousBirdUltimate, description: "전체 적에게 80 + STR×0.8 위력의 피해를 입히고 얼음 원소를 부착한다. #물리 #접촉" }
     - { id: 1517, verbalName: 공허 강습 · 바위, codeName: VoidMonstrousBirdUltimate, description: "전체 적에게 80 + STR×0.8 위력의 피해를 입히고 바위 원소를 부착한다. #물리 #접촉" }
-    - { id: 1520, verbalName: 광란의 일격, codeName: VoidBeastUltimate, description: "단일 적에게 120 + STR×1.5 위력의 피해를 입힌다. #물리 #접촉" }
-    - { id: 1521, verbalName: 광란의 일격 · 불, codeName: VoidBeastUltimate, description: "단일 적에게 120 + STR×1.5 위력의 피해를 입히고 불 원소를 부착한다. #물리 #접촉" }
-    - { id: 1522, verbalName: 광란의 일격 · 물, codeName: VoidBeastUltimate, description: "단일 적에게 120 + STR×1.5 위력의 피해를 입히고 물 원소를 부착한다. #물리 #접촉" }
-    - { id: 1523, verbalName: 광란의 일격 · 바람, codeName: VoidBeastUltimate, description: "단일 적에게 120 + STR×1.5 위력의 피해를 입히고 바람 원소를 부착한다. #물리 #접촉" }
-    - { id: 1524, verbalName: 광란의 일격 · 번개, codeName: VoidBeastUltimate, description: "단일 적에게 120 + STR×1.5 위력의 피해를 입히고 번개 원소를 부착한다. #물리 #접촉" }
-    - { id: 1525, verbalName: 광란의 일격 · 풀, codeName: VoidBeastUltimate, description: "단일 적에게 120 + STR×1.5 위력의 피해를 입히고 풀 원소를 부착한다. #물리 #접촉" }
-    - { id: 1526, verbalName: 광란의 일격 · 얼음, codeName: VoidBeastUltimate, description: "단일 적에게 120 + STR×1.5 위력의 피해를 입히고 얼음 원소를 부착한다. #물리 #접촉" }
-    - { id: 1527, verbalName: 광란의 일격 · 바위, codeName: VoidBeastUltimate, description: "단일 적에게 120 + STR×1.5 위력의 피해를 입히고 바위 원소를 부착한다. #물리 #접촉" }
+    - { id: 1520, verbalName: 광란의 일격, codeName: VoidBeastUltimate, description: "단일 적에게 고정 위력 120 + STR×1.5의 피해를 입히고 자신의 원소를 부착한다. 공허 속성이면 부착하지 않는다. #물리 #접촉 <적 전용>" }
+    - { id: 1911, verbalName: 정밀 포격, codeName: VoidSlaughtererPreciseBarrage, description: "서로 다른 최대 3인에게 각각 고정 위력 100 + INT×1.2의 피해를 입히고 자신의 원소를 부착한다. #특수 #비접촉 <적 전용>" }
+    - { id: 1912, verbalName: 돌림노래, codeName: SirenRoundelay, description: "적 전체에게 고정 위력 50 + INT×0.8×중첩의 피해를 입힌다. 시전할 때마다 같은 진영 세이렌 모두의 중첩이 오른다. #특수 #비접촉 <적 전용>" }
+    - { id: 1914, verbalName: 산탄 포격, codeName: KetosScatterBarrage, description: "단일 적에게 고정 위력 100 + INT×1.2의 피해를 입히고 자신의 원소를 부착한 뒤, 나머지 적 전체에게 60 + INT×0.9의 피해를 입힌다. #특수 #비접촉 <적 전용>" }
+    - { id: 1920, verbalName: 혼돈의 소용돌이, codeName: ScyllaChaosMaelstrom, description: "적 전체에게 고정 위력 200 + INT×3의 피해를 입히고 물 원소를 부착한다. 여왕의 진노 상태라면 전기 원소도 함께 부착한다. #특수 #비접촉 <적 전용>" }
     - { id: 1530, verbalName: 피의 포식, codeName: VoidWolfUltimate, description: "단일 적에게 120 + STR×1.1 위력의 피해를 입히고 실제로 입힌 피해의 50%만큼 회복한다. #물리 #접촉" }
     - { id: 1531, verbalName: 피의 포식 · 불, codeName: VoidWolfUltimate, description: "단일 적에게 120 + STR×1.1 위력의 피해를 입히고 실제로 입힌 피해의 50%만큼 회복한다. 불 원소를 부착한다. #물리 #접촉" }
     - { id: 1532, verbalName: 피의 포식 · 물, codeName: VoidWolfUltimate, description: "단일 적에게 120 + STR×1.1 위력의 피해를 입히고 실제로 입힌 피해의 50%만큼 회복한다. 물 원소를 부착한다. #물리 #접촉" }

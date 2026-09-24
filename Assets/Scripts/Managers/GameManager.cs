@@ -411,6 +411,9 @@ namespace Managers
                 // 아군 전멸 체크
                 if (AreAllAlliesDefeated())
                 {
+                    // 전투를 시작할 때 이미 전원이 쓰러져 있었다면 이길 방법이 없다. 그대로 두면
+                    // 스테이지마다 즉시 패배가 반복되며 생명력만 깎이므로 여기서 런을 끝낸다.
+                    if (_battleParty.Count == 0) life = 0;
                     EndRoundByAllyDefeat();
                     return;
                 }
@@ -1385,7 +1388,7 @@ namespace Managers
             result.ConditionNote = TrainingManager.ResolveBattleCondition();
             // 궁극기 자원만 전투 종료 정리보다 먼저 회수한다. 상태이상·방어막·고유 전투 자원은
             // 기존 OnRoundEnd 정리를 그대로 거쳐 다음 전투로 넘어가지 않는다.
-            CaptureAllyUltimateResources();
+            CaptureAllyBattleState();
             GridManager.Instance?.OnRoundEnd();
             
             // 아군 필드 상태 복원 (게임 오버가 아닌 경우에만)
@@ -1774,40 +1777,56 @@ namespace Managers
             allyFieldSnapshot.Clear();
             
             // 현재 필드에 있는 아군 유닛들의 좌표와 런 성장 상태를 함께 저장한다.
+            // <b>쓰러진 아군도 담는다.</b> 스냅샷에 없으면 라운드 종료 복원이 그 유닛을
+            // 통째로 지워 버려, 되살릴 대상 자체가 사라진다.
             foreach (Unit ally in GridManager.Instance.heroList)
             {
-                if (ally != null && ally.isActive && ally.currentCell != null)
-                {
-                    // 벤치가 아닌 필드에 있는 유닛만 저장
-                    if (!GridManager.Instance.IsBenchCell(ally.currentCell))
-                    {
-                        allyFieldSnapshot.Add(BuildUnitSnapshot(ally, false));
-                    }
-                }
+                if (ally == null || ally.IsSummon || ally.currentCell == null) continue;
+                // 쓰러지면 ID가 0으로 지워지므로 LastActiveId로 정체를 되찾는다.
+                if (ally.ID <= 0 && ally.LastActiveId <= 0) continue;
+                // 벤치가 아닌 필드에 있는 유닛만 저장
+                if (GridManager.Instance.IsBenchCell(ally.currentCell)) continue;
+
+                allyFieldSnapshot.Add(BuildUnitSnapshot(ally, false));
             }
             
             Debug.Log($"아군 필드 상태 저장됨: {allyFieldSnapshot.Count}개 유닛");
         }
 
         /// <summary>
-        /// 전투가 끝난 시점의 궁극기 자원을 전투 전 스냅샷에 덮어쓴다.
-        /// 사망한 영웅도 heroList에는 남아 있으므로 패배 때 쌓은 자원까지 보존된다.
+        /// 전투가 끝난 시점의 <b>체력·궁극기 자원·생사</b>를 전투 전 스냅샷에 덮어쓴다.
+        ///
+        /// 이 덮어쓰기가 없으면 라운드 종료 복원이 아군을 전투 시작 시점으로 되돌려,
+        /// 깎인 체력이 매 전투 원상복구되고 쓰러진 아군까지 되살아난다 — 회복약·부활약이
+        /// 존재할 이유가 사라진다. 상태이상·보호막·고유 전투 자원은 의도대로 넘기지 않는다.
+        ///
+        /// 쓰러진 영웅도 heroList에는 남지만 <c>ID</c>가 0이므로 <see cref="Unit.LastActiveId"/>로 찾는다.
         /// </summary>
-        private void CaptureAllyUltimateResources()
+        private void CaptureAllyBattleState()
         {
             if (allyFieldSnapshot == null || GridManager.Instance == null) return;
 
             foreach (UnitSaveData saved in allyFieldSnapshot)
             {
-                Unit ally = GridManager.Instance.heroList.LastOrDefault(hero =>
-                    hero != null && !hero.IsEnemy && !hero.IsSummon && hero.ID == saved.unitId &&
-                    hero.currentCell != null && hero.currentCell.xPos == saved.xPos && hero.currentCell.yPos == saved.yPos);
+                Unit ally = FindSnapshotAlly(saved, matchCell: true)
+                            ?? FindSnapshotAlly(saved, matchCell: false);
+                if (ally == null) continue;
 
-                ally ??= GridManager.Instance.heroList.LastOrDefault(hero =>
-                    hero != null && !hero.IsEnemy && !hero.IsSummon && hero.ID == saved.unitId);
-
-                if (ally != null) saved.ultimateResource = ally.ManaCurr;
+                saved.ultimateResource = ally.ManaCurr;
+                // 쓰러졌으면 0. 복원 쪽이 이 값을 보고 다시 눕혀 부활 수단의 대상으로 남긴다.
+                saved.currentHP = ally.isActive ? ally.HpCurr : 0;
             }
+        }
+
+        /// <summary>스냅샷 한 줄에 대응하는 현재 아군을 찾는다. 쓰러진 유닛은 LastActiveId로 걸린다.</summary>
+        private static Unit FindSnapshotAlly(UnitSaveData saved, bool matchCell)
+        {
+            return GridManager.Instance.heroList.LastOrDefault(hero =>
+                hero != null && !hero.IsEnemy && !hero.IsSummon &&
+                (hero.ID > 0 ? hero.ID : hero.LastActiveId) == saved.unitId &&
+                (!matchCell || (hero.currentCell != null &&
+                                hero.currentCell.xPos == saved.xPos &&
+                                hero.currentCell.yPos == saved.yPos)));
         }
 
         public void RestoreAllyFieldState()
@@ -1839,19 +1858,52 @@ namespace Managers
                 GridManager.Instance.SpawnUnit(saved.xPos, saved.yPos, false, saved.unitId, false);
                 Unit restored = GridManager.Instance.heroList
                     .LastOrDefault(hero => hero != null && hero.isActive && !hero.IsEnemy && hero.ID == saved.unitId);
-                restored?.RestoreRunState(saved);
+                if (restored == null) continue;
+
+                restored.RestoreRunState(saved);
+                // 체력 0은 '이 전투에서 쓰러졌다'는 뜻이다. 다시 눕혀 두어야 부활 수단이
+                // 대상으로 삼을 수 있다(RewardManager.IsValidReviveTarget은 !isActive를 본다).
+                if (saved.currentHP <= 0) LayDownRestoredAlly(restored);
             }
             
             Debug.Log($"아군 필드 상태 복원됨: {allyFieldSnapshot.Count}개 유닛");
+        }
+
+        /// <summary>
+        /// 한 유닛의 런 상태를 스냅샷으로 뜬다.
+        ///
+        /// 쓰러진 유닛은 <c>ID</c>가 0으로 지워지므로 <see cref="Unit.LastActiveId"/>로 정체를 되찾고,
+        /// 체력을 0으로 적어 <b>생사</b>를 함께 실어 보낸다 — 복원 쪽이 이 0을 보고 다시 눕힌다.
+        /// </summary>
+        /// <summary>
+        /// 복원된 아군을 쓰러진 상태로 눕히되 <b>자기 칸은 계속 지키게</b> 한다.
+        ///
+        /// <see cref="Unit.DeactivateUnit"/>은 칸 점유를 풀지만 <c>currentCell</c> 참조는 남긴다.
+        /// 그대로 두면 그 칸이 빈 칸으로 보여 다른 아군이 들어오고, 같은 좌표가 스냅샷에 두 줄
+        /// 생겨 다음 복원에서 <see cref="GridManager.SpawnUnit"/>이 충돌한다 — 살아 있던 아군의
+        /// 복원이 조용히 실패한다. 그래서 눕힌 뒤 점유를 되돌려 자리를 묶어 둔다.
+        /// </summary>
+        private static void LayDownRestoredAlly(Unit ally)
+        {
+            if (ally == null) return;
+
+            Cell cell = ally.currentCell;
+            ally.DeactivateUnit();
+            if (cell == null) return;
+
+            cell.SetOccupiedUnit(ally);
+            // DeactivateUnit이 건 2초 예약은 살아 있는 유닛이 들어올 자리를 위한 것이다.
+            // 이 칸의 주인은 이미 정해졌으므로 풀어 둔다.
+            cell.reservedTime = 0f;
         }
 
         private static UnitSaveData BuildUnitSnapshot(Unit unit, bool isBench)
         {
             return new UnitSaveData
             {
-                unitId = unit.ID,
+                unitId = unit.ID > 0 ? unit.ID : unit.LastActiveId,
                 selectedSupportId = unit.SelectedSupportCardId,
-                currentHP = unit.HpCurr,
+                currentHP = unit.isActive ? unit.HpCurr : 0,
                 xPos = unit.currentCell.xPos,
                 yPos = unit.currentCell.yPos,
                 isBench = isBench,
