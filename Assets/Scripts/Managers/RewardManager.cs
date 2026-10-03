@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Core;
@@ -17,12 +17,6 @@ namespace Managers
         public int tier = 1;
         public List<int> themeIds;
         public bool isRare;
-        public int atkBonus;
-        public int defBonus;
-        public int intBonus;
-        public float critChanceBonus;
-        public float codeAccelerationBonus;
-        public int hpBonus;
         public int healAmount;
         /// <summary>대상 한 명의 최대 체력에 대한 회복 비율(0~1).</summary>
         public float healPercent;
@@ -43,25 +37,6 @@ namespace Managers
         public bool levelGrantParty;
 
         /// <summary>
-        /// 컨디션을 올려 주는 칸 수(활력의 영약). 0이면 해당 없음.
-        /// 육성 모드 전용이라 무한 모드의 보상 풀과 상점에는 오르지 않는다.
-        /// </summary>
-        public int conditionUp;
-
-        /// <summary>훈련 체력을 채워 주는 양(에너지 드링크). 0이면 해당 없음. 육성 모드 전용.</summary>
-        public int energyRestore;
-
-        /// <summary>다음 훈련 한 번에 붙는 보너스 %(트레이닝 노트). 0이면 해당 없음. 육성 모드 전용.</summary>
-        public int trainingNotePercent;
-
-        /// <summary>강화제가 올리는 5스탯. 비어 있으면 강화제가 아니다.</summary>
-        public string tonicStat;
-        /// <summary>강화제의 합연산 보정(T1~T3).</summary>
-        public int tonicFlat;
-        /// <summary>강화제의 곱연산 보정(T4~T5). 1 이하면 곱연산이 아니다.</summary>
-        public float tonicMultiplier;
-
-        /// <summary>
         /// 상점 기본가. 0이면 상점에 올리지 않는다.
         /// 실제 가격은 <see cref="RewardManager.ShopPrice"/>가 스테이지를 곱해 정한다.
         /// </summary>
@@ -73,23 +48,10 @@ namespace Managers
         public string artPath;
         public int itemId;
 
-        public bool IsTonic => !string.IsNullOrWhiteSpace(tonicStat);
-
-        /// <summary>훈련 상태(컨디션 · 훈련 체력 · 트레이닝 노트)를 만지는 육성 전용 소모품인가.</summary>
-        public bool IsTrainingSupply => conditionUp > 0 || energyRestore > 0 || trainingNotePercent > 0;
-
         /// <summary>레벨을 올려 주는 보상인가.</summary>
         public bool IsLevelGrant => levelGrant > 0;
 
-        /// <summary>장비가 아닌 보상은 전부 소모품이다. 한 번의 3택에 한 장까지만 섞인다.</summary>
-        public bool IsConsumable => itemId <= 0;
-
-        /// <summary>강화제가 올리는 스탯. 데이터 오타는 여기서 걸린다.</summary>
-        public bool TryGetTonicStat(out BaseEnums.PrimaryStat stat)
-        {
-            stat = default;
-            return IsTonic && System.Enum.TryParse(tonicStat, true, out stat);
-        }
+        public bool IsConsumable => itemId <= 0 || item?.IsFood == true;
 
         public bool RequiresHealingTargetSelection => healPercent > 0f || fullHealTarget;
         public bool RequiresReviveTargetSelection => revivePercent > 0f;
@@ -102,10 +64,7 @@ namespace Managers
         public bool IsHealingReward => RequiresHealingTargetSelection || fullHealParty || healAmount > 0;
         public bool IsRevivalReward => RequiresReviveTargetSelection || fullReviveParty;
 
-        /// <summary>
-        /// 장비 보상의 원본 데이터. 보상 화면이 부위 · 중량 · 스탯을 <b>구조로</b> 보여 주기 위해 들고 다닌다.
-        /// 예전에는 이걸 문자열 한 줄로 뭉쳐 description에 넣었는데, 그러면 세 장을 비교할 수 없었다.
-        /// </summary>
+        /// <summary>공용 인벤토리 아이템 보상의 원본 데이터.</summary>
         public ItemData item;
     }
 
@@ -173,10 +132,9 @@ namespace Managers
         /// <b>후보는 이번 전투에서 처치한 적의 드랍 + 공용 드랍 + 소모품을 한 풀로 합친 것이다.</b>
         /// 그 풀에서 라운드 티어 확률로 티어를 굴려 뽑으므로, 적 드랍이 안 나올 수도 소모품이 안 나올 수도 있다.
         /// 소모품 장수에는 상한이 없다 — 드랍과 소모품은 같은 풀의 동등한 후보다.
-        /// 적 전용 장비(<c>enemyOnly</c>, 초반의 무뎌진 무기)는 드랍표에 잘못 적혀 있어도 여기서 빠진다.
-        /// 테마 보상 풀(<c>themeIds</c>)은 폐지했다 — 테마 장비는 그 테마 적이 떨군다.
+        /// 식량은 적별 드랍표와 공용 드랍표 양쪽에서 공급되며 공용 인벤토리에 바로 쌓인다.
         /// </summary>
-        public List<RewardDef> GenerateRewards(int count, int rewardRound, GameMode mode, IEnumerable<int> killedEnemyIds)
+        public List<RewardDef> GenerateRewards(int count, int rewardRound, IEnumerable<int> killedEnemyIds)
         {
             EnsureRewardData();
             _itemDataList ??= GameManager.Instance?.itemDataList ?? GameManager.Instance?.dataManager?.FetchItemDataList();
@@ -185,8 +143,7 @@ namespace Managers
             foreach (int itemId in EnemyDropIds(killedEnemyIds)) dropIds.Add(itemId);
 
             var pool = (_itemDataList?.items ?? new List<ItemData>())
-                .Where(item => item != null && dropIds.Contains(item.id) &&
-                               !item.eventOnly && !item.enemyOnly && IsAvailableForRoster(item))
+                .Where(item => item != null && dropIds.Contains(item.id) && !item.eventOnly)
                 .Select(item => new RewardDef
                 {
                     id = $"item_{item.id}",
@@ -203,15 +160,13 @@ namespace Managers
                 pool.AddRange(_rewardDataList.rewards.Where(reward =>
                     reward != null &&
                     (!reward.IsHealingReward || HasInjuredHero()) &&
-                    (!reward.IsRevivalReward || HasFallenHero()) &&
-                    // 육성 소모품은 육성 모드에서, 써서 달라지는 것만 후보가 된다(회복약이 다친 아군을 요구하는 것과 같다).
-                    (!reward.IsTrainingSupply || TrainingManager.TrainingSupplyBlockReason(reward) == null)));
+                    (!reward.IsRevivalReward || HasFallenHero())));
             }
             var result = new List<RewardDef>();
 
             for (int i = 0; i < count && pool.Count > 0; i++)
             {
-                int tier = RollTier(rewardRound, mode);
+                int tier = RollTier(rewardRound);
                 var candidates = pool.FindAll(reward => reward.tier == tier);
                 if (candidates.Count == 0)
                 {
@@ -246,27 +201,12 @@ namespace Managers
         /// <summary>
         /// 상점 소모품 매대. <c>goldCost</c>를 가진 보상만 올라간다.
         /// 순서는 yaml에 적힌 순서를 그대로 따른다(회복약 → 부활약, 티어 오름차순).
-        /// 육성 소모품은 따로 <see cref="BuildShopTrainingSupplies"/> 탭이 맡는다.
         /// </summary>
         public List<RewardDef> BuildShopGoods()
         {
             EnsureRewardData();
             return _rewardDataList?.rewards?
-                .Where(reward => reward != null && reward.goldCost > 0 && !reward.IsTrainingSupply)
-                .ToList() ?? new List<RewardDef>();
-        }
-
-        /// <summary>
-        /// 상점 육성 매대 — 활력의 영약 · 에너지 드링크 · 트레이닝 노트. 육성 모드에서만 채워진다.
-        /// 여덟 종이라 소모품 탭에 섞으면 한 화면(8칸)을 넘어 뒤가 잘리므로 탭을 따로 둔다.
-        /// </summary>
-        public List<RewardDef> BuildShopTrainingSupplies()
-        {
-            EnsureRewardData();
-            if (GameManager.Instance?.CurrentMode != GameMode.Training) return new List<RewardDef>();
-
-            return _rewardDataList?.rewards?
-                .Where(reward => reward != null && reward.goldCost > 0 && reward.IsTrainingSupply)
+                .Where(reward => reward != null && reward.goldCost > 0)
                 .ToList() ?? new List<RewardDef>();
         }
 
@@ -311,7 +251,7 @@ namespace Managers
         }
 
         public static bool IsValidLevelTarget(Unit unit)
-            => unit != null && !unit.IsEnemy && !unit.IsSummon &&
+            => unit != null && !unit.IsEnemy &&
                (unit.ID > 0 || unit.LastActiveId > 0);
 
         /// <summary>
@@ -330,7 +270,7 @@ namespace Managers
                 return true;
             }
 
-            return inventory.AddItem(reward.itemId, target);
+            return inventory.AddItem(reward.itemId);
         }
 
         private ItemData FindItem(int itemId)
@@ -346,19 +286,13 @@ namespace Managers
         public static int ValuablePrice(ItemData item, int stage)
             => item == null || item.sellPrice <= 0 ? 0 : item.sellPrice * Mathf.Max(1, stage);
 
-        /// <summary>
-        /// 상점 장비 매대. <c>shopPrice</c>를 가진 장비만 올라간다.
-        ///
-        /// 캐릭터 전용 장비는 올리지 않는다 — 상점은 누구의 덱이든 같은 물건을 파는 자리이고,
-        /// 적 드랍 장비는 <b>그 적을 이겨서</b> 얻는 것이라야 뜻이 산다(가격이 없으니 애초에 오르지 않는다).
-        /// </summary>
-        public List<RewardDef> BuildShopEquipment()
+        /// <summary>상점 공용 아이템 매대. 현재는 긴 휴식용 식량이 오른다.</summary>
+        public List<RewardDef> BuildShopItems()
         {
             _itemDataList ??= GameManager.Instance?.itemDataList
                               ?? GameManager.Instance?.dataManager?.FetchItemDataList();
             return (_itemDataList?.items ?? new List<ItemData>())
-                .Where(item => item != null && item.shopPrice > 0 && !item.eventOnly && !item.enemyOnly &&
-                               (item.requiredUnitIds == null || item.requiredUnitIds.Count == 0))
+                .Where(item => item != null && item.shopPrice > 0 && !item.eventOnly)
                 .Select(item => new RewardDef
                 {
                     id = $"item_{item.id}",
@@ -383,51 +317,11 @@ namespace Managers
             return GridManager.Instance?.heroList?.Any(IsValidReviveTarget) == true;
         }
 
-        /// <summary>
-        /// 캐릭터 연계 장비는 현재 덱, 계정 해금 또는 둘 중 데이터가 지정한 조건을 만족해야 후보가 된다.
-        /// 기존 전용 장비는 <c>requiredUnitIds</c>만 사용하므로 종전처럼 덱 보유를 요구한다.
-        /// </summary>
-        internal static bool IsAvailableForRoster(ItemData item)
-        {
-            if (item == null) return false;
-
-            bool hasRosterCondition = item.requiredUnitIds is { Count: > 0 };
-            bool hasUnlockCondition = item.requiredUnlockedUnitIds is { Count: > 0 };
-
-            if (hasRosterCondition)
-            {
-                bool inPartyOrBench = GridManager.Instance?.heroList?.Any(unit =>
-                    unit != null && !unit.IsEnemy && item.requiredUnitIds.Contains(unit.ID)) == true;
-
-                bool inLineup = CharacterSelectionManager.Instance?.Lineup?.Any(entry =>
-                    entry != null && item.requiredUnitIds.Contains(entry.UnitId)) == true;
-
-                bool ownerUnlocked = item.allowUnlockedRequiredUnits &&
-                    item.requiredUnitIds.Any(IsAccountUnitUnlocked);
-
-                if (!inPartyOrBench && !inLineup && !ownerUnlocked) return false;
-            }
-
-            if (hasUnlockCondition && !item.requiredUnlockedUnitIds.Any(IsAccountUnitUnlocked))
-                return false;
-
-            return true;
-        }
-
-        private static bool IsAccountUnitUnlocked(int unitId)
-            => SaveSystem.IsStarterUnlocked(unitId) || SaveSystem.IsCharacterTrained(unitId);
-
         private static string BuildItemDescription(ItemData item)
         {
-            // 귀중품은 부위도 중량도 없다. 얼마에 팔리는지가 전부다.
-            // 계산식만 적어 두면 값을 가늠할 수 없다는 QA가 있었다. 지금 스테이지 값으로 확정해 보여 준다.
             if (item.IsValuable) return $"귀중품 | 판매가 {ValuablePrice(item, CurrentShopStage):N0}G";
-
-            string stats = item.statBonuses == null || item.statBonuses.Count == 0
-                ? ""
-                : string.Join(", ", item.statBonuses.Select(BaseClasses.EquipmentStatKeys.Describe));
-            string suffix = string.IsNullOrWhiteSpace(stats) ? "" : $" | {stats}";
-            return $"{UI.Core.ItemTooltip.CategoryName(item.category)} | 중량 {Mathf.Max(0, item.weight)}{suffix}";
+            if (item.IsFood) return $"공용 식량 +{item.foodValue}";
+            return UI.Core.ItemTooltip.CategoryName(item.category);
         }
 
         private void EnsureRewardData()
@@ -436,7 +330,7 @@ namespace Managers
             _rewardDataList = GameManager.Instance?.dataManager?.FetchRewardDataList();
         }
 
-        private int RollTier(int rewardRound, GameMode mode)
+        private int RollTier(int rewardRound)
         {
             EnsureRewardData();
             List<RewardTierOddsData> oddsTable = _rewardDataList?.rewardTierOdds;
@@ -445,9 +339,8 @@ namespace Managers
                 return Random.value < 0.25f ? 2 : 1;
             }
 
-            int cappedRound = mode == GameMode.Infinite
-                ? Mathf.Min(rewardRound, 10)
-                : rewardRound;
+            // 확률표는 10라운드까지만 있다. 그 뒤로는 10라운드 행을 계속 쓴다.
+            int cappedRound = Mathf.Min(rewardRound, 10);
             RewardTierOddsData odds = oddsTable
                 .Where(row => row.round <= cappedRound)
                 .OrderByDescending(row => row.round)
@@ -483,6 +376,7 @@ namespace Managers
         {
             if (!ApplyRewardEffect(reward, target)) return;
 
+            AudioManager.PlayCue("ui.reward.select");
             GameManager.Instance.uiManager?.HideRewardPanel();
             RunManager.Instance?.AdvanceToNextStage();
         }
@@ -511,28 +405,14 @@ namespace Managers
                 Debug.LogWarning($"[보상] {reward.displayName}은(는) 레벨을 올릴 아군 대상이 필요합니다.");
                 return false;
             }
-            if (reward.IsTonic && !reward.TryGetTonicStat(out _))
-            {
-                Debug.LogWarning($"[보상] {reward.displayName}의 tonicStat '{reward.tonicStat}'을 5스탯으로 해석하지 못했습니다.");
-                return false;
-            }
 
-            if (reward.IsTrainingSupply)
-            {
-                // 컨디션이 최상인데 영약을 먹는 식으로 아무 일도 없으면 false — 상점이 값을 물리지 않는다.
-                if (!TrainingManager.ApplyTrainingSupply(reward)) return false;
-            }
-            else if (reward.IsTonic)
-            {
-                ApplyTonic(reward);
-            }
-            else if (reward.IsLevelGrant)
+            if (reward.IsLevelGrant)
             {
                 ApplyLevelGrant(reward, target);
             }
             else if (reward.itemId > 0)
             {
-                // 장비를 실제로 건네지 못했으면 false를 돌려준다. 상점이 이 값을 보고 값을 물린다.
+                // 아이템을 실제로 인벤토리에 넣지 못했으면 false를 돌려준다. 상점이 이 값을 보고 값을 물린다.
                 if (!ApplyItemReward(reward, target)) return false;
             }
             else if (reward.fullHealParty)
@@ -584,35 +464,7 @@ namespace Managers
                 GameManager.Instance.inventoryManager.rerollTicketCount += reward.rerollTicketBonus;
                 GameManager.Instance.inventoryManager.RefreshPanel();
             }
-            else
-            {
-                Unit rewardTarget = target ?? GridManager.Instance.heroList.Find(hero => hero != null && hero.isActive && !hero.IsEnemy);
-                rewardTarget?.AddRunBonus(
-                    hpUpgrade: reward.hpBonus,
-                    atkUpgrade: reward.atkBonus,
-                    defUpgrade: reward.defBonus,
-                    intUpgrade: reward.intBonus,
-                    critChanceUpgrade: Mathf.RoundToInt(reward.critChanceBonus),
-                    codeAccelerationBonus: reward.codeAccelerationBonus
-                );
-            }
-
             return true;
-        }
-
-        /// <summary>
-        /// 강화제를 건다. 파티 전체에 걸리는 런 범위 보정이라 유닛이 아니라 런이 들고 있다
-        /// (<see cref="Core.PartyTonicState"/>). 여기서는 스탯 캐시만 다시 돌린다.
-        /// </summary>
-        private static void ApplyTonic(RewardDef reward)
-        {
-            if (!reward.TryGetTonicStat(out PrimaryStat stat)) return;
-
-            RunManager.Instance?.PartyTonics.Apply(stat, reward.tonicFlat, reward.tonicMultiplier, reward.displayName);
-            GridManager.Instance?.RefreshAllyAttributes();
-            Debug.Log($"[강화제] {reward.displayName} 적용 — {stat} " +
-                      (reward.tonicMultiplier > 1f ? $"×{reward.tonicMultiplier:0.00}" : $"+{reward.tonicFlat}") +
-                      $" ({Core.PartyTonicState.BattleDuration}전투)");
         }
 
         public static bool IsValidHealingTarget(Unit target)
@@ -622,7 +474,7 @@ namespace Managers
 
         public static bool IsValidReviveTarget(Unit target)
         {
-            return target != null && !target.isActive && !target.IsEnemy && !target.IsSummon &&
+            return target != null && !target.isActive && !target.IsEnemy &&
                    target.currentCell != null && target.LastActiveId > 0;
         }
 

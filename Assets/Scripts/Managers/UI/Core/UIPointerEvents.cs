@@ -45,7 +45,7 @@ namespace Managers.UI.Core
     ///
     /// 예전에는 <c>pointerId &gt;= 0</c>이면 터치로 봤다. 구형 StandaloneInputModule은 마우스에 음수 ID를
     /// 주지만, 이 프로젝트의 InputSystemUIInputModule은 마우스에도 <b>장치 ID(양수)</b>를 준다.
-    /// 그래서 마우스가 터치로 읽혀 TAB 창의 장비 끌기가 시작하자마자 끊기고(터치스크린이 없으니
+    /// 그래서 마우스가 터치로 읽혀 카드 끌기가 시작하자마자 끊기고(터치스크린이 없으니
     /// "손을 뗐다"로 판정), 마우스 호버 툴팁도 뜨지 않았다. 새 입력 시스템은 포인터 종류를 직접 알려 준다.
     /// </summary>
     public static class UIPointerKind
@@ -78,8 +78,8 @@ namespace Managers.UI.Core
     /// <summary>
     /// 떠 있는 카드(누르면 뜨는 상세)를 바깥을 누르면 닫는다.
     ///
-    /// TAB 창의 장비 상세 카드는 다른 탭으로 옮기거나 창을 닫아야만 사라졌다. 판정은 누르는 순간에
-    /// 하고 그 클릭을 가로채지 않는다 — 다른 칸을 누르면 이 카드가 닫히고 그 칸의 동작이 그대로 이어진다.
+    /// 상세 카드는 바깥을 눌러도 사라져야 한다. 판정은 누르는 순간에 하고 그 클릭을 가로채지 않는다 —
+    /// 다른 칸을 누르면 카드가 닫히고 그 칸의 동작이 그대로 이어진다.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class UIDismissOnOutsideClick : MonoBehaviour

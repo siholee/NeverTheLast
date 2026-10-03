@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Effects.Base;
+using Effects.Vfx;
 using Entities.Status;
 using UnityEngine;
 
@@ -56,12 +57,15 @@ namespace Entities
         public void Add(UnitStatus status)
         {
             if (status == null) return;
-            if (status.Duration > 0 && !status.SourceDurationAdjusted && status.Caster != null)
+            // 적이 거는 해로운 상태는 특수공격력 대 특수방어력으로 명중을 겨룬다(효과 회피).
+            // 이미 자기 확률로 굴린 쪽(화상 등)은 SkipEffectHitRoll을 켜서 두 번 굴리지 않는다.
+            if (status.Category == BaseEnums.StatusCategory.Negative && !status.SkipEffectHitRoll &&
+                status.Caster != null && status.Caster.IsEnemy != _owner.IsEnemy &&
+                !Combat.DamageMitigation.RollEffectHit(status.Caster, _owner))
             {
-                status.Duration = Mathf.Max(
-                    1,
-                    status.Duration + status.Caster.GetGrantedStatusDurationBonus(status));
-                status.SourceDurationAdjusted = true;
+                Debug.Log($"[효과 회피] {_owner.UnitName}이(가) '{status.StatusName}'을(를) 피했습니다.");
+                Effects.CombatFeedback.PlayEvade(_owner);
+                return;
             }
             if (status.Category == BaseEnums.StatusCategory.Negative &&
                 _owner.ResistsNegativeStatus(status))
@@ -85,8 +89,6 @@ namespace Entities
                     {
                         int oldRemaining = existing.RemainingTurns;
                         existing.Duration = existing.ElapsedTurns + oldRemaining + status.Duration;
-                        if (status.Duration > 0 && oldRemaining != int.MaxValue)
-                            _owner.Chemistry?.ReceiveBuff(existing, status.Caster);
                         // 들어온 쪽은 아직 효과 객체가 없을 수 있다. 지속피해 판정은 이미 붙어 있는 쪽으로 한다.
                         if (status.CountsAsDebuff || existing.CountsAsDebuff)
                         {
@@ -182,8 +184,6 @@ namespace Entities
             // 스탯 질의 훅을 가진 효과가 즉시 반영되도록 스탯 캐시 갱신
             _onChanged?.Invoke();
 
-            _owner.Chemistry?.ReceiveBuff(status);
-
             if (status.IsBeneficial)
             {
                 _notifyBeneficial?.Invoke(status.Caster);
@@ -192,6 +192,7 @@ namespace Entities
             {
                 _notifyNegative?.Invoke(status.Caster, status);
             }
+            StatusAffectedVfx.Play(_owner, status);
         }
 
         private void RemoveAt(int index)

@@ -35,16 +35,14 @@ namespace Effects.Negative
                 CalculateTickDamage(),
                 BaseEnums.CodeType.Effect,
                 new List<int>(),
-                false,
-                10000000));
+                false));
         }
 
         public override int EstimateDamagePerTurn() => CalculateTickDamage();
 
         private int CalculateTickDamage()
         {
-            float multiplier = Caster != null ? Caster.GetDamageOverTimeApplicationMultiplier() : 1f;
-            return Mathf.Max(0, Mathf.RoundToInt((Target?.HpMax ?? 0) * Coefficient / 100f * multiplier));
+            return Mathf.Max(0, Mathf.RoundToInt((Target?.HpMax ?? 0) * Coefficient / 100f));
         }
         
         public override void OnRemove()

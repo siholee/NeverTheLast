@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Effects.Base;
@@ -64,6 +64,9 @@ namespace Entities.Status
 
         /// <summary>이로운 상태 여부 (부여 시 OnBeneficialEffectReceived 이벤트 발행)</summary>
         public bool IsBeneficial { get; private set; }
+
+        /// <summary>96_vfx의 affected 부품을 상태별로 덮어쓴다. 비어 있으면 분류 기본값.</summary>
+        public string AffectedVfxPartId { get; set; }
         
         /// <summary>상태 시전자</summary>
         public Unit Caster { get; set; }
@@ -77,8 +80,10 @@ namespace Entities.Status
         /// <summary>보유자의 턴을 몇 번 넘겼는지</summary>
         public int ElapsedTurns { get; set; }
 
-        /// <summary>부여자의 지속시간 보정을 이미 반영했는지 여부.</summary>
-        internal bool SourceDurationAdjusted { get; set; }
+        /// <summary>
+        /// 효과 명중(특수공격력 대 특수방어력)을 이미 따로 굴렸는가. 참이면 상태를 붙일 때 다시 굴리지 않는다.
+        /// </summary>
+        public bool SkipEffectHitRoll { get; set; }
 
         /// <summary>남은 턴 수. 무한이면 <see cref="int.MaxValue"/>.</summary>
         public int RemainingTurns => Duration <= 0 ? int.MaxValue : Mathf.Max(0, Duration - ElapsedTurns);

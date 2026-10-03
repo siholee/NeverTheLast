@@ -1,4 +1,4 @@
-using BaseClasses;
+﻿using BaseClasses;
 using Entities;
 using UnityEngine;
 
@@ -113,7 +113,7 @@ namespace Combat
             {
                 foreach (var effect in status.Effects)
                 {
-                    if (effect.EffectObject != null && effect.EffectObject.IgnoresFieldPenalty(unit)) return true;
+                    if (effect.EffectObject is IFieldPenaltyImmunity) return true;
                 }
             }
             return false;
@@ -149,4 +149,7 @@ namespace Combat
                 ? element
                 : BaseEnums.UnitElement.None;
     }
+
+    /// <summary>전장 상태가 주는 <b>불리한</b> 배율을 무시하는 효과가 구현한다.</summary>
+    public interface IFieldPenaltyImmunity { }
 }

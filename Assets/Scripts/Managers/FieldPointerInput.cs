@@ -21,7 +21,12 @@ namespace Managers
     ///
     /// 이제 누른 순간 같은 프레임에 UI 레이캐스트를 직접 쏘아 UI가 하나라도 맞으면 전장 입력을 받지 않는다.
     /// 클릭과 드래그는 <b>이동 거리만</b>으로 가른다 — 누른 칸에서 떼면 클릭, 일정 거리 이상 끌면 드래그다.
+    ///
+    /// <b>EventSystem보다 먼저 돈다.</b> 누르고 떼는 것이 한 프레임에 합쳐지면(빠른 클릭 · 자동화 입력)
+    /// EventSystem이 먼저 버튼을 처리해 확인 창이 닫힌 뒤에 이 판정이 돌았고, 창이 사라진 자리에서
+    /// UI를 못 찾아 그 아래 카드의 캐릭터 창이 열렸다(Play 모드 확인). 창이 아직 떠 있을 때 묻는다.
     /// </summary>
+    [DefaultExecutionOrder(-2000)]
     public sealed class FieldPointerInput : MonoBehaviour
     {
         /// <summary>드래그로 보는 이동 거리(1080p 기준 px). 해상도에 비례해 늘린다.</summary>

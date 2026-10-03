@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -100,13 +100,13 @@ namespace Codes.Base
             }
         }
 
-        /// <summary>장비 codeGrants의 slot 문자열. 모르는 값은 패시브로 본다 — 장비가 주는 코드는 거의 패시브다.</summary>
+        /// <summary>저장·표시 데이터의 슬롯 문자열. 모르는 옛 값은 호환을 위해 패시브로 본다.</summary>
         public static Slot ParseSlot(string key) => TryParseSlot(key, out Slot slot) ? slot : Slot.Passive;
 
         public static Slot SlotOf(Code code) => code switch
         {
-            SpecialCode => Slot.Special,
             UltimateCode => Slot.Ultimate,
+            SpecialCode => Slot.Special,
             PassiveCode => Slot.Passive,
             _ => Slot.Normal,
         };

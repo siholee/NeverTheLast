@@ -52,7 +52,7 @@ namespace Managers.UI.Screens
             UIBuild.Pin(_confirm.image.rectTransform, new Vector2(1f, 0f), new Vector2(width, 64f),
                 new Vector2(-width * 0.5f, 34f));
 
-            _cancel = UIBuild.Button("Cancel", Body, "취소", Hide);
+            _cancel = UIBuild.Button("Cancel", Body, "취소", Cancel);
             UIBuild.Pin(_cancel.image.rectTransform, new Vector2(1f, 0f), new Vector2(width, 64f),
                 new Vector2(-width * 1.5f - gap, 34f));
         }
@@ -72,10 +72,17 @@ namespace Managers.UI.Screens
 
         private void Accept()
         {
+            AudioManager.PlayCue("ui.confirm");
             Action callback = _onConfirm;
             _onConfirm = null;
             Hide();
             callback?.Invoke();
+        }
+
+        private void Cancel()
+        {
+            AudioManager.PlayCue("ui.cancel");
+            Hide();
         }
 
         public override void Hide()
@@ -87,7 +94,7 @@ namespace Managers.UI.Screens
         /// <summary>ESC는 취소와 같다. 배경으로는 닫히지 않지만 키보드로 물러설 길은 있어야 한다.</summary>
         protected override bool OnEscape()
         {
-            Hide();
+            Cancel();
             return true;
         }
     }

@@ -1,7 +1,10 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using BaseClasses;
-using Effects.Negative;
+using Effects;
+using Effects.Vfx;
 using Entities.Status;
 using Managers;
 using Managers.UI.Core;
@@ -15,22 +18,21 @@ namespace Entities.View
     /// <summary>
     /// 전장(과 대기석)의 유닛 한 명을 <b>자유롭게 선 원화 + 가벼운 전투 HUD</b>로 그린다.
     ///
-    /// 우하단 파티 카드를 없애면서 그쪽이 들고 있던 정보가 전부 이리로 왔다.
     /// 한 장에 담기는 것:
-    ///   · 컷코너 카드 프레임 — 초상화가 그 위에 선다(초상화는 여전히 SpriteRenderer다)
-    ///   · 이름 띠
-    ///   · 궁극기 게이지 — 우상단에 걸치는 원형. 테두리는 고정이고 안쪽이 아래에서
-    ///     위로 차오른다(스타레일식). 충전 중·완료·예약이 모두 같은 색이다.
-    ///   · 체력 바 — 그 <b>오른쪽에 이어 붙는</b> 방어막(하늘색)
-    ///   · 행동 게이지 — 체력 바 절반 높이
-    ///   · 상태 아이콘 — 이로운 것 초록, 해로운 것 적색(<see cref="StatusIcons"/>)
+    ///   · 자유 실루엣 — 카드 프레임 없이 원화와 접지 그림자만 무대 위에 선다
+    ///   · 원화 — 칸 안에 들어가는 크기로 가운데 선다(마스크로 자르지 않는다)
+    ///   · 전투 HUD(월드 캔버스) — 중성 금속 에너지 오브와 원화 위 한 장의 하단 리퀴드 글라스
     ///
-    /// 프레임은 SpriteRenderer, 나머지는 월드 스페이스 캔버스다.
-    /// 초상화가 SpriteRenderer라 프레임은 그보다 뒤에(정렬 순서가 낮게) 있어야 하므로
-    /// 전부를 캔버스 하나로 뭉뚱그릴 수 없다.
+    /// 2026-09 개편 때 하스스톤식 판 · 보석 카드로 바꿨다가 이 디자인으로 되돌렸다(사용자 판단 — 원래 쪽이 낫다).
+    /// 대신 <b>움직임은 카드 자체가 한다</b>는 개편은 그대로다.
+    ///   · 근접 공격 — 카드가 들려 대상에게 날아가 부딪히고 돌아온다(<see cref="Charge"/>)
+    ///   · 원거리 — 카드가 살짝 물러났다 앞으로 튀며 정중앙에서 투사체를 낸다(<see cref="PlayThrow"/>)
+    ///   · 피격 — 하얗게 번쩍이며 밀리고, 부딪힌 공격이면 떤다
+    ///   · 등장 — 세로 광선 안에서 원화가 복원되고 얇은 파동이 닫힌다(<see cref="PlayEntry"/>)
+    ///   · 파괴 — <see cref="CardLifecycleFx"/>가 원화를 떠서 깨뜨린다
     ///
-    /// 전투 연출은 <b>카드 자체가 한다</b>. 유닛 스프라이트가 칼을 휘두르는 대신,
-    /// 쏠 때 카드가 앞으로 찍고 맞을 때 번쩍이며 뒤로 밀린다.
+    /// 움직임은 세 층이다. 루트가 <b>월드 이동</b>(돌진), 몸체가 <b>들림 · 기울기 · 찌그러짐</b>,
+    /// 그 위에 피격 반응(밀림 · 떨림)이 얹힌다. 그림자는 루트에 남아 들린 높이를 말해 준다.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class UnitCardView : MonoBehaviour
@@ -40,180 +42,221 @@ namespace Entities.View
 
         /// <summary>캔버스 안의 작업 단위. 카드 한 변이 100이 되도록 잡는다.</summary>
         private const float CanvasWidth = 100f;
+        private const float CanvasHeight = 134f;
 
-        /// <summary>카드(100) + 그 아래 바 영역까지의 높이.</summary>
-        private const float CanvasHeight = 130f;
-
-        /// <summary>
-        /// 상태 아이콘 칸 수. 마지막 칸은 넘친 수(+N)를 적는 자리로도 쓴다.
-        /// 다섯 칸에서 조용히 잘리면 여섯 번째 디버프가 있는지조차 알 수 없었다.
-        /// </summary>
+        // HUD 캔버스 좌표(좌상단 기준). 상태가 있을 때만 셋째 행까지 열고, 평소에는 이름·HP·행동선에 맞춰 접는다.
+        private const float RingSize = 48f;
+        private const float RingEdge = 3.1f;
+        private const float OrbCenterX = 75f;
+        private const float OrbCenterY = 28f;
+        private const float GlassLeft = 2.5f;
+        private const float GlassTop = 72.5f;
+        private const float GlassWidth = 95f;
+        private const float GlassHeight = 27.5f;
+        private const float GlassEmptyHeight = 18.7f;
+        private const float GlassCenterY = GlassTop + GlassHeight * 0.5f;
+        private const float HpTop = 84.4f;
+        private const float HpHeight = 1.55f;
+        private const float ActionTop = 87.6f;
+        private const float ActionHeight = 0.7f;
+        private const float DotTop = 89.5f;
+        private const float DotSize = 7.5f;
+        private const float DotGap = 9.1f;
         private const int MaxDots = 6;
+        private const float DotIconRatio = 0.68f;
+        private const float DotCountSize = 4.7f;
+        private const int MaxElementBadges = 3;
+        private const int CompactStatusIconCount = 3;
 
-        // 캔버스 좌표(좌상단 기준). 디자인 캔버스의 퍼센트를 그대로 옮겼다.
-        // 이름 받침은 한 줄이다. 체력 수치는 바가 대신 말하므로 적지 않는다.
-        private const float NameBandTop = 78f;
-        private const float NameBandHeight = 20f;
-        private const float RingSize = 23f;
-        private const float RingOverhang = 2f;
+        /// <summary>원화가 칸 안에서 차지하는 한 변(카드 한 변 대비). 옛 <c>Cell.PortraitFitSize</c>다.</summary>
+        private const float PortraitFit = 1.03f;
 
-        /// <summary>테두리 안쪽으로 물이 들어갈 여백(캔버스 단위).</summary>
-        private const float RingEdge = 1.6f;
+        private static readonly Color RingWell = new(0.69f, 0.82f, 0.91f, 0.22f);
+        private static readonly Color DotBacking = new(0.09f, 0.145f, 0.204f, 0.10f);
+        private static readonly Color MarkIdle = new(0.973f, 0.984f, 1f, 0.94f);
+        private static readonly Color MarkShadow = new(0.075f, 0.125f, 0.20f, 0.94f);
+        private static readonly Color GroundShadow = new(0.255f, 0.36f, 0.45f, 0.43f);
+        private const float InactiveAlpha = 0.38f;
 
-        /// <summary>
-        /// 아직 차지 않은 부분. 스타레일처럼 <b>흐린 흰색</b>이다.
-        /// 예전에는 여기가 카드보다 더 어두워서, 어두운 그릇에 어두운 물이 담긴 꼴이라
-        /// 수위가 카드에서 떨어져 보이지 않았다.
-        /// </summary>
-        private static readonly Color RingWell = new(0.635f, 0.655f, 0.686f, 1f);
-
-        /// <summary>스택 칸을 가르는 선. 물이 찼든 안 찼든 같은 색으로 보이게 어둡다.</summary>
-        private static readonly Color RingTick = new(0.067f, 0.071f, 0.082f, 1f);
-
-        /// <summary>상태 아이콘 받침. 초상화 위에서도 그림이 뜨도록 거의 검다.</summary>
-        private static readonly Color DotBacking = new(0.047f, 0.051f, 0.059f, 0.84f);
-
-        /// <summary>충전 중인 궁극기 표식. 물 위에 흐리게 깔린다.</summary>
-        private static readonly Color MarkIdle = new(1f, 1f, 1f, 0.26f);
-
-        /// <summary>
-        /// 칸 나누기를 그려 줄 스택 수의 상한. 이보다 많으면 칸이 선 두께만큼도 안 남아
-        /// 줄무늬로만 보이므로 그냥 연속 게이지로 둔다.
-        /// </summary>
-        private const int MaxRingTicks = 8;
-
-        /// <summary>칸 나누기 선의 두께(캔버스 단위).</summary>
-        private const float RingTickThickness = 0.7f;
-
-        /// <summary>
-        /// 체력 바를 끊어 그릴 칸 수의 상한. 가로 바는 링보다 길어 더 잘게 나눠도 읽힌다
-        /// (오시리스의 14칸이 이 안에 들어온다). 넘어가면 그냥 연속 게이지로 둔다.
-        /// </summary>
-        private const int MaxHpTicks = 16;
-
-        /// <summary>체력 바 칸 나누기 선의 두께(캔버스 단위).</summary>
-        private const float HpTickThickness = 0.9f;
-        private const float HpTop = 104.7f;
-        private const float HpHeight = 5.7f;
-        private const float ActionTop = 112.2f;
-        private const float ActionHeight = 2.9f;
-        private const float DotTop = 117.0f;
-
-        /// <summary>
-        /// 상태 아이콘 한 변. 8배속에서 읽으려면 12로는 모자랐다.
-        /// 받침까지 합쳐 카드 한 변의 15%를 준다.
-        /// </summary>
-        private const float DotSize = 15f;
-        private const float DotGap = 16.8f;
-
-        /// <summary>아이콘 받침 안에서 그림이 차지하는 비율. 나머지는 여백이다.</summary>
-        private const float DotIconRatio = 0.74f;
-
-        /// <summary>중첩 수 글자의 한 변(캔버스 단위).</summary>
-        private const float DotCountSize = 8.5f;
-
-        /// <summary>카드 위로 걸치는 HUD(궁극기 게이지)의 높이. 카메라가 이만큼 위를 비운다.</summary>
-        public static float HudAbove(float cardSize) => cardSize * RingOverhang / CanvasWidth;
+        /// <summary>오브가 카드 안에 들어오므로 별도 상단 여백은 없다.</summary>
+        public static float HudAbove(float cardSize) => 0f;
 
         /// <summary>카드 아래로 붙는 HUD(체력 · 행동 · 상태 아이콘)의 높이. 카메라가 이만큼 아래를 비운다.</summary>
-        public static float HudBelow(float cardSize) => cardSize * (DotTop + DotSize - CanvasWidth) / CanvasWidth;
+        public static float HudBelow(float cardSize) => cardSize * Mathf.Max(0f, GlassTop + GlassHeight - CanvasWidth) / CanvasWidth;
 
+        // ── 반응 시간 ───────────────────────────────────────────────
+        private const float FlashTime = 0.14f;
+        private const float PunchTime = 0.18f;
+        private const float PunchAmount = 0.06f;
+        private const float RecoilDistance = 0.075f;     // 카드 한 변 대비
+        private const float ShakeTime = 0.22f;
+        private const float ShakeDistance = 0.062f;
+        private const float ShakeFrequency = 30f;
+        private const float LungeTime = 0.26f;
+        private const float LungeDistance = 0.10f;
+        private const float VfxKickTime = 0.16f;
+        private const float VfxKickDistance = 0.040f;
+        private const float AirborneLiftHeight = 0.13f;
+
+        // ── 구성 요소 ───────────────────────────────────────────────
         private Unit _unit;
         private bool _combatHud;
         private float _cardSize;
+        private int _baseOrder;
+        private int _layerId;
+        private int _sortBoost;
 
-        private SpriteRenderer _frame;
+        private Transform _body;
+        private SpriteRenderer _shadow;
+        private SpriteRenderer _auraGlow;
+        private SpriteRenderer _portrait;
+        private TextMeshPro _nameLabel;
+        private TextMeshPro _hpLabel;
+        private TextMeshPro _resourceBadgeText;
+        private Image _actingOutline;
+
+        private Canvas _orbCanvas;
+        private CanvasGroup _orbGroup;
         private Canvas _canvas;
         private CanvasGroup _group;
-        private Image _actingOutline;
-        private TextMeshPro _nameLabel;
-        private MeshRenderer _nameRenderer;
-        private readonly Image[] _reagentBars = new Image[3];
-        private readonly GameObject[] _reagentTracks = new GameObject[3];
+        private RectTransform _bottomHudRoot;
         private RectTransform _ultRoot;
+        private Image _ultRearFill;
         private Image _ultFill;
+        private Image _ultFillLight;
+        private Image _ultFillShade;
+        private Image _ultRearWave;
+        private Image _ultWave;
         private Image _ultOutline;
-        private RectTransform _ultTicks;
-
-        /// <summary>칸 나누기를 다시 그릴지 판단하는 값. 스택형이 아니면 0이다.</summary>
-        private int _ringTickCount = -1;
-
-        /// <summary>링 색을 다시 계산할지 판단할 때 쓰는 직전 원소 이름.</summary>
-        private string _ringElementName;
-
-        /// <summary>충전 중일 때의 링 색. 다 차면 금색으로 바뀌므로 되돌릴 값을 들고 있는다.</summary>
-        private Color _ringColor = UITheme.Mana;
+        private Image _ultMarkShadow;
+        private Image _ultMark;
+        private Image _ultGlass;
+        private Image _ultReadyGlow;
+        private Image _ultReadyRing;
+        private Image _resourceBadge;
+        private Image _resourceBadgeDigit;
+        private GameObject _bottomGlass;
+        private GameObject _bottomGlassShadow;
+        private Image _glassTint;
+        private Image _hpTrack;
         private Image _hpFill;
         private Image _shieldFill;
-        private RectTransform _hpTicks;
-
-        /// <summary>체력 바 칸 나누기를 다시 그릴지 판단하는 값. 나누지 않으면 0이다.</summary>
-        private int _hpTickCount = -1;
+        private Image _actionTrack;
         private Image _actionFill;
-        private readonly Image[] _dots = new Image[MaxDots];
-        private readonly Image[] _dotBacks = new Image[MaxDots];
-        private readonly Image[] _dotCounts = new Image[MaxDots];
+        private Image[] _dots = new Image[MaxDots];
+        private Image[] _dotBacks = new Image[MaxDots];
+        private Image[] _dotRims = new Image[MaxDots];
+        private Image[] _dotArrows = new Image[MaxDots];
+        private Image[] _dotCountBacks = new Image[MaxDots];
+        private Image[] _dotCounts = new Image[MaxDots];
+        private Image[] _elementBadges = new Image[MaxElementBadges];
+        private List<UnitStatus> _dotStatuses = new();
+        private List<int> _dotStackCounts = new();
+        private RectTransform _supportHudPulseTarget;
+        private Image _supportHudPulseImage;
+        private Color _supportHudPulseBaseColor;
+        private float _supportHudPulseAge = -1f;
+        private const float SupportHudPulseDuration = 0.34f;
 
-        /// <summary>한 칸에 모은 상태와 그 중첩 수. 매 프레임 다시 채우므로 새로 만들지 않는다.</summary>
-        private readonly List<UnitStatus> _dotStatuses = new();
-        private readonly List<int> _dotStackCounts = new();
+        private string _ringElementName;
+        private Color _ringColor = UITheme.Mana;
+        private float _ultFillAmount;
+        private bool _ultReady;
+        private bool _compactHud;
+        private bool _statusRowVisible;
+        private bool _glassHeightInitialized;
+        private bool _hudLodInitialized;
+        private int _visibleDotSlots = MaxDots;
+        private float _hudPixelScale = 1f;
 
-        /// <summary>궁극기 게이지 안의 표식. 이 자리가 충전량임을 알린다.</summary>
-        private Image _ultMark;
-        private Image _hitFlash;
+        private static Sprite _orbGlassSprite;
+        private static Sprite _geoGlyphSprite;
+        private static Sprite _voidGlyphSprite;
+        private static Sprite _neutralGlyphSprite;
+        private static readonly Dictionary<Sprite, Sprite> FadedPortraits = new();
+        private static readonly Dictionary<Sprite, Sprite> PortraitSources = new();
 
-        // ── 타격 · 시전 반응 ─────────────────────────────────────────
-        private const float FlashTime = 0.13f;   // 맞았을 때 하얗게 번쩍이는 시간
-        private const float PunchTime = 0.18f;   // 카드가 커졌다 돌아오는 시간
-        private const float LungeTime = 0.22f;   // 쏠 때 앞으로 찍는 시간
-        private const float PunchAmount = 0.07f; // 커지는 비율
-        private const float LungeDistance = 0.9f;
-        private const float RecoilDistance = 0.55f;
+        // 패널이 시작되는 높이부터 실제 밑변까지 지우고, 하단에서 긴 직선으로 잘린 원화만
+        // 좌우 모서리도 함께 녹인다. 짧은 발·꼬리 끝은 절단선으로 오인하지 않는다.
+        private const float PortraitFadeFraction = 0.30f;
+        private const float PortraitClearFraction = 0.025f;
+        private const float PortraitSideFadeFraction = 0.07f;
+        private const float PortraitSideRunFraction = 0.028f;
+        private const byte PortraitOpaqueThreshold = 16;
+        private const byte PortraitBleedThreshold = 224;
+        private const int PortraitBleedRadius = 3;
+        // 원화는 화면에서 원본보다 2~4배 작게 보인다. 런타임 사본에도 밉 체인을 만들어
+        // 축소 시 한 밉의 bilinear 표본만 반복하는 점선 계단 대신 연속 커버리지를 적분한다.
+        private const float PortraitMipBias = -0.25f;
+        private const byte PortraitDiagnosticLowAlphaThreshold = 48;
+        private const int PortraitDiagnosticCoreRadius = 3;
 
-        // 일반행동은 "뒤로 뺐다 → 앞으로 찍는 순간 발사" 순서로 보인다.
-        // 예전에는 시전이 시작되는 순간 앞으로 찍고 시전 시간(0.5초)이 지난 뒤에야 투사체가 나가
-        // 카드가 움직인 뒤 한참 있다가 발사되는 어색한 간격이 생겼다.
-        private const float WindupDistance = 0.5f;      // 뒤로 빼는 거리
-        private const float WindupReleaseTime = 0.07f;  // 빼 둔 자세가 풀리는 시간(찍는 동작과 겹친다)
-        private const float WindupGrace = 0.05f;        // 발사 신호가 없을 때 시전 시간 뒤 기다려 주는 여유
-        private const float ThrustDebounce = 0.12f;     // 막 찍었으면 같은 발사의 중복 신호를 무시하는 시간
-        private const float MinWindupCast = 0.08f;      // 이보다 짧은 시전에는 뒤로 뺄 틈이 없다
-
-        /// <summary>물리 타격에 카드가 떠는 시간. 길면 '맞았다'가 아니라 '고장났다'로 보인다.</summary>
-        private const float ShakeTime = 0.20f;
-
-        /// <summary>떨림의 최대 진폭(월드 단위). 찍기(0.9)보다 작아야 반응이 겹쳐도 읽힌다.</summary>
-        private const float ShakeDistance = 0.62f;
-
-        /// <summary>가로 떨림의 주파수(Hz). 세로는 이보다 느려 한 방향으로만 떨지 않는다.</summary>
-        private const float ShakeFrequency = 32f;
-        private const float AirborneRiseTime = 0.16f;
-        private const float AirborneFallTime = 0.22f;
-
-        private Transform _portrait;
-        private Vector3 _portraitBaseScale = Vector3.one;
+        // ── 움직임 상태 ─────────────────────────────────────────────
         private float _flash;
         private float _punch;
-        private float _lunge;
         private float _recoil;
-
-        /// <summary>뒤로 빼 둔 정도(0~1). 시전 시간 동안 차오르고, 발사 순간 풀린다.</summary>
-        private float _windup;
-        private float _windupElapsed;
-        private float _windupDuration;
-
-        /// <summary>발사 신호를 기다리며 자세를 잡고 있는가.</summary>
-        private bool _windupHeld;
-
-        private float _lastThrustTime = float.NegativeInfinity;
-
-        /// <summary>물리 타격의 떨림. 1에서 0으로 줄며, 남은 값이 곧 진폭이다.</summary>
+        private float _hitSquash;
         private float _shake;
         private float _shakeStrength;
         private float _shakeSeed;
+        private Color _vfxLightColor = Color.white;
+        private float _vfxLightPeak;
+        private float _vfxLightAge;
+        private float _vfxLightDuration;
+        private float _lunge;
+        private Vector3 _lungeDirection = Vector3.right;
+        private float _vfxKick;
+        private float _vfxKickStrength;
+        private Vector3 _vfxKickDirection = Vector3.right;
         private float _airborneLift;
         private int _facing = 1;
         private int _lastHp = -1;
+
+        /// <summary>돌진 등으로 카드가 떠나 있는 거리(월드).</summary>
+        private Vector3 _motionOffset;
+        /// <summary>들린 정도 0~1. 크기 · 높이 · 그림자 · 정렬이 함께 움직인다.</summary>
+        private float _lift;
+        private float _tilt;
+        private Vector2 _squash = Vector2.one;
+        private float _alpha = 1f;
+        private float _entryDelay = -1f;
+        private float _entryAge = -1f;
+        private float _landingAge = -1f;
+        private bool _entryFxStarted;
+
+        private const float EntryDropTime = 0.38f;
+        private const float LandingTime = 0.18f;
+
+        private void OnEnable()
+        {
+            // Play 중 스크립트 재컴파일 뒤에는 런타임 생성 계층은 복원되지만, 새 배열 필드의
+            // 원소는 복원되지 않을 수 있다. 완성된 캔버스처럼 보이는 반쪽 HUD를 여기서 바로 수선한다.
+            if (_body != null && !HudIsComplete()) RebuildHud();
+        }
+
+        /// <summary>돌진처럼 카드가 스스로 움직이는 중인가. 이 동안에는 들린 상태를 반응이 건드리지 않는다.</summary>
+        public bool IsPerformingMotion { get; private set; }
+
+        /// <summary>카드 몸체의 월드 중심. 투사체의 출발점과 착탄점이다.</summary>
+        public Vector3 CenterWorld => _body != null ? _body.position : transform.position;
+
+        /// <summary>하네스가 카드와 전투 로그를 같은 유닛 ID로 묶을 때 쓴다.</summary>
+        public Unit BoundUnit => _unit;
+
+        /// <summary>
+        /// 피격 중심 검수용 얼굴~상체 화면 박스. 전신 원화의 하단 28%는 발·패널 접점이므로 제외한다.
+        /// Unity 화면 좌표라 원점은 좌하단이며, PNG 분석기는 높이에서 y를 빼서 사용한다.
+        /// </summary>
+        public Rect PortraitFocusScreenRect(Camera camera)
+        {
+            if (camera == null || _portrait == null || !_portrait.enabled) return default;
+            Bounds bounds = _portrait.bounds;
+            float focusBottom = Mathf.Lerp(bounds.min.y, bounds.max.y, 0.28f);
+            Vector3 bottomLeft = camera.WorldToScreenPoint(new Vector3(bounds.min.x, focusBottom, bounds.center.z));
+            Vector3 topRight = camera.WorldToScreenPoint(new Vector3(bounds.max.x, bounds.max.y, bounds.center.z));
+            return Rect.MinMaxRect(Mathf.Min(bottomLeft.x, topRight.x), Mathf.Min(bottomLeft.y, topRight.y),
+                Mathf.Max(bottomLeft.x, topRight.x), Mathf.Max(bottomLeft.y, topRight.y));
+        }
 
         /// <summary>칸에 카드 뷰를 붙인다(이미 있으면 그대로 쓴다).</summary>
         public static UnitCardView Attach(Transform cell, float cellSize)
@@ -231,466 +274,1515 @@ namespace Entities.View
             return view;
         }
 
-        /// <summary>
-        /// 카드가 함께 흔들 초상화 렌더러를 알려 준다.
-        /// 초상화는 칸(Cell)의 자식이라 카드 루트를 흔들어도 따라오지 않는다.
-        /// </summary>
-        public void BindPortrait(SpriteRenderer portrait)
-        {
-            _portrait = portrait != null ? portrait.transform : null;
-            RefreshPortraitBase();
-        }
-
-        /// <summary>초상화 배율이 다시 잡혔을 때 기준값을 갱신한다.</summary>
-        public void RefreshPortraitBase()
-        {
-            if (_portrait != null) _portraitBaseScale = _portrait.localScale;
-        }
+        // ══════════════════════════════════════════════════════
+        // 조립
+        // ══════════════════════════════════════════════════════
 
         private void Build(float cardSize)
         {
-            RecoverReagentReferences();
-            if (_frame != null && _canvas != null && _hpFill != null && _actionFill != null && ReagentsBuilt())
+            if (_body != null && _canvas != null)
             {
+                if (!HudIsComplete()) RebuildHud();
                 Resize(cardSize);
                 return;
             }
 
             _cardSize = cardSize;
 
-            // ── 카드 프레임 ──
-            // 컷코너를 카드 한 변의 9%로 잡는다. 스프라이트는 100 px/unit이므로
-            // 잘라낼 크기를 픽셀로 환산해 만든 뒤 9-슬라이스로 늘린다.
-            var frameObject = new GameObject("Frame", typeof(SpriteRenderer));
-            frameObject.transform.SetParent(transform, false);
-            _frame = frameObject.GetComponent<SpriteRenderer>();
-            _frame.sprite = UIShapes.CutCornerOutline(
-                Mathf.RoundToInt(cardSize * 0.09f * 100f),
-                new Color(0.20f, 0.43f, 0.46f, 0.18f), 1);
-            _frame.drawMode = SpriteDrawMode.Sliced;
-            _frame.size = new Vector2(cardSize, cardSize);
+            // 발밑 그림자 — 바닥(루트)에 남아 들린 높이를 말한다.
+            _shadow = VfxSpace.NewSprite(transform, "Shadow", VfxSpace.SoftDot, GroundShadow, 0, 0);
+            _body = new GameObject("Body").transform;
+            _body.SetParent(transform, false);
 
-            // ── HUD 캔버스 ──
-            var canvasObject = new GameObject("Hud", typeof(RectTransform), typeof(Canvas));
-            canvasObject.transform.SetParent(transform, false);
-            _canvas = canvasObject.GetComponent<Canvas>();
-            _canvas.renderMode = RenderMode.WorldSpace;
+            // 상태 오라도 카드 크기의 면을 만들지 않는다. 검증된 원형 텍스처를 발밑에 눕혀 짧은 표식으로만 쓴다.
+            _auraGlow = VfxSpace.NewSprite(_body, "AuraGlow", VfxSpace.SoftDot, Color.clear, 0, 0);
 
-            // TextMeshPro의 SDF 셰이더는 글자 크기 비율을 UV2(TexCoord1)로 받는다.
-            // 코드로 붙인 Canvas는 이 채널을 버리기 때문에 글자가 통째로 투명해진다
-            // (Image는 멀쩡히 나오는데 글자만 안 보이면 십중팔구 이것이다).
-            _canvas.additionalShaderChannels =
-                AdditionalCanvasShaderChannels.TexCoord1 |
-                AdditionalCanvasShaderChannels.Normal |
-                AdditionalCanvasShaderChannels.Tangent;
+            _nameLabel = NewLabel("Name", FontStyles.Bold, TextAlignmentOptions.MidlineLeft);
+            _nameLabel.color = new Color(0.973f, 0.984f, 1f, 1f);
+            _nameLabel.outlineColor = new Color(0.075f, 0.125f, 0.20f, 0.96f);
+            _nameLabel.outlineWidth = 0.16f;
+            _nameLabel.overflowMode = TextOverflowModes.Truncate;
 
-            var canvasRect = (RectTransform)canvasObject.transform;
-            canvasRect.pivot = new Vector2(0.5f, 1f);
-            canvasRect.sizeDelta = new Vector2(CanvasWidth, CanvasHeight);
-            canvasRect.localScale = Vector3.one * (cardSize / CanvasWidth);
-            canvasRect.localPosition = new Vector3(0f, cardSize * 0.5f, -0.01f);
+            // 월드 캔버스의 TextMeshProUGUI는 이 카드에서 렌더되지 않아 체력 수도 월드 TMP로 둔다.
+            // 어두운 유리판 위에서 한눈에 읽히도록 밝은 숫자에 짙은 외곽을 둔다.
+            _hpLabel = NewLabel("HpValue", FontStyles.Bold, TextAlignmentOptions.MidlineRight);
+            _hpLabel.color = new Color(0.96f, 0.99f, 1f, 1f);
+            _hpLabel.outlineColor = new Color(0.075f, 0.125f, 0.20f, 0.98f);
+            _hpLabel.outlineWidth = 0.16f;
+            _hpLabel.overflowMode = TextOverflowModes.Truncate;
 
-            _group = UIBuild.Group(canvasObject);
-            _group.blocksRaycasts = false;
+            // 전투 자원은 10 이상도 정확히 읽혀야 하므로 한 자리 스프라이트 대신 월드 텍스트를 쓴다.
+            _resourceBadgeText = NewLabel("ResourceValue", FontStyles.Bold, TextAlignmentOptions.Center);
+            _resourceBadgeText.color = Color.white;
+            _resourceBadgeText.outlineColor = new Color(0.075f, 0.125f, 0.20f, 0.98f);
+            _resourceBadgeText.outlineWidth = 0.18f;
+            _resourceBadgeText.enabled = false;
 
-            Transform root = canvasObject.transform;
-
-            // 초상화가 카드 면을 거의 덮으므로 테두리는 초상화 '위'에 그린다.
-            // 흰 배경 초상화에서도 카드 형태(컷코너)가 보이게 하기 위한 것이다.
-            // 원화 뒤를 막던 불투명 정사각 카드 면은 두지 않는다. 캐릭터는 무대 위에 직접 서고,
-            // 정보는 아래의 작은 아이보리 받침 하나에만 모인다.
-            Image baseShadow = NewImage(root, "BaseShadow", new Color(0.05f, 0.16f, 0.17f, 0.14f));
-            baseShadow.sprite = UIShapes.Disc(96, Color.white);
-            Place(baseShadow.rectTransform, 10f, 91f, 80f, 11f);
-
-            // 지금 행동 중인 유닛을 알리는 앰버 테두리.
-            _actingOutline = NewImage(root, "ActingOutline", Color.white);
-            _actingOutline.sprite = UIShapes.Disc(96, UITheme.Accent, 0.78f);
-            _actingOutline.type = Image.Type.Simple;
-            Place(_actingOutline.rectTransform, 8f, 88f, 84f, 15f);
-            _actingOutline.enabled = false;
-
-            // 글라스 받침. 초상화 위에 얹히므로 HUD 글라스보다 조금 더 불투명하게 잡아 글자가 선다.
-            Image nameBand = UIBuild.Glass("NameBand", root, 7, 0.74f);
-            nameBand.raycastTarget = false;
-            Place(nameBand.rectTransform, 0f, NameBandTop, CanvasWidth, NameBandHeight);
-
-            Image nameAccent = UIBuild.Solid("NameAccent", root, UITheme.Accent);
-            Place(nameAccent.rectTransform, 7f, NameBandTop + 4f, 2f, 12f);
-
-            // 이름표만은 캔버스 밖의 월드 TextMeshPro다.
-            // TextMeshProUGUI는 이 월드 스페이스 캔버스에서 아예 그려지지 않았다
-            // (같은 캔버스의 Image는 멀쩡하고, 라틴 문자·스케일 10에서도 안 나왔다).
-            // 원인을 더 파는 대신, 월드 공간용으로 만들어진 쪽을 쓴다 —
-            // MeshRenderer로 그려지므로 정렬 순서도 카드 렌더러와 같은 축에서 다룰 수 있다.
-            var nameObject = new GameObject("Name", typeof(RectTransform), typeof(TextMeshPro));
-            nameObject.transform.SetParent(transform, false);
-            _nameLabel = nameObject.GetComponent<TextMeshPro>();
-            _nameRenderer = nameObject.GetComponent<MeshRenderer>();
-            UIBuild.ApplyFont(_nameLabel);
-            _nameLabel.color = new Color(0.075f, 0.12f, 0.13f, 1f);
-            _nameLabel.alignment = TextAlignmentOptions.MidlineLeft;
-            _nameLabel.fontStyle = FontStyles.Bold;
-            _nameLabel.textWrappingMode = TextWrappingModes.NoWrap;
-            _nameLabel.raycastTarget = false;
-            LayOutName(cardSize);
-
-
-            Color[] reagentColors = { UITheme.Danger, UITheme.Mana, UITheme.Accent };
-            for (int i = 0; i < 3; i++)
-            {
-                var track = UIBuild.Solid("Reagent" + i, root, UITheme.SurfaceSunken);
-                Place(track.rectTransform, 8f + i * 29f, 73f, 25f, 3f);
-                var fill = UIBuild.Solid("Fill", track.transform, reagentColors[i]);
-                UIBuild.Stretch(fill.rectTransform);
-                _reagentBars[i] = fill;
-                _reagentTracks[i] = track.gameObject;
-                track.gameObject.SetActive(false);
-            }
-
-            // ── 궁극기 충전 ──
-            // 붕괴: 스타레일 방식이다. 테두리는 늘 또렷하게 그려 두고,
-            // 안쪽이 아래에서 위로 차오른다.
-            //
-            // 시계 방향으로 도는 링을 쓰지 않는 이유는 각도로만 읽히기 때문이다.
-            // 절반쯤 찼는지 3분의 2쯤 찼는지 알려면 호의 끝을 눈으로 따라가야 한다.
-            // 수위는 높이 하나로 읽히고, 여러 카드를 훑을 때 특히 차이가 크다.
-            _ultRoot = UIBuild.Container("UltGauge", root);
-            _ultRoot.anchorMin = new Vector2(1f, 1f);
-            _ultRoot.anchorMax = new Vector2(1f, 1f);
-            _ultRoot.pivot = new Vector2(1f, 1f);
-            _ultRoot.sizeDelta = new Vector2(RingSize, RingSize);
-            _ultRoot.anchoredPosition = new Vector2(RingOverhang, RingOverhang);
-
-            // 빈 그릇. 흐린 흰색이라 차오르기 전에도 자리가 또렷하다.
-            Image ultWell = NewImage(_ultRoot, "Well", RingWell);
-            ultWell.sprite = UIShapes.Disc(96, Color.white);
-            UIBuild.Stretch(ultWell.rectTransform, RingEdge, RingEdge);
-
-            // 차오르는 물. 테두리와 같은 진한 원소 색이라 흰 바탕 위에서 수위가 바로 읽힌다.
-            _ultFill = NewImage(_ultRoot, "Fill", UITheme.Mana);
-            _ultFill.sprite = UIShapes.Disc(96, Color.white);
-            _ultFill.type = Image.Type.Filled;
-            _ultFill.fillMethod = Image.FillMethod.Vertical;
-            _ultFill.fillOrigin = (int)Image.OriginVertical.Bottom;
-            _ultFill.fillAmount = 0f;
-            UIBuild.Stretch(_ultFill.rectTransform, RingEdge, RingEdge);
-
-            // 스택형 궁극기의 칸 나누기. 물 위·테두리 아래에 놓여야 물을 잘라 보인다.
-            _ultTicks = UIBuild.Container("Ticks", _ultRoot);
-            UIBuild.Stretch(_ultTicks, RingEdge, RingEdge);
-
-            // 게이지 안의 표식(⌃⌃). 원소색 원반 하나만 있으면 "원소 표시"인지 "충전량"인지
-            // 색만으로는 갈리지 않는다. 방향을 가진 표식이 들어가야 차오르는 자리로 읽힌다.
-            // 충전 중에는 흐리게 깔려 있다가 다 차면 또렷해진다.
-            _ultMark = NewImage(_ultRoot, "Mark", Color.white);
-            _ultMark.sprite = UIShapes.Chevron(96, Color.white);
-            _ultMark.preserveAspect = true;
-            UIBuild.Stretch(_ultMark.rectTransform, RingEdge * 3.2f, RingEdge * 3.2f);
-
-            // 테두리는 가장 위에. 수위와 무관하게 늘 같은 굵기다.
-            // 색은 유닛의 원소를 따라가므로 Bind에서 다시 칠한다.
-            _ultOutline = NewImage(_ultRoot, "Outline", UITheme.Mana);
-            _ultOutline.sprite = UIShapes.Disc(96, Color.white, 0.80f);
-            UIBuild.Stretch(_ultOutline.rectTransform);
-
-            // ── 체력 + 방어막(같은 트랙, 방어막이 오른쪽에 이어 붙는다) ──
-            Image hpTrack = UIBuild.Solid("HpTrack", root, new Color(0.08f, 0.15f, 0.16f, 0.82f));
-            Place(hpTrack.rectTransform, 0f, HpTop, CanvasWidth, HpHeight);
-            _hpFill = NewImage(hpTrack.transform, "HpFill", UITheme.Hp);
-            _shieldFill = NewImage(hpTrack.transform, "ShieldFill", UITheme.Shield);
-
-            // 체력이 단계로 끊기는 유닛(오시리스의 부위 파괴)만 칸 나누기를 얻는다.
-            // 채움 뒤에 만들어야 물 위에 선이 놓인다.
-            _hpTicks = UIBuild.Stretch(UIBuild.Container("HpTicks", hpTrack.transform));
-
-            // 글라스 반사광. 체력 · 방어막 위 윗부분에 옅은 흰 띠를 얹어 바가 유리관처럼 읽힌다.
-            Image hpSheen = UIBuild.Solid("HpSheen", hpTrack.transform, new Color(1f, 1f, 1f, 0.26f));
-            hpSheen.raycastTarget = false;
-            hpSheen.rectTransform.anchorMin = new Vector2(0f, 0.55f);
-            hpSheen.rectTransform.anchorMax = new Vector2(1f, 1f);
-            hpSheen.rectTransform.offsetMin = Vector2.zero;
-            hpSheen.rectTransform.offsetMax = Vector2.zero;
-
-            // ── 행동 게이지 ──
-            Image actionTrack = UIBuild.Solid("ActionTrack", root, new Color(0.08f, 0.15f, 0.16f, 0.34f));
-            Place(actionTrack.rectTransform, 0f, ActionTop, CanvasWidth, ActionHeight);
-            _actionFill = NewImage(actionTrack.transform, "ActionFill", UITheme.ActionYellow);
-
-            // ── 상태 아이콘 ──
-            // 예전에는 초록·적색 점이라 "뭔가 걸려 있다"까지만 읽혔다. 지금은 그림이 붙고,
-            // 어두운 받침 위에 얹혀 초상화 위에서도 형태가 뜬다.
-            // 색이 분류를 말한다 — 이로움 초록 · 해로움 적색 · 행동 불가 보라.
-            for (int i = 0; i < MaxDots; i++)
-            {
-                Image back = NewImage(root, $"StatusBack{i}", DotBacking);
-                back.sprite = UIShapes.Disc(64, Color.white);
-                back.type = Image.Type.Simple;
-                Place(back.rectTransform, i * DotGap, DotTop, DotSize, DotSize);
-                back.enabled = false;
-                _dotBacks[i] = back;
-
-                Image dot = NewImage(back.transform, $"Status{i}", UITheme.TextMuted);
-                dot.type = Image.Type.Simple;
-                dot.preserveAspect = true;
-                UIBuild.Stretch(dot.rectTransform,
-                    DotSize * (1f - DotIconRatio) * 0.5f, DotSize * (1f - DotIconRatio) * 0.5f);
-                dot.enabled = false;
-                _dots[i] = dot;
-
-                // 중첩 수는 오른쪽 아래 구석에 붙는다. 1이면 그리지 않는다 —
-                // 모든 아이콘에 1이 붙으면 숫자가 배경 무늬가 된다.
-                Image count = NewImage(back.transform, $"StatusCount{i}", Color.white);
-                count.preserveAspect = true;
-                count.type = Image.Type.Simple;
-                count.rectTransform.anchorMin = new Vector2(1f, 0f);
-                count.rectTransform.anchorMax = new Vector2(1f, 0f);
-                count.rectTransform.pivot = new Vector2(1f, 0f);
-                count.rectTransform.sizeDelta = new Vector2(DotCountSize, DotCountSize);
-                count.rectTransform.anchoredPosition = new Vector2(DotCountSize * 0.30f, -DotCountSize * 0.22f);
-                count.enabled = false;
-                _dotCounts[i] = count;
-            }
-
-            // 맞았을 때 카드 전체가 하얗게 번쩍인다. 카드 위 무엇보다 나중에 만들어 맨 앞에 둔다.
-            _hitFlash = NewImage(root, "HitFlash", new Color(1f, 1f, 1f, 0f));
-            _hitFlash.sprite = UIShapes.CutCorner(9, Color.white, UIShapes.Corner.Diagonal);
-            _hitFlash.type = Image.Type.Sliced;
-            Place(_hitFlash.rectTransform, 0f, 0f, CanvasWidth, CanvasWidth);
-            _hitFlash.raycastTarget = false;
-
+            BuildHud();
+            LayOut(cardSize);
             Show(false);
         }
 
-        /// <summary>
-        /// 플레이 모드 스크립트 재로드 뒤에는 런타임으로 만든 자식은 남아 있어도 배열 원소가
-        /// 비어 있을 수 있다. 시약 트랙을 부모 역참조로 추측하지 않고 이름으로 한 번 복구한다.
-        /// </summary>
-        private void RecoverReagentReferences()
+        private TextMeshPro NewLabel(string name, FontStyles style, TextAlignmentOptions alignment)
         {
-            if (_canvas == null) return;
-
-            for (int i = 0; i < _reagentBars.Length; i++)
-            {
-                if (_reagentBars[i] != null && _reagentTracks[i] != null) continue;
-
-                Transform track = _canvas.transform.Find("Reagent" + i);
-                if (track == null) continue;
-                _reagentTracks[i] = track.gameObject;
-                Transform fill = track.Find("Fill");
-                _reagentBars[i] = fill != null ? fill.GetComponent<Image>() : null;
-            }
+            // 캔버스 밖의 월드 TextMeshPro다. 코드로 붙인 월드 캔버스 위에서는 TextMeshProUGUI가
+            // 그려지지 않았다 — MeshRenderer로 그리면 정렬도 카드 렌더러와 같은 축에서 다룬다.
+            var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshPro));
+            go.transform.SetParent(_body, false);
+            var label = go.GetComponent<TextMeshPro>();
+            UIBuild.ApplyFont(label);
+            label.color = Color.white;
+            label.alignment = alignment;
+            label.fontStyle = style;
+            label.textWrappingMode = TextWrappingModes.NoWrap;
+            label.overflowMode = TextOverflowModes.Overflow;
+            label.raycastTarget = false;
+            label.enableAutoSizing = false;
+            return label;
         }
 
-        private bool ReagentsBuilt()
+        private void BuildHud()
         {
-            for (int i = 0; i < _reagentBars.Length; i++)
-                if (_reagentBars[i] == null || _reagentTracks[i] == null) return false;
+            var orbCanvasObject = new GameObject("OrbHud", typeof(RectTransform), typeof(Canvas));
+            orbCanvasObject.transform.SetParent(_body, false);
+            _orbCanvas = orbCanvasObject.GetComponent<Canvas>();
+            _orbCanvas.renderMode = RenderMode.WorldSpace;
+            _orbCanvas.additionalShaderChannels =
+                AdditionalCanvasShaderChannels.TexCoord1 | AdditionalCanvasShaderChannels.Normal |
+                AdditionalCanvasShaderChannels.Tangent;
+            var orbCanvasRect = (RectTransform)orbCanvasObject.transform;
+            orbCanvasRect.pivot = new Vector2(0.5f, 1f);
+            orbCanvasRect.sizeDelta = new Vector2(CanvasWidth, CanvasHeight);
+            _orbGroup = UIBuild.Group(orbCanvasObject);
+            _orbGroup.blocksRaycasts = false;
+
+            var canvasObject = new GameObject("Hud", typeof(RectTransform), typeof(Canvas));
+            canvasObject.transform.SetParent(_body, false);
+            _canvas = canvasObject.GetComponent<Canvas>();
+            _canvas.renderMode = RenderMode.WorldSpace;
+            // TextMeshPro SDF가 쓰는 UV2 · 법선 채널을 코드로 붙인 캔버스는 버린다. 켜 둔다.
+            _canvas.additionalShaderChannels =
+                AdditionalCanvasShaderChannels.TexCoord1 | AdditionalCanvasShaderChannels.Normal |
+                AdditionalCanvasShaderChannels.Tangent;
+            var canvasRect = (RectTransform)canvasObject.transform;
+            canvasRect.pivot = new Vector2(0.5f, 1f);
+            canvasRect.sizeDelta = new Vector2(CanvasWidth, CanvasHeight);
+            _group = UIBuild.Group(canvasObject);
+            _group.blocksRaycasts = false;
+            Transform root = canvasObject.transform;
+
+            // 하단 정보판만 카드 슬롯 폭에 맞춰 줄일 수 있게 별도 묶음으로 둔다. 오브와 원소 표식은
+            // 원화 크기를 따라가되, 이름·HP·상태는 큰 카드끼리 붙어도 이 묶음 밖으로 번지지 않는다.
+            _bottomHudRoot = UIBuild.Container("BottomHud", root);
+            _bottomHudRoot.anchorMin = new Vector2(0f, 1f);
+            _bottomHudRoot.anchorMax = new Vector2(0f, 1f);
+            _bottomHudRoot.pivot = new Vector2(0f, 1f);
+            _bottomHudRoot.sizeDelta = new Vector2(CanvasWidth, CanvasHeight);
+            _bottomHudRoot.anchoredPosition = Vector2.zero;
+
+            // 지금 행동 중인 유닛은 정보판을 하나 더 만들지 않고 같은 글라스의 바깥 림만 밝힌다.
+            _actingOutline = NewImage(_bottomHudRoot, "ActingOutline", Color.white);
+            _actingOutline.sprite = UIShapes.RoundedRect(8, Color.clear, new Color(0.82f, 0.66f, 0.35f, 0.78f), 2);
+            _actingOutline.type = Image.Type.Sliced;
+            Place(_actingOutline.rectTransform, GlassLeft - 0.8f, GlassTop - 0.8f, GlassWidth + 1.6f, GlassHeight + 1.6f);
+            _actingOutline.enabled = false;
+
+            // ── 부착 원소 표식(좌상단) ──
+            for (int i = 0; i < MaxElementBadges; i++)
+            {
+                Image badge = NewImage(root, $"Element{i}", Color.white);
+                badge.sprite = UIShapes.Disc(64, Color.white);
+                Place(badge.rectTransform, 3f + i * 9f, 3f, 8f, 8f);
+                badge.enabled = false;
+                _elementBadges[i] = badge;
+            }
+
+            // ── 궁극기 오브(원화 우상단 뒤에서 원화와 겹친다) ──
+            // 액체는 원형 마스크 안에서 아래→위로 차고, 생성 에셋은 광택만 맡아 원소색을 가리지 않는다.
+            // 하단 HUD와 캔버스를 나눠야 SpriteRenderer 원화가 오브 앞, 글자는 원화 앞에 놓일 수 있다.
+            _ultRoot = UIBuild.Container("UltGauge", orbCanvasObject.transform);
+            _ultRoot.anchorMin = new Vector2(0f, 1f);
+            _ultRoot.anchorMax = new Vector2(0f, 1f);
+            _ultRoot.pivot = new Vector2(0.5f, 0.5f);
+            _ultRoot.sizeDelta = new Vector2(RingSize, RingSize);
+            _ultRoot.anchoredPosition = new Vector2(OrbCenterX, -OrbCenterY);
+            _ultReadyGlow = NewImage(_ultRoot, "ReadyGlow", Color.clear);
+            _ultReadyGlow.sprite = UIShapes.Disc(96, Color.white);
+            // 바깥으로 번진 원판의 아래쪽 호만 금색 막대처럼 보였으므로 준비광도 오브 안에서 끝낸다.
+            UIBuild.Stretch(_ultReadyGlow.rectTransform, 0.55f, 0.55f);
+
+            Image well = NewImage(_ultRoot, "Well", RingWell);
+            well.sprite = UIShapes.Disc(96, Color.white);
+            UIBuild.Stretch(well.rectTransform, RingEdge, RingEdge);
+
+            RectTransform liquidMask = UIBuild.Container("LiquidMask", _ultRoot);
+            // 낮은 마나 수위가 크롬 하단에 붙으면 오브 밖의 막대처럼 읽힌다. 액체를 웰 안쪽에
+            // 한 번 더 물려 10~20% 수위도 독립된 초승달로 보이게 한다.
+            const float liquidInset = RingEdge + 2.4f;
+            UIBuild.Stretch(liquidMask, liquidInset, liquidInset);
+            Image maskGraphic = NewImage(liquidMask, "Mask", Color.white);
+            maskGraphic.sprite = UIShapes.Disc(96, Color.white);
+            var mask = maskGraphic.gameObject.AddComponent<Mask>();
+            mask.showMaskGraphic = false;
+
+            // 뒤쪽 액체는 실제 수위보다 아주 조금 늦거나 앞서며 좌우로 흔들린다. 앞층과 수면이
+            // 겹쳐질 때 한 장짜리 세로 채움이 아니라 오브 안쪽에 깊이가 있는 것처럼 읽힌다.
+            _ultRearFill = NewImage(liquidMask, "LiquidRear", UITheme.Mana);
+            _ultRearFill.type = Image.Type.Filled;
+            _ultRearFill.fillMethod = Image.FillMethod.Vertical;
+            _ultRearFill.fillOrigin = (int)Image.OriginVertical.Bottom;
+            UIBuild.Stretch(_ultRearFill.rectTransform, -0.7f, -0.2f);
+
+            _ultRearWave = NewImage(liquidMask, "LiquidRearSurface", new Color(1f, 1f, 1f, 0.36f));
+            _ultRearWave.sprite = UIShapes.Disc(64, Color.white);
+            _ultRearWave.rectTransform.anchorMin = new Vector2(0.5f, 0f);
+            _ultRearWave.rectTransform.anchorMax = new Vector2(0.5f, 0f);
+            _ultRearWave.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            _ultRearWave.rectTransform.sizeDelta = new Vector2(RingSize - liquidInset * 2f + 0.4f, 2.2f);
+
+            _ultFill = NewImage(liquidMask, "LiquidFront", UITheme.Mana);
+            _ultFill.type = Image.Type.Filled;
+            _ultFill.fillMethod = Image.FillMethod.Vertical;
+            _ultFill.fillOrigin = (int)Image.OriginVertical.Bottom;
+            UIBuild.Stretch(_ultFill.rectTransform);
+
+            _ultFillShade = NewImage(liquidMask, "LiquidDepth", Color.white);
+            _ultFillShade.sprite = UIShapes.VerticalGradient(64,
+                new Color(0.03f, 0.08f, 0.12f, 0.01f), new Color(0.02f, 0.06f, 0.10f, 0.30f));
+            _ultFillShade.type = Image.Type.Filled;
+            _ultFillShade.fillMethod = Image.FillMethod.Vertical;
+            _ultFillShade.fillOrigin = (int)Image.OriginVertical.Bottom;
+            UIBuild.Stretch(_ultFillShade.rectTransform);
+
+            _ultFillLight = NewImage(liquidMask, "LiquidGradient", Color.white);
+            _ultFillLight.sprite = UIShapes.VerticalGradient(64,
+                new Color(1f, 1f, 1f, 0.72f), new Color(1f, 1f, 1f, 0.05f));
+            _ultFillLight.type = Image.Type.Filled;
+            _ultFillLight.fillMethod = Image.FillMethod.Vertical;
+            _ultFillLight.fillOrigin = (int)Image.OriginVertical.Bottom;
+            UIBuild.Stretch(_ultFillLight.rectTransform);
+
+            _ultWave = NewImage(liquidMask, "LiquidSurface", new Color(1f, 1f, 1f, 0.82f));
+            _ultWave.sprite = UIShapes.Disc(64, Color.white);
+            _ultWave.rectTransform.anchorMin = new Vector2(0.5f, 0f);
+            _ultWave.rectTransform.anchorMax = new Vector2(0.5f, 0f);
+            _ultWave.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            _ultWave.rectTransform.sizeDelta = new Vector2(RingSize - liquidInset * 2f, 1.7f);
+
+            // 밝은 액체 위에서도 흰 글리프가 사라지지 않도록 같은 실루엣을 한 겹 크게 깐다.
+            // 외곽선 셰이더 대신 스프라이트 사본을 써 생성 글리프의 가장자리를 그대로 보존한다.
+            _ultMarkShadow = NewImage(_ultRoot, "MarkOutline", MarkShadow);
+            _ultMarkShadow.sprite = StatusIcons.Get(StatusGlyph.Focus);
+            _ultMarkShadow.preserveAspect = true;
+            UIBuild.Stretch(_ultMarkShadow.rectTransform, RingEdge * 3.15f, RingEdge * 3.15f);
+            _ultMarkShadow.rectTransform.anchoredPosition = new Vector2(0.18f, -0.22f);
+
+            _ultMark = NewImage(_ultRoot, "Mark", Color.white);
+            _ultMark.sprite = StatusIcons.Get(StatusGlyph.Focus);
+            _ultMark.preserveAspect = true;
+            UIBuild.Stretch(_ultMark.rectTransform, RingEdge * 3.5f, RingEdge * 3.5f);
+
+            _ultGlass = NewImage(_ultRoot, "Glass", new Color(1f, 1f, 1f, 0.82f));
+            _ultGlass.sprite = HudSprite("energy_orb_glass_bright", UIShapes.Disc(96, Color.white, 0.76f));
+            _ultGlass.preserveAspect = true;
+            UIBuild.Stretch(_ultGlass.rectTransform, -0.2f, -0.2f);
+
+            _ultOutline = NewImage(_ultRoot, "Outline", new Color(0.78f, 0.89f, 0.96f, 0.98f));
+            _ultOutline.sprite = UIShapes.Disc(96, Color.white, 0.84f);
+            UIBuild.Stretch(_ultOutline.rectTransform);
+
+            _ultReadyRing = NewImage(_ultRoot, "ReadyRing", Color.clear);
+            _ultReadyRing.sprite = UIShapes.Disc(96, Color.white, 0.88f);
+            _ultReadyRing.preserveAspect = true;
+            UIBuild.Stretch(_ultReadyRing.rectTransform, 0.85f, 0.85f);
+
+            // 고유 자원은 별도 원 배지를 달지 않고 오브 윗링에 작은 숫자 각인으로 붙인다.
+            _resourceBadge = NewImage(_ultRoot, "ResourceBadge", new Color(0.075f, 0.125f, 0.20f, 0.82f));
+            _resourceBadge.sprite = UIShapes.RoundedRect(5, Color.white,
+                new Color(0.91f, 0.97f, 1f, 0.74f), 1);
+            _resourceBadge.type = Image.Type.Sliced;
+            _resourceBadge.rectTransform.anchorMin = new Vector2(0.5f, 1f);
+            _resourceBadge.rectTransform.anchorMax = new Vector2(0.5f, 1f);
+            _resourceBadge.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            _resourceBadge.rectTransform.sizeDelta = new Vector2(9.2f, 7.2f);
+            _resourceBadge.rectTransform.anchoredPosition = new Vector2(0f, -2.1f);
+            _resourceBadgeDigit = NewImage(_resourceBadge.transform, "Value", Color.white);
+            _resourceBadgeDigit.preserveAspect = true;
+            UIBuild.Stretch(_resourceBadgeDigit.rectTransform, 2.6f, 1.45f);
+            _resourceBadge.enabled = false;
+            _resourceBadgeDigit.enabled = false;
+
+            // ── 하단 A안 리퀴드 글라스 ──
+            // 원화 사본을 패널 안에 다시 그리면 밝은 전장에서도 다리·옷자락이 검은 얼룩으로 남는다.
+            // 배경과 무관하게 일정한 스모크 한 장만 써 정보 대비와 원화 실루엣을 함께 보존한다.
+            Image glassDrop = NewImage(_bottomHudRoot, "BottomGlassShadow", new Color(0.075f, 0.125f, 0.20f, 0.20f));
+            glassDrop.sprite = UIShapes.SoftShadow(10, 8, 0.18f);
+            glassDrop.type = Image.Type.Sliced;
+            Place(glassDrop.rectTransform, GlassLeft, GlassTop + 0.8f, GlassWidth, GlassEmptyHeight);
+            _bottomGlassShadow = glassDrop.gameObject;
+
+            Image glassBase = NewImage(_bottomHudRoot, "BottomGlass", Color.white);
+            glassBase.sprite = UIShapes.RoundedRect(10, Color.clear);
+            glassBase.type = Image.Type.Sliced;
+            Place(glassBase.rectTransform, GlassLeft, GlassTop, GlassWidth, GlassEmptyHeight);
+            _bottomGlass = glassBase.gameObject;
+
+            // 밝은 전장에서도 양 진영을 같은 대비로 묶는다. 흰 원화와 백색 결정 모두에서
+            // 읽혀야 하므로 아군/적 색 분기 대신 안 2의 공통 스모크 면을 쓴다.
+            _glassTint = NewImage(glassBase.transform, "Tint", new Color(0.149f, 0.22f, 0.29f, 0.72f));
+            _glassTint.sprite = UIShapes.RoundedRect(10, Color.white);
+            _glassTint.type = Image.Type.Sliced;
+            UIBuild.Stretch(_glassTint.rectTransform);
+
+            Image glassShade = NewImage(glassBase.transform, "InnerShade", Color.white);
+            glassShade.sprite = UIShapes.VerticalGradient(32,
+                new Color(0.48f, 0.72f, 0.82f, 0.01f), new Color(0.075f, 0.125f, 0.20f, 0.10f));
+            UIBuild.Stretch(glassShade.rectTransform, 0.8f, 0.8f);
+
+            Image specular = NewImage(glassBase.transform, "UpperSpecular", new Color(1f, 1f, 1f, 0.28f));
+            specular.sprite = UIShapes.RoundedRect(2, Color.white);
+            specular.type = Image.Type.Sliced;
+            Place(specular.rectTransform, 13f, 1.15f, GlassWidth - 26f, 0.45f);
+
+            Image glassRim = NewImage(glassBase.transform, "BrightRim", Color.white);
+            glassRim.sprite = UIShapes.RoundedRect(10, Color.clear, new Color(0.97f, 0.985f, 1f, 0.72f), 1);
+            glassRim.type = Image.Type.Sliced;
+            UIBuild.Stretch(glassRim.rectTransform);
+
+            // 체력 + 보호막. 보호막은 스타레일처럼 체력 트랙 윗면에 얇은 백색 막으로 겹친다.
+            _hpTrack = NewImage(glassBase.transform, "HpTrack", Color.white);
+            _hpTrack.sprite = UIShapes.RoundedRect(3, new Color(0.01f, 0.045f, 0.052f, 0.90f));
+            _hpTrack.type = Image.Type.Sliced;
+            Place(_hpTrack.rectTransform, 6f, HpTop - GlassTop, GlassWidth - 12f, HpHeight);
+            _hpFill = NewImage(_hpTrack.transform, "HpFill", UITheme.Hp);
+            _shieldFill = NewImage(_hpTrack.transform, "ShieldFill", new Color(0.894f, 0.745f, 0.365f, 0.98f));
+            Image sheen = UIBuild.Solid("Sheen", _hpTrack.transform, new Color(1f, 1f, 1f, 0.22f));
+            sheen.raycastTarget = false;
+            sheen.rectTransform.anchorMin = new Vector2(0f, 0.55f);
+            sheen.rectTransform.anchorMax = Vector2.one;
+            sheen.rectTransform.offsetMin = Vector2.zero;
+            sheen.rectTransform.offsetMax = Vector2.zero;
+
+            // ── 행동 게이지 ──
+            _actionTrack = UIBuild.Solid("ActionTrack", glassBase.transform, new Color(0.01f, 0.04f, 0.05f, 0.52f));
+            Place(_actionTrack.rectTransform, 6f, ActionTop - GlassTop, GlassWidth - 12f, ActionHeight);
+            _actionFill = NewImage(_actionTrack.transform, "ActionFill", new Color(0.77f, 0.84f, 0.89f, 0.94f));
+
+            // ── 상태 아이콘 ──
+            for (int i = 0; i < MaxDots; i++)
+            {
+                Image back = NewImage(glassBase.transform, $"StatusBack{i}", DotBacking);
+                back.sprite = StatusIcons.Frame(null, false);
+                Place(back.rectTransform, 7f + i * DotGap, DotTop - GlassTop, DotSize, DotSize);
+                back.enabled = false;
+                _dotBacks[i] = back;
+
+                Image rim = NewImage(back.transform, $"StatusRim{i}", new Color(0.90f, 0.98f, 1f, 0.42f));
+                rim.sprite = StatusIcons.Frame(null, true);
+                UIBuild.Stretch(rim.rectTransform, -0.15f, -0.15f);
+                rim.enabled = false;
+                _dotRims[i] = rim;
+
+                Image dot = NewImage(back.transform, $"Status{i}", new Color(0.97f, 0.985f, 1f, 1f));
+                dot.preserveAspect = true;
+                float inset = DotSize * (1f - DotIconRatio) * 0.5f;
+                UIBuild.Stretch(dot.rectTransform, inset, inset);
+                dot.enabled = false;
+                _dots[i] = dot;
+
+                Image arrow = NewImage(back.transform, $"StatusArrow{i}", Color.white);
+                arrow.preserveAspect = true;
+                arrow.rectTransform.anchorMin = new Vector2(1f, 1f);
+                arrow.rectTransform.anchorMax = new Vector2(1f, 1f);
+                arrow.rectTransform.pivot = new Vector2(1f, 1f);
+                arrow.rectTransform.sizeDelta = new Vector2(DotSize * 0.43f, DotSize * 0.43f);
+                arrow.rectTransform.anchoredPosition = new Vector2(DotSize * 0.08f, DotSize * 0.08f);
+                arrow.enabled = false;
+                _dotArrows[i] = arrow;
+
+                Image countBack = NewImage(back.transform, $"StatusCountBack{i}", new Color(0.075f, 0.125f, 0.20f, 0.86f));
+                countBack.sprite = UIShapes.Disc(48, Color.white);
+                countBack.rectTransform.anchorMin = new Vector2(1f, 0f);
+                countBack.rectTransform.anchorMax = new Vector2(1f, 0f);
+                countBack.rectTransform.pivot = new Vector2(1f, 0f);
+                countBack.rectTransform.sizeDelta = new Vector2(DotCountSize, DotCountSize);
+                countBack.rectTransform.anchoredPosition = new Vector2(DotCountSize * 0.24f, -DotCountSize * 0.18f);
+                countBack.enabled = false;
+                _dotCountBacks[i] = countBack;
+
+                Image count = NewImage(countBack.transform, $"StatusCount{i}", Color.white);
+                count.preserveAspect = true;
+                UIBuild.Stretch(count.rectTransform, DotCountSize * 0.22f, DotCountSize * 0.14f);
+                count.enabled = false;
+                _dotCounts[i] = count;
+            }
+            ApplyGlassHeight(false);
+            ApplyHudLod(false, true);
+
+        }
+
+        /// <summary>
+        /// 코드로 만든 HUD의 필수 참조가 모두 살아 있는지 확인한다.
+        /// <para>
+        /// Unity 도메인 리로드는 기존 GameObject와 일부 컴포넌트 참조를 복원하지만, 리로드 사이에
+        /// 새로 생긴 배열 칸까지 채워 주지는 않는다. 그래서 <c>_canvas != null</c>만으로 조립 완료를
+        /// 판단하면 비어 있는 원소 표식·상태 아이콘 배열을 매 프레임 역참조하게 된다.
+        /// </para>
+        /// </summary>
+        private bool HudIsComplete()
+        {
+            return _orbCanvas != null && _orbGroup != null && _canvas != null && _group != null &&
+                   _bottomHudRoot != null && _actingOutline != null &&
+                   _ultRoot != null && _ultRearFill != null && _ultFill != null && _ultFillLight != null &&
+                   _ultFillShade != null && _ultRearWave != null && _ultWave != null && _ultOutline != null &&
+                   _ultMarkShadow != null && _ultMark != null && _ultGlass != null && _ultReadyGlow != null &&
+                   _ultReadyRing != null && _resourceBadge != null && _resourceBadgeDigit != null &&
+                    _bottomGlass != null && _bottomGlassShadow != null &&
+                   _glassTint != null && _hpTrack != null && _hpFill != null && _shieldFill != null &&
+                   _actionTrack != null && _actionFill != null &&
+                   AllAlive(_dots, MaxDots) && AllAlive(_dotBacks, MaxDots) &&
+                   AllAlive(_dotRims, MaxDots) && AllAlive(_dotArrows, MaxDots) &&
+                   AllAlive(_dotCountBacks, MaxDots) && AllAlive(_dotCounts, MaxDots) &&
+                   AllAlive(_elementBadges, MaxElementBadges);
+        }
+
+        private static bool AllAlive(Image[] images, int expectedLength)
+        {
+            if (images == null || images.Length != expectedLength) return false;
+            for (int i = 0; i < images.Length; i++)
+            {
+                if (images[i] == null) return false;
+            }
             return true;
         }
 
-        /// <summary>칸 크기가 바뀌었을 때(카메라 프레이밍 변경 등) 카드 치수를 다시 잡는다.</summary>
-        public void Resize(float cardSize)
+        private bool EnsureHudReady()
         {
-            if (_frame == null || Mathf.Approximately(_cardSize, cardSize)) return;
-
-            _cardSize = cardSize;
-            _frame.size = new Vector2(cardSize, cardSize);
-
-            var canvasRect = (RectTransform)_canvas.transform;
-            canvasRect.localScale = Vector3.one * (cardSize / CanvasWidth);
-            canvasRect.localPosition = new Vector3(0f, cardSize * 0.5f, -0.01f);
-
-            LayOutName(cardSize);
+            if (HudIsComplete()) return true;
+            if (_body == null) return false;
+            RebuildHud();
+            return HudIsComplete();
         }
 
-        /// <summary>이름표를 카드 하단 이름 띠 위에 얹는다. 캔버스와 같은 비율을 쓴다.</summary>
-        private void LayOutName(float cardSize)
+        /// <summary>몸체·원화·모션은 보존하고 불완전한 런타임 HUD 구획만 새로 조립한다.</summary>
+        private void RebuildHud()
         {
-            if (_nameLabel == null) return;
+            if (_body == null) return;
 
-            var rect = (RectTransform)_nameLabel.transform;
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            // 왼쪽 민트 액센트(7~9%)와 첫 글자가 겹치지 않도록 그 오른쪽부터 시작한다.
-            rect.sizeDelta = new Vector2(cardSize * 0.79f, cardSize * 0.14f);
-            // 한 줄짜리 이름 받침의 가운데.
-            rect.localPosition = new Vector3(cardSize * 0.055f,
-                cardSize * (0.5f - (NameBandTop + NameBandHeight * 0.5f) / CanvasWidth), -0.02f);
-
-            // 월드 TMP 자동 맞춤에 행보다 큰 최소값을 주면 Truncate/Ellipsis가 첫 글자부터
-            // 모두 버려 mesh characterCount가 0이 된다. 48px 받침의 윗행에 안전하게 들어오는
-            // 고정값을 쓰고, 긴 이름만 말줄임한다.
-            _nameLabel.enableAutoSizing = false;
-            _nameLabel.fontSize = cardSize * 0.82f;
-            _nameLabel.overflowMode = TextOverflowModes.Ellipsis;
-        }
-
-        /// <summary>앞줄이 뒷줄을 가리도록 정렬 순서를 맞춘다. 초상화는 <c>order + 1</c>이다.</summary>
-        public void ApplyDepth(int order, int sortingLayerId)
-        {
-            if (_frame != null)
-            {
-                _frame.sortingLayerID = sortingLayerId;
-                _frame.sortingOrder = order;
-            }
-
+            bool compact = _compactHud;
+            float pixelScale = _hudPixelScale;
             if (_canvas != null)
             {
-                // 루트 캔버스라 sortingOrder가 SpriteRenderer와 같은 축에서 비교된다.
-                _canvas.sortingLayerID = sortingLayerId;
-                _canvas.sortingOrder = order + 5;
+                // Destroy는 프레임 끝에 실행되므로 낡은 캔버스가 한 프레임 겹치지 않게 먼저 숨긴다.
+                _canvas.gameObject.SetActive(false);
+                Destroy(_canvas.gameObject);
+            }
+            if (_orbCanvas != null)
+            {
+                _orbCanvas.gameObject.SetActive(false);
+                Destroy(_orbCanvas.gameObject);
             }
 
-            if (_nameRenderer != null)
+            ResetHudReferences();
+            BuildHud();
+            _hudPixelScale = pixelScale > 0f ? pixelScale : 1f;
+            ApplyHudLod(compact, true);
+            if (_cardSize > 0f) LayOut(_cardSize);
+            ApplySorting();
+            ApplyHudVisibility();
+        }
+
+        private void ResetHudReferences()
+        {
+            _orbCanvas = null;
+            _orbGroup = null;
+            _canvas = null;
+            _group = null;
+            _bottomHudRoot = null;
+            _actingOutline = null;
+            _ultRoot = null;
+            _ultRearFill = null;
+            _ultFill = null;
+            _ultFillLight = null;
+            _ultFillShade = null;
+            _ultRearWave = null;
+            _ultWave = null;
+            _ultOutline = null;
+            _ultMarkShadow = null;
+            _ultMark = null;
+            _ultGlass = null;
+            _ultReadyGlow = null;
+            _ultReadyRing = null;
+            _resourceBadge = null;
+            _resourceBadgeDigit = null;
+            _bottomGlass = null;
+            _bottomGlassShadow = null;
+            _glassTint = null;
+            _hpTrack = null;
+            _hpFill = null;
+            _shieldFill = null;
+            _actionTrack = null;
+            _actionFill = null;
+            _glassHeightInitialized = false;
+            _dots = new Image[MaxDots];
+            _dotBacks = new Image[MaxDots];
+            _dotRims = new Image[MaxDots];
+            _dotArrows = new Image[MaxDots];
+            _dotCountBacks = new Image[MaxDots];
+            _dotCounts = new Image[MaxDots];
+            _elementBadges = new Image[MaxElementBadges];
+            _dotStatuses ??= new List<UnitStatus>();
+            _dotStackCounts ??= new List<int>();
+        }
+
+        /// <summary>칸 크기가 바뀌었을 때(보스 단독 배치 등) 카드 치수를 다시 잡는다.</summary>
+        public void Resize(float cardSize)
+        {
+            if (_body == null || Mathf.Approximately(_cardSize, cardSize)) return;
+            _cardSize = cardSize;
+            LayOut(cardSize);
+            if (_portrait != null) LayOutPortrait();
+        }
+
+        private void LayOut(float s)
+        {
+            _auraGlow.transform.localPosition = new Vector3(0f, -s * 0.405f, 0f);
+            _auraGlow.transform.localScale = new Vector3(s * 1.12f, s * 0.2f, 1f);
+            _shadow.transform.localPosition = new Vector3(0f, -s * 0.43f, 0f);
+
+            // 이름과 HP를 같은 첫 행에 놓는다. 이름 폭은 48%를 넘기지 않아 5자리 HP와 충돌하지 않는다.
+            LayOutNameLabel(s, _compactHud);
+            LayOutHpLabel(s, _compactHud);
+            LayOutResourceBadgeText(s);
+            ApplyBottomHudScale(s);
+
+            var canvasRect = (RectTransform)_canvas.transform;
+            canvasRect.localScale = Vector3.one * (s / CanvasWidth);
+            canvasRect.localPosition = new Vector3(0f, s * 0.5f, -0.01f);
+            var orbCanvasRect = (RectTransform)_orbCanvas.transform;
+            orbCanvasRect.localScale = Vector3.one * (s / CanvasWidth);
+            orbCanvasRect.localPosition = new Vector3(0f, s * 0.5f, -0.005f);
+        }
+
+        private void LayOutNameLabel(float s, bool compact)
+        {
+            float hudSize = BottomHudSize(s);
+            float y = s * (0.5f - GlassCenterY / CanvasWidth) +
+                      hudSize * (GlassCenterY - (GlassTop + 5.5f)) / CanvasWidth;
+            float pixelScale = compact ? _hudPixelScale : 1f;
+            PlaceLabel(_nameLabel, new Vector2(-hudSize * 0.225f, y),
+                new Vector2(hudSize * 0.41f, hudSize * (compact ? 0.074f : 0.068f) * pixelScale),
+                hudSize * (compact ? 0.61f : 0.56f) * pixelScale);
+            _nameLabel.enableAutoSizing = true;
+            _nameLabel.fontSizeMin = hudSize * (compact ? 0.46f : 0.36f) * pixelScale;
+            _nameLabel.fontSizeMax = hudSize * (compact ? 0.61f : 0.56f) * pixelScale;
+            _nameLabel.outlineWidth = compact ? 0.18f : 0.13f;
+            _nameLabel.enabled = true;
+        }
+
+        private void LayOutHpLabel(float s, bool compact)
+        {
+            float hudSize = BottomHudSize(s);
+            float y = s * (0.5f - GlassCenterY / CanvasWidth) +
+                      hudSize * (GlassCenterY - (GlassTop + 5.5f)) / CanvasWidth;
+            float pixelScale = compact ? _hudPixelScale : 1f;
+            PlaceLabel(_hpLabel, new Vector2(hudSize * 0.245f, y),
+                new Vector2(hudSize * 0.43f, hudSize * (compact ? 0.074f : 0.067f) * pixelScale),
+                hudSize * (compact ? 0.60f : 0.52f) * pixelScale);
+            _hpLabel.enableAutoSizing = !compact;
+            _hpLabel.fontSizeMin = hudSize * (compact ? 0.60f : 0.36f) * pixelScale;
+            _hpLabel.fontSizeMax = hudSize * (compact ? 0.60f : 0.52f) * pixelScale;
+            _hpLabel.outlineWidth = compact ? 0.17f : 0.12f;
+        }
+
+        private static void PlaceLabel(TextMeshPro label, Vector2 position, Vector2 size, float fontSize)
+        {
+            var rect = (RectTransform)label.transform;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.sizeDelta = size;
+            rect.localPosition = new Vector3(position.x, position.y, 0f);
+            label.fontSize = fontSize;
+        }
+
+        private void LayOutResourceBadgeText(float s)
+        {
+            if (_resourceBadgeText == null) return;
+            PlaceLabel(_resourceBadgeText, new Vector2(s * 0.25f, s * 0.439f),
+                new Vector2(s * 0.16f, s * 0.075f), s * 0.43f);
+        }
+
+        private static float BottomHudSize(float cardSize)
+            => Mathf.Min(cardSize, global::Cell.CellSize * 0.98f);
+
+        private void ApplyBottomHudScale(float cardSize)
+        {
+            if (_bottomHudRoot == null || cardSize <= 0f) return;
+            float scale = BottomHudSize(cardSize) / cardSize;
+            _bottomHudRoot.localScale = Vector3.one * scale;
+            // 축소 중심을 패널 정중앙에 고정해 큰 카드에서도 정보판이 슬롯 가운데에 남는다.
+            _bottomHudRoot.anchoredPosition = new Vector2(
+                (1f - scale) * CanvasWidth * 0.5f,
+                -(1f - scale) * GlassCenterY);
+        }
+
+        /// <summary>앞줄이 뒷줄을 가리도록 정렬 순서를 맞춘다. 한 줄에 10칸을 쓴다.</summary>
+        public void ApplyDepth(int order, int sortingLayerId)
+        {
+            _baseOrder = order;
+            _layerId = sortingLayerId;
+            ApplySorting();
+        }
+
+        private void ApplySorting()
+        {
+            if (_body == null) return;
+            int o = _baseOrder + _sortBoost;
+
+            SetOrder(_shadow, o);
+            SetOrder(_auraGlow, o);
+            _orbCanvas.sortingLayerID = _layerId;
+            _orbCanvas.sortingOrder = o + 2;
+            SetOrder(_portrait, o + 3);
+
+            // 두 루트 캔버스가 SpriteRenderer와 같은 축에서 비교된다. 오브는 원화 뒤, 정보는 앞이다.
+            _canvas.sortingLayerID = _layerId;
+            _canvas.sortingOrder = o + 6;
+            var nameRenderer = _nameLabel.GetComponent<MeshRenderer>();
+            nameRenderer.sortingLayerID = _layerId;
+            nameRenderer.sortingOrder = o + 7;
+            var hpRenderer = _hpLabel.GetComponent<MeshRenderer>();
+            hpRenderer.sortingLayerID = _layerId;
+            hpRenderer.sortingOrder = o + 8;
+            var resourceRenderer = _resourceBadgeText.GetComponent<MeshRenderer>();
+            resourceRenderer.sortingLayerID = _layerId;
+            resourceRenderer.sortingOrder = o + 9;
+        }
+
+        private void SetOrder(Renderer renderer, int order)
+        {
+            if (renderer == null) return;
+            renderer.sortingLayerID = _layerId;
+            renderer.sortingOrder = order;
+        }
+
+        // ══════════════════════════════════════════════════════
+        // 초상화
+        // ══════════════════════════════════════════════════════
+
+        /// <summary>
+        /// 칸의 초상화 렌더러를 카드 몸체 아래로 옮겨 받는다. 몸체가 날아가면 원화도 함께 간다.
+        /// </summary>
+        public void BindPortrait(SpriteRenderer portrait)
+        {
+            _portrait = portrait;
+            if (_portrait == null) return;
+            _portrait.transform.SetParent(_body, false);
+            _portrait.maskInteraction = SpriteMaskInteraction.None;
+            ApplyPortraitBottomFade();
+            ApplySorting();
+            LayOutPortrait();
+        }
+
+        /// <summary>
+        /// 원화를 카드 한 변(× <see cref="PortraitFit"/>) 안에 <b>통째로 넣어</b> 가운데 세운다.
+        /// 세로뿐 아니라 가로도 제한해야 넓은 그림이 옆 칸을 침범하지 않는다.
+        /// </summary>
+        public void LayOutPortrait()
+        {
+            if (_portrait == null) return;
+            ApplyPortraitBottomFade();
+            Sprite sprite = _portrait.sprite;
+            if (sprite == null)
             {
-                // 이름 띠(캔버스, order + 5) 바로 위에 올린다.
-                _nameRenderer.sortingLayerID = sortingLayerId;
-                _nameRenderer.sortingOrder = order + 6;
+                _portrait.transform.localScale = Vector3.one;
+                _portrait.transform.localPosition = Vector3.zero;
+                return;
+            }
+
+            Vector3 size = sprite.bounds.size;
+            Vector3 center = sprite.bounds.center;
+            if (PortraitSources.TryGetValue(sprite, out Sprite source) && source != null)
+            {
+                Rect content = source.textureRect;
+                size = new Vector3(content.width / source.pixelsPerUnit,
+                    content.height / source.pixelsPerUnit, 0f);
+                center = new Vector3(
+                    (content.center.x - source.rect.xMin - source.pivot.x) / source.pixelsPerUnit,
+                    (content.center.y - source.rect.yMin - source.pivot.y) / source.pixelsPerUnit,
+                    0f);
+            }
+            if (size.x <= 0.0001f || size.y <= 0.0001f) return;
+            float fit = _cardSize * PortraitFit;
+            float scale = Mathf.Min(fit / size.x, fit / size.y);
+            center *= scale;
+            _portrait.transform.localScale = new Vector3(scale, scale, 1f);
+            _portrait.transform.localPosition = new Vector3(-center.x, -center.y, 0f);
+        }
+
+        /// <summary>
+        /// 원본 텍스처는 읽기 금지로 임포트되어 있다. GPU 임시 표면을 거쳐 현재 스프라이트 영역만
+        /// 한 번 읽고, 흰 매트가 밴 반투명 RGB와 잘린 밑변·모서리를 정리한 사본을 캐시한다.
+        /// 이후 배치 이동이나 크기 변경은 같은 사본을 쓴다.
+        /// </summary>
+        private void ApplyPortraitBottomFade()
+        {
+            if (_portrait == null || _portrait.sprite == null) return;
+
+            Sprite source = PortraitSources.TryGetValue(_portrait.sprite, out Sprite original)
+                ? original
+                : _portrait.sprite;
+            if (FadedPortraits.TryGetValue(source, out Sprite cached) && cached != null)
+            {
+                _portrait.sprite = cached;
+                return;
+            }
+
+            Sprite faded = CreateBottomFadedSprite(source);
+            if (faded == null || faded == source) return;
+            FadedPortraits[source] = faded;
+            PortraitSources[faded] = source;
+            _portrait.sprite = faded;
+        }
+
+        private static Sprite CreateBottomFadedSprite(Sprite source)
+        {
+            if (source == null || source.texture == null || source.packed) return source;
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            long startedAt = System.Diagnostics.Stopwatch.GetTimestamp();
+#endif
+
+            Rect spriteRect = source.rect;
+            Rect contentRect = source.textureRect;
+            int width = Mathf.RoundToInt(spriteRect.width);
+            int height = Mathf.RoundToInt(spriteRect.height);
+            if (width <= 1 || height <= 1) return source;
+
+            RenderTexture previous = RenderTexture.active;
+            RenderTexture temporary = RenderTexture.GetTemporary(
+                source.texture.width, source.texture.height, 0, RenderTextureFormat.ARGB32,
+                RenderTextureReadWrite.Default);
+            Texture2D copy = null;
+            try
+            {
+                Graphics.Blit(source.texture, temporary);
+                RenderTexture.active = temporary;
+                copy = new Texture2D(width, height, TextureFormat.RGBA32, true)
+                {
+                    filterMode = FilterMode.Trilinear,
+                    mipMapBias = PortraitMipBias,
+                    wrapMode = TextureWrapMode.Clamp,
+                    name = $"{source.name}_HudFade",
+                    hideFlags = HideFlags.HideAndDontSave,
+                };
+                // textureRect는 Tight 메시의 불투명 경계라 그 자체를 FullRect로 만들면 네 변의 픽셀이
+                // Clamp되어 사각선이 된다. 원본 rect의 투명 여백까지 읽고 배치는 contentRect 기준으로 맞춘다.
+                copy.ReadPixels(spriteRect, 0, 0, false);
+
+                Color32[] pixels = copy.GetPixels32();
+                ClearTransparentCompressionNoise(pixels);
+                FindOpaqueBounds(pixels, width, height,
+                    out int opaqueMinX, out int opaqueMinY, out int opaqueMaxX, out int opaqueMaxY);
+                DetectHardEdgeCuts(pixels, width, height,
+                    opaqueMinX, opaqueMinY, opaqueMaxX, opaqueMaxY,
+                    out bool fadeLeft, out bool fadeRight, out bool fadeBottom);
+                BleedOpaqueColorsIntoFringe(pixels, width, height);
+                SoftenPortraitAlphaEdge(pixels, width, height);
+
+                float contentBottom = contentRect.yMin - spriteRect.yMin;
+                float clearPixels = contentRect.height * PortraitClearFraction;
+                float fadePixels = Mathf.Max(1f, contentRect.height * PortraitFadeFraction - clearPixels);
+                float sideFadePixels = Mathf.Max(1f,
+                    (opaqueMaxX - opaqueMinX + 1) * PortraitSideFadeFraction);
+                float bottomFadePixels = Mathf.Max(1f,
+                    (opaqueMaxY - opaqueMinY + 1) * PortraitSideFadeFraction);
+                for (int y = 0; y < height; y++)
+                {
+                    float rawFadeProgress = (y - contentBottom - clearPixels) / fadePixels;
+                    float fadeProgress = Mathf.Clamp01(rawFadeProgress);
+                    float alpha = Mathf.SmoothStep(0f, 1f, fadeProgress);
+                    int row = y * width;
+                    for (int x = 0; x < width; x++)
+                    {
+                        int index = row + x;
+                        Color32 pixel = pixels[index];
+                        float edgeAlpha = 1f;
+                        if (fadeLeft)
+                            edgeAlpha = Mathf.Min(edgeAlpha, Mathf.SmoothStep(0f, 1f,
+                                (x - opaqueMinX) / sideFadePixels));
+                        if (fadeRight)
+                            edgeAlpha = Mathf.Min(edgeAlpha, Mathf.SmoothStep(0f, 1f,
+                                (opaqueMaxX - x) / sideFadePixels));
+                        if (fadeBottom)
+                            edgeAlpha = Mathf.Min(edgeAlpha, Mathf.SmoothStep(0f, 1f,
+                                (y - opaqueMinY) / bottomFadePixels));
+
+                        pixel.a = (byte)Mathf.RoundToInt(pixel.a * alpha * edgeAlpha);
+                        pixels[index] = pixel;
+                    }
+                }
+                copy.SetPixels32(pixels);
+                copy.Apply(true, true);
+
+                Vector2 pivot = new(
+                    source.pivot.x / Mathf.Max(1f, source.rect.width),
+                    source.pivot.y / Mathf.Max(1f, source.rect.height));
+                Sprite faded = Sprite.Create(copy, new Rect(0f, 0f, width, height), pivot,
+                    source.pixelsPerUnit, 0, SpriteMeshType.FullRect, source.border);
+                faded.name = $"{source.name}_HudFade";
+                faded.hideFlags = HideFlags.HideAndDontSave;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                double elapsedMs = (System.Diagnostics.Stopwatch.GetTimestamp() - startedAt)
+                    * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
+                Debug.Log($"[UnitCardView] 원화 가장자리 사본 생성: {source.name}, " +
+                    $"{elapsedMs:0.00} ms, 좌/우/하단 페이드=" +
+                    $"{(fadeLeft ? "적용" : "생략")}/{(fadeRight ? "적용" : "생략")}/" +
+                    $"{(fadeBottom ? "적용" : "생략")}");
+#endif
+                return faded;
+            }
+            catch (Exception exception)
+            {
+                if (copy != null) Destroy(copy);
+                Debug.LogWarning($"[UnitCardView] 원화 하단 페이드 사본 생성 실패: {source.name} ({exception.Message})");
+                return source;
+            }
+            finally
+            {
+                RenderTexture.active = previous;
+                RenderTexture.ReleaseTemporary(temporary);
             }
         }
+
+        private static void FindOpaqueBounds(Color32[] pixels, int width, int height,
+            out int minX, out int minY, out int maxX, out int maxY)
+        {
+            minX = width;
+            minY = height;
+            maxX = -1;
+            maxY = -1;
+            for (int y = 0; y < height; y++)
+            {
+                int row = y * width;
+                for (int x = 0; x < width; x++)
+                {
+                    if (pixels[row + x].a <= PortraitOpaqueThreshold) continue;
+                    minX = Mathf.Min(minX, x);
+                    minY = Mathf.Min(minY, y);
+                    maxX = Mathf.Max(maxX, x);
+                    maxY = Mathf.Max(maxY, y);
+                }
+            }
+
+            if (maxX >= minX && maxY >= minY) return;
+            minX = minY = 0;
+            maxX = Mathf.Max(0, width - 1);
+            maxY = Mathf.Max(0, height - 1);
+        }
+
+        /// <summary>
+        /// 임포트 압축 뒤 투명 면에 생긴 1~16/255 알파는 원화 전체 사각형과 점선을 만든다.
+        /// 원본의 실질적인 커버리지가 아닌 값만 먼저 0으로 정리하고 외곽 안티앨리어싱은 아래에서 다시 만든다.
+        /// </summary>
+        private static void ClearTransparentCompressionNoise(Color32[] pixels)
+        {
+            for (int i = 0; i < pixels.Length; i++)
+            {
+                if (pixels[i].a > PortraitOpaqueThreshold) continue;
+                Color32 pixel = pixels[i];
+                pixel.a = 0;
+                pixels[i] = pixel;
+            }
+        }
+
+        private static void DetectHardEdgeCuts(Color32[] pixels, int width, int height,
+            int minX, int minY, int maxX, int maxY,
+            out bool left, out bool right, out bool bottom)
+        {
+            int contentHeight = maxY - minY + 1;
+            int contentWidth = maxX - minX + 1;
+            int requiredVerticalRun = Mathf.Max(24,
+                Mathf.CeilToInt(contentHeight * PortraitSideRunFraction));
+            int requiredHorizontalRun = Mathf.Max(24,
+                Mathf.CeilToInt(contentWidth * PortraitSideRunFraction));
+
+            // 하단 모서리에만 한정하면 날개·창·옷자락의 위쪽 절단면은 그대로 남는다.
+            // 어느 높이에서든 연속 접촉 길이만 보되, 짧은 발·꼬리는 기존 최소 길이로 보전한다.
+            left = LongestVerticalEdgeRun(pixels, width, height, minX, 1) >= requiredVerticalRun;
+            right = LongestVerticalEdgeRun(pixels, width, height, maxX, -1) >= requiredVerticalRun;
+            bottom = LongestHorizontalEdgeRun(pixels, width, height, minY, 1) >= requiredHorizontalRun;
+        }
+
+        private static int LongestVerticalEdgeRun(Color32[] pixels, int width, int height,
+            int edgeX, int direction)
+        {
+            const int edgeBand = 5;
+            int longest = 0;
+            int current = 0;
+            for (int y = 0; y < height; y++)
+            {
+                bool touches = false;
+                for (int offset = 0; offset < edgeBand; offset++)
+                {
+                    int x = edgeX + offset * direction;
+                    if (x < 0 || x >= width) continue;
+                    if (pixels[y * width + x].a <= PortraitOpaqueThreshold) continue;
+                    touches = true;
+                    break;
+                }
+
+                current = touches ? current + 1 : 0;
+                longest = Mathf.Max(longest, current);
+            }
+
+            return longest;
+        }
+
+        private static int LongestHorizontalEdgeRun(Color32[] pixels, int width, int height,
+            int edgeY, int direction)
+        {
+            const int edgeBand = 5;
+            int longest = 0;
+            int current = 0;
+            for (int x = 0; x < width; x++)
+            {
+                bool touches = false;
+                for (int offset = 0; offset < edgeBand; offset++)
+                {
+                    int y = edgeY + offset * direction;
+                    if (y < 0 || y >= height) continue;
+                    if (pixels[y * width + x].a <= PortraitOpaqueThreshold) continue;
+                    touches = true;
+                    break;
+                }
+
+                current = touches ? current + 1 : 0;
+                longest = Mathf.Max(longest, current);
+            }
+
+            return longest;
+        }
+
+        /// <summary>
+        /// 흰 배경에서 뽑힌 원화의 반투명 RGB를 가장 가까운 안쪽 불투명색으로 바꾼다.
+        /// 불투명 코어와 알파 커버리지는 그대로 두고 RGB만 안쪽 색으로 바꿔 흰 선을 줄인다.
+        /// </summary>
+        private static void BleedOpaqueColorsIntoFringe(Color32[] pixels, int width, int height)
+        {
+            Color32[] source = (Color32[])pixels.Clone();
+            for (int y = 0; y < height; y++)
+            {
+                int row = y * width;
+                for (int x = 0; x < width; x++)
+                {
+                    int index = row + x;
+                    Color32 fringe = source[index];
+                    if (fringe.a == 0) continue;
+
+                    if (fringe.a < PortraitBleedThreshold)
+                    {
+                        int bestDistance = int.MaxValue;
+                        int bestAlpha = -1;
+                        Color32 best = fringe;
+                        int minProbeY = Mathf.Max(0, y - PortraitBleedRadius);
+                        int maxProbeY = Mathf.Min(height - 1, y + PortraitBleedRadius);
+                        int minProbeX = Mathf.Max(0, x - PortraitBleedRadius);
+                        int maxProbeX = Mathf.Min(width - 1, x + PortraitBleedRadius);
+                        for (int probeY = minProbeY; probeY <= maxProbeY; probeY++)
+                        {
+                            int probeRow = probeY * width;
+                            for (int probeX = minProbeX; probeX <= maxProbeX; probeX++)
+                            {
+                                Color32 candidate = source[probeRow + probeX];
+                                if (candidate.a < PortraitBleedThreshold) continue;
+                                int distance = Mathf.Abs(probeX - x) + Mathf.Abs(probeY - y);
+                                if (distance > bestDistance ||
+                                    (distance == bestDistance && candidate.a <= bestAlpha)) continue;
+                                bestDistance = distance;
+                                bestAlpha = candidate.a;
+                                best = candidate;
+                            }
+                        }
+
+                        if (bestAlpha >= 0)
+                        {
+                            fringe.r = best.r;
+                            fringe.g = best.g;
+                            fringe.b = best.b;
+                        }
+                    }
+                    pixels[index] = fringe;
+                }
+            }
+        }
+
+        /// <summary>원본 경계를 반 픽셀만 부드럽게 해 밉 단계에서도 얇은 선이 끊기지 않게 한다.</summary>
+        private static void SoftenPortraitAlphaEdge(Color32[] pixels, int width, int height)
+        {
+            const float softness = 0.42f;
+            Color32[] source = (Color32[])pixels.Clone();
+            for (int y = 0; y < height; y++)
+            {
+                int row = y * width;
+                for (int x = 0; x < width; x++)
+                {
+                    int index = row + x;
+                    Color32 pixel = source[index];
+                    if (pixel.a == 0) continue;
+
+                    byte neighborMin = pixel.a;
+                    for (int oy = -1; oy <= 1; oy++)
+                    {
+                        int py = y + oy;
+                        if (py < 0 || py >= height) continue;
+                        int probeRow = py * width;
+                        for (int ox = -1; ox <= 1; ox++)
+                        {
+                            int px = x + ox;
+                            if ((ox == 0 && oy == 0) || px < 0 || px >= width) continue;
+                            neighborMin = Math.Min(neighborMin, source[probeRow + px].a);
+                        }
+                    }
+
+                    if (neighborMin >= pixel.a) continue;
+                    Color32 softened = pixels[index];
+                    softened.a = (byte)Mathf.RoundToInt(Mathf.Lerp(pixel.a, neighborMin, softness));
+                    pixels[index] = softened;
+                }
+            }
+        }
+
+
+        /// <summary>초상화 배율이 바뀌었을 때 — 예전 호출부 호환용.</summary>
+        public void RefreshPortraitBase() => LayOutPortrait();
+
+        public Sprite PortraitSprite => _portrait != null ? _portrait.sprite : null;
+        internal SpriteRenderer PortraitRenderer => _portrait;
+        internal Transform Body => _body;
+        internal float CardSize => _cardSize;
+        internal int LayerId => _layerId;
+
+        /// <summary>
+        /// 사망 직후 칸이 비워져도 원화와 두 HUD 캔버스를 같은 박자로 지울 수 있도록 몸체 전체를 뜬다.
+        /// 직전 <see cref="Tick"/>이 체력 0 카드를 낮춘 알파만 되돌리고, 실제 뷰의 생명주기에는 손대지 않는다.
+        /// </summary>
+        internal GameObject CreateDeathSnapshot()
+        {
+            if (_body == null || !_body.gameObject.activeInHierarchy) return null;
+
+            GameObject snapshot = Instantiate(_body.gameObject);
+            snapshot.name = $"DeathSnapshot_{(_unit != null ? _unit.UnitName : name)}";
+            Transform snapshotTransform = snapshot.transform;
+            snapshotTransform.position = _body.position;
+            snapshotTransform.rotation = _body.rotation;
+            snapshotTransform.localScale = _body.lossyScale;
+
+            foreach (CanvasGroup group in snapshot.GetComponentsInChildren<CanvasGroup>(true))
+                group.alpha = Mathf.Clamp01(group.alpha / InactiveAlpha);
+
+            foreach (SpriteRenderer renderer in snapshot.GetComponentsInChildren<SpriteRenderer>(true))
+            {
+                if (!string.Equals(renderer.gameObject.name, "Portrait", StringComparison.Ordinal)) continue;
+                Color color = renderer.color;
+                color.a = Mathf.Clamp01(color.a / InactiveAlpha);
+                renderer.color = color;
+            }
+
+            foreach (TMP_Text label in snapshot.GetComponentsInChildren<TMP_Text>(true))
+            {
+                if (label is TextMeshProUGUI) continue;
+                Color color = label.color;
+                color.a = Mathf.Clamp01(color.a / InactiveAlpha);
+                label.color = color;
+            }
+
+            return snapshot;
+        }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary>하네스가 카드 하위 렌더러를 하나씩 격리할 때만 쓰는 개발 전용 스위치.</summary>
+        public void SetVerificationHiddenLayers(IEnumerable<string> layerNames)
+        {
+            var hidden = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (layerNames != null)
+            {
+                foreach (string layer in layerNames)
+                    if (!string.IsNullOrWhiteSpace(layer)) hidden.Add(layer.Trim());
+            }
+
+            bool IsHidden(params string[] aliases)
+            {
+                foreach (string alias in aliases)
+                    if (hidden.Contains(alias)) return true;
+                return false;
+            }
+
+            ApplyHudVisibility();
+            if (_portrait != null)
+                _portrait.gameObject.SetActive(!IsHidden("portrait", "portrait_copy", "art", "art_copy"));
+            if (_shadow != null) _shadow.enabled = !IsHidden("shadow", "ground_shadow");
+            if (_auraGlow != null) _auraGlow.enabled = !IsHidden("aura", "foot_marker");
+            if (_orbCanvas != null) _orbCanvas.gameObject.SetActive(!IsHidden("orb"));
+            bool panelHidden = IsHidden("panel", "bottom_panel");
+            if (_bottomGlass != null) _bottomGlass.SetActive(_combatHud && !panelHidden);
+            if (_bottomGlassShadow != null) _bottomGlassShadow.SetActive(_combatHud && !panelHidden);
+        }
+
+        /// <summary>임포트 원본과 화면에 그리는 런타임 사본을 PNG·알파 통계로 함께 남긴다.</summary>
+        public void DumpVerificationPortraitCopies(string directory, string label)
+        {
+            if (_portrait?.sprite == null || string.IsNullOrWhiteSpace(directory)) return;
+            Directory.CreateDirectory(directory);
+
+            Sprite runtime = _portrait.sprite;
+            Sprite source = PortraitSources.TryGetValue(runtime, out Sprite original) && original != null
+                ? original
+                : runtime;
+            string stem = SafeDiagnosticName(label);
+            DumpVerificationSprite(source, directory, stem + "_source");
+            if (runtime != source)
+                DumpVerificationSprite(runtime, directory, stem + "_runtime");
+
+            Camera camera = Camera.main;
+            if (camera == null) return;
+            Bounds bounds = _portrait.bounds;
+            Vector3 min = camera.WorldToScreenPoint(bounds.min);
+            Vector3 max = camera.WorldToScreenPoint(bounds.max);
+            float screenWidth = Mathf.Abs(max.x - min.x);
+            float screenHeight = Mathf.Abs(max.y - min.y);
+            var display = new PortraitDisplayReport
+            {
+                sourceSprite = source.name,
+                sourceWidth = Mathf.RoundToInt(source.rect.width),
+                sourceHeight = Mathf.RoundToInt(source.rect.height),
+                runtimeWidth = runtime.texture.width,
+                runtimeHeight = runtime.texture.height,
+                runtimeMipCount = runtime.texture.mipmapCount,
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                sourcePixelsPerScreenPixelX = source.rect.width / Mathf.Max(1f, screenWidth),
+                sourcePixelsPerScreenPixelY = source.rect.height / Mathf.Max(1f, screenHeight),
+                filterMode = runtime.texture.filterMode.ToString(),
+                mipMapBias = runtime.texture.mipMapBias,
+            };
+            File.WriteAllText(Path.Combine(directory, stem + "_display.json"),
+                JsonUtility.ToJson(display, true));
+        }
+
+        [Serializable]
+        private sealed class PortraitAlphaReport
+        {
+            public string sprite;
+            public int width;
+            public int height;
+            public int alphaMin;
+            public int alphaMax;
+            public int transparent;
+            public int low1To16;
+            public int low17To32;
+            public int low33To48;
+            public int partial;
+            public int opaque;
+            public int isolatedLowAlpha;
+            public int lowMinX = -1;
+            public int lowMinY = -1;
+            public int lowMaxX = -1;
+            public int lowMaxY = -1;
+        }
+
+        [Serializable]
+        private sealed class PortraitDisplayReport
+        {
+            public string sourceSprite;
+            public int sourceWidth;
+            public int sourceHeight;
+            public int runtimeWidth;
+            public int runtimeHeight;
+            public int runtimeMipCount;
+            public float screenWidth;
+            public float screenHeight;
+            public float sourcePixelsPerScreenPixelX;
+            public float sourcePixelsPerScreenPixelY;
+            public string filterMode;
+            public float mipMapBias;
+        }
+
+        private static void DumpVerificationSprite(Sprite sprite, string directory, string stem)
+        {
+            Texture2D texture = ReadSpritePixels(sprite);
+            if (texture == null) return;
+            try
+            {
+                File.WriteAllBytes(Path.Combine(directory, stem + ".png"), texture.EncodeToPNG());
+                PortraitAlphaReport report = BuildAlphaReport(sprite.name, texture.GetPixels32(),
+                    texture.width, texture.height);
+                File.WriteAllText(Path.Combine(directory, stem + "_alpha.json"),
+                    JsonUtility.ToJson(report, true));
+            }
+            finally
+            {
+                Destroy(texture);
+            }
+        }
+
+        private static Texture2D ReadSpritePixels(Sprite sprite)
+        {
+            if (sprite == null || sprite.texture == null || sprite.packed) return null;
+            int width = Mathf.RoundToInt(sprite.rect.width);
+            int height = Mathf.RoundToInt(sprite.rect.height);
+            if (width <= 0 || height <= 0) return null;
+
+            RenderTexture previous = RenderTexture.active;
+            RenderTexture temporary = RenderTexture.GetTemporary(sprite.texture.width, sprite.texture.height, 0,
+                RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+            try
+            {
+                Graphics.Blit(sprite.texture, temporary);
+                RenderTexture.active = temporary;
+                var copy = new Texture2D(width, height, TextureFormat.RGBA32, false);
+                copy.ReadPixels(sprite.rect, 0, 0, false);
+                copy.Apply(false, false);
+                return copy;
+            }
+            finally
+            {
+                RenderTexture.active = previous;
+                RenderTexture.ReleaseTemporary(temporary);
+            }
+        }
+
+        private static PortraitAlphaReport BuildAlphaReport(string spriteName, Color32[] pixels,
+            int width, int height)
+        {
+            var report = new PortraitAlphaReport
+            {
+                sprite = spriteName,
+                width = width,
+                height = height,
+                alphaMin = 255,
+                alphaMax = 0,
+            };
+
+            for (int y = 0; y < height; y++)
+            {
+                int row = y * width;
+                for (int x = 0; x < width; x++)
+                {
+                    byte alpha = pixels[row + x].a;
+                    report.alphaMin = Mathf.Min(report.alphaMin, alpha);
+                    report.alphaMax = Mathf.Max(report.alphaMax, alpha);
+                    if (alpha == 0) report.transparent++;
+                    else if (alpha <= 16) report.low1To16++;
+                    else if (alpha <= 32) report.low17To32++;
+                    else if (alpha <= PortraitDiagnosticLowAlphaThreshold) report.low33To48++;
+                    else if (alpha < 255) report.partial++;
+                    else report.opaque++;
+
+                    if (alpha == 0 || alpha > PortraitDiagnosticLowAlphaThreshold) continue;
+                    if (report.lowMinX < 0)
+                    {
+                        report.lowMinX = report.lowMaxX = x;
+                        report.lowMinY = report.lowMaxY = y;
+                    }
+                    else
+                    {
+                        report.lowMinX = Mathf.Min(report.lowMinX, x);
+                        report.lowMinY = Mathf.Min(report.lowMinY, y);
+                        report.lowMaxX = Mathf.Max(report.lowMaxX, x);
+                        report.lowMaxY = Mathf.Max(report.lowMaxY, y);
+                    }
+
+                    bool nearCore = false;
+                    for (int py = Mathf.Max(0, y - PortraitDiagnosticCoreRadius);
+                         py <= Mathf.Min(height - 1, y + PortraitDiagnosticCoreRadius) && !nearCore; py++)
+                    {
+                        int probeRow = py * width;
+                        for (int px = Mathf.Max(0, x - PortraitDiagnosticCoreRadius);
+                             px <= Mathf.Min(width - 1, x + PortraitDiagnosticCoreRadius); px++)
+                        {
+                            if (pixels[probeRow + px].a <= PortraitDiagnosticLowAlphaThreshold) continue;
+                            nearCore = true;
+                            break;
+                        }
+                    }
+                    if (!nearCore) report.isolatedLowAlpha++;
+                }
+            }
+            return report;
+        }
+
+        private static string SafeDiagnosticName(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return "portrait";
+            foreach (char invalid in Path.GetInvalidFileNameChars()) value = value.Replace(invalid, '_');
+            return value.Replace(' ', '_');
+        }
+#endif
+
+        // ══════════════════════════════════════════════════════
+        // 연결
+        // ══════════════════════════════════════════════════════
 
         public void Bind(Unit unit, bool combatHud)
         {
-            DetachEvents();
-            ResetReaction();
-
+            if (!EnsureHudReady()) return;
+            ResetMotion();
             _unit = unit;
             _combatHud = combatHud;
 
             Show(unit != null);
             if (unit == null) return;
 
-            // 아군은 오른쪽(적 방향)으로, 적은 왼쪽으로 찍는다.
             _facing = unit.IsEnemy ? -1 : 1;
             _lastHp = unit.HpCurr;
-            RefreshPortraitBase();
-            AttachEvents();
 
             _nameLabel.text = unit.UnitName;
-
-            _ringElementName = null;   // 다른 유닛이 들어왔으니 링 색을 다시 잡는다
-            _ringTickCount = -1;
+            _ringElementName = null;
             RefreshUltimateRingColor();
-            RefreshUltimateTicks();
 
-            // 대기석 카드는 전투 정보를 들지 않는다. 이름표만 남는다.
-            _ultRoot.gameObject.SetActive(combatHud);
-            _hpFill.transform.parent.gameObject.SetActive(combatHud);
-            _actionFill.transform.parent.gameObject.SetActive(combatHud);
-            for (int i = 0; i < _reagentTracks.Length; i++)
-                if (_reagentTracks[i] != null) _reagentTracks[i].SetActive(false);
-            if (!combatHud)
-            {
-                foreach (Image dot in _dots) dot.enabled = false;
-                foreach (Image back in _dotBacks) back.enabled = false;
-                foreach (Image count in _dotCounts) count.enabled = false;
-                _actingOutline.enabled = false;
-            }
+            ApplyHudVisibility();
 
+            LayOutPortrait();
             Tick();
         }
 
-        public void Tick()
+        private void ApplyHudVisibility()
         {
-            if (_unit == null) return;
+            if (!HudIsComplete()) return;
+            bool visible = _unit != null && _combatHud;
 
-            if (!ReagentsBuilt()) RecoverReagentReferences();
-
-            AdvanceReaction(Time.deltaTime);
-            if (!_combatHud) return;
-
-            // 체력이 줄었으면 맞은 것이다. 이벤트를 따로 걸지 않고 값의 변화로 잡는다 —
-            // 방어막이 대신 깎이든 지속 피해든 한 곳에서 잡히기 때문이다.
-            if (_lastHp >= 0 && _unit.HpCurr < _lastHp) PlayHit();
-            _lastHp = _unit.HpCurr;
-
-            // ── 체력 · 방어막 ──
-            // 트랙 전체가 재는 양은 "최대 체력"이 아니라 "지금 남은 체력 + 방어막"의 상한이다.
-            // 예전에는 최대 체력으로만 재고 남은 자리(1 - 체력비율)까지만 방어막을 그렸다.
-            // 그래서 체력이 가득 찬 유닛(찬드라 같은 방어형)은 방어막을 받아도 그릴 자리가
-            // 0이라 아예 보이지 않았다. 이제 방어막만큼 트랙을 늘려 항상 오른쪽에 이어 붙는다.
-            float hpRatio = _unit.HpMax > 0 ? Mathf.Clamp01(_unit.HpCurr / (float)_unit.HpMax) : 0f;
-            float track = Mathf.Max(_unit.HpMax, _unit.HpCurr + _unit.ShieldCurr);
-            float hpSpan = track > 0f ? Mathf.Clamp01(_unit.HpCurr / track) : 0f;
-            float shieldSpan = track > 0f ? Mathf.Clamp01(_unit.ShieldCurr / track) : 0f;
-
-            SetSpan(_hpFill.rectTransform, 0f, hpSpan);
-            SetSpan(_shieldFill.rectTransform, hpSpan, hpSpan + shieldSpan);
-            _hpFill.enabled = hpSpan > 0f;
-            _shieldFill.enabled = shieldSpan > 0f;
-            // 적은 비율과 무관하게 적색, 아군은 30% 이하부터 붉어진다.
-            _hpFill.color = _unit.IsEnemy ? UITheme.Enemy : UITheme.HpColor(hpRatio);
-            RefreshHpSegments();
-
-            // ── 궁극기 링 ──
-            // 원소가 런 중에 바뀌는 유닛이 있어 매 프레임 값을 확인한다.
-            // 문자열이 그대로면 아무 일도 하지 않으므로 비용은 비교 한 번이다.
-            RefreshUltimateRingColor();
-            RefreshUltimateTicks();
-
-            // ManaMax는 AttributesUpdate가 GetUltimateResourceMax()로 채워 두는 값이라
-            // 마나형이면 파생 마나, 스택형이면 최대 스택이 그대로 들어 있다.
-            // 예전에는 yaml 원본값(UltimateResourceMax)을 먼저 봐서, 파생 마나가 100이
-            // 아닌 유닛의 수위가 실제와 어긋났다.
-            int resourceMax = _unit.ManaMax > 0 ? _unit.ManaMax : _unit.GetUltimateResourceMax();
-            _ultFill.fillAmount = resourceMax > 0 ? Mathf.Clamp01(_unit.ManaCurr / (float)resourceMax) : 0f;
-            RefreshUltimateReady(_unit.Chemistry != null ? _unit.Chemistry.CanReact : _ultFill.fillAmount >= 0.999f);
-            for (int i = 0; i < _reagentBars.Length; i++)
+            // 대기석 카드는 전투 정보를 들지 않는다. 원화와 이름만 남는다.
+            _ultRoot.gameObject.SetActive(visible);
+            _bottomGlass.SetActive(visible);
+            _bottomGlassShadow.SetActive(visible);
+            _hpLabel.gameObject.SetActive(visible);
+            _glassTint.color = new Color(0.149f, 0.22f, 0.29f, 0.72f);
+            if (!visible)
             {
-                bool visible = _combatHud && _unit.Chemistry != null;
-                GameObject trackObject = _reagentTracks[i];
-                Image fill = _reagentBars[i];
-                if (trackObject != null) trackObject.SetActive(visible);
-                if (visible && fill != null)
-                    SetSpan(fill.rectTransform, 0f,
-                        _unit.Chemistry.Reagents[(ReagentKind)i] / _unit.Chemistry.Reagents.Capacity);
-            }
-
-            // ── 행동 게이지 ──
-            ActionScheduler scheduler = GameManager.Instance?.ActionScheduler;
-            SetSpan(_actionFill.rectTransform, 0f, scheduler?.ActionProgress(_unit) ?? 0f);
-            _actingOutline.enabled = scheduler != null && ReferenceEquals(scheduler.ActingUnit, _unit);
-
-            RefreshStatusDots();
-
-            bool alive = _unit.isActive && _unit.HpCurr > 0;
-            _group.alpha = alive ? 1f : 0.38f;
-            if (_nameLabel != null)
-            {
-                // 이름표는 이름 한 줄이다. 체력 수치는 바가 대신 말하므로 적지 않고,
-                // 고유 패시브 스택 같은 전투 자원이 있을 때만 이름 뒤에 작게 붙인다.
-                // (라부아지에의 시약은 카드 위 세 막대가 따로 보여 준다.)
-                string resources = _combatHud ? Combat.CombatResourceLabels.Compose(_unit) : "";
-                if (resources.StartsWith(_unit.UnitName, System.StringComparison.Ordinal))
-                    resources = resources.Substring(_unit.UnitName.Length).Trim();
-                _nameLabel.text = string.IsNullOrWhiteSpace(resources)
-                    ? _unit.UnitName
-                    : $"{_unit.UnitName}  <size=78%><color=#1B5E5A>{resources}</color></size>";
-
-                // 이름표는 캔버스 밖이라 CanvasGroup이 닿지 않는다. 알파를 직접 맞춘다.
-                Color nameColor = new Color(0.075f, 0.12f, 0.13f, 1f);
-                nameColor.a = alive ? 1f : 0.38f;
-                _nameLabel.color = nameColor;
-            }
-            if (_frame != null)
-            {
-                Color tint = _frame.color;
-                tint.a = alive ? 1f : 0.38f;
-                _frame.color = tint;
+                foreach (Image dot in _dots) dot.enabled = false;
+                foreach (Image back in _dotBacks) back.enabled = false;
+                foreach (Image rim in _dotRims) rim.enabled = false;
+                foreach (Image arrow in _dotArrows) arrow.enabled = false;
+                foreach (Image countBack in _dotCountBacks) countBack.enabled = false;
+                foreach (Image count in _dotCounts) count.enabled = false;
+                foreach (Image badge in _elementBadges) badge.enabled = false;
             }
         }
 
+        private void Show(bool visible)
+        {
+            if (_body == null) return;
+            _body.gameObject.SetActive(visible);
+            _shadow.enabled = visible;
+        }
+
+        // ══════════════════════════════════════════════════════
+        // HUD 갱신
+        // ══════════════════════════════════════════════════════
+
+        /// <summary>값이 바뀐 HUD를 다시 그린다. 움직임은 여기서 진행하지 않는다(프레임당 여러 번 불릴 수 있다).</summary>
+        public void Tick()
+        {
+            if (!EnsureHudReady()) return;
+            if (_unit == null) return;
+
+            // 체력이 줄었으면 맞은 것이다. 출처를 모르는 피해도 여기서 잡힌다.
+            if (_lastHp >= 0 && _unit.HpCurr < _lastHp && _flash <= 0f) PlayHitReaction(0.5f, false, false);
+            _lastHp = _unit.HpCurr;
+
+            RefreshElementBadges();
+            RefreshResourceBadge();
+            if (!_combatHud) return;
+
+            // 보호막은 별도 생명처럼 체력 오른쪽을 늘리지 않고, 최대 체력 대비 양을 윗면에 겹쳐 보여 준다.
+            float hpRatio = _unit.HpMax > 0 ? Mathf.Clamp01(_unit.HpCurr / (float)_unit.HpMax) : 0f;
+            float shieldRatio = _unit.HpMax > 0 ? Mathf.Clamp01(_unit.ShieldCurr / (float)_unit.HpMax) : 0f;
+            SetSpan(_hpFill.rectTransform, 0f, hpRatio);
+            SetSpan(_shieldFill.rectTransform, 0f, shieldRatio);
+            _shieldFill.rectTransform.offsetMin = new Vector2(0f, HpHeight * 0.58f);
+            _hpFill.enabled = hpRatio > 0f;
+            _shieldFill.enabled = shieldRatio > 0f;
+            _hpFill.color = _unit.IsEnemy
+                ? new Color(0.878f, 0.353f, 0.408f, 1f)
+                : new Color(0.157f, 0.78f, 0.682f, 1f);
+            _hpLabel.text = $"{Mathf.Max(0, _unit.HpCurr):N0} / {Mathf.Max(0, _unit.HpMax):N0}";
+            bool wideHp = Mathf.Abs(_unit.HpCurr) >= 1000 || Mathf.Abs(_unit.HpMax) >= 1000;
+            _hpLabel.transform.localScale = new Vector3(wideHp ? 0.88f : 1f, 1f, 1f);
+
+            RefreshUltimateRingColor();
+            float fill = _unit.ManaMax > 0 ? Mathf.Clamp01(_unit.ManaCurr / (float)_unit.ManaMax) : 0f;
+            _ultFillAmount = fill;
+            _ultRearFill.fillAmount = fill;
+            _ultFill.fillAmount = fill;
+            _ultFillLight.fillAmount = fill;
+            _ultFillShade.fillAmount = fill;
+            RefreshUltimateReady(fill >= 0.999f);
+
+            ActionScheduler scheduler = GameManager.Instance?.ActionScheduler;
+            SetSpan(_actionFill.rectTransform, 0f, scheduler?.ActionProgress(_unit) ?? 0f);
+
+            RefreshStatusDots();
+        }
+
         /// <summary>
-        /// 상태 아이콘을 다시 그린다.
-        ///
-        /// <b>같은 그림으로 보이는 것은 한 칸에 모으고 수를 적는다.</b> 중첩은 같은 상태를 여러 개
-        /// 들고 있는 것으로 구현돼 있어(<c>StatusStackPolicy.Stack</c>), 예전처럼 목록을
-        /// 그대로 늘어놓으면 화상 5중첩 하나가 다섯 칸을 전부 먹었다. Key로만 모으면
-        /// 출처가 다른 같은 공격력 증가 둘이 똑같은 아이콘 두 칸으로 나란히 서서, 같은 모양이
-        /// 겹쳐 보인다는 QA가 있었다. 이제 그림 · 방향 · 색이 같으면 한 칸이다.
-        /// 무엇이 모였는지는 카드에 마우스를 올리면 툴팁으로 하나씩 보인다(<see cref="Cell"/>).
-        ///
-        /// 순서는 행동 불가 → 해로움 → 이로움. 칸이 모자라면 마지막 칸이 남은 수를 적는다.
+        /// 지원 연출이 끝난 순간 실제 상태 아이콘 또는 보호막 게이지를 한 번 튕긴다.
+        /// 월드 이펙트만으로 의미를 추측하게 두지 않고, 변화가 생긴 HUD와 시선을 직접 연결한다.
+        /// </summary>
+        public void PulseSupportHud(bool shield, bool health, Color accent)
+        {
+            if (!_combatHud) return;
+            Tick();
+
+            _supportHudPulseTarget = null;
+            _supportHudPulseImage = null;
+            if (shield && _shieldFill != null && _shieldFill.enabled)
+            {
+                _supportHudPulseTarget = _shieldFill.rectTransform;
+                _supportHudPulseImage = _shieldFill;
+            }
+            else if (health && _hpFill != null && _hpFill.enabled)
+            {
+                _supportHudPulseTarget = _hpFill.rectTransform;
+                _supportHudPulseImage = _hpFill;
+            }
+            else
+            {
+                for (int i = 0; i < _dotBacks.Length; i++)
+                {
+                    if (_dotBacks[i] == null || !_dotBacks[i].enabled) continue;
+                    _supportHudPulseTarget = _dotBacks[i].rectTransform;
+                    _supportHudPulseImage = _dotRims[i];
+                    break;
+                }
+            }
+
+            if (_supportHudPulseTarget == null && _hpTrack != null)
+            {
+                _supportHudPulseTarget = _hpTrack.rectTransform;
+                _supportHudPulseImage = _hpTrack;
+            }
+
+            if (_supportHudPulseTarget == null) return;
+            _supportHudPulseBaseColor = _supportHudPulseImage != null
+                ? _supportHudPulseImage.color
+                : Color.white;
+            _supportHudPulseAge = 0f;
+            _supportHudPulseTarget.localScale = Vector3.one;
+            if (_supportHudPulseImage != null)
+            {
+                accent.a = 1f;
+                _supportHudPulseImage.color = Color.Lerp(_supportHudPulseBaseColor, accent, 0.72f);
+            }
+        }
+
+        private void RefreshElementBadges()
+        {
+            int i = 0;
+            if (_unit.HasAnyCombatElement)
+            {
+                foreach (BaseEnums.UnitElement element in _unit.AttachedElements)
+                {
+                    if (i >= MaxElementBadges) break;
+                    _elementBadges[i].sprite = UltimateGlyph(null, element);
+                    _elementBadges[i].color = new Color(0.95f, 0.94f, 0.91f, 0.88f);
+                    _elementBadges[i].enabled = true;
+                    i++;
+                }
+            }
+            for (; i < MaxElementBadges; i++) _elementBadges[i].enabled = false;
+        }
+
+        /// <summary>
+        /// 유닛이 카드 HUD용으로 명시한 고유 자원의 현재 수를 오브 왼쪽 위 배지에 적는다.
+        /// 작은 카드에서 일곱 개 마름모는 채움 수를 세기 어려워 한 자리 숫자가 더 빨리 읽힌다.
+        /// </summary>
+        private void RefreshResourceBadge()
+        {
+            string resource = BadgeResourceId(_unit);
+            int max = _combatHud && resource != null ? _unit.GetCombatResourceMaximum(resource) : 0;
+            int current = max > 0 ? _unit.GetCombatResource(resource) : 0;
+            bool visible = max > 0 && (_unit.ID == 7 || current > 0);
+            _resourceBadge.enabled = visible;
+            _resourceBadgeDigit.enabled = false;
+            _resourceBadgeText.enabled = visible;
+            if (!visible) return;
+
+            _resourceBadgeText.text = current.ToString();
+            _resourceBadge.rectTransform.sizeDelta = new Vector2(current >= 10 ? 13.2f : 9.2f, 7.2f);
+            float complete = current >= max ? 1f : 0f;
+            _resourceBadge.color = Color.Lerp(
+                new Color(0.70f, 0.82f, 0.90f, 0.88f),
+                new Color(0.96f, 0.88f, 0.62f, 0.96f), complete);
+        }
+
+        /// <summary>
+        /// 자원 생성 순서가 바뀌어도 배지가 엉뚱한 값을 고르지 않도록 유닛별 표시 자원을 여기서 명시한다.
+        /// 명시하지 않은 유닛은 배지를 숨긴다.
+        /// </summary>
+        private static string BadgeResourceId(Unit unit)
+        {
+            if (unit == null || unit.IsEnemy) return null;
+            return unit.ID switch
+            {
+                1 => Codes.Passive.SeiBigBang.ResourceId,
+                7 => Codes.Passive.JeanIronSanction.ResourceId,
+                _ => null,
+            };
+        }
+
+        private void RefreshUltimateRingColor()
+        {
+            string elementName = _unit != null ? _unit.Element : null;
+            if (elementName == _ringElementName) return;
+            _ringElementName = elementName;
+
+            BaseEnums.UnitElement element = ElementPalette.Parse(elementName);
+            _ringColor = element == BaseEnums.UnitElement.None ? UITheme.Mana : ElementPalette.PastelColorFor(element);
+            _ultOutline.color = new Color(0.78f, 0.89f, 0.96f, 0.98f);
+            _ultFill.color = _ringColor;
+            Color rearLiquid = Color.Lerp(_ringColor, new Color(0.025f, 0.055f, 0.085f, 1f), 0.34f);
+            rearLiquid.a = 0.96f;
+            _ultRearFill.color = rearLiquid;
+            Color liquidLight = Color.Lerp(_ringColor, Color.white, 0.58f);
+            liquidLight.a = 0.62f;
+            _ultFillLight.color = liquidLight;
+            Sprite glyph = UltimateGlyph(_unit, element);
+            _ultMark.sprite = glyph;
+            _ultMarkShadow.sprite = glyph;
+            _ultMarkShadow.color = MarkShadow;
+            _ultMark.color = MarkIdle;
+        }
+
+        /// <summary>다 찼는지를 맥동으로 알린다. 8배속에서도 깜빡임이 되지 않게 실시간으로 센다.</summary>
+        private void RefreshUltimateReady(bool ready)
+        {
+            _ultReady = ready;
+            if (!ready)
+            {
+                _ultMark.color = MarkIdle;
+                _ultMarkShadow.color = MarkShadow;
+                // 비어 있어도 짙은 원판이 되지 않는다. 밝은 크롬과 투명 유리 하드웨어는 항상 남긴다.
+                _ultOutline.color = new Color(0.78f, 0.89f, 0.96f, 0.98f);
+                _ultReadyGlow.color = Color.clear;
+                _ultReadyRing.color = Color.clear;
+                return;
+            }
+
+            float pulse = 0.74f + 0.26f * Mathf.Sin(Time.unscaledTime * 6.6f);
+            _ultMark.color = new Color(1f, 1f, 1f, 0.92f + pulse * 0.08f);
+            _ultMarkShadow.color = new Color(MarkShadow.r, MarkShadow.g, MarkShadow.b, 0.94f);
+            // 준비 상태에서도 하드웨어 외곽은 실버블루로 유지한다. 바깥 원을 금색으로 바꾸면
+            // 작은 카드에서 아래쪽 호만 수평 막대처럼 튀므로 금색은 안쪽 준비 링에만 쓴다.
+            _ultOutline.color = new Color(0.78f, 0.89f, 0.96f, 0.98f);
+            _ultReadyGlow.color = new Color(_ringColor.r, _ringColor.g, _ringColor.b, 0.13f + pulse * 0.12f);
+            // 21×21에서는 준비 링의 아래쪽 호만 금색 막대로 남았다. 완충 정보는 내부 글리프와
+            // 오브 안에 갇힌 호흡광으로 충분하므로 외곽 장식은 투명하게 유지한다.
+            _ultReadyRing.color = Color.clear;
+        }
+
+        /// <summary>
+        /// 상태 아이콘. <b>같은 그림으로 보이는 것은 한 칸에 모으고 수를 적는다.</b>
+        /// 순서는 행동 불가 → 해로움 → 이로움. 칸이 모자라면 마지막 칸에 셰브론을 둔다.
         /// </summary>
         private void RefreshStatusDots()
         {
@@ -704,71 +1796,104 @@ namespace Entities.View
                 {
                     UnitStatus status = statuses[i];
                     if (status == null) continue;
-
                     int slot = IndexOfLook(status);
                     if (slot >= 0)
                     {
                         _dotStackCounts[slot]++;
                         continue;
                     }
-
                     _dotStatuses.Add(status);
                     _dotStackCounts.Add(1);
                 }
             }
 
             SortDotsByUrgency();
+            ApplyGlassHeight(_dotStatuses.Count > 0);
 
-            bool overflow = _dotStatuses.Count > MaxDots;
-            int iconSlots = overflow ? MaxDots - 1 : _dotStatuses.Count;
-
+            int slots = Mathf.Clamp(_visibleDotSlots, 1, MaxDots);
+            int iconCapacity = _compactHud ? Mathf.Min(CompactStatusIconCount, slots - 1) : slots;
+            bool overflow = _dotStatuses.Count > iconCapacity;
+            int iconSlots = overflow && !_compactHud
+                ? slots - 1
+                : Mathf.Min(_dotStatuses.Count, iconCapacity);
+            int overflowSlot = iconSlots;
             for (int i = 0; i < _dots.Length; i++)
             {
-                bool isOverflow = overflow && i == MaxDots - 1;
+                bool isOverflow = overflow && i == overflowSlot;
                 bool has = i < iconSlots || isOverflow;
                 _dotBacks[i].enabled = has;
+                _dotRims[i].enabled = has;
                 _dots[i].enabled = has;
+                _dotArrows[i].enabled = false;
+                _dotCountBacks[i].enabled = has && !isOverflow && _dotStackCounts[i] > 1;
                 _dotCounts[i].enabled = has && !isOverflow && _dotStackCounts[i] > 1;
                 if (!has) continue;
 
+                _dotBacks[i].color = _compactHud
+                    ? new Color(0.075f, 0.125f, 0.20f, 0.22f)
+                    : DotBacking;
+                _dotRims[i].color = _compactHud
+                    ? new Color(0.97f, 0.985f, 1f, 0.62f)
+                    : new Color(0.90f, 0.98f, 1f, 0.42f);
+
                 if (isOverflow)
                 {
-                    // 넘친 수. 그림 대신 숫자만 흰색으로 — 아이콘이 아니라는 것이 한눈에 갈린다.
-                    _dots[i].sprite = UIShapes.Digit(Mathf.Min(9, _dotStatuses.Count - iconSlots), Color.white);
-                    _dots[i].color = UITheme.TextPrimary;
+                    _dotBacks[i].sprite = StatusIcons.Frame(null, false);
+                    _dotRims[i].sprite = StatusIcons.Frame(null, true);
+                    _dots[i].sprite = StatusIcons.Overflow;
+                    _dots[i].color = Color.white;
+                    _dots[i].rectTransform.localRotation = Quaternion.identity;
                     continue;
                 }
 
-                Color tint = StatusIcons.Tint(_dotStatuses[i]);
+                UnitStatus status = _dotStatuses[i];
+                StatusArrow arrow = StatusIcons.Resolve(status).Arrow;
+                _dotBacks[i].sprite = StatusIcons.Frame(status, false);
+                _dotRims[i].sprite = StatusIcons.Frame(status, true);
                 _dots[i].sprite = StatusIcons.For(_dotStatuses[i]);
-                _dots[i].color = tint;
-
+                _dots[i].color = StatusIcons.Tint(status);
+                _dots[i].rectTransform.localRotation = Quaternion.identity;
+                _dotArrows[i].sprite = StatusIcons.Arrow(arrow);
+                _dotArrows[i].enabled = _dotArrows[i].sprite != null;
                 if (!_dotCounts[i].enabled) continue;
-                _dotCounts[i].sprite = UIShapes.Digit(Mathf.Min(9, _dotStackCounts[i]), Color.white);
-                // 숫자는 아이콘보다 밝게 둔다. 같은 색이면 그림에 섞여 읽히지 않는다.
-                _dotCounts[i].color = Color.Lerp(tint, Color.white, 0.55f);
+                _dotCounts[i].sprite = StatusIcons.StackDigit(Mathf.Min(9, _dotStackCounts[i]));
+                _dotCounts[i].color = Color.white;
             }
         }
 
-        /// <summary>그림 · 방향 · 색이 같은 칸을 찾는다. 셋이 같으면 눈으로는 같은 상태다.</summary>
+        /// <summary>
+        /// 상태가 없을 때 빈 셋째 행을 접는다. 패널 상단과 정보 좌표는 고정해 상태가 생기거나
+        /// 사라져도 이름·HP가 흔들리지 않고, 바깥 림과 그림자만 실제 내용 높이를 따른다.
+        /// </summary>
+        private void ApplyGlassHeight(bool showStatusRow)
+        {
+            if (_bottomGlass == null || _bottomGlassShadow == null || _actingOutline == null) return;
+            if (_glassHeightInitialized && _statusRowVisible == showStatusRow) return;
+
+            _glassHeightInitialized = true;
+            _statusRowVisible = showStatusRow;
+            float height = showStatusRow ? GlassHeight : GlassEmptyHeight;
+            Place(_actingOutline.rectTransform, GlassLeft - 0.65f, GlassTop - 0.65f,
+                GlassWidth + 1.3f, height + 1.3f);
+            Place((RectTransform)_bottomGlassShadow.transform, GlassLeft, GlassTop + 0.8f,
+                GlassWidth, height);
+            Place((RectTransform)_bottomGlass.transform, GlassLeft, GlassTop, GlassWidth, height);
+        }
+
         private int IndexOfLook(UnitStatus status)
         {
             (StatusGlyph glyph, StatusArrow arrow) = StatusIcons.Resolve(status);
-            Color tint = StatusIcons.Tint(status);
-
+            StatusFrameKind frame = StatusIcons.FrameKind(status);
             for (int i = 0; i < _dotStatuses.Count; i++)
             {
                 UnitStatus other = _dotStatuses[i];
-                if (string.Equals(other.Key, status.Key, System.StringComparison.Ordinal)) return i;
-
+                if (string.Equals(other.Key, status.Key, StringComparison.Ordinal)) return i;
                 (StatusGlyph otherGlyph, StatusArrow otherArrow) = StatusIcons.Resolve(other);
-                if (otherGlyph == glyph && otherArrow == arrow && StatusIcons.Tint(other) == tint) return i;
+                if (otherGlyph == glyph && otherArrow == arrow && StatusIcons.FrameKind(other) == frame) return i;
             }
-
             return -1;
         }
 
-        /// <summary>행동 불가 → 해로움 → 기타 → 이로움. 같은 급이면 원래 순서를 지킨다(삽입 정렬).</summary>
         private void SortDotsByUrgency()
         {
             for (int i = 1; i < _dotStatuses.Count; i++)
@@ -790,345 +1915,882 @@ namespace Entities.View
 
         private static int Urgency(UnitStatus status)
         {
-            Color tint = StatusIcons.Tint(status);
-            if (tint == UITheme.Control) return 0;
-            if (tint == UITheme.Danger) return 1;
-            if (tint == UITheme.Positive) return 3;
-            return 2;
-        }
-
-        private void Show(bool visible)
-        {
-            // 프레임 렌더러는 조립/리사이즈 기준으로만 남긴다. 화면에는 정사각 카드 면을 그리지 않는다.
-            if (_frame != null) _frame.enabled = false;
-            if (_canvas != null) _canvas.gameObject.SetActive(visible);
-            if (_nameLabel != null) _nameLabel.gameObject.SetActive(visible);
-        }
-
-        // ── 타격 · 시전 반응 ─────────────────────────────────────────
-
-        private void AttachEvents()
-        {
-            if (_unit == null) return;
-
-            // Unit.InitializeUnit()이 이벤트 딕셔너리를 새로 만들기 때문에
-            // 셀을 다시 쓸 때마다 연결도 새로 해 줘야 한다.
-            _unit.AddListener<EventContext>(BaseEnums.UnitEventType.OnNormalActivates, OnCast);
-            _unit.AddListener<EventContext>(BaseEnums.UnitEventType.OnUltimateActivates, OnUltimateCast);
-        }
-
-        private void DetachEvents()
-        {
-            if (_unit == null) return;
-
-            _unit.RemoveListener<EventContext>(BaseEnums.UnitEventType.OnNormalActivates, OnCast);
-            _unit.RemoveListener<EventContext>(BaseEnums.UnitEventType.OnUltimateActivates, OnUltimateCast);
-        }
-
-        /// <summary>
-        /// 일반행동이 시작됐다. 바로 앞으로 찍지 않고 <b>시전 시간 동안 뒤로 빼 두었다가</b>,
-        /// 발사 신호(<see cref="PlayAttackReaction"/>)가 오는 순간 앞으로 찍는다.
-        /// 투사체와 베기 연출은 그 신호와 같은 프레임에 나가므로 카드의 찍기와 발사가 맞물린다.
-        /// </summary>
-        private void OnCast(EventContext _)
-        {
-            float castTime = _unit?.ActiveNormalCode?.CastingDelay ?? 0f;
-            if (castTime < MinWindupCast)
+            return StatusIcons.FrameKind(status) switch
             {
-                PlayCast(1f);
-                return;
-            }
-
-            _windupHeld = true;
-            _windupElapsed = 0f;
-            _windupDuration = castTime;
+                StatusFrameKind.Control => 0,
+                StatusFrameKind.Harmful => 1,
+                StatusFrameKind.Neutral => 2,
+                _ => 3,
+            };
         }
 
-        private void OnUltimateCast(EventContext _)
-        {
-            // 궁극기가 시작되면 일반행동의 뒤로 빼기는 접는다.
-            _windupHeld = false;
-            PlayCast(1.6f);
-        }
-
-        /// <summary>쏘는 순간 카드가 적 쪽으로 찍고 살짝 커진다.</summary>
-        private void PlayCast(float strength)
-        {
-            _windupHeld = false;
-            _lastThrustTime = Time.time;
-            _lunge = Mathf.Min(1f, strength);
-            _punch = Mathf.Max(_punch, 0.6f * Mathf.Min(1f, strength));
-        }
+        // ══════════════════════════════════════════════════════
+        // 반응 (피격 · 발사)
+        // ══════════════════════════════════════════════════════
 
         /// <summary>
-        /// 실제 발사/베기 시점에 쓰는 공개 진입점. 뒤로 빼 둔 자세가 있으면 그 자세에서 앞으로 찍고,
-        /// 없으면(궁극기·다단 공격) 그 자리에서 조금 전진해 근접 공격의 거리감을 살린다.
+        /// 맞는 순간의 반응. 하얗게 번쩍이며 뒤로 밀리고, <b>부딪힌 공격이면 떤다</b>.
         /// </summary>
-        public void PlayAttackReaction(float strength = 1f)
-        {
-            // 시전 시간이 끝나 이미 찍었는데 같은 발사의 신호가 뒤따라오면 다시 찍지 않는다.
-            // 다시 찍으면 진행 중인 동작이 처음으로 되감겨 카드가 한 번 더 튄다.
-            if (!_windupHeld && Time.time - _lastThrustTime < ThrustDebounce) return;
-
-            PlayCast(strength);
-        }
-
-        /// <summary>
-        /// 뒤로 빼 둔 자세의 진행. 시전 시간 동안 차오르다 발사 신호가 없으면 시전 시간이 끝난 직후
-        /// 스스로 찍는다(마법 일반행동처럼 반동 신호를 내지 않는 공격도 같은 박자로 움직이게).
-        /// 시전자가 쓰러지거나 제어당했으면 찍지 않고 자세만 푼다.
-        /// </summary>
-        private void AdvanceWindup(float deltaTime)
-        {
-            if (_windupHeld)
-            {
-                if (_unit == null || !_unit.isActive || _unit.isControlled)
-                {
-                    _windupHeld = false;
-                }
-                else
-                {
-                    _windupElapsed += deltaTime;
-                    float t = Mathf.Clamp01(_windupElapsed / _windupDuration);
-                    // 빨리 물러나 자세를 잡고 그 뒤로는 버틴다. 균등하게 물러나면 발사 직전에야 뒤에 닿는다.
-                    _windup = t * (2f - t);
-
-                    if (_windupElapsed >= _windupDuration + WindupGrace) PlayCast(1f);
-                    return;
-                }
-            }
-
-            if (_windup > 0f) _windup = Mathf.MoveTowards(_windup, 0f, deltaTime / WindupReleaseTime);
-        }
-
-        /// <summary>
-        /// 맞는 순간의 반응. 하얗게 번쩍이며 뒤로 밀리고, <b>물리 타격이면 떤다</b>.
-        ///
-        /// 세기는 <see cref="Effects.CombatFeedback"/>가 '최대 체력의 몇 할을 잃었는가'로 잰다.
-        /// 잔매와 한 방이 같은 크기로 흔들리면 무엇이 아팠는지 알 수 없다.
-        /// </summary>
-        /// <param name="strength">0~1 남짓의 세기. 1이 한 방에 가깝다.</param>
-        /// <param name="physical">베기·찌르기·타격 등 물리인가. 마법은 떨지 않고 번쩍이기만 한다.</param>
-        /// <param name="crit">치명타면 떨림을 한 번 더 키운다.</param>
+        /// <param name="strength">0~1 남짓. 1이 한 방에 가깝다.</param>
+        /// <param name="physical">카드가 직접 부딪힌 공격인가.</param>
         public void PlayHitReaction(float strength, bool physical, bool crit)
         {
             float scaled = Mathf.Clamp(strength, 0.2f, 1.4f);
-
-            _flash = 1f;
-            _punch = Mathf.Max(_punch, Mathf.Min(1f, 0.7f + 0.3f * scaled));
+            // 전용 착탄광과 겹쳐도 카드 원화가 사라지지 않도록 최종 면광을 0.25 아래로 제한한다.
+            _flash = Mathf.Max(_flash, crit ? 0.67f : 0.62f);
+            _punch = Mathf.Max(_punch, Mathf.Min(1f, 0.6f + 0.3f * scaled));
             _recoil = Mathf.Max(_recoil, Mathf.Min(1f, scaled));
-
-            if (physical)
+            if (physical || crit)
             {
                 _shake = 1f;
                 _shakeStrength = Mathf.Min(1.3f, scaled * (crit ? 1.3f : 1f));
-                _shakeSeed = Random.value * 10f;
+                _shakeSeed = UnityEngine.Random.value * 10f;
+                _hitSquash = Mathf.Max(_hitSquash, Mathf.Min(1.25f, scaled * (physical ? 1.05f : 0.72f)));
             }
-
-            // 체력 변화로 잡는 자동 감지와 겹치지 않게 기준값을 맞춰 둔다.
             if (_unit != null) _lastHp = _unit.HpCurr;
         }
 
-        /// <summary>체력이 줄어든 것만 보고 잡아내는 기본 반응. 출처를 모르는 피해가 여기로 온다.</summary>
-        private void PlayHit() => PlayHitReaction(0.6f, physical: false, crit: false);
-
-        private void ResetReaction()
+        /// <summary>
+        /// 큰 스킬이 주변 원화에도 같은 색의 짧은 반사광을 남긴다. 흰 부분을 더 밝힐 수는 없고
+        /// RGB만 약하게 기울이므로 얼굴과 의상이 과노출되지 않는다.
+        /// </summary>
+        public void PulseVfxLight(Color color, float strength, float duration)
         {
-            _flash = _punch = _lunge = _recoil = _shake = 0f;
-            _windup = 0f;
-            _windupHeld = false;
-            _airborneLift = 0f;
-            _lastHp = -1;
-            ApplyReaction();
+            if (strength <= 0f || duration <= 0f) return;
+            _vfxLightColor = color;
+            _vfxLightPeak = Mathf.Clamp(strength, 0f, 0.28f);
+            _vfxLightAge = 0f;
+            _vfxLightDuration = Mathf.Max(0.08f, duration);
         }
 
-        private void AdvanceReaction(float deltaTime)
+        /// <summary>발사 반동 — 예전 호출부 호환용. 적 쪽으로 짧게 튄다.</summary>
+        public void PlayAttackReaction(float strength = 1f) => PlayThrow(new Vector3(_facing, 0f, 0f), strength);
+
+        /// <summary>
+        /// 던지는 동작. 카드가 <paramref name="direction"/>으로 짧게 튀었다 돌아온다.
+        /// 원거리 공격은 카드가 날아가지 않는다 — 대신 이 반동이 "쐈다"를 말한다.
+        /// </summary>
+        public void PlayThrow(Vector3 direction, float strength = 1f)
         {
-            if (deltaTime <= 0f) return;
-
-            float airborneTarget = _unit != null && _unit.HasStatusKey(ControlStatuses.AirborneKey)
-                ? Cell.CardSize * 0.13f
-                : 0f;
-            float airborneTime = airborneTarget > _airborneLift ? AirborneRiseTime : AirborneFallTime;
-            float airborneStep = Cell.CardSize * 0.13f * deltaTime / airborneTime;
-            float nextAirborne = Mathf.MoveTowards(_airborneLift, airborneTarget, airborneStep);
-
-            AdvanceWindup(deltaTime);
-
-            bool moving = _flash > 0f || _punch > 0f || _lunge > 0f || _recoil > 0f || _shake > 0f
-                || _windup > 0f || _windupHeld
-                || !Mathf.Approximately(nextAirborne, _airborneLift);
-            if (!moving) return;
-
-            _airborneLift = nextAirborne;
-            _flash = Mathf.Max(0f, _flash - deltaTime / FlashTime);
-            _punch = Mathf.Max(0f, _punch - deltaTime / PunchTime);
-            _lunge = Mathf.Max(0f, _lunge - deltaTime / LungeTime);
-            _recoil = Mathf.Max(0f, _recoil - deltaTime / PunchTime);
-            _shake = Mathf.Max(0f, _shake - deltaTime / ShakeTime);
-            ApplyReaction();
+            direction.z = 0f;
+            _lungeDirection = direction.sqrMagnitude > 0.0001f ? direction.normalized : new Vector3(_facing, 0f, 0f);
+            _lunge = Mathf.Clamp01(strength);
+            _punch = Mathf.Max(_punch, 0.5f * Mathf.Clamp01(strength));
         }
 
-        /// <summary>지금의 반응 상태를 카드와 초상화에 함께 입힌다.</summary>
-        private void ApplyReaction()
+        /// <summary>
+        /// 발톱 끝처럼 방향이 보이는 VFX가 지나갈 때만 쓰는 짧은 밀림이다.
+        /// 전투 위치는 바꾸지 않고 몸체 계층만 이동했다 되돌려 판정과 배치를 건드리지 않는다.
+        /// </summary>
+        public void PlayVfxKick(Vector3 direction, float strength = 0.55f)
         {
-            // 번쩍임은 빠르게 사그라들어야 잔상이 남지 않는다.
-            if (_hitFlash != null)
+            direction.z = 0f;
+            _vfxKickDirection = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.right;
+            _vfxKick = 1f;
+            _vfxKickStrength = Mathf.Max(_vfxKickStrength, Mathf.Clamp01(strength));
+            _hitSquash = Mathf.Max(_hitSquash, 0.62f * Mathf.Clamp01(strength));
+        }
+
+        /// <summary>
+        /// 패시브가 끼어들기 전에 원 공격 카드가 대상 쪽으로 절반만 나갔다 멈추는 프리뷰다.
+        /// 실제 공격 모션은 개입 뒤 처음부터 다시 시작하므로 위치·행동치에는 손대지 않는다.
+        /// </summary>
+        public IEnumerator InterruptionWindup(Vector3 direction)
+        {
+            direction.z = 0f;
+            direction = direction.sqrMagnitude > 0.0001f ? direction.normalized : new Vector3(_facing, 0f, 0f);
+            float tiltSign = direction.x >= 0f ? -1f : 1f;
+            Vector3 half = direction * _cardSize * 0.09f;
+            IsPerformingMotion = true;
+            SetSortBoost(VfxSpace.FlyingCardSortingOrder);
+
+            const float enter = 0.12f;
+            for (float age = 0f; age < enter; age += Time.deltaTime)
             {
-                Color flashColor = _hitFlash.color;
-                flashColor.a = 0.55f * _flash * _flash;
-                _hitFlash.color = flashColor;
-                _hitFlash.enabled = flashColor.a > 0.001f;
+                float t = EaseOutCubic(age / enter);
+                _motionOffset = Vector3.Lerp(Vector3.zero, half, t);
+                _tilt = Mathf.Lerp(0f, -tiltSign * 3.5f, t);
+                _squash = Vector2.Lerp(Vector2.one, new Vector2(1.025f, 0.982f), t);
+                yield return null;
+            }
+            _motionOffset = half;
+            yield return new WaitForSeconds(0.10f);
+
+            const float rewind = 0.08f;
+            for (float age = 0f; age < rewind; age += Time.deltaTime)
+            {
+                float t = EaseInOutQuad(age / rewind);
+                _motionOffset = Vector3.Lerp(half, Vector3.zero, t);
+                _tilt = Mathf.Lerp(-tiltSign * 3.5f, 0f, t);
+                _squash = Vector2.Lerp(new Vector2(1.025f, 0.982f), Vector2.one, t);
+                yield return null;
+            }
+            _motionOffset = Vector3.zero;
+            _tilt = 0f;
+            _squash = Vector2.one;
+            SetSortBoost(0);
+            IsPerformingMotion = false;
+        }
+
+        /// <summary>
+        /// 지상형 적의 할퀴기 준비 동작. 대상까지 돌진하지 않고 뒤로 물러났다가 카드 폭의 일부만 전진해
+        /// <paramref name="onAdvanced"/>를 부른 뒤, 연출이 그려지는 동안 버티고 제자리로 돌아온다.
+        /// </summary>
+        public IEnumerator GroundRakeAdvance(Vector3 direction, float holdTime, Action onAdvanced)
+        {
+            direction.z = 0f;
+            direction = direction.sqrMagnitude > 0.0001f ? direction.normalized : new Vector3(_facing, 0f, 0f);
+            float tiltSign = direction.x >= 0f ? -1f : 1f;
+            Vector3 windup = -direction * _cardSize * 0.10f;
+            Vector3 advanced = direction * _cardSize * 0.18f;
+
+            IsPerformingMotion = true;
+            SetSortBoost(VfxSpace.FlyingCardSortingOrder);
+
+            const float windupTime = 0.11f;
+            for (float t = 0f; t < windupTime; t += Time.deltaTime)
+            {
+                float k = EaseOutCubic(t / windupTime);
+                _motionOffset = Vector3.Lerp(Vector3.zero, windup, k);
+                _tilt = tiltSign * 5f * k;
+                _squash = Vector2.Lerp(Vector2.one, new Vector2(0.96f, 1.035f), k);
+                yield return null;
             }
 
-            float scale = 1f + PunchAmount * _punch;
+            const float advanceTime = 0.13f;
+            for (float t = 0f; t < advanceTime; t += Time.deltaTime)
+            {
+                float k = EaseInOutQuad(t / advanceTime);
+                _motionOffset = Vector3.Lerp(windup, advanced, k);
+                _tilt = Mathf.Lerp(tiltSign * 5f, -tiltSign * 4f, k);
+                _squash = Vector2.Lerp(new Vector2(0.96f, 1.035f), new Vector2(1.045f, 0.97f), k);
+                yield return null;
+            }
 
-            // 찍기는 나갔다 돌아오는 모양(0 → 1 → 0), 밀림은 곧바로 사그라든다.
+            _motionOffset = advanced;
+            _tilt = -tiltSign * 4f;
+            _squash = new Vector2(1.045f, 0.97f);
+            onAdvanced?.Invoke();
+            yield return new WaitForSeconds(Mathf.Max(0f, holdTime));
+
+            const float returnTime = 0.18f;
+            Vector3 from = _motionOffset;
+            float fromTilt = _tilt;
+            Vector2 fromSquash = _squash;
+            for (float t = 0f; t < returnTime; t += Time.deltaTime)
+            {
+                float k = EaseInOutQuad(t / returnTime);
+                _motionOffset = Vector3.Lerp(from, Vector3.zero, k);
+                _tilt = Mathf.Lerp(fromTilt, 0f, k);
+                _squash = Vector2.Lerp(fromSquash, Vector2.one, k);
+                yield return null;
+            }
+
+            _motionOffset = Vector3.zero;
+            _tilt = 0f;
+            _squash = Vector2.one;
+            SetSortBoost(0);
+            IsPerformingMotion = false;
+        }
+
+        /// <summary>
+        /// 시전 동작 — 카드가 잠깐 들렸다 내려앉는다. 궁극기 · 버프처럼 대상에게 날아가지 않는 행동이 쓴다.
+        /// </summary>
+        public IEnumerator Channel(float riseTime = 0.18f, float holdTime = 0.2f, float settleTime = 0.24f)
+        {
+            IsPerformingMotion = true;
+            SetSortBoost(VfxSpace.FlyingCardSortingOrder);
+            for (float t = 0f; t < riseTime; t += Time.deltaTime)
+            {
+                _lift = EaseOutCubic(t / riseTime);
+                yield return null;
+            }
+            _lift = 1f;
+            yield return new WaitForSeconds(holdTime);
+            for (float t = 0f; t < settleTime; t += Time.deltaTime)
+            {
+                _lift = 1f - EaseInOutQuad(t / settleTime);
+                yield return null;
+            }
+            _lift = 0f;
+            SetSortBoost(0);
+            IsPerformingMotion = false;
+        }
+
+        // ══════════════════════════════════════════════════════
+        // 돌진 (하스스톤 하수인 공격)
+        // ══════════════════════════════════════════════════════
+
+        private const float ChargeLiftTime = 0.10f;
+        private const float ChargeWindupTime = 0.075f;
+        private const float ChargeDashTime = 0.13f;
+        private const float ChargeHoldTime = 0.075f;
+        private const float ChargeReturnTime = 0.24f;
+
+        /// <summary>
+        /// 카드가 들려 대상 카드에게 날아가 부딪히고 돌아온다.
+        /// 부딪히는 그 프레임에 <paramref name="onImpact"/>가 불린다 — 피해는 거기서 넣는다.
+        ///
+        /// 하스스톤의 박자를 따랐다: 들기(짧게) → 살짝 뒤로 → <b>가속하며</b> 돌진 → 쿵 → 느리게 복귀.
+        /// 돌진 중에는 다른 카드 위로 올라와야 겹침이 읽힌다.
+        /// </summary>
+        public IEnumerator Charge(Func<Vector3> targetCenter, Action<Vector3, Vector3> onImpact)
+        {
+            IsPerformingMotion = true;
+            SetSortBoost(VfxSpace.FlyingCardSortingOrder);
+
+            Vector3 home = transform.parent != null ? transform.parent.position : transform.position;
+            Vector3 Direction()
+            {
+                Vector3 d = targetCenter() - home;
+                d.z = 0f;
+                return d.sqrMagnitude > 0.0001f ? d.normalized : new Vector3(_facing, 0f, 0f);
+            }
+
+            // 1) 들기
+            for (float t = 0f; t < ChargeLiftTime; t += Time.deltaTime)
+            {
+                _lift = EaseOutCubic(t / ChargeLiftTime);
+                yield return null;
+            }
+            _lift = 1f;
+
+            // 2) 살짝 뒤로 빼며 기운다
+            Vector3 direction = Direction();
+            float tiltSign = direction.x >= 0f ? -1f : 1f;
+            Vector3 windup = -direction * _cardSize * 0.13f;
+            for (float t = 0f; t < ChargeWindupTime; t += Time.deltaTime)
+            {
+                float k = EaseOutCubic(t / ChargeWindupTime);
+                _motionOffset = windup * k;
+                _tilt = tiltSign * 6f * k;
+                yield return null;
+            }
+
+            // 3) 가속 돌진 — 대상 카드 가장자리에서 멈춘다(겹쳐 들어가면 부딪힌 게 아니라 통과로 보인다).
+            Vector3 start = _motionOffset;
+            for (float t = 0f; t < ChargeDashTime; t += Time.deltaTime)
+            {
+                float k = t / ChargeDashTime;
+                k = k * k * k * k;
+                direction = Direction();
+                Vector3 contact = targetCenter() - direction * _cardSize * 0.92f - home;
+                contact.z = 0f;
+                _motionOffset = Vector3.LerpUnclamped(start, contact, k);
+                _tilt = Mathf.Lerp(tiltSign * 6f, -tiltSign * 9f, k);
+                _squash = new Vector2(1f + 0.10f * k, 1f - 0.065f * k);
+                yield return null;
+            }
+            direction = Direction();
+            Vector3 impactPoint = targetCenter() - direction * _cardSize * 0.46f;
+            _motionOffset = impactPoint - home - direction * _cardSize * 0.46f;
+            _motionOffset.z = 0f;
+
+            // 4) 쿵 — 부딪히는 프레임에 피해와 충돌 연출이 함께 나간다.
+            _squash = new Vector2(0.9f, 1.1f);
+            _punch = 1f;
+            onImpact?.Invoke(impactPoint, direction);
+            Vector3 bounce = _motionOffset - direction * _cardSize * 0.12f;
+            for (float t = 0f; t < ChargeHoldTime; t += Time.deltaTime)
+            {
+                float k = EaseOutCubic(t / ChargeHoldTime);
+                _motionOffset = Vector3.Lerp(_motionOffset, bounce, k);
+                _squash = Vector2.Lerp(new Vector2(0.9f, 1.1f), Vector2.one, k);
+                yield return null;
+            }
+
+            // 5) 복귀
+            Vector3 from = _motionOffset;
+            float fromTilt = _tilt;
+            for (float t = 0f; t < ChargeReturnTime; t += Time.deltaTime)
+            {
+                float k = EaseInOutQuad(t / ChargeReturnTime);
+                _motionOffset = Vector3.Lerp(from, Vector3.zero, k);
+                _tilt = Mathf.Lerp(fromTilt, 0f, k);
+                _lift = 1f - k;
+                _squash = Vector2.one;
+                yield return null;
+            }
+
+            _motionOffset = Vector3.zero;
+            _tilt = 0f;
+            _lift = 0f;
+            _squash = Vector2.one;
+            SetSortBoost(0);
+            IsPerformingMotion = false;
+        }
+
+        /// <summary>
+        /// 사바흐가 아래로 녹아 그림자 상태로 대상 앞까지 이동한 뒤 다시 솟는다.
+        /// 실제 이동은 카드 루트가 맡아 HUD·원화·정렬이 서로 어긋나지 않게 한다.
+        /// </summary>
+        public IEnumerator ShadowApproach(Func<Vector3> targetCenter)
+        {
+            IsPerformingMotion = true;
+            SetSortBoost(VfxSpace.FlyingCardSortingOrder);
+            Vector3 home = transform.parent != null ? transform.parent.position : transform.position;
+
+            const float meltTime = 0.16f;
+            for (float age = 0f; age < meltTime; age += Time.deltaTime)
+            {
+                float t = EaseInOutQuad(age / meltTime);
+                _alpha = 1f - t;
+                _squash = new Vector2(1f + t * 0.10f, 1f - t * 0.66f);
+                _lift = -0.20f * t;
+                yield return null;
+            }
+
+            Vector3 from = _motionOffset;
+            const float travelTime = 0.24f;
+            for (float age = 0f; age < travelTime; age += Time.deltaTime)
+            {
+                float t = Mathf.SmoothStep(0f, 1f, age / travelTime);
+                Vector3 direction = targetCenter() - home;
+                direction.z = 0f;
+                direction = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.right * _facing;
+                Vector3 destination = targetCenter() - direction * _cardSize * 0.54f - home;
+                destination.z = 0f;
+                _motionOffset = Vector3.Lerp(from, destination, t);
+                _alpha = 0f;
+                yield return null;
+            }
+
+            const float reformTime = 0.14f;
+            for (float age = 0f; age < reformTime; age += Time.deltaTime)
+            {
+                float t = EaseOutCubic(age / reformTime);
+                _alpha = t;
+                _squash = new Vector2(1f - t * 0.04f, Mathf.Lerp(0.32f, 1f, t));
+                _lift = Mathf.Lerp(-0.14f, 0.18f, t);
+                yield return null;
+            }
+            _alpha = 1f;
+            _squash = Vector2.one;
+            _lift = 0.18f;
+        }
+
+        /// <summary>대상 앞에서 다시 녹아 원래 칸으로 미끄러진 뒤 복원한다.</summary>
+        public IEnumerator ShadowReturn()
+        {
+            const float meltTime = 0.11f;
+            for (float age = 0f; age < meltTime; age += Time.deltaTime)
+            {
+                float t = EaseInOutQuad(age / meltTime);
+                _alpha = 1f - t;
+                _squash = new Vector2(1f + t * 0.08f, 1f - t * 0.62f);
+                _lift = Mathf.Lerp(0.18f, -0.18f, t);
+                yield return null;
+            }
+
+            Vector3 from = _motionOffset;
+            const float travelTime = 0.20f;
+            for (float age = 0f; age < travelTime; age += Time.deltaTime)
+            {
+                _motionOffset = Vector3.Lerp(from, Vector3.zero,
+                    Mathf.SmoothStep(0f, 1f, age / travelTime));
+                _alpha = 0f;
+                yield return null;
+            }
+
+            const float reformTime = 0.15f;
+            for (float age = 0f; age < reformTime; age += Time.deltaTime)
+            {
+                float t = EaseOutCubic(age / reformTime);
+                _alpha = t;
+                _squash = new Vector2(1f - t * 0.03f, Mathf.Lerp(0.34f, 1f, t));
+                _lift = Mathf.Lerp(-0.12f, 0f, t);
+                yield return null;
+            }
+
+            _motionOffset = Vector3.zero;
+            _alpha = 1f;
+            _tilt = 0f;
+            _lift = 0f;
+            _squash = Vector2.one;
+            SetSortBoost(0);
+            IsPerformingMotion = false;
+        }
+
+        /// <summary>초월기에서 자리를 옮기지 않고 그림자로만 가라앉아 사라진다.</summary>
+        public IEnumerator ShadowVanish()
+        {
+            IsPerformingMotion = true;
+            SetSortBoost(VfxSpace.FlyingCardSortingOrder);
+            const float duration = 0.20f;
+            for (float age = 0f; age < duration; age += Time.deltaTime)
+            {
+                float t = EaseInOutQuad(age / duration);
+                _alpha = 1f - t;
+                _squash = new Vector2(1f + t * 0.12f, 1f - t * 0.70f);
+                _lift = -0.20f * t;
+                yield return null;
+            }
+            _alpha = 0f;
+        }
+
+        /// <summary>초월기가 끝난 뒤 원래 칸에서 그림자 위로 다시 조립된다.</summary>
+        public IEnumerator ShadowReappear()
+        {
+            const float duration = 0.22f;
+            _motionOffset = Vector3.zero;
+            for (float age = 0f; age < duration; age += Time.deltaTime)
+            {
+                float t = EaseOutCubic(age / duration);
+                _alpha = t;
+                _squash = new Vector2(1f - t * 0.04f, Mathf.Lerp(0.28f, 1f, t));
+                _lift = Mathf.Lerp(-0.16f, 0f, t);
+                yield return null;
+            }
+            _alpha = 1f;
+            _lift = 0f;
+            _squash = Vector2.one;
+            SetSortBoost(0);
+            IsPerformingMotion = false;
+        }
+
+        // ══════════════════════════════════════════════════════
+        // 등장
+        // ══════════════════════════════════════════════════════
+
+        /// <summary>
+        /// 발밑 Hovl 원소 Flash와 엣지 스윕이 열린 뒤, 카드가 가속해 내려앉는다.
+        /// 여러 장이 한꺼번에 서면 <paramref name="delay"/>를 조금씩 벌려 차례로 나타낸다.
+        /// </summary>
+        public void PlayEntry(float delay = 0f)
+        {
+            _entryDelay = Mathf.Max(0f, delay);
+            _entryAge = 0f;
+            _landingAge = -1f;
+            _entryFxStarted = false;
+            _alpha = 0f;
+            SetSortBoost(VfxSpace.FlyingCardSortingOrder);
+            ApplyTransforms();
+        }
+
+        private void AdvanceEntry(float dt)
+        {
+            if (_entryAge < 0f) return;
+
+            if (_entryDelay > 0f)
+            {
+                _entryDelay -= dt;
+                _alpha = 0f;
+                return;
+            }
+
+            if (!_entryFxStarted)
+            {
+                _entryFxStarted = true;
+                OnEntryStarted();
+            }
+
+            _entryAge += dt;
+            // 8배속에서도 인장이 열린 뒤 카드가 내려앉는 핵심 자세를 세 프레임 이상 남긴다.
+            float t = Mathf.Clamp01(_entryAge / VfxTiming.AtLeastFrames(EntryDropTime, 3));
+            float reveal = EaseOutCubic(Mathf.Clamp01(t / 0.36f));
+            _alpha = reveal;
+            // 끝으로 갈수록 빨라지는 낙하가 착지 프레임에 무게를 모은다.
+            _lift = (1f - t * t) * 0.88f;
+            _squash = new Vector2(Mathf.Lerp(0.76f, 1f, reveal), Mathf.Lerp(1.12f, 1f, reveal));
+            if (t < 1f) return;
+
+            _entryAge = -1f;
+            _landingAge = 0f;
+            _lift = 0f;
+            _alpha = 1f;
+            SetSortBoost(0);
+            OnLanded();
+        }
+
+        /// <summary>등장 시작 — 공용 모듈이 Hovl 발사광과 단일 엣지 스윕을 그린다.</summary>
+        private void OnEntryStarted()
+            => EntryFx.Begin(_unit, transform.position, _cardSize, _layerId, _baseOrder);
+
+        /// <summary>복원이 끝나는 순간 — Hovl 착탄광과 바닥 먼지가 착지 프레임에 겹친다.</summary>
+        private void OnLanded()
+            => EntryFx.Land(_unit, CenterWorld, _cardSize, _layerId, _baseOrder);
+
+        // ══════════════════════════════════════════════════════
+        // 매 프레임 움직임
+        // ══════════════════════════════════════════════════════
+
+        private void LateUpdate()
+        {
+            if (_body == null || !_body.gameObject.activeSelf) return;
+            float dt = Time.deltaTime;
+            AdvanceEntry(dt);
+            AdvanceReaction(dt);
+            ApplyTransforms();
+            ApplyAuras();
+            UpdateHudLod();
+            AnimateHud();
+            AdvanceSupportHudPulse(Time.unscaledDeltaTime);
+        }
+
+        private void AdvanceSupportHudPulse(float dt)
+        {
+            if (_supportHudPulseAge < 0f || _supportHudPulseTarget == null) return;
+            _supportHudPulseAge += Mathf.Max(0f, dt);
+            float t = Mathf.Clamp01(_supportHudPulseAge / SupportHudPulseDuration);
+            // 1.0 → 1.35 → 1.0. 뒤쪽 복귀를 길게 둬 작은 카드에서도 한 번의 팝으로 읽힌다.
+            float wave = Mathf.Sin(t * Mathf.PI);
+            _supportHudPulseTarget.localScale = Vector3.one * (1f + 0.35f * wave);
+            if (_supportHudPulseImage != null)
+                _supportHudPulseImage.color = Color.Lerp(Color.white, _supportHudPulseBaseColor, t);
+            if (t < 1f) return;
+            _supportHudPulseTarget.localScale = Vector3.one;
+            if (_supportHudPulseImage != null) _supportHudPulseImage.color = _supportHudPulseBaseColor;
+            _supportHudPulseAge = -1f;
+            _supportHudPulseTarget = null;
+            _supportHudPulseImage = null;
+        }
+
+        /// <summary>
+        /// 카메라가 여러 카드를 담느라 멀어지면 화면 픽셀 기준으로 한 단계 큰 HUD를 쓴다.
+        /// 진입/이탈 문턱을 다르게 둬 카메라 보간 중 레이아웃이 깜빡이지 않게 한다.
+        /// </summary>
+        private void UpdateHudLod()
+        {
+            if (!_combatHud || Time.frameCount % 10 != 0) return;
+            Camera camera = Camera.main;
+            if (camera == null) return;
+
+            Vector3 half = _body.right * (_cardSize * 0.5f);
+            float screenWidth = Vector2.Distance(
+                camera.WorldToScreenPoint(CenterWorld - half),
+                camera.WorldToScreenPoint(CenterWorld + half));
+            bool compact = _compactHud ? screenWidth < 300f : screenWidth < 260f;
+            float pixelScale = compact ? Mathf.Clamp(260f / Mathf.Max(1f, screenWidth), 1f, 1.14f) : 1f;
+            bool scaleChanged = Mathf.Abs(pixelScale - _hudPixelScale) >= 0.025f;
+            _hudPixelScale = pixelScale;
+            ApplyHudLod(compact, scaleChanged);
+        }
+
+        private void ApplyHudLod(bool compact, bool force = false)
+        {
+            if (!force && _hudLodInitialized && _compactHud == compact) return;
+            _hudLodInitialized = true;
+            _compactHud = compact;
+            _visibleDotSlots = compact ? CompactStatusIconCount + 1 : MaxDots;
+
+            float size = compact ? 8.6f * _hudPixelScale : DotSize;
+            float gap = compact ? size + 1.05f : DotGap;
+            float top = compact ? 89.4f : DotTop;
+            float countSize = compact ? 5.5f * _hudPixelScale : DotCountSize;
+            float iconRatio = compact ? 0.74f : DotIconRatio;
+            for (int i = 0; i < MaxDots; i++)
+            {
+                Place(_dotBacks[i].rectTransform, 6f + i * gap, top - GlassTop, size, size);
+                float inset = size * (1f - iconRatio) * 0.5f;
+                UIBuild.Stretch(_dots[i].rectTransform, inset, inset);
+                _dotArrows[i].rectTransform.sizeDelta = new Vector2(size * 0.43f, size * 0.43f);
+                _dotArrows[i].rectTransform.anchoredPosition = new Vector2(size * 0.08f, size * 0.08f);
+                _dotCountBacks[i].rectTransform.sizeDelta = new Vector2(countSize, countSize);
+                _dotCountBacks[i].rectTransform.anchoredPosition = new Vector2(countSize * 0.24f, -countSize * 0.18f);
+            }
+
+            if (_cardSize > 0f)
+            {
+                LayOutNameLabel(_cardSize, compact);
+                LayOutHpLabel(_cardSize, compact);
+            }
+            if (_unit != null && _combatHud) RefreshStatusDots();
+        }
+
+        /// <summary>
+        /// 수면·회전 링은 정보값이 아니라 읽기 보조 연출이므로 전투 배속과 무관한 실시간으로 움직인다.
+        /// 수면은 원 안에서 1px 남짓만 기울어 작은 카드에서도 액체처럼 보이고 글리프를 방해하지 않는다.
+        /// </summary>
+        private void AnimateHud()
+        {
+            if (!_combatHud || _ultRoot == null || !_ultRoot.gameObject.activeInHierarchy) return;
+
+            float time = Time.unscaledTime;
+            float innerHeight = RingSize - (RingEdge + 0.5f) * 2f;
+            float y = Mathf.Lerp(-0.8f, innerHeight + 0.8f, _ultFillAmount);
+            float rearAmount = Mathf.Clamp01(_ultFillAmount + Mathf.Sin(time * 1.85f + 0.8f) * 0.028f);
+            _ultRearFill.fillAmount = rearAmount;
+            _ultRearFill.rectTransform.anchoredPosition = new Vector2(Mathf.Sin(time * 1.35f) * 0.72f, 0f);
+            float rearY = Mathf.Lerp(-0.8f, innerHeight + 0.8f, rearAmount);
+            _ultRearWave.enabled = rearAmount > 0.015f && rearAmount < 0.995f;
+            _ultRearWave.rectTransform.anchoredPosition = new Vector2(
+                Mathf.Sin(time * 1.35f) * 0.72f,
+                rearY + Mathf.Sin(time * 2.1f + 1.3f) * 0.28f);
+            _ultRearWave.rectTransform.localRotation = Quaternion.Euler(0f, 0f,
+                -Mathf.Sin(time * 1.7f + 0.6f) * 2.8f);
+
+            _ultWave.enabled = _ultFillAmount > 0.015f && _ultFillAmount < 0.995f;
+            _ultWave.rectTransform.anchoredPosition = new Vector2(
+                Mathf.Sin(time * 2.45f + 0.4f) * 0.46f,
+                y + Mathf.Sin(time * 3.4f) * 0.34f);
+            _ultWave.rectTransform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Sin(time * 2.25f) * 2.2f);
+
+            if (!_ultReady) return;
+            _ultReadyRing.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -time * 12f);
+            float pulse = 1f + 0.025f * (0.5f + 0.5f * Mathf.Sin(time * 6.6f));
+            _ultReadyRing.rectTransform.localScale = Vector3.one * pulse;
+            _ultReadyGlow.rectTransform.localScale = Vector3.one * (1f + (pulse - 1f) * 1.8f);
+        }
+
+        private void AdvanceReaction(float dt)
+        {
+            if (dt <= 0f) return;
+
+            float airborneTarget = _unit != null && _unit.HasStatusKey(Effects.Negative.ControlStatuses.AirborneKey)
+                ? AirborneLiftHeight : 0f;
+            _airborneLift = Mathf.MoveTowards(_airborneLift, airborneTarget, dt * 0.8f);
+
+            _flash = Mathf.Max(0f, _flash - dt / FlashTime);
+            _punch = Mathf.Max(0f, _punch - dt / PunchTime);
+            _recoil = Mathf.Max(0f, _recoil - dt / PunchTime);
+            _hitSquash = Mathf.Max(0f, _hitSquash - dt / (PunchTime * 0.8f));
+            _shake = Mathf.Max(0f, _shake - dt / ShakeTime);
+            _lunge = Mathf.Max(0f, _lunge - dt / LungeTime);
+            _vfxKick = Mathf.Max(0f, _vfxKick - dt / VfxKickTime);
+            if (_vfxKick <= 0f) _vfxKickStrength = 0f;
+            if (_vfxLightDuration > 0f)
+            {
+                _vfxLightAge += dt;
+                if (_vfxLightAge >= _vfxLightDuration)
+                {
+                    _vfxLightAge = 0f;
+                    _vfxLightDuration = 0f;
+                    _vfxLightPeak = 0f;
+                }
+            }
+
+            if (_landingAge >= 0f)
+            {
+                _landingAge += dt;
+                float k = Mathf.Clamp01(_landingAge / LandingTime);
+                // 찌그러졌다가 한 번 튕겨 돌아온다.
+                float spring = Mathf.Exp(-7f * k) * Mathf.Cos(k * Mathf.PI * 2f);
+                _squash = new Vector2(1f + 0.055f * spring, 1f - 0.055f * spring);
+                if (k >= 1f)
+                {
+                    _landingAge = -1f;
+                    _squash = Vector2.one;
+                }
+            }
+        }
+
+        private void ApplyTransforms()
+        {
+            if (_body == null) return;
+            float s = _cardSize;
+
+            // 루트 — 돌진 등 월드 이동. 칸의 배율을 되돌려 월드 거리 그대로 움직인다.
+            transform.localPosition = transform.parent != null
+                ? transform.parent.InverseTransformVector(_motionOffset)
+                : _motionOffset;
+
+            // 몸체 — 들림 · 기울기 · 찌그러짐 · 피격 반응
+            float lift = Mathf.Max(0f, _lift);
+            float scale = (1f + 0.10f * Mathf.Min(1f, lift) + PunchAmount * _punch) * (1f + 0.12f * Mathf.Max(0f, lift - 1f));
+            Vector3 offset = new(0f, s * (0.09f * lift + _airborneLift), 0f);
+            offset += new Vector3(-_facing * RecoilDistance * s * _recoil, 0f, 0f);
             float lungeShape = Mathf.Sin(Mathf.PI * (1f - _lunge));
-            float offsetX = _facing * (LungeDistance * lungeShape - RecoilDistance * _recoil
-                                       - WindupDistance * _windup);
-            float offsetY = _airborneLift;
-
-            // 떨림은 남은 시간을 위상으로 삼아 흔든다. 진폭은 제곱으로 줄어 끝이 깔끔하다.
+            offset += _lungeDirection * LungeDistance * s * lungeShape * (_lunge > 0f ? 1f : 0f);
+            float kickShape = Mathf.Sin(Mathf.PI * (1f - _vfxKick));
+            offset += _vfxKickDirection * VfxKickDistance * s * kickShape * _vfxKickStrength;
             if (_shake > 0f)
             {
                 float elapsed = (1f - _shake) * ShakeTime;
-                float amplitude = ShakeDistance * _shakeStrength * _shake * _shake;
-                offsetX += Mathf.Sin((elapsed + _shakeSeed) * ShakeFrequency * Mathf.PI * 2f) * amplitude;
-                offsetY += Mathf.Sin((elapsed + _shakeSeed) * ShakeFrequency * 0.72f * Mathf.PI * 2f + 1.3f)
-                           * amplitude * 0.55f;
+                float amplitude = ShakeDistance * s * _shakeStrength * _shake * _shake;
+                offset.x += Mathf.Sin((elapsed + _shakeSeed) * ShakeFrequency * Mathf.PI * 2f) * amplitude;
+                offset.y += Mathf.Sin((elapsed + _shakeSeed) * ShakeFrequency * 0.72f * Mathf.PI * 2f + 1.3f) * amplitude * 0.55f;
             }
 
-            var offset = new Vector3(offsetX, offsetY, 0f);
+            _body.localPosition = offset;
+            _body.localRotation = Quaternion.Euler(0f, 0f, _tilt);
+            float hitWidth = 1f - 0.075f * _hitSquash;
+            float hitHeight = 1f + 0.060f * _hitSquash;
+            _body.localScale = new Vector3(scale * _squash.x * hitWidth, scale * _squash.y * hitHeight, 1f);
 
-            transform.localPosition = offset;
-            transform.localScale = Vector3.one * scale;
+            // 돌진의 기울기는 원화의 물성만 말한다. 정보판까지 돌아가면 이름·HP를 읽기 어려우므로
+            // 몸체 회전을 같은 양만큼 상쇄하고, 이동·들림·스케일 반동은 그대로 따라간다.
+            Quaternion hudCounterRotation = Quaternion.Euler(0f, 0f, -_tilt);
+            if (_orbCanvas != null) _orbCanvas.transform.localRotation = hudCounterRotation;
+            if (_canvas != null) _canvas.transform.localRotation = hudCounterRotation;
+            if (_nameLabel != null) _nameLabel.transform.localRotation = hudCounterRotation;
+            if (_hpLabel != null) _hpLabel.transform.localRotation = hudCounterRotation;
 
-            if (_portrait == null) return;
+            // 그림자 — 바닥에 남아 높이를 말한다. 들릴수록 넓고 옅어진다.
+            float spread = 1f + 0.35f * Mathf.Min(2f, lift);
+            _shadow.transform.localScale = new Vector3(s * 0.94f * spread, s * 0.15f * spread, 1f);
+            _shadow.color = new Color(GroundShadow.r, GroundShadow.g, GroundShadow.b,
+                GroundShadow.a * _alpha / spread);
 
-            _portrait.localPosition = offset;
-            _portrait.localScale = _portraitBaseScale * scale;
+            // 별도 사각 면을 만들지 않고 원화 자체만 잠깐 따뜻하게 변조한다.
+            // 스프라이트 알파를 그대로 쓰므로 어두운 배경에서도 피격 피드백이 실루엣 밖으로 새지 않는다.
+            if (_portrait != null)
+            {
+                float warmth = 0.18f * _flash * _flash;
+                Color portraitColor = _portrait.color;
+                portraitColor.r = 1f;
+                portraitColor.g = 1f - warmth * 0.28f;
+                portraitColor.b = 1f - warmth;
+                if (_vfxLightDuration > 0f && _vfxLightPeak > 0f)
+                {
+                    float phase = Mathf.Clamp01(_vfxLightAge / _vfxLightDuration);
+                    float light = Mathf.Sin(phase * Mathf.PI) * _vfxLightPeak;
+                    Color reflected = new(1f,
+                        Mathf.Lerp(0.96f, 1f, _vfxLightColor.g),
+                        Mathf.Lerp(0.88f, 1f, _vfxLightColor.b), 1f);
+                    portraitColor = Color.Lerp(portraitColor, reflected, light);
+                }
+                _portrait.color = portraitColor;
+            }
+
+            ApplyAlpha();
+        }
+
+        private float _appliedAlpha = -1f;
+
+        private void ApplyAlpha()
+        {
+            float alive = _unit == null || (_unit.isActive && _unit.HpCurr > 0) ? 1f : InactiveAlpha;
+            float a = _alpha * alive;
+            if (Mathf.Approximately(a, _appliedAlpha)) return;
+            _appliedAlpha = a;
+
+            SetAlpha(_portrait, a);
+            _orbGroup.alpha = a;
+            _group.alpha = a;
+            Color nameColor = _nameLabel.color;
+            nameColor.a = a;
+            _nameLabel.color = nameColor;
+            Color hpColor = _hpLabel.color;
+            hpColor.a = a;
+            _hpLabel.color = hpColor;
+        }
+
+        private static void SetAlpha(SpriteRenderer renderer, float alpha)
+        {
+            if (renderer == null) return;
+            Color c = renderer.color;
+            c.a = alpha;
+            renderer.color = c;
+        }
+
+        /// <summary>
+        /// 행동 중 표시(하단 글라스 바깥 림)와 상태 오라.
+        /// </summary>
+        private void ApplyAuras()
+        {
+            if (_unit == null || !_combatHud)
+            {
+                _actingOutline.enabled = false;
+                _auraGlow.color = Color.clear;
+                return;
+            }
+
+            ActionScheduler scheduler = GameManager.Instance?.ActionScheduler;
+            bool acting = scheduler != null && ReferenceEquals(scheduler.ActingUnit, _unit);
+            _actingOutline.enabled = acting;
+
+            Color glow = Color.clear;
+            foreach (UnitStatus status in _unit.ActiveStatuses)
+            {
+                if (status?.Effects == null) continue;
+                foreach (UnitStatus.EffectInstance instance in status.Effects)
+                {
+                    if (instance?.EffectObject is not ICardAura aura) continue;
+                    if (aura.AuraStyle == CardAuraStyle.Glow && glow.a <= 0f) glow = aura.AuraColor;
+                }
+            }
+
+            float auraPulse = 0.7f + 0.3f * Mathf.Sin(Time.time * 3.2f);
+            _auraGlow.color = glow.a > 0f ? new Color(glow.r, glow.g, glow.b, glow.a * auraPulse * _alpha) : Color.clear;
+        }
+
+        private void SetSortBoost(int boost)
+        {
+            if (_sortBoost == boost) return;
+            _sortBoost = boost;
+            ApplySorting();
+        }
+
+        private void ResetMotion()
+        {
+            _flash = _punch = _recoil = _shake = _lunge = 0f;
+            _hitSquash = 0f;
+            _vfxLightPeak = 0f;
+            _vfxLightAge = 0f;
+            _vfxLightDuration = 0f;
+            _airborneLift = 0f;
+            _motionOffset = Vector3.zero;
+            _lift = 0f;
+            _tilt = 0f;
+            _squash = Vector2.one;
+            _alpha = 1f;
+            _appliedAlpha = -1f;
+            _entryAge = -1f;
+            _entryDelay = -1f;
+            _landingAge = -1f;
+            _entryFxStarted = false;
+            _lastHp = -1;
+            IsPerformingMotion = false;
+            SetSortBoost(0);
+            ApplyTransforms();
+        }
+
+        private static float EaseOutCubic(float t)
+        {
+            t = Mathf.Clamp01(t);
+            float u = 1f - t;
+            return 1f - u * u * u;
+        }
+
+        private static float EaseInOutQuad(float t)
+        {
+            t = Mathf.Clamp01(t);
+            return t < 0.5f ? 2f * t * t : 1f - Mathf.Pow(-2f * t + 2f, 2f) * 0.5f;
         }
 
         // ── 조립 헬퍼 ────────────────────────────────────────────────
 
         /// <summary>
-        /// 궁극기 링을 유닛의 <b>원소 색</b>으로 칠한다.
-        ///
-        /// 투사체와 <see cref="Effects.Projectiles.ElementalProjectiles"/>의 같은 표를 쓴다.
-        /// 그래서 카드에 달린 링 색과 그 유닛이 쏘는 투사체 색이 항상 일치하고,
-        /// 편성만 훑어도 어떤 속성이 몇 명인지가 읽힌다.
-        /// 원소가 없는 유닛(None)은 예전처럼 자원 파랑을 쓴다.
-        ///
-        /// 원소 이름이 그대로면 아무 일도 하지 않는다. 매 프레임 불러도 안전하다.
+        /// 임포트 설정에 기대지 않고 생성 PNG를 런타임 스프라이트로 읽는다.
         /// </summary>
-        private void RefreshUltimateRingColor()
+        private static Sprite HudSprite(string name, Sprite fallback)
         {
-            string elementName = _unit != null ? _unit.Element : null;
-            if (elementName == _ringElementName) return;
-            _ringElementName = elementName;
+            ref Sprite cache = ref _orbGlassSprite;
+            if (name == "element_geo_glyph") cache = ref _geoGlyphSprite;
+            else if (name == "element_void_glyph") cache = ref _voidGlyphSprite;
+            else if (name == "element_neutral_glyph") cache = ref _neutralGlyphSprite;
 
-            BaseEnums.UnitElement element = Effects.Projectiles.ElementalProjectiles.Parse(elementName);
-            Color ring = element == BaseEnums.UnitElement.None
-                ? UITheme.Mana
-                : Effects.Projectiles.ElementalProjectiles.PastelColorFor(element);
+            if (cache != null) return cache;
+            Texture2D texture = Resources.Load<Texture2D>("UI/CardHud/" + name);
+            if (texture == null) return fallback;
 
-            _ringColor = ring;
-            _ultOutline.color = ring;
-            _ultFill.color = ring;
+            cache = Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height),
+                new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect, Vector4.zero, false);
+            cache.name = "CardHud_" + name;
+            cache.hideFlags = HideFlags.HideAndDontSave;
+            return cache;
         }
 
-        /// <summary>
-        /// 다 찼는지를 색과 맥동으로 알린다.
-        ///
-        /// 궁극기는 자원이 차는 즉시 예약되므로 '준비됨'은 길어야 한 박자다.
-        /// 그래도 표시가 필요한 것은, 그 한 박자가 <b>지금 큰 것이 나온다</b>는 유일한 예고이기 때문이다.
-        /// 맥동은 <c>unscaledTime</c>으로 센다 — 8배속에서 전투 시간으로 세면 깜빡임이 된다.
-        /// </summary>
-        private void RefreshUltimateReady(bool ready)
+        /// <summary>원소별 오브 글리프. 무원소 공허 적도 옛 셰브론 대신 공허 표식을 쓴다.</summary>
+        private static Sprite UltimateGlyph(Unit unit, BaseEnums.UnitElement element)
         {
-            if (_ultMark == null) return;
+            if (element == BaseEnums.UnitElement.None && unit?.HasUnitTag("Void") == true)
+                return HudSprite("element_void_glyph", StatusIcons.Get(StatusGlyph.Mark));
 
-            if (!ready)
+            return element switch
             {
-                // 충전 중에는 표식이 물 아래 흐리게 깔려 있다. 자리가 무엇인지만 알리면 된다.
-                _ultMark.color = MarkIdle;
-                _ultOutline.color = _ringColor;
-                return;
-            }
-
-            float pulse = 0.74f + 0.26f * Mathf.Sin(Time.unscaledTime * 6.6f);
-            _ultMark.color = new Color(1f, 1f, 1f, pulse);
-            _ultOutline.color = Color.Lerp(_ringColor, UITheme.Accent, 0.75f);
+                BaseEnums.UnitElement.Geo => HudSprite("element_geo_glyph", VfxArt.Diamond),
+                BaseEnums.UnitElement.Pyro => StatusIcons.Get(StatusGlyph.Burn),
+                BaseEnums.UnitElement.Hydro => StatusIcons.Get(StatusGlyph.Bleed),
+                BaseEnums.UnitElement.Dendro => StatusIcons.Get(StatusGlyph.Thorns),
+                BaseEnums.UnitElement.Anemo => StatusIcons.Get(StatusGlyph.Speed),
+                BaseEnums.UnitElement.Electro => StatusIcons.Get(StatusGlyph.Crit),
+                BaseEnums.UnitElement.Cryo => StatusIcons.Get(StatusGlyph.Freeze),
+                BaseEnums.UnitElement.Void => HudSprite("element_void_glyph", StatusIcons.Get(StatusGlyph.Mark)),
+                _ => HudSprite("element_neutral_glyph", StatusIcons.Get(StatusGlyph.Focus)),
+            };
         }
 
-        /// <summary>
-        /// 스택형 궁극기(호루스의 우제트처럼 <c>ultimateResourceType: Stack</c>)는
-        /// 연속 게이지가 아니라 <b>칸이 하나씩 차는</b> 자원이다.
-        /// 마나와 같은 물결로 그리면 "지금 몇 스택인지"를 눈금 없이 재야 한다.
-        ///
-        /// 그래서 원 안쪽을 스택 수만큼 가로줄로 나눠 둔다. 물이 차 있든 없든 줄은
-        /// 늘 보이므로 최대 스택도 함께 읽힌다. 줄 길이는 그 높이에서의 현(chord)에
-        /// 맞춰 잘라 원 밖으로 삐져나가지 않게 한다.
-        /// </summary>
-        private void RefreshUltimateTicks()
-        {
-            int ticks = 0;
-            if (_unit != null && _unit.UltimateResourceType == BaseEnums.UltimateResourceType.Stack)
-            {
-                int max = _unit.GetUltimateResourceMax();
-                if (max >= 2 && max <= MaxRingTicks) ticks = max;
-            }
-
-            if (ticks == _ringTickCount) return;
-            _ringTickCount = ticks;
-
-            UIBuild.Clear(_ultTicks);
-            if (ticks == 0) return;
-
-            float diameter = RingSize - RingEdge * 2f;
-            float radius = diameter * 0.5f;
-
-            for (int i = 1; i < ticks; i++)
-            {
-                float y = diameter * i / ticks;             // 원 아래에서 잰 높이
-                float offset = y - radius;                  // 중심에서의 거리
-                float half = Mathf.Sqrt(Mathf.Max(0f, radius * radius - offset * offset));
-
-                Image line = UIBuild.Solid($"Tick{i}", _ultTicks, RingTick);
-                line.raycastTarget = false;
-                UIBuild.Pin(line.rectTransform, new Vector2(0.5f, 0f),
-                    new Vector2(half * 2f, RingTickThickness),
-                    new Vector2(0f, y - RingTickThickness * 0.5f));
-            }
-        }
-
-        /// <summary>
-        /// 체력 바를 칸으로 끊어 그린다. 궁극기 링의 스택 칸(<see cref="RefreshUltimateTicks"/>)과 같은 방식이며,
-        /// 이쪽은 세로선을 가로로 늘어놓는다. 칸 수가 그대로면 아무것도 다시 만들지 않는다.
-        /// </summary>
-        private void RefreshHpSegments()
-        {
-            int segments = _unit != null ? _unit.HpSegmentCount : 0;
-            if (segments < 2 || segments > MaxHpTicks) segments = 0;
-
-            if (segments == _hpTickCount) return;
-            _hpTickCount = segments;
-
-            UIBuild.Clear(_hpTicks);
-            if (segments == 0) return;
-
-            for (int i = 1; i < segments; i++)
-            {
-                Image line = UIBuild.Solid($"HpTick{i}", _hpTicks, RingTick);
-                line.raycastTarget = false;
-                UIBuild.Pin(line.rectTransform, new Vector2(0f, 0.5f),
-                    new Vector2(HpTickThickness, HpHeight),
-                    new Vector2(CanvasWidth * i / segments - HpTickThickness * 0.5f, 0f));
-            }
-        }
-
-        /// <summary>캔버스 좌상단 기준으로 자리를 잡는다.</summary>
         private static void Place(RectTransform rect, float x, float y, float width, float height)
         {
             rect.anchorMin = new Vector2(0f, 1f);
@@ -1138,17 +2800,14 @@ namespace Entities.View
             rect.anchoredPosition = new Vector2(x, -y);
         }
 
-        /// <summary>부모를 꽉 채우는 채움 이미지. 가로 구간은 <see cref="SetSpan"/>으로 잡는다.</summary>
         private static Image NewImage(Transform parent, string name, Color color)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(Image));
             go.transform.SetParent(parent, false);
-
             var image = go.GetComponent<Image>();
             image.sprite = UIShapes.Solid(Color.white);
             image.color = color;
             image.raycastTarget = false;
-
             RectTransform rect = image.rectTransform;
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
@@ -1157,10 +2816,7 @@ namespace Entities.View
             return image;
         }
 
-        /// <summary>
-        /// 트랙 안에서 [from, to] 구간만 차지하게 만든다.
-        /// fillAmount 대신 앵커를 쓰는 이유는 <b>방어막을 체력 오른쪽에서 시작</b>시켜야 하기 때문이다.
-        /// </summary>
+        /// <summary>트랙 안에서 [from, to] 구간만 차지하게 만든다. 보호막을 체력 오른쪽에서 시작시키려고 앵커를 쓴다.</summary>
         private static void SetSpan(RectTransform rect, float from, float to)
         {
             from = Mathf.Clamp01(from);

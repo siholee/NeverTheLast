@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using BaseClasses;
@@ -41,12 +41,6 @@ namespace Managers.UI.Screens
 
         /// <summary>타일 사이 간격(픽셀).</summary>
         private const float TileGap = 10f;
-
-        private enum Phase
-        {
-            Main,
-            Support,
-        }
 
         protected override string CanvasName => "CharacterSelectCanvas";
         protected override int SortingOrder => 80;
@@ -94,7 +88,7 @@ namespace Managers.UI.Screens
         private readonly List<int> _order = new();
 
         /// <summary>
-        /// 고른 메인에게 추천하는 서포터(우선순위 순). 30_synergies.yaml의 고점 조합에서
+        /// 편성 대표(첫 자리)에게 추천하는 동료(우선순위 순). 30_synergies.yaml의 고점 조합에서
         /// 지금 고를 수 있는 사람을 먼저 담고, 모자라면 대체 조합으로 채운다.
         /// </summary>
         private readonly List<int> _recommended = new();
@@ -104,11 +98,7 @@ namespace Managers.UI.Screens
         private readonly Dictionary<int, Image> _tiles = new();
         private readonly Dictionary<int, Image> _tileArts = new();
         private readonly Dictionary<int, int> _cardIndexByUnit = new();
-        private Phase _phase = Phase.Main;
         private int _hovered;
-
-        private static bool IsInfinite =>
-            GameManager.Instance != null && GameManager.Instance.CurrentMode == BaseEnums.GameMode.Infinite;
 
         // ── 조립 ─────────────────────────────────────────────────────
 
@@ -220,7 +210,7 @@ namespace Managers.UI.Screens
             layout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             layout.constraintCount = Columns;
             layout.spacing = new Vector2(TileGap, TileGap);
-            layout.childAlignment = TextAnchor.UpperCenter;
+            layout.childAlignment = TextAnchor.UpperLeft;
             // 커서 외곽 4px와 오른쪽 스크롤 막대가 마스크에 잘리지 않도록 비운다.
             layout.padding = new RectOffset(6, 18, 6, 6);
 
@@ -233,7 +223,7 @@ namespace Managers.UI.Screens
                 TextAlignmentOptions.TopLeft, wrap: true);
             AnchorFooter(_summary.rectTransform, 16f, 78f);
 
-            _backButton = UIBuild.Button("Back", rosterPane.transform, "← 메인 변경", GoBackToMain);
+            _backButton = UIBuild.Button("Back", rosterPane.transform, "편성 비우기", ClearParty);
             UIBuild.Anchor(_backButton.image.rectTransform, Vector2.zero, new Vector2(0.35f, 0f));
             _backButton.image.rectTransform.offsetMin = new Vector2(24f, 88f);
             _backButton.image.rectTransform.offsetMax = new Vector2(-6f, 132f);
@@ -305,8 +295,7 @@ namespace Managers.UI.Screens
             EnsureCharacterSelectionManager();
             CharacterSelectionManager.Instance?.ClearLineup();
 
-            // 무한 모드에는 메인 단계가 없다.
-            _phase = IsInfinite ? Phase.Support : Phase.Main;
+            // 게임 모드는 무한 모드 하나다. 메인 · 서포터 단계 없이 해금한 캐릭터를 1~5명 고른다.
             _hovered = 0;
             _recommended.Clear();
             _cardIndexByUnit.Clear();
@@ -323,29 +312,16 @@ namespace Managers.UI.Screens
         private void OnPrimary()
         {
             CharacterSelectionManager manager = CharacterSelectionManager.Instance;
-            if (manager == null) return;
-
-            if (_phase == Phase.Main)
-            {
-                if (manager.MainUnitId <= 0) return;   // 메인을 골라야 넘어간다
-                _phase = Phase.Support;
-                _hovered = 0;
-                _cursorOnButtons = false;
-                BuildRecommendation(manager.MainUnitId);
-                RebuildGrid();
-                RefreshVisuals();
-                return;
-            }
-
+            if (manager == null || manager.Lineup.Count == 0) return;
             manager.ConfirmSelection();
         }
 
-        private void GoBackToMain()
+        private void ClearParty()
         {
-            if (IsInfinite || _phase != Phase.Support) return;
+            CharacterSelectionManager manager = CharacterSelectionManager.Instance;
+            if (manager == null || manager.Lineup.Count == 0) return;
 
-            CharacterSelectionManager.Instance?.ClearLineup();
-            _phase = Phase.Main;
+            manager.ClearLineup();
             _recommended.Clear();
             _cursorOnButtons = false;
             RebuildGrid();
@@ -392,7 +368,7 @@ namespace Managers.UI.Screens
                 UIBuild.Anchor(label.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.20f), 3f, 3f);
 
                 int rank = _recommended.IndexOf(unit.id);
-                // 서포터 단계의 추천 편성 순위만 표시한다.
+                // 대표가 정해졌을 때의 추천 순위만 표시한다.
                 if (rank >= 0)
                 {
                     Image badge = UIBuild.Solid("RecommendBadge", tile.transform, UITheme.Accent);
@@ -402,18 +378,6 @@ namespace Managers.UI.Screens
                         UITheme.FontMicro, UITheme.TextOnAccent, TextAlignmentOptions.Center);
                     UIBuild.Stretch(badgeLabel.rectTransform);
                     badgeLabel.raycastTarget = false;
-                }
-
-                int cardCount = SaveSystem.GetTrainedCharacterRecords(unit.id).Count;
-                if (cardCount > 0)
-                {
-                    Image countBadge = UIBuild.Solid("CardCountBadge", tile.transform, UITheme.Surface);
-                    UIBuild.Anchor(countBadge.rectTransform, new Vector2(0.58f, 0.82f), Vector2.one, 3f, 3f);
-                    countBadge.raycastTarget = false;
-                    TextMeshProUGUI countLabel = UIBuild.Text("CardCount", countBadge.transform, $"육성 ×{cardCount}",
-                        UITheme.FontMicro, UITheme.Accent, TextAlignmentOptions.Center);
-                    UIBuild.Stretch(countLabel.rectTransform);
-                    countLabel.raycastTarget = false;
                 }
 
                 int captured = unit.id;
@@ -443,20 +407,16 @@ namespace Managers.UI.Screens
                 return;
             }
 
+            int leadBefore = manager.LeadUnitId;
             bool alreadyPicked = manager.Lineup.Any(entry => entry.UnitId == unitId);
-            if (alreadyPicked)
+            if (alreadyPicked) manager.RemoveHero(unitId);
+            else manager.AddHero(unitId);
+
+            // 대표가 바뀌면 추천도 그 사람을 기준으로 다시 짠다.
+            if (manager.LeadUnitId != leadBefore)
             {
-                manager.RemoveHero(unitId);
-            }
-            else if (_phase == Phase.Main)
-            {
-                // 메인 단계에서는 항상 한 명만 남긴다.
-                manager.ClearLineup();
-                manager.AddHero(unitId, SelectedSupportId(unitId));
-            }
-            else
-            {
-                manager.AddHero(unitId, SelectedSupportId(unitId));
+                BuildRecommendation(manager.LeadUnitId);
+                RebuildGrid();
             }
 
             RefreshVisuals();
@@ -482,29 +442,20 @@ namespace Managers.UI.Screens
             CharacterSelectionManager manager = CharacterSelectionManager.Instance;
             if (manager == null) return;
 
-            bool mainPhase = _phase == Phase.Main;
-            int supportTarget = IsInfinite ? MaxParty : MaxParty - 1;
-            int supportCount = IsInfinite ? manager.Lineup.Count : manager.SupportUnitIds.Count;
+            int picked = manager.Lineup.Count;
 
-            SetTitle(IsInfinite
-                ? "무한 모드 — 서포터 카드 5장 선택"
-                : mainPhase ? "육성 모드 — 1단계: 메인 캐릭터" : "육성 모드 — 2단계: 서포터 카드");
-
-            _phaseLabel.text = mainPhase
-                ? "여정을 이끌 메인 캐릭터를 선택하세요"
-                : $"메인을 보완할 서포터를 선택하세요   {supportCount} / {supportTarget}";
-            _stepLabel.text = IsInfinite
-                ? "PARTY SETUP  ·  서포터 카드 5장"
-                : mainPhase ? "STEP 01  /  02  ·  메인 선택" : "STEP 02  /  02  ·  서포터 선택";
+            SetTitle("출전 캐릭터 선택");
+            _phaseLabel.text = $"함께 여정을 떠날 동료를 선택하세요   {picked} / {MaxParty}";
+            _stepLabel.text = "PARTY SETUP  ·  해금한 캐릭터 1~5명";
 
             foreach (KeyValuePair<int, Image> pair in _tiles)
             {
                 bool isSelected = manager.Lineup.Any(entry => entry.UnitId == pair.Key);
-                bool isMain = manager.MainUnitId == pair.Key;
+                bool isLead = manager.LeadUnitId == pair.Key;
                 if (_tileArts.TryGetValue(pair.Key, out Image tileArt))
                     tileArt.color = IsLavoisierLocked(pair.Key) ? new Color(.35f, .35f, .35f) : Color.white;
 
-                Color fill = isMain ? UITheme.Accent : isSelected ? UITheme.AccentFaint : UITheme.SurfaceRaised;
+                Color fill = isLead ? UITheme.Accent : isSelected ? UITheme.AccentFaint : UITheme.SurfaceRaised;
                 Color line = isSelected ? UITheme.Accent : UITheme.Outline;
                 pair.Value.sprite = UIShapes.CutCorner(6, fill, UIShapes.Corner.Diagonal, line, isSelected ? 2 : 1);
             }
@@ -513,22 +464,17 @@ namespace Managers.UI.Screens
             _summary.text = recommendText.Length > 0
                     ? $"{Colored("추천 조합", UITheme.Accent)}  {recommendText}"
                     : $"{Colored("편성 가이드", UITheme.Accent)}  서로 다른 역할을 조합해 빈틈을 보완하세요.";
-            _summary.gameObject.SetActive(!mainPhase);
-            // 메인 단계에는 비어 있는 추천/버튼 공간까지 로스터에 돌려준다.
-            _rosterScroll.viewport.offsetMin = new Vector2(16f, mainPhase ? 16f : IsInfinite ? 88f : 144f);
+            _summary.gameObject.SetActive(true);
+            _rosterScroll.viewport.offsetMin = new Vector2(16f, 144f);
             _sizer.Apply();
 
             RefreshPartyRail(manager);
 
-            // 버튼 상태
-            // 무한 모드는 카드 5장이 모두 차야 시작된다(ConfirmSelection이 그렇게 막는다).
-            // 버튼이 먼저 켜지면 눌러도 아무 일이 없어 멈춘 것처럼 보인다.
-            bool canProceed = mainPhase ? manager.MainUnitId > 0
-                : IsInfinite ? supportCount >= supportTarget : supportCount > 0;
-            SetButton(_primaryButton, mainPhase ? "다음 →" : "여정 시작", canProceed);
-            SetButtonVisible(_backButton, !IsInfinite && !mainPhase);
-            SetButtonVisible(_recommendButton, !mainPhase && _recommended.Count > 0);
-            SetButton(_recommendButton, "★ 추천 4명 채우기", !IsRecommendationApplied(manager), onAccent: false);
+            // 버튼 상태 — 한 명이라도 고르면 떠날 수 있다.
+            SetButton(_primaryButton, "여정 시작", picked > 0);
+            SetButtonVisible(_backButton, picked > 0);
+            SetButtonVisible(_recommendButton, _recommended.Count > 0);
+            SetButton(_recommendButton, "★ 추천 동료 채우기", !IsRecommendationApplied(manager), onAccent: false);
 
             RefreshPreview();
             PlaceCursor();
@@ -549,12 +495,12 @@ namespace Managers.UI.Screens
                 Sprite portrait = unit != null ? LoadPortrait(unit.portrait) : null;
                 _partyArts[i].enabled = portrait != null;
                 if (portrait != null) _partyArts[i].sprite = portrait;
-                string variant = filled ? CardVariantLabel(id, entry.SupportId) : "";
+                string variant = "";
                 _partyNames[i].text = filled
-                    ? (manager.MainUnitId == id ? $"MAIN · {UnitName(id)}{variant}" : $"{UnitName(id)}{variant}")
+                    ? (manager.LeadUnitId == id ? $"대표 · {UnitName(id)}{variant}" : $"{UnitName(id)}{variant}")
                     : $"{i + 1}  비어 있음";
                 _partyNames[i].color = filled ? UITheme.TextPrimary : UITheme.TextMuted;
-                Color fill = manager.MainUnitId == id ? UITheme.AccentFaint : UITheme.SurfaceRaised;
+                Color fill = manager.LeadUnitId == id ? UITheme.AccentFaint : UITheme.SurfaceRaised;
                 Color line = filled ? UITheme.Accent : UITheme.Outline;
                 _partySlots[i].sprite = UIShapes.CutCorner(5, fill, UIShapes.Corner.Diagonal, line, filled ? 2 : 1);
             }
@@ -596,15 +542,8 @@ namespace Managers.UI.Screens
                     ? System.Array.Empty<UnitTagCatalog.Definition>()
                     : UnitTagCatalog.Resolve(unit.archetypeTags),
                 UITheme.Accent);
-            List<string> subStats = unit.subStats?
-                .Where(stat => !string.IsNullOrWhiteSpace(stat))
-                .ToList() ?? new List<string>();
-            if (subStats.Count == 0 && !string.IsNullOrWhiteSpace(unit.subStat))
-                subStats.Add(unit.subStat);
-            string statText = subStats.Count == 0
-                ? $"주 {unit.mainStat} (단일)"
-                : $"주 {unit.mainStat} · 부 {string.Join(" · ", subStats)}";
-
+            // 스탯 한 줄: Lv.1 공격 · 방어 · 속도. 롤처럼 기초값만 보여 주고 자세한 성장은 자료실에 맡긴다.
+            string statText = $"공격 {unit.atkBase:0} · 방어 {unit.defBase:0} · 체력 {unit.hpBase:0} · 속도 {unit.speedBase:0}";
             var lines = new List<string>();
             if (!string.IsNullOrWhiteSpace(unit.tagline) && !IsLavoisierLocked(unit.id))
                 lines.Add(Colored(unit.tagline, UITheme.TextPrimary));
@@ -616,74 +555,15 @@ namespace Managers.UI.Screens
             RefreshCardSelector(unit);
         }
 
-        private void CycleCard(int direction)
-        {
-            List<TrainedCharacterRecord> records = SaveSystem.GetTrainedCharacterRecords(_hovered);
-            if (records.Count <= 1) return;
-
-            int current = SelectedCardIndex(_hovered, records.Count);
-            _cardIndexByUnit[_hovered] = (current + direction + records.Count) % records.Count;
-            CharacterSelectionManager.Instance?.SetSelectedSupportCard(_hovered, SelectedSupportId(_hovered));
-            RefreshVisuals();
-        }
+        // 육성 카드 선택은 훈련 · 서포트 카드와 함께 사라졌다. 넘기기 버튼은 늘 꺼 둔다.
+        private void CycleCard(int direction) { }
 
         private void RefreshCardSelector(UnitData unit)
         {
-            bool visible = !_detailMode && unit != null && !IsLavoisierLocked(unit.id);
-            _cardLabel.gameObject.SetActive(visible);
-            if (!visible)
-            {
-                _previousCardButton.gameObject.SetActive(false);
-                _nextCardButton.gameObject.SetActive(false);
-                return;
-            }
-
-            List<TrainedCharacterRecord> records = SaveSystem.GetTrainedCharacterRecords(unit.id);
-            bool multiple = records.Count > 1;
-            _previousCardButton.gameObject.SetActive(multiple);
-            _nextCardButton.gameObject.SetActive(multiple);
-            if (records.Count == 0)
-            {
-                _cardLabel.text = _phase == Phase.Main ? "신규 육성" : "기본 지원 카드";
-                return;
-            }
-
-            int index = SelectedCardIndex(unit.id, records.Count);
-            SupportCardSaveData card = records[index].supportCard;
-            _cardLabel.text = $"육성 카드 {index + 1} / {records.Count} · 특기 {card.specialtyTraining} · 훈련 +{card.trainingBonus}";
+            _cardLabel.gameObject.SetActive(false);
+            _previousCardButton.gameObject.SetActive(false);
+            _nextCardButton.gameObject.SetActive(false);
         }
-
-        private int SelectedCardIndex(int unitId, int count)
-        {
-            if (count <= 0) return -1;
-            if (!_cardIndexByUnit.TryGetValue(unitId, out int index))
-            {
-                string selected = CharacterSelectionManager.Instance?.Lineup
-                    .FirstOrDefault(entry => entry.UnitId == unitId)?.SupportId;
-                List<TrainedCharacterRecord> records = SaveSystem.GetTrainedCharacterRecords(unitId);
-                index = records.FindIndex(record => record.supportCard?.supportId == selected);
-                if (index < 0) index = count - 1;
-            }
-            index = Mathf.Clamp(index, 0, count - 1);
-            _cardIndexByUnit[unitId] = index;
-            return index;
-        }
-
-        private string SelectedSupportId(int unitId)
-        {
-            List<TrainedCharacterRecord> records = SaveSystem.GetTrainedCharacterRecords(unitId);
-            int index = SelectedCardIndex(unitId, records.Count);
-            return index >= 0 ? records[index].supportCard?.supportId : "";
-        }
-
-        private static string CardVariantLabel(int unitId, string supportId)
-        {
-            List<TrainedCharacterRecord> records = SaveSystem.GetTrainedCharacterRecords(unitId);
-            if (records.Count == 0 || string.IsNullOrWhiteSpace(supportId)) return "";
-            int index = records.FindIndex(record => record.supportCard?.supportId == supportId);
-            return index >= 0 ? $" · #{index + 1}" : "";
-        }
-
         // ── 기술 상세 ────────────────────────────────────────────────
 
         private void ToggleDetail()
@@ -698,9 +578,9 @@ namespace Managers.UI.Screens
             _previewSlot.gameObject.SetActive(!_detailMode);
             _previewInfo.gameObject.SetActive(!_detailMode);
             _tagStrip.gameObject.SetActive(!_detailMode);
-            _cardLabel.gameObject.SetActive(!_detailMode);
-            _previousCardButton.gameObject.SetActive(!_detailMode);
-            _nextCardButton.gameObject.SetActive(!_detailMode);
+            _cardLabel.gameObject.SetActive(false);
+            _previousCardButton.gameObject.SetActive(false);
+            _nextCardButton.gameObject.SetActive(false);
             _detailView.SetActive(_detailMode);
 
             if (_detailMode)
@@ -735,7 +615,7 @@ namespace Managers.UI.Screens
                 if (unit.codes != null)
                 {
                     if (unit.codes.TryGetValue("passive", out int passive))
-                        CodeText.AppendBlock(sb, CodeCatalog.Slot.Passive, passive, "고유 패시브");
+                        CodeText.AppendBlock(sb, CodeCatalog.Slot.Passive, passive, "특성");
                     if (unit.codes.TryGetValue("normal", out int normal))
                         CodeText.AppendBlock(sb, CodeCatalog.Slot.Normal, normal, "일반행동");
                     if (unit.codes.TryGetValue("special", out int special))
@@ -744,19 +624,6 @@ namespace Managers.UI.Screens
                         CodeText.AppendBlock(sb, CodeCatalog.Slot.Ultimate, ultimate, "궁극기");
                 }
 
-                List<LevelPassiveData> unlocks = unit.levelPassives?
-                    .Where(passive => passive != null)
-                    .OrderBy(passive => passive.unlockLevel)
-                    .ToList() ?? new List<LevelPassiveData>();
-                if (unlocks.Count > 0)
-                {
-                    sb.Append($"<b>{CodeText.Paint($"해금 패시브 {unlocks.Count}개", UITheme.Accent)}</b>\n");
-                    IEnumerable<string> names = unlocks.Select(passive =>
-                        $"Lv.{passive.unlockLevel} " +
-                        (CodeCatalog.Find(CodeCatalog.Slot.Passive, passive.codeId)?.verbalName ?? $"#{passive.codeId}"));
-                    sb.Append($"<size={UITheme.FontCaption}>{CodeText.Paint(CodeText.Plain(string.Join(" · ", names)), UITheme.TextSecondary)}</size>\n");
-                    sb.Append($"<size={UITheme.FontMicro}>{CodeText.Paint("각 코드의 설명은 ESC 메뉴 › 자료실에서 볼 수 있다.", UITheme.TextMuted)}</size>");
-                }
             }
 
             string text = sb.ToString();
@@ -814,7 +681,7 @@ namespace Managers.UI.Screens
 
             if (_nav.Cancel)
             {
-                GoBackToMain();
+                ClearParty();
                 return;
             }
 
@@ -965,21 +832,22 @@ namespace Managers.UI.Screens
         // ── 추천 조합 ────────────────────────────────────────────────
 
         /// <summary>
-        /// 메인의 추천 서포터 넷을 정한다. 고점 조합(전 캐릭터 해금 가정)에서 지금 격자에 오른 사람을
+        /// 대표의 추천 동료 넷을 정한다. 고점 조합(전 캐릭터 해금 가정)에서 지금 격자에 오른 사람을
         /// 먼저 담고, 빈자리는 최초 로스터만 쓰는 대체 조합으로 채운다. 해금이 덜 된 계정에서도
         /// 네 자리가 비지 않게 하려는 것이다.
         /// </summary>
-        private void BuildRecommendation(int mainUnitId)
+        private void BuildRecommendation(int leadUnitId)
         {
             _recommended.Clear();
             _recommendReason = "";
             _recommendArchetype = "";
+            if (leadUnitId <= 0) return;
 
-            SynergyRecommendationData entry = SynergyCatalog.RecommendationFor(mainUnitId);
+            SynergyRecommendationData entry = SynergyCatalog.RecommendationFor(leadUnitId);
             if (entry == null) return;
 
             var available = new HashSet<int>(Candidates()
-                .Where(unit => !IsLavoisierLocked(unit.id))
+                .Where(unit => !IsLavoisierLocked(unit.id) && unit.id != leadUnitId)
                 .Select(unit => unit.id));
 
             IEnumerable<int> Pick(SynergyLineupData lineup) =>
@@ -1000,25 +868,32 @@ namespace Managers.UI.Screens
                 : SynergyCatalog.ArchetypeName(shown.archetype);
         }
 
-        /// <summary>추천 서포터로 서포터 칸을 통째로 다시 채운다. 메인은 그대로 둔다.</summary>
+        /// <summary>대표 뒤 네 자리를 추천 동료로 통째로 다시 채운다. 대표는 그대로 둔다.</summary>
         private void ApplyRecommendation()
         {
             CharacterSelectionManager manager = CharacterSelectionManager.Instance;
             if (manager == null || _recommended.Count == 0) return;
 
-            foreach (int id in manager.SupportUnitIds.ToList()) manager.RemoveHero(id);
+            int lead = manager.LeadUnitId;
+            foreach (int id in Companions(manager)) manager.RemoveHero(id);
+            if (lead <= 0) return;
             foreach (int id in _recommended) manager.AddHero(id);
             RefreshVisuals();
         }
 
-        private bool IsRecommendationApplied(CharacterSelectionManager manager) =>
-            manager != null && _recommended.Count > 0 &&
-            manager.SupportUnitIds.Count == _recommended.Count &&
-            _recommended.All(id => manager.SupportUnitIds.Contains(id));
+        private static List<int> Companions(CharacterSelectionManager manager) =>
+            manager.Lineup.Skip(1).Select(entry => entry.UnitId).ToList();
+
+        private bool IsRecommendationApplied(CharacterSelectionManager manager)
+        {
+            if (manager == null || _recommended.Count == 0) return false;
+            List<int> companions = Companions(manager);
+            return companions.Count == _recommended.Count && _recommended.All(companions.Contains);
+        }
 
         private string RecommendationSummary()
         {
-            if (_phase != Phase.Support || _recommended.Count == 0) return "";
+            if (_recommended.Count == 0) return "";
             string names = string.Join(" · ", _recommended.Select(UnitName));
             string archetype = string.IsNullOrWhiteSpace(_recommendArchetype) ? "" : $" ({_recommendArchetype})";
             string reason = string.IsNullOrWhiteSpace(_recommendReason) ? "" : $" — {FirstSentence(_recommendReason)}";
@@ -1061,35 +936,9 @@ namespace Managers.UI.Screens
             // 로마(100~)·이집트(120~)·메히코(140~)·갈리아(160~)가 통째로 빠져, 후반 ID 블록의 스타터를 고를 수 없었다.
             List<UnitData> units = GameManager.Instance?.unitDataList?.units ?? new List<UnitData>();
 
-            if (IsInfinite)
-                return units.Where(CharacterSelectionManager.IsInfiniteEligible).ToList();
-
-            // 육성 모드 1단계는 메인이 될 수 있는 캐릭터만, 2단계는 서포터 후보만 보여준다.
-            if (_phase == Phase.Main)
-            {
-                return units
-                    // 초기 서포트 카드는 육성이 끝나 기록이 남아도 메인 격자에 오르지 않는다.
-                    // 스스로 얻어 낸 스타팅 해금(니콜·프레이아·마리)만 예외로 올라온다 — IsSupportOnly가 판단한다.
-                    .Where(unit => !CharacterSelectionManager.IsSupportOnly(unit))
-                    .Where(unit => unit.canStartAsMain ||
-                                   CharacterSelectionManager.IsTemporarilyUnlocked(unit) ||
-                                   CharacterSelectionManager.HasNoUnlockPath(unit) ||
-                                   SaveSystem.IsStarterUnlocked(unit.id) ||
-                                   CharacterSelectionManager.IsPendingUnlock(unit))
-                    .OrderBy(unit => unit.id)
-                    .ToList();
-            }
-
-            // 유닛 중복 출전 금지 — 메인으로 고른 캐릭터는 서포터 격자에 아예 띄우지 않는다.
-            // 육성이 끝난 스타터가 서포터 카드로도 등장하기 시작하면 같은 유닛이 양쪽에 오를 수 있다.
-            int mainUnitId = CharacterSelectionManager.Instance?.MainUnitId ?? 0;
-
+            // 해금한 캐릭터와, 해금 조건이 적힌 미해금 캐릭터(회색 타일)를 함께 띄운다.
             return units
-                .Where(unit => unit.canStartAsSupport ||
-                               CharacterSelectionManager.HasNoUnlockPath(unit) ||
-                               SaveSystem.IsStarterUnlocked(unit.id) ||
-                               SaveSystem.IsCharacterTrained(unit.id))
-                .Where(unit => unit.id != mainUnitId)
+                .Where(unit => CharacterSelectionManager.IsUnlocked(unit) || CharacterSelectionManager.IsPendingUnlock(unit))
                 .OrderBy(unit => unit.id)
                 .ToList();
         }
@@ -1182,7 +1031,11 @@ namespace Managers.UI.Screens
             int count = Count;
             if (count <= 0) return;
 
-            int columns = Mathf.Clamp(count, 1, Mathf.Max(1, MaxColumns));
+            // 스크롤 목록은 사람이 적어도 열 수를 줄이지 않는다 — 한 명뿐일 때 타일 하나가 목록 전체를
+            // 덮어 아래 버튼까지 가렸다. 고정 영역만 인원에 맞춰 칸을 키운다.
+            int columns = ScrollContent
+                ? Mathf.Max(1, MaxColumns)
+                : Mathf.Clamp(count, 1, Mathf.Max(1, MaxColumns));
             int rows = Mathf.Max(1, Mathf.CeilToInt(count / (float)columns));
 
             float width = _rect.rect.width;

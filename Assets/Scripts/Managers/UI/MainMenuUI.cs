@@ -1,4 +1,4 @@
-using Core;
+﻿using Core;
 using Helpers;
 using Managers.UI.Core;
 using Managers.UI.Theme;
@@ -12,39 +12,55 @@ namespace Managers.UI
     public class MainMenuUI : MonoBehaviour
     {
         private SettingsUI _settings;
-        private Screens.SupportCardArchiveUI _archive;
         private void Start()
         {
             transform.SetParent(null, false);
-            foreach (Canvas old in FindObjectsByType<Canvas>(FindObjectsInactive.Include))
-                old.gameObject.SetActive(false);
             _settings = GetComponent<SettingsUI>();
             if (_settings == null) _settings = gameObject.AddComponent<SettingsUI>();
-            _archive = GetComponent<Screens.SupportCardArchiveUI>();
-            if (_archive == null) _archive = gameObject.AddComponent<Screens.SupportCardArchiveUI>();
-            BuildMenu();
+            Canvas runtime = BuildMenu();
+
+            // 씬의 구형 캔버스와 같은 이름을 재사용하면 UIBuild가 비활성 캔버스를 돌려줘
+            // 새 밝은 메뉴가 전부 보이지 않았다. 컴포넌트가 붙은 루트는 살리고 렌더만 끈다.
+            foreach (Canvas old in FindObjectsByType<Canvas>(FindObjectsInactive.Include))
+            {
+                if (old == runtime) continue;
+                old.enabled = false;
+                GraphicRaycaster raycaster = old.GetComponent<GraphicRaycaster>();
+                if (raycaster != null) raycaster.enabled = false;
+            }
             Screens.CharacterUnlockDialog.ShowPending();
         }
 
-        private void BuildMenu()
+        private Canvas BuildMenu()
         {
-            Canvas canvas = UIBuild.Canvas("MainMenuCanvas", 10);
-            Image paper = UIBuild.Solid("Ivory", canvas.transform, new Color(0.91f, 0.94f, 0.93f));
-            UIBuild.Stretch(paper.rectTransform);
-            paper.raycastTarget = false;
+            Canvas canvas = UIBuild.Canvas("MainMenuBrightCanvas", 10);
+            canvas.gameObject.SetActive(true);
+
+            Image background = UIBuild.Solid("SkyCitadel", canvas.transform, Color.white);
+            background.sprite = UIChromeArt.MainMenuBackground;
+            background.type = Image.Type.Simple;
+            background.raycastTarget = false;
+            UIBuild.Stretch(background.rectTransform);
+
+            // 원화와 메뉴가 밝은 하늘에 직접 뜨지 않도록 아래쪽에만 아주 얕은 청회색 공기층을 둔다.
+            Image atmosphere = UIBuild.Solid("Atmosphere", canvas.transform,
+                new Color(0.27f, 0.48f, 0.62f, 0.10f));
+            atmosphere.raycastTarget = false;
+            UIBuild.Stretch(atmosphere.rectTransform);
+
             RectTransform root = UIBuild.SafeArea(canvas);
-            Image halo = UIBuild.Solid("ArchiveHalo", root, new Color(0.28f, 0.58f, 0.51f, 0.16f));
-            halo.sprite = UIShapes.Disc(256, Color.white, 0.985f);
-            halo.type = Image.Type.Simple;
-            halo.raycastTarget = false;
-            halo.preserveAspect = true;
-            UIBuild.Anchor(halo.rectTransform, new Vector2(0.01f, 0.03f), new Vector2(0.68f, 0.98f));
-            TextMeshProUGUI watermark = UIBuild.Text("MythMark", root, "MYTH\nARCHIVE", 110,
-                new Color(0.24f, 0.42f, 0.37f, 0.09f), TextAlignmentOptions.TopLeft);
-            watermark.fontStyle = FontStyles.Bold;
-            UIBuild.Anchor(watermark.rectTransform, new Vector2(0.03f, 0.32f), new Vector2(0.62f, 0.84f));
+            Sprite sei = SpriteResource.LoadStanding("SEI_STANDING") ?? SpriteResource.LoadStanding("SHI_STANDING");
+            Image characterShadow = UIBuild.Solid("LobbyCharacterShadow", root,
+                new Color(0.22f, 0.39f, 0.53f, 0.24f));
+            characterShadow.sprite = sei;
+            characterShadow.type = Image.Type.Simple;
+            characterShadow.preserveAspect = true;
+            characterShadow.raycastTarget = false;
+            characterShadow.enabled = sei != null;
+            UIBuild.Anchor(characterShadow.rectTransform, new Vector2(0.052f, 0.005f), new Vector2(0.642f, 1.015f));
+
             Image character = UIBuild.Solid("LobbyCharacter", root, Color.white);
-            character.sprite = SpriteResource.LoadStanding("SEI_STANDING") ?? SpriteResource.LoadStanding("SHI_STANDING");
+            character.sprite = sei;
             character.type = Image.Type.Simple;
             character.preserveAspect = true;
             character.raycastTarget = false;
@@ -55,9 +71,12 @@ namespace Managers.UI
             Image identity = UIBuild.Panel("CharacterIdentity", root, new Color(1, 1, 1, 0.93f), cut: 4);
             UIBuild.Anchor(identity.rectTransform, new Vector2(0.055f, 0.13f), new Vector2(0.31f, 0.25f));
             Copy(identity.transform, "Name", "세이", 34, UITheme.TextPrimary, 0.06f, 0.38f, 0.94f, 0.92f, true);
-            Copy(identity.transform, "Role", "별의 궤도를 잇는 서포터", 18, UITheme.TextSecondary, 0.06f, 0.08f, 0.94f, 0.40f);
-            RectTransform journey = UIBuild.Container("Journey", root);
-            UIBuild.Anchor(journey, new Vector2(0.63f, 0.15f), new Vector2(0.96f, 0.85f));
+            Copy(identity.transform, "Role", "대지를 고르는 수호자", 18, UITheme.TextSecondary, 0.06f, 0.08f, 0.94f, 0.40f);
+
+            Image journeyGlass = UIBuild.ChromePanel("JourneyGlass", root);
+            UIBuild.Anchor(journeyGlass.rectTransform, new Vector2(0.61f, 0.13f), new Vector2(0.97f, 0.87f));
+            RectTransform journey = UIBuild.Container("Journey", journeyGlass.transform);
+            UIBuild.Stretch(journey, 34f, 30f);
             Copy(journey, "Chapter", "YOUR NEXT CHAPTER", 16, UITheme.Accent, 0, 0.89f, 1, 1);
             Copy(journey, "Title", "다시, 여정을 향해", 42, UITheme.TextPrimary, 0, 0.77f, 1, 0.91f, true);
             Copy(journey, "Intro", "동료를 만나고, 신화를 이어가세요.", 20, UITheme.TextSecondary, 0, 0.69f, 1, 0.79f);
@@ -65,22 +84,18 @@ namespace Managers.UI
             string continuation = save == null ? "저장된 여정이 없습니다" :
                 $"구역 {save.currentRound} · {(Mathf.Max(1, save.currentStage) - 1) % 10 + 1} 스테이지   /   목숨 {save.life}";
             JourneyButton(journey, "Continue", "여정 이어가기", continuation, OnContinue, 0.43f, 0.66f, save != null, save != null);
-            JourneyButton(journey, "NewRun", "새로운 여정", "메인 캐릭터와 네 명의 동료 선택", OnNewGame, 0.20f, 0.40f, save == null, true);
-            int cards = CharacterSelectionManager.CountInfiniteEligibleCards(DataManager.LoadUnitDataList()?.units);
-            int required = CharacterSelectionManager.InfiniteRequiredCards;
-            JourneyButton(journey, "Endless", "무한 모드", cards >= required ? "육성한 동료들과 한계 너머로" : $"육성 완료 동료 {cards} / {required}",
-                OnInfiniteMode, 0, 0.17f, false, cards >= required);
+            // 게임 모드는 무한 모드 하나다. 새 여정이 곧 끝없는 여정이다.
+            JourneyButton(journey, "NewRun", "새로운 여정", "해금한 동료 최대 다섯과 끝없는 여정으로", OnNewGame, 0.20f, 0.40f, save == null, true);
             // 캐릭터 발을 반투명하게 비치면 실수로 잘린 것처럼 보인다. 푸터가 명확히 전경에 오도록 완전 불투명 처리한다.
             Image footer = UIBuild.Solid("Footer", root, Color.white);
             UIBuild.Anchor(footer.rectTransform, Vector2.zero, new Vector2(1, 0.095f));
             Copy(footer.transform, "Version", $"NEVER THE LAST   /   DEMO {Application.version}", 15, UITheme.TextMuted, 0.035f, 0, 0.47f, 1);
-            Button archive = UIBuild.Button("CardArchive", footer.transform, "육성 카드 열람실", OnArchive, fontSize: 20);
-            UIBuild.Anchor(archive.image.rectTransform, new Vector2(0.49f, 0.15f), new Vector2(0.66f, 0.85f));
             Button settings = UIBuild.Button("Settings", footer.transform, "설정", OnSettings, fontSize: 22);
             UIBuild.Anchor(settings.image.rectTransform, new Vector2(0.68f, 0.15f), new Vector2(0.82f, 0.85f));
             Button quit = UIBuild.Button("Quit", footer.transform, "종료", OnQuit, fontSize: 22);
             UIBuild.Anchor(quit.image.rectTransform, new Vector2(0.84f, 0.15f), new Vector2(0.96f, 0.85f));
             quit.gameObject.SetActive(!Application.isMobilePlatform);
+            return canvas;
         }
 
         private static void Copy(Transform parent, string key, string text, float size, Color ink,
@@ -121,26 +136,8 @@ namespace Managers.UI
             GameStartIntent.Current = GameStartIntent.Intent.Continue;
             GameManager.LoadBattleScene();
         }
-        private static void OnInfiniteMode()
-        {
-            if (SaveSystem.HasSave())
-                Screens.ConfirmDialog.Ask("무한 모드", "진행 중인 여정을 정리하고 무한 모드를 시작할까요?", "시작", BeginInfiniteMode);
-            else BeginInfiniteMode();
-        }
-        private static void BeginInfiniteMode()
-        {
-            SaveSystem.DeleteSave();
-            GameStartIntent.Current = GameStartIntent.Intent.InfiniteMode;
-            GameManager.LoadBattleScene();
-        }
         private void OnSettings() => _settings?.Open();
-        private void OnArchive() => _archive?.Open();
         private static void OnQuit() => Application.Quit();
         public void CloseSettings() => _settings?.Close();
-
-        private void Update()
-        {
-            if (_archive?.IsOpen == true && Input.GetKeyDown(KeyCode.Escape)) _archive.Close();
-        }
     }
 }

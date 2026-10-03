@@ -37,76 +37,54 @@ namespace Effects.Negative
         public const string BindKey = "cc_bind";
 
         // ── 빙결 ──────────────────────────────────────────────────
+        // 2026-09 개편: 옛 CON 비교를 특수공격력(건 쪽) 대 특수방어력(받는 쪽)의 비율로 옮겼다.
+        // 비율식이라 레벨이 끝없이 올라도 같은 레벨끼리의 결과가 흔들리지 않는다.
 
-        /// <summary>빙결 지속 <b>턴</b> 수. 유발자의 CON에 비례한다(1~3턴).</summary>
-        public static int FreezeTurns(Unit source)
+        /// <summary>건 쪽 특수공격력 ÷ 받는 쪽 특수방어력. 둘 다 1 미만이면 1로 본다.</summary>
+        private static float ContestRatio(Unit source, Unit target)
         {
-            int con = source != null ? Mathf.Max(0, source.GetBaseCon()) : 0;
-            return Mathf.Clamp(Mathf.RoundToInt(0.75f + con * 0.01f), 1, 3);
+            float attack = source != null ? Mathf.Max(1f, source.StatValue(BaseEnums.StatType.SpecialAttack)) : 1f;
+            float resist = target != null ? Mathf.Max(1f, target.StatValue(BaseEnums.StatType.SpecialDefense)) : 1f;
+            return attack / resist;
         }
 
-        /// <summary>
-        /// 빙결을 건다. 면역이면 무시하고, 이미 얼어 있으면 남은 시간과 새 지속시간 중 긴 쪽을 남긴다.
-        /// </summary>
+        /// <summary>빙결 지속 <b>턴</b> 수 — <c>2턴 × 특공 ÷ 특방</c>, 1~3턴.</summary>
+        public static int FreezeTurns(Unit source, Unit target)
+            => Mathf.Clamp(Mathf.RoundToInt(2f * ContestRatio(source, target)), 1, 3);
+
+        /// <summary>빙결을 건다. 이미 얼어 있으면 남은 시간과 새 지속시간 중 긴 쪽을 남긴다.</summary>
         public static bool ApplyFreeze(Unit target, Unit source, int turns)
         {
             return ApplyControl(target, source, turns, FrozenStatusId, FrozenKey, "빙결",
-                "행동할 수 없습니다. 피격과 대상 지정은 정상입니다.",
-                target != null && target.IsFreezeImmune);
+                "행동할 수 없습니다. 피격과 대상 지정은 정상입니다.", false);
         }
 
         // ── 에어본 ────────────────────────────────────────────────
 
-        /// <summary>
-        /// 에어본 지속 <b>턴</b> 수 — <c>1.5턴 × 시전자 CON ÷ 대상 CON</c>, 1~2턴으로 제한한다.
-        /// 탱커끼리는 짧게 뜨고 후열은 오래 뜬다.
-        /// </summary>
+        /// <summary>에어본 지속 <b>턴</b> 수 — <c>1.5턴 × 특공 ÷ 특방</c>, 1~2턴. 탱커끼리는 짧게 뜬다.</summary>
         public static int AirborneTurns(Unit source, Unit target)
-        {
-            float casterCon = source != null ? Mathf.Max(1, source.GetBaseCon()) : 1f;
-            float targetCon = target != null ? Mathf.Max(1, target.GetBaseCon()) : 1f;
-            return Mathf.Clamp(Mathf.RoundToInt(1.5f * casterCon / targetCon), 1, 2);
-        }
+            => Mathf.Clamp(Mathf.RoundToInt(1.5f * ContestRatio(source, target)), 1, 2);
 
-        /// <summary>에어본을 건다. 면역이면 무시하고, 겹치면 긴 쪽을 남긴다.</summary>
+        /// <summary>에어본을 건다. 겹치면 긴 쪽을 남긴다.</summary>
         public static bool ApplyAirborne(Unit target, Unit source)
         {
-            int turns = AirborneTurns(source, target);
-            bool applied = ApplyControl(target, source, turns, AirborneStatusId, AirborneKey, "에어본",
-                "공중에 떠 행동할 수 없습니다. 피격과 대상 지정은 정상입니다.",
-                target != null && target.IsAirborneImmune);
-            if (applied)
-            {
-                Effects.AirborneEffect.Attach(target,
-                    () => AirborneApexReached?.Invoke(source, target));
-            }
-            return applied;
+            return ApplyControl(target, source, AirborneTurns(source, target), AirborneStatusId, AirborneKey, "에어본",
+                "공중에 떠 행동할 수 없습니다. 피격과 대상 지정은 정상입니다.", false);
         }
 
         // ── 기절 ──────────────────────────────────────────────────
 
-        /// <summary>
-        /// 기절 지속 <b>턴</b> 수 — <c>1턴 × 시전자 CON ÷ 대상 CON</c>, 1~2턴으로 제한한다.
-        /// 에어본과 같은 CON 비교식이지만 기준이 1턴이라 한 턴을 넘기기 어렵다.
-        /// </summary>
-        public static int StunTurns(Unit source, Unit target, float sourceConMultiplier = 1f)
-        {
-            float casterCon = source != null ? Mathf.Max(1, source.GetBaseCon()) : 1f;
-            casterCon *= Mathf.Max(0f, sourceConMultiplier);
-            float targetCon = target != null ? Mathf.Max(1, target.GetBaseCon()) : 1f;
-            return Mathf.Clamp(Mathf.RoundToInt(casterCon / targetCon), 1, 2);
-        }
+        /// <summary>기절 지속 <b>턴</b> 수 — <c>1턴 × 특공 ÷ 특방</c>, 1~2턴.</summary>
+        public static int StunTurns(Unit source, Unit target)
+            => Mathf.Clamp(Mathf.RoundToInt(ContestRatio(source, target)), 1, 2);
 
         /// <summary>기절을 건다. 빙결·에어본과 같은 계열이라 행동만 막는다.</summary>
-        public static bool ApplyStun(Unit target, Unit source, float sourceConMultiplier = 1f)
+        public static bool ApplyStun(Unit target, Unit source)
         {
-            int turns = StunTurns(source, target, sourceConMultiplier);
-            return ApplyControl(target, source, turns, StunStatusId, StunKey, "기절",
-                "행동할 수 없습니다. 피격과 대상 지정은 정상입니다.",
-                false);
+            return ApplyControl(target, source, StunTurns(source, target), StunStatusId, StunKey, "기절",
+                "행동할 수 없습니다. 피격과 대상 지정은 정상입니다.", false);
         }
-
-        /// <summary>CON 비교 없이 명시한 턴 수만큼 기절시킨다.</summary>
+        /// <summary>스탯 비교 없이 명시한 턴 수만큼 기절시킨다.</summary>
         public static bool ApplyFixedStun(Unit target, Unit source, int turns)
         {
             return ApplyControl(target, source, Mathf.Max(1, turns), StunStatusId, StunKey, "기절",

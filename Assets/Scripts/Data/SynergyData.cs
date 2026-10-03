@@ -30,7 +30,7 @@ namespace Managers
         public int id;
         public string name;
 
-        /// <summary>Starter / Support / Locked. 10_units.yaml의 characterType과 같은 값이다.</summary>
+        /// <summary>Unlocked / Locked. 10_units.yaml의 characterType과 같은 값이다.</summary>
         public string type;
         public string element;
         public string mainStat;

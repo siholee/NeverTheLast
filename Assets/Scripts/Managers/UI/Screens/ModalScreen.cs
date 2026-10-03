@@ -33,6 +33,11 @@ namespace Managers.UI.Screens
         protected virtual Vector2 AnchorMin => new(0.16f, 0.14f);
         protected virtual Vector2 AnchorMax => new(0.84f, 0.86f);
 
+        /// <summary>
+        /// 관리형 화면은 상단 바와 같은 좌우 끝선을 쓴다. 짧은 확인 창·메뉴만 중앙 폭을 유지한다.
+        /// </summary>
+        protected virtual bool AlignToScreenFrame => AnchorMax.x - AnchorMin.x >= 0.60f;
+
         /// <summary>배경을 눌러 닫을 수 있는지. 진행을 막아야 하는 화면은 false.</summary>
         protected virtual bool CloseOnBackdrop => false;
 
@@ -59,8 +64,13 @@ namespace Managers.UI.Screens
             // 관리 화면은 공간을 넉넉히 쓰고, 확인/결과 같은 짧은 대화만 작은 창으로 남긴다.
             bool workspace = AnchorMax.x - AnchorMin.x >= 0.60f;
             UIBuild.Anchor(panel.rectTransform,
-                workspace ? new Vector2(0.025f, 0.025f) : AnchorMin,
-                workspace ? new Vector2(0.975f, 0.975f) : AnchorMax);
+                AlignToScreenFrame
+                    ? new Vector2(0f, workspace ? 0.025f : AnchorMin.y)
+                    : AnchorMin,
+                AlignToScreenFrame
+                    ? new Vector2(1f, workspace ? 0.975f : AnchorMax.y)
+                    : AnchorMax);
+            if (AlignToScreenFrame) UIBuild.ScreenFrameHorizontal(panel.rectTransform);
             // 한 층 떠 있는 면 — 그림자를 깔고, 열릴 때 배경과 함께 떠오른다.
             UIBuild.Elevate(panel, 40, 0.6f, 14f);
             _root.AddComponent<UIPopIn>().Panel = panel.rectTransform;
@@ -151,7 +161,7 @@ namespace Managers.UI.Screens
         ///
         /// 기본은 <b>배경을 눌러 닫히는 화면이면 ESC로도 닫힌다</b>는 규칙이다. 두 입력이 같은 뜻이어야
         /// 한다. 진행을 막는 화면(보상 · 사건 · 전투 결과)은 false를 돌려주고, 그러면 ESC는
-        /// 평소처럼 메뉴를 연다. 명시적인 취소가 있는 화면(훈련)은 이것을 덮어쓴다.
+        /// 평소처럼 메뉴를 연다. 별도 취소 흐름이 필요한 화면은 이것을 덮어쓴다.
         /// </summary>
         protected virtual bool OnEscape()
         {

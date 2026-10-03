@@ -6,10 +6,11 @@ namespace BaseClasses
     {
       Passive,
       Normal,
+      /// <summary>특정 트리거가 여는 캐릭터 고유 특수행동. 일반행동과 추가행동 어느 쪽에도 포함되지 않는다.</summary>
+      Special,
       Ultimate,
 
-      /// <summary>특수행동 — 인드라의 궁극기만이 부르는 행동. 추가행동과 별개의 판정이다.</summary>
-      Special,
+      /// <summary>지속피해 · 원소 반응처럼 행동이 아닌 효과가 가하는 피해. 특수방어력으로 경감한다.</summary>
       Effect,
     }
 
@@ -17,8 +18,8 @@ namespace BaseClasses
     {
       Active,
       Passive,
-      Ultimate,
       Special,
+      Ultimate,
     }
 
     /// <summary>
@@ -44,6 +45,8 @@ namespace BaseClasses
     {
       Mana,
       Stack,
+      /// <summary>전투 내내 켜져 있으며 충전·소모하지 않는 상시형 초월기.</summary>
+      Passive,
     }
 
     public enum UnitEventType
@@ -56,8 +59,9 @@ namespace BaseClasses
       OnNormalActivates, // Unit(자신)
       OnUltimateActivates, // Unit(자신)
       OnAdditionalActivates, // Unit(자신) — 예약된 추가행동이 시작될 때
-      OnSpecialActivates, // Unit(자신) — 특수행동이 시작될 때. 추가행동과 별개의 판정이다
+
       OnCoordinatedActivates, // Unit(자신) — 협동행동이 시작될 때. 추가행동 카운터에는 잡히지 않는다
+      OnSpecialActivates, // Unit(자신) — 특정 트리거가 연 특수행동. 추가행동 카운터에는 잡히지 않는다
       OnTargeted, // Unit(자신=대상), Unit(공격자) — 행동의 대상으로 지정된 순간. 피해가 들어가기 전이다
       OnNormalAttackHit, // Unit(자신), Unit(대상), DamageContext(일반행동 적중 정보)
       OnNormalActionResolved, // Unit(자신) — 일반행동이 실제로 끝났을 때. 공격하지 않는 일반행동도 포함한다
@@ -88,24 +92,34 @@ namespace BaseClasses
       RoundEnd,
       RewardSelection,
       EventStage,
-      TrainingPhase,
       RunComplete,
       GameOver
     }
 
-    public enum GameMode
+    /// <summary>
+    /// 전투 스탯 여덟. 2026-09 개편으로 5스탯(STR/DEX/CON/INT/LUK)을 대체했다.
+    ///
+    /// 롤처럼 <b>기초값 + 성장치 × (레벨 − 1)</b>로 자라고, 훈련 강화는 없다.
+    /// 공식과 역할은 <c>Detail_03 §2</c>가 원본이다.
+    /// </summary>
+    public enum StatType
     {
-      Training,
-      Infinite,
-    }
-
-    public enum PrimaryStat
-    {
-      STR,
-      DEX,
-      CON,
-      INT,
-      LUK,
+      /// <summary>최대 체력.</summary>
+      MaxHp,
+      /// <summary>공격력. 대부분의 피해가 이 스탯을 계수로 쓴다.</summary>
+      Attack,
+      /// <summary>특수공격력. 효과 명중과 원소 반응에만 관여한다. 피해 계수가 아니다.</summary>
+      SpecialAttack,
+      /// <summary>방어력. 대부분의 피해를 경감한다. 일부 유닛은 피해 계수로도 쓴다.</summary>
+      Defense,
+      /// <summary>특수방어력. 지속피해 · 원소 반응 피해를 경감하고 해로운 효과를 회피한다.</summary>
+      SpecialDefense,
+      /// <summary>속도. 행동값 = 10000 / 속도.</summary>
+      Speed,
+      /// <summary>치명타 확률(0~1).</summary>
+      CritRate,
+      /// <summary>치명타 피해(추가 배율, 0.5 = +50%).</summary>
+      CritDamage,
     }
 
     public enum UnitElement

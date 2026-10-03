@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Effects.Base;
@@ -73,17 +73,14 @@ namespace Effects.Negative
     /// 자기 자신에게 원소를 둘러 버프를 만드는 것이 정규 운용이고,
     /// 적에게 잘못 만들어 적을 이롭게 하는 것이 이 시스템의 상성이다.
     ///
-    /// 위력은 전부 <b>유발자의 CON</b>에 비례한다. 이 게임에서 CON은 최대 체력이자
-    /// <b>원소 친화력</b>이다. 보편적인 탱커는 STR을 주스탯으로 잡으므로 실질적으로는
-    /// 서포터가 반응을 키우는 자리를 가져간다.
+    /// 위력은 전부 <b>유발자의 특수공격력</b>에 비례한다(2026-09 개편 — 옛 CON의 자리).
+    /// 반응 피해는 <b>대상의 특수방어력</b>으로 경감된다(<see cref="Combat.DamageMitigation"/>).
     ///
     /// 전체 표는 <c>Detail_16 §4</c>에 있다.
     /// </summary>
     public static class ElementalReaction
     {
         // ── 상태 ID ───────────────────────────────────────────────
-        // 5900은 HealingReductionStatus가 이미 쓰고 있어 감전과 겹친다.
-        // 5910대로 옮겨 HasStatus(감전) 조회가 치유량 감소와 섞이지 않게 했다.
         public const int ShockStatusId = 5910;
         public const int BurnStatusId = 5911;
         public const int WeatheringStatusId = 5912;
@@ -91,29 +88,28 @@ namespace Effects.Negative
         public const int VulnerableStatusId = 5914;
 
         public const string BurnStatusKey = "burn";
-        /// <summary>활성 반응이 대상에게 남기는 약화 상태의 키. 케토스가 이 표식을 본다.</summary>
         public const string ActivationStatusKey = "reaction_Activation";
         public const string WeatheringStatusKey = "reaction_weathering";
 
-        // ── 위력 ──────────────────────────────────────────────────
+        // ── 위력(유발자 특수공격력 대비 배율) ─────────────────────
 
         /// <summary>지속피해(감전·풍화)의 턴당 위력.</summary>
-        private const int DotPower = 90;
+        private const float DotRatio = 0.6f;
 
-        /// <summary>화상은 대상 최대 체력 비례라 유발자 CON을 보지 않는다.</summary>
+        /// <summary>화상은 대상 최대 체력 비례라 유발자 특수공격력을 보지 않는다.</summary>
         private const float BurnMaxHpPercent = 5f;
 
         /// <summary>즉발 피해(과부하)의 위력.</summary>
-        private const int BurstPower = 120;
+        private const float BurstRatio = 1.2f;
 
         /// <summary>확산(바람 + 바람)의 위력. 진영 전체를 때리므로 단일보다 낮다.</summary>
-        private const int DiffusionBurstPower = 70;
+        private const float DiffusionBurstRatio = 0.7f;
 
         /// <summary>증폭이 얹는 약소 고정 피해의 위력.</summary>
-        private const int AmplifyPower = 40;
+        private const float AmplifyRatio = 0.4f;
 
         /// <summary>경화가 만드는 보호막의 위력.</summary>
-        private const int BarrierPower = 100;
+        private const float BarrierRatio = 1.5f;
 
         /// <summary>지속피해·즉발 반응의 기본 지속 턴.</summary>
         public const int DotDuration = 2;
@@ -121,20 +117,11 @@ namespace Effects.Negative
         /// <summary>버프·디버프 반응의 지속 턴.</summary>
         private const int StatDuration = 3;
 
-        // ── CON 비례 계수 ─────────────────────────────────────────
-
         /// <summary>
-        /// 버프·디버프·증폭이 공유하는 CON 비례식. <b>차이가 아니라 절대값</b>을 쓴다.
-        /// 유발자 CON에서 대상 CON을 빼는 식은 레벨이 오르면 양쪽이 같이 올라
-        /// 언제나 0 근처를 맴돌기 때문이다.
+        /// 버프·디버프가 스탯을 움직이는 비율의 상한. 실제 비율은
+        /// <c>상한 × 특공 / (특공 + 기준값)</c>이라 레벨과 무관하게 같은 곳으로 수렴한다.
         /// </summary>
-        private const float RatioPerCon = 0.002f;   // CON 1당 0.2%
-
-        private const float RatioCap = 0.30f;       // 상한 30%
-
-        /// <summary>증폭이 방금 그 공격의 피해에 얹는 비율의 상한. 다른 계수와 달리 크게 잡는다.</summary>
-        private const float AmplifyCap = 1.00f;
-        private const float AmplifyRatioPerCon = 0.005f;   // CON 1당 0.5%
+        private const float RatioCap = 0.30f;
 
         // ── 재부착 내부 쿨다운 ────────────────────────────────────
 
@@ -166,10 +153,10 @@ namespace Effects.Negative
             public readonly ReactionKind Kind;
 
             /// <summary>버프·디버프가 건드리는 스탯. 그 외에는 의미가 없다.</summary>
-            public readonly BaseEnums.PrimaryStat Stat;
+            public readonly BaseEnums.StatType Stat;
 
             public Reaction(BaseEnums.UnitElement a, BaseEnums.UnitElement b, ReactionId id,
-                string name, ReactionKind kind, BaseEnums.PrimaryStat stat = BaseEnums.PrimaryStat.STR)
+                string name, ReactionKind kind, BaseEnums.StatType stat = BaseEnums.StatType.Defense)
             {
                 A = a; B = b; Id = id; Name = name; Kind = kind; Stat = stat;
             }
@@ -192,11 +179,11 @@ namespace Effects.Negative
             new(Pyro, Dendro,     ReactionId.Combustion,  "연소",   ReactionKind.Amplify),
             new(Pyro, Electro,    ReactionId.Overload,    "과부하", ReactionKind.Burst),
             new(Pyro, Cryo,       ReactionId.Melt,        "융해",   ReactionKind.Amplify),
-            new(Pyro, Geo,        ReactionId.Forge,       "단조",   ReactionKind.Buff,  BaseEnums.PrimaryStat.DEX),
+            new(Pyro, Geo,        ReactionId.Forge,       "단조",   ReactionKind.Buff,  BaseEnums.StatType.Speed),
 
             // 물
-            new(Hydro, Hydro,     ReactionId.Essence,     "정수",   ReactionKind.Buff,  BaseEnums.PrimaryStat.INT),
-            new(Hydro, Dendro,    ReactionId.Bloom,       "개화",   ReactionKind.Buff,  BaseEnums.PrimaryStat.CON),
+            new(Hydro, Hydro,     ReactionId.Essence,     "정수",   ReactionKind.Buff,  BaseEnums.StatType.SpecialAttack),
+            new(Hydro, Dendro,    ReactionId.Bloom,       "개화",   ReactionKind.Buff,  BaseEnums.StatType.MaxHp),
             new(Hydro, Electro,   ReactionId.Shock,       "감전",   ReactionKind.Dot),
             new(Hydro, Cryo,      ReactionId.Freeze,      "빙결",   ReactionKind.Control),
             new(Hydro, Geo,       ReactionId.Weathering,  "풍화",   ReactionKind.Dot),
@@ -205,15 +192,15 @@ namespace Effects.Negative
             new(Dendro, Dendro,   ReactionId.Rooting,     "착근",   ReactionKind.Control),
             new(Dendro, Electro,  ReactionId.Activation,  "활성",   ReactionKind.Debuff),
             new(Dendro, Cryo,     ReactionId.Dormancy,    "휴면",   ReactionKind.Null),
-            new(Dendro, Geo,      ReactionId.Growth,      "성장",   ReactionKind.Buff,  BaseEnums.PrimaryStat.STR),
+            new(Dendro, Geo,      ReactionId.Growth,      "성장",   ReactionKind.Buff,  BaseEnums.StatType.Defense),
 
             // 전기
-            new(Electro, Electro, ReactionId.Charge,      "축전",   ReactionKind.Buff,  BaseEnums.PrimaryStat.LUK),
+            new(Electro, Electro, ReactionId.Charge,      "축전",   ReactionKind.Buff,  BaseEnums.StatType.Attack),
             new(Electro, Cryo,    ReactionId.Superconduct,"초전도", ReactionKind.Debuff),
             new(Electro, Geo,     ReactionId.Grounding,   "접지",   ReactionKind.Null),
 
             // 얼음
-            new(Cryo, Cryo,       ReactionId.Slow,        "둔화",   ReactionKind.Debuff, BaseEnums.PrimaryStat.DEX),
+            new(Cryo, Cryo,       ReactionId.Slow,        "둔화",   ReactionKind.Debuff, BaseEnums.StatType.Speed),
             new(Cryo, Geo,        ReactionId.Hardening,   "경화",   ReactionKind.Buff),
 
             // 바위
@@ -236,10 +223,10 @@ namespace Effects.Negative
             public readonly BaseEnums.UnitElement B;
             public readonly string Name;
             public readonly ReactionKind Kind;
-            public readonly BaseEnums.PrimaryStat Stat;
+            public readonly BaseEnums.StatType Stat;
 
             internal Listing(BaseEnums.UnitElement a, BaseEnums.UnitElement b,
-                string name, ReactionKind kind, BaseEnums.PrimaryStat stat)
+                string name, ReactionKind kind, BaseEnums.StatType stat)
             {
                 A = a; B = b; Name = name; Kind = kind; Stat = stat;
             }
@@ -371,18 +358,21 @@ namespace Effects.Negative
         private static int AmplifiableDamage(Unit source, Unit target)
             => source != null && source.LastResolvedTarget == target ? source.LastResolvedDamage : 0;
 
+        /// <summary>유발자 특수공격력 × 배율. 반응 피해 · 보호막의 공통 뼈대다.</summary>
+        private static int ReactionPower(Unit source, float ratio)
+            => source == null ? 0 : Mathf.Max(1, Mathf.RoundToInt(
+                source.StatValue(BaseEnums.StatType.SpecialAttack) * ratio * FieldReactionMultiplier(source)));
+
         /// <summary>
         /// 증폭(증발·연소·융해) — 약소한 고정 피해에 더해, 부착 직전에 들어간 그 공격의
-        /// 피해를 CON 비례로 한 번 더 얹는다. 부착은 언제나 피해 뒤에 오므로
+        /// 피해를 특수공격력 비례로 한 번 더 얹는다. 부착은 언제나 피해 뒤에 오므로
         /// "이번 공격을 키운다"를 사후 추가 피해로 환산한 것이다.
         /// </summary>
         private static void ResolveAmplify(Unit target, Unit source)
         {
-            float ratio = Mathf.Min(AmplifyCap, Mathf.Max(0, source.GetBaseCon()) * AmplifyRatioPerCon);
+            float ratio = Combat.DamageMitigation.ReactionAmplifier(source) - 1f;
             int bonus = Mathf.RoundToInt(AmplifiableDamage(source, target) * ratio);
-            int flat = Mathf.Max(1, Mathf.RoundToInt(
-                source.SkillDamage(AmplifyPower, BaseEnums.PrimaryStat.CON) * FieldReactionMultiplier(source)));
-
+            int flat = ReactionPower(source, AmplifyRatio);
             DealReactionDamage(target, source, Mathf.Max(1, Mathf.RoundToInt((flat + bonus) * HarmfulPotency(source))));
         }
 
@@ -393,8 +383,7 @@ namespace Effects.Negative
 
             foreach (Unit ally in global::Target.GetAllAllies(target).Where(unit => unit != null && unit.isActive))
             {
-                // 확산이 뿌린 부착은 다시 반응하지 않는다. 그러지 않으면 확산 → 반응 → 확산으로
-                // 무한 연쇄가 돈다(부착 지점이 곧 반응 지점이기 때문이다).
+                // 확산이 뿌린 부착은 다시 반응하지 않는다. 확산 → 반응 → 확산의 무한 연쇄를 막는다.
                 ally.GrantCombatElement(spreadElement, Unit.CommonElementAuraDuration, source, suppressReaction: true);
             }
         }
@@ -405,7 +394,7 @@ namespace Effects.Negative
             {
                 case ReactionId.Freeze:
                 {
-                    int turns = ControlStatuses.FreezeTurns(source);
+                    int turns = ControlStatuses.FreezeTurns(source, target);
                     int cap = ControlTurnCap(source);
                     ControlStatuses.ApplyFreeze(target, source, cap > 0 ? Mathf.Min(turns, cap) : turns);
                     break;
@@ -414,7 +403,7 @@ namespace Effects.Negative
                 {
                     int cap = ControlTurnCap(source);
                     if (cap > 0) ControlStatuses.ApplyFixedStun(target, source, cap);
-                    else ControlStatuses.ApplyStun(target, source, ResonanceConMultiplier(source));
+                    else ControlStatuses.ApplyStun(target, source);
                     break;
                 }
                 case ReactionId.Rooting:
@@ -432,31 +421,14 @@ namespace Effects.Negative
         {
             if (reaction.Id == ReactionId.DiffusionBurst)
             {
-                int splash = Mathf.Max(1, Mathf.RoundToInt(
-                    source.SkillDamage(DiffusionBurstPower, BaseEnums.PrimaryStat.CON) *
-                    FieldReactionMultiplier(source) * HarmfulPotency(source)));
-
-                foreach (Unit unit in global::Target.GetAllAllies(target)
-                             .Where(u => u != null && u.isActive && u.HpCurr > 0))
-                {
+                int splash = Mathf.Max(1, Mathf.RoundToInt(ReactionPower(source, DiffusionBurstRatio) * HarmfulPotency(source)));
+                foreach (Unit unit in global::Target.GetAllAllies(target).Where(u => u != null && u.isActive && u.HpCurr > 0))
                     DealReactionDamage(unit, source, splash);
-                }
                 return;
             }
 
-            int damage = Mathf.Max(1, Mathf.RoundToInt(
-                source.SkillDamage(BurstPower, BaseEnums.PrimaryStat.CON) *
-                FieldReactionMultiplier(source) * OverloadMultiplier(source, reaction) * HarmfulPotency(source)));
-            DealReactionDamage(target, source, damage);
-        }
-
-        /// <summary>수리야의 '폭주'(111) — 과부하만 골라 키운다.</summary>
-        private static float OverloadMultiplier(Unit source, Reaction reaction)
-        {
-            if (reaction.Id != ReactionId.Overload || source == null) return 1f;
-            return source.ActivePassiveCodes.Any(code => code is Codes.Passive.SuryaOverrun)
-                ? 1f + Codes.Passive.SuryaOverrun.Bonus
-                : 1f;
+            DealReactionDamage(target, source,
+                Mathf.Max(1, Mathf.RoundToInt(ReactionPower(source, BurstRatio) * HarmfulPotency(source))));
         }
 
         private static void ResolveDot(Unit target, Reaction reaction, Unit source)
@@ -469,9 +441,7 @@ namespace Effects.Negative
                 return;
             }
 
-            int perTurn = Mathf.Max(1, Mathf.RoundToInt(
-                source.SkillDamage(DotPower, BaseEnums.PrimaryStat.CON) * FieldReactionMultiplier(source) *
-                HarmfulPotency(source)));
+            int perTurn = Mathf.Max(1, Mathf.RoundToInt(ReactionPower(source, DotRatio) * HarmfulPotency(source)));
 
             if (reaction.Id == ReactionId.Weathering)
             {
@@ -481,7 +451,6 @@ namespace Effects.Negative
                     duration: DotDuration,
                     stackPolicy: BaseEnums.StatusStackPolicy.ExtendDuration,
                     category: BaseEnums.StatusCategory.Negative,
-                    isBeneficial: false,
                     description: $"행동을 시작할 때마다 {perTurn}의 풍화 피해를 받습니다."));
                 return;
             }
@@ -492,7 +461,6 @@ namespace Effects.Negative
                 duration: DotDuration,
                 stackPolicy: BaseEnums.StatusStackPolicy.ExtendDuration,
                 category: BaseEnums.StatusCategory.Negative,
-                isBeneficial: false,
                 description: $"턴마다 {perTurn}의 {reaction.Name} 피해를 받습니다."));
         }
 
@@ -501,34 +469,28 @@ namespace Effects.Negative
             float ratio = StatRatio(source) * HarmfulPotency(source);
             if (ratio <= 0f) return;
 
-            // 둔화만 스탯을 깎고, 활성·초전도는 특정 분류의 피해를 더 받게 한다.
+            // 둔화만 스탯을 깎고, 활성·초전도는 특정 경감 계열의 피해를 더 받게 한다.
             if (reaction.Id == ReactionId.Slow)
             {
                 target.AddStatus(BuffStatus.Create(
                     BuffStatusId, $"reaction_{reaction.Id}", reaction.Name,
-                    source, target, new PrimaryStatMultiplierEffect(1f - ratio, reaction.Stat),
+                    source, target, new StatModifierEffect(reaction.Stat, -ratio, percent: true),
                     duration: StatDuration,
-                    stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                     category: BaseEnums.StatusCategory.Negative,
-                    isBeneficial: false,
-                    description: $"{reaction.Stat}가 {ratio * 100f:0.#}% 감소합니다."));
+                    description: $"{UnitStats.DisplayName(reaction.Stat)}이(가) {ratio * 100f:0.#}% 감소합니다."));
                 return;
             }
 
+            // 활성은 특수방어력으로 막는 피해(지속피해·반응)를, 초전도는 방어력으로 막는 피해를 키운다.
             bool isActivation = reaction.Id == ReactionId.Activation;
-            // 과성장(1904)은 활성의 약화 몫만 키운다. 초전도는 건드리지 않는다.
-            if (isActivation) ratio = Mathf.Min(1f, ratio * ActivationAmplifier(source));
-
-            int tag = isActivation ? DamageTag.Special : DamageTag.Physical;
-            string label = isActivation ? "특수" : "물리";
+            BaseEnums.StatType against = isActivation ? BaseEnums.StatType.SpecialDefense : BaseEnums.StatType.Defense;
+            string label = isActivation ? "지속·반응" : "일반";
             target.AddStatus(BuffStatus.Create(
                 VulnerableStatusId, $"reaction_{reaction.Id}", reaction.Name,
-                source, target, new TaggedVulnerabilityEffect(tag, 1f + ratio),
+                source, target, new MitigationVulnerabilityEffect(against, 1f + ratio),
                 duration: StatDuration,
-                stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 category: BaseEnums.StatusCategory.Negative,
-                isBeneficial: false,
-                description: $"{label} 공격에게 받는 피해가 {ratio * 100f:0.#}% 증가합니다."));
+                description: $"{label} 피해를 {ratio * 100f:0.#}% 더 받습니다."));
         }
 
         private static void ResolveBuff(Unit target, Reaction reaction, Unit source)
@@ -536,9 +498,7 @@ namespace Effects.Negative
             // 경화만 보호막이고 나머지는 스탯 배율이다.
             if (reaction.Id == ReactionId.Hardening)
             {
-                int shield = Mathf.Max(1, Mathf.RoundToInt(
-                    source.SkillDamage(BarrierPower, BaseEnums.PrimaryStat.CON) * FieldReactionMultiplier(source)));
-                target.AddShield(shield, source);
+                target.AddShield(ReactionPower(source, BarrierRatio), source);
                 return;
             }
 
@@ -547,109 +507,82 @@ namespace Effects.Negative
 
             target.AddStatus(BuffStatus.Create(
                 BuffStatusId, $"reaction_{reaction.Id}", reaction.Name,
-                source, target, new PrimaryStatMultiplierEffect(1f + ratio, reaction.Stat),
+                source, target, new StatModifierEffect(reaction.Stat, ratio, percent: true),
                 duration: StatDuration,
-                stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                 isBeneficial: true,
-                description: $"{reaction.Stat}가 {ratio * 100f:0.#}% 증가합니다."));
+                description: $"{UnitStats.DisplayName(reaction.Stat)}이(가) {ratio * 100f:0.#}% 증가합니다."));
         }
 
-        /// <summary>유발자가 지닌 활성 약화 배율 중 가장 큰 값. 같은 코드가 겹쳐도 한 번만 센다.</summary>
-        private static float ActivationAmplifier(Unit source)
-        {
-            if (source == null) return 1f;
-
-            float multiplier = 1f;
-            foreach (var status in source.ActiveStatuses)
-            {
-                foreach (var effect in status.Effects)
-                {
-                    if (effect?.EffectObject == null) continue;
-                    multiplier = Mathf.Max(multiplier, effect.EffectObject.ActivationDebuffMultiplier(source));
-                }
-            }
-            return multiplier;
-        }
-
-        /// <summary>버프·디버프가 공유하는 CON 비례 배율.</summary>
+        /// <summary>버프·디버프가 공유하는 특수공격력 비례 배율. 0 ~ <see cref="RatioCap"/>.</summary>
         private static float StatRatio(Unit source)
-            => Mathf.Min(RatioCap, Mathf.Max(0, source?.GetBaseCon() ?? 0) * RatioPerCon);
+        {
+            if (source == null) return 0f;
+            float attack = Mathf.Max(0f, source.StatValue(BaseEnums.StatType.SpecialAttack));
+            return RatioCap * attack / (attack + UnitStats.ArmorConstant(source.Level));
+        }
 
         private static void DealReactionDamage(Unit target, Unit source, int damage)
         {
             if (target == null || !target.isActive || damage <= 0) return;
             target.TakeDamage(new DamageContext(
                 source, damage, BaseEnums.CodeType.Effect,
-                new List<int> { DamageTag.SingleTarget, DamageTag.Special, DamageTag.NonContactAttack }));
+                new List<int> { DamageTag.SingleTarget, DamageTag.ElementalReaction, DamageTag.NonContactAttack }));
         }
 
         // ── 공용 ──────────────────────────────────────────────────
 
         /// <summary>
-        /// 필드가 만들어 내는 원소 반응 피해 배율.
-        /// 스카디 `원소술사`(+25%)와 바루나 `대해의 판결`(+40%)은 같은 계열이라
-        /// <b>중첩되지 않고 가장 높은 하나만</b> 적용된다.
+        /// 필드가 만들어 내는 원소 반응 피해 배율. 같은 계열이라 <b>가장 높은 하나만</b> 적용된다.
         /// </summary>
         public static float FieldReactionMultiplier(Unit source)
         {
             if (source == null) return 1f;
 
-            var allies = global::Target.GetAllAllies(source)
-                .Where(unit => unit != null && unit.isActive)
-                .ToList();
+            var allies = global::Target.GetAllAllies(source).Where(unit => unit != null && unit.isActive).ToList();
             if (!allies.Contains(source)) allies.Add(source);
 
             float bonus = 0f;
             foreach (Unit ally in allies)
+            foreach (var status in ally.ActiveStatuses)
+            foreach (var effect in status.Effects)
             {
-                foreach (var status in ally.ActiveStatuses)
-                {
-                    foreach (var effect in status.Effects)
-                    {
-                        if (effect.EffectObject is not IReactionAmplifier amplifier) continue;
-                        bonus = Mathf.Max(bonus, amplifier.ReactionDamageBonus);
-                    }
-                }
+                if (effect.EffectObject is IReactionAmplifier amplifier)
+                    bonus = Mathf.Max(bonus, amplifier.ReactionDamageBonus);
             }
             return 1f + Mathf.Max(0f, bonus);
         }
 
         /// <summary>
-        /// 공통 화상 부여. 별도 명시가 없으면 2턴이며, 부여자와 대상의 CON으로 명중을 판정한다.
-        /// 모든 출처가 같은 키를 사용하므로 재부여 시 피해가 중첩되지 않고 지속시간이 연장된다.
+        /// 공통 화상 부여. 별도 명시가 없으면 2턴이며, 특수공격력 대 특수방어력으로 명중을 판정한다
+        /// (같으면 50%). 모든 출처가 같은 키를 써서 재부여 시 지속시간이 연장된다.
         /// </summary>
         public static bool TryApplyBurn(Unit source, Unit target, int duration = DotDuration)
         {
             if (source == null || target == null || !target.isActive || duration <= 0) return false;
-            if (!EffectContest.PassesConCheck(source, target)) return false;
+            if (!Combat.DamageMitigation.RollEffectHit(source, target, 0.5f)) return false;
 
             ApplyBurnWithoutContest(source, target, duration);
             return true;
         }
 
-        /// <summary>
-        /// CON 대결 없이 화상을 확정으로 건다. 피해·기간·연장 규칙은 <see cref="TryApplyBurn"/>과 같다.
-        ///
-        /// 범용 화상 상향이 아니다. 처치 보상으로 약속된 화상(공허의 나비의 사망 전파)이
-        /// 운에 따라 사라지면 보상 자체가 성립하지 않아서 따로 둔다.
-        /// </summary>
+        /// <summary>명중 판정 없이 화상을 확정으로 건다. 피해·기간·연장 규칙은 <see cref="TryApplyBurn"/>과 같다.</summary>
         public static void ApplyBurnWithoutContest(Unit source, Unit target, int duration = DotDuration)
         {
             if (source == null || target == null || !target.isActive || duration <= 0) return;
 
-            target.AddStatus(BuffStatus.Create(
+            var burn = BuffStatus.Create(
                 BurnStatusId, BurnStatusKey, "화상",
                 source, target, new PercentDamageOverTimeEffect(0, BurnMaxHpPercent),
                 duration: duration,
                 stackPolicy: BaseEnums.StatusStackPolicy.ExtendDuration,
                 category: BaseEnums.StatusCategory.Negative,
-                isBeneficial: false,
-                description: $"{duration}턴간 턴마다 최대 체력의 {BurnMaxHpPercent:0.#}%에 해당하는 화상 피해를 받습니다."));
+                description: $"{duration}턴간 턴마다 최대 체력의 {BurnMaxHpPercent:0.#}%에 해당하는 화상 피해를 받습니다.");
+            burn.SkipEffectHitRoll = true;   // 명중은 TryApplyBurn이 이미 굴렸거나, 확정 부여다
+            target.AddStatus(burn);
         }
 
         /// <summary>
-        /// 유발자가 무뎌진 장비를 들었을 때 <b>해로운 반응</b>(증폭·즉발·지속피해·디버프·착근)의 위력 배율.
-        /// 여러 개면 가장 약한 값 하나만 쓴다. 버프 반응은 받는 쪽의 이득이라 건드리지 않는다.
+        /// 유발자가 지닌 약화 효과가 <b>해로운 반응</b>의 위력에 곱하는 배율. 여럿이면 가장 약한 값 하나.
         /// </summary>
         public static float HarmfulPotency(Unit source)
         {
@@ -675,49 +608,12 @@ namespace Effects.Negative
         {
             if (source == null) yield break;
             foreach (var status in source.ActiveStatuses)
+            foreach (var effect in status.Effects)
             {
-                foreach (var effect in status.Effects)
-                {
-                    if (effect.EffectObject is IReactionDampener dampener) yield return dampener;
-                }
+                if (effect.EffectObject is IReactionDampener dampener) yield return dampener;
             }
         }
-
-        /// <summary>진동 기절 계산에만 적용되는 시전자 CON 배율. 여러 효과가 있어도 가장 높은 값 하나만 쓴다.</summary>
-        private static float ResonanceConMultiplier(Unit source)
-        {
-            if (source == null) return 1f;
-
-            float multiplier = 1f;
-            foreach (var status in source.ActiveStatuses)
-            {
-                foreach (var effect in status.Effects)
-                {
-                    if (effect.EffectObject is IResonanceConMultiplier modifier)
-                        multiplier = Mathf.Max(multiplier, modifier.ResonanceConMultiplier);
-                }
-            }
-            return multiplier;
-        }
     }
-
-    /// <summary>
-    /// 지속피해·제어처럼 CON으로 명중과 저항을 겨루는 효과의 공통 판정.
-    /// 동률은 50%, CON 1 차이마다 1%p이며 극단값에서도 10~90%를 보장한다.
-    /// </summary>
-    public static class EffectContest
-    {
-        public static float ConHitChance(Unit source, Unit target)
-        {
-            float sourceCon = source != null ? source.GetBaseCon() : 0f;
-            float targetCon = target != null ? target.GetBaseCon() : 0f;
-            return Mathf.Clamp(0.5f + (sourceCon - targetCon) * 0.01f, 0.1f, 0.9f);
-        }
-
-        public static bool PassesConCheck(Unit source, Unit target)
-            => target != null && target.isActive && Random.value <= ConHitChance(source, target);
-    }
-
     /// <summary>원소 반응 피해를 키우는 코드가 구현한다. 가장 큰 보너스 하나만 적용된다.</summary>
     public interface IReactionAmplifier
     {
@@ -725,14 +621,8 @@ namespace Effects.Negative
         float ReactionDamageBonus { get; }
     }
 
-    /// <summary>진동 기절 턴 계산에서 시전자의 CON만 증폭하는 효과.</summary>
-    public interface IResonanceConMultiplier
-    {
-        float ResonanceConMultiplier { get; }
-    }
-
     /// <summary>
-    /// 유발자가 일으키는 해로운 원소 반응을 약하게 만드는 효과. 초반 적 전용 무뎌진 장비(432)가 쓴다.
+    /// 유발자가 일으키는 해로운 원소 반응을 약하게 만드는 공용 효과.
     /// 준비가 덜 된 극초반 파티가 빙결 연쇄로 무너지지 않게 하되, 반응이 무엇인지는 그대로 보여 준다.
     /// </summary>
     public interface IReactionDampener
@@ -763,7 +653,7 @@ namespace Effects.Negative
 
             Target.TakeDamage(new DamageContext(
                 Caster, _damagePerTurn, BaseEnums.CodeType.Effect,
-                new List<int> { DamageTag.SingleTarget, DamageTag.Special }));
+                new List<int> { DamageTag.SingleTarget, DamageTag.ElementalReaction }));
         }
 
         public override int EstimateDamagePerTurn() => _damagePerTurn;
@@ -812,27 +702,29 @@ namespace Effects.Negative
             if (Target == null || !Target.isActive) return;
             Target.TakeDamage(new DamageContext(
                 Caster, _damagePerAction, BaseEnums.CodeType.Effect,
-                new List<int> { DamageTag.SingleTarget, DamageTag.Special }));
+                new List<int> { DamageTag.SingleTarget, DamageTag.ElementalReaction }));
         }
 
         /// <summary>턴당 최소 1회는 행동하므로 한 번분으로 어림한다.</summary>
         public override int EstimateDamagePerTurn() => _damagePerAction;
     }
 
-    /// <summary>특정 분류(물리·특수)의 공격에게만 받는 피해가 늘어나는 취약.</summary>
-    public sealed class TaggedVulnerabilityEffect : BaseEffect
+    /// <summary>특정 방어 스탯이 경감하는 피해에게만 받는 피해가 늘어나는 취약. 활성 · 초전도가 쓴다.</summary>
+    public sealed class MitigationVulnerabilityEffect : BaseEffect
     {
-        private readonly int _tag;
+        private readonly BaseEnums.StatType _against;
         private readonly float _multiplier;
 
-        public TaggedVulnerabilityEffect(int tag, float multiplier) : base(0, multiplier)
+        public MitigationVulnerabilityEffect(BaseEnums.StatType against, float multiplier) : base(0, multiplier)
         {
-            _tag = tag;
+            _against = against;
             _multiplier = multiplier;
             Category = BaseEnums.EffectCategory.Negative;
         }
 
         public override float ReceivingDamageModifier(Unit unit, DamageContext context)
-            => unit == Target && context?.DamageTags?.Contains(_tag) == true ? _multiplier : 1f;
+            => unit == Target && Combat.DamageMitigation.TryGetDefenseStat(context, out BaseEnums.StatType stat) && stat == _against
+                ? _multiplier
+                : 1f;
     }
 }

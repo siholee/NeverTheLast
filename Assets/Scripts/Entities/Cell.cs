@@ -80,6 +80,9 @@ public class Cell : MonoBehaviour
 
     private SpriteRenderer _groundPad;
     private Color _groundPadBase;
+    private bool _groundPadRequestedVisible = true;
+    private bool _dropTargetHovered;
+    private bool _dropTargetValid;
 
     /// <summary>
     /// 덱 구성 모드. 켜져 있으면 아군이 놓일 수 있는 빈 칸과 벤치가 앰버로 숨쉰다.
@@ -89,9 +92,10 @@ public class Cell : MonoBehaviour
     public static bool PlacementModeActive;
     private UnitCardView _card;
     private float _featureScale = 1f;
+    private float _layoutScale = 1f;
 
-    /// <summary>카드 배율. 카메라가 가장 큰 카드 기준으로 여백을 잡을 때 읽는다.</summary>
-    public float FeatureScale => _featureScale;
+    /// <summary>실제로 화면에 그리는 카드 배율. 카메라가 가장 큰 카드 기준으로 여백을 잡을 때 읽는다.</summary>
+    public float FeatureScale => _featureScale * _layoutScale;
 
     /// <summary>이 칸의 렌더링 순서 기준값. 칸 위에 얹는 카드가 이 값에서 출발한다.</summary>
     public int DepthOrder { get; private set; }
@@ -130,11 +134,32 @@ public class Cell : MonoBehaviour
         if (Mathf.Approximately(_featureScale, next)) return;
 
         _featureScale = next;
-        EnsureCard();
-        _card.Resize(CardSize * _featureScale);
+        ApplyCardScale();
 
         // 초상화는 카드와 별개의 렌더러라 같은 배율을 직접 다시 먹여야 한다.
         if (portraitRenderer != null) SetPortrait(portraitRenderer.sprite);
+    }
+
+    /// <summary>
+    /// 현재 전투 인원수에 따른 화면 배율을 적용한다. 보스 강조 배율과 분리해 두어
+    /// 편성이 바뀌어도 <see cref="FeatureCardScale"/>의 의미가 사라지지 않는다.
+    /// </summary>
+    public void SetLayoutScale(float scale)
+    {
+        float next = Mathf.Clamp(scale, 0.82f, 1.34f);
+        if (Mathf.Approximately(_layoutScale, next)) return;
+
+        _layoutScale = next;
+        ApplyCardScale();
+
+        // 초상화는 카드와 별개의 렌더러라 같은 배율을 직접 다시 먹여야 한다.
+        if (portraitRenderer != null) SetPortrait(portraitRenderer.sprite);
+    }
+
+    private void ApplyCardScale()
+    {
+        EnsureCard();
+        _card.Resize(CardSize * FeatureScale);
     }
 
     private void EnsureCard()
@@ -198,49 +223,37 @@ public class Cell : MonoBehaviour
         DepthLayerId = layer;
 
         if (_groundPad != null) _groundPad.sortingOrder = order;
-        // 카드 프레임은 order, 초상화는 그 위(order + 1), HUD는 다시 그 위(order + 5).
+        // 카드가 초상화까지 품고 한 줄(10칸) 안에서 순서를 나눈다.
         _card?.ApplyDepth(order, layer);
-        if (portraitRenderer != null)
-        {
-            portraitRenderer.sortingLayerID = layer;
-            portraitRenderer.sortingOrder = order + 1;
-        }
     }
 
     /// <summary>
-    /// 칸에 초상화를 세운다.
-    ///
-    /// 원본 해상도가 제각각이라(아군 1254px, 적 512px, 일부 1024px) 렌더러 스케일을 고정하면
-    /// 아군은 칸을 넘치고 적은 칸의 절반만 채운다. <b>세로 높이</b>를
-    /// <see cref="StandingHeight"/>에 맞춰 균일 배율로 키우면 해상도와 무관하게 같은 키가 되고,
-    /// 발밑이 바닥 타일에 닿도록 위로 올려 세운다.
-    ///
-    /// 임시 조치다 — 전신 스탠딩 스프라이트가 준비되면 초상화 대신 그것을 쓴다.
+    /// 칸에 초상화를 세운다. 배치는 카드가 한다 — 초상화는 카드 창 안에 꽉 차게(cover) 들어가고
+    /// 마스크로 창 밖이 잘린다(<see cref="UnitCardView.LayOutPortrait"/>).
     /// </summary>
     public void SetPortrait(Sprite sprite)
     {
         if (portraitRenderer == null) return;
-
         portraitRenderer.sprite = sprite;
-
-        if (sprite == null)
-        {
-            portraitRenderer.transform.localScale = Vector3.one;
-            portraitRenderer.transform.localPosition = Vector3.zero;
-            return;
-        }
-
-        float scale = PortraitScaleFor(sprite) * _featureScale;
-        portraitRenderer.transform.localScale = new Vector3(scale, scale, 1f);
-
-        // 칸 한가운데에 세운다. 예전처럼 발밑을 타일 중심에 맞추면 캐릭터가 칸 위로 솟아
-        // 윗줄과 겹쳤다. 칸 안에 들어가는 크기이므로 중앙 정렬이 가장 깔끔하다.
-        portraitRenderer.transform.localPosition = Vector3.zero;
-
-        // 배율이 다시 잡혔으니 카드가 흔들 때 쓸 기준값도 갱신한다.
-        _card?.RefreshPortraitBase();
+        EnsureCard();
+        _card.LayOutPortrait();
     }
 
+    /// <summary>카드 몸체의 월드 중심. 돌진 중이면 날아가 있는 자리다.</summary>
+    public Vector3 CardCenter => _card != null ? _card.CenterWorld : transform.position;
+
+    /// <summary>이 칸의 카드. 연출이 카드를 직접 움직일 때 쓴다.</summary>
+    public UnitCardView Card
+    {
+        get
+        {
+            EnsureCard();
+            return _card;
+        }
+    }
+
+    /// <summary>위에서 떨어져 내려앉는 등장 연출을 건다.</summary>
+    public void PlayEntry(float delay = 0f) => Card.PlayEntry(delay);
     /// <summary>
     /// 해당 스프라이트를 칸 안에 넣는 배율.
     /// 세로뿐 아니라 가로도 함께 제한해야 넓은 그림이 옆 칸을 침범하지 않는다.
@@ -271,7 +284,6 @@ public class Cell : MonoBehaviour
     ///
     /// 카드 위 아이콘은 같은 모양끼리 한 칸에 모이고 칸 수도 제한되어 있어, 아이콘만으로는
     /// 무엇이 걸렸는지 다 알 수 없다는 QA가 있었다. 이름 · 중첩 · 남은 턴과 설명을 여기서 보여 준다.
-    /// 라부아지에는 실험대 정보가 여기에 함께 붙는다.
     /// </summary>
     public void ShowHoverTooltip()
     {
@@ -286,13 +298,10 @@ public class Cell : MonoBehaviour
         Color muted = Managers.UI.Theme.UITheme.TextMuted;
 
         // 체력은 카드의 바가 이미 보여 주므로 적지 않는다. 대신 "누구인가"를 먼저 소개한다 —
-        // 원소 / 숙련 · 주스탯 · 부스탯 / 한 줄 소개. 그 아래로 걸린 상태가 이어진다.
+        // 원소 · 핵심 스탯 · 한 줄 소개. 그 아래로 걸린 상태가 이어진다.
         Color primary = Managers.UI.Theme.UITheme.TextPrimary;
         lines.Add(new Managers.UI.Core.UITooltip.Line("원소",
             Managers.UI.Core.UnitInfoText.ElementName(hovered.Element), primary));
-        if (!hovered.IsEnemy)
-            lines.Add(new Managers.UI.Core.UITooltip.Line("숙련",
-                Managers.UI.Core.UnitInfoText.Proficiencies(hovered), primary));
         string stats = Managers.UI.Core.UnitInfoText.Stats(hovered);
         if (stats.Length > 0) lines.Add(new Managers.UI.Core.UITooltip.Line("스탯", stats, primary));
         string tagline = Managers.UI.Core.UnitInfoText.Tagline(hovered);
@@ -316,15 +325,6 @@ public class Cell : MonoBehaviour
                 Managers.UI.Theme.StatusIcons.Tint(status)));
             if (!string.IsNullOrWhiteSpace(status.StatusDescription))
                 lines.Add(Managers.UI.Core.UITooltip.Line.Note("   " + status.StatusDescription.Trim(), muted));
-        }
-
-        var chemistry = hovered.Chemistry;
-        if (chemistry != null && chemistry.Active)
-        {
-            lines.Add(Managers.UI.Core.UITooltip.Line.Note(chemistry.Summary, Color.white));
-            lines.Add(Managers.UI.Core.UITooltip.Line.Note(chemistry.WaitingReason, Managers.UI.Theme.UITheme.Accent));
-            lines.Add(Managers.UI.Core.UITooltip.Line.Note($"현재 배합량 {chemistry.Reagents.Batch:0.##}\n예상 기본 피해 {chemistry.PreviewDamage:0}\n치명타·방어·피해 보정 전, 적 1명 기준", Color.white));
-            lines.Add(Managers.UI.Core.UITooltip.Line.Note("치유 → 연료 / 보호막 → 안정제 / 버프 → 촉매\n일반행동 2회마다 가장 적은 시약을 합성", Managers.UI.Theme.UITheme.TextSecondary));
         }
 
         Managers.UI.Core.UITooltip.Show(this, $"{hovered.UnitName}  Lv.{hovered.Level}", lines,
@@ -386,14 +386,31 @@ public class Cell : MonoBehaviour
     /// </summary>
     private void UpdatePlacementGlow()
     {
-        if (_groundPad == null || !_groundPad.enabled) return;
+        if (_groundPad == null) return;
 
         bool dragging = DragAndDropManager.Instance != null && DragAndDropManager.Instance.IsDragging();
         bool allySlot = xPos < 0 || (GridManager.Instance != null && GridManager.Instance.IsBenchCell(this));
+        // 점유 칸끼리 교환할 때도 목적지가 보여야 한다. 평소에는 숨겨 둔 바닥 각인을
+        // 드래그 중에만 원화 뒤로 다시 켜서 카드 자체에 색 테두리를 두르지 않는다.
+        _groundPad.enabled = _groundPadRequestedVisible || (dragging && allySlot) || _dropTargetHovered;
+        if (!_groundPad.enabled) return;
+
+        if (_dropTargetHovered)
+        {
+            Color target = _dropTargetValid
+                ? Managers.UI.Theme.UITheme.Accent
+                : Managers.UI.Theme.UITheme.Danger;
+            target.a = _dropTargetValid ? 0.68f : 0.56f;
+            _groundPad.color = target;
+            return;
+        }
+
         if ((PlacementModeActive || dragging) && allySlot)
         {
             float pulse = 0.35f + 0.25f * Mathf.Sin(Time.unscaledTime * 4f);
-            _groundPad.color = Color.Lerp(_groundPadBase, Managers.UI.Theme.UITheme.Accent, pulse);
+            Color glow = Color.Lerp(_groundPadBase, Managers.UI.Theme.UITheme.Accent, pulse);
+            glow.a = Mathf.Lerp(0.28f, 0.48f, pulse);
+            _groundPad.color = glow;
         }
         else if (_groundPad.color != _groundPadBase)
         {
@@ -404,7 +421,19 @@ public class Cell : MonoBehaviour
     public void SetGroundPadVisible(bool visible)
     {
         BuildGroundPad();
+        _groundPadRequestedVisible = visible;
         if (_groundPad != null) _groundPad.enabled = visible;
+    }
+
+    /// <summary>
+    /// 드래그 포인터가 이 칸을 가리키는 동안 드롭 성공/실패를 바닥 각인으로 알린다.
+    /// 원화나 카드 HUD의 색은 건드리지 않아 전투 정보의 진영색과 섞이지 않는다.
+    /// </summary>
+    public void SetDropTargetFeedback(bool hovered, bool valid)
+    {
+        _dropTargetHovered = hovered;
+        _dropTargetValid = valid;
+        UpdatePlacementGlow();
     }
 
     /// <summary>체력 · 방어막 · 행동 게이지 · 궁극기 링 · 상태 점을 한 번에 갱신한다.</summary>

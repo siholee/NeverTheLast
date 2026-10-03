@@ -14,7 +14,7 @@ namespace Managers.UI.Screens
     ///
     /// 레이아웃은 블루 아카이브식이다 — 스탠딩이 좌우에 서고, 화면 아래를 가로지르는
     /// 넓은 대사 상자가 깔리며, 이름표가 그 상자 위 왼쪽에 걸친다.
-    /// 색과 톤은 나머지 화면과 같은 밝은 웹 앱 계열이다(백색 카드 + 헤어라인 + 딥 틸 하나).
+    /// 색과 톤은 나머지 화면과 같은 하늘 성채 계열이다(진주색 라이트 글라스 + 은청색 헤어라인 + 하늘색 하나).
     ///
     /// 말하지 않는 쪽은 어둡게 눌러 뒤로 물린다. 이름표를 읽지 않아도
     /// <b>누가 말하는지가 밝기로 먼저 읽히는</b> 것이 이 배치의 핵심이다.
@@ -628,7 +628,7 @@ namespace Managers.UI.Screens
             if (choice.grantItemId > 0)
             {
                 ItemData item = GameManager.Instance?.itemDataList?.items?.Find(entry => entry != null && entry.id == choice.grantItemId);
-                return item != null ? $"장비 {item.name}" : "장비 획득";
+                return item != null ? $"아이템 {item.name}" : "아이템 획득";
             }
             if (choice.grantPassiveCodeId > 0) return choice.grantPassiveToAll ? "전원 패시브" : "패시브";
             return null;

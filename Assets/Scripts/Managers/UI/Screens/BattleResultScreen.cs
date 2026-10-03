@@ -97,6 +97,7 @@ namespace Managers.UI.Screens
         protected override string Caption => "OPERATION REPORT";
         protected override Vector2 AnchorMin => new(0.22f, 0.12f);
         protected override Vector2 AnchorMax => new(0.78f, 0.88f);
+        protected override bool AlignToScreenFrame => true;
 
         private const int MaxMembers = 6;
         private const float DamageRowHeight = 34f;
@@ -463,7 +464,7 @@ namespace Managers.UI.Screens
             UIBuild.Anchor(_bannerCaption.rectTransform, new Vector2(0f, 0.66f), new Vector2(1f, 0.90f));
 
             _bannerTitle = UIBuild.Text("Title", _bannerBand.transform, "", UITheme.FontDisplay * 1.7f,
-                UITheme.TextPrimary, TextAlignmentOptions.Center);
+                UITheme.TextOnDark, TextAlignmentOptions.Center);
             _bannerTitle.fontStyle = FontStyles.Bold;
             _bannerTitle.characterSpacing = 16f;
             UIBuild.Anchor(_bannerTitle.rectTransform, new Vector2(0f, 0.10f), new Vector2(1f, 0.70f));
@@ -478,7 +479,7 @@ namespace Managers.UI.Screens
             _bannerCaption.text = result.GameOver ? "RUN TERMINATED" : result.Victory ? "VICTORY" : "DEFEAT";
             _bannerCaption.color = color;
             _bannerTitle.text = result.GameOver ? "런 종료" : result.Victory ? "전투 승리" : "전투 패배";
-            _bannerTitle.color = result.Victory ? UITheme.TextPrimary : color;
+            _bannerTitle.color = result.Victory ? UITheme.TextOnDark : color;
 
             _bannerGroup.alpha = 0f;
             _bannerRoot.SetActive(true);

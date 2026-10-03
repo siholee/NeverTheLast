@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using BaseClasses;
 using Entities;
 
 namespace Managers.UI.Core
 {
     /// <summary>
-    /// 유닛 소개에 쓰는 짧은 한글 표기(원소 · 숙련 · 주/부 스탯 · 한 줄 소개).
+    /// 유닛 소개에 쓰는 짧은 한글 표기(원소 · 전투 성향 · 주/부 스탯 · 한 줄 소개).
     /// 전장 카드 툴팁이 캐릭터 선택창과 같은 말로 유닛을 소개하게 한 곳에 모았다.
     /// </summary>
     public static class UnitInfoText
@@ -25,28 +23,12 @@ namespace Managers.UI.Core
             _ => string.IsNullOrWhiteSpace(element) || element == "None" ? "무속성" : element,
         };
 
-        /// <summary>숙련 목록. 없으면 "없음"(잔처럼 맨손 캐릭터).</summary>
-        public static string Proficiencies(Unit unit)
-        {
-            IReadOnlyList<string> keys = unit?.StartingProficiencies;
-            if (keys == null || keys.Count == 0) return "없음";
-            return string.Join(" · ", keys.Where(key => !string.IsNullOrWhiteSpace(key)).Select(key =>
-                Enum.TryParse(key, true, out EquipmentProficiency proficiency)
-                    ? ItemTooltip.ProficiencyName(proficiency)
-                    : key));
-        }
-
-        /// <summary>"주 DEX · 부 LUK" 꼴. 부스탯이 없으면 주스탯만 적는다.</summary>
+        /// <summary>"공격 120 · 방어 90 · 속도 110" 꼴의 한 줄. 카드 툴팁이 쓴다.</summary>
         public static string Stats(Unit unit)
         {
-            if (unit == null || string.IsNullOrWhiteSpace(unit.MainStat)) return "";
-            List<string> subs = unit.SubStats?.Where(stat => !string.IsNullOrWhiteSpace(stat)).ToList()
-                                ?? new List<string>();
-            return subs.Count == 0
-                ? $"주 {unit.MainStat}"
-                : $"주 {unit.MainStat} · 부 {string.Join(" · ", subs)}";
+            if (unit == null) return "";
+            return $"공격 {unit.AtkCurr} · 방어 {unit.DefCurr} · 특방 {unit.SpDefCurr} · 속도 {unit.SpeedCurr:0}";
         }
-
         /// <summary>캐릭터 선택창의 한 줄 소개. 적과 소환수는 없다.</summary>
         public static string Tagline(Unit unit)
         {
@@ -56,7 +38,7 @@ namespace Managers.UI.Core
         }
 
         /// <summary>아군의 전투 성향 UI 태그. 종족·진영 판정용 tags와는 별개다.</summary>
-        public static IReadOnlyList<UnitTagCatalog.Definition> ArchetypeTags(Unit unit)
+        public static System.Collections.Generic.IReadOnlyList<UnitTagCatalog.Definition> ArchetypeTags(Unit unit)
         {
             if (unit == null || unit.IsEnemy) return Array.Empty<UnitTagCatalog.Definition>();
             UnitData data = GameManager.Instance?.unitDataList?.units?

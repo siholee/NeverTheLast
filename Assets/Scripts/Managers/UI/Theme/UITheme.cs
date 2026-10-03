@@ -1,45 +1,49 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Managers.UI.Theme
 {
     /// <summary>
-    /// UI 전역 테마. Radiant의 넓은 여백과 Spotlight의 절제된 카드 언어를 게임 화면에 맞춘
-    /// <b>Porcelain Aurora</b> 계열이다.
-    /// 특징: 따뜻한 백색 페이지 + 순백 카드 + 짙은 잉크색 텍스트 + 단일 인터랙션 컬러(딥 틸).
-    /// 금색은 장비 등급과 보상처럼 게임 세계의 가치 표현에만 남기고, 눌러야 하는 것은 틸로 통일한다.
-    ///
-    /// 시판 UI 에셋(Modern UI Pack / Heat 등)을 도입하게 되면
-    /// 이 파일과 <see cref="UIShapes"/>만 교체하면 전체 톤이 따라온다.
+    /// UI 전역의 밝은 하늘 성채 팔레트다. 진주색 면과 라이트 글라스를 기본으로 두고,
+    /// 은청색 선과 하늘색 상호작용만 남겨 전투 원소색과 경쟁하지 않는다.
     /// </summary>
     public static class UITheme
     {
         // ── 배경 계열 ────────────────────────────────────────────────
-        /// <summary>전체 화면을 덮는 암전. 밝은 모달과 뒤 화면을 확실히 분리한다.</summary>
-        public static readonly Color Backdrop = new(0.035f, 0.051f, 0.063f, 0.48f);
-        /// <summary>페이지 위의 기본 패널. 순백보다 아주 조금 차가운 백색이다.</summary>
-        public static readonly Color Surface = new(0.973f, 0.980f, 0.984f, 0.99f);
-        /// <summary>패널 위에 한 단계 올라간 요소(카드, 슬롯).</summary>
-        public static readonly Color SurfaceRaised = new(1f, 1f, 1f, 1f);
-        /// <summary>눌린/비활성 요소와 입력 영역. 옅은 회청색으로 깊이를 만든다.</summary>
-        public static readonly Color SurfaceSunken = new(0.925f, 0.941f, 0.949f, 1f);
-        /// <summary>HUD 바 배경. 전투 화면 위에서도 정보가 읽히도록 거의 불투명하게 둔다.</summary>
-        public static readonly Color HudBar = new(0.985f, 0.990f, 0.992f, 0.95f);
+        /// <summary>밝은 화면 위 모달의 뒤 클릭을 막는 청회색 베일.</summary>
+        public static readonly Color Backdrop = new(0.145f, 0.204f, 0.263f, 0.50f); // #253443
+        public static readonly Color Surface = new(0.973f, 0.988f, 1f, 0.97f);      // #F8FCFF
+        public static readonly Color SurfaceRaised = new(1f, 1f, 1f, 0.98f);
+        public static readonly Color SurfaceSunken = new(0.918f, 0.949f, 0.969f, 0.98f); // #EAF2F7
+        public static readonly Color HudBar = new(0.973f, 0.988f, 1f, 0.88f);
+
+        /// <summary>원화와 VFX 위에 직접 뜨는 패널만 쓰는 중명도 스모크.</summary>
+        public static readonly Color PanelCharacter = new(0.149f, 0.220f, 0.290f, 0.62f); // #26384A
 
         /// <summary>백색 카드 안의 아주 옅은 구획 면.</summary>
-        public static readonly Color FaintFill = new(0.055f, 0.078f, 0.098f, 0.035f);
+        public static readonly Color FaintFill = new(0.475f, 0.796f, 0.910f, 0.055f);
         /// <summary>선택 전 슬롯·빗금처럼 한 단계 더 보이는 보조 면.</summary>
-        public static readonly Color SubtleFill = new(0.055f, 0.078f, 0.098f, 0.070f);
+        public static readonly Color SubtleFill = new(0.475f, 0.796f, 0.910f, 0.10f);
         /// <summary>스크롤바·게이지의 비어 있는 트랙.</summary>
-        public static readonly Color Track = new(0.055f, 0.078f, 0.098f, 0.110f);
+        public static readonly Color Track = new(0.396f, 0.498f, 0.569f, 0.18f);
 
         // ── 포인트 컬러 ──────────────────────────────────────────────
-        /// <summary>주 포인트 컬러(딥 틸). 클릭·선택·진행 상태에만 쓴다.</summary>
-        public static readonly Color Accent = new(0.047f, 0.451f, 0.404f, 1f);    // #0C7367
-        public static readonly Color AccentDim = new(0.035f, 0.282f, 0.259f, 1f);
-        public static readonly Color AccentFaint = new(0.047f, 0.451f, 0.404f, 0.10f);
+        /// <summary>맑은 하늘색. 선택·호버·진행 상태의 얇은 선과 작은 면에만 쓴다.</summary>
+        public static readonly Color Accent = new(0.247f, 0.663f, 0.902f, 1f);       // #3FA9E6
+        /// <summary>흰 글자와 4.5:1에 가까운 대비를 확보하는 주 행동 면.</summary>
+        public static readonly Color AccentDim = new(0.055f, 0.443f, 0.616f, 1f);    // #0E719D
+        public static readonly Color AccentFaint = new(0.247f, 0.663f, 0.902f, 0.15f);
+        public static readonly Color AccentCyan = new(0.192f, 0.816f, 0.776f, 1f);    // #31D0C6
+        public static readonly Color Highlight = new(0.086f, 0.561f, 0.769f, 1f);     // #168FC4
+
+        // 호환 이름은 유지하되 의미는 안 2의 백색 판/진주 필드/하늘 인레이로 바뀐다.
+        public static readonly Color BoardInk = new(0.969f, 0.980f, 0.988f, 1f);     // #F7FAFC
+        public static readonly Color BoardFelt = new(0.918f, 0.949f, 0.969f, 1f);    // #EAF2F7
+        public static readonly Color BoardSlate = new(0.847f, 0.929f, 0.969f, 1f);   // #D8EDF7
+        public static readonly Color MetalBrass = new(0.780f, 0.698f, 0.490f, 1f);   // #C7B27D
+        public static readonly Color MetalSilver = new(0.612f, 0.698f, 0.765f, 1f);  // #9CB2C3
 
         // ── 상태 컬러 ────────────────────────────────────────────────
-        public static readonly Color Hp = new(0.086f, 0.604f, 0.353f, 1f);        // 아군 체력(초록)
+        public static readonly Color Hp = new(0.157f, 0.780f, 0.682f, 1f);        // #28C7AE
         public static readonly Color HpLow = new(0.800f, 0.220f, 0.270f, 1f);     // 위험 체력
         /// <summary>
         /// 마나 · 궁극기 자원. <b>파랑은 자원 전용이다.</b>
@@ -49,14 +53,13 @@ namespace Managers.UI.Theme
         public static readonly Color Mana = new(0.129f, 0.431f, 0.741f, 1f);
 
         /// <summary>
-        /// 방어막. 체력 바 <b>오른쪽에 이어 붙는</b> 밝은 하늘색(블루 아카이브식).
-        /// 예전의 회백색은 어두운 체력 트랙 위에서 빈칸과 구분되지 않았다. 자원 파랑(Mana)보다
-        /// 훨씬 밝고 채도가 높아 궁극기 링과 섞여 읽히지 않는다.
+        /// 방어막. 체력 바 윗면에 겹치는 좁은 샴페인 금색 선이다.
+        /// 밝은 판에서도 청록 HP와 하늘색 상호작용선에 섞이지 않도록 색 역할을 분리한다.
         /// </summary>
-        public static readonly Color Shield = new(0.200f, 0.690f, 1.000f, 1f);
+        public static readonly Color Shield = new(0.894f, 0.745f, 0.365f, 1f);    // #E4BE5D
 
-        public static readonly Color ActionYellow = new(0.835f, 0.580f, 0.000f, 1f);
-        public static readonly Color Enemy = new(0.760f, 0.180f, 0.245f, 1f);
+        public static readonly Color ActionYellow = new(0.612f, 0.698f, 0.765f, 1f);
+        public static readonly Color Enemy = new(0.878f, 0.353f, 0.408f, 1f);     // #E05A68
         public static readonly Color Danger = new(0.800f, 0.220f, 0.270f, 1f);
         public static readonly Color Positive = new(0.063f, 0.525f, 0.302f, 1f);
 
@@ -68,22 +71,24 @@ namespace Managers.UI.Theme
         public static readonly Color Control = new(0.471f, 0.286f, 0.718f, 1f);
 
         // ── 텍스트 ───────────────────────────────────────────────────
-        // 프로젝트가 Linear 색공간을 쓰므로 웹의 sRGB 색상보다 수치를 낮게 둬야 같은 명도로 보인다.
-        public static readonly Color TextPrimary = new(0.012f, 0.018f, 0.026f, 1f);
-        public static readonly Color TextSecondary = new(0.018f, 0.028f, 0.040f, 1f);
+        public static readonly Color TextOnDark = new(0.973f, 0.988f, 1f, 1f);       // #F8FCFF
+        public static readonly Color TextOnDarkSecondary = new(0.847f, 0.910f, 0.949f, 1f);
+        public static readonly Color TextOnLight = new(0.145f, 0.204f, 0.263f, 1f);  // #253443
+        public static readonly Color TextPrimary = TextOnLight;
+        public static readonly Color TextSecondary = new(0.325f, 0.431f, 0.502f, 1f); // #536E80
         /// <summary>
         /// 보조 텍스트. 카드의 부연 설명 · 캡션 · 잠김 사유가 전부 이 색을 쓴다.
         ///
         /// 밝은 카드에서 본문과 경쟁하지 않되 작은 캡션과 잠김 사유가 흐려지지 않는 중간 청회색이다.
         /// </summary>
-        public static readonly Color TextMuted = new(0.040f, 0.055f, 0.075f, 1f);
+        public static readonly Color TextMuted = new(0.322f, 0.424f, 0.490f, 1f);
 
         /// <summary>
         /// 꺼진 버튼의 글자. 보조 텍스트(TextMuted)보다 옅게 잡아 "회색이지만 눌리는 것"과
         /// "눌리지 않는 것"이 갈리게 한다.
         /// </summary>
-        public static readonly Color TextDisabled = new(0.220f, 0.250f, 0.280f, 1f);
-        public static readonly Color TextOnAccent = new(1f, 1f, 1f, 1f);
+        public static readonly Color TextDisabled = new(0.145f, 0.204f, 0.263f, 0.62f);
+        public static readonly Color TextOnAccent = TextOnDark;
 
         // ── 코드 등급 ────────────────────────────────────────────────
         /// <summary>일반 등급 코드 — 은색.</summary>
@@ -96,8 +101,8 @@ namespace Managers.UI.Theme
         public static readonly Color CodeUnique = new(0.475f, 0.310f, 0.745f, 1f);
 
         // ── 선/구분 ──────────────────────────────────────────────────
-        public static readonly Color Divider = new(0.055f, 0.078f, 0.098f, 0.09f);
-        public static readonly Color Outline = new(0.055f, 0.078f, 0.098f, 0.15f);
+        public static readonly Color Divider = new(0.612f, 0.698f, 0.765f, 0.44f);
+        public static readonly Color Outline = new(0.612f, 0.698f, 0.765f, 0.82f);
 
         // ── 등급 컬러(아이템/유닛 레어도) ────────────────────────────
         public static readonly Color[] RarityColors =
@@ -110,24 +115,25 @@ namespace Managers.UI.Theme
             new(0.900f, 0.390f, 0.090f, 1f), // 6성 주황
         };
 
-        // ── 5스탯 색축 ───────────────────────────────────────────────
-        // 스탯을 가리키는 별도 축이다. 자원 파랑(Mana) · 액센트 민트 · 적색과 겹치지 않도록
-        // 골랐다. 훈련 화면과 코덱스에서만 쓴다 — 전투 HUD는 이 색을 쓰지 않는다.
+        // ── 스탯 색축(레거시 이름) ───────────────────────────────────
+        // 기존 UI 상수를 보존한 팔레트다. 자원 파랑(Mana) · 액센트 민트 · 적색과 겹치지 않게 쓴다.
         public static readonly Color StatStr = new(0.878f, 0.478f, 0.290f, 1f);   // #E07A4A 주황
         public static readonly Color StatDex = new(0.310f, 0.749f, 0.659f, 1f);   // #4FBFA8 청록
         public static readonly Color StatCon = new(0.427f, 0.831f, 0.404f, 1f);   // #6DD467 연두
         public static readonly Color StatInt = new(0.663f, 0.533f, 0.878f, 1f);   // #A988E0 보라
         public static readonly Color StatLuk = new(0.898f, 0.627f, 0.784f, 1f);   // #E5A0C8 분홍
 
-        public static Color Stat(BaseClasses.BaseEnums.PrimaryStat stat) => stat switch
+        /// <summary>스탯 줄의 색. 공격 계열 주황 · 방어 계열 청록 · 체력 연두 · 속도 노랑 · 치명 분홍.</summary>
+        public static Color Stat(BaseClasses.BaseEnums.StatType stat) => stat switch
         {
-            BaseClasses.BaseEnums.PrimaryStat.STR => StatStr,
-            BaseClasses.BaseEnums.PrimaryStat.DEX => StatDex,
-            BaseClasses.BaseEnums.PrimaryStat.CON => StatCon,
-            BaseClasses.BaseEnums.PrimaryStat.INT => StatInt,
+            BaseClasses.BaseEnums.StatType.MaxHp => StatCon,
+            BaseClasses.BaseEnums.StatType.Attack => StatStr,
+            BaseClasses.BaseEnums.StatType.SpecialAttack => StatInt,
+            BaseClasses.BaseEnums.StatType.Defense => StatDex,
+            BaseClasses.BaseEnums.StatType.SpecialDefense => new Color(0.36f, 0.62f, 0.86f, 1f),
+            BaseClasses.BaseEnums.StatType.Speed => ActionYellow,
             _ => StatLuk,
         };
-
         public static Color Rarity(int star)
         {
             if (star <= 0) return RarityColors[0];
@@ -174,6 +180,42 @@ namespace Managers.UI.Theme
         public const float CornerCut = 10f;   // 호환 이름은 유지하지만 실제 도형에서는 둥근 모서리 반지름으로 쓴다.
         public const float Gutter = 12f;      // 요소 간 기본 간격
         public const float PanelPad = 20f;    // 패널 내부 여백
+
+        /// <summary>
+        /// 모든 화면 고정 크롬이 공유하는 안전 여백. 정규화 앵커가 아니라 기준 해상도 픽셀을 쓰므로
+        /// 4:3부터 21:9까지 상단 바 · 좌우 레일 · 하단 독의 끝선이 같은 수직선에 남는다.
+        /// </summary>
+        public const float ScreenEdgeInset = 24f;
+        public const float ScreenTopInset = 10f;
+        public const float TopBarHeight = 116f;
+        public const float ChromeGap = 20f;
+        public const float BelowTopBar = ScreenTopInset + TopBarHeight + ChromeGap;
+
+        private static float _backdropLuminance = 0.62f;
+
+        /// <summary>현재 전장 배경의 선형 상대 휘도 평균. 배경 교체 때 한 번 측정한다.</summary>
+        public static float BackdropLuminance => _backdropLuminance;
+
+        /// <summary>밝은 배경에서 흰 글라스가 배경 무늬를 더 확실히 가리도록 불투명도를 올린다.</summary>
+        public static float AdaptiveHudAlpha => Mathf.Lerp(0.88f, 0.97f, BackdropBrightnessWeight);
+
+        /// <summary>밝은 배경에서 카드·보스 띠의 스모크를 보강하는 추가 알파.</summary>
+        public static float AdaptiveSmokeAlphaBonus => Mathf.Lerp(0.01f, 0.13f, BackdropBrightnessWeight);
+
+        /// <summary>밝은 바닥일수록 흰 원화 아래 접지 각인을 진하게 잡는다.</summary>
+        public static float AdaptiveGroundingMultiplier => Mathf.Lerp(0.82f, 1.45f, BackdropBrightnessWeight);
+
+        /// <summary>밝은 원화·피해 숫자를 받치는 월드 글자 그림자의 강도.</summary>
+        public static float AdaptiveWorldTextShadow => Mathf.Lerp(0.16f, 0.52f, BackdropBrightnessWeight);
+
+        private static float BackdropBrightnessWeight => Mathf.SmoothStep(0f, 1f,
+            Mathf.InverseLerp(0.28f, 0.78f, _backdropLuminance));
+
+        /// <summary>배경 샘플러만 갱신한다. UI 제작 코드가 임의의 휘도를 주입하지 않게 내부로 제한한다.</summary>
+        internal static void SetBackdropLuminance(float value)
+        {
+            _backdropLuminance = Mathf.Clamp01(value);
+        }
 
         public static readonly Vector2 ReferenceResolution = new(1920f, 1080f);
 

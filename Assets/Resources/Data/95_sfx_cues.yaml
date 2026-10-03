@@ -1,0 +1,120 @@
+# 논리 SFX 큐. clips는 Resources/Audio/Sfx/ 기준이며 확장자를 쓰지 않는다.
+# HSR 키트 클립은 개발용 임시 자산이다. UI 피드백은 Kenney Interface Sounds(CC0)를 쓴다.
+
+poolSize: 18
+speedMergeFloor: 0.04
+speedMergeAt8x: 0.12
+
+cues:
+  # ── 공용 전투: 다음 무료 팩 매핑을 위한 빈 큐 ──
+  - { name: common.hit.contact, clips: [], volumeMin: 0.72, volumeMax: 0.82, pitchMin: 0.96, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 3, minInterval: 0.05, speedMerge: true }
+  - { name: common.death, clips: [], volumeMin: 0.70, volumeMax: 0.78, pitchMin: 0.98, pitchMax: 1.02, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: common.entry, clips: [], volumeMin: 0.52, volumeMax: 0.60, pitchMin: 0.97, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 3, minInterval: 0.08, speedMerge: true }
+  - { name: common.shield, clips: [], volumeMin: 0.48, volumeMax: 0.56, pitchMin: 0.98, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: common.status.positive, clips: [], volumeMin: 0.40, volumeMax: 0.48, pitchMin: 0.99, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: common.status.negative, clips: [], volumeMin: 0.42, volumeMax: 0.50, pitchMin: 0.94, pitchMax: 1.00, mixerGroup: SFX, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: common.ultimate.ready, clips: [], volumeMin: 0.52, volumeMax: 0.58, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: SFX, maxVoices: 2, minInterval: 0.15, speedMerge: true }
+  - { name: common.crit, clips: [], volumeMin: 0.52, volumeMax: 0.60, pitchMin: 0.98, pitchMax: 1.02, mixerGroup: SFX, maxVoices: 2, minInterval: 0.06, speedMerge: true }
+  # ── UI: Kenney Interface Sounds (CC0) ──
+  - { name: ui.click, clips: [Kenney/Interface/click_001, Kenney/Interface/click_002, Kenney/Interface/click_003], volumeMin: 0.42, volumeMax: 0.47, pitchMin: 0.98, pitchMax: 1.03, mixerGroup: UI, maxVoices: 2, minInterval: 0.035, speedMerge: false }
+  - { name: ui.confirm, clips: [Kenney/Interface/confirmation_001, Kenney/Interface/confirmation_002], volumeMin: 0.52, volumeMax: 0.58, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: UI, maxVoices: 2, minInterval: 0.05, speedMerge: false }
+  - { name: ui.cancel, clips: [Kenney/Interface/back_001, Kenney/Interface/back_002], volumeMin: 0.46, volumeMax: 0.52, pitchMin: 0.98, pitchMax: 1.00, mixerGroup: UI, maxVoices: 2, minInterval: 0.05, speedMerge: false }
+  - { name: ui.reward.select, clips: [Kenney/Interface/select_001, Kenney/Interface/select_002], volumeMin: 0.58, volumeMax: 0.64, pitchMin: 0.99, pitchMax: 1.02, mixerGroup: UI, maxVoices: 1, minInterval: 0.10, speedMerge: false }
+  - { name: ui.battle.start, clips: [Kenney/Interface/open_001], volumeMin: 0.60, volumeMax: 0.66, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: UI, maxVoices: 1, minInterval: 0.15, speedMerge: false }
+  - { name: ui.battle.victory, clips: [Kenney/Interface/confirmation_004], volumeMin: 0.66, volumeMax: 0.72, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: UI, maxVoices: 1, minInterval: 0.20, speedMerge: false }
+  - { name: ui.battle.defeat, clips: [Kenney/Interface/error_003], volumeMin: 0.64, volumeMax: 0.70, pitchMin: 0.98, pitchMax: 1.00, mixerGroup: UI, maxVoices: 1, minInterval: 0.20, speedMerge: false }
+
+  # ── 세이: Himeko — 성숙한 여성 보이스와 금빛 열·결정 충격 ──
+  - { name: sei.ground.cast, clips: [Hsr/sei/ground_cast_himeko_01], volumeMin: 0.92, volumeMax: 1.00, pitchMin: 0.98, pitchMax: 1.02, mixerGroup: Voice, maxVoices: 1, minInterval: 0.05, speedMerge: true }
+  - { name: sei.ground.projectile, clips: [Hsr/sei/ground_projectile_himeko_01], volumeMin: 0.48, volumeMax: 0.54, pitchMin: 0.98, pitchMax: 1.02, mixerGroup: SFX, maxVoices: 3, minInterval: 0.04, speedMerge: true }
+  - { name: sei.ground.hit, clips: [Hsr/sei/ground_hit_himeko_01], volumeMin: 0.66, volumeMax: 0.74, pitchMin: 0.96, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 2, minInterval: 0.05, speedMerge: true }
+  - { name: sei.ground.screen, clips: [Hsr/sei/ground_projectile_himeko_01], volumeMin: 0.30, volumeMax: 0.34, pitchMin: 0.96, pitchMax: 0.99, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+  - { name: sei.bigbang.cast, clips: [Hsr/sei/bigbang_cast_himeko_01], volumeMin: 0.86, volumeMax: 0.93, pitchMin: 0.98, pitchMax: 1.01, mixerGroup: Voice, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: sei.bigbang.projectile, clips: [Hsr/sei/ground_projectile_himeko_01], volumeMin: 0.42, volumeMax: 0.50, pitchMin: 0.98, pitchMax: 1.06, mixerGroup: SFX, maxVoices: 3, minInterval: 0.04, speedMerge: true }
+  - { name: sei.bigbang.hit, clips: [Hsr/sei/bigbang_hit_himeko_01], volumeMin: 0.61, volumeMax: 0.70, pitchMin: 0.95, pitchMax: 1.05, mixerGroup: SFX, maxVoices: 2, minInterval: 0.055, speedMerge: true }
+  - { name: sei.bigbang.resolve, clips: [Hsr/sei/bigbang_resolve_himeko_01], volumeMin: 0.58, volumeMax: 0.64, pitchMin: 0.98, pitchMax: 1.02, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+  - { name: sei.genesis.cast, clips: [Hsr/sei/genesis_cast_himeko_01], volumeMin: 0.86, volumeMax: 0.92, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: Voice, maxVoices: 1, minInterval: 0.15, speedMerge: true, duckBgm: 0.72, duckSeconds: 1.25 }
+  - { name: sei.genesis.screen, clips: [Hsr/sei/genesis_screen_himeko_01], volumeMin: 0.60, volumeMax: 0.66, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+  - { name: sei.genesis.hit, clips: [Hsr/sei/genesis_hit_himeko_01], volumeMin: 0.58, volumeMax: 0.64, pitchMin: 0.97, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 2, minInterval: 0.07, speedMerge: true }
+
+  # ── 시: Acheron — 유령 같은 저역과 날카로운 참격 ──
+  - { name: shi.destruction_slash.cast, clips: [Hsr/shi/ghost_slash_cast_01], volumeMin: 0.54, volumeMax: 0.60, pitchMin: 0.98, pitchMax: 1.02, mixerGroup: Voice, maxVoices: 1, minInterval: 0.05, speedMerge: true }
+  - { name: shi.destruction_slash.draw, clips: [Hsr/shi/ghost_slash_projectile_01], volumeMin: 0.50, volumeMax: 0.56, pitchMin: 0.98, pitchMax: 1.02, mixerGroup: SFX, maxVoices: 2, minInterval: 0.04, speedMerge: true }
+  - { name: shi.destruction_slash.hit, clips: [Hsr/shi/ghost_slash_hit_01], volumeMin: 0.68, volumeMax: 0.75, pitchMin: 0.97, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 2, minInterval: 0.05, speedMerge: true }
+  - { name: shi.song_of_ruin.cast, clips: [Hsr/shi/final_verse_cast_01], volumeMin: 0.62, volumeMax: 0.68, pitchMin: 0.98, pitchMax: 1.02, mixerGroup: Voice, maxVoices: 1, minInterval: 0.08, speedMerge: true }
+  - { name: shi.song_of_ruin.draw, clips: [Hsr/shi/ghost_slash_projectile_01], volumeMin: 0.56, volumeMax: 0.63, pitchMin: 0.94, pitchMax: 0.99, mixerGroup: SFX, maxVoices: 2, minInterval: 0.05, speedMerge: true }
+  - { name: shi.song_of_ruin.hit, clips: [Hsr/shi/final_verse_hit_01], volumeMin: 0.70, volumeMax: 0.77, pitchMin: 0.97, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 3, minInterval: 0.06, speedMerge: true }
+  - { name: shi.final_bell.screen, clips: [Hsr/shi/final_bell_screen_01], volumeMin: 0.62, volumeMax: 0.68, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+  - { name: shi.final_bell.hit, clips: [Hsr/shi/final_bell_hit_01], volumeMin: 0.58, volumeMax: 0.65, pitchMin: 0.97, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 2, minInterval: 0.07, speedMerge: true }
+
+  # ── 사바흐: Castorice — 낮은 보이스와 검보라 그림자·영혼 절단 ──
+  - { name: sabah.lightning_slash.cast, clips: [Hsr/sabah/lightning_slash_cast_castorice_01], volumeMin: 0.88, volumeMax: 0.96, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: Voice, maxVoices: 1, minInterval: 0.08, speedMerge: true }
+  - { name: sabah.lightning_slash.draw, clips: [Hsr/sabah/lightning_slash_projectile_castorice_01], volumeMin: 0.58, volumeMax: 0.65, pitchMin: 0.97, pitchMax: 1.02, mixerGroup: SFX, maxVoices: 1, minInterval: 0.08, speedMerge: true }
+  - { name: sabah.lightning_slash.projectile, clips: [Hsr/sabah/lightning_slash_projectile_castorice_01], volumeMin: 0.58, volumeMax: 0.65, pitchMin: 0.97, pitchMax: 1.02, mixerGroup: SFX, maxVoices: 1, minInterval: 0.08, speedMerge: true }
+  - { name: sabah.lightning_slash.hit, clips: [Hsr/sabah/lightning_slash_hit_castorice_01], volumeMin: 0.68, volumeMax: 0.76, pitchMin: 0.96, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 2, minInterval: 0.06, speedMerge: true }
+  - { name: sabah.debuff_hunter.resolve, clips: [Hsr/sabah/lightning_slash_projectile_castorice_01], volumeMin: 0.24, volumeMax: 0.30, pitchMin: 1.05, pitchMax: 1.10, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: sabah.azrael.cast, clips: [Hsr/sabah/azrael_cast_castorice_01], volumeMin: 0.88, volumeMax: 0.96, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: Voice, maxVoices: 1, minInterval: 0.18, speedMerge: true, duckBgm: 0.60, duckSeconds: 2.35 }
+  - { name: sabah.azrael.screen, clips: [Hsr/sabah/azrael_screen_castorice_01], volumeMin: 0.60, volumeMax: 0.68, pitchMin: 0.97, pitchMax: 1.01, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: sabah.azrael.hit, clips: [Hsr/sabah/azrael_hit_castorice_01], volumeMin: 0.58, volumeMax: 0.66, pitchMin: 0.96, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 4, minInterval: 0.07, speedMerge: true }
+  - { name: sabah.azrael.resolve, clips: [Hsr/sabah/azrael_resolve_castorice_01], volumeMin: 0.56, volumeMax: 0.63, pitchMin: 0.98, pitchMax: 1.02, mixerGroup: SFX, maxVoices: 1, minInterval: 0.14, speedMerge: true }
+
+  # ── 잔: Feixiao 임시 보이스 — 공격/선제 반격은 짧은 풀을 공유하되 큐별 연속 중복을 막는다. ──
+  - { name: jean.holy_strike.cast, clips: [Hsr/jean/strike_voice_feixiao_01, Hsr/jean/strike_voice_feixiao_02], volumeMin: 0.82, volumeMax: 0.92, pitchMin: 0.99, pitchMax: 1.02, mixerGroup: Voice, maxVoices: 1, minInterval: 0.08, speedMerge: true, avoidImmediateRepeat: true }
+  - { name: jean.holy_strike.hit, clips: [Hsr/bastet/cat_hit_cipher_01, Hsr/bastet/cat_hit_cipher_02], volumeMin: 0.66, volumeMax: 0.74, pitchMin: 0.92, pitchMax: 0.99, mixerGroup: SFX, maxVoices: 2, minInterval: 0.05, speedMerge: true, avoidImmediateRepeat: true }
+  - { name: jean.iron_sanction.cast, clips: [Hsr/jean/strike_voice_feixiao_02, Hsr/jean/strike_voice_feixiao_01], volumeMin: 0.86, volumeMax: 0.95, pitchMin: 1.00, pitchMax: 1.03, mixerGroup: Voice, maxVoices: 1, minInterval: 0.12, speedMerge: true, avoidImmediateRepeat: true }
+  - { name: jean.iron_sanction.hit, clips: [Hsr/bastet/cat_hit_cipher_01, Hsr/bastet/cat_hit_cipher_02], volumeMin: 0.70, volumeMax: 0.78, pitchMin: 0.94, pitchMax: 1.01, mixerGroup: SFX, maxVoices: 2, minInterval: 0.05, speedMerge: true, avoidImmediateRepeat: true }
+  - { name: jean.tension_rising.cast, clips: [Hsr/jean/tension_voice_feixiao_01], volumeMin: 0.88, volumeMax: 0.96, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: Voice, maxVoices: 1, minInterval: 0.18, speedMerge: true, duckBgm: 0.72, duckSeconds: 1.20 }
+  - { name: jean.tension_rising.resolve, clips: [Hsr/bastet/cat_hit_cipher_01], volumeMin: 0.40, volumeMax: 0.48, pitchMin: 1.08, pitchMax: 1.13, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+
+  # ── 찬드라: March 7th(원본) — 밝은 여성 보이스와 얼음빛 파열 ──
+  - { name: chandra.sachi.cast, clips: [Hsr/chandra/sachi_cast_march7_01], volumeMin: 0.84, volumeMax: 0.94, pitchMin: 0.99, pitchMax: 1.03, mixerGroup: Voice, maxVoices: 1, minInterval: 0.05, speedMerge: true }
+  - { name: chandra.sachi.projectile, clips: [Hsr/chandra/sachi_projectile_march7_01], volumeMin: 0.46, volumeMax: 0.52, pitchMin: 0.99, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 3, minInterval: 0.04, speedMerge: true }
+  - { name: chandra.sachi.hit, clips: [Hsr/chandra/sachi_hit_march7_01], volumeMin: 0.62, volumeMax: 0.69, pitchMin: 0.97, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 2, minInterval: 0.05, speedMerge: true }
+  - { name: chandra.nishakara.cast, clips: [Hsr/chandra/nishakara_cast_march7_01], volumeMin: 0.85, volumeMax: 0.94, pitchMin: 0.99, pitchMax: 1.02, mixerGroup: Voice, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+  - { name: chandra.nishakara.hit, clips: [Hsr/chandra/nishakara_hit_march7_01], volumeMin: 0.58, volumeMax: 0.64, pitchMin: 0.99, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+  - { name: chandra.soma.cast, clips: [Hsr/chandra/soma_cast_march7_01], volumeMin: 0.85, volumeMax: 0.93, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: Voice, maxVoices: 1, minInterval: 0.15, speedMerge: true, duckBgm: 0.74, duckSeconds: 2.20 }
+  - { name: chandra.soma.screen, clips: [Hsr/chandra/soma_screen_march7_01], volumeMin: 0.58, volumeMax: 0.64, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+  - { name: chandra.soma.hit, clips: [Hsr/chandra/soma_hit_march7_01], volumeMin: 0.56, volumeMax: 0.62, pitchMin: 0.98, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 2, minInterval: 0.07, speedMerge: true }
+  - { name: chandra.changya.cast, clips: [Hsr/chandra/soma_cast_march7_01], volumeMin: 0.85, volumeMax: 0.93, pitchMin: 1.01, pitchMax: 1.04, mixerGroup: Voice, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: chandra.changya.screen, clips: [Hsr/chandra/soma_screen_march7_01], volumeMin: 0.46, volumeMax: 0.52, pitchMin: 1.02, pitchMax: 1.05, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+  - { name: chandra.changya.hit, clips: [Hsr/chandra/soma_hit_march7_01], volumeMin: 0.50, volumeMax: 0.56, pitchMin: 1.00, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+
+  # ── 히미코: Fu Xuan — 차분한 여성 보이스와 결정성 화염 충격 ──
+  - { name: himiko.ember.cast, clips: [Hsr/himiko/ember_cast_fuxuan_01], volumeMin: 0.88, volumeMax: 0.99, pitchMin: 0.98, pitchMax: 1.03, mixerGroup: Voice, maxVoices: 1, minInterval: 0.05, speedMerge: true }
+  - { name: himiko.ember.projectile, clips: [Hsr/himiko/ember_projectile_fuxuan_01], volumeMin: 0.48, volumeMax: 0.54, pitchMin: 0.98, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 3, minInterval: 0.04, speedMerge: true }
+  - { name: himiko.ember.hit, clips: [Hsr/himiko/ember_hit_fuxuan_01], volumeMin: 0.66, volumeMax: 0.73, pitchMin: 0.96, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 2, minInterval: 0.05, speedMerge: true }
+  - { name: himiko.blaze.cast, clips: [Hsr/himiko/blaze_cast_fuxuan_01], volumeMin: 0.82, volumeMax: 0.90, pitchMin: 0.98, pitchMax: 1.02, mixerGroup: Voice, maxVoices: 1, minInterval: 0.08, speedMerge: true }
+  - { name: himiko.blaze.hit, clips: [Hsr/himiko/blaze_hit_fuxuan_01], volumeMin: 0.70, volumeMax: 0.78, pitchMin: 0.96, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 2, minInterval: 0.06, speedMerge: true }
+  - { name: himiko.blaze.burst, clips: [Hsr/himiko/blaze_hit_fuxuan_01], volumeMin: 0.74, volumeMax: 0.82, pitchMin: 0.92, pitchMax: 1.00, mixerGroup: SFX, maxVoices: 1, minInterval: 0.08, speedMerge: true }
+  - { name: himiko.blaze_festival.cast, clips: [Hsr/himiko/festival_cast_fuxuan_01], volumeMin: 0.87, volumeMax: 0.94, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: Voice, maxVoices: 1, minInterval: 0.15, speedMerge: true, duckBgm: 0.70, duckSeconds: 1.20 }
+  - { name: himiko.blaze_festival.screen, clips: [Hsr/himiko/festival_screen_fuxuan_01], volumeMin: 0.62, volumeMax: 0.68, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+  - { name: himiko.blaze_festival.hit, clips: [Hsr/himiko/festival_hit_fuxuan_01], volumeMin: 0.62, volumeMax: 0.70, pitchMin: 0.97, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 2, minInterval: 0.07, speedMerge: true }
+
+  # ── 피그말리온: The Herta — 또렷한 여성 보이스와 조형·절단 공명 ──
+  - { name: pygmalion.ember.cast, clips: [Hsr/pygmalion/ember_cast_the_herta_01], volumeMin: 0.83, volumeMax: 0.93, pitchMin: 0.98, pitchMax: 1.03, mixerGroup: Voice, maxVoices: 1, minInterval: 0.05, speedMerge: true }
+  - { name: pygmalion.ember.hit, clips: [Hsr/pygmalion/ember_hit_the_herta_01], volumeMin: 0.64, volumeMax: 0.71, pitchMin: 0.96, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 2, minInterval: 0.05, speedMerge: true }
+  - { name: pygmalion.galatea.cast, clips: [Hsr/pygmalion/galatea_cast_the_herta_01], volumeMin: 0.84, volumeMax: 0.93, pitchMin: 0.99, pitchMax: 1.02, mixerGroup: Voice, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+  - { name: pygmalion.galatea.hit, clips: [Hsr/pygmalion/galatea_hit_the_herta_01], volumeMin: 0.58, volumeMax: 0.65, pitchMin: 0.98, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+  - { name: pygmalion.sharp_thorns.cast, clips: [Hsr/pygmalion/thorns_cast_the_herta_01], volumeMin: 0.87, volumeMax: 0.97, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: Voice, maxVoices: 1, minInterval: 0.15, speedMerge: true, duckBgm: 0.73, duckSeconds: 1.15 }
+  - { name: pygmalion.sharp_thorns.screen, clips: [Hsr/pygmalion/thorns_screen_the_herta_01], volumeMin: 0.60, volumeMax: 0.66, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+  - { name: pygmalion.sharp_thorns.hit, clips: [Hsr/pygmalion/thorns_hit_the_herta_01], volumeMin: 0.60, volumeMax: 0.67, pitchMin: 0.97, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 2, minInterval: 0.07, speedMerge: true }
+
+  # ── 바스테트: Cipher — 모든 공격은 짧은 보이스를 무작위 재생하며 직전 클립은 반복하지 않는다. ──
+  - { name: bastet.cat_punch.cast, clips: [Hsr/bastet/cat_voice_cipher_01, Hsr/bastet/cat_voice_cipher_02, Hsr/bastet/cat_voice_cipher_03, Hsr/bastet/cat_voice_cipher_04, Hsr/bastet/cat_voice_cipher_05, Hsr/bastet/cat_voice_cipher_06], volumeMin: 0.82, volumeMax: 0.92, pitchMin: 0.99, pitchMax: 1.02, mixerGroup: Voice, maxVoices: 1, minInterval: 0.05, speedMerge: true, avoidImmediateRepeat: true }
+  - { name: bastet.cat_punch.hit, clips: [Hsr/bastet/cat_hit_cipher_01, Hsr/bastet/cat_hit_cipher_02], volumeMin: 0.64, volumeMax: 0.72, pitchMin: 0.97, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 2, minInterval: 0.05, speedMerge: true, avoidImmediateRepeat: true }
+  - { name: bastet.one_more_hit.cast, clips: [Hsr/bastet/cat_voice_cipher_01, Hsr/bastet/cat_voice_cipher_02, Hsr/bastet/cat_voice_cipher_03, Hsr/bastet/cat_voice_cipher_04, Hsr/bastet/cat_voice_cipher_05, Hsr/bastet/cat_voice_cipher_06], volumeMin: 0.86, volumeMax: 0.95, pitchMin: 0.99, pitchMax: 1.02, mixerGroup: Voice, maxVoices: 1, minInterval: 0.05, speedMerge: true, avoidImmediateRepeat: true }
+  - { name: bastet.one_more_hit.hit, clips: [Hsr/bastet/cat_hit_cipher_01, Hsr/bastet/cat_hit_cipher_02], volumeMin: 0.68, volumeMax: 0.76, pitchMin: 0.96, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 2, minInterval: 0.05, speedMerge: true, avoidImmediateRepeat: true }
+  - { name: bastet.guard.resolve, clips: [Hsr/bastet/cat_hit_cipher_01], volumeMin: 0.42, volumeMax: 0.50, pitchMin: 0.91, pitchMax: 0.96, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+
+  # ── 공허의 시험장 적: Hyacine no voice 트랙의 비인간 효과음만 사용 ──
+  - { name: enemy.void_wolf.charge.cast, clips: [Hsr/enemy/void_wolf_charge_cast_novoice_01], volumeMin: 0.48, volumeMax: 0.54, pitchMin: 0.88, pitchMax: 0.96, mixerGroup: SFX, maxVoices: 2, minInterval: 0.05, speedMerge: true }
+  - { name: enemy.void_wolf.charge.draw, clips: [Hsr/enemy/void_wolf_charge_cast_novoice_01], volumeMin: 0.42, volumeMax: 0.48, pitchMin: 0.94, pitchMax: 1.02, mixerGroup: SFX, maxVoices: 2, minInterval: 0.05, speedMerge: true }
+  - { name: enemy.void_wolf.charge.hit, clips: [Hsr/enemy/void_wolf_charge_hit_novoice_01], volumeMin: 0.64, volumeMax: 0.72, pitchMin: 0.88, pitchMax: 0.98, mixerGroup: SFX, maxVoices: 2, minInterval: 0.06, speedMerge: true }
+  - { name: enemy.void_beast.strike.cast, clips: [Hsr/enemy/void_wolf_charge_cast_novoice_01], volumeMin: 0.52, volumeMax: 0.59, pitchMin: 0.78, pitchMax: 0.86, mixerGroup: SFX, maxVoices: 2, minInterval: 0.06, speedMerge: true }
+  - { name: enemy.void_beast.strike.hit, clips: [Hsr/enemy/void_boss_hit_novoice_01], volumeMin: 0.68, volumeMax: 0.76, pitchMin: 0.78, pitchMax: 0.88, mixerGroup: SFX, maxVoices: 2, minInterval: 0.07, speedMerge: true }
+  - { name: enemy.void_marksman.shot.cast, clips: [Hsr/enemy/void_marksman_shot_cast_novoice_01], volumeMin: 0.46, volumeMax: 0.52, pitchMin: 0.96, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 3, minInterval: 0.05, speedMerge: true }
+  - { name: enemy.void_marksman.shot.projectile, clips: [Hsr/enemy/void_marksman_shot_projectile_novoice_01], volumeMin: 0.44, volumeMax: 0.50, pitchMin: 0.96, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 3, minInterval: 0.04, speedMerge: true }
+  - { name: enemy.void_marksman.shot.hit, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.58, volumeMax: 0.65, pitchMin: 0.95, pitchMax: 1.05, mixerGroup: SFX, maxVoices: 3, minInterval: 0.05, speedMerge: true }
+  - { name: enemy.void_boss.cast, clips: [Hsr/enemy/void_boss_cast_novoice_01], volumeMin: 0.62, volumeMax: 0.68, pitchMin: 0.82, pitchMax: 0.90, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true, duckBgm: 0.82, duckSeconds: 0.85 }
+  - { name: enemy.void_boss.projectile, clips: [Hsr/enemy/void_boss_projectile_novoice_01], volumeMin: 0.55, volumeMax: 0.62, pitchMin: 0.84, pitchMax: 0.92, mixerGroup: SFX, maxVoices: 2, minInterval: 0.05, speedMerge: true }
+  - { name: enemy.void_boss.hit, clips: [Hsr/enemy/void_boss_hit_novoice_01], volumeMin: 0.70, volumeMax: 0.78, pitchMin: 0.82, pitchMax: 0.92, mixerGroup: SFX, maxVoices: 2, minInterval: 0.07, speedMerge: true }

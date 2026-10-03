@@ -1,2500 +1,298 @@
 # 아군 유닛 데이터
 #
-# 스탯 규격 (2026-08 개편):
-#   · 공격력/방어력 스탯은 존재하지 않는다. 모든 전투 수치는 5스탯에서 파생된다.
-#       피해     = 스킬 위력 × 주스탯 × 0.2   (포켓몬식 — 위력은 스킬마다 고정)
-#       최대체력 = CON × 100
-#       방어력   = STR × 1      (롤 방식: 받는 피해 배율 = 기준값 / (기준값 + 방어력))
-#     기준값은 레벨에 비례해 커지므로 감소율은 레벨과 무관하게 일정하다.
-#   · 스탯 = base + incrementLvl × (Level − 1) + incrementUpgrade × 강화횟수
-#   · 아군의 Level은 EXP로 오른다 (킬 / 스테이지 클리어 / 육성).
-#   · 일반 트레이닝 보너스: mainStat +20%, subStats +10% (부스탯 2개면 각 +5%)
-#   · 특수 트레이닝 보너스(세이·시): mainStat +25%, subStats +15%
+# 스탯 규격 (2026-09 전면 개편) — 원본은 Detail_03 §2.
+#   · 전투 스탯은 여덟이다.
+#       최대 체력 · 공격력 · 특수공격력 · 방어력 · 특수방어력 · 속도 · 치명타 확률 · 치명타 피해
+#   · 롤처럼 스탯마다 기초값(…Base)과 레벨당 성장치(…Growth)를 적는다.
+#       스탯 = 기초값 + 성장치 × (레벨 − 1)
+#     훈련 강화 · 주/부 스탯 배율은 없다. 아군의 레벨은 전투 EXP로만 오른다.
+#   · 치명타 두 스탯은 퍼센트 포인트로 적는다(5 = 5%). 적지 않으면 5% / 50%, 속도는 100이다.
+#   · 특수공격력은 피해 계수가 아니다 — 원소 반응 위력과 해로운 효과 명중에만 쓴다.
+#     특수방어력은 지속피해 · 원소 반응 피해를 줄이고 해로운 효과를 피한다.
+#   · 피해는 코드마다 "고정값 + 스탯 × 계수"로 적는다. 대부분 공격력 계수, 일부만 방어력 · 최대 체력.
+#   · manaMax는 궁극기 마나. 일반행동 +20 · 피격 +5 · 처치 +10으로 찬다.
 #
-# mainStat은 5스탯 어느 것이든 쓸 수 있다.
-# 스탯마다 공격 외의 고유 역할이 따로 있으므로, 주스탯이 이중 이득을 갖는 것은 의도된 설계다.
-#   STR — 방어력 (받는 피해 비율 감소) + 장비 중량 한도
-#   DEX — 행동 속도
-#   CON — 최대 체력
-#   INT — 마나 획득 효율
-#   LUK — 치명타 확률
+# 표준 성장(참고): 체력 +90 · 공격 +5 · 특공 +3.5 · 방어 +5 · 특방 +4 / Lv.
+#   방어 경감의 기준값이 100 + 6 × (공격자 레벨 − 1)이라 같은 레벨끼리의 경감률은 레벨과 무관하게 일정하다.
 #
-# 캐릭터 분류 (characterType)
-#   Starter — 게임 초기부터 메인으로 사용 가능. 육성 완료 시 서포트 카드에도 추가되며
-#             그 카드는 무한 모드에서도 쓸 수 있다.
-#   Support — 게임 초기부터 서포터 카드로만 편성 가능. 무한 모드에서는 사용 불가.
-#   Locked  — 초기에는 사용 불가. 육성 모드 중 아군으로 합류하면(포켓로그식) 영구 해금되어
-#             이후 런부터 Starter처럼 메인으로 쓸 수 있다.
+# 캐릭터 분류 (characterType) — 해금 / 미해금 둘뿐이다. 메인 · 서포트 구분은 없다.
+#   Unlocked — 처음부터 쓸 수 있다.
+#   Locked   — 계정 해금(영입 사건 등) 전에는 쓸 수 없다(unlockCondition에 조건을 적는다).
+# 게임 모드는 무한 모드 하나다. 해금한 캐릭터는 누구나 1~5인 편성에 오른다.
+# 해금 패시브(levelPassives)는 없다. 기본 슬롯은 특성 · 일반행동 · 초월기이며,
+# 특정 트리거가 여는 유닛만 선택적으로 special 슬롯을 가진다.
 #
-# 플래그 대응:
-#   Starter → canStartAsMain: true,  canStartAsSupport: false, canUseInInfinite: true
-#   Support → canStartAsMain: false, canStartAsSupport: true,  canUseInInfinite: false
-#   Locked  → 셋 다 false (해금되면 런타임에서 Starter로 승격)
+# archetypeTags는 전투 성향 UI 태그다(표시 이름은 UnitTagCatalog). Swift 신속 · Support 지원 · Shielding 방어 …
 #
-# 획득처 미정 캐릭터도 기획이 끝났다면 Locked로 등록해 둔다.
-# 새 테마를 추가할 때 영입 사건을 붙여 획득 경로를 부여한다.
+# 2026-09 개편으로 옛 로스터 52명을 모두 걷어냈다. 캐릭터를 하나씩 다시 만든다.
 
 units:
+  # ── 세이 ──────────────────────────────────────────────────────────
+  # 대지를 고르는 수호자. 방어력을 계수로 쓰는 드문 유닛이라 단단할수록 세게 친다.
+  # 보호막을 두른 아군이 맞을 때마다 결정을 모아 빅뱅을 터뜨리고, 터뜨린 뒤 아군 전체에 보호막을 둘러
+  # 다음 결정의 재료를 스스로 깐다. 궁극기로 파티 전체의 공격력을 올리고 두꺼운 보호막을 두르며
+  # 모든 타격에 고정 피해를 덧붙인다(집중).
+  # 개편 전의 세이를 새 규칙으로 다시 만든 캐릭터다.
   - id: 1
     name: 세이
-    tagline: "보호막과 모든 공격에 추가 피해를 더하는 지원가이자, 지속 피해를 입히는 추가 행동 딜러를 겸비한 만능형 유닛."
-    characterType: Support
+    tagline: "방어력으로 싸우는 수호자. 아군에게 대지의 방패를 두르고, 그 방패가 맞을수록 창세의 결정을 모아 터뜨리며, 노래로 파티 전체의 공격을 끌어올린다."
+    characterType: Unlocked
     element: Geo
-    startingProficiencies: [Orb]
+    vfxClass: caster
     startingItemIds: [4109]
     tags: [Akasha, Divine]
-    archetypeTags: [Precision, FollowUp, Support, Shielding]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    mainStat: INT
-    subStat: DEX
-    subStats: [DEX]
-    mainStatTrainingBonus: 0.25
-    subStatTrainingBonus: 0.15
-    strBase: 10
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 16
-    dexIncrementLvl: 2
-    dexIncrementUpgrade: 1
-    conBase: 15
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 18
-    intIncrementLvl: 3
-    intIncrementUpgrade: 1
-    lukBase: 12
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
+    archetypeTags: [Swift, Support, Shielding]
+    hpBase: 1050
+    hpGrowth: 95
+    atkBase: 55
+    atkGrowth: 3.5
+    spAtkBase: 60
+    spAtkGrowth: 3.5
+    defBase: 85
+    defGrowth: 6.5
+    spDefBase: 70
+    spDefGrowth: 5
+    speedBase: 112
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
     codes:
       passive: 201
       normal: 1
       ultimate: 1
-    codeStages:
-      passive: 1
-      normal: 1
-      ultimate: 1
-    levelPassives:
-      - { codeId: 14, unlockLevel: 1, stage: 1 }   # 숙련된 조교
-      - { codeId: 109, unlockLevel: 1, stage: 1 }   # 카피바라
-      - { codeId: 1,   unlockLevel: 8,  stage: 1 }   # 성채
-      - { codeId: 33, unlockLevel: 12, stage: 1 }   # 주문 보호막
-      - { codeId: 108, unlockLevel: 20, stage: 1 }   # 봉우
-      - { codeId: 18,  unlockLevel: 22, stage: 1 }   # 명상
-      - { codeId: 27,  unlockLevel: 25, stage: 1 }   # 투명
-      - { codeId: 31,  unlockLevel: 30, stage: 1 }   # 마나 호흡법
-      - { codeId: 6,  unlockLevel: 38, stage: 1 }   # 철벽
-      - { codeId: 113, unlockLevel: 40, stage: 1 }   # 미트라
-      - { codeId: 7,  unlockLevel: 50, stage: 1 }   # 사전준비
-      - { codeId: 8,  unlockLevel: 70, stage: 1 }   # 창세의 노래
     portrait: SEI_PORTRAIT
     standing: SEI_STANDING
 
-  - id: 4
-    name: 가우디
-    tagline: "적에게 풀 원소를 부여하는 서브딜러"
-    characterType: Support
-    element: Dendro
-    startingProficiencies: [Longsword]
-    startingItemIds: [4102]
-    tags: [Vaitica, Akasha, Human]
-    archetypeTags: [Precision, Infusion]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    mainStat: INT
-    subStat: ""
-    subStats: []
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.00
-    strBase: 10
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 14
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 16
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 24
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 12
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes:
-      passive: 204
-      normal: 4
-      ultimate: 4
-    codeStages:
-      passive: 1
-      normal: 1
-      ultimate: 1
-    levelPassives:
-      - { codeId: 56,  unlockLevel: 1,  stage: 1 }   # 지혜
-      - { codeId: 64,  unlockLevel: 8,  stage: 1 }   # 천재
-      - { codeId: 133, unlockLevel: 14, stage: 1 }   # 부여사
-      - { codeId: 119, unlockLevel: 25, stage: 1 }   # 영감
-      - { codeId: 134, unlockLevel: 33, stage: 1 }   # 자연에 대한 이해
-      - { codeId: 135, unlockLevel: 46, stage: 1 }   # 재충전
-      - { codeId: 136, unlockLevel: 52, stage: 1 }   # 해커
-    portrait: GAUDI_PORTRAIT
-    standing: GAUDI_STANDING
-
-  - id: 5
-    name: 라이트
-    tagline: "두 명 이상의 방출형 딜러에게 적합한 회복 서포터."
-    characterType: Support
-    element: Anemo
-    startingProficiencies: [Orb, Shield, LightArmor]
-    startingItemIds: [4109]
-    tags: [Akasha, Human]
-    archetypeTags: [Summon, Support, Healing]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    unlocksAsStarterOnClear: true   # 서포트로 완주하면 스타팅 해금
-    mainStat: CON
-    subStat: DEX
-    subStats: [DEX, INT]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.05
-    strBase: 10
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 18
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 24
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 18
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 12
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes:
-      passive: 205
-      normal: 5
-      ultimate: 5
-    codeStages:
-      passive: 1
-      normal: 1
-      ultimate: 1
-    levelPassives:
-      - { codeId: 112, unlockLevel: 1,  stage: 1 }  # 면벽수련
-      - { codeId: 137, unlockLevel: 1,  stage: 1 }  # 근성
-      - { codeId: 68,  unlockLevel: 15, stage: 1 }  # 재기의 바람
-      - { codeId: 22,  unlockLevel: 20, stage: 1 }  # 영감
-      - { codeId: 138, unlockLevel: 32, stage: 1 }  # 소환술사
-      - { codeId: 5,   unlockLevel: 35, stage: 1 }  # 목욕재계
-    portrait: LIGHT_PORTRAIT
-    standing: LIGHT_STANDING
-
-  - id: 6
-    name: 니콜
-    tagline: "번개 속성 아군을 지원하면서 자신도 꾸준히 적에게 피해를 입히는 공수겸장의 지원형 딜러."
-    characterType: Support
-    element: Electro
-    startingProficiencies: [Shortbow, LightArmor]
-    startingItemIds: [4107]
-    tags: [Akasha, Human]
-    archetypeTags: [Precision, Support]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    unlocksAsStarterOnClear: true   # 서포트로 완주하면 스타팅 해금
-    mainStat: INT
-    subStat: DEX
-    subStats: [DEX, LUK]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.05
-    strBase: 9
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 16
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 16
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 22
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 16
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 206, normal: 6, ultimate: 6 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 16, unlockLevel: 1,  stage: 1 }   # 행운아
-      - { codeId: 15, unlockLevel: 4,  stage: 1 }   # 학식
-      - { codeId: 57, unlockLevel: 9,  stage: 1 }   # 원소 숙련 - 번개
-      - { codeId: 17, unlockLevel: 12, stage: 1 }   # 예리함
-      - { codeId: 119, unlockLevel: 20, stage: 1 }  # 영감
-      - { codeId: 18, unlockLevel: 22, stage: 1 }   # 명상
-      - { codeId: 59, unlockLevel: 33, stage: 1 }   # 고전압
-    portrait: NICOLE_PORTRAIT
-    standing: NICOLE_STANDING
-
-  - id: 7
-    name: 잔
-    tagline: "노려지는 순간 먼저 받아치는 맨손 전열. 성장하면 꺼지지 않는 도발로 후열을 지킨다"
-    characterType: Support
-    element: Cryo
-    startingProficiencies: [HeavyArmor]
-    startingItemIds: []
-    tags: [Akasha, Gaul, Human]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    mainStat: STR
-    subStat: LUK
-    subStats: [LUK]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 22
-    strIncrementLvl: 2
-    strIncrementUpgrade: 1
-    dexBase: 12
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 20
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 8
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 16
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 207, normal: 7, ultimate: 7 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 104, unlockLevel: 7,  stage: 1 }   # 오사방지
-      - { codeId: 105, unlockLevel: 11, stage: 1 }   # 피지컬 코치
-      - { codeId: 106, unlockLevel: 26, stage: 1 }   # 벌크업
-      - { codeId: 75,  unlockLevel: 35, stage: 1 }   # 원소 친화 - 얼음
-      - { codeId: 107, unlockLevel: 45, stage: 1 }   # 기수
-      - { codeId: 20,  unlockLevel: 62, stage: 1 }   # 중갑병
-    portrait: JEAN_PORTRAIT
-    standing: JEAN_STANDING
-
-  - id: 9
-    name: 위고
-    tagline: "소환수를 보유한 유닛이 많을수록 강해지는 치유형 소환 서포터"
-    characterType: Support
-    element: Hydro
-    startingProficiencies: [Orb]
-    startingItemIds: [4109]
-    tags: [Akasha, Gaul, Human]
-    archetypeTags: [Summon, Healing]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    unlockAfterSummonCount: 100
-    mainStat: INT
-    subStat: CON
-    subStats: [CON]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 9
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 14
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 20
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 24
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 14
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 209, normal: 9, ultimate: 9 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 109, unlockLevel: 1,  stage: 1 }   # 카피바라
-      - { codeId: 25,  unlockLevel: 7,  stage: 1 }   # 자가치유
-      - { codeId: 90,  unlockLevel: 8,  stage: 1 }   # 가벼운 무장
-      - { codeId: 104, unlockLevel: 15, stage: 1 }   # 오사방지
-      - { codeId: 119, unlockLevel: 21, stage: 1 }   # 영감
-      - { codeId: 144, unlockLevel: 30, stage: 1 }   # 시인
-      - { codeId: 145, unlockLevel: 60, stage: 1 }   # 대문호
-    portrait: HUGO_PORTRAIT
-    standing: HUGO_STANDING
-
-  - id: 10
-    name: 셰익스피어
-    tagline: "소환수의 행동을 언어로 엮어 확정 치명타와 부활 결계를 제공하는 공격형 서포터"
-    characterType: Support
-    element: Geo
-    startingProficiencies: [Orb]
-    startingItemIds: [4109]
-    tags: [Akasha, Victoria]
-    archetypeTags: [Summon, Support]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    mainStat: LUK
-    subStat: DEX
-    subStats: [DEX, INT]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.05
-    strBase: 10
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 18
-    dexIncrementLvl: 2
-    dexIncrementUpgrade: 1
-    conBase: 14
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 18
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 24
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 210, normal: 10, ultimate: 10 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 18,  unlockLevel: 8,  stage: 1 }   # 명상
-      - { codeId: 119, unlockLevel: 11, stage: 1 }   # 영감
-      - { codeId: 27,  unlockLevel: 15, stage: 1 }   # 투명
-      - { codeId: 135, unlockLevel: 30, stage: 1 }   # 재충전
-    portrait: SHAKESPEARE_PORTRAIT
-    standing: SHAKESPEARE_STANDING
-
+  # ── 시 ────────────────────────────────────────────────────────────
+  # 바람의 검기를 날리는 처형자. 귀참의 순수 피해가 방어력과 현재 체력만으로 적을 끝낼 수 있으면
+  # 특성이 먼저 베고, 직접 처치할 때마다 다음 행동을 즉시 당긴다.
+  # 애쉬베일의 Lv.1 분포(높은 공격, 낮은 체력·방어, 속도 106)를 현행 전투 스케일로 옮겼다.
   - id: 2
     name: 시
-    tagline: "행동 속도가 곧 화력인 쾌속 검사. 빈사가 된 적을 처형으로 정리한다"
-    characterType: Locked
+    tagline: "아군이 만든 처치각을 멸참으로 베어 내고, 연속 처치와 만종으로 전장을 정리하는 바람의 검사."
+    characterType: Unlocked
     element: Anemo
-    startingProficiencies: [Longsword, LightArmor]
-    startingItemIds: [4102]
+    vfxClass: assassin
     tags: [Divine]
-    archetypeTags: [Precision]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: DEX
-    subStat: LUK
-    subStats: [LUK]
-    mainStatTrainingBonus: 0.25
-    subStatTrainingBonus: 0.15
-    strBase: 14
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 20
-    dexIncrementLvl: 3
-    dexIncrementUpgrade: 1
-    conBase: 13
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 10
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 20
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
+    archetypeTags: [Precision, FollowUp, Swift]
+    hpBase: 850
+    hpGrowth: 75
+    atkBase: 106
+    atkGrowth: 7
+    spAtkBase: 45
+    spAtkGrowth: 3
+    defBase: 53
+    defGrowth: 4
+    spDefBase: 55
+    spDefGrowth: 4
+    speedBase: 106
+    critRateBase: 5
+    critDamageBase: 50
     manaMax: 100
+    ultimateResourceType: Passive
+    ultimateResourceName: 만종
     codes:
       passive: 202
       normal: 2
       ultimate: 2
-    codeStages:
-      passive: 1
-      normal: 1
-      ultimate: 1
-    levelPassives:
-      - { codeId: 9,  unlockLevel: 10, stage: 1 }   # 검의 달인
-      - { codeId: 10,  unlockLevel: 28, stage: 1 }   # 신속
-      - { codeId: 35, unlockLevel: 31, stage: 1 }   # 상처 벌리기
-      - { codeId: 11,  unlockLevel: 44, stage: 1 }   # 천살성
-      - { codeId: 12,  unlockLevel: 57, stage: 1 }   # 화무십일홍
-      - { codeId: 13,  unlockLevel: 70, stage: 1 }   # 당연한 운명
     portrait: SHI_PORTRAIT
     standing: SHI_STANDING
 
+  # ── 사바흐 ────────────────────────────────────────────────────────
+  # 옛 LUK 주 · DEX 부의 치명/속도형 처형 딜러를 8스탯으로 옮겼다.
+  # 아즈라엘은 마나가 아니라 아군의 디버프 부여·지속피해 틱으로만 차는 7중첩 고유 자원이다.
+  - id: 3
+    name: 사바흐
+    tagline: "아군이 만든 빈틈을 그림자에서 베어 내는 처형자. 디버프가 쌓인 적에게 강해지고 아즈라엘로 적 전체를 가른다."
+    characterType: Unlocked
+    element: Electro
+    vfxClass: assassin
+    startingItemIds: [4102]
+    tags: [Akasha]
+    archetypeTags: [Precision, Swift, Domination]
+    hpBase: 880
+    hpGrowth: 78
+    atkBase: 102
+    atkGrowth: 6.8
+    spAtkBase: 64
+    spAtkGrowth: 4.0
+    defBase: 54
+    defGrowth: 4.0
+    spDefBase: 60
+    spDefGrowth: 4.5
+    speedBase: 112
+    critRateBase: 18
+    critDamageBase: 60
+    manaMax: 7
+    ultimateResourceType: Stack
+    ultimateResourceName: 아즈라엘
+    codes:
+      passive: 203
+      normal: 3
+      ultimate: 3
+    portrait: SABAH_PORTRAIT
+    standing: SABAH_STANDING
+
+  # ── 잔 ────────────────────────────────────────────────────────────
+  # 공격 대상으로 확정되면 원래 공격보다 먼저 신성한 일격을 꽂는 저속 반격 탱커.
+  # counterUsesBase는 기본 회복량이며 코드의 하드캡이 아니다.
+  - id: 7
+    name: 잔
+    tagline: "노려지는 순간 철권제재로 먼저 끊는 맨손 전열. 도발과 피해 경감으로 공격을 모으고 바스테트의 반격 추격을 연다."
+    characterType: Unlocked
+    element: Cryo
+    vfxClass: fighter
+    tags: [Akasha, Gaul, Human]
+    archetypeTags: [Sturdy, Counter]
+    counterUsesBase: 3
+    hpBase: 1360
+    hpGrowth: 120
+    atkBase: 92
+    atkGrowth: 6.2
+    spAtkBase: 55
+    spAtkGrowth: 3.5
+    defBase: 94
+    defGrowth: 7
+    spDefBase: 82
+    spDefGrowth: 6
+    speedBase: 94
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes:
+      passive: 207
+      normal: 7
+      ultimate: 7
+    portrait: JEAN_PORTRAIT
+    standing: JEAN_STANDING
+
+  # ── 찬드라 ────────────────────────────────────────────────────────
+  # 높은 체력과 특수방어력으로 버티며, 소마로 가장 강한 공격수를 키운다.
+  # 인드라 계열 트리거가 로카팔라의 문을 열면 창야가 바유 다음 순서로 나선다.
+  - id: 60
+    name: 찬드라
+    tagline: "월광으로 치명상을 되돌리는 탱커. 가장 강한 아군 한 명을 키우고, 로카팔라 특수행동에서 월광을 폭발시킨다."
+    characterType: Unlocked
+    element: Geo
+    vfxClass: caster
+    tags: [Vedic, Lokapala]
+    archetypeTags: [Sturdy, Special, Support]
+    hpBase: 1380
+    hpGrowth: 120
+    atkBase: 58
+    atkGrowth: 3.8
+    spAtkBase: 70
+    spAtkGrowth: 4.5
+    defBase: 86
+    defGrowth: 6.5
+    spDefBase: 94
+    spDefGrowth: 7
+    speedBase: 92
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes:
+      passive: 260
+      normal: 60
+      special: 60
+      ultimate: 60
+    portrait: CHANDRA_PORTRAIT
+    standing: CHANDRA_STANDING
+
+  # ── 히미코 ────────────────────────────────────────────────────────
+  # 맹화를 한 대상에게 쌓아 세 번째에 취약과 고정 피해로 터뜨린다.
+  # 집중 중에는 적의 행동 자체가 맹화의 기폭제가 되고 아군 전원이 방어력을 일부 무시한다.
+  - id: 44
+    name: 히미코
+    tagline: "적의 행동까지 맹화의 연료로 삼는 범용 디버퍼. 표식이 셋 모이면 집중을 끊고 취약과 고정 피해를 남긴다."
+    characterType: Unlocked
+    element: Pyro
+    vfxClass: caster
+    tags: [Yamato, Human]
+    archetypeTags: [Domination]
+    hpBase: 920
+    hpGrowth: 82
+    atkBase: 92
+    atkGrowth: 6.2
+    spAtkBase: 104
+    spAtkGrowth: 7.2
+    defBase: 58
+    defGrowth: 4.2
+    spDefBase: 68
+    spDefGrowth: 5.0
+    speedBase: 105
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    codes:
+      passive: 244
+      normal: 44
+      ultimate: 44
+    portrait: HIMIKO_PORTRAIT
+    standing: HIMIKO_STANDING
+
+  # ── 피그말리온 ────────────────────────────────────────────────────
+  # 자신을 소환수로 판정하는 전열 지원가. 갈라테아로 아군 피해를 끌어올리고,
+  # 날카로운 가시 집중으로 접촉 공격을 단단하게 받아 맹독으로 되돌린다.
   - id: 20
     name: 피그말리온
-    tagline: "아군 소환수를 지원하면서 적을 도발하고 지속피해를 부여하는 탱커"
-    characterType: Support
+    tagline: "자신도 소환수로 간주되는 수호 조각가. 아군의 피해를 높이고, 날카로운 가시로 접촉 공격을 맹독으로 되돌린다."
+    characterType: Unlocked
     element: Pyro
-    startingProficiencies: [Orb, MediumArmor]
-    startingItemIds: [4109]
+    vfxClass: caster
     tags: [Greek]
-    archetypeTags: [Summon, Domination, Sturdy]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    mainStat: CON
-    subStat: STR
-    subStats: [STR, INT]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.05
-    strBase: 12
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 8
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 26
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 16
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 10
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
+    archetypeTags: [Domination, Sturdy, Support, Summon]
+    hpBase: 1280
+    hpGrowth: 112
+    atkBase: 72
+    atkGrowth: 4.8
+    spAtkBase: 62
+    spAtkGrowth: 4.2
+    defBase: 96
+    defGrowth: 7.2
+    spDefBase: 82
+    spDefGrowth: 6.0
+    speedBase: 94
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
     codes:
       passive: 220
       normal: 20
       ultimate: 20
-    codeStages:
-      passive: 1
-      normal: 1
-      ultimate: 1
-    levelPassives:
-      - { codeId: 16, unlockLevel: 1,  stage: 1 }   # 행운아
-      - { codeId: 2,  unlockLevel: 12, stage: 1 }   # 기사회생
-      - { codeId: 54, unlockLevel: 20, stage: 1 }   # 사랑 신의 가호 — 행운아의 금색 상위
-      - { codeId: 119, unlockLevel: 22, stage: 1 }  # 영감
-      - { codeId: 51, unlockLevel: 39, stage: 1 }   # 약자 멸시
-      - { codeId: 52, unlockLevel: 45, stage: 1 }   # 천천히 꾸준히
-      - { codeId: 53, unlockLevel: 68, stage: 1 }   # 날카로운 가시
     portrait: PYGMALION_PORTRAIT
     standing: PYGMALION_STANDING
 
-  - id: 21
-    name: 아탈란테
-    tagline: "후열에서 활을 쏘며 디버프를 쌓아 방어를 무시하는 저격수"
-    characterType: Starter
-    element: Dendro
-    startingProficiencies: [Longbow, MediumArmor]
-    startingItemIds: [4106]
-    tags: [Greek]
-    canStartAsMain: true
-    canStartAsSupport: false
-    canUseInInfinite: true
-    mainStat: DEX
-    subStat: CON
-    subStats: [CON]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 16
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 20
-    dexIncrementLvl: 2
-    dexIncrementUpgrade: 1
-    conBase: 14
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 10
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 24
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes:
-      passive: 221
-      normal: 21
-      ultimate: 21
-    codeStages:
-      passive: 1
-      normal: 1
-      ultimate: 1
-    levelPassives:
-      - { codeId: 44, unlockLevel: 4,  stage: 1 }   # 궁수
-      - { codeId: 45, unlockLevel: 6,  stage: 1 }   # 민첩함
-      - { codeId: 46, unlockLevel: 10, stage: 1 }   # 유리대포
-      - { codeId: 47, unlockLevel: 18, stage: 1 }   # 사냥꾼
-      - { codeId: 48, unlockLevel: 30, stage: 1 }   # 맹독
-      - { codeId: 49, unlockLevel: 41, stage: 1 }   # 저격수
-      - { codeId: 50, unlockLevel: 67, stage: 1 }   # 사냥신의 가호
-    portrait: ATALANTE_PORTRAIT
-    standing: ATALANTE_STANDING
-
-  # 초기 서포터 카드. 반격 탱커이자 활 계열 힘사수 딜탱.
-  - id: 22
-    name: 오리온
-    tagline: "피격을 세어 적 전체에 반격하고 궁극기로 화살비 12발을 쏟는 다타수 궁수"
-    characterType: Support
-    element: Geo
-    startingProficiencies: [Longbow, HeavyArmor]
-    startingItemIds: [4106]
-    tags: [Greek]
-    archetypeTags: [Precision, Sturdy, FollowUp]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    mainStat: STR
-    subStat: CON
-    subStats: [CON]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 24
-    strIncrementLvl: 2
-    strIncrementUpgrade: 1
-    dexBase: 12
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 20
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 10
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 14
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 35
-    codes:
-      passive: 222
-      normal: 22
-      ultimate: 22
-    codeStages:
-      passive: 1
-      normal: 1
-      ultimate: 1
-    levelPassives:
-      - { codeId: 44, unlockLevel: 4,  stage: 1 }   # 궁수
-      - { codeId: 20,  unlockLevel: 10, stage: 1 }   # 중갑병
-      - { codeId: 2,  unlockLevel: 12, stage: 1 }   # 기사회생
-      - { codeId: 47, unlockLevel: 18, stage: 1 }   # 사냥꾼
-      - { codeId: 21,  unlockLevel: 32, stage: 1 }   # 명사수
-      - { codeId: 6,  unlockLevel: 38, stage: 1 }   # 철벽
-      - { codeId: 22,  unlockLevel: 52, stage: 1 }   # 파수꾼
-      - { codeId: 50, unlockLevel: 67, stage: 1 }   # 사냥신의 가호
-    portrait: ORION_PORTRAIT
-    standing: ORION_STANDING
-
-  # 그리스 스타터. 딜/탱 비중을 자유롭게 조절하는 범용 전열 딜러.
-  - id: 23
-    name: 테세우스
-    tagline: "궁극기와 자가 치유로 힐러 없이도 버티는 광역 전열 전사"
-    characterType: Locked
-    element: Hydro
-    startingProficiencies: [Longsword, HeavyArmor]
-    startingItemIds: [4102]
-    tags: [Greek]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    unlocksUnitIdsOnClear: [27]
-    mainStat: DEX
-    subStat: CON
-    subStats: [CON]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 16
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 22
-    dexIncrementLvl: 2
-    dexIncrementUpgrade: 1
-    conBase: 20
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 12
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 14
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes:
-      passive: 223
-      normal: 23
-      ultimate: 23
-    codeStages:
-      passive: 1
-      normal: 1
-      ultimate: 1
-    levelPassives:
-      - { codeId: 23, unlockLevel: 9,  stage: 1 }   # 원소 친화 - 물
-      - { codeId: 41, unlockLevel: 22, stage: 1 }   # 투사
-      - { codeId: 25, unlockLevel: 45, stage: 1 }   # 자가치유
-      - { codeId: 26, unlockLevel: 50, stage: 1 }   # 과다치유
-    portrait: THESEUS_PORTRAIT
-    standing: THESEUS_STANDING
-
-  # 그리스 미해금. 일반공격과 반응 치유를 겸하는 고점형 하이브리드.
-  - id: 24
-    name: 아스클레피아
-    tagline: "일반공격 딜러와 힐러의 모습을 겸비한 고점형 하이브리드 유닛"
-    characterType: Locked
-    element: Electro
-    startingProficiencies: [Crossbow]
-    startingItemIds: [4108]
-    tags: [Akasha, Greek, Human]
-    archetypeTags: [Precision, Healing]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: LUK
-    subStat: STR
-    subStats: [STR, CON]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.05
-    strBase: 16
-    strIncrementLvl: 1
-    strLevelGrowthScale: 1.55
-    strIncrementUpgrade: 1
-    dexBase: 12
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 16
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 9
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 20
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes:
-      passive: 224
-      normal: 24
-      ultimate: 24
-    codeStages:
-      passive: 1
-      normal: 1
-      ultimate: 1
-    levelPassives:
-      - { codeId: 55, unlockLevel: 2,  stage: 1 }   # 주문 가속
-      - { codeId: 5, unlockLevel: 15, stage: 1 }   # 목욕제계
-      - { codeId: 30, unlockLevel: 40, stage: 1 }   # 치명적인 치유
-      - { codeId: 37, unlockLevel: 44, stage: 1 }  # 순환
-      - { codeId: 32, unlockLevel: 50, stage: 1 }   # 의신의 가호
-    portrait: ASCLEPIUS_PORTRAIT
-    standing: ASCLEPIUS_STANDING
-
-  # 타카미가하라 미해금. 일반행동을 증폭하는 후열 사수.
-  - id: 40
-    name: 아마테라스
-    tagline: "일반행동을 맞힐 때마다 화살 8발이 따라 나가는 추가행동 폭발 궁수"
-    characterType: Locked
-    element: Pyro
-    startingProficiencies: [Longbow, LightArmor]
-    startingItemIds: [4106]
-    tags: [Takamagahara, ThreeNobles]
-    archetypeTags: [Precision]
-    canStartAsMain: true   # 임시: 투사체 궤적 확인용
-    canStartAsSupport: false
-    canUseInInfinite: false
-    unlocksUnitIdsOnClear: [44]
-    mainStat: DEX
-    subStat: STR
-    subStats: [STR, LUK]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.05
-    strBase: 16
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 22
-    dexIncrementLvl: 2
-    dexIncrementUpgrade: 1
-    conBase: 12
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 10
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 16
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes:
-      passive: 240
-      normal: 40
-      ultimate: 40
-    codeStages:
-      passive: 1
-      normal: 1
-      ultimate: 1
-    levelPassives:
-      - { codeId: 46, unlockLevel: 10, stage: 1 }  # 유리대포
-      - { codeId: 27,  unlockLevel: 25, stage: 1 }  # 투명
-      - { codeId: 21,  unlockLevel: 32, stage: 1 }  # 명사수
-      - { codeId: 49, unlockLevel: 41, stage: 1 }  # 저격수
-      - { codeId: 28,  unlockLevel: 44, stage: 1 }  # 폭죽놀이
-      - { codeId: 29,  unlockLevel: 68, stage: 1 }  # 파죽지세
-    portrait: AMATERASU_PORTRAIT
-    standing: AMATERASU_STANDING
-
-  # 스타터 서포터. 방어막을 부여하는 방어형 지원 역할을 맡는다.
-  - id: 60
-    name: 찬드라
-    tagline: "특수행동으로 아군 전체에 보호막과 마나를, 궁극기로 최대 딜러에게 올스탯을 준다"
-    characterType: Support
-    element: Geo
-    startingProficiencies: [Shortspear, LightArmor]
-    startingItemIds: [4115]
-    tags: [Vedic, Lokapala]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    mainStat: CON
-    subStat: INT
-    subStats: [INT]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 10
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 12
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 22
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 18
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 14
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes:
-      passive: 260
-      normal: 60
-      ultimate: 60
-      special: 60
-    codeStages:
-      passive: 3
-      normal: 1
-      ultimate: 1
-    levelPassives:
-      - codeId: 1
-        unlockLevel: 8
-        stage: 1
-      - codeId: 109
-        unlockLevel: 10
-        stage: 1
-      - codeId: 2
-        unlockLevel: 12
-        stage: 1
-      - codeId: 3
-        unlockLevel: 20
-        stage: 1
-      - codeId: 108
-        unlockLevel: 27
-        stage: 1
-      - codeId: 5
-        unlockLevel: 35
-        stage: 1
-      - codeId: 6
-        unlockLevel: 38
-        stage: 1
-    portrait: CHANDRA_PORTRAIT
-    standing: CHANDRA_STANDING
-
-  # ── 보관: 영웅 획득 경로 미정 ─────────────────────────────────────
-  - id: 140
-    name: 케찰코아틀
-    tagline: "필드의 풀 아군 수만큼 아군 전체 피해를 올리는 풀 파티의 중심"
-    characterType: Locked
-    element: Dendro
-    startingProficiencies: [Orb]
-    startingItemIds: [4109]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: INT
-    subStat: LUK
-    subStats: [LUK]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 10
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 12
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 20
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 24
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 12
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes:
-      passive: 340
-      normal: 140
-      ultimate: 140
-    codeStages:
-      passive: 1
-      normal: 1
-      ultimate: 1
-    levelPassives:
-      - { codeId: 15, unlockLevel: 4,  stage: 1 }   # 지혜
-      - { codeId: 17, unlockLevel: 18, stage: 1 }   # 학자
-      - { codeId: 18, unlockLevel: 22, stage: 1 }   # 명상
-      - { codeId: 7, unlockLevel: 48, stage: 1 }   # 사전 준비 (세이와 공용)
-      - { codeId: 19, unlockLevel: 70, stage: 1 }   # 날개 달린 뱀
-    portrait: QUETZALCOATL_PORTRAIT
-    standing: QUETZALCOATL_STANDING
-
-  # ── 츠쿠요미: 천공 전선(테마 19) 1슬롯 승리 뒤 합류 사건으로 해금 ──────
-  - id: 41
-    name: 츠쿠요미
-    tagline: "지속피해와 달의 위상 디버프를 뿌려 아군 모두의 칼을 깊게 만드는 술사"
-    characterType: Locked
-    element: Electro
-    startingProficiencies: [Spear]
-    startingItemIds: [4104]
-    tags: [Takamagahara, ThreeNobles]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: INT
-    subStat: LUK
-    subStats: [LUK]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 9
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 14
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 16
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 26
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 18
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes:
-      passive: 241
-      normal: 41
-      ultimate: 41
-    codeStages:
-      passive: 1
-      normal: 1
-      ultimate: 1
-    levelPassives:
-      - codeId: 36
-        unlockLevel: 15
-        stage: 1
-      - codeId: 35
-        unlockLevel: 33
-        stage: 1
-      - codeId: 114
-        unlockLevel: 44
-        stage: 1
-      - codeId: 7
-        unlockLevel: 55
-        stage: 1
-      - codeId: 38
-        unlockLevel: 70
-        stage: 1
-    portrait: TSUKUYOMI_PORTRAIT
-    standing: TSUKUYOMI_STANDING
-
-  # ── 노르드 스타터 ─────────────────────────────────────────────
-  - id: 80
-    name: 수르트
-    tagline: "자신의 체력을 소모해 강력한 일격을 날리는 궁극기 딜러."
-    characterType: Starter
-    element: Pyro
-    startingProficiencies: [Greatsword, MediumArmor]
-    startingItemIds: [4103]
-    tags: [Nord, Giant]
-    archetypeTags: [Sturdy, Shielding, Burst, Indomitable]
-    canStartAsMain: true
-    canStartAsSupport: false
-    canUseInInfinite: true
-    mainStat: STR
-    subStat: CON
-    subStats: [CON]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 26
-    strIncrementLvl: 2
-    strIncrementUpgrade: 1
-    dexBase: 12
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 22
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 8
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 12
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes:
-      passive: 280
-      normal: 80
-      ultimate: 80
-    codeStages:
-      passive: 1
-      normal: 1
-      ultimate: 1
-    levelPassives:
-      - { codeId: 39, unlockLevel: 4,  stage: 1 }   # 거인
-      - { codeId: 40, unlockLevel: 25, stage: 1 }   # 천상의 신체
-      - { codeId: 41, unlockLevel: 28, stage: 1 }   # 투사
-      - { codeId: 42, unlockLevel: 33, stage: 1 }   # 클러치 플레이어
-      - { codeId: 43, unlockLevel: 52, stage: 1 }   # 신살자
-      - { codeId: 11,  unlockLevel: 66, stage: 1 }   # 천살성
-    portrait: SURTR_PORTRAIT
-    standing: SURTR_STANDING
-
-  # ══ 베다 진영 ══════════════════════════════════════════════════
-  # 각 유닛은 전용 초상화·스탠딩을 사용한다.
-
-  # 지속피해 코어. 수동적인 지속피해를 능동적으로 터뜨린다.
-  - id: 61
-    name: 야마
-    tagline: "아군 전체의 지속피해를 키우고 궁극기로 한 번에 정산하는 브루저"
-    characterType: Locked
-    unlockCondition: "런을 한 번 끝내면 해금"
-    element: Electro
-    startingProficiencies: [Spear, MediumArmor]
-    startingItemIds: [4104]
-    tags: [Vedic, Lokapala]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: INT
-    subStat: DEX
-    subStats: [DEX, CON]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.05
-    strBase: 10
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 18
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 18
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 22
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 12
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 261, normal: 61, ultimate: 61, special: 61 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 56, unlockLevel: 4,  stage: 1 }   # 지혜
-      - { codeId: 57, unlockLevel: 9,  stage: 1 }   # 원소 숙련 - 번개
-      - { codeId: 33, unlockLevel: 12, stage: 1 }   # 주문 보호막
-      - { codeId: 59, unlockLevel: 44, stage: 1 }   # 고전압
-      - { codeId: 60, unlockLevel: 65, stage: 1 }   # 충전
-    portrait: YAMA_PORTRAIT
-    standing: YAMA_STANDING
-
-  # 베다/캐스터 파티의 서브 딜러.
-  - id: 62
-    name: 아그니
-    tagline: "적 전체를 특수 피해에 취약하게 만들고 불 원소 아군의 피해를 올리는 불의 신"
-    characterType: Support
-    element: Pyro
-    startingProficiencies: [Orb]
-    startingItemIds: [4109]
-    tags: [Vedic, Lokapala]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    mainStat: INT
-    subStat: LUK
-    subStats: [LUK]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 8
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 12
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 14
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 24
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 18
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 262, normal: 62, ultimate: 62, special: 62 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 57, unlockLevel: 8,  stage: 1 }   # 원소 숙련 - 불
-      - { codeId: 33, unlockLevel: 12, stage: 1 }
-      - { codeId: 15, unlockLevel: 15, stage: 1 }   # 학식
-      - { codeId: 1593, unlockLevel: 50, stage: 1 } # 원소 정통   # 주문 보호막
-      - { codeId: 62, unlockLevel: 70, stage: 1 }   # 대마법사
-    portrait: AGNI_PORTRAIT
-    standing: AGNI_STANDING
-
-  # 클래식 번개 하이퍼캐리.
-  - id: 63
-    name: 인드라
-    tagline: "궁극기로 로카팔라 전원의 특수행동을 여는 천둥의 왕. 적 사이를 튕기는 천벌을 쏜다"
-    characterType: Locked
-    element: Electro
-    startingProficiencies: [Orb, LightArmor]
-    startingItemIds: [4109]
-    tags: [Vedic, Lokapala]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: INT
-    subStat: LUK
-    subStats: [LUK]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 8
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 14
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 14
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 26
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 16
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 263, normal: 63, ultimate: 63, special: 63 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 63, unlockLevel: 11, stage: 1 }   # 선두주자
-      - { codeId: 64, unlockLevel: 20, stage: 1 }   # 천재
-      - { codeId: 65, unlockLevel: 30, stage: 1 }   # 용살자
-      - { codeId: 66, unlockLevel: 45, stage: 1 }   # 자기과신
-      - { codeId: 67, unlockLevel: 70, stage: 1 }   # 인도자
-    portrait: INDRA_PORTRAIT
-    standing: INDRA_STANDING
-
-  # 범용 방어형 서포터.
-  - id: 64
-    name: 바유
-    tagline: "적 전체에 바람을 붙이고 방어력을 깎으며 잔풍으로 지속피해를 남긴다"
-    characterType: Support
-    element: Anemo
-    startingProficiencies: [Longbow, LightArmor]
-    startingItemIds: [4106]
-    tags: [Vedic, Lokapala]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    mainStat: CON
-    subStat: DEX
-    subStats: [DEX]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 12
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 18
-    dexIncrementLvl: 2
-    dexIncrementUpgrade: 1
-    conBase: 22
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 12
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 14
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 264, normal: 64, ultimate: 64, special: 64 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 44, unlockLevel: 4,  stage: 1 }   # 궁수
-      - { codeId: 68, unlockLevel: 13, stage: 1 }   # 재기의 바람
-      - { codeId: 34, unlockLevel: 15, stage: 1 }   # 변덕쟁이
-      - { codeId: 69, unlockLevel: 30, stage: 1 }   # 기습
-    portrait: VAYU_PORTRAIT
-    standing: VAYU_STANDING
-
-  # ══════════════════════════════════════════════════════════════
-  # 2026-08 신규 — 노르드 3인 · 로카팔라 2인 · 그리스 1인 · 타카미가하라 1인
-  # ══════════════════════════════════════════════════════════════
-
-  - id: 81
-    name: 프레이아
-    tagline: "치유량을 아군 지원으로 전환하는 수비형 서포터. 자신의 체력을 소모하는 유닛과 궁합이 좋다."
-    characterType: Support
-    element: Dendro
-    startingProficiencies: [Spear, LightArmor]
-    startingItemIds: [4104]
-    tags: [Nord]
-    archetypeTags: [Support, Healing, Indomitable]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    unlocksAsStarterOnClear: true   # 서포트로 완주하면 스타팅 해금
-    mainStat: CON
-    subStat: DEX
-    subStats: [DEX, INT]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.05
-    strBase: 8
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 16
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 22
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 18
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 12
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 281, normal: 81, ultimate: 81 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 109, unlockLevel: 1,  stage: 1 }   # 카피바라
-      - { codeId: 105, unlockLevel: 1, stage: 1 }   # 피지컬 코치
-      - { codeId: 18,  unlockLevel: 22, stage: 1 }   # 명상
-      - { codeId: 112, unlockLevel: 27, stage: 1 }   # 면벽수련
-      - { codeId: 70,  unlockLevel: 30, stage: 1 }   # 의술
-      - { codeId: 71,  unlockLevel: 40, stage: 1 }   # 리더쉽
-    portrait: FREYA_PORTRAIT
-    standing: FREYA_STANDING
-
-  - id: 82
-    name: 로키
-    tagline: "칸을 차지하지 않는 펜리르를 부리고 소환수 피해를 키우는 소환사"
-    characterType: Locked
-    element: Pyro
-    startingProficiencies: [Longbow, MediumArmor]
-    startingItemIds: [4106]
-    tags: [Nord]
-    archetypeTags: [FollowUp, Precision, Control]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: LUK
-    subStat: STR
-    subStats: [STR]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 18
-    strIncrementLvl: 2
-    strIncrementUpgrade: 1
-    dexBase: 16
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 14
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 10
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 22
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 282, normal: 82, ultimate: 82 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 39, unlockLevel: 4,  stage: 1 }   # 거인
-      - { codeId: 34, unlockLevel: 15, stage: 1 }   # 변덕쟁이
-      - { codeId: 73, unlockLevel: 25, stage: 1 }   # 소환사
-      - { codeId: 43, unlockLevel: 52, stage: 1 }   # 신살자
-      - { codeId: 29,  unlockLevel: 68, stage: 1 }   # 파죽지세
-    portrait: LOKI_PORTRAIT
-    standing: LOKI_STANDING
-
-  - id: 83
-    name: 스카디
-    tagline: "든든하게 전열에서 적의 공격을 막아 내며 적 전체에게 얼음 원소를 부여한다."
-    characterType: Support
-    element: Cryo
-    startingProficiencies: [Orb, Shield, HeavyArmor]
-    startingItemIds: [4109]
-    tags: [Nord, Giant]
-    archetypeTags: [Sturdy, Infusion]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    mainStat: STR
-    subStat: CON
-    subStats: [CON]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 10
-    strIncrementLvl: 2
-    strIncrementUpgrade: 1
-    dexBase: 12
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 24
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 18
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 12
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 283, normal: 83, ultimate: 83 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 105, unlockLevel: 1, stage: 1 }   # 피지컬 코치
-      - { codeId: 112, unlockLevel: 1, stage: 1 }   # 면벽수련
-      - { codeId: 39, unlockLevel: 4,  stage: 1 }   # 거인
-      - { codeId: 57, unlockLevel: 10, stage: 1 }   # 원소 숙련 - 얼음
-      - { codeId: 75, unlockLevel: 12, stage: 1 }   # 원소 친화 - 얼음
-      - { codeId: 6,  unlockLevel: 30, stage: 1 }   # 철벽
-      - { codeId: 76, unlockLevel: 60, stage: 1 }   # 원소술사
-    portrait: SKADI_PORTRAIT
-    standing: SKADI_STANDING
-
-  - id: 65
-    name: 쿠베라
-    tagline: "적을 물리 취약으로 만들고 궁극기로 전체를 띄우는 제어 겸 금고지기"
-    characterType: Support
-    element: Geo
-    startingProficiencies: [Shield, Longsword, HeavyArmor]
-    startingItemIds: [4102]
-    tags: [Vedic, Lokapala]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    mainStat: CON
-    subStat: STR
-    subStats: [STR]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 20
-    strIncrementLvl: 2
-    strIncrementUpgrade: 1
-    dexBase: 10
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 26
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 8
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 10
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 265, normal: 65, ultimate: 65, special: 65 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 77, unlockLevel: 5,  stage: 1 }   # 원소 친화 - 바위
-      - { codeId: 40, unlockLevel: 25, stage: 1 }   # 천상의 신체
-      - { codeId: 78, unlockLevel: 27, stage: 1 }   # 뿌리박기
-      - { codeId: 79, unlockLevel: 32, stage: 1 }   # 상인
-      - { codeId: 6,  unlockLevel: 38, stage: 1 }   # 철벽
-    portrait: KUBERA_PORTRAIT
-    standing: KUBERA_STANDING
-
-  - id: 66
-    name: 바루나
-    tagline: "아군 전체의 원소 반응 피해를 +40% 올리는 반응 파티의 핵심. 치유와 정화도 맡는다"
-    characterType: Support
-    element: Hydro
-    startingProficiencies: [Spear, MediumArmor]
-    startingItemIds: [4104]
-    tags: [Vedic, Lokapala]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    mainStat: CON
-    subStat: INT
-    subStats: [INT]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 10
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 12
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 22
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 20
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 12
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 266, normal: 66, ultimate: 66, special: 66 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 33, unlockLevel: 12, stage: 1 }   # 주문 보호막
-      - { codeId: 36, unlockLevel: 38, stage: 1 }   # 고통스러운 상처
-      - { codeId: 59, unlockLevel: 44, stage: 1 }   # 고전압
-      - { codeId: 80, unlockLevel: 50, stage: 1 }   # 수천
-    portrait: VARUNA_PORTRAIT
-    standing: VARUNA_STANDING
-
-  - id: 67
-    name: 수리야
-    tagline: "햇빛 아래 아군 행동마다 중첩을 쌓아 한 번에 터뜨리는 태양신"
-    characterType: Locked
-    element: Pyro
-    startingProficiencies: [Orb, MediumArmor]
-    startingItemIds: [4109]
-    tags: [Vedic, Lokapala]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: CON
-    subStat: INT
-    subStats: [INT]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 9
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 12
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 22
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 18
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 14
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 267, normal: 67, ultimate: 67, special: 67 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 110, unlockLevel: 16, stage: 1 }  # 특별함
-      - { codeId: 108, unlockLevel: 22, stage: 1 }  # 봉우
-      - { codeId: 111, unlockLevel: 30, stage: 1 }  # 폭주
-      - { codeId: 112, unlockLevel: 41, stage: 1 }  # 면벽수련
-      - { codeId: 91,  unlockLevel: 55, stage: 1 }  # 이기적
-      - { codeId: 113, unlockLevel: 70, stage: 1 }  # 미트라
-    portrait: SURYA_PORTRAIT
-    standing: SURYA_STANDING
-
-  - id: 25
-    name: 오르페우스
-    tagline: "전투가 시작되자마자 궁극기로 적 전체의 강인도를 깎아 놓는 음유시인"
-    characterType: Support
-    element: Anemo
-    startingProficiencies: [Longsword, LightArmor]
-    startingItemIds: [4102]
-    tags: [Greek]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    mainStat: LUK
-    subStat: INT
-    subStats: [INT]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 10
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 14
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 14
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 18
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 22
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 225, normal: 25, ultimate: 25 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 68, unlockLevel: 13, stage: 1 }   # 재기의 바람
-      - { codeId: 27,  unlockLevel: 25, stage: 1 }   # 투명
-      - { codeId: 10,  unlockLevel: 28, stage: 1 }   # 신속
-      - { codeId: 81, unlockLevel: 30, stage: 1 }   # 음유시인
-    portrait: ORPHEUS_PORTRAIT
-    standing: ORPHEUS_STANDING
-
-  - id: 42
-    name: 스사노오
-    tagline: "공중에 뜬 적이 있는 한 궁극기로 계속 베어 처형하는 폭풍의 신"
-    characterType: Locked
-    element: Hydro
-    startingProficiencies: [Greatsword, LightArmor]
-    startingItemIds: [4103]
-    tags: [Takamagahara, ThreeNobles]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: LUK
-    subStat: DEX
-    subStats: [DEX]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 16
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 22
-    dexIncrementLvl: 2
-    dexIncrementUpgrade: 1
-    conBase: 16
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 8
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 24
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 242, normal: 42, ultimate: 42 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 9,  unlockLevel: 10, stage: 1 }   # 검의 달인
-      - { codeId: 17,  unlockLevel: 18, stage: 1 }   # 예리함
-      - { codeId: 82, unlockLevel: 22, stage: 1 }   # 파도베기
-      - { codeId: 11,  unlockLevel: 44, stage: 1 }   # 천살성
-    portrait: SUSANOO_PORTRAIT
-    standing: SUSANOO_STANDING
-  # ── 세이메이 ─────────────────────────────────────────────────────
-  # 해안 전선 1슬롯 승리 뒤 합류한다. 봉인부를 쌓아 속박하고 재생으로 파티를 유지한다.
-  - id: 43
-    name: 세이메이
-    tagline: "봉인부를 쌓아 적의 행동을 방해하고 재생과 응급 보호막으로 전열을 지키는 음양사"
-    characterType: Locked
-    element: Anemo
-    startingProficiencies: [Orb]
-    startingItemIds: [4109]
-    tags: [Takamagahara, Human]
-    archetypeTags: [Domination, Healing]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: CON
-    subStat: INT
-    subStats: [INT, DEX]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.05
-    strBase: 8
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 14
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 24
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 20
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 10
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 243, normal: 43, ultimate: 43 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 56,  unlockLevel: 3,  stage: 1 }   # 지혜 (현행 카탈로그 ID)
-      - { codeId: 70,  unlockLevel: 10, stage: 1 }   # 의술
-      - { codeId: 146, unlockLevel: 15, stage: 1 }   # 봉인진
-      - { codeId: 147, unlockLevel: 23, stage: 1 }   # 응급치료
-      - { codeId: 116, unlockLevel: 30, stage: 1 }   # 드러난 틈
-      - { codeId: 148, unlockLevel: 45, stage: 1 }   # 응급실
-      - { codeId: 55,  unlockLevel: 52, stage: 1 }   # 주문 가속
-    portrait: SEIMEI_PORTRAIT
-    standing: SEIMEI_STANDING
-  # ── 로마 3인 ──────────────────────────────────────────────────────
-  # 적(60_enemies.yaml 2006 / 2007 / 3004)과 코드를 공유한다.
-  # 보스로 등장할 때만 붙는 패시브(312~317 · 284 심안)는 여기 없다.
-  # 전용 로마 스프라이트를 적 버전과 공유한다.
-  - id: 100
-    name: 아그리파
-    tagline: "아군 한 명의 궁극기 자원을 채우고 위력을 강화하는 서포터."
-    characterType: Support
-    element: Geo
-    startingProficiencies: [Greatsword, MediumArmor]
-    startingItemIds: [4103]
-    tags: [Rome]
-    archetypeTags: [Support]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    mainStat: DEX
-    subStat: INT
-    subStats: [INT]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 12
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 20
-    dexIncrementLvl: 2
-    dexIncrementUpgrade: 1
-    conBase: 14
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 18
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 12
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 300, normal: 100, ultimate: 100 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 112, unlockLevel: 1, stage: 1 }   # 면벽수련
-      - { codeId: 2,  unlockLevel: 12, stage: 1 }   # 기사회생
-      - { codeId: 108, unlockLevel: 20, stage: 1 }   # 봉우
-      - { codeId: 31,  unlockLevel: 30, stage: 1 }   # 마나 호흡법
-      - { codeId: 85, unlockLevel: 46, stage: 1 }   # 전술가
-      - { codeId: 26,  unlockLevel: 50, stage: 1 }   # 과다치유
-      - { codeId: 7,  unlockLevel: 52, stage: 1 }   # 사전준비
-      - { codeId: 67, unlockLevel: 70, stage: 1 }   # 인도자
-    portrait: AGRIPPA_PORTRAIT
-    standing: AGRIPPA_STANDING
-
-  - id: 101
-    name: 옥타비아
-    tagline: "강력한 궁극기를 기반으로 한 클래식 딜러."
-    characterType: Starter
-    element: Anemo
-    startingProficiencies: [Orb, LightArmor]
-    startingItemIds: [4109]
-    tags: [Rome, Emperor]
-    archetypeTags: [Burst]
-    canStartAsMain: true
-    canStartAsSupport: false
-    canUseInInfinite: true
-    mainStat: INT
-    subStat: LUK
-    subStats: [LUK]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 8
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 10
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 12
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 24
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 18
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 301, normal: 101, ultimate: 101 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 46, unlockLevel: 10, stage: 1 }   # 유리대포
-      - { codeId: 64, unlockLevel: 20, stage: 1 }   # 천재
-      - { codeId: 71, unlockLevel: 40, stage: 1 }   # 리더쉽
-      - { codeId: 62, unlockLevel: 70, stage: 1 }   # 대마법사
-    portrait: OCTAVIA_PORTRAIT
-    standing: OCTAVIA_STANDING
-
-  - id: 103
-    name: 이아손
-    tagline: "방출 속성의 아군을 지원하는 공격형 서포터."
-    characterType: Support
-    element: Hydro
-    startingProficiencies: [Longsword, Shield, MediumArmor]
-    startingItemIds: [4102]
-    tags: [Greek, Human]
-    archetypeTags: [Burst, FollowUp, Support]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    mainStat: LUK
-    subStat: INT
-    subStats: [INT, STR]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 16
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 18
-    dexIncrementLvl: 2
-    dexIncrementUpgrade: 1
-    conBase: 16
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 18
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 20
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 303, special: 103, normal: 103, ultimate: 103 }
-    codeStages: { passive: 1, special: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 109, unlockLevel: 1,  stage: 1 }   # 카피바라
-      - { codeId: 139, unlockLevel: 10, stage: 1 }   # 가정 신의 가호
-      - { codeId: 16,  unlockLevel: 14, stage: 1 }   # 행운아
-      - { codeId: 27,  unlockLevel: 15, stage: 1 }   # 투명
-      - { codeId: 141, unlockLevel: 45, stage: 1 }   # 포수
-      - { codeId: 67,  unlockLevel: 70, stage: 1 }   # 인도자
-    portrait: JASON_PORTRAIT
-    standing: JASON_STANDING
-
-  - id: 102
-    name: 카이사르
-    tagline: "궁극기로 아군 전체의 행동 게이지를 채우고 처치할 때마다 로마 아군을 강화한다"
-    characterType: Locked
-    element: Anemo
-    startingProficiencies: [Longsword, LightArmor]
-    startingItemIds: [4102]
-    tags: [Rome, Emperor]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: LUK
-    subStat: DEX
-    subStats: [DEX]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 12
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 18
-    dexIncrementLvl: 2
-    dexIncrementUpgrade: 1
-    conBase: 15
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 12
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 22
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 302, normal: 102, ultimate: 102 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 83, unlockLevel: 12, stage: 1 }   # 카리스마
-      - { codeId: 84, unlockLevel: 21, stage: 1 }   # 직감
-      - { codeId: 42, unlockLevel: 55, stage: 1 }   # 클러치 플레이어
-      - { codeId: 29,  unlockLevel: 68, stage: 1 }   # 파죽지세
-      - { codeId: 67, unlockLevel: 70, stage: 1 }   # 인도자
-    portrait: CAESAR_PORTRAIT
-    standing: CAESAR_STANDING
-
-  # ══════════════════════════════════════════════════════════════
-  # 이집트 신규 — 호루스 · 아누비스 · 바스테트
-  # ══════════════════════════════════════════════════════════════
-
-  - id: 120
-    name: 호루스
-    tagline: "넘치는 행동 속도를 STR로 바꾸는 특이한 단일 딜러. DEX 버프가 곧 화력이다"
-    characterType: Locked
-    element: Pyro
-    startingProficiencies: [Longbow, LightArmor]
-    startingItemIds: [4106]
-    tags: [Egypt]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: DEX
-    subStat: STR
-    subStats: [STR]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 20
-    strIncrementLvl: 2
-    strIncrementUpgrade: 1
-    dexBase: 22
-    dexIncrementLvl: 2
-    dexIncrementUpgrade: 1
-    conBase: 12
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 12
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 14
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    ultimateResourceType: Stack
-    ultimateResourceName: 우제트
-    ultimateResourceMax: 4
-    manaMax: 100
-    codes: { passive: 320, normal: 120, ultimate: 120 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 86, unlockLevel: 14, stage: 1 }   # 빈틈의 실
-      - { codeId: 10,  unlockLevel: 28, stage: 1 }   # 신속
-      - { codeId: 49, unlockLevel: 41, stage: 1 }   # 저격수
-      - { codeId: 43, unlockLevel: 52, stage: 1 }   # 신살자
-      - { codeId: 29,  unlockLevel: 68, stage: 1 }   # 파죽지세
-    portrait: HORUS_PORTRAIT
-    standing: HORUS_STANDING
-
-  - id: 121
-    name: 아누비스
-    tagline: "적 전열을 치며 아군 전열에 방어막을 씌우는 방벽. 쓰러진 아군을 되살린다"
-    characterType: Locked
-    element: Geo
-    # 현재 장비 분류의 Spear/MediumArmor가 단창/평갑을 포괄한다.
-    startingProficiencies: [Spear, MediumArmor]
-    startingItemIds: [4104]
-    tags: [Egypt]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: CON
-    subStat: STR
-    subStats: [STR]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 20
-    strIncrementLvl: 2
-    strIncrementUpgrade: 1
-    dexBase: 10
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 24
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 12
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 10
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 321, normal: 121, ultimate: 121 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 87, unlockLevel: 9,  stage: 1 }   # 창지기
-      - { codeId: 3,  unlockLevel: 20, stage: 1 }   # 보루
-      - { codeId: 40, unlockLevel: 25, stage: 1 }   # 천상의 신체
-      - { codeId: 102, unlockLevel: 38, stage: 1 }  # 죽은 자의 소생
-      - { codeId: 37, unlockLevel: 44, stage: 1 }   # 순환
-      - { codeId: 88, unlockLevel: 50, stage: 1 }   # 저승사자
-    portrait: ANUBIS_PORTRAIT
-    standing: ANUBIS_STANDING
-
+  # ── 바스테트 ────────────────────────────────────────────────────────
+  # 높은 기초 속도로 일반행동을 자주 쓰는 단일 공격수. 견고·반격 아군이 경호하고,
+  # 아군 반격이 실제 피해를 주면 같은 대상에게 즉시 냥냥펀치를 한 번 더 잇는다.
   - id: 122
     name: 바스테트
-    tagline: "반격을 가진 탱커에 반응하는 추가공격 딜러"
-    characterType: Starter
+    tagline: "빠른 냥냥펀치를 꾸준히 잇는 경호대장. 견고하거나 반격하는 아군이 공격을 대신 받고, 아군 반격 뒤 같은 적을 한 번 더 때린다."
+    characterType: Unlocked
     element: Geo
-    startingProficiencies: [Dagger, LightArmor]
-    startingItemIds: [4101]
-    tags: [Egypt]
-    archetypeTags: [Precision, FollowUp]
-    canStartAsMain: true
-    canStartAsSupport: false
-    canUseInInfinite: true
-    mainStat: LUK
-    subStat: DEX
-    subStats: [DEX]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 12
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 22
-    dexIncrementLvl: 2
-    dexLevelGrowthScale: 0.90
-    dexIncrementUpgrade: 1
-    conBase: 12
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 10
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 24
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
+    vfxClass: beast
+    tags: [Egypt, Divine]
+    archetypeTags: [Precision, FollowUp, Swift]
+    hpBase: 930
+    hpGrowth: 84
+    atkBase: 104
+    atkGrowth: 7
+    spAtkBase: 64
+    spAtkGrowth: 3.5
+    defBase: 72
+    defGrowth: 5
+    spDefBase: 68
+    spDefGrowth: 4
+    speedBase: 116
+    critRateBase: 5
+    critDamageBase: 50
     manaMax: 100
-    codes: { passive: 322, normal: 122, ultimate: 122 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 89, unlockLevel: 2,  stage: 1 }   # 대도
-      - { codeId: 90, unlockLevel: 6,  stage: 1 }   # 가벼운 무장
-      - { codeId: 46, unlockLevel: 10, stage: 1 }   # 유리대포
-      - { codeId: 27,  unlockLevel: 25, stage: 1 }   # 투명
-      - { codeId: 91, unlockLevel: 29, stage: 1 }   # 이기적
-      - { codeId: 98, unlockLevel: 40, stage: 1 }   # 암살자
-      - { codeId: 29,  unlockLevel: 68, stage: 1 }   # 파죽지세
+    ultimateResourceType: Passive
+    ultimateResourceName: 상시
+    codes:
+      passive: 322
+      normal: 122
+      ultimate: 122
     portrait: BASTET_PORTRAIT
     standing: BASTET_STANDING
-
-  - id: 123
-    name: 세트
-    tagline: "궁극기로 긴 화상을 직접 거는 화상 지속피해 브루저"
-    characterType: Locked
-    element: Pyro
-    startingProficiencies: [Greatsword, MediumArmor]
-    startingItemIds: [4103]
-    tags: [Egypt]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: STR
-    subStat: CON
-    subStats: [CON]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 24
-    strIncrementLvl: 2
-    strIncrementUpgrade: 1
-    dexBase: 12
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 22
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 8
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 12
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 323, normal: 123, ultimate: 123 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 41, unlockLevel: 25, stage: 1 }   # 투사
-      - { codeId: 36, unlockLevel: 38, stage: 1 }   # 고통스러운 상처
-      - { codeId: 51, unlockLevel: 39, stage: 1 }   # 약자 멸시
-      - { codeId: 26,  unlockLevel: 50, stage: 1 }   # 과다치유
-    portrait: SET_PORTRAIT
-    standing: SET_STANDING
-
-  - id: 124
-    name: 토트
-    tagline: "강인도 효율을 올리고 깎은 강인도를 실제 피해로 바꾸는 지혜의 신"
-    characterType: Support
-    element: Hydro
-    startingProficiencies: [Orb]
-    startingItemIds: [4109]
-    tags: [Egypt]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    mainStat: INT
-    subStat: CON
-    subStats: [CON]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 10
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 12
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 20
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 24
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 14
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 324, normal: 124, ultimate: 124 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 15,  unlockLevel: 1,  stage: 1 }   # 지혜
-      - { codeId: 92, unlockLevel: 20, stage: 1 }   # 환술사
-      - { codeId: 18,  unlockLevel: 22, stage: 1 }   # 명상
-      - { codeId: 93, unlockLevel: 39, stage: 1 }   # 허허실실
-    portrait: THOTH_PORTRAIT
-    standing: THOTH_STANDING
-
-  - id: 125
-    name: 이시스
-    tagline: "적 전체를 세 번 치며 바위를 붙이고 행동 게이지를 늦추는 제어형 딜러"
-    characterType: Support
-    element: Geo
-    startingProficiencies: [Orb]
-    startingItemIds: [4109]
-    tags: [Egypt]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    mainStat: CON
-    subStat: INT
-    subStats: [INT]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 10
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 12
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 22
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 20
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 12
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 325, normal: 125, ultimate: 125 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 15,  unlockLevel: 1,  stage: 1 }   # 지혜
-      - { codeId: 94, unlockLevel: 12, stage: 1 }   # 원소 (효과 미정)
-      - { codeId: 5,  unlockLevel: 35, stage: 1 }   # 목욕재계
-      - { codeId: 55, unlockLevel: 70, stage: 1 }   # 주문 가속
-    portrait: ISIS_PORTRAIT
-    standing: ISIS_STANDING
-
-  - id: 3
-    name: 사바흐
-    tagline: "아군이 부여한 디버프를 기반으로 궁극기를 발동하는 고화력 딜러."
-    characterType: Starter
-    element: Electro
-    startingProficiencies: [Longsword, LightArmor]
-    startingItemIds: [4102]
-    tags: [Akasha]
-    archetypeTags: [Control, Burst]
-    canStartAsMain: true
-    canStartAsSupport: false
-    canUseInInfinite: true
-    mainStat: LUK
-    subStat: DEX
-    subStats: [DEX]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 14
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 20
-    dexIncrementLvl: 2
-    dexIncrementUpgrade: 1
-    conBase: 14
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 10
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 24
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 203, normal: 3, ultimate: 3 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    ultimateResourceType: Stack
-    ultimateResourceName: 아즈라엘
-    ultimateResourceMax: 7
-    levelPassives:
-      - { codeId: 24, unlockLevel: 4,  stage: 1 }   # 광신도
-      - { codeId: 84, unlockLevel: 5,  stage: 1 }   # 직감
-      - { codeId: 9,  unlockLevel: 12, stage: 1 }   # 검의 달인
-      - { codeId: 98, unlockLevel: 18, stage: 1 }   # 암살자
-      - { codeId: 69, unlockLevel: 30, stage: 1 }   # 기습
-      - { codeId: 11,  unlockLevel: 44, stage: 1 }   # 천살성
-    portrait: SABAH_PORTRAIT
-    standing: SABAH_STANDING
-
-  - id: 26
-    name: 이카리아
-    tagline: "체력을 태워 피해로 바꾸는 후열 폭딜. 소모한 만큼 배율이 커진다"
-    characterType: Locked
-    element: Pyro
-    startingProficiencies: [Spear]
-    startingItemIds: [4104]
-    tags: [Greek]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: INT
-    subStat: CON
-    subStats: [CON, LUK]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.05
-    strBase: 10
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 12
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 18
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 22
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 16
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 226, normal: 26, ultimate: 26 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 46, unlockLevel: 10, stage: 1 }   # 유리대포
-      - { codeId: 96, unlockLevel: 20, stage: 1 }   # 정신력
-      - { codeId: 97, unlockLevel: 30, stage: 1 }   # 원소 친화 - 불
-      - { codeId: 42, unlockLevel: 55, stage: 1 }   # 클러치 플레이어
-    portrait: ICARIA_PORTRAIT
-    standing: ICARIA_STANDING
-
-  - id: 160
-    name: 마리
-    tagline: "활 분류 무기를 사용하는 궁수들을 지원해주는 특화 서포터"
-    characterType: Support
-    archetypeTags: [Precision, Support]
-    element: Cryo
-    startingProficiencies: [Longsword, LightArmor]
-    startingItemIds: [4102]
-    tags: [Gaul, Human]
-    canStartAsMain: false
-    canStartAsSupport: true
-    canUseInInfinite: false
-    unlocksAsStarterOnClear: true   # 서포트로 완주하면 스타팅 해금
-    mainStat: LUK
-    subStat: DEX
-    subStats: [DEX, STR]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.05
-    strBase: 16
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 20
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 14
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 10
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 24
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 360, normal: 160, ultimate: 160 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 99, unlockLevel: 1,  stage: 1 }   # 고귀한 혈통
-      - { codeId: 16, unlockLevel: 2,  stage: 1 }   # 행운아
-      - { codeId: 100, unlockLevel: 5,  stage: 1 }   # 장교
-      - { codeId: 132, unlockLevel: 5,  stage: 1 }   # 보살핌
-      - { codeId: 75, unlockLevel: 12, stage: 1 }   # 원소 친화 - 얼음
-      - { codeId: 101, unlockLevel: 30, stage: 1 }   # 개선문
-    portrait: MARIE_PORTRAIT
-    standing: MARIE_STANDING
-
-  # 화령 스타터. 분신을 늘려 머릿수로 때리는 소환 특화 딜러.
-  - id: 180
-    name: 우치
-    tagline: "분신을 셋까지 늘려 함께 두들기고, 치명적인 일격은 분신으로 흘리는 도사"
-    characterType: Starter
-    archetypeTags: [Summon, Precision]
-    element: Anemo
-    startingProficiencies: [Orb, LightArmor]
-    startingItemIds: [4109]
-    tags: [Hwaryeong, Beast]
-    canStartAsMain: true
-    canStartAsSupport: false
-    canUseInInfinite: true
-    mainStat: INT
-    subStat: LUK
-    subStats: [LUK]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 12
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 16
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 16
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 24
-    intIncrementLvl: 3
-    intIncrementUpgrade: 1
-    lukBase: 20
-    lukIncrementLvl: 3
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 380, normal: 180, ultimate: 180 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 142, unlockLevel: 1,  stage: 1 }   # 느긋함
-      - { codeId: 143, unlockLevel: 8,  stage: 1 }   # 정기 회복
-      - { codeId: 26,  unlockLevel: 12, stage: 1 }   # 과다치유
-      - { codeId: 89,  unlockLevel: 20, stage: 1 }   # 대도
-      - { codeId: 55,  unlockLevel: 40, stage: 1 }   # 주문 가속
-    portrait: USA_PORTRAIT
-    standing: USA_STANDING
-
-  - id: 8
-    name: 라부아지에
-    tagline: "아군이 준 치유·보호막·버프를 시약으로 모아 한 번에 터뜨리는 연금술 딜러"
-    characterType: Locked
-    unlockCondition: "육성 모드를 처음 완주하면 해금"
-    element: Pyro
-    startingProficiencies: [Orb]
-    startingItemIds: [4109]
-    tags: [Akasha, Gaul, Human]
-    canStartAsMain: false
-    canStartAsSupport: false
-    # 실제 무한 모드 선택은 본인의 육성 완료 기록도 요구한다.
-    canUseInInfinite: true
-    mainStat: INT
-    subStat: DEX
-    subStats: [DEX, CON]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.05
-    strBase: 9
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 16
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 18
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 22
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 15
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 3
-    ultimateResourceType: Stack
-    ultimateResourceName: 반응 준비도
-    ultimateResourceMax: 3
-    codes: { passive: 208, normal: 8, ultimate: 8 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 15, unlockLevel: 4, stage: 1 }
-      - { codeId: 16, unlockLevel: 9, stage: 1 }
-      - { codeId: 18, unlockLevel: 22, stage: 1 }
-      - { codeId: 40, unlockLevel: 30, stage: 1 }
-      - { codeId: 27, unlockLevel: 40, stage: 1 }
-      - { codeId: 17, unlockLevel: 50, stage: 1 }
-    portrait: LAVOISIER_PORTRAIT
-    standing: LAVOISIER_STANDING
-
-  # ── 시구르드 · 브륀힐드 ──────────────────────────────────────────
-  # 맹세(284·285)를 공유하는 2인조. 둘이 함께 서야 공명이 쌓이고 협동행동이 나간다.
-  # 혼자 선 쪽은 평범한 유닛이며, 짝을 잃은 뒤에만 복수가 그 자리를 대신한다.
-  # 불(시구르드)과 얼음(브륀힐드)을 나눠 가져 협공 한 번에 융해가 터진다.
-  - id: 84
-    name: 시구르드
-    tagline: "브륀힐드와 공명을 쌓아 협공하는 용살자. 불로 베고 단일 궁극기로 내구를 무시한다"
-    characterType: Locked
-    element: Pyro
-    startingProficiencies: [Longsword, MediumArmor]
-    startingItemIds: [4102]
-    tags: [Nord, Human]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: STR
-    subStat: CON
-    subStats: [CON]
-    mainStatTrainingBonus: 0.2
-    subStatTrainingBonus: 0.1
-    strBase: 24
-    strIncrementLvl: 2
-    strIncrementUpgrade: 1
-    dexBase: 14
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 20
-    conIncrementLvl: 2
-    conIncrementUpgrade: 1
-    intBase: 8
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 14
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 284, normal: 84, ultimate: 84 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 39, unlockLevel: 4,  stage: 1 }   # 거인
-      - { codeId: 9,  unlockLevel: 15, stage: 1 }   # 검의 달인 — N·U·협공이 전부 베기다
-      - { codeId: 65, unlockLevel: 28, stage: 1 }   # 용살자 — 파프니르 살해자의 정체성
-      - { codeId: 41, unlockLevel: 40, stage: 1 }   # 투사
-      - { codeId: 43, unlockLevel: 55, stage: 1 }   # 신살자
-      - { codeId: 29, unlockLevel: 70, stage: 1 }   # 파죽지세
-    portrait: SIGURD_PORTRAIT
-    standing: SIGURD_STANDING
-
-  - id: 85
-    name: 브륀힐드
-    tagline: "시구르드와 공명을 쌓아 협공하는 발키리. 얼음 창으로 협공의 절반을 맡는다"
-    characterType: Locked
-    element: Cryo
-    startingProficiencies: [Spear, LightArmor]
-    startingItemIds: [4104]
-    tags: [Nord, Divine]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: DEX
-    subStat: INT
-    subStats: [INT]
-    mainStatTrainingBonus: 0.2
-    subStatTrainingBonus: 0.1
-    strBase: 10
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 24
-    dexIncrementLvl: 2
-    dexIncrementUpgrade: 1
-    conBase: 16
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 18
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 12
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 285, normal: 85, ultimate: 85 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 45, unlockLevel: 4,  stage: 1 }   # 민첩함
-      - { codeId: 17, unlockLevel: 12, stage: 1 }   # 예리함
-      - { codeId: 55, unlockLevel: 25, stage: 1 }   # 주문 가속 — 응수 직후가 가장 빠르다
-      - { codeId: 69, unlockLevel: 38, stage: 1 }   # 기습
-      - { codeId: 67, unlockLevel: 52, stage: 1 }   # 인도자 — 짝의 궁극기를 당긴다
-      - { codeId: 71, unlockLevel: 68, stage: 1 }   # 리더쉽
-    portrait: BRYNHILD_PORTRAIT
-    standing: BRYNHILD_STANDING
-
-  # ── 0.4.8 신규 캐릭터 ──────────────────────────────────────────
-  # 드레이크 — 아군의 마무리를 가로채 현상금을 챙기는 추가행동 딜러.
-  - id: 11
-    name: 드레이크
-    tagline: "빈사의 적을 가로채 현상금을 챙기고, 협상으로 같은 상대를 물고 늘어지는 사략선장"
-    characterType: Locked
-    unlockCondition: "단일 피해를 10,000회 가하면 해금"
-    unlockAfterSingleTargetHits: 10000
-    archetypeTags: [Precision, FollowUp]
-    element: Hydro
-    startingProficiencies: [Longsword, Crossbow, LightArmor]
-    startingItemIds: [4102]
-    tags: [Akasha, Victoria]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: LUK
-    subStat: STR
-    subStats: [STR, DEX]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.05
-    strBase: 18
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 20
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 14
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 12
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 24
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 211, normal: 11, ultimate: 11 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 89,  unlockLevel: 9,  stage: 1 }   # 대도
-      - { codeId: 135, unlockLevel: 12, stage: 1 }   # 재충전
-      - { codeId: 149, unlockLevel: 27, stage: 1 }   # 약탈
-      - { codeId: 69,  unlockLevel: 42, stage: 1 }   # 기습
-      - { codeId: 29,  unlockLevel: 75, stage: 1 }   # 파죽지세
-    portrait: DRAKE_PORTRAIT
-    standing: DRAKE_STANDING
-
-  # 엘리자베스 — 아군의 공격을 장미 문장으로 모아 방어막과 광역 피해로 바꾼다.
-  - id: 12
-    name: 엘리자베스
-    tagline: "아군의 공격마다 장미를 남겨 방어막을 쌓고, 그 방어막을 통째로 쏟아 내는 공격형 쉴더"
-    characterType: Locked
-    unlockCondition: "방어막을 100회 생성하면 해금"
-    unlockAfterShieldGrants: 100
-    archetypeTags: [FollowUp, Shielding]
-    element: Anemo
-    startingProficiencies: [Greatsword, MediumArmor]
-    startingItemIds: [4103]
-    tags: [Akasha, Victoria]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: STR
-    subStat: CON
-    subStats: [CON, LUK]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.05
-    strBase: 24
-    strIncrementLvl: 2
-    strIncrementUpgrade: 1
-    dexBase: 12
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 20
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 12
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 16
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 212, normal: 12, ultimate: 12 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 6,   unlockLevel: 1,  stage: 1 }
-      - { codeId: 26,  unlockLevel: 14, stage: 1 }   # 과다치유
-      - { codeId: 135, unlockLevel: 30, stage: 1 }   # 재충전
-    portrait: ELIZABETH_PORTRAIT
-    standing: ELIZABETH_STANDING
-
-  # 히폴리테 — '사냥감'을 찍고 아군의 타격마다 덧붙여 때리는 보조 딜러.
-  - id: 27
-    name: 히폴리테
-    tagline: "사냥감을 찍어 방어를 허물고, 아군이 때릴 때마다 창을 보태는 아마조네스 여왕"
-    characterType: Locked
-    unlockCondition: "테세우스 육성을 완료하면 해금"
-    archetypeTags: [Precision, Control, FollowUp]
-    element: Dendro
-    startingProficiencies: [Shortspear, Shield, MediumArmor]
-    startingItemIds: [4115]
-    tags: [Greek, Amazoness, Demigod]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: STR
-    subStat: CON
-    subStats: [CON, LUK]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.05
-    strBase: 24
-    strIncrementLvl: 2
-    strIncrementUpgrade: 1
-    dexBase: 16
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 18
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 10
-    intIncrementLvl: 1
-    intIncrementUpgrade: 1
-    lukBase: 16
-    lukIncrementLvl: 1
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 227, normal: 27, ultimate: 27 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 1,   unlockLevel: 1,  stage: 1 }
-      - { codeId: 69,  unlockLevel: 16, stage: 1 }   # 기습
-      - { codeId: 29,  unlockLevel: 38, stage: 1 }   # 파죽지세
-    portrait: HIPPOLYTE_PORTRAIT
-    standing: HIPPOLYTE_STANDING
-
-  # 히미코 — 아군의 추가행동을 신탁으로 모아 한 번에 터뜨리는 공격형 서포터.
-  - id: 44
-    name: 히미코
-    tagline: "아군의 추가행동마다 신탁을 쌓아 추가공격을 키우고, 모은 신탁을 광역으로 쏟는 무녀"
-    characterType: Locked
-    unlockCondition: "아마테라스 육성을 완료하면 해금"
-    archetypeTags: [FollowUp, Support]
-    element: Geo
-    startingProficiencies: [Shortbow, LightArmor]
-    startingItemIds: [4107]
-    tags: [Yamato, Human]
-    canStartAsMain: false
-    canStartAsSupport: false
-    canUseInInfinite: false
-    mainStat: INT
-    subStat: LUK
-    subStats: [LUK]
-    mainStatTrainingBonus: 0.20
-    subStatTrainingBonus: 0.10
-    strBase: 10
-    strIncrementLvl: 1
-    strIncrementUpgrade: 1
-    dexBase: 16
-    dexIncrementLvl: 1
-    dexIncrementUpgrade: 1
-    conBase: 14
-    conIncrementLvl: 1
-    conIncrementUpgrade: 1
-    intBase: 26
-    intIncrementLvl: 2
-    intIncrementUpgrade: 1
-    lukBase: 20
-    lukIncrementLvl: 2
-    lukIncrementUpgrade: 1
-    manaMax: 100
-    codes: { passive: 244, normal: 44, ultimate: 44 }
-    codeStages: { passive: 1, normal: 1, ultimate: 1 }
-    levelPassives:
-      - { codeId: 56,  unlockLevel: 1,  stage: 1 }
-      - { codeId: 135, unlockLevel: 18, stage: 1 }   # 재충전
-      - { codeId: 55,  unlockLevel: 40, stage: 1 }   # 주문 가속
-    portrait: HIMIKO_PORTRAIT
-    standing: HIMIKO_STANDING

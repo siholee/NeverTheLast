@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Core;
 using Entities;
@@ -43,6 +43,9 @@ namespace Managers
         public int ContentSlotInRound => ContentSlot(Stage);
         public int CurrentThemeId => _currentStageTheme?.id ?? 0;
         public string CurrentThemeName => _currentStageTheme?.name ?? "";
+
+        /// <summary>현재 테마의 Resources 전장 배경 키. 비어 있으면 배경 컴포넌트가 기본 원화로 폴백한다.</summary>
+        public string CurrentThemeBackgroundKey => _currentStageTheme?.backgroundKey ?? "";
 
         /// <summary>현재 테마의 전장 환경광. 테마가 없으면 무채색 기본값이다.</summary>
         public UnityEngine.Color CurrentThemeAmbient =>
@@ -809,6 +812,7 @@ namespace Managers
         /// </summary>
         private void PlaceEnemiesInColumns(List<int> frontIds, List<int> rearIds)
         {
+            _entryStagger = 0;
             PlaceColumn(1, frontIds);
             PlaceColumn(2, rearIds);
             ApplyFeaturePresentation();
@@ -833,6 +837,11 @@ namespace Managers
             }
         }
 
+        /// <summary>적 카드가 떨어지기 시작하는 지연과 카드 사이 간격(초).</summary>
+        private const float EntryBaseDelay = 0.15f;
+        private const float EntryStagger = 0.1f;
+        private int _entryStagger;
+
         private void PlaceColumn(int xPos, List<int> enemyIds)
         {
             if (enemyIds == null) return;
@@ -851,7 +860,9 @@ namespace Managers
                     continue;
                 }
 
-                GameManager.Instance.gridManager.SpawnUnit(xPos, yPos, true, enemyId);
+                // 적 카드는 한 장씩 차례로 떨어져 내려앉는다(하스스톤의 소환).
+                GameManager.Instance.gridManager.SpawnUnit(xPos, yPos, true, enemyId,
+                    playEntry: true, entryDelay: EntryBaseDelay + EntryStagger * _entryStagger++);
                 Debug.Log($"Enemy {enemyId} spawned at Cell ({xPos}, {yPos})");
                 yPos++;
             }

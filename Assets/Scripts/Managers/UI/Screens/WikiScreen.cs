@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,7 +20,7 @@ namespace Managers.UI.Screens
     /// 자료실 — ESC 메뉴에서 여는 게임 내 위키.
     ///
     /// TAB 창(<see cref="CodexScreen"/>)이 <b>지금 내 파티</b>를 보여 준다면, 여기는 런과 무관한
-    /// <b>게임 전체의 도감</b>이다. 캐릭터 · 코드 · 장비 · 적 · 용어 다섯 갈래를 왼쪽 목록과
+    /// <b>게임 전체의 도감</b>이다. 캐릭터 · 코드 · 아이템 · 적 · 용어 다섯 갈래를 왼쪽 목록과
     /// 오른쪽 본문으로 편다.
     ///
     /// 원본은 전부 데이터 파일이다(10_units · 20_codes · 30_synergies · 40_items · 60_enemies ·
@@ -35,7 +35,7 @@ namespace Managers.UI.Screens
         {
             Characters,
             Codes,
-            Equipment,
+            Items,
             Enemies,
             Glossary,
         }
@@ -44,7 +44,7 @@ namespace Managers.UI.Screens
         {
             (Category.Characters, "캐릭터"),
             (Category.Codes, "코드"),
-            (Category.Equipment, "장비"),
+            (Category.Items, "아이템"),
             (Category.Enemies, "적"),
             (Category.Glossary, "용어"),
         };
@@ -55,7 +55,6 @@ namespace Managers.UI.Screens
             "아카샤", "그리스", "다카마가하라", "베다", "노르드", "로마", "이집트", "메히코", "갈리아",
         };
 
-        private static readonly string[] StatOrder = { "STR", "DEX", "CON", "INT", "LUK" };
 
         private const float TabRowHeight = 36f;
         private const float ListWidth = 0.27f;
@@ -334,7 +333,7 @@ namespace Managers.UI.Screens
             {
                 Category.Characters => CharacterEntries(),
                 Category.Codes => CodeEntries(),
-                Category.Equipment => EquipmentEntries(),
+                Category.Items => ItemEntries(),
                 Category.Enemies => EnemyEntries(),
                 _ => GlossaryEntries(),
             };
@@ -525,11 +524,6 @@ namespace Managers.UI.Screens
             _ => string.IsNullOrWhiteSpace(element) ? "무속성" : element,
         };
 
-        private static string ProficiencyName(string key) =>
-            Enum.TryParse(key, true, out EquipmentProficiency proficiency)
-                ? ItemTooltip.ProficiencyName(proficiency)
-                : key;
-
         // ── 캐릭터 ───────────────────────────────────────────────────
 
         private static List<UnitData> Units() =>
@@ -568,9 +562,8 @@ namespace Managers.UI.Screens
 
         private static string TypeName(string characterType) => characterType switch
         {
-            "Starter" => "메인",
-            "Support" => "서포트",
-            "Locked" => "합류",
+            "Unlocked" => "기본 해금",
+            "Locked" => "합류 해금",
             _ => characterType,
         };
 
@@ -583,9 +576,8 @@ namespace Managers.UI.Screens
             Field(sb, "진영", FactionOf(unit.id));
             Field(sb, "분류", unit.characterType switch
             {
-                "Starter" => "메인으로 시작할 수 있다",
-                "Support" => "서포트 카드 전용",
-                "Locked" => "런 중에 아군으로 합류하면 영구 해금",
+                "Unlocked" => "처음부터 편성할 수 있다",
+                "Locked" => "영입 사건을 만나면 영구 해금",
                 _ => unit.characterType,
             });
             Field(sb, "해금", SynergyCatalog.IsAvailable(unit.id) ? "편성 가능" : "아직 손에 넣지 못했다",
@@ -595,70 +587,44 @@ namespace Managers.UI.Screens
             if (archetypes.Count > 0)
                 Field(sb, "전투 성향", string.Join(" · ", archetypes.Select(tag => tag.Name)), UITheme.Accent);
 
-            List<string> subs = unit.subStats is { Count: > 0 } ? unit.subStats
-                : string.IsNullOrWhiteSpace(unit.subStat) ? new List<string>() : new List<string> { unit.subStat };
-            Field(sb, "주스탯", unit.mainStat, UITheme.Accent);
-            Field(sb, "부스탯", subs.Count > 0 ? string.Join(" · ", subs) : "없음");
-            Field(sb, "숙련", unit.startingProficiencies is { Count: > 0 }
-                ? string.Join(" · ", unit.startingProficiencies.Select(ProficiencyName))
-                : "없음 — 맨손");
-            Field(sb, "궁극기 자원", string.IsNullOrWhiteSpace(unit.ultimateResourceType)
-                ? $"마나 {(unit.manaMax > 0 ? unit.manaMax : Entities.Unit.DefaultManaMax)}"
-                : $"{unit.ultimateResourceName ?? unit.ultimateResourceType} {unit.ultimateResourceMax}");
+            Field(sb, "궁극기 마나", $"{(unit.manaMax > 0 ? unit.manaMax : Entities.Unit.DefaultManaMax)}");
 
-            Section(sb, "기초 스탯");
-            AppendStats(sb, unit.mainStat, subs,
-                (unit.strBase, unit.strIncrementLvl), (unit.dexBase, unit.dexIncrementLvl),
-                (unit.conBase, unit.conIncrementLvl), (unit.intBase, unit.intIncrementLvl),
-                (unit.lukBase, unit.lukIncrementLvl));
+            Section(sb, "스탯");
+            AppendStats(sb, unit);
 
             Section(sb, "코드");
-            AppendUnitCodes(sb, unit.codes, unit.levelPassives);
-
+            AppendUnitCodes(sb, unit.codes);
             AppendSynergy(sb, unit);
             return sb.ToString();
         }
 
-        /// <summary>Lv.1 값과 레벨당 성장. 주스탯은 ★·앰버, 부스탯은 ◆·흰색, 나머지는 흐리게.</summary>
-        private static void AppendStats(StringBuilder sb, string mainStat, List<string> subStats,
-            params (int Base, int PerLevel)[] values)
+        /// <summary>Lv.1 값과 레벨당 성장(롤식 선형). 치명타 두 스탯은 퍼센트로 적는다.</summary>
+        private static void AppendStats(StringBuilder sb, CombatantData data)
         {
-            for (int i = 0; i < StatOrder.Length && i < values.Length; i++)
+            for (int i = 0; i < Entities.UnitStats.StatCount; i++)
             {
-                string key = StatOrder[i];
-                bool isMain = string.Equals(mainStat, key, StringComparison.OrdinalIgnoreCase);
-                bool isSub = subStats.Any(sub => string.Equals(sub, key, StringComparison.OrdinalIgnoreCase));
-                Color tint = isMain ? UITheme.Accent : isSub ? UITheme.TextPrimary : UITheme.TextSecondary;
-
-                sb.Append($"<mspace=0.62em>{Paint(key + (isMain ? "★" : isSub ? "◆" : " "), tint)}</mspace>  ");
-                sb.Append(Paint($"{values[i].Base}", tint));
-                sb.Append($"<size={UITheme.FontMicro}>{Paint($"   레벨당 +{values[i].PerLevel}", UITheme.TextMuted)}</size>\n");
+                var stat = (BaseClasses.BaseEnums.StatType)i;
+                float baseValue = data.BaseOf(stat);
+                float growth = data.GrowthOf(stat);
+                Color tint = UITheme.Stat(stat);
+                sb.Append($"<mspace=0.62em>{Paint(Entities.UnitStats.ShortName(stat), tint)}</mspace>  ");
+                sb.Append(Paint(Entities.UnitStats.Format(stat, baseValue), UITheme.TextPrimary));
+                if (!Mathf.Approximately(growth, 0f))
+                    sb.Append($"<size={UITheme.FontMicro}>{Paint($"   레벨당 +{Entities.UnitStats.Format(stat, growth)}", UITheme.TextMuted)}</size>");
+                sb.Append('\n');
             }
         }
 
-        private static void AppendUnitCodes(StringBuilder sb, Dictionary<string, int> codes,
-            List<LevelPassiveData> levelPassives)
+        private static void AppendUnitCodes(StringBuilder sb, Dictionary<string, int> codes)
         {
-            if (codes != null)
-            {
-                if (codes.TryGetValue("passive", out int passive)) CodeBlock(sb, CodeCatalog.Slot.Passive, passive, "고유 패시브");
-                if (codes.TryGetValue("normal", out int normal)) CodeBlock(sb, CodeCatalog.Slot.Normal, normal, "일반행동");
-                if (codes.TryGetValue("special", out int special)) CodeBlock(sb, CodeCatalog.Slot.Special, special, "특수행동");
-                if (codes.TryGetValue("ultimate", out int ultimate)) CodeBlock(sb, CodeCatalog.Slot.Ultimate, ultimate, "궁극기");
-            }
-
-            if (levelPassives is not { Count: > 0 }) return;
-
-            Section(sb, "해금 패시브");
-            foreach (LevelPassiveData passive in levelPassives.Where(p => p != null).OrderBy(p => p.unlockLevel))
-            {
-                CodeBlock(sb, CodeCatalog.Slot.Passive, passive.codeId, $"Lv.{passive.unlockLevel}");
-            }
+            if (codes == null) return;
+            if (codes.TryGetValue("passive", out int passive)) CodeBlock(sb, CodeCatalog.Slot.Passive, passive, "특성");
+            if (codes.TryGetValue("normal", out int normal)) CodeBlock(sb, CodeCatalog.Slot.Normal, normal, "일반행동");
+            if (codes.TryGetValue("ultimate", out int ultimate)) CodeBlock(sb, CodeCatalog.Slot.Ultimate, ultimate, "궁극기");
         }
-
         /// <summary>
         /// 이 캐릭터를 어떻게 쓰는가. `30_synergies.yaml`이 원본이다.
-        /// 메인이 될 수 있으면 고점·대체 두 벌의 편성을, 서포트 전용이면 이 캐릭터를 부르는 메인을 적는다.
+        /// 이 캐릭터가 대표(편성 첫 자리)일 때의 고점·대체 두 벌을, 추천이 없으면 이 캐릭터를 부르는 대표를 적는다.
         /// 아직 손에 넣지 못한 이름은 흐리게 찍어 "지금 짤 수 있는 조합"이 보이게 한다.
         /// </summary>
         private static void AppendSynergy(StringBuilder sb, UnitData unit)
@@ -677,11 +643,9 @@ namespace Managers.UI.Screens
 
             if (profile.roles is { Count: > 0 })
                 Field(sb, "역할", string.Join(" · ", profile.roles.Select(SynergyCatalog.RoleName)));
+            // 훈련이 사라져 육성 기여는 더 이상 찍지 않는다.
             if (profile.supportValue != null)
-            {
                 Field(sb, "전투 기여", Pips(profile.supportValue.combat), UITheme.Accent);
-                Field(sb, "육성 기여", Pips(profile.supportValue.training), UITheme.Accent);
-            }
 
             Field(sb, "권장 열", profile.row == "Front" ? "전열" : "후열");
 
@@ -715,10 +679,10 @@ namespace Managers.UI.Screens
             }
 
             List<(string MainName, bool IsBest)> callers = SynergyCatalog.RecommendedFor(unit.id);
-            sb.Append('\n').Append(Paint($"추천되는 메인 {callers.Count}명", UITheme.TextMuted)).Append('\n');
+            sb.Append('\n').Append(Paint($"이 캐릭터를 부르는 대표 {callers.Count}명", UITheme.TextMuted)).Append('\n');
             if (callers.Count == 0)
             {
-                Paragraph(sb, "아직 어떤 메인의 추천 조합에도 들어가지 않는다.", UITheme.TextMuted);
+                Paragraph(sb, "아직 어떤 대표의 추천 조합에도 들어가지 않는다.", UITheme.TextMuted);
                 return;
             }
 
@@ -734,7 +698,7 @@ namespace Managers.UI.Screens
             sb.Append('\n').Append(Paint(Plain(string.IsNullOrWhiteSpace(archetype) ? title : $"{title} — {archetype}"),
                 UITheme.Accent)).Append('\n');
 
-            var names = new List<string> { Paint(Plain($"{main.name}(메인·{RowLabel(lineup, main.id)})"), UITheme.Accent) };
+            var names = new List<string> { Paint(Plain($"{main.name}(대표·{RowLabel(lineup, main.id)})"), UITheme.Accent) };
             foreach (int memberId in lineup.members)
             {
                 bool owned = SynergyCatalog.IsAvailable(memberId);
@@ -799,7 +763,7 @@ namespace Managers.UI.Screens
             >= 1 and <= 179 => (0, "공용 해금 패시브"),
             >= 180 and <= 199 => (1, "공용 · 특수"),
             >= 200 and <= 399 => (2, "고유 패시브"),
-            >= 400 and <= 499 => (3, "장비 부여 코드"),
+            >= 400 and <= 499 => (3, "폐기된 코드 영역"),
             _ => (4, "기타"),
         };
 
@@ -832,45 +796,31 @@ namespace Managers.UI.Screens
             Section(sb, "보유");
             if (owner != null) Field(sb, "고유 주인", owner, UITheme.CodeUnique);
 
-            List<string> learners = Units()
-                .Where(unit => unit?.levelPassives?.Any(p => p?.codeId == entry.id) == true)
-                .Select(unit => $"{unit.name} Lv.{unit.levelPassives.First(p => p.codeId == entry.id).unlockLevel}")
-                .ToList();
-            if (learners.Count > 0) Paragraph(sb, "레벨로 배우는 캐릭터 — " + string.Join(" · ", learners));
-
-            List<string> items = (GameManager.Instance?.itemDataList?.items ?? new List<ItemData>())
-                .Where(item => item?.codeGrants?.Any(grant => grant?.codeId == entry.id &&
-                    string.Equals(grant.slot, "passive", StringComparison.OrdinalIgnoreCase)) == true)
-                .Select(item => item.name)
-                .ToList();
-            if (items.Count > 0) Paragraph(sb, "부여하는 장비 — " + string.Join(" · ", items));
-
-            if (owner == null && learners.Count == 0 && items.Count == 0)
-                Paragraph(sb, "레벨 해금으로 배우는 캐릭터가 없다. 사건·보상·서포트 전수로만 얻는다.", UITheme.TextMuted);
+            if (owner == null)
+                Paragraph(sb, "고유 주인이 없다. 사건 · 보상으로만 얻는다.", UITheme.TextMuted);
 
             Field(sb, "ID", $"passive {entry.id}", UITheme.TextMuted);
             return sb.ToString();
         }
 
-        // ── 장비 ─────────────────────────────────────────────────────
+        // ── 아이템 ───────────────────────────────────────────────────
 
-        private List<Entry> EquipmentEntries()
+        private List<Entry> ItemEntries()
         {
             return (GameManager.Instance?.itemDataList?.items ?? new List<ItemData>())
-                .Where(item => item != null && !item.enemyOnly)
+                .Where(item => item != null)
                 .OrderBy(item => item.IsValuable)
-                .ThenBy(item => ItemTooltip.SlotName(item.slot))
                 .ThenBy(item => item.category)
                 .ThenBy(item => item.rarity)
                 .ThenBy(item => item.id)
                 .Select(item => new Entry
                 {
-                    Group = item.IsValuable ? "귀중품" : ItemTooltip.SlotName(item.slot),
+                    Group = ItemTooltip.CategoryName(item.category),
                     Title = item.name,
                     Sub = item.IsValuable ? "귀중품" : $"T{Mathf.Max(1, item.rarity)} · {CategoryName(item)}",
                     Tint = UITheme.Rarity(Mathf.Max(1, item.rarity)),
                     Body = () => ItemBody(item),
-                    Search = $"{item.name} {item.category} {CategoryName(item)} {ItemTooltip.SlotName(item.slot)}",
+                    Search = $"{item.name} {item.category} {CategoryName(item)}",
                 })
                 .ToList();
         }
@@ -897,23 +847,8 @@ namespace Managers.UI.Screens
                 else Field(sb, line.Label, line.Value, line.Color);
             }
 
-            if (item.requiredUnitIds is { Count: > 0 })
-            {
-                Field(sb, "전용", string.Join(" · ", item.requiredUnitIds.Select(SynergyCatalog.NameOf)));
-            }
-
             if (item.shopPrice > 0) Field(sb, "상점 기본가", $"{item.shopPrice}");
             if (item.eventOnly) Field(sb, "획득", "사건에서만 얻는다");
-
-            if (item.codeGrants is { Count: > 0 })
-            {
-                Section(sb, "부여 코드");
-                foreach (EquipmentCodeGrant grant in item.codeGrants.Where(grant => grant != null))
-                    {
-                    CodeCatalog.Slot slot = CodeCatalog.ParseSlot(grant.slot);
-                    CodeBlock(sb, slot, grant.codeId, SlotName(slot));
-                }
-            }
 
             List<string> droppers = Enemies()
                 .Where(enemy => enemy?.drops?.Contains(item.id) == true)
@@ -1002,18 +937,11 @@ namespace Managers.UI.Screens
 
             Section(sb, "기본 정보");
             Field(sb, "원소", ElementName(enemy.element));
-            List<string> subs = enemy.subStats is { Count: > 0 } ? enemy.subStats
-                : string.IsNullOrWhiteSpace(enemy.subStat) ? new List<string>() : new List<string> { enemy.subStat };
-            Field(sb, "주스탯", enemy.mainStat, UITheme.Accent);
-            if (subs.Count > 0) Field(sb, "부스탯", string.Join(" · ", subs));
             if (enemy.tags is { Count: > 0 }) Field(sb, "분류", string.Join(" · ", enemy.tags));
 
             Section(sb, "기초 스탯");
             Paragraph(sb, "적의 레벨은 스테이지와 같다. 아래는 Lv.1 값과 레벨당 성장이다.", UITheme.TextMuted);
-            AppendStats(sb, enemy.mainStat, subs,
-                (enemy.strBase, enemy.strIncrementLvl), (enemy.dexBase, enemy.dexIncrementLvl),
-                (enemy.conBase, enemy.conIncrementLvl), (enemy.intBase, enemy.intIncrementLvl),
-                (enemy.lukBase, enemy.lukIncrementLvl));
+            AppendStats(sb, enemy);
 
             Section(sb, "코드");
             if (enemy.codes != null)
@@ -1021,13 +949,6 @@ namespace Managers.UI.Screens
                 if (enemy.codes.TryGetValue("passive", out int passive)) CodeBlock(sb, CodeCatalog.Slot.Passive, passive, "패시브");
                 if (enemy.codes.TryGetValue("normal", out int normal)) CodeBlock(sb, CodeCatalog.Slot.Normal, normal, "일반행동");
                 if (enemy.codes.TryGetValue("ultimate", out int ultimate)) CodeBlock(sb, CodeCatalog.Slot.Ultimate, ultimate, "궁극기");
-            }
-
-            foreach (LevelPassiveData passive in (enemy.levelPassives ?? new List<LevelPassiveData>())
-                         .Where(p => p != null).OrderBy(p => p.unlockLevel))
-            {
-                CodeBlock(sb, CodeCatalog.Slot.Passive, passive.codeId,
-                    passive.unlockLevel > 1 ? $"스테이지 {passive.unlockLevel}부터" : "패시브");
             }
 
             List<ItemData> items = GameManager.Instance?.itemDataList?.items ?? new List<ItemData>();
@@ -1063,25 +984,6 @@ namespace Managers.UI.Screens
                         return sb.ToString();
                     },
                     Search = $"{title} {body}",
-                });
-            }
-
-            foreach ((string title, string body) in TrainingRules)
-            {
-                string entryTitle = title;
-                string entryBody = body;
-                entries.Add(new Entry
-                {
-                    Group = "육성",
-                    Title = entryTitle,
-                    Body = () =>
-                    {
-                        var sb = new StringBuilder();
-                        Headline(sb, entryTitle, "육성", UITheme.TextPrimary);
-                        Paragraph(sb, entryBody, UITheme.TextPrimary);
-                        return sb.ToString();
-                    },
-                    Search = $"{entryTitle} {entryBody}",
                 });
             }
 
@@ -1263,77 +1165,48 @@ namespace Managers.UI.Screens
         }
 
         /// <summary>
-        /// 육성 설명. 수치의 원본은 Detail_04이며 공식이 바뀌면 여기도 함께 고친다.
-        /// </summary>
-        private static readonly (string Title, string Body)[] TrainingRules =
-        {
-            ("집중 훈련",
-                "육성 페이즈마다 STR · DEX · CON · INT · LUK 중 하나를 골라 메인을 키운다." + "\n" +
-                "고른 훈련은 그 스탯을 올리고 트레이닝 레벨도 함께 올린다. 트레이닝 레벨이 오를수록 " +
-                "같은 훈련이 주는 기본 상승량이 커진다." + "\n" + "\n" +
-                "상승량 = (훈련 레벨 기본치 + 서포트 보너스) × 컨디션 × (1 + 트레이닝 노트)"),
-            ("체력과 실패",
-                "훈련은 체력을 쓴다. 체력이 낮을수록 실패율이 가파르게 오르고, 실패하면 상승량을 잃고 " +
-                $"체력을 {Managers.TrainingManager.FailureEnergyPenalty} 더 잃는다." + "\n" +
-                "지능 훈련은 체력을 회복하는 훈련이라 실패하지 않는다. 휴식은 체력을 채우면서 낮은 확률로 " +
-                "컨디션도 한 칸 올린다."),
-            ("컨디션",
-                "컨디션은 상승량에 곱해지는 배율이다. 휴식으로 올리고, 스테이지가 넘어갈 때 아주 드물게 " +
-                "사건으로 오르내린다."),
-            ("서포트 카드",
-                "동료는 육성 페이즈마다 다섯 훈련 중 한 자리에 앉거나 쉰다. 내가 고른 훈련에 앉아 있는 " +
-                "동료만 보너스를 준다." + "\n" + "\n" +
-                "직접 완주해 만든 육성 카드를 가진 동료는 카드의 훈련 보너스를, 카드가 없는 동료는 기본 보너스를 " +
-                "준다. 동료의 특기 훈련과 내가 고른 훈련이 맞으면 보너스가 더 붙는다."),
-            ("우정도와 우정 훈련",
-                "함께 훈련한 동료와는 우정도가 쌓인다. 카드가 있으면 카드의 상승치로, 없으면 기본 상승치로 오르고 " +
-                "특기가 맞으면 조금 더 오른다." + "\n" + "\n" +
-                $"우정도가 {Managers.TrainingManager.FriendshipBondThreshold} 이상인 동료가 자기 특기 훈련에 앉으면 " +
-                "우정 훈련이 되어 상승량이 한 번 더 크게 붙는다. 직접 키운 카드는 시작 우정도가 이미 높아 " +
-                "우정 훈련에 훨씬 빨리 닿는다."),
-            ("힌트와 전수",
-                "훈련에 앉은 동료는 자기가 가진 해금 패시브를 힌트로 흘릴 수 있다. 받은 힌트는 육성을 마칠 때 " +
-                "메인이 실제로 배운다." + "\n" +
-                "고유 패시브는 전수되지 않는다 — 카드가 넘겨 줄 수 있는 것은 해금 패시브뿐이다."),
-        };
-
-        /// <summary>
         /// 데이터 파일에 없는 유일한 문장. 수치의 원본은 Detail_02 · Detail_03이며
         /// 공식이 바뀌면 여기도 함께 고친다.
         /// </summary>
         private static readonly (string Title, string Body)[] Rules =
         {
             ("자동 전투",
-                "전투는 턴제로 저절로 진행된다. 플레이어의 결정은 전투 전에 끝난다 — 편성, 배치, 장비, 육성.\n" +
-                "행동 순서는 DEX가 정하는 행동 속도로 정해지고, 행동서열 막대에 다음 차례가 보인다."),
-            ("다섯 스탯",
-                "공격력·방어력 스탯은 없다. 모든 전투 수치는 다섯 스탯에서 나온다.\n" +
-                "STR — 방어력, 장비 중량 한도\nDEX — 행동 속도\nCON — 최대 체력 (CON × 100)\n" +
-                "INT — 마나 획득 효율\nLUK — 치명타 확률\n\n" +
-                "스탯 = 기본값 + 레벨당 성장 × (레벨 − 1) + 강화량. 주스탯은 ×1.2, 부스탯은 ×1.1을 받는다."),
+                "전투는 턴제로 저절로 진행된다. 플레이어의 결정은 전투 전에 끝난다 — 편성, 배치, 덱 구성.\n" +
+                "행동 순서는 속도가 정한다. 행동값 = 10000 ÷ 속도이고, 행동서열 막대에 다음 차례가 보인다."),
+            ("여덟 스탯",
+                "최대 체력 · 공격력 · 특수공격력 · 방어력 · 특수방어력 · 속도 · 치명타 확률 · 치명타 피해.\n" +
+                "스탯 = 기초값 + 성장치 × (레벨 − 1). 훈련은 없고, 레벨이 유일한 성장 축이다.\n\n" +
+                "특수공격력은 피해 계수가 아니다 — 원소 반응의 위력과 해로운 효과의 명중에만 관여한다.\n" +
+                "특수방어력은 지속피해 · 원소 반응 피해를 줄이고 해로운 효과를 피한다."),
             ("피해 공식",
-                "피해 = 스킬 위력 × 주스탯 × 0.2\n" +
-                "위력은 스킬마다 정해져 있다. 같은 스킬이라도 주스탯이 높을수록 세게 친다."),
-            ("방어력과 내구",
-                "방어력 = STR. 받는 피해 배율 = 기준값 / (기준값 + 방어력), 기준값 = 100 + 10 × (레벨 − 1).\n" +
-                "기준값이 레벨을 따라 커지므로 감소율은 레벨과 무관하게 STR 비중으로 정해진다.\n\n" +
-                "내구는 받는 피해에서 고정으로 깎는 양이다. 방어 무시·관통의 영향을 받지 않는다. 주로 방어구가 준다."),
+                "피해 = 고정값 + 스탯 × 계수 (스킬마다 다르다. 예: 55 + 방어력의 50%).\n" +
+                "대부분의 스킬은 공격력을 계수로 쓰고, 일부는 방어력이나 최대 체력을 쓴다.\n" +
+                "치명타가 터지면 × (1 + 치명타 피해)."),
+            ("방어와 경감",
+                "받는 피해 = 피해 × 기준값 ÷ (기준값 + 방어 스탯)\n" +
+                "기준값 = 100 + 6 × (공격자 레벨 − 1). 같은 레벨끼리의 경감률은 레벨이 끝없이 올라도 일정하다.\n\n" +
+                "지속피해 · 원소 반응 피해는 특수방어력으로, 그 밖의 피해는 방어력으로 줄인다. 고정 피해는 줄지 않는다."),
+            ("궁극기 마나",
+                "일반행동 한 번 +20, 피격 한 번 +5, 적 처치 +10. 가득 차는 즉시 궁극기가 나간다.\n" +
+                "빠른 유닛일수록 궁극기도 자주 쓴다."),
             ("행동의 종류",
                 "일반행동 — 차례가 오면 하는 기본 행동.\n" +
                 "대체행동 — 조건이 맞으면 일반행동 자리를 대신한다. 일반행동 한 번으로 센다.\n" +
                 "추가행동 — 패시브가 끼워 넣는 행동. 차례를 쓰지 않는다.\n" +
-                "특수행동 — 인드라의 궁극기 '신들의 왕'만 연다. 로카팔라가 저마다의 특수행동을 한다.\n" +
-                "궁극기 — 자원(마나·중첩)이 차는 즉시 발동한다. 차례를 쓰지 않고 재사용 대기시간도 없다."),
+                "궁극기 — 마나가 차는 즉시 발동한다. 차례를 쓰지 않고 재사용 대기시간도 없다."),
+            ("집중",
+                "집중 효과는 시전한 유닛을 기준으로 지속된다. 지속 턴은 시전자의 턴으로 세고,\n" +
+                "시전자가 행동불능(기절 · 빙결 등)이 되거나 쓰러지면 즉시 풀린다."),
             ("코드 등급",
                 "일반(은색) — 기본 코드.\n" +
                 "강화(금색) — 같은 계열의 은색 코드를 대체한다. 둘 다 배우면 은색은 발동하지 않는다.\n" +
-                "고유(보라) — 캐릭터마다 하나뿐인 패시브. 은·금 사다리 밖이며 서포트 카드로 전수되지 않는다."),
+                "고유(보라) — 캐릭터마다 하나뿐인 특성. 은·금 사다리 밖이다."),
             ("배치",
                 "아군과 적은 각각 전열·후열 두 줄, 줄마다 네 칸이다. 대기석은 필드 밖이다.\n" +
                 "전열에 선 유닛은 진영과 관계없이 우선도 +1을 얻는다. 튼튼한 캐릭터를 앞에, 사거리가 긴 캐릭터를 뒤에 둔다."),
             ("피해 태그",
-                "설명 끝의 #태그는 그 공격의 성질이다. 대상 범위(단일·광역), 공격 종류(물리·특수), " +
-                "접촉 여부(접촉·비접촉), 무기 계열(베기·찌르기·화살 등)이 있다.\n" +
+                "설명 끝의 #태그는 그 공격의 성질이다. 대상 범위(단일·광역), 공격 종류(일반·궁극기·특성), " +
+                "접촉 여부(접촉 — 카드가 부딪힌다 · 비접촉 — 투사체), 고정 피해가 있다.\n" +
                 "'접촉 공격을 받으면' 같은 조건은 이 태그를 본다. 지속피해에는 태그가 없다."),
         };
     }

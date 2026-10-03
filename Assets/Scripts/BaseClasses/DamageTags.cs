@@ -1,29 +1,39 @@
 namespace BaseClasses
 {
+  /// <summary>
+  /// 피해 태그. <b>만의 자리가 분류</b>이고, 공격 하나는 원칙적으로 분류마다 하나씩 가진다.
+  /// 바스테트 U122처럼 일반행동을 그대로 재사용하는 추가행동은 예외적으로
+  /// <see cref="NormalAttack"/>과 <see cref="AdditionalAttack"/>을 함께 가진다.
+  ///   10000 대상 범위 · 20000 공격 종류 · 30000 접촉 · 40000 판정 규칙
+  ///
+  /// 무기 분류(50000)는 없앴다. 기본 공격은 방어력, 지속·반응 및 명시된 특수 피해는
+  /// 특수방어력으로 경감한다 — <see cref="Combat.DamageMitigation"/>을 본다.
+  /// </summary>
   public class DamageTag
   {
     public const int SingleTarget = 10001;
     public const int MultiTarget = 10002;
     public const int AllTarget = 10003;
-    public const int SplitDamage = 10004;
+
     public const int NormalAttack = 20001;
     public const int UltAttack = 20002;
-    public const int Physical = 20003; // 물리
-    public const int Special = 20004; // 특수
+    public const int SpecialAttack = 20003;    // 특정 트리거가 여는 특수행동
     public const int AdditionalAttack = 20005; // 추가행동 — 기본 행동과 별개로 발생
-    public const int SummonAttack = 20006;     // 소환수의 공격 — 소환자의 주는 피해 버프를 받지 않는다
-    public const int CounterAttack = 20007;    // 반격 — 피격 또는 체력 소모에 반응해 발생
-    public const int CoordinatedAttack = 20008; // 협동행동 — 짝의 행동에 끼어들어 함께 친다
-    public const int ContactAttack = 30001;    // 접촉 공격
-    public const int NonContactAttack = 30002; // 비접촉 공격
+    public const int CounterAttack = 20007;    // 반격 — 피격에 반응해 발생
+    public const int PassiveAttack = 20009;    // 특성(패시브)이 직접 가하는 공격
+    public const int ElementalReaction = 20010; // 원소 반응 피해 — 특수방어력으로 경감한다
+
+    public const int ContactAttack = 30001;    // 접촉 공격 — 카드가 직접 날아가 부딪힌다
+    public const int NonContactAttack = 30002; // 비접촉 공격 — 투사체 · 광역
+
     public const int ShieldPenetration = 40001; // 방어막 관통
-    public const int TrueDamage = 40002;        // 고정 피해 — 방어력 감쇠를 무시한다
-    public const int DurabilityPenetration = 40003; // 내구 관통 — 고정 경감(내구)을 무시한다
-    public const int ToughnessEcho = 40004;     // 강인도 감소량을 실피해로 전환한 추가 피해 — 강인도를 다시 깎지 않는다
-    public const int FixedRatioBurst = 40005;   // 비율 폭발 — 주는·받는 피해 배율, 방어력, 내구를 모두 무시한다. 보호막은 정상 흡수
-    public const int ReplicatedAttack = 40006;  // 주문 복제 계열이 만든 반복 타격 — 같은 복제 효과의 재귀 발동을 막는다
-    public const int Slash = 50001; // 베기
-    public const int Pierce = 50002; // 찌르기
-    public const int Arrow = 50003; // 화살
+    public const int TrueDamage = 40002;        // 고정 피해 — 방어력 · 특수방어력 경감을 무시한다
+    public const int SpecialDamage = 40004;     // #특수 피해 — 특수방어력으로 경감한다
+
+    /// <summary>
+    /// 다른 피해에 <b>덧붙어</b> 나간 추가 피해. 덧붙는 효과가 이 태그를 보고 다시 덧붙지 않는다.
+    /// 세이의 '창세의 노래'처럼 "피해를 가할 때마다 추가 피해"가 서로를 무한히 부르는 것을 막는다.
+    /// </summary>
+    public const int BonusDamage = 40003;
   }
 }

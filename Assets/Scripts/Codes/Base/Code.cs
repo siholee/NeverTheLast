@@ -6,95 +6,55 @@ using UnityEngine;
 
 namespace Codes.Base
 {
+  /// <summary>
+  /// 코드(스킬)의 뿌리. 특성 · 일반행동 · 궁극기가 모두 여기서 나온다.
+  ///
+  /// 2026-09 개편으로 포켓몬식 '위력 × 주스탯' 피해를 폐지했다. 피해는 이제 롤처럼
+  /// <b>고정값 + 스탯 × 계수</b>로 코드마다 직접 적는다 — 예: 55 + 방어력의 50%.
+  /// <see cref="StatDamage"/>가 그 한 줄을 계산한다.
+  /// </summary>
   public abstract class Code
   {
     public BaseEnums.CodeType CodeType;
     public BaseEnums.CodeActivationType ActivationType;
-    public string CodeName; // 코드 이름
+    public string CodeName;
     /// <summary>
     /// <see cref="CodeFactory"/>가 만들 때 새긴 ID. 슬롯마다 네임스페이스가 따로라
-    /// 패시브 22와 궁극기 22는 다른 코드다 — 조회할 때 슬롯(타입)과 함께 본다.
-    /// 팩토리를 거치지 않고 직접 만든 코드(소환수 등)는 0이다.
+    /// 특성 201과 궁극기 201은 다른 코드다 — 조회할 때 슬롯(타입)과 함께 본다.
     /// </summary>
     public int CatalogId { get; internal set; }
-    public Unit Caster; // 시전유닛
-    public List<Unit> TargetUnits; // 시전대상유닛
-    // 재사용 대기 시간은 어떤 코드에도 없다. 일반행동은 DEX가 정하는 행동 주기가,
-    // 궁극기는 자원(마나·스택)이 주기를 정한다. 관문을 둘로 겹치면 INT를 올려도
-    // 궁극기가 빨라지지 않는 구간이 생겨 자원 축이 무의미해진다.
-    public float CastingDelay; // 시전시간
-    public int CurrentStage { get; private set; } = 1;
-    public int MaxStage { get; protected set; } = 1;
+    public Unit Caster;
+    public List<Unit> TargetUnits;
+    /// <summary>시전 시간(연출용 초). 전투 판정은 턴으로만 흐른다.</summary>
+    public float CastingDelay;
 
     /// <summary>
     /// 코드 등급. 기본은 일반(은색)이고, 같은 계열의 일반 등급을 대체하는 코드가 강화(금색)다.
-    /// 등급은 표시용 색과 <see cref="PassiveCode.SupersededByCodeId"/> 판정에 함께 쓰인다.
     /// </summary>
     public BaseEnums.CodeGrade Grade { get; protected set; } = BaseEnums.CodeGrade.Normal;
 
-    /// <summary>
-    /// 스킬 고정 위력(포켓몬식). 피해 = 위력 × 시전자 주스탯 × SkillPowerScale.
-    /// 단계별로 다르면 <see cref="StagePowers"/>를 채운다. 0이면 피해를 주지 않는 스킬이다.
-    /// </summary>
-    public int Power { get; protected set; }
-
-    /// <summary>단계(1~MaxStage)별 위력. 지정하면 <see cref="Power"/>보다 우선한다.</summary>
-    protected int[] StagePowers;
-
-    /// <summary>
-    /// 위력의 <b>스탯 비례 성분</b> 계수. 0이면 고정 위력만 쓴다.
-    ///
-    ///   위력 = 고정값 + 시전자 스탯 × 계수
-    ///
-    /// 고정값이 저점을 보장하고, 계수를 낮게 잡으면 고점이 억제된다.
-    /// 위력 자체가 스탯에 비례하므로 최종 피해는 스탯의 제곱에 가깝게 자란다 —
-    /// 계수를 크게 잡으면 후반에 폭발하니 주의할 것.
-    /// </summary>
-    protected float PowerStatCoefficient;
-
-    /// <summary>비례 성분이 참조할 스탯. 지정하지 않으면 시전자의 주스탯을 쓴다.</summary>
-    protected BaseEnums.PrimaryStat? PowerStat;
-
-    /// <summary>현재 단계에 해당하는 고정 위력.</summary>
-    protected int FlatPower =>
-      StagePowers != null && StagePowers.Length > 0
-        ? StagePowers[Mathf.Clamp(CurrentStage - 1, 0, StagePowers.Length - 1)]
-        : Power;
-
-    /// <summary>현재 단계에 해당하는 위력. 비례 성분이 있으면 시전자 스탯을 읽어 더한다.</summary>
-    public int CurrentPower
-    {
-      get
-      {
-        int flat = FlatPower;
-        if (PowerStatCoefficient <= 0f || Caster == null) return flat;
-
-        BaseEnums.PrimaryStat stat = PowerStat ?? Caster.MainPrimaryStat;
-        return flat + Mathf.RoundToInt(Caster.GetBasePrimaryStat(stat) * PowerStatCoefficient);
-      }
-    }
-
-    /// <summary>현재 단계 위력으로 시전자 기준 피해량을 계산한다.</summary>
-    public int RollDamage(float critMultiplier = 1f)
-      => Caster == null ? 1 : Mathf.Max(1, Mathf.RoundToInt(Caster.SkillDamage(CurrentPower) * critMultiplier));
-    public float ActivationChance { get; protected set; } = -1f;
-    public float ActivationChanceMultiplier { get; protected set; } = 1f;
-    public bool IgnoresActivationChance { get; protected set; } = false;
-    public bool Transferable { get; protected set; } = true;
     public List<int> CodeTags { get; protected set; } = new();
 
     protected Coroutine CurrSkillCoroutine;
 
-    public void SetStage(int stage)
+    /// <summary>
+    /// "고정값 + 스탯 × 계수"를 시전자 기준으로 계산한다. 치명타 · 경감 전의 값이다.
+    /// 예) 땅고르기 = <c>StatDamage(55, Defense, 0.5f)</c>.
+    /// </summary>
+    protected int StatDamage(float flat, BaseEnums.StatType stat, float ratio)
+      => Caster == null ? 0 : Mathf.Max(0, Mathf.RoundToInt(flat + Caster.StatValue(stat) * ratio));
+
+    /// <summary>치명타를 굴린다. 터지면 배율(1 + 치명타 피해)을, 아니면 1을 넘긴다.</summary>
+    protected bool RollCritical(out float multiplier)
     {
-      CurrentStage = Mathf.Clamp(stage, 1, Mathf.Max(1, MaxStage));
+      bool crit = Caster != null && Random.value < Caster.CritChanceCurr;
+      multiplier = crit ? Caster.CritMultiplierCurr : 1f;
+      return crit;
     }
 
     /// <summary>
     /// 캐스팅 시간만큼 기다린다. 도중에 시전자가 쓰러지거나 제어당하면 <c>false</c>를 넘긴다.
-    ///
-    /// 표준 흐름을 통째로 갈아 끼우는 코드(공격하지 않는 일반행동, 자체 연출을 가진 궁극기)가
-    /// 대기 구간만 빌려 쓰라고 여기에 둔다. 판정이 코드마다 갈라지지 않게 하기 위해서다.
+    /// 표준 흐름을 통째로 갈아 끼우는 코드가 대기 구간만 빌려 쓰라고 여기에 둔다.
     /// </summary>
     protected IEnumerator WaitForCast(System.Action<bool> completed)
     {

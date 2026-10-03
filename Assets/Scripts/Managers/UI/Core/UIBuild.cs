@@ -15,8 +15,8 @@ namespace Managers.UI.Core
     /// </summary>
     public static class UIBuild
     {
-        private const string PrimaryUIFontResource = "Font/Maplestory Light SDF";
-        private const string NotoRegularUIFontResource = "Font/NotoSansKR-Regular SDF";
+        private const string PrimaryUIFontResource = "Font/NotoSansKR-Regular SDF";
+        private const string MaplestoryFallbackResource = "Font/Maplestory Light SDF";
         private const string NotoLegacyUIFontResource = "Font/NotoSansKR-VariableFont_wght SDF";
         private static TMP_FontAsset _uiFont;
         private static Material _uiFontMaterial;
@@ -67,6 +67,19 @@ namespace Managers.UI.Core
             UISafeArea safeArea = canvas.GetComponent<UISafeArea>();
             if (safeArea == null) safeArea = canvas.gameObject.AddComponent<UISafeArea>();
             return safeArea.Content;
+        }
+
+        /// <summary>
+        /// 화면 고정 크롬의 좌우 끝을 상단 바와 같은 안전 여백 선에 맞춘다.
+        /// 비율 앵커를 쓰지 않아 가로세로 비가 달라도 여백의 기준 픽셀이 변하지 않는다.
+        /// </summary>
+        public static void ScreenFrameHorizontal(RectTransform rect)
+        {
+            if (rect == null) return;
+            rect.anchorMin = new Vector2(0f, rect.anchorMin.y);
+            rect.anchorMax = new Vector2(1f, rect.anchorMax.y);
+            rect.offsetMin = new Vector2(UITheme.ScreenEdgeInset, rect.offsetMin.y);
+            rect.offsetMax = new Vector2(-UITheme.ScreenEdgeInset, rect.offsetMax.y);
         }
 
         // ── HUD 크기 ─────────────────────────────────────────────────
@@ -207,7 +220,7 @@ namespace Managers.UI.Core
 
         // ── 패널 ─────────────────────────────────────────────────────
 
-        /// <summary>컷코너 패널. 이 UI의 기본 면(surface).</summary>
+        /// <summary>얇은 은청색 선을 쓰는 밝은 기능 면(surface).</summary>
         public static Image Panel(string name, Transform parent, Color fill,
             UIShapes.Corner corners = UIShapes.Corner.Diagonal, int cut = 10,
             Color outline = default, int outlineWidth = 0)
@@ -223,8 +236,24 @@ namespace Managers.UI.Core
         }
 
         /// <summary>
-        /// 애플 리퀴드 글라스풍 면. 반투명 백색 판 + 또렷한 흰 테두리(빛이 모서리에 맺힌 선) +
-        /// 윗부분의 옅은 반사광 한 겹으로 이루어진다. 뒤의 전장이 비쳐 보여 HUD가 무대를 덜 가린다.
+        /// 상단·좌우·하단의 큰 기능 레일에만 쓰는 라이트 글라스.
+        /// 정사각형 생성 원화를 좁은 세로 레일에 9-슬라이스하면 모서리 광이 합쳐져 타원처럼 보였다.
+        /// 크롬은 해상도별 형상이 먼저 안정돼야 하므로 얇은 선과 한 장의 면을 절차 스프라이트로 고정한다.
+        /// </summary>
+        public static Image ChromePanel(string name, Transform parent)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(parent, false);
+            var image = go.GetComponent<Image>();
+            image.sprite = UIShapes.RoundedRect(14, UITheme.HudBar, UITheme.Outline, 2);
+            image.type = Image.Type.Sliced;
+            image.color = Color.white;
+            BackdropAdaptiveSurface.Attach(image, BackdropAdaptiveSurface.SurfaceKind.Chrome, 14);
+            return image;
+        }
+
+        /// <summary>
+        /// 원화나 VFX 위에 직접 뜨는 중명도 스모크 글라스. 밝은 기능 패널과 달리 흰 글자를 쓴다.
         ///
         /// UGUI에는 배경 흐림이 없어 진짜 굴절은 흉내 내지 않는다. 그 대신 판의 불투명도를 낮추고
         /// 테두리 · 반사광을 밝게 잡아 "유리 한 장이 떠 있다"로 읽히게 한다.
@@ -235,15 +264,18 @@ namespace Managers.UI.Core
             var go = new GameObject(name, typeof(RectTransform), typeof(Image));
             go.transform.SetParent(parent, false);
             var image = go.GetComponent<Image>();
-            image.sprite = UIShapes.RoundedRect(radius, new Color(0.975f, 0.985f, 0.990f, opacity),
-                new Color(1f, 1f, 1f, 0.92f), 1);
+            Color glass = new(UITheme.PanelCharacter.r, UITheme.PanelCharacter.g, UITheme.PanelCharacter.b,
+                Mathf.Lerp(0.54f, 0.82f, opacity));
+            image.sprite = UIShapes.RoundedRect(radius, glass,
+                new Color(UITheme.MetalSilver.r, UITheme.MetalSilver.g, UITheme.MetalSilver.b, 0.58f), 1);
             image.type = Image.Type.Sliced;
             image.color = Color.white;
 
             var sheenGo = new GameObject("GlassSheen", typeof(RectTransform), typeof(Image));
             sheenGo.transform.SetParent(go.transform, false);
             var sheen = sheenGo.GetComponent<Image>();
-            sheen.sprite = UIShapes.RoundedRect(Mathf.Max(2, radius - 1), new Color(1f, 1f, 1f, 0.30f));
+            sheen.sprite = UIShapes.RoundedRect(Mathf.Max(2, radius - 1),
+                new Color(UITheme.MetalSilver.r, UITheme.MetalSilver.g, UITheme.MetalSilver.b, 0.07f));
             sheen.type = Image.Type.Sliced;
             sheen.raycastTarget = false;
             RectTransform sheenRect = sheen.rectTransform;
@@ -251,6 +283,7 @@ namespace Managers.UI.Core
             sheenRect.anchorMax = new Vector2(1f, 1f);
             sheenRect.offsetMin = new Vector2(2f, 0f);
             sheenRect.offsetMax = new Vector2(-2f, -2f);
+            BackdropAdaptiveSurface.Attach(image, BackdropAdaptiveSurface.SurfaceKind.Smoke, radius, opacity);
             return image;
         }
 
@@ -283,8 +316,7 @@ namespace Managers.UI.Core
             var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
             go.transform.SetParent(parent, false);
             var label = go.GetComponent<TextMeshProUGUI>();
-            // 메이플스토리 Light를 기본으로 쓰고, 해당 글꼴에 없는 문자는 TMP Font Asset에
-            // 연결된 NotoSansKR 폴백으로 보낸다.
+            // 전투 HUD는 획 폭이 일정한 Noto Sans KR을 기본으로 쓴다.
             ApplyFont(label);
             label.text = content;
             label.color = color;
@@ -322,13 +354,33 @@ namespace Managers.UI.Core
             }
         }
 
+        /// <summary>
+        /// 배경 평균 휘도를 전역 UI에 전달하고 월드 글자 재질의 얕은 그림자를 조절한다.
+        /// UI 글자는 이미 라이트/스모크 판 위에 있으므로 월드 글자만 보정한다.
+        /// </summary>
+        public static void ApplyBackdropReadability(float luminance)
+        {
+            UITheme.SetBackdropLuminance(luminance);
+            Material material = WorldFontMaterial;
+            if (material == null) return;
+
+            material.EnableKeyword("UNDERLAY_ON");
+            if (material.HasProperty("_UnderlayColor"))
+                material.SetColor("_UnderlayColor", new Color(0.025f, 0.055f, 0.09f,
+                    UITheme.AdaptiveWorldTextShadow));
+            if (material.HasProperty("_UnderlayOffsetX")) material.SetFloat("_UnderlayOffsetX", 0.22f);
+            if (material.HasProperty("_UnderlayOffsetY")) material.SetFloat("_UnderlayOffsetY", -0.24f);
+            if (material.HasProperty("_UnderlayDilate")) material.SetFloat("_UnderlayDilate", 0.12f);
+            if (material.HasProperty("_UnderlaySoftness")) material.SetFloat("_UnderlaySoftness", 0.18f);
+        }
+
         private static void EnsureUIFont()
         {
             if (_uiFont != null) return;
             _uiFont = Resources.Load<TMP_FontAsset>(PrimaryUIFontResource);
             _usingRegularFont = _uiFont != null;
-            if (_uiFont == null) _uiFont = Resources.Load<TMP_FontAsset>(NotoRegularUIFontResource);
             if (_uiFont == null) _uiFont = Resources.Load<TMP_FontAsset>(NotoLegacyUIFontResource);
+            if (_uiFont == null) _uiFont = Resources.Load<TMP_FontAsset>(MaplestoryFallbackResource);
         }
 
         private static Material UIFontMaterial
@@ -396,25 +448,25 @@ namespace Managers.UI.Core
         // ── 버튼 ─────────────────────────────────────────────────────
 
         /// <summary>
-        /// 컷코너 버튼. 색 전이는 Unity 기본 ColorTint를 쓰되,
+        /// 라이트 글라스 버튼. 색 전이는 Unity 기본 ColorTint를 쓰되,
         /// 스프라이트에 색이 구워져 있으므로 tint를 곱해 명도만 흔든다.
         /// </summary>
         public static Button Button(string name, Transform parent, string text, Action onClick,
             bool primary = false, float fontSize = UITheme.FontBody)
         {
-            Color fill = primary ? UITheme.Accent : UITheme.SurfaceRaised;
+            Color fill = primary ? UITheme.AccentDim : UITheme.Surface;
             Color textColor = primary ? UITheme.TextOnAccent : UITheme.TextPrimary;
             // 보조 버튼에는 옅은 테두리를 준다. 면만 있으면 패널 위의 회색 상자와 구별되지 않아
             // 누를 수 있는 것인지 읽히지 않았다. 꺼진 버튼은 UIButtonStyle이 테두리를 걷는다.
             // Spotlight처럼 보조 행동은 면보다 글자가 먼저 읽히게 한다. 테두리가 강하면
             // 카드·그룹·버튼이 모두 상자로 보여 화면이 격자처럼 굳으므로 1px 헤어라인만 남긴다.
-            Color outline = primary ? default : UITheme.Outline;
+            Color outline = primary ? UITheme.Accent : UITheme.Outline;
 
             var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(UnityEngine.UI.Button));
             go.transform.SetParent(parent, false);
 
             var image = go.GetComponent<Image>();
-            image.sprite = UIShapes.CutCorner(8, fill, UIShapes.Corner.Diagonal, outline, primary ? 0 : 1);
+            image.sprite = UIShapes.RoundedRect(10, fill, outline, 1);
             image.type = Image.Type.Sliced;
             image.color = Color.white;
 
@@ -423,16 +475,20 @@ namespace Managers.UI.Core
             var colors = button.colors;
             // 정점 색은 1을 넘지 못한다. 예전 highlightedColor(1.18)는 잘려 1이 되어 호버 반응이 없었다.
             // 평소를 조금 낮춰 두고 호버에서 원래 밝기로 올린다.
-            colors.normalColor = new Color(0.94f, 0.94f, 0.94f, 1f);
+            colors.normalColor = new Color(0.96f, 0.96f, 0.96f, 1f);
             colors.highlightedColor = Color.white;
-            colors.pressedColor = new Color(0.80f, 0.80f, 0.80f, 1f);
-            colors.selectedColor = new Color(0.94f, 0.94f, 0.94f, 1f);
+            colors.pressedColor = new Color(0.82f, 0.86f, 0.90f, 1f);
+            colors.selectedColor = new Color(0.94f, 0.97f, 1f, 1f);
             // 꺼진 모습은 UIButtonStyle이 면을 바꿔 그린다. 여기서 한 번 더 곱하면 너무 어두워 사라진다.
             colors.disabledColor = Color.white;
             colors.fadeDuration = 0.10f;
             button.colors = colors;
 
-            if (onClick != null) button.onClick.AddListener(() => onClick());
+            if (onClick != null) button.onClick.AddListener(() =>
+            {
+                Managers.AudioManager.PlayCue("ui.click");
+                onClick();
+            });
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -567,7 +623,11 @@ namespace Managers.UI.Core
         {
             if (target == null || callback == null) return;
             // EventTrigger는 휠 · 드래그까지 먹어 스크롤 목록 안에서 쓸 수 없었다. 클릭만 받는 수신기를 쓴다.
-            UIPointerEvents.On(target).Clicked += callback;
+            UIPointerEvents.On(target).Clicked += () =>
+            {
+                Managers.AudioManager.PlayCue("ui.click");
+                callback();
+            };
 
             if (target.name != "Backdrop") Ensure<UIHoverRing>(target);
         }

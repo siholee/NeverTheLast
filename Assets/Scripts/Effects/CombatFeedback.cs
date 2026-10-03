@@ -41,9 +41,12 @@ namespace Effects
             int total = Mathf.Max(0, hpLost) + Mathf.Max(0, shieldLost);
             if (total <= 0) return;
 
-            AttackVisualForm form = AttackVisuals.Classify(context?.Attacker, context);
-            Color accent = AttackVisuals.AccentFor(context?.Attacker, context, form);
-            bool physical = AttackVisuals.IsPhysical(form);
+            // 숫자 색은 때린 쪽의 원소를 따른다. 고정 피해는 흰색 — 경감을 받지 않았다는 표시다.
+            Color accent = context?.HasTag(DamageTag.TrueDamage) == true
+                ? Color.white
+                : Vfx.ElementPalette.ColorFor(context?.Attacker?.Element);
+            // 카드가 직접 부딪힌 공격만 카드를 떤다. 투사체 · 반응은 번쩍이고 밀리기만 한다.
+            bool physical = context?.HasTag(DamageTag.ContactAttack) == true;
             bool crit = context?.IsCrit == true;
 
             // 세기는 '이 한 방이 최대 체력의 몇 할인가'로 잰다. 절대값은 레벨에 따라 뜻이 달라진다.
@@ -59,7 +62,15 @@ namespace Effects
             float strength = Mathf.Lerp(0.45f, 1f, weight) * (crit ? 1.25f : 1f) * (overTime ? 0.35f : 1f);
             PlayCardHit(target, strength, physical && !overTime, crit);
 
-            if (!overTime && strength >= ScreenShakeThreshold)
+            if (!overTime && physical)
+            {
+                Vector3 incoming = context?.Attacker != null
+                    ? Vfx.VfxSpace.WorldPoint(target) - Vfx.VfxSpace.WorldPoint(context.Attacker)
+                    : Vector3.right;
+                CameraShake.ShakeDirectional(incoming,
+                    Mathf.Lerp(0.075f, 0.20f, weight) * (crit ? 1.3f : 1f));
+            }
+            else if (!overTime && strength >= ScreenShakeThreshold)
             {
                 CameraShake.Shake(Mathf.Lerp(0.06f, 0.22f, weight) * (crit ? 1.3f : 1f));
             }
@@ -68,9 +79,11 @@ namespace Effects
             // 잔매마다 서면 전투가 끊기는 것으로만 보인다.
             bool ultimate = context?.CodeType == BaseEnums.CodeType.Ultimate ||
                             context?.DamageTags?.Contains(DamageTag.UltAttack) == true;
-            if (overTime || (!crit && !ultimate && weight < HitStopThreshold)) return;
+            if (overTime || (!physical && !crit && !ultimate && weight < HitStopThreshold)) return;
 
-            float freeze = 0.030f + (crit ? 0.008f : 0f) + (ultimate ? 0.012f : 0f) + weight * 0.010f;
+            float freeze = physical
+                ? 0.066f + (crit ? 0.018f : 0f) + weight * 0.010f
+                : 0.030f + (crit ? 0.008f : 0f) + (ultimate ? 0.012f : 0f) + weight * 0.010f;
             HitStop.Play(freeze);
         }
 
@@ -97,16 +110,10 @@ namespace Effects
                 target.HpMax > 0 ? Mathf.Clamp01(amount / (target.HpMax * HeavyHitRatio)) : 0.4f);
         }
 
-        /// <summary>맞은 카드를 흔든다. 칸에 선 유닛과 소환수 카드를 함께 본다.</summary>
+        /// <summary>맞은 카드를 흔든다.</summary>
         private static void PlayCardHit(Unit target, float strength, bool physical, bool crit)
         {
-            if (target.currentCell != null)
-            {
-                target.currentCell.PlayHitReaction(strength, physical, crit);
-                return;
-            }
-
-            target.SummonView?.PlayHitReaction(strength, physical, crit);
+            target.currentCell?.PlayHitReaction(strength, physical, crit);
         }
     }
 
@@ -130,9 +137,9 @@ namespace Effects
         private const float FreezeScale = 0.04f;
 
         /// <summary>멈춤 사이의 최소 간격(실시간). 연타에서 화면이 계속 걸리는 것을 막는다.</summary>
-        private const float MinInterval = 0.12f;
+        private const float MinInterval = 0.09f;
 
-        private const float MaxDuration = 0.05f;
+        private const float MaxDuration = 0.08f;
 
         private static HitStop _instance;
 
@@ -208,6 +215,7 @@ namespace Effects
         private float _amplitude;
         private float _age = float.MaxValue;
         private float _seed;
+        private Vector3 _direction;
 
         /// <summary>세기는 카드 한 변 대비 진폭이다.</summary>
         public static void Shake(float amplitude)
@@ -222,15 +230,34 @@ namespace Effects
                             ?? camera.gameObject.AddComponent<CameraShake>();
             }
 
-            _instance.Begin(Mathf.Min(amplitude, MaxAmplitude));
+            _instance.Begin(Mathf.Min(amplitude, MaxAmplitude), Vector3.zero);
         }
 
-        private void Begin(float amplitude)
+        /// <summary>접촉점에서 밀려난 축을 한 번 먼저 치고, 작은 난진동으로 감쇠한다.</summary>
+        public static void ShakeDirectional(Vector3 direction, float amplitude)
+        {
+            Camera camera = Camera.main;
+            if (camera == null) return;
+
+            if (_instance == null || _instance.gameObject != camera.gameObject)
+            {
+                if (_instance != null) Destroy(_instance);
+                _instance = camera.gameObject.GetComponent<CameraShake>()
+                            ?? camera.gameObject.AddComponent<CameraShake>();
+            }
+
+            direction.z = 0f;
+            _instance.Begin(Mathf.Min(amplitude, MaxAmplitude),
+                direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.right);
+        }
+
+        private void Begin(float amplitude, Vector3 direction)
         {
             // 이미 흔들리는 중이면 더 센 쪽을 남긴다. 합치면 연타에서 화면이 날아간다.
             _amplitude = _age < Duration ? Mathf.Max(_amplitude, amplitude) : amplitude;
             _age = 0f;
             _seed = Random.value * 100f;
+            _direction = direction;
         }
 
         private void LateUpdate()
@@ -252,6 +279,11 @@ namespace Effects
                 (Mathf.PerlinNoise(_seed, _age * 46f) - 0.5f) * 2f * reach,
                 (Mathf.PerlinNoise(_seed + 17f, _age * 39f) - 0.5f) * 2f * reach,
                 0f);
+            if (_direction.sqrMagnitude > 0.0001f)
+            {
+                float kick = Mathf.Sin(Mathf.Clamp01(_age / Duration) * Mathf.PI) * reach;
+                offset = offset * 0.42f + _direction * kick * 0.72f;
+            }
 
             transform.position = transform.position - _appliedOffset + offset;
             _appliedOffset = offset;

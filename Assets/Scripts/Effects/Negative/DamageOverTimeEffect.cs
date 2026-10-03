@@ -7,7 +7,7 @@ namespace Effects.Negative
 {
     /// <summary>
     /// 지속 피해(DOT) 효과
-    /// 시전자의 공격력에 비례한 지속 피해 (예: 공격력의 20%)
+    /// 시전자의 공격력에 비례한 지속 피해 (예: 공격력의 20%). 특수방어력으로 경감한다.
     /// </summary>
     public class DamageOverTimeEffect : BaseEffect
     {
@@ -41,16 +41,15 @@ namespace Effects.Negative
                 CalculateTickDamage(),
                 BaseEnums.CodeType.Effect,
                 new List<int>(),
-                false,
-                10000000));
+                false));
         }
 
         public override int EstimateDamagePerTurn() => CalculateTickDamage();
 
         private int CalculateTickDamage()
         {
-            float multiplier = Caster != null ? Caster.GetDamageOverTimeApplicationMultiplier() : 1f;
-            return Mathf.Max(0, Mathf.RoundToInt((Caster?.SkillDamage(50) ?? 0) * Coefficient / 100f * multiplier));
+            // 시전자 공격력의 계수%. 경감은 특수방어력이 맡는다(Combat.DamageMitigation).
+            return Mathf.Max(0, Mathf.RoundToInt((Caster?.AtkCurr ?? 0) * Coefficient / 100f));
         }
         
         public override void OnRemove()

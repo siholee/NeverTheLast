@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Entities;
 using Managers.UI.HUD;
 using Managers.UI.Screens;
@@ -22,11 +22,10 @@ namespace Managers
     {
         private BattleHud _hud;
         private readonly PreparationScreen _preparation = new();
+        private readonly RestScreen _rest = new();
+        private readonly InventoryScreen _inventory = new();
         private readonly RewardScreen _reward = new();
         private readonly ShopScreen _shop = new();
-        private readonly SkillScreen _skill = new();
-        private readonly TrainingScreen _training = new();
-        private readonly TrainingResultScreen _trainingResult = new();
         private readonly CharacterSelectScreen _characterSelect = new();
         private readonly EventScreen _event = new();
         private readonly BattleResultScreen _battleResult = new();
@@ -87,26 +86,18 @@ namespace Managers
             // 코덱스는 TAB 또는 닫기 버튼으로만 닫는다. 별도 동작 없음.
         }
 
-        // ── 장비 ─────────────────────────────────────────────────────
+        // ── 공용 인벤토리 · 휴식 ────────────────────────────────────
 
-        /// <summary>장비 화면은 코덱스의 장비 탭이 대신한다.</summary>
-        public void ShowEquipmentPanel()
-        {
-            Unit main = TrainingManager.GetMainUnit();
-            if (main != null) ShowUnitDetail(main);
-            else ToggleCodex();
-        }
-
-        public void HideEquipmentPanel()
-        {
-            // 코덱스와 통합되어 별도 숨김 처리가 필요 없다.
-        }
+        public void ShowInventoryPanel() => _inventory.Show();
+        public void HideInventoryPanel() => _inventory.Hide();
+        public void ShowRestPanel() => _rest.Show();
+        public void HideRestPanel() => _rest.Hide();
 
         // ── 준비 페이즈 ──────────────────────────────────────────────
 
-        public void ShowPreparationPhasePanel(bool deckOnly, bool actionUsed, string message = null)
+        public void ShowPreparationPhasePanel(bool restUsed, string message = null)
         {
-            _preparation.Show(deckOnly, actionUsed, message);
+            _preparation.Show(restUsed, message);
         }
 
         public void HidePreparationPhasePanel()
@@ -149,42 +140,6 @@ namespace Managers
         public void HideShopPanel()
         {
             _shop.Hide();
-        }
-
-        // ── 스킬 ─────────────────────────────────────────────────────
-
-        public void ShowSkillPanel()
-        {
-            _skill.Show();
-        }
-
-        public void HideSkillPanel()
-        {
-            _skill.Hide();
-        }
-
-        // ── 육성 ─────────────────────────────────────────────────────
-
-        public void ShowTrainingPhasePanel()
-        {
-            _training.Show();
-        }
-
-        public void HideTrainingPhasePanel()
-        {
-            _training.Hide();
-        }
-
-        /// <summary>훈련 결과 화면. 확인을 누르면 GameManager가 준비 페이즈로 넘긴다.</summary>
-        public void ShowTrainingResultPanel(TrainingManager.TrainingResult result)
-        {
-            _training.Hide();
-            _trainingResult.Show(result);
-        }
-
-        public void HideTrainingResultPanel()
-        {
-            _trainingResult.Hide();
         }
 
         // ── 캐릭터 선택 ──────────────────────────────────────────────
@@ -263,7 +218,7 @@ namespace Managers
                 return;
             }
 
-            // 떠 있는 창 중 가장 위의 것부터 닫는다(자료실 → 메뉴 → 확인 → 상점·스킬·훈련).
+            // 떠 있는 창 중 가장 위의 것부터 닫는다(자료실 → 메뉴 → 확인 → 상점·휴식·인벤토리).
             // 캐릭터 창이 떠 있으면 그 아래 층 창은 건드리지 않고 예전처럼 메뉴를 그 위에 띄운다.
             int floor = _hud != null && _hud.IsCodexOpen ? UI.Theme.UITheme.LayerMenu : int.MinValue;
             if (ModalScreen.TryEscapeTop(floor)) return;

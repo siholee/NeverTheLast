@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Core
 {
@@ -73,8 +73,9 @@ namespace Core
         }
         private const string KeyJson   = "NTL_RunSave";
         private const string KeyExists = "NTL_HasSave";
-        private const string KeyTrainedCharacters = "NTL_TrainedCharacters";
-        private const string KeyBossDefeatedPrefix = "NTL_BossDefeated_";
+        // 2026-09 전면 개편으로 유닛 ID의 뜻이 바뀌었다. 옛 해금 기록이 새 로스터에 비치지 않게 키를 새로 쓴다.
+        private const string KeyTrainedCharacters = "NTL_UnlockedCharacters_v9";
+        private const string KeyBossDefeatedPrefix = "NTL_BossDefeated_v9_";
 
         /// <summary>저장된 런이 있는지 확인</summary>
         public static bool HasSave()
@@ -122,21 +123,14 @@ namespace Core
             Debug.Log("[SaveSystem] 세이브 삭제");
         }
 
+        /// <summary>계정 단위 캐릭터 해금 기록. 없으면 빈 기록이다.</summary>
         public static TrainedCharacterCollection LoadTrainedCharacters()
         {
             string json = ReadString(KeyTrainedCharacters, "");
-            if (string.IsNullOrEmpty(json))
-            {
-                return new TrainedCharacterCollection();
-            }
-
-            TrainedCharacterCollection data = JsonUtility.FromJson<TrainedCharacterCollection>(json);
-            bool hadLavoisier = data?.unlockedStarterUnitIds?.Contains(Entities.LavoisierChemistry.UnitId) == true;
-            data = NormalizeTrainedCharacterCollection(data);
-            // 이전 버전의 완주 기록에도 최초 클리어 해금을 소급 적용한다.
-            if (!hadLavoisier && data.unlockedStarterUnitIds.Contains(Entities.LavoisierChemistry.UnitId))
-                SaveTrainedCharacterCollection(data);
-            return data;
+            TrainedCharacterCollection data = string.IsNullOrEmpty(json)
+                ? new TrainedCharacterCollection()
+                : JsonUtility.FromJson<TrainedCharacterCollection>(json);
+            return Normalize(data);
         }
 
         public static void AcknowledgeCharacterUnlock(int unitId)
@@ -145,102 +139,7 @@ namespace Core
             if (data.pendingCharacterUnlockIds.Remove(unitId)) SaveTrainedCharacterCollection(data);
         }
 
-        public static bool IsCharacterTrained(int unitId)
-        {
-            TrainedCharacterCollection data = LoadTrainedCharacters();
-            return data.unitIds.Contains(unitId) || data.records.Exists(record => record != null && record.unitId == unitId);
-        }
-
-        public static bool IsStarterUnlocked(int unitId)
-        {
-            TrainedCharacterCollection data = LoadTrainedCharacters();
-            return data.unlockedStarterUnitIds.Contains(unitId);
-        }
-
-        /// <summary>아군이 전투에서 소환한 누적 횟수를 기록하고 조건을 만족한 스타팅 후보를 연다.</summary>
-        public static void RecordCombatSummon()
-        {
-            TrainedCharacterCollection data = LoadTrainedCharacters();
-            data.combatSummonCount = System.Math.Max(0, data.combatSummonCount) + 1;
-
-            var units = Managers.GameManager.Instance?.unitDataList?.units;
-            if (units != null)
-            {
-                foreach (var unit in units)
-                {
-                    if (unit == null || unit.unlockAfterSummonCount <= 0 ||
-                        data.combatSummonCount < unit.unlockAfterSummonCount ||
-                        data.unlockedStarterUnitIds.Contains(unit.id)) continue;
-                    data.unlockedStarterUnitIds.Add(unit.id);
-                    if (!data.pendingCharacterUnlockIds.Contains(unit.id))
-                        data.pendingCharacterUnlockIds.Add(unit.id);
-                    Debug.Log($"[SaveSystem] 소환 {data.combatSummonCount}회 달성 — {unit.name} 스타팅 해금");
-                }
-            }
-
-            SaveTrainedCharacterCollection(data);
-        }
-
-        public static int GetCombatSummonCount() => LoadTrainedCharacters().combatSummonCount;
-
-        // ── 누적 해금 카운터 ──────────────────────────────────────
-        //
-        // 단일 타격은 한 전투에서만 수백 번 일어난다. 타격마다 PlayerPrefs를 쓰면 전투가 끊기므로
-        // 메모리에 모아 두었다가 라운드가 끝날 때 FlushUnlockCounters로 한 번에 기록한다.
-
-        private static int _pendingSingleTargetHits;
-        private static int _pendingShieldGrants;
-
-        /// <summary>아군의 단일 대상 타격 하나를 센다. 실제 기록은 라운드 끝에 한다.</summary>
-        public static void RecordSingleTargetHit() => _pendingSingleTargetHits++;
-
-        /// <summary>아군이 방어막을 한 번 부여했음을 센다. 실제 기록은 라운드 끝에 한다.</summary>
-        public static void RecordShieldGrant() => _pendingShieldGrants++;
-
-        /// <summary>모아 둔 카운터를 계정 저장에 반영하고, 새로 닿은 해금을 연다.</summary>
-        public static void FlushUnlockCounters()
-        {
-            if (_pendingSingleTargetHits <= 0 && _pendingShieldGrants <= 0) return;
-
-            TrainedCharacterCollection data = LoadTrainedCharacters();
-            data.singleTargetHitCount = System.Math.Max(0, data.singleTargetHitCount) + _pendingSingleTargetHits;
-            data.shieldGrantCount = System.Math.Max(0, data.shieldGrantCount) + _pendingShieldGrants;
-            _pendingSingleTargetHits = 0;
-            _pendingShieldGrants = 0;
-
-            OpenCountedUnlocks(data);
-            SaveTrainedCharacterCollection(data);
-        }
-
-        /// <summary>누적 수치로 열리는 스타팅 후보를 연다. 이미 열린 유닛은 건너뛴다.</summary>
-        private static void OpenCountedUnlocks(TrainedCharacterCollection data)
-        {
-            var units = Managers.GameManager.Instance?.unitDataList?.units;
-            if (units == null) return;
-
-            foreach (var unit in units)
-            {
-                if (unit == null || data.unlockedStarterUnitIds.Contains(unit.id)) continue;
-
-                bool reached =
-                    (unit.unlockAfterSingleTargetHits > 0 &&
-                     data.singleTargetHitCount >= unit.unlockAfterSingleTargetHits) ||
-                    (unit.unlockAfterShieldGrants > 0 &&
-                     data.shieldGrantCount >= unit.unlockAfterShieldGrants);
-                if (!reached) continue;
-
-                data.unlockedStarterUnitIds.Add(unit.id);
-                if (!data.pendingCharacterUnlockIds.Contains(unit.id))
-                    data.pendingCharacterUnlockIds.Add(unit.id);
-                Debug.Log($"[SaveSystem] 누적 조건 달성 — {unit.name} 해금");
-            }
-        }
-
-        public static int GetSingleTargetHitCount()
-            => LoadTrainedCharacters().singleTargetHitCount + _pendingSingleTargetHits;
-
-        public static int GetShieldGrantCount()
-            => LoadTrainedCharacters().shieldGrantCount + _pendingShieldGrants;
+        public static bool IsStarterUnlocked(int unitId) => LoadTrainedCharacters().unlockedStarterUnitIds.Contains(unitId);
 
         /// <summary><c>10_units.yaml</c>에 실제로 있는 유닛 ID인가.</summary>
         private static bool UnitExists(int unitId)
@@ -252,14 +151,11 @@ namespace Core
 
         /// <summary>
         /// 스타팅 후보로 연다. <paramref name="announce"/>면 안내 대기열에도 올려
-        /// 메인 메뉴가 <see cref="Managers.UI.Screens.CharacterUnlockDialog"/>로 알리게 한다 —
-        /// 해금을 모른 채 지나가면 열린 것이나 마찬가지가 아니기 때문이다.
+        /// 메인 메뉴가 <see cref="Managers.UI.Screens.CharacterUnlockDialog"/>로 알리게 한다.
         /// </summary>
         public static void AddStarterUnlock(int unitId, bool announce = false)
         {
             if (unitId <= 0) return;
-            // 유닛 데이터에 없는 ID는 받지 않는다. 예전에 스폰 훅이 소환체·복원 유닛까지
-            // 무차별로 넘겨 존재하지 않는 ID가 해금 목록에 쌓인 적이 있다.
             if (Managers.GameManager.Instance != null && !UnitExists(unitId))
             {
                 Debug.LogWarning($"[SaveSystem] 해금 요청 무시 — 유닛 {unitId}는 데이터에 없다");
@@ -267,7 +163,6 @@ namespace Core
             }
 
             TrainedCharacterCollection data = LoadTrainedCharacters();
-            data.unlockedStarterUnitIds ??= new System.Collections.Generic.List<int>();
             if (data.unlockedStarterUnitIds.Contains(unitId)) return;
 
             data.unlockedStarterUnitIds.Add(unitId);
@@ -293,140 +188,17 @@ namespace Core
             return true;
         }
 
-        public static void AddTrainedCharacter(int unitId)
-        {
-            if (unitId <= 0) return;
-
-            TrainedCharacterCollection data = LoadTrainedCharacters();
-            AddUnitIdIfMissing(data, unitId);
-
-            SaveTrainedCharacterCollection(data);
-            Debug.Log($"[SaveSystem] 육성 완료 캐릭터 저장: {unitId}");
-        }
-
-        public static void AddTrainedCharacterRecord(TrainedCharacterRecord record)
-        {
-            if (record == null || record.unitId <= 0) return;
-
-            TrainedCharacterCollection data = LoadTrainedCharacters();
-            AddUnitIdIfMissing(data, record.unitId);
-
-            record.supportCard ??= new SupportCardSaveData();
-            record.supportCard.sourceUnitId = record.unitId;
-            if (string.IsNullOrWhiteSpace(record.supportCard.sourceUnitName))
-                record.supportCard.sourceUnitName = record.unitName;
-
-            // 같은 캐릭터도 완주할 때마다 별개의 육성 카드로 남긴다.
-            // supportId는 편성·열람실에서 카드 한 장을 가리키는 영구 키이므로 충돌하면 새 접미사를 붙인다.
-            string baseId = string.IsNullOrWhiteSpace(record.supportCard.supportId)
-                ? $"{record.unitId}_{record.createdAtUnixSeconds}"
-                : record.supportCard.supportId;
-            string supportId = baseId;
-            int suffix = 2;
-            while (data.records.Exists(existing => existing?.supportCard?.supportId == supportId))
-                supportId = $"{baseId}_{suffix++}";
-            record.supportCard.supportId = supportId;
-            data.records.Add(record);
-
-            SaveTrainedCharacterCollection(data);
-            Debug.Log($"[SaveSystem] 육성 완료 기록 저장: {record.unitName}({record.unitId}) / {supportId}");
-        }
-
-        public static SupportCardSaveData GetSupportCard(int unitId)
-        {
-            return GetTrainedCharacterRecord(unitId)?.supportCard;
-        }
-
-        public static SupportCardSaveData GetSupportCard(int unitId, string supportId)
-        {
-            return GetTrainedCharacterRecord(unitId, supportId)?.supportCard;
-        }
-
-        public static TrainedCharacterRecord GetTrainedCharacterRecord(int unitId)
-        {
-            return GetTrainedCharacterRecord(unitId, null);
-        }
-
-        /// <summary>
-        /// 캐릭터의 특정 육성 카드 기록. ID가 없으면 가장 최근 완주 기록을 돌려
-        /// 이전 저장과 카드 선택 UI가 없던 호출부도 자연스럽게 최신 카드를 쓴다.
-        /// </summary>
-        public static TrainedCharacterRecord GetTrainedCharacterRecord(int unitId, string supportId)
-        {
-            System.Collections.Generic.List<TrainedCharacterRecord> records = GetTrainedCharacterRecords(unitId);
-            if (!string.IsNullOrWhiteSpace(supportId))
-            {
-                TrainedCharacterRecord exact = records.Find(record => record.supportCard?.supportId == supportId);
-                if (exact != null) return exact;
-            }
-            return records.Count > 0 ? records[records.Count - 1] : null;
-        }
-
-        /// <summary>같은 캐릭터로 완주한 모든 기록. 오래된 카드부터 저장 순서대로 돌려준다.</summary>
-        public static System.Collections.Generic.List<TrainedCharacterRecord> GetTrainedCharacterRecords(int unitId)
-        {
-            return LoadTrainedCharacters().records.FindAll(record => record != null && record.unitId == unitId);
-        }
-
-        private static TrainedCharacterCollection NormalizeTrainedCharacterCollection(TrainedCharacterCollection data)
+        private static TrainedCharacterCollection Normalize(TrainedCharacterCollection data)
         {
             data ??= new TrainedCharacterCollection();
-            data.unitIds ??= new System.Collections.Generic.List<int>();
             data.unlockedStarterUnitIds ??= new System.Collections.Generic.List<int>();
-            data.records ??= new System.Collections.Generic.List<TrainedCharacterRecord>();
             data.pendingCharacterUnlockIds ??= new System.Collections.Generic.List<int>();
-            data.combatSummonCount = System.Math.Max(0, data.combatSummonCount);
-            data.singleTargetHitCount = System.Math.Max(0, data.singleTargetHitCount);
-            data.shieldGrantCount = System.Math.Max(0, data.shieldGrantCount);
-
-            var usedSupportIds = new System.Collections.Generic.HashSet<string>();
-            for (int i = 0; i < data.records.Count; i++)
-            {
-                TrainedCharacterRecord record = data.records[i];
-                if (record == null) continue;
-                AddUnitIdIfMissing(data, record.unitId);
-                record.finalPrimaryStats ??= new PrimaryStatSaveData();
-                record.titleIds ??= new System.Collections.Generic.List<string>();
-                record.ownedPassiveCodes ??= new System.Collections.Generic.List<LearnedPassiveSaveData>();
-                record.supportCard ??= new SupportCardSaveData();
-                record.supportCard.sourceUnitId = record.unitId;
-                if (string.IsNullOrWhiteSpace(record.supportCard.sourceUnitName))
-                    record.supportCard.sourceUnitName = record.unitName;
-
-                string baseId = string.IsNullOrWhiteSpace(record.supportCard.supportId)
-                    ? $"legacy_{record.unitId}_{record.createdAtUnixSeconds}_{i + 1}"
-                    : record.supportCard.supportId;
-                string supportId = baseId;
-                int suffix = 2;
-                while (!usedSupportIds.Add(supportId)) supportId = $"{baseId}_{suffix++}";
-                record.supportCard.supportId = supportId;
-            }
-
-            if (data.unitIds.Exists(id => id > 0) &&
-                !data.unlockedStarterUnitIds.Contains(Entities.LavoisierChemistry.UnitId))
-            {
-                data.unlockedStarterUnitIds.Add(Entities.LavoisierChemistry.UnitId);
-                if (!data.pendingCharacterUnlockIds.Contains(Entities.LavoisierChemistry.UnitId))
-                    data.pendingCharacterUnlockIds.Add(Entities.LavoisierChemistry.UnitId);
-            }
-            data.unitIds.Sort();
             data.unlockedStarterUnitIds.Sort();
             return data;
         }
-
-        private static void AddUnitIdIfMissing(TrainedCharacterCollection data, int unitId)
-        {
-            if (data == null || unitId <= 0) return;
-            data.unitIds ??= new System.Collections.Generic.List<int>();
-            if (!data.unitIds.Contains(unitId))
-            {
-                data.unitIds.Add(unitId);
-            }
-        }
-
         private static void SaveTrainedCharacterCollection(TrainedCharacterCollection data)
         {
-            data = NormalizeTrainedCharacterCollection(data);
+            data = Normalize(data);
             string json = JsonUtility.ToJson(data, prettyPrint: false);
             WriteString(KeyTrainedCharacters, json);
             Flush();

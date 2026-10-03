@@ -1,14 +1,16 @@
 # AGENTS.md
 
 이 저장소에서 작업하는 Codex를 위한 지침이다.
-최종 갱신: **2026-09-18** — 현재 작업 트리의 코드·YAML·씬 설정 기준.
+최종 갱신: **2026-10-03** — 8스탯·공용 인벤토리·휴식 전면 개편, 밝은 분위기 안 2 및 손그림 시트 래퍼·전역 VFX 방향/다중 관통/앞 레이어·96_vfx 부품 조합·상태 부여 연출·시/사바흐/세이/찬드라/히미코/피그말리온/바스테트/잔 기본 Handpaint·Legacy 비교·공허 적 전원/궁극기 비투사체 VFX·행동서열 삽입 슬롯/재배치 모션·P11 하네스 메타데이터. 개편 전 상태는 커밋 `a6194c9`.
 
 ## 프로젝트 개요
 
 NeverTheLast는 **Unity 6000.4.9f1 / C#**으로 만드는 신화 기반 로그라이트 RPG다.
-메인 캐릭터와 서포터로 파티를 구성하고, 문명별 테마를 진행하며 메인 캐릭터를 육성한다.
-전투는 **턴제 자동 전투**이며, 플레이어는 전투 전에 편성·배치·장비·훈련·스킬을 결정한다.
-게임 모드는 `Training`과 `Infinite`이며, 육성 완주 기록과 서포트 카드는 이후 플레이에 이어진다.
+해금한 캐릭터 1~5명으로 파티를 구성하고, 문명별 테마가 이어지는 끝없는 런을 진행한다.
+전투는 **턴제 자동 전투**이며, 플레이어는 전투 전에 편성·배치·덱 구성을 결정한다.
+게임 모드는 **무한 모드 하나**다(`GameMode` enum 없음). **훈련 · 서포트 카드 · 계승 · 메인/서포트 구분은 2026-09 개편으로 사라졌다.**
+캐릭터는 `characterType: Unlocked | Locked`의 해금/미해금으로만 나뉘고, 해금 판정은 `CharacterSelectionManager.IsUnlocked` 하나다.
+로스터는 한 명씩 다시 만드는 중이며 지금은 **세이·시·사바흐·찬드라·히미코·피그말리온·바스테트·잔** 여덟 명, 테마는 **공허의 시험장** 하나다.
 
 - 작업 언어는 한국어다. 설명·주석·로그는 주변 코드의 표현과 밀도에 맞춘다.
 - 에디터 버전의 기준은 `ProjectSettings/ProjectVersion.txt`다.
@@ -23,15 +25,15 @@ NeverTheLast는 **Unity 6000.4.9f1 / C#**으로 만드는 신화 기반 로그�
 | --- | --- |
 | `GDD_Main.md`, `GDD_Sub_Concepts.md` | 게임 방향과 개념 정의 |
 | `Detail_01_Progression.md` | 런·스테이지·테마·진행 흐름 |
-| `Detail_02_Combat.md` | 전장·행동치·피해·보호막·상태·이벤트 |
-| `Detail_03_Character.md` | 스탯·코드·패시브 해금·ID 규칙 |
-| `Detail_04_Training.md` | 훈련·우정도·힌트·전수·계승 |
-| `Detail_05_Economy.md`, `Detail_06_Events.md` | 재화·보상·장비·사건 |
+| `Detail_02_Combat.md` | 전장·행동치·피해·경감·효과 명중·보호막·제어·상태·이벤트·카드 연출 |
+| `Detail_03_Character.md` | 8스탯·선형 성장·마나·코드·집중·ID 규칙 |
+| `Detail_04_Training.md` | 폐지된 훈련 체계의 목록 |
+| `Detail_05_Economy.md`, `Detail_06_Events.md` | 재화·보상·공용 아이템·식량·사건 |
 | `Detail_07_UI_Tech.md` | UI·매니저·저장·검증 도구 |
 | `Detail_08_Confirmed_Characters.md` | 캐릭터별 전투 사양 |
 | `Detail_09_Enemy_Catalog.md`, `Detail_10_Boss_Catalog.md` | 적 편성·보스 |
-| `Detail_11_Code_Catalog.md`, `Detail_12_Code_Weapon_Catalog.md` | 코드 효과 색인·슬롯·숙련 |
-| `Detail_13_Reward_Catalog.md`, `Detail_14_Equipment_Catalog.md` | 보상 풀·장비 목록 |
+| `Detail_11_Code_Catalog.md`, `Detail_12_Code_Weapon_Catalog.md` | 코드 효과 색인·슬롯 |
+| `Detail_13_Reward_Catalog.md`, `Detail_14_Equipment_Catalog.md` | 보상 풀·폐지된 장비 규칙의 이력 |
 | `Detail_15_Party_Synergy.md`, `Detail_16_Elements.md` | 추천 편성·원소 반응·전장 상태 |
 | `Design_Backlog.md` | 아직 결정되지 않은 기획 |
 
@@ -60,24 +62,12 @@ Unity.exe -batchmode -quit -projectPath . -buildTarget OSXUniversal -executeMeth
 
 ### 검증 도구
 
-독립적인 테스트 프로젝트·린터 대신 **실제 게임을 실행하는 커스텀 검증 도구**가 있다.
-변경 범위에 맞는 도구를 선택하고, 실행하지 않은 검증을 통과했다고 보고하지 않는다.
+옛 커스텀 검증 도구(Debug · Integration · Campaign · Lavoisier Verification, Balance Sim)는 옛 5스탯 · 옛 로스터를
+전제로 해 **2026-09 개편 때 모두 지웠다.** 지금은 F1 디버그 패널과 Play Mode 육안 확인이 전부다.
+실행하지 않은 검증을 통과했다고 보고하지 않는다.
 
-| `Tools/NeverTheLast/` 메뉴 | 용도 |
-| --- | --- |
-| `Run Debug Verification` | 기본 시스템 검증 (`Ctrl+F6`) |
-| `Run Integration Verification` | 통합 검증 (`Ctrl+F7`) |
-| `Run Campaign Verification` | 캠페인 진행 검증 (`Ctrl+F8`) |
-| `Run Lavoisier Verification` | 라부아지에 전용 검증 |
-| `Run Balance Sim (5 runs)` | 자동 플레이 밸런스 시뮬레이션 |
-
-- 구현: `Managers/UI/DevTools/DebugVerification*.cs`, `BalanceSim.cs`와 `Tools/Editor/`의 메뉴 스크립트.
-  검증 보고서는 `Logs/`, 밸런스 시뮬레이션 결과는 `Logs/BalanceSim/`에 기록된다.
-- 시뮬레이션의 배치 진입점은 `BalanceSimMenu.RunBatch`다. `-simRuns`, `-simStage`, `-simSeed`,
-  `-simScale`, `-simLineup`, `-simFront`를 지원한다. Play Mode에서 비동기로 진행한 뒤 스스로 종료하므로
-  일반 빌드의 `-quit` 옵션을 그대로 붙이지 않는다. 실행 시 이전 시뮬레이션 결과가 삭제된다.
 - 개발용 디버그 기능은 `Core/DebugMode.cs`, `Managers/UI/DevTools/DebugOverlay.cs`를 본다.
-  검증·시뮬레이션은 `DebugMode.BeginSession()`으로 사용자 저장 쓰기를 격리한다.
+  디버그 조작은 `DebugMode.BeginSession()`으로 사용자 저장 쓰기를 격리한다.
 - 생성된 `Assembly-CSharp.csproj`가 있으면 임시 복사본으로 `dotnet build` 컴파일 점검을 할 수 있다.
   새 소스의 `Compile Include` 누락과 로컬 Unity 참조를 확인하고, 출력은 임시 경로로 분리한다.
   이는 Unity Play Mode 검증을 대체하지 않는다. 생성된 프로젝트 파일을 직접 수정해 유지하지 않는다.
@@ -91,25 +81,25 @@ Unity.exe -batchmode -quit -projectPath . -buildTarget OSXUniversal -executeMeth
 | 구성 요소 | 책임 |
 | --- | --- |
 | `Managers/GameManager` | 상태 전환·전투 시작/정산·준비 행동·사건 흐름, 스케줄러 소유 |
-| `Managers/RunManager` | 런 시작/복원/종료, 육성·우정도·힌트·강화제·사건 이력과 저장 |
+| `Managers/RunManager` | 런 시작/복원/종료, 사건 이력과 저장 |
 | `Managers/RoundManager` | 일반 C# 클래스. 스테이지·테마·적 편성과 배치 |
 | `Managers/ActionScheduler` | 일반 C# 클래스. 행동 예약·우선순위·턴 진행 |
 | `Managers/EventScheduler` | 일반 C# 클래스. 예약 사건과 체크포인트 |
 | `Managers/GridManager` | Game 씬의 셀·유닛·필드/대기석, `heroList` / `enemyList` |
-| `Managers/TrainingManager` | 정적 클래스. 훈련·서포트 배치·우정도·스킬 힌트/전수 |
-| `Managers/CharacterSelectionManager` | 메인·서포터 선택, 중복·시작 자격 검사 |
-| `Managers/RewardManager`, `InventoryManager` | 보상·상점·재화·장비 |
+| `Managers/CharacterSelectionManager` | 1~5인 편성, 해금·중복 검사. 첫 자리가 대표(`FindLeadUnit`) |
+| `Managers/RewardManager`, `InventoryManager` | 보상·상점·재화·공용 인벤토리·식량 |
 | `Managers/DataManager`, `SynergyCatalog` | YAML 로드 / 역할·추천 편성 조회 |
 | `Managers/UIManager` | 화면 라우팅. UI 구현은 `Managers/UI/{Core,Theme,HUD,Screens,DevTools}` |
-| `Managers/AudioManager`, `SfxManager` | 오디오 / 전투 연출 |
+| `Managers/AudioManager` | BGM과 YAML 논리 SFX 큐, 소스 풀·배속 병합·코드 믹서 그룹·궁극기 더킹·하네스 로그. `SfxManager`는 씬 참조 때문에 남긴 빈 껍데기이고, 전투 연출은 `Effects/Vfx/`가 맡는다 |
 | `Core/SaveSystem`, `SaveData`, `SettingsManager` | PlayerPrefs JSON 저장·DTO·설정 |
 
 - 상태 정의는 `BaseClasses/Enums.cs`의 `BaseEnums.GameState`다.
   기본 전투 흐름은 `CharacterSelection → Preparation → RoundInProgress → RoundEnd → RewardSelection`이다.
-  `EventStage`, `TrainingPhase`가 진행 중 끼어들고, `RunComplete` 또는 `GameOver`로 끝난다.
-- 전환은 `NextGameState()`만으로 끝나지 않는다. 준비 행동·보상·사건 콜백과
+  `EventStage`가 진행 중 끼어들고, `RunComplete` 또는 `GameOver`로 끝난다.
+- 전환은 `NextGameState()`만으로 끝나지 않는다. 준비 화면·보상·사건 콜백과
   `EnterNextStageAfterLoad()`를 함께 확인한다. **스테이지 전진은 `RunManager.AdvanceToNextStage()`를 거친다.**
-- 훈련은 준비 페이즈의 행동으로 진입할 수 있다. 스테이지가 사건으로 대체되거나 보스 준비 행동이 제한되는 경로도 있다.
+- 준비 페이즈에서는 **상점 · 휴식 · 공용 인벤토리 · 덱 구성**만 할 수 있다. 추가 전투는 없다.
+  휴식은 짧은 휴식과 식량을 쓰는 긴 휴식으로 나뉘며 `GameManager`가 사용 여부와 짧은 휴식 횟수를 관리한다.
 - 테마·보스·편성은 `RoundManager`와 `80_stages.yaml`을 확인한다. `enabled: false`인 테마는 회전에서 제외되며,
   `stagePatterns`가 개별 보스 ID보다 우선한다. 테마 치환·연작은 `rotationRedirectThemeId` / `chainNextThemeId`를 사용한다.
 - 사용자 저장 가능 시점은 `RunManager.CanSaveNow`를 확인한다. 전투·보상 선택 중 상태를 무조건 저장하지 않는다.
@@ -122,49 +112,47 @@ Unity.exe -batchmode -quit -projectPath . -buildTarget OSXUniversal -executeMeth
 - 기본 전장은 `x = -2, -1, 1, 2`, `y = 1..4`이며 진영별 8칸이다.
   아군 전열/후열은 `-1/-2`, 적은 `1/2`다. 코드에서는 `GetFrontColumn(isEnemy)` / `GetRearColumn(isEnemy)`를 쓴다.
 - 대기석은 별도 배열이며 현재 `GridManager.benchSize`와 `Game.unity` 값은 **5**다.
-  초기 파티는 메인 1명을 포함해 최대 5명이다. 슬롯 수와 파티 선택 제한을 혼동하지 않는다.
-- 소환수는 `currentCell`이 없을 수 있다. 전장 판정은 `Unit.IsOnField`, 소환 규칙은 `Combat/Summons.cs`,
-  `SummonSpec.cs`를 사용한다.
-- 스탯 원본은 `Entities/UnitStats.cs`의 **STR·DEX·CON·INT·LUK**다.
-  별도 성장 공격력/방어력 필드를 추가하지 않는다. 피해는 코드 위력과 주스탯, 체력은 CON,
-  방어·중량 한도는 STR, 행동 속도는 DEX, 마나 효율은 INT, 치명타는 LUK에서 파생된다.
-- 스탯·장비·상태가 바뀌면 파생 스탯도 갱신해야 한다. 내부 계산은 `Unit.AttributesUpdate()`,
+  초기 파티는 1~5명이다. 슬롯 수와 파티 선택 제한을 혼동하지 않는다.
+- 전장 판정은 `Unit.IsOnField`를 사용한다. 소환 체계(`Combat/Summons.cs`)는 개편으로 지웠다.
+- 스탯은 `BaseEnums.StatType`의 **여덟** — 최대 체력 · 공격력 · 특수공격력 · 방어력 · 특수방어력 · 속도 · 치명타 확률 · 치명타 피해.
+  `Entities/UnitStats.cs`가 기초값 + 성장치 × (레벨 − 1)을 들고, 파생 스탯은 없다. 피해는 코드가 `Code.StatDamage`로
+  (대부분 공격력 계수) 만들고, 경감 스탯은 `Combat.DamageMitigation`이 고른다(일반 → 방어력, 지속 · 반응 → 특수방어력,
+  고정 피해 → 없음). 기준값 K는 **공격자 레벨**을 따른다. 규칙 원본은 `Detail_03` · `Detail_02 §3`.
+- 스탯·상태가 바뀌면 최종 스탯도 갱신해야 한다. 내부 계산은 `Unit.AttributesUpdate()`,
   외부에서 동적 효과 변경을 알릴 때는 `RefreshAttributes()`를 사용한다. 재계산은 현재 HP 비율을 보존한다.
 
 ### 행동 스케줄러
 
 - `ActionScheduler`가 이산적인 행동치(AV)로 순서를 정하고 한 번에 한 행동을 실행한다.
   현재 구현에는 속도 비율에 따른 추월 제한과 `AdvanceAction()`의 앞당김 보정도 있다.
-  DEX 변경의 결과를 단순한 실시간 공격 주기로 가정하지 않는다.
-- 현재 우선순위는 `PriorityAdditional → Special → Additional → Coordinated → Ultimate → Normal`이다.
+  속도 변경의 결과를 단순한 실시간 공격 주기로 가정하지 않는다.
+- 현재 우선순위는 `PriorityAdditional → Additional → Coordinated(미사용) → Special → Ultimate → Normal`이다.
   같은 유닛·종류·키의 행동을 중복 예약하지 않는다.
 - 패시브·효과·이벤트 훅은 행동을 예약하거나 값을 바꾸는 트리거다.
   대체행동은 일반행동의 슬롯을 사용하며, 공격하지 않아도 `BaseNormalCode.NotifyActionResolved()`를 호출한다.
 - `PriorityAdditional`과 `Additional`만 `IsAdditional()`에 포함된다.
-  특수행동과 협동행동은 각각 `OnSpecialActivates`, `OnCoordinatedActivates`를 사용하므로 추가행동으로 세지 않는다.
-- 특수행동은 인드라 궁극기가 로카팔라에게 여는 경로다. `Combat.SpecialAction.OpenGate()`를 사용한다.
+  협동행동은 `OnCoordinatedActivates`, 특수행동은 `OnSpecialActivates`를 사용하므로 추가행동으로 세지 않는다.
+  특수행동은 전 유닛 공용 체계가 아니라 `special` 슬롯을 가진 유닛만 특정 트리거로 예약한다.
 - 자동 시전 궁극기는 자원 충전 시 예약되며 턴을 소비하거나 일반행동 AV를 초기화하지 않는다.
   `UltimateCode.IsAutoCast`와 `ConsumesResourceOnResolve`를 따르는 특수 구현도 확인한다.
+- 실제 행동 시작과 패시브 효과 발생은 `Combat.ActionAnnouncer`로 좌상단 행동서열의 맨 위 확장 슬롯에 끼워 넣는다.
+  종류는 일반·대체·추가·협동·궁극기(초월기)·특수·패시브(특성)이며, 패시브는 조건 검사 때가 아니라
+  자원 획득·상태 부여·후속 공격처럼 효과가 실제 적용된 지점에서만 호출한다. 슬롯은 실제 시간 1.5초를 유지하고 최대 3줄이다.
+  별도 배너와 좌측 `I` 막대는 쓰지 않는다. 예약 삽입·행동치 변경·사망 제거 때 기존 슬롯을 재사용해 보간 이동하고,
+  `AdvanceAction` 대상에는 작은 `↑` 표식을 붙인다.
 - 일반행동·궁극기에 옛 스킬 쿨다운을 다시 도입하지 않는다. 지속시간·주기 발동·내부 발동 제한은
   `Unit.TurnCount`, `BaseEffect.OnOwnerTurn()`, `PeriodicTurnPassive`, `Combat.TurnCooldown` / `TargetTurnCooldown`을 쓴다.
-  전투 판정에 `Time.time`이나 프레임 수를 쓰지 않는다. AV의 초 환산은 궁극기 자원 충전에 사용하며,
-  벽시계는 연출·대기 감시·준비 타이머 등에 쓰인다.
+  전투 판정에 `Time.time`이나 프레임 수를 쓰지 않는다. 마나는 행동(+20) · 피격(+5) · 처치(+10)로 차고 시간으로는 차지 않는다.
+  집중(`Combat.Concentration`)은 시전자의 턴으로 세고 시전자가 제어 · 사망하면 끝난다.
 
-### 코드·해금·육성
+### 코드
 
-- 구현은 `Codes/{Base,Passive,Normal,Ultimate,Special}/`, 생성은 `CodeFactory`, 표시 데이터는
+- 구현은 `Codes/{Base,Passive,Normal,Special,Ultimate}/`, 생성은 `CodeFactory`, 표시 데이터는
   `20_codes.yaml`과 `Codes/Base/CodeCatalog.cs`가 담당한다. 같은 숫자 ID라도 슬롯이 다르면 별개다.
-- 기본 슬롯은 고유 패시브·일반행동·궁극기다. `levelPassives`는 조건을 만족한 만큼 배운다.
-  **패시브 3개 제한이나 INT 기반 코드 용량 제한은 없다.**
-- 현재 `PassiveUnlockLevel => Level`이다. `Level + TrainingLevel`로 계산하지 않는다.
-  레벨 변경 시 `RefreshLevelPassives()`가 해금·해제를 처리하며, 먼저 배운 코드를 중복 등록하지 않는다.
-- `UniquePassiveCode`는 전수 불가다. 은색 `Normal` / 금색 `Enhanced`의 대체 관계는
-  `SupersededByCodeId`와 `Unit.TryCastPassiveCode()`로 처리한다. 보라색 `Unique`는 그 관계 밖에 있다.
-- 육성 상태는 `RunManager.Training`, `SupportBonds`, `SkillHints`에 둔다.
-  훈련은 서포트 배치·우정도·체력·컨디션·실패·스킬 Pt를 반영한다.
-  일부 훈련은 `TrainingManager.SecondaryShares()`에 따라 부 스탯도 올린다.
-  힌트와 스킬 Pt를 통한 습득, 완주 후 서포트 카드 계승을 함께 고려한다.
-- 장비 효과 적용은 `Unit.CanUseEquipmentEffects()`로 숙련을 검사한다. 숙련이 없으면 중량만 적용된다.
+- 유닛은 기본적으로 **고유 특성 · 일반행동 · 초월기** 셋을 가지며, 일부만 트리거형 **특수행동**을 추가로 가진다.
+  해금 패시브 · 코드 용량 · 전수는 없다.
+- 일반행동은 `BaseNormalCode`(접촉이면 카드 돌진, 아니면 카드 정중앙에서 투사체), 초월기는 `BaseUltimateCode.Perform()`을 채운다.
+- 장비·장착 슬롯·장비 숙련은 없다. 아이템은 파티 공용 인벤토리에만 들어가며 유닛 스탯을 바꾸지 않는다.
 
 ### 이벤트·피해·상태·원소
 
@@ -173,7 +161,7 @@ Unity.exe -batchmode -quit -projectPath . -buildTarget OSXUniversal -executeMeth
   피해 전/중/후 이벤트는 `EventContext`, 공격자의 `OnDamageDealt`는 `DamageResolvedContext`를 사용한다.
 - 피해 입구는 `Unit.TakeDamage(DamageContext)`다.
   `OnBeforeDamageTaken → OnTakingDamage → OnAfterDamageTaken` 중 기본 피해 처리에서
-  무효화·경감·보호막·HP·사망·실제 피해량을 처리한다. 개별 스킬에서 공통 피해 처리를 복제하지 않는다.
+  경감·보호막·HP·사망·실제 피해량을 처리한다. 경감 전에 정적 이벤트 `Unit.AnyDamageIncoming`이 나간다. 개별 스킬에서 공통 피해 처리를 복제하지 않는다.
 - 태그는 `BaseClasses/DamageTags.cs`를 따른다. 지속피해(`CodeType.Effect`)는 빈 태그 목록을 사용하므로
   접촉 공격 여부는 `ContactAttack`의 존재로 검사한다.
 - 현행 상태 모델은 `Entities/Status/UnitStatus` + `Entities/UnitStatusController` + `Effects/Base/BaseEffect`다.
@@ -194,22 +182,29 @@ Unity.exe -batchmode -quit -projectPath . -buildTarget OSXUniversal -executeMeth
 | 파일 | 내용 | DTO / 로더 |
 | --- | --- | --- |
 | `00_intro.yaml` | 인트로 | `IntroData.cs` |
-| `10_units.yaml` | 아군·기본 스탯·코드·해금·숙련 | `UnitData.cs` |
+| `10_units.yaml` | 아군 · 8스탯 기초값/성장치 · 코드 | `UnitData.cs` : `CombatantData` |
 | `20_codes.yaml` | 슬롯별 코드 이름·설명 | `Codes/Base/CodeCatalog.cs` |
 | `30_synergies.yaml` | 역할·추천 편성 | `SynergyData.cs` |
-| `40_items.yaml` | 장비 | `ItemData.cs` |
+| `40_items.yaml` | 공용 아이템·식량 | `ItemData.cs` |
 | `50_tokens.yaml` | 토큰 | `TokenData.cs` |
-| `60_enemies.yaml` | 일반 적·정예·보스·드랍 | `EnemyData.cs` |
+| `60_enemies.yaml` | 일반 적·정예·보스·드랍 | `EnemyData.cs` : `CombatantData` |
 | `70_rounds.yaml` | 라운드 종류·편성 폴백 | `RoundData.cs` |
 | `80_stages.yaml` | 테마·스테이지 패턴·사건·보스 | `StageData.cs` |
 | `90_rewards.yaml` | 티어 확률·공통 드랍·소모품 | `RewardData.cs` |
+| `95_sfx_cues.yaml` | 논리 SFX 큐·후보·음량/피치·동시 재생/간격·더킹 | `SfxCueData.cs` |
+| `96_vfx.yaml` | 표준 VFX 부품·스킬 슬롯 조합·상태 부여 바인딩 | `VfxData.cs` / `Effects/Vfx/VfxDefinitionCatalog.cs` |
 
 - `30_status.yaml`, `50_elements.yaml`, `60_elites.yaml`은 현행 데이터 파일이 아니다.
 - 새 유닛은 데이터·코드 구현·`CodeFactory` 등록·표시 설명·아트·관련 상세 기획서를 함께 갱신한다.
+  연출은 SFX 논리 키와 같은 이름으로 `96_vfx.yaml`의 `prepare/cast/hit/affected/screen` 표준 부품을 조합하며,
+  새 스킬 전용 원화를 만들기 전에 색·크기·방향·시간 매개변수와 상태 분류 기본 부품을 재사용한다.
+  일반/특성/궁극기의 논리 이름을 `SfxCueRoutes`와 `95_sfx_cues.yaml`에 추가하고 실제 쓰는 짧은 클립만
+  `Resources/Audio/Sfx/`에 둔다. 원본 팩 전체나 긴 스킬 믹스를 저장소에 복사하지 않는다.
   ID 배정은 `Detail_03` / `Detail_11`의 규칙과 기존 팩토리 분기를 확인한다.
   적 코드에는 ID 차이를 enum 인덱스로 쓰는 범위 분기가 있으므로 중간 삽입·재번호 부여에 주의한다.
-- 새 테마는 적 아트, `60_enemies.yaml`, `80_stages.yaml`의 `enemyThemeId`·패턴·사건·배경색을 연결한다.
-- 새 장비는 `Detail_14`의 티어·중량·숙련·부여 코드 규칙을 따른다.
+- 새 테마는 적 아트, `60_enemies.yaml`, `80_stages.yaml`의 `enemyThemeId`·패턴·사건·
+  Resources 상대 `backgroundKey`(확장자 없음)·`ambientColor`를 연결한다.
+- 새 아이템은 공용 인벤토리 기준으로 만들고, 긴 휴식용 식량이면 `foodValue`와 상점 가격을 함께 정한다.
 - YAML 로더는 `IgnoreUnmatchedProperties()`를 사용한다. 오타 필드가 오류 없이 무시될 수 있으므로
   DTO 필드명과 실제 UI/플레이에서의 반영을 확인한다.
 
@@ -220,5 +215,51 @@ Unity.exe -batchmode -quit -projectPath . -buildTarget OSXUniversal -executeMeth
 - 신규·수정 스프라이트는 스탠딩과 초상화를 기준 원화 옆에 놓고 선 처리·질감·채색의 통일성을 확인한다.
 - 적의 접미사 없는 기본 스프라이트는 화면 왼쪽을 바라본다. 양방향이 필요하면 같은 키의 `_RIGHT` 변형을 함께 등록한다.
 - 초상화·스탠딩은 `Assets/Resources/Sprite/{Portraits,Standings}/`의 기존 분류와
-  `Helpers/SpriteResource.cs` 로드 규칙을 따른다. 페이퍼돌은 `Assets/Docs/Character_PaperDoll_Spec.md`를 본다.
+  `Helpers/SpriteResource.cs` 로드 규칙을 따른다.
+- 전장과 기능 UI는 밝은 안 2를 쓴다. `BattlefieldBackdrop`은 하늘 성채·진주색 유리 바닥과 은청색 각인을,
+  `UITheme`/`UIBuild`는 백색 라이트 글라스·`#253443` 본문·하늘색 선택선을 만든다. 원화 위 플로팅 띠만 스모크 글라스로 남긴다.
+- 전투/기본 준비 프레이밍은 실제 점유 카드만 모으고 소수전 카드를 키운다. 덱 구성에서만 빈 2×4 칸을 펼치며,
+  사망·등장 때 카메라는 `HoldCamera` 이후 목표 경계를 부드럽게 따라간다. 메인 메뉴도 같은 하늘 성채/라이트 글라스 언어를 쓴다.
+- 전투 유닛 카드는 자유롭게 선 원화 + 컷코너 윤곽의 `Entities/View/UnitCardView`다. 우상단은 액체형 원소 에너지 오브와
+  고유 자원 숫자 배지, 하단은 체력/보호막 · 행동 게이지 · 상태를 담은 리퀴드 글라스 캡슐이다. 생성 HUD PNG는
+  `Resources/UI/CardHud/`에서 런타임 스프라이트로 읽는다. 밝은 안 2에서도 카드 패널은 `#26384A` 스모크 A안 한 장과
+  흰 글자/글리프를 유지한다. 원화는 넓은 청회색 접지 그림자로 하늘/백색 판에서 분리하고, 확대 블러 실루엣은 스티커 프린지가 되므로 쓰지 않는다. 원화 하단은 색·질감 없는 절차형 알파 그라데이션으로만 패널에 녹인다. 움직임은 `Effects/Vfx/CardMotion`, 투사체 · 충격 · 등장 · 파괴는
+  `ProjectileFx` · `ImpactFx` · `EntryFx` · `CardLifecycleFx`를 쓴다. 스킬 플립북은 `SkillFx`/`FlipbookFx`, 원화 침식은
+  `ErosionFx`를 쓰며 피해 콜백은 투사체가 없으면 대상 `Hit`의 지정 프레임에 한 번만 실행한다. `VfxArt`는 `Resources/VfxTex/Gen/`의 생성 VFX 원화를,
+  `HovlFx`는 `Resources/VfxPrefabs/Hovl/`의 Flash · Projectile · Hit 세트를 풀링하고 원본 이동/충돌을 끈 뒤
+  `ProjectileFx`의 중심→중심 이동·단일 착탄 콜백에 결합한다. 등장·보호막·결정 흡수·집중 해제 같은 단발 연출도
+  Hovl Flash/Hit을 주인공으로 쓰며 `PlayFlash`/`PlayHit`의 비가산 받침으로 밝은 판의 실루엣을 보존한다. 기본 카드 비율은 Flash 0.30 · Projectile 0.34 · Hit 0.40이고, 바위/공허 발사광은 메시형 `Dragon punch flash` 마법진, 비행·착탄은 18/17 nova를 쓴다. 밝은 판에서 점·세로선으로 풀리는 Sparks/Trail/Glow와 nova 루트 빌보드는 끄고 단발 nova Hit은 발화점 고정·단축 수명으로 바닥 잔류를 막는다. 나머지 기본 매핑은 불 16 · 물 9 · 번개 2 · 풀/바람 1 · 얼음 26 · 무원소 14다. 밝은 안 2에서는
+  먼지·외곽·접촉 그림자는 황토/엄버/청회색 알파로 그리고, 좁은 코어·광맥만 가산한다. 규칙은 `Detail_02 §10`.
+  구매한 Unity Asset Store `Effect Collection - Handpaint Spritesheet`는 원본 폴더를 수정하지 않고 실제 사용 시트만
+  `Resources/VfxTex/Handpaint/`로 복사한다. `Presets/HandpaintFx`가 이름별 행×열·FPS·크기·회전·mirror·tint와
+  몸체 알파/휘도 코어 합성을 맡고 저알파 셀 경계는 소프트 컷오프로 걷는다. `VfxStyleSettings`는 캐릭터 기본/Legacy/Handpaint를 F1과 하네스 `vfxStyle`에서
+  전환하며 기본은 시·사바흐·세이·찬드라·히미코·피그말리온·바스테트 Handpaint이고 이전 연출은 Legacy로 보존한다.
+  행동 중 `96_vfx.yaml`의 `screen.focus.*`는 시전자·현재 대상만 밝게 남기고 나머지를 한 체계로 톤다운한다. 일반/추가·특수/궁극기 강도를 구분하고 4× 이상에서는 강도·지속을 줄이며, 연속 요청은 이어 받아 깜빡임과 이중 암전을 막는다.
+  모든 새 연출과 개수 연출은 `VfxSpace.AimFrom(caster, target)`의 시전자→대상 벡터로 회전·좌우 반전을 정한다.
+  다중 대상은 대상별 시전을 반복하지 않고 시전자 카드에서 한 번 시전한 뒤 `BuildTargetHitSequence`/`ResolveTargetHits`로
+  대상별 피격만 연다. 대상 사이를 잇는 칼날·선·관통 궤적은 만들지 않는다.
+  검사·마법사·사수·짐승·적을 포함한 전원은 비행 투사체나 카드 돌진 없이 시전자 시전/사격광 + 대상 피격광으로 구성한다.
+  짧은 제자리 반동·후퇴/부분 전진만 허용한다. 표준 부품과 스킬 조합은 `96_vfx.yaml`의
+  `prepare/cast/hit/affected/screen` 슬롯으로 정의하고 `VfxDefinitionCatalog`/`VfxComposer`가 재생한다.
+  내부 `vfxClass`/`classCastBindings`가 기본 시전을 고른다. caster는 `Fire3` 작은 불꽃을 카드 중앙과 적 방향 끝에,
+  archer는 `Muzzle1` 총구광을 쓰고 saber/fighter/lancer/beast는 카드 전진, assassin은 고유 발도를 우선한다.
+  상태 부여는 성공한 `UnitStatusController.Add` 뒤 `StatusAffectedVfx`가 명시 바인딩 또는 분류 기본 부품을 단발 재생한다. 모든 VFX 렌더러는
+  `VfxSpace.ResolveSortingLayer`가 강제하는 `CombatVfx` 전용 정렬 레이어를 써 카드·이웃 카드·월드 HUD보다 앞에 두되
+  화면 고정 상단 바·모달 UI보다 뒤에 둔다. 카드 경계를 벗어난 연출은 자르지 않는다.
+  범용 지원 피격은 `hit.support.buff/cleanse/heal/shield` 네 부품을 쓴다. 강화는 머리 위의 `Impact1` 역재생, 보호막은 몸통의 은회색 `Ball1` 회전, 정화는 역재생 `Smoke5`, 치유는 녹백 `Impact1`이다. 강화의 현재 크기는 카드 기준 `0.96×0.84`이며, 요청된 머리 폭 약 75%까지 축소됐다고 보지 않는다. 끝점에서 하단 HUD로 빛점을 보내 상태 아이콘·HP·보호막 표시를 1.0→1.35→1.0으로 팝하고 링 플래시를 연다. 보호막은 은회색, 피그말리온 날카로운 가시는 장미색 고정이며 얼굴을 불투명하게 덮지 않는다.
+  `Presets/RadiantVolleyFx`는 Legacy의 0.05초 간격 6발 곡선 연발·카드 안 여섯 지점 분산 착탄·세 번째 탄 정점 단일 콜백을 보관한다. `GeoFx`의 세이 기본 일반행동은 카드에서 적 방향으로 뻗는 금빛 시전광 한 번 뒤 대상 얼굴~상체의 백금 Impact 여섯 번만 연다. 빅뱅은 방향성 대형 시전 한 번 뒤 무작위 대상 위치의 일곱 파쇄와 실제 결과인 아군 보호막 `affected`만 쓰며 선택 후 0.242초 판정을 유지한다. 창세의 노래는 방향성 시전 한 번 뒤 생존 아군 전원의 머리 버프와 몸통 보호막을 동시에 열고 같은 순간 효과를 적용한다. 이전 결정 문장·후속 파편은 Legacy다. 과거 대상 발밑 결정창은
+  `Effects/Vfx/Presets/RisingSpikeFx.Play(caster, target, onHit, scale)`로 보관하며 새 캐릭터가 한 줄로 재사용할 수 있다.
+  `ChandraFx`의 기본 샤친은 카드에서 적 방향으로 뻗는 은백 시전광 한 번 뒤 대상 얼굴~상체의 Blue/White Impact 여섯 번을 열고 세 번째 정점에서만 판정한다. 소마는 역수렴·돔을 제거하고 방향성 시전 한 번 뒤 선정된 다른 아군에게만 버프 `affected`를 연다. 실제 코드에 보호막이 없으므로 보호막 연출도 없다. 창야는 방향성 시전 한 번 뒤 찬드라 외 아군의 치명타 버프 `affected`와 적 전체 월광 충격을 같은 순간 시작하고, 짧은 다중 타격 리듬만 남긴다. 대상 사이 궤적은 없다. 이전 생성·역수렴·돔은 Legacy다.
+  `ShiFx`의 멸참은 `AimFrom`으로 시 카드 위 `Slash1_Blue`를 적 방향으로 긋고 대상 위 팩 화풍 `hit.claw.triple`의 검정·짙은 적색 직선 붓획 세 줄을 시간차 와이프로 연다. 시 전용 `96_vfx.yaml` 정의만 검정 몸체·블러드 레드 외곽·크림슨 코어로 덮어쓰며 공용 부품은 바꾸지 않는다. 작은 Impact/Smoke만 받침으로 쓰며 정점에 한 번만 판정한다. 3/6/9타 만종은 멸참 피격이 끝난 즉시 별도 시전 없이 `Smoke3` 수평 연기 한 장으로 잇는다. 3타는 같은 대상의 작은 연기, 6·9타는 생존 적 진영 중앙에서 한 장이 좌우로 퍼지며 닿는 순서대로 분배 피해를 판정한다. 9타도 크기는 같고 색 대비·코어·화면 리듬만 강화한다. 처치 재행동은 사망 퇴장과 진형 재배치 완료 뒤 시전한다. 옛 만종 버프진·진 귀참은 현행에서 제거하고, 이전 `DrawSlashFx`+`ClawRakeFx` 검붉은 할퀴기는 Legacy로 보존하며 청록 비행 참격은
+  `Effects/Vfx/Presets/FlyingSlashFx.Play(caster, target, onHit, scale)`로 보관한다.
+  `SabahFx`의 기본 일반행동은 `AimFrom` 방향의 제자리 `Slash1_Purple` 뒤 대상의 방향성 `Lightning2_Purple`+`Impact1_Purple`로
+  이어지고 기존 약 0.64초 정점에 대상별 한 번 판정한다. 세 번째 번개 베기는 시전자 카드의 큰 검격 한 번 뒤 최대 3명 위에
+  0.09초 간격으로 전격과 판정을 열며, 중간 칼날이나 관통 궤적은 없다. 이전 침식·그림자 이동·할퀴기는 `Presets/ShadowAmbushFx`와 Legacy로
+  보존한다. 아즈라엘은 소멸·가는 영혼선을 쓰지 않고 사바흐 카드 위에서 보라색 `Slash5_Blue` 발도를 정확히 한 번 연 뒤 적 진영 중앙에 적당히 큰 보라 벼락 하나, 중앙에서 좌우로 퍼지는 `Smoke3` 수평 연기를 잇는다. 연기가 각 적에 닿을 때 대상별 1회 판정을 열고 공유 치명은 유지한다.
+  히미코 일반행동은 `EmberFx`가 부채형 Red 시전광 한 번과 대상 얼굴~상체 중심의 Red Explosion 피격 한 번만 재생한다. 공격으로 맹화가 붙을 때 표식 부여광은 없고, 맹화 3중첩 폭발 때만 표식 위치에서 `Smoke` 한 장이 펑 하고 터진다. 기존 상태·고정 피해 호출 순서는 유지한다. 피그말리온은 발도 없이 짧게 움찔한 뒤
+  `Fire3` 시전 뒤 대상 얼굴~상체에 `Explosion2_Red` 화염 피격을 한 번 연다. 적갈·주황 알파 몸체와 노랑~백색 가산 코어를 쓰며
+  시전·피격을 `AimFrom`의 대상 방향에 맞추고 단일 판정을 유지한다. 두 캐릭터의 이전 생성 연발/`ClawRakeFx` 경로는 Legacy다.
+  바스테트는 내부 `beast` 분류다. 냥냥펀치와 U122 추가행동은 카드 움직임·`hit.claw.triple`·SFX까지 완전히 같은 일반행동을 재생하고 행동서열 종류만 추가행동으로 남긴다. P322 경호는 적 시전 절반에서 정지·포커스 해제·패시브 행동서열 표시를 거친 뒤 경호자가 가로막고, 포커스 복귀 후 최종 경호자에게 원 공격자의 병과·색 피격을 그대로 재생한다.
+  `JeanFx`의 잔은 내부 `fighter` 분류다. 신성한 일격은 짧은 카드 전진이 시전을 대신하고, 대상 초상화에 세 번의 진한 남청 `FireAttack` 주먹 잔상·백철색 충격 뒤 같은 충격점에서 뒤로 밀려 퍼지는 청회색 `Smoke3`를 하나의 피격 단계로 연다. 철권제재는 적 시전 절반에서 정지·포커스 해제·패시브 행동서열 표시 뒤 더 빠르고 짧게 재생하며, 공격자가 생존하면 포커스 복귀 후 적 공격을 잇는다. 텐션 오르는데!는 잔 주위 카드 폭 이상 반경의 파랑·은백 `Slash5` 다섯 갈래 시전 하나만 쓴다.
+  `EnemyNormalFx`와 U1001~U1004도 `96_vfx.yaml` 조합을 쓴다. 공허 늑대 강타는 같은 3갈래의 굵은 외곽·긴 잔광 강화판, 공허 사수는 진한 외곽의 적색 `Muzzle1`과 하단 중앙 앵커의 수평 `Smoke3`를 쓰며 연사는 짧은 정점 유지 변형으로 시전·피격·SFX를 같은 리듬으로 3회 연다. 공허 선봉은 승인된 얼굴~상체 높이의 확대 `Slash4`, 공허 분쇄자는 `incomingImpact`와 `impactAnchor`를 쓴다. 공허룡은 보스 배율 `Fire3` 법사 시전과 암자주 몸체·백색 코어의 `Explosion1` 피격을 일반·궁극기에 공용한다. 대지 분쇄 기절과 U1004 5회 판정 계약은 유지한다.
 - UI 수정은 `UITheme`, `UIBuild`, `CodeText`, 공통 툴팁 등 기존 도우미를 재사용하고 실제 화면에서 확인한다.

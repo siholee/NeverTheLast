@@ -13,7 +13,6 @@ namespace Effects.Buffs
     /// </summary>
     public sealed class PercentHealOverTimeEffect : BaseEffect
     {
-        public override bool CountsAsReagentBuff => false;
         private readonly float _percentPerTurn;
 
         public PercentHealOverTimeEffect(float percentPerTurn) : base(0, percentPerTurn)
@@ -29,7 +28,7 @@ namespace Effects.Buffs
             if (Target == null || !Target.isActive || Target.HpCurr <= 0) return;
 
             int heal = Mathf.Max(1, Mathf.RoundToInt(Target.HpMax * _percentPerTurn * 0.01f));
-            Target.ModifyHp(Target.HpCurr + heal, Caster ?? Target);
+            Target.Heal(heal, Caster ?? Target);
         }
     }
 }

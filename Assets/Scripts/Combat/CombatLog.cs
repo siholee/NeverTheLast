@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using BaseClasses;
 using Entities;
 using Entities.Status;
@@ -77,8 +77,6 @@ namespace Combat
                 Unit.AnyDamageDealt += OnDamage;
                 Unit.AnyUnitDied += OnDied;
                 Unit.AnyElementalReaction += OnReaction;
-                Unit.AnyHitNullified += OnNullified;
-                Unit.AnyEvaded += OnEvaded;
                 Unit.AnyNegativeStatusGranted += OnNegativeStatus;
                 _subscribed = true;
             }
@@ -113,6 +111,7 @@ namespace Combat
             string codeName = kind switch
             {
                 ActionScheduler.ActionKind.Normal => DisplayName(unit.ActiveNormalCode, label),
+                ActionScheduler.ActionKind.Special => DisplayName(unit.ActiveSpecialCode, label),
                 ActionScheduler.ActionKind.Ultimate => DisplayName(unit.ActiveUltimateCode, label),
                 _ => string.IsNullOrWhiteSpace(label) ? "" : label,
             };
@@ -120,8 +119,8 @@ namespace Combat
             {
                 ActionScheduler.ActionKind.Normal => "일반행동",
                 ActionScheduler.ActionKind.Ultimate => "궁극기",
-                ActionScheduler.ActionKind.Special => "특수행동",
                 ActionScheduler.ActionKind.Coordinated => "협동행동",
+                ActionScheduler.ActionKind.Special => "특수행동",
                 _ => "추가행동",
             };
 
@@ -174,20 +173,6 @@ namespace Combat
             if (!Recording) return;
             Add(Kind.Reaction, $"원소 반응 「{reaction}」 — {Name(source)} → {Name(target)}",
                 source != null && !source.IsEnemy, false);
-        }
-
-        private static void OnNullified(Unit attacker, Unit target)
-        {
-            if (!Recording) return;
-            Add(Kind.Evade, $"{Name(target)}이(가) {Name(attacker)}의 타격을 무효화",
-                target != null && !target.IsEnemy, false);
-        }
-
-        private static void OnEvaded(Unit attacker, Unit target)
-        {
-            if (!Recording) return;
-            Add(Kind.Evade, $"{Name(target)}이(가) {Name(attacker)}의 공격을 회피",
-                target != null && !target.IsEnemy, false);
         }
 
         private static void OnNegativeStatus(Unit grantor, Unit target, UnitStatus status)

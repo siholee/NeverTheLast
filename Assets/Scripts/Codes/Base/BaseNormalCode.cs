@@ -2,243 +2,169 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
-using CGT.Pooling;
-using Codes.Base;
+using Effects.Vfx;
 using Entities;
 using Managers;
 using UnityEngine;
-using Effects.Projectiles;
 
 namespace Codes.Base
 {
     /// <summary>
-    /// 모든 일반행동의 기본 클래스
-    /// 공통 로직과 기본 구현을 제공하고, 상속 클래스에서 필요한 부분을 오버라이드
+    /// 모든 일반행동의 뼈대. 대상 선택 → 공지 → <b>전달</b>(돌진 또는 투사체) → 적중 → 마무리.
+    ///
+    /// 전달이 연출과 판정을 한데 묶는다. 피해는 <b>카드가 부딪히는 프레임</b>, 또는
+    /// <b>투사체가 카드 중앙에 꽂히는 프레임</b>에 들어간다 — 하스스톤처럼 눈에 보이는 순간이 곧 판정이다.
+    /// 하위 클래스는 피해 공식(<see cref="BaseDamage"/>)과 모양(<see cref="IsContact"/> ·
+    /// <see cref="ProjectileFor"/>)만 정하면 된다.
     /// </summary>
     public abstract class BaseNormalCode : NormalCode
     {
-        protected readonly HS_Poolable _prefab;
-
         protected BaseNormalCode(NormalCodeContext context) : base(context)
         {
             CodeType = BaseEnums.CodeType.Normal;
-            Caster = context.Caster;
-            CastingDelay = 0.5f;
-            CodeTags = new List<int> { BaseClasses.DamageTag.Physical };
-            Power = 50;   // 기본 일반행동 위력
-            _prefab = GameManager.Instance.sfxManager.ProjectilePrefabs["FireBlast"];
+            CastingDelay = 0.1f;
         }
+
+        /// <summary>카드가 직접 날아가 부딪히는 공격인가. 아니면 카드 중앙에서 투사체가 나간다.</summary>
+        protected virtual bool IsContact => false;
+
+        /// <summary>치명타 · 경감 전의 피해. 예) 55 + 방어력의 50% → <c>StatDamage(55, Defense, 0.5f)</c>.</summary>
+        protected abstract int BaseDamage(Unit target);
 
         public override void CastCode()
         {
             Caster.isCasting = true;
-            Debug.Log($"{Caster.UnitName}{Caster.FieldPositionLabel()}이 {CodeName} 시전");
             CurrSkillCoroutine = Caster.StartCoroutine(SkillCoroutine());
         }
 
         protected override IEnumerator SkillCoroutine()
         {
-            // 캐스팅
-            float elapsedTime = 0f;
-            while (elapsedTime < CastingDelay)
+            bool castCompleted = true;
+            yield return WaitForCast(ok => castCompleted = ok);
+            if (!castCompleted)
             {
-                if (Caster.isControlled || !Caster.isActive)
-                {
-                    Debug.Log($"{Caster.UnitName}{Caster.FieldPositionLabel()}의 {CodeName} 시전이 방해됨");
-                    StopCode();
-                    yield break;
-                }
-                elapsedTime += Time.deltaTime;
-                yield return null;
+                StopCode();
+                yield break;
             }
 
-            // 타겟 선택 로직
             TargetUnits = SelectTarget();
-            
-            if (TargetUnits.Count == 0)
+            Combat.AttackTargetResolution routing = Combat.AttackTargetRouter.Prepare(Caster, TargetUnits,
+                CodeType, GetDamageTags(), CodeName);
+            yield return routing.ResolvePreAttack();
+            TargetUnits = routing.Targets;
+            if (!routing.CanContinue || !Combat.Targeting.Announce(Caster, TargetUnits))
             {
                 StopCode();
                 yield break;
             }
 
-            // 대상이 정해진 순간을 알린다. 잔의 '최고의 방어'처럼 상대 행동보다 먼저
-            // 끼어드는 코드가 여기서 결판을 내며, 되받아치기에 쓰러지면 이 행동은 접는다.
-            if (!Combat.Targeting.Announce(Caster, TargetUnits))
+            AudioManager.PlayAction(Caster, SfxActionSlot.Normal, SfxCuePhase.Cast, CodeName);
+
+            foreach (Unit target in TargetUnits.ToList())
             {
-                StopCode();
-                yield break;
+                if (target == null || !target.isActive) continue;
+                yield return Deliver(target);
             }
 
-            // 크리티컬 계산
-            ResolveCritical(out bool isCrit, out float critMultiplier);
-            
-            // 접촉/비접촉 태그 결정
-            List<int> damageTags = GetDamageTags();
-            if (Caster.HasEquippedBow() &&
-                damageTags.Contains(BaseClasses.DamageTag.NonContactAttack) &&
-                !damageTags.Contains(BaseClasses.DamageTag.Arrow))
-            {
-                damageTags.Add(BaseClasses.DamageTag.Arrow);
-            }
-            
-            // 데미지 계산 (하위 클래스에서 오버라이드 가능)
-            int damage = CalculateDamage(critMultiplier);
-            
-            // 디버그 로그
-            string contactType = damageTags.Contains(BaseClasses.DamageTag.ContactAttack) ? "접촉" : "비접촉";
-            Debug.Log($"{Caster.UnitName}이 {TargetUnits[0].UnitName}에게 {contactType} 일반행동을 시전했습니다.");
-            
-            DamageContext context = CreateDamageContext(damage, damageTags, isCrit);
-            // 실제 적중까지 현재 행동을 유지한다. 발사만 하고 끝내면 다음 행동/턴과 피해가 겹친다.
-            yield return FireProjectile(TargetUnits, 0.5f, context);
-            
-            // 추가 효과 처리 (하위 클래스에서 오버라이드 가능)
-            yield return ApplyAdditionalEffects(TargetUnits[0], context);
-            
             NotifyActionResolved();
-
-            // 궁극기 자원은 전투 시간으로 차오른다(Unit.AccrueUltimateResource).
-            // 여기서 또 주면 행동이 잦은 유닛이 이중으로 이득을 본다.
             StopCode();
         }
 
         /// <summary>
-        /// 일반행동이 실제로 끝났음을 알린다. 공격하지 않는 일반행동도 여기를 지난다.
-        /// 시전만 하고 방해받은 경우에는 발행하지 않는다 — '철벽'처럼 행동 횟수를 세는 코드가 듣는다.
+        /// 한 대상에게 공격을 전달한다. 기본은 근접이면 돌진, 아니면 투사체 한 발이다.
+        /// 여러 발 · 특수한 모양은 하위 클래스가 통째로 바꾼다.
+        /// </summary>
+        protected virtual IEnumerator Deliver(Unit target)
+        {
+            DamageContext context = BuildContext(target);
+            if (IsContact)
+            {
+                Color accent = ElementPalette.ColorFor(Caster.Element);
+                yield return CardMotion.Charge(Caster, target, (point, direction) =>
+                {
+                    ImpactFx.Slam(point, direction, accent, context.IsCrit ? 1.25f : 1f);
+                    Hit(target, context);
+                });
+                yield break;
+            }
+
+            CardMotion.Throw(Caster, target);
+            AudioManager.PlayAction(Caster, SfxActionSlot.Normal, SfxCuePhase.Projectile, CodeName);
+            yield return ProjectileFx.Fly(Caster, target, ProjectileFor(target), () => Hit(target, context));
+        }
+
+        /// <summary>이 대상에게 날릴 투사체의 모양. 기본은 원소 색 빛구슬이다.</summary>
+        protected virtual ProjectileStyle ProjectileFor(Unit target)
+        {
+            return ProjectileFx.ElementStyle(ElementPalette.Parse(Caster.Element));
+        }
+
+        /// <summary>치명타를 굴려 피해 정보를 만든다.</summary>
+        protected DamageContext BuildContext(Unit target)
+        {
+            bool crit = RollCritical(out float multiplier);
+            int damage = Mathf.Max(1, Mathf.RoundToInt(BaseDamage(target) * multiplier));
+            return new DamageContext(Caster, damage, BaseEnums.CodeType.Normal, GetDamageTags(), crit);
+        }
+
+        /// <summary>적중 — 피해를 넣고 적중 이벤트를 알린다.</summary>
+        protected void Hit(Unit target, DamageContext context, bool playSfx = true)
+        {
+            if (target == null || !target.isActive) return;
+            if (playSfx)
+                AudioManager.PlayAction(Caster, SfxActionSlot.Normal, SfxCuePhase.Hit, CodeName);
+            target.TakeDamage(context);
+            Caster.Invoke(BaseEnums.UnitEventType.OnNormalAttackHit, new EventContext(Caster, target, context));
+            OnAttackResolved(target, context);
+        }
+
+        /// <summary>적중 직후의 캐릭터별 후처리 훅(원소 부여 등).</summary>
+        protected virtual void OnAttackResolved(Unit target, DamageContext context) { }
+
+        /// <summary>
+        /// 일반행동이 실제로 끝났음을 알린다. 마나 +20이 여기서 들어온다(<see cref="Unit.ManaPerNormalAction"/>).
+        /// 시전만 하고 방해받은 경우에는 발행하지 않는다.
         /// </summary>
         protected void NotifyActionResolved()
-            => Caster?.Invoke(
-                BaseClasses.BaseEnums.UnitEventType.OnNormalActionResolved, new EventContext(Caster));
+            => Caster?.Invoke(BaseEnums.UnitEventType.OnNormalActionResolved, new EventContext(Caster));
 
         public override void StopCode()
         {
-            Caster.isCasting = false;
+            if (Caster != null) Caster.isCasting = false;
         }
 
-        /// <summary>
-        /// 데미지 계산 로직 (하위 클래스에서 오버라이드)
-        /// </summary>
-        protected virtual int CalculateDamage(float critMultiplier)
-        {
-            return RollDamage(critMultiplier);
-        }
+        public override bool HasValidTarget() => GetAvailableEnemies().Count > 0;
 
-        /// <summary>
-        /// 일반 치명타와 소환수 전용 확정 치명타를 한 곳에서 해결한다.
-        /// 셰익스피어의 강화가 발동하면 현재 치명타 확률을 치명타 피해 배율에 그대로 더한다.
-        /// </summary>
-        protected virtual void ResolveCritical(out bool isCrit, out float critMultiplier)
-        {
-            bool guaranteedCrit = Combat.Summons.TryConsumeGuaranteedCritical(Caster);
-            isCrit = guaranteedCrit || Random.value <= Caster.CritChanceCurr;
-            if (!isCrit)
-            {
-                critMultiplier = 1f;
-                return;
-            }
-
-            critMultiplier = Caster.CritMultiplierCurr + (guaranteedCrit ? Caster.CritChanceCurr : 0f);
-        }
-
-        /// <summary>캐릭터별 방어 무시·관통 같은 공격 단위 보정을 붙일 수 있는 생성 훅.</summary>
-        protected virtual DamageContext CreateDamageContext(int damage, List<int> damageTags, bool isCrit)
-            => new(Caster, damage, BaseEnums.CodeType.Normal, damageTags, isCrit);
-
-        /// <summary>
-        /// 추가 효과 적용 (하위 클래스에서 오버라이드)
-        /// </summary>
-        protected virtual IEnumerator ApplyAdditionalEffects(Unit target, DamageContext context)
-        {
-            yield return null; // 기본적으로는 추가 효과 없음
-        }
-
-        protected virtual IEnumerator FireProjectile(List<Unit> targets, float delay, DamageContext context)
-        {
-            foreach (var target in targets)
-            {
-                SfxManager sfx = GameManager.Instance?.sfxManager;
-                bool melee = sfx != null && sfx.TryPlayMeleeAttack(Caster, target, context);
-                if (melee)
-                {
-                    yield return new WaitForSeconds(SfxManager.MeleeImpactDelay);
-                }
-                else
-                {
-                    // 물리(화살·투척)는 곡선형, 마법·특수는 직선형으로 날아간다.
-                    // 피해는 투사체가 실제로 닿은 뒤에 들어간다. 미리 재 둔 시간으로 기다리면
-                    // 대상이 먼저 쓰러져 카드가 사라진 자리로 투사체만 날아가는 꼴이 된다.
-                    ProjectilePathType path = ProjectileFlight.PathFor(context);
-                    var token = new ProjectileImpactToken();
-                    sfx?.FireElementalProjectile(
-                        Caster, target, delay, path, ProjectileFlight.DataFor(path), _prefab,
-                        token.MarkImpact, context);
-                    yield return ProjectileFlight.WaitForImpact(token, delay);
-                }
-                target.TakeDamage(context);
-                Caster.Invoke(BaseEnums.UnitEventType.OnNormalAttackHit, new EventContext(Caster, target, context));
-                OnAttackResolved(target, context);
-            }
-        }
-
-        /// <summary>투사체가 실제로 적중한 직후의 캐릭터별 후처리 훅.</summary>
-        protected virtual void OnAttackResolved(Unit target, DamageContext context) { }
-
-        public override bool HasValidTarget()
-        {
-            return GetAvailableEnemies().Count > 0;
-        }
-        
-        /// <summary>
-        /// 타겟 선택 로직 - 기존 타겟을 우선시하되, 더 높은 우선도의 적이 있으면 타겟 변경
-        /// </summary>
+        /// <summary>우선도가 가장 높은 적. 같은 우선도면 지금 노리던 대상을 계속 친다.</summary>
         protected virtual List<Unit> SelectTarget()
         {
-            List<Unit> availableEnemies = GetAvailableEnemies();
-            
-            if (availableEnemies.Count == 0)
-                return new List<Unit>();
+            List<Unit> enemies = GetAvailableEnemies();
+            if (enemies.Count == 0) return new List<Unit>();
 
-            int maxPriority = availableEnemies.Max(enemy => enemy.Priority);
-            List<Unit> highestPriorityEnemies = availableEnemies
-                .Where(enemy => enemy.Priority == maxPriority)
-                .ToList();
-
-            if (Caster.currentNormalTarget != null &&
-                Caster.currentNormalTarget.isActive &&
-                highestPriorityEnemies.Contains(Caster.currentNormalTarget))
+            int maxPriority = enemies.Max(enemy => enemy.Priority);
+            List<Unit> highest = enemies.Where(enemy => enemy.Priority == maxPriority).ToList();
+            if (Caster.currentNormalTarget != null && Caster.currentNormalTarget.isActive &&
+                highest.Contains(Caster.currentNormalTarget))
             {
                 return new List<Unit> { Caster.currentNormalTarget };
             }
 
-            Caster.currentNormalTarget = highestPriorityEnemies[Random.Range(0, highestPriorityEnemies.Count)];
-            
-            return Caster.currentNormalTarget != null ? 
-                new List<Unit> { Caster.currentNormalTarget } : 
-                new List<Unit>();
+            Caster.currentNormalTarget = highest[Random.Range(0, highest.Count)];
+            return new List<Unit> { Caster.currentNormalTarget };
         }
-        
-        /// <summary>
-        /// 공격 가능한 적 목록 가져오기
-        /// </summary>
+
         protected List<Unit> GetAvailableEnemies()
         {
-            GridManager gridManager = GameObject.FindAnyObjectByType<GridManager>();
-            if (gridManager == null)
-                return new List<Unit>();
-            
-            bool casterIsAlly = gridManager.heroList.Contains(Caster);
-            List<Unit> targetList = casterIsAlly ? gridManager.enemyList : gridManager.heroList;
-            
-            // 전장에 서 있는 유닛만 남긴다. 칸이 없는 소환수도 여기서 함께 걸러진다.
-            return targetList.Where(unit => unit && unit.IsOnField && !unit.IsUntargetable).ToList();
+            GridManager grid = GridManager.Instance;
+            if (grid == null) return new List<Unit>();
+            List<Unit> pool = Caster.IsEnemy ? grid.heroList : grid.enemyList;
+            return pool.Where(unit => unit && unit.IsOnField && !unit.IsUntargetable).ToList();
         }
-        
-        /// <summary>
-        /// 기본 일반행동 데미지 태그
-        /// </summary>
-        protected virtual List<int> GetDamageTags()
+
+        protected virtual List<int> GetDamageTags() => new()
         {
-            return new List<int> { BaseClasses.DamageTag.SingleTarget, BaseClasses.DamageTag.NormalAttack, BaseClasses.DamageTag.Physical, BaseClasses.DamageTag.NonContactAttack };
-        }
+            DamageTag.SingleTarget, DamageTag.NormalAttack,
+            IsContact ? DamageTag.ContactAttack : DamageTag.NonContactAttack,
+        };
     }
 }

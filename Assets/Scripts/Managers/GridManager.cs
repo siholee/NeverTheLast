@@ -1,5 +1,6 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using System.Collections;
 using BaseClasses;
 using Core;
 using Entities;
@@ -316,13 +317,16 @@ namespace Managers
         // 지금은 간격을 항상 칸 크기보다 크게 잡아 격자가 또렷하게 떨어진다.
 
         /// <summary>
-        /// 같은 진영 두 열 사이의 간격. 카드(8.94) 사이에 <b>소환수 소형 카드가 들어갈 틈</b>을 남긴다.
-        ///
-        /// 예전(11.6)에는 틈이 2.7뿐이라 소환수 카드를 소환자 카드 위에 겹쳐 세웠고,
-        /// 5인 편성에서 라이트의 소환수가 라이트의 초상화·이름을 가렸다(QA).
-        /// 이제 소환수는 소환자 카드의 바깥쪽 틈에 선다(<see cref="Entities.View.SummonCardView"/>).
+        /// 같은 진영 두 열 사이의 간격. 카드 몸체(한 변의 80%)와 양옆으로 튀어나온 보석 사이에
+        /// 틈을 남겨, 돌진하는 카드가 옆 열 카드를 스치지 않게 한다.
         /// </summary>
         private const float ColumnSpacing = 13.2f;
+
+        /// <summary>
+        /// 빈 칸을 숨긴 전투 구도에서 인접 카드 패널 사이에 남길 최소 간격.
+        /// 중심 간격은 고정값이 아니라 각 열의 실제 확대 카드 폭으로 계산한다.
+        /// </summary>
+        private const float BattleColumnMinGap = 0.9f;
 
         /// <summary>
         /// 한 열 안에서 위아래로 늘어선 4명의 간격.
@@ -335,6 +339,9 @@ namespace Managers
 
         /// <summary>양 진영 사이(아군 전열 ↔ 적 전열)에 추가로 벌리는 거리.</summary>
         private const float CenterGap = 7f;
+
+        /// <summary>전투 구도 중앙 여백. 공격 연출이 지나갈 길은 남기되 빈 바닥이 주인공이 되지 않게 한다.</summary>
+        private const float BattleCenterGap = 1f;
 
         /// <summary>대기석 칸 사이 간격. 대기석 카드는 전투 HUD가 없어 전장보다 촘촘해도 된다.</summary>
         private const float BenchSpacing = 11.6f;
@@ -375,7 +382,7 @@ namespace Managers
         private const float CellExtent = 5.08f;
 
         /// <summary>전장 바깥에 남길 여백(월드 단위).</summary>
-        private const float CameraMargin = 1.2f;
+        private const float CameraMargin = 0.4f;
 
         // ── HUD가 차지하는 화면 영역(1920×1080 기준 px) ─────────────
         // 예전에는 "전장 높이의 7% · 16%"처럼 전장 크기에 비례해 여유를 줬다. HUD는 전장과 무관하게
@@ -384,7 +391,7 @@ namespace Managers
         // 이제 HUD를 픽셀로 비워 두고 남은 영역에 전장을 맞춘다.
 
         /// <summary>상단 — 자원 띠(60) · 우상단 바(76) · 엘리트 체력 띠(112) 아래까지.</summary>
-        private const float TopHudPixels = 172f;
+        private const float TopHudPixels = 204f;
 
         /// <summary>하단 — 전투 중에는 가장자리 여백만.</summary>
         private const float BottomHudPixelsBattle = 28f;
@@ -394,14 +401,14 @@ namespace Managers
             UI.Screens.PreparationScreen.PanelBottom + UI.Screens.PreparationScreen.PanelHeight + 14f;
 
         /// <summary>
-        /// 좌우 — 228px 행동 서열과 12px 안전 간격을 확보한다.
-        /// 4:3에서는 기존 160px 예약으로 아군 후열과 행동 카드 사이가 20px 남짓까지 붙고,
-        /// 반대편 대형 적도 화면 끝에서 잘렸으므로 실제 HUD 폭을 기준으로 잡는다.
+        /// 좌우 레일은 폭이 다르므로 같은 최대값을 양쪽에서 빼지 않는다.
+        /// 비대칭 안전 영역의 중심은 아래 카메라 보정에서 다시 맞춘다.
         /// </summary>
-        private const float SideHudPixels = 240f;
+        private const float LeftHudPixels = 196f;
+        private const float RightHudPixels = 270f;
 
-        /// <summary>소환수 소형 카드가 소환자 카드 바깥으로 걸치는 폭(월드 단위).</summary>
-        private static float SummonOverhang => Cell.CardSize * Entities.View.SummonCardView.ScaleRatio + 0.4f;
+        /// <summary>카드 바깥으로 튀어나오는 보석 · 오라의 여유(월드 단위).</summary>
+        private const float SummonOverhang = 0.5f;
 
         /// <summary>대기석이 지금 화면에 나와 있는지.</summary>
         private bool _benchVisible = true;
@@ -409,8 +416,27 @@ namespace Managers
         /// <summary>이번 프레임에 열 정렬을 다시 해야 하는지.</summary>
         private bool _layoutDirty = true;
 
+        /// <summary>사망 사본이 남아 있는 동안 판정상 빈 칸을 화면에서만 제자리에 붙드는 시각.</summary>
+        private float _layoutHoldUntil = -1f;
+        private bool _layoutWaitsForCamera;
+
         /// <summary>배치가 바뀌었음을 알린다. 실제 정렬은 프레임 끝에 한 번만 돈다.</summary>
         public void RequestFieldLayoutRefresh() => _layoutDirty = true;
+
+        /// <summary>점유 정보는 즉시 바뀌되 카드 정렬만 퇴장 연출 뒤로 미룬다.</summary>
+        public void HoldFieldLayout(float seconds)
+        {
+            _layoutHoldUntil = Mathf.Max(_layoutHoldUntil, Time.time + Mathf.Max(0f, seconds));
+        }
+
+        /// <summary>사망 뒤 실제 정렬과 카메라 추적이 끝날 때까지 재행동의 시각 시작만 기다린다.</summary>
+        public IEnumerator WaitForFieldLayoutSettled(float timeout = 1.8f)
+        {
+            float started = Time.realtimeSinceStartup;
+            while ((_layoutDirty || Time.time < _layoutHoldUntil || _layoutWaitsForCamera) &&
+                   Time.realtimeSinceStartup - started < timeout)
+                yield return null;
+        }
 
         /// <summary>마지막으로 정렬할 때 빈 칸을 보여 주고 있었는지.</summary>
         private bool _lastShowEmpty = true;
@@ -420,13 +446,36 @@ namespace Managers
         private float _framedHudScale = 1f;
         private BaseEnums.GameState _lastLayoutState = (BaseEnums.GameState)(-1);
 
-        // 전투 중 사망으로 점유 칸이 줄어도 카메라가 매번 당겨지지 않도록 시작 경계를 고정한다.
-        private bool _battleBoundsValid;
-        private float _battleMinX, _battleMaxX, _battleMinY, _battleMaxY;
-        private float _battleFeatureScale = 1f;
+        // 인원 변화 때 카메라가 즉시 튀면 사망·등장 연출의 기준점이 흔들린다.
+        // 목표 프레임만 다시 계산하고 실제 카메라는 unscaled time으로 짧게 따라간다.
+        private bool _cameraFrameReady;
+        private bool _snapCameraFrame = true;
+        private Vector3 _cameraTargetPosition;
+        private Vector3 _cameraMoveVelocity;
+        private float _cameraTargetSize;
+        private float _cameraSizeVelocity;
+
+        /// <summary>이 시각(게임 시간)까지 카메라를 붙들어 둔다. 전투가 끝난 직후의 파괴 연출용.</summary>
+        private float _cameraHoldUntil = -1f;
+        private bool _reframeAfterHold;
+
+        /// <summary>
+        /// 카메라를 잠시 그 자리에 붙든다. 전투가 끝나면 빈 적 진영이 지워지며 카메라가 곧바로 아군 쪽으로
+        /// 다시 잡혀, 마지막 적이 부서지는 연출이 화면 밖으로 밀려났다(Play 모드 확인).
+        /// </summary>
+        public void HoldCamera(float seconds)
+        {
+            _cameraHoldUntil = Time.time + Mathf.Max(0f, seconds);
+        }
 
         private void LateUpdate()
         {
+            if (_reframeAfterHold && Time.time >= _cameraHoldUntil)
+            {
+                _reframeAfterHold = false;
+                FrameCamera();
+            }
+
             // 게임 상태가 바뀌면(준비 ↔ 전투) 빈 칸을 보여 줄지가 달라지므로 그때도 다시 세운다.
             bool showEmpty = ShouldShowEmptyCells();
             BaseEnums.GameState state = GameManager.Instance != null
@@ -435,7 +484,7 @@ namespace Managers
             if (state != _lastLayoutState)
             {
                 _lastLayoutState = state;
-                _battleBoundsValid = false;
+                _snapCameraFrame = true;
                 _layoutDirty = true;
             }
             var screen = new Vector2Int(Screen.width, Screen.height);
@@ -446,17 +495,25 @@ namespace Managers
                 _framedHudScale = hudScale;
                 _layoutDirty = true;
             }
-            if (!_layoutDirty && showEmpty == _lastShowEmpty) return;
+            if ((_layoutDirty || showEmpty != _lastShowEmpty) && Time.time >= _layoutHoldUntil)
+            {
+                _layoutDirty = false;
+                _lastShowEmpty = showEmpty;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Core.VerifyEvents.Raise("field_reposition_start");
+#endif
+                RefreshFieldLayout();
+                _layoutWaitsForCamera = true;
+            }
 
-            _layoutDirty = false;
-            _lastShowEmpty = showEmpty;
-            RefreshFieldLayout();
+            AdvanceCameraFrame();
         }
 
         /// <summary>배치를 만질 수 있는 동안에만 빈 칸(=놓을 자리)을 보여 준다.</summary>
         private static bool ShouldShowEmptyCells()
         {
-            return Cell.PlacementModeActive &&
+            bool dragging = DragAndDropManager.Instance != null && DragAndDropManager.Instance.IsDragging();
+            return (Cell.PlacementModeActive || dragging) &&
                    (GameManager.Instance == null ||
                     GameManager.Instance.gameState == BaseEnums.GameState.Preparation);
         }
@@ -475,6 +532,7 @@ namespace Managers
             bool showEmpty = ShouldShowEmptyCells();
             _lastShowEmpty = showEmpty;
             ApplyBenchVisibility(_benchVisible && showEmpty);
+            ApplyDensityScale(showEmpty);
 
             for (int columnIndex = 0; columnIndex < 2; columnIndex++)
             {
@@ -483,6 +541,30 @@ namespace Managers
             }
 
             FrameCamera();
+        }
+
+        /// <summary>
+        /// 소수전은 카드가 화면의 주인공이 되도록 키우고, 5:N 밀도에서는 HUD가 겹치지 않는 크기로 돌아온다.
+        /// 준비 배치 모드는 칸 자체를 읽어야 하므로 항상 기준 배율을 쓴다.
+        /// </summary>
+        private void ApplyDensityScale(bool showEmpty)
+        {
+            if (_fieldCellManager == null) return;
+
+            int occupiedCount = 0;
+            foreach (Cell cell in _fieldCellManager)
+                if (cell != null && cell.isOccupied) occupiedCount++;
+
+            float scale = showEmpty ? 1f : occupiedCount switch
+            {
+                <= 3 => 1.28f,
+                <= 5 => 1.14f,
+                <= 7 => 1f,
+                _ => 0.88f,
+            };
+
+            foreach (Cell cell in _fieldCellManager)
+                if (cell != null) cell.SetLayoutScale(cell.isOccupied ? scale : 1f);
         }
 
         /// <summary>한 진영의 한 열(전열 또는 후열)을 세로 중앙 정렬한다.</summary>
@@ -502,8 +584,31 @@ namespace Managers
             var ordered = new List<Cell>(occupied);
             if (showEmpty) ordered.AddRange(empty);
 
-            float posX = side * (CenterGap * 0.5f + (columnIndex + 0.5f) * ColumnSpacing);
+            // 전투 중 전열이 비었으면 후열만 바깥 좌표에 남기지 않고 안쪽으로 당긴다.
+            // 준비 배치 모드에서는 좌표 의미가 보여야 하므로 원래 2열을 그대로 유지한다.
+            bool frontOccupied = ColumnHasOccupied(side, 0);
+            int displayColumn = !showEmpty && columnIndex == 1 && !frontOccupied ? 0 : columnIndex;
+            float centerGap = showEmpty ? CenterGap : BattleCenterGap;
+            float posX;
+            if (showEmpty)
+            {
+                posX = side * (centerGap * 0.5f + (displayColumn + 0.5f) * ColumnSpacing);
+            }
+            else
+            {
+                float frontWidth = ColumnCardWidth(side, frontOccupied ? 0 : columnIndex);
+                float distance = centerGap * 0.5f + frontWidth * 0.5f;
+                if (displayColumn == 1)
+                {
+                    float rearWidth = ColumnCardWidth(side, 1);
+                    distance += (frontWidth + rearWidth) * 0.5f + BattleColumnMinGap;
+                }
+                posX = side * distance;
+            }
             float half = (ordered.Count - 1) * 0.5f;
+            float largestScale = 1f;
+            foreach (Cell cell in occupied) largestScale = Mathf.Max(largestScale, cell.FeatureScale);
+            float rowSpacing = showEmpty ? SlotSpacing : SlotSpacing * largestScale;
 
             for (int i = 0; i < ordered.Count; i++)
             {
@@ -511,7 +616,7 @@ namespace Managers
                 if (!cell.gameObject.activeSelf) cell.gameObject.SetActive(true);
                 float slot = i - half;   // 위가 음수, 아래가 양수 — yPos와 같은 방향이다.
 
-                cell.transform.position = new Vector3(posX, -slot * SlotSpacing, 0f);
+                cell.transform.position = new Vector3(posX, -slot * rowSpacing, 0f);
                 cell.transform.localScale = Vector3.one;
 
                 // 유닛 오브젝트는 Field 밑에 따로 매달려 있어 셀을 옮겨도 따라오지 않는다.
@@ -535,6 +640,31 @@ namespace Managers
                 // 보이지 않는 빈 칸의 Collider2D가 모바일 드롭 대상으로 남지 않게 함께 끈다.
                 cell.gameObject.SetActive(false);
             }
+        }
+
+        private bool ColumnHasOccupied(int side, int columnIndex)
+        {
+            int x = side * (columnIndex + 1);
+            for (int y = yMin; y <= yMax; y++)
+            {
+                Cell cell = GetFieldCell(x, y);
+                if (cell != null && cell.isOccupied) return true;
+            }
+            return false;
+        }
+
+        /// <summary>해당 표시 열에서 가장 넓은 카드 폭. 하단 HUD도 카드 폭 안에 있으므로 같은 값으로 간격을 보장한다.</summary>
+        private float ColumnCardWidth(int side, int columnIndex)
+        {
+            int x = side * (columnIndex + 1);
+            float width = Cell.CardSize;
+            for (int y = yMin; y <= yMax; y++)
+            {
+                Cell cell = GetFieldCell(x, y);
+                if (cell != null && cell.isOccupied)
+                    width = Mathf.Max(width, Cell.CardSize * cell.FeatureScale);
+            }
+            return width;
         }
 
         /// <summary>필드 칸 하나를 좌표로 찾는다. 범위를 벗어나면 null.</summary>
@@ -586,6 +716,11 @@ namespace Managers
         {
             Camera camera = Camera.main;
             if (camera == null || !camera.orthographic) return;
+            if (Time.time < _cameraHoldUntil)
+            {
+                _reframeAfterHold = true;
+                return;
+            }
 
             // 배경은 카메라에 붙어 따라다닌다. 프레이밍을 잡는 자리에서 함께 세운다.
             Effects.BattlefieldBackdrop.Ensure();
@@ -593,20 +728,13 @@ namespace Managers
             bool any = false;
             float minX = 0f, maxX = 0f, minY = 0f, maxY = 0f;
             bool includeSlots = ShouldShowEmptyCells();
-            bool inBattle = GameManager.Instance != null &&
-                            GameManager.Instance.gameState == BaseEnums.GameState.RoundInProgress;
-            bool hasAlly = false, hasEnemy = false;
+            var formationSlots = new List<Vector2>();
 
             void Include(Cell cell)
             {
                 // 전투 중 지워진 빈 칸은 프레이밍에서 뺀다.
                 if (cell == null || !cell.IsLaidOut || (!includeSlots && !cell.isOccupied)) return;
                 Vector3 position = cell.transform.position;
-                if (cell.isOccupied)
-                {
-                    hasAlly |= cell.xPos < 0;
-                    hasEnemy |= cell.xPos > 0;
-                }
                 if (!any)
                 {
                     minX = maxX = position.x;
@@ -621,14 +749,7 @@ namespace Managers
             }
 
             _largestFeatureScale = 1f;
-            if (inBattle && _battleBoundsValid)
-            {
-                any = true;
-                minX = _battleMinX; maxX = _battleMaxX;
-                minY = _battleMinY; maxY = _battleMaxY;
-                _largestFeatureScale = _battleFeatureScale;
-            }
-            else if (_fieldCellManager != null)
+            if (_fieldCellManager != null)
             {
                 foreach (Cell cell in _fieldCellManager)
                 {
@@ -641,32 +762,36 @@ namespace Managers
             {
                 foreach (Cell cell in _benchCellManager) Include(cell);
             }
-            if (!any) return;
 
-            if (inBattle && !_battleBoundsValid && hasAlly && hasEnemy)
+            // 배경 각인은 프레이밍 경계가 아니라 지금 실제로 보이는 칸의 중심을 따른다.
+            void AddFormationSlot(Cell cell)
             {
-                _battleMinX = minX; _battleMaxX = maxX;
-                _battleMinY = minY; _battleMaxY = maxY;
-                _battleFeatureScale = _largestFeatureScale;
-                _battleBoundsValid = true;
+                if (cell == null || !cell.IsLaidOut || (!includeSlots && !cell.isOccupied)) return;
+                formationSlots.Add(cell.transform.position);
+            }
+            if (_fieldCellManager != null)
+                foreach (Cell cell in _fieldCellManager) AddFormationSlot(cell);
+            if (_benchVisible && includeSlots && _benchCellManager != null)
+                foreach (Cell cell in _benchCellManager) AddFormationSlot(cell);
+
+            if (!any)
+            {
+                Effects.BattlefieldBackdrop.SetBoard(default, false);
+                return;
             }
 
-            // 전투/편성 화면은 양 진영 축을 고정한다. 준비 기본 화면은 실제 아군만 가운데로 당겨
-            // 빈 적 진영 때문에 캐릭터가 절반 크기로 줄지 않게 한다.
-            float cameraX;
-            if (inBattle || includeSlots)
+            // 덱 구성 격자만 양 진영 축을 고정한다. 실제 점유 카드로 그리는 전투/기본 준비는
+            // 1:2처럼 비대칭인 편성을 억지로 좌우 복제하지 않는다. 그 빈 경계가 1:2 카드를 30%까지 줄였다.
+            if (includeSlots)
             {
                 float halfWidth = Mathf.Max(Mathf.Abs(minX), Mathf.Abs(maxX));
                 minX = -halfWidth;
                 maxX = halfWidth;
-                cameraX = 0f;
             }
-            else
-            {
-                cameraX = (minX + maxX) * 0.5f;
-            }
-            minX -= CellExtent + SummonOverhang + CameraMargin;
-            maxX += CellExtent + SummonOverhang + CameraMargin;
+            float horizontalExtent = Cell.CardSize * _largestFeatureScale * 0.5f +
+                                     SummonOverhang + CameraMargin;
+            minX -= horizontalExtent;
+            maxX += horizontalExtent;
 
             // 셀 중심 좌표를 모았으니 카드가 실제로 덮는 세로 영역으로 넓힌다.
             // 위로는 궁극기 게이지가 걸치고, 아래로는 체력 · 행동 · 상태 아이콘 줄이 붙는다.
@@ -674,6 +799,10 @@ namespace Managers
             float card = Cell.CardSize * _largestFeatureScale;
             maxY += card * 0.5f + Entities.View.UnitCardView.HudAbove(card) + CameraMargin;
             minY -= card * 0.5f + Entities.View.UnitCardView.HudBelow(card) + CameraMargin;
+
+            // 카드가 선 자리 아래에 밝은 유리 판을 깐다.
+            Effects.BattlefieldBackdrop.SetBoard(
+                Rect.MinMaxRect(minX, minY, maxX, maxY), true, formationSlots);
 
             // HUD가 덮는 픽셀을 화면 비율로 바꾼다. CanvasScaler(0.5 매칭)와 같은 식이어야
             // 해상도·화면비가 달라도 HUD 가장자리와 전장 가장자리가 맞는다.
@@ -687,21 +816,67 @@ namespace Managers
             bool preparation = GameManager.Instance != null &&
                                GameManager.Instance.gameState == BaseEnums.GameState.Preparation;
             float bottom = (preparation ? BottomHudPixelsPreparation : BottomHudPixelsBattle) * canvasScale / screenHeight;
-            float side = SideHudPixels * canvasScale / screenWidth;
+            float left = LeftHudPixels * canvasScale / screenWidth;
+            float right = RightHudPixels * canvasScale / screenWidth;
 
             float usableHeight = Mathf.Max(0.3f, 1f - top - bottom);
-            float usableWidth = Mathf.Max(0.3f, 1f - side * 2f);
+            float usableWidth = Mathf.Max(0.3f, 1f - left - right);
             float aspect = camera.aspect > 0f ? camera.aspect : 16f / 9f;
 
             float viewHeight = Mathf.Max((maxY - minY) / usableHeight, (maxX - minX) / usableWidth / aspect);
-            camera.orthographicSize = viewHeight * 0.5f;
+
+            int occupiedCount = 0;
+            if (_fieldCellManager != null)
+                foreach (Cell cell in _fieldCellManager)
+                    if (cell != null && cell.IsLaidOut && cell.isOccupied) occupiedCount++;
+
+            // 1:1은 이미 충분히 컸다. 가로 여백이 사라져도 원화가 화면을 과점유하지 않도록 상한을 둔다.
+            // 1:2는 가로폭이 자연스럽게 40% 안팎을 결정하고, 이 값은 세로 구도에서만 과확대를 막는다.
+            float maxCardFraction = occupiedCount <= 2 ? 0.52f : occupiedCount <= 3 ? 0.45f : 0.40f;
+            viewHeight = Mathf.Max(viewHeight, card / maxCardFraction);
 
             // 전장을 HUD 사이 빈 영역의 가운데에 둔다. 화면 아래 bottom 비율만큼 비우고,
             // 남은 영역에서 전장이 세로 가운데에 오도록 카메라 중심을 잡는다.
             float freeCenter = (bottom + (1f - top)) * 0.5f;          // 빈 영역 중심(화면 비율)
             float contentCenter = (minY + maxY) * 0.5f;
             float cameraY = contentCenter + (0.5f - freeCenter) * viewHeight;
-            camera.transform.position = new Vector3(cameraX, cameraY, camera.transform.position.z);
+            float freeCenterX = (left + (1f - right)) * 0.5f;
+            float contentCenterX = (minX + maxX) * 0.5f;
+            float cameraX = contentCenterX + (0.5f - freeCenterX) * viewHeight * aspect;
+            _cameraTargetSize = viewHeight * 0.5f;
+            _cameraTargetPosition = new Vector3(cameraX, cameraY, camera.transform.position.z);
+
+            if (!_cameraFrameReady || _snapCameraFrame || !Application.isPlaying)
+            {
+                camera.orthographicSize = _cameraTargetSize;
+                camera.transform.position = _cameraTargetPosition;
+                _cameraMoveVelocity = Vector3.zero;
+                _cameraSizeVelocity = 0f;
+                _cameraFrameReady = true;
+                _snapCameraFrame = false;
+            }
+        }
+
+        private void AdvanceCameraFrame()
+        {
+            if (!_cameraFrameReady || Time.time < _cameraHoldUntil) return;
+            Camera camera = Camera.main;
+            if (camera == null || !camera.orthographic) return;
+
+            float delta = Mathf.Max(0.0001f, Time.unscaledDeltaTime);
+            camera.transform.position = Vector3.SmoothDamp(camera.transform.position, _cameraTargetPosition,
+                ref _cameraMoveVelocity, 0.30f, Mathf.Infinity, delta);
+            camera.orthographicSize = Mathf.SmoothDamp(camera.orthographicSize, _cameraTargetSize,
+                ref _cameraSizeVelocity, 0.34f, Mathf.Infinity, delta);
+            if (_layoutWaitsForCamera &&
+                Vector3.Distance(camera.transform.position, _cameraTargetPosition) <= 0.025f &&
+                Mathf.Abs(camera.orthographicSize - _cameraTargetSize) <= 0.025f)
+            {
+                _layoutWaitsForCamera = false;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Core.VerifyEvents.Raise("field_reposition_complete");
+#endif
+            }
         }
 
         /// <summary>지금 전장에 선 칸 중 가장 큰 카드 배율. 보스 단독 편성에서 1.5가 된다.</summary>
@@ -796,7 +971,10 @@ namespace Managers
         }
 
         /// <summary>유닛을 스폰하고 그 인스턴스를 돌려준다. 자리를 못 잡으면 null이다.</summary>
-        public Unit SpawnUnit(int xPos, int yPos, bool isEnemy, int unitId, bool isBench = false)
+        /// <param name="playEntry">위에서 떨어져 내려앉는 등장 연출을 건다. 전투 사이 복원처럼 이미 서 있던 유닛은 끈다.</param>
+        /// <param name="entryDelay">여러 장이 한꺼번에 설 때 차례로 떨어지게 벌리는 시간(초).</param>
+        public Unit SpawnUnit(int xPos, int yPos, bool isEnemy, int unitId, bool isBench = false,
+            bool playEntry = false, float entryDelay = 0f)
         {
             Cell cell = null;
             
@@ -877,6 +1055,7 @@ namespace Managers
                 
                 unitComponent.currentCell = cell;
                 unitComponent.Spawn(cell, isEnemy, unitId);
+                if (playEntry && !isBench) cell.PlayEntry(entryDelay);
                 // Debug.Log($"Spawned {(isEnemy ? "enemy" : "hero")} unit {unitComponent.UnitName} at {(isBench ? "bench" : $"({xPos}, {yPos})")}");
                 return unitComponent;
             }
@@ -1115,7 +1294,7 @@ namespace Managers
         /// 유닛을 <b>같은 오브젝트 그대로</b> 다른 칸으로 옮긴다. 대상 칸이 차 있으면 두 유닛을 맞바꾼다.
         ///
         /// 예전 배치 이동은 원래 유닛을 끄고 같은 ID로 새로 스폰했다. 스폰은 데이터 파일에서 유닛을
-        /// 처음부터 다시 만들므로 레벨 · 훈련 · 장비 · 현재 체력이 모두 초기값으로 돌아갔다 —
+        /// 처음부터 다시 만들므로 레벨 · 현재 체력이 모두 초기값으로 돌아갔다 —
         /// 전열에서 후열로 옮기면 체력이 줄어 보이던 원인이다. 전열/후열 규칙은 체력을 건드리지 않는다.
         /// </summary>
         public bool RelocateUnit(Unit unit, Cell target)
@@ -1206,65 +1385,14 @@ namespace Managers
             return true; // 모든 적 측 셀이 비어있음
         }
 
-        /// <summary>
-        /// 칸을 차지하지 않는 소환수를 전장에 세운다.
-        ///
-        /// 격자에 자리를 잡지 않으므로 <see cref="SpawnUnit"/>과 달리 <see cref="Cell"/>을 거치지 않는다.
-        /// 진영 목록에만 올려 두면 대상 지정(<c>Target</c>)과 행동 순서(<c>ActionScheduler</c>)가
-        /// <see cref="Unit.IsOnField"/>를 통해 자동으로 집어 간다.
-        /// </summary>
-        public Unit SpawnSummon(Unit owner, Combat.SummonSpec spec)
-        {
-            if (owner == null || spec == null || !owner.IsOnField) return null;
-
-            GameObject prefab = owner.IsEnemy ? enemyPrefab : heroPrefab;
-            if (prefab == null) return null;
-
-            Vector3 origin = owner.currentCell != null ? owner.currentCell.transform.position : Vector3.zero;
-            GameObject summonObj = Instantiate(prefab, origin, Quaternion.identity);
-            summonObj.name = $"Summon_{spec.Name}";
-            summonObj.transform.SetParent(owner.IsEnemy ? Field : Field);
-
-            Unit summon = summonObj.GetComponent<Unit>();
-            if (summon == null)
-            {
-                Debug.LogError($"[GridManager] 소환수 프리팹에 Unit이 없습니다: {spec.Name}");
-                Destroy(summonObj);
-                return null;
-            }
-
-            if (owner.IsEnemy) enemyList.Add(summon);
-            else heroList.Add(summon);
-
-            summon.currentCell = null;   // 칸을 차지하지 않는다
-            summon.SpawnAsSummon(owner, spec);
-            if (!owner.IsEnemy && GameManager.Instance?.gameState == BaseEnums.GameState.RoundInProgress)
-                Core.SaveSystem.RecordCombatSummon();
-            Entities.View.SummonCardView.Attach(summon, owner);
-            Debug.Log($"[소환] {owner.UnitName}이(가) {spec.Name}을(를) 불러냈다");
-            return summon;
-        }
-
         public void OnRoundEnd()
         {
-            // 전투 중 모아 둔 누적 해금 카운터를 여기서 한 번에 기록한다.
-            Core.SaveSystem.FlushUnlockCounters();
-            foreach (Unit unit in heroList.Concat(enemyList).Where(unit => unit != null))
-                unit.Chemistry?.EndRound();
             // 판에 깔린 상태는 라운드를 넘기지 않는다.
             Combat.Battlefield.Clear();
-            // 공명도 같은 성질이다. 진영마다 한 자리에만 적혀 있으므로 여기서 함께 걷는다.
-            Codes.Passive.OathBond.Clear();
 
             foreach (Unit unit in heroList.Concat(enemyList).Where(unit => unit != null && unit.isActive).ToList())
             {
                 unit.Invoke(BaseEnums.UnitEventType.OnRoundEnd, new EventContext(unit));
-            }
-
-            // 소환수는 라운드를 넘기지 않는다. 소환자가 살아남아도 함께 걷는다.
-            foreach (Unit unit in heroList.Concat(enemyList).Where(unit => unit != null).ToList())
-            {
-                unit.DismissSummons();
             }
 
             // 죽은 자리의 예약을 푼다.

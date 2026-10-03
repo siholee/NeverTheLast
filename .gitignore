@@ -82,3 +82,22 @@ __pycache__/
 # Unity Test Framework가 플레이어 빌드 중 생성하는 임시 설정
 /Assets/Resources/PerformanceTestRunInfo.json*
 /Assets/Resources/PerformanceTestRunSettings.json*
+
+# Codex 작업 임시 폴더(검수 캡처·빌드 산출물)
+.codex-temp/
+
+# 구매 에셋 — Unity Asset Store EULA상 공개 저장소 재배포 금지. 각자 패키지 매니저로 받는다.
+/Assets/CartoonVFX9x/
+/Assets/CartoonVFX9x.meta
+/Assets/Resources/VfxTex/Handpaint/*
+!/Assets/Resources/VfxTex/Handpaint/ClawStroke_*
+
+# 테스트용 HSR 팬 SFX 키트 음원 — 출시 전 교체 대상이며 공개 배포하지 않는다.
+/Assets/Resources/Audio/Sfx/Hsr/
+/Assets/Resources/Audio/Sfx/Hsr.meta
+
+# 구매 에셋 — Hovl Studio(Unity Asset Store). 원본과 Resources 사본 모두 공개 저장소에 두지 않는다.
+/Assets/Hovl Studio/
+/Assets/Hovl Studio.meta
+/Assets/Resources/VfxPrefabs/Hovl/
+/Assets/Resources/VfxPrefabs/Hovl.meta

@@ -18,10 +18,8 @@ namespace Managers.UI.HUD
     public class TopStatusBar
     {
         private const int PreviewSlots = 6;
-        private const float SlotSize = 26f;
-        private const float SlotGap = 5f;
-        private const float BarHeight = 96f;
-
+        private const float SlotSize = 31f;
+        private const float SlotGap = 10f;
         private readonly RectTransform _root;
         private readonly TextMeshProUGUI _roundLabel;
         private readonly TextMeshProUGUI _themeLabel;
@@ -35,18 +33,18 @@ namespace Managers.UI.HUD
         public TopStatusBar(Transform parent, Action onSpeed, Action onCodex, Action onSettings)
         {
             _root = UIBuild.Container("TopStatusBar", parent);
-            _root.anchorMin = new Vector2(0.015f, 1f);
-            _root.anchorMax = new Vector2(0.985f, 1f);
+            _root.anchorMin = new Vector2(0f, 1f);
+            _root.anchorMax = new Vector2(1f, 1f);
             _root.pivot = new Vector2(0.5f, 1f);
-            _root.sizeDelta = new Vector2(0f, BarHeight);
-            _root.anchoredPosition = new Vector2(0f, -18f);
+            _root.sizeDelta = new Vector2(-UITheme.ScreenEdgeInset * 2f, UITheme.TopBarHeight);
+            _root.anchoredPosition = new Vector2(0f, -UITheme.ScreenTopInset);
 
-            Image background = UIBuild.Glass("HeaderBand", _root, 14);
+            Image background = UIBuild.ChromePanel("HeaderBand", _root);
             UIBuild.Stretch(background.rectTransform);
 
             // ── 오른쪽: 진행 예고 + 손가락으로 누르기 충분한 3개 조작 ──
             RectTransform right = UIBuild.Container("Navigation", _root);
-            UIBuild.Anchor(right, new Vector2(0.62f, 0f), new Vector2(0.99f, 1f), 8f, 8f);
+            UIBuild.Anchor(right, new Vector2(0.58f, 0f), new Vector2(0.99f, 1f), 9f, 9f);
 
             Button settings = UIBuild.IconButton("SettingsButton", right, "메뉴", onSettings);
             UIBuild.Anchor(settings.image.rectTransform, new Vector2(0.84f, 0.12f), new Vector2(1f, 0.88f), 3f, 3f);
@@ -68,7 +66,7 @@ namespace Managers.UI.HUD
             var previewRoot = UIBuild.Container("StagePreview", right);
             float previewWidth = PreviewSlots * SlotSize + (PreviewSlots - 1) * SlotGap;
             UIBuild.Pin(previewRoot, new Vector2(0f, 0.5f), new Vector2(previewWidth, SlotSize),
-                new Vector2(4f, -7f));
+                new Vector2(6f, -8f));
 
             for (int i = 0; i < PreviewSlots; i++)
             {
@@ -76,33 +74,40 @@ namespace Managers.UI.HUD
             }
 
             TextMeshProUGUI previewCaption = UIBuild.Label("PreviewCaption", previewRoot, "진행 예고",
-                UITheme.FontMicro, UITheme.TextMuted);
-            UIBuild.Pin(previewCaption.rectTransform, new Vector2(0f, 1f), new Vector2(60f, 12f),
-                new Vector2(0f, 14f));
+                UITheme.FontCaption, UITheme.TextMuted);
+            UIBuild.Pin(previewCaption.rectTransform, new Vector2(0f, 1f), new Vector2(84f, 18f),
+                new Vector2(0f, 18f));
 
-            // ── 왼쪽: 라운드 표시 + 진행 원형게이지 ──
-            var roundBlock = UIBuild.Glass("RoundBlock", _root, 10, 0.45f);
-            UIBuild.Anchor(roundBlock.rectTransform, new Vector2(0.01f, 0.08f), new Vector2(0.28f, 0.92f), 4f, 4f);
+            // ── 왼쪽: 별도 카드 없이 상단 레일에 문장과 스테이지를 바로 매입한다. ──
+            RectTransform roundBlock = UIBuild.Container("RoundBlock", _root);
+            UIBuild.Anchor(roundBlock, new Vector2(0.01f, 0.08f), new Vector2(0.28f, 0.92f), 4f, 4f);
+
+            Image crest = UIBuild.Panel("StageCrest", roundBlock, UITheme.SurfaceSunken,
+                UIShapes.Corner.All, 16, UITheme.Outline, 1);
+            UIBuild.Pin(crest.rectTransform, new Vector2(0f, 0.5f), new Vector2(78f, 78f), new Vector2(6f, 0f));
+            TextMeshProUGUI crestGlyph = UIBuild.Text("CrestGlyph", crest.transform, "✦",
+                UITheme.FontTitle, UITheme.TextPrimary, TextAlignmentOptions.Center);
+            UIBuild.Stretch(crestGlyph.rectTransform);
 
             // 원형 게이지: 남은 시간이 시계방향으로 줄어든다.
-            _timerRing = UIBuild.RadialBar("Timer", roundBlock.transform, UITheme.Accent,
+            _timerRing = UIBuild.RadialBar("Timer", roundBlock, UITheme.Accent,
                 UITheme.Track, 96, 0.74f);
             RectTransform ringTrack = _timerRing.rectTransform.parent as RectTransform;
-            UIBuild.Pin(ringTrack, new Vector2(0f, 0.5f), new Vector2(56f, 56f), new Vector2(12f, 0f));
+            UIBuild.Pin(ringTrack, new Vector2(0f, 0.5f), new Vector2(68f, 68f), new Vector2(11f, 0f));
 
             _timerLabel = UIBuild.Text("TimerText", ringTrack, "", UITheme.FontCaption,
                 UITheme.TextSecondary, TextAlignmentOptions.Center);
             UIBuild.Stretch(_timerLabel.rectTransform);
 
-            _roundLabel = UIBuild.Text("RoundLabel", roundBlock.transform, "1-1",
+            _roundLabel = UIBuild.Text("RoundLabel", roundBlock, "1-1",
                 UITheme.FontTitle, UITheme.TextPrimary);
             UIBuild.Anchor(_roundLabel.rectTransform, new Vector2(0f, 0.46f), new Vector2(1f, 1f), 0f, 0f);
-            _roundLabel.rectTransform.offsetMin = new Vector2(78f, _roundLabel.rectTransform.offsetMin.y);
+            _roundLabel.rectTransform.offsetMin = new Vector2(96f, _roundLabel.rectTransform.offsetMin.y);
 
-            _themeLabel = UIBuild.Text("ThemeLabel", roundBlock.transform, "",
-                UITheme.FontMicro, UITheme.TextMuted);
+            _themeLabel = UIBuild.Text("ThemeLabel", roundBlock, "",
+                UITheme.FontCaption, UITheme.TextMuted);
             UIBuild.Anchor(_themeLabel.rectTransform, new Vector2(0f, 0.06f), new Vector2(1f, 0.46f), 0f, 0f);
-            _themeLabel.rectTransform.offsetMin = new Vector2(78f, _themeLabel.rectTransform.offsetMin.y);
+            _themeLabel.rectTransform.offsetMin = new Vector2(96f, _themeLabel.rectTransform.offsetMin.y);
             _themeLabel.overflowMode = TextOverflowModes.Ellipsis;
         }
 
@@ -163,17 +168,17 @@ namespace Managers.UI.HUD
 
             public Slot(Transform parent, int index)
             {
-                _fill = UIBuild.Panel($"Slot{index}", parent, UITheme.SurfaceRaised,
-                    UIShapes.Corner.Diagonal, 5);
+                _fill = UIBuild.Panel($"Slot{index}", parent, UITheme.BoardSlate,
+                    UIShapes.Corner.All, 5, UITheme.Outline, 1);
                 UIBuild.Pin(_fill.rectTransform, new Vector2(0f, 0.5f),
                     new Vector2(SlotSize, SlotSize), new Vector2(index * (SlotSize + SlotGap), 0f));
                 _fill.raycastTarget = false;
 
-                _glyph = UIBuild.Text("Glyph", _fill.transform, "", UITheme.FontCaption,
+                _glyph = UIBuild.Text("Glyph", _fill.transform, "", UITheme.FontHeading,
                     UITheme.TextPrimary, TextAlignmentOptions.Center);
                 UIBuild.Stretch(_glyph.rectTransform);
 
-                // 현재 스테이지를 가리키는 아래쪽 앰버 밑줄.
+                // 현재 스테이지는 색 면 대신 하늘색 노치 하나로만 표시한다.
                 _currentMark = UIBuild.Solid("CurrentMark", _fill.transform, UITheme.Accent);
                 UIBuild.Pin(_currentMark.rectTransform, new Vector2(0.5f, 0f),
                     new Vector2(SlotSize - 6f, 2f), new Vector2(0f, -4f));
@@ -183,20 +188,20 @@ namespace Managers.UI.HUD
 
             public void Set(StageKind kind, bool isCurrent)
             {
-                (string glyph, Color tint) = Describe(kind);
+                string glyph = Describe(kind);
                 _glyph.text = glyph;
-                _glyph.color = isCurrent ? UITheme.TextPrimary : tint;
-                _fill.color = isCurrent ? Color.white : new Color(1f, 1f, 1f, 0.55f);
+                _glyph.color = isCurrent ? UITheme.TextPrimary : UITheme.TextSecondary;
+                _fill.color = isCurrent ? Color.white : new Color(1f, 1f, 1f, 0.58f);
                 _currentMark.enabled = isCurrent;
             }
 
-            private static (string, Color) Describe(StageKind kind) => kind switch
+            private static string Describe(StageKind kind) => kind switch
             {
-                StageKind.Boss => ("★", UITheme.Danger),
-                StageKind.MidBoss => ("◆", new Color(1f, 0.545f, 0.259f)),
-                StageKind.Event => ("?", UITheme.Mana),
-                StageKind.Elite => ("▲", UITheme.Accent),
-                _ => ("■", UITheme.TextMuted),
+                StageKind.Boss => "★",
+                StageKind.MidBoss => "◆",
+                StageKind.Event => "?",
+                StageKind.Elite => "▲",
+                _ => "●",
             };
         }
     }

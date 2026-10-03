@@ -17,7 +17,7 @@ namespace Managers
         public List<RewardDef> rewards;
 
         /// <summary>
-        /// 어느 적을 처치하든 보상 후보에 오르는 장비·귀중품 ID. 기본 장비·범용 T2·고유 장비·범용 귀중품·캐릭터 전용 장비가 여기 있다.
+        /// 어느 적을 처치하든 보상 후보에 오르는 공용 아이템 ID. 식량과 범용 귀중품이 여기 있다.
         /// </summary>
         public List<int> commonDropItemIds;
     }

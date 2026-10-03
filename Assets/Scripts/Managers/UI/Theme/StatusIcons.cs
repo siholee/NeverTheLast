@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Entities.Status;
 using UnityEngine;
 
@@ -17,6 +17,8 @@ namespace Managers.UI.Theme
         Heal,
         Poison,
         Burn,
+        Shock,
+        Weathering,
         Bleed,
         Stun,
         Freeze,
@@ -26,9 +28,11 @@ namespace Managers.UI.Theme
         Taunt,
         Thorns,
         Mark,
+        Focus,
+        Guard,
     }
 
-    /// <summary>오른쪽 아래 구석에 붙는 방향 표식. 올라갔는지 내려갔는지를 알린다.</summary>
+    /// <summary>아이콘 오른쪽 위에 붙는 방향 표식. 올라갔는지 내려갔는지를 알린다.</summary>
     public enum StatusArrow
     {
         None,
@@ -36,17 +40,25 @@ namespace Managers.UI.Theme
         Down,
     }
 
+    /// <summary>색 대신 받침 실루엣으로 상태 성격을 가른다.</summary>
+    public enum StatusFrameKind
+    {
+        Beneficial,
+        Harmful,
+        Control,
+        Neutral,
+    }
+
     /// <summary>
-    /// 버프 · 디버프 · 모디파이어 아이콘을 <b>코드로 그려서</b> 만든다.
-    /// <see cref="UIShapes"/>와 같은 방식이라 별도 이미지 파일이 필요 없다.
+    /// 버프 · 디버프 · 모디파이어 아이콘을 한 장의 흑백 아틀라스에서 읽는다.
     ///
     /// 아이콘을 한 장씩 그려 모으면 선 굵기도 여백도 제각각이 되어 결국 따로 논다.
     /// 여기서는 <b>같은 격자 · 같은 선 굵기 · 같은 여백</b>으로 전부 찍어 내고,
     /// 뜻이 겹치는 것은 그림을 나누는 대신 <b>같은 그림 + 방향 표식</b>으로 구분한다.
     /// 공격 상승과 공격 하락이 같은 검 위에 ▲ · ▼만 달라지는 식이다.
     ///
-    /// 색은 넣지 않는다. 흰색으로 그려 두고 쓰는 쪽에서 분류 색(이로움 초록 · 해로움 적색)을
-    /// 곱한다 — 그래야 같은 아이콘을 아군 버프와 적 디버프 양쪽에 쓸 수 있다.
+    /// 색은 넣지 않는다. 이로움은 열린 원, 해로움은 마름모, 행동 불가는 이중 마름모 받침으로
+    /// 갈라 8배속에서도 색을 외우지 않고 종류를 읽게 한다.
     /// </summary>
     public static class StatusIcons
     {
@@ -56,10 +68,97 @@ namespace Managers.UI.Theme
         /// <summary>선 굵기(px). 모든 그림이 이 값 하나를 쓴다.</summary>
         private const float Stroke = 3.4f;
 
-        /// <summary>방향 표식이 붙을 때 본 그림을 이만큼 줄이고 왼쪽 위로 물린다.</summary>
+        /// <summary>방향 표식이 붙을 때 본 그림을 이만큼 줄이고 왼쪽 아래로 물린다.</summary>
         private const float SubjectScale = 0.84f;
 
         private static readonly Dictionary<int, Sprite> Cache = new();
+        private static readonly Dictionary<int, Sprite> AtlasCache = new();
+        private static readonly Dictionary<int, Sprite> FrameCache = new();
+        private static readonly Dictionary<string, Sprite> ExternalSprites = new();
+        private static Texture2D _atlas;
+
+        private const int AtlasColumns = 6;
+        private const int AtlasRows = 6;
+
+        /// <summary>생성 아틀라스의 행 우선 셀 번호. enum 순서와 에셋 순서를 분리해 ID 추가에 안전하다.</summary>
+        private static readonly Dictionary<StatusGlyph, int> AtlasCells = new()
+        {
+            [StatusGlyph.Buff] = 0,
+            [StatusGlyph.Debuff] = 1,
+            [StatusGlyph.Attack] = 2,
+            [StatusGlyph.Defense] = 3,
+            [StatusGlyph.Speed] = 4,
+            [StatusGlyph.Crit] = 5,
+            [StatusGlyph.Focus] = 6,
+            [StatusGlyph.Shield] = 7,
+            [StatusGlyph.Heal] = 8,
+            [StatusGlyph.Guard] = 9,
+            [StatusGlyph.Thorns] = 10,
+            [StatusGlyph.Poison] = 11,
+            [StatusGlyph.Burn] = 12,
+            [StatusGlyph.Shock] = 13,
+            [StatusGlyph.Weathering] = 14,
+            [StatusGlyph.Bleed] = 15,
+            [StatusGlyph.Stun] = 16,
+            [StatusGlyph.Freeze] = 17,
+            [StatusGlyph.Airborne] = 18,
+            [StatusGlyph.Silence] = 19,
+            [StatusGlyph.Root] = 20,
+            [StatusGlyph.Taunt] = 21,
+            [StatusGlyph.Mark] = 22,
+        };
+
+        /// <summary>
+        /// 현행 상태 ID의 1차 매핑. 같은 ID를 여러 반응이 공유하는 5913은 아래 키 레지스트리가 먼저 가른다.
+        /// 이름 유추는 콘텐츠 추가 때 등록을 놓친 경우에만 쓰는 마지막 안전망이다.
+        /// </summary>
+        private static readonly Dictionary<int, (StatusGlyph Glyph, StatusArrow Arrow)> ByStatusId = new()
+        {
+            [1] = (StatusGlyph.Poison, StatusArrow.None),
+            [2] = (StatusGlyph.Burn, StatusArrow.None),
+            [3] = (StatusGlyph.Poison, StatusArrow.None),
+            [4] = (StatusGlyph.Silence, StatusArrow.None),
+            [5900] = (StatusGlyph.Heal, StatusArrow.Down),
+            [5910] = (StatusGlyph.Shock, StatusArrow.None),
+            [5911] = (StatusGlyph.Burn, StatusArrow.None),
+            [5912] = (StatusGlyph.Weathering, StatusArrow.None),
+            [5913] = (StatusGlyph.Buff, StatusArrow.None),
+            [5914] = (StatusGlyph.Defense, StatusArrow.Down),
+            [5920] = (StatusGlyph.Freeze, StatusArrow.None),
+            [5921] = (StatusGlyph.Airborne, StatusArrow.None),
+            [5922] = (StatusGlyph.Stun, StatusArrow.None),
+            [5923] = (StatusGlyph.Root, StatusArrow.None),
+            [5930] = (StatusGlyph.Bleed, StatusArrow.None),
+            [5940] = (StatusGlyph.Taunt, StatusArrow.None),
+            [5941] = (StatusGlyph.Guard, StatusArrow.Up),
+            [7001] = (StatusGlyph.Attack, StatusArrow.Up),
+            [7002] = (StatusGlyph.Focus, StatusArrow.Up),
+        };
+
+        /// <summary>공유 ID와 시전자별 키를 실제 의미로 분기하는 키 레지스트리.</summary>
+        private static readonly Dictionary<string, (StatusGlyph Glyph, StatusArrow Arrow)> ByKey = new()
+        {
+            ["healing_reduction"] = (StatusGlyph.Heal, StatusArrow.Down),
+            ["burn"] = (StatusGlyph.Burn, StatusArrow.None),
+            ["reaction_weathering"] = (StatusGlyph.Weathering, StatusArrow.None),
+            ["reaction_Forge"] = (StatusGlyph.Speed, StatusArrow.Up),
+            ["reaction_Essence"] = (StatusGlyph.Attack, StatusArrow.Up),
+            ["reaction_Bloom"] = (StatusGlyph.Defense, StatusArrow.Up),
+            ["reaction_Growth"] = (StatusGlyph.Defense, StatusArrow.Up),
+            ["reaction_Charge"] = (StatusGlyph.Attack, StatusArrow.Up),
+            ["reaction_Activation"] = (StatusGlyph.Defense, StatusArrow.Down),
+            ["reaction_Superconduct"] = (StatusGlyph.Defense, StatusArrow.Down),
+            ["reaction_Slow"] = (StatusGlyph.Speed, StatusArrow.Down),
+            ["cc_frozen"] = (StatusGlyph.Freeze, StatusArrow.None),
+            ["cc_airborne"] = (StatusGlyph.Airborne, StatusArrow.None),
+            ["cc_stun"] = (StatusGlyph.Stun, StatusArrow.None),
+            ["cc_bind"] = (StatusGlyph.Root, StatusArrow.None),
+            ["bleed"] = (StatusGlyph.Bleed, StatusArrow.None),
+            ["taunt"] = (StatusGlyph.Taunt, StatusArrow.None),
+            ["friendly_reaction_guard"] = (StatusGlyph.Guard, StatusArrow.Up),
+            ["sei_song_buff"] = (StatusGlyph.Attack, StatusArrow.Up),
+            ["sei_song_marker"] = (StatusGlyph.Focus, StatusArrow.Up),
+        };
 
         /// <summary>
         /// 상태 이름 → 아이콘. 이름이 같으면 효과 구성도 같으므로 한 번만 판정한다.
@@ -70,8 +169,22 @@ namespace Managers.UI.Theme
 
         // ── 바깥에서 쓰는 입구 ───────────────────────────────────────
 
-        /// <summary>그림 + 방향으로 아이콘 하나를 얻는다. 같은 조합은 한 번만 그린다.</summary>
+        /// <summary>
+        /// 상태 본체 글리프를 얻는다. 방향 화살표는 카드에서 별도 레이어로 얹어 본체 크기를 줄이지 않는다.
+        /// 아틀라스가 아직 임포트되지 않은 첫 에디터 프레임에는 절차형 그림으로 안전하게 내려간다.
+        /// </summary>
         public static Sprite Get(StatusGlyph glyph, StatusArrow arrow = StatusArrow.None)
+        {
+            if (AtlasCells.TryGetValue(glyph, out int cell))
+            {
+                Sprite atlasSprite = AtlasSprite(cell);
+                if (atlasSprite != null) return atlasSprite;
+            }
+
+            return Procedural(glyph, arrow);
+        }
+
+        private static Sprite Procedural(StatusGlyph glyph, StatusArrow arrow)
         {
             int key = (int)glyph * 4 + (int)arrow;
             if (Cache.TryGetValue(key, out Sprite cached) && cached != null) return cached;
@@ -90,26 +203,139 @@ namespace Managers.UI.Theme
             return sprite;
         }
 
+        /// <summary>우상단 방향 표식. None이면 null이라 호출부가 레이어를 숨길 수 있다.</summary>
+        public static Sprite Arrow(StatusArrow arrow) => arrow switch
+        {
+            StatusArrow.Up => AtlasSprite(23),
+            StatusArrow.Down => AtlasSprite(24),
+            _ => null,
+        };
+
+        /// <summary>중첩 수용 탭형 숫자. 9를 넘는 값은 9로 압축한다.</summary>
+        public static Sprite StackDigit(int value)
+        {
+            value = Mathf.Clamp(value, 0, 9);
+            return AtlasSprite(value <= 4 ? 25 + value : 30 + value - 5)
+                   ?? UIShapes.Digit(value, Color.white);
+        }
+
+        /// <summary>소형 LOD 넘침 표식.</summary>
+        public static Sprite Overflow => AtlasSprite(35) ?? UIShapes.Chevron(64, Color.white);
+
+        /// <summary>분류 색을 없앤 상태 받침. 검은 면과 흰 림이 같은 실루엣을 공유한다.</summary>
+        public static Sprite Frame(UnitStatus status, bool rim)
+        {
+            StatusFrameKind kind = FrameKind(status);
+            int key = 10000 + (int)kind * 2 + (rim ? 1 : 0);
+            if (FrameCache.TryGetValue(key, out Sprite cached) && cached != null) return cached;
+
+            var painter = new Painter();
+            switch (kind)
+            {
+                case StatusFrameKind.Harmful:
+                    DrawDiamond(painter, rim, false);
+                    break;
+                case StatusFrameKind.Control:
+                    DrawDiamond(painter, rim, true);
+                    break;
+                default:
+                    if (rim) painter.Ring(0.50f, 0.50f, 0.43f);
+                    else painter.Disc(0.50f, 0.50f, 0.47f);
+                    break;
+            }
+
+            Sprite sprite = painter.ToSprite($"status_frame_{kind}_{(rim ? "rim" : "fill")}");
+            FrameCache[key] = sprite;
+            return sprite;
+        }
+
+        public static StatusFrameKind FrameKind(UnitStatus status)
+        {
+            if (status == null) return StatusFrameKind.Neutral;
+            if (IsControl(Resolve(status).Glyph)) return StatusFrameKind.Control;
+            if (status.IsBeneficial || status.Category == BaseClasses.BaseEnums.StatusCategory.Positive)
+                return StatusFrameKind.Beneficial;
+            return status.Category == BaseClasses.BaseEnums.StatusCategory.Negative
+                ? StatusFrameKind.Harmful
+                : StatusFrameKind.Neutral;
+        }
+
+        private static void DrawDiamond(Painter painter, bool rim, bool doubleRim)
+        {
+            if (!rim)
+            {
+                painter.Triangle(0.50f, 0.98f, 0.98f, 0.50f, 0.50f, 0.02f);
+                painter.Triangle(0.50f, 0.98f, 0.50f, 0.02f, 0.02f, 0.50f);
+                return;
+            }
+
+            painter.Poly(true, 0.50f, 0.96f, 0.96f, 0.50f, 0.50f, 0.04f, 0.04f, 0.50f);
+            if (doubleRim)
+                painter.Poly(true, 0.50f, 0.78f, 0.78f, 0.50f, 0.50f, 0.22f, 0.22f, 0.50f);
+        }
+
+        private static Sprite AtlasSprite(int cell)
+        {
+            if (AtlasCache.TryGetValue(cell, out Sprite cached) && cached != null) return cached;
+            _atlas ??= Resources.Load<Texture2D>("UI/CardHud/status_glyph_atlas");
+            if (_atlas == null || _atlas.width < AtlasColumns || _atlas.height < AtlasRows) return null;
+
+            int width = _atlas.width / AtlasColumns;
+            int height = _atlas.height / AtlasRows;
+            int column = cell % AtlasColumns;
+            int row = cell / AtlasColumns;
+            var rect = new Rect(column * width, _atlas.height - (row + 1) * height, width, height);
+            Sprite sprite = Sprite.Create(_atlas, rect, new Vector2(0.5f, 0.5f), Mathf.Max(width, height),
+                0, SpriteMeshType.FullRect);
+            sprite.name = $"StatusAtlas_{cell}";
+            sprite.hideFlags = HideFlags.HideAndDontSave;
+            AtlasCache[cell] = sprite;
+            return sprite;
+        }
+
         /// <summary>상태 하나에 맞는 아이콘.</summary>
         public static Sprite For(UnitStatus status)
         {
+            Sprite external = ExternalSprite(status?.IconPath);
+            if (external != null) return external;
             (StatusGlyph glyph, StatusArrow arrow) = Resolve(status);
             return Get(glyph, arrow);
+        }
+
+        private static Sprite ExternalSprite(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return null;
+            if (ExternalSprites.TryGetValue(path, out Sprite cached)) return cached;
+
+            Sprite sprite = Resources.Load<Sprite>(path);
+            if (sprite == null)
+            {
+                Texture2D texture = Resources.Load<Texture2D>(path);
+                if (texture != null)
+                {
+                    sprite = Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height),
+                        new Vector2(0.5f, 0.5f), Mathf.Max(texture.width, texture.height));
+                    sprite.name = "StatusIcon_" + texture.name;
+                    sprite.hideFlags = HideFlags.HideAndDontSave;
+                }
+            }
+
+            ExternalSprites[path] = sprite;
+            return sprite;
         }
 
         /// <summary>
         /// 상태를 보고 어떤 그림을 쓸지 고른다.
         ///
-        /// 상태마다 아이콘을 손으로 지정하게 하면 새 상태를 만들 때마다 빠뜨린다.
-        /// 그래서 <b>효과 클래스 이름과 상태 이름</b>에서 유추한다 — 둘 다 이미 그 상태가
-        /// 무엇을 하는지 말하고 있기 때문이다. 유추가 빗나가면 마지막에 분류만 보고
-        /// 이로움/해로움 화살표로 떨어진다.
+        /// 현행 상태는 ID/키 레지스트리로 고정하고, 새 상태가 아직 등록되지 않았을 때만
+        /// <b>효과 클래스 이름과 상태 이름</b>에서 유추한다. 유추도 못 하면 마지막에 분류만 보고
+        /// 이로움/해로움 기본 글리프로 떨어진다.
         /// </summary>
         public static (StatusGlyph Glyph, StatusArrow Arrow) Resolve(UnitStatus status)
         {
             if (status == null) return (StatusGlyph.Buff, StatusArrow.None);
 
-            string cacheKey = $"{status.StatusId}|{status.StatusName}";
+            string cacheKey = $"{status.StatusId}|{status.Key}|{status.StatusName}|{status.Category}";
             if (Resolved.TryGetValue(cacheKey, out (StatusGlyph, StatusArrow) hit)) return hit;
 
             (StatusGlyph, StatusArrow) result = ResolveUncached(status);
@@ -126,9 +352,18 @@ namespace Managers.UI.Theme
             string name = status.StatusName ?? "";
             string effects = EffectTypeNames(status);
 
+            if (!string.IsNullOrEmpty(status.Key))
+            {
+                if (ByKey.TryGetValue(status.Key, out (StatusGlyph, StatusArrow) keyed)) return keyed;
+                if (status.Key.StartsWith("reaction_shock_")) return (StatusGlyph.Shock, StatusArrow.None);
+            }
+            if (ByStatusId.TryGetValue(status.StatusId, out (StatusGlyph, StatusArrow) identified)) return identified;
+
             // ── 이름으로 바로 잡히는 것들 ──
             if (Has(name, "맹독", "중독", "독")) return (StatusGlyph.Poison, StatusArrow.None);
             if (Has(name, "화상", "발화", "연소")) return (StatusGlyph.Burn, StatusArrow.None);
+            if (Has(name, "감전")) return (StatusGlyph.Shock, StatusArrow.None);
+            if (Has(name, "풍화")) return (StatusGlyph.Weathering, StatusArrow.None);
             if (Has(name, "출혈", "열상")) return (StatusGlyph.Bleed, StatusArrow.None);
             if (Has(name, "빙결", "동결")) return (StatusGlyph.Freeze, StatusArrow.None);
             if (Has(name, "에어본", "공중")) return (StatusGlyph.Airborne, StatusArrow.None);
@@ -154,7 +389,7 @@ namespace Managers.UI.Theme
                 return (StatusGlyph.Defense, arrow);
             }
 
-            if (Has(effects, "PrimaryStatBonus", "Attack", "Damage")) return (StatusGlyph.Attack, arrow);
+            if (Has(effects, "Attack", "Damage")) return (StatusGlyph.Attack, arrow);
             if (Has(effects, "Marker")) return (StatusGlyph.Mark, StatusArrow.None);
 
             // 이름으로도 클래스로도 못 잡았으면 효과가 실제로 무엇을 건드리는지 물어본다.
@@ -187,7 +422,7 @@ namespace Managers.UI.Theme
                 if (effect.IsDamageOverTime) return Take(out result, StatusGlyph.Poison, StatusArrow.None);
                 if (effect.BlocksNormalAttack(owner)) return Take(out result, StatusGlyph.Silence, StatusArrow.None);
                 if (effect.TargetPriorityAdditiveModifier(owner) > 0) return Take(out result, StatusGlyph.Taunt, StatusArrow.None);
-                if (!Mathf.Approximately(effect.ShieldBonusAdditiveModifier(owner), 0f))
+                if (!Mathf.Approximately(effect.ShieldReceivedMultiplierModifier(owner), 1f))
                 {
                     return Take(out result, StatusGlyph.Shield, StatusArrow.None);
                 }
@@ -198,43 +433,28 @@ namespace Managers.UI.Theme
                     return Take(out result, StatusGlyph.Heal, healing > 1f ? StatusArrow.Up : StatusArrow.Down);
                 }
 
-                if (!Mathf.Approximately(effect.CritChanceAdditiveModifier(owner), 0f)
-                    || !Mathf.Approximately(effect.CritMultiplierAdditiveModifier(owner), 0f))
-                {
-                    return Take(out result, StatusGlyph.Crit, arrow);
-                }
-
-                if (!Mathf.Approximately(effect.CodeAccelerationAdditiveModifier(owner), 0f)
-                    || !Mathf.Approximately(effect.ManaRecoveryMultiplierModifier(owner), 1f))
+                if (!Mathf.Approximately(effect.ManaRecoveryMultiplierModifier(owner), 1f))
                 {
                     return Take(out result, StatusGlyph.Speed, arrow);
                 }
 
-                float taken = effect.ReceivingDamageModifier(owner);
+                float taken = effect.ReceivingDamageModifier(owner, null);
                 if (!Mathf.Approximately(taken, 1f))
                 {
                     // 받는 피해가 줄면 방어가 오른 것이다. 화살표 방향이 뒤집힌다.
                     return Take(out result, StatusGlyph.Defense, taken < 1f ? StatusArrow.Up : StatusArrow.Down);
                 }
 
-                if (effect.DurabilityAdditiveModifier(owner) != 0
-                    || !Mathf.Approximately(effect.MaxHpMultiplierModifier(owner), 1f))
+                for (int i = 0; i < Entities.UnitStats.StatCount; i++)
                 {
-                    return Take(out result, StatusGlyph.Defense, arrow);
-                }
-
-                foreach (BaseClasses.BaseEnums.PrimaryStat stat in PrimaryStats)
-                {
-                    if (effect.PrimaryStatAdditiveModifier(owner, stat) == 0
-                        && Mathf.Approximately(effect.PrimaryStatMultiplierModifier(owner, stat), 1f))
-                    {
-                        continue;
-                    }
-
-                    return Take(out result, GlyphForStat(stat), arrow);
+                    var stat = (BaseClasses.BaseEnums.StatType)i;
+                    float flat = effect.StatFlatModifier(owner, stat);
+                    float percent = effect.StatPercentModifier(owner, stat);
+                    if (Mathf.Approximately(flat, 0f) && Mathf.Approximately(percent, 0f)) continue;
+                    StatusArrow direction = flat + percent > 0f ? StatusArrow.Up : StatusArrow.Down;
+                    return Take(out result, GlyphForStat(stat), direction);
                 }
             }
-
             return false;
 
 
@@ -248,43 +468,25 @@ namespace Managers.UI.Theme
             return true;
         }
 
-        private static readonly BaseClasses.BaseEnums.PrimaryStat[] PrimaryStats =
+        /// <summary>스탯이 오르내릴 때 그 스탯이 하는 일에 맞는 그림.</summary>
+        private static StatusGlyph GlyphForStat(BaseClasses.BaseEnums.StatType stat) => stat switch
         {
-            BaseClasses.BaseEnums.PrimaryStat.STR,
-            BaseClasses.BaseEnums.PrimaryStat.DEX,
-            BaseClasses.BaseEnums.PrimaryStat.CON,
-            BaseClasses.BaseEnums.PrimaryStat.INT,
-            BaseClasses.BaseEnums.PrimaryStat.LUK,
-        };
-
-        /// <summary>주스탯이 오르내릴 때 그 스탯이 하는 일에 맞는 그림.</summary>
-        private static StatusGlyph GlyphForStat(BaseClasses.BaseEnums.PrimaryStat stat) => stat switch
-        {
-            BaseClasses.BaseEnums.PrimaryStat.STR => StatusGlyph.Attack,
-            BaseClasses.BaseEnums.PrimaryStat.DEX => StatusGlyph.Speed,
-            BaseClasses.BaseEnums.PrimaryStat.CON => StatusGlyph.Defense,
-            BaseClasses.BaseEnums.PrimaryStat.LUK => StatusGlyph.Crit,
+            BaseClasses.BaseEnums.StatType.Attack => StatusGlyph.Attack,
+            BaseClasses.BaseEnums.StatType.SpecialAttack => StatusGlyph.Attack,
+            BaseClasses.BaseEnums.StatType.Speed => StatusGlyph.Speed,
+            BaseClasses.BaseEnums.StatType.Defense => StatusGlyph.Defense,
+            BaseClasses.BaseEnums.StatType.SpecialDefense => StatusGlyph.Defense,
+            BaseClasses.BaseEnums.StatType.MaxHp => StatusGlyph.Defense,
+            BaseClasses.BaseEnums.StatType.CritRate => StatusGlyph.Crit,
+            BaseClasses.BaseEnums.StatType.CritDamage => StatusGlyph.Crit,
             _ => StatusGlyph.Buff,
         };
-
-        /// <summary>이 상태가 이로운지. 아이콘 색을 고를 때 쓴다.</summary>
+        /// <summary>상태 아이콘은 의미와 관계없이 웜 화이트 한 색만 쓴다.</summary>
         public static Color Tint(UnitStatus status)
         {
-            if (status == null) return UITheme.TextMuted;
-
-            // 행동 불가는 이로움/해로움보다 먼저 갈린다. 기절한 유닛을 찾는 눈이
-            // 다른 디버프 사이에서 적색 하나를 더 골라내야 하면 8배속에서 놓친다.
-            if (IsControl(Resolve(status).Glyph)) return UITheme.Control;
-
-            if (status.IsBeneficial
-                || status.Category == BaseClasses.BaseEnums.StatusCategory.Positive)
-            {
-                return UITheme.Positive;
-            }
-
-            return status.Category == BaseClasses.BaseEnums.StatusCategory.Negative
-                ? UITheme.Danger
-                : UITheme.TextSecondary;
+            // 카드의 스모크 받침은 진영과 상태 종류가 달라도 같으므로 색이 아니라
+            // 받침 실루엣과 화살표로 분류하고, 글리프는 냉백색 한 톤을 유지한다.
+            return new Color(0.969f, 0.984f, 1f, 1f);
         }
 
         /// <summary>행동을 묶는 상태인가. 색 분류가 여기서 갈린다.</summary>
@@ -384,6 +586,17 @@ namespace Managers.UI.Theme
                         0.26f, 0.24f, 0.50f, 0.05f, 0.76f, 0.27f, 0.73f, 0.60f);
                     break;
 
+                case StatusGlyph.Shock:
+                    p.Poly(false, 0.66f, 0.95f, 0.27f, 0.49f, 0.51f, 0.49f,
+                        0.34f, 0.05f, 0.78f, 0.60f, 0.54f, 0.60f);
+                    break;
+
+                case StatusGlyph.Weathering:
+                    p.Arc(0.36f, 0.68f, 0.34f, 205f, 350f);
+                    p.Arc(0.58f, 0.48f, 0.27f, 205f, 350f);
+                    p.Arc(0.72f, 0.29f, 0.18f, 205f, 350f);
+                    break;
+
                 case StatusGlyph.Stun:
                     Spiral(p);
                     break;
@@ -438,6 +651,18 @@ namespace Managers.UI.Theme
                     p.Ring(0.50f, 0.64f, 0.22f);
                     p.Triangle(0.50f, 0.06f, 0.33f, 0.52f, 0.67f, 0.52f);
                     break;
+
+                case StatusGlyph.Focus:
+                    p.Poly(true, 0.50f, 0.94f, 0.81f, 0.50f, 0.50f, 0.08f, 0.19f, 0.50f);
+                    p.Line(0.50f, 0.86f, 0.50f, 0.16f);
+                    p.Line(0.28f, 0.50f, 0.72f, 0.50f);
+                    break;
+
+                case StatusGlyph.Guard:
+                    p.Poly(true, 0.20f, 0.82f, 0.50f, 0.95f, 0.80f, 0.82f,
+                        0.73f, 0.30f, 0.50f, 0.08f, 0.27f, 0.30f);
+                    p.Poly(false, 0.34f, 0.51f, 0.46f, 0.38f, 0.68f, 0.68f);
+                    break;
             }
         }
 
@@ -467,15 +692,14 @@ namespace Managers.UI.Theme
 
         private static void DrawArrow(Painter p, StatusArrow arrow)
         {
-            // 오른쪽 아래 구석. 본 그림과 겹치지 않도록 뒤에 어두운 자리를 파지 않고
-            // 그림 쪽을 줄여서 자리를 만든다(PushSubjectTransform).
+            // 오른쪽 위 구석. 본 그림과 겹치지 않도록 그림 쪽을 줄이고 아래로 물려 자리를 만든다.
             if (arrow == StatusArrow.Up)
             {
-                p.Triangle(0.82f, 0.36f, 0.62f, 0.02f, 1.00f, 0.02f);
+                p.Triangle(0.82f, 1.00f, 0.62f, 0.64f, 1.00f, 0.64f);
             }
             else
             {
-                p.Triangle(0.82f, 0.02f, 0.62f, 0.36f, 1.00f, 0.36f);
+                p.Triangle(0.82f, 0.64f, 0.62f, 1.00f, 1.00f, 1.00f);
             }
         }
 
@@ -495,7 +719,7 @@ namespace Managers.UI.Theme
             public void PushSubjectTransform()
             {
                 _scale = SubjectScale;
-                _offset = new Vector2(-0.05f, 0.06f);
+                _offset = new Vector2(-0.05f, -0.04f);
             }
 
             public void PopSubjectTransform()

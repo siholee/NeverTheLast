@@ -1,10 +1,14 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+﻿#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Core;
+using Effects.Base;
+using Effects.Buffs;
+using Effects.Vfx;
 using Entities;
+using Entities.Status;
 using Managers.UI.Core;
 using Managers.UI.Theme;
 using TMPro;
@@ -113,6 +117,7 @@ namespace Managers.UI.DevTools
                 ("아군 무적", ToggleAllyInvincible),
                 ("적 무적", ToggleEnemyInvincible),
                 ("아군 회복", HealAllies));
+            Row(ref y, ("상태 아이콘 프리뷰", PreviewStatusIcons));
 
             Section("회복 보상 미리보기", ref y);
             Row(ref y,
@@ -172,11 +177,23 @@ namespace Managers.UI.DevTools
             Row(ref y, ("양측 궁극기 충전", () =>
             {
                 DebugMode.BeginSession();
-                foreach (var unit in AliveUnits(false).Concat(AliveUnits(true))) unit.FillUltimateResource(false);
+                foreach (var unit in AliveUnits(false).Concat(AliveUnits(true))) unit.FillUltimateResource();
+            }),
+                ("아군 보호막", () =>
+            {
+                // 세이의 '빅뱅'처럼 보호막 두른 아군이 맞아야 도는 특성을 바로 보려고 둔다.
+                DebugMode.BeginSession();
+                foreach (var unit in AliveUnits(false)) unit.AddShield(Mathf.RoundToInt(unit.HpMax * 0.5f));
             }));
 
+            Section("VFX 화풍", ref y);
+            Row(ref y,
+                ("캐릭터 기본", () => SetVfxStyle(VfxStyle.CharacterDefault)),
+                ("Legacy", () => SetVfxStyle(VfxStyle.Legacy)),
+                ("Handpaint", () => SetVfxStyle(VfxStyle.Handpaint)));
+
             y += Gap;
-            Row(ref y, ("강제 설정 해제", () => { DebugMode.ResetAll(); Refresh(); }),
+            Row(ref y, ("강제 설정 해제", () => { DebugMode.ResetAll(); VfxStyleSettings.Reset(); Refresh(); }),
                 ("시작 스냅샷 복원", () => { DebugMode.RestoreSnapshot(); Refresh(); }));
 
             _panel.sizeDelta = new Vector2(PanelWidth, y + 12f);
@@ -305,6 +322,128 @@ namespace Managers.UI.DevTools
             Debug.Log("[디버그] 아군을 모두 회복시켰다.");
         }
 
+        /// <summary>
+        /// 양 진영 첫 카드에 ↑/↓, 같은 모양 3중첩, 6칸 초과를 한꺼번에 만든다.
+        /// 실제 상태 API로 넣어 HUD 레지스트리와 중첩/넘침 표시를 같은 화면에서 검수한다.
+        /// </summary>
+        public static void PreviewStatusIcons()
+        {
+            DebugMode.BeginSession();
+            int applied = 0;
+            foreach (Unit target in new[] { AliveUnits(false).FirstOrDefault(), AliveUnits(true).FirstOrDefault() })
+            {
+                if (target == null) continue;
+                for (int i = 0; i < 3; i++)
+                {
+                    AddPreviewStatus(target, 990100 + i, $"debug_hud_attack_{i}", "공격 상승",
+                        BaseEnums.StatusCategory.Positive, true,
+                        new StatModifierEffect(BaseEnums.StatType.Attack, 5f));
+                }
+                AddPreviewStatus(target, 990110, "debug_hud_defense_down", "방어 저하",
+                    BaseEnums.StatusCategory.Negative, false,
+                    new StatModifierEffect(BaseEnums.StatType.Defense, -5f));
+                AddPreviewStatus(target, 990111, "debug_hud_speed_up", "속도 상승",
+                    BaseEnums.StatusCategory.Positive, true,
+                    new StatModifierEffect(BaseEnums.StatType.Speed, 5f));
+                AddPreviewStatus(target, 990112, "debug_hud_speed_down", "속도 저하",
+                    BaseEnums.StatusCategory.Negative, false,
+                    new StatModifierEffect(BaseEnums.StatType.Speed, -5f));
+                AddPreviewStatus(target, 990113, "debug_hud_burn", "화상",
+                    BaseEnums.StatusCategory.Negative, false);
+                AddPreviewStatus(target, 990114, "debug_hud_freeze", "빙결",
+                    BaseEnums.StatusCategory.Negative, false);
+                AddPreviewStatus(target, 990115, "debug_hud_shield", "보호막 강화",
+                    BaseEnums.StatusCategory.Positive, true);
+                applied++;
+            }
+
+            Debug.Log(applied > 0
+                ? $"[디버그] {applied}개 카드에 상태 아이콘 ↑/↓ · 3중첩 · 넘침 프리뷰를 적용했다."
+                : "[디버그] 상태 아이콘 프리뷰를 적용할 전투 유닛이 없다.");
+            _instance?.Refresh();
+        }
+
+        /// <summary>
+        /// 5인 전장에서 버프·디버프·제어·지속피해 affected 부품을 실제 상태 추가 시점으로 확인한다.
+        /// 아이콘 프리뷰와 달리 한 카드에 몰지 않아 각 실루엣과 앞 레이어를 따로 읽을 수 있다.
+        /// </summary>
+        public static void PreviewStatusVfx()
+        {
+            DebugMode.BeginSession();
+            List<Unit> allies = AliveUnits(false);
+            List<Unit> enemies = AliveUnits(true);
+            if (allies.Count == 0 || enemies.Count == 0) return;
+
+            AddPreviewStatusVfx(allies[0], 991001, "debug_vfx_buff", "상승 광편",
+                BaseEnums.StatusCategory.Positive, true, "affected.buff.rise");
+            if (allies.Count > 1)
+                AddPreviewStatusVfx(allies[1], 991002, "debug_vfx_shield", "보호막 형성",
+                    BaseEnums.StatusCategory.Positive, true, "affected.buff.shield");
+            AddPreviewStatusVfx(enemies[0], 991003, "debug_vfx_debuff", "하강 고리",
+                BaseEnums.StatusCategory.Negative, false, "affected.debuff.fall");
+            if (enemies.Count > 1)
+                AddPreviewStatusVfx(enemies[1], 5922, "cc_stun", "기절",
+                    BaseEnums.StatusCategory.Negative, false, "affected.control.stun");
+            if (enemies.Count > 2)
+                AddPreviewStatusVfx(enemies[2], 991005, "debug_vfx_burn", "화상",
+                    BaseEnums.StatusCategory.Negative, false, "affected.dot.burn");
+            _instance?.Refresh();
+        }
+
+        /// <summary>하네스가 라벨과 함께 한 종류씩 보여 줄 수 있도록 affected 상태 하나만 실제 추가한다.</summary>
+        public static void PreviewSingleStatusVfx(Unit target, int id, string key, string name,
+            BaseEnums.StatusCategory category, bool beneficial, string partId)
+        {
+            if (target == null || !target.isActive) return;
+            DebugMode.BeginSession();
+            AddPreviewStatusVfx(target, id, key, name, category, beneficial, partId);
+            _instance?.Refresh();
+        }
+
+        private static void AddPreviewStatusVfx(Unit target, int id, string key, string name,
+            BaseEnums.StatusCategory category, bool beneficial, string partId)
+        {
+            target.RemoveStatusByKey(key);
+            var status = new UnitStatus(new StatusDefinition
+            {
+                Id = id,
+                Key = key,
+                Name = name,
+                Description = "affected VFX 검수용",
+                Category = category,
+                StackPolicy = BaseEnums.StatusStackPolicy.Replace,
+                Duration = -1,
+                IsBeneficial = beneficial,
+            }, target, target)
+            {
+                SkipEffectHitRoll = true,
+                AffectedVfxPartId = partId,
+            };
+            target.AddStatus(status);
+        }
+
+        private static void AddPreviewStatus(Unit target, int id, string key, string name,
+            BaseEnums.StatusCategory category, bool beneficial, BaseEffect effect = null)
+        {
+            target.RemoveStatusByKey(key);
+            var status = new UnitStatus(new StatusDefinition
+            {
+                Id = id,
+                Key = key,
+                Name = name,
+                Description = "HUD 상태 아이콘 검수용",
+                Category = category,
+                StackPolicy = BaseEnums.StatusStackPolicy.Stack,
+                Duration = -1,
+                IsBeneficial = beneficial,
+            }, target, target)
+            {
+                SkipEffectHitRoll = true,
+            };
+            if (effect != null) status.AddEffect(effect);
+            target.AddStatus(status);
+        }
+
         /// <summary>회복 카드와 대상 선택 화면을 정상 보상 UI 진입점으로 즉시 확인한다.</summary>
         private static void PreviewHealingRewards(int focusTier)
         {
@@ -357,7 +496,7 @@ namespace Managers.UI.DevTools
         }
 
         /// <summary><paramref name="level"/>이 음수면 그 절댓값만큼 올린다.</summary>
-        private static void SetPartyLevel(int level)
+        public static void SetPartyLevel(int level)
         {
             DebugMode.BeginSession();
             GameManager game = GameManager.Instance;
@@ -367,7 +506,7 @@ namespace Managers.UI.DevTools
             {
                 ally.DebugSetLevel(level < 0 ? ally.Level - level : level);
             }
-            _instance.Refresh();
+            _instance?.Refresh();
         }
 
         // ── 관찰 대상 ────────────────────────────────────────────────
@@ -493,21 +632,24 @@ namespace Managers.UI.DevTools
             string theme = DebugMode.ForcedThemeId > 0
                 ? $"{round?.CurrentThemeId} (고정)"
                 : $"{round?.CurrentThemeId}";
-            string flags = DebugMode.AnyOverrideActive
+            bool vfxOverride = VfxStyleSettings.Active != VfxStyle.CharacterDefault;
+            string flags = DebugMode.AnyOverrideActive || vfxOverride
                 ? string.Join(" ", new[]
                 {
                     DebugMode.AllyInvincible ? "아군무적" : null,
                     DebugMode.EnemyInvincible ? "적무적" : null,
                     DebugMode.ForcedThemeId > 0 ? "테마고정" : null,
+                    vfxOverride ? $"VFX:{VfxStyleSettings.DisplayName}" : null,
                 }.Where(x => x != null))
                 : "없음";
 
             _status.text =
                 $"스테이지 {round?.Stage} (라운드 {round?.Round} · 슬롯 {round?.StageInRound})   테마 {theme}\n"
-                + $"상태 {game?.gameState}   생명력 {game?.life}   배속 {Time.timeScale:0.##}×\n"
+                + $"상태 {game?.gameState}   생명력 {game?.life}   배속 {Managers.UI.HUD.BattleHud.CurrentSpeedMultiplier:0.##}×\n"
                 + $"아군 {allies}   적 {enemies}\n"
-                + $"강제 설정: {flags}" + (DebugMode.SessionActive ? " · 저장: 메모리 전용" : "");
-            _status.color = DebugMode.AnyOverrideActive ? UITheme.Danger : UITheme.TextSecondary;
+                + $"강제 설정: {flags}   화풍 {VfxStyleSettings.DisplayName}"
+                + (DebugMode.SessionActive ? " · 저장: 메모리 전용" : "");
+            _status.color = DebugMode.AnyOverrideActive || vfxOverride ? UITheme.Danger : UITheme.TextSecondary;
             UpdateInspector();
         }
 
@@ -544,7 +686,7 @@ namespace Managers.UI.DevTools
             {
                 $"[{(_targetIsEnemy ? "적" : "아군")} {_targetIndex + 1}/{units.Count}] {target.UnitName}  Lv.{target.Level}",
                 $"HP {target.HpCurr}/{target.HpMax}   보호막 {target.ShieldCurr}   턴 {target.TurnCount}",
-                $"속성 {target.Element}   CON {target.GetBaseCon()}   제어 {(target.isControlled ? "예" : "아니오")}"
+                $"속성 {target.Element}   특공 {target.SpAtkCurr} 특방 {target.SpDefCurr}   제어 {(target.isControlled ? "예" : "아니오")}"
                     + $"   분쇄 {target.ControlAppliedCount}회차",
                 $"부착: {(string.IsNullOrEmpty(elements) ? "없음" : elements)}",
                 $"상태: {(string.IsNullOrEmpty(statuses) ? "없음" : statuses)}",
@@ -557,7 +699,10 @@ namespace Managers.UI.DevTools
         {
             if (_banner == null) return;
 
-            bool show = DebugMode.SessionActive || DebugMode.AnyOverrideActive || !Mathf.Approximately(Time.timeScale, 1f);
+            float speed = Managers.UI.HUD.BattleHud.CurrentSpeedMultiplier;
+            bool vfxOverride = VfxStyleSettings.Active != VfxStyle.CharacterDefault;
+            bool show = DebugMode.SessionActive || DebugMode.AnyOverrideActive || vfxOverride ||
+                        !Mathf.Approximately(speed, 1f);
             _banner.gameObject.SetActive(show);
             if (!show) return;
 
@@ -566,8 +711,17 @@ namespace Managers.UI.DevTools
             if (DebugMode.AllyInvincible) parts.Add("아군 무적");
             if (DebugMode.EnemyInvincible) parts.Add("적 무적");
             if (DebugMode.ForcedThemeId > 0) parts.Add($"테마 {DebugMode.ForcedThemeId} 고정");
-            if (!Mathf.Approximately(Time.timeScale, 1f)) parts.Add($"{Time.timeScale:0.##}배속");
+            if (vfxOverride) parts.Add($"VFX {VfxStyleSettings.DisplayName}");
+            if (!Mathf.Approximately(speed, 1f)) parts.Add($"{speed:0.##}배속");
             _banner.text = "디버그 — " + string.Join("  ·  ", parts) + "   (F1 패널)";
+        }
+
+        private static void SetVfxStyle(VfxStyle style)
+        {
+            DebugMode.BeginSession();
+            VfxStyleSettings.Active = style;
+            Debug.Log($"[디버그] VFX 화풍: {VfxStyleSettings.DisplayName}");
+            _instance?.Refresh();
         }
 
         // ── 레이아웃 도우미 ──────────────────────────────────────────

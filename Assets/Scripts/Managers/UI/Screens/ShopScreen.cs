@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Entities;
@@ -20,8 +20,8 @@ namespace Managers.UI.Screens
     /// 세 갈래다.
     /// <list type="bullet">
     /// <item>소모품 — 회복약·부활약·강화제·사탕. <c>90_rewards.yaml</c>을 그대로 쓴다</item>
-    /// <item>장비 — 테마를 타지 않는 범용 장비. 스테이지마다 진열이 바뀐다</item>
-    /// <item>판매 — 주워 온 귀중품을 골드로 바꾼다. 구매 한도를 쓰지 않는다</item>
+    /// <item>보급품 — 긴 휴식에 쓰는 식량. 스테이지마다 진열이 바뀐다</item>
+    /// <item>판매 — 공용 인벤토리의 판매 가능 아이템을 골드로 바꾼다. 구매 한도를 쓰지 않는다</item>
     /// </list>
     ///
     /// 파는 물건과 그 효과는 보상 풀과 같은 데이터를 쓴다 — 상점에서 산 회복약과
@@ -35,8 +35,7 @@ namespace Managers.UI.Screens
         private const int Rows = 2;
         private const int Slots = Columns * Rows;
 
-        /// <summary>장비 매대에 한 번에 진열하는 수. 전부 늘어놓으면 고를 것이 없어진다.</summary>
-        private const int EquipmentOnDisplay = 6;
+        private const int SupplyOnDisplay = 6;
 
         /// <summary>행상인 자산 키. 아직 그림이 없으면 이름표만 선다.</summary>
         private const string MerchantStanding = "LAVOISIER_STANDING";
@@ -46,8 +45,7 @@ namespace Managers.UI.Screens
         private enum Tab
         {
             Consumable,
-            Equipment,
-            Training,
+            Supply,
             Sell,
         }
 
@@ -64,9 +62,8 @@ namespace Managers.UI.Screens
         private readonly List<RectTransform> _tabMarks = new();
 
         private List<RewardDef> _consumables = new();
-        private List<RewardDef> _trainingSupplies = new();
-        private List<RewardDef> _equipment = new();
-        private int _equipmentStage = -1;
+        private List<RewardDef> _supplies = new();
+        private int _supplyStage = -1;
 
         private Tab _tab = Tab.Consumable;
 
@@ -147,8 +144,7 @@ namespace Managers.UI.Screens
             (Tab tab, string label)[] tabs =
             {
                 (Tab.Consumable, "소모품"),
-                (Tab.Equipment, "장비"),
-                (Tab.Training, "육성"),
+                (Tab.Supply, "식량"),
                 (Tab.Sell, "판매"),
             };
 
@@ -172,30 +168,23 @@ namespace Managers.UI.Screens
         {
             EnsureBuilt();
             _consumables = GameManager.Instance?.rewardManager?.BuildShopGoods() ?? new List<RewardDef>();
-            // 육성 모드가 아니면 비어 있고, 그러면 [육성] 탭은 꺼진다.
-            _trainingSupplies = GameManager.Instance?.rewardManager?.BuildShopTrainingSupplies()
-                                ?? new List<RewardDef>();
-            EnsureEquipmentStock();
+            EnsureSupplyStock();
             _message.text = "";
             _tab = Tab.Consumable;
             ShowGoods();
             base.Show();
         }
 
-        /// <summary>
-        /// 장비 진열. <b>스테이지마다 한 번만 뽑는다.</b>
-        /// 열 때마다 다시 굴리면 닫았다 여는 것만으로 원하는 물건이 나올 때까지 돌릴 수 있다.
-        /// </summary>
-        private void EnsureEquipmentStock()
+        private void EnsureSupplyStock()
         {
             int stage = CurrentStage;
-            if (_equipmentStage == stage && _equipment.Count > 0) return;
+            if (_supplyStage == stage && _supplies.Count > 0) return;
 
-            List<RewardDef> pool = GameManager.Instance?.rewardManager?.BuildShopEquipment()
+            List<RewardDef> pool = GameManager.Instance?.rewardManager?.BuildShopItems()
                                    ?? new List<RewardDef>();
             var random = new System.Random(stage * 7919);
-            _equipment = pool.OrderBy(_ => random.Next()).Take(EquipmentOnDisplay).ToList();
-            _equipmentStage = stage;
+            _supplies = pool.OrderBy(_ => random.Next()).Take(SupplyOnDisplay).ToList();
+            _supplyStage = stage;
         }
 
         // ── 매대 ─────────────────────────────────────────────────────
@@ -218,8 +207,7 @@ namespace Managers.UI.Screens
 
         private List<RewardDef> CurrentGoods => _tab switch
         {
-            Tab.Equipment => _equipment,
-            Tab.Training => _trainingSupplies,
+            Tab.Supply => _supplies,
             Tab.Sell => BuildSellCards(),
             _ => _consumables,
         };
@@ -265,9 +253,6 @@ namespace Managers.UI.Screens
                 _tabMarks[i].gameObject.SetActive(i == (int)_tab);
             }
 
-            // 육성 소모품은 육성 모드에서만 판다. 무한 모드에서는 탭이 꺼진다.
-            _tabButtons[(int)Tab.Training].interactable = _trainingSupplies.Count > 0;
-
             _sellAll.gameObject.SetActive(_tab == Tab.Sell);
             _sellAll.interactable = (Inventory?.Valuables?.Count ?? 0) > 0;
             _merchantLine.text = Banter();
@@ -284,7 +269,7 @@ namespace Managers.UI.Screens
         }
 
         /// <summary>
-        /// 값. 소모품은 <c>90_rewards.yaml</c>의 기본가를, 장비는 <c>40_items.yaml</c>의
+        /// 값. 소모품은 <c>90_rewards.yaml</c>의 기본가를, 보급품은 <c>40_items.yaml</c>의
         /// <c>shopPrice</c>를 쓰는데 둘 다 <see cref="RewardDef.goldCost"/>에 실려 온다.
         /// </summary>
         private static int ShopPriceOf(RewardDef good, int stage) => RewardManager.ShopPrice(good, stage);
@@ -299,16 +284,11 @@ namespace Managers.UI.Screens
                     : $"{count}점이네요! 감정은 정확해요. 저, 이런 건 잘하거든요…";
             }
 
-            if (_tab == Tab.Training)
+            if (_tab == Tab.Supply)
             {
-                return "몸을 챙기는 물건들이에요. 노트는 다음 훈련 한 번에만 듣는다는 것, 잊지 마세요…";
-            }
-
-            if (_tab == Tab.Equipment)
-            {
-                return _equipment.Count == 0
+                return _supplies.Count == 0
                     ? "아직 물건이 안 들어왔어요. 제가 잊은 건 아니고요…!"
-                    : "숙련부터 확인하세요. 도움 됐죠? 그럼… 칭찬도 조금만.";
+                    : "긴 휴식은 식량 40이 필요해요. 한 묶음씩 챙겨 두세요.";
             }
 
             return (GameManager.Instance?.ShopPurchasesLeft ?? 0) <= 0
@@ -321,10 +301,6 @@ namespace Managers.UI.Screens
         {
             if (good == null) return null;
             if ((GameManager.Instance?.ShopPurchasesLeft ?? 0) <= 0) return "구매 한도";
-
-            // 써도 달라지는 것이 없는 육성 소모품(체력 가득 · 컨디션 최상 · 노트 상한)은 사기 전에 막는다.
-            string unusable = TrainingManager.TrainingSupplyBlockReason(good);
-            if (unusable != null) return unusable;
 
             int price = RewardManager.ShopPrice(good, CurrentStage);
             if ((Inventory?.Gold ?? 0) < price) return "골드 부족";
@@ -543,7 +519,7 @@ namespace Managers.UI.Screens
                 _art.color = actionable ? Color.white : new Color(1f, 1f, 1f, 0.45f);
             }
 
-            /// <summary>소모품은 <c>artPath</c>를, 장비는 <c>icon</c>을 본다.</summary>
+            /// <summary>소모품은 <c>artPath</c>를, 공용 아이템은 <c>icon</c>을 본다.</summary>
             private static Sprite LoadArt(RewardDef good)
             {
                 if (good.item != null) return ItemTooltip.LoadArt(good.item);

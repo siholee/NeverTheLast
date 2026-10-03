@@ -1,26 +1,11 @@
 # 파티 시너지 · 추천 조합 데이터
 #
-# 캐릭터 편성 화면이 "이 메인에게는 이런 조합"을 띄우기 위한 원본이다.
-# 기획 근거와 갈래 설명은 Assets/Docs/Design/Detail_15_Party_Synergy.md에 있다.
+# 캐릭터 편성 화면과 자료실이 "이 캐릭터는 어떤 자리인가 · 어떤 조합이 좋은가"를 띄우는 원본이다.
+# 기획 근거는 Assets/Docs/Design/Detail_15_Party_Synergy.md에 있다.
 #
-# ─ 편성 규칙 (CharacterSelectionManager) ─────────────────────────────
-#   파티는 메인 1 + 서포트 4, 다섯 명 전원이 필드에 선다.
-#   메인 슬롯   : characterType이 Support가 아니고, 해금되었거나 육성 완료된 캐릭터
-#   서포트 슬롯 : canStartAsSupport(= Support 유형) 또는 해금/육성 완료된 캐릭터
-#   → 런 1회차에는 메인 후보 7명(Starter), 서포트 후보 18명(Support)뿐이다.
-#
-# ─ 두 가지 조합 ──────────────────────────────────────────────────────
-#   best  (고점) : 전 캐릭터 해금 + 코드 전수까지 끝났다는 가정. 메인을 뺀 43명에서 고른다
-#   basic (대체) : 최초 로스터만. 서포트를 Support 유형 18명에서 고르고, 전수 코드는 없다고 본다
-#
-# ─ 점수 축 ───────────────────────────────────────────────────────────
-#   combat   전투 기여 (필드에서 실제로 만들어 내는 것)
-#   training 육성 기여 (집중 스탯 일치 → 강화량과 패시브 전수 확률)
-#   두 값 모두 0~5. UI는 combat을 기본 정렬로, training을 보조 표기로 쓴다.
-#
-# ⚠ 서포트는 전투 EXP를 늘 함께 받고 육성 EXP는 그 훈련에 참여했을 때만 받아,
-#   메인의 약 80% 레벨에 선다(100스테이지 메인 Lv.86 · 서포트 Lv.65~75).
-#   Lv.60 이상에서 열리는 팀 버프 코드는 서포트 슬롯에서 마지막 한두 라운드에나 열린다고 보고 배점했다.
+# 2026-09 전면 개편으로 옛 로스터의 유닛 · 갈래 · 추천 편성을 모두 걷어냈다. 역할군 정의만 남기고,
+# 캐릭터를 다시 만들 때마다 units / archetypes / recommendations에 더한다.
+# supportValue.training(육성 기여)은 훈련이 사라져 0으로 둔다.
 
 # ══════════════════════════════════════════════════════════════════════
 # 1. 역할군 정의
@@ -85,7 +70,7 @@ roles:
     description: 마나·궁극기 자원을 채워 궁극기 회전을 앞당긴다.
   - id: ACT_ACCEL
     name: 행동 가속
-    description: 행동 게이지나 DEX를 밀어 행동 횟수를 늘린다.
+    description: 행동 게이지나 속도를 밀어 행동 횟수를 늘린다.
   - id: CONTROL
     name: 제어
     description: 에어본·기절·빙결·행동 지연으로 적 턴을 지운다.
@@ -117,1429 +102,225 @@ trainerCoverage:
   LUK: [25, 103, 160]                       # 오르페우스·이아손·마리
 
 # ══════════════════════════════════════════════════════════════════════
-# 2. 유닛별 역할 태그
-#    topStat = 성장 후 실제 최고 스탯 (= 서포트 카드 특기가 될 값)
-#    row     = 권장 열 (Front = x-1, Rear = x-2)
+# 2. 유닛
 # ══════════════════════════════════════════════════════════════════════
 units:
-  # ── Support 유형 (최초 로스터, 서포트 슬롯 전용) ──────────────────
   - id: 1
     name: 세이
-    type: Support
+    type: Unlocked
     element: Geo
-    mainStat: INT
-    topStat: INT
-    row: Rear
-    roles: [AMP_DMG, MULTIHIT, ELEM_APPLY, ULT_BATTERY]
-    supportValue: { combat: 5, training: 4 }
+    mainStat: Defense
+    topStat: Defense
+    row: Front
+    roles: [BULWARK, SHIELD, AMP_DMG, MULTIHIT]
+    supportValue: { combat: 4, training: 0 }
     provides:
-      - key: GENESIS_FLAT
-        text: "궁극기 창세 — 4턴간 아군이 피해를 가할 때마다 세이 INT×3 고정 피해. 타수에 그대로 곱해진다"
-      - key: ALLY_GEO
-        text: "창세가 아군 전체에 바위를 부착한다 (성장·단조·경화 반응 재료)"
-      - key: BIGBANG
-        text: "고유 패시브 빅뱅 — 3턴마다 6발 추가행동"
-    wants: [MULTIHIT, EXTRA_ACT]
-    caution: "창세를 5턴 안에 두 번 걸면 아군 전체가 바위+바위 = 진동으로 기절한다"
+      - { key: AMP_DMG, text: "창세의 노래 — 아군 전체 공격력 +(50 + 방어력 15%), 타격마다 고정 피해 추가(집중 3턴)" }
+      - { key: MULTIHIT, text: "빅뱅 — 창세의 결정 7개로 무작위 적에게 바위 조각 7발, 이어서 아군 전체에 100 + 방어력 5% 보호막" }
+      - { key: SHIELD, text: "창세의 노래 — 아군 전체에 레벨 × 2 + 방어력 25% 보호막" }
+    wants: [TAUNT, DPS_ST]
+    caution: "첫 빅뱅은 궁극기의 보호막이 깔린 뒤에야 쌓이기 시작한다. 집중은 세이가 기절하면 풀린다(보호막은 남는다)."
 
-  - id: 4
-    name: 가우디
-    type: Support
-    element: Dendro
-    mainStat: INT
-    topStat: INT
-    row: Rear
-    roles: [DPS_AOE, ELEM_APPLY]
-    supportValue: { combat: 3, training: 3 }
-    provides:
-      - key: DENDRO_SPREAD
-        text: "대체행동 3인 + 궁극기 전체에 풀 부착. 케찰코아틀 풍요의 축복 머릿수"
-    wants: [AMP_DMG]
-    caution: "해금 패시브가 하나도 없어 성장 여지가 없다"
-
-  - id: 5
-    name: 라이트
-    type: Support
+  - id: 2
+    name: 시
+    type: Unlocked
     element: Anemo
-    mainStat: CON
-    topStat: CON
+    mainStat: Attack
+    topStat: Attack
     row: Rear
-    roles: [HEAL, CLEANSE, ULT_BATTERY, SUMMON, ELEM_APPLY]
-    supportValue: { combat: 3, training: 3 }
-    provides:
-      - key: MANA_POUR
-        text: "궁극기가 최대 마나 최고 아군에게 INT만큼 주유 — 대형 궁극기 캐스터 전용 배터리"
-      - key: ALLY_ANEMO
-        text: "아군 전체에 바람 부착 (신속 등 바람 조건 코드를 상시로 만든다)"
-      - key: FULL_CLEANSE
-        text: "3스택부터 아군 전체 해로운 상태 제거"
-      - key: FLYER_HEAL
-        text: "플라이어가 이미 있다면 일반행동마다 아군 전체를 300 + CON×0.5 치유"
-      - key: SUMMON_AMP
-        text: "Lv.32부터 모든 아군 소환수 피해 +10%. 여러 소환술사가 중첩"
-    wants: [BURST, ULT_BATTERY]
-
-  - id: 9
-    name: 위고
-    type: Support
-    element: Hydro
-    mainStat: INT
-    topStat: INT
-    row: Rear
-    roles: [HEAL, SUMMON, AMP_SUMMON]
-    supportValue: { combat: 4, training: 3 }
-    provides:
-      - key: ENSEMBLE
-        text: "군상극이 기본 소환수 피해 +1%를 주고, 아군 소환마다 전투 중 +1%를 누적한다"
-      - key: PENSEE
-        text: "팡세가 체력이 낮은 아군을 크게 치유하고 궁극기로 3턴간 받는 피해를 25% 줄인다"
-      - key: PARTY_HEAL
-        text: "일반행동마다 아군 전체를 100 + CON×0.5 치유한다"
-    wants: [SUMMON]
-    caution: "소환수가 적은 편성에서는 군상극과 레미제라블의 고점이 낮다"
-    caution: "두 명 이상의 방출 딜러에게 특히 유리하다. 궁극기가 아군의 모든 원소를 먼저 제거하므로 세이의 창세 바위·자기 부착 반응 빌드와 충돌한다"
-
-  - id: 10
-    name: 셰익스피어
-    type: Starter
-    element: Geo
-    mainStat: LUK
-    topStat: LUK
-    row: Rear
-    roles: [SUMMON, AMP_SUMMON, AMP_CRIT, REVIVE]
-    supportValue: { combat: 5, training: 3 }
-    provides:
-      - key: LANGUAGE_CREATOR
-        text: "소환수의 생성·소멸·행동을 중첩으로 바꾸고, 공격마다 중첩을 써서 확정 치명타를 제공한다"
-      - key: SUMMON_FIELD
-        text: "궁극기 결계가 3턴간 소환수 피해 +25%와 소환수별 1회 부활을 제공한다"
-    wants: [SUMMON, HEAL, SHIELD]
-    caution: "소환수가 없는 편성에서는 일반행동과 궁극기의 가치가 크게 떨어진다"
-
-  - id: 6
-    name: 니콜
-    type: Support
-    element: Electro
-    mainStat: INT
-    topStat: INT
-    row: Rear
-    roles: [ELEM_APPLY, AMP_DMG, AMP_CRIT, DPS_ST]
-    supportValue: { combat: 4, training: 4 }
-    provides:
-      - key: ALLY_ELECTRO
-        text: "아군은 각자 5회 행동할 때마다 번개를 두른다. 행동은 일반행동·궁극기·추가행동을 전부 센다"
-      - key: ELECTRO_AURA
-        text: "고유 패시브 일렉트릭 필드 — 번개를 두른 아군이 가하는 피해 +20%"
-      - key: OVERCHARGE
-        text: "궁극기 오버차지 — 아군 전체 3턴간 니콜 LUK만큼 치명타 피해, 번개 보유 시 +20%p"
-      - key: CHARGE_REACTION
-        text: "번개를 두른 아군에게 다시 걸리면 축전(LUK 증가)이 된다. 아군에게 버프 반응을 만드는 몇 안 되는 경로다"
-    wants: [EXTRA_ACT, MULTIHIT, AMP_CRIT]
-    caution: "라이트의 궁극기가 아군 원소를 먼저 지우므로 일렉트릭 필드의 +20%가 그 순간 꺼진다"
-
-  - id: 7
-    name: 잔
-    type: Support
-    element: Cryo
-    mainStat: STR
-    topStat: STR
-    row: Front
-    roles: [TAUNT, BULWARK, EXTRA_ACT, DPS_ST, ELEM_APPLY]
-    supportValue: { combat: 5, training: 5 }
-    provides:
-      - key: PREEMPTIVE_COUNTER
-        text: "고유 패시브 최고의 방어 — 노려지는 순간 상대의 행동보다 먼저 STR×0.8을 꽂는다. 되받아친 일격에 상대가 쓰러지면 그 행동은 통째로 접힌다"
-      - key: PERMANENT_TAUNT
-        text: "기수(Lv45) — 우선도 +1 상시. 아군 유일의 꺼지지 않는 도발이다"
-      - key: MISFIRE_GUARD
-        text: "오사방지(Lv7) — 아군이 아군에게 만드는 해로운 원소 반응을 막는다. 니콜·세이의 아군 부착 사고를 지운다"
-      - key: STR_TRAINER
-        text: "STR 특기를 가진 유일한 서포트. STR 메인의 패시브 전수를 처음으로 열어 준다"
-    wants: [HEAL, AMP_CRIT]
-    caution: >
-      철권제재는 적의 공격을 지우지 않는다. 되받아친 뒤 적의 공격은 그대로 들어오므로
-      피격을 자원으로 쓰는 코드와 상충하지 않는다. 되받아친 일격에 적이 쓰러진 경우에만
-      그 공격이 함께 사라진다.
-
-  - id: 60
-    name: 찬드라
-    type: Support
-    element: Geo
-    mainStat: CON
-    topStat: CON
-    row: Rear
-    roles: [SPECIAL, SHIELD, AMP_DMG, BULWARK]
-    supportValue: { combat: 3, training: 4 }
-    provides:
-      - key: SPECIAL_ACTION
-        text: \"특수행동 소마의 잔 — 아군 전체에게 CON×1.5 방어막과 INT 절반의 마나\"
-      - key: SOMA
-        text: "궁극기 소마 — 이번 전투 최대 딜러에게 3턴간 INT의 25%만큼 올스탯. 주스탯·DEX·LUK를 한 번에 올린다"
-    wants: [DPS_ST]
-
-  - id: 81
-    name: 프레이아
-    type: Support
-    element: Dendro
-    mainStat: CON
-    topStat: CON
-    row: Rear
-    roles: [HEAL, AMP_DMG, DPS_AOE, ELEM_APPLY]
-    supportValue: { combat: 4, training: 4 }
-    provides:
-      - key: PARTY_HEAL
-        text: "일반행동 자체가 아군 전체 CON×0.6 치유 — 아군 전체에서 유일한 상시 힐러다"
-      - key: ABUNDANCE
-        text: "궁극기가 누적 순수치유량에 비례해 광역 피해를 최대 2배까지 증폭하고 기록을 정산"
-      - key: PHYTONCIDE
-        text: "필드에 있는 동안 모든 아군의 CON을 프레이아의 전투 시작 CON 75%만큼 증가"
-      - key: DENDRO_APPLY
-        text: "궁극기가 적 전체에 풀 부착 — 불을 까는 아군과 겹치면 연소가 터진다"
-    wants: [HEAL, ELEM_APPLY]
-
-  - id: 83
-    name: 스카디
-    type: Support
-    element: Cryo
-    mainStat: STR
-    topStat: CON
-    row: Front
-    roles: [BULWARK, DPS_ST, DPS_AOE, EXTRA_ACT, ELEM_APPLY]
-    supportValue: { combat: 4, training: 4 }
-    provides:
-      - key: COUNTER
-        text: "일반행동으로 3중첩을 채운 뒤 피격마다 1중첩을 소비해 반격하고 얼음을 부착한다"
-      - key: CRYO_APPLY
-        text: "반격은 단일 공격자, 궁극기는 적 전체에 얼음을 부착한다"
-    wants: [HEAL]
-    caution: "주스탯은 STR인데 최고 스탯은 CON이다. 카드 특기가 CON으로 굴러 STR 메인을 도와주지 못한다"
-
-  - id: 65
-    name: 쿠베라
-    type: Support
-    element: Geo
-    mainStat: CON
-    topStat: CON
-    row: Front
-    roles: [SPECIAL, CONTROL, BULWARK, ECON]
-    supportValue: { combat: 4, training: 4 }
-    provides:
-      - key: SPECIAL_ACTION
-        text: \"특수행동 골드 러쉬 — 적 전체 물리 취약 +50%, 획득 골드 +5% 중첩\"
-      - key: MASS_AIRBORNE
-        text: "궁극기가 적 전체 에어본 — 광역 행동 정지"
-      - key: AIRBORNE_AMP
-        text: "고유 패시브로 에어본 적이 받는 피해 +10%"
-      - key: GOLD
-        text: "상인(Lv32) 전투 골드 +25%"
-    wants: [CONTROL]
-
-  - id: 67
-    name: 수리야
-    type: Locked
-    element: Pyro
-    mainStat: CON
-    topStat: CON
-    row: Rear
-    roles: [SPECIAL, DPS_ST, MULTIHIT, AMP_DMG, AMP_REACT]
-    supportValue: { combat: 4, training: 5 }
-    provides:
-      - key: SUNLIGHT_FIELD
-        text: "궁극기 디바카르 — 전장을 햇빛으로. 불 아군 +20%, 물·풀·얼음 아군 -20%. 3턴"
-      - key: SAVITR_STACK
-        text: "햇빛에서 자신과 원소·무기 숙련·속성이 겹치는 아군이 행동할 때마다 겹친 수만큼 중첩. 100에서 라비가 터진다"
-      - key: SPECIAL_ACTION
-        text: "특수행동 일천 — 중첩을 태우지 않고 10발을 쏜다. 인드라의 개방이 곧 두 배의 값"
-      - key: CON_TRAINER
-        text: "면벽수련(Lv41) — CON 특기를 훈련 효율까지 갖춘 유일한 서포트"
-    wants: [SPECIAL, ELEM_APPLY]
-    caution: >
-      사비타는 햇빛에서만 돈다. 디바카르를 깔기 전에는 중첩이 전혀 쌓이지 않으므로
-      궁극기 회전이 곧 가동률이다. 편성을 불·보주·베다로 맞출수록 중첩이 빨리 찬다.
-
-  - id: 66
-    name: 바루나
-    type: Support
-    element: Hydro
-    mainStat: CON
-    topStat: CON
-    row: Rear
-    roles: [SPECIAL, AMP_REACT, SUMMON, DPS_AOE, ELEM_APPLY]
-    supportValue: { combat: 5, training: 4 }
-    provides:
-      - key: SPECIAL_ACTION
-        text: \"특수행동 정화의 밀물 — 아군 전체 CON×1.5 치유 + 해로운 효과 전부 제거\"
-      - key: REACTION_40
-        text: "고유 패시브 대해의 판결 — 아군 전체의 원소 반응 피해 +40%. 반응 빌드의 단일 코어다"
-      - key: MAKARA
-        text: "궁극기 소환수 마카라 — 4턴간 매 턴 적 전체 INT 위력 40 + 물 부착"
-    wants: [ELEM_APPLY]
-
-  - id: 25
-    name: 오르페우스
-    type: Support
-    element: Anemo
-    mainStat: LUK
-    topStat: LUK
-    row: Rear
-    roles: [TOUGHNESS]
-    supportValue: { combat: 2, training: 3 }
-    provides:
-      - key: OPENING_TOUGHNESS
-        text: "고유 패시브로 전투 시작 즉시 궁극기 발동 — 적 전체에 INT×12 강인도"
-    wants: [AMP_TOUGH]
-    caution: "강인도가 0이 되어도 적은 죽지 않는다. 골드·EXP·킬 카운트가 늘지 않으므로 토트나 처치 반응 코드와 함께 써야 값을 한다"
-
-  - id: 100
-    name: 아그리파
-    type: Support
-    element: Geo
-    mainStat: DEX
-    topStat: DEX
-    row: Rear
-    roles: [ULT_BATTERY, AMP_DMG, AMP_CRIT, DEF_SHRED]
-    supportValue: { combat: 4, training: 5 }
-    provides:
-      - key: ULT_20_40
-        text: "궁극기 제 2의 건국자 — 아군 전체 궁극기 자원 20%(화합 보유자 40%)"
-      - key: HARMONY
-        text: "고유 패시브 화합 — 이로운 효과를 준 아군의 가하는 피해 +50%"
-      - key: CRIT_FEED
-        text: "일반행동이 INT 최고 아군에게 치명타 피해 +20%"
-      - key: DEX_TRAINER
-        text: "DEX 특기를 가진 유일한 서포트"
-    wants: [ULT_BATTERY]
-    caution: "일반행동이 피해를 내지 않는다. 순수 화력으로는 한 자리를 비우는 셈이다"
-
-  - id: 103
-    name: 이아손
-    type: Support
-    element: Hydro
-    mainStat: LUK
-    topStat: LUK
-    row: Front
-    roles: [EXTRA_ACT, AMP_DMG, DPS_AOE, ULT_BATTERY]
-    supportValue: { combat: 5, training: 5 }
-    provides:
-      - key: ARGONAUT_RESPONSE
-        text: "아군 궁극기에 반응해 광역 추가행동을 하고, 아군 전체 궁극기 피해 +1%를 전투 동안 중첩한다"
-      - key: ARGO_DEPARTURE
-        text: "궁극기 아르고 호 출항 — 적 전체 공격 후 2턴간 아군 전체 INT에 자신의 INT 절반을 부여"
-      - key: GUNNER
-        text: "포수(Lv45) — 필드의 모든 아군 궁극기 피해 +10%. 여러 보유자가 중첩 가능"
-      - key: LUK_TRAINER
-        text: "행운아와 가정 신의 가호로 LUK 훈련과 우정도 성장을 함께 지원"
-    wants: [DPS_AOE, ULT_BATTERY]
-    caution: "궁극기 반응은 자신의 턴마다 한 번만 재충전된다. 짧은 구간에 궁극기를 몰아 써도 연속 반응하지 않는다"
-
-  - id: 124
-    name: 토트
-    type: Support
-    element: Hydro
-    mainStat: INT
-    topStat: INT
-    row: Rear
-    roles: [AMP_TOUGH, DPS_ST]
-    supportValue: { combat: 2, training: 4 }
-    provides:
-      - key: TOUGH_EFF
-        text: "고유 패시브 강인도 효율 +25%, 궁극기가 3턴간 감소 강인도의 30%를 실제 피해로 전환"
-    wants: [TOUGHNESS]
-    caution: "오르페우스가 없으면 강인도 자체가 생기지 않아 고유 패시브와 궁극기가 통째로 놀게 된다"
-
-  - id: 125
-    name: 이시스
-    type: Support
-    element: Geo
-    mainStat: CON
-    topStat: CON
-    row: Rear
-    roles: [CONTROL, ELEM_APPLY, AMP_DMG, DPS_AOE]
-    supportValue: { combat: 4, training: 4 }
-    provides:
-      - key: GAUGE_DELAY
-        text: "궁극기가 적 전체 3연타 + 바위 부착 + 행동 게이지 50% 지연"
-      - key: GEO_MARK
-        text: "고유 패시브 — 바위를 부여한 대상이 받는 특수 피해 +10%"
-    wants: [DPS_AOE]
-
-  - id: 160
-    name: 마리
-    type: Support
-    element: Cryo
-    mainStat: LUK
-    topStat: LUK
-    row: Rear
-    roles: [AMP_CRIT, AMP_DMG]
-    supportValue: { combat: 5, training: 4 }
-    provides:
-      - key: CRIT_DMG_LUK
-        text: "고유 패시브 혁명의 장교 — 아군의 화살 공격이 치명타일 때 치명타 피해가 마리의 LUK%만큼 증가"
-      - key: TRIUMPH_ARCH
-        text: "개선문(Lv30) — 전투 시작 패시브 3개 이상이면 아군 전체 4턴간 치명타 확률 +100%"
-      - key: REVOLUTION
-        text: "궁극기 — 아군 전체 3턴간 모든 피해 +20%, 숙련 활 사용자라면 총 +40%"
-      - key: CARING
-        text: "보살핌(Lv5) — 앉아 있는 훈련의 기본 체력 소모 -20%"
-    wants: [DPS_ST, MULTIHIT, AMP_CRIT]
-
-  # ── Starter (메인 후보, 육성 완료 후 서포트 슬롯도 가능) ──────────
-  - id: 21
-    name: 아탈란테
-    type: Starter
-    element: Dendro
-    mainStat: DEX
-    topStat: DEX
-    row: Rear
-    roles: [DPS_ST, DPS_AOE, DOT, DEF_SHRED]
-    supportValue: { combat: 4, training: 2 }
-    provides:
-      - key: VIRULENT
-        text: "맹독(Lv30) 스킬 적중마다 2턴 지속피해 — 지속피해 빌드의 저레벨 공급원"
-    wants: [CONTROL, DOT]
-    caution: "저격수·사냥신의 가호가 후열 조건이다. 전열에 세우면 계수가 죽는다"
-
-  - id: 22
-    name: 오리온
-    type: Support
-    element: Geo
-    mainStat: STR
-    topStat: STR
-    row: Front
-    roles: [DPS_ST, MULTIHIT, EXTRA_ACT]
-    supportValue: { combat: 4, training: 1 }
-    provides:
-      - key: SIRIUS
-        text: "고유 패시브 시리우스 — 피격·HP 소모 행동 5회마다 적 전체 STR×1.2 반격(추가행동 태그)"
-      - key: ARROW_RAIN
-        text: "궁극기 화살비 12발 — 타격당 고정 효과의 최대 수혜자"
-    wants: [AMP_DMG, HEAL]
-    caution: >
-      시리우스는 피해를 받아야 찬다. 도발 탱커가 지정을 가져가면 그만큼 충전이 느려진다.
-      다만 잔의 철권제재처럼 <되받아치기>는 적의 공격을 지우지 않으므로 충전을 막지 않는다.
-
-  - id: 23
-    name: 테세우스
-    type: Locked
-    element: Hydro
-    mainStat: DEX
-    topStat: DEX
-    row: Front
-    roles: [DPS_AOE, HEAL, BULWARK]
-    supportValue: { combat: 3, training: 2 }
-    provides:
-      - key: SELF_SUSTAIN
-        text: "궁극기·투사·자가치유로 자급한다. 힐러 없는 편성의 전열"
-    wants: [ULT_BATTERY, ELEM_APPLY]
-    caution: "코드 직조가 궁극기 발동마다 1스택이다. 궁극기 회전이 곧 화력이다"
-
-  - id: 80
-    name: 수르트
-    type: Starter
-    element: Pyro
-    mainStat: STR
-    topStat: STR
-    row: Front
-    roles: [DPS_AOE, DPS_ST, ELEM_APPLY]
-    supportValue: { combat: 5, training: 1 }
-    provides:
-      - key: TWILIGHT
-        text: "고유 패시브 황혼 — 행동마다 최대 체력 15%를 태우고 일반행동·궁극기 위력에 CON×2를 추가"
-      - key: PYRO_APPLY
-        text: "궁극기가 적 전체에 불 부착"
-    wants: [HEAL, ELEM_APPLY]
-    caution: "현재 체력이 30% 아래로 내려가면 체력을 더 태우지 못해 CON 추가 위력을 잃는다. 상시 치유로 화력 구간을 유지해야 한다"
-
-  - id: 64
-    name: 바유
-    type: Support
-    element: Anemo
-    mainStat: CON
-    topStat: CON
-    row: Rear
-    roles: [DPS_AOE, DEF_SHRED, ELEM_APPLY, CLEANSE, DOT]
-    supportValue: { combat: 4, training: 4 }
-    provides:
-      - key: SOUTH_WIND
-        text: "궁극기 남풍 — 적 전체 바람 부착 + 방어력 20% 감소 + 3턴 잔풍 지속피해"
-      - key: PURIFY
-        text: "고유 패시브 — 궁극기 충전을 소모해 아군 디버프 제거"
-    wants: [AMP_REACT, ELEM_APPLY]
-
-  - id: 121
-    name: 아누비스
-    type: Locked
-    element: Geo
-    mainStat: CON
-    topStat: CON
-    row: Front
-    roles: [BULWARK, SHIELD, DPS_AOE, REVIVE]
-    supportValue: { combat: 4, training: 4 }
-    provides:
-      - key: FRONT_SHIELD
-        text: "궁극기가 적 전열을 치면서 아군 전열 전체에 CON×1.4 방어막"
-      - key: RAISE_DEAD
-        text: "죽은 자의 소생(Lv38) 라운드 종료 시 쓰러진 아군 하나 부활 — 아군 전체 유일"
-    wants: [TAUNT, AMP_DMG]
-    caution: "도발이 없어 방어막을 자기가 쓰지 못하는 라운드가 나온다"
+    roles: [DPS_ST, EXECUTE, EXTRA_ACT, ACT_ACCEL]
+    supportValue: { combat: 1, training: 0 }
+      provides:
+        - { key: EXECUTE, text: "멸망의 시 — 아군 공격 후 멸참으로 끝낼 수 있는 적을 방어력·현재 체력만 보고 특수행동으로 정리" }
+        - { key: EXTRA_ACT, text: "멸참 — 일반·특성 멸참 처치 시 특수행동 멸참을 한 번 더 사용" }
+        - { key: MULTIHIT, text: "만종 — 멸참 3/6/9회째에 단일 추가 피해 또는 적 전체 분배 피해" }
+    wants: [AMP_DMG, SHIELD]
+      caution: "처형 예측은 보호막과 피해 증감을 보지 않는다. 재행동 멸참으로 처치해도 세 번째 멸참은 이어지지 않는다."
 
   - id: 3
     name: 사바흐
-    type: Starter
+    type: Unlocked
     element: Electro
-    mainStat: LUK
-    topStat: LUK
-    row: Front
-    roles: [DPS_AOE, EXECUTE, ELEM_APPLY]
-    supportValue: { combat: 3, training: 3 }
+    mainStat: Attack
+    topStat: Speed
+    row: Rear
+    roles: [DPS_ST, DPS_AOE, ULT_BATTERY, ELEM_APPLY]
+    supportValue: { combat: 3, training: 0 }
     provides:
-      - key: DEBUFF_PAYOFF
-        text: "고유 패시브·궁극기가 아군이 건 디버프 수를 자원으로 쓴다"
-    wants: [CONTROL, DOT]
+      - { key: DPS_ST, text: "검격 — 110 + 공격력 100%의 단일 접촉 베기" }
+      - { key: DPS_AOE, text: "아즈라엘 — 디버프 연계로 모은 7중첩을 소모해 적 전체를 한 번씩 공격" }
+      - { key: ELEM_APPLY, text: "번개 베기 — 일반행동 3번째마다 최대 3명에게 번개 원소 부착" }
+    wants: [DOT, CONTROL, AMP_DMG]
+    caution: "아즈라엘은 공용 마나로 차지 않는다. 아군의 해로운 상태 부여·갱신과 지속피해 틱이 있어야 회전한다."
 
-  # ── Locked (해금 후 메인·서포트 모두 가능) ─────────────────────────
-  - id: 2
-    name: 시
-    type: Locked
-    element: Anemo
-    mainStat: DEX
-    topStat: DEX
+  - id: 7
+    name: 잔
+    type: Unlocked
+    element: Cryo
+    mainStat: MaxHp
+    topStat: MaxHp
     row: Front
-    roles: [DPS_ST, MULTIHIT, EXECUTE]
-    supportValue: { combat: 4, training: 2 }
+    roles: [TAUNT, BULWARK, DPS_ST, EXTRA_ACT]
+    supportValue: { combat: 5, training: 0 }
     provides:
-      - key: FINAL_VERSE
-        text: "일반행동 적중이 곧 자원이다. 행동 속도가 그대로 화력이 된다"
-    wants: [ACT_ACCEL, ELEM_APPLY]
-    caution: "신속이 바람 부착 조건이다. 아군에게 바람을 걸 수 있는 것은 라이트뿐이다"
+      - { key: TAUNT, text: "텐션 오르는데! — 자신에게 공격을 모으고 피해를 줄인다" }
+      - { key: EXTRA_ACT, text: "철권제재 — 직접 공격 대상으로 확정되면 공격자보다 먼저 신성한 일격" }
+      - { key: DPS_ST, text: "신성한 일격 — 일반행동과 선제 반격이 공유하는 단일 접촉 공격" }
+    wants: [HEAL, SHIELD, AMP_DMG]
+    caution: "철권제재는 잔의 일반행동 사이에 정해진 횟수만 쓸 수 있으며 간접 피해에는 반응하지 않는다."
+
+  - id: 60
+    name: 찬드라
+    type: Unlocked
+    element: Geo
+    mainStat: MaxHp
+    topStat: MaxHp
+    row: Rear
+    roles: [BULWARK, HEAL, AMP_DMG, AMP_CRIT, DPS_AOE, SPECIAL]
+    supportValue: { combat: 4, training: 0 }
+    provides:
+      - { key: AMP_DMG, text: "소마 — 가장 공격력이 높은 아군에게 공격력 10% + 찬드라 최대 체력 10%" }
+      - { key: AMP_CRIT, text: "창야 — 로카팔라 특수행동 묶음 동안 아군 전체 치명타 확률 +25%" }
+      - { key: HEAL, text: "니샤카라/창야 — 월광 위기 회복과 광역 피해 기반 자가 회복" }
+    wants: [SPECIAL, SHIELD]
+    caution: "현 로스터에는 로카팔라 특수행동을 자연스럽게 여는 유닛이 없어 창야는 트리거가 추가되어야 발동한다."
+
+  - id: 44
+    name: 히미코
+    type: Unlocked
+    element: Pyro
+    mainStat: SpecialAttack
+    topStat: SpecialAttack
+    row: Rear
+    roles: [DEF_SHRED, CONTROL, AMP_DMG]
+    supportValue: { combat: 4, training: 0 }
+    provides:
+      - { key: DEF_SHRED, text: "맹화의 제전 — 집중 2턴 동안 아군 전체 방어 무시 20%" }
+      - { key: CONTROL, text: "맹화 3중첩 — 행동을 빼앗지 않고 집중만 중단" }
+      - { key: AMP_DMG, text: "맹화 3중첩 — 받는 피해 +15% 2턴" }
+    wants: [ACT_ACCEL, MULTIHIT]
+    caution: "맹화 1~2중첩은 디버프로 세지 않고, 3중첩 폭발의 취약만 디버프 하나로 센다."
 
   - id: 20
     name: 피그말리온
-    type: Support
+    type: Unlocked
     element: Pyro
-    mainStat: CON
-    topStat: CON
+    mainStat: Defense
+    topStat: MaxHp
     row: Front
-    roles: [BULWARK, DOT, SUMMON]
-    supportValue: { combat: 3, training: 4 }
+    roles: [TAUNT, BULWARK, DOT, AMP_DMG, AMP_SUMMON]
+    supportValue: { combat: 5, training: 0 }
     provides:
-      - key: GALATEA
-        text: "고유 패시브로 본인이 소환수 판정을 받는다 — 로키의 소환사 +25%를 그대로 받는다"
-      - key: ROSE_THORN
-        text: "궁극기가 4턴간 받는 피해 -50% + 우선도 +1 + 접촉 반사 화상"
-    wants: [AMP_SUMMON, DOT]
-
-  - id: 24
-    name: 아스클레피아
-    type: Locked
-    element: Electro
-    mainStat: LUK
-    topStat: LUK
-    row: Rear
-    roles: [HEAL, CLEANSE, DPS_ST, DPS_AOE]
-    supportValue: { combat: 4, training: 4 }
-    provides:
-      - key: CRIT_HEAL
-        text: "치명적인 치유(Lv40) 치유가 치명타 판정을 받는다 — 마리의 치확 +100%와 곱해진다"
-      - key: CHALICE_OF_LIFE
-        text: "체력이 부족한 아군의 행동마다 반응 치유하고 유효 치유 행동당 궁극기 자원 5%를 얻는다"
-      - key: DIVINE_GRACE
-        text: "의신의 가호(Lv50) 치유·보호막 +50% + 부정 상태 제거"
-    wants: [AMP_CRIT]
-
-  - id: 26
-    name: 이카리아
-    type: Locked
-    element: Pyro
-    mainStat: INT
-    topStat: INT
-    row: Rear
-    roles: [DPS_AOE, DPS_ST]
-    supportValue: { combat: 3, training: 4 }
-    provides:
-      - key: RECKLESS
-        text: "체력을 태워 피해로 바꾼다. 소모 비율이 그대로 배율이 된다"
+      - { key: AMP_DMG, text: "갈라테아 — 필드에 있는 동안 아군 피해 +15%" }
+      - { key: AMP_SUMMON, text: "갈라테아 — 소환수 피해 +30%, 자신도 소환수 판정" }
+      - { key: TAUNT, text: "날카로운 가시 — 집중 3턴 동안 타겟 우선도 +1·받는 피해 -50%" }
+      - { key: DOT, text: "날카로운 가시 — 접촉 공격자에게 맹독" }
     wants: [HEAL, SHIELD]
-    caution: "힐·보호막이 없으면 자기 체력으로 자살한다. 치유 축을 반드시 함께 세운다"
-
-  - id: 40
-    name: 아마테라스
-    type: Locked
-    element: Pyro
-    mainStat: DEX
-    topStat: DEX
-    row: Rear
-    roles: [DPS_ST, MULTIHIT, EXTRA_ACT]
-    supportValue: { combat: 5, training: 2 }
-    provides:
-      - key: SUN_GATE
-        text: "궁극기 태양문 개방 — 일반행동을 맞힐 때마다 화살 8발 추가행동. 타수 폭발의 정점"
-      - key: SUN_RHYTHM
-        text: "고유 패시브가 일반행동마다 DEX +4(6중첩) — 스스로 가속한다"
-    wants: [AMP_DMG, ACT_ACCEL]
-
-  - id: 41
-    name: 츠쿠요미
-    type: Locked
-    element: Electro
-    mainStat: INT
-    topStat: INT
-    row: Rear
-    roles: [DOT, AMP_DMG, DEF_SHRED, DPS_AOE]
-    supportValue: { combat: 4, training: 4 }
-    provides:
-      - key: MOON_PULL
-        text: "고유 패시브 달의 인력 — 적의 해로운 상태 1개당 아군 전체가 그 적에게 주는 피해 +3~5%(최대 5개). 누가 건 디버프든 센다"
-      - key: MOON_PHASES
-        text: "일반행동이 위상 디버프를 하나씩 돌려 걸고(방어력 -25% · 받는 피해 +10% · 가하는 피해 -15%), 궁극기가 적 전체에 셋 모두를 건다"
-      - key: MOONLIGHT_DOT
-        text: "일반행동이 월광 침식(2턴), 궁극기가 적 전체 월식(3턴) — 지속피해를 스스로 깐다. 원소는 붙이지 않는다"
-      - key: WOUND_OPEN
-        text: "상처 벌리기(Lv33) 지속피해 대상 방어력 45% 무시"
-      - key: ECLIPSE
-        text: "월식 정산(Lv44) — 지속피해 상태의 적이 죽으면 남은 지속피해를 범위로 터뜨린다"
-    wants: [DOT]
-
-  - id: 42
-    name: 스사노오
-    type: Locked
-    element: Hydro
-    mainStat: LUK
-    topStat: LUK
-    row: Front
-    roles: [DPS_ST, EXTRA_ACT, EXECUTE]
-    supportValue: { combat: 4, training: 3 }
-    provides:
-      - key: AMENOMURAKUMO
-        text: "궁극기가 상시형이다 — 필드에 에어본 적이 있으면 내부 쿨 1턴으로 계속 벤다"
-      - key: TRI_ELEMENT
-        text: "고유 패시브로 물·바람·번개 판정을 동시에 받는다 (바루나 수천의 대상)"
-    wants: [CONTROL]
-
-  - id: 43
-    name: 세이메이
-    type: Locked
-    element: Anemo
-    mainStat: CON
-    topStat: CON
-    row: Rear
-    roles: [HEAL, CONTROL]
-    supportValue: { combat: 4, training: 3 }
-    provides:
-      - key: TRIPLE_SEAL
-        text: "한 대상의 봉인부가 3중첩되면 다음 턴 직전까지 속박한다"
-      - key: SEAL_TALISMAN
-        text: "일반행동마다 단일 적에게 봉인부를 쌓는다"
-      - key: HEAVEN_EARTH
-        text: "궁극기가 3턴 재생과 공격 시 봉인부 부여를 아군 전체에 건다"
-    wants: [DPS_AOE, EXTRA_ACT]
-
-  - id: 61
-    name: 야마
-    type: Locked
-    element: Electro
-    mainStat: INT
-    topStat: INT
-    row: Front
-    roles: [SPECIAL, DOT, DPS_AOE, AMP_DMG]
-    supportValue: { combat: 4, training: 4 }
-    provides:
-      - key: SPECIAL_ACTION
-        text: \"특수행동 죽음의 순회 — 함께 나선 로카팔라 수만큼 DEX×1.2를 튕긴다\"
-      - key: DEATH_PACT
-        text: "고유 패시브 죽음의 계약 — 아군 전체의 지속피해 +30%. 지속피해 빌드의 단일 코어다"
-      - key: DOT_DETONATE
-        text: "궁극기가 대상의 지속피해를 즉시 정산해 INT의 80%를 추가 피해로 만든다"
-    wants: [DOT]
-
-  - id: 62
-    name: 아그니
-    type: Support
-    element: Pyro
-    mainStat: INT
-    topStat: INT
-    row: Rear
-    roles: [SPECIAL, AMP_DMG, DPS_AOE, ELEM_APPLY]
-    supportValue: { combat: 4, training: 4 }
-    provides:
-      - key: SPECIAL_ACTION
-        text: \"특수행동 겁화 — 적 전체 특수 취약 +50%. 불을 두른 적에게는 화상까지\"
-      - key: ETERNAL_FLAME
-        text: "고유 패시브 — 필드의 불 원소 아군이 가하는 피해 +20%"
-      - key: ARCHMAGE
-        text: "대마법사(Lv70) 보주 숙련 아군의 특수 피해 치명타 피해 +25%"
-    wants: [AMP_CRIT]
-    caution: "불 원소 아군이 있어야 고유 패시브가 산다. Support 유형 13명 중 불 원소는 0명이다"
-
-  - id: 63
-    name: 인드라
-    type: Locked
-    element: Electro
-    mainStat: INT
-    topStat: INT
-    row: Rear
-    roles: [SPECIAL, DPS_AOE, DPS_ST, ULT_BATTERY]
-    supportValue: { combat: 4, training: 4 }
-    provides:
-      - key: SPECIAL_ACTION
-        text: \"궁극기 신들의 왕이 로카팔라 전원의 특수행동을 연다. 자신의 천벌도 함께 나간다\"
-      - key: THUNDER_MARK
-        text: "고유 패시브 뇌정 각인 — 4타마다 INT의 40% 고정 피해"
-      - key: CHAIN_JUDGE
-        text: "궁극기 천벌이 적 사이를 튕긴다. 편성이 넓을수록 총량이 커진다"
-    wants: [ULT_BATTERY]
-
-  - id: 82
-    name: 로키
-    type: Locked
-    element: Pyro
-    mainStat: LUK
-    topStat: LUK
-    row: Rear
-    roles: [SUMMON, AMP_SUMMON, DPS_ST, DEF_SHRED, DOT]
-    supportValue: { combat: 4, training: 3 }
-    provides:
-      - key: SUMMONER
-        text: "소환사(Lv25) — 필드의 모든 소환수 피해 +25%. 소환 축의 유일한 증폭원이다"
-      - key: FENRIR
-        text: "고유 패시브 펜리르 — 칸을 쓰지 않는 상시 소환수. 표식이 박힌 적을 아군이 때릴 때마다 함께 문다"
-      - key: BALDR_MARK
-        text: "궁극기 표식 — 최대 체력이 가장 높은 적에게 치유 -25%, 방어력 -20%. 광역 딜러의 보스전을 연다"
-    wants: [SUMMON, DPS_AOE]
-
-  - id: 101
-    name: 옥타비아
-    type: Starter
-    element: Anemo
-    mainStat: INT
-    topStat: INT
-    row: Rear
-    roles: [DPS_AOE, AMP_DMG]
-    supportValue: { combat: 4, training: 4 }
-    provides:
-      - key: AUGUST
-        text: "궁극기 존엄한 자 — 적 전체 INT×1.5. 아군 최대급 광역 한 방"
-      - key: LEADERSHIP
-        text: "리더쉽(Lv40) 아군 전체 가하는 피해 +10%"
-    wants: [ULT_BATTERY]
-    caution: "고유 패시브가 자기 DEX를 25% 깎는다. 행동이 느려 궁극기 회전 지원이 없으면 한 라운드에 두 번 못 쓴다"
-
-  - id: 102
-    name: 카이사르
-    type: Locked
-    element: Anemo
-    mainStat: LUK
-    topStat: LUK
-    row: Front
-    roles: [ACT_ACCEL, AMP_DMG, AMP_CRIT]
-    supportValue: { combat: 5, training: 3 }
-    provides:
-      - key: DICE_CAST
-        text: "궁극기 주사위는 던져졌다 — 아군 전체 행동 게이지 100% + 2~3턴간 치명타마다 고정 피해"
-      - key: ROME_STACK
-        text: "고유 패시브 — 처치할 때마다 로마 아군 전체 피해 +10%, 상한 없음"
-    wants: [AMP_CRIT]
-    caution: "고유 패시브는 로마 태그에게만 간다. 로마는 아그리파·옥타비아·카이사르 셋뿐이다"
-
-  - id: 120
-    name: 호루스
-    type: Locked
-    element: Pyro
-    mainStat: DEX
-    topStat: DEX
-    row: Rear
-    roles: [DPS_ST, DEF_SHRED]
-    supportValue: { combat: 3, training: 2 }
-    provides:
-      - key: SKY_FALCON
-        text: "고유 패시브 창공의 매 — 행동 속도를 1.0에 묶고 초과분 1%마다 STR +1. DEX 버프가 그대로 화력이 된다"
-    wants: [ACT_ACCEL]
-    caution: "아군에게 DEX를 주는 코드는 마리 궁극기(+10)와 찬드라 소마(올스탯)뿐이다. 고유 패시브의 상한이 여기서 갈린다"
+    caution: "맹독 반사는 접촉 공격에만 발동한다. 비접촉 위주의 적에게는 궁극기의 반격 가치가 낮다."
 
   - id: 122
     name: 바스테트
-    type: Starter
+    type: Unlocked
     element: Geo
-    mainStat: LUK
-    topStat: LUK
-    row: Front
-    roles: [EXTRA_ACT, DPS_AOE, DPS_ST]
-    supportValue: { combat: 4, training: 3 }
-    provides:
-      - key: BEAST_GAZE
-        text: "고유 패시브 야수의 시선 — 아군의 추가행동·반격 100회마다 스택×LUK 폭발"
-      - key: BEAST_CHASE
-        text: "궁극기가 반격 보유 아군을 지정해 그 아군의 추가행동마다 적 전체 DEX×1.2"
-    wants: [EXTRA_ACT, MULTIHIT]
-    caution: "추가행동 공급원이 없으면 100스택을 한 런에도 못 채운다"
-
-  - id: 123
-    name: 세트
-    type: Locked
-    element: Pyro
-    mainStat: STR
-    topStat: STR
-    row: Front
-    roles: [DPS_ST, DOT]
-    supportValue: { combat: 3, training: 1 }
-    provides:
-      - key: FLAME_SLASH
-        text: "궁극기가 3턴 화상을 직접 부여한다 (원소 반응보다 1턴 길다)"
-    wants: [DOT, HEAL]
-
-  - id: 140
-    name: 케찰코아틀
-    type: Locked
-    element: Dendro
-    mainStat: INT
-    topStat: INT
+    mainStat: Attack
+    topStat: Speed
     row: Rear
-    roles: [AMP_DMG, DPS_AOE, ELEM_APPLY]
-    supportValue: { combat: 4, training: 4 }
+    roles: [DPS_ST, EXTRA_ACT, ACT_ACCEL]
+    supportValue: { combat: 2, training: 0 }
     provides:
-      - key: BOUNTY
-        text: "고유 패시브 풍요의 축복 — 필드의 풀 아군 1명당 아군 전체 피해 +5~15%"
-      - key: GREEN_JUDGE
-        text: "궁극기가 적 전체에 풀 부착 (개화·연소·활성 재료)"
-    wants: [ELEM_APPLY]
-    caution: "풀 원소 아군은 가우디·프레이아·아탈란테·케찰코아틀 넷뿐이다. 그 넷이 곧 최대치다"
+      - { key: DPS_ST, text: "냥냥펀치 — 공격력 100%의 빠른 단일 접촉 공격" }
+      - { key: EXTRA_ACT, text: "미운 놈 한 대 더 때리기 — 아군 반격이 실제 피해를 주면 같은 대상에게 냥냥펀치 추가행동" }
+      - { key: ACT_ACCEL, text: "기초 속도 116 — 현 로스터 최고 속도로 일반행동 회전을 확보" }
+    wants: [TAUNT, EXTRA_ACT, AMP_DMG]
+    caution: "경호는 견고 또는 반격 아군이 필요하다. 현 로스터에는 자연 반격 공격자가 없어 초월기 추가행동은 이후 반격 유닛과 조합할 때 열린다."
 
-  - id: 8
-    name: 라부아지에
-    type: Locked
-    element: Pyro
-    mainStat: INT
-    topStat: INT
-    row: Rear
-    roles: [DPS_AOE, ELEM_APPLY]
-    supportValue: { combat: 4, training: 4 }
-    provides:
-      - key: REAGENT_ENGINE
-        text: "외부 치유·보호막·버프를 연료·안정제·촉매로 저장해 궁극기 계수로 바꾼다"
-      - key: REACTION_RESULT
-        text: "준비도 3과 시약 3종을 소비해 적 전체를 공격하고 불을 부착한다"
-    wants: [HEAL, SHIELD, AMP_DMG, ULT_BATTERY]
-    caution: "외부 공급이 없으면 시약이 차지 않아 궁극기를 쓸 수 없다"
-
-  - id: 84
-    name: 시구르드
-    type: Locked
-    element: Pyro
-    mainStat: STR
-    topStat: STR
-    row: Front
-    roles: [DPS_ST, ELEM_APPLY]
-    supportValue: { combat: 4, training: 3 }
-    provides:
-      - key: OATH_SIGURD
-        text: "브륀힐드와 함께 서면 공명 3마다 협공하고, 궁극기로 즉시 협공을 부른다"
-      - key: FAFNIR_BANE
-        text: "궁극기가 단일 적의 내구를 무시하고 불을 부착한다"
-    wants: [AMP_CRIT, ULT_BATTERY]
-    caution: "브륀힐드가 없으면 공명과 협공이 전부 잠긴다"
-
-  - id: 85
-    name: 브륀힐드
-    type: Locked
-    element: Cryo
-    mainStat: DEX
-    topStat: DEX
-    row: Front
-    roles: [DPS_ST, DPS_AOE, ELEM_APPLY, ULT_BATTERY]
-    supportValue: { combat: 4, training: 4 }
-    provides:
-      - key: OATH_BRYNHILD
-        text: "시구르드와 함께 서면 공명 3마다 협공하고, 불·얼음으로 융해를 만든다"
-      - key: VERDICT
-        text: "궁극기가 적 전체를 공격하고 얼음을 부착한 뒤 즉시 협공을 부른다"
-    wants: [AMP_CRIT, ULT_BATTERY]
-    caution: "시구르드가 없으면 공명과 협공이 전부 잠긴다"
-
-  - id: 180
-    name: 우치
-    type: Starter
-    element: Anemo
-    mainStat: INT
-    topStat: INT
-    row: Rear
-    roles: [DPS_ST, SUMMON, EXTRA_ACT]
-    supportValue: { combat: 4, training: 2 }
-    provides:
-      - key: CLONES
-        text: "분신을 최대 3기까지 불러 각자 행동시키고, 피격 한 번을 분신 하나로 완전히 무효화한다"
-      - key: CLONE_RALLY
-        text: "궁극기로 분신을 강화하고 즉시 추가행동을 예약한다"
-    wants: [HEAL, SHIELD, AMP_SUMMON]
-    caution: "분신이 모두 사라진 뒤에는 피격 무효화가 작동하지 않는다"
-
-# ══════════════════════════════════════════════════════════════════════
-# 3. 아키타입 — 조합이 성립하는 아홉 갈래
-# ══════════════════════════════════════════════════════════════════════
 archetypes:
-  - id: FLAT_HIT
-    name: 다타수 고정피해
-    core: [1]
-    description: >
-      세이의 창세가 타격 한 번마다 세이 INT×3의 고정 피해를 얹는다.
-      화살비 12발·태양문 8발·빅뱅 6발처럼 타수를 쪼개는 코드와 곱해진다.
-    partners: [22, 40, 122, 100]
-    counterplay: "장비 내구는 발마다 고정 차감이라 다타수를 가장 강하게 억제한다. 방어 무시로는 뚫리지 않는다"
+  - id: JEAN_BASTET_COUNTER
+    name: 잔·바스테트 선제 반격 편성
+    core: [7, 122, 1, 44, 60]
+    description: "잔이 바스테트의 공격을 넘겨받아 먼저 반격하고, 바스테트가 같은 공격자에게 후속 냥냥펀치를 잇는다. 세이의 보호막과 찬드라의 회복이 잔의 집중 피격을 받친다."
+    partners: [20]
+    counterplay: "잔의 반격 기회가 소진되거나 비행동 피해 위주인 적에게는 연계가 멈춘다."
+  - id: BASTET_GUARD
+    name: 바스테트 경호 편성
+    core: [122, 7, 60, 44, 20]
+    description: "잔이 바스테트의 직접 공격을 대신 받아 선제 반격하고, 바스테트가 같은 공격자에게 후속 냥냥펀치를 잇는다."
+    partners: []
+    counterplay: "잔의 철권제재 기회가 소진되면 반격 후속이 멈추며, 간접 피해는 경호·반격을 열지 않는다."
+  - id: REWORK_FIVE
+    name: 현행 5인 균형 편성
+    core: [1, 2, 60, 44, 20]
+    description: "두 전열이 버티는 동안 처형·맹화·단일 강화·방어 무시를 함께 운용한다."
+    partners: []
+    counterplay: "광역 회복·정화가 없고, 로카팔라 특수행동을 자연 개방하지 못한다."
+  - id: SABAH_EXECUTION
+    name: 사바흐 빈틈 처형 편성
+    core: [3, 2, 60, 44, 20]
+    description: "히미코·피그말리온이 해로운 상태와 지속피해를 공급해 아즈라엘을 채우고, 시와 사바흐가 단일·광역 처형을 나눈다."
+    partners: []
+    counterplay: "맹화 1~2중첩은 디버프가 아니며, 적이 해로운 상태에 강하면 아즈라엘 회전이 느려진다."
 
-  - id: REACTION
-    name: 원소 반응
-    core: [66]
-    description: >
-      바루나의 대해의 판결이 반응 피해를 +40% 올린다. 반응 위력은 유발자의 CON에 비례하므로
-      CON이 높은 부착자를 여럿 세우는 것이 정석이다.
-    partners: [125, 83, 64, 4, 140, 62]
-    counterplay: "같은 반응은 대상마다 내부 쿨다운(제어 3턴 / 피해 1턴)이 돈다. 서로 다른 원소를 섞어야 회전이 는다"
-
-  - id: DOT
-    name: 지속피해 정산
-    core: [61]
-    description: >
-      야마의 죽음의 계약이 아군 전체 지속피해 +30%. 츠쿠요미가 죽은 대상의 남은 지속피해를
-      범위로 터뜨리고, 상처 벌리기 계열이 지속피해 대상의 방어력을 45% 무시한다.
-    partners: [41, 21, 123, 20]
-    counterplay: "지속피해는 내구 차감을 받지 않는다. 반대로 CodeType.Effect라 접촉 판정이 붙지 않는다"
-
-  - id: EXTRA_ACT
-    name: 추가행동 · 반격
-    core: [122]
-    description: >
-      바스테트가 아군의 추가행동·반격을 세어 폭발시킨다. 스카디의 반격, 잔의 철권제재,
-      오리온의 시리우스, 아마테라스의 차원문, 세이의 빅뱅, 마카라의 소환 타격이 전부 스택원이다.
-    partners: [83, 7, 22, 40, 1, 66]
-
-  - id: SUMMON
-    name: 소환
-    core: [82]
-    description: >
-      로키의 소환사가 필드의 모든 소환수 피해를 +25% 올린다. 피그말리온은 고유 패시브로
-      본인이 소환수 판정을 받아 이 버프를 통째로 받는다.
-    partners: [20, 66, 5]
-    counterplay: "소환수 피해에는 소환자의 가하는 피해 증가가 붙지 않는다. 소환수 전용 배율만 곱해진다"
-
-  - id: CRIT
-    name: 치명타 폭발
-    core: [160]
-    description: >
-      마리가 아군 전체 치명타 피해를 자기 LUK%만큼 올리고, 개선문이 전투 시작 4턴간
-      치명타 확률 +100%를 건다. 초과 치확을 치명타 피해로 바꾸는 예리함·암살자가 여기에 붙는다.
-    partners: [102, 66, 62, 100, 24]
-
-  - id: ULT_LOOP
-    name: 궁극기 회전
-    core: [100]
-    description: >
-      아그리파의 궁극기가 아군 전체 자원을 20%(화합 보유자 40%) 채운다. 라이트가 최대 마나가
-      가장 높은 아군에게 INT만큼 주유해 대형 궁극기 하나를 앞당긴다.
-    partners: [5, 101, 63, 23, 102]
-    counterplay: "궁극기 자원은 전투 시간 × INT로 찬다. 행동 횟수와 무관하므로 DEX로는 앞당길 수 없다"
-
-  - id: TOUGHNESS
-    name: 강인도
-    core: [25, 124]
-    description: >
-      오르페우스가 전투 시작 즉시 적 전체에 INT×12 강인도를 씌우고, 토트가 효율 +25%와
-      강인도 감소분의 30% 실피 전환을 얹는다.
-    partners: [40, 22, 63]
-    counterplay: "강인도 0은 처치 판정만 발행하고 실제로 죽이지 않는다. 골드·EXP는 나오지 않는다"
-
-  - id: SPECIAL_GATE
-    name: 특수행동 개방
-    core: [63]
-    description: >
-      인드라의 궁극기 <신들의 왕>이 필드의 로카팔라 전원에게 특수행동을 연다.
-      바유가 가장 먼저 나서 올스탯 +10%를 두르고, 야마의 바운스 타수는 함께 나선 인원수가 정한다.
-      로카팔라를 몇 명 세웠는지가 그대로 궁극기 한 번의 값이 된다.
-    partners: [64, 61, 60, 62, 65, 66, 67]
-    counterplay: "문을 여는 것은 인드라뿐이다. 인드라가 빠지면 여섯의 특수행동이 통째로 잠긴다"
-
-  - id: FORTRESS
-    name: 도발 요새
-    core: [83, 7]
-    description: >
-      전열의 공용 우선도 +1로 대상 지정을 나눈다. 잔은 기본 도발과 방어를 맡고,
-      스카디는 높은 CON·중갑·방패 숙련으로 버티며 피격 반격으로 얼음을 공급한다.
-    partners: [81, 121, 60, 65]
-    counterplay: >
-      도발을 추가로 겹치면 지정이 나뉘어 스카디의 반격 회전이 느려진다.
-      반격 자체는 적의 공격을 지우지 않으므로 피격 자원과는 부딪히지 않는다.
-
-# ══════════════════════════════════════════════════════════════════════
-# 4. 메인별 추천 조합
-#    best  — 전 캐릭터 해금 + 코드 전수 완료 가정
-#    basic — 최초 로스터(Support 19명)만, 전수 코드 없음 가정
-#    members는 서포트 4명. 순서가 곧 우선순위다.
-# ══════════════════════════════════════════════════════════════════════
 recommendations:
-  - mainId: 10
-    mainName: 셰익스피어
+  - mainId: 7
+    mainName: 잔
+    axis: "선제 반격·도발·바스테트 후속"
     starterRecommended: true
-    axis: "소환수 확정 치명타 · 부활 결계"
     best:
-      archetype: SUMMON
-      members: [180, 20, 5, 9]
-      rows: { 10: Rear, 180: Rear, 20: Front, 5: Rear, 9: Rear }
-      reason: >
-        우치의 분신과 라이트의 플라이어·위고의 팡세가 언어 중첩과 결계의 수혜를 반복해서 받는다.
-        피그말리온은 소환수 피해 +30%와 전열 탱킹을 동시에 맡는다.
+      archetype: JEAN_BASTET_COUNTER
+      members: [122, 1, 44, 60]
+      rows: { 7: Front, 122: Rear, 1: Front, 44: Rear, 60: Rear }
+      reason: "잔이 공격을 모아 선제 반격을 만들고, 바스테트가 그 반격을 실제 추가행동으로 전환한다. 보호막·취약·위기 회복이 전열 유지와 단일 압박을 보완한다."
     basic:
-      archetype: SUMMON
-      members: [1, 20, 5, 9]
-      rows: { 10: Rear, 1: Rear, 20: Front, 5: Rear, 9: Rear }
-      reason: "초기 서포트만으로 피그말리온·플라이어·팡세의 소환 축과 세이의 보호막을 갖춘다."
-    warning: "소환수가 없는 편성에서는 언어 소비와 결계 피해 증폭의 가치가 크게 떨어진다."
+      archetype: JEAN_BASTET_COUNTER
+      members: [122, 1, 44, 60]
+      rows: { 7: Front, 122: Rear, 1: Front, 44: Rear, 60: Rear }
+      reason: "현재 해금 로스터만으로 경호→선제 반격→바스테트 추격을 모두 확인하는 기본 편성."
+    warning: "잔이 공격자를 선제 처치하면 원래 공격과 죽은 대상을 향한 바스테트 추격은 모두 취소된다."
 
-  - mainId: 180
-    mainName: 우치
-    starterRecommended: true
-    axis: "분신 다수 운용 · 소환수 피해 증폭"
-    best:
-      archetype: SUMMON
-      members: [10, 1, 20, 9]
-      rows: { 180: Rear, 10: Rear, 1: Rear, 20: Front, 9: Rear }
-      reason: >
-        셰익스피어가 분신 행동을 확정 치명타와 부활 결계로 바꾸고, 피그말리온이 소환수 피해 +30%와
-        전열 탱킹을 맡는다. 세이의 보호막과 위고의 광역 치유·팡세가 파티를 유지한다.
-    basic:
-      archetype: SUMMON
-      members: [1, 20, 5, 9]
-      rows: { 180: Rear, 1: Rear, 20: Front, 5: Rear, 9: Rear }
-      reason: "초기 서포트인 세이·피그말리온·라이트·위고로 보호막, 전열, 이중 치유와 소환 증폭을 갖춘다."
-    warning: "분신이 피격을 대신 받는 것이 아니라 한 기를 소모해 우치에게 들어올 타격 자체를 0으로 만든다."
-
-  # ── STR 메인 ───────────────────────────────────────────────────────
   - mainId: 122
     mainName: 바스테트
+    axis: "고속 일반행동·경호·반격 후속"
     starterRecommended: true
-    axis: "추가행동 · 반격"
     best:
-      archetype: EXTRA_ACT
-      members: [22, 7, 1, 5]
-      rows: { 122: Rear, 22: Front, 7: Front, 1: Rear, 5: Rear }
-      reason: >
-        오리온과 잔의 반격이 메인 바스테트의 추격을 계속 열고, 세이가 보호막과 추가행동을 보탠다.
-        라이트는 플라이어를 유지하는 동안 아군 전체를 회복해 초보 편성의 장기 생존을 맡는다.
-        추후 신속 특화 힐러가 추가되면 해금 후 라이트 자리를 교체하는 구성이다.
+      archetype: BASTET_GUARD
+      members: [7, 60, 44, 20]
+      rows: { 122: Rear, 7: Front, 60: Rear, 44: Rear, 20: Front }
+      reason: "잔이 경호와 선제 반격을 함께 제공해 바스테트의 상시 초월기 후속을 자연스럽게 연다."
     basic:
-      archetype: EXTRA_ACT
-      members: [22, 7, 1, 5]
-      rows: { 122: Rear, 22: Front, 7: Front, 1: Rear, 5: Rear }
-      reason: >
-        오리온과 잔의 반격이 메인 바스테트의 추격을 계속 열고, 세이가 보호막과 추가행동을 보탠다.
-        라이트는 플라이어를 유지하는 동안 아군 전체를 회복해 초보 편성의 장기 생존을 맡는다.
-        추후 신속 특화 힐러가 추가되면 해금 후 라이트 자리를 교체하는 구성이다.
-    warning: >
-      라이트의 배터리는 방출 딜러가 둘 이상일 때 가장 효율적이라 이 반격 편성에서는 회복이 주 역할이다.
-      메인 바스테트는 후열에 두어 오리온·잔이 피격과 반격을 맡게 한다.
+      archetype: BASTET_GUARD
+      members: [7, 60, 44, 20]
+      rows: { 122: Rear, 7: Front, 60: Rear, 44: Rear, 20: Front }
+      reason: "5인 전장에서 경호→잔 선제 반격→바스테트 후속의 전체 연결을 확인하는 기본 편성."
+    warning: "잔이 공격자를 선제 처치하거나 철권제재 기회가 0이면 후속 냥냥펀치는 예약되지 않는다."
 
-  # 입문 추천 메인. 밸런스의 기준 편성이기도 하다 — 초기 로스터만으로 30~40라운드를 넘기는 것이 목표다.
-  # best와 basic이 같은 것은 의도다. 화면은 best에서 먼저 고르므로, 다르면 입문 편성이 가려진다.
-  - mainId: 80
-    mainName: 수르트
-    starterRecommended: true
-    axis: "체력을 태우는 전열 딜 · 맞힐수록 두르는 보호막"
-    best:
-      archetype: FORTRESS
-      members: [100, 81, 1, 83]
-      rows: { 80: Front, 83: Front, 100: Front, 81: Rear, 1: Rear }
-      reason: >
-        아그리파가 라그나로크를 당겨 오고 서브 탱커로 전열을 나눈다. 프레이아가 태운 체력을 되돌리고,
-        세이의 빅뱅이 아군 전체에 보호막을 씌우며, 스카디가 반격과 얼음 부착으로 전열을 받친다.
-        훈련에서는 아그리파·스카디의 면벽수련, 프레이아·스카디의 피지컬 코치, 세이의 숙련된 조교가
-        수르트의 STR·CON 훈련을 함께 키운다.
-    basic:
-      archetype: FORTRESS
-      members: [100, 81, 1, 83]
-      rows: { 80: Front, 83: Front, 100: Front, 81: Rear, 1: Rear }
-      reason: >
-        아그리파가 라그나로크를 당겨 오고 서브 탱커로 전열을 나눈다. 프레이아가 태운 체력을 되돌리고,
-        세이의 빅뱅이 아군 전체에 보호막을 씌우며, 스카디가 반격과 얼음 부착으로 전열을 받친다.
-        훈련에서는 아그리파·스카디의 면벽수련, 프레이아·스카디의 피지컬 코치, 세이의 숙련된 조교가
-        수르트의 STR·CON 훈련을 함께 키운다.
-
-  - mainId: 123
-    mainName: 세트
-    axis: "화상 지속피해 브루저"
-    best:
-      archetype: DOT
-      members: [61, 41, 160, 81]
-      rows: { 123: Front, 61: Front, 41: Rear, 160: Rear, 81: Rear }
-      reason: >
-        야마가 화상 피해를 +30% 올리고, 츠쿠요미가 화상 대상의 방어력 45%를 무시하며
-        죽은 대상의 남은 화상을 범위로 터뜨린다.
-    basic:
-      members: [7, 81, 160, 60]
-      rows: { 123: Front, 7: Front, 81: Rear, 160: Rear, 60: Rear }
-      reason: >
-        Support 유형에 지속피해 증폭이 하나도 없어 축을 포기한다. 대신 잔이 STR 특기로
-        훈련을 두 배로 만들고 상시 도발로 전열을 대신 받아 낸다.
-    warning: "지속피해 축은 최초 로스터로 성립하지 않는다. 야마·츠쿠요미를 해금해야 열린다"
-
-  # ── DEX 메인 ───────────────────────────────────────────────────────
-  - mainId: 21
-    mainName: 아탈란테
-    axis: "후열 저격 · 디버프 누적 방어 무시"
-    best:
-      archetype: DOT
-      members: [61, 41, 100, 160]
-      rows: { 21: Rear, 61: Front, 41: Rear, 100: Rear, 160: Rear }
-      reason: >
-        약점 추적이 대상의 디버프 1개당 방어력을 5% 무시한다(최대 20%).
-        맹독을 야마가 +30% 올리고 츠쿠요미가 방어력 45%를 추가로 벗기며,
-        아그리파는 DEX 특기 서포트로 훈련과 전투를 동시에 맡는다.
-    basic:
-      members: [100, 125, 160, 81]
-      rows: { 21: Rear, 100: Rear, 125: Rear, 160: Rear, 81: Rear }
-      reason: "이시스의 행동 지연이 디버프 머릿수를 대신 채운다. 아그리파는 DEX 특기라 훈련 축도 겸한다"
-    warning: "DEX 특기 서포트는 아그리파 한 명뿐이다"
-
-  - mainId: 23
-    mainName: 테세우스
-    axis: "궁극기 회전 → 대체행동"
-    best:
-      archetype: ULT_LOOP
-      members: [100, 102, 66, 160]
-      rows: { 23: Front, 102: Front, 100: Rear, 66: Rear, 160: Rear }
-      reason: >
-        코드 직조는 궁극기 발동마다 1스택이라 궁극기 회전이 곧 화력이다.
-        아그리파가 자원을 채우고 카이사르가 행동 게이지를 100% 밀어 준다.
-        바루나의 물 부착이 원소 친화 - 물을 상시로 만들어 올스탯 +1과 마나 +20%를 붙인다.
-    basic:
-      members: [100, 66, 160, 81]
-      rows: { 23: Front, 100: Rear, 66: Rear, 160: Rear, 81: Rear }
-      reason: "카이사르 자리를 프레이아로 바꾼다. 나머지 축은 최초 로스터로 그대로 선다"
-    warning: "라이트를 넣으면 궁극기가 아군 원소를 먼저 지워 원소 친화 - 물이 꺼진다"
-
-  - mainId: 2
-    mainName: 시
-    axis: "행동 속도 = 화력, 처형"
-    best:
-      archetype: CRIT
-      members: [160, 5, 102, 100]
-      rows: { 2: Front, 102: Front, 160: Rear, 5: Rear, 100: Rear }
-      reason: >
-        라이트의 궁극기가 아군 전체에 바람을 둘러 신속(DEX +10)을 상시로 만든다.
-        마리의 궁극기가 DEX를 다시 +10 올리고 치명타 확률 +100%를 얹으며,
-        카이사르가 행동 게이지를 채워 종언 스택을 한 번에 밀어 올린다.
-    basic:
-      members: [160, 5, 100, 81]
-      rows: { 2: Front, 160: Rear, 5: Rear, 100: Rear, 81: Rear }
-      reason: "카이사르 자리를 프레이아로 바꾼다. 바람 부착·치명타·궁극기 회전 축은 최초 로스터로 완성된다"
-
-  - mainId: 40
-    mainName: 아마테라스
-    axis: "일반행동 연타 → 추가행동 폭발"
-    best:
-      archetype: FLAT_HIT
-      members: [1, 160, 122, 100]
-      rows: { 40: Rear, 1: Rear, 160: Rear, 122: Front, 100: Rear }
-      reason: >
-        태양문이 일반행동 한 번마다 화살 8발을 추가행동으로 쏜다. 발마다 창세의
-        INT×3 고정 피해가 얹히고, 그 8발이 그대로 바스테트의 스택이 된다.
-        아군 전체에서 가장 타수가 많은 조합이다.
-    basic:
-      members: [1, 160, 100, 81]
-      rows: { 40: Rear, 1: Rear, 160: Rear, 100: Rear, 81: Rear }
-      reason: "바스테트 자리를 프레이아로 바꾼다. 창세·치명타·궁극 회전은 그대로 선다"
-
-  - mainId: 120
-    mainName: 호루스
-    axis: "DEX를 STR로 환산하는 특이 딜러"
-    best:
-      archetype: CRIT
-      members: [160, 60, 100, 81]
-      rows: { 120: Rear, 160: Rear, 60: Rear, 100: Rear, 81: Rear }
-      reason: >
-        창공의 매가 행동 속도를 1.0에 묶고 초과분을 STR로 바꾼다. 아군에게 DEX를 주는
-        마리 궁극기(+10)와 찬드라 소마(INT의 25%만큼 올스탯)가 그대로 STR 증가가 된다.
-    basic:
-      members: [160, 60, 100, 81]
-      rows: { 120: Rear, 160: Rear, 60: Rear, 100: Rear, 81: Rear }
-      reason: "DEX 공급원 자체가 최초 로스터에 다 있다. 고점과 같은 조합이 그대로 선다"
-    warning: "아군 DEX 버프원이 마리·찬드라 둘뿐이다. 고유 패시브의 상한이 여기서 막힌다"
-
-  - mainId: 121
-    mainName: 아누비스
-    axis: "전열 방벽 · 영구 성장"
-    best:
-      archetype: FORTRESS
-      members: [83, 81, 102, 160]
-      rows: { 121: Front, 83: Front, 102: Front, 81: Rear, 160: Rear }
-      reason: >
-        전열 공용 우선도 +1이 아누비스·스카디에게 대상 지정을 나누고, 아누비스의 방어막과
-        스카디의 피격 반격을 실제로 값하게 만든다. 카이사르가 행동 게이지를 밀어 부족한 화력을 메운다.
-    basic:
-      members: [83, 81, 160, 60]
-      rows: { 121: Front, 83: Front, 81: Rear, 160: Rear, 60: Rear }
-      reason: "찬드라의 소마가 화력 부족을 메우고, CON 특기 넷이 훈련 강화량을 최대로 만든다"
-
-  # ── INT 메인 ───────────────────────────────────────────────────────
-  - mainId: 140
-    mainName: 케찰코아틀
-    axis: "풀 파티 광역"
-    best:
-      archetype: REACTION
-      members: [4, 81, 21, 160]
-      rows: { 140: Rear, 4: Rear, 81: Rear, 21: Rear, 160: Rear }
-      reason: >
-        풍요의 축복은 필드의 풀 아군 1명당 아군 전체 피해를 올린다. 풀 원소는 아군 전체에
-        가우디·프레이아·아탈란테·케찰코아틀 넷뿐이라 이 넷이 곧 최대치다.
-    basic:
-      members: [4, 81, 160, 100]
-      rows: { 140: Rear, 4: Rear, 81: Rear, 160: Rear, 100: Rear }
-      reason: "아탈란테는 Starter라 육성 완료 전에는 서포트 슬롯에 못 선다. 풀은 셋에서 멈춘다"
-
-  - mainId: 24
-    mainName: 아스클레피아
-    axis: "일반공격 · 행동 반응 치유 · 광역 생명선"
-    best:
-      archetype: CRIT
-      members: [160, 81, 100, 60]
-      rows: { 24: Rear, 160: Rear, 81: Rear, 100: Rear, 60: Rear }
-      reason: >
-        치명적인 치유가 치유와 보호막을 치명타 판정으로 만든다. 마리의 개선문이
-        치명타 확률 +100%를 4턴간 걸어 치유량을 통째로 1.5배 위로 올린다.
-    basic:
-      members: [160, 81, 100, 60]
-      rows: { 24: Rear, 160: Rear, 81: Rear, 100: Rear, 60: Rear }
-      reason: "축을 이루는 넷이 전원 Support 유형이다"
-
-  - mainId: 41
-    mainName: 츠쿠요미
-    axis: "지속피해 정산 광역"
-    best:
-      archetype: DOT
-      members: [61, 21, 66, 160]
-      rows: { 41: Rear, 61: Front, 21: Rear, 66: Rear, 160: Rear }
-      reason: >
-        츠쿠요미가 일반행동·궁극기로 지속피해를 직접 깔고, 야마가 그것을 +30% 올리며
-        아탈란테의 맹독이 대상 수를 채운다. 바루나는 체력을 받쳐 정산까지 버티게 한다.
-    basic:
-      members: [66, 6, 160, 81]
-      rows: { 41: Rear, 66: Rear, 6: Rear, 160: Rear, 81: Rear }
-      reason: >
-        지속피해는 츠쿠요미가 스스로 깐다. 니콜이 적에게 번개를, 바루나가 물을 깔아
-        감전(지속피해)을 한 겹 더 얹고, 월식 정산이 그 전부를 받아 먹는다.
-        니콜의 일렉트릭 필드는 번개 속성인 츠쿠요미에게 상시로 걸린다(속성은 판정 축이라 그대로 남는다).
-
-  - mainId: 67
-    mainName: 수리야
-    axis: "햇빛 · 중첩 폭발"
-    best:
-      archetype: SPECIAL_GATE
-      members: [63, 62, 60, 66]
-      rows: { 67: Rear, 63: Rear, 62: Rear, 60: Rear, 66: Rear }
-      reason: >
-        인드라가 문을 열면 로카팔라 넷이 한꺼번에 나서고, 수리야는 중첩을 태우지 않는
-        일천 10발을 얹는다. 아그니는 불·보주·베다·로카팔라 넷이 겹쳐 사비타 중첩을
-        행동당 4씩 밀어 올린다. 찬드라·바루나가 방어막과 정화로 판을 유지한다.
-    basic:
-      members: [62, 60, 66, 64]
-      rows: { 67: Rear, 62: Rear, 60: Rear, 66: Rear, 64: Rear }
-      reason: >
-        인드라가 없으면 특수행동이 통째로 잠긴다. 대신 햇빛 아래 아그니(4중첩)와
-        찬드라·바루나·바유를 세워 사비타를 자력으로 돌리고 디바카르 회전에 기댄다.
-    warning: >
-      인드라 없이는 일천이 영영 나가지 않는다. 사비타도 햇빛에서만 돌므로
-      디바카르를 깔기 전까지는 중첩이 0이다.
-
-  - mainId: 61
-    mainName: 야마
-    axis: "지속피해 정산 브루저"
-    best:
-      archetype: DOT
-      members: [21, 41, 123, 160]
-      rows: { 61: Front, 123: Front, 21: Rear, 41: Rear, 160: Rear }
-      reason: >
-        자기 고유 패시브로 아군 전체 지속피해를 +30% 올린 뒤, 궁극기가 그 지속피해를
-        즉시 정산해 INT의 80%를 추가 피해로 뽑는다. 맹독·화상·월식 정산이 정산 총량이다.
-    basic:
-      members: [66, 6, 160, 81]
-      rows: { 61: Front, 66: Rear, 6: Rear, 160: Rear, 81: Rear }
-      reason: >
-        니콜의 번개와 바루나의 물이 감전을 만들어 <죽음의 계약> +30%가 얹힐 지속피해를 공급한다.
-        번개 속성인 야마는 일렉트릭 필드의 +20%도 상시로 받는다.
-
-  - mainId: 63
-    mainName: 인드라
-    axis: "표식 고정피해 · 튕기는 궁극기"
-    best:
-      archetype: ULT_LOOP
-      members: [100, 140, 160, 81]
-      rows: { 63: Rear, 100: Rear, 140: Rear, 160: Rear, 81: Rear }
-      reason: >
-        천벌은 적 사이를 튕기며 계수를 20%p씩 깎는다. 편성이 넓을수록 총량이 커지므로
-        궁극기 회전이 곧 화력이다. 케찰코아틀이 아군 전체 피해를 올려 튕김 총량을 함께 민다.
-    basic:
-      members: [100, 6, 160, 81]
-      rows: { 63: Rear, 100: Rear, 6: Rear, 160: Rear, 81: Rear }
-      reason: >
-        니콜이 케찰코아틀 자리를 대신한다. 번개 속성인 인드라에게 일렉트릭 필드 +20%가 상시로
-        걸리고, 오버차지의 치명타 피해가 천벌의 튕김 총량에 그대로 곱해진다.
-        라이트는 궁극기가 아군 원소를 지워 일렉트릭 필드를 끄므로 함께 세우지 않는다.
-
-  - mainId: 101
-    mainName: 옥타비아
-    axis: "대형 궁극기 폭격"
-    best:
-      archetype: ULT_LOOP
-      members: [100, 103, 60, 5]
-      rows: { 101: Rear, 100: Rear, 103: Front, 60: Front, 5: Rear }
-      reason: >
-        아그리파와 라이트가 존엄한 자의 회전을 당기고, 이아손은 궁극기에 반응해 광역 추가행동과
-        궁극기 피해 중첩을 쌓는다. 찬드라의 보호막·마나가 전열과 회전을 함께 보완한다.
-    basic:
-      archetype: ULT_LOOP
-      members: [100, 103, 60, 5]
-      rows: { 101: Rear, 100: Rear, 103: Front, 60: Front, 5: Rear }
-      reason: "아그리파·이아손·찬드라·라이트로 궁극기 회전, 추가행동, 보호막과 치유를 모두 갖춘 권장 편성이다."
-
-  - mainId: 26
-    mainName: 이카리아
-    axis: "체력을 태우는 폭딜"
-    best:
-      archetype: CRIT
-      members: [81, 24, 62, 160]
-      rows: { 26: Front, 81: Rear, 24: Rear, 62: Rear, 160: Rear }
-      reason: >
-        소모한 체력 비율이 그대로 피해 배율이 되므로 치유가 곧 화력이다.
-        프레이아의 상시 힐과 아스클레피아의 행동 반응 치유가 소모 사이클을 유지시키고,
-        아그니가 불 원소인 이카리아의 피해를 +20% 올린다.
-    basic:
-      members: [81, 60, 160, 125]
-      rows: { 26: Front, 81: Rear, 60: Rear, 160: Rear, 125: Rear }
-      reason: "아스클레피아 자리를 찬드라의 소마와 이시스의 광역 지연으로 나눠 메운다"
-    warning: "치유가 끊기면 자기 체력으로 자살한다. 힐러 없는 편성은 성립하지 않는다"
-
-  # ── LUK 메인 ───────────────────────────────────────────────────────
   - mainId: 3
     mainName: 사바흐
+    axis: "디버프·지속피해·아즈라엘 광역"
     starterRecommended: true
-    axis: "디버퍼의 지원을 받는 처형 딜러 · 초전도로 채우는 아즈라엘"
     best:
-      archetype: BALANCED
-      members: [6, 83, 64, 1]
-      rows: { 3: Rear, 6: Rear, 83: Front, 64: Rear, 1: Rear }
-      reason: >
-        스카디는 얼음을 걸어 사바흐의 번개와 초전도를 일으키며 서브 탱커를 맡고,
-        니콜은 번개 속성인 사바흐의 피해를 올리고 궁극기로 적 전체의 방어력을 깎는다.
-        바유는 적의 행동을 늦추고 디버프를 더해 아즈라엘 충전을 돕는다. 세이는 보호막으로 전열을 지키며,
-        훈련에서는 니콜의 행운아와 세이의 숙련된 조교가 사바흐의 LUK 훈련을 키운다.
+      archetype: SABAH_EXECUTION
+      members: [2, 60, 44, 20]
+      rows: { 3: Rear, 2: Rear, 60: Rear, 44: Rear, 20: Front }
+      reason: "히미코의 취약과 피그말리온의 맹독이 아즈라엘을 채우며, 찬드라가 가장 높은 공격력을 강화하고 시가 남은 단일 적을 정리한다."
     basic:
-      archetype: BALANCED
-      members: [6, 83, 64, 1]
-      rows: { 3: Rear, 6: Rear, 83: Front, 64: Rear, 1: Rear }
-      reason: "니콜·스카디의 초전도 축에 바유의 범용 디버프와 세이의 보호막을 더한 추천 편성이다."
+      archetype: SABAH_EXECUTION
+      members: [2, 60, 44, 20]
+      rows: { 3: Rear, 2: Rear, 60: Rear, 44: Rear, 20: Front }
+      reason: "현행 사바흐 검수 편성과 같은 5인 조합으로 단일·광역·디버프 축을 모두 확인한다."
+    warning: "해로운 상태 부여가 끊기면 궁극기 자원이 오르지 않는다."
 
-  - mainId: 82
-    mainName: 로키
-    axis: "소환"
+  - mainId: 1
+    mainName: 세이
+    axis: "보호막·피해 증폭·맹화·처형"
+    starterRecommended: true
     best:
-      archetype: SUMMON
-      members: [20, 66, 5, 160]
-      rows: { 82: Rear, 20: Front, 66: Rear, 5: Rear, 160: Rear }
-      reason: >
-        소환사가 필드의 모든 소환수를 +25% 올린다. 펜리르·마카라·플라이어에 더해
-        피그말리온 본인까지 소환수 판정이라 넷이 한꺼번에 증폭된다.
+      archetype: REWORK_FIVE
+      members: [2, 60, 44, 20]
+      rows: { 1: Front, 2: Rear, 60: Rear, 44: Rear, 20: Front }
+      reason: "세이와 피그말리온이 전열을 유지하고, 시가 처형하며, 찬드라와 히미코가 단일 강화·방어 무시·취약을 제공한다."
     basic:
-      members: [66, 5, 160, 81]
-      rows: { 82: Rear, 66: Rear, 5: Rear, 160: Rear, 81: Rear }
-      reason: "피그말리온이 빠지면 소환 대상이 마카라·플라이어 둘로 줄어든다"
-
-  - mainId: 42
-    mainName: 스사노오
-    axis: "에어본 처형"
-    best:
-      archetype: FORTRESS
-      members: [65, 66, 160, 81]
-      rows: { 42: Front, 65: Front, 66: Rear, 160: Rear, 81: Rear }
-      reason: >
-        천총운검은 상시형이라 필드에 에어본 적이 있으면 내부 쿨 1턴으로 계속 벤다.
-        쿠베라의 궁극기가 적 전체를 띄우고 대지의 계율이 그 적들의 받는 피해를 +10% 올린다.
-        바루나의 수천은 물·바람·번개 판정을 모두 받는 스사노오에게 그대로 걸린다.
-    basic:
-      members: [65, 66, 160, 81]
-      rows: { 42: Front, 65: Front, 66: Rear, 160: Rear, 81: Rear }
-      reason: "축을 이루는 넷이 전원 Support 유형이다"
-
-  - mainId: 102
-    mainName: 카이사르
-    axis: "로마 처치 스택"
-    best:
-      archetype: CRIT
-      members: [100, 101, 160, 81]
-      rows: { 102: Front, 100: Rear, 101: Rear, 160: Rear, 81: Rear }
-      reason: >
-        고유 패시브가 처치마다 로마 아군 전체의 피해를 +10%씩 상한 없이 올린다.
-        로마 태그는 아그리파·옥타비아·카이사르 셋뿐이라 이 셋을 함께 세우는 것이 유일한 최대치다.
-    basic:
-      members: [100, 160, 81, 125]
-      rows: { 102: Front, 100: Rear, 160: Rear, 81: Rear, 125: Rear }
-      reason: "로마는 아그리파뿐이다. 고유 패시브 수혜 대상이 둘로 줄어든다"
-
-  # ── 최근 합류 메인 ───────────────────────────────────
-  - mainId: 43
-    mainName: 세이메이
-    axis: "봉인부 속박 · 재생과 응급 보호막"
-    best:
-      archetype: FORTRESS
-      members: [42, 160, 100, 81]
-      rows: { 43: Rear, 42: Front, 160: Rear, 100: Rear, 81: Rear }
-      reason: >
-        빠른 행동과 광역 공격으로 태산부군제의 봉인부를 여러 대상에 빠르게 누적한다.
-        마리가 치명타를, 아그리파가 궁극기 회전을, 프레이아가 재생 공백의 회복을 맡는다.
-    basic:
-      members: [81, 160, 100, 60]
-      rows: { 43: Rear, 81: Rear, 160: Rear, 100: Rear, 60: Rear }
-      reason: "범용 딜러와 치명타·궁극기 회전을 묶고 세이메이 단독 치유와 속박으로 전선을 유지한다"
-
-  - mainId: 8
-    mainName: 라부아지에
-    axis: "외부 지원을 시약으로 바꾸는 반응 광역 딜러"
-    best:
-      archetype: REACTION
-      members: [24, 60, 160, 100]
-      rows: { 8: Rear, 24: Rear, 60: Rear, 160: Rear, 100: Rear }
-      reason: >
-        아스클레피아의 치유·보호막, 찬드라의 보호막, 마리의 버프가 세 시약을 반복 공급한다.
-        아그리파가 준비도와 시약을 모은 뒤의 궁극기 회전을 앞당긴다.
-    basic:
-      members: [81, 60, 160, 100]
-      rows: { 8: Rear, 81: Rear, 60: Rear, 160: Rear, 100: Rear }
-      reason: "프레이아가 치유, 찬드라가 보호막, 마리가 버프, 아그리파가 궁극기 회전을 맡아 세 시약을 초기 로스터로 모두 채운다"
-    warning: "외부 치유·보호막·버프 공급이 하나라도 비면 가장 적은 시약이 궁극기 최종 계수를 묶어 두다"
-
-  - mainId: 84
-    mainName: 시구르드
-    axis: "맹세 협공 · 내구 무시 단일 딜"
-    best:
-      archetype: CRIT
-      members: [85, 160, 100, 81]
-      rows: { 84: Front, 85: Front, 160: Rear, 100: Rear, 81: Rear }
-      reason: >
-        브륀힐드와 같은 열에 서서 협공 위력 ×1.3과 불·얼음 융해를 동시에 얻는다.
-        마리가 치명타를, 아그리파가 파프니르 살해와 응수 협공의 회전을 올린다.
-    basic:
-      members: [7, 160, 100, 81]
-      rows: { 84: Front, 7: Front, 160: Rear, 100: Rear, 81: Rear }
-      reason: "브륀힐드가 없어 맹세는 잠기지만, STR 특기 잔과 치명타·궁극기 회전·치유로 단일 딜러 저점을 받친다"
-    warning: "고점 조합의 핵심은 브륀힐드다. 혼자서는 공명과 협공이 발생하지 않는다"
-
-  - mainId: 85
-    mainName: 브륀힐드
-    axis: "맹세 협공 · 얼음 광역 딜"
-    best:
-      archetype: CRIT
-      members: [84, 160, 100, 81]
-      rows: { 85: Front, 84: Front, 160: Rear, 100: Rear, 81: Rear }
-      reason: >
-        시구르드와 같은 열에 서서 협공 위력 ×1.3과 불·얼음 융해를 동시에 얻는다.
-        마리의 치명타와 아그리파의 궁극기 자원이 선고·응수 협공을 반복시킨다.
-    basic:
-      members: [100, 160, 81, 60]
-      rows: { 85: Front, 100: Rear, 160: Rear, 81: Rear, 60: Rear }
-      reason: "시구르드가 없어 맹세는 잠기지만, DEX 특기 아그리파와 치명타·치유·보호막으로 광역 딜러 저점을 받친다"
-    warning: "고점 조합의 핵심은 시구르드다. 혼자서는 공명과 협공이 발생하지 않는다"
+      archetype: REWORK_FIVE
+      members: [2, 60, 44, 20]
+      rows: { 1: Front, 2: Rear, 60: Rear, 44: Rear, 20: Front }
+      reason: "현재 해금 로스터 다섯 명을 모두 사용하는 기본 편성."
+    warning: "정화와 파티 광역 치유가 없으며 창야는 별도 로카팔라 트리거가 필요하다."

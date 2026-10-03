@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using BaseClasses;
 using Entities;
 
@@ -87,7 +87,6 @@ namespace Combat
             if (!Recording || context == null || context.DamageDealt <= 0) return;
 
             Unit source = context.Attacker;
-            if (source != null && source.IsSummon) source = source.SummonOwner;
             if (source == null || source.IsEnemy) return;
             // 아군끼리 때리는 경우(자해 · 동료 소모)는 딜로 치지 않는다.
             if (context.Target != null && !context.Target.IsEnemy) return;

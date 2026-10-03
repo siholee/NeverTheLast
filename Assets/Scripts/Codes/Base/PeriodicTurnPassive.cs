@@ -30,8 +30,6 @@ namespace Codes.Base
         {
             _intervalTurns = intervalTurns < 1 ? 1 : intervalTurns;
             _fireOnStart = fireOnStart;
-            CodeType = BaseEnums.CodeType.Passive;
-            IgnoresActivationChance = true;
         }
 
         protected int IntervalTurns => _intervalTurns;

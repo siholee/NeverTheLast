@@ -52,5 +52,8 @@ namespace Managers
         public StageThemeDataList FetchStageThemeDataList() => Load<StageThemeDataList>("Data/80_stages");
 
         public RewardDataList FetchRewardDataList() => Load<RewardDataList>("Data/90_rewards");
+
+        /// <summary>손그림 VFX 부품과 스킬 슬롯 조합 정의.</summary>
+        public VfxDataList FetchVfxDataList() => Load<VfxDataList>("Data/96_vfx");
     }
 }

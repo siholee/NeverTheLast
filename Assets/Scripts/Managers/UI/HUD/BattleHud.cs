@@ -1,4 +1,4 @@
-using BaseClasses;
+﻿using BaseClasses;
 using Entities;
 using Managers.UI.Core;
 using Managers.UI.Screens;
@@ -25,7 +25,7 @@ namespace Managers.UI.HUD
     public class BattleHud : MonoBehaviour
     {
         /// <summary>배속 단계. 버튼을 누를 때마다 순환한다.</summary>
-        private static readonly float[] SpeedSteps = { 1f, 2f, 3f };
+        private static readonly float[] SpeedSteps = { 1f, 2f, 4f, 8f };
 
         /// <summary>
         /// 화면에 보이는 배속에 곱해지는 기준 시간 배율.
@@ -34,6 +34,12 @@ namespace Managers.UI.HUD
         /// <b>2배속이 예전 1배속과 같은 속도</b>가 되도록 맞췄다.
         /// </summary>
         private const float BaseTimeScale = 0.5f;
+
+        /// <summary>
+        /// 플레이어에게 보이는 배속. 실제 <see cref="Time.timeScale"/>은 연출 기준 배율 때문에 절반이지만,
+        /// 상단 버튼·F1 패널·디버그 배너는 모두 이 값을 한 원천으로 표시한다.
+        /// </summary>
+        public static float CurrentSpeedMultiplier { get; private set; } = 1f;
 
         private TopStatusBar _topBar;
         private FeatureEnemyBanner _featureBanner;
@@ -46,6 +52,7 @@ namespace Managers.UI.HUD
         private TextMeshProUGUI _phaseLabel;
 
         private int _speedIndex;
+        private static BattleHud _active;
 
         public static BattleHud Create()
         {
@@ -55,6 +62,7 @@ namespace Managers.UI.HUD
 
         private void Awake()
         {
+            _active = this;
             Canvas canvas = UIBuild.Canvas("BattleHudCanvas", 10);
             transform.SetParent(canvas.transform, false);
             RectTransform safeRoot = UIBuild.SafeArea(canvas);
@@ -72,35 +80,39 @@ namespace Managers.UI.HUD
         /// <summary>HUD가 사라진 뒤에도 느려진 시간 배율이 남지 않게 되돌린다.</summary>
         private void OnDestroy()
         {
+            _queue?.Dispose();
+            if (_active == this) _active = null;
+            CurrentSpeedMultiplier = 1f;
             Time.timeScale = 1f;
         }
 
         /// <summary>상단 중앙의 생명력/골드/단계 표시.</summary>
         private void BuildResourceStrip(Transform parent)
         {
-            Image strip = UIBuild.Glass("ResourceStrip", parent, 12);
+            // 상단 바는 한 장이어야 한다. 자원은 별도 유리 카드를 만들지 않고 헤더 레일에 직접 얹는다.
+            Image strip = UIBuild.Solid("ResourceStrip", parent, Color.clear);
             strip.rectTransform.anchorMin = new Vector2(0.29f, 1f);
             strip.rectTransform.anchorMax = new Vector2(0.61f, 1f);
             strip.rectTransform.pivot = new Vector2(0.5f, 1f);
-            strip.rectTransform.sizeDelta = new Vector2(0f, 72f);
-            strip.rectTransform.anchoredPosition = new Vector2(0f, -30f);
+            strip.rectTransform.sizeDelta = new Vector2(0f, 90f);
+            strip.rectTransform.anchoredPosition = new Vector2(0f, -23f);
 
-            _lifeLabel = UIBuild.Text("Life", strip.transform, "♥ 20", UITheme.FontHeading,
+            _lifeLabel = UIBuild.Text("Life", strip.transform, "♥ 20", UITheme.FontTitle,
                 UITheme.TextPrimary, TextAlignmentOptions.Center);
             UIBuild.Anchor(_lifeLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0.30f, 1f), 8f, 0f);
 
             UIBuild.Divider("Div1", strip.transform).rectTransform.pivot = new Vector2(0.5f, 0.5f);
             Image div1 = strip.transform.Find("Div1").GetComponent<Image>();
-            UIBuild.Pin(div1.rectTransform, new Vector2(0.30f, 0.5f), new Vector2(1f, 20f), Vector2.zero);
+            UIBuild.Pin(div1.rectTransform, new Vector2(0.30f, 0.5f), new Vector2(1f, 28f), Vector2.zero);
 
-            _goldLabel = UIBuild.Text("Gold", strip.transform, "◆ 0", UITheme.FontHeading,
-                UITheme.Accent, TextAlignmentOptions.Center);
+            _goldLabel = UIBuild.Text("Gold", strip.transform, "◆ 0", UITheme.FontTitle,
+                UITheme.TextPrimary, TextAlignmentOptions.Center);
             UIBuild.Anchor(_goldLabel.rectTransform, new Vector2(0.30f, 0f), new Vector2(0.60f, 1f), 8f, 0f);
 
             Image div2 = UIBuild.Divider("Div2", strip.transform);
-            UIBuild.Pin(div2.rectTransform, new Vector2(0.60f, 0.5f), new Vector2(1f, 20f), Vector2.zero);
+            UIBuild.Pin(div2.rectTransform, new Vector2(0.60f, 0.5f), new Vector2(1f, 28f), Vector2.zero);
 
-            _phaseLabel = UIBuild.Text("Phase", strip.transform, "", UITheme.FontCaption,
+            _phaseLabel = UIBuild.Text("Phase", strip.transform, "", UITheme.FontBody,
                 UITheme.TextSecondary, TextAlignmentOptions.Center);
             UIBuild.Anchor(_phaseLabel.rectTransform, new Vector2(0.60f, 0f), new Vector2(1f, 1f), 8f, 0f);
         }
@@ -150,7 +162,6 @@ namespace Managers.UI.HUD
                 BaseEnums.GameState.RoundEnd => "라운드 종료",
                 BaseEnums.GameState.RewardSelection => "보상 선택",
                 BaseEnums.GameState.EventStage => "사건",
-                BaseEnums.GameState.TrainingPhase => "육성",
                 BaseEnums.GameState.RunComplete => "런 완료",
                 BaseEnums.GameState.GameOver => "게임 오버",
                 _ => "",
@@ -161,16 +172,41 @@ namespace Managers.UI.HUD
 
         private void CycleSpeed()
         {
-            _speedIndex = (_speedIndex + 1) % SpeedSteps.Length;
+            _speedIndex = 0;
+            for (int i = 0; i < SpeedSteps.Length; i++)
+            {
+                if (SpeedSteps[i] <= CurrentSpeedMultiplier + 0.001f) continue;
+                _speedIndex = i;
+                break;
+            }
             ApplySpeed();
+        }
+
+        /// <summary>상단 버튼과 F4가 공유하는 배속 순환 입구.</summary>
+        public static void CycleSpeedFromInput()
+        {
+            _active?.CycleSpeed();
         }
 
         /// <summary>현재 단계의 배속을 시간 배율과 표시에 함께 반영한다.</summary>
         private void ApplySpeed()
         {
-            float speed = SpeedSteps[_speedIndex];
-            Time.timeScale = speed * BaseTimeScale;
-            _topBar?.SetSpeedLabel(speed);
+            ApplySpeed(SpeedSteps[_speedIndex]);
+        }
+
+        private void ApplySpeed(float speed)
+        {
+            CurrentSpeedMultiplier = Mathf.Clamp(speed, 0.25f, 20f);
+            Time.timeScale = CurrentSpeedMultiplier * BaseTimeScale;
+            _topBar?.SetSpeedLabel(CurrentSpeedMultiplier);
+        }
+
+        /// <summary>디버그 패널도 HUD와 같은 사용자 배속 상태를 바꾸게 한다.</summary>
+        public static bool TrySetSpeedMultiplier(float speed)
+        {
+            if (_active == null) return false;
+            _active.ApplySpeed(speed);
+            return true;
         }
 
         public bool IsCodexOpen => _codex != null && _codex.IsOpen;

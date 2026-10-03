@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using BaseClasses;
 using Effects.Base;
 using Entities;
@@ -93,10 +93,7 @@ namespace Effects.Negative
         {
             if (unit != Target) return 1f;
 
-            // 저항이 있으면 깎는 몫 자체를 줄인다. 배율을 거꾸로 올리면
-            // 감소가 걸려 있지 않을 때도 치유가 늘어난다.
-            float effective = Reduction * (1f - unit.HealingReductionResistance);
-            return 1f - effective;
+            return 1f - Reduction;
         }
     }
 }

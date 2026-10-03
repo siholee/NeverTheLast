@@ -33,15 +33,18 @@ namespace Managers.UI.Core
 
         private static readonly Definition[] All =
         {
+            new("Swift", "신속", "해당 유닛은 빠르게, 자주 행동합니다.", "TAG_SWIFT"),
             new("Burst", "방출", "해당 유닛은 강력한 궁극기 위주의 전투 방식을 사용합니다.", "TAG_BURST"),
             new("Precision", "정밀", "해당 유닛은 지속적인 피해를 입힙니다.", "TAG_PRECISION"),
             new("FollowUp", "연속", "해당 유닛은 추가행동을 하거나, 추가행동을 지원하는 데 특화되어 있습니다.", "TAG_FOLLOW_UP"),
             new("Support", "지원", "해당 유닛은 아군을 지원하는 데 특화되어 있습니다.", "TAG_SUPPORT"),
+            new("Special", "특수", "해당 유닛은 특정 트리거로 발동되는 특수행동을 할 수 있습니다.", "TAG_BURST"),
             new("Control", "제어", "해당 유닛은 적을 방해하고 약화하는 데 특화되어 있습니다.", "TAG_CONTROL"),
             new("Healing", "치유", "해당 유닛은 아군의 체력을 회복시킬 수 있습니다.", "TAG_HEALING"),
             new("Shielding", "방어", "해당 유닛은 아군에게 방어막을 부여할 수 있습니다.", "TAG_SHIELDING"),
             new("Infusion", "부여", "해당 유닛은 적에게 원소를 부여하는 데 특화되어 있습니다.", "TAG_INFUSION"),
             new("Sturdy", "견고", "해당 유닛은 매우 튼튼합니다.", "TAG_STURDY"),
+            new("Counter", "반격", "해당 유닛은 공격받기 전에 반격하는 데 특화되어 있습니다.", "TAG_FOLLOW_UP"),
             new("Summon", "소환", "해당 유닛은 소환수와 관련된 능력을 보유하고 있습니다.", "TAG_SUMMON"),
             new("Domination", "지배", "해당 유닛은 지속피해나 행동 방해 상태를 부여합니다.", "TAG_CONTROL"),
             new("Indomitable", "불굴", "해당 유닛은 자신의 체력을 자원으로 소모하거나 그와 연관되어 있습니다.", "TAG_INDOMITABLE"),

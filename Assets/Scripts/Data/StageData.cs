@@ -44,6 +44,12 @@ namespace Managers
         public int bossId;
 
         /// <summary>
+        /// Resources 아래 전장 배경 이미지 키(확장자 제외). 비워 두거나 로드에 실패하면
+        /// 현재 하늘 성채 배경으로 폴백한다. 색 분위기는 <see cref="ambientColor"/>가 별도 베일로 얹는다.
+        /// </summary>
+        public string backgroundKey;
+
+        /// <summary>
         /// 전장 환경광 색(#RRGGBB). 비워 두면 무채색 기본값을 쓴다.
         ///
         /// 전장 배경이 검기만 하면 대비는 좋아도 <b>어느 테마에서 싸우는지</b>가 사라진다.

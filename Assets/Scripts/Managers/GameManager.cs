@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
@@ -26,9 +26,8 @@ namespace Managers
         public RunManager runManager;
         public RewardManager rewardManager;
         public RoundManager RoundManager => _roundManager;
-        public const int MaxTrainingStage = 100;
-        public GameMode CurrentMode => runManager != null ? runManager.CurrentMode : GameMode.Training;
-        public bool PreparationActionUsed => preparationActionUsed;
+        public bool RestUsedThisPreparation => restUsedThisPreparation;
+        public int ShortRestCharges { get; private set; } = MaxShortRestCharges;
 
         public static void LoadMainMenuScene()
         {
@@ -107,7 +106,6 @@ namespace Managers
         public bool IsRoundTurnGauge => isRoundProgressTimerActive;
 
         private float eventStageEnteredAt;
-        private float trainingPhaseEnteredAt;
         private StageEventData currentStageEvent;
         private StageEventChoiceData pendingEventChoice;
 
@@ -129,7 +127,7 @@ namespace Managers
 
         // 아군 필드 상태 저장 (라운드 복원용)
         private List<UnitSaveData> allyFieldSnapshot;
-        private bool preparationActionUsed;
+        private bool restUsedThisPreparation;
 
         // 게임 데이터 관련
         public DataManager dataManager;
@@ -164,7 +162,6 @@ namespace Managers
             if (isGameOver)
             {
                 gameState = GameState.GameOver;
-                RunManager.GrantAnyRunCompletionUnlocks();
             }
             else
             {
@@ -193,18 +190,12 @@ namespace Managers
                     case GameState.EventStage:
                         CompleteEventStage();
                         break;
-                    case GameState.TrainingPhase:
-                        // 육성 종료 직후(after training)는 사건 발생 지점이다.
-                        RunEventCheckpoint(() => runManager?.AdvanceToNextStage());
-                        break;
                     case GameState.RunComplete:
-                        RunManager.GrantAnyRunCompletionUnlocks();
                         _eventScheduler.Clear();
                         SaveSystem.DeleteSave();
                         LoadMainMenuScene();
                         break;
                     case GameState.GameOver:
-                        RunManager.GrantAnyRunCompletionUnlocks();
                         _eventScheduler.Clear();
                         SaveSystem.DeleteSave();
                         break;
@@ -218,14 +209,11 @@ namespace Managers
         {
             currentPreparationTime = preparationTime;
             isPreparationTimerActive = false;
-            uiManager?.ShowPreparationPhasePanel(IsPreparationLimitedToDeck(), preparationActionUsed,
-                TakePreparationNote());
+            uiManager?.ShowPreparationPhasePanel(restUsedThisPreparation, TakePreparationNote());
         }
 
         public void StartRound()
         {
-            if (!AllowProgressWhileWithinCarryLimit()) return;
-
             if (_roundManager != null && _roundManager.TryGetScheduledEvent(out StageEventData scheduledEvent))
             {
                 EnterStageSlotEvent(scheduledEvent);
@@ -239,6 +227,7 @@ namespace Managers
 
         private void StartBattle()
         {
+            AudioManager.PlayCue("ui.battle.start");
             gameState = GameState.RoundInProgress;
             Cell.PlacementModeActive = false;
             isPreparationTimerActive = false;
@@ -267,18 +256,11 @@ namespace Managers
         // 아군 레벨이 스테이지 진행과 대략 보조를 맞추도록 스테이지 비례로 준다.
         // 적 레벨 = 스테이지이므로, 이 곡선이 아군/적 격차를 결정한다.
         //
-        // 두 갈래로 나뉜다.
-        //   전투(처치·클리어) — 필드의 파티 전원이 받는다.
-        //   훈련             — 메인과 <b>그 훈련에 서포트 카드로 앉은</b> 서포트만 받는다.
-        // 무게를 훈련 쪽에 실어 서포트가 메인의 약 80% 레벨에 머물게 한다.
-        // 메인의 곡선은 예전(전원 동일 지급)과 같다 — 100스테이지 Lv.86 · 50스테이지 Lv.44.
-        // 서포트는 참여율에 따라 100스테이지 Lv.65~75(참여율 5~45%)에 선다.
+        // 전투(처치 · 클리어) EXP는 필드의 파티 전원이 받는다. 훈련이 없어진 지금 성장의 유일한 원천이다.
         public const int ExpPerKillBase = 4;
         public const int ExpPerKillPerStage = 1;
         public const int ExpPerStageClearBase = 25;
         public const int ExpPerStageClearPerStage = 9;
-        public const int ExpPerTrainingBase = 90;
-        public const int ExpPerTrainingPerStage = 11;
 
         // ── 골드 수급 ──────────────────────────────────────────────
         // 소모품 가격이 스테이지에 비례하므로(RewardManager.ShopPrice) 수입도 스테이지에 비례한다.
@@ -294,7 +276,6 @@ namespace Managers
 
         /// <summary>
         /// 활성 아군 전원에게 EXP를 지급한다.
-        /// 선두주자(250)·음유시인(277)이 필드에 있으면 그만큼 배율이 붙는다.
         /// </summary>
         public void GrantExpToParty(int amount)
         {
@@ -307,13 +288,10 @@ namespace Managers
         {
             if (amount <= 0 || heroes == null) return;
 
-            int scaled = Mathf.Max(1, Mathf.RoundToInt(
-                amount * Codes.Passive.RewardModifiers.ExpMultiplier()));
-
             foreach (Unit hero in heroes.Distinct())
             {
                 if (hero == null || hero.IsEnemy || !hero.isActive) continue;
-                hero.AddExp(scaled);
+                hero.AddExp(amount);
             }
         }
 
@@ -328,10 +306,7 @@ namespace Managers
         {
             KillCount++;
             if (killed != null && killed.IsEnemy) _battleKilledEnemyIds.Add(killed.ID);
-            // 상인(273)이 필드에 있으면 획득 골드가 늘어난다.
-            int gold = Mathf.RoundToInt(
-                GoldPerKillPerStage * Mathf.Max(1, _roundManager?.Stage ?? 1) *
-                Codes.Passive.RewardModifiers.GoldMultiplier());
+            int gold = GoldPerKillPerStage * Mathf.Max(1, _roundManager?.Stage ?? 1);
             inventoryManager?.AddGold(gold);
             pendingPartyExp += ExpPerKillBase + ExpPerKillPerStage * CurrentStageForExp;
             
@@ -444,9 +419,6 @@ namespace Managers
                 }
             }
 
-            // 육성 페이즈는 키 입력이 아니라 집중 스탯 버튼 선택으로 진행한다
-            // (UIManager 훈련 패널 -> GameManager.CompleteTrainingPhaseWithFocus).
-
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (Core.DebugMode.SessionActive) Managers.UI.DevTools.DebugOverlay.EnsureBanner();
             if (!Core.DebugMode.SuiteRunning) HandleDebugInput();
@@ -471,18 +443,15 @@ namespace Managers
             pendingRecruitChoice = null;
             _eventResumeAction = null;
             _eventScheduler.Clear();
-            _pendingTrainingResult = default;   // 값 형식이라 null을 넣을 수 없다
-            preparationActionUsed = false;
+            restUsedThisPreparation = false;
             ShopPurchaseCount = 0;
             uiManager?.HidePreparationPhasePanel();
             uiManager?.HideRewardPanel();
             uiManager?.HideShopPanel();
-            uiManager?.HideSkillPanel();
-            uiManager?.HideTrainingPhasePanel();
-            uiManager?.HideTrainingResultPanel();
             uiManager?.HideCharacterSelection();
             uiManager?.HideEventStagePanel();
             uiManager?.HideBattleResult();
+            _battleResultSerial++;   // 대기 중이던 결과 창을 무른다
             if (gridManager != null)
             {
                 foreach (Unit unit in gridManager.heroList.Concat(gridManager.enemyList).Where(u => u != null).ToList())
@@ -544,8 +513,7 @@ namespace Managers
             }
             if (UnityEngine.Input.GetKeyDown(UnityEngine.KeyCode.F4))
             {
-                float next = Time.timeScale < 1.5f ? 4f : Time.timeScale < 6f ? 8f : 1f;
-                Core.DebugMode.SetTimeScale(next);
+                UI.HUD.BattleHud.CycleSpeedFromInput();
                 return;
             }
 
@@ -564,7 +532,7 @@ namespace Managers
                 gameState = previousState;
                 if (previousState == GameState.Preparation)
                 {
-                    uiManager?.ShowPreparationPhasePanel(IsPreparationLimitedToDeck(), preparationActionUsed);
+                    uiManager?.ShowPreparationPhasePanel(restUsedThisPreparation);
                 }
             });
         }
@@ -594,7 +562,7 @@ namespace Managers
         public void EnterPreparationAfterReward()
         {
             gameState = GameState.Preparation;
-            preparationActionUsed = false;
+            restUsedThisPreparation = false;
             ShopPurchaseCount = 0;
             Cell.PlacementModeActive = false;
             StartPreparationTimer();
@@ -832,16 +800,16 @@ namespace Managers
                 leavable);
         }
 
-        /// <summary>떠나보낼 수 있는 아군. 메인 캐릭터와 소환수는 뺀다 — 런의 축이거나 자리를 차지하지 않는다.</summary>
+        /// <summary>
+        /// 떠나보낼 수 있는 아군. 메인 캐릭터가 없어졌으므로(무한 모드 단일화) 필드의 아군 누구나 된다.
+        /// </summary>
         private static List<Unit> GetDismissableUnits()
         {
             GridManager grid = GridManager.Instance;
             if (grid == null) return new List<Unit>();
 
-            int mainUnitId = CharacterSelectionManager.Instance?.MainUnitId ?? 0;
             return grid.heroList
-                .Where(hero => hero != null && hero.isActive && !hero.IsEnemy && !hero.IsSummon &&
-                               hero.ID != mainUnitId)
+                .Where(hero => hero != null && hero.isActive && !hero.IsEnemy)
                 .ToList();
         }
 
@@ -960,149 +928,55 @@ namespace Managers
             };
         }
 
-        public void EnterTrainingPhase()
-        {
-            if (!AllowProgressWhileWithinCarryLimit()) return;
+        public const int MaxShortRestCharges = 2;
+        public const int LongRestFoodCost = 40;
+        public const float ShortRestHealRatio = 0.50f;
 
-            gameState = GameState.TrainingPhase;
-            isPreparationTimerActive = false;
-            isRoundProgressTimerActive = false;
-            trainingPhaseEnteredAt = Time.unscaledTime;
-            uiManager?.ShowTrainingPhasePanel();
+        public bool CanRest => gameState == GameState.Preparation && !restUsedThisPreparation;
+
+        public void OpenRestFromPreparation()
+        {
+            if (!CanRest) return;
+            uiManager?.ShowRestPanel();
         }
 
-        // 육성 페이즈에서 집중 스탯을 선택하면 호출된다.
-        // 메인 캐릭터에 훈련을 적용한 뒤 다음 스테이지로 진행한다.
-        public void CompleteTrainingPhaseWithFocus(BaseEnums.PrimaryStat focus)
+        /// <summary>짧은 휴식 — 긴 휴식 사이 두 번. 살아 있는 파티원의 최대 체력 50%를 회복한다.</summary>
+        public bool TryShortRest()
         {
-            if (gameState != GameState.TrainingPhase) return;
-            if (!AllowProgressWhileWithinCarryLimit())
+            if (!CanRest || ShortRestCharges <= 0) return false;
+
+            HealActiveHeroesByRatio(ShortRestHealRatio);
+            ShortRestCharges--;
+            CompleteRest($"짧은 휴식 완료: 파티 체력 {Mathf.RoundToInt(ShortRestHealRatio * 100f)}% 회복");
+            return true;
+        }
+
+        /// <summary>
+        /// 긴 휴식 — 식량 40을 쓰고 전원을 부활 · 완전 회복하며 마나와 짧은 휴식 횟수를 되돌린다.
+        /// </summary>
+        public bool TryLongRest()
+        {
+            if (!CanRest || inventoryManager == null || !inventoryManager.TryConsumeFood(LongRestFoodCost)) return false;
+
+            foreach (Unit hero in GridManager.Instance.heroList)
             {
-                uiManager?.HideTrainingPhasePanel();
-                gameState = GameState.Preparation;
-                RefreshPreparationForCarryWeight();
-                return;
+                if (hero == null || hero.IsEnemy) continue;
+                if (!hero.isActive) hero.ReviveAfterBattle(1f);
+                if (hero.isActive) hero.RestoreHpOutsideCombat(hero.HpMax);
+                hero.RestoreUltimateResourceOutsideCombat();
             }
 
-            // 이번 훈련에 앉은 서포트는 훈련을 적용하기 <b>전에</b> 읽는다.
-            // ApplyTraining이 턴을 넘기며 배치를 무효화하기 때문이다.
-            var trainees = new List<Unit> { TrainingManager.GetMainUnit() };
-            trainees.AddRange(TrainingManager.GetSupportsOn(focus));
+            ShortRestCharges = MaxShortRestCharges;
+            CompleteRest($"긴 휴식 완료: 식량 {LongRestFoodCost} 소모 · 파티 완전 회복");
+            return true;
+        }
 
-            TrainingManager.TrainingResult result = TrainingManager.ApplyTraining(focus);
-
-            // 육성 EXP는 메인과 <b>이 훈련에 참여한 서포트</b>만 받는다.
-            // 예전에는 5인이 똑같이 받아 서포트가 메인과 같은 레벨로 자랐다. 서포트는 전투 EXP를
-            // 늘 함께 받고, 훈련 EXP는 참여할 때만 받아 메인의 약 80% 레벨에 선다.
-            GrantExpTo(trainees, ExpPerTrainingBase + ExpPerTrainingPerStage * CurrentStageForExp);
+        private void CompleteRest(string note)
+        {
+            restUsedThisPreparation = true;
+            uiManager?.HideRestPanel();
             runManager?.SaveCurrentRun();
-
-            // 결과를 한 장으로 보여 준 다음에 준비 페이즈로 넘어간다.
-            // 확인을 누르면 CompleteTrainingResult가 이어받는다.
-            _pendingTrainingResult = result;
-            uiManager?.ShowTrainingResultPanel(result);
-        }
-
-        /// <summary>확인을 누르기 전까지 들고 있는 훈련 결과. 준비 페이즈 안내줄에 다시 쓴다.</summary>
-        private TrainingManager.TrainingResult _pendingTrainingResult;
-
-        /// <summary>훈련 결과 화면에서 확인을 눌렀다. 여기서 준비 페이즈로 돌아간다.</summary>
-        public void CompleteTrainingResult()
-        {
-            uiManager?.HideTrainingResultPanel();
-            uiManager?.HideTrainingPhasePanel();
-
-            preparationActionUsed = true;
-            gameState = GameState.Preparation;
-            uiManager?.ShowPreparationPhasePanel(IsPreparationLimitedToDeck(), preparationActionUsed,
-                BuildTrainingResultMessage(_pendingTrainingResult));
-        }
-
-        /// <summary>
-        /// 지금 훈련을 열 수 있는가. 조건은 <see cref="OpenTrainingFromPreparation"/>과 같다.
-        /// 스킬 화면의 빈 상태가 "훈련하러 가기"를 켤지 결정할 때 묻는다.
-        /// </summary>
-        public bool CanOpenTraining => gameState == GameState.Preparation && !preparationActionUsed
-                                       && !IsPreparationLimitedToDeck() && !HasOverburdenedHeroes;
-
-        public void OpenTrainingFromPreparation()
-        {
-            if (gameState != GameState.Preparation || preparationActionUsed || IsPreparationLimitedToDeck()) return;
-            if (!AllowProgressWhileWithinCarryLimit()) return;
-
-            isPreparationTimerActive = false;
-            gameState = GameState.TrainingPhase;
-            uiManager?.HidePreparationPhasePanel();
-            uiManager?.ShowTrainingPhasePanel();
-        }
-
-        /// <summary>
-        /// 훈련 화면을 닫고 준비 페이즈로 돌아간다. 준비 행동은 쓰지 않는다.
-        ///
-        /// 예전에는 훈련 화면에 뒤로 가는 길이 없었다. ESC를 누르면 일시정지 메뉴가 떠서
-        /// 결정을 누르는 것 말고는 빠져나갈 수 없었다(QA). 서포트 배치는 그대로 남으므로
-        /// 다시 열어도 같은 자리가 나온다.
-        /// </summary>
-        public void CancelTrainingFromPreparation()
-        {
-            if (gameState != GameState.TrainingPhase) return;
-
-            uiManager?.HideTrainingPhasePanel();
-            gameState = GameState.Preparation;
-            uiManager?.ShowPreparationPhasePanel(IsPreparationLimitedToDeck(), preparationActionUsed,
-                "훈련을 열었다가 닫았습니다. 준비 행동은 쓰지 않았습니다.");
-        }
-
-        /// <summary>
-        /// 휴식 한 번이 되찾아 주는 훈련 체력.
-        ///
-        /// 훈련 평균 비용이 17이므로 이 값은 곧 <b>훈련 3회마다 휴식 1회</b>라는 리듬이다.
-        /// 올리면 훈련 가동률이 오르고, 내리면 성장 총량이 줄어든다.
-        /// </summary>
-        public const int RestEnergyRecovery = 50;
-
-        /// <summary>
-        /// 휴식이 되돌리는 파티 체력 비율.
-        ///
-        /// 예전에는 <b>완전 회복</b>이었다. 그러면 스테이지마다 공짜 엘릭서를 쓰는 셈이라
-        /// 상점의 회복약과 회복 보상이 통째로 무의미해진다. 휴식은 최후의 안전판으로 남기고
-        /// 완전 회복은 값을 치르는 쪽(상점 · 보상)의 몫으로 돌렸다.
-        /// </summary>
-        public const float RestPartyHealRatio = 0.30f;
-
-        public void RestFromPreparation()
-        {
-            if (gameState != GameState.Preparation || preparationActionUsed || IsPreparationLimitedToDeck()) return;
-            if (!AllowProgressWhileWithinCarryLimit()) return;
-
-            HealActiveHeroesByRatio(RestPartyHealRatio);
-
-            // 휴식(휴식+외출)이 하는 일은 셋이다 — 훈련 체력 · 파티 체력, 그리고 덤으로 낮은 확률의 컨디션.
-            // 훈련은 컨디션을 건드리지 않으므로, 컨디션은 이 덤과 영약·드문 사건으로만 오른다.
-            TrainingManager.State.RestoreEnergy(RestEnergyRecovery);
-            bool moodUp = TrainingManager.RollRestConditionUp();
-
-            // 휴식도 턴을 쓴다. 서포트는 다음 훈련에서 다른 자리에 앉는다.
-            TrainingManager.InvalidateSupportPlacement();
-
-            preparationActionUsed = true;
-            runManager?.SaveCurrentRun();
-            uiManager?.ShowPreparationPhasePanel(IsPreparationLimitedToDeck(), preparationActionUsed,
-                $"휴식 완료: 훈련 체력 +{RestEnergyRecovery} (현재 {TrainingManager.State.Energy}) · " +
-                $"파티 체력 {Mathf.RoundToInt(RestPartyHealRatio * 100f)}% 회복" +
-                (moodUp ? $" · 외출도 다녀와 컨디션이 좋아졌습니다 → {TrainingManager.State.ConditionName}." : "."));
-        }
-
-        /// <summary>
-        /// 스테이지가 넘어갈 때 컨디션 사건을 한 번 굴린다(육성 모드 전용).
-        /// 일어났으면 준비 화면 안내 줄에 띄울 문장을 <see cref="_pendingPreparationNote"/>에 담아 둔다.
-        /// </summary>
-        public void RollStageConditionEvent()
-        {
-            if (CurrentMode != GameMode.Training) return;
-
-            string note = TrainingManager.RollStageConditionEvent();
-            if (!string.IsNullOrEmpty(note)) _pendingPreparationNote = note;
+            uiManager?.ShowPreparationPhasePanel(restUsedThisPreparation, note);
         }
 
         /// <summary>준비 화면이 다음에 뜰 때 안내 줄에 얹을 문장. 한 번 읽으면 비운다.</summary>
@@ -1115,25 +989,14 @@ namespace Managers
             return note;
         }
 
-        public void BeginAdditionalBattleFromPreparation()
-        {
-            if (gameState != GameState.Preparation || preparationActionUsed || IsPreparationLimitedToDeck()) return;
-            if (!AllowProgressWhileWithinCarryLimit()) return;
-
-            preparationActionUsed = true;
-            StartRound();
-        }
-
         public void OpenDeckSetupFromPreparation()
         {
             if (gameState != GameState.Preparation) return;
-            if (!AllowProgressWhileWithinCarryLimit()) return;
 
             // 배치 모드를 켜 놓일 자리를 빛낸다. 다시 누르면 끈다.
             Cell.PlacementModeActive = !Cell.PlacementModeActive;
             uiManager?.ShowPreparationPhasePanel(
-                IsPreparationLimitedToDeck(),
-                preparationActionUsed,
+                restUsedThisPreparation,
                 Cell.PlacementModeActive
                     ? "덱 구성: 빛나는 칸이 놓을 수 있는 자리입니다. 카드를 끌어 옮기고(다른 카드 위에 놓으면 자리를 바꿉니다), 짧게 누르면 캐릭터 창이 열립니다."
                     : "덱 구성을 닫았습니다. 준비 중에는 언제든 카드를 끌어 배치를 바꿀 수 있습니다.");
@@ -1146,7 +1009,7 @@ namespace Managers
         ///
         /// 가격만으로는 후반을 막지 못한다 — 누적 골드가 스테이지 제곱으로 불어나므로
         /// 횟수를 묶지 않으면 스테이지마다 파티를 완전 회복시킬 수 있고, 그러면 체력 소모가
-        /// 런의 압박에서 빠진다. 훈련·휴식과 달리 <b>준비 행동을 쓰지는 않는다</b>.
+        /// 런의 압박에서 빠진다. 상점은 휴식과 독립된 준비 메뉴지만 구매 횟수는 제한한다.
         /// </summary>
         public const int MaxShopPurchases = 2;
 
@@ -1156,13 +1019,11 @@ namespace Managers
         public int ShopPurchasesLeft => Mathf.Max(0, MaxShopPurchases - ShopPurchaseCount);
 
         /// <summary>보스전 준비에서도 연다. 보스 앞에서 회복약을 사는 것이 상점의 쓸모다.</summary>
-        public bool CanOpenShop => gameState == GameState.Preparation && !HasOverburdenedHeroes;
+        public bool CanOpenShop => gameState == GameState.Preparation;
 
         public void OpenShopFromPreparation()
         {
             if (!CanOpenShop) return;
-            if (!AllowProgressWhileWithinCarryLimit()) return;
-
             uiManager?.ShowShopPanel();
         }
 
@@ -1173,78 +1034,20 @@ namespace Managers
             runManager?.SaveCurrentRun();
         }
 
-        // ── 스킬 ─────────────────────────────────────────────────────
-
-        /// <summary>
-        /// 힌트받은 스킬을 스킬 Pt로 배우는 화면. 상점과 마찬가지로 준비 행동을 쓰지 않는다.
-        /// 보스전 준비에서도 열린다 — 이미 번 스킬 Pt를 쓰는 일까지 막을 이유가 없다.
-        /// </summary>
-        public bool CanOpenSkillScreen => gameState == GameState.Preparation && !HasOverburdenedHeroes;
-
-        public void OpenSkillScreenFromPreparation()
-        {
-            if (!CanOpenSkillScreen) return;
-            if (!AllowProgressWhileWithinCarryLimit()) return;
-
-            uiManager?.ShowSkillPanel();
-        }
-
-        /// <summary>스킬을 하나 배웠다. 런 상태가 바뀌었으므로 바로 저장한다.</summary>
-        public void NotifySkillLearned()
-        {
-            runManager?.SaveCurrentRun();
-        }
-
-        public void OpenEquipmentFromPreparation()
+        public void OpenInventoryFromPreparation()
         {
             if (gameState != GameState.Preparation) return;
-            uiManager?.ShowEquipmentPanel();
+            uiManager?.ShowInventoryPanel();
         }
 
-        public bool IsPreparationLimitedToDeck()
+        public void RestorePreparationState(bool restUsed, int shortRestCharges, int shopPurchaseCount = 0)
         {
-            return CurrentMode == GameMode.Training && _roundManager != null && _roundManager.IsCurrentBossStage;
-        }
-
-        public bool HasOverburdenedHeroes => GridManager.Instance?.heroList?.Any(hero =>
-            hero != null && hero.isActive && !hero.IsEnemy && hero.IsOverCarryWeightMax) == true;
-
-        public string CarryWeightBlockMessage
-        {
-            get
-            {
-                List<Unit> overburdened = GridManager.Instance?.heroList?
-                    .Where(hero => hero != null && hero.isActive && !hero.IsEnemy && hero.IsOverCarryWeightMax)
-                    .ToList() ?? new List<Unit>();
-                if (overburdened.Count == 0) return null;
-
-                string units = string.Join(", ", overburdened.Select(hero =>
-                    $"{hero.UnitName} {hero.CarryWeightCurrent}/{hero.CarryWeightMax}"));
-                return $"3차 중량 초과: {units}. 장비에서 휴대품을 비워야 다른 행동을 할 수 있습니다.";
-            }
-        }
-
-        private bool AllowProgressWhileWithinCarryLimit()
-        {
-            if (!HasOverburdenedHeroes) return true;
-            RefreshPreparationForCarryWeight();
-            return false;
-        }
-
-        public void RefreshPreparationForCarryWeight()
-        {
-            if (gameState != GameState.Preparation) return;
-            uiManager?.ShowPreparationPhasePanel(
-                IsPreparationLimitedToDeck(), preparationActionUsed, CarryWeightBlockMessage);
-        }
-
-        public void RestorePreparationActionState(bool actionUsed, int shopPurchaseCount = 0)
-        {
-            preparationActionUsed = actionUsed;
+            restUsedThisPreparation = restUsed;
+            ShortRestCharges = Mathf.Clamp(shortRestCharges, 0, MaxShortRestCharges);
             ShopPurchaseCount = Mathf.Clamp(shopPurchaseCount, 0, MaxShopPurchases);
             if (gameState == GameState.Preparation)
             {
-                uiManager?.ShowPreparationPhasePanel(IsPreparationLimitedToDeck(), preparationActionUsed);
+                uiManager?.ShowPreparationPhasePanel(restUsedThisPreparation);
             }
         }
 
@@ -1258,40 +1061,6 @@ namespace Managers
                     hero.RestoreHpOutsideCombat(Mathf.CeilToInt(hero.HpMax * Mathf.Clamp01(ratio)));
                 }
             }
-        }
-
-        private static string BuildTrainingResultMessage(TrainingManager.TrainingResult result)
-        {
-            string transferred = result.HintedCodeIds != null && result.HintedCodeIds.Count > 0
-                ? $" / 스킬 힌트 {string.Join(", ", result.HintedCodeIds)}"
-                : "";
-            string supports = result.SupportMessages != null && result.SupportMessages.Count > 0
-                ? $" / 서포트 {result.SupportMessages.Count}명 판정"
-                : "";
-
-            if (result.Failed)
-            {
-                return $"훈련 실패 ({result.FailureRate}%): {FormatPrimaryStat(result.Focus)} 상승 없음, " +
-                       $"체력 {result.EnergySpent} 소모 (남은 체력 {result.EnergyAfter}){supports}";
-            }
-
-            string conPart = result.SecondaryText.Length > 0 ? $" ({result.SecondaryText})" : "";
-            return $"훈련 완료: {FormatPrimaryStat(result.Focus)} +{result.StatGain}{conPart}, " +
-                   $"스킬 Pt +{result.SkillPointsGained}, 훈련 Lv.{result.NewFocusTrainingLevel}, " +
-                   $"남은 체력 {result.EnergyAfter}{supports}{transferred}";
-        }
-
-        private static string FormatPrimaryStat(BaseEnums.PrimaryStat stat)
-        {
-            return stat switch
-            {
-                BaseEnums.PrimaryStat.STR => "근력",
-                BaseEnums.PrimaryStat.DEX => "민첩",
-                BaseEnums.PrimaryStat.CON => "체력",
-                BaseEnums.PrimaryStat.INT => "지능",
-                BaseEnums.PrimaryStat.LUK => "행운",
-                _ => stat.ToString(),
-            };
         }
 
         private int GetRemainingEnemyCount()
@@ -1378,17 +1147,18 @@ namespace Managers
 
         private void EndRound(bool victory)
         {
+            AudioManager.PlayCue(victory ? "ui.battle.victory" : "ui.battle.defeat");
             _roundManager?.StopRound();
             gameState = GameState.RoundEnd;
             Combat.DamageMeter.End();
             Combat.CombatLog.End(victory, _battleEndReason ?? (victory ? "적 전멸" : "패배"));
             // 쓰러진 아군은 필드 복원이 되살리기 전에 세어야 한다.
             BattleResultData result = BeginBattleResult(victory);
-            // 메인이 이 전투에서 쓰러졌으면 컨디션이 한 칸 내려간다(우마무스메의 컨디션 하락과 같은 결).
-            result.ConditionNote = TrainingManager.ResolveBattleCondition();
             // 궁극기 자원만 전투 종료 정리보다 먼저 회수한다. 상태이상·방어막·고유 전투 자원은
             // 기존 OnRoundEnd 정리를 그대로 거쳐 다음 전투로 넘어가지 않는다.
             CaptureAllyBattleState();
+            // 마지막 카드가 부서지는 동안 카메라가 아군 쪽으로 다시 잡히지 않게 붙든다.
+            GridManager.Instance?.HoldCamera(BattleResultDelay);
             GridManager.Instance?.OnRoundEnd();
             
             // 아군 필드 상태 복원 (게임 오버가 아닌 경우에만)
@@ -1402,7 +1172,6 @@ namespace Managers
             {
                 pendingPartyExp = 0;
                 gameState = GameState.GameOver;
-                RunManager.GrantAnyRunCompletionUnlocks();
                 SaveSystem.DeleteSave();
                 FinishBattleResult(result);
                 result.GameOver = true;
@@ -1419,13 +1188,7 @@ namespace Managers
                 earnedExp += ExpPerStageClearBase + ExpPerStageClearPerStage * CurrentStageForExp;
             }
             GrantExpToParty(earnedExp);
-            result.ExpGained = earnedExp > 0
-                ? Mathf.Max(1, Mathf.RoundToInt(earnedExp * Codes.Passive.RewardModifiers.ExpMultiplier()))
-                : 0;
-
-            // 강화제는 <이긴 전투 수>로 산다. 예전에는 져도 깎여, 막힌 벽 앞에서 다시 도전할수록
-            // 버프가 먼저 사라져 더 불리해졌다.
-            if (victory) ConsumePartyTonicBattle();
+            result.ExpGained = Mathf.Max(0, earnedExp);
 
             if (victory)
             {
@@ -1476,13 +1239,12 @@ namespace Managers
             _battleStartKills = KillCount;
             _battleEndReason = null;
             _battleEnemiesLeft = 0;
-            TrainingManager.BeginBattleConditionWatch();
 
             _battleParty.Clear();
             if (GridManager.Instance == null) return;
             foreach (Unit hero in GridManager.Instance.heroList)
             {
-                if (hero == null || !hero.isActive || hero.IsEnemy || hero.IsSummon) continue;
+                if (hero == null || !hero.isActive || hero.IsEnemy) continue;
                 if (hero.currentCell == null || GridManager.Instance.IsBenchCell(hero.currentCell)) continue;
                 _battleParty.Add(hero);
             }
@@ -1549,26 +1311,32 @@ namespace Managers
                 return;
             }
 
+            // 마지막 적(또는 아군)이 부서지는 연출을 보여 준 뒤 결과를 띄운다 — 곧바로 띄우면 결과 창이
+            // 카드 파괴를 통째로 덮었다(Play 모드 확인). 게임 시간으로 기다려 배속을 따른다.
+            int serial = ++_battleResultSerial;
+            StartCoroutine(ShowBattleResultAfterFinale(serial, result, continuation));
+        }
+
+        /// <summary>결과 창 대기 도중 디버그 재시작 등으로 전투가 다시 열리면 옛 결과를 띄우지 않는다.</summary>
+        private int _battleResultSerial;
+
+        /// <summary>카드 파괴 연출(<see cref="Effects.Vfx.CardShatter"/>) 길이에 맞춘 대기.</summary>
+        private const float BattleResultDelay = 1.2f;
+
+        private System.Collections.IEnumerator ShowBattleResultAfterFinale(int serial, BattleResultData result, Action continuation)
+        {
+            yield return new WaitForSeconds(BattleResultDelay);
+            if (serial != _battleResultSerial || uiManager == null) yield break;
+            if (gameState == GameState.RoundInProgress) yield break;
             uiManager.ShowBattleResult(result, continuation);
         }
 
-        /// <summary>전투 승리 보수. 처치 골드와 함께 상인(273) 패시브의 배율을 받는다.</summary>
+        /// <summary>전투 승리 보수.</summary>
         private void GrantClearGold()
         {
-            int gold = Mathf.RoundToInt(
-                (GoldPerClearBase + GoldPerClearPerStage * CurrentStageForExp) *
-                Codes.Passive.RewardModifiers.GoldMultiplier());
+            int gold = GoldPerClearBase + GoldPerClearPerStage * CurrentStageForExp;
             inventoryManager?.AddGold(gold);
             Debug.Log($"[골드] 전투 승리 보수 {gold} 획득 (현재 {inventoryManager?.Gold})");
-        }
-
-        /// <summary>걸려 있는 강화제의 남은 전투 수를 하나 깎는다. 끊긴 병이 있으면 스탯을 다시 돌린다.</summary>
-        private static void ConsumePartyTonicBattle()
-        {
-            Core.PartyTonicState tonics = RunManager.Instance?.PartyTonics;
-            if (tonics == null || !tonics.HasAny) return;
-
-            if (tonics.ConsumeBattle()) GridManager.Instance?.RefreshAllyAttributes();
         }
 
         private void ShowRewardSelection()
@@ -1576,7 +1344,7 @@ namespace Managers
             gameState = GameState.RewardSelection;
             var rewards = rewardManager != null
                 ? rewardManager.GenerateRewards(RewardManager.RewardCountForStage(_roundManager?.Stage ?? 1),
-                    _roundManager?.Round ?? 1, CurrentMode, _battleKilledEnemyIds)
+                    _roundManager?.Round ?? 1, _battleKilledEnemyIds)
                 : new List<RewardDef>();
             uiManager?.ShowRewardPanel(rewards);
         }
@@ -1659,12 +1427,9 @@ namespace Managers
         /// 거절이 해금까지 빼앗으면 선택지가 아니라 함정이 된다 — 그 런에 자리가 없거나
         /// 지금 필요하지 않다는 이유로 거절해도 다음 런부터는 골라 쓸 수 있어야 한다.
         ///
-        /// 육성 모드에서만 남긴다 — 런 중 합류가 해금으로 이어지는 다른 경로(<see cref="GridManager"/>)와 같은 줄을 쓴다.
         /// </summary>
         private void GrantRecruitUnlock(StageEventData stageEvent)
         {
-            if (CurrentMode != GameMode.Training) return;
-
             if (stageEvent == null) return;
 
             // 사건이 여럿을 내밀면 <b>전원</b>을 해금한다. 만났다는 사실이 조건이므로
@@ -1735,25 +1500,19 @@ namespace Managers
                     for (int y = GridManager.Instance.yMin; y <= GridManager.Instance.yMax; y++)
                     {
                         if (!GridManager.Instance.IsCellAvailable(x, y)) continue;
-                        Unit joined = GridManager.Instance.SpawnUnit(x, y, false, unitId);
-                        joined?.SelectSupportCard(SaveSystem.GetSupportCard(unitId)?.supportId);
+                        Unit joined = GridManager.Instance.SpawnUnit(x, y, false, unitId, playEntry: true);
                         return joined != null;
                     }
                 }
                 Debug.LogWarning($"[사건] 서포트 유닛 {unitId} 영입 실패: 빈 슬롯이 없습니다.");
                 return false;
             }
-            Unit recruited = GridManager.Instance.SpawnUnit(0, 0, false, unitId, true);
-            recruited?.SelectSupportCard(SaveSystem.GetSupportCard(unitId)?.supportId);
+            GridManager.Instance.SpawnUnit(0, 0, false, unitId, true);
             return GridManager.Instance.heroList.Any(hero => hero != null && hero.isActive && !hero.IsEnemy && hero.ID == unitId);
         }
 
         private void TakeDamage(int damage)
         {
-            bool cursedCrownEquipped = GridManager.Instance?.heroList?.Any(unit =>
-                unit != null && !unit.IsEnemy && !unit.IsSummon &&
-                unit.IsEquipped(Codes.Passive.NewItemIds.CursedCrown)) == true;
-            if (cursedCrownEquipped) damage *= 2;
             life = Mathf.Max(0, life - damage);
             
             // UI 업데이트
@@ -1767,7 +1526,6 @@ namespace Managers
             {
                 gameState = GameState.GameOver;
                 Debug.Log("생명력이 0이 되었습니다. 게임 오버!");
-                RunManager.GrantAnyRunCompletionUnlocks();
                 SaveSystem.DeleteSave();
             }
         }
@@ -1781,7 +1539,7 @@ namespace Managers
             // 통째로 지워 버려, 되살릴 대상 자체가 사라진다.
             foreach (Unit ally in GridManager.Instance.heroList)
             {
-                if (ally == null || ally.IsSummon || ally.currentCell == null) continue;
+                if (ally == null || ally.currentCell == null) continue;
                 // 쓰러지면 ID가 0으로 지워지므로 LastActiveId로 정체를 되찾는다.
                 if (ally.ID <= 0 && ally.LastActiveId <= 0) continue;
                 // 벤치가 아닌 필드에 있는 유닛만 저장
@@ -1822,7 +1580,7 @@ namespace Managers
         private static Unit FindSnapshotAlly(UnitSaveData saved, bool matchCell)
         {
             return GridManager.Instance.heroList.LastOrDefault(hero =>
-                hero != null && !hero.IsEnemy && !hero.IsSummon &&
+                hero != null && !hero.IsEnemy &&
                 (hero.ID > 0 ? hero.ID : hero.LastActiveId) == saved.unitId &&
                 (!matchCell || (hero.currentCell != null &&
                                 hero.currentCell.xPos == saved.xPos &&
@@ -1836,10 +1594,8 @@ namespace Managers
             // 현재 필드에 있는 모든 아군 유닛 제거 (벤치는 유지)
             // 현재 필드에 있는 모든 아군 유닛 제거 (벤치는 유지).
             // 비활성화만 하면 리스트와 씬에 잔해가 남아 라운드마다 사본이 쌓이므로 완전히 물린다.
-            // 소환수는 칸이 없다. 칸으로만 거르면 리스트에 남아 라운드마다 쌓인다.
             var fieldAllies = GridManager.Instance.heroList.Where(ally =>
-                ally != null && (ally.IsSummon ||
-                    (ally.currentCell != null && !GridManager.Instance.IsBenchCell(ally.currentCell)))).ToList();
+                ally != null && ally.currentCell != null && !GridManager.Instance.IsBenchCell(ally.currentCell)).ToList();
 
             foreach (Unit ally in fieldAllies)
             {
@@ -1902,7 +1658,6 @@ namespace Managers
             return new UnitSaveData
             {
                 unitId = unit.ID > 0 ? unit.ID : unit.LastActiveId,
-                selectedSupportId = unit.SelectedSupportCardId,
                 currentHP = unit.isActive ? unit.HpCurr : 0,
                 xPos = unit.currentCell.xPos,
                 yPos = unit.currentCell.yPos,
@@ -1911,16 +1666,6 @@ namespace Managers
                 // 레벨/EXP를 빠뜨리면 라운드 종료 복원에서 성장이 초기화된다.
                 level = unit.Level,
                 exp = unit.Exp,
-                trainingLevel = unit.TrainingLevel,
-                strUpgrade = unit.StrUpgrade,
-                dexUpgrade = unit.DexUpgrade,
-                conUpgrade = unit.ConUpgrade,
-                intUpgrade = unit.IntUpgrade,
-                lukUpgrade = unit.LukUpgrade,
-                codeAccelerationBonus = unit.CodeAccelerationRunBonus,
-                equippedItemIds = unit.EquippedItemIds.ToList(),
-                carriedItemIds = unit.CarriedItemIds.ToList(),
-                grantedPassiveCodeIds = unit.GrantedPassiveCodeIds.ToList(),
             };
         }
 
@@ -1963,14 +1708,9 @@ namespace Managers
             switch (GameStartIntent.Current)
             {
                 case GameStartIntent.Intent.NewGame:
-                    runManager.StartRun(GameMode.Training);
+                    runManager.StartRun();
                     _roundManager.InitializeStage(1);
                     // 테스트 흐름: 시작 대사를 건너뛰고 즉시 캐릭터 선택으로 이동한다.
-                    EnterCharacterSelection();
-                    break;
-                case GameStartIntent.Intent.InfiniteMode:
-                    runManager.StartRun(GameMode.Infinite);
-                    _roundManager.InitializeStage(1);
                     EnterCharacterSelection();
                     break;
                 case GameStartIntent.Intent.Continue:
@@ -1989,7 +1729,7 @@ namespace Managers
                     break;
                 case GameStartIntent.Intent.DirectStart:
                 default:
-                    runManager.StartRun(GameMode.Training);
+                    runManager.StartRun();
                     _roundManager.InitializeStage(1);
                     _roundManager.LoadRound(1);
                     gameState = GameState.Preparation;

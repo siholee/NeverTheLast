@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Entities;
 using Entities.Status;
 using Managers.UI.Core;
@@ -27,9 +27,6 @@ namespace Managers.UI.HUD
         private const float SlotHeight = 46f;
         private const float SlotGap = 10f;
 
-        /// <summary>96px 상단 헤더와 간섭하지 않도록 안전 영역 위에서 내리는 거리.</summary>
-        private const float TopOffset = -118f;
-
         private const int MaxDots = 6;
         private const float DotSize = 20f;
 
@@ -40,7 +37,7 @@ namespace Managers.UI.HUD
         {
             _root = UIBuild.Container("FeatureEnemyBanner", parent);
             UIBuild.Pin(_root, new Vector2(0.5f, 1f),
-                new Vector2(TotalWidth, SlotHeight), new Vector2(0f, TopOffset));
+                new Vector2(TotalWidth, SlotHeight), new Vector2(0f, -UITheme.BelowTopBar));
             _root.gameObject.SetActive(false);
 
             for (int i = 0; i < Combat.FeatureEnemies.MaxCount; i++)
@@ -98,16 +95,17 @@ namespace Managers.UI.HUD
                 _rect = panel.rectTransform;
 
                 _name = UIBuild.Text($"Name{index}", panel.transform, "", UITheme.FontCaption,
-                    UITheme.TextPrimary, TextAlignmentOptions.Left);
+                    UITheme.TextOnDark, TextAlignmentOptions.Left);
                 UIBuild.Anchor(_name.rectTransform, new Vector2(0f, 0.52f), new Vector2(0.62f, 1f), 10f, 2f);
 
                 _hpText = UIBuild.Text($"Hp{index}", panel.transform, "", UITheme.FontCaption,
-                    UITheme.TextSecondary, TextAlignmentOptions.Right);
+                    UITheme.TextOnDarkSecondary, TextAlignmentOptions.Right);
                 UIBuild.Anchor(_hpText.rectTransform, new Vector2(0.62f, 0.52f), new Vector2(1f, 1f), 10f, 2f);
 
                 // 방어막은 체력 바 위에 겹쳐 그린다. 체력이 줄어도 방어막 폭은 그대로라
                 // "아직 껍질이 남았다"가 한눈에 보인다.
-                _hpFill = UIBuild.Bar($"HpBar{index}", panel.transform, UITheme.Hp, UITheme.SurfaceSunken);
+                _hpFill = UIBuild.Bar($"HpBar{index}", panel.transform, UITheme.Hp,
+                    new Color(0.035f, 0.067f, 0.098f, 0.62f));
                 RectTransform track = (RectTransform)_hpFill.transform.parent;
                 UIBuild.Anchor(track, new Vector2(0f, 0f), new Vector2(1f, 0.46f), 10f, 6f);
 
@@ -148,7 +146,7 @@ namespace Managers.UI.HUD
                 _hpFill.fillAmount = ratio;
                 _hpFill.color = UITheme.HpColor(ratio);
                 // 준비 화면에서는 체력 배수 패시브가 아직 걸리지 않았다. 전투에서 마주할 값으로 보여 준다.
-                int shownMax = unit.ProjectedHpMax;
+                int shownMax = unit.HpMax;
                 int shownCurr = shownMax == unit.HpMax || unit.HpMax <= 0
                     ? unit.HpCurr
                     : Mathf.RoundToInt(unit.HpCurr * (shownMax / (float)unit.HpMax));

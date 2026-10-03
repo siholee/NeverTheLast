@@ -25,6 +25,7 @@ namespace Managers
         private SpriteRenderer dragPreviewRenderer = null;
         private Vector2 dragScreenPosition;
         private bool hasExternalPointer;
+        private Cell hoveredDropCell;
         
         private void Awake()
         {
@@ -85,6 +86,10 @@ namespace Managers
             sourceCell = cell;
             hasExternalPointer = externalPointer;
             if (externalPointer) dragScreenPosition = screenPosition;
+
+            // 기본 준비 화면은 실제 점유 카드만 보여 빈 칸 콜라이더가 꺼져 있다. 드래그가 시작된
+            // 그 프레임에 배치판을 펼쳐야 빠르게 끌어 놓는 입력도 빈 칸을 정상 대상으로 찾는다.
+            GridManager.Instance?.RefreshFieldLayout();
             
             // 드래그 프리뷰 설정 및 활성화
             SetupDragPreview(unit);
@@ -103,19 +108,8 @@ namespace Managers
             if (!isDragging || draggedUnit == null) return;
 
             dragScreenPosition = screenPosition;
-            Vector3 worldPosition = mainCamera.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y, -mainCamera.transform.position.z));
-            
-            // 레이캐스트로 드롭 대상 셀 찾기
-            RaycastHit2D hit = Physics2D.Raycast(worldPosition, Vector2.zero, Mathf.Infinity, cellLayerMask);
-            
-            if (hit.collider != null)
-            {
-                Cell targetCell = hit.collider.GetComponent<Cell>();
-                if (targetCell != null)
-                {
-                    HandleDrop(targetCell);
-                }
-            }
+            UpdateDropTarget(screenPosition);
+            if (hoveredDropCell != null) HandleDrop(hoveredDropCell);
             
             FinishDrag();
         }
@@ -133,10 +127,12 @@ namespace Managers
             hasExternalPointer = true;
             dragScreenPosition = screenPosition;
             MoveDragPreview(screenPosition);
+            UpdateDropTarget(screenPosition);
         }
 
         private void FinishDrag()
         {
+            SetHoveredDropCell(null);
             // 드래그 프리뷰 숨기기 및 원본 유닛 복원
             HideDragPreview();
             if (draggedUnit != null)
@@ -149,6 +145,7 @@ namespace Managers
             draggedUnit = null;
             sourceCell = null;
             hasExternalPointer = false;
+            GridManager.Instance?.RequestFieldLayoutRefresh();
         }
         
         private void Update()
@@ -156,15 +153,70 @@ namespace Managers
             // 드래그 중일 때 프리뷰를 마우스 위치로 이동
             if (isDragging && dragPreview != null)
             {
-                MoveDragPreview(CurrentPointerPosition());
+                Vector2 pointer = CurrentPointerPosition();
+                MoveDragPreview(pointer);
+                UpdateDropTarget(pointer);
             }
         }
 
         private void MoveDragPreview(Vector2 screenPosition)
         {
+            if (mainCamera == null) mainCamera = Camera.main;
             if (mainCamera == null || dragPreview == null) return;
             Vector3 point = new(screenPosition.x, screenPosition.y, -mainCamera.transform.position.z);
             dragPreview.transform.position = mainCamera.ScreenToWorldPoint(point);
+        }
+
+        /// <summary>
+        /// 확대된 카드·바닥 콜라이더가 겹쳐도 포인터와 가장 가까운 실제 셀을 고른다.
+        /// 단일 Raycast의 첫 결과만 쓰면 자식 콜라이더나 원래 칸이 먼저 맞아 드롭이 조용히 취소됐다.
+        /// </summary>
+        private void UpdateDropTarget(Vector2 screenPosition)
+        {
+            if (mainCamera == null) mainCamera = Camera.main;
+            if (mainCamera == null)
+            {
+                SetHoveredDropCell(null);
+                return;
+            }
+
+            Vector3 point = new(screenPosition.x, screenPosition.y, -mainCamera.transform.position.z);
+            Vector3 world = mainCamera.ScreenToWorldPoint(point);
+            Collider2D[] hits = Physics2D.OverlapPointAll(world, cellLayerMask);
+            Cell best = null;
+            float bestDistance = float.PositiveInfinity;
+
+            foreach (Collider2D hit in hits)
+            {
+                Cell cell = hit.GetComponent<Cell>();
+                if (cell == null) cell = hit.GetComponentInParent<Cell>();
+                if (cell == null || !cell.gameObject.activeInHierarchy) continue;
+
+                float distance = ((Vector2)cell.transform.position - (Vector2)world).sqrMagnitude;
+                bool valid = IsValidDropTarget(cell);
+                bool bestValid = best != null && IsValidDropTarget(best);
+                if ((valid && !bestValid) || (valid == bestValid && distance < bestDistance))
+                {
+                    best = cell;
+                    bestDistance = distance;
+                }
+            }
+
+            SetHoveredDropCell(best);
+        }
+
+        private void SetHoveredDropCell(Cell cell)
+        {
+            if (hoveredDropCell == cell)
+            {
+                if (cell != null) cell.SetDropTargetFeedback(true, IsValidDropTarget(cell));
+                return;
+            }
+
+            if (hoveredDropCell != null) hoveredDropCell.SetDropTargetFeedback(false, false);
+            hoveredDropCell = cell;
+            if (hoveredDropCell != null)
+                hoveredDropCell.SetDropTargetFeedback(true, IsValidDropTarget(hoveredDropCell));
         }
 
         private Vector2 CurrentPointerPosition()
@@ -217,6 +269,7 @@ namespace Managers
         
         private bool IsValidDropTarget(Cell targetCell)
         {
+            if (targetCell == null || GridManager.Instance == null) return false;
             // 라운드 진행 중에는 벤치만 유효한 드롭 대상
             if (GameManager.Instance != null && GameManager.Instance.gameState == GameState.RoundInProgress)
             {
@@ -237,7 +290,7 @@ namespace Managers
         }
         
         // 이동과 교환은 같은 Unit 오브젝트를 옮긴다. 예전처럼 끄고 새로 스폰하면
-        // 레벨 · 훈련 · 장비 · 현재 체력이 데이터 초기값으로 돌아갔다(GridManager.RelocateUnit).
+        // 레벨 · 현재 체력이 데이터 초기값으로 돌아갔다(GridManager.RelocateUnit).
         private void SwapUnits(Cell sourceCell, Cell targetCell)
         {
             Unit sourceUnit = sourceCell.unit.GetComponent<Unit>();

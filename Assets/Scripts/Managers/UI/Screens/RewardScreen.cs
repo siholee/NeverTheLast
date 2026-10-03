@@ -1,11 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Entities;
 using Helpers;
 using Managers.UI.Core;
-using PartyTonicState = Core.PartyTonicState;
 using Managers.UI.Theme;
 using TMPro;
 using UnityEngine;
@@ -20,11 +19,11 @@ namespace Managers.UI.Screens
     /// 정보가 다 들어 있어도 세 장을 <b>비교</b>할 수는 없었다 — 같은 항목이 같은 자리에 오지 않으니
     /// 눈이 매번 문장을 다시 읽어야 했기 때문이다.
     ///
-    /// 지금은 <b>등급 → 이름 → 일러스트 → 요약</b> 순으로 세운다. 장비에 일러스트가 붙으면서
+    /// 지금은 <b>등급 → 이름 → 일러스트 → 요약</b> 순으로 세운다. 아이템에 일러스트가 붙으면서
     /// 카드가 제원을 다 이고 있을 자리가 없어졌고, 무엇보다 <b>그림이 먼저 눈에 들어와야</b>
     /// 세 장을 훑는 속도가 빨라진다. 숫자와 조건은 마우스를 올렸을 때 툴팁으로 보인다.
     ///
-    /// 장비가 아닌 보상도 일러스트 경로가 있으면 같은 카드 구조를 사용한다.
+    /// 즉시 보상도 일러스트 경로가 있으면 같은 카드 구조를 사용한다.
     /// </summary>
     public class RewardScreen : ModalScreen
     {
@@ -88,7 +87,7 @@ namespace Managers.UI.Screens
                 return;
             }
 
-            // 장비 등 기존 단일 대상 보상은 기존 동작대로 필드 위 첫 아군을 사용한다.
+            // 대상 지정이 필요 없는 보상은 기존 동작대로 필드 위 첫 아군을 문맥 대상으로 사용한다.
             Unit target = GridManager.Instance?.heroList
                 ?.FirstOrDefault(hero => hero != null && hero.isActive && !hero.IsEnemy);
             GameManager.Instance?.rewardManager?.ApplyReward(reward, target);
@@ -184,46 +183,22 @@ namespace Managers.UI.Screens
             }
         }
 
-        /// <summary>
-        /// 장비의 스탯 보너스. 5스탯 색축을 그대로 입혀 어떤 스탯인지 색으로도 읽히게 한다.
-        /// </summary>
         private static List<Row> StatRows(RewardDef reward)
         {
             var rows = new List<Row>();
             if (reward == null) return rows;
 
-            if (reward.item?.statBonuses != null)
+            if (reward.item != null)
             {
-                foreach (EquipmentStatBonus bonus in reward.item.statBonuses)
-                {
-                    if (bonus == null || bonus.amount == 0) continue;
-
-                    bool isPrimary = bonus.TryGetPrimary(out BaseEnums.PrimaryStat stat);
-                    Color color = isPrimary ? UITheme.Stat(stat) : UITheme.TextPrimary;
-                    string label = isPrimary
-                        ? bonus.stat.ToUpperInvariant()
-                        : EquipmentStatKeys.DisplayName(bonus.stat);
-                    rows.Add(new Row(label,
-                        (bonus.amount > 0 ? "+" : "") + bonus.amount + EquipmentStatKeys.DisplaySuffix(bonus.stat),
-                        color));
-                }
-
+                if (reward.item.IsFood)
+                    rows.Add(new Row("공용 식량", $"+{reward.item.foodValue}", UITheme.Accent));
+                else if (reward.item.IsValuable)
+                    rows.Add(new Row("판매품", "공용 주머니", UITheme.Positive));
                 return rows;
             }
 
-            // 장비가 아닌 보상. RewardManager.ApplyReward의 우선순위와 Unit.AddRunBonus의
-            // 매핑을 그대로 따라간다 — 카드가 실제로 일어날 일만 약속하게 하려는 것이다.
-            if (reward.IsTonic && reward.TryGetTonicStat(out BaseEnums.PrimaryStat tonicStat))
-            {
-                // 합연산과 곱연산은 읽는 법이 다르다. 기호를 그대로 보여 줘야 둘을 헷갈리지 않는다.
-                string amount = reward.tonicMultiplier > 1f
-                    ? $"×{reward.tonicMultiplier:0.00}"
-                    : $"+{reward.tonicFlat}";
-                rows.Add(new Row($"파티 {tonicStat}", amount, UITheme.Stat(tonicStat)));
-                rows.Add(new Row("지속", $"{PartyTonicState.BattleDuration}전투", UITheme.TextSecondary));
-                return rows;
-            }
-
+            // 즉시 적용 보상. RewardManager.ApplyRewardEffect의 우선순위를 그대로 따라간다 —
+            // 카드가 실제로 일어날 일만 약속하게 하려는 것이다.
             if (reward.fullHealParty)
             {
                 rows.Add(new Row("파티 전체", "완전 회복", UITheme.Hp));
@@ -272,137 +247,27 @@ namespace Managers.UI.Screens
                 return rows;
             }
 
-            // 남은 것은 전부 5스탯 강화로 들어간다(Unit.AddRunBonus 참조).
-            void AddStat(BaseEnums.PrimaryStat stat, int amount)
-            {
-                if (amount == 0) return;
-                rows.Add(new Row(stat.ToString(), (amount > 0 ? "+" : "") + amount, UITheme.Stat(stat)));
-            }
-
-            AddStat(BaseEnums.PrimaryStat.STR, reward.atkBonus + reward.defBonus);
-            AddStat(BaseEnums.PrimaryStat.DEX, Mathf.RoundToInt(reward.codeAccelerationBonus * 20f));
-            AddStat(BaseEnums.PrimaryStat.CON, reward.hpBonus);
-            AddStat(BaseEnums.PrimaryStat.INT, reward.intBonus);
-            AddStat(BaseEnums.PrimaryStat.LUK, Mathf.RoundToInt(reward.critChanceBonus));
             return rows;
         }
 
-        /// <summary>장비의 제원. 스탯과 달리 "쓸 수 있는가"를 판단하는 값들이다.</summary>
         private static List<Row> SpecRows(RewardDef reward)
         {
             var rows = new List<Row>();
             ItemData item = reward?.item;
             if (item == null) return rows;
 
-            rows.Add(new Row("중량", Mathf.Max(0, item.weight).ToString(), UITheme.TextPrimary));
-
-            if (item.durability > 0)
-            {
-                // 내구는 받는 피해에서 고정으로 깎아내는 양이다. 벌점이 아니라 이득이다.
-                rows.Add(new Row("받는 피해", "-" + item.durability, UITheme.Shield));
-            }
-
-            if (item.RequiredProficiency != EquipmentProficiency.None)
-            {
-                // 누가 효과를 받는지가 고를지 말지를 가른다. 숙련이 없으면 중량만 진다.
-                // 행 수가 카드 높이에 묶여 있어 같은 줄에 보유자를 붙인다.
-                var holders = GridManager.Instance?.heroList?
-                    .Where(unit => unit != null && unit.isActive && !unit.IsEnemy &&
-                                   unit.HasProficiency(item.RequiredProficiency))
-                    .Select(unit => unit.UnitName)
-                    .Distinct()
-                    .ToList() ?? new List<string>();
-                string proficiency = ItemTooltip.ProficiencyName(item.RequiredProficiency);
-                rows.Add(new Row("요구 숙련",
-                    holders.Count > 0 ? $"{proficiency} · {string.Join(", ", holders)}" : $"{proficiency} · 보유자 없음",
-                    holders.Count > 0 ? UITheme.TextPrimary : UITheme.Danger));
-            }
-
-            // 부여 코드가 이 장비를 고를 가장 큰 이유다. 양손 여부보다 먼저 적는다.
-            if (item.codeGrants is { Count: > 0 } && rows.Count < MaxSpecRows)
-            {
-                // 개수만 적으면 무엇을 주는지 알 수 없다. 첫 코드의 이름을 싣는다(T3+는 하나뿐이다).
-                var grant = item.codeGrants[0];
-                string grantName = Codes.Base.CodeCatalog.Find(Codes.Base.CodeCatalog.ParseSlot(grant.slot), grant.codeId)?.verbalName;
-                rows.Add(new Row("부여 코드", string.IsNullOrWhiteSpace(grantName) ? item.codeGrants.Count + "개" : grantName, UITheme.Accent));
-            }
-
-            if (item.twoHanded && rows.Count < MaxSpecRows)
-            {
-                rows.Add(new Row("양손", "보조 슬롯 사용", UITheme.TextMuted));
-            }
+            rows.Add(new Row("보관", "파티 공용 인벤토리", UITheme.TextPrimary));
 
             return rows;
         }
 
-        /// <summary>
-        /// 장비를 고를 근거 세 줄 — 중량과 분류, 누가 제대로 쓸 수 있는가, 그 사람이 지금 그 부위에 무엇을 들었는가.
-        ///
-        /// 보상 카드는 그림이 커서 보기에는 좋았지만, 스탯 한 줄만 보고 골라야 했다(QA).
-        /// 이 장비가 파티에서 누구에게 가고 무엇을 대체하는지가 고르는 이유의 대부분이다.
-        /// </summary>
         private static string FitText(RewardDef reward)
         {
             ItemData item = reward?.item;
-            if (item == null || item.IsValuable) return "";
-
-            var lines = new List<string>();
-            string muted = Hex(UITheme.TextMuted);
-
-            string category = ItemTooltip.CategoryName(item.category);
-            string weight = $"중량 {Mathf.Max(0, item.weight)}";
-            lines.Add(string.IsNullOrEmpty(category)
-                ? $"<color=#{muted}>{weight}</color>"
-                : $"<color=#{muted}>{category} · {weight}</color>");
-
-            List<Unit> party = GridManager.Instance?.heroList?
-                .Where(unit => unit != null && unit.isActive && !unit.IsEnemy && !unit.IsSummon)
-                .GroupBy(unit => unit.ID).Select(group => group.First())
-                .ToList() ?? new List<Unit>();
-            List<Unit> holders = party.Where(unit => unit.CanUseEquipmentEffects(item)).ToList();
-
-            if (holders.Count == 0)
-            {
-                lines.Add($"<color=#{Hex(UITheme.Danger)}>숙련 보유자 없음 — 중량만 적용</color>");
-                return string.Join("\n", lines);
-            }
-
-            bool needsProficiency = item.RequiredProficiency != EquipmentProficiency.None;
-            string who = holders.Count <= 3
-                ? string.Join(", ", holders.Select(unit => unit.UnitName))
-                : $"{string.Join(", ", holders.Take(3).Select(unit => unit.UnitName))} 외 {holders.Count - 3}";
-            lines.Add(needsProficiency
-                ? $"<color=#{Hex(UITheme.Positive)}>숙련 보유</color>  {who}"
-                : $"<color=#{Hex(UITheme.Positive)}>누구나 착용</color>");
-
-            // 비교 대상 — 그 부위가 비어 있는 보유자가 있으면 그 사람, 없으면 첫 보유자.
-            Unit target = holders.FirstOrDefault(unit => EquippedIn(unit, item.slot) == null) ?? holders[0];
-            ItemData current = EquippedIn(target, item.slot);
-            string slot = ItemTooltip.SlotName(item.slot);
-            lines.Add(current == null
-                ? $"{target.UnitName} · {slot} <color=#{Hex(UITheme.Positive)}>비어 있음</color>"
-                : $"{target.UnitName} · {slot} <color=#{muted}>현재</color> {current.name} {StatShort(current)}");
-
-            return string.Join("\n", lines);
-        }
-
-        private static ItemData EquippedIn(Unit unit, string slot)
-        {
-            if (unit == null || string.IsNullOrWhiteSpace(slot)) return null;
-            return unit.EquippedItems.FirstOrDefault(equipped =>
-                equipped != null && string.Equals(equipped.slot, slot, StringComparison.OrdinalIgnoreCase));
-        }
-
-        /// <summary>장비 스탯 요약. 비교 줄에서 새 장비의 스탯과 나란히 읽히도록 짧게.</summary>
-        private static string StatShort(ItemData item)
-        {
-            if (item?.statBonuses == null) return "";
-            IEnumerable<string> parts = item.statBonuses
-                .Where(bonus => bonus != null && bonus.amount != 0)
-                .Select(bonus => $"{(bonus.TryGetPrimary(out _) ? bonus.stat.ToUpperInvariant() : EquipmentStatKeys.DisplayName(bonus.stat))} " +
-                                 $"{(bonus.amount > 0 ? "+" : "")}{bonus.amount}{EquipmentStatKeys.DisplaySuffix(bonus.stat)}");
-            string joined = string.Join(" ", parts);
-            return joined.Length == 0 ? "" : $"<color=#{Hex(UITheme.TextMuted)}>({joined})</color>";
+            if (item == null) return "";
+            return item.IsFood
+                ? $"긴 휴식 비용 {GameManager.LongRestFoodCost}에 보탠다."
+                : "획득 즉시 공용 인벤토리에 보관된다.";
         }
 
         private static string Hex(Color color) => ColorUtility.ToHtmlStringRGB(color);
@@ -413,7 +278,6 @@ namespace Managers.UI.Screens
             int tier = Mathf.Max(1, reward.tier);
             var parts = new List<string> { $"TIER {tier}" };
 
-            if (!string.IsNullOrWhiteSpace(reward.item?.slot)) parts.Add(ItemTooltip.SlotName(reward.item.slot));
             if (!string.IsNullOrWhiteSpace(reward.item?.category)) parts.Add(ItemTooltip.CategoryName(reward.item.category));
             if (reward.isRare) parts.Add("RARE");
 
@@ -426,11 +290,10 @@ namespace Managers.UI.Screens
             int tier = Mathf.Max(1, reward.tier);
             string english = reward.isRare ? $"TIER {tier} · RARE" : $"TIER {tier}";
 
-            string slot = string.IsNullOrWhiteSpace(reward.item?.slot) ? "" : ItemTooltip.SlotName(reward.item.slot);
             string category = string.IsNullOrWhiteSpace(reward.item?.category)
                 ? ""
                 : ItemTooltip.CategoryName(reward.item.category);
-            return ItemTooltip.SplitHead(english, slot, category);
+            return ItemTooltip.SplitHead(english, category);
         }
 
         private sealed class Card
@@ -486,7 +349,7 @@ namespace Managers.UI.Screens
                     _statValues[i] = RowValue(root, $"StatValue{i}", top, UITheme.FontHeading);
                 }
 
-                // 일러스트. 카드 가운데를 통째로 쓴다. 없으면(장비가 아닌 보상) 꺼지고
+                // 일러스트. 카드 가운데를 통째로 쓴다. 없으면 꺼지고
                 // 그 자리에 예전처럼 스탯 줄이 들어온다.
                 var artObject = new GameObject("Art", typeof(RectTransform), typeof(Image));
                 artObject.transform.SetParent(root, false);
@@ -500,7 +363,7 @@ namespace Managers.UI.Screens
                     TextAlignmentOptions.Center, wrap: true);
                 UIBuild.Anchor(_summary.rectTransform, new Vector2(0f, 0.365f), new Vector2(1f, 0.44f), 16f, 0f);
 
-                // 고를 근거 — 분류 · 중량, 숙련 보유자, 그 사람의 현재 장비. 요약과 선택 버튼 사이.
+                // 고를 근거 — 아이템은 식량 가치·가격, 즉시 보상은 적용 대상을 보여 준다.
                 _fit = UIBuild.Text("Fit", root, "", UITheme.FontCaption, UITheme.TextPrimary,
                     TextAlignmentOptions.TopLeft, wrap: true);
                 _fit.richText = true;
@@ -650,7 +513,7 @@ namespace Managers.UI.Screens
                 Fill(_statLabels, _statValues, stats);
                 Fill(_specLabels, _specValues, specs);
 
-                // 장비는 대개 스탯이 하나뿐이라 고정 자리에 두면 가운데가 텅 빈다.
+                // 아이템 설명 길이는 제각각이라 내용 높이에 맞춰 가운데를 채운다.
                 // 실제 줄 수만큼만 쓰고 SPEC 블록을 위로 끌어올린다.
                 float statsBottom = 0.70f - Mathf.Max(1, stats.Count) * 0.068f;
                 MoveRule(_specRule, statsBottom - 0.015f);
@@ -697,11 +560,6 @@ namespace Managers.UI.Screens
                 // 그림이 없는 카드에는 근거 블록이 없다. 비교는 툴팁으로라도 보이게 한다.
                 string fit = FitText(reward);
                 if (fit.Length > 0) lines.Add(UITooltip.Line.Note(fit, UITheme.TextPrimary));
-
-                if (reward.item?.twoHanded == true)
-                {
-                    lines.Add(UITooltip.Line.Note("두 손으로 든다 — 보조 슬롯을 함께 쓴다", UITheme.TextMuted));
-                }
 
                 return lines;
             }

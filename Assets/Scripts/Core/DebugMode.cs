@@ -96,12 +96,14 @@ namespace Core
         public static bool AnyOverrideActive
             => AllyInvincible || EnemyInvincible || ForcedThemeId > 0;
 
-        /// <summary>전투 배속. HUD의 배속 버튼과 같은 <c>Time.timeScale</c>을 쓴다.</summary>
+        /// <summary>전투 배속. HUD 버튼·F1 상태·배너가 같은 사용자 배속 상태를 쓴다.</summary>
         public static void SetTimeScale(float scale)
         {
             BeginSession();
-            Time.timeScale = Mathf.Clamp(scale, 0.1f, 20f);
-            Debug.Log($"[디버그] 배속 {Time.timeScale:0.##}배");
+            float displayedSpeed = Mathf.Clamp(scale, 0.25f, 20f);
+            if (!Managers.UI.HUD.BattleHud.TrySetSpeedMultiplier(displayedSpeed))
+                Time.timeScale = displayedSpeed;
+            Debug.Log($"[디버그] 배속 {displayedSpeed:0.##}배");
         }
 
         /// <summary>디버그로 켠 것을 모두 되돌린다.</summary>
@@ -110,7 +112,7 @@ namespace Core
             AllyInvincible = false;
             EnemyInvincible = false;
             ForcedThemeId = 0;
-            Time.timeScale = 1f;
+            if (!Managers.UI.HUD.BattleHud.TrySetSpeedMultiplier(1f)) Time.timeScale = 1f;
             Debug.Log("[디버그] 모든 강제 설정을 되돌렸다.");
         }
     }

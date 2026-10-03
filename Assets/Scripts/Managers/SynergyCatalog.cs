@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Core;
 
@@ -101,15 +101,13 @@ namespace Managers
         }
 
         /// <summary>
-        /// 지금 이 캐릭터를 실제로 편성할 수 있는가. 추천 목록에 회색으로 표시할지 판단한다.
-        /// Support 유형은 언제나 서포트 슬롯에 오를 수 있다.
+        /// 지금 이 캐릭터를 실제로 편성할 수 있는가(해금 여부). 추천 목록에 회색으로 표시할지 판단한다.
         /// </summary>
         public static bool IsAvailable(int unitId)
         {
-            SynergyUnitData unit = UnitOf(unitId);
-            if (unit == null) return false;
-            if (unit.type == "Support") return true;
-            return SaveSystem.IsStarterUnlocked(unitId) || SaveSystem.IsCharacterTrained(unitId);
+            if (UnitOf(unitId) == null) return false;
+            UnitData data = GameManager.Instance?.unitDataList?.units?.Find(u => u.id == unitId);
+            return CharacterSelectionManager.IsUnlocked(data);
         }
 
         public static string NameOf(int unitId) => UnitOf(unitId)?.name ?? $"#{unitId}";

@@ -1,355 +1,166 @@
-using System;
-using System.Linq;
+﻿using System;
 using BaseClasses;
+using Managers;
 using UnityEngine;
 
 namespace Entities
 {
     /// <summary>
-    /// 유닛의 스탯 모델: 5대 기본 스탯(base/성장/강화)과 파생 스탯 계산(GetBase*/GetDerived*)을 담당한다.
-    /// 장비/상태 보정과 성장 레벨은 소유자(Unit)를 통해 조회한다.
+    /// 유닛의 스탯 모델 — 여덟 스탯의 기초값 · 성장치와, 레벨을 반영한 <b>기초 스탯</b> 계산.
     ///
-    /// 명시적 공격력/방어력 스탯은 존재하지 않는다. 모든 전투 수치는 5스탯에서 파생된다.
-    ///   피해     = 스킬 위력 × 주스탯 × <see cref="SkillPowerScale"/>   (포켓몬식)
-    ///   최대체력 = CON × <see cref="HpPerConPoint"/>
-    ///   방어력   = STR × <see cref="DefensePerStrPoint"/>              (롤 방식 감쇠)
+    /// 2026-09 개편으로 5스탯 · 훈련 강화 · 주/부 스탯 배율을 모두 걷어냈다. 지금은 롤과 같다.
+    ///
+    ///   기초 스탯 = 기초값 + 성장치 × (레벨 − 1)
+    ///   최종 스탯 = 기초 스탯 × (1 + 퍼센트 보정 합) + 고정 보정 합       (체력 · 공격 · 방어 계열 · 속도)
+    ///   최종 스탯 = 기초 스탯 + 고정 보정 합                             (치명타 확률 · 치명타 피해)
+    ///
+    /// 상태 보정은 <see cref="Unit"/>이 모아 넘긴다. 여기에는 데이터와 레벨만 있다.
+    /// 공식의 원본은 <c>Detail_03 §2</c>다.
     /// </summary>
     [Serializable]
     public class UnitStats
     {
-        /// <summary>
-        /// 스킬 위력 1 × 주스탯 1이 만드는 피해량.
-        /// 전투 화력 전체를 조절하는 단일 손잡이다.
-        /// </summary>
-        public const float SkillPowerScale = 0.2f;
-
-        /// <summary>CON 1점이 만드는 최대 체력.</summary>
-        public const int HpPerConPoint = 100;
-
-        /// <summary>STR 1점이 만드는 방어력.</summary>
-        public const float DefensePerStrPoint = 1f;
+        public const int StatCount = 8;
 
         /// <summary>
-        /// 방어력 감쇠 기준값의 1레벨 값. 리그 오브 레전드의 100에 해당한다.
-        /// 받는 피해 배율 = 기준값 / (기준값 + 방어력).
+        /// 방어 경감 기준값의 1레벨 값. 받는 피해 배율 = 기준값 / (기준값 + 방어력).
+        /// 기준값은 <b>공격자</b>의 레벨로 정한다(원신식) — <see cref="ArmorConstant"/>.
         /// </summary>
         public const float ArmorConstantBase = 100f;
 
         /// <summary>
         /// 레벨 1당 기준값 증가분.
         ///
-        /// 롤과 달리 이 게임은 모든 스탯이 레벨에 선형 비례한다. 기준값을 100으로 고정하면
-        /// 방어력만 계속 커져 후반에 피해가 무한히 상쇄된다. 기준값을 함께 키워
-        /// **감소율이 레벨과 무관하게 일정**하도록 만든다.
+        /// 레벨에 끝이 없고(무한 모드) 스탯이 선형으로 자라므로, 기준값을 100으로 묶어 두면
+        /// 방어력만 계속 커져 경감률이 100%로 수렴한다 — 받는 피해는 멈추는데 체력은 계속 늘어
+        /// 고레벨 전투가 끝나지 않는다. 기준값도 방어력 성장과 같은 기울기로 키워
+        /// <b>같은 레벨끼리의 경감률이 레벨과 무관하게 일정</b>하도록 만든다.
+        /// 표준 성장(방어력 +4~6/Lv)에 맞춰 6을 준다.
         /// </summary>
-        public const float ArmorConstantPerLevel = 10f;
-
-        /// <summary>
-        /// 적은 아군의 훈련 강화가 없는 대신 Lv.41을 넘긴 뒤 얻는 레벨 성장분을 이 배율만큼 받는다.
-        /// 입문 구간의 기본 곡선과 기본 스탯, 장비·상태·강화 수치는 건드리지 않는다.
-        /// </summary>
-        public const int EnemyAcceleratedGrowthStartLevel = 42;
-        public const float EnemyAcceleratedGrowthMultiplier = 1.80f;
+        public const float ArmorConstantPerLevel = 6f;
 
         private Unit _owner;
 
-        // 기본 스탯 수치
-        [SerializeField] private int strBase;
-        [SerializeField] private int strIncrementLvl;
-        [SerializeField] private int strIncrementUpgrade;
-        [SerializeField] private int dexBase;
-        [SerializeField] private int dexIncrementLvl;
-        [SerializeField] private int dexIncrementUpgrade;
-        [SerializeField] private int conBase;
-        [SerializeField] private int conIncrementLvl;
-        [SerializeField] private int conIncrementUpgrade;
-        [SerializeField] private int intBase;
-        [SerializeField] private int intIncrementLvl;
-        [SerializeField] private int intIncrementUpgrade;
-        [SerializeField] private int lukBase;
-        [SerializeField] private int lukIncrementLvl;
-        [SerializeField] private int lukIncrementUpgrade;
-        [SerializeField] private float strLevelGrowthScale = 1f;
-        [SerializeField] private float dexLevelGrowthScale = 1f;
-        [SerializeField] private float conLevelGrowthScale = 1f;
-        [SerializeField] private float intLevelGrowthScale = 1f;
-        [SerializeField] private float lukLevelGrowthScale = 1f;
-
-        // 강화 횟수 (육성/보상)
-        [SerializeField] private int strUpgrade;
-        [SerializeField] private int dexUpgrade;
-        [SerializeField] private int conUpgrade;
-        [SerializeField] private int intUpgrade;
-        [SerializeField] private int lukUpgrade;
-
-        public int StrBase { get => strBase; set => strBase = value; }
-        public int StrIncrementLvl { get => strIncrementLvl; set => strIncrementLvl = value; }
-        public int StrIncrementUpgrade { get => strIncrementUpgrade; set => strIncrementUpgrade = value; }
-        public int DexBase { get => dexBase; set => dexBase = value; }
-        public int DexIncrementLvl { get => dexIncrementLvl; set => dexIncrementLvl = value; }
-        public int DexIncrementUpgrade { get => dexIncrementUpgrade; set => dexIncrementUpgrade = value; }
-        public int ConBase { get => conBase; set => conBase = value; }
-        public int ConIncrementLvl { get => conIncrementLvl; set => conIncrementLvl = value; }
-        public int ConIncrementUpgrade { get => conIncrementUpgrade; set => conIncrementUpgrade = value; }
-        public int IntBase { get => intBase; set => intBase = value; }
-        public int IntIncrementLvl { get => intIncrementLvl; set => intIncrementLvl = value; }
-        public int IntIncrementUpgrade { get => intIncrementUpgrade; set => intIncrementUpgrade = value; }
-        public int LukBase { get => lukBase; set => lukBase = value; }
-        public int LukIncrementLvl { get => lukIncrementLvl; set => lukIncrementLvl = value; }
-        public int LukIncrementUpgrade { get => lukIncrementUpgrade; set => lukIncrementUpgrade = value; }
-        public int StrUpgrade { get => strUpgrade; set => strUpgrade = value; }
-        public int DexUpgrade { get => dexUpgrade; set => dexUpgrade = value; }
-        public int ConUpgrade { get => conUpgrade; set => conUpgrade = value; }
-        public int IntUpgrade { get => intUpgrade; set => intUpgrade = value; }
-        public int LukUpgrade { get => lukUpgrade; set => lukUpgrade = value; }
+        // 레벨 1의 값과 레벨당 성장치. 인덱스는 BaseEnums.StatType 순서다.
+        [SerializeField] private float[] baseValues = new float[StatCount];
+        [SerializeField] private float[] growthValues = new float[StatCount];
 
         public void Initialize(Unit owner)
         {
             _owner = owner;
+            EnsureArrays();
         }
-
-        public void SetLevelGrowthScales(float str, float dex, float con, float intelligence, float luk)
-        {
-            strLevelGrowthScale = str > 0f ? str : 1f;
-            dexLevelGrowthScale = dex > 0f ? dex : 1f;
-            conLevelGrowthScale = con > 0f ? con : 1f;
-            intLevelGrowthScale = intelligence > 0f ? intelligence : 1f;
-            lukLevelGrowthScale = luk > 0f ? luk : 1f;
-        }
-
-        /// <summary>YAML 데이터에서 스탯 로드</summary>
-        public void Load(
-            int dataStrBase, int dataStrIncrementLvl, int dataStrIncrementUpgrade,
-            int dataDexBase, int dataDexIncrementLvl, int dataDexIncrementUpgrade,
-            int dataConBase, int dataConIncrementLvl, int dataConIncrementUpgrade,
-            int dataIntBase, int dataIntIncrementLvl, int dataIntIncrementUpgrade,
-            int dataLukBase, int dataLukIncrementLvl, int dataLukIncrementUpgrade)
-        {
-            bool hasPrimaryStats = dataStrBase != 0 || dataDexBase != 0 || dataConBase != 0 || dataIntBase != 0 || dataLukBase != 0;
-            if (!hasPrimaryStats)
-            {
-                Debug.LogError($"[UnitStats] {_owner?.UnitName}(ID {_owner?.ID}): 5대 기본 스탯이 모두 0입니다. YAML 데이터를 확인하세요.");
-            }
-
-            strBase = dataStrBase;
-            strIncrementLvl = dataStrIncrementLvl;
-            strIncrementUpgrade = dataStrIncrementUpgrade;
-            dexBase = dataDexBase;
-            dexIncrementLvl = dataDexIncrementLvl;
-            dexIncrementUpgrade = dataDexIncrementUpgrade;
-            conBase = dataConBase;
-            conIncrementLvl = dataConIncrementLvl;
-            conIncrementUpgrade = dataConIncrementUpgrade;
-            intBase = dataIntBase;
-            intIncrementLvl = dataIntIncrementLvl;
-            intIncrementUpgrade = dataIntIncrementUpgrade;
-            lukBase = dataLukBase;
-            lukIncrementLvl = dataLukIncrementLvl;
-            lukIncrementUpgrade = dataLukIncrementUpgrade;
-            SetLevelGrowthScales(1f, 1f, 1f, 1f, 1f);
-        }
-
-        /// <summary>지정한 5스탯의 강화 수치를 증가</summary>
-        public void AddUpgrade(BaseEnums.PrimaryStat stat, int amount)
-        {
-            switch (stat)
-            {
-                case BaseEnums.PrimaryStat.STR: strUpgrade += amount; break;
-                case BaseEnums.PrimaryStat.DEX: dexUpgrade += amount; break;
-                case BaseEnums.PrimaryStat.CON: conUpgrade += amount; break;
-                case BaseEnums.PrimaryStat.INT: intUpgrade += amount; break;
-                case BaseEnums.PrimaryStat.LUK: lukUpgrade += amount; break;
-            }
-        }
-
-        // ===== 성장/보정 =====
 
         /// <summary>
-        /// 성장 레벨. 아군·적 모두 <c>Level − 1</c>로 통일한다.
-        /// 즉 Level 1은 성장분 0이다. 적은 Lv.41 이후 성장분에 가속 배율을 적용한다.
-        /// 적의 Level은 현재 스테이지가, 아군의 Level은 누적 EXP가 결정한다.
+        /// 프리팹에 저장된 옛 직렬화 데이터(5스탯 시절)에는 이 배열이 없다. 유니티가 빈 배열로 되살리면
+        /// 인덱스 접근이 터지므로 길이를 맞춰 다시 만든다.
         /// </summary>
-        public int GetStatGrowthLevel()
+        private void EnsureArrays()
         {
-            return Mathf.Max(0, _owner.Level - 1);
+            if (baseValues == null || baseValues.Length != StatCount) baseValues = new float[StatCount];
+            if (growthValues == null || growthValues.Length != StatCount) growthValues = new float[StatCount];
         }
 
-        private int GetLevelGrowth(int incrementPerLevel, float scale = 1f)
+        /// <summary>YAML 데이터에서 여덟 스탯의 기초값과 성장치를 읽는다.</summary>
+        public void Load(CombatantData data)
         {
-            int growthLevel = GetStatGrowthLevel();
-            if (_owner == null || !_owner.IsEnemy)
-                return Mathf.RoundToInt(incrementPerLevel * growthLevel * scale);
+            if (data == null) return;
+            EnsureArrays();
 
-            int normalGrowthLevels = Mathf.Min(growthLevel, EnemyAcceleratedGrowthStartLevel - 2);
-            int acceleratedGrowthLevels = Mathf.Max(0, growthLevel - normalGrowthLevels);
-            return Mathf.RoundToInt(incrementPerLevel *
-                (normalGrowthLevels + acceleratedGrowthLevels * EnemyAcceleratedGrowthMultiplier) * scale);
-        }
-
-        /// <summary>캐릭터별 트레이닝 보너스. 주/부 스탯과 보너스율은 영웅 데이터가 결정한다.</summary>
-        private int ApplyCharacterStatBonus(BaseEnums.PrimaryStat stat, int rawValue)
-        {
-            return Mathf.Max(0, Mathf.RoundToInt(rawValue * GetCharacterStatMultiplier(stat)));
-        }
-
-        internal float GetCharacterStatMultiplier(BaseEnums.PrimaryStat stat)
-        {
-            float multiplier = 1f;
-            if (IsCharacterStatTag(_owner.MainStat, stat))
+            for (int i = 0; i < StatCount; i++)
             {
-                multiplier += _owner.MainStatTrainingBonus;
+                var stat = (BaseEnums.StatType)i;
+                baseValues[i] = data.BaseOf(stat);
+                growthValues[i] = data.GrowthOf(stat);
             }
-            if (_owner.SubStats.Any(statName => IsCharacterStatTag(statName, stat)))
-            {
-                multiplier += _owner.SubStatTrainingBonus;
-            }
-            return multiplier;
+
+            if (baseValues[(int)BaseEnums.StatType.MaxHp] <= 0f)
+                Debug.LogError($"[UnitStats] {_owner?.UnitName}(ID {_owner?.ID}): 최대 체력 기초값이 0입니다. YAML 데이터를 확인하세요.");
         }
 
-        private static bool IsCharacterStatTag(string statName, BaseEnums.PrimaryStat stat)
+        /// <summary>데이터 파일 없이 값을 직접 넣는다. 테스트용 유닛이 쓴다.</summary>
+        public void Set(BaseEnums.StatType stat, float baseValue, float growth = 0f)
         {
-            return !string.IsNullOrWhiteSpace(statName)
-                && Enum.TryParse(statName, true, out BaseEnums.PrimaryStat parsed)
-                && parsed == stat;
+            EnsureArrays();
+            baseValues[(int)stat] = baseValue;
+            growthValues[(int)stat] = growth;
         }
 
-        // ===== 5대 기본 스탯 최종값 =====
-
-        public int GetBasePrimaryStat(BaseEnums.PrimaryStat stat)
+        public float BaseValue(BaseEnums.StatType stat)
         {
-            return stat switch
-            {
-                BaseEnums.PrimaryStat.STR => GetBaseStr(),
-                BaseEnums.PrimaryStat.DEX => GetBaseDex(),
-                BaseEnums.PrimaryStat.CON => GetBaseCon(),
-                BaseEnums.PrimaryStat.INT => GetBaseInt(),
-                BaseEnums.PrimaryStat.LUK => GetBaseLuk(),
-                _ => 0,
-            };
+            EnsureArrays();
+            return baseValues[(int)stat];
         }
 
-        public int GetBaseStr()
+        public float Growth(BaseEnums.StatType stat)
         {
-            return _owner.ApplyEncumbranceStatMultiplier(BaseEnums.PrimaryStat.STR, GetUnburdenedBaseStr());
+            EnsureArrays();
+            return growthValues[(int)stat];
         }
-
-        /// <summary>휴대 한도 산정용 STR. 중량 페널티만 제외하고 성장·장비·상태 배율은 반영한다.</summary>
-        internal int GetUnburdenedBaseStr()
-        {
-            int raw = _owner.ApplyInitialPrimaryStatMultipliers(BaseEnums.PrimaryStat.STR, strBase)
-                + GetLevelGrowth(strIncrementLvl, strLevelGrowthScale) + strIncrementUpgrade * strUpgrade
-                + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.STR) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.STR)
-                + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.STR);
-            return _owner.ApplyStatusPrimaryStatMultipliers(BaseEnums.PrimaryStat.STR, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.STR, raw));
-        }
-
-        public int GetBaseDex()
-        {
-            return _owner.ApplyEncumbranceStatMultiplier(BaseEnums.PrimaryStat.DEX, GetUnburdenedBaseDex());
-        }
-
-        internal int GetUnburdenedBaseDex()
-        {
-            int raw = _owner.ApplyInitialPrimaryStatMultipliers(BaseEnums.PrimaryStat.DEX, dexBase)
-                + GetLevelGrowth(dexIncrementLvl, dexLevelGrowthScale) + dexIncrementUpgrade * dexUpgrade
-                + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.DEX) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.DEX)
-                + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.DEX);
-            return _owner.ApplyStatusPrimaryStatMultipliers(BaseEnums.PrimaryStat.DEX, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.DEX, raw));
-        }
-
-        public int GetBaseCon()
-        {
-            int raw = _owner.ApplyInitialPrimaryStatMultipliers(BaseEnums.PrimaryStat.CON, conBase)
-                + GetLevelGrowth(conIncrementLvl, conLevelGrowthScale) + conIncrementUpgrade * conUpgrade
-                + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.CON) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.CON)
-                + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.CON);
-            return _owner.ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.CON, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.CON, raw));
-        }
-
-        public int GetBaseInt()
-        {
-            int raw = _owner.ApplyInitialPrimaryStatMultipliers(BaseEnums.PrimaryStat.INT, intBase)
-                + GetLevelGrowth(intIncrementLvl, intLevelGrowthScale) + intIncrementUpgrade * intUpgrade
-                + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.INT) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.INT)
-                + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.INT);
-            return _owner.ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.INT, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.INT, raw));
-        }
-
-        public int GetBaseLuk()
-        {
-            int raw = _owner.ApplyInitialPrimaryStatMultipliers(BaseEnums.PrimaryStat.LUK, lukBase)
-                + GetLevelGrowth(lukIncrementLvl, lukLevelGrowthScale) + lukIncrementUpgrade * lukUpgrade
-                + _owner.GetEquipmentStatBonus(BaseEnums.PrimaryStat.LUK) + _owner.GetStatusPrimaryStatBonus(BaseEnums.PrimaryStat.LUK)
-                + _owner.GetPartyTonicStatBonus(BaseEnums.PrimaryStat.LUK);
-            return _owner.ApplyPrimaryStatMultipliers(BaseEnums.PrimaryStat.LUK, ApplyCharacterStatBonus(BaseEnums.PrimaryStat.LUK, raw));
-        }
-
-        /// <summary>성장(레벨+강화)으로 얻은 스탯 증가량만 반환</summary>
-        public int GetGrowthStatValue(BaseEnums.PrimaryStat stat)
-        {
-            return stat switch
-            {
-                BaseEnums.PrimaryStat.STR => GetLevelGrowth(strIncrementLvl, strLevelGrowthScale) + strIncrementUpgrade * strUpgrade,
-                BaseEnums.PrimaryStat.DEX => GetLevelGrowth(dexIncrementLvl, dexLevelGrowthScale) + dexIncrementUpgrade * dexUpgrade,
-                BaseEnums.PrimaryStat.CON => GetLevelGrowth(conIncrementLvl, conLevelGrowthScale) + conIncrementUpgrade * conUpgrade,
-                BaseEnums.PrimaryStat.INT => GetLevelGrowth(intIncrementLvl, intLevelGrowthScale) + intIncrementUpgrade * intUpgrade,
-                BaseEnums.PrimaryStat.LUK => GetLevelGrowth(lukIncrementLvl, lukLevelGrowthScale) + lukIncrementUpgrade * lukUpgrade,
-                _ => 0,
-            };
-        }
-
-        /// <summary>강화 수치를 제외하고 레벨로만 얻은 성장 스탯을 반환한다.</summary>
-        public int GetLevelGrowthStatValue(BaseEnums.PrimaryStat stat)
-        {
-            return stat switch
-            {
-                BaseEnums.PrimaryStat.STR => GetLevelGrowth(strIncrementLvl, strLevelGrowthScale),
-                BaseEnums.PrimaryStat.DEX => GetLevelGrowth(dexIncrementLvl, dexLevelGrowthScale),
-                BaseEnums.PrimaryStat.CON => GetLevelGrowth(conIncrementLvl, conLevelGrowthScale),
-                BaseEnums.PrimaryStat.INT => GetLevelGrowth(intIncrementLvl, intLevelGrowthScale),
-                BaseEnums.PrimaryStat.LUK => GetLevelGrowth(lukIncrementLvl, lukLevelGrowthScale),
-                _ => 0,
-            };
-        }
-
-        // ===== 파생 스탯 =====
-
-        public int GetDerivedHp() => Mathf.Max(1, GetBaseCon() * HpPerConPoint);
-
-        /// <summary>방어력. STR에서 파생된다.</summary>
-        public int GetDerivedDef()
-            => Mathf.Max(0, Mathf.RoundToInt(GetBaseStr() * DefensePerStrPoint));
-
-        /// <summary>이 유닛의 레벨에 대응하는 방어력 감쇠 기준값.</summary>
-        public float GetArmorConstant()
-            => ArmorConstantBase + ArmorConstantPerLevel * Mathf.Max(0, _owner.Level - 1);
 
         /// <summary>
-        /// 포켓몬식 피해 산출: 스킬이 가진 고정 위력에 시전자의 지정 스탯을 곱한다.
-        /// 방어력이 없으므로 이 값이 곧 기본 피해량이며, 이후 치명타·피해 보정만 곱해진다.
+        /// 레벨을 반영한 기초 스탯. 상태 보정 전이다.
+        /// Level 1이 성장분 0이다. 적의 Level은 스테이지가, 아군의 Level은 누적 EXP가 정한다.
         /// </summary>
-        public int GetSkillDamage(int skillPower, BaseEnums.PrimaryStat stat)
-            => Mathf.Max(1, Mathf.RoundToInt(
-                Mathf.Max(0, skillPower) * Mathf.Max(0, GetBasePrimaryStat(stat)) * SkillPowerScale));
+        public float LeveledBase(BaseEnums.StatType stat)
+        {
+            EnsureArrays();
+            int growthLevels = Mathf.Max(0, (_owner != null ? _owner.Level : 1) - 1);
+            return baseValues[(int)stat] + growthValues[(int)stat] * growthLevels;
+        }
 
-        // 최종 명중 확률은 Unit.AttributesUpdate에서 0~100%로 제한한다.
-        // 여기서는 학자처럼 초과분을 사용하는 효과를 위해 원시 확률을 보존한다.
-        public float GetDerivedCritChance() => Mathf.Max(0f, GetBaseLuk() * 0.01f);
+        /// <summary>퍼센트 보정을 받는 스탯인가. 치명타 두 스탯은 이미 비율이라 가산만 받는다.</summary>
+        public static bool IsPercentScalable(BaseEnums.StatType stat)
+            => stat != BaseEnums.StatType.CritRate && stat != BaseEnums.StatType.CritDamage;
 
-        public float GetDerivedCritDamage() => 1.5f;
+        /// <summary>
+        /// 이 레벨의 공격자가 쓰는 방어 경감 기준값.
+        /// 방어력 · 특수방어력 경감에 모두 쓴다.
+        /// </summary>
+        public static float ArmorConstant(int attackerLevel)
+            => ArmorConstantBase + ArmorConstantPerLevel * Mathf.Max(0, attackerLevel - 1);
 
-        public float GetDerivedCodeAcceleration() => 1f;
+        /// <summary>
+        /// 받는 피해 배율 = 기준값 / (기준값 + 방어력). 방어력이 음수면 대칭적으로 피해가 증폭된다.
+        /// </summary>
+        public static float MitigationMultiplier(float defense, float armorConstant)
+        {
+            armorConstant = Mathf.Max(1f, armorConstant);
+            return defense >= 0f
+                ? armorConstant / (armorConstant + defense)
+                : 2f - armorConstant / (armorConstant - defense);
+        }
 
-        public float GetDerivedActionSpeed() => 1f + Mathf.Max(0, GetBaseDex()) * 0.01f;
+        /// <summary>UI 표기용 이름.</summary>
+        public static string DisplayName(BaseEnums.StatType stat) => stat switch
+        {
+            BaseEnums.StatType.MaxHp => "최대 체력",
+            BaseEnums.StatType.Attack => "공격력",
+            BaseEnums.StatType.SpecialAttack => "특수공격력",
+            BaseEnums.StatType.Defense => "방어력",
+            BaseEnums.StatType.SpecialDefense => "특수방어력",
+            BaseEnums.StatType.Speed => "속도",
+            BaseEnums.StatType.CritRate => "치명타 확률",
+            BaseEnums.StatType.CritDamage => "치명타 피해",
+            _ => stat.ToString(),
+        };
 
-        public float GetDerivedEvasionChance() => 0f;
+        /// <summary>짧은 표기(카드 · 표 머리). 두 글자 안쪽으로 맞춘다.</summary>
+        public static string ShortName(BaseEnums.StatType stat) => stat switch
+        {
+            BaseEnums.StatType.MaxHp => "체력",
+            BaseEnums.StatType.Attack => "공격",
+            BaseEnums.StatType.SpecialAttack => "특공",
+            BaseEnums.StatType.Defense => "방어",
+            BaseEnums.StatType.SpecialDefense => "특방",
+            BaseEnums.StatType.Speed => "속도",
+            BaseEnums.StatType.CritRate => "치확",
+            BaseEnums.StatType.CritDamage => "치피",
+            _ => stat.ToString(),
+        };
 
-        public float GetDerivedHealingBonus() => Mathf.Clamp(Mathf.Max(0, GetBaseCon() - 10) * 0.01f, 0f, 2f);
-
-        public float GetDerivedShieldBonus() => Mathf.Clamp(Mathf.Max(0, GetBaseCon() - 10) * 0.01f, 0f, 2f);
-
-        public float GetDerivedManaEfficiency() => 1f + Mathf.Max(0, GetBaseInt()) * 0.02f;
-
-        public float GetDerivedCodeActivationChance() => 1f;
+        /// <summary>값을 사람이 읽는 형태로. 치명타 두 스탯은 퍼센트로 적는다.</summary>
+        public static string Format(BaseEnums.StatType stat, float value)
+            => IsPercentScalable(stat) ? Mathf.RoundToInt(value).ToString() : $"{value * 100f:0.#}%";
     }
 }

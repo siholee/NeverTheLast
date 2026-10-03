@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Entities;
-using UnityEngine;
 
 namespace BaseClasses
 {
@@ -20,7 +19,6 @@ namespace BaseClasses
     public Unit Caster;
   }
 
-  /// <summary>특수행동(SP) 코드의 생성 인자. 인드라의 궁극기만이 이 행동을 부른다.</summary>
   public class SpecialCodeContext
   {
     public Unit Caster;
@@ -28,50 +26,29 @@ namespace BaseClasses
 
   public class DamageContext
   {
-    private readonly HashSet<EntityId> _visualizedTargetIds = new();
-
     public readonly Unit Attacker;
     public readonly int Damage;
     public bool IsCrit;
     public BaseEnums.CodeType CodeType;
     public List<int> DamageTags;
-    public readonly int Penetration;
-    /// <summary>내구 고정 경감 중 무시할 양. 전부 무시는 DurabilityPenetration 태그를 사용한다.</summary>
-    public readonly int DurabilityPenetration;
-    /// <summary>이 공격을 준비하며 시전자가 실제로 소비한 최대 체력 비율.</summary>
-    public float SelfHpSpentRatio;
-    /// <summary>공격 자체가 제공하는 추가 피해 배율. 패시브 효과들과 곱연산된다.</summary>
+    /// <summary>공격 자체가 제공하는 추가 피해 배율. 효과들의 배율과 곱해진다.</summary>
     public float OutgoingDamageMultiplier = 1f;
-    public float DefenseStatMultiplier;
+    /// <summary>대상 방어 스탯을 얼마만큼만 인정하는가(1 = 그대로, 0 = 완전 무시).</summary>
+    public float DefenseStatMultiplier = 1f;
     public bool IsCancelled;
-    /// <summary>방어막과 체력에서 실제로 감소한 피해량. 피해 처리 후 이벤트가 읽는다.</summary>
+    /// <summary>보호막과 체력에서 실제로 감소한 피해량. 피해 처리 후 이벤트가 읽는다.</summary>
     public int ResolvedDamage { get; internal set; }
-    /// <summary>내구가 이 타격의 최종 피해를 전부 흡수했는지.</summary>
-    public bool DurabilityFullyAbsorbed { get; internal set; }
 
-    /// <summary>
-    /// 같은 피해 컨텍스트가 광역 대상에 재사용되더라도 대상별 타격 VFX는 한 번씩 재생한다.
-    /// 공격 코드가 피해 적용보다 먼저 연출을 시작한 경우 Unit.TakeDamage의 자동 연출과
-    /// 중복되지 않게 하는 표식이기도 하다.
-    /// </summary>
-    public bool TryMarkImpactVfx(Unit target)
-    {
-      return target != null && _visualizedTargetIds.Add(target.GetEntityId());
-    }
-
-    public DamageContext(Unit attacker, int damage, BaseEnums.CodeType codeType, List<int> damageTags,
-      bool isCrit = false, int penetration = 0, int durabilityPenetration = 0)
+    public DamageContext(Unit attacker, int damage, BaseEnums.CodeType codeType, List<int> damageTags, bool isCrit = false)
     {
       Attacker = attacker;
       Damage = damage;
       IsCrit = isCrit;
       CodeType = codeType;
-      DamageTags = damageTags;
-      Penetration = penetration;
-      DurabilityPenetration = System.Math.Max(0, durabilityPenetration);
-      DefenseStatMultiplier = 1f;
-      IsCancelled = false;
+      DamageTags = damageTags ?? new List<int>();
     }
+
+    public bool HasTag(int tag) => DamageTags != null && DamageTags.Contains(tag);
   }
 
   public class DamageResolvedContext
@@ -96,7 +73,7 @@ namespace BaseClasses
     public readonly Unit Grantor;
     public readonly DamageContext DmgCtx;
     public readonly float FloatParam;
-    
+
     public EventContext(Unit grantee, Unit grantor = null, DamageContext dmgCtx = null, float floatParam = 0f)
     {
       Grantee = grantee;

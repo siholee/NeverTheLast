@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
@@ -13,7 +13,7 @@ namespace Managers
     /// 시간 축은 초가 아니라 <b>행동 카운트</b>다. 벽시계는 연출(투사체 비행·시전 모션)에만 쓴다.
     ///
     /// 행동치(AV) — 붕괴: 스타레일 방식이되 이산적으로 굴린다.
-    ///   속도 = 100 × ActionSpeedCurr   (ActionSpeedCurr = 1 + 최종 DEX × 0.01)
+    ///   속도 = 유닛의 속도 스탯        (기본 100)
     ///   AV   = 10000 / 속도            (작을수록 먼저 행동)
     /// 시간을 흘려보내지 않고 <b>다음 행동자에게 필요한 만큼만 전원의 AV를 한 번에 깎는다.</b>
     /// 그래서 프레임 수·연출 길이가 순서에 영향을 주지 않는다.
@@ -25,7 +25,6 @@ namespace Managers
     ///
     /// <b>궁극기는 턴을 쓰지 않는다.</b> 자원이 차는 즉시 누구의 턴이든 상관없이 줄을 서고,
     /// 발동해도 AV가 리셋되지 않아 원래 예정된 일반행동 차례는 그대로 남는다.
-    /// 행동 횟수가 적은 저DEX·고INT 유닛도 궁극기로 화력을 낼 수 있게 하기 위한 구조다.
     ///
     /// 중복 방지 — 같은 (유닛 + 종류 + 이름) 조합은 큐에 하나만 존재한다.
     /// 추가행동이 여러 번 겹쳐 터지거나, 한 턴에 본 행동이 두 번 잡히지 않는다.
@@ -35,17 +34,7 @@ namespace Managers
         /// <summary>AV 산출의 분자. 스타레일과 동일하게 10000을 쓴다.</summary>
         public const float BaseActionValue = 10000f;
 
-        /// <summary>속도 100 = DEX 0 기준. DEX 1당 속도 1이 오른다.</summary>
-        public const float SpeedScale = 100f;
-
-        /// <summary>
-        /// AV → 초 환산 상수. AV 40이 전투 시간 1초다.
-        ///
-        /// 실시간 모델이던 시절의 초당 AV 감소량을 그대로 환산 계수로 쓴다.
-        /// 속도 100(DEX 0)이면 AV 100 → 2.5초마다 행동한다는 감각이 유지된다.
-        /// <b>남은 용도는 궁극기 자원 충전 하나뿐이다.</b> 지속시간·주기·내부 쿨다운은
-        /// 전부 <see cref="Unit.TurnCount"/> 축으로 옮겼다.
-        /// </summary>
+        /// <summary>AV → 전투 시간(초) 환산. 로그 · 통계에만 쓴다 — 판정은 턴으로만 흐른다.</summary>
         public const float ActionValuePerSecond = 40f;
 
         /// <summary>
@@ -70,12 +59,6 @@ namespace Managers
             /// <summary>패시브가 부른 추가행동. 같은 턴의 다른 행동보다 먼저 나간다.</summary>
             PriorityAdditional = 0,
 
-            /// <summary>
-            /// 특수행동. 인드라의 궁극기만이 부르며, 열리는 즉시 나가야 하므로 추가행동보다 앞이다.
-            /// 턴을 쓰지 않는 것은 추가행동과 같지만 <b>판정은 별개</b>다.
-            /// </summary>
-            Special = 1,
-
             /// <summary>추가행동. 턴을 쓰지 않는다.</summary>
             Additional = 2,
 
@@ -84,17 +67,19 @@ namespace Managers
             ///
             /// <b>추가행동과 판정을 나눈 이유는 트리거다.</b> <c>OnAdditionalActivates</c>를 듣는 코드가
             /// 이미 여럿인데, 협공이 그것들을 전부 켜면 듀오 하나 때문에 다른 코드의 균형이 흔들린다.
-            /// 특수행동이 성질은 추가행동과 같으면서 판정을 따로 가진 것과 같은 이유다.
             ///
             /// 자기를 부른 일반행동 <b>바로 뒤에</b> 붙어야 하므로 추가행동보다 뒤, 궁극기보다 앞이다.
             /// </summary>
             Coordinated = 3,
 
+            /// <summary>특정 트리거가 여는 고유 SP. 턴과 AV를 쓰지 않으며 추가행동으로 세지 않는다.</summary>
+            Special = 4,
+
             /// <summary>궁극기. 턴을 쓰지 않고 AV도 리셋하지 않는다.</summary>
-            Ultimate = 4,
+            Ultimate = 5,
 
             /// <summary>일반행동 — 또는 그 자리를 대신 쓰는 <b>대체행동</b>. 턴을 쓴다.</summary>
-            Normal = 5,
+            Normal = 6,
         }
 
         /// <summary>
@@ -102,6 +87,9 @@ namespace Managers
         /// 전투 로그와 행동 시작에 반응하는 패시브가 듣는다. 같은 행동을 다시 예약하는 재진입은 금지한다.
         /// </summary>
         public static event Action<Unit, ActionKind, string> AnyActionStarted;
+
+        /// <summary>행동치 조작을 행동서열이 작은 표식과 보간 이동으로 설명할 때 쓴다.</summary>
+        public static event Action<Unit, bool> AnyActionOrderAdjusted;
 
         /// <summary>턴을 쓰지 않는 추가행동 계열인가. 우선 추가행동도 성질은 같다.</summary>
         public static bool IsAdditional(ActionKind kind)
@@ -115,6 +103,7 @@ namespace Managers
             public string Key;
             public string Label;
             public Action Run;
+            public Func<bool> CanRun;
             public int Sequence;   // 같은 우선순위 안에서는 먼저 예약된 것이 먼저다
         }
 
@@ -123,6 +112,10 @@ namespace Managers
         {
             public Unit Unit;
             public bool IsUltimate;
+            public ActionKind Kind;
+            public string Label;
+            public string StableKey;
+            public bool IsQueued;
 
             /// <summary>
             /// 지금부터 몇 번째 행동인지. 0이면 바로 다음이다.
@@ -157,6 +150,7 @@ namespace Managers
         private Unit _acting;
         private float _actingElapsed;
         private int _sequence;
+        private int _actionIdSequence;
         private int _currentActionId = -1;
         public ActionKind ActingKind { get; private set; }
         private Unit _executingUnit;
@@ -193,6 +187,8 @@ namespace Managers
 
         public void BeginRound()
         {
+            Combat.SpecialAction.Reset();
+            Combat.AttackTargetRouter.ResetRound();
             _actionValues.Clear();
             _turnCounts.Clear();
             _lapCredit.Clear();
@@ -201,6 +197,7 @@ namespace Managers
             TurnOwner = null;
             _actingElapsed = 0f;
             _currentActionId = -1;
+            _actionIdSequence = 0;
             ActionCount = 0;
             TurnsTaken = 0;
             CombatSecondsElapsed = 0f;
@@ -254,12 +251,11 @@ namespace Managers
 
         public void EndRound()
         {
-            _acting?.ActiveSpecialCode?.StopCode();
+            Combat.SpecialAction.Reset();
             _actionValues.Clear();
             _turnCounts.Clear();
             _lapCredit.Clear();
             ClearQueue();
-            Combat.SpecialAction.Reset();
             _acting = null;
             _currentActionId = -1;
             TurnOwner = null;
@@ -267,8 +263,6 @@ namespace Managers
 
         private void ClearQueue()
         {
-            foreach (var pending in _queue)
-                if (pending.Kind == ActionKind.Special) Combat.SpecialAction.NotifyResolved(pending.Unit);
             _queue.Clear();
             _queuedKeys.Clear();
         }
@@ -277,12 +271,8 @@ namespace Managers
         // AV
         // ══════════════════════════════════════════════════════════
 
-        /// <summary>속도(스탯). DEX가 오르면 그대로 올라간다.</summary>
-        public static float SpeedOf(Unit unit)
-        {
-            // 독립 공격속도 스탯은 없으며 ActionSpeedCurr는 최종 DEX에서만 파생된다.
-            return Mathf.Max(1f, SpeedScale * unit.ActionSpeedCurr);
-        }
+        /// <summary>속도 스탯. 행동값 = 10000 ÷ 속도.</summary>
+        public static float SpeedOf(Unit unit) => Mathf.Max(1f, unit.SpeedCurr);
 
         /// <summary>이 유닛이 한 번 행동하는 데 필요한 AV.</summary>
         public static float FullActionValue(Unit unit) => BaseActionValue / SpeedOf(unit);
@@ -309,6 +299,7 @@ namespace Managers
             if (!_actionValues.TryGetValue(unit, out float remaining)) return;
             _actionValues[unit] = Mathf.Max(0f, remaining - FullActionValue(unit) * ratio);
             _lapCredit[unit] = _lapCredit.GetValueOrDefault(unit) + ratio;
+            AnyActionOrderAdjusted?.Invoke(unit, true);
         }
 
         /// <summary>
@@ -322,6 +313,7 @@ namespace Managers
             if (!_actionValues.TryGetValue(unit, out float remaining)) return;
             float full = FullActionValue(unit);
             _actionValues[unit] = Mathf.Min(full, remaining + full * ratio);
+            AnyActionOrderAdjusted?.Invoke(unit, false);
         }
 
         /// <summary>궁극기가 큐에 올라가 있는지.</summary>
@@ -343,7 +335,12 @@ namespace Managers
         /// <summary>조건을 만족한 패시브 발동을 예약한다. 모든 행동보다 먼저 실행된다.</summary>
         /// <summary>패시브가 부르는 추가행동. 같은 턴의 다른 행동보다 먼저 나간다.</summary>
         public bool EnqueuePriorityAdditional(Unit unit, string key, string label, Action run)
-            => Enqueue(unit, ActionKind.PriorityAdditional, key, label, run);
+            => Enqueue(unit, ActionKind.PriorityAdditional, key, label, run, null);
+
+        /// <summary>실행 직전 조건이 깨지면 공지·이벤트 없이 버리는 우선 추가행동.</summary>
+        public bool EnqueuePriorityAdditional(Unit unit, string key, string label, Action run,
+            Func<bool> canRun)
+            => Enqueue(unit, ActionKind.PriorityAdditional, key, label, run, canRun);
 
         /// <summary>
         /// 협동행동을 예약한다. 짝의 행동에 끼어들어 함께 치는 자리다.
@@ -352,14 +349,16 @@ namespace Managers
         public bool EnqueueCoordinated(Unit unit, string key, string label, Action run)
             => Enqueue(unit, ActionKind.Coordinated, key, label, run);
 
-        /// <summary>
-        /// 특수행동을 예약한다. <b>인드라의 궁극기만이</b> 이 문을 연다.
-        /// 열린 순간 전원이 함께 나가야 하므로 추가행동보다 앞 순위다.
-        /// </summary>
+        /// <summary>특정 트리거가 연 SP를 예약한다. 추가행동 판정과 이벤트를 공유하지 않는다.</summary>
         public bool EnqueueSpecial(Unit unit, string key, string label, Action run)
             => Enqueue(unit, ActionKind.Special, key, label, run);
 
-        private bool Enqueue(Unit unit, ActionKind kind, string key, string label, Action run)
+        /// <summary>실행 직전 처치각·대상이 사라지면 공지 없이 버리는 특수행동.</summary>
+        public bool EnqueueSpecial(Unit unit, string key, string label, Action run, Func<bool> canRun)
+            => Enqueue(unit, ActionKind.Special, key, label, run, canRun);
+
+        private bool Enqueue(Unit unit, ActionKind kind, string key, string label, Action run,
+            Func<bool> canRun = null)
         {
             if (unit == null || run == null) return false;
             if (!unit.isActive) return false;
@@ -374,6 +373,7 @@ namespace Managers
                 Key = fullKey,
                 Label = label,
                 Run = run,
+                CanRun = canRun,
                 Sequence = _sequence++,
             });
             return true;
@@ -400,7 +400,6 @@ namespace Managers
                 {
                     Debug.LogWarning($"[ActionScheduler] {_acting.UnitName}의 행동이 {ActionWatchdogSeconds}초를 넘겨 강제 종료합니다.");
                     _acting.isCasting = false;
-                    _acting.ActiveSpecialCode?.StopCode();
                 }
 
                 _acting = null;
@@ -473,7 +472,6 @@ namespace Managers
 
             if (_acting != null && !_acting.isActive)
             {
-                _acting.ActiveSpecialCode?.StopCode();
                 _acting = null;
                 _currentActionId = -1;
             }
@@ -493,14 +491,15 @@ namespace Managers
                 _queue.Remove(next);
                 _queuedKeys.Remove(next.Key);
 
-                if (next.Unit == null || !next.Unit.isActive || next.Unit.isControlled)
+                if (next.Unit == null || !next.Unit.isActive || next.Unit.isControlled ||
+                    (next.CanRun != null && !next.CanRun()))
                 {
                     if (next.Kind == ActionKind.Special) Combat.SpecialAction.NotifyResolved(next.Unit);
                     continue;
                 }
 
                 _actingElapsed = 0f;
-                _currentActionId = ActionCount + 1;
+                _currentActionId = ++_actionIdSequence;
                 ActingKind = next.Kind;
                 _executingUnit = next.Unit;
 
@@ -512,22 +511,20 @@ namespace Managers
                     next.Unit.Invoke(BaseEnums.UnitEventType.OnAdditionalActivates,
                         new EventContext(next.Unit));
                 }
-                else if (next.Kind == ActionKind.Special)
-                {
-                    // 추가행동 카운터에는 잡히지 않아야 하므로 전용 신호를 따로 낸다.
-                    next.Unit.Invoke(BaseEnums.UnitEventType.OnSpecialActivates,
-                        new EventContext(next.Unit));
-                }
                 else if (next.Kind == ActionKind.Coordinated)
                 {
                     next.Unit.Invoke(BaseEnums.UnitEventType.OnCoordinatedActivates,
                         new EventContext(next.Unit));
                 }
+                else if (next.Kind == ActionKind.Special)
+                {
+                    next.Unit.Invoke(BaseEnums.UnitEventType.OnSpecialActivates,
+                        new EventContext(next.Unit));
+                }
 
+                Combat.ActionAnnouncer.AnnounceScheduled(next.Unit, next.Kind, next.Label);
                 AnyActionStarted?.Invoke(next.Unit, next.Kind, next.Label);
                 next.Run();
-                if (next.Kind == ActionKind.Special && !next.Unit.isCasting)
-                    Combat.SpecialAction.NotifyResolved(next.Unit);
 
                 // 코드에 따라서는 코루틴 없이 즉시 끝난다(자원만 쌓는 궁극기, 즉발 추가행동 등).
                 // 그런 경우 isCasting이 서지 않으므로 붙잡지 않고 바로 다음으로 넘어간다.
@@ -539,6 +536,44 @@ namespace Managers
 
             return false;
         }
+
+        /// <summary>
+        /// 진행 중인 공격 코루틴 안에서 선제 추가행동을 끝까지 해결한다. 부모 행동의 실행 문맥은
+        /// 보존하고 자식에게 별도 행동 ID를 주어 반격 후속과 행동당 중복 판정이 섞이지 않게 한다.
+        /// </summary>
+        public System.Collections.IEnumerator RunPreAttackInterrupt(Unit unit, string label,
+            Func<System.Collections.IEnumerator> routineFactory)
+        {
+            if (unit == null || !unit.isActive || unit.isControlled || routineFactory == null) yield break;
+
+            int parentActionId = _currentActionId;
+            ActionKind parentKind = ActingKind;
+            Unit parentExecutingUnit = _executingUnit;
+
+            _currentActionId = ++_actionIdSequence;
+            ActingKind = ActionKind.PriorityAdditional;
+            _executingUnit = unit;
+            unit.Invoke(BaseEnums.UnitEventType.OnAdditionalActivates, new EventContext(unit));
+            // 선제 개입은 행동 슬롯을 추가행동으로 빌리지만, 좌측 표시는 실제 의미인 패시브로 고정한다.
+            Combat.ActionAnnouncer.Announce(unit, Combat.ActionAnnouncementKind.Passive, label);
+            AnyActionStarted?.Invoke(unit, ActionKind.PriorityAdditional, label);
+
+            System.Collections.IEnumerator routine = routineFactory();
+            if (routine != null) yield return routine;
+            ActionCount++;
+
+            _currentActionId = parentActionId;
+            ActingKind = parentKind;
+            _executingUnit = parentExecutingUnit;
+        }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary>멈춘 시각 검증 장면에서 예약 조건·공지까지 실제 경로로 한 건 실행한다.</summary>
+        public bool DebugRunNextQueued() => RunNextQueued();
+
+        public int DebugQueuedCount(ActionKind kind)
+            => _queue.Count(entry => entry.Kind == kind);
+#endif
 
         /// <summary>
         /// AV가 가장 적은 유닛에게 턴을 넘긴다.
@@ -564,10 +599,7 @@ namespace Managers
                 {
                     _actionValues[unit] = Mathf.Max(0f, _actionValues[unit] - lowest);
                 }
-                // 궁극기 자원은 행동 횟수가 아니라 흐른 전투 시간으로 찬다.
-                float combatSeconds = lowest / ActionValuePerSecond;
-                CombatSecondsElapsed += combatSeconds;
-                AccrueUltimateResources(combatSeconds);
+                CombatSecondsElapsed += lowest / ActionValuePerSecond;
             }
 
             // 행동을 소비했으므로 AV를 다시 채운다.
@@ -670,16 +702,6 @@ namespace Managers
             }
         }
 
-        /// <summary>흐른 전투 시간만큼 참가자 전원의 궁극기 자원을 채운다.</summary>
-        private void AccrueUltimateResources(float combatSeconds)
-        {
-            if (combatSeconds <= 0f) return;
-            foreach (Unit unit in _actionValues.Keys.ToList())
-            {
-                unit?.AccrueUltimateResource(combatSeconds);
-            }
-        }
-
         private static bool CanUseUltimate(Unit unit)
         {
             return unit != null
@@ -728,6 +750,10 @@ namespace Managers
                 {
                     Unit = entry.Unit,
                     IsUltimate = entry.Kind == ActionKind.Ultimate,
+                    Kind = entry.Kind,
+                    Label = entry.Label,
+                    StableKey = $"queued:{entry.Sequence}",
+                    IsQueued = true,
                     ActionsAhead = result.Count,
                 });
             }
@@ -741,6 +767,7 @@ namespace Managers
             var simCredit = simulated.Keys.ToDictionary(unit => unit, unit => _lapCredit.GetValueOrDefault(unit));
 
             float elapsed = 0f;
+            var occurrences = new Dictionary<Unit, int>();
             while (result.Count < count && simulated.Count > 0)
             {
                 Unit next = PickNext(simulated, simCounts, simCredit, out float lowest);
@@ -760,8 +787,13 @@ namespace Managers
                 {
                     Unit = next,
                     IsUltimate = false,
+                    Kind = ActionKind.Normal,
+                    Label = next.ActiveNormalCode?.CodeName,
+                    StableKey = $"normal:{next.GetEntityId()}:{occurrences.GetValueOrDefault(next)}",
+                    IsQueued = false,
                     ActionsAhead = result.Count,
                 });
+                occurrences[next] = occurrences.GetValueOrDefault(next) + 1;
             }
 
             return result;
