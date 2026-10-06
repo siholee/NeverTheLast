@@ -33,7 +33,7 @@ namespace Codes.Passive
                 description: "가벼운 열흔. 3중첩이 되면 하나의 해로운 효과로 폭발합니다.");
             // 공격 피격이 이미 표식 부여를 설명한다. 1~3중첩 모두 별도 상태광을 내지 않는다.
             mark.AffectedVfxPartId = StatusAffectedVfx.SuppressPartId;
-            target.AddStatus(mark);
+            if (!target.TryAddStatus(mark)) return;
 
             int stacks = target.ActiveStatuses.Count(status => status.Key == BlazeKey);
             if (stacks < 3) return;
@@ -47,6 +47,7 @@ namespace Codes.Passive
                 category: BaseEnums.StatusCategory.Negative,
                 description: "2턴 동안 받는 피해가 15% 증가합니다.");
             vulnerability.SkipEffectHitRoll = true;
+            vulnerability.SkipStatusResistanceRoll = true; // 명중한 세 표식의 파생 효과
             // 실제 상태는 먼저 붙이되, 부여광은 주 폭발이 끝난 뒤 수동으로 한 번만 재생한다.
             vulnerability.AffectedVfxPartId = StatusAffectedVfx.SuppressPartId;
             target.AddStatus(vulnerability);

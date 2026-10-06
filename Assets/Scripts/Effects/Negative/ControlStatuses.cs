@@ -53,10 +53,10 @@ namespace Effects.Negative
             => Mathf.Clamp(Mathf.RoundToInt(2f * ContestRatio(source, target)), 1, 3);
 
         /// <summary>빙결을 건다. 이미 얼어 있으면 남은 시간과 새 지속시간 중 긴 쪽을 남긴다.</summary>
-        public static bool ApplyFreeze(Unit target, Unit source, int turns)
+        public static bool ApplyFreeze(Unit target, Unit source, int turns, bool effectHitResolved = false)
         {
             return ApplyControl(target, source, turns, FrozenStatusId, FrozenKey, "빙결",
-                "행동할 수 없습니다. 피격과 대상 지정은 정상입니다.", false);
+                "행동할 수 없습니다. 피격과 대상 지정은 정상입니다.", false, effectHitResolved);
         }
 
         // ── 에어본 ────────────────────────────────────────────────
@@ -79,17 +79,17 @@ namespace Effects.Negative
             => Mathf.Clamp(Mathf.RoundToInt(ContestRatio(source, target)), 1, 2);
 
         /// <summary>기절을 건다. 빙결·에어본과 같은 계열이라 행동만 막는다.</summary>
-        public static bool ApplyStun(Unit target, Unit source)
+        public static bool ApplyStun(Unit target, Unit source, bool effectHitResolved = false)
         {
             return ApplyControl(target, source, StunTurns(source, target), StunStatusId, StunKey, "기절",
-                "행동할 수 없습니다. 피격과 대상 지정은 정상입니다.", false);
+                "행동할 수 없습니다. 피격과 대상 지정은 정상입니다.", false, effectHitResolved);
         }
         /// <summary>스탯 비교 없이 명시한 턴 수만큼 기절시킨다.</summary>
-        public static bool ApplyFixedStun(Unit target, Unit source, int turns)
+        public static bool ApplyFixedStun(Unit target, Unit source, int turns, bool effectHitResolved = false)
         {
             return ApplyControl(target, source, Mathf.Max(1, turns), StunStatusId, StunKey, "기절",
                 "행동할 수 없습니다. 피격과 대상 지정은 정상입니다.",
-                false);
+                false, effectHitResolved);
         }
 
         // ── 속박 ──────────────────────────────────────────────────
@@ -150,7 +150,7 @@ namespace Effects.Negative
 
         private static bool ApplyControl(
             Unit target, Unit source, int turns,
-            int statusId, string key, string name, string description, bool immune)
+            int statusId, string key, string name, string description, bool immune, bool effectHitResolved = false)
         {
             if (target == null || !target.isActive || turns <= 0) return false;
             if (immune)
@@ -161,6 +161,12 @@ namespace Effects.Negative
 
             int requested = turns;
             turns = DiminishedTurns(target, turns);
+            // 보유자 효과의 제어 지속 보정(정신력 -1턴 등). 걸리기로 한 제어는 최소 1턴 남긴다.
+            if (turns > 0)
+            {
+                int modifier = target.CombatEffects().Sum(effect => effect.ControlDurationModifier(target));
+                turns = Mathf.Max(1, turns + modifier);
+            }
             if (turns <= 0)
             {
                 Debug.Log($"[{name}] {target.UnitName} — 제어 분쇄로 무효 ({target.ControlAppliedCount}회차)");
@@ -171,7 +177,6 @@ namespace Effects.Negative
             if (existing != null)
             {
                 if (existing.RemainingTurns >= turns) return false;
-                target.RemoveStatusByKey(key);
             }
 
             var definition = new StatusDefinition
@@ -186,8 +191,10 @@ namespace Effects.Negative
                 IsBeneficial = false,
             };
             var status = new UnitStatus(definition, source, target);
+            status.SkipEffectHitRoll = effectHitResolved;
             status.AddEffect(new ActionLockEffect(turns, source));
             target.AddStatus(status);
+            if (!target.GetAllStatuses().Contains(status)) return false;
             RegisterControl(target);
             ControlApplied?.Invoke(source, target);
 

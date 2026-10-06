@@ -20,6 +20,12 @@ namespace Managers.UI.Core
         /// <summary>1배율일 때의 크기(UITheme의 타이포 상수).</summary>
         public float BaseSize;
 
+        /// <summary>
+        /// 자동 맞춤 하한을 따로 올릴 때의 기준 크기(1배율). 0이면 기본 규칙(기준의 82%, 하한 FontFloor)만 쓴다.
+        /// 파티 창 · 상점 · 공용 보급과 선택 판만 <see cref="KeepReadable"/>로 켠다 — 다른 화면의 글자는 바꾸지 않는다.
+        /// </summary>
+        public float MinimumBaseSize;
+
         private TMP_Text _label;
 
         static UIScaledText()
@@ -46,11 +52,29 @@ namespace Managers.UI.Core
 
             float max = BaseSize * UITheme.TextScale;
             float min = Mathf.Min(BaseSize, Mathf.Max(UITheme.FontFloor, BaseSize * 0.82f));
+            // 명시한 화면만 하한을 올린다. 설정의 글자 크기 배율도 함께 탄다(최대를 넘지는 않는다).
+            if (MinimumBaseSize > 0f) min = Mathf.Min(max, Mathf.Max(min, MinimumBaseSize * UITheme.TextScale));
 
             _label.enableAutoSizing = true;
             _label.fontSizeMax = max;
             _label.fontSizeMin = min;
             _label.fontSize = max;
+        }
+
+        /// <summary>
+        /// <paramref name="root"/> 아래에서 기준 22(<see cref="UITheme.FontReadSmall"/>) 이상으로 만든 글자에만
+        /// 가독 하한(<see cref="UITheme.FontReadFloor"/>)을 걸고 다시 잰다. 960×540에서 10.5px 밑으로 줄지 않고 말줄임 · 스크롤로 넘긴다.
+        /// 관리 화면이 다시 그린 뒤 부른다. 숨은 자식도 포함한다.
+        /// </summary>
+        public static void KeepReadable(Transform root)
+        {
+            if (root == null) return;
+            foreach (UIScaledText scaled in root.GetComponentsInChildren<UIScaledText>(true))
+            {
+                if (scaled.BaseSize < UITheme.FontReadSmall || Mathf.Approximately(scaled.MinimumBaseSize, UITheme.FontReadFloor)) continue;
+                scaled.MinimumBaseSize = UITheme.FontReadFloor;
+                scaled.Apply();
+            }
         }
 
         /// <summary>

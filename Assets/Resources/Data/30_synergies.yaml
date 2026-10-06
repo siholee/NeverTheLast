@@ -89,7 +89,7 @@ roles:
   - id: SPECIAL
     name: 특수행동
     description: >
-      인드라의 궁극기 <신들의 왕>만이 여는 행동. 필드의 로카팔라가 한꺼번에 나선다.
+      인드라의 초월기 <팔방의 소집>만이 여는 행동. 필드의 로카팔라가 순서대로 나선다(바유 → 바루나 → 쿠베라 → 인드라 → 야마 → 찬드라).
       추가행동과 판정이 다르며, 세울수록 인드라 궁극기 한 번의 값이 커진다.
 
 # 훈련 특기 — 서포트 카드의 specialtyTraining은 80% 확률로 그 캐릭터의 최고 스탯이 된다.
@@ -103,6 +103,7 @@ trainerCoverage:
 
 # ══════════════════════════════════════════════════════════════════════
 # 2. 유닛
+
 # ══════════════════════════════════════════════════════════════════════
 units:
   - id: 1
@@ -130,12 +131,12 @@ units:
     row: Rear
     roles: [DPS_ST, EXECUTE, EXTRA_ACT, ACT_ACCEL]
     supportValue: { combat: 1, training: 0 }
-      provides:
-        - { key: EXECUTE, text: "멸망의 시 — 아군 공격 후 멸참으로 끝낼 수 있는 적을 방어력·현재 체력만 보고 특수행동으로 정리" }
-        - { key: EXTRA_ACT, text: "멸참 — 일반·특성 멸참 처치 시 특수행동 멸참을 한 번 더 사용" }
-        - { key: MULTIHIT, text: "만종 — 멸참 3/6/9회째에 단일 추가 피해 또는 적 전체 분배 피해" }
+    provides:
+      - { key: EXECUTE, text: "멸망의 시 — 아군 공격 후 멸참으로 끝낼 수 있는 적을 방어력·현재 체력만 보고 특수행동으로 정리" }
+      - { key: EXTRA_ACT, text: "멸참 — 일반·특성 멸참 처치 시 특수행동 멸참을 한 번 더 사용" }
+      - { key: MULTIHIT, text: "만종 — 멸참 3/6/9회째에 단일 추가 피해 또는 적 전체 분배 피해" }
     wants: [AMP_DMG, SHIELD]
-      caution: "처형 예측은 보호막과 피해 증감을 보지 않는다. 재행동 멸참으로 처치해도 세 번째 멸참은 이어지지 않는다."
+    caution: "처형 예측은 보호막과 피해 증감을 보지 않는다. 재행동 멸참으로 처치해도 세 번째 멸참은 이어지지 않는다."
 
   - id: 3
     name: 사바흐
@@ -176,14 +177,13 @@ units:
     mainStat: MaxHp
     topStat: MaxHp
     row: Rear
-    roles: [BULWARK, HEAL, AMP_DMG, AMP_CRIT, DPS_AOE, SPECIAL]
+    roles: [BULWARK, HEAL, AMP_DMG, DPS_AOE, SPECIAL]
     supportValue: { combat: 4, training: 0 }
     provides:
       - { key: AMP_DMG, text: "소마 — 가장 공격력이 높은 아군에게 공격력 10% + 찬드라 최대 체력 10%" }
-      - { key: AMP_CRIT, text: "창야 — 로카팔라 특수행동 묶음 동안 아군 전체 치명타 확률 +25%" }
-      - { key: HEAL, text: "니샤카라/창야 — 월광 위기 회복과 광역 피해 기반 자가 회복" }
+      - { key: HEAL, text: "니샤카라 달빛 순환 — 아군 특수행동마다 찬드라 최대 체력 4% 회복 / 창야 — 광역 피해의 20%를 아군 전원에게 분배" }
     wants: [SPECIAL, SHIELD]
-    caution: "현 로스터에는 로카팔라 특수행동을 자연스럽게 여는 유닛이 없어 창야는 트리거가 추가되어야 발동한다."
+    caution: "창야는 인드라의 팔방의 소집이 열어야 나간다. 회복을 맡으므로 묶음의 맨 끝에 선다."
 
   - id: 44
     name: 히미코
@@ -234,7 +234,174 @@ units:
     wants: [TAUNT, EXTRA_ACT, AMP_DMG]
     caution: "경호는 견고 또는 반격 아군이 필요하다. 현 로스터에는 자연 반격 공격자가 없어 초월기 추가행동은 이후 반격 유닛과 조합할 때 열린다."
 
+  - id: 63
+    name: 인드라
+    type: Unlocked
+    element: Electro
+    mainStat: Attack
+    topStat: Attack
+    row: Rear
+    roles: [SPECIAL, AMP_DMG, DPS_AOE, ULT_BATTERY]
+    supportValue: { combat: 3, training: 0 }
+    provides:
+      - { key: SPECIAL, text: "팔방의 소집 — 로카팔라 묶음을 여는 유일한 수단" }
+      - { key: AMP_DMG, text: "데바의 왕 — 아군 전원의 특수행동 피해 +25%(출처 무관, 시의 재행동 포함)" }
+      - { key: DPS_AOE, text: "바즈라 — 적 전체 공격력 150%, 궁극기 판정도 받는다" }
+    wants: [DEF_SHRED, SPECIAL]
+    caution: "로카팔라 동료가 없으면 팔방의 소집은 바즈라 하나만 연다."
+
+  - id: 64
+    name: 바유
+    type: Unlocked
+    element: Anemo
+    mainStat: SpecialAttack
+    topStat: SpecialAttack
+    row: Rear
+    roles: [AMP_DMG, DEF_SHRED, ELEM_APPLY, SPECIAL]
+    supportValue: { combat: 3, training: 0 }
+    provides:
+      - { key: AMP_DMG, text: "바람이 남긴 길 — 자기 확산이 퍼뜨린 원소의 취약(+15%, 같은 원소 유닛의 직접 공격) · 태풍의 눈 — 일곱 원소 취약 +25%" }
+      - { key: DEF_SHRED, text: "만류의 회랑 — 적 전체 방어력 -20%(특수방어력은 그대로)" }
+      - { key: ELEM_APPLY, text: "돌풍 — 바람 부착(다른 원소가 붙은 적이면 확산)" }
+    wants: [ELEM_APPLY, DPS_ST, SPECIAL]
+    caution: "확산할 다른 원소가 없으면 특성 취약이 생기지 않는다. 취약은 공격자의 고유 원소로 판정해 지속피해 · 반응 중심 파티는 직접 지원을 덜 받는다. 취약 · 방깍은 효과 명중이라 특수방어력이 높은 적에게는 빗나간다."
+
+  - id: 62
+    name: 아그니
+    type: Unlocked
+    element: Pyro
+    mainStat: Attack
+    topStat: Attack
+    row: Front
+    roles: [ELEM_APPLY, EXTRA_ACT, AMP_DMG, DPS_AOE, SPECIAL]
+    supportValue: { combat: 3, training: 0 }
+    provides:
+      - { key: EXTRA_ACT, text: "끝까지 태워 주지 — 다른 아군의 초월기 완료마다 적 전체 공격력 45% 추가행동(아군별 일반행동 사이 1회)" }
+      - { key: ELEM_APPLY, text: "끝까지 태워 주지 — 적마다 피해 직후 불 부착(증발 · 융해 · 연소의 재료)" }
+      - { key: AMP_DMG, text: "내가 판을 키워 주지 — 아군 전원 궁극기 피해 +20%(아그니 일반행동 3회), 자기 추공도 궁극기 판정" }
+      - { key: DPS_AOE, text: "제일 먼저 태울 곳 — 인드라의 표 한 장을 중심 180% · 나머지 45% 집중 포격으로" }
+    wants: [ULT_BATTERY, ELEM_APPLY, SPECIAL]
+    caution: "아군 초월기가 드물면 추공도 드물다. 물 · 얼음 · 풀을 붙여 주는 동료가 없으면 증폭 반응이 나지 않고, 집중 포격도 계수만 남는다."
+
+  - id: 67
+    name: 수리야
+    type: Unlocked
+    element: Pyro
+    mainStat: Attack
+    topStat: Attack
+    row: Rear
+    roles: [DPS_ST, EXTRA_ACT, AMP_DMG]
+    supportValue: { combat: 3, training: 0 }
+    provides:
+      - { key: EXTRA_ACT, text: "해가 지기 전에 — 동료가 수배된 적을 치면 탄환 1발로 공격력 55% 응답 사격(2발, 일반행동 · 초월기로 재장전)" }
+      - { key: AMP_DMG, text: "현상수배 — 수배된 적이 아군의 추가행동에 받는 피해 +15%" }
+      - { key: DPS_ST, text: "도망칠 곳은 없어 — 수배된 적에게 공격력 150% · 불 부착 · 다음 응답 110%" }
+    wants: [EXTRA_ACT, DPS_ST, MULTIHIT]
+    caution: "동료가 수배된 적을 치지 않으면 응답이 없다(혼자서는 일반행동 80%뿐). 서로 다른 후열을 노리는 편성에서는 응답 횟수가 줄어든다."
+
+  - id: 65
+    name: 쿠베라
+    type: Unlocked
+    element: Geo
+    mainStat: Attack
+    topStat: Defense
+    row: Rear
+    roles: [AMP_SUMMON, ECON, SPECIAL, DPS_AOE]
+    supportValue: { combat: 3, training: 0 }
+    provides:
+      - { key: AMP_SUMMON, text: "재보천의 후원 — 아군 소환수 피해 +20%, 보고 개방 2턴 +15%" }
+      - { key: ECON, text: "이자 · 골드 러쉬 — 승리 골드 보너스" }
+      - { key: DPS_AOE, text: "골드 러쉬 — 보유 골드 비례 광역 피해(최대 ×4)" }
+    wants: [SUMMON, SPECIAL]
+    caution: "골드를 쓰면 골드 러쉬 배율도 내려간다. 소환사가 없으면 보물이 느리게 찬다."
+
+  - id: 61
+    name: 야마
+    type: Unlocked
+    element: Electro
+    mainStat: Attack
+    topStat: Attack
+    row: Rear
+    roles: [DOT, AMP_DMG, DPS_AOE, SPECIAL]
+    supportValue: { combat: 3, training: 0 }
+    provides:
+      - { key: DOT, text: "명부의 낙뢰 · 언젠가 다다를 마지막 — 대상의 모든 지속피해를 q 비율(초월기는 1.5q)로 즉시 발동" }
+      - { key: AMP_DMG, text: "죽음의 선고 — 감전된 적이 야마의 아군에게 받는 모든 피해 +20%" }
+      - { key: DPS_AOE, text: "죽음의 순회 — 적 전체 공격력 400%(로카팔라, 인드라 뒤 · 찬드라 앞)" }
+    wants: [DOT, ELEM_APPLY, SPECIAL]
+    caution: "감전은 물 + 번개 반응이라 물을 붙여 주는 동료(바루나)가 있어야 선고가 켜진다. 지속피해가 없으면 즉시 발동할 것이 없다. q는 특수공격력과 속도에 비례한다."
+
+  - id: 66
+    name: 바루나
+    type: Unlocked
+    element: Hydro
+    mainStat: Defense
+    topStat: MaxHp
+    row: Front
+    roles: [SHIELD, ELEM_APPLY, BULWARK, SPECIAL]
+    supportValue: { combat: 3, training: 0 }
+    provides:
+      - { key: SHIELD, text: "동일한 법 아래 · 넘치는 판결 — 생존 필드 아군 전원에게 방어력 100% 보호막(누적)" }
+      - { key: ELEM_APPLY, text: "금줄 · 동일한 법 아래 — 물 부착(감전 · 개화 · 증발의 재료)" }
+      - { key: BULWARK, text: "법이 만든 제방 — 물을 붙이는 행동마다 자신에게 방어력 35% 보호막" }
+    wants: [DPS_ST, DOT, SPECIAL]
+    caution: "지속피해와 원소 반응 피해는 보호막을 우회한다. 보호막은 방어력만 따라 늘어 HP 비례 아군에게는 상대적으로 얇다."
+
+  - id: 121
+    name: 아누비스
+    type: Unlocked
+    element: Geo
+    mainStat: MaxHp
+    topStat: MaxHp
+    row: Front
+    roles: [BULWARK, ELEM_APPLY]
+    supportValue: { combat: 2, training: 0 }
+    provides:
+      - { key: BULWARK, text: "영혼 수확 — 쓰러진 유닛마다 영구 체력 · 방어 성장" }
+      - { key: ELEM_APPLY, text: "사자의 서 — 강화된 심장의 저울이 바위 부착" }
+    wants: [TAUNT, SUMMON]
+    caution: "스스로 우선도를 올리지 못한다. 자기 우선도를 올리는 탱커와 함께 서면 공격을 나눠 가진다(의도)."
+
+  - id: 180
+    name: 우치
+    type: Unlocked
+    element: Anemo
+    mainStat: Attack
+    topStat: Attack
+    row: Rear
+    roles: [SUMMON, DPS_ST, MULTIHIT]
+    supportValue: { combat: 1, training: 0 }
+    provides:
+      - { key: SUMMON, text: "도사란 무엇인가 — 분신 최대 3기, 생성 · 소멸이 쿠베라 · 아누비스의 연료" }
+      - { key: MULTIHIT, text: "만천화우 — 분신마다 공격력 300%" }
+    wants: [AMP_SUMMON, ACT_ACCEL]
+    caution: "속도가 너무 높으면 분신이 넘쳐 절반 피해로 흩어진다."
+
 archetypes:
+  - id: LOKAPALA_GATE
+    name: 로카팔라 묶음 편성
+    core: [63, 64, 65, 60]
+    description: "인드라의 팔방의 소집이 바유 → 쿠베라 → 인드라 → 찬드라 순으로 특수행동을 연다. 바유의 방깍과 데바의 왕 +25% 위에서 쿠베라가 모아 둔 골드로 친다."
+    partners: [2]
+    counterplay: "인드라가 쓰러지면 묶음을 열 수 없다. 골드를 쓰면 골드 러쉬가 약해진다."
+  - id: LOKAPALA_SHOCK
+    name: 로카팔라 감전 편성
+    core: [61, 66, 63, 60]
+    description: "바루나의 물과 인드라 · 야마의 번개가 만나 감전이 생기고, 야마의 선고(+20%)와 지속피해 즉시 발동이 그 위에 얹힌다. 묶음 순서는 바루나(-50) → 인드라(+50) → 야마(+75) → 찬드라(+100)이다."
+    partners: [20]
+    counterplay: "인드라가 쓰러지면 묶음을 열 수 없다. 반응 지속피해는 특수방어력으로 경감되고 보호막을 우회한다."
+  - id: VEDIC_FIRE
+    name: 베다 불길 편성
+    core: [62, 63, 64, 66]
+    description: "바루나의 물을 바유가 퍼뜨리고, 인드라의 팔방의 소집에서 아그니가 인드라의 표 한 장을 보류해 물이 붙은 적을 중심으로 집중 포격한다. 순서는 바유(-100) → 바루나(-50) → 아그니(+25) → 인드라(+50) → 찬드라(+100)."
+    partners: [60]
+    counterplay: "인드라가 쓰러지면 묶음을 열 수 없다. 물이 없으면 증발 대신 계수만 남는다."
+  - id: SUMMON_CYCLE
+    name: 분신 순환 편성
+    core: [121, 180, 65, 20]
+    description: "우치의 분신 생성이 쿠베라의 보물을, 소멸이 아누비스의 영혼을 채운다. 피그말리온은 후열에서 갈라테아로 분신 피해를 올린다."
+    partners: [1]
+    counterplay: "아누비스는 스스로 공격을 끌지 못한다. 기수 코드 등으로 우선도를 받쳐야 한다."
   - id: JEAN_BASTET_COUNTER
     name: 잔·바스테트 선제 반격 편성
     core: [7, 122, 1, 44, 60]
@@ -324,3 +491,99 @@ recommendations:
       rows: { 1: Front, 2: Rear, 60: Rear, 44: Rear, 20: Front }
       reason: "현재 해금 로스터 다섯 명을 모두 사용하는 기본 편성."
     warning: "정화와 파티 광역 치유가 없으며 창야는 별도 로카팔라 트리거가 필요하다."
+
+  - mainId: 63
+    mainName: 인드라
+    axis: "로카팔라 묶음 · 특수행동 증폭"
+    starterRecommended: true
+    best:
+      archetype: LOKAPALA_GATE
+      members: [64, 65, 60, 2]
+      rows: { 63: Rear, 64: Rear, 65: Rear, 60: Front, 2: Rear }
+      reason: "팔방의 소집 한 번에 특수행동 네 번이 이어지고, 시의 처치 재행동도 데바의 왕을 받는다."
+    basic:
+      archetype: LOKAPALA_GATE
+      members: [64, 65, 60, 2]
+      rows: { 63: Rear, 64: Rear, 65: Rear, 60: Front, 2: Rear }
+      reason: "로카팔라 4인과 처형 딜러로 묶음 순서와 피해 보조를 모두 확인한다."
+    warning: "전열이 찬드라 하나라 소모전에 약하다."
+
+  - mainId: 61
+    mainName: 야마
+    axis: "감전 선고 · 지속피해 즉시 발동 · 로카팔라 딜러"
+    starterRecommended: true
+    best:
+      archetype: LOKAPALA_SHOCK
+      members: [66, 63, 60, 20]
+      rows: { 61: Rear, 66: Front, 63: Rear, 60: Rear, 20: Front }
+      reason: "바루나의 물과 번개가 감전을 만들고, 피그말리온의 맹독이 즉시 발동할 지속피해를 더한다. 인드라가 묶음을 열어 야마가 400%로 마무리하고 찬드라가 회복한다."
+    basic:
+      archetype: LOKAPALA_SHOCK
+      members: [66, 63, 60, 20]
+      rows: { 61: Rear, 66: Front, 63: Rear, 60: Rear, 20: Front }
+      reason: "현재 해금 로스터에서 감전 → 선고 → 즉시 발동 → 묶음 순서를 모두 확인하는 5인 편성."
+    warning: "지속피해가 없으면 즉시 발동은 비어 있고, 감전이 없으면 선고도 켜지지 않는다."
+
+  - mainId: 66
+    mainName: 바루나
+    axis: "물 부착 · 누적 보호막 · 로카팔라 보조"
+    starterRecommended: true
+    best:
+      archetype: LOKAPALA_SHOCK
+      members: [61, 63, 60, 20]
+      rows: { 66: Front, 61: Rear, 63: Rear, 60: Rear, 20: Front }
+      reason: "물을 붙일 때마다 제방이 쌓이고 초월기·특수행동의 방어력 보호막이 전원을 받친다. 붙인 물이 야마의 번개와 만나 감전이 된다."
+    basic:
+      archetype: LOKAPALA_SHOCK
+      members: [61, 63, 60, 20]
+      rows: { 66: Front, 61: Rear, 63: Rear, 60: Rear, 20: Front }
+      reason: "방어 보호막과 감전 반응이 한 편성에서 함께 도는지 확인하는 기본 편성."
+    warning: "반응·지속피해는 보호막을 우회한다. 인드라가 없으면 넘치는 판결은 열리지 않는다."
+
+  - mainId: 62
+    mainName: 아그니
+    axis: "초월기 응답 추공 · 불 부착 · 궁극기 판돈"
+    starterRecommended: true
+    best:
+      archetype: VEDIC_FIRE
+      members: [63, 64, 66, 60]
+      rows: { 62: Front, 63: Rear, 64: Rear, 66: Front, 60: Rear }
+      reason: "바루나의 물과 바유의 확산 위에서 인드라의 팔방의 소집이 아그니의 집중 포격(중심 180%)을 열고, 찬드라가 수습한다."
+    basic:
+      archetype: VEDIC_FIRE
+      members: [63, 64, 66, 60]
+      rows: { 62: Front, 63: Rear, 64: Rear, 66: Front, 60: Rear }
+      reason: "추천 시험 편성(Detail_08 §17) — 보류 → 집중 포격 → 인드라 순서를 한 묶음에서 확인한다."
+    warning: "아군 초월기가 늦게 돌면 추공도 늦다. 물 공급원이 없으면 증발이 나지 않는다."
+
+  - mainId: 67
+    mainName: 수리야
+    axis: "현상수배 · 응답 사격 · 추가행동 지원"
+    starterRecommended: true
+    best:
+      archetype: VEDIC_FIRE
+      members: [62, 64, 66, 63]
+      rows: { 67: Rear, 62: Front, 64: Rear, 66: Front, 63: Rear }
+      reason: "아그니의 전체 추공과 동료의 단일 공격이 수배된 적을 맞힐 때마다 응답 사격이 나가고, 수배 취약 +15%가 두 사람의 추가행동을 함께 키운다."
+    basic:
+      archetype: VEDIC_FIRE
+      members: [62, 64, 66, 63]
+      rows: { 67: Rear, 62: Front, 64: Rear, 66: Front, 63: Rear }
+      reason: "추가행동 동료와 함께 응답 연쇄가 탄환 2발에서 끝나는지 확인하는 기본 편성."
+    warning: "동료가 수배된 적과 다른 대상을 치면 응답이 줄어든다. 혼자서는 일반행동 80%뿐이다."
+
+  - mainId: 121
+    mainName: 아누비스
+    axis: "영구 성장 퓨어 탱커 · 소환 순환"
+    starterRecommended: true
+    best:
+      archetype: SUMMON_CYCLE
+      members: [180, 65, 20, 1]
+      rows: { 121: Front, 180: Rear, 65: Rear, 20: Rear, 1: Front }
+      reason: "분신 소멸이 영혼을 채우고, 피그말리온은 후열에서 갈라테아만 맡아 아누비스와 우선도를 다투지 않는다."
+    basic:
+      archetype: SUMMON_CYCLE
+      members: [180, 65, 20, 1]
+      rows: { 121: Front, 180: Rear, 65: Rear, 20: Rear, 1: Front }
+      reason: "소환 순환 고리(생성 → 보물, 소멸 → 영혼)를 한 편성에서 확인한다."
+    warning: "세이도 전열이라 우선도가 같다. 기수 코드를 아누비스에게 먼저 준다."

@@ -123,6 +123,7 @@ namespace Managers.UI.HUD
             _queue?.Tick();
             _damageMeter?.Tick();
             _featureBanner?.Refresh();
+            _codex?.Tick();
 
             // ESC 메뉴(와 그 위의 자료실)가 떠 있는 동안에는 TAB을 받지 않는다. 캐릭터 창은
             // 메뉴보다 위 캔버스라, 받으면 자료실 검색창에 타이핑하다 창이 덮어 버린다.
@@ -210,6 +211,8 @@ namespace Managers.UI.HUD
         }
 
         public bool IsCodexOpen => _codex != null && _codex.IsOpen;
+
+        internal CodexScreen CodexForVerification => _codex;
 
         public void ToggleCodex()
         {

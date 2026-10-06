@@ -11,6 +11,8 @@ namespace Codes.Ultimate
     /// <summary>아군 반격이 실제 피해를 주면 같은 대상을 냥냥펀치로 한 번 더 친다.</summary>
     public sealed class BastetOneMoreHit : UltimateCode
     {
+        public override int AttackForm => DamageTag.Strike;
+
         private readonly HashSet<int> _handledActionIds = new();
         private bool _subscribed;
 

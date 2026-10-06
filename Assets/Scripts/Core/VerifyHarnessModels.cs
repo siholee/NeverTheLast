@@ -51,6 +51,8 @@ namespace Core
         public string vfxStyle;
         public string[] hiddenCardLayers = Array.Empty<string>();
         public bool dumpPortraitCopies;
+        public bool captureVfxDiagnostics;
+        public bool captureVfxPeakDiagnostics;
 
         // -1은 시나리오 기본값, 0은 끔, 1은 켬이다. JsonUtility에서 nullable 대신 쓴다.
         public int allyInvincible = -1;
@@ -129,6 +131,8 @@ namespace Core
         public string partId;
         public string phase;
         public int slotIndex;
+        public int casterInstanceId;
+        public int targetInstanceId;
         public string caster;
         public string target;
         public float screenX;
@@ -147,6 +151,9 @@ namespace Core
         public string scenario;
         public float realtime;
         public int frame;
+        public int instanceId;
+        public float worldX;
+        public float worldY;
         public string unit;
         public float xMin;
         public float yMin;

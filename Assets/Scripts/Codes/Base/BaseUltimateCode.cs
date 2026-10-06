@@ -14,6 +14,15 @@ namespace Codes.Base
     /// </summary>
     public abstract class BaseUltimateCode : UltimateCode
     {
+        private readonly List<Combat.AttackTargetResolution> _routings = new();
+        private bool _stoppedExternally;
+        private bool _finishingNaturally;
+        private bool _effectApplied;
+        /// <summary>공격 중 취소 가드를 쓰는 코드만 실제 효과 발생 근거를 요구한다.</summary>
+        protected virtual bool RequiresCompletionEvidence => false;
+        protected void MarkEffectApplied() => _effectApplied = true;
+        /// <summary>스케줄러 종료와 별개로, 선제 취소 없이 본체 코루틴이 정상 끝났는가.</summary>
+        public bool CompletedNormally { get; private set; }
         protected BaseUltimateCode(UltimateCodeContext context) : base(context)
         {
             CastingDelay = 0f;
@@ -22,6 +31,10 @@ namespace Codes.Base
         public override void CastCode()
         {
             if (Caster == null) return;
+            CompletedNormally = false;
+            _effectApplied = false;
+            _stoppedExternally = false;
+            _routings.Clear();
             AudioManager.PlayAction(Caster, SfxActionSlot.Ultimate, SfxCuePhase.Cast, CodeName);
             Caster.isCasting = true;
             CurrSkillCoroutine = Caster.StartCoroutine(Run());
@@ -30,7 +43,13 @@ namespace Codes.Base
         private IEnumerator Run()
         {
             yield return Perform();
+            bool normal = !_stoppedExternally && Caster != null && Caster.isActive && Caster.IsOnField &&
+                                _routings.All(routing => !routing.CancelledBeforeAttack) &&
+                                (!RequiresCompletionEvidence || _effectApplied);
+            _finishingNaturally = true;
             StopCode();
+            _finishingNaturally = false;
+            CompletedNormally = normal;
         }
 
         /// <summary>궁극기 본체. 피해 · 연출을 여기서 한다.</summary>
@@ -38,6 +57,12 @@ namespace Codes.Base
 
         public override void StopCode()
         {
+            if (!_finishingNaturally)
+            {
+                _stoppedExternally = true;
+                if (Caster != null && CurrSkillCoroutine != null) Caster.StopCoroutine(CurrSkillCoroutine);
+            }
+            CompletedNormally = false;
             if (Caster != null) Caster.isCasting = false;
         }
 
@@ -70,16 +95,20 @@ namespace Codes.Base
         }
 
         /// <summary>치명타를 굴려 피해 정보를 만든다. 경감은 피격자가 한다.</summary>
-        protected DamageContext BuildContext(int rawDamage, List<int> tags)
+        protected DamageContext BuildContext(int rawDamage, List<int> tags, Unit target = null)
         {
-            bool crit = RollCritical(out float multiplier);
+            bool crit = RollCritical(target, out float multiplier);
             return new DamageContext(Caster, Mathf.Max(1, Mathf.RoundToInt(rawDamage * multiplier)),
                 BaseEnums.CodeType.Ultimate, tags, crit);
         }
 
         /// <summary>궁극기 대상도 일반행동과 같은 교체 → 선제 개입 → 공지 순서를 거친다.</summary>
         protected Combat.AttackTargetResolution PrepareTargets(IReadOnlyList<Unit> targets, List<int> tags)
-            => Combat.AttackTargetRouter.Prepare(Caster, targets,
+        {
+            var routing = Combat.AttackTargetRouter.Prepare(Caster, targets,
                 BaseEnums.CodeType.Ultimate, tags, CodeName);
+            _routings.Add(routing);
+            return routing;
+        }
     }
 }

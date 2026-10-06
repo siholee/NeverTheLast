@@ -113,6 +113,8 @@ namespace Entities.View
         private TextMeshPro _nameLabel;
         private TextMeshPro _hpLabel;
         private TextMeshPro _resourceBadgeText;
+        private TextMeshPro _strongShotText;
+        private SpriteRenderer _suryaResourcePlate;
         private Image _actingOutline;
 
         private Canvas _orbCanvas;
@@ -135,6 +137,7 @@ namespace Entities.View
         private Image _ultReadyRing;
         private Image _resourceBadge;
         private Image _resourceBadgeDigit;
+        private Image[] _treasureBeads = new Image[8];
         private GameObject _bottomGlass;
         private GameObject _bottomGlassShadow;
         private Image _glassTint;
@@ -157,6 +160,14 @@ namespace Entities.View
         private Color _supportHudPulseBaseColor;
         private float _supportHudPulseAge = -1f;
         private const float SupportHudPulseDuration = 0.34f;
+        private float _resourcePulseAge = -1f;
+        private float _resourcePulseStrength;
+
+        public void PulseResourceBadge(float strength = 1f)
+        {
+            _resourcePulseAge = 0f;
+            _resourcePulseStrength = Mathf.Clamp01(strength);
+        }
 
         private string _ringElementName;
         private Color _ringColor = UITheme.Mana;
@@ -247,6 +258,11 @@ namespace Entities.View
         /// 피격 중심 검수용 얼굴~상체 화면 박스. 전신 원화의 하단 28%는 발·패널 접점이므로 제외한다.
         /// Unity 화면 좌표라 원점은 좌하단이며, PNG 분석기는 높이에서 y를 빼서 사용한다.
         /// </summary>
+        /// <summary>자세·피격 모션이 바뀌어도 실제 원화 상단 72% 중심에 피격 앵커를 놓는다.</summary>
+        public Vector3 PortraitFocusWorldPoint => _portrait != null
+            ? _portrait.bounds.center + Vector3.up * (_portrait.bounds.size.y * 0.14f)
+            : transform.position;
+
         public Rect PortraitFocusScreenRect(Camera camera)
         {
             if (camera == null || _portrait == null || !_portrait.enabled) return default;
@@ -311,16 +327,39 @@ namespace Entities.View
             _hpLabel.outlineWidth = 0.16f;
             _hpLabel.overflowMode = TextOverflowModes.Truncate;
 
-            // 전투 자원은 10 이상도 정확히 읽혀야 하므로 한 자리 스프라이트 대신 월드 텍스트를 쓴다.
-            _resourceBadgeText = NewLabel("ResourceValue", FontStyles.Bold, TextAlignmentOptions.Center);
-            _resourceBadgeText.color = Color.white;
-            _resourceBadgeText.outlineColor = new Color(0.075f, 0.125f, 0.20f, 0.98f);
-            _resourceBadgeText.outlineWidth = 0.18f;
-            _resourceBadgeText.enabled = false;
+            EnsureResourceLabels();
 
             BuildHud();
             LayOut(cardSize);
             Show(false);
+        }
+
+        private void EnsureResourceLabels()
+        {
+            if (_resourceBadgeText == null)
+            {
+                _resourceBadgeText = NewLabel("ResourceValue", FontStyles.Bold, TextAlignmentOptions.Center);
+                _resourceBadgeText.color = Color.white;
+                _resourceBadgeText.outlineColor = new Color(0.075f, 0.125f, 0.20f, 0.98f);
+                _resourceBadgeText.outlineWidth = 0.18f;
+                _resourceBadgeText.enabled = false;
+            }
+            if (_strongShotText == null)
+            {
+                _strongShotText = NewLabel("StrongShot", FontStyles.Bold, TextAlignmentOptions.Center);
+                _strongShotText.text = "강탄";
+                _strongShotText.color = new Color(1f, 0.85f, 0.57f);
+                _strongShotText.outlineColor = new Color(0.075f, 0.125f, 0.20f, 0.98f);
+                _strongShotText.outlineWidth = 0.18f;
+                _strongShotText.enabled = false;
+            }
+            if (_suryaResourcePlate == null)
+            {
+                _suryaResourcePlate = VfxSpace.NewSprite(_body, "SuryaResourcePlate",
+                    UIShapes.RoundedRect(6, Color.white, new Color(0.75f, 0.86f, 0.93f, 0.7f), 1),
+                    new Color(0.12f, 0.19f, 0.25f, 0.88f), 0, 0);
+                _suryaResourcePlate.enabled = false;
+            }
         }
 
         private TextMeshPro NewLabel(string name, FontStyles style, TextAlignmentOptions alignment)
@@ -512,6 +551,19 @@ namespace Entities.View
             _resourceBadge.enabled = false;
             _resourceBadgeDigit.enabled = false;
 
+            // 보물은 마나로 저장되는 기존 자원이다. 표시만 8칸 구슬로 바꾸고 0에서도 빈 칸을 남긴다.
+            for (int i = 0; i < _treasureBeads.Length; i++)
+            {
+                Image bead = NewImage(_ultRoot, $"TreasureBead{i}", Color.clear);
+                bead.sprite = UIShapes.Disc(32, Color.white, 0.82f);
+                bead.rectTransform.anchorMin = bead.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+                float angle = (-90f + i * 45f) * Mathf.Deg2Rad;
+                bead.rectTransform.anchoredPosition = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * 14.2f;
+                bead.rectTransform.sizeDelta = new Vector2(3.8f, 3.8f);
+                bead.enabled = false;
+                _treasureBeads[i] = bead;
+            }
+
             // ── 하단 A안 리퀴드 글라스 ──
             // 원화 사본을 패널 안에 다시 그리면 밝은 전장에서도 다리·옷자락이 검은 얼룩으로 남는다.
             // 배경과 무관하게 일정한 스모크 한 장만 써 정보 대비와 원화 실루엣을 함께 보존한다.
@@ -637,6 +689,7 @@ namespace Entities.View
                    _ultFillShade != null && _ultRearWave != null && _ultWave != null && _ultOutline != null &&
                    _ultMarkShadow != null && _ultMark != null && _ultGlass != null && _ultReadyGlow != null &&
                    _ultReadyRing != null && _resourceBadge != null && _resourceBadgeDigit != null &&
+                   _resourceBadgeText != null && _strongShotText != null && _suryaResourcePlate != null &&
                     _bottomGlass != null && _bottomGlassShadow != null &&
                    _glassTint != null && _hpTrack != null && _hpFill != null && _shieldFill != null &&
                    _actionTrack != null && _actionFill != null &&
@@ -684,6 +737,7 @@ namespace Entities.View
             }
 
             ResetHudReferences();
+            EnsureResourceLabels();
             BuildHud();
             _hudPixelScale = pixelScale > 0f ? pixelScale : 1f;
             ApplyHudLod(compact, true);
@@ -715,6 +769,7 @@ namespace Entities.View
             _ultReadyRing = null;
             _resourceBadge = null;
             _resourceBadgeDigit = null;
+            _treasureBeads = new Image[8];
             _bottomGlass = null;
             _bottomGlassShadow = null;
             _glassTint = null;
@@ -804,11 +859,92 @@ namespace Entities.View
             label.fontSize = fontSize;
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        [Serializable]
+        public sealed class ResourceHudDiagnostic
+        {
+            public int unitId, ammo, maximum, strong;
+            public bool combatHud, bodyActive, ammoEnabled, strongEnabled, ammoMeshVisible, strongMeshVisible;
+            public string unitName, nameText, ammoText, strongText, font, nameFont, strongFont, sorting;
+            public int ammoCharacters, strongCharacters, nameCharacters;
+            public float ammoFontSize, strongFontSize, ammoScreenHeight, strongScreenHeight;
+        }
+
+        /// <summary>게임 자원과 실제 월드 TMP 메시를 함께 기록하는 검수 전용 관측. 상태를 덮어쓰지 않는다.</summary>
+        public ResourceHudDiagnostic VerificationResourceHud(bool forceMesh = false)
+        {
+            if (forceMesh)
+            {
+                _nameLabel.ForceMeshUpdate();
+                _resourceBadgeText.ForceMeshUpdate();
+                _strongShotText.ForceMeshUpdate();
+            }
+            float Height(TextMeshPro text)
+            {
+                Bounds bounds = text.GetComponent<MeshRenderer>().bounds;
+                Camera camera = Camera.main;
+                return camera == null ? 0f : Mathf.Abs(camera.WorldToScreenPoint(bounds.max).y - camera.WorldToScreenPoint(bounds.min).y);
+            }
+            bool Visible(TextMeshPro text) => text.enabled && text.gameObject.activeInHierarchy &&
+                text.textInfo.characterCount > 0 && Height(text) >= 5f;
+            return new ResourceHudDiagnostic
+            {
+                unitId = _unit.ID, unitName = _unit.UnitName, nameText = _nameLabel.text, nameFont = _nameLabel.font?.name, nameCharacters = _nameLabel.textInfo.characterCount,
+                ammo = _unit.GetCombatResource(Codes.Passive.SuryaBeforeSunset.BulletResourceId),
+                maximum = _unit.GetCombatResourceMaximum(Codes.Passive.SuryaBeforeSunset.BulletResourceId),
+                strong = _unit.GetCombatResource(Codes.Passive.SuryaBeforeSunset.EmpoweredResourceId),
+                combatHud = _combatHud, bodyActive = _body.gameObject.activeInHierarchy,
+                ammoEnabled = _resourceBadgeText.enabled, strongEnabled = _strongShotText.enabled,
+                ammoMeshVisible = Visible(_resourceBadgeText), strongMeshVisible = Visible(_strongShotText),
+                ammoText = _resourceBadgeText.text, strongText = _strongShotText.text,
+                ammoCharacters = _resourceBadgeText.textInfo.characterCount, strongCharacters = _strongShotText.textInfo.characterCount,
+                ammoFontSize = _resourceBadgeText.fontSize, strongFontSize = _strongShotText.fontSize,
+                ammoScreenHeight = Height(_resourceBadgeText), strongScreenHeight = Height(_strongShotText),
+                font = _resourceBadgeText.font?.name, strongFont = _strongShotText.font?.name,
+                sorting = _resourceBadgeText.GetComponent<MeshRenderer>().sortingLayerName + ":" + _resourceBadgeText.GetComponent<MeshRenderer>().sortingOrder,
+            };
+        }
+
+        /// <summary>같은 실제 자원의 기존 위치와 수정 위치를 비교하는 검수 전용. 일반 렌더는 수정 위치를 따른다.</summary>
+        public void VerificationLegacyResourcePlacement(bool legacy)
+        {
+            LayOutResourceBadgeText(_cardSize);
+            if (!legacy) return;
+            float s = _cardSize;
+            PlaceLabel(_resourceBadgeText, new Vector2(s * 0.25f, s * 0.439f), new Vector2(s * 0.30f, s * 0.075f), s * 0.43f);
+            PlaceLabel(_strongShotText, new Vector2(s * 0.34f, s * 0.35f), new Vector2(s * 0.22f, s * 0.07f), s * 0.20f);
+            _suryaResourcePlate.enabled = false;
+        }
+#endif
+
         private void LayOutResourceBadgeText(float s)
         {
             if (_resourceBadgeText == null) return;
+            if (_unit?.ID == 67)
+            {
+                // 잔탄과 강탄은 원화 뒤의 오브가 아닌 하단 유리판 바로 위의 한 줄에서 읽는다.
+                float hud = BottomHudSize(s);
+                float pixel = _compactHud ? _hudPixelScale : 1f;
+                float y = s * (0.5f - GlassCenterY / CanvasWidth) +
+                    hud * (GlassCenterY - (GlassTop - 6.5f)) / CanvasWidth;
+                PlaceLabel(_resourceBadgeText, new Vector2(-hud * 0.17f, y),
+                    new Vector2(hud * 0.42f, hud * 0.11f * pixel), hud * 0.68f * pixel);
+                if (_strongShotText != null)
+                    PlaceLabel(_strongShotText, new Vector2(hud * 0.22f, y),
+                        new Vector2(hud * 0.30f, hud * 0.11f * pixel), hud * 0.65f * pixel);
+                if (_suryaResourcePlate != null)
+                {
+                    _suryaResourcePlate.transform.localPosition = new Vector3(0f, y, -0.01f);
+                    Vector2 source = _suryaResourcePlate.sprite.bounds.size;
+                    _suryaResourcePlate.transform.localScale = new Vector3(hud * 0.84f / source.x, hud * 0.13f * pixel / source.y, 1f);
+                }
+                return;
+            }
             PlaceLabel(_resourceBadgeText, new Vector2(s * 0.25f, s * 0.439f),
-                new Vector2(s * 0.16f, s * 0.075f), s * 0.43f);
+                new Vector2(s * 0.30f, s * 0.075f), s * 0.43f);
+            if (_strongShotText != null)
+                PlaceLabel(_strongShotText, new Vector2(s * 0.34f, s * 0.35f),
+                    new Vector2(s * 0.22f, s * 0.07f), s * 0.20f);
         }
 
         private static float BottomHudSize(float cardSize)
@@ -856,6 +992,8 @@ namespace Entities.View
             var resourceRenderer = _resourceBadgeText.GetComponent<MeshRenderer>();
             resourceRenderer.sortingLayerID = _layerId;
             resourceRenderer.sortingOrder = o + 9;
+            if (_strongShotText != null) SetOrder(_strongShotText.GetComponent<MeshRenderer>(), o + 10);
+            SetOrder(_suryaResourcePlate, o + 8);
         }
 
         private void SetOrder(Renderer renderer, int order)
@@ -1529,6 +1667,7 @@ namespace Entities.View
             ResetMotion();
             _unit = unit;
             _combatHud = combatHud;
+            LayOutResourceBadgeText(_cardSize);
 
             Show(unit != null);
             if (unit == null) return;
@@ -1698,17 +1837,32 @@ namespace Entities.View
         /// </summary>
         private void RefreshResourceBadge()
         {
+            bool treasure = _combatHud && _unit != null && !_unit.IsEnemy && _unit.ID == 65;
+            int treasureCount = treasure ? Mathf.Clamp(_unit.ManaCurr, 0, 8) : 0;
+            for (int i = 0; i < _treasureBeads.Length; i++)
+            {
+                Image bead = _treasureBeads[i];
+                if (bead == null) continue;
+                bead.enabled = treasure;
+                bead.color = i < treasureCount ? new Color(1f, 0.80f, 0.28f, 1f)
+                    : new Color(0.24f, 0.32f, 0.40f, 0.94f);
+            }
             string resource = BadgeResourceId(_unit);
-            int max = _combatHud && resource != null ? _unit.GetCombatResourceMaximum(resource) : 0;
-            int current = max > 0 ? _unit.GetCombatResource(resource) : 0;
-            bool visible = max > 0 && (_unit.ID == 7 || current > 0);
-            _resourceBadge.enabled = visible;
+            int max = treasure ? 8 : _combatHud && resource != null ? _unit.GetCombatResourceMaximum(resource) : 0;
+            int current = treasure ? treasureCount : max > 0 ? _unit.GetCombatResource(resource) : 0;
+            bool visible = treasure || max > 0 && (_unit.ID is 7 or 67 or 121 || current > 0);
+            bool surya = _unit?.ID == 67;
+            _resourceBadge.enabled = visible && !surya;
+            if (_suryaResourcePlate != null) _suryaResourcePlate.enabled = visible && surya;
             _resourceBadgeDigit.enabled = false;
             _resourceBadgeText.enabled = visible;
+            if (_strongShotText != null)
+                _strongShotText.enabled = _combatHud && _unit != null && _unit.ID == 67 && _unit.isActive &&
+                    _unit.GetCombatResource(Codes.Passive.SuryaBeforeSunset.EmpoweredResourceId) > 0;
             if (!visible) return;
 
-            _resourceBadgeText.text = current.ToString();
-            _resourceBadge.rectTransform.sizeDelta = new Vector2(current >= 10 ? 13.2f : 9.2f, 7.2f);
+            _resourceBadgeText.text = surya ? $"탄 {current}/{max}" : current.ToString();
+            _resourceBadge.rectTransform.sizeDelta = new Vector2(Mathf.Max(9.2f, 5.4f + current.ToString().Length * 3.8f), 7.2f);
             float complete = current >= max ? 1f : 0f;
             _resourceBadge.color = Color.Lerp(
                 new Color(0.70f, 0.82f, 0.90f, 0.88f),
@@ -1726,6 +1880,8 @@ namespace Entities.View
             {
                 1 => Codes.Passive.SeiBigBang.ResourceId,
                 7 => Codes.Passive.JeanIronSanction.ResourceId,
+                67 => Codes.Passive.SuryaBeforeSunset.BulletResourceId,
+                121 => Codes.Passive.AnubisSoulHarvest.ResourceId,
                 _ => null,
             };
         }
@@ -2425,6 +2581,15 @@ namespace Entities.View
             UpdateHudLod();
             AnimateHud();
             AdvanceSupportHudPulse(Time.unscaledDeltaTime);
+            if (_resourcePulseAge >= 0f)
+            {
+                _resourcePulseAge += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(_resourcePulseAge / .34f);
+                float pulse = 1f + .35f * _resourcePulseStrength * Mathf.Sin(t * Mathf.PI);
+                _resourceBadge.rectTransform.localScale = Vector3.one * pulse;
+                _resourceBadgeText.transform.localScale = Vector3.one * pulse;
+                if (t >= 1f) _resourcePulseAge = -1f;
+            }
         }
 
         private void AdvanceSupportHudPulse(float dt)
@@ -2493,6 +2658,7 @@ namespace Entities.View
             {
                 LayOutNameLabel(_cardSize, compact);
                 LayOutHpLabel(_cardSize, compact);
+                LayOutResourceBadgeText(_cardSize);
             }
             if (_unit != null && _combatHud) RefreshStatusDots();
         }

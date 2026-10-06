@@ -16,6 +16,8 @@ namespace Codes.Normal
     /// </summary>
     public sealed class SabahLightningSlash : BaseNormalCode
     {
+        public override int AttackForm => DamageTag.Slash;
+
         private const int SubstituteInterval = 3;
         private const int SubstituteTargetCount = 3;
         private int _actionCount;
@@ -94,6 +96,7 @@ namespace Codes.Normal
             _substitute ? DamageTag.MultiTarget : DamageTag.SingleTarget,
             DamageTag.NormalAttack,
             DamageTag.ContactAttack,
+            DamageTag.Slash,
         };
 
         private void RegisterRoundReset()

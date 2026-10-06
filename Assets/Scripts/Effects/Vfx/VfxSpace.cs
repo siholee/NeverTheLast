@@ -70,6 +70,14 @@ namespace Effects.Vfx
         /// 유닛 카드의 <b>정중앙</b>. 투사체의 출발점과 착탄점이 모두 이것이다.
         /// 카드가 날아가는 도중이면 날아가는 자리를 돌려준다.
         /// </summary>
+        public static Vector3 PortraitPoint(Unit unit)
+        {
+            var view = CardMotion.ViewOf(unit);
+            Vector3 point = view != null ? view.PortraitFocusWorldPoint : WorldPoint(unit);
+            point.z = 0f;
+            return point;
+        }
+
         public static Vector3 WorldPoint(Unit unit)
         {
             if (unit == null) return Vector3.zero;

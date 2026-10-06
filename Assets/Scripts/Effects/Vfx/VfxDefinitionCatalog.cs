@@ -144,17 +144,20 @@ namespace Effects.Vfx
             VfxPartData part = VfxDefinitionCatalog.Part(partId);
             if (slot == null || part == null) return null;
 
+            if (slotName == "hit" && slot.portraitAnchor) point = VfxSpace.PortraitPoint(target);
             ResolveDirection(slot, caster, target, routeAngle, routeFacingRight,
                 out float angle, out bool flipX);
             Color body = ParseColor(slot.bodyColor, ParseColor(part.bodyColor, Color.white));
             Color core = ParseColor(slot.coreColor, ParseColor(part.coreColor, Color.white));
             ResolveCasterPalette(slot, caster, ref body, ref core);
+            LiftLokapalaOnDarkBoard(part, ref body);
             float x = slot.scaleX > 0f ? slot.scaleX : part.scaleX;
             float y = slot.scaleY > 0f ? slot.scaleY : part.scaleY;
             Vector2 size = new(Mathf.Max(0.01f, x), Mathf.Max(0.01f, y));
             size *= Mathf.Max(0.01f, slot.scale * extraScale);
             HandpaintSheet sheet = Sheet(part);
-            point += new Vector3(slot.offsetX, slot.offsetY) * VfxSpace.CardSize;
+            if (!(slotName == "hit" && slot.portraitAnchor))
+                point += new Vector3(slot.offsetX, slot.offsetY) * VfxSpace.CardSize;
             if (Mathf.Abs(slot.forwardOffset) > 0.0001f && caster != null && target != null && caster != target)
             {
                 VfxAim aim = VfxSpace.AimFrom(caster, target);
@@ -163,9 +166,17 @@ namespace Effects.Vfx
             NotifySlot(skillKey, slotName, part.id, "start", index, caster, target, point,
                 angle, flipX, layer, slot.orderOffset != 0 ? slot.orderOffset : 30);
 
+            if (LokapalaFx.PlayMotif(part, caster, target, point, layer, size, angle))
+            {
+                NotifyCustomPeak(skillKey, slotName, part, index, caster, target, point,
+                    angle, flipX, layer, 0.10f);
+                return null;
+            }
+
             if (string.Equals(part.renderer, "casterTwin", StringComparison.OrdinalIgnoreCase))
             {
-                PlayCasterTwin(part, slot, caster, target, point, layer, size, body, core, angle, flipX);
+                PlayCasterTwin(part, slot, caster, target, point, layer, size, body, core, angle, flipX,
+                    slot.recolor);
                 NotifyCustomPeak(skillKey, slotName, part, index, caster, target, point,
                     angle, flipX, layer, 0.10f);
                 return null;
@@ -173,7 +184,7 @@ namespace Effects.Vfx
             if (string.Equals(part.renderer, "beneficialAura", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(part.renderer, "supportBuff", StringComparison.OrdinalIgnoreCase))
             {
-                PlaySupportBuff(target, point, layer, size, body, core);
+                PlaySupportBuff(target, point, layer, size, body, core, slot.supportInk);
                 NotifyCustomPeak(skillKey, slotName, part, index, caster, target, point,
                     angle, flipX, layer, 0.13f);
                 return null;
@@ -187,7 +198,8 @@ namespace Effects.Vfx
             }
             if (string.Equals(part.renderer, "supportHeal", StringComparison.OrdinalIgnoreCase))
             {
-                PlaySupportHeal(target, point, layer, size, body, core);
+                PlaySupportHeal(target, point, layer, size, body, core,
+                    slot.supportScale, slot.supportInk);
                 NotifyCustomPeak(skillKey, slotName, part, index, caster, target, point,
                     angle, flipX, layer, 0.13f);
                 return null;
@@ -205,7 +217,7 @@ namespace Effects.Vfx
             if (string.IsNullOrWhiteSpace(part.sheet)) return null;
             int peakFrame = slot.peakFrame >= 0 ? slot.peakFrame :
                 part.peakFrame >= 0 ? part.peakFrame : Mathf.Max(0, part.columns * part.rows / 2);
-            if (part.id.StartsWith("cast.class.archer", StringComparison.OrdinalIgnoreCase))
+            if (part.edgeUnderlay)
             {
                 // 총구광은 한 부품의 진한 외곽과 밝은 몸체를 겹쳐 양쪽 배경에서 같은 실루엣을 유지한다.
                 Color edge = ParseColor(slot.edgeColor, ParseColor(part.edgeColor, Color.clear));
@@ -220,14 +232,15 @@ namespace Effects.Vfx
                 }
             }
             Vector3 visualCenter = VisualCenterForAnchor(point, size, part, angle, flipX);
+            if (slot.steadyBody) DrawInk(point, layer, part, size, angle, flipX, peakFrame);
             FlipbookFx fx = HandpaintFx.PlayAt(visualCenter, layer, sheet, size, body, core, angle,
                 slot.orderOffset != 0 ? slot.orderOffset : 30,
                 Mathf.Clamp01(part.peakAlpha), Mathf.Clamp01(part.glowAlpha), false, flipX,
-                peakFrame, part.peakHoldSeconds);
+                peakFrame, part.peakHoldSeconds, steadyBody: slot.steadyBody, desaturate: WindOnDark(part), startFrame: part.startFrame, tailHoldFrame: part.tailHoldFrame, tailHoldSeconds: part.tailHoldSeconds, calmLight: part.calmLight);
             // 일반 플립북도 정점 사건을 남겨야 시전 가시성을 실제 캡처 프레임으로 잴 수 있다.
             // 시작 사건만 있으면 짧은 총구광이 사라진 뒤의 이론상 시트 길이로 잘못 통과할 수 있다.
             NotifyCustomPeak(skillKey, slotName, part, index, caster, target, point,
-                angle, flipX, layer, peakFrame / Mathf.Max(1f, part.fps));
+                angle, flipX, layer, Mathf.Max(0, peakFrame - part.startFrame) / Mathf.Max(1f, part.fps));
             return fx;
         }
 
@@ -243,20 +256,24 @@ namespace Effects.Vfx
             }
 
             ResolveDirection(slot, caster, target, float.NaN, true, out float eventAngle, out bool eventFlipX);
-            Vector3 eventPoint = VfxSpace.WorldPoint(target) +
-                                 new Vector3(slot.offsetX, slot.offsetY) * VfxSpace.CardSize;
+            bool portraitAnchor = slot.portraitAnchor;
+            Vector3 Anchor() => portraitAnchor ? VfxSpace.PortraitPoint(target) : VfxSpace.WorldPoint(target) +
+                new Vector3(slot.offsetX, slot.offsetY) * VfxSpace.CardSize;
+            Vector3 eventPoint = Anchor();
             int eventLayer = VfxSpace.SortingLayer(target);
             int eventOrder = slot.orderOffset != 0 ? slot.orderOffset : 30;
             NotifySlot(skillKey, "hit", part.id, "start", index, caster, target, eventPoint,
                 eventAngle, eventFlipX, eventLayer, eventOrder);
             Action visualPeakNotification = () =>
             {
-                NotifySlot(skillKey, "hit", part.id, "peak", index, caster, target, eventPoint,
+                NotifySlot(skillKey, "hit", part.id, "peak", index, caster, target, Anchor(),
                     eventAngle, eventFlipX, eventLayer, eventOrder);
             };
             Action peakCallback = () =>
             {
                 visualPeakNotification();
+                if (string.Equals(part.renderer, "lokapalaCoinImpact", StringComparison.OrdinalIgnoreCase))
+                    LokapalaFx.CoinImpact(target, eventAngle, slot.coinBurst);
                 onPeak?.Invoke();
             };
 
@@ -277,6 +294,7 @@ namespace Effects.Vfx
             Color body = ParseColor(slot.bodyColor, ParseColor(part.bodyColor, Color.white));
             Color core = ParseColor(slot.coreColor, ParseColor(part.coreColor, Color.white));
             ResolveCasterPalette(slot, caster, ref body, ref core);
+            LiftLokapalaOnDarkBoard(part, ref body);
             float x = slot.scaleX > 0f ? slot.scaleX : part.scaleX;
             float y = slot.scaleY > 0f ? slot.scaleY : part.scaleY;
             Vector2 size = new(Mathf.Max(0.01f, x), Mathf.Max(0.01f, y));
@@ -303,13 +321,12 @@ namespace Effects.Vfx
             // 방향성 시트는 그림 중심이 아니라 실제 충돌 끝점을 대상 초상화 중심에 맞춘다.
             // 좌우 반전과 회전을 먼저 반영한 뒤 그만큼 원화 중심을 반대로 민다.
             Vector2 rotatedAnchor = RotatedAnchorOffset(size, part, angle, flipX);
-            Vector2 visualOffset = new Vector2(slot.offsetX, slot.offsetY) - rotatedAnchor;
+            Vector2 visualOffset = (portraitAnchor ? Vector2.zero : new Vector2(slot.offsetX, slot.offsetY)) - rotatedAnchor;
             if (string.Equals(slot.direction, "horizontalFacing", StringComparison.OrdinalIgnoreCase))
             {
                 // Smoke3 수평 피격은 같은 원화를 한 부품의 외곽·몸체로 합성한다.
                 // 밝은 판에서는 진한 외곽이, 어두운 판에서는 자홍 몸체와 휘도 코어가 실루엣을 보존한다.
-                Vector3 impactPoint = VfxSpace.WorldPoint(target) +
-                                      new Vector3(slot.offsetX, slot.offsetY) * VfxSpace.CardSize;
+                Vector3 impactPoint = Anchor();
                 Color edge = ParseColor(slot.edgeColor, ParseColor(part.edgeColor, Color.clear));
                 if (edge.a > 0.01f)
                 {
@@ -332,8 +349,14 @@ namespace Effects.Vfx
                     coreBody, core, null, angle, flipX, peak, 0.42f, 0.98f, true, part.peakHoldSeconds);
                 yield break;
             }
+            if (portraitAnchor)
+                DrawInk(Anchor(), eventLayer, part, size, angle, flipX, peak, target, portraitAnchor,
+                    part.peakHoldSeconds);
             yield return HandpaintFx.PlayHit(target, Sheet(part), size, body, core, visualPeakCallback,
-                angle, flipX, peak, accent, visualOffset, part.peakHoldSeconds);
+                angle, flipX, peak, accent, visualOffset,
+                part.peakHoldSeconds,
+                part.useHitAlpha ? part.peakAlpha : 0.86f,
+                part.useHitAlpha ? part.glowAlpha : 0.60f, portraitAnchor, steadyBody: slot.steadyBody, desaturate: WindOnDark(part), tailHoldFrame: part.tailHoldFrame, tailHoldSeconds: part.tailHoldSeconds, calmLight: part.calmLight);
         }
 
         /// <summary>
@@ -582,13 +605,20 @@ namespace Effects.Vfx
 
             float elapsed = 0f;
             float guard = Mathf.Max(3f, minimumDuration + 1f);
-            while ((completed < hits.Count || elapsed < minimumDuration) && guard > 0f)
+            bool realTimeGuard = hits.Any(hit => VfxDefinitionCatalog.Part(hit.partId)?.calmLight == true);
+            float deadline = Time.realtimeSinceStartup + guard;
+            while ((completed < hits.Count || elapsed < minimumDuration) && (realTimeGuard ? Time.realtimeSinceStartup < deadline : guard > 0f))
             {
                 elapsed += Time.deltaTime;
                 guard -= Time.deltaTime;
                 yield return null;
             }
-            if (!invoked) onImpact?.Invoke();
+            if (!invoked)
+            {
+                // 감시 한계 뒤 도착하는 정점도 같은 판정을 다시 호출할 수 없다.
+                invoked = true;
+                onImpact?.Invoke();
+            }
         }
 
         /// <summary>시전자 카드에서 한 번 시전한 뒤 대상 위치의 hit만 짧은 시간차로 연다.</summary>
@@ -673,16 +703,20 @@ namespace Effects.Vfx
             Vector3 to = secondary;
             NotifySlot(skillKey, "screen", part.id, "start", 0, caster, target,
                 Vector3.Lerp(from, to, 0.5f), 0f, false, VfxSpace.SortingLayer(caster), 0);
+            // 파스텔 캐릭터의 행동에 반응하는 지원 연출도 같은 밝은 화면 문맥을 따른다.
+            // 다른 캐릭터가 자기 행동을 할 때의 원래 화면 파라미터는 보존한다.
+            int executingId = Managers.GameManager.Instance?.ActionScheduler?.ExecutingUnit?.ID ?? -1;
+            bool calmScreen = caster?.ID is 61 or 62 or 64 or 66 or 67 || executingId is 61 or 62 or 64 or 66 or 67;
             SkillFx.PlayScreen(new SkillFxScreenCue
             {
-                FocusStrength = part.focusStrength,
-                FadeIn = part.focusFadeIn,
+                FocusStrength = calmScreen ? Mathf.Min(part.focusStrength, 0.08f) : part.focusStrength,
+                FadeIn = calmScreen ? Mathf.Max(part.focusFadeIn, 0.16f) : part.focusFadeIn,
                 Hold = part.focusHold,
-                FadeOut = part.focusFadeOut,
-                Tint = ParseColor(slot?.bodyColor, ParseColor(part.bodyColor, new Color(0.10f, 0.14f, 0.22f))),
+                FadeOut = calmScreen ? Mathf.Max(part.focusFadeOut, 0.30f) : part.focusFadeOut,
+                Tint = calmScreen ? new Color(0.71f, 0.74f, 0.88f) : ParseColor(slot?.bodyColor, ParseColor(part.bodyColor, new Color(0.10f, 0.14f, 0.22f))),
                 FlashColor = ParseColor(slot?.coreColor, ParseColor(part.coreColor, Color.white)),
-                FlashStrength = part.flashStrength,
-                Shake = part.shake,
+                FlashStrength = calmScreen ? 0f : part.flashStrength,
+                Shake = calmScreen ? 0f : part.shake,
             }, from, to);
         }
 
@@ -704,7 +738,7 @@ namespace Effects.Vfx
             if (string.Equals(part.renderer, "beneficialAura", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(part.renderer, "supportBuff", StringComparison.OrdinalIgnoreCase))
             {
-                PlaySupportBuff(target, point, layer, size, body, core);
+                PlaySupportBuff(target, point, layer, size, body, core, part.inkAlpha > 0f);
                 return;
             }
             if (string.Equals(part.renderer, "supportCleanse", StringComparison.OrdinalIgnoreCase))
@@ -723,16 +757,19 @@ namespace Effects.Vfx
                 PlaySupportShield(target, point, layer, size, body, core);
                 return;
             }
+            if (VedicTrioFx.PlayMotif(part, caster, target, point, layer, size, 0f)) return;
             if (string.IsNullOrWhiteSpace(part.sheet)) return;
             HandpaintSheet sheet = Sheet(part);
             Vector3 visualCenter = VisualCenterForAnchor(point, size, part, 0f, false);
+            if (part.inkAlpha > 0f) DrawInk(point, layer, part, size, 0f, false, part.peakFrame);
             HandpaintFx.PlayAt(visualCenter, layer, sheet, size, body, core, 0f, 118,
-                Mathf.Clamp01(part.peakAlpha), Mathf.Clamp01(part.glowAlpha));
+                Mathf.Clamp01(part.peakAlpha), Mathf.Clamp01(part.glowAlpha), heldFrame: part.peakFrame,
+                peakHoldSeconds: part.peakHoldSeconds, steadyBody: part.inkAlpha > 0f, desaturate: part.calmLight ? part.desaturate : 0f, calmLight: part.calmLight);
         }
 
         /// <summary>팩의 작은 불꽃을 카드 중앙과 적 방향 끝에 한 번씩 놓는 caster 공용 시전.</summary>
-        private static void PlayCasterTwin(VfxPartData part, VfxSlotData slot, Unit caster, Unit target,
-            Vector3 center, int layer, Vector2 size, Color body, Color core, float angle, bool flipX)
+        internal static void PlayCasterTwin(VfxPartData part, VfxSlotData slot, Unit caster, Unit target,
+            Vector3 center, int layer, Vector2 size, Color body, Color core, float angle, bool flipX, bool recolor = false)
         {
             if (string.IsNullOrWhiteSpace(part.sheet)) return;
             VfxAim aim = VfxSpace.AimFrom(caster, target);
@@ -742,16 +779,55 @@ namespace Effects.Vfx
             Vector2 centerSize = size * 0.72f;
             Vector3 centerVisual = VisualCenterForAnchor(center, centerSize, part, angle, flipX);
             Vector3 edgeVisual = VisualCenterForAnchor(edge, size, part, angle, flipX);
+            if (recolor)
+            {
+                DrawInk(center, layer, part, centerSize, angle, flipX, part.peakFrame);
+                DrawInk(edge, layer, part, size, angle, flipX, part.peakFrame);
+            }
             HandpaintFx.PlayAt(centerVisual, layer, sheet, centerSize, body, core, angle, order,
-                Mathf.Min(0.78f, part.peakAlpha), Mathf.Min(0.52f, part.glowAlpha), false, flipX);
+                Mathf.Min(0.78f, part.peakAlpha), Mathf.Min(recolor ? 0.26f : 0.52f, part.glowAlpha), false, flipX,
+                heldFrame: recolor ? Mathf.Max(0, part.columns * part.rows / 2) : -1,
+                peakHoldSeconds: recolor ? 0.10f : 0f, desaturate: recolor ? 1f : 0f, steadyBody: recolor);
             HandpaintFx.PlayAt(edgeVisual, layer, sheet, size, body, core, angle, order + 1,
-                Mathf.Min(0.88f, part.peakAlpha), Mathf.Min(0.60f, part.glowAlpha), false, flipX);
+                Mathf.Min(0.88f, part.peakAlpha), Mathf.Min(recolor ? 0.30f : 0.60f, part.glowAlpha), false, flipX,
+                heldFrame: recolor ? Mathf.Max(0, part.columns * part.rows / 2) : -1,
+                peakHoldSeconds: recolor ? 0.10f : 0f, desaturate: recolor ? 1f : 0f, steadyBody: recolor);
             // 끝 불꽃이 시전자 위 피격으로 오인되지 않도록 적 방향으로 뻗는 한 프레임 섬광을 붙인다.
             SpriteFx.Play(VfxArt.Streak, edge + aim.Direction * (0.05f * VfxSpace.CardSize), core, true,
                 new Vector2(0.06f, 0.018f) * VfxSpace.CardSize,
                 new Vector2(0.34f, 0.035f) * VfxSpace.CardSize, 0.085f,
                 angle, 0f, 0.005f, 0.30f, SpriteFx.Ease.OutCubic, layer,
                 VfxSpace.OverlaySortingOrder + order + 3)?.Follow(caster?.transform);
+        }
+
+        // 어두운 판에서는 초록/금색 원화와 틴트가 곱해져 중간 명도로 묻힌다. 몸체색만 보정하고 크기는 유지한다.
+        // 어두운 판에서는 원본의 녹색 채널만 곱하면 밝은 바람 틴트가 사라진다.
+        // 명도에 동일 팔레트를 입히며 밝은 판과 기존 부품은 그대로 둔다.
+        private static float WindOnDark(VfxPartData part)
+            => part.darkDesaturate && BattlefieldBackdrop.CurrentBackgroundLuminance < 0.48f ? 1f : part.desaturate;
+
+        private static void LiftLokapalaOnDarkBoard(VfxPartData part, ref Color body)
+        {
+            if (string.IsNullOrWhiteSpace(part.darkBodyColor)) return;
+            float weight = 1f - Mathf.InverseLerp(0.12f, 0.48f, BattlefieldBackdrop.CurrentBackgroundLuminance);
+            Color lit = ParseColor(part.darkBodyColor, body);
+            lit.a = body.a;
+            body = Color.Lerp(body, lit, weight * 0.85f);
+        }
+
+        // 밝은 바닥과 비슷한 휘도의 녹색·금빛 몸체를 크기 증가 없이 한 부품의 진한 외곽으로 분리한다.
+        private static void DrawInk(Vector3 anchor, int layer, VfxPartData part, Vector2 size,
+            float angle, bool flipX, int peak, Unit follow = null, bool followPortrait = false, float extraHold = 0f)
+        {
+            if (string.IsNullOrWhiteSpace(part.sheet) || part.inkAlpha <= 0f) return;
+            Vector2 outer = size * 1.18f;
+            Vector3 center = VisualCenterForAnchor(anchor, outer, part, angle, flipX);
+            Color ink = ParseColor(part.inkColor, new Color(0.09f, 0.065f, 0.10f, 0.94f));
+            ink.a = part.inkAlpha;
+            FlipbookFx fx = HandpaintFx.PlayAt(center, layer, Sheet(part), outer, ink, Color.clear,
+                angle, 29, ink.a, 0f, false, flipX, peak, Mathf.Max(Mathf.Max(part.peakHoldSeconds, extraHold), part.renderer == "casterTwin" ? 0.10f : 0f), desaturate: 1f, steadyBody: true, startFrame: part.startFrame);
+            if (follow != null) fx?.Follow(() => followPortrait ? VfxSpace.PortraitPoint(follow) : VfxSpace.WorldPoint(follow),
+                center - (followPortrait ? VfxSpace.PortraitPoint(follow) : VfxSpace.WorldPoint(follow)));
         }
 
         /// <summary>데이터가 적은 시작점·충돌점을 월드 목표점에 고정하도록 원화 중심을 역산한다.</summary>
@@ -785,9 +861,9 @@ namespace Effects.Vfx
 
         /// <summary>강화는 머리 위 Impact1이 역재생으로 모이고, 끝점이 실제 상태 아이콘으로 내려간다.</summary>
         private static void PlaySupportBuff(Unit target, Vector3 point, int layer, Vector2 size,
-            Color body, Color core)
+            Color body, Color core, bool outline = false)
         {
-            VfxRunner.Run(PlaySupportSequence(target, point, layer, body, core, SupportVisualKind.Buff));
+            VfxRunner.Run(PlaySupportSequence(target, point, layer, body, core, SupportVisualKind.Buff, 1f, outline));
         }
 
         /// <summary>정화는 청백 Smoke5가 안으로 걷히고 하단 상태열이 응답해 제거를 읽힌다.</summary>
@@ -798,9 +874,9 @@ namespace Effects.Vfx
 
         /// <summary>치유는 녹백 Impact1 한 번과 체력 게이지 팝으로 의미를 고정한다.</summary>
         private static void PlaySupportHeal(Unit target, Vector3 point, int layer, Vector2 size,
-            Color body, Color core)
+            Color body, Color core, float healScale = 1f, bool outline = false)
             => VfxRunner.Run(PlaySupportSequence(target, point, layer, body, core,
-                SupportVisualKind.Heal));
+                SupportVisualKind.Heal, healScale, outline));
 
         /// <summary>보호막은 은회색 Ball1 구체가 몸통에서 한 바퀴 돌고 보호막 게이지로 접힌다.</summary>
         private static void PlaySupportShield(Unit target, Vector3 point, int layer, Vector2 size,
@@ -810,7 +886,7 @@ namespace Effects.Vfx
         }
 
         private static IEnumerator PlaySupportSequence(Unit target, Vector3 point, int layer,
-            Color body, Color core, SupportVisualKind kind)
+            Color body, Color core, SupportVisualKind kind, float healScale = 1f, bool addInk = false)
         {
             if (target == null) yield break;
             float card = VfxSpace.CardSize;
@@ -839,7 +915,7 @@ namespace Effects.Vfx
                     break;
                 case SupportVisualKind.Heal:
                     sheet = HandpaintFx.Impact1Green;
-                    visualSize = new Vector2(1.20f, 1.14f);
+                    visualSize = (addInk ? new Vector2(1.36f, 1.28f) : new Vector2(1.20f, 1.14f)) * healScale;
                     visualPoint = point + Vector3.up * card * 0.10f;
                     reverse = false;
                     body = new Color(0.08f, 0.55f, 0.20f, 0.98f);
@@ -857,24 +933,37 @@ namespace Effects.Vfx
                     break;
             }
 
+            if (addInk && !health)
+                body = BattlefieldBackdrop.CurrentBackgroundLuminance < 0.48f
+                    ? new Color(0.95f, 0.80f, 0.30f, body.a)
+                    : new Color(0.12f, 0.055f, 0.02f, body.a);
             SkillFxCue cue = HandpaintFx.Cue(sheet, visualSize, body, core,
                 shield ? 210f : 0f, false, sheet.Columns * sheet.Rows - 1,
-                Vector2.zero, 0.96f, 0.84f);
+                Vector2.zero, addInk && !health ? 0.86f : 0.96f, addInk && !health ? 0.15f : 0.84f);
+            if (addInk)
+            {
+                if (cue.FrameDelays.Length > 3) cue.FrameDelays[3] += 0.10f;
+            }
             cue.ReverseFrames = reverse;
             cue.OrderOffset = 118;
             cue.Composite.ContactShadowColor = Color.clear;
             cue.Composite.GroundLightColor = Color.clear;
             // 밝은 배경 보정색도 슬롯 팔레트에서 만들지 않으면 녹색 원본이 장미색 버프에 남는다.
             cue.Composite.BrightBackdropLift = Color.Lerp(body, core, 0.58f);
-            cue.Composite.BrightBackdropLiftStrength = health ? 0.25f : 0.46f;
+            cue.Composite.BrightBackdropLiftStrength = addInk && !health ? 0.08f : health ? 0.25f : 0.46f;
             cue.Composite.GlowThreshold = 0.48f;
             cue.Composite.GlowSoftness = 0.20f;
-            cue.Composite.GlowGain = 1.60f;
+            cue.Composite.GlowGain = addInk && !health ? 0.85f : 1.60f;
             // 원본 시트의 녹색/청색이 남지 않게 명도만 취한 뒤 시전자 팔레트로 다시 칠한다.
             cue.Composite.Desaturate = 1f;
             cue.Composite.StartScale = shield ? 0.90f : 1.04f;
             cue.Composite.CrestScale = shield ? 1.04f : 0.98f;
             cue.Composite.EndScale = shield ? 0.94f : 0.82f;
+            if (addInk)
+            {
+                cue.Composite.StartScale = cue.Composite.CrestScale = cue.Composite.EndScale = health ? 1f : 1.08f;
+                cue.Composite.BlendFraction = 0.20f;
+            }
             // 실제 1배속 캡처에서도 의미가 최소 0.12초 읽히도록 원본 정점 칸을 유지한다.
             // 역재생은 배열의 첫 칸이 아니라 원본 정점의 역인덱스를 잡아야 빈 소멸 셀을 붙들지 않는다.
             if (cue.FrameDelays != null && cue.FrameDelays.Length > 0)
@@ -889,13 +978,28 @@ namespace Effects.Vfx
                 cue.FrameDelays[holdFrame] += kind == SupportVisualKind.Cleanse ? 0.22f :
                     shield ? 0.25f : 0.15f;
             }
+            if (addInk)
+            {
+                // 받침도 같은 셀·역재생·유지 시간을 써야 몸체보다 먼저 사라지지 않는다.
+                SkillFxCue ink = HandpaintFx.Cue(sheet, visualSize * 1.18f,
+                    new Color(0.012f, 0.08f, 0.035f, 1f), Color.clear,
+                    peakAlpha: health ? 0.90f : 0.20f, glowAlpha: 0f);
+                ink.FrameDelays = (float[])cue.FrameDelays.Clone();
+                ink.ReverseFrames = reverse;
+                ink.OrderOffset = 117;
+                ink.Composite.Desaturate = 1f;
+                ink.Composite.ContactShadowColor = ink.Composite.GroundLightColor = Color.clear;
+                ink.Composite.StartScale = ink.Composite.CrestScale = ink.Composite.EndScale = health ? 1f : 1.08f;
+                ink.Composite.BlendFraction = 0.20f;
+                SkillFx.PlayCue(ink, visualPoint, layer, VfxSpace.OverlaySortingOrder + 20);
+            }
             SkillFx.PlayCue(cue, visualPoint, layer, VfxSpace.OverlaySortingOrder + 20);
             if (health)
             {
                 // 치유는 팩 충격 몸체 안에 녹백 십자광을 한 합성 부품으로 겹쳐 의미를 즉시 읽힌다.
                 Color outline = SupportOutline(body, 0.96f);
-                float length = card * 0.40f;
-                float thickness = card * 0.075f;
+                float length = card * 0.40f * healScale;
+                float thickness = card * 0.075f * healScale;
                 PlaySupportStroke(target, visualPoint, layer, 0f, length, thickness,
                     outline, body, core, VfxSpace.OverlaySortingOrder + 130);
                 PlaySupportStroke(target, visualPoint, layer, 90f, length, thickness,
@@ -1173,11 +1277,25 @@ namespace Effects.Vfx
     public static class StatusAffectedVfx
     {
         public const string SuppressPartId = "none";
+        private static string _supportVariant;
+
+        /// <summary>실제 Heal 호출 안에서 자동 지원 부품만 선택한다. 예외·중첩 호출 뒤에는 이전 설정을 되돌린다.</summary>
+        public static IDisposable SupportVariant(string skillKey) => new SupportScope(skillKey);
+
+        private sealed class SupportScope : IDisposable
+        {
+            private readonly string _prior;
+            public SupportScope(string skillKey) { _prior = _supportVariant; _supportVariant = skillKey; }
+            public void Dispose() => _supportVariant = _prior;
+        }
 
         public static void PlaySupport(Unit owner, Unit caster, string partId)
         {
             if (owner == null || !owner.isActive || string.IsNullOrWhiteSpace(partId)) return;
-            VfxComposer.PlayAffectedPart(owner, partId, caster);
+            string variant = _supportVariant;
+            if (partId == "hit.support.heal" && !string.IsNullOrWhiteSpace(variant))
+                VfxComposer.PlayAffectedSlot(variant, 0, caster, owner);
+            else VfxComposer.PlayAffectedPart(owner, partId, caster);
         }
 
         public static void Play(Unit owner, UnitStatus status)
@@ -1189,7 +1307,16 @@ namespace Effects.Vfx
                 ? status.AffectedVfxPartId
                 : VfxDefinitionCatalog.StatusPart(status.Key);
             if (string.IsNullOrWhiteSpace(partId)) partId = DefaultPart(status);
-            if (!string.IsNullOrWhiteSpace(partId)) VfxComposer.PlayAffectedPart(owner, partId, status.Caster);
+            if (VfxDefinitionCatalog.Part(partId)?.affectedDelay > 0f)
+                VfxRunner.Run(PlayAffectedAfterHit(owner, status.Caster, partId));
+            else if (!string.IsNullOrWhiteSpace(partId)) VfxComposer.PlayAffectedPart(owner, partId, status.Caster);
+        }
+
+        private static IEnumerator PlayAffectedAfterHit(Unit owner, Unit caster, string partId)
+        {
+            // 상태·명중은 이미 적용됐다. 연출만 원 공격 피격의 꼬리 뒤에 이어 얼굴을 이중으로 덮지 않는다.
+            yield return new WaitForSeconds(VfxDefinitionCatalog.Part(partId).affectedDelay);
+            if (owner != null && owner.isActive) VfxComposer.PlayAffectedPart(owner, partId, caster);
         }
 
         private static string DefaultPart(UnitStatus status)

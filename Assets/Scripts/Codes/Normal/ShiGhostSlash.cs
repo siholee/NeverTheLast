@@ -14,6 +14,8 @@ namespace Codes.Normal
     /// <summary>시 — 일반행동 「멸참」. 일반·특성·재행동 모두 같은 판정과 연출을 공유한다.</summary>
     public sealed class ShiGhostSlash : BaseNormalCode
     {
+        public override int AttackForm => DamageTag.Slash;
+
         public const float AttackRatio = 2.5f;
 
         public enum SpecialSource
@@ -79,7 +81,7 @@ namespace Codes.Normal
         private IEnumerator DeliverMelcham(Unit target, SpecialSource source, List<int> tags,
             BaseEnums.CodeType codeType, SfxActionSlot slot, ShiFinalBell bell, int bellTier)
         {
-            bool crit = RollCritical(out float multiplier);
+            bool crit = RollCritical(target, out float multiplier);
             int damage = Mathf.Max(1, Mathf.RoundToInt(BaseDamage(target) * multiplier));
             var context = new DamageContext(Caster, damage, codeType, tags, crit);
             Caster.StartCoroutine(CardMotion.Channel(Caster, 0.08f, 0.22f, 0.12f));
@@ -109,6 +111,7 @@ namespace Codes.Normal
             DamageTag.SingleTarget,
             source == SpecialSource.None ? DamageTag.NormalAttack : DamageTag.SpecialAttack,
             DamageTag.NonContactAttack,
+            DamageTag.Slash,
         };
 
         protected override List<int> GetDamageTags() => DamageTagsFor(_source);

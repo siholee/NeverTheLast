@@ -280,7 +280,7 @@ namespace Managers.UI.Screens
                 art.type = Image.Type.Simple;
                 art.raycastTarget = false;
 
-                TextMeshProUGUI name = UIBuild.Text("Name", slot.transform, $"{i + 1}", UITheme.FontMicro,
+                TextMeshProUGUI name = UIBuild.Text("Name", slot.transform, $"{i + 1}", UITheme.FontBody,
                     UITheme.TextMuted, TextAlignmentOptions.Center);
                 UIBuild.Anchor(name.rectTransform, new Vector2(0.02f, 0.01f), new Vector2(0.98f, 0.25f));
 
@@ -364,7 +364,7 @@ namespace Managers.UI.Screens
                 nameStrip.raycastTarget = false;
 
                 TextMeshProUGUI label = UIBuild.Text("Name", tile.transform, IsLavoisierLocked(unit.id) ? $"미해금 · {unit.name}" : unit.name,
-                    UITheme.FontMicro, UITheme.TextPrimary, TextAlignmentOptions.Center);
+                    UITheme.FontBody, UITheme.TextPrimary, TextAlignmentOptions.Center);
                 UIBuild.Anchor(label.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.20f), 3f, 3f);
 
                 int rank = _recommended.IndexOf(unit.id);

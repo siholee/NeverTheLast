@@ -100,20 +100,7 @@ namespace Managers.UI.Screens
         /// </summary>
         private void BuildHeader(Transform panel)
         {
-            // 오른쪽 위의 옅은 빛 번짐. 예전의 사선 빗금은 둥근 면과 어울리지 않고 글자 뒤에서 결이 떴다.
-            // Radiant의 흐린 그라데이션처럼 면 모서리에만 차가운 빛을 준다.
-            // 빛의 중심은 면 바깥 모서리에 두고, 면 안쪽으로 번진 부분만 보이게 잘라 낸다.
-            RectTransform glowClip = UIBuild.Container("HeaderGlowClip", panel);
-            // 작은 확인 창에서도 색 띠처럼 본문을 덮지 않도록, 우상단 38% 안에서만 번지게 한다.
-            UIBuild.Anchor(glowClip, new Vector2(0.62f, 0.72f), new Vector2(1f, 1f), 2f, 2f);
-            glowClip.gameObject.AddComponent<RectMask2D>();
-
-            var glowObject = new GameObject("HeaderGlow", typeof(RectTransform), typeof(Image));
-            glowObject.transform.SetParent(glowClip, false);
-            var glow = glowObject.GetComponent<Image>();
-            glow.sprite = UIShapes.Glow(128, new Color(UITheme.Accent.r, UITheme.Accent.g, UITheme.Accent.b, 0.08f));
-            glow.raycastTarget = false;
-            UIBuild.Pin(glow.rectTransform, new Vector2(1f, 1f), new Vector2(420f, 240f), new Vector2(150f, 110f));
+            UIArtDirection.Header(panel);
 
             Image bar = UIBuild.Solid("HeaderBar", panel, UITheme.Accent);
             UIBuild.Pin(bar.rectTransform, new Vector2(0f, 1f), new Vector2(96f, 3f),
@@ -122,14 +109,15 @@ namespace Managers.UI.Screens
             if (!string.IsNullOrEmpty(Caption))
             {
                 TextMeshProUGUI caption = UIBuild.Label("Caption", panel, Caption,
-                    UITheme.FontMicro, UITheme.TextMuted);
+                    UITheme.FontMicro, UITheme.TextOnDarkSecondary);
                 caption.characterSpacing = 20f;
                 UIBuild.Pin(caption.rectTransform, new Vector2(0f, 1f), new Vector2(320f, 13f),
                     new Vector2(UITheme.PanelPad + 112f, -12f));
             }
 
-            _title = UIBuild.Label("Title", panel, Title, UITheme.FontTitle, UITheme.TextPrimary);
-            _title.characterSpacing = 5f;
+            _title = UIBuild.Label("Title", panel, Title, UITheme.FontReadTitle, UITheme.TextOnDark);
+            _title.characterSpacing = 1f;
+            _title.fontStyle = FontStyles.Bold;
             UIBuild.Pin(_title.rectTransform, new Vector2(0f, 1f), new Vector2(520f, 30f),
                 new Vector2(UITheme.PanelPad, -36f));
         }

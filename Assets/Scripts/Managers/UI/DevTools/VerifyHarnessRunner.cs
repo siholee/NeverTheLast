@@ -22,7 +22,7 @@ namespace Managers.UI.DevTools
     /// 파일 요청을 받은 에디터가 Play 모드로 들어오면 게임 API만으로 검증 장면을 만든다.
     /// 사용자 저장은 <see cref="DebugMode.BeginSession"/>이 격리하고, 모든 캡처가 끝나면 Play를 스스로 닫는다.
     /// </summary>
-    public sealed class VerifyHarnessRunner : MonoBehaviour
+    public sealed partial class VerifyHarnessRunner : MonoBehaviour
     {
         private const int SeiId = 1;
         private const int ShiId = 2;
@@ -109,6 +109,9 @@ namespace Managers.UI.DevTools
             AudioManager.SfxEventRecorded += OnSfxEvent;
             VfxComposer.SlotPlayed += OnVfxSlotPlayed;
             Combat.AttackTargetRouter.TargetRedirected += OnTargetRedirected;
+            Unit.AnyDamageIncoming += V13Damage;
+            Unit.AnyHealed += V13Heal;
+            Unit.AnyUnitDied += V13Death;
         }
 
         private void OnDestroy()
@@ -123,6 +126,10 @@ namespace Managers.UI.DevTools
             AudioManager.SfxEventRecorded -= OnSfxEvent;
             VfxComposer.SlotPlayed -= OnVfxSlotPlayed;
             Combat.AttackTargetRouter.TargetRedirected -= OnTargetRedirected;
+            Unit.AnyDamageIncoming -= V13Damage;
+            Unit.AnyHealed -= V13Heal;
+            Unit.AnyUnitDied -= V13Death;
+            if (_v13MaskMaterial != null) Destroy(_v13MaskMaterial);
             BattlefieldBackdrop.SetVerificationBackgroundOverride(null);
             SkillFx.PlaybackMode = SkillFxPlaybackMode.Final;
             VfxStyleSettings.Reset();
@@ -289,6 +296,13 @@ namespace Managers.UI.DevTools
                 "party5_bastet" => PartyFiveBastetIds,
                 "party5_jean" => PartyFiveJeanIds,
                 "party5_jean_bastet" => PartyFiveJeanBastetIds,
+                "party5_lokapala" => PartyFiveLokapalaIds,
+                "party5_summon" => PartyFiveSummonIds,
+                "party5_yama_varuna" => PartyFiveYamaVarunaIds,
+                "party5_vedic_trio" => new[] { 64, 62, 67, 66, 63 },
+                "party5_reward_ui" => PartyFiveRewardUiIds,
+                "duo_agni_surya" => new[] { AgniId, SuryaId },
+                "duo_shi_sabah" => new[] { ShiId, SabahId },
                 _ => PartyFiveIds,
             };
             foreach (int id in ids)
@@ -309,7 +323,9 @@ namespace Managers.UI.DevTools
         {
             string lineup = ResolveLineup(config);
             if (lineup != "party5" && lineup != "party5_sabah" && lineup != "party5_bastet" &&
-                lineup != "party5_jean" && lineup != "party5_jean_bastet" && lineup != "solo1")
+                lineup != "party5_jean" && lineup != "party5_jean_bastet" && lineup != "solo1" &&
+                lineup != "party5_lokapala" && lineup != "party5_summon" && lineup != "party5_yama_varuna" && lineup != "party5_vedic_trio" &&
+                lineup != "party5_reward_ui" && lineup != "duo_agni_surya" && lineup != "duo_shi_sabah")
             {
                 FailCurrent($"알 수 없는 lineup: {lineup}");
                 yield break;
@@ -346,6 +362,18 @@ namespace Managers.UI.DevTools
 
             IEnumerator body = _currentScenario switch
             {
+                var visualName when visualName.StartsWith("v13yv_", StringComparison.Ordinal) => ScenarioYvVisual(scenario),
+                "guide_rework" => ScenarioGuideRework(scenario),
+                "effect_hit_core" => ScenarioEffectHitCore(scenario),
+                "release_save" => ScenarioReleaseSave(scenario),
+                "release_shield" => ScenarioReleaseShield(scenario),
+                "release_campaign" => ScenarioReleaseCampaign(scenario),
+                "release_event" => ScenarioReleaseEvent(scenario),
+                "release_loss" => ScenarioReleaseLoss(scenario),
+                "ui_overhaul" => ScenarioUIOverhaul(scenario),
+                "ui_overhaul_menu" => ScenarioUIOverhaulMenu(scenario),
+                "reward_ui_forms" => ScenarioRewardUiForms(scenario),
+                var rewardUiName when IsRewardUiScenario(rewardUiName) => ScenarioUIOverhaul(scenario),
                 "prep" => ScenarioPrep(scenario),
                 "combat_1v1" => ScenarioCombat(scenario, CombatStage(scenario, 6, 1), "combat"),
                 "combat_1v2" => ScenarioCombat(scenario, CombatStage(scenario, 6, 2), "combat"),
@@ -429,6 +457,18 @@ namespace Managers.UI.DevTools
                 "speed8" => ScenarioSpeed8(scenario),
                 "layer_isolation" => ScenarioLayerIsolation(scenario),
                 "five_party" => ScenarioFiveParty(scenario),
+                "r12_core" => ScenarioR12Core(scenario),
+                "r12_lokapala" => ScenarioR12Lokapala(scenario),
+                "r12_summon" => ScenarioR12Summon(scenario),
+                "yama_varuna_core" => ScenarioYamaVarunaCore(scenario),
+                "v13trio_visual" or "v13trio_visual8" or "v13trio_visual_sparse_1920_4x" => ScenarioVedicTrioVisual(scenario),
+                "trio_core" => ScenarioVedicTrioCore(scenario),
+                var currentname when currentname.StartsWith("v13surya_hud_") => ScenarioSuryaHud(scenario),
+                "trio_balance" => ScenarioVedicTrioBalance(scenario),
+                var naturalName when naturalName.StartsWith("trio_natural_") => ScenarioVedicTrioNatural(scenario),
+                "kubera_followup_core" => ScenarioKuberaFollowupCore(scenario),
+                "kubera_followup_lokapala_ui" => ScenarioKuberaFollowupLokapalaUi(scenario),
+                "v13a_indra" or "v13a_vayu" or "v13a_kubera" or "v13a_chandra" or "v13a_gate" or "v13b_anubis" or "v13b_uchi" or "v13b_party" => ScenarioV13A(scenario),
                 _ => null,
             };
 
@@ -2110,10 +2150,10 @@ namespace Managers.UI.DevTools
             }
         }
 
-        private IEnumerator CaptureStill(string tag)
+        private IEnumerator CaptureStill(string tag, bool keepTooltip = false)
         {
             yield return EndOfFrame;
-            Capture(tag);
+            Capture(tag, keepTooltip);
             yield return null;
         }
 
@@ -2201,19 +2241,22 @@ namespace Managers.UI.DevTools
             if (!acted) action?.Invoke();
         }
 
-        private void Capture(string baseTag)
+        private void Capture(string baseTag, bool keepTooltip = false)
         {
             // 자동 캡처는 포인터 위치와 무관해야 한다. 매 프레임 호버가 다시 계산되므로 저장 직전에 닫는다.
-            Managers.UI.Core.UITooltip.HideAny();
+            // 툴팁 자체를 검수하는 캡처만 고정 좌표(ShowAt)로 띄운 툴팁을 남긴다.
+            if (!keepTooltip) Managers.UI.Core.UITooltip.HideAny();
             string scenarioDirectory = Path.Combine(_requestDirectory, "out", SafeName(_currentScenario));
             Directory.CreateDirectory(scenarioDirectory);
             string visualTag = string.IsNullOrWhiteSpace(_latestVisualEvent) ? "frame" : _latestVisualEvent;
             string tag = SafeName($"{baseTag}_{visualTag}");
-            string file = $"{++_captureSequence:0000}_{tag}.png";
+            string extension = _currentScenario.StartsWith("v13", StringComparison.Ordinal) ? "rgba" : "png";
+            string file = $"{++_captureSequence:0000}_{tag}.{extension}";
             string path = Path.Combine(scenarioDirectory, file);
             int frame = Time.frameCount;
             float realtime = Time.realtimeSinceStartup;
-            ScreenCapture.CaptureScreenshot(path);
+            if (_currentScenario.StartsWith("v13", StringComparison.Ordinal)) V13CaptureFrame(path);
+            else ScreenCapture.CaptureScreenshot(path);
             _result.captures.Add(new VerifyCaptureRecord
             {
                 scenario = _currentScenario,
@@ -2225,6 +2268,7 @@ namespace Managers.UI.DevTools
             });
             RecordPortraitRects(frame, realtime);
             RecordUiRects(frame, realtime);
+            V13CaptureDiagnostics(path);
         }
 
         private void RecordPortraitRects(int frame, float realtime)
@@ -2242,11 +2286,30 @@ namespace Managers.UI.DevTools
                     scenario = _currentScenario,
                     realtime = realtime,
                     frame = frame,
+                    instanceId = unit.GetInstanceID(),
+                    worldX = view.Body.position.x, worldY = view.Body.position.y,
                     unit = unit.UnitName,
                     xMin = rect.xMin,
                     yMin = rect.yMin,
                     xMax = rect.xMax,
                     yMax = rect.yMax,
+                });
+            }
+            // 칸 없는 분신도 실제 표시 좌표를 기록해 이동·소멸 검수에 포함한다.
+            foreach (Entities.View.SummonCardView view in FindObjectsByType<Entities.View.SummonCardView>(
+                         FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            {
+                SpriteRenderer portrait = view.PortraitRenderer;
+                if (view.BoundUnit == null || portrait == null || !portrait.enabled) continue;
+                Bounds bounds = portrait.bounds;
+                Vector3 min = camera.WorldToScreenPoint(bounds.min);
+                Vector3 max = camera.WorldToScreenPoint(bounds.max);
+                _result.portraitRects.Add(new VerifyPortraitRectRecord
+                {
+                    scenario = _currentScenario, realtime = realtime, frame = frame,
+                    instanceId = view.BoundUnit.GetInstanceID(),
+                    worldX = view.transform.position.x, worldY = view.transform.position.y,
+                    unit = view.BoundUnit.UnitName, xMin = min.x, yMin = min.y, xMax = max.x, yMax = max.y,
                 });
             }
         }
@@ -2344,6 +2407,11 @@ namespace Managers.UI.DevTools
         private void OnVfxSlotPlayed(VfxSlotPlaybackEvent item)
         {
             if (_result == null || item == null) return;
+            if (_currentScenario?.StartsWith("v13", StringComparison.Ordinal) == true)
+                RecordPortraitRects(Time.frameCount, item.Realtime);
+            if (_v13PeakDiagnostics && item.Phase == "peak" && item.SlotName is "hit" or "affected")
+                _v13DiagnosticUntil = Time.realtimeSinceStartup +
+                    (_currentScenario.StartsWith("v13yv_", StringComparison.Ordinal) && item.SlotName == "affected" ? 0.50f : 0.15f);
             Camera camera = Camera.main;
             Vector3 screen = camera != null ? camera.WorldToScreenPoint(item.WorldPoint) : Vector3.zero;
             _result.vfxSlots.Add(new VerifyVfxSlotRecord
@@ -2356,6 +2424,8 @@ namespace Managers.UI.DevTools
                 partId = item.PartId,
                 phase = item.Phase,
                 slotIndex = item.SlotIndex,
+                casterInstanceId = item.Caster != null ? item.Caster.GetInstanceID() : 0,
+                targetInstanceId = item.Target != null ? item.Target.GetInstanceID() : 0,
                 caster = item.Caster != null ? item.Caster.UnitName : string.Empty,
                 target = item.Target != null ? item.Target.UnitName : string.Empty,
                 screenX = screen.x,
@@ -2510,6 +2580,9 @@ namespace Managers.UI.DevTools
         private string ResolveLineup(VerifyScenarioRequest config)
         {
             string value = !string.IsNullOrWhiteSpace(config?.lineup) ? config.lineup : _request.lineup;
+            // 보상 UI 시나리오는 세이 · 인드라 · 쿠베라 · 아그니 · 수리야 편성이 기준이다. 시나리오에 편성을 따로 적지 않았으면 그것을 쓴다.
+            if (string.IsNullOrWhiteSpace(config?.lineup) && IsRewardUiScenario(config?.name?.Trim().ToLowerInvariant()))
+                value = "party5_reward_ui";
             return value?.Trim().ToLowerInvariant() switch
             {
                 null or "" or "party5" or "five" => "party5",
@@ -2517,6 +2590,10 @@ namespace Managers.UI.DevTools
                 "party5_bastet" or "bastet5" => "party5_bastet",
                 "party5_jean" or "jean5" => "party5_jean",
                 "party5_jean_bastet" or "jean_bastet5" => "party5_jean_bastet",
+                "party5_lokapala" or "lokapala5" => "party5_lokapala",
+                "party5_summon" or "summon5" => "party5_summon",
+                "party5_yama_varuna" or "yama_varuna5" => "party5_yama_varuna",
+                "party5_reward_ui" or "reward_ui5" => "party5_reward_ui",
                 "solo1" or "solo" or "sei" => "solo1",
                 _ => value.Trim().ToLowerInvariant(),
             };

@@ -48,6 +48,11 @@ namespace Managers.UI.Core
             new("Summon", "소환", "해당 유닛은 소환수와 관련된 능력을 보유하고 있습니다.", "TAG_SUMMON"),
             new("Domination", "지배", "해당 유닛은 지속피해나 행동 방해 상태를 부여합니다.", "TAG_CONTROL"),
             new("Indomitable", "불굴", "해당 유닛은 자신의 체력을 자원으로 소모하거나 그와 연관되어 있습니다.", "TAG_INDOMITABLE"),
+            // 아이콘은 새로 그리기 전까지 가장 가까운 기존 아이콘을 쓴다(비주얼 작업에서 교체).
+            new("Growth", "성장", "해당 유닛은 런 내내 영구 중첩을 쌓아 강해집니다.", "TAG_STURDY"),
+            // 코드 전용 태그. 코드 카드의 칩이 유닛 태그와 같은 사전을 쓴다(Detail_17 §3).
+            new("Universal", "범용", "누구에게 줘도 손해가 없는 코드입니다.", "TAG_SUPPORT"),
+            new("Economy", "경제", "골드 · 경험치 같은 전투 밖 자원을 늘리는 코드입니다.", "TAG_SUPPORT"),
         };
 
         private static readonly Dictionary<string, Definition> ByKey = All.ToDictionary(

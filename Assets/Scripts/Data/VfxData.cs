@@ -7,6 +7,18 @@ public sealed class VfxPartData
 {
     public string id;
     public string category;
+    public string inkColor;
+    public float inkAlpha;
+    public string darkBodyColor;
+    public bool darkDesaturate;
+    public float desaturate;
+    public bool calmLight;
+    public bool useHitAlpha;
+    public bool edgeUnderlay;
+    public float affectedDelay;
+    public int startFrame;
+    public int tailHoldFrame = -1;
+    public float tailHoldSeconds;
     public string renderer = "flipbook";
     public string sheet;
     public int columns = 1;
@@ -52,6 +64,12 @@ public sealed class VfxPartData
 public sealed class VfxSlotData
 {
     public string slot;
+    public bool portraitAnchor;
+    public bool steadyBody;
+    public bool recolor;
+    public bool supportInk;
+    public float supportScale = 1f;
+    public bool coinBurst;
     public string partId;
     public string bodyColor;
     public string edgeColor;

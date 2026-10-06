@@ -94,6 +94,13 @@ namespace Effects
             DamagePopup.Show(target, 0, false, Color.white, CombatNumberKind.Miss);
         }
 
+        /// <summary>피해는 들어갔지만 원소·상태 부여만 저항했음을 알린다.</summary>
+        public static void PlayEffectResisted(Unit target)
+        {
+            if (target == null) return;
+            DamagePopup.Show(target, 0, false, Color.white, CombatNumberKind.EffectResisted);
+        }
+
         /// <summary>횟수제 무적이 타격을 지웠다. 회피와 달리 맞기는 맞았으므로 카드는 가볍게 흔든다.</summary>
         public static void PlayNullified(Unit target)
         {

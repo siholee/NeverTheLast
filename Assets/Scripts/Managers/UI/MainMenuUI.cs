@@ -49,6 +49,10 @@ namespace Managers.UI
             UIBuild.Stretch(atmosphere.rectTransform);
 
             RectTransform root = UIBuild.SafeArea(canvas);
+            UIArtDirection.Header(root, 8f);
+            Image document = UIBuild.Panel("LobbyDocument", root, new Color(1f, 1f, 1f, 0.90f), UIShapes.Corner.BottomRight, 12);
+            document.raycastTarget = false;
+            UIBuild.Anchor(document.rectTransform, new Vector2(0.018f, 0.845f), new Vector2(0.47f, 0.98f));
             Sprite sei = SpriteResource.LoadStanding("SEI_STANDING") ?? SpriteResource.LoadStanding("SHI_STANDING");
             Image characterShadow = UIBuild.Solid("LobbyCharacterShadow", root,
                 new Color(0.22f, 0.39f, 0.53f, 0.24f));
@@ -66,7 +70,7 @@ namespace Managers.UI
             character.raycastTarget = false;
             character.enabled = character.sprite != null;
             UIBuild.Anchor(character.rectTransform, new Vector2(0.04f, 0.01f), new Vector2(0.64f, 1.02f));
-            Copy(root, "Brand", "NEVER THE LAST", 32, UITheme.TextPrimary, 0.035f, 0.89f, 0.44f, 0.97f, true);
+            Copy(root, "Brand", "NEVER THE LAST", 42, UITheme.TextPrimary, 0.035f, 0.89f, 0.44f, 0.97f, true);
             Copy(root, "Edition", "신들의 기록 · 끝나지 않은 여정", 18, UITheme.TextSecondary, 0.037f, 0.85f, 0.44f, 0.90f);
             Image identity = UIBuild.Panel("CharacterIdentity", root, new Color(1, 1, 1, 0.93f), cut: 4);
             UIBuild.Anchor(identity.rectTransform, new Vector2(0.055f, 0.13f), new Vector2(0.31f, 0.25f));
@@ -75,6 +79,7 @@ namespace Managers.UI
 
             Image journeyGlass = UIBuild.ChromePanel("JourneyGlass", root);
             UIBuild.Anchor(journeyGlass.rectTransform, new Vector2(0.61f, 0.13f), new Vector2(0.97f, 0.87f));
+            UIArtDirection.Header(journeyGlass.transform, 5f);
             RectTransform journey = UIBuild.Container("Journey", journeyGlass.transform);
             UIBuild.Stretch(journey, 34f, 30f);
             Copy(journey, "Chapter", "YOUR NEXT CHAPTER", 16, UITheme.Accent, 0, 0.89f, 1, 1);

@@ -12,6 +12,8 @@ namespace Codes.Normal
     /// <summary>바스테트 — 짧게 내딛고 대상 초상화에 한 번 꽂는 접촉 물리 공격.</summary>
     public sealed class BastetCatPunch : BaseNormalCode
     {
+        public override int AttackForm => DamageTag.Strike;
+
         public BastetCatPunch(NormalCodeContext context) : base(context)
         {
             CodeName = "냥냥펀치";
@@ -43,6 +45,7 @@ namespace Codes.Normal
                 DamageTag.NormalAttack,
                 DamageTag.AdditionalAttack,
                 DamageTag.ContactAttack,
+                DamageTag.Strike,
             };
             AttackTargetResolution routing = AttackTargetRouter.Prepare(Caster, new[] { originalTarget },
                 BaseEnums.CodeType.Normal, tags, "미운 놈 한 대 더 때리기");
@@ -57,7 +60,7 @@ namespace Codes.Normal
             Unit target = targets[0];
             // 추가행동 표기는 스케줄러가 담당한다. 연출과 음향은 일반 냥냥펀치를 그대로 반복한다.
             AudioManager.PlayAction(Caster, SfxActionSlot.Normal, SfxCuePhase.Cast, CodeName);
-            bool crit = RollCritical(out float multiplier);
+            bool crit = RollCritical(target, out float multiplier);
             int damage = UnityEngine.Mathf.Max(1, UnityEngine.Mathf.RoundToInt(BaseDamage(target) * multiplier));
             var context = new DamageContext(Caster, damage, BaseEnums.CodeType.Normal, tags, crit);
             yield return BastetFx.CatPunch(Caster, target, true, () =>

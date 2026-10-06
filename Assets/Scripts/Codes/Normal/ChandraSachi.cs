@@ -10,6 +10,8 @@ namespace Codes.Normal
     /// <summary>찬드라 — 일반행동 「샤친」. 최대 체력 50%의 특수·비접촉 단일 피해.</summary>
     public sealed class ChandraSachi : BaseNormalCode
     {
+        public override int AttackForm => DamageTag.Spell;
+
         private const float MaxHpRatio = 0.50f;
 
         public ChandraSachi(NormalCodeContext context) : base(context)
@@ -33,6 +35,7 @@ namespace Codes.Normal
             DamageTag.NormalAttack,
             DamageTag.NonContactAttack,
             DamageTag.SpecialDamage,
+            DamageTag.Spell,
         };
     }
 }

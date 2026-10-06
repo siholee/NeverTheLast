@@ -12,6 +12,7 @@ namespace Effects.Vfx
         public bool BlendFrames = true;
         public float BlendFraction = 0.46f;
         public float PeakAlpha = 0.78f;
+        public bool SoftPulse;
         public float FadeInFraction = 0.12f;
         public float FadeOutFraction = 0.26f;
         public Color BrightBackdropLift = new(1f, 0.91f, 0.72f, 1f);
@@ -107,7 +108,7 @@ namespace Effects.Vfx
             Vector3 position, Vector2 size, Color color, bool additive, bool loop, bool flipX,
             float[] frameDelays, int sortingLayer, int order, Action<int> onFrame = null,
             Action onComplete = null, FlipbookCompositeStyle style = null,
-            SkillFxPlaybackMode playbackMode = SkillFxPlaybackMode.Final, bool reverseFrames = false)
+            SkillFxPlaybackMode playbackMode = SkillFxPlaybackMode.Final, bool reverseFrames = false, int startFrame = 0)
         {
             Texture2D texture = Resources.Load<Texture2D>(resourcePath);
             Sprite[] frames = FramesFor(resourcePath, texture, columns, rows, pivot);
@@ -159,7 +160,9 @@ namespace Effects.Vfx
                 fx.BuildGrounding(sortingLayer, order);
                 fx.BuildPeak(sortingLayer, order, flipX);
             }
-            fx.EnterFrame(0);
+            startFrame = Mathf.Clamp(startFrame, 0, frames.Length - 1);
+            for (int i = 0; i < startFrame; i++) fx._age += fx._delays[i];
+            fx.EnterFrame(startFrame);
             fx.UpdatePresentation();
             return fx;
         }
@@ -345,6 +348,8 @@ namespace Effects.Vfx
 
         private float EvaluateAlpha(float progress)
         {
+            // 선택한 연출만 한 번 부드럽게 오르내린다. 판정 프레임과 재생 시간은 보존한다.
+            if (_style.SoftPulse) return Mathf.Sin(Mathf.Clamp01(progress) * Mathf.PI);
             float fadeIn = _style.FadeInFraction <= 0f
                 ? 1f
                 : Smooth01(progress / Mathf.Max(0.0001f, _style.FadeInFraction));

@@ -102,7 +102,7 @@ namespace Codes.Base
         /// <summary>치명타를 굴려 피해 정보를 만든다.</summary>
         protected DamageContext BuildContext(Unit target)
         {
-            bool crit = RollCritical(out float multiplier);
+            bool crit = RollCritical(target, out float multiplier);
             int damage = Mathf.Max(1, Mathf.RoundToInt(BaseDamage(target) * multiplier));
             return new DamageContext(Caster, damage, BaseEnums.CodeType.Normal, GetDamageTags(), crit);
         }
@@ -161,10 +161,15 @@ namespace Codes.Base
             return pool.Where(unit => unit && unit.IsOnField && !unit.IsUntargetable).ToList();
         }
 
-        protected virtual List<int> GetDamageTags() => new()
+        protected virtual List<int> GetDamageTags()
         {
-            DamageTag.SingleTarget, DamageTag.NormalAttack,
-            IsContact ? DamageTag.ContactAttack : DamageTag.NonContactAttack,
-        };
+            var tags = new List<int>
+            {
+                DamageTag.SingleTarget, DamageTag.NormalAttack,
+                IsContact ? DamageTag.ContactAttack : DamageTag.NonContactAttack,
+            };
+            if (AttackForm > 0) tags.Add(AttackForm);
+            return tags;
+        }
     }
 }

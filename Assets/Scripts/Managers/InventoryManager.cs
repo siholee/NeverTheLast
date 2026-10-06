@@ -38,7 +38,8 @@ namespace Managers
 
         public void Initialize()
         {
-            rerollTicketCount = 50;
+            // 리롤 티켓은 이제 보상 선택지를 다시 굴리는 실제 자원이다(운명의 주사위). 시작 지급은 없다.
+            rerollTicketCount = 0;
             Gold = 500;
             TokensInHand ??= new IntIntDictionary();
             TokensInHand.Clear();
@@ -108,6 +109,16 @@ namespace Managers
             RefreshPanel();
             return true;
         }
+
+        /// <summary>공용 인벤토리에서 아이템 하나를 꺼내 쓴다(비약 · 코드 도구). 없으면 false.</summary>
+        public bool RemoveItem(int itemId)
+        {
+            if (ItemIdsInHand == null || !ItemIdsInHand.Remove(itemId)) return false;
+            RefreshPanel();
+            return true;
+        }
+
+        public ItemData Find(int itemId) => FindItem(itemId);
 
         /// <summary>
         /// 식량을 정확히 소모한다. 현재 식량 단위는 10의 배수이므로 긴 휴식 비용도 같은 단위다.

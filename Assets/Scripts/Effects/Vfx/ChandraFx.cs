@@ -167,7 +167,7 @@ namespace Effects.Vfx
         }
 
         /// <summary>
-        /// 창야 기본 화풍. 시전은 한 번만 보이고 다른 아군의 버프 표시 뒤 대상별 월광 피격을 연다.
+        /// 창야 기본 화풍. 시전 한 번 뒤 대상별 월광 피격을 열고 실제 회복 뒤 지원 피격을 받는다.
         /// 시전에서 첫 피격 정점까지 0.32 게임초로 맞춰 승인된 1배속 리듬을 유지한다.
         /// </summary>
         private static IEnumerator ChangyaComposed(Unit caster, IReadOnlyList<Unit> allies,
@@ -181,13 +181,7 @@ namespace Effects.Vfx
 
             yield return new WaitForSeconds(0.16f);
             onSeal?.Invoke();
-            foreach (Unit ally in allies)
-            {
-                if (ally == null || ally == caster || !ally.isActive) continue;
-                VfxComposer.PlaySlot("chandra.changya", "affected", 0, caster, ally,
-                    VfxSpace.WorldPoint(ally), VfxSpace.SortingLayer(ally));
-            }
-            // 버프 시작과 적 피격 시작을 같은 프레임에 열고, 대상별 타-라-락 정점만 기존 간격으로 둔다.
+            // 월광 획득·피해 준비 정점과 대상별 피해 간격은 유지한다. 받는 연출은 코드의 실제 회복 뒤에만 열린다.
             AudioManager.PlayCue("chandra.changya.hit");
             yield return VfxComposer.PlayMultiTargetHits("chandra.changya", caster,
                 targets, onHit, 0.05f, 1f, playCasterSlots: false);
@@ -286,7 +280,7 @@ namespace Effects.Vfx
                             new Vector2(1.92f, 1.42f), MoonSilver, MoonCore,
                             ornate ? 12f : 0f, 24, 0.72f, 0.62f);
                     onSeal?.Invoke();
-                    ReactSanctuaryAllies(allies, buffTarget, ornate);
+                    if (!ornate) ReactSanctuaryAllies(allies, buffTarget, false);
                     BattlefieldBackdrop.PulseFlash(MoonSilver, ornate ? 0.070f : 0.052f, 0.09f);
                     CameraShake.Shake(ornate ? 0.038f : 0.022f);
                 }
@@ -295,7 +289,7 @@ namespace Effects.Vfx
             if (!sealedOnce)
             {
                 onSeal?.Invoke();
-                ReactSanctuaryAllies(allies, buffTarget, ornate);
+                if (!ornate) ReactSanctuaryAllies(allies, buffTarget, false);
             }
 
             settleDuration = VfxTiming.AtLeastFrames(settleDuration, 5);
@@ -583,6 +577,11 @@ namespace Effects.Vfx
         public static void Moonlight(Unit unit, bool gained)
         {
             if (unit == null) return;
+            if (!gained)
+            {
+                // 실제 ModifyHp→Heal이 이미 공통 지원 피격을 한 번 연다. 월광 소비에서 같은 부품을 중복하지 않는다.
+                return;
+            }
             if (gained && VfxStyleSettings.UseHandpaint(VfxStyleCharacter.Chandra))
             {
                 VfxComposer.PlayAffectedPart(unit, "affected.buff.moon");

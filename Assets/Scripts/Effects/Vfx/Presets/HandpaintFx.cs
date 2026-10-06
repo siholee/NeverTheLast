@@ -118,6 +118,27 @@ namespace Effects.Vfx.Presets
             };
         }
 
+        // 크기를 키우지 않고 정점의 몸체를 유지한다. 긴 교차합성으로 알파가 반씩 나뉘면
+        // 실제 1배속에서 지원·회오리의 의미가 사라지므로 끝부분에서만 다음 셀로 넘긴다.
+        private static void KeepReadableBody(SkillFxCue cue)
+        {
+            cue.Composite.StartScale = 1f;
+            cue.Composite.CrestScale = 1f;
+            cue.Composite.EndScale = 1f;
+            cue.Composite.BlendFraction = 0.20f;
+        }
+
+        // 야마·바루나 선택 옵션이다. 주변 카드 조명과 어두운 접지면을 줄이고 국소 몸체를 보존한다.
+        private static void CalmLocalLight(SkillFxCue cue)
+        {
+            cue.Composite.SoftPulse = true;
+            cue.Composite.SceneLightStrength = 0f;
+            cue.Composite.ContactShadowColor = Color.clear;
+            cue.Composite.GroundLightColor = Color.clear;
+            cue.Composite.GlowAlpha = Mathf.Min(cue.Composite.GlowAlpha, 0.18f);
+            cue.Composite.GlowGain = 1f;
+        }
+
         public static FlipbookFx PlayCast(Unit caster, HandpaintSheet sheet, Vector2 size,
             Color body, Color core, float rotation, bool flipX = false)
         {
@@ -134,21 +155,31 @@ namespace Effects.Vfx.Presets
             Color body, Color core, float rotation = 0f, int orderOffset = 30,
             float peakAlpha = 0.82f, float glowAlpha = 0.58f, bool loop = false,
             bool flipX = false, int heldFrame = -1, float peakHoldSeconds = 0f,
-            bool reverseFrames = false)
+            bool reverseFrames = false, float desaturate = 0f, bool steadyBody = false, int startFrame = 0, int tailHoldFrame = -1, float tailHoldSeconds = 0f, bool calmLight = false)
         {
             SkillFxCue cue = Cue(sheet, size, body, core, rotation, flipX,
                 sheet.Columns * sheet.Rows - 1, Vector2.zero, peakAlpha, glowAlpha);
             HoldFrame(cue, heldFrame, peakHoldSeconds);
+            HoldFrame(cue, tailHoldFrame, tailHoldSeconds);
+            cue.StartFrame = startFrame;
             cue.OrderOffset = orderOffset;
             cue.Loop = loop;
             cue.ReverseFrames = reverseFrames;
+            cue.Composite.Desaturate = desaturate;
+            if (calmLight) CalmLocalLight(cue);
+            if (steadyBody)
+            {
+                KeepReadableBody(cue);
+                // 낙뢰 판정 뒤 가장 넓은 5번 셀만 유지해 피해 정점 앞의 시간은 바꾸지 않는다.
+                HoldFrame(cue, tailHoldFrame, tailHoldSeconds);
+            }
             return SkillFx.PlayCue(cue, point, layer, VfxSpace.OverlaySortingOrder);
         }
 
         public static IEnumerator PlayHit(Unit target, HandpaintSheet sheet, Vector2 size,
             Color body, Color core, Action onPeak, float rotation = 0f, bool flipX = false,
             int impactFrame = 4, HandpaintSheet? accent = null, Vector2 offsetInCards = default,
-            float peakHoldSeconds = 0f)
+            float peakHoldSeconds = 0f, float peakAlpha = 0.86f, float glowAlpha = 0.60f, bool portraitAnchor = false, bool steadyBody = false, float desaturate = 0f, int tailHoldFrame = -1, float tailHoldSeconds = 0f, bool calmLight = false)
         {
             if (target == null)
             {
@@ -157,7 +188,16 @@ namespace Effects.Vfx.Presets
             }
 
             SkillFxCue cue = Cue(sheet, size, body, core, rotation, flipX, impactFrame,
-                offsetInCards);
+                offsetInCards, peakAlpha, glowAlpha);
+            cue.PortraitAnchor = portraitAnchor;
+            cue.Composite.Desaturate = desaturate;
+            if (calmLight) CalmLocalLight(cue);
+            if (steadyBody)
+            {
+                KeepReadableBody(cue);
+                // 낙뢰 판정 뒤 가장 넓은 5번 셀만 유지해 피해 정점 앞의 시간은 바꾸지 않는다.
+                HoldFrame(cue, tailHoldFrame, tailHoldSeconds);
+            }
             HoldFrame(cue, impactFrame, peakHoldSeconds);
             int layer = VfxSpace.SortingLayer(target);
             bool done = false;
@@ -175,7 +215,8 @@ namespace Effects.Vfx.Presets
             }, () => done = true);
 
             float guard = 1.2f;
-            while (!done && guard > 0f)
+            float deadline = Time.realtimeSinceStartup + guard;
+            while (!done && (calmLight ? Time.realtimeSinceStartup < deadline : guard > 0f))
             {
                 guard -= Time.deltaTime;
                 yield return null;

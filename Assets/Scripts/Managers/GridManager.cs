@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
 using BaseClasses;
@@ -35,6 +35,10 @@ namespace Managers
         private Cell[] _benchCellManager; // Cell management array (1차원)
         public List<Unit> heroList;
         public List<Unit> enemyList;
+        /// <summary>
+        /// 칸 없는 소환수. 아군 · 적 목록과 분리해 전멸 판정 · 스냅샷 · 대상 지정이 소환수를 세지 않게 한다(Detail_03 §4.7).
+        /// </summary>
+        public List<Unit> summonList = new();
 
         // 그리드 부모 오브젝트들
         public Transform Field;  // 게임 필드 (HMSon 대체)
@@ -59,6 +63,7 @@ namespace Managers
         {
             heroList = new List<Unit>();
             enemyList = new List<Unit>();
+            summonList = new List<Unit>();
             SetGrid();
             // 전장 카드의 클릭 · 드래그 · 호버는 칸이 아니라 이 한 곳에서 판정한다.
             FieldPointerInput.Ensure();
@@ -1389,6 +1394,8 @@ namespace Managers
         {
             // 판에 깔린 상태는 라운드를 넘기지 않는다.
             Combat.Battlefield.Clear();
+            // 소환수는 라운드 밖으로 남지 않는다. 사망이 아니므로 사망 판정 없이 지운다.
+            Combat.Summons.ClearAll();
 
             foreach (Unit unit in heroList.Concat(enemyList).Where(unit => unit != null && unit.isActive).ToList())
             {
@@ -1459,6 +1466,43 @@ namespace Managers
         {
             heroList?.RemoveAll(unit => unit == null);
             enemyList?.RemoveAll(unit => unit == null);
+            summonList?.RemoveAll(unit => unit == null);
+        }
+
+        /// <summary>
+        /// 칸 없는 소환수를 만든다. 생성 판정 · 상한은 <see cref="Combat.Summons.Create"/>가 맡으므로 그쪽을 거쳐 부른다.
+        /// </summary>
+        public Unit SpawnSummon(Unit owner, Combat.SummonSpec spec)
+        {
+            if (owner == null || spec == null) return null;
+            var go = new GameObject($"Summon_{spec.Name}");
+            go.transform.SetParent(Field, false);
+            if (owner.currentCell != null) go.transform.position = owner.currentCell.transform.position;
+            Unit summon = go.AddComponent<Unit>();
+            summonList.Add(summon);
+            summon.InitializeAsSummon(owner, spec);
+            if (spec.Kind == Codes.Passive.UchiTaoist.CloneKind) Effects.Vfx.UchiFx.Created(summon);
+            return summon;
+        }
+
+        /// <summary>쓰러진 소환수를 목록에서 걷고 오브젝트를 지운다. 사망 판정은 이미 끝난 뒤다.</summary>
+        public void ForgetSummon(Unit summon)
+        {
+            if (summon == null) return;
+            summonList.Remove(summon);
+            Destroy(summon.gameObject);
+        }
+
+        /// <summary>남은 소환수를 사망 판정 없이 지운다(라운드 종료 · 불러오기).</summary>
+        public void ClearSummons()
+        {
+            foreach (Unit summon in summonList.ToList())
+            {
+                if (summon == null) continue;
+                summon.DeactivateUnit();
+                Destroy(summon.gameObject);
+            }
+            summonList.Clear();
         }
 
         /// <summary>

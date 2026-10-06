@@ -62,7 +62,7 @@ namespace Managers.UI.Screens
             float y = 0f;
             AddRow("Resume", "계속하기", "ESC", Hide, ref y, primary: true);
             AddRow("Settings", "설정", "소리 · 글자 크기", OpenSettings, ref y);
-            AddRow("Wiki", "자료실", "캐릭터 · 코드 · 아이템 · 적", OpenWiki, ref y);
+            AddRow("Wiki", "자료실", "게임 가이드 · 캐릭터 · 코드 · 용어", OpenWiki, ref y);
             _save = AddRow("Save", "저장", "지금 상태를 저장", Save, ref y);
             _load = AddRow("Load", "불러오기", "마지막 저장으로 되돌리기", AskLoad, ref y);
 

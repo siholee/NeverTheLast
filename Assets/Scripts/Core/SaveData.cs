@@ -34,6 +34,20 @@ namespace Core
         // 유닛 레벨과 누적 경험치. 아군 성장의 유일한 축이다(훈련 강화는 없다).
         public int level = 1;
         public int exp;
+        /// <summary>보상 코드(와 사건 패시브)의 ID. 칸 순서를 그대로 보존한다.</summary>
+        public List<int> grantedPassiveCodeIds = new();
+        public List<int> activeRewardCodeSlots = new();
+        public List<int> storedRewardCodeIds = new();
+        /// <summary>런 영구 중첩(아누비스의 영혼 등). 소수 몫까지 함께 옮긴다.</summary>
+        public List<PermanentStackSaveData> permanentStacks = new();
+    }
+
+    [Serializable]
+    public class PermanentStackSaveData
+    {
+        public string key;
+        public int value;
+        public float fraction;
     }
 
     [Serializable]
@@ -44,7 +58,9 @@ namespace Core
         // v9: 2026-09 전면 개편. 8스탯 · 훈련 폐지 · 캐릭터 로스터 초기화로 유닛 스냅샷과 ID의 뜻이
         //     모두 바뀌었다. 이전 저장본은 불러오지 않고 폐기한다.
         // v11: 장비 · 개인 인벤토리 폐지, 공용 인벤토리와 짧은/긴 휴식 도입.
-        public const int CurrentVersion = 11;
+        // v12: 보상 코드 7칸 · 영구 중첩 · 비약/코드 도구 소모품. 유닛 스냅샷의 뜻이 바뀌어 v11은 폐기한다.
+        // v13: 빈 자리를 포함한 활성 7칸 + 캐릭터별 코드 보관함. v12는 기존 활성 코드를 그대로 이관한다.
+        public const int CurrentVersion = 13;
         public int currentStage;
         public int currentRound;
         public int life;
@@ -56,6 +72,9 @@ namespace Core
 
         /// <summary>이번 준비 페이즈에 상점에서 산 횟수. 한도는 GameManager.MaxShopPurchases다.</summary>
         public int shopPurchaseCount;
+
+        /// <summary>준비 화면에서 써 둔 전투 비약. 다음 전투 시작에 걸리고 비워진다. 0이면 없음.</summary>
+        public int pendingTonicItemId;
 
         public List<TokenSaveData> tokens = new();
         public List<int> storedItemIds = new();

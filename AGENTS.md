@@ -1,7 +1,7 @@
 # AGENTS.md
 
 이 저장소에서 작업하는 Codex를 위한 지침이다.
-최종 갱신: **2026-10-03** — 8스탯·공용 인벤토리·휴식 전면 개편, 밝은 분위기 안 2 및 손그림 시트 래퍼·전역 VFX 방향/다중 관통/앞 레이어·96_vfx 부품 조합·상태 부여 연출·시/사바흐/세이/찬드라/히미코/피그말리온/바스테트/잔 기본 Handpaint·Legacy 비교·공허 적 전원/궁극기 비투사체 VFX·행동서열 삽입 슬롯/재배치 모션·P11 하네스 메타데이터. 개편 전 상태는 커밋 `a6194c9`.
+최종 갱신: **2026-10-06** — 보상 코드(패시브 500~999, 94종, 유닛당 활성 7칸 + 개인 보관함) · 영구 중첩 · 소환수 · 공격 형태 태그(50000번대) · 로카팔라 묶음(인드라 초월기가 유일한 개방자) · 인드라/바유/쿠베라/아누비스/우치 구현 · 저장 v13/v12 이관 · 준비 중 무료 드래그(게임 측면 — 연출은 아직). 직전 갱신(2026-10-03) — 8스탯·공용 인벤토리·휴식 전면 개편, 밝은 분위기 안 2 및 손그림 시트 래퍼·전역 VFX 방향/다중 관통/앞 레이어·96_vfx 부품 조합·상태 부여 연출·시/사바흐/세이/찬드라/히미코/피그말리온/바스테트/잔 기본 Handpaint·Legacy 비교·공허 적 전원/궁극기 비투사체 VFX·행동서열 삽입 슬롯/재배치 모션·P11 하네스 메타데이터. 개편 전 상태는 커밋 `a6194c9`.
 
 ## 프로젝트 개요
 
@@ -10,7 +10,7 @@ NeverTheLast는 **Unity 6000.4.9f1 / C#**으로 만드는 신화 기반 로그�
 전투는 **턴제 자동 전투**이며, 플레이어는 전투 전에 편성·배치·덱 구성을 결정한다.
 게임 모드는 **무한 모드 하나**다(`GameMode` enum 없음). **훈련 · 서포트 카드 · 계승 · 메인/서포트 구분은 2026-09 개편으로 사라졌다.**
 캐릭터는 `characterType: Unlocked | Locked`의 해금/미해금으로만 나뉘고, 해금 판정은 `CharacterSelectionManager.IsUnlocked` 하나다.
-로스터는 한 명씩 다시 만드는 중이며 지금은 **세이·시·사바흐·찬드라·히미코·피그말리온·바스테트·잔** 여덟 명, 테마는 **공허의 시험장** 하나다.
+로스터는 한 명씩 다시 만드는 중이며 현행 캐릭터 목록과 전투 사양은 `Assets/Docs/Design/Detail_08_Confirmed_Characters.md`, 등록 데이터는 `10_units.yaml`을 기준으로 한다. 테마는 **공허의 시험장**이다.
 
 - 작업 언어는 한국어다. 설명·주석·로그는 주변 코드의 표현과 밀도에 맞춘다.
 - 에디터 버전의 기준은 `ProjectSettings/ProjectVersion.txt`다.
@@ -35,6 +35,7 @@ NeverTheLast는 **Unity 6000.4.9f1 / C#**으로 만드는 신화 기반 로그�
 | `Detail_11_Code_Catalog.md`, `Detail_12_Code_Weapon_Catalog.md` | 코드 효과 색인·슬롯 |
 | `Detail_13_Reward_Catalog.md`, `Detail_14_Equipment_Catalog.md` | 보상 풀·폐지된 장비 규칙의 이력 |
 | `Detail_15_Party_Synergy.md`, `Detail_16_Elements.md` | 추천 편성·원소 반응·전장 상태 |
+| `Detail_17_Reward_Codes.md` | 보상 코드(패시브 500~999, T1~T5)·활성/보관/무료 드래그/상위 대체·공격 형태 태그·비약/인장/두루마리·보상 풀/상점·구현 위치 |
 | `Design_Backlog.md` | 아직 결정되지 않은 기획 |
 
 - 수치의 원본은 해당 상세 기획서에 둔다. 이 지침에 캐릭터 수·콘텐츠 목록·밸런스 수치를 중복 관리하지 않는다.
@@ -87,7 +88,7 @@ Unity.exe -batchmode -quit -projectPath . -buildTarget OSXUniversal -executeMeth
 | `Managers/EventScheduler` | 일반 C# 클래스. 예약 사건과 체크포인트 |
 | `Managers/GridManager` | Game 씬의 셀·유닛·필드/대기석, `heroList` / `enemyList` |
 | `Managers/CharacterSelectionManager` | 1~5인 편성, 해금·중복 검사. 첫 자리가 대표(`FindLeadUnit`) |
-| `Managers/RewardManager`, `InventoryManager` | 보상·상점·재화·공용 인벤토리·식량 |
+| `Managers/RewardManager`, `InventoryManager` | 보상 카드(티어 → 분류 코드 55/소모품 30/드랍 15 → 태그 가중 추첨, 코드 1장 보장, 리롤)·상점·재화·리롤 티켓(시작 0)·공용 인벤토리·식량·비약·코드 도구 |
 | `Managers/DataManager`, `SynergyCatalog` | YAML 로드 / 역할·추천 편성 조회 |
 | `Managers/UIManager` | 화면 라우팅. UI 구현은 `Managers/UI/{Core,Theme,HUD,Screens,DevTools}` |
 | `Managers/AudioManager` | BGM과 YAML 논리 SFX 큐, 소스 풀·배속 병합·코드 믹서 그룹·궁극기 더킹·하네스 로그. `SfxManager`는 씬 참조 때문에 남긴 빈 껍데기이고, 전투 연출은 `Effects/Vfx/`가 맡는다 |
@@ -104,6 +105,8 @@ Unity.exe -batchmode -quit -projectPath . -buildTarget OSXUniversal -executeMeth
   `stagePatterns`가 개별 보스 ID보다 우선한다. 테마 치환·연작은 `rotationRedirectThemeId` / `chainNextThemeId`를 사용한다.
 - 사용자 저장 가능 시점은 `RunManager.CanSaveNow`를 확인한다. 전투·보상 선택 중 상태를 무조건 저장하지 않는다.
   ID나 저장 구조의 호환성을 깨는 변경은 `RunSaveData.CurrentVersion`과 복원 코드를 함께 검토한다.
+  현재 저장 버전은 **v13**이며 v12를 자동 이관한다 — `UnitSaveData.activeRewardCodeSlots`(빈 칸 포함 7칸)·`storedRewardCodeIds`·`grantedPassiveCodeIds`(활성·사건 패시브)·`permanentStacks`(영구 중첩, 소수 몫 포함),
+  `RunSaveData.pendingTonicItemId`. 유닛 런 상태는 `Unit.WriteRunState` / `RestoreRunState` 한 쌍만 읽고 쓴다.
 
 ## 전장과 전투 규칙
 
@@ -113,7 +116,10 @@ Unity.exe -batchmode -quit -projectPath . -buildTarget OSXUniversal -executeMeth
   아군 전열/후열은 `-1/-2`, 적은 `1/2`다. 코드에서는 `GetFrontColumn(isEnemy)` / `GetRearColumn(isEnemy)`를 쓴다.
 - 대기석은 별도 배열이며 현재 `GridManager.benchSize`와 `Game.unity` 값은 **5**다.
   초기 파티는 1~5명이다. 슬롯 수와 파티 선택 제한을 혼동하지 않는다.
-- 전장 판정은 `Unit.IsOnField`를 사용한다. 소환 체계(`Combat/Summons.cs`)는 개편으로 지웠다.
+- 전장 판정은 `Unit.IsOnField`를 사용한다. 소환수는 `Combat/Summons.cs`가 만든다 — 칸이 없고 `GridManager.summonList`에만 있으며,
+  소환자의 고유 특성이 `ISummonerPolicy`(방식 `Swarm`/`Companion`·상한·`SummonSpec`·넘침 처리)를 구현해 `Summons.Register`로 건다.
+  생성 경로는 `Summons.Create` 하나(`Summons.AnySummonCreated`), 소멸은 `Unit.Die`를 지나는 사망 판정이고 라운드 종료 정리는 사망이 아니다.
+  고정 속도 소환수는 `ActionScheduler`에 참가하고 추월 제한 밖이며, 피해는 소환자 명의 + `DamageTag.SummonAttack`이다(`Detail_03 §4.7`).
 - 스탯은 `BaseEnums.StatType`의 **여덟** — 최대 체력 · 공격력 · 특수공격력 · 방어력 · 특수방어력 · 속도 · 치명타 확률 · 치명타 피해.
   `Entities/UnitStats.cs`가 기초값 + 성장치 × (레벨 − 1)을 들고, 파생 스탯은 없다. 피해는 코드가 `Code.StatDamage`로
   (대부분 공격력 계수) 만들고, 경감 스탯은 `Combat.DamageMitigation`이 고른다(일반 → 방어력, 지속 · 반응 → 특수방어력,
@@ -133,6 +139,8 @@ Unity.exe -batchmode -quit -projectPath . -buildTarget OSXUniversal -executeMeth
 - `PriorityAdditional`과 `Additional`만 `IsAdditional()`에 포함된다.
   협동행동은 `OnCoordinatedActivates`, 특수행동은 `OnSpecialActivates`를 사용하므로 추가행동으로 세지 않는다.
   특수행동은 전 유닛 공용 체계가 아니라 `special` 슬롯을 가진 유닛만 특정 트리거로 예약한다.
+  묶음은 `Combat.SpecialAction.OpenGate(opener, gateTag)`가 유닛 태그로 연다 — 로카팔라 묶음을 여는 것은 **인드라의 초월기뿐**이고
+  `SpecialCode.OpenOrder` 순서는 바유 -100 → 쿠베라 0 → 인드라 +50 → 찬드라 +100이다. 행동 종료는 `ActionScheduler.AnyActionFinished`.
 - 자동 시전 궁극기는 자원 충전 시 예약되며 턴을 소비하거나 일반행동 AV를 초기화하지 않는다.
   `UltimateCode.IsAutoCast`와 `ConsumesResourceOnResolve`를 따르는 특수 구현도 확인한다.
 - 실제 행동 시작과 패시브 효과 발생은 `Combat.ActionAnnouncer`로 좌상단 행동서열의 맨 위 확장 슬롯에 끼워 넣는다.
@@ -150,7 +158,18 @@ Unity.exe -batchmode -quit -projectPath . -buildTarget OSXUniversal -executeMeth
 - 구현은 `Codes/{Base,Passive,Normal,Special,Ultimate}/`, 생성은 `CodeFactory`, 표시 데이터는
   `20_codes.yaml`과 `Codes/Base/CodeCatalog.cs`가 담당한다. 같은 숫자 ID라도 슬롯이 다르면 별개다.
 - 유닛은 기본적으로 **고유 특성 · 일반행동 · 초월기** 셋을 가지며, 일부만 트리거형 **특수행동**을 추가로 가진다.
-  해금 패시브 · 코드 용량 · 전수는 없다.
+  해금 패시브 · 코드 용량은 없다. 대신 유닛마다 **보상 코드 7칸**(`Unit.RewardCodeSlotCount`)이 따로 있다 — 코드 ID 규칙:
+  패시브 **500~999**가 보상 코드(T1 500번대 … T5 900번대, 최초 티어를 따르고 재밸런싱해도 ID는 안 바꾼다), **일반 500~**은 소환수의 일반행동
+  (우치 분신 일격 N 500), 소환수 정의 ID는 900번대. 보상 코드는 준비 중 무료 드래그로 활성/보관·아군 이동·점유 칸 교환한다. 전수의 두루마리는 신규 보상에서 제외된 저장 호환 데이터다.
+- 보상 코드의 규칙은 `Unit`에 있다: `CanReceiveRewardCode` / `TryGrantRewardCode`(가득 차면 보관, 상위를 받으면 활성 하위를 보관하고 같은 칸에서 교체,
+  상위 보유 시 하위 거부)·`TryReplaceRewardCode`(승급의 인장)·`RemoveRewardCode`. 티어·태그·상위 사다리는 `20_codes.yaml`을 읽는
+  `Codes/Base/RewardCodeCatalog.cs`가 답한다. 구현은 `Codes/Passive/Reward/` — 데이터 구동 30종(`RewardStatCode`: `flatStats`/`percentStats`/`damageTag`)과
+  클래스 64종(`RewardCodesT2~T5.cs`, `RewardPassiveCode` 뼈대, `IRewardAuraSource`+`RewardAura.Best`로 "필드에 있으면 높은 하나만" 오라).
+  스탯 보정은 `PassiveCode.PermanentStatFlatModifier`/`PermanentStatPercentModifier`(전투 밖 캐릭터 창에도 보임), 승리 정산은
+  `OnBattleSettled`·`SelfExpBonus`·`PartyExpAuraBonus`·`PartyGoldAuraBonus`다. 보상·상점·인벤토리의 "누구에게/어느 코드" 선택은 `RewardCodeFlow`/`CodeChoicePicker`가 공유한다.
+- **영구 중첩**은 런 내내 남는 유닛별 카운터다(아누비스의 영혼). 올리는 입구는 `Unit.GainPermanentStacks(key, amount)` 하나이고 `amount`는 소수일 수 있으며
+  보유 코드가 `PermanentStackGainMultiplier`로 배율을 건다(성장 보상 코드). v12에서 도입됐고 현재 v13에서도 보존한다.
+- 공격하는 모든 코드는 `Code.AttackForm`(피해 태그 50000번대)을 선언한다. `Combat/AttackForms.cs`가 보상 풀에 "파티에 그 형태 공격이 있는가"를 답한다.
 - 일반행동은 `BaseNormalCode`(접촉이면 카드 돌진, 아니면 카드 정중앙에서 투사체), 초월기는 `BaseUltimateCode.Perform()`을 채운다.
 - 장비·장착 슬롯·장비 숙련은 없다. 아이템은 파티 공용 인벤토리에만 들어가며 유닛 스탯을 바꾸지 않는다.
 
@@ -163,7 +182,11 @@ Unity.exe -batchmode -quit -projectPath . -buildTarget OSXUniversal -executeMeth
   `OnBeforeDamageTaken → OnTakingDamage → OnAfterDamageTaken` 중 기본 피해 처리에서
   경감·보호막·HP·사망·실제 피해량을 처리한다. 경감 전에 정적 이벤트 `Unit.AnyDamageIncoming`이 나간다. 개별 스킬에서 공통 피해 처리를 복제하지 않는다.
 - 태그는 `BaseClasses/DamageTags.cs`를 따른다. 지속피해(`CodeType.Effect`)는 빈 태그 목록을 사용하므로
-  접촉 공격 여부는 `ContactAttack`의 존재로 검사한다.
+  접촉 공격 여부는 `ContactAttack`의 존재로 검사한다. **50000번대는 무기가 아니라 공격 형태**(`Slash` 베기 · `Pierce` 찌르기 · `Shot` 사격 ·
+  `Strike` 타격 · `Spell` 주문)이고 공격 하나는 형태 하나다. **`SummonAttack`(20006)**은 소환수가 가한 피해 표지다.
+  치명타는 `Code.RollCritical(target, out mult)`가 `BaseEffect.CritChanceBonusAgainst`/`CritDamageBonusAgainst`/`ForcesCriticalAgainst`/
+  `CritOverflowToDamageRatio`를 모으고, 제어 지속은 `ControlDurationModifier`(최소 1턴), 시전자가 거는 상태의 지속은 `OutgoingStatusDurationModifier`가 보정한다.
+  정적 이벤트에 `Unit.AnyHealed`·`AnyShieldGranted`·`AnyPermanentStackGained`가 있다.
 - 현행 상태 모델은 `Entities/Status/UnitStatus` + `Entities/UnitStatusController` + `Effects/Base/BaseEffect`다.
   상태 식별·중첩은 `Key`와 `StatusStackPolicy`를 따른다. 상태 추가/제거는 `Unit.AddStatus()` 등의 API를 거친다.
 - 효과는 필요한 질의 훅만 재정의하고 `Effects/Buffs/SharedModifierEffects.cs` 등 공통 효과를 우선 재사용한다.
@@ -183,14 +206,14 @@ Unity.exe -batchmode -quit -projectPath . -buildTarget OSXUniversal -executeMeth
 | --- | --- | --- |
 | `00_intro.yaml` | 인트로 | `IntroData.cs` |
 | `10_units.yaml` | 아군 · 8스탯 기초값/성장치 · 코드 | `UnitData.cs` : `CombatantData` |
-| `20_codes.yaml` | 슬롯별 코드 이름·설명 | `Codes/Base/CodeCatalog.cs` |
+| `20_codes.yaml` | 슬롯별 코드 이름·설명. **패시브 500~999가 보상 코드 94종의 원본**(`tier`·`codeTags`·`supersededBy`·`flatStats`/`percentStats`/`damageTag`·`requiresAttackForm`·`requiresGrowth`·`shopFixed`) | `Codes/Base/CodeCatalog.cs`, `RewardCodeCatalog.cs` |
 | `30_synergies.yaml` | 역할·추천 편성 | `SynergyData.cs` |
-| `40_items.yaml` | 공용 아이템·식량 | `ItemData.cs` |
+| `40_items.yaml` | 공용 아이템 — 식량(`Food`), 전투 비약(`Tonic` 5101~5106, 준비 화면에서 써서 다음 전투 1회), 코드 도구(`CodeTool`: 승급의 인장 5201~5204·전수의 두루마리 5211). `rewardPool: true`가 보상 풀 소모품 분류의 표지 | `ItemData.cs` |
 | `50_tokens.yaml` | 토큰 | `TokenData.cs` |
 | `60_enemies.yaml` | 일반 적·정예·보스·드랍 | `EnemyData.cs` : `CombatantData` |
 | `70_rounds.yaml` | 라운드 종류·편성 폴백 | `RoundData.cs` |
 | `80_stages.yaml` | 테마·스테이지 패턴·사건·보스 | `StageData.cs` |
-| `90_rewards.yaml` | 티어 확률·공통 드랍·소모품 | `RewardData.cs` |
+| `90_rewards.yaml` | 티어 확률·공통 드랍·분류 비율(`rewardCategoryWeights`)·코드 태그/상위 가중치·즉시 소모품(치료·부활·사탕·운명의 주사위·경험의 서·휴식의 향로) | `RewardData.cs` |
 | `95_sfx_cues.yaml` | 논리 SFX 큐·후보·음량/피치·동시 재생/간격·더킹 | `SfxCueData.cs` |
 | `96_vfx.yaml` | 표준 VFX 부품·스킬 슬롯 조합·상태 부여 바인딩 | `VfxData.cs` / `Effects/Vfx/VfxDefinitionCatalog.cs` |
 
@@ -205,6 +228,10 @@ Unity.exe -batchmode -quit -projectPath . -buildTarget OSXUniversal -executeMeth
 - 새 테마는 적 아트, `60_enemies.yaml`, `80_stages.yaml`의 `enemyThemeId`·패턴·사건·
   Resources 상대 `backgroundKey`(확장자 없음)·`ambientColor`를 연결한다.
 - 새 아이템은 공용 인벤토리 기준으로 만들고, 긴 휴식용 식량이면 `foodValue`와 상점 가격을 함께 정한다.
+  비약은 `category: Tonic` + `tonic*` 필드, 코드 도구는 `category: CodeTool`(+`sealMaxTier` 또는 `transferScroll`)이며 `GameManager.TryUseTonic`/`UseSeal`/`UseTransferScroll`로 쓴다.
+- **새 보상 코드**: `20_codes.yaml` 패시브 500~999에 항목(티어 대역의 ID, `tier`·`codeTags`·`supersededBy`·필요하면 수치 필드)을 더한다. 스탯/태그 피해만이면
+  `RewardStatCode`가 읽으므로 끝이고, 기믹이면 해당 티어 `RewardCodesT*.cs`에 `RewardPassiveCode` 클래스와 `CreateT*` 한 줄을 더한다(정적 이벤트 구독은 `OnStop`에서 해제).
+  사다리는 하위 코드의 `supersededBy`(+필요하면 `RewardCodeCatalog.BronzeSealTargets`)로 잇는다. `Detail_17`·`Detail_11 §4`를 같이 고치고 하네스 `r12_core`로 확인한다.
 - YAML 로더는 `IgnoreUnmatchedProperties()`를 사용한다. 오타 필드가 오류 없이 무시될 수 있으므로
   DTO 필드명과 실제 UI/플레이에서의 반영을 확인한다.
 
@@ -249,7 +276,7 @@ Unity.exe -batchmode -quit -projectPath . -buildTarget OSXUniversal -executeMeth
   범용 지원 피격은 `hit.support.buff/cleanse/heal/shield` 네 부품을 쓴다. 강화는 머리 위의 `Impact1` 역재생, 보호막은 몸통의 은회색 `Ball1` 회전, 정화는 역재생 `Smoke5`, 치유는 녹백 `Impact1`이다. 강화의 현재 크기는 카드 기준 `0.96×0.84`이며, 요청된 머리 폭 약 75%까지 축소됐다고 보지 않는다. 끝점에서 하단 HUD로 빛점을 보내 상태 아이콘·HP·보호막 표시를 1.0→1.35→1.0으로 팝하고 링 플래시를 연다. 보호막은 은회색, 피그말리온 날카로운 가시는 장미색 고정이며 얼굴을 불투명하게 덮지 않는다.
   `Presets/RadiantVolleyFx`는 Legacy의 0.05초 간격 6발 곡선 연발·카드 안 여섯 지점 분산 착탄·세 번째 탄 정점 단일 콜백을 보관한다. `GeoFx`의 세이 기본 일반행동은 카드에서 적 방향으로 뻗는 금빛 시전광 한 번 뒤 대상 얼굴~상체의 백금 Impact 여섯 번만 연다. 빅뱅은 방향성 대형 시전 한 번 뒤 무작위 대상 위치의 일곱 파쇄와 실제 결과인 아군 보호막 `affected`만 쓰며 선택 후 0.242초 판정을 유지한다. 창세의 노래는 방향성 시전 한 번 뒤 생존 아군 전원의 머리 버프와 몸통 보호막을 동시에 열고 같은 순간 효과를 적용한다. 이전 결정 문장·후속 파편은 Legacy다. 과거 대상 발밑 결정창은
   `Effects/Vfx/Presets/RisingSpikeFx.Play(caster, target, onHit, scale)`로 보관하며 새 캐릭터가 한 줄로 재사용할 수 있다.
-  `ChandraFx`의 기본 샤친은 카드에서 적 방향으로 뻗는 은백 시전광 한 번 뒤 대상 얼굴~상체의 Blue/White Impact 여섯 번을 열고 세 번째 정점에서만 판정한다. 소마는 역수렴·돔을 제거하고 방향성 시전 한 번 뒤 선정된 다른 아군에게만 버프 `affected`를 연다. 실제 코드에 보호막이 없으므로 보호막 연출도 없다. 창야는 방향성 시전 한 번 뒤 찬드라 외 아군의 치명타 버프 `affected`와 적 전체 월광 충격을 같은 순간 시작하고, 짧은 다중 타격 리듬만 남긴다. 대상 사이 궤적은 없다. 이전 생성·역수렴·돔은 Legacy다.
+  `ChandraFx`의 기본 샤친은 카드에서 적 방향으로 뻗는 은백 시전광 한 번 뒤 대상 얼굴~상체의 Blue/White Impact 여섯 번을 열고 세 번째 정점에서만 판정한다. 소마는 역수렴·돔을 제거하고 방향성 시전 한 번 뒤 선정된 다른 아군에게만 버프 `affected`를 연다. 실제 코드에 보호막이 없으므로 보호막 연출도 없다. 창야는 방향성 시전 한 번 뒤 적 전체 월광 충격을 열고 실제 피해 정산 후 생존 아군 전원의 회복 `affected`를 연다. 달빛 순환도 회복 직후 작은 지원 피격을 쓴다. 옛 치명타 버프 연출은 제거한다. 대상 사이 궤적은 없다. 이전 생성·역수렴·돔은 Legacy다.
   `ShiFx`의 멸참은 `AimFrom`으로 시 카드 위 `Slash1_Blue`를 적 방향으로 긋고 대상 위 팩 화풍 `hit.claw.triple`의 검정·짙은 적색 직선 붓획 세 줄을 시간차 와이프로 연다. 시 전용 `96_vfx.yaml` 정의만 검정 몸체·블러드 레드 외곽·크림슨 코어로 덮어쓰며 공용 부품은 바꾸지 않는다. 작은 Impact/Smoke만 받침으로 쓰며 정점에 한 번만 판정한다. 3/6/9타 만종은 멸참 피격이 끝난 즉시 별도 시전 없이 `Smoke3` 수평 연기 한 장으로 잇는다. 3타는 같은 대상의 작은 연기, 6·9타는 생존 적 진영 중앙에서 한 장이 좌우로 퍼지며 닿는 순서대로 분배 피해를 판정한다. 9타도 크기는 같고 색 대비·코어·화면 리듬만 강화한다. 처치 재행동은 사망 퇴장과 진형 재배치 완료 뒤 시전한다. 옛 만종 버프진·진 귀참은 현행에서 제거하고, 이전 `DrawSlashFx`+`ClawRakeFx` 검붉은 할퀴기는 Legacy로 보존하며 청록 비행 참격은
   `Effects/Vfx/Presets/FlyingSlashFx.Play(caster, target, onHit, scale)`로 보관한다.
   `SabahFx`의 기본 일반행동은 `AimFrom` 방향의 제자리 `Slash1_Purple` 뒤 대상의 방향성 `Lightning2_Purple`+`Impact1_Purple`로
@@ -263,3 +290,18 @@ Unity.exe -batchmode -quit -projectPath . -buildTarget OSXUniversal -executeMeth
   `JeanFx`의 잔은 내부 `fighter` 분류다. 신성한 일격은 짧은 카드 전진이 시전을 대신하고, 대상 초상화에 세 번의 진한 남청 `FireAttack` 주먹 잔상·백철색 충격 뒤 같은 충격점에서 뒤로 밀려 퍼지는 청회색 `Smoke3`를 하나의 피격 단계로 연다. 철권제재는 적 시전 절반에서 정지·포커스 해제·패시브 행동서열 표시 뒤 더 빠르고 짧게 재생하며, 공격자가 생존하면 포커스 복귀 후 적 공격을 잇는다. 텐션 오르는데!는 잔 주위 카드 폭 이상 반경의 파랑·은백 `Slash5` 다섯 갈래 시전 하나만 쓴다.
   `EnemyNormalFx`와 U1001~U1004도 `96_vfx.yaml` 조합을 쓴다. 공허 늑대 강타는 같은 3갈래의 굵은 외곽·긴 잔광 강화판, 공허 사수는 진한 외곽의 적색 `Muzzle1`과 하단 중앙 앵커의 수평 `Smoke3`를 쓰며 연사는 짧은 정점 유지 변형으로 시전·피격·SFX를 같은 리듬으로 3회 연다. 공허 선봉은 승인된 얼굴~상체 높이의 확대 `Slash4`, 공허 분쇄자는 `incomingImpact`와 `impactAnchor`를 쓴다. 공허룡은 보스 배율 `Fire3` 법사 시전과 암자주 몸체·백색 코어의 `Explosion1` 피격을 일반·궁극기에 공용한다. 대지 분쇄 기절과 U1004 5회 판정 계약은 유지한다.
 - UI 수정은 `UITheme`, `UIBuild`, `CodeText`, 공통 툴팁 등 기존 도우미를 재사용하고 실제 화면에서 확인한다.
+
+
+### 신규 VFX 모듈 (2026-10-05)
+
+| 모듈 (`Effects/Vfx/`) | 역할 |
+| --- | --- |
+| `LokapalaFx` | 인드라·바유·쿠베라의 1회 시전→동시 초상화 피격, 금강저/여덟 방향 문양/금화/보고 문, 묶음 HUD 펄스. 피해·상태·자원은 코드의 정점 콜백 한 번만 소유하며 난수·예약 순서를 바꾸지 않는다 |
+| `AnubisFx` | 심장의 저울의 짧은 부분 전진과 금·청록 초상화 충격, 사자의 서 자기 강화 문양, 영혼 불꽃·정수/소수 배지 펄스. 기존 피해·회복·영구 중첩 수식과 이벤트 순서를 유지한다 |
+| `UchiFx` / `Entities/View/SummonCardView` | 칸 없는 분신의 반투명 카드 세 장을 소환자 모션에 붙인다. 생성·일격·넘침·막기·동시 전진·부적 소멸을 표시하며 셀·배치·카메라에는 참가하지 않는다 |
+
+### UI/코드 보관 2026-10-06
+
+전 화면은 밝은 문서 면·남색 제목/주 행동·하늘색 선택선·사선 모서리로 통일한다. `UIArtDirection.Header`·기존 테마/공통 패널을 재사용한다.
+보관 코드는 스탯·상태·오라·정산을 내지 않는다. 무료 드래그는 `Combat.RewardCodeInventory`가 양쪽 결과를 먼저 검증한다.
+`ui_overhaul`·`ui_overhaul_menu`는 실제 Unity 검증 경로이며 최신 기록은 `Logs/UIOverhaul20261006/final-review.md`다.

@@ -20,6 +20,8 @@ namespace Codes.Normal
     /// <summary>「돌격」 — 짧은 후퇴·부분 전진이 시전을 대신하고 대상 초상화에서 한 번 피격한다. 공격력의 100%.</summary>
     public sealed class EnemyCharge : BaseNormalCode
     {
+        public override int AttackForm => DamageTag.Strike;
+
         private const float AttackRatio = 1.0f;
 
         public EnemyCharge(NormalCodeContext context) : base(context)
@@ -56,6 +58,8 @@ namespace Codes.Normal
     /// <summary>「사격」 — 한 번 시전하고 대상 초상화의 단일 피격 정점에서 판정한다. 공격력의 90%.</summary>
     public sealed class EnemyShot : BaseNormalCode
     {
+        public override int AttackForm => DamageTag.Shot;
+
         private const float AttackRatio = 0.9f;
 
         public EnemyShot(NormalCodeContext context) : base(context)

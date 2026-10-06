@@ -9,6 +9,42 @@
 
 codes:
   passive:
+    - id: 263
+      verbalName: 데바의 왕
+      codeName: IndraDevaKing
+      description: "<고유 특성> 필드에 있는 동안 아군 전원의 특수행동 피해 +25%. 다른 아군이 특수행동을 마칠 때마다 인드라 마나 +10."
+    - id: 264
+      verbalName: 바람이 남긴 길
+      codeName: VayuTailwind
+      description: "<고유 특성> 바유 자신의 확산이 불 · 물 · 풀 · 번개 · 얼음 · 바위를 퍼뜨리면, 원래 대상과 실제로 전달받은 적에게 그 원소의 취약을 2턴간 남긴다 — 그 원소 속성 유닛의 직접 공격에 받는 피해 +15%. 공격이 원소를 붙일 필요는 없고, 지속피해 · 원소 반응 · 덧붙는 피해는 받지 않는다. 다른 원소의 취약은 공존하며 같은 원소는 높은 하나만 적용한다."
+    - id: 262
+      verbalName: 끝까지 태워 주지
+      codeName: AgniBurnToTheEnd
+      description: "<고유 특성> 다른 필드 아군(소환수 제외)이 초월기를 실제로 마칠 때마다 추가행동으로 적 전체에 공격력 45% 피해를 주고, 적마다 피해 직후 불을 부착한다. 같은 아군에게서는 아그니의 일반행동 사이에 한 번만 받는다. 판돈(초월기) 동안에는 궁극기 피해 · 치명 판정도 함께 받는다. #전체 #추가행동 #비접촉 #주문"
+    - id: 267
+      verbalName: 해가 지기 전에
+      codeName: SuryaBeforeSunset
+      description: "<고유 특성> 전투를 시작하면 적 하나를 현상수배한다(낮은 체력 비율 우선). 수배된 적은 아군의 추가행동에 받는 피해 +15%. 탄환 2발로 시작하며, 다른 아군의 직접 공격이 수배된 적에게 피해를 주면 탄환 1발로 공격력 55% 단일 추가행동 사격으로 응답한다(실제 행동 하나에 한 번). 수배된 적이 쓰러지면 다음 적을 수배한다. #단일 #추가행동 #비접촉 #사격"
+    - id: 261
+      verbalName: 죽음의 선고
+      codeName: YamaDeathVerdict
+      description: "<고유 특성> 야마가 살아서 전장에 있는 동안, 감전 상태의 적에게 선고(해로운 상태)를 내린다 — 야마의 아군에게 받는 모든 피해 +20%. 감전의 출처 · 개수와 무관하게 선고는 하나이며, 마지막 감전이 사라지면 함께 사라진다. 효과 명중 · 상태 저항 판정은 없고, 감전이 남아 있으면 선고만 지워도 다시 붙는다."
+    - id: 266
+      verbalName: 법이 만든 제방
+      codeName: VarunaLawLevee
+      description: "<고유 특성> 자신의 행동으로 적에게 물을 부착하면 현재 방어력 35%의 보호막을 자신에게 얻는다. 광역 · 확산으로 여러 명에게 붙어도 행동당 한 번이며, 기존 보호막에 누적된다. 물 부착이 없는 특수행동에서는 발동하지 않는다."
+    - id: 265
+      verbalName: 재보천의 후원
+      codeName: KuberaPatronage
+      description: "<고유 특성> 필드에 있는 동안 아군 소환수가 주는 피해 +20%. 아군이 소환수를 생성할 때마다 보물 +1(보고 개방이 만든 소환수 제외). 승리하면 이번 전투에서 생성된 소환수 1기당 전투 골드 +1%(최대 +25%)."
+    - id: 321
+      verbalName: 영혼 수확
+      codeName: AnubisSoulHarvest
+      description: "<고유 특성> 살아서 필드에 있는 동안 유닛이 쓰러지면 영혼을 영구히 거둔다(일반 적 1 · 정예 2 · 보스 3 · 아군 1 · 소환수 0.25). 영혼 1당 최대 체력 +8, 방어력 · 특수방어력 +0.4. 영혼 50: 피격 마나 2배 · 150: 사자의 서 4턴 · 300: 전투 시작 시 방어력 270% 보호막."
+    - id: 380
+      verbalName: 도사란 무엇인가
+      codeName: UchiTaoist
+      description: "<고유 특성> 분신을 최대 3기 거느린다. 분신은 고정 속도 70으로 제 차례에 우치 공격력 120%로 한 번 치고 사라진다. 상한에서 새 분신이 생기면 가장 오래된 분신이 즉시 60%로 치고 사라진다. 우치가 최대 체력 15% 이상인 한 방을 맞으면 분신 1기가 대신 맞고 사라진다(한 적 행동당 1기)."
     - id: 201
       verbalName: 빅뱅
       codeName: SeiBigBang
@@ -36,13 +72,687 @@ codes:
     - id: 260
       verbalName: 니샤카라
       codeName: ChandraNishakara
-      description: "<고유 특성> 고유 중첩 '월광'을 가진다. 피해로 체력이 최대 체력의 30% 이하가 되면 월광 1중첩을 소모하고 최대 체력의 50%만큼 즉시 회복한다. 치명상이면 사망 판정 전에 발동한다."
+      description: "<고유 특성> 고유 중첩 '월광'을 가진다. 피해로 체력이 최대 체력의 30% 이하가 되면 월광 1중첩을 소모하고 최대 체력의 50%만큼 즉시 회복한다. 치명상이면 사망 판정 전에 발동한다. 달빛 순환 — 필드에 있는 동안 아군이 특수행동을 마칠 때마다 그 아군이 찬드라 최대 체력의 4%를 회복한다(같은 아군은 자기 턴 사이 1회)."
     - id: 322
       verbalName: 든든한 경호대가 있다고!
       codeName: BastetReliableGuard
       description: "<고유 특성> 바스테트가 직접 공격의 대상이 되고 그 공격의 확정 대상 목록에 다른 경호 자격자가 없으면, 필드의 견고 또는 반격 아군 한 명이 대신 대상이 된다. 반격 보유 여부 → 타겟 우선도 → 전열 → 남은 체력 비율 → 낮은 ID 순으로 고른다. 특성이 직접 가하는 간접 공격은 경호하지 않으며 추가행동 같은 행동 공격은 경호한다."
 
+    # ── 보상 코드 (패시브 500~999) ── Detail_17이 원본. tier · codeTags · supersededBy · 상점 · 후보 조건과
+    #    데이터 구동 수치(flatStats · percentStats · damageTag)를 함께 둔다. 데이터 구동 코드는 RewardStatCode 하나가 받는다.
+    - id: 501
+      verbalName: 전사의 투지
+      codeName: RewardStatCode
+      description: "공격력 +12"
+      tier: 1
+      codeTags: [Universal]
+      flatStats: { Attack: 12 }
+    - id: 502
+      verbalName: 거목의 생명
+      codeName: RewardStatCode
+      description: "최대 체력 +150"
+      tier: 1
+      codeTags: [Universal]
+      flatStats: { MaxHp: 150 }
+    - id: 503
+      verbalName: 청동 갑주
+      codeName: RewardStatCode
+      description: "방어력 +12"
+      tier: 1
+      codeTags: [Universal, Sturdy]
+      flatStats: { Defense: 12 }
+    - id: 504
+      verbalName: 고요한 마음
+      codeName: RewardStatCode
+      description: "특수방어력 +12"
+      tier: 1
+      codeTags: [Universal]
+      flatStats: { SpecialDefense: 12 }
+    - id: 505
+      verbalName: 현자의 통찰
+      codeName: RewardStatCode
+      description: "특수공격력 +10 — 피해는 늘지 않는다. 원소 반응 · 효과 명중 전용"
+      tier: 1
+      codeTags: [Domination, Infusion]
+      flatStats: { SpecialAttack: 10 }
+    - id: 506
+      verbalName: 바람의 발걸음
+      codeName: RewardStatCode
+      description: "속도 +4"
+      tier: 1
+      codeTags: [Universal, Swift]
+      flatStats: { Speed: 4 }
+    - id: 507
+      verbalName: 매의 눈
+      codeName: RewardStatCode
+      description: "치명타 확률 +4%p"
+      tier: 1
+      codeTags: [Universal, Precision]
+      flatStats: { CritRate: 4 }
+    - id: 508
+      verbalName: 독사의 이빨
+      codeName: RewardStatCode
+      description: "치명타 피해 +10%p"
+      tier: 1
+      codeTags: [Precision]
+      flatStats: { CritDamage: 10 }
+    - id: 509
+      verbalName: 용사의 체구
+      codeName: RewardStatCode
+      description: "공격력 +8, 최대 체력 +80"
+      tier: 1
+      codeTags: [Universal]
+      flatStats: { Attack: 8, MaxHp: 80 }
+    - id: 510
+      verbalName: 성벽의 수호
+      codeName: RewardStatCode
+      description: "방어력 +8, 특수방어력 +8"
+      tier: 1
+      codeTags: [Sturdy]
+      flatStats: { Defense: 8, SpecialDefense: 8 }
+    - id: 511
+      verbalName: 사냥꾼의 직감
+      codeName: RewardStatCode
+      description: "치명타 확률 +3%p, 치명타 피해 +6%p"
+      tier: 1
+      codeTags: [Precision]
+      flatStats: { CritRate: 3, CritDamage: 6 }
+    - id: 512
+      verbalName: 조화의 문장
+      codeName: RewardStatCode
+      description: "공격력 +5, 최대 체력 +60, 방어력 +5, 특수방어력 +5"
+      tier: 1
+      codeTags: [Universal]
+      flatStats: { Attack: 5, MaxHp: 60, Defense: 5, SpecialDefense: 5 }
+    - id: 601
+      verbalName: 거인의 완력
+      codeName: RewardStatCode
+      description: "공격력 +12%"
+      tier: 2
+      codeTags: [Universal]
+      percentStats: { Attack: 12 }
+    - id: 602
+      verbalName: 세계수의 축복
+      codeName: RewardStatCode
+      description: "최대 체력 +15%"
+      tier: 2
+      codeTags: [Universal]
+      percentStats: { MaxHp: 15 }
+    - id: 603
+      verbalName: 아이기스의 비호
+      codeName: RewardStatCode
+      description: "방어력 +15%"
+      tier: 2
+      codeTags: [Universal, Sturdy]
+      percentStats: { Defense: 15 }
+    - id: 604
+      verbalName: 명경지수
+      codeName: RewardStatCode
+      description: "특수방어력 +15%"
+      tier: 2
+      codeTags: [Universal]
+      percentStats: { SpecialDefense: 15 }
+    - id: 605
+      verbalName: 지혜의 샘
+      codeName: RewardStatCode
+      description: "특수공격력 +15%"
+      tier: 2
+      codeTags: [Domination, Infusion]
+      percentStats: { SpecialAttack: 15 }
+    - id: 606
+      verbalName: 질풍신뢰
+      codeName: RewardStatCode
+      description: "속도 +10 (깡)"
+      tier: 2
+      codeTags: [Universal, Swift]
+      flatStats: { Speed: 10 }
+    - id: 607
+      verbalName: 포르투나의 미소
+      codeName: RewardStatCode
+      description: "치명타 확률 +10%p (깡)"
+      tier: 2
+      codeTags: [Universal, Precision]
+      flatStats: { CritRate: 10 }
+    - id: 608
+      verbalName: 약점 간파
+      codeName: RewardStatCode
+      description: "치명타 피해 +25%p (깡)"
+      tier: 2
+      codeTags: [Precision]
+      flatStats: { CritDamage: 25 }
+    - id: 609
+      verbalName: 일섬
+      codeName: RewardStatCode
+      description: "베기 공격 피해 +15% (공격 형태 — 파티에 베기 공격 보유자가 있어야 나온다)"
+      tier: 2
+      codeTags: [Universal]
+      requiresAttackForm: 50001
+      damageTag: 50001
+      damageTagBonus: 15
+    - id: 610
+      verbalName: 관통
+      codeName: RewardStatCode
+      description: "찌르기 공격 피해 +15% (공격 형태 — 파티에 찌르기 공격 보유자가 있어야 나온다)"
+      tier: 2
+      codeTags: [Universal]
+      requiresAttackForm: 50002
+      damageTag: 50002
+      damageTagBonus: 15
+    - id: 611
+      verbalName: 명사수
+      codeName: RewardStatCode
+      description: "사격 공격 피해 +15% (공격 형태 — 파티에 사격 공격 보유자가 있어야 나온다)"
+      tier: 2
+      codeTags: [Universal]
+      requiresAttackForm: 50003
+      damageTag: 50003
+      damageTagBonus: 15
+    - id: 612
+      verbalName: 철권
+      codeName: RewardStatCode
+      description: "타격 공격 피해 +15% (공격 형태 — 파티에 타격 공격 보유자가 있어야 나온다)"
+      tier: 2
+      codeTags: [Universal]
+      requiresAttackForm: 50004
+      damageTag: 50004
+      damageTagBonus: 15
+    - id: 613
+      verbalName: 주문 증폭
+      codeName: RewardStatCode
+      description: "주문 공격 피해 +15% (공격 형태 — 파티에 주문 공격 보유자가 있어야 나온다)"
+      tier: 2
+      codeTags: [Universal]
+      requiresAttackForm: 50005
+      damageTag: 50005
+      damageTagBonus: 15
+    - id: 614
+      verbalName: 결전의 포효
+      codeName: RewardStatCode
+      description: "자신의 궁극기 피해 +15%"
+      tier: 2
+      codeTags: [Burst]
+      supersededBy: 723
+      damageTag: 20002
+      damageTagBonus: 15
+    - id: 615
+      verbalName: 연격
+      codeName: RewardStatCode
+      description: "추가행동 피해 +15%"
+      tier: 2
+      codeTags: [FollowUp]
+      supersededBy: 724
+      damageTag: 20005
+      damageTagBonus: 15
+    - id: 616
+      verbalName: 되받아치기
+      codeName: RewardStatCode
+      description: "반격 피해 +20%"
+      tier: 2
+      codeTags: [Counter]
+      supersededBy: 725
+      damageTag: 20007
+      damageTagBonus: 20
+    - id: 617
+      verbalName: 역병의 저주
+      codeName: PlagueCurseCode
+      description: "자신이 부여하는 지속피해 +15%"
+      tier: 2
+      codeTags: [Domination]
+      supersededBy: 811
+    - id: 618
+      verbalName: 원소 촉매
+      codeName: RewardStatCode
+      description: "자신이 일으킨 원소 반응 피해 +15%"
+      tier: 2
+      codeTags: [Infusion]
+      supersededBy: 812
+      damageTag: 20010
+      damageTagBonus: 15
+    - id: 619
+      verbalName: 소환술사
+      codeName: SummonerAdeptCode
+      description: "필드에 있으면 아군 소환수 피해 +15%"
+      tier: 2
+      codeTags: [Summon]
+      supersededBy: 721
+    - id: 620
+      verbalName: 신살자
+      codeName: GodSlayerCode
+      description: "최대 체력이 자신의 150% 이상인 적에게 피해 +20%"
+      tier: 2
+      codeTags: [Universal]
+    - id: 621
+      verbalName: 원소의 낙인
+      codeName: ElementBrandCode
+      description: "자신의 속성 원소를 보유(속성 · 부착 모두)한 적에게 피해 +12%"
+      tier: 2
+      codeTags: [Infusion]
+    - id: 622
+      verbalName: 마나 호흡법
+      codeName: ManaBreathingCode
+      description: "마나 효율 +15% (Passive · Stack 자원에는 무효)"
+      tier: 2
+      codeTags: [Burst]
+    - id: 623
+      verbalName: 치유의 손길
+      codeName: HealingTouchCode
+      description: "부여하는 치유 +20%"
+      tier: 2
+      codeTags: [Healing]
+      supersededBy: 810
+    - id: 624
+      verbalName: 수호의 결계
+      codeName: GuardianWardCode
+      description: "부여하는 보호막 +20%"
+      tier: 2
+      codeTags: [Shielding]
+    - id: 625
+      verbalName: 천상의 신체
+      codeName: CelestialBodyCode
+      description: "받는 치유 · 보호막 +20%"
+      tier: 2
+      codeTags: [Sturdy]
+    - id: 626
+      verbalName: 황금의 손
+      codeName: MidasHandCode
+      description: "전투 골드 +15%. 파티에서 중첩되지 않는다"
+      tier: 2
+      codeTags: [Economy]
+    - id: 627
+      verbalName: 배움의 열정
+      codeName: LearningPassionCode
+      description: "자신이 얻는 EXP +20%"
+      tier: 2
+      codeTags: [Economy]
+    - id: 628
+      verbalName: 영웅담
+      codeName: HeroicTaleCode
+      description: "필드에 있으면 아군 전원이 얻는 EXP +8%. 파티에서 중첩되지 않는다"
+      tier: 2
+      codeTags: [Economy, Support]
+    - id: 629
+      verbalName: 기수
+      codeName: StandardBearerCode
+      description: "대상 우선도 +1"
+      tier: 2
+      codeTags: [Sturdy]
+      supersededBy: 726
+    - id: 630
+      verbalName: 축적의 서
+      codeName: BookOfAccumulationCode
+      description: "전투에서 승리하면 자신의 영구 중첩 +1"
+      tier: 2
+      codeTags: [Growth]
+      requiresGrowth: true
+    - id: 701
+      verbalName: 재기의 바람
+      codeName: RebirthWindCode
+      description: "체력이 40% 이하가 되면 2턴에 걸쳐 최대 체력 50% 회복, 그동안 받는 피해 -20%. 전투당 1회"
+      tier: 3
+      codeTags: [Universal]
+      supersededBy: 801
+      shopFixed: true
+      shopPrice: 300
+    - id: 702
+      verbalName: 정신력
+      codeName: MentalityCode
+      description: "해로운 상태를 25% 확률로 저항. 제어에 걸리면 지속 -1턴(최소 1턴)"
+      tier: 3
+      codeTags: [Universal]
+      shopFixed: true
+      shopPrice: 300
+    - id: 703
+      verbalName: 자가치유
+      codeName: SelfHealingCode
+      description: "자신의 턴마다 최대 체력 4% 회복. 체력 50% 이하면 2배"
+      tier: 3
+      codeTags: [Sturdy, Healing]
+      shopFixed: true
+      shopPrice: 300
+    - id: 704
+      verbalName: 투사
+      codeName: FighterCode
+      description: "가한 피해의 8%만큼 회복. 체력 50% 이하면 16%"
+      tier: 3
+      codeTags: [Indomitable]
+      supersededBy: 802
+    - id: 705
+      verbalName: 파수꾼
+      codeName: SentinelCode
+      description: "전열에 있을 때 필드의 후열 아군 1명당 공격력 · 방어력 +5%"
+      tier: 3
+      codeTags: [Sturdy]
+    - id: 706
+      verbalName: 배수의 진
+      codeName: LastStandCode
+      description: "전열에 자신 외 아군이 없으면 방어력 +40%, 공격력 +15%"
+      tier: 3
+      codeTags: [Sturdy]
+    - id: 707
+      verbalName: 저격수
+      codeName: SniperCode
+      description: "후열에서 적 후열을 공격하면 피해 +25%, 방어 10% 무시"
+      tier: 3
+      codeTags: [Precision]
+    - id: 708
+      verbalName: 철벽
+      codeName: IronWallCode
+      description: "일반행동마다 이번 전투 동안 방어력 +4% (최대 10중첩). 최대 중첩이면 받는 피해 -10%"
+      tier: 3
+      codeTags: [Sturdy]
+    - id: 709
+      verbalName: 보루
+      codeName: BulwarkCode
+      description: "아군에게 이로운 효과(보호막 포함)를 받으면 2턴간 공격력 +15%, 속도 +6"
+      tier: 3
+      codeTags: [Support, Sturdy]
+    - id: 710
+      verbalName: 주문 가속
+      codeName: SpellAccelerationCode
+      description: "궁극기 사용 후 2턴간 속도 +15. 그동안 일반행동 마나 획득 2배"
+      tier: 3
+      codeTags: [Burst, Swift]
+    - id: 711
+      verbalName: 사냥신의 가호
+      codeName: HuntersBlessingCode
+      description: "체력이 가득하지 않은 적, 지속피해 중인 적에게 조건 하나당 피해 +15%"
+      tier: 3
+      codeTags: [Precision, Domination]
+    - id: 712
+      verbalName: 원소 침식
+      codeName: HackerCode
+      description: "적에게 원소를 부착하면 대상 방어력 · 특수방어력 -20% 2턴"
+      tier: 3
+      codeTags: [Infusion]
+    - id: 713
+      verbalName: 원소 친화 - 바위
+      codeName: GeoAffinityCode
+      description: "바위를 보유한 동안 접촉 공격에게 받는 피해 -25%, 그 공격자에게 바위 부착"
+      tier: 3
+      codeTags: [Sturdy]
+    - id: 714
+      verbalName: 응급치료
+      codeName: FirstAidCode
+      description: "자신의 치유가 실제로 회복시키면 대상마다 자신의 턴당 1회, 방어력 35% 보호막을 더한다"
+      tier: 3
+      codeTags: [Healing, Shielding]
+    - id: 715
+      verbalName: 화무십일홍
+      codeName: FadingFlowerCode
+      description: "체력 15% 미만인 적을 공격하면 확정 치명타. 그 공격의 치명타 피해에 치명타 확률의 2배를 더한다"
+      tier: 3
+      codeTags: [Precision]
+    - id: 716
+      verbalName: 기습
+      codeName: AmbushCode
+      description: "체력이 가득한 적을 공격하면 확정 치명타"
+      tier: 3
+      codeTags: [Precision, Swift]
+    - id: 717
+      verbalName: 파죽지세
+      codeName: RoutCode
+      description: "피해를 준 적이 처치되면 3턴간 공격력 +15% (갱신)"
+      tier: 3
+      codeTags: [Universal, FollowUp]
+    - id: 718
+      verbalName: 폭죽놀이
+      codeName: FireworksCode
+      description: "4번째 일반행동마다 무작위 적에게 공격력 20% 피해 4발 #덧붙는 피해"
+      tier: 3
+      codeTags: [FollowUp]
+    - id: 719
+      verbalName: 과다치유
+      codeName: OverhealCode
+      description: "초과 치유를 받으면 자신의 턴당 1회, 방어력 40% 보호막을 더한다"
+      tier: 3
+      codeTags: [Healing, Shielding]
+    - id: 720
+      verbalName: 봉인진
+      codeName: SealingCircleCode
+      description: "필드에 있으면 행동불능 적에게 아군 전원 피해 +15%"
+      tier: 3
+      codeTags: [Control]
+    - id: 721
+      verbalName: 소환사
+      codeName: SummonerCode
+      description: "필드에 있으면 아군 소환수 피해 +30% (소환술사의 상위)"
+      tier: 3
+      codeTags: [Summon]
+    - id: 722
+      verbalName: 유리대포
+      codeName: GlassCannonCode
+      description: "최대 체력 -20%, 방어 무시 20%"
+      tier: 3
+      codeTags: [Precision]
+    - id: 723
+      verbalName: 결전의 일격
+      codeName: ThunderStrikeCode
+      description: "자신의 궁극기 피해 +25%, 궁극기 치명타 확률 +15%p (결전의 포효의 상위)"
+      tier: 3
+      codeTags: [Burst]
+    - id: 724
+      verbalName: 연환격
+      codeName: ChainStrikeCode
+      description: "추가행동 피해 +25%, 추가행동을 마치면 마나 +5 (연격의 상위)"
+      tier: 3
+      codeTags: [FollowUp]
+    - id: 725
+      verbalName: 응징
+      codeName: RetributionCode
+      description: "반격 피해 +30%, 반격은 대상 방어 15% 무시 (되받아치기의 상위)"
+      tier: 3
+      codeTags: [Counter]
+    - id: 726
+      verbalName: 도발의 문장
+      codeName: BannerEmblemCode
+      description: "대상 우선도 +1. 적의 공격 대상이 될 때마다 2턴간 방어력 +5% (최대 5중첩) (기수의 상위)"
+      tier: 3
+      codeTags: [Sturdy]
+    - id: 727
+      verbalName: 축적의 촉진
+      codeName: MultiStackCode
+      description: "자신이 얻는 영구 중첩 +50%. 소수는 모아 두었다가 1이 되면 지급한다"
+      tier: 3
+      codeTags: [Growth]
+      supersededBy: 818
+      requiresGrowth: true
+    - id: 801
+      verbalName: 기사회생
+      codeName: LastStandRecoveryCode
+      description: "체력이 25% 미만이 되면 3턴에 걸쳐 최대 체력 70% 회복. 전투당 1회 (재기의 바람의 상위)"
+      tier: 4
+      codeTags: [Universal]
+      supersededBy: 901
+    - id: 802
+      verbalName: 하루종일도 할 수 있어
+      codeName: AllDayLongCode
+      description: "가한 피해의 15%만큼 회복. 초과 치유가 발생하면 자신의 턴당 1회 방어력 60% 보호막을 더한다 (투사의 상위)"
+      tier: 4
+      codeTags: [Indomitable]
+    - id: 803
+      verbalName: 사전준비
+      codeName: PreparationCode
+      description: "전투 시작 시 마나가 최대치의 50%로 찬다. Passive · Stack 자원에는 무효"
+      tier: 4
+      codeTags: [Burst]
+    - id: 804
+      verbalName: 인도자
+      codeName: GuideCode
+      description: "궁극기를 쓴 뒤 필드의 다른 아군 전원에게 마나 +10. 자신의 다음 턴 전까지 1회"
+      tier: 4
+      codeTags: [Support, Burst]
+    - id: 805
+      verbalName: 천살성
+      codeName: HeavenlyKillStarCode
+      description: "공격 후 최대 체력 8% 미만인 일반 등급 적을 즉시 처형"
+      tier: 4
+      codeTags: [Precision]
+      supersededBy: 902
+    - id: 806
+      verbalName: 암살자
+      codeName: AssassinCode
+      description: "100%를 넘는 치명타 확률을 1:1로 치명타 피해로 바꾼다"
+      tier: 4
+      codeTags: [Precision]
+    - id: 807
+      verbalName: 상처 벌리기
+      codeName: WoundOpenerCode
+      description: "지속피해 중인 적을 공격하면 방어 30% 무시"
+      tier: 4
+      codeTags: [Domination]
+    - id: 808
+      verbalName: 불침의 결계
+      codeName: SpellWardCode
+      description: "4턴마다 피해 1회를 완전히 막는 결계. 결계가 남아 있으면 주기를 세지 않는다"
+      tier: 4
+      codeTags: [Shielding, Sturdy]
+    - id: 809
+      verbalName: 순환
+      codeName: CycleCode
+      description: "같은 진영 아군이 쓰러지면 무작위 생존 아군 하나가 전투 끝까지 피해 +25%, 받는 피해 -25%"
+      tier: 4
+      codeTags: [Indomitable]
+    - id: 810
+      verbalName: 의신의 가호
+      codeName: DivineFavorCode
+      description: "부여하는 치유 · 보호막 +40%, 받은 대상의 해로운 상태 1개 제거 (치유의 손길의 상위)"
+      tier: 4
+      codeTags: [Healing, Shielding]
+    - id: 811
+      verbalName: 죽음의 계약
+      codeName: DeathPactCode
+      description: "자신이 부여하는 지속피해 +35%, 지속 +1턴 (역병의 저주의 상위)"
+      tier: 4
+      codeTags: [Domination]
+    - id: 812
+      verbalName: 원소술사
+      codeName: ElementalistCode
+      description: "필드에 있으면 아군 전원의 원소 반응 피해 +25% (원소 촉매의 상위)"
+      tier: 4
+      codeTags: [Infusion, Support]
+      supersededBy: 903
+    - id: 813
+      verbalName: 월식 정산
+      codeName: EclipseSettlementCode
+      description: "지속피해 중인 적이 처치되면 남은 지속피해의 75%를 주변 적에게 나눠 준다"
+      tier: 4
+      codeTags: [Domination]
+    - id: 814
+      verbalName: 리더십
+      codeName: LeadershipCode
+      description: "필드에 있으면 아군 전원 피해 +10%"
+      tier: 4
+      codeTags: [Support, Universal]
+    - id: 815
+      verbalName: 전술가
+      codeName: TacticianCode
+      description: "필드에 있으면 아군 전원 방어 무시 10%"
+      tier: 4
+      codeTags: [Support]
+    - id: 816
+      verbalName: 홀리 인챈트
+      codeName: HolyEnchantCode
+      description: "필드에 있으면 아군 전원 치명타 확률 +10%p"
+      tier: 4
+      codeTags: [Support, Precision]
+    - id: 817
+      verbalName: 목욕재계
+      codeName: PurificationBathCode
+      description: "전투가 끝나면 살아 있는 아군 전원이 최대 체력 15% 회복"
+      tier: 4
+      codeTags: [Healing]
+    - id: 818
+      verbalName: 겹겹이 쌓인 운명
+      codeName: LayeredFateCode
+      description: "자신이 얻는 영구 중첩 2배 (축적의 촉진의 상위)"
+      tier: 4
+      codeTags: [Growth]
+      requiresGrowth: true
+    - id: 901
+      verbalName: 완벽한 재기
+      codeName: PerfectRecoveryCode
+      description: "체력이 30% 미만이 되면 3턴에 걸쳐 최대 체력 100% 회복. 전투당 1회 (기사회생의 상위)"
+      tier: 5
+      codeTags: [Universal]
+    - id: 902
+      verbalName: 당연한 운명
+      codeName: NaturalFateCode
+      description: "공격 후 최대 체력 12% 미만인 일반 적, 6% 미만인 정예 적을 즉시 처형 (천살성의 상위)"
+      tier: 5
+      codeTags: [Precision]
+    - id: 903
+      verbalName: 대해의 판결
+      codeName: OceanVerdictCode
+      description: "필드에 있으면 아군 전원의 원소 반응 피해 +45%, 반응을 일으킨 아군 마나 +5 (원소술사의 상위)"
+      tier: 5
+      codeTags: [Infusion, Support]
+    - id: 904
+      verbalName: 죽은 자의 소생
+      codeName: ReviveTheDeadCode
+      description: "전투가 끝날 때 이번 전투에서 쓰러진 아군 하나를 최대 체력 50%로 부활. 보유자가 쓰러져 있으면 발동하지 않는다"
+      tier: 5
+      codeTags: [Support]
+    - id: 905
+      verbalName: 개선문
+      codeName: TriumphalArchCode
+      description: "필드 아군이 가진 보상 코드가 합쳐 15개 이상이면 전투 시작 후 4턴간 아군 전원 치명타 확률 +50%p"
+      tier: 5
+      codeTags: [Universal]
+    - id: 906
+      verbalName: 영웅의 자질
+      codeName: RewardStatCode
+      description: "최대 체력 · 공격력 · 특수공격력 · 방어력 · 특수방어력 +12%"
+      tier: 5
+      codeTags: [Universal]
+      percentStats: { MaxHp: 12, Attack: 12, SpecialAttack: 12, Defense: 12, SpecialDefense: 12 }
+    - id: 907
+      verbalName: 무한의 탑
+      codeName: InfiniteTowerCode
+      description: "자신의 영구 중첩 50개마다 최대 체력 · 공격력 · 방어력 · 특수방어력 +2% (상한 없음)"
+      tier: 5
+      codeTags: [Growth]
+      requiresGrowth: true
   normal:
+    - id: 63
+      verbalName: 뇌정
+      codeName: IndraThunderbolt
+      description: "단일 적에게 공격력 110% 피해를 주고 번개를 부착한다. #단일 #일반 #비접촉 #주문"
+    - id: 61
+      verbalName: 명부의 낙뢰
+      codeName: YamaRollOfDeathLightning
+      description: "단일 적에게 공격력 130% 피해를 주고 번개를 부착한 뒤, 그 적의 모든 지속피해를 q 비율로 즉시 발동한다(q = 특수공격력 ÷ (특수공격력 + 100 + 6 × (레벨 − 1)) × 속도 ÷ 100, 최대 100%). #단일 #일반 #비접촉 #주문"
+    - id: 66
+      verbalName: 금줄
+      codeName: VarunaSacredRope
+      description: "단일 적에게 공격력 90% 피해를 주고 물을 부착한다. 부착하면 현재 방어력 35%의 보호막을 얻는다(제방). #단일 #일반 #비접촉 #주문"
+    - id: 64
+      verbalName: 돌풍
+      codeName: VayuGust
+      description: "단일 적에게 공격력 90% 피해를 주고 바람을 부착한다. 다른 원소가 붙어 있던 적이면 확산이 일어난다. #단일 #일반 #비접촉 #주문"
+    - id: 62
+      verbalName: 불씨를 다지는 주먹
+      codeName: AgniEmberFist
+      description: "단일 적에게 공격력 75% 피해. 불은 붙이지 않는다. #단일 #일반 #접촉 #타격"
+    - id: 67
+      verbalName: 이름을 부르는 탄환
+      codeName: SuryaNameBullet
+      description: "현상수배된 적에게 공격력 80% 피해를 주고 탄환을 2발까지 채운다. #단일 #일반 #비접촉 #사격"
+    - id: 65
+      verbalName: 금화 투척
+      codeName: KuberaCoinToss
+      description: "단일 적에게 공격력 90% 피해를 주고 보물 +1. #단일 #일반 #비접촉 #사격"
+    - id: 121
+      verbalName: 심장의 저울
+      codeName: AnubisHeartScale
+      description: "단일 적에게 최대 체력 6% 피해를 주고 준 피해의 30%를 회복한다. 사자의 서 동안 10% · 60% · 바위 부착. #단일 #일반 #접촉 #찌르기"
+    - id: 180
+      verbalName: 분신술
+      codeName: UchiCloneArt
+      description: "분신 1기를 만든다. 피해를 주지 않는다."
+    - id: 500
+      verbalName: 분신 일격
+      codeName: UchiCloneStrike
+      description: "<소환수> 분신이 우선도 적에게 우치 공격력 120% 피해를 주고 사라진다. #단일 #일반 #접촉 #타격"
     - id: 1
       verbalName: 땅고르기
       codeName: SeiGroundLeveling
@@ -85,6 +795,42 @@ codes:
       description: "공허 화살을 쏘아 공격력의 90% 피해를 입힌다. #단일 #일반 #비접촉"
 
   ultimate:
+    - id: 63
+      verbalName: 팔방의 소집
+      codeName: IndraGathering
+      description: "<마나 120> 로카팔라 묶음을 연다 — 필드의 로카팔라 참여자 전원의 특수행동을 순서대로 예약한다. 피해는 없다."
+    - id: 61
+      verbalName: 언젠가 다다를 마지막
+      codeName: YamaLastArrival
+      description: "<마나 120> 적 전체에 공격력 120% 피해를 주고 번개를 부착한 뒤, 대상별로 모든 지속피해를 min(1, 1.5q) 비율로 즉시 발동한다. #전체 #궁극기 #비접촉 #주문"
+    - id: 66
+      verbalName: 동일한 법 아래
+      codeName: VarunaUnderSameLaw
+      description: "<마나 100> 적 전체에 공격력 120% 피해를 주고 물을 부착하며, 생존한 필드 아군 전원(자신 포함)에게 바루나 현재 방어력 100%의 보호막을 준다. 물 부착으로 제방 보호막(자신 35%)도 따로 얻는다. #전체 #궁극기 #비접촉 #주문"
+    - id: 64
+      verbalName: 만류의 회랑
+      codeName: VayuStorm
+      description: "<마나 100> 적 전체에 공격력 100% 피해를 주고 2턴간 방어력 -20%(바람의 침식). 특수방어력은 깎지 않고 바람도 붙이지 않는다. #전체 #궁극기 #비접촉 #주문"
+    - id: 62
+      verbalName: 내가 판을 키워 주지
+      codeName: AgniRaiseTheStakes
+      description: "<마나 120> 자신을 포함한 필드 아군 전원의 궁극기 피해 +20%(판돈 — 아그니가 일반행동을 세 번 마칠 때까지). 판돈 동안 아그니의 특성 추공은 궁극기 판정을 함께 받는다. 아군별 특성 횟수를 되돌린다. 피해는 없다."
+    - id: 67
+      verbalName: 도망칠 곳은 없어
+      codeName: SuryaNoEscape
+      description: "<마나 120> 현상수배된 적에게 공격력 150% 피해를 주고 불을 부착한다. 탄환을 2발까지 채우고 다음 응답 사격 한 발을 공격력 110%로 강화한다(겹치지 않음). #단일 #궁극기 #비접촉 #사격"
+    - id: 65
+      verbalName: 보고 개방
+      codeName: KuberaTreasury
+      description: "<보물 8> 적 전체에 공격력 160% 피해. 2턴간 아군 소환수 피해 +15%(후원과 합산). 다수형 소환자마다 소환수 1기를 더 만든다. #전체 #궁극기 #비접촉 #주문"
+    - id: 121
+      verbalName: 사자의 서
+      codeName: AnubisBookOfTheDead
+      description: "<마나 120> 자신의 3턴(영혼 150 이후 4턴) 동안 심장의 저울이 최대 체력 10% · 회복 60% · 바위 부착으로 강화된다."
+    - id: 180
+      verbalName: 만천화우
+      codeName: UchiManchunhwau
+      description: "<마나 100> 분신을 모두 소모해 각각 우선도 적에게 우치 공격력 300% 피해. 분신이 없으면 분신 2기를 만든다. #다중 #궁극기 #접촉 #타격"
     - id: 1
       verbalName: 창세의 노래
       codeName: SeiSongOfGenesis
@@ -135,7 +881,31 @@ codes:
       description: "모든 적에게 공허 화살을 흩뿌려 대상마다 공격력의 110% 피해를 입힌다. #전체 #궁극기 #비접촉"
 
   special:
+    - id: 63
+      verbalName: 바즈라
+      codeName: IndraVajra
+      description: "<로카팔라> 적 전체에 공격력 150% 피해. 궁극기 판정도 함께 가져 궁극기 피해 증가 효과를 받는다. 아군이 깐 버프 · 디버프를 받은 뒤 친다. #전체 #특수행동 #궁극기 #비접촉 #주문"
+    - id: 61
+      verbalName: 죽음의 순회
+      codeName: YamaDeathRound
+      description: "<로카팔라> 적 전체에 공격력 400% 피해. 인드라 뒤 · 찬드라 앞(+75)에 행동한다. 번개 부착과 지속피해 즉시 발동은 없다. #전체 #특수행동 #비접촉 #주문"
+    - id: 66
+      verbalName: 넘치는 판결
+      codeName: VarunaOverflowingJudgment
+      description: "<로카팔라> 적 전체에 공격력 70% 피해를 주고 생존한 필드 아군 전원(자신 포함)에게 바루나 현재 방어력 100%의 보호막을 준다. 바유 뒤 · 쿠베라 앞(-50)에 행동한다. 물 부착이 없어 제방 보호막도 없다. #전체 #특수행동 #비접촉 #주문"
+    - id: 64
+      verbalName: 태풍의 눈
+      codeName: VayuEyeOfTyphoon
+      description: "<로카팔라> 묶음의 처음(-100)에 적 전체에 공격력 45% 피해를 준 뒤, 생존한 적 전원에게 일곱 원소(불 · 물 · 풀 · 번개 · 얼음 · 바위 · 바람)의 취약 +25%를 2턴간 건다. 같은 원소의 특성 취약과는 높은 하나만 적용하며, 묶음이 끝나도 남는다. #전체 #특수행동 #비접촉 #주문"
+    - id: 62
+      verbalName: 제일 먼저 태울 곳
+      codeName: AgniFirstToBurn
+      description: "<로카팔라> 바루나 뒤 · 인드라 앞(+25). 같은 묶음을 연 인드라의 초월기로 얻은 특성 추공 한 건을 이 특수행동까지 보류했다가, 물 → 얼음 → 풀이 붙은 적을 중심으로 골라 집중 포격으로 바꾼다 — 중심 공격력 180%, 나머지 45%, 전원 불 부착. 공격 가능한 적에게 재료가 없으면 다른 적의 재료 하나를 중심으로 옮긴다. 보류한 추공이 없으면 아무것도 하지 않는다."
+    - id: 65
+      verbalName: 골드 러쉬
+      codeName: KuberaGoldRush
+      description: "<로카팔라> 적 전체에 공격력 100% × 금력 배율(1 + 보유 골드 ÷ (스테이지 × 100) × 15%, 최대 ×4) 피해. 이번 전투 골드 +5%(최대 +25%). #전체 #특수행동 #비접촉 #사격"
     - id: 60
       verbalName: 창야
       codeName: ChandraChangya
-      description: "<로카팔라> 월광 1중첩을 얻고, 로카팔라 특수행동이 끝날 때까지 아군 전체의 치명타 확률을 25% 높인다. 이어 모든 적에게 최대 체력의 100%에 해당하는 특수 피해를 입히고 실제로 입힌 피해의 20%만큼 회복한다. 바유 다음, 다른 로카팔라보다 먼저 행동한다. #전체 #특수행동 #특수 #비접촉"
+      description: "<로카팔라> 월광 1중첩을 얻고 모든 적에게 최대 체력의 100%에 해당하는 특수 피해를 입힌다. 실제로 입힌 피해의 20%를 살아 있는 아군 전원에게 똑같이 나눠 회복한다. 회복을 맡으므로 묶음의 맨 끝에 행동한다. #전체 #특수행동 #특수 #비접촉 #주문"

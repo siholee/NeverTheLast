@@ -13,6 +13,8 @@ namespace Codes.Normal
     /// <summary>잔 — 짧게 내딛은 뒤 대상 상체에 연타 압력을 꽂는 단일 접촉 공격.</summary>
     public sealed class JeanHolyStrike : BaseNormalCode
     {
+        public override int AttackForm => DamageTag.Strike;
+
         public JeanHolyStrike(NormalCodeContext context) : base(context)
         {
             CodeName = "신성한 일격";
@@ -40,11 +42,12 @@ namespace Codes.Normal
                 DamageTag.AdditionalAttack,
                 DamageTag.CounterAttack,
                 DamageTag.ContactAttack,
+                DamageTag.Strike,
             };
             if (!Targeting.Announce(Caster, new[] { attacker })) yield break;
 
             AudioManager.PlayAction(Caster, SfxActionSlot.Passive, SfxCuePhase.Cast, "철권제재");
-            bool crit = RollCritical(out float multiplier);
+            bool crit = RollCritical(attacker, out float multiplier);
             int damage = Mathf.Max(1, Mathf.RoundToInt(BaseDamage(attacker) * multiplier));
             var context = new DamageContext(Caster, damage, BaseEnums.CodeType.Normal, tags, crit);
             yield return JeanFx.HolyStrike(Caster, attacker, true, () =>

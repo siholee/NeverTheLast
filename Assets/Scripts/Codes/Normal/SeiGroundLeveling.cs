@@ -15,6 +15,8 @@ namespace Codes.Normal
     /// </summary>
     public sealed class SeiGroundLeveling : BaseNormalCode
     {
+        public override int AttackForm => DamageTag.Spell;
+
         private const float FlatDamage = 55f;
         private const float DefenseRatio = 0.5f;
 

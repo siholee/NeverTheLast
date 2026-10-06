@@ -12,7 +12,7 @@ namespace Managers.UI.Screens
 {
     /// <summary>
     /// 준비 페이즈 하단 독. 추가 전투와 장비는 없다.
-    /// 플레이어는 상점 · 휴식 · 공용 인벤토리 · 덱 구성만 정리한 뒤 출격한다.
+    /// 플레이어는 상점 · 휴식 · 공용 보급 · 덱 구성만 정리한 뒤 출격한다.
     /// </summary>
     public sealed class PreparationScreen
     {
@@ -67,6 +67,7 @@ namespace Managers.UI.Screens
             panel.rectTransform.offsetMax = new Vector2(-UITheme.ScreenEdgeInset, PanelBottom + PanelHeight);
             _shadow = UIBuild.Elevate(panel, 20, 0.42f, 6).gameObject;
 
+            UIArtDirection.Header(panel.transform, 4f);
             _stateChip = UIBuild.Panel("StateChip", panel.transform, UITheme.AccentFaint, cut: 4);
             UIBuild.Anchor(_stateChip.rectTransform, new Vector2(0.018f, 0.68f), new Vector2(0.17f, 0.92f));
             _stateLabel = UIBuild.Text("State", _stateChip.transform, "", 18, UITheme.TextPrimary,
@@ -87,7 +88,7 @@ namespace Managers.UI.Screens
                 () => GameManager.Instance?.OpenRestFromPreparation());
             _shop = MakeCommand(panel.transform, "◉", "상점", 0.165f, 0.305f,
                 () => GameManager.Instance?.OpenShopFromPreparation());
-            _inventory = MakeCommand(panel.transform, "▱", "인벤토리", 0.315f, 0.475f,
+            _inventory = MakeCommand(panel.transform, "▱", "공용 보급", 0.315f, 0.475f,
                 () => GameManager.Instance?.OpenInventoryFromPreparation());
             _deck = MakeCommand(panel.transform, "◇", "덱 구성", 0.485f, 0.645f,
                 () => GameManager.Instance?.OpenDeckSetupFromPreparation());
@@ -176,7 +177,7 @@ namespace Managers.UI.Screens
             int shopLeft = game?.ShopPurchasesLeft ?? 0;
             SetButton(_shop, "◉", "상점", game?.CanOpenShop == true,
                 shopLeft > 0 ? $"구매 {shopLeft}회 남음" : "구매 횟수 소진");
-            SetButton(_inventory, "▱", "인벤토리", game != null, $"공용 · {game?.inventoryManager?.ItemIdsInHand?.Count ?? 0}개");
+            SetButton(_inventory, "▱", "공용 보급", game != null, $"공용 · {game?.inventoryManager?.ItemIdsInHand?.Count ?? 0}개");
             SetButton(_deck, "◇", deckMode ? "완료" : "덱 구성", true,
                 deckMode ? "모드 끄기" : "배치 바꾸기");
             _deck.image.sprite = UIShapes.RoundedRect(10,

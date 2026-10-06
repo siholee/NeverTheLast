@@ -76,6 +76,7 @@ namespace Managers.UI.Theme
         private static readonly Dictionary<int, Sprite> FrameCache = new();
         private static readonly Dictionary<string, Sprite> ExternalSprites = new();
         private static Texture2D _atlas;
+        private static Sprite _allElementWeakness;
 
         private const int AtlasColumns = 6;
         private const int AtlasRows = 6;
@@ -147,6 +148,7 @@ namespace Managers.UI.Theme
             ["reaction_Growth"] = (StatusGlyph.Defense, StatusArrow.Up),
             ["reaction_Charge"] = (StatusGlyph.Attack, StatusArrow.Up),
             ["reaction_Activation"] = (StatusGlyph.Defense, StatusArrow.Down),
+            ["vayu_erosion"] = (StatusGlyph.Defense, StatusArrow.Down),
             ["reaction_Superconduct"] = (StatusGlyph.Defense, StatusArrow.Down),
             ["reaction_Slow"] = (StatusGlyph.Speed, StatusArrow.Down),
             ["cc_frozen"] = (StatusGlyph.Freeze, StatusArrow.None),
@@ -158,6 +160,7 @@ namespace Managers.UI.Theme
             ["friendly_reaction_guard"] = (StatusGlyph.Guard, StatusArrow.Up),
             ["sei_song_buff"] = (StatusGlyph.Attack, StatusArrow.Up),
             ["sei_song_marker"] = (StatusGlyph.Focus, StatusArrow.Up),
+            ["yama_death_verdict"] = (StatusGlyph.Mark, StatusArrow.None),
         };
 
         /// <summary>
@@ -296,10 +299,38 @@ namespace Managers.UI.Theme
         /// <summary>상태 하나에 맞는 아이콘.</summary>
         public static Sprite For(UnitStatus status)
         {
+            if (status?.Key == "vayu_gale_all") return AllElementWeakness();
+            // 공용 상태 ID보다 원소 키를 먼저 읽어 같은 바유 상태의 원소를 구분한다.
+            if (status != null && (status.Key?.StartsWith("vayu_vuln_") == true || status.Key?.StartsWith("vayu_gale_vuln_") == true)
+                && status.Key.EndsWith("Geo"))
+                return ExternalSprite("UI/CardHud/element_geo_glyph") ?? Get(StatusGlyph.Defense, StatusArrow.Down);
             Sprite external = ExternalSprite(status?.IconPath);
             if (external != null) return external;
             (StatusGlyph glyph, StatusArrow arrow) = Resolve(status);
             return Get(glyph, arrow);
+        }
+
+        /// <summary>단일 전원소 취약 상태의 일곱색 고리. 전체 표시는 한 아이콘만 차지한다.</summary>
+        private static Sprite AllElementWeakness()
+        {
+            if (_allElementWeakness != null) return _allElementWeakness;
+            var texture = new Texture2D(Size, Size, TextureFormat.RGBA32, false);
+            texture.filterMode = FilterMode.Bilinear;
+            texture.wrapMode = TextureWrapMode.Clamp;
+            Color[] colors = { new(0.94f,0.72f,0.58f), new(0.55f,0.82f,0.87f), new(0.68f,0.84f,0.58f),
+                new(0.76f,0.65f,0.88f), new(0.72f,0.89f,0.94f), new(0.90f,0.79f,0.55f), new(0.62f,0.85f,0.77f) };
+            var pixels = new Color[Size * Size];
+            for (int y = 0; y < Size; y++) for (int x = 0; x < Size; x++)
+            {
+                float dx = x - 19.5f, dy = y - 19.5f;
+                float radius = Mathf.Sqrt(dx * dx + dy * dy);
+                if (radius < 11f || radius > 17f) continue;
+                float angle = (Mathf.Atan2(dy, dx) + Mathf.PI) / (2f * Mathf.PI);
+                pixels[y * Size + x] = colors[Mathf.Min(6, (int)(angle * 7f))];
+            }
+            texture.SetPixels(pixels); texture.Apply();
+            _allElementWeakness = Sprite.Create(texture, new Rect(0, 0, Size, Size), new Vector2(0.5f,0.5f), 100f);
+            return _allElementWeakness;
         }
 
         private static Sprite ExternalSprite(string path)
@@ -355,6 +386,25 @@ namespace Managers.UI.Theme
             if (!string.IsNullOrEmpty(status.Key))
             {
                 if (ByKey.TryGetValue(status.Key, out (StatusGlyph, StatusArrow) keyed)) return keyed;
+                if (status.Key == "vayu_gale_all") return (StatusGlyph.Focus, StatusArrow.Down);
+                if (status.Key == "agni_raise_stakes") return (StatusGlyph.Attack, StatusArrow.Up);
+                if (status.Key == "surya_wanted") return (StatusGlyph.Mark, StatusArrow.Down);
+                if (status.Key == "vayu_erosion") return (StatusGlyph.Defense, StatusArrow.Down);
+                if (status.Key.StartsWith("vayu_vuln_") || status.Key.StartsWith("vayu_gale_vuln_"))
+                {
+                    string element = status.Key.Substring(status.Key.LastIndexOf('_') + 1);
+                    return (element switch
+                    {
+                        "Pyro" => StatusGlyph.Burn,
+                        "Hydro" => StatusGlyph.Bleed,
+                        "Dendro" => StatusGlyph.Thorns,
+                        "Electro" => StatusGlyph.Crit,
+                        "Cryo" => StatusGlyph.Freeze,
+                        "Geo" => StatusGlyph.Defense,
+                        "Anemo" => StatusGlyph.Speed,
+                        _ => StatusGlyph.Debuff,
+                    }, StatusArrow.Down);
+                }
                 if (status.Key.StartsWith("reaction_shock_")) return (StatusGlyph.Shock, StatusArrow.None);
             }
             if (ByStatusId.TryGetValue(status.StatusId, out (StatusGlyph, StatusArrow) identified)) return identified;

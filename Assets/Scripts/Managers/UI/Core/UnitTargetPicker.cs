@@ -34,19 +34,21 @@ namespace Managers.UI.Core
             _root = UIBuild.Container("TargetPicker", parent);
             UIBuild.Stretch(_root);
 
-            _guide = UIBuild.Text("Guide", _root, "", UITheme.FontBody, UITheme.TextSecondary,
-                TextAlignmentOptions.Center);
-            UIBuild.Anchor(_guide.rectTransform, new Vector2(0f, 0.88f), Vector2.one);
+            _guide = UIBuild.Text("Guide", _root, "", UITheme.FontReadBody, UITheme.TextSecondary,
+                TextAlignmentOptions.Center, wrap: true);
+            UIBuild.Anchor(_guide.rectTransform, new Vector2(0f, 0.86f), Vector2.one, 12f, 0f);
 
             for (int i = 0; i < MaxCards; i++)
             {
                 _cards.Add(new Card(_root, onPick));
             }
 
-            Button back = UIBuild.Button("Back", _root, backLabel, () => onBack?.Invoke());
+            Button back = UIBuild.Button("Back", _root, backLabel, () => onBack?.Invoke(), false, UITheme.FontReadSmall);
             UIBuild.Anchor(back.GetComponent<RectTransform>(),
                 new Vector2(0.36f, 0.02f), new Vector2(0.64f, 0.11f));
 
+            // 보상 · 상점 · 공용 보급이 함께 쓰는 선택 판이라 판 안의 22 이상 글자에만 가독 하한을 건다.
+            UIScaledText.KeepReadable(_root);
             _root.gameObject.SetActive(false);
         }
 
@@ -88,15 +90,15 @@ namespace Managers.UI.Core
                 _portrait = portraitObject.GetComponent<Image>();
                 _portrait.preserveAspect = true;
                 _portrait.raycastTarget = false;
-                UIBuild.Anchor(_portrait.rectTransform, new Vector2(0f, 0.31f), new Vector2(1f, 0.88f), 10f, 0f);
+                UIBuild.Anchor(_portrait.rectTransform, new Vector2(0f, 0.36f), new Vector2(1f, 0.90f), 10f, 0f);
 
-                _name = UIBuild.Text("Name", _root.transform, "", UITheme.FontHeading,
+                _name = UIBuild.Text("Name", _root.transform, "", UITheme.FontReadHeading,
                     UITheme.TextPrimary, TextAlignmentOptions.Center, wrap: true);
-                UIBuild.Anchor(_name.rectTransform, new Vector2(0f, 0.20f), new Vector2(1f, 0.31f), 8f, 0f);
+                UIBuild.Anchor(_name.rectTransform, new Vector2(0f, 0.25f), new Vector2(1f, 0.36f), 8f, 0f);
 
-                _preview = UIBuild.Text("Preview", _root.transform, "", UITheme.FontCaption,
-                    UITheme.Hp, TextAlignmentOptions.Center, wrap: true);
-                UIBuild.Anchor(_preview.rectTransform, new Vector2(0f, 0.04f), new Vector2(1f, 0.20f), 6f, 0f);
+                _preview = UIBuild.Text("Preview", _root.transform, "", UITheme.FontReadSmall,
+                    UITheme.AccentDim, TextAlignmentOptions.Center, wrap: true);
+                UIBuild.Anchor(_preview.rectTransform, new Vector2(0f, 0.03f), new Vector2(1f, 0.25f), 6f, 0f);
             }
 
             public void Bind(Unit unit, Func<Unit, string> preview, int index, int count)

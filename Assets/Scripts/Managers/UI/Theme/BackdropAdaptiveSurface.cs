@@ -51,7 +51,7 @@ namespace Managers.UI.Theme
             {
                 Color fill = UITheme.HudBar;
                 fill.a = UITheme.AdaptiveHudAlpha;
-                _image.sprite = UIShapes.RoundedRect(_radius, fill, UITheme.Outline, 2);
+                _image.sprite = UIShapes.CutCorner(8, fill, UIShapes.Corner.Diagonal, UITheme.Outline, 1);
                 return;
             }
 

@@ -24,6 +24,8 @@ namespace Effects
 
         /// <summary>횟수제 무적이 막은 타격. 숫자가 없다.</summary>
         Nullified,
+        /// <summary>피해와 별개로 원소·상태 부여에 저항.</summary>
+        EffectResisted,
     }
 
     /// <summary>
@@ -126,7 +128,7 @@ namespace Effects
             CombatNumberKind kind = CombatNumberKind.Damage, float weight = 0f)
         {
             if (target == null) return;
-            if (kind != CombatNumberKind.Miss && kind != CombatNumberKind.Nullified && amount <= 0) return;
+            if (kind != CombatNumberKind.Miss && kind != CombatNumberKind.Nullified && kind != CombatNumberKind.EffectResisted && amount <= 0) return;
             if (isCrit && kind == CombatNumberKind.Damage) Managers.AudioManager.PlayCue("common.crit");
 
             Trim();
@@ -192,6 +194,7 @@ namespace Effects
             _label.text = kind switch
             {
                 CombatNumberKind.Miss => "회피",
+                CombatNumberKind.EffectResisted => "저항",
                 CombatNumberKind.Nullified => "무효",
                 CombatNumberKind.Heal => "+" + amount,
                 _ => amount + (isCrit ? "!" : ""),
@@ -218,7 +221,7 @@ namespace Effects
             // 크기 차이는 절제한다 — 큰 값이 화면을 덮으면 애니메이션이 가려진다.
             // 치명타는 그 위에 한 번 더 크게 얹는다.
             _baseScale = Mathf.Lerp(0.82f, 1.12f, weight) * (isCrit ? 1.32f : 1f);
-            if (kind == CombatNumberKind.Shielded || kind == CombatNumberKind.Miss ||
+            if (kind == CombatNumberKind.Shielded || kind == CombatNumberKind.Miss || kind == CombatNumberKind.EffectResisted ||
                 kind == CombatNumberKind.Nullified)
             {
                 _baseScale *= 0.8f;
@@ -315,6 +318,7 @@ namespace Effects
                 case CombatNumberKind.Heal:
                     return Color.Lerp(UITheme.Positive, Color.white, 0.25f);
                 case CombatNumberKind.Miss:
+                case CombatNumberKind.EffectResisted:
                     // 밝은 테마의 글자색은 거의 검정이라 어두운 외곽선 위에서 사라진다.
                     return new Color(0.86f, 0.89f, 0.93f, 1f);
                 default:

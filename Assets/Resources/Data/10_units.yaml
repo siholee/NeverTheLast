@@ -171,12 +171,12 @@ units:
   # 인드라 계열 트리거가 로카팔라의 문을 열면 창야가 바유 다음 순서로 나선다.
   - id: 60
     name: 찬드라
-    tagline: "월광으로 치명상을 되돌리는 탱커. 가장 강한 아군 한 명을 키우고, 로카팔라 특수행동에서 월광을 폭발시킨다."
+    tagline: "월광으로 치명상을 되돌리는 탱커. 가장 강한 아군 한 명을 키우고, 특수행동 묶음의 끝에서 아군 전원을 회복한다."
     characterType: Unlocked
     element: Geo
     vfxClass: caster
     tags: [Vedic, Lokapala]
-    archetypeTags: [Sturdy, Special, Support]
+    archetypeTags: [Sturdy, Special, Healing]
     hpBase: 1380
     hpGrowth: 120
     atkBase: 58
@@ -296,3 +296,298 @@ units:
       ultimate: 122
     portrait: BASTET_PORTRAIT
     standing: BASTET_STANDING
+
+  # ── 인드라 ────────────────────────────────────────────────────────
+  # 로카팔라를 소집하는 데바의 왕. 초월기로 로카팔라 묶음을 여는 유일한 개방자이고(Detail_08 §13),
+  # 특성이 모든 특수행동 피해를 올려 로카팔라 밖의 특수 파티(시)에서도 서브 서포터가 된다.
+  - id: 63
+    name: 인드라
+    tagline: "로카팔라를 소집하는 데바의 왕. 초월기로 특수행동 묶음을 열고, 바즈라로 마지막에 내려친다."
+    characterType: Unlocked
+    element: Electro
+    vfxClass: caster
+    tags: [Vedic, Lokapala]
+    archetypeTags: [Special, Burst]
+    hpBase: 1050
+    hpGrowth: 92
+    atkBase: 98
+    atkGrowth: 6.5
+    spAtkBase: 75
+    spAtkGrowth: 4.5
+    defBase: 65
+    defGrowth: 4.8
+    spDefBase: 70
+    spDefGrowth: 5.2
+    speedBase: 108
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes:
+      passive: 263
+      normal: 63
+      special: 63
+      ultimate: 63
+    portrait: INDRA_PORTRAIT
+    standing: INDRA_STANDING
+
+  # ── 바유 ──────────────────────────────────────────────────────────
+  # 원소가 지나간 길을 여는 조율자(Detail_08 §14, 2026-10-05 교체). 자기 확산이 원소 취약을 남기고,
+  # 초월기는 방어력만 깎으며, 태풍의 눈은 묶음의 처음에서 일곱 원소 취약을 깐다. 특공은 취약 · 방깍의 효과 명중을 위해서다.
+  - id: 64
+    name: 바유
+    tagline: "원소가 지나간 길을 여는 바람. 확산이 남긴 취약으로 같은 원소 동료의 공격을 키우고, 묶음의 처음에서 일곱 원소의 길을 연다."
+    characterType: Unlocked
+    element: Anemo
+    vfxClass: caster
+    tags: [Vedic, Lokapala]
+    archetypeTags: [Control, Burst, Special]
+    hpBase: 1000
+    hpGrowth: 90
+    atkBase: 80
+    atkGrowth: 4.8
+    spAtkBase: 100
+    spAtkGrowth: 6.2
+    defBase: 60
+    defGrowth: 4.5
+    spDefBase: 75
+    spDefGrowth: 5.2
+    speedBase: 108
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    codes:
+      passive: 264
+      normal: 64
+      special: 64
+      ultimate: 64
+    portrait: VAYU_PORTRAIT
+    standing: VAYU_STANDING
+
+  # ── 아그니 ────────────────────────────────────────────────────────
+  # 동료의 결단에 화력으로 응답하는 투사(Detail_08 §17). 다른 아군의 초월기 완료마다 적 전체에 불을 붙이는 추공을 쏘고,
+  # 초월기로 파티의 궁극기 피해와 자기 추공의 궁극기 판정을 연다. 로카팔라 묶음에서는 인드라의 표 한 장을 집중 포격으로 바꾼다.
+  - id: 62
+    name: 아그니
+    tagline: "동료의 결단에 화력으로 응답하는 불의 투사. 아군이 초월기를 마칠 때마다 적 전체에 불을 지피고, 판을 키워 궁극기의 불길을 키운다."
+    characterType: Unlocked
+    element: Pyro
+    vfxClass: fighter
+    tags: [Vedic, Lokapala]
+    archetypeTags: [FollowUp, Infusion, Burst, Special]
+    hpBase: 1100
+    hpGrowth: 100
+    atkBase: 100
+    atkGrowth: 6.5
+    spAtkBase: 85
+    spAtkGrowth: 5.3
+    defBase: 70
+    defGrowth: 5.2
+    spDefBase: 65
+    spDefGrowth: 4.8
+    speedBase: 96
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes:
+      passive: 262
+      normal: 62
+      special: 62
+      ultimate: 62
+    portrait: AGNI_PORTRAIT
+    standing: AGNI_STANDING
+
+  # ── 수리야 ────────────────────────────────────────────────────────
+  # 황혼의 집행자(Detail_08 §18). 현상수배한 적 하나를 동료가 공격하면 제한된 탄환으로 직접 응답하는 표적형 추공 딜러.
+  # 로카팔라 특수행동은 없다(Vedic만).
+  - id: 67
+    name: 수리야
+    tagline: "오늘의 도주에 마침표를 찍는 황혼의 총잡이. 현상수배한 적을 동료가 칠 때마다 남은 탄환으로 응답한다."
+    characterType: Unlocked
+    element: Pyro
+    vfxClass: archer
+    tags: [Vedic]
+    archetypeTags: [Precision, FollowUp, Swift]
+    hpBase: 960
+    hpGrowth: 88
+    atkBase: 108
+    atkGrowth: 6.8
+    spAtkBase: 70
+    spAtkGrowth: 4.0
+    defBase: 60
+    defGrowth: 4.5
+    spDefBase: 60
+    spDefGrowth: 4.5
+    speedBase: 90
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes:
+      passive: 267
+      normal: 67
+      ultimate: 67
+    portrait: SURYA_PORTRAIT
+    standing: SURYA_STANDING
+
+  # ── 쿠베라 ────────────────────────────────────────────────────────
+  # 금력으로 소환수를 후원하는 부의 화신(Detail_08 §11). 보물은 공용 마나를 받지 않는 Stack 자원이다.
+  # 로카팔라 덱에서는 모아 둔 골드를 골드 러쉬의 화력으로 바꾸는 메인 딜러가 된다.
+  - id: 65
+    name: 쿠베라
+    tagline: "금력으로 후원하는 부의 화신. 소환수를 키우고, 모아 둔 골드를 골드 러쉬의 화력으로 바꾼다."
+    characterType: Unlocked
+    element: Geo
+    vfxClass: caster
+    tags: [Vedic, Lokapala]
+    archetypeTags: [Summon, Support, Special]
+    hpBase: 1150
+    hpGrowth: 100
+    atkBase: 90
+    atkGrowth: 5.8
+    spAtkBase: 65
+    spAtkGrowth: 4
+    defBase: 75
+    defGrowth: 5.5
+    spDefBase: 75
+    spDefGrowth: 5.5
+    speedBase: 100
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 8
+    ultimateResourceType: Stack
+    ultimateResourceName: 보물
+    codes:
+      passive: 265
+      normal: 65
+      special: 65
+      ultimate: 65
+    portrait: KUBERA_PORTRAIT
+    standing: KUBERA_STANDING
+
+  # ── 야마 ──────────────────────────────────────────────────────────
+  # 죽음의 시점을 정하는 번개 딜러(Detail_08 §15). 감전 적에게 선고를 걸고, 모든 지속피해를 즉시 발동한다.
+  - id: 61
+    name: 야마
+    tagline: "죽음의 시점을 정하는 번개의 판관. 감전된 적에게 선고를 내리고, 쌓인 지속피해를 지금 이 자리에서 치르게 한다."
+    characterType: Unlocked
+    element: Electro
+    vfxClass: caster
+    tags: [Vedic, Lokapala]
+    archetypeTags: [Domination, Special, Burst, Swift]
+    hpBase: 900
+    hpGrowth: 80
+    atkBase: 102
+    atkGrowth: 6.8
+    spAtkBase: 85
+    spAtkGrowth: 5.2
+    defBase: 56
+    defGrowth: 4.2
+    spDefBase: 62
+    spDefGrowth: 4.6
+    speedBase: 106
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes:
+      passive: 261
+      normal: 61
+      special: 61
+      ultimate: 61
+    portrait: YAMA_PORTRAIT
+    standing: YAMA_STANDING
+
+  # ── 바루나 ────────────────────────────────────────────────────────
+  # 인간의 혼돈을 법으로 조율하려는 진중한 판결관(Detail_08 §16). 물을 붙일 때마다 제 보호막이 쌓이고,
+  # 초월기와 특수행동으로 아군 전원에게 방어력 비례 보호막을 나눈다.
+  - id: 66
+    name: 바루나
+    tagline: "법으로 혼돈을 다스리는 물의 판결관. 물을 붙일수록 제방이 쌓이고, 같은 법 아래 모두에게 같은 보호를 내린다."
+    characterType: Unlocked
+    element: Hydro
+    vfxClass: caster
+    tags: [Vedic, Lokapala]
+    archetypeTags: [Support, Shielding, Infusion, Special]
+    hpBase: 1120
+    hpGrowth: 100
+    atkBase: 82
+    atkGrowth: 5.4
+    spAtkBase: 86
+    spAtkGrowth: 5.2
+    defBase: 90
+    defGrowth: 6.8
+    spDefBase: 78
+    spDefGrowth: 5.7
+    speedBase: 102
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    codes:
+      passive: 266
+      normal: 66
+      special: 66
+      ultimate: 66
+    portrait: VARUNA_PORTRAIT
+    standing: VARUNA_STANDING
+
+  # ── 아누비스 ──────────────────────────────────────────────────────
+  # 필드에서 무언가 쓰러질 때마다 영혼을 거둬 영구히 단단해지는 퓨어 탱커(Detail_08 §9).
+  # 스스로 공격을 끌어오지 못한다 — 우선도는 코드 · 경호 교체 · 동료가 받쳐 줘야 한다(의도).
+  - id: 121
+    name: 아누비스
+    tagline: "쓰러진 모든 것의 영혼을 거둬 영구히 단단해지는 저울의 신. 스스로 공격을 끌어오지는 못한다."
+    characterType: Unlocked
+    element: Geo
+    vfxClass: lancer
+    tags: [Egypt, Divine]
+    archetypeTags: [Sturdy, Growth]
+    hpBase: 1500
+    hpGrowth: 135
+    atkBase: 60
+    atkGrowth: 3.5
+    spAtkBase: 50
+    spAtkGrowth: 3
+    defBase: 100
+    defGrowth: 7.5
+    spDefBase: 95
+    spDefGrowth: 7
+    speedBase: 90
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes:
+      passive: 321
+      normal: 121
+      ultimate: 121
+    portrait: ANUBIS_PORTRAIT
+    standing: ANUBIS_STANDING
+
+  # ── 우치 ──────────────────────────────────────────────────────────
+  # 분신을 찍어 내는 다수형 소환 딜러(Detail_08 §10). 우치 자신은 때리지 않는다 — 분신이 고정 속도 70으로
+  # 한 번 치고 사라지고, 초월기가 분신이 움직이기 전에 한꺼번에 터뜨린다. 속도가 화력과 넘침을 함께 정한다.
+  - id: 180
+    name: 우치
+    tagline: "분신을 찍어 내 대신 싸우게 하는 도사. 빠를수록 많이 만들지만, 너무 빠르면 분신이 넘쳐 흩어진다."
+    characterType: Unlocked
+    element: Anemo
+    vfxClass: caster
+    tags: [Hwaryeong, Beast]
+    archetypeTags: [Summon, Swift]
+    hpBase: 980
+    hpGrowth: 85
+    atkBase: 95
+    atkGrowth: 6.2
+    spAtkBase: 70
+    spAtkGrowth: 4.5
+    defBase: 60
+    defGrowth: 4.5
+    spDefBase: 65
+    spDefGrowth: 5
+    speedBase: 118
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    codes:
+      passive: 380
+      normal: 180
+      ultimate: 180
+    portrait: USA_PORTRAIT
+    standing: USA_STANDING

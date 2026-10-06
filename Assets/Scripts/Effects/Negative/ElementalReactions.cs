@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Effects.Base;
@@ -248,7 +248,7 @@ namespace Effects.Negative
         /// <paramref name="target"/>이 방금 <paramref name="applied"/> 원소를 부착받았을 때 반응을 검사한다.
         /// 성립하는 쌍이 여럿이면 <see cref="ReactionKind"/> 순서로 하나만 고른다.
         /// </summary>
-        /// <param name="source">반응을 일으킨 유닛. 위력이 이 유닛의 CON에 비례한다.</param>
+        /// <param name="source">반응을 일으킨 유닛. 위력이 이 유닛의 특수공격력에 비례한다.</param>
         /// <param name="alreadyAttached">
         /// 부착 이전에 <b>같은 원소가 이미 붙어 있었는지</b>. 같은 원소끼리 겹치는 반응은
         /// 부착 집합만 봐서는 판별할 수 없으므로 부착 지점이 알려 준다.
@@ -376,16 +376,43 @@ namespace Effects.Negative
             DealReactionDamage(target, source, Mathf.Max(1, Mathf.RoundToInt((flat + bonus) * HarmfulPotency(source))));
         }
 
+        /// <summary>
+        /// 확산 한 번의 결과. 퍼진 원소 · 원래 대상 · 실제로 부착이 남은 대상을 알린다.
+        /// 반응 판정 · 부착 규칙은 바꾸지 않는다 — 바유의 원소 취약(Detail_08 §14)처럼 "실제 전달"을 읽어야 하는 쪽이 듣는다.
+        /// </summary>
+        public sealed class SpreadResult
+        {
+            public readonly Unit Source;
+            public readonly Unit OriginalTarget;
+            public readonly BaseEnums.UnitElement Element;
+            public readonly IReadOnlyList<Unit> Delivered;
+
+            public SpreadResult(Unit source, Unit originalTarget, BaseEnums.UnitElement element, IReadOnlyList<Unit> delivered)
+            {
+                Source = source;
+                OriginalTarget = originalTarget;
+                Element = element;
+                Delivered = delivered;
+            }
+        }
+
+        /// <summary>확산이 원소를 실제로 퍼뜨린 뒤(반응 알림 전). 바람 + 바람의 광역 피해는 확산이 아니라 오지 않는다.</summary>
+        public static event System.Action<SpreadResult> AnySpreadResolved;
+
         /// <summary>확산 — 부착된 유닛과 <b>같은 진영 전체</b>에 원소를 퍼뜨린다.</summary>
         private static void ResolveSpread(Unit target, BaseEnums.UnitElement spreadElement, Unit source)
         {
             if (spreadElement == BaseEnums.UnitElement.None || spreadElement == Anemo) return;
 
+            var delivered = new List<Unit>();
             foreach (Unit ally in global::Target.GetAllAllies(target).Where(unit => unit != null && unit.isActive))
             {
                 // 확산이 뿌린 부착은 다시 반응하지 않는다. 확산 → 반응 → 확산의 무한 연쇄를 막는다.
-                ally.GrantCombatElement(spreadElement, Unit.CommonElementAuraDuration, source, suppressReaction: true);
+                // 원래 대상은 확산을 유발한 부착에서 이미 명중했다. 나머지는 각자 특방으로 저항한다.
+                if (ally.GrantCombatElement(spreadElement, Unit.CommonElementAuraDuration, source,
+                    suppressReaction: true, effectHitResolved: ally == target)) delivered.Add(ally);
             }
+            AnySpreadResolved?.Invoke(new SpreadResult(source, target, spreadElement, delivered));
         }
 
         private static void ResolveControl(Unit target, Reaction reaction, Unit source)
@@ -396,14 +423,14 @@ namespace Effects.Negative
                 {
                     int turns = ControlStatuses.FreezeTurns(source, target);
                     int cap = ControlTurnCap(source);
-                    ControlStatuses.ApplyFreeze(target, source, cap > 0 ? Mathf.Min(turns, cap) : turns);
+                    ControlStatuses.ApplyFreeze(target, source, cap > 0 ? Mathf.Min(turns, cap) : turns, effectHitResolved: true);
                     break;
                 }
                 case ReactionId.Vibration:
                 {
                     int cap = ControlTurnCap(source);
-                    if (cap > 0) ControlStatuses.ApplyFixedStun(target, source, cap);
-                    else ControlStatuses.ApplyStun(target, source);
+                    if (cap > 0) ControlStatuses.ApplyFixedStun(target, source, cap, effectHitResolved: true);
+                    else ControlStatuses.ApplyStun(target, source, effectHitResolved: true);
                     break;
                 }
                 case ReactionId.Rooting:
@@ -431,13 +458,21 @@ namespace Effects.Negative
                 Mathf.Max(1, Mathf.RoundToInt(ReactionPower(source, BurstRatio) * HarmfulPotency(source))));
         }
 
+        // 반응은 원소 부착에 성공한 뒤에만 여기까지 온다. 특공/특방 명중은 한 번,
+        // 코드가 제공하는 추가 상태 저항은 실제 상태 부여 때 별도로 적용한다.
+        private static void AddReactionStatus(Unit target, Entities.Status.UnitStatus status)
+        {
+            status.SkipEffectHitRoll = true;
+            target.AddStatus(status);
+        }
+
         private static void ResolveDot(Unit target, Reaction reaction, Unit source)
         {
             if (reaction.Id == ReactionId.Burn)
             {
                 // 화상은 대상 최대 체력 비례라 위력을 깎을 곳이 없다. 대신 무뎌진 유발자는 1턴만 태운다.
                 int cap = ControlTurnCap(source);
-                TryApplyBurn(source, target, cap > 0 ? Mathf.Min(DotDuration, cap) : DotDuration);
+                ApplyBurnWithoutContest(source, target, cap > 0 ? Mathf.Min(DotDuration, cap) : DotDuration);
                 return;
             }
 
@@ -445,7 +480,7 @@ namespace Effects.Negative
 
             if (reaction.Id == ReactionId.Weathering)
             {
-                target.AddStatus(BuffStatus.Create(
+                AddReactionStatus(target, BuffStatus.Create(
                     WeatheringStatusId, WeatheringStatusKey, reaction.Name,
                     source, target, new WeatheringEffect(perTurn),
                     duration: DotDuration,
@@ -455,7 +490,7 @@ namespace Effects.Negative
                 return;
             }
 
-            target.AddStatus(BuffStatus.Create(
+            AddReactionStatus(target, BuffStatus.Create(
                 ShockStatusId, $"reaction_shock_{source.GetEntityId()}", reaction.Name,
                 source, target, new ReactionDotEffect(perTurn),
                 duration: DotDuration,
@@ -472,7 +507,7 @@ namespace Effects.Negative
             // 둔화만 스탯을 깎고, 활성·초전도는 특정 경감 계열의 피해를 더 받게 한다.
             if (reaction.Id == ReactionId.Slow)
             {
-                target.AddStatus(BuffStatus.Create(
+                AddReactionStatus(target, BuffStatus.Create(
                     BuffStatusId, $"reaction_{reaction.Id}", reaction.Name,
                     source, target, new StatModifierEffect(reaction.Stat, -ratio, percent: true),
                     duration: StatDuration,
@@ -485,7 +520,7 @@ namespace Effects.Negative
             bool isActivation = reaction.Id == ReactionId.Activation;
             BaseEnums.StatType against = isActivation ? BaseEnums.StatType.SpecialDefense : BaseEnums.StatType.Defense;
             string label = isActivation ? "지속·반응" : "일반";
-            target.AddStatus(BuffStatus.Create(
+            AddReactionStatus(target, BuffStatus.Create(
                 VulnerableStatusId, $"reaction_{reaction.Id}", reaction.Name,
                 source, target, new MitigationVulnerabilityEffect(against, 1f + ratio),
                 duration: StatDuration,
@@ -561,14 +596,13 @@ namespace Effects.Negative
             if (source == null || target == null || !target.isActive || duration <= 0) return false;
             if (!Combat.DamageMitigation.RollEffectHit(source, target, 0.5f)) return false;
 
-            ApplyBurnWithoutContest(source, target, duration);
-            return true;
+            return ApplyBurnWithoutContest(source, target, duration);
         }
 
         /// <summary>명중 판정 없이 화상을 확정으로 건다. 피해·기간·연장 규칙은 <see cref="TryApplyBurn"/>과 같다.</summary>
-        public static void ApplyBurnWithoutContest(Unit source, Unit target, int duration = DotDuration)
+        public static bool ApplyBurnWithoutContest(Unit source, Unit target, int duration = DotDuration)
         {
-            if (source == null || target == null || !target.isActive || duration <= 0) return;
+            if (source == null || target == null || !target.isActive || duration <= 0) return false;
 
             var burn = BuffStatus.Create(
                 BurnStatusId, BurnStatusKey, "화상",
@@ -578,7 +612,7 @@ namespace Effects.Negative
                 category: BaseEnums.StatusCategory.Negative,
                 description: $"{duration}턴간 턴마다 최대 체력의 {BurnMaxHpPercent:0.#}%에 해당하는 화상 피해를 받습니다.");
             burn.SkipEffectHitRoll = true;   // 명중은 TryApplyBurn이 이미 굴렸거나, 확정 부여다
-            target.AddStatus(burn);
+            return target.TryAddStatus(burn);
         }
 
         /// <summary>
@@ -651,10 +685,12 @@ namespace Effects.Negative
         {
             if (Target == null || !Target.isActive) return;
 
-            Target.TakeDamage(new DamageContext(
-                Caster, _damagePerTurn, BaseEnums.CodeType.Effect,
-                new List<int> { DamageTag.SingleTarget, DamageTag.ElementalReaction }));
+            Target.TakeDamage(CreateDamageOverTimeTick());
         }
+
+        public override DamageContext CreateDamageOverTimeTick() => new DamageContext(
+            Caster, _damagePerTurn, BaseEnums.CodeType.Effect,
+            new List<int> { DamageTag.SingleTarget, DamageTag.ElementalReaction });
 
         public override int EstimateDamagePerTurn() => _damagePerTurn;
     }
@@ -700,10 +736,12 @@ namespace Effects.Negative
         private void Detonate()
         {
             if (Target == null || !Target.isActive) return;
-            Target.TakeDamage(new DamageContext(
-                Caster, _damagePerAction, BaseEnums.CodeType.Effect,
-                new List<int> { DamageTag.SingleTarget, DamageTag.ElementalReaction }));
+            Target.TakeDamage(CreateDamageOverTimeTick());
         }
+
+        public override DamageContext CreateDamageOverTimeTick() => new DamageContext(
+            Caster, _damagePerAction, BaseEnums.CodeType.Effect,
+            new List<int> { DamageTag.SingleTarget, DamageTag.ElementalReaction });
 
         /// <summary>턴당 최소 1회는 행동하므로 한 번분으로 어림한다.</summary>
         public override int EstimateDamagePerTurn() => _damagePerAction;

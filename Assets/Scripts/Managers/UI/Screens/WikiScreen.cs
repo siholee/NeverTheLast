@@ -29,10 +29,11 @@ namespace Managers.UI.Screens
     ///
     /// ESC 메뉴 위에 뜨므로 시간은 메뉴가 이미 멈춰 두었다. 여기서 따로 멈추지 않는다.
     /// </summary>
-    public class WikiScreen : ModalScreen
+    public partial class WikiScreen : ModalScreen
     {
         private enum Category
         {
+            Guide,
             Characters,
             Codes,
             Items,
@@ -42,11 +43,12 @@ namespace Managers.UI.Screens
 
         private static readonly (Category Category, string Label)[] Categories =
         {
+            (Category.Guide, "가이드"),
             (Category.Characters, "캐릭터"),
             (Category.Codes, "코드"),
-            (Category.Items, "아이템"),
-            (Category.Enemies, "적"),
-            (Category.Glossary, "용어"),
+            (Category.Items, "보급품"),
+            (Category.Enemies, "적 도감"),
+            (Category.Glossary, "용어 사전"),
         };
 
         /// <summary>유닛 ID는 진영마다 20칸 블록이다(Detail_03 §7.4).</summary>
@@ -56,14 +58,15 @@ namespace Managers.UI.Screens
         };
 
 
-        private const float TabRowHeight = 36f;
+        private const float TabRowHeight = 52f;
         private const float ListWidth = 0.27f;
-        private const float RowHeight = 30f;
-        private const float PortraitSize = 132f;
+        private const float RowHeight = 64f;
+        private const float PortraitSize = 188f;
 
         /// <summary>목록 한 줄. 본문은 누를 때 만든다 — 수백 항목의 문장을 미리 짜 둘 이유가 없다.</summary>
         private sealed class Entry
         {
+            public string Key;
             public string Group;
             public string Title;
             public string Sub;
@@ -79,7 +82,7 @@ namespace Managers.UI.Screens
         protected override int SortingOrder => UITheme.LayerWiki;
 
         protected override string Title => "자료실";
-        protected override string Caption => "ARCHIVE";
+        protected override string Caption => "ARCHIVE / GAME GUIDE";
         protected override Vector2 AnchorMin => new(0.05f, 0.05f);
         protected override Vector2 AnchorMax => new(0.95f, 0.95f);
         protected override bool CloseOnBackdrop => true;
@@ -90,7 +93,7 @@ namespace Managers.UI.Screens
         /// <summary>지금 목록에 그려진 줄. 선택 강조를 다시 칠할 때 쓴다.</summary>
         private readonly Dictionary<Button, Entry> _rows = new();
 
-        private Category _category = Category.Characters;
+        private Category _category = Category.Guide;
         private Entry _selected;
         private string _filter = "";
 
@@ -122,6 +125,7 @@ namespace Managers.UI.Screens
             BuildSearch();
             BuildList();
             BuildBody();
+            BuildGuideNavigation();
         }
 
         private void BuildTabs()
@@ -129,10 +133,10 @@ namespace Managers.UI.Screens
             for (int i = 0; i < Categories.Length; i++)
             {
                 (Category category, string label) = Categories[i];
-                Button tab = UIBuild.Button($"Tab_{category}", Body, label, () => SetCategory(category),
-                    false, UITheme.FontCaption);
+                Button tab = UIBuild.Button($"Tab_{category}", Body, label, () => { RememberLocation(); SetCategory(category); },
+                    false, UITheme.FontReadSmall);
                 UIBuild.Pin(tab.image.rectTransform, new Vector2(0f, 1f), new Vector2(110f, TabRowHeight - 4f),
-                    new Vector2(i * 116f, 0f));
+                    new Vector2(i * 130f, 0f));
                 _tabs[category] = tab;
             }
         }
@@ -149,11 +153,11 @@ namespace Managers.UI.Screens
             UIBuild.Stretch(viewport, 12f, 4f);
             viewport.gameObject.AddComponent<RectMask2D>();
 
-            TextMeshProUGUI placeholder = UIBuild.Text("Placeholder", viewport, "이름 · 설명 검색",
-                UITheme.FontCaption, UITheme.TextMuted);
+            TextMeshProUGUI placeholder = UIBuild.Text("Placeholder", viewport, "전체 자료실 검색",
+                UITheme.FontReadSmall, UITheme.TextMuted);
             UIBuild.Stretch(placeholder.rectTransform);
 
-            TextMeshProUGUI text = UIBuild.Text("Text", viewport, "", UITheme.FontCaption, UITheme.TextPrimary);
+            TextMeshProUGUI text = UIBuild.Text("Text", viewport, "", UITheme.FontReadSmall, UITheme.TextPrimary);
             UIBuild.Stretch(text.rectTransform);
             text.richText = false;
 
@@ -163,8 +167,11 @@ namespace Managers.UI.Screens
             _search.placeholder = placeholder;
             _search.targetGraphic = background;
             _search.lineType = TMP_InputField.LineType.SingleLine;
+            _search.textComponent.fontSize = UITheme.FontReadSmall;
+            placeholder.fontSize = UITheme.FontReadSmall;
             _search.onValueChanged.AddListener(value =>
             {
+                if (_filter.Length == 0 && !string.IsNullOrWhiteSpace(value)) RememberLocation();
                 _filter = value?.Trim() ?? "";
                 RebuildList(keepSelection: true);
             });
@@ -204,7 +211,7 @@ namespace Managers.UI.Screens
             UIBuild.Pin(_portrait.rectTransform, new Vector2(1f, 1f), new Vector2(PortraitSize, PortraitSize),
                 Vector2.zero);
 
-            _bodyText = UIBuild.Text("Text", _bodyContent, "", UITheme.FontBody, UITheme.TextPrimary,
+            _bodyText = UIBuild.Text("Text", _bodyContent, "", UITheme.FontReadBody, UITheme.TextPrimary,
                 TextAlignmentOptions.TopLeft, true);
             _bodyText.richText = true;
             _bodyText.rectTransform.anchorMin = new Vector2(0f, 1f);
@@ -295,6 +302,15 @@ namespace Managers.UI.Screens
 
         public override void Show()
         {
+            if (!IsVisible)
+            {
+                _history.Clear();
+                _resumeScale = Time.timeScale;
+                _ownsPause = true;
+                Time.timeScale = 0;
+                _cache.Clear();
+                _selected = null;
+            }
             base.Show();
             SetCategory(_category);
         }
@@ -331,6 +347,7 @@ namespace Managers.UI.Screens
 
             List<Entry> built = category switch
             {
+                Category.Guide => GuideEntries(),
                 Category.Characters => CharacterEntries(),
                 Category.Codes => CodeEntries(),
                 Category.Items => ItemEntries(),
@@ -383,7 +400,8 @@ namespace Managers.UI.Screens
         }
 
         /// <summary>지금 분류에서 검색어에 맞는 항목. 목록과 고정 머리의 "몇 번째"가 같은 목록을 센다.</summary>
-        private List<Entry> VisibleEntries() => EntriesOf(_category)
+        private List<Entry> VisibleEntries() => (_filter.Length > 0
+                ? Categories.SelectMany(pair => EntriesOf(pair.Category)) : EntriesOf(_category))
             .Where(entry => _filter.Length == 0 ||
                             entry.Search.IndexOf(_filter, StringComparison.OrdinalIgnoreCase) >= 0)
             .ToList();
@@ -393,9 +411,9 @@ namespace Managers.UI.Screens
             if (string.IsNullOrEmpty(text)) return;
 
             y += y > 0f ? 8f : 2f;
-            TextMeshProUGUI label = UIBuild.Label("Group", _listContent, text, UITheme.FontMicro, UITheme.Accent);
-            Place(label.rectTransform, y, 18f, 8f);
-            y += 20f;
+            TextMeshProUGUI label = UIBuild.Label("Group", _listContent, text, UITheme.FontReadSmall, UITheme.TextMuted);
+            Place(label.rectTransform, y, 28f, 8f);
+            y += 32f;
         }
 
         /// <summary>
@@ -407,17 +425,14 @@ namespace Managers.UI.Screens
             Place(row.image.rectTransform, y, RowHeight, 2f);
             row.image.sprite = UIShapes.CutCorner(6, new Color(1f, 1f, 1f, 0f), UIShapes.Corner.Diagonal);
 
-            TextMeshProUGUI title = UIBuild.Text("Title", row.transform, entry.Title, UITheme.FontCaption,
-                entry.Tint);
+            TextMeshProUGUI title = UIBuild.Text("Title", row.transform, entry.Title, UITheme.FontReadSmall, entry.Tint);
             title.overflowMode = TextOverflowModes.Ellipsis;
-            UIBuild.Anchor(title.rectTransform, new Vector2(0f, 0f), new Vector2(0.64f, 1f), 10f, 0f);
-
+            UIBuild.Anchor(title.rectTransform, new Vector2(0f, .40f), Vector2.one, 14f, 0f);
             if (!string.IsNullOrEmpty(entry.Sub))
             {
-                TextMeshProUGUI sub = UIBuild.Text("Sub", row.transform, entry.Sub, UITheme.FontMicro,
-                    UITheme.TextMuted, TextAlignmentOptions.MidlineRight);
+                var sub = UIBuild.Text("Sub", row.transform, entry.Sub, UITheme.FontReadSmall, UITheme.TextMuted);
                 sub.overflowMode = TextOverflowModes.Ellipsis;
-                UIBuild.Anchor(sub.rectTransform, new Vector2(0.64f, 0f), new Vector2(1f, 1f), 10f, 0f);
+                UIBuild.Anchor(sub.rectTransform, Vector2.zero, new Vector2(1f, .40f), 14f, 0f);
             }
 
             row.gameObject.name = $"Row_{entry.Title}";
@@ -427,6 +442,7 @@ namespace Managers.UI.Screens
 
         private void Select(Entry entry)
         {
+            if (_selected != entry) RememberLocation();
             _selected = entry;
             ShowEntry(entry);
             HighlightSelection();
@@ -457,6 +473,11 @@ namespace Managers.UI.Screens
 
         private void ShowEntry(Entry entry)
         {
+            GuideTermTooltip.CloseAll();
+            if (_backButton != null) _backButton.interactable = _history.Count > 0;
+            if (_homeRoot != null) _homeRoot.gameObject.SetActive(false);
+            _bodyText.gameObject.SetActive(true);
+            if (entry?.Key == "guide:home") { ShowGuideHome(entry); return; }
             string text = entry?.Body?.Invoke() ?? "";
             Sprite portrait = entry == null ? null : SpriteResource.LoadPortrait(entry.Portrait);
 
@@ -469,6 +490,7 @@ namespace Managers.UI.Screens
 
             // 초상화가 있으면 오른쪽 위를 비워 둔다. 머리글이 그림 밑으로 파고들지 않게.
             float width = ((RectTransform)_bodyScroll.transform).rect.width;
+            text = GameGuideCatalog.LinkTerms(text);
             _bodyText.text = text;
             _bodyText.rectTransform.sizeDelta = new Vector2(0f, 0f);
             _bodyText.margin = new Vector4(0f, 0f, portrait != null ? PortraitSize + 16f : 0f, 0f);
@@ -485,19 +507,19 @@ namespace Managers.UI.Screens
         // TMP 서식 문자열을 직접 짠다. Plain · Paint · 코드 덩어리는 캐릭터 선택과 같이 쓰는 CodeText에 있다.
 
         private static void CodeBlock(StringBuilder sb, CodeCatalog.Slot slot, int codeId, string kind) =>
-            CodeText.AppendBlock(sb, slot, codeId, kind);
+            CodeText.AppendBlock(sb, slot, codeId, kind, UITheme.FontReadSmall, UITheme.FontReadSmall);
 
         private static void Headline(StringBuilder sb, string title, string sub, Color tint)
         {
             sb.Append($"<size={UITheme.FontDisplay}><b>{Paint(Plain(title), tint)}</b></size>\n");
             if (!string.IsNullOrWhiteSpace(sub))
-                sb.Append($"<size={UITheme.FontBody}>{Paint(Plain(sub.Trim()), UITheme.TextSecondary)}</size>\n");
+                sb.Append($"<size={UITheme.FontReadBody}>{Paint(Plain(sub.Trim()), UITheme.TextSecondary)}</size>\n");
             sb.Append('\n');
         }
 
         private static void Section(StringBuilder sb, string title)
         {
-            sb.Append($"\n<size={UITheme.FontHeading}><b>{Paint(Plain(title), UITheme.Accent)}</b></size>\n");
+            sb.Append($"\n<size={UITheme.FontReadHeading}><b>{Paint(Plain(title), UITheme.Accent)}</b></size>\n");
         }
 
         private static void Field(StringBuilder sb, string label, string value, Color? tint = null)
@@ -542,6 +564,7 @@ namespace Managers.UI.Screens
                         .Select(tag => tag.Name));
                     return new Entry
                     {
+                        Key = $"unit:{unit.id}",
                         Group = FactionOf(unit.id),
                         Title = unit.name,
                         Sub = available ? TypeName(unit.characterType) : "미해금",
@@ -574,12 +597,6 @@ namespace Managers.UI.Screens
 
             Section(sb, "기본 정보");
             Field(sb, "진영", FactionOf(unit.id));
-            Field(sb, "분류", unit.characterType switch
-            {
-                "Unlocked" => "처음부터 편성할 수 있다",
-                "Locked" => "영입 사건을 만나면 영구 해금",
-                _ => unit.characterType,
-            });
             Field(sb, "해금", SynergyCatalog.IsAvailable(unit.id) ? "편성 가능" : "아직 손에 넣지 못했다",
                 SynergyCatalog.IsAvailable(unit.id) ? UITheme.Positive : UITheme.TextMuted);
             Field(sb, "원소", ElementName(unit.element));
@@ -587,14 +604,14 @@ namespace Managers.UI.Screens
             if (archetypes.Count > 0)
                 Field(sb, "전투 성향", string.Join(" · ", archetypes.Select(tag => tag.Name)), UITheme.Accent);
 
-            Field(sb, "궁극기 마나", $"{(unit.manaMax > 0 ? unit.manaMax : Entities.Unit.DefaultManaMax)}");
+            Field(sb, "초월기 자원", unit.ultimateResourceType == "Passive" ? "상시 효과" :
+                $"{unit.ultimateResourceName} {(unit.manaMax > 0 ? unit.manaMax : Entities.Unit.DefaultManaMax)}");
 
-            Section(sb, "스탯");
-            AppendStats(sb, unit);
-
-            Section(sb, "코드");
+            Section(sb, "캐릭터 스킬");
             AppendUnitCodes(sb, unit.codes);
             AppendSynergy(sb, unit);
+            Section(sb, "성장 스탯");
+            AppendStats(sb, unit);
             return sb.ToString();
         }
 
@@ -610,7 +627,7 @@ namespace Managers.UI.Screens
                 sb.Append($"<mspace=0.62em>{Paint(Entities.UnitStats.ShortName(stat), tint)}</mspace>  ");
                 sb.Append(Paint(Entities.UnitStats.Format(stat, baseValue), UITheme.TextPrimary));
                 if (!Mathf.Approximately(growth, 0f))
-                    sb.Append($"<size={UITheme.FontMicro}>{Paint($"   레벨당 +{Entities.UnitStats.Format(stat, growth)}", UITheme.TextMuted)}</size>");
+                    sb.Append($"<size={UITheme.FontReadSmall}>{Paint($"   레벨당 +{Entities.UnitStats.Format(stat, growth)}", UITheme.TextMuted)}</size>");
                 sb.Append('\n');
             }
         }
@@ -620,7 +637,8 @@ namespace Managers.UI.Screens
             if (codes == null) return;
             if (codes.TryGetValue("passive", out int passive)) CodeBlock(sb, CodeCatalog.Slot.Passive, passive, "특성");
             if (codes.TryGetValue("normal", out int normal)) CodeBlock(sb, CodeCatalog.Slot.Normal, normal, "일반행동");
-            if (codes.TryGetValue("ultimate", out int ultimate)) CodeBlock(sb, CodeCatalog.Slot.Ultimate, ultimate, "궁극기");
+            if (codes.TryGetValue("ultimate", out int ultimate)) CodeBlock(sb, CodeCatalog.Slot.Ultimate, ultimate, "초월기");
+            if (codes.TryGetValue("special", out int special)) CodeBlock(sb, CodeCatalog.Slot.Special, special, "특수행동");
         }
         /// <summary>
         /// 이 캐릭터를 어떻게 쓰는가. `30_synergies.yaml`이 원본이다.
@@ -708,7 +726,7 @@ namespace Managers.UI.Screens
 
             sb.Append(string.Join(Paint("  ·  ", UITheme.TextMuted), names)).Append('\n');
             if (!string.IsNullOrWhiteSpace(lineup.reason))
-                sb.Append($"<size={UITheme.FontCaption}>{Paint(Plain(lineup.reason.Trim()), UITheme.TextMuted)}</size>\n");
+                sb.Append($"<size={UITheme.FontReadSmall}>{Paint(Plain(lineup.reason.Trim()), UITheme.TextMuted)}</size>\n");
         }
 
         private static string RowLabel(SynergyLineupData lineup, int unitId)
@@ -734,28 +752,27 @@ namespace Managers.UI.Screens
         /// </summary>
         private List<Entry> CodeEntries()
         {
-            Dictionary<int, string> owners = UniqueOwners();
-
-            return CodeCatalog.All(CodeCatalog.Slot.Passive)
-                .Where(entry => entry.id < 500)
-                .Select(entry =>
+            var result = RewardCodeCatalog.All().OrderBy(e => e.tier).ThenBy(e => e.id)
+                .Select(e => new Entry {
+                    Key = $"code:Passive:{e.id}", Group = $"보상 코드 · T{e.tier}", Title = e.verbalName,
+                    Sub = "보상 · 상점", Body = () => CodeBody(e, null),
+                    Search = $"{e.verbalName} {CodeCatalog.Summary(e.description)} 보상 T{e.tier}"
+                }).ToList();
+            foreach (UnitData unit in Units())
+            {
+                if (unit?.codes == null) continue;
+                foreach (var pair in unit.codes)
                 {
-                    (int order, string group) = CodeFamily(entry.id);
-                    bool unique = owners.ContainsKey(entry.id);
-                    return (Order: order, Entry: new Entry
-                    {
-                        Group = group,
-                        Title = entry.verbalName ?? $"패시브 #{entry.id}",
-                        Sub = unique ? owners[entry.id] : $"#{entry.id}",
-                        Tint = unique ? UITheme.CodeUnique : UITheme.TextPrimary,
-                        Body = () => CodeBody(entry, owners.GetValueOrDefault(entry.id)),
-                        Search = $"{entry.verbalName} {CodeCatalog.Summary(entry.description)}",
-                    });
-                })
-                .OrderBy(pair => pair.Order)
-                .ThenBy(pair => pair.Entry.Title)
-                .Select(pair => pair.Entry)
-                .ToList();
+                    var slot = pair.Key switch { "normal" => CodeCatalog.Slot.Normal, "ultimate" => CodeCatalog.Slot.Ultimate,
+                        "special" => CodeCatalog.Slot.Special, _ => CodeCatalog.Slot.Passive };
+                    var e = CodeCatalog.Find(slot, pair.Value); if (e == null) continue;
+                    string key = $"code:{slot}:{e.id}";
+                    if (result.Any(r => r.Key == key)) continue;
+                    result.Add(new Entry { Key = key, Group = "캐릭터 스킬", Title = e.verbalName, Sub = unit.name + " · " + SlotName(slot),
+                        Body = () => SkillBody(e, slot, unit), Search = $"{unit.name} {e.verbalName} {CodeCatalog.Summary(e.description)}" });
+                }
+            }
+            return result;
         }
 
         private static (int Order, string Group) CodeFamily(int codeId) => codeId switch
@@ -783,7 +800,7 @@ namespace Managers.UI.Screens
         private static string CodeBody(CodeCatalog.Entry entry, string owner)
         {
             var sb = new StringBuilder();
-            Headline(sb, entry.verbalName ?? $"패시브 #{entry.id}", CodeFamily(entry.id).Group,
+            Headline(sb, entry.verbalName ?? "보상 코드", owner == null ? "보상 코드" : "캐릭터 특성",
                 owner != null ? UITheme.CodeUnique : UITheme.TextPrimary);
 
             Section(sb, "효과");
@@ -797,9 +814,15 @@ namespace Managers.UI.Screens
             if (owner != null) Field(sb, "고유 주인", owner, UITheme.CodeUnique);
 
             if (owner == null)
-                Paragraph(sb, "고유 주인이 없다. 사건 · 보상으로만 얻는다.", UITheme.TextMuted);
+                Paragraph(sb, "보상 선택과 상점에서 획득해 활성 칸에 장착하는 코드입니다.", UITheme.TextMuted);
 
-            Field(sb, "ID", $"passive {entry.id}", UITheme.TextMuted);
+            if (RewardCodeCatalog.IsRewardCode(entry.id))
+            {
+                Field(sb, "등급", $"T{RewardCodeCatalog.TierOf(entry.id)}");
+                int upper = RewardCodeCatalog.UpperOf(entry.id);
+                if (upper > 0) Paragraph(sb, "상위 코드  ›  " + GameGuideCatalog.ArticleLink($"code:Passive:{upper}", RewardCodeCatalog.Find(upper)?.verbalName));
+                Paragraph(sb, "활성 7칸 · 추가 개인 보관 · 준비 중 무료 드래그 교환");
+            }
             return sb.ToString();
         }
 
@@ -808,13 +831,14 @@ namespace Managers.UI.Screens
         private List<Entry> ItemEntries()
         {
             return (GameManager.Instance?.itemDataList?.items ?? new List<ItemData>())
-                .Where(item => item != null)
+                .Where(item => item != null && (item.IsValuable || item.category == "Food" || item.category == "Tonic" || item.category == "CodeTool"))
                 .OrderBy(item => item.IsValuable)
                 .ThenBy(item => item.category)
                 .ThenBy(item => item.rarity)
                 .ThenBy(item => item.id)
                 .Select(item => new Entry
                 {
+                    Key = $"item:{item.id}",
                     Group = ItemTooltip.CategoryName(item.category),
                     Title = item.name,
                     Sub = item.IsValuable ? "귀중품" : $"T{Mathf.Max(1, item.rarity)} · {CategoryName(item)}",
@@ -835,7 +859,7 @@ namespace Managers.UI.Screens
             if (item.IsValuable)
             {
                 Section(sb, "귀중품");
-                Paragraph(sb, "입을 수 없고 상점에 팔기만 하는 물건이다. 값은 주운 스테이지에서 정해진다.");
+                Paragraph(sb, "상점에서 골드로 판매하는 물건입니다. 값은 주운 스테이지에서 정해집니다.");
                 Field(sb, "기본 판매가", $"{item.sellPrice}");
                 return sb.ToString();
             }
@@ -919,6 +943,7 @@ namespace Managers.UI.Screens
                 .ThenBy(enemy => enemy.id)
                 .Select(enemy => new Entry
                 {
+                    Key = $"enemy:{enemy.id}",
                     Group = ThemeName(enemy.themeId),
                     Title = enemy.name,
                     Sub = TierName(enemy.tier),
@@ -970,41 +995,8 @@ namespace Managers.UI.Screens
         private List<Entry> GlossaryEntries()
         {
             var entries = new List<Entry>();
-            foreach ((string title, string body) in Rules)
-            {
-                entries.Add(new Entry
-                {
-                    Group = "기본 규칙",
-                    Title = title,
-                    Body = () =>
-                    {
-                        var sb = new StringBuilder();
-                        Headline(sb, title, null, UITheme.TextPrimary);
-                        Paragraph(sb, body, UITheme.TextPrimary);
-                        return sb.ToString();
-                    },
-                    Search = $"{title} {body}",
-                });
-            }
-
-            entries.Add(new Entry
-            {
-                Group = "원소 반응",
-                Title = "반응이란",
-                Body = ReactionOverviewBody,
-                Search = "원소 반응 부착 반응표",
-            });
-            foreach (string reactionName in ReactionNames())
-            {
-                string name = reactionName;
-                entries.Add(new Entry
-                {
-                    Group = "원소 반응",
-                    Title = name,
-                    Body = () => ReactionBody(name),
-                    Search = $"원소 반응 {name}",
-                });
-            }
+            foreach (var article in GameGuideCatalog.Terms)
+                entries.Add(ArticleEntry(article, "term:"));
 
             foreach (SynergyRoleData role in SynergyCatalog.Roles.Where(role => role != null))
             {
@@ -1118,7 +1110,7 @@ namespace Managers.UI.Screens
 
             Section(sb, "세기");
             Paragraph(sb,
-                "반응의 세기는 반응을 일으킨 쪽의 CON에 비례한다. 상대와의 차이가 아니라 절대값이라 " +
+                "반응의 세기는 반응을 일으킨 쪽의 특수공격력을 따른다. " +
                 "레벨이 올라도 묻히지 않는다.");
 
             Section(sb, "겹칠 때");
@@ -1164,50 +1156,5 @@ namespace Managers.UI.Screens
             return sb.ToString();
         }
 
-        /// <summary>
-        /// 데이터 파일에 없는 유일한 문장. 수치의 원본은 Detail_02 · Detail_03이며
-        /// 공식이 바뀌면 여기도 함께 고친다.
-        /// </summary>
-        private static readonly (string Title, string Body)[] Rules =
-        {
-            ("자동 전투",
-                "전투는 턴제로 저절로 진행된다. 플레이어의 결정은 전투 전에 끝난다 — 편성, 배치, 덱 구성.\n" +
-                "행동 순서는 속도가 정한다. 행동값 = 10000 ÷ 속도이고, 행동서열 막대에 다음 차례가 보인다."),
-            ("여덟 스탯",
-                "최대 체력 · 공격력 · 특수공격력 · 방어력 · 특수방어력 · 속도 · 치명타 확률 · 치명타 피해.\n" +
-                "스탯 = 기초값 + 성장치 × (레벨 − 1). 훈련은 없고, 레벨이 유일한 성장 축이다.\n\n" +
-                "특수공격력은 피해 계수가 아니다 — 원소 반응의 위력과 해로운 효과의 명중에만 관여한다.\n" +
-                "특수방어력은 지속피해 · 원소 반응 피해를 줄이고 해로운 효과를 피한다."),
-            ("피해 공식",
-                "피해 = 고정값 + 스탯 × 계수 (스킬마다 다르다. 예: 55 + 방어력의 50%).\n" +
-                "대부분의 스킬은 공격력을 계수로 쓰고, 일부는 방어력이나 최대 체력을 쓴다.\n" +
-                "치명타가 터지면 × (1 + 치명타 피해)."),
-            ("방어와 경감",
-                "받는 피해 = 피해 × 기준값 ÷ (기준값 + 방어 스탯)\n" +
-                "기준값 = 100 + 6 × (공격자 레벨 − 1). 같은 레벨끼리의 경감률은 레벨이 끝없이 올라도 일정하다.\n\n" +
-                "지속피해 · 원소 반응 피해는 특수방어력으로, 그 밖의 피해는 방어력으로 줄인다. 고정 피해는 줄지 않는다."),
-            ("궁극기 마나",
-                "일반행동 한 번 +20, 피격 한 번 +5, 적 처치 +10. 가득 차는 즉시 궁극기가 나간다.\n" +
-                "빠른 유닛일수록 궁극기도 자주 쓴다."),
-            ("행동의 종류",
-                "일반행동 — 차례가 오면 하는 기본 행동.\n" +
-                "대체행동 — 조건이 맞으면 일반행동 자리를 대신한다. 일반행동 한 번으로 센다.\n" +
-                "추가행동 — 패시브가 끼워 넣는 행동. 차례를 쓰지 않는다.\n" +
-                "궁극기 — 마나가 차는 즉시 발동한다. 차례를 쓰지 않고 재사용 대기시간도 없다."),
-            ("집중",
-                "집중 효과는 시전한 유닛을 기준으로 지속된다. 지속 턴은 시전자의 턴으로 세고,\n" +
-                "시전자가 행동불능(기절 · 빙결 등)이 되거나 쓰러지면 즉시 풀린다."),
-            ("코드 등급",
-                "일반(은색) — 기본 코드.\n" +
-                "강화(금색) — 같은 계열의 은색 코드를 대체한다. 둘 다 배우면 은색은 발동하지 않는다.\n" +
-                "고유(보라) — 캐릭터마다 하나뿐인 특성. 은·금 사다리 밖이다."),
-            ("배치",
-                "아군과 적은 각각 전열·후열 두 줄, 줄마다 네 칸이다. 대기석은 필드 밖이다.\n" +
-                "전열에 선 유닛은 진영과 관계없이 우선도 +1을 얻는다. 튼튼한 캐릭터를 앞에, 사거리가 긴 캐릭터를 뒤에 둔다."),
-            ("피해 태그",
-                "설명 끝의 #태그는 그 공격의 성질이다. 대상 범위(단일·광역), 공격 종류(일반·궁극기·특성), " +
-                "접촉 여부(접촉 — 카드가 부딪힌다 · 비접촉 — 투사체), 고정 피해가 있다.\n" +
-                "'접촉 공격을 받으면' 같은 조건은 이 태그를 본다. 지속피해에는 태그가 없다."),
-        };
     }
 }

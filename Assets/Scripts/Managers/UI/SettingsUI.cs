@@ -123,12 +123,13 @@ namespace Managers.UI
             rail.rectTransform.sizeDelta = new Vector2(RailWidth, -12f);
             rail.rectTransform.anchoredPosition = new Vector2(6f, 0f);
 
+            UIArtDirection.Header(rail.transform, 96f);
             TextMeshProUGUI eyebrow = UIBuild.Label("Eyebrow", rail.transform, "SETTINGS", UITheme.FontMicro,
-                UITheme.TextMuted);
+                new Color(0.72f, 0.87f, 0.95f, 1f));
             eyebrow.characterSpacing = 22f;
             UIBuild.Pin(eyebrow.rectTransform, new Vector2(0f, 1f), new Vector2(RailWidth - 40f, 18f), new Vector2(24f, -30f));
 
-            TextMeshProUGUI title = UIBuild.Text("Title", rail.transform, "설정", UITheme.FontTitle, UITheme.TextPrimary);
+            TextMeshProUGUI title = UIBuild.Text("Title", rail.transform, "설정", UITheme.FontTitle, Color.white);
             title.fontStyle = FontStyles.Bold;
             UIBuild.Pin(title.rectTransform, new Vector2(0f, 1f), new Vector2(RailWidth - 40f, 36f), new Vector2(24f, -50f));
 

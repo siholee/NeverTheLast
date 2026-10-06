@@ -245,7 +245,7 @@ namespace Managers.UI.Core
             var go = new GameObject(name, typeof(RectTransform), typeof(Image));
             go.transform.SetParent(parent, false);
             var image = go.GetComponent<Image>();
-            image.sprite = UIShapes.RoundedRect(14, UITheme.HudBar, UITheme.Outline, 2);
+            image.sprite = UIShapes.CutCorner(8, UITheme.HudBar, UIShapes.Corner.Diagonal, UITheme.Outline, 1);
             image.type = Image.Type.Sliced;
             image.color = Color.white;
             BackdropAdaptiveSurface.Attach(image, BackdropAdaptiveSurface.SurfaceKind.Chrome, 14);
@@ -325,6 +325,7 @@ namespace Managers.UI.Core
             label.raycastTarget = false; // 텍스트가 아래 버튼 클릭을 막지 않도록
             // 크기는 설정의 글자 크기를 따라 자동 맞춤으로 준다(UIScaledText).
             UIScaledText.Attach(label, fontSize);
+            if (wrap) GameTermLinks.Attach(label);
             return label;
         }
 
@@ -466,7 +467,7 @@ namespace Managers.UI.Core
             go.transform.SetParent(parent, false);
 
             var image = go.GetComponent<Image>();
-            image.sprite = UIShapes.RoundedRect(10, fill, outline, 1);
+            image.sprite = UIShapes.CutCorner(7, fill, UIShapes.Corner.BottomRight, outline, 1);
             image.type = Image.Type.Sliced;
             image.color = Color.white;
 
@@ -646,7 +647,9 @@ namespace Managers.UI.Core
             go.transform.SetSiblingIndex(panel.transform.GetSiblingIndex());
 
             var shadow = go.GetComponent<Image>();
-            shadow.sprite = UIShapes.SoftShadow(12, blur, alpha);
+            blur = Mathf.Min(blur, 14);
+            drop = Mathf.Min(drop, 4f);
+            shadow.sprite = UIShapes.SoftShadow(3, blur, Mathf.Min(alpha, 0.16f));
             shadow.type = Image.Type.Sliced;
             shadow.raycastTarget = false;
 

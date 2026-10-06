@@ -42,6 +42,11 @@ namespace Managers.UI.HUD
             Image background = UIBuild.ChromePanel("HeaderBand", _root);
             UIBuild.Stretch(background.rectTransform);
 
+            Image rule = UIBuild.Solid("NavigationBaseline", _root, UITheme.AccentDim);
+            rule.raycastTarget = false;
+            UIBuild.Anchor(rule.rectTransform, Vector2.zero, new Vector2(0.31f, 0f));
+            rule.rectTransform.sizeDelta = new Vector2(0f, 4f);
+
             // ── 오른쪽: 진행 예고 + 손가락으로 누르기 충분한 3개 조작 ──
             RectTransform right = UIBuild.Container("Navigation", _root);
             UIBuild.Anchor(right, new Vector2(0.58f, 0f), new Vector2(0.99f, 1f), 9f, 9f);
@@ -85,7 +90,7 @@ namespace Managers.UI.HUD
             Image crest = UIBuild.Panel("StageCrest", roundBlock, UITheme.SurfaceSunken,
                 UIShapes.Corner.All, 16, UITheme.Outline, 1);
             UIBuild.Pin(crest.rectTransform, new Vector2(0f, 0.5f), new Vector2(78f, 78f), new Vector2(6f, 0f));
-            TextMeshProUGUI crestGlyph = UIBuild.Text("CrestGlyph", crest.transform, "✦",
+            TextMeshProUGUI crestGlyph = UIBuild.Text("CrestGlyph", crest.transform, "◆",
                 UITheme.FontTitle, UITheme.TextPrimary, TextAlignmentOptions.Center);
             UIBuild.Stretch(crestGlyph.rectTransform);
 
@@ -100,7 +105,7 @@ namespace Managers.UI.HUD
             UIBuild.Stretch(_timerLabel.rectTransform);
 
             _roundLabel = UIBuild.Text("RoundLabel", roundBlock, "1-1",
-                UITheme.FontTitle, UITheme.TextPrimary);
+                UITheme.FontDisplay, UITheme.TextPrimary);
             UIBuild.Anchor(_roundLabel.rectTransform, new Vector2(0f, 0.46f), new Vector2(1f, 1f), 0f, 0f);
             _roundLabel.rectTransform.offsetMin = new Vector2(96f, _roundLabel.rectTransform.offsetMin.y);
 

@@ -13,11 +13,26 @@ fight (party, placement, deck), never during it.
 > passives, the training game mode, main/support roles, the old roster (52 allies, 154 enemies, ~20 themes)
 > and all old attack effects were removed.
 > The game now has **eight stats with LoL-style linear growth**, a shared item inventory with BG3-style
-> short/long rests, **main-branch card visuals**, and a roster rebuilt one character at a time — currently
-> **세이 (Sei), 시 (Shi), 사바흐 (Sabah), 찬드라 (Chandra), 히미코 (Himiko), 피그말리온 (Pygmalion), 바스테트 (Bastet), 잔 (Jean)**, fighting the
-> **공허의 시험장** test theme. The pre-rework state is commit `a6194c9`.
+> short/long rests, **main-branch card visuals**, and a roster rebuilt one character at a time:
+> **세이 (Sei), 시 (Shi), 사바흐 (Sabah), 잔 (Jean), 피그말리온 (Pygmalion), 히미코 (Himiko), 찬드라 (Chandra), 인드라 (Indra), 바유 (Vayu),
+> 쿠베라 (Kubera), 바스테트 (Bastet), 아누비스 (Anubis), 우치 (Uchi), 야마 (Yama), 바루나 (Varuna), 아그니 (Agni), 수리야 (Surya)**, fighting the **공허의 시험장** test theme.
+> On top of that sit the **reward-code system** (94 passive codes bought or won as run rewards, 7 slots per unit, `Detail_17`),
+> permanent stacks, summons, and the Lokapala special-action bundle. The pre-rework state is commit `a6194c9`.
 
 Korean is the working language: comments, logs, commit messages, and all design docs are in Korean.
+
+## Claude model policy (2026-10-05)
+
+**2026-10-06 사용자 최신 지시:** 이번 효과 명중·저항 구현과 후속 전체 QA·결함 수정·빌드·GitHub 0.5 Release는 **Codex root가 직접** 진행한다.
+효과 시스템 구현을 끝내고 2026-10-06 11:50 KST 이후 전체 QA를 시작한다. 이 범위는 Claude로 재호출하지 않는다.
+컴퓨터 전체 접근은 사용자에게 허가되었다. 이후의 일반 Claude 모델 정책은 아래와 같다.
+
+사용자 지시에 따라 이후 Claude 구현 · 수정 · 코드 검수의 기본 모델은 **Opus 5.5**다.
+CLI에는 `--model claude-opus-5-5`를 명시한다. Sonnet으로 자동 전환하지 않는다.
+사용량 제한이 발생하면 변경 파일과 검증 결과를 보존하고, 제한 해제 뒤 미완료 작업을 같은 모델로 재호출한다.
+VSFX 담당 Codex 모델은 기존 사용자 지정 **6.1 Sol**을 유지한다.
+
+**이번 베다 3인 후속 작업에 한한 예외:** 사용자의 최신 지시로 바유·아그니·수리야 구현과 수정은 **GPT 6.1 Sol**이 진행한다. 이 작업을 Opus 사용량 해제 때 재호출하지 않는다. 이후 Claude 작업의 기본 Opus 정책은 유지한다.
 
 ## Development Commands
 
@@ -59,15 +74,16 @@ Before changing gameplay, read the relevant chapter; after changing gameplay, up
 | `Detail_02_Combat.md` | Battlefield, action values, damage & mitigation, effect hit, shields, control, damage tags, **card visuals (§10)** |
 | `Detail_03_Character.md` | **8-stat model**, linear growth, level/EXP, mana, code system, **집중 (§4.5)**, unit schema |
 | `Detail_04_Training.md` | **Abolished** — list of what the rework removed |
-| `Detail_05_Economy.md` | Gold/tokens/tickets, shared items, food, reward flow |
+| `Detail_05_Economy.md` | Gold/tokens/tickets (start 0), shared items, food, shop tabs, gold-bonus settlement, reward flow |
 | `Detail_06_Events.md` | Event schema, choice actions, VN presentation |
 | `Detail_07_UI_Tech.md` | UI screens, manager inventory, data files, save system |
 | `Detail_08_Confirmed_Characters.md` | Per-character combat spec, stats, visuals |
 | `Detail_09` / `Detail_10` | Enemy roster & stage composition / boss specs |
 | `Detail_11` / `Detail_12` | Code catalogue by ID / player code slots |
-| `Detail_13` / `Detail_14` | Reward pool & tier odds / abolished equipment rules |
+| `Detail_13` / `Detail_14` | Reward pool (code · consumable · drop), tier odds, reroll / abolished equipment rules |
 | `Detail_15_Party_Synergy.md` | Role taxonomy, archetypes, what the roster needs next |
 | `Detail_16_Elements.md` | Innate vs. attached element, 28 elemental reactions (scale on 특수공격력), field states |
+| `Detail_17_Reward_Codes.md` | **Reward codes** (passive 500~999, T1~T5), active slots / storage / free drag-and-drop / superseding, attack-form tags, consumables (tonics, seals, scroll), reward pool & shop, implementation map |
 | `Design_Backlog.md` | Open design decisions that block work |
 
 Writing rules that matter when editing: **a number lives in exactly one document**, unimplemented
@@ -128,7 +144,9 @@ Combat is not real time. `Managers/ActionScheduler.cs` owns the clock.
   0 is just "an additional action a passive queued" — both 0 and 2 fire `OnAdditionalActivates`.
   Ran's 빅뱅 is a priority additional action.
 - `SpecialCode` is an optional trigger-only slot. It uses `OnSpecialActivates`, never counts as an additional
-  action, and the Lokapala gate orders Vayu (-100), Chandra (-50), then the remaining participants.
+  action. A bundle is opened by `Combat.SpecialAction.OpenGate(opener, gateTag)`; the only opener of the
+  Lokapala bundle is **Indra's ultimate**. Order = `SpecialCode.OpenOrder`: Vayu (-100), Varuna (-50), Kubera (0), Indra (+50), Yama (+75), Chandra (+100).
+  `ActionScheduler.AnyActionFinished(unit, kind)` fires when any action ends.
 - **Ultimates do not consume a turn** and do not reset AV. Resource is the only gate.
 - A **대체행동** still counts as one normal action — call `NotifyActionResolved()` even when it
   deals no damage.
@@ -145,6 +163,34 @@ Ties an effect's lifetime to its **caster**: counts the caster's turns (decremen
 ends early when the caster is controlled (`OnControlStarts`), dies, or the round ends. The code passes
 an end callback that receives `EndReason` (Expired / Interrupted / Replaced / RoundEnd) and tears the
 effect down. Ran's 창세의 노래 is the first user. See `Detail_03 §4.5`.
+
+### Reward codes — `Codes/Passive/Reward/` + `Unit` (see `Detail_17`)
+
+Reward codes are the run's build axis: ordinary `PassiveCode`s (ID 500~999) won from reward cards or bought in the
+shop's code tab, **7 active slots plus unlimited personal code storage per unit** (`Unit.RewardCodeSlotCount`, separate from the unique passive / normal / ultimate).
+Rules live in `Unit`: `CanReceiveRewardCode` / `TryGrantRewardCode` (a full unit receives new codes in storage; receiving an
+upper code stores its active lower and uses the same slot; a unit holding the upper never gets the lower), `TryReplaceRewardCode`
+(promotion seals), `RemoveRewardCode`. Tier / tags / superseding ladder come from the table via `Codes/Base/RewardCodeCatalog.cs`.
+Thirty codes are **data-driven** (`RewardStatCode`, reading `flatStats` / `percentStats` / `damageTag` from `20_codes.yaml`); the other 64 are
+classes in `RewardCodesT2~T5.cs` on the `RewardPassiveCode` base (statuses added through `AddStatus` are cleaned up automatically;
+"while on the field, highest one only" auras go through `IRewardAuraSource` + `RewardAura.Best`). Stats from reward codes come through
+`PassiveCode.PermanentStatFlatModifier` / `PermanentStatPercentModifier` so they also show on the out-of-combat character window;
+end-of-battle effects use `PassiveCode.OnBattleSettled`, EXP / gold bonuses `SelfExpBonus` / `PartyExpAuraBonus` / `PartyGoldAuraBonus`
+(settled in `GameManager.GrantExpTo` / `GrantClearGold`). The reward pool, shop code tab, shared supply (tonics, seals) use `RewardCodeFlow` / `CodeChoicePicker` for recipient and promotion choices.
+The TAB window reuses main's `UIDragSource` / `UIDropTarget` / `UIDragRuntime` with `Combat.RewardCodeInventory` for free preparation-only
+equip, store, allied transfer and occupied-slot swaps. Stored codes have no passive/stat/battle/settlement effects. Transfer scroll 5211 is legacy-only (`rewardPool: false`), not consumed or required.
+
+### Permanent stacks and summons — `Unit.GainPermanentStacks`, `Combat/Summons.cs`
+
+A **permanent stack** is a per-unit counter that survives the whole run (Anubis' souls). `Unit.GainPermanentStacks(key, amount)` is the
+only way to raise it: `amount` may be fractional (the fraction is stored and carried at 1), and holders' codes multiply it through
+`PassiveCode.PermanentStackGainMultiplier` (growth reward codes). Saved in v12 with the fraction.
+
+**Summons** have no grid cell and stand behind their owner. The owner's unique passive implements `ISummonerPolicy` (style `Swarm` /
+`Companion`, cap, `SummonSpec`, overflow handling) and registers with `Summons.Register`; `Summons.Create` is the only creation path and
+raises `Summons.AnySummonCreated`. Summon death goes through `Unit.Die` (so `Unit.AnyUnitDied` fires — Anubis listens); clearing at round end is *not*
+a death. A summon with a fixed speed joins the `ActionScheduler` (and is exempt from the overtake limit); its damage is attributed to the owner with
+`DamageTag.SummonAttack`.
 
 ### Grid
 
@@ -172,31 +218,32 @@ Singletons via `Manager.Instance`, in `Assets/Scripts/Managers/`.
 | `GridManager` | Cell creation, spawning (`SpawnUnit(..., playEntry, entryDelay)`), targeting, `heroList` / `enemyList` |
 | `ActionScheduler` | Turn scheduling (plain class, not a MonoBehaviour). Announces an action only when it actually begins through `Combat.ActionAnnouncer`; forecast reservations expose stable keys so the HSR-style order rail can animate insertions/reorders without teleporting |
 | `EventScheduler` | Event queue for inserting events at arbitrary points (plain class) |
-| `RewardManager` | Reward pool generation and application |
+| `RewardManager` | Reward cards (tier → category code 55 / consumable 30 / drop 15 → tag-weighted pick, ≥1 code guaranteed, reroll) and their application; code slot rules live in `Unit` |
 | `CharacterSelectionManager` | Party rules (1–5, unlocked only, no duplicates). `IsUnlocked` is the single eligibility check; the first pick is the **lead** (`FindLeadUnit`) |
-| `InventoryManager` | Gold/tokens/tickets, equipment validation |
+| `InventoryManager` | Gold/tokens/reroll tickets (a new run starts with **0**), shared items, food, tonics and code tools |
 | `DataManager` | Generic YAML loader (`Load<T>`, YamlDotNet) |
 | `UIManager` | Screen routing |
 | `AudioManager` | BGM + YAML logical SFX queues, pooled sources, speed merging, code mixer buses, ultimate ducking, harness logs. (`SfxManager` is an empty shell kept because the scene references it) |
 | `DragAndDropManager` | Unit placement |
 
-`SettingsManager` and the save system live in `Assets/Scripts/Core/`. Save format is **v11**
-(`RunSaveData.CurrentVersion`); the rework discarded older saves.
+`SettingsManager` and the save system live in `Assets/Scripts/Core/`. Save format is **v13**, with **v12 migration**
+(`RunSaveData.CurrentVersion`) — `UnitSaveData.activeRewardCodeSlots` (7 including empty zeros), `storedRewardCodeIds`, `grantedPassiveCodeIds` (active and event passives) and `permanentStacks`,
+`RunSaveData.pendingTonicItemId`; v12 discarded v11 and older saves; v13 preserves and migrates v12. `Unit.WriteRunState` / `RestoreRunState` are the one place unit run state is written and read.
 
 ### Data files — `Assets/Resources/Data/`
 
 | File | Content | DTO |
 | --- | --- | --- |
 | `00_intro.yaml` | Intro sequence | `IntroData.cs` |
-| `10_units.yaml` | Player units (Sei only) | `UnitData.cs` : `CombatantData` |
-| `20_codes.yaml` | Code display data (passive/normal/ultimate) | — |
+| `10_units.yaml` | Player units (the fifteen above) | `UnitData.cs` : `CombatantData` |
+| `20_codes.yaml` | Code display data (passive/normal/special/ultimate). **Passive 500~999 is the source of truth of the 94 reward codes** (`tier`, `codeTags`, `supersededBy`, `flatStats` / `percentStats` / `damageTag`, `requiresAttackForm`, `requiresGrowth`, `shopFixed`) | `CodeCatalog.Entry` |
 | `30_synergies.yaml` | Party roles, archetypes, per-lead recommended lineups | `SynergyData.cs` |
-| `40_items.yaml` | Shared items and long-rest food | `ItemData.cs` |
+| `40_items.yaml` | Shared items: long-rest food (`Food`), combat tonics (`Tonic`, 5101~5106 — used in preparation, apply to the next battle only), code tools (`CodeTool`: promotion seals 5201~5204, transfer scroll 5211). `rewardPool: true` puts an item in the reward pool's consumable category | `ItemData.cs` |
 | `50_tokens.yaml` | Token definitions | `TokenData.cs` |
 | `60_enemies.yaml` | Enemies (test theme: 3 normal, 1 elite, 1 boss) and their `drops` | `EnemyData.cs` : `CombatantData` |
 | `70_rounds.yaml` | Round types / composition patterns (fallback only) | `RoundData.cs` |
 | `80_stages.yaml` | Themes, events, fixed bosses | `StageData.cs` |
-| `90_rewards.yaml` | Per-round reward tier odds, common drops, consumables | `RewardData.cs` |
+| `90_rewards.yaml` | Per-round reward tier odds, common drops, category weights (`rewardCategoryWeights`), code tag / upper-code weights, instant consumables (heal, revive, candy, fate dice, EXP books, rest incense) | `RewardData.cs` |
 | `95_sfx_cues.yaml` | Logical SFX queues, clip candidates, random volume/pitch, voice/interval limits and ducking | `SfxCueData.cs` |
 | `96_vfx.yaml` | Standard VFX parts, prepare/cast/hit/affected/screen skill compositions, status bindings | `VfxData.cs` / `VfxDefinitionCatalog` |
 
@@ -208,7 +255,10 @@ resolves them in separate switches.
 | Unit ID | 20-slot block per faction — Akasha 1~, Greek 20~, Takamagahara 40~, Vedic 60~, Nord 80~, Rome 100~, Egypt 120~, Mexica 140~, Gaul 160~, 화령 180~ |
 | Ally normal / ultimate | **same number as the owner's unit ID** (Sei = 1 → N 1, U 1) |
 | Ally unique passive | **owner's unit ID + 200** (Sei → 201) |
+| Ally special action | **same number as the owner's unit ID** (SP 60 창야) |
 | Retired code range | 400~499 (equipment-granted passives were removed) |
+| **Reward codes** | **Passive 500~999** — T1 500s · T2 600s · T3 700s · T4 800s · T5 900s (initial tier; the ID never changes with rebalance). Built by `RewardCodeFactory` from the table |
+| Summon normal codes | **Normal 500~** — a summon's own action (Uchi's clone strike = N 500). A different slot from reward passives, so no clash. Summon *unit* IDs are 900s (clone = 901) |
 | Enemy codes | 1000+ in per-theme 100-slot blocks. Shared test-theme codes: N 1001 돌격 / 1002 사격, U 1001~1004 |
 
 Changing unit IDs breaks saves: bump `RunSaveData.CurrentVersion` with it.
@@ -217,11 +267,15 @@ Changing unit IDs breaks saves: bump `RunSaveData.CurrentVersion` with it.
 
 `Assets/Scripts/Codes/` — `Base/`, `Passive/`, `Normal/`, `Ultimate/`.
 
-Every unit has **one unique passive + one normal action + one ultimate** — nothing else. There are
-no unlock passives, no code capacity and no transfer. Codes have no cooldowns.
+Every unit has **one unique passive + one normal action + one ultimate** (plus an optional special action) as its
+own codes. There are no unlock passives and no code capacity. On top of that a unit activates up to **7 reward codes** and stores additional codes
+(see below). Codes have no cooldowns.
 
 - `Code.StatDamage(flat, stat, ratio)` builds damage from the caster's current final stat;
-  `RollCritical(out mult)` rolls crit. The old `Power` system is gone.
+  `RollCritical(target, out mult)` rolls crit (effects hook in through `BaseEffect.CritChanceBonusAgainst` /
+  `CritDamageBonusAgainst` / `ForcesCriticalAgainst` / `CritOverflowToDamageRatio`; the target-less overload is for shared rolls).
+  The old `Power` system is gone.
+- Every attacking code declares `Code.AttackForm` (a 50000 damage tag); `Combat/AttackForms.cs` answers "does the party have a slash attack?" for the reward pool.
 - **Normal actions extend `BaseNormalCode`**: `WaitForCast → SelectTarget → AttackTargetRouter.Prepare → ResolvePreAttack →
   Targeting.Announce → Deliver → NotifyActionResolved`. Override `BaseDamage(target)`, and optionally `IsContact`,
   `ProjectileFor(target)`, `OnAttackResolved`. Contact attacks charge the card into the target;
@@ -245,6 +299,13 @@ Override only what a code needs. A status effect that should glow on the card im
 Statuses (`UnitStatus`) wrap effects with id/key/duration/stack policy. Same key = same status.
 Harmful statuses cast by an enemy roll **effect hit** in `UnitStatusController.Add` unless
 `UnitStatus.SkipEffectHitRoll` is set (for codes that already rolled their own chance).
+`UnitStatus.SkipStatusResistanceRoll` skips status resistance too — only for auras derived from another harmful status
+(Yama's 선고 re-attaches while a 감전 remains). `Unit.AnyStatusChanged(owner, status, added)` fires after the outer
+Add / Remove / TickTurn call finishes (not for duration extensions or the round-end `ClearAll`).
+
+Every DoT effect builds its one-tick raw `DamageContext` in `BaseEffect.CreateDamageOverTimeTick()`; the natural tick and
+`Combat.DamageOverTimeDetonation.Detonate(target, ratio, trigger)` (Yama) both use it, so a new DoT joins detonation by
+overriding `IsDamageOverTime` + `CreateDamageOverTimeTick`. Detonation never touches duration / stacks and adds no attack tags.
 
 Damage flows through `Unit.TakeDamage(DamageContext)`:
 `Unit.AnyDamageIncoming (static, pre-mitigation) → OnBeforeDamageTaken → CalculateFinalDamage
@@ -258,7 +319,9 @@ The **ten-thousands digit is the category**; an attack takes one from each band.
 10000 target scope · 20000 attack kind (`NormalAttack`, `UltAttack`, `AdditionalAttack`,
 `CounterAttack`, `PassiveAttack`, `ElementalReaction`) · 30000 contact · 40000 conversion
 (`ShieldPenetration`, `TrueDamage`, **`BonusDamage`** — damage added on top of another hit; it never
-triggers further add-on damage and gives no hit mana). The weapon band (50000) is gone.
+triggers further add-on damage and gives no hit mana) · **50000 attack form** (`Slash` 베기 · `Pierce` 찌르기 · `Shot` 사격 ·
+`Strike` 타격 · `Spell` 주문 — the *shape* of an attack, not a weapon; one per attack, declared via `Code.AttackForm`; DoT, reactions
+and bonus damage have none). **`SummonAttack` (20006)** marks damage dealt by a summon (attributed to its owner for kills / mana).
 
 > Damage-over-time (`CodeType.Effect`) carries an **empty tag list**. Code that checks for contact
 > must ask whether `ContactAttack` is present — never "is not `NonContactAttack`".
@@ -306,7 +369,10 @@ explicit status ID/key mappings before effect/category fallbacks.
 | `Presets/HeavyStrikeHitFx` | Archived dedicated implementation of the in-place recoil and target-centred heavy impact. The current Void Crusher recreates it from standard `96_vfx.yaml` parts |
 | `EnemyNormalFx` / enemy ultimates | Redirected attacks keep the original attacker's class, colour and hit VFX. Wolf Smash is an enhanced version of the same three-line claw. Marksman uses a dark-edged Muzzle1 and horizontal Smoke3; Volley reuses their short crest variants for three distinct cast/hit/SFX pulses. Vanguard's enlarged dark Slash4 keeps its approved face/torso anchor. Dragon uses boss-scaled caster-twin Fire3 and an anchored, dark-bodied Explosion1 for both normal and ultimate hits. Damage counts and callback timing remain unchanged. |
 | `GeoFx` | Sei defaults to one forward-directed Yellow cast plus six portrait-centred platinum impacts, with no projectile flight and exactly one callback at the third crest. Big Bang uses one directed cast, seven target-local shatters with the original selection cadence and 0.242 s callbacks, then only the real party-shield `affected`. Genesis uses one directed cast and a single combined buff/shield `affected` on allies other than Sei. Previous generated/projectile/extra-debris paths remain Legacy; the retired ground spike remains `Presets/RisingSpikeFx.Play(...)` |
-| `ChandraFx` | Chandra defaults to one forward-directed Blue/White cast plus six portrait-centred moon impacts, with no projectile flight and one callback at the third crest. Soma removes reverse convergence and `MoonSanctuaryDome`: one directed cast is followed only by the selected non-caster ally's buff `affected`; the code grants no shield, so the VFX shows none. Changya starts all non-caster ally buff cues and all hostile target-local hits at the same instant, retaining only the short multi-hit rhythm and no connecting route. Previous generated/reverse-convergence/dome paths remain Legacy |
+| `LokapalaFx` | 인드라·바유·쿠베라의 한 번 시전→적 전원 동시 초상화 피격. 낙뢰 끝점 충격·고정 반경 금화·보고 문·여덟 방향 문양과 참여자 HUD 펄스. 판정은 코드의 기존 순회 블록을 정점 콜백 한 번으로 실행하며 BaseSpecial/Ultimate의 isCasting 수명을 그대로 따른다 |
+| `AnubisFx` | 심장의 저울의 짧은 부분 전진과 금·청록 초상화 충격, 사자의 서 자기 강화 문양, 영혼 불꽃·정수/소수 배지 펄스. 기존 피해·회복·영구 중첩 수식과 이벤트 순서를 유지한다 |
+| `UchiFx` / `Entities/View/SummonCardView` | 칸 없는 분신의 반투명 카드 세 장을 소환자 모션에 붙인다. 생성·일격·넘침·막기·동시 전진·부적 소멸을 표시하며 셀·배치·카메라에는 참가하지 않는다 |
+| `ChandraFx` | Chandra defaults to one forward-directed Blue/White cast plus six portrait-centred moon impacts, with no projectile flight and one callback at the third crest. Soma removes reverse convergence and `MoonSanctuaryDome`: one directed cast is followed only by the selected non-caster ally's buff `affected`; the code grants no shield, so the VFX shows none. 창야는 기존 대상별 피해 정점 뒤 실제 회복된 생존 아군 전원의 공통 치유 피격을 연다. 옛 치명타 버프 표시는 제거하며 니샤카라 달빛 순환도 회복 직후 작은 치유 피격을 쓴다. Previous generated/reverse-convergence/dome paths remain Legacy |
 | `ShiFx` | Destruction Slash uses one `AimFrom`-directed `Slash1_Blue` caster-card swing followed by the shared `hit.claw.triple` on the target portrait. Shi-only data tints the alpha body black, edge blood red, and core crimson. Final Bell is a persistent ultimate: after every third slash, exactly one `Smoke3` spreads horizontally—small on the struck target at 3 and centre-out across the living enemy formation at 6/9. Tier 9 keeps the same size and changes contrast/core/screen rhythm only. Reprise waits for death departure and field layout completion before the next cast. Legacy keeps the old procedural crimson rake; `Presets/FlyingSlashFx.Play(...)` remains archival |
 | `SabahFx` | Character-default normal attacks use `AimFrom` for the stationary `Slash1_Purple` and a portrait-confined `Lightning2_Purple`, preserving the ~0.64 s callback without spilling onto the floor or neighbours. Lightning Slash uses one caster-card swing followed by target-local lightning hits at 0.09 s intervals for up to three targets, with no middle blade or route. Azrael uses exactly one recoloured `Slash5_Blue` draw, one moderate formation-centre lightning strike, then centre-out `Smoke3`; the smoke opens one existing damage callback per enemy while shared critical remains unchanged. The former erosion/pool/card-travel/rake remains `Presets/ShadowAmbushFx` under Legacy |
 | `EmberFx` | Himiko defaults to one fan-shaped Red cast and one portrait-centred Red Explosion hit; an attack-applied Blaze mark has no extra affected cue. At three Blaze stacks, exactly one causal Smoke burst replaces the mark cue without changing status/damage order. Pygmalion is a caster: short rust-orange twin `Fire3` flames precede one target-centred `Explosion2_Red` fire hit and one callback. Sharp Thorns follows its cast with the generic buff hit recoloured rose and no ground spike. Former travelling/generated paths remain Legacy |
@@ -334,7 +400,8 @@ do not reintroduce weapon-class visuals.
    `Editor/PortraitTextureImportPolicy.cs`: RGBA32 uncompressed, mipmaps off, Bilinear and Clamp. Keep the
    source PNG alpha clean; do not add per-file compression overrides.
 3. Implement the three codes under `Codes/[Passive|Normal|Ultimate]/` (`BaseNormalCode`,
-   `BaseUltimateCode`, `UniquePassiveCode`), register in `CodeFactory`
+   `BaseUltimateCode`, `UniquePassiveCode`; an optional special action goes under `Codes/Special/` on `BaseSpecialCode` with an `OpenOrder`),
+   declare `AttackForm` on every attacking code, register in `CodeFactory`
 4. Register display data in `20_codes.yaml`; add the unit to `30_synergies.yaml`
 5. Compose the unit's visuals from standard parts in `96_vfx.yaml` using the SFX logical key. Prefer colour,
    scale, direction and timing parameters over a new per-skill drawing; give custom statuses an `affected`
@@ -369,6 +436,17 @@ All items live in `InventoryManager.ItemIdsInHand`; units do not carry or equip 
 Preparation offers only shop, rest, shared inventory and deck editing. Short rest heals the living party;
 long rest consumes food, revives and fully restores the party, and refills short-rest charges. The exact
 costs and recovery values live in `Detail_01` / `Detail_05` and `GameManager`.
+
+### Adding a reward code
+
+1. `20_codes.yaml`, passive 500~999 — id (tier band: 500s T1 … 900s T5), `verbalName`, `description`, `tier`, `codeTags` (`UnitTagCatalog`
+   keys), and as needed `supersededBy`, `flatStats` / `percentStats` / `damageTag` + `damageTagBonus` (data-driven), `requiresAttackForm`,
+   `requiresGrowth`, `shopFixed` + `shopPrice`. A pure stat / tag-damage code needs nothing else (`RewardStatCode` reads it).
+2. A gimmick code: a class on `RewardPassiveCode` in the tier's `RewardCodesT*.cs` and one line in that file's `CreateT*` switch.
+   Override `OnCast` / `OnStop`; reuse `Effects.Buffs` shared effects; unsubscribe static `Unit.Any*` events in `OnStop`.
+3. Ladder: put `supersededBy` on the lower code; add the T1 → T2 pair to `RewardCodeCatalog.BronzeSealTargets` if it is a promotion-seal conversion.
+4. Update `Detail_17` (design + §7 map), `Detail_11 §4` (index) and, if the shop sells it, `Detail_05`. `RewardCodeFactory.IsImplemented` keeps
+   unimplemented ids out of the pool. Verify with the harness scenario `r12_core` (implemented count, slots, ladder).
 
 ### Adding a status effect
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
@@ -47,11 +47,11 @@ namespace Managers
             }
         }
 
-        public void StartRun()
+        public void StartRun(bool clearSavedRun = true)
         {
             RunActive = true;
             _triggeredEventIds.Clear();
-            SaveSystem.DeleteSave();
+            if (clearSavedRun) SaveSystem.DeleteSave();
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace Managers
         {
             get
             {
-                if (!RunActive || GameManager.Instance == null) return false;
+                if (!RunActive || GameManager.Instance == null || GridManager.Instance == null) return false;
                 GameState state = GameManager.Instance.gameState;
                 return state == GameState.Preparation
                     || state == GameState.EventStage;
@@ -73,7 +73,7 @@ namespace Managers
 
         public void SaveCurrentRun()
         {
-            if (!RunActive || GameManager.Instance == null) return;
+            if (!RunActive || GameManager.Instance == null || GridManager.Instance == null) return;
             SaveSystem.SaveRun(BuildSaveData());
         }
 
@@ -82,7 +82,7 @@ namespace Managers
             RunSaveData save = SaveSystem.LoadRun();
             if (save == null)
             {
-                StartRun();
+                StartRun(clearSavedRun: false);
                 return false;
             }
 
@@ -124,6 +124,7 @@ namespace Managers
                 save.restUsedThisPreparation,
                 save.shortRestCharges,
                 save.shopPurchaseCount);
+            GameManager.Instance.RestorePendingTonic(save.pendingTonicItemId);
             Debug.Log($"[RunManager] 저장 런 복원 - Stage {save.currentStage}, Round {save.currentRound}");
         }
 
@@ -148,8 +149,9 @@ namespace Managers
             }
 
             ResetUltimateResourcesOnThemeTransition(previousRound);
-            SaveCurrentRun();
             GameManager.Instance.EnterNextStageAfterLoad();
+            // 새 준비/사건 상태와 초기화된 휴식·상점 횟수를 함께 저장한다.
+            SaveCurrentRun();
         }
 
         /// <summary>1-10 → 2-1처럼 10스테이지 테마 라운드가 바뀔 때 궁극기 자원을 완전히 비운다.</summary>
@@ -190,6 +192,7 @@ namespace Managers
                 restUsedThisPreparation = GameManager.Instance.RestUsedThisPreparation,
                 shortRestCharges = GameManager.Instance.ShortRestCharges,
                 shopPurchaseCount = GameManager.Instance.ShopPurchaseCount,
+                pendingTonicItemId = GameManager.Instance.PendingTonicItemId,
                 tokens = BuildTokenSaveData(),
                 storedItemIds = GameManager.Instance.inventoryManager?.ItemIdsInHand?.ToList() ?? new List<int>(),
                 heroUnits = BuildHeroSaveData(),
@@ -235,7 +238,7 @@ namespace Managers
                 if (hero == null || hero.IsEnemy || hero.currentCell == null) continue;
                 if (hero.ID <= 0 && hero.LastActiveId <= 0) continue;
 
-                result.Add(new UnitSaveData
+                var saved = new UnitSaveData
                 {
                     unitId = hero.ID > 0 ? hero.ID : hero.LastActiveId,
                     currentHP = hero.isActive ? hero.HpCurr : 0,
@@ -243,9 +246,9 @@ namespace Managers
                     yPos = hero.currentCell.yPos,
                     isBench = GridManager.Instance.IsBenchCell(hero.currentCell),
                     ultimateResource = hero.ManaCurr,
-                    level = hero.Level,
-                    exp = hero.Exp,
-                });
+                };
+                hero.WriteRunState(saved);
+                result.Add(saved);
             }
 
             return result;

@@ -1,5 +1,7 @@
 # NeverTheLast 기획서 체계
 
+최종 갱신: 2026-10-06
+
 기획 문서는 **3계층**으로 나뉜다. 아래로 갈수록 구체적이고, 아래로 갈수록 자주 바뀐다.
 
 ```
@@ -51,18 +53,20 @@
 | [Detail_08_Confirmed_Characters.md](Detail_08_Confirmed_Characters.md) | 확정 캐릭터의 전투 사양, 해금 패시브, 아트 자산과 남은 작업 |
 | [Detail_09_Enemy_Catalog.md](Detail_09_Enemy_Catalog.md) | 적 스탯 규격, 테마별 로스터, 스테이지 편성 |
 | [Detail_10_Boss_Catalog.md](Detail_10_Boss_Catalog.md) | 중간 보스와 최종 보스의 사양·공략 축·미결 |
-| [Detail_11_Code_Catalog.md](Detail_11_Code_Catalog.md) | **ID별 코드 효과 색인.** 아군·적 전체를 분류별·ID순으로 |
-| [Detail_12_Code_Weapon_Catalog.md](Detail_12_Code_Weapon_Catalog.md) | 플레이어 코드 슬롯 규칙과 폐지된 숙련 이력 |
-| [Detail_13_Reward_Catalog.md](Detail_13_Reward_Catalog.md) | 보상 풀, 티어 확률, 테마 전용·사건 전용 보상의 관리 목록 |
+| [Detail_11_Code_Catalog.md](Detail_11_Code_Catalog.md) | **ID별 코드 효과 색인.** 아군·적 전체를 분류별·ID순으로, 보상 코드 94종 색인(§4) |
+| [Detail_12_Code_Weapon_Catalog.md](Detail_12_Code_Weapon_Catalog.md) | 플레이어 코드 슬롯 규칙(보상 코드 7칸 포함)과 폐지된 숙련 이력 |
+| [Detail_13_Reward_Catalog.md](Detail_13_Reward_Catalog.md) | 보상 풀(코드·소모품·드랍 분류), 티어 확률, 리롤, 소모품의 관리 목록 |
 | [Detail_14_Equipment_Catalog.md](Detail_14_Equipment_Catalog.md) | **폐지** — 장비 체계 제거와 저장 마이그레이션 이력 |
 | [Detail_15_Party_Synergy.md](Detail_15_Party_Synergy.md) | 역할군, 조합 아키타입, 메인별 추천 편성, 로스터의 빈 구멍 |
 | [Detail_16_Elements.md](Detail_16_Elements.md) | **원소와 원소 반응.** 속성·부착 두 축, 28쌍 반응 행렬, 우선순위, 반응 코드, 아군 부착 수단, 전장 상태, 테마별 반응 설계 |
+| [Detail_17_Reward_Codes.md](Detail_17_Reward_Codes.md) | **보상 코드와 소모품 (T1~T5, 게임 측면 구현 완료 · 연출 🔸).** 훈련 힌트를 대신하는 보상 코드 94종의 활성 7칸·개인 보관함·무료 드래그·상위 대체·태그, 코드/소모품 목록, 보상 풀과 상점 고정 재고, 구현 위치 |
 
 ### 미결 — 기획 백로그
 
 | 문서 | 내용 |
 | --- | --- |
-| [Design_Backlog.md](Design_Backlog.md) | **결정이 필요한 항목 11개.** 코드·데이터로 해결할 수 없고 설계 판단이 선행되어야 하는 것들 |
+| [Design_Backlog.md](Design_Backlog.md) | **결정이 필요한 항목 8개.** 코드·데이터로 해결할 수 없고 설계 판단이 선행되어야 하는 것들 |
+| [Draft_Vedic_Vayu_Agni_Surya.md](Draft_Vedic_Vayu_Agni_Surya.md) | 2026-10-05 채택 이력. 현행 수치·규칙은 Detail_08 §14·17·18, 바유 SP는 단일 전속성 취약으로 확정 |
 
 > 결정이 끝난 항목은 해당 상세 기획서로 옮기고 백로그에서 지운다.
 

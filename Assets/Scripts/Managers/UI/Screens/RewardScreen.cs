@@ -43,18 +43,46 @@ namespace Managers.UI.Screens
         private List<RewardDef> _rewards = new();
         private RectTransform _cardsRoot;
         private UnitTargetPicker _targetPicker;
+        private RewardCodeFlow _codeFlow;
+        private Button _reroll;
+        private TextMeshProUGUI _rerollLabel;
         private RewardDef _pendingTargetReward;
 
         protected override void Build()
         {
             _cardsRoot = UIBuild.Container("RewardCards", Body);
-            UIBuild.Stretch(_cardsRoot);
+            // 아래 한 줄은 리롤 버튼 자리다.
+            UIBuild.Anchor(_cardsRoot, new Vector2(0f, 0.08f), Vector2.one);
             for (int i = 0; i < RewardManager.MaxRewardCount; i++)
             {
                 _cards.Add(new Card(_cardsRoot, i, OnPick));
             }
 
+            _reroll = UIBuild.Button("Reroll", Body, "다시 굴리기", OnReroll);
+            UIBuild.Anchor(_reroll.GetComponent<RectTransform>(), new Vector2(0.38f, 0f), new Vector2(0.62f, 0.065f));
+            _rerollLabel = _reroll.GetComponentInChildren<TextMeshProUGUI>();
+
             _targetPicker = new UnitTargetPicker(Body, OnTargetPicked, ShowRewardCards, "보상 카드로 돌아가기");
+            _codeFlow = new RewardCodeFlow(Body, ShowRewardCards, SetTitle, "보상 카드로 돌아가기");
+        }
+
+        /// <summary>리롤 티켓 1장으로 선택지를 다시 굴린다(운명의 주사위, Detail_17 §6).</summary>
+        private void OnReroll()
+        {
+            InventoryManager inventory = GameManager.Instance?.inventoryManager;
+            RewardManager rewards = GameManager.Instance?.rewardManager;
+            RoundManager round = GameManager.Instance?.RoundManager;
+            if (inventory == null || rewards == null || inventory.rerollTicketCount <= 0) return;
+            inventory.rerollTicketCount--;
+            inventory.RefreshPanel();
+            Show(rewards.RerollRewards(_rewards.Count, round?.Round ?? 1));
+        }
+
+        private void RefreshReroll()
+        {
+            int tickets = GameManager.Instance?.inventoryManager?.rerollTicketCount ?? 0;
+            _reroll.gameObject.SetActive(tickets > 0);
+            if (_rerollLabel != null) _rerollLabel.text = $"다시 굴리기 (티켓 {tickets})";
         }
 
         public void Show(List<RewardDef> rewards)
@@ -81,6 +109,16 @@ namespace Managers.UI.Screens
             if (index < 0 || index >= _rewards.Count) return;
 
             RewardDef reward = _rewards[index];
+            if (reward.IsCodeReward)
+            {
+                _cardsRoot.gameObject.SetActive(false);
+                _reroll.gameObject.SetActive(false);
+                bool opened = _codeFlow.StartReceive(reward.codeId, reward.displayName,
+                    (unit, overwrite) => GameManager.Instance?.rewardManager?.ApplyReward(reward, unit, overwrite));
+                if (!opened) ShowRewardCards();
+                return;
+            }
+
             if (reward.RequiresTargetSelection)
             {
                 ShowRewardTargets(reward);
@@ -107,6 +145,8 @@ namespace Managers.UI.Screens
         /// <summary>대상 선택 판의 안내문. 상점도 같은 문구를 쓴다.</summary>
         public static string TargetGuide(RewardDef reward)
         {
+            if (reward.IsExpGrant)
+                return "경험치를 받을 아군을 선택하세요. 받는 양을 함께 표시합니다.";
             if (reward.RequiresLevelTargetSelection)
                 return "레벨을 올릴 아군을 선택하세요. 오른 뒤의 레벨을 함께 표시합니다.";
 
@@ -118,6 +158,11 @@ namespace Managers.UI.Screens
         /// <summary>카드 아래 한 줄. 쓰고 나면 체력이 어떻게 되는지를 미리 보여 준다.</summary>
         public static string TargetPreview(RewardDef reward, Unit unit)
         {
+            if (reward.IsExpGrant)
+            {
+                int exp = Mathf.Max(1, Mathf.RoundToInt(unit.ExpToNextLevel * reward.expPercentOfNext));
+                return $"Lv.{unit.Level}\nEXP +{exp:N0}";
+            }
             if (reward.RequiresLevelTargetSelection)
             {
                 return $"Lv.{unit.Level}\n→ Lv.{unit.Level + reward.levelGrant}";
@@ -165,6 +210,8 @@ namespace Managers.UI.Screens
             SetTitle(Title);
             if (_cardsRoot != null) _cardsRoot.gameObject.SetActive(true);
             _targetPicker?.SetActive(false);
+            _codeFlow?.Hide();
+            if (_reroll != null) RefreshReroll();
         }
 
         // ── 표시할 값 뽑기 ───────────────────────────────────────────
@@ -187,6 +234,20 @@ namespace Managers.UI.Screens
         {
             var rows = new List<Row>();
             if (reward == null) return rows;
+
+            if (reward.IsCodeReward)
+            {
+                // 코드 카드는 태그 칩이 "누구에게 맞는가"를, 상위 표시가 "지금 사다리를 오를 수 있는가"를 먼저 말한다(Detail_17 §3 · §2.3).
+                rows.Add(new Row("코드", $"T{Mathf.Max(1, reward.tier)} 보상 코드", UITheme.Rarity(Mathf.Max(1, reward.tier))));
+                string tags = string.Join(" · ", UnitTagCatalog.Resolve(Codes.Base.RewardCodeCatalog.TagsOf(reward.codeId))
+                    .Select(tag => tag.Name));
+                if (tags.Length > 0) rows.Add(new Row("태그", tags, UITheme.Accent));
+                string lower = LowerHeldByParty(reward.codeId);
+                if (lower != null) rows.Add(new Row("▲ 상위", lower + " 대체", UITheme.Positive));
+                int upper = Codes.Base.RewardCodeCatalog.UpperOf(reward.codeId);
+                if (upper > 0) rows.Add(new Row("상위 코드", RewardCodeFlow.NameOf(upper), UITheme.TextMuted));
+                return rows;
+            }
 
             if (reward.item != null)
             {
@@ -261,6 +322,17 @@ namespace Managers.UI.Screens
             return rows;
         }
 
+        /// <summary>파티 누군가 가진 하위 코드의 이름. 없으면 null — 상위 카드에 "▲ 상위: ○○"를 띄운다.</summary>
+        private static string LowerHeldByParty(int codeId)
+        {
+            foreach (Unit hero in RewardCodeFlow.Party())
+            {
+                int lower = hero.RewardCodeIds.FirstOrDefault(owned => Codes.Base.RewardCodeCatalog.IsUpperOf(codeId, owned));
+                if (lower > 0) return $"{hero.UnitName}의 {RewardCodeFlow.NameOf(lower)}";
+            }
+            return null;
+        }
+
         private static string FitText(RewardDef reward)
         {
             ItemData item = reward?.item;
@@ -316,8 +388,8 @@ namespace Managers.UI.Screens
 
             public Card(Transform parent, int index, Action<int> onPick)
             {
-                Image panel = UIBuild.Panel($"Reward{index}", parent, UITheme.SurfaceSunken,
-                    UIShapes.Corner.Diagonal, 12, UITheme.Outline, 1);
+                Image panel = UIBuild.Panel($"Reward{index}", parent, UITheme.SurfaceRaised,
+                    UIShapes.Corner.BottomRight, 12, UITheme.Outline, 1);
                 _root = panel.gameObject;
 
                 _rect = panel.rectTransform;
@@ -335,10 +407,11 @@ namespace Managers.UI.Screens
                 _meta.characterSpacing = 14f;
                 UIBuild.Anchor(_meta.rectTransform, new Vector2(0f, 0.905f), new Vector2(1f, 0.965f), 18f, 0f);
 
-                _name = UIBuild.Text("Name", root, "", UITheme.FontTitle, UITheme.TextPrimary,
+                _name = UIBuild.Text("Name", root, "", UITheme.FontReadTitle, UITheme.TextPrimary,
                     TextAlignmentOptions.TopLeft, wrap: true);
                 UIBuild.Anchor(_name.rectTransform, new Vector2(0f, 0.79f), new Vector2(1f, 0.90f), 18f, 0f);
 
+                _name.fontStyle = FontStyles.Bold;
                 Rule(root, "Rule", 0.775f);
 
                 _statCaption = Caption(root, "StatCaption", "STATS", 0.725f);
@@ -359,7 +432,7 @@ namespace Managers.UI.Screens
                 UIBuild.Anchor(_art.rectTransform, new Vector2(0f, 0.44f), new Vector2(1f, 0.765f), 22f, 0f);
 
                 // 그림 아래 한 줄 요약. 세 장을 비교할 때 가장 자주 보는 값만 남긴다.
-                _summary = UIBuild.Text("Summary", root, "", UITheme.FontBody, UITheme.TextSecondary,
+                _summary = UIBuild.Text("Summary", root, "", UITheme.FontReadBody, UITheme.TextPrimary,
                     TextAlignmentOptions.Center, wrap: true);
                 UIBuild.Anchor(_summary.rectTransform, new Vector2(0f, 0.365f), new Vector2(1f, 0.44f), 16f, 0f);
 
@@ -455,6 +528,7 @@ namespace Managers.UI.Screens
                 Color rarity = UITheme.Rarity(Mathf.Max(1, reward.tier));
                 _rarityStrip.color = rarity;
 
+                _statCaption.text = reward.IsCodeReward ? "BUILD EFFECT" : "ITEM DETAIL";
                 _meta.text = MetaLine(reward);
                 _meta.color = reward.isRare ? rarity : UITheme.TextMuted;
                 _name.text = reward.displayName;
@@ -464,7 +538,7 @@ namespace Managers.UI.Screens
 
                 _fit.text = FitText(reward);
 
-                Sprite art = LoadRewardArt(reward);
+                Sprite art = reward.IsCodeReward ? null : LoadRewardArt(reward);
                 _art.sprite = art;
                 _art.enabled = art != null;
 
@@ -472,7 +546,33 @@ namespace Managers.UI.Screens
                 TooltipTrigger.Attach(_root, () => reward.displayName,
                     () => TooltipLines(reward, stats, specs), rarity);
 
+                if (reward.IsCodeReward)
+                {
+                    BindCodeLayout(reward, stats);
+                    return;
+                }
+
+                // 코드 카드가 옮겨 놓은 요약 줄 자리를 아이템 카드의 자리로 되돌린다.
+                UIBuild.Anchor(_summary.rectTransform, new Vector2(0f, 0.365f), new Vector2(1f, 0.44f), 16f, 0f);
+                _summary.alignment = TextAlignmentOptions.Center;
                 BindArtLayout(art != null, stats, specs);
+            }
+
+            /// <summary>
+            /// 코드 카드 — 그림 대신 표(티어 · 태그 · 상위)를 위에, 효과 문구를 아래에 크게 둔다.
+            /// 코드는 문구가 곧 제원이라 툴팁에만 숨기면 세 장을 비교할 수 없다.
+            /// </summary>
+            private void BindCodeLayout(RewardDef reward, List<Row> stats)
+            {
+                BindArtLayout(false, stats, new List<Row>());
+                _specCaption.gameObject.SetActive(false);
+                _specRule.gameObject.SetActive(false);
+                _fit.gameObject.SetActive(false);
+                float statsBottom = 0.70f - Mathf.Max(1, stats.Count) * 0.068f;
+                _summary.gameObject.SetActive(true);
+                UIBuild.Anchor(_summary.rectTransform, new Vector2(0f, 0.20f), new Vector2(1f, statsBottom - 0.02f), 18f, 0f);
+                _summary.alignment = TextAlignmentOptions.TopLeft;
+                _summary.text = Codes.Base.CodeCatalog.Summary(reward.description);
             }
 
             private static Sprite LoadRewardArt(RewardDef reward)

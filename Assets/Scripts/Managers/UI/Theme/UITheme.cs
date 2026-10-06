@@ -3,17 +3,17 @@
 namespace Managers.UI.Theme
 {
     /// <summary>
-    /// UI 전역의 밝은 하늘 성채 팔레트다. 진주색 면과 라이트 글라스를 기본으로 두고,
+    /// 흰색 문서 면 · 남색 정보 위계 · 청록 인터랙션의 전역 UI 팔레트다. 진주색 면과 라이트 글라스를 기본으로 두고,
     /// 은청색 선과 하늘색 상호작용만 남겨 전투 원소색과 경쟁하지 않는다.
     /// </summary>
     public static class UITheme
     {
         // ── 배경 계열 ────────────────────────────────────────────────
         /// <summary>밝은 화면 위 모달의 뒤 클릭을 막는 청회색 베일.</summary>
-        public static readonly Color Backdrop = new(0.145f, 0.204f, 0.263f, 0.50f); // #253443
-        public static readonly Color Surface = new(0.973f, 0.988f, 1f, 0.97f);      // #F8FCFF
+        public static readonly Color Backdrop = new(0.075f, 0.125f, 0.20f, 0.32f); // #122133
+        public static readonly Color Surface = new(0.982f, 0.991f, 1f, 0.99f);      // #F8FCFF
         public static readonly Color SurfaceRaised = new(1f, 1f, 1f, 0.98f);
-        public static readonly Color SurfaceSunken = new(0.918f, 0.949f, 0.969f, 0.98f); // #EAF2F7
+        public static readonly Color SurfaceSunken = new(0.945f, 0.968f, 0.982f, 1f); // #EAF2F7
         public static readonly Color HudBar = new(0.973f, 0.988f, 1f, 0.88f);
 
         /// <summary>원화와 VFX 위에 직접 뜨는 패널만 쓰는 중명도 스모크.</summary>
@@ -28,11 +28,11 @@ namespace Managers.UI.Theme
 
         // ── 포인트 컬러 ──────────────────────────────────────────────
         /// <summary>맑은 하늘색. 선택·호버·진행 상태의 얇은 선과 작은 면에만 쓴다.</summary>
-        public static readonly Color Accent = new(0.247f, 0.663f, 0.902f, 1f);       // #3FA9E6
+        public static readonly Color Accent = new(0.0f, 0.63f, 0.86f, 1f);       // #00A1DB
         /// <summary>흰 글자와 4.5:1에 가까운 대비를 확보하는 주 행동 면.</summary>
-        public static readonly Color AccentDim = new(0.055f, 0.443f, 0.616f, 1f);    // #0E719D
+        public static readonly Color AccentDim = new(0.07f, 0.15f, 0.24f, 1f);    // #12263D
         public static readonly Color AccentFaint = new(0.247f, 0.663f, 0.902f, 0.15f);
-        public static readonly Color AccentCyan = new(0.192f, 0.816f, 0.776f, 1f);    // #31D0C6
+        public static readonly Color AccentCyan = new(0.02f, 0.80f, 0.77f, 1f);    // #05CCC4
         public static readonly Color Highlight = new(0.086f, 0.561f, 0.769f, 1f);     // #168FC4
 
         // 호환 이름은 유지하되 의미는 안 2의 백색 판/진주 필드/하늘 인레이로 바뀐다.
@@ -73,15 +73,15 @@ namespace Managers.UI.Theme
         // ── 텍스트 ───────────────────────────────────────────────────
         public static readonly Color TextOnDark = new(0.973f, 0.988f, 1f, 1f);       // #F8FCFF
         public static readonly Color TextOnDarkSecondary = new(0.847f, 0.910f, 0.949f, 1f);
-        public static readonly Color TextOnLight = new(0.145f, 0.204f, 0.263f, 1f);  // #253443
+        public static readonly Color TextOnLight = new(0.07f, 0.13f, 0.20f, 1f);  // #122133
         public static readonly Color TextPrimary = TextOnLight;
-        public static readonly Color TextSecondary = new(0.325f, 0.431f, 0.502f, 1f); // #536E80
+        public static readonly Color TextSecondary = new(0.28f, 0.36f, 0.44f, 1f); // #536E80
         /// <summary>
         /// 보조 텍스트. 카드의 부연 설명 · 캡션 · 잠김 사유가 전부 이 색을 쓴다.
         ///
         /// 밝은 카드에서 본문과 경쟁하지 않되 작은 캡션과 잠김 사유가 흐려지지 않는 중간 청회색이다.
         /// </summary>
-        public static readonly Color TextMuted = new(0.322f, 0.424f, 0.490f, 1f);
+        public static readonly Color TextMuted = new(0.36f, 0.43f, 0.49f, 1f);
 
         /// <summary>
         /// 꺼진 버튼의 글자. 보조 텍스트(TextMuted)보다 옅게 잡아 "회색이지만 눌리는 것"과
@@ -101,8 +101,8 @@ namespace Managers.UI.Theme
         public static readonly Color CodeUnique = new(0.475f, 0.310f, 0.745f, 1f);
 
         // ── 선/구분 ──────────────────────────────────────────────────
-        public static readonly Color Divider = new(0.612f, 0.698f, 0.765f, 0.44f);
-        public static readonly Color Outline = new(0.612f, 0.698f, 0.765f, 0.82f);
+        public static readonly Color Divider = new(0.37f, 0.52f, 0.61f, 0.20f);
+        public static readonly Color Outline = new(0.37f, 0.52f, 0.61f, 0.32f);
 
         // ── 등급 컬러(아이템/유닛 레어도) ────────────────────────────
         public static readonly Color[] RarityColors =
@@ -163,6 +163,21 @@ namespace Managers.UI.Theme
         /// <summary>자동 맞춤이 줄일 수 있는 하한. 이보다 작으면 1080p에서 읽을 수 없다.</summary>
         public const float FontFloor = 11f;
 
+        // ── 관리 화면 가독 크기 ──────────────────────────────────────
+        // 기준 해상도의 반인 960×540에서는 FontBody(18)가 9px로 그려져 읽히지 않았다(2026-10-06 QA).
+        // 파티 창 · 상점 · 공용 보급처럼 오래 들여다보는 화면은 주요 글자를 22~26(960에서 11~13px)으로 올리고,
+        // 한 화면에 모두 우겨넣지 않고 긴 문장은 넓은 스크롤로 보낸다.
+        public const float FontReadTitle = 30f;
+        public const float FontReadHeading = 26f;
+        public const float FontReadBody = 24f;
+        public const float FontReadSmall = 22f;
+
+        /// <summary>
+        /// 관리 화면 글자의 자동 맞춤 하한(22의 95%, 960에서 10.5px). 전역 규칙이 아니다 —
+        /// <see cref="Managers.UI.Core.UIScaledText.KeepReadable"/>를 부른 화면의 22 이상 글자에만 걸린다.
+        /// </summary>
+        public const float FontReadFloor = FontReadSmall * 0.95f;
+
         /// <summary>
         /// 설정의 글자 크기 배율(<see cref="Core.SettingsManager.TextScale"/>).
         /// 설정 매니저가 없는 씬(에디터에서 Game 씬 직행)에서도 1로 동작한다.
@@ -177,7 +192,7 @@ namespace Managers.UI.Theme
             : 1f;
 
         // ── 레이아웃 상수 ────────────────────────────────────────────
-        public const float CornerCut = 10f;   // 호환 이름은 유지하지만 실제 도형에서는 둥근 모서리 반지름으로 쓴다.
+        public const float CornerCut = 8f;   // 실제 사선 모서리 크기(px).
         public const float Gutter = 12f;      // 요소 간 기본 간격
         public const float PanelPad = 20f;    // 패널 내부 여백
 

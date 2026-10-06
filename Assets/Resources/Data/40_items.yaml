@@ -24,3 +24,86 @@ items:
     rarity: 2
     foodValue: 20
     shopPrice: 38
+
+  # ── 전투 비약 (category: Tonic) — 준비 화면에서 사용, 다음 전투 1회 아군 전원. 한 전투에 1개(Detail_17 §6) ──
+  # 상점에는 정화의 성수만 고정으로 오른다(shopPrice가 있는 것만 상점에 뜬다).
+  - id: 5101
+    name: 힘의 비약
+    category: Tonic
+    rarity: 1
+    rewardPool: true
+    tonicPercentStats: { Attack: 10 }
+
+  - id: 5102
+    name: 수호의 비약
+    category: Tonic
+    rarity: 1
+    rewardPool: true
+    tonicPercentStats: { Defense: 12, SpecialDefense: 12 }
+
+  - id: 5103
+    name: 정화의 성수
+    category: Tonic
+    rarity: 2
+    rewardPool: true
+    tonicNegateFirstHarmful: true
+    shopPrice: 100
+
+  - id: 5104
+    name: 신속의 비약
+    category: Tonic
+    rarity: 2
+    rewardPool: true
+    tonicFlatStats: { Speed: 10 }
+
+  - id: 5105
+    name: 집중의 비약
+    category: Tonic
+    rarity: 2
+    rewardPool: true
+    tonicStartManaPercent: 30
+
+  - id: 5106
+    name: 영웅의 비약
+    category: Tonic
+    rarity: 3
+    rewardPool: true
+    tonicPercentStats: { Attack: 15 }
+    tonicFlatStats: { CritRate: 10 }
+    tonicDamageTakenPercent: -10
+
+  # ── 코드 도구 (category: CodeTool) — 인장은 올릴 수 있는 최대 티어로 나뉜다(Detail_17 §2.4) ──
+  - id: 5201
+    name: 청동 승급의 인장
+    category: CodeTool
+    rarity: 2
+    rewardPool: true
+    sealMaxTier: 2
+
+  - id: 5202
+    name: 은 승급의 인장
+    category: CodeTool
+    rarity: 3
+    rewardPool: true
+    sealMaxTier: 3
+
+  - id: 5203
+    name: 금 승급의 인장
+    category: CodeTool
+    rarity: 4
+    rewardPool: true
+    sealMaxTier: 4
+
+  - id: 5204
+    name: 별빛 승급의 인장
+    category: CodeTool
+    rarity: 5
+    rewardPool: true
+    sealMaxTier: 5
+
+  - id: 5211
+    name: 전수의 두루마리
+    category: CodeTool
+    rarity: 2
+    rewardPool: false
+    transferScroll: true

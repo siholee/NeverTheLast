@@ -3,7 +3,7 @@
 > **3계층 문서.** 전장 구조, 행동 순서, 피해 공식, 보호막, 제어, 피해 태그, 상태, 이벤트 훅, 전투 연출.
 > 원소는 [Detail_16](Detail_16_Elements.md). 개념 정의는 [서브 기획서](GDD_Sub_Concepts.md) 2장을 본다.
 
-최종 갱신: 2026-10-03 (범용 지원 HUD 연결·패시브 개입 박자·지원 동시 타이밍 갱신)
+최종 갱신: 2026-10-06 (효과 명중/저항: 적 원소 부착·지속피해·디버프·중립 표식, 아군 확정 부여와 반응 명중 상속 §3.5; 기존 연출·지속 훅 보존)
 관련 코드: `GridManager.cs`, `ActionScheduler.cs`, `Unit.cs`, `Combat/AttackTargetRouter.cs`, `Combat/DamageMitigation.cs`, `Combat/Concentration.cs`, `Effects/Vfx/*`
 
 > 옛 5스탯 · 포켓몬식 위력 · 내구 · 회피 · 횟수제 무적 · 한 방 상한 · 강인도 · 소환수와 전원 공용
@@ -96,6 +96,13 @@ AV가 가장 낮은 유닛이 0에 닿을 만큼만 전원의 AV를 한 번에 �
 
 0과 2는 성질이 같고 둘 다 `OnAdditionalActivates`를 발행한다(`ActionScheduler.IsAdditional`).
 같은 `(유닛 + 종류 + 키)`는 큐에 하나만 존재한다.
+
+**특수행동 묶음.** `Special`(4)은 `Combat.SpecialAction.OpenGate(opener, gateTag)`가 **유닛 태그**(`gateTag`)가 같은 참여자의
+특수행동을 `SpecialCode.OpenOrder` 순으로 한꺼번에 예약한 것이다. 현재 묶음은 로카팔라 하나이고, 이를 여는 것은
+**인드라의 초월기(팔방의 소집)뿐**이다(F1 디버그도 양측 궁극기를 채워 인드라가 스스로 쓰게 할 뿐 따로 열지 않는다). 표준 순서는 디버프 · 버프를 거는 참여자가 음수(바유 -100 · 바루나 -50),
+피해가 주인 참여자가 0 이상(쿠베라 0 · 인드라 +50 · 야마 +75), 회복만 하는 참여자가 맨 끝(찬드라 +100)이다 —
+[Detail_08 §13.5](Detail_08_Confirmed_Characters.md). 묶음 안의 임시 효과는 마지막 특수행동이 끝날 때 걷는다. 시의 처치 재행동 멸참처럼
+묶음 없이 한 유닛이 스스로 예약하는 특수행동도 같은 `Special`이다. 행동이 끝나면 `ActionScheduler.AnyActionFinished`가 나간다.
 
 **궁극기는 턴을 쓰지 않는다.** 마나가 차는 즉시 줄을 서고, 발동해도 AV가 리셋되지 않는다.
 
@@ -209,20 +216,51 @@ AV가 가장 낮은 유닛이 0에 닿을 만큼만 전원의 AV를 한 번에 �
 
 | 항목 | 값 |
 | --- | --- |
-| 확률 | `CritRate` 최종값, 0~1로 자른다 |
-| 배율 | `1 + CritDamage` (기본 5% / 50%) |
+| 확률 | `CritRate` 최종값 + 시전자 효과의 가산, 0~1로 자른다 |
+| 배율 | `1 + CritDamage` (기본 5% / 50%) + 시전자 효과의 가산 |
 
-### 3.5 효과 명중과 회피
+굴림은 `Code.RollCritical(target, out mult)` 한 곳이다 — 대상 · 행동 종류(`CodeType`)를 알아야 하는 보상 코드의
+치명타 효과를 한 번에 처리한다. 대상을 모르는 공유 판정(한 번 굴려 전원에게 쓰는 궁극기 등)은 `RollCritical(out mult)`가
+대상 없이(`target = null`) 같은 경로를 탄다. 시전자의 효과(`BaseEffect`)는 아래 훅으로 끼어든다.
 
-해로운 상태를 적이 걸 때(`UnitStatusController.Add`) 명중을 굴린다.
+| 훅 | 뜻 | 쓰는 보상 코드 |
+| --- | --- | --- |
+| `CritChanceBonusAgainst(attacker, target, codeType)` | 확률 가산 (0.15 = +15%p) | 결전의 일격(궁극기에만 +15%p) |
+| `CritDamageBonusAgainst(attacker, target, codeType)` | 피해 가산 | 화무십일홍(확률의 2배) |
+| `ForcesCriticalAgainst(attacker, target, codeType)` | 확정 치명타 | 기습(체력 가득한 적) · 화무십일홍(체력 15% 미만) |
+| `CritOverflowToDamageRatio(attacker)` | 100%를 넘는 확률을 치명타 피해로 환산 (1 = 1:1) | 암살자 |
+
+### 3.5 효과 명중과 저항
+
+2026-10-06 확정·구현. 적에게 거는 **원소 부착(재부착 포함)·지속피해·디버프·제어·중립 표식**은
+시전자의 최종 특수공격력과 대상의 최종 특수방어력으로 판정한다.
 
 ```
-명중 확률 = 기본 확률 × 2 × 특공 / (특공 + 특방)     0~1로 자른다
+명중 확률 = clamp01(기본 확률 × 2 × 특공 / (특공 + 특방))
+기본 확률 = 0.75; 비교 스탯은 최소 1
 ```
 
-두 스탯이 같으면 기본 확률 그대로다. 빗나가면 카드 위에 `회피`가 뜬다(`CombatFeedback.PlayEvade`).
-확률을 코드가 이미 굴린 상태(화상 등)는 `UnitStatus.SkipEffectHitRoll`로 이중 판정을 막는다.
-**피해 자체를 피하는 회피는 없다.**
+| 특공 : 특방 | 기본 명중률 |
+| --- | --- |
+| 1 : 2 | 50% |
+| 1 : 1 | 75% |
+| 2 : 1 이상 | 100% |
+
+- 아군·자기 자신에게 주는 효과는 효과 명중과 코드의 추가 상태 저항을 모두 건너뛴다. 출처 없는 시스템 부여도 확정이다.
+- 실패해도 공격 피해는 들어간다. 카드의 `저항`은 부여만 실패했다는 뜻이며 피해 회피가 아니다.
+- 실패한 재부착·갱신은 기존 원소·상태·남은 기간을 바꾸지 않는다. 부착 실패 시 반응·원소 소모·부착 성공 이벤트도 없다.
+- **원소 부착 → 반응 상태**는 같은 부여라 특공/특방 판정을 한 번만 한다. 반응 제어·감전·화상·풍화·둔화·취약은 부착 성공을 상속한다.
+  반응이 아닌 가시 화상 등 별도 명시된 효과는 기본 확률 50% 등 개별 수치를 유지한다.
+- 확산은 새 수신자마다 명중을 판정한다. 기존 원소가 남았다는 이유만으로 성공 목록에 넣지 않는다.
+  바유의 확산 취약과 보상 코드 712 원소 침식은 실제 부착 성공에서 파생하므로 특공/특방을 다시 굴리지 않는다.
+- 성공 후 코드가 제공하는 **추가 상태 저항**은 별도로 작용한다. 동일 진영 부여에는 적용하지 않는다.
+  야마 선고와 히미코 맹화 폭발은 이미 적용된 원본 상태에서 파생하므로 두 번째 관문을 만들지 않는다.
+- 바유의 전 속성 취약은 대상당 상태 하나·판정 한 번이다. 속성별로 일곱 번 굴리지 않는다.
+- 이미 붙은 지속피해의 자연 틱과 야마의 즉시 발동은 재명중하지 않으며 상태·기간을 소모하지 않는다.
+- 실패한 제어는 기존 제어를 지우거나 제어 분쇄 횟수·제어 성공 이벤트를 올리지 않는다.
+
+구현: `DamageMitigation` · `Unit.GrantCombatElement` · `UnitStatusController`.
+검증: 실제 Unity `effect_hit_core`, 실패·갱신·진영·중립 지속피해·확산·제어·즉시 발동을 확인한다.
 
 ## 4. 보호막
 
@@ -248,6 +286,8 @@ AV가 가장 낮은 유닛이 0에 닿을 만큼만 전원의 AV를 한 번에 �
 - 재부여하면 남은 턴과 새 턴 중 긴 쪽을 남긴다.
 - **제어 분쇄** — 같은 대상에게 반복되면 100% → 60% → 30% → 면역. 제어 없이 자기 턴 3번이면 초기화.
 - 제어가 걸리면 `OnControlStarts`가 나가고, 그 유닛이 건 **집중이 해제된다**(공허 분쇄자의 대지 분쇄로 검증).
+- **제어 지속 훅** — 걸리는 쪽 효과의 `BaseEffect.ControlDurationModifier(unit)`이 위 지속 턴에 더해진다(음수면 줄인다).
+  걸리기로 한 제어는 **최소 1턴**이 남는다(`ControlStatuses.ApplyControl`). 정신력(보상 코드)이 -1턴을 건다.
 
 ## 6. 피해 태그
 
@@ -256,9 +296,18 @@ AV가 가장 낮은 유닛이 0에 닿을 만큼만 전원의 AV를 한 번에 �
 | 분류 | 태그 |
 | --- | --- |
 | 10000 대상 범위 | `SingleTarget` · `MultiTarget` · `AllTarget` |
-| 20000 공격 종류 | `NormalAttack` · `UltAttack` · `SpecialAttack` · `AdditionalAttack` · `CounterAttack` · `PassiveAttack` · `ElementalReaction` |
+| 20000 공격 종류 | `NormalAttack` · `UltAttack` · `SpecialAttack` · `AdditionalAttack` · `SummonAttack`(20006) · `CounterAttack` · `PassiveAttack` · `ElementalReaction` |
 | 30000 접촉 | `ContactAttack` · `NonContactAttack` |
 | 40000 관통 · 변환 | `ShieldPenetration` · `TrueDamage`(경감 없음) · `SpecialDamage`(특수방어력 경감) · `BonusDamage`(덧붙는 피해) |
+| 50000 공격 형태 | `Slash`(베기 50001) · `Pierce`(찌르기 50002) · `Shot`(사격 50003) · `Strike`(타격 50004) · `Spell`(주문 50005) |
+
+**50000번대는 무기가 아니라 공격의 생김새다.** 옛 무기 분류(50000)는 장비와 함께 지웠지만, "베기 공격 피해 +15%" 같은
+보상 코드([Detail_17 §3.1](Detail_17_Reward_Codes.md))가 무엇을 키우는지 말하려고 같은 자리에 되살렸다. 공격 하나는 형태 하나를 가지며,
+코드가 `Code.AttackForm`으로 선언한다(`Combat/AttackForms.cs`가 파티에 그 형태가 있는지 묻는다). 지속피해 · 원소 반응 · 덧붙는 피해는 형태가 없다.
+접촉 · 비접촉(30000)과는 별개 축이고, 경감 스탯은 형태와 무관하다(`DamageMitigation.TryGetDefenseStat`).
+
+**`SummonAttack`(20006)** 은 소환수가 가한 피해다. 공격자는 소환자로 기록하되(처치 · 마나 귀속) 소환수 피해 증가
+(갈라테아 · 소환술사 · 쿠베라 후원)가 이 태그를 본다 — [Detail_03 §4.7](Detail_03_Character.md).
 
 **지속피해는 태그 목록이 비어 있다.** 접촉 판정은 `ContactAttack`이 **있는지**를 묻는다.
 카드 흔들림 연출도 `ContactAttack`에만 붙는다.
@@ -277,13 +326,24 @@ Replace / ExtendDuration / Stack / ReplaceIfStronger / Ignore 중 하나를 고�
 | 피해 | `OutgoingDamageModifier` · `ReceivingDamageModifier(unit, ctx)` · `DefenseStatMultiplierModifier` · `OwnedDefenseStatMultiplierModifier` · `TryPreventDeath` |
 | 상태 · 대상 | `NegativeStatusResistanceChanceModifier` · `TargetPriorityAdditiveModifier` · `BlocksNormalAttack` · `RoundStartActionAdjustment` |
 | 회복 · 보호막 | 치유 · 보호막 배율 |
-| 지속피해 | `IsDamageOverTime` · `EstimateDamagePerTurn` |
+| 지속피해 | `IsDamageOverTime` · `EstimateDamagePerTurn` · `CreateDamageOverTimeTick`(원시 한 번분 피해 정보 — 자연 발동과 즉시 발동이 함께 쓰는 단일 입구, 상태를 바꾸지 않는다) |
+| 치명타 | `CritChanceBonusAgainst` · `CritDamageBonusAgainst` · `ForcesCriticalAgainst` · `CritOverflowToDamageRatio` — §3.4 |
+| 제어 · 상태 지속 | `ControlDurationModifier(unit)`(걸리는 제어 지속 가산, 최소 1턴 — §5) · `OutgoingStatusDurationModifier(caster, status)`(시전자가 **거는** 상태의 지속 가산 — 죽음의 계약의 지속피해 +1턴) |
 
 공용 효과는 `Effects/Buffs/SharedModifierEffects.cs`에 있다 — `StatModifierEffect(stat, 값 또는 Func, percent)`,
 `ReceivingDamageMultiplierEffect`, `OutgoingDamageMultiplierEffect`, `ArmorShredEffect`, `ManaEfficiencyEffect`.
 한 줄짜리 무조건 보정을 새 이름으로 다시 선언하지 않는다.
 
 지속피해의 틱 피해는 **시전자 공격력 × 계수**이고 특수방어력이 경감한다.
+
+**지속피해 즉시 발동** (`Combat.DamageOverTimeDetonation`, 야마 — [Detail_08 §15.3](Detail_08_Confirmed_Characters.md)). 대상의 모든 지속피해 효과를 스냅샷으로 한 번 읽어
+`CreateDamageOverTimeTick()` × 비율을 `Unit.TakeDamage`에 넘긴다. 시전자 · `Effect` 종류 · 반응 태그는 그대로이고 직접 공격 태그를 붙이지 않으므로
+원 시전자의 주는 피해 보정과 대상 경감이 자연 틱과 똑같이 한 번씩 걸린다. 지속시간 · 경과 턴 · 중첩은 건드리지 않고, 대상이 쓰러지면 남은 발동을 멈추며,
+같은 대상의 발동 중 재진입은 막는다. 새 지속피해 효과는 `IsDamageOverTime`과 `CreateDamageOverTimeTick`만 재정의하면 즉시 발동에 참여한다.
+
+**상태 증감 알림** (`Unit.AnyStatusChanged(보유자, 상태, 붙었는가)`). 상태가 새로 붙거나 떨어진 사실을 **바깥 호출(Add · Remove · TickTurn)이 끝난 뒤** 알린다 —
+받는 쪽이 같은 유닛의 상태를 고쳐도 순회가 어긋나지 않는다. 지속 연장 · 라운드 종료의 일괄 정리는 알리지 않는다.
+다른 해로운 상태에서 파생돼 원본이 남아 있는 동안 저절로 다시 붙는 오라(야마의 선고)는 `UnitStatus.SkipStatusResistanceRoll`로 상태 저항을 다시 굴리지 않는다.
 
 ### 7.2 상태 부여
 
@@ -304,7 +364,10 @@ target.AddStatus(BuffStatus.Create(
 `OnTurnStart/End` · `OnStage/RoundStart/End`.
 
 **정적 이벤트** (필드 전체를 듣는 특성용) — `Unit.AnyDamageIncoming`(경감 전) · `AnyDamageDealt` ·
-`AnyUnitDied` · `AnyNegativeStatusGranted` · `AnyElementalReaction` · `AnyCombatElementGranted`.
+`AnyUnitDied` · `AnyNegativeStatusGranted` · `AnyElementalReaction` · `AnyCombatElementGranted` ·
+`AnyHealed`(대상 · 치유자 · 실제 회복량 · 최대 체력을 넘겨 버려진 양) · `AnyShieldGranted`(대상 · 부여자 · 보호막량) ·
+`AnyPermanentStackGained`([Detail_03 §3.1](Detail_03_Character.md)). 소환수 생성은 `Combat.Summons.AnySummonCreated`,
+행동 종료는 `ActionScheduler.AnyActionFinished(유닛, 종류)`다.
 구독한 코드는 사망 · 라운드 종료에 반드시 구독을 끊는다.
 
 ## 9. 라운드 시작/종료
@@ -314,6 +377,18 @@ target.AddStatus(BuffStatus.Create(
 아군 필드를 전투 시작 스냅샷으로 복원(마나는 유지).
 
 ## 10. 전투 연출 — 자유 원화 카드
+
+**소환 편성 연출(2026-10-05):** `AnubisFx`는 심장의 저울의 기존 접촉 정점(.305 게임초)에 초상화 충격과 원래 피해·회복을 한 번 연결한다. 사자의 서는 자기 강화 문양만, 영혼 획득은 작은 청록 불꽃·배지 펄스만 표시한다. `UchiFx`와 `SummonCardView`는 셀 없는 분신 세 장을 우치 뒤에 겹쳐 표시한다. 분신 차례·넘침·대신 맞기·만천화우의 기존 추첨·피해·사망 순서를 유지하며 일반 카드 파괴 대신 짧은 부적 소멸을 쓴다. 넘침은 동기 판정을 지연하지 않고 작은 전진 자세와 흐린 피격을 같은 정점에 연다. 공용 부품의 색·앵커·받침·정점 프레임은 YAML/DTO로 읽고 캐릭터 ID 분기는 전용 모듈 밖에 추가하지 않는다.
+
+**로카팔라 연출(2026-10-05):** `LokapalaFx`는 한 번 시전 후 적 전원의 초상화 앵커에 동시 피격을 연다.
+첫 피격 정점 콜백이 기존 대상 순회 전체를 한 번 수행하며 뒤 대상의 시각 콜백은 판정을 반복하지 않는다.
+바즈라는 낙뢰 하단 충돌점에서 충격을 잇고, 골드 러쉬는 고정 크기에서 금화 수·명암만 바꾼다.
+팔방의 소집은 피해 없이 여덟 방향 문양과 참여자 HUD 펄스만 사용한다. 실제 특수행동 예약과 순서는 그대로다.
+창야의 옛 치명타 버프 연출은 제거하고, 기존 회복 뒤 전원 공통 치유 피격 및 달빛 순환 소형 치유를 연결한다.
+시전·피격·resolve 음향은 저장소 음원으로만 구성한다. `isCasting` 수명은 기존 코드 코루틴이 맡는다.
+- 로카팔라 피격 앵커는 `UnitCardView.PortraitFocusWorldPoint`를 따라 얼굴~상체 중심에 고정한다. 반동 중에도 이동하는 초상화를 따른다. 바람의 침식은 상태 판정 직후 예약하고 피격 뒤에 받는 연출만 이어 재생한다. 외곽의 투명도는 플립북의 실제 `PeakAlpha`로 정하며, 창야는 기존 실제 회복 한 번의 자동 지원 피격을 쓰고 종료까지 시전 상태를 유지한다. (2026-10-05)
+신규 몸체는 정점 칸을 유지하고 마지막 20%만 교차 합성한다. 5유닛 가시성에 맞춘 기본 회오리·치유 폭은 고정하고 강화 배율은 크기에 반영하지 않는다. 지원 외곽 받침은 몸체와 같은 프레임 배열로 끝까지 남긴다. 변경 창야는 Explosion2_Blue의 기존 4/30 정점으로 판정하며, 실제 회복이 공용 치유 피격과 지원 포커스를 한 번 발생시킨다.
+
 
 모든 유닛은 **자유롭게 선 원화 + 하단 글라스**다(`Entities/View/UnitCardView.cs`).
 2026-09의 하스스톤식 불투명 판·보석은 원화를 가려 되돌렸지만, 카드 단위 모션과 전투 이펙트 구조는 유지한다.
@@ -427,6 +502,8 @@ P5의 데이터 키는 SFX 큐와 같은 논리 이름(`shi.destruction_slash`, 
 
 | 파일 | 역할 |
 | --- | --- |
+| `AnubisFx` | 심장의 저울의 짧은 부분 전진과 금·청록 초상화 충격, 사자의 서 자기 강화 문양, 영혼 불꽃·정수/소수 배지 펄스. 기존 피해·회복·영구 중첩 수식과 이벤트 순서를 유지한다 |
+| `UchiFx` / `Entities/View/SummonCardView` | 칸 없는 분신의 반투명 카드 세 장을 소환자 모션에 붙인다. 생성·일격·넘침·막기·동시 전진·부적 소멸을 표시하며 셀·배치·카메라에는 참가하지 않는다 |
 | `VfxSpace` | 절차적 스프라이트와 가산 재질. `WorldPoint`는 `Cell.CardCenter`, `AimFrom`은 시전자→대상 각도·반전, `BuildTargetHitSequence`/`ResolveTargetHits`는 궤적 없이 짧은 대상별 피격 순서와 콜백만 맡는다. `ResolveSortingLayer`는 모든 전투 렌더러를 `CombatVfx` 앞 레이어로 정규화한다 |
 | `SpriteFx` / `VfxTiming` | 한 장짜리 확대·회전·페이드와 배속 보정. 8배속에서도 짧은 코어·외곽은 최소 2프레임, 투사체 비행은 최소 3프레임을 남긴다 |
 | `FlipbookFx` | 행×열 시트를 좌상단→우하단 순으로 자르고 프레임별 지연·루프/1회·피벗·좌우 반전·카드 배율·배속을 재생한다. 몸체 알파층과 휘도 임계 가산층을 나누고, 현재/다음 프레임을 교차 합성하며 위치·회전·크기를 이징한다. 시트 변이 칸 수로 나뉘지 않아도 반올림 경계로 마지막 픽셀까지 보존한다 |

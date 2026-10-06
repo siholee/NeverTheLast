@@ -91,6 +91,12 @@ namespace Managers
         /// <summary>행동치 조작을 행동서열이 작은 표식과 보간 이동으로 설명할 때 쓴다.</summary>
         public static event Action<Unit, bool> AnyActionOrderAdjusted;
 
+        /// <summary>
+        /// 실행된 행동 하나가 끝났다(유닛 · 종류). 코루틴 행동은 시전이 끝날 때, 즉발 행동은 실행 직후 발행한다.
+        /// "특수행동을 마칠 때마다"(인드라 소집 순환 · 찬드라 달빛 순환)처럼 <b>종류별 종료</b>를 세는 코드가 듣는다.
+        /// </summary>
+        public static event Action<Unit, ActionKind> AnyActionFinished;
+
         /// <summary>턴을 쓰지 않는 추가행동 계열인가. 우선 추가행동도 성질은 같다.</summary>
         public static bool IsAdditional(ActionKind kind)
             => kind is ActionKind.Additional or ActionKind.PriorityAdditional;
@@ -148,6 +154,8 @@ namespace Managers
         private readonly HashSet<string> _queuedKeys = new();
 
         private Unit _acting;
+        // 선제 개입이 ActingKind를 잠시 바꿔도 끝난 행동의 종류를 정확히 알리기 위해 따로 든다.
+        private ActionKind _actingRootKind;
         private float _actingElapsed;
         private int _sequence;
         private int _actionIdSequence;
@@ -332,6 +340,10 @@ namespace Managers
         public bool EnqueueAdditional(Unit unit, string key, string label, Action run)
             => Enqueue(unit, ActionKind.Additional, key, label, run);
 
+        /// <summary>실행 직전 대상이 사라지면 공지 · 이벤트 없이 버리는 추가행동(아그니 · 수리야의 추공).</summary>
+        public bool EnqueueAdditional(Unit unit, string key, string label, Action run, Func<bool> canRun)
+            => Enqueue(unit, ActionKind.Additional, key, label, run, canRun);
+
         /// <summary>조건을 만족한 패시브 발동을 예약한다. 모든 행동보다 먼저 실행된다.</summary>
         /// <summary>패시브가 부르는 추가행동. 같은 턴의 다른 행동보다 먼저 나간다.</summary>
         public bool EnqueuePriorityAdditional(Unit unit, string key, string label, Action run)
@@ -402,7 +414,9 @@ namespace Managers
                     _acting.isCasting = false;
                 }
 
+                Unit finishedUnit = _acting;
                 _acting = null;
+                AnyActionFinished?.Invoke(finishedUnit, _actingRootKind);
                 _actingElapsed = 0f;
                 _currentActionId = -1;
             }
@@ -432,9 +446,11 @@ namespace Managers
             GridManager grid = GridManager.Instance;
             if (grid == null) return Enumerable.Empty<Unit>();
 
-            // 소환수도 자기 DEX로 행동 순서를 얻는다. IsOnField가 칸 유무를 흡수한다.
+            // 소환수는 칸이 없어 별도 목록에 있다. 행동치를 가진 소환수만 순서에 낀다 —
+            // 소환자 코드가 지시할 때만 움직이는 소환수는 IsOnField여도 스케줄러가 부르지 않는다.
             return grid.heroList.Concat(grid.enemyList)
-                .Where(unit => unit != null && unit.IsOnField);
+                .Where(unit => unit != null && unit.IsOnField)
+                .Concat(grid.summonList.Where(unit => unit != null && unit.IsOnField && unit.TakesScheduledTurns));
         }
 
         /// <summary>새로 등장했거나 사라진 유닛을 AV 표에 반영한다.</summary>
@@ -501,6 +517,7 @@ namespace Managers
                 _actingElapsed = 0f;
                 _currentActionId = ++_actionIdSequence;
                 ActingKind = next.Kind;
+                _actingRootKind = next.Kind;
                 _executingUnit = next.Unit;
 
                 // 추가행동은 자기 턴을 쓰지 않아 OnTurnStart로는 잡히지 않는다.
@@ -530,7 +547,11 @@ namespace Managers
                 // 그런 경우 isCasting이 서지 않으므로 붙잡지 않고 바로 다음으로 넘어간다.
                 _acting = next.Unit.isCasting ? next.Unit : null;
                 ActionCount++;
-                if (_acting == null) _currentActionId = -1;
+                if (_acting == null)
+                {
+                    _currentActionId = -1;
+                    AnyActionFinished?.Invoke(next.Unit, next.Kind);
+                }
                 return true;
             }
 
@@ -650,11 +671,14 @@ namespace Managers
         private static bool MayTakeTurn(Unit unit, Dictionary<Unit, int> counts,
             Dictionary<Unit, float> credit, IEnumerable<Unit> participants)
         {
+            // 소환수는 추월 제한 밖이다. 한 번 행동하고 사라지는 분신이 제한에 끼면 느린 분신을 기다리느라
+            // 다른 유닛이 멈추거나 분신이 제 속도보다 일찍 서서, "고정 속도"라는 약속이 깨진다.
+            if (unit.IsSummon) return true;
             int mine = counts.GetValueOrDefault(unit);
             int bonus = Mathf.FloorToInt(credit.GetValueOrDefault(unit));
             foreach (Unit other in participants)
             {
-                if (other == null || ReferenceEquals(other, unit)) continue;
+                if (other == null || ReferenceEquals(other, unit) || other.IsSummon) continue;
                 if (mine - counts.GetValueOrDefault(other) >= LapAllowance(unit, other) + bonus) return false;
             }
             return true;
@@ -663,10 +687,11 @@ namespace Managers
         /// <summary>추월 몫 없이는 설 수 없었는가 — 몫을 깎을지 판단한다.</summary>
         private static bool NeedsCredit(Unit unit, Dictionary<Unit, int> counts, IEnumerable<Unit> participants)
         {
+            if (unit.IsSummon) return false;
             int mine = counts.GetValueOrDefault(unit);
             foreach (Unit other in participants)
             {
-                if (other == null || ReferenceEquals(other, unit)) continue;
+                if (other == null || ReferenceEquals(other, unit) || other.IsSummon) continue;
                 if (mine - counts.GetValueOrDefault(other) >= LapAllowance(unit, other)) return true;
             }
             return false;
