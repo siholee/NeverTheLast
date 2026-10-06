@@ -46,7 +46,7 @@ namespace Tools.Editor
                 if(result.includeTemporaryVoices && result.temporaryAudioAssets==0) throw new InvalidOperationException("임시 음원 포함 요청인데 BuildReport에 음원이 없습니다.");
                 result.message=result.success?(result.includeTemporaryVoices?"Windows 빌드 완료 (사용자 요청: 임시 음원 포함)":"공개 Windows 빌드 완료 (HSR 임시 음원 제외)"):"BuildReport 실패";
             }
-            catch(Exception e) {result.message=e.ToString();Debug.LogException(e);}
+            catch(Exception e) {result.success=false;result.message=e.ToString();Debug.LogException(e);}
             finally
             {
                 result.finishedAtUtc=DateTime.UtcNow.ToString("O");
