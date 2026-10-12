@@ -47,6 +47,7 @@ namespace Codes.Passive.Reward
             if (Entry == null || Entry.damageTag <= 0 || Entry.damageTagBonus <= 0f) return;
             int tag = Entry.damageTag;
             float multiplier = 1f + Entry.damageTagBonus / 100f;
+            if (tag == DamageTag.UltAttack) { AddStatus(Caster, new UltimateDamageBonusEffect(multiplier - 1f)); return; }
             AddStatus(Caster, new ConditionalOutgoingDamageMultiplierEffect(
                 context => context != null && context.HasTag(tag), multiplier));
         }

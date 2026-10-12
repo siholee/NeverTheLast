@@ -18,11 +18,8 @@ using UnityEngine.UI;
 namespace Managers.UI.DevTools
 {
     /// <summary>
-    /// 쿠베라 후속(Detail_08 §11) 검증 시나리오.
-    ///   `kubera_followup_core` (party5_summon, 스테이지 6 · 파티 레벨 6)
-    ///     1) 후원 +20%와 보고 개방 +15%가 같은 쿠베라 계열 안에서 <b>더해져</b> ×1.35가 되는지 — 실제 TakeDamage 결과로 잰다.
-    ///        P만 · U만(쿠베라 사망 / 이탈) · 둘 · 재시전 · 만료 · 라운드 종료 · 피그말리온 · 실제 분신 일격 · 비소환 피해 · 갈라테아와의 곱.
-    ///     2) TAB 캐릭터 창 코드 탭의 특수행동 항목과 골드 러쉬의 현재 금력 배율 — 실제 UI 글자와 열린 툴팁, 캡처.
+    /// 쿠베라 현행 재보 검증과 기존 로카팔라 코드 UI 검사.
+    ///   `kubera_followup_core`는 최신 treasury_core(재보 편성)를 실행한다. 과거 소환 후원 검사는 폐기했다.
     ///   `kubera_followup_lokapala_ui` (party5_lokapala) — 인드라 · 바유 · 쿠베라 · 찬드라의 특수행동 항목, 특수행동이 없는 시.
     ///
     /// 장면 준비 · 실제 행동 실행 · 피해 기록은 야마 · 바루나 하네스의 <see cref="YvPrepareScene"/> · <see cref="YvRecorder"/>를 그대로 쓴다.
@@ -125,180 +122,12 @@ namespace Managers.UI.DevTools
 
         // ── 시나리오 1: 합산 + 실제 UI ─────────────────────────────────
 
-        private IEnumerator ScenarioKuberaFollowupCore(VerifyScenarioRequest config)
+        private IEnumerator ScenarioKuberaReworkCore(VerifyScenarioRequest config)
         {
-            _kbFailures.Clear();
-            bool wasEnabled = true;
-            yield return YvPrepareScene(config, value => wasEnabled = value);
-
-            Unit Find(int id) => AliveAllies().FirstOrDefault(unit => unit.ID == id);
-            Unit anubis = Find(AnubisId), uchi = Find(UchiId), kubera = Find(KuberaId), pyg = Find(PygmalionId), sei = Find(SeiId);
-            if (anubis == null || uchi == null || kubera == null || pyg == null || sei == null)
-            {
-                FailCurrent("아누비스 · 우치 · 쿠베라 · 피그말리온 · 세이 편성을 찾지 못했다. lineup은 party5_summon이어야 한다.");
-                yield break;
-            }
-            Unit target = AliveEnemies().OrderByDescending(unit => unit.Priority).FirstOrDefault();
-            if (target == null) { FailCurrent("측정할 적이 없다."); yield break; }
-
-            var patronage = kubera.ActivePassiveCodes.OfType<KuberaPatronage>().FirstOrDefault();
-            var galatea = pyg.ActivePassiveCodes.OfType<PygmalionGalatea>().FirstOrDefault();
-            KbCheck("쿠베라 코드 등록", "P265 KuberaPatronage · SP65 KuberaGoldRush(0) · U65 KuberaTreasury",
-                $"{patronage?.GetType().Name} · {kubera.ActiveSpecialCode?.GetType().Name}({kubera.ActiveSpecialCode?.OpenOrder}) · {kubera.ActiveUltimateCode?.GetType().Name}",
-                patronage != null && kubera.ActiveSpecialCode is Codes.Special.KuberaGoldRush && kubera.ActiveSpecialCode.OpenOrder == 0 &&
-                kubera.ActiveUltimateCode is Codes.Ultimate.KuberaTreasury);
-            KbCheck("피그말리온 소환수 판정 · 세이 비소환", "피그말리온 true · 세이 false",
-                $"피그말리온 {pyg.CountsAsSummon} · 세이 {sei.CountsAsSummon}", pyg.CountsAsSummon && !sei.CountsAsSummon);
-            if (patronage == null || galatea == null) { KbFinish(); yield break; }
-
-            var kinds = new List<KbProbeKind>
-            {
-                new("우치 소환수 피해(SummonAttack)", uchi, true, true),
-                new("우치 일반 피해(태그 없음)", uchi, false, false),
-                new("피그말리온(소환수 판정)", pyg, false, true),
-                new("세이 일반 피해", sei, false, false),
-                new("아누비스 일반 피해", anubis, false, false),
-            };
-            List<Unit> attackers = kinds.Select(kind => kind.Attacker).Distinct().ToList();
-
-            // 0) 기준 — 쿠베라 계열과 다른 계열(갈라테아 오라)을 걷어 쿠베라 몫만 남긴다. 피그말리온의 소환수 정체는 남긴다.
-            foreach (Unit ally in AliveAllies())
-            {
-                ally.RemoveStatusByKey(KbPatronageKey);
-                ally.RemoveStatusByKey(KbTreasuryKey);
-                ally.RemoveStatusByKey(KbGalateaKey);
-            }
-            Dictionary<string, int> baseline = KbMeasure(kinds, target);
-            KbCheck("기준 측정 정상", "모두 > 0", string.Join(" · ", baseline.Select(pair => $"{pair.Key} {pair.Value}")),
-                baseline.Values.All(value => value > 0));
-
-            // 1) 후원만
-            patronage.CastCode();
-            KbCheck("후원 오라 부여", "필드 아군 전원", $"{AliveAllies().Count(ally => ally.HasStatusKey(KbPatronageKey))}/{AliveAllies().Count}",
-                AliveAllies().All(ally => ally.HasStatusKey(KbPatronageKey)));
-            KbCompare("P만", kinds, baseline, KbMeasure(kinds, target), 1.20f, 1.00f);
-
-            // 2) 후원 + 보고 개방(실제 초월기 시전)
-            using (var recorder = new YvRecorder())
-            {
-                yield return KbCastTreasury(kubera);
-                KbCheck("보고 개방 실제 피해", "적 전원 피해 > 0",
-                    $"{recorder.Dealt.Count(item => item.Attacker == kubera)}건", recorder.Dealt.Any(item => item.Attacker == kubera));
-            }
-            UnitStatus uchiBuff = KbStatus(uchi, KbTreasuryKey);
-            KbCheck("보고 개방 상태 — 아군 전원 · 2턴", "전원 · Duration 2",
-                $"{AliveAllies().Count(ally => ally.HasStatusKey(KbTreasuryKey))}/{AliveAllies().Count} · Duration {uchiBuff?.Duration}",
-                AliveAllies().All(ally => ally.HasStatusKey(KbTreasuryKey)) && uchiBuff?.Duration == 2);
-            KbCompare("P+U", kinds, baseline, KbMeasure(kinds, target), 1.35f, 1.00f, "곱연산이면 1.38");
-
-            // 2-1) 실제 분신 일격도 같은 배율을 받는가 — 분신이 친 같은 대상 · 같은 원시 피해를 탐침으로 다시 재 비교한다.
-            yield return KbRealCloneStrike(uchi, "P+U");
-
-            // 3) 재시전 — 같은 키는 교체(Replace)라 겹치지 않고 남은 턴만 2로 돌아간다.
-            uchi.BeginTurn();
-            int elapsedBefore = KbStatus(uchi, KbTreasuryKey)?.ElapsedTurns ?? -1;
-            yield return KbCastTreasury(kubera);
-            KbCheck("재시전 — 상태 1개 · 경과 턴 초기화", "우치 1개 · 경과 1 → 0",
-                $"우치 {KbStatusCount(uchi, KbTreasuryKey)}개 · 경과 {elapsedBefore} → {KbStatus(uchi, KbTreasuryKey)?.ElapsedTurns}",
-                AliveAllies().All(ally => KbStatusCount(ally, KbTreasuryKey) == 1) && elapsedBefore == 1 &&
-                KbStatus(uchi, KbTreasuryKey)?.ElapsedTurns == 0);
-            KbCompare("재시전 후 P+U", kinds, baseline, KbMeasure(kinds, target), 1.35f, 1.00f, "중첩이면 1.50");
-
-            // 4) 쿠베라 사망 — 후원만 꺼지고 남은 보고 개방 +15%는 유지된다.
-            kubera.Die(null);
-            yield return WaitUnscaled(0.3f);
-            KbCheck("쿠베라 사망 상태", "isActive false · 보고 개방 남음",
-                $"isActive {kubera.isActive} · 우치 보고 개방 {uchi.HasStatusKey(KbTreasuryKey)}",
-                !kubera.isActive && uchi.HasStatusKey(KbTreasuryKey));
-            KbCompare("U만(쿠베라 사망)", kinds, baseline, KbMeasure(kinds, target), 1.15f, 1.00f);
-            yield return KbRealCloneStrike(uchi, "U만(쿠베라 사망)");
-            kubera.ReviveAfterBattle();
-            yield return WaitUnscaled(0.3f);
-            KbCheck("쿠베라 복귀", "isActive · 필드", $"isActive {kubera.isActive} · IsOnField {kubera.IsOnField}",
-                kubera.isActive && kubera.IsOnField);
-            KbCompare("복귀 후 P+U", kinds, baseline, KbMeasure(kinds, target), 1.35f, 1.00f);
-
-            // 5) 쿠베라 필드 이탈(살아 있으나 칸을 비움) — Unit.IsOnField 판정만 바꾸고 곧바로 되돌린다.
-            Cell cell = kubera.currentCell;
-            if (cell != null)
-            {
-                cell.isOccupied = false;
-                KbCheck("쿠베라 이탈 판정", "isActive true · IsOnField false",
-                    $"isActive {kubera.isActive} · IsOnField {kubera.IsOnField}", kubera.isActive && !kubera.IsOnField);
-                KbCompare("U만(쿠베라 이탈)", kinds, baseline, KbMeasure(kinds, target), 1.15f, 1.00f);
-                cell.isOccupied = true;
-            }
-            else KbCheck("쿠베라 이탈 판정", "칸 있음", "currentCell 없음", false);
-
-            // 6) 만료 — 보유자 턴 2번이 지나면 보고 개방이 사라지고 후원 +20%만 남는다.
-            foreach (Unit ally in attackers) ally.BeginTurn();
-            bool afterOne = attackers.All(ally => ally.HasStatusKey(KbTreasuryKey));
-            foreach (Unit ally in attackers) ally.BeginTurn();
-            bool afterTwo = attackers.Any(ally => ally.HasStatusKey(KbTreasuryKey));
-            KbCheck("보고 개방 2턴 만료", "1턴 뒤 남음 · 2턴 뒤 없음", $"1턴 뒤 {afterOne} · 2턴 뒤 남은 유닛 {afterTwo}", afterOne && !afterTwo);
-            KbCompare("만료 후 P만", kinds, baseline, KbMeasure(kinds, target), 1.20f, 1.00f);
-
-            // 7) 다른 계열과는 그대로 곱한다 — 갈라테아(소환수 +30% · 그 밖 +15%) × 쿠베라 계열 1.35.
-            galatea.CastCode();
-            yield return KbCastTreasury(kubera);
-            Dictionary<string, int> mixed = KbMeasure(kinds, target);
-            KbCompare("갈라테아 × P+U", kinds, baseline, mixed, 1.30f * 1.35f, 1.15f, "1.30 × 1.35");
-
-            // 8) 라운드 종료 — 후원 · 보고 개방 상태가 모두 정리된다.
-            GameManager game = GameManager.Instance;
-            game.ActionScheduler.EndRound();
-            GridManager.Instance.OnRoundEnd();
-            List<Unit> heroes = GridManager.Instance.heroList.Where(unit => unit != null).ToList();
-            KbCheck("라운드 종료 정리", "후원 0 · 보고 개방 0",
-                $"후원 {heroes.Count(unit => unit.HasStatusKey(KbPatronageKey))} · 보고 개방 {heroes.Count(unit => unit.HasStatusKey(KbTreasuryKey))}",
-                heroes.All(unit => !unit.HasStatusKey(KbPatronageKey) && !unit.HasStatusKey(KbTreasuryKey)));
-            foreach (Unit unit in heroes)
-            {
-                unit.StopAllCoroutines();
-                unit.isCasting = false;
-            }
-            game.gameState = BaseEnums.GameState.Preparation;
-            game.enabled = wasEnabled;
-            yield return CaptureStill("kubera_followup_damage");
-
-            // 9) 실제 TAB 캐릭터 창
-            yield return KbCodexUi(true);
-            KbFinish();
+            // 2026-10-10: 옛 소환 후원/보고 개방 검사는 더 이상 현행 사양이 아니다.
+            config.lineup = "party5_treasury";
+            yield return ScenarioTreasuryCore(config);
         }
-
-        /// <summary>
-        /// 실제 분신을 만들고(Summons.Create) 실제 분신 일격(StrikeAndVanish)을 친 뒤, 같은 대상 · 같은 원시 피해 · 같은 태그로
-        /// 우치 명의 탐침을 다시 넣어 실제 경로와 탐침이 같은 배율을 받는지 확인한다(치명이 나도 원시 피해에 이미 들어 있다).
-        /// </summary>
-        private IEnumerator KbRealCloneStrike(Unit uchi, string phase)
-        {
-            Unit clone = Summons.Create(uchi);
-            if (clone == null) { KbCheck($"{phase} — 실제 분신 생성", "분신 1기", "생성 실패", false); yield break; }
-            DamageContext context = null;
-            Unit hit = null;
-            int dealt = 0;
-            using (var recorder = new YvRecorder())
-            {
-                Codes.Normal.UchiCloneStrike.StrikeAndVanish(clone, 1f);
-                (Unit Target, DamageContext Context) incoming = recorder.IncomingTargets
-                    .LastOrDefault(item => item.Context.Attacker == uchi && item.Context.HasTag(DamageTag.SummonAttack));
-                hit = incoming.Target;
-                context = incoming.Context;
-                dealt = context?.ResolvedDamage ?? 0;
-            }
-            if (hit == null || context == null || !hit.isActive)
-            {
-                KbCheck($"{phase} — 실제 분신 일격", "우치 명의 SummonAttack 피해 1회", "기록 없음", false);
-                yield break;
-            }
-            hit.RestoreHpOutsideCombat(hit.HpMax);
-            int probe = KbProbe(uchi, hit, true, context.Damage);
-            KbCheck($"{phase} — 실제 분신 일격 = 소환수 탐침", $"{probe} ±1",
-                $"원시 {context.Damage}{(context.IsCrit ? "(치명)" : "")} → 실제 {dealt}", dealt > 0 && Mathf.Abs(dealt - probe) <= 1);
-            yield return WaitUnscaled(0.2f);
-        }
-
-        // ── 시나리오 2: 로카팔라 편성의 특수행동 항목 ───────────────────────
 
         private IEnumerator ScenarioKuberaFollowupLokapalaUi(VerifyScenarioRequest config)
         {

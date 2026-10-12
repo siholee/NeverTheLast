@@ -10,6 +10,9 @@ namespace Codes.Base
     /// </summary>
     public virtual bool IsAutoCast => true;
 
+    /// <summary>첫 유효 발사까지 마나와 초월기 발동 알림을 보류한다.</summary>
+    public virtual bool DefersActivationUntilImpact => false;
+
     /// <summary>라운드 시작에 구독을 열고 자원을 소모하지 않는 상시형 초월기인가.</summary>
     public virtual bool IsPersistent => false;
 

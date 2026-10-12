@@ -9,7 +9,7 @@ namespace Effects.Base
     /// 한 클래스에 <b>선택적 질의 훅</b>이 여럿 있고, 효과는 필요한 것만 재정의한다.
     /// <see cref="Unit"/>은 값이 필요할 때마다 보유한 모든 효과에 물어 합산한다.
     ///
-    /// 2026-09 개편에서 옛 캐릭터 전용 훅(강인도 · 내구 · 소환수 · 처형선 · 시약 등)을 걷어냈다.
+    /// 2026-09 개편에서 옛 캐릭터 전용 훅(내구 · 처형선 · 시약 등)을 걷어냈다.
     /// 새 캐릭터가 필요로 할 때 그 캐릭터와 함께 다시 들인다.
     /// </summary>
     public abstract class BaseEffect
@@ -71,6 +71,9 @@ namespace Effects.Base
         /// <summary>마나 회복 배율 보정 (1 = 변화 없음)</summary>
         public virtual float ManaRecoveryMultiplierModifier(Unit unit) => 1f;
 
+        /// <summary>초월기 피해 증가의 가산 몫. 동일 분류는 더해서 한 번 곱한다.</summary>
+        public virtual float UltimateDamageBonus(Unit actor) => 0f;
+
         // ===== 피해 =====
 
         /// <summary>주는 피해 배율 (공격자의 효과에서 질의, 1 = 변화 없음)</summary>
@@ -129,6 +132,8 @@ namespace Effects.Base
 
         /// <summary>보유자의 일반행동을 막으면 true.</summary>
         public virtual bool BlocksNormalAttack(Unit unit) => false;
+
+        public virtual float ToughnessEfficiencyBonus(Unit attacker) => 0f;
 
         // ===== 치유 · 보호막 =====
 

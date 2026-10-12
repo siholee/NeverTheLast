@@ -73,13 +73,13 @@ namespace Effects.Vfx
         private static IEnumerator FlushSoul(Unit caster)
         {
             // 만천화우의 동시 사망은 획득 판정을 각각 보존하고, 같은 프레임의 불꽃·펄스만 하나로 합친다.
-            yield return null;
+            yield return new WaitForSeconds(.12f);
             bool whole = PendingSouls.TryGetValue(caster, out bool value) && value;
             PendingSouls.Remove(caster);
             if (caster == null || !caster.isActive || !caster.IsOnField) yield break;
             VfxComposer.PlaySlot(whole ? "anubis.soul" : "anubis.soul.fraction", "cast", 0, caster, caster,
                 VfxSpace.WorldPoint(caster) + Vector3.up * VfxSpace.CardSize * .40f, VfxSpace.SortingLayer(caster));
-            CardMotion.ViewOf(caster)?.PulseResourceBadge(whole ? 1f : .4f);
+            CardMotion.ViewOf(caster)?.PulseResourceBadge(whole ? 1f : .7f);
             AudioManager.PlayCue("anubis.soul.resolve");
         }
 

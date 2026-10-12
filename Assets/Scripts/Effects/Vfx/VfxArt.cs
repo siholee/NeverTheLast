@@ -4,17 +4,7 @@ using UnityEngine.Rendering;
 
 namespace Effects.Vfx
 {
-    /// <summary>
-    /// 연출의 <b>질감</b> — 그린 텍스처 · 절차 바위 · 결정 · 궤적(TrailRenderer).
-    ///
-    /// <see cref="VfxSpace"/>의 절차 도형(원 · 고리 · 십자)만으로는 형태가 단순해 "원신 TCG 수준"에 닿지 못했다
-    /// (Play 모드 확인 뒤 사용자 판단). 그래서 두 가지를 더한다.
-    ///   · 프로젝트에 이미 있는 Hovl 이펙트 텍스처를 흰색 + 알파로 바꿔 <c>Resources/VfxTex</c>에 둔 것
-    ///     — 별 섬광 · 충격파 · 연기 · 빛살 · 마름모. 색은 렌더러가 입힌다.
-    ///   · Hovl 프리팹에 없는 지면 먼지·작은 사암 파편용 로우폴리 보조 원화.
-    /// 주인공 연출인 투사체·등장·보호막·결정 흡수는 <see cref="HovlFx"/>가 맡고 여기서는 받침만 제공한다.
-    /// 텍스처를 못 읽으면(임포트 전 등) 절차 도형으로 물러난다.
-    /// </summary>
+    /// <summary>구매 손그림·기존 캐릭터 원화·절차 보조 도형을 연결한다. 기본 보조 도형은 Hovl 텍스처를 읽지 않는다.</summary>
     public static class VfxArt
     {
         private static readonly Dictionary<string, Sprite> Loaded = new();
@@ -26,35 +16,38 @@ namespace Effects.Vfx
         // ── 그린 텍스처 ──────────────────────────────────────────────
 
         /// <summary>혜성 머리와 꼬리. 머리가 <b>왼쪽</b>이다 — 진행 방향 + 180°로 돌려 쓴다.</summary>
-        public static Sprite Streak => Tex("Streak", VfxSpace.Streak);
+        public static Sprite Streak => VfxSpace.Streak;
         /// <summary>여러 갈래로 뻗는 별 섬광. 타격의 심지.</summary>
-        public static Sprite Starburst => Tex("Starburst", VfxSpace.Sparkle);
+        public static Sprite Starburst => VfxSpace.Sparkle;
         /// <summary>네 갈래 반짝임(원신식 별빛).</summary>
-        public static Sprite Glint => Tex("Glint", VfxSpace.Sparkle);
+        public static Sprite Glint => VfxSpace.Sparkle;
         /// <summary>부드러운 빛무리.</summary>
-        public static Sprite SoftGlow => Tex("SoftGlow", VfxSpace.Glow);
+        public static Sprite SoftGlow => VfxSpace.Glow;
         /// <summary>초승달 모양의 휘두름 자국.</summary>
-        public static Sprite Crescent => Tex("Crescent", VfxSpace.Ring);
+        public static Sprite Crescent => VfxSpace.Crescent;
         /// <summary>안쪽이 비고 가장자리가 밝은 충격파 고리.</summary>
-        public static Sprite Shockwave => Tex("Shockwave", VfxSpace.Ring);
+        public static Sprite Shockwave => VfxSpace.Ring;
         /// <summary>빛살이 뻗는 문양 마법진.</summary>
-        public static Sprite RuneRadiant => Tex("RuneRadiant", VfxSpace.RuneRing);
+        public static Sprite RuneRadiant => VfxSpace.RuneRing;
         /// <summary>장식 고리 마법진. 오래 유지되는 표식(집중)에 쓴다.</summary>
-        public static Sprite RuneOrnate => Tex("RuneOrnate", VfxSpace.RuneRing);
+        public static Sprite RuneOrnate => VfxSpace.RuneRing;
         /// <summary>뭉게 연기. 알파로 흙먼지 색을 입혀 쓴다.</summary>
-        public static Sprite Smoke => Tex("Smoke", VfxSpace.SoftDot);
+        public static Sprite Smoke => VfxSpace.SoftDot;
         /// <summary>가운데서 뻗는 빛살.</summary>
-        public static Sprite Rays => Tex("Rays", VfxSpace.Glow);
+        public static Sprite Rays => VfxSpace.Glow;
         /// <summary>뾰족한 타격 별.</summary>
-        public static Sprite ImpactStar => Tex("ImpactStar", VfxSpace.Sparkle);
+        public static Sprite ImpactStar => VfxSpace.Sparkle;
         /// <summary>마름모 — 바위 원소의 표식.</summary>
-        public static Sprite Diamond => Tex("Diamond", VfxSpace.HardDot);
+        public static Sprite Diamond => VfxSpace.Diamond;
 
         // ── 생성 원화 ───────────────────────────────────────────────
         // 단순 도형으로는 속도 껍질과 지층의 면 분할이 지나치게 매끈하게 보였다. 생성 원화는
         // 알파 가장자리를 정리한 뒤 Resources에 두고, 임포트 전에는 기존 절차 원화로 물러난다.
         /// <summary>밝은 전장에서도 중심이 남는 황토색 방향성 먼지 원뿔.</summary>
         public static Sprite DustCone => Tex("Gen/DustCone_Ochre", Smoke);
+
+        /// <summary>쿠베라 시전의 입체 금고. 원화 재질은 투명 손그림 텍스처로 유지한다.</summary>
+        public static Sprite TreasuryCoffer => Tex("Gen/TreasuryCoffer_Kubera_v1", VfxSpace.RoundedRect);
 
         /// <summary>
         /// 시의 「귀참」 전용 청록 검기. 흰 코어 바깥을 세 갈래 발톱과 송곳니처럼 찢고

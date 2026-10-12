@@ -3,6 +3,7 @@ using Codes.Normal;
 using Codes.Passive;
 using Codes.Special;
 using Codes.Ultimate;
+using Codes.Restored;
 
 namespace Codes.Base
 {
@@ -33,20 +34,30 @@ namespace Codes.Base
     {
       return codeId switch
       {
+        >= 21000 and <= 24000 => new RestoredEnemyPassive(context),
+        225 => new OrpheusCheatedDeath(context),
         201 => new SeiBigBang(context),              // 세이 — 빅뱅
         202 => new ShiFinalVerse(context),            // 시 — 멸망의 시
         203 => new SabahDebuffHunter(context),         // 사바흐 — 빈틈 포착
         207 => new JeanIronSanction(context),          // 잔 — 철권제재
         220 => new PygmalionGalatea(context),         // 피그말리온 — 갈라테아
-        244 => new HimikoBlaze(context),              // 히미코 — 맹화
+        244 => new HimikoBlaze(context),
+        245 => new TsukuyomiNight(context),
+        360 => new MarieSupply(context),
+        361 => new NapoleonOrders(context),           // 나폴레옹 — 대육군의 지휘
+        281 => new SurtrLastEmber(context),
+        282 => new FreyaGentleHands(context),
+        280 => new LokiUnboundWolf(context),          // 로키 — 풀려난 늑대
         260 => new ChandraNishakara(context),         // 찬드라 — 니샤카라
         261 => new YamaDeathVerdict(context),         // 야마 — 죽음의 선고
         262 => new AgniBurnToTheEnd(context),         // 아그니 — 끝까지 태워 주지
         263 => new IndraDevaKing(context),            // 인드라 — 데바의 왕
         264 => new VayuTailwind(context),             // 바유 — 바람이 남긴 길
+        400 => new MansaRoyalWarrant(context),
+        420 => new IshtarGoldenMagazine(context),
         265 => new KuberaPatronage(context),          // 쿠베라 — 재보천의 후원
         266 => new VarunaLawLevee(context),           // 바루나 — 법이 만든 제방
-        267 => new SuryaBeforeSunset(context),        // 수리야 — 해가 지기 전에
+        267 => new SuryaExecution(context),        // 수리야 — 종언 표식
         321 => new AnubisSoulHarvest(context),        // 아누비스 — 영혼 수확
         380 => new UchiTaoist(context),               // 우치 — 도사란 무엇인가
         322 => new BastetReliableGuard(context),      // 바스테트 — 든든한 경호대가 있다고!
@@ -64,23 +75,34 @@ namespace Codes.Base
     {
       return codeId switch
       {
+        >= 11000 and <= 14000 => new RestoredEnemyNormal(context),
+        25 => new OrpheusMelody(context),
         1 => new SeiGroundLeveling(context),         // 세이 — 땅고르기
         2 => new ShiGhostSlash(context),              // 시 — 귀참
         3 => new SabahLightningSlash(context),        // 사바흐 — 검격 / 번개 베기
         7 => new JeanHolyStrike(context),              // 잔 — 신성한 일격
         20 => new PygmalionEmber(context),            // 피그말리온 — 불씨
-        44 => new HimikoEmber(context),               // 히미코 — 불씨
+        44 => new HimikoEmber(context),
+        45 => new TsukuyomiMoonShot(context),
+        160 => new MarieIceShot(context),
+        161 => new NapoleonCommandShot(context),      // 나폴레옹 — 포격 지점 지정(피해 없는 지휘)
+        81 => new SurtrEmberBlade(context),
+        82 => new FreyaRestoringLight(context),
+        80 => new LokiTrickWind(context),             // 로키 — 기만의 칼바람
         60 => new ChandraSachi(context),              // 찬드라 — 샤친
         61 => new YamaRollOfDeathLightning(context),  // 야마 — 명부의 낙뢰
         62 => new AgniEmberFist(context),             // 아그니 — 불씨를 다지는 주먹
         63 => new IndraThunderbolt(context),          // 인드라 — 뇌정
         64 => new VayuGust(context),                  // 바유 — 돌풍
+        200 => new MansaRoyalShield(context),
+        220 => new IshtarVenusShot(context),
         65 => new KuberaCoinToss(context),            // 쿠베라 — 금화 투척
         66 => new VarunaSacredRope(context),          // 바루나 — 금줄
         67 => new SuryaNameBullet(context),           // 수리야 — 이름을 부르는 탄환
         121 => new AnubisHeartScale(context),         // 아누비스 — 심장의 저울
         180 => new UchiCloneArt(context),             // 우치 — 분신술
         UchiCloneStrike.CodeId => new UchiCloneStrike(context), // 소환수 — 분신 일격(500번대)
+        FenrirClaw.CodeId => new FenrirClaw(context),           // 소환수 — 펜리르의 발톱(501)
         122 => new BastetCatPunch(context),            // 바스테트 — 냥냥펀치
         EnemyBasicNormalIds.Charge => new EnemyCharge(context),
         EnemyBasicNormalIds.Shot => new EnemyShot(context),
@@ -101,7 +123,9 @@ namespace Codes.Base
         63 => new IndraVajra(context),                // 인드라 — 바즈라
         64 => new VayuEyeOfTyphoon(context),          // 바유 — 태풍의 눈
         65 => new KuberaGoldRush(context),            // 쿠베라 — 골드 러쉬
+        67 => new SuryaSunsetVolley(context),
         66 => new VarunaOverflowingJudgment(context), // 바루나 — 넘치는 판결
+        161 => new NapoleonGrandVolley(context),      // 나폴레옹 — 일제 사격
         _ => null,
       };
     }
@@ -113,18 +137,28 @@ namespace Codes.Base
     {
       return codeId switch
       {
+        >= 11000 and <= 14000 => new RestoredEnemyUltimate(context),
+        25 => new OrpheusLament(context),
         1 => new SeiSongOfGenesis(context),          // 세이 — 창세의 노래
         2 => new ShiFinalBell(context),               // 시 — 만종
         3 => new SabahAzrael(context),                // 사바흐 — 아즈라엘
         7 => new JeanTensionRising(context),          // 잔 — 텐션 오르는데!
         20 => new PygmalionSharpThorns(context),      // 피그말리온 — 날카로운 가시
-        44 => new HimikoBlazeFocus(context),          // 히미코 — 맹화 집중
+        44 => new HimikoBlazeFocus(context),
+        45 => new TsukuyomiMoonlitPact(context),
+        160 => new MarieEmergencySupply(context),
+        161 => new NapoleonGrandBattery(context),     // 나폴레옹 — 아우스터리츠의 태양
+        81 => new SurtrRagnarok(context),
+        82 => new FreyaBrisingamen(context),
+        80 => new LokiTwilight(context),              // 로키 — 신들의 황혼
         60 => new ChandraSoma(context),               // 찬드라 — 소마
         61 => new YamaLastArrival(context),           // 야마 — 언젠가 다다를 마지막
         62 => new AgniRaiseTheStakes(context),        // 아그니 — 내가 판을 키워 주지
         63 => new IndraGathering(context),            // 인드라 — 팔방의 소집
         64 => new VayuStorm(context),                 // 바유 — 만류의 회랑
-        65 => new KuberaTreasury(context),            // 쿠베라 — 보고 개방
+        200 => new MansaGoldenProcession(context),
+        220 => new IshtarRoyalBarrage(context),
+        65 => new KuberaTreasury(context),            // 쿠베라 — 복리의 보고
         66 => new VarunaUnderSameLaw(context),        // 바루나 — 동일한 법 아래
         67 => new SuryaNoEscape(context),             // 수리야 — 도망칠 곳은 없어
         121 => new AnubisBookOfTheDead(context),      // 아누비스 — 사자의 서

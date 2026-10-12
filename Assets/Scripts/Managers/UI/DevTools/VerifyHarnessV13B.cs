@@ -41,8 +41,8 @@ namespace Managers.UI.DevTools
             }
             else
             {
-                yield return V13Segment(label, "소환 편성 — 우치 분신술 → 쿠베라 보물", "summon.create", () => V13Cast(uchi, 0));
-                yield return V13Segment(label, "소환 편성 — 보고 개방 → 분신 추가", "summon.treasury", () => V13Cast(kubera, 2));
+                yield return V13Segment(label, "소환 편성 — 우치 분신 생성 (쿠베라 재보와 무관)", "summon.create", () => V13Cast(uchi, 0));
+                yield return V13Segment(label, "재보 지원 — 복리의 보고 (추가 소환 없음)", "kubera.interest", () => V13Cast(kubera, 2));
                 yield return V13Segment(label, "소환 편성 — 분신 일격 → 아누비스 영혼 +0.25", "summon.strike", () => V13BStrike(uchi));
                 yield return V13Segment(label, "소환 편성 — 심장의 저울", "summon.heart_scale", () => V13Cast(anubis, 0));
                 yield return V13Segment(label, "소환 편성 — 만천화우 → 소멸과 영혼 수확", "summon.manchunhwau", () => V13Cast(uchi, 2));

@@ -1,4 +1,4 @@
-using BaseClasses;
+﻿using BaseClasses;
 using Codes.Base;
 
 namespace Codes.Passive.Reward
@@ -13,6 +13,9 @@ namespace Codes.Passive.Reward
         {
             CodeCatalog.Entry entry = RewardCodeCatalog.Find(codeId);
             if (entry == null) return null;
+            if (TreasuryRewardCode.Supports(codeId)) return new TreasuryRewardCode(context, codeId);
+
+            if(!string.IsNullOrEmpty(entry.capacitorStat)) return new CapacitorCode(context,codeId);
 
             PassiveCode special = CreateSpecific(codeId, context);
             if (special != null) return special;

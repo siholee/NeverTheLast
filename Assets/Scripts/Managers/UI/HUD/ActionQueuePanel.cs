@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Combat;
@@ -20,11 +20,11 @@ namespace Managers.UI.HUD
     {
         private const int MaxSlots = 6;
         private const int MaxAnnouncements = 3;
-        private const float PanelWidth = 408f;
-        private const float HeaderHeight = 62f;
-        private const float RowStep = 82f;
-        private const float SlotSize = 72f;
-        private const float ExpandedWidth = 372f;
+        private const float PanelWidth = 118f;
+        private const float HeaderHeight = 44f;
+        private const float RowStep = 74f;
+        private const float SlotSize = 62f;
+        private const float ExpandedWidth = 440f;
         private const float ExpandedHeight = 68f;
 
         private readonly Image _panel;
@@ -47,12 +47,12 @@ namespace Managers.UI.HUD
             panelColor.a = 0.82f;
             _panel.color = panelColor;
 
-            TextMeshProUGUI caption = UIBuild.Label("Caption", _panel.transform, "ACTION ORDER",
-                UITheme.FontBody, UITheme.TextSecondary, TextAlignmentOptions.MidlineLeft);
+            TextMeshProUGUI caption = UIBuild.Label("Caption", _panel.transform, "행동 순서",
+                16, UITheme.TextSecondary, TextAlignmentOptions.MidlineLeft);
             UIBuild.Pin(caption.rectTransform, new Vector2(0f, 1f),
-                new Vector2(176f, 34f), new Vector2(18f, -16f));
+                new Vector2(100f, 28f), new Vector2(14f, -9f));
 
-            TextMeshProUGUI hint = UIBuild.Label("Hint", _panel.transform, "위에서부터 행동",
+            TextMeshProUGUI hint = UIBuild.Label("Hint", _panel.transform, "",
                 UITheme.FontCaption, UITheme.TextMuted, TextAlignmentOptions.MidlineRight);
             UIBuild.Pin(hint.rectTransform, new Vector2(1f, 1f),
                 new Vector2(158f, 30f), new Vector2(-18f, -18f));
@@ -61,11 +61,13 @@ namespace Managers.UI.HUD
                 new Color(UITheme.MetalSilver.r, UITheme.MetalSilver.g, UITheme.MetalSilver.b, 0.32f));
             UIBuild.Pin(_rail.rectTransform, new Vector2(0f, 1f),
                 new Vector2(2f, MaxSlots * RowStep - 12f),
-                new Vector2(54f, -HeaderHeight - 4f));
+                new Vector2(48f, -HeaderHeight - 4f));
             _rail.raycastTarget = false;
 
             for (int i = 0; i < MaxSlots; i++) _slots.Add(new Slot(_panel.transform));
             ActionAnnouncer.Announced += OnAnnounced;
+            ActionScheduler.AnyActionStarted += OnActionStarted;
+            ActionScheduler.AnyActionFinished += OnActionFinished;
             ActionScheduler.AnyActionOrderAdjusted += OnActionOrderAdjusted;
             _panel.gameObject.SetActive(false);
         }
@@ -73,6 +75,8 @@ namespace Managers.UI.HUD
         public void Dispose()
         {
             ActionAnnouncer.Announced -= OnAnnounced;
+            ActionScheduler.AnyActionStarted -= OnActionStarted;
+            ActionScheduler.AnyActionFinished -= OnActionFinished;
             ActionScheduler.AnyActionOrderAdjusted -= OnActionOrderAdjusted;
             ClearAnnouncements();
         }
@@ -136,10 +140,25 @@ namespace Managers.UI.HUD
             _announcements.Insert(0, new InsertedSlot(_panel.transform, announcement));
             while (_announcements.Count > MaxAnnouncements)
             {
-                int oldest = _announcements.Count - 1;
+                // 도중에 패시브 공지가 겹쳐도 실행 중인 행동의 슬롯을 밀어내지 않는다.
+                int oldest = _announcements.FindLastIndex(row => !row.HoldingAction);
+                if (oldest < 0) break;
                 _announcements[oldest].Destroy();
                 _announcements.RemoveAt(oldest);
             }
+        }
+
+        private void OnActionStarted(Unit unit, ActionScheduler.ActionKind kind, string label)
+        {
+            int id = GameManager.Instance.ActionScheduler.CurrentActionId;
+            _announcements.FirstOrDefault(row => row.WaitingForAction && row.Unit == unit)?.BindAction(id);
+        }
+
+        private void OnActionFinished(Unit unit, ActionScheduler.ActionKind kind)
+        {
+            int id = GameManager.Instance.ActionScheduler.CurrentActionId;
+            foreach (InsertedSlot row in _announcements)
+                if (row.Unit == unit && row.ActionId == id) row.FinishAction();
         }
 
         private void OnActionOrderAdjusted(Unit unit, bool advanced)
@@ -206,30 +225,45 @@ namespace Managers.UI.HUD
         private sealed class InsertedSlot
         {
             private const float OpenSeconds = 0.18f;
-            private const float HoldSeconds = 1.50f;
+            private const float HoldSeconds = 2.8f;
             private const float CloseSeconds = 0.24f;
 
             private readonly Image _frame;
             private readonly CanvasGroup _group;
             private readonly CanvasGroup _details;
-            private readonly float _startedAt;
+            public Unit Unit { get; }
+            public int ActionId { get; private set; } = -1;
+            private readonly bool _followsAction;
+            private bool _finished;
+            public bool HoldingAction => _followsAction && !_finished;
+            public bool WaitingForAction => HoldingAction && ActionId < 0;
+            public void BindAction(int id) => ActionId = id;
+            public void FinishAction()
+            {
+                _finished = true;
+                _age = Mathf.Max(_age, OpenSeconds + HoldSeconds);
+            }
+
+            private float _age;
             private float _y;
 
             public InsertedSlot(Transform parent, ActionAnnouncement announcement)
             {
-                Color team = announcement.IsEnemy ? UITheme.Enemy : UITheme.Accent;
+                Unit = announcement.Unit;
+                _followsAction = announcement.FollowsAction;
+                Color team = UITheme.Accent;
                 Color fill = UITheme.SurfaceRaised;
                 fill.a = 0.98f;
                 _frame = UIBuild.Panel("InsertedAction", parent, fill,
-                    UIShapes.Corner.Diagonal, 11, team, 2);
+                    UIShapes.Corner.Diagonal, 11, team, 1);
                 RectTransform rect = _frame.rectTransform;
                 rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0f, 1f);
-                rect.sizeDelta = new Vector2(SlotSize, ExpandedHeight);
+                rect.sizeDelta = new Vector2(_followsAction ? ExpandedWidth : SlotSize, ExpandedHeight);
                 rect.anchoredPosition = new Vector2(18f, RowY(0));
                 _frame.raycastTarget = false;
 
                 Image ring = UIBuild.Panel("PortraitRing", _frame.transform,
-                    new Color(team.r, team.g, team.b, 0.18f), UIShapes.Corner.Diagonal, 9, team, 2);
+                    new Color(team.r, team.g, team.b, 0.18f), UIShapes.Corner.Diagonal, 9, team, 1);
                 UIBuild.Pin(ring.rectTransform, new Vector2(0f, 0.5f),
                     new Vector2(56f, 56f), new Vector2(6f, 0f));
 
@@ -248,42 +282,46 @@ namespace Managers.UI.HUD
                 _details = detailsGo.GetComponent<CanvasGroup>();
                 _details.blocksRaycasts = false;
                 _details.interactable = false;
-                _details.alpha = 0f;
+                _details.alpha = _followsAction ? 1f : 0f;
 
                 TextMeshProUGUI unit = UIBuild.Text("Unit", detailsGo.transform, announcement.UnitName,
                     UITheme.FontBody, UITheme.TextPrimary, TextAlignmentOptions.MidlineLeft);
                 UIBuild.Pin(unit.rectTransform, new Vector2(0f, 0.5f),
-                    new Vector2(112f, 26f), new Vector2(72f, 15f));
-                FitOneLine(unit, 14f, 20f);
+                    new Vector2(132f, 34f), new Vector2(72f, 14f));
+                FitOneLine(unit, 18f, 22f);
 
                 TextMeshProUGUI kind = UIBuild.Text("Kind", detailsGo.transform, announcement.KindLabel,
                     UITheme.FontCaption, team, TextAlignmentOptions.MidlineLeft);
                 UIBuild.Pin(kind.rectTransform, new Vector2(0f, 0.5f),
-                    new Vector2(112f, 24f), new Vector2(72f, -15f));
-                FitOneLine(kind, 11f, 15f);
+                    new Vector2(132f, 24f), new Vector2(72f, -15f));
+                FitOneLine(kind, 16f, 18f);
 
                 TextMeshProUGUI action = UIBuild.Text("Action", detailsGo.transform, announcement.ActionName,
                     UITheme.FontTitle, UITheme.TextPrimary, TextAlignmentOptions.MidlineLeft);
                 UIBuild.Pin(action.rectTransform, new Vector2(0f, 0.5f),
-                    new Vector2(132f, 48f), new Vector2(188f, -2f));
-                FitOneLine(action, 13f, 19f);
+                    new Vector2(198f, 52f), new Vector2(218f, -2f));
+                action.fontSize = 22f;
+                action.enableAutoSizing = false;
+                action.textWrappingMode = TextWrappingModes.Normal;
 
-                TextMeshProUGUI insertMark = UIBuild.Text("InsertMark", detailsGo.transform,
-                    InsertMark(announcement.Kind), UITheme.FontCaption, team, TextAlignmentOptions.Center);
-                UIBuild.Pin(insertMark.rectTransform, new Vector2(1f, 1f),
-                    new Vector2(24f, 24f), new Vector2(-8f, -8f));
 
                 _group = UIBuild.Group(_frame.gameObject);
                 _group.blocksRaycasts = false;
                 _group.interactable = false;
-                _group.alpha = 0f;
-                _startedAt = Time.unscaledTime;
-                _y = RowY(0) + 18f;
+                // 예약행동의 짧은 예고는 생성 프레임부터 읽힌다. 패시브 공지의 진입 모션은 유지한다.
+                _group.alpha = _followsAction ? 1f : 0f;
+                _age = _followsAction ? OpenSeconds : 0f;
+                _y = RowY(0) + (_followsAction ? 0f : 18f);
             }
 
             public bool Tick(int index)
             {
-                float age = Time.unscaledTime - _startedAt;
+                if(Time.timeScale>0) _age += Time.unscaledDeltaTime * BattleHud.CurrentSpeedMultiplier;
+                // 실행 시간으로 수명을 정한다. 선제 개입이 끝나도 부모 행동은 자기 종료를 기다린다.
+                if (WaitingForAction && _age > OpenSeconds &&
+                    GameManager.Instance?.ActionScheduler?.PreviewUnit != Unit) FinishAction();
+                if (HoldingAction) _age = Mathf.Min(_age, OpenSeconds + HoldSeconds * .5f);
+                float age = _age;
                 float total = OpenSeconds + HoldSeconds + CloseSeconds;
                 if (age >= total) return false;
 
@@ -293,11 +331,13 @@ namespace Managers.UI.HUD
                     : age < OpenSeconds + HoldSeconds
                         ? 1f
                         : 1f - Mathf.SmoothStep(0f, 1f, (age - OpenSeconds - HoldSeconds) / CloseSeconds);
-                _frame.rectTransform.sizeDelta = new Vector2(Mathf.Lerp(SlotSize, ExpandedWidth, open), ExpandedHeight);
+                // 완료 뒤에는 내용과 면을 함께 지운다. 글자만 먼저 사라진 큰 빈 판을 남기지 않는다.
+                bool closing = age >= OpenSeconds + HoldSeconds;
+                _frame.rectTransform.sizeDelta = new Vector2(closing ? ExpandedWidth : Mathf.Lerp(SlotSize, ExpandedWidth, open), ExpandedHeight);
                 _frame.rectTransform.anchoredPosition = new Vector2(18f, _y);
                 _group.alpha = Mathf.Clamp01(open * 1.25f);
                 // 폭이 충분히 열린 뒤에만 세부 글자를 보여 중간 프레임에서도 서로 겹치지 않는다.
-                _details.alpha = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.95f, 0.99f, open));
+                _details.alpha = closing ? 1f : Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.95f, 0.99f, open));
                 return true;
             }
 
@@ -306,15 +346,6 @@ namespace Managers.UI.HUD
                 if (_frame != null) Object.Destroy(_frame.gameObject);
             }
 
-            private static string InsertMark(ActionAnnouncementKind kind) => kind switch
-            {
-                ActionAnnouncementKind.Ultimate => "궁",
-                ActionAnnouncementKind.Passive => "성",
-                ActionAnnouncementKind.Additional => "+",
-                ActionAnnouncementKind.Coordinated => "협",
-                ActionAnnouncementKind.Special => "특",
-                _ => "일",
-            };
         }
 
         private sealed class Slot
@@ -390,16 +421,16 @@ namespace Managers.UI.HUD
                     _frame.gameObject.SetActive(true);
                 }
 
-                Color team = unit.IsEnemy ? UITheme.Enemy : UITheme.Accent;
+                Color team = UITheme.Accent;
                 Color border = current || reservation.IsQueued ? team : UITheme.MetalSilver;
-                _frame.sprite = UIShapes.CutCorner(9, UITheme.SurfaceRaised, UIShapes.Corner.Diagonal,
-                    border, current ? 3 : reservation.IsQueued ? 2 : 1);
-                _ring.sprite = UIShapes.CutCorner(8, Color.clear, UIShapes.Corner.Diagonal, team, 2);
+                _frame.sprite = UIShapes.Surface(9, UITheme.SurfaceRaised, UIShapes.Corner.Diagonal,
+                    border, current || reservation.IsQueued ? 1 : 0);
+                _ring.sprite = UIShapes.Surface(8, Color.clear, UIShapes.Corner.Diagonal, team, 1);
                 _frame.rectTransform.localScale = Vector3.one * (current ? 1.06f : 1f);
                 _queueMark.text = reservation.IsQueued ? QueueMark(reservation.Kind) : string.Empty;
                 _queueMark.color = team;
                 _adjustmentMark.text = cue.Visible ? cue.Advanced ? "↑" : "↓" : string.Empty;
-                _adjustmentMark.color = cue.Advanced ? UITheme.Accent : UITheme.Enemy;
+                _adjustmentMark.color = UITheme.Accent;
                 LoadPortrait(unit);
             }
 
@@ -436,7 +467,7 @@ namespace Managers.UI.HUD
             {
                 if (_portraitPath == unit.PortraitPath) return;
                 _portraitPath = unit.PortraitPath;
-                Sprite sprite = SpriteResource.LoadPortrait(unit.PortraitPath);
+                Sprite sprite = UIPortraitCrop.Face(SpriteResource.LoadPortrait(unit.PortraitPath));
                 _portrait.sprite = sprite;
                 _portrait.enabled = sprite != null;
             }

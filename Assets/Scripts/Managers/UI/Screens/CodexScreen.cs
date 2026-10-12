@@ -40,9 +40,9 @@ namespace Managers.UI.Screens
         /// <summary>
         /// 비어 있는 칸의 테두리. 안쪽은 칠하지 않고 <b>짙은 선</b>만 둘러 채워진 칸과 한눈에 갈리게 한다.
         /// </summary>
-        private static readonly Color EmptySlotBorder = new(0.010f, 0.012f, 0.016f, 1f);
+        private static readonly Color EmptySlotBorder = new(.42f,.57f,.70f,.32f);
 
-        private const int EmptySlotBorderWidth = 2;
+        private const int EmptySlotBorderWidth = 1;
 
         /// <summary>빈 칸을 눌렀을 때의 안내. 코드를 얻는 길과 칸 규칙을 한 번에 적는다.</summary>
         /// <summary>표에 설명이 없을 때 플레이어에게 보이는 문구. 파일 이름 · ID는 로그에만 남긴다.</summary>
@@ -219,53 +219,56 @@ namespace Managers.UI.Screens
 
             Image panel = UIBuild.Panel("Panel", _rootObject.transform, UITheme.Surface,
                 UIShapes.Corner.Diagonal, 16, UITheme.Outline, 1);
+            // 모달과 같은 창 문법 — 위 모서리 16의 종이 한 장 + 남색 제목 띠. 굵은 윤곽 대신 얕은 그림자로 뜬다.
+            panel.sprite = UIShapes.RoundedRect(16, UITheme.Surface);
             UIBuild.Anchor(panel.rectTransform, new Vector2(0.03f, 0.04f), new Vector2(0.97f, 0.96f));
-            UIBuild.Elevate(panel, 40, 0.6f, 14f);
+            UIBuild.Elevate(panel, 24, .14f, 6f);
             _rootObject.AddComponent<UIPopIn>().Panel = panel.rectTransform;
 
             BuildHeader(panel.transform);
 
             _rail = UIBuild.Container("PartyRail", panel.transform);
-            UIBuild.Anchor(_rail, new Vector2(0f, 0f), new Vector2(0.20f, 0.895f), 18f, 18f);
-            _rail.offsetMax = new Vector2(-6f, -4f);
+            UIBuild.Anchor(_rail, new Vector2(0f, 0f), new Vector2(.09f,1f), 18f, 18f);
+            _rail.offsetMax = new Vector2(-6f, -76f);
 
             _main = UIBuild.Container("Main", panel.transform);
-            UIBuild.Anchor(_main, new Vector2(0.20f, 0f), new Vector2(1f, 0.895f), 18f, 18f);
+            UIBuild.Anchor(_main, new Vector2(.09f,0f), Vector2.one, 18f, 18f);
             _main.offsetMin = new Vector2(6f, 18f);
-            _main.offsetMax = new Vector2(-18f, -4f);
+            _main.offsetMax = new Vector2(-24f, -76f);
             _rootObject.SetActive(false);
         }
 
+        /// <summary>
+        /// 남색 제목 띠 — 왼쪽 기호 · 제목, 가운데 빌드/코드 탭, 오른쪽 공용 보급 · 닫기.
+        /// 모든 요소의 세로 중심이 띠 중심선(32px)에 온다. 탭은 띠 위의 흰 알약으로 선택을 표시한다.
+        /// </summary>
         private void BuildHeader(Transform panel)
         {
-            UIArtDirection.Header(panel, 100f);
-            Image bar = UIBuild.Solid("HeaderBar", panel, UITheme.Accent);
-            UIBuild.Pin(bar.rectTransform, new Vector2(0f, 1f), new Vector2(3f, 30f), new Vector2(18f, -26f));
-            TextMeshProUGUI caption = UIBuild.Label("Caption", panel, "PARTY BUILD",
-                UITheme.FontMicro, UITheme.TextOnDarkSecondary);
-            caption.characterSpacing = 20f;
-            UIBuild.Pin(caption.rectTransform, new Vector2(0f, 1f), new Vector2(320f, 16f), new Vector2(30f, -18f));
-            TextMeshProUGUI title = UIBuild.Label("Title", panel, "파티 빌드", UITheme.FontReadTitle, UITheme.TextOnDark);
-            UIBuild.Pin(title.rectTransform, new Vector2(0f, 1f), new Vector2(320f, 40f), new Vector2(30f, -38f));
+            UIArtDirection.Header(panel, UIArtDirection.HeaderHeight);
+            UIArtDirection.TitleGlyph(panel, UIIcon.Party, 24);
+            UIArtDirection.HeaderTitle(panel, "Title", "파티 빌드", 62f, 320f);
 
-            _sheetTab = MakeTab(panel, "빌드", -100f, () => SetTab(Tab.Sheet));
-            _codeTab = MakeTab(panel, "코드", 100f, () => SetTab(Tab.Codes));
+            _sheetTab = MakeTab(panel, "빌드", -70f, () => SetTab(Tab.Sheet));
+            _codeTab = MakeTab(panel, "코드", 70f, () => SetTab(Tab.Codes));
 
             // 공용 보급은 정식 경로(GameManager → UIManager)로 연다. 이 창을 먼저 닫아 두 모달이 겹치지 않게 한다.
             _supplyButton = UIBuild.Button("OpenSupply", panel, "공용 보급 열기", OpenSupply, false, UITheme.FontReadSmall);
-            UIBuild.Pin(_supplyButton.image.rectTransform, new Vector2(1f, 1f), new Vector2(230f, 50f), new Vector2(-84f, -20f));
-            _supplyHint = UIBuild.Text("SupplyHint", panel, "", UITheme.FontCaption, UITheme.TextOnDarkSecondary,
+            UIArtDirection.HeaderButton(_supplyButton);
+            UIBuild.Pin(_supplyButton.image.rectTransform, new Vector2(1f, 1f), new Vector2(196f, 40f),
+                new Vector2(-80f, -(UIArtDirection.HeaderMidline - 20f)));
+            _supplyHint = UIBuild.Text("SupplyHint", panel, "", UITheme.FontCaption, UITheme.TextSecondary,
                 TextAlignmentOptions.MidlineRight);
-            UIBuild.Pin(_supplyHint.rectTransform, new Vector2(1f, 1f), new Vector2(360f, 22f), new Vector2(-84f, -72f));
+            UIBuild.Pin(_supplyHint.rectTransform, new Vector2(1f, 1f), new Vector2(360f, 22f), new Vector2(-76f, -10f));
 
-            Button close = UIBuild.Button("Close", panel, "×", Hide, false, UITheme.FontReadHeading);
-            UIBuild.Pin(close.image.rectTransform, new Vector2(1f, 1f), new Vector2(50f, 50f), new Vector2(-18f, -20f));
+            _supplyHint.gameObject.SetActive(false);
+            UIArtDirection.HeaderClose("Close", panel, Hide, 24f);
         }
 
         private static Button MakeTab(Transform panel, string text, float x, System.Action action)
         {
-            Button button = UIBuild.Button($"Tab{text}", panel, text, action, false, UITheme.FontReadHeading);
-            UIBuild.Pin(button.image.rectTransform, new Vector2(0.5f, 1f), new Vector2(180f, 50f), new Vector2(x, -20f));
+            Button button = UIBuild.Button($"Tab{text}", panel, text, action, false, UITheme.FontReadSmall);
+            UIBuild.Pin(button.image.rectTransform, new Vector2(0.5f, 1f), new Vector2(128f, 40f),
+                new Vector2(x, -(UIArtDirection.HeaderMidline - 20f)));
             return button;
         }
 
@@ -366,7 +369,13 @@ namespace Managers.UI.Screens
             RectTransform column = UIBuild.Container($"Col_{_selected.UnitName}", _main);
             UIBuild.Stretch(column);
             if (_tab == Tab.Sheet) BuildSheet(column, _selected);
-            else BuildCodes(column, _selected, _live);
+            else
+            {
+                // 코드 탭에는 왼쪽 아래 능력치 판이 없다. 원화 머리가 왼쪽 열 전체를 써서 빈 종이를 남기지 않는다.
+                Image identity = BuildIdentity(column, _selected);
+                identity.rectTransform.anchorMin = new Vector2(0f, .12f);
+                RectTransform skills=UIBuild.Container("SkillWorkspace",column); UIBuild.Anchor(skills,new Vector2(.285f,0),Vector2.one); BuildCodes(skills,_selected,_live);
+            }
             _structureHash = StructureHash();
             // 이 창의 22 이상 글자에만 가독 하한을 건다(다른 화면의 자동 맞춤 규칙은 그대로).
             UIScaledText.KeepReadable(_rootObject.transform);
@@ -385,58 +394,32 @@ namespace Managers.UI.Screens
 
         private static void Tint(Button button, bool active)
         {
-            if (button == null) return;
-            button.image.sprite = UIShapes.CutCorner(8,
-                active ? UITheme.Accent : UITheme.SurfaceRaised, UIShapes.Corner.Diagonal);
-            TextMeshProUGUI label = button.GetComponentInChildren<TextMeshProUGUI>();
-            if (label != null) label.color = active ? UITheme.TextOnAccent : UITheme.TextSecondary;
+            if (button != null) UIArtDirection.HeaderTab(button, active);
         }
 
         // ── 왼쪽 레일 ───────────────────────────────────────────────
 
         private void BuildRail(List<Unit> party)
         {
-            const int rows = 5;
-            float height = 1f / rows;
-            for (int i = 0; i < party.Count; i++)
+            for (int i=0;i<party.Count;i++)
             {
-                Unit unit = party[i];
-                bool selected = unit == _selected;
-                Image row = UIBuild.Panel($"Member_{unit.UnitName}", _rail,
-                    selected ? UITheme.SurfaceRaised : UITheme.SurfaceSunken, UIShapes.Corner.Diagonal, 10,
-                    selected ? UITheme.Accent : UITheme.Outline, selected ? 3 : 1);
-                float top = 1f - i * height;
-                UIBuild.Anchor(row.rectTransform, new Vector2(0f, top - height), new Vector2(1f, top), 0f, 5f);
-                Unit captured = unit;
-                UIBuild.OnClick(row.gameObject, () => Select(captured));
-
-                if (selected)
-                {
-                    Image mark = UIBuild.Solid("SelectedMark", row.transform, UITheme.Accent);
-                    mark.raycastTarget = false;
-                    UIBuild.Anchor(mark.rectTransform, new Vector2(0f, 0.1f), new Vector2(0f, 0.9f));
-                    mark.rectTransform.offsetMax = new Vector2(6f, 0f);
-                }
-
-                AttachCodeDrop(row, unit, true);
-                Image portrait = PortraitImage("Portrait", row.transform, unit);
-                UIBuild.Anchor(portrait.rectTransform, new Vector2(0f, 0f), new Vector2(0.36f, 1f), 10f, 8f);
-                if (!unit.isActive) portrait.color = new Color(1f, 1f, 1f, 0.45f);
-
-                TextMeshProUGUI name = UIBuild.Text("Name", row.transform, unit.UnitName, UITheme.FontReadHeading,
-                    UITheme.TextPrimary);
-                name.overflowMode = TextOverflowModes.Ellipsis;
-                UIBuild.Anchor(name.rectTransform, new Vector2(0.38f, 0.64f), new Vector2(1f, 0.96f), 6f, 0f);
-
-                TextMeshProUGUI state = UIBuild.Text("State", row.transform, "", UITheme.FontReadSmall, UITheme.TextSecondary);
-                UIBuild.Anchor(state.rectTransform, new Vector2(0.38f, 0.35f), new Vector2(1f, 0.64f), 6f, 0f);
-                Live(state, () => $"Lv.{unit.Level} · {PlacementText(unit)}",
-                    () => unit.isActive ? UITheme.TextSecondary : UITheme.Danger);
-
-                TextMeshProUGUI slots = UIBuild.Text("Slots", row.transform, "", UITheme.FontReadSmall, UITheme.Accent);
-                UIBuild.Anchor(slots.rectTransform, new Vector2(0.38f, 0.06f), new Vector2(1f, 0.35f), 6f, 0f);
-                Live(slots, () => $"코드 {unit.RewardCodeIds.Count}/{Unit.RewardCodeSlotCount}",
-                    () => unit.RewardCodeIds.Count >= Unit.RewardCodeSlotCount ? UITheme.CodeEnhanced : UITheme.Accent);
+                Unit unit=party[i]; bool selected=unit==_selected;
+                Image row=UIBuild.Panel($"Member_{unit.UnitName}",_rail,Color.clear,cut:16);
+                float top=1f-i*.19f;
+                UIBuild.Anchor(row.rectTransform,new Vector2(0,top-.17f),new Vector2(1,top),8,4);
+                // 선택은 옅은 군청 면으로 구분한다. 드롭 대상의 평상 모양을 잡기 전에 칠한다.
+                UIArtDirection.SelectRow(row,selected,false,10);
+                UIBuild.OnClick(row.gameObject,()=>Select(unit));
+                Image face=PortraitImage("Portrait",row.transform,unit);
+                face.sprite=UIPortraitCrop.Face(face.sprite);
+                // 선택은 행의 면과 막대로 구분한다. 비활성 아군도 덱 편집 대상이므로 초상은 읽히게 유지한다.
+                face.color = Color.white;
+                UIBuild.Anchor(face.rectTransform,new Vector2(.12f,.24f),new Vector2(.88f,.94f));
+                var name=UIBuild.Text("Name",row.transform,unit.UnitName,18,selected ? UITheme.AccentDim : UITheme.TextSecondary,TextAlignmentOptions.Midline);
+                name.fontStyle=selected ? FontStyles.Bold : FontStyles.Normal;
+                UIBuild.Anchor(name.rectTransform,new Vector2(0,.03f),new Vector2(1,.23f));
+                AttachCodeDrop(row,unit,true);
+                TooltipTrigger.Attach(row.gameObject,()=>unit.UnitName,()=>new List<UITooltip.Line>{UITooltip.Line.Note(VitalsText(unit),UITheme.TextPrimary)},UITheme.Accent);
             }
         }
 
@@ -457,63 +440,60 @@ namespace Managers.UI.Screens
 
         private void BuildSheet(RectTransform parent, Unit unit)
         {
-            BuildIdentity(parent, unit);
-
-            IReadOnlyList<int> owned = unit.RewardCodeSlots;
-            if (_selectedSlot < 0 || _selectedSlot >= Unit.RewardCodeSlotCount) _selectedSlot = 0;
-
-            RectTransform slots = UIBuild.Container("RewardSlots", parent);
-            UIBuild.Anchor(slots, new Vector2(0f, 0.29f), new Vector2(0.60f, 0.775f));
-            BuildRewardSlots(slots, owned);
-            BuildCodeStorage(parent, unit);
-
-            Image detail = UIBuild.Panel("CodeDetail", parent, UITheme.SurfaceSunken, UIShapes.Corner.Diagonal, 10,
-                UITheme.Outline, 1);
-            UIBuild.Anchor(detail.rectTransform, new Vector2(0.615f, 0.415f), new Vector2(1f, 0.775f));
-            BuildSlotDetail(detail.transform, unit, owned);
-
-            Image stats = UIBuild.Panel("Stats", parent, UITheme.SurfaceSunken, UIShapes.Corner.Diagonal, 10,
-                UITheme.Outline, 1);
-            UIBuild.Anchor(stats.rectTransform, new Vector2(0.615f, 0f), new Vector2(1f, 0.40f));
-            BuildStats(stats.transform, unit);
+            BuildIdentity(parent,unit);
+            IReadOnlyList<int> owned=unit.RewardCodeSlots;
+            if(_selectedSlot<0 || _selectedSlot>=Unit.RewardCodeSlotCount)_selectedSlot=0;
+            RectTransform slots=UIBuild.Container("RewardSlots",parent);
+            UIBuild.Anchor(slots,new Vector2(.27f,.31f),new Vector2(.70f,1));
+            BuildRewardSlots(slots,owned);
+            BuildCodeStorage(parent,unit);
+            // 고른 칸의 상세는 종이 위 흰 카드 한 장이다. 목록(가운데)과 상세(오른쪽)가 재질로 갈려 계층이 읽힌다.
+            Image detail=UIBuild.Solid("CodeDetail",parent,Color.white);
+            detail.sprite=UIShapes.Solid(Color.white);
+            UIArtDirection.ReadingSurface(detail.transform, UIIcon.Support, false);
+            detail.type=Image.Type.Sliced;
+            UIBuild.Anchor(detail.rectTransform,new Vector2(.715f,.31f),Vector2.one);
+            detail.rectTransform.offsetMin=new Vector2(0f,4f);
+            BuildSlotDetail(detail.transform,unit,owned);
+            Image stats=UIBuild.Panel("Stats",parent,Color.clear,cut:16);
+            stats.sprite=UIShapes.Solid(Color.clear);
+            UIBuild.Anchor(stats.rectTransform,new Vector2(.0f,.0f),new Vector2(.255f,.39f));
+            BuildStats(stats.transform,unit);
         }
 
         /// <summary>머리 — 원화 · 이름 · 레벨/자리 · 체력/자원 · 전투 성향 태그.</summary>
-        private void BuildIdentity(RectTransform parent, Unit unit)
+        private Image BuildIdentity(RectTransform parent, Unit unit)
         {
-            Image strip = UIBuild.Panel("Identity", parent, UITheme.SurfaceSunken, UIShapes.Corner.Diagonal, 10,
-                UITheme.Outline, 1);
-            UIBuild.Anchor(strip.rectTransform, new Vector2(0f, 0.795f), new Vector2(1f, 1f));
+            Image strip=UIBuild.Panel("Identity",parent,Color.clear,cut:18);
+            UIBuild.Anchor(strip.rectTransform,new Vector2(0,.405f),new Vector2(.255f,1));
 
-            Image portrait = PortraitImage("Portrait", strip.transform, unit);
-            UIBuild.Anchor(portrait.rectTransform, new Vector2(0f, 0f), new Vector2(0.13f, 1f), 8f, 6f);
-            if (!unit.isActive) portrait.color = new Color(1f, 1f, 1f, 0.45f);
+            // 원화 뒤의 원소 빛. 원소는 의미색이므로 이 자리에만 옅게(28%) 깐다 — 흰 종이에 그림이 떠 보이지 않고 서 있게 한다.
+            Color element=Effects.Vfx.ElementPalette.PastelColorFor(Effects.Vfx.ElementPalette.Parse(unit.Element));
+            Image glow=UIBuild.Solid("ElementGlow",strip.transform,Color.white);
+            glow.sprite=UIShapes.Glow(128,new Color(element.r,element.g,element.b,.30f));
+            glow.type=Image.Type.Simple; glow.raycastTarget=false;
+            UIBuild.Anchor(glow.rectTransform,new Vector2(-.08f,.30f),new Vector2(1.08f,1.04f));
+            Image floor=UIBuild.Solid("ElementFloor",strip.transform,Color.white);
+            floor.sprite=UIShapes.Glow(128,new Color(UITheme.Accent.r,UITheme.Accent.g,UITheme.Accent.b,.10f));
+            floor.type=Image.Type.Simple; floor.raycastTarget=false;
+            UIBuild.Anchor(floor.rectTransform,new Vector2(.12f,.25f),new Vector2(.88f,.33f));
 
-            TextMeshProUGUI name = UIBuild.Text("SelectedName", strip.transform, unit.UnitName, UITheme.FontReadTitle,
-                UITheme.TextPrimary);
-            UIBuild.Anchor(name.rectTransform, new Vector2(0.14f, 0.62f), new Vector2(0.62f, 0.96f));
-
-            string element = UnitInfoText.ElementName(unit.Element);
-            TextMeshProUGUI meta = UIBuild.Text("Meta", strip.transform, "", UITheme.FontReadSmall, UITheme.TextSecondary);
-            meta.overflowMode = TextOverflowModes.Ellipsis;
-            UIBuild.Anchor(meta.rectTransform, new Vector2(0.14f, 0.34f), new Vector2(0.62f, 0.62f));
-            Live(meta, () => $"Lv.{unit.Level}  ·  EXP {unit.Exp} / {unit.ExpToNextLevel}  ·  {element}  ·  {PlacementText(unit)}",
-                () => unit.isActive ? UITheme.TextSecondary : UITheme.Danger);
-
-            TextMeshProUGUI vitals = UIBuild.Text("Vitals", strip.transform, "", UITheme.FontReadSmall, UITheme.TextPrimary);
-            vitals.overflowMode = TextOverflowModes.Ellipsis;
-            UIBuild.Anchor(vitals.rectTransform, new Vector2(0.14f, 0.05f), new Vector2(0.99f, 0.34f));
-            Live(vitals, () => VitalsText(unit));
-
-            // 태그 칩은 성향 안내다. 효과 문구가 아니므로 머리 오른쪽 위에 작게 둔다.
-            RectTransform chips = UIBuild.Container("Tags", strip.transform);
-            UIBuild.Anchor(chips, new Vector2(0.63f, 0.56f), new Vector2(0.99f, 0.94f));
-            UnitTagCatalog.BuildChips(chips, UnitInfoText.ArchetypeTags(unit), UITheme.Accent);
-
-            TextMeshProUGUI tagline = UIBuild.Text("Tagline", strip.transform, UnitInfoText.Tagline(unit),
-                UITheme.FontCaption, UITheme.TextMuted, TextAlignmentOptions.TopLeft, true);
-            tagline.overflowMode = TextOverflowModes.Ellipsis;
-            UIBuild.Anchor(tagline.rectTransform, new Vector2(0.63f, 0.34f), new Vector2(0.99f, 0.56f));
+            Image portrait=PortraitImage("Portrait",strip.transform,unit);
+            Sprite standing=SpriteResource.LoadStanding(unit.PortraitPath.Replace("_PORTRAIT","_STANDING"));
+            if(standing!=null)portrait.sprite=standing;
+            UIBuild.Anchor(portrait.rectTransform,new Vector2(0f,.28f),new Vector2(1f,1f));
+            TextMeshProUGUI name=UIBuild.Text("SelectedName",strip.transform,unit.UnitName,30,UITheme.TextPrimary);
+            name.fontStyle=FontStyles.Bold;
+            UIBuild.Anchor(name.rectTransform,new Vector2(.04f,.18f),new Vector2(.96f,.28f));
+            var meta=UIBuild.Text("Meta",strip.transform,"",18,UITheme.TextSecondary);
+            UIBuild.Anchor(meta.rectTransform,new Vector2(.04f,.115f),new Vector2(.96f,.18f));
+            Live(meta,()=> $"Lv.{unit.Level}  ·  {UnitInfoText.ElementName(unit.Element)}  ·  {PlacementText(unit)}");
+            var vitals=UIBuild.Text("Vitals",strip.transform,"",16,UITheme.TextSecondary);
+            vitals.overflowMode=TextOverflowModes.Ellipsis;
+            UIBuild.Anchor(vitals.rectTransform,new Vector2(.04f,.045f),new Vector2(.96f,.11f));
+            Live(vitals,()=>VitalsText(unit));
+            TooltipTrigger.Attach(strip.gameObject,()=>unit.UnitName,()=>new List<UITooltip.Line>{UITooltip.Line.Note(VitalsText(unit),UITheme.TextPrimary),UITooltip.Line.Note(UnitInfoText.Tagline(unit),UITheme.TextSecondary)},UITheme.Accent);
+            return strip;
         }
 
         /// <summary>"체력 1,200 / 1,800 · 마나 40 / 100 · 창세의 결정 3/7" — 초월기 자원 방식에 맞춰 적는다.</summary>
@@ -550,76 +530,45 @@ namespace Managers.UI.Screens
         /// </summary>
         private void BuildRewardSlots(RectTransform parent, IReadOnlyList<int> owned)
         {
-            TextMeshProUGUI heading = UIBuild.Text("Heading", parent,
-                $"활성 코드  {_selected.RewardCodeIds.Count} / {Unit.RewardCodeSlotCount}", UITheme.FontReadHeading, UITheme.Accent);
-            UIBuild.Anchor(heading.rectTransform, new Vector2(0f, 0.93f), new Vector2(0.6f, 1f), 4f, 0f);
-            TextMeshProUGUI hint = UIBuild.Text("Hint", parent, "DRAG TO EQUIP / SWAP",
-                UITheme.FontCaption, UITheme.TextMuted, TextAlignmentOptions.MidlineRight);
-            UIBuild.Anchor(hint.rectTransform, new Vector2(0.5f, 0.93f), new Vector2(1f, 1f), 4f, 0f);
-
-            const float top = 0.92f;
-            float step = top / Unit.RewardCodeSlotCount;
-            for (int i = 0; i < Unit.RewardCodeSlotCount; i++)
+            var heading=UIBuild.Text("Heading",parent,$"활성 코드  {_selected.RewardCodeIds.Count} / 7",24,UITheme.TextPrimary);
+            heading.fontStyle=FontStyles.Bold;
+            UIBuild.Anchor(heading.rectTransform,new Vector2(0,.925f),Vector2.one);
+            for(int i=0;i<Unit.RewardCodeSlotCount;i++)
             {
-                int codeId = i < owned.Count ? owned[i] : 0;
-                bool filled = codeId > 0;
-                int tier = filled ? RewardCodeCatalog.TierOf(codeId) : 0;
-                Color tierColor = filled ? UITheme.Rarity(Mathf.Max(1, tier)) : UITheme.Outline;
-                bool selected = i == _selectedSlot;
-
-                Image slot = filled
-                    ? UIBuild.Panel($"RewardSlot{i}", parent, selected ? UITheme.SurfaceRaised : UITheme.Surface,
-                        UIShapes.Corner.Diagonal, 8, selected ? UITheme.Accent : tierColor, selected ? 3 : 1)
-                    : UIBuild.Panel($"RewardSlot{i}", parent, selected ? UITheme.AccentFaint : Color.clear,
-                        UIShapes.Corner.Diagonal, 8, selected ? UITheme.Accent : EmptySlotBorder,
-                        selected ? 3 : EmptySlotBorderWidth);
-                float rowTop = top - i * step;
-                UIBuild.Anchor(slot.rectTransform, new Vector2(0f, rowTop - step), new Vector2(1f, rowTop), 0f, 4f);
-                int index = i;
-                UIBuild.OnClick(slot.gameObject, () => SelectSlot(index));
-                AttachCodeDrop(slot, _selected, false, index);
-                if (filled) AttachCodeDrag(slot, _selected, false, index, codeId);
-
-                TextMeshProUGUI number = UIBuild.Text("Number", slot.transform, (i + 1).ToString(),
-                    UITheme.FontReadSmall, filled ? tierColor : UITheme.TextMuted, TextAlignmentOptions.Center);
-                UIBuild.Anchor(number.rectTransform, new Vector2(0f, 0f), new Vector2(0.045f, 1f));
-                TextMeshProUGUI tierLabel = UIBuild.Text("Tier", slot.transform, filled ? $"T{tier}" : "",
-                    UITheme.FontReadSmall, tierColor, TextAlignmentOptions.Center);
-                UIBuild.Anchor(tierLabel.rectTransform, new Vector2(0.045f, 0f), new Vector2(0.095f, 1f));
-
-                if (filled)
-                {
-                    Image strip = UIBuild.Solid("TierStrip", slot.transform, tierColor);
-                    strip.raycastTarget = false;
-                    UIBuild.Anchor(strip.rectTransform, new Vector2(0.098f, 0.12f), new Vector2(0.098f, 0.88f));
-                    strip.rectTransform.offsetMax = new Vector2(4f, 0f);
-
-                    CodeCatalog.Entry entry = RewardCodeCatalog.Find(codeId);
-                    TextMeshProUGUI effect = UIBuild.Text("Effect", slot.transform, CodeCatalog.Summary(entry?.description),
-                        UITheme.FontReadSmall, UITheme.TextPrimary);
-                    effect.richText = false;
-                    effect.overflowMode = TextOverflowModes.Ellipsis;
-                    UIBuild.Anchor(effect.rectTransform, new Vector2(0.425f, 0f), new Vector2(0.99f, 1f), 4f, 0f);
-
-                    TextMeshProUGUI name = UIBuild.Text("Name", slot.transform, RewardCodeFlow.NameOf(codeId),
-                        UITheme.FontReadSmall, tierColor);
-                    name.fontStyle = FontStyles.Bold;
-                    name.overflowMode = TextOverflowModes.Ellipsis;
-                    UIBuild.Anchor(name.rectTransform, new Vector2(0.115f, 0f), new Vector2(0.42f, 1f), 4f, 0f);
-
-                    int id = codeId;
-                    TooltipTrigger.Attach(slot.gameObject, () => RewardCodeFlow.NameOf(id),
-                        () => RewardCodeLines(id), tierColor);
-                }
-                else
-                {
-                    TextMeshProUGUI empty = UIBuild.Text("Empty", slot.transform, "빈 칸",
-                        UITheme.FontReadBody, UITheme.TextMuted);
-                    UIBuild.Anchor(empty.rectTransform, new Vector2(0.115f, 0f), new Vector2(0.42f, 1f), 4f, 0f);
-                    TextMeshProUGUI how = UIBuild.Text("How", slot.transform, "보관함에서 끌어 활성화",
-                        UITheme.FontReadSmall, UITheme.TextMuted);
-                    UIBuild.Anchor(how.rectTransform, new Vector2(0.425f, 0f), new Vector2(0.99f, 1f), 4f, 0f);
-                }
+                int id=i<owned.Count ? owned[i] : 0; bool filled=id>0; bool selected=i==_selectedSlot;
+                int tier=filled ? RewardCodeCatalog.TierOf(id):0; Color tint=filled ? UITheme.Rarity(tier):UITheme.TextMuted;
+                float top=.90f-i*.125f;
+                Image slot=UIBuild.Panel("RewardSlot"+i,parent,Color.clear,cut:16);
+                UIBuild.Anchor(slot.rectTransform,new Vector2(0f,top-.115f),new Vector2(1f,top));
+                // 선택은 옅은 군청 면으로 구분한다. 빈 칸은 끼울 자리임이 보이게 헤어라인 홈으로 둔다.
+                UIArtDirection.SelectRow(slot,selected,false,10);
+                if(!filled && !selected) slot.sprite=UIShapes.RoundedRect(10,new Color(1f,1f,1f,.55f),EmptySlotBorder,EmptySlotBorderWidth);
+                Image rule=UIBuild.Divider("RowRule",slot.transform);UIBuild.Anchor(rule.rectTransform,Vector2.zero,new Vector2(1f,0f));rule.rectTransform.offsetMin=new Vector2(12f,0f);rule.rectTransform.offsetMax=new Vector2(-12f,1f);rule.raycastTarget=false;
+                rule.gameObject.SetActive(filled && !selected);
+                int index=i; UIBuild.OnClick(slot.gameObject,()=>SelectSlot(index)); AttachCodeDrop(slot,_selected,false,index);
+                if(filled)AttachCodeDrag(slot,_selected,false,index,id);
+                // 한 줄의 세로 기준 — 번호 · 아이콘 원 · 두 줄 글자 덩어리의 시각 중심을 모두 행 중심에 맞춘다.
+                // 이름(22) 상자는 중심 +2~+34px, 효과(18) 첫 줄은 중심 -2px부터 내려와 두 줄 덩어리의 중심이 행 중심 근처에 온다.
+                var number=UIBuild.Text("Number",slot.transform,(i+1).ToString("00"),15,UITheme.TextMuted,TextAlignmentOptions.Midline);
+                UIBuild.Pin(number.rectTransform,new Vector2(0f,.5f),new Vector2(34f,26f),new Vector2(10f,0f));
+                Image tile=UIBuild.Solid("CodeTile",slot.transform,Color.white);
+                tile.sprite=UIShapes.RoundedRect(20,filled ? UIArtDirection.SelectedFill : new Color(UITheme.Accent.r,UITheme.Accent.g,UITheme.Accent.b,.05f));
+                tile.type=Image.Type.Sliced; tile.raycastTarget=false;
+                UIBuild.Pin(tile.rectTransform,new Vector2(0f,.5f),new Vector2(40f,40f),new Vector2(50f,0f));
+                Image icon=UIBuild.Icon("CodeIcon",tile.transform,filled ? UIArtDirection.CodeIcon(id):UIIcon.Arrow,filled ? tint : UITheme.TextMuted);
+                UIBuild.Stretch(icon.rectTransform,10f,10f);
+                if(filled) { var badge = ScreenKit.TierBadge(slot.transform, tier, 22f);
+                    badge.anchorMin = badge.anchorMax = new Vector2(1f,.5f); badge.pivot = new Vector2(1f,.5f);
+                    badge.anchoredPosition = new Vector2(-16f, 18f); }
+                var name=UIBuild.Text(filled ? "Name":"Empty",slot.transform,filled ? RewardCodeFlow.NameOf(id):"빈 코드 칸",22,filled ? UITheme.TextPrimary : UITheme.TextMuted);
+                name.fontStyle=filled ? FontStyles.Bold : FontStyles.Normal;name.overflowMode=TextOverflowModes.Ellipsis;
+                UIBuild.Anchor(name.rectTransform,new Vector2(0f,.5f),new Vector2(1f,.5f));
+                name.rectTransform.offsetMin=new Vector2(106f,2f); name.rectTransform.offsetMax=new Vector2(filled ? -112f : -16f,34f);
+                var effect=UIBuild.Text(filled ? "Effect":"How",slot.transform,filled ? (RewardCodeCatalog.Find(id)?.capacitorCap>0 ? Combat.RewardCodeInventory.ChargeBrief(_selected.RewardCodeSlotInstances[index]) : CodeCatalog.Summary(RewardCodeCatalog.Find(id)?.description)):"보관 코드를 끌어 활성화",18,UITheme.TextSecondary,TextAlignmentOptions.TopLeft,true);
+                effect.richText=false;effect.overflowMode=TextOverflowModes.Ellipsis;
+                UIBuild.Anchor(effect.rectTransform,new Vector2(0f,0f),new Vector2(1f,.5f));
+                effect.rectTransform.offsetMin=new Vector2(106f,4f); effect.rectTransform.offsetMax=new Vector2(-24f,-2f);
+                if(filled)TooltipTrigger.Attach(slot.gameObject,()=>RewardCodeFlow.NameOf(id),()=>RewardCodeLines(id,_selected.RewardCodeSlotInstances[index]),tint);
             }
         }
 
@@ -627,8 +576,10 @@ namespace Managers.UI.Screens
         private void AttachCodeDrag(Image card, Unit owner, bool stored, int index, int id)
         {
             var source = card.gameObject.AddComponent<UIDragSource>();
-            source.Payload = new Combat.RewardCodeInventory.Drag { Owner = owner, Stored = stored, Index = index, CodeId = id };
+            source.Payload = new Combat.RewardCodeInventory.Drag { Owner = owner, Stored = stored, Index = index, CodeId = id, InstanceId=(stored?owner.StoredRewardCodeInstances[index]:owner.RewardCodeSlotInstances[index])?.instanceId };
             source.Label = RewardCodeFlow.NameOf(id);
+            source.Icon = UILineIcons.Get(UIArtDirection.CodeIcon(id));
+            source.ShowIconAndLabel = true;
             source.Tint = UITheme.Rarity(RewardCodeCatalog.TierOf(id));
         }
 
@@ -636,51 +587,86 @@ namespace Managers.UI.Screens
         {
             var target = card.gameObject.AddComponent<UIDropTarget>();
             target.IdleSprite = card.sprite;
-            target.HighlightSprite = UIShapes.CutCorner(8, UITheme.AccentFaint, UIShapes.Corner.Diagonal, UITheme.Accent, 3);
+            target.Preview = payload => stored ? $"{owner.UnitName} · 보관" :
+                $"{owner.UnitName} · {(index >= 0 && index < owner.RewardCodeSlotInstances.Count && owner.RewardCodeSlotInstances[index] != null ? "코드 교환" : "코드 활성화")}";
+            // 일반 선택의 군청 회색 면과 구분되는 드롭 전용 청색 면이다.
+            target.HighlightSprite = UIShapes.Surface(8, new Color(.78f,.87f,.98f,1f),
+                UIShapes.Corner.Diagonal, new Color(.20f,.35f,.57f,.80f), 1);
             target.CanAccept = payload => payload is Combat.RewardCodeInventory.Drag drag &&
                 Combat.RewardCodeInventory.CanMove(drag, owner, stored, index);
             target.Accept = payload =>
             {
                 if (payload is Combat.RewardCodeInventory.Drag drag && Combat.RewardCodeInventory.TryMove(drag, owner, stored, index))
-                { UITooltip.HideAny(); RefreshKeepingScroll(); }
+                {
+                    UITooltip.HideAny(); RefreshKeepingScroll();
+                    Transform arrival;
+                    if(owner==_selected)
+                    {
+                        arrival=stored ? _main.GetComponentsInChildren<RectTransform>().FirstOrDefault(t=>t.name=="StoredCode"+(owner.StoredRewardCodeIds.Count-1)) :
+                            _main.GetComponentsInChildren<RectTransform>().FirstOrDefault(t=>t.name=="RewardSlot"+index);
+                        if(stored)
+                        {
+                            var scroll=_main.GetComponentsInChildren<ScrollRect>().FirstOrDefault(s=>s.name=="StorageScroll");
+                            if(scroll!=null){Canvas.ForceUpdateCanvases();scroll.verticalNormalizedPosition=0f;}
+                        }
+                    }
+                    // 같은 프레임에 Refresh한 이전 레일은 Destroy 대기 중이다. Find는 꺼진 옛 행도 잡으므로 새 활성 행을 찾는다.
+                    else arrival=_rail.GetComponentsInChildren<RectTransform>()
+                        .FirstOrDefault(t=>t.name=="Member_"+owner.UnitName);
+                    UIDropArrival.Play(arrival as RectTransform,owner!=_selected?"+1 보관":null);
+                }
             };
         }
 
         private void BuildCodeStorage(RectTransform parent, Unit unit)
         {
-            Image box = UIBuild.Panel("CodeStorage", parent, UITheme.SurfaceRaised, UIShapes.Corner.None, 0, UITheme.Divider, 1);
-            UIBuild.Anchor(box.rectTransform, Vector2.zero, new Vector2(0.60f, 0.275f));
+            // 보관함은 코드를 끌어다 놓는 쟁반이다. 종이보다 한 단계 짙은 군청 4.5% 면으로 "놓는 자리"를 보이고,
+            // 그 위의 코드는 흰 칩으로 떠 있다(칩 한 겹 — 중첩 카드 없음).
+            Image box = UIBuild.Solid("CodeStorage", parent, Color.white);
+            box.sprite = UIShapes.RoundedRect(12, new Color(UITheme.Accent.r, UITheme.Accent.g, UITheme.Accent.b, .045f));
+            box.type = Image.Type.Sliced;
+            UIBuild.Anchor(box.rectTransform, new Vector2(.27f,0), new Vector2(1f,.285f));
             AttachCodeDrop(box, unit, true);
             TextMeshProUGUI heading = UIBuild.Text("StorageTitle", box.transform,
                 $"보관함  {unit.StoredRewardCodeIds.Count}", UITheme.FontReadSmall, UITheme.TextPrimary);
             heading.fontStyle = FontStyles.Bold;
-            UIBuild.Anchor(heading.rectTransform, new Vector2(0f, 0.82f), new Vector2(0.46f, 1f), 12f, 0f);
+            ScreenKit.TopBand(heading.rectTransform, 10f, 36f, 18f, 0f);
+            heading.rectTransform.anchorMax = new Vector2(.46f, 1f);
             TextMeshProUGUI hint = UIBuild.Text("StorageHint", box.transform,
                 GameManager.Instance?.gameState == BaseClasses.BaseEnums.GameState.Preparation ? "준비 중 자유 이동 · 효과 비활성" : "전투 중 편집 잠금",
                 UITheme.FontCaption, UITheme.TextMuted, TextAlignmentOptions.MidlineRight);
-            UIBuild.Anchor(hint.rectTransform, new Vector2(0.43f, 0.82f), Vector2.one, 12f, 0f);
+            ScreenKit.TopBand(hint.rectTransform, 10f, 36f, 0f, 18f);
+            hint.rectTransform.anchorMin = new Vector2(.43f, 1f);
             RectTransform content = UIBuild.ScrollArea("StorageScroll", box.transform, out ScrollRect scroll);
-            UIBuild.Anchor((RectTransform)scroll.transform, Vector2.zero, new Vector2(1f, 0.82f), 10f, 8f);
-            const int columns = 3; const float height = 86f;
+            UIBuild.Stretch((RectTransform)scroll.transform);
+            ((RectTransform)scroll.transform).offsetMin = new Vector2(12f, 10f);
+            ((RectTransform)scroll.transform).offsetMax = new Vector2(-8f, -52f);
+            const int columns = 4; const float height = 84f;
             for (int i = 0; i < unit.StoredRewardCodeIds.Count; i++)
             {
                 int id = unit.StoredRewardCodeIds[i]; int tier = RewardCodeCatalog.TierOf(id);
-                Image card = UIBuild.Panel($"StoredCode{i}", content, UITheme.Surface, UIShapes.Corner.BottomRight, 6, UITheme.Divider, 1);
+                Image card = UIBuild.Solid($"StoredCode{i}", content, Color.white);
+                card.sprite=UIArtDirection.Sheet(10);
                 float left = (i % columns) / (float)columns;
                 UIBuild.Anchor(card.rectTransform, new Vector2(left, 1f), new Vector2(left + 1f / columns, 1f));
                 card.rectTransform.pivot = new Vector2(0.5f, 1f);
-                card.rectTransform.offsetMin = new Vector2(3f, -(i / columns + 1) * height + 3f);
-                card.rectTransform.offsetMax = new Vector2(-3f, -(i / columns) * height - 3f);
-                Image bar = UIBuild.Solid("Tier", card.transform, UITheme.Rarity(tier)); bar.raycastTarget = false;
-                UIBuild.Anchor(bar.rectTransform, Vector2.zero, new Vector2(0f, 1f)); bar.rectTransform.sizeDelta = new Vector2(3f, 0f);
+                card.rectTransform.offsetMin = new Vector2(4f, -(i / columns + 1) * height + 4f);
+                card.rectTransform.offsetMax = new Vector2(-6f, -(i / columns) * height - 4f);
+                Image chipIcon = UIBuild.Icon("CodeIcon", card.transform, UIArtDirection.CodeIcon(id), UITheme.Accent);
+                // 기호는 20px로 작게 — 가장 긴 코드 이름(약 225px)이 22px 그대로 칩 안에 들어가야 한다.
+                UIBuild.Pin(chipIcon.rectTransform, new Vector2(0f, .5f), new Vector2(20f, 20f), new Vector2(12f, 0f));
+                // 보관 카드의 왼쪽 군청 띠는 티어마다 같은 색이라 활성 카드와 다른 굵은 외곽처럼만 보였다. 티어는 T 표기로 읽는다.
                 TextMeshProUGUI name = UIBuild.Text("Name", card.transform, RewardCodeFlow.NameOf(id), UITheme.FontReadSmall, UITheme.TextPrimary);
                 name.fontStyle = FontStyles.Bold; name.overflowMode = TextOverflowModes.Ellipsis;
-                UIBuild.Anchor(name.rectTransform, new Vector2(0f, 0.40f), Vector2.one, 12f, 0f);
-                TextMeshProUGUI meta = UIBuild.Text("Meta", card.transform, $"T{tier}  ·  {TagText(id)}", UITheme.FontCaption, UITheme.TextMuted);
+                UIBuild.Anchor(name.rectTransform, new Vector2(0f, .5f), new Vector2(1f, 1f));
+                name.rectTransform.offsetMin = new Vector2(40f, 0f); name.rectTransform.offsetMax = new Vector2(-8f, -4f);
+                TextMeshProUGUI meta = UIBuild.Text("Meta", card.transform, $"T{tier}  ·  "+(RewardCodeCatalog.Find(id)?.capacitorCap>0 ? Combat.RewardCodeInventory.ChargeBrief(unit.StoredRewardCodeInstances[i]) : TagText(id)), 18f, UITheme.TextMuted);
                 meta.overflowMode = TextOverflowModes.Ellipsis;
-                UIBuild.Anchor(meta.rectTransform, Vector2.zero, new Vector2(1f, 0.43f), 12f, 0f);
+                UIBuild.Anchor(meta.rectTransform, Vector2.zero, new Vector2(1f, .5f));
+                meta.rectTransform.offsetMin = new Vector2(40f, 6f); meta.rectTransform.offsetMax = new Vector2(-8f, 0f);
+                int storageIndex=i;
                 AttachCodeDrag(card, unit, true, i, id);
-                TooltipTrigger.Attach(card.gameObject, () => RewardCodeFlow.NameOf(id), () => RewardCodeLines(id), UITheme.Rarity(tier));
+                TooltipTrigger.Attach(card.gameObject, () => RewardCodeFlow.NameOf(id), () => RewardCodeLines(id,unit.StoredRewardCodeInstances[storageIndex]), UITheme.Rarity(tier));
             }
             if (unit.StoredRewardCodeIds.Count == 0)
             {
@@ -690,6 +676,7 @@ namespace Managers.UI.Screens
                 UIBuild.Pin(empty.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, 110f), Vector2.zero);
                 empty.rectTransform.anchorMin = new Vector2(0f, 1f); empty.rectTransform.anchorMax = Vector2.one;
             }
+            ScreenKit.ScrollFade(scroll, new Color(.93f, .945f, .962f, 1f), 18f);
             content.sizeDelta = new Vector2(0f, Mathf.Max(110f, ((unit.StoredRewardCodeIds.Count + columns - 1) / columns) * height));
         }
 
@@ -702,19 +689,59 @@ namespace Managers.UI.Screens
             return tags.Length > 0 ? tags : upperText;
         }
 
-        /// <summary>고른 칸의 전문. 효과를 먼저, 이름 · 티어 · 태그 · 상위 경로를 그 아래에 둔다. 넘치면 굴린다.</summary>
+        /// <summary>
+        /// 고른 칸의 상세 카드. 목록 행이 이름 · 한 줄 효과로 "고르는" 자리라면, 이 카드는 그 코드를 "읽는" 자리다.
+        /// 위에 아이콘 원 · 큰 이름 · 티어 눈금 · 칸 번호를 한 덩어리로 세우고, 가는 선 아래로 효과 전문 · 태그 · 상위 경로를 굴린다.
+        /// 같은 효과 문장 아래 이름 줄을 또 늘어놓던 예전 판(2026-10-08 root 지적)과 달리 이름 · 티어는 머리에만 있다.
+        /// </summary>
         private void BuildSlotDetail(Transform parent, Unit unit, IReadOnlyList<int> owned)
         {
+            int codeId = _selectedSlot < owned.Count ? owned[_selectedSlot] : 0;
+            const float pad = 22f;
+
+            // 머리 — "칸 N 상세"는 맨 위 작은 캡션. 검증이 이 글자를 읽는다.
             TextMeshProUGUI heading = UIBuild.Text("Heading", parent, $"칸 {_selectedSlot + 1} 상세",
-                UITheme.FontReadSmall, UITheme.Accent);
-            UIBuild.Anchor(heading.rectTransform, new Vector2(0f, 0.86f), new Vector2(1f, 1f), 14f, 0f);
+                UITheme.FontCaption, UITheme.TextMuted);
+            ScreenKit.TopBand(heading.rectTransform, 14f, 26f, pad, pad);
+
+            Image tile = UIArtDirection.Emblem("DetailTile", parent, codeId > 0 ? UIArtDirection.CodeIcon(codeId) : UIIcon.Arrow,
+                codeId > 0 ? RewardCodeCatalog.TierOf(codeId) : 1);
+            ScreenKit.PinTopLeft(tile.rectTransform, pad - 4f, 38f);
+            tile.rectTransform.sizeDelta = new Vector2(76f, 76f);
+
+            // 이름(26) 상자 44~80은 원(48~104)의 위쪽, 티어 줄 80~108은 아래쪽 — 두 줄 덩어리가 원의 중심(76)을 공유한다.
+            TextMeshProUGUI detailName = UIBuild.Text("DetailName", parent,
+                codeId > 0 ? RewardCodeFlow.NameOf(codeId) : "빈 코드 칸", 26f, codeId > 0 ? UITheme.TextPrimary : UITheme.TextMuted);
+            detailName.fontStyle = FontStyles.Bold;
+            detailName.overflowMode = TextOverflowModes.Ellipsis;
+            ScreenKit.TopBand(detailName.rectTransform, 44f, 36f, pad + 84f, pad);
+            if (codeId > 0)
+            {
+                int tier = RewardCodeCatalog.TierOf(codeId);
+                RectTransform badge = ScreenKit.TierBadge(parent, tier, 20f);
+                ScreenKit.PinTopLeft(badge, pad + 84f, 84f);
+                TextMeshProUGUI kind = UIBuild.Text("DetailKind", parent, $"보상 코드  ·  {_selectedSlot + 1}번 칸",
+                    UITheme.FontCaption, UITheme.TextMuted);
+                ScreenKit.TopBand(kind.rectTransform, 80f, 28f, pad + 84f + ScreenKit.TierBadgeWidth(20f) + 12f, pad);
+            }
+            else
+            {
+                TextMeshProUGUI kind = UIBuild.Text("DetailKind", parent, $"{_selectedSlot + 1}번 칸  ·  비어 있음",
+                    UITheme.FontCaption, UITheme.TextMuted);
+                ScreenKit.TopBand(kind.rectTransform, 80f, 28f, pad + 84f, pad);
+            }
+
+            Image rule = UIBuild.Divider("DetailRule", parent);
+            rule.raycastTarget = false;
+            ScreenKit.TopBand(rule.rectTransform, 122f, 1f, pad, pad);
 
             RectTransform content = UIBuild.ScrollArea("DetailScroll", parent, out ScrollRect scroll);
             var viewport = (RectTransform)scroll.transform;
-            UIBuild.Anchor(viewport, new Vector2(0f, 0f), new Vector2(1f, 0.86f), 14f, 8f);
+            UIBuild.Stretch(viewport);
+            viewport.offsetMin = new Vector2(pad, 14f);
+            viewport.offsetMax = new Vector2(-pad + 10f, -136f);
 
-            int codeId = _selectedSlot < owned.Count ? owned[_selectedSlot] : 0;
-            string text = codeId > 0 ? DetailText(codeId, _selectedSlot) : CodeText.Plain(EmptySlotGuide);
+            string text = codeId > 0 ? DetailText(codeId, _selectedSlot)+"\n"+CodeText.Plain(Combat.RewardCodeInventory.ChargeSummary(unit.RewardCodeSlotInstances[_selectedSlot])) : CodeText.Plain(EmptySlotGuide);
 
             TextMeshProUGUI body = UIBuild.Text("DetailBody", content, text, UITheme.FontReadSmall,
                 UITheme.TextPrimary, TextAlignmentOptions.TopLeft, true);
@@ -723,11 +750,20 @@ namespace Managers.UI.Screens
             body.rectTransform.anchorMin = new Vector2(0f, 1f);
             body.rectTransform.anchorMax = new Vector2(1f, 1f);
             body.rectTransform.pivot = new Vector2(0.5f, 1f);
-            float width = Mathf.Max(200f, MeasuredWidth(viewport, ReferenceMainWidth * 0.385f - 28f) - 12f);
+            float width = Mathf.Max(200f, MeasuredWidth(viewport, ReferenceMainWidth * 0.285f - 34f) - 12f);
             float height = Mathf.Max(24f, body.GetPreferredValues(text, width, 0f).y + 8f);
             body.rectTransform.sizeDelta = new Vector2(-12f, height);
             body.rectTransform.anchoredPosition = Vector2.zero;
             content.sizeDelta = new Vector2(0f, height + 8f);
+            // 짧은 효과를 큰 빈 흰 판으로 확대하지 않는다. 장문은 최대 높이에서 스크롤한다.
+            RectTransform detailPanel = (RectTransform)parent;
+            float available = detailPanel.rect.height > 180f ? detailPanel.rect.height : 610f;
+            float fitted = Mathf.Clamp(height + 166f, Mathf.Min(320f, available), available);
+            detailPanel.anchorMin = new Vector2(detailPanel.anchorMin.x, 1f);
+            detailPanel.anchorMax = new Vector2(detailPanel.anchorMax.x, 1f);
+            detailPanel.pivot = new Vector2(.5f, 1f);
+            detailPanel.sizeDelta = new Vector2(0f, fitted);
+            detailPanel.anchoredPosition = new Vector2(0f, -4f);
         }
 
         /// <summary>상세 판의 서식 문자열. 데이터 문장은 <see cref="CodeText.Plain"/>으로 감싼다.</summary>
@@ -742,9 +778,9 @@ namespace Managers.UI.Screens
             string summary = CodeCatalog.Summary(entry?.description);
             if (summary.Length == 0) Debug.LogWarning($"[파티 창] 보상 코드 설명 없음 — 패시브 #{codeId}");
             sb.Append(CodeText.Plain(summary.Length > 0 ? summary : MissingEffectText)).Append("\n\n");
-
-            sb.Append($"<b>{CodeText.Paint(CodeText.Plain(RewardCodeFlow.NameOf(codeId)), tierColor)}</b>  ");
-            sb.Append(CodeText.Paint($"T{tier} · 보상 코드 · {slotIndex + 1}번 칸", UITheme.TextMuted)).Append('\n');
+            // 이름 · 티어 · 칸 번호는 상세 카드 머리가 크게 보인다. 본문에서는 되풀이하지 않는다(tier · slotIndex는 호출 호환용).
+            _ = tierColor;
+            _ = slotIndex;
 
             string tags = TagText(codeId);
             if (tags.Length > 0) sb.Append(CodeText.Paint("태그  ", UITheme.TextMuted)).Append(CodeText.Plain(tags)).Append('\n');
@@ -782,28 +818,43 @@ namespace Managers.UI.Screens
 
         private void BuildStats(Transform parent, Unit unit)
         {
-            TextMeshProUGUI heading = UIBuild.Text("Heading", parent, "스탯  (기초 → 최종)",
-                UITheme.FontReadSmall, UITheme.Accent);
-            UIBuild.Anchor(heading.rectTransform, new Vector2(0f, 0.88f), new Vector2(1f, 1f), 14f, 0f);
+            TextMeshProUGUI heading = UIBuild.Text("Heading", parent, "능력치",
+                UITheme.FontReadSmall, UITheme.TextPrimary);
+            heading.fontStyle = FontStyles.Bold;
+            UIBuild.Anchor(heading.rectTransform, new Vector2(0f, 0.88f), new Vector2(1f, 0.985f), 20f, 0f);
+            TextMeshProUGUI legend = UIBuild.Text("Legend", parent, "기초 → 최종", UITheme.FontCaption, UITheme.TextMuted,
+                TextAlignmentOptions.MidlineRight);
+            UIBuild.Anchor(legend.rectTransform, new Vector2(0.4f, 0.88f), new Vector2(1f, 0.985f), 20f, 0f);
 
-            float step = 0.88f / StatOrder.Length;
+            float step = 0.86f / StatOrder.Length;
             for (int i = 0; i < StatOrder.Length; i++)
             {
                 BaseClasses.BaseEnums.StatType stat = StatOrder[i];
-                float rowTop = 0.88f - i * step;
+                float rowTop = 0.875f - i * step;
 
                 RectTransform row = UIBuild.Container($"Stat_{stat}", parent);
-                UIBuild.Anchor(row, new Vector2(0f, rowTop - step), new Vector2(1f, rowTop), 14f, 0f);
+                UIBuild.Anchor(row, new Vector2(0f, rowTop - step), new Vector2(1f, rowTop), 20f, 0f);
+                // 한 줄 건너 아주 옅은 띠 — 긴 숫자 열을 눈으로 따라갈 때 줄을 잃지 않는다.
+                if (i % 2 == 0)
+                {
+                    Image band = UIBuild.Solid("Band", row, new Color(UITheme.Accent.r, UITheme.Accent.g, UITheme.Accent.b, .035f));
+                    band.raycastTarget = false;
+                    UIBuild.Stretch(band.rectTransform);
+                    band.rectTransform.offsetMin = new Vector2(-8f, 0f);
+                    band.rectTransform.offsetMax = new Vector2(8f, 0f);
+                }
                 Image swatch = UIBuild.Solid("Swatch", row, UITheme.Stat(stat));
                 swatch.raycastTarget = false;
                 UIBuild.Anchor(swatch.rectTransform, new Vector2(0f, 0.25f), new Vector2(0f, 0.75f));
                 swatch.rectTransform.offsetMax = new Vector2(4f, 0f);
+                // 스탯 색은 전부 군청으로 통일되어 줄마다 붙은 막대가 "|" 기호처럼 반복될 뿐이었다. 정렬은 라벨 끝선이 맡는다.
+                swatch.gameObject.SetActive(false);
                 TextMeshProUGUI label = UIBuild.Text("Label", row, UnitStats.DisplayName(stat), UITheme.FontReadSmall,
                     UITheme.TextSecondary);
-                UIBuild.Anchor(label.rectTransform, new Vector2(0.03f, 0f), new Vector2(0.48f, 1f));
+                UIBuild.Anchor(label.rectTransform, new Vector2(0.03f, 0f), new Vector2(0.52f, 1f));
                 TextMeshProUGUI valueLabel = UIBuild.Text("Value", row, "", UITheme.FontReadSmall, UITheme.TextPrimary,
                     TextAlignmentOptions.MidlineRight);
-                UIBuild.Anchor(valueLabel.rectTransform, new Vector2(0.48f, 0f), new Vector2(1f, 1f));
+                UIBuild.Anchor(valueLabel.rectTransform, new Vector2(0.53f, 0f), new Vector2(1f, 1f));
                 Live(valueLabel, () => StatText(unit, stat),
                     () => Mathf.Approximately(unit.BaseStat(stat), unit.StatValue(stat)) ? UITheme.TextPrimary : UITheme.Positive);
             }
@@ -819,7 +870,13 @@ namespace Managers.UI.Screens
                 : $"{UnitStats.Format(stat, baseValue)} → {UnitStats.Format(stat, finalValue)}";
         }
 
-        private static List<UITooltip.Line> RewardCodeLines(int codeId) => RewardCodeFlow.TooltipLines(codeId);
+        private static List<UITooltip.Line> RewardCodeLines(int codeId,global::Core.RewardCodeInstanceData holding=null)
+        {
+            var lines=RewardCodeFlow.TooltipLines(codeId);
+            if(holding!=null && RewardCodeCatalog.Find(codeId)?.capacitorCap>0)
+                lines.Add(UITooltip.Line.Note(Combat.RewardCodeInventory.ChargeSummary(holding),UITheme.TextPrimary));
+            return lines;
+        }
 
         private static string TagText(int codeId)
             => string.Join(" · ", UnitTagCatalog.Resolve(RewardCodeCatalog.TagsOf(codeId)).Select(tag => tag.Name));
@@ -956,8 +1013,10 @@ namespace Managers.UI.Screens
             float entryTop = y;
             float inner = Mathf.Max(120f, columnWidth - 48f);
 
+            // 회색 상자 대신 종이 위 흰 카드 한 장. 굵은 윤곽 없이 헤어라인만 둔다.
             Image card = UIBuild.Panel($"Entry_{name}", parent, UITheme.SurfaceSunken, UIShapes.Corner.Diagonal, 8,
                 UITheme.Outline, 1);
+            card.sprite = UIArtDirection.Sheet(10);
             card.raycastTarget = false;
             card.rectTransform.anchorMin = new Vector2(0f, 1f);
             card.rectTransform.anchorMax = new Vector2(1f, 1f);
@@ -1050,7 +1109,8 @@ namespace Managers.UI.Screens
 
         private static void AddListHeading(Transform parent, string text, ref float y)
         {
-            TextMeshProUGUI label = UIBuild.Text("Heading", parent, text, UITheme.FontReadHeading, UITheme.Accent);
+            TextMeshProUGUI label = UIBuild.Text("Heading", parent, text, UITheme.FontReadSmall, UITheme.TextPrimary);
+            label.fontStyle = FontStyles.Bold;
             label.overflowMode = TextOverflowModes.Ellipsis;
             label.rectTransform.anchorMin = new Vector2(0f, 1f);
             label.rectTransform.anchorMax = new Vector2(1f, 1f);

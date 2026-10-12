@@ -95,9 +95,9 @@ namespace Managers.UI.Screens
 
         protected override string Title => "작전 종료";
         protected override string Caption => "OPERATION REPORT";
-        protected override Vector2 AnchorMin => new(0.22f, 0.12f);
-        protected override Vector2 AnchorMax => new(0.78f, 0.88f);
-        protected override bool AlignToScreenFrame => true;
+        protected override Vector2 AnchorMin => new(0.12f, 0.11f);
+        protected override Vector2 AnchorMax => new(0.88f, 0.89f);
+        protected override bool AlignToScreenFrame => false;
 
         private const int MaxMembers = 6;
         private const float DamageRowHeight = 34f;
@@ -154,31 +154,24 @@ namespace Managers.UI.Screens
 
         private void BuildVerdict()
         {
-            _verdictBand = UIBuild.Panel("Verdict", Body, UITheme.AccentFaint, UIShapes.Corner.Diagonal, 12);
+            _verdictBand = UIBuild.Solid("Verdict", Body, Color.clear);
             UIBuild.Anchor(_verdictBand.rectTransform, new Vector2(0f, 0.79f), new Vector2(1f, 1f));
             _verdictBand.raycastTarget = false;
 
             _verdictAccent = UIBuild.Solid("Accent", _verdictBand.transform, UITheme.Accent);
             UIBuild.Anchor(_verdictAccent.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 1f));
-            _verdictAccent.rectTransform.sizeDelta = new Vector2(6f, 0f);
+            _verdictAccent.rectTransform.sizeDelta = new Vector2(0f, 0f);
             _verdictAccent.rectTransform.pivot = new Vector2(0f, 0.5f);
-
-            // 빗금 장식은 판정 띠 오른쪽에만 — 면을 채우지 않고 무게만 준다.
-            Image stripes = UIBuild.Solid("Stripes", _verdictBand.transform, Color.white);
-            stripes.sprite = UIShapes.DiagonalStripes(14, UITheme.SubtleFill, Color.clear);
-            stripes.type = Image.Type.Tiled;
-            stripes.raycastTarget = false;
-            UIBuild.Anchor(stripes.rectTransform, new Vector2(0.68f, 0f), new Vector2(1f, 1f));
 
             _verdictCaption = UIBuild.Label("VerdictCaption", _verdictBand.transform, "", UITheme.FontCaption,
                 UITheme.Accent);
-            _verdictCaption.characterSpacing = 22f;
+            _verdictCaption.gameObject.SetActive(false);
             UIBuild.Anchor(_verdictCaption.rectTransform, new Vector2(0f, 0.70f), new Vector2(0.7f, 0.92f), 30f, 0f);
 
-            _verdict = UIBuild.Text("Verdict", _verdictBand.transform, "", UITheme.FontDisplay * 1.35f,
+            _verdict = UIBuild.Text("Verdict", _verdictBand.transform, "", 32f,
                 UITheme.TextPrimary);
             _verdict.fontStyle = FontStyles.Bold;
-            UIBuild.Anchor(_verdict.rectTransform, new Vector2(0f, 0.28f), new Vector2(0.7f, 0.74f), 30f, 0f);
+            UIBuild.Anchor(_verdict.rectTransform, new Vector2(0f, 0.40f), new Vector2(0.7f, 0.92f), 30f, 0f);
 
             _reason = UIBuild.Text("Reason", _verdictBand.transform, "", UITheme.FontBody, UITheme.TextSecondary);
             UIBuild.Anchor(_reason.rectTransform, new Vector2(0f, 0.06f), new Vector2(0.7f, 0.30f), 30f, 0f);
@@ -223,15 +216,20 @@ namespace Managers.UI.Screens
 
             // 왜 이겼고 졌는지를 되짚는 창. 자동 전투라 원인을 모르면 편성을 무엇으로 고칠지도 모른다.
             _logButton = UIBuild.Button("CombatLog", Body, "전투 로그", OpenLog, false, UITheme.FontBody);
-            UIBuild.Anchor(_logButton.image.rectTransform, new Vector2(0.45f, 0.01f), new Vector2(0.64f, 0.15f));
+            UIBuild.Anchor(_logButton.image.rectTransform, new Vector2(0.45f, 0f), new Vector2(0.64f, 0f));
             TextMeshProUGUI logLabel = _logButton.GetComponentInChildren<TextMeshProUGUI>();
             logLabel.richText = true;
-            logLabel.text = "전투 로그\n<size=60%>L</size>";
+            logLabel.text = "전투 로그 · L";
+            _logButton.image.rectTransform.sizeDelta = new Vector2(_logButton.image.rectTransform.sizeDelta.x, 44);
+            _logButton.image.rectTransform.anchoredPosition = new Vector2(_logButton.image.rectTransform.anchoredPosition.x, 32);
 
             _continue = UIBuild.Button("Continue", Body, "계속", Continue, primary: true, UITheme.FontHeading);
-            UIBuild.Anchor(_continue.image.rectTransform, new Vector2(0.66f, 0.01f), new Vector2(1f, 0.15f));
+            UIBuild.Anchor(_continue.image.rectTransform, new Vector2(0.66f, 0f), new Vector2(1f, 0f));
             _continueLabel = _continue.GetComponentInChildren<TextMeshProUGUI>();
             _continueLabel.richText = true;
+            _continueLabel.fontSize = 22;
+            _continue.image.rectTransform.sizeDelta = new Vector2(_continue.image.rectTransform.sizeDelta.x, 52);
+            _continue.image.rectTransform.anchoredPosition = new Vector2(_continue.image.rectTransform.anchoredPosition.x, 32);
         }
 
         // ── 열기 ─────────────────────────────────────────────────────
@@ -296,8 +294,7 @@ namespace Managers.UI.Screens
         {
             Color verdictColor = result.Victory ? UITheme.Accent : UITheme.Danger;
 
-            _verdictBand.sprite = UIShapes.CutCorner(12,
-                new Color(verdictColor.r, verdictColor.g, verdictColor.b, 0.12f), UIShapes.Corner.Diagonal);
+            _verdictBand.sprite = UIShapes.RoundedRect(4, Color.clear);
             _verdictAccent.color = verdictColor;
             _verdictCaption.color = verdictColor;
             _verdictCaption.text = result.GameOver ? "RUN TERMINATED"
@@ -340,7 +337,7 @@ namespace Managers.UI.Screens
 
             string next = result.GameOver ? "메인 메뉴로"
                 : string.IsNullOrEmpty(result.NextStep) ? "다음 단계" : result.NextStep;
-            _continueLabel.text = $"확인\n<size=60%>{next} · ENTER</size>";
+            _continueLabel.text = next + "  →";
         }
 
         private void BindParty(BattleResultData result)
@@ -381,6 +378,10 @@ namespace Managers.UI.Screens
         {
             Image frame = UIBuild.Panel($"Member{index}", _partyRow, UITheme.SurfaceRaised,
                 UIShapes.Corner.Diagonal, 6, line.Fallen ? UITheme.Danger : UITheme.Outline, 1);
+            // 종이 위 흰 행(한 겹). 쓰러진 아군만 위험색 헤어라인으로 갈린다 — 의미색은 상태에만 쓴다.
+            frame.sprite = line.Fallen
+                ? UIShapes.RoundedRect(10, Color.white, new Color(UITheme.Danger.r, UITheme.Danger.g, UITheme.Danger.b, 0.45f), 1)
+                : UIArtDirection.Sheet(10);
             frame.raycastTarget = false;
             RectTransform rect = frame.rectTransform;
             rect.anchorMin = new Vector2(0f, 1f);
@@ -536,25 +537,24 @@ namespace Managers.UI.Screens
 
             public Tile(Transform parent, int index, string label, string caption)
             {
-                _panel = UIBuild.Panel($"Tile{caption}", parent, UITheme.SurfaceSunken, UIShapes.Corner.Diagonal, 10,
-                    UITheme.Outline, 1);
+                _panel = UIBuild.Solid($"Tile{caption}", parent, Color.clear);
                 _panel.raycastTarget = false;
                 const float width = 0.25f;
                 UIBuild.Anchor(_panel.rectTransform, new Vector2(index * width, 0f),
                     new Vector2((index + 1) * width, 1f), 6f, 0f);
 
                 TextMeshProUGUI title = UIBuild.Text("Label", _panel.transform,
-                    $"{label}  <size=70%><color=#{Hex(UITheme.TextMuted)}>{caption}</color></size>",
+                    label,
                     UITheme.FontCaption, UITheme.TextSecondary);
                 title.richText = true;
-                UIBuild.Anchor(title.rectTransform, new Vector2(0f, 0.72f), new Vector2(1f, 0.95f), 16f, 0f);
+                UIBuild.Anchor(title.rectTransform, new Vector2(0f, 0.67f), new Vector2(1f, .98f), 16f, 0f);
 
-                _value = UIBuild.Text("Value", _panel.transform, "", UITheme.FontDisplay, UITheme.TextPrimary);
+                _value = UIBuild.Text("Value", _panel.transform, "", 26f, UITheme.TextPrimary);
                 _value.fontStyle = FontStyles.Bold;
                 UIBuild.Anchor(_value.rectTransform, new Vector2(0f, 0.28f), new Vector2(1f, 0.72f), 16f, 0f);
 
                 _sub = UIBuild.Text("Sub", _panel.transform, "", UITheme.FontCaption, UITheme.TextMuted);
-                UIBuild.Anchor(_sub.rectTransform, new Vector2(0f, 0.06f), new Vector2(1f, 0.28f), 16f, 0f);
+                UIBuild.Anchor(_sub.rectTransform, new Vector2(0f, 0f), new Vector2(1f, .27f), 16f, 0f);
             }
 
             public void Set(string value, string sub, Color valueColor, Color subColor, bool emphasize = false)
@@ -563,9 +563,12 @@ namespace Managers.UI.Screens
                 _value.color = valueColor;
                 _sub.text = sub;
                 _sub.color = subColor;
-                _panel.sprite = UIShapes.CutCorner(10,
-                    emphasize ? new Color(UITheme.Danger.r, UITheme.Danger.g, UITheme.Danger.b, 0.12f) : UITheme.SurfaceSunken,
-                    UIShapes.Corner.Diagonal, emphasize ? UITheme.Danger : UITheme.Outline, emphasize ? 2 : 1);
+                // 결과 숫자 한 칸 = 흰 카드 한 장. 잃은 것(목숨 감소)만 위험색 면으로 강조한다.
+                _panel.sprite = emphasize
+                    ? UIShapes.RoundedRect(12, new Color(UITheme.Danger.r, UITheme.Danger.g, UITheme.Danger.b, .06f),
+                        new Color(UITheme.Danger.r, UITheme.Danger.g, UITheme.Danger.b, .30f), 1)
+                    : UIArtDirection.Sheet(12);
+                _panel.type = Image.Type.Sliced;
             }
         }
     }

@@ -187,6 +187,7 @@ namespace Effects.Vfx
             int baseOrder = cue != null && cue.BehindPortrait ? RearOrder : FrontOrder;
             FlipbookFx fx = PlayCue(cue, point, layer, baseOrder, target, Frame, Complete);
             if (fx == null) Complete();
+            else if (cue.PortraitAnchor) fx.ClipPortraitHud(target);
             return fx;
         }
 
@@ -197,8 +198,10 @@ namespace Effects.Vfx
             if (cue.PortraitAnchor && follow != null) anchor = VfxSpace.PortraitPoint(follow);
             float s = VfxSpace.CardSize;
             Vector3 offset = new(cue.OffsetInCards.x * s, cue.OffsetInCards.y * s, 0f);
+            BattleVfxStyle.Composite(cue.Composite);
+            Color finalBody = BattleVfxStyle.Body(cue.Color, cue.Composite?.GlowColor ?? cue.Color);
             FlipbookFx fx = FlipbookFx.Play(cue.ResourcePath, cue.Columns, cue.Rows, cue.Pivot,
-                anchor + offset, cue.SizeInCards * s, cue.Color, cue.Additive, cue.Loop, cue.FlipX,
+                anchor + offset, cue.SizeInCards * s, finalBody, cue.Additive, cue.Loop, cue.FlipX,
                 cue.FrameDelays, layer, baseOrder + cue.OrderOffset, onFrame, onComplete,
                 cue.Composite, PlaybackMode, cue.ReverseFrames, cue.StartFrame);
             if (fx != null && follow != null)

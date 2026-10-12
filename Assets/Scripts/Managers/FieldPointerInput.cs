@@ -85,6 +85,8 @@ namespace Managers
 
         private void OnDisable()
         {
+            if (_pressed != null) _pressed.Card.SetPointerFeedback(false,false);
+            if (_hovered != null) _hovered.Card.SetPointerFeedback(false,false);
 #if ENABLE_INPUT_SYSTEM
             UnityEngine.InputSystem.InputSystem.onEvent -= OnInputEvent;
 #endif
@@ -160,6 +162,7 @@ namespace Managers
 
             if (pointer.Up)
             {
+                if (_pressed != null) _pressed.Card.SetPointerFeedback(false,false);
                 // 누른 뒤 다음 프레임이 오기 전에 멀리 옮겨 뗀 빠른 끌기. 드래그가 시작될 틈이 없었으므로
                 // 여기서 시작해 바로 놓는다 — 예전에는 클릭도 드래그도 아니게 되어 카드가 제자리로 돌아갔다(QA).
                 if (!_dragging && _pressed != null && CanDrag(_pressed) &&
@@ -188,9 +191,10 @@ namespace Managers
             if (_dragging && pointer.Held) DragAndDropManager.Instance?.UpdateDragPointer(position);
 
             // 호버 — 누르고 있거나 UI 위면 툴팁을 걷는다.
-            bool busy = _dragging || pointer.Held;
+            bool busy = _dragging || pointer.Held || Managers.UI.Core.TooltipTrigger.IsDropHoverSuppressed(position);
             SetHovered(pointer.IsTouch || busy || overUi ? null : CellWithUnitAt(position));
-            if (_hovered != null) _hovered.ShowHoverTooltip();
+            if (_hovered != null) { _hovered.ShowHoverTooltip(); _hovered.Card.SetPointerFeedback(true,false); }
+            if(_pressed!=null && pointer.Held) _pressed.Card.SetPointerFeedback(false,!_dragging&&!overUi&&CellWithUnitAt(position)==_pressed);
         }
 
         private PointerState ReadPointer()
@@ -243,7 +247,7 @@ namespace Managers
         private void SetHovered(Cell cell)
         {
             if (_hovered == cell) return;
-            if (_hovered != null) _hovered.HideHoverTooltip();
+            if (_hovered != null) { _hovered.HideHoverTooltip(); _hovered.Card.SetPointerFeedback(false,false); }
             _hovered = cell;
         }
 
@@ -268,6 +272,23 @@ namespace Managers
             Camera camera = Camera.main;
             if (camera == null) return null;
 
+            // 바닥 칸과 실제 원화는 세로 범위가 다르다. 보이는 카드부터 골라 얼굴 클릭이 빈 바닥/다른 행으로 새지 않게 한다.
+            Cell visible=null;
+            void Consider(Unit unit)
+            {
+                if(unit==null || !unit.isActive || unit.currentCell==null || !unit.IsOnField)return;
+                Cell cell=unit.currentCell;
+                var card=cell.Card;
+                if(!card.PortraitFocusScreenRect(camera).Contains(screen) && !card.HudScreenRect(camera).Contains(screen))return;
+                if(visible==null || cell.DepthOrder>visible.DepthOrder)visible=cell;
+            }
+            GridManager grid=GridManager.Instance;
+            if(grid!=null)
+            {
+                foreach(Unit unit in grid.heroList)Consider(unit);
+                foreach(Unit unit in grid.enemyList)Consider(unit);
+            }
+            if(visible!=null)return visible;
             Vector3 world = camera.ScreenToWorldPoint(new Vector3(screen.x, screen.y, -camera.transform.position.z));
             Collider2D[] hits = Physics2D.OverlapPointAll(world);
             foreach (Collider2D hit in hits)

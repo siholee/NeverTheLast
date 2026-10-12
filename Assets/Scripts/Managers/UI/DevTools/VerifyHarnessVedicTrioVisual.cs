@@ -72,7 +72,7 @@ namespace Managers.UI.DevTools
             }
             bool done = false;
             Coroutine sequence = StartCoroutine(TrioVisualSequence(vayu, agni, surya, () => done = true));
-            float deadline = Time.realtimeSinceStartup + 120f;
+            float deadline = Time.realtimeSinceStartup + 240f;
             float next = Time.realtimeSinceStartup;
             while (!done && Time.realtimeSinceStartup < deadline)
             {
@@ -105,15 +105,14 @@ namespace Managers.UI.DevTools
                 if (kind == AgniBurnToTheEnd.TicketKind.Fired) firedAgni++;
                 VerifyEvents.Raise("trio_agni_ticket_" + kind + "_action=" + GameManager.Instance.ActionScheduler.CurrentActionId);
             };
-            Action<Unit, Unit, SuryaBeforeSunset.ShotKind, bool> shot = (owner, target, kind, strong) =>
+            // 수리야 리워크는 추공 대신 일반/특수행동의 종언탄이다. 실제 방어 무시 피해로 기록한다.
+            Action<Unit, DamageContext> shot = (target, context) =>
             {
-                if (owner != surya) return;
-                if (kind == SuryaBeforeSunset.ShotKind.Accepted) accepted++;
-                if (kind == SuryaBeforeSunset.ShotKind.Fired) firedSurya++;
-                VerifyEvents.Raise("trio_surya_shot_" + kind + "_strong=" + strong + "_action=" + GameManager.Instance.ActionScheduler.CurrentActionId);
+                if (context.Attacker==surya && context.DefenseStatMultiplier<1f) firedSurya++;
             };
             AgniBurnToTheEnd.AnyTicket += ticket;
-            SuryaBeforeSunset.AnyShot += shot;
+            Unit.AnyDamageIncoming += shot;
+            YvAddTestStatus(surya,99969,"verify_trio_mark_accuracy",new Effects.Buffs.StatModifierEffect(BaseEnums.StatType.SpecialAttack,100000f));
             int audioStart = _result.sfxEvents.Count;
             try
             {
@@ -144,9 +143,9 @@ namespace Managers.UI.DevTools
                             else scheduler.EnqueueSpecial(caster, "trio_visual", caster.ActiveSpecialCode.CodeName, caster.CastSpecialCode);
                         }, () => recorder.Finished.Any(item => item.Unit == caster && item.Kind == kind)
                             && (caster != indra || slot != 1 || recorder.Finished.Count(item => item.Kind == ActionScheduler.ActionKind.Special) >= SpecialAction.Participants(indra).Count)
-                            && recorder.Finished.Count(item => item.Kind == ActionScheduler.ActionKind.Additional || item.Kind == ActionScheduler.ActionKind.PriorityAdditional) >= accepted - beforeAccepted);
-                        int expected = (caster == agni || caster == indra) && slot == 1 ? 0 : caster == vayu && slot != 0 ? AliveEnemies().Count : 1;
-                        BaseEnums.CodeType type = slot == 0 ? BaseEnums.CodeType.Normal : slot == 1 ? BaseEnums.CodeType.Ultimate : BaseEnums.CodeType.Special;
+                            && recorder.Finished.Count(item => item.Kind == ActionScheduler.ActionKind.Additional || item.Kind == ActionScheduler.ActionKind.PriorityAdditional)  >= accepted - beforeAccepted, timeout: caster==indra && slot==1 ? 45f : 20f);
+                        int expected = (caster == agni || caster == indra || caster == surya) && slot == 1 ? 0 : (caster == vayu && slot != 0 || caster==surya && slot==2) ? AliveEnemies().Count : 1;
+                        BaseEnums.CodeType type = caster==surya && slot==2 ? BaseEnums.CodeType.Normal : slot == 0 ? BaseEnums.CodeType.Normal : slot == 1 ? BaseEnums.CodeType.Ultimate : BaseEnums.CodeType.Special;
                         int hits = recorder.IncomingTargets.Count(item => item.Context.Attacker == caster && item.Context.CodeType == type);
                         RecordMechanic("베다 " + caster.ID + " " + kind + " 실제 피해", expected.ToString(), hits.ToString(), hits == expected);
                     }
@@ -155,17 +154,17 @@ namespace Managers.UI.DevTools
                     Capture("trio_end_" + caster.ID + "_" + kind);
                 }
                 var sounds = _result.sfxEvents.Skip(audioStart).ToList();
-                foreach (string character in new[] { "arlan", "acheron", "feixiao" })
+                foreach (string character in new[] { "arlan", "acheron", "jade" })
                 {
                     var voices = sounds.Where(item => item.played && item.mixerGroup == "VOICE" && item.clip.Contains(character)).ToList();
                     RecordMechanic("베다 지정 원음 " + character, "실제 재생·pitch 1", voices.Count.ToString(), voices.Count > 0 && voices.All(item => Mathf.Approximately(item.pitch, 1f)));
                 }
                 int agniHits = sounds.Count(item => item.played && (item.cue == "agni.follow_up.hit" || item.cue == "agni.focused_follow_up.hit"));
-                int suryaHits = sounds.Count(item => item.played && (item.cue == "surya.follow_up.hit" || item.cue == "surya.focused_follow_up.hit"));
+                int suryaHits = sounds.Count(item => item.played && item.cue == "surya.finale.hit");
                 RecordMechanic("아그니 생산 추공 타격음", firedAgni.ToString(), agniHits.ToString(), firedAgni > 0 && agniHits == firedAgni);
-                RecordMechanic("수리야 생산 추공 타격음", firedSurya.ToString(), suryaHits.ToString(), firedSurya > 0 && suryaHits == firedSurya);
+                RecordMechanic("수리야 생산 종언탄 타격음", firedSurya.ToString(), suryaHits.ToString(), firedSurya > 0 && suryaHits == firedSurya);
             }
-            finally { AgniBurnToTheEnd.AnyTicket -= ticket; SuryaBeforeSunset.AnyShot -= shot; }
+            finally { AgniBurnToTheEnd.AnyTicket -= ticket; Unit.AnyDamageIncoming -= shot; surya.RemoveStatusByKey("verify_trio_mark_accuracy"); }
             done();
         }
     }

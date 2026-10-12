@@ -50,7 +50,10 @@ namespace Managers.UI.Core
             for (int i = 0; i < MaxOptions; i++) _slots.Add(new Slot(_root, i, id => _onPick?.Invoke(id)));
 
             Button back = UIBuild.Button("Back", _root, backLabel, () => onBack?.Invoke(), false, UITheme.FontReadSmall);
-            UIBuild.Anchor(back.GetComponent<RectTransform>(), new Vector2(0.36f, 0.02f), new Vector2(0.64f, 0.11f));
+            RectTransform backRect = back.GetComponent<RectTransform>();
+            backRect.anchorMin = backRect.anchorMax = backRect.pivot = new Vector2(0.5f, 0f);
+            backRect.sizeDelta = new Vector2(320f, 48f);
+            backRect.anchoredPosition = new Vector2(0f, 4f);
             // 보상 · 상점 · 공용 보급이 함께 쓰는 선택 판이라 판 안의 22 이상 글자에만 가독 하한을 건다.
             UIScaledText.KeepReadable(_root);
             _root.gameObject.SetActive(false);
@@ -80,8 +83,9 @@ namespace Managers.UI.Core
 
             public Slot(Transform parent, int index, Action<int> onPick)
             {
-                _root = UIBuild.Panel($"Option{index}", parent, UITheme.SurfaceSunken,
-                    UIShapes.Corner.Diagonal, 8, UITheme.Outline, 1);
+                // 선택지 하나 = 흰 카드 한 장. 상점 · 보상 · 받을 아군 판과 같은 재질이다.
+                _root = UIBuild.Solid($"Option{index}", parent, Color.white);
+                _root.sprite = UIArtDirection.Sheet(12);
                 UIBuild.OnClick(_root.gameObject, () => onPick?.Invoke(_id));
                 int column = index % 2;
                 int row = index / 2;
@@ -90,18 +94,18 @@ namespace Managers.UI.Core
                     new Vector2((column + 1) * 0.5f, top), 10f, 0f);
 
                 _strip = UIBuild.Solid("Tier", _root.transform, UITheme.Accent);
-                UIBuild.Anchor(_strip.rectTransform, new Vector2(0f, 0f), new Vector2(0.02f, 1f));
+                UIBuild.Anchor(_strip.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f));
 
-                _title = UIBuild.Text("Title", _root.transform, "", UITheme.FontReadHeading, UITheme.TextPrimary,
+                _title = UIBuild.Text("Title", _root.transform, "", 22f, UITheme.TextPrimary,
                     TextAlignmentOptions.MidlineLeft);
                 _title.fontStyle = FontStyles.Bold;
                 _title.overflowMode = TextOverflowModes.Ellipsis;
-                UIBuild.Anchor(_title.rectTransform, new Vector2(0.05f, 0.60f), new Vector2(0.98f, 0.96f));
+                UIBuild.Anchor(_title.rectTransform, new Vector2(0f, 0.57f), new Vector2(1f, .96f), 20f, 0f);
                 // 버릴 코드를 고를 때 지워질 코드의 효과를 비교할 수 있어야 한다. 두 줄까지 싣고 넘치면 툴팁이 전문을 보인다.
                 _subtitle = UIBuild.Text("Subtitle", _root.transform, "", UITheme.FontReadSmall, UITheme.TextSecondary,
                     TextAlignmentOptions.TopLeft, wrap: true);
                 _subtitle.overflowMode = TextOverflowModes.Ellipsis;
-                UIBuild.Anchor(_subtitle.rectTransform, new Vector2(0.05f, 0.04f), new Vector2(0.98f, 0.60f));
+                UIBuild.Anchor(_subtitle.rectTransform, new Vector2(0f, .06f), new Vector2(1f, .57f), 20f, 0f);
             }
 
             public void Bind(Option? option)
@@ -112,7 +116,9 @@ namespace Managers.UI.Core
                 _title.text = option.Value.Title;
                 _subtitle.text = option.Value.Subtitle;
                 Color tint = UITheme.Rarity(Mathf.Clamp(option.Value.Tier, 1, 5));
-                _strip.color = tint;
+                _strip.color = UITheme.Divider;
+                _strip.rectTransform.sizeDelta = new Vector2(0, 1);
+                _strip.gameObject.SetActive(false);
                 int id = option.Value.Id;
                 string title = option.Value.Title;
                 TooltipTrigger.Attach(_root.gameObject, () => title, () => RewardCodeFlow.TooltipLines(id), tint);

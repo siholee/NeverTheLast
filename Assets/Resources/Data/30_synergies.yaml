@@ -58,7 +58,7 @@ roles:
     description: 소환수 피해를 올린다.
   - id: AMP_TOUGH
     name: 강인도 증폭
-    description: 강인도 효율과 강인도→실피 전환을 올린다.
+    description: 강인도 삭감 효율을 높여 처치 연계의 기회를 만든다.
   - id: ELEM_APPLY
     name: 원소 부착
     description: 반응 재료를 깐다. 적 대상과 아군 대상이 서로 다른 축이다.
@@ -89,8 +89,8 @@ roles:
   - id: SPECIAL
     name: 특수행동
     description: >
-      인드라의 초월기 <팔방의 소집>만이 여는 행동. 필드의 로카팔라가 순서대로 나선다(바유 → 바루나 → 쿠베라 → 인드라 → 야마 → 찬드라).
-      추가행동과 판정이 다르며, 세울수록 인드라 궁극기 한 번의 값이 커진다.
+      일반행동·추가행동과 별도 분류인 행동. 로카팔라 묶음은 인드라의 초월기가 열고,
+      나폴레옹의 일제 사격과 시의 처치 재행동은 각자의 고유 트리거로 열린다.
 
 # 훈련 특기 — 서포트 카드의 specialtyTraining은 80% 확률로 그 캐릭터의 최고 스탯이 된다.
 # 집중 스탯이 특기와 일치해야 특기 보너스·우정 훈련·패시브 전수가 모두 열린다.
@@ -277,7 +277,7 @@ units:
     supportValue: { combat: 3, training: 0 }
     provides:
       - { key: EXTRA_ACT, text: "끝까지 태워 주지 — 다른 아군의 초월기 완료마다 적 전체 공격력 45% 추가행동(아군별 일반행동 사이 1회)" }
-      - { key: ELEM_APPLY, text: "끝까지 태워 주지 — 적마다 피해 직후 불 부착(증발 · 융해 · 연소의 재료)" }
+      - { key: ELEM_APPLY, text: "끝까지 태워 주지 — 적마다 피해 직후 불 부착(증발 · 융해 · 화상의 재료)" }
       - { key: AMP_DMG, text: "내가 판을 키워 주지 — 아군 전원 궁극기 피해 +20%(아그니 일반행동 3회), 자기 추공도 궁극기 판정" }
       - { key: DPS_AOE, text: "제일 먼저 태울 곳 — 인드라의 표 한 장을 중심 180% · 나머지 45% 집중 포격으로" }
     wants: [ULT_BATTERY, ELEM_APPLY, SPECIAL]
@@ -290,30 +290,29 @@ units:
     mainStat: Attack
     topStat: Attack
     row: Rear
-    roles: [DPS_ST, EXTRA_ACT, AMP_DMG]
-    supportValue: { combat: 3, training: 0 }
+    roles: [DPS_ST, DPS_AOE, SPECIAL]
+    supportValue: { combat: 1, training: 0 }
     provides:
-      - { key: EXTRA_ACT, text: "해가 지기 전에 — 동료가 수배된 적을 치면 탄환 1발로 공격력 55% 응답 사격(2발, 일반행동 · 초월기로 재장전)" }
-      - { key: AMP_DMG, text: "현상수배 — 수배된 적이 아군의 추가행동에 받는 피해 +15%" }
-      - { key: DPS_ST, text: "도망칠 곳은 없어 — 수배된 적에게 공격력 150% · 불 부착 · 다음 응답 110%" }
-    wants: [EXTRA_ACT, DPS_ST, MULTIHIT]
-    caution: "동료가 수배된 적을 치지 않으면 응답이 없다(혼자서는 일반행동 80%뿐). 서로 다른 후열을 노리는 편성에서는 응답 횟수가 줄어든다."
+      - { key: DPS_ST, text: "두 일반 사격의 표식 뒤 종언탄 360%, 방어력 25% 무시" }
+      - { key: DPS_AOE, text: "로카팔라 특수행동은 표식이 있는 적 모두에게 종언탄" }
+    wants: [AMP_DMG, ELEM_APPLY, SPECIAL]
+    caution: "느린 사격수다. 효과 명중이 낮거나 표적이 자주 바뀌면 종언탄이 늦어진다."
 
   - id: 65
     name: 쿠베라
     type: Unlocked
     element: Geo
-    mainStat: Attack
-    topStat: Defense
+    mainStat: CritDamage
+    topStat: Attack
     row: Rear
-    roles: [AMP_SUMMON, ECON, SPECIAL, DPS_AOE]
+    roles: [AMP_DMG, ECON, SPECIAL, DPS_AOE]
     supportValue: { combat: 3, training: 0 }
     provides:
-      - { key: AMP_SUMMON, text: "재보천의 후원 — 아군 소환수 피해 +20%, 보고 개방 2턴 +15%" }
-      - { key: ECON, text: "이자 · 골드 러쉬 — 승리 골드 보너스" }
-      - { key: DPS_AOE, text: "골드 러쉬 — 보유 골드 비례 광역 피해(최대 ×4)" }
-    wants: [SUMMON, SPECIAL]
-    caution: "골드를 쓰면 골드 러쉬 배율도 내려간다. 소환사가 없으면 보물이 느리게 찬다."
+      - { key: AMP_DMG, text: "재보 증감 공격에 자신의 치피30% 가산" }
+      - { key: ECON, text: "일반 재보+1, 초월기로 이자 충전" }
+      - { key: DPS_AOE, text: "골드 러쉬 재보3 소비 강화 및 금력 광역" }
+    wants: [SPECIAL, ECON]
+    caution: "소환 시너지는 없다. 골드 소비는 금력, 재보 소비는 이후 탄약과 방호를 줄인다."
 
   - id: 61
     name: 야마
@@ -372,12 +371,157 @@ units:
     roles: [SUMMON, DPS_ST, MULTIHIT]
     supportValue: { combat: 1, training: 0 }
     provides:
-      - { key: SUMMON, text: "도사란 무엇인가 — 분신 최대 3기, 생성 · 소멸이 쿠베라 · 아누비스의 연료" }
+      - { key: SUMMON, text: "도사란 무엇인가 — 분신 최대 3기, 소멸은 아누비스의 영혼" }
       - { key: MULTIHIT, text: "만천화우 — 분신마다 공격력 300%" }
     wants: [AMP_SUMMON, ACT_ACCEL]
     caution: "속도가 너무 높으면 분신이 넘쳐 절반 피해로 흩어진다."
 
+  - id: 160
+    name: 마리 테레즈
+    type: Unlocked
+    element: Cryo
+    mainStat: Attack
+    topStat: CritDamage
+    row: Rear
+    roles: [HEAL, AMP_DMG]
+    supportValue: { combat: 5, training: 0 }
+    provides:
+      - { key: HEAL, text: "행동을 마친 동료 치유, HP 30% 이하 긴급 치유" }
+      - { key: AMP_DMG, text: "자신의 치명타 피해에 비례한 아군 추가행동 치명타 피해" }
+    wants: [EXTRA_ACT]
+    caution: "공격력 치유사로 기본 방어와 체력이 낮다. 후열 배치가 필요하다."
+  - id: 161
+    name: 나폴레옹
+    type: Unlocked
+    element: Hydro
+    mainStat: CritDamage
+    topStat: Speed
+    row: Rear
+    roles: [DPS_ST, AMP_DMG, ACT_ACCEL]
+    supportValue: { combat: 4, training: 0 }
+    provides:
+      - { key: AMP_DMG, text: "필드 아군의 일반공격 피해 증가, 초월기는 자신의 치명타 피해에 비례한 추가 증폭" }
+      - { key: DPS_ST, text: "처리하기 쉬운 적을 지정해 공격형 일반행동 아군·소환수가 일제 사격. 각 원래 일반공격의 최종 피해 50%" }
+      - { key: ACT_ACCEL, text: "전투 시작 자신 선행, 초월기로 아군 행동을 앞당긴다" }
+    wants: [AMP_DMG, MULTIHIT, HEAL, SHIELD]
+    caution: "일제 사격은 나폴레옹의 특수행동 1회다. 참여자의 턴·일반행동 완료·행동 게이지·일반행동 마나는 발생하지 않는다."
+  - id: 80
+    name: 로키
+    type: Unlocked
+    element: Anemo
+    mainStat: Attack
+    topStat: Speed
+    row: Rear
+    roles: [DPS_ST, SUMMON, EXTRA_ACT, AMP_DMG]
+    supportValue: { combat: 3, training: 0 }
+    provides:
+      - { key: EXTRA_ACT, text: "사냥감이 다른 추가행동의 직접 피해를 받으면 펜리르가 추격. 펜리르 일반행동마다 최대 3회" }
+      - { key: AMP_DMG, text: "초월기 코드의 사냥감 표식은 추가행동 피해 취약을 부여하고, 대상 사망 시 새 적에게 이동" }
+      - { key: SUMMON, text: "한 마리 동반형 펜리르와 함께 공격. 초월기로 모든 행동 피해에 반응하는 자유 추격 2회 제공" }
+    wants: [EXTRA_ACT, AMP_SUMMON, AMP_CRIT]
+    caution: "펜리르 자신의 공격은 추격을 다시 열지 않는다. 자유 추격도 턴당 3회 제한을 공유하며 물 원소 공급원이 아니다."
+  - id: 45
+    name: 츠쿠요미
+    type: Unlocked
+    element: Electro
+    mainStat: SpecialAttack
+    topStat: SpecialAttack
+    row: Rear
+    roles: [DOT, AMP_DMG]
+    supportValue: { combat: 5, training: 0 }
+    provides:
+      - { key: DOT, text: "저주는 생성자 일반행동마다 특수공격력 50% 피해" }
+      - { key: AMP_DMG, text: "특공 비례 오라로 모든 지속피해와 야마 즉시 발동 증폭" }
+    wants: [DOT, ACT_ACCEL]
+    caution: "원소 부착 능력은 없다. 저주 수명은 대상의 일반행동 2회다."
+
+  - id: 81
+    name: 수르트
+    type: Unlocked
+    element: Pyro
+    mainStat: Attack
+    topStat: MaxHp
+    row: Front
+    roles: [DPS_AOE, BULWARK, SHIELD]
+    supportValue: { combat: 3, training: 0 }
+    provides:
+      - { key: DPS_AOE, text: "체력 60% 이상에서 최대 체력 20%를 소모해 초월기 전체 피해 강화" }
+      - { key: SHIELD, text: "직접 공격한 행동마다 아군 전체 방어력 12% 보호막" }
+    wants: [HEAL, AMP_CRIT, AMP_DMG]
+    caution: "일반 공격 비중이 낮다. 높은 고점을 내려면 체력·공격력·치명타를 함께 확보해야 한다."
+  - id: 82
+    name: 프레이아
+    type: Unlocked
+    element: Dendro
+    mainStat: MaxHp
+    topStat: Speed
+    row: Front
+    roles: [HEAL, AMP_DMG]
+    supportValue: { combat: 4, training: 0 }
+    provides:
+      - { key: HEAL, text: "일반행동 전체 치유 · 추가/특수/초월기 행동 후 짤힐 · 온기를 소모하는 긴급 치유" }
+      - { key: AMP_DMG, text: "본인이 실제 회복한 HP에 비례해 온기를 저장하고 전체 피해를 최대 30% 증가" }
+    wants: [BULWARK, DPS_AOE]
+    caution: "다른 치유사가 부족한 체력을 먼저 채우면 온기가 쌓이지 않는다. 과잉 치유와 자신의 긴급 치유는 저장하지 않는다."
+
+  - id: 200
+    name: 만사 무사
+    type: Unlocked
+    element: Geo
+    mainStat: Defense
+    topStat: Speed
+    row: Rear
+    roles: [SHIELD, ECON, AMP_DMG]
+    supportValue: { combat: 3, training: 0 }
+    provides: []
+    wants: [ECON]
+    caution: "재보 공급과 소비의 균형이 필요하다."
+
+  - id: 220
+    name: 이슈타르
+    type: Unlocked
+    element: Dendro
+    mainStat: Attack
+    topStat: Speed
+    row: Rear
+    roles: [DPS_ST, ELEM_APPLY]
+    supportValue: { combat: 3, training: 0 }
+    provides: []
+    wants: [ECON]
+    caution: "재보 공급과 소비의 균형이 필요하다."
+
+  - id: 25
+    name: 오르페우스
+    type: Unlocked
+    element: Anemo
+    mainStat: SpecialAttack
+    topStat: SpecialAttack
+    row: Rear
+    roles: [TOUGHNESS, AMP_TOUGH, ELEM_APPLY]
+    provides:
+      - { key: TOUGHNESS, text: "죽음마저 속인 자 — 적 강인도를 생성해 살아 있는 적의 처치 연계를 연다." }
+      - { key: AMP_TOUGH, text: "비탄의 연주 — 특수공격력에 비례하여 아군 전체 강인도 삭감 효율 증가." }
+    wants: [EXECUTE, DPS_ST]
+    caution: "잔향·격파 피해·행동 지연 없음. 사망·벤치에서는 강인도를 제공하지 않는다."
+
 archetypes:
+  - id: EMBER_RENEWAL
+    name: 불씨와 온기의 순환
+    core: [81, 82]
+    description: "수르트가 체력을 자원으로 쓰고 프레이아가 실제 치유를 온기로 바꾼다. 공격·체력·치명타의 투자를 분산하지 말고 순차적으로 완성한다."
+    partners: [44, 64, 62]
+  - id: NORMAL_VOLLEY
+    name: 지휘 일제 사격 편성
+    core: [161, 67, 1]
+    description: "나폴레옹이 수리야의 종언탄·세이의 일반공격을 한 적에게 모은다. 방어와 남은 체력을 고려해 우선 처리할 적을 지정한다."
+    partners: [44, 60]
+    counterplay: "치유·소환만 하는 비공격형 일반행동은 사격에 참여하지 않는다. 제어된 동료와 무적 적은 사격 후보에서 빠진다."
+  - id: FENRIR_PURSUIT
+    name: 펜리르 추격 편성
+    core: [80, 7, 122]
+    description: "잔·바스테트의 추가행동을 사냥감에 모아 펜리르 추격을 열고 마리 테레즈가 치명타 피해와 유지력을 지원한다."
+    partners: [160, 1]
+    counterplay: "추가행동이 사냥감을 빗겨가면 추격이 끊긴다. 자유 추격 소진 뒤에는 일반공격만으로 계속 추격할 수 없다."
   - id: LOKAPALA_GATE
     name: 로카팔라 묶음 편성
     core: [63, 64, 65, 60]
@@ -398,8 +542,8 @@ archetypes:
     counterplay: "인드라가 쓰러지면 묶음을 열 수 없다. 물이 없으면 증발 대신 계수만 남는다."
   - id: SUMMON_CYCLE
     name: 분신 순환 편성
-    core: [121, 180, 65, 20]
-    description: "우치의 분신 생성이 쿠베라의 보물을, 소멸이 아누비스의 영혼을 채운다. 피그말리온은 후열에서 갈라테아로 분신 피해를 올린다."
+    core: [121, 180, 20, 60]
+    description: "우치의 분신 소멸이 아누비스의 영혼을 채운다. 피그말리온은 후열에서 갈라테아로 분신 피해를 올린다."
     partners: [1]
     counterplay: "아누비스는 스스로 공격을 끌지 못한다. 기수 코드 등으로 우선도를 받쳐야 한다."
   - id: JEAN_BASTET_COUNTER
@@ -426,6 +570,13 @@ archetypes:
     description: "히미코·피그말리온이 해로운 상태와 지속피해를 공급해 아즈라엘을 채우고, 시와 사바흐가 단일·광역 처형을 나눈다."
     partners: []
     counterplay: "맹화 1~2중첩은 디버프가 아니며, 적이 해로운 상태에 강하면 아즈라엘 회전이 느려진다."
+
+  - id: TREASURY_BARRAGE
+    name: 왕실 재보 포격
+    core: [220, 65, 200]
+    description: "쿠베라의 생산·이자·치피와 만사의 방호·경제·DEF 버프로 이슈타르의 탄약을 공급한다."
+    partners: [64, 82, 62]
+    counterplay: "생산자 제어와 사망에 취약하며 모으기 전에 방호·골드 러쉬가 자원을 소비한다. 단일 포격의 광역 부족과 지원 슬롯 비용을 고려한다."
 
 recommendations:
   - mainId: 7
@@ -558,19 +709,51 @@ recommendations:
 
   - mainId: 67
     mainName: 수리야
-    axis: "현상수배 · 응답 사격 · 추가행동 지원"
+    axis: "일반공격 · 표식 · 종언탄"
     starterRecommended: true
     best:
-      archetype: VEDIC_FIRE
-      members: [62, 64, 66, 63]
-      rows: { 67: Rear, 62: Front, 64: Rear, 66: Front, 63: Rear }
-      reason: "아그니의 전체 추공과 동료의 단일 공격이 수배된 적을 맞힐 때마다 응답 사격이 나가고, 수배 취약 +15%가 두 사람의 추가행동을 함께 키운다."
+      archetype: NORMAL_VOLLEY
+      members: [161, 1, 44, 60]
+      rows: { 67: Rear, 161: Rear, 1: Front, 44: Rear, 60: Front }
+      reason: "나폴레옹의 지휘 사격에서도 표식을 쌓고 종언탄을 발사한다. 세이·찬드라가 유지력을, 히미코가 방어 무시를 제공한다."
     basic:
-      archetype: VEDIC_FIRE
-      members: [62, 64, 66, 63]
-      rows: { 67: Rear, 62: Front, 64: Rear, 66: Front, 63: Rear }
-      reason: "추가행동 동료와 함께 응답 연쇄가 탄환 2발에서 끝나는지 확인하는 기본 편성."
-    warning: "동료가 수배된 적과 다른 대상을 치면 응답이 줄어든다. 혼자서는 일반행동 80%뿐이다."
+      archetype: NORMAL_VOLLEY
+      members: [161, 1, 44, 60]
+      rows: { 67: Rear, 161: Rear, 1: Front, 44: Rear, 60: Front }
+      reason: "일반공격 증폭과 표식 집중을 함께 활용하는 기본 편성."
+    warning: "표식 부여에는 효과 명중이 필요하며 대상이 자주 바뀌면 종언탄이 늦어진다."
+
+  - mainId: 161
+    mainName: 나폴레옹
+    axis: "일반공격 지휘 · 행동 가속"
+    starterRecommended: true
+    best:
+      archetype: NORMAL_VOLLEY
+      members: [67, 1, 44, 60]
+      rows: { 161: Rear, 67: Rear, 1: Front, 44: Rear, 60: Front }
+      reason: "공격형 일반행동의 종언탄·다타수·방어 무시를 한 지정 대상에게 집중한다."
+    basic:
+      archetype: NORMAL_VOLLEY
+      members: [67, 1, 44, 60]
+      rows: { 161: Rear, 67: Rear, 1: Front, 44: Rear, 60: Front }
+      reason: "생존과 일반공격 집중을 함께 확보한다."
+    warning: "지휘 사격은 참여자의 일반행동 턴을 앞당기거나 마나를 충전하지 않는다."
+
+  - mainId: 80
+    mainName: 로키
+    axis: "동반 소환 · 사냥감 · 추가행동 추격"
+    starterRecommended: true
+    best:
+      archetype: FENRIR_PURSUIT
+      members: [7, 122, 160, 1]
+      rows: { 80: Rear, 7: Front, 122: Rear, 160: Rear, 1: Front }
+      reason: "선제 반격·바스테트 추격이 펜리르를 부르고 마리의 추가행동 치명타 피해 오라가 이를 증폭한다."
+    basic:
+      archetype: FENRIR_PURSUIT
+      members: [7, 122, 160, 1]
+      rows: { 80: Rear, 7: Front, 122: Rear, 160: Rear, 1: Front }
+      reason: "한 표적을 대상으로 추가행동과 동반 소환의 연계를 구축한다."
+    warning: "행동당 1회·펜리르 일반행동당 3회 추격 제한이 있다."
 
   - mainId: 121
     mainName: 아누비스
@@ -578,12 +761,43 @@ recommendations:
     starterRecommended: true
     best:
       archetype: SUMMON_CYCLE
-      members: [180, 65, 20, 1]
-      rows: { 121: Front, 180: Rear, 65: Rear, 20: Rear, 1: Front }
+      members: [180, 60, 20, 1]
+      rows: { 121: Front, 180: Rear, 60: Rear, 20: Rear, 1: Front }
       reason: "분신 소멸이 영혼을 채우고, 피그말리온은 후열에서 갈라테아만 맡아 아누비스와 우선도를 다투지 않는다."
     basic:
       archetype: SUMMON_CYCLE
-      members: [180, 65, 20, 1]
-      rows: { 121: Front, 180: Rear, 65: Rear, 20: Rear, 1: Front }
-      reason: "소환 순환 고리(생성 → 보물, 소멸 → 영혼)를 한 편성에서 확인한다."
+      members: [180, 60, 20, 1]
+      rows: { 121: Front, 180: Rear, 60: Rear, 20: Rear, 1: Front }
+      reason: "분신 소멸의 영혼과 찬드라의 유지력으로 소환 순환을 지탱한다."
     warning: "세이도 전열이라 우선도가 같다. 기수 코드를 아누비스에게 먼저 준다."
+
+  - mainId: 81
+    mainName: 수르트
+    axis: "체력 자원 · 초월기 · 전열 딜탱"
+    starterRecommended: true
+    best:
+      archetype: EMBER_RENEWAL
+      members: [82, 44, 64, 62]
+      rows: { 81: Front, 82: Front, 44: Rear, 64: Rear, 62: Rear }
+      reason: "프레이아가 자해를 실치유로 복구하고 히미코·바유가 방어/원소 취약, 아그니가 초월기 피해를 지원한다."
+    basic:
+      archetype: EMBER_RENEWAL
+      members: [82, 44, 64, 62]
+      rows: { 81: Front, 82: Front, 44: Rear, 64: Rear, 62: Rear }
+      reason: "체력 60% 조건을 지킬 회복과 초월기 중심의 증폭을 결합한다."
+    warning: "보호막은 체력 소모를 막지 않는다. 물·풀 부착원이 없으면 불 부착만으로 증발/화상은 생기지 않는다."
+  - mainId: 82
+    mainName: 프레이아
+    axis: "실치유 · 온기 오라 · 긴급 구조"
+    starterRecommended: true
+    best:
+      archetype: EMBER_RENEWAL
+      members: [81, 44, 64, 62]
+      rows: { 82: Front, 81: Front, 44: Rear, 64: Rear, 62: Rear }
+      reason: "자해 딜러의 부족 체력을 실제로 회복해 온기를 채운다."
+    basic:
+      archetype: EMBER_RENEWAL
+      members: [81, 44, 64, 62]
+      rows: { 82: Front, 81: Front, 44: Rear, 64: Rear, 62: Rear }
+      reason: "한 치유사로 회복과 피해 증폭을 함께 맡는다."
+    warning: "일반행동마다 온기가 줄어든다. 두 치유사를 넣으면 부족 체력을 나눠 가져 오라 유지가 어려워진다."

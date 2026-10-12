@@ -58,7 +58,7 @@ namespace Codes.Passive
         private void OnDamageOverTimeTick(DamageResolvedContext context)
         {
             if (Caster == null || !Caster.isActive || context?.DamageContext == null) return;
-            if (context.DamageDealt <= 0 || context.DamageContext.CodeType != BaseEnums.CodeType.Effect) return;
+            if (context.DamageDealt <= 0 || !context.DamageContext.IsDamageOverTime) return;
             Unit source = context.Attacker;
             Unit target = context.Target;
             if (source == null || target == null) return;

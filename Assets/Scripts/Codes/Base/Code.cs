@@ -65,20 +65,30 @@ namespace Codes.Base
     /// (아그니 초월기 동안의 특성 추공)가 궁극기 치명 보정을 받게 하려는 국소 오버로드다. 실제 행동 종류 · 이벤트는 바꾸지 않는다.
     /// </summary>
     protected bool RollCritical(Unit target, BaseEnums.CodeType queryType, out float multiplier)
+      => RollCriticalFor(Caster, Caster, target, queryType, out multiplier);
+
+    /// <summary>
+    /// 치명 스탯 · 효과의 주인과 실제 행동자를 나눠 굴린다. 소환자 명의로 치는 소환수(펜리르)는 소환자의 확률 · 피해 ·
+    /// 대상별 치명 효과를 쓰되, "지금 추가행동 중인 유닛"을 묻는 마리 보급 오라는 실제로 행동하는 소환수를 본다.
+    /// 일반 코드는 둘 다 시전자다(<see cref="RollCritical(Unit, BaseEnums.CodeType, out float)"/>).
+    /// </summary>
+    protected static bool RollCriticalFor(Unit statOwner, Unit actor, Unit target, BaseEnums.CodeType queryType,
+      out float multiplier)
     {
       multiplier = 1f;
-      if (Caster == null) return false;
+      if (statOwner == null) return false;
 
-      float chance = Caster.StatValue(BaseEnums.StatType.CritRate);
-      float critDamage = Caster.StatValue(BaseEnums.StatType.CritDamage);
+      float chance = statOwner.StatValue(BaseEnums.StatType.CritRate);
+      float critDamage = statOwner.StatValue(BaseEnums.StatType.CritDamage);
+      critDamage += Codes.Passive.MarieSupply.AdditionalCritDamage(actor != null ? actor : statOwner);
       bool forced = false;
       float overflowRatio = 0f;
-      foreach (Effects.Base.BaseEffect effect in Caster.CombatEffects())
+      foreach (Effects.Base.BaseEffect effect in statOwner.CombatEffects())
       {
-        chance += effect.CritChanceBonusAgainst(Caster, target, queryType);
-        critDamage += effect.CritDamageBonusAgainst(Caster, target, queryType);
-        forced |= effect.ForcesCriticalAgainst(Caster, target, queryType);
-        overflowRatio += effect.CritOverflowToDamageRatio(Caster);
+        chance += effect.CritChanceBonusAgainst(statOwner, target, queryType);
+        critDamage += effect.CritDamageBonusAgainst(statOwner, target, queryType);
+        forced |= effect.ForcesCriticalAgainst(statOwner, target, queryType);
+        overflowRatio += effect.CritOverflowToDamageRatio(statOwner);
       }
       if (overflowRatio > 0f && chance > 1f) critDamage += (chance - 1f) * overflowRatio;
 

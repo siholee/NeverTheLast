@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using BaseClasses;
 using Managers.UI.Core;
 using Managers.UI.Theme;
@@ -18,18 +18,19 @@ namespace Managers.UI.Screens
     /// </summary>
     public sealed class InventoryScreen : ModalScreen
     {
-        private const int Columns = 4;
+        private const int Columns = 1;
 
         /// <summary>카드 한 장의 높이(기준 해상도 px). 960×540에서도 이름 · 효과 · 사용 줄이 들어가는 높이다.</summary>
-        private const float CardHeight = 300f;
+        private const float CardHeight = 104f;
 
         protected override string CanvasName => "InventoryCanvas";
         protected override int SortingOrder => 73;
         protected override string Title => "공용 보급";
         protected override string Caption => "PARTY SUPPLY";
-        protected override Vector2 AnchorMin => new(0.12f, 0.10f);
-        protected override Vector2 AnchorMax => new(0.88f, 0.90f);
+        protected override Vector2 AnchorMin => new(0.10f, 0.10f);
+        protected override Vector2 AnchorMax => new(0.90f, 0.90f);
         protected override bool CloseOnBackdrop => true;
+        protected override bool AlignToScreenFrame => false;
 
         private RectTransform _list;
         private TextMeshProUGUI _summary;
@@ -42,7 +43,7 @@ namespace Managers.UI.Screens
         private string _noticeText = "";
 
         internal const string GuideText =
-            "파티 전체가 함께 쓰는 보급품입니다. 전투 비약은 한 전투에 1개, 승급의 인장은 준비 중 사용. 코드는 Tab에서 무료로 드래그 이동합니다. " +
+            "파티 공용 보급품입니다. 넥타르는 아군 한 명에게 영구 적용, 비약은 다음 전투 1회, 인장은 코드 승급. 코드는 Tab에서 무료로 드래그 이동합니다. " +
             "식량은 긴 휴식이 알아서 가져갑니다.";
 
         internal const string EmptyText =
@@ -51,20 +52,23 @@ namespace Managers.UI.Screens
         protected override void Build()
         {
             _summary = UIBuild.Text("Summary", Body, "", UITheme.FontReadBody, UITheme.TextPrimary,
-                TextAlignmentOptions.Center);
-            UIBuild.Anchor(_summary.rectTransform, new Vector2(0f, 0.935f), Vector2.one);
+                TextAlignmentOptions.MidlineLeft);
+            _summary.fontStyle = FontStyles.Bold;
+            ScreenKit.TopBand(_summary.rectTransform, 0, 40);
 
             _guide = UIBuild.Text("Guide", Body, GuideText, UITheme.FontReadSmall, UITheme.TextSecondary,
                 TextAlignmentOptions.Center, wrap: true);
-            UIBuild.Anchor(_guide.rectTransform, new Vector2(0f, 0.85f), new Vector2(1f, 0.935f), 12f, 0f);
+            _guide.alignment = TextAlignmentOptions.MidlineLeft;
+            ScreenKit.TopBand(_guide.rectTransform, 42, 76);
 
             // 사용 결과 · 사유 줄. 요약 줄에 섞으면 길어져 두 줄로 꺾이므로 아래에 따로 둔다.
             _notice = UIBuild.Text("Notice", Body, "", UITheme.FontReadSmall, UITheme.Accent,
                 TextAlignmentOptions.Center, wrap: true);
-            UIBuild.Anchor(_notice.rectTransform, new Vector2(0f, 0.79f), new Vector2(1f, 0.85f), 12f, 0f);
+            _notice.alignment = TextAlignmentOptions.MidlineLeft;
+            ScreenKit.TopBand(_notice.rectTransform, 118, 40);
 
             _list = UIBuild.Container("Items", Body);
-            UIBuild.Anchor(_list, new Vector2(0.01f, 0.10f), new Vector2(0.99f, 0.785f));
+            UIBuild.Stretch(_list); _list.offsetMax = new Vector2(0, -164);
 
             _close = UIBuild.Button("Close", Body, "닫기", Hide, primary: true, fontSize: UITheme.FontReadSmall);
             UIBuild.Anchor(_close.image.rectTransform, new Vector2(0.40f, 0.005f), new Vector2(0.60f, 0.085f));
@@ -85,12 +89,14 @@ namespace Managers.UI.Screens
             SetTitle(Title);
             _codeFlow?.Hide();
             SetChromeVisible(true);
+            _close.gameObject.SetActive(false);
             Refresh();
         }
 
         /// <summary>선택 판은 Body 전체를 덮으므로 흐름 중에는 겹치는 줄을 숨긴다.</summary>
         private void SetChromeVisible(bool visible)
         {
+            if (!visible) FitContentHeight(660f);
             _list.gameObject.SetActive(visible);
             _summary.gameObject.SetActive(visible);
             _guide.gameObject.SetActive(visible);
@@ -100,7 +106,7 @@ namespace Managers.UI.Screens
 
         private static bool InPreparation => GameManager.Instance?.gameState == BaseEnums.GameState.Preparation;
 
-        private static bool IsUsable(ItemData item) => item != null && (item.IsTonic || item.IsCodeTool);
+        private static bool IsUsable(ItemData item) => item != null && (item.IsTonic || item.IsCodeTool || item.IsNectar);
 
         private void Refresh()
         {
@@ -108,6 +114,8 @@ namespace Managers.UI.Screens
             UIBuild.Clear(_list);
             InventoryManager inventory = GameManager.Instance?.inventoryManager;
             var stacks = inventory?.SharedStacks().ToList() ?? new();
+            FitContentHeight(Mathf.Clamp(264f + Mathf.Clamp(stacks.Count, 1, 6) * CardHeight, 396f, 920f));
+            Canvas.ForceUpdateCanvases();
 
             string summary = $"식량 {inventory?.FoodUnits ?? 0} / {GameManager.LongRestFoodCost}   ·   " +
                              $"보급품 {stacks.Count}종 {inventory?.ItemIdsInHand?.Count ?? 0}개   ·   골드 {inventory?.Gold ?? 0:N0}";
@@ -143,17 +151,25 @@ namespace Managers.UI.Screens
                 int row = i / Columns;
                 bool usable = IsUsable(item);
 
-                Image card = UIBuild.Panel($"Item_{item.id}", content, usable ? UITheme.SurfaceRaised : UITheme.SurfaceSunken,
-                    UIShapes.Corner.Diagonal, 8, usable && InPreparation ? UITheme.Accent : UITheme.Outline, 1);
+                // 보급품 한 줄 = 종이 위 흰 행 카드 한 장. 그림 원 · 이름 · 효과 · 수량/사용이 모두 카드 세로 중심선에 선다.
+                Image card = UIBuild.Solid($"Item_{item.id}", content, Color.white);
+                card.sprite = UIArtDirection.Sheet(12);
+                card.type = Image.Type.Sliced;
                 card.rectTransform.anchorMin = new Vector2(column * width, 1f);
                 card.rectTransform.anchorMax = new Vector2((column + 1) * width, 1f);
                 card.rectTransform.pivot = new Vector2(0.5f, 1f);
-                card.rectTransform.offsetMin = new Vector2(8f, -(row + 1) * CardHeight + 8f);
-                card.rectTransform.offsetMax = new Vector2(-14f, -row * CardHeight);
+                card.rectTransform.offsetMin = new Vector2(4f, -(row + 1) * CardHeight + 6f);
+                card.rectTransform.offsetMax = new Vector2(-14f, -row * CardHeight - 4f);
+                Image disc = UIBuild.Solid("ArtTile", card.transform, Color.white);
+                disc.sprite = UIShapes.RoundedRect(26, UIArtDirection.SelectedFill);
+                disc.type = Image.Type.Sliced; disc.raycastTarget = false;
+                UIBuild.Pin(disc.rectTransform, new Vector2(0f, .5f), new Vector2(56f, 56f), new Vector2(20f, 0f));
 
                 Image strip = UIBuild.Solid("Rarity", card.transform, UITheme.Rarity(Mathf.Max(1, item.rarity)));
                 strip.raycastTarget = false;
                 UIBuild.Anchor(strip.rectTransform, new Vector2(0f, 0.975f), Vector2.one, 8f, 0f);
+                // 등급색이 한 가지 군청이라 7px 머리 띠는 정보 없이 굵은 윤곽으로만 읽혔다. 사용 가능 여부는 카드 선이 맡는다.
+                strip.gameObject.SetActive(false);
 
                 Sprite art = ItemTooltip.LoadArt(item);
                 if (art != null)
@@ -164,32 +180,37 @@ namespace Managers.UI.Screens
                     image.sprite = art;
                     image.preserveAspect = true;
                     image.raycastTarget = false;
-                    UIBuild.Anchor(image.rectTransform, new Vector2(0.08f, 0.63f), new Vector2(0.92f, 0.95f));
+                    UIBuild.Pin(image.rectTransform, new Vector2(0f, .5f), new Vector2(44f, 44f), new Vector2(26f, 0f));
                 }
                 else
                 {
-                    TextMeshProUGUI fallback = UIBuild.Text("FallbackArt", card.transform,
-                        item.IsFood ? "FOOD" : item.IsTonic ? "TONIC" : item.IsCodeTool ? "CODE TOOL" : "ITEM",
-                        UITheme.FontReadHeading, UITheme.Accent, TextAlignmentOptions.Center);
-                    fallback.characterSpacing = 12f;
-                    UIBuild.Anchor(fallback.rectTransform, new Vector2(0.08f, 0.65f), new Vector2(0.92f, 0.92f));
+                    // 그림 없는 물건은 넓은 자간의 영문 분류명(FOOD · NECTAR)이 그림 자리를 차지해 제목보다 먼저 읽혔다.
+                    // 다른 화면과 같은 한 획 폭 라인 아이콘으로 분류만 알리고, 이름이 첫 글자가 되게 한다.
+                    UIIcon glyph = item.IsNectar ? UIIcon.Growth : item.IsFood ? UIIcon.Rest : item.IsTonic ? UIIcon.Burst
+                        : item.IsCodeTool ? UIIcon.Precision : UIIcon.Supply;
+                    Image fallback = UIBuild.Icon("FallbackArt", card.transform, glyph, UITheme.AccentDim);
+                    UIBuild.Pin(fallback.rectTransform, new Vector2(0f, .5f), new Vector2(30f, 30f), new Vector2(33f, 0f));
                 }
 
                 TextMeshProUGUI name = UIBuild.Text("Name", card.transform, item.name,
-                    UITheme.FontReadBody, UITheme.TextPrimary, TextAlignmentOptions.Center);
+                    22f, UITheme.TextPrimary, TextAlignmentOptions.MidlineLeft);
                 name.fontStyle = FontStyles.Bold;
                 name.overflowMode = TextOverflowModes.Ellipsis;
-                UIBuild.Anchor(name.rectTransform, new Vector2(0.03f, 0.51f), new Vector2(0.97f, 0.63f));
+                UIBuild.Anchor(name.rectTransform, new Vector2(0f, .14f), new Vector2(.32f, .86f));
+                name.rectTransform.offsetMin = new Vector2(96f, name.rectTransform.offsetMin.y);
 
                 TextMeshProUGUI effect = UIBuild.Text("Effect", card.transform, ItemTooltip.EffectLine(item),
-                    UITheme.FontReadSmall, UITheme.TextSecondary, TextAlignmentOptions.Top, wrap: true);
+                    22f, UITheme.TextSecondary, TextAlignmentOptions.MidlineLeft, wrap: true);
                 effect.overflowMode = TextOverflowModes.Ellipsis;
-                UIBuild.Anchor(effect.rectTransform, new Vector2(0.04f, 0.17f), new Vector2(0.96f, 0.51f));
+                UIBuild.Anchor(effect.rectTransform, new Vector2(.35f, .10f), new Vector2(.76f, .90f));
 
                 TextMeshProUGUI meta = UIBuild.Text("Meta", card.transform, MetaLine(item, count),
-                    UITheme.FontReadSmall, usable && InPreparation ? UITheme.AccentDim : UITheme.TextMuted,
-                    TextAlignmentOptions.Center);
-                UIBuild.Anchor(meta.rectTransform, new Vector2(0.03f, 0.02f), new Vector2(0.97f, 0.17f));
+                    20f, usable && InPreparation ? UITheme.AccentDim : UITheme.TextMuted,
+                    TextAlignmentOptions.MidlineRight, wrap: true);
+                UIBuild.Anchor(meta.rectTransform, new Vector2(.78f, .10f), new Vector2(1f, .90f), 22f, 0f);
+                Image line=UIBuild.Divider("RowRule",card.transform);
+                UIBuild.Anchor(line.rectTransform,Vector2.zero,new Vector2(1,0));line.rectTransform.sizeDelta=new Vector2(0,1);line.raycastTarget=false;
+                line.gameObject.SetActive(false);
                 ItemTooltip.Attach(card.gameObject, item);
 
                 if (usable)
@@ -226,6 +247,17 @@ namespace Managers.UI.Screens
                 return;
             }
 
+            if(item.IsNectar)
+            {
+                SetChromeVisible(false);
+                bool opened=_codeFlow.StartNectar(item,unit=>
+                {
+                    bool used=game.TryUseNectar(item.id,unit,out string reason);
+                    Notify(used?$"{item.name} — {unit.UnitName}에게 영구 적용했습니다.":$"{item.name} — {reason}");
+                });
+                if(!opened)Notify("넥타르를 받을 아군이 없습니다.");
+                return;
+            }
             if (item.IsTonic)
             {
                 bool used = game.TryUseTonic(item.id, out string reason);

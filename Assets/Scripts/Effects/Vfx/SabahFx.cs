@@ -229,11 +229,23 @@ namespace Effects.Vfx
             // 단일 발도 뒤 첫 피격 정점을 승인된 실제 시간 구간에 둔다.
             yield return new WaitForSeconds(VfxComposer.Offset("sabah.azrael", "hit", 0, 0.206f));
             Vector3 center = Vector3.zero;
-            foreach (Unit target in alive) center += VfxSpace.WorldPoint(target);
+            foreach (Unit target in alive) center += VfxSpace.PortraitPoint(target);
             center /= alive.Count;
 
             // 벼락은 연기가 열릴 자리를 한 번 찍을 뿐이며 피해는 다음 수평 연기가 닿을 때만 발생한다.
-            yield return VfxComposer.PlayPointHitSlot("sabah.azrael", 0, caster, alive[0], center, null);
+            Unit lightningTarget=alive.OrderBy(unit=>(VfxSpace.PortraitPoint(unit)-center).sqrMagnitude).First();
+            // 주 착점은 한 카드, 작은 잔전류는 나머지 수신자에도 남겨 광역 의미를 잇는다.
+            foreach(Unit receiver in alive.Where(u=>u!=lightningTarget))
+                VfxRunner.Run(VfxComposer.PlayPointHitSlot("sabah.azrael",0,caster,receiver,
+                    VfxSpace.PortraitPoint(receiver),null,.68f));
+            yield return VfxComposer.PlayPointHitSlot("sabah.azrael", 0, caster, lightningTarget,
+                VfxSpace.PortraitPoint(lightningTarget),()=>
+                {
+                    foreach(Unit receiver in alive)
+                        SpriteFx.Play(VfxArt.Shockwave,VfxSpace.PortraitPoint(receiver),new Color(.62f,.43f,.79f,.62f),false,
+                            .20f*VfxSpace.CardSize,.40f*VfxSpace.CardSize,.68f,fadeOutFrom:.85f,
+                            sortingLayer:VfxSpace.SortingLayer(receiver));
+                });
             yield return VfxComposer.PlayHorizontalSweepHit("sabah.azrael", 1, caster, alive[0],
                 center, alive, target =>
             {

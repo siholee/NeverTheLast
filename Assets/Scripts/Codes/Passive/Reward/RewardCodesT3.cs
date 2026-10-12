@@ -22,6 +22,7 @@ namespace Codes.Passive.Reward
         {
             code = codeId switch
             {
+                731 => new EchoSongCode(context),
                 701 => new RebirthWindCode(context),
                 702 => new MentalityCode(context),
                 703 => new SelfHealingCode(context),
@@ -38,7 +39,7 @@ namespace Codes.Passive.Reward
                 714 => new FirstAidCode(context),
                 715 => new FadingFlowerCode(context),
                 716 => new AmbushCode(context),
-                717 => new RoutCode(context),
+                717 => new DefeatMomentumCode(context, 717),
                 718 => new FireworksCode(context),
                 719 => new OverhealCode(context),
                 720 => new SealingCircleCode(context),
@@ -546,40 +547,7 @@ namespace Codes.Passive.Reward
 
     // ── 717 ~ 719 연쇄 · 추가 피해 · 보호막 ──────────────────────
 
-    /// <summary>717 파죽지세 — 자신이 피해를 준 적이 처치되면 3턴간 공격력 +15%(갱신).</summary>
-    public sealed class RoutCode : RewardPassiveCode
-    {
-        private readonly HashSet<Unit> _damaged = new();
-
-        public RoutCode(PassiveCodeContext context) : base(context, 717) { }
-
-        protected override void OnCast()
-        {
-            _damaged.Clear();
-            Unit.AnyDamageDealt += OnAnyDamageDealt;
-            Unit.AnyUnitDied += OnAnyUnitDied;
-        }
-
-        protected override void OnStop()
-        {
-            Unit.AnyDamageDealt -= OnAnyDamageDealt;
-            Unit.AnyUnitDied -= OnAnyUnitDied;
-            _damaged.Clear();
-        }
-
-        private void OnAnyDamageDealt(DamageResolvedContext resolved)
-        {
-            if (resolved?.Target == null || resolved.Attacker != Caster) return;
-            _damaged.Add(resolved.Target);
-        }
-
-        private void OnAnyUnitDied(Unit dead, Unit attacker)
-        {
-            // 처치한 사람이 아니라 "피해를 준 사람"이 보상을 받는다 — 지속피해 · 동료의 마무리도 해당된다.
-            if (dead == null || !_damaged.Remove(dead) || !HolderWorking || dead.IsEnemy == Caster.IsEnemy) return;
-            AddStatus(Caster, new StatModifierEffect(BaseEnums.StatType.Attack, 0.15f, percent: true), "_atk", duration: 3);
-        }
-    }
+    // 717은 T4로 재밸런싱했으며 저장 ID를 유지한다(ToughnessRewardCodes).
 
     /// <summary>718 폭죽놀이 — 4번째 일반행동마다 무작위 적에게 공격력 20% 피해 4발(덧붙는 피해).</summary>
     public sealed class FireworksCode : RewardPassiveCode
@@ -739,8 +707,7 @@ namespace Codes.Passive.Reward
 
         protected override void OnCast()
         {
-            AddStatus(Caster, new ConditionalOutgoingDamageMultiplierEffect(
-                    context => context != null && context.HasTag(DamageTag.UltAttack), 1.25f),
+            AddStatus(Caster, new UltimateDamageBonusEffect(.25f),
                 "_dmg", category: BaseEnums.StatusCategory.Neutral);
             AddStatus(Caster, new UltimateCritEffect(), "_crit", category: BaseEnums.StatusCategory.Neutral);
         }

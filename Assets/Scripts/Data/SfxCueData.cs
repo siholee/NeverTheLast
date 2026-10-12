@@ -69,6 +69,8 @@ namespace Managers
 
             return (unit.ID, slot) switch
             {
+                (25, SfxActionSlot.Normal) => "orpheus.melody",
+                (25, SfxActionSlot.Ultimate) => "orpheus.lament",
                 (1, SfxActionSlot.Normal) => "sei.ground",
                 (1, SfxActionSlot.Passive) => "sei.bigbang",
                 (1, SfxActionSlot.Ultimate) => "sei.genesis",
@@ -104,6 +106,21 @@ namespace Managers
                 (62, SfxActionSlot.Passive) => "agni.follow_up",
                 (62, SfxActionSlot.Ultimate) => "agni.ultimate",
                 (62, SfxActionSlot.Special) => "agni.special_setup",
+                (160, SfxActionSlot.Normal) => "marie.normal",
+                (160, SfxActionSlot.Ultimate) => "marie.ultimate",
+                (161, SfxActionSlot.Normal) => "napoleon.normal",
+                (161, SfxActionSlot.Special) => "napoleon.volley",
+                (161, SfxActionSlot.Ultimate) => "napoleon.ultimate",
+                (81, SfxActionSlot.Normal) => "surtr.normal",
+                (81, SfxActionSlot.Ultimate) => "surtr.ultimate",
+                (82, SfxActionSlot.Normal) => "freya.normal",
+                (80, SfxActionSlot.Normal) => "loki.normal",
+                (80, SfxActionSlot.Passive) => "loki.fenrir",
+                (80, SfxActionSlot.Ultimate) => "loki.ultimate",
+                (902, SfxActionSlot.Normal) => "loki.fenrir_claw",
+                (45, SfxActionSlot.Normal) => "tsukuyomi.normal",
+                (45, SfxActionSlot.Ultimate) => "tsukuyomi.ultimate",
+                (67, SfxActionSlot.Special) => "surya.special",
                 (67, SfxActionSlot.Normal) => "surya.normal",
                 (67, SfxActionSlot.Passive) => "surya.follow_up",
                 (67, SfxActionSlot.Ultimate) => "surya.ultimate",
@@ -115,6 +132,10 @@ namespace Managers
                 (64, SfxActionSlot.Passive) => "vayu.tailwind",
                 (64, SfxActionSlot.Special) => "vayu.typhoon_eye",
                 (64, SfxActionSlot.Ultimate) => "vayu.storm",
+                (200, SfxActionSlot.Normal) => "mansa.normal",
+                (200, SfxActionSlot.Ultimate) => "mansa.ultimate",
+                (220, SfxActionSlot.Normal) => "ishtar.normal",
+                (220, SfxActionSlot.Ultimate) => "ishtar.ultimate",
                 (65, SfxActionSlot.Normal) => "kubera.coin_toss",
                 (65, SfxActionSlot.Passive) => "kubera.patronage",
                 (65, SfxActionSlot.Special) => "kubera.gold_rush",
@@ -135,6 +156,14 @@ namespace Managers
 
         private static string EnemyPrefix(Unit unit, SfxActionSlot slot, string codeName)
         {
+            if (unit.HasUnitTag("RestoredTheme"))
+            {
+                var kit = Codes.Restored.RestoredEnemyKit.Find(unit);
+                string mode = slot == SfxActionSlot.Ultimate ? kit?.ultimateMode : kit?.normalMode;
+                if (Codes.Restored.RestoredEnemyKit.Support(mode)) return "orpheus.lament";
+                return unit.VfxClass == "mage" ? "enemy.void_boss" : unit.VfxClass == "archer"
+                    ? "enemy.void_marksman.shot" : "enemy.void_wolf.charge";
+            }
             if (slot == SfxActionSlot.Normal)
             {
                 if (codeName == "돌격" && (unit.HasUnitTag("Giant") || unit.HasUnitTag("Monstrous")))

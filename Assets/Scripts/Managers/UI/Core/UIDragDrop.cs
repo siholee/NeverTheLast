@@ -13,7 +13,7 @@ namespace Managers.UI.Core
     ///
     /// <see cref="UIDragSource"/>를 집을 수 있는 것에, <see cref="UIDropTarget"/>을
     /// 놓을 수 있는 곳에 붙인다. 끌고 다니는 동안에는 유령이 커서를 따라가고,
-    /// <b>받을 수 있는 자리에만 앰버 테두리가 켜진다</b> — 발더스 게이트에서 아이템을 들면
+    /// <b>포인터 아래 받을 수 있는 자리에 청색 면이 켜진다</b> — 아이템을 들면
     /// 넣을 수 있는 칸이 빛나는 것과 같은 신호다.
     ///
     /// <b>UGUI의 IBeginDragHandler 계열을 쓰지 않는다.</b> 이 프로젝트의 EventSystem에서는
@@ -37,6 +37,7 @@ namespace Managers.UI.Core
         /// 무엇을 들고 있는지는 이름표가 아니라 모양으로 읽혀야 한다.
         /// </summary>
         public Sprite Icon;
+        public bool ShowIconAndLabel;
 
         /// <summary>유령 테두리 색. 보통 등급 색을 쓴다.</summary>
         public Color Tint = UITheme.Outline;
@@ -61,6 +62,7 @@ namespace Managers.UI.Core
     {
         public Func<object, bool> CanAccept;
         public Action<object> Accept;
+        public Func<object, string> Preview;
 
         /// <summary>강조할 때 갈아 끼울 스프라이트. 둘 다 있어야 강조한다.</summary>
         public Sprite IdleSprite;
@@ -95,8 +97,13 @@ namespace Managers.UI.Core
         {
             foreach (UIDropTarget target in Active)
             {
-                target.SetHighlighted(target.CanAccept == null || target.CanAccept(payload));
+                target.SetHighlighted(false);
             }
+        }
+
+        internal static void HighlightHovered(UIDropTarget hovered,bool valid)
+        {
+            foreach(var target in Active)target.SetHighlighted(target==hovered&&valid);
         }
 
         internal static void EndDrag()
@@ -117,6 +124,56 @@ namespace Managers.UI.Core
     /// 눌린 것을 기억해 두었다가 커서가 문턱을 넘어 움직이면 그때부터 끌기로 친다.
     /// 버튼을 놓으면 그 자리에서 레이캐스트를 돌려 <see cref="UIDropTarget"/>을 찾는다.
     /// </summary>
+    public sealed class UIDropArrival : MonoBehaviour
+    {
+        private UIFeedbackScale _scale;
+        private float _age;
+        private TMP_Text _badge;
+        private Image _badgeSurface;
+        private Image _receipt;
+        public static void Play(RectTransform target,string note=null)
+        {
+            if(target==null)return;
+            var fx=target.GetComponent<UIDropArrival>();
+            if(fx==null)fx=target.gameObject.AddComponent<UIDropArrival>();
+            fx._age=0f;fx.enabled=true;
+            if(fx._receipt==null)
+            {
+                fx._receipt=UIBuild.Solid("DropArrivalFeedback",target,Color.white);
+                fx._receipt.sprite=UIShapes.Surface(8,new Color(.42f,.65f,.95f,.10f),
+                    UIShapes.Corner.All,new Color(.20f,.35f,.57f,.85f),1);
+                fx._receipt.type=Image.Type.Sliced;
+                fx._receipt.raycastTarget=false;
+                UIBuild.Stretch(fx._receipt.rectTransform);
+            }
+            fx._receipt.color=Color.white;
+            fx._receipt.gameObject.SetActive(true);
+            if(!string.IsNullOrEmpty(note))
+            {
+                if(fx._badge==null)
+                {
+                    var backing=UIBuild.Solid("ReceiptSurface",target,Color.white);
+                    backing.sprite=UIShapes.RoundedRect(6,new Color(.88f,.93f,.99f,.96f));
+                    backing.type=Image.Type.Sliced;backing.raycastTarget=false;
+                    UIBuild.Pin(backing.rectTransform,new Vector2(.5f,.24f),new Vector2(110,24),new Vector2(0,12));
+                    fx._badgeSurface=backing;
+                    fx._badge=UIBuild.Text("DropReceipt",backing.transform,note,18,UITheme.AccentDim,TextAlignmentOptions.Center);
+                    fx._badge.raycastTarget=false;UIBuild.Stretch(fx._badge.rectTransform);
+                }
+                fx._badge.text=note;fx._badge.gameObject.SetActive(true);fx._badgeSurface.gameObject.SetActive(true);
+            }
+        }
+        private void Update()
+        {
+            _age+=Effects.Vfx.VfxTiming.ReadableDeltaTime;
+            // 목록 행의 외곽을 키우면 번호와 글자가 마스크에 잘린다. 착지는 안쪽 면·선으로만 알린다.
+            _scale.Reset(transform);
+            if(_receipt!=null)_receipt.color=new Color(1f,1f,1f,1f-Mathf.Clamp01((_age-.15f)/.5f));
+            if(_age>=.65f){if(_badge!=null)_badge.gameObject.SetActive(false);enabled=false;}
+        }
+        private void OnDisable(){_scale.Reset(transform);if(_badge!=null)_badge.gameObject.SetActive(false);if(_badgeSurface!=null)_badgeSurface.gameObject.SetActive(false);if(_receipt!=null)_receipt.gameObject.SetActive(false);}
+    }
+
     internal sealed class UIDragRuntime : MonoBehaviour
     {
         /// <summary>이만큼 움직여야 클릭이 아니라 끌기로 본다(px).</summary>
@@ -133,11 +190,15 @@ namespace Managers.UI.Core
         /// <summary>그림 유령의 한 변(px, 기준 해상도). 슬롯보다 살짝 커서 손에 든 느낌이 난다.</summary>
         private const float GhostIconSize = 64f;
 
+        private static CanvasGroup _sourceGroup;
+        private static float _sourceAlpha;
+        private static bool _sourceBlocks;
         private static GameObject _ghost;
         private static RectTransform _ghostRect;
         private static Canvas _ghostCanvas;
         private static GameObject _ghostCard;
         private static Image _ghostArt;
+        private static TextMeshProUGUI _ghostHint;
 
         private static readonly List<RaycastResult> Hits = new();
 
@@ -244,14 +305,22 @@ namespace Managers.UI.Core
         private static void StartDrag(Vector2 pointer)
         {
             Payload = _armed.Payload;
+            UITooltip.HideAny();
+            GuideTermTooltip.CloseAll();
+            _sourceGroup=_armed.GetComponent<CanvasGroup>();
+            // Unity의 파괴된 Object는 C# null 병합으로 검사할 수 없다.
+            if(_sourceGroup==null)_sourceGroup=_armed.gameObject.AddComponent<CanvasGroup>();
+            _sourceAlpha=_sourceGroup.alpha;_sourceBlocks=_sourceGroup.blocksRaycasts;
+            _sourceGroup.alpha=_sourceAlpha*.40f;_sourceGroup.blocksRaycasts=false;
             BuildGhost(_armed);
-            MoveGhost(pointer);
             UIDropTarget.BeginDrag(Payload);
+            MoveGhost(pointer);
         }
 
         private static void Drop(Vector2 pointer)
         {
             object payload = Payload;
+            TooltipTrigger.SuppressAfterDrop(pointer);
 
             // 받는 쪽이 화면을 다시 그리며 이 오브젝트들을 지울 수 있으니 먼저 정리한다.
             Finish();
@@ -277,6 +346,8 @@ namespace Managers.UI.Core
         private static void Finish()
         {
             Payload = null;
+            if(_sourceGroup!=null){_sourceGroup.alpha=_sourceAlpha;_sourceGroup.blocksRaycasts=_sourceBlocks;}
+            _sourceGroup=null;
             _armed = null;
             UIDropTarget.EndDrag();
             if (_ghost != null) _ghost.SetActive(false);
@@ -318,12 +389,16 @@ namespace Managers.UI.Core
                 _ghostCard = card.gameObject;
                 var cardRect = card.rectTransform;
                 cardRect.anchorMin = cardRect.anchorMax = cardRect.pivot = new Vector2(0.5f, 0.5f);
-                cardRect.sizeDelta = new Vector2(170f, 38f);
+                cardRect.sizeDelta = new Vector2(238f, 68f);
 
                 TextMeshProUGUI label = UIBuild.Text("Label", _ghostCard.transform, "",
-                    UITheme.FontCaption, UITheme.TextPrimary, TextAlignmentOptions.Center);
+                    22f, UITheme.TextPrimary, TextAlignmentOptions.MidlineLeft);
                 UIBuild.Stretch(label.rectTransform, 6f, 4f);
                 label.overflowMode = TextOverflowModes.Ellipsis;
+                _ghostHint = UIBuild.Text("DropIntent", _ghostCard.transform, "활성 칸 · 보관함 · 아군에게 놓기", 18f,
+                    UITheme.TextSecondary, TextAlignmentOptions.MidlineLeft);
+                _ghostHint.raycastTarget = false;
+                UIBuild.Anchor(_ghostHint.rectTransform, Vector2.zero, new Vector2(1f, .34f), 12f, 0f);
             }
 
             _ghost.SetActive(true);
@@ -332,10 +407,14 @@ namespace Managers.UI.Core
             // 그림이 있으면 그림만 끌고 다닌다. 그림이 없는 물건만 이름표로 물러난다.
             bool hasIcon = source.Icon != null;
             _ghostArt.gameObject.SetActive(hasIcon);
-            _ghostCard.SetActive(!hasIcon);
+            _ghostCard.SetActive(!hasIcon || source.ShowIconAndLabel);
+            ((RectTransform)_ghostCard.transform).sizeDelta = source.ShowIconAndLabel ? new Vector2(238f, 68f) : new Vector2(170f, 38f);
+            _ghostHint.gameObject.SetActive(source.ShowIconAndLabel);
 
-            if (hasIcon)
+            if (hasIcon && !source.ShowIconAndLabel)
             {
+                _ghostArt.rectTransform.anchoredPosition = Vector2.zero;
+                _ghostArt.rectTransform.sizeDelta = new Vector2(GhostIconSize, GhostIconSize);
                 _ghostArt.sprite = source.Icon;
                 // 커서 밑에서 슬롯이 비치도록 살짝 투명하게 둔다.
                 _ghostArt.color = new Color(1f, 1f, 1f, 0.92f);
@@ -343,13 +422,26 @@ namespace Managers.UI.Core
             }
 
             var text = _ghostCard.GetComponentInChildren<TextMeshProUGUI>();
-            if (text != null) text.text = source.Label ?? "";
+            if (text != null)
+            {
+                text.text = source.Label ?? "";
+                UIBuild.Anchor(text.rectTransform, new Vector2(0f, source.ShowIconAndLabel ? .34f : 0f), Vector2.one, 12f, 0f);
+                text.rectTransform.offsetMin = new Vector2(source.ShowIconAndLabel ? 64f : 12f, text.rectTransform.offsetMin.y);
+            }
+            if (source.ShowIconAndLabel)
+            {
+                _ghostArt.sprite = source.Icon;
+                _ghostArt.color = UITheme.Accent;
+                _ghostArt.rectTransform.sizeDelta = new Vector2(36f, 36f);
+                _ghostArt.rectTransform.anchoredPosition = new Vector2(-92f, 10f);
+                _ghostArt.transform.SetAsLastSibling();
+            }
 
             var image = _ghostCard.GetComponent<Image>();
             if (image != null)
             {
-                image.sprite = UIShapes.CutCorner(6, UITheme.SurfaceRaised,
-                    UIShapes.Corner.Diagonal, source.Tint, 2);
+                image.sprite = UIShapes.Surface(6, UITheme.SurfaceRaised,
+                    UIShapes.Corner.All, source.Tint, 1);
             }
         }
 
@@ -365,7 +457,25 @@ namespace Managers.UI.Core
             if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
                     (RectTransform)_ghostCanvas.transform, pointer, camera, out Vector2 local))
             {
-                _ghostRect.anchoredPosition = local;
+                Rect area=((RectTransform)_ghostCanvas.transform).rect;
+                Vector2 ghost=local + new Vector2(136f, -46f);
+                _ghostRect.anchoredPosition = new Vector2(Mathf.Clamp(ghost.x,area.xMin+124f,area.xMax-124f),Mathf.Clamp(ghost.y,area.yMin+38f,area.yMax-38f));
+                if (_ghostHint != null && _ghostHint.gameObject.activeSelf && EventSystem.current != null)
+                {
+                    Hits.Clear();
+                    EventSystem.current.RaycastAll(new PointerEventData(EventSystem.current) { position = pointer }, Hits);
+                    _ghostHint.text = "활성 칸 · 보관함 · 아군에게 놓기";
+                    UIDropTarget.HighlightHovered(null,false);
+                    foreach (var hit in Hits)
+                    {
+                        UIDropTarget target = hit.gameObject?.GetComponentInParent<UIDropTarget>();
+                        if (target == null) continue;
+                        bool valid = target.CanAccept == null || target.CanAccept(Payload);
+                        UIDropTarget.HighlightHovered(target,valid);
+                        _ghostHint.text = valid ? target.Preview?.Invoke(Payload) ?? "놓아서 이동" : "여기에 놓을 수 없음";
+                        break;
+                    }
+                }
             }
         }
     }

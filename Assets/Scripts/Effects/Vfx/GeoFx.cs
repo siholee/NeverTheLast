@@ -1,3 +1,4 @@
+using Random = Effects.Vfx.PresentationRandom;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using Effects.Vfx.Presets;
 using Entities;
 using Managers;
 using UnityEngine;
-using Random = UnityEngine.Random;
+
 
 namespace Effects.Vfx
 {
@@ -491,7 +492,7 @@ namespace Effects.Vfx
             crystal.Alpha = 0.86f;
             crystal.UnderlayColor = WithAlpha(ContactShadow, 0.12f);
             int order = behindPortrait ? RearOrder + 4 : Order + 4;
-            HovlFx.PlayHit(crystal, point, Vector3.up, S, layer, order);
+            CommonHandpaintFx.Hit(crystal, point, Vector3.up, S, layer, order);
 
             // Hovl 결정 폭발이 주인공이고, 두 가닥 반짝임만 흡수 방향을 보조한다.
             SpriteFx.Play(VfxArt.Glint, point, WithAlpha(EarthDeep, 0.66f), false,
@@ -868,7 +869,7 @@ namespace Effects.Vfx
 
             // 자기 축복은 공격 착탄이 아니다. 원화보다 확실히 낮은 순서에서 발밑과 외곽만 밝혀
             // 흰 의상 위에 주황 면광이 생기지 않게 하고, 우상단 오브도 침범하지 않는다.
-            HovlFx.PlayHit(impact, feet, Vector3.up, S,
+            CommonHandpaintFx.Hit(impact, feet, Vector3.up, S,
                 layer, RearOrder + 4, 1.06f, 0.92f);
             SpriteFx.Play(VfxSpace.Ring, feet + Vector3.down * 0.08f * S,
                 new Color(1f, 0.76f, 0.28f, 0.66f), true,
@@ -892,7 +893,7 @@ namespace Effects.Vfx
             }
             HovlProjectileSet impact = HovlFx.ForElement(BaseEnums.UnitElement.Geo, 1.48f * scale);
             impact.UnderlayColor = WithAlpha(ContactShadow, 0.04f);
-            HovlFx.PlayHit(impact, point + Vector3.up * 0.08f * S, Vector3.down, S,
+            CommonHandpaintFx.Hit(impact, point + Vector3.up * 0.08f * S, Vector3.down, S,
                 layer, Order + 5, 1.18f, 1f);
             SpriteFx.Play(VfxSpace.Ring, point + Vector3.down * 0.32f * S,
                 new Color(1f, 0.76f, 0.28f, 0.72f), true,
@@ -955,14 +956,14 @@ namespace Effects.Vfx
             crystal.UnderlayColor = new Color(0.13f, 0.31f, 0.44f, 0.10f);
 
             // 중심 crystal Hit이 방패가 닫히는 순간을 만들고, 좌우 Flash가 낮은 반원만 암시한다.
-            HovlFx.PlayHit(crystal, feet, Vector3.up, S, layer, RearOrder + 3, 1.18f, 1f);
+            CommonHandpaintFx.Hit(crystal, feet, Vector3.up, S, layer, RearOrder + 3, 1.18f, 1f);
             yield return new WaitForSeconds(0.045f);
-            HovlFx.PlayFlash(crystal, feet + Vector3.left * 0.34f * S,
+            CommonHandpaintFx.Flash(crystal, feet + Vector3.left * 0.34f * S,
                 new Vector3(0.24f, 1f, 0f), S, layer, RearOrder + 2, 0.54f, 0.72f);
-            HovlFx.PlayFlash(crystal, feet + Vector3.right * 0.34f * S,
+            CommonHandpaintFx.Flash(crystal, feet + Vector3.right * 0.34f * S,
                 new Vector3(-0.24f, 1f, 0f), S, layer, RearOrder + 2, 0.54f, 0.72f);
             yield return new WaitForSeconds(0.075f);
-            HovlFx.PlayHit(crystal, feet, Vector3.up, S, layer, RearOrder + 2, 0.82f, 0.78f);
+            CommonHandpaintFx.Hit(crystal, feet, Vector3.up, S, layer, RearOrder + 2, 0.82f, 0.78f);
         }
 
         private static Unit FindAimTarget(Unit caster)
@@ -988,15 +989,15 @@ namespace Effects.Vfx
             broken.Tint = new Color(0.72f, 0.61f, 0.43f);
             broken.Alpha = 0.78f;
             broken.UnderlayColor = new Color(0.25f, 0.31f, 0.34f, 0.66f);
-            HovlFx.PlayHit(broken, feet, Vector3.down, S, layer, Order + 1, 0.92f, 0.9f);
+            CommonHandpaintFx.Hit(broken, feet, Vector3.down, S, layer, Order + 1, 0.92f, 0.9f);
 
             HovlProjectileSet fracture = HovlFx.ForElement(BaseEnums.UnitElement.None, 0.40f);
             fracture.Tint = new Color(0.48f, 0.57f, 0.62f);
             fracture.Alpha = 0.62f;
             fracture.UnderlayColor = new Color(0.18f, 0.24f, 0.28f, 0.58f);
-            HovlFx.PlayFlash(fracture, feet + Vector3.left * 0.24f * S,
+            CommonHandpaintFx.Flash(fracture, feet + Vector3.left * 0.24f * S,
                 new Vector3(-0.7f, -0.35f, 0f), S, layer, Order, 0.72f, 0.82f);
-            HovlFx.PlayFlash(fracture, feet + Vector3.right * 0.24f * S,
+            CommonHandpaintFx.Flash(fracture, feet + Vector3.right * 0.24f * S,
                 new Vector3(0.7f, -0.35f, 0f), S, layer, Order, 0.72f, 0.82f);
         }
 

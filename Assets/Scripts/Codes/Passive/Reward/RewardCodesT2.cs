@@ -18,6 +18,7 @@ namespace Codes.Passive.Reward
         {
             code = codeId switch
             {
+                633 => new FeintCode(context),
                 617 => new PlagueCurseCode(context),
                 619 => new SummonerAdeptCode(context),
                 620 => new GodSlayerCode(context),
@@ -43,9 +44,9 @@ namespace Codes.Passive.Reward
 
         protected override void OnCast()
         {
-            // 지속피해는 태그가 비어 있어 CodeType.Effect로만 구분한다. 공격자는 상태를 건 쪽이다.
+            // 즉발 반응과 구분한다. 자연 틱과 즉시 발동은 모두 원 생성자의 지속피해다.
             AddStatus(Caster, new ConditionalOutgoingDamageMultiplierEffect(
-                damage => damage != null && damage.CodeType == BaseEnums.CodeType.Effect, 1.15f));
+                damage => damage?.IsDamageOverTime == true, 1.15f));
         }
     }
 

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Entities;
 using Managers;
 using UnityEngine;
-using Random = UnityEngine.Random;
+using Random = Effects.Vfx.PresentationRandom;
 
 namespace Effects.Vfx.Presets
 {
@@ -155,7 +155,7 @@ namespace Effects.Vfx.Presets
             Color body, Color core, float rotation = 0f, int orderOffset = 30,
             float peakAlpha = 0.82f, float glowAlpha = 0.58f, bool loop = false,
             bool flipX = false, int heldFrame = -1, float peakHoldSeconds = 0f,
-            bool reverseFrames = false, float desaturate = 0f, bool steadyBody = false, int startFrame = 0, int tailHoldFrame = -1, float tailHoldSeconds = 0f, bool calmLight = false)
+            bool reverseFrames = false, float desaturate = 0f, bool steadyBody = false, int startFrame = 0, int tailHoldFrame = -1, float tailHoldSeconds = 0f, bool calmLight = false, float paintContrast = 0f)
         {
             SkillFxCue cue = Cue(sheet, size, body, core, rotation, flipX,
                 sheet.Columns * sheet.Rows - 1, Vector2.zero, peakAlpha, glowAlpha);
@@ -166,6 +166,7 @@ namespace Effects.Vfx.Presets
             cue.Loop = loop;
             cue.ReverseFrames = reverseFrames;
             cue.Composite.Desaturate = desaturate;
+            cue.Composite.PaintContrast = Mathf.Clamp01(paintContrast);
             if (calmLight) CalmLocalLight(cue);
             if (steadyBody)
             {
@@ -179,7 +180,7 @@ namespace Effects.Vfx.Presets
         public static IEnumerator PlayHit(Unit target, HandpaintSheet sheet, Vector2 size,
             Color body, Color core, Action onPeak, float rotation = 0f, bool flipX = false,
             int impactFrame = 4, HandpaintSheet? accent = null, Vector2 offsetInCards = default,
-            float peakHoldSeconds = 0f, float peakAlpha = 0.86f, float glowAlpha = 0.60f, bool portraitAnchor = false, bool steadyBody = false, float desaturate = 0f, int tailHoldFrame = -1, float tailHoldSeconds = 0f, bool calmLight = false)
+            float peakHoldSeconds = 0f, float peakAlpha = 0.86f, float glowAlpha = 0.60f, bool portraitAnchor = false, bool steadyBody = false, float desaturate = 0f, int tailHoldFrame = -1, float tailHoldSeconds = 0f, bool calmLight = false, float paintContrast = 0f)
         {
             if (target == null)
             {
@@ -191,6 +192,7 @@ namespace Effects.Vfx.Presets
                 offsetInCards, peakAlpha, glowAlpha);
             cue.PortraitAnchor = portraitAnchor;
             cue.Composite.Desaturate = desaturate;
+            cue.Composite.PaintContrast = Mathf.Clamp01(paintContrast);
             if (calmLight) CalmLocalLight(cue);
             if (steadyBody)
             {
@@ -207,7 +209,10 @@ namespace Effects.Vfx.Presets
                 {
                     SkillFxCue accentCue = Cue(accent.Value, size * 0.72f, body, core,
                         rotation - 8f, flipX, accent.Value.Columns * accent.Value.Rows - 1,
-                        offsetInCards, 0.76f, 0.68f);
+                        offsetInCards, 0.76f, calmLight ? Mathf.Min(.16f,glowAlpha) : .68f);
+                    accentCue.Composite.Desaturate = desaturate;
+                    accentCue.Composite.PaintContrast = Mathf.Clamp01(paintContrast);
+                    if(calmLight) CalmLocalLight(accentCue);
                     SkillFx.PlayCue(accentCue, VfxSpace.WorldPoint(target), layer,
                         VfxSpace.OverlaySortingOrder + 34, target);
                 }
@@ -215,8 +220,8 @@ namespace Effects.Vfx.Presets
             }, () => done = true);
 
             float guard = 1.2f;
-            float deadline = Time.realtimeSinceStartup + guard;
-            while (!done && (calmLight ? Time.realtimeSinceStartup < deadline : guard > 0f))
+            // 연출 옵션이 프레임률/일시정지에 따라 판정 완료를 앞당기지 않게 게임 시간을 따른다.
+            while (!done && guard > 0f)
             {
                 guard -= Time.deltaTime;
                 yield return null;
@@ -227,10 +232,11 @@ namespace Effects.Vfx.Presets
         public static IEnumerator PlayPoint(Vector3 point, int layer, HandpaintSheet sheet, Vector2 size,
             Color body, Color core, Action onPeak, float rotation = 0f, bool flipX = false,
             int impactFrame = 4, float peakAlpha = 0.86f, float glowAlpha = 0.60f,
-            bool floating = false, float peakHoldSeconds = 0f)
+            bool floating = false, float peakHoldSeconds = 0f, bool calmLight = false, float desaturate = 0f)
         {
             SkillFxCue cue = Cue(sheet, size, body, core, rotation, flipX, impactFrame,
                 Vector2.zero, peakAlpha, glowAlpha);
+            cue.Composite.Desaturate = Mathf.Clamp01(desaturate);
             HoldFrame(cue, impactFrame, peakHoldSeconds);
             if (floating)
             {
@@ -245,6 +251,7 @@ namespace Effects.Vfx.Presets
                 cue.Composite.GlowGain = 1.58f;
                 cue.Composite.SceneLightStrength = 0.11f;
             }
+            if(calmLight)CalmLocalLight(cue);
             bool invoked = false;
             bool done = false;
             SkillFx.PlayCue(cue, point, layer, VfxSpace.OverlaySortingOrder + 34, null, frame =>

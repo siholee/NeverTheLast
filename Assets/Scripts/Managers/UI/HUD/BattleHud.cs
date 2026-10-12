@@ -1,4 +1,5 @@
-﻿using BaseClasses;
+using BaseClasses;
+using System.Linq;
 using Entities;
 using Managers.UI.Core;
 using Managers.UI.Screens;
@@ -12,20 +13,13 @@ namespace Managers.UI.HUD
     /// <summary>
     /// 전투 화면 HUD 전체를 조립하고 매 프레임 갱신한다.
     ///
-    /// 화면 배치 (세븐나이츠식 전투 화면 위에 얹힌다):
-    ///   좌상단 — 행동서열
-    ///   상단중앙 — 생명력 / 골드 / 현재 단계
-    ///   우상단 — 라운드 + 진행 게이지 · 진행 예고 · 배속/인벤/설정
-    ///   우측 — 딜 그래프(전투 중에만)
-    ///   하단 — 준비 페이즈 바(PreparationScreen)만. 전투 중에는 비어 있다.
-    ///
-    /// 아군 파티 카드는 없다. 유닛의 체력 · 방어막 · 행동 게이지 · 궁극기 충전은
-    /// 전부 전장 위 <see cref="Entities.View.UnitCardView"/>가 들고 있어 중복이었다.
+    /// 상단 — 단계·재화·진행 예고·배속/메뉴. 좌측 — 행동 순서. 우측 — 피해 기록.
+    /// 양 진영은 기존 적 원화·하단 정보판 구조를 공유한다. 준비 명령은 하단 리본에 모은다.
     /// </summary>
     public class BattleHud : MonoBehaviour
     {
         /// <summary>배속 단계. 버튼을 누를 때마다 순환한다.</summary>
-        private static readonly float[] SpeedSteps = { 1f, 2f, 4f, 8f };
+        private static readonly float[] SpeedSteps = { 1f, 2f, 4f };
 
         /// <summary>
         /// 화면에 보이는 배속에 곱해지는 기준 시간 배율.
@@ -50,7 +44,20 @@ namespace Managers.UI.HUD
         private TextMeshProUGUI _lifeLabel;
         private TextMeshProUGUI _goldLabel;
         private TextMeshProUGUI _phaseLabel;
+        private TreasuryPointStrip _treasury;
 
+        public static bool IsPaused { get; private set; }
+        public static void RestorePlayback()
+        {
+            if (_active != null) _active.ApplySpeed(CurrentSpeedMultiplier);
+            else Time.timeScale=1f;
+        }
+        private void TogglePause()
+        {
+            IsPaused=!IsPaused;
+            _topBar.SetPaused(IsPaused);
+            RestorePlayback();
+        }
         private int _speedIndex;
         private static BattleHud _active;
 
@@ -63,17 +70,20 @@ namespace Managers.UI.HUD
         private void Awake()
         {
             _active = this;
+            IsPaused = false;
             Canvas canvas = UIBuild.Canvas("BattleHudCanvas", 10);
             transform.SetParent(canvas.transform, false);
             RectTransform safeRoot = UIBuild.SafeArea(canvas);
 
             _queue = new ActionQueuePanel(safeRoot);
             _damageMeter = new DamageMeterPanel(safeRoot);
-            _topBar = new TopStatusBar(safeRoot, CycleSpeed, ToggleCodex, OpenMenu);
-            BuildResourceStrip(safeRoot);
+            _topBar = new TopStatusBar(safeRoot, CycleSpeed, TogglePause, ToggleCodex, OpenMenu);
+            BuildResourceStrip(_topBar.ResourceRoot);
+            _treasury = new TreasuryPointStrip(safeRoot);
             _featureBanner = new FeatureEnemyBanner(safeRoot);
 
             _codex = new CodexScreen();
+            // 양 진영의 전장 카드가 체력/자원/상태를 직접 표시한다.
             ApplySpeed();
         }
 
@@ -81,7 +91,9 @@ namespace Managers.UI.HUD
         private void OnDestroy()
         {
             _queue?.Dispose();
+            _treasury?.Dispose();
             if (_active == this) _active = null;
+            IsPaused = false;
             CurrentSpeedMultiplier = 1f;
             Time.timeScale = 1f;
         }
@@ -90,24 +102,22 @@ namespace Managers.UI.HUD
         private void BuildResourceStrip(Transform parent)
         {
             // 상단 바는 한 장이어야 한다. 자원은 별도 유리 카드를 만들지 않고 헤더 레일에 직접 얹는다.
-            Image strip = UIBuild.Solid("ResourceStrip", parent, Color.clear);
-            strip.rectTransform.anchorMin = new Vector2(0.29f, 1f);
-            strip.rectTransform.anchorMax = new Vector2(0.61f, 1f);
-            strip.rectTransform.pivot = new Vector2(0.5f, 1f);
-            strip.rectTransform.sizeDelta = new Vector2(0f, 90f);
-            strip.rectTransform.anchoredPosition = new Vector2(0f, -23f);
-
-            _lifeLabel = UIBuild.Text("Life", strip.transform, "♥ 20", UITheme.FontTitle,
+            RectTransform strip = (RectTransform)parent;
+            Image heart = UIBuild.Icon("LifeIcon", strip.transform, UIIcon.Heart, UITheme.TextPrimary);
+            UIBuild.Pin(heart.rectTransform, new Vector2(0.035f, 0.5f), new Vector2(28,28), Vector2.zero);
+            Image coin = UIBuild.Icon("GoldIcon", strip.transform, UIIcon.Coin, UITheme.TextPrimary);
+            UIBuild.Pin(coin.rectTransform, new Vector2(0.35f, 0.5f), new Vector2(28,28), Vector2.zero);
+            _lifeLabel = UIBuild.Text("Life", strip.transform, "20", 24,
                 UITheme.TextPrimary, TextAlignmentOptions.Center);
-            UIBuild.Anchor(_lifeLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0.30f, 1f), 8f, 0f);
+            UIBuild.Anchor(_lifeLabel.rectTransform, new Vector2(0.08f, 0f), new Vector2(0.30f, 1f), 8f, 0f);
 
             UIBuild.Divider("Div1", strip.transform).rectTransform.pivot = new Vector2(0.5f, 0.5f);
             Image div1 = strip.transform.Find("Div1").GetComponent<Image>();
             UIBuild.Pin(div1.rectTransform, new Vector2(0.30f, 0.5f), new Vector2(1f, 28f), Vector2.zero);
 
-            _goldLabel = UIBuild.Text("Gold", strip.transform, "◆ 0", UITheme.FontTitle,
+            _goldLabel = UIBuild.Text("Gold", strip.transform, "0", 24,
                 UITheme.TextPrimary, TextAlignmentOptions.Center);
-            UIBuild.Anchor(_goldLabel.rectTransform, new Vector2(0.30f, 0f), new Vector2(0.60f, 1f), 8f, 0f);
+            UIBuild.Anchor(_goldLabel.rectTransform, new Vector2(0.39f, 0f), new Vector2(0.60f, 1f), 8f, 0f);
 
             Image div2 = UIBuild.Divider("Div2", strip.transform);
             UIBuild.Pin(div2.rectTransform, new Vector2(0.60f, 0.5f), new Vector2(1f, 28f), Vector2.zero);
@@ -117,8 +127,21 @@ namespace Managers.UI.HUD
             UIBuild.Anchor(_phaseLabel.rectTransform, new Vector2(0.60f, 0f), new Vector2(1f, 1f), 8f, 0f);
         }
 
+        private BaseEnums.GameState? _shownPhase;
+        private int _shownEnemyCount=-1;
         private void Update()
         {
+            var game=GameManager.Instance;
+            if(game!=null)
+            {
+                int enemies=GridManager.Instance?.enemyList?.Count(u=>u!=null && u.isActive)??0;
+                if(_shownPhase!=game.gameState || _shownEnemyCount!=enemies)
+                {
+                    _shownPhase=game.gameState;_shownEnemyCount=enemies;
+                    SetPhase(game.gameState,enemies);
+                }
+            }
+            _treasury?.Tick();
             _topBar?.Tick();
             _queue?.Tick();
             _damageMeter?.Tick();
@@ -139,23 +162,24 @@ namespace Managers.UI.HUD
         public void SetLife(int life)
         {
             if (_lifeLabel == null) return;
-            _lifeLabel.text = $"♥ {life}";
-            // 생명력이 5 이하로 떨어지면 붉게 경고한다.
-            _lifeLabel.color = life <= 5 ? UITheme.Danger : UITheme.TextPrimary;
+            _lifeLabel.text = $"{life}";
+            // 상단 생명 숫자는 다른 탐색 정보와 같은 군청색을 쓴다.
+            _lifeLabel.color = UITheme.TextPrimary;
         }
 
         public void SetGold(int gold)
         {
             if (_goldLabel == null) return;
-            _goldLabel.text = $"◆ {gold}";
+            _goldLabel.text = $"{gold}";
         }
 
         public void SetPhase(BaseEnums.GameState state, int remainingEnemies)
         {
             if (_phaseLabel == null) return;
+            if(IsPaused&&state==BaseEnums.GameState.RoundInProgress){_phaseLabel.text="일시정지";return;}
             _phaseLabel.text = state switch
             {
-                BaseEnums.GameState.Preparation => "준비 단계",
+                BaseEnums.GameState.Preparation => "준비",
                 BaseEnums.GameState.CharacterSelection => "캐릭터 선택",
                 BaseEnums.GameState.RoundInProgress => remainingEnemies > 0
                     ? $"전투 중 · 적 {remainingEnemies}"
@@ -198,7 +222,7 @@ namespace Managers.UI.HUD
         private void ApplySpeed(float speed)
         {
             CurrentSpeedMultiplier = Mathf.Clamp(speed, 0.25f, 20f);
-            Time.timeScale = CurrentSpeedMultiplier * BaseTimeScale;
+            Time.timeScale = IsPaused || GameManager.Instance?.uiManager?.IsPauseMenuOpen == true ? 0f : CurrentSpeedMultiplier * BaseTimeScale;
             _topBar?.SetSpeedLabel(CurrentSpeedMultiplier);
         }
 

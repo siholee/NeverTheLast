@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Core;
 using Managers.UI.Core;
 using Managers.UI.Theme;
@@ -36,11 +36,12 @@ namespace Managers.UI.Screens
 
         protected override string Title => "메뉴";
         protected override string Caption => "MENU";
-        protected override Vector2 AnchorMin => new(0.32f, 0.08f);
-        protected override Vector2 AnchorMax => new(0.68f, 0.92f);
+        // 여덟 줄 + 머리글 + 상태 줄은 약 600px이다. 예전 0.08~0.92(907px)는 아래 1/4이 빈 판으로 남았다.
+        protected override Vector2 AnchorMin => new(0.29f, 0.21f);
+        protected override Vector2 AnchorMax => new(0.71f, 0.79f);
         protected override bool CloseOnBackdrop => true;
 
-        private const float RowHeight = 50f;
+        private const float RowHeight = 44f;
         private const float RowGap = 8f;
 
         private readonly Func<SettingsUI> _settings;
@@ -62,7 +63,7 @@ namespace Managers.UI.Screens
             float y = 0f;
             AddRow("Resume", "계속하기", "ESC", Hide, ref y, primary: true);
             AddRow("Settings", "설정", "소리 · 글자 크기", OpenSettings, ref y);
-            AddRow("Wiki", "자료실", "게임 가이드 · 캐릭터 · 코드 · 용어", OpenWiki, ref y);
+            AddRow("Wiki", "자료실", "가이드 · 도감 · 사전", OpenWiki, ref y);
             _save = AddRow("Save", "저장", "지금 상태를 저장", Save, ref y);
             _load = AddRow("Load", "불러오기", "마지막 저장으로 되돌리기", AskLoad, ref y);
 
@@ -90,7 +91,9 @@ namespace Managers.UI.Screens
         private Button AddRow(string name, string label, string description, Action onClick, ref float y,
             bool primary = false)
         {
-            Button button = UIBuild.Button(name, Body, label, onClick, primary);
+            Button button = UIBuild.Button(name, Body, label, onClick, primary, 21f);
+            // 행 전체가 버튼이다. 평소에는 면 없이 글자만, 호버 · 키보드 선택은 같은 알약 막(UIButtonStyle)이 덮는다.
+            if (!primary) button.image.sprite = UIShapes.RoundedRect(22, Color.clear);
             RectTransform rect = button.image.rectTransform;
             rect.anchorMin = new Vector2(0f, 1f);
             rect.anchorMax = new Vector2(1f, 1f);
@@ -99,16 +102,19 @@ namespace Managers.UI.Screens
             rect.anchoredPosition = new Vector2(0f, -y);
             y += RowHeight + RowGap;
 
+            UIIcon glyph=name switch { "Resume"=>UIIcon.Play,"Settings"=>UIIcon.Menu,"Wiki"=>UIIcon.Guide,"Save"=>UIIcon.Supply,"Load"=>UIIcon.Route,_=>UIIcon.Arrow };
+            Image icon=UIBuild.Icon("RowIcon",button.transform,glyph,primary ? UITheme.TextOnAccent:UITheme.AccentDim);
+            UIBuild.Pin(icon.rectTransform,new Vector2(0,.5f),new Vector2(26,26),new Vector2(18,0));
             TextMeshProUGUI title = button.GetComponentInChildren<TextMeshProUGUI>();
             title.alignment = TextAlignmentOptions.MidlineLeft;
-            UIBuild.Stretch(title.rectTransform, 18f, 4f);
+            UIBuild.Anchor(title.rectTransform, new Vector2(0, 0), new Vector2(.55f, 1), 54, 0);
 
             if (!string.IsNullOrEmpty(description))
             {
-                TextMeshProUGUI hint = UIBuild.Text("Description", button.transform, description, UITheme.FontCaption,
+                TextMeshProUGUI hint = UIBuild.Text("Description", button.transform, description, 17f,
                     primary ? new Color(UITheme.TextOnAccent.r, UITheme.TextOnAccent.g, UITheme.TextOnAccent.b, 0.72f) : UITheme.TextMuted,
-                    TextAlignmentOptions.MidlineRight);
-                UIBuild.Stretch(hint.rectTransform, 18f, 4f);
+                    TextAlignmentOptions.MidlineLeft);
+                UIBuild.Anchor(hint.rectTransform, new Vector2(.55f, 0), Vector2.one, 8, 0);
             }
 
             return button;
@@ -132,7 +138,9 @@ namespace Managers.UI.Screens
             _settings()?.Close();
             _wiki?.Hide();
             base.Hide();
-            Time.timeScale = _resumeTimeScale;
+            if(Managers.UI.HUD.BattleHud.IsPaused) Time.timeScale=0;
+            else if(_resumeTimeScale>.02f) Time.timeScale=_resumeTimeScale;
+            else Managers.UI.HUD.BattleHud.RestorePlayback();
         }
 
         public void Toggle()
@@ -152,6 +160,9 @@ namespace Managers.UI.Screens
             if (message != null) _status.text = message;
             else if (!canSave) _status.text = "전투 중이거나 정산 중에는 저장할 수 없습니다.\n나가면 이 전투 직전 자동 저장에서 이어집니다.";
             else _status.text = "";
+            // 여덟 줄(52 × 8) + 나가기 머리(40) = 456px. 상태 줄이 비면 그만큼 창을 줄여 아래에 빈 판을 남기지 않는다.
+            // 제목 띠 76 + 본문 + 아래 여백 28.
+            FitContentHeight(76f + 456f + (string.IsNullOrEmpty(_status.text) ? 4f : 64f) + 28f);
         }
 
         /// <summary>꺼진 모습은 UIButtonStyle이 그린다.</summary>

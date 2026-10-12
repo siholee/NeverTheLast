@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Managers
@@ -53,6 +53,10 @@ namespace Managers
 
         /// <summary>보상 풀의 소모품 분류에 오르는가. 식량 · 귀중품은 적 드랍 분류에서 따로 나온다.</summary>
         public bool rewardPool;
+
+        /// <summary>넥타르: 선택 아군 한 명에게 런 영구로 더하는 깡 스탯. 치명타는 퍼센트 포인트.</summary>
+        public Dictionary<string,float> nectarFlatStats;
+        public bool IsNectar => string.Equals(category,"Nectar",StringComparison.OrdinalIgnoreCase);
 
         public bool IsFood => foodValue > 0;
         public bool IsValuable => !IsFood && sellPrice > 0;

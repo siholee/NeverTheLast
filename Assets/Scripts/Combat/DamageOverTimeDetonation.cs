@@ -113,6 +113,8 @@ namespace Combat
         private static DamageContext Scale(DamageContext raw, int damage)
             => new DamageContext(raw.Attacker, damage, raw.CodeType, new List<int>(raw.DamageTags ?? new List<int>()), raw.IsCrit)
             {
+                IsDamageOverTime = raw.IsDamageOverTime,
+                StatusVfxKey = raw.StatusVfxKey,
                 OutgoingDamageMultiplier = raw.OutgoingDamageMultiplier,
                 DefenseStatMultiplier = raw.DefenseStatMultiplier,
             };

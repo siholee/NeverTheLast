@@ -22,6 +22,8 @@ namespace Codes.Passive.Reward
         {
             code = codeId switch
             {
+                822 => new DefeatMomentumCode(context, 822),
+                823 => new DivineOfferingCode(context),
                 801 => new LastStandRecoveryCode(context),
                 802 => new AllDayLongCode(context),
                 803 => new PreparationCode(context),
@@ -421,7 +423,7 @@ namespace Codes.Passive.Reward
             public override bool IsBeneficial => true;
 
             public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
-                => attacker == Target && context != null && context.CodeType == BaseEnums.CodeType.Effect ? DotBonus : 1f;
+                => attacker == Target && context?.IsDamageOverTime == true ? DotBonus : 1f;
 
             public override int OutgoingStatusDurationModifier(Unit caster, UnitStatus status)
                 => caster == Target && IsDamageOverTimeStatus(status) ? 1 : 0;

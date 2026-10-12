@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Codes.Base;
@@ -92,6 +92,14 @@ namespace Managers.UI.Core
             if (replaces > 0) return $"▲ 활성화 · {NameOf(replaces)}은 보관";
             int used = unit.RewardCodeIds.Count;
             return unit.FreeRewardCodeSlots == 0 ? $"활성 {used}/7 — 보관함으로 받기" : $"활성 {used}/7 — 빈 칸에 활성화";
+        }
+
+        public bool StartNectar(ItemData item,Action<Unit> onConfirm)
+        {
+            if(item?.IsNectar!=true)return false;
+            _setTitle?.Invoke(item.name+" — 받을 아군");
+            _unitPicked=unit=>{Hide();onConfirm?.Invoke(unit);};
+            return _units.Show(Party(),ItemTooltip.EffectLine(item),unit=>"현재 체력 비율 유지 · 런이 끝날 때까지 지속");
         }
 
         // ── 승급의 인장 ─────────────────────────────────────────

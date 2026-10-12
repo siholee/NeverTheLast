@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -47,6 +47,8 @@ namespace Codes.Base
             public int requiresAttackForm;
             /// <summary>성장(영구 중첩) 유닛이 파티에 있어야 후보가 되는가.</summary>
             public bool requiresGrowth;
+            public bool requiresTreasury;
+            public bool requiresToughness;
 
             // ── 데이터 구동 코드(RewardStatCode)가 읽는 값 ──
             /// <summary>깡 스탯 보정. 키 = StatType 이름, 치명타는 퍼센트 포인트(4 = +4%p).</summary>
@@ -56,6 +58,10 @@ namespace Codes.Base
             /// <summary>이 피해 태그가 붙은 공격의 피해 증가(퍼센트). <see cref="damageTagBonus"/>와 짝.</summary>
             public int damageTag;
             public float damageTagBonus;
+            // 축전기: 정수/소수 저장량에 곱할 스탯 증가량. 티어는 상한만 바꾼다.
+            public string capacitorStat;
+            public float capacitorPerCharge;
+            public float capacitorCap;
         }
 
         public sealed class CatalogFile

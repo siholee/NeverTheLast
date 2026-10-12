@@ -14,10 +14,18 @@ using Managers.UI.Core;
 using UnityEngine.UI;
 using Entities;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 namespace Managers.UI.DevTools
 {
     public sealed partial class VerifyHarnessRunner
     {
+        private static Button ReleaseResultContinue()
+        {
+            GameObject canvas = GameObject.Find("BattleResultCanvas");
+            Button next = canvas == null ? null : canvas.GetComponentsInChildren<Button>(false).FirstOrDefault(b => b.name == "Continue" && b.interactable);
+            return next != null && next.GetComponentsInParent<CanvasGroup>().All(g => g.alpha >= .99f) ? next : null;
+        }
         private IEnumerator ScenarioReleaseSave(VerifyScenarioRequest config)
         {
             _ruiFailures.Clear();
@@ -48,7 +56,7 @@ namespace Managers.UI.DevTools
             legacy.heroUnits[0].activeRewardCodeSlots.Clear(); legacy.heroUnits[0].storedRewardCodeIds.Clear();
             legacy.heroUnits[0].grantedPassiveCodeIds = new List<int>{501,503,504,505,507,509,510,512};
             SaveSystem.SaveRun(legacy); var migrated=SaveSystem.LoadRun();
-            RuiCheck("v12 저장 이관", "활성7·초과512보관·v13", migrated.version.ToString(), migrated.version==13 &&
+            RuiCheck("v12 저장 이관", "활성7·초과512보관·v15", migrated.version.ToString(), migrated.version==RunSaveData.CurrentVersion &&
                 migrated.heroUnits[0].activeRewardCodeSlots.Count==7 && migrated.heroUnits[0].storedRewardCodeIds.Contains(512));
             SaveSystem.SaveRun(saved);
             var dict=(Dictionary<string,string>)typeof(SaveSystem).GetField("DebugStrings",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Static).GetValue(null);
@@ -150,8 +158,13 @@ namespace Managers.UI.DevTools
                 if(game.gameState==BaseEnums.GameState.Preparation) game.StartRound();
                 else if(game.gameState==BaseEnums.GameState.RoundEnd)
                 {
-                    Button next=FindObjectsByType<Button>(FindObjectsInactive.Exclude).FirstOrDefault(b=>b.name=="Continue" && b.interactable);
-                    if(next!=null) { next.onClick.Invoke(); yield return WaitUnscaled(.3f); }
+                    Button next=ReleaseResultContinue();
+                    if(next!=null) { if(victories==0) {
+                        yield return CaptureStill("release_victory_result");
+                        RuiClick(RuiFind(GameObject.Find("BattleResultCanvas"), "CombatLog"));
+                        yield return WaitUnscaled(.15f); yield return CaptureStill("release_combat_log");
+                        Managers.UI.Screens.ModalScreen.TryEscapeTop();
+                    } next.onClick.Invoke(); yield return WaitUnscaled(.3f); }
                 }
                 else if(game.gameState==BaseEnums.GameState.RewardSelection)
                 {
@@ -181,23 +194,53 @@ namespace Managers.UI.DevTools
         }
         private IEnumerator ScenarioReleaseEvent(VerifyScenarioRequest config)
         {
-            _ruiFailures.Clear();
-            yield return PrepareStage(config,5,false,false,false);
-            GameManager game=GameManager.Instance; if(game.gameState==BaseEnums.GameState.Preparation) game.StartRound();
-            yield return WaitUnscaled(.3f);
-            RuiCheck("5단계 사건 진입", "EventStage",game.gameState.ToString(),game.gameState==BaseEnums.GameState.EventStage);
-            RunManager.Instance.SaveCurrentRun(); bool restored=RunManager.Instance.LoadSavedRun();
-            RuiCheck("사건 저장·복원", "5단계 사건 재진입",game.gameState.ToString(),restored && game.RoundManager.Stage==5 && game.gameState==BaseEnums.GameState.EventStage);
-            game.SkipEventDialogue(); yield return WaitUnscaled(.2f);
-            var choice=FindObjectsByType<UIPointerEvents>(FindObjectsInactive.Exclude).FirstOrDefault(c=>c.name=="Choice0");
-            RuiCheck("사건 선택지 표시", "Choice0 클릭 가능",choice?.name,choice!=null);
-            choice?.OnPointerClick(null); yield return WaitUnscaled(.2f);
-            yield return CaptureStill("release_event_choice_result");
-            Button confirm=FindObjectsByType<Button>(FindObjectsInactive.Exclude).FirstOrDefault(b=>b.name=="Confirm" && b.interactable);
-            RuiCheck("사건 결과 확인", "확인 버튼",confirm?.name,confirm!=null);
-            confirm?.onClick.Invoke(); yield return WaitUnscaled(.3f);
-            RuiCheck("사건→6단계 저장·준비", "stage6 준비·저장6",game.gameState.ToString(),game.RoundManager.Stage==6 && game.gameState==BaseEnums.GameState.Preparation && SaveSystem.LoadRun()?.currentStage==6);
-            RuiFinish();
+            var priorMouse=Mouse.current;
+            bool priorEnabled=priorMouse!=null&&priorMouse.enabled;
+            var pointer=InputSystem.AddDevice<Mouse>();
+            if(priorMouse!=null&&priorMouse.added)InputSystem.DisableDevice(priorMouse);
+            try
+            {
+                // 실제 포인터 하나로만 호버한다. 물리 마우스와 수동 Enter가 서로 다른 선택지를 켜지 않게 한다.
+                InputSystem.QueueStateEvent(pointer,new MouseState{position=new Vector2(Screen.width-15,15)});
+                _ruiFailures.Clear();
+                yield return PrepareStage(config,5,false,false,false);
+                GameManager game=GameManager.Instance; if(game.gameState==BaseEnums.GameState.Preparation) game.StartRound();
+                yield return WaitUnscaled(.3f);
+                RuiCheck("5단계 사건 진입", "EventStage",game.gameState.ToString(),game.gameState==BaseEnums.GameState.EventStage);
+                RunManager.Instance.SaveCurrentRun(); bool restored=RunManager.Instance.LoadSavedRun();
+                RuiCheck("사건 저장·복원", "5단계 사건 재진입",game.gameState.ToString(),restored && game.RoundManager.Stage==5 && game.gameState==BaseEnums.GameState.EventStage);
+                yield return CaptureStill("release_event_dialogue");
+                game.SkipEventDialogue(); yield return WaitUnscaled(.2f);
+                yield return CaptureStill("release_event_choices");
+                var choice=FindObjectsByType<UIPointerEvents>(FindObjectsInactive.Exclude).FirstOrDefault(c=>c.name=="Choice0");
+                RuiCheck("사건 선택지 표시", "Choice0 클릭 가능",choice?.name,choice!=null);
+                var rect=choice!=null?choice.GetComponent<RectTransform>():null;
+                Vector2 hoverPoint=rect!=null?RectTransformUtility.WorldToScreenPoint(null,rect.TransformPoint(rect.rect.center)):Vector2.zero;
+                InputSystem.QueueStateEvent(pointer,new MouseState{position=hoverPoint});yield return WaitUnscaled(.16f);
+                yield return CaptureStill("release_event_choice_hover");
+                var hoverImage=choice!=null?choice.transform.Find("HoverRing")?.GetComponent<Image>():null;
+                RuiCheck("사건 호버면 표시","색면 표시·세로 장식 없음",hoverImage?.color.a.ToString(),
+                    hoverImage!=null&&hoverImage.color.a>.9f&&choice.transform.Find("Tick")==null);
+                InputSystem.QueueStateEvent(pointer,new MouseState{position=new Vector2(Screen.width-15,15)});yield return WaitUnscaled(.16f);
+                yield return CaptureStill("release_event_choice_hover_exit");
+                RuiCheck("사건 호버면 복귀","이탈 뒤 강조 해제",hoverImage?.color.a.ToString(),hoverImage!=null&&hoverImage.color.a<.01f);
+                choice?.OnPointerClick(null); yield return WaitUnscaled(.2f);
+                yield return CaptureStill("release_event_choice_result");
+                Button confirm=FindObjectsByType<Button>(FindObjectsInactive.Exclude).FirstOrDefault(b=>b.name=="Confirm" && b.interactable);
+                RuiCheck("사건 결과 확인", "확인 버튼",confirm?.name,confirm!=null);
+                confirm?.onClick.Invoke(); yield return WaitUnscaled(.3f);
+                RuiCheck("사건→6단계 저장·준비", "stage6 준비·저장6",game.gameState.ToString(),game.RoundManager.Stage==6 && game.gameState==BaseEnums.GameState.Preparation && SaveSystem.LoadRun()?.currentStage==6);
+                RuiFinish();
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(pointer);
+                if(priorMouse!=null&&priorMouse.added)
+                {
+                    if(priorEnabled)InputSystem.EnableDevice(priorMouse);
+                    priorMouse.MakeCurrent();
+                }
+            }
         }
         private IEnumerator ScenarioReleaseLoss(VerifyScenarioRequest config)
         {
@@ -211,10 +254,11 @@ namespace Managers.UI.DevTools
                 Unit attacker=AliveEnemies().First();
                 foreach(Unit hero in AliveAllies().ToList()) {hero.RemoveShield(hero.ShieldCurr);YvProbe(attacker,hero,BaseEnums.CodeType.Normal,10000000);}
                 float deadline=Time.realtimeSinceStartup+12f;
-                while(Time.realtimeSinceStartup<deadline && !FindObjectsByType<Button>(FindObjectsInactive.Exclude).Any(b=>b.name=="Continue" && b.interactable)) yield return null;
-                Button next=FindObjectsByType<Button>(FindObjectsInactive.Exclude).FirstOrDefault(b=>b.name=="Continue" && b.interactable);
+                while(Time.realtimeSinceStartup<deadline && ReleaseResultContinue()==null) yield return null;
+                Button next=ReleaseResultContinue();
                 if(attempt==0)
                 {
+                    yield return CaptureStill("release_loss_result");
                     RuiCheck("패배 목숨·보상 차단", "목숨19·골드 동일·결과 확인",game.life+"/"+game.inventoryManager.Gold,game.life==19 && game.inventoryManager.Gold==gold && next!=null);
                     next?.onClick.Invoke(); yield return WaitUnscaled(.3f);
                     RuiCheck("패배 다음 단계", "보상 없이 2단계",game.RoundManager.Stage.ToString(),game.RoundManager.Stage==2 && game.gameState==BaseEnums.GameState.Preparation);

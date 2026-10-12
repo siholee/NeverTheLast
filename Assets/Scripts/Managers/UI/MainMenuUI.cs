@@ -1,4 +1,4 @@
-﻿using Core;
+using Core;
 using Helpers;
 using Managers.UI.Core;
 using Managers.UI.Theme;
@@ -8,10 +8,11 @@ using UnityEngine.UI;
 
 namespace Managers.UI
 {
-    /// <summary>캐릭터와 여정 선택을 나란히 놓은 가로형 로비.</summary>
+    /// <summary>캐릭터 스탠딩과 비대칭 작전 타일을 분리한 밝은 로비.</summary>
     public class MainMenuUI : MonoBehaviour
     {
         private SettingsUI _settings;
+        private Screens.WikiScreen _wiki;
         private void Start()
         {
             transform.SetParent(null, false);
@@ -31,75 +32,76 @@ namespace Managers.UI
             Screens.CharacterUnlockDialog.ShowPending();
         }
 
+        // 로비는 창 안의 버튼 목록이 아니라 원화 + 독립된 작전 타일이다.
+        // 명일방주의 비대칭 탐색 구조를 참고하되 실제 여정/자료실/설정 기능만 배치한다.
         private Canvas BuildMenu()
         {
             Canvas canvas = UIBuild.Canvas("MainMenuBrightCanvas", 10);
             canvas.gameObject.SetActive(true);
-
-            Image background = UIBuild.Solid("SkyCitadel", canvas.transform, Color.white);
-            background.sprite = UIChromeArt.MainMenuBackground;
-            background.type = Image.Type.Simple;
-            background.raycastTarget = false;
-            UIBuild.Stretch(background.rectTransform);
-
-            // 원화와 메뉴가 밝은 하늘에 직접 뜨지 않도록 아래쪽에만 아주 얕은 청회색 공기층을 둔다.
-            Image atmosphere = UIBuild.Solid("Atmosphere", canvas.transform,
-                new Color(0.27f, 0.48f, 0.62f, 0.10f));
-            atmosphere.raycastTarget = false;
-            UIBuild.Stretch(atmosphere.rectTransform);
-
+            Image sky = UIBuild.Solid("SkyCitadel", canvas.transform, Color.white);
+            sky.sprite = UIChromeArt.MainMenuBackground;
+            sky.type = Image.Type.Simple;
+            sky.raycastTarget = false;
+            UIBuild.Stretch(sky.rectTransform);
             RectTransform root = UIBuild.SafeArea(canvas);
-            UIArtDirection.Header(root, 8f);
-            Image document = UIBuild.Panel("LobbyDocument", root, new Color(1f, 1f, 1f, 0.90f), UIShapes.Corner.BottomRight, 12);
-            document.raycastTarget = false;
-            UIBuild.Anchor(document.rectTransform, new Vector2(0.018f, 0.845f), new Vector2(0.47f, 0.98f));
-            Sprite sei = SpriteResource.LoadStanding("SEI_STANDING") ?? SpriteResource.LoadStanding("SHI_STANDING");
-            Image characterShadow = UIBuild.Solid("LobbyCharacterShadow", root,
-                new Color(0.22f, 0.39f, 0.53f, 0.24f));
-            characterShadow.sprite = sei;
-            characterShadow.type = Image.Type.Simple;
-            characterShadow.preserveAspect = true;
-            characterShadow.raycastTarget = false;
-            characterShadow.enabled = sei != null;
-            UIBuild.Anchor(characterShadow.rectTransform, new Vector2(0.052f, 0.005f), new Vector2(0.642f, 1.015f));
 
+            Sprite sei = SpriteResource.LoadStanding("SEI_STANDING") ?? SpriteResource.LoadStanding("SHI_STANDING");
             Image character = UIBuild.Solid("LobbyCharacter", root, Color.white);
             character.sprite = sei;
+            // Solid의 기본 Sliced는 preserveAspect를 무시한다. 원화는 반드시 Simple이다.
             character.type = Image.Type.Simple;
             character.preserveAspect = true;
             character.raycastTarget = false;
-            character.enabled = character.sprite != null;
-            UIBuild.Anchor(character.rectTransform, new Vector2(0.04f, 0.01f), new Vector2(0.64f, 1.02f));
-            Copy(root, "Brand", "NEVER THE LAST", 42, UITheme.TextPrimary, 0.035f, 0.89f, 0.44f, 0.97f, true);
-            Copy(root, "Edition", "신들의 기록 · 끝나지 않은 여정", 18, UITheme.TextSecondary, 0.037f, 0.85f, 0.44f, 0.90f);
-            Image identity = UIBuild.Panel("CharacterIdentity", root, new Color(1, 1, 1, 0.93f), cut: 4);
-            UIBuild.Anchor(identity.rectTransform, new Vector2(0.055f, 0.13f), new Vector2(0.31f, 0.25f));
-            Copy(identity.transform, "Name", "세이", 34, UITheme.TextPrimary, 0.06f, 0.38f, 0.94f, 0.92f, true);
-            Copy(identity.transform, "Role", "대지를 고르는 수호자", 18, UITheme.TextSecondary, 0.06f, 0.08f, 0.94f, 0.40f);
+            character.enabled = sei != null;
+            UIBuild.Anchor(character.rectTransform, new Vector2(.12f, -.08f), new Vector2(.60f, .99f));
 
-            Image journeyGlass = UIBuild.ChromePanel("JourneyGlass", root);
-            UIBuild.Anchor(journeyGlass.rectTransform, new Vector2(0.61f, 0.13f), new Vector2(0.97f, 0.87f));
-            UIArtDirection.Header(journeyGlass.transform, 5f);
-            RectTransform journey = UIBuild.Container("Journey", journeyGlass.transform);
-            UIBuild.Stretch(journey, 34f, 30f);
-            Copy(journey, "Chapter", "YOUR NEXT CHAPTER", 16, UITheme.Accent, 0, 0.89f, 1, 1);
-            Copy(journey, "Title", "다시, 여정을 향해", 42, UITheme.TextPrimary, 0, 0.77f, 1, 0.91f, true);
-            Copy(journey, "Intro", "동료를 만나고, 신화를 이어가세요.", 20, UITheme.TextSecondary, 0, 0.69f, 1, 0.79f);
+            Image brandLight = UIBuild.Solid("BrandLight", root, Color.white);
+            brandLight.sprite = UIShapes.Glow(128, new Color(1f, 1f, 1f, .85f));
+            brandLight.type = Image.Type.Simple;
+            brandLight.raycastTarget = false;
+            UIBuild.Anchor(brandLight.rectTransform, new Vector2(-.06f, .79f), new Vector2(.31f, 1.04f));
+            Copy(root, "Brand", "NEVER THE LAST", 28f, UITheme.Accent, .045f, .895f, .35f, .965f, true);
+            Copy(root, "Edition", "신들의 기록 · 끝나지 않은 여정", 16f, UITheme.TextSecondary, .046f, .867f, .35f, .905f);
+            Image brandRule = UIBuild.Divider("BrandRule", root);
+            brandRule.raycastTarget = false;
+            UIBuild.Anchor(brandRule.rectTransform, new Vector2(.046f, .85f), new Vector2(.155f, .85f));
+            brandRule.rectTransform.sizeDelta = new Vector2(0f, 2f);
+
+            Image identityLight = UIBuild.Solid("IdentityLight", root, Color.white);
+            identityLight.sprite = UIShapes.Glow(128, new Color(1f, 1f, 1f, .84f));
+            identityLight.type = Image.Type.Simple;
+            identityLight.raycastTarget = false;
+            UIBuild.Anchor(identityLight.rectTransform, new Vector2(-.04f, .09f), new Vector2(.29f, .37f));
+            Copy(root, "CharacterIndex", "함께하는 동료", 15f, UITheme.TextSecondary, .05f, .305f, .25f, .345f);
+            Copy(root, "Name", "세이", 38f, UITheme.TextPrimary, .05f, .235f, .26f, .305f, true);
+            Copy(root, "Role", "대지를 고르는 수호자", 18f, UITheme.TextSecondary, .052f, .20f, .28f, .242f);
+
             RunSaveData save = SaveSystem.HasSave() ? SaveSystem.LoadRun() : null;
             string continuation = save == null ? "저장된 여정이 없습니다" :
-                $"구역 {save.currentRound} · {(Mathf.Max(1, save.currentStage) - 1) % 10 + 1} 스테이지   /   목숨 {save.life}";
-            JourneyButton(journey, "Continue", "여정 이어가기", continuation, OnContinue, 0.43f, 0.66f, save != null, save != null);
-            // 게임 모드는 무한 모드 하나다. 새 여정이 곧 끝없는 여정이다.
-            JourneyButton(journey, "NewRun", "새로운 여정", "해금한 동료 최대 다섯과 끝없는 여정으로", OnNewGame, 0.20f, 0.40f, save == null, true);
-            // 캐릭터 발을 반투명하게 비치면 실수로 잘린 것처럼 보인다. 푸터가 명확히 전경에 오도록 완전 불투명 처리한다.
-            Image footer = UIBuild.Solid("Footer", root, Color.white);
-            UIBuild.Anchor(footer.rectTransform, Vector2.zero, new Vector2(1, 0.095f));
-            Copy(footer.transform, "Version", $"NEVER THE LAST   /   DEMO {Application.version}", 15, UITheme.TextMuted, 0.035f, 0, 0.47f, 1);
-            Button settings = UIBuild.Button("Settings", footer.transform, "설정", OnSettings, fontSize: 22);
-            UIBuild.Anchor(settings.image.rectTransform, new Vector2(0.68f, 0.15f), new Vector2(0.82f, 0.85f));
-            Button quit = UIBuild.Button("Quit", footer.transform, "종료", OnQuit, fontSize: 22);
-            UIBuild.Anchor(quit.image.rectTransform, new Vector2(0.84f, 0.15f), new Vector2(0.96f, 0.85f));
+                $"스테이지 {save.currentRound} · {(Mathf.Max(1, save.currentStage) - 1) % RoundManager.EncountersPerTheme + 1}라운드  /  목숨 {save.life}";
+            RectTransform terminal = UIBuild.Container("LobbyTerminal", root);
+            UIBuild.Anchor(terminal, new Vector2(.57f, .235f), new Vector2(.955f, .74f));
+            Copy(terminal, "TerminalLabel", "여정", 18f, UITheme.Accent, 0f, 1.035f, .5f, 1.105f, true);
+            Copy(terminal, "TerminalMode", "무한 모드", 16f, UITheme.TextSecondary, .77f, 1.035f, 1f, 1.105f);
+            // 저장 유무에 따라 가장 큰 타일에는 지금 실행 가능한 주 행동을 둔다.
+            LobbyTile(terminal, save != null ? "Continue" : "NewRun",
+                save != null ? "여정 이어가기" : "새로운 여정",
+                save != null ? continuation : "해금한 동료 최대 다섯과 함께", UIIcon.Route,
+                save != null ? OnContinue : OnNewGame, 0f, .59f, 1f, 1f, true, true);
+            LobbyTile(terminal, save != null ? "NewRun" : "Continue",
+                save != null ? "새로운 여정" : "여정 이어가기",
+                save != null ? "새로운 편성으로 출발" : continuation, UIIcon.Party,
+                save != null ? OnNewGame : OnContinue, 0f, .285f, .57f, .56f, false, save != null);
+            LobbyTile(terminal, "Wiki", "자료실", "전투 · 동료 · 코드", UIIcon.Guide,
+                () => (_wiki ??= new Screens.WikiScreen()).ShowArticle("home"),
+                .59f, .285f, 1f, .56f, false, true);
+            LobbyTile(terminal, "Settings", "설정", "화면과 사운드", UIIcon.Menu,
+                OnSettings, 0f, .08f, .57f, .255f, false, true, true);
+            Button quit = LobbyTile(terminal, "Quit", "게임 종료", "", UIIcon.Close,
+                OnQuit, .59f, .08f, 1f, .255f, false, true, true);
             quit.gameObject.SetActive(!Application.isMobilePlatform);
+            Copy(root, "Version", $"NEVER THE LAST   /   DEMO {Application.version}", 14f,
+                UITheme.TextSecondary, .046f, .035f, .45f, .075f);
             return canvas;
         }
 
@@ -108,19 +110,41 @@ namespace Managers.UI
         {
             var label = UIBuild.Text(key, parent, text, size, ink);
             if (bold) label.fontStyle = FontStyles.Bold;
+            label.alignment = TextAlignmentOptions.MidlineLeft;
+            label.raycastTarget = false;
             UIBuild.Anchor(label.rectTransform, new Vector2(left, bottom), new Vector2(right, top));
         }
 
-        private static void JourneyButton(Transform parent, string key, string title, string description,
-            System.Action action, float bottom, float top, bool primary, bool enabled)
+        private static Button LobbyTile(Transform parent, string key, string title, string description,
+            UIIcon icon, System.Action action, float left, float bottom, float right, float top,
+            bool primary, bool enabled, bool compact = false)
         {
             Button button = UIBuild.Button(key, parent, "", action, primary);
-            UIBuild.Anchor(button.image.rectTransform, new Vector2(0, bottom), new Vector2(1, top));
+            UIBuild.Anchor(button.image.rectTransform, new Vector2(left, bottom), new Vector2(right, top));
+            button.image.sprite = UIShapes.RoundedRect(3, primary ? UITheme.Accent : new Color(.97f, .985f, 1f, .96f));
             button.interactable = enabled;
+            UIBuild.Elevate(button.image, 3, .1f, 5);
             Color ink = primary ? UITheme.TextOnAccent : enabled ? UITheme.TextPrimary : UITheme.TextDisabled;
-            Copy(button.transform, "Heading", title, 29, ink, 0.06f, 0.40f, 0.84f, 0.90f, true);
-            Copy(button.transform, "Description", description, 18, ink, 0.06f, 0.09f, 0.87f, 0.43f);
-            Copy(button.transform, "Arrow", enabled ? "→" : "—", 32, ink, 0.88f, 0.18f, 0.98f, 0.83f);
+            // 큰 기호는 주 행동의 오른쪽 여백만 쓰고 본문과 겹치지 않는다.
+            Image motif = UIBuild.Icon("TileMotif", button.transform, icon,
+                new Color(ink.r, ink.g, ink.b, primary ? .18f : .12f));
+            motif.sprite = UILineIcons.Get(icon, 192);
+            UIBuild.Anchor(motif.rectTransform, new Vector2(.73f, .20f), new Vector2(.95f, .80f));
+            Copy(button.transform, "Heading", title, primary ? 32f : compact ? 22f : 25f, ink,
+                .055f, compact ? .30f : .41f, .85f, compact ? .83f : .82f, true);
+            if (!string.IsNullOrEmpty(description))
+                Copy(button.transform, "Description", description, primary ? 18f : 16f, ink,
+                    .055f, compact ? .13f : .16f, .91f, compact ? .35f : .41f);
+            if (primary)
+            {
+                Image arrow = UIBuild.Icon("Arrow", button.transform, UIIcon.Arrow, ink);
+                UIBuild.Anchor(arrow.rectTransform, new Vector2(.925f, .73f), new Vector2(.965f, .91f));
+                Image line = UIBuild.Solid("TileAccent", button.transform, new Color(.64f, .84f, .96f, .9f));
+                line.raycastTarget = false;
+                UIBuild.Anchor(line.rectTransform, Vector2.zero, new Vector2(1f, 0f));
+                line.rectTransform.sizeDelta = new Vector2(0f, 3f);
+            }
+            return button;
         }
 
         private static void OnNewGame()
@@ -140,6 +164,17 @@ namespace Managers.UI
             if (!SaveSystem.HasSave()) return;
             GameStartIntent.Current = GameStartIntent.Intent.Continue;
             GameManager.LoadBattleScene();
+        }
+        private void Update()
+        {
+#if ENABLE_INPUT_SYSTEM
+            bool escape = UnityEngine.InputSystem.Keyboard.current?.escapeKey.wasPressedThisFrame == true;
+#else
+            bool escape = Input.GetKeyDown(KeyCode.Escape);
+#endif
+            if (!escape || _wiki?.IsVisible != true) return;
+            if (GuideTermTooltip.TryDismiss()) return;
+            Screens.ModalScreen.TryEscapeTop();
         }
         private void OnSettings() => _settings?.Open();
         private static void OnQuit() => Application.Quit();

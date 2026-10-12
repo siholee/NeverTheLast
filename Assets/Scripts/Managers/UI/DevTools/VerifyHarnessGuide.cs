@@ -64,6 +64,11 @@ namespace Managers.UI.DevTools
                     yield return WaitUnscaled(.9f);
                     RuiCheck("부모를 남기는 중첩", "빙결 → 원소 부착 2층", GuideTermTooltip.Depth + "/" + GuideTermTooltip.CurrentId,
                         GuideTermTooltip.Depth == 2 && GuideTermTooltip.CurrentId == "attachment");
+                    var terms=tipRoot.GetComponentsInChildren<RectTransform>().Where(t=>t.name.StartsWith("Term_") && t.GetComponent<CanvasGroup>() != null).ToArray();
+                    bool separated=terms.Length==2 && !RuiRect(terms[0]).Overlaps(RuiRect(terms[1]));
+                    RuiCheck("중첩 사전 실제 경계", "부모·자식 겹침 없음",string.Join(" / ",terms.Select(t=>RuiRect(t).ToString())),separated);
+                    var firstTip=GameObject.Find("Term_freeze");
+                    RuiCheck("용어 출처 줄 보존", "원래 빙결 글자 위 비중첩",RuiRect(firstTip.transform).ToString(),!RuiRect(firstTip.transform).Contains(point));
                     yield return CaptureStill("guide_term_nested");
                     ui.HandleEscape();
                     RuiCheck("ESC 사전 한 층 닫기", "빙결 1층 · 자료실 유지", GuideTermTooltip.Depth.ToString(), GuideTermTooltip.Depth == 1 && wiki.IsVisible);
@@ -96,7 +101,9 @@ namespace Managers.UI.DevTools
             RuiCheck("메뉴 일시정지 보존", "시간0", Time.timeScale.ToString(), Time.timeScale == 0);
             ui.HandleEscape(); RuiCheck("메뉴 닫기 시간 복원", $"시간 {previousScale}", Time.timeScale.ToString(), Mathf.Approximately(Time.timeScale, previousScale));
             RuiCheck("용어 관련 항목 완결성", "전부 유효", GameGuideCatalog.Terms.Count.ToString(), GameGuideCatalog.Terms.All(a => a.Related.All(k => GameGuideCatalog.Find(k) != null)));
-            RuiCheck("고유 메커니즘 원본 연결", "9개", GameGuideCatalog.Terms.Count(a => a.Chapter == "캐릭터 메커니즘").ToString(), GameGuideCatalog.Terms.Count(a => a.Chapter == "캐릭터 메커니즘") == 9);
+            RuiCheck("고유 메커니즘 원본 연결", "늑대의 사냥감·자유 추격·일제 사격·종언 표식·긴급지원", string.Join(",", GameGuideCatalog.Terms.Where(a => a.Chapter == "캐릭터 메커니즘").Select(a => a.Id)),
+                new[] { "wanted", "flexhunt", "volley", "execution", "emergency" }.All(id => GameGuideCatalog.Find(id)?.Chapter == "캐릭터 메커니즘") &&
+                GameGuideCatalog.Find("wanted").Summary.Contains("로키"));
             RuiCheck("반복 링크화 안정성", "중첩 link 없음", "화상 · 집중", GameGuideCatalog.LinkTerms(GameGuideCatalog.LinkTerms("화상 · 집중")) == GameGuideCatalog.LinkTerms("화상 · 집중"));
             RuiCheck("동음 용어 오연결 방지", "활성 코드·성장치·집중 포격에 링크 없음", "빌드/증폭", !GameGuideCatalog.LinkTerms("활성 코드 성장치 집중 포격").Contains("<link"));
             ui.ShowCodex(RewardCodeFlow.Party().First(u => u.ID == AgniId));

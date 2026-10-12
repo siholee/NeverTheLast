@@ -4,33 +4,29 @@ using System.Linq;
 using Combat;
 using Effects.Vfx;
 using Helpers;
-using Managers.UI.Theme;
 using UnityEngine;
 
 namespace Entities.View
 {
-    /// <summary>칸 없는 분신의 표시만 소유한다. 소환자 카드의 실제 모션을 따라가고 전장 배치에는 참가하지 않는다.</summary>
+    /// <summary>칸 없는 소환수의 표시만 소유한다. 소환자 카드의 실제 모션을 따라가고 전장 배치에는 참가하지 않는다.</summary>
     public sealed class SummonCardView : MonoBehaviour
     {
         public Unit BoundUnit => _unit;
         public SpriteRenderer PortraitRenderer => _portrait;
         private Unit _unit;
         private SpriteRenderer _portrait;
-        private SpriteRenderer _frame;
         private Vector3 _advance;
         private float _opacity = 0.68f;
+        private bool IsCompanion => _unit != null && _unit.SummonKind == "loki_fenrir";
+        private float BaseOpacity => IsCompanion ? .94f : .68f;
 
         public void Bind(Unit unit)
         {
             _unit = unit;
-            _frame = new GameObject("CloneCardFrame").AddComponent<SpriteRenderer>();
-            _frame.transform.SetParent(transform, false);
-            _frame.sprite = UIShapes.CutCorner(5, new Color(.14f, .24f, .28f, .30f),
-                UIShapes.Corner.Diagonal, new Color(.43f, .76f, .73f, .84f), 2);
-            _frame.drawMode = SpriteDrawMode.Sliced;
+            _opacity = BaseOpacity;
             _portrait = new GameObject("ClonePortrait").AddComponent<SpriteRenderer>();
             _portrait.transform.SetParent(transform, false);
-            _portrait.sprite = SpriteResource.LoadPortrait(unit.PortraitPath, out _);
+            _portrait.sprite = UnitCardView.PortraitWithBottomFade(SpriteResource.LoadPortrait(unit.PortraitPath, out _));
             _portrait.color = new Color(0.74f, 0.95f, 0.91f, _opacity);
             FollowOwner();
         }
@@ -42,7 +38,7 @@ namespace Entities.View
             if (_unit == null || _unit.SummonOwner == null || _portrait == null) return;
             Unit owner = _unit.SummonOwner;
             var view = CardMotion.ViewOf(owner);
-            if (view == null || view.Body == null) { _portrait.enabled = _frame.enabled = false; return; }
+            if (view == null || view.Body == null) { _portrait.enabled = false; return; }
             _portrait.enabled = owner.isActive && owner.IsOnField;
             int index = Mathf.Clamp(Summons.Of(owner).IndexOf(_unit), 0, 2);
             float facing = owner.IsEnemy ? -1f : 1f;
@@ -51,21 +47,17 @@ namespace Entities.View
             transform.position = view.Body.position + new Vector3(-facing * (.42f + index * .10f), .28f + index * .10f) * card + _advance;
             _portrait.sortingLayerID = view.PortraitRenderer.sortingLayerID;
             _portrait.sortingOrder = view.PortraitRenderer.sortingOrder - 3 - index;
-            _frame.enabled = _portrait.enabled;
-            _frame.sortingLayerID = _portrait.sortingLayerID;
-            _frame.sortingOrder = _portrait.sortingOrder - 1;
-            _frame.size = new Vector2(.61f, .66f) * card;
-            _frame.color = new Color(1f, 1f, 1f, _opacity);
             float width = _portrait.sprite != null ? _portrait.sprite.bounds.size.x : 1f;
             _portrait.transform.localScale = Vector3.one * (card * .64f / Mathf.Max(.01f, width));
-            _portrait.color = new Color(.74f, .95f, .91f, _opacity - index * .07f);
+            _portrait.color = IsCompanion ? new Color(1f, 1f, 1f, _opacity)
+                : new Color(.74f, .95f, .91f, _opacity - index * .07f);
         }
 
         public IEnumerator Advance(Unit target, float scale = 1f)
         {
             Vector3 direction = VfxSpace.AimFrom(_unit, target).Direction;
             float card = VfxSpace.CardSize;
-            _opacity = .68f * scale;
+            _opacity = BaseOpacity * scale;
             Trace("card_motion_clone_start");
             for (float t = 0f; t < .24f; t += Time.deltaTime)
             {
@@ -95,10 +87,10 @@ namespace Entities.View
         public void Depart()
         {
             if (_portrait == null) return;
-            UchiFx.PaperDeparture(transform.position, _portrait.sprite, _portrait.transform.lossyScale,
-                _portrait.color, _unit);
+            if (!IsCompanion)
+                UchiFx.PaperDeparture(transform.position, _portrait.sprite, _portrait.transform.lossyScale,
+                    _portrait.color, _unit);
             _portrait.enabled = false;
-            _frame.enabled = false;
         }
 
         private void Trace(string tag)

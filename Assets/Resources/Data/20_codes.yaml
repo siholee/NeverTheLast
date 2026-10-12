@@ -9,6 +9,22 @@
 
 codes:
   passive:
+    - id: 400
+      verbalName: "왕실의 구매권"
+      codeName: MansaRoyalWarrant
+      description: "전투 시작 시 필드에 있으면 승리 전투 골드+25%. 무료 보상1장 선택 후 남은 카드 최대2장을 상점 가격으로 구매. 일반행동은 방어력80% 전체 보호막을 위해 재보1 소비."
+    - id: 420
+      verbalName: "황금 탄창"
+      codeName: IshtarGoldenMagazine
+      description: "자신이 재보1을 실제 소비할 때마다 초월기 피해+4%p. 최대12중첩, 현재 탄부터 적용. 재소비로 갱신하고 다음 자기 일반행동 종료 시 모두 만료. 예약·반환·다른 아군 소비는 제외."
+    - id: 281
+      verbalName: "재 속에 남긴 온기"
+      codeName: SurtrLastEmber
+      description: "적에게 직접 공격으로 실제 피해를 주면 필드 아군 전원에게 현재 방어력 12% 보호막. 광역·다타수도 실제 행동당 한 번. 보호막은 누적되며 보호막 보너스만 추가 적용. 지속피해·원소 반응·자해에는 발동하지 않는다."
+    - id: 282
+      verbalName: "다시 일어날 수 있도록"
+      codeName: FreyaGentleHands
+      description: "아군의 특수행동·추가행동·초월기가 끝나면 그 행동자를 프레이아 최대 체력 2%만큼 치유. 일반행동·소환수·자신의 긴급 치유 제외. 실제 회복분만 온기에 저장."
     - id: 263
       verbalName: 데바의 왕
       codeName: IndraDevaKing
@@ -22,9 +38,9 @@ codes:
       codeName: AgniBurnToTheEnd
       description: "<고유 특성> 다른 필드 아군(소환수 제외)이 초월기를 실제로 마칠 때마다 추가행동으로 적 전체에 공격력 45% 피해를 주고, 적마다 피해 직후 불을 부착한다. 같은 아군에게서는 아그니의 일반행동 사이에 한 번만 받는다. 판돈(초월기) 동안에는 궁극기 피해 · 치명 판정도 함께 받는다. #전체 #추가행동 #비접촉 #주문"
     - id: 267
-      verbalName: 해가 지기 전에
-      codeName: SuryaBeforeSunset
-      description: "<고유 특성> 전투를 시작하면 적 하나를 현상수배한다(낮은 체력 비율 우선). 수배된 적은 아군의 추가행동에 받는 피해 +15%. 탄환 2발로 시작하며, 다른 아군의 직접 공격이 수배된 적에게 피해를 주면 탄환 1발로 공격력 55% 단일 추가행동 사격으로 응답한다(실제 행동 하나에 한 번). 수배된 적이 쓰러지면 다음 적을 수배한다. #단일 #추가행동 #비접촉 #사격"
+      verbalName: 황혼의 집행자
+      codeName: SuryaExecution
+      description: "일반 사격이 대상에게 종언 표식을 1중첩 부여한다(최대 2). 2중첩인 적에게 다음 일반 사격은 종언탄으로 바뀐다. 표식은 효과 명중 판정, 대상별 관리, 라운드 종료 시 제거."
     - id: 261
       verbalName: 죽음의 선고
       codeName: YamaDeathVerdict
@@ -34,9 +50,9 @@ codes:
       codeName: VarunaLawLevee
       description: "<고유 특성> 자신의 행동으로 적에게 물을 부착하면 현재 방어력 35%의 보호막을 자신에게 얻는다. 광역 · 확산으로 여러 명에게 붙어도 행동당 한 번이며, 기존 보호막에 누적된다. 물 부착이 없는 특수행동에서는 발동하지 않는다."
     - id: 265
-      verbalName: 재보천의 후원
+      verbalName: "재보천의 후원"
       codeName: KuberaPatronage
-      description: "<고유 특성> 필드에 있는 동안 아군 소환수가 주는 피해 +20%. 아군이 소환수를 생성할 때마다 보물 +1(보고 개방이 만든 소환수 제외). 승리하면 이번 전투에서 생성된 소환수 1기당 전투 골드 +1%(최대 +25%)."
+      description: "아군 필드 오라. 재보를 실제 충전·소비한 공격에 쿠베라 자신의 치명타 피해 30%만큼 치피 가산. 중복은 높은 하나. 소환 시너지 없음."
     - id: 321
       verbalName: 영혼 수확
       codeName: AnubisSoulHarvest
@@ -490,10 +506,12 @@ codes:
       codeTags: [Precision, Swift]
     - id: 717
       verbalName: 파죽지세
-      codeName: RoutCode
-      description: "피해를 준 적이 처치되면 3턴간 공격력 +15% (갱신)"
-      tier: 3
-      codeTags: [Universal, FollowUp]
+      codeName: DefeatMomentumCode
+      description: "보유자가 적을 처치하거나 강인도를 격파하면 이번 전투 공격력 +10%. 최대4중첩(+40%)."
+      tier: 4
+      codeTags: [Universal, Toughness, FollowUp]
+      shopFixed: true
+      shopPrice: 600
     - id: 718
       verbalName: 폭죽놀이
       codeName: FireworksCode
@@ -712,7 +730,839 @@ codes:
       tier: 5
       codeTags: [Growth]
       requiresGrowth: true
+    - id: 245
+      verbalName: 달이 보지 않는 밤
+      codeName: TsukuyomiNight
+      description: "필드에 있는 동안 아군 전원의 지속피해를 독립적으로 증폭한다. 증가량은 자신의 특수공격력 / (100 + 레벨당 6) × 20%. 모든 지속피해와 야마의 즉시 발동에 적용."
+    - id: 360
+      verbalName: 보급은 약속이다
+      codeName: MarieSupply
+      description: "아군 추가행동의 치명타 피해 +자신 치명타 피해의 40%. 아군은 실제 행동을 마칠 때마다 마리 공격력 15% 치유. 소환수와 마리 자신도 적용."
+    - id: 361
+      verbalName: "대육군의 지휘"
+      codeName: "NapoleonOrders"
+      description: "전투 시작 시 자신의 행동 게이지 25% 선행. 필드에 있는 동안 아군 전원(자신 포함)의 일반 공격 피해 +15%. 일반 공격 판정을 받는 특수행동 피해 포함, 일반 공격 태그를 가진 직접 공격에 적용하며 지속피해 · 반응은 제외. #지원 #오라"
+
+    - id: 540
+      verbalName: 저급 투지 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 공격력 +1. 처음 저장량 0, 최대 12. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 1
+      codeTags: [Growth, Universal]
+      supersededBy: 640
+      capacitorStat: Attack
+      capacitorPerCharge: 1
+      capacitorCap: 12
+
+    - id: 541
+      verbalName: 저급 생명 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 최대 체력 +12. 처음 저장량 0, 최대 12. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 1
+      codeTags: [Growth, Universal]
+      supersededBy: 641
+      capacitorStat: MaxHp
+      capacitorPerCharge: 12
+      capacitorCap: 12
+
+    - id: 542
+      verbalName: 저급 단련 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 방어력 +1. 처음 저장량 0, 최대 12. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 1
+      codeTags: [Growth, Universal]
+      supersededBy: 642
+      capacitorStat: Defense
+      capacitorPerCharge: 1
+      capacitorCap: 12
+
+    - id: 543
+      verbalName: 저급 의지 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 특수공격력 +1. 처음 저장량 0, 최대 12. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 1
+      codeTags: [Growth, Universal]
+      supersededBy: 643
+      capacitorStat: SpecialAttack
+      capacitorPerCharge: 1
+      capacitorCap: 12
+
+    - id: 544
+      verbalName: 저급 평정 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 특수방어력 +1. 처음 저장량 0, 최대 12. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 1
+      codeTags: [Growth, Universal]
+      supersededBy: 644
+      capacitorStat: SpecialDefense
+      capacitorPerCharge: 1
+      capacitorCap: 12
+
+    - id: 545
+      verbalName: 저급 가속 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 속도 +0.25. 처음 저장량 0, 최대 12. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 1
+      codeTags: [Growth, Universal]
+      supersededBy: 645
+      capacitorStat: Speed
+      capacitorPerCharge: 0.25
+      capacitorCap: 12
+
+    - id: 546
+      verbalName: 저급 혜안 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 치명타 확률 +0.25%p. 처음 저장량 0, 최대 12. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 1
+      codeTags: [Growth, Universal]
+      supersededBy: 646
+      capacitorStat: CritRate
+      capacitorPerCharge: 0.25
+      capacitorCap: 12
+
+    - id: 547
+      verbalName: 저급 직감 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 치명타 피해 +0.5%p. 처음 저장량 0, 최대 12. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 1
+      codeTags: [Growth, Universal]
+      supersededBy: 647
+      capacitorStat: CritDamage
+      capacitorPerCharge: 0.5
+      capacitorCap: 12
+
+    - id: 640
+      verbalName: 중급 투지 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 공격력 +1. 처음 저장량 0, 최대 24. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 2
+      codeTags: [Growth, Universal]
+      supersededBy: 740
+      capacitorStat: Attack
+      capacitorPerCharge: 1
+      capacitorCap: 24
+
+    - id: 641
+      verbalName: 중급 생명 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 최대 체력 +12. 처음 저장량 0, 최대 24. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 2
+      codeTags: [Growth, Universal]
+      supersededBy: 741
+      capacitorStat: MaxHp
+      capacitorPerCharge: 12
+      capacitorCap: 24
+
+    - id: 642
+      verbalName: 중급 단련 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 방어력 +1. 처음 저장량 0, 최대 24. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 2
+      codeTags: [Growth, Universal]
+      supersededBy: 742
+      capacitorStat: Defense
+      capacitorPerCharge: 1
+      capacitorCap: 24
+
+    - id: 643
+      verbalName: 중급 의지 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 특수공격력 +1. 처음 저장량 0, 최대 24. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 2
+      codeTags: [Growth, Universal]
+      supersededBy: 743
+      capacitorStat: SpecialAttack
+      capacitorPerCharge: 1
+      capacitorCap: 24
+
+    - id: 644
+      verbalName: 중급 평정 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 특수방어력 +1. 처음 저장량 0, 최대 24. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 2
+      codeTags: [Growth, Universal]
+      supersededBy: 744
+      capacitorStat: SpecialDefense
+      capacitorPerCharge: 1
+      capacitorCap: 24
+
+    - id: 645
+      verbalName: 중급 가속 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 속도 +0.25. 처음 저장량 0, 최대 24. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 2
+      codeTags: [Growth, Universal]
+      supersededBy: 745
+      capacitorStat: Speed
+      capacitorPerCharge: 0.25
+      capacitorCap: 24
+
+    - id: 646
+      verbalName: 중급 혜안 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 치명타 확률 +0.25%p. 처음 저장량 0, 최대 24. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 2
+      codeTags: [Growth, Universal]
+      supersededBy: 746
+      capacitorStat: CritRate
+      capacitorPerCharge: 0.25
+      capacitorCap: 24
+
+    - id: 647
+      verbalName: 중급 직감 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 치명타 피해 +0.5%p. 처음 저장량 0, 최대 24. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 2
+      codeTags: [Growth, Universal]
+      supersededBy: 747
+      capacitorStat: CritDamage
+      capacitorPerCharge: 0.5
+      capacitorCap: 24
+
+    - id: 740
+      verbalName: 고급 투지 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 공격력 +1. 처음 저장량 0, 최대 48. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 3
+      codeTags: [Growth, Universal]
+      supersededBy: 0
+      capacitorStat: Attack
+      capacitorPerCharge: 1
+      capacitorCap: 48
+
+    - id: 741
+      verbalName: 고급 생명 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 최대 체력 +12. 처음 저장량 0, 최대 48. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 3
+      codeTags: [Growth, Universal]
+      supersededBy: 0
+      capacitorStat: MaxHp
+      capacitorPerCharge: 12
+      capacitorCap: 48
+
+    - id: 742
+      verbalName: 고급 단련 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 방어력 +1. 처음 저장량 0, 최대 48. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 3
+      codeTags: [Growth, Universal]
+      supersededBy: 0
+      capacitorStat: Defense
+      capacitorPerCharge: 1
+      capacitorCap: 48
+
+    - id: 743
+      verbalName: 고급 의지 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 특수공격력 +1. 처음 저장량 0, 최대 48. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 3
+      codeTags: [Growth, Universal]
+      supersededBy: 0
+      capacitorStat: SpecialAttack
+      capacitorPerCharge: 1
+      capacitorCap: 48
+
+    - id: 744
+      verbalName: 고급 평정 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 특수방어력 +1. 처음 저장량 0, 최대 48. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 3
+      codeTags: [Growth, Universal]
+      supersededBy: 0
+      capacitorStat: SpecialDefense
+      capacitorPerCharge: 1
+      capacitorCap: 48
+
+    - id: 745
+      verbalName: 고급 가속 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 속도 +0.25. 처음 저장량 0, 최대 48. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 3
+      codeTags: [Growth, Universal]
+      supersededBy: 0
+      capacitorStat: Speed
+      capacitorPerCharge: 0.25
+      capacitorCap: 48
+
+    - id: 746
+      verbalName: 고급 혜안 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 치명타 확률 +0.25%p. 처음 저장량 0, 최대 48. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 3
+      codeTags: [Growth, Universal]
+      supersededBy: 0
+      capacitorStat: CritRate
+      capacitorPerCharge: 0.25
+      capacitorCap: 48
+
+    - id: 747
+      verbalName: 고급 직감 축전기
+      codeName: CapacitorCode
+      description: "활성 보유자가 살아서 필드에 있는 동안 필드 유닛 사망 시 저장량 +1 (소환수 +0.25). 저장량당 치명타 피해 +0.5%p. 처음 저장량 0, 최대 48. 성장 코드의 중첩 획득 배율 적용. 보관 중에는 효과·축적 없음. 이동·승급·저장 시 저장량 보존, 판매가에 저장량 반영."
+      tier: 3
+      codeTags: [Growth, Universal]
+      supersededBy: 0
+      capacitorStat: CritDamage
+      capacitorPerCharge: 0.5
+      capacitorCap: 48
+
+    - id: 280
+      verbalName: "풀려난 늑대"
+      codeName: "LokiUnboundWolf"
+      description: "펜리르 1기와 함께 싸운다(속도 90, 로키 최대 체력 · 공격력 · 방어력 · 특수방어력 60% 계승). 아군의 실제 추가행동이 사냥감에 직접 피해를 주면 펜리르가 로키 공격력 55%로 추격한다. 행동당 1회, 펜리르 차례 사이 최대 3회. 덧붙는 피해 · 지속피해 · 반응 · 펜리르 자신의 공격은 제외. 자유 추격이 있으면 먼저 쓰며 행동 종류를 가리지 않는다. #소환 #추가행동"
+
+  # 재보 파티 보상 코드 (2026-10-10 사용자 확정)
+    - id: 631
+      verbalName: 확실한 거래
+      codeName: TreasuryRewardCode
+      description: "자신의 재보 공격 피해 +10%. 실제 재보 충전/소비 공격에만 적용."
+      tier: 2
+      codeTags: [Treasury, Burst]
+      requiresTreasury: true
+    - id: 632
+      verbalName: 황금 탄환
+      codeName: TreasuryRewardCode
+      description: "자신의 재보 공격 치명타 피해 +40%p. 치명타 피해 스탯 자체는 올리지 않음."
+      tier: 2
+      codeTags: [Treasury, Burst]
+      requiresTreasury: true
+    - id: 728
+      verbalName: 부유한 시작
+      codeName: TreasuryRewardCode
+      description: "전투 시작 시 공용 재보 +2. 필드 아군의 같은 코드마다 각각 충전하며 상한12 적용."
+      tier: 3
+      codeTags: [Treasury, Support]
+      requiresTreasury: true
+    - id: 729
+      verbalName: 유전무죄
+      codeName: TreasuryRewardCode
+      description: "자신이 재보를 실제 소비한 지원 행동의 보호막/치유량 보너스 +30%."
+      tier: 3
+      codeTags: [Treasury, Shielding]
+      requiresTreasury: true
+    - id: 730
+      verbalName: 장기 적금
+      codeName: TreasuryRewardCode
+      description: "자신의 일반행동을 3회 정상 완료할 때마다 공용 재보 +1. 추가/특수/지휘 사격 제외."
+      tier: 3
+      codeTags: [Treasury, Support]
+      requiresTreasury: true
+    - id: 819
+      verbalName: 안전 보험
+      codeName: TreasuryRewardCode
+      description: "사용 가능한 재보가 4 이상일 때 자신의 방어력/특수방어력 +12%. 예약 재보 제외."
+      tier: 4
+      codeTags: [Treasury, Sturdy]
+      requiresTreasury: true
+    - id: 820
+      verbalName: 금권
+      codeName: TreasuryRewardCode
+      description: "자신의 재보 소비 직접 공격이 대상 일반 방어력 30%를 무시. 충전/지속/반응/특수방어력 제외."
+      tier: 4
+      codeTags: [Treasury, Burst]
+      requiresTreasury: true
+    - id: 908
+      verbalName: 풍요의 산물
+      codeName: TreasuryRewardCode
+      description: "자신이 재보를 실제 소비한 행동 종료 후 공용 재보 +1. 소비량/발수/대상 수와 무관하게 행동당1회."
+      tier: 5
+      codeTags: [Treasury, Support]
+      requiresTreasury: true
+    - id: 909
+      verbalName: 천공의 황소
+      codeName: TreasuryRewardCode
+      description: "같은 초월기의 6번째 실제 소비 탄부터 해당 탄의 피해 +80%p. 첫5탄/광역 대상수/예약/반환 제외."
+      tier: 5
+      codeTags: [Treasury, Burst]
+      requiresTreasury: true
+
+    - { id: 225, verbalName: 죽음마저 속인 자, codeName: OrpheusCheatedDeath, description: "<고유 특성> 살아서 필드에 있으면 적에게 강인도를 생성한다(일반30·정예90·보스150). 격파는 처치 연계를 발동하며 적의 다음 일반행동 시작에 회복. 자체 피해·지연·디버프 없음. 골드·EXP·드랍·영구 사망 성장 없음." }
+    - { id: 633, verbalName: 허허실실, codeName: FeintCode, tier: 2, codeTags: [Toughness], description: "강인도 삭감 효율 +25%.", shopFixed: true, shopPrice: 150, requiresToughness: true }
+    - { id: 731, verbalName: 잔향산가, codeName: EchoSongCode, tier: 3, codeTags: [Toughness], description: "필드에 있는 동안 적 강인도가 격파되면 해당 적에게 보유자의 특수공격력80% 고정피해. 이 피해는 강인도를 깎지 않는다.", shopFixed: true, shopPrice: 300, requiresToughness: true }
+    - { id: 822, verbalName: 승승장구, codeName: DefeatMomentumCode, tier: 4, codeTags: [Universal, Toughness, Swift], description: "보유자가 적을 처치하거나 강인도를 격파하면 이번 전투 속도 +5%. 최대4중첩(+20%).", shopFixed: true, shopPrice: 600 }
+    - { id: 823, verbalName: 신에게 바치는 공물, codeName: DivineOfferingCode, tier: 4, codeTags: [Universal, Toughness, Healing, Support], description: "보유자가 필드에 있는 동안 필드 위 적이 처치되거나 강인도가 격파되면 생존 아군 전체를 보유자 최대 체력4%만큼 치유.", shopFixed: true, shopPrice: 600 }
+
+
+    - id: 21020
+      verbalName: 검투사의 기백
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21021
+      verbalName: 검투사의 기백
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21022
+      verbalName: 검투사의 기백
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21023
+      verbalName: 검투사의 기백
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21024
+      verbalName: 검투사의 기백
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21025
+      verbalName: 검투사의 기백
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22004
+      verbalName: 챔피언의 여유
+      description: <적 전용> 잃은 체력 비율에 비례하여 속도 최대25%, 가하는 피해 최대15% 증가. 직접 공격 체력 피해의8% 회복.
+    - id: 22005
+      verbalName: 사냥꾼의 표식
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 23003
+      verbalName: 몸이 풀리는군
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21030
+      verbalName: 방진 편성
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21031
+      verbalName: 중열의 방벽
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21032
+      verbalName: 최후의 방벽
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21033
+      verbalName: 기병의 회피
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21034
+      verbalName: 백인대의 방벽
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21035
+      verbalName: 산병 지원
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 21036
+      verbalName: 조준 사격
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 21037
+      verbalName: 부관의 신호
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 21038
+      verbalName: 천부장의 신호
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 22006
+      verbalName: 화합
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 22007
+      verbalName: 천천히 서둘러라
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 23004
+      verbalName: 왔노라, 보았노라, 이겼노라
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 21040
+      verbalName: 행동불능 추적
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22010
+      verbalName: 행동불능 추적
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21041
+      verbalName: 맹독 추적
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22011
+      verbalName: 맹독 추적
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21042
+      verbalName: 죽음의 제의
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 22012
+      verbalName: 죽음의 제의
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 23201
+      verbalName: 풍요의 축복
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 23010
+      verbalName: 연기 나는 거울의 신
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 21050
+      verbalName: 화형 심판
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22020
+      verbalName: 화형 심판
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21051
+      verbalName: 화형 선고
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 22021
+      verbalName: 화형 선고
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 21052
+      verbalName: 명계의 재림
+      description: <적 전용> 전투당 한 번 치명적인 피해를 막고 최대 체력35%를 회복합니다.
+    - id: 21053
+      verbalName: 죽음의 성가
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 23203
+      verbalName: 창공의 매
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 23011
+      verbalName: 불완전한 부활
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 23012
+      verbalName: 승천
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21060
+      verbalName: 거인의 방벽
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22030
+      verbalName: 거인의 방벽
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21061
+      verbalName: 가변 장갑진
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22032
+      verbalName: 가변 장갑진
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22033
+      verbalName: 혹한의 동력로
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21062
+      verbalName: 프리즘 동조
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21063
+      verbalName: 프리즘 동조
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21064
+      verbalName: 프리즘 동조
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21065
+      verbalName: 프리즘 동조
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21066
+      verbalName: 프리즘 동조
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21067
+      verbalName: 프리즘 동조
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21068
+      verbalName: 프리즘 동조
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21069
+      verbalName: 프리즘 동조
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21070
+      verbalName: 괴조의 부활
+      description: <적 전용> 전투당 한 번 치명적인 피해를 막고 최대 체력35%를 회복합니다.
+    - id: 21071
+      verbalName: 괴조의 부활
+      description: <적 전용> 전투당 한 번 치명적인 피해를 막고 최대 체력35%를 회복합니다.
+    - id: 21072
+      verbalName: 괴조의 부활
+      description: <적 전용> 전투당 한 번 치명적인 피해를 막고 최대 체력35%를 회복합니다.
+    - id: 21073
+      verbalName: 괴조의 부활
+      description: <적 전용> 전투당 한 번 치명적인 피해를 막고 최대 체력35%를 회복합니다.
+    - id: 21074
+      verbalName: 괴조의 부활
+      description: <적 전용> 전투당 한 번 치명적인 피해를 막고 최대 체력35%를 회복합니다.
+    - id: 21075
+      verbalName: 괴조의 부활
+      description: <적 전용> 전투당 한 번 치명적인 피해를 막고 최대 체력35%를 회복합니다.
+    - id: 21076
+      verbalName: 괴조의 부활
+      description: <적 전용> 전투당 한 번 치명적인 피해를 막고 최대 체력35%를 회복합니다.
+    - id: 21077
+      verbalName: 괴조의 부활
+      description: <적 전용> 전투당 한 번 치명적인 피해를 막고 최대 체력35%를 회복합니다.
+    - id: 21078
+      verbalName: 우격다짐
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21079
+      verbalName: 우격다짐
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21080
+      verbalName: 우격다짐
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21081
+      verbalName: 우격다짐
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21082
+      verbalName: 우격다짐
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21083
+      verbalName: 우격다짐
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21084
+      verbalName: 우격다짐
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21085
+      verbalName: 우격다짐
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21086
+      verbalName: 상처 후비기
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21087
+      verbalName: 상처 후비기
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21088
+      verbalName: 상처 후비기
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21089
+      verbalName: 상처 후비기
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21090
+      verbalName: 상처 후비기
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21091
+      verbalName: 상처 후비기
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21092
+      verbalName: 상처 후비기
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21093
+      verbalName: 상처 후비기
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21094
+      verbalName: 기사의 갑주
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21095
+      verbalName: 기사의 갑주
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21096
+      verbalName: 기사의 갑주
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21097
+      verbalName: 기사의 갑주
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21098
+      verbalName: 기사의 갑주
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21099
+      verbalName: 기사의 갑주
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21100
+      verbalName: 기사의 갑주
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21101
+      verbalName: 기사의 갑주
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21102
+      verbalName: 조준선
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21103
+      verbalName: 조준선
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21104
+      verbalName: 조준선
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21105
+      verbalName: 조준선
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21106
+      verbalName: 조준선
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21107
+      verbalName: 조준선
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21108
+      verbalName: 조준선
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21109
+      verbalName: 조준선
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21110
+      verbalName: 공허의 맹세
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21111
+      verbalName: 공허의 맹세
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21112
+      verbalName: 공허의 맹세
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21113
+      verbalName: 공허의 맹세
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21114
+      verbalName: 공허의 맹세
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21115
+      verbalName: 공허의 맹세
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21116
+      verbalName: 공허의 맹세
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 21117
+      verbalName: 공허의 맹세
+      description: <적 전용> 전투 시작 시 방어력150% 보호막.
+    - id: 22034
+      verbalName: 원소 감응
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22035
+      verbalName: 원소 감응
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22036
+      verbalName: 원소 감응
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22037
+      verbalName: 원소 감응
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22038
+      verbalName: 원소 감응
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22039
+      verbalName: 원소 감응
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22040
+      verbalName: 원소 감응
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22041
+      verbalName: 원소 감응
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22042
+      verbalName: 질량
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22043
+      verbalName: 질량
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22044
+      verbalName: 질량
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22045
+      verbalName: 질량
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22046
+      verbalName: 질량
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22047
+      verbalName: 질량
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22048
+      verbalName: 질량
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22049
+      verbalName: 질량
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 23050
+      verbalName: 공허의 근원
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 23051
+      verbalName: 공허의 근원
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 23052
+      verbalName: 공허의 근원
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 23053
+      verbalName: 공허의 근원
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 23054
+      verbalName: 공허의 근원
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 23055
+      verbalName: 공허의 근원
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 23056
+      verbalName: 공허의 근원
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 23057
+      verbalName: 공허의 근원
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 21120
+      verbalName: 광전사의 격노
+      description: <적 전용> 잃은 체력 비율에 비례하여 속도 최대25%, 가하는 피해 최대15% 증가. 직접 공격 체력 피해의8% 회복.
+    - id: 21122
+      verbalName: 스팀팩
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 21121
+      verbalName: 광전사의 격노
+      description: <적 전용> 잃은 체력 비율에 비례하여 속도 최대25%, 가하는 피해 최대15% 증가. 직접 공격 체력 피해의8% 회복.
+    - id: 23060
+      verbalName: 뇌신의 박자
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21123
+      verbalName: 스팀팩
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 21124
+      verbalName: 전장의 선택자
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
+    - id: 22050
+      verbalName: 왕의 격노
+      description: <적 전용> 잃은 체력 비율에 비례하여 속도 최대25%, 가하는 피해 최대15% 증가. 직접 공격 체력 피해의8% 회복.
+    - id: 23061
+      verbalName: 혹한의 노심
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22051
+      verbalName: 맹세
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 22052
+      verbalName: 맹세
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 23001
+      verbalName: 공허와의 계약
+      description: <적 전용> 잃은 체력 비율에 비례하여 속도 최대25%, 가하는 피해 최대15% 증가. 직접 공격 체력 피해의8% 회복.
+    - id: 21130
+      verbalName: 흔들리는 등불
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21131
+      verbalName: 봉합된 핵
+      description: <적 전용> 전투 시작 시 방어력0% 보호막. 첫 직접 공격 2회를 무효화합니다. 지속피해는 방호를 소모하지 않습니다.
+    - id: 21132
+      verbalName: 봉합된 핵
+      description: <적 전용> 전투 시작 시 방어력0% 보호막. 첫 직접 공격 2회를 무효화합니다. 지속피해는 방호를 소모하지 않습니다.
+    - id: 21133
+      verbalName: 불씨를 품은 날개
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다. 첫 직접 공격 2회를 무효화합니다. 지속피해는 방호를 소모하지 않습니다.
+    - id: 21134
+      verbalName: 포식자의 외피
+      description: <적 전용> 전투 시작 시 방어력150% 보호막. 첫 직접 공격 2회를 무효화합니다. 지속피해는 방호를 소모하지 않습니다.
+    - id: 22060
+      verbalName: 종말의 외피
+      description: <적 전용> 전투 시작 시 방어력300% 보호막. 첫 직접 공격 3회를 무효화합니다. 지속피해는 방호를 소모하지 않습니다.
+    - id: 23070
+      verbalName: 천공의 산란
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21135
+      verbalName: 맥동하는 결정
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다. 첫 직접 공격 2회를 무효화합니다. 지속피해는 방호를 소모하지 않습니다.
+    - id: 21136
+      verbalName: 부푼 비늘
+      description: <적 전용> 전투 시작 시 방어력150% 보호막. 첫 직접 공격 2회를 무효화합니다. 지속피해는 방호를 소모하지 않습니다.
+    - id: 21140
+      verbalName: 공허의 갑주
+      description: <적 전용> 전투 시작 시 방어력+25%와 방어력150% 보호막. 제어 시 강화와 갑주가 해제됩니다.
+    - id: 21141
+      verbalName: 공허의 갑주
+      description: <적 전용> 전투 시작 시 방어력+25%와 방어력150% 보호막. 제어 시 강화와 갑주가 해제됩니다.
+    - id: 21142
+      verbalName: 공허의 갑주
+      description: <적 전용> 전투 시작 시 방어력+25%와 방어력150% 보호막. 제어 시 강화와 갑주가 해제됩니다.
+    - id: 22071
+      verbalName: 공허의 갑주
+      description: <적 전용> 전투 시작 시 방어력+25%와 방어력300% 보호막. 제어 시 강화와 갑주가 해제됩니다.
+    - id: 23080
+      verbalName: 심연의 집정권
+      description: <적 전용> 전투 시작 시 방어력+25%와 방어력300% 보호막. 제어 시 강화와 갑주가 해제됩니다.
+    - id: 21143
+      verbalName: 노심융해
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21144
+      verbalName: 포식
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21145
+      verbalName: 돌림노래
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21146
+      verbalName: 나를 봐!
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 21147
+      verbalName: 생명의 메아리
+      description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
+    - id: 23090
+      verbalName: 미지의 공포
+      description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
   normal:
+    - id: 200
+      verbalName: "왕실의 방호"
+      codeName: MansaRoyalShield
+      description: "재보1 소비, 살아 있는 필드 아군 전체에 자신의 방어력80% 보호막을 누적. 보호막 보너스 적용. 재보0이면 보호막 없이 행동 완료·마나20 획득."
+    - id: 220
+      verbalName: "금성 사격"
+      codeName: IshtarVenusShot
+      description: "단일 공격력80% 사격, 풀1회 부착(효과 명중). 재보 생산 없음."
+    - id: 81
+      verbalName: "불씨를 가르는 검"
+      codeName: SurtrEmberBlade
+      description: "적 하나에게 공격력 60% 피해. 불 부착 없음. #일반 #단일 #접촉 #베기"
+    - id: 82
+      verbalName: "돌아오는 봄"
+      codeName: FreyaRestoringLight
+      description: "필드 아군 전원을 자신의 최대 체력 8%만큼 치유. 공격하지 않으며 지휘 일제사격에 참여하지 않는다. #일반 #치유"
     - id: 63
       verbalName: 뇌정
       codeName: IndraThunderbolt
@@ -734,13 +1584,13 @@ codes:
       codeName: AgniEmberFist
       description: "단일 적에게 공격력 75% 피해. 불은 붙이지 않는다. #단일 #일반 #접촉 #타격"
     - id: 67
-      verbalName: 이름을 부르는 탄환
+      verbalName: 해가 지는 사격
       codeName: SuryaNameBullet
-      description: "현상수배된 적에게 공격력 80% 피해를 주고 탄환을 2발까지 채운다. #단일 #일반 #비접촉 #사격"
+      description: "일반 사격: 공격력 110%, 표식 +1. 2중첩 대상은 공격력 360% 종언탄으로 대체, 방어력 25% 무시, 표식 소모 후 불 부착. #일반 #단일 #사격 #비접촉"
     - id: 65
-      verbalName: 금화 투척
+      verbalName: "금화 투척"
       codeName: KuberaCoinToss
-      description: "단일 적에게 공격력 90% 피해를 주고 보물 +1. #단일 #일반 #비접촉 #사격"
+      description: "단일 공격력90% 사격. 유효 공격 시 공용 재보+1(상한12). 지휘 사격은 생산하지 않음. 실제 증가가 있는 공격만 후원 치피 적용."
     - id: 121
       verbalName: 심장의 저울
       codeName: AnubisHeartScale
@@ -794,7 +1644,511 @@ codes:
       codeName: EnemyShot
       description: "공허 화살을 쏘아 공격력의 90% 피해를 입힌다. #단일 #일반 #비접촉"
 
+    - id: 45
+      verbalName: 말없는 저주
+      codeName: TsukuyomiMoonShot
+      description: "공격력 70% 단일 주문 피해 후 저주 부여. 원소는 부착하지 않는다. 저주는 생성자의 일반행동 시작에 특수공격력 50% 피해, 대상 일반행동 2회 유지. #일반 #주문 #비접촉"
+    - id: 160
+      verbalName: 장교의 사격
+      codeName: MarieIceShot
+      description: "공격력 60% 단일 사격 피해 후 얼음 부착. #일반 #사격 #비접촉"
+    - id: 161
+      verbalName: "포격 지점 지정"
+      codeName: "NapoleonCommandShot"
+      description: "피해 없음. 우선도와 무관하게 현재 체력 · 방어력 · 실제 참여 아군의 추정 일제사격으로 가장 쉽게 쓰러질 적 하나(타수 보호막은 일반 대상이 없을 때만 지정, HP 보호막은 유효 체력에 포함, 무적은 제외)를 지정해 일제 사격을 예약한다. #일반 #지휘"
+
+    - id: 80
+      verbalName: "기만의 칼바람"
+      codeName: "LokiTrickWind"
+      description: "공격력 90% 단일 베기. 사냥감이 있으면 사냥감을 노린다. 원소 부착 없음. #일반 #베기 #비접촉"
+
+    - id: 501
+      verbalName: "펜리르의 발톱"
+      codeName: "FenrirClaw"
+      description: "<소환수> 사냥감(없으면 우선도 대상)에게 로키 공격력 60% 베기. 로키 명의 피해. #단일 #일반 #베기"
+
+    - { id: 25, verbalName: 애도의 선율, codeName: OrpheusMelody, description: "단일 적 공격력80% 피해·바람 부착. 강인도15 삭감. #단일 #일반 #주문 #비접촉" }
+
+
+    - id: 11020
+      verbalName: 파수꾼의 타격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11021
+      verbalName: 투사의 공격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11022
+      verbalName: 처형자의 일격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11023
+      verbalName: 사수의 사격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11024
+      verbalName: 처형자의 일격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11025
+      verbalName: 투사의 공격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12004
+      verbalName: 파수꾼의 타격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12005
+      verbalName: 사수의 사격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 13003
+      verbalName: 투사의 공격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11030
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11031
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11032
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11033
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11034
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11035
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11036
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 방어력20% 무시.
+    - id: 11037
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11038
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12006
+      verbalName: 일반행동
+      description: <적 전용> 아군 하나의 가하는 피해 +15%(일반행동 2회). 다른 아군의 행동을 20% 앞당깁니다.
+    - id: 12007
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 13004
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11040
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12010
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11041
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12011
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11042
+      verbalName: 희생의 창
+      description: <적 전용> 아군 하나의 가하는 피해 +15%(일반행동 2회). 다른 아군의 행동을 20% 앞당깁니다.
+    - id: 12012
+      verbalName: 희생의 창
+      description: <적 전용> 아군 하나의 가하는 피해 +15%(일반행동 2회). 다른 아군의 행동을 20% 앞당깁니다.
+    - id: 13201
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 13010
+      verbalName: 전열 칙령
+      description: <적 전용> 아군 하나의 가하는 피해 +15%(일반행동 2회). 다른 아군의 행동을 20% 앞당깁니다.
+    - id: 11050
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12020
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11051
+      verbalName: 일반행동
+      description: <적 전용> 시전자 최대 체력의 2.5%만큼 아군 전체를 치유합니다.
+    - id: 12021
+      verbalName: 일반행동
+      description: <적 전용> 시전자 최대 체력의 2.5%만큼 아군 전체를 치유합니다.
+    - id: 11052
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 저주를 대상 일반행동2회 동안 부여합니다(효과 명중 판정).
+    - id: 11053
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 불 원소를 부여합니다(효과 명중 판정).
+    - id: 13203
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 방어력20% 무시.
+    - id: 13011
+      verbalName: 대지의 진혼
+      description: <적 전용> 적 전체에게 공격력 총 45% 피해를 가합니다. 적중 후 바위 원소를 부여합니다(효과 명중 판정).
+    - id: 13012
+      verbalName: 일반행동
+      description: <적 전용> 2명의 적에게 공격력 총 60% 피해를 가합니다.
+    - id: 11060
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12030
+      verbalName: 일반행동
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11061
+      verbalName: 연속 사격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12032
+      verbalName: 연속 사격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12033
+      verbalName: 연속 사격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11062
+      verbalName: 공허 광선
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11063
+      verbalName: 공허 광선
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11064
+      verbalName: 공허 광선
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11065
+      verbalName: 공허 광선
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11066
+      verbalName: 공허 광선
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11067
+      verbalName: 공허 광선
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11068
+      verbalName: 공허 광선
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11069
+      verbalName: 공허 광선
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11070
+      verbalName: 괴조의 발톱
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11071
+      verbalName: 괴조의 발톱
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11072
+      verbalName: 괴조의 발톱
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11073
+      verbalName: 괴조의 발톱
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11074
+      verbalName: 괴조의 발톱
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11075
+      verbalName: 괴조의 발톱
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11076
+      verbalName: 괴조의 발톱
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11077
+      verbalName: 괴조의 발톱
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11078
+      verbalName: 멧돼지의 엄니
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11079
+      verbalName: 멧돼지의 엄니
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11080
+      verbalName: 멧돼지의 엄니
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11081
+      verbalName: 멧돼지의 엄니
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11082
+      verbalName: 멧돼지의 엄니
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11083
+      verbalName: 멧돼지의 엄니
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11084
+      verbalName: 멧돼지의 엄니
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11085
+      verbalName: 멧돼지의 엄니
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11086
+      verbalName: 늑대의 송곳니
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 저주를 대상 일반행동2회 동안 부여합니다(효과 명중 판정).
+    - id: 11087
+      verbalName: 늑대의 송곳니
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 저주를 대상 일반행동2회 동안 부여합니다(효과 명중 판정).
+    - id: 11088
+      verbalName: 늑대의 송곳니
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 저주를 대상 일반행동2회 동안 부여합니다(효과 명중 판정).
+    - id: 11089
+      verbalName: 늑대의 송곳니
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 저주를 대상 일반행동2회 동안 부여합니다(효과 명중 판정).
+    - id: 11090
+      verbalName: 늑대의 송곳니
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 저주를 대상 일반행동2회 동안 부여합니다(효과 명중 판정).
+    - id: 11091
+      verbalName: 늑대의 송곳니
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 저주를 대상 일반행동2회 동안 부여합니다(효과 명중 판정).
+    - id: 11092
+      verbalName: 늑대의 송곳니
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 저주를 대상 일반행동2회 동안 부여합니다(효과 명중 판정).
+    - id: 11093
+      verbalName: 늑대의 송곳니
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 저주를 대상 일반행동2회 동안 부여합니다(효과 명중 판정).
+    - id: 11094
+      verbalName: 공허의 검
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11095
+      verbalName: 공허의 검
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11096
+      verbalName: 공허의 검
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11097
+      verbalName: 공허의 검
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11098
+      verbalName: 공허의 검
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11099
+      verbalName: 공허의 검
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11100
+      verbalName: 공허의 검
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11101
+      verbalName: 공허의 검
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11102
+      verbalName: 공허의 사격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11103
+      verbalName: 공허의 사격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11104
+      verbalName: 공허의 사격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11105
+      verbalName: 공허의 사격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11106
+      verbalName: 공허의 사격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11107
+      verbalName: 공허의 사격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11108
+      verbalName: 공허의 사격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11109
+      verbalName: 공허의 사격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11110
+      verbalName: 방벽 타격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11111
+      verbalName: 방벽 타격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11112
+      verbalName: 방벽 타격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11113
+      verbalName: 방벽 타격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11114
+      verbalName: 방벽 타격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11115
+      verbalName: 방벽 타격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11116
+      verbalName: 방벽 타격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11117
+      verbalName: 방벽 타격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12034
+      verbalName: 사슴의 뿔
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12035
+      verbalName: 사슴의 뿔 · 불
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 불 원소를 부여합니다(효과 명중 판정).
+    - id: 12036
+      verbalName: 사슴의 뿔 · 물
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 물 원소를 부여합니다(효과 명중 판정).
+    - id: 12037
+      verbalName: 사슴의 뿔 · 바람
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 바람 원소를 부여합니다(효과 명중 판정).
+    - id: 12038
+      verbalName: 사슴의 뿔 · 번개
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 번개 원소를 부여합니다(효과 명중 판정).
+    - id: 12039
+      verbalName: 사슴의 뿔 · 풀
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 풀 원소를 부여합니다(효과 명중 판정).
+    - id: 12040
+      verbalName: 사슴의 뿔 · 얼음
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 얼음 원소를 부여합니다(효과 명중 판정).
+    - id: 12041
+      verbalName: 사슴의 뿔 · 바위
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 바위 원소를 부여합니다(효과 명중 판정).
+    - id: 12042
+      verbalName: 분쇄 타격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12043
+      verbalName: 분쇄 타격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12044
+      verbalName: 분쇄 타격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12045
+      verbalName: 분쇄 타격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12046
+      verbalName: 분쇄 타격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12047
+      verbalName: 분쇄 타격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12048
+      verbalName: 분쇄 타격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12049
+      verbalName: 분쇄 타격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 13050
+      verbalName: 브레스
+      description: <적 전용> 적 전체에게 공격력 총 45% 피해를 가합니다.
+    - id: 13051
+      verbalName: 브레스 · 불
+      description: <적 전용> 적 전체에게 공격력 총 45% 피해를 가합니다. 적중 후 불 원소를 부여합니다(효과 명중 판정).
+    - id: 13052
+      verbalName: 브레스 · 물
+      description: <적 전용> 적 전체에게 공격력 총 45% 피해를 가합니다. 적중 후 물 원소를 부여합니다(효과 명중 판정).
+    - id: 13053
+      verbalName: 브레스 · 바람
+      description: <적 전용> 적 전체에게 공격력 총 45% 피해를 가합니다. 적중 후 바람 원소를 부여합니다(효과 명중 판정).
+    - id: 13054
+      verbalName: 브레스 · 번개
+      description: <적 전용> 적 전체에게 공격력 총 45% 피해를 가합니다. 적중 후 번개 원소를 부여합니다(효과 명중 판정).
+    - id: 13055
+      verbalName: 브레스 · 풀
+      description: <적 전용> 적 전체에게 공격력 총 45% 피해를 가합니다. 적중 후 풀 원소를 부여합니다(효과 명중 판정).
+    - id: 13056
+      verbalName: 브레스 · 얼음
+      description: <적 전용> 적 전체에게 공격력 총 45% 피해를 가합니다. 적중 후 얼음 원소를 부여합니다(효과 명중 판정).
+    - id: 13057
+      verbalName: 브레스 · 바위
+      description: <적 전용> 적 전체에게 공격력 총 45% 피해를 가합니다. 적중 후 바위 원소를 부여합니다(효과 명중 판정).
+    - id: 11120
+      verbalName: 도끼질
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 불 원소를 부여합니다(효과 명중 판정).
+    - id: 11122
+      verbalName: 서리의 노래
+      description: <적 전용> 시전자 최대 체력의 2.5%만큼 체력 비율이 가장 낮은 아군를 치유합니다.
+    - id: 11121
+      verbalName: 도끼질
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 불 원소를 부여합니다(효과 명중 판정).
+    - id: 13060
+      verbalName: 망치질
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 번개 원소를 부여합니다(효과 명중 판정).
+    - id: 11123
+      verbalName: 서리의 노래
+      description: <적 전용> 시전자 최대 체력의 2.5%만큼 체력 비율이 가장 낮은 아군를 치유합니다.
+    - id: 11124
+      verbalName: 창 던지기
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12050
+      verbalName: 도끼질
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 불 원소를 부여합니다(효과 명중 판정).
+    - id: 13061
+      verbalName: 서리 짓밟기
+      description: <적 전용> 적 전체에게 공격력 총 45% 피해를 가합니다. 적중 후 얼음 원소를 부여합니다(효과 명중 판정).
+    - id: 12051
+      verbalName: 그람
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 불 원소를 부여합니다(효과 명중 판정). 방어력20% 무시.
+    - id: 12052
+      verbalName: 발키리의 창
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다. 적중 후 얼음 원소를 부여합니다(효과 명중 판정).
+    - id: 13001
+      verbalName: 궁니르
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11130
+      verbalName: 인분탄
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11131
+      verbalName: 생명 맥동
+      description: <적 전용> 시전자 최대 체력의 2.0%만큼 체력 비율이 가장 낮은 아군를 치유합니다.
+    - id: 11132
+      verbalName: 생명 맥동
+      description: <적 전용> 시전자 최대 체력의 2.0%만큼 체력 비율이 가장 낮은 아군를 치유합니다.
+    - id: 11133
+      verbalName: 불씨 인분
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11134
+      verbalName: 포식의 발톱
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12060
+      verbalName: 종말의 발톱
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 13070
+      verbalName: 찢는 부리
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11135
+      verbalName: 카운트다운
+      description: <적 전용> 단일 적에게 공격력 총 45% 피해를 가합니다.
+    - id: 11136
+      verbalName: 카운트다운
+      description: <적 전용> 단일 적에게 공격력 총 45% 피해를 가합니다.
+    - id: 11140
+      verbalName: 집게 압착
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11141
+      verbalName: 등갑 밀치기
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11142
+      verbalName: 핏빛 추격
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 12071
+      verbalName: 심연의 촉수
+      description: <적 전용> 2명의 적에게 공격력 총 60% 피해를 가합니다. 적중 후 바람 원소를 부여합니다(효과 명중 판정).
+    - id: 13080
+      verbalName: 방파제 파쇄
+      description: <적 전용> 적 전체에게 공격력 총 45% 피해를 가합니다.
+    - id: 11143
+      verbalName: 공허 광선
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11144
+      verbalName: 공허 광선
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11145
+      verbalName: 공허 광선
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11146
+      verbalName: 들이받기
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 11147
+      verbalName: 공허 광선
+      description: <적 전용> 단일 적에게 공격력 총 90% 피해를 가합니다.
+    - id: 13090
+      verbalName: 여왕의 광선
+      description: <적 전용> 적 전체에게 공격력 총 45% 피해를 가합니다.
   ultimate:
+    - id: 200
+      verbalName: "황금의 행렬"
+      codeName: MansaGoldenProcession
+      description: "마나100. 자신의 방어력 D 기준 재보 min(10,6+floor(D/100)) 획득. 아군 공격력·특수공격력 min(24%,8%+D×0.04%p) 증가. 만사 일반행동2회 지속·갱신."
+    - id: 220
+      verbalName: "왕권의 일제 포격"
+      codeName: IshtarRoyalBarrage
+      description: "마나140·재보1 이상 필요. 사용 가능 재보를 탄창에 예약해 탄마다1 소비하여 공격력120% 단일 연사. 독립 치명·처치 시 표적 재선정. 첫 유효 탄만 풀 부착. 전체 초월기1회. 취소 시 미발사 재보 반환."
+    - id: 81
+      verbalName: "아직 꺼지지 않은 종말"
+      codeName: SurtrRagnarok
+      description: "마나 120. 적 전체에 공격력 180% 피해 및 불 부착(효과 명중). 시전 시 체력이 60% 이상이면 최대 체력 20%를 소모하고 모든 대상에게 최대 체력 14% 계수를 더한다. 두 계수 모두 치명타 가능. 자해는 보호막·피해 경감·피격 효과를 적용하지 않는다. #초월기 #전체 #비접촉 #베기"
+    - id: 82
+      verbalName: "브리싱가멘의 기억"
+      codeName: FreyaBrisingamen
+      description: "상시형. 자신이 실제 회복한 체력을 온기로 저장(최대 자신의 최대 체력 75%). 필드 아군 가하는 피해 +저장 온기/자신 최대 체력×40%(최대30%). 자신의 일반행동 시작마다 현재 온기 25% 감소 후 치유. 아군 체력이 30% 이하이면 자신의 최대 체력 18% 온기를 선소모해 우선 추가행동으로 같은 양 치유. 긴급 치유는 온기를 채우지 않으며 발동 조건이 사라지면 선소모 반환. 과잉 치유·다른 치유사의 치유는 저장하지 않는다."
     - id: 63
       verbalName: 팔방의 소집
       codeName: IndraGathering
@@ -818,11 +2172,11 @@ codes:
     - id: 67
       verbalName: 도망칠 곳은 없어
       codeName: SuryaNoEscape
-      description: "<마나 120> 현상수배된 적에게 공격력 150% 피해를 주고 불을 부착한다. 탄환을 2발까지 채우고 다음 응답 사격 한 발을 공격력 110%로 강화한다(겹치지 않음). #단일 #궁극기 #비접촉 #사격"
+      description: "적 전체에 종언 표식 2중첩 부여. 자신의 일반행동 2회 동안 공격력 +25%. 다음 일반 사격부터 종언탄을 사용할 수 있다. 마나 140. 표식은 적별 효과 명중 판정."
     - id: 65
-      verbalName: 보고 개방
+      verbalName: "복리의 보고"
       codeName: KuberaTreasury
-      description: "<보물 8> 적 전체에 공격력 160% 피해. 2턴간 아군 소환수 피해 +15%(후원과 합산). 다수형 소환자마다 소환수 1기를 더 만든다. #전체 #궁극기 #비접촉 #주문"
+      description: "마나120. 사용 가능한 재보 R을 읽고 1+floor(R×25%) 충전. 예약 제외·공용 상한12. 피해·소환·원소 부착 없음."
     - id: 121
       verbalName: 사자의 서
       codeName: AnubisBookOfTheDead
@@ -850,7 +2204,7 @@ codes:
     - id: 20
       verbalName: 날카로운 가시
       codeName: PygmalionSharpThorns
-      description: "<집중> <마나 120> 3턴 동안 타겟 우선도 +1, 받는 피해 -50%를 얻는다. 접촉 공격을 받을 때에는 방어력을 2배로 계산하며 공격자에게 공격력 20%의 턴 피해를 주는 맹독(2턴)을 부여한다."
+      description: "<집중> <마나 120> 3턴 동안 타겟 우선도 +1, 받는 피해 -50%를 얻는다. 접촉 공격을 받을 때에는 방어력을 2배로 계산하며 공격자에게 맹독을 부여한다. 맹독은 대상 일반행동 시작에 최대 체력 1.5% 피해, 대상 일반행동 2회 유지. 효과 명중을 사용하고 재부여는 기간만 갱신한다."
     - id: 44
       verbalName: 맹화의 제전
       codeName: HimikoBlazeFocus
@@ -880,6 +2234,487 @@ codes:
       codeName: EnemyVoidBreath
       description: "모든 적에게 공허 화살을 흩뿌려 대상마다 공격력의 110% 피해를 입힌다. #전체 #궁극기 #비접촉"
 
+    - id: 45
+      verbalName: 달 아래의 계약
+      codeName: TsukuyomiMoonlitPact
+      description: "아군 전체 특수공격력 +자신 특수공격력의 20%(시전 시점, 자신의 기존 계약 제외). 자신의 일반행동 2회 유지. 적 전체에 저주를 부여한다. 마나 140."
+    - id: 160
+      verbalName: 돌아올 자리는 남겨둘게
+      codeName: MarieEmergencySupply
+      description: "상시형. 라운드 시작·일반행동 완료 시 긴급지원 +1(최대 3). 다른 아군이 실제 체력 피해로 HP 30% 이하가 되면 중첩을 선점해 우선 추가행동으로 공격력 280% 치유. 실행 시 조건이 사라지면 중첩 반환. 부활 없음."
+    - id: 161
+      verbalName: "아우스터리츠의 태양"
+      codeName: "NapoleonGrandBattery"
+      description: "아군 전원 일반 공격 피해 ×(1 + 자신 치명타 피해 30%, 시전 시점). 나폴레옹의 일반행동 2회 동안(두 번째 일제 사격까지). 아군 전원 행동 게이지 20% 앞당김. 재시전은 갱신. 마나 140. #초월기 #지원"
+
+    - id: 80
+      verbalName: "신들의 황혼"
+      codeName: "LokiTwilight"
+      description: "사냥감(없으면 우선도 대상)에게 공격력 160% 베기, 받는 치유 -30%(대상 일반행동 2회). 펜리르 자유 추격 2(최대 2). 사냥감 표식: 우선도가 가장 높은 적 하나, 아군 직접 추가행동 피해 +15%, 쓰러지면 다음 적에게 이동. 마나 140. #초월기 #베기 #비접촉"
+
+
+    - id: 11020
+      verbalName: 철벽 진형
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 11021
+      verbalName: 대열 붕괴
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 11022
+      verbalName: 일대일 지명
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 11023
+      verbalName: 연환 투척
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 11024
+      verbalName: 집요한 추격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 11025
+      verbalName: 승자의 춤
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 12004
+      verbalName: 월계관
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 12005
+      verbalName: 사냥 개시
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 13003
+      verbalName: 한판 뒤집기
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다.
+    - id: 11030
+      verbalName: 필룸 투척
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 11031
+      verbalName: 전열 돌파
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 11032
+      verbalName: 최후의 창
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 바위 원소를 부여합니다(효과 명중 판정).
+    - id: 11033
+      verbalName: 쌍기창
+      description: <적 전용> 2명의 적에게 공격력 총 110% 피해를 가합니다.
+    - id: 11034
+      verbalName: 백인대 돌격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 바위 원소를 부여합니다(효과 명중 판정).
+    - id: 11035
+      verbalName: 일제 투창
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 11036
+      verbalName: 관통 사격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 방어력20% 무시.
+    - id: 11037
+      verbalName: 방벽 지시
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 11038
+      verbalName: 천부장의 방벽
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 12006
+      verbalName: 제 2의 건국자
+      description: <적 전용> 아군 전체의 가하는 피해 +15%(일반행동 2회). 다른 아군의 행동을 15% 앞당깁니다.
+    - id: 12007
+      verbalName: 존엄한 자
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 13004
+      verbalName: 주사위는 던져졌다
+      description: <적 전용> 아군 전체의 가하는 피해 +15%(일반행동 2회). 다른 아군의 행동을 15% 앞당깁니다.
+    - id: 11040
+      verbalName: 대지 분쇄
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 바위 원소를 부여합니다(효과 명중 판정).
+    - id: 12010
+      verbalName: 왕의 대지 분쇄
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 바위 원소를 부여합니다(효과 명중 판정).
+    - id: 11041
+      verbalName: 맹독 화살
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 맹독를 대상 일반행동2회 동안 부여합니다(효과 명중 판정).
+    - id: 12011
+      verbalName: 왕의 맹독 화살
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 맹독를 대상 일반행동2회 동안 부여합니다(효과 명중 판정).
+    - id: 11042
+      verbalName: 풍요의 의식
+      description: <적 전용> 시전자 최대 체력의 5.5%만큼 체력 비율이 가장 낮은 아군를 치유합니다.
+    - id: 12012
+      verbalName: 대풍요의 의식
+      description: <적 전용> 시전자 최대 체력의 5.5%만큼 체력 비율이 가장 낮은 아군를 치유합니다.
+    - id: 13201
+      verbalName: 초록빛 심판
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 풀 원소를 부여합니다(효과 명중 판정).
+    - id: 13010
+      verbalName: 검은 태양의 전열
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 저주를 대상 일반행동2회 동안 부여합니다(효과 명중 판정).
+    - id: 11050
+      verbalName: 파멸의 심판
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다.
+    - id: 12020
+      verbalName: 파멸의 심판
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다.
+    - id: 11051
+      verbalName: 화형 선고
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 불 원소를 부여합니다(효과 명중 판정).
+    - id: 12021
+      verbalName: 화형 선고
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 불 원소를 부여합니다(효과 명중 판정).
+    - id: 11052
+      verbalName: 전열 정비
+      description: <적 전용> 아군 전체의 가하는 피해 +15%(일반행동 2회). 다른 아군의 행동을 15% 앞당깁니다.
+    - id: 11053
+      verbalName: 망자의 가호
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 13203
+      verbalName: 우제트
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 방어력20% 무시.
+    - id: 13011
+      verbalName: 재생의 격류
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다.
+    - id: 13012
+      verbalName: 태양의 심판
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다.
+    - id: 11060
+      verbalName: 거인의 철퇴
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 12030
+      verbalName: 거인의 철퇴
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 11061
+      verbalName: 과부하
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 12032
+      verbalName: 과부하
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 12033
+      verbalName: 빙결포
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 얼음 원소를 부여합니다(효과 명중 판정).
+    - id: 11062
+      verbalName: 공허 포격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 11063
+      verbalName: 공허 포격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 불 원소를 부여합니다(효과 명중 판정).
+    - id: 11064
+      verbalName: 공허 포격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 물 원소를 부여합니다(효과 명중 판정).
+    - id: 11065
+      verbalName: 공허 포격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 바람 원소를 부여합니다(효과 명중 판정).
+    - id: 11066
+      verbalName: 공허 포격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 번개 원소를 부여합니다(효과 명중 판정).
+    - id: 11067
+      verbalName: 공허 포격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 풀 원소를 부여합니다(효과 명중 판정).
+    - id: 11068
+      verbalName: 공허 포격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 얼음 원소를 부여합니다(효과 명중 판정).
+    - id: 11069
+      verbalName: 공허 포격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 바위 원소를 부여합니다(효과 명중 판정).
+    - id: 11070
+      verbalName: 공허 강습
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다.
+    - id: 11071
+      verbalName: 공허 강습 · 불
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 불 원소를 부여합니다(효과 명중 판정).
+    - id: 11072
+      verbalName: 공허 강습 · 물
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 물 원소를 부여합니다(효과 명중 판정).
+    - id: 11073
+      verbalName: 공허 강습 · 바람
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 바람 원소를 부여합니다(효과 명중 판정).
+    - id: 11074
+      verbalName: 공허 강습 · 번개
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 번개 원소를 부여합니다(효과 명중 판정).
+    - id: 11075
+      verbalName: 공허 강습 · 풀
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 풀 원소를 부여합니다(효과 명중 판정).
+    - id: 11076
+      verbalName: 공허 강습 · 얼음
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 얼음 원소를 부여합니다(효과 명중 판정).
+    - id: 11077
+      verbalName: 공허 강습 · 바위
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 바위 원소를 부여합니다(효과 명중 판정).
+    - id: 11078
+      verbalName: 광란의 일격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 11079
+      verbalName: 광란의 일격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 불 원소를 부여합니다(효과 명중 판정).
+    - id: 11080
+      verbalName: 광란의 일격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 물 원소를 부여합니다(효과 명중 판정).
+    - id: 11081
+      verbalName: 광란의 일격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 바람 원소를 부여합니다(효과 명중 판정).
+    - id: 11082
+      verbalName: 광란의 일격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 번개 원소를 부여합니다(효과 명중 판정).
+    - id: 11083
+      verbalName: 광란의 일격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 풀 원소를 부여합니다(효과 명중 판정).
+    - id: 11084
+      verbalName: 광란의 일격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 얼음 원소를 부여합니다(효과 명중 판정).
+    - id: 11085
+      verbalName: 광란의 일격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 바위 원소를 부여합니다(효과 명중 판정).
+    - id: 11086
+      verbalName: 피의 포식
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 11087
+      verbalName: 피의 포식 · 불
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 불 원소를 부여합니다(효과 명중 판정).
+    - id: 11088
+      verbalName: 피의 포식 · 물
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 물 원소를 부여합니다(효과 명중 판정).
+    - id: 11089
+      verbalName: 피의 포식 · 바람
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 바람 원소를 부여합니다(효과 명중 판정).
+    - id: 11090
+      verbalName: 피의 포식 · 번개
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 번개 원소를 부여합니다(효과 명중 판정).
+    - id: 11091
+      verbalName: 피의 포식 · 풀
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 풀 원소를 부여합니다(효과 명중 판정).
+    - id: 11092
+      verbalName: 피의 포식 · 얼음
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 얼음 원소를 부여합니다(효과 명중 판정).
+    - id: 11093
+      verbalName: 피의 포식 · 바위
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 바위 원소를 부여합니다(효과 명중 판정).
+    - id: 11094
+      verbalName: 파쇄격
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 11095
+      verbalName: 파쇄격 · 불
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 11096
+      verbalName: 파쇄격 · 물
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 11097
+      verbalName: 파쇄격 · 바람
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 11098
+      verbalName: 파쇄격 · 번개
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 11099
+      verbalName: 파쇄격 · 풀
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 11100
+      verbalName: 파쇄격 · 얼음
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 11101
+      verbalName: 파쇄격 · 바위
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 11102
+      verbalName: 공허의 일격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다.
+    - id: 11103
+      verbalName: 공허의 일격 · 불
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 불 원소를 부여합니다(효과 명중 판정).
+    - id: 11104
+      verbalName: 공허의 일격 · 물
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 물 원소를 부여합니다(효과 명중 판정).
+    - id: 11105
+      verbalName: 공허의 일격 · 바람
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 바람 원소를 부여합니다(효과 명중 판정).
+    - id: 11106
+      verbalName: 공허의 일격 · 번개
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 번개 원소를 부여합니다(효과 명중 판정).
+    - id: 11107
+      verbalName: 공허의 일격 · 풀
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 풀 원소를 부여합니다(효과 명중 판정).
+    - id: 11108
+      verbalName: 공허의 일격 · 얼음
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 얼음 원소를 부여합니다(효과 명중 판정).
+    - id: 11109
+      verbalName: 공허의 일격 · 바위
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 바위 원소를 부여합니다(효과 명중 판정).
+    - id: 11110
+      verbalName: 방벽 전개
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 11111
+      verbalName: 방벽 전개
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 11112
+      verbalName: 방벽 전개
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 11113
+      verbalName: 방벽 전개
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 11114
+      verbalName: 방벽 전개
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 11115
+      verbalName: 방벽 전개
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 11116
+      verbalName: 방벽 전개
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 11117
+      verbalName: 방벽 전개
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 12034
+      verbalName: 전열 정비
+      description: <적 전용> 아군 전체의 가하는 피해 +15%(일반행동 2회). 다른 아군의 행동을 15% 앞당깁니다.
+    - id: 12035
+      verbalName: 전열 정비
+      description: <적 전용> 아군 전체의 가하는 피해 +15%(일반행동 2회). 다른 아군의 행동을 15% 앞당깁니다.
+    - id: 12036
+      verbalName: 전열 정비
+      description: <적 전용> 아군 전체의 가하는 피해 +15%(일반행동 2회). 다른 아군의 행동을 15% 앞당깁니다.
+    - id: 12037
+      verbalName: 전열 정비
+      description: <적 전용> 아군 전체의 가하는 피해 +15%(일반행동 2회). 다른 아군의 행동을 15% 앞당깁니다.
+    - id: 12038
+      verbalName: 전열 정비
+      description: <적 전용> 아군 전체의 가하는 피해 +15%(일반행동 2회). 다른 아군의 행동을 15% 앞당깁니다.
+    - id: 12039
+      verbalName: 전열 정비
+      description: <적 전용> 아군 전체의 가하는 피해 +15%(일반행동 2회). 다른 아군의 행동을 15% 앞당깁니다.
+    - id: 12040
+      verbalName: 전열 정비
+      description: <적 전용> 아군 전체의 가하는 피해 +15%(일반행동 2회). 다른 아군의 행동을 15% 앞당깁니다.
+    - id: 12041
+      verbalName: 전열 정비
+      description: <적 전용> 아군 전체의 가하는 피해 +15%(일반행동 2회). 다른 아군의 행동을 15% 앞당깁니다.
+    - id: 12042
+      verbalName: 분쇄
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 12043
+      verbalName: 분쇄 · 불
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 12044
+      verbalName: 분쇄 · 물
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 12045
+      verbalName: 분쇄 · 바람
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 12046
+      verbalName: 분쇄 · 번개
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 12047
+      verbalName: 분쇄 · 풀
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 12048
+      verbalName: 분쇄 · 얼음
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 12049
+      verbalName: 분쇄 · 바위
+      description: <적 전용> 아군 전체에게 시전자 방어력의 150% 보호막을 부여합니다.
+    - id: 13050
+      verbalName: 원소 붕괴
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다.
+    - id: 13051
+      verbalName: 원소 붕괴 · 불
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 불 원소를 부여합니다(효과 명중 판정).
+    - id: 13052
+      verbalName: 원소 붕괴 · 물
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 물 원소를 부여합니다(효과 명중 판정).
+    - id: 13053
+      verbalName: 원소 붕괴 · 바람
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 바람 원소를 부여합니다(효과 명중 판정).
+    - id: 13054
+      verbalName: 원소 붕괴 · 번개
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 번개 원소를 부여합니다(효과 명중 판정).
+    - id: 13055
+      verbalName: 원소 붕괴 · 풀
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 풀 원소를 부여합니다(효과 명중 판정).
+    - id: 13056
+      verbalName: 원소 붕괴 · 얼음
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 얼음 원소를 부여합니다(효과 명중 판정).
+    - id: 13057
+      verbalName: 원소 붕괴 · 바위
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 바위 원소를 부여합니다(효과 명중 판정).
+    - id: 11120
+      verbalName: 광란
+      description: <적 전용> 단일 적에게 공격력 총 200% 피해를 4회로 나누어 가합니다.
+    - id: 11122
+      verbalName: 셰이드
+      description: <적 전용> 시전자 최대 체력의 5.5%만큼 체력 비율이 가장 낮은 아군를 치유합니다.
+    - id: 11121
+      verbalName: 광란
+      description: <적 전용> 단일 적에게 공격력 총 200% 피해를 4회로 나누어 가합니다.
+    - id: 13060
+      verbalName: 천둥의 신
+      description: <적 전용> 적 전체에게 공격력 총 90% 피해를 가합니다. 적중 후 번개 원소를 부여합니다(효과 명중 판정). 받는 치유량 -25%(2턴, 효과 명중).
+    - id: 11123
+      verbalName: 셰이드
+      description: <적 전용> 시전자 최대 체력의 5.5%만큼 체력 비율이 가장 낮은 아군를 치유합니다.
+    - id: 11124
+      verbalName: 서리창
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 얼음 원소를 부여합니다(효과 명중 판정).
+    - id: 12050
+      verbalName: 광란
+      description: <적 전용> 단일 적에게 공격력 총 200% 피해를 4회로 나누어 가합니다.
+    - id: 13061
+      verbalName: 혹한의 강림
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다.
+    - id: 12051
+      verbalName: 파프니르 살해
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 불 원소를 부여합니다(효과 명중 판정). 방어력20% 무시.
+    - id: 12052
+      verbalName: 선고
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 얼음 원소를 부여합니다(효과 명중 판정).
+    - id: 13001
+      verbalName: 최후의 룬
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 받는 치유량 -40%(2턴, 효과 명중).
+    - id: 11130
+      verbalName: 모여드는 등불
+      description: <적 전용> 시전자 최대 체력의 4.0%만큼 체력 비율이 가장 낮은 아군를 치유합니다.
+    - id: 11131
+      verbalName: 결정 봉합
+      description: <적 전용> 아군 전체에게 시전자 방어력의 120% 보호막을 부여합니다.
+    - id: 11132
+      verbalName: 결정 봉합
+      description: <적 전용> 아군 전체에게 시전자 방어력의 120% 보호막을 부여합니다.
+    - id: 11133
+      verbalName: 화염 비산
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 불 원소를 부여합니다(효과 명중 판정).
+    - id: 11134
+      verbalName: 파쇄 급강하
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 바람 원소를 부여합니다(효과 명중 판정).
+    - id: 12060
+      verbalName: 종말 급강하
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 바람 원소를 부여합니다(효과 명중 판정).
+    - id: 13070
+      verbalName: 공허 강하
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 바람 원소를 부여합니다(효과 명중 판정).
+    - id: 11135
+      verbalName: 없음
+      description: <적 전용> 적 전체에게 공격력 총 65% 피해를 가합니다.
+    - id: 11136
+      verbalName: 없음
+      description: <적 전용> 적 전체에게 공격력 총 65% 피해를 가합니다.
+    - id: 11140
+      verbalName: 조류 집게
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 물 원소를 부여합니다(효과 명중 판정).
+    - id: 11141
+      verbalName: 암초 충돌
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 바위 원소를 부여합니다(효과 명중 판정).
+    - id: 11142
+      verbalName: 혈조 돌진
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 불 원소를 부여합니다(효과 명중 판정).
+    - id: 12071
+      verbalName: 촉수 폭풍
+      description: <적 전용> 집중을 준비합니다. 다음 일반행동은 적 전체에게 공격력165% 피해를 가합니다. 제어되면 준비가 취소됩니다.
+    - id: 13080
+      verbalName: 해연의 대호흡
+      description: <적 전용> 집중을 준비합니다. 다음 일반행동은 적 전체에게 공격력165% 피해를 가합니다. 제어되면 준비가 취소됩니다.
+    - id: 11143
+      verbalName: 공허 포격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 번개 원소를 부여합니다(효과 명중 판정).
+    - id: 11144
+      verbalName: 정밀 포격
+      description: <적 전용> 2명의 적에게 공격력 총 110% 피해를 가합니다. 적중 후 번개 원소를 부여합니다(효과 명중 판정).
+    - id: 11145
+      verbalName: 돌림노래
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다.
+    - id: 11146
+      verbalName: 광란의 일격
+      description: <적 전용> 단일 적에게 공격력 총 165% 피해를 가합니다. 적중 후 바위 원소를 부여합니다(효과 명중 판정).
+    - id: 11147
+      verbalName: 산탄 포격
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 풀 원소를 부여합니다(효과 명중 판정).
+    - id: 13090
+      verbalName: 혼돈의 소용돌이
+      description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 물 원소를 부여합니다(효과 명중 판정).
   special:
     - id: 63
       verbalName: 바즈라
@@ -902,10 +2737,21 @@ codes:
       codeName: AgniFirstToBurn
       description: "<로카팔라> 바루나 뒤 · 인드라 앞(+25). 같은 묶음을 연 인드라의 초월기로 얻은 특성 추공 한 건을 이 특수행동까지 보류했다가, 물 → 얼음 → 풀이 붙은 적을 중심으로 골라 집중 포격으로 바꾼다 — 중심 공격력 180%, 나머지 45%, 전원 불 부착. 공격 가능한 적에게 재료가 없으면 다른 적의 재료 하나를 중심으로 옮긴다. 보류한 추공이 없으면 아무것도 하지 않는다."
     - id: 65
-      verbalName: 골드 러쉬
+      verbalName: "골드 러쉬"
       codeName: KuberaGoldRush
-      description: "<로카팔라> 적 전체에 공격력 100% × 금력 배율(1 + 보유 골드 ÷ (스테이지 × 100) × 15%, 최대 ×4) 피해. 이번 전투 골드 +5%(최대 +25%). #전체 #특수행동 #비접촉 #사격"
+      description: "금력×공격력100% 전체 사격. 재보3 이상이면3 소비하여180%로 강화하고 후원 치피 적용. 부족하면 소비 없이100%. 사용당 전투 골드+5%(최대25%)."
     - id: 60
       verbalName: 창야
       codeName: ChandraChangya
       description: "<로카팔라> 월광 1중첩을 얻고 모든 적에게 최대 체력의 100%에 해당하는 특수 피해를 입힌다. 실제로 입힌 피해의 20%를 살아 있는 아군 전원에게 똑같이 나눠 회복한다. 회복을 맡으므로 묶음의 맨 끝에 행동한다. #전체 #특수행동 #특수 #비접촉 #주문"
+
+    - id: 67
+      verbalName: 석양의 일제사격
+      codeName: SuryaSunsetVolley
+      description: "종언 표식이 1중첩 이상인 적 모두에게 공격력 360% 종언탄. 방어력 25% 무시, 표식 소모 후 불 부착. 일반행동 피해로 판정하며 실제 행동은 특수행동이다. #특수 #일반 #사격 #비접촉"
+
+    - id: 161
+      verbalName: "일제 사격"
+      codeName: "NapoleonGrandVolley"
+      description: "지정한 적에게 일반 공격을 가진 아군 전원(펜리르·공격형 분신 포함, 나폴레옹·공격하지 않는 일반행동 제외)이 자기 일반 공격을 최종 일반 공격 피해의 50%로 동시에 한 번씩 가한다. 원소 · 표식 · 다단 등 적중 효과는 그대로이며 참여자의 일반행동 · 마나 · 행동 게이지 · 턴은 생기지 않는다. 대상이 쓰러지면 다른 적으로 옮기지 않는다. #특수행동 #일반 #지휘"
+    - { id: 25, verbalName: 비탄의 연주, codeName: OrpheusLament, description: "<마나100> 생존 필드 아군 전체에게 강인도 삭감 효율 증가(10%+40%×특공/(특공+레벨K)). 각 대상의 일반행동3회 지속, 갱신. 강인도를 추가하거나 채우지 않는다." }

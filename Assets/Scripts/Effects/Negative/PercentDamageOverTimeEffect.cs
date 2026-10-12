@@ -38,7 +38,7 @@ namespace Effects.Negative
             CalculateTickDamage(),
             BaseEnums.CodeType.Effect,
             new List<int>(),
-            false);
+            false) { IsDamageOverTime = true };
 
         public override int EstimateDamagePerTurn() => CalculateTickDamage();
 

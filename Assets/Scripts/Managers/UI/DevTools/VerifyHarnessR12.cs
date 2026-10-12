@@ -102,7 +102,7 @@ namespace Managers.UI.DevTools
 
             // 구현 수
             int implemented = RewardCodeCatalog.All().Count(entry => Codes.Passive.Reward.RewardCodeFactory.IsImplemented(entry.id));
-            R12Check(implemented == 94, $"보상 코드 구현 {implemented}/94");
+            R12Check(implemented == 118, $"보상 코드 구현 {implemented}/118");
 
             // 보상 풀 분포(라운드 5, 300회)
             var rewards = GameManager.Instance.rewardManager;
@@ -242,7 +242,9 @@ namespace Managers.UI.DevTools
 
             float soulStart = anubis.GetPermanentStacks(Codes.Passive.AnubisSoulHarvest.SoulKey) +
                               anubis.GetPermanentStackFraction(Codes.Passive.AnubisSoulHarvest.SoulKey);
-            int treasureStart = kubera.ManaCurr;
+            int invalidSummonIncome = 0;
+            void TreasuryChanged(Unit source, int delta) { if (delta > 0 && (source == uchi || source.IsSummon)) invalidSummonIncome += delta; }
+            PartyTreasury.Changed += TreasuryChanged;
             float deadline = Time.realtimeSinceStartup + 50f;
             while (Time.realtimeSinceStartup < deadline && uchiTurns < 10)
             {
@@ -256,11 +258,12 @@ namespace Managers.UI.DevTools
 
             float soulEnd = anubis.GetPermanentStacks(Codes.Passive.AnubisSoulHarvest.SoulKey) +
                             anubis.GetPermanentStackFraction(Codes.Passive.AnubisSoulHarvest.SoulKey);
-            R12Log($"우치 행동 {uchiTurns} · 분신 생성 {created} · 분신 소멸 {summonDeaths} · 동시 최대 {maxAlive} · 영혼 {soulStart:0.00} → {soulEnd:0.00} · 보물 {treasureStart} → {kubera.ManaCurr}");
+            R12Log($"우치 행동 {uchiTurns} · 분신 생성 {created} · 분신 소멸 {summonDeaths} · 동시 최대 {maxAlive} · 영혼 {soulStart:0.00} → {soulEnd:0.00} · 소환 출처 재보 {invalidSummonIncome}");
             R12Check(created > 0 && summonDeaths > 0, "분신이 생기고 사라진다");
             R12Check(maxAlive <= 3, $"분신 상한 3 유지(최대 {maxAlive})");
             R12Check(Mathf.Abs(soulEnd - soulStart - summonDeaths * 0.25f) < 0.01f, "분신 소멸 1기당 영혼 0.25");
-            R12Check(kubera.ManaCurr > treasureStart || kubera.ManaCurr == 0, "분신 생성이 쿠베라 보물을 채운다(가득 차 발동했으면 0)");
+            PartyTreasury.Changed -= TreasuryChanged;
+            R12Check(invalidSummonIncome == 0, "분신 생성/소멸이 재보를 생산하지 않는다");
             R12Check(anubis.StatValue(BaseEnums.StatType.MaxHp) >= anubis.BaseStat(BaseEnums.StatType.MaxHp) +
                      8f * anubis.GetPermanentStacks(Codes.Passive.AnubisSoulHarvest.SoulKey) - 1f, "영혼 1당 최대 체력 +8");
 

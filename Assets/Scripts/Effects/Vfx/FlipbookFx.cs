@@ -10,7 +10,7 @@ namespace Effects.Vfx
     {
         public bool Enabled = true;
         public bool BlendFrames = true;
-        public float BlendFraction = 0.46f;
+        public float BlendFraction = 0.62f;
         public float PeakAlpha = 0.78f;
         public bool SoftPulse;
         public float FadeInFraction = 0.12f;
@@ -21,6 +21,7 @@ namespace Effects.Vfx
         public float AlphaCutoff;
         public float AlphaSoftness = 0.001f;
         public float Desaturate;
+        public float PaintContrast;
 
         public Color GlowColor = new(1f, 0.82f, 0.40f, 1f);
         public float GlowAlpha = 0.66f;
@@ -100,6 +101,26 @@ namespace Effects.Vfx
         private bool _useComposite;
         private bool _usePeak;
         private MaterialPropertyBlock _propertyBlock;
+        private Entities.Unit _hudClipTarget;
+
+        /// <summary>시트 여백 때문에 전체를 축소하지 않고 대상 정보판 아래만 부드럽게 지운다.</summary>
+        public FlipbookFx ClipPortraitHud(Entities.Unit target)
+        {
+            _hudClipTarget = target;
+            RefreshHudClip();
+            return this;
+        }
+        public FlipbookFx ScaleEnvelope(float start,float crest,float end)
+        {
+            if (_style != null) { _style.StartScale=start; _style.CrestScale=crest; _style.EndScale=end; }
+            return this;
+        }
+        private void RefreshHudClip()
+        {
+            ApplyMaterialProperties(_renderer); ApplyMaterialProperties(_nextRenderer);
+            ApplyMaterialProperties(_glowRenderer,true); ApplyMaterialProperties(_nextGlowRenderer,true);
+            ApplyMaterialProperties(_peakRenderer); ApplyMaterialProperties(_peakGlowRenderer,true);
+        }
 
         public bool IsFinished => _finished;
         public Transform FxTransform => transform;
@@ -275,6 +296,7 @@ namespace Effects.Vfx
             SetRendererColor(_contactShadow, _style.ContactShadowColor,
                 _style.ContactShadowColor.a * pulse * bodyAlpha);
             UpdatePeak(progress, bodyAlpha, glowAdaptation);
+            if (_hudClipTarget != null) RefreshHudClip();
         }
 
         private void BuildGrounding(int layer, int order)
@@ -349,7 +371,13 @@ namespace Effects.Vfx
         private float EvaluateAlpha(float progress)
         {
             // 선택한 연출만 한 번 부드럽게 오르내린다. 판정 프레임과 재생 시간은 보존한다.
-            if (_style.SoftPulse) return Mathf.Sin(Mathf.Clamp01(progress) * Mathf.PI);
+            if (_style.SoftPulse)
+            {
+                // 정점 근처의 형태를 유지한 뒤 잔광을 천천히 푼다. 재생/판정 프레임은 바꾸지 않는다.
+                float attack = Smooth01(progress / Mathf.Max(.08f, _style.FadeInFraction));
+                float release = 1f - Smooth01(Mathf.InverseLerp(.58f, 1f, progress));
+                return Mathf.Min(attack, release);
+            }
             float fadeIn = _style.FadeInFraction <= 0f
                 ? 1f
                 : Smooth01(progress / Mathf.Max(0.0001f, _style.FadeInFraction));
@@ -373,6 +401,9 @@ namespace Effects.Vfx
             _propertyBlock.SetFloat(AlphaCutoff, _style.AlphaCutoff);
             _propertyBlock.SetFloat(AlphaSoftness, _style.AlphaSoftness);
             _propertyBlock.SetFloat(Desaturate, Mathf.Clamp01(_style.Desaturate));
+            _propertyBlock.SetFloat("_PaintContrast",Mathf.Clamp01(_style.PaintContrast));
+            _propertyBlock.SetFloat("_WorldClipMinY",_hudClipTarget!=null ? VfxSpace.PortraitHudTop(_hudClipTarget)+.025f*VfxSpace.CardSize : -100000f);
+            _propertyBlock.SetFloat("_WorldClipFeather",.06f*VfxSpace.CardSize);
             if (glow)
             {
                 _propertyBlock.SetFloat(GlowThreshold, _style.GlowThreshold);

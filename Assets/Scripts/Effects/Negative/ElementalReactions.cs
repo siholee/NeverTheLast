@@ -174,33 +174,28 @@ namespace Effects.Negative
         private static readonly Reaction[] Table =
         {
             // 불
-            new(Pyro, Pyro,       ReactionId.Burn,        "화상",   ReactionKind.Dot),
             new(Pyro, Hydro,      ReactionId.Vaporize,    "증발",   ReactionKind.Amplify),
-            new(Pyro, Dendro,     ReactionId.Combustion,  "연소",   ReactionKind.Amplify),
+            new(Pyro, Dendro,     ReactionId.Burn,        "화상",   ReactionKind.Dot),
             new(Pyro, Electro,    ReactionId.Overload,    "과부하", ReactionKind.Burst),
             new(Pyro, Cryo,       ReactionId.Melt,        "융해",   ReactionKind.Amplify),
             new(Pyro, Geo,        ReactionId.Forge,       "단조",   ReactionKind.Buff,  BaseEnums.StatType.Speed),
 
             // 물
-            new(Hydro, Hydro,     ReactionId.Essence,     "정수",   ReactionKind.Buff,  BaseEnums.StatType.SpecialAttack),
             new(Hydro, Dendro,    ReactionId.Bloom,       "개화",   ReactionKind.Buff,  BaseEnums.StatType.MaxHp),
             new(Hydro, Electro,   ReactionId.Shock,       "감전",   ReactionKind.Dot),
             new(Hydro, Cryo,      ReactionId.Freeze,      "빙결",   ReactionKind.Control),
             new(Hydro, Geo,       ReactionId.Weathering,  "풍화",   ReactionKind.Dot),
 
             // 풀
-            new(Dendro, Dendro,   ReactionId.Rooting,     "착근",   ReactionKind.Control),
             new(Dendro, Electro,  ReactionId.Activation,  "활성",   ReactionKind.Debuff),
             new(Dendro, Cryo,     ReactionId.Dormancy,    "휴면",   ReactionKind.Null),
             new(Dendro, Geo,      ReactionId.Growth,      "성장",   ReactionKind.Buff,  BaseEnums.StatType.Defense),
 
             // 전기
-            new(Electro, Electro, ReactionId.Charge,      "축전",   ReactionKind.Buff,  BaseEnums.StatType.Attack),
             new(Electro, Cryo,    ReactionId.Superconduct,"초전도", ReactionKind.Debuff),
             new(Electro, Geo,     ReactionId.Grounding,   "접지",   ReactionKind.Null),
 
             // 얼음
-            new(Cryo, Cryo,       ReactionId.Slow,        "둔화",   ReactionKind.Debuff, BaseEnums.StatType.Speed),
             new(Cryo, Geo,        ReactionId.Hardening,   "경화",   ReactionKind.Buff),
 
             // 바위
@@ -468,11 +463,10 @@ namespace Effects.Negative
 
         private static void ResolveDot(Unit target, Reaction reaction, Unit source)
         {
-            if (reaction.Id == ReactionId.Burn)
+            if (reaction.Id is ReactionId.Burn or ReactionId.Shock)
             {
-                // 화상은 대상 최대 체력 비례라 위력을 깎을 곳이 없다. 대신 무뎌진 유발자는 1턴만 태운다.
-                int cap = ControlTurnCap(source);
-                ApplyBurnWithoutContest(source, target, cap > 0 ? Mathf.Min(DotDuration, cap) : DotDuration);
+                Combat.ActionDot.Apply(source, target, reaction.Id == ReactionId.Burn ? Combat.ActionDotKind.Burn : Combat.ActionDotKind.Shock,
+                    DotDuration, inheritedHit: true);
                 return;
             }
 
@@ -593,27 +587,11 @@ namespace Effects.Negative
         /// </summary>
         public static bool TryApplyBurn(Unit source, Unit target, int duration = DotDuration)
         {
-            if (source == null || target == null || !target.isActive || duration <= 0) return false;
-            if (!Combat.DamageMitigation.RollEffectHit(source, target, 0.5f)) return false;
-
-            return ApplyBurnWithoutContest(source, target, duration);
+            return Combat.ActionDot.Apply(source, target, Combat.ActionDotKind.Burn, duration);
         }
 
-        /// <summary>명중 판정 없이 화상을 확정으로 건다. 피해·기간·연장 규칙은 <see cref="TryApplyBurn"/>과 같다.</summary>
         public static bool ApplyBurnWithoutContest(Unit source, Unit target, int duration = DotDuration)
-        {
-            if (source == null || target == null || !target.isActive || duration <= 0) return false;
-
-            var burn = BuffStatus.Create(
-                BurnStatusId, BurnStatusKey, "화상",
-                source, target, new PercentDamageOverTimeEffect(0, BurnMaxHpPercent),
-                duration: duration,
-                stackPolicy: BaseEnums.StatusStackPolicy.ExtendDuration,
-                category: BaseEnums.StatusCategory.Negative,
-                description: $"{duration}턴간 턴마다 최대 체력의 {BurnMaxHpPercent:0.#}%에 해당하는 화상 피해를 받습니다.");
-            burn.SkipEffectHitRoll = true;   // 명중은 TryApplyBurn이 이미 굴렸거나, 확정 부여다
-            return target.TryAddStatus(burn);
-        }
+            => Combat.ActionDot.Apply(source, target, Combat.ActionDotKind.Burn, duration, inheritedHit: true);
 
         /// <summary>
         /// 유발자가 지닌 약화 효과가 <b>해로운 반응</b>의 위력에 곱하는 배율. 여럿이면 가장 약한 값 하나.
@@ -690,7 +668,7 @@ namespace Effects.Negative
 
         public override DamageContext CreateDamageOverTimeTick() => new DamageContext(
             Caster, _damagePerTurn, BaseEnums.CodeType.Effect,
-            new List<int> { DamageTag.SingleTarget, DamageTag.ElementalReaction });
+            new List<int> { DamageTag.SingleTarget, DamageTag.ElementalReaction }) { IsDamageOverTime = true };
 
         public override int EstimateDamagePerTurn() => _damagePerTurn;
     }
@@ -741,7 +719,7 @@ namespace Effects.Negative
 
         public override DamageContext CreateDamageOverTimeTick() => new DamageContext(
             Caster, _damagePerAction, BaseEnums.CodeType.Effect,
-            new List<int> { DamageTag.SingleTarget, DamageTag.ElementalReaction });
+            new List<int> { DamageTag.SingleTarget, DamageTag.ElementalReaction }) { IsDamageOverTime = true };
 
         /// <summary>턴당 최소 1회는 행동하므로 한 번분으로 어림한다.</summary>
         public override int EstimateDamagePerTurn() => _damagePerAction;

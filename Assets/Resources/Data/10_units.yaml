@@ -7,7 +7,7 @@
 #       스탯 = 기초값 + 성장치 × (레벨 − 1)
 #     훈련 강화 · 주/부 스탯 배율은 없다. 아군의 레벨은 전투 EXP로만 오른다.
 #   · 치명타 두 스탯은 퍼센트 포인트로 적는다(5 = 5%). 적지 않으면 5% / 50%, 속도는 100이다.
-#   · 특수공격력은 피해 계수가 아니다 — 원소 반응 위력과 해로운 효과 명중에만 쓴다.
+#   · 특수공격력은 피해 계수가 아니다 — 원소 반응 위력·해로운 효과 명중·일부 지원 계수에 쓴다.
 #     특수방어력은 지속피해 · 원소 반응 피해를 줄이고 해로운 효과를 피한다.
 #   · 피해는 코드마다 "고정값 + 스탯 × 계수"로 적는다. 대부분 공격력 계수, 일부만 방어력 · 최대 체력.
 #   · manaMax는 궁극기 마나. 일반행동 +20 · 피격 +5 · 처치 +10으로 찬다.
@@ -397,48 +397,48 @@ units:
     standing: AGNI_STANDING
 
   # ── 수리야 ────────────────────────────────────────────────────────
-  # 황혼의 집행자(Detail_08 §18). 현상수배한 적 하나를 동료가 공격하면 제한된 탄환으로 직접 응답하는 표적형 추공 딜러.
-  # 로카팔라 특수행동은 없다(Vedic만).
+  # 황혼의 집행자(Detail_08 §18). 일반 사격으로 종언 표식을 남기고 로카팔라 묶음에서 일제 종언탄을 발사한다.
   - id: 67
     name: 수리야
-    tagline: "오늘의 도주에 마침표를 찍는 황혼의 총잡이. 현상수배한 적을 동료가 칠 때마다 남은 탄환으로 응답한다."
+    tagline: "적에게 종언 표식을 남기고 묵직한 세 번째 사격으로 방어를 무너뜨리는 황혼의 집행자."
     characterType: Unlocked
     element: Pyro
     vfxClass: archer
-    tags: [Vedic]
-    archetypeTags: [Precision, FollowUp, Swift]
-    hpBase: 960
-    hpGrowth: 88
-    atkBase: 108
-    atkGrowth: 6.8
-    spAtkBase: 70
-    spAtkGrowth: 4.0
-    defBase: 60
-    defGrowth: 4.5
-    spDefBase: 60
+    tags: [Vedic, Lokapala]
+    archetypeTags: [Precision, Burst]
+    hpBase: 980
+    hpGrowth: 86
+    atkBase: 128
+    atkGrowth: 8
+    spAtkBase: 68
+    spAtkGrowth: 4.2
+    defBase: 58
+    defGrowth: 4.4
+    spDefBase: 62
     spDefGrowth: 4.5
-    speedBase: 90
-    critRateBase: 5
+    speedBase: 88
+    critRateBase: 15
     critDamageBase: 50
-    manaMax: 120
+    manaMax: 140
     codes:
       passive: 267
       normal: 67
+      special: 67
       ultimate: 67
     portrait: SURYA_PORTRAIT
     standing: SURYA_STANDING
 
   # ── 쿠베라 ────────────────────────────────────────────────────────
-  # 금력으로 소환수를 후원하는 부의 화신(Detail_08 §11). 보물은 공용 마나를 받지 않는 Stack 자원이다.
+  # 공용 재보를 운용하는 부의 화신(Detail_08 §11).
   # 로카팔라 덱에서는 모아 둔 골드를 골드 러쉬의 화력으로 바꾸는 메인 딜러가 된다.
   - id: 65
     name: 쿠베라
-    tagline: "금력으로 후원하는 부의 화신. 소환수를 키우고, 모아 둔 골드를 골드 러쉬의 화력으로 바꾼다."
+    tagline: "재보를 불리고 거래 공격의 치명타를 후원한다. 로카팔라에서는 재보와 금력으로 골드 러쉬를 강화한다."
     characterType: Unlocked
     element: Geo
     vfxClass: caster
-    tags: [Vedic, Lokapala]
-    archetypeTags: [Summon, Support, Special]
+    tags: [Vedic, Lokapala, Treasury]
+    archetypeTags: [Treasury, Support, Special]
     hpBase: 1150
     hpGrowth: 100
     atkBase: 90
@@ -452,9 +452,7 @@ units:
     speedBase: 100
     critRateBase: 5
     critDamageBase: 50
-    manaMax: 8
-    ultimateResourceType: Stack
-    ultimateResourceName: 보물
+    manaMax: 120
     codes:
       passive: 265
       normal: 65
@@ -591,3 +589,275 @@ units:
       ultimate: 180
     portrait: USA_PORTRAIT
     standing: USA_STANDING
+
+  - id: 45
+    name: 츠쿠요미
+    tagline: "달의 저주를 남기고 모든 지속피해를 강화하는 후열 서포터."
+    characterType: Unlocked
+    element: Electro
+    vfxClass: caster
+    tags: [Takamagahara, Divine]
+    archetypeTags: [Support, Precision]
+    hpBase: 1080
+    hpGrowth: 96
+    atkBase: 62
+    atkGrowth: 3.8
+    spAtkBase: 104
+    spAtkGrowth: 6.8
+    defBase: 68
+    defGrowth: 4.8
+    spDefBase: 82
+    spDefGrowth: 5.8
+    speedBase: 102
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 140
+    codes:
+      passive: 245
+      normal: 45
+      ultimate: 45
+    portrait: TSUKUYOMI_PORTRAIT
+    standing: TSUKUYOMI_STANDING
+
+  - id: 160
+    name: 마리 테레즈
+    tagline: "행동을 마친 동료를 치유하고 추가행동의 치명타 피해를 끌어올리는 지휘관."
+    characterType: Unlocked
+    element: Cryo
+    vfxClass: archer
+    tags: [Gaul, Human]
+    archetypeTags: [Support, Healing, FollowUp]
+    hpBase: 820
+    hpGrowth: 72
+    atkBase: 92
+    atkGrowth: 6.4
+    spAtkBase: 90
+    spAtkGrowth: 5.8
+    defBase: 48
+    defGrowth: 3.8
+    spDefBase: 54
+    spDefGrowth: 4
+    speedBase: 102
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    ultimateResourceType: Passive
+    ultimateResourceName: 상시
+    codes:
+      passive: 360
+      normal: 160
+      ultimate: 160
+    portrait: MARIE_PORTRAIT
+    standing: MARIE_STANDING
+
+  # ── 나폴레옹 ──────────────────────────────────────────────────────
+  # 직접 치지 않는 지휘관. 일반행동은 피해 없이 가장 쉽게 쓰러질 적 하나를 지정하고, 특수행동 일제 사격으로
+  # 일반 공격을 가진 아군 전원이 그 적에게 자기 일반 공격을 60%로 동시에 꽂는다(일반행동 · 마나 · 턴 없이).
+  # 특성은 개전 자기 행동 게이지 25% 선행과 아군 일반 공격 피해 +15% 오라, 초월기는 치명타 피해 비례 일반 공격 버프와 20% 앞당김.
+  # 임시 원화 SIGURD, 임시 음성 게파드.
+  - id: 161
+    name: 나폴레옹
+    tagline: "직접 쏘지 않고 포격 지점을 정해, 일반 공격을 가진 동료 전원의 일제 사격을 지휘하는 물 속성 지휘관."
+    characterType: Unlocked
+    element: Hydro
+    vfxClass: archer
+    tags: [Gaul, Human]
+    archetypeTags: [Support, Special]
+    hpBase: 1000
+    hpGrowth: 90
+    atkBase: 78
+    atkGrowth: 5
+    spAtkBase: 80
+    spAtkGrowth: 5.2
+    defBase: 62
+    defGrowth: 4.6
+    spDefBase: 70
+    spDefGrowth: 5
+    speedBase: 90
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 140
+    codes:
+      passive: 361
+      normal: 161
+      special: 161
+      ultimate: 161
+    portrait: NAPOLEON_PORTRAIT
+    standing: NAPOLEON_STANDING
+
+  # ── 로키 ──────────────────────────────────────────────────────────
+  # 노르드의 기만자. 동반형 소환수 펜리르(고정 속도 90)와 함께 싸운다. 초월기 코드가 사냥감 표식 하나를 쥐고,
+  # 아군의 실제 추가행동이 사냥감을 치면 펜리르가 로키 공격력 55%로 쫓아 문다(펜리르 차례 사이 최대 3).
+  # 초월기는 사냥감에게 160% 베기 · 받는 치유 -30% · 자유 추격 2(어느 행동이든 추격을 연다).
+  # 임시 음성은 블레이드.
+  - id: 80
+    name: 로키
+    tagline: "사냥감을 정하고 펜리르를 풀어, 동료의 추가행동마다 늑대가 뒤쫓아 무는 바람의 기만자."
+    characterType: Unlocked
+    element: Anemo
+    vfxClass: caster
+    tags: [Nord, Divine]
+    archetypeTags: [Summon, FollowUp]
+    hpBase: 1050
+    hpGrowth: 94
+    atkBase: 100
+    atkGrowth: 6.4
+    spAtkBase: 84
+    spAtkGrowth: 5.6
+    defBase: 64
+    defGrowth: 4.6
+    spDefBase: 68
+    spDefGrowth: 4.8
+    speedBase: 98
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 140
+    codes:
+      passive: 280
+      normal: 80
+      ultimate: 80
+    portrait: LOKI_PORTRAIT
+    standing: LOKI_STANDING
+
+  - id: 81
+    name: 수르트
+    tagline: "체력을 불태워 초월기를 강화하고 검을 휘두를 때마다 동료에게 작은 안전망을 남기는 전열 딜러."
+    characterType: Unlocked
+    element: Pyro
+    vfxClass: saber
+    tags: [Nord, Divine]
+    archetypeTags: [Burst, Indomitable, Shielding]
+    hpBase: 1320
+    hpGrowth: 112
+    atkBase: 82
+    atkGrowth: 5.2
+    spAtkBase: 70
+    spAtkGrowth: 4.4
+    defBase: 76
+    defGrowth: 5.5
+    spDefBase: 64
+    spDefGrowth: 4.5
+    speedBase: 90
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes:
+      passive: 281
+      normal: 81
+      ultimate: 81
+    portrait: SURTR_PORTRAIT
+    standing: SURTR_STANDING
+
+  - id: 82
+    name: 프레이아
+    tagline: "실제로 회복한 체력을 온기로 저장해 동료의 피해를 높이고 위기에 꺼내 쓰는 치유사."
+    characterType: Unlocked
+    element: Dendro
+    vfxClass: caster
+    tags: [Nord, Divine]
+    archetypeTags: [Support, Healing]
+    hpBase: 1180
+    hpGrowth: 106
+    atkBase: 50
+    atkGrowth: 3
+    spAtkBase: 74
+    spAtkGrowth: 4.8
+    defBase: 64
+    defGrowth: 4.8
+    spDefBase: 78
+    spDefGrowth: 5.8
+    speedBase: 94
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    ultimateResourceType: Passive
+    ultimateResourceName: 온기
+    codes:
+      passive: 282
+      normal: 82
+      ultimate: 82
+    portrait: FREYA_PORTRAIT
+    standing: FREYA_STANDING
+
+  - id: 200
+    name: 만사 무사
+    tagline: "부는 자신의 자격을 증명한다. 재보와 방호를 공급하고 남은 보상을 왕실의 구매권으로 매입한다."
+    characterType: Unlocked
+    element: Geo
+    vfxClass: caster
+    tags: [Malian, Treasury]
+    archetypeTags: [Treasury, Support, Shielding, Economy]
+    hpBase: 1050
+    hpGrowth: 90
+    atkBase: 48
+    atkGrowth: 3.2
+    spAtkBase: 48
+    spAtkGrowth: 3.2
+    defBase: 72
+    defGrowth: 6.2
+    spDefBase: 66
+    spDefGrowth: 4.8
+    speedBase: 106
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    codes:
+      passive: 400
+      normal: 200
+      ultimate: 200
+    portrait: MANSAMUSA_PORTRAIT
+    standing: MANSAMUSA_STANDING
+
+  - id: 220
+    name: 이슈타르
+    tagline: "모은 재보를 황금 탄창에 채워 풀 원소 단일 포격으로 소진하는 헤비 슈터."
+    characterType: Unlocked
+    element: Dendro
+    vfxClass: archer
+    tags: [Mesopotamian, Treasury]
+    archetypeTags: [Treasury, Burst, Precision]
+    hpBase: 1000
+    hpGrowth: 88
+    atkBase: 112
+    atkGrowth: 7.2
+    spAtkBase: 58
+    spAtkGrowth: 3.8
+    defBase: 56
+    defGrowth: 4
+    spDefBase: 62
+    spDefGrowth: 4.5
+    speedBase: 90
+    critRateBase: 10
+    critDamageBase: 50
+    manaMax: 140
+    codes:
+      passive: 420
+      normal: 220
+      ultimate: 220
+    portrait: ISHTAR_PORTRAIT
+    standing: ISHTAR_STANDING
+  - id: 25
+    name: 오르페우스
+    tagline: "죽음의 경계를 연주하는 음유시인. 적에게 강인도를 만들어 처치 연계를 열고, 아군의 삭감 효율을 높인다."
+    characterType: Unlocked
+    element: Anemo
+    vfxClass: caster
+    tags: [Greek]
+    archetypeTags: [Support, Toughness, Infusion]
+    hpBase: 900
+    hpGrowth: 80
+    atkBase: 50
+    atkGrowth: 3
+    spAtkBase: 100
+    spAtkGrowth: 6
+    defBase: 45
+    defGrowth: 3
+    spDefBase: 70
+    spDefGrowth: 5
+    speedBase: 105
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    codes: { passive: 225, normal: 25, ultimate: 25 }
+    portrait: ORPHEUS_PORTRAIT
+    standing: ORPHEUS_STANDING

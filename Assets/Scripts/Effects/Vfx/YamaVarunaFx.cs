@@ -54,19 +54,18 @@ namespace Effects.Vfx
             if (part.renderer == "yvShield")
             {
                 float cardSize = VfxSpace.CardSize;
-                Vector2 rimSize = size * cardSize;
+                Unit receiver=target??caster;
+                Vector3 shield=StatusMotifFx.Anchor(receiver);
+                shield.y=VfxSpace.PortraitHudTop(receiver)+.12f*cardSize;
+                Vector2 rimSize = new Vector2(.22f,.18f)*cardSize;
                 int rimOrder = VfxSpace.OverlaySortingOrder + 40;
-                // 몸체는 얇게 두고 은청 경계만 또렷하게 세워 보호받은 대상을 한눈에 구분한다.
-                SpriteFx.Play(VfxSpace.Ring, point, new Color(0.43f, 0.67f, 0.76f, 0.48f), false,
-                    rimSize * 1.05f, rimSize * 1.05f, 0.38f, fadeIn: 0.24f, fadeOutFrom: 0.50f,
-                    sortingLayer: layer, order: rimOrder)?.Follow(target?.transform);
-                SpriteFx.Play(VfxSpace.Ring, point, new Color(0.73f, 0.89f, 0.97f, 0.82f), false,
-                    rimSize, rimSize, 0.38f, fadeIn: 0.24f, fadeOutFrom: 0.50f,
-                    sortingLayer: layer, order: rimOrder + 1)?.Follow(target?.transform);
-                HandpaintFx.PlayAt(point, layer, HandpaintFx.Ball1Blue, size,
-                    new Color(0.60f, 0.80f, 0.85f), new Color(0.85f, 0.94f, 0.98f),
-                    rotation: 210f, heldFrame: 4, peakAlpha: 0.60f, glowAlpha: 0.22f,
-                    peakHoldSeconds: 0.12f, desaturate: 1f, steadyBody: true, calmLight: true);
+                // 몸에서 떨어진 선택 고리 대신 실제 흉부 축에 얇은 막을 펼친다. 얼굴/HUD는 비운다.
+                SpriteFx.Play(VfxSpace.VarunaBarrier,shield,new Color(.15f,.25f,.38f,.82f),false,
+                    rimSize*.94f,rimSize*1.10f,.32f,fadeIn:.08f,fadeOutFrom:.55f,
+                    sortingLayer:layer,order:rimOrder)?.Follow(receiver.transform);
+                SpriteFx.Play(VfxSpace.VarunaBarrier,shield,new Color(.67f,.87f,.96f,.84f),false,
+                    rimSize*.89f,rimSize*1.02f,.32f,fadeIn:.08f,fadeOutFrom:.55f,
+                    sortingLayer:layer,order:rimOrder+1)?.Follow(receiver.transform);
                 return true;
             }
             if (part.renderer == "yvYamaImpact")
@@ -93,6 +92,12 @@ namespace Effects.Vfx
             Color gold = new Color(0.91f, 0.81f, 0.59f, 0.70f);
             Color ink = new Color(0.67f, 0.59f, 0.45f, 0.28f);
             point += Vector3.down * card * (hit ? 0.10f : 0.12f);
+            if (verdict)
+            {
+                // 판결은 문자 타일이나 원자 궤도와 구분되는 봉랍·저울의 고유 인장이다.
+                JudgmentSeal(point + Vector3.up * card * .10f, layer);
+                return true;
+            }
             Vector2 loop = new Vector2(hit ? 0.78f : 0.60f, hit ? 0.34f : 0.28f) * card;
             int order = VfxSpace.OverlaySortingOrder + 36;
             // 금장 의복의 매듭을 작은 교차 고리로 옮긴다. 얼굴·하단 HUD에 닿는 전신 원은 쓰지 않는다.
@@ -114,6 +119,110 @@ namespace Effects.Vfx
                     glowAlpha: 0.20f, desaturate: 1f, steadyBody: true, calmLight: true);
             }
             return true;
+        }
+
+        public static void DetonationCue(Unit target)
+        {
+            if(target==null)return;
+            float c=VfxSpace.CardSize;Vector3 p=StatusMotifFx.Anchor(target)+Vector3.right*.20f*c;
+            int layer=VfxSpace.SortingLayer(target);int order=VfxSpace.OverlaySortingOrder+145;
+            SpriteFx.Play(VfxSpace.PressureRing,p,new Color(.28f,.25f,.44f,.78f),false,
+                .14f*c,.40f*c,.24f,fadeIn:0f,fadeOutFrom:.50f,sortingLayer:layer,order:order);
+            for(int i=0;i<6;i++)
+            {
+                float a=i*60f;Vector3 direction=Quaternion.Euler(0f,0f,a)*Vector3.right;
+                Vector2 length=new(.13f*c,.024f*c);
+                SpriteFx.Play(VfxSpace.GlyphLine,p+direction*.14f*c,new Color(.72f,.61f,.89f,.94f),false,
+                    length,length*new Vector2(.55f,.75f),.20f,a,fadeIn:0f,fadeOutFrom:.42f,
+                    sortingLayer:layer,order:order+1);
+            }
+        }
+
+        public static void VerdictCue(Unit target)
+        {
+            if(target==null)return;
+            float c=VfxSpace.CardSize;Vector3 p=StatusMotifFx.Anchor(target)+Vector3.right*.22f*c;
+            int layer=VfxSpace.SortingLayer(target);
+            JudgmentSeal(p,layer);
+            SpriteFx.Play(VfxSpace.GlyphLine,p+Vector3.up*.15f*c,new Color(.32f,.28f,.47f,.88f),false,
+                new Vector2(.018f,.20f)*c,new Vector2(.018f,.05f)*c,.20f,fadeIn:0f,fadeOutFrom:.55f,
+                sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+145);
+        }
+
+        public static void BalanceCue(Unit target)
+        {
+            if(target==null)return;
+            float c=VfxSpace.CardSize;Vector3 p=StatusMotifFx.Anchor(target)+new Vector3(.22f,.02f)*c;
+            int layer=VfxSpace.SortingLayer(target);int order=VfxSpace.OverlaySortingOrder+146;
+            void Line(Vector3 center,Vector2 size)
+            {
+                SpriteFx.Play(VfxSpace.GlyphLine,center,new Color(.20f,.28f,.41f,.88f),false,
+                    size*c,size*c,.24f,fadeIn:0f,fadeOutFrom:.55f,sortingLayer:layer,order:order);
+            }
+            Line(p+Vector3.up*.055f*c,new(.28f,.016f));Line(p,new(.022f,.22f));
+            for(int side=-1;side<=1;side+=2)
+            {
+                Vector3 pan=p+Vector3.right*side*.11f*c;
+                Line(pan+Vector3.up*.015f*c,new(.012f,.09f));
+                SpriteFx.Play(VfxSpace.Crescent,pan-Vector3.up*.045f*c,new Color(.89f,.80f,.57f,.95f),false,
+                    new Vector2(.11f,.055f)*c,new Vector2(.11f,.055f)*c,.24f,180f,
+                    fadeIn:0f,fadeOutFrom:.55f,sortingLayer:layer,order:order+1);
+            }
+        }
+
+        public static void LawInvocation(Unit caster,Unit target)
+        {
+            if(caster==null)return;
+            float card=VfxSpace.CardSize;
+            Vector3 center=VfxSpace.CastPoint(caster,target);
+            center.x+=(caster.IsEnemy?-1f:1f)*.08f*card;
+            center.y=VfxSpace.PortraitHudTop(caster)+.19f*card;
+            int layer=VfxSpace.SortingLayer(caster),order=VfxSpace.OverlaySortingOrder+144;
+            void Stroke(Vector3 offset,Vector2 size)
+                => SpriteFx.Play(VfxSpace.GlyphLine,center+offset*card,new Color(.16f,.25f,.39f,.94f),false,
+                    size*card,size*card,.36f,fadeIn:.06f,fadeOutFrom:.64f,sortingLayer:layer,order:order,preserveInk:true);
+            // 초월기에서만 법의 저울을 손 바깥에 펼친다. 전장 전체 섬광과 공격 궤적은 만들지 않는다.
+            Stroke(new(0f,.055f),new(.28f,.018f));Stroke(Vector3.zero,new(.018f,.19f));
+            Stroke(new(0f,-.10f),new(.13f,.018f));
+            for(int side=-1;side<=1;side+=2)
+            {
+                Stroke(new(side*.11f,.005f),new(.012f,.09f));
+                SpriteFx.Play(VfxSpace.Crescent,center+new Vector3(side*.11f,-.052f)*card,
+                    new Color(.97f,.80f,.46f,.94f),false,new Vector2(.13f,.060f)*card,
+                    new Vector2(.13f,.060f)*card,.36f,180f,fadeIn:.06f,fadeOutFrom:.64f,
+                    sortingLayer:layer,order:order+1);
+            }
+        }
+
+        private static void JudgmentSeal(Vector3 point,int layer)
+        {
+            float c=VfxSpace.CardSize;
+            Vector3 center=point+Vector3.right*.08f*c;
+            int order=VfxSpace.OverlaySortingOrder+38;
+            Color navy=new(.17f,.24f,.36f,.90f);
+            Color wax=new(.93f,.85f,.72f,.94f);
+            void Mark(Sprite sprite,Vector3 offset,Vector2 size,Color tint,int depth,float angle=0f)
+                => SpriteFx.Play(sprite,center+offset*c,tint,false,size*c,size*c,.40f,angle,
+                    fadeIn:.06f,fadeOutFrom:.60f,sortingLayer:layer,order:order+depth);
+            Mark(VfxSpace.Ring,Vector3.zero,Vector2.one*.36f,new(.20f,.29f,.42f,.68f),0);
+            // 불규칙한 봉랍 외곽은 판결 문양이며 제어 상태를 뜻하는 가짜 아이콘이 아니다.
+            for(int i=0;i<8;i++)
+            {
+                Vector3 petal=Quaternion.Euler(0f,0f,i*45f)*Vector3.right*.108f;
+                Mark(VfxSpace.HardDot,petal,Vector2.one*.075f,navy,1);
+                Mark(VfxSpace.HardDot,petal,Vector2.one*.058f,wax,2);
+            }
+            Mark(VfxSpace.HardDot,Vector3.zero,Vector2.one*.255f,navy,1);
+            Mark(VfxSpace.HardDot,Vector3.zero,Vector2.one*.226f,wax,2);
+            Mark(VfxSpace.GlyphLine,new(0f,.035f),new(.15f,.013f),navy,3);
+            Mark(VfxSpace.GlyphLine,new(0f,-.007f),new(.12f,.014f),navy,3,90f);
+            for(int side=-1;side<=1;side+=2)
+            {
+                Mark(VfxSpace.GlyphLine,new(side*.067f,.006f),new(.062f,.011f),navy,3,90f);
+                Mark(VfxSpace.Crescent,new(side*.067f,-.021f),new(.068f,.036f),navy,3,180f);
+            }
+            Mark(VfxArt.Diamond,new(0f,.052f),new(.029f,.043f),navy,4);
+            Mark(VfxSpace.Crescent,new(0f,-.060f),new(.081f,.026f),navy,3);
         }
 
         private void OnActionFinished(Unit unit, ActionScheduler.ActionKind kind)

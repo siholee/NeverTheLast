@@ -317,7 +317,7 @@ namespace Managers
             if (cue.duckBgm < 0.999f && cue.duckSeconds > 0f) BeginBgmDuck(cue.duckBgm, cue.duckSeconds);
         }
 
-        // 새 연출 큐를 추가해도 전투의 치명타·상태 명중 난수열을 소비하지 않는다. 기존 큐의 동작은 유지한다.
+        // 새 연출 큐를 추가해도 전투의 치명타·상태 명중 난수열을 소비하지 않는다. 모든 음성·효과음의 변주는 전투와 독립된 난수를 쓴다.
         private static bool IsLokapalaPresentation(string cue)
             => cue.StartsWith("indra.", StringComparison.OrdinalIgnoreCase) ||
                cue.StartsWith("vayu.", StringComparison.OrdinalIgnoreCase) ||
@@ -330,16 +330,13 @@ namespace Managers
                string.Equals(cue, "chandra.changya.resolve", StringComparison.OrdinalIgnoreCase);
 
         private float AudioRange(string cue, float min, float max)
-            => IsLokapalaPresentation(cue)
-                ? Mathf.Lerp(min, max, (float)_lokapalaAudioRandom.NextDouble())
-                : UnityEngine.Random.Range(min, max);
+            => Mathf.Lerp(min, max, (float)_lokapalaAudioRandom.NextDouble());
 
         private AudioClip PickClip(string cueName, SfxCueData cue, out string selected)
         {
             selected = null;
             if (cue.clips == null || cue.clips.Count == 0) return null;
-            int start = IsLokapalaPresentation(cueName)
-                ? _lokapalaAudioRandom.Next(cue.clips.Count) : UnityEngine.Random.Range(0, cue.clips.Count);
+            int start = _lokapalaAudioRandom.Next(cue.clips.Count);
             for (int i = 0; i < cue.clips.Count; i++)
             {
                 string candidate = cue.clips[(start + i) % cue.clips.Count];

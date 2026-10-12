@@ -38,8 +38,8 @@ namespace Effects.Vfx
     }
 
     /// <summary>
-    /// 짧은 백색 피드백 뒤 카드 전체가 밝아지며 위로 떠서 사라지는 공통 퇴장.
-    /// 사망은 이미 충분히 강한 사건이므로 파편·폭발·화면 흔들림을 더하지 않는다.
+    /// 짧은 국소 피드백 뒤 원화를 단단한 침식 경계로 지우고 작은 빛 입자를 올린다.
+    /// 정보판은 부드럽게 지우며 화면 전체 섬광·폭발·흔들림은 추가하지 않는다.
     /// </summary>
     public sealed class CardShatter : MonoBehaviour
     {
@@ -82,11 +82,19 @@ namespace Effects.Vfx
                 : new Color(0.76f, 0.89f, 1f, 1f);
 
             BuildGhost(view);
+            if(_portrait!=null)
+            {
+                float flash=Mathf.Max(_boss?BossFlashTime:NormalFlashTime,Time.timeScale*2f/60f);
+                float total=_boss?CardLifecycleFx.BossDepartureDuration:CardLifecycleFx.NormalDepartureDuration;
+                ErosionFx.Attach(_portrait,flash,0f,0f,Mathf.Max(.01f,total-flash),
+                    new Color(.90f,.94f,1f),_moteColor,new Color(.23f,.30f,.43f),radial:.20f);
+                _center=_portrait.bounds.center;
+            }
         }
 
         private void BuildGhost(UnitCardView view)
         {
-            _snapshot = view.CreateDeathSnapshot();
+            _snapshot = view.CreateDeathSnapshot(out _portrait);
             if (_snapshot == null)
             {
                 Destroy(gameObject);
@@ -103,8 +111,7 @@ namespace Effects.Vfx
             for (int i = 0; i < _sprites.Length; i++)
             {
                 _spriteColors[i] = _sprites[i].color;
-                if (string.Equals(_sprites[i].gameObject.name, "Portrait", StringComparison.Ordinal))
-                    _portrait = _sprites[i];
+                // 원화 참조는 snapshot 생성 시 직접 매핑했다. 오브젝트 이름에 의존하지 않는다.
             }
 
             _groups = _snapshot.GetComponentsInChildren<CanvasGroup>(true);
@@ -139,15 +146,15 @@ namespace Effects.Vfx
         private void Update()
         {
             _age += Time.deltaTime;
-            float flashTime = _boss ? BossFlashTime : NormalFlashTime;
-            float fadeTime = _boss ? BossFadeTime : NormalFadeTime;
+            float flashTime=Mathf.Max(_boss?BossFlashTime:NormalFlashTime,Time.timeScale*2f/60f);
+            float fadeTime=(_boss?CardLifecycleFx.BossDepartureDuration:CardLifecycleFx.NormalDepartureDuration)-flashTime;
             float flash = _age < flashTime ? Mathf.Sin(Mathf.Clamp01(_age / flashTime) * Mathf.PI) : 0f;
             float fade = Mathf.Clamp01((_age - flashTime) / fadeTime);
             float eased = fade * fade * (3f - 2f * fade);
             float opacity = 1f - eased;
 
             if (_flash != null)
-                _flash.color = new Color(1f, 1f, 1f, flash * (_boss ? 0.32f : 0.26f));
+                _flash.color = new Color(.86f, .90f, .96f, flash * (_boss ? 0.18f : 0.16f));
 
             if (_ghost != null)
             {
@@ -160,7 +167,7 @@ namespace Effects.Vfx
             if (!_motesEmitted && _age >= flashTime)
             {
                 _motesEmitted = true;
-                EmitLightMotes(_boss ? 20 : 12);
+                EmitLightMotes(_boss ? 10 : 6);
             }
 
             if (_age >= flashTime + fadeTime)
@@ -186,7 +193,7 @@ namespace Effects.Vfx
                     color.g = Mathf.Lerp(color.g, 1f, pale);
                     color.b = Mathf.Lerp(color.b, 1f, pale);
                 }
-                color.a = _spriteColors[i].a * opacity;
+                color.a = _spriteColors[i].a * (ReferenceEquals(renderer,_portrait)&&renderer.GetComponent<ErosionFx>()!=null?1f:opacity);
                 renderer.color = color;
             }
 
@@ -208,14 +215,14 @@ namespace Effects.Vfx
             VfxParticles.Burst(_center + Vector3.up * (_cardSize * 0.02f), new ParticleSpec
             {
                 Sprite = VfxSpace.SoftDot,
-                Additive = true,
+                Additive = false,
                 StartColor = new Color(light.r, light.g, light.b, 0.72f),
                 EndColor = new Color(_moteColor.r, _moteColor.g, _moteColor.b, 0f),
                 Lifetime = _boss ? new Vector2(0.34f, 0.58f) : new Vector2(0.24f, 0.42f),
                 Speed = new Vector2(0.20f * _cardSize, 0.62f * _cardSize),
                 Angle = 90f,
                 Spread = 42f,
-                StartSize = new Vector2(0.010f * _cardSize, 0.024f * _cardSize),
+                StartSize = new Vector2(0.025f * _cardSize, 0.044f * _cardSize),
                 EndSizeScale = 0.42f,
                 Gravity = -0.05f * _cardSize,
                 Drag = 1.7f,

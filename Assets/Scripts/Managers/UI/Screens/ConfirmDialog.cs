@@ -24,8 +24,8 @@ namespace Managers.UI.Screens
 
         protected override string Title => "확인";
         protected override string Caption => "CONFIRM";
-        protected override Vector2 AnchorMin => new(0.27f, 0.32f);
-        protected override Vector2 AnchorMax => new(0.73f, 0.68f);
+        protected override Vector2 AnchorMin => new(0.27f, 0.34f);
+        protected override Vector2 AnchorMax => new(0.73f, 0.66f);
 
         private TextMeshProUGUI _message;
         private Button _confirm;
@@ -41,7 +41,7 @@ namespace Managers.UI.Screens
 
         protected override void Build()
         {
-            _message = UIBuild.Text("Message", Body, "", UITheme.FontBody, UITheme.TextPrimary,
+            _message = UIBuild.Text("Message", Body, "", 22f, UITheme.TextPrimary,
                 TextAlignmentOptions.TopLeft, wrap: true);
             UIBuild.Anchor(_message.rectTransform, new Vector2(0f, 0.34f), new Vector2(1f, 1f));
 
@@ -49,12 +49,12 @@ namespace Managers.UI.Screens
             const float gap = 12f;
 
             _confirm = UIBuild.Button("Confirm", Body, "확인", Accept, primary: true);
-            UIBuild.Pin(_confirm.image.rectTransform, new Vector2(1f, 0f), new Vector2(width, 64f),
-                new Vector2(-width * 0.5f, 34f));
+            UIBuild.Pin(_confirm.image.rectTransform, new Vector2(1f, 0f), new Vector2(width, 44f),
+                new Vector2(-width * 0.5f, 24f));
 
             _cancel = UIBuild.Button("Cancel", Body, "취소", Cancel);
-            UIBuild.Pin(_cancel.image.rectTransform, new Vector2(1f, 0f), new Vector2(width, 64f),
-                new Vector2(-width * 1.5f - gap, 34f));
+            UIBuild.Pin(_cancel.image.rectTransform, new Vector2(1f, 0f), new Vector2(width, 44f),
+                new Vector2(-width * 1.5f - gap, 24f));
         }
 
         private void Open(string title, string message, string confirmText, Action onConfirm)

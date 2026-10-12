@@ -396,10 +396,10 @@ namespace Managers
         // 이제 HUD를 픽셀로 비워 두고 남은 영역에 전장을 맞춘다.
 
         /// <summary>상단 — 자원 띠(60) · 우상단 바(76) · 엘리트 체력 띠(112) 아래까지.</summary>
-        private const float TopHudPixels = 204f;
+        private const float TopHudPixels = 164f;
 
         /// <summary>하단 — 전투 중에는 가장자리 여백만.</summary>
-        private const float BottomHudPixelsBattle = 28f;
+        private const float BottomHudPixelsBattle = 40f;
 
         /// <summary>하단 — 준비 페이즈 바(<see cref="UI.Screens.PreparationScreen"/>)와 그 위 여백.</summary>
         private static float BottomHudPixelsPreparation =>
@@ -409,8 +409,8 @@ namespace Managers
         /// 좌우 레일은 폭이 다르므로 같은 최대값을 양쪽에서 빼지 않는다.
         /// 비대칭 안전 영역의 중심은 아래 카메라 보정에서 다시 맞춘다.
         /// </summary>
-        private const float LeftHudPixels = 196f;
-        private const float RightHudPixels = 270f;
+        private const float LeftHudPixels = 166f;
+        private const float RightHudPixels = 236f;
 
         /// <summary>카드 바깥으로 튀어나오는 보석 · 오라의 여유(월드 단위).</summary>
         private const float SummonOverhang = 0.5f;
@@ -512,6 +512,7 @@ namespace Managers
             }
 
             AdvanceCameraFrame();
+            AdvancePlacementLayout();
         }
 
         /// <summary>배치를 만질 수 있는 동안에만 빈 칸(=놓을 자리)을 보여 준다.</summary>
@@ -530,6 +531,39 @@ namespace Managers
         ///
         /// 정렬이 끝나면 카메라도 다시 잡는다. 인원이 줄면 그만큼 화면이 당겨진다.
         /// </summary>
+        private readonly Dictionary<Cell,Vector3> _placementFrom=new();
+        private readonly Dictionary<Cell,Vector3> _placementTo=new();
+        private float _placementElapsed=1f;
+        public void TransitionPlacementLayout()
+        {
+            _placementFrom.Clear();_placementTo.Clear();
+            if(_fieldCellManager!=null)
+                foreach(Cell cell in _fieldCellManager)
+                    if(cell!=null&&cell.isOccupied)_placementFrom[cell]=cell.transform.position;
+            _cameraMoveVelocity=Vector3.zero;_cameraSizeVelocity=0f;
+            RefreshFieldLayout();
+            foreach(var pair in _placementFrom)
+            {
+                _placementTo[pair.Key]=pair.Key.transform.position;
+                pair.Key.transform.position=pair.Value;
+                if(pair.Key.unit!=null)pair.Key.unit.transform.position=pair.Value;
+            }
+            _placementElapsed=0f;
+        }
+        private void AdvancePlacementLayout()
+        {
+            if(_placementElapsed>=.30f)return;
+            _placementElapsed+=Time.unscaledDeltaTime;
+            float t=Mathf.SmoothStep(0f,1f,Mathf.Clamp01(_placementElapsed/.30f));
+            foreach(var pair in _placementFrom)
+            {
+                if(pair.Key==null)continue;
+                Vector3 point=Vector3.Lerp(pair.Value,_placementTo[pair.Key],t);
+                pair.Key.transform.position=point;
+                if(pair.Key.unit!=null)pair.Key.unit.transform.position=point;
+            }
+        }
+
         public void RefreshFieldLayout()
         {
             if (_fieldCellManager == null) return;
@@ -772,6 +806,7 @@ namespace Managers
             void AddFormationSlot(Cell cell)
             {
                 if (cell == null || !cell.IsLaidOut || (!includeSlots && !cell.isOccupied)) return;
+                if(DragAndDropManager.Instance!=null&&DragAndDropManager.Instance.IsDragging()&&cell.xPos>0) return;
                 formationSlots.Add(cell.transform.position);
             }
             if (_fieldCellManager != null)
@@ -1415,6 +1450,8 @@ namespace Managers
                     if (cell != null) cell.reservedTime = 0f;
                 }
             }
+
+            Combat.PartyTreasury.EndBattle();
 
             // 다시 편성할 수 있도록 대기석을 되돌린다.
             SetBenchVisible(true);

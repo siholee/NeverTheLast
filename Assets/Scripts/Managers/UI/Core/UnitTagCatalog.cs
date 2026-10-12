@@ -37,6 +37,7 @@ namespace Managers.UI.Core
             new("Burst", "방출", "해당 유닛은 강력한 궁극기 위주의 전투 방식을 사용합니다.", "TAG_BURST"),
             new("Precision", "정밀", "해당 유닛은 지속적인 피해를 입힙니다.", "TAG_PRECISION"),
             new("FollowUp", "연속", "해당 유닛은 추가행동을 하거나, 추가행동을 지원하는 데 특화되어 있습니다.", "TAG_FOLLOW_UP"),
+            new("Toughness", "강인도", "강인도를 만들어 처치 연계를 열거나 삭감 효율을 높입니다.", "TAG_SUPPORT"),
             new("Support", "지원", "해당 유닛은 아군을 지원하는 데 특화되어 있습니다.", "TAG_SUPPORT"),
             new("Special", "특수", "해당 유닛은 특정 트리거로 발동되는 특수행동을 할 수 있습니다.", "TAG_BURST"),
             new("Control", "제어", "해당 유닛은 적을 방해하고 약화하는 데 특화되어 있습니다.", "TAG_CONTROL"),
@@ -52,6 +53,7 @@ namespace Managers.UI.Core
             new("Growth", "성장", "해당 유닛은 런 내내 영구 중첩을 쌓아 강해집니다.", "TAG_STURDY"),
             // 코드 전용 태그. 코드 카드의 칩이 유닛 태그와 같은 사전을 쓴다(Detail_17 §3).
             new("Universal", "범용", "누구에게 줘도 손해가 없는 코드입니다.", "TAG_SUPPORT"),
+            new("Treasury", "재보", "아군 파티가 공유하는 전투 자원을 충전하거나 소비합니다.", "TAG_SUPPORT"),
             new("Economy", "경제", "골드 · 경험치 같은 전투 밖 자원을 늘리는 코드입니다.", "TAG_SUPPORT"),
         };
 
@@ -77,22 +79,16 @@ namespace Managers.UI.Core
 
         public static Sprite Icon(Definition definition)
         {
-            if (Icons.TryGetValue(definition.IconPath, out Sprite cached) && cached != null) return cached;
-            Sprite icon = Resources.Load<Sprite>(definition.IconPath);
-            // 새 PNG의 .meta는 에디터가 만든다. 아직 Sprite 타입으로 바꾸지 않은 최초 임포트에서도
-            // 바로 보이도록 Texture2D 폴백을 둔다.
-            if (icon == null)
+            UIIcon icon = definition.Key switch
             {
-                Texture2D texture = Resources.Load<Texture2D>(definition.IconPath);
-                if (texture != null)
-                {
-                    icon = Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height),
-                        new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
-                    icon.name = definition.Key;
-                }
-            }
-            if (icon != null) Icons[definition.IconPath] = icon;
-            return icon;
+                "Swift" => UIIcon.Swift, "Burst" => UIIcon.Burst, "Precision" => UIIcon.Precision,
+                "FollowUp" => UIIcon.Counter, "Support" => UIIcon.Support, "Special" => UIIcon.Burst,
+                "Control" => UIIcon.Control, "Healing" => UIIcon.Heart, "Shielding" => UIIcon.Shield,
+                "Infusion" => UIIcon.Infusion, "Sturdy" => UIIcon.Armor, "Counter" => UIIcon.Counter,
+                "Summon" => UIIcon.Summon, "Domination" => UIIcon.Dot, "Indomitable" => UIIcon.Flame,
+                "Toughness" => UIIcon.Armor, "Treasury" => UIIcon.Coin, "Growth" => UIIcon.Growth, "Economy" => UIIcon.Coin, _ => UIIcon.Check,
+            };
+            return UILineIcons.Get(icon);
         }
 
         /// <summary>
@@ -118,7 +114,7 @@ namespace Managers.UI.Core
             {
                 Image chip = UIBuild.Panel($"Tag_{tag.Key}", parent, UITheme.SurfaceSunken,
                     UIShapes.Corner.Diagonal, 6, UITheme.Outline, 1);
-                chip.rectTransform.sizeDelta = new Vector2(72f, 30f);
+                chip.rectTransform.sizeDelta = new Vector2(84f, 32f);
 
                 Image icon = UIBuild.Solid("Icon", chip.transform, tint);
                 Sprite sprite = Icon(tag);
@@ -130,7 +126,7 @@ namespace Managers.UI.Core
                 UIBuild.Anchor(icon.rectTransform, new Vector2(0.08f, 0.14f), new Vector2(0.35f, 0.86f));
 
                 TextMeshProUGUI label = UIBuild.Text("Name", chip.transform, tag.Name,
-                    UITheme.FontMicro, tint, TextAlignmentOptions.Center);
+                    18f, tint, TextAlignmentOptions.Center);
                 label.raycastTarget = false;
                 UIBuild.Anchor(label.rectTransform, new Vector2(0.36f, 0f), new Vector2(0.96f, 1f));
 

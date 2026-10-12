@@ -25,7 +25,19 @@ namespace Managers.UI.Core
         /// <summary>파티 정원과 같다. 이보다 많은 후보는 들어올 수 없다.</summary>
         private const int MaxCards = 5;
 
+        /// <summary>
+        /// 후보 카드의 기준 크기와 간격(기준 해상도 px). 예전에는 판 폭을 후보 수로 나눈 비율 칸에 그림 · 이름 · 미리보기를
+        /// 띄워 두어 칸 사이가 비고 미리보기가 바닥에 떨어져 보였다(2026-10-08 1920 검수). 지금은 같은 크기의 흰 카드를
+        /// 가운데 모아 세우고, 남는 높이는 위아래에 똑같이 나눈다.
+        /// </summary>
+        private const float CardWidth = 236f;
+        private const float CardHeight = 340f;
+        private const float CardGap = 22f;
+        private const float GuideBand = 92f;
+        private const float BackBand = 72f;
+
         private readonly RectTransform _root;
+        private readonly RectTransform _stage;
         private readonly TextMeshProUGUI _guide;
         private readonly List<Card> _cards = new();
 
@@ -35,17 +47,28 @@ namespace Managers.UI.Core
             UIBuild.Stretch(_root);
 
             _guide = UIBuild.Text("Guide", _root, "", UITheme.FontReadBody, UITheme.TextSecondary,
-                TextAlignmentOptions.Center, wrap: true);
-            UIBuild.Anchor(_guide.rectTransform, new Vector2(0f, 0.86f), Vector2.one, 12f, 0f);
+                TextAlignmentOptions.Midline, wrap: true);
+            _guide.rectTransform.anchorMin = new Vector2(0f, 1f);
+            _guide.rectTransform.anchorMax = Vector2.one;
+            _guide.rectTransform.offsetMin = new Vector2(12f, -GuideBand + 8f);
+            _guide.rectTransform.offsetMax = new Vector2(-12f, 0f);
+
+            // 카드 무대 — 안내 줄과 돌아가기 줄 사이. 카드는 이 무대의 정중앙을 기준으로 좌우 대칭 배치한다.
+            _stage = UIBuild.Container("Cards", _root);
+            UIBuild.Stretch(_stage);
+            _stage.offsetMin = new Vector2(0f, BackBand);
+            _stage.offsetMax = new Vector2(0f, -GuideBand);
 
             for (int i = 0; i < MaxCards; i++)
             {
-                _cards.Add(new Card(_root, onPick));
+                _cards.Add(new Card(_stage, onPick));
             }
 
             Button back = UIBuild.Button("Back", _root, backLabel, () => onBack?.Invoke(), false, UITheme.FontReadSmall);
-            UIBuild.Anchor(back.GetComponent<RectTransform>(),
-                new Vector2(0.36f, 0.02f), new Vector2(0.64f, 0.11f));
+            RectTransform backRect = back.GetComponent<RectTransform>();
+            backRect.anchorMin = backRect.anchorMax = backRect.pivot = new Vector2(0.5f, 0f);
+            backRect.sizeDelta = new Vector2(320f, 48f);
+            backRect.anchoredPosition = new Vector2(0f, 4f);
 
             // 보상 · 상점 · 공용 보급이 함께 쓰는 선택 판이라 판 안의 22 이상 글자에만 가독 하한을 건다.
             UIScaledText.KeepReadable(_root);
@@ -62,9 +85,16 @@ namespace Managers.UI.Core
             if (candidates == null || candidates.Count == 0) return false;
 
             _guide.text = guide;
+            Canvas.ForceUpdateCanvases();
+            Vector2 stage = _stage.rect.size;
+            int count = Mathf.Min(candidates.Count, _cards.Count);
+            float width = stage.x > 100f
+                ? Mathf.Min(CardWidth, (stage.x - CardGap * (count - 1)) / Mathf.Max(1, count))
+                : CardWidth;
+            float height = stage.y > 100f ? Mathf.Min(CardHeight, stage.y - 12f) : CardHeight;
             for (int i = 0; i < _cards.Count; i++)
             {
-                _cards[i].Bind(i < candidates.Count ? candidates[i] : null, preview, i, candidates.Count);
+                _cards[i].Bind(i < candidates.Count ? candidates[i] : null, preview, i, count, new Vector2(width, height));
             }
 
             _root.gameObject.SetActive(true);
@@ -81,41 +111,61 @@ namespace Managers.UI.Core
 
             public Card(Transform parent, Action<Unit> onPick)
             {
-                _root = UIBuild.Panel("Target", parent, UITheme.SurfaceSunken,
-                    UIShapes.Corner.Diagonal, 10, UITheme.Outline, 1);
+                // 흰 카드 한 장 — 위 62%는 초상 창(카드 폭에 맞춰 머리 위부터 잘라 낸 원화), 아래는 이름과 결과 미리보기.
+                _root = UIBuild.Solid("Target", parent, Color.white);
+                _root.sprite = UIArtDirection.Sheet(14);
+                _root.type = Image.Type.Sliced;
                 UIBuild.OnClick(_root.gameObject, () => onPick?.Invoke(_unit));
 
+                Image well = UIBuild.Solid("PortraitWell", _root.transform, Color.white);
+                well.sprite = UIShapes.RoundedRect(10, new Color(UITheme.Accent.r, UITheme.Accent.g, UITheme.Accent.b, 0.05f));
+                well.type = Image.Type.Sliced;
+                well.raycastTarget = false;
+                UIBuild.Anchor(well.rectTransform, new Vector2(0f, 0.38f), Vector2.one);
+                well.rectTransform.offsetMin = new Vector2(8f, 0f);
+                well.rectTransform.offsetMax = new Vector2(-8f, -8f);
+
                 var portraitObject = new GameObject("Portrait", typeof(RectTransform), typeof(Image));
-                portraitObject.transform.SetParent(_root.transform, false);
+                portraitObject.transform.SetParent(well.transform, false);
                 _portrait = portraitObject.GetComponent<Image>();
                 _portrait.preserveAspect = true;
                 _portrait.raycastTarget = false;
-                UIBuild.Anchor(_portrait.rectTransform, new Vector2(0f, 0.36f), new Vector2(1f, 0.90f), 10f, 0f);
+                UIBuild.Stretch(_portrait.rectTransform, 2f, 2f);
 
-                _name = UIBuild.Text("Name", _root.transform, "", UITheme.FontReadHeading,
-                    UITheme.TextPrimary, TextAlignmentOptions.Center, wrap: true);
-                UIBuild.Anchor(_name.rectTransform, new Vector2(0f, 0.25f), new Vector2(1f, 0.36f), 8f, 0f);
+                _name = UIBuild.Text("Name", _root.transform, "", 24f,
+                    UITheme.TextPrimary, TextAlignmentOptions.Midline, wrap: true);
+                _name.fontStyle = FontStyles.Bold;
+                UIBuild.Anchor(_name.rectTransform, new Vector2(0f, 0.26f), new Vector2(1f, 0.37f), 10f, 0f);
+
+                Image rule = UIBuild.Divider("Rule", _root.transform);
+                rule.raycastTarget = false;
+                UIBuild.Anchor(rule.rectTransform, new Vector2(0.2f, 0.25f), new Vector2(0.8f, 0.25f));
+                rule.rectTransform.sizeDelta = new Vector2(0f, 1f);
 
                 _preview = UIBuild.Text("Preview", _root.transform, "", UITheme.FontReadSmall,
-                    UITheme.AccentDim, TextAlignmentOptions.Center, wrap: true);
-                UIBuild.Anchor(_preview.rectTransform, new Vector2(0f, 0.03f), new Vector2(1f, 0.25f), 6f, 0f);
+                    UITheme.AccentDim, TextAlignmentOptions.Midline, wrap: true);
+                UIBuild.Anchor(_preview.rectTransform, new Vector2(0f, 0.03f), new Vector2(1f, 0.24f), 10f, 0f);
             }
 
-            public void Bind(Unit unit, Func<Unit, string> preview, int index, int count)
+            public void Bind(Unit unit, Func<Unit, string> preview, int index, int count, Vector2 size)
             {
                 _unit = unit;
                 _root.gameObject.SetActive(unit != null);
                 if (unit == null) return;
 
-                float width = 1f / Mathf.Max(1, count);
-                UIBuild.Anchor(_root.rectTransform,
-                    new Vector2(index * width, 0.14f), new Vector2((index + 1) * width, 0.84f), 8f, 0f);
+                RectTransform rect = _root.rectTransform;
+                rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0.5f);
+                rect.sizeDelta = size;
+                rect.anchoredPosition = new Vector2((index - (count - 1) * 0.5f) * (size.x + CardGap), 0f);
 
                 Sprite portrait = SpriteResource.LoadPortrait(unit.PortraitPath);
-                _portrait.sprite = portrait;
+                float aspect = Mathf.Max(0.4f, (size.x - 20f) / Mathf.Max(1f, size.y * 0.62f - 12f));
+                Sprite window = portrait != null ? Managers.UI.Screens.ScreenKit.PortraitWindow(portrait, aspect) : null;
+                _portrait.sprite = window != null ? window : portrait;
                 _portrait.enabled = portrait != null;
                 _name.text = unit.UnitName;
-                _preview.text = preview?.Invoke(unit) ?? "";
+                // 결과를 두 줄로 구분해 한글 음절 중간 줄바꿈을 피한다.
+                _preview.text = (preview?.Invoke(unit) ?? "").Replace(" — ", "\n");
             }
         }
     }

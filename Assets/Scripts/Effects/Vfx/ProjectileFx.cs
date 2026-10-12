@@ -86,14 +86,15 @@ namespace Effects.Vfx
     /// </summary>
     public static class ProjectileFx
     {
-        /// <summary>기본 비접촉 공격용 Hovl 세트. 비가산 받침과 짧은 리본이 흰 전장에서 실루엣을 남긴다.</summary>
+        /// <summary>이전 비접촉/흡수 경로의 수치 호환. 실제 시전·착탄은 구매 손그림을 쓴다.</summary>
         public static ProjectileStyle ElementStyle(BaseEnums.UnitElement element, float scale = 1f)
         {
             HovlProjectileSet hovl = HovlFx.ForElement(element, scale);
             return new ProjectileStyle
             {
                 Hovl = hovl,
-                Body = null,
+                Body = VfxArt.Streak,
+                BodyColor = BattleVfxStyle.Body(hovl.Tint, hovl.Tint),
                 BodyUnderlay = VfxArt.Streak,
                 BodyUnderlayColor = hovl.UnderlayColor,
                 BodyUnderlayScale = 1f,
@@ -144,7 +145,7 @@ namespace Effects.Vfx
             SpriteRenderer body = null;
             if (style.Body != null && style.BodyColor.a > 0f)
             {
-                body = VfxSpace.NewSprite(root.transform, "Body", style.Body, style.BodyColor,
+                body = VfxSpace.NewSprite(root.transform, "Body", style.Body, hovl != null ? BattleVfxStyle.Body(hovl.Tint, hovl.Tint) : style.BodyColor,
                     sortingLayer, VfxSpace.OverlaySortingOrder + 1, style.BodyAdditive);
             }
             SpriteRenderer shell = null;
@@ -168,19 +169,16 @@ namespace Effects.Vfx
             Core.VerifyEvents.Raise("projectile_launch");
 #endif
             style.OnLaunch?.Invoke(origin, launchDirection);
-            GameObject hovlProjectile = null;
             if (hovl != null)
             {
-                HovlFx.PlayFlash(hovl, origin, launchDirection, cardSize,
+                CommonHandpaintFx.Flash(hovl, origin, launchDirection, cardSize,
                     sortingLayer, VfxSpace.OverlaySortingOrder + 4);
-                hovlProjectile = HovlFx.SpawnProjectile(hovl, origin, launchDirection,
-                    sortingLayer, VfxSpace.OverlaySortingOrder + 3);
             }
 
             float elapsed = 0f;
             // 비행체는 출발·중간·착탄의 세 위치가 있어야 방향이 읽힌다.
             float duration = VfxTiming.AtLeastFrames(Mathf.Max(0.05f, style.Duration), 3);
-            float rotation = UnityEngine.Random.Range(0f, 360f);
+            float rotation = PresentationRandom.Range(0f, 360f);
             float trailDistance = 0f;
             Vector3 previous = origin;
             float bodySize = style.BodySize * cardSize;
@@ -219,11 +217,7 @@ namespace Effects.Vfx
                     shell.transform.localScale = new Vector3(shellGrow * style.ShellAspect, shellGrow, 1f);
                 }
 
-                Vector3 visualDirection = delta.sqrMagnitude > 0.0001f ? delta.normalized : launchDirection;
-                HovlFx.MoveProjectile(hovlProjectile, position, visualDirection,
-                    hovl != null ? hovl.RotationOffset : 0f);
-
-                if (style.Trail.Sprite != null)
+if (style.Trail.Sprite != null)
                 {
                     trailDistance += delta.magnitude;
                     while (trailDistance >= style.TrailSpacing)
@@ -243,14 +237,13 @@ namespace Effects.Vfx
 
             Vector3 direction = (lastEnd - Arc(origin, lastEnd, style.ArcHeight, 0.9f)).normalized;
             VfxArt.ReleaseTrail(ribbon);
-            HovlFx.StopAndRelease(hovlProjectile, 0.02f);
-            UnityEngine.Object.Destroy(root);
+UnityEngine.Object.Destroy(root);
             Effects.BattlefieldBackdrop.PushFocus(0.20f, 0f, 0.08f, 0.20f,
                 new Color(0.022f, 0.048f, 0.078f, 1f), lastEnd);
             Effects.BattlefieldBackdrop.PulseFlash(Color.white, 0.035f, 0.065f);
             if (hovl != null)
             {
-                HovlFx.PlayHit(hovl, lastEnd, direction, cardSize,
+                CommonHandpaintFx.Hit(hovl, lastEnd, direction, cardSize,
                     sortingLayer, VfxSpace.OverlaySortingOrder + 5);
             }
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

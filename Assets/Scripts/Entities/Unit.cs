@@ -19,9 +19,9 @@ namespace Entities
     ///   · 피해는 <b>공격자 레벨 기준</b> 경감 — 받는 피해 = 피해 × K / (K + 방어 스탯).
     ///     대부분의 피해는 방어력, 지속피해 · 원소 반응은 특수방어력, 고정 피해는 경감 없음.
     ///   · 궁극기 마나는 <b>행동과 피격</b>으로 찬다(일반행동 +20 · 피격 +5 · 처치 +10).
-    ///   · 옛 캐릭터 전용 체계(소환수 · 강인도 · 내구 · 중량 · 시약 · 레벨 해금 패시브)는 걷어냈다.
+    ///   · 옛 캐릭터 전용 체계(내구 · 중량 · 시약 · 레벨 해금 패시브)는 걷어냈다.
     /// </summary>
-    public class Unit : MonoBehaviour
+    public partial class Unit : MonoBehaviour
     {
         /// <summary>모든 진영의 사망을 관찰하는 전역 이벤트. (쓰러진 쪽, 공격자)</summary>
         public static event Action<Unit, Unit> AnyUnitDied;
@@ -297,6 +297,7 @@ namespace Entities
             grantedPassiveCodeIds = new List<int>();
             rewardCodeSlots = Enumerable.Repeat(0, RewardCodeSlotCount).ToList();
             storedRewardCodeIds = new List<int>();
+            ResetRewardGrowth();
             unitTags = new List<string>();
             archetypeTags = new List<string>();
             unitTier = "";
@@ -306,6 +307,7 @@ namespace Entities
             _combatElements.Clear();
             _judgementElements.Clear();
             _temporaryElementDurations.Clear();
+            ClearToughness();
             _combatResources.Clear();
             _combatResourceMaximums.Clear();
             _combatResourceOrder.Clear();
@@ -328,7 +330,7 @@ namespace Entities
             AddListener<EventContext>(BaseEnums.UnitEventType.OnTakingDamage, DefaultTakeDamageEvent);
             AddListener<EventContext>(BaseEnums.UnitEventType.OnRoundStart, DefaultRoundStartEvent);
             AddListener<EventContext>(BaseEnums.UnitEventType.OnRoundEnd, DefaultRoundEndEvent);
-            AddListener<EventContext>(BaseEnums.UnitEventType.OnNormalActionResolved, _ => RecoverMana(ManaPerNormalAction));
+            AddListener<EventContext>(BaseEnums.UnitEventType.OnNormalActionResolved, _ => { RecoverMana(ManaPerNormalAction); Combat.ActionDot.OnNormalResolved(this); });
         }
 
         protected virtual void LoadData(bool _isEnemy, int _id)
@@ -467,7 +469,7 @@ namespace Entities
                 var stat = (BaseEnums.StatType)i;
                 float baseValue = stats.LeveledBase(stat);
                 float percent = 0f;
-                float flat = 0f;
+                float flat = NectarStatBonus(stat);
                 foreach (BaseEffect effect in effects)
                 {
                     percent += effect.StatPercentModifier(this, stat);
@@ -649,16 +651,21 @@ namespace Entities
             int at = slots.IndexOf(oldCodeId);
             if (at >= 0) slots[at] = newCodeId;
             else { at = stored.IndexOf(oldCodeId); if (at < 0) return false; stored[at] = newCodeId; }
-            return ApplyRewardCodeInventory(slots, stored);
+            var si=RewardCodeSlotInstances.ToList();var bi=StoredRewardCodeInstances.ToList();
+            int activeAt=rewardCodeSlots.IndexOf(oldCodeId);
+            var old=activeAt>=0?si[activeAt]:bi[storedRewardCodeIds.IndexOf(oldCodeId)];
+            var changed=old.Copy();changed.codeId=newCodeId;
+            bool sameCapacitor=Codes.Base.RewardCodeCatalog.Find(oldCodeId)?.capacitorStat == Codes.Base.RewardCodeCatalog.Find(newCodeId)?.capacitorStat;
+            changed.charge=sameCapacitor?Mathf.Min(changed.charge,Codes.Base.RewardCodeCatalog.Find(newCodeId)?.capacitorCap??0):0;
+            if(activeAt>=0)si[activeAt]=changed;else bi[storedRewardCodeIds.IndexOf(oldCodeId)]=changed;
+            return ApplyRewardCodeInventory(slots, stored,si,bi);
         }
 
         public bool RemoveRewardCode(int codeId)
         {
-            var slots = rewardCodeSlots.ToList(); var stored = storedRewardCodeIds.ToList();
-            int at = slots.IndexOf(codeId);
-            if (at >= 0) slots[at] = 0;
-            else if (!stored.Remove(codeId)) return false;
-            return ApplyRewardCodeInventory(slots, stored);
+            // 동일 코드가 활성·보관에 각각 있어도 제거한 한 장의 저장치만 사라진다.
+            var instance = ActiveRewardInstance(codeId) ?? StoredRewardCodeInstances.FirstOrDefault(x => x.codeId == codeId);
+            return instance != null && RemoveRewardCodeInstance(instance.instanceId);
         }
 
         /// <summary>이동의 양쪽을 검사한 뒤에만 호출한다. 보관 코드는 패시브/스탯/보상 태그에 참여하지 않는다.</summary>
@@ -672,9 +679,11 @@ namespace Entities
                 Codes.Passive.Reward.RewardCodeFactory.IsImplemented(id));
         }
 
-        internal bool ApplyRewardCodeInventory(IReadOnlyList<int> slots, IReadOnlyList<int> stored)
+        internal bool ApplyRewardCodeInventory(IReadOnlyList<int> slots, IReadOnlyList<int> stored,
+            IReadOnlyList<Core.RewardCodeInstanceData> slotState = null, IReadOnlyList<Core.RewardCodeInstanceData> storageState = null)
         {
             if (!ValidRewardCodeInventory(slots, stored)) return false;
+            if(!BuildRewardInstances(slots,stored,slotState,storageState,out var nextSlots,out var nextStored)) return false;
             var newIds = slots.Where(id => id > 0).ToList();
             var additions = new List<PassiveCode>();
             foreach (int id in newIds.Where(id => !RewardCodeIds.Contains(id)))
@@ -690,6 +699,7 @@ namespace Entities
             grantedPassiveCodeIds.RemoveAll(Codes.Base.RewardCodeCatalog.IsRewardCode);
             grantedPassiveCodeIds.AddRange(newIds);
             rewardCodeSlots = slots.ToList(); storedRewardCodeIds = stored.ToList();
+            _rewardSlotInstances=nextSlots; _rewardStorageInstances=nextStored;
             AttributesUpdate();
             return true;
         }
@@ -774,9 +784,26 @@ namespace Entities
                 return;
             }
 
+            bool deferred = UltimateCode.DefersActivationUntilImpact;
+            if (!deferred)
+            {
+                if (ultimateResourceType != BaseEnums.UltimateResourceType.Passive) ManaCurr = 0;
+                RefreshView();
+            }
+            UltimateCode.CastCode();
+            if (!deferred) NotifyUltimateActivation();
+        }
+
+        /// <summary>초월기 자원과 발동 알림은 행동당 한 번. 지연형은 첫 탄 판정 직전에 호출한다.</summary>
+        public void CommitUltimateActivation()
+        {
             if (ultimateResourceType != BaseEnums.UltimateResourceType.Passive) ManaCurr = 0;
             RefreshView();
-            UltimateCode.CastCode();
+            NotifyUltimateActivation();
+        }
+
+        private void NotifyUltimateActivation()
+        {
             Invoke(BaseEnums.UnitEventType.OnUltimateActivates, new EventContext(this));
             AnyUltimateCast?.Invoke(this);
         }
@@ -849,6 +876,8 @@ namespace Entities
             if (context == null) return;
             // 광역 공격은 같은 컨텍스트를 여러 대상에게 재사용하므로 대상마다 초기화한다.
             context.ResolvedDamage = 0;
+            context.HpDamage = 0;
+            context.ToughnessBroken = false;
             if (!isActive || IsUntargetable)
             {
                 context.IsCancelled = true;
@@ -908,6 +937,8 @@ namespace Entities
             int shieldLost = Mathf.Max(0, shieldBefore - ShieldCurr);
             int damageDealt = hpLost + shieldLost;
             dmgCtx.ResolvedDamage = damageDealt;
+            dmgCtx.HpDamage = hpLost;
+            ReduceToughness(dmgCtx);
 
             // 맞은 쪽의 반응(숫자 · 카드 흔들림)은 전부 여기 한 곳에서 난다.
             Effects.CombatFeedback.PlayDamage(this, dmgCtx, hpLost, shieldLost);
@@ -927,6 +958,7 @@ namespace Entities
             }
 
             if (HpCurr <= 0) Die(dmgCtx.Attacker);
+            else if (isActive && dmgCtx.ToughnessBroken) Combat.Toughness.Publish(this, dmgCtx.Attacker, true);
         }
 
         /// <summary>
@@ -944,6 +976,11 @@ namespace Entities
             if (dmgCtx.Attacker != null)
             {
                 outgoing *= Combat.Battlefield.OutgoingMultiplier(dmgCtx.Attacker);
+                float damageBonus = Codes.Passive.Reward.TreasuryRewardCode.DamageBonus(dmgCtx);
+                if (dmgCtx.HasTag(DamageTag.UltAttack))
+                    damageBonus += dmgCtx.Attacker.ActiveEffectObjects().Sum(effect => effect.UltimateDamageBonus(dmgCtx.Attacker));
+                outgoing *= 1f + Mathf.Max(0f, damageBonus);
+                defenseMultiplier *= Codes.Passive.Reward.TreasuryRewardCode.DefenseMultiplier(dmgCtx);
                 foreach (BaseEffect effect in dmgCtx.Attacker.ActiveEffectObjects())
                 {
                     outgoing *= effect.OutgoingDamageModifier(dmgCtx.Attacker, this, dmgCtx);
@@ -966,6 +1003,7 @@ namespace Entities
                 mitigation = UnitStats.MitigationMultiplier(defense, UnitStats.ArmorConstant(attackerLevel));
             }
 
+            if (dmgCtx.IsDamageOverTime) outgoing *= Codes.Passive.TsukuyomiNight.DotMultiplier(dmgCtx.Attacker);
             float scaled = dmgCtx.Damage * outgoing * mitigation * receiving;
             if (scaled <= 0f) return 0;
             return Mathf.Max(1, Mathf.RoundToInt(scaled));
@@ -982,15 +1020,13 @@ namespace Entities
             if (IsSummon) GetComponent<Entities.View.SummonCardView>()?.Depart();
             else Effects.Vfx.CardLifecycleFx.PlayDestroy(this);
             if (UltimateCode?.IsPersistent == true) UltimateCode.StopCode();
+            Combat.ActionDot.RememberSource(this);
             Invoke(BaseEnums.UnitEventType.OnDeath, new EventContext(this, attacker));
             AnyUnitDied?.Invoke(this, attacker);
-            if (attacker != null && attacker != this)
-            {
-                attacker.Invoke(BaseEnums.UnitEventType.OnKill, new EventContext(attacker, this));
-                attacker.RecoverMana(ManaPerKill);
-            }
+            Combat.Toughness.Publish(this, attacker, false);
             // 소환수는 처치 보상(골드 · EXP · 드랍)을 주지 않는다. 사망 판정 자체는 위에서 이미 났다.
             if (isEnemy && !IsSummon) GameManager.Instance?.OnKillEnemy(this);
+            ClearToughness();
             DeactivateUnit();
             if (IsSummon) GridManager.Instance?.ForgetSummon(this);
         }
@@ -1000,11 +1036,11 @@ namespace Entities
         // ══════════════════════════════════════════════════════
 
         /// <summary>체력을 회복한다. 받는 치유 · 주는 치유 배율을 탄다.</summary>
-        public void Heal(int amount, Unit source = null)
+        public void Heal(int amount, Unit source = null, bool treasurySpent = false)
         {
             if (amount <= 0 || !isActive) return;
 
-            float multiplier = GetOutgoingSupportMultiplier(source, false);
+            float multiplier = GetOutgoingSupportMultiplier(source, false, treasurySpent);
             foreach (BaseEffect effect in ActiveEffectObjects()) multiplier *= effect.HealingReceivedMultiplierModifier(this);
             int healing = Mathf.Max(0, Mathf.RoundToInt(amount * multiplier));
             int before = HpCurr;
@@ -1046,9 +1082,9 @@ namespace Entities
             return restored;
         }
 
-        public virtual void AddShield(int amount, Unit source = null)
+        public virtual void AddShield(int amount, Unit source = null, bool treasurySpent = false)
         {
-            amount = ScaleShield(amount, source);
+            amount = ScaleShield(amount, source, treasurySpent);
             if (amount <= 0) return;
             ShieldMax += amount;
             ShieldCurr += amount;
@@ -1078,14 +1114,14 @@ namespace Entities
             RefreshView();
         }
 
-        private int ScaleShield(int amount, Unit source)
+        private int ScaleShield(int amount, Unit source, bool treasurySpent = false)
         {
-            float multiplier = GetOutgoingSupportMultiplier(source, true);
+            float multiplier = GetOutgoingSupportMultiplier(source, true, treasurySpent);
             foreach (BaseEffect effect in ActiveEffectObjects()) multiplier *= effect.ShieldReceivedMultiplierModifier(this);
             return Mathf.Max(0, Mathf.RoundToInt(amount * multiplier));
         }
 
-        private float GetOutgoingSupportMultiplier(Unit source, bool shield)
+        private float GetOutgoingSupportMultiplier(Unit source, bool shield, bool treasurySpent = false)
         {
             if (source == null) return 1f;
             float multiplier = 1f;
@@ -1095,7 +1131,7 @@ namespace Entities
                     ? effect.OutgoingShieldMultiplierModifier(source, this)
                     : effect.OutgoingHealingMultiplierModifier(source, this);
             }
-            return Mathf.Max(0f, multiplier);
+            return Mathf.Max(0f, multiplier + Codes.Passive.Reward.TreasuryRewardCode.SupportBonus(source, treasurySpent));
         }
 
         // ══════════════════════════════════════════════════════
@@ -1183,6 +1219,8 @@ namespace Entities
             _temporaryElementDurations[elementToGrant] = Mathf.Max(1, duration > 0 ? duration : CommonElementAuraDuration);
             RefreshView();
             AnyCombatElementGranted?.Invoke(source, this, elementToGrant);
+            Effects.StatusPopup.ShowElement(this, elementToGrant, !added);
+            Effects.Vfx.ElementReactionFx.Attachment(this, elementToGrant);
 
             // added == false는 같은 원소가 이미 붙어 있었다는 뜻이다 — 같은 원소 반응의 재료가 된다.
             if (!suppressReaction) Effects.Negative.ElementalReaction.TryResolve(this, elementToGrant, source, !added);
@@ -1198,7 +1236,10 @@ namespace Entities
         }
 
         internal static void NotifyElementalReaction(Unit source, Unit target, string reactionName)
-            => AnyElementalReaction?.Invoke(source, target, reactionName);
+        {
+            AnyElementalReaction?.Invoke(source, target, reactionName);
+            Effects.Vfx.ElementReactionFx.Reaction(target, reactionName);
+        }
 
         internal static void NotifyStatusChanged(Unit owner, Status.UnitStatus status, bool added)
             => AnyStatusChanged?.Invoke(owner, status, added);
@@ -1310,6 +1351,7 @@ namespace Entities
         public void BeginTurn()
         {
             TurnCount++;
+            RecoverToughnessOnNormalTurn();
             if (ControlAppliedCount > 0 &&
                 TurnCount - LastControlledTurn >= Effects.Negative.ControlStatuses.DiminishResetTurns)
             {
@@ -1326,7 +1368,7 @@ namespace Entities
         /// <summary>자기 턴의 행동이 모두 끝났을 때 스케줄러가 부른다.</summary>
         public void EndTurn() => Invoke(BaseEnums.UnitEventType.OnTurnEnd, new EventContext(this));
 
-        internal void PrepareRoundResources() => TurnCount = 0;
+        internal void PrepareRoundResources() { TurnCount = 0; ClearToughness(); }
 
         protected void DefaultRoundStartEvent(EventContext context)
         {
@@ -1339,6 +1381,7 @@ namespace Entities
             _reactionCooldowns.Clear();
             ResetCombatElements();
             CastPassiveCode();
+            Combat.Toughness.Ensure(this);
             if (UltimateCode?.IsPersistent == true) UltimateCode.CastCode();
         }
 
@@ -1350,6 +1393,7 @@ namespace Entities
             if (UltimateCode?.IsPersistent == true) UltimateCode.StopCode();
             foreach (PassiveCode code in PassiveCodes) code?.StopCode();
             ResetCombatElements();
+            ClearToughness();
             _combatResources.Clear();
             _combatResourceMaximums.Clear();
             _combatResourceOrder.Clear();
@@ -1377,6 +1421,7 @@ namespace Entities
                 ApplyRewardCodeInventory(saveData.activeRewardCodeSlots, saveData.storedRewardCodeIds ?? new List<int>());
             else if (saveData.storedRewardCodeIds?.Count > 0)
                 ApplyRewardCodeInventory(rewardCodeSlots, saveData.storedRewardCodeIds);
+            RestoreRewardGrowth(saveData);
             _permanentStacks.Clear();
             _permanentStackFractions.Clear();
             foreach (Core.PermanentStackSaveData stack in saveData.permanentStacks ?? new List<Core.PermanentStackSaveData>())
@@ -1405,6 +1450,7 @@ namespace Entities
             saveData.grantedPassiveCodeIds = grantedPassiveCodeIds.ToList();
             saveData.activeRewardCodeSlots = rewardCodeSlots.ToList();
             saveData.storedRewardCodeIds = storedRewardCodeIds.ToList();
+            WriteRewardGrowth(saveData);
             saveData.permanentStacks = PermanentStackKeys.Select(key => new Core.PermanentStackSaveData
             {
                 key = key,
@@ -1548,4 +1594,3 @@ namespace Entities
         }
     }
 }
-

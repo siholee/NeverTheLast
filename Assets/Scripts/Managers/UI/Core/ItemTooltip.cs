@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Managers.UI.Theme;
 using UnityEngine;
@@ -37,6 +37,9 @@ namespace Managers.UI.Core
         public static string EffectLine(ItemData item)
         {
             if (item == null) return "";
+            if(item.IsNectar && item.nectarFlatStats!=null)
+                return "선택 아군에게 런 영구 적용 · "+string.Join(" · ",System.Linq.Enumerable.Select(item.nectarFlatStats,pair=>
+                    $"{StatName(pair.Key)} +{pair.Value:0.#}{(IsPointStat(pair.Key)?"%p":"")}"));
             if (item.IsFood) return $"긴 휴식 식량 +{item.foodValue}";
             if (item.IsSeal) return $"보상 코드 하나를 같은 칸에서 한 단계 승급 (최대 T{item.sealMaxTier})";
             if (item.transferScroll) return "Tab에서 무료 드래그 이동 (기존 저장용, 소모 없음)";
@@ -79,6 +82,7 @@ namespace Managers.UI.Core
             "Valuable" => "귀중품",
             "Consumable" => "소모품",
             "Tonic" => "전투 비약",
+            "Nectar" => "영구 성장 넥타르",
             "CodeTool" => "코드 도구",
             _ => string.IsNullOrWhiteSpace(category) ? "아이템" : category,
         };

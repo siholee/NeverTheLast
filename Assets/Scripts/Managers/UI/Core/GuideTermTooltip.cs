@@ -44,6 +44,7 @@ namespace Managers.UI.Core
             int parent = source == null ? -1 : _cards.FindLastIndex(c => source.transform.IsChildOf(c.Root));
             Trim(parent + 1);
             if (_cards.Count >= 4) return;
+            if (UIDragSource.Current != null) return;
             Image panel = UIBuild.Panel("Term_" + article.Id, _canvas, UITheme.SurfaceRaised,
                 UIShapes.Corner.Diagonal, 8, UITheme.Outline, 1);
             RectTransform root = panel.rectTransform;
@@ -52,7 +53,7 @@ namespace Managers.UI.Core
             _cards.Add(card);
             var stripe = UIBuild.Solid("TermLine", root, UITheme.Accent);
             UIBuild.Anchor(stripe.rectTransform, new Vector2(0, 1), Vector2.one);
-            stripe.rectTransform.sizeDelta = new Vector2(-32, 3); stripe.rectTransform.anchoredPosition = new Vector2(0, -2);
+            stripe.rectTransform.sizeDelta = new Vector2(-32, 1); stripe.rectTransform.anchoredPosition = new Vector2(0, -2);
             var category = UIBuild.Text("Chapter", root, $"용어  /  {article.Chapter}", UITheme.FontReadSmall, UITheme.TextMuted);
             UIBuild.Pin(category.rectTransform, new Vector2(0, 1), new Vector2(364, 30), new Vector2(18, -16));
             var title = UIBuild.Text("Title", root, article.Title, UITheme.FontReadHeading, UITheme.TextPrimary);
@@ -64,31 +65,60 @@ namespace Managers.UI.Core
             UIBuild.Pin(body.rectTransform, new Vector2(0, 1), new Vector2(364, bodyHeight), new Vector2(18, -94));
             float y = 100 + bodyHeight;
             var related = UIBuild.Text("Related", root,
-                string.Join("  ·  ", article.Related.Take(3).Select(k => $"<link=\"term:{k}\"><color=#177DA5><u>{GameGuideCatalog.Find(k)?.Title}</u></color></link>")),
+                string.Join("  ·  ", article.Related.Take(3).Select(k => $"<link=\"term:{k}\"><color=#21365C><u>{GameGuideCatalog.Find(k)?.Title}</u></color></link>")),
                 UITheme.FontReadSmall, UITheme.TextSecondary, TextAlignmentOptions.TopLeft, true);
             float relatedHeight = related.GetPreferredValues(related.text, 364, 0).y;
             UIBuild.Pin(related.rectTransform, new Vector2(0, 1), new Vector2(364, relatedHeight), new Vector2(18, -y));
             y += relatedHeight + 14;
-            Button read = UIBuild.Button("ReadGuide", root, "자료실에서 자세히 읽기  ›", () => GameTermLinks.OpenArticle(article.Id), true);
+            Button read = UIBuild.Button("ReadGuide", root, "자료실에서 자세히 읽기  ›", () => GameTermLinks.OpenArticle(article.Id), false);
             read.GetComponentInChildren<TextMeshProUGUI>().text = "자료실에서 자세히 읽기  ›";
             read.GetComponentInChildren<TextMeshProUGUI>().fontSize = UITheme.FontReadSmall;
             UIBuild.Pin(read.image.rectTransform, new Vector2(0, 1), new Vector2(364, 42), new Vector2(18, -y));
+            read.image.sprite=UIShapes.RoundedRect(4,Color.clear);
+            read.GetComponentInChildren<TextMeshProUGUI>().color=UITheme.Accent;
             y += 52;
             var hint = UIBuild.Text("PinHint", root, "잠시 머무르면 고정 · ESC로 닫기", UITheme.FontReadSmall, UITheme.TextMuted);
             hint.enableAutoSizing = true; hint.fontSizeMin = UITheme.FontReadFloor; hint.fontSizeMax = UITheme.FontReadSmall;
             UIBuild.Pin(hint.rectTransform, new Vector2(0, 1), new Vector2(364, 28), new Vector2(18, -y));
             root.sizeDelta = new Vector2(400, y + 42);
+            UIBuild.Elevate(panel, 22, .13f, 6);
             card.Group.blocksRaycasts = pinned;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(_canvas, point, null, out Vector2 local);
-            Rect bounds = _canvas.rect; float x = local.x + 14, top = local.y + 16;
-            if (parent >= 0)
+            Rect bounds = _canvas.rect;
+            const float gap = 12f;
+            float width = root.sizeDelta.x, height = root.sizeDelta.y;
+            Vector2 Clamp(Vector2 position) => new Vector2(
+                Mathf.Clamp(position.x,bounds.xMin+gap,bounds.xMax-width-gap),
+                Mathf.Clamp(position.y,bounds.yMin+height+gap,bounds.yMax-gap));
+            Rect Box(Card c) => new Rect(c.Root.anchoredPosition.x,c.Root.anchoredPosition.y-c.Root.sizeDelta.y,c.Root.sizeDelta.x,c.Root.sizeDelta.y);
+            Vector2 initial = new Vector2(local.x+gap,local.y-16f);
+            if (initial.y-height<bounds.yMin+gap) initial.y=local.y+height+16f;
+            if(parent>=0)
             {
-                Card prior = _cards[parent]; x = prior.Root.anchoredPosition.x + 390; top = prior.Root.anchoredPosition.y - 36;
-                if (x + 400 > bounds.xMax) x = prior.Root.anchoredPosition.x - 390;
+                Card prior=_cards[parent]; Rect priorBox=Box(prior);
+                var candidates=new[]{
+                    new Vector2(priorBox.xMax+gap,priorBox.yMax-16f),
+                    new Vector2(priorBox.xMin-width-gap,priorBox.yMax-16f),
+                    new Vector2(priorBox.xMin+16f,priorBox.yMin-gap),
+                    new Vector2(priorBox.xMin+16f,priorBox.yMax+height+gap)
+                };
+                float best=float.MaxValue;
+                foreach(var candidate in candidates)
+                {
+                    Vector2 pos=Clamp(candidate); Rect box=new Rect(pos.x,pos.y-height,width,height);
+                    float overlap=0;
+                    foreach(Card previous in _cards.Take(_cards.Count-1))
+                    {
+                        Rect other=Box(previous);
+                        overlap+=Mathf.Max(0,Mathf.Min(box.xMax,other.xMax)-Mathf.Max(box.xMin,other.xMin))*
+                            Mathf.Max(0,Mathf.Min(box.yMax,other.yMax)-Mathf.Max(box.yMin,other.yMin));
+                    }
+                    if(overlap>=best)continue;
+                    best=overlap;initial=pos;
+                    if(overlap<=0)break;
+                }
             }
-            else if (x + 400 > bounds.xMax) x = local.x - 414;
-            root.anchoredPosition = new Vector2(Mathf.Clamp(x, bounds.xMin + 12, bounds.xMax - 412),
-                Mathf.Clamp(top, bounds.yMin + root.sizeDelta.y + 12, bounds.yMax - 12));
+            root.anchoredPosition=Clamp(initial);
         }
         public static void Release(object owner)
         {

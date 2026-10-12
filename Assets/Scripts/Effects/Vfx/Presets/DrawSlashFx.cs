@@ -27,6 +27,8 @@ namespace Effects.Vfx.Presets
         {
             if (caster == null) return;
             style ??= new DrawSlashStyle();
+            style.BodyColor = BattleVfxStyle.Body(style.BodyColor,style.EdgeColor);
+            style.CoreColor = BattleVfxStyle.Light(style.CoreColor);
 
             float size = CardMotion.ViewOf(caster)?.CardSize ?? VfxSpace.CardSize;
             Vector3 point = VfxSpace.WorldPoint(caster) + (Vector3)(style.OffsetInCards * size);

@@ -26,6 +26,9 @@ namespace Managers.UI.Core
         /// </summary>
         public float MinimumBaseSize;
 
+        /// <summary>고정 전투 HUD처럼 행 크기를 유지하는 곳은 큰 글자 설정에서도 가독 하한을 고정하고, 최대 크기만 늘린다.</summary>
+        public bool ScaleMinimumWithTextSetting = true;
+
         private TMP_Text _label;
 
         static UIScaledText()
@@ -53,7 +56,7 @@ namespace Managers.UI.Core
             float max = BaseSize * UITheme.TextScale;
             float min = Mathf.Min(BaseSize, Mathf.Max(UITheme.FontFloor, BaseSize * 0.82f));
             // 명시한 화면만 하한을 올린다. 설정의 글자 크기 배율도 함께 탄다(최대를 넘지는 않는다).
-            if (MinimumBaseSize > 0f) min = Mathf.Min(max, Mathf.Max(min, MinimumBaseSize * UITheme.TextScale));
+            if (MinimumBaseSize > 0f) min = Mathf.Min(max, Mathf.Max(min, MinimumBaseSize * (ScaleMinimumWithTextSetting ? UITheme.TextScale : 1f)));
 
             _label.enableAutoSizing = true;
             _label.fontSizeMax = max;

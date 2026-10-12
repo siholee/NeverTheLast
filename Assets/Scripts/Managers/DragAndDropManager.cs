@@ -24,6 +24,7 @@ namespace Managers
         private GameObject dragPreview = null;
         private SpriteRenderer dragPreviewRenderer = null;
         private Vector2 dragScreenPosition;
+        private Vector3 previewGrabOffset;
         private bool hasExternalPointer;
         private Cell hoveredDropCell;
         
@@ -81,6 +82,7 @@ namespace Managers
                 }
             }
             
+            Managers.UI.Core.UITooltip.HideAny();
             isDragging = true;
             draggedUnit = unit;
             sourceCell = cell;
@@ -89,13 +91,14 @@ namespace Managers
 
             // 기본 준비 화면은 실제 점유 카드만 보여 빈 칸 콜라이더가 꺼져 있다. 드래그가 시작된
             // 그 프레임에 배치판을 펼쳐야 빠르게 끌어 놓는 입력도 빈 칸을 정상 대상으로 찾는다.
-            GridManager.Instance?.RefreshFieldLayout();
+            GridManager.Instance?.TransitionPlacementLayout();
             
             // 드래그 프리뷰 설정 및 활성화
             SetupDragPreview(unit);
             
             // 원본 유닛을 반투명하게 만들기
-            SetUnitAlpha(unit, dragAlpha);
+            SetUnitAlpha(unit, Mathf.Min(.40f,dragAlpha));
+            MoveDragPreview(CurrentPointerPosition());
         }
         
         public void EndDrag()
@@ -132,6 +135,7 @@ namespace Managers
 
         private void FinishDrag()
         {
+            Managers.UI.Core.TooltipTrigger.SuppressAfterDrop(CurrentPointerPosition());
             SetHoveredDropCell(null);
             // 드래그 프리뷰 숨기기 및 원본 유닛 복원
             HideDragPreview();
@@ -145,7 +149,7 @@ namespace Managers
             draggedUnit = null;
             sourceCell = null;
             hasExternalPointer = false;
-            GridManager.Instance?.RequestFieldLayoutRefresh();
+            GridManager.Instance?.TransitionPlacementLayout();
         }
         
         private void Update()
@@ -164,7 +168,7 @@ namespace Managers
             if (mainCamera == null) mainCamera = Camera.main;
             if (mainCamera == null || dragPreview == null) return;
             Vector3 point = new(screenPosition.x, screenPosition.y, -mainCamera.transform.position.z);
-            dragPreview.transform.position = mainCamera.ScreenToWorldPoint(point);
+            dragPreview.transform.position = mainCamera.ScreenToWorldPoint(point)+previewGrabOffset;
         }
 
         /// <summary>
@@ -333,13 +337,17 @@ namespace Managers
                 
                 // 투명도 설정
                 Color previewColor = dragPreviewRenderer.color;
-                previewColor.a = dragAlpha;
+                previewColor.a = Mathf.Max(.85f,dragAlpha);
                 dragPreviewRenderer.color = previewColor;
             }
             
             // 칸에 맞춘 배율을 그대로 따르고, 들고 있는 느낌이 나도록 조금만 줄인다.
             float fit = Cell.PortraitScaleFor(dragPreviewRenderer.sprite);
-            dragPreview.transform.localScale = Vector3.one * (fit * 0.9f);
+            dragPreview.transform.localScale = originalRenderer!=null?originalRenderer.transform.lossyScale*1.03f:Vector3.one*fit;
+            if(mainCamera==null)mainCamera=Camera.main;
+            Vector2 pointer=CurrentPointerPosition();
+            Vector3 grab=mainCamera!=null?mainCamera.ScreenToWorldPoint(new Vector3(pointer.x,pointer.y,-mainCamera.transform.position.z)):Vector3.zero;
+            previewGrabOffset=originalRenderer!=null?originalRenderer.transform.position-grab+Vector3.up*Cell.CardSize*.035f:Vector3.zero;
             
             // 드래그 프리뷰 활성화
             dragPreview.SetActive(true);

@@ -33,6 +33,8 @@ namespace Codes.Base
 
         public override void CastCode()
         {
+            // 지휘 범위는 지휘한 특수행동 하나에만 속한다. 비정상 종료로 남았어도 실제 일반행동으로 새지 않게 먼저 닫는다.
+            EndStaleCommand();
             Caster.isCasting = true;
             CurrSkillCoroutine = Caster.StartCoroutine(SkillCoroutine());
         }
@@ -99,18 +101,25 @@ namespace Codes.Base
             return ProjectileFx.ElementStyle(ElementPalette.Parse(Caster.Element));
         }
 
-        /// <summary>치명타를 굴려 피해 정보를 만든다.</summary>
+        /// <summary>
+        /// 치명타를 굴려 피해 정보를 만든다. 원시 피해는 언제나 100%다 — 지휘 중이면 컨텍스트에 표지를 붙여
+        /// 최종 배율만 <see cref="DamageContext.OutgoingDamageMultiplier"/>에 한 번 곱한다.
+        /// </summary>
         protected DamageContext BuildContext(Unit target)
         {
             bool crit = RollCritical(target, out float multiplier);
             int damage = Mathf.Max(1, Mathf.RoundToInt(BaseDamage(target) * multiplier));
-            return new DamageContext(Caster, damage, BaseEnums.CodeType.Normal, GetDamageTags(), crit);
+            var context = new DamageContext(Caster, damage, BaseEnums.CodeType.Normal, GetDamageTags(), crit);
+            StampCommand(context);
+            return context;
         }
 
         /// <summary>적중 — 피해를 넣고 적중 이벤트를 알린다.</summary>
         protected void Hit(Unit target, DamageContext context, bool playSfx = true)
         {
             if (target == null || !target.isActive) return;
+            // 지휘가 취소 · 종료된 뒤 늦게 도착한 판정은 피해 · 적중 이벤트 · 후처리를 모두 열지 않는다.
+            if (!Combat.CommandedAttackScope.TryAdmit(context)) return;
             if (playSfx)
                 AudioManager.PlayAction(Caster, SfxActionSlot.Normal, SfxCuePhase.Hit, CodeName);
             target.TakeDamage(context);
@@ -130,6 +139,7 @@ namespace Codes.Base
 
         public override void StopCode()
         {
+            base.StopCode();
             if (Caster != null) Caster.isCasting = false;
         }
 
@@ -159,6 +169,40 @@ namespace Codes.Base
             if (grid == null) return new List<Unit>();
             List<Unit> pool = Caster.IsEnemy ? grid.heroList : grid.enemyList;
             return pool.Where(unit => unit && unit.IsOnField && !unit.IsUntargetable).ToList();
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // 지휘 사격 — NormalCode 계약의 BaseNormalCode 구현(나폴레옹, Detail_08 §20.3)
+        // ══════════════════════════════════════════════════════════
+
+        /// <summary>공격 형태가 있는 일반행동만 지휘에 응한다(회복 · 유틸 제외).</summary>
+        public override bool CanJoinCommand => AttackForm > 0;
+
+        /// <summary>피해 명의. 소환자 명의로 치는 소환수는 소환자를 돌려준다(추정 피해 · 치명 기준).</summary>
+        protected virtual Unit DamageOwner => Caster;
+
+        protected override List<int> CommandDamageTags() => GetDamageTags();
+
+        /// <summary>기본은 이 코드의 <see cref="Deliver"/> 그대로라 다단 · 표식 · 원소 · 적중 후처리가 유지된다.</summary>
+        protected override IEnumerator CommandedDeliver(Unit target) => Deliver(target);
+
+        /// <summary>추정용 탐침을 실제 전달과 같은 모양으로 맞춘다(수리야 종언탄의 방어 인정 배율 등).</summary>
+        protected virtual void PrepareEstimateProbe(Unit target, DamageContext probe) { }
+
+        /// <summary>
+        /// 지휘 공격 한 번의 결정적 추정 피해(치명 없음). 실제와 같은 원시 피해 · 태그 · 방어 인정에 최종 배율을 곱한
+        /// 탐침을 공통 추정식(<see cref="Combat.CommandedAttackScope.EstimateFinalDamage"/>)에 넣는다.
+        /// </summary>
+        public override int EstimateCommandedDamage(Unit target)
+        {
+            Unit owner = DamageOwner;
+            if (owner == null || target == null || !target.isActive) return 0;
+            var probe = new DamageContext(owner, Mathf.Max(1, BaseDamage(target)), BaseEnums.CodeType.Normal, GetDamageTags())
+            {
+                OutgoingDamageMultiplier = Combat.CommandedAttackScope.FinalDamageRatio,
+            };
+            PrepareEstimateProbe(target, probe);
+            return Combat.CommandedAttackScope.EstimateFinalDamage(probe, target);
         }
 
         protected virtual List<int> GetDamageTags()

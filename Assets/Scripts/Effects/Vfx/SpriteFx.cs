@@ -10,6 +10,21 @@ namespace Effects.Vfx
     public static class VfxTiming
     {
         private const float ReferenceFrame = 1f / 60f;
+        private static int _captureClockFrame=-1;
+        private static float _captureClock;
+        private static bool _capturing;
+        /// <summary>고정 프레임 검수에서는 PNG 저장의 벽시계 비용을 표시 수명에 섞지 않는다. 평상시에는 Unity 실시간 그대로다.</summary>
+        public static float ReadableDeltaTime => Time.captureDeltaTime>0f?Time.captureDeltaTime:Time.unscaledDeltaTime;
+        public static float ReadableTime
+        {
+            get
+            {
+                if(Time.captureDeltaTime<=0f){_capturing=false;return Time.unscaledTime;}
+                if(!_capturing){_captureClock=Time.unscaledTime;_captureClockFrame=Time.frameCount;_capturing=true;}
+                if(_captureClockFrame!=Time.frameCount){_captureClock+=ReadableDeltaTime*Mathf.Max(1,Time.frameCount-_captureClockFrame);_captureClockFrame=Time.frameCount;}
+                return _captureClock;
+            }
+        }
 
         public static float AtLeastFrames(float authoredSeconds, int frameCount = 2)
         {
@@ -41,6 +56,7 @@ namespace Effects.Vfx
         private Ease _ease;
         private Transform _follow;
         private Vector3 _followOffset;
+        private bool _unscaledLife;
 
         /// <summary>
         /// 한 장을 띄운다. 크기는 월드 단위(가로 · 세로), 페이드는 수명 비율이다.
@@ -49,7 +65,7 @@ namespace Effects.Vfx
         public static SpriteFx Play(Sprite sprite, Vector3 position, Color color, bool additive,
             Vector2 fromSize, Vector2 toSize, float life, float rotation = 0f, float spin = 0f,
             float fadeIn = 0.08f, float fadeOutFrom = 0.45f, Ease ease = Ease.OutCubic,
-            int sortingLayer = 0, int order = VfxSpace.OverlaySortingOrder + 10)
+            int sortingLayer = 0, int order = VfxSpace.OverlaySortingOrder + 10, bool preserveInk = false)
         {
             if (sprite == null) return null;
             var go = new GameObject("SpriteFx");
@@ -57,7 +73,8 @@ namespace Effects.Vfx
             go.transform.rotation = Quaternion.Euler(0f, 0f, rotation);
             var fx = go.AddComponent<SpriteFx>();
             fx._renderer = VfxSpace.NewSprite(go.transform, "Sprite", sprite, Color.clear, sortingLayer, order, additive);
-            fx._color = color;
+            // 작은 기호의 먹선은 파스텔 몸체와 별개다. 명시한 비가산 받침만 원래 군청 대비를 보존한다.
+            fx._color = additive ? BattleVfxStyle.Light(color) : preserveInk ? color : BattleVfxStyle.Body(color, color);
             fx._from = fromSize;
             fx._to = toSize;
             // 8배속에서도 생성 프레임 하나로 끝나지 않아 코어와 비가산 외곽을 함께 읽을 수 있다.
@@ -74,9 +91,9 @@ namespace Effects.Vfx
         public static SpriteFx Play(Sprite sprite, Vector3 position, Color color, bool additive,
             float fromSize, float toSize, float life, float rotation = 0f, float spin = 0f,
             float fadeIn = 0.08f, float fadeOutFrom = 0.45f, Ease ease = Ease.OutCubic,
-            int sortingLayer = 0, int order = VfxSpace.OverlaySortingOrder + 10)
+            int sortingLayer = 0, int order = VfxSpace.OverlaySortingOrder + 10, bool preserveInk = false)
             => Play(sprite, position, color, additive, Vector2.one * fromSize, Vector2.one * toSize, life,
-                rotation, spin, fadeIn, fadeOutFrom, ease, sortingLayer, order);
+                rotation, spin, fadeIn, fadeOutFrom, ease, sortingLayer, order, preserveInk);
 
         /// <summary>대상(카드)을 따라다닌다. 카드가 흔들리거나 날아가도 표식이 떨어지지 않는다.</summary>
         public SpriteFx Follow(Transform target)
@@ -86,9 +103,16 @@ namespace Effects.Vfx
             return this;
         }
 
+        /// <summary>배속이 개입 도중 바뀌어도 짧은 의미 신호를 읽을 시간을 보장한다. 일시정지는 따른다.</summary>
+        public SpriteFx HoldUnscaled(float seconds)
+        {
+            _unscaledLife=true;_life=Mathf.Max(.01f,seconds);return this;
+        }
+
         private void Update()
         {
-            _age += Time.deltaTime;
+            if(_unscaledLife&&Time.timeScale<=0f)return;
+            _age += _unscaledLife?VfxTiming.ReadableDeltaTime:Time.deltaTime;
             if (_age >= _life)
             {
                 Destroy(gameObject);

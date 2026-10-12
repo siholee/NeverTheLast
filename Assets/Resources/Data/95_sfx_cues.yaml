@@ -160,6 +160,7 @@ cues:
   - { name: anubis.book.resolve, clips: [Hsr/enemy/void_boss_projectile_novoice_01], volumeMin: 0.52, volumeMax: 0.62, pitchMin: 0.97, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 3, minInterval: 0.04, speedMerge: true, avoidImmediateRepeat: true }
   - { name: anubis.soul.resolve, clips: [Kenney/Interface/select_001, Kenney/Interface/select_002], volumeMin: 0.38, volumeMax: 0.48, pitchMin: 0.97, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 3, minInterval: 0.04, speedMerge: true, avoidImmediateRepeat: true }
   - { name: uchi.clone.cast, clips: [Hsr/enemy/void_marksman_shot_cast_novoice_01, Hsr/enemy/void_wolf_charge_cast_novoice_01], volumeMin: 0.52, volumeMax: 0.62, pitchMin: 0.97, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 3, minInterval: 0.04, speedMerge: true, avoidImmediateRepeat: true }
+  - { name: uchi.strike.cast, clips: [Hsr/enemy/void_marksman_shot_cast_novoice_01, Hsr/enemy/void_wolf_charge_cast_novoice_01], volumeMin: 0.52, volumeMax: 0.62, pitchMin: 0.97, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 3, minInterval: 0.04, speedMerge: true, avoidImmediateRepeat: true }
   - { name: uchi.clone.resolve, clips: [Hsr/enemy/void_marksman_shot_projectile_novoice_01], volumeMin: 0.52, volumeMax: 0.62, pitchMin: 0.97, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 3, minInterval: 0.04, speedMerge: true, avoidImmediateRepeat: true }
   - { name: uchi.strike.hit, clips: [Hsr/enemy/void_wolf_charge_hit_novoice_01, Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.52, volumeMax: 0.62, pitchMin: 0.97, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 3, minInterval: 0.04, speedMerge: true, avoidImmediateRepeat: true }
   - { name: uchi.overflow.hit, clips: [Hsr/enemy/void_wolf_charge_hit_novoice_01], volumeMin: 0.52, volumeMax: 0.62, pitchMin: 0.97, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 3, minInterval: 0.04, speedMerge: true, avoidImmediateRepeat: true }
@@ -205,16 +206,97 @@ cues:
   - { name: agni.special_setup.cast, clips: [Hsr/VedicTrioVoice/acheron_basic, Hsr/VedicTrioVoice/acheron_skill], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
   - { name: agni.special_setup.hit, clips: [Hsr/sei/ground_hit_01], volumeMin: 0.48, volumeMax: 0.48, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
   - { name: agni.special_setup.resolve, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
-  - { name: surya.normal.cast, clips: [Hsr/VedicTrioVoice/feixiao_basic, Hsr/VedicTrioVoice/feixiao_skill, Hsr/VedicTrioVoice/feixiao_follow_up], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: surya.normal.cast, clips: [Hsr/FranceMoonVoice/jade_basic], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
   - { name: surya.normal.hit, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.48, volumeMax: 0.48, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
   - { name: surya.normal.resolve, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
-  - { name: surya.follow_up.cast, clips: [Hsr/VedicTrioVoice/feixiao_basic, Hsr/VedicTrioVoice/feixiao_skill, Hsr/VedicTrioVoice/feixiao_follow_up], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: surya.follow_up.cast, clips: [Hsr/FranceMoonVoice/jade_basic, Hsr/FranceMoonVoice/jade_skill, Hsr/FranceMoonVoice/jade_ult], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
   - { name: surya.follow_up.hit, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.48, volumeMax: 0.48, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
   - { name: surya.follow_up.resolve, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
-  - { name: surya.focused_follow_up.cast, clips: [Hsr/VedicTrioVoice/feixiao_basic, Hsr/VedicTrioVoice/feixiao_skill, Hsr/VedicTrioVoice/feixiao_follow_up], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: surya.focused_follow_up.cast, clips: [Hsr/FranceMoonVoice/jade_basic, Hsr/FranceMoonVoice/jade_skill, Hsr/FranceMoonVoice/jade_ult], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
   - { name: surya.focused_follow_up.hit, clips: [Hsr/sei/bigbang_hit_01], volumeMin: 0.48, volumeMax: 0.48, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
   - { name: surya.focused_follow_up.resolve, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
-  - { name: surya.ultimate.cast, clips: [Hsr/VedicTrioVoice/feixiao_basic, Hsr/VedicTrioVoice/feixiao_skill, Hsr/VedicTrioVoice/feixiao_follow_up], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: surya.ultimate.cast, clips: [Hsr/FranceMoonVoice/jade_ult], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
   - { name: surya.ultimate.hit, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.48, volumeMax: 0.48, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
   - { name: surya.ultimate.resolve, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
   - { name: surya.reload, clips: [Hsr/chandra/nishakara_hit_01], volumeMin: 0.22, volumeMax: 0.22, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+
+  - { name: marie.normal.cast, clips: [Hsr/FranceMoonVoice/topaz_basic], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: marie.normal.resolve, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+
+  - { name: marie.emergency.cast, clips: [Hsr/FranceMoonVoice/topaz_skill], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: marie.emergency.resolve, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+
+  - { name: marie.ultimate.cast, clips: [Hsr/FranceMoonVoice/topaz_ult], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: marie.ultimate.resolve, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+
+  - { name: napoleon.normal.cast, clips: [Hsr/FranceMoonVoice/gepard_basic], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: napoleon.normal.resolve, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+
+  - { name: napoleon.follow_up.cast, clips: [Hsr/FranceMoonVoice/gepard_skill], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: napoleon.follow_up.resolve, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+
+  - { name: napoleon.focused_follow_up.cast, clips: [Hsr/FranceMoonVoice/gepard_skill], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: napoleon.focused_follow_up.resolve, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+
+  - { name: napoleon.ultimate.cast, clips: [Hsr/FranceMoonVoice/gepard_ult], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: napoleon.ultimate.resolve, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+
+  - { name: napoleon.reload.cast, clips: [Hsr/chandra/nishakara_hit_01], volumeMin: 0.22, volumeMax: 0.22, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: napoleon.reload.resolve, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+
+  - { name: tsukuyomi.normal.cast, clips: [Hsr/FranceMoonVoice/blade_basic], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: tsukuyomi.normal.resolve, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+
+  - { name: tsukuyomi.ultimate.cast, clips: [Hsr/FranceMoonVoice/blade_ult], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: tsukuyomi.ultimate.resolve, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+
+  # ── 나폴레옹 일제 사격(지휘 특수행동) — 임시 게파드 음성. 참여자 피격음은 각자의 일반행동 큐가 낸다 ──
+  - { name: napoleon.volley.cast, clips: [Hsr/FranceMoonVoice/gepard_skill], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: napoleon.volley.resolve, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+
+  # ── 로키 · 펜리르 — 임시 블레이드 음성, 늑대 할퀴기는 공허 늑대 무음성 클립 재사용 ──
+  - { name: loki.normal.cast, clips: [Hsr/FranceMoonVoice/blade_basic], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: loki.normal.hit, clips: [Hsr/shi/ghost_slash_projectile_01], volumeMin: 0.45, volumeMax: 0.54, pitchMin: 0.97, pitchMax: 1.01, mixerGroup: SFX, maxVoices: 2, minInterval: 0.07, speedMerge: true, avoidImmediateRepeat: true }
+  - { name: loki.ultimate.cast, clips: [Hsr/FranceMoonVoice/blade_ult], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: loki.ultimate.resolve, clips: [Hsr/sei/bigbang_hit_01], volumeMin: 0.44, volumeMax: 0.44, pitchMin: 0.96, pitchMax: 0.98, mixerGroup: SFX, maxVoices: 1, minInterval: 0.08, speedMerge: true }
+  - { name: loki.fenrir.cast, clips: [Hsr/FranceMoonVoice/blade_skill], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: loki.fenrir.hit, clips: [Hsr/enemy/void_wolf_charge_hit_novoice_01], volumeMin: 0.58, volumeMax: 0.66, pitchMin: 0.92, pitchMax: 1.00, mixerGroup: SFX, maxVoices: 2, minInterval: 0.06, speedMerge: true }
+  - { name: loki.fenrir.resolve, clips: [Hsr/enemy/void_wolf_charge_cast_novoice_01], volumeMin: 0.42, volumeMax: 0.48, pitchMin: 0.86, pitchMax: 0.92, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+  - { name: loki.fenrir_claw.cast, clips: [Hsr/enemy/void_wolf_charge_cast_novoice_01], volumeMin: 0.46, volumeMax: 0.52, pitchMin: 0.90, pitchMax: 0.98, mixerGroup: SFX, maxVoices: 2, minInterval: 0.05, speedMerge: true }
+  - { name: loki.fenrir_claw.hit, clips: [Hsr/enemy/void_wolf_charge_hit_novoice_01], volumeMin: 0.60, volumeMax: 0.68, pitchMin: 0.90, pitchMax: 0.98, mixerGroup: SFX, maxVoices: 2, minInterval: 0.06, speedMerge: true }
+
+  - { name: surya.finale.cast, clips: [Hsr/FranceMoonVoice/jade_skill], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: surya.finale.hit, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.48, volumeMax: 0.48, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: surya.finale.resolve, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+
+  - { name: surya.special.cast, clips: [Hsr/FranceMoonVoice/jade_ult], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, avoidImmediateRepeat: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: surya.special.resolve, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+
+  - { name: marie.normal.hit, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.42, volumeMax: 0.42, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: napoleon.normal.hit, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.42, volumeMax: 0.42, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: napoleon.follow_up.hit, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.44, volumeMax: 0.44, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: napoleon.focused_follow_up.hit, clips: [Hsr/sei/bigbang_hit_01], volumeMin: 0.44, volumeMax: 0.44, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: napoleon.ultimate.hit, clips: [Hsr/sei/bigbang_hit_01], volumeMin: 0.44, volumeMax: 0.44, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.08, speedMerge: true }
+  - { name: tsukuyomi.normal.hit, clips: [Hsr/chandra/nishakara_hit_01], volumeMin: 0.36, volumeMax: 0.36, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: tsukuyomi.ultimate.hit, clips: [Hsr/chandra/nishakara_hit_01], volumeMin: 0.4, volumeMax: 0.4, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.08, speedMerge: true }
+  - { name: surtr.normal.cast, clips: [Hsr/shi/ghost_slash_projectile_01], volumeMin: 0.35, volumeMax: 0.35, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: surtr.normal.hit, clips: [Hsr/shi/ghost_slash_hit_01], volumeMin: 0.52, volumeMax: 0.52, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: surtr.ultimate.cast, clips: [Hsr/shi/final_verse_hit_01], volumeMin: 0.35, volumeMax: 0.35, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: surtr.ultimate.hit, clips: [Hsr/sei/bigbang_hit_01], volumeMin: 0.55, volumeMax: 0.55, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: freya.normal.cast, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.3, volumeMax: 0.3, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: freya.normal.hit, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.32, volumeMax: 0.32, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: freya.emergency.cast, clips: [Hsr/sei/bigbang_resolve_01], volumeMin: 0.34, volumeMax: 0.34, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+
+  - { name: mansa.normal.cast, clips: [Hsr/FranceMoonVoice/jade_basic], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, duckBgm: 0.78, duckSeconds: 0.9 }
+
+  - { name: mansa.ultimate.cast, clips: [Hsr/FranceMoonVoice/jade_ult], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: mansa.ultimate.hit, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.48, volumeMax: 0.48, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+
+  - { name: ishtar.normal.cast, clips: [Hsr/FranceMoonVoice/topaz_basic], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, duckBgm: 0.78, duckSeconds: 0.9 }
+
+  - { name: ishtar.ultimate.cast, clips: [Hsr/FranceMoonVoice/topaz_ult], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, duckBgm: 0.78, duckSeconds: 0.9 }
+  - { name: ishtar.ultimate.hit, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.48, volumeMax: 0.48, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: orpheus.melody.hit, clips: [Hsr/shi/ghost_slash_projectile_01], volumeMin: 0.45, volumeMax: 0.54, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: SFX, maxVoices: 1, minInterval: 0.07, speedMerge: true, avoidImmediateRepeat: true }
+  - { name: orpheus.melody.resolve, clips: [Hsr/chandra/nishakara_hit_01], volumeMin: 0.45, volumeMax: 0.54, pitchMin: 1.02, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 1, minInterval: 0.07, speedMerge: true, avoidImmediateRepeat: true }
+  - { name: orpheus.lament.screen, clips: [Hsr/chandra/soma_screen_march7_01], volumeMin: 0.58, volumeMax: 0.64, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
+  - { name: orpheus.lament.hit, clips: [Hsr/chandra/soma_hit_march7_01], volumeMin: 0.56, volumeMax: 0.62, pitchMin: 0.98, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 2, minInterval: 0.07, speedMerge: true }

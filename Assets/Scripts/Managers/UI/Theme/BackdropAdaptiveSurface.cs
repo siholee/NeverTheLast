@@ -51,7 +51,7 @@ namespace Managers.UI.Theme
             {
                 Color fill = UITheme.HudBar;
                 fill.a = UITheme.AdaptiveHudAlpha;
-                _image.sprite = UIShapes.CutCorner(8, fill, UIShapes.Corner.Diagonal, UITheme.Outline, 1);
+                _image.sprite = UIShapes.GlassPlate(_radius, fill);
                 return;
             }
 
@@ -60,7 +60,7 @@ namespace Managers.UI.Theme
             Color smoke = new(UITheme.PanelCharacter.r, UITheme.PanelCharacter.g,
                 UITheme.PanelCharacter.b, alpha);
             _image.sprite = UIShapes.RoundedRect(_radius, smoke,
-                new Color(UITheme.MetalSilver.r, UITheme.MetalSilver.g, UITheme.MetalSilver.b, 0.58f), 1);
+                new Color(UITheme.MetalSilver.r, UITheme.MetalSilver.g, UITheme.MetalSilver.b, 0.28f), 1);
         }
     }
 }

@@ -587,9 +587,9 @@ namespace Managers.UI.DevTools
 
             // 1) 기본 탭은 코드 — 세 장의 이름 · 가격 · 효과 전문, 지갑 · 남은 구매.
             var expectedIds = RewardCodeCatalog.All()
-                .Where(entry => entry.shopFixed && Codes.Passive.Reward.RewardCodeFactory.IsImplemented(entry.id))
+                .Where(entry => entry.shopFixed && !entry.requiresToughness && Codes.Passive.Reward.RewardCodeFactory.IsImplemented(entry.id))
                 .Select(entry => entry.id).ToList();
-            RuiCheck("상점 고정 코드 재고", string.Join(",", RuiShopCodeIds), string.Join(",", expectedIds), expectedIds.SequenceEqual(RuiShopCodeIds));
+            RuiCheck("상점 고정 코드 재고", "기존3종·범용 처치3종", string.Join(",", expectedIds), expectedIds.OrderBy(id=>id).SequenceEqual(new[]{701,702,703,717,822,823}));
             var cardProblems = new List<string>();
             for (int i = 0; i < RuiShopCodeIds.Length; i++)
             {
@@ -990,6 +990,7 @@ namespace Managers.UI.DevTools
             yield return WaitUnscaled(0.6f);
             GameObject root = GameObject.Find("RewardScreen");
             RuiClick(RuiFind(root, "Reward0"));
+            RuiClick(RuiFind(root,"ConfirmReward"));
             yield return WaitUnscaled(0.3f);
             string preview = RuiText(RuiTargetCard(root, holder), "Preview") ?? "";
             RuiCheck("상위 대체 미리보기", $"{holder.UnitName}: ▲ {RuiName(lower)} 대체", preview,

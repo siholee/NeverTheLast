@@ -109,7 +109,7 @@ namespace Managers.UI.Core
             _panel.anchorMin = new Vector2(0.5f, 0.5f);
             _panel.anchorMax = new Vector2(0.5f, 0.5f);
 
-            Image shadow = UIBuild.Elevate(panel, (int)ShadowBlur, 0.6f, 6f);
+            Image shadow = UIBuild.Elevate(panel, (int)ShadowBlur, 0.16f, 6f);
             _shadow = shadow.rectTransform;
             _shadow.anchorMin = _shadow.anchorMax = new Vector2(0.5f, 0.5f);
             _shadow.pivot = new Vector2(0f, 1f);
@@ -188,6 +188,7 @@ namespace Managers.UI.Core
         private static void Show(object owner, string title, IReadOnlyList<Line> lines, Color accent,
             Vector2? screenPoint, IReadOnlyList<UnitTagCatalog.Definition> tags)
         {
+            if (UIDragSource.Current != null) return;
             UITooltip tip = Instance;
             tip._owner = owner;
             tip._fixedScreenPoint = screenPoint;
@@ -500,6 +501,17 @@ namespace Managers.UI.Core
     public sealed class TooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler,
         IPointerDownHandler, IPointerUpHandler, IPointerMoveHandler
     {
+        private static bool _suppressDropHover;
+        private static Vector2 _dropPointer;
+        private bool _waitingForMove;
+        public static void SuppressAfterDrop(Vector2 pointer)
+        { _suppressDropHover=true;_dropPointer=pointer;UITooltip.HideAny(); }
+        public static bool IsDropHoverSuppressed(Vector2 pointer)
+        {
+            if(!_suppressDropHover)return false;
+            if((pointer-_dropPointer).sqrMagnitude<64f)return true;
+            _suppressDropHover=false;return false;
+        }
         private const float TouchHoldSeconds = 0.55f;
         private const float TouchMoveTolerance = 18f;
 
@@ -534,6 +546,9 @@ namespace Managers.UI.Core
         {
             if (IsTouch(eventData)) return;
             if (_title == null) return;
+            if(IsDropHoverSuppressed(eventData.position))
+            {_waitingForMove=true;return;}
+            _suppressDropHover=false;
             UITooltip.Show(this, _title(), _lines?.Invoke(), _accent);
         }
 
@@ -553,6 +568,7 @@ namespace Managers.UI.Core
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            _waitingForMove=false;
             if (!IsTouch(eventData)) UITooltip.Hide(this);
         }
 
@@ -567,6 +583,8 @@ namespace Managers.UI.Core
 
         public void OnPointerMove(PointerEventData eventData)
         {
+            if(!IsTouch(eventData)&&_waitingForMove&&(eventData.position-_dropPointer).sqrMagnitude>=64f)
+            {_waitingForMove=false;_suppressDropHover=false;if(_title!=null)UITooltip.Show(this,_title(),_lines?.Invoke(),_accent);}
             if (_touchEvent == null || eventData.pointerId != _touchEvent.pointerId) return;
             if ((eventData.position - _touchStart).sqrMagnitude > TouchMoveTolerance * TouchMoveTolerance)
                 CancelTouch();

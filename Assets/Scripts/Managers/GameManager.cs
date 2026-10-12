@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
@@ -237,6 +237,7 @@ namespace Managers
             _battleKilledEnemyIds.Clear();
             _battleKillGold = 0;
             _battleGoldBonus = 0f;
+            Combat.PartyTreasury.BeginBattle();
             CaptureBattleStart();
 
             // 아군 필드 상태 저장 (라운드 종료 후 복원용)
@@ -425,7 +426,7 @@ namespace Managers
                 int remainingEnemies = GetRemainingEnemyCount();
 
                 // 아군 전멸 체크
-                if (AreAllAlliesDefeated())
+                if (Time.timeScale > 0 && !ActionScheduler.IsPresenting && AreAllAlliesDefeated())
                 {
                     // 전투를 시작할 때 이미 전원이 쓰러져 있었다면 이길 방법이 없다. 그대로 두면
                     // 스테이지마다 즉시 패배가 반복되며 생명력만 깎이므로 여기서 런을 끝낸다.
@@ -440,7 +441,7 @@ namespace Managers
                 }
 
                 // 턴을 다 쓰면 라운드 종료
-                if (remainingRoundTurns <= 0)
+                if (Time.timeScale > 0 && !ActionScheduler.IsPresenting && remainingRoundTurns <= 0)
                 {
                     EndRoundByTimeout();
                 }
@@ -470,6 +471,8 @@ namespace Managers
         /// <summary>보상/사건/시전 중에도 다음 시나리오를 같은 출발 상태에서 시작한다.</summary>
         public void DebugResetBattle()
         {
+            Combat.PartyTreasury.Clear();
+            rewardManager?.ResetRewardSelection();
             Core.DebugMode.BeginSession();
             bool restoreField = gameState == GameState.RoundInProgress && allyFieldSnapshot?.Count > 0;
             gameState = GameState.Preparation;
@@ -1089,6 +1092,22 @@ namespace Managers
         // ── 소모품: 전투 비약 · 코드 도구 (Detail_17 §6) ─────────────
 
         /// <summary>준비 화면에서 써 둔 전투 비약. 한 전투에 1개만 쓴다.</summary>
+        /// <summary>넥타르는 준비 중 선택 아군에게 즉시 사용한다. 영구 스탯만 올리고 부활시키지 않는다.</summary>
+        public bool TryUseNectar(int itemId,Unit unit,out string reason)
+        {
+            reason="";
+            if(gameState!=GameState.Preparation){reason="준비 중에만 사용";return false;}
+            var item=inventoryManager?.Find(itemId);
+            if(item?.IsNectar!=true || item.nectarFlatStats==null || item.nectarFlatStats.Count==0){reason="넥타르가 아님";return false;}
+            if(unit==null || !Combat.AttackForms.PartyUnits().Contains(unit)){reason="받을 아군 없음";return false;}
+            if(!item.nectarFlatStats.All(pair=>System.Enum.TryParse(pair.Key,true,out BaseClasses.BaseEnums.StatType stat) && (int)stat>=0 &&
+                (int)stat<UnitStats.StatCount && pair.Value>0 && !float.IsNaN(pair.Value)&&!float.IsInfinity(pair.Value)))
+            {reason="능력치 데이터 오류";return false;}
+            if(!inventoryManager.RemoveItem(itemId)){reason="보유 수량 없음";return false;}
+            unit.ApplyNectar(item);
+            runManager?.SaveCurrentRun();return true;
+        }
+
         public int PendingTonicItemId { get; private set; }
 
         public void RestorePendingTonic(int itemId) => PendingTonicItemId = Mathf.Max(0, itemId);

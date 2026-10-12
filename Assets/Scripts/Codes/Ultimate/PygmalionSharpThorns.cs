@@ -79,9 +79,7 @@ namespace Codes.Ultimate
                 if (Target == null || attacker == null || !attacker.isActive || damage == null) return;
                 if (damage.ResolvedDamage <= 0 || !damage.HasTag(DamageTag.ContactAttack)) return;
 
-                var poison = new UnitStatus(1, Target, attacker);
-                poison.AddEffect(new DamageOverTimeEffect(1001, 20f));
-                if (attacker.TryAddStatus(poison)) EmberFx.Blaze(attacker, detonate: false);
+                if (Combat.ActionDot.Apply(Target, attacker, Combat.ActionDotKind.Poison)) EmberFx.Blaze(attacker, detonate: false);
             }
 
             public override void OnRemove()

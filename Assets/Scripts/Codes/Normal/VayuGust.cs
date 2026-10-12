@@ -12,7 +12,7 @@ namespace Codes.Normal
     public sealed class VayuGust : BaseNormalCode
     {
         public const float AttackRatio = 0.90f;
-        private const string FxKey = "vayu.wind_palm";
+        private const string FxKey = "vayu.gust";
 
         public override int AttackForm => DamageTag.Spell;
 

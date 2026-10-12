@@ -1,20 +1,20 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace Managers.UI.Theme
 {
     /// <summary>
-    /// 흰색 문서 면 · 남색 정보 위계 · 청록 인터랙션의 전역 UI 팔레트다. 진주색 면과 라이트 글라스를 기본으로 두고,
-    /// 은청색 선과 하늘색 상호작용만 남겨 전투 원소색과 경쟁하지 않는다.
+    /// 흰색 문서 면 · 군청색 정보 위계의 전역 UI 팔레트다. 진주색 면과 라이트 글라스를 기본으로 두고,
+    /// 탐색 색을 군청색으로 통일해 전투 원소색과 경쟁하지 않는다.
     /// </summary>
     public static class UITheme
     {
         // ── 배경 계열 ────────────────────────────────────────────────
         /// <summary>밝은 화면 위 모달의 뒤 클릭을 막는 청회색 베일.</summary>
-        public static readonly Color Backdrop = new(0.075f, 0.125f, 0.20f, 0.32f); // #122133
-        public static readonly Color Surface = new(0.982f, 0.991f, 1f, 0.99f);      // #F8FCFF
+        public static readonly Color Backdrop = new(0.09f, 0.15f, 0.25f, 0.40f); // #122133
+        public static readonly Color Surface = new(0.965f, 0.975f, 0.990f, 1f);      // #F8FCFF
         public static readonly Color SurfaceRaised = new(1f, 1f, 1f, 0.98f);
-        public static readonly Color SurfaceSunken = new(0.945f, 0.968f, 0.982f, 1f); // #EAF2F7
-        public static readonly Color HudBar = new(0.973f, 0.988f, 1f, 0.88f);
+        public static readonly Color SurfaceSunken = new(0.924f, 0.943f, 0.966f, 1f); // #EAF2F7
+        public static readonly Color HudBar = new(0.965f, 0.983f, 1f, 0.89f);
 
         /// <summary>원화와 VFX 위에 직접 뜨는 패널만 쓰는 중명도 스모크.</summary>
         public static readonly Color PanelCharacter = new(0.149f, 0.220f, 0.290f, 0.62f); // #26384A
@@ -27,19 +27,19 @@ namespace Managers.UI.Theme
         public static readonly Color Track = new(0.396f, 0.498f, 0.569f, 0.18f);
 
         // ── 포인트 컬러 ──────────────────────────────────────────────
-        /// <summary>맑은 하늘색. 선택·호버·진행 상태의 얇은 선과 작은 면에만 쓴다.</summary>
-        public static readonly Color Accent = new(0.0f, 0.63f, 0.86f, 1f);       // #00A1DB
+        /// <summary>선택·호버·진행 상태에 공통으로 쓰는 군청색.</summary>
+        public static readonly Color Accent = new(0.13f, 0.21f, 0.36f, 1f); // #21365C
         /// <summary>흰 글자와 4.5:1에 가까운 대비를 확보하는 주 행동 면.</summary>
-        public static readonly Color AccentDim = new(0.07f, 0.15f, 0.24f, 1f);    // #12263D
-        public static readonly Color AccentFaint = new(0.247f, 0.663f, 0.902f, 0.15f);
-        public static readonly Color AccentCyan = new(0.02f, 0.80f, 0.77f, 1f);    // #05CCC4
-        public static readonly Color Highlight = new(0.086f, 0.561f, 0.769f, 1f);     // #168FC4
+        public static readonly Color AccentDim = new(0.13f, 0.21f, 0.36f, 1f); // #21365C
+        public static readonly Color AccentFaint = new(0.13f, 0.21f, 0.36f, 0.12f);
+        public static readonly Color AccentCyan = new(0.13f, 0.21f, 0.36f, 1f); // #21365C
+        public static readonly Color Highlight = new(0.13f, 0.21f, 0.36f, 1f); // #21365C
 
         // 호환 이름은 유지하되 의미는 안 2의 백색 판/진주 필드/하늘 인레이로 바뀐다.
         public static readonly Color BoardInk = new(0.969f, 0.980f, 0.988f, 1f);     // #F7FAFC
         public static readonly Color BoardFelt = new(0.918f, 0.949f, 0.969f, 1f);    // #EAF2F7
         public static readonly Color BoardSlate = new(0.847f, 0.929f, 0.969f, 1f);   // #D8EDF7
-        public static readonly Color MetalBrass = new(0.780f, 0.698f, 0.490f, 1f);   // #C7B27D
+        public static readonly Color MetalBrass = new(0.13f, 0.21f, 0.36f, 1f); // #21365C
         public static readonly Color MetalSilver = new(0.612f, 0.698f, 0.765f, 1f);  // #9CB2C3
 
         // ── 상태 컬러 ────────────────────────────────────────────────
@@ -61,7 +61,7 @@ namespace Managers.UI.Theme
         public static readonly Color ActionYellow = new(0.612f, 0.698f, 0.765f, 1f);
         public static readonly Color Enemy = new(0.878f, 0.353f, 0.408f, 1f);     // #E05A68
         public static readonly Color Danger = new(0.800f, 0.220f, 0.270f, 1f);
-        public static readonly Color Positive = new(0.063f, 0.525f, 0.302f, 1f);
+        public static readonly Color Positive = new(0.13f, 0.21f, 0.36f, 1f); // #21365C
 
         /// <summary>
         /// 행동 불가 계열(기절·빙결·에어본·침묵·속박·도발).
@@ -91,49 +91,33 @@ namespace Managers.UI.Theme
         public static readonly Color TextOnAccent = TextOnDark;
 
         // ── 코드 등급 ────────────────────────────────────────────────
-        /// <summary>일반 등급 코드 — 은색.</summary>
-        public static readonly Color CodeNormal = new(0.390f, 0.435f, 0.480f, 1f);
+        /// <summary>일반 등급 코드. 등급은 이름과 기호로 구분한다.</summary>
+        public static readonly Color CodeNormal = new(0.13f, 0.21f, 0.36f, 1f); // #21365C
 
-        /// <summary>강화 등급 코드 — 금색. 같은 계열의 일반 등급을 대체한다.</summary>
-        public static readonly Color CodeEnhanced = new(0.780f, 0.535f, 0.035f, 1f);
+        /// <summary>강화 등급 코드. 같은 계열의 일반 등급을 대체한다.</summary>
+        public static readonly Color CodeEnhanced = new(0.13f, 0.21f, 0.36f, 1f); // #21365C
 
-        /// <summary>고유 등급 코드 — 보라색. 은·금 사다리 밖의 P 슬롯 전용이다.</summary>
-        public static readonly Color CodeUnique = new(0.475f, 0.310f, 0.745f, 1f);
+        /// <summary>고유 등급 코드. 일반·강화 사다리 밖의 P 슬롯 전용이다.</summary>
+        public static readonly Color CodeUnique = new(0.13f, 0.21f, 0.36f, 1f); // #21365C
 
         // ── 선/구분 ──────────────────────────────────────────────────
-        public static readonly Color Divider = new(0.37f, 0.52f, 0.61f, 0.20f);
-        public static readonly Color Outline = new(0.37f, 0.52f, 0.61f, 0.32f);
+        public static readonly Color Divider = new(0.34f, 0.49f, 0.62f, 0.12f);
+        public static readonly Color Outline = new(0.34f, 0.49f, 0.62f, 0.20f);
 
         // ── 등급 컬러(아이템/유닛 레어도) ────────────────────────────
-        public static readonly Color[] RarityColors =
-        {
-            new(0.390f, 0.435f, 0.480f, 1f), // 1성 회색
-            new(0.180f, 0.545f, 0.720f, 1f), // 2성 하늘
-            new(0.150f, 0.620f, 0.330f, 1f), // 3성 초록
-            new(0.520f, 0.350f, 0.760f, 1f), // 4성 보라
-            new(0.780f, 0.535f, 0.035f, 1f), // 5성 앰버
-            new(0.900f, 0.390f, 0.090f, 1f), // 6성 주황
-        };
+        // 등급은 T숫자와 명칭으로 구분하고, 탐색 색은 군청색 한 축을 공유한다.
+        public static readonly Color[] RarityColors = { Accent, Accent, Accent, Accent, Accent, Accent };
 
         // ── 스탯 색축(레거시 이름) ───────────────────────────────────
-        // 기존 UI 상수를 보존한 팔레트다. 자원 파랑(Mana) · 액센트 민트 · 적색과 겹치지 않게 쓴다.
-        public static readonly Color StatStr = new(0.878f, 0.478f, 0.290f, 1f);   // #E07A4A 주황
-        public static readonly Color StatDex = new(0.310f, 0.749f, 0.659f, 1f);   // #4FBFA8 청록
-        public static readonly Color StatCon = new(0.427f, 0.831f, 0.404f, 1f);   // #6DD467 연두
-        public static readonly Color StatInt = new(0.663f, 0.533f, 0.878f, 1f);   // #A988E0 보라
-        public static readonly Color StatLuk = new(0.898f, 0.627f, 0.784f, 1f);   // #E5A0C8 분홍
+        // 기존 이름은 보존하며 스탯 표시는 모두 군청색으로 통일한다.
+        public static readonly Color StatStr = new(0.13f, 0.21f, 0.36f, 1f); // #21365C
+        public static readonly Color StatDex = new(0.13f, 0.21f, 0.36f, 1f); // #21365C
+        public static readonly Color StatCon = new(0.13f, 0.21f, 0.36f, 1f); // #21365C
+        public static readonly Color StatInt = new(0.13f, 0.21f, 0.36f, 1f); // #21365C
+        public static readonly Color StatLuk = new(0.13f, 0.21f, 0.36f, 1f); // #21365C
 
-        /// <summary>스탯 줄의 색. 공격 계열 주황 · 방어 계열 청록 · 체력 연두 · 속도 노랑 · 치명 분홍.</summary>
-        public static Color Stat(BaseClasses.BaseEnums.StatType stat) => stat switch
-        {
-            BaseClasses.BaseEnums.StatType.MaxHp => StatCon,
-            BaseClasses.BaseEnums.StatType.Attack => StatStr,
-            BaseClasses.BaseEnums.StatType.SpecialAttack => StatInt,
-            BaseClasses.BaseEnums.StatType.Defense => StatDex,
-            BaseClasses.BaseEnums.StatType.SpecialDefense => new Color(0.36f, 0.62f, 0.86f, 1f),
-            BaseClasses.BaseEnums.StatType.Speed => ActionYellow,
-            _ => StatLuk,
-        };
+        /// <summary>스탯 줄은 군청색. 실제 체력·피해·효과에 의미 색을 남긴다.</summary>
+        public static Color Stat(BaseClasses.BaseEnums.StatType stat) => Accent;
         public static Color Rarity(int star)
         {
             if (star <= 0) return RarityColors[0];
@@ -194,7 +178,7 @@ namespace Managers.UI.Theme
         // ── 레이아웃 상수 ────────────────────────────────────────────
         public const float CornerCut = 8f;   // 실제 사선 모서리 크기(px).
         public const float Gutter = 12f;      // 요소 간 기본 간격
-        public const float PanelPad = 20f;    // 패널 내부 여백
+        public const float PanelPad = 28f;    // 패널 내부 여백
 
         /// <summary>
         /// 모든 화면 고정 크롬이 공유하는 안전 여백. 정규화 앵커가 아니라 기준 해상도 픽셀을 쓰므로
@@ -202,7 +186,7 @@ namespace Managers.UI.Theme
         /// </summary>
         public const float ScreenEdgeInset = 24f;
         public const float ScreenTopInset = 10f;
-        public const float TopBarHeight = 116f;
+        public const float TopBarHeight = 56f;
         public const float ChromeGap = 20f;
         public const float BelowTopBar = ScreenTopInset + TopBarHeight + ChromeGap;
 

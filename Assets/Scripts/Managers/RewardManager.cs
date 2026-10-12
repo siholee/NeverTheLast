@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Core;
@@ -50,6 +51,8 @@ namespace Managers
 
         /// <summary>보상 코드 ID(패시브 500~999). 0이면 코드 보상이 아니다. 받을 아군을 고른다(Detail_17 §2.1).</summary>
         public int codeId;
+        [System.NonSerialized] public Unit saleOwner;
+        public string saleInstanceId;
 
         /// <summary>경험의 서 — 다음 레벨 필요 EXP 대비 비율(0.5 = 50%).</summary>
         public float expPercentOfNext;
@@ -184,7 +187,7 @@ namespace Managers
             // 코드 보장 — 코드가 하나도 없으면 코드가 아닌 카드 한 장을 같은 티어 근처의 코드로 바꾼다.
             if (result.Count > 0 && result.All(reward => !reward.IsCodeReward) && pools[RewardCategory.Code].Count > 0)
             {
-                int replaceIndex = Random.Range(0, result.Count);
+                int replaceIndex = UnityEngine.Random.Range(0, result.Count);
                 RewardDef code = PickWithinCategory(pools[RewardCategory.Code], result[replaceIndex].tier, nearest: true);
                 if (code != null) result[replaceIndex] = code;
             }
@@ -202,7 +205,7 @@ namespace Managers
             float code = Weight(weights, "code", 55f);
             float consumable = Weight(weights, "consumable", 30f);
             float drop = Weight(weights, "drop", 15f);
-            float roll = Random.value * Mathf.Max(0.0001f, code + consumable + drop);
+            float roll = UnityEngine.Random.value * Mathf.Max(0.0001f, code + consumable + drop);
             if (roll < code) return RewardCategory.Code;
             return roll < code + consumable ? RewardCategory.Consumable : RewardCategory.Drop;
         }
@@ -216,7 +219,7 @@ namespace Managers
             RewardDef exact = PickWithinCategory(pools[category], tier, nearest: false);
             if (exact != null) return exact;
 
-            foreach (RewardCategory other in pools.Keys.Where(key => key != category).OrderBy(_ => Random.value))
+            foreach (RewardCategory other in pools.Keys.Where(key => key != category).OrderBy(_ => UnityEngine.Random.value))
             {
                 RewardDef sameTier = PickWithinCategory(pools[other], tier, nearest: false);
                 if (sameTier != null) return sameTier;
@@ -242,7 +245,7 @@ namespace Managers
         private RewardDef WeightedPick(List<RewardDef> candidates)
         {
             float total = candidates.Sum(CodeWeight);
-            float roll = Random.value * total;
+            float roll = UnityEngine.Random.value * total;
             foreach (RewardDef candidate in candidates)
             {
                 roll -= CodeWeight(candidate);
@@ -297,11 +300,15 @@ namespace Managers
             List<Unit> party = PartyHeroes();
             if (party.Count == 0) return new List<RewardDef>();
             bool hasGrowth = party.Any(hero => hero.HasArchetypeTag("Growth"));
+            bool hasTreasury = party.Any(hero => hero.HasArchetypeTag("Treasury"));
+            bool hasToughness = party.Any(hero => hero.ActivePassiveCodesResolved().Any(code => code is Codes.Passive.OrpheusCheatedDeath));
 
             return Codes.Base.RewardCodeCatalog.All()
                 .Where(entry => Codes.Passive.Reward.RewardCodeFactory.IsImplemented(entry.id))
                 .Where(entry => entry.requiresAttackForm <= 0 || Combat.AttackForms.PartyHas(entry.requiresAttackForm))
                 .Where(entry => !entry.requiresGrowth || hasGrowth)
+                .Where(entry => !entry.requiresTreasury || hasTreasury)
+                .Where(entry => !entry.requiresToughness || hasToughness)
                 .Where(entry => party.Any(hero => hero.CanReceiveRewardCode(entry.id, out _, out _, out _)))
                 .Select(BuildCodeReward)
                 .ToList();
@@ -403,8 +410,13 @@ namespace Managers
         /// </summary>
         public static int ShopPrice(RewardDef reward, int stage)
         {
-            if (reward == null || reward.goldCost <= 0) return 0;
-            return reward.goldCost * Mathf.Max(1, stage);
+            if (reward == null) return 0;
+            int basePrice = reward.goldCost;
+            if (basePrice <= 0 && reward.item != null) basePrice = reward.item.shopPrice;
+            if (basePrice <= 0 && reward.IsCodeReward)
+                basePrice = Codes.Base.RewardCodeCatalog.Find(reward.codeId)?.shopPrice ?? 0;
+            if (basePrice <= 0) basePrice = TierBasePrice(reward.tier);
+            return (int)Math.Min(int.MaxValue, (long)basePrice * Mathf.Max(1, stage));
         }
 
         /// <summary>
@@ -505,7 +517,8 @@ namespace Managers
         {
             if (item.IsValuable) return $"귀중품 | 판매가 {ValuablePrice(item, CurrentShopStage):N0}G";
             if (item.IsFood) return $"공용 식량 +{item.foodValue}";
-            return UI.Core.ItemTooltip.CategoryName(item.category);
+            string effect=UI.Core.ItemTooltip.EffectLine(item);
+            return string.IsNullOrEmpty(effect)?UI.Core.ItemTooltip.CategoryName(item.category):effect;
         }
 
         private void EnsureRewardData()
@@ -520,7 +533,7 @@ namespace Managers
             List<RewardTierOddsData> oddsTable = _rewardDataList?.rewardTierOdds;
             if (oddsTable == null || oddsTable.Count == 0)
             {
-                return Random.value < 0.25f ? 2 : 1;
+                return UnityEngine.Random.value < 0.25f ? 2 : 1;
             }
 
             // 확률표는 10라운드까지만 있다. 그 뒤로는 10라운드 행을 계속 쓴다.
@@ -541,7 +554,7 @@ namespace Managers
                 return 1;
             }
 
-            int roll = Random.Range(0, totalWeight);
+            int roll = UnityEngine.Random.Range(0, totalWeight);
             int current = 0;
             for (int i = 0; i < odds.tierWeights.Count; i++)
             {
@@ -555,14 +568,60 @@ namespace Managers
             return 1;
         }
 
-        /// <summary>보상 카드를 고른 뒤의 흐름. 효과를 적용하고 다음 스테이지로 넘어간다.</summary>
+        private List<RewardDef> _selection;
+        private readonly HashSet<RewardDef> _claimed = new();
+        private bool _royalSelection, _applying;
+        public bool FreeRewardClaimed { get; private set; }
+        public int PaidRewardCount { get; private set; }
+        public bool RoyalSelection => _selection != null && _royalSelection;
+        public bool CanRerollSelection => _selection != null && !FreeRewardClaimed && !_applying;
+        public static int TierBasePrice(int tier) => new[] { 75, 150, 300, 600, 1200 }[Mathf.Clamp(tier, 1, 5) - 1];
+        public void BeginRewardSelection(List<RewardDef> rewards)
+        {
+            if (ReferenceEquals(_selection, rewards)) return;
+            // 받은 뒤에는 다른 목록으로 갈아 끼워 무료 선택을 복제할 수 없다.
+            if (_selection != null && FreeRewardClaimed) return;
+            _selection = rewards; _claimed.Clear(); FreeRewardClaimed = false; PaidRewardCount = 0;
+            _royalSelection = Combat.PartyTreasury.RoyalPurchaseEntitled;
+        }
+        public bool IsClaimed(RewardDef reward) => reward != null && _claimed.Contains(reward);
+        public int SelectionPrice(RewardDef reward) => FreeRewardClaimed ? ShopPrice(reward, CurrentShopStage) : 0;
+        public bool CanClaimReward(RewardDef reward)
+            => !_applying && _selection != null && _selection.Contains(reward) && !IsClaimed(reward) &&
+               (!FreeRewardClaimed || (_royalSelection && PaidRewardCount < 2)) &&
+               (!FreeRewardClaimed || GameManager.Instance?.inventoryManager?.Gold >= SelectionPrice(reward));
+        public bool TryClaimReward(RewardDef reward, Unit target = null, int overwriteCodeId = 0)
+        {
+            if (GameManager.Instance?.gameState != BaseEnums.GameState.RewardSelection || !CanClaimReward(reward)) return false;
+            _applying = true;
+            int price = SelectionPrice(reward); bool paid = FreeRewardClaimed;
+            InventoryManager inventory = GameManager.Instance?.inventoryManager;
+            try
+            {
+                if (paid && (inventory == null || !inventory.TrySpendGold(price))) return false;
+                if (!ApplyRewardEffect(reward, target, overwriteCodeId))
+                { if (paid) inventory.AddGold(price); return false; }
+                _claimed.Add(reward); FreeRewardClaimed = true; if (paid) PaidRewardCount++;
+                AudioManager.PlayCue("ui.reward.select"); return true;
+            }
+            finally { _applying = false; }
+        }
+        public bool FinishRewardSelection()
+        {
+            if (_applying || _selection == null || !FreeRewardClaimed || GameManager.Instance?.gameState != BaseEnums.GameState.RewardSelection) return false;
+            _selection = null; _claimed.Clear(); _royalSelection = false;
+            Combat.PartyTreasury.Clear();
+            GameManager.Instance?.uiManager?.HideRewardPanel();
+            RunManager.Instance?.AdvanceToNextStage(); return true;
+        }
+        public void ResetRewardSelection()
+        { _selection = null; _claimed.Clear(); FreeRewardClaimed = false; PaidRewardCount = 0; _royalSelection = false; }
+
+        /// <summary>무료 선택 또는 남은 카드 구매. 구매권이 있으면 명시적으로 마칠 때까지 목록을 유지한다.</summary>
         public void ApplyReward(RewardDef reward, Unit target = null, int overwriteCodeId = 0)
         {
-            if (!ApplyRewardEffect(reward, target, overwriteCodeId)) return;
-
-            AudioManager.PlayCue("ui.reward.select");
-            GameManager.Instance.uiManager?.HideRewardPanel();
-            RunManager.Instance?.AdvanceToNextStage();
+            if (!TryClaimReward(reward, target, overwriteCodeId)) return;
+            if (!RoyalSelection) FinishRewardSelection();
         }
 
         /// <summary>
@@ -707,7 +766,7 @@ namespace Managers
 
             for (int i = 0; i < amount; i++)
             {
-                int randomTokenId = Random.Range(1, 9);
+                int randomTokenId = UnityEngine.Random.Range(1, 9);
                 inventory.AddToken(randomTokenId, 1);
             }
         }

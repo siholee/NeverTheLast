@@ -1,4 +1,4 @@
-# 공용 인벤토리 아이템
+﻿# 공용 인벤토리 아이템
 #
 # 2026-09-26 리워크로 장비 · 장착 슬롯 · 숙련 · 무게 · 개인 휴대품을 폐지했다.
 # 모든 아이템은 파티 공용 인벤토리에 쌓인다. 식량(foodValue)은 긴 휴식 때 소비한다.
@@ -107,3 +107,52 @@ items:
     rarity: 2
     rewardPool: false
     transferScroll: true
+
+  - id: 5301
+    name: 생명의 넥타르
+    category: Nectar
+    rarity: 2
+    rewardPool: true
+    nectarFlatStats: { MaxHp: 100 }
+
+  - id: 5302
+    name: 단련의 넥타르
+    category: Nectar
+    rarity: 2
+    rewardPool: true
+    nectarFlatStats: { Defense: 8 }
+
+  - id: 5303
+    name: 투지의 넥타르
+    category: Nectar
+    rarity: 2
+    rewardPool: true
+    nectarFlatStats: { Attack: 8 }
+
+  - id: 5304
+    name: 의지의 넥타르
+    category: Nectar
+    rarity: 2
+    rewardPool: true
+    nectarFlatStats: { SpecialAttack: 8 }
+
+  - id: 5305
+    name: 평정의 넥타르
+    category: Nectar
+    rarity: 2
+    rewardPool: true
+    nectarFlatStats: { SpecialDefense: 8 }
+
+  - id: 5306
+    name: 가속의 넥타르
+    category: Nectar
+    rarity: 3
+    rewardPool: true
+    nectarFlatStats: { Speed: 2 }
+
+  - id: 5307
+    name: 직감의 넥타르
+    category: Nectar
+    rarity: 3
+    rewardPool: true
+    nectarFlatStats: { CritDamage: 4 }

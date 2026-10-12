@@ -38,8 +38,28 @@ namespace Core
         public List<int> grantedPassiveCodeIds = new();
         public List<int> activeRewardCodeSlots = new();
         public List<int> storedRewardCodeIds = new();
+        public List<RewardCodeInstanceData> activeRewardCodeInstances = new();
+        public List<RewardCodeInstanceData> storedRewardCodeInstances = new();
+        public List<PermanentStatSaveData> nectarStats = new();
         /// <summary>런 영구 중첩(아누비스의 영혼 등). 소수 몫까지 함께 옮긴다.</summary>
         public List<PermanentStackSaveData> permanentStacks = new();
+    }
+
+    /// <summary>코드 한 장의 고유 저장 상태. 장착 위치·보유자가 바뀌어도 그대로 옮긴다.</summary>
+    [Serializable]
+    public class RewardCodeInstanceData
+    {
+        public int codeId;
+        public string instanceId;
+        public float charge;
+        public int acquiredStage = 1;
+        public RewardCodeInstanceData Copy() => new() { codeId=codeId, instanceId=instanceId, charge=charge, acquiredStage=acquiredStage };
+    }
+    [Serializable]
+    public class PermanentStatSaveData
+    {
+        public string stat;
+        public float amount;
     }
 
     [Serializable]
@@ -60,7 +80,8 @@ namespace Core
         // v11: 장비 · 개인 인벤토리 폐지, 공용 인벤토리와 짧은/긴 휴식 도입.
         // v12: 보상 코드 7칸 · 영구 중첩 · 비약/코드 도구 소모품. 유닛 스냅샷의 뜻이 바뀌어 v11은 폐기한다.
         // v13: 빈 자리를 포함한 활성 7칸 + 캐릭터별 코드 보관함. v12는 기존 활성 코드를 그대로 이관한다.
-        public const int CurrentVersion = 13;
+        // v14: 코드별 축전 저장량·고유 식별자·취득 스테이지, 넥타르 영구 스탯. v12/v13 보존 이관.
+        public const int CurrentVersion = 15;
         public int currentStage;
         public int currentRound;
         public int life;

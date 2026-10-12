@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
@@ -110,6 +110,7 @@ namespace Managers
             public string Label;
             public Action Run;
             public Func<bool> CanRun;
+            public Action Cancel;
             public int Sequence;   // 같은 우선순위 안에서는 먼저 예약된 것이 먼저다
         }
 
@@ -153,6 +154,13 @@ namespace Managers
         private readonly List<PendingAction> _queue = new();
         private readonly HashSet<string> _queuedKeys = new();
 
+        private PendingAction _previewing;
+        private float _previewRemaining;
+        private float _resultRemaining;
+        // 초 단위 대기는 연출 전용이다. AV·턴·상태 기간·발동 횟수는 바꾸지 않는다.
+        public const float PreviewSeconds = .36f;
+        public const float ResultSeconds = .42f;
+        public bool IsPresenting => _previewing != null || _resultRemaining > 0 || _acting != null;
         private Unit _acting;
         // 선제 개입이 ActingKind를 잠시 바꿔도 끝난 행동의 종류를 정확히 알리기 위해 따로 든다.
         private ActionKind _actingRootKind;
@@ -164,6 +172,8 @@ namespace Managers
         private Unit _executingUnit;
         /// <summary>코루틴뿐 아니라 즉발 행동의 콜백 안에서도 현재 실행자를 식별한다.</summary>
         public Unit ExecutingUnit => _currentActionId >= 0 ? _executingUnit : null;
+        /// <summary>예고 뒤 실행을 기다리는 유닛. 취소된 예고 UI를 정리할 때만 조회한다.</summary>
+        public Unit PreviewUnit => _previewing?.Unit;
 
         /// <summary>이번 라운드에 해결된 행동 수. 전역 행동 카운트다.</summary>
         public int ActionCount { get; private set; }
@@ -184,7 +194,7 @@ namespace Managers
         public float CombatSecondsElapsed { get; private set; }
 
         /// <summary>현재 행동 중인 유닛. 없으면 null.</summary>
-        public Unit ActingUnit => _acting;
+        public Unit ActingUnit => _acting ?? _previewing?.Unit;
 
         /// <summary>지금 턴을 진행 중인 유닛. 본 행동이 끝날 때까지 유지된다.</summary>
         public Unit TurnOwner { get; private set; }
@@ -195,6 +205,7 @@ namespace Managers
 
         public void BeginRound()
         {
+            Combat.ActionDot.ResetClock();
             Combat.SpecialAction.Reset();
             Combat.AttackTargetRouter.ResetRound();
             _actionValues.Clear();
@@ -202,6 +213,7 @@ namespace Managers
             _lapCredit.Clear();
             ClearQueue();
             _acting = null;
+            _previewing = null; _resultRemaining = 0;
             TurnOwner = null;
             _actingElapsed = 0f;
             _currentActionId = -1;
@@ -265,6 +277,7 @@ namespace Managers
             _lapCredit.Clear();
             ClearQueue();
             _acting = null;
+            _previewing = null; _previewRemaining = _resultRemaining = 0;
             _currentActionId = -1;
             TurnOwner = null;
         }
@@ -341,8 +354,8 @@ namespace Managers
             => Enqueue(unit, ActionKind.Additional, key, label, run);
 
         /// <summary>실행 직전 대상이 사라지면 공지 · 이벤트 없이 버리는 추가행동(아그니 · 수리야의 추공).</summary>
-        public bool EnqueueAdditional(Unit unit, string key, string label, Action run, Func<bool> canRun)
-            => Enqueue(unit, ActionKind.Additional, key, label, run, canRun);
+        public bool EnqueueAdditional(Unit unit, string key, string label, Action run, Func<bool> canRun, Action cancelled = null)
+            => Enqueue(unit, ActionKind.Additional, key, label, run, canRun, cancelled);
 
         /// <summary>조건을 만족한 패시브 발동을 예약한다. 모든 행동보다 먼저 실행된다.</summary>
         /// <summary>패시브가 부르는 추가행동. 같은 턴의 다른 행동보다 먼저 나간다.</summary>
@@ -351,8 +364,8 @@ namespace Managers
 
         /// <summary>실행 직전 조건이 깨지면 공지·이벤트 없이 버리는 우선 추가행동.</summary>
         public bool EnqueuePriorityAdditional(Unit unit, string key, string label, Action run,
-            Func<bool> canRun)
-            => Enqueue(unit, ActionKind.PriorityAdditional, key, label, run, canRun);
+            Func<bool> canRun, Action cancelled = null)
+            => Enqueue(unit, ActionKind.PriorityAdditional, key, label, run, canRun, cancelled);
 
         /// <summary>
         /// 협동행동을 예약한다. 짝의 행동에 끼어들어 함께 치는 자리다.
@@ -370,7 +383,7 @@ namespace Managers
             => Enqueue(unit, ActionKind.Special, key, label, run, canRun);
 
         private bool Enqueue(Unit unit, ActionKind kind, string key, string label, Action run,
-            Func<bool> canRun = null)
+            Func<bool> canRun = null, Action cancelled = null)
         {
             if (unit == null || run == null) return false;
             if (!unit.isActive) return false;
@@ -386,6 +399,7 @@ namespace Managers
                 Label = label,
                 Run = run,
                 CanRun = canRun,
+                Cancel = cancelled,
                 Sequence = _sequence++,
             });
             return true;
@@ -398,7 +412,20 @@ namespace Managers
         /// <summary>매 프레임 호출. 라운드 진행 중에만 돌린다.</summary>
         public void Tick(float deltaTime)
         {
+            // 일시정지는 즉발 코드·AV·상태 턴 진행까지 함께 멈춘다.
+            if(deltaTime<=0) return;
             SyncParticipants();
+            if(_resultRemaining>0) { _resultRemaining=Mathf.Max(0,_resultRemaining-deltaTime); return; }
+            if(_previewing!=null)
+            {
+                _previewRemaining-=deltaTime;
+                if(_previewRemaining>0) return;
+                var ready=_previewing; _previewing=null;
+                if(ready.Unit!=null && ready.Unit.isActive && !ready.Unit.isControlled &&
+                    (ready.CanRun==null || ready.CanRun())) ExecuteQueued(ready);
+                else { ready.Cancel?.Invoke(); if(ready.Kind==ActionKind.Special)Combat.SpecialAction.NotifyResolved(ready.Unit); }
+                return;
+            }
 
             // 1) 누군가 행동 중이면 끝날 때까지 기다린다. 한 번에 하나만 행동한다.
             if (_acting != null)
@@ -416,9 +443,12 @@ namespace Managers
 
                 Unit finishedUnit = _acting;
                 _acting = null;
+                Combat.ActionDot.OnActionFinished(finishedUnit, _actingRootKind);
                 AnyActionFinished?.Invoke(finishedUnit, _actingRootKind);
                 _actingElapsed = 0f;
                 _currentActionId = -1;
+                _resultRemaining=ResultSeconds;
+                return;
             }
 
             // 2) 자원이 찬 궁극기를 예약한다. 턴과 무관하므로 매번 훑는다.
@@ -486,16 +516,11 @@ namespace Managers
                 _queue.RemoveAt(i);
             }
 
-            if (_acting != null && !_acting.isActive)
-            {
-                _acting = null;
-                _currentActionId = -1;
-            }
             if (TurnOwner != null && !TurnOwner.isActive) TurnOwner = null;
         }
 
         /// <summary>우선순위가 가장 높은 예약 하나를 실행한다.</summary>
-        private bool RunNextQueued()
+        private bool RunNextQueued(bool immediate = false)
         {
             while (_queue.Count > 0)
             {
@@ -510,10 +535,22 @@ namespace Managers
                 if (next.Unit == null || !next.Unit.isActive || next.Unit.isControlled ||
                     (next.CanRun != null && !next.CanRun()))
                 {
+                    next.Cancel?.Invoke();
                     if (next.Kind == ActionKind.Special) Combat.SpecialAction.NotifyResolved(next.Unit);
                     continue;
                 }
 
+                Combat.ActionAnnouncer.AnnounceScheduled(next.Unit,next.Kind,next.Label);
+                if(immediate) ExecuteQueued(next);
+                else { _previewing=next; _previewRemaining=PreviewSeconds; }
+                return true;
+            }
+
+            return false;
+        }
+
+        private void ExecuteQueued(PendingAction next)
+        {
                 _actingElapsed = 0f;
                 _currentActionId = ++_actionIdSequence;
                 ActingKind = next.Kind;
@@ -539,7 +576,14 @@ namespace Managers
                         new EventContext(next.Unit));
                 }
 
-                Combat.ActionAnnouncer.AnnounceScheduled(next.Unit, next.Kind, next.Label);
+                Combat.ActionDot.OnActionStarted(next.Unit, next.Kind);
+                if (!next.Unit.isActive)
+                {
+                    if (next.Kind == ActionKind.Special) Combat.SpecialAction.NotifyResolved(next.Unit);
+                    _currentActionId = -1;
+                    _executingUnit = null;
+                    return;
+                }
                 AnyActionStarted?.Invoke(next.Unit, next.Kind, next.Label);
                 next.Run();
 
@@ -549,13 +593,12 @@ namespace Managers
                 ActionCount++;
                 if (_acting == null)
                 {
-                    _currentActionId = -1;
+                    // 비동기 행동과 동일하게 완료 훅까지 실제 행동 ID/실행 문맥을 보존한다.
+                    Combat.ActionDot.OnActionFinished(next.Unit, next.Kind);
                     AnyActionFinished?.Invoke(next.Unit, next.Kind);
+                    _currentActionId = -1;
                 }
-                return true;
-            }
-
-            return false;
+                if(_acting==null) _resultRemaining=ResultSeconds;
         }
 
         /// <summary>
@@ -574,14 +617,21 @@ namespace Managers
             _currentActionId = ++_actionIdSequence;
             ActingKind = ActionKind.PriorityAdditional;
             _executingUnit = unit;
+            Combat.ActionDot.OnActionStarted(unit, ActionKind.PriorityAdditional);
+            if (!unit.isActive)
+            {
+                _currentActionId = parentActionId; ActingKind = parentKind; _executingUnit = parentExecutingUnit;
+                yield break;
+            }
             unit.Invoke(BaseEnums.UnitEventType.OnAdditionalActivates, new EventContext(unit));
             // 선제 개입은 행동 슬롯을 추가행동으로 빌리지만, 좌측 표시는 실제 의미인 패시브로 고정한다.
-            Combat.ActionAnnouncer.Announce(unit, Combat.ActionAnnouncementKind.Passive, label);
+            Combat.ActionAnnouncer.Announce(unit, Combat.ActionAnnouncementKind.Passive, label, followsAction: true);
             AnyActionStarted?.Invoke(unit, ActionKind.PriorityAdditional, label);
 
             System.Collections.IEnumerator routine = routineFactory();
             if (routine != null) yield return routine;
             ActionCount++;
+            AnyActionFinished?.Invoke(unit, ActionKind.PriorityAdditional);
 
             _currentActionId = parentActionId;
             ActingKind = parentKind;
@@ -590,7 +640,7 @@ namespace Managers
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         /// <summary>멈춘 시각 검증 장면에서 예약 조건·공지까지 실제 경로로 한 건 실행한다.</summary>
-        public bool DebugRunNextQueued() => RunNextQueued();
+        public bool DebugRunNextQueued() => RunNextQueued(immediate:true);
 
         public int DebugQueuedCount(ActionKind kind)
             => _queue.Count(entry => entry.Kind == kind);

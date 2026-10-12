@@ -59,8 +59,8 @@ namespace Managers.UI.Screens
 
 
         private const float TabRowHeight = 52f;
-        private const float ListWidth = 0.27f;
-        private const float RowHeight = 64f;
+        private const float ListWidth = 0.32f;
+        private const float RowHeight = 76f;
         private const float PortraitSize = 188f;
 
         /// <summary>목록 한 줄. 본문은 누를 때 만든다 — 수백 항목의 문장을 미리 짜 둘 이유가 없다.</summary>
@@ -76,6 +76,7 @@ namespace Managers.UI.Screens
             public string Search;
         }
 
+        protected override Color BackdropTint => new Color(.77f,.84f,.92f,.98f);
         protected override string CanvasName => "WikiCanvas";
 
         /// <summary>ESC 메뉴보다 위, 설정·확인 창보다 아래.</summary>
@@ -130,27 +131,34 @@ namespace Managers.UI.Screens
 
         private void BuildTabs()
         {
-            for (int i = 0; i < Categories.Length; i++)
+            UIIcon[] icons={UIIcon.Guide,UIIcon.Party,UIIcon.Support,UIIcon.Supply,UIIcon.Counter,UIIcon.Lexicon};
+            for(int i=0;i<Categories.Length;i++)
             {
-                (Category category, string label) = Categories[i];
-                Button tab = UIBuild.Button($"Tab_{category}", Body, label, () => { RememberLocation(); SetCategory(category); },
-                    false, UITheme.FontReadSmall);
-                UIBuild.Pin(tab.image.rectTransform, new Vector2(0f, 1f), new Vector2(110f, TabRowHeight - 4f),
-                    new Vector2(i * 130f, 0f));
-                _tabs[category] = tab;
+                (Category category,string label)=Categories[i];
+                Button tab=UIBuild.Button($"Tab_{category}",Body,"",()=>{RememberLocation();SetCategory(category);},false,18);
+                float top=.80f-i*.10f;
+                UIBuild.Anchor(tab.image.rectTransform,new Vector2(0,top-.075f),new Vector2(.078f,top),2,4);
+                Image icon=UIBuild.Icon("CategoryIcon",tab.transform,icons[i],UITheme.AccentDim);
+                UIBuild.Anchor(icon.rectTransform,new Vector2(.02f,.26f),new Vector2(.22f,.73f));
+                var title=UIBuild.Text("Label",tab.transform,label,20,UITheme.TextSecondary,TextAlignmentOptions.MidlineLeft);
+                UIBuild.Anchor(title.rectTransform,new Vector2(.28f,0),new Vector2(1,1));
+                _tabs[category]=tab;
             }
         }
 
         /// <summary>이름 검색. 코드만 수백 개라 목록을 눈으로 훑어서는 찾을 수 없다.</summary>
         private void BuildSearch()
         {
+            // 검색은 다른 입력 · 버튼과 같은 알약 — 흰 면 + 군청 헤어라인.
             Image background = UIBuild.Panel("Search", Body, UITheme.SurfaceSunken,
                 UIShapes.Corner.Diagonal, 6, UITheme.Outline, 1);
-            UIBuild.Pin(background.rectTransform, new Vector2(1f, 1f), new Vector2(320f, TabRowHeight - 4f),
+            background.sprite = UIShapes.RoundedRect(22, Color.white,
+                new Color(UITheme.Accent.r, UITheme.Accent.g, UITheme.Accent.b, 0.24f), 1);
+            UIBuild.Pin(background.rectTransform, new Vector2(1f, 1f), new Vector2(420f, TabRowHeight - 4f),
                 Vector2.zero);
 
             RectTransform viewport = UIBuild.Container("Viewport", background.transform);
-            UIBuild.Stretch(viewport, 12f, 4f);
+            UIBuild.Stretch(viewport, 20f, 4f);
             viewport.gameObject.AddComponent<RectMask2D>();
 
             TextMeshProUGUI placeholder = UIBuild.Text("Placeholder", viewport, "전체 자료실 검색",
@@ -179,9 +187,8 @@ namespace Managers.UI.Screens
 
         private void BuildList()
         {
-            Image frame = UIBuild.Panel("ListFrame", Body, UITheme.SurfaceSunken,
-                UIShapes.Corner.Diagonal, 10, UITheme.Outline, 1);
-            UIBuild.Anchor(frame.rectTransform, new Vector2(0f, 0f), new Vector2(ListWidth, 1f));
+            Image frame = UIBuild.Solid("ListFrame", Body, Color.clear);
+            UIBuild.Anchor(frame.rectTransform, new Vector2(.095f, 0f), new Vector2(ListWidth, 1f));
             frame.rectTransform.offsetMax = new Vector2(0f, -(TabRowHeight + 8f));
 
             _listContent = UIBuild.ScrollArea("List", frame.transform, out _listScroll);
@@ -190,9 +197,8 @@ namespace Managers.UI.Screens
 
         private void BuildBody()
         {
-            Image frame = UIBuild.Panel("BodyFrame", Body, UITheme.SurfaceSunken,
-                UIShapes.Corner.Diagonal, 10, UITheme.Outline, 1);
-            UIBuild.Anchor(frame.rectTransform, new Vector2(ListWidth, 0f), new Vector2(1f, 1f));
+            Image frame = UIBuild.Solid("BodyFrame", Body, Color.clear);
+            UIBuild.Anchor(frame.rectTransform, new Vector2(ListWidth+.015f, 0f), new Vector2(1f, 1f));
             frame.rectTransform.offsetMin = new Vector2(12f, 0f);
             frame.rectTransform.offsetMax = new Vector2(0f, -(TabRowHeight + 8f));
 
@@ -229,7 +235,7 @@ namespace Managers.UI.Screens
         /// </summary>
         private void BuildStickyHeader(Transform frame)
         {
-            Image bar = UIBuild.Panel("Sticky", frame, UITheme.Surface, UIShapes.Corner.Diagonal, 8);
+            Image bar = UIBuild.Solid("Sticky", frame, Color.clear);
             bar.raycastTarget = false;
             RectTransform rect = bar.rectTransform;
             rect.anchorMin = new Vector2(0f, 1f);
@@ -331,12 +337,25 @@ namespace Managers.UI.Screens
             RebuildList(keepSelection: !changed);
         }
 
+        /// <summary>
+        /// 분류 레일은 세로 목록이다. 선택은 옅은 군청 면과 굵은 이름으로 표시하며 별도 막대는 두지 않는다.
+        /// </summary>
+        private static void SelectWikiRow(Image row, bool active)
+        {
+            row.sprite=UIShapes.RoundedRect(8,active?UIArtDirection.SelectedFill:Color.clear);
+            row.type=Image.Type.Sliced; row.color=Color.white;
+        }
+
         private static void Tint(Button button, bool active)
         {
-            button.image.sprite = UIShapes.CutCorner(8,
-                active ? UITheme.Accent : UITheme.SurfaceRaised, UIShapes.Corner.Diagonal);
-            TextMeshProUGUI label = button.GetComponentInChildren<TextMeshProUGUI>();
-            if (label != null) label.color = active ? UITheme.TextOnAccent : UITheme.TextSecondary;
+            if (button == null) return;
+            SelectWikiRow(button.image, active);
+            TextMeshProUGUI label = button.transform.Find("Label")?.GetComponent<TextMeshProUGUI>();
+            if (label != null)
+            {
+                label.color = active ? UITheme.AccentDim : UITheme.TextSecondary;
+                label.fontStyle = active ? FontStyles.Bold : FontStyles.Normal;
+            }
         }
 
         // ── 목록 ─────────────────────────────────────────────────────
@@ -387,7 +406,11 @@ namespace Managers.UI.Screens
                 y += 40f;
             }
 
-            _listContent.sizeDelta = new Vector2(0f, y + 8f);
+            Canvas.ForceUpdateCanvases();
+            float available=_listScroll.viewport.rect.height;
+            float shift=Mathf.Max(0,(available-y-8f)*.5f);
+            foreach (RectTransform child in _listContent) child.anchoredPosition-=new Vector2(0,shift);
+            _listContent.sizeDelta = new Vector2(0f,Mathf.Max(available,y+8f));
             _listContent.anchoredPosition = Vector2.zero;
 
             if (!keepSelection || _selected == null || !entries.Contains(_selected))
@@ -422,22 +445,25 @@ namespace Managers.UI.Screens
         private void AddRow(Entry entry, ref float y)
         {
             Button row = UIBuild.Button("Row", _listContent, null, () => Select(entry), false);
-            Place(row.image.rectTransform, y, RowHeight, 2f);
-            row.image.sprite = UIShapes.CutCorner(6, new Color(1f, 1f, 1f, 0f), UIShapes.Corner.Diagonal);
+            bool hasSub=!string.IsNullOrEmpty(entry.Sub)&&entry.Sub!=entry.Group;
+            float height=hasSub?RowHeight:44f;
+            Place(row.image.rectTransform, y, height, 2f);
+            row.image.sprite = UIShapes.Surface(6, new Color(1f, 1f, 1f, 0f), UIShapes.Corner.Diagonal);
 
             TextMeshProUGUI title = UIBuild.Text("Title", row.transform, entry.Title, UITheme.FontReadSmall, entry.Tint);
             title.overflowMode = TextOverflowModes.Ellipsis;
-            UIBuild.Anchor(title.rectTransform, new Vector2(0f, .40f), Vector2.one, 14f, 0f);
-            if (!string.IsNullOrEmpty(entry.Sub))
+            // 제목과 부제를 하나의 덩어리로 배치한다. 중복 부제가 없으면 한 줄을 중앙에 둔다.
+            UIBuild.Anchor(title.rectTransform, new Vector2(0f, hasSub ? .44f : 0f), new Vector2(1f,hasSub ? .96f : 1f), 14f, 0f);
+            if (hasSub)
             {
-                var sub = UIBuild.Text("Sub", row.transform, entry.Sub, UITheme.FontReadSmall, UITheme.TextMuted);
+                var sub = UIBuild.Text("Sub", row.transform, entry.Sub, 18f, UITheme.TextMuted);
                 sub.overflowMode = TextOverflowModes.Ellipsis;
-                UIBuild.Anchor(sub.rectTransform, Vector2.zero, new Vector2(1f, .40f), 14f, 0f);
+                UIBuild.Anchor(sub.rectTransform, new Vector2(0,.04f), new Vector2(1f,.42f),14f,0f);
             }
 
             row.gameObject.name = $"Row_{entry.Title}";
             _rows[row] = entry;
-            y += RowHeight + 2f;
+            y += height + 4f;
         }
 
         private void Select(Entry entry)
@@ -454,9 +480,19 @@ namespace Managers.UI.Screens
             {
                 if (row == null) continue;
                 bool active = entry == _selected;
-                row.image.sprite = UIShapes.CutCorner(6,
-                    active ? UITheme.AccentFaint : new Color(1f, 1f, 1f, 0f), UIShapes.Corner.Diagonal,
-                    active ? UITheme.Accent : default, active ? 1 : 0);
+                // 선택 면을 유지하고 행 전체가 목록 안에 보이도록 한다.
+                SelectWikiRow(row.image, active);
+                if(active)
+                {
+                    Canvas.ForceUpdateCanvases();
+                    float top=-row.image.rectTransform.anchoredPosition.y;
+                    float bottom=top+row.image.rectTransform.rect.height;
+                    float current=_listContent.anchoredPosition.y;
+                    float available=_listScroll.viewport.rect.height;
+                    if(top<current+8)current=top-8;
+                    else if(bottom>current+available-8)current=bottom-available+8;
+                    _listContent.anchoredPosition=new Vector2(0,Mathf.Clamp(current,0,Mathf.Max(0,_listContent.rect.height-available)));
+                }
             }
         }
 
@@ -498,7 +534,11 @@ namespace Managers.UI.Screens
             float height = _bodyText.GetPreferredValues(text, Mathf.Max(200f, width - _bodyText.margin.z), 0f).y;
             height = Mathf.Max(height, portrait != null ? PortraitSize : 0f);
             _bodyText.rectTransform.sizeDelta = new Vector2(0f, height);
-            _bodyContent.sizeDelta = new Vector2(0f, height + 24f);
+            float available=_bodyScroll.viewport.rect.height;
+            float inset=Mathf.Max(12f,(available-height)*.5f);
+            _bodyText.rectTransform.anchoredPosition=new Vector2(0,-inset);
+            _portrait.rectTransform.anchoredPosition=new Vector2(_portrait.rectTransform.anchoredPosition.x,-inset);
+            _bodyContent.sizeDelta = new Vector2(0f,Mathf.Max(available,height+24f));
             _bodyContent.anchoredPosition = Vector2.zero;
             RefreshStickyHeader(entry);
         }
@@ -567,7 +607,7 @@ namespace Managers.UI.Screens
                         Key = $"unit:{unit.id}",
                         Group = FactionOf(unit.id),
                         Title = unit.name,
-                        Sub = available ? TypeName(unit.characterType) : "미해금",
+                        Sub = available ? string.Join(" · ",new[]{ElementName(unit.element)}.Concat(UnitTagCatalog.Resolve(unit.archetypeTags).Take(2).Select(tag=>tag.Name))) : "미해금",
                         Tint = available ? UITheme.TextPrimary : UITheme.TextMuted,
                         Portrait = unit.portrait,
                         Body = () => CharacterBody(unit),

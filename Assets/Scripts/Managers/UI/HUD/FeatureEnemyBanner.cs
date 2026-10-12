@@ -88,19 +88,24 @@ namespace Managers.UI.HUD
             private readonly Image _hpFill;
             private readonly Image _shieldFill;
             private readonly List<Image> _dots = new();
+            private Unit _unit;
 
             public Slot(Transform parent, int index)
             {
                 Image panel = UIBuild.Glass($"Slot{index}", parent, 8);
                 _rect = panel.rectTransform;
+                panel.raycastTarget = true;
+                TooltipTrigger.Attach(panel.gameObject, () => _unit?.UnitName ?? "",
+                    () => _unit != null ? UnitInfoText.IdentityLines(_unit) : System.Array.Empty<UITooltip.Line>(), UITheme.Accent);
 
                 _name = UIBuild.Text($"Name{index}", panel.transform, "", UITheme.FontCaption,
                     UITheme.TextOnDark, TextAlignmentOptions.Left);
                 UIBuild.Anchor(_name.rectTransform, new Vector2(0f, 0.52f), new Vector2(0.62f, 1f), 10f, 2f);
+                _name.enabled = false;
 
                 _hpText = UIBuild.Text($"Hp{index}", panel.transform, "", UITheme.FontCaption,
-                    UITheme.TextOnDarkSecondary, TextAlignmentOptions.Right);
-                UIBuild.Anchor(_hpText.rectTransform, new Vector2(0.62f, 0.52f), new Vector2(1f, 1f), 10f, 2f);
+                    UITheme.TextOnDarkSecondary, TextAlignmentOptions.Center);
+                UIBuild.Anchor(_hpText.rectTransform, new Vector2(0f, 0.52f), new Vector2(1f, 1f), 10f, 2f);
 
                 // 방어막은 체력 바 위에 겹쳐 그린다. 체력이 줄어도 방어막 폭은 그대로라
                 // "아직 껍질이 남았다"가 한눈에 보인다.
@@ -140,7 +145,7 @@ namespace Managers.UI.HUD
                 _rect.sizeDelta = new Vector2(width, SlotHeight);
                 _rect.anchoredPosition = new Vector2(x, 0f);
 
-                _name.text = unit.UnitName;
+                _unit = unit;
 
                 float ratio = unit.HpMax > 0 ? Mathf.Clamp01((float)unit.HpCurr / unit.HpMax) : 0f;
                 _hpFill.fillAmount = ratio;

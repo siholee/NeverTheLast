@@ -277,13 +277,11 @@ namespace Codes.Passive
         private sealed class StakesEffect : BaseEffect
         {
             private readonly AgniBurnToTheEnd _source;
-            public StakesEffect(AgniBurnToTheEnd source) : base(0, UltimateDamageBonus) => _source = source;
+            public StakesEffect(AgniBurnToTheEnd source) : base(0, AgniBurnToTheEnd.UltimateDamageBonus) => _source = source;
             public override bool IsBeneficial => true;
 
-            public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
-                => attacker == Target && context != null && context.HasTag(DamageTag.UltAttack) && _source.StakesActive
-                    ? UltimateDamageBonus
-                    : 1f;
+            public override float UltimateDamageBonus(Unit attacker)
+                => attacker == Target && _source.StakesActive ? AgniBurnToTheEnd.UltimateDamageBonus - 1f : 0f;
         }
     }
 }

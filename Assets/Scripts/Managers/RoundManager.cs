@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Core;
 using Entities;
@@ -20,12 +20,13 @@ namespace Managers
     {
         private readonly DataManager _dataManager;
         public int Stage { get; private set; }  // 현재 전투 스테이지
-        public int Round { get; private set; }  // 10스테이지마다 증가하는 라운드
+        public const int EncountersPerTheme = 8;
+        public int Round { get; private set; }  // 표시상 스테이지(테마)
         // 누적 전투 라운드 기준 성장 레벨. 1번째 전투는 기본 스탯(성장 0회),
         // n번째 전투는 각 스탯의 IncrementLvl을 (n - 1)회 적용한다.
         /// <summary>적 유닛의 레벨. 현재 스테이지와 같다(1스테이지 = Level 1 = 성장분 0).</summary>
         public int EnemyLevel => Mathf.Max(1, Stage);
-        public int StageInRound => ((Stage - 1) % 10) + 1;
+        public int StageInRound => ((Stage - 1) % EncountersPerTheme) + 1;
 
         /// <summary>
         /// 이 스테이지가 소비하는 <b>내용 슬롯</b>. 평소에는 <see cref="StageInRound"/>과 같다.
@@ -34,11 +35,11 @@ namespace Managers
         /// 그래서 마지막 한 칸이 비고 거기에 고정 보스가 들어간다.
         ///
         /// <code>
-        /// 평소       1  2  3  4  5(사건) 6  7  8  9  10(보스)
-        /// 고정 보스  1  3  4  5(사건)    6  7  8  9  10(보스)  고정 보스
+        /// 평소       1  2  3  4  5  6(엘리트)  7  8(보스)
+        /// 고정 보스  1  3  4  5  6(엘리트)  7  8(보스)  고정 보스
         /// </code>
         ///
-        /// 결과적으로 테마 보스는 9번째 전투로 당겨진다 — 기존 규칙과 같은 자리다.
+        /// 결과적으로 테마 보스는 7번째 전투로 당겨진다 — 기존 규칙과 같은 자리다.
         /// </summary>
         public int ContentSlotInRound => ContentSlot(Stage);
         public int CurrentThemeId => _currentStageTheme?.id ?? 0;
@@ -245,7 +246,7 @@ namespace Managers
 
         private static int GetRewardRound(int battleStage)
         {
-            return Mathf.Max(1, ((battleStage - 1) / 10) + 1);
+            return Mathf.Max(1, ((battleStage - 1) / EncountersPerTheme) + 1);
         }
 
         private void EnsureDataLoaded()
@@ -308,15 +309,17 @@ namespace Managers
         private StageThemeData PickThemeForNewRound()
         {
             List<StageThemeData> themes = ActiveThemes();
+            // 첫 두 스테이지는 서사 없는 범용 테마만 허용한다. 연작/치환도 이 풀을 넘지 않는다.
+            if (Round <= 2) themes = themes.Where(theme => theme.isGeneric).ToList();
             if (themes.Count == 0) return _currentStageTheme;
 
             // 연작의 다음 편. 추첨을 건너뛴다.
             if (_currentStageTheme != null && _currentStageTheme.chainNextThemeId > 0)
             {
                 StageThemeData next = FindTheme(_currentStageTheme.chainNextThemeId);
-                if (next != null) return next;
+                if (next != null && themes.Contains(next)) return next;
 
-                Debug.LogWarning($"[RoundManager] 테마 {_currentStageTheme.id}의 다음 편 " +
+                if (next == null) Debug.LogWarning($"[RoundManager] 테마 {_currentStageTheme.id}의 다음 편 " +
                                  $"{_currentStageTheme.chainNextThemeId}를 찾지 못해 추첨으로 넘어갑니다.");
             }
 
@@ -330,6 +333,8 @@ namespace Managers
                                  $"{drawn.rotationRedirectThemeId}를 찾지 못해 그대로 씁니다.");
                 return drawn;
             }
+
+            if (!themes.Contains(entry)) return drawn;
 
             Debug.Log($"[RoundManager] 추첨은 {drawn.name}이지만 연작 시작인 {entry.name}으로 치환합니다.");
             return entry;
@@ -351,6 +356,17 @@ namespace Managers
             if (restored == null)
             {
                 Debug.LogWarning($"[RoundManager] 저장된 테마 {themeId}를 찾지 못했습니다. 새로 뽑습니다.");
+                return;
+            }
+
+            bool forced = false;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            forced = Core.DebugMode.ForcedThemeId == themeId;
+#endif
+            if (!forced && (!restored.enabled || (Round <= 2 && !restored.isGeneric)))
+            {
+                _themeDecidedForRound = -1;
+                EnsureThemeForCurrentRound();
                 return;
             }
 
@@ -377,16 +393,17 @@ namespace Managers
             return _activeThemes;
         }
 
-        /// <summary>현재 테마의 중간 보스 슬롯. 데이터가 비어 있으면 기존 규칙인 8을 쓴다.</summary>
+        /// <summary>현재 테마의 중간 보스 슬롯. 데이터가 비어 있으면 기본값 6을 쓴다.</summary>
         private int MidBossStageInRound =>
-            (_currentStageTheme?.midBossStageInRound ?? 0) > 0 ? _currentStageTheme.midBossStageInRound : 8;
+            (_currentStageTheme?.midBossStageInRound ?? 0) > 0 ? _currentStageTheme.midBossStageInRound : 6;
 
         private bool IsEventStage()
         {
             if (IsFixedBossStage(Stage)) return false;
             if (RawCurrentEventData != null) return CurrentEventData != null;
             if (CurrentEventData != null) return true;
-            return ContentSlotInRound == 5;
+            int eventSlot = _currentStageTheme?.eventStageInRound ?? 5;
+            return eventSlot > 0 && ContentSlotInRound == eventSlot;
         }
 
 #if UNITY_EDITOR
@@ -459,11 +476,11 @@ namespace Managers
 
         /// <summary>
         /// 임의 스테이지의 내용 슬롯. 규칙은 <see cref="ContentSlotInRound"/>을 본다.
-        /// 고정 보스 스테이지 자신은 어떤 슬롯에도 대응하지 않는다(11을 반환하고 호출부가 먼저 걸러낸다).
+        /// 고정 보스 스테이지 자신은 어떤 슬롯에도 대응하지 않는다(9를 반환하고 호출부가 먼저 걸러낸다).
         /// </summary>
         private int ContentSlot(int stage)
         {
-            int stageInRound = ((stage - 1) % 10) + 1;
+            int stageInRound = ((stage - 1) % EncountersPerTheme) + 1;
             if (!RoundHasFixedBoss(GetRewardRound(stage))) return stageInRound;
 
             return stageInRound >= 2 ? stageInRound + 1 : stageInRound;
@@ -473,7 +490,7 @@ namespace Managers
         {
             if (GetFixedBossId(stage) > 0) return true;
 
-            return ContentSlot(stage) == 10;
+            return ContentSlot(stage) == EncountersPerTheme;
         }
 
         /// <summary>현재 스테이지에 실제 배치되는 보스 ID. 보스 스테이지가 아니면 0.</summary>
@@ -483,14 +500,14 @@ namespace Managers
             {
                 int fixedBoss = GetFixedBossId(Stage);
                 if (fixedBoss > 0) return fixedBoss;
-                return ContentSlotInRound == 10 ? _currentStageTheme?.bossId ?? 0 : 0;
+                return ContentSlotInRound == EncountersPerTheme ? _currentStageTheme?.bossId ?? 0 : 0;
             }
         }
 
         /// <summary>
         /// 이번 스테이지의 중간 보스 ID. 중간 보스 슬롯이 아니면 0이다.
         ///
-        /// <see cref="CurrentBossId"/>가 10슬롯만 보기 때문에 따로 둔다.
+        /// <see cref="CurrentBossId"/>가 8슬롯만 보기 때문에 따로 둔다.
         /// 시구르드·브륀힐드처럼 <b>합류 분기가 중간 보스 자리</b>에 있는 경우가 생겼고,
         /// 그 승리도 사건 방아쇠가 되어야 한다.
         /// </summary>
@@ -517,9 +534,9 @@ namespace Managers
 
             int slot = ContentSlot(stage);
 
-            if (slot == 10) return StageKind.Boss;
+            if (slot == EncountersPerTheme) return StageKind.Boss;
             // 중보스 여부는 테마마다 다르지만, 예고는 현재 테마 기준으로만 근사한다.
-            if (slot == MidBossStageInRound && (_currentStageTheme?.midBossId ?? 0) > 0) return StageKind.MidBoss;
+            if (slot == MidBossStageInRound && (_currentStageTheme?.midBossId ?? 0) > 0) return _currentStageTheme.isGeneric ? StageKind.Elite : StageKind.MidBoss;
             if (HasEventAtSlot(slot)) return StageKind.Event;
             return StageKind.Normal;
         }
@@ -532,11 +549,11 @@ namespace Managers
         private bool HasEventAtSlot(int slot)
         {
             List<StageEventData> events = _stageThemeDataList?.events;
-            if (events == null) return slot == 5;
+            if (events == null) return slot == (_currentStageTheme?.eventStageInRound ?? 5) && slot > 0;
 
             int themeId = CurrentThemeId;
             bool themeHasOwnEvent = events.Any(data => data != null && data.themeId == themeId);
-            if (!themeHasOwnEvent) return slot == 5;
+            if (!themeHasOwnEvent) return slot == (_currentStageTheme?.eventStageInRound ?? 5) && slot > 0;
 
             return events.Any(data => data != null && data.themeId == themeId && data.stageInRound == slot);
         }
@@ -545,7 +562,7 @@ namespace Managers
         public List<StageKind> GetUpcomingStageKinds(int count)
         {
             var kinds = new List<StageKind>();
-            for (int i = 0; i < Mathf.Max(0, count); i++)
+            for (int i = 0; i < Mathf.Min(Mathf.Max(0, count), EncountersPerTheme - StageInRound + 1); i++)
             {
                 kinds.Add(GetStageKind(Stage + i));
             }
@@ -596,7 +613,7 @@ namespace Managers
                 return;
             }
 
-            if (!hasThemePattern && slot == 10 && _currentStageTheme.bossId > 0)
+            if (!hasThemePattern && slot == EncountersPerTheme && _currentStageTheme.bossId > 0)
             {
                 enemyIdsToSpawn.Add(_currentStageTheme.bossId);
                 PlaceEnemies(enemyIdsToSpawn);
@@ -883,7 +900,7 @@ namespace Managers
         /// </summary>
         public void UpdateRound()
         {
-            if (AreAllEnemiesDefeated())
+            if (Time.timeScale > 0 && GameManager.Instance?.ActionScheduler?.IsPresenting != true && AreAllEnemiesDefeated())
             {
                 Debug.Log("All enemies defeated. Ending round.");
                 EndRound();

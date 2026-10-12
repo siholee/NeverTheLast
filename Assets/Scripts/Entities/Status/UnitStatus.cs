@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Effects.Base;
@@ -79,6 +79,9 @@ namespace Entities.Status
         
         /// <summary>보유자의 턴을 몇 번 넘겼는지</summary>
         public int ElapsedTurns { get; set; }
+        public bool NormalActionDuration { get; set; }
+        public bool SkipCurrentNormalCompletion { get; set; }
+        public int AppliedActionId { get; set; } = -1;
 
         /// <summary>
         /// 효과 명중(특수공격력 대 특수방어력)을 이미 따로 굴렸는가. 참이면 상태를 붙일 때 다시 굴리지 않는다.

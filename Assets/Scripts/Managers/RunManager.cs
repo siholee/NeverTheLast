@@ -115,6 +115,8 @@ namespace Managers
             roundManager.RestoreTheme(save.currentThemeId);
             GameManager.Instance.EventScheduler?.Restore(save.pendingEventIds, roundManager.GetEventById);
 
+            // 같은 씬의 준비 상태에서 복원해도 이전 적 미리보기가 저장 층의 스폰 자리를 점유하지 않게 한다.
+            GridManager.Instance.ClearActiveEnemies();
             RestoreHeroes(save.heroUnits);
             roundManager.LoadRound(Mathf.Max(1, save.currentStage));
 
@@ -154,7 +156,7 @@ namespace Managers
             SaveCurrentRun();
         }
 
-        /// <summary>1-10 → 2-1처럼 10스테이지 테마 라운드가 바뀔 때 궁극기 자원을 완전히 비운다.</summary>
+        /// <summary>1-8 → 2-1처럼 8라운드 테마 라운드가 바뀔 때 궁극기 자원을 완전히 비운다.</summary>
         private static void ResetUltimateResourcesOnThemeTransition(int previousRound)
         {
             if (GameManager.Instance.RoundManager.Round == previousRound) return;

@@ -44,6 +44,7 @@ namespace Managers.UI.DevTools
         private string _requestDirectory;
         private string _currentScenario;
         private int _captureSequence;
+        private int _captureFileSequence;
         private int _eventSerial;
         private string _latestVisualEvent = "frame";
         private string _activeLineup;
@@ -117,6 +118,7 @@ namespace Managers.UI.DevTools
         private void OnDestroy()
         {
             Cursor.visible = _cursorWasVisible;
+            DebugOverlay.HideBannerForVerification = false;
             Managers.UI.Core.UITooltip.HideAny();
             foreach (FieldPointerInput pointer in _disabledPointerInputs)
                 if (pointer != null) pointer.enabled = true;
@@ -142,6 +144,7 @@ namespace Managers.UI.DevTools
             _requestDirectory = UnityEditor.SessionState.GetString(VerifyHarnessSession.RequestDirectoryKey, "");
             _request = JsonUtility.FromJson<VerifyRequest>(json) ?? new VerifyRequest();
             NormalizeScenarioList();
+            DebugOverlay.HideBannerForVerification = _request.hideDebugBanner;
 
             _result = new VerifyRunResult
             {
@@ -152,6 +155,10 @@ namespace Managers.UI.DevTools
 
             yield return ExecuteGuarded(RunAll());
             yield return WaitForCapturedFiles(5f);
+            if (_result.captures.Count > 0)
+                RecordMechanic("검수 캡처 경로 고유성", _result.captures.Count.ToString(),
+                    _result.captures.Select(c => c.path).Distinct().Count().ToString(),
+                    _result.captures.Select(c => c.path).Distinct().Count() == _result.captures.Count);
 
             DebugMode.ResetAll();
             DebugMode.SuiteRunning = false;
@@ -299,7 +306,19 @@ namespace Managers.UI.DevTools
                 "party5_lokapala" => PartyFiveLokapalaIds,
                 "party5_summon" => PartyFiveSummonIds,
                 "party5_yama_varuna" => PartyFiveYamaVarunaIds,
+                "party5_treasury" => new[] { 65, 200, 220, 64, 82 },
+                "party5_nord" => new[] { 81, 82, 161, 67, 45 },
+                "party5_nord_synergy" => new[] { 81, 82, 44, 64, 62 },
+                "allvfx_group_1" => new[] { 1, 2, 3, 7, 122 },
+                "allvfx_group_2" => new[] { 60, 44, 20, 63, 64 },
+                "allvfx_group_3" => new[] { 65, 61, 66, 121, 180 },
+                "allvfx_group_4" => new[] { 62, 67, 45, 160, 161 },
+                "allvfx_group_5" => new[] { 80, 81, 82, 64, 66 },
+                "party5_toughness" => new[] { 25, 2, 60, 121, 1 },
+                "party5_france_moon" => new[] { 160, 161, 67, 45, 63 },
                 "party5_vedic_trio" => new[] { 64, 62, 67, 66, 63 },
+                "party5_command_fenrir" => PartyFiveCommandFenrirIds,
+                "party5_command_melee" => PartyFiveCommandMeleeIds,
                 "party5_reward_ui" => PartyFiveRewardUiIds,
                 "duo_agni_surya" => new[] { AgniId, SuryaId },
                 "duo_shi_sabah" => new[] { ShiId, SabahId },
@@ -322,15 +341,18 @@ namespace Managers.UI.DevTools
         private IEnumerator EnsureLineup(VerifyScenarioRequest config)
         {
             string lineup = ResolveLineup(config);
-            if (lineup != "party5" && lineup != "party5_sabah" && lineup != "party5_bastet" &&
+            if (lineup != "party5_toughness" && lineup != "party5_treasury" && !lineup.StartsWith("allvfx_group_") && lineup != "party5" && lineup != "party5_sabah" && lineup != "party5_bastet" &&
                 lineup != "party5_jean" && lineup != "party5_jean_bastet" && lineup != "solo1" &&
-                lineup != "party5_lokapala" && lineup != "party5_summon" && lineup != "party5_yama_varuna" && lineup != "party5_vedic_trio" &&
-                lineup != "party5_reward_ui" && lineup != "duo_agni_surya" && lineup != "duo_shi_sabah")
+                lineup != "party5_france_moon" && lineup != "party5_lokapala" && lineup != "party5_summon" && lineup != "party5_yama_varuna" && lineup != "party5_vedic_trio" &&
+                lineup != "party5_reward_ui" && lineup != "duo_agni_surya" && lineup != "duo_shi_sabah" &&
+                lineup != "party5_nord_synergy" && lineup != "party5_nord" && lineup != "party5_command_fenrir" && lineup != "party5_command_melee")
             {
                 FailCurrent($"알 수 없는 lineup: {lineup}");
                 yield break;
             }
-            if (_activeLineup == lineup) yield break;
+            bool missingScene = SceneManager.GetActiveScene().name != "Game" || GameManager.Instance == null;
+            yield return EnsureGameScene();
+            if (_activeLineup == lineup && !missingScene) yield break;
             yield return BuildFreshRun(lineup);
         }
 
@@ -363,15 +385,54 @@ namespace Managers.UI.DevTools
             IEnumerator body = _currentScenario switch
             {
                 var visualName when visualName.StartsWith("v13yv_", StringComparison.Ordinal) => ScenarioYvVisual(scenario),
+                "toughness_absence" => ScenarioToughnessAbsence(scenario),
+                "toughness_edges" => ScenarioToughnessEdges(scenario),
+                "toughness_core" => ScenarioToughnessCore(scenario),
+                "toughness_combat" => ScenarioToughnessCombat(scenario),
+                "checkpoint24_campaign" => ScenarioCheckpoint24Campaign(scenario),
+                "checkpoint24_layout" => ScenarioCheckpoint24Layout(scenario),
+                "checkpoint24_battle" => ScenarioCheckpoint24Battle(scenario),
+                "original_themes" => ScenarioOriginalThemes(scenario),
+                "original_kits" => ScenarioOriginalKits(scenario),
+                "original_edges" => ScenarioOriginalEdges(scenario),
+                "original_audio" => ScenarioOriginalAudio(scenario),
+                "original_campaign" => ScenarioOriginalCampaign(scenario),
+                "generic_themes" => ScenarioGenericThemes(scenario),
+                "generic_campaign" => ScenarioGenericCampaign(scenario),
+                "identity_hud" => ScenarioIdentityHud(scenario),
                 "guide_rework" => ScenarioGuideRework(scenario),
                 "effect_hit_core" => ScenarioEffectHitCore(scenario),
+                "nord_core" => ScenarioNordCore(scenario),
+                var nordVisual when nordVisual.StartsWith("nord_visual", StringComparison.Ordinal) => ScenarioNordVisual(scenario),
+                "existing_trio_sparse" => ScenarioVedicTrioVisual(scenario),
+                "nord_natural" => ScenarioNordNatural(scenario),
+                "france_moon_core" => ScenarioFranceMoon(scenario),
+                "characters_followup_core" => ScenarioCharactersFollowupCore(scenario),
+                "characters_followup_melee" => ScenarioCharactersFollowupMelee(scenario),
                 "release_save" => ScenarioReleaseSave(scenario),
                 "release_shield" => ScenarioReleaseShield(scenario),
                 "release_campaign" => ScenarioReleaseCampaign(scenario),
                 "release_event" => ScenarioReleaseEvent(scenario),
                 "release_loss" => ScenarioReleaseLoss(scenario),
+                "treasury_core" => ScenarioTreasuryCore(scenario),
+                "treasury_sp_hud" => ScenarioTreasurySpHud(scenario),
+                "treasury_rewards" => ScenarioTreasuryRewards(scenario),
+                "card_hud_containment" => ScenarioCardHudContainment(scenario),
+                "treasury_natural" => ScenarioTreasuryNatural(scenario),
+                "reward_growth" => ScenarioRewardGrowth(scenario),
+                "battle_pacing" => ScenarioBattlePacing(scenario),
+                "allvfx_presentation" => ScenarioPresentationPolish(scenario),
+                "allvfx_catalog" => ScenarioAllVfxCatalog(scenario),
+                "allvfx_skills" => ScenarioAllVfxSkills(scenario),
+                "allvfx_systems" => ScenarioAllVfxSystems(scenario),
+                "allvfx_formation" or "allvfx_formation_4x" => ScenarioAllVfxFormation(scenario),
+                "allvfx_soul_readability" => ScenarioSoulReadability(scenario),
+                "allvfx_soul_readability_4x" => ScenarioSoulReadability(scenario),
+                var showName when showName.StartsWith("allvfx_showcase_") => ScenarioAllVfxShowcase(scenario),
+                var allVfxName when allVfxName.StartsWith("allvfx_units_") => ScenarioAllVfxUnits(scenario),
                 "ui_overhaul" => ScenarioUIOverhaul(scenario),
                 "ui_overhaul_menu" => ScenarioUIOverhaulMenu(scenario),
+                "ui_settings_layout" => ScenarioSettingsLayout(scenario),
                 "reward_ui_forms" => ScenarioRewardUiForms(scenario),
                 var rewardUiName when IsRewardUiScenario(rewardUiName) => ScenarioUIOverhaul(scenario),
                 "prep" => ScenarioPrep(scenario),
@@ -449,6 +510,7 @@ namespace Managers.UI.DevTools
                 "death_boss" => ScenarioDeath(scenario, true),
                 "entry" => ScenarioEntry(scenario),
                 "status_preview" => ScenarioStatusPreview(scenario),
+                "combat_feedback" => ScenarioCombatFeedback(scenario),
                 "reward_preview" => ScenarioRewardPreview(scenario),
                 "result_preview" => ScenarioResultPreview(scenario),
                 "common_sfx" => ScenarioCommonSfx(scenario),
@@ -466,7 +528,7 @@ namespace Managers.UI.DevTools
                 var currentname when currentname.StartsWith("v13surya_hud_") => ScenarioSuryaHud(scenario),
                 "trio_balance" => ScenarioVedicTrioBalance(scenario),
                 var naturalName when naturalName.StartsWith("trio_natural_") => ScenarioVedicTrioNatural(scenario),
-                "kubera_followup_core" => ScenarioKuberaFollowupCore(scenario),
+                "kubera_followup_core" => ScenarioKuberaReworkCore(scenario),
                 "kubera_followup_lokapala_ui" => ScenarioKuberaFollowupLokapalaUi(scenario),
                 "v13a_indra" or "v13a_vayu" or "v13a_kubera" or "v13a_chandra" or "v13a_gate" or "v13b_anubis" or "v13b_uchi" or "v13b_party" => ScenarioV13A(scenario),
                 _ => null,
@@ -482,7 +544,7 @@ namespace Managers.UI.DevTools
                 yield return ExecuteGuarded(body, exception =>
                 {
                     scenarioResult.success = false;
-                    scenarioResult.message = exception.Message;
+                    scenarioResult.message = exception.ToString();
                 });
             }
 
@@ -1044,7 +1106,7 @@ namespace Managers.UI.DevTools
                 {
                     VerifyEvents.Raise("jean_bastet_guard_counter");
                     VfxRunner.Run(DebugJeanDirectAttack(attacker, new[] { bastet }, false,
-                        "jean_bastet_guard", probe, true));
+                        "jean_bastet_guard", probe, true, presentOriginal:true));
                 });
             yield return WaitForJeanProbe(probe, 2f);
             yield return WaitForCasting(bastet, 2f);
@@ -1157,7 +1219,7 @@ namespace Managers.UI.DevTools
         }
 
         private static IEnumerator DebugJeanDirectAttack(Unit attacker, IReadOnlyList<Unit> selected, bool multi,
-            string attackKey, JeanAttackProbe probe, bool runFollowUp = false)
+            string attackKey, JeanAttackProbe probe, bool runFollowUp = false,bool presentOriginal=false)
         {
             var tags = new List<int>
             {
@@ -1184,8 +1246,18 @@ namespace Managers.UI.DevTools
 
             foreach (Unit target in resolution.Targets.Where(unit => unit != null && unit.isActive).Distinct())
             {
-                target.TakeDamage(new DamageContext(attacker, 1, BaseEnums.CodeType.Normal, new List<int>(tags)));
-                probe.OriginalApplied = true;
+                void Hit()
+                {
+                    int amount=presentOriginal?Mathf.Max(1,Mathf.RoundToInt(attacker.StatValue(BaseEnums.StatType.Attack))):1;
+                    target.TakeDamage(new DamageContext(attacker, amount, BaseEnums.CodeType.Normal, new List<int>(tags)));
+                    probe.OriginalApplied = true;
+                }
+                if(presentOriginal)
+                {
+                    Combat.ActionAnnouncer.Announce(attacker,Combat.ActionAnnouncementKind.Normal,attacker.ActiveNormalCode,"일반공격");
+                    yield return EnemyNormalFx.OriginalNormal(attacker,target,Hit);
+                }
+                else Hit();
             }
             if (runFollowUp)
                 probe.FollowUpStarted = GameManager.Instance.ActionScheduler.DebugRunNextQueued();
@@ -2220,6 +2292,36 @@ namespace Managers.UI.DevTools
         private IEnumerator CaptureActionWindowRealtimeAtInterval(string tag, float seconds, float interval,
             Action action, float preRoll = 0.5f)
         {
+            if(tag is "jean_bastet_guard_counter" or "bastet_counter_followup")
+            {
+                float previousDelta=Time.captureDeltaTime;
+                var game=GameManager.Instance;var previousState=game.gameState;bool previousEnabled=game.enabled;
+                bool previousAllyInvincible=DebugMode.AllyInvincible,previousEnemyInvincible=DebugMode.EnemyInvincible;
+                float previousSpeed=Managers.UI.HUD.BattleHud.CurrentSpeedMultiplier;
+                // 수동 행동만 실행하면서 실제 전투 표시·알림과 HUD 4배속을 유지한다.
+                game.enabled=false;game.gameState=BaseEnums.GameState.RoundInProgress;
+                DebugMode.AllyInvincible=false;DebugMode.EnemyInvincible=false;
+                Managers.UI.HUD.BattleHud.TrySetSpeedMultiplier(4f);
+                Time.captureDeltaTime=1f/60f;
+                try
+                {
+                    int count=Mathf.CeilToInt(Mathf.Max(preRoll+.05f,seconds)*60f);
+                    int start=Mathf.RoundToInt(preRoll*60f);
+                    for(int i=0;i<count;i++)
+                    {
+                        if(i==start)action?.Invoke();
+                        yield return EndOfFrame;
+                        Capture(tag+"_fixed60");
+                    }
+                }
+                finally
+                {
+                    Time.captureDeltaTime=previousDelta;game.gameState=previousState;game.enabled=previousEnabled;
+                    DebugMode.AllyInvincible=previousAllyInvincible;DebugMode.EnemyInvincible=previousEnemyInvincible;
+                    Managers.UI.HUD.BattleHud.TrySetSpeedMultiplier(previousSpeed);
+                }
+                yield break;
+            }
             float step = Mathf.Max(1f / 60f, interval);
             float startedAt = Time.realtimeSinceStartup;
             float deadline = startedAt + Mathf.Max(preRoll + 0.05f, seconds);
@@ -2241,6 +2343,22 @@ namespace Managers.UI.DevTools
             if (!acted) action?.Invoke();
         }
 
+        private bool _deferCaptureEncoding;
+        private readonly List<(Texture2D Pixels,string Path)> _deferredCapturePixels=new();
+        private void FlushDeferredCaptures()
+        {
+            _deferCaptureEncoding=false;
+            try
+            {
+                foreach(var frame in _deferredCapturePixels)File.WriteAllBytes(frame.Path,frame.Pixels.EncodeToPNG());
+            }
+            finally
+            {
+                foreach(var frame in _deferredCapturePixels)if(frame.Pixels!=null)Destroy(frame.Pixels);
+                _deferredCapturePixels.Clear();
+            }
+        }
+
         private void Capture(string baseTag, bool keepTooltip = false)
         {
             // 자동 캡처는 포인터 위치와 무관해야 한다. 매 프레임 호버가 다시 계산되므로 저장 직전에 닫는다.
@@ -2251,11 +2369,27 @@ namespace Managers.UI.DevTools
             string visualTag = string.IsNullOrWhiteSpace(_latestVisualEvent) ? "frame" : _latestVisualEvent;
             string tag = SafeName($"{baseTag}_{visualTag}");
             string extension = _currentScenario.StartsWith("v13", StringComparison.Ordinal) ? "rgba" : "png";
-            string file = $"{++_captureSequence:0000}_{tag}.{extension}";
+            // Windows 캡처 API의 경로 길이 제한. 전체 의미 태그는 JSON에 보존한다.
+            int tagLimit = Mathf.Max(24, 235-scenarioDirectory.Length-12);
+            string fileTag = tag.Length> tagLimit ? tag.Substring(0,tagLimit) : tag;
+            // 같은 시나리오/부품의 다른 경로를 연달아 검증해도 먼저 찍은 원본을 덮어쓰지 않는다.
+            _captureSequence++;
+            string file = $"{++_captureFileSequence:0000}_{fileTag}.{extension}";
             string path = Path.Combine(scenarioDirectory, file);
             int frame = Time.frameCount;
             float realtime = Time.realtimeSinceStartup;
             if (_currentScenario.StartsWith("v13", StringComparison.Ordinal)) V13CaptureFrame(path);
+            else if (_deferCaptureEncoding || _currentScenario.StartsWith("allvfx", StringComparison.Ordinal))
+            {
+                // 광역 정점은 같은 프레임에 여러 번 발행된다. 비동기 API가 앞 캡처를 덮지 않도록 저장한다.
+                Texture2D pixels=ScreenCapture.CaptureScreenshotAsTexture();
+                if(_deferCaptureEncoding)_deferredCapturePixels.Add((pixels,path));
+                else
+                {
+                    try { File.WriteAllBytes(path,pixels.EncodeToPNG()); }
+                    finally { Destroy(pixels); }
+                }
+            }
             else ScreenCapture.CaptureScreenshot(path);
             _result.captures.Add(new VerifyCaptureRecord
             {
@@ -2264,6 +2398,8 @@ namespace Managers.UI.DevTools
                 path = path,
                 frame = frame,
                 realtime = realtime,
+                engineTimeScale=Time.timeScale,playbackSpeed=Managers.UI.HUD.BattleHud.CurrentSpeedMultiplier,
+                scaledTime=Time.time,unscaledTime=Time.unscaledTime,deltaTime=Time.deltaTime,unscaledDeltaTime=Time.unscaledDeltaTime,
                 backgroundLuminance = BattlefieldBackdrop.CurrentBackgroundLuminance,
             });
             RecordPortraitRects(frame, realtime);
@@ -2586,6 +2722,7 @@ namespace Managers.UI.DevTools
             return value?.Trim().ToLowerInvariant() switch
             {
                 null or "" or "party5" or "five" => "party5",
+                "party5_toughness" => "party5_toughness",
                 "party5_sabah" or "sabah5" => "party5_sabah",
                 "party5_bastet" or "bastet5" => "party5_bastet",
                 "party5_jean" or "jean5" => "party5_jean",

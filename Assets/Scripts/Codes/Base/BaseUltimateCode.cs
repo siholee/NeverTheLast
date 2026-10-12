@@ -52,6 +52,12 @@ namespace Codes.Base
             CompletedNormally = normal;
         }
 
+        /// <summary>
+        /// 본체가 자연히 끝나지 않고 밖에서 멈췄을 때(라운드 · 디버그 정리 등) 한 번 부른다. 시전 뒤에도 남는 버프 ·
+        /// 구독을 가진 초월기가 정리 경로로 쓴다. 자연 완료 직후의 <see cref="StopCode"/>에서는 부르지 않는다.
+        /// </summary>
+        protected virtual void OnStoppedExternally() { }
+
         /// <summary>궁극기 본체. 피해 · 연출을 여기서 한다.</summary>
         protected abstract IEnumerator Perform();
 
@@ -61,6 +67,7 @@ namespace Codes.Base
             {
                 _stoppedExternally = true;
                 if (Caster != null && CurrSkillCoroutine != null) Caster.StopCoroutine(CurrSkillCoroutine);
+                OnStoppedExternally();
             }
             CompletedNormally = false;
             if (Caster != null) Caster.isCasting = false;

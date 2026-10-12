@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,6 +37,9 @@ namespace Managers.UI.DevTools
         private const float Gap = 6f;
 
         private static DebugOverlay _instance;
+
+        /// <summary>검증 캡처에서만 띠를 숨긴다. 저장 격리와 디버그 상태에는 영향을 주지 않는다.</summary>
+        public static bool HideBannerForVerification { get; set; }
 
         private RectTransform _panel;
         private RectTransform _viewport;
@@ -98,16 +101,16 @@ namespace Managers.UI.DevTools
                 if (int.TryParse(_stageInput.text, out int stage)) LoadStage(stage);
             }), ("현재 스테이지 재시작", () => LoadStage(GameManager.Instance?.RoundManager?.Stage ?? 1)));
             Row(ref y,
-                ("◀◀ −10", () => JumpStage(-10)),
+                ("◀◀ −8", () => JumpStage(-RoundManager.EncountersPerTheme)),
                 ("◀ −1", () => JumpStage(-1)),
                 ("+1 ▶", () => JumpStage(1)),
-                ("+10 ▶▶", () => JumpStage(10)));
+                ("+8 ▶▶", () => JumpStage(RoundManager.EncountersPerTheme)));
             Row(ref y,
                 ("슬롯 1", () => JumpToSlot(1)),
-                ("5 사건", () => JumpToSlot(5)),
+                ("5 일반", () => JumpToSlot(5)),
                 ("6 엘리트", () => JumpToSlot(6)),
-                ("9 엘리트", () => JumpToSlot(9)),
-                ("10 보스", () => JumpToSlot(10)));
+                ("7 일반", () => JumpToSlot(7)),
+                ("8 보스", () => JumpToSlot(8)));
 
             Section("전투", ref y);
             Row(ref y,
@@ -290,7 +293,7 @@ namespace Managers.UI.DevTools
         {
             RoundManager round = GameManager.Instance?.RoundManager;
             if (round == null) return;
-            LoadStage((round.Stage - 1) / 10 * 10 + Mathf.Clamp(slot, 1, 10));
+            LoadStage((round.Stage - 1) / RoundManager.EncountersPerTheme * RoundManager.EncountersPerTheme + Mathf.Clamp(slot, 1, RoundManager.EncountersPerTheme));
         }
 
         private static void LoadStage(int stage)
@@ -703,6 +706,7 @@ namespace Managers.UI.DevTools
             bool vfxOverride = VfxStyleSettings.Active != VfxStyle.CharacterDefault;
             bool show = DebugMode.SessionActive || DebugMode.AnyOverrideActive || vfxOverride ||
                         !Mathf.Approximately(speed, 1f);
+            show &= !HideBannerForVerification;
             _banner.gameObject.SetActive(show);
             if (!show) return;
 

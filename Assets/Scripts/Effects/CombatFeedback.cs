@@ -55,10 +55,16 @@ namespace Effects
                 : 0.5f;
 
             CombatNumberKind kind = hpLost > 0 ? CombatNumberKind.Damage : CombatNumberKind.Shielded;
-            DamagePopup.Show(target, total, crit, accent, kind, weight);
+            DamagePopup.Show(target, total, crit, accent, kind, weight,
+                context?.HasTag(DamageTag.CounterAttack)==true);
 
             // 지속피해는 때린 사람이 없다. 카드까지 흔들면 매 턴 전장이 들썩인다.
             bool overTime = context?.CodeType == BaseEnums.CodeType.Effect;
+            if (overTime)
+            {
+                string dot = context?.StatusVfxKey;
+                if (dot != null) Vfx.StatusMotifFx.Play(target, dot, true);
+            }
             float strength = Mathf.Lerp(0.45f, 1f, weight) * (crit ? 1.25f : 1f) * (overTime ? 0.35f : 1f);
             PlayCardHit(target, strength, physical && !overTime, crit);
 
@@ -214,7 +220,7 @@ namespace Effects
         private const float Duration = 0.17f;
 
         /// <summary>진동 세기의 상한(카드 한 변 대비). 넘으면 화면이 흔들리는 게 아니라 튄다.</summary>
-        private const float MaxAmplitude = 0.30f;
+        private const float MaxAmplitude = 0.09f;
 
         private static CameraShake _instance;
 
@@ -237,7 +243,7 @@ namespace Effects
                             ?? camera.gameObject.AddComponent<CameraShake>();
             }
 
-            _instance.Begin(Mathf.Min(amplitude, MaxAmplitude), Vector3.zero);
+            _instance.Begin(MaxAmplitude * (1f - Mathf.Exp(-Mathf.Max(0f, amplitude) / MaxAmplitude)), Vector3.zero);
         }
 
         /// <summary>접촉점에서 밀려난 축을 한 번 먼저 치고, 작은 난진동으로 감쇠한다.</summary>
@@ -254,7 +260,7 @@ namespace Effects
             }
 
             direction.z = 0f;
-            _instance.Begin(Mathf.Min(amplitude, MaxAmplitude),
+            _instance.Begin(MaxAmplitude * (1f - Mathf.Exp(-Mathf.Max(0f, amplitude) / MaxAmplitude)),
                 direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.right);
         }
 
@@ -263,7 +269,7 @@ namespace Effects
             // 이미 흔들리는 중이면 더 센 쪽을 남긴다. 합치면 연타에서 화면이 날아간다.
             _amplitude = _age < Duration ? Mathf.Max(_amplitude, amplitude) : amplitude;
             _age = 0f;
-            _seed = Random.value * 100f;
+            _seed = Vfx.PresentationRandom.value * 100f;
             _direction = direction;
         }
 
@@ -283,8 +289,8 @@ namespace Effects
 
             // 두 축의 주파수를 달리해 한 방향으로만 떠는 것처럼 보이지 않게 한다.
             var offset = new Vector3(
-                (Mathf.PerlinNoise(_seed, _age * 46f) - 0.5f) * 2f * reach,
-                (Mathf.PerlinNoise(_seed + 17f, _age * 39f) - 0.5f) * 2f * reach,
+                (Mathf.PerlinNoise(_seed, _age * 18f) - 0.5f) * 2f * reach,
+                (Mathf.PerlinNoise(_seed + 17f, _age * 14f) - 0.5f) * 2f * reach,
                 0f);
             if (_direction.sqrMagnitude > 0.0001f)
             {

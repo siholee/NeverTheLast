@@ -37,6 +37,9 @@ namespace Effects.Vfx
         public static IEnumerator GuardIntervention(Unit bastet, Unit guard)
         {
             if (bastet == null || guard == null) yield break;
+            // 대신 맞는 주체는 guard이며 바스테트는 보호받는다. 판정·행동 대기 시간은 바꾸지 않는다.
+            PortraitAccentFx.GuardLink(guard,bastet);
+            Effects.StatusPopup.ShowGuard(guard);
             bool cuePlayed = false;
             yield return CardMotion.GroundRakeAdvance(guard, bastet, 0.18f, () =>
             {

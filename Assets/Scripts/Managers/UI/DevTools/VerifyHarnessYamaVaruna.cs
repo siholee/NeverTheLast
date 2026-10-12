@@ -162,13 +162,14 @@ namespace Managers.UI.DevTools
             ActionScheduler scheduler = GameManager.Instance.ActionScheduler;
             scheduler.BeginRound();
             setup?.Invoke(scheduler);
+            // 예약이 예고 슬롯으로 옮겨져 큐가 비어도 실제 실행·결과 표시를 끝내기 전에 전투를 닫지 않는다.
             float deadline = Time.realtimeSinceStartup + timeout;
-            while (!done() && Time.realtimeSinceStartup < deadline)
+            while ((!done() || scheduler.IsPresenting) && Time.realtimeSinceStartup < deadline)
             {
                 scheduler.Tick(Time.deltaTime);
                 yield return null;
             }
-            if (!done()) YvCheck("실제 행동 실행 제한 시간", "완료", "시간 초과", false);
+            if (!done() || scheduler.IsPresenting) YvCheck("실제 행동 실행 제한 시간", "완료", "시간 초과", false);
             scheduler.EndRound();
             foreach (Unit unit in AliveAllies().Concat(AliveEnemies()))
             {
@@ -474,7 +475,9 @@ namespace Managers.UI.DevTools
                 BaseEffect effect = status.Effects[0].EffectObject;
                 created[effect] = effect.CreateDamageOverTimeTick();
                 using var recorder = new YvRecorder();
-                if (effect is WeatheringEffect)
+                if (effect is ActionDotEffect)
+                    ActionDot.OnActionStarted(target, ActionScheduler.ActionKind.Normal);
+                else if (effect is WeatheringEffect)
                     target.Invoke(BaseEnums.UnitEventType.OnNormalActivates, new EventContext(target));
                 else
                     effect.OnOwnerTurn();
@@ -839,8 +842,9 @@ namespace Managers.UI.DevTools
             target.RemoveStatusByKey(resist.Key);
 
             // 감전 하나를 지워도 남은 감전이 있으면 유지, 마지막 감전이 사라지면 즉시 0
-            string indraShockKey = $"reaction_shock_{indra.GetEntityId()}";
-            target.RemoveStatusByKey(indraShockKey);
+            // Rework 감전은 출처별 키 대신 단일 갱신 키를 쓴다. 생성자 기준으로 실제 상태를 걷는다.
+            foreach(var shock in target.GetAllStatuses(ElementalReaction.ShockStatusId).Where(x=>x.Caster==indra).ToArray())
+                target.RemoveStatusByKey(shock.Key);
             bool keptAfterOne = YamaDeathVerdict.HasVerdict(target) && YamaDeathVerdict.IsShocked(target);
             target.RemoveStatusByKey(second.Key);
             int afterLast = YvProbe(pyg, target, BaseEnums.CodeType.Normal);

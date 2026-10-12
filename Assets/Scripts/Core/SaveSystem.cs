@@ -125,6 +125,18 @@ namespace Core
                         }
                     while (hero.activeRewardCodeSlots.Count < Entities.Unit.RewardCodeSlotCount) hero.activeRewardCodeSlots.Add(0);
                 }
+                data.version = 14;
+            }
+            if(data?.version==13) data.version=14; // 빈 개별 상태는 복원 시 0으로 생성
+            if (data?.version == 14)
+            {
+                // 이전 10라운드 묶음의 테마 위치와 보스/엘리트 진행을 8라운드로 옮긴다.
+                // 골드·유닛·코드 인스턴스 및 저장된 축전량에는 손대지 않는다.
+                int oldStage = Mathf.Max(1, data.currentStage);
+                int[] slots = { 1, 2, 3, 4, 5, 5, 6, 6, 7, 8 };
+                data.currentRound = (oldStage - 1) / 10 + 1;
+                data.currentStage = (data.currentRound - 1) * Managers.RoundManager.EncountersPerTheme + slots[(oldStage - 1) % 10];
+                if (data.currentThemeId == 1) data.currentThemeId = 2; // 운영에서 은퇴한 시험장
                 data.version = RunSaveData.CurrentVersion;
             }
             if (data == null || data.version < RunSaveData.CurrentVersion)

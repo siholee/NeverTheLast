@@ -158,7 +158,8 @@ namespace BaseClasses
       ExtendDuration,     // 지속시간 연장 (화상 - 기존 효과에 시간 추가)
       ReplaceIfStronger,  // 더 강한 것으로 교체 (효과가 큰 것만 유지)
       Ignore,             // 중복 무시 (기존 효과 유지, 새 효과 무시)
-      Replace             // 무조건 교체 (기존 dict 덮어쓰기 의미론 — 지속시간/수치 갱신)
+      Replace,            // 무조건 교체 (기존 dict 덮어쓰기 의미론 — 지속시간/수치 갱신)
+      RefreshDuration     // 같은 종류 재부여는 남은 기간을 새 기간 이상으로 갱신
     }
   }
 }

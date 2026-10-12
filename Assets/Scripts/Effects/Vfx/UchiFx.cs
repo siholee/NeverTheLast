@@ -65,6 +65,8 @@ namespace Effects.Vfx
         {
             int layer=VfxSpace.SortingLayer(clone);
             SpriteRenderer ghost=VfxSpace.NewSprite(null,"ClonePaperDeparture",portrait,tint,layer,VfxSpace.OverlaySortingOrder-10,false);
+            var ownerView=CardMotion.ViewOf(clone.SummonOwner);
+            if(ownerView?.PortraitRenderer!=null)ghost.sortingOrder=ownerView.PortraitRenderer.sortingOrder-1;
             ghost.transform.position=point;ghost.transform.localScale=scale;
             VfxRunner.Run(Fade(ghost,tint,clone.GetInstanceID(),point));
             float c=VfxSpace.CardSize;

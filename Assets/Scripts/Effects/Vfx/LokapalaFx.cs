@@ -42,6 +42,9 @@ namespace Effects.Vfx
             VfxComposer.PlayScreen(key, caster, caster);
             VfxComposer.PlaySlot(key, "cast", 0, caster, alive[0],
                 VfxSpace.WorldPoint(caster), VfxSpace.SortingLayer(caster));
+            // 바즈라는 한 표적을 겨누는 궤적 대신 전 적의 몸통에 같은 충전 신호를 먼저 준다.
+            // 시각 예고만 추가하며 피격 순서와 단일 판정 콜백은 아래 공통 경로가 소유한다.
+            if (key == "indra.vajra") PortraitAccentFx.VajraField(alive);
             yield return new WaitForSeconds(VfxComposer.Offset(key, "hit", fallback: 0.22f));
             VfxComposer.PlayScreen(key, caster, alive);
 
@@ -105,55 +108,48 @@ namespace Effects.Vfx
             switch (part.renderer)
             {
                 case "lokapalaGather":
-                    SpriteFx.Play(VfxArt.RuneRadiant, point, GoldInk, false, card * 1.14f, card * 1.14f,
+                    // 전신 원을 이름/체력 앞에 펼치지 않고, 손 옆의 국소 팔방 인장으로 수렴한다.
+                    Vector3 gatherSeal=VfxSpace.CastPoint(caster,target)+Vector3.right*(caster?.IsEnemy==true?-1f:1f)*card*.20f;
+                    gatherSeal.y=VfxSpace.PortraitHudTop(caster)+.30f*card;
+                    SpriteFx.Play(VfxArt.RuneRadiant, gatherSeal, GoldInk, false, card * .44f, card * .34f,
                         0.40f, angle, 0f, 0.08f, 0.65f, sortingLayer: layer, order: order);
                     for (int i = 0; i < 8; i++)
                     {
                         float turn = angle + i * 45f;
                         Vector3 direction = Quaternion.Euler(0f, 0f, turn) * Vector3.right;
-                        Mark(VfxArt.Diamond, point + direction * card * 0.52f,
-                            new Vector2(0.18f, 0.10f) * card, turn, 0.40f, layer, order + 2);
+                        Vector2 gem=new Vector2(.07f,.045f)*card;
+                        var rim=SpriteFx.Play(VfxArt.Diamond,gatherSeal+direction*card*.20f,
+                            new Color(.16f,.24f,.36f,.88f),false,gem*1.16f,gem*.95f,.40f,turn,
+                            fadeIn:.06f,fadeOutFrom:.70f,sortingLayer:layer,order:order+2,preserveInk:true);
+                        var face=SpriteFx.Play(VfxArt.Diamond,gatherSeal+direction*card*.20f,Gold,false,
+                            gem,gem*.82f,.40f,turn,fadeIn:.06f,fadeOutFrom:.70f,sortingLayer:layer,order:order+3);
+                        VfxRunner.Run(ContractGatherMark(rim,face,gatherSeal,direction,card));
                     }
                     return true;
                 case "lokapalaVajra":
-                    GoldenCast(caster, target, point, layer, angle);
+                    // 한 적을 겨누는 공용 시전 파편은 제외한다. 범위 예고는 AreaCore가 전 대상에 준다.
                     // 金剛杵는 카드 위에 머무는 양끝 삼지 실루엣 하나다. 낙뢰처럼 시전자 몸에서 터뜨리지 않는다.
-                    Vector3 top = point + Vector3.up * card * 0.52f;
-                    Mark(VfxArt.Streak, top, new Vector2(0.88f, 0.075f) * card, angle, 0.34f, layer, order);
-                    Vector3 axis = Quaternion.Euler(0f, 0f, angle) * Vector3.right;
-                    for (int side = -1; side <= 1; side += 2)
-                        for (int tine = -1; tine <= 1; tine++)
-                            Mark(VfxArt.Diamond, top + axis * card * side * 0.32f +
-                                Quaternion.Euler(0f, 0f, angle) * Vector3.up * card * tine * 0.09f,
-                                new Vector2(0.24f, 0.075f) * card, angle + side * tine * 18f,
-                                0.34f, layer, order + 2);
+                    VajraHand(caster, point, layer, order);
                     return true;
                 case "lokapalaCoinCast":
-                    GoldenCast(caster, target, point, layer, angle);
                     Coins(point + VfxSpace.AimFrom(caster, target).Direction * card * 0.22f,
-                        layer, 1, 0.24f, angle, false);
+                        layer, 1, 0.24f, angle, false, filled: true, embossed: true);
                     return true;
                 case "lokapalaCoinOrbit":
                     GoldenCast(caster, target, point, layer, angle);
                     float power = Codes.Special.KuberaGoldRush.GoldMultiplier();
                     // 크기·궤도는 고정하고 금화 개수와 명암만 금력에 따라 짙어진다.
-                    Coins(point + Vector3.up * card * 0.28f, layer,
-                        5 + Mathf.RoundToInt((power - 1f) * 3f), 0.38f, angle, true);
+                    Coins(TreasuryHandPoint(caster, point), layer,
+                        5 + Mathf.RoundToInt((power - 1f) * 3f), 0.38f, angle, true,
+                        radiusInCards: .09f, coinScale: .65f, filled: true);
                     return true;
                 case "lokapalaTreasury":
-                    Vector3 door = point + Vector3.up * card * 0.40f;
-                    Mark(VfxArt.Streak, door + Vector3.left * card * 0.32f,
-                        new Vector2(0.85f, 0.075f) * card, 90f, 0.42f, layer, order);
-                    Mark(VfxArt.Streak, door + Vector3.right * card * 0.32f,
-                        new Vector2(0.85f, 0.075f) * card, 90f, 0.42f, layer, order);
-                    Mark(VfxArt.Streak, door + Vector3.up * card * 0.41f,
-                        new Vector2(0.70f, 0.075f) * card, 0f, 0.42f, layer, order);
-                    SpriteFx.Play(VfxArt.RuneOrnate, door, Gold, false,
-                        new Vector2(0.64f, 0.88f) * card, new Vector2(0.64f, 0.88f) * card,
-                        0.42f, angle, 0f, 0.08f, 0.70f, sortingLayer: layer, order: order + 1);
+                    // 얼굴의 가로선을 없애고 손 옆에 닫힌 금고와 잠금쇠를 남긴다.
+                    Vector3 door = TreasuryHandPoint(caster, point);
+                    TreasuryChest(door, layer, order);
                     return true;
                 case "lokapalaHud":
-                    CardMotion.ViewOf(target)?.PulseSupportHud(false, false, Gold);
+                    CardMotion.ViewOf(target)?.PulseActionGateHud(GoldCore);
                     return true;
                 default:
                     return false;
@@ -179,7 +175,83 @@ namespace Effects.Vfx
                 new Vector2(source.scaleX, source.scaleY), Gold, GoldCore, angle, false, recolor: true);
         }
 
-        private static void Coins(Vector3 point, int layer, int count, float life, float angle, bool orbit)
+        private static void VajraHand(Unit caster, Vector3 fallback, int layer, int order)
+        {
+            float c=VfxSpace.CardSize;
+            Vector3 center=caster==null?fallback:VfxSpace.WorldPoint(caster)+Vector3.right*(caster.IsEnemy?-.44f:.44f)*c;
+            if(caster!=null)center.y=VfxSpace.PortraitHudTop(caster)+.20f*c;
+            // 굵은 마름모 양끝은 적 한 명을 향한 화살표처럼 보였다. 손 크기의 채워진 세 갈래 무기로 읽힌다.
+            void Stroke(Vector2 a,Vector2 b)
+            {
+                Vector2 delta=b-a;float rotation=Mathf.Atan2(delta.y,delta.x)*Mathf.Rad2Deg;
+                Vector3 p=center+(Vector3)((a+b)*.5f*c);
+                Vector2 size=new(delta.magnitude*c,.016f*c);
+                SpriteFx.Play(VfxSpace.GlyphLine,p,new Color(.18f,.26f,.38f,.90f),false,
+                    size*new Vector2(1f,1.75f),size*new Vector2(1f,1.75f),.34f,rotation,
+                    fadeIn:0f,fadeOutFrom:.65f,sortingLayer:layer,order:order);
+                SpriteFx.Play(VfxSpace.GlyphLine,p,new Color(.99f,.87f,.58f,.94f),false,
+                    size,size,.34f,rotation,fadeIn:0f,fadeOutFrom:.65f,sortingLayer:layer,order:order+1);
+            }
+            Stroke(new(-.17f,0f),new(.17f,0f));
+            for(int side=-1;side<=1;side+=2)
+                for(int tine=-1;tine<=1;tine+=2)
+                    Stroke(new(side*.11f,0f),new(side*.16f,tine*.055f));
+        }
+
+        private static Vector3 TreasuryHandPoint(Unit caster, Vector3 fallback)
+        {
+            var view = CardMotion.ViewOf(caster);
+            if (view?.PortraitRenderer == null) return fallback;
+            float side = caster.IsEnemy ? -1f : 1f;
+            Vector3 center = VfxSpace.WorldPoint(caster);
+            // 무기 끝까지 포함하는 원화 bounds를 쓰면 이웃 적 HUD까지 넘어간다. 실제 카드 칸을 기준으로 삼는다.
+            return new Vector3(center.x + side * VfxSpace.CardSize * .24f,
+                StatusMotifFx.Anchor(caster).y + VfxSpace.CardSize * .17f, center.z);
+        }
+
+        private static void TreasuryChest(Vector3 point, int layer, int order)
+        {
+            float c=VfxSpace.CardSize;
+            Vector2 size=new(.46f*c,.32f*c);
+            SpriteFx.Play(VfxArt.TreasuryCoffer,point,new Color(1f,1f,1f,.95f),false,
+                size*.94f,size,.42f,fadeIn:.06f,fadeOutFrom:.70f,sortingLayer:layer,order:order+1);
+            // 한 번만 반짝여 실제 금속 시전물과 평면 상태 타일을 구분한다. 전면 섬광은 쓰지 않는다.
+            SpriteFx.Play(VfxArt.Glint,point+new Vector3(.11f,.075f)*c,new Color(1f,.93f,.72f,.72f),false,
+                .035f*c,.070f*c,.23f,fadeIn:.14f,fadeOutFrom:.50f,sortingLayer:layer,order:order+3);
+        }
+
+        public static void TreasuryGlints(Unit target)
+        {
+            if (target == null) return;
+            float c = VfxSpace.CardSize;
+            Vector3 center = StatusMotifFx.Anchor(target) + new Vector3(.16f, .04f) * c;
+            int layer = VfxSpace.SortingLayer(target);
+            for (int i = 0; i < 3; i++)
+            {
+                Vector3 p = center + new Vector3((i - 1) * .12f, i == 1 ? .07f : -.03f) * c;
+                SpriteFx.Play(VfxSpace.HardDot, p, new Color(.20f,.28f,.38f,.84f), false,
+                    Vector2.one * .14f * c, Vector2.one * .17f * c, .28f,
+                    fadeIn:0f, fadeOutFrom:.56f, sortingLayer:layer, order:VfxSpace.OverlaySortingOrder+146);
+                SpriteFx.Play(VfxSpace.HardDot, p, new Color(.99f,.85f,.47f,.95f), false,
+                    Vector2.one * .105f * c, Vector2.one * .13f * c, .28f,
+                    fadeIn:0f, fadeOutFrom:.56f, sortingLayer:layer, order:VfxSpace.OverlaySortingOrder+147);
+                SpriteFx.Play(VfxSpace.Ring, p, new Color(.18f, .25f, .36f, .76f), false,
+                    Vector2.one * .15f * c, Vector2.one * .18f * c, .28f,
+                    fadeIn:0f, fadeOutFrom:.56f, sortingLayer:layer, order:VfxSpace.OverlaySortingOrder+148);
+                SpriteFx.Play(VfxSpace.Ring, p, new Color(.97f, .84f, .52f, .94f), false,
+                    Vector2.one * .12f * c, Vector2.one * .15f * c, .28f,
+                    fadeIn:0f, fadeOutFrom:.56f, sortingLayer:layer, order:VfxSpace.OverlaySortingOrder+149);
+                SpriteFx.Play(VfxArt.Streak, p, GoldCore, false,
+                    new Vector2(.014f, .06f) * c, new Vector2(.014f, .06f) * c, .28f,
+                    fadeIn:0f, fadeOutFrom:.56f, sortingLayer:layer, order:VfxSpace.OverlaySortingOrder+150);
+                SpriteFx.Play(VfxSpace.HardDot,p+new Vector3(-.02f,.025f)*c,
+                    new Color(1f,.96f,.78f,.94f),false,Vector2.one*.018f*c,Vector2.one*.022f*c,.28f,
+                    fadeIn:0f,fadeOutFrom:.56f,sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+151);
+            }
+        }
+
+        private static void Coins(Vector3 point, int layer, int count, float life, float angle, bool orbit,
+            float radiusInCards = .28f, float coinScale = 1f, bool filled = false, bool embossed = false)
         {
             float card = VfxSpace.CardSize;
             Transform pivot = orbit ? new GameObject("LokapalaCoinOrbit").transform : null;
@@ -188,11 +260,36 @@ namespace Effects.Vfx
             {
                 float turn = angle + i * 360f / count;
                 Vector3 direction = Quaternion.Euler(0f, 0f, turn) * Vector3.right;
-                Vector3 center = point + (orbit ? direction * card * 0.28f : Vector3.zero);
-                Vector2 size = new Vector2(i % 2 == 0 ? 0.22f : 0.14f, 0.22f) * card;
+                Vector3 center = point + (orbit ? direction * card * radiusInCards : Vector3.zero);
+                Vector2 size = new Vector2(i % 2 == 0 ? 0.22f : 0.14f, 0.22f) * card * coinScale;
+                if(filled)
+                {
+                    SpriteFx.Play(VfxSpace.HardDot,center,new Color(.18f,.25f,.37f,.82f),false,
+                        size*1.08f,size*1.08f,life,turn,0f,.06f,.65f,
+                        sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+34)?.transform.SetParent(pivot,true);
+                    SpriteFx.Play(VfxSpace.HardDot,center,new Color(.98f,.84f,.52f,.94f),false,
+                        size*.80f,size*.80f,life,turn,0f,.06f,.65f,
+                        sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+35)?.transform.SetParent(pivot,true);
+                }
+                if(embossed)
+                {
+                    // 단일 금화는 공용 마법 사각 파편/후광 없이 테두리와 금력 각인으로 구분한다.
+                    SpriteFx.Play(VfxSpace.PressureRing,center,new Color(.18f,.25f,.37f,.94f),false,
+                        size,size,life,turn,fadeIn:0f,fadeOutFrom:.65f,
+                        sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+36);
+                    for(int stroke=0;stroke<3;stroke++)
+                    {
+                        Vector2 glyph=stroke==0?new(.018f,.10f):new(.070f,.016f);
+                        Vector3 at=center+Vector3.up*(stroke==1?.024f:stroke==2?-.024f:0f)*card;
+                        SpriteFx.Play(VfxSpace.GlyphLine,at,new Color(.24f,.29f,.36f,.94f),false,
+                            glyph*card,glyph*card,life,fadeIn:0f,fadeOutFrom:.65f,
+                            sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+40);
+                    }
+                    continue;
+                }
                 Mark(VfxSpace.Ring, center, size, turn, life, layer, VfxSpace.OverlaySortingOrder + 36, pivot);
                 SpriteFx.Play(VfxArt.Streak, center, GoldCore, false,
-                    new Vector2(0.06f, 0.12f) * card, new Vector2(0.06f, 0.12f) * card,
+                    new Vector2(0.06f, 0.12f) * card * coinScale, new Vector2(0.06f, 0.12f) * card * coinScale,
                     life, turn, 0f, 0.06f, 0.65f, sortingLayer: layer, order: VfxSpace.OverlaySortingOrder + 39)?.transform.SetParent(pivot, true);
             }
         }
@@ -216,6 +313,20 @@ namespace Effects.Vfx
                 angle, 0f, 0.06f, 0.70f, sortingLayer: layer, order: order + 1)?.transform.SetParent(parent, true);
             SpriteFx.Play(sprite, point, GoldCore, true, size * 0.68f, size * 0.68f, life,
                 angle, 0f, 0.06f, 0.60f, sortingLayer: layer, order: order + 2)?.transform.SetParent(parent, true);
+        }
+
+        private static IEnumerator ContractGatherMark(SpriteFx rim,SpriteFx face,Vector3 center,Vector3 direction,float card)
+        {
+            // 시전자 주위에서만 팔방 표식이 수렴한다. 비행 투사체나 아군 사이 궤적을 생성하지 않는다.
+            float age=0f;
+            while(age<.40f&&(rim!=null||face!=null))
+            {
+                Vector3 at=center+direction*card*Mathf.Lerp(.20f,.15f,Mathf.Clamp01(age/.32f));
+                if(rim!=null)rim.transform.position=at;
+                if(face!=null)face.transform.position=at;
+                age+=Time.deltaTime;
+                yield return null;
+            }
         }
     }
 }

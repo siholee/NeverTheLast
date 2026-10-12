@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
@@ -12,58 +12,70 @@ using UnityEngine.UI;
 
 namespace Managers.UI.Screens
 {
-    /// <summary>
-    /// 라운드 보상 선택. 카드 3장 중 하나를 고른다.
-    ///
-    /// 예전에는 이름 아래에 <c>"한손검 | 중량 3 | STR +3, DEX +2"</c> 같은 문자열 한 줄만 놓았다.
-    /// 정보가 다 들어 있어도 세 장을 <b>비교</b>할 수는 없었다 — 같은 항목이 같은 자리에 오지 않으니
-    /// 눈이 매번 문장을 다시 읽어야 했기 때문이다.
-    ///
-    /// 지금은 <b>등급 → 이름 → 일러스트 → 요약</b> 순으로 세운다. 아이템에 일러스트가 붙으면서
-    /// 카드가 제원을 다 이고 있을 자리가 없어졌고, 무엇보다 <b>그림이 먼저 눈에 들어와야</b>
-    /// 세 장을 훑는 속도가 빨라진다. 숫자와 조건은 마우스를 올렸을 때 툴팁으로 보인다.
-    ///
-    /// 즉시 보상도 일러스트 경로가 있으면 같은 카드 구조를 사용한다.
-    /// </summary>
+    /// <summary>가로 보상 카드에서 효과를 비교하고, 선택 후 하단 확정 버튼으로 받는다.</summary>
     public class RewardScreen : ModalScreen
     {
-        /// <summary>한 줄에 놓는 카드 수. 넷 이상이면 두 줄로 나눈다.</summary>
-        private const int CardsPerRow = 3;
-        private const int MaxStatRows = 4;
-        private const int MaxSpecRows = 4;
+        /// <summary>선택 카드와 대상 지정에 같은 전면 공간을 사용한다.</summary>
+        private const float PickerHeight = 994f;
 
+        /// <summary>선택 카드 사이 간격(기준 해상도 px).</summary>
+        private const float RowGap = 18f;
+
+        protected override Color BackdropTint => new Color(.77f,.84f,.92f,.98f);
         protected override string CanvasName => "RewardCanvas";
         protected override int SortingOrder => 70;
+        protected override bool AlignToScreenFrame => false;
         protected override string Title => "보상 선택";
         protected override string Caption => "REWARD";
-        protected override Vector2 AnchorMin => new(0.13f, 0.14f);
-        protected override Vector2 AnchorMax => new(0.87f, 0.86f);
+        protected override Vector2 AnchorMin => new(0.03f, 0.04f);
+        protected override Vector2 AnchorMax => new(0.97f, 0.96f);
 
         private readonly List<Card> _cards = new();
         private List<RewardDef> _rewards = new();
         private RectTransform _cardsRoot;
+        private ScrollRect _cardsScroll;
         private UnitTargetPicker _targetPicker;
         private RewardCodeFlow _codeFlow;
         private Button _reroll;
         private TextMeshProUGUI _rerollLabel;
         private RewardDef _pendingTargetReward;
+        private RectTransform _footer;
+        private Button _confirm;
+        private Button _continue;
+        private TextMeshProUGUI _selectionHint;
+        private int _selectedIndex=-1;
 
         protected override void Build()
         {
-            _cardsRoot = UIBuild.Container("RewardCards", Body);
-            // 아래 한 줄은 리롤 버튼 자리다.
-            UIBuild.Anchor(_cardsRoot, new Vector2(0f, 0.08f), Vector2.one);
+            _cardsRoot = UIBuild.ScrollArea("RewardCards", Body, out _cardsScroll);
+            RectTransform viewport = (RectTransform)_cardsScroll.transform;
+            UIBuild.Stretch(viewport);
+            viewport.offsetMin = new Vector2(0f, 92f);
+            viewport.offsetMax = new Vector2(0f, -12f);
+            _cardsScroll.vertical=false;
+            _cardsScroll.verticalScrollbar.gameObject.SetActive(false);
             for (int i = 0; i < RewardManager.MaxRewardCount; i++)
             {
-                _cards.Add(new Card(_cardsRoot, i, OnPick));
+                _cards.Add(new Card(_cardsRoot, i, SelectCard));
             }
 
-            _reroll = UIBuild.Button("Reroll", Body, "다시 굴리기", OnReroll);
-            UIBuild.Anchor(_reroll.GetComponent<RectTransform>(), new Vector2(0.38f, 0f), new Vector2(0.62f, 0.065f));
-            _rerollLabel = _reroll.GetComponentInChildren<TextMeshProUGUI>();
+            _footer=UIBuild.Container("RewardFooter",Body);
+            UIBuild.Anchor(_footer,Vector2.zero,new Vector2(1,0));
+            _footer.pivot=new Vector2(.5f,0); _footer.sizeDelta=new Vector2(0,72);
+            _selectionHint=UIBuild.Text("SelectionHint",_footer,"보상을 한 가지 선택하세요.",21,UITheme.TextSecondary,TextAlignmentOptions.MidlineLeft);
+            UIBuild.Anchor(_selectionHint.rectTransform,Vector2.zero,new Vector2(.55f,1),6,0);
+            _reroll=UIBuild.Button("Reroll",_footer,"다시 굴리기",OnReroll,false,21);
+            UIBuild.Pin(_reroll.image.rectTransform,new Vector2(1,.5f),new Vector2(260,52),new Vector2(-272,0));
+            _rerollLabel=_reroll.GetComponentInChildren<TextMeshProUGUI>();
+            _confirm=UIBuild.Button("ConfirmReward",_footer,"선택 확정",()=>OnPick(_selectedIndex),true,22);
+            UIBuild.Pin(_confirm.image.rectTransform,new Vector2(1,.5f),new Vector2(240,52),new Vector2(-8,0));
+            _confirm.interactable=false;
+            _continue=UIBuild.Button("FinishRoyalReward",_footer,"보상 선택 마치기",()=>GameManager.Instance?.rewardManager?.FinishRewardSelection(),false,20);
+            UIBuild.Pin(_continue.image.rectTransform,new Vector2(1,.5f),new Vector2(260,52),new Vector2(-272,0));
+            _continue.gameObject.SetActive(false);
 
-            _targetPicker = new UnitTargetPicker(Body, OnTargetPicked, ShowRewardCards, "보상 카드로 돌아가기");
-            _codeFlow = new RewardCodeFlow(Body, ShowRewardCards, SetTitle, "보상 카드로 돌아가기");
+            _targetPicker = new UnitTargetPicker(Body, OnTargetPicked, ShowRewardCards, "보상 목록으로 돌아가기");
+            _codeFlow = new RewardCodeFlow(Body, ShowRewardCards, SetTitle, "보상 목록으로 돌아가기");
         }
 
         /// <summary>리롤 티켓 1장으로 선택지를 다시 굴린다(운명의 주사위, Detail_17 §6).</summary>
@@ -72,7 +84,7 @@ namespace Managers.UI.Screens
             InventoryManager inventory = GameManager.Instance?.inventoryManager;
             RewardManager rewards = GameManager.Instance?.rewardManager;
             RoundManager round = GameManager.Instance?.RoundManager;
-            if (inventory == null || rewards == null || inventory.rerollTicketCount <= 0) return;
+            if (inventory == null || rewards == null || !rewards.CanRerollSelection || inventory.rerollTicketCount <= 0) return;
             inventory.rerollTicketCount--;
             inventory.RefreshPanel();
             Show(rewards.RerollRewards(_rewards.Count, round?.Round ?? 1));
@@ -81,40 +93,66 @@ namespace Managers.UI.Screens
         private void RefreshReroll()
         {
             int tickets = GameManager.Instance?.inventoryManager?.rerollTicketCount ?? 0;
-            _reroll.gameObject.SetActive(tickets > 0);
-            if (_rerollLabel != null) _rerollLabel.text = $"다시 굴리기 (티켓 {tickets})";
+            _reroll.gameObject.SetActive(true);
+            _reroll.interactable=tickets>0;
+            if(tickets>0)_reroll.image.sprite=UIShapes.RoundedRect(10,Color.white,UITheme.Accent,1);
+            FitContentHeight(994f);
+            if (_rerollLabel != null) _rerollLabel.text=$"다시 굴리기 · {tickets}장";
+            TooltipTrigger.Attach(_reroll.gameObject,()=>"리롤 티켓",()=>new[]{UITooltip.Line.Note("티켓 1장을 사용하여 모든 보상 선택지를 다시 뽑습니다.",UITheme.TextSecondary)},UITheme.Accent);
+
         }
 
         public void Show(List<RewardDef> rewards)
         {
             EnsureBuilt();
+            UITooltip.HideAny();
+            GuideTermTooltip.CloseAll();
             _rewards = rewards ?? new List<RewardDef>();
+            GameManager.Instance?.rewardManager?.BeginRewardSelection(_rewards);
+            _selectedIndex=-1;
 
-            // 보상은 스테이지가 오를수록 3장에서 6장까지 는다. 셋까지는 한 줄, 넷부터는 3열 두 줄이다.
-            int shown = Mathf.Min(_rewards.Count, _cards.Count);
-            int columns = Mathf.Clamp(shown, 1, CardsPerRow);
-            int rows = Mathf.Max(1, Mathf.CeilToInt(shown / (float)CardsPerRow));
-            for (int i = 0; i < _cards.Count; i++)
+            int shown=Mathf.Min(_rewards.Count,_cards.Count);
+            base.Show();
+            FitContentHeight(994f);
+            Canvas.ForceUpdateCanvases();
+            float cardHeight=Mathf.Min(640f,_cardsScroll.viewport.rect.height);
+            _cardsRoot.sizeDelta=new Vector2(0,cardHeight);
+            _cardsRoot.anchoredPosition=new Vector2(0,-Mathf.Max(0,(_cardsScroll.viewport.rect.height-cardHeight)*.5f));
+            for(int i=0;i<_cards.Count;i++)
             {
-                if (i < shown) _cards[i].Layout(i % CardsPerRow, i / CardsPerRow, columns, rows);
-                _cards[i].Bind(i < shown ? _rewards[i] : null);
+                if(i<shown)_cards[i].Layout(i,0,Mathf.Max(1,shown),1);
+                _cards[i].Bind(i<shown?_rewards[i]:null);
+                _cards[i].SetSelected(false);
             }
 
             ShowRewardCards();
             Show();
         }
 
+        private void SelectCard(int index)
+        {
+            if(index<0||index>=_rewards.Count || !GameManager.Instance.rewardManager.CanClaimReward(_rewards[index]))return;
+            _selectedIndex=index;
+            for(int i=0;i<_cards.Count;i++)_cards[i].SetSelected(i==index);
+            _selectionHint.text=_rewards[index].displayName+" · 선택됨";
+            RefreshPurchaseState();
+        }
+
         private void OnPick(int index)
         {
-            if (index < 0 || index >= _rewards.Count) return;
+            if (index < 0 || index >= _rewards.Count || !GameManager.Instance.rewardManager.CanClaimReward(_rewards[index])) return;
 
             RewardDef reward = _rewards[index];
+            UITooltip.HideAny();
+            _codeFlow.Note = PurchaseNote(reward);
             if (reward.IsCodeReward)
             {
                 _cardsRoot.gameObject.SetActive(false);
-                _reroll.gameObject.SetActive(false);
+                _footer.gameObject.SetActive(false);
+                // 보상 비교와 대상 선택은 같은 전면 공간에서 이어진다.
+                FitContentHeight(PickerHeight);
                 bool opened = _codeFlow.StartReceive(reward.codeId, reward.displayName,
-                    (unit, overwrite) => GameManager.Instance?.rewardManager?.ApplyReward(reward, unit, overwrite));
+                    (unit, overwrite) => ClaimAndRefresh(reward, unit, overwrite));
                 if (!opened) ShowRewardCards();
                 return;
             }
@@ -128,7 +166,7 @@ namespace Managers.UI.Screens
             // 대상 지정이 필요 없는 보상은 기존 동작대로 필드 위 첫 아군을 문맥 대상으로 사용한다.
             Unit target = GridManager.Instance?.heroList
                 ?.FirstOrDefault(hero => hero != null && hero.isActive && !hero.IsEnemy);
-            GameManager.Instance?.rewardManager?.ApplyReward(reward, target);
+            ClaimAndRefresh(reward, target);
         }
 
         private void ShowRewardTargets(RewardDef reward)
@@ -137,9 +175,20 @@ namespace Managers.UI.Screens
             if (candidates.Count == 0) return;
 
             _pendingTargetReward = reward;
+            _footer.gameObject.SetActive(false);
             _cardsRoot.gameObject.SetActive(false);
+            FitContentHeight(PickerHeight);
             SetTitle(reward.displayName + " — 대상 선택");
-            _targetPicker.Show(candidates, TargetGuide(reward), unit => TargetPreview(reward, unit));
+            string note = PurchaseNote(reward);
+            _targetPicker.Show(candidates, TargetGuide(reward) + (string.IsNullOrEmpty(note) ? "" : "\n" + note), unit => TargetPreview(reward, unit));
+        }
+
+        private string PurchaseNote(RewardDef reward)
+        {
+            var game=GameManager.Instance;
+            return game.rewardManager.FreeRewardClaimed
+                ? $"가격 {game.rewardManager.SelectionPrice(reward):N0}G · 보유 {game.inventoryManager.Gold:N0}G · 왕실 구매 {game.rewardManager.PaidRewardCount}/2"
+                : "";
         }
 
         /// <summary>대상 선택 판의 안내문. 상점도 같은 문구를 쓴다.</summary>
@@ -200,7 +249,7 @@ namespace Managers.UI.Screens
                     ? RewardManager.IsValidReviveTarget(target)
                     : RewardManager.IsValidHealingTarget(target);
             if (!valid) return;
-            GameManager.Instance?.rewardManager?.ApplyReward(_pendingTargetReward, target);
+            ClaimAndRefresh(_pendingTargetReward, target);
             _pendingTargetReward = null;
         }
 
@@ -211,7 +260,37 @@ namespace Managers.UI.Screens
             if (_cardsRoot != null) _cardsRoot.gameObject.SetActive(true);
             _targetPicker?.SetActive(false);
             _codeFlow?.Hide();
+            _footer.gameObject.SetActive(true);
+            _confirm.interactable=_selectedIndex>=0;
+            _selectionHint.text=_selectedIndex>=0?_rewards[_selectedIndex].displayName+" · 선택됨":"보상을 한 가지 선택하세요.";
             if (_reroll != null) RefreshReroll();
+            RefreshPurchaseState();
+        }
+
+        private void ClaimAndRefresh(RewardDef reward, Unit target, int overwrite = 0)
+        {
+            var manager=GameManager.Instance?.rewardManager;
+            if(manager==null)return;
+            if(!manager.TryClaimReward(reward,target,overwrite)) { ShowRewardCards(); return; }
+            if(!manager.RoyalSelection) { manager.FinishRewardSelection(); return; }
+            _selectedIndex=-1;
+            for(int i=0;i<_cards.Count;i++)_cards[i].SetSelected(false);
+            ShowRewardCards();
+        }
+        private void RefreshPurchaseState()
+        {
+            var manager=GameManager.Instance?.rewardManager;if(manager==null)return;
+            bool paid=manager.FreeRewardClaimed;
+            for(int i=0;i<_rewards.Count && i<_cards.Count;i++)
+                _cards[i].SetPurchaseState(manager.IsClaimed(_rewards[i]),paid?RewardManager.ShopPrice(_rewards[i],GameManager.Instance.RoundManager.Stage):0);
+            _continue.gameObject.SetActive(paid && manager.RoyalSelection);
+            _reroll.gameObject.SetActive(!paid);
+            _reroll.interactable=manager.CanRerollSelection && (GameManager.Instance.inventoryManager?.rerollTicketCount??0)>0;
+            bool selected=_selectedIndex>=0 && manager.CanClaimReward(_rewards[_selectedIndex]);
+            _confirm.interactable=selected;
+            _confirm.GetComponentInChildren<TextMeshProUGUI>().text=paid?"추가 구매":"선택 확정";
+            _selectionHint.text=paid?$"왕실의 구매권 · {manager.PaidRewardCount}/2 구매 · 보유 {GameManager.Instance.inventoryManager.Gold:N0}G":
+                _selectedIndex>=0?_rewards[_selectedIndex].displayName+" · 선택됨":"무료 보상을 한 가지 선택하세요.";
         }
 
         // ── 표시할 값 뽑기 ───────────────────────────────────────────
@@ -311,17 +390,6 @@ namespace Managers.UI.Screens
             return rows;
         }
 
-        private static List<Row> SpecRows(RewardDef reward)
-        {
-            var rows = new List<Row>();
-            ItemData item = reward?.item;
-            if (item == null) return rows;
-
-            rows.Add(new Row("보관", "파티 공용 인벤토리", UITheme.TextPrimary));
-
-            return rows;
-        }
-
         /// <summary>파티 누군가 가진 하위 코드의 이름. 없으면 null — 상위 카드에 "▲ 상위: ○○"를 띄운다.</summary>
         private static string LowerHeldByParty(int codeId)
         {
@@ -356,324 +424,99 @@ namespace Managers.UI.Screens
             return string.Join(" · ", parts);
         }
 
-        /// <summary>툴팁용 머리말. 영문(TIER · RARE)은 윗줄, 한글(부위 · 분류)은 아랫줄로 나눈다.</summary>
-        private static string MetaHead(RewardDef reward)
-        {
-            int tier = Mathf.Max(1, reward.tier);
-            string english = reward.isRare ? $"TIER {tier} · RARE" : $"TIER {tier}";
-
-            string category = string.IsNullOrWhiteSpace(reward.item?.category)
-                ? ""
-                : ItemTooltip.CategoryName(reward.item.category);
-            return ItemTooltip.SplitHead(english, category);
-        }
-
+        /// <summary>한 줄에 놓인 선택 카드. 긴 설명은 카드 안에서 읽고 최종 획득은 공용 버튼으로 확정한다.</summary>
         private sealed class Card
         {
-            private readonly GameObject _root;
-            private readonly RectTransform _rect;
-            private readonly Image _rarityStrip;
-            private readonly TextMeshProUGUI _meta;
-            private readonly TextMeshProUGUI _name;
-            private readonly TextMeshProUGUI _specCaption;
-            private readonly Image _specRule;
-            private readonly TextMeshProUGUI _statCaption;
-            private readonly TextMeshProUGUI[] _statLabels = new TextMeshProUGUI[MaxStatRows];
-            private readonly TextMeshProUGUI[] _statValues = new TextMeshProUGUI[MaxStatRows];
-            private readonly TextMeshProUGUI[] _specLabels = new TextMeshProUGUI[MaxSpecRows];
-            private readonly TextMeshProUGUI[] _specValues = new TextMeshProUGUI[MaxSpecRows];
-            private readonly Image _art;
-            private readonly TextMeshProUGUI _summary;
-            private readonly TextMeshProUGUI _fit;
-
-            public Card(Transform parent, int index, Action<int> onPick)
+            private readonly Image _root, _art, _tile, _selection;
+            private readonly TextMeshProUGUI _name, _meta, _summary;
+            private readonly ScrollRect _descriptionScroll;
+            public Card(Transform parent,int index,Action<int> onPick)
             {
-                Image panel = UIBuild.Panel($"Reward{index}", parent, UITheme.SurfaceRaised,
-                    UIShapes.Corner.BottomRight, 12, UITheme.Outline, 1);
-                _root = panel.gameObject;
-
-                _rect = panel.rectTransform;
-                Layout(index, 0, CardsPerRow, 1);
-
-                // 카드 어디를 눌러도 고를 수 있다. 아래 버튼은 그 사실을 알리는 표지다.
-                UIBuild.OnClick(_root, () => onPick(index));
-
-                Transform root = panel.transform;
-
-                _rarityStrip = UIBuild.Solid("Rarity", root, UITheme.Accent);
-                UIBuild.Anchor(_rarityStrip.rectTransform, new Vector2(0f, 0.972f), new Vector2(1f, 1f));
-
-                _meta = UIBuild.Label("Meta", root, "", UITheme.FontMicro, UITheme.TextMuted);
-                _meta.characterSpacing = 14f;
-                UIBuild.Anchor(_meta.rectTransform, new Vector2(0f, 0.905f), new Vector2(1f, 0.965f), 18f, 0f);
-
-                _name = UIBuild.Text("Name", root, "", UITheme.FontReadTitle, UITheme.TextPrimary,
-                    TextAlignmentOptions.TopLeft, wrap: true);
-                UIBuild.Anchor(_name.rectTransform, new Vector2(0f, 0.79f), new Vector2(1f, 0.90f), 18f, 0f);
-
-                _name.fontStyle = FontStyles.Bold;
-                Rule(root, "Rule", 0.775f);
-
-                _statCaption = Caption(root, "StatCaption", "STATS", 0.725f);
-                for (int i = 0; i < MaxStatRows; i++)
-                {
-                    float top = 0.70f - i * 0.068f;
-                    _statLabels[i] = RowLabel(root, $"StatLabel{i}", top);
-                    _statValues[i] = RowValue(root, $"StatValue{i}", top, UITheme.FontHeading);
-                }
-
-                // 일러스트. 카드 가운데를 통째로 쓴다. 없으면 꺼지고
-                // 그 자리에 예전처럼 스탯 줄이 들어온다.
-                var artObject = new GameObject("Art", typeof(RectTransform), typeof(Image));
-                artObject.transform.SetParent(root, false);
-                _art = artObject.GetComponent<Image>();
-                _art.preserveAspect = true;
-                _art.raycastTarget = false;
-                UIBuild.Anchor(_art.rectTransform, new Vector2(0f, 0.44f), new Vector2(1f, 0.765f), 22f, 0f);
-
-                // 그림 아래 한 줄 요약. 세 장을 비교할 때 가장 자주 보는 값만 남긴다.
-                _summary = UIBuild.Text("Summary", root, "", UITheme.FontReadBody, UITheme.TextPrimary,
-                    TextAlignmentOptions.Center, wrap: true);
-                UIBuild.Anchor(_summary.rectTransform, new Vector2(0f, 0.365f), new Vector2(1f, 0.44f), 16f, 0f);
-
-                // 고를 근거 — 아이템은 식량 가치·가격, 즉시 보상은 적용 대상을 보여 준다.
-                _fit = UIBuild.Text("Fit", root, "", UITheme.FontCaption, UITheme.TextPrimary,
-                    TextAlignmentOptions.TopLeft, wrap: true);
-                _fit.richText = true;
-                UIBuild.Anchor(_fit.rectTransform, new Vector2(0f, 0.14f), new Vector2(1f, 0.355f), 20f, 0f);
-
-                _specRule = Rule(root, "Rule2", 0.415f);
-
-                _specCaption = Caption(root, "SpecCaption", "SPEC", 0.355f);
-                for (int i = 0; i < MaxSpecRows; i++)
-                {
-                    float top = 0.33f - i * 0.062f;
-                    _specLabels[i] = RowLabel(root, $"SpecLabel{i}", top);
-                    _specValues[i] = RowValue(root, $"SpecValue{i}", top, UITheme.FontCaption);
-                }
-
-                // 세 장 모두 같은 행동이므로 앰버로 채우지 않고 테두리만 준다.
-                // 앰버로 채우는 것은 "지금 눌러야 할 하나"에만 쓰는 표시다.
-                Image pick = UIBuild.Panel("Pick", root, Color.clear,
-                    UIShapes.Corner.Diagonal, 8, UITheme.Accent, 1);
-                UIBuild.Anchor(pick.rectTransform, new Vector2(0f, 0.045f), new Vector2(1f, 0.125f), 18f, 0f);
-                UIBuild.OnClick(pick.gameObject, () => onPick(index));
-
-                TextMeshProUGUI pickLabel = UIBuild.Label("PickLabel", pick.transform, "선 택",
-                    UITheme.FontBody, UITheme.Accent, TextAlignmentOptions.Center);
-                UIBuild.Stretch(pickLabel.rectTransform);
+                _root=UIBuild.Solid($"Reward{index}",parent,Color.white);
+                _root.sprite=UIArtDirection.Sheet(12);
+                UIBuild.OnClick(_root.gameObject,()=>onPick(index));
+                UICardReveal.Attach(_root.gameObject,index);
+                _tile=UIBuild.Solid("ArtTile",_root.transform,Color.white);
+                _tile.sprite=UIArtDirection.Seal(1); _tile.type=Image.Type.Simple;_tile.preserveAspect=true;_tile.raycastTarget=false;
+                UIBuild.Pin(_tile.rectTransform,new Vector2(.5f,1),new Vector2(112,112),new Vector2(0,-38));
+                _art=UIBuild.Solid("Art",_tile.transform,UITheme.Accent);
+                _art.type=Image.Type.Simple;_art.preserveAspect=true;_art.raycastTarget=false;
+                UIBuild.Pin(_art.rectTransform,new Vector2(.5f,.5f),new Vector2(52,52),Vector2.zero);
+                _name=UIBuild.Text("Name",_root.transform,"",25,UITheme.TextPrimary,TextAlignmentOptions.Midline,true);
+                _name.fontStyle=FontStyles.Bold;
+                PlaceTop(_name.rectTransform,160,82,24);
+                _meta=UIBuild.Text("Meta",_root.transform,"",20,UITheme.TextMuted,TextAlignmentOptions.Midline);
+                PlaceTop(_meta.rectTransform,246,34,24);
+                GameTermLinks.Attach(_meta);
+                Image rule=UIBuild.Divider("Rule",_root.transform);
+                PlaceTop(rule.rectTransform,302,1,32); rule.raycastTarget=false;
+                RectTransform content=UIBuild.ScrollArea("RewardDescription",_root.transform,out _descriptionScroll);
+                UIBuild.Stretch((RectTransform)_descriptionScroll.transform,28,0);
+                ((RectTransform)_descriptionScroll.transform).offsetMin=new Vector2(28,30);
+                ((RectTransform)_descriptionScroll.transform).offsetMax=new Vector2(-28,-324);
+                _summary=UIBuild.Text("Summary",content,"",22,UITheme.TextPrimary,TextAlignmentOptions.TopLeft,true);
+                _summary.overflowMode=TextOverflowModes.Overflow;
+                _summary.richText=true;
+                PlaceTop(_summary.rectTransform,0,0,8);
+                _selection=UIBuild.Solid("Selected",_root.transform,UITheme.Accent);
+                _selection.sprite=UIShapes.RoundedRect(18,Color.white);
+                UIBuild.Pin(_selection.rectTransform,new Vector2(1,1),new Vector2(36,36),new Vector2(-20,-20));
+                _selection.raycastTarget=false;
+                var check=UIBuild.Icon("Check",_selection.transform,UIIcon.Check,Color.white);
+                UIBuild.Stretch(check.rectTransform,9,9);
+                _selection.gameObject.SetActive(false);
             }
-
-            private static Image Rule(Transform root, string name, float y)
+            private static void PlaceTop(RectTransform rect,float top,float height,float pad)
             {
-                Image rule = UIBuild.Divider(name, root);
-                MoveRule(rule, y);
-                return rule;
+                UIBuild.Anchor(rect,new Vector2(0,1),Vector2.one);
+                rect.pivot=new Vector2(.5f,1);
+                rect.offsetMin=new Vector2(pad,-top-height);rect.offsetMax=new Vector2(-pad,-top);
             }
-
-            private static void MoveRule(Image rule, float y)
+            public void Layout(int column,int row,int columns,int rows)
             {
-                UIBuild.Anchor(rule.rectTransform, new Vector2(0f, y), new Vector2(1f, y), 18f, 0f);
-                rule.rectTransform.sizeDelta = new Vector2(rule.rectTransform.sizeDelta.x, 1f);
+                RectTransform rect=_root.rectTransform;
+                rect.anchorMin=new Vector2(column/(float)columns,0);rect.anchorMax=new Vector2((column+1f)/columns,1);
+                rect.offsetMin=new Vector2(RowGap*.5f,4);rect.offsetMax=new Vector2(-RowGap*.5f,-4);
             }
-
-            private static void MoveBand(RectTransform rect, float top, float height)
+            public void SetSelected(bool selected)
             {
-                UIBuild.Anchor(rect, new Vector2(rect.anchorMin.x, top - height),
-                    new Vector2(rect.anchorMax.x, top), 18f, 0f);
+                _root.sprite=selected?UIShapes.RoundedRect(12,Color.Lerp(Color.white,UITheme.Accent,.10f),UITheme.Accent,1):UIArtDirection.Sheet(12);
+                _selection.gameObject.SetActive(selected);
             }
-
-            private static TextMeshProUGUI Caption(Transform root, string name, string text, float bottom)
+            public void SetPurchaseState(bool claimed, int price)
             {
-                TextMeshProUGUI caption = UIBuild.Label(name, root, text, UITheme.FontMicro, UITheme.TextMuted);
-                caption.characterSpacing = 20f;
-                UIBuild.Anchor(caption.rectTransform,
-                    new Vector2(0f, bottom), new Vector2(1f, bottom + 0.04f), 18f, 0f);
-                return caption;
+                var click=_root.GetComponent<Button>(); if(click!=null)click.interactable=!claimed;
+                _root.color=claimed?new Color(.78f,.82f,.88f,1):Color.white;
+                _meta.text=claimed?"획득 완료":price>0?$"상점 가격 · {price:N0}G":_meta.text;
             }
-
-            private static TextMeshProUGUI RowLabel(Transform root, string name, float top)
-            {
-                TextMeshProUGUI label = UIBuild.Text(name, root, "", UITheme.FontCaption, UITheme.TextMuted);
-                UIBuild.Anchor(label.rectTransform,
-                    new Vector2(0f, top - 0.058f), new Vector2(0.58f, top), 18f, 0f);
-                return label;
-            }
-
-            private static TextMeshProUGUI RowValue(Transform root, string name, float top, float fontSize)
-            {
-                TextMeshProUGUI value = UIBuild.Text(name, root, "", fontSize, UITheme.TextPrimary,
-                    TextAlignmentOptions.MidlineRight);
-                UIBuild.Anchor(value.rectTransform,
-                    new Vector2(0.58f, top - 0.058f), new Vector2(1f, top), 18f, 0f);
-                return value;
-            }
-
-            /// <summary>격자 칸에 맞춰 카드를 놓는다. 위 줄부터 채운다.</summary>
-            public void Layout(int column, int row, int columns, int rows)
-            {
-                float width = 1f / Mathf.Max(1, columns);
-                float height = 1f / Mathf.Max(1, rows);
-                float top = 1f - row * height;
-                UIBuild.Anchor(_rect,
-                    new Vector2(column * width, top - height),
-                    new Vector2((column + 1) * width, top), 14f, rows > 1 ? 7f : 0f);
-            }
-
             public void Bind(RewardDef reward)
             {
-                _root.SetActive(reward != null);
-                if (reward == null) return;
-
-                Color rarity = UITheme.Rarity(Mathf.Max(1, reward.tier));
-                _rarityStrip.color = rarity;
-
-                _statCaption.text = reward.IsCodeReward ? "BUILD EFFECT" : "ITEM DETAIL";
-                _meta.text = MetaLine(reward);
-                _meta.color = reward.isRare ? rarity : UITheme.TextMuted;
-                _name.text = reward.displayName;
-
-                List<Row> stats = StatRows(reward);
-                List<Row> specs = SpecRows(reward);
-
-                _fit.text = FitText(reward);
-
-                Sprite art = reward.IsCodeReward ? null : LoadRewardArt(reward);
-                _art.sprite = art;
-                _art.enabled = art != null;
-
-                // 카드 어디에 마우스를 올려도 제원이 뜬다. 그림에 자리를 내준 값들이 여기 있다.
-                TooltipTrigger.Attach(_root, () => reward.displayName,
-                    () => TooltipLines(reward, stats, specs), rarity);
-
-                if (reward.IsCodeReward)
-                {
-                    BindCodeLayout(reward, stats);
-                    return;
-                }
-
-                // 코드 카드가 옮겨 놓은 요약 줄 자리를 아이템 카드의 자리로 되돌린다.
-                UIBuild.Anchor(_summary.rectTransform, new Vector2(0f, 0.365f), new Vector2(1f, 0.44f), 16f, 0f);
-                _summary.alignment = TextAlignmentOptions.Center;
-                BindArtLayout(art != null, stats, specs);
+                _root.gameObject.SetActive(reward!=null);
+                if(reward==null)return;
+                var reveal=_root.GetComponent<UICardReveal>();
+                reveal.Replay();
+                _name.text=reward.displayName;
+                _meta.text=reward.IsCodeReward ? $"T{reward.tier} · 보상 코드" : MetaLine(reward);
+                List<Row> stats=StatRows(reward);
+                _summary.text=reward.IsCodeReward ? reward.description+"\n\n"+string.Join("\n",stats.Where(r=>r.Label!="코드").Select(r=>$"<color=#{ColorUtility.ToHtmlStringRGB(UITheme.TextSecondary)}>{r.Label}</color>  {r.Value}"))+"\n"+FitText(reward) :
+                    reward.description+"\n\n"+string.Join("\n",stats.Select(r=>$"{r.Label}  {r.Value}"))+"\n"+FitText(reward);
+                Canvas.ForceUpdateCanvases();
+                float width=Mathf.Max(100,_descriptionScroll.viewport.rect.width-16);
+                float height=_summary.GetPreferredValues(_summary.text,width,0).y;
+                _summary.rectTransform.sizeDelta=new Vector2(-16,height);
+                _descriptionScroll.content.sizeDelta=new Vector2(0,Mathf.Max(_descriptionScroll.viewport.rect.height,height+12));
+                _descriptionScroll.verticalNormalizedPosition=1;
+                _art.sprite=reward.IsCodeReward ? UILineIcons.Get(UIArtDirection.CodeIcon(reward.codeId)) :
+                    reward.item!=null ? ItemTooltip.LoadArt(reward.item) :
+                    string.IsNullOrWhiteSpace(reward.artPath) ? null : Resources.Load<Sprite>(reward.artPath);
+                _art.enabled=_art.sprite!=null;
+                _art.color=reward.IsCodeReward ? UITheme.Accent : Color.white;
+                // 코드는 선 기호를 각인 안에, 물건 그림은 각인을 채우게 둔다.
+                _art.rectTransform.sizeDelta=reward.IsCodeReward ? new Vector2(52f,52f) : new Vector2(84f,84f);
+                _tile.sprite=UIArtDirection.Seal(Mathf.Max(1,reward.tier));
+                _tile.raycastTarget=false;
             }
 
-            /// <summary>
-            /// 코드 카드 — 그림 대신 표(티어 · 태그 · 상위)를 위에, 효과 문구를 아래에 크게 둔다.
-            /// 코드는 문구가 곧 제원이라 툴팁에만 숨기면 세 장을 비교할 수 없다.
-            /// </summary>
-            private void BindCodeLayout(RewardDef reward, List<Row> stats)
-            {
-                BindArtLayout(false, stats, new List<Row>());
-                _specCaption.gameObject.SetActive(false);
-                _specRule.gameObject.SetActive(false);
-                _fit.gameObject.SetActive(false);
-                float statsBottom = 0.70f - Mathf.Max(1, stats.Count) * 0.068f;
-                _summary.gameObject.SetActive(true);
-                UIBuild.Anchor(_summary.rectTransform, new Vector2(0f, 0.20f), new Vector2(1f, statsBottom - 0.02f), 18f, 0f);
-                _summary.alignment = TextAlignmentOptions.TopLeft;
-                _summary.text = Codes.Base.CodeCatalog.Summary(reward.description);
-            }
-
-            private static Sprite LoadRewardArt(RewardDef reward)
-            {
-                if (reward?.item != null) return ItemTooltip.LoadArt(reward.item);
-                return string.IsNullOrWhiteSpace(reward?.artPath)
-                    ? null
-                    : Resources.Load<Sprite>(reward.artPath);
-            }
-
-            /// <summary>그림이 있으면 요약 한 줄, 없으면 예전처럼 표를 세운다.</summary>
-            private void BindArtLayout(bool hasArt, List<Row> stats, List<Row> specs)
-            {
-                _summary.gameObject.SetActive(hasArt);
-                _fit.gameObject.SetActive(hasArt && _fit.text.Length > 0);
-                // 이름 아래 구분선은 그림이 있을 때도 남긴다. 제목과 본문을 가르는 선이다.
-                _statCaption.gameObject.SetActive(!hasArt);
-                _specCaption.gameObject.SetActive(!hasArt && specs.Count > 0);
-                _specRule.gameObject.SetActive(!hasArt && specs.Count > 0);
-
-                for (int i = 0; i < _statLabels.Length; i++)
-                {
-                    _statLabels[i].gameObject.SetActive(!hasArt);
-                    _statValues[i].gameObject.SetActive(!hasArt);
-                }
-                for (int i = 0; i < _specLabels.Length; i++)
-                {
-                    _specLabels[i].gameObject.SetActive(!hasArt);
-                    _specValues[i].gameObject.SetActive(!hasArt);
-                }
-
-                if (hasArt)
-                {
-                    _summary.text = SummaryLine(stats);
-                    return;
-                }
-
-                Fill(_statLabels, _statValues, stats);
-                Fill(_specLabels, _specValues, specs);
-
-                // 아이템 설명 길이는 제각각이라 내용 높이에 맞춰 가운데를 채운다.
-                // 실제 줄 수만큼만 쓰고 SPEC 블록을 위로 끌어올린다.
-                float statsBottom = 0.70f - Mathf.Max(1, stats.Count) * 0.068f;
-                MoveRule(_specRule, statsBottom - 0.015f);
-                MoveBand((RectTransform)_specCaption.transform, statsBottom - 0.055f, 0.04f);
-
-                for (int i = 0; i < _specLabels.Length; i++)
-                {
-                    float top = statsBottom - 0.115f - i * 0.062f;
-                    MoveBand(_specLabels[i].rectTransform, top, 0.058f);
-                    MoveBand(_specValues[i].rectTransform, top, 0.058f);
-                }
-            }
-
-            /// <summary>그림 아래 한 줄. 스탯 보너스만 색을 입혀 이어 붙인다.</summary>
-            private static string SummaryLine(List<Row> stats)
-            {
-                if (stats.Count == 0) return "";
-
-                var parts = new List<string>();
-                foreach (Row row in stats)
-                {
-                    string hex = ColorUtility.ToHtmlStringRGB(row.Color);
-                    parts.Add($"<color=#{hex}>{row.Label} {row.Value}</color>");
-                }
-                return string.Join("   ", parts);
-            }
-
-            private static List<UITooltip.Line> TooltipLines(
-                RewardDef reward, List<Row> stats, List<Row> specs)
-            {
-                var lines = new List<UITooltip.Line>
-                {
-                    UITooltip.Line.Note(MetaHead(reward), UITheme.TextMuted),
-                };
-
-                if (!string.IsNullOrWhiteSpace(reward.description))
-                {
-                    lines.Add(UITooltip.Line.Note(reward.description, UITheme.TextSecondary));
-                }
-
-                foreach (Row row in stats) lines.Add(new UITooltip.Line(row.Label, row.Value, row.Color));
-                foreach (Row row in specs) lines.Add(new UITooltip.Line(row.Label, row.Value, row.Color));
-
-                // 그림이 없는 카드에는 근거 블록이 없다. 비교는 툴팁으로라도 보이게 한다.
-                string fit = FitText(reward);
-                if (fit.Length > 0) lines.Add(UITooltip.Line.Note(fit, UITheme.TextPrimary));
-
-                return lines;
-            }
-
-            private static void Fill(TextMeshProUGUI[] labels, TextMeshProUGUI[] values, List<Row> rows)
-            {
-                for (int i = 0; i < labels.Length; i++)
-                {
-                    bool has = i < rows.Count;
-                    labels[i].text = has ? rows[i].Label : "";
-                    values[i].text = has ? rows[i].Value : "";
-                    if (has) values[i].color = rows[i].Color;
-                }
-            }
         }
     }
 }

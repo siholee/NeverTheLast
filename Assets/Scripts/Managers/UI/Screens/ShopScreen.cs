@@ -36,8 +36,20 @@ namespace Managers.UI.Screens
     {
         private const int SupplyOnDisplay = 6;
 
-        /// <summary>목록 한 줄의 높이(기준 해상도 px). 960×540에서도 두 줄 글자가 들어가는 높이다.</summary>
-        private const float RowHeight = 112f;
+        /// <summary>목록 한 줄의 높이(기준 해상도 px). 이름 24 · 설명 22의 실제 줄 높이(약 34 + 31)와 위아래 여백이 들어간다.</summary>
+        private const float RowHeight = 100f;
+
+        /// <summary>탭 줄 · 안내 줄 · 바닥 줄의 높이(기준 해상도 px).</summary>
+        private const float TabRowHeight = 44f;
+        private const float GuideHeight = 56f;
+        private const float FooterHeight = 48f;
+
+        /// <summary>제목 띠 안 지갑 줄의 오른쪽 끝(닫기 원 40px + 간격을 비운다).</summary>
+        private const float HeaderWalletRight = 86f;
+
+        /// <summary>코드 카드 안 여백과 바닥 행(가격 · 구매) 높이.</summary>
+        private const float CardPad = 16f;
+        private const float BuyHeight = 44f;
 
         /// <summary>행상인 자산 키. 아직 그림이 없으면 이름표만 선다.</summary>
         private const string MerchantStanding = "LAVOISIER_STANDING";
@@ -60,16 +72,17 @@ namespace Managers.UI.Screens
             (Tab.Sell, "판매"),
         };
 
+        protected override Color BackdropTint => new Color(.77f,.84f,.92f,.98f);
         protected override string CanvasName => "ShopCanvas";
         protected override int SortingOrder => 72;
+        protected override bool AlignToScreenFrame => false;
         protected override string Title => "상점";
         protected override string Caption => "SHOP";
-        protected override Vector2 AnchorMin => new(0.08f, 0.14f);
-        protected override Vector2 AnchorMax => new(0.92f, 0.86f);
+        protected override Vector2 AnchorMin => new(0.03f, 0.04f);
+        protected override Vector2 AnchorMax => new(0.97f, 0.96f);
         protected override bool CloseOnBackdrop => true;
 
         private readonly Dictionary<Tab, Button> _tabButtons = new();
-        private readonly Dictionary<Tab, Image> _tabMarks = new();
 
         private List<RewardDef> _consumables = new();
         private List<RewardDef> _supplies = new();
@@ -88,6 +101,7 @@ namespace Managers.UI.Screens
         private TextMeshProUGUI _message;
         private TextMeshProUGUI _merchantLine;
         private Image _merchantArt;
+        private Image _coin;
         private Button _sellAll;
         private UnitTargetPicker _targetPicker;
         private RewardCodeFlow _codeFlow;
@@ -107,25 +121,32 @@ namespace Managers.UI.Screens
             _goodsRoot = UIBuild.Container("ShopGoods", Body);
             UIBuild.Anchor(_goodsRoot, new Vector2(0.195f, 0f), Vector2.one);
 
-            BuildStatusBar();
             BuildTabs();
+            BuildStatusBar();
 
-            _guide = UIBuild.Text("TabGuide", _goodsRoot, "", UITheme.FontReadSmall, UITheme.TextSecondary,
+            // 탭 줄 아래 한 줄 — 왼쪽은 탭 안내(최대 두 줄), 오른쪽은 방금 한 거래의 결과. 두 줄 18px의 실제 줄 높이(약 26px × 2)를 다 받는다.
+            _guide = UIBuild.Text("TabGuide", _goodsRoot, "", UITheme.FontBody, UITheme.TextSecondary,
                 TextAlignmentOptions.MidlineLeft, wrap: true);
-            UIBuild.Anchor(_guide.rectTransform, new Vector2(0f, 0.755f), new Vector2(1f, 0.825f), 8f, 0f);
+            ScreenKit.TopBand(_guide.rectTransform, TabRowHeight + 10f, GuideHeight, 4f, 0f);
+            _guide.rectTransform.anchorMax = new Vector2(0.60f, 1f);
 
+            // 매대는 안내 줄 아래에서 창 바닥까지 쓴다. 예전에는 바닥에 결과 한 줄(48+12px)을 늘 비워 두어
+            // 거래 전에는 카드 아래가 빈 띠로 남았다(2026-10-08 1920 검수). 결과는 위 안내 줄 오른쪽으로 옮겼다.
             _content = UIBuild.Container("Content", _goodsRoot);
-            UIBuild.Anchor(_content, new Vector2(0f, 0.125f), new Vector2(1f, 0.75f));
+            UIBuild.Stretch(_content);
+            _content.offsetMin = new Vector2(0f, 0f);
+            _content.offsetMax = new Vector2(0f, -(TabRowHeight + GuideHeight + 22f));
 
+            // 거래 결과 — 안내 줄 오른쪽 끝선에 군청 굵게. 닫기는 머리의 X · ESC · 바깥 누르기로 충분하다(D10).
             _message = UIBuild.Text("Message", _goodsRoot, "", UITheme.FontReadSmall, UITheme.Accent,
-                TextAlignmentOptions.Center, wrap: true);
-            UIBuild.Anchor(_message.rectTransform, new Vector2(0f, 0.07f), new Vector2(1f, 0.122f));
+                TextAlignmentOptions.MidlineRight, wrap: true);
+            ScreenKit.TopBand(_message.rectTransform, TabRowHeight + 10f, GuideHeight, 0f, 4f);
+            _message.rectTransform.anchorMin = new Vector2(0.62f, 1f);
+            _message.fontStyle = FontStyles.Bold;
 
-            _sellAll = UIBuild.Button("SellAll", _goodsRoot, "전부 팔기", OnSellAll, false, UITheme.FontReadSmall);
-            UIBuild.Anchor(_sellAll.GetComponent<RectTransform>(), new Vector2(0.02f, 0f), new Vector2(0.26f, 0.065f));
-
-            Button close = UIBuild.Button("Close", _goodsRoot, "닫기", Hide, primary: true, fontSize: UITheme.FontReadSmall);
-            UIBuild.Anchor(close.GetComponent<RectTransform>(), new Vector2(0.40f, 0f), new Vector2(0.60f, 0.065f));
+            // 판매 탭에서만 — 매대 아래 오른쪽. 이때만 매대 바닥을 버튼 높이만큼 올린다(Refresh).
+            _sellAll = UIBuild.Button("SellAll", _goodsRoot, "귀중품 전부 팔기", OnSellAll, false, UITheme.FontReadSmall);
+            UIBuild.Pin(_sellAll.image.rectTransform, new Vector2(1f, 0f), new Vector2(260f, 44f), Vector2.zero);
 
             _targetPicker = new UnitTargetPicker(Body, OnTargetPicked, ShowGoods, "매대로 돌아가기");
             // 코드는 받을 아군 → (칸이 차면) 버릴 코드 순으로 판을 번갈아 연다. 보상 화면과 같은 흐름이다.
@@ -137,6 +158,16 @@ namespace Managers.UI.Screens
         {
             _merchant = UIBuild.Container("Merchant", Body);
             UIBuild.Anchor(_merchant, Vector2.zero, new Vector2(0.18f, 1f));
+
+            // 행상인 뒤의 옅은 빛과 발밑 그림자 — 흰 종이에 원화가 떠 보이지 않고 서 있게 한다(파티 창 원화와 같은 문법).
+            Image halo = UIBuild.Solid("Halo", _merchant, Color.white);
+            halo.sprite = UIShapes.Glow(128, new Color(0.62f, 0.80f, 0.95f, 0.30f));
+            halo.type = Image.Type.Simple; halo.raycastTarget = false;
+            UIBuild.Anchor(halo.rectTransform, new Vector2(-0.1f, 0.40f), new Vector2(1.1f, 1.02f));
+            Image floor = UIBuild.Solid("Floor", _merchant, Color.white);
+            floor.sprite = UIShapes.Glow(128, new Color(UITheme.Accent.r, UITheme.Accent.g, UITheme.Accent.b, 0.12f));
+            floor.type = Image.Type.Simple; floor.raycastTarget = false;
+            UIBuild.Anchor(floor.rectTransform, new Vector2(0.14f, 0.335f), new Vector2(0.86f, 0.395f));
 
             var artObject = new GameObject("Art", typeof(RectTransform), typeof(Image));
             artObject.transform.SetParent(_merchant, false);
@@ -150,7 +181,8 @@ namespace Managers.UI.Screens
             _merchantArt.enabled = standing != null;
 
             TextMeshProUGUI name = UIBuild.Text("Name", _merchant, MerchantName, UITheme.FontReadHeading,
-                UITheme.TextPrimary, TextAlignmentOptions.Center);
+                UITheme.TextPrimary, TextAlignmentOptions.Midline);
+            name.fontStyle = FontStyles.Bold;
             UIBuild.Anchor(name.rectTransform, new Vector2(0f, 0.28f), new Vector2(1f, 0.35f));
 
             _merchantLine = UIBuild.Text("Line", _merchant, "", UITheme.FontReadSmall, UITheme.TextSecondary,
@@ -158,42 +190,76 @@ namespace Managers.UI.Screens
             UIBuild.Anchor(_merchantLine.rectTransform, new Vector2(0f, 0.02f), new Vector2(1f, 0.27f), 8f, 0f);
         }
 
-        /// <summary>맨 위 줄 — 보유 골드 · 시세 스테이지 · 남은 구매. 사기 전에 셋 다 눈에 들어와야 한다.</summary>
+        /// <summary>
+        /// 탭 줄 오른쪽 — 보유 골드와 남은 구매. 예전에는 탭 위 회색 막대에 셋을 같은 무게로 늘어놓아
+        /// 남은 구매가 오른쪽 끝에 떨어져 있었다(D10). 사기 전에 보는 두 값만 탭과 같은 줄에 붙이고,
+        /// 시세 설명은 안내 줄 오른쪽으로 내린다.
+        /// </summary>
+        /// <summary>
+        /// 지갑 · 남은 구매는 남색 제목 띠 오른쪽에 둔다 — 게임의 재화 표시 자리다. 받을 아군을 고르는 동안(매대가 숨는 동안)에도
+        /// 그대로 보여 무엇을 얼마에 사는지 놓치지 않는다. 세 요소의 세로 중심은 띠 중심선(32px)이다.
+        /// 시세 설명은 탭 줄 오른쪽 끝에 붙인다.
+        /// </summary>
         private void BuildStatusBar()
         {
-            Image bar = UIBuild.Panel("Status", _goodsRoot, UITheme.SurfaceSunken, UIShapes.Corner.Diagonal, 8,
-                UITheme.Outline, 1);
-            UIBuild.Anchor(bar.rectTransform, new Vector2(0f, 0.915f), Vector2.one);
+            Transform header = Body.parent;
+            float y = -(UIArtDirection.HeaderMidline - 20f);
 
-            _wallet = UIBuild.Text("Wallet", bar.transform, "", UITheme.FontReadHeading, UITheme.TextPrimary,
-                TextAlignmentOptions.Center);
-            UIBuild.Anchor(_wallet.rectTransform, new Vector2(0f, 0f), new Vector2(0.30f, 1f), 10f, 0f);
-            _stageInfo = UIBuild.Text("Stage", bar.transform, "", UITheme.FontReadSmall, UITheme.TextSecondary,
-                TextAlignmentOptions.Center);
-            UIBuild.Anchor(_stageInfo.rectTransform, new Vector2(0.30f, 0f), new Vector2(0.68f, 1f), 10f, 0f);
-            _purchases = UIBuild.Text("Purchases", bar.transform, "", UITheme.FontReadHeading, UITheme.TextPrimary,
-                TextAlignmentOptions.Center);
-            UIBuild.Anchor(_purchases.rectTransform, new Vector2(0.68f, 0f), new Vector2(1f, 1f), 10f, 0f);
+            _purchases = UIBuild.Text("Purchases", header, "", UITheme.FontReadSmall, UIArtDirection.HeaderInkSoft,
+                TextAlignmentOptions.MidlineRight);
+            UIBuild.Pin(_purchases.rectTransform, new Vector2(1f, 1f), new Vector2(190f, 40f), new Vector2(-HeaderWalletRight, y));
+
+            Image rule = UIBuild.Solid("WalletRule", header, new Color(1f, 1f, 1f, 0.28f));
+            rule.raycastTarget = false;
+            UIBuild.Pin(rule.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 24f),
+                new Vector2(-(HeaderWalletRight + 190f + 16f), -(UIArtDirection.HeaderMidline - 12f)));
+
+            _wallet = UIBuild.Text("Wallet", header, "", UITheme.FontReadHeading, UITheme.TextOnAccent,
+                TextAlignmentOptions.MidlineRight);
+            _wallet.fontStyle = FontStyles.Bold;
+            UIBuild.Pin(_wallet.rectTransform, new Vector2(1f, 1f), new Vector2(220f, 40f),
+                new Vector2(-(HeaderWalletRight + 190f + 32f), y));
+
+            _coin = UIBuild.Icon("WalletCoin", header, UIIcon.Coin, UITheme.TextOnAccent);
+            UIBuild.Pin(_coin.rectTransform, new Vector2(1f, 1f), new Vector2(24f, 24f),
+                new Vector2(-(HeaderWalletRight + 190f + 32f + 120f), -(UIArtDirection.HeaderMidline - 12f)));
+
+            _stageInfo = UIBuild.Text("Stage", _goodsRoot, "", UITheme.FontBody, UITheme.TextMuted,
+                TextAlignmentOptions.MidlineRight);
+            UIBuild.Pin(_stageInfo.rectTransform, new Vector2(1f, 1f), new Vector2(420f, TabRowHeight), new Vector2(-4f, 0f));
         }
 
+        /// <summary>지갑 글자 폭에 맞춰 동전 기호를 바로 왼쪽(간격 8px)에 붙인다.</summary>
+        private void PlaceCoin()
+        {
+            if (_coin == null || _wallet == null) return;
+            float width = Mathf.Min(_wallet.preferredWidth, _wallet.rectTransform.sizeDelta.x);
+            _coin.rectTransform.anchoredPosition = new Vector2(
+                -(HeaderWalletRight + 190f + 32f + width + 8f), -(UIArtDirection.HeaderMidline - 12f));
+        }
+
+        /// <summary>탭 넷은 왼쪽부터 같은 폭으로. 선택 표지는 2px 밑줄 하나뿐이다(<see cref="ScreenKit.FlatTab"/>).</summary>
         private void BuildTabs()
         {
-            float width = 1f / TabOrder.Length;
+            const float tabWidth = 176f;
             for (int i = 0; i < TabOrder.Length; i++)
             {
                 Tab tab = TabOrder[i].Tab;
                 Button button = UIBuild.Button($"Tab{tab}", _goodsRoot, TabOrder[i].Label, () => SwitchTo(tab),
-                    false, UITheme.FontReadHeading);
-                UIBuild.Anchor(button.GetComponent<RectTransform>(),
-                    new Vector2(i * width, 0.84f), new Vector2((i + 1) * width, 0.905f), 6f, 0f);
+                    false, UITheme.FontReadSmall);
+                UIBuild.Pin(button.image.rectTransform, new Vector2(0f, 1f), new Vector2(tabWidth, TabRowHeight),
+                    new Vector2(i * (tabWidth + 8f), 0f));
                 _tabButtons[tab] = button;
-
-                Image mark = UIBuild.Solid($"Tab{tab}Mark", _goodsRoot, UITheme.Accent);
-                UIBuild.Anchor(mark.rectTransform,
-                    new Vector2(i * width, 0.828f), new Vector2((i + 1) * width, 0.836f), 6f, 0f);
-                _tabMarks[tab] = mark;
             }
+
+            Image rule = UIBuild.Divider("TabRule", _goodsRoot);
+            rule.raycastTarget = false;
+            ScreenKit.TopBand(rule.rectTransform, TabRowHeight, 1f);
         }
+
+        private bool _codeShelfRevealed;
+        private int _codePage;
+        private const int CodePageSize = 3;
 
         public override void Show()
         {
@@ -203,6 +269,8 @@ namespace Managers.UI.Screens
             _codes = BuildCodeStock();
             _message.text = "";
             _tab = Tab.Code;
+            _codeShelfRevealed = false;
+            _codePage = 0;
             ShowGoods();
             base.Show();
         }
@@ -227,6 +295,8 @@ namespace Managers.UI.Screens
         {
             return RewardCodeCatalog.All()
                 .Where(entry => entry.shopFixed && Codes.Passive.Reward.RewardCodeFactory.IsImplemented(entry.id))
+                .Where(entry => !entry.requiresToughness || Combat.AttackForms.PartyUnits().Any(hero =>
+                    hero.ActivePassiveCodesResolved().Any(code => code is Codes.Passive.OrpheusCheatedDeath)))
                 .Select(RewardManager.BuildCodeReward)
                 .ToList();
         }
@@ -288,33 +358,42 @@ namespace Managers.UI.Screens
                 });
             }
 
+            foreach(var owner in RewardCodeFlow.Party())
+            foreach(var holding in owner.OwnedRewardCodeInstances)
+            {
+                int id=holding.codeId;
+                goods.Add(new RewardDef
+                {
+                    id="sell_code_"+holding.instanceId,codeId=id,saleOwner=owner,saleInstanceId=holding.instanceId,
+                    displayName=RewardCodeFlow.NameOf(id)+" · "+owner.UnitName,
+                    description=Combat.RewardCodeInventory.ChargeSummary(holding)+"판매하면 이 코드의 효과와 저장량을 내어줍니다.",
+                    tier=RewardCodeCatalog.TierOf(id),goldCost=Combat.RewardCodeInventory.SalePrice(holding)
+                });
+            }
             return goods;
         }
 
         private void Refresh()
         {
+            // 매대와 대상 선택은 동일한 전면 공간을 사용한다.
+            FitContentHeight(994f);
             int stage = CurrentStage;
             int gold = Inventory?.Gold ?? 0;
             int left = GameManager.Instance?.ShopPurchasesLeft ?? 0;
 
-            _wallet.text = $"◆ {gold:N0} G";
+            _wallet.text = $"{gold:N0} G";
+            PlaceCoin();
             _stageInfo.text = _tab == Tab.Sell
-                ? $"주머니 {Inventory?.Valuables?.Count ?? 0}점 · 전부 팔면 {Inventory?.ValuableTotalGold ?? 0:N0} G"
-                : $"{stage}스테이지 시세 · 가격 = 기본가 × {stage}";
+                ? $"귀중품 {Inventory?.Valuables?.Count ?? 0}점 · 코드 {RewardCodeFlow.Party().Sum(u=>u.OwnedRewardCodeInstances.Count())}장"
+                : $"{stage}스테이지 시세 · 기본가 × {stage}";
             _purchases.text = $"남은 구매 {left} / {GameManager.MaxShopPurchases}";
-            _purchases.color = left > 0 ? UITheme.TextPrimary : UITheme.Danger;
+            _purchases.color = left > 0 ? UIArtDirection.HeaderInkSoft : new Color(1f, 1f, 1f, 0.42f);
             _guide.text = TabGuide(_tab);
 
-            foreach (KeyValuePair<Tab, Image> pair in _tabMarks) pair.Value.gameObject.SetActive(pair.Key == _tab);
-            foreach (KeyValuePair<Tab, Button> pair in _tabButtons)
-            {
-                TextMeshProUGUI label = pair.Value.GetComponentInChildren<TextMeshProUGUI>();
-                if (label == null) continue;
-                label.color = pair.Key == _tab ? UITheme.AccentDim : UITheme.TextSecondary;
-                label.fontStyle = pair.Key == _tab ? FontStyles.Bold : FontStyles.Normal;
-            }
+            foreach (KeyValuePair<Tab, Button> pair in _tabButtons) ScreenKit.FlatTab(pair.Value, pair.Key == _tab);
 
             _sellAll.gameObject.SetActive(_tab == Tab.Sell);
+            _content.offsetMin = new Vector2(0f, _tab == Tab.Sell ? 56f : 0f);
             _sellAll.interactable = (Inventory?.Valuables?.Count ?? 0) > 0;
             _merchantLine.text = Banter();
 
@@ -327,10 +406,9 @@ namespace Managers.UI.Screens
 
         private static string TabGuide(Tab tab) => tab switch
         {
-            Tab.Code => "생존 · 제어 저항처럼 운에 맡기면 안 되는 코드만 고정으로 판다. 화력 코드는 전투 보상에서 얻는다. " +
-                        "받을 아군을 정한 뒤 값을 치른다. 활성 7칸이 차면 보관함에 들어간다.",
+            Tab.Code => "생존 · 지원 · 처치 연계 코드를 구매할 수 있습니다.\n받을 아군을 고르면 결제합니다. 활성 7칸이 차면 보관함에 들어갑니다.",
             Tab.Supply => "공용 보급에 들어가는 물건이다. 식량은 긴 휴식(40)에, 정화의 성수는 공용 보급에서 써 다음 전투 1회에 걸린다.",
-            Tab.Sell => "주운 귀중품을 골드로 바꾼다. 판매는 구매 횟수를 쓰지 않는다.",
+            Tab.Sell => "귀중품과 보상 코드를 판매합니다. 축전 저장량은 가격에 반영됩니다. 구매 횟수는 쓰지 않습니다.",
             _ => "산 자리에서 바로 쓰는 회복약 · 부활약 · 사탕이다. 쓸 대상이 없으면 살 수 없다.",
         };
 
@@ -344,7 +422,7 @@ namespace Managers.UI.Screens
         {
             if (_tab == Tab.Sell)
             {
-                int count = Inventory?.Valuables?.Count ?? 0;
+                int count = (Inventory?.Valuables?.Count ?? 0) + RewardCodeFlow.Party().Sum(u=>u.OwnedRewardCodeInstances.Count());
                 return count == 0
                     ? "파실 물건은 없네요… 그래도 들러주신 건 좋았어요."
                     : $"{count}점이네요! 감정은 정확해요. 저, 이런 건 잘하거든요…";
@@ -354,7 +432,7 @@ namespace Managers.UI.Screens
             {
                 return _codes.Count == 0
                     ? "코드는 아직 안 들여왔어요. 곧 구해 올게요…!"
-                    : "싸게 구할 수 있는 건 목숨 지키는 것뿐이에요. 화력은… 운에 맡기세요.";
+                    : "필요한 코드를 고르세요.\n좋은 배합은 준비에서 시작되죠.";
             }
 
             if (_tab == Tab.Supply)
@@ -458,6 +536,7 @@ namespace Managers.UI.Screens
             if (good.IsCodeReward)
             {
                 _pendingGood = good;
+                FitContentHeight(994f);
                 SetShelfVisible(false);
                 // 선택 판이 지갑 줄을 덮으므로 무엇을 얼마에 사는지를 안내문 아래에 적는다. 결제는 여전히 마지막 확정의 재검사를 거친다.
                 _codeFlow.Note = TradeNote(good);
@@ -580,15 +659,16 @@ namespace Managers.UI.Screens
         /// <summary>귀중품 하나를 판다. <b>구매 한도를 쓰지 않는다</b> — 파는 것은 사는 것이 아니다.</summary>
         private void Sell(int index)
         {
-            IReadOnlyList<ValuableHolding> pouch = Inventory?.Valuables;
-            if (pouch == null || index < 0 || index >= pouch.Count) return;
-
-            string name = CurrentGoods.ElementAtOrDefault(index)?.displayName ?? "귀중품";
-            if (Inventory.TrySellValuable(index, out int gold))
+            if(GameManager.Instance?.gameState!=BaseClasses.BaseEnums.GameState.Preparation)return;
+            var good=CurrentGoods.ElementAtOrDefault(index);if(good==null)return;
+            if(good.saleOwner!=null)
             {
-                _message.text = $"{name} 판매 — {gold:N0} 골드를 받았습니다.";
+                if(Combat.RewardCodeInventory.TrySell(good.saleOwner,good.saleInstanceId,out int paid))
+                    _message.text=$"{good.displayName} 판매 — {paid:N0} 골드를 받았습니다.";
             }
-
+            else if(Inventory.TrySellValuable(index,out int gold))
+                _message.text=$"{good.displayName} 판매 — {gold:N0} 골드를 받았습니다.";
+            GameManager.Instance.runManager?.SaveCurrentRun();
             Refresh();
         }
 
@@ -608,82 +688,128 @@ namespace Managers.UI.Screens
         /// 상점 코드 세 장을 나란히 크게. 효과 전문 · 태그 · 상위 코드 · 가격 · 아군별로 받을 수 있는지(칸 · 덮어쓰기 · 보유)를
         /// 카드 한 장에 다 적는다. 카드를 누르면 받을 아군 선택으로 넘어간다.
         /// </summary>
+        /// <remarks>
+        /// 2026-10-08 검수 D10 — 카드의 39%를 범용 선 아이콘이 차지해 자리표시자처럼 보였고, 가격 · 구매가 가장 약했다.
+        /// 지금은 위에서부터 [아이콘 64 · 티어 눈금 · 이름] → 태그 → 효과 전문(카드의 절반) → 받을 동료 →
+        /// [가격 · 구매] 순으로 결정 정보가 커진다. 위치는 카드 위/아래 끝에서 잰 픽셀이라 해상도가 바뀌어도 줄 간격이 같다.
+        /// </remarks>
         private void BuildCodeShelf(int stage)
         {
-            if (_codes.Count == 0)
-            {
-                TextMeshProUGUI empty = UIBuild.Text("Empty", _content, "진열된 코드가 없습니다.",
-                    UITheme.FontReadBody, UITheme.TextMuted, TextAlignmentOptions.Center);
-                UIBuild.Stretch(empty.rectTransform);
-                return;
-            }
-
+            if (_codes.Count == 0) return;
+            bool revealShelf = !_codeShelfRevealed;
+            _codeShelfRevealed = true;
             List<Unit> party = RewardCodeFlow.Party();
-            int columns = Mathf.Max(3, _codes.Count);
-            float width = 1f / columns;
-            for (int i = 0; i < _codes.Count; i++)
+            int gold = Inventory?.Gold ?? 0;
+            int pageCount = Mathf.Max(1, Mathf.CeilToInt(_codes.Count / (float)CodePageSize));
+            _codePage = Mathf.Clamp(_codePage, 0, pageCount - 1);
+            int start = _codePage * CodePageSize;
+            int visible = Mathf.Min(CodePageSize, _codes.Count - start);
+            float width = 1f / CodePageSize;
+            float left = (CodePageSize - visible) * width * .5f;
+            if (pageCount > 1)
+            {
+                Button previous = UIBuild.Button("CodePagePrevious", _content, "이전", () => { _codePage--; Refresh(); }, false, UITheme.FontReadSmall);
+                UIBuild.Pin(previous.image.rectTransform, new Vector2(.5f, 0f), new Vector2(100f, 42f), new Vector2(-116f, 16f));
+                previous.interactable = _codePage > 0;
+                var label = UIBuild.Text("CodePageNumber", _content, $"{_codePage + 1} / {pageCount}", UITheme.FontReadSmall, UITheme.TextSecondary, TextAlignmentOptions.Center);
+                UIBuild.Pin(label.rectTransform, new Vector2(.5f, 0f), new Vector2(100f, 42f), new Vector2(0f, 16f));
+                Button next = UIBuild.Button("CodePageNext", _content, "다음", () => { _codePage++; Refresh(); }, false, UITheme.FontReadSmall);
+                UIBuild.Pin(next.image.rectTransform, new Vector2(.5f, 0f), new Vector2(100f, 42f), new Vector2(116f, 16f));
+                next.interactable = _codePage < pageCount - 1;
+            }
+            for (int i = start; i < start + visible; i++)
             {
                 RewardDef good = _codes[i];
                 int index = i;
                 string blocked = BuyBlockReason(good);
-                Color rarity = UITheme.Rarity(Mathf.Max(1, good.tier));
+                int tier = Mathf.Max(1, good.tier);
+                int price = RewardManager.ShopPrice(good, stage);
 
-                Image card = UIBuild.Panel($"CodeGood_{i}", _content, UITheme.SurfaceRaised, UIShapes.Corner.Diagonal, 12,
-                    blocked == null ? rarity : UITheme.Outline, blocked == null ? 2 : 1);
-                UIBuild.Anchor(card.rectTransform, new Vector2(i * width, 0f), new Vector2((i + 1) * width, 1f), 8f, 0f);
+                // 종이 위 흰 카드 한 장(한 겹). 테두리 대신 헤어라인과 얕은 그림자로 떠서 "집어 드는 물건"으로 읽힌다.
+                Image card = UIBuild.Panel("CodeGood_" + i, _content, UITheme.SurfaceRaised, cut: 12);
+                card.sprite = UIArtDirection.Sheet(12);
+                float height=Mathf.Min(560f,_content.rect.height-(pageCount > 1 ? 72f : 12f));
+                UIBuild.Anchor(card.rectTransform,new Vector2(left+(i-start)*width,.5f),new Vector2(left+(i-start+1)*width,.5f));
+                card.rectTransform.sizeDelta=new Vector2(-20,height);
+                card.rectTransform.anchoredPosition=new Vector2(0f, pageCount > 1 ? 24f : 0f);
+                UIBuild.Elevate(card, 10, .08f, 3f);
+
                 UIBuild.OnClick(card.gameObject, () => OnPick(index));
+                // 구매·대상 선택 복귀는 기존 매대를 즉시 갱신한다. 처음 열 때만 순차 리빌한다.
+                if (revealShelf) UICardReveal.Attach(card.gameObject,i);
+                Transform root = card.transform;
 
-                Image strip = UIBuild.Solid("Rarity", card.transform, rarity);
-                strip.raycastTarget = false;
-                UIBuild.Anchor(strip.rectTransform, new Vector2(0f, 0.985f), Vector2.one, 6f, 0f);
-
-                TextMeshProUGUI name = UIBuild.Text("Name", card.transform, good.displayName, UITheme.FontReadTitle,
-                    UITheme.TextPrimary);
+                // 머리 — 아이콘 원(44) 오른쪽에 이름(위)과 티어 눈금(아래)을 쌓아 두 줄 덩어리의 중심을 원의 중심에 맞춘다.
+                Image iconTile = UIArtDirection.Emblem("CodeTile", root, UIArtDirection.CodeIcon(good.codeId), tier);
+                ScreenKit.PinTopLeft(iconTile.rectTransform, CardPad - 2f, CardPad - 2f);
+                iconTile.rectTransform.sizeDelta = new Vector2(64f, 64f);
+                TextMeshProUGUI name = UIBuild.Text("Name", root, good.displayName, 24f, UITheme.TextPrimary);
                 name.fontStyle = FontStyles.Bold;
-                name.overflowMode = TextOverflowModes.Ellipsis;
-                UIBuild.Anchor(name.rectTransform, new Vector2(0f, 0.895f), new Vector2(0.78f, 0.98f), 16f, 0f);
+                ScreenKit.TopBand(name.rectTransform, CardPad, 32f, CardPad + 76f, CardPad);
+                ScreenKit.PinTopLeft(ScreenKit.TierBadge(root, tier, 20f), CardPad + 76f, CardPad + 34f);
 
-                TextMeshProUGUI tier = UIBuild.Text("Tier", card.transform, $"T{good.tier}", UITheme.FontReadHeading,
-                    rarity, TextAlignmentOptions.MidlineRight);
-                UIBuild.Anchor(tier.rectTransform, new Vector2(0.78f, 0.895f), new Vector2(1f, 0.98f), 16f, 0f);
-
-                string tagText = TagText(good.codeId);
-                TextMeshProUGUI tags = UIBuild.Text("Tags", card.transform, tagText.Length > 0 ? $"#{tagText.Replace(" · ", "  #")}" : "",
-                    UITheme.FontReadSmall, UITheme.Accent);
+                // 태그는 티어 눈금과 같은 줄 오른쪽 — 머리를 두 줄(이름 / 티어 · 태그)로 끝낸다.
+                TextMeshProUGUI tags = UIBuild.Text("Tags", root, TagText(good.codeId), UITheme.FontBody, UITheme.TextMuted);
                 tags.overflowMode = TextOverflowModes.Ellipsis;
-                UIBuild.Anchor(tags.rectTransform, new Vector2(0f, 0.835f), new Vector2(1f, 0.895f), 16f, 0f);
+                ScreenKit.TopBand(tags.rectTransform, CardPad + 30f, 28f, CardPad + 76f + ScreenKit.TierBadgeWidth(20f) + 10f, CardPad);
 
-                TextMeshProUGUI effect = UIBuild.Text("Effect", card.transform, CodeCatalog.Summary(good.description),
-                    UITheme.FontReadBody, UITheme.TextPrimary, TextAlignmentOptions.TopLeft, wrap: true);
+                Image headRule = UIBuild.Divider("HeadRule", root);
+                headRule.raycastTarget = false;
+                ScreenKit.TopBand(headRule.rectTransform, CardPad + 62f, 1f, CardPad, CardPad);
+
+                // 효과 전문 — 카드에서 가장 넓은 칸. 아래 받을 동료 · 구매 행 위를 모두 쓴다.
+                TextMeshProUGUI effect = UIBuild.Text("Effect", root, CodeCatalog.Summary(good.description),
+                    22f, UITheme.TextPrimary, TextAlignmentOptions.TopLeft, true);
                 effect.richText = false;
-                UIBuild.Anchor(effect.rectTransform, new Vector2(0f, 0.585f), new Vector2(1f, 0.83f), 16f, 0f);
+                effect.overflowMode = TextOverflowModes.Ellipsis;
+                UIBuild.Stretch(effect.rectTransform);
+                effect.rectTransform.offsetMin = new Vector2(CardPad, CardPad + BuyHeight + 48f);
+                effect.rectTransform.offsetMax = new Vector2(-CardPad, -(CardPad + 76f));
 
-                int upper = RewardCodeCatalog.UpperOf(good.codeId);
-                TextMeshProUGUI upperLabel = UIBuild.Text("Upper", card.transform,
-                    upper > 0 ? $"▲ 상위: {RewardCodeFlow.NameOf(upper)} (T{RewardCodeCatalog.TierOf(upper)})" : "상위 코드 없음",
-                    UITheme.FontReadSmall, UITheme.TextMuted);
-                upperLabel.overflowMode = TextOverflowModes.Ellipsis;
-                UIBuild.Anchor(upperLabel.rectTransform, new Vector2(0f, 0.53f), new Vector2(1f, 0.585f), 16f, 0f);
+                BuildReceivers(root, good.codeId, party);
 
-                int receivable = party.Count(unit => unit.CanReceiveRewardCode(good.codeId, out _, out _, out _));
-                TextMeshProUGUI receiversHead = UIBuild.Text("ReceiversHead", card.transform,
-                    $"받을 수 있는 아군 {receivable} / {party.Count}", UITheme.FontReadSmall,
-                    receivable > 0 ? UITheme.Positive : UITheme.Danger);
-                UIBuild.Anchor(receiversHead.rectTransform, new Vector2(0f, 0.465f), new Vector2(1f, 0.525f), 16f, 0f);
+                Image footRule = UIBuild.Divider("FootRule", root);
+                footRule.raycastTarget = false;
+                ScreenKit.BottomBand(footRule.rectTransform, CardPad + BuyHeight + 14f, 1f, CardPad, CardPad);
 
-                TextMeshProUGUI receivers = UIBuild.Text("Receivers", card.transform, ReceiverLines(good.codeId, party),
-                    UITheme.FontReadSmall, UITheme.TextSecondary, TextAlignmentOptions.TopLeft, wrap: true);
-                receivers.richText = true;
-                UIBuild.Anchor(receivers.rectTransform, new Vector2(0f, 0.19f), new Vector2(1f, 0.46f), 16f, 0f);
+                // 가격은 굵은 군청. 골드가 모자라면 위험색으로 바꿔 구매 칸의 사유와 짝을 맞춘다.
+                TextMeshProUGUI priceLabel = UIBuild.Text("Price", root, price.ToString("N0") + " G", UITheme.FontReadHeading,
+                    gold < price ? UITheme.Danger : UITheme.Accent);
+                priceLabel.fontStyle = FontStyles.Bold;
+                ScreenKit.BottomBand(priceLabel.rectTransform, CardPad, BuyHeight, CardPad, CardPad + 136f);
 
-                TextMeshProUGUI price = UIBuild.Text("Price", card.transform, $"{ShopPriceOf(good, stage):N0} G",
-                    UITheme.FontReadTitle, blocked == null ? UITheme.AccentDim : UITheme.TextMuted, TextAlignmentOptions.Center);
-                UIBuild.Anchor(price.rectTransform, new Vector2(0f, 0.105f), new Vector2(1f, 0.185f), 16f, 0f);
+                BuyState(root, blocked ?? "구매", blocked == null, new Vector2(120f, BuyHeight), new Vector2(-CardPad, CardPad), onClick: () => OnPick(index));
+                TooltipTrigger.Attach(card.gameObject, () => good.displayName, () => CodeTooltipLines(good), UITheme.Accent);
+            }
+        }
 
-                StateBand(card.transform, blocked == null ? "구매 — 받을 아군 고르기" : blocked, blocked == null,
-                    new Vector2(0f, 0.015f), new Vector2(1f, 0.1f));
+        /// <summary>
+        /// 받을 수 있는 동료 — 수와 얼굴. 받을 수 없는 아군의 얼굴은 흐리게 둔다. 이유 문장은 선택 판이 보인다.
+        /// 판정은 구매 흐름과 같은 <see cref="Unit.CanReceiveRewardCode"/>다.
+        /// </summary>
+        private static void BuildReceivers(Transform root, int codeId, List<Unit> party)
+        {
+            int count = party.Count(unit => unit.CanReceiveRewardCode(codeId, out _, out _, out _));
+            TextMeshProUGUI head = UIBuild.Text("ReceiversHead", root, $"적용 {count}명",
+                UITheme.FontBody, count > 0 ? UITheme.TextPrimary : UITheme.TextMuted);
+            ScreenKit.BottomBand(head.rectTransform, CardPad + BuyHeight + 16f, 30f, CardPad, CardPad + 5 * 30f);
 
-                TooltipTrigger.Attach(card.gameObject, () => good.displayName, () => CodeTooltipLines(good), rarity);
+            for (int i = 0; i < party.Count && i < 5; i++)
+            {
+                Unit unit = party[i];
+                bool ok = unit.CanReceiveRewardCode(codeId, out _, out _, out _);
+                var go = new GameObject($"Receiver_{unit.UnitName}", typeof(RectTransform), typeof(Image));
+                go.transform.SetParent(root, false);
+                Image face = go.GetComponent<Image>();
+                face.sprite = UIPortraitCrop.Face(SpriteResource.LoadPortrait(unit.PortraitPath));
+                face.enabled = face.sprite != null;
+                face.preserveAspect = true;
+                face.raycastTarget = false;
+                face.color = ok ? Color.white : new Color(1f, 1f, 1f, 0.28f);
+                RectTransform rect = face.rectTransform;
+                rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(1f, 0f);
+                rect.sizeDelta = new Vector2(26f, 26f);
+                rect.anchoredPosition = new Vector2(-CardPad - (party.Count - 1 - i) * 30f, CardPad + BuyHeight + 18f);
             }
         }
 
@@ -723,7 +849,7 @@ namespace Managers.UI.Screens
             if (goods.Count == 0)
             {
                 TextMeshProUGUI empty = UIBuild.Text("Empty", _content,
-                    selling ? "팔 귀중품이 없습니다. 적이 떨어뜨린 귀중품이 주머니에 모입니다." : "진열된 물건이 없습니다.",
+                    selling ? "판매할 귀중품이나 보상 코드가 없습니다." : "진열된 물건이 없습니다.",
                     UITheme.FontReadBody, UITheme.TextMuted, TextAlignmentOptions.Center, wrap: true);
                 UIBuild.Stretch(empty.rectTransform, 24f, 0f);
                 return;
@@ -731,69 +857,99 @@ namespace Managers.UI.Screens
 
             RectTransform list = UIBuild.ScrollArea("GoodsScroll", _content, out ScrollRect scroll);
             UIBuild.Stretch((RectTransform)scroll.transform);
+            int gold = Inventory?.Gold ?? 0;
             for (int i = 0; i < goods.Count; i++)
             {
                 RewardDef good = goods[i];
                 int index = i;
                 string blocked = selling ? null : BuyBlockReason(good);
                 int price = selling ? good.goldCost : ShopPriceOf(good, stage);
-                Color rarity = UITheme.Rarity(Mathf.Max(1, good.tier));
 
-                Image row = UIBuild.Panel($"Good_{i}", list, UITheme.SurfaceSunken, UIShapes.Corner.Diagonal, 10,
-                    UITheme.Outline, 1);
+                // 살 수 없는 줄은 버튼 모양을 버리고 줄 전체를 흐리게 둔다 — 사유가 버튼처럼 보이면 누를 수 있는 것으로 읽혔다(D11).
+                Image row = UIBuild.Panel($"Good_{i}", list, UITheme.SurfaceRaised, UIShapes.Corner.All, 8);
+                row.sprite = blocked == null ? UIArtDirection.Sheet(10) : ScreenKit.IdleSurface(UITheme.SurfaceSunken);
                 row.rectTransform.anchorMin = new Vector2(0f, 1f);
                 row.rectTransform.anchorMax = new Vector2(1f, 1f);
                 row.rectTransform.pivot = new Vector2(0.5f, 1f);
-                row.rectTransform.sizeDelta = new Vector2(-16f, RowHeight - 8f);
-                row.rectTransform.anchoredPosition = new Vector2(-4f, -i * RowHeight);
+                row.rectTransform.sizeDelta = new Vector2(-20f, RowHeight - 10f);
+                row.rectTransform.anchoredPosition = new Vector2(-6f, -i * RowHeight);
                 UIBuild.OnClick(row.gameObject, () => OnPick(index));
-
-                Image strip = UIBuild.Solid("Rarity", row.transform, rarity);
-                strip.raycastTarget = false;
-                UIBuild.Anchor(strip.rectTransform, new Vector2(0f, 0.1f), new Vector2(0f, 0.9f));
-                strip.rectTransform.offsetMax = new Vector2(5f, 0f);
+                if (blocked != null) UIBuild.Group(row.gameObject).alpha = 0.62f;
 
                 var artObject = new GameObject("Art", typeof(RectTransform), typeof(Image));
                 artObject.transform.SetParent(row.transform, false);
                 Image art = artObject.GetComponent<Image>();
                 art.preserveAspect = true;
                 art.raycastTarget = false;
-                Sprite sprite = LoadArt(good);
-                art.sprite = sprite;
-                art.enabled = sprite != null;
-                art.color = blocked == null ? Color.white : new Color(1f, 1f, 1f, 0.45f);
-                UIBuild.Pin(art.rectTransform, new Vector2(0f, 0.5f), new Vector2(84f, 84f), new Vector2(16f, 0f));
+                Sprite sprite = good.codeId > 0 ? UILineIcons.Get(UIArtDirection.CodeIcon(good.codeId)) : LoadArt(good);
+                bool fallback=sprite==null;
+                art.sprite=sprite??UILineIcons.Get(UIIcon.Supply);
+                art.enabled=true;
+                art.color=good.codeId>0||fallback?UITheme.Accent:Color.white;
+                UIBuild.Pin(art.rectTransform, new Vector2(0f, 0.5f), new Vector2(64f, 64f), new Vector2(20f, 0f));
 
+                // 이름 줄 — 같은 병 그림이 여럿이라 티어 눈금을 이름 앞에 붙여 등급을 모양으로 가른다.
+                // 줄 높이 90 기준 — 이름 줄 중심 28px, 설명 줄 중심 62px로 두 줄 덩어리가 행 중심(45)에 선다.
+                // 티어 눈금은 이름 줄과 같은 중심선이다.
+                RectTransform badge = ScreenKit.TierBadge(row.transform, Mathf.Max(1, good.tier), 20f);
+                ScreenKit.PinTopLeft(badge, 104f, 18f);
+                float nameLeft = 104f + ScreenKit.TierBadgeWidth(20f) + 10f;
                 TextMeshProUGUI name = UIBuild.Text("Name", row.transform, good.displayName, UITheme.FontReadBody,
                     UITheme.TextPrimary);
                 name.fontStyle = FontStyles.Bold;
                 name.overflowMode = TextOverflowModes.Ellipsis;
-                UIBuild.Anchor(name.rectTransform, new Vector2(0f, 0.52f), new Vector2(0.60f, 0.95f));
-                name.rectTransform.offsetMin = new Vector2(112f, 0f);
+                UIBuild.Anchor(name.rectTransform, new Vector2(0f, 1f), new Vector2(0.62f, 1f));
+                name.rectTransform.offsetMin = new Vector2(nameLeft, -50f);
+                name.rectTransform.offsetMax = new Vector2(0f, -6f);
 
-                TextMeshProUGUI desc = UIBuild.Text("Desc", row.transform, $"T{good.tier} · {DescriptionOf(good)}",
+                TextMeshProUGUI desc = UIBuild.Text("Desc", row.transform, DescriptionOf(good),
                     UITheme.FontReadSmall, UITheme.TextSecondary);
                 desc.richText = false;
                 desc.overflowMode = TextOverflowModes.Ellipsis;
-                UIBuild.Anchor(desc.rectTransform, new Vector2(0f, 0.06f), new Vector2(0.60f, 0.50f));
-                desc.rectTransform.offsetMin = new Vector2(112f, 0f);
+                UIBuild.Anchor(desc.rectTransform, new Vector2(0f, 0f), new Vector2(0.62f, 0f));
+                desc.rectTransform.offsetMin = new Vector2(104f, 10f);
+                desc.rectTransform.offsetMax = new Vector2(0f, 46f);
 
+                Color priceInk = blocked == null ? UITheme.Accent : gold < price && !selling ? UITheme.Danger : UITheme.TextMuted;
                 TextMeshProUGUI priceLabel = UIBuild.Text("Price", row.transform, $"{price:N0} G", UITheme.FontReadHeading,
-                    blocked == null ? UITheme.AccentDim : UITheme.TextMuted, TextAlignmentOptions.MidlineRight);
-                UIBuild.Anchor(priceLabel.rectTransform, new Vector2(0.60f, 0f), new Vector2(0.77f, 1f), 8f, 0f);
+                    priceInk, TextAlignmentOptions.MidlineRight);
+                priceLabel.fontStyle = FontStyles.Bold;
+                UIBuild.Anchor(priceLabel.rectTransform, new Vector2(0.62f, 0f), new Vector2(1f, 1f));
+                priceLabel.rectTransform.offsetMin = new Vector2(8f, 0f);
+                priceLabel.rectTransform.offsetMax = new Vector2(-228f, 0f);
 
-                StateBand(row.transform, selling ? "판매" : blocked ?? "구매", blocked == null,
-                    new Vector2(0.785f, 0.18f), new Vector2(0.99f, 0.82f));
+                if (blocked == null)
+                    BuyState(row.transform, selling ? "판매" : "구매", true, new Vector2(180f, 52f), new Vector2(-20f, 0f), 0.5f, () => OnPick(index));
+                else
+                {
+                    TextMeshProUGUI reason = UIBuild.Text("State", row.transform, blocked, UITheme.FontReadSmall,
+                        UITheme.TextMuted, TextAlignmentOptions.MidlineRight);
+                    UIBuild.Pin(reason.rectTransform, new Vector2(1f, 0.5f), new Vector2(200f, 52f), new Vector2(-20f, 0f));
+                }
 
                 if (good.item != null) ItemTooltip.Attach(row.gameObject, good.item);
+                else if (good.saleOwner != null)
+                    TooltipTrigger.Attach(row.gameObject, () => good.displayName, () =>
+                    {
+                        var lines = RewardCodeFlow.TooltipLines(good.codeId);
+                        lines.Add(UITooltip.Line.Note(good.description, UITheme.TextSecondary));
+                        return lines;
+                    }, UITheme.Accent);
             }
 
             list.sizeDelta = new Vector2(0f, goods.Count * RowHeight + 8f);
+            ScreenKit.ScrollFade(scroll, UITheme.Surface);
         }
 
         /// <summary>목록 줄의 설명. 공용 보급 물건은 효과 문구를, 나머지는 데이터 설명을 쓴다.</summary>
         private static string DescriptionOf(RewardDef good)
         {
+            if(good.saleOwner!=null)
+            {
+                var instance=good.saleOwner.OwnedRewardCodeInstances.FirstOrDefault(x=>x.instanceId==good.saleInstanceId);
+                string charge=Combat.RewardCodeInventory.ChargeBrief(instance);
+                return charge.Length>0 ? charge : "효과를 해제하고 골드로 교환합니다.";
+            }
             if (good.item != null && !good.item.IsValuable)
             {
                 string effect = ItemTooltip.EffectLine(good.item);
@@ -802,19 +958,36 @@ namespace Managers.UI.Screens
             return good.description ?? "";
         }
 
-        /// <summary>구매 상태 · 막힌 이유 띠. 이유가 가격보다 먼저 눈에 들어와야 헛클릭이 준다.</summary>
-        private static void StateBand(Transform parent, string text, bool actionable, Vector2 min, Vector2 max)
+        /// <summary>
+        /// 구매 칸. 살 수 있으면 군청으로 채운 주 행동(전투 시작 · 계속하기와 같은 문법),
+        /// 막혔으면 채움 없이 1px 선 안에 사유만 흐리게 적는다. 카드 · 줄 전체가 클릭을 받으므로 이 칸은 표지다.
+        /// 글자 이름 "State"는 검증이 사유 문자열을 읽는 자리다.
+        /// </summary>
+        private static void BuyState(Transform parent, string text, bool actionable, Vector2 size, Vector2 offset,
+            float anchorY = 0f, System.Action onClick = null)
         {
-            Image band = UIBuild.Panel("StateBand", parent,
-                actionable ? new Color(UITheme.Positive.r, UITheme.Positive.g, UITheme.Positive.b, 0.10f)
-                    : new Color(1f, 0.804f, 0.239f, 0.16f),
-                UIShapes.Corner.Diagonal, 6, actionable ? UITheme.Positive : UITheme.Outline, 1);
-            band.raycastTarget = false;
-            UIBuild.Anchor(band.rectTransform, min, max, 10f, 0f);
+            Image band = actionable && onClick != null
+                ? UIBuild.Button("StateBand", parent, null, onClick, true).image
+                : UIBuild.Solid("StateBand", parent, Color.white);
+            // 공통 버튼 문법과 같은 알약 — 주 행동은 남색으로 채우고, 막힌 사유는 헤어라인 알약 안에 흐리게.
+            band.sprite = actionable
+                ? UIArtDirection.ActionPlate(true)
+                : UIShapes.RoundedRect(10, Color.clear, UITheme.Outline, 1);
+            band.type = Image.Type.Sliced;
+            band.raycastTarget = actionable && onClick != null;
+            UIBuild.Pin(band.rectTransform, new Vector2(1f, anchorY), size, offset);
             TextMeshProUGUI state = UIBuild.Text("State", band.transform, text, UITheme.FontReadSmall,
-                actionable ? UITheme.Positive : UITheme.Danger, TextAlignmentOptions.Center, wrap: true);
-            state.fontStyle = FontStyles.Bold;
-            UIBuild.Stretch(state.rectTransform, 6f, 1f);
+                actionable ? UITheme.TextOnAccent : UITheme.TextMuted, TextAlignmentOptions.Midline);
+            state.fontStyle = actionable ? FontStyles.Bold : FontStyles.Normal;
+            // 22px 글자의 실제 줄 높이(약 31px)가 52px 칸 안에 넉넉히 들어간다. 좌우만 8px 비운다.
+            UIBuild.Stretch(state.rectTransform, 8f, 0f);
+            if(band.TryGetComponent<Button>(out var button))
+            {
+                UIButtonStyle.Attach(button);
+                var style=button.GetComponent<UIButtonStyle>();
+                style.LightFeedback=true;
+                style.LightFeedbackTint=new Color(.28f,.44f,.72f,1f);
+            }
         }
 
         /// <summary>

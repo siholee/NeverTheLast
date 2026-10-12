@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
@@ -75,7 +75,12 @@ namespace Entities
         public void Add(UnitStatus status)
         {
             BeginBatch();
-            try { AddCore(status); }
+            try
+            {
+                bool refresh = status != null && _statuses.Any(existing => existing.Key == status.Key);
+                AddCore(status);
+                if (status?.ApplicationSucceeded == true) Effects.StatusPopup.Show(_owner, status, refresh);
+            }
             finally { EndBatch(); }
         }
 
@@ -112,8 +117,28 @@ namespace Entities
                 if (bonus != 0) status.Duration = Mathf.Max(1, status.Duration + bonus);
             }
 
+            var actionClock = Managers.GameManager.Instance?.ActionScheduler;
+            status.AppliedActionId = actionClock?.ExecutingUnit != null ? actionClock.CurrentActionId : -1;
+            status.SkipCurrentNormalCompletion = Combat.ActionDot.IsNormalActionRunning(_owner);
             switch (status.StackPolicy)
             {
+                case BaseEnums.StatusStackPolicy.RefreshDuration:
+                    var refreshed = _statuses.FirstOrDefault(s => s.Key == status.Key);
+                    if (refreshed != null && (refreshed.Caster == null || !refreshed.Caster.isActive))
+                    {
+                        RemoveAt(_statuses.IndexOf(refreshed));
+                        refreshed = null;
+                    }
+                    if (refreshed == null) AddInternal(status);
+                    else
+                    {
+                        refreshed.Duration = refreshed.ElapsedTurns + Mathf.Max(refreshed.RemainingTurns, status.Duration);
+                        refreshed.AppliedActionId = status.AppliedActionId;
+                        refreshed.SkipCurrentNormalCompletion = status.SkipCurrentNormalCompletion;
+                        status.ApplicationSucceeded = true;
+                        if (refreshed.CountsAsDebuff) _notifyNegative?.Invoke(status.Caster, refreshed);
+                    }
+                    break;
                 case BaseEnums.StatusStackPolicy.Stack:
                     // 중첩 허용 - 그대로 추가
                     AddInternal(status);
@@ -323,7 +348,7 @@ namespace Entities
                 // 틱 도중 상태가 추가·제거될 수 있으므로 사본으로 순회한다.
                 foreach (UnitStatus status in _statuses.ToList())
                 {
-                    status.OnOwnerTurn();
+                    if (!status.NormalActionDuration) if (!status.NormalActionDuration) status.OnOwnerTurn();
                 }
 
                 for (int i = _statuses.Count - 1; i >= 0; i--)

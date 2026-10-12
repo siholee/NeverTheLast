@@ -15,13 +15,21 @@ fight (party, placement, deck), never during it.
 > The game now has **eight stats with LoL-style linear growth**, a shared item inventory with BG3-style
 > short/long rests, **main-branch card visuals**, and a roster rebuilt one character at a time:
 > **세이 (Sei), 시 (Shi), 사바흐 (Sabah), 잔 (Jean), 피그말리온 (Pygmalion), 히미코 (Himiko), 찬드라 (Chandra), 인드라 (Indra), 바유 (Vayu),
-> 쿠베라 (Kubera), 바스테트 (Bastet), 아누비스 (Anubis), 우치 (Uchi), 야마 (Yama), 바루나 (Varuna), 아그니 (Agni), 수리야 (Surya)**, fighting the **공허의 시험장** test theme.
+> 쿠베라 (Kubera), 바스테트 (Bastet), 아누비스 (Anubis), 우치 (Uchi), 야마 (Yama), 바루나 (Varuna), 아그니 (Agni), 수리야 (Surya), 마리 테레즈 (Marie Thérèse), 나폴레옹 (Napoleon), 츠쿠요미 (Tsukuyomi)**, fighting the **공허의 시험장** test theme.
 > On top of that sit the **reward-code system** (94 passive codes bought or won as run rewards, 7 slots per unit, `Detail_17`),
 > permanent stacks, summons, and the Lokapala special-action bundle. The pre-rework state is commit `a6194c9`.
 
 Korean is the working language: comments, logs, commit messages, and all design docs are in Korean.
 
+**2026-10-12 theme restoration:** the trial theme is disabled. Four generic Void themes and all 18 original themes are active, with eight rounds per theme and only generic themes in the first two displayed stages. Restored enemies use explicit `reworkKit` profiles and the current eight stats; their old five-stat kits are not runtime specifications. See `Detail_01` §16 and `Detail_09` §5. `original_themes`, `original_kits`, and `original_campaign` are the Unity verification scenarios. Preserve current generic theme IDs 2–5; original Colosseum/Legion are remapped to 22/23.
+
 ## Claude model policy (2026-10-05)
+
+**2026-10-09 사용자 최신 지시:** 전체 VFX(캐릭터 공격, 등장, 카드 입력 포함)는 Codex root가 먼저 직접 수정하고 **Claude Opus 5.5가 독립 검수 → root가 확인·보정 → 재검수**한다. 이 범위의 이전 위임 금지는 최신 검수 요청으로 대체한다. 구현은 root가 맡고 CLI 검수에는 `--model claude-opus-5-5`를 명시한다. 실제 1920×1080 화면/연속 프레임과 기능 검증을 구분하고 결함이 남으면 미술 합격을 선언하지 않는다.
+
+**2026-10-08 사용자 최신 지시:** 수르트·프레이아의 기획·구현·검증과 신규/기존 VFX 검토·개선은 Codex root가 직접 수행한다. 이 범위에는 서브 에이전트나 Claude 위임을 사용하지 않는다. 이전 UI 전용 Opus 대기는 이 범위의 위임 허가가 아니다.
+
+**2026-10-08 사용자 최신 지시:** 현재 나폴레옹·로키 캐릭터 구현 및 보정은 Codex root가 직접 완료한다. UI 추가 검토·수정은 Opus 5.5 제한 해제 후 진행한다. 이번 캐릭터 범위에는 아래 일반 Claude 재호출 정책을 적용하지 않는다.
 
 **2026-10-06 사용자 최신 지시:** 이번 효과 명중·저항 구현과 후속 전체 QA·결함 수정·빌드·GitHub 0.5 Release는 **Codex root가 직접** 진행한다.
 효과 시스템 구현을 끝내고 2026-10-06 11:50 KST 이후 전체 QA를 시작한다. 이 범위는 Claude로 재호출하지 않는다.
@@ -373,7 +381,7 @@ explicit status ID/key mappings before effect/category fallbacks.
 | `AnubisFx` | 심장의 저울의 짧은 부분 전진과 금·청록 초상화 충격, 사자의 서 자기 강화 문양, 영혼 불꽃·정수/소수 배지 펄스. 기존 피해·회복·영구 중첩 수식과 이벤트 순서를 유지한다 |
 | `UchiFx` / `Entities/View/SummonCardView` | 칸 없는 분신의 반투명 카드 세 장을 소환자 모션에 붙인다. 생성·일격·넘침·막기·동시 전진·부적 소멸을 표시하며 셀·배치·카메라에는 참가하지 않는다 |
 | `ChandraFx` | Chandra defaults to one forward-directed Blue/White cast plus six portrait-centred moon impacts, with no projectile flight and one callback at the third crest. Soma removes reverse convergence and `MoonSanctuaryDome`: one directed cast is followed only by the selected non-caster ally's buff `affected`; the code grants no shield, so the VFX shows none. 창야는 기존 대상별 피해 정점 뒤 실제 회복된 생존 아군 전원의 공통 치유 피격을 연다. 옛 치명타 버프 표시는 제거하며 니샤카라 달빛 순환도 회복 직후 작은 치유 피격을 쓴다. Previous generated/reverse-convergence/dome paths remain Legacy |
-| `ShiFx` | Destruction Slash uses one `AimFrom`-directed `Slash1_Blue` caster-card swing followed by the shared `hit.claw.triple` on the target portrait. Shi-only data tints the alpha body black, edge blood red, and core crimson. Final Bell is a persistent ultimate: after every third slash, exactly one `Smoke3` spreads horizontally—small on the struck target at 3 and centre-out across the living enemy formation at 6/9. Tier 9 keeps the same size and changes contrast/core/screen rhythm only. Reprise waits for death departure and field layout completion before the next cast. Legacy keeps the old procedural crimson rake; `Presets/FlyingSlashFx.Play(...)` remains archival |
+| `ShiFx` | Destruction Slash uses one `AimFrom`-directed `Slash1_Blue` caster-card swing followed by the shared `hit.claw.triple` on the target portrait. Shi-only data tints the alpha body black, edge blood red, and core crimson. Final Bell is a persistent ultimate: after every third slash, one logical smoke hit spreads horizontally. Its visual copies fit each receiving portrait row at 6/9 while each target still receives exactly one impact. Tier 3 is single-target; tier 9 keeps the size and strengthens body/rim/core contrast (2026-10-09). Reprise waits for death departure and field layout completion before the next cast. Legacy keeps the old procedural crimson rake; `Presets/FlyingSlashFx.Play(...)` remains archival |
 | `SabahFx` | Character-default normal attacks use `AimFrom` for the stationary `Slash1_Purple` and a portrait-confined `Lightning2_Purple`, preserving the ~0.64 s callback without spilling onto the floor or neighbours. Lightning Slash uses one caster-card swing followed by target-local lightning hits at 0.09 s intervals for up to three targets, with no middle blade or route. Azrael uses exactly one recoloured `Slash5_Blue` draw, one moderate formation-centre lightning strike, then centre-out `Smoke3`; the smoke opens one existing damage callback per enemy while shared critical remains unchanged. The former erosion/pool/card-travel/rake remains `Presets/ShadowAmbushFx` under Legacy |
 | `EmberFx` | Himiko defaults to one fan-shaped Red cast and one portrait-centred Red Explosion hit; an attack-applied Blaze mark has no extra affected cue. At three Blaze stacks, exactly one causal Smoke burst replaces the mark cue without changing status/damage order. Pygmalion is a caster: short rust-orange twin `Fire3` flames precede one target-centred `Explosion2_Red` fire hit and one callback. Sharp Thorns follows its cast with the generic buff hit recoloured rose and no ground spike. Former travelling/generated paths remain Legacy |
 | `BastetFx` | Bastet is internally `beast`. U122 replays N122's exact card motion, claw and SFX; only the action-order kind is Additional. P322 pauses the hostile wind-up halfway, clears focus, inserts a Passive action-order announcement, plays the short guard motion/crystal cue, restores focus, then lets the original attacker's hit VFX land on the redirected guard. |
@@ -471,5 +479,28 @@ Pick a status ID that does not collide — check the existing constants first
   (the casting-delay loop), and `Effects.Vfx.CardMotion` for any card movement.
 - A code that replaces `SkillCoroutine` wholesale must still call `NotifyActionResolved()`
   when the action actually lands — `OnNormalActionResolved` is what "per normal action" passives count.
-- No automated tests exist, and the old verification menus were removed with the rework. Verify
-  gameplay changes in Play mode, and type-check with the csproj-copy trick above.
+- The old verification menus were removed with the rework. Current `VerifyHarnessRunner` scenarios
+  exercise actual Play mode and record mechanics, captures and exceptions; use relevant scenarios
+  and inspect the real screen. Type-checking with a csproj copy does not replace Unity verification.
+
+
+### Current full VFX review (2026-10-08)
+
+Follow `Detail_07_UI_Tech.md`'s full VFX policy and `BattleVfxStyle`: pastel bodies, thin subdued silhouette support and local glow. Preserve purchased Handpaint sheets, authored frame/peak timings and single impact ownership. Runtime Hovl playback is replaced by `CommonHandpaintFx`; retain source packs and GUIDs. Use semantic status/element/reaction motifs after successful application, leave faces and damage labels clear, use presentation-only RNG and game-time waits that stop when paused. `VerifyHarnessAllVfx` exercises all catalog parts/skills and the roster alongside existing combat scenarios. Accepted evidence, raw failed runs, manual visual review and actual rendered 60fps previews are in `Logs/AllVfxReview20261008/`; do not confuse Editor recording with mobile performance or full campaign validation. Surtr's existing empowerment threshold uses integer HP comparison to avoid precision failure exactly at its boundary.
+
+
+### Full VFX polish and independent review (2026-10-09)
+
+Root implements directly; independent art review uses CLI `--model claude-opus-5-5` only. No implementation subagents, new chats/recurring jobs, commits or releases. Preserve gameplay callbacks/timings, packs/GUIDs, voices, user saves, branch/index and protected action queue expansion until action end.
+
+Current source is Root7d: Root corrected the shared portrait/HUD hand/chest anchor, self-cast glyphs, soul visual/value/pulse, immediate character-specific fire impact, portrait lightning/slash contact, row smoke and support placement. After7c834/834 Root self-rejected a large filled overlay and replaced only the non-book SelfGuard Diamond with hollow RuneRadiant. The unchanged full157parts/79skills/23roster/status/summon/card/UI scope uses7c8071raw captures; changed glyphs use7d79skills and actualgroups1/2/3 including new4x recordings. Scoped7d runs passed247+8+2+11 checks; these overlap7c and must not be summed as unique checks. Source/hash/manifest paths are in Logs/VfxPolish20261009/root-current-verification.json and root-current-review.md.
+
+Two affected group2 runs recorded cancelled UnityPurchasing/PackageManager Editor operations and remain failed evidence despite11/11 mechanics. An identical-source retry after60s EditMode wait completed without errors. No package/settings/source/log-filter changes; do not claim a permanent environment fix. Harness warnings[] only counts capture-write warnings, not all Editor warnings. Existing blank commonSFX queues and skipped audio-RNG probes are documented limitations; silent video does not certify sound or voice variation.
+
+Final art review is incomplete. Opus5th and6th reports are FAIL;6th reviewed79proxy combinations23FAIL/38HOLD/18PASS but not all current full scope. The last actual quota reset notice is2026-10-09 19:50KST. Continue fresh with opus-vfx-handoff.md and opus-round7d-final-prompt.md via run_opus.py after reset; never substitute Sonnet or interpret quota exit as successful review. Current affected4x evidence exists in VfxRound7dCasts4x and VfxRound7dRoster2IdleRetry, not the older filled-overlay7c video. Partial AllCharacters-4x names cover only their listed groups. Root must confirm/fix concrete defects and rerun appropriate Unity checks before final art approval or approved user previews.
+
+Captures are archived on D:/NeverTheLastQA/20261009. Library/NeverTheLastVerify/out is a junction to its LibraryCaptureCache, preserving old absolute paths without deleting evidence. Use result manifests, not stale extra PNGs. Caster visibility changed to a3% hand/chest band at7b, not the same earlier2% full-portrait metric; fixed1/60captures are not realtime device60fps certification.
+
+### Orpheus and toughness 2026-10-12
+
+The rework now restores Orpheus25 with P225/N25/U25 and existing art. Toughness is an enemy-only combat resource generated by his passive; the ultimate only boosts allied reduction efficiency. No exo bar, intrinsic break damage, delay or break debuff. CombatDefeatContext distinguishes a virtual defeat from real death; never publish AnyUnitDied, gold/EXP/drop/soul/capacitor growth for breaks. Reward633/731/822/823 were added and existing717 was retiered toT4 with its saved ID preserved. Toughness-only rewards/shop entries use requiresToughness; the shop displays three code cards per page. Specs are Detail_02/08/17 and actual Play-mode scenarios are toughness_core, toughness_edges, toughness_combat and toughness_absence. Root implements directly; independent commercial art approval remains separate.

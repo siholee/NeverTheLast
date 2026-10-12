@@ -5,7 +5,7 @@ using Entities;
 
 namespace Codes.Normal
 {
-    /// <summary>쿠베라 — 일반행동 「금화 투척」. 우선도 단일 적에게 공격력 90%, 보물 +1(Detail_08 §11.2).</summary>
+    /// <summary>쿠베라 — 일반행동 「금화 투척」. 우선도 단일 적에게 공격력 90%, 공용 재보 +1(Detail_08 §11.2).</summary>
     public sealed class KuberaCoinToss : BaseNormalCode
     {
         private const float AttackRatio = 0.90f;
@@ -18,12 +18,18 @@ namespace Codes.Normal
 
         protected override IEnumerator Deliver(Unit target)
         {
-            DamageContext context = BuildContext(target);
-            yield return Effects.Vfx.LokapalaFx.Normal("kubera.coin_toss", Caster, target,
-                () => Hit(target, context));
+            yield return Effects.Vfx.LokapalaFx.Normal("kubera.coin_toss", Caster, target, () =>
+            {
+                if (!Combat.DirectAttack.CasterCanContinue(Caster, true) || target == null || !target.isActive) return;
+                bool treasury = !IsCommanded && Combat.PartyTreasury.Charge(Caster, 1) > 0;
+                bool crit = RollCritical(target, out float multiplier);
+                if (treasury && crit) multiplier += Codes.Passive.KuberaPatronage.AdditionalCritDamage(Caster) + Codes.Passive.Reward.TreasuryRewardCode.CritDamageBonus(Caster);
+                var context = new DamageContext(Caster, UnityEngine.Mathf.RoundToInt(BaseDamage(target) * multiplier),
+                    BaseEnums.CodeType.Normal, GetDamageTags(), crit) { IsTreasuryAttack = treasury };
+                StampCommand(context); Hit(target, context);
+            });
         }
 
-        // 소환사가 없어도 8행동이면 초월기가 돈다 — 혼자서는 느린 서브딜러다.
-        protected override void OnAttackResolved(Unit target, DamageContext context) => Caster?.AddUltimateResource(1);
+
     }
 }

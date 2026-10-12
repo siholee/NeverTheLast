@@ -8,7 +8,7 @@ namespace Managers.UI.Theme
     /// 만들어진 스프라이트는 9-슬라이스라 어떤 크기로 늘려도 모서리가 뭉개지지 않는다
     /// (반드시 Image.type = Sliced 로 쓸 것. <see cref="UIBuild"/>가 알아서 설정한다).
     ///
-    /// 기본 면은 <b>사선 모서리 + 얇은 구획선</b>이다. 흰색 문서 면 위에 남색 위계와 청록 선택 표시를 쓴다.
+    /// 화면용 기본 면은 둥근 모서리와 절제된 림을 쓴다. CutCorner는 기존 전장/에셋 호출과의 호환을 유지한다.
     /// 같은 파라미터 조합은 캐시해 재사용한다.
     /// </summary>
     public static class UIShapes
@@ -83,7 +83,7 @@ namespace Managers.UI.Theme
                     // 도형 안쪽부터 바깥 blur까지 부드럽게 — 가우시안 대신 smoothstep.
                     float t = Mathf.InverseLerp(blur, -blur * 0.35f, distance);
                     float a = alpha * t * t * (3f - 2f * t);
-                    pixels[y * size + x] = new Color(0f, 0f, 0f, a);
+                    pixels[y * size + x] = new Color(0.12f, 0.21f, 0.32f, a);
                 }
             }
 
@@ -122,7 +122,7 @@ namespace Managers.UI.Theme
         /// <summary>둥근 모서리 사각형. 초상화 프레임처럼 부드러움이 필요한 곳에만 쓴다.</summary>
         public static Sprite RoundedRect(int radius, Color fill, Color border = default, int borderWidth = 0)
         {
-            radius = Mathf.Min(radius, 3);
+            radius = Mathf.Clamp(radius, 1, 24);
             radius = Mathf.Max(radius, 1);
             int size = Mathf.Max(radius * 2 + 4, 8);
             string key = $"rr_{size}_{radius}_{Key(fill)}_{Key(border)}_{borderWidth}";
@@ -380,6 +380,36 @@ namespace Managers.UI.Theme
             string key = $"sl_{Key(fill)}";
             if (Cache.TryGetValue(key, out Sprite cached) && cached != null) return cached;
             return Build(key, new[] { fill }, 1, 1, Vector4.zero);
+        }
+
+        /// <summary>화면용 표면. 면과 여백으로 층을 구분하며 테두리는 헤어라인으로 제한한다.</summary>
+        public static Sprite Surface(int radius, Color fill, Corner corners = Corner.All,
+            Color border = default, int borderWidth = 0)
+        {
+            border.a *= 0.25f;
+            return RoundedRect(Mathf.Clamp(radius, 4, 10), fill, border, Mathf.Min(borderWidth, 1));
+        }
+
+        /// <summary>탐색·조작 층의 서리 유리. 상단 반사광과 청색 림은 본문과 경쟁하지 않는다.</summary>
+        public static Sprite GlassPlate(int radius, Color fill)
+        {
+            radius = Mathf.Clamp(radius, 8, 24);
+            int size = radius * 2 + 8;
+            string key = $"glass_{radius}_{Key(fill)}";
+            if (Cache.TryGetValue(key, out Sprite cached) && cached != null) return cached;
+            var pixels = new Color[size * size];
+            for (int y = 0; y < size; y++)
+            for (int x = 0; x < size; x++)
+            {
+                float t = y / (float)(size - 1);
+                Color body = Color.Lerp(fill, Color.white, t * 0.12f);
+                body.a = fill.a;
+                Color rim = Color.Lerp(new Color(0.66f, 0.81f, 0.92f, 0.10f),
+                    new Color(1f, 1f, 1f, 0.38f), t);
+                pixels[y * size + x] = Shade(RoundedRectDistance(x + 0.5f, y + 0.5f, size, radius), body, rim, 1);
+            }
+            int slice = radius + 2;
+            return Build(key, pixels, size, size, new Vector4(slice, slice, slice, slice));
         }
 
         // ── 내부 구현 ────────────────────────────────────────────────
