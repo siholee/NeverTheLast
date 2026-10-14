@@ -16,13 +16,15 @@ namespace Codes.Ultimate
     /// </summary>
     public sealed class SabahAzrael : BaseUltimateCode
     {
+        public override int AttackForm => DamageTag.Slash;
+
         public SabahAzrael(UltimateCodeContext context) : base(context) => CodeName = "아즈라엘";
 
         protected override IEnumerator Perform()
         {
             var tags = new List<int>
             {
-                DamageTag.AllTarget, DamageTag.UltAttack, DamageTag.ContactAttack,
+                DamageTag.AllTarget, DamageTag.UltAttack, DamageTag.ContactAttack, DamageTag.Slash,
             };
             Combat.AttackTargetResolution routing = PrepareTargets(AliveEnemies(), tags);
             yield return routing.ResolvePreAttack();

@@ -22,7 +22,7 @@ namespace Managers.UI.Core
         /// <summary>어떤 화면보다도 위. 모달(100)·HUD보다 크게 잡는다.</summary>
         private const int SortingOrder = 900;
 
-        private const float MaxWidth = 400f;
+        private const float MaxWidth = 480f;
         private const float PadX = 14f;
         private const float PadY = 12f;
         private const float CursorGap = 18f;
@@ -109,7 +109,7 @@ namespace Managers.UI.Core
             _panel.anchorMin = new Vector2(0.5f, 0.5f);
             _panel.anchorMax = new Vector2(0.5f, 0.5f);
 
-            Image shadow = UIBuild.Elevate(panel, (int)ShadowBlur, 0.6f, 6f);
+            Image shadow = UIBuild.Elevate(panel, (int)ShadowBlur, 0.16f, 6f);
             _shadow = shadow.rectTransform;
             _shadow.anchorMin = _shadow.anchorMax = new Vector2(0.5f, 0.5f);
             _shadow.pivot = new Vector2(0f, 1f);
@@ -122,9 +122,9 @@ namespace Managers.UI.Core
             _rarityStrip.rectTransform.sizeDelta = new Vector2(-20f, 2f);
             _rarityStrip.rectTransform.anchoredPosition = new Vector2(0f, -1f);
 
-            _title = UIBuild.Text("Title", _panel, "", UITheme.FontHeading, UITheme.TextPrimary,
+            _title = UIBuild.Text("Title", _panel, "", UITheme.FontReadHeading, UITheme.TextPrimary,
                 TextAlignmentOptions.TopLeft, wrap: true);
-            _body = UIBuild.Text("Body", _panel, "", UITheme.FontCaption, UITheme.TextSecondary,
+            _body = UIBuild.Text("Body", _panel, "", UITheme.FontReadSmall, UITheme.TextSecondary,
                 TextAlignmentOptions.TopLeft, wrap: true);
 
             _tagRoot = UIBuild.Container("Tags", _panel);
@@ -188,6 +188,7 @@ namespace Managers.UI.Core
         private static void Show(object owner, string title, IReadOnlyList<Line> lines, Color accent,
             Vector2? screenPoint, IReadOnlyList<UnitTagCatalog.Definition> tags)
         {
+            if (UIDragSource.Current != null) return;
             UITooltip tip = Instance;
             tip._owner = owner;
             tip._fixedScreenPoint = screenPoint;
@@ -209,6 +210,31 @@ namespace Managers.UI.Core
             tip._shadow.gameObject.SetActive(true);
             tip.Layout();
             tip.FollowCursor();
+        }
+
+        /// <summary>이 소유자의 툴팁이 지금 떠 있는가.</summary>
+        public static bool IsShowing(object owner)
+            => owner != null && _instance != null && _instance._owner == owner &&
+               _instance._panel != null && _instance._panel.gameObject.activeSelf;
+
+        /// <summary>
+        /// 떠 있는 툴팁의 내용만 바꾼다. 현재 골드처럼 열려 있는 동안 바뀌는 값을 위해서다 —
+        /// 위치 · 고정(핀) · 고정 좌표는 그대로 두고 크기만 다시 잰다. 다른 소유자의 툴팁이면 아무것도 하지 않는다.
+        /// </summary>
+        public static void Refresh(object owner, string title, IReadOnlyList<Line> lines, Color accent)
+        {
+            if (!IsShowing(owner)) return;
+            UITooltip tip = _instance;
+            tip._rarityStrip.color = accent;
+            tip._title.text = title ?? "";
+            tip._body.text = Compose(lines);
+            tip.Layout();
+            if (!tip._pinned) tip.FollowCursor();
+            else
+            {
+                tip._shadow.sizeDelta = tip._panel.sizeDelta + new Vector2(ShadowBlur * 2f, ShadowBlur * 2f);
+                tip._shadow.anchoredPosition = tip._panel.anchoredPosition + new Vector2(-ShadowBlur, ShadowBlur - 6f);
+            }
         }
 
         /// <summary>
@@ -325,7 +351,7 @@ namespace Managers.UI.Core
 
                 if (!_pinned && !_fixedScreenPoint.HasValue) FollowCursor();
 
-                if (_pinned && _releaseRequestedAt >= 0f && !_pointerOverPanel && _nestedOwner == null &&
+                if (_pinned && _releaseRequestedAt >= 0f && !_pointerOverPanel && _nestedOwner == null && GuideTermTooltip.Depth == 0 &&
                     Time.unscaledTime - _releaseRequestedAt >= PinExitGraceSeconds)
                 {
                     Close();
@@ -475,6 +501,17 @@ namespace Managers.UI.Core
     public sealed class TooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler,
         IPointerDownHandler, IPointerUpHandler, IPointerMoveHandler
     {
+        private static bool _suppressDropHover;
+        private static Vector2 _dropPointer;
+        private bool _waitingForMove;
+        public static void SuppressAfterDrop(Vector2 pointer)
+        { _suppressDropHover=true;_dropPointer=pointer;UITooltip.HideAny(); }
+        public static bool IsDropHoverSuppressed(Vector2 pointer)
+        {
+            if(!_suppressDropHover)return false;
+            if((pointer-_dropPointer).sqrMagnitude<64f)return true;
+            _suppressDropHover=false;return false;
+        }
         private const float TouchHoldSeconds = 0.55f;
         private const float TouchMoveTolerance = 18f;
 
@@ -509,11 +546,29 @@ namespace Managers.UI.Core
         {
             if (IsTouch(eventData)) return;
             if (_title == null) return;
+            if(IsDropHoverSuppressed(eventData.position))
+            {_waitingForMove=true;return;}
+            _suppressDropHover=false;
             UITooltip.Show(this, _title(), _lines?.Invoke(), _accent);
+        }
+
+        /// <summary>이 위젯의 툴팁이 떠 있으면 내용을 다시 만든다. 떠 있지 않으면 문자열도 만들지 않는다.</summary>
+        public void RefreshIfShown()
+        {
+            if (_title == null || !UITooltip.IsShowing(this)) return;
+            UITooltip.Refresh(this, _title(), _lines?.Invoke(), _accent);
+        }
+
+        /// <summary>커서 없이 지정한 화면 좌표에 이 위젯의 툴팁을 띄운다(터치 길게 누르기와 같은 경로).</summary>
+        public void ShowAt(Vector2 screenPoint)
+        {
+            if (_title == null) return;
+            UITooltip.ShowAt(this, _title(), _lines?.Invoke(), _accent, screenPoint);
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            _waitingForMove=false;
             if (!IsTouch(eventData)) UITooltip.Hide(this);
         }
 
@@ -528,6 +583,8 @@ namespace Managers.UI.Core
 
         public void OnPointerMove(PointerEventData eventData)
         {
+            if(!IsTouch(eventData)&&_waitingForMove&&(eventData.position-_dropPointer).sqrMagnitude>=64f)
+            {_waitingForMove=false;_suppressDropHover=false;if(_title!=null)UITooltip.Show(this,_title(),_lines?.Invoke(),_accent);}
             if (_touchEvent == null || eventData.pointerId != _touchEvent.pointerId) return;
             if ((eventData.position - _touchStart).sqrMagnitude > TouchMoveTolerance * TouchMoveTolerance)
                 CancelTouch();

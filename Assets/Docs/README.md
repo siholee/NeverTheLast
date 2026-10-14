@@ -1,9 +1,9 @@
 # NeverTheLast 문서
 
-기획서는 [Design/](Design/README.md)에 있다. 문서 체계와 작성 규칙, 전체 목록은 그쪽 README를 본다.
+최종 갱신: **2026-10-14**
 
-| 폴더 · 문서 | 내용 |
-| --- | --- |
-| [Design/](Design/README.md) | 메인 · 서브 · 상세 기획서(Detail_01~16)와 기획 백로그. **데이터·코드와 함께 갱신하는 원본** |
-
-코드 구조와 콘텐츠 추가 절차는 저장소 루트의 `CLAUDE.md`를 본다.
+- [현행 설계](Design/README.md): main의 게임 방향·상세 규칙·현재 콘텐츠.
+- [서사 설정과 원고](Narrative/README.md): 확정 설정과 미구현 원고를 구분한다.
+- [미구현 제안](Proposals/Unimplemented_Characters.md): 채택/구현 전에 검토할 캐릭터.
+- [문서 보관소](../../Docs/Archive/README.md): 과거 규칙·초안·검토 기록. 현행 사양의 근거로 쓰지 않는다.
+- [작업 지침](../../AGENTS.md): 개발·검증·에셋 보존·브랜치 운영.

@@ -17,6 +17,11 @@ namespace Managers
         /// </summary>
         public bool enabled = true;
 
+        /// <summary>서사 없는 범용 테마. 첫 두 스테이지의 추첨 풀.</summary>
+        public bool isGeneric;
+        /// <summary>폴백 사건 슬롯. 0이면 사건 없이 모든 라운드를 전투로 진행한다.</summary>
+        public int eventStageInRound = 5;
+
         /// <summary>
         /// 룰렛에서 이 테마가 뽑혔을 때 <b>대신 시작할</b> 테마. 0이면 자기 자신이다.
         ///
@@ -37,7 +42,7 @@ namespace Managers
         public int midBossId;
 
         /// <summary>
-        /// 중간 보스가 나오는 라운드 내 스테이지 번호. 비워 두면 8이다.
+        /// 중간 보스가 나오는 라운드 내 스테이지 번호. 비워 두면 6이다.
         /// 테마마다 편성이 달라 고정하지 않는다.
         /// </summary>
         public int midBossStageInRound;
@@ -184,7 +189,7 @@ namespace Managers
         /// </summary>
         public int triggerThemeId;
 
-        /// <summary><see cref="triggerThemeId"/>와 함께 쓰는 내용 슬롯(1~10). 승리 시점에 잰다.</summary>
+        /// <summary><see cref="triggerThemeId"/>와 함께 쓰는 내용 슬롯(1~8). 승리 시점에 잰다.</summary>
         public int triggerStageInRound;
 
         /// <summary>

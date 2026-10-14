@@ -28,6 +28,9 @@ namespace Core
         public float timeoutSeconds = 30f;
         public int captureWidth = 1920;
         public int captureHeight = 1080;
+        // 출시 UI 캡처에서도 테스트 런의 저장 격리는 유지한다.
+        public bool hideDebugBanner;
+        public bool freshLineupPerScenario;
         public string lineup = "party5";
         public string backgroundOverridePath;
         public string vfxVariant;
@@ -44,6 +47,8 @@ namespace Core
         public int everyFrames;
         public float warmupSeconds;
         public float timeScale;
+        // 넓은 1차 연출 검토용 간격. 기본1은 기존 연속 원본 촬영을 보존한다.
+        public int actionCaptureStride = 1;
         public string trigger;
         public string lineup;
         public string backgroundOverridePath;
@@ -51,6 +56,20 @@ namespace Core
         public string vfxStyle;
         public string[] hiddenCardLayers = Array.Empty<string>();
         public bool dumpPortraitCopies;
+        public bool captureVfxDiagnostics;
+        public bool captureVfxPeakDiagnostics;
+        // 비어 있으면 전체 부품. 미술 보정은 해당 부품의 60FPS 연속 원본만 다시 촬영한다.
+        public string[] vfxPartIds = Array.Empty<string>();
+        public int vfxPartCaptureFrames = 60;
+        // 적 전용 시전 부품은 실제 적 원화/진영으로 집중 검수한다. 0은 기존 일반 부품 편성.
+        public int vfxCasterEnemyId;
+        // 캐릭터 전용 부품은 실제 시전자와 아군 지원 대상으로 검수한다. 0은 기본 편성.
+        public int vfxCasterAllyId;
+        public int vfxTargetAllyId;
+        // 직접 스킬 슬롯과 다른 자동 상태 부여 경로의 문양/정리도 따로 촬영한다.
+        public bool vfxAutomaticStatusRoute;
+        // 비어 있으면 전체 조합. 공통 부품 보정 뒤 실제 조합도 작은 범위만 재촬영한다.
+        public string[] vfxSkillKeys = Array.Empty<string>();
 
         // -1은 시나리오 기본값, 0은 끔, 1은 켬이다. JsonUtility에서 nullable 대신 쓴다.
         public int allyInvincible = -1;
@@ -65,6 +84,7 @@ namespace Core
         public string path;
         public int frame;
         public float realtime;
+        public float engineTimeScale, playbackSpeed, scaledTime, unscaledTime, deltaTime, unscaledDeltaTime;
         public float backgroundLuminance;
     }
 
@@ -129,6 +149,8 @@ namespace Core
         public string partId;
         public string phase;
         public int slotIndex;
+        public int casterInstanceId;
+        public int targetInstanceId;
         public string caster;
         public string target;
         public float screenX;
@@ -147,6 +169,9 @@ namespace Core
         public string scenario;
         public float realtime;
         public int frame;
+        public int instanceId;
+        public float worldX;
+        public float worldY;
         public string unit;
         public float xMin;
         public float yMin;

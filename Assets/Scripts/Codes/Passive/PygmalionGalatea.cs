@@ -75,7 +75,9 @@ namespace Codes.Passive
             {
                 if (attacker != Target || _pygmalion == null || !_pygmalion.isActive || !_pygmalion.IsOnField)
                     return 1f;
-                return attacker.CountsAsSummon ? 1.30f : 1.15f;
+                // 소환수가 친 피해는 소환자 명의로 들어오므로 소환수 피해 태그도 소환수로 본다(우치의 분신).
+                bool summonDamage = attacker.CountsAsSummon || (context != null && context.HasTag(DamageTag.SummonAttack));
+                return summonDamage ? 1.30f : 1.15f;
             }
         }
     }

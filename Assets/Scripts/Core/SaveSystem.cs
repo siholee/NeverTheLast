@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace Core
 {
@@ -102,7 +102,43 @@ namespace Core
                 return null;
             }
             string json = ReadString(KeyJson, "{}");
-            RunSaveData data = JsonUtility.FromJson<RunSaveData>(json);
+            RunSaveData data;
+            try { data = JsonUtility.FromJson<RunSaveData>(json); }
+            catch (System.ArgumentException)
+            {
+                // 원본은 보존한다. 손상된 JSON 때문에 메인 메뉴/이어하기 전체가 중단되지는 않는다.
+                Debug.LogWarning("[SaveSystem] 저장 JSON이 손상되어 불러오지 못했습니다. 원본 저장은 보존합니다.");
+                return null;
+            }
+            if (data?.version == 12)
+            {
+                foreach (UnitSaveData hero in data.heroUnits ?? new System.Collections.Generic.List<UnitSaveData>())
+                {
+                    if (hero == null) continue;
+                    hero.activeRewardCodeSlots = new System.Collections.Generic.List<int>();
+                    hero.storedRewardCodeIds ??= new System.Collections.Generic.List<int>();
+                    foreach (int id in hero.grantedPassiveCodeIds ?? new System.Collections.Generic.List<int>())
+                        if (Codes.Base.RewardCodeCatalog.IsRewardCode(id))
+                        {
+                            if (hero.activeRewardCodeSlots.Count < Entities.Unit.RewardCodeSlotCount) hero.activeRewardCodeSlots.Add(id);
+                            else hero.storedRewardCodeIds.Add(id);
+                        }
+                    while (hero.activeRewardCodeSlots.Count < Entities.Unit.RewardCodeSlotCount) hero.activeRewardCodeSlots.Add(0);
+                }
+                data.version = 14;
+            }
+            if(data?.version==13) data.version=14; // 빈 개별 상태는 복원 시 0으로 생성
+            if (data?.version == 14)
+            {
+                // 이전 10라운드 묶음의 테마 위치와 보스/엘리트 진행을 8라운드로 옮긴다.
+                // 골드·유닛·코드 인스턴스 및 저장된 축전량에는 손대지 않는다.
+                int oldStage = Mathf.Max(1, data.currentStage);
+                int[] slots = { 1, 2, 3, 4, 5, 5, 6, 6, 7, 8 };
+                data.currentRound = (oldStage - 1) / 10 + 1;
+                data.currentStage = (data.currentRound - 1) * Managers.RoundManager.EncountersPerTheme + slots[(oldStage - 1) % 10];
+                if (data.currentThemeId == 1) data.currentThemeId = 2; // 운영에서 은퇴한 시험장
+                data.version = RunSaveData.CurrentVersion;
+            }
             if (data == null || data.version < RunSaveData.CurrentVersion)
             {
                 // 구버전 저장본(레거시 스탯 필드 포함)은 필드 매핑이 달라 안전하게 복원할 수 없다.
@@ -127,9 +163,13 @@ namespace Core
         public static TrainedCharacterCollection LoadTrainedCharacters()
         {
             string json = ReadString(KeyTrainedCharacters, "");
-            TrainedCharacterCollection data = string.IsNullOrEmpty(json)
-                ? new TrainedCharacterCollection()
-                : JsonUtility.FromJson<TrainedCharacterCollection>(json);
+            TrainedCharacterCollection data;
+            try { data = string.IsNullOrEmpty(json) ? new TrainedCharacterCollection() : JsonUtility.FromJson<TrainedCharacterCollection>(json); }
+            catch (System.ArgumentException)
+            {
+                Debug.LogWarning("[SaveSystem] 계정 JSON이 손상되어 기본 계정으로 표시합니다. 원본 저장은 보존합니다.");
+                data = new TrainedCharacterCollection();
+            }
             return Normalize(data);
         }
 

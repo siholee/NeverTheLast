@@ -27,6 +27,8 @@ namespace Codes.Passive
     /// </summary>
     public sealed class SeiBigBang : UniquePassiveCode
     {
+        public override int AttackForm => DamageTag.Spell;
+
         public const string ResourceId = "sei_genesis_crystal";
         public const int Threshold = 7;
         private const float ShardDefenseRatio = 0.25f;
@@ -134,11 +136,11 @@ namespace Codes.Passive
         private void HitShard(Unit target)
         {
             if (target == null || !target.isActive || Caster == null) return;
-            bool crit = RollCritical(out float multiplier);
+            bool crit = RollCritical(target, out float multiplier);
             int damage = Mathf.Max(1, Mathf.RoundToInt(StatDamage(0f, BaseEnums.StatType.Defense, ShardDefenseRatio) * multiplier));
             target.TakeDamage(new DamageContext(Caster, damage, BaseEnums.CodeType.Passive, new List<int>
             {
-                DamageTag.MultiTarget, DamageTag.PassiveAttack, DamageTag.NonContactAttack,
+                DamageTag.MultiTarget, DamageTag.PassiveAttack, DamageTag.NonContactAttack, DamageTag.Spell,
             }, crit));
         }
 

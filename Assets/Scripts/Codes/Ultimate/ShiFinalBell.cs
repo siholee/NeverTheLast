@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
@@ -45,14 +45,14 @@ namespace Codes.Ultimate
         /// <summary>멸참 사용을 기록하고 이번 타격 뒤 이어질 만종 단계(없으면 0)를 돌려준다.</summary>
         public int RegisterDestructionSlash()
         {
-            if (Caster == null || !_registered) return 0;
+            if (!DirectAttack.CasterCanContinue(Caster, false) || !_registered) return 0;
             int stack = Caster.AddCombatResource(ResourceId, 1);
             return stack is 3 or 6 or 9 ? stack : 0;
         }
 
         public IEnumerator ResolveBell(int tier, Unit struckTarget)
         {
-            if (Caster == null || tier is not (3 or 6 or 9)) yield break;
+            if (!DirectAttack.CasterCanContinue(Caster, false) || tier is not (3 or 6 or 9)) yield break;
 
             List<Unit> enemies = AliveEnemies();
             Unit directionTarget = struckTarget != null ? struckTarget : enemies.FirstOrDefault();
@@ -87,7 +87,8 @@ namespace Codes.Ultimate
             yield return VfxComposer.PlayHorizontalSweepHit(key, 0, Caster, directionTarget,
                 center, targets, target =>
             {
-                if (target == null || !target.isActive || !contexts.TryGetValue(target, out DamageContext context))
+                if (!DirectAttack.CasterCanContinue(Caster, false) || target == null ||
+                    !target.isActive || !contexts.TryGetValue(target, out DamageContext context))
                     return;
                 if (!sfxPlayed)
                 {
@@ -97,7 +98,8 @@ namespace Codes.Ultimate
                 target.TakeDamage(context);
             });
 
-            if (tier == 9) Caster.TryConsumeCombatResource(ResourceId, MaximumStacks);
+            if (tier == 9 && DirectAttack.CasterCanContinue(Caster, false))
+                Caster.TryConsumeCombatResource(ResourceId, MaximumStacks);
         }
 
         /// <summary>

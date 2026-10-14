@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Managers.UI.Theme;
 using TMPro;
 using UnityEngine;
@@ -88,7 +88,7 @@ namespace Managers.UI.Core
 
         private static readonly string[] HudCanvasNames =
         {
-            "BattleHudCanvas", "PreparationCanvas", "TooltipCanvas",
+            "BattleHudCanvas", "PreparationCanvas", "TooltipCanvas", "CombatFeedbackCanvas",
         };
 
         private static readonly System.Collections.Generic.List<CanvasScaler> HudScalers = new();
@@ -228,7 +228,7 @@ namespace Managers.UI.Core
             var go = new GameObject(name, typeof(RectTransform), typeof(Image));
             go.transform.SetParent(parent, false);
             var image = go.GetComponent<Image>();
-            image.sprite = UIShapes.CutCorner(cut, fill, corners, outline, outlineWidth);
+            image.sprite = UIShapes.Surface(cut, fill, corners, outline, outlineWidth);
             image.type = Image.Type.Sliced;
             // 스프라이트에 색이 이미 구워져 있으므로 tint는 흰색으로 둔다.
             image.color = Color.white;
@@ -245,7 +245,8 @@ namespace Managers.UI.Core
             var go = new GameObject(name, typeof(RectTransform), typeof(Image));
             go.transform.SetParent(parent, false);
             var image = go.GetComponent<Image>();
-            image.sprite = UIShapes.RoundedRect(14, UITheme.HudBar, UITheme.Outline, 2);
+            image.sprite = UIShapes.GlassPlate(18, UITheme.HudBar);
+            UIPrismMaterial.Apply(image);
             image.type = Image.Type.Sliced;
             image.color = Color.white;
             BackdropAdaptiveSurface.Attach(image, BackdropAdaptiveSurface.SurfaceKind.Chrome, 14);
@@ -325,6 +326,7 @@ namespace Managers.UI.Core
             label.raycastTarget = false; // 텍스트가 아래 버튼 클릭을 막지 않도록
             // 크기는 설정의 글자 크기를 따라 자동 맞춤으로 준다(UIScaledText).
             UIScaledText.Attach(label, fontSize);
+            if (wrap) GameTermLinks.Attach(label);
             return label;
         }
 
@@ -441,7 +443,7 @@ namespace Managers.UI.Core
             float fontSize, Color color, TextAlignmentOptions alignment = TextAlignmentOptions.MidlineLeft)
         {
             TextMeshProUGUI label = Text(name, parent, content, fontSize, color, alignment);
-            label.characterSpacing = 8f;
+            label.characterSpacing = 3f;
             return label;
         }
 
@@ -460,13 +462,18 @@ namespace Managers.UI.Core
             // 누를 수 있는 것인지 읽히지 않았다. 꺼진 버튼은 UIButtonStyle이 테두리를 걷는다.
             // Spotlight처럼 보조 행동은 면보다 글자가 먼저 읽히게 한다. 테두리가 강하면
             // 카드·그룹·버튼이 모두 상자로 보여 화면이 격자처럼 굳으므로 1px 헤어라인만 남긴다.
-            Color outline = primary ? UITheme.Accent : UITheme.Outline;
+            //
+            // 2026-10-08 1920 검수 — 회색 면 위 회색 버튼은 눌리는 것인지 읽히지 않아 사무용 화면처럼 보였다.
+            // 모든 행동 버튼을 알약 하나로 통일한다: 주 행동은 남색 알약, 보조 행동은 흰 알약 + 군청 헤어라인.
+            // 반경 22는 44px 이하에서 완전한 알약, 그보다 큰 버튼에서는 둥근 모서리가 된다.
+            Color outline = primary ? UITheme.Accent : new Color(UITheme.Accent.r, UITheme.Accent.g, UITheme.Accent.b, 0.22f);
+            if (!primary) fill = UITheme.SurfaceRaised;
 
             var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(UnityEngine.UI.Button));
             go.transform.SetParent(parent, false);
 
             var image = go.GetComponent<Image>();
-            image.sprite = UIShapes.RoundedRect(10, fill, outline, 1);
+            image.sprite = UIArtDirection.ActionPlate(primary);
             image.type = Image.Type.Sliced;
             image.color = Color.white;
 
@@ -492,8 +499,10 @@ namespace Managers.UI.Core
 
             if (!string.IsNullOrEmpty(text))
             {
+                // Center(Middle)는 글꼴 상자(어센더 1.16em ~ 디센더 -0.29em)의 가운데를 맞춰 한글이 약 0.065em 아래로
+                // 처졌다. Midline은 실제 그려진 글자 경계의 가운데를 맞추므로 버튼 높이의 정중앙에 글자가 선다.
                 TextMeshProUGUI label = Text("Label", go.transform, text, fontSize, textColor,
-                    TextAlignmentOptions.Center);
+                    TextAlignmentOptions.Midline);
                 // 강조색 면 위의 얇은 글자는 축소된 Game View와 고해상도에서 번져 보인다.
                 // 주 행동만 굵게 잡아 버튼의 우선순위와 글자 윤곽을 함께 선명하게 만든다.
                 if (primary) label.fontStyle = FontStyles.Bold;
@@ -510,6 +519,24 @@ namespace Managers.UI.Core
         {
             Button button = Button(name, parent, glyph, onClick, false, UITheme.FontHeading);
             if (!string.IsNullOrEmpty(tooltip)) button.gameObject.name = $"{name}_{tooltip}";
+            return button;
+        }
+
+        public static Image Icon(string name, Transform parent, UIIcon icon, Color color)
+        {
+            Image image = Solid(name, parent, color);
+            image.sprite = UILineIcons.Get(icon);
+            image.type = Image.Type.Simple;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            return image;
+        }
+
+        public static Button SymbolButton(string name, Transform parent, UIIcon icon, Action onClick)
+        {
+            Button button = Button(name, parent, "", onClick);
+            Image image = Icon("Icon", button.transform, icon, UITheme.TextPrimary);
+            Stretch(image.rectTransform, 12, 12);
             return button;
         }
 
@@ -646,7 +673,9 @@ namespace Managers.UI.Core
             go.transform.SetSiblingIndex(panel.transform.GetSiblingIndex());
 
             var shadow = go.GetComponent<Image>();
-            shadow.sprite = UIShapes.SoftShadow(12, blur, alpha);
+            blur = Mathf.Min(blur, 28);
+            drop = Mathf.Min(drop, 8f);
+            shadow.sprite = UIShapes.SoftShadow(16, blur, Mathf.Min(alpha, 0.14f));
             shadow.type = Image.Type.Sliced;
             shadow.raycastTarget = false;
 
@@ -657,6 +686,7 @@ namespace Managers.UI.Core
             rect.pivot = source.pivot;
             rect.offsetMin = source.offsetMin + new Vector2(-blur, -blur - drop);
             rect.offsetMax = source.offsetMax + new Vector2(blur, blur - drop);
+            panel.gameObject.AddComponent<UIElevation>().Bind(shadow, blur, drop);
             return shadow;
         }
 

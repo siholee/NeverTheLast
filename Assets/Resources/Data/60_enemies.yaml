@@ -8,8 +8,8 @@
 #   일반행동  1001 돌격(카드 후퇴·부분 전진 뒤 대상 피격) · 1002 사격(방향성 시전광 뒤 대상 단일 피격)
 #   궁극기    1001 강타 · 1002 연사 · 1003 대지 분쇄 · 1004 공허의 숨결
 #
-# 2026-09 전면 개편으로 옛 적 154종을 모두 걷어냈다. 새 테마가 들어오기 전까지
-# 시험장(themeId 1)의 공허 생물 다섯이 전투 · 연출 검증을 맡는다. 초상화는 옛 공허 시리즈의 것을 쓴다.
+# 2026-10-12: 기존 시험장5/범용20을 보존하고 오리지널154종을 현행8스탯으로 이관했다.
+# 복구 개체의 스킬은 reworkKit 명시 사양이며 원본ID는 originalId에 보존한다.
 
 enemies:
   # ── 시험장 · 일반 ────────────────────────────────────────────────
@@ -145,3 +145,7927 @@ enemies:
     codes: { passive: 0, normal: 1002, ultimate: 1004 }
     drops: [5002]
     portrait: VOID_DRAGON_PORTRAIT
+# 범용 공허 테마 — 2026-10-12. 시작 파티 5명 기준 완주/체력 소모 곡선.
+  - id: 1101
+    name: 공허의 들개
+    tagline: 군집의 전열에서 빠르게 공격하는 공허 야수.
+    themeId: 2
+    tier: normal
+    archetype: 7
+    element: None
+    tags: [Void, Beast]
+    vfxClass: beast
+    hpBase: 430
+    hpGrowth: 24
+    atkBase: 40
+    atkGrowth: 2
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 20
+    defGrowth: 1.5
+    spDefBase: 20
+    spDefGrowth: 1.5
+    speedBase: 106
+    manaMax: 100
+    codes: { passive: 0, normal: 1001, ultimate: 1001 }
+    drops: [5001]
+    portrait: VOID_WOLF_PORTRAIT
+  - id: 1102
+    name: 공허의 멧돼지
+    tagline: 전열을 지키며 체력을 조금씩 소모시키는 공허 생물.
+    themeId: 2
+    tier: normal
+    archetype: 8
+    element: None
+    tags: [Void, Beast]
+    vfxClass: beast
+    hpBase: 620
+    hpGrowth: 32
+    atkBase: 34
+    atkGrowth: 1.7
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 32
+    defGrowth: 1.5
+    spDefBase: 32
+    spDefGrowth: 1.5
+    speedBase: 90
+    manaMax: 100
+    codes: { passive: 0, normal: 1001, ultimate: 1001 }
+    drops: [5001]
+    portrait: VOID_BOAR_PORTRAIT
+  - id: 1103
+    name: 공허의 포식자
+    tagline: 후열에서 약한 연속 공격을 가하는 공허 생물.
+    themeId: 2
+    tier: normal
+    archetype: 10
+    element: None
+    tags: [Void, Beast]
+    vfxClass: beast
+    hpBase: 380
+    hpGrowth: 20
+    atkBase: 42
+    atkGrowth: 2.1
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 16
+    defGrowth: 1.5
+    spDefBase: 16
+    spDefGrowth: 1.5
+    speedBase: 100
+    manaMax: 100
+    codes: { passive: 0, normal: 1002, ultimate: 1002 }
+    drops: [5001]
+    portrait: VOID_PREDATOR_PORTRAIT
+  - id: 2101
+    name: 공허의 우두머리
+    tagline: 군집을 이끄는 중형 괴수. 묵직한 단일 공격에 대비해야 한다.
+    themeId: 2
+    tier: elite
+    archetype: 8
+    element: None
+    tags: [Void, Beast]
+    vfxClass: beast
+    hpBase: 1700
+    hpGrowth: 85
+    atkBase: 60
+    atkGrowth: 3
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 38
+    defGrowth: 1.5
+    spDefBase: 38
+    spDefGrowth: 1.5
+    speedBase: 94
+    manaMax: 100
+    codes: { passive: 0, normal: 1001, ultimate: 1001 }
+    drops: [5002]
+    portrait: VOID_DEER_PORTRAIT
+  - id: 3101
+    name: 공허의 초원룡
+    tagline: 광역 초월기로 남은 체력을 시험하는 대형 공허 괴수.
+    themeId: 2
+    tier: boss
+    archetype: 10
+    element: None
+    tags: [Void, Beast]
+    vfxClass: caster
+    hpBase: 2800
+    hpGrowth: 140
+    atkBase: 64
+    atkGrowth: 3.2
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 42
+    defGrowth: 1.5
+    spDefBase: 42
+    spDefGrowth: 1.5
+    speedBase: 96
+    manaMax: 120
+    codes: { passive: 0, normal: 1002, ultimate: 1004 }
+    drops: [5002]
+    portrait: VOID_DRAGON_PORTRAIT
+  - id: 1104
+    name: 공허의 괴조
+    tagline: 군집의 전열에서 빠르게 공격하는 공허 야수.
+    themeId: 3
+    tier: normal
+    archetype: 7
+    element: None
+    tags: [Void, Beast]
+    vfxClass: beast
+    hpBase: 395.60
+    hpGrowth: 22.08
+    atkBase: 38.00
+    atkGrowth: 1.90
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 20
+    defGrowth: 1.5
+    spDefBase: 20
+    spDefGrowth: 1.5
+    speedBase: 116.00
+    manaMax: 100
+    codes: { passive: 0, normal: 1001, ultimate: 1001 }
+    drops: [5001]
+    portrait: VOID_MONSTROUS_BIRD_PORTRAIT
+  - id: 1105
+    name: 공허의 나비
+    tagline: 전열을 지키며 체력을 조금씩 소모시키는 공허 생물.
+    themeId: 3
+    tier: normal
+    archetype: 8
+    element: None
+    tags: [Void, Beast]
+    vfxClass: caster
+    hpBase: 570.40
+    hpGrowth: 29.44
+    atkBase: 32.30
+    atkGrowth: 1.61
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 32
+    defGrowth: 1.5
+    spDefBase: 32
+    spDefGrowth: 1.5
+    speedBase: 100.00
+    manaMax: 100
+    codes: { passive: 0, normal: 1001, ultimate: 1001 }
+    drops: [5001]
+    portrait: VOID_BUTTERFLY_PORTRAIT
+  - id: 1106
+    name: 공허의 등불나방
+    tagline: 후열에서 약한 연속 공격을 가하는 공허 생물.
+    themeId: 3
+    tier: normal
+    archetype: 10
+    element: None
+    tags: [Void, Beast]
+    vfxClass: caster
+    hpBase: 349.60
+    hpGrowth: 18.40
+    atkBase: 39.90
+    atkGrowth: 1.99
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 16
+    defGrowth: 1.5
+    spDefBase: 16
+    spDefGrowth: 1.5
+    speedBase: 110.00
+    manaMax: 100
+    codes: { passive: 0, normal: 1002, ultimate: 1002 }
+    drops: [5001]
+    portrait: VOID_LANTERN_MOTH_PORTRAIT
+  - id: 2102
+    name: 공허의 날개사슴
+    tagline: 군집을 이끄는 중형 괴수. 묵직한 단일 공격에 대비해야 한다.
+    themeId: 3
+    tier: elite
+    archetype: 8
+    element: None
+    tags: [Void, Beast]
+    vfxClass: beast
+    hpBase: 1564.00
+    hpGrowth: 78.20
+    atkBase: 57.00
+    atkGrowth: 2.85
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 38
+    defGrowth: 1.5
+    spDefBase: 38
+    spDefGrowth: 1.5
+    speedBase: 104.00
+    manaMax: 100
+    codes: { passive: 0, normal: 1001, ultimate: 1001 }
+    drops: [5002]
+    portrait: VOID_DEER_ANEMO_PORTRAIT
+  - id: 3102
+    name: 공허의 둥지룡
+    tagline: 광역 초월기로 남은 체력을 시험하는 대형 공허 괴수.
+    themeId: 3
+    tier: boss
+    archetype: 10
+    element: None
+    tags: [Void, Beast]
+    vfxClass: caster
+    hpBase: 2576.00
+    hpGrowth: 128.80
+    atkBase: 60.80
+    atkGrowth: 3.04
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 42
+    defGrowth: 1.5
+    spDefBase: 42
+    spDefGrowth: 1.5
+    speedBase: 106.00
+    manaMax: 120
+    codes: { passive: 0, normal: 1002, ultimate: 1004 }
+    drops: [5002]
+    portrait: VOID_DRAGON_ANEMO_PORTRAIT
+  - id: 1107
+    name: 공허의 결정체
+    tagline: 군집의 전열에서 빠르게 공격하는 공허 야수.
+    themeId: 4
+    tier: normal
+    archetype: 7
+    element: None
+    tags: [Void, Beast]
+    vfxClass: caster
+    hpBase: 412.80
+    hpGrowth: 23.04
+    atkBase: 40
+    atkGrowth: 2
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 30.00
+    defGrowth: 1.5
+    spDefBase: 30.00
+    spDefGrowth: 1.5
+    speedBase: 102.00
+    manaMax: 100
+    codes: { passive: 0, normal: 1001, ultimate: 1001 }
+    drops: [5001]
+    portrait: VOID_PRISM_PORTRAIT
+  - id: 1108
+    name: 공허의 고치
+    tagline: 전열을 지키며 체력을 조금씩 소모시키는 공허 생물.
+    themeId: 4
+    tier: normal
+    archetype: 8
+    element: None
+    tags: [Void, Beast]
+    vfxClass: beast
+    hpBase: 595.20
+    hpGrowth: 30.72
+    atkBase: 34
+    atkGrowth: 1.7
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 42.00
+    defGrowth: 1.5
+    spDefBase: 42.00
+    spDefGrowth: 1.5
+    speedBase: 86.00
+    manaMax: 100
+    codes: { passive: 0, normal: 1001, ultimate: 1001 }
+    drops: [5001]
+    portrait: VOID_COCOON_PORTRAIT
+  - id: 1109
+    name: 공허의 종자
+    tagline: 후열에서 약한 연속 공격을 가하는 공허 생물.
+    themeId: 4
+    tier: normal
+    archetype: 10
+    element: None
+    tags: [Void, Beast]
+    vfxClass: caster
+    hpBase: 364.80
+    hpGrowth: 19.20
+    atkBase: 42
+    atkGrowth: 2.1
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 26.00
+    defGrowth: 1.5
+    spDefBase: 26.00
+    spDefGrowth: 1.5
+    speedBase: 96.00
+    manaMax: 100
+    codes: { passive: 0, normal: 1002, ultimate: 1002 }
+    drops: [5001]
+    portrait: VOID_SEED_PORTRAIT
+  - id: 2103
+    name: 공허의 결정사슴
+    tagline: 군집을 이끄는 중형 괴수. 묵직한 단일 공격에 대비해야 한다.
+    themeId: 4
+    tier: elite
+    archetype: 8
+    element: None
+    tags: [Void, Beast]
+    vfxClass: beast
+    hpBase: 1632.00
+    hpGrowth: 81.60
+    atkBase: 60
+    atkGrowth: 3
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 48.00
+    defGrowth: 1.5
+    spDefBase: 48.00
+    spDefGrowth: 1.5
+    speedBase: 90.00
+    manaMax: 100
+    codes: { passive: 0, normal: 1001, ultimate: 1001 }
+    drops: [5002]
+    portrait: VOID_DEER_ELECTRO_PORTRAIT
+  - id: 3103
+    name: 공허의 결정룡
+    tagline: 광역 초월기로 남은 체력을 시험하는 대형 공허 괴수.
+    themeId: 4
+    tier: boss
+    archetype: 10
+    element: None
+    tags: [Void, Beast]
+    vfxClass: caster
+    hpBase: 2688.00
+    hpGrowth: 134.40
+    atkBase: 64
+    atkGrowth: 3.2
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 52.00
+    defGrowth: 1.5
+    spDefBase: 52.00
+    spDefGrowth: 1.5
+    speedBase: 92.00
+    manaMax: 120
+    codes: { passive: 0, normal: 1002, ultimate: 1004 }
+    drops: [5002]
+    portrait: VOID_DRAGON_ELECTRO_PORTRAIT
+  - id: 1110
+    name: 공허의 바위멧돼지
+    tagline: 군집의 전열에서 빠르게 공격하는 공허 야수.
+    themeId: 5
+    tier: normal
+    archetype: 7
+    element: None
+    tags: [Void, Beast]
+    vfxClass: beast
+    hpBase: 473.00
+    hpGrowth: 26.40
+    atkBase: 43.20
+    atkGrowth: 2.16
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 20
+    defGrowth: 1.5
+    spDefBase: 20
+    spDefGrowth: 1.5
+    speedBase: 94.00
+    manaMax: 100
+    codes: { passive: 0, normal: 1001, ultimate: 1001 }
+    drops: [5001]
+    portrait: VOID_BOAR_PORTRAIT
+  - id: 1111
+    name: 공허의 암반포식자
+    tagline: 전열을 지키며 체력을 조금씩 소모시키는 공허 생물.
+    themeId: 5
+    tier: normal
+    archetype: 8
+    element: None
+    tags: [Void, Beast]
+    vfxClass: beast
+    hpBase: 682.00
+    hpGrowth: 35.20
+    atkBase: 36.72
+    atkGrowth: 1.84
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 32
+    defGrowth: 1.5
+    spDefBase: 32
+    spDefGrowth: 1.5
+    speedBase: 78.00
+    manaMax: 100
+    codes: { passive: 0, normal: 1001, ultimate: 1001 }
+    drops: [5001]
+    portrait: VOID_PREDATOR_PORTRAIT
+  - id: 1112
+    name: 공허의 척후괴조
+    tagline: 후열에서 약한 연속 공격을 가하는 공허 생물.
+    themeId: 5
+    tier: normal
+    archetype: 10
+    element: None
+    tags: [Void, Beast]
+    vfxClass: beast
+    hpBase: 418.00
+    hpGrowth: 22.00
+    atkBase: 45.36
+    atkGrowth: 2.27
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 16
+    defGrowth: 1.5
+    spDefBase: 16
+    spDefGrowth: 1.5
+    speedBase: 88.00
+    manaMax: 100
+    codes: { passive: 0, normal: 1002, ultimate: 1002 }
+    drops: [5001]
+    portrait: VOID_MONSTROUS_BIRD_PORTRAIT
+  - id: 2104
+    name: 공허의 암반사슴
+    tagline: 군집을 이끄는 중형 괴수. 묵직한 단일 공격에 대비해야 한다.
+    themeId: 5
+    tier: elite
+    archetype: 8
+    element: None
+    tags: [Void, Beast]
+    vfxClass: beast
+    hpBase: 1870.00
+    hpGrowth: 93.50
+    atkBase: 64.80
+    atkGrowth: 3.24
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 38
+    defGrowth: 1.5
+    spDefBase: 38
+    spDefGrowth: 1.5
+    speedBase: 82.00
+    manaMax: 100
+    codes: { passive: 0, normal: 1001, ultimate: 1001 }
+    drops: [5002]
+    portrait: VOID_DEER_GEO_PORTRAIT
+  - id: 3104
+    name: 공허의 암반룡
+    tagline: 광역 초월기로 남은 체력을 시험하는 대형 공허 괴수.
+    themeId: 5
+    tier: boss
+    archetype: 10
+    element: None
+    tags: [Void, Beast]
+    vfxClass: caster
+    hpBase: 3080.00
+    hpGrowth: 154.00
+    atkBase: 69.12
+    atkGrowth: 3.46
+    spAtkBase: 20
+    spAtkGrowth: 1
+    defBase: 42
+    defGrowth: 1.5
+    spDefBase: 42
+    spDefGrowth: 1.5
+    speedBase: 84.00
+    manaMax: 120
+    codes: { passive: 0, normal: 1002, ultimate: 1004 }
+    drops: [5002]
+    portrait: VOID_DRAGON_GEO_PORTRAIT
+
+
+  # 2026-10-12: 오리지널 적154종의 현행 역할 사양. 원래ID는 reworkKit.originalId에 보존.
+  - id: 11020
+    name: 무르밀로
+    themeId: 105
+    archetype: 7
+    tier: elite
+    element: Geo
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 74
+    atkGrowth: 3.3
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21020
+      normal: 11020
+      ultimate: 11020
+    drops:
+    - 5001
+    portrait: MURMILLO_PORTRAIT
+    standing: MURMILLO_STANDING
+    reworkKit:
+      originalId: 1020
+      normalName: 파수꾼의 타격
+      ultimateName: 철벽 진형
+      passiveName: 검투사의 기백
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '무르밀로: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11021
+    name: 호플로마쿠스
+    themeId: 105
+    archetype: 8
+    tier: elite
+    element: Dendro
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 78
+    atkGrowth: 3.3
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21021
+      normal: 11021
+      ultimate: 11021
+    drops:
+    - 5001
+    portrait: HOPLOMACHUS_PORTRAIT
+    standing: HOPLOMACHUS_STANDING
+    reworkKit:
+      originalId: 1021
+      normalName: 투사의 공격
+      ultimateName: 대열 붕괴
+      passiveName: 검투사의 기백
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '호플로마쿠스: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11022
+    name: 트라엑스
+    themeId: 105
+    archetype: 9
+    tier: elite
+    element: Pyro
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 81
+    atkGrowth: 3.3
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21022
+      normal: 11022
+      ultimate: 11022
+    drops:
+    - 5001
+    portrait: THRAEX_PORTRAIT
+    standing: THRAEX_STANDING
+    reworkKit:
+      originalId: 1022
+      normalName: 처형자의 일격
+      ultimateName: 일대일 지명
+      passiveName: 검투사의 기백
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '트라엑스: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11023
+    name: 레티아리우스
+    themeId: 105
+    archetype: 10
+    tier: elite
+    element: Anemo
+    tags:
+    - RestoredTheme
+    vfxClass: archer
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 75
+    atkGrowth: 3.3
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 105
+    manaMax: 100
+    codes:
+      passive: 21023
+      normal: 11023
+      ultimate: 11023
+    drops:
+    - 5001
+    portrait: RETIARIUS_PORTRAIT
+    standing: RETIARIUS_STANDING
+    reworkKit:
+      originalId: 1023
+      normalName: 사수의 사격
+      ultimateName: 연환 투척
+      passiveName: 검투사의 기백
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '레티아리우스: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11024
+    name: 세쿠토르
+    themeId: 105
+    archetype: 9
+    tier: elite
+    element: Cryo
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 80
+    atkGrowth: 3.3
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21024
+      normal: 11024
+      ultimate: 11024
+    drops:
+    - 5001
+    portrait: SECUTOR_PORTRAIT
+    standing: SECUTOR_STANDING
+    reworkKit:
+      originalId: 1024
+      normalName: 처형자의 일격
+      ultimateName: 집요한 추격
+      passiveName: 검투사의 기백
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '세쿠토르: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11025
+    name: 디마카이루스
+    themeId: 105
+    archetype: 8
+    tier: elite
+    element: Pyro
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 79
+    atkGrowth: 3.3
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21025
+      normal: 11025
+      ultimate: 11025
+    drops:
+    - 5001
+    portrait: DIMACHAERUS_PORTRAIT
+    standing: DIMACHAERUS_STANDING
+    reworkKit:
+      originalId: 1025
+      normalName: 투사의 공격
+      ultimateName: 승자의 춤
+      passiveName: 검투사의 기백
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '디마카이루스: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12004
+    name: 프리무스 팔루스 마르켈루스
+    themeId: 105
+    archetype: 7
+    tier: elite
+    element: Geo
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 88
+    atkGrowth: 3.3
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 22004
+      normal: 12004
+      ultimate: 12004
+    drops:
+    - 5001
+    portrait: MARCELLUS_PORTRAIT
+    standing: MARCELLUS_STANDING
+    reworkKit:
+      originalId: 2004
+      normalName: 파수꾼의 타격
+      ultimateName: 월계관
+      passiveName: 챔피언의 여유
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: Rage
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '프리무스 팔루스 마르켈루스: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12005
+    name: 베스티아리우스 사비나
+    themeId: 105
+    archetype: 10
+    tier: elite
+    element: Dendro
+    tags:
+    - RestoredTheme
+    vfxClass: archer
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 78
+    atkGrowth: 3.3
+    spAtkBase: 64
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 105
+    manaMax: 100
+    codes:
+      passive: 22005
+      normal: 12005
+      ultimate: 12005
+    drops:
+    - 5001
+    portrait: SABINA_PORTRAIT
+    standing: SABINA_STANDING
+    reworkKit:
+      originalId: 2005
+      normalName: 사수의 사격
+      ultimateName: 사냥 개시
+      passiveName: 사냥꾼의 표식
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '베스티아리우스 사비나: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 13003
+    name: 스파르타쿠스
+    themeId: 105
+    archetype: 8
+    tier: boss
+    element: Pyro
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 126
+    atkGrowth: 4.5
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 23003
+      normal: 13003
+      ultimate: 13003
+    drops:
+    - 5001
+    portrait: SPARTACUS_PORTRAIT
+    standing: SPARTACUS_STANDING
+    reworkKit:
+      originalId: 3003
+      normalName: 투사의 공격
+      ultimateName: 한판 뒤집기
+      passiveName: 몸이 풀리는군
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      lifesteal: 0.15
+    tagline: '스파르타쿠스: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11030
+    name: 하스타티
+    themeId: 106
+    archetype: 7
+    tier: normal
+    element: Anemo
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 664
+    hpGrowth: 24
+    atkBase: 43
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21030
+      normal: 11030
+      ultimate: 11030
+    drops:
+    - 5001
+    portrait: HASTATI_PORTRAIT
+    standing: HASTATI_STANDING
+    reworkKit:
+      originalId: 1030
+      normalName: 일반행동
+      ultimateName: 필룸 투척
+      passiveName: 방진 편성
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: Shield
+      attackForm: 50002
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      shieldRatio: 1.5
+    tagline: '하스타티: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11031
+    name: 프린키페스
+    themeId: 106
+    archetype: 7
+    tier: normal
+    element: Geo
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 724
+    hpGrowth: 24
+    atkBase: 46
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21031
+      normal: 11031
+      ultimate: 11031
+    drops:
+    - 5001
+    portrait: PRINCIPES_PORTRAIT
+    standing: PRINCIPES_STANDING
+    reworkKit:
+      originalId: 1031
+      normalName: 일반행동
+      ultimateName: 전열 돌파
+      passiveName: 중열의 방벽
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: Shield
+      attackForm: 50002
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      shieldRatio: 1.5
+    tagline: '프린키페스: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11032
+    name: 트리아리
+    themeId: 106
+    archetype: 7
+    tier: normal
+    element: Geo
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 784
+    hpGrowth: 24
+    atkBase: 48
+    atkGrowth: 2.2
+    spAtkBase: 54
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21032
+      normal: 11032
+      ultimate: 11032
+    drops:
+    - 5001
+    portrait: TRIARII_PORTRAIT
+    standing: TRIARII_STANDING
+    reworkKit:
+      originalId: 1032
+      normalName: 일반행동
+      ultimateName: 최후의 창
+      passiveName: 최후의 방벽
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: Shield
+      attackForm: 50002
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Geo
+      shieldRatio: 1.5
+    tagline: '트리아리: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11033
+    name: 에퀴테스
+    themeId: 106
+    archetype: 8
+    tier: normal
+    element: Pyro
+    tags:
+    - RestoredTheme
+    vfxClass: mage
+    hpBase: 640
+    hpGrowth: 24
+    atkBase: 45
+    atkGrowth: 2.2
+    spAtkBase: 60
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21033
+      normal: 11033
+      ultimate: 11033
+    drops:
+    - 5001
+    portrait: EQUITES_PORTRAIT
+    standing: EQUITES_STANDING
+    reworkKit:
+      originalId: 1033
+      normalName: 일반행동
+      ultimateName: 쌍기창
+      passiveName: 기병의 회피
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.1
+      normalTargets: 1
+      ultimateTargets: 2
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '에퀴테스: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11034
+    name: 센츄리온
+    themeId: 106
+    archetype: 7
+    tier: normal
+    element: Geo
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 880
+    hpGrowth: 24
+    atkBase: 52
+    atkGrowth: 2.2
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21034
+      normal: 11034
+      ultimate: 11034
+    drops:
+    - 5001
+    portrait: CENTURION_PORTRAIT
+    standing: CENTURION_STANDING
+    reworkKit:
+      originalId: 1034
+      normalName: 일반행동
+      ultimateName: 백인대 돌격
+      passiveName: 백인대의 방벽
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: Shield
+      attackForm: 50002
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Geo
+      shieldRatio: 1.5
+    tagline: '센츄리온: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11035
+    name: 벨리테스
+    themeId: 106
+    archetype: 10
+    tier: normal
+    element: Anemo
+    tags:
+    - RestoredTheme
+    vfxClass: archer
+    hpBase: 544
+    hpGrowth: 24
+    atkBase: 46
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 105
+    manaMax: 100
+    codes:
+      passive: 21035
+      normal: 11035
+      ultimate: 11035
+    drops:
+    - 5001
+    portrait: VELITES_PORTRAIT
+    standing: VELITES_STANDING
+    reworkKit:
+      originalId: 1035
+      normalName: 일반행동
+      ultimateName: 일제 투창
+      passiveName: 산병 지원
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: Formation
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '벨리테스: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11036
+    name: 스콜피오
+    themeId: 106
+    archetype: 10
+    tier: normal
+    element: Geo
+    tags:
+    - RestoredTheme
+    vfxClass: archer
+    hpBase: 568
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 105
+    manaMax: 100
+    codes:
+      passive: 21036
+      normal: 11036
+      ultimate: 11036
+    drops:
+    - 5001
+    portrait: SCORPIO_PORTRAIT
+    standing: SCORPIO_STANDING
+    reworkKit:
+      originalId: 1036
+      normalName: 일반행동
+      ultimateName: 관통 사격
+      passiveName: 조준 사격
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: Formation
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      armorIgnore: 0.2
+    tagline: '스콜피오: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11037
+    name: 옵티오
+    themeId: 106
+    archetype: 11
+    tier: normal
+    element: Anemo
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 592
+    hpGrowth: 24
+    atkBase: 42
+    atkGrowth: 2.2
+    spAtkBase: 76
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21037
+      normal: 11037
+      ultimate: 11037
+    drops:
+    - 5001
+    portrait: OPTIO_PORTRAIT
+    standing: OPTIO_STANDING
+    reworkKit:
+      originalId: 1037
+      normalName: 일반행동
+      ultimateName: 방벽 지시
+      passiveName: 부관의 신호
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Formation
+      attackForm: 50001
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '옵티오: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11038
+    name: 트리뷴
+    themeId: 106
+    archetype: 11
+    tier: normal
+    element: Pyro
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 616
+    hpGrowth: 24
+    atkBase: 43
+    atkGrowth: 2.2
+    spAtkBase: 88
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21038
+      normal: 11038
+      ultimate: 11038
+    drops:
+    - 5001
+    portrait: TRIBUNE_PORTRAIT
+    standing: TRIBUNE_STANDING
+    reworkKit:
+      originalId: 1038
+      normalName: 일반행동
+      ultimateName: 천부장의 방벽
+      passiveName: 천부장의 신호
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Formation
+      attackForm: 50001
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '트리뷴: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12006
+    name: 아그리파
+    themeId: 106
+    archetype: 11
+    tier: elite
+    element: Geo
+    tags:
+    - RestoredTheme
+    vfxClass: mage
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 76
+    atkGrowth: 3.3
+    spAtkBase: 92
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 22006
+      normal: 12006
+      ultimate: 12006
+    drops:
+    - 5001
+    portrait: AGRIPPA_PORTRAIT
+    standing: AGRIPPA_STANDING
+    reworkKit:
+      originalId: 2006
+      normalName: 일반행동
+      ultimateName: 제 2의 건국자
+      passiveName: 화합
+      normalMode: Rally
+      ultimateMode: Rally
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.15
+      ultimateRatio: 0.15
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '아그리파: 전열을 지휘하고 공격을 보조합니다.'
+  - id: 12007
+    name: 옥타비아
+    themeId: 106
+    archetype: 11
+    tier: elite
+    element: Anemo
+    tags:
+    - RestoredTheme
+    vfxClass: mage
+    hpBase: 1950
+    hpGrowth: 75
+    atkBase: 72
+    atkGrowth: 3.3
+    spAtkBase: 108
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 22007
+      normal: 12007
+      ultimate: 12007
+    drops:
+    - 5001
+    portrait: OCTAVIA_PORTRAIT
+    standing: OCTAVIA_STANDING
+    reworkKit:
+      originalId: 2007
+      normalName: 일반행동
+      ultimateName: 존엄한 자
+      passiveName: 천천히 서둘러라
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '옥타비아: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 13004
+    name: 카이사르
+    themeId: 106
+    archetype: 8
+    tier: boss
+    element: Anemo
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 114
+    atkGrowth: 4.5
+    spAtkBase: 72
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 23004
+      normal: 13004
+      ultimate: 13004
+    drops:
+    - 5001
+    portrait: CAESAR_PORTRAIT
+    standing: CAESAR_STANDING
+    reworkKit:
+      originalId: 3004
+      normalName: 일반행동
+      ultimateName: 주사위는 던져졌다
+      passiveName: 왔노라, 보았노라, 이겼노라
+      normalMode: Single
+      ultimateMode: Rally
+      passiveMode: Formation
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.15
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '카이사르: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11040
+    name: 재규어 전사
+    themeId: 107
+    archetype: 7
+    tier: normal
+    element: Geo
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 736
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21040
+      normal: 11040
+      ultimate: 11040
+    drops:
+    - 5001
+    portrait: AZTEC_JAGUAR_PORTRAIT
+    standing: AZTEC_JAGUAR_STANDING
+    reworkKit:
+      originalId: 1040
+      normalName: 일반행동
+      ultimateName: 대지 분쇄
+      passiveName: 행동불능 추적
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Geo
+    tagline: '재규어 전사: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12010
+    name: 정예 재규어 전사
+    themeId: 107
+    archetype: 7
+    tier: elite
+    element: Geo
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 1950
+    hpGrowth: 75
+    atkBase: 90
+    atkGrowth: 3.3
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 22010
+      normal: 12010
+      ultimate: 12010
+    drops:
+    - 5001
+    portrait: AZTEC_ELITE_JAGUAR_PORTRAIT
+    standing: AZTEC_ELITE_JAGUAR_STANDING
+    reworkKit:
+      originalId: 2010
+      normalName: 일반행동
+      ultimateName: 왕의 대지 분쇄
+      passiveName: 행동불능 추적
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Geo
+    tagline: '정예 재규어 전사: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11041
+    name: 독수리 전사
+    themeId: 107
+    archetype: 10
+    tier: normal
+    element: Dendro
+    tags:
+    - RestoredTheme
+    vfxClass: archer
+    hpBase: 592
+    hpGrowth: 24
+    atkBase: 51
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 105
+    manaMax: 100
+    codes:
+      passive: 21041
+      normal: 11041
+      ultimate: 11041
+    drops:
+    - 5001
+    portrait: AZTEC_EAGLE_PORTRAIT
+    standing: AZTEC_EAGLE_STANDING
+    reworkKit:
+      originalId: 1041
+      normalName: 일반행동
+      ultimateName: 맹독 화살
+      passiveName: 맹독 추적
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      ultimateDot: Poison
+    tagline: '독수리 전사: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12011
+    name: 정예 독수리 전사
+    themeId: 107
+    archetype: 10
+    tier: elite
+    element: Dendro
+    tags:
+    - RestoredTheme
+    vfxClass: archer
+    hpBase: 1670
+    hpGrowth: 75
+    atkBase: 90
+    atkGrowth: 3.3
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 105
+    manaMax: 100
+    codes:
+      passive: 22011
+      normal: 12011
+      ultimate: 12011
+    drops:
+    - 5001
+    portrait: AZTEC_ELITE_EAGLE_PORTRAIT
+    standing: AZTEC_ELITE_EAGLE_STANDING
+    reworkKit:
+      originalId: 2011
+      normalName: 일반행동
+      ultimateName: 왕의 맹독 화살
+      passiveName: 맹독 추적
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      ultimateDot: Poison
+    tagline: '정예 독수리 전사: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11042
+    name: 뱀 사제
+    themeId: 107
+    archetype: 11
+    tier: normal
+    element: Dendro
+    tags:
+    - RestoredTheme
+    vfxClass: mage
+    hpBase: 616
+    hpGrowth: 24
+    atkBase: 41
+    atkGrowth: 2.2
+    spAtkBase: 88
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21042
+      normal: 11042
+      ultimate: 11042
+    drops:
+    - 5001
+    portrait: AZTEC_SERPENT_PRIEST_PORTRAIT
+    standing: AZTEC_SERPENT_PRIEST_STANDING
+    reworkKit:
+      originalId: 1042
+      normalName: 희생의 창
+      ultimateName: 풍요의 의식
+      passiveName: 죽음의 제의
+      normalMode: Rally
+      ultimateMode: Heal
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.15
+      ultimateRatio: 0.055
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Dendro
+    tagline: '뱀 사제: 전열을 지휘하고 공격을 보조합니다.'
+  - id: 12012
+    name: 정예 뱀 사제
+    themeId: 107
+    archetype: 11
+    tier: elite
+    element: Dendro
+    tags:
+    - RestoredTheme
+    vfxClass: mage
+    hpBase: 1790
+    hpGrowth: 75
+    atkBase: 72
+    atkGrowth: 3.3
+    spAtkBase: 108
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 22012
+      normal: 12012
+      ultimate: 12012
+    drops:
+    - 5001
+    portrait: AZTEC_ELITE_SERPENT_PRIEST_PORTRAIT
+    standing: AZTEC_ELITE_SERPENT_PRIEST_STANDING
+    reworkKit:
+      originalId: 2012
+      normalName: 희생의 창
+      ultimateName: 대풍요의 의식
+      passiveName: 죽음의 제의
+      normalMode: Rally
+      ultimateMode: Heal
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.15
+      ultimateRatio: 0.055
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Dendro
+    tagline: '정예 뱀 사제: 전열을 지휘하고 공격을 보조합니다.'
+  - id: 13201
+    name: 케찰코아틀
+    themeId: 107
+    archetype: 11
+    tier: boss
+    element: Dendro
+    tags:
+    - RestoredTheme
+    vfxClass: mage
+    hpBase: 3475
+    hpGrowth: 155
+    atkBase: 104
+    atkGrowth: 4.5
+    spAtkBase: 110
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 23201
+      normal: 13201
+      ultimate: 13201
+    drops:
+    - 5001
+    portrait: QUETZALCOATL_PORTRAIT
+    standing: QUETZALCOATL_STANDING
+    reworkKit:
+      originalId: 3201
+      normalName: 일반행동
+      ultimateName: 초록빛 심판
+      passiveName: 풍요의 축복
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Dendro
+    tagline: '케찰코아틀: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 13010
+    name: 테스카틀리포카
+    themeId: 107
+    archetype: 11
+    tier: boss
+    element: Electro
+    tags:
+    - RestoredTheme
+    vfxClass: mage
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 107
+    atkGrowth: 4.5
+    spAtkBase: 110
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 23010
+      normal: 13010
+      ultimate: 13010
+    drops:
+    - 5001
+    portrait: AZTEC_TEZCATLIPOCA_PORTRAIT
+    standing: AZTEC_TEZCATLIPOCA_STANDING
+    reworkKit:
+      originalId: 3010
+      normalName: 전열 칙령
+      ultimateName: 검은 태양의 전열
+      passiveName: 연기 나는 거울의 신
+      normalMode: Rally
+      ultimateMode: Area
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.15
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      ultimateDot: Curse
+    tagline: '테스카틀리포카: 전열을 지휘하고 공격을 보조합니다.'
+  - id: 11050
+    name: 파멸의 성기사
+    themeId: 108
+    archetype: 7
+    tier: normal
+    element: Pyro
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 712
+    hpGrowth: 24
+    atkBase: 51
+    atkGrowth: 2.2
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21050
+      normal: 11050
+      ultimate: 11050
+    drops:
+    - 5001
+    portrait: RUIN_PALADIN_PORTRAIT
+    standing: RUIN_PALADIN_STANDING
+    reworkKit:
+      originalId: 1050
+      normalName: 일반행동
+      ultimateName: 파멸의 심판
+      passiveName: 화형 심판
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: None
+      attackForm: 50001
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '파멸의 성기사: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12020
+    name: 종말의 성기사
+    themeId: 108
+    archetype: 7
+    tier: elite
+    element: Pyro
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 1950
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 60
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 22020
+      normal: 12020
+      ultimate: 12020
+    drops:
+    - 5001
+    portrait: APOCALYPSE_PALADIN_PORTRAIT
+    standing: APOCALYPSE_PALADIN_STANDING
+    reworkKit:
+      originalId: 2020
+      normalName: 일반행동
+      ultimateName: 파멸의 심판
+      passiveName: 화형 심판
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: None
+      attackForm: 50001
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '종말의 성기사: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11051
+    name: 파멸의 이단심문관
+    themeId: 108
+    archetype: 11
+    tier: normal
+    element: Pyro
+    tags:
+    - RestoredTheme
+    vfxClass: mage
+    hpBase: 564
+    hpGrowth: 24
+    atkBase: 42
+    atkGrowth: 2.2
+    spAtkBase: 80
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21051
+      normal: 11051
+      ultimate: 11051
+    drops:
+    - 5001
+    portrait: RUIN_INQUISITOR_PORTRAIT
+    standing: RUIN_INQUISITOR_STANDING
+    reworkKit:
+      originalId: 1051
+      normalName: 일반행동
+      ultimateName: 화형 선고
+      passiveName: 화형 선고
+      normalMode: Heal
+      ultimateMode: Area
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.025
+      ultimateRatio: 0.85
+      normalTargets: 8
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Pyro
+    tagline: '파멸의 이단심문관: 치유로 동료의 전선을 유지합니다.'
+  - id: 12021
+    name: 종말의 이단심문관
+    themeId: 108
+    archetype: 11
+    tier: elite
+    element: Pyro
+    tags:
+    - RestoredTheme
+    vfxClass: mage
+    hpBase: 1556
+    hpGrowth: 75
+    atkBase: 74
+    atkGrowth: 3.3
+    spAtkBase: 100
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 22021
+      normal: 12021
+      ultimate: 12021
+    drops:
+    - 5001
+    portrait: APOCALYPSE_INQUISITOR_PORTRAIT
+    standing: APOCALYPSE_INQUISITOR_STANDING
+    reworkKit:
+      originalId: 2021
+      normalName: 일반행동
+      ultimateName: 화형 선고
+      passiveName: 화형 선고
+      normalMode: Heal
+      ultimateMode: Area
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.025
+      ultimateRatio: 0.85
+      normalTargets: 8
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Pyro
+    tagline: '종말의 이단심문관: 치유로 동료의 전선을 유지합니다.'
+  - id: 11052
+    name: 명계의 사령
+    themeId: 108
+    archetype: 9
+    tier: normal
+    element: Pyro
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 616
+    hpGrowth: 24
+    atkBase: 44
+    atkGrowth: 2.2
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21052
+      normal: 11052
+      ultimate: 11052
+    drops:
+    - 5001
+    portrait: NETHER_WRAITH_PORTRAIT
+    standing: NETHER_WRAITH_STANDING
+    reworkKit:
+      originalId: 1052
+      normalName: 일반행동
+      ultimateName: 전열 정비
+      passiveName: 명계의 재림
+      normalMode: Single
+      ultimateMode: Rally
+      passiveMode: Rebirth
+      attackForm: 50001
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.15
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      normalDot: Curse
+    tagline: '명계의 사령: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11053
+    name: 타락한 사제
+    themeId: 108
+    archetype: 11
+    tier: normal
+    element: Pyro
+    tags:
+    - RestoredTheme
+    vfxClass: mage
+    hpBase: 640
+    hpGrowth: 24
+    atkBase: 41
+    atkGrowth: 2.2
+    spAtkBase: 88
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21053
+      normal: 11053
+      ultimate: 11053
+    drops:
+    - 5001
+    portrait: FALLEN_PRIEST_PORTRAIT
+    standing: FALLEN_PRIEST_STANDING
+    reworkKit:
+      originalId: 1053
+      normalName: 일반행동
+      ultimateName: 망자의 가호
+      passiveName: 죽음의 성가
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: Pyro
+      ultimateElement: None
+    tagline: '타락한 사제: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 13203
+    name: 호루스
+    themeId: 108
+    archetype: 10
+    tier: boss
+    element: Pyro
+    tags:
+    - RestoredTheme
+    vfxClass: archer
+    hpBase: 3475
+    hpGrowth: 155
+    atkBase: 119
+    atkGrowth: 4.5
+    spAtkBase: 68
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 105
+    manaMax: 100
+    codes:
+      passive: 23203
+      normal: 13203
+      ultimate: 13203
+    drops:
+    - 5001
+    portrait: HORUS_PORTRAIT
+    standing: HORUS_STANDING
+    reworkKit:
+      originalId: 3203
+      normalName: 일반행동
+      ultimateName: 우제트
+      passiveName: 창공의 매
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      armorIgnore: 0.2
+    tagline: '호루스: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 13011
+    name: 오시리스
+    themeId: 108
+    archetype: 8
+    tier: boss
+    element: Anemo
+    tags:
+    - RestoredTheme
+    vfxClass: mage
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 109
+    atkGrowth: 4.5
+    spAtkBase: 110
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 23011
+      normal: 13011
+      ultimate: 13011
+    drops:
+    - 5001
+    portrait: OSIRIS_PORTRAIT
+    standing: OSIRIS_STANDING
+    reworkKit:
+      originalId: 3011
+      normalName: 대지의 진혼
+      ultimateName: 재생의 격류
+      passiveName: 불완전한 부활
+      normalMode: Area
+      ultimateMode: Area
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.45
+      ultimateRatio: 0.85
+      normalTargets: 8
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: Geo
+      ultimateElement: None
+    tagline: '오시리스: 광역 공격으로 파티를 압박합니다.'
+  - id: 13012
+    name: 아문·라
+    themeId: 108
+    archetype: 8
+    tier: boss
+    element: Electro
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 112
+    atkGrowth: 4.5
+    spAtkBase: 110
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 23012
+      normal: 13012
+      ultimate: 13012
+    drops:
+    - 5001
+    portrait: AMUN_RA_PORTRAIT
+    standing: AMUN_RA_STANDING
+    reworkKit:
+      originalId: 3012
+      normalName: 일반행동
+      ultimateName: 태양의 심판
+      passiveName: 승천
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: None
+      attackForm: 50001
+      contact: false
+      normalRatio: 0.6
+      ultimateRatio: 0.85
+      normalTargets: 2
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '아문·라: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11060
+    name: 파멸의 거인
+    themeId: 100
+    archetype: 7
+    tier: normal
+    element: Pyro
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 832
+    hpGrowth: 24
+    atkBase: 54
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21060
+      normal: 11060
+      ultimate: 11060
+    drops:
+    - 5001
+    portrait: RUIN_GIANT_PORTRAIT
+    standing: RUIN_GIANT_STANDING
+    reworkKit:
+      originalId: 1060
+      normalName: 일반행동
+      ultimateName: 거인의 철퇴
+      passiveName: 거인의 방벽
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '파멸의 거인: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12030
+    name: 종말의 거인
+    themeId: 100
+    archetype: 7
+    tier: elite
+    element: Pyro
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 22030
+      normal: 12030
+      ultimate: 12030
+    drops:
+    - 5001
+    portrait: APOCALYPSE_GIANT_PORTRAIT
+    standing: APOCALYPSE_GIANT_STANDING
+    reworkKit:
+      originalId: 2030
+      normalName: 일반행동
+      ultimateName: 거인의 철퇴
+      passiveName: 거인의 방벽
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '종말의 거인: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11061
+    name: 공허의 씨앗
+    themeId: 100
+    archetype: 10
+    tier: normal
+    element: Geo
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: archer
+    hpBase: 688
+    hpGrowth: 24
+    atkBase: 41
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 105
+    manaMax: 100
+    codes:
+      passive: 21061
+      normal: 11061
+      ultimate: 11061
+    drops:
+    - 5001
+    portrait: VOID_SEED_PORTRAIT
+    standing: VOID_SEED_STANDING
+    reworkKit:
+      originalId: 1061
+      normalName: 연속 사격
+      ultimateName: 과부하
+      passiveName: 가변 장갑진
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '공허의 씨앗: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12032
+    name: 종말의 씨앗
+    themeId: 100
+    archetype: 10
+    tier: elite
+    element: Geo
+    tags:
+    - RestoredTheme
+    vfxClass: archer
+    hpBase: 1950
+    hpGrowth: 75
+    atkBase: 72
+    atkGrowth: 3.3
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 105
+    manaMax: 100
+    codes:
+      passive: 22032
+      normal: 12032
+      ultimate: 12032
+    drops:
+    - 5001
+    portrait: APOCALYPSE_SEED_PORTRAIT
+    standing: APOCALYPSE_SEED_STANDING
+    reworkKit:
+      originalId: 2032
+      normalName: 연속 사격
+      ultimateName: 과부하
+      passiveName: 가변 장갑진
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '종말의 씨앗: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12033
+    name: 혹한의 씨앗
+    themeId: 100
+    archetype: 10
+    tier: elite
+    element: Cryo
+    tags:
+    - RestoredTheme
+    vfxClass: archer
+    hpBase: 1910
+    hpGrowth: 75
+    atkBase: 72
+    atkGrowth: 3.3
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 105
+    manaMax: 100
+    codes:
+      passive: 22033
+      normal: 12033
+      ultimate: 12033
+    drops:
+    - 5001
+    portrait: FROST_SEED_PORTRAIT
+    standing: FROST_SEED_STANDING
+    reworkKit:
+      originalId: 2033
+      normalName: 연속 사격
+      ultimateName: 빙결포
+      passiveName: 혹한의 동력로
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Cryo
+    tagline: '혹한의 씨앗: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11062
+    name: 공허의 프리즘
+    themeId: 109
+    archetype: 11
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 616
+    hpGrowth: 24
+    atkBase: 41
+    atkGrowth: 2.2
+    spAtkBase: 76
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21062
+      normal: 11062
+      ultimate: 11062
+    drops:
+    - 5001
+    portrait: VOID_PRISM_PORTRAIT
+    standing: VOID_PRISM_STANDING
+    reworkKit:
+      originalId: 1062
+      normalName: 공허 광선
+      ultimateName: 공허 포격
+      passiveName: 프리즘 동조
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Void
+    tagline: '공허의 프리즘: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11063
+    name: 공허의 프리즘 (불)
+    themeId: 110
+    archetype: 11
+    tier: normal
+    element: Pyro
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 616
+    hpGrowth: 24
+    atkBase: 41
+    atkGrowth: 2.2
+    spAtkBase: 76
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21063
+      normal: 11063
+      ultimate: 11063
+    drops:
+    - 5001
+    portrait: VOID_PRISM_PYRO_PORTRAIT
+    standing: VOID_PRISM_PYRO_STANDING
+    reworkKit:
+      originalId: 1063
+      normalName: 공허 광선
+      ultimateName: 공허 포격
+      passiveName: 프리즘 동조
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Pyro
+    tagline: '공허의 프리즘 (불): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11064
+    name: 공허의 프리즘 (물)
+    themeId: 111
+    archetype: 11
+    tier: normal
+    element: Hydro
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 616
+    hpGrowth: 24
+    atkBase: 41
+    atkGrowth: 2.2
+    spAtkBase: 76
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21064
+      normal: 11064
+      ultimate: 11064
+    drops:
+    - 5001
+    portrait: VOID_PRISM_HYDRO_PORTRAIT
+    standing: VOID_PRISM_HYDRO_STANDING
+    reworkKit:
+      originalId: 1064
+      normalName: 공허 광선
+      ultimateName: 공허 포격
+      passiveName: 프리즘 동조
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Hydro
+    tagline: '공허의 프리즘 (물): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11065
+    name: 공허의 프리즘 (바람)
+    themeId: 112
+    archetype: 11
+    tier: normal
+    element: Anemo
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 616
+    hpGrowth: 24
+    atkBase: 41
+    atkGrowth: 2.2
+    spAtkBase: 76
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21065
+      normal: 11065
+      ultimate: 11065
+    drops:
+    - 5001
+    portrait: VOID_PRISM_ANEMO_PORTRAIT
+    standing: VOID_PRISM_ANEMO_STANDING
+    reworkKit:
+      originalId: 1065
+      normalName: 공허 광선
+      ultimateName: 공허 포격
+      passiveName: 프리즘 동조
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Anemo
+    tagline: '공허의 프리즘 (바람): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11066
+    name: 공허의 프리즘 (번개)
+    themeId: 113
+    archetype: 11
+    tier: normal
+    element: Electro
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 616
+    hpGrowth: 24
+    atkBase: 41
+    atkGrowth: 2.2
+    spAtkBase: 76
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21066
+      normal: 11066
+      ultimate: 11066
+    drops:
+    - 5001
+    portrait: VOID_PRISM_ELECTRO_PORTRAIT
+    standing: VOID_PRISM_ELECTRO_STANDING
+    reworkKit:
+      originalId: 1066
+      normalName: 공허 광선
+      ultimateName: 공허 포격
+      passiveName: 프리즘 동조
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Electro
+    tagline: '공허의 프리즘 (번개): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11067
+    name: 공허의 프리즘 (풀)
+    themeId: 114
+    archetype: 11
+    tier: normal
+    element: Dendro
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 616
+    hpGrowth: 24
+    atkBase: 41
+    atkGrowth: 2.2
+    spAtkBase: 76
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21067
+      normal: 11067
+      ultimate: 11067
+    drops:
+    - 5001
+    portrait: VOID_PRISM_DENDRO_PORTRAIT
+    standing: VOID_PRISM_DENDRO_STANDING
+    reworkKit:
+      originalId: 1067
+      normalName: 공허 광선
+      ultimateName: 공허 포격
+      passiveName: 프리즘 동조
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Dendro
+    tagline: '공허의 프리즘 (풀): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11068
+    name: 공허의 프리즘 (얼음)
+    themeId: 115
+    archetype: 11
+    tier: normal
+    element: Cryo
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 616
+    hpGrowth: 24
+    atkBase: 41
+    atkGrowth: 2.2
+    spAtkBase: 76
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21068
+      normal: 11068
+      ultimate: 11068
+    drops:
+    - 5001
+    portrait: VOID_PRISM_CRYO_PORTRAIT
+    standing: VOID_PRISM_CRYO_STANDING
+    reworkKit:
+      originalId: 1068
+      normalName: 공허 광선
+      ultimateName: 공허 포격
+      passiveName: 프리즘 동조
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Cryo
+    tagline: '공허의 프리즘 (얼음): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11069
+    name: 공허의 프리즘 (바위)
+    themeId: 116
+    archetype: 11
+    tier: normal
+    element: Geo
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 616
+    hpGrowth: 24
+    atkBase: 41
+    atkGrowth: 2.2
+    spAtkBase: 76
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21069
+      normal: 11069
+      ultimate: 11069
+    drops:
+    - 5001
+    portrait: VOID_PRISM_GEO_PORTRAIT
+    standing: VOID_PRISM_GEO_STANDING
+    reworkKit:
+      originalId: 1069
+      normalName: 공허 광선
+      ultimateName: 공허 포격
+      passiveName: 프리즘 동조
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Geo
+    tagline: '공허의 프리즘 (바위): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11070
+    name: 공허의 괴조
+    themeId: 109
+    archetype: 11
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 568
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21070
+      normal: 11070
+      ultimate: 11070
+    drops:
+    - 5001
+    portrait: VOID_MONSTROUS_BIRD_PORTRAIT
+    standing: VOID_MONSTROUS_BIRD_STANDING
+    reworkKit:
+      originalId: 1070
+      normalName: 괴조의 발톱
+      ultimateName: 공허 강습
+      passiveName: 괴조의 부활
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: Rebirth
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '공허의 괴조: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11071
+    name: 공허의 괴조 (불)
+    themeId: 110
+    archetype: 11
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 568
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21071
+      normal: 11071
+      ultimate: 11071
+    drops:
+    - 5001
+    portrait: VOID_MONSTROUS_BIRD_PYRO_PORTRAIT
+    standing: VOID_MONSTROUS_BIRD_PYRO_STANDING
+    reworkKit:
+      originalId: 1071
+      normalName: 괴조의 발톱
+      ultimateName: 공허 강습 · 불
+      passiveName: 괴조의 부활
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: Rebirth
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Pyro
+    tagline: '공허의 괴조 (불): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11072
+    name: 공허의 괴조 (물)
+    themeId: 111
+    archetype: 11
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 568
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21072
+      normal: 11072
+      ultimate: 11072
+    drops:
+    - 5001
+    portrait: VOID_MONSTROUS_BIRD_HYDRO_PORTRAIT
+    standing: VOID_MONSTROUS_BIRD_HYDRO_STANDING
+    reworkKit:
+      originalId: 1072
+      normalName: 괴조의 발톱
+      ultimateName: 공허 강습 · 물
+      passiveName: 괴조의 부활
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: Rebirth
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Hydro
+    tagline: '공허의 괴조 (물): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11073
+    name: 공허의 괴조 (바람)
+    themeId: 112
+    archetype: 11
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 568
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21073
+      normal: 11073
+      ultimate: 11073
+    drops:
+    - 5001
+    portrait: VOID_MONSTROUS_BIRD_ANEMO_PORTRAIT
+    standing: VOID_MONSTROUS_BIRD_ANEMO_STANDING
+    reworkKit:
+      originalId: 1073
+      normalName: 괴조의 발톱
+      ultimateName: 공허 강습 · 바람
+      passiveName: 괴조의 부활
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: Rebirth
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Anemo
+    tagline: '공허의 괴조 (바람): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11074
+    name: 공허의 괴조 (번개)
+    themeId: 113
+    archetype: 11
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 568
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21074
+      normal: 11074
+      ultimate: 11074
+    drops:
+    - 5001
+    portrait: VOID_MONSTROUS_BIRD_ELECTRO_PORTRAIT
+    standing: VOID_MONSTROUS_BIRD_ELECTRO_STANDING
+    reworkKit:
+      originalId: 1074
+      normalName: 괴조의 발톱
+      ultimateName: 공허 강습 · 번개
+      passiveName: 괴조의 부활
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: Rebirth
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Electro
+    tagline: '공허의 괴조 (번개): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11075
+    name: 공허의 괴조 (풀)
+    themeId: 114
+    archetype: 11
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 568
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21075
+      normal: 11075
+      ultimate: 11075
+    drops:
+    - 5001
+    portrait: VOID_MONSTROUS_BIRD_DENDRO_PORTRAIT
+    standing: VOID_MONSTROUS_BIRD_DENDRO_STANDING
+    reworkKit:
+      originalId: 1075
+      normalName: 괴조의 발톱
+      ultimateName: 공허 강습 · 풀
+      passiveName: 괴조의 부활
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: Rebirth
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Dendro
+    tagline: '공허의 괴조 (풀): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11076
+    name: 공허의 괴조 (얼음)
+    themeId: 115
+    archetype: 11
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 568
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21076
+      normal: 11076
+      ultimate: 11076
+    drops:
+    - 5001
+    portrait: VOID_MONSTROUS_BIRD_CRYO_PORTRAIT
+    standing: VOID_MONSTROUS_BIRD_CRYO_STANDING
+    reworkKit:
+      originalId: 1076
+      normalName: 괴조의 발톱
+      ultimateName: 공허 강습 · 얼음
+      passiveName: 괴조의 부활
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: Rebirth
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Cryo
+    tagline: '공허의 괴조 (얼음): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11077
+    name: 공허의 괴조 (바위)
+    themeId: 116
+    archetype: 11
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 568
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21077
+      normal: 11077
+      ultimate: 11077
+    drops:
+    - 5001
+    portrait: VOID_MONSTROUS_BIRD_GEO_PORTRAIT
+    standing: VOID_MONSTROUS_BIRD_GEO_STANDING
+    reworkKit:
+      originalId: 1077
+      normalName: 괴조의 발톱
+      ultimateName: 공허 강습 · 바위
+      passiveName: 괴조의 부활
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: Rebirth
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Geo
+    tagline: '공허의 괴조 (바위): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11078
+    name: 공허의 멧돼지
+    themeId: 109
+    archetype: 9
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    - Beast
+    vfxClass: beast
+    hpBase: 712
+    hpGrowth: 24
+    atkBase: 51
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21078
+      normal: 11078
+      ultimate: 11078
+    drops:
+    - 5001
+    portrait: VOID_BOAR_PORTRAIT
+    standing: VOID_BOAR_STANDING
+    reworkKit:
+      originalId: 1078
+      normalName: 멧돼지의 엄니
+      ultimateName: 광란의 일격
+      passiveName: 우격다짐
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Void
+    tagline: '공허의 멧돼지: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11079
+    name: 공허의 멧돼지 (불)
+    themeId: 110
+    archetype: 9
+    tier: normal
+    element: Pyro
+    tags:
+    - RestoredTheme
+    - Void
+    - Beast
+    vfxClass: beast
+    hpBase: 712
+    hpGrowth: 24
+    atkBase: 51
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21079
+      normal: 11079
+      ultimate: 11079
+    drops:
+    - 5001
+    portrait: VOID_BOAR_PYRO_PORTRAIT
+    standing: VOID_BOAR_PYRO_STANDING
+    reworkKit:
+      originalId: 1079
+      normalName: 멧돼지의 엄니
+      ultimateName: 광란의 일격
+      passiveName: 우격다짐
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Pyro
+    tagline: '공허의 멧돼지 (불): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11080
+    name: 공허의 멧돼지 (물)
+    themeId: 111
+    archetype: 9
+    tier: normal
+    element: Hydro
+    tags:
+    - RestoredTheme
+    - Void
+    - Beast
+    vfxClass: beast
+    hpBase: 712
+    hpGrowth: 24
+    atkBase: 51
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21080
+      normal: 11080
+      ultimate: 11080
+    drops:
+    - 5001
+    portrait: VOID_BOAR_HYDRO_PORTRAIT
+    standing: VOID_BOAR_HYDRO_STANDING
+    reworkKit:
+      originalId: 1080
+      normalName: 멧돼지의 엄니
+      ultimateName: 광란의 일격
+      passiveName: 우격다짐
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Hydro
+    tagline: '공허의 멧돼지 (물): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11081
+    name: 공허의 멧돼지 (바람)
+    themeId: 112
+    archetype: 9
+    tier: normal
+    element: Anemo
+    tags:
+    - RestoredTheme
+    - Void
+    - Beast
+    vfxClass: beast
+    hpBase: 712
+    hpGrowth: 24
+    atkBase: 51
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21081
+      normal: 11081
+      ultimate: 11081
+    drops:
+    - 5001
+    portrait: VOID_BOAR_ANEMO_PORTRAIT
+    standing: VOID_BOAR_ANEMO_STANDING
+    reworkKit:
+      originalId: 1081
+      normalName: 멧돼지의 엄니
+      ultimateName: 광란의 일격
+      passiveName: 우격다짐
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Anemo
+    tagline: '공허의 멧돼지 (바람): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11082
+    name: 공허의 멧돼지 (번개)
+    themeId: 113
+    archetype: 9
+    tier: normal
+    element: Electro
+    tags:
+    - RestoredTheme
+    - Void
+    - Beast
+    vfxClass: beast
+    hpBase: 712
+    hpGrowth: 24
+    atkBase: 51
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21082
+      normal: 11082
+      ultimate: 11082
+    drops:
+    - 5001
+    portrait: VOID_BOAR_ELECTRO_PORTRAIT
+    standing: VOID_BOAR_ELECTRO_STANDING
+    reworkKit:
+      originalId: 1082
+      normalName: 멧돼지의 엄니
+      ultimateName: 광란의 일격
+      passiveName: 우격다짐
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Electro
+    tagline: '공허의 멧돼지 (번개): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11083
+    name: 공허의 멧돼지 (풀)
+    themeId: 114
+    archetype: 9
+    tier: normal
+    element: Dendro
+    tags:
+    - RestoredTheme
+    - Void
+    - Beast
+    vfxClass: beast
+    hpBase: 712
+    hpGrowth: 24
+    atkBase: 51
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21083
+      normal: 11083
+      ultimate: 11083
+    drops:
+    - 5001
+    portrait: VOID_BOAR_DENDRO_PORTRAIT
+    standing: VOID_BOAR_DENDRO_STANDING
+    reworkKit:
+      originalId: 1083
+      normalName: 멧돼지의 엄니
+      ultimateName: 광란의 일격
+      passiveName: 우격다짐
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Dendro
+    tagline: '공허의 멧돼지 (풀): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11084
+    name: 공허의 멧돼지 (얼음)
+    themeId: 115
+    archetype: 9
+    tier: normal
+    element: Cryo
+    tags:
+    - RestoredTheme
+    - Void
+    - Beast
+    vfxClass: beast
+    hpBase: 712
+    hpGrowth: 24
+    atkBase: 51
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21084
+      normal: 11084
+      ultimate: 11084
+    drops:
+    - 5001
+    portrait: VOID_BOAR_CRYO_PORTRAIT
+    standing: VOID_BOAR_CRYO_STANDING
+    reworkKit:
+      originalId: 1084
+      normalName: 멧돼지의 엄니
+      ultimateName: 광란의 일격
+      passiveName: 우격다짐
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Cryo
+    tagline: '공허의 멧돼지 (얼음): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11085
+    name: 공허의 멧돼지 (바위)
+    themeId: 116
+    archetype: 9
+    tier: normal
+    element: Geo
+    tags:
+    - RestoredTheme
+    - Void
+    - Beast
+    vfxClass: beast
+    hpBase: 712
+    hpGrowth: 24
+    atkBase: 51
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21085
+      normal: 11085
+      ultimate: 11085
+    drops:
+    - 5001
+    portrait: VOID_BOAR_GEO_PORTRAIT
+    standing: VOID_BOAR_GEO_STANDING
+    reworkKit:
+      originalId: 1085
+      normalName: 멧돼지의 엄니
+      ultimateName: 광란의 일격
+      passiveName: 우격다짐
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Geo
+    tagline: '공허의 멧돼지 (바위): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11086
+    name: 공허의 늑대
+    themeId: 109
+    archetype: 7
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    - Beast
+    vfxClass: beast
+    hpBase: 592
+    hpGrowth: 24
+    atkBase: 53
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21086
+      normal: 11086
+      ultimate: 11086
+    drops:
+    - 5001
+    portrait: VOID_WOLF_PORTRAIT
+    standing: VOID_WOLF_STANDING
+    reworkKit:
+      originalId: 1086
+      normalName: 늑대의 송곳니
+      ultimateName: 피의 포식
+      passiveName: 상처 후비기
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      normalDot: Curse
+      lifesteal: 0.15
+    tagline: '공허의 늑대: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11087
+    name: 공허의 늑대 (불)
+    themeId: 110
+    archetype: 7
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    - Beast
+    vfxClass: beast
+    hpBase: 592
+    hpGrowth: 24
+    atkBase: 53
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21087
+      normal: 11087
+      ultimate: 11087
+    drops:
+    - 5001
+    portrait: VOID_WOLF_PYRO_PORTRAIT
+    standing: VOID_WOLF_PYRO_STANDING
+    reworkKit:
+      originalId: 1087
+      normalName: 늑대의 송곳니
+      ultimateName: 피의 포식 · 불
+      passiveName: 상처 후비기
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Pyro
+      normalDot: Curse
+      lifesteal: 0.15
+    tagline: '공허의 늑대 (불): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11088
+    name: 공허의 늑대 (물)
+    themeId: 111
+    archetype: 7
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    - Beast
+    vfxClass: beast
+    hpBase: 592
+    hpGrowth: 24
+    atkBase: 53
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21088
+      normal: 11088
+      ultimate: 11088
+    drops:
+    - 5001
+    portrait: VOID_WOLF_HYDRO_PORTRAIT
+    standing: VOID_WOLF_HYDRO_STANDING
+    reworkKit:
+      originalId: 1088
+      normalName: 늑대의 송곳니
+      ultimateName: 피의 포식 · 물
+      passiveName: 상처 후비기
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Hydro
+      normalDot: Curse
+      lifesteal: 0.15
+    tagline: '공허의 늑대 (물): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11089
+    name: 공허의 늑대 (바람)
+    themeId: 112
+    archetype: 7
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    - Beast
+    vfxClass: beast
+    hpBase: 592
+    hpGrowth: 24
+    atkBase: 53
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21089
+      normal: 11089
+      ultimate: 11089
+    drops:
+    - 5001
+    portrait: VOID_WOLF_ANEMO_PORTRAIT
+    standing: VOID_WOLF_ANEMO_STANDING
+    reworkKit:
+      originalId: 1089
+      normalName: 늑대의 송곳니
+      ultimateName: 피의 포식 · 바람
+      passiveName: 상처 후비기
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Anemo
+      normalDot: Curse
+      lifesteal: 0.15
+    tagline: '공허의 늑대 (바람): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11090
+    name: 공허의 늑대 (번개)
+    themeId: 113
+    archetype: 7
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    - Beast
+    vfxClass: beast
+    hpBase: 592
+    hpGrowth: 24
+    atkBase: 53
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21090
+      normal: 11090
+      ultimate: 11090
+    drops:
+    - 5001
+    portrait: VOID_WOLF_ELECTRO_PORTRAIT
+    standing: VOID_WOLF_ELECTRO_STANDING
+    reworkKit:
+      originalId: 1090
+      normalName: 늑대의 송곳니
+      ultimateName: 피의 포식 · 번개
+      passiveName: 상처 후비기
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Electro
+      normalDot: Curse
+      lifesteal: 0.15
+    tagline: '공허의 늑대 (번개): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11091
+    name: 공허의 늑대 (풀)
+    themeId: 114
+    archetype: 7
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    - Beast
+    vfxClass: beast
+    hpBase: 592
+    hpGrowth: 24
+    atkBase: 53
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21091
+      normal: 11091
+      ultimate: 11091
+    drops:
+    - 5001
+    portrait: VOID_WOLF_DENDRO_PORTRAIT
+    standing: VOID_WOLF_DENDRO_STANDING
+    reworkKit:
+      originalId: 1091
+      normalName: 늑대의 송곳니
+      ultimateName: 피의 포식 · 풀
+      passiveName: 상처 후비기
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Dendro
+      normalDot: Curse
+      lifesteal: 0.15
+    tagline: '공허의 늑대 (풀): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11092
+    name: 공허의 늑대 (얼음)
+    themeId: 115
+    archetype: 7
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    - Beast
+    vfxClass: beast
+    hpBase: 592
+    hpGrowth: 24
+    atkBase: 53
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21092
+      normal: 11092
+      ultimate: 11092
+    drops:
+    - 5001
+    portrait: VOID_WOLF_CRYO_PORTRAIT
+    standing: VOID_WOLF_CRYO_STANDING
+    reworkKit:
+      originalId: 1092
+      normalName: 늑대의 송곳니
+      ultimateName: 피의 포식 · 얼음
+      passiveName: 상처 후비기
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Cryo
+      normalDot: Curse
+      lifesteal: 0.15
+    tagline: '공허의 늑대 (얼음): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11093
+    name: 공허의 늑대 (바위)
+    themeId: 116
+    archetype: 7
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    - Beast
+    vfxClass: beast
+    hpBase: 592
+    hpGrowth: 24
+    atkBase: 53
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21093
+      normal: 11093
+      ultimate: 11093
+    drops:
+    - 5001
+    portrait: VOID_WOLF_GEO_PORTRAIT
+    standing: VOID_WOLF_GEO_STANDING
+    reworkKit:
+      originalId: 1093
+      normalName: 늑대의 송곳니
+      ultimateName: 피의 포식 · 바위
+      passiveName: 상처 후비기
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Geo
+      normalDot: Curse
+      lifesteal: 0.15
+    tagline: '공허의 늑대 (바위): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11094
+    name: 공허의 기사
+    themeId: 109
+    archetype: 7
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 688
+    hpGrowth: 24
+    atkBase: 54
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21094
+      normal: 11094
+      ultimate: 11094
+    drops:
+    - 5001
+    portrait: VOID_KNIGHT_PORTRAIT
+    standing: VOID_KNIGHT_STANDING
+    reworkKit:
+      originalId: 1094
+      normalName: 공허의 검
+      ultimateName: 파쇄격
+      passiveName: 기사의 갑주
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Shield
+      attackForm: 50001
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      shieldRatio: 1.5
+    tagline: '공허의 기사: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11095
+    name: 공허의 기사 (불)
+    themeId: 110
+    archetype: 7
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 688
+    hpGrowth: 24
+    atkBase: 54
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21095
+      normal: 11095
+      ultimate: 11095
+    drops:
+    - 5001
+    portrait: VOID_KNIGHT_PYRO_PORTRAIT
+    standing: VOID_KNIGHT_PYRO_STANDING
+    reworkKit:
+      originalId: 1095
+      normalName: 공허의 검
+      ultimateName: 파쇄격 · 불
+      passiveName: 기사의 갑주
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Shield
+      attackForm: 50001
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Pyro
+      shieldRatio: 1.5
+    tagline: '공허의 기사 (불): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11096
+    name: 공허의 기사 (물)
+    themeId: 111
+    archetype: 7
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 688
+    hpGrowth: 24
+    atkBase: 54
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21096
+      normal: 11096
+      ultimate: 11096
+    drops:
+    - 5001
+    portrait: VOID_KNIGHT_HYDRO_PORTRAIT
+    standing: VOID_KNIGHT_HYDRO_STANDING
+    reworkKit:
+      originalId: 1096
+      normalName: 공허의 검
+      ultimateName: 파쇄격 · 물
+      passiveName: 기사의 갑주
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Shield
+      attackForm: 50001
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Hydro
+      shieldRatio: 1.5
+    tagline: '공허의 기사 (물): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11097
+    name: 공허의 기사 (바람)
+    themeId: 112
+    archetype: 7
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 688
+    hpGrowth: 24
+    atkBase: 54
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21097
+      normal: 11097
+      ultimate: 11097
+    drops:
+    - 5001
+    portrait: VOID_KNIGHT_ANEMO_PORTRAIT
+    standing: VOID_KNIGHT_ANEMO_STANDING
+    reworkKit:
+      originalId: 1097
+      normalName: 공허의 검
+      ultimateName: 파쇄격 · 바람
+      passiveName: 기사의 갑주
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Shield
+      attackForm: 50001
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Anemo
+      shieldRatio: 1.5
+    tagline: '공허의 기사 (바람): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11098
+    name: 공허의 기사 (번개)
+    themeId: 113
+    archetype: 7
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 688
+    hpGrowth: 24
+    atkBase: 54
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21098
+      normal: 11098
+      ultimate: 11098
+    drops:
+    - 5001
+    portrait: VOID_KNIGHT_ELECTRO_PORTRAIT
+    standing: VOID_KNIGHT_ELECTRO_STANDING
+    reworkKit:
+      originalId: 1098
+      normalName: 공허의 검
+      ultimateName: 파쇄격 · 번개
+      passiveName: 기사의 갑주
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Shield
+      attackForm: 50001
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Electro
+      shieldRatio: 1.5
+    tagline: '공허의 기사 (번개): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11099
+    name: 공허의 기사 (풀)
+    themeId: 114
+    archetype: 7
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 688
+    hpGrowth: 24
+    atkBase: 54
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21099
+      normal: 11099
+      ultimate: 11099
+    drops:
+    - 5001
+    portrait: VOID_KNIGHT_DENDRO_PORTRAIT
+    standing: VOID_KNIGHT_DENDRO_STANDING
+    reworkKit:
+      originalId: 1099
+      normalName: 공허의 검
+      ultimateName: 파쇄격 · 풀
+      passiveName: 기사의 갑주
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Shield
+      attackForm: 50001
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Dendro
+      shieldRatio: 1.5
+    tagline: '공허의 기사 (풀): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11100
+    name: 공허의 기사 (얼음)
+    themeId: 115
+    archetype: 7
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 688
+    hpGrowth: 24
+    atkBase: 54
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21100
+      normal: 11100
+      ultimate: 11100
+    drops:
+    - 5001
+    portrait: VOID_KNIGHT_CRYO_PORTRAIT
+    standing: VOID_KNIGHT_CRYO_STANDING
+    reworkKit:
+      originalId: 1100
+      normalName: 공허의 검
+      ultimateName: 파쇄격 · 얼음
+      passiveName: 기사의 갑주
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Shield
+      attackForm: 50001
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Cryo
+      shieldRatio: 1.5
+    tagline: '공허의 기사 (얼음): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11101
+    name: 공허의 기사 (바위)
+    themeId: 116
+    archetype: 7
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 688
+    hpGrowth: 24
+    atkBase: 54
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21101
+      normal: 11101
+      ultimate: 11101
+    drops:
+    - 5001
+    portrait: VOID_KNIGHT_GEO_PORTRAIT
+    standing: VOID_KNIGHT_GEO_STANDING
+    reworkKit:
+      originalId: 1101
+      normalName: 공허의 검
+      ultimateName: 파쇄격 · 바위
+      passiveName: 기사의 갑주
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Shield
+      attackForm: 50001
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Geo
+      shieldRatio: 1.5
+    tagline: '공허의 기사 (바위): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11102
+    name: 공허의 사수
+    themeId: 109
+    archetype: 11
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: archer
+    hpBase: 544
+    hpGrowth: 24
+    atkBase: 48
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21102
+      normal: 11102
+      ultimate: 11102
+    drops:
+    - 5001
+    portrait: VOID_MARKSMAN_PORTRAIT
+    standing: VOID_MARKSMAN_STANDING
+    reworkKit:
+      originalId: 1102
+      normalName: 공허의 사격
+      ultimateName: 공허의 일격
+      passiveName: 조준선
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '공허의 사수: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11103
+    name: 공허의 사수 (불)
+    themeId: 110
+    archetype: 11
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: archer
+    hpBase: 544
+    hpGrowth: 24
+    atkBase: 48
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21103
+      normal: 11103
+      ultimate: 11103
+    drops:
+    - 5001
+    portrait: VOID_MARKSMAN_PYRO_PORTRAIT
+    standing: VOID_MARKSMAN_PYRO_STANDING
+    reworkKit:
+      originalId: 1103
+      normalName: 공허의 사격
+      ultimateName: 공허의 일격 · 불
+      passiveName: 조준선
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Pyro
+    tagline: '공허의 사수 (불): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11104
+    name: 공허의 사수 (물)
+    themeId: 111
+    archetype: 11
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: archer
+    hpBase: 544
+    hpGrowth: 24
+    atkBase: 48
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21104
+      normal: 11104
+      ultimate: 11104
+    drops:
+    - 5001
+    portrait: VOID_MARKSMAN_HYDRO_PORTRAIT
+    standing: VOID_MARKSMAN_HYDRO_STANDING
+    reworkKit:
+      originalId: 1104
+      normalName: 공허의 사격
+      ultimateName: 공허의 일격 · 물
+      passiveName: 조준선
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Hydro
+    tagline: '공허의 사수 (물): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11105
+    name: 공허의 사수 (바람)
+    themeId: 112
+    archetype: 11
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: archer
+    hpBase: 544
+    hpGrowth: 24
+    atkBase: 48
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21105
+      normal: 11105
+      ultimate: 11105
+    drops:
+    - 5001
+    portrait: VOID_MARKSMAN_ANEMO_PORTRAIT
+    standing: VOID_MARKSMAN_ANEMO_STANDING
+    reworkKit:
+      originalId: 1105
+      normalName: 공허의 사격
+      ultimateName: 공허의 일격 · 바람
+      passiveName: 조준선
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Anemo
+    tagline: '공허의 사수 (바람): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11106
+    name: 공허의 사수 (번개)
+    themeId: 113
+    archetype: 11
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: archer
+    hpBase: 544
+    hpGrowth: 24
+    atkBase: 48
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21106
+      normal: 11106
+      ultimate: 11106
+    drops:
+    - 5001
+    portrait: VOID_MARKSMAN_ELECTRO_PORTRAIT
+    standing: VOID_MARKSMAN_ELECTRO_STANDING
+    reworkKit:
+      originalId: 1106
+      normalName: 공허의 사격
+      ultimateName: 공허의 일격 · 번개
+      passiveName: 조준선
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Electro
+    tagline: '공허의 사수 (번개): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11107
+    name: 공허의 사수 (풀)
+    themeId: 114
+    archetype: 11
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: archer
+    hpBase: 544
+    hpGrowth: 24
+    atkBase: 48
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21107
+      normal: 11107
+      ultimate: 11107
+    drops:
+    - 5001
+    portrait: VOID_MARKSMAN_DENDRO_PORTRAIT
+    standing: VOID_MARKSMAN_DENDRO_STANDING
+    reworkKit:
+      originalId: 1107
+      normalName: 공허의 사격
+      ultimateName: 공허의 일격 · 풀
+      passiveName: 조준선
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Dendro
+    tagline: '공허의 사수 (풀): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11108
+    name: 공허의 사수 (얼음)
+    themeId: 115
+    archetype: 11
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: archer
+    hpBase: 544
+    hpGrowth: 24
+    atkBase: 48
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21108
+      normal: 11108
+      ultimate: 11108
+    drops:
+    - 5001
+    portrait: VOID_MARKSMAN_CRYO_PORTRAIT
+    standing: VOID_MARKSMAN_CRYO_STANDING
+    reworkKit:
+      originalId: 1108
+      normalName: 공허의 사격
+      ultimateName: 공허의 일격 · 얼음
+      passiveName: 조준선
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Cryo
+    tagline: '공허의 사수 (얼음): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11109
+    name: 공허의 사수 (바위)
+    themeId: 116
+    archetype: 11
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: archer
+    hpBase: 544
+    hpGrowth: 24
+    atkBase: 48
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21109
+      normal: 11109
+      ultimate: 11109
+    drops:
+    - 5001
+    portrait: VOID_MARKSMAN_GEO_PORTRAIT
+    standing: VOID_MARKSMAN_GEO_STANDING
+    reworkKit:
+      originalId: 1109
+      normalName: 공허의 사격
+      ultimateName: 공허의 일격 · 바위
+      passiveName: 조준선
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Geo
+    tagline: '공허의 사수 (바위): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11110
+    name: 공허의 선봉대
+    themeId: 109
+    archetype: 8
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 736
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21110
+      normal: 11110
+      ultimate: 11110
+    drops:
+    - 5001
+    portrait: VOID_VANGUARD_PORTRAIT
+    standing: VOID_VANGUARD_STANDING
+    reworkKit:
+      originalId: 1110
+      normalName: 방벽 타격
+      ultimateName: 방벽 전개
+      passiveName: 공허의 맹세
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Shield
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      shieldRatio: 1.5
+    tagline: '공허의 선봉대: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11111
+    name: 공허의 선봉대 (불)
+    themeId: 110
+    archetype: 8
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 736
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21111
+      normal: 11111
+      ultimate: 11111
+    drops:
+    - 5001
+    portrait: VOID_VANGUARD_PYRO_PORTRAIT
+    standing: VOID_VANGUARD_PYRO_STANDING
+    reworkKit:
+      originalId: 1111
+      normalName: 방벽 타격
+      ultimateName: 방벽 전개
+      passiveName: 공허의 맹세
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Shield
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      shieldRatio: 1.5
+    tagline: '공허의 선봉대 (불): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11112
+    name: 공허의 선봉대 (물)
+    themeId: 111
+    archetype: 8
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 736
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21112
+      normal: 11112
+      ultimate: 11112
+    drops:
+    - 5001
+    portrait: VOID_VANGUARD_HYDRO_PORTRAIT
+    standing: VOID_VANGUARD_HYDRO_STANDING
+    reworkKit:
+      originalId: 1112
+      normalName: 방벽 타격
+      ultimateName: 방벽 전개
+      passiveName: 공허의 맹세
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Shield
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      shieldRatio: 1.5
+    tagline: '공허의 선봉대 (물): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11113
+    name: 공허의 선봉대 (바람)
+    themeId: 112
+    archetype: 8
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 736
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21113
+      normal: 11113
+      ultimate: 11113
+    drops:
+    - 5001
+    portrait: VOID_VANGUARD_ANEMO_PORTRAIT
+    standing: VOID_VANGUARD_ANEMO_STANDING
+    reworkKit:
+      originalId: 1113
+      normalName: 방벽 타격
+      ultimateName: 방벽 전개
+      passiveName: 공허의 맹세
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Shield
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      shieldRatio: 1.5
+    tagline: '공허의 선봉대 (바람): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11114
+    name: 공허의 선봉대 (번개)
+    themeId: 113
+    archetype: 8
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 736
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21114
+      normal: 11114
+      ultimate: 11114
+    drops:
+    - 5001
+    portrait: VOID_VANGUARD_ELECTRO_PORTRAIT
+    standing: VOID_VANGUARD_ELECTRO_STANDING
+    reworkKit:
+      originalId: 1114
+      normalName: 방벽 타격
+      ultimateName: 방벽 전개
+      passiveName: 공허의 맹세
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Shield
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      shieldRatio: 1.5
+    tagline: '공허의 선봉대 (번개): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11115
+    name: 공허의 선봉대 (풀)
+    themeId: 114
+    archetype: 8
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 736
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21115
+      normal: 11115
+      ultimate: 11115
+    drops:
+    - 5001
+    portrait: VOID_VANGUARD_DENDRO_PORTRAIT
+    standing: VOID_VANGUARD_DENDRO_STANDING
+    reworkKit:
+      originalId: 1115
+      normalName: 방벽 타격
+      ultimateName: 방벽 전개
+      passiveName: 공허의 맹세
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Shield
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      shieldRatio: 1.5
+    tagline: '공허의 선봉대 (풀): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11116
+    name: 공허의 선봉대 (얼음)
+    themeId: 115
+    archetype: 8
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 736
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21116
+      normal: 11116
+      ultimate: 11116
+    drops:
+    - 5001
+    portrait: VOID_VANGUARD_CRYO_PORTRAIT
+    standing: VOID_VANGUARD_CRYO_STANDING
+    reworkKit:
+      originalId: 1116
+      normalName: 방벽 타격
+      ultimateName: 방벽 전개
+      passiveName: 공허의 맹세
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Shield
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      shieldRatio: 1.5
+    tagline: '공허의 선봉대 (얼음): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11117
+    name: 공허의 선봉대 (바위)
+    themeId: 116
+    archetype: 8
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 736
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21117
+      normal: 11117
+      ultimate: 11117
+    drops:
+    - 5001
+    portrait: VOID_VANGUARD_GEO_PORTRAIT
+    standing: VOID_VANGUARD_GEO_STANDING
+    reworkKit:
+      originalId: 1117
+      normalName: 방벽 타격
+      ultimateName: 방벽 전개
+      passiveName: 공허의 맹세
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: Shield
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      shieldRatio: 1.5
+    tagline: '공허의 선봉대 (바위): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12034
+    name: 공허의 사슴
+    themeId: 109
+    archetype: 11
+    tier: elite
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 60
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 22034
+      normal: 12034
+      ultimate: 12034
+    drops:
+    - 5001
+    portrait: VOID_DEER_PORTRAIT
+    standing: VOID_DEER_STANDING
+    reworkKit:
+      originalId: 2034
+      normalName: 사슴의 뿔
+      ultimateName: 전열 정비
+      passiveName: 원소 감응
+      normalMode: Single
+      ultimateMode: Rally
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 0.15
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '공허의 사슴: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12035
+    name: 공허의 사슴 (불)
+    themeId: 110
+    archetype: 11
+    tier: elite
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 60
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 22035
+      normal: 12035
+      ultimate: 12035
+    drops:
+    - 5001
+    portrait: VOID_DEER_PYRO_PORTRAIT
+    standing: VOID_DEER_PYRO_STANDING
+    reworkKit:
+      originalId: 2035
+      normalName: 사슴의 뿔 · 불
+      ultimateName: 전열 정비
+      passiveName: 원소 감응
+      normalMode: Single
+      ultimateMode: Rally
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 0.15
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: Pyro
+      ultimateElement: None
+    tagline: '공허의 사슴 (불): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12036
+    name: 공허의 사슴 (물)
+    themeId: 111
+    archetype: 11
+    tier: elite
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 60
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 22036
+      normal: 12036
+      ultimate: 12036
+    drops:
+    - 5001
+    portrait: VOID_DEER_HYDRO_PORTRAIT
+    standing: VOID_DEER_HYDRO_STANDING
+    reworkKit:
+      originalId: 2036
+      normalName: 사슴의 뿔 · 물
+      ultimateName: 전열 정비
+      passiveName: 원소 감응
+      normalMode: Single
+      ultimateMode: Rally
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 0.15
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: Hydro
+      ultimateElement: None
+    tagline: '공허의 사슴 (물): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12037
+    name: 공허의 사슴 (바람)
+    themeId: 112
+    archetype: 11
+    tier: elite
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 60
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 22037
+      normal: 12037
+      ultimate: 12037
+    drops:
+    - 5001
+    portrait: VOID_DEER_ANEMO_PORTRAIT
+    standing: VOID_DEER_ANEMO_STANDING
+    reworkKit:
+      originalId: 2037
+      normalName: 사슴의 뿔 · 바람
+      ultimateName: 전열 정비
+      passiveName: 원소 감응
+      normalMode: Single
+      ultimateMode: Rally
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 0.15
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: Anemo
+      ultimateElement: None
+    tagline: '공허의 사슴 (바람): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12038
+    name: 공허의 사슴 (번개)
+    themeId: 113
+    archetype: 11
+    tier: elite
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 60
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 22038
+      normal: 12038
+      ultimate: 12038
+    drops:
+    - 5001
+    portrait: VOID_DEER_ELECTRO_PORTRAIT
+    standing: VOID_DEER_ELECTRO_STANDING
+    reworkKit:
+      originalId: 2038
+      normalName: 사슴의 뿔 · 번개
+      ultimateName: 전열 정비
+      passiveName: 원소 감응
+      normalMode: Single
+      ultimateMode: Rally
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 0.15
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: Electro
+      ultimateElement: None
+    tagline: '공허의 사슴 (번개): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12039
+    name: 공허의 사슴 (풀)
+    themeId: 114
+    archetype: 11
+    tier: elite
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 60
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 22039
+      normal: 12039
+      ultimate: 12039
+    drops:
+    - 5001
+    portrait: VOID_DEER_DENDRO_PORTRAIT
+    standing: VOID_DEER_DENDRO_STANDING
+    reworkKit:
+      originalId: 2039
+      normalName: 사슴의 뿔 · 풀
+      ultimateName: 전열 정비
+      passiveName: 원소 감응
+      normalMode: Single
+      ultimateMode: Rally
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 0.15
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: Dendro
+      ultimateElement: None
+    tagline: '공허의 사슴 (풀): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12040
+    name: 공허의 사슴 (얼음)
+    themeId: 115
+    archetype: 11
+    tier: elite
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 60
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 22040
+      normal: 12040
+      ultimate: 12040
+    drops:
+    - 5001
+    portrait: VOID_DEER_CRYO_PORTRAIT
+    standing: VOID_DEER_CRYO_STANDING
+    reworkKit:
+      originalId: 2040
+      normalName: 사슴의 뿔 · 얼음
+      ultimateName: 전열 정비
+      passiveName: 원소 감응
+      normalMode: Single
+      ultimateMode: Rally
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 0.15
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: Cryo
+      ultimateElement: None
+    tagline: '공허의 사슴 (얼음): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12041
+    name: 공허의 사슴 (바위)
+    themeId: 116
+    archetype: 11
+    tier: elite
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 60
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 22041
+      normal: 12041
+      ultimate: 12041
+    drops:
+    - 5001
+    portrait: VOID_DEER_GEO_PORTRAIT
+    standing: VOID_DEER_GEO_STANDING
+    reworkKit:
+      originalId: 2041
+      normalName: 사슴의 뿔 · 바위
+      ultimateName: 전열 정비
+      passiveName: 원소 감응
+      normalMode: Single
+      ultimateMode: Rally
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 0.15
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: Geo
+      ultimateElement: None
+    tagline: '공허의 사슴 (바위): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12042
+    name: 공허의 분쇄자
+    themeId: 109
+    archetype: 9
+    tier: elite
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 1950
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 22042
+      normal: 12042
+      ultimate: 12042
+    drops:
+    - 5001
+    portrait: VOID_CRUSHER_PORTRAIT
+    standing: VOID_CRUSHER_STANDING
+    reworkKit:
+      originalId: 2042
+      normalName: 분쇄 타격
+      ultimateName: 분쇄
+      passiveName: 질량
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '공허의 분쇄자: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12043
+    name: 공허의 분쇄자 (불)
+    themeId: 110
+    archetype: 9
+    tier: elite
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 1950
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 22043
+      normal: 12043
+      ultimate: 12043
+    drops:
+    - 5001
+    portrait: VOID_CRUSHER_PYRO_PORTRAIT
+    standing: VOID_CRUSHER_PYRO_STANDING
+    reworkKit:
+      originalId: 2043
+      normalName: 분쇄 타격
+      ultimateName: 분쇄 · 불
+      passiveName: 질량
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Pyro
+    tagline: '공허의 분쇄자 (불): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12044
+    name: 공허의 분쇄자 (물)
+    themeId: 111
+    archetype: 9
+    tier: elite
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 1950
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 22044
+      normal: 12044
+      ultimate: 12044
+    drops:
+    - 5001
+    portrait: VOID_CRUSHER_HYDRO_PORTRAIT
+    standing: VOID_CRUSHER_HYDRO_STANDING
+    reworkKit:
+      originalId: 2044
+      normalName: 분쇄 타격
+      ultimateName: 분쇄 · 물
+      passiveName: 질량
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Hydro
+    tagline: '공허의 분쇄자 (물): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12045
+    name: 공허의 분쇄자 (바람)
+    themeId: 112
+    archetype: 9
+    tier: elite
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 1950
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 22045
+      normal: 12045
+      ultimate: 12045
+    drops:
+    - 5001
+    portrait: VOID_CRUSHER_ANEMO_PORTRAIT
+    standing: VOID_CRUSHER_ANEMO_STANDING
+    reworkKit:
+      originalId: 2045
+      normalName: 분쇄 타격
+      ultimateName: 분쇄 · 바람
+      passiveName: 질량
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Anemo
+    tagline: '공허의 분쇄자 (바람): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12046
+    name: 공허의 분쇄자 (번개)
+    themeId: 113
+    archetype: 9
+    tier: elite
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 1950
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 22046
+      normal: 12046
+      ultimate: 12046
+    drops:
+    - 5001
+    portrait: VOID_CRUSHER_ELECTRO_PORTRAIT
+    standing: VOID_CRUSHER_ELECTRO_STANDING
+    reworkKit:
+      originalId: 2046
+      normalName: 분쇄 타격
+      ultimateName: 분쇄 · 번개
+      passiveName: 질량
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Electro
+    tagline: '공허의 분쇄자 (번개): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12047
+    name: 공허의 분쇄자 (풀)
+    themeId: 114
+    archetype: 9
+    tier: elite
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 1950
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 22047
+      normal: 12047
+      ultimate: 12047
+    drops:
+    - 5001
+    portrait: VOID_CRUSHER_DENDRO_PORTRAIT
+    standing: VOID_CRUSHER_DENDRO_STANDING
+    reworkKit:
+      originalId: 2047
+      normalName: 분쇄 타격
+      ultimateName: 분쇄 · 풀
+      passiveName: 질량
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Dendro
+    tagline: '공허의 분쇄자 (풀): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12048
+    name: 공허의 분쇄자 (얼음)
+    themeId: 115
+    archetype: 9
+    tier: elite
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 1950
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 22048
+      normal: 12048
+      ultimate: 12048
+    drops:
+    - 5001
+    portrait: VOID_CRUSHER_CRYO_PORTRAIT
+    standing: VOID_CRUSHER_CRYO_STANDING
+    reworkKit:
+      originalId: 2048
+      normalName: 분쇄 타격
+      ultimateName: 분쇄 · 얼음
+      passiveName: 질량
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Cryo
+    tagline: '공허의 분쇄자 (얼음): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12049
+    name: 공허의 분쇄자 (바위)
+    themeId: 116
+    archetype: 9
+    tier: elite
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 1950
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 22049
+      normal: 12049
+      ultimate: 12049
+    drops:
+    - 5001
+    portrait: VOID_CRUSHER_GEO_PORTRAIT
+    standing: VOID_CRUSHER_GEO_STANDING
+    reworkKit:
+      originalId: 2049
+      normalName: 분쇄 타격
+      ultimateName: 분쇄 · 바위
+      passiveName: 질량
+      normalMode: Single
+      ultimateMode: Shield
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.5
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Geo
+    tagline: '공허의 분쇄자 (바위): 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 13050
+    name: 공허의 용
+    themeId: 109
+    archetype: 8
+    tier: boss
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 124
+    atkGrowth: 4.5
+    spAtkBase: 110
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 23050
+      normal: 13050
+      ultimate: 13050
+    drops:
+    - 5001
+    portrait: VOID_DRAGON_PORTRAIT
+    standing: VOID_DRAGON_STANDING
+    reworkKit:
+      originalId: 3050
+      normalName: 브레스
+      ultimateName: 원소 붕괴
+      passiveName: 공허의 근원
+      normalMode: Area
+      ultimateMode: Area
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.45
+      ultimateRatio: 0.85
+      normalTargets: 8
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '공허의 용: 광역 공격으로 파티를 압박합니다.'
+  - id: 13051
+    name: 공허의 용 (불)
+    themeId: 110
+    archetype: 8
+    tier: boss
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 124
+    atkGrowth: 4.5
+    spAtkBase: 110
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 23051
+      normal: 13051
+      ultimate: 13051
+    drops:
+    - 5001
+    portrait: VOID_DRAGON_PYRO_PORTRAIT
+    standing: VOID_DRAGON_PYRO_STANDING
+    reworkKit:
+      originalId: 3051
+      normalName: 브레스 · 불
+      ultimateName: 원소 붕괴 · 불
+      passiveName: 공허의 근원
+      normalMode: Area
+      ultimateMode: Area
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.45
+      ultimateRatio: 0.85
+      normalTargets: 8
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: Pyro
+      ultimateElement: Pyro
+    tagline: '공허의 용 (불): 광역 공격으로 파티를 압박합니다.'
+  - id: 13052
+    name: 공허의 용 (물)
+    themeId: 111
+    archetype: 8
+    tier: boss
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 124
+    atkGrowth: 4.5
+    spAtkBase: 110
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 23052
+      normal: 13052
+      ultimate: 13052
+    drops:
+    - 5001
+    portrait: VOID_DRAGON_HYDRO_PORTRAIT
+    standing: VOID_DRAGON_HYDRO_STANDING
+    reworkKit:
+      originalId: 3052
+      normalName: 브레스 · 물
+      ultimateName: 원소 붕괴 · 물
+      passiveName: 공허의 근원
+      normalMode: Area
+      ultimateMode: Area
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.45
+      ultimateRatio: 0.85
+      normalTargets: 8
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: Hydro
+      ultimateElement: Hydro
+    tagline: '공허의 용 (물): 광역 공격으로 파티를 압박합니다.'
+  - id: 13053
+    name: 공허의 용 (바람)
+    themeId: 112
+    archetype: 8
+    tier: boss
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 124
+    atkGrowth: 4.5
+    spAtkBase: 110
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 23053
+      normal: 13053
+      ultimate: 13053
+    drops:
+    - 5001
+    portrait: VOID_DRAGON_ANEMO_PORTRAIT
+    standing: VOID_DRAGON_ANEMO_STANDING
+    reworkKit:
+      originalId: 3053
+      normalName: 브레스 · 바람
+      ultimateName: 원소 붕괴 · 바람
+      passiveName: 공허의 근원
+      normalMode: Area
+      ultimateMode: Area
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.45
+      ultimateRatio: 0.85
+      normalTargets: 8
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: Anemo
+      ultimateElement: Anemo
+    tagline: '공허의 용 (바람): 광역 공격으로 파티를 압박합니다.'
+  - id: 13054
+    name: 공허의 용 (번개)
+    themeId: 113
+    archetype: 8
+    tier: boss
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 124
+    atkGrowth: 4.5
+    spAtkBase: 110
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 23054
+      normal: 13054
+      ultimate: 13054
+    drops:
+    - 5001
+    portrait: VOID_DRAGON_ELECTRO_PORTRAIT
+    standing: VOID_DRAGON_ELECTRO_STANDING
+    reworkKit:
+      originalId: 3054
+      normalName: 브레스 · 번개
+      ultimateName: 원소 붕괴 · 번개
+      passiveName: 공허의 근원
+      normalMode: Area
+      ultimateMode: Area
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.45
+      ultimateRatio: 0.85
+      normalTargets: 8
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: Electro
+      ultimateElement: Electro
+    tagline: '공허의 용 (번개): 광역 공격으로 파티를 압박합니다.'
+  - id: 13055
+    name: 공허의 용 (풀)
+    themeId: 114
+    archetype: 8
+    tier: boss
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 124
+    atkGrowth: 4.5
+    spAtkBase: 110
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 23055
+      normal: 13055
+      ultimate: 13055
+    drops:
+    - 5001
+    portrait: VOID_DRAGON_DENDRO_PORTRAIT
+    standing: VOID_DRAGON_DENDRO_STANDING
+    reworkKit:
+      originalId: 3055
+      normalName: 브레스 · 풀
+      ultimateName: 원소 붕괴 · 풀
+      passiveName: 공허의 근원
+      normalMode: Area
+      ultimateMode: Area
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.45
+      ultimateRatio: 0.85
+      normalTargets: 8
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: Dendro
+      ultimateElement: Dendro
+    tagline: '공허의 용 (풀): 광역 공격으로 파티를 압박합니다.'
+  - id: 13056
+    name: 공허의 용 (얼음)
+    themeId: 115
+    archetype: 8
+    tier: boss
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 124
+    atkGrowth: 4.5
+    spAtkBase: 110
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 23056
+      normal: 13056
+      ultimate: 13056
+    drops:
+    - 5001
+    portrait: VOID_DRAGON_CRYO_PORTRAIT
+    standing: VOID_DRAGON_CRYO_STANDING
+    reworkKit:
+      originalId: 3056
+      normalName: 브레스 · 얼음
+      ultimateName: 원소 붕괴 · 얼음
+      passiveName: 공허의 근원
+      normalMode: Area
+      ultimateMode: Area
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.45
+      ultimateRatio: 0.85
+      normalTargets: 8
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: Cryo
+      ultimateElement: Cryo
+    tagline: '공허의 용 (얼음): 광역 공격으로 파티를 압박합니다.'
+  - id: 13057
+    name: 공허의 용 (바위)
+    themeId: 116
+    archetype: 8
+    tier: boss
+    element: Void
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 124
+    atkGrowth: 4.5
+    spAtkBase: 110
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 23057
+      normal: 13057
+      ultimate: 13057
+    drops:
+    - 5001
+    portrait: VOID_DRAGON_GEO_PORTRAIT
+    standing: VOID_DRAGON_GEO_STANDING
+    reworkKit:
+      originalId: 3057
+      normalName: 브레스 · 바위
+      ultimateName: 원소 붕괴 · 바위
+      passiveName: 공허의 근원
+      normalMode: Area
+      ultimateMode: Area
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.45
+      ultimateRatio: 0.85
+      normalTargets: 8
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: Geo
+      ultimateElement: Geo
+    tagline: '공허의 용 (바위): 광역 공격으로 파티를 압박합니다.'
+  - id: 11120
+    name: 광전사
+    themeId: 117
+    archetype: 7
+    tier: normal
+    element: Pyro
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 544
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21120
+      normal: 11120
+      ultimate: 11120
+    drops:
+    - 5001
+    portrait: BERSERKER_PORTRAIT
+    standing: BERSERKER_STANDING
+    reworkKit:
+      originalId: 1120
+      normalName: 도끼질
+      ultimateName: 광란
+      passiveName: 광전사의 격노
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: Rage
+      attackForm: 50001
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 2.0
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 4
+      normalElement: Pyro
+      ultimateElement: None
+    tagline: '광전사: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11122
+    name: 볼바
+    themeId: 117
+    archetype: 11
+    tier: normal
+    element: Cryo
+    tags:
+    - RestoredTheme
+    vfxClass: mage
+    hpBase: 452
+    hpGrowth: 24
+    atkBase: 41
+    atkGrowth: 2.2
+    spAtkBase: 80
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21122
+      normal: 11122
+      ultimate: 11122
+    drops:
+    - 5001
+    portrait: VOLVA_PORTRAIT
+    standing: VOLVA_STANDING
+    reworkKit:
+      originalId: 1122
+      normalName: 서리의 노래
+      ultimateName: 셰이드
+      passiveName: 스팀팩
+      normalMode: Heal
+      ultimateMode: Heal
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.025
+      ultimateRatio: 0.055
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Cryo
+    tagline: '볼바: 치유로 동료의 전선을 유지합니다.'
+  - id: 11121
+    name: 에인하르
+    themeId: 117
+    archetype: 7
+    tier: normal
+    element: Pyro
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 604
+    hpGrowth: 24
+    atkBase: 54
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21121
+      normal: 11121
+      ultimate: 11121
+    drops:
+    - 5001
+    portrait: EINHAR_PORTRAIT
+    standing: EINHAR_STANDING
+    reworkKit:
+      originalId: 1121
+      normalName: 도끼질
+      ultimateName: 광란
+      passiveName: 광전사의 격노
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: Rage
+      attackForm: 50001
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 2.0
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 4
+      normalElement: Pyro
+      ultimateElement: None
+    tagline: '에인하르: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 13060
+    name: 토르
+    themeId: 117
+    archetype: 8
+    tier: boss
+    element: Electro
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 126
+    atkGrowth: 4.5
+    spAtkBase: 64
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 23060
+      normal: 13060
+      ultimate: 13060
+    drops:
+    - 5001
+    portrait: THOR_PORTRAIT
+    standing: THOR_STANDING
+    reworkKit:
+      originalId: 3060
+      normalName: 망치질
+      ultimateName: 천둥의 신
+      passiveName: 뇌신의 박자
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.9
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: Electro
+      ultimateElement: Electro
+      healingReduction: 0.25
+    tagline: '토르: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11123
+    name: 노른
+    themeId: 117
+    archetype: 11
+    tier: normal
+    element: Cryo
+    tags:
+    - RestoredTheme
+    vfxClass: mage
+    hpBase: 503
+    hpGrowth: 24
+    atkBase: 41
+    atkGrowth: 2.2
+    spAtkBase: 92
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21123
+      normal: 11123
+      ultimate: 11123
+    drops:
+    - 5001
+    portrait: NORN_PORTRAIT
+    standing: NORN_STANDING
+    reworkKit:
+      originalId: 1123
+      normalName: 서리의 노래
+      ultimateName: 셰이드
+      passiveName: 스팀팩
+      normalMode: Heal
+      ultimateMode: Heal
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.025
+      ultimateRatio: 0.055
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Cryo
+    tagline: '노른: 치유로 동료의 전선을 유지합니다.'
+  - id: 11124
+    name: 발키리
+    themeId: 117
+    archetype: 10
+    tier: normal
+    element: Cryo
+    tags:
+    - RestoredTheme
+    vfxClass: archer
+    hpBase: 568
+    hpGrowth: 24
+    atkBase: 51
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 105
+    manaMax: 100
+    codes:
+      passive: 21124
+      normal: 11124
+      ultimate: 11124
+    drops:
+    - 5001
+    portrait: VALKYRIE_PORTRAIT
+    standing: VALKYRIE_STANDING
+    reworkKit:
+      originalId: 1124
+      normalName: 창 던지기
+      ultimateName: 서리창
+      passiveName: 전장의 선택자
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: Formation
+      attackForm: 50003
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Cryo
+    tagline: '발키리: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12050
+    name: 라그나르
+    themeId: 117
+    archetype: 7
+    tier: elite
+    element: Pyro
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 22050
+      normal: 12050
+      ultimate: 12050
+    drops:
+    - 5001
+    portrait: RAGNAR_PORTRAIT
+    standing: RAGNAR_STANDING
+    reworkKit:
+      originalId: 2050
+      normalName: 도끼질
+      ultimateName: 광란
+      passiveName: 왕의 격노
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: Rage
+      attackForm: 50001
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 2.0
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 4
+      normalElement: Pyro
+      ultimateElement: None
+    tagline: '라그나르: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 13061
+    name: 혹한의 거인
+    themeId: 115
+    archetype: 7
+    tier: boss
+    element: Cryo
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 126
+    atkGrowth: 4.5
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 23061
+      normal: 13061
+      ultimate: 13061
+    drops:
+    - 5001
+    portrait: FROST_GIANT_PORTRAIT
+    standing: FROST_GIANT_STANDING
+    reworkKit:
+      originalId: 3061
+      normalName: 서리 짓밟기
+      ultimateName: 혹한의 강림
+      passiveName: 혹한의 노심
+      normalMode: Area
+      ultimateMode: Area
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.45
+      ultimateRatio: 0.85
+      normalTargets: 8
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: Cryo
+      ultimateElement: None
+    tagline: '혹한의 거인: 광역 공격으로 파티를 압박합니다.'
+  - id: 12051
+    name: 시구르드
+    themeId: 119
+    archetype: 7
+    tier: elite
+    element: Pyro
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 1690
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 22051
+      normal: 12051
+      ultimate: 12051
+    drops:
+    - 5001
+    portrait: SIGURD_PORTRAIT
+    standing: SIGURD_STANDING
+    reworkKit:
+      originalId: 2051
+      normalName: 그람
+      ultimateName: 파프니르 살해
+      passiveName: 맹세
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50001
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: Pyro
+      ultimateElement: Pyro
+      armorIgnore: 0.2
+    tagline: '시구르드: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12052
+    name: 브륀힐드
+    themeId: 119
+    archetype: 10
+    tier: elite
+    element: Cryo
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 1790
+    hpGrowth: 75
+    atkBase: 74
+    atkGrowth: 3.3
+    spAtkBase: 92
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 105
+    manaMax: 100
+    codes:
+      passive: 22052
+      normal: 12052
+      ultimate: 12052
+    drops:
+    - 5001
+    portrait: BRYNHILD_PORTRAIT
+    standing: BRYNHILD_STANDING
+    reworkKit:
+      originalId: 2052
+      normalName: 발키리의 창
+      ultimateName: 선고
+      passiveName: 맹세
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: None
+      attackForm: 50002
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: Cryo
+      ultimateElement: Cryo
+    tagline: '브륀힐드: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 13001
+    name: 오딘
+    themeId: 119
+    archetype: 8
+    tier: boss
+    element: Electro
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 126
+    atkGrowth: 4.5
+    spAtkBase: 80
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 23001
+      normal: 13001
+      ultimate: 13001
+    drops:
+    - 5001
+    portrait: ODIN_PHASE1_PORTRAIT
+    standing: ODIN_PHASE1_STANDING
+    reworkKit:
+      originalId: 3001
+      normalName: 궁니르
+      ultimateName: 최후의 룬
+      passiveName: 공허와의 계약
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: Rage
+      attackForm: 50002
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      healingReduction: 0.4
+      lifesteal: 0.15
+    tagline: '오딘: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11130
+    name: 공허의 등불나방
+    themeId: 120
+    archetype: 11
+    tier: normal
+    element: Dendro
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 520
+    hpGrowth: 24
+    atkBase: 39
+    atkGrowth: 2.2
+    spAtkBase: 76
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21130
+      normal: 11130
+      ultimate: 11130
+    drops:
+    - 5001
+    portrait: VOID_LANTERN_MOTH_PORTRAIT
+    standing: VOID_LANTERN_MOTH_STANDING
+    reworkKit:
+      originalId: 1130
+      normalName: 인분탄
+      ultimateName: 모여드는 등불
+      passiveName: 흔들리는 등불
+      normalMode: Single
+      ultimateMode: Heal
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 0.04
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '공허의 등불나방: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11131
+    name: 공허의 고치
+    themeId: 120
+    archetype: 7
+    tier: normal
+    element: Geo
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 422
+    hpGrowth: 24
+    atkBase: 39
+    atkGrowth: 2.2
+    spAtkBase: 64
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21131
+      normal: 11131
+      ultimate: 11131
+    drops:
+    - 5001
+    portrait: VOID_COCOON_PORTRAIT
+    standing: VOID_COCOON_STANDING
+    reworkKit:
+      originalId: 1131
+      normalName: 생명 맥동
+      ultimateName: 결정 봉합
+      passiveName: 봉합된 핵
+      normalMode: Heal
+      ultimateMode: Shield
+      passiveMode: Shield
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.02
+      ultimateRatio: 1.2
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      wardHits: 2
+    tagline: '공허의 고치: 치유로 동료의 전선을 유지합니다.'
+  - id: 11132
+    name: 공허의 고치
+    themeId: 100
+    archetype: 7
+    tier: normal
+    element: Geo
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 422
+    hpGrowth: 24
+    atkBase: 39
+    atkGrowth: 2.2
+    spAtkBase: 64
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21132
+      normal: 11132
+      ultimate: 11132
+    drops:
+    - 5001
+    portrait: VOID_COCOON_PORTRAIT
+    standing: VOID_COCOON_STANDING
+    reworkKit:
+      originalId: 1132
+      normalName: 생명 맥동
+      ultimateName: 결정 봉합
+      passiveName: 봉합된 핵
+      normalMode: Heal
+      ultimateMode: Shield
+      passiveMode: Shield
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.02
+      ultimateRatio: 1.2
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      wardHits: 2
+    tagline: '공허의 고치: 치유로 동료의 전선을 유지합니다.'
+  - id: 11133
+    name: 공허의 나비
+    themeId: 120
+    archetype: 7
+    tier: normal
+    element: Pyro
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 496
+    hpGrowth: 24
+    atkBase: 39
+    atkGrowth: 2.2
+    spAtkBase: 72
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21133
+      normal: 11133
+      ultimate: 11133
+    drops:
+    - 5001
+    portrait: VOID_BUTTERFLY_PORTRAIT
+    standing: VOID_BUTTERFLY_STANDING
+    reworkKit:
+      originalId: 1133
+      normalName: 불씨 인분
+      ultimateName: 화염 비산
+      passiveName: 불씨를 품은 날개
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Pyro
+      wardHits: 2
+    tagline: '공허의 나비: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11134
+    name: 공허의 포식자
+    themeId: 120
+    archetype: 7
+    tier: normal
+    element: Anemo
+    tags:
+    - RestoredTheme
+    - Void
+    - Beast
+    vfxClass: beast
+    hpBase: 688
+    hpGrowth: 24
+    atkBase: 56
+    atkGrowth: 2.2
+    spAtkBase: 60
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21134
+      normal: 11134
+      ultimate: 11134
+    drops:
+    - 5001
+    portrait: VOID_PREDATOR_PORTRAIT
+    standing: VOID_PREDATOR_STANDING
+    reworkKit:
+      originalId: 1134
+      normalName: 포식의 발톱
+      ultimateName: 파쇄 급강하
+      passiveName: 포식자의 외피
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: Shield
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Anemo
+      shieldRatio: 1.5
+      wardHits: 2
+    tagline: '공허의 포식자: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12060
+    name: 종말의 포식자
+    themeId: 120
+    archetype: 7
+    tier: elite
+    element: Anemo
+    tags:
+    - RestoredTheme
+    - Beast
+    vfxClass: beast
+    hpBase: 1670
+    hpGrowth: 75
+    atkBase: 92
+    atkGrowth: 3.3
+    spAtkBase: 64
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 22060
+      normal: 12060
+      ultimate: 12060
+    drops:
+    - 5001
+    portrait: APOCALYPSE_PREDATOR_PORTRAIT
+    standing: APOCALYPSE_PREDATOR_STANDING
+    reworkKit:
+      originalId: 2060
+      normalName: 종말의 발톱
+      ultimateName: 종말 급강하
+      passiveName: 종말의 외피
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: Shield
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Anemo
+      shieldRatio: 3.0
+      wardHits: 3
+    tagline: '종말의 포식자: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 13070
+    name: 천공의 포식자
+    themeId: 120
+    archetype: 11
+    tier: boss
+    element: Anemo
+    tags:
+    - RestoredTheme
+    - Beast
+    vfxClass: mage
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 126
+    atkGrowth: 4.5
+    spAtkBase: 68
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 23070
+      normal: 13070
+      ultimate: 13070
+    drops:
+    - 5001
+    portrait: SKY_PREDATOR_PORTRAIT
+    standing: SKY_PREDATOR_STANDING
+    reworkKit:
+      originalId: 3070
+      normalName: 찢는 부리
+      ultimateName: 공허 강하
+      passiveName: 천공의 산란
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Anemo
+    tagline: '천공의 포식자: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11135
+    name: 허기 결정
+    themeId: 100
+    archetype: 7
+    tier: normal
+    element: Void
+    tags:
+    - RestoredTheme
+    vfxClass: mage
+    hpBase: 520
+    hpGrowth: 24
+    atkBase: 39
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21135
+      normal: 11135
+      ultimate: 11135
+    drops:
+    - 5001
+    portrait: HUNGER_CRYSTAL_PORTRAIT
+    standing: HUNGER_CRYSTAL_STANDING
+    reworkKit:
+      originalId: 1135
+      normalName: 카운트다운
+      ultimateName: 없음
+      passiveName: 맥동하는 결정
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.45
+      ultimateRatio: 0.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      wardHits: 2
+    tagline: '허기 결정: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11136
+    name: 파열 비늘
+    themeId: 100
+    archetype: 7
+    tier: normal
+    element: Anemo
+    tags:
+    - RestoredTheme
+    vfxClass: mage
+    hpBase: 520
+    hpGrowth: 24
+    atkBase: 39
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21136
+      normal: 11136
+      ultimate: 11136
+    drops:
+    - 5001
+    portrait: RUPTURE_SCALE_PORTRAIT
+    standing: RUPTURE_SCALE_STANDING
+    reworkKit:
+      originalId: 1136
+      normalName: 카운트다운
+      ultimateName: 없음
+      passiveName: 부푼 비늘
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: Shield
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.45
+      ultimateRatio: 0.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      shieldRatio: 1.5
+      wardHits: 2
+    tagline: '파열 비늘: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11140
+    name: 공허의 돌격대장
+    themeId: 121
+    archetype: 7
+    tier: normal
+    element: Hydro
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 688
+    hpGrowth: 24
+    atkBase: 53
+    atkGrowth: 2.2
+    spAtkBase: 52
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21140
+      normal: 11140
+      ultimate: 11140
+    drops:
+    - 5001
+    portrait: VOID_ASSAULT_CAPTAIN_PORTRAIT
+    standing: VOID_ASSAULT_CAPTAIN_STANDING
+    reworkKit:
+      originalId: 1140
+      normalName: 집게 압착
+      ultimateName: 조류 집게
+      passiveName: 공허의 갑주
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: Armor
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Hydro
+      shieldRatio: 1.5
+    tagline: '공허의 돌격대장: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11141
+    name: 공허의 선봉대장
+    themeId: 121
+    archetype: 8
+    tier: normal
+    element: Geo
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: saber
+    hpBase: 736
+    hpGrowth: 24
+    atkBase: 46
+    atkGrowth: 2.2
+    spAtkBase: 60
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 21141
+      normal: 11141
+      ultimate: 11141
+    drops:
+    - 5001
+    portrait: VOID_SPEARHEAD_CAPTAIN_PORTRAIT
+    standing: VOID_SPEARHEAD_CAPTAIN_STANDING
+    reworkKit:
+      originalId: 1141
+      normalName: 등갑 밀치기
+      ultimateName: 암초 충돌
+      passiveName: 공허의 갑주
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: Armor
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Geo
+      shieldRatio: 1.5
+    tagline: '공허의 선봉대장: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11142
+    name: 공허의 사냥꾼
+    themeId: 121
+    archetype: 10
+    tier: normal
+    element: Pyro
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: archer
+    hpBase: 616
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 60
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 105
+    manaMax: 100
+    codes:
+      passive: 21142
+      normal: 11142
+      ultimate: 11142
+    drops:
+    - 5001
+    portrait: ABYSS_HUNTER_PORTRAIT
+    standing: ABYSS_HUNTER_STANDING
+    reworkKit:
+      originalId: 1142
+      normalName: 핏빛 추격
+      ultimateName: 혈조 돌진
+      passiveName: 공허의 갑주
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: Armor
+      attackForm: 50003
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Pyro
+      shieldRatio: 1.5
+    tagline: '공허의 사냥꾼: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 12071
+    name: 심연의 공포
+    themeId: 121
+    archetype: 11
+    tier: elite
+    element: Anemo
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 1710
+    hpGrowth: 75
+    atkBase: 82
+    atkGrowth: 3.3
+    spAtkBase: 108
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 22071
+      normal: 12071
+      ultimate: 12071
+    drops:
+    - 5001
+    portrait: ABYSS_HORROR_PORTRAIT
+    standing: ABYSS_HORROR_STANDING
+    reworkKit:
+      originalId: 2071
+      normalName: 심연의 촉수
+      ultimateName: 촉수 폭풍
+      passiveName: 공허의 갑주
+      normalMode: Single
+      ultimateMode: Charge
+      passiveMode: Armor
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.6
+      ultimateRatio: 1.65
+      normalTargets: 2
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: Anemo
+      ultimateElement: None
+      shieldRatio: 3.0
+    tagline: '심연의 공포: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 13080
+    name: 심연의 집정관
+    themeId: 121
+    archetype: 8
+    tier: boss
+    element: Hydro
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 126
+    atkGrowth: 4.5
+    spAtkBase: 64
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 100
+    manaMax: 100
+    codes:
+      passive: 23080
+      normal: 13080
+      ultimate: 13080
+    drops:
+    - 5001
+    portrait: ABYSS_ARCHON_PORTRAIT
+    standing: ABYSS_ARCHON_STANDING
+    reworkKit:
+      originalId: 3080
+      normalName: 방파제 파쇄
+      ultimateName: 해연의 대호흡
+      passiveName: 심연의 집정권
+      normalMode: Area
+      ultimateMode: Charge
+      passiveMode: Armor
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.45
+      ultimateRatio: 1.65
+      normalTargets: 8
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+      shieldRatio: 3.0
+    tagline: '심연의 집정관: 광역 공격으로 파티를 압박합니다.'
+  - id: 11143
+    name: 공허의 정찰병
+    themeId: 122
+    archetype: 11
+    tier: normal
+    element: Electro
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 592
+    hpGrowth: 24
+    atkBase: 41
+    atkGrowth: 2.2
+    spAtkBase: 80
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21143
+      normal: 11143
+      ultimate: 11143
+    drops:
+    - 5001
+    portrait: VOID_SCOUT_PORTRAIT
+    standing: VOID_SCOUT_STANDING
+    reworkKit:
+      originalId: 1143
+      normalName: 공허 광선
+      ultimateName: 공허 포격
+      passiveName: 노심융해
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Electro
+    tagline: '공허의 정찰병: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11144
+    name: 공허의 학살자
+    themeId: 122
+    archetype: 11
+    tier: normal
+    element: Electro
+    tags:
+    - RestoredTheme
+    - Void
+    vfxClass: mage
+    hpBase: 616
+    hpGrowth: 24
+    atkBase: 42
+    atkGrowth: 2.2
+    spAtkBase: 84
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21144
+      normal: 11144
+      ultimate: 11144
+    drops:
+    - 5001
+    portrait: VOID_SLAUGHTERER_PORTRAIT
+    standing: VOID_SLAUGHTERER_STANDING
+    reworkKit:
+      originalId: 1144
+      normalName: 공허 광선
+      ultimateName: 정밀 포격
+      passiveName: 포식
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 1.1
+      normalTargets: 1
+      ultimateTargets: 2
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Electro
+    tagline: '공허의 학살자: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11145
+    name: 세이렌
+    themeId: 122
+    archetype: 11
+    tier: normal
+    element: Hydro
+    tags:
+    - RestoredTheme
+    vfxClass: mage
+    hpBase: 616
+    hpGrowth: 24
+    atkBase: 41
+    atkGrowth: 2.2
+    spAtkBase: 88
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21145
+      normal: 11145
+      ultimate: 11145
+    drops:
+    - 5001
+    portrait: SIREN_PORTRAIT
+    standing: SIREN_STANDING
+    reworkKit:
+      originalId: 1145
+      normalName: 공허 광선
+      ultimateName: 돌림노래
+      passiveName: 돌림노래
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: None
+    tagline: '세이렌: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11146
+    name: 히포캅투스
+    themeId: 122
+    archetype: 11
+    tier: normal
+    element: Geo
+    tags:
+    - RestoredTheme
+    vfxClass: saber
+    hpBase: 712
+    hpGrowth: 24
+    atkBase: 49
+    atkGrowth: 2.2
+    spAtkBase: 56
+    spAtkGrowth: 3
+    defBase: 55
+    defGrowth: 3
+    spDefBase: 35
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21146
+      normal: 11146
+      ultimate: 11146
+    drops:
+    - 5001
+    portrait: HIPPOCAMPUS_PORTRAIT
+    standing: HIPPOCAMPUS_STANDING
+    reworkKit:
+      originalId: 1146
+      normalName: 들이받기
+      ultimateName: 광란의 일격
+      passiveName: 나를 봐!
+      normalMode: Single
+      ultimateMode: Single
+      passiveMode: None
+      attackForm: 50004
+      contact: true
+      normalRatio: 0.9
+      ultimateRatio: 1.65
+      normalTargets: 1
+      ultimateTargets: 1
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Geo
+    tagline: '히포캅투스: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 11147
+    name: 케토스
+    themeId: 122
+    archetype: 11
+    tier: normal
+    element: Dendro
+    tags:
+    - RestoredTheme
+    vfxClass: mage
+    hpBase: 616
+    hpGrowth: 24
+    atkBase: 42
+    atkGrowth: 2.2
+    spAtkBase: 84
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 21147
+      normal: 11147
+      ultimate: 11147
+    drops:
+    - 5001
+    portrait: KETOS_PORTRAIT
+    standing: KETOS_STANDING
+    reworkKit:
+      originalId: 1147
+      normalName: 공허 광선
+      ultimateName: 산탄 포격
+      passiveName: 생명의 메아리
+      normalMode: Single
+      ultimateMode: Area
+      passiveMode: None
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.9
+      ultimateRatio: 0.85
+      normalTargets: 1
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Dendro
+    tagline: '케토스: 단일 대상을 노리고 고유 초월기로 압박합니다.'
+  - id: 13090
+    name: 스킬라
+    themeId: 122
+    archetype: 11
+    tier: boss
+    element: Hydro
+    tags:
+    - RestoredTheme
+    vfxClass: mage
+    hpBase: 3800
+    hpGrowth: 155
+    atkBase: 114
+    atkGrowth: 4.5
+    spAtkBase: 110
+    spAtkGrowth: 3
+    defBase: 35
+    defGrowth: 3
+    spDefBase: 50
+    spDefGrowth: 3
+    speedBase: 95
+    manaMax: 100
+    codes:
+      passive: 23090
+      normal: 13090
+      ultimate: 13090
+    drops:
+    - 5001
+    portrait: SCYLLA_PORTRAIT
+    standing: SCYLLA_STANDING
+    reworkKit:
+      originalId: 3090
+      normalName: 여왕의 광선
+      ultimateName: 혼돈의 소용돌이
+      passiveName: 미지의 공포
+      normalMode: Area
+      ultimateMode: Area
+      passiveMode: Formation
+      attackForm: 50005
+      contact: false
+      normalRatio: 0.45
+      ultimateRatio: 0.85
+      normalTargets: 8
+      ultimateTargets: 8
+      ultimateHits: 1
+      normalElement: None
+      ultimateElement: Hydro
+    tagline: '스킬라: 광역 공격으로 파티를 압박합니다.'
+
+  # 24층 고정 스펙 보스. 제어·원소 부착·소환·페이즈·패시브 없음.
+  - id: 3201
+    name: 공허의 파수거신
+    tagline: 느린 강타와 광역 충격으로 파티의 방어, 회복, 화력을 시험하는 거신.
+    themeId: 0
+    archetype: 8
+    tier: boss
+    element: None
+    tags: [Void, Giant]
+    vfxColor: "#A83242"
+    vfxClass: fighter
+    hpBase: 2400
+    hpGrowth: 200
+    atkBase: 180
+    atkGrowth: 12
+    spAtkBase: 30
+    spAtkGrowth: 2
+    defBase: 90
+    defGrowth: 5
+    spDefBase: 70
+    spDefGrowth: 4
+    speedBase: 72
+    critRateBase: 0
+    critDamageBase: 50
+    manaMax: 160
+    codes: { passive: 0, normal: 1001, ultimate: 1004 }
+    drops: [5002]
+    portrait: VOID_CRUSHER_PORTRAIT

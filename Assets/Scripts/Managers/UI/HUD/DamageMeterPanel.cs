@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using BaseClasses;
 using Combat;
 using Helpers;
@@ -17,10 +17,10 @@ namespace Managers.UI.HUD
     public sealed class DamageMeterPanel
     {
         private const int MaxRows = 6;
-        private const float RowHeight = 60f;
-        private const float PanelWidth = 252f;
-        private const float HeaderHeight = 70f;
-        private const float FooterHeight = 70f;
+        private const float RowHeight = 52f;
+        private const float PanelWidth = 224f;
+        private const float HeaderHeight = 54f;
+        private const float FooterHeight = 54f;
         private const float RefreshInterval = 0.2f;
 
         private readonly Image _panel;
@@ -36,10 +36,10 @@ namespace Managers.UI.HUD
                 new Vector2(-UITheme.ScreenEdgeInset, -UITheme.BelowTopBar));
             _panel.raycastTarget = false;
 
-            TextMeshProUGUI caption = UIBuild.Label("Caption", _panel.transform, "DAMAGE  /  피해 집계",
+            TextMeshProUGUI caption = UIBuild.Label("Caption", _panel.transform, "피해 집계",
                 UITheme.FontBody, UITheme.TextSecondary);
             UIBuild.Pin(caption.rectTransform, new Vector2(0f, 1f),
-                new Vector2(PanelWidth - 36f, 28f), new Vector2(18f, -18f));
+                new Vector2(PanelWidth - 36f, 28f), new Vector2(18f, -12f));
 
             _total = UIBuild.Text("Total", _panel.transform, "", UITheme.FontHeading,
                 UITheme.TextPrimary, TextAlignmentOptions.MidlineRight);
@@ -99,11 +99,11 @@ namespace Managers.UI.HUD
                 _portrait = portraitGo.GetComponent<Image>();
                 _portrait.preserveAspect = true;
                 _portrait.raycastTarget = false;
-                UIBuild.Pin(_portrait.rectTransform, new Vector2(0f, 0.5f), new Vector2(44f, 44f), Vector2.zero);
+                UIBuild.Pin(_portrait.rectTransform, new Vector2(0f, 0.5f), new Vector2(34f, 40f), Vector2.zero);
 
                 _name = UIBuild.Text("Name", _root, "", UITheme.FontBody, UITheme.TextPrimary);
                 UIBuild.Anchor(_name.rectTransform, new Vector2(0f, 0f), new Vector2(0.58f, 1f));
-                _name.rectTransform.offsetMin = new Vector2(52f, 0f);
+                _name.rectTransform.offsetMin = new Vector2(40f, 0f);
                 _name.overflowMode = TextOverflowModes.Ellipsis;
 
                 _value = UIBuild.Text("Value", _root, "", UITheme.FontBody - 1f, UITheme.TextPrimary,
@@ -123,7 +123,7 @@ namespace Managers.UI.HUD
                 if (_portraitPath != entry.Portrait)
                 {
                     _portraitPath = entry.Portrait;
-                    Sprite sprite = SpriteResource.LoadPortrait(entry.Portrait);
+                    Sprite sprite = UIPortraitCrop.Face(SpriteResource.LoadPortrait(entry.Portrait));
                     _portrait.sprite = sprite;
                     _portrait.enabled = sprite != null;
                 }

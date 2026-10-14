@@ -10,6 +10,8 @@ namespace Codes.Normal
 {
     public sealed class HimikoEmber : BaseNormalCode
     {
+        public override int AttackForm => DamageTag.Spell;
+
         public HimikoEmber(NormalCodeContext context) : base(context)
         {
             CodeName = "불씨";
@@ -30,6 +32,8 @@ namespace Codes.Normal
 
     public sealed class PygmalionEmber : BaseNormalCode
     {
+        public override int AttackForm => DamageTag.Spell;
+
         public PygmalionEmber(NormalCodeContext context) : base(context)
         {
             CodeName = "불씨";

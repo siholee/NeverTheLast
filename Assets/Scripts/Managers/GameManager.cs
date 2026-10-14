@@ -234,7 +234,7 @@ namespace Managers
             uiManager?.HidePreparationPhasePanel();
 
             // 드랍은 이번 전투에서 쓰러뜨린 적만 센다.
-            _battleKilledEnemyIds.Clear();
+            ResetBattleAccounting();
             CaptureBattleStart();
 
             // 아군 필드 상태 저장 (라운드 종료 후 복원용)
@@ -247,6 +247,8 @@ namespace Managers
 
             Debug.LogWarning("[GameManager] 🔥 라운드 시작 - GridManager.OnRoundStart() 호출");
             GridManager.Instance.OnRoundStart();
+            // 써 둔 비약은 패시브가 걸린 뒤에 얹는다(사전준비 같은 시작 마나와 겹쳐도 큰 쪽이 남게).
+            ApplyPendingTonic();
 
             // 유닛이 모두 배치·활성화된 뒤에 행동치를 초기화해야 한다.
             ActionScheduler.BeginRound();
@@ -283,17 +285,53 @@ namespace Managers
             GrantExpTo(GridManager.Instance.heroList, amount);
         }
 
-        /// <summary>지정한 아군에게만 EXP를 지급한다. 배율 규칙은 <see cref="GrantExpToParty"/>와 같다.</summary>
+        /// <summary>
+        /// 지정한 아군에게만 EXP를 지급한다. 보상 코드의 EXP 보너스(자신 — 배움의 열정, 파티 — 영웅담)를 여기서 한 번만 곱한다.
+        /// </summary>
         private static void GrantExpTo(IEnumerable<Unit> heroes, int amount)
         {
             if (amount <= 0 || heroes == null) return;
 
-            foreach (Unit hero in heroes.Distinct())
+            List<Unit> recipients = heroes.Distinct().Where(hero => hero != null && !hero.IsEnemy && hero.isActive).ToList();
+            float partyBonus = PartyAuraBonus(code => code.PartyExpAuraBonus());
+            foreach (Unit hero in recipients)
             {
-                if (hero == null || hero.IsEnemy || !hero.isActive) continue;
-                hero.AddExp(amount);
+                float selfBonus = hero.ActivePassiveCodesResolved().Sum(code => code.SelfExpBonus());
+                hero.AddExp(Mathf.RoundToInt(amount * (1f + selfBonus + partyBonus)));
             }
         }
+
+        /// <summary>
+        /// 필드 아군(쓰러진 아군 포함, 벤치 제외)이 가진 "파티에서 중첩되지 않는" 보너스 중 가장 큰 값.
+        /// 황금의 손 · 영웅담처럼 여러 명이 들어도 한 번만 세는 경제 코드가 쓴다.
+        /// </summary>
+        private static float PartyAuraBonus(Func<Codes.Base.PassiveCode, float> pick)
+        {
+            GridManager grid = GridManager.Instance;
+            if (grid == null) return 0f;
+            float best = 0f;
+            foreach (Unit hero in grid.heroList)
+            {
+                if (hero == null || hero.IsEnemy || hero.currentCell == null || grid.IsBenchCell(hero.currentCell)) continue;
+                foreach (Codes.Base.PassiveCode code in hero.ActivePassiveCodesResolved())
+                    best = Mathf.Max(best, pick(code));
+            }
+            return best;
+        }
+
+        // ── 전투 골드 정산 ───────────────────────────────────────────
+        // 처치 골드는 처치 순간 바로 주고, 보상 코드 · 쿠베라의 골드 보너스는 승리 때 (처치 + 승리 보수) 합계에 한 번 얹는다.
+        // 전투 중 아군 유닛은 라운드 종료 복원으로 새로 세워지므로, 전투 동안 쌓인 보너스는 유닛이 아니라 여기에 둔다.
+        private int _battleKillGold;
+        private float _battleGoldBonus;
+
+        /// <summary>이번 전투 승리 골드에 비율을 더한다(쿠베라 골드 러쉬 · 이자). 상한은 부르는 쪽이 지킨다.</summary>
+        public void AddBattleGoldBonus(float ratio)
+        {
+            if (ratio > 0f) _battleGoldBonus += ratio;
+        }
+
+        public float BattleGoldBonus => _battleGoldBonus;
 
         private int CurrentStageForExp => Mathf.Max(1, _roundManager?.Stage ?? 1);
 
@@ -308,6 +346,7 @@ namespace Managers
             if (killed != null && killed.IsEnemy) _battleKilledEnemyIds.Add(killed.ID);
             int gold = GoldPerKillPerStage * Mathf.Max(1, _roundManager?.Stage ?? 1);
             inventoryManager?.AddGold(gold);
+            _battleKillGold += gold;
             pendingPartyExp += ExpPerKillBase + ExpPerKillPerStage * CurrentStageForExp;
             
             // 3의 배수 킬마다 토큰 보상 지급
@@ -384,7 +423,7 @@ namespace Managers
                 int remainingEnemies = GetRemainingEnemyCount();
 
                 // 아군 전멸 체크
-                if (AreAllAlliesDefeated())
+                if (Time.timeScale > 0 && !ActionScheduler.IsPresenting && AreAllAlliesDefeated())
                 {
                     // 전투를 시작할 때 이미 전원이 쓰러져 있었다면 이길 방법이 없다. 그대로 두면
                     // 스테이지마다 즉시 패배가 반복되며 생명력만 깎이므로 여기서 런을 끝낸다.
@@ -399,7 +438,7 @@ namespace Managers
                 }
 
                 // 턴을 다 쓰면 라운드 종료
-                if (remainingRoundTurns <= 0)
+                if (Time.timeScale > 0 && !ActionScheduler.IsPresenting && remainingRoundTurns <= 0)
                 {
                     EndRoundByTimeout();
                 }
@@ -429,6 +468,8 @@ namespace Managers
         /// <summary>보상/사건/시전 중에도 다음 시나리오를 같은 출발 상태에서 시작한다.</summary>
         public void DebugResetBattle()
         {
+            Combat.PartyTreasury.Clear();
+            rewardManager?.ResetRewardSelection();
             Core.DebugMode.BeginSession();
             bool restoreField = gameState == GameState.RoundInProgress && allyFieldSnapshot?.Count > 0;
             gameState = GameState.Preparation;
@@ -872,11 +913,23 @@ namespace Managers
             }
 
             // 사건 전투도 결과 화면과 딜 그래프를 쓴다. 시작 시점 값을 여기서도 잡아야 지난 전투 값이 남지 않는다.
+            ResetBattleAccounting();
             CaptureBattleStart();
             gameState = GameState.RoundInProgress;
             remainingRoundTurns = roundTurnLimit;
             isRoundProgressTimerActive = true;
             GridManager.Instance.OnRoundStart();
+            ApplyPendingTonic();
+            ActionScheduler.BeginRound();
+        }
+
+        /// <summary>일반·사건 전투 모두 직전 전투의 처치·추가 골드·재보 집계를 이어받지 않는다.</summary>
+        private void ResetBattleAccounting()
+        {
+            _battleKilledEnemyIds.Clear();
+            _battleKillGold = 0;
+            _battleGoldBonus = 0f;
+            Combat.PartyTreasury.BeginBattle();
         }
 
         public void CompleteEventStage()
@@ -929,6 +982,17 @@ namespace Managers
         }
 
         public const int MaxShortRestCharges = 2;
+
+        /// <summary>휴식의 향로로 늘릴 수 있는 짧은 휴식 상한(Detail_17 §6). 긴 휴식은 여전히 2로 되돌린다.</summary>
+        public const int MaxShortRestChargesWithIncense = 3;
+
+        /// <summary>짧은 휴식 횟수를 더한다. 상한에 이미 닿았으면 false.</summary>
+        public bool TryGrantShortRestCharges(int amount)
+        {
+            if (amount <= 0 || ShortRestCharges >= MaxShortRestChargesWithIncense) return false;
+            ShortRestCharges = Mathf.Min(MaxShortRestChargesWithIncense, ShortRestCharges + amount);
+            return true;
+        }
         public const int LongRestFoodCost = 40;
         public const float ShortRestHealRatio = 0.50f;
 
@@ -1034,6 +1098,82 @@ namespace Managers
             runManager?.SaveCurrentRun();
         }
 
+        // ── 소모품: 전투 비약 · 코드 도구 (Detail_17 §6) ─────────────
+
+        /// <summary>넥타르는 준비 중 선택 아군에게 즉시 사용한다. 영구 스탯만 올리고 부활시키지 않는다.</summary>
+        public bool TryUseNectar(int itemId,Unit unit,out string reason)
+        {
+            reason="";
+            if(gameState!=GameState.Preparation){reason="준비 중에만 사용";return false;}
+            var item=inventoryManager?.Find(itemId);
+            if(item?.IsNectar!=true || item.nectarFlatStats==null || item.nectarFlatStats.Count==0){reason="넥타르가 아님";return false;}
+            if(unit==null || !Combat.AttackForms.PartyUnits().Contains(unit)){reason="받을 아군 없음";return false;}
+            if(!item.nectarFlatStats.All(pair=>System.Enum.TryParse(pair.Key,true,out BaseClasses.BaseEnums.StatType stat) && (int)stat>=0 &&
+                (int)stat<UnitStats.StatCount && pair.Value>0 && !float.IsNaN(pair.Value)&&!float.IsInfinity(pair.Value)))
+            {reason="능력치 데이터 오류";return false;}
+            if(!inventoryManager.RemoveItem(itemId)){reason="보유 수량 없음";return false;}
+            unit.ApplyNectar(item);
+            runManager?.SaveCurrentRun();return true;
+        }
+
+        public int PendingTonicItemId { get; private set; }
+
+        public void RestorePendingTonic(int itemId) => PendingTonicItemId = Mathf.Max(0, itemId);
+
+        /// <summary>비약을 쓴다. 준비 페이즈에서만, 이미 써 둔 비약이 없을 때만 된다. 아이템은 이 순간 소모된다.</summary>
+        public bool TryUseTonic(int itemId, out string reason)
+        {
+            reason = "";
+            ItemData item = inventoryManager?.Find(itemId);
+            if (gameState != GameState.Preparation) { reason = "준비 중에만 쓸 수 있습니다"; return false; }
+            if (item == null || !item.IsTonic) { reason = "비약이 아닙니다"; return false; }
+            if (PendingTonicItemId > 0) { reason = "이번 전투에 이미 비약을 썼습니다"; return false; }
+            if (!inventoryManager.RemoveItem(itemId)) { reason = "아이템이 없습니다"; return false; }
+            PendingTonicItemId = itemId;
+            runManager?.SaveCurrentRun();
+            Debug.Log($"[비약] {item.name} — 다음 전투에 적용");
+            return true;
+        }
+
+        private void ApplyPendingTonic()
+        {
+            if (PendingTonicItemId <= 0) return;
+            ItemData item = inventoryManager?.Find(PendingTonicItemId);
+            PendingTonicItemId = 0;
+            if (item == null) return;
+            foreach (Unit hero in GridManager.Instance.heroList.Where(hero => hero != null && hero.isActive && hero.IsOnField))
+                Effects.Buffs.TonicEffect.Apply(hero, item);
+            Debug.Log($"[비약] {item.name} 적용");
+        }
+
+        /// <summary>승급의 인장 — 같은 칸에서 한 단계 위 코드로 바꾸고 인장을 소모한다.</summary>
+        public bool UseSeal(int itemId, Unit unit, int fromCodeId, int toCodeId, string instanceId = null)
+        {
+            ItemData item = inventoryManager?.Find(itemId);
+            if (item == null || !item.IsSeal || unit == null || gameState != GameState.Preparation) return false;
+            if (Codes.Base.RewardCodeCatalog.TierOf(toCodeId) > item.sealMaxTier) return false;
+            bool validTarget = fromCodeId == 512
+                ? Codes.Base.RewardCodeCatalog.HarmonySealChoices.Contains(toCodeId)
+                : Codes.Base.RewardCodeCatalog.SealTargetOf(fromCodeId) == toCodeId;
+            if (!validTarget) return false;
+            if (inventoryManager.CountItem(itemId) <= 0 || !unit.TryReplaceRewardCode(fromCodeId, toCodeId, instanceId)) return false;
+            inventoryManager.RemoveItem(itemId);
+            runManager?.SaveCurrentRun();
+            return true;
+        }
+
+        /// <summary>구형 호출 호환. 코드는 무료로 아군 보관함에 이동하고 두루마리는 소모하지 않는다.</summary>
+        public bool UseTransferScroll(int itemId, Unit giver, int codeId, Unit receiver)
+        {
+            if (giver == null || receiver == null || giver == receiver) return false;
+            int index = giver.RewardCodeSlots.ToList().IndexOf(codeId);
+            bool stored = index < 0;
+            if (stored) index = giver.StoredRewardCodeIds.ToList().IndexOf(codeId);
+            if (index < 0) return false;
+            return Combat.RewardCodeInventory.TryMove(new Combat.RewardCodeInventory.Drag
+                { Owner = giver, Stored = stored, Index = index, CodeId = codeId }, receiver, true);
+        }
+
         public void OpenInventoryFromPreparation()
         {
             if (gameState != GameState.Preparation) return;
@@ -1043,7 +1183,7 @@ namespace Managers
         public void RestorePreparationState(bool restUsed, int shortRestCharges, int shopPurchaseCount = 0)
         {
             restUsedThisPreparation = restUsed;
-            ShortRestCharges = Mathf.Clamp(shortRestCharges, 0, MaxShortRestCharges);
+            ShortRestCharges = Mathf.Clamp(shortRestCharges, 0, MaxShortRestChargesWithIncense);
             ShopPurchaseCount = Mathf.Clamp(shopPurchaseCount, 0, MaxShopPurchases);
             if (gameState == GameState.Preparation)
             {
@@ -1160,6 +1300,7 @@ namespace Managers
             // 마지막 카드가 부서지는 동안 카메라가 아군 쪽으로 다시 잡히지 않게 붙든다.
             GridManager.Instance?.HoldCamera(BattleResultDelay);
             GridManager.Instance?.OnRoundEnd();
+            CaptureCleanedAllyHealth();
             
             // 아군 필드 상태 복원 (게임 오버가 아닌 경우에만)
             if (life > 0)
@@ -1187,6 +1328,8 @@ namespace Managers
             {
                 earnedExp += ExpPerStageClearBase + ExpPerStageClearPerStage * CurrentStageForExp;
             }
+            // 승리 정산 코드(축적의 서 · 목욕재계 · 죽은 자의 소생)는 복원된 유닛 위에서 일한다.
+            SettleBattleCodes(victory);
             GrantExpToParty(earnedExp);
             result.ExpGained = Mathf.Max(0, earnedExp);
 
@@ -1336,7 +1479,24 @@ namespace Managers
         {
             int gold = GoldPerClearBase + GoldPerClearPerStage * CurrentStageForExp;
             inventoryManager?.AddGold(gold);
-            Debug.Log($"[골드] 전투 승리 보수 {gold} 획득 (현재 {inventoryManager?.Gold})");
+            // 골드 보너스는 이번 전투에서 번 골드(처치 + 승리 보수) 전체에 한 번 얹는다.
+            float bonusRatio = PartyAuraBonus(code => code.PartyGoldAuraBonus()) + _battleGoldBonus;
+            int bonus = Mathf.RoundToInt((_battleKillGold + gold) * Mathf.Max(0f, bonusRatio));
+            if (bonus > 0) inventoryManager?.AddGold(bonus);
+            Debug.Log($"[골드] 전투 승리 보수 {gold} + 보너스 {bonus}({bonusRatio:P0}) 획득 (현재 {inventoryManager?.Gold})");
+        }
+
+        /// <summary>복원된 아군의 코드에 전투 결과를 알린다. 벤치 유닛은 이 전투에 없었다.</summary>
+        private void SettleBattleCodes(bool victory)
+        {
+            GridManager grid = GridManager.Instance;
+            if (grid == null) return;
+            foreach (Unit hero in grid.heroList.ToList())
+            {
+                if (hero == null || hero.IsEnemy || hero.currentCell == null || grid.IsBenchCell(hero.currentCell)) continue;
+                foreach (Codes.Base.PassiveCode code in hero.ActivePassiveCodesResolved().ToList())
+                    code.OnBattleSettled(victory, hero.isActive);
+            }
         }
 
         private void ShowRewardSelection()
@@ -1573,6 +1733,19 @@ namespace Managers
                 saved.ultimateResource = ally.ManaCurr;
                 // 쓰러졌으면 0. 복원 쪽이 이 값을 보고 다시 눕혀 부활 수단의 대상으로 남긴다.
                 saved.currentHP = ally.isActive ? ally.HpCurr : 0;
+                // 전투 중에 쌓인 영구 중첩(영혼)도 덮어써야 한다. 시작 스냅샷만 쓰면 이번 전투의 성장이 사라진다.
+                ally.WriteRunState(saved);
+            }
+        }
+
+        /// <summary>임시 최대 체력 효과 정리 후의 체력만 덮는다. 마나·영구 성장은 정리 전에 캡처한 값을 유지한다.</summary>
+        private void CaptureCleanedAllyHealth()
+        {
+            if (allyFieldSnapshot == null || GridManager.Instance == null) return;
+            foreach (UnitSaveData saved in allyFieldSnapshot)
+            {
+                Unit ally = FindSnapshotAlly(saved, matchCell: true) ?? FindSnapshotAlly(saved, matchCell: false);
+                if (ally != null) saved.currentHP = ally.isActive ? ally.HpCurr : 0;
             }
         }
 
@@ -1655,7 +1828,7 @@ namespace Managers
 
         private static UnitSaveData BuildUnitSnapshot(Unit unit, bool isBench)
         {
-            return new UnitSaveData
+            var data = new UnitSaveData
             {
                 unitId = unit.ID > 0 ? unit.ID : unit.LastActiveId,
                 currentHP = unit.isActive ? unit.HpCurr : 0,
@@ -1663,10 +1836,10 @@ namespace Managers
                 yPos = unit.currentCell.yPos,
                 isBench = isBench,
                 ultimateResource = unit.ManaCurr,
-                // 레벨/EXP를 빠뜨리면 라운드 종료 복원에서 성장이 초기화된다.
-                level = unit.Level,
-                exp = unit.Exp,
             };
+            // 레벨 · EXP · 보상 코드 · 영구 중첩을 빠뜨리면 라운드 종료 복원에서 성장이 초기화된다.
+            unit.WriteRunState(data);
+            return data;
         }
 
         /// <summary>

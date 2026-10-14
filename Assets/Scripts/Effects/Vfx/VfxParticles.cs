@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Random = Effects.Vfx.PresentationRandom;
 
 namespace Effects.Vfx
 {
@@ -45,7 +46,7 @@ namespace Effects.Vfx
     [DisallowMultipleComponent]
     public sealed class VfxParticles : MonoBehaviour
     {
-        private const int MaxParticles = 640;
+        private const int MaxParticles = 320;
 
         private struct Particle
         {
@@ -85,6 +86,8 @@ namespace Effects.Vfx
         public static void Burst(Vector3 position, ParticleSpec spec, int count, int sortingLayer, int order)
         {
             if (count <= 0 || spec.Sprite == null) return;
+            spec.StartColor = spec.Additive ? BattleVfxStyle.Light(spec.StartColor) : BattleVfxStyle.Body(spec.StartColor, spec.StartColor);
+            spec.EndColor = spec.Additive ? BattleVfxStyle.Light(spec.EndColor) : BattleVfxStyle.Body(spec.EndColor, spec.EndColor);
             Instance.Emit(position, spec, count, sortingLayer, order);
         }
 

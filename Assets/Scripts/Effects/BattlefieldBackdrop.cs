@@ -126,10 +126,10 @@ namespace Effects
             if (_instance == null || strength <= 0f) return;
             _instance._focusRequests.Add(new FocusRequest
             {
-                Strength = Mathf.Clamp01(strength),
-                FadeIn = Mathf.Max(0f, fadeIn),
+                Strength = Mathf.Min(.28f, Mathf.Clamp01(strength)) * Mathf.Lerp(1f,.75f,Mathf.InverseLerp(2f,4f,Time.timeScale)),
+                FadeIn = Mathf.Max(.16f,Mathf.Max(fadeIn,.16f*Time.timeScale)),
                 Hold = Mathf.Max(0f, hold),
-                FadeOut = Mathf.Max(0f, fadeOut),
+                FadeOut = Mathf.Max(.22f,Mathf.Max(fadeOut,.10f*Time.timeScale)),
                 Tint = tint,
                 FocusWorld = focusWorld,
                 SecondaryWorld = secondaryWorld,
@@ -144,8 +144,8 @@ namespace Effects
             _instance._flashRequests.Add(new FlashRequest
             {
                 Color = color,
-                Strength = Mathf.Clamp01(strength),
-                Duration = duration,
+                Strength = Mathf.Min(.018f, Mathf.Clamp01(strength)),
+                Duration = Mathf.Max(.22f, duration),
             });
         }
 
@@ -235,7 +235,7 @@ namespace Effects
             _environmentPrevious.enabled = false;
             _themeVeil = NewLayer("ThemeVeil", Solid("theme_veil"), BackdropSortingOrder + 1, transform);
 
-            // 전역 명도는 원화 RGB를 직접 곱해 내린다. 이 정렬대에는 가장자리와 국소 스포트만 남겨
+            // 전역 명도 곱은 매우 작게 제한한다. 이 정렬대에는 가장자리와 국소 스포트만 남겨
             // 밝은 원화 위에 회색 반투명 막을 얹은 듯한 탁한 인상을 피한다.
             _focusVignette = NewLayer("CombatFocusVignette", VignetteMask(), FocusSortingOrder, transform);
             Sprite spotlight = SpotlightMask();
@@ -327,8 +327,9 @@ namespace Effects
             }
 
             _currentFocusStrength = strongest;
-            ApplyBackdropTone(strongest, tint);
-            _focusVignette.color = new Color(0.006f, 0.020f, 0.050f, strongest * 0.64f);
+            // 초상과 정보판 위를 균일하게 누르지 않고 화면 외곽에서만 행동의 무게를 만든다.
+            ApplyBackdropTone(strongest * 0.08f, tint);
+            _focusVignette.color = new Color(0.10f, 0.16f, 0.25f, strongest * 0.90f);
             _focusVignette.transform.localPosition = new Vector3(0f, 0f, 19.8f);
             PlaceSpotlight(_focusSpotlight, focusWorld, halfWidth, halfHeight, strongest * 0.15f,
                 new Color(0.70f, 0.84f, 1f));
@@ -489,7 +490,7 @@ namespace Effects
             _dividerBase = new Color(LinePrimary.r, LinePrimary.g, LinePrimary.b, 0.42f);
             _markBase = new Color(CoolShadow.r, CoolShadow.g, CoolShadow.b,
                 Mathf.Clamp01(0.20f * UITheme.AdaptiveGroundingMultiplier));
-            ApplyBackdropTone(_currentFocusStrength, new Color(0.16f, 0.30f, 0.46f, 1f));
+            ApplyBackdropTone(_currentFocusStrength * 0.08f, new Color(0.16f, 0.30f, 0.46f, 1f));
         }
 
         private void BeginEnvironmentTransition(Sprite next)
@@ -608,8 +609,8 @@ namespace Effects
             {
                 float dx = ((x + 0.5f) / width - 0.5f) * 2f;
                 float dy = ((y + 0.5f) / height - 0.5f) * 2f;
-                float radius = Mathf.Sqrt(dx * dx + dy * dy);
-                float alpha = SmoothRange(0.40f, 1.08f, radius);
+                float radius = Mathf.Max(Mathf.Abs(dx) / 0.88f, Mathf.Abs(dy) / 0.82f);
+                float alpha = SmoothRange(0.62f, 1.15f, radius);
                 pixels[y * width + x] = new Color(1f, 1f, 1f, alpha);
             }
             return Build("combat_focus_vignette", pixels, width, height);

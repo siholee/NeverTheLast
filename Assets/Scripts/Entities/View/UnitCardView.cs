@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -45,25 +46,25 @@ namespace Entities.View
         private const float CanvasHeight = 134f;
 
         // HUD 캔버스 좌표(좌상단 기준). 상태가 있을 때만 셋째 행까지 열고, 평소에는 이름·HP·행동선에 맞춰 접는다.
-        private const float RingSize = 48f;
-        private const float RingEdge = 3.1f;
-        private const float OrbCenterX = 75f;
-        private const float OrbCenterY = 28f;
+        private const float RingSize = 42f;
+        private const float RingEdge = 1.05f;
+        // main과 동일하게 카드 우상단에 걸친다. 카드 위로 따로 띄우지 않는다.
+        private const float RingOverhang = 2f;
         private const float GlassLeft = 2.5f;
-        private const float GlassTop = 72.5f;
+        private const float GlassTop = 65f;
         private const float GlassWidth = 95f;
-        private const float GlassHeight = 27.5f;
-        private const float GlassEmptyHeight = 18.7f;
+        private const float GlassHeight = 37f;
+        private const float GlassEmptyHeight = 23f;
         private const float GlassCenterY = GlassTop + GlassHeight * 0.5f;
-        private const float HpTop = 84.4f;
-        private const float HpHeight = 1.55f;
-        private const float ActionTop = 87.6f;
+        private const float HpTop = GlassTop + 14f;
+        private const float HpHeight = 2.4f;
+        private const float ActionTop = GlassTop + 17f;
         private const float ActionHeight = 0.7f;
-        private const float DotTop = 89.5f;
+        private const float DotTop = GlassTop + 20f;
         private const float DotSize = 7.5f;
         private const float DotGap = 9.1f;
         private const int MaxDots = 6;
-        private const float DotIconRatio = 0.68f;
+        private const float DotIconRatio = 0.78f;
         private const float DotCountSize = 4.7f;
         private const int MaxElementBadges = 3;
         private const int CompactStatusIconCount = 3;
@@ -71,15 +72,16 @@ namespace Entities.View
         /// <summary>원화가 칸 안에서 차지하는 한 변(카드 한 변 대비). 옛 <c>Cell.PortraitFitSize</c>다.</summary>
         private const float PortraitFit = 1.03f;
 
-        private static readonly Color RingWell = new(0.69f, 0.82f, 0.91f, 0.22f);
-        private static readonly Color DotBacking = new(0.09f, 0.145f, 0.204f, 0.10f);
+        private static readonly Color RingWell = new(0.26f, 0.29f, 0.34f, 0.96f);
+        private static readonly Color RingIdle = new(0.78f, 0.81f, 0.86f, 0.96f);
+        private static readonly Color DotBacking = new(0.075f, 0.12f, 0.18f, 0.65f);
         private static readonly Color MarkIdle = new(0.973f, 0.984f, 1f, 0.94f);
         private static readonly Color MarkShadow = new(0.075f, 0.125f, 0.20f, 0.94f);
         private static readonly Color GroundShadow = new(0.255f, 0.36f, 0.45f, 0.43f);
         private const float InactiveAlpha = 0.38f;
 
-        /// <summary>오브가 카드 안에 들어오므로 별도 상단 여백은 없다.</summary>
-        public static float HudAbove(float cardSize) => 0f;
+        /// <summary>스프라이트 위 원형 게이지가 카메라 영역 밖으로 잘리지 않도록 확보한다.</summary>
+        public static float HudAbove(float cardSize) => cardSize * RingOverhang / CanvasWidth;
 
         /// <summary>카드 아래로 붙는 HUD(체력 · 행동 · 상태 아이콘)의 높이. 카메라가 이만큼 아래를 비운다.</summary>
         public static float HudBelow(float cardSize) => cardSize * Mathf.Max(0f, GlassTop + GlassHeight - CanvasWidth) / CanvasWidth;
@@ -87,11 +89,11 @@ namespace Entities.View
         // ── 반응 시간 ───────────────────────────────────────────────
         private const float FlashTime = 0.14f;
         private const float PunchTime = 0.18f;
-        private const float PunchAmount = 0.06f;
+        private const float PunchAmount = 0.025f;
         private const float RecoilDistance = 0.075f;     // 카드 한 변 대비
         private const float ShakeTime = 0.22f;
-        private const float ShakeDistance = 0.062f;
-        private const float ShakeFrequency = 30f;
+        private const float ShakeDistance = 0.022f;
+        private const float ShakeFrequency = 11f;
         private const float LungeTime = 0.26f;
         private const float LungeDistance = 0.10f;
         private const float VfxKickTime = 0.16f;
@@ -107,12 +109,17 @@ namespace Entities.View
         private int _sortBoost;
 
         private Transform _body;
+        private bool _pointerHovered, _pointerPressed;
+        private float _pointerScale=1f;
+        public void SetPointerFeedback(bool hovered,bool pressed) { _pointerHovered=hovered; _pointerPressed=pressed; }
         private SpriteRenderer _shadow;
         private SpriteRenderer _auraGlow;
         private SpriteRenderer _portrait;
         private TextMeshPro _nameLabel;
         private TextMeshPro _hpLabel;
         private TextMeshPro _resourceBadgeText;
+        private TextMeshPro _strongShotText;
+        private SpriteRenderer _suryaResourcePlate;
         private Image _actingOutline;
 
         private Canvas _orbCanvas;
@@ -135,9 +142,16 @@ namespace Entities.View
         private Image _ultReadyRing;
         private Image _resourceBadge;
         private Image _resourceBadgeDigit;
+        private Image[] _treasureBeads = new Image[8];
         private GameObject _bottomGlass;
         private GameObject _bottomGlassShadow;
         private Image _glassTint;
+        private Image _actionGateRim;
+        private float _actionGatePulseAge = -1f;
+        private Color _actionGateAccent;
+        public float ActionGatePulseStrength { get; private set; }
+        private Image _toughnessTrack;
+        private Image _toughnessFill;
         private Image _hpTrack;
         private Image _hpFill;
         private Image _shieldFill;
@@ -157,6 +171,15 @@ namespace Entities.View
         private Color _supportHudPulseBaseColor;
         private float _supportHudPulseAge = -1f;
         private const float SupportHudPulseDuration = 0.34f;
+        private float _resourcePulseAge = -1f;
+        private float _resourcePulseStrength;
+
+        public void PulseResourceBadge(float strength = 1f)
+        {
+            _resourcePulseAge = 0f;
+            _resourcePulseStrength = Mathf.Clamp01(strength);
+            ApplyBattleInformationLayout();
+        }
 
         private string _ringElementName;
         private Color _ringColor = UITheme.Mana;
@@ -247,6 +270,22 @@ namespace Entities.View
         /// 피격 중심 검수용 얼굴~상체 화면 박스. 전신 원화의 하단 28%는 발·패널 접점이므로 제외한다.
         /// Unity 화면 좌표라 원점은 좌하단이며, PNG 분석기는 높이에서 y를 빼서 사용한다.
         /// </summary>
+        /// <summary>자세·피격 모션이 바뀌어도 실제 원화 상단 72% 중심에 피격 앵커를 놓는다.</summary>
+        public Vector3 PortraitFocusWorldPoint => _portrait != null
+            ? _portrait.bounds.center + Vector3.up * (_portrait.bounds.size.y * 0.14f)
+            : transform.position;
+
+        /// <summary>다중 타격의 분산을 살리되 충돌점은 실제 원화 상체 안에 둔다.</summary>
+        public Vector3 ClampPortraitHitPoint(Vector3 point)
+        {
+            if (_portrait == null) return point;
+            Bounds bounds = _portrait.bounds;
+            float inset = Mathf.Min(bounds.size.x, bounds.size.y) * .04f;
+            point.x = Mathf.Clamp(point.x, bounds.min.x + inset, bounds.max.x - inset);
+            point.y = Mathf.Clamp(point.y, Mathf.Lerp(bounds.min.y, bounds.max.y, .28f) + inset, bounds.max.y - inset);
+            return point;
+        }
+
         public Rect PortraitFocusScreenRect(Camera camera)
         {
             if (camera == null || _portrait == null || !_portrait.enabled) return default;
@@ -256,6 +295,21 @@ namespace Entities.View
             Vector3 topRight = camera.WorldToScreenPoint(new Vector3(bounds.max.x, bounds.max.y, bounds.center.z));
             return Rect.MinMaxRect(Mathf.Min(bottomLeft.x, topRight.x), Mathf.Min(bottomLeft.y, topRight.y),
                 Mathf.Max(bottomLeft.x, topRight.x), Mathf.Max(bottomLeft.y, topRight.y));
+        }
+
+        /// <summary>상태 알림이 피해야 하는 이름·체력 판의 실제 화면 영역.</summary>
+        public Rect HudScreenRect(Camera camera)
+        {
+            if (camera == null || _glassTint == null || !_glassTint.gameObject.activeInHierarchy || _unit == null) return default;
+            var corners = new Vector3[4];
+            _glassTint.rectTransform.GetWorldCorners(corners);
+            Vector2 min = new(float.PositiveInfinity, float.PositiveInfinity), max = new(float.NegativeInfinity, float.NegativeInfinity);
+            foreach (Vector3 corner in corners)
+            {
+                Vector2 point = camera.WorldToScreenPoint(corner);
+                min = Vector2.Min(min, point); max = Vector2.Max(max, point);
+            }
+            return Rect.MinMaxRect(min.x - 4, min.y - 4, max.x + 4, max.y + 4);
         }
 
         /// <summary>칸에 카드 뷰를 붙인다(이미 있으면 그대로 쓴다).</summary>
@@ -311,16 +365,39 @@ namespace Entities.View
             _hpLabel.outlineWidth = 0.16f;
             _hpLabel.overflowMode = TextOverflowModes.Truncate;
 
-            // 전투 자원은 10 이상도 정확히 읽혀야 하므로 한 자리 스프라이트 대신 월드 텍스트를 쓴다.
-            _resourceBadgeText = NewLabel("ResourceValue", FontStyles.Bold, TextAlignmentOptions.Center);
-            _resourceBadgeText.color = Color.white;
-            _resourceBadgeText.outlineColor = new Color(0.075f, 0.125f, 0.20f, 0.98f);
-            _resourceBadgeText.outlineWidth = 0.18f;
-            _resourceBadgeText.enabled = false;
+            EnsureResourceLabels();
 
             BuildHud();
             LayOut(cardSize);
             Show(false);
+        }
+
+        private void EnsureResourceLabels()
+        {
+            if (_resourceBadgeText == null)
+            {
+                _resourceBadgeText = NewLabel("ResourceValue", FontStyles.Bold, TextAlignmentOptions.Center);
+                _resourceBadgeText.color = Color.white;
+                _resourceBadgeText.outlineColor = new Color(0.075f, 0.125f, 0.20f, 0.98f);
+                _resourceBadgeText.outlineWidth = 0.18f;
+                _resourceBadgeText.enabled = false;
+            }
+            if (_strongShotText == null)
+            {
+                _strongShotText = NewLabel("StrongShot", FontStyles.Bold, TextAlignmentOptions.Center);
+                _strongShotText.text = "강탄";
+                _strongShotText.color = new Color(1f, 0.85f, 0.57f);
+                _strongShotText.outlineColor = new Color(0.075f, 0.125f, 0.20f, 0.98f);
+                _strongShotText.outlineWidth = 0.18f;
+                _strongShotText.enabled = false;
+            }
+            if (_suryaResourcePlate == null)
+            {
+                _suryaResourcePlate = VfxSpace.NewSprite(_body, "SuryaResourcePlate",
+                    UIShapes.RoundedRect(6, Color.white, new Color(0.75f, 0.86f, 0.93f, 0.7f), 1),
+                    new Color(0.12f, 0.19f, 0.25f, 0.88f), 0, 0);
+                _suryaResourcePlate.enabled = false;
+            }
         }
 
         private TextMeshPro NewLabel(string name, FontStyles style, TextAlignmentOptions alignment)
@@ -397,15 +474,14 @@ namespace Entities.View
                 _elementBadges[i] = badge;
             }
 
-            // ── 궁극기 오브(원화 우상단 뒤에서 원화와 겹친다) ──
-            // 액체는 원형 마스크 안에서 아래→위로 차고, 생성 에셋은 광택만 맡아 원소색을 가리지 않는다.
-            // 하단 HUD와 캔버스를 나눠야 SpriteRenderer 원화가 오브 앞, 글자는 원화 앞에 놓일 수 있다.
+            // ── 궁극기 게이지(main의 카드 우상단 앵커·돌출량·크기) ──
+            // 원화 뒤로 놓아 왼쪽 가장자리가 머리/머리카락에 살짝 가려지게 한다.
             _ultRoot = UIBuild.Container("UltGauge", orbCanvasObject.transform);
-            _ultRoot.anchorMin = new Vector2(0f, 1f);
-            _ultRoot.anchorMax = new Vector2(0f, 1f);
-            _ultRoot.pivot = new Vector2(0.5f, 0.5f);
+            _ultRoot.anchorMin = new Vector2(1f, 1f);
+            _ultRoot.anchorMax = new Vector2(1f, 1f);
+            _ultRoot.pivot = new Vector2(1f, 1f);
             _ultRoot.sizeDelta = new Vector2(RingSize, RingSize);
-            _ultRoot.anchoredPosition = new Vector2(OrbCenterX, -OrbCenterY);
+            _ultRoot.anchoredPosition = new Vector2(RingOverhang, RingOverhang);
             _ultReadyGlow = NewImage(_ultRoot, "ReadyGlow", Color.clear);
             _ultReadyGlow.sprite = UIShapes.Disc(96, Color.white);
             // 바깥으로 번진 원판의 아래쪽 호만 금색 막대처럼 보였으므로 준비광도 오브 안에서 끝낸다.
@@ -416,9 +492,9 @@ namespace Entities.View
             UIBuild.Stretch(well.rectTransform, RingEdge, RingEdge);
 
             RectTransform liquidMask = UIBuild.Container("LiquidMask", _ultRoot);
-            // 낮은 마나 수위가 크롬 하단에 붙으면 오브 밖의 막대처럼 읽힌다. 액체를 웰 안쪽에
-            // 한 번 더 물려 10~20% 수위도 독립된 초승달로 보이게 한다.
-            const float liquidInset = RingEdge + 2.4f;
+            // 스타레일처럼 회색 원 안이 아래에서 위로 찬다. 얇은 외곽과 내부 채움 사이에
+            // 큰 빈 고리를 두지 않아 작은 카드에서도 수위를 곧바로 읽을 수 있다.
+            const float liquidInset = RingEdge + 0.45f;
             UIBuild.Stretch(liquidMask, liquidInset, liquidInset);
             Image maskGraphic = NewImage(liquidMask, "Mask", Color.white);
             maskGraphic.sprite = UIShapes.Disc(96, Color.white);
@@ -442,6 +518,7 @@ namespace Entities.View
 
             _ultFill = NewImage(liquidMask, "LiquidFront", UITheme.Mana);
             _ultFill.type = Image.Type.Filled;
+            _ultFill.sprite = UIShapes.Disc(96, Color.white);
             _ultFill.fillMethod = Image.FillMethod.Vertical;
             _ultFill.fillOrigin = (int)Image.OriginVertical.Bottom;
             UIBuild.Stretch(_ultFill.rectTransform);
@@ -487,8 +564,8 @@ namespace Entities.View
             _ultGlass.preserveAspect = true;
             UIBuild.Stretch(_ultGlass.rectTransform, -0.2f, -0.2f);
 
-            _ultOutline = NewImage(_ultRoot, "Outline", new Color(0.78f, 0.89f, 0.96f, 0.98f));
-            _ultOutline.sprite = UIShapes.Disc(96, Color.white, 0.84f);
+            _ultOutline = NewImage(_ultRoot, "Outline", RingIdle);
+            _ultOutline.sprite = UIShapes.Disc(96, Color.white, 0.93f);
             UIBuild.Stretch(_ultOutline.rectTransform);
 
             _ultReadyRing = NewImage(_ultRoot, "ReadyRing", Color.clear);
@@ -512,25 +589,38 @@ namespace Entities.View
             _resourceBadge.enabled = false;
             _resourceBadgeDigit.enabled = false;
 
-            // ── 하단 A안 리퀴드 글라스 ──
-            // 원화 사본을 패널 안에 다시 그리면 밝은 전장에서도 다리·옷자락이 검은 얼룩으로 남는다.
-            // 배경과 무관하게 일정한 스모크 한 장만 써 정보 대비와 원화 실루엣을 함께 보존한다.
+            // 보물은 마나로 저장되는 기존 자원이다. 표시만 8칸 구슬로 바꾸고 0에서도 빈 칸을 남긴다.
+            for (int i = 0; i < _treasureBeads.Length; i++)
+            {
+                Image bead = NewImage(_ultRoot, $"TreasureBead{i}", Color.clear);
+                bead.sprite = UIShapes.Disc(32, Color.white, 0.82f);
+                bead.rectTransform.anchorMin = bead.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+                float angle = (-90f + i * 45f) * Mathf.Deg2Rad;
+                bead.rectTransform.anchoredPosition = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * 14.2f;
+                bead.rectTransform.sizeDelta = new Vector2(3.8f, 3.8f);
+                bead.enabled = false;
+                _treasureBeads[i] = bead;
+            }
+
+            // ── 캐릭터 HUD: 체력 숫자 → 얇은 체력선 → 상태 아이콘 ──
+            // 스타레일의 정보 계층을 원화 하단에 적용한다. 밝은 테두리·광택을 덜어내고
+            // 작은 군청 받침 하나로 원화와 수치의 대비만 확보한다.
             Image glassDrop = NewImage(_bottomHudRoot, "BottomGlassShadow", new Color(0.075f, 0.125f, 0.20f, 0.20f));
-            glassDrop.sprite = UIShapes.SoftShadow(10, 8, 0.18f);
+            glassDrop.sprite = UIShapes.SoftShadow(4, 6, 0.10f);
             glassDrop.type = Image.Type.Sliced;
             Place(glassDrop.rectTransform, GlassLeft, GlassTop + 0.8f, GlassWidth, GlassEmptyHeight);
             _bottomGlassShadow = glassDrop.gameObject;
 
             Image glassBase = NewImage(_bottomHudRoot, "BottomGlass", Color.white);
-            glassBase.sprite = UIShapes.RoundedRect(10, Color.clear);
+            glassBase.sprite = UIShapes.RoundedRect(4, Color.clear);
             glassBase.type = Image.Type.Sliced;
             Place(glassBase.rectTransform, GlassLeft, GlassTop, GlassWidth, GlassEmptyHeight);
             _bottomGlass = glassBase.gameObject;
 
             // 밝은 전장에서도 양 진영을 같은 대비로 묶는다. 흰 원화와 백색 결정 모두에서
             // 읽혀야 하므로 아군/적 색 분기 대신 안 2의 공통 스모크 면을 쓴다.
-            _glassTint = NewImage(glassBase.transform, "Tint", new Color(0.149f, 0.22f, 0.29f, 0.72f));
-            _glassTint.sprite = UIShapes.RoundedRect(10, Color.white);
+            _glassTint = NewImage(glassBase.transform, "Tint", new Color(0.09f, 0.13f, 0.19f, 0.76f));
+            _glassTint.sprite = UIShapes.RoundedRect(2, Color.white);
             _glassTint.type = Image.Type.Sliced;
             UIBuild.Stretch(_glassTint.rectTransform);
 
@@ -538,24 +628,35 @@ namespace Entities.View
             glassShade.sprite = UIShapes.VerticalGradient(32,
                 new Color(0.48f, 0.72f, 0.82f, 0.01f), new Color(0.075f, 0.125f, 0.20f, 0.10f));
             UIBuild.Stretch(glassShade.rectTransform, 0.8f, 0.8f);
+            glassShade.enabled = false;
 
             Image specular = NewImage(glassBase.transform, "UpperSpecular", new Color(1f, 1f, 1f, 0.28f));
             specular.sprite = UIShapes.RoundedRect(2, Color.white);
             specular.type = Image.Type.Sliced;
             Place(specular.rectTransform, 13f, 1.15f, GlassWidth - 26f, 0.45f);
+            specular.enabled = false;
 
             Image glassRim = NewImage(glassBase.transform, "BrightRim", Color.white);
-            glassRim.sprite = UIShapes.RoundedRect(10, Color.clear, new Color(0.97f, 0.985f, 1f, 0.72f), 1);
+            glassRim.sprite = UIShapes.RoundedRect(4, Color.clear, new Color(0.97f, 0.985f, 1f, 0.72f), 1);
             glassRim.type = Image.Type.Sliced;
             UIBuild.Stretch(glassRim.rectTransform);
+            glassRim.enabled = false;
+
+            // 특수행동 개방은 지속 버프가 아니다. 실제 상태 아이콘 대신 정보판에 한 번만 빛을 잇는다.
+            _actionGateRim = NewImage(glassBase.transform, "ActionGatePulse", Color.clear);
+            _actionGateRim.sprite = UIShapes.RoundedRect(4, Color.clear, Color.white, 2);
+            _actionGateRim.type = Image.Type.Sliced;
+            _actionGateRim.raycastTarget = false;
+            // 기존 흰 외곽선 위를 재채색하면 오히려 어두워진다. 안쪽 여백에 별도 빛을 남긴다.
+            UIBuild.Stretch(_actionGateRim.rectTransform, 1.25f, 1.25f);
 
             // 체력 + 보호막. 보호막은 스타레일처럼 체력 트랙 윗면에 얇은 백색 막으로 겹친다.
             _hpTrack = NewImage(glassBase.transform, "HpTrack", Color.white);
-            _hpTrack.sprite = UIShapes.RoundedRect(3, new Color(0.01f, 0.045f, 0.052f, 0.90f));
+            _hpTrack.sprite = UIShapes.RoundedRect(1, new Color(0.71f, 0.75f, 0.80f, 0.38f));
             _hpTrack.type = Image.Type.Sliced;
             Place(_hpTrack.rectTransform, 6f, HpTop - GlassTop, GlassWidth - 12f, HpHeight);
             _hpFill = NewImage(_hpTrack.transform, "HpFill", UITheme.Hp);
-            _shieldFill = NewImage(_hpTrack.transform, "ShieldFill", new Color(0.894f, 0.745f, 0.365f, 0.98f));
+            _shieldFill = NewImage(_hpTrack.transform, "ShieldFill", new Color(0.87f, 0.94f, 1f, 0.98f));
             Image sheen = UIBuild.Solid("Sheen", _hpTrack.transform, new Color(1f, 1f, 1f, 0.22f));
             sheen.raycastTarget = false;
             sheen.rectTransform.anchorMin = new Vector2(0f, 0.55f);
@@ -567,6 +668,11 @@ namespace Entities.View
             _actionTrack = UIBuild.Solid("ActionTrack", glassBase.transform, new Color(0.01f, 0.04f, 0.05f, 0.52f));
             Place(_actionTrack.rectTransform, 6f, ActionTop - GlassTop, GlassWidth - 12f, ActionHeight);
             _actionFill = NewImage(_actionTrack.transform, "ActionFill", new Color(0.77f, 0.84f, 0.89f, 0.94f));
+
+            _toughnessTrack = UIBuild.Solid("ToughnessTrack", glassBase.transform, new Color(.55f, .63f, .72f, .35f));
+            Place(_toughnessTrack.rectTransform, 6f, ActionTop - GlassTop + 3f, GlassWidth - 12f, 1.5f);
+            _toughnessFill = NewImage(_toughnessTrack.transform, "ToughnessFill", new Color(.91f, .95f, 1f, .98f));
+            _toughnessTrack.gameObject.SetActive(false);
 
             // ── 상태 아이콘 ──
             for (int i = 0; i < MaxDots; i++)
@@ -637,6 +743,7 @@ namespace Entities.View
                    _ultFillShade != null && _ultRearWave != null && _ultWave != null && _ultOutline != null &&
                    _ultMarkShadow != null && _ultMark != null && _ultGlass != null && _ultReadyGlow != null &&
                    _ultReadyRing != null && _resourceBadge != null && _resourceBadgeDigit != null &&
+                   _resourceBadgeText != null && _strongShotText != null && _suryaResourcePlate != null &&
                     _bottomGlass != null && _bottomGlassShadow != null &&
                    _glassTint != null && _hpTrack != null && _hpFill != null && _shieldFill != null &&
                    _actionTrack != null && _actionFill != null &&
@@ -684,6 +791,7 @@ namespace Entities.View
             }
 
             ResetHudReferences();
+            EnsureResourceLabels();
             BuildHud();
             _hudPixelScale = pixelScale > 0f ? pixelScale : 1f;
             ApplyHudLod(compact, true);
@@ -715,14 +823,18 @@ namespace Entities.View
             _ultReadyRing = null;
             _resourceBadge = null;
             _resourceBadgeDigit = null;
+            _treasureBeads = new Image[8];
             _bottomGlass = null;
             _bottomGlassShadow = null;
             _glassTint = null;
+            _actionGateRim = null;
             _hpTrack = null;
             _hpFill = null;
             _shieldFill = null;
             _actionTrack = null;
             _actionFill = null;
+            _toughnessTrack = null;
+            _toughnessFill = null;
             _glassHeightInitialized = false;
             _dots = new Image[MaxDots];
             _dotBacks = new Image[MaxDots];
@@ -766,33 +878,28 @@ namespace Entities.View
 
         private void LayOutNameLabel(float s, bool compact)
         {
-            float hudSize = BottomHudSize(s);
-            float y = s * (0.5f - GlassCenterY / CanvasWidth) +
-                      hudSize * (GlassCenterY - (GlassTop + 5.5f)) / CanvasWidth;
-            float pixelScale = compact ? _hudPixelScale : 1f;
-            PlaceLabel(_nameLabel, new Vector2(-hudSize * 0.225f, y),
-                new Vector2(hudSize * 0.41f, hudSize * (compact ? 0.074f : 0.068f) * pixelScale),
-                hudSize * (compact ? 0.61f : 0.56f) * pixelScale);
+            float hud = BottomHudSize(s);
+            float scale = compact ? _hudPixelScale : 1f;
+            float y = s * (0.5f - GlassCenterY / CanvasWidth) + hud * (GlassCenterY - (GlassTop + 9f)) / CanvasWidth;
+            PlaceLabel(_nameLabel, new Vector2(0f, y), new Vector2(hud*.83f, hud*.14f*scale), hud*.88f*scale);
+            _nameLabel.alignment = TextAlignmentOptions.MidlineLeft;
             _nameLabel.enableAutoSizing = true;
-            _nameLabel.fontSizeMin = hudSize * (compact ? 0.46f : 0.36f) * pixelScale;
-            _nameLabel.fontSizeMax = hudSize * (compact ? 0.61f : 0.56f) * pixelScale;
-            _nameLabel.outlineWidth = compact ? 0.18f : 0.13f;
-            _nameLabel.enabled = true;
+            _nameLabel.fontSizeMin = hud*.70f*scale;
+            _nameLabel.fontSizeMax = hud*.88f*scale;
+            _nameLabel.outlineWidth = 0f;
+            _nameLabel.enabled = false;
         }
 
         private void LayOutHpLabel(float s, bool compact)
         {
-            float hudSize = BottomHudSize(s);
-            float y = s * (0.5f - GlassCenterY / CanvasWidth) +
-                      hudSize * (GlassCenterY - (GlassTop + 5.5f)) / CanvasWidth;
-            float pixelScale = compact ? _hudPixelScale : 1f;
-            PlaceLabel(_hpLabel, new Vector2(hudSize * 0.245f, y),
-                new Vector2(hudSize * 0.43f, hudSize * (compact ? 0.074f : 0.067f) * pixelScale),
-                hudSize * (compact ? 0.60f : 0.52f) * pixelScale);
-            _hpLabel.enableAutoSizing = !compact;
-            _hpLabel.fontSizeMin = hudSize * (compact ? 0.60f : 0.36f) * pixelScale;
-            _hpLabel.fontSizeMax = hudSize * (compact ? 0.60f : 0.52f) * pixelScale;
-            _hpLabel.outlineWidth = compact ? 0.17f : 0.12f;
+            float hud = BottomHudSize(s);
+            float scale = compact ? _hudPixelScale : 1f;
+            float y = s * (0.5f - GlassCenterY / CanvasWidth) + hud * (GlassCenterY - (GlassTop + 9.5f)) / CanvasWidth;
+            PlaceLabel(_hpLabel, new Vector2(hud*.225f,y), new Vector2(hud*.38f,hud*.14f*scale),hud*.76f*scale);
+            _hpLabel.enableAutoSizing = true;
+            _hpLabel.fontSizeMin = hud*.60f*scale;
+            _hpLabel.fontSizeMax = hud*.76f*scale;
+            _hpLabel.outlineWidth = 0f;
         }
 
         private static void PlaceLabel(TextMeshPro label, Vector2 position, Vector2 size, float fontSize)
@@ -804,11 +911,75 @@ namespace Entities.View
             label.fontSize = fontSize;
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        [Serializable]
+        public sealed class ResourceHudDiagnostic
+        {
+            public int unitId, ammo, maximum, strong;
+            public bool combatHud, bodyActive, ammoEnabled, strongEnabled, ammoMeshVisible, strongMeshVisible;
+            public string unitName, nameText, ammoText, strongText, font, nameFont, strongFont, sorting;
+            public int ammoCharacters, strongCharacters, nameCharacters;
+            public float ammoFontSize, strongFontSize, ammoScreenHeight, strongScreenHeight;
+        }
+
+        /// <summary>게임 자원과 실제 월드 TMP 메시를 함께 기록하는 검수 전용 관측. 상태를 덮어쓰지 않는다.</summary>
+        public ResourceHudDiagnostic VerificationResourceHud(bool forceMesh = false)
+        {
+            if (forceMesh)
+            {
+                _nameLabel.ForceMeshUpdate();
+                _resourceBadgeText.ForceMeshUpdate();
+                _strongShotText.ForceMeshUpdate();
+            }
+            float Height(TextMeshPro text)
+            {
+                Bounds bounds = text.GetComponent<MeshRenderer>().bounds;
+                Camera camera = Camera.main;
+                return camera == null ? 0f : Mathf.Abs(camera.WorldToScreenPoint(bounds.max).y - camera.WorldToScreenPoint(bounds.min).y);
+            }
+            bool Visible(TextMeshPro text) => text.enabled && text.gameObject.activeInHierarchy &&
+                text.textInfo.characterCount > 0 && Height(text) >= 5f;
+            return new ResourceHudDiagnostic
+            {
+                unitId = _unit.ID, unitName = _unit.UnitName, nameText = _nameLabel.text, nameFont = _nameLabel.font?.name, nameCharacters = _nameLabel.textInfo.characterCount,
+                ammo = _unit.GetCombatResource(Codes.Passive.SuryaBeforeSunset.BulletResourceId),
+                maximum = _unit.GetCombatResourceMaximum(Codes.Passive.SuryaBeforeSunset.BulletResourceId),
+                strong = _unit.GetCombatResource(Codes.Passive.SuryaBeforeSunset.EmpoweredResourceId),
+                combatHud = _combatHud, bodyActive = _body.gameObject.activeInHierarchy,
+                ammoEnabled = _resourceBadgeText.enabled, strongEnabled = _strongShotText.enabled,
+                ammoMeshVisible = Visible(_resourceBadgeText), strongMeshVisible = Visible(_strongShotText),
+                ammoText = _resourceBadgeText.text, strongText = _strongShotText.text,
+                ammoCharacters = _resourceBadgeText.textInfo.characterCount, strongCharacters = _strongShotText.textInfo.characterCount,
+                ammoFontSize = _resourceBadgeText.fontSize, strongFontSize = _strongShotText.fontSize,
+                ammoScreenHeight = Height(_resourceBadgeText), strongScreenHeight = Height(_strongShotText),
+                font = _resourceBadgeText.font?.name, strongFont = _strongShotText.font?.name,
+                sorting = _resourceBadgeText.GetComponent<MeshRenderer>().sortingLayerName + ":" + _resourceBadgeText.GetComponent<MeshRenderer>().sortingOrder,
+            };
+        }
+
+        /// <summary>같은 실제 자원의 기존 위치와 수정 위치를 비교하는 검수 전용. 일반 렌더는 수정 위치를 따른다.</summary>
+        public void VerificationLegacyResourcePlacement(bool legacy)
+        {
+            LayOutResourceBadgeText(_cardSize);
+            if (!legacy) return;
+            float s = _cardSize;
+            PlaceLabel(_resourceBadgeText, new Vector2(s * 0.25f, s * 0.439f), new Vector2(s * 0.30f, s * 0.075f), s * 0.43f);
+            PlaceLabel(_strongShotText, new Vector2(s * 0.34f, s * 0.35f), new Vector2(s * 0.22f, s * 0.07f), s * 0.20f);
+            _suryaResourcePlate.enabled = false;
+        }
+#endif
+
         private void LayOutResourceBadgeText(float s)
         {
             if (_resourceBadgeText == null) return;
-            PlaceLabel(_resourceBadgeText, new Vector2(s * 0.25f, s * 0.439f),
-                new Vector2(s * 0.16f, s * 0.075f), s * 0.43f);
+            float hud=BottomHudSize(s), scale=_compactHud ? _hudPixelScale : 1f;
+            float y=s*(.5f-GlassCenterY/CanvasWidth)+hud*(GlassCenterY-(GlassTop+9.5f))/CanvasWidth;
+            PlaceLabel(_resourceBadgeText,new Vector2(-hud*.225f,y),new Vector2(hud*.38f,hud*.14f*scale),hud*.72f*scale);
+            _resourceBadgeText.alignment=TextAlignmentOptions.MidlineLeft;
+            _resourceBadgeText.enableAutoSizing=true;
+            _resourceBadgeText.fontSizeMin=hud*.60f*scale;
+            _resourceBadgeText.fontSizeMax=hud*.72f*scale;
+            _resourceBadgeText.outlineWidth=0f;
         }
 
         private static float BottomHudSize(float cardSize)
@@ -840,22 +1011,28 @@ namespace Entities.View
 
             SetOrder(_shadow, o);
             SetOrder(_auraGlow, o);
-            _orbCanvas.sortingLayerID = _layerId;
-            _orbCanvas.sortingOrder = o + 2;
             SetOrder(_portrait, o + 3);
 
-            // 두 루트 캔버스가 SpriteRenderer와 같은 축에서 비교된다. 오브는 원화 뒤, 정보는 앞이다.
-            _canvas.sortingLayerID = _layerId;
+            // 큰 초월기 원은 원화 뒤, 체력·상태 정보는 앞에 놓는다.
+            int hudLayer = SortingLayer.NameToID("CombatHud");
+            if (hudLayer == 0) hudLayer = _layerId;
+            _orbCanvas.sortingLayerID = _layerId;
+            _orbCanvas.sortingOrder = o + 2;
+            // 날아드는 원화는 정지한 정보판보다 앞이다. 복귀 시 원래 원화 레이어로 되돌린다.
+            if (_portrait != null && _sortBoost > 0) _portrait.sortingLayerID = hudLayer;
+            _canvas.sortingLayerID = hudLayer;
             _canvas.sortingOrder = o + 6;
             var nameRenderer = _nameLabel.GetComponent<MeshRenderer>();
-            nameRenderer.sortingLayerID = _layerId;
+            nameRenderer.sortingLayerID = hudLayer;
             nameRenderer.sortingOrder = o + 7;
             var hpRenderer = _hpLabel.GetComponent<MeshRenderer>();
-            hpRenderer.sortingLayerID = _layerId;
+            hpRenderer.sortingLayerID = hudLayer;
             hpRenderer.sortingOrder = o + 8;
             var resourceRenderer = _resourceBadgeText.GetComponent<MeshRenderer>();
-            resourceRenderer.sortingLayerID = _layerId;
+            resourceRenderer.sortingLayerID = hudLayer;
             resourceRenderer.sortingOrder = o + 9;
+            if (_strongShotText != null) { SetOrder(_strongShotText.GetComponent<MeshRenderer>(), o + 10); _strongShotText.GetComponent<MeshRenderer>().sortingLayerID = hudLayer; }
+            SetOrder(_suryaResourcePlate, o + 8);
         }
 
         private void SetOrder(Renderer renderer, int order)
@@ -928,20 +1105,23 @@ namespace Entities.View
         {
             if (_portrait == null || _portrait.sprite == null) return;
 
-            Sprite source = PortraitSources.TryGetValue(_portrait.sprite, out Sprite original)
-                ? original
-                : _portrait.sprite;
+            _portrait.sprite = PortraitWithBottomFade(_portrait.sprite);
+        }
+
+        internal static Sprite PortraitWithBottomFade(Sprite portrait)
+        {
+            if (portrait == null) return null;
+            Sprite source = PortraitSources.TryGetValue(portrait, out Sprite original) ? original : portrait;
             if (FadedPortraits.TryGetValue(source, out Sprite cached) && cached != null)
             {
-                _portrait.sprite = cached;
-                return;
+                return cached;
             }
 
             Sprite faded = CreateBottomFadedSprite(source);
-            if (faded == null || faded == source) return;
+            if (faded == null || faded == source) return source;
             FadedPortraits[source] = faded;
             PortraitSources[faded] = source;
-            _portrait.sprite = faded;
+            return faded;
         }
 
         private static Sprite CreateBottomFadedSprite(Sprite source)
@@ -1266,8 +1446,9 @@ namespace Entities.View
         /// 사망 직후 칸이 비워져도 원화와 두 HUD 캔버스를 같은 박자로 지울 수 있도록 몸체 전체를 뜬다.
         /// 직전 <see cref="Tick"/>이 체력 0 카드를 낮춘 알파만 되돌리고, 실제 뷰의 생명주기에는 손대지 않는다.
         /// </summary>
-        internal GameObject CreateDeathSnapshot()
+        internal GameObject CreateDeathSnapshot(out SpriteRenderer portrait)
         {
+            portrait=null;
             if (_body == null || !_body.gameObject.activeInHierarchy) return null;
 
             GameObject snapshot = Instantiate(_body.gameObject);
@@ -1280,9 +1461,14 @@ namespace Entities.View
             foreach (CanvasGroup group in snapshot.GetComponentsInChildren<CanvasGroup>(true))
                 group.alpha = Mathf.Clamp01(group.alpha / InactiveAlpha);
 
-            foreach (SpriteRenderer renderer in snapshot.GetComponentsInChildren<SpriteRenderer>(true))
+            SpriteRenderer[] originals=_body.GetComponentsInChildren<SpriteRenderer>(true);
+            SpriteRenderer[] copies=snapshot.GetComponentsInChildren<SpriteRenderer>(true);
+            int portraitIndex=Array.IndexOf(originals,_portrait);
+            if(portraitIndex>=0&&portraitIndex<copies.Length)portrait=copies[portraitIndex];
+            foreach (SpriteRenderer renderer in copies)
             {
-                if (!string.Equals(renderer.gameObject.name, "Portrait", StringComparison.Ordinal)) continue;
+                // 현행 프리팹의 이름은 Sprite다. 이름 대신 실제 원화 렌더러의 복제본을 추적한다.
+                if (!ReferenceEquals(renderer,portrait)) continue;
                 Color color = renderer.color;
                 color.a = Mathf.Clamp01(color.a / InactiveAlpha);
                 renderer.color = color;
@@ -1529,6 +1715,7 @@ namespace Entities.View
             ResetMotion();
             _unit = unit;
             _combatHud = combatHud;
+            LayOutResourceBadgeText(_cardSize);
 
             Show(unit != null);
             if (unit == null) return;
@@ -1604,23 +1791,31 @@ namespace Entities.View
             _shieldFill.enabled = shieldRatio > 0f;
             _hpFill.color = _unit.IsEnemy
                 ? new Color(0.878f, 0.353f, 0.408f, 1f)
-                : new Color(0.157f, 0.78f, 0.682f, 1f);
-            _hpLabel.text = $"{Mathf.Max(0, _unit.HpCurr):N0} / {Mathf.Max(0, _unit.HpMax):N0}";
-            bool wideHp = Mathf.Abs(_unit.HpCurr) >= 1000 || Mathf.Abs(_unit.HpMax) >= 1000;
-            _hpLabel.transform.localScale = new Vector3(wideHp ? 0.88f : 1f, 1f, 1f);
+                : new Color(0.29f, 0.86f, 0.94f, 1f);
+            _hpLabel.text = $"{Mathf.Max(0, _unit.HpCurr):N0}";
+            _hpLabel.transform.localScale = Vector3.one;
 
             RefreshUltimateRingColor();
-            float fill = _unit.ManaMax > 0 ? Mathf.Clamp01(_unit.ManaCurr / (float)_unit.ManaMax) : 0f;
+            string passiveResource = _unit.UltimateResourceType == BaseEnums.UltimateResourceType.Passive
+                ? _unit.CombatResourceIds.FirstOrDefault(id => _unit.GetCombatResourceMaximum(id) > 0) : null;
+            float fill = passiveResource != null
+                ? Mathf.Clamp01(_unit.GetCombatResource(passiveResource) / (float)_unit.GetCombatResourceMaximum(passiveResource))
+                : _unit.ManaMax > 0 ? Mathf.Clamp01(_unit.ManaCurr / (float)_unit.ManaMax) : 0f;
             _ultFillAmount = fill;
             _ultRearFill.fillAmount = fill;
             _ultFill.fillAmount = fill;
             _ultFillLight.fillAmount = fill;
             _ultFillShade.fillAmount = fill;
-            RefreshUltimateReady(fill >= 0.999f);
+            RefreshUltimateReady(_unit.UltimateResourceType != BaseEnums.UltimateResourceType.Passive && fill >= 0.999f);
 
             ActionScheduler scheduler = GameManager.Instance?.ActionScheduler;
             SetSpan(_actionFill.rectTransform, 0f, scheduler?.ActionProgress(_unit) ?? 0f);
 
+            if (_toughnessTrack != null)
+            {
+                _toughnessTrack.gameObject.SetActive(_unit.IsEnemy && _unit.ToughnessMax > 0);
+                SetSpan(_toughnessFill.rectTransform, 0f, _unit.ToughnessMax > 0 ? (float)_unit.ToughnessCurr / _unit.ToughnessMax : 0f);
+            }
             RefreshStatusDots();
         }
 
@@ -1675,6 +1870,13 @@ namespace Entities.View
             }
         }
 
+        public void PulseActionGateHud(Color accent)
+        {
+            if (!_combatHud || _actionGateRim == null) return;
+            _actionGateAccent = Color.Lerp(new Color(.72f, .80f, .91f), accent, .80f);
+            _actionGatePulseAge = 0f;
+        }
+
         private void RefreshElementBadges()
         {
             int i = 0;
@@ -1698,17 +1900,32 @@ namespace Entities.View
         /// </summary>
         private void RefreshResourceBadge()
         {
+            bool treasure = _combatHud && _unit != null && !_unit.IsEnemy && _unit.ID == 65;
+            int treasureCount = treasure ? Mathf.Clamp(_unit.ManaCurr, 0, 8) : 0;
+            for (int i = 0; i < _treasureBeads.Length; i++)
+            {
+                Image bead = _treasureBeads[i];
+                if (bead == null) continue;
+                bead.enabled = treasure;
+                bead.color = i < treasureCount ? new Color(1f, 0.80f, 0.28f, 1f)
+                    : new Color(0.24f, 0.32f, 0.40f, 0.94f);
+            }
             string resource = BadgeResourceId(_unit);
-            int max = _combatHud && resource != null ? _unit.GetCombatResourceMaximum(resource) : 0;
-            int current = max > 0 ? _unit.GetCombatResource(resource) : 0;
-            bool visible = max > 0 && (_unit.ID == 7 || current > 0);
-            _resourceBadge.enabled = visible;
+            int max = treasure ? 8 : _combatHud && resource != null ? _unit.GetCombatResourceMaximum(resource) : 0;
+            int current = treasure ? treasureCount : max > 0 ? _unit.GetCombatResource(resource) : 0;
+            bool visible = treasure || max > 0 && (_unit.ID is 7 or 67 or 82 or 121 || current > 0);
+            bool surya = _unit?.ID == 67;
+            _resourceBadge.enabled = visible && !surya;
+            if (_suryaResourcePlate != null) _suryaResourcePlate.enabled = visible && surya;
             _resourceBadgeDigit.enabled = false;
             _resourceBadgeText.enabled = visible;
+            if (_strongShotText != null)
+                _strongShotText.enabled = _combatHud && _unit != null && _unit.ID == 67 && _unit.isActive &&
+                    _unit.GetCombatResource(Codes.Passive.SuryaBeforeSunset.EmpoweredResourceId) > 0;
             if (!visible) return;
 
-            _resourceBadgeText.text = current.ToString();
-            _resourceBadge.rectTransform.sizeDelta = new Vector2(current >= 10 ? 13.2f : 9.2f, 7.2f);
+            _resourceBadgeText.text = surya ? $"탄 {current}/{max}" : _unit.ID == 82 ? $"{Mathf.RoundToInt(current / (float)Mathf.Max(1,max)*100)}%" : current.ToString();
+            _resourceBadge.rectTransform.sizeDelta = new Vector2(Mathf.Max(9.2f, 5.4f + _resourceBadgeText.text.Length * 3.8f), 7.2f);
             float complete = current >= max ? 1f : 0f;
             _resourceBadge.color = Color.Lerp(
                 new Color(0.70f, 0.82f, 0.90f, 0.88f),
@@ -1726,6 +1943,9 @@ namespace Entities.View
             {
                 1 => Codes.Passive.SeiBigBang.ResourceId,
                 7 => Codes.Passive.JeanIronSanction.ResourceId,
+                67 => Codes.Passive.SuryaBeforeSunset.BulletResourceId,
+                82 => Codes.Ultimate.FreyaBrisingamen.Resource,
+                121 => Codes.Passive.AnubisSoulHarvest.ResourceId,
                 _ => null,
             };
         }
@@ -1737,14 +1957,17 @@ namespace Entities.View
             _ringElementName = elementName;
 
             BaseEnums.UnitElement element = ElementPalette.Parse(elementName);
-            _ringColor = element == BaseEnums.UnitElement.None ? UITheme.Mana : ElementPalette.PastelColorFor(element);
-            _ultOutline.color = new Color(0.78f, 0.89f, 0.96f, 0.98f);
+            // 수위와 완충 외곽은 캐릭터 고유 원소색이다. 부착된 원소와 구분한다.
+            BaseEnums.UnitElement displayElement = element == BaseEnums.UnitElement.None && _unit?.HasUnitTag("Void") == true
+                ? BaseEnums.UnitElement.Void : element;
+            _ringColor = ElementPalette.PastelColorFor(displayElement);
+            _ultOutline.color = RingIdle;
             _ultFill.color = _ringColor;
             Color rearLiquid = Color.Lerp(_ringColor, new Color(0.025f, 0.055f, 0.085f, 1f), 0.34f);
             rearLiquid.a = 0.96f;
             _ultRearFill.color = rearLiquid;
-            Color liquidLight = Color.Lerp(_ringColor, Color.white, 0.58f);
-            liquidLight.a = 0.62f;
+            Color liquidLight = Color.white;
+            liquidLight.a = 0.12f;
             _ultFillLight.color = liquidLight;
             Sprite glyph = UltimateGlyph(_unit, element);
             _ultMark.sprite = glyph;
@@ -1753,7 +1976,7 @@ namespace Entities.View
             _ultMark.color = MarkIdle;
         }
 
-        /// <summary>다 찼는지를 맥동으로 알린다. 8배속에서도 깜빡임이 되지 않게 실시간으로 센다.</summary>
+        /// <summary>완충은 밝은 외곽과 낮은 호흡광으로 구분한다. 점멸하지 않는다.</summary>
         private void RefreshUltimateReady(bool ready)
         {
             _ultReady = ready;
@@ -1761,22 +1984,17 @@ namespace Entities.View
             {
                 _ultMark.color = MarkIdle;
                 _ultMarkShadow.color = MarkShadow;
-                // 비어 있어도 짙은 원판이 되지 않는다. 밝은 크롬과 투명 유리 하드웨어는 항상 남긴다.
-                _ultOutline.color = new Color(0.78f, 0.89f, 0.96f, 0.98f);
+                _ultOutline.color = RingIdle;
                 _ultReadyGlow.color = Color.clear;
                 _ultReadyRing.color = Color.clear;
                 return;
             }
 
-            float pulse = 0.74f + 0.26f * Mathf.Sin(Time.unscaledTime * 6.6f);
+            float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 2.4f);
             _ultMark.color = new Color(1f, 1f, 1f, 0.92f + pulse * 0.08f);
             _ultMarkShadow.color = new Color(MarkShadow.r, MarkShadow.g, MarkShadow.b, 0.94f);
-            // 준비 상태에서도 하드웨어 외곽은 실버블루로 유지한다. 바깥 원을 금색으로 바꾸면
-            // 작은 카드에서 아래쪽 호만 수평 막대처럼 튀므로 금색은 안쪽 준비 링에만 쓴다.
-            _ultOutline.color = new Color(0.78f, 0.89f, 0.96f, 0.98f);
-            _ultReadyGlow.color = new Color(_ringColor.r, _ringColor.g, _ringColor.b, 0.13f + pulse * 0.12f);
-            // 21×21에서는 준비 링의 아래쪽 호만 금색 막대로 남았다. 완충 정보는 내부 글리프와
-            // 오브 안에 갇힌 호흡광으로 충분하므로 외곽 장식은 투명하게 유지한다.
+            _ultOutline.color = Color.Lerp(_ringColor, Color.white, .28f);
+            _ultReadyGlow.color = new Color(_ringColor.r, _ringColor.g, _ringColor.b, 0.05f + pulse * 0.05f);
             _ultReadyRing.color = Color.clear;
         }
 
@@ -1848,8 +2066,12 @@ namespace Entities.View
 
                 UnitStatus status = _dotStatuses[i];
                 StatusArrow arrow = StatusIcons.Resolve(status).Arrow;
-                _dotBacks[i].sprite = StatusIcons.Frame(status, false);
-                _dotRims[i].sprite = StatusIcons.Frame(status, true);
+                // 스타레일 HUD처럼 상태는 작은 사각 슬롯으로 구분한다. 의미/원소는
+                // 내부 글리프의 형태와 색으로 읽고 받침의 모양은 일관되게 유지한다.
+                _dotBacks[i].sprite = UIShapes.RoundedRect(1, Color.white);
+                _dotBacks[i].type = Image.Type.Sliced;
+                _dotRims[i].sprite = UIShapes.RoundedRect(1, Color.clear, Color.white, 1);
+                _dotRims[i].type = Image.Type.Sliced;
                 _dots[i].sprite = StatusIcons.For(_dotStatuses[i]);
                 _dots[i].color = StatusIcons.Tint(status);
                 _dots[i].rectTransform.localRotation = Quaternion.identity;
@@ -1944,7 +2166,7 @@ namespace Entities.View
             {
                 _shake = 1f;
                 _shakeStrength = Mathf.Min(1.3f, scaled * (crit ? 1.3f : 1f));
-                _shakeSeed = UnityEngine.Random.value * 10f;
+                _shakeSeed = PresentationRandom.value * 10f;
                 _hitSquash = Mathf.Max(_hitSquash, Mathf.Min(1.25f, scaled * (physical ? 1.05f : 0.72f)));
             }
             if (_unit != null) _lastHp = _unit.HpCurr;
@@ -2163,7 +2385,7 @@ namespace Entities.View
             {
                 float k = EaseOutCubic(t / ChargeWindupTime);
                 _motionOffset = windup * k;
-                _tilt = tiltSign * 6f * k;
+                _tilt = tiltSign * 3.5f * k;
                 yield return null;
             }
 
@@ -2172,13 +2394,14 @@ namespace Entities.View
             for (float t = 0f; t < ChargeDashTime; t += Time.deltaTime)
             {
                 float k = t / ChargeDashTime;
-                k = k * k * k * k;
+                // 급가속하되 마지막 프레임의 위치 점프를 줄인다. 판정 시각은 그대로다.
+                k = k * k * (2f - k);
                 direction = Direction();
                 Vector3 contact = targetCenter() - direction * _cardSize * 0.92f - home;
                 contact.z = 0f;
                 _motionOffset = Vector3.LerpUnclamped(start, contact, k);
-                _tilt = Mathf.Lerp(tiltSign * 6f, -tiltSign * 9f, k);
-                _squash = new Vector2(1f + 0.10f * k, 1f - 0.065f * k);
+                _tilt = Mathf.Lerp(tiltSign * 3.5f, -tiltSign * 5.5f, k);
+                _squash = new Vector2(1f + 0.025f * k, 1f - 0.018f * k);
                 yield return null;
             }
             direction = Direction();
@@ -2187,15 +2410,16 @@ namespace Entities.View
             _motionOffset.z = 0f;
 
             // 4) 쿵 — 부딪히는 프레임에 피해와 충돌 연출이 함께 나간다.
-            _squash = new Vector2(0.9f, 1.1f);
+            _squash = new Vector2(0.97f, 1.03f);
             _punch = 1f;
             onImpact?.Invoke(impactPoint, direction);
-            Vector3 bounce = _motionOffset - direction * _cardSize * 0.12f;
+            Vector3 impactOffset = _motionOffset;
+            Vector3 bounce = impactOffset - direction * _cardSize * 0.10f;
             for (float t = 0f; t < ChargeHoldTime; t += Time.deltaTime)
             {
                 float k = EaseOutCubic(t / ChargeHoldTime);
-                _motionOffset = Vector3.Lerp(_motionOffset, bounce, k);
-                _squash = Vector2.Lerp(new Vector2(0.9f, 1.1f), Vector2.one, k);
+                _motionOffset = Vector3.Lerp(impactOffset, bounce, k);
+                _squash = Vector2.Lerp(new Vector2(0.97f, 1.03f), Vector2.one, k);
                 yield return null;
             }
 
@@ -2389,9 +2613,9 @@ namespace Entities.View
             float t = Mathf.Clamp01(_entryAge / VfxTiming.AtLeastFrames(EntryDropTime, 3));
             float reveal = EaseOutCubic(Mathf.Clamp01(t / 0.36f));
             _alpha = reveal;
-            // 끝으로 갈수록 빨라지는 낙하가 착지 프레임에 무게를 모은다.
-            _lift = (1f - t * t) * 0.88f;
-            _squash = new Vector2(Mathf.Lerp(0.76f, 1f, reveal), Mathf.Lerp(1.12f, 1f, reveal));
+            // 부드럽게 내려앉되 마지막 짧은 구간에서 착지 프레임에 무게를 모은다.
+            _lift = (1f - Mathf.Pow(t, 2.2f)) * 0.88f;
+            _squash = new Vector2(Mathf.Lerp(0.975f, 1f, reveal), Mathf.Lerp(1.025f, 1f, reveal));
             if (t < 1f) return;
 
             _entryAge = -1f;
@@ -2418,19 +2642,56 @@ namespace Entities.View
         {
             if (_body == null || !_body.gameObject.activeSelf) return;
             float dt = Time.deltaTime;
+            float desired=_pointerPressed?.985f:_pointerHovered?1.008f:1f;
+            _pointerScale=Mathf.Lerp(_pointerScale,desired,1f-Mathf.Exp(-Time.unscaledDeltaTime*(_pointerPressed?38f:22f)));
             AdvanceEntry(dt);
             AdvanceReaction(dt);
             ApplyTransforms();
             ApplyAuras();
             UpdateHudLod();
             AnimateHud();
-            AdvanceSupportHudPulse(Time.unscaledDeltaTime);
+            AdvanceSupportHudPulse(VfxTiming.ReadableDeltaTime);
+            AdvanceActionGatePulse(VfxTiming.ReadableDeltaTime);
+            ApplyBattleInformationLayout();
+            if (_resourcePulseAge >= 0f)
+            {
+                _resourcePulseAge += Time.deltaTime;
+                float t = Mathf.Clamp01(_resourcePulseAge / .34f);
+                float pulse = 1f + .35f * _resourcePulseStrength * Mathf.Sin(t * Mathf.PI);
+                _resourceBadge.rectTransform.localScale = Vector3.one * pulse;
+                // 글자 줄은 캡슐의 왼쪽 여백을 공유한다. 큰 배지 배율을 그대로 주면 긴 영혼 표기가 넘친다.
+                _resourceBadgeText.transform.localScale = Vector3.one * (1f+.07f*_resourcePulseStrength*Mathf.Sin(t*Mathf.PI));
+                if (t >= 1f) _resourcePulseAge = -1f;
+            }
+        }
+
+        /// <summary>기존 적의 원화·하단 정보판 구조를 모든 진영에서 공통으로 사용한다.</summary>
+        private void ApplyBattleInformationLayout()
+        {
+            if (_unit == null || !_combatHud) return;
+            if (_orbGroup != null) _orbGroup.alpha = _alpha;
+            if (_group != null) _group.alpha = _alpha;
+            if (_nameLabel != null) _nameLabel.enabled = false;
+            if (_hpLabel != null) _hpLabel.enabled = true;
+            if (_resourceBadgeText != null)
+            {
+                _resourceBadgeText.enabled = true;
+                var first = _unit.CombatResourceIds.FirstOrDefault(id => _unit.GetCombatResourceMaximum(id)>0);
+                bool smallCounter = first != null && _unit.GetCombatResourceMaximum(first) <= 100;
+                _resourceBadgeText.enabled = smallCounter || _unit.ID == 121;
+                _resourceBadgeText.text = _unit.ID == 121
+                    ? $"영혼 {_unit.GetPermanentStacks(Codes.Passive.AnubisSoulHarvest.SoulKey)+_unit.GetPermanentStackFraction(Codes.Passive.AnubisSoulHarvest.SoulKey):0.0}"
+                    : smallCounter ? $"{_unit.GetCombatResource(first)}/{_unit.GetCombatResourceMaximum(first)}" : "";
+                _resourceBadgeText.color = new Color(.83f,.89f,.95f,_alpha);
+            }
+            if (_strongShotText != null) _strongShotText.enabled = false;
+            if (_suryaResourcePlate != null) _suryaResourcePlate.enabled = false;
         }
 
         private void AdvanceSupportHudPulse(float dt)
         {
             if (_supportHudPulseAge < 0f || _supportHudPulseTarget == null) return;
-            _supportHudPulseAge += Mathf.Max(0f, dt);
+            if (Time.timeScale > 0f) _supportHudPulseAge += Mathf.Max(0f, dt);
             float t = Mathf.Clamp01(_supportHudPulseAge / SupportHudPulseDuration);
             // 1.0 → 1.35 → 1.0. 뒤쪽 복귀를 길게 둬 작은 카드에서도 한 번의 팝으로 읽힌다.
             float wave = Mathf.Sin(t * Mathf.PI);
@@ -2443,6 +2704,22 @@ namespace Entities.View
             _supportHudPulseAge = -1f;
             _supportHudPulseTarget = null;
             _supportHudPulseImage = null;
+        }
+
+        private void AdvanceActionGatePulse(float dt)
+        {
+            ActionGatePulseStrength = 0f;
+            if (_actionGateRim == null) return;
+            if (_actionGatePulseAge >= 0f && _combatHud && _unit != null && _unit.isActive)
+            {
+                if (Time.timeScale > 0f) _actionGatePulseAge += Mathf.Max(0f, dt);
+                float t = Mathf.Clamp01(_actionGatePulseAge / .58f);
+                ActionGatePulseStrength = Mathf.Sin(t * Mathf.PI);
+                if (t >= 1f) _actionGatePulseAge = -1f;
+            }
+            else _actionGatePulseAge = -1f;
+            _actionGateRim.color = new Color(_actionGateAccent.r, _actionGateAccent.g,
+                _actionGateAccent.b, .86f * ActionGatePulseStrength);
         }
 
         /// <summary>
@@ -2475,7 +2752,7 @@ namespace Entities.View
 
             float size = compact ? 8.6f * _hudPixelScale : DotSize;
             float gap = compact ? size + 1.05f : DotGap;
-            float top = compact ? 89.4f : DotTop;
+            float top = DotTop;
             float countSize = compact ? 5.5f * _hudPixelScale : DotCountSize;
             float iconRatio = compact ? 0.74f : DotIconRatio;
             for (int i = 0; i < MaxDots; i++)
@@ -2493,43 +2770,25 @@ namespace Entities.View
             {
                 LayOutNameLabel(_cardSize, compact);
                 LayOutHpLabel(_cardSize, compact);
+                LayOutResourceBadgeText(_cardSize);
             }
             if (_unit != null && _combatHud) RefreshStatusDots();
         }
 
         /// <summary>
-        /// 수면·회전 링은 정보값이 아니라 읽기 보조 연출이므로 전투 배속과 무관한 실시간으로 움직인다.
-        /// 수면은 원 안에서 1px 남짓만 기울어 작은 카드에서도 액체처럼 보이고 글리프를 방해하지 않는다.
+        /// 정적인 수위로 충전 비율을 표시하고 장식 파동이나 회전을 겹치지 않는다.
         /// </summary>
         private void AnimateHud()
         {
             if (!_combatHud || _ultRoot == null || !_ultRoot.gameObject.activeInHierarchy) return;
 
-            float time = Time.unscaledTime;
-            float innerHeight = RingSize - (RingEdge + 0.5f) * 2f;
-            float y = Mathf.Lerp(-0.8f, innerHeight + 0.8f, _ultFillAmount);
-            float rearAmount = Mathf.Clamp01(_ultFillAmount + Mathf.Sin(time * 1.85f + 0.8f) * 0.028f);
-            _ultRearFill.fillAmount = rearAmount;
-            _ultRearFill.rectTransform.anchoredPosition = new Vector2(Mathf.Sin(time * 1.35f) * 0.72f, 0f);
-            float rearY = Mathf.Lerp(-0.8f, innerHeight + 0.8f, rearAmount);
-            _ultRearWave.enabled = rearAmount > 0.015f && rearAmount < 0.995f;
-            _ultRearWave.rectTransform.anchoredPosition = new Vector2(
-                Mathf.Sin(time * 1.35f) * 0.72f,
-                rearY + Mathf.Sin(time * 2.1f + 1.3f) * 0.28f);
-            _ultRearWave.rectTransform.localRotation = Quaternion.Euler(0f, 0f,
-                -Mathf.Sin(time * 1.7f + 0.6f) * 2.8f);
-
-            _ultWave.enabled = _ultFillAmount > 0.015f && _ultFillAmount < 0.995f;
-            _ultWave.rectTransform.anchoredPosition = new Vector2(
-                Mathf.Sin(time * 2.45f + 0.4f) * 0.46f,
-                y + Mathf.Sin(time * 3.4f) * 0.34f);
-            _ultWave.rectTransform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Sin(time * 2.25f) * 2.2f);
-
-            if (!_ultReady) return;
-            _ultReadyRing.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -time * 12f);
-            float pulse = 1f + 0.025f * (0.5f + 0.5f * Mathf.Sin(time * 6.6f));
-            _ultReadyRing.rectTransform.localScale = Vector3.one * pulse;
-            _ultReadyGlow.rectTransform.localScale = Vector3.one * (1f + (pulse - 1f) * 1.8f);
+            // 원형 자체의 스프라이트만 채운다. 월드 HUD의 직사각 그라데이션은 일부
+            // 렌더 순서에서 마스크 밖으로 비쳐 원 뒤에 사각 얼룩을 만들 수 있다.
+            _ultRearFill.enabled = _ultFillLight.enabled = _ultFillShade.enabled = false;
+            _ultGlass.enabled = false;
+            _ultRearWave.enabled = _ultWave.enabled = false;
+            RefreshUltimateReady(_ultReady);
+            return;
         }
 
         private void AdvanceReaction(float dt)
@@ -2565,7 +2824,7 @@ namespace Entities.View
                 float k = Mathf.Clamp01(_landingAge / LandingTime);
                 // 찌그러졌다가 한 번 튕겨 돌아온다.
                 float spring = Mathf.Exp(-7f * k) * Mathf.Cos(k * Mathf.PI * 2f);
-                _squash = new Vector2(1f + 0.055f * spring, 1f - 0.055f * spring);
+                _squash = new Vector2(1f + 0.018f * spring, 1f - 0.018f * spring);
                 if (k >= 1f)
                 {
                     _landingAge = -1f;
@@ -2586,7 +2845,7 @@ namespace Entities.View
 
             // 몸체 — 들림 · 기울기 · 찌그러짐 · 피격 반응
             float lift = Mathf.Max(0f, _lift);
-            float scale = (1f + 0.10f * Mathf.Min(1f, lift) + PunchAmount * _punch) * (1f + 0.12f * Mathf.Max(0f, lift - 1f));
+            float scale = (1f + 0.035f * Mathf.Min(1f, lift) + PunchAmount * _punch) * (1f + 0.12f * Mathf.Max(0f, lift - 1f));
             Vector3 offset = new(0f, s * (0.09f * lift + _airborneLift), 0f);
             offset += new Vector3(-_facing * RecoilDistance * s * _recoil, 0f, 0f);
             float lungeShape = Mathf.Sin(Mathf.PI * (1f - _lunge));
@@ -2603,9 +2862,9 @@ namespace Entities.View
 
             _body.localPosition = offset;
             _body.localRotation = Quaternion.Euler(0f, 0f, _tilt);
-            float hitWidth = 1f - 0.075f * _hitSquash;
-            float hitHeight = 1f + 0.060f * _hitSquash;
-            _body.localScale = new Vector3(scale * _squash.x * hitWidth, scale * _squash.y * hitHeight, 1f);
+            float hitWidth = 1f - 0.025f * _hitSquash;
+            float hitHeight = 1f + 0.020f * _hitSquash;
+            _body.localScale = new Vector3(scale * _pointerScale * _squash.x * hitWidth, scale * _pointerScale * _squash.y * hitHeight, 1f);
 
             // 돌진의 기울기는 원화의 물성만 말한다. 정보판까지 돌아가면 이름·HP를 읽기 어려우므로
             // 몸체 회전을 같은 양만큼 상쇄하고, 이동·들림·스케일 반동은 그대로 따라간다.
@@ -2639,6 +2898,9 @@ namespace Entities.View
                         Mathf.Lerp(0.88f, 1f, _vfxLightColor.b), 1f);
                     portraitColor = Color.Lerp(portraitColor, reflected, light);
                 }
+                // 배율만으로 읽기 어려운 누름을 원화 안의 명도 변화로 보강한다. 테두리는 만들지 않는다.
+                float pointerInk = _pointerPressed ? .86f : 1f;
+                portraitColor.r *= pointerInk; portraitColor.g *= pointerInk; portraitColor.b *= pointerInk;
                 _portrait.color = portraitColor;
             }
 
@@ -2713,7 +2975,11 @@ namespace Entities.View
 
         private void ResetMotion()
         {
+            _actionGatePulseAge = -1f;
+            ActionGatePulseStrength = 0f;
+            if (_actionGateRim != null) _actionGateRim.color = Color.clear;
             _flash = _punch = _recoil = _shake = _lunge = 0f;
+            _pointerHovered=_pointerPressed=false; _pointerScale=1f;
             _hitSquash = 0f;
             _vfxLightPeak = 0f;
             _vfxLightAge = 0f;
@@ -2771,24 +3037,13 @@ namespace Entities.View
             return cache;
         }
 
-        /// <summary>원소별 오브 글리프. 무원소 공허 적도 옛 셰브론 대신 공허 표식을 쓴다.</summary>
+        /// <summary>캐릭터 고유 원소의 모던 선형 글리프. 원소 부착 표식과 같은 도형을 쓴다.</summary>
         private static Sprite UltimateGlyph(Unit unit, BaseEnums.UnitElement element)
         {
             if (element == BaseEnums.UnitElement.None && unit?.HasUnitTag("Void") == true)
-                return HudSprite("element_void_glyph", StatusIcons.Get(StatusGlyph.Mark));
+                return ModernCombatIcons.Element(BaseEnums.UnitElement.Void);
 
-            return element switch
-            {
-                BaseEnums.UnitElement.Geo => HudSprite("element_geo_glyph", VfxArt.Diamond),
-                BaseEnums.UnitElement.Pyro => StatusIcons.Get(StatusGlyph.Burn),
-                BaseEnums.UnitElement.Hydro => StatusIcons.Get(StatusGlyph.Bleed),
-                BaseEnums.UnitElement.Dendro => StatusIcons.Get(StatusGlyph.Thorns),
-                BaseEnums.UnitElement.Anemo => StatusIcons.Get(StatusGlyph.Speed),
-                BaseEnums.UnitElement.Electro => StatusIcons.Get(StatusGlyph.Crit),
-                BaseEnums.UnitElement.Cryo => StatusIcons.Get(StatusGlyph.Freeze),
-                BaseEnums.UnitElement.Void => HudSprite("element_void_glyph", StatusIcons.Get(StatusGlyph.Mark)),
-                _ => HudSprite("element_neutral_glyph", StatusIcons.Get(StatusGlyph.Focus)),
-            };
+            return ModernCombatIcons.Element(element);
         }
 
         private static void Place(RectTransform rect, float x, float y, float width, float height)

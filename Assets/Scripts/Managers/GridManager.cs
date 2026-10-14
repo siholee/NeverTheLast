@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
 using BaseClasses;
@@ -35,6 +35,10 @@ namespace Managers
         private Cell[] _benchCellManager; // Cell management array (1차원)
         public List<Unit> heroList;
         public List<Unit> enemyList;
+        /// <summary>
+        /// 칸 없는 소환수. 아군 · 적 목록과 분리해 전멸 판정 · 스냅샷 · 대상 지정이 소환수를 세지 않게 한다(Detail_03 §4.7).
+        /// </summary>
+        public List<Unit> summonList = new();
 
         // 그리드 부모 오브젝트들
         public Transform Field;  // 게임 필드 (HMSon 대체)
@@ -59,6 +63,7 @@ namespace Managers
         {
             heroList = new List<Unit>();
             enemyList = new List<Unit>();
+            summonList = new List<Unit>();
             SetGrid();
             // 전장 카드의 클릭 · 드래그 · 호버는 칸이 아니라 이 한 곳에서 판정한다.
             FieldPointerInput.Ensure();
@@ -391,10 +396,10 @@ namespace Managers
         // 이제 HUD를 픽셀로 비워 두고 남은 영역에 전장을 맞춘다.
 
         /// <summary>상단 — 자원 띠(60) · 우상단 바(76) · 엘리트 체력 띠(112) 아래까지.</summary>
-        private const float TopHudPixels = 204f;
+        private const float TopHudPixels = 164f;
 
         /// <summary>하단 — 전투 중에는 가장자리 여백만.</summary>
-        private const float BottomHudPixelsBattle = 28f;
+        private const float BottomHudPixelsBattle = 40f;
 
         /// <summary>하단 — 준비 페이즈 바(<see cref="UI.Screens.PreparationScreen"/>)와 그 위 여백.</summary>
         private static float BottomHudPixelsPreparation =>
@@ -404,8 +409,8 @@ namespace Managers
         /// 좌우 레일은 폭이 다르므로 같은 최대값을 양쪽에서 빼지 않는다.
         /// 비대칭 안전 영역의 중심은 아래 카메라 보정에서 다시 맞춘다.
         /// </summary>
-        private const float LeftHudPixels = 196f;
-        private const float RightHudPixels = 270f;
+        private const float LeftHudPixels = 166f;
+        private const float RightHudPixels = 236f;
 
         /// <summary>카드 바깥으로 튀어나오는 보석 · 오라의 여유(월드 단위).</summary>
         private const float SummonOverhang = 0.5f;
@@ -507,6 +512,7 @@ namespace Managers
             }
 
             AdvanceCameraFrame();
+            AdvancePlacementLayout();
         }
 
         /// <summary>배치를 만질 수 있는 동안에만 빈 칸(=놓을 자리)을 보여 준다.</summary>
@@ -525,6 +531,39 @@ namespace Managers
         ///
         /// 정렬이 끝나면 카메라도 다시 잡는다. 인원이 줄면 그만큼 화면이 당겨진다.
         /// </summary>
+        private readonly Dictionary<Cell,Vector3> _placementFrom=new();
+        private readonly Dictionary<Cell,Vector3> _placementTo=new();
+        private float _placementElapsed=1f;
+        public void TransitionPlacementLayout()
+        {
+            _placementFrom.Clear();_placementTo.Clear();
+            if(_fieldCellManager!=null)
+                foreach(Cell cell in _fieldCellManager)
+                    if(cell!=null&&cell.isOccupied)_placementFrom[cell]=cell.transform.position;
+            _cameraMoveVelocity=Vector3.zero;_cameraSizeVelocity=0f;
+            RefreshFieldLayout();
+            foreach(var pair in _placementFrom)
+            {
+                _placementTo[pair.Key]=pair.Key.transform.position;
+                pair.Key.transform.position=pair.Value;
+                if(pair.Key.unit!=null)pair.Key.unit.transform.position=pair.Value;
+            }
+            _placementElapsed=0f;
+        }
+        private void AdvancePlacementLayout()
+        {
+            if(_placementElapsed>=.30f)return;
+            _placementElapsed+=Time.unscaledDeltaTime;
+            float t=Mathf.SmoothStep(0f,1f,Mathf.Clamp01(_placementElapsed/.30f));
+            foreach(var pair in _placementFrom)
+            {
+                if(pair.Key==null)continue;
+                Vector3 point=Vector3.Lerp(pair.Value,_placementTo[pair.Key],t);
+                pair.Key.transform.position=point;
+                if(pair.Key.unit!=null)pair.Key.unit.transform.position=point;
+            }
+        }
+
         public void RefreshFieldLayout()
         {
             if (_fieldCellManager == null) return;
@@ -767,6 +806,7 @@ namespace Managers
             void AddFormationSlot(Cell cell)
             {
                 if (cell == null || !cell.IsLaidOut || (!includeSlots && !cell.isOccupied)) return;
+                if(DragAndDropManager.Instance!=null&&DragAndDropManager.Instance.IsDragging()&&cell.xPos>0) return;
                 formationSlots.Add(cell.transform.position);
             }
             if (_fieldCellManager != null)
@@ -1389,8 +1429,10 @@ namespace Managers
         {
             // 판에 깔린 상태는 라운드를 넘기지 않는다.
             Combat.Battlefield.Clear();
+            // 소환수는 라운드 밖으로 남지 않는다. 사망이 아니므로 사망 판정 없이 지운다.
+            Combat.Summons.ClearAll();
 
-            foreach (Unit unit in heroList.Concat(enemyList).Where(unit => unit != null && unit.isActive).ToList())
+            foreach (Unit unit in heroList.Concat(enemyList).Where(unit => unit != null).ToList())
             {
                 unit.Invoke(BaseEnums.UnitEventType.OnRoundEnd, new EventContext(unit));
             }
@@ -1409,6 +1451,8 @@ namespace Managers
                 }
             }
 
+            Combat.PartyTreasury.EndBattle();
+
             // 다시 편성할 수 있도록 대기석을 되돌린다.
             SetBenchVisible(true);
         }
@@ -1425,6 +1469,8 @@ namespace Managers
         public void RetireUnit(Unit unit)
         {
             if (unit == null) return;
+
+            unit.ClearCombatStateForRemoval();
 
             Cell occupiedCell = unit.currentCell;
 
@@ -1459,6 +1505,45 @@ namespace Managers
         {
             heroList?.RemoveAll(unit => unit == null);
             enemyList?.RemoveAll(unit => unit == null);
+            summonList?.RemoveAll(unit => unit == null);
+        }
+
+        /// <summary>
+        /// 칸 없는 소환수를 만든다. 생성 판정 · 상한은 <see cref="Combat.Summons.Create"/>가 맡으므로 그쪽을 거쳐 부른다.
+        /// </summary>
+        public Unit SpawnSummon(Unit owner, Combat.SummonSpec spec)
+        {
+            if (owner == null || spec == null) return null;
+            var go = new GameObject($"Summon_{spec.Name}");
+            go.transform.SetParent(Field, false);
+            if (owner.currentCell != null) go.transform.position = owner.currentCell.transform.position;
+            Unit summon = go.AddComponent<Unit>();
+            summonList.Add(summon);
+            summon.InitializeAsSummon(owner, spec);
+            if (spec.Kind == Codes.Passive.UchiTaoist.CloneKind) Effects.Vfx.UchiFx.Created(summon);
+            return summon;
+        }
+
+        /// <summary>쓰러진 소환수를 목록에서 걷고 오브젝트를 지운다. 사망 판정은 이미 끝난 뒤다.</summary>
+        public void ForgetSummon(Unit summon)
+        {
+            if (summon == null) return;
+            summon.ClearCombatStateForRemoval();
+            summonList.Remove(summon);
+            Destroy(summon.gameObject);
+        }
+
+        /// <summary>남은 소환수를 사망 판정 없이 지운다(라운드 종료 · 불러오기).</summary>
+        public void ClearSummons()
+        {
+            foreach (Unit summon in summonList.ToList())
+            {
+                if (summon == null) continue;
+                summon.ClearCombatStateForRemoval();
+                summon.DeactivateUnit();
+                Destroy(summon.gameObject);
+            }
+            summonList.Clear();
         }
 
         /// <summary>

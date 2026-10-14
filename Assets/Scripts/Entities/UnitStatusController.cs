@@ -24,6 +24,12 @@ namespace Entities
 
         private readonly List<UnitStatus> _statuses = new();
 
+        // 상태가 붙고 떨어진 사실은 바깥 호출이 끝난 뒤에 알린다. 알림을 받은 코드(야마의 선고)가 같은 목록을 고쳐도
+        // TickTurn · RemoveByKey의 역순 순회 인덱스가 어긋나지 않게 하려는 것이다.
+        private int _batchDepth;
+        private bool _clearing;
+        private readonly List<(UnitStatus Status, bool Added)> _pendingChanges = new();
+
         public void Initialize(
             Unit owner,
             Action onChanged,
@@ -53,29 +59,88 @@ namespace Entities
             }
         }
 
+        private void BeginBatch() => _batchDepth++;
+
+        private void EndBatch()
+        {
+            if (--_batchDepth > 0) return;
+            while (_pendingChanges.Count > 0)
+            {
+                var changes = _pendingChanges.ToArray();
+                _pendingChanges.Clear();
+                foreach (var change in changes) Unit.NotifyStatusChanged(_owner, change.Status, change.Added);
+            }
+        }
+
         /// <summary>상태 추가 - 중첩 정책에 따라 처리 (동일 여부 판정은 Key 기준)</summary>
         public void Add(UnitStatus status)
         {
+            BeginBatch();
+            try
+            {
+                bool refresh = status != null && _statuses.Any(existing => existing.Key == status.Key);
+                AddCore(status);
+                if (status?.ApplicationSucceeded == true) Effects.StatusPopup.Show(_owner, status, refresh);
+            }
+            finally { EndBatch(); }
+        }
+
+        private void AddCore(UnitStatus status)
+        {
             if (status == null) return;
+            status.ApplicationSucceeded = false;
+            if (_clearing) return;
+            status.Owner = _owner;
+            PrepareEffects(status);
+            bool hostile = Combat.DamageMitigation.IsHostileEffect(status.Caster, _owner);
+            // 중립 표식과 ID 기반 지속피해도 효과 명중을 받는다. 같은 진영의 부여는 두 저항 모두 건너뛴다.
+            bool harmful = status.CountsAsDebuff || (!status.IsBeneficial && status.Category != BaseEnums.StatusCategory.Positive);
             // 적이 거는 해로운 상태는 특수공격력 대 특수방어력으로 명중을 겨룬다(효과 회피).
             // 이미 자기 확률로 굴린 쪽(화상 등)은 SkipEffectHitRoll을 켜서 두 번 굴리지 않는다.
-            if (status.Category == BaseEnums.StatusCategory.Negative && !status.SkipEffectHitRoll &&
-                status.Caster != null && status.Caster.IsEnemy != _owner.IsEnemy &&
+            if (hostile && harmful && !status.SkipEffectHitRoll &&
                 !Combat.DamageMitigation.RollEffectHit(status.Caster, _owner))
             {
-                Debug.Log($"[효과 회피] {_owner.UnitName}이(가) '{status.StatusName}'을(를) 피했습니다.");
-                Effects.CombatFeedback.PlayEvade(_owner);
+                Debug.Log($"[효과 저항] {_owner.UnitName}이(가) '{status.StatusName}'을(를) 저항했습니다.");
+                Effects.CombatFeedback.PlayEffectResisted(_owner);
                 return;
             }
-            if (status.Category == BaseEnums.StatusCategory.Negative &&
+            if (hostile && harmful && !status.SkipStatusResistanceRoll &&
                 _owner.ResistsNegativeStatus(status))
             {
                 Debug.Log($"[상태 저항] {_owner.UnitName}이(가) '{status.StatusName}' 상태를 저항했습니다.");
+                Effects.CombatFeedback.PlayEffectResisted(_owner);
                 return;
             }
 
+            // 시전자 효과가 자기가 거는 상태의 지속을 늘린다(죽음의 계약 — 지속피해 +1턴). 무한(0 이하)은 건드리지 않는다.
+            if (status.Duration > 0 && status.Caster != null)
+            {
+                int bonus = status.Caster.CombatEffects().Sum(effect => effect.OutgoingStatusDurationModifier(status.Caster, status));
+                if (bonus != 0) status.Duration = Mathf.Max(1, status.Duration + bonus);
+            }
+
+            var actionClock = Managers.GameManager.Instance?.ActionScheduler;
+            status.AppliedActionId = actionClock?.ExecutingUnit != null ? actionClock.CurrentActionId : -1;
+            status.SkipCurrentNormalCompletion = Combat.ActionDot.IsNormalActionRunning(_owner);
             switch (status.StackPolicy)
             {
+                case BaseEnums.StatusStackPolicy.RefreshDuration:
+                    var refreshed = _statuses.FirstOrDefault(s => s.Key == status.Key);
+                    if (refreshed != null && (refreshed.Caster == null || !refreshed.Caster.isActive))
+                    {
+                        RemoveAt(_statuses.IndexOf(refreshed));
+                        refreshed = null;
+                    }
+                    if (refreshed == null) AddInternal(status);
+                    else
+                    {
+                        refreshed.Duration = refreshed.ElapsedTurns + Mathf.Max(refreshed.RemainingTurns, status.Duration);
+                        refreshed.AppliedActionId = status.AppliedActionId;
+                        refreshed.SkipCurrentNormalCompletion = status.SkipCurrentNormalCompletion;
+                        status.ApplicationSucceeded = true;
+                        if (refreshed.CountsAsDebuff) _notifyNegative?.Invoke(status.Caster, refreshed);
+                    }
+                    break;
                 case BaseEnums.StatusStackPolicy.Stack:
                     // 중첩 허용 - 그대로 추가
                     AddInternal(status);
@@ -89,10 +154,11 @@ namespace Entities
                     {
                         int oldRemaining = existing.RemainingTurns;
                         existing.Duration = existing.ElapsedTurns + oldRemaining + status.Duration;
+                        status.ApplicationSucceeded = true;
                         // 들어온 쪽은 아직 효과 객체가 없을 수 있다. 지속피해 판정은 이미 붙어 있는 쪽으로 한다.
                         if (status.CountsAsDebuff || existing.CountsAsDebuff)
                         {
-                            _notifyNegative?.Invoke(status.Caster, status);
+                            _notifyNegative?.Invoke(status.Caster, existing);
                         }
                         Debug.Log($"[Status-Extend] {_owner.UnitName}의 {status.StatusName} 지속 연장: {oldRemaining}턴 → {existing.RemainingTurns}턴");
                     }
@@ -158,7 +224,7 @@ namespace Entities
             }
         }
 
-        private void AddInternal(UnitStatus status)
+        private void PrepareEffects(UnitStatus status)
         {
             // Effect 객체들 생성 및 할당 (직접 생성된 EffectObject는 Caster/Target만 보정)
             foreach (var effectInstance in status.Effects)
@@ -178,8 +244,13 @@ namespace Entities
                     effectInstance.EffectObject.Target ??= _owner;
                 }
             }
+        }
 
+        private void AddInternal(UnitStatus status)
+        {
+            status.ApplicationSucceeded = true;
             _statuses.Add(status);
+            _pendingChanges.Add((status, true));
             status.OnApply();
             // 스탯 질의 훅을 가진 효과가 즉시 반영되도록 스탯 캐시 갱신
             _onChanged?.Invoke();
@@ -202,6 +273,7 @@ namespace Entities
                 var status = _statuses[index];
                 status.OnRemove();
                 _statuses.RemoveAt(index);
+                _pendingChanges.Add((status, false));
                 // 스탯 질의 훅 해제 반영
                 _onChanged?.Invoke();
 
@@ -212,27 +284,45 @@ namespace Entities
         /// <summary>상태 ID로 상태 제거 (가장 오래된 것 하나만 제거)</summary>
         public void Remove(int statusId)
         {
-            for (int i = 0; i < _statuses.Count; i++)
+            BeginBatch();
+            try
             {
-                if (_statuses[i].StatusId == statusId)
+                for (int i = 0; i < _statuses.Count; i++)
                 {
-                    RemoveAt(i);
-                    return;
+                    if (_statuses[i].StatusId == statusId)
+                    {
+                        RemoveAt(i);
+                        return;
+                    }
                 }
             }
+            finally { EndBatch(); }
+        }
+
+        /// <summary>같은 숫자 ID에 다른 키가 공존해도 선택한 상태만 정화한다.</summary>
+        internal void RemoveInstance(UnitStatus status)
+        {
+            BeginBatch();
+            try { RemoveAt(_statuses.IndexOf(status)); }
+            finally { EndBatch(); }
         }
 
         /// <summary>키로 상태 제거 (일치하는 모든 상태 제거)</summary>
         public void RemoveByKey(string key)
         {
             if (string.IsNullOrEmpty(key)) return;
-            for (int i = _statuses.Count - 1; i >= 0; i--)
+            BeginBatch();
+            try
             {
-                if (_statuses[i].Key == key)
+                for (int i = _statuses.Count - 1; i >= 0; i--)
                 {
-                    RemoveAt(i);
+                    if (_statuses[i].Key == key)
+                    {
+                        RemoveAt(i);
+                    }
                 }
             }
+            finally { EndBatch(); }
         }
 
         public bool Has(int statusId) => _statuses.Any(s => s.StatusId == statusId);
@@ -254,26 +344,36 @@ namespace Entities
         /// </summary>
         public void TickTurn()
         {
-            // 틱 도중 상태가 추가·제거될 수 있으므로 사본으로 순회한다.
-            foreach (UnitStatus status in _statuses.ToList())
+            BeginBatch();
+            try
             {
-                status.OnOwnerTurn();
-            }
+                // 틱 도중 상태가 추가·제거될 수 있으므로 사본으로 순회한다.
+                foreach (UnitStatus status in _statuses.ToList())
+                {
+                    if (_statuses.Contains(status) && !status.NormalActionDuration) status.OnOwnerTurn();
+                }
 
-            for (int i = _statuses.Count - 1; i >= 0; i--)
-            {
-                if (_statuses[i].IsExpired()) RemoveAt(i);
+                for (int i = _statuses.Count - 1; i >= 0; i--)
+                {
+                    if (_statuses[i].IsExpired()) RemoveAt(i);
+                }
             }
+            finally { EndBatch(); }
         }
 
         /// <summary>모든 상태 정리 (라운드 종료 시 — OnRemove 호출로 이벤트 리스너 등 해제)</summary>
         public void ClearAll()
         {
-            for (int i = _statuses.Count - 1; i >= 0; i--)
-            {
-                _statuses[i].OnRemove();
-            }
+            if (_clearing) return;
+            _clearing = true;
+            var removed = _statuses.ToArray();
             _statuses.Clear();
+            try
+            {
+                // 먼저 분리하여 OnRemove가 같은 목록을 다시 정리해도 한 번만 해제한다.
+                for (int i = removed.Length - 1; i >= 0; i--) removed[i].OnRemove();
+            }
+            finally { _pendingChanges.Clear(); _clearing = false; _onChanged?.Invoke(); }
         }
     }
 }

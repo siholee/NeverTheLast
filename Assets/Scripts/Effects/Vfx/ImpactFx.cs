@@ -1,3 +1,4 @@
+using Random = Effects.Vfx.PresentationRandom;
 using UnityEngine;
 
 namespace Effects.Vfx
@@ -108,18 +109,15 @@ namespace Effects.Vfx
             Color deep = Color.Lerp(new Color(0.11f, 0.025f, 0.23f, 1f), impactAccent, 0.62f);
             deep.a = 0.88f;
 
-            Effects.BattlefieldBackdrop.PushFocus(0.44f, 0f, 0.14f, 0.24f,
+            Effects.BattlefieldBackdrop.PushFocus(0.12f, 0.06f, 0.04f, 0.12f,
                 new Color(0.18f, 0.23f, 0.42f, 1f), position);
-            Effects.BattlefieldBackdrop.PulseFlash(new Color(0.94f, 0.88f, 1f), 0.11f, 0.10f);
+            Effects.BattlefieldBackdrop.PulseFlash(new Color(0.94f, 0.88f, 1f), 0.025f, 0.16f);
 
-            // 서로 다른 Hovl Hit 두 겹이 깊이를 만들고, 넓은 비가산 별은 얇게만 남겨 스티커 면을 없앤다.
+            // 구매 손그림의 충돌 정점과 방향성 잔상이 무게를 만든다. 전체 화면 섬광에 의존하지 않는다.
             Vector3 forward = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.right;
-            HovlFx.Play(HovlFx.VioletNovaHit, position + forward * 0.025f * S, direction, 1.56f * S * scale,
-                Layer, Order + 5, Color.Lerp(impactAccent, Color.white, 0.04f), 1f, 1.15f);
-            HovlFx.Play(HovlFx.RapidHit, position - forward * 0.060f * S, -direction, 0.86f * S * scale,
-                Layer, Order + 6, Color.Lerp(impactAccent, Color.white, 0.62f), 0.98f, 0.72f);
+            CommonHandpaintFx.Contact(position + forward * .025f * S,direction,impactAccent,scale,Layer,Order+5);
             SpriteFx.Play(VfxSpace.Ring, position, new Color(deep.r, deep.g, deep.b, 0.26f), false,
-                0.24f * S * scale, 2.10f * S * scale, 0.20f,
+                0.24f * S * scale, 1.15f * S * scale, 0.28f,
                 0f, 0f, 0.004f, 0.30f, SpriteFx.Ease.OutCubic, Layer, Order + 3);
             SpriteFx.Play(VfxArt.ImpactStar, position, new Color(deep.r, deep.g, deep.b, 0.34f), false,
                 new Vector2(0.16f, 0.07f) * S * scale, new Vector2(1.62f, 0.46f) * S * scale, 0.16f,
@@ -127,11 +125,6 @@ namespace Effects.Vfx
             SpriteFx.Play(VfxArt.ImpactStar, position, new Color(1f, 0.91f, 0.98f, 0.82f), true,
                 new Vector2(0.12f, 0.035f) * S * scale, new Vector2(1.30f, 0.30f) * S * scale, 0.11f,
                 travel, 0f, 0.002f, 0.10f, SpriteFx.Ease.OutCubic, Layer, Order + 8);
-            if (scale >= 1.15f)
-            {
-                HovlFx.Play(HovlFx.DragonPunchFlash, position, direction, 0.16f * S * scale,
-                    Layer, Order + 6, Color.Lerp(accent, Color.white, 0.18f), 0.78f, 1.4f);
-            }
 
             Flash(VfxArt.SoftGlow, position, new Color(1f, 0.98f, 0.9f, 0.42f), 0.06f * scale, 0.36f * scale, 0.095f,
                 0f, 0f, 6, fadeOutFrom: 0.08f);

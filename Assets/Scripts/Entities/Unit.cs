@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,9 +19,9 @@ namespace Entities
     ///   · 피해는 <b>공격자 레벨 기준</b> 경감 — 받는 피해 = 피해 × K / (K + 방어 스탯).
     ///     대부분의 피해는 방어력, 지속피해 · 원소 반응은 특수방어력, 고정 피해는 경감 없음.
     ///   · 궁극기 마나는 <b>행동과 피격</b>으로 찬다(일반행동 +20 · 피격 +5 · 처치 +10).
-    ///   · 옛 캐릭터 전용 체계(소환수 · 강인도 · 내구 · 중량 · 시약 · 레벨 해금 패시브)는 걷어냈다.
+    ///   · 옛 캐릭터 전용 체계(내구 · 중량 · 시약 · 레벨 해금 패시브)는 걷어냈다.
     /// </summary>
-    public class Unit : MonoBehaviour
+    public partial class Unit : MonoBehaviour
     {
         /// <summary>모든 진영의 사망을 관찰하는 전역 이벤트. (쓰러진 쪽, 공격자)</summary>
         public static event Action<Unit, Unit> AnyUnitDied;
@@ -38,6 +38,32 @@ namespace Entities
         public static event Action<Unit, Unit, string> AnyElementalReaction;
         /// <summary>원소가 부착될 때 발행한다. (부여자, 대상, 부여 원소)</summary>
         public static event Action<Unit, Unit, BaseEnums.UnitElement> AnyCombatElementGranted;
+        /// <summary>영구 중첩이 정수로 늘어난 순간. (보유자, 키, 이번에 늘어난 정수량)</summary>
+        public static event Action<Unit, string, int> AnyPermanentStackGained;
+        /// <summary>전투 치유가 들어간 순간. (대상, 치유자, 실제 회복량, 최대 체력을 넘겨 버려진 양)</summary>
+        public static event Action<Unit, Unit, int, int> AnyHealed;
+        /// <summary>보호막이 생긴 순간. (대상, 부여자, 실제 보호막량)</summary>
+        public static event Action<Unit, Unit, int> AnyShieldGranted;
+        /// <summary>보호막 조건 스탯을 생성·소진·외부 제거 직후 갱신한다.</summary>
+        public static event Action<Unit> AnyShieldChanged;
+        /// <summary>
+        /// 상태가 새로 붙거나 떨어진 순간(보유자, 상태, 붙었는가). 지속시간 연장·갱신은 알리지 않는다.
+        /// 바깥 호출(Add · Remove · TickTurn)이 끝난 뒤에 불리므로 받는 쪽이 같은 유닛의 상태를 고쳐도 안전하다.
+        /// 라운드 종료의 일괄 정리(ClearAll)는 알리지 않는다 — 구독자도 같은 시점에 정리된다.
+        /// </summary>
+        public static event Action<Unit, Status.UnitStatus, bool> AnyStatusChanged;
+        /// <summary>
+        /// 궁극기가 <b>실제로</b> 시전된 순간(대상이 없어 자원을 지키고 취소한 경우는 오지 않는다).
+        /// 상시형 궁극기의 라운드 시작 가동도 오지 않는다. "아군이 궁극기를 마치면"은 이것과
+        /// <see cref="ActionScheduler.AnyActionFinished"/>(Ultimate)를 함께 봐야 시전 도중 사망을 가른다(아그니).
+        /// </summary>
+        public static event Action<Unit> AnyUltimateCast;
+
+        /// <summary>
+        /// 보상 코드 칸 수. 옛 장비 슬롯 7종(머리 · 목걸이 · 갑옷 · 반지 · 신발 · 주무기 · 보조)의 자리를 코드가 물려받았다
+        /// (Detail_17 §2.1). 고유 특성 · 일반 · 초월기는 칸을 쓰지 않는다.
+        /// </summary>
+        public const int RewardCodeSlotCount = 7;
 
         // ── 궁극기 마나 ─────────────────────────────────────────────
         // 스타레일처럼 행동과 피격이 마나를 만든다. 전투 시간 비례 충전(INT)은 폐지했다.
@@ -60,6 +86,8 @@ namespace Entities
         public const int ExpRequirementPerLevel = 28;
 
         public bool isActive;
+        private bool _deathInProgress;
+        internal bool IsDying => _deathInProgress;
 
         // ── 식별 ─────────────────────────────────────────────────
         [SerializeField] private int id;
@@ -108,7 +136,22 @@ namespace Entities
         /// <b>전장에 서 있는가.</b> 대상 지정 · 행동 순서 · 필드 판정이 모두 이 하나를 본다.
         /// 대상 지정 가능 여부(<see cref="IsUntargetable"/>)는 따로 본다.
         /// </summary>
-        public bool IsOnField => isActive && currentCell != null && currentCell.yPos > 0 && currentCell.isOccupied;
+        public bool IsOnField => isActive && (IsSummon
+            ? SummonOwner != null && SummonOwner.IsOnField
+            : currentCell != null && currentCell.yPos > 0 && currentCell.isOccupied);
+
+        // ── 소환수 ───────────────────────────────────────────────
+        // 소환수는 칸을 차지하지 않고 GridManager.summonList에만 있다(Detail_03 §4.7).
+        // 그래서 아군 · 적 목록을 도는 전멸 판정 · 스냅샷 · 대상 지정이 소환수를 모른다.
+
+        /// <summary>이 유닛을 부른 소환자. 소환수가 아니면 null.</summary>
+        public Unit SummonOwner { get; private set; }
+        public bool IsSummon => SummonOwner != null;
+        /// <summary>소환수의 정체(분신 등). 소환자 코드가 상한 · 넘침을 셀 때 쓴다.</summary>
+        public string SummonKind { get; private set; } = "";
+        public Sprite SummonPortraitOverride { get; private set; }
+        /// <summary>스케줄러의 행동 순서에 끼는가. 소환자 코드가 지시할 때만 움직이는 소환수는 false.</summary>
+        public bool TakesScheduledTurns { get; private set; } = true;
 
         // ── 스탯 ─────────────────────────────────────────────────
         [SerializeField] private UnitStats stats = new();
@@ -182,6 +225,8 @@ namespace Entities
         protected SpecialCode SpecialCode;
         protected UltimateCode UltimateCode;
         [SerializeField] private List<int> grantedPassiveCodeIds = new();
+        private List<int> rewardCodeSlots = Enumerable.Repeat(0, RewardCodeSlotCount).ToList();
+        private List<int> storedRewardCodeIds = new();
 
         public NormalCode ActiveNormalCode => NormalCode;
         public SpecialCode ActiveSpecialCode => SpecialCode;
@@ -207,6 +252,12 @@ namespace Entities
         // Dictionary의 열거 순서는 보장되지 않는다. "대표 자원 하나"를 뽑는 UI가 흔들리지 않게 순서를 따로 든다.
         private readonly List<string> _combatResourceOrder = new();
         public IReadOnlyList<string> CombatResourceIds => _combatResourceOrder;
+
+        // ── 영구 중첩 ───────────────────────────────────────────
+        // 런이 끝날 때까지 남는 유닛별 카운터(아누비스의 영혼 등, Detail_03 §3.1).
+        // 라운드 종료 복원이 아군을 새로 세우므로 반드시 UnitSaveData를 거쳐 옮긴다.
+        private readonly Dictionary<string, int> _permanentStacks = new();
+        private readonly Dictionary<string, float> _permanentStackFractions = new();
 
         private int _baseNormalCodeId;
         private int _baseUltimateCodeId;
@@ -245,10 +296,14 @@ namespace Entities
 
         public virtual void InitializeUnit(bool _isEnemy, int _id)
         {
+            _deathInProgress = false;
             _eventDict = new Dictionary<BaseEnums.UnitEventType, Delegate>();
             InitializeStatusController();
             PassiveCodes = new List<PassiveCode>();
             grantedPassiveCodeIds = new List<int>();
+            rewardCodeSlots = Enumerable.Repeat(0, RewardCodeSlotCount).ToList();
+            storedRewardCodeIds = new List<int>();
+            ResetRewardGrowth();
             unitTags = new List<string>();
             archetypeTags = new List<string>();
             unitTier = "";
@@ -258,9 +313,12 @@ namespace Entities
             _combatElements.Clear();
             _judgementElements.Clear();
             _temporaryElementDurations.Clear();
+            ClearToughness();
             _combatResources.Clear();
             _combatResourceMaximums.Clear();
             _combatResourceOrder.Clear();
+            _permanentStacks.Clear();
+            _permanentStackFractions.Clear();
             untargetableSourceCount = 0;
             ID = _id;
             IsEnemy = _isEnemy;
@@ -278,7 +336,7 @@ namespace Entities
             AddListener<EventContext>(BaseEnums.UnitEventType.OnTakingDamage, DefaultTakeDamageEvent);
             AddListener<EventContext>(BaseEnums.UnitEventType.OnRoundStart, DefaultRoundStartEvent);
             AddListener<EventContext>(BaseEnums.UnitEventType.OnRoundEnd, DefaultRoundEndEvent);
-            AddListener<EventContext>(BaseEnums.UnitEventType.OnNormalActionResolved, _ => RecoverMana(ManaPerNormalAction));
+            AddListener<EventContext>(BaseEnums.UnitEventType.OnNormalActionResolved, _ => { RecoverMana(ManaPerNormalAction); Combat.ActionDot.OnNormalResolved(this); });
         }
 
         protected virtual void LoadData(bool _isEnemy, int _id)
@@ -343,6 +401,55 @@ namespace Entities
             UltimateCode = CodeFactory.CreateUltimateCode(_baseUltimateCodeId, new UltimateCodeContext { Caster = this });
         }
 
+        /// <summary>
+        /// 소환수로 초기화한다. 유닛 데이터 표를 거치지 않는다 — 소환수는 선택 화면 · 자료실에 나오면 안 되므로
+        /// 정의는 소환자 코드가 들고 있다(<see cref="Combat.SummonSpec"/>).
+        /// </summary>
+        public void InitializeAsSummon(Unit owner, Combat.SummonSpec spec)
+        {
+            InitializeUnit(owner.IsEnemy, 0);
+            ID = spec.Id;
+            SummonOwner = owner;
+            SummonKind = spec.Kind ?? "";
+            SummonPortraitOverride = spec.PortraitOverride;
+            TakesScheduledTurns = spec.Speed > 0f;
+            UnitName = spec.Name;
+            Element = string.IsNullOrWhiteSpace(spec.Element) ? owner.Element : spec.Element;
+            vfxColor = owner.VfxColorHex;
+            vfxClass = owner.VfxClass;
+            PortraitPath = spec.PortraitKey ?? "";
+            Level = owner.Level;
+            ResetCombatElements();
+
+            // 스탯은 소환자를 물려받지 않는다. 행동치만 고정 속도로 갖고, 피해는 소환자 코드가 소환자 스탯으로 계산한다.
+            stats.Load(new UnitData
+            {
+                hpBase = Mathf.Max(1f, spec.Hp),
+                speedBase = Mathf.Max(1f, spec.Speed),
+                critRateBase = 0f,
+                critDamageBase = 0f,
+            });
+            manaMaxBase = DefaultManaMax;
+            ultimateResourceType = BaseEnums.UltimateResourceType.Passive;
+            ultimateResourceName = "상시";
+            NormalCode = spec.NormalCodeId > 0
+                ? CodeFactory.CreateNormalCode(spec.NormalCodeId, new NormalCodeContext { Caster = this })
+                : null;
+            SpecialCode = null;
+            UltimateCode = null;
+
+            AttributesUpdate();
+            HpCurr = HpMax;
+            ManaCurr = 0;
+            // 기본 소환수는 적의 대상이 되지 않는다. 피해 · 대상 지정은 소환자 쪽에서 해결한다.
+            if (!spec.Targetable) AddUntargetableSource();
+            AddListener<EventContext>(BaseEnums.UnitEventType.OnTakingDamage, DefaultTakeDamageEvent);
+            AddListener<EventContext>(BaseEnums.UnitEventType.OnRoundEnd, DefaultRoundEndEvent);
+            AddListener<EventContext>(BaseEnums.UnitEventType.OnNormalActionResolved,
+                _ => Combat.ActionDot.OnNormalResolved(this));
+            isActive = true;
+        }
+
         protected virtual void LoadSprite(string key)
         {
             Sprite portrait = SpriteResource.LoadPortrait(key, out string path);
@@ -356,6 +463,9 @@ namespace Entities
 
         protected IEnumerable<BaseEffect> ActiveEffectObjects() => StatusController.ActiveEffectObjects();
 
+        /// <summary>지금 걸린 효과 객체들. 치명타 판정처럼 코드가 시전자 효과에 직접 물어야 할 때 쓴다.</summary>
+        public IEnumerable<BaseEffect> CombatEffects() => ActiveEffectObjects();
+
         /// <summary>
         /// 최종 스탯을 다시 계산한다. 상태 · 레벨이 바뀔 때만 부른다.
         /// <b>체력 비율을 보존한다</b> — 최대 체력 배율이 붙으면 현재 체력도 같이 늘어난다.
@@ -363,16 +473,23 @@ namespace Entities
         protected virtual void AttributesUpdate()
         {
             List<BaseEffect> effects = ActiveEffectObjects().ToList();
+            List<PassiveCode> permanentSources = ActivePassiveCodesResolved().ToList();
             for (int i = 0; i < UnitStats.StatCount; i++)
             {
                 var stat = (BaseEnums.StatType)i;
                 float baseValue = stats.LeveledBase(stat);
                 float percent = 0f;
-                float flat = 0f;
+                float flat = NectarStatBonus(stat);
                 foreach (BaseEffect effect in effects)
                 {
                     percent += effect.StatPercentModifier(this, stat);
                     flat += effect.StatFlatModifier(this, stat);
+                }
+                // 보상 코드 · 영구 중첩의 스탯은 상태가 아니라 코드에서 온다 — 전투 밖에서도 보여야 하기 때문이다.
+                foreach (PassiveCode source in permanentSources)
+                {
+                    percent += source.PermanentStatPercentModifier(stat);
+                    flat += source.PermanentStatFlatModifier(stat);
                 }
 
                 _finalStats[i] = UnitStats.IsPercentScalable(stat)
@@ -381,8 +498,10 @@ namespace Entities
             }
 
             float healthRatio = HpMax > 0 ? (float)HpCurr / HpMax : 1f;
+            bool hadHealth = HpCurr > 0;
             HpMax = Mathf.Max(1, Mathf.RoundToInt(_finalStats[(int)BaseEnums.StatType.MaxHp]));
             HpCurr = Mathf.RoundToInt(HpMax * healthRatio);
+            if (hadHealth) HpCurr = Mathf.Max(1, HpCurr);
             ManaMax = Mathf.Max(1, manaMaxBase);
 
             float manaMultiplier = 1f;
@@ -479,18 +598,175 @@ namespace Entities
         // 패시브
         // ══════════════════════════════════════════════════════
 
-        /// <summary>사건 · 보상으로 얻은 런 영구 패시브를 추가한다. 고유 특성은 받을 수 없다.</summary>
+        /// <summary>
+        /// 사건 · 보상으로 얻은 런 영구 패시브를 붙인다. 보상 코드는 활성/보관 규칙을 따르고 고유 특성은 받을 수 없다.
+        /// 보상 코드는 칸 · 상위 대체 규칙을 지키는 <see cref="TryGrantRewardCode"/>를 쓴다 — 이 메서드는 복원 · 사건용이다.
+        /// </summary>
         public bool GrantPermanentPassive(int codeId)
         {
+            if (Codes.Base.RewardCodeCatalog.IsRewardCode(codeId)) return TryGrantRewardCode(codeId);
             if (codeId <= 0 || grantedPassiveCodeIds.Contains(codeId)) return false;
             PassiveCode code = CodeFactory.CreatePassiveCode(codeId, new PassiveCodeContext { Caster = this });
             if (code == null || code.IsUniquePassive) return false;
             PassiveCodes.Add(code);
             grantedPassiveCodeIds.Add(codeId);
+            // 코드가 주는 영구 스탯(깡 · 퍼센트)을 바로 반영한다. 체력 비율은 보존된다.
+            AttributesUpdate();
             return true;
         }
 
         public bool HasLearnedPassiveCode(int codeId) => PassiveCodes.Any(code => code != null && code.CatalogId == codeId);
+
+        /// <summary>상위 코드에 대체되지 않아 실제로 발동하는 패시브. <see cref="CastPassiveCode"/>와 같은 규칙이다.</summary>
+        public IEnumerable<PassiveCode> ActivePassiveCodesResolved()
+            => PassiveCodes.Where(code => code != null &&
+                                          !(code.SupersededByCodeId > 0 && HasLearnedPassiveCode(code.SupersededByCodeId)));
+
+        // ── 보상 코드 칸 ──────────────────────────────────────────
+
+        /// <summary>활성 7칸. 0은 빈 칸이며 빈 자리도 저장한다.</summary>
+        public IReadOnlyList<int> RewardCodeSlots => rewardCodeSlots;
+        public IReadOnlyList<int> RewardCodeIds => rewardCodeSlots.Where(id => id > 0).ToList();
+        public IReadOnlyList<int> StoredRewardCodeIds => storedRewardCodeIds;
+        public IEnumerable<int> OwnedRewardCodeIds => RewardCodeIds.Concat(storedRewardCodeIds);
+        public int FreeRewardCodeSlots => rewardCodeSlots.Count(id => id == 0);
+
+        public bool CanReceiveRewardCode(int codeId, out int replacesCodeId, out bool needsOverwrite, out string reason)
+        {
+            replacesCodeId = 0; needsOverwrite = false; reason = "";
+            if (!Codes.Base.RewardCodeCatalog.IsRewardCode(codeId) ||
+                !Codes.Passive.Reward.RewardCodeFactory.IsImplemented(codeId)) { reason = "보상 코드가 아님"; return false; }
+            if (OwnedRewardCodeIds.Contains(codeId)) { reason = "이미 보유"; return false; }
+            if (OwnedRewardCodeIds.Any(id => Codes.Base.RewardCodeCatalog.IsUpperOf(id, codeId)))
+            { reason = "상위 코드 보유"; return false; }
+            replacesCodeId = RewardCodeIds.FirstOrDefault(id => Codes.Base.RewardCodeCatalog.IsUpperOf(codeId, id));
+            return true;
+        }
+
+        /// <summary>빈 활성 칸 우선, 7칸이 찼으면 보관. 상위 획득으로 밀린 하위도 보관한다.</summary>
+        public bool TryGrantRewardCode(int codeId, int overwriteCodeId = 0)
+        {
+            if (!CanReceiveRewardCode(codeId, out int lower, out _, out _)) return false;
+            var slots = rewardCodeSlots.ToList(); var stored = storedRewardCodeIds.ToList();
+            int at = lower > 0 ? slots.IndexOf(lower) : overwriteCodeId > 0 ? slots.IndexOf(overwriteCodeId) : slots.IndexOf(0);
+            if (overwriteCodeId > 0 && lower == 0 && at < 0) return false;
+            if (at < 0) stored.Add(codeId);
+            else { if (slots[at] > 0) stored.Add(slots[at]); slots[at] = codeId; }
+            return ApplyRewardCodeInventory(slots, stored);
+        }
+
+        /// <summary>인장은 활성/보관 어느 쪽이든 같은 위치의 코드 하나를 승급한다.</summary>
+        public bool TryReplaceRewardCode(int oldCodeId, int newCodeId, string instanceId = null)
+        {
+            if (OwnedRewardCodeIds.Contains(newCodeId)) return false;
+            var slots = rewardCodeSlots.ToList();
+            var stored = storedRewardCodeIds.ToList();
+            var si = RewardCodeSlotInstances.ToList();
+            var bi = StoredRewardCodeInstances.ToList();
+            bool Matches(Core.RewardCodeInstanceData item) => item != null && item.codeId == oldCodeId &&
+                (instanceId == null || item.instanceId == instanceId);
+            int activeAt = si.FindIndex(Matches);
+            int storedAt = activeAt < 0 ? bi.FindIndex(Matches) : -1;
+            if (activeAt < 0 && storedAt < 0) return false;
+            var old = activeAt >= 0 ? si[activeAt] : bi[storedAt];
+            var changed = old.Copy();
+            changed.codeId = newCodeId;
+            bool sameCapacitor = Codes.Base.RewardCodeCatalog.Find(oldCodeId)?.capacitorStat ==
+                Codes.Base.RewardCodeCatalog.Find(newCodeId)?.capacitorStat;
+            changed.charge = sameCapacitor ? Mathf.Min(changed.charge,
+                Codes.Base.RewardCodeCatalog.Find(newCodeId)?.capacitorCap ?? 0) : 0;
+            if (activeAt >= 0) { slots[activeAt] = newCodeId; si[activeAt] = changed; }
+            else { stored[storedAt] = newCodeId; bi[storedAt] = changed; }
+            return ApplyRewardCodeInventory(slots, stored, si, bi);
+        }
+
+        public bool RemoveRewardCode(int codeId)
+        {
+            // 동일 코드가 활성·보관에 각각 있어도 제거한 한 장의 저장치만 사라진다.
+            var instance = ActiveRewardInstance(codeId) ?? StoredRewardCodeInstances.FirstOrDefault(x => x.codeId == codeId);
+            return instance != null && RemoveRewardCodeInstance(instance.instanceId);
+        }
+
+        /// <summary>이동의 양쪽을 검사한 뒤에만 호출한다. 보관 코드는 패시브/스탯/보상 태그에 참여하지 않는다.</summary>
+        internal static bool ValidRewardCodeInventory(IReadOnlyList<int> slots, IReadOnlyList<int> stored)
+        {
+            if (slots == null || stored == null || slots.Count != RewardCodeSlotCount || slots.Any(id => id < 0)) return false;
+            var active = slots.Where(id => id > 0).ToList();
+            if (active.Distinct().Count() != active.Count) return false;
+            if (active.Any(id => active.Any(other => other != id && Codes.Base.RewardCodeCatalog.IsUpperOf(other, id)))) return false;
+            return active.Concat(stored).All(id => Codes.Base.RewardCodeCatalog.IsRewardCode(id) &&
+                Codes.Passive.Reward.RewardCodeFactory.IsImplemented(id));
+        }
+
+        internal bool ApplyRewardCodeInventory(IReadOnlyList<int> slots, IReadOnlyList<int> stored,
+            IReadOnlyList<Core.RewardCodeInstanceData> slotState = null, IReadOnlyList<Core.RewardCodeInstanceData> storageState = null)
+        {
+            if (!ValidRewardCodeInventory(slots, stored)) return false;
+            if(!BuildRewardInstances(slots,stored,slotState,storageState,out var nextSlots,out var nextStored)) return false;
+            var newIds = slots.Where(id => id > 0).ToList();
+            var additions = new List<PassiveCode>();
+            foreach (int id in newIds.Where(id => !RewardCodeIds.Contains(id)))
+            {
+                PassiveCode code = CodeFactory.CreatePassiveCode(id, new PassiveCodeContext { Caster = this });
+                if (code == null || code.IsUniquePassive) return false;
+                additions.Add(code);
+            }
+            foreach (PassiveCode code in PassiveCodes.Where(code => code != null &&
+                Codes.Base.RewardCodeCatalog.IsRewardCode(code.CatalogId) && !newIds.Contains(code.CatalogId)).ToList())
+            { code.StopCode(); PassiveCodes.Remove(code); }
+            PassiveCodes.AddRange(additions);
+            grantedPassiveCodeIds.RemoveAll(Codes.Base.RewardCodeCatalog.IsRewardCode);
+            grantedPassiveCodeIds.AddRange(newIds);
+            rewardCodeSlots = slots.ToList(); storedRewardCodeIds = stored.ToList();
+            _rewardSlotInstances=nextSlots; _rewardStorageInstances=nextStored;
+            AttributesUpdate();
+            return true;
+        }
+
+        // ── 영구 중첩 ────────────────────────────────────────────
+
+        public int GetPermanentStacks(string key)
+            => !string.IsNullOrWhiteSpace(key) && _permanentStacks.TryGetValue(key, out int value) ? value : 0;
+
+        /// <summary>정수가 되기 전 소수 몫(0 ≤ x &lt; 1). 툴팁이 소수 첫째 자리까지 보여 준다.</summary>
+        public float GetPermanentStackFraction(string key)
+            => !string.IsNullOrWhiteSpace(key) && _permanentStackFractions.TryGetValue(key, out float value) ? value : 0f;
+
+        public IEnumerable<string> PermanentStackKeys => _permanentStacks.Keys.Concat(_permanentStackFractions.Keys).Distinct();
+
+        /// <summary>
+        /// 영구 중첩을 올리는 <b>유일한 입구</b>. 소수도 받는다 — 소수 몫을 모았다가 1이 될 때마다 정수로 옮긴다.
+        /// 보유 효과의 획득량 배율(성장 코드)을 여기서 한 번만 곱한다.
+        /// </summary>
+        /// <returns>이번에 늘어난 정수량.</returns>
+        public int GainPermanentStacks(string key, float amount)
+        {
+            if (string.IsNullOrWhiteSpace(key) || amount <= 0f) return 0;
+
+            // 효과가 아니라 코드에 묻는다. 상태는 라운드가 끝나면 걷히지만, 영구 중첩은 전투 밖(승리 정산)에서도 쌓인다.
+            float multiplier = 1f;
+            foreach (PassiveCode passive in ActivePassiveCodesResolved())
+                multiplier *= Mathf.Max(0f, passive.PermanentStackGainMultiplier(key));
+            float total = GetPermanentStackFraction(key) + amount * Mathf.Max(0f, multiplier);
+            // 부동소수 오차로 0.25 × 4가 0.9999가 되어 한 칸을 놓치지 않게 아주 작은 여유를 둔다.
+            int whole = Mathf.FloorToInt(total + 0.0001f);
+            _permanentStackFractions[key] = Mathf.Max(0f, total - whole);
+            if (whole <= 0) return 0;
+
+            _permanentStacks[key] = GetPermanentStacks(key) + whole;
+            AttributesUpdate();
+            AnyPermanentStackGained?.Invoke(this, key, whole);
+            return whole;
+        }
+
+        /// <summary>디버그 · 복원 전용 — 값을 그대로 맞춘다.</summary>
+        public void SetPermanentStacks(string key, int stacks, float fraction = 0f)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return;
+            _permanentStacks[key] = Mathf.Max(0, stacks);
+            _permanentStackFractions[key] = Mathf.Clamp(fraction, 0f, 0.9999f);
+            AttributesUpdate();
+        }
 
         public virtual void CastPassiveCode()
         {
@@ -527,10 +803,28 @@ namespace Entities
                 return;
             }
 
+            bool deferred = UltimateCode.DefersActivationUntilImpact;
+            if (!deferred)
+            {
+                if (ultimateResourceType != BaseEnums.UltimateResourceType.Passive) ManaCurr = 0;
+                RefreshView();
+            }
+            UltimateCode.CastCode();
+            if (!deferred) NotifyUltimateActivation();
+        }
+
+        /// <summary>초월기 자원과 발동 알림은 행동당 한 번. 지연형은 첫 탄 판정 직전에 호출한다.</summary>
+        public void CommitUltimateActivation()
+        {
             if (ultimateResourceType != BaseEnums.UltimateResourceType.Passive) ManaCurr = 0;
             RefreshView();
-            UltimateCode.CastCode();
+            NotifyUltimateActivation();
+        }
+
+        private void NotifyUltimateActivation()
+        {
             Invoke(BaseEnums.UnitEventType.OnUltimateActivates, new EventContext(this));
+            AnyUltimateCast?.Invoke(this);
         }
 
         public virtual void CastSpecialCode()
@@ -601,7 +895,9 @@ namespace Entities
             if (context == null) return;
             // 광역 공격은 같은 컨텍스트를 여러 대상에게 재사용하므로 대상마다 초기화한다.
             context.ResolvedDamage = 0;
-            if (!isActive || IsUntargetable)
+            context.HpDamage = 0;
+            context.ToughnessBroken = false;
+            if (!isActive || _deathInProgress || IsUntargetable)
             {
                 context.IsCancelled = true;
                 return;
@@ -642,7 +938,8 @@ namespace Entities
                 RemoveShield(absorbed);
                 damage -= absorbed;
             }
-            HpCurr -= damage;
+            // 치명상 방지의 치유 역시 실제 빈 체력만 회복한다. 초과 피해를 음수 체력/가짜 치유량으로 남기지 않는다.
+            HpCurr = Mathf.Max(0, HpCurr - damage);
 
             if (HpCurr <= 0)
             {
@@ -656,10 +953,13 @@ namespace Entities
 
             RefreshView();
 
-            int hpLost = Mathf.Max(0, hpBefore - HpCurr);
+            // 오버킬의 음수 체력은 실제 감소량·흡혈·피해 집계에 더하지 않는다.
+            int hpLost = Mathf.Max(0, Mathf.Max(0,hpBefore) - Mathf.Max(0,HpCurr));
             int shieldLost = Mathf.Max(0, shieldBefore - ShieldCurr);
             int damageDealt = hpLost + shieldLost;
             dmgCtx.ResolvedDamage = damageDealt;
+            dmgCtx.HpDamage = hpLost;
+            ReduceToughness(dmgCtx);
 
             // 맞은 쪽의 반응(숫자 · 카드 흔들림)은 전부 여기 한 곳에서 난다.
             Effects.CombatFeedback.PlayDamage(this, dmgCtx, hpLost, shieldLost);
@@ -679,6 +979,7 @@ namespace Entities
             }
 
             if (HpCurr <= 0) Die(dmgCtx.Attacker);
+            else if (isActive && dmgCtx.ToughnessBroken) Combat.Toughness.Publish(this, dmgCtx.Attacker, true);
         }
 
         /// <summary>
@@ -696,6 +997,11 @@ namespace Entities
             if (dmgCtx.Attacker != null)
             {
                 outgoing *= Combat.Battlefield.OutgoingMultiplier(dmgCtx.Attacker);
+                float damageBonus = Codes.Passive.Reward.TreasuryRewardCode.DamageBonus(dmgCtx);
+                if (dmgCtx.HasTag(DamageTag.UltAttack))
+                    damageBonus += dmgCtx.Attacker.ActiveEffectObjects().Sum(effect => effect.UltimateDamageBonus(dmgCtx.Attacker));
+                outgoing *= 1f + Mathf.Max(0f, damageBonus);
+                defenseMultiplier *= Codes.Passive.Reward.TreasuryRewardCode.DefenseMultiplier(dmgCtx);
                 foreach (BaseEffect effect in dmgCtx.Attacker.ActiveEffectObjects())
                 {
                     outgoing *= effect.OutgoingDamageModifier(dmgCtx.Attacker, this, dmgCtx);
@@ -718,6 +1024,7 @@ namespace Entities
                 mitigation = UnitStats.MitigationMultiplier(defense, UnitStats.ArmorConstant(attackerLevel));
             }
 
+            if (dmgCtx.IsDamageOverTime) outgoing *= Codes.Passive.TsukuyomiNight.DotMultiplier(dmgCtx.Attacker);
             float scaled = dmgCtx.Damage * outgoing * mitigation * receiving;
             if (scaled <= 0f) return 0;
             return Mathf.Max(1, Mathf.RoundToInt(scaled));
@@ -729,19 +1036,27 @@ namespace Entities
         /// </summary>
         public virtual void Die(Unit attacker)
         {
-            if (!isActive) return;
-
-            Effects.Vfx.CardLifecycleFx.PlayDestroy(this);
-            if (UltimateCode?.IsPersistent == true) UltimateCode.StopCode();
-            Invoke(BaseEnums.UnitEventType.OnDeath, new EventContext(this, attacker));
-            AnyUnitDied?.Invoke(this, attacker);
-            if (attacker != null && attacker != this)
+            if (!isActive || _deathInProgress) return;
+            _deathInProgress = true;
+            try
             {
-                attacker.Invoke(BaseEnums.UnitEventType.OnKill, new EventContext(attacker, this));
-                attacker.RecoverMana(ManaPerKill);
+                if (IsSummon) GetComponent<Entities.View.SummonCardView>()?.Depart();
+                else Effects.Vfx.CardLifecycleFx.PlayDestroy(this);
+                if (UltimateCode?.IsPersistent == true) UltimateCode.StopCode();
+                Combat.ActionDot.RememberSource(this);
+                Invoke(BaseEnums.UnitEventType.OnDeath, new EventContext(this, attacker));
+                AnyUnitDied?.Invoke(this, attacker);
+                Combat.Toughness.Publish(this, attacker, false);
+                // 소환수는 처치 보상(골드 · EXP · 드랍)을 주지 않는다. 사망 판정 자체는 위에서 이미 났다.
+                if (isEnemy && !IsSummon) GameManager.Instance?.OnKillEnemy(this);
+                ClearToughness();
             }
-            if (isEnemy) GameManager.Instance?.OnKillEnemy(this);
-            DeactivateUnit();
+            finally
+            {
+                DeactivateUnit();
+                _deathInProgress = false;
+                if (IsSummon) GridManager.Instance?.ForgetSummon(this);
+            }
         }
 
         // ══════════════════════════════════════════════════════
@@ -749,11 +1064,11 @@ namespace Entities
         // ══════════════════════════════════════════════════════
 
         /// <summary>체력을 회복한다. 받는 치유 · 주는 치유 배율을 탄다.</summary>
-        public void Heal(int amount, Unit source = null)
+        public void Heal(int amount, Unit source = null, bool treasurySpent = false)
         {
-            if (amount <= 0 || !isActive) return;
+            if (amount <= 0 || !isActive || _deathInProgress) return;
 
-            float multiplier = GetOutgoingSupportMultiplier(source, false);
+            float multiplier = GetOutgoingSupportMultiplier(source, false, treasurySpent);
             foreach (BaseEffect effect in ActiveEffectObjects()) multiplier *= effect.HealingReceivedMultiplierModifier(this);
             int healing = Mathf.Max(0, Mathf.RoundToInt(amount * multiplier));
             int before = HpCurr;
@@ -765,6 +1080,8 @@ namespace Entities
                 Effects.Vfx.StatusAffectedVfx.PlaySupport(this, source, "hit.support.heal");
             }
             RefreshView();
+            // 넘친 양까지 알린다 — 과다치유(넘친 회복 → 보호막)와 응급치료(실제 회복 → 보호막)가 이 값을 쓴다.
+            if (healing > 0) AnyHealed?.Invoke(this, source, effective, healing - effective);
         }
 
         /// <summary>
@@ -793,44 +1110,60 @@ namespace Entities
             return restored;
         }
 
-        public virtual void AddShield(int amount, Unit source = null)
+        /// <summary>치명상 방지 훅에서만 사용한다. 체력을 정확히 복구하며 치유·온기 저축을 발행하지 않는다.</summary>
+        public bool RestoreHpAfterPreventedDeath(float ratio)
         {
-            amount = ScaleShield(amount, source);
+            if (!isActive || HpCurr > 0) return false;
+            HpCurr = Mathf.Clamp(Mathf.RoundToInt(HpMax * Mathf.Clamp01(ratio)), 1, HpMax);
+            RefreshView();
+            return true;
+        }
+
+        public virtual void AddShield(int amount, Unit source = null, bool treasurySpent = false)
+        {
+            if (!isActive || _deathInProgress || HpCurr <= 0) return;
+            amount = ScaleShield(amount, source, treasurySpent);
             if (amount <= 0) return;
             ShieldMax += amount;
             ShieldCurr += amount;
+            AnyShieldChanged?.Invoke(this);
             AudioManager.PlayCue("common.shield");
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             Core.VerifyEvents.Raise("shield");
 #endif
             RefreshView();
+            AnyShieldGranted?.Invoke(this, source, amount);
         }
 
         /// <summary>보호막을 이 값으로 덮어쓴다.</summary>
         public virtual void SetShield(int amount, Unit source = null)
         {
+            if (amount > 0 && (!isActive || _deathInProgress || HpCurr <= 0)) return;
             amount = ScaleShield(amount, source);
             ShieldMax = amount;
             ShieldCurr = amount;
+            AnyShieldChanged?.Invoke(this);
             if (amount > 0) AudioManager.PlayCue("common.shield");
             RefreshView();
+            if (amount > 0) AnyShieldGranted?.Invoke(this, source, amount);
         }
 
         public virtual void RemoveShield(int amount)
         {
             ShieldCurr = Mathf.Max(0, ShieldCurr - Mathf.Max(0, amount));
             if (ShieldCurr == 0) ShieldMax = 0;
+            AnyShieldChanged?.Invoke(this);
             RefreshView();
         }
 
-        private int ScaleShield(int amount, Unit source)
+        private int ScaleShield(int amount, Unit source, bool treasurySpent = false)
         {
-            float multiplier = GetOutgoingSupportMultiplier(source, true);
+            float multiplier = GetOutgoingSupportMultiplier(source, true, treasurySpent);
             foreach (BaseEffect effect in ActiveEffectObjects()) multiplier *= effect.ShieldReceivedMultiplierModifier(this);
             return Mathf.Max(0, Mathf.RoundToInt(amount * multiplier));
         }
 
-        private float GetOutgoingSupportMultiplier(Unit source, bool shield)
+        private float GetOutgoingSupportMultiplier(Unit source, bool shield, bool treasurySpent = false)
         {
             if (source == null) return 1f;
             float multiplier = 1f;
@@ -840,7 +1173,7 @@ namespace Entities
                     ? effect.OutgoingShieldMultiplierModifier(source, this)
                     : effect.OutgoingHealingMultiplierModifier(source, this);
             }
-            return Mathf.Max(0f, multiplier);
+            return Mathf.Max(0f, multiplier + Codes.Passive.Reward.TreasuryRewardCode.SupportBonus(source, treasurySpent));
         }
 
         // ══════════════════════════════════════════════════════
@@ -875,7 +1208,7 @@ namespace Entities
 
         internal bool ResistsNegativeStatus(Status.UnitStatus status)
         {
-            if (status == null || status.Category != BaseEnums.StatusCategory.Negative) return false;
+            if (status == null) return false;
             float chance = 0f;
             foreach (BaseEffect effect in ActiveEffectObjects())
                 chance += Mathf.Max(0f, effect.NegativeStatusResistanceChanceModifier(this, status));
@@ -910,19 +1243,30 @@ namespace Entities
 
         /// <summary>원소를 부착한다. 부착 직후 원소 반응을 검사한다.</summary>
         /// <param name="source">부착을 일으킨 유닛. 반응 피해가 이 유닛의 특수공격력에 비례한다.</param>
-        /// <param name="suppressReaction">반응 판정을 건너뛴다. 확산이 뿌리는 부착의 무한 연쇄를 막는다.</param>
-        public void GrantCombatElement(BaseEnums.UnitElement elementToGrant, int duration = CommonElementAuraDuration,
-            Unit source = null, bool suppressReaction = false)
+        /// <param name="suppressReaction">반응 판정을 건너뛴다. 효과 명중은 그대로 적용한다.</param>
+        /// <param name="effectHitResolved">원본 대상의 확산 재부착처럼 이미 성공한 부착의 파생일 때만 켠다.</param>
+        /// <returns>이번 부착이 실제 성공했는가. 실패하면 기존 부착과 기간을 보존한다.</returns>
+        public bool GrantCombatElement(BaseEnums.UnitElement elementToGrant, int duration = CommonElementAuraDuration,
+            Unit source = null, bool suppressReaction = false, bool effectHitResolved = false)
         {
-            if (elementToGrant == BaseEnums.UnitElement.None || !isActive) return;
+            if (elementToGrant == BaseEnums.UnitElement.None || !isActive) return false;
+            if (!effectHitResolved && !Combat.DamageMitigation.RollEffectHit(source, this))
+            {
+                Debug.Log($"[효과 저항] {UnitName} — {elementToGrant} 부착 실패");
+                Effects.CombatFeedback.PlayEffectResisted(this);
+                return false;
+            }
 
             bool added = _combatElements.Add(elementToGrant);
             _temporaryElementDurations[elementToGrant] = Mathf.Max(1, duration > 0 ? duration : CommonElementAuraDuration);
             RefreshView();
             AnyCombatElementGranted?.Invoke(source, this, elementToGrant);
+            Effects.StatusPopup.ShowElement(this, elementToGrant, !added);
+            Effects.Vfx.ElementReactionFx.Attachment(this, elementToGrant);
 
             // added == false는 같은 원소가 이미 붙어 있었다는 뜻이다 — 같은 원소 반응의 재료가 된다.
             if (!suppressReaction) Effects.Negative.ElementalReaction.TryResolve(this, elementToGrant, source, !added);
+            return true;
         }
 
         /// <summary>부착된 원소를 걷어낸다. 고유 원소는 부착이 아니므로 여기서 사라지지 않는다.</summary>
@@ -934,7 +1278,13 @@ namespace Entities
         }
 
         internal static void NotifyElementalReaction(Unit source, Unit target, string reactionName)
-            => AnyElementalReaction?.Invoke(source, target, reactionName);
+        {
+            AnyElementalReaction?.Invoke(source, target, reactionName);
+            Effects.Vfx.ElementReactionFx.Reaction(target, reactionName);
+        }
+
+        internal static void NotifyStatusChanged(Unit owner, Status.UnitStatus status, bool added)
+            => AnyStatusChanged?.Invoke(owner, status, added);
 
         /// <summary>이 원소를 가진 것으로 <b>판정</b>되는가. 실제 부착과 고유 원소를 함께 본다.</summary>
         public bool HasCombatElement(BaseEnums.UnitElement elementToCheck)
@@ -1059,7 +1409,7 @@ namespace Entities
         /// <summary>자기 턴의 행동이 모두 끝났을 때 스케줄러가 부른다.</summary>
         public void EndTurn() => Invoke(BaseEnums.UnitEventType.OnTurnEnd, new EventContext(this));
 
-        internal void PrepareRoundResources() => TurnCount = 0;
+        internal void PrepareRoundResources() { TurnCount = 0; ClearToughness(); }
 
         protected void DefaultRoundStartEvent(EventContext context)
         {
@@ -1072,6 +1422,7 @@ namespace Entities
             _reactionCooldowns.Clear();
             ResetCombatElements();
             CastPassiveCode();
+            Combat.Toughness.Ensure(this);
             if (UltimateCode?.IsPersistent == true) UltimateCode.CastCode();
         }
 
@@ -1083,6 +1434,7 @@ namespace Entities
             if (UltimateCode?.IsPersistent == true) UltimateCode.StopCode();
             foreach (PassiveCode code in PassiveCodes) code?.StopCode();
             ResetCombatElements();
+            ClearToughness();
             _combatResources.Clear();
             _combatResourceMaximums.Clear();
             _combatResourceOrder.Clear();
@@ -1093,6 +1445,15 @@ namespace Entities
             AttributesUpdate();
         }
 
+        /// <summary>폐기할 객체의 코루틴·상태·정적 구독을 파괴 전에 해제한다. 사망/처치 이벤트는 발생시키지 않는다.</summary>
+        internal void ClearCombatStateForRemoval()
+        {
+            StopAllCoroutines();
+            NormalCode?.StopCode();
+            Invoke(BaseEnums.UnitEventType.OnRoundEnd, new EventContext(this));
+            isCasting = false;
+        }
+
         // ══════════════════════════════════════════════════════
         // 런 저장 · 복원
         // ══════════════════════════════════════════════════════
@@ -1101,12 +1462,51 @@ namespace Entities
         {
             if (saveData == null) return;
 
-            Level = saveData.level;
+            Level = Mathf.Max(1, saveData.level);
             Exp = Mathf.Max(0, saveData.exp);
+
+            // 보상 코드는 칸 순서 그대로 다시 붙인다. 칸 규칙은 이미 지켜진 상태로 저장됐으므로 검사 없이 복원한다.
+            foreach (int codeId in saveData.grantedPassiveCodeIds ?? new List<int>()) GrantPermanentPassive(codeId);
+            if (saveData.activeRewardCodeSlots?.Count == RewardCodeSlotCount)
+                ApplyRewardCodeInventory(saveData.activeRewardCodeSlots, saveData.storedRewardCodeIds ?? new List<int>());
+            else if (saveData.storedRewardCodeIds?.Count > 0)
+                ApplyRewardCodeInventory(rewardCodeSlots, saveData.storedRewardCodeIds);
+            RestoreRewardGrowth(saveData);
+            _permanentStacks.Clear();
+            _permanentStackFractions.Clear();
+            foreach (Core.PermanentStackSaveData stack in saveData.permanentStacks ?? new List<Core.PermanentStackSaveData>())
+            {
+                if (stack == null || string.IsNullOrWhiteSpace(stack.key)) continue;
+                _permanentStacks[stack.key] = Mathf.Max(0, stack.value);
+                _permanentStackFractions[stack.key] = Mathf.Clamp(stack.fraction, 0f, 0.9999f);
+            }
+
             AttributesUpdate();
+            // 영구 체력(영혼 등)이 붙은 뒤의 최대 체력으로 자른다. 순서를 바꾸면 저장된 체력이 잘려 나간다.
             HpCurr = Mathf.Clamp(saveData.currentHP, 0, HpMax);
             ManaCurr = Mathf.Clamp(saveData.ultimateResource, 0, ManaMax);
             RefreshView();
+        }
+
+        /// <summary>
+        /// 런 상태를 저장 칸에 적는다. 전투 시작 스냅샷 · 전투 종료 덮어쓰기 · 런 저장이 모두 이 한 곳을 쓴다 —
+        /// 세 경로가 따로 적으면 하나를 빠뜨려 보상 코드나 영혼이 라운드마다 사라진다.
+        /// </summary>
+        public void WriteRunState(Core.UnitSaveData saveData)
+        {
+            if (saveData == null) return;
+            saveData.level = Level;
+            saveData.exp = Exp;
+            saveData.grantedPassiveCodeIds = grantedPassiveCodeIds.ToList();
+            saveData.activeRewardCodeSlots = rewardCodeSlots.ToList();
+            saveData.storedRewardCodeIds = storedRewardCodeIds.ToList();
+            WriteRewardGrowth(saveData);
+            saveData.permanentStacks = PermanentStackKeys.Select(key => new Core.PermanentStackSaveData
+            {
+                key = key,
+                value = GetPermanentStacks(key),
+                fraction = GetPermanentStackFraction(key),
+            }).ToList();
         }
 
         /// <summary>전투 밖에서 파생 스탯을 다시 돌린다. 체력 비율을 보존한다.</summary>
@@ -1210,7 +1610,14 @@ namespace Entities
         // ══════════════════════════════════════════════════════
 
         public void AddStatus(Status.UnitStatus status) => StatusController.Add(status);
+        public bool TryAddStatus(Status.UnitStatus status)
+        {
+            StatusController.Add(status);
+            return status != null && status.ApplicationSucceeded;
+        }
         public void RemoveStatus(int statusId) => StatusController.Remove(statusId);
+
+        public void RemoveStatus(Entities.Status.UnitStatus status) => StatusController.RemoveInstance(status);
         public bool HasStatus(int statusId) => StatusController.Has(statusId);
         public bool HasStatusKey(string key) => StatusController.HasKey(key);
         public void RemoveStatusByKey(string key) => StatusController.RemoveByKey(key);
@@ -1220,16 +1627,16 @@ namespace Entities
         public List<Status.UnitStatus> GetStatuses() => StatusController.GetLive();
 
         public bool HasNegativeStatus()
-            => GetAllStatuses().Any(status => status != null && status.Category == BaseEnums.StatusCategory.Negative);
+            => GetAllStatuses().Any(status => status != null && status.CountsAsDebuff);
 
         public bool HasDamageOverTimeStatus() => ActiveEffectObjects().Any(effect => effect.IsDamageOverTime);
 
         public void RemoveAllNegativeStatuses(Unit source = null)
         {
             List<Status.UnitStatus> removed = GetAllStatuses()
-                .Where(s => s.Category == BaseEnums.StatusCategory.Negative).ToList();
+                .Where(s => s.CountsAsDebuff).ToList();
             foreach (Status.UnitStatus status in removed)
-                RemoveStatus(status.StatusId);
+                StatusController.RemoveInstance(status);
             // 제어는 별도 타이머도 쓴다. 상태만 지우면 정화 뒤에도 행동 불가가 남는다.
             if (isControlled) ControlEnds();
             if (removed.Count > 0)

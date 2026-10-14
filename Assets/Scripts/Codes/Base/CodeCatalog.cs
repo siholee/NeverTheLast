@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -31,6 +31,37 @@ namespace Codes.Base
             public string verbalName;
             public string codeName;
             public string description;
+
+            // ── 보상 코드 전용(패시브 500~999, Detail_17) ──
+            /// <summary>보상 티어 1~5. 0이면 보상 코드가 아니다.</summary>
+            public int tier;
+            /// <summary>코드 태그 키. 유닛 archetypeTags와 같은 키 + Universal · Economy · Growth.</summary>
+            public List<string> codeTags;
+            /// <summary>상위 코드 ID. 같은 유닛이 상위를 받으면 이 코드는 사라진다.</summary>
+            public int supersededBy;
+            /// <summary>상점 코드 탭에 늘 오르는가(Detail_17 §5.2).</summary>
+            public bool shopFixed;
+            /// <summary>상점 기본가. 실제 가격은 × 현재 스테이지.</summary>
+            public int shopPrice;
+            /// <summary>공격 형태 코드가 요구하는 형태(50000번대). 파티에 그 형태 공격이 없으면 후보에서 뺀다.</summary>
+            public int requiresAttackForm;
+            /// <summary>성장(영구 중첩) 유닛이 파티에 있어야 후보가 되는가.</summary>
+            public bool requiresGrowth;
+            public bool requiresTreasury;
+            public bool requiresToughness;
+
+            // ── 데이터 구동 코드(RewardStatCode)가 읽는 값 ──
+            /// <summary>깡 스탯 보정. 키 = StatType 이름, 치명타는 퍼센트 포인트(4 = +4%p).</summary>
+            public Dictionary<string, float> flatStats;
+            /// <summary>퍼센트 보정. 키 = StatType 이름, 값 = 퍼센트(12 = +12%).</summary>
+            public Dictionary<string, float> percentStats;
+            /// <summary>이 피해 태그가 붙은 공격의 피해 증가(퍼센트). <see cref="damageTagBonus"/>와 짝.</summary>
+            public int damageTag;
+            public float damageTagBonus;
+            // 축전기: 정수/소수 저장량에 곱할 스탯 증가량. 티어는 상한만 바꾼다.
+            public string capacitorStat;
+            public float capacitorPerCharge;
+            public float capacitorCap;
         }
 
         public sealed class CatalogFile

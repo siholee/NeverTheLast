@@ -31,11 +31,11 @@ namespace Managers.UI
             Sound,
         }
 
-        private const float PanelWidth = 1000f;
-        private const float PanelHeight = 660f;
-        private const float RailWidth = 230f;
-        private const float RowHeight = 78f;
-        private const float ControlWidth = 400f;
+        private const float PanelWidth = 1340f;
+        private const float PanelHeight = 704f;
+        private const float RailWidth = 280f;
+        private const float RowHeight = 104f;
+        private const float ControlWidth = 470f;
         private const float RevertSeconds = 12f;
 
         private GameObject _panel;
@@ -93,11 +93,18 @@ namespace Managers.UI
             Image backdrop = UIBuild.Backdrop("Backdrop", _panel.transform);
             UIBuild.OnClick(backdrop.gameObject, Close);
 
+            // 다른 관리 창과 같은 창 문법 — 종이 한 장 + 남색 제목 띠(기호 · 제목 · 원형 닫기).
             Image card = UIBuild.Panel("Card", _panel.transform, UITheme.Surface,
                 UIShapes.Corner.Diagonal, 16, UITheme.Outline, 1);
+            card.sprite = UIShapes.RoundedRect(16, UITheme.Surface);
             UIBuild.Pin(card.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(PanelWidth, PanelHeight), Vector2.zero);
-            UIBuild.Elevate(card, 40, 0.6f, 14f);
+            UIBuild.Elevate(card, 24, 0.14f, 6f);
             _panel.AddComponent<UIPopIn>().Panel = card.rectTransform;
+
+            UIArtDirection.Header(card.transform, UIArtDirection.HeaderHeight);
+            UIArtDirection.TitleGlyph(card.transform, UIIcon.Menu, 28f);
+            UIArtDirection.HeaderTitle(card.transform, "Title", "설정", 66f, 400f);
+            UIArtDirection.HeaderClose("Close", card.transform, Close, 22f);
 
             BuildRail(card.transform);
 
@@ -105,7 +112,7 @@ namespace Managers.UI
             _content.anchorMin = new Vector2(0f, 0f);
             _content.anchorMax = new Vector2(1f, 1f);
             _content.offsetMin = new Vector2(RailWidth + 36f, 92f);
-            _content.offsetMax = new Vector2(-36f, -36f);
+            _content.offsetMax = new Vector2(-36f, -(UIArtDirection.HeaderHeight + 24f));
 
             BuildFooter(card.transform);
 
@@ -115,7 +122,7 @@ namespace Managers.UI
         /// <summary>왼쪽 레일 — 제목과 탭 셋. 레일 면은 본문보다 한 단계 가라앉아 영역이 갈린다.</summary>
         private void BuildRail(Transform card)
         {
-            Image rail = UIBuild.Panel("Rail", card, UITheme.SurfaceSunken, UIShapes.Corner.Diagonal, 14);
+            Image rail = UIBuild.Solid("Rail", card, Color.clear);
             rail.raycastTarget = false;
             rail.rectTransform.anchorMin = new Vector2(0f, 0f);
             rail.rectTransform.anchorMax = new Vector2(0f, 1f);
@@ -123,14 +130,22 @@ namespace Managers.UI
             rail.rectTransform.sizeDelta = new Vector2(RailWidth, -12f);
             rail.rectTransform.anchoredPosition = new Vector2(6f, 0f);
 
+            // 레일과 본문 사이 세로 헤어라인 하나 — 분류(왼쪽)와 내용(오른쪽)의 경계.
+            Image split = UIBuild.Divider("RailRule", card);
+            split.raycastTarget = false;
+            split.rectTransform.anchorMin = new Vector2(0f, 0f);
+            split.rectTransform.anchorMax = new Vector2(0f, 1f);
+            split.rectTransform.pivot = new Vector2(0f, 0.5f);
+            split.rectTransform.offsetMin = new Vector2(RailWidth + 14f, 28f);
+            split.rectTransform.offsetMax = new Vector2(RailWidth + 15f, -(UIArtDirection.HeaderHeight + 24f));
+
+
             TextMeshProUGUI eyebrow = UIBuild.Label("Eyebrow", rail.transform, "SETTINGS", UITheme.FontMicro,
                 UITheme.TextMuted);
-            eyebrow.characterSpacing = 22f;
+            eyebrow.gameObject.SetActive(false);
             UIBuild.Pin(eyebrow.rectTransform, new Vector2(0f, 1f), new Vector2(RailWidth - 40f, 18f), new Vector2(24f, -30f));
 
-            TextMeshProUGUI title = UIBuild.Text("Title", rail.transform, "설정", UITheme.FontTitle, UITheme.TextPrimary);
-            title.fontStyle = FontStyles.Bold;
-            UIBuild.Pin(title.rectTransform, new Vector2(0f, 1f), new Vector2(RailWidth - 40f, 36f), new Vector2(24f, -50f));
+            // 창 제목은 남색 띠가 맡는다. 레일에는 분류 탭만 둔다.
 
             AddTab(rail.transform, Tab.Display, "화면", "표시 방식 · 해상도 · 프레임", 0);
             AddTab(rail.transform, Tab.Interface, "인터페이스", "글자 크기 · HUD 크기", 1);
@@ -144,20 +159,21 @@ namespace Managers.UI
                 _tab = tab;
                 Rebuild();
             });
-            UIBuild.Pin(button.image.rectTransform, new Vector2(0f, 1f), new Vector2(RailWidth - 28f, 62f),
-                new Vector2(14f, -112f - index * 70f));
+            UIBuild.Pin(button.image.rectTransform, new Vector2(0f, 1f), new Vector2(RailWidth - 28f, 48f),
+                new Vector2(14f, -(UIArtDirection.HeaderHeight + 24f) - index * 56f));
 
             TextMeshProUGUI label = button.GetComponentInChildren<TextMeshProUGUI>();
             label.richText = true;
             label.alignment = TextAlignmentOptions.MidlineLeft;
-            label.text = $"{name}\n<size=72%><color=#{Hex(UITheme.TextMuted)}>{sub}</color></size>";
+            label.text = name;
+            TooltipTrigger.Attach(button.gameObject,()=>name,()=>new List<UITooltip.Line>{UITooltip.Line.Note(sub,UITheme.TextSecondary)},UITheme.Accent);
             UIBuild.Stretch(label.rectTransform, 18f, 6f);
             _tabButtons[tab] = button;
         }
 
         private void BuildFooter(Transform card)
         {
-            _footerNote = UIBuild.Text("FooterNote", card, "", UITheme.FontCaption, UITheme.TextMuted,
+            _footerNote = UIBuild.Text("FooterNote", card, "", 20f, UITheme.TextMuted,
                 TextAlignmentOptions.MidlineLeft, wrap: true);
             _footerNote.richText = true;
             _footerNote.rectTransform.anchorMin = new Vector2(0f, 0f);
@@ -166,21 +182,21 @@ namespace Managers.UI
             _footerNote.rectTransform.offsetMin = new Vector2(RailWidth + 36f, 28f);
             _footerNote.rectTransform.offsetMax = new Vector2(-380f, 74f);
 
-            Button close = UIBuild.Button("Close", card, "닫기  <size=70%>ESC</size>", Close);
-            close.GetComponentInChildren<TextMeshProUGUI>().richText = true;
-            UIBuild.Pin(close.image.rectTransform, new Vector2(1f, 0f), new Vector2(160f, 46f), new Vector2(-36f, 28f));
-
+            // 닫기는 제목 띠의 원형 X · ESC · 바깥 누르기가 맡는다. 아래 줄에는 이 창의 주 행동 [적용] 하나만 둔다.
+            _footerNote.rectTransform.offsetMax = new Vector2(-232f, 74f);
             _apply = UIBuild.Button("Apply", card, "적용", ApplyDisplay, primary: true);
-            UIBuild.Pin(_apply.image.rectTransform, new Vector2(1f, 0f), new Vector2(160f, 46f), new Vector2(-208f, 28f));
+            UIBuild.Pin(_apply.image.rectTransform, new Vector2(1f, 0f), new Vector2(176f, 46f), new Vector2(-36f, 28f));
 
             // 적용 뒤 확인 띠. 본문 아래쪽에 떠서 [유지] · [되돌리기]를 받는다.
             Image bar = UIBuild.Panel("KeepBar", card, UITheme.SurfaceRaised, UIShapes.Corner.Diagonal, 10,
                 UITheme.Accent, 1);
+            bar.sprite = UIShapes.RoundedRect(14, Color.white, new Color(UITheme.Accent.r, UITheme.Accent.g, UITheme.Accent.b, 0.35f), 1);
             UIBuild.Pin(bar.rectTransform, new Vector2(0.5f, 0f), new Vector2(PanelWidth - RailWidth - 72f, 64f),
                 new Vector2(RailWidth * 0.5f + 3f, 88f));
             _keepBar = bar.gameObject;
 
-            _keepLabel = UIBuild.Text("Label", bar.transform, "", UITheme.FontBody, UITheme.TextPrimary);
+            _keepLabel = UIBuild.Text("Label", bar.transform, "", UITheme.FontReadSmall, UITheme.TextPrimary,
+                TextAlignmentOptions.MidlineLeft);
             UIBuild.Anchor(_keepLabel.rectTransform, new Vector2(0f, 0f), new Vector2(0.62f, 1f), 18f, 0f);
 
             Button keep = UIBuild.Button("Keep", bar.transform, "유지", KeepDisplay, primary: true);
@@ -197,22 +213,17 @@ namespace Managers.UI
             if (_content == null) return;
             UIBuild.Clear(_content);
 
+            // 분류 선택은 옅은 군청 면과 군청 굵은 글자로 구분한다.
             foreach ((Tab tab, Button button) in _tabButtons)
             {
                 bool active = tab == _tab;
-                button.image.sprite = UIShapes.CutCorner(10,
-                    active ? UITheme.SurfaceRaised : new Color(1f, 1f, 1f, 0f), UIShapes.Corner.Diagonal,
-                    active ? UITheme.Outline : default, active ? 1 : 0);
-
-                Transform marker = button.transform.Find("ActiveMark");
-                if (marker == null)
+                UIArtDirection.SelectRow(button.image, active, false, 10);
+                TextMeshProUGUI label = button.GetComponentInChildren<TextMeshProUGUI>();
+                if (label != null)
                 {
-                    Image mark = UIBuild.Solid("ActiveMark", button.transform, UITheme.Accent);
-                    mark.raycastTarget = false;
-                    UIBuild.Pin(mark.rectTransform, new Vector2(0f, 0.5f), new Vector2(3f, 28f), new Vector2(6f, 0f));
-                    marker = mark.transform;
+                    label.color = active ? UITheme.AccentDim : UITheme.TextSecondary;
+                    label.fontStyle = active ? FontStyles.Bold : FontStyles.Normal;
                 }
-                marker.gameObject.SetActive(active);
             }
 
             float y = 0f;
@@ -304,13 +315,13 @@ namespace Managers.UI
 
             TextMeshProUGUI eyebrow = UIBuild.Label("Eyebrow", preview.transform, "PREVIEW", UITheme.FontMicro,
                 UITheme.TextMuted);
-            eyebrow.characterSpacing = 20f;
+            eyebrow.gameObject.SetActive(false);
             UIBuild.Pin(eyebrow.rectTransform, new Vector2(0f, 1f), new Vector2(300f, 18f), new Vector2(20f, -16f));
 
             TextMeshProUGUI sample = UIBuild.Text("Sample", preview.transform,
                 "라이트  Lv.24\n<size=85%><color=#" + Hex(UITheme.TextSecondary) +
-                ">화상 3중첩 · 2턴 — 행동할 때마다 최대 체력의 4%를 잃는다.</color></size>",
-                UITheme.FontBody, UITheme.TextPrimary, TextAlignmentOptions.TopLeft, wrap: true);
+                ">화상 · 대상의 모든 행동에 발동\n생성자의 특수공격력에 비례하는 지속피해.</color></size>",
+                UITheme.FontReadSmall, UITheme.TextPrimary, TextAlignmentOptions.TopLeft, wrap: true);
             sample.richText = true;
             UIBuild.Stretch(sample.rectTransform, 20f, 12f);
             sample.rectTransform.offsetMax = new Vector2(-20f, -38f);
@@ -338,14 +349,14 @@ namespace Managers.UI
         private void SectionHeading(string eyebrow, string title, ref float y)
         {
             TextMeshProUGUI caption = UIBuild.Label("Eyebrow", _content, eyebrow, UITheme.FontMicro, UITheme.Accent);
-            caption.characterSpacing = 22f;
-            PlaceRow(caption.rectTransform, y, 18f);
-            y += 20f;
+            caption.gameObject.SetActive(false);
 
-            TextMeshProUGUI heading = UIBuild.Text("Heading", _content, title, UITheme.FontTitle, UITheme.TextPrimary);
+            // 왼쪽 레일에 같은 이름이 이미 선택되어 있다. 본문 머리는 같은 말을 되풀이하지 않고 자리만 비운다.
+            TextMeshProUGUI heading = UIBuild.Text("Heading", _content, title, 24f, UITheme.TextPrimary);
             heading.fontStyle = FontStyles.Bold;
             PlaceRow(heading.rectTransform, y, 36f);
-            y += 48f;
+            heading.gameObject.SetActive(false);
+            y += 4f;
         }
 
         /// <summary>한 줄 — 왼쪽에 이름과 설명, 오른쪽에 조작 자리. 조작 자리(RectTransform)를 돌려준다.</summary>
@@ -363,18 +374,27 @@ namespace Managers.UI
             rule.rectTransform.sizeDelta = new Vector2(0f, 1f);
             rule.rectTransform.anchoredPosition = Vector2.zero;
 
-            TextMeshProUGUI label = UIBuild.Text("Name", row, name, UITheme.FontBody, UITheme.TextPrimary);
-            label.rectTransform.anchorMin = new Vector2(0f, 0.5f);
-            label.rectTransform.anchorMax = new Vector2(1f, 1f);
-            label.rectTransform.offsetMin = new Vector2(0f, 0f);
-            label.rectTransform.offsetMax = new Vector2(-ControlWidth - 24f, -8f);
-
-            TextMeshProUGUI hint = UIBuild.Text("Hint", row, description, UITheme.FontCaption, UITheme.TextMuted,
+            // 이름과 설명을 한 덩어리로 보고, 덩어리의 실제 높이(설명 한 줄 · 두 줄)를 재어 행 세로 중심에 놓는다.
+            // 예전에는 이름은 위 절반, 설명은 아래 절반에 고정해 설명이 두 줄이면 행 아래 선을 넘었다(1920 설정 캡처).
+            float textWidth = PanelWidth - RailWidth - 72f - ControlWidth - 24f;
+            TextMeshProUGUI label = UIBuild.Text("Name", row, name, UITheme.FontReadSmall, UITheme.TextPrimary,
+                TextAlignmentOptions.TopLeft);
+            label.fontStyle = FontStyles.Bold;
+            TextMeshProUGUI hint = UIBuild.Text("Hint", row, description, 20f, UITheme.TextMuted,
                 TextAlignmentOptions.TopLeft, wrap: true);
-            hint.rectTransform.anchorMin = new Vector2(0f, 0f);
-            hint.rectTransform.anchorMax = new Vector2(1f, 0.5f);
-            hint.rectTransform.offsetMin = new Vector2(0f, 4f);
-            hint.rectTransform.offsetMax = new Vector2(-ControlWidth - 24f, 0f);
+            float nameHeight = label.GetPreferredValues(name, textWidth, 0f).y;
+            float hintHeight = hint.GetPreferredValues(description, textWidth, 0f).y;
+            float top = Mathf.Max(4f, (RowHeight - (nameHeight + 4f + hintHeight)) * 0.5f);
+            label.rectTransform.anchorMin = new Vector2(0f, 1f);
+            label.rectTransform.anchorMax = new Vector2(1f, 1f);
+            label.rectTransform.pivot = new Vector2(0.5f, 1f);
+            label.rectTransform.offsetMin = new Vector2(0f, -top - nameHeight);
+            label.rectTransform.offsetMax = new Vector2(-ControlWidth - 24f, -top);
+            hint.rectTransform.anchorMin = new Vector2(0f, 1f);
+            hint.rectTransform.anchorMax = new Vector2(1f, 1f);
+            hint.rectTransform.pivot = new Vector2(0.5f, 1f);
+            hint.rectTransform.offsetMin = new Vector2(0f, -top - nameHeight - 4f - hintHeight);
+            hint.rectTransform.offsetMax = new Vector2(-ControlWidth - 24f, -top - nameHeight - 4f);
 
             RectTransform control = UIBuild.Container("Control", row);
             UIBuild.Pin(control, new Vector2(1f, 0.5f), new Vector2(ControlWidth, 44f), Vector2.zero);
@@ -396,13 +416,13 @@ namespace Managers.UI
         {
             index = Mathf.Clamp(index, 0, Mathf.Max(0, options.Length - 1));
 
-            Image field = UIBuild.Panel("Field", control, UITheme.SurfaceSunken, UIShapes.Corner.Diagonal, 10,
-                UITheme.Outline, 1);
+            Image field = UIBuild.Panel("Field", control, UITheme.AccentFaint, UIShapes.Corner.All, 4);
+            field.sprite = UIShapes.RoundedRect(22, new Color(UITheme.Accent.r, UITheme.Accent.g, UITheme.Accent.b, 0.07f));
             field.raycastTarget = false;
             UIBuild.Stretch(field.rectTransform);
 
             TextMeshProUGUI value = UIBuild.Text("Value", field.transform, options.Length > 0 ? options[index] : "—",
-                UITheme.FontBody, enabled ? UITheme.TextPrimary : UITheme.TextDisabled, TextAlignmentOptions.Center);
+                UITheme.FontReadSmall, enabled ? UITheme.TextPrimary : UITheme.TextDisabled, TextAlignmentOptions.Midline);
             UIBuild.Stretch(value.rectTransform, 52f, 0f);
 
             Button previous = UIBuild.Button("Prev", field.transform, "‹", () => onChange(index - 1), false, UITheme.FontTitle);
@@ -417,8 +437,8 @@ namespace Managers.UI
         /// <summary>한 줄에 다 보이는 선택지(2~3개). 고른 것만 오로라 민트로 채운다.</summary>
         private static void Segmented(RectTransform control, string[] options, int selected, Action<int> onChange)
         {
-            Image track = UIBuild.Panel("Track", control, UITheme.SurfaceSunken, UIShapes.Corner.Diagonal, 10,
-                UITheme.Outline, 1);
+            Image track = UIBuild.Panel("Track", control, UITheme.AccentFaint, UIShapes.Corner.All, 4);
+            track.sprite = UIShapes.RoundedRect(22, new Color(UITheme.Accent.r, UITheme.Accent.g, UITheme.Accent.b, 0.07f));
             track.raycastTarget = false;
             UIBuild.Stretch(track.rectTransform);
 
@@ -428,10 +448,10 @@ namespace Managers.UI
                 int index = i;
                 bool active = i == selected;
                 Button button = UIBuild.Button($"Option{i}", track.transform, options[i], () => onChange(index),
-                    active, UITheme.FontCaption);
+                    active, 20f);
                 if (!active)
                 {
-                    button.image.sprite = UIShapes.CutCorner(8, new Color(1f, 1f, 1f, 0f), UIShapes.Corner.Diagonal);
+                    button.image.sprite = UIShapes.RoundedRect(20, new Color(1f, 1f, 1f, 0f));
                     button.GetComponentInChildren<TextMeshProUGUI>().color = UITheme.TextSecondary;
                 }
                 UIBuild.Anchor(button.image.rectTransform, new Vector2(i * step, 0f), new Vector2((i + 1) * step, 1f), 3f, 3f);
@@ -471,7 +491,7 @@ namespace Managers.UI
             slider.value = initial;
 
             TextMeshProUGUI valueLabel = UIBuild.Text("Value", control, Mathf.RoundToInt(initial * 100f).ToString(),
-                UITheme.FontBody, UITheme.TextSecondary, TextAlignmentOptions.MidlineRight);
+                UITheme.FontReadSmall, UITheme.TextSecondary, TextAlignmentOptions.MidlineRight);
             UIBuild.Anchor(valueLabel.rectTransform, new Vector2(0.84f, 0f), new Vector2(1f, 1f));
 
             slider.onValueChanged.AddListener(v =>

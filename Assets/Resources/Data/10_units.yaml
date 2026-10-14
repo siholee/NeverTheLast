@@ -1,4 +1,4 @@
-# 아군 유닛 데이터
+﻿# 아군 유닛 데이터
 #
 # 스탯 규격 (2026-09 전면 개편) — 원본은 Detail_03 §2.
 #   · 전투 스탯은 여덟이다.
@@ -7,7 +7,7 @@
 #       스탯 = 기초값 + 성장치 × (레벨 − 1)
 #     훈련 강화 · 주/부 스탯 배율은 없다. 아군의 레벨은 전투 EXP로만 오른다.
 #   · 치명타 두 스탯은 퍼센트 포인트로 적는다(5 = 5%). 적지 않으면 5% / 50%, 속도는 100이다.
-#   · 특수공격력은 피해 계수가 아니다 — 원소 반응 위력과 해로운 효과 명중에만 쓴다.
+#   · 특수공격력은 원소 반응 위력·해로운 효과 명중·지속피해 및 일부 지원 계수에 쓴다.
 #     특수방어력은 지속피해 · 원소 반응 피해를 줄이고 해로운 효과를 피한다.
 #   · 피해는 코드마다 "고정값 + 스탯 × 계수"로 적는다. 대부분 공격력 계수, 일부만 방어력 · 최대 체력.
 #   · manaMax는 궁극기 마나. 일반행동 +20 · 피격 +5 · 처치 +10으로 찬다.
@@ -171,12 +171,12 @@ units:
   # 인드라 계열 트리거가 로카팔라의 문을 열면 창야가 바유 다음 순서로 나선다.
   - id: 60
     name: 찬드라
-    tagline: "월광으로 치명상을 되돌리는 탱커. 가장 강한 아군 한 명을 키우고, 로카팔라 특수행동에서 월광을 폭발시킨다."
+    tagline: "월광으로 치명상을 되돌리는 탱커. 가장 강한 아군 한 명을 키우고, 특수행동 묶음의 끝에서 아군 전원을 회복한다."
     characterType: Unlocked
     element: Geo
     vfxClass: caster
     tags: [Vedic, Lokapala]
-    archetypeTags: [Sturdy, Special, Support]
+    archetypeTags: [Sturdy, Special, Healing]
     hpBase: 1380
     hpGrowth: 120
     atkBase: 58
@@ -296,3 +296,797 @@ units:
       ultimate: 122
     portrait: BASTET_PORTRAIT
     standing: BASTET_STANDING
+
+  # ── 인드라 ────────────────────────────────────────────────────────
+  # 로카팔라를 소집하는 데바의 왕. 초월기로 로카팔라 묶음을 여는 유일한 개방자이고(Detail_08 §13),
+  # 특성이 모든 특수행동 피해를 올려 로카팔라 밖의 특수 파티(시)에서도 서브 서포터가 된다.
+  - id: 63
+    name: 인드라
+    tagline: "로카팔라를 소집하는 데바의 왕. 초월기로 특수행동 묶음을 열고, 바즈라로 마지막에 내려친다."
+    characterType: Unlocked
+    element: Electro
+    vfxClass: caster
+    tags: [Vedic, Lokapala]
+    archetypeTags: [Special, Burst]
+    hpBase: 1050
+    hpGrowth: 92
+    atkBase: 98
+    atkGrowth: 6.5
+    spAtkBase: 75
+    spAtkGrowth: 4.5
+    defBase: 65
+    defGrowth: 4.8
+    spDefBase: 70
+    spDefGrowth: 5.2
+    speedBase: 108
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes:
+      passive: 263
+      normal: 63
+      special: 63
+      ultimate: 63
+    portrait: INDRA_PORTRAIT
+    standing: INDRA_STANDING
+
+  # ── 바유 ──────────────────────────────────────────────────────────
+  # 원소가 지나간 길을 여는 조율자(Detail_08 §14, 2026-10-05 교체). 자기 확산이 원소 취약을 남기고,
+  # 초월기는 방어력만 깎으며, 태풍의 눈은 묶음의 처음에서 일곱 원소 취약을 깐다. 특공은 취약 · 방깍의 효과 명중을 위해서다.
+  - id: 64
+    name: 바유
+    tagline: "원소가 지나간 길을 여는 바람. 확산이 남긴 취약으로 같은 원소 동료의 공격을 키우고, 묶음의 처음에서 일곱 원소의 길을 연다."
+    characterType: Unlocked
+    element: Anemo
+    vfxClass: caster
+    tags: [Vedic, Lokapala]
+    archetypeTags: [Control, Burst, Special]
+    hpBase: 1000
+    hpGrowth: 90
+    atkBase: 80
+    atkGrowth: 4.8
+    spAtkBase: 100
+    spAtkGrowth: 6.2
+    defBase: 60
+    defGrowth: 4.5
+    spDefBase: 75
+    spDefGrowth: 5.2
+    speedBase: 108
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    codes:
+      passive: 264
+      normal: 64
+      special: 64
+      ultimate: 64
+    portrait: VAYU_PORTRAIT
+    standing: VAYU_STANDING
+
+  # ── 아그니 ────────────────────────────────────────────────────────
+  # 동료의 결단에 화력으로 응답하는 투사(Detail_08 §17). 다른 아군의 초월기 완료마다 적 전체에 불을 붙이는 추공을 쏘고,
+  # 초월기로 파티의 궁극기 피해와 자기 추공의 궁극기 판정을 연다. 로카팔라 묶음에서는 인드라의 표 한 장을 집중 포격으로 바꾼다.
+  - id: 62
+    name: 아그니
+    tagline: "동료의 결단에 화력으로 응답하는 불의 투사. 아군이 초월기를 마칠 때마다 적 전체에 불을 지피고, 판을 키워 궁극기의 불길을 키운다."
+    characterType: Unlocked
+    element: Pyro
+    vfxClass: fighter
+    tags: [Vedic, Lokapala]
+    archetypeTags: [FollowUp, Infusion, Burst, Special]
+    hpBase: 1100
+    hpGrowth: 100
+    atkBase: 100
+    atkGrowth: 6.5
+    spAtkBase: 85
+    spAtkGrowth: 5.3
+    defBase: 70
+    defGrowth: 5.2
+    spDefBase: 65
+    spDefGrowth: 4.8
+    speedBase: 96
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes:
+      passive: 262
+      normal: 62
+      special: 62
+      ultimate: 62
+    portrait: AGNI_PORTRAIT
+    standing: AGNI_STANDING
+
+  # ── 수리야 ────────────────────────────────────────────────────────
+  # 황혼의 집행자(Detail_08 §18). 일반 사격으로 종언 표식을 남기고 로카팔라 묶음에서 일제 종언탄을 발사한다.
+  - id: 67
+    name: 수리야
+    tagline: "적에게 종언 표식을 남기고 묵직한 세 번째 사격으로 방어를 무너뜨리는 황혼의 집행자."
+    characterType: Unlocked
+    element: Pyro
+    vfxClass: archer
+    tags: [Vedic, Lokapala]
+    archetypeTags: [Precision, Burst]
+    hpBase: 980
+    hpGrowth: 86
+    atkBase: 128
+    atkGrowth: 8
+    spAtkBase: 68
+    spAtkGrowth: 4.2
+    defBase: 58
+    defGrowth: 4.4
+    spDefBase: 62
+    spDefGrowth: 4.5
+    speedBase: 88
+    critRateBase: 15
+    critDamageBase: 50
+    manaMax: 140
+    codes:
+      passive: 267
+      normal: 67
+      special: 67
+      ultimate: 67
+    portrait: SURYA_PORTRAIT
+    standing: SURYA_STANDING
+
+  # ── 쿠베라 ────────────────────────────────────────────────────────
+  # 공용 재보를 운용하는 부의 화신(Detail_08 §11).
+  # 로카팔라 덱에서는 모아 둔 골드를 골드 러쉬의 화력으로 바꾸는 메인 딜러가 된다.
+  - id: 65
+    name: 쿠베라
+    tagline: "재보를 불리고 거래 공격의 치명타를 후원한다. 로카팔라에서는 재보와 금력으로 골드 러쉬를 강화한다."
+    characterType: Unlocked
+    element: Geo
+    vfxClass: caster
+    tags: [Vedic, Lokapala, Treasury]
+    archetypeTags: [Treasury, Support, Special]
+    hpBase: 1150
+    hpGrowth: 100
+    atkBase: 90
+    atkGrowth: 5.8
+    spAtkBase: 65
+    spAtkGrowth: 4
+    defBase: 75
+    defGrowth: 5.5
+    spDefBase: 75
+    spDefGrowth: 5.5
+    speedBase: 100
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes:
+      passive: 265
+      normal: 65
+      special: 65
+      ultimate: 65
+    portrait: KUBERA_PORTRAIT
+    standing: KUBERA_STANDING
+
+  # ── 야마 ──────────────────────────────────────────────────────────
+  # 죽음의 시점을 정하는 번개 딜러(Detail_08 §15). 감전 적에게 선고를 걸고, 모든 지속피해를 즉시 발동한다.
+  - id: 61
+    name: 야마
+    tagline: "죽음의 시점을 정하는 번개의 판관. 감전된 적에게 선고를 내리고, 쌓인 지속피해를 지금 이 자리에서 치르게 한다."
+    characterType: Unlocked
+    element: Electro
+    vfxClass: caster
+    tags: [Vedic, Lokapala]
+    archetypeTags: [Domination, Special, Burst, Swift]
+    hpBase: 900
+    hpGrowth: 80
+    atkBase: 102
+    atkGrowth: 6.8
+    spAtkBase: 85
+    spAtkGrowth: 5.2
+    defBase: 56
+    defGrowth: 4.2
+    spDefBase: 62
+    spDefGrowth: 4.6
+    speedBase: 106
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes:
+      passive: 261
+      normal: 61
+      special: 61
+      ultimate: 61
+    portrait: YAMA_PORTRAIT
+    standing: YAMA_STANDING
+
+  # ── 바루나 ────────────────────────────────────────────────────────
+  # 인간의 혼돈을 법으로 조율하려는 진중한 판결관(Detail_08 §16). 물을 붙일 때마다 제 보호막이 쌓이고,
+  # 초월기와 특수행동으로 아군 전원에게 방어력 비례 보호막을 나눈다.
+  - id: 66
+    name: 바루나
+    tagline: "법으로 혼돈을 다스리는 물의 판결관. 물을 붙일수록 제방이 쌓이고, 같은 법 아래 모두에게 같은 보호를 내린다."
+    characterType: Unlocked
+    element: Hydro
+    vfxClass: caster
+    tags: [Vedic, Lokapala]
+    archetypeTags: [Support, Shielding, Infusion, Special]
+    hpBase: 1120
+    hpGrowth: 100
+    atkBase: 82
+    atkGrowth: 5.4
+    spAtkBase: 86
+    spAtkGrowth: 5.2
+    defBase: 90
+    defGrowth: 6.8
+    spDefBase: 78
+    spDefGrowth: 5.7
+    speedBase: 102
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    codes:
+      passive: 266
+      normal: 66
+      special: 66
+      ultimate: 66
+    portrait: VARUNA_PORTRAIT
+    standing: VARUNA_STANDING
+
+  # ── 아누비스 ──────────────────────────────────────────────────────
+  # 필드에서 무언가 쓰러질 때마다 영혼을 거둬 영구히 단단해지는 퓨어 탱커(Detail_08 §9).
+  # 스스로 공격을 끌어오지 못한다 — 우선도는 코드 · 경호 교체 · 동료가 받쳐 줘야 한다(의도).
+  - id: 121
+    name: 아누비스
+    tagline: "쓰러진 모든 것의 영혼을 거둬 영구히 단단해지는 저울의 신. 스스로 공격을 끌어오지는 못한다."
+    characterType: Unlocked
+    element: Geo
+    vfxClass: lancer
+    tags: [Egypt, Divine]
+    archetypeTags: [Sturdy, Growth]
+    hpBase: 1500
+    hpGrowth: 135
+    atkBase: 60
+    atkGrowth: 3.5
+    spAtkBase: 50
+    spAtkGrowth: 3
+    defBase: 100
+    defGrowth: 7.5
+    spDefBase: 95
+    spDefGrowth: 7
+    speedBase: 90
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes:
+      passive: 321
+      normal: 121
+      ultimate: 121
+    portrait: ANUBIS_PORTRAIT
+    standing: ANUBIS_STANDING
+
+  # ── 우치 ──────────────────────────────────────────────────────────
+  # 분신을 찍어 내는 다수형 소환 딜러(Detail_08 §10). 우치 자신은 때리지 않는다 — 분신이 고정 속도 70으로
+  # 한 번 치고 사라지고, 초월기가 분신이 움직이기 전에 한꺼번에 터뜨린다. 속도가 화력과 넘침을 함께 정한다.
+  - id: 180
+    name: 우치
+    tagline: "분신을 찍어 내 대신 싸우게 하는 도사. 빠를수록 많이 만들지만, 너무 빠르면 분신이 넘쳐 흩어진다."
+    characterType: Unlocked
+    element: Anemo
+    vfxClass: caster
+    tags: [Hwaryeong, Beast]
+    archetypeTags: [Summon, Swift]
+    hpBase: 980
+    hpGrowth: 85
+    atkBase: 95
+    atkGrowth: 6.2
+    spAtkBase: 70
+    spAtkGrowth: 4.5
+    defBase: 60
+    defGrowth: 4.5
+    spDefBase: 65
+    spDefGrowth: 5
+    speedBase: 118
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    codes:
+      passive: 380
+      normal: 180
+      ultimate: 180
+    portrait: USA_PORTRAIT
+    standing: USA_STANDING
+
+  - id: 45
+    name: 츠쿠요미
+    tagline: "달의 저주를 남기고 모든 지속피해를 강화하는 후열 서포터."
+    characterType: Unlocked
+    element: Electro
+    vfxClass: caster
+    tags: [Takamagahara, Divine]
+    archetypeTags: [Support, Precision]
+    hpBase: 1080
+    hpGrowth: 96
+    atkBase: 62
+    atkGrowth: 3.8
+    spAtkBase: 104
+    spAtkGrowth: 6.8
+    defBase: 68
+    defGrowth: 4.8
+    spDefBase: 82
+    spDefGrowth: 5.8
+    speedBase: 102
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 140
+    codes:
+      passive: 245
+      normal: 45
+      ultimate: 45
+    portrait: TSUKUYOMI_PORTRAIT
+    standing: TSUKUYOMI_STANDING
+
+  - id: 160
+    name: 마리 테레즈
+    tagline: "행동을 마친 동료를 치유하고 추가행동의 치명타 피해를 끌어올리는 지휘관."
+    characterType: Unlocked
+    element: Cryo
+    vfxClass: archer
+    tags: [Gaul, Human]
+    archetypeTags: [Support, Healing, FollowUp]
+    hpBase: 820
+    hpGrowth: 72
+    atkBase: 92
+    atkGrowth: 6.4
+    spAtkBase: 90
+    spAtkGrowth: 5.8
+    defBase: 48
+    defGrowth: 3.8
+    spDefBase: 54
+    spDefGrowth: 4
+    speedBase: 102
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    ultimateResourceType: Passive
+    ultimateResourceName: 상시
+    codes:
+      passive: 360
+      normal: 160
+      ultimate: 160
+    portrait: MARIE_PORTRAIT
+    standing: MARIE_STANDING
+
+  # ── 나폴레옹 ──────────────────────────────────────────────────────
+  # 직접 치지 않는 지휘관. 일반행동은 피해 없이 가장 쉽게 쓰러질 적 하나를 지정하고, 특수행동 일제 사격으로
+  # 일반 공격을 가진 아군 전원이 그 적에게 자기 일반 공격을 60%로 동시에 꽂는다(일반행동 · 마나 · 턴 없이).
+  # 특성은 개전 자기 행동 게이지 25% 선행과 아군 일반 공격 피해 +15% 오라, 초월기는 치명타 피해 비례 일반 공격 버프와 20% 앞당김.
+  # 임시 원화 SIGURD, 임시 음성 게파드.
+  - id: 161
+    name: 나폴레옹
+    tagline: "직접 쏘지 않고 포격 지점을 정해, 일반 공격을 가진 동료 전원의 일제 사격을 지휘하는 물 속성 지휘관."
+    characterType: Unlocked
+    element: Hydro
+    vfxClass: archer
+    tags: [Gaul, Human]
+    archetypeTags: [Support, Special]
+    hpBase: 1000
+    hpGrowth: 90
+    atkBase: 78
+    atkGrowth: 5
+    spAtkBase: 80
+    spAtkGrowth: 5.2
+    defBase: 62
+    defGrowth: 4.6
+    spDefBase: 70
+    spDefGrowth: 5
+    speedBase: 90
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 140
+    codes:
+      passive: 361
+      normal: 161
+      special: 161
+      ultimate: 161
+    portrait: NAPOLEON_PORTRAIT
+    standing: NAPOLEON_STANDING
+
+  # ── 로키 ──────────────────────────────────────────────────────────
+  # 노르드의 기만자. 동반형 소환수 펜리르(고정 속도 90)와 함께 싸운다. 초월기 코드가 사냥감 표식 하나를 쥐고,
+  # 아군의 실제 추가행동이 사냥감을 치면 펜리르가 로키 공격력 55%로 쫓아 문다(펜리르 차례 사이 최대 3).
+  # 초월기는 사냥감에게 160% 베기 · 받는 치유 -30% · 자유 추격 2(어느 행동이든 추격을 연다).
+  # 임시 음성은 블레이드.
+  - id: 80
+    name: 로키
+    tagline: "사냥감을 정하고 펜리르를 풀어, 동료의 추가행동마다 늑대가 뒤쫓아 무는 바람의 기만자."
+    characterType: Unlocked
+    element: Anemo
+    vfxClass: caster
+    tags: [Nord, Divine]
+    archetypeTags: [Summon, FollowUp]
+    hpBase: 1050
+    hpGrowth: 94
+    atkBase: 100
+    atkGrowth: 6.4
+    spAtkBase: 84
+    spAtkGrowth: 5.6
+    defBase: 64
+    defGrowth: 4.6
+    spDefBase: 68
+    spDefGrowth: 4.8
+    speedBase: 98
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 140
+    codes:
+      passive: 280
+      normal: 80
+      ultimate: 80
+    portrait: LOKI_PORTRAIT
+    standing: LOKI_STANDING
+
+  - id: 81
+    name: 수르트
+    tagline: "체력을 불태워 초월기를 강화하고 검을 휘두를 때마다 동료에게 작은 안전망을 남기는 전열 딜러."
+    characterType: Unlocked
+    element: Pyro
+    vfxClass: saber
+    tags: [Nord, Divine]
+    archetypeTags: [Burst, Indomitable, Shielding]
+    hpBase: 1320
+    hpGrowth: 112
+    atkBase: 82
+    atkGrowth: 5.2
+    spAtkBase: 70
+    spAtkGrowth: 4.4
+    defBase: 76
+    defGrowth: 5.5
+    spDefBase: 64
+    spDefGrowth: 4.5
+    speedBase: 90
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes:
+      passive: 281
+      normal: 81
+      ultimate: 81
+    portrait: SURTR_PORTRAIT
+    standing: SURTR_STANDING
+
+  - id: 82
+    name: 프레이아
+    tagline: "실제로 회복한 체력을 온기로 저장해 동료의 피해를 높이고 위기에 꺼내 쓰는 치유사."
+    characterType: Unlocked
+    element: Dendro
+    vfxClass: caster
+    tags: [Nord, Divine]
+    archetypeTags: [Support, Healing]
+    hpBase: 1180
+    hpGrowth: 106
+    atkBase: 50
+    atkGrowth: 3
+    spAtkBase: 74
+    spAtkGrowth: 4.8
+    defBase: 64
+    defGrowth: 4.8
+    spDefBase: 78
+    spDefGrowth: 5.8
+    speedBase: 94
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    ultimateResourceType: Passive
+    ultimateResourceName: 온기
+    codes:
+      passive: 282
+      normal: 82
+      ultimate: 82
+    portrait: FREYA_PORTRAIT
+    standing: FREYA_STANDING
+
+  - id: 200
+    name: 만사 무사
+    tagline: "부는 자신의 자격을 증명한다. 재보와 방호를 공급하고 남은 보상을 왕실의 구매권으로 매입한다."
+    characterType: Unlocked
+    element: Geo
+    vfxClass: caster
+    tags: [Malian, Treasury]
+    archetypeTags: [Treasury, Support, Shielding, Economy]
+    hpBase: 1050
+    hpGrowth: 90
+    atkBase: 48
+    atkGrowth: 3.2
+    spAtkBase: 48
+    spAtkGrowth: 3.2
+    defBase: 72
+    defGrowth: 6.2
+    spDefBase: 66
+    spDefGrowth: 4.8
+    speedBase: 106
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    codes:
+      passive: 400
+      normal: 200
+      ultimate: 200
+    portrait: MANSAMUSA_PORTRAIT
+    standing: MANSAMUSA_STANDING
+
+  - id: 220
+    name: 이슈타르
+    tagline: "모은 재보를 황금 탄창에 채워 풀 원소 단일 포격으로 소진하는 헤비 슈터."
+    characterType: Unlocked
+    element: Dendro
+    vfxClass: archer
+    tags: [Mesopotamian, Treasury]
+    archetypeTags: [Treasury, Burst, Precision]
+    hpBase: 1000
+    hpGrowth: 88
+    atkBase: 112
+    atkGrowth: 7.2
+    spAtkBase: 58
+    spAtkGrowth: 3.8
+    defBase: 56
+    defGrowth: 4
+    spDefBase: 62
+    spDefGrowth: 4.5
+    speedBase: 90
+    critRateBase: 10
+    critDamageBase: 50
+    manaMax: 140
+    codes:
+      passive: 420
+      normal: 220
+      ultimate: 220
+    portrait: ISHTAR_PORTRAIT
+    standing: ISHTAR_STANDING
+  - id: 25
+    name: 오르페우스
+    tagline: "죽음의 경계를 연주하는 음유시인. 적에게 강인도를 만들어 처치 연계를 열고, 아군의 삭감 효율을 높인다."
+    characterType: Unlocked
+    element: Anemo
+    vfxClass: caster
+    tags: [Greek]
+    archetypeTags: [Support, Toughness, Infusion]
+    hpBase: 900
+    hpGrowth: 80
+    atkBase: 50
+    atkGrowth: 3
+    spAtkBase: 100
+    spAtkGrowth: 6
+    defBase: 45
+    defGrowth: 3
+    spDefBase: 70
+    spDefGrowth: 5
+    speedBase: 105
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    codes: { passive: 225, normal: 25, ultimate: 25 }
+    portrait: ORPHEUS_PORTRAIT
+    standing: ORPHEUS_STANDING
+
+  # 2026-10-13 오리온·스카디 리워크
+  - id: 22
+    name: 오리온
+    tagline: 피격을 모아 적 전체에 시리우스의 화살비를 쏟는 거인 궁수.
+    characterType: Unlocked
+    element: Geo
+    vfxClass: archer
+    tags:
+    - Greek
+    archetypeTags:
+    - Counter
+    - FollowUp
+    - Sturdy
+    hpBase: 1340
+    hpGrowth: 115
+    atkBase: 82
+    atkGrowth: 5
+    spAtkBase: 45
+    spAtkGrowth: 2.5
+    defBase: 66
+    defGrowth: 5
+    spDefBase: 74
+    spDefGrowth: 5
+    speedBase: 95
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 130
+    codes:
+      passive: 222
+      normal: 22
+      ultimate: 22
+    portrait: ORION_PORTRAIT
+    standing: ORION_STANDING
+  - id: 83
+    name: 스카디
+    tagline: 얼음을 공급하며 보호막으로 전열을 지키는 설원의 사냥꾼. 공격 육성으로 서브딜을 보탠다.
+    characterType: Unlocked
+    element: Cryo
+    vfxClass: archer
+    tags:
+    - Nord
+    - Giant
+    archetypeTags:
+    - Infusion
+    - Sturdy
+    hpBase: 1200
+    hpGrowth: 105
+    atkBase: 78
+    atkGrowth: 5
+    spAtkBase: 80
+    spAtkGrowth: 5
+    defBase: 78
+    defGrowth: 5.5
+    spDefBase: 72
+    spDefGrowth: 4.5
+    speedBase: 100
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 130
+    codes:
+      passive: 283
+      normal: 83
+      ultimate: 83
+    portrait: SKADI_PORTRAIT
+    standing: SKADI_STANDING
+
+  # 2026-10-13 소환 지원 리워크
+  - id: 10
+    name: 셰익스피어
+    tagline: 소환수의 생애를 언어로 엮어 확정 치명타와 생존 결계를 제공하는 극작가.
+    characterType: Unlocked
+    element: Geo
+    vfxClass: mage
+    tags:
+    - Victoria
+    archetypeTags:
+    - Summon
+    - Support
+    hpBase: 940
+    hpGrowth: 80
+    atkBase: 48
+    atkGrowth: 3
+    spAtkBase: 100
+    spAtkGrowth: 6
+    defBase: 50
+    defGrowth: 4
+    spDefBase: 70
+    spDefGrowth: 4.5
+    speedBase: 110
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 140
+    codes:
+      passive: 210
+      normal: 10
+      ultimate: 10
+    portrait: SHAKESPEARE_PORTRAIT
+    standing: SHAKESPEARE_STANDING
+  - id: 124
+    name: 토트
+    tagline: 소환수를 보유한 동료의 수로 공격을 강화하고 서기관과 함께 치유하는 기록의 신.
+    characterType: Unlocked
+    element: Hydro
+    vfxClass: mage
+    tags:
+    - Egypt
+    archetypeTags:
+    - Summon
+    - Healing
+    - Support
+    hpBase: 1140
+    hpGrowth: 100
+    atkBase: 50
+    atkGrowth: 3
+    spAtkBase: 90
+    spAtkGrowth: 6
+    defBase: 64
+    defGrowth: 4.5
+    spDefBase: 78
+    spDefGrowth: 5
+    speedBase: 103
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes:
+      passive: 324
+      normal: 124
+      ultimate: 124
+    portrait: THOTH_PORTRAIT
+    standing: THOTH_STANDING
+
+  # 2026-10-13 이집트 리워크
+  - id: 123
+    name: 세트
+    tagline: 공격력 반격과 특공 출혈, 최대체력 흡혈을 함께 육성하는 사막의 전열.
+    characterType: Unlocked
+    element: Pyro
+    vfxClass: melee
+    tags:
+    - Egypt
+    archetypeTags:
+    - Dot
+    - Counter
+    - Sturdy
+    hpBase: 1340
+    hpGrowth: 110
+    atkBase: 86
+    atkGrowth: 5.5
+    spAtkBase: 90
+    spAtkGrowth: 6
+    defBase: 70
+    defGrowth: 5
+    spDefBase: 74
+    spDefGrowth: 5
+    speedBase: 94
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes:
+      passive: 323
+      normal: 123
+      ultimate: 123
+    portrait: SET_PORTRAIT
+    standing: SET_STANDING
+  - id: 125
+    name: 이시스
+    tagline: 세 수호령의 바위 부착과 방어력 보호막으로 소환 파티를 지키는 여신.
+    characterType: Unlocked
+    element: Geo
+    vfxClass: mage
+    tags:
+    - Egypt
+    archetypeTags:
+    - Summon
+    - Shielding
+    - Infusion
+    - Support
+    hpBase: 1200
+    hpGrowth: 100
+    atkBase: 45
+    atkGrowth: 3
+    spAtkBase: 65
+    spAtkGrowth: 4.5
+    defBase: 86
+    defGrowth: 6
+    spDefBase: 72
+    spDefGrowth: 5
+    speedBase: 96
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 140
+    codes:
+      passive: 325
+      normal: 125
+      ultimate: 125
+    portrait: ISIS_PORTRAIT
+    standing: ISIS_STANDING
+  - id: 120
+    name: 호루스
+    tagline: 마나형 초월기 딜러 하나에게 왕권과 에너지를 집중하는 태양의 후견인.
+    characterType: Unlocked
+    element: Pyro
+    vfxClass: archer
+    tags:
+    - Egypt
+    archetypeTags:
+    - Support
+    - Swift
+    hpBase: 980
+    hpGrowth: 85
+    atkBase: 58
+    atkGrowth: 3.5
+    spAtkBase: 90
+    spAtkGrowth: 6
+    defBase: 50
+    defGrowth: 4
+    spDefBase: 70
+    spDefGrowth: 5
+    speedBase: 108
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes:
+      passive: 320
+      normal: 120
+      ultimate: 120
+    portrait: HORUS_PORTRAIT
+    standing: HORUS_STANDING

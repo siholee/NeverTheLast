@@ -119,19 +119,13 @@ namespace Managers.UI.Screens
 
         private static void BuildBackdrop(Transform root)
         {
-            Image background = UIBuild.Solid("Background", root, PagePaper);
+            Image background = UIBuild.Solid("Background", root, Color.white);
+            background.sprite = UIChromeArt.BoardEnvironment;
+            background.type = Image.Type.Simple; background.raycastTarget = false;
             UIBuild.Stretch(background.rectTransform);
 
-            Image stripes = UIBuild.Solid("TopStripes", root, Color.white);
-            stripes.sprite = UIShapes.DiagonalStripes(14, StripeInk, Color.clear);
-            stripes.type = Image.Type.Tiled;
-            stripes.color = Color.white;
-            stripes.raycastTarget = false;
-            stripes.rectTransform.anchorMin = new Vector2(0f, 1f);
-            stripes.rectTransform.anchorMax = new Vector2(1f, 1f);
-            stripes.rectTransform.pivot = new Vector2(0.5f, 1f);
-            stripes.rectTransform.sizeDelta = new Vector2(0f, 180f);
-            stripes.rectTransform.anchoredPosition = Vector2.zero;
+            Image veil = UIBuild.Solid("StoryVeil", root, new Color(.96f, .975f, .99f, .38f));
+            veil.raycastTarget = false; UIBuild.Stretch(veil.rectTransform);
         }
 
         private void BuildStandings(Transform root)
@@ -178,7 +172,7 @@ namespace Managers.UI.Screens
         {
             Image box = UIBuild.Panel("Box", root,
                 new Color(UITheme.SurfaceRaised.r, UITheme.SurfaceRaised.g, UITheme.SurfaceRaised.b, 0.96f),
-                UIShapes.Corner.Diagonal, 16, UITheme.Outline, 1);
+                UIShapes.Corner.All, 6, default, 0);
             box.raycastTarget = false;
             RectTransform rect = box.rectTransform;
             rect.anchorMin = new Vector2(0f, 0f);
@@ -189,15 +183,6 @@ namespace Managers.UI.Screens
             // 흔들림은 이 자리를 기준으로 더한다. 늘어난 앵커라 0,0이 제자리가 아니다.
             _shakeTarget = rect;
             _shakeBase = rect.anchoredPosition;
-
-            Image stripes = UIBuild.Solid("BoxStripes", box.transform, Color.white);
-            stripes.sprite = UIShapes.DiagonalStripes(12, StripeInk, Color.clear);
-            stripes.type = Image.Type.Tiled;
-            stripes.color = Color.white;
-            stripes.raycastTarget = false;
-            // 아래로 다 내려오면 상자의 우하단 컷코너를 덮어 실루엣이 뭉갠다. 위쪽만 덮는다.
-            UIBuild.Pin(stripes.rectTransform, new Vector2(1f, 1f), new Vector2(280f, 150f),
-                new Vector2(-2f, -2f));
 
             _body = UIBuild.Text("Body", box.transform, "", 26f, UITheme.TextPrimary,
                 TextAlignmentOptions.TopLeft, wrap: true);
@@ -221,40 +206,31 @@ namespace Managers.UI.Screens
         private void BuildPlate(Transform root)
         {
             Image plate = UIBuild.Panel("NamePlate", root, UITheme.SurfaceRaised,
-                UIShapes.Corner.Diagonal, 12, UITheme.Outline, 1);
+                UIShapes.Corner.All, 4, default, 0);
             plate.raycastTarget = false;
             _plate = plate.rectTransform;
             UIBuild.Pin(_plate, new Vector2(0f, 0f), new Vector2(280f, PlateHeight),
                 new Vector2(BoxMarginX, BoxBottom + BoxHeight - PlateOverlap));
 
-            Image tick = UIBuild.Solid("Tick", plate.transform, UITheme.Accent);
-            tick.raycastTarget = false;
-            UIBuild.Pin(tick.rectTransform, new Vector2(0f, 0.5f), new Vector2(3f, 24f),
-                new Vector2(22f, 0f));
-
             _speaker = UIBuild.Text("Speaker", plate.transform, "", 24f, UITheme.TextPrimary);
             _speaker.characterSpacing = 6f;
             UIBuild.Stretch(_speaker.rectTransform);
-            _speaker.rectTransform.offsetMin = new Vector2(38f, 0f);
+            _speaker.rectTransform.offsetMin = new Vector2(22f, 0f);
+            _speaker.rectTransform.offsetMax = new Vector2(-22f, 0f);
         }
 
         private void BuildHeader(Transform root)
         {
-            Image tick = UIBuild.Solid("HeaderTick", root, UITheme.Accent);
-            tick.raycastTarget = false;
-            UIBuild.Pin(tick.rectTransform, new Vector2(0f, 1f), new Vector2(3f, 30f),
-                new Vector2(56f, -48f));
-
             TextMeshProUGUI caption = UIBuild.Label("Caption", root, "EVENT",
                 UITheme.FontMicro, UITheme.TextMuted);
-            caption.characterSpacing = 24f;
+            caption.gameObject.SetActive(false);
             UIBuild.Pin(caption.rectTransform, new Vector2(0f, 1f), new Vector2(320f, 13f),
-                new Vector2(68f, -48f));
+                new Vector2(56f, -48f));
 
             _eventTitle = UIBuild.Text("EventTitle", root, "사건", 19f, UITheme.TextPrimary);
             _eventTitle.characterSpacing = 4f;
             UIBuild.Pin(_eventTitle.rectTransform, new Vector2(0f, 1f), new Vector2(520f, 24f),
-                new Vector2(68f, -66f));
+                new Vector2(56f, -48f));
         }
 
         private void BuildControls(Transform root)
@@ -268,9 +244,9 @@ namespace Managers.UI.Screens
             float x)
         {
             Button button = UIBuild.Button(name, root, text, onClick, false, UITheme.FontCaption);
-            button.image.sprite = UIShapes.CutCorner(8,
-                UITheme.SurfaceRaised, UIShapes.Corner.Diagonal,
-                UITheme.Outline, 1);
+            // 다른 보조 버튼과 같은 흰 알약 + 군청 헤어라인. 원화 위에서도 글자가 읽히게 면은 거의 불투명하다.
+            button.image.sprite = UIShapes.RoundedRect(20, new Color(1f, 1f, 1f, 0.92f),
+                new Color(UITheme.Accent.r, UITheme.Accent.g, UITheme.Accent.b, 0.22f), 1);
             UIBuild.Pin(button.image.rectTransform, new Vector2(1f, 1f), new Vector2(100f, 40f),
                 new Vector2(x, -48f));
 
@@ -561,15 +537,10 @@ namespace Managers.UI.Screens
                 UIBuild.Pin(frame.rectTransform, new Vector2(0.5f, 0f), new Vector2(width, height),
                     new Vector2(0f, bottom + (choices.Count - 1 - i) * (height + gap)));
 
-                Image tick = UIBuild.Solid("Tick", frame.transform, UITheme.Accent);
-                tick.raycastTarget = false;
-                UIBuild.Pin(tick.rectTransform, new Vector2(0f, 0.5f), new Vector2(3f, 26f),
-                    new Vector2(30f, 0f));
-
                 TextMeshProUGUI label = UIBuild.Text("Label", frame.transform, choice.text ?? "",
                     20f, UITheme.TextPrimary);
                 UIBuild.Stretch(label.rectTransform);
-                label.rectTransform.offsetMin = new Vector2(50f, 0f);
+                label.rectTransform.offsetMin = new Vector2(30f, 0f);
                 label.rectTransform.offsetMax = new Vector2(-300f, 0f);
 
                 string note = ChoiceNote(choice);
@@ -593,6 +564,9 @@ namespace Managers.UI.Screens
 
                 UIBuild.OnClick(frame.gameObject,
                     () => GameManager.Instance?.SelectEventChoice(choiceId));
+                // 선택 확정은 즉시 진행한다. 호버 면은 회색 눌림이 아닌 옅은 청색으로 읽히게 한다.
+                frame.GetComponent<UIHoverRing>().SetSurface(UIShapes.RoundedRect(12,
+                    new Color(.37f,.60f,.91f,.18f),new Color(.23f,.35f,.59f,.60f),1));
             }
         }
 

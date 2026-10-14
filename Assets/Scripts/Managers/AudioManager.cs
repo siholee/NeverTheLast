@@ -38,6 +38,7 @@ namespace Managers
             public AudioSource Source;
             public string Cue;
             public string MixerGroup;
+            public string VoiceGroup;
             public float CueVolume;
             public float EndsAt;
         }
@@ -57,6 +58,8 @@ namespace Managers
         private readonly Dictionary<string, float> _lastPlayedAt = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, string> _lastClipByCue = new(StringComparer.OrdinalIgnoreCase);
         private string _lastAvoidRepeatClip;
+        private string _lastLokapalaVoiceClip;
+        private readonly System.Random _lokapalaAudioRandom = new();
         private readonly Dictionary<string, float> _mixerGroupGain = new(StringComparer.OrdinalIgnoreCase)
         {
             ["SFX"] = 1f,
@@ -240,6 +243,16 @@ namespace Managers
                 return;
             }
 
+            // 지정 보이스 묶음만 한 사람이 끝난 뒤 다음 사람을 허용한다.
+            if (!string.IsNullOrWhiteSpace(cue.voiceGroup) || NormalizeGroup(cue.mixerGroup) == "VOICE")
+                foreach (SfxVoice voice in _voices)
+                    if ((voice.VoiceGroup == cue.voiceGroup && !string.IsNullOrWhiteSpace(cue.voiceGroup) ||
+                         voice.VoiceGroup == "vedic_temporary" && NormalizeGroup(cue.mixerGroup) == "VOICE") && VoiceActive(voice, now))
+                    {
+                        Skip(normalized, null, cue.mixerGroup, "voice_group_busy");
+                        return;
+                    }
+
             int maxVoices = Mathf.Max(1, cue.maxVoices);
             int active = 0;
             foreach (SfxVoice voice in _voices)
@@ -273,9 +286,9 @@ namespace Managers
                 return;
             }
 
-            float volume = Mathf.Clamp01(UnityEngine.Random.Range(
+            float volume = Mathf.Clamp01(AudioRange(normalized,
                 Mathf.Min(cue.volumeMin, cue.volumeMax), Mathf.Max(cue.volumeMin, cue.volumeMax)) * volumeScale);
-            float pitch = Mathf.Clamp(UnityEngine.Random.Range(
+            float pitch = Mathf.Clamp(AudioRange(normalized,
                 Mathf.Min(cue.pitchMin, cue.pitchMax), Mathf.Max(cue.pitchMin, cue.pitchMax)), 0.25f, 3f);
             string mixerGroup = NormalizeGroup(cue.mixerGroup);
             float audibleVolume = volume * SfxVolume * GroupGain(mixerGroup);
@@ -287,6 +300,7 @@ namespace Managers
 
             target.Cue = normalized;
             target.MixerGroup = mixerGroup;
+            target.VoiceGroup = cue.voiceGroup;
             target.CueVolume = volume;
             target.EndsAt = now + clip.length / Mathf.Abs(pitch) + 0.02f;
             target.Source.Stop();
@@ -297,25 +311,43 @@ namespace Managers
             _lastPlayedAt[normalized] = now;
             _lastClipByCue[normalized] = clipName;
             if (cue.avoidImmediateRepeat) _lastAvoidRepeatClip = clipName;
+            if (IsLokapalaPresentation(normalized) && mixerGroup == "VOICE") _lastLokapalaVoiceClip = clipName;
 
             Record(normalized, clipName, mixerGroup, true, "played", volume, pitch);
             if (cue.duckBgm < 0.999f && cue.duckSeconds > 0f) BeginBgmDuck(cue.duckBgm, cue.duckSeconds);
         }
 
+        // 새 연출 큐를 추가해도 전투의 치명타·상태 명중 난수열을 소비하지 않는다. 모든 음성·효과음의 변주는 전투와 독립된 난수를 쓴다.
+        private static bool IsLokapalaPresentation(string cue)
+            => cue.StartsWith("indra.", StringComparison.OrdinalIgnoreCase) ||
+               cue.StartsWith("vayu.", StringComparison.OrdinalIgnoreCase) ||
+               cue.StartsWith("yama.", StringComparison.OrdinalIgnoreCase) ||
+               cue.StartsWith("varuna.", StringComparison.OrdinalIgnoreCase) ||
+               cue.StartsWith("agni.", StringComparison.OrdinalIgnoreCase) ||
+               cue.StartsWith("surya.", StringComparison.OrdinalIgnoreCase) ||
+               cue.StartsWith("kubera.", StringComparison.OrdinalIgnoreCase) ||
+               cue.StartsWith("chandra.moon_cycle.", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(cue, "chandra.changya.resolve", StringComparison.OrdinalIgnoreCase);
+
+        private float AudioRange(string cue, float min, float max)
+            => Mathf.Lerp(min, max, (float)_lokapalaAudioRandom.NextDouble());
+
         private AudioClip PickClip(string cueName, SfxCueData cue, out string selected)
         {
             selected = null;
             if (cue.clips == null || cue.clips.Count == 0) return null;
-            int start = UnityEngine.Random.Range(0, cue.clips.Count);
+            int start = _lokapalaAudioRandom.Next(cue.clips.Count);
             for (int i = 0; i < cue.clips.Count; i++)
             {
                 string candidate = cue.clips[(start + i) % cue.clips.Count];
                 if (string.IsNullOrWhiteSpace(candidate)) continue;
                 selected = candidate.Trim();
                 if (cue.avoidImmediateRepeat && cue.clips.Count > 1 &&
-                    ((_lastClipByCue.TryGetValue(cueName, out string previous) &&
+                    ((string.IsNullOrWhiteSpace(cue.voiceGroup) && _lastClipByCue.TryGetValue(cueName, out string previous) &&
                       string.Equals(selected, previous, StringComparison.OrdinalIgnoreCase)) ||
                      string.Equals(selected, _lastAvoidRepeatClip, StringComparison.OrdinalIgnoreCase))) continue;
+                if (IsLokapalaPresentation(cueName) && NormalizeGroup(cue.mixerGroup) == "VOICE" &&
+                    string.Equals(selected, _lastLokapalaVoiceClip, StringComparison.OrdinalIgnoreCase)) continue;
                 AudioClip clip = LoadClip(SfxPathPrefix + selected);
                 if (clip != null) return clip;
             }

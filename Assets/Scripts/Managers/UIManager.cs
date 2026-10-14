@@ -73,6 +73,8 @@ namespace Managers
             Hud.ShowUnitDetail(unit);
         }
 
+        public void ShowCodex(Unit focus = null) => Hud.CodexForVerification?.Show(focus);
+
         public void ToggleCodex()
         {
             Hud.ToggleCodex();
@@ -90,6 +92,12 @@ namespace Managers
 
         public void ShowInventoryPanel() => _inventory.Show();
         public void HideInventoryPanel() => _inventory.Hide();
+
+        /// <summary>검증 하네스가 화면 상태(현재 탭 · 선택 유닛)를 읽는 통로. 조작은 실제 버튼으로 한다.</summary>
+        internal ShopScreen ShopForVerification => _shop;
+        internal bool IsInventoryVisible => _inventory.IsVisible;
+        internal bool IsShopVisible => _shop.IsVisible;
+        internal CodexScreen CodexForVerification => _hud != null ? _hud.CodexForVerification : null;
         public void ShowRestPanel() => _rest.Show();
         public void HideRestPanel() => _rest.Hide();
 
@@ -212,6 +220,7 @@ namespace Managers
         /// </summary>
         public void HandleEscape()
         {
+            if (UI.Core.GuideTermTooltip.TryDismiss()) return;
             if (_settingsUI != null && _settingsUI.IsOpen)
             {
                 _settingsUI.Close();
@@ -239,6 +248,8 @@ namespace Managers
 
         /// <summary>자료실(게임 내 위키). ESC 메뉴에서 연다.</summary>
         private readonly WikiScreen _wiki = new();
+        public void ShowGuide(string articleId = "home") => _wiki.ShowArticle(articleId);
+        internal WikiScreen GuideForVerification => _wiki;
 
         private PauseMenuScreen PauseMenu => _pauseMenu ??= new PauseMenuScreen(() =>
             _settingsUI != null ? _settingsUI : _settingsUI = gameObject.AddComponent<UI.SettingsUI>(), _wiki);

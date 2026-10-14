@@ -64,6 +64,14 @@ namespace Effects.Buffs
             => attacker == Target && (_condition?.Invoke(context) ?? false) ? _multiplier : 1f;
     }
 
+    /// <summary>초월기 피해 증가. 다른 같은 분류의 효과와 가산한다.</summary>
+    public sealed class UltimateDamageBonusEffect : BaseEffect
+    {
+        public UltimateDamageBonusEffect(float amount) : base(0, amount) { }
+        public override bool IsBeneficial => Coefficient > 0;
+        public override float UltimateDamageBonus(Unit actor) => actor == Target ? Coefficient : 0;
+    }
+
     /// <summary>조건 성립 여부에 따라 서로 다른 받는 피해 배율을 적용한다.</summary>
     public class ConditionalReceivingDamageMultiplierEffect : BaseEffect
     {
@@ -161,5 +169,15 @@ namespace Effects.Buffs
         public override bool IsBeneficial => _multiplier > 1f;
 
         public override float ManaRecoveryMultiplierModifier(Unit unit) => unit == Target ? _multiplier : 1f;
+    }
+}
+namespace Effects.Buffs
+{
+    public sealed class ToughnessEfficiencyEffect : Effects.Base.BaseEffect
+    {
+        private readonly float _bonus;
+        public ToughnessEfficiencyEffect(float bonus) : base(0) => _bonus = bonus;
+        public override bool IsBeneficial => true;
+        public override float ToughnessEfficiencyBonus(Entities.Unit attacker) => attacker == Target ? _bonus : 0f;
     }
 }

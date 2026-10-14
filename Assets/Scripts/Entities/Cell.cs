@@ -79,6 +79,11 @@ public class Cell : MonoBehaviour
     public const float FeatureCardScale = 1.5f;
 
     private SpriteRenderer _groundPad;
+    private SpriteRenderer _dropPlate;
+    private TMPro.TextMeshPro _dropLabel;
+    public bool DropTargetFeedbackVisible => _dropTargetHovered&&_dropTargetValid&&_dropPlate!=null&&_dropPlate.enabled;
+    private static Sprite _placementPad;
+    private static Sprite _placementTargetPad;
     private Color _groundPadBase;
     private bool _groundPadRequestedVisible = true;
     private bool _dropTargetHovered;
@@ -192,12 +197,45 @@ public class Cell : MonoBehaviour
         padObject.transform.localScale = new Vector3(1f, GroundPadFlatten, 1f);
 
         _groundPad = padObject.AddComponent<SpriteRenderer>();
-        _groundPad.sprite = rootFrame.sprite;
-        // 빈 칸은 검은 사각형이 아니라 얇은 청록 레인 표식으로만 남긴다.
+        if(_placementPad==null)
+            _placementPad=Managers.UI.Theme.UIShapes.RoundedRect(18,
+                new Color(1f,1f,1f,.06f),new Color(1f,1f,1f,.75f),2);
+        if(_placementTargetPad==null)
+            _placementTargetPad=Managers.UI.Theme.UIShapes.RoundedRect(18,
+                new Color(.50f,.68f,.92f,.28f),new Color(.24f,.39f,.67f,.82f),2);
+        _groundPad.sprite = _placementPad;
+        _groundPad.drawMode=SpriteDrawMode.Sliced;
+        _groundPad.size=Vector2.one*CellSize*.80f;
+        // 끊긴 프리팹 괄호를 바닥의 둥근 레인 표식으로 바꾼다. 선택 칸만 청색 면을 쓴다.
         _groundPad.color = new Color(0.18f, 0.48f, 0.49f, 0.22f);
         _groundPadBase = _groundPad.color;
         _groundPad.sortingLayerID = rootFrame.sortingLayerID;
         _groundPad.sortingOrder = rootFrame.sortingOrder;
+
+        var drop=new GameObject("DropDestination");drop.transform.SetParent(transform,false);
+        drop.transform.localPosition=Vector3.down*(CardSize*.52f);
+        _dropPlate=drop.AddComponent<SpriteRenderer>();
+        _dropPlate.sprite=Managers.UI.Theme.UIShapes.RoundedRect(12,
+            new Color(.22f,.36f,.58f,.88f),new Color(.77f,.87f,1f,.85f),1);
+        _dropPlate.drawMode=SpriteDrawMode.Sliced;
+        _dropPlate.size=new Vector2(CardSize*.68f,CardSize*.16f);
+        _dropPlate.sortingLayerID=SortingLayer.NameToID("CombatHud");
+        if(_dropPlate.sortingLayerID==0)_dropPlate.sortingLayerID=Effects.Vfx.VfxSpace.ResolveSortingLayer(rootFrame.sortingLayerID);
+        _dropPlate.sortingOrder=Effects.Vfx.VfxSpace.FlyingCardSortingOrder+50;
+        _dropPlate.enabled=false;
+        var text=new GameObject("DropLabel",typeof(RectTransform),typeof(TMPro.TextMeshPro));
+        text.transform.SetParent(drop.transform,false);
+        _dropLabel=text.GetComponent<TMPro.TextMeshPro>();
+        Managers.UI.Core.UIBuild.ApplyFont(_dropLabel);
+        _dropLabel.fontSize=10f;
+        _dropLabel.fontStyle=TMPro.FontStyles.Bold;
+        _dropLabel.alignment=TMPro.TextAlignmentOptions.Midline;
+        _dropLabel.color=Color.white;
+        _dropLabel.textWrappingMode=TMPro.TextWrappingModes.NoWrap;
+        _dropLabel.rectTransform.sizeDelta=new Vector2(CardSize*.68f,CardSize*.16f);
+        _dropLabel.renderer.sortingLayerID=_dropPlate.sortingLayerID;
+        _dropLabel.renderer.sortingOrder=_dropPlate.sortingOrder+1;
+        text.SetActive(false);
 
         // 원본은 꺼 둔다. 둘 다 그리면 눕히지 않은 사각형이 그대로 남는다.
         rootFrame.enabled = false;
@@ -280,10 +318,7 @@ public class Cell : MonoBehaviour
     }
 
     /// <summary>
-    /// 카드에 마우스를 올리면 그 유닛의 상태를 하나씩 풀어 적는다.
-    ///
-    /// 카드 위 아이콘은 같은 모양끼리 한 칸에 모이고 칸 수도 제한되어 있어, 아이콘만으로는
-    /// 무엇이 걸렸는지 다 알 수 없다는 QA가 있었다. 이름 · 중첩 · 남은 턴과 설명을 여기서 보여 준다.
+    /// 카드에서는 이름을 숨기고 호버 시 이름·원소·한 문장 소개를 보여 준다.
     /// </summary>
     public void ShowHoverTooltip()
     {
@@ -294,42 +329,8 @@ public class Cell : MonoBehaviour
             return;
         }
 
-        var lines = new System.Collections.Generic.List<Managers.UI.Core.UITooltip.Line>();
-        Color muted = Managers.UI.Theme.UITheme.TextMuted;
-
-        // 체력은 카드의 바가 이미 보여 주므로 적지 않는다. 대신 "누구인가"를 먼저 소개한다 —
-        // 원소 · 핵심 스탯 · 한 줄 소개. 그 아래로 걸린 상태가 이어진다.
-        Color primary = Managers.UI.Theme.UITheme.TextPrimary;
-        lines.Add(new Managers.UI.Core.UITooltip.Line("원소",
-            Managers.UI.Core.UnitInfoText.ElementName(hovered.Element), primary));
-        string stats = Managers.UI.Core.UnitInfoText.Stats(hovered);
-        if (stats.Length > 0) lines.Add(new Managers.UI.Core.UITooltip.Line("스탯", stats, primary));
-        string tagline = Managers.UI.Core.UnitInfoText.Tagline(hovered);
-        if (!string.IsNullOrWhiteSpace(tagline))
-            lines.Add(Managers.UI.Core.UITooltip.Line.Note(tagline.Trim(), Managers.UI.Theme.UITheme.TextSecondary));
-
-        var groups = new System.Collections.Generic.List<(Entities.Status.UnitStatus Status, int Count)>();
-        foreach (Entities.Status.UnitStatus status in hovered.ActiveStatuses)
-        {
-            if (status == null) continue;
-            int index = groups.FindIndex(g => g.Status.Key == status.Key);
-            if (index >= 0) groups[index] = (groups[index].Status, groups[index].Count + 1);
-            else groups.Add((status, 1));
-        }
-
-        foreach ((Entities.Status.UnitStatus status, int count) in groups)
-        {
-            string turns = status.Duration > 0 ? $"{status.RemainingTurns}턴" : "지속";
-            string stacks = count > 1 ? $"{count}중첩 · " : "";
-            lines.Add(new Managers.UI.Core.UITooltip.Line(status.StatusName, stacks + turns,
-                Managers.UI.Theme.StatusIcons.Tint(status)));
-            if (!string.IsNullOrWhiteSpace(status.StatusDescription))
-                lines.Add(Managers.UI.Core.UITooltip.Line.Note("   " + status.StatusDescription.Trim(), muted));
-        }
-
-        Managers.UI.Core.UITooltip.Show(this, $"{hovered.UnitName}  Lv.{hovered.Level}", lines,
-            hovered.IsEnemy ? Managers.UI.Theme.UITheme.Enemy : Managers.UI.Theme.UITheme.Accent,
-            Managers.UI.Core.UnitInfoText.ArchetypeTags(hovered));
+        var lines = Managers.UI.Core.UnitInfoText.IdentityLines(hovered);
+        Managers.UI.Core.UITooltip.Show(this, hovered.UnitName, lines, Managers.UI.Theme.UITheme.Accent);
     }
 
     public void HideHoverTooltip() => Managers.UI.Core.UITooltip.Hide(this);
@@ -362,7 +363,7 @@ public class Cell : MonoBehaviour
     
     /// <summary>
     /// 유닛이 들어오면 카드를 세운다.
-    /// 대기석(yPos == 0)은 전투에 참여하지 않으므로 전투 HUD 없이 이름표만 보여 준다.
+    /// 대기석(yPos == 0)은 전투 HUD 없이 원화만 보여 준다. 이름은 호버로 확인한다.
     /// </summary>
     private void ActivateUI()
     {
@@ -387,29 +388,43 @@ public class Cell : MonoBehaviour
     private void UpdatePlacementGlow()
     {
         if (_groundPad == null) return;
+        bool showDrop=_dropTargetHovered;
+        if(_dropPlate!=null)
+        {
+            // 점유 카드의 명판 아래에 둬서 이름·체력·게이지를 가리지 않는다.
+            _dropPlate.transform.localPosition=Vector3.down*(CardSize*(isOccupied?.72f:.52f));
+            _dropPlate.enabled=showDrop;
+            _dropPlate.color=_dropTargetValid?Color.white:new Color(1f,.74f,.72f);
+        }
+        if(_dropLabel!=null)
+        {
+            _dropLabel.gameObject.SetActive(showDrop);
+            if(showDrop)_dropLabel.text=!_dropTargetValid?"배치 불가":isOccupied?"교환":"배치";
+        }
 
         bool dragging = DragAndDropManager.Instance != null && DragAndDropManager.Instance.IsDragging();
         bool allySlot = xPos < 0 || (GridManager.Instance != null && GridManager.Instance.IsBenchCell(this));
         // 점유 칸끼리 교환할 때도 목적지가 보여야 한다. 평소에는 숨겨 둔 바닥 각인을
         // 드래그 중에만 원화 뒤로 다시 켜서 카드 자체에 색 테두리를 두르지 않는다.
-        _groundPad.enabled = _groundPadRequestedVisible || (dragging && allySlot) || _dropTargetHovered;
+        _groundPad.enabled = (!dragging && _groundPadRequestedVisible) || (dragging && allySlot) || _dropTargetHovered;
         if (!_groundPad.enabled) return;
 
         if (_dropTargetHovered)
         {
-            Color target = _dropTargetValid
-                ? Managers.UI.Theme.UITheme.Accent
-                : Managers.UI.Theme.UITheme.Danger;
-            target.a = _dropTargetValid ? 0.68f : 0.56f;
+            _groundPad.sprite=_placementTargetPad;
+            Color target = _dropTargetValid?Color.white:Managers.UI.Theme.UITheme.Danger;
+            target.a=1f;
             _groundPad.color = target;
             return;
         }
+        _groundPad.sprite=_placementPad;
 
         if ((PlacementModeActive || dragging) && allySlot)
         {
             float pulse = 0.35f + 0.25f * Mathf.Sin(Time.unscaledTime * 4f);
             Color glow = Color.Lerp(_groundPadBase, Managers.UI.Theme.UITheme.Accent, pulse);
-            glow.a = Mathf.Lerp(0.28f, 0.48f, pulse);
+            glow=Color.Lerp(new Color(.15f,.21f,.28f),Managers.UI.Theme.UITheme.Accent,.18f);
+            glow.a=Mathf.Lerp(.42f,.52f,pulse);
             _groundPad.color = glow;
         }
         else if (_groundPad.color != _groundPadBase)
@@ -422,7 +437,7 @@ public class Cell : MonoBehaviour
     {
         BuildGroundPad();
         _groundPadRequestedVisible = visible;
-        if (_groundPad != null) _groundPad.enabled = visible;
+        UpdatePlacementGlow();
     }
 
     /// <summary>

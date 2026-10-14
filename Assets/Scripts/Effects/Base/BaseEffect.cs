@@ -9,7 +9,7 @@ namespace Effects.Base
     /// 한 클래스에 <b>선택적 질의 훅</b>이 여럿 있고, 효과는 필요한 것만 재정의한다.
     /// <see cref="Unit"/>은 값이 필요할 때마다 보유한 모든 효과에 물어 합산한다.
     ///
-    /// 2026-09 개편에서 옛 캐릭터 전용 훅(강인도 · 내구 · 소환수 · 처형선 · 시약 등)을 걷어냈다.
+    /// 2026-09 개편에서 옛 캐릭터 전용 훅(내구 · 처형선 · 시약 등)을 걷어냈다.
     /// 새 캐릭터가 필요로 할 때 그 캐릭터와 함께 다시 들인다.
     /// </summary>
     public abstract class BaseEffect
@@ -71,6 +71,9 @@ namespace Effects.Base
         /// <summary>마나 회복 배율 보정 (1 = 변화 없음)</summary>
         public virtual float ManaRecoveryMultiplierModifier(Unit unit) => 1f;
 
+        /// <summary>초월기 피해 증가의 가산 몫. 동일 분류는 더해서 한 번 곱한다.</summary>
+        public virtual float UltimateDamageBonus(Unit actor) => 0f;
+
         // ===== 피해 =====
 
         /// <summary>주는 피해 배율 (공격자의 효과에서 질의, 1 = 변화 없음)</summary>
@@ -87,6 +90,28 @@ namespace Effects.Base
 
         /// <summary>치명 피해를 막으면 true.</summary>
         public virtual bool TryPreventDeath(Unit unit, Unit attacker) => false;
+
+        // ===== 치명타 (공격자의 효과에서 질의, 대상을 모르면 target은 null) =====
+
+        /// <summary>이 공격의 치명타 확률 가산(0.15 = +15%p).</summary>
+        public virtual float CritChanceBonusAgainst(Unit attacker, Unit target, BaseEnums.CodeType codeType) => 0f;
+
+        /// <summary>이 공격의 치명타 피해 가산(0.2 = +20%p).</summary>
+        public virtual float CritDamageBonusAgainst(Unit attacker, Unit target, BaseEnums.CodeType codeType) => 0f;
+
+        /// <summary>이 공격을 확정 치명타로 만드는가.</summary>
+        public virtual bool ForcesCriticalAgainst(Unit attacker, Unit target, BaseEnums.CodeType codeType) => false;
+
+        /// <summary>100%를 넘는 치명타 확률을 치명타 피해로 바꾸는 비율(1 = 1:1).</summary>
+        public virtual float CritOverflowToDamageRatio(Unit attacker) => 0f;
+
+        /// <summary>시전자(효과 보유자)가 <b>거는</b> 상태의 지속 가산 턴. 상태 정의를 보고 대상을 가린다.</summary>
+        public virtual int OutgoingStatusDurationModifier(Unit caster, Entities.Status.UnitStatus status) => 0;
+
+        // ===== 제어 =====
+
+        /// <summary>보유자에게 걸리는 제어 지속 가산(음수면 줄인다). 최소 1턴은 남는다.</summary>
+        public virtual int ControlDurationModifier(Unit unit) => 0;
 
         // ===== 상태 · 행동 =====
 
@@ -108,6 +133,8 @@ namespace Effects.Base
         /// <summary>보유자의 일반행동을 막으면 true.</summary>
         public virtual bool BlocksNormalAttack(Unit unit) => false;
 
+        public virtual float ToughnessEfficiencyBonus(Unit attacker) => 0f;
+
         // ===== 치유 · 보호막 =====
 
         public virtual float HealingReceivedMultiplierModifier(Unit unit) => 1f;
@@ -122,6 +149,14 @@ namespace Effects.Base
 
         /// <summary>지속피해 효과 여부.</summary>
         public virtual bool IsDamageOverTime => false;
+
+        /// <summary>
+        /// 지속피해 <b>한 번분</b>의 원시 피해 정보(주는 피해 보정 · 대상 경감 전). 지속피해가 아니면 null.
+        /// 자연 틱과 즉시 발동(<see cref="Combat.DamageOverTimeDetonation"/>)이 반드시 이 한 곳에서 같은 컨텍스트를 만든다 —
+        /// 시전자 · 피해 종류 · 반응 태그가 갈라지지 않게 하려는 단일 입구다. 새 지속피해도 이것만 재정의하면 즉시 발동에 참여한다.
+        /// 이 메서드는 상태를 바꾸지 않는다(지속시간 · 중첩 · 행동 카운트 불변).
+        /// </summary>
+        public virtual DamageContext CreateDamageOverTimeTick() => null;
 
         /// <summary>보유자의 턴 한 번에 입힐 지속피해량(표시 · 정산용).</summary>
         public virtual int EstimateDamagePerTurn() => 0;

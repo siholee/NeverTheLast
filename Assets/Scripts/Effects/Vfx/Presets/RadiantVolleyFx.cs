@@ -1,10 +1,11 @@
+using Random = Effects.Vfx.PresentationRandom;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using Entities;
 using Managers;
 using UnityEngine;
-using Random = UnityEngine.Random;
+
 
 namespace Effects.Vfx.Presets
 {

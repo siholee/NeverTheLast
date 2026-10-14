@@ -36,11 +36,11 @@ namespace Managers.UI.Screens
     /// </summary>
     public class CharacterSelectScreen : ModalScreen
     {
-        private const int Columns = 5;
+        private const int Columns = 6;
         private const int MaxParty = 5;
 
         /// <summary>타일 사이 간격(픽셀).</summary>
-        private const float TileGap = 10f;
+        private const float TileGap = 14f;
 
         protected override string CanvasName => "CharacterSelectCanvas";
         protected override int SortingOrder => 80;
@@ -67,6 +67,7 @@ namespace Managers.UI.Screens
         private TextMeshProUGUI _cardLabel;
 
         private RectTransform _previewSlot;
+        private Image _previewGlow;
         private GameObject _detailView;
         private RectTransform _detailContent;
         private TextMeshProUGUI _detailText;
@@ -105,25 +106,32 @@ namespace Managers.UI.Screens
         protected override void Build()
         {
             // 좌 40%: 선택 후보를 한 명씩 크게 보여 주는 캐릭터 쇼케이스.
-            Image previewPane = UIBuild.Panel("PreviewPane", Body, UITheme.SurfaceSunken,
-                UIShapes.Corner.Diagonal, 8, UITheme.Outline, 1);
+            Image previewPane = UIBuild.Solid("PreviewPane", Body, Color.clear);
             UIBuild.Anchor(previewPane.rectTransform, Vector2.zero, new Vector2(0.39f, 1f));
-            previewPane.rectTransform.offsetMin = new Vector2(4f, 128f);
+            previewPane.rectTransform.offsetMin = new Vector2(4f, 108f);
             previewPane.rectTransform.offsetMax = new Vector2(-4f, -4f);
 
+
             TextMeshProUGUI showcaseEyebrow = UIBuild.Text("ShowcaseEyebrow", previewPane.transform,
-                "CHARACTER / PROFILE", UITheme.FontMicro, UITheme.Accent, TextAlignmentOptions.Left);
+                "캐릭터 정보", 20f, UITheme.Accent, TextAlignmentOptions.Left);
             UIBuild.Anchor(showcaseEyebrow.rectTransform, new Vector2(0f, 1f), Vector2.one);
             showcaseEyebrow.rectTransform.offsetMin = new Vector2(24f, -40f);
             showcaseEyebrow.rectTransform.offsetMax = new Vector2(-24f, -16f);
+            // 왼쪽이 고른 동료의 쇼케이스라는 것은 원화가 말한다. 작은 머리말은 되풀이일 뿐이라 숨긴다.
+            showcaseEyebrow.gameObject.SetActive(false);
 
             // 설명과 버튼은 고정된 하단 구역에 두고 원화가 남은 높이를 쓴다.
             RectTransform previewSlot = UIBuild.Container("PreviewSlot", previewPane.transform);
             UIBuild.Stretch(previewSlot);
-            previewSlot.offsetMin = new Vector2(24f, 244f);
-            previewSlot.offsetMax = new Vector2(-24f, -48f);
+            previewSlot.offsetMin = new Vector2(24f, 290f);
+            previewSlot.offsetMax = new Vector2(-24f, -12f);
             _previewSlot = previewSlot;
 
+            // 원화 뒤 원소 빛 — 파티 창과 같은 문법. 흰 종이에 그림이 떠 보이지 않게 하고, 원소를 한눈에 알린다.
+            _previewGlow = UIBuild.Solid("PreviewGlow", previewSlot, Color.white);
+            _previewGlow.type = Image.Type.Simple;
+            _previewGlow.raycastTarget = false;
+            UIBuild.Anchor(_previewGlow.rectTransform, new Vector2(0.02f, 0.06f), new Vector2(0.98f, 1.02f));
             _preview = UIBuild.Solid("PreviewArt", previewSlot, Color.white);
             _preview.type = Image.Type.Simple;
             UIBuild.Stretch(_preview.rectTransform);
@@ -131,18 +139,18 @@ namespace Managers.UI.Screens
             _preview.enabled = false;
 
             _previewName = UIBuild.Text("PreviewName", previewPane.transform, "",
-                UITheme.FontHeading, UITheme.Accent, TextAlignmentOptions.Center);
-            AnchorFooter(_previewName.rectTransform, 202f, 236f);
+                26f, UITheme.TextPrimary, TextAlignmentOptions.Center);
+            AnchorFooter(_previewName.rectTransform, 234f, 278f);
             _previewName.alignment = TextAlignmentOptions.Left;
 
             _tagStrip = UIBuild.Container("ArchetypeTags", previewPane.transform);
-            AnchorFooter(_tagStrip, 160f, 192f);
+            AnchorFooter(_tagStrip, 190f, 226f);
 
             // 소개와 기본 정보만 보여 준다. 편성 추천은 오른쪽 서포터 영역에서만 다룬다.
             _previewInfo = UIBuild.Text("PreviewInfo", previewPane.transform, "",
-                UITheme.FontCaption, UITheme.TextSecondary, TextAlignmentOptions.TopLeft, wrap: true);
+                UITheme.FontReadSmall, UITheme.TextSecondary, TextAlignmentOptions.TopLeft, wrap: true);
             _previewInfo.richText = true;
-            AnchorFooter(_previewInfo.rectTransform, 108f, 158f);
+            AnchorFooter(_previewInfo.rectTransform, 78f, 182f);
 
             _previousCardButton = UIBuild.Button("PreviousCard", previewPane.transform, "‹", () => CycleCard(-1));
             UIBuild.Anchor(_previousCardButton.image.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f));
@@ -167,7 +175,7 @@ namespace Managers.UI.Screens
             UIBuild.Stretch(detailScroll.viewport);
             detailScroll.viewport.offsetMin = new Vector2(24f, 84f);
             detailScroll.viewport.offsetMax = new Vector2(-24f, -106f);
-            _detailText = UIBuild.Text("DetailText", _detailContent, "", UITheme.FontBody, UITheme.TextPrimary,
+            _detailText = UIBuild.Text("DetailText", _detailContent, "", UITheme.FontReadSmall, UITheme.TextPrimary,
                 TextAlignmentOptions.TopLeft, wrap: true);
             _detailText.richText = true;
             _detailText.rectTransform.anchorMin = new Vector2(0f, 1f);
@@ -181,20 +189,20 @@ namespace Managers.UI.Screens
             AnchorFooter(_detailButton.image.rectTransform, 18f, 66f);
 
             // 우 60%: 명확한 단계 표시, 후보 로스터, 필요할 때만 읽는 추천 근거.
-            Image rosterPane = UIBuild.Panel("RosterPane", Body, UITheme.SurfaceRaised,
-                UIShapes.Corner.Diagonal, 8, UITheme.Outline, 1);
+            Image rosterPane = UIBuild.Solid("RosterPane", Body, Color.clear);
             UIBuild.Anchor(rosterPane.rectTransform, new Vector2(0.398f, 0f), Vector2.one);
-            rosterPane.rectTransform.offsetMin = new Vector2(4f, 128f);
+            rosterPane.rectTransform.offsetMin = new Vector2(4f, 108f);
             rosterPane.rectTransform.offsetMax = new Vector2(-4f, -4f);
 
-            _stepLabel = UIBuild.Text("Step", rosterPane.transform, "", UITheme.FontMicro, UITheme.Accent,
-                TextAlignmentOptions.Left);
+            _stepLabel = UIBuild.Text("Step", rosterPane.transform, "", UITheme.FontCaption, UITheme.TextMuted,
+                TextAlignmentOptions.MidlineLeft);
             UIBuild.Anchor(_stepLabel.rectTransform, new Vector2(0f, 1f), Vector2.one);
             _stepLabel.rectTransform.offsetMin = new Vector2(20f, -38f);
             _stepLabel.rectTransform.offsetMax = new Vector2(-20f, -14f);
 
-            _phaseLabel = UIBuild.Text("Phase", rosterPane.transform, "", UITheme.FontBody, UITheme.TextPrimary,
-                TextAlignmentOptions.Left);
+            _phaseLabel = UIBuild.Text("Phase", rosterPane.transform, "", UITheme.FontReadSmall, UITheme.TextPrimary,
+                TextAlignmentOptions.MidlineLeft);
+            _phaseLabel.fontStyle = FontStyles.Bold;
             UIBuild.Anchor(_phaseLabel.rectTransform, new Vector2(0f, 1f), Vector2.one);
             _phaseLabel.rectTransform.offsetMin = new Vector2(20f, -74f);
             _phaseLabel.rectTransform.offsetMax = new Vector2(-20f, -42f);
@@ -218,6 +226,8 @@ namespace Managers.UI.Screens
             _sizer.MaxColumns = Columns;
             _sizer.Gap = TileGap;
             _sizer.ScrollContent = true;
+            _sizer.CaptionHeight = 40f;
+            ScreenKit.ScrollFade(_rosterScroll, UITheme.SurfaceRaised);
 
             _summary = UIBuild.Text("Summary", rosterPane.transform, "", UITheme.FontCaption, UITheme.TextPrimary,
                 TextAlignmentOptions.TopLeft, wrap: true);
@@ -236,13 +246,13 @@ namespace Managers.UI.Screens
             _primaryButton = UIBuild.Button("Primary", Body, "다음", OnPrimary, primary: true);
             UIBuild.Anchor(_primaryButton.image.rectTransform, new Vector2(0.80f, 0f), new Vector2(1f, 0f));
             _primaryButton.image.rectTransform.offsetMin = new Vector2(4f, 4f);
-            _primaryButton.image.rectTransform.offsetMax = new Vector2(-4f, 112f);
+            _primaryButton.image.rectTransform.offsetMax = new Vector2(-4f, 92f);
 
             BuildPartyRail();
 
             _cursor = UIBuild.Solid("NavCursor", Body, Color.white);
-            _cursor.sprite = UIShapes.CutCorner(8, new Color(1f, 1f, 1f, 0f), UIShapes.Corner.Diagonal,
-                UITheme.TextPrimary, 3);
+            _cursor.sprite = UIShapes.Surface(8, new Color(1f, 1f, 1f, 0f), UIShapes.Corner.Diagonal,
+                UITheme.Accent, 1);
             _cursor.type = Image.Type.Sliced;
             _cursor.raycastTarget = false;
             _cursor.gameObject.SetActive(false);
@@ -257,21 +267,19 @@ namespace Managers.UI.Screens
 
         private void BuildPartyRail()
         {
-            Image rail = UIBuild.Panel("PartyRail", Body, UITheme.SurfaceSunken,
-                UIShapes.Corner.Diagonal, 8, UITheme.Outline, 1);
+            Image rail = UIBuild.Solid("PartyRail", Body, Color.clear);
             UIBuild.Anchor(rail.rectTransform, Vector2.zero, new Vector2(0.79f, 0f));
             rail.rectTransform.offsetMin = new Vector2(4f, 4f);
-            rail.rectTransform.offsetMax = new Vector2(-4f, 112f);
+            rail.rectTransform.offsetMax = new Vector2(-4f, 92f);
 
-            TextMeshProUGUI label = UIBuild.Text("PartyLabel", rail.transform, "PARTY  /  출전 편성",
-                UITheme.FontMicro, UITheme.Accent, TextAlignmentOptions.Left);
-            UIBuild.Anchor(label.rectTransform, new Vector2(0.025f, 0.7f), new Vector2(0.2f, 0.94f));
+            TextMeshProUGUI label = UIBuild.Text("PartyLabel", rail.transform, "출전 편성",
+                20f, UITheme.Accent, TextAlignmentOptions.Left);
+            UIBuild.Anchor(label.rectTransform, new Vector2(0.025f, 0.25f), new Vector2(0.19f, 0.75f));
 
             for (int i = 0; i < MaxParty; i++)
             {
                 float left = 0.205f + i * 0.153f;
-                Image slot = UIBuild.Panel($"PartySlot{i + 1}", rail.transform, UITheme.SurfaceRaised,
-                    UIShapes.Corner.Diagonal, 5, UITheme.Outline, 1);
+                Image slot = UIBuild.Solid($"PartySlot{i + 1}", rail.transform, Color.clear);
                 UIBuild.Anchor(slot.rectTransform, new Vector2(left, 0.12f), new Vector2(left + 0.14f, 0.88f));
 
                 Image art = UIBuild.Solid("Portrait", slot.transform, Color.white);
@@ -280,7 +288,7 @@ namespace Managers.UI.Screens
                 art.type = Image.Type.Simple;
                 art.raycastTarget = false;
 
-                TextMeshProUGUI name = UIBuild.Text("Name", slot.transform, $"{i + 1}", UITheme.FontMicro,
+                TextMeshProUGUI name = UIBuild.Text("Name", slot.transform, $"{i + 1}", UITheme.FontReadSmall,
                     UITheme.TextMuted, TextAlignmentOptions.Center);
                 UIBuild.Anchor(name.rectTransform, new Vector2(0.02f, 0.01f), new Vector2(0.98f, 0.25f));
 
@@ -345,26 +353,28 @@ namespace Managers.UI.Screens
 
             foreach (UnitData unit in units)
             {
+                // 후보 한 명 = 종이 위 흰 카드 한 장. 고르면 같은 자리의 선택 표지(옅은 군청 면 + 아래 막대)로 바뀐다.
                 Image tile = UIBuild.Panel($"Unit{unit.id}", _grid, UITheme.SurfaceRaised,
-                    UIShapes.Corner.Diagonal, 6, UITheme.Outline, 1);
+                    UIShapes.Corner.All, 12, UITheme.Outline, 0);
+                tile.sprite = UIArtDirection.Sheet(12);
 
                 // 초상화 — 철권식으로 타일 전체를 그림으로 채운다.
                 // 타일이 정사각형이고 초상화 원본도 정사각형이라 여백 없이 딱 맞는다.
                 Image art = UIBuild.Solid("Art", tile.transform, Color.white);
-                UIBuild.Stretch(art.rectTransform, 3f, 3f);
+                UIBuild.Anchor(art.rectTransform, new Vector2(0f, .24f), Vector2.one, 3f, 3f);
                 art.preserveAspect = true;
-                Sprite portrait = LoadPortrait(unit.portrait);
+                Sprite portrait = ScreenKit.PortraitWindow(LoadPortrait(unit.portrait), 1f);
                 if (portrait != null) art.sprite = portrait;
                 else art.enabled = false;
                 _tileArts[unit.id] = art;
 
                 // 이름표는 그림 위에 얹는다. 타일을 정사각형으로 유지하기 위해 자리를 따로 빼지 않는다.
-                Image nameStrip = UIBuild.Solid("NameStrip", tile.transform, UITheme.Surface);
+                Image nameStrip = UIBuild.Solid("NameStrip", tile.transform, Color.clear);
                 UIBuild.Anchor(nameStrip.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.20f), 3f, 3f);
                 nameStrip.raycastTarget = false;
 
                 TextMeshProUGUI label = UIBuild.Text("Name", tile.transform, IsLavoisierLocked(unit.id) ? $"미해금 · {unit.name}" : unit.name,
-                    UITheme.FontMicro, UITheme.TextPrimary, TextAlignmentOptions.Center);
+                    UITheme.FontReadSmall, UITheme.TextPrimary, TextAlignmentOptions.Midline);
                 UIBuild.Anchor(label.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.20f), 3f, 3f);
 
                 int rank = _recommended.IndexOf(unit.id);
@@ -446,7 +456,7 @@ namespace Managers.UI.Screens
 
             SetTitle("출전 캐릭터 선택");
             _phaseLabel.text = $"함께 여정을 떠날 동료를 선택하세요   {picked} / {MaxParty}";
-            _stepLabel.text = "PARTY SETUP  ·  해금한 캐릭터 1~5명";
+            _stepLabel.text = "해금한 캐릭터 중 1~5명";
 
             foreach (KeyValuePair<int, Image> pair in _tiles)
             {
@@ -455,9 +465,15 @@ namespace Managers.UI.Screens
                 if (_tileArts.TryGetValue(pair.Key, out Image tileArt))
                     tileArt.color = IsLavoisierLocked(pair.Key) ? new Color(.35f, .35f, .35f) : Color.white;
 
-                Color fill = isLead ? UITheme.Accent : isSelected ? UITheme.AccentFaint : UITheme.SurfaceRaised;
-                Color line = isSelected ? UITheme.Accent : UITheme.Outline;
-                pair.Value.sprite = UIShapes.CutCorner(6, fill, UIShapes.Corner.Diagonal, line, isSelected ? 2 : 1);
+                // 선택 표지는 모든 목록과 같다 — 옅은 군청 면 + 아래 3px 막대. 고르지 않은 후보는 흰 카드로 둔다.
+                UIArtDirection.SelectRow(pair.Value, isSelected, true, 12);
+                if (!isSelected) pair.Value.sprite = UIArtDirection.Sheet(12);
+                TextMeshProUGUI tileName = pair.Value.transform.Find("Name")?.GetComponent<TextMeshProUGUI>();
+                if (tileName != null)
+                {
+                    tileName.color = isSelected ? UITheme.AccentDim : UITheme.TextPrimary;
+                    tileName.fontStyle = isSelected ? FontStyles.Bold : FontStyles.Normal;
+                }
             }
 
             string recommendText = RecommendationSummary();
@@ -500,9 +516,15 @@ namespace Managers.UI.Screens
                     ? (manager.LeadUnitId == id ? $"대표 · {UnitName(id)}{variant}" : $"{UnitName(id)}{variant}")
                     : $"{i + 1}  비어 있음";
                 _partyNames[i].color = filled ? UITheme.TextPrimary : UITheme.TextMuted;
-                Color fill = manager.LeadUnitId == id ? UITheme.AccentFaint : UITheme.SurfaceRaised;
-                Color line = filled ? UITheme.Accent : UITheme.Outline;
-                _partySlots[i].sprite = UIShapes.CutCorner(5, fill, UIShapes.Corner.Diagonal, line, filled ? 2 : 1);
+                // 빈 칸은 초상화 자리가 비어 있어 아래 25%에 놓인 문구가 바닥에 붙어 보였다. 빈 칸만 가운데로 올린다.
+                UIBuild.Anchor(_partyNames[i].rectTransform,
+                    new Vector2(0.02f, filled ? 0.01f : 0f), new Vector2(0.98f, filled ? 0.25f : 1f));
+                // 찬 칸은 흰 카드, 빈 칸은 끼울 자리임이 보이는 옅은 홈. 대표는 이름 앞 "대표"로 구분한다.
+                _partySlots[i].sprite = filled
+                    ? UIArtDirection.Sheet(12)
+                    : UIShapes.RoundedRect(12, new Color(UITheme.Accent.r, UITheme.Accent.g, UITheme.Accent.b, 0.045f),
+                        new Color(UITheme.Accent.r, UITheme.Accent.g, UITheme.Accent.b, 0.16f), 1);
+                _partySlots[i].type = Image.Type.Sliced;
             }
         }
 
@@ -514,6 +536,7 @@ namespace Managers.UI.Screens
             if (unit == null)
             {
                 _preview.enabled = false;
+                if (_previewGlow != null) _previewGlow.enabled = false;
                 _previewName.text = "";
                 _previewInfo.text = "";
                 UIBuild.Clear(_tagStrip);
@@ -537,6 +560,9 @@ namespace Managers.UI.Screens
             if (portrait != null) _preview.sprite = portrait;
 
             _previewName.text = unit.name;
+            Color element = Effects.Vfx.ElementPalette.PastelColorFor(Effects.Vfx.ElementPalette.Parse(unit.element));
+            _previewGlow.sprite = UIShapes.Glow(128, new Color(element.r, element.g, element.b, 0.30f));
+            _previewGlow.enabled = portrait != null;
             UnitTagCatalog.BuildChips(_tagStrip,
                 IsLavoisierLocked(unit.id)
                     ? System.Array.Empty<UnitTagCatalog.Definition>()
@@ -546,7 +572,11 @@ namespace Managers.UI.Screens
             string statText = $"공격 {unit.atkBase:0} · 방어 {unit.defBase:0} · 체력 {unit.hpBase:0} · 속도 {unit.speedBase:0}";
             var lines = new List<string>();
             if (!string.IsNullOrWhiteSpace(unit.tagline) && !IsLavoisierLocked(unit.id))
-                lines.Add(Colored(unit.tagline, UITheme.TextPrimary));
+            {
+                int end = unit.tagline.IndexOf(". ", System.StringComparison.Ordinal);
+                string summary = end >= 0 ? unit.tagline.Substring(0, end + 1) : unit.tagline;
+                lines.Add(Colored(summary, UITheme.TextPrimary));
+            }
             lines.Add($"{ElementName(unit.element)}   {statText}");
 
             if (IsLavoisierLocked(unit.id))
@@ -589,7 +619,7 @@ namespace Managers.UI.Screens
                 _previewName.rectTransform.offsetMin = new Vector2(24f, -94f);
                 _previewName.rectTransform.offsetMax = new Vector2(-24f, -48f);
             }
-            else AnchorFooter(_previewName.rectTransform, 202f, 236f);
+            else AnchorFooter(_previewName.rectTransform, 234f, 278f);
 
             TextMeshProUGUI label = _detailButton.GetComponentInChildren<TextMeshProUGUI>();
             if (label != null) label.text = _detailMode ? "요약 보기  [Q]" : "기술 보기  [Q]";
@@ -643,7 +673,7 @@ namespace Managers.UI.Screens
             float width = Mathf.Max(1f, _detailWidth - 16f);
             // 스크롤 본문은 글자를 축소하지 않고 전체 높이를 확보한다.
             _detailText.enableAutoSizing = false;
-            _detailText.fontSize = UITheme.FontBody * _detailScale;
+            _detailText.fontSize = UITheme.FontReadSmall * _detailScale;
             float height = Mathf.Ceil(_detailText.GetPreferredValues(_detailText.text, width, 0f).y);
             _detailText.rectTransform.sizeDelta = new Vector2(-16f, height);
             _detailContent.sizeDelta = new Vector2(0f, height + 40f);
@@ -974,6 +1004,7 @@ namespace Managers.UI.Screens
         public int MaxColumns = 6;
         public float Gap = 10f;
         public bool ScrollContent;
+        public float CaptionHeight;
 
         /// <summary>
         /// 이번에 배치할 타일 수. 격자를 다시 그리는 쪽이 직접 알려 준다.
@@ -1061,16 +1092,16 @@ namespace Managers.UI.Screens
 
             if (ScrollContent)
             {
-                float contentHeight = rows * side + Gap * (rows - 1) + _layout.padding.vertical;
+                float contentHeight = rows * (side + CaptionHeight) + Gap * (rows - 1) + _layout.padding.vertical;
                 if (!Mathf.Approximately(_rect.sizeDelta.y, contentHeight))
                     _rect.sizeDelta = new Vector2(_rect.sizeDelta.x, contentHeight);
             }
 
             _layout.constraintCount = columns;
             _layout.spacing = new Vector2(Gap, Gap);
-            if (!Mathf.Approximately(_layout.cellSize.x, side))
+            if (!Mathf.Approximately(_layout.cellSize.x, side) || !Mathf.Approximately(_layout.cellSize.y, side + CaptionHeight))
             {
-                _layout.cellSize = new Vector2(side, side);
+                _layout.cellSize = new Vector2(side, side + CaptionHeight);
             }
 
 

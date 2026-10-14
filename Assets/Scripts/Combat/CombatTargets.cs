@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Entities;
+using Managers;
 using UnityEngine;
 
 namespace Combat
@@ -16,9 +17,14 @@ namespace Combat
     {
         /// <summary>공격할 수 있는 적. 필드 밖·대상 지정 불가·전투 불능은 빠진다.</summary>
         public static List<Unit> AliveEnemies(Unit caster)
-            => caster == null
-                ? new List<Unit>()
-                : global::Target.GetAllEnemies(caster).Where(unit => unit != null && unit.isActive).ToList();
+        {
+            var grid = GridManager.Instance;
+            if (caster == null || grid == null) return new List<Unit>();
+            IEnumerable<Unit> pool = caster.IsEnemy ? grid.heroList : grid.enemyList;
+            // 기본 분신·펜리르는 대상 불가라 제외된다. 피격 가능한 서기관은 실제 공격 후보에 들어간다.
+            return pool.Concat(grid.summonList).Where(unit => unit != null && unit.IsEnemy != caster.IsEnemy &&
+                unit.IsOnField && !unit.IsUntargetable).Distinct().ToList();
+        }
 
         /// <summary>자신을 포함한 살아 있는 아군.</summary>
         public static List<Unit> AliveAlliesIncludingSelf(Unit caster)

@@ -30,13 +30,15 @@ namespace Effects.Negative
         {
             if (Target == null || !Target.isActive || Target.HpCurr <= 0) return;
 
-            Target.TakeDamage(new DamageContext(
-                Caster,
-                CalculateTickDamage(),
-                BaseEnums.CodeType.Effect,
-                new List<int>(),
-                false));
+            Target.TakeDamage(CreateDamageOverTimeTick());
         }
+
+        public override DamageContext CreateDamageOverTimeTick() => new DamageContext(
+            Caster,
+            CalculateTickDamage(),
+            BaseEnums.CodeType.Effect,
+            new List<int>(),
+            false) { IsDamageOverTime = true };
 
         public override int EstimateDamagePerTurn() => CalculateTickDamage();
 

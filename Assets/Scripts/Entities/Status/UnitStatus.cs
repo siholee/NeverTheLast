@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Effects.Base;
@@ -79,11 +79,23 @@ namespace Entities.Status
         
         /// <summary>보유자의 턴을 몇 번 넘겼는지</summary>
         public int ElapsedTurns { get; set; }
+        public bool NormalActionDuration { get; set; }
+        public bool SkipCurrentNormalCompletion { get; set; }
+        public int AppliedActionId { get; set; } = -1;
 
         /// <summary>
         /// 효과 명중(특수공격력 대 특수방어력)을 이미 따로 굴렸는가. 참이면 상태를 붙일 때 다시 굴리지 않는다.
         /// </summary>
         public bool SkipEffectHitRoll { get; set; }
+        /// <summary>이번 부여가 실제 추가·갱신을 끝냈는가. 명중/저항/중복 무시는 거짓.</summary>
+        internal bool ApplicationSucceeded { get; set; }
+
+        /// <summary>
+        /// 상태 저항(<see cref="BaseEffect.NegativeStatusResistanceChanceModifier"/>)을 굴리지 않는가.
+        /// 다른 해로운 상태에서 파생돼 원본이 남아 있는 동안 저절로 다시 붙는 오라(야마의 선고)만 켠다 —
+        /// 원본은 이미 저항 판정을 거쳤으므로, 파생 표식에서 또 굴리면 같은 원본에 두 번째 관문이 생긴다.
+        /// </summary>
+        public bool SkipStatusResistanceRoll { get; set; }
 
         /// <summary>남은 턴 수. 무한이면 <see cref="int.MaxValue"/>.</summary>
         public int RemainingTurns => Duration <= 0 ? int.MaxValue : Mathf.Max(0, Duration - ElapsedTurns);
@@ -98,7 +110,8 @@ namespace Entities.Status
         /// </summary>
         public bool CountsAsDebuff
             => Category == BaseEnums.StatusCategory.Negative ||
-               (Effects != null && Effects.Exists(instance => instance.EffectObject?.IsDamageOverTime == true));
+               (Effects != null && Effects.Exists(instance => instance.EffectObject?.IsDamageOverTime == true ||
+                   (Category != BaseEnums.StatusCategory.Positive && instance.EffectObject?.Category == BaseEnums.EffectCategory.Negative)));
         
         /// <summary>
         /// 효과 인스턴스 (ID + 계수)

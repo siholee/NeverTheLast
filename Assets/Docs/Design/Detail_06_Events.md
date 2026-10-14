@@ -3,7 +3,7 @@
 > **3계층 문서.** 사건 데이터 스키마, 선택지 액션, VN 연출 필드, 인트로 시퀀스, 현재 사건 목록.
 > 개념 정의는 [서브 기획서](GDD_Sub_Concepts.md) 6장을 본다.
 
-최종 갱신: 2026-09-25 (세이 이름 복원 · 보호막 추가 · 무한 모드 단일화)
+최종 갱신: **2026-10-14**
 관련 코드: `GameManager.cs`, `EventScheduler.cs`, `EventVisualNovelScreen.cs`, `UIManager.cs`, `AudioManager.cs`
 관련 데이터: `80_stages.yaml` (`events`), `00_intro.yaml`
 
@@ -211,81 +211,56 @@ dialogue:
 
 새 인트로를 추가하려면 `intros`에 항목을 넣고 id를 맞추거나, 다른 id로 호출부를 지정한다.
 
-## 6. 현재 사건 목록
 
-| id | 테마 | 제목 | 유형 |
-| --- | --- | --- | --- |
-| `trial_the_quiet_sand` | 1 공허의 시험장 | 고요한 모래 | 복선형 — 세이가 흩어진 돌 조각을 고른다. 선택지 둘 다 `continue` |
+## 6. 현행 사건 데이터
 
-`oncePerRun: false`라 라운드마다 다시 나온다. 2026-09 개편으로 옛 테마의 사건 · 영입 사건 · 체인 사건을 모두 걷어냈다.
-옛 목록과 각 사건의 설계는 커밋 `a6194c9`의 이 문서에 남아 있다.
+서사 테마는 기본5라운드 사건과 전투/보스 뒤 예약 사건을 사용한다. 범용 첫 두 스테이지는 사건이 없다.
 
-### 6.0 보스 격파 예약 사건 — `triggerBossId`
+| ID | 이름 | 테마 | 실제 영입 선택 |
+| --- | --- | ---: | --- |
+| trial_the_quiet_sand |  | 1 | — |
+| odyssey_the_long_way_home |  | 21 | — |
+| legion_crossing_the_rubicon |  | 23 | — |
+| mexica_smoking_mirror |  | 6 | — |
+| aswan_the_first_seal |  | 7 | — |
+| aswan_bastet_first_amun_ra_clear |  | 0 | 바스테트 |
+| t4_horus_falcon_without_throne |  | 0 | — |
+| t4_set_red_desert_compact |  | 0 | — |
+| nord_the_raiders_fire |  | 16 | — |
+| nord_loki_after_thor |  | 0 | 로키 |
+| nord_north_the_white_silence |  | 17 | — |
+| nord_central_the_kings_road |  | 18 | — |
+| nord_central_oathbound_pair |  | 0 | — |
+| mexica_quetzalcoatl_after_duel |  | 0 | — |
+| japan_sky_moonlit_reinforcement |  | 0 | 츠쿠요미 |
+| japan_sky_moonlit_reinforcement_companion |  | 0 | — |
+| japan_sky_sever_the_connection |  | 0 | — |
+| japan_sky_falling_scales |  | 0 | — |
+| japan_sky_frontline_secured |  | 0 | — |
+| japan_coast_seimei_on_the_shore |  | 0 | — |
+| japan_coast_seimei_companion |  | 0 | — |
+| japan_coast_cracked_shells |  | 0 | — |
+| japan_coast_deep_breath |  | 0 | — |
+| japan_coast_susanoo_after_archon |  | 0 | — |
+| japan_coast_susanoo_companion |  | 0 | — |
+| colosseum_before_the_crown |  | 22 | — |
+| seed_beneath_the_ground_8 |  | 8 | — |
+| seed_beneath_the_ground_9 |  | 9 | — |
+| seed_beneath_the_ground_10 |  | 10 | — |
+| seed_beneath_the_ground_11 |  | 11 | — |
+| seed_beneath_the_ground_12 |  | 12 | — |
+| seed_beneath_the_ground_13 |  | 13 | — |
+| seed_beneath_the_ground_14 |  | 14 | — |
+| seed_beneath_the_ground_15 |  | 15 | — |
+| seed_beneath_the_ground_19 |  | 19 | — |
+| seed_beneath_the_ground_20 |  | 20 | — |
 
-슬롯 추첨을 타지 않고 **보스를 넘어선 직후 큐에 들어가는** 사건들이다.
-방아쇠는 코드가 아니라 **데이터**가 들고 있다 — 사건에 `triggerBossId`를 적으면 끝이고,
-`themeId`/`stageInRound`는 0으로 둔다(이 값이 붙은 사건은 슬롯 풀에서도 빠진다).
+테마0인 사건은 자체 배치가 아니라 boss/slot 승리·후속 분기 등 예약 조건으로 호출한다. 실제 조건은 80_stages와 EventScheduler가 원본이다.
+복구 사건의 NPC 등장과 실제 영입은 구분한다. 플레이어블이 복구되었다고 기존 만남의 grantUnitId가 자동으로 생기지 않는다.
+영입형은 해금·자리 부족·거절·이미 해금된 상태·후속 조건을 함께 확인한다.
 
-🔸 지금 `triggerBossId`를 쓰는 사건은 없다.
+## 7. 작성·검증
 
-한 보스에 여러 사건을 달아도 된다. 정의 순서대로 전부 예약된다.
-
-**보스 격파 기록은 이 지점에서 남는다.** `SaveSystem.MarkBossDefeated(보스ID)`가
-보스 스테이지를 이긴 모든 보스에 대해 호출되므로, `requiresBossDefeatId`는 이제
-아문·라뿐 아니라 **아무 보스에나** 걸 수 있다.
-
-> 예전에는 "최초 격파" 자체가 합류 사건의 일회성이라, 사건을 찾은 뒤에야 기록할 수 있었다.
-> 지금은 **해금 여부**가 일회성을 맡으므로 기록이 무엇도 소진하지 않는다.
-
-### 6.0.1 만나면 해금된다
-
-**영입 사건을 끝까지 본 것만으로 그 유닛은 영구 해금된다.** 합류시켰든 거절했든 같다
-(`GameManager.GrantRecruitUnlock`, `CompleteEventStage`에서 한 번).
-
-| 선택 | 이번 런 | 다음 런부터 |
-| --- | --- | --- |
-| 합류를 환영한다 | 즉시 일행에 들어온다 | 편성 가능 |
-| 정중하게 거절한다 | 들어오지 않는다 | **편성 가능** |
-| 자리가 없어 포기 | 들어오지 않는다 | **편성 가능** |
-
-**거절이 해금까지 빼앗으면 선택지가 아니라 함정이다.** 자리가 없다거나 지금 조합에
-맞지 않는다는 이유로 거절해도, 만났다는 사실은 남아야 한다.
-
-그 결과 **영입 사건은 어느 방식이든 평생 한 번만 뜬다** — `RoundManager.IsEventEligible`과
-`GameManager.CanOfferEvent`가 둘 다 `SaveSystem.IsStarterUnlocked`로 거르기 때문이다.
-보스 예약형과 T4 슬롯형(`t4_horus_*`, `t4_set_*`)이 같은 규칙을 쓴다.
-
-## 7. 사건 설계 가이드
-
-| 유형 | 역할 | 사례 |
-| --- | --- | --- |
-| **영입형** | 파티 확장 | 수르트, 츠쿠요미 |
-| **분기형** | 위험/비용/보상의 트레이드오프 | 케찰코아틀 |
-| **복선형** | 서사 전달, 보스전 기대감 | 스파르타쿠스 |
-| **버프형** | 전력의 소폭 상승 | 월신의 가호 (제거됨) |
-
-> **네 사건이 전부 복선형이다.** 최소한 영입형 하나는 복원하거나 새로 만들어야
-> 사건이 "전력을 바꾸는 분기"라는 본래 역할을 회복한다.
-
-### 7.1 작성 시 체크리스트
-
-1. `id`가 고유한가 (`oncePerRun` 추적 키다)
-2. `themeId`가 실재하는 테마인가
-3. 영입 사건이면 `blockedUnitIds`에 해당 유닛을 넣었는가
-   (보스 격파형이면 `triggerBossId`를, 슬롯 승리형이면 `triggerThemeId`·`triggerStageInRound`를 적고 `themeId`/`stageInRound`를 0으로 두었는가)
-4. `battle_*` 액션의 `battleEnemyId`가 `60_enemies.yaml`에 존재하는가
-5. `grantItemId` / `grantUnitId` / `grantPassiveCodeId`가 실재하는가
-6. 실패 분기(`failureText`)를 작성했는가
-   (영입이면 자리 부족용 `rosterFullText`까지)
-7. 거절 분기의 문구가 **해금은 되었다**고 알려 주는가(§6.0.1)
-8. 새 대사 필드를 추가했다면 `CloneWithReplacement()`도 갱신했는가
-
-## 8. 현재 공백
-
-| 공백 | 내용 |
-| --- | --- |
-| 🔴 전력 변화 사건 없음 | 사건이 하나뿐이고 `action: continue`뿐이다. `grantUnitId` · `grantItemId` · `grantPassiveCodeId` · `battle_*`가 **스키마에만 있고 데이터에 한 번도 쓰이지 않는다** |
-| 🔸 영입 사건 없음 | 새 캐릭터가 들어오면 영입 · 해금 경로를 함께 설계한다 |
-| 🔸 테마당 1개 고정 | 한 테마의 런에서는 늘 같은 사건이 나온다. 테마마다 둘 이상 두고 굴려야 반복이 줄어든다 |
-| 🔸 `randomSpeakers` 미사용 | 치환 기능이 구현되어 있으나 실제 데이터에 쓰이지 않는다 |
-| 🔸 사건 스케줄러 활용 | 보스 격파 예약과 슬롯 승리 예약(천공 체인·해안 예고)이 쓴다. 전투 도중 삽입 사례는 아직 없다 |
+id·themeId·trigger 참조, 선택지의 실제 action, 부여할 유닛/아이템/코드의 존재, 실패/거절/자리 부족 문구를 확인한다.
+CloneWithReplacement·speaker/staging·skip/auto·예약 중복·저장 복원을 검증한다. 원문 서사와 현행8스탯 전투 결과를 혼동하지 않는다.
+미리워크 인물 영입과 새 도입부는 [백로그](Design_Backlog.md)·[서사 원고](../Narrative/First_Start_Intro.md)에 남긴다.

@@ -104,6 +104,8 @@ namespace Combat
         private readonly IReadOnlyList<AttackTargetRouter.RedirectEvent> _redirects;
 
         public List<Unit> Targets { get; }
+        /// <summary>공지가 열리기 전의 실패만 기록한다. 정상 타격 뒤의 제어는 완료를 취소하지 않는다.</summary>
+        public bool CancelledBeforeAttack { get; private set; }
         public bool CanContinue => _context.Attacker != null && _context.Attacker.isActive &&
                                    !_context.Attacker.isControlled && Targets.Any(unit => unit != null && unit.isActive);
 
@@ -123,6 +125,12 @@ namespace Combat
         /// 호출자는 <see cref="CanContinue"/>를 보고 원래 공지·연출·피해를 열지 않는다.
         /// </summary>
         public IEnumerator ResolvePreAttack()
+        {
+            yield return ResolvePreAttackCore();
+            CancelledBeforeAttack = !CanContinue;
+        }
+
+        private IEnumerator ResolvePreAttackCore()
         {
             if (!_directAttack || Targets.Count == 0) yield break;
             Managers.ActionScheduler scheduler = Managers.GameManager.Instance?.ActionScheduler;

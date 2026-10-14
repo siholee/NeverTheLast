@@ -27,10 +27,13 @@ namespace Combat
         public readonly string KindLabel;
         public readonly string ActionName;
         public readonly bool IsEnemy;
+        /// <summary>예약된 실제 행동의 종료까지 확장 슬롯을 유지한다.</summary>
+        public readonly bool FollowsAction;
 
-        public ActionAnnouncement(Unit unit, ActionAnnouncementKind kind, string actionName)
+        public ActionAnnouncement(Unit unit, ActionAnnouncementKind kind, string actionName, bool followsAction = false)
         {
             Unit = unit;
+            FollowsAction = followsAction;
             Kind = kind;
             UnitName = unit != null ? unit.UnitName : "?";
             KindLabel = LabelFor(kind);
@@ -59,10 +62,10 @@ namespace Combat
     {
         public static event Action<ActionAnnouncement> Announced;
 
-        public static void Announce(Unit unit, ActionAnnouncementKind kind, string actionName)
+        public static void Announce(Unit unit, ActionAnnouncementKind kind, string actionName, bool followsAction = false)
         {
             if (unit == null || string.IsNullOrWhiteSpace(actionName)) return;
-            Announced?.Invoke(new ActionAnnouncement(unit, kind, actionName));
+            Announced?.Invoke(new ActionAnnouncement(unit, kind, actionName, followsAction));
         }
 
         public static void Announce(Unit unit, ActionAnnouncementKind kind, Code code, string fallback = null)
@@ -85,7 +88,7 @@ namespace Combat
                     announcementKind = substitute
                         ? ActionAnnouncementKind.Substitute
                         : ActionAnnouncementKind.Normal;
-                    code = normal;
+                    code = substitute ? null : normal;
                     name = substitute ? normal.AnnouncementName : fallback;
                     break;
                 case ActionScheduler.ActionKind.Ultimate:
@@ -113,7 +116,7 @@ namespace Combat
                     break;
             }
 
-            Announce(unit, announcementKind, DisplayName(code, name));
+            Announce(unit, announcementKind, DisplayName(code, name), followsAction: true);
         }
 
         public static void AnnouncePassive(Unit unit, PassiveCode passive)

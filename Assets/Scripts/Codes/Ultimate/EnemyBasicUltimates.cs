@@ -20,13 +20,15 @@ namespace Codes.Ultimate
     /// <summary>「강타」 — 야수는 강화 할퀴기, 나머지는 제자리 중타격으로 공격력의 200% 피해를 준다.</summary>
     public sealed class EnemySmash : BaseUltimateCode
     {
+        public override int AttackForm => DamageTag.Strike;
+
         private const float AttackRatio = 2.0f;
 
         public EnemySmash(UltimateCodeContext context) : base(context) { CodeName = "강타"; }
 
         protected override IEnumerator Perform()
         {
-            var tags = new List<int> { DamageTag.SingleTarget, DamageTag.UltAttack, DamageTag.ContactAttack };
+            var tags = new List<int> { DamageTag.SingleTarget, DamageTag.UltAttack, DamageTag.ContactAttack, AttackForm };
             Combat.AttackTargetResolution routing = PrepareTargets(new[] { PickPriorityEnemy() }, tags);
             yield return routing.ResolvePreAttack();
             List<Unit> targets = routing.Targets;
@@ -50,6 +52,8 @@ namespace Codes.Ultimate
     /// <summary>「연사」 — 총구광과 대상 피격을 같은 리듬으로 세 번 잇달아 연다. 각 공격력의 60%.</summary>
     public sealed class EnemyVolley : BaseUltimateCode
     {
+        public override int AttackForm => DamageTag.Shot;
+
         private const float AttackRatio = 0.6f;
         private const int Shots = 3;
 
@@ -57,7 +61,7 @@ namespace Codes.Ultimate
 
         protected override IEnumerator Perform()
         {
-            var tags = new List<int> { DamageTag.SingleTarget, DamageTag.UltAttack, DamageTag.NonContactAttack };
+            var tags = new List<int> { DamageTag.SingleTarget, DamageTag.UltAttack, DamageTag.NonContactAttack, AttackForm };
             Combat.AttackTargetResolution routing = PrepareTargets(new[] { PickPriorityEnemy() }, tags);
             yield return routing.ResolvePreAttack();
             List<Unit> targets = routing.Targets;
@@ -85,13 +89,15 @@ namespace Codes.Ultimate
     /// <summary>「대지 분쇄」 — 제자리 반동과 대상 중심 충격으로 공격력의 180% 피해와 1턴 기절을 건다.</summary>
     public sealed class EnemyGroundBreaker : BaseUltimateCode
     {
+        public override int AttackForm => DamageTag.Strike;
+
         private const float AttackRatio = 1.8f;
 
         public EnemyGroundBreaker(UltimateCodeContext context) : base(context) { CodeName = "대지 분쇄"; }
 
         protected override IEnumerator Perform()
         {
-            var tags = new List<int> { DamageTag.SingleTarget, DamageTag.UltAttack, DamageTag.ContactAttack };
+            var tags = new List<int> { DamageTag.SingleTarget, DamageTag.UltAttack, DamageTag.ContactAttack, AttackForm };
             Combat.AttackTargetResolution routing = PrepareTargets(new[] { PickPriorityEnemy() }, tags);
             yield return routing.ResolvePreAttack();
             List<Unit> targets = routing.Targets;
@@ -111,13 +117,15 @@ namespace Codes.Ultimate
     /// <summary>「공허의 숨결」 — 한 번 집속하고 아군 전원 위치에 피격을 연다. 대상마다 공격력의 110%.</summary>
     public sealed class EnemyVoidBreath : BaseUltimateCode
     {
+        public override int AttackForm => DamageTag.Spell;
+
         private const float AttackRatio = 1.1f;
 
         public EnemyVoidBreath(UltimateCodeContext context) : base(context) { CodeName = "공허의 숨결"; }
 
         protected override IEnumerator Perform()
         {
-            var tags = new List<int> { DamageTag.AllTarget, DamageTag.UltAttack, DamageTag.NonContactAttack };
+            var tags = new List<int> { DamageTag.AllTarget, DamageTag.UltAttack, DamageTag.NonContactAttack, AttackForm };
             Combat.AttackTargetResolution routing = PrepareTargets(AliveEnemies(), tags);
             yield return routing.ResolvePreAttack();
             List<Unit> targets = routing.Targets;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Entities;
 
@@ -11,10 +12,13 @@ namespace Combat
     {
         private static readonly Dictionary<string, string> Labels = new();
 
-        public static void Register(string resourceId, string displayName)
+        private static readonly Dictionary<string, Func<Unit, string>> Formatters = new();
+
+        public static void Register(string resourceId, string displayName, Func<Unit, string> formatter = null)
         {
             if (string.IsNullOrWhiteSpace(resourceId)) return;
             Labels[resourceId] = displayName;
+            if (formatter != null) Formatters[resourceId] = formatter;
         }
 
         public static string NameOf(string resourceId)
@@ -30,7 +34,8 @@ namespace Combat
             {
                 int maximum = unit.GetCombatResourceMaximum(resourceId);
                 if (maximum <= 0) continue;
-                parts.Add($"{NameOf(resourceId)} {unit.GetCombatResource(resourceId)}/{maximum}");
+                parts.Add(Formatters.TryGetValue(resourceId, out var formatter) ? formatter(unit)
+                    : $"{NameOf(resourceId)} {unit.GetCombatResource(resourceId)}/{maximum}");
             }
             return parts.Count == 0 ? unit.UnitName : $"{unit.UnitName}  {string.Join("  ", parts)}";
         }

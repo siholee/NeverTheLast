@@ -1,7 +1,8 @@
-using Managers.UI.Theme;
+﻿using Managers.UI.Theme;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace Managers.UI.Core
 {
@@ -16,9 +17,40 @@ namespace Managers.UI.Core
     /// 켜져 있을 때의 모습을 매 프레임 기억해 두었다가 꺼졌다 켜질 때 그대로 되돌린다.
     /// </summary>
     [DisallowMultipleComponent]
-    public sealed class UIButtonStyle : MonoBehaviour
+    public sealed class UIButtonStyle : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler, ISelectHandler, IDeselectHandler
     {
         private static Sprite _disabledSprite;
+
+        /// <summary>
+        /// 남색 제목 띠처럼 짙은 바탕 위 버튼. 호버 · 누름 막을 흰색으로 칠한다(글자가 없는 원형 닫기도 반응이 보이게).
+        /// </summary>
+        public bool LightFeedback;
+        /// <summary>짙은 행동 버튼은 청색광으로 밝기를 올려 호버 중에도 군청 채도를 유지한다.</summary>
+        public Color LightFeedbackTint=Color.white;
+        private Image _feedback;
+        private float _feedbackAmount, _feedbackTarget;
+        private bool _hovered, _selected, _pressed;
+        private float _pressScale = 1f;
+        private UIFeedbackScale _motionScale;
+        private void Feedback(float amount)
+        {
+            _feedbackTarget = _button != null && _button.IsInteractable() ? amount : 0f;
+            if (_feedback != null || _feedbackTarget <= 0f) return;
+            _feedback=UIBuild.Solid("InteractionFeedback",transform,Color.clear);
+            // 버튼이 알약 · 원형이라 반응 막도 같은 반경을 쓴다. 각진 막이 원 밖으로 비어져 나오지 않는다.
+            float radius = ((RectTransform)transform).rect.width <= 48f ? 20f : 10f;
+            _feedback.sprite=UIShapes.RoundedRect(Mathf.RoundToInt(radius),Color.white);
+            _feedback.type=Image.Type.Sliced;_feedback.raycastTarget=false;
+            UIBuild.Stretch(_feedback.rectTransform);
+        }
+        public void OnPointerEnter(PointerEventData e){_hovered=true;Feedback(.075f);}
+        public void OnPointerExit(PointerEventData e){_hovered=false;_pressed=false;Feedback(_selected ? .075f : 0f);}
+        public void OnPointerDown(PointerEventData e){if(e.button==PointerEventData.InputButton.Left && _button != null && _button.IsInteractable()){_pressed=true;Feedback(.16f);}}
+        public void OnPointerUp(PointerEventData e){if(e.button!=PointerEventData.InputButton.Left)return;_pressed=false;Feedback(_hovered || _selected ? .075f : 0f);}
+        public void OnSelect(BaseEventData e){_selected=true;Feedback(.075f);}
+        public void OnDeselect(BaseEventData e){_selected=false;Feedback(_hovered ? .075f : 0f);}
+        private void OnDisable(){_hovered=_selected=_pressed=false;_pressScale=1f;_motionScale.Reset(transform);_feedbackAmount=_feedbackTarget=0f;if(_feedback!=null)_feedback.color=Color.clear;}
+
 
         private Button _button;
         private TMP_Text _label;
@@ -49,6 +81,13 @@ namespace Managers.UI.Core
             if (_label == null) _label = GetComponentInChildren<TMP_Text>(true);
 
             bool on = _button.IsInteractable();
+            if(!on){_feedbackTarget=0f;_pressed=false;}
+            float scaleTarget = _pressed ? .975f : on && (_hovered || _selected) ? 1.004f : 1f;
+            _pressScale = Mathf.Lerp(_pressScale, scaleTarget, 1f-Mathf.Exp(-Time.unscaledDeltaTime*(_pressed?38f:22f)));
+            _motionScale.Apply(transform, _pressScale);
+            _feedbackAmount=Mathf.MoveTowards(_feedbackAmount,_feedbackTarget,Time.unscaledDeltaTime*2f);
+            if(_feedback!=null){Color ink=LightFeedback?LightFeedbackTint:(_enabledLabelColor.grayscale>.6f && _enabledLabelColor.a>.5f)?Color.white:UITheme.Accent;ink.a=_feedbackAmount;_feedback.color=ink;}
+
             if (on)
             {
                 if (!_shownEnabled)

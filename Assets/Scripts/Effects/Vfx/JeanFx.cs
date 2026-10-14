@@ -12,7 +12,12 @@ namespace Effects.Vfx
         {
             string key = counter ? "jean.iron_sanction" : "jean.holy_strike";
             bool completed = false;
-            VfxRunner.Run(Complete(VfxComposer.PlaySingleTarget(key, caster, target, onImpact,
+            void Impact()
+            {
+                if(counter)PortraitAccentFx.HeavyContact(target,new Color(.67f,.86f,1f),false);
+                onImpact?.Invoke();
+            }
+            VfxRunner.Run(Complete(VfxComposer.PlaySingleTarget(key, caster, target, Impact,
                 counter ? 0.92f : 1f, counter ? 0.34f : 0.46f), () => completed = true));
 
             // fighter 분류의 짧은 후퇴→부분 전진 자체가 시전이며 별도 폭발을 얹지 않는다.

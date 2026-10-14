@@ -70,6 +70,14 @@ namespace Effects.Vfx
         /// 유닛 카드의 <b>정중앙</b>. 투사체의 출발점과 착탄점이 모두 이것이다.
         /// 카드가 날아가는 도중이면 날아가는 자리를 돌려준다.
         /// </summary>
+        public static Vector3 PortraitPoint(Unit unit)
+        {
+            var view = CardMotion.ViewOf(unit);
+            Vector3 point = view != null ? view.PortraitFocusWorldPoint : WorldPoint(unit);
+            point.z = 0f;
+            return point;
+        }
+
         public static Vector3 WorldPoint(Unit unit)
         {
             if (unit == null) return Vector3.zero;
@@ -80,6 +88,39 @@ namespace Effects.Vfx
                 return center;
             }
             return unit.transform.position;
+        }
+
+        /// <summary>실제 HUD 위의 손·가슴 띠에서 시전한다. 전신 원화의 투명 하단은 기준에 넣지 않는다.</summary>
+        public static Vector3 CastPoint(Unit caster, Unit target)
+        {
+            var view=CardMotion.ViewOf(caster);
+            if(view?.PortraitRenderer==null)return PortraitPoint(caster);
+            Bounds bounds=view.PortraitRenderer.bounds;
+            float side=AimFrom(caster,target).Direction.x>=0f?1f:-1f;
+            return new Vector3(bounds.center.x+side*bounds.size.x*.28f,
+                Mathf.Lerp(PortraitHudTop(caster),bounds.max.y,.32f),0f);
+        }
+
+        public static float PortraitHudTop(Unit unit)
+        {
+            var view=CardMotion.ViewOf(unit);
+            if(view?.PortraitRenderer==null)return WorldPoint(unit).y;
+            Bounds bounds=view.PortraitRenderer.bounds;
+            Camera camera=Camera.main;
+            Rect hud=view.HudScreenRect(camera);
+            if(camera==null||hud.height<=0f)return Mathf.Lerp(bounds.min.y,bounds.max.y,.28f);
+            float depth=camera.WorldToScreenPoint(bounds.center).z;
+            return camera.ScreenToWorldPoint(new Vector3(hud.center.x,hud.yMax,depth)).y;
+        }
+
+        public static Vector2 FitCastSize(Unit caster,Vector2 size,float angle)
+        {
+            var view=CardMotion.ViewOf(caster);
+            if(view?.PortraitRenderer==null)return size;
+            float height=(view.PortraitRenderer.bounds.max.y-PortraitHudTop(caster))*.60f/CardSize;
+            float radians=angle*Mathf.Deg2Rad;
+            float rotatedHeight=Mathf.Abs(Mathf.Sin(radians))*size.x+Mathf.Abs(Mathf.Cos(radians))*size.y;
+            return size*Mathf.Min(1f,Mathf.Max(.20f,height)/Mathf.Max(.01f,rotatedHeight));
         }
 
         /// <summary>유닛을 기준으로 만드는 전투 연출의 전용 앞 정렬 레이어.</summary>
@@ -229,7 +270,7 @@ namespace Effects.Vfx
             if (parent != null) go.transform.SetParent(parent, false);
             var renderer = go.AddComponent<SpriteRenderer>();
             renderer.sprite = sprite;
-            renderer.color = color;
+            renderer.color = additive ? BattleVfxStyle.Light(color) : BattleVfxStyle.Body(color, color);
             renderer.sortingLayerID = ResolveSortingLayer(sortingLayer);
             renderer.sortingOrder = order;
             if (additive) renderer.sharedMaterial = Additive;
@@ -259,6 +300,173 @@ namespace Effects.Vfx
         {
             float d = Radius(x, y);
             return new Color(1f, 1f, 1f, Mathf.Clamp01((1f - d) * 18f));
+        });
+
+        /// <summary>원판과 여덟 광선을 한 장에 합성하여 같은 알파로 감쇠하는 자기 강화 태양.</summary>
+        public static Sprite SuryaSunBuff => Cached("surya_sun_buff",128,(x,y)=>
+        {
+            float radius=Radius(x,y);
+            float outer=.525f-radius,inner=.426f-radius;
+            for(int i=0;i<8;i++)
+            {
+                float a=i*45f*Mathf.Deg2Rad;
+                float u=x*Mathf.Cos(a)+y*Mathf.Sin(a),v=-x*Mathf.Sin(a)+y*Mathf.Cos(a);
+                outer=Mathf.Max(outer,Mathf.Min(.107f-Mathf.Abs(u-.787f),.046f-Mathf.Abs(v)));
+                inner=Mathf.Max(inner,Mathf.Min(.090f-Mathf.Abs(u-.787f),.030f-Mathf.Abs(v)));
+            }
+            Color gold=Color.Lerp(new Color(.99f,.75f,.30f),new Color(1f,.87f,.53f),
+                Mathf.Clamp01(.35f+y*.35f-x*.20f));
+            Color color=Color.Lerp(new Color(.14f,.24f,.38f),gold,Mathf.Clamp01(inner*64f+.5f));
+            color.a=Mathf.Clamp01(outer*64f+.5f);
+            return color;
+        });
+
+        // 준비용 발톱은 얇은 광선 텍스처의 빈 여백 대신 실제 선폭을 가진 테이퍼로 그린다.
+        public static Sprite ClawCue => Cached("claw_cue",128,(x,y)=>
+        {
+            float width=.72f*Mathf.Pow(Mathf.Max(0f,1f-x*x),.60f);
+            float edge=Mathf.Clamp01((width-Mathf.Abs(y))*12f);
+            float end=Mathf.Clamp01((1f-Mathf.Abs(x))*12f);
+            return new Color(1f,1f,1f,edge*end);
+        });
+
+        // 주먹 압력의 비어 있는 두꺼운 타원 림. 채움 면 없이 피격 정점에서만 팽창한다.
+        public static Sprite PressureRing => Cached("pressure_ring",128,(x,y)=>
+        {
+            float band=Mathf.Clamp01(1f-Mathf.Abs(Radius(x,y)-.80f)/.18f);
+            return new Color(1f,1f,1f,band*band);
+        });
+
+        // 분리된 파편의 단면. 둥근 암편과 달리 끝점과 두 면이 있는 각진 결정이다.
+        public static Sprite CrystalFacet => Cached("crystal_facet",128,(x,y)=>
+        {
+            float u=x+.12f*y;
+            float inside=.94f-Mathf.Abs(u)/.72f-Mathf.Abs(y)/1.03f;
+            if(inside<=0f)return Color.clear;
+            float alpha=Mathf.Clamp01(inside*40f);
+            if(inside<.060f)return new Color(.10f,.16f,.25f,alpha);
+            float shade=u<.02f?.80f:.97f;
+            Color face=new Color(shade,shade,shade,alpha);
+            if(Mathf.Abs(u-.02f)<.035f)face=new Color(.97f,.97f,.97f,alpha);
+            if(y>.60f)face=new Color(.98f,.91f,.72f,alpha);
+            return face;
+        });
+
+        // 입 앞에서 벌어지는 짧은 숨결. 채운 광구 대신 끝으로 넓어지는 부드러운 쐐기다.
+        public static Sprite BreathCone => Cached("breath_cone",128,(x,y)=>
+        {
+            float h=(x+1f)*.5f;
+            float width=.16f+.64f*h;
+            float edge=Mathf.Clamp01(1f-Mathf.Abs(y)/width);
+            float end=Mathf.Min(Mathf.Clamp01(h*10f),Mathf.Clamp01((1f-h)*6f));
+            return new Color(1f,1f,1f,Mathf.Pow(edge,.8f)*end);
+        });
+
+        public static Sprite SmokeRibbon => Cached("smoke_ribbon",128,(x,y)=>
+        {
+            float center=.62f*Mathf.Sin(x*3.5f);
+            float line=Mathf.Clamp01(1f-Mathf.Abs(y-center)/.48f);
+            float end=Mathf.Clamp01((1f-Mathf.Abs(x))*4f);
+            return new Color(1f,1f,1f,Mathf.Pow(line,1.2f)*end);
+        });
+
+        // 충돌 뒤 흩어지는 얇은 연기 결. 큰 채움 면 대신 S자 곡선의 끝을 부드럽게 지운다.
+        public static Sprite SmokeWisp => Cached("smoke_wisp",128,(x,y)=>
+        {
+            float center=.24f*Mathf.Sin(x*3.5f);
+            float line=Mathf.Clamp01(1f-Mathf.Abs(y-center)/.23f);
+            float end=Mathf.Clamp01((1f-Mathf.Abs(x))*4f);
+            return new Color(1f,1f,1f,line*line*end);
+        });
+
+        // 정화: 양끝이 들린 짧은 물결이 몸에서 떨어져 올라간다. 구속 띠처럼 둘러싸지 않는다.
+        public static Sprite CleanseWave => Cached("cleanse_wave",128,(x,y)=>
+        {
+            float center=.55f*x*x-.18f;
+            float line=Mathf.Clamp01(1f-Mathf.Abs(y-center)/.16f);
+            float end=Mathf.Clamp01((1f-Mathf.Abs(x))*5f);
+            return new Color(1f,1f,1f,line*line*end);
+        });
+
+        // 보호막 전용 가슴께 반구. 면은 비치고 위쪽 가장자리만 3px 전후로 읽힌다.
+        public static Sprite ShieldVeil => Cached("shield_veil",128,(x,y)=>
+        {
+            float d=Mathf.Sqrt(x*x+y*y);
+            if(d>1f||y<-.58f)return Color.clear;
+            float rim=Mathf.Clamp01(1f-Mathf.Abs(d-.88f)/.11f);
+            float lower=Mathf.Clamp01((y+.58f)*8f);
+            float face=.13f*Mathf.Clamp01(1f-d*d);
+            return new Color(1f,1f,1f,Mathf.Clamp01(rim+face)*lower);
+        });
+
+        // 바루나 전용 짧은 흉부 보호막. 공유 보호막 마스크는 유지하고 선택 링과 다른 막/하단 첨점을 쓴다.
+        public static Sprite VarunaBarrier => Cached("varuna_barrier",128,(x,y)=>
+        {
+            if(y<-.85f||y>.92f)return Color.clear;
+            float halfWidth=y>=-.10f
+                ? Mathf.Sqrt(Mathf.Max(0f,.86f*.86f-(y-.06f)*(y-.06f)))
+                : .86f*Mathf.Clamp01((y+.85f)/.75f);
+            float edge=Mathf.Min(halfWidth-Mathf.Abs(x),Mathf.Min(.92f-y,y+.85f));
+            float coverage=Mathf.Clamp01(edge/.025f);
+            float rim=Mathf.Clamp01(1f-edge/.065f);
+            float surface=.18f+.04f*Mathf.Clamp01(y+.1f);
+            return new Color(1f,1f,1f,coverage*(surface+rim*(1f-surface)));
+        });
+
+        // 단발 피격 전용 혀: 속성 배지의 채운 바닥 없이 위로 좁아지는 부드러운 화염.
+        public static Sprite FlameLick => Cached("flame_lick",128,(x,y)=>
+        {
+            float h=Mathf.Clamp01((y+.88f)/1.75f);
+            if(y<-.88f||y>.87f)return Color.clear;
+            float center=.16f*Mathf.Sin(h*4.4f)-.10f*h;
+            float width=.55f*Mathf.Sin(Mathf.PI*h)*Mathf.Pow(1f-h,.35f)+.015f;
+            float edge=Mathf.Clamp01(1f-Mathf.Abs(x-center)/width);
+            float end=Mathf.Clamp01(h*10f)*Mathf.Clamp01((1f-h)*12f);
+            return new Color(1f,1f,1f,edge*edge*end);
+        });
+
+        private static readonly Vector2[] FlameOutline =
+        {
+            new(0,-.84f),new(-.48f,-.68f),new(-.65f,-.25f),new(-.54f,.13f),
+            new(-.34f,.52f),new(-.30f,.08f),new(-.08f,.40f),new(.04f,.93f),
+            new(.22f,.47f),new(.18f,.13f),new(.47f,.57f),new(.59f,.12f),
+            new(.66f,-.30f),new(.42f,-.68f)
+        };
+
+        /// <summary>세 갈래 끝과 패인 골이 있는 불꽃. 갑주의 렌즈형 장식과 구분한다.</summary>
+        public static Sprite FlameTongue => Cached("flame_tongue",128,(x,y)=>
+        {
+            Vector2 p=new(x,y);bool inside=false;float distance=2f;
+            for(int i=0,j=FlameOutline.Length-1;i<FlameOutline.Length;j=i++)
+            {
+                Vector2 a=FlameOutline[j],b=FlameOutline[i],ab=b-a;
+                float t=Mathf.Clamp01(Vector2.Dot(p-a,ab)/ab.sqrMagnitude);
+                distance=Mathf.Min(distance,(p-a-ab*t).magnitude);
+                if((a.y>y)!=(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)inside=!inside;
+            }
+            float alpha=inside?Mathf.Clamp01(distance*40f):0f;
+            float shade=.70f+.30f*Mathf.Clamp01(1f-Mathf.Abs(x)*1.2f);
+            return new Color(shade,shade,shade,alpha);
+        });
+
+        /// <summary>속이 비치는 독 기포. 채운 원판 대신 얇은 가장자리와 비대칭 광택을 쓴다.</summary>
+        public static Sprite ToxicBubble => Cached("toxic_bubble",128,(x,y)=>
+        {
+            float d=Radius(x,y);
+            float edge=Mathf.Clamp01((.97f-d)*35f);
+            float rim=Mathf.Clamp01(1f-Mathf.Abs(d-.86f)/.10f);
+            float lower=Mathf.Clamp01((-y+.15f)*.6f);
+            float alpha=(.18f+lower*.24f+rim*.34f)*edge;
+            float shade=.72f+.28f*Mathf.Clamp01((y-x+1f)*.5f);
+            return new Color(shade,shade,shade,alpha);
+        });
+
+        public static Sprite BubbleHighlight => Cached("bubble_highlight",128,(x,y)=>
+        {
+            float d=Radius(x,y);
+            float arc=Mathf.Clamp01(1f-Mathf.Abs(d-.76f)/.075f);
+            float side=Mathf.Clamp01((-x+y-.15f)*3f);
+            return new Color(1f,1f,1f,arc*side);
         });
 
         /// <summary>두께가 있는 고리. 충격파에 쓴다.</summary>
@@ -359,6 +567,47 @@ namespace Effects.Vfx
             float d = Mathf.Sqrt(qx * qx + qy * qy) - r;
             return new Color(1f, 1f, 1f, Mathf.Clamp01(-d * 60f));
         });
+
+        /// <summary>상태 기호의 직선. 부드러운 빛살 대신 균일한 선폭을 유지한다.</summary>
+        public static Sprite GlyphLine => Cached("glyph_line", 128, (x, y) =>
+            new Color(1, 1, 1, Mathf.Clamp01((1f-Mathf.Abs(y))*12f)*Mathf.Clamp01((1f-Mathf.Abs(x))*16f)));
+
+        public static Sprite Crescent => Cached("crescent", 128, (x, y) =>
+        {
+            float outer=Mathf.Clamp01((.94f-Radius(x,y))*24f);
+            float hole=Mathf.Clamp01((Radius(x-.34f,y-.04f)-.82f)*24f);
+            return new Color(1,1,1,outer*hole);
+        });
+
+        // 달빛 축복은 빈 고리보다 면이 넓은 초승달로 읽힌다. 기존 공격용 달 시트는 유지한다.
+        public static Sprite BlessingMoon => Cached("blessing_moon", 128, (x, y) =>
+        {
+            float outer = Mathf.Clamp01((.88f - Radius(x, y)) * 28f);
+            float hole = Mathf.Clamp01((Radius(x - .40f, y - .03f) - .72f) * 28f);
+            float light = Mathf.Lerp(.78f, 1f, Mathf.Clamp01((y + 1f) * .5f));
+            return new Color(light, light, 1f, outer * hole);
+        });
+
+        public static Sprite HourglassGlyph => Cached("hourglass_glyph", 128, (x, y) =>
+        {
+            float ay = Mathf.Abs(y), ax = Mathf.Abs(x);
+            float cap = Mathf.Clamp01((.64f - ax) * 28f) * Mathf.Clamp01((.09f - Mathf.Abs(ay - .79f)) * 28f);
+            float width = .09f + .54f * ay / .70f;
+            float glass = Mathf.Clamp01((.71f - ay) * 28f) * Mathf.Clamp01((width - ax) * 28f);
+            float rim = Mathf.Clamp01((.09f - Mathf.Abs(ax - width)) * 28f) * Mathf.Clamp01((.74f - ay) * 28f);
+            return new Color(1f, 1f, 1f, Mathf.Max(cap, Mathf.Max(rim, glass * .32f)));
+        });
+
+        public static Sprite HourglassSand => Cached("hourglass_sand", 128, (x, y) =>
+        {
+            float ay = Mathf.Abs(y), width = (ay - .07f) * .64f;
+            float alpha = Mathf.Clamp01((width - Mathf.Abs(x)) * 28f)
+                * Mathf.Clamp01((.59f - ay) * 28f) * Mathf.Clamp01((ay - .07f) * 28f);
+            return new Color(1f, 1f, 1f, alpha);
+        });
+
+        public static Sprite Diamond => Cached("diamond", 128, (x, y) =>
+            new Color(1,1,1,Mathf.Clamp01((.92f-Mathf.Abs(x)-Mathf.Abs(y))*24f)));
 
         private static float Radius(float x, float y) => Mathf.Sqrt(x * x + y * y);
 

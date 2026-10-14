@@ -44,5 +44,8 @@ TagManager:
   - name: CombatVfx
     uniqueID: 3245927151
     locked: 0
+  - name: CombatHud
+    uniqueID: 3917642708
+    locked: 0
   m_RenderingLayers:
   - Default

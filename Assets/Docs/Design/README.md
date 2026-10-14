@@ -1,92 +1,51 @@
-# NeverTheLast 기획서 체계
+# NeverTheLast 현행 기획서
 
-기획 문서는 **3계층**으로 나뉜다. 아래로 갈수록 구체적이고, 아래로 갈수록 자주 바뀐다.
+최종 갱신: **2026-10-14** · 개발 기준: **main**
 
-```
-┌─ 메인 기획서 ─────────────────────────────────────┐
-│  이 게임이 무엇이고 왜 재미있는가                  │
-│  수치 없음. "많다 / 적다"로만 표현                 │
-│  → 거의 바뀌지 않는다                              │
-└───────────────────────────────────────────────────┘
-              ↓ 무엇을 만드는가
-┌─ 서브 기획서 ─────────────────────────────────────┐
-│  게임에 등장하는 모든 개념의 정의와 관계           │
-│  개념의 존재 이유와 다른 개념과의 연결             │
-│  → 시스템 구조가 바뀔 때만 바뀐다                  │
-└───────────────────────────────────────────────────┘
-              ↓ 어떻게 동작하는가
-┌─ 상세 기획서 (여러 장) ───────────────────────────┐
-│  공식, 수치, 데이터 스키마, 현재 콘텐츠 목록       │
-│  → 밸런싱·콘텐츠 추가마다 바뀐다                   │
-└───────────────────────────────────────────────────┘
-```
+이 폴더는 현재 게임의 설계 기준이다. `legacy`와 [문서 보관소](../../../Docs/Archive/README.md)는 과거 자료다.
+작업 보고서나 채택 전 초안을 현재 사양으로 읽지 않는다. 구현 여부는 실행 코드·YAML·씬 직렬화와 대조한다.
 
----
+## 읽는 순서
 
-## 문서 목록
+1. [게임 방향](GDD_Main.md): 어떤 선택과 경험을 만드는가.
+2. [공통 용어](GDD_Sub_Concepts.md): 진행·행동·자원·상태를 어떻게 구분하는가.
+3. 아래 상세 사양: 수치, 판정, 구현 위치와 데이터 원본.
+4. [남은 결정과 검증](Design_Backlog.md): 미구현 제안 및 아직 완료되지 않은 검수.
 
-### 1계층 — 메인 기획서
+## 상세 사양
 
-| 문서 | 내용 |
-| --- | --- |
-| [GDD_Main.md](GDD_Main.md) | 게임 개요, 디자인 필러, 플레이어 경험, 게임 루프, 시스템 지도, 콘텐츠 볼륨 |
+| 문서 | 범위 | 데이터·구현 기준 |
+| --- | --- | --- |
+| [01 진행](Detail_01_Progression.md) | 8라운드 테마·초반 범용 구간·24층 고정 보스·정산 | RoundManager, 70/80_stages, 60_enemies |
+| [02 전투](Detail_02_Combat.md) | AV·피해·치명타·효과 명중/저항·상태·강인도 | ActionScheduler, Unit, DamageMitigation |
+| [03 캐릭터](Detail_03_Character.md) | 8스탯·레벨·초월 자원·소환·ID | UnitStats, 10_units |
+| [05 경제](Detail_05_Economy.md) | 골드·상점·공용 보급·휴식·유료 추가 보상 | RewardManager, InventoryManager, 40_items |
+| [06 사건](Detail_06_Events.md) | 서사 슬롯·선택·VN·복구 사건 | EventScheduler, 00_intro, 80_stages |
+| [07 UI·기술](Detail_07_UI_Tech.md) | 화면 정보 구조·미술/연출 규약·저장·검증 | UITheme, CardView, VerifyHarnessRunner |
+| [08 아군](Detail_08_Confirmed_Characters.md) | 현재 구현된 캐릭터의 상세 전투 사양 | 10_units, 20_codes, CodeFactory |
+| [09 적](Detail_09_Enemy_Catalog.md) | 운영 적과 복구 테마의 8스탯 이관 | 60_enemies, LegacyEnemyCodes |
+| [10 보스](Detail_10_Boss_Catalog.md) | 테마 엘리트·보스·24층 스펙 시험 | 60_enemies, 80_stages |
+| [11 고유 코드](Detail_11_Code_Catalog.md) | 아군 슬롯별 코드·적 코드 색인 | 20_codes, CodeFactory |
+| [12 코드 슬롯](Detail_12_Code_Weapon_Catalog.md) | 고유 슬롯·보상 활성/보관·교환 | Unit, RewardCodeCatalog |
+| [13 보상](Detail_13_Reward_Catalog.md) | 생성·티어 분포·즉시 보상 | 90_rewards, RewardManager |
+| [15 편성](Detail_15_Party_Synergy.md) | 역할·기믹 축·추천 조합 | 30_synergies, SynergyCatalog |
+| [16 원소](Detail_16_Elements.md) | 속성과 부착·반응 행렬·지속피해 | ElementalReactions, ActionDot |
+| [17 보상 코드](Detail_17_Reward_Codes.md) | 현행 전체 코드·소모품·축전기·경제 판정 | 20_codes, 40_items, RewardCodeFactory |
+| [18 재보](Detail_18_Treasury.md) | 아군 공용 자원·쿠베라·만사 무사·이슈타르 | PartyTreasury, TreasuryActionContext |
 
-### 2계층 — 서브 기획서
+04 훈련·14 장비는 폐지된 문서이므로 보관소로 이동했다. 기존 번호는 이력과의 대조를 위해 재배정하지 않는다.
+12의 파일명은 기존 참조 호환을 위해 유지하지만 현재 내용은 무기 체계가 아닌 코드 슬롯이다.
 
-| 문서 | 내용 |
-| --- | --- |
-| [GDD_Sub_Concepts.md](GDD_Sub_Concepts.md) | 전 시스템의 개념 정의와 개념 간 관계도 |
+## 서사와 미구현 제안
 
-### 3계층 — 상세 기획서
+- [서사 설정](../Narrative/README.md): 세이·프랑스 인물 설정과 첫 인사 원고. 원고는 런타임 구현과 구분한다.
+- [미구현 캐릭터](../Proposals/Unimplemented_Characters.md): 브라다만테·아스톨포·라부아지에·아스클레피아. 🔸 제안이며 플레이 가능 목록에 포함하지 않는다.
+- [과거 문서](../../../Docs/Archive/README.md): 이전 기획, AI 검토 메모리, UI/VFX 검수 기록과 변경 전 사양.
 
-| 문서 | 다루는 범위 |
-| --- | --- |
-| [Detail_01_Progression.md](Detail_01_Progression.md) | 런 진행, 스테이지·라운드·테마, 적 편성·스케일링, 생명력 |
-| [Detail_02_Combat.md](Detail_02_Combat.md) | 전장, 행동치, 피해 · 경감 공식, 효과 명중, 보호막, 제어, 피해 태그, 상태, 이벤트 훅, 카드 연출 |
-| [Detail_03_Character.md](Detail_03_Character.md) | 8스탯과 선형 성장, 레벨 · 마나, 코드 3분류, 집중, 캐릭터 데이터 스키마 |
-| [Detail_04_Training.md](Detail_04_Training.md) | **폐지** — 2026-09 개편으로 사라진 훈련 체계의 목록 |
-| [Detail_05_Economy.md](Detail_05_Economy.md) | 골드·토큰·티켓, 공용 인벤토리, 식량과 짧은/긴 휴식 |
-| [Detail_06_Events.md](Detail_06_Events.md) | 사건 데이터 스키마, 선택지 액션, VN 연출 필드, 현재 사건 |
-| [Detail_07_UI_Tech.md](Detail_07_UI_Tech.md) | UI 화면 구성, 매니저 구조, 데이터 파일, 저장 시스템 |
-| [Detail_08_Confirmed_Characters.md](Detail_08_Confirmed_Characters.md) | 확정 캐릭터의 전투 사양, 해금 패시브, 아트 자산과 남은 작업 |
-| [Detail_09_Enemy_Catalog.md](Detail_09_Enemy_Catalog.md) | 적 스탯 규격, 테마별 로스터, 스테이지 편성 |
-| [Detail_10_Boss_Catalog.md](Detail_10_Boss_Catalog.md) | 중간 보스와 최종 보스의 사양·공략 축·미결 |
-| [Detail_11_Code_Catalog.md](Detail_11_Code_Catalog.md) | **ID별 코드 효과 색인.** 아군·적 전체를 분류별·ID순으로 |
-| [Detail_12_Code_Weapon_Catalog.md](Detail_12_Code_Weapon_Catalog.md) | 플레이어 코드 슬롯 규칙과 폐지된 숙련 이력 |
-| [Detail_13_Reward_Catalog.md](Detail_13_Reward_Catalog.md) | 보상 풀, 티어 확률, 테마 전용·사건 전용 보상의 관리 목록 |
-| [Detail_14_Equipment_Catalog.md](Detail_14_Equipment_Catalog.md) | **폐지** — 장비 체계 제거와 저장 마이그레이션 이력 |
-| [Detail_15_Party_Synergy.md](Detail_15_Party_Synergy.md) | 역할군, 조합 아키타입, 메인별 추천 편성, 로스터의 빈 구멍 |
-| [Detail_16_Elements.md](Detail_16_Elements.md) | **원소와 원소 반응.** 속성·부착 두 축, 28쌍 반응 행렬, 우선순위, 반응 코드, 아군 부착 수단, 전장 상태, 테마별 반응 설계 |
+## 유지 규칙
 
-### 미결 — 기획 백로그
+현행 규칙은 해당 상세 문서 한 곳에 두고 다른 문서는 링크한다. 채택되면 제안의 상태를 바꾸고 백로그에서 해결된 항목을 제거한다.
+미구현은 `🔸`, 구현되었으나 실측이 남은 것은 `🔸 검증 필요`로 구분한다. 날짜별 작업 보고를 본문에 누적하지 않는다.
+문서 수정 시 갱신일과 실제 코드/데이터의 경로를 맞춘다. 이번 정리는 게임 규칙·수치·저장 데이터를 변경하지 않는다.
 
-| 문서 | 내용 |
-| --- | --- |
-| [Design_Backlog.md](Design_Backlog.md) | **결정이 필요한 항목 11개.** 코드·데이터로 해결할 수 없고 설계 판단이 선행되어야 하는 것들 |
-
-> 결정이 끝난 항목은 해당 상세 기획서로 옮기고 백로그에서 지운다.
-
----
-
-## 관련 문서 (기획서 외)
-
-| 문서 | 역할 |
-| --- | --- |
-| [CLAUDE.md](../../../CLAUDE.md) | 코드 구조와 콘텐츠 추가 절차(유닛·테마·공용 아이템·상태) |
-
-> 2026-09-18 정리: 옛 스크립트 설명(README), 병합 직후 절차서, 전투 UI 초안, 메히코 구현 기록,
-> 스탯 보정 감사, 2025년 개발 리포트(`Assets/Instructions`, `Docs/Report`)는 내용이 상세 기획서로
-> 옮겨졌거나 낡아 지웠다. 필요하면 git 이력에서 꺼낸다.
->
-> 2026-09-25 8스탯 전면 개편: 라부아지에 설계 원본, 일본 천공 · 해안 전선 설계 원본, 페이퍼돌 아트 규격(`CharacterView`)은
-> 대상이 사라져 지웠다. 커밋 `a6194c9`에 남아 있다.
-
----
-
-## 작성 규칙
-
-1. **계층을 넘나들지 않는다.** 메인에 수치를 쓰지 않고, 상세에 비전을 쓰지 않는다.
-2. **수치는 상세 기획서에만 존재한다.** 같은 수치가 두 문서에 있으면 반드시 하나는 썩는다.
-3. **미구현은 🔸로 표기한다.** 기획은 있으나 코드가 없는 것, 코드는 있으나 값이 죽어 있는 것 모두.
-4. **상세 기획서를 고칠 때 데이터 파일도 같이 고친다.** 상세 기획서는 `Assets/Resources/Data/*.yaml`과 코드의 거울이다.
-5. 문서 상단에 **최종 갱신일**을 남긴다.
+부분 기능 검사나 특정 화면 PASS를 게임 전체 QA·성능·상용 미술 승인으로 확대하지 않는다. 남은 검수는 백로그에서 확인한다.

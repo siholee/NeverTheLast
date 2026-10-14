@@ -21,6 +21,8 @@ using UnityEngine;
 /// </summary>
 public static class DemoBuild
 {
+    public static BuildReport LastReport { get; private set; }
+
     public const string OutputDirectory = "Builds/NeverTheLast_Demo_Win64";
     public const string ExecutableName = "NeverTheLast.exe";
 
@@ -44,6 +46,7 @@ public static class DemoBuild
 
     private static void Build(string outputDirectory, string productName, BuildTarget target)
     {
+        LastReport = null;
         string[] scenes = EditorBuildSettings.scenes
             .Where(scene => scene.enabled)
             .Select(scene => scene.path)
@@ -63,6 +66,7 @@ public static class DemoBuild
         };
 
         BuildReport report = BuildPipeline.BuildPlayer(options);
+        LastReport = report;
         BuildSummary summary = report.summary;
         Debug.Log($"[DemoBuild] {target} 결과 {summary.result} · 오류 {summary.totalErrors} · 경고 {summary.totalWarnings} · " +
                   $"{summary.totalSize / (1024f * 1024f):0.0}MB · {summary.totalTime}");

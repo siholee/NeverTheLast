@@ -19,7 +19,7 @@ namespace Managers
     /// 그래서 프레임 수·연출 길이가 순서에 영향을 주지 않는다.
     ///
     /// 우선순위 — 낮을수록 먼저다.
-    ///   0 패시브 발동 → 1 추가행동 → 2 궁극기 → 3 일반행동
+    ///   0 우선 추가행동 → 2 추가행동 → 3 협동행동 → 4 특수행동 → 5 궁극기 → 6 일반행동
     /// 유닛의 턴이 열리면 상태·주기 효과가 먼저 진행되고(패시브가 여기서 줄을 선다),
     /// 그 다음 추가행동, 마지막으로 그 턴의 일반행동이 나간다.
     ///
@@ -91,6 +91,12 @@ namespace Managers
         /// <summary>행동치 조작을 행동서열이 작은 표식과 보간 이동으로 설명할 때 쓴다.</summary>
         public static event Action<Unit, bool> AnyActionOrderAdjusted;
 
+        /// <summary>
+        /// 실행된 행동 하나가 끝났다(유닛 · 종류). 코루틴 행동은 시전이 끝날 때, 즉발 행동은 실행 직후 발행한다.
+        /// "특수행동을 마칠 때마다"(인드라 소집 순환 · 찬드라 달빛 순환)처럼 <b>종류별 종료</b>를 세는 코드가 듣는다.
+        /// </summary>
+        public static event Action<Unit, ActionKind> AnyActionFinished;
+
         /// <summary>턴을 쓰지 않는 추가행동 계열인가. 우선 추가행동도 성질은 같다.</summary>
         public static bool IsAdditional(ActionKind kind)
             => kind is ActionKind.Additional or ActionKind.PriorityAdditional;
@@ -104,6 +110,7 @@ namespace Managers
             public string Label;
             public Action Run;
             public Func<bool> CanRun;
+            public Action Cancel;
             public int Sequence;   // 같은 우선순위 안에서는 먼저 예약된 것이 먼저다
         }
 
@@ -146,8 +153,52 @@ namespace Managers
         private readonly Dictionary<Unit, float> _lapCredit = new();
         private readonly List<PendingAction> _queue = new();
         private readonly HashSet<string> _queuedKeys = new();
+        private List<Reservation> _forecastCache = new();
+        private readonly List<ForecastUnitInput> _forecastUnits = new();
+        private readonly List<ForecastQueueInput> _forecastQueue = new();
+        private bool _forecastValid;
+        private int _forecastRequestedCount;
 
+        private struct ForecastUnitInput
+        {
+            public Unit Unit;
+            public float Value, Credit, Speed;
+            public int Turns;
+            public bool Active, Summon;
+            public string Label;
+        }
+        private struct ForecastQueueInput
+        {
+            public PendingAction Entry;
+            public Unit Unit;
+            public ActionKind Kind;
+            public int Sequence;
+            public string Label;
+            public bool Active;
+        }
+
+
+        private PendingAction _previewing;
+        private float _previewRemaining;
+        private float _resultRemaining;
+        // 초 단위 대기는 연출 전용이다. AV·턴·상태 기간·발동 횟수는 바꾸지 않는다.
+        public const float PreviewSeconds = .36f;
+        public const float ResultSeconds = .42f;
+        public bool IsPresenting => _previewing != null || _resultRemaining > 0 || _acting != null;
         private Unit _acting;
+        // 선제 개입이 ActingKind를 잠시 바꿔도 끝난 행동의 종류를 정확히 알리기 위해 따로 든다.
+        private ActionKind _actingRootKind;
+        private int _actingRootActionId = -1;
+        private int _interruptDepth;
+        private int _roundGeneration;
+        private float _interruptElapsed;
+        private sealed class InterruptFrame
+        {
+            public Unit Unit;
+            public int ActionId;
+            public bool Started;
+        }
+        private readonly List<InterruptFrame> _interrupts = new();
         private float _actingElapsed;
         private int _sequence;
         private int _actionIdSequence;
@@ -156,6 +207,8 @@ namespace Managers
         private Unit _executingUnit;
         /// <summary>코루틴뿐 아니라 즉발 행동의 콜백 안에서도 현재 실행자를 식별한다.</summary>
         public Unit ExecutingUnit => _currentActionId >= 0 ? _executingUnit : null;
+        /// <summary>예고 뒤 실행을 기다리는 유닛. 취소된 예고 UI를 정리할 때만 조회한다.</summary>
+        public Unit PreviewUnit => _previewing?.Unit;
 
         /// <summary>이번 라운드에 해결된 행동 수. 전역 행동 카운트다.</summary>
         public int ActionCount { get; private set; }
@@ -176,7 +229,7 @@ namespace Managers
         public float CombatSecondsElapsed { get; private set; }
 
         /// <summary>현재 행동 중인 유닛. 없으면 null.</summary>
-        public Unit ActingUnit => _acting;
+        public Unit ActingUnit => _acting ?? _previewing?.Unit;
 
         /// <summary>지금 턴을 진행 중인 유닛. 본 행동이 끝날 때까지 유지된다.</summary>
         public Unit TurnOwner { get; private set; }
@@ -187,6 +240,12 @@ namespace Managers
 
         public void BeginRound()
         {
+            _roundGeneration++;
+            _interruptDepth = 0;
+            _interruptElapsed = 0f;
+            _interrupts.Clear();
+            _actingRootActionId = -1;
+            Combat.ActionDot.ResetClock();
             Combat.SpecialAction.Reset();
             Combat.AttackTargetRouter.ResetRound();
             _actionValues.Clear();
@@ -194,6 +253,7 @@ namespace Managers
             _lapCredit.Clear();
             ClearQueue();
             _acting = null;
+            _previewing = null; _resultRemaining = 0;
             TurnOwner = null;
             _actingElapsed = 0f;
             _currentActionId = -1;
@@ -251,12 +311,23 @@ namespace Managers
 
         public void EndRound()
         {
+            _forecastValid = false;
+            _forecastCache.Clear();
+            _forecastUnits.Clear();
+            _forecastQueue.Clear();
+            _roundGeneration++;
+            _interruptDepth = 0;
+            _interruptElapsed = 0f;
+            _interrupts.Clear();
+            _actingRootActionId = -1;
+            _executingUnit = null;
             Combat.SpecialAction.Reset();
             _actionValues.Clear();
             _turnCounts.Clear();
             _lapCredit.Clear();
             ClearQueue();
             _acting = null;
+            _previewing = null; _previewRemaining = _resultRemaining = 0;
             _currentActionId = -1;
             TurnOwner = null;
         }
@@ -332,6 +403,10 @@ namespace Managers
         public bool EnqueueAdditional(Unit unit, string key, string label, Action run)
             => Enqueue(unit, ActionKind.Additional, key, label, run);
 
+        /// <summary>실행 직전 대상이 사라지면 공지 · 이벤트 없이 버리는 추가행동(아그니 · 수리야의 추공).</summary>
+        public bool EnqueueAdditional(Unit unit, string key, string label, Action run, Func<bool> canRun, Action cancelled = null)
+            => Enqueue(unit, ActionKind.Additional, key, label, run, canRun, cancelled);
+
         /// <summary>조건을 만족한 패시브 발동을 예약한다. 모든 행동보다 먼저 실행된다.</summary>
         /// <summary>패시브가 부르는 추가행동. 같은 턴의 다른 행동보다 먼저 나간다.</summary>
         public bool EnqueuePriorityAdditional(Unit unit, string key, string label, Action run)
@@ -339,8 +414,8 @@ namespace Managers
 
         /// <summary>실행 직전 조건이 깨지면 공지·이벤트 없이 버리는 우선 추가행동.</summary>
         public bool EnqueuePriorityAdditional(Unit unit, string key, string label, Action run,
-            Func<bool> canRun)
-            => Enqueue(unit, ActionKind.PriorityAdditional, key, label, run, canRun);
+            Func<bool> canRun, Action cancelled = null)
+            => Enqueue(unit, ActionKind.PriorityAdditional, key, label, run, canRun, cancelled);
 
         /// <summary>
         /// 협동행동을 예약한다. 짝의 행동에 끼어들어 함께 치는 자리다.
@@ -358,7 +433,7 @@ namespace Managers
             => Enqueue(unit, ActionKind.Special, key, label, run, canRun);
 
         private bool Enqueue(Unit unit, ActionKind kind, string key, string label, Action run,
-            Func<bool> canRun = null)
+            Func<bool> canRun = null, Action cancelled = null)
         {
             if (unit == null || run == null) return false;
             if (!unit.isActive) return false;
@@ -374,6 +449,7 @@ namespace Managers
                 Label = label,
                 Run = run,
                 CanRun = canRun,
+                Cancel = cancelled,
                 Sequence = _sequence++,
             });
             return true;
@@ -386,7 +462,27 @@ namespace Managers
         /// <summary>매 프레임 호출. 라운드 진행 중에만 돌린다.</summary>
         public void Tick(float deltaTime)
         {
+            // 일시정지는 즉발 코드·AV·상태 턴 진행까지 함께 멈춘다.
+            if(deltaTime<=0) return;
             SyncParticipants();
+            // 부모가 선제 반격의 정점에서 쓰러져도 자식의 잔여 연출·완료 판정을 먼저 끝낸다.
+            if (_interruptDepth > 0)
+            {
+                _interruptElapsed += deltaTime;
+                if (_interruptElapsed < ActionWatchdogSeconds) return;
+                AbortInterruptedAction();
+            }
+            if(_resultRemaining>0) { _resultRemaining=Mathf.Max(0,_resultRemaining-deltaTime); return; }
+            if(_previewing!=null)
+            {
+                _previewRemaining-=deltaTime;
+                if(_previewRemaining>0) return;
+                var ready=_previewing; _previewing=null;
+                if(ready.Unit!=null && ready.Unit.isActive && !ready.Unit.isControlled &&
+                    (ready.CanRun==null || ready.CanRun())) ExecuteQueued(ready);
+                else { ready.Cancel?.Invoke(); if(ready.Kind==ActionKind.Special)Combat.SpecialAction.NotifyResolved(ready.Unit); }
+                return;
+            }
 
             // 1) 누군가 행동 중이면 끝날 때까지 기다린다. 한 번에 하나만 행동한다.
             if (_acting != null)
@@ -399,12 +495,23 @@ namespace Managers
                 if (!finished)
                 {
                     Debug.LogWarning($"[ActionScheduler] {_acting.UnitName}의 행동이 {ActionWatchdogSeconds}초를 넘겨 강제 종료합니다.");
+                    StopActingCoroutine();
                     _acting.isCasting = false;
                 }
 
+                Unit finishedUnit = _acting;
                 _acting = null;
+                _currentActionId = _actingRootActionId;
+                ActingKind = _actingRootKind;
+                _executingUnit = finishedUnit;
+                Combat.ActionDot.OnActionFinished(finishedUnit, _actingRootKind);
+                AnyActionFinished?.Invoke(finishedUnit, _actingRootKind);
                 _actingElapsed = 0f;
                 _currentActionId = -1;
+                _actingRootActionId = -1;
+                _executingUnit = null;
+                _resultRemaining=ResultSeconds;
+                return;
             }
 
             // 2) 자원이 찬 궁극기를 예약한다. 턴과 무관하므로 매번 훑는다.
@@ -427,14 +534,50 @@ namespace Managers
         }
 
         /// <summary>전투에 참여 중인 유닛(필드 위 · 활성 · 벤치 제외).</summary>
+        private void StopActingCoroutine()
+        {
+            if (_acting == null) return;
+            // 연출 상한을 넘긴 행동의 뒤늦은 타격이 다음 행동에 섞이지 않게 판정 루틴도 중단한다.
+            _acting.StopAllCoroutines();
+            if (_actingRootKind == ActionKind.Normal) _acting.ActiveNormalCode?.StopCode();
+            else if (_actingRootKind == ActionKind.Special) _acting.ActiveSpecialCode?.StopCode();
+            else if (_actingRootKind == ActionKind.Ultimate) _acting.ActiveUltimateCode?.StopCode();
+        }
+
+        private void AbortInterruptedAction()
+        {
+            Debug.LogWarning($"[ActionScheduler] 선제 개입이 {ActionWatchdogSeconds}초를 넘겨 중단합니다.");
+            _roundGeneration++;
+            _interruptDepth = 0;
+            _interruptElapsed = 0f;
+            StopActingCoroutine();
+            foreach (InterruptFrame frame in _interrupts.AsEnumerable().Reverse())
+            {
+                if (!frame.Started) continue;
+                _currentActionId = frame.ActionId;
+                _executingUnit = frame.Unit;
+                ActingKind = ActionKind.PriorityAdditional;
+                Combat.ActionDot.OnActionFinished(frame.Unit, ActionKind.PriorityAdditional);
+                AnyActionFinished?.Invoke(frame.Unit, ActionKind.PriorityAdditional);
+            }
+            _interrupts.Clear();
+            _currentActionId = _actingRootActionId;
+            _executingUnit = _acting;
+            ActingKind = _actingRootKind;
+            if (_acting != null) _acting.isCasting = false;
+        }
+
+        /// <summary>전투에 참여 중인 유닛(필드 위 · 활성 · 벤치 제외).</summary>
         private static IEnumerable<Unit> Participants()
         {
             GridManager grid = GridManager.Instance;
             if (grid == null) return Enumerable.Empty<Unit>();
 
-            // 소환수도 자기 DEX로 행동 순서를 얻는다. IsOnField가 칸 유무를 흡수한다.
+            // 소환수는 칸이 없어 별도 목록에 있다. 행동치를 가진 소환수만 순서에 낀다 —
+            // 소환자 코드가 지시할 때만 움직이는 소환수는 IsOnField여도 스케줄러가 부르지 않는다.
             return grid.heroList.Concat(grid.enemyList)
-                .Where(unit => unit != null && unit.IsOnField);
+                .Where(unit => unit != null && unit.IsOnField)
+                .Concat(grid.summonList.Where(unit => unit != null && unit.IsOnField && unit.TakesScheduledTurns));
         }
 
         /// <summary>새로 등장했거나 사라진 유닛을 AV 표에 반영한다.</summary>
@@ -449,7 +592,8 @@ namespace Managers
                 _actionValues[unit] = FullActionValue(unit);
                 // 턴 수는 지금 가장 적게 행동한 유닛에 맞춘다. 0으로 들이면 모두가 새 유닛을
                 // 기다리느라 멈추고, 가장 많이 행동한 쪽에 맞추면 새 유닛이 한 바퀴 늦게 선다.
-                _turnCounts[unit] = _turnCounts.Count > 0 ? _turnCounts.Values.Min() : 0;
+                _turnCounts[unit] = current.Where(other => !other.IsSummon && _turnCounts.ContainsKey(other))
+                    .Select(other => _turnCounts[other]).DefaultIfEmpty(0).Min();
             }
 
             // 죽거나 벤치로 내려간 유닛은 제외한다.
@@ -470,16 +614,11 @@ namespace Managers
                 _queue.RemoveAt(i);
             }
 
-            if (_acting != null && !_acting.isActive)
-            {
-                _acting = null;
-                _currentActionId = -1;
-            }
             if (TurnOwner != null && !TurnOwner.isActive) TurnOwner = null;
         }
 
         /// <summary>우선순위가 가장 높은 예약 하나를 실행한다.</summary>
-        private bool RunNextQueued()
+        private bool RunNextQueued(bool immediate = false)
         {
             while (_queue.Count > 0)
             {
@@ -494,13 +633,27 @@ namespace Managers
                 if (next.Unit == null || !next.Unit.isActive || next.Unit.isControlled ||
                     (next.CanRun != null && !next.CanRun()))
                 {
+                    next.Cancel?.Invoke();
                     if (next.Kind == ActionKind.Special) Combat.SpecialAction.NotifyResolved(next.Unit);
                     continue;
                 }
 
+                Combat.ActionAnnouncer.AnnounceScheduled(next.Unit,next.Kind,next.Label);
+                if(immediate) ExecuteQueued(next);
+                else { _previewing=next; _previewRemaining=PreviewSeconds; }
+                return true;
+            }
+
+            return false;
+        }
+
+        private void ExecuteQueued(PendingAction next)
+        {
                 _actingElapsed = 0f;
                 _currentActionId = ++_actionIdSequence;
+                _actingRootActionId = _currentActionId;
                 ActingKind = next.Kind;
+                _actingRootKind = next.Kind;
                 _executingUnit = next.Unit;
 
                 // 추가행동은 자기 턴을 쓰지 않아 OnTurnStart로는 잡히지 않는다.
@@ -522,7 +675,14 @@ namespace Managers
                         new EventContext(next.Unit));
                 }
 
-                Combat.ActionAnnouncer.AnnounceScheduled(next.Unit, next.Kind, next.Label);
+                Combat.ActionDot.OnActionStarted(next.Unit, next.Kind);
+                if (!next.Unit.isActive)
+                {
+                    if (next.Kind == ActionKind.Special) Combat.SpecialAction.NotifyResolved(next.Unit);
+                    _currentActionId = -1;
+                    _executingUnit = null;
+                    return;
+                }
                 AnyActionStarted?.Invoke(next.Unit, next.Kind, next.Label);
                 next.Run();
 
@@ -530,11 +690,16 @@ namespace Managers
                 // 그런 경우 isCasting이 서지 않으므로 붙잡지 않고 바로 다음으로 넘어간다.
                 _acting = next.Unit.isCasting ? next.Unit : null;
                 ActionCount++;
-                if (_acting == null) _currentActionId = -1;
-                return true;
-            }
-
-            return false;
+                if (_acting == null)
+                {
+                    // 비동기 행동과 동일하게 완료 훅까지 실제 행동 ID/실행 문맥을 보존한다.
+                    Combat.ActionDot.OnActionFinished(next.Unit, next.Kind);
+                    AnyActionFinished?.Invoke(next.Unit, next.Kind);
+                    _currentActionId = -1;
+                    _actingRootActionId = -1;
+                    _executingUnit = null;
+                }
+                if(_acting==null) _resultRemaining=ResultSeconds;
         }
 
         /// <summary>
@@ -549,27 +714,58 @@ namespace Managers
             int parentActionId = _currentActionId;
             ActionKind parentKind = ActingKind;
             Unit parentExecutingUnit = _executingUnit;
+            int generation = _roundGeneration;
+            bool started = false;
+            var frame = new InterruptFrame { Unit = unit, ActionId = ++_actionIdSequence };
+            _interrupts.Add(frame);
+            if (_interruptDepth == 0) _interruptElapsed = 0f;
+            _interruptDepth++;
+            try
+            {
+                _currentActionId = frame.ActionId;
+                ActingKind = ActionKind.PriorityAdditional;
+                _executingUnit = unit;
+                Combat.ActionDot.OnActionStarted(unit, ActionKind.PriorityAdditional);
+                if (!unit.isActive) yield break;
+                unit.Invoke(BaseEnums.UnitEventType.OnAdditionalActivates, new EventContext(unit));
+                // 선제 개입은 행동 슬롯을 추가행동으로 빌리지만, 표시는 패시브로 고정한다.
+                Combat.ActionAnnouncer.Announce(unit, Combat.ActionAnnouncementKind.Passive, label, followsAction: true);
+                started = true;
+                frame.Started = true;
+                AnyActionStarted?.Invoke(unit, ActionKind.PriorityAdditional, label);
 
-            _currentActionId = ++_actionIdSequence;
-            ActingKind = ActionKind.PriorityAdditional;
-            _executingUnit = unit;
-            unit.Invoke(BaseEnums.UnitEventType.OnAdditionalActivates, new EventContext(unit));
-            // 선제 개입은 행동 슬롯을 추가행동으로 빌리지만, 좌측 표시는 실제 의미인 패시브로 고정한다.
-            Combat.ActionAnnouncer.Announce(unit, Combat.ActionAnnouncementKind.Passive, label);
-            AnyActionStarted?.Invoke(unit, ActionKind.PriorityAdditional, label);
-
-            System.Collections.IEnumerator routine = routineFactory();
-            if (routine != null) yield return routine;
-            ActionCount++;
-
-            _currentActionId = parentActionId;
-            ActingKind = parentKind;
-            _executingUnit = parentExecutingUnit;
+                System.Collections.IEnumerator routine = routineFactory();
+                if (routine != null) yield return routine;
+                if (_roundGeneration == generation) ActionCount++;
+            }
+            finally
+            {
+                // 라운드 전환·강제 종료 뒤에는 과거 개입이 새 행동 문맥을 덮어쓰지 않는다.
+                if (_roundGeneration == generation)
+                {
+                    try
+                    {
+                        if (started)
+                        {
+                            Combat.ActionDot.OnActionFinished(unit, ActionKind.PriorityAdditional);
+                            AnyActionFinished?.Invoke(unit, ActionKind.PriorityAdditional);
+                        }
+                    }
+                    finally
+                    {
+                        _currentActionId = parentActionId;
+                        ActingKind = parentKind;
+                        _executingUnit = parentExecutingUnit;
+                        _interrupts.Remove(frame);
+                        _interruptDepth--;
+                    }
+                }
+            }
         }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         /// <summary>멈춘 시각 검증 장면에서 예약 조건·공지까지 실제 경로로 한 건 실행한다.</summary>
-        public bool DebugRunNextQueued() => RunNextQueued();
+        public bool DebugRunNextQueued() => RunNextQueued(immediate:true);
 
         public int DebugQueuedCount(ActionKind kind)
             => _queue.Count(entry => entry.Kind == kind);
@@ -650,11 +846,14 @@ namespace Managers
         private static bool MayTakeTurn(Unit unit, Dictionary<Unit, int> counts,
             Dictionary<Unit, float> credit, IEnumerable<Unit> participants)
         {
+            // 소환수는 추월 제한 밖이다. 한 번 행동하고 사라지는 분신이 제한에 끼면 느린 분신을 기다리느라
+            // 다른 유닛이 멈추거나 분신이 제 속도보다 일찍 서서, "고정 속도"라는 약속이 깨진다.
+            if (unit.IsSummon) return true;
             int mine = counts.GetValueOrDefault(unit);
             int bonus = Mathf.FloorToInt(credit.GetValueOrDefault(unit));
             foreach (Unit other in participants)
             {
-                if (other == null || ReferenceEquals(other, unit)) continue;
+                if (other == null || ReferenceEquals(other, unit) || other.IsSummon) continue;
                 if (mine - counts.GetValueOrDefault(other) >= LapAllowance(unit, other) + bonus) return false;
             }
             return true;
@@ -663,10 +862,11 @@ namespace Managers
         /// <summary>추월 몫 없이는 설 수 없었는가 — 몫을 깎을지 판단한다.</summary>
         private static bool NeedsCredit(Unit unit, Dictionary<Unit, int> counts, IEnumerable<Unit> participants)
         {
+            if (unit.IsSummon) return false;
             int mine = counts.GetValueOrDefault(unit);
             foreach (Unit other in participants)
             {
-                if (other == null || ReferenceEquals(other, unit)) continue;
+                if (other == null || ReferenceEquals(other, unit) || other.IsSummon) continue;
                 if (mine - counts.GetValueOrDefault(other) >= LapAllowance(unit, other)) return true;
             }
             return false;
@@ -733,6 +933,53 @@ namespace Managers
         /// 앞으로의 행동 순서를 예측한다. 좌상단 행동서열 UI가 쓴다.
         /// 실제 진행을 건드리지 않고 사본으로만 시뮬레이션한다.
         /// </summary>
+        /// <summary>HUD용 예측. 입력이 같으면 이전 결과를 재사용한다. 반환값은 현재 프레임에서만 읽고 저장·수정하지 않는다.</summary>
+        public IReadOnlyList<Reservation> ForecastOrderCached(int count)
+        {
+            if (ForecastInputsMatch(count)) return _forecastCache;
+            _forecastCache = ForecastOrder(count);
+            _forecastRequestedCount = count;
+            _forecastUnits.Clear();
+            foreach (var pair in _actionValues) _forecastUnits.Add(ForecastInput(pair.Key, pair.Value));
+            _forecastQueue.Clear();
+            foreach (var entry in _queue) _forecastQueue.Add(new ForecastQueueInput
+                { Entry = entry, Unit = entry.Unit, Kind = entry.Kind, Sequence = entry.Sequence, Label = entry.Label,
+                    Active = entry.Unit != null && entry.Unit.isActive });
+            _forecastValid = true;
+            return _forecastCache;
+        }
+
+        private ForecastUnitInput ForecastInput(Unit unit, float value) => new()
+        {
+            Unit = unit, Value = value, Turns = _turnCounts.GetValueOrDefault(unit),
+            Credit = _lapCredit.GetValueOrDefault(unit), Speed = unit != null ? SpeedOf(unit) : 0f,
+            Active = unit != null && unit.isActive, Summon = unit != null && unit.IsSummon,
+            Label = unit != null ? unit.ActiveNormalCode?.CodeName : null,
+        };
+
+        private bool ForecastInputsMatch(int count)
+        {
+            if (!_forecastValid || _forecastRequestedCount != count || _forecastUnits.Count != _actionValues.Count ||
+                _forecastQueue.Count != _queue.Count) return false;
+            for (int i = 0; i < _queue.Count; i++)
+            {
+                var saved = _forecastQueue[i]; var current = _queue[i];
+                if (!ReferenceEquals(saved.Entry, current) || !ReferenceEquals(saved.Unit, current.Unit) ||
+                    saved.Kind != current.Kind || saved.Sequence != current.Sequence || saved.Label != current.Label ||
+                    saved.Active != (current.Unit != null && current.Unit.isActive)) return false;
+            }
+            int at = 0;
+            foreach (var pair in _actionValues)
+            {
+                var saved = _forecastUnits[at++]; var current = ForecastInput(pair.Key, pair.Value);
+                if (!ReferenceEquals(saved.Unit, current.Unit) || saved.Value != current.Value ||
+                    saved.Turns != current.Turns || saved.Credit != current.Credit || saved.Speed != current.Speed ||
+                    saved.Active != current.Active || saved.Summon != current.Summon || saved.Label != current.Label)
+                    return false;
+            }
+            return true;
+        }
+
         public List<Reservation> ForecastOrder(int count)
         {
             var result = new List<Reservation>();

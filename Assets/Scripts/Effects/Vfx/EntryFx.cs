@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Effects.Vfx
 {
     /// <summary>
-    /// 모든 유닛이 공유하는 카드 등장 연출. 발밑 Hovl 원소 Flash → 단일 엣지 스윕 → Hovl Hit·착지 먼지의
+    /// 모든 유닛이 공유하는 카드 등장 연출. 발밑 구매 손그림 → 단일 엣지 스윕 → 착지 충격·먼지의
     /// 세 박자를 카드 움직임과 분리해, <see cref="UnitCardView"/>는 위치와 알파만 책임지게 한다.
     /// </summary>
     public static class EntryFx
@@ -30,15 +30,15 @@ namespace Effects.Vfx
             }
             float tier = TierScale(unit);
             Color accent = Accent(unit);
-            Vector3 feet = center + Vector3.down * cardSize * 0.46f;
+            Vector3 feet = center + Vector3.down * cardSize * 0.62f;
 
-            // Hovl Flash가 등장 연출의 주인공이다. 발밑 알파 파동과 단일 엣지 스윕만 보조해
+            // 구매 손그림 시전광에 발밑 알파 파동과 단일 엣지 스윕을 더해
             // 밝은 바닥에서 형태를 남기되 얼굴과 하단 HUD는 덮지 않는다.
             HovlProjectileSet cue = HovlFx.ForElement(EntryElement(unit), 0.76f * tier);
             cue.Tint = Color.Lerp(accent, Color.white, 0.08f);
             cue.Alpha = 0.82f;
             cue.UnderlayColor = WithAlpha(SideAccent(unit), 0.12f);
-            HovlFx.PlayFlash(cue, feet, Vector3.up, cardSize, layer, baseOrder + 3, 1f, 0.94f);
+            CommonHandpaintFx.Flash(cue, feet, Vector3.up, cardSize, layer, baseOrder + 3, 1f, 0.94f);
             SpriteFx.Play(VfxArt.Shockwave, feet, WithAlpha(SideAccent(unit), 0.18f), false,
                 new Vector2(0.18f, 0.045f) * cardSize,
                 new Vector2(1.34f, 0.24f) * cardSize * tier,
@@ -52,13 +52,13 @@ namespace Effects.Vfx
             float tier = TierScale(unit);
             int rank = EntryRank(unit);
             Color accent = Accent(unit);
-            Vector3 feet = center + Vector3.down * cardSize * 0.46f;
+            Vector3 feet = center + Vector3.down * cardSize * 0.62f;
 
             HovlProjectileSet impact = HovlFx.ForElement(EntryElement(unit), 0.70f * tier);
             impact.Tint = Color.Lerp(accent, Color.white, 0.06f);
-            impact.Alpha = 0.84f;
+            impact.Alpha = 0.48f;
             impact.UnderlayColor = WithAlpha(SideAccent(unit), 0.12f);
-            HovlFx.PlayHit(impact, feet, Vector3.up, cardSize, layer, baseOrder + 4, 1f, 0.92f);
+            CommonHandpaintFx.Hit(impact, feet, Vector3.up, cardSize, layer, baseOrder + 4, 1f, 0.92f);
             SpriteFx.Play(VfxSpace.Ring, feet, WithAlpha(SideAccent(unit), 0.20f), false,
                 new Vector2(0.18f, 0.08f) * cardSize,
                 new Vector2(1.18f, 0.34f) * cardSize * tier,
@@ -72,16 +72,17 @@ namespace Effects.Vfx
             for (int i = 0; i < dustCount; i++)
             {
                 float centered = i - (dustCount - 1f) * 0.5f;
-                Vector3 offset = new(centered * 0.12f * cardSize, UnityEngine.Random.Range(-0.025f, 0.06f) * cardSize, 0f);
-                SpriteFx.Play(VfxArt.DustPuff(UnityEngine.Random.Range(0, 4)), feet + offset,
+                Vector3 offset = new(centered * 0.12f * cardSize, PresentationRandom.Range(-0.025f, 0.06f) * cardSize, 0f);
+                SpriteFx.Play(VfxArt.DustPuff(PresentationRandom.Range(0, 4)), feet + offset,
                     new Color(0.31f, 0.39f, 0.45f, 0.16f + rank * 0.02f), false,
                     new Vector2(0.16f, 0.07f) * cardSize * (1f + rank * 0.08f),
                     new Vector2(0.44f, 0.18f) * cardSize * tier,
-                    0.26f + rank * 0.04f, UnityEngine.Random.Range(-8f, 8f), 0f, 0.015f, 0.34f,
+                    0.26f + rank * 0.04f, PresentationRandom.Range(-8f, 8f), 0f, 0.015f, 0.34f,
                     SpriteFx.Ease.OutCubic, layer, baseOrder - 1);
             }
 
-            CameraShake.Shake(0.015f + rank * 0.008f);
+            // 일반 카드의 동시 착지는 화면을 흔들지 않는다. 보스만 한 번 무게를 전달한다.
+            if (rank >= 2) CameraShake.Shake(0.018f);
         }
 
         private static IEnumerator GatherShards(Vector3 center, float cardSize, Color accent, float tier,
@@ -241,7 +242,8 @@ namespace Effects.Vfx
             if (unit != null && Enum.TryParse(unit.Element, true, out BaseEnums.UnitElement element)
                 && element != BaseEnums.UnitElement.None)
             {
-                return Color.Lerp(side, ElementPalette.ColorFor(element), 0.55f);
+                if (element == BaseEnums.UnitElement.Geo) return new Color(.91f,.87f,.76f);
+                return Color.Lerp(ElementPalette.ColorFor(element), Color.white, .25f);
             }
             return side;
         }

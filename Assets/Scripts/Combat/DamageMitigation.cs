@@ -35,18 +35,30 @@ namespace Combat
         ///
         ///   명중 = 기본 확률 × 2 × 특공 / (특공 + 특방)
         ///
-        /// 두 스탯이 같으면 기본 확률 그대로다. 비율식이라 레벨이 끝없이 올라도 저울이 기울지 않는다
+        /// 기본 확률은 75%. 같은 스탯이면 75%, 특공이 특방의 두 배면 100%다.
+        /// 아군·자기 자신·출처 없는 시스템 부여는 저항하지 않는다. 비율식이라 레벨이 끝없이 올라도 저울이 기울지 않는다
         /// (옛 CON 차이식은 레벨이 오를수록 격차가 벌어져 상한 · 하한에 붙어 버렸다).
         /// </summary>
-        public static float EffectHitChance(Unit source, Unit target, float baseChance = 1f)
+        public const float DefaultEffectHitChance = 0.75f;
+
+        public static bool IsHostileEffect(Unit source, Unit target)
+            => source != null && target != null && source.IsEnemy != target.IsEnemy;
+
+        public static float EffectHitChance(Unit source, Unit target, float baseChance = DefaultEffectHitChance)
         {
+            if (target == null || !target.isActive) return 0f;
+            if (!IsHostileEffect(source, target)) return 1f;
             float attack = source != null ? Mathf.Max(1f, source.StatValue(BaseEnums.StatType.SpecialAttack)) : 1f;
             float resist = target != null ? Mathf.Max(1f, target.StatValue(BaseEnums.StatType.SpecialDefense)) : 1f;
             return Mathf.Clamp01(baseChance * 2f * attack / (attack + resist));
         }
 
-        public static bool RollEffectHit(Unit source, Unit target, float baseChance = 1f)
-            => target != null && target.isActive && Random.value <= EffectHitChance(source, target, baseChance);
+        public static bool RollEffectHit(Unit source, Unit target, float baseChance = DefaultEffectHitChance)
+        {
+            float chance = EffectHitChance(source, target, baseChance);
+            // 확정 부여는 난수를 소모하지 않는다. 0%에서 Random.value == 0인 경우도 성공하지 않는다.
+            return chance >= 1f || (chance > 0f && Random.value < chance);
+        }
 
         /// <summary>
         /// 특수공격력이 원소 반응을 키우는 배율. 같은 레벨 표준치(기준값)에서 1.5배,

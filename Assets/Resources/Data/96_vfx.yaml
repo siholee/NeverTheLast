@@ -2,110 +2,201 @@
 # 판정은 코드가 소유하고, triggersImpact인 hit의 peakFrame에서만 콜백이 열린다.
 parts:
   # 시전·예비
-  - { id: cast.sword.light, category: cast, sheet: Slash1_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 37EBC7F2, coreColor: A8FFE6FF, scaleX: 2.02, scaleY: 2.02, peakFrame: 4 }
-  - { id: cast.sword.aqua_readable, category: cast, sheet: Slash1_Blue, columns: 3, rows: 3, fps: 32.15, bodyColor: 28CDB8FA, coreColor: D8FFF4FF, scaleX: 2.24, scaleY: 2.24, peakFrame: 4 }
-  - { id: cast.sword.flourish, category: cast, sheet: Slash5_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 57E8D7F8, coreColor: C2FFFFFF, scaleX: 2.65, scaleY: 2.65, peakFrame: 4 }
-  - { id: cast.sword.void_light, category: cast, sheet: Slash1_Purple, columns: 3, rows: 3, fps: 45, bodyColor: 7A26A8FA, coreColor: DB80FFFF, scaleX: 2.12, scaleY: 2.12, peakFrame: 4 }
-  - { id: cast.sword.void_flourish, category: cast, sheet: Slash5_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 5C0894FA, coreColor: FFB8FFFF, scaleX: 3.02, scaleY: 3.02, peakFrame: 4 }
-  - { id: cast.magic.circle, category: cast, sheet: Ball1_Sheet_Blue, columns: 3, rows: 3, fps: 18, bodyColor: 6CBFE7E8, coreColor: E8F8FFFF, scaleX: 1.48, scaleY: 1.48, peakFrame: 4 }
-  - { id: cast.magic.focus, category: cast, sheet: Muzzle1_Blue, columns: 2, rows: 2, fps: 40, bodyColor: 6CCBEAF0, coreColor: F5FCFFFF, scaleX: 1.18, scaleY: 1.18, peakFrame: 2 }
-  - { id: cast.magic.geo, category: cast, sheet: Muzzle1_Yellow, columns: 2, rows: 2, fps: 40, bodyColor: B89454ED, coreColor: FFFFF0FF, scaleX: 1.40, scaleY: 1.22, peakFrame: 2 }
-  - { id: cast.magic.geo_grand, category: cast, sheet: Explosion3_Yellow, columns: 3, rows: 3, fps: 45, bodyColor: B4A477D9, coreColor: FFFFF3FF, scaleX: 2.40, scaleY: 1.58, peakFrame: 4 }
-  - { id: cast.magic.moon, category: cast, sheet: Muzzle1_Blue, columns: 2, rows: 2, fps: 40, bodyColor: 7BBDEBF0, coreColor: F8FFFFFF, scaleX: 1.42, scaleY: 1.24, peakFrame: 2 }
-  - { id: cast.magic.moon_grand, category: cast, sheet: Ball1_Sheet_Blue, columns: 3, rows: 3, fps: 18, bodyColor: 699BD8D9, coreColor: F4FCFFFF, scaleX: 2.72, scaleY: 1.82, peakFrame: 4 }
-  - { id: cast.magic.fire, category: cast, sheet: Muzzle1_Red, columns: 2, rows: 2, fps: 40, bodyColor: B84328EF, coreColor: FFF0B8FF, scaleX: 1.48, scaleY: 1.20, peakFrame: 2 }
-  - { id: cast.magic.sculptor, category: cast, sheet: Slash1_Red, columns: 3, rows: 3, fps: 32.15, bodyColor: 8F3828E6, coreColor: FFD07BFF, scaleX: 1.12, scaleY: 0.88, peakFrame: 4 }
-  - { id: cast.bow.activate, category: cast, sheet: Muzzle1_Yellow, columns: 2, rows: 2, fps: 40, bodyColor: D8B85EEA, coreColor: FFF6CCFF, scaleX: 1.35, scaleY: 1.35, peakFrame: 2 }
+  - { id: cast.sword.light, category: cast, sheet: Slash1_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 75E0CBF2, coreColor: BAF5E4FF, scaleX: 2.02, scaleY: 2.02, peakFrame: 4 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: cast.sword.aqua_readable, category: cast, sheet: Slash1_Blue, columns: 3, rows: 3, fps: 32.15, bodyColor: 6BCDC0FA, coreColor: CFF5EAFF, scaleX: 2.24, scaleY: 2.24, peakFrame: 4 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: cast.sword.flourish, category: cast, sheet: Slash5_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 75E0D4F8, coreColor: BAF5F5FF, scaleX: 2.65, scaleY: 2.65, peakFrame: 4 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: cast.sword.void_light, category: cast, sheet: Slash1_Purple, columns: 3, rows: 3, fps: 45, bodyColor: B397E0FA, coreColor: E4BAF5FF, scaleX: 2.12, scaleY: 2.12, peakFrame: 4, desaturate: 1, calmLight: true, glowAlpha: 0.20, useHitAlpha: true }
+  - { id: cast.sword.void_flourish, category: cast, sheet: Slash5_Blue, columns: 3, rows: 3, fps: 45, bodyColor: AE86D8FA, coreColor: F5BAF5FF, scaleX: 3.02, scaleY: 3.02, peakFrame: 4, desaturate: 1, calmLight: true, glowAlpha: 0.20, useHitAlpha: true }
+  - { id: cast.magic.circle, category: cast, sheet: Ball1_Sheet_Blue, columns: 3, rows: 3, fps: 18, bodyColor: 75BDE0E8, coreColor: DFEEF5FF, scaleX: 1.48, scaleY: 1.48, peakFrame: 4 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: cast.magic.focus, category: cast, sheet: Muzzle1_Blue, columns: 2, rows: 2, fps: 40, bodyColor: 75C6E0F0, coreColor: EBF2F5FF, scaleX: 1.18, scaleY: 1.18, peakFrame: 2 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: cast.magic.geo, category: cast, sheet: Muzzle1_Yellow, columns: 2, rows: 2, fps: 40, bodyColor: B89860ED, coreColor: F5F5E6FF, scaleX: 1.40, scaleY: 1.22, peakFrame: 2 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: cast.magic.geo_grand, category: cast, sheet: Explosion3_Yellow, columns: 3, rows: 3, fps: 45, bodyColor: B4A477D9, coreColor: F5F5E9FF, scaleX: 2.40, scaleY: 1.58, peakFrame: 4 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: cast.magic.moon, category: cast, sheet: Muzzle1_Blue, columns: 2, rows: 2, fps: 40, bodyColor: 75B4E0F0, coreColor: EEF5F5FF, scaleX: 1.42, scaleY: 1.24, peakFrame: 2 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: cast.magic.moon_grand, category: cast, sheet: Ball1_Sheet_Blue, columns: 3, rows: 3, fps: 18, bodyColor: 709FD8D9, coreColor: EAF2F5FF, scaleX: 2.72, scaleY: 1.82, peakFrame: 4 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: cast.magic.fire, category: cast, sheet: Muzzle1_Red, columns: 2, rows: 2, fps: 40, bodyColor: B87060EF, coreColor: F5E8BAFF, scaleX: 1.48, scaleY: 1.20, peakFrame: 2 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: cast.magic.sculptor, category: cast, sheet: Slash1_Red, columns: 3, rows: 3, fps: 32.15, bodyColor: E09577E6, coreColor: F5E0BAFF, scaleX: 1.12, scaleY: 0.88, peakFrame: 4, desaturate: 1, calmLight: true, glowAlpha: 0.20, useHitAlpha: true }
+  - { id: cast.bow.activate, category: cast, sheet: Muzzle1_Yellow, columns: 2, rows: 2, fps: 40, bodyColor: D8BD70EA, coreColor: F5ECC4FF, scaleX: 1.35, scaleY: 1.35, peakFrame: 2 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
   # P12 내부 분류용 기본 시전. caster는 작은 불꽃을 중앙+적 방향 끝에, archer는 발수마다 총구광을 쓴다.
-  - { id: cast.class.caster, category: cast, renderer: casterTwin, sheet: Fire3_Yellow, columns: 3, rows: 3, fps: 36, bodyColor: D6B36AEC, coreColor: FFFFF8FF, scaleX: 1.02, scaleY: 1.02, peakFrame: 4, peakAlpha: 0.88, glowAlpha: 0.60, impactAnchorX: 0.50, impactAnchorY: 0.16 }
-  - { id: cast.class.archer, category: cast, sheet: Muzzle1_Yellow, columns: 2, rows: 2, fps: 120, bodyColor: F06432FF, edgeColor: 351017FF, coreColor: FFFFFFFF, scaleX: 1.92, scaleY: 1.44, peakFrame: 2, peakAlpha: 0.98, glowAlpha: 0.94, peakHoldSeconds: 0.24 }
-  - { id: cast.class.archer_volley, category: cast, sheet: Muzzle1_Yellow, columns: 2, rows: 2, fps: 120, bodyColor: F06432FF, edgeColor: 351017FF, coreColor: FFFFFFFF, scaleX: 1.92, scaleY: 1.44, peakFrame: 2, peakAlpha: 0.98, glowAlpha: 0.94, peakHoldSeconds: 0.12 }
-  - { id: cast.class.assassin, category: cast, sheet: Slash1_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 416A82E8, coreColor: E8F8FFFF, scaleX: 1.88, scaleY: 1.88, peakFrame: 4 }
+  - { id: cast.class.caster, category: cast, renderer: casterTwin, sheet: Fire3_Yellow, columns: 3, rows: 3, fps: 36, bodyColor: D6B56FEC, coreColor: F5F5EEFF, scaleX: 1.02, scaleY: 1.02, peakFrame: 4, peakAlpha: 0.88, glowAlpha: 0.20, impactAnchorX: 0.50, impactAnchorY: 0.16 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: cast.class.archer, category: cast, sheet: Muzzle1_Yellow, columns: 2, rows: 2, fps: 120, bodyColor: E09175FF, edgeColor: 42262CFF, coreColor: F5F5F5FF, scaleX: 1.92, scaleY: 1.44, peakFrame: 2, peakAlpha: 0.98, glowAlpha: 0.20, peakHoldSeconds: 0.24, edgeUnderlay: true , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: cast.class.archer_volley, category: cast, sheet: Muzzle1_Yellow, columns: 2, rows: 2, fps: 120, bodyColor: E09175FF, edgeColor: 42262CFF, coreColor: F5F5F5FF, scaleX: 1.92, scaleY: 1.44, peakFrame: 2, peakAlpha: 0.98, glowAlpha: 0.20, peakHoldSeconds: 0.12, edgeUnderlay: true , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: cast.class.assassin, category: cast, sheet: Slash1_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 52829EE8, coreColor: DFEEF5FF, scaleX: 1.88, scaleY: 1.88, peakFrame: 4 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
   - { id: cast.class.advance, category: cast, renderer: cardAdvance, scaleX: 1.0, scaleY: 1.0 }
-  - { id: cast.dragon.breath, category: cast, sheet: FireAttack1_Red, columns: 4, rows: 3, fps: 60, bodyColor: 532039F0, coreColor: F6D9E8FF, scaleX: 2.10, scaleY: 1.34, peakFrame: 6, peakAlpha: 0.70, glowAlpha: 0.48 }
-  - { id: prepare.beast.claw, category: prepare, sheet: Slash1_Red, columns: 3, rows: 3, fps: 45, bodyColor: 8B4938E8, coreColor: F3C58BFF, scaleX: 1.45, scaleY: 1.45, peakFrame: 3 }
-  - { id: prepare.heavy.impact, category: prepare, sheet: Explosion3_Yellow, columns: 3, rows: 3, fps: 45, bodyColor: 8A6A42E8, coreColor: FFF0B0FF, scaleX: 1.55, scaleY: 1.55, peakFrame: 3 }
+  - { id: cast.dragon.breath, category: cast, sheet: FireAttack1_Red, columns: 4, rows: 3, fps: 60, bodyColor: D4D9FF70, coreColor: FFFFFFFF, scaleX: 2.10, scaleY: 1.34, peakFrame: 6, peakAlpha: 0.04, glowAlpha: 0.08, calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: prepare.beast.claw, category: prepare, sheet: Slash1_Red, columns: 3, rows: 3, fps: 45, bodyColor: 9E6252E8, coreColor: F3D9B9FF, scaleX: 0.76, scaleY: 0.76, peakFrame: 3, peakAlpha: 0.08 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: prepare.heavy.impact, category: prepare, sheet: Explosion3_Yellow, columns: 3, rows: 3, fps: 45, bodyColor: FFFFFF70, coreColor: FFFFFFA0, scaleX: 0.66, scaleY: 0.66, peakFrame: 3, peakAlpha: 0.03 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
 
   # 피격
-  - { id: hit.slash.aqua, category: hit, sheet: Explosion2_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 38EFCBED, coreColor: ADFFE8FF, scaleX: 1.82, scaleY: 1.82, peakFrame: 4, accentPartId: hit.impact.aqua }
-  - { id: hit.slash.aqua_finisher, category: hit, sheet: Explosion2_Green, columns: 3, rows: 3, fps: 38, bodyColor: 24BFAEEB, coreColor: C8FFF2FF, scaleX: 2.42, scaleY: 2.42, peakFrame: 4, accentPartId: hit.impact.aqua }
-  - { id: hit.slash.void, category: hit, sheet: Lightning2_Purple, columns: 3, rows: 3, fps: 45, bodyColor: 801FB8F5, coreColor: F59EFFFF, scaleX: 1.88, scaleY: 2.16, peakFrame: 4, accentPartId: hit.impact.void }
-  - { id: hit.explosion.small, category: hit, sheet: Explosion1_Red, columns: 3, rows: 2, fps: 30, bodyColor: C3573AE8, coreColor: FFD58FFF, scaleX: 1.10, scaleY: 1.10, peakFrame: 3 }
-  - { id: hit.explosion.large, category: hit, sheet: Explosion2_Red, columns: 3, rows: 3, fps: 45, bodyColor: C54832F2, coreColor: FFE0A1FF, scaleX: 2.25, scaleY: 2.25, peakFrame: 4 }
-  - { id: hit.lightning, category: hit, sheet: Lightning2_Purple, columns: 3, rows: 3, fps: 45, bodyColor: 7030C8F2, coreColor: EBB0FFFF, scaleX: 1.90, scaleY: 2.18, peakFrame: 4 }
-  - { id: hit.lightning.portrait, category: hit, sheet: Lightning2_Purple, columns: 3, rows: 3, fps: 45, bodyColor: 3A154DFB, edgeColor: 170A20FF, coreColor: F8E9FFFF, scaleX: 2.02, scaleY: 1.46, peakFrame: 4, peakAlpha: 0.98, glowAlpha: 0.82, accentPartId: hit.impact.void, impactAnchorX: 0.50, impactAnchorY: 0.12 }
-  - { id: hit.lightning.formation, category: hit, sheet: Lightning2_Purple, columns: 3, rows: 3, fps: 45, bodyColor: B06FE8FA, coreColor: F8E8FFFF, scaleX: 2.32, scaleY: 2.58, peakFrame: 4, peakAlpha: 0.98, glowAlpha: 0.68, impactAnchorX: 0.50, impactAnchorY: 0.10 }
-  - { id: hit.smoke.horizontal, category: hit, sheet: Smoke3_Purple, columns: 3, rows: 3, fps: 45, bodyColor: 45101EF2, edgeColor: 16050AFF, coreColor: FF9AADFF, scaleX: 3.58, scaleY: 1.28, peakFrame: 4, peakAlpha: 0.94, glowAlpha: 0.72, impactAnchorX: 0.50, impactAnchorY: 0.15 }
-  - { id: hit.smoke.horizontal.afterglow, category: hit, sheet: Smoke3_Purple, columns: 3, rows: 3, fps: 45, bodyColor: 3A0A16A0, coreColor: FF8198C8, scaleX: 2.18, scaleY: 0.58, peakFrame: 3, peakAlpha: 0.34, glowAlpha: 0.24 }
-  - { id: hit.smoke.fire_mark, category: hit, sheet: Smoke1_Red, columns: 3, rows: 3, fps: 45, bodyColor: B85B38FF, edgeColor: 35100CFF, coreColor: FFF0C8FF, scaleX: 1.32, scaleY: 0.96, peakFrame: 4, peakAlpha: 0.98, glowAlpha: 0.88, peakHoldSeconds: 0.22, impactAnchorX: 0.50, impactAnchorY: 0.18 }
-  - { id: hit.fire, category: hit, sheet: FireAttack1_Red, columns: 4, rows: 3, fps: 60, bodyColor: C44C2AF0, coreColor: FFE29FFF, scaleX: 1.72, scaleY: 1.38, peakFrame: 6 }
-  - { id: hit.crystal.shatter, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: C8D4CCEA, coreColor: FFFFFFFF, scaleX: 1.36, scaleY: 1.12, peakFrame: 3, accentPartId: hit.crystal.debris }
-  - { id: hit.crystal.debris, category: hit, sheet: Smoke6_Yellow, columns: 3, rows: 3, fps: 45, bodyColor: B9AB72DC, coreColor: FFFFF0F2, scaleX: 1.24, scaleY: 0.86, peakFrame: 4 }
-  - { id: hit.impact.crystal, category: hit, sheet: Impact1_Yellow, columns: 3, rows: 2, fps: 30, bodyColor: DCCB8DE8, coreColor: FFFFFFFF, scaleX: 0.96, scaleY: 0.96, peakFrame: 3 }
-  - { id: hit.moonlight, category: hit, sheet: Explosion2_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 90C9EFF0, coreColor: F5FDFFFF, scaleX: 1.90, scaleY: 1.90, peakFrame: 4 }
-  - { id: hit.moonlight.small, category: hit, sheet: Impact1_Blue, columns: 3, rows: 2, fps: 30, bodyColor: 9FD7F2E8, coreColor: F8FFFFFF, scaleX: 1.24, scaleY: 1.06, peakFrame: 3, accentPartId: hit.impact.small }
-  - { id: hit.fire.burst, category: hit, sheet: Explosion2_Red, columns: 3, rows: 3, fps: 45, bodyColor: B9492FEE, coreColor: FFF1B8FF, scaleX: 1.28, scaleY: 1.14, peakFrame: 4, accentPartId: hit.explosion.small }
-  - { id: hit.fire.sculptor_burst, category: hit, sheet: Explosion2_Red, columns: 3, rows: 3, fps: 45, bodyColor: B34A2CF2, coreColor: FFF0A8FF, scaleX: 1.46, scaleY: 1.22, peakFrame: 4, peakAlpha: 0.86, glowAlpha: 0.62, accentPartId: hit.explosion.small }
-  - { id: hit.impact.small, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: B9C9DCE8, coreColor: FFFFFFFF, scaleX: 0.82, scaleY: 0.82, peakFrame: 3 }
-  - { id: hit.impact.aqua, category: hit, sheet: Impact1_Blue, columns: 3, rows: 2, fps: 30, bodyColor: 49D9C9E0, coreColor: C8FFFFFF, scaleX: 1.05, scaleY: 1.05, peakFrame: 3 }
-  - { id: hit.impact.void, category: hit, sheet: Impact1_Purple, columns: 3, rows: 2, fps: 30, bodyColor: 7A24B8E8, coreColor: E7B5FFFF, scaleX: 1.18, scaleY: 1.18, peakFrame: 3 }
-  - { id: hit.impact.heavy, category: hit, sheet: Impact1_Purple, columns: 3, rows: 2, fps: 30, bodyColor: 4D2730ED, coreColor: F8E6D0FF, scaleX: 1.58, scaleY: 1.30, peakFrame: 3, peakAlpha: 0.78, glowAlpha: 0.50 }
-  - { id: hit.impact.large, category: hit, sheet: Explosion3_Yellow, columns: 3, rows: 3, fps: 45, bodyColor: 826044ED, coreColor: FFEEC0FF, scaleX: 2.35, scaleY: 2.35, peakFrame: 4 }
+  - { id: hit.slash.aqua, category: hit, sheet: Slash1_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 75E0CBED, coreColor: BAF5E4FF, scaleX: 1.10, scaleY: 0.64, peakFrame: 4, accentPartId: hit.impact.aqua , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true, peakAlpha: .66 }
+  - { id: hit.slash.aqua_finisher, category: hit, sheet: Slash5_Blue, columns: 3, rows: 3, fps: 38, bodyColor: 63BFB5EB, coreColor: C0F5E8FF, scaleX: 1.36, scaleY: 0.84, peakFrame: 4, accentPartId: hit.impact.aqua , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true, peakAlpha: .78 }
+  - { id: hit.slash.void, category: hit, sheet: Lightning2_Purple, edgeColor: 352642CC, columns: 3, rows: 3, fps: 45, bodyColor: B69CE0F5, coreColor: EFBAF5FF, scaleX: 1.88, scaleY: 2.16, peakFrame: 4, accentPartId: hit.impact.void, desaturate: 1, calmLight: true, glowAlpha: 0.20, useHitAlpha: true}
+  - { id: hit.explosion.small, category: hit, sheet: Explosion1_Red, columns: 3, rows: 2, fps: 30, bodyColor: F38C6CCC, coreColor: FFE5C7FF, scaleX: 0.46, scaleY: 0.46, peakFrame: 3, peakAlpha: 0.05 , calmLight: true , desaturate: 1 , glowAlpha: 0.12 , useHitAlpha: true }
+  - { id: hit.explosion.large, category: hit, sheet: Explosion2_Red, columns: 3, rows: 3, fps: 45, bodyColor: F4C2C0F2, coreColor: F5E1BAFF, scaleX: 2.25, scaleY: 2.25, peakFrame: 4 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true, peakAlpha: .20 , inkAlpha: 0, inkColor: 384C64B0}
+  - { id: hit.lightning, category: hit, sheet: Lightning2_Purple, edgeColor: 352642CC, columns: 3, rows: 3, fps: 45, bodyColor: AE95E0F2, coreColor: E6BAF5FF, scaleX: 1.90, scaleY: 2.18, peakFrame: 4, desaturate: 1, calmLight: true, glowAlpha: 0.20, useHitAlpha: true}
+  - { id: hit.lightning.portrait, category: hit, sheet: Lightning2_Purple, columns: 3, rows: 3, fps: 45, bodyColor: B9A5DFFB, edgeColor: 372642FF, coreColor: B59BE8FF, scaleX: 1.10, scaleY: 0.86, peakFrame: 4, peakAlpha: 0.98, glowAlpha: 0.20, accentPartId: hit.impact.void, impactAnchorX: 0.50, impactAnchorY: 0.50, desaturate: 0.70, calmLight: true, useHitAlpha: true}
+  - { id: hit.lightning.formation, category: hit, sheet: Lightning2_Purple, edgeColor: 352642CC, columns: 3, rows: 3, fps: 45, bodyColor: AF75E0FA, coreColor: EEDFF5FF, scaleX: 2.32, scaleY: 2.58, peakFrame: 4, peakAlpha: 0.98, glowAlpha: 0.20, impactAnchorX: 0.50, impactAnchorY: 0.10 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.smoke.horizontal, category: hit, sheet: Smoke3_Purple, columns: 3, rows: 3, fps: 45, bodyColor: 99AADDC8, edgeColor: 26344870, coreColor: E2E8FFFF, scaleX: 3.58, scaleY: 1.28, peakFrame: 4, peakAlpha: 0.94, glowAlpha: 0.12, impactAnchorX: 0.50, impactAnchorY: 0.15 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.smoke.horizontal.afterglow, category: hit, sheet: Smoke3_Purple, columns: 3, rows: 3, fps: 45, bodyColor: 99AADD70, coreColor: E2E8FFC8, scaleX: 2.18, scaleY: 0.58, peakFrame: 3, peakAlpha: 0.10, glowAlpha: 0.20, calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.smoke.fire_mark, category: hit, sheet: Smoke1_Red, columns: 3, rows: 3, fps: 45, bodyColor: F3947570, edgeColor: 42292600, coreColor: F5E6C0FF, scaleX: 0.60, scaleY: 0.48, peakFrame: 4, peakAlpha: 0.14, glowAlpha: 0.20, peakHoldSeconds: 0.04, impactAnchorX: 0.50, impactAnchorY: 0.50 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.fire, category: hit, sheet: Fire1_Red, columns: 4, rows: 4, fps: 80, bodyColor: FFBD74F0, coreColor: FFEFCEFF, scaleX: 0.74, scaleY: 0.72, peakFrame: 8, peakAlpha: 0.08, calmLight: true, desaturate: 0.65, glowAlpha: 0.12, useHitAlpha: true }
+  - { id: hit.crystal.shatter, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: E9E2CCEA, coreColor: F5F1E8FF, scaleX: 1.36, scaleY: 1.12, peakFrame: 3, peakAlpha: 0.08, accentPartId: hit.crystal.debris , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: hit.crystal.debris, category: hit, sheet: Smoke6_Yellow, columns: 3, rows: 3, fps: 45, bodyColor: BAC6DC70, coreColor: E9F1FFF2, scaleX: 1.24, scaleY: 0.86, peakFrame: 4, peakAlpha: 0.05 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: hit.impact.crystal, category: hit, sheet: Impact1_Yellow, columns: 3, rows: 2, fps: 30, bodyColor: DCCB8DE8, coreColor: F5F5F5FF, scaleX: 0.96, scaleY: 0.96, peakFrame: 3 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: hit.moonlight, category: hit, sheet: Explosion2_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 87BDE0F0, coreColor: EBF3F5FF, scaleX: 1.90, scaleY: 1.90, peakFrame: 4 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true, peakAlpha: .28 , inkAlpha: 0, inkColor: 384C64B0}
+  - { id: hit.moonlight.small, category: hit, sheet: Impact1_Blue, columns: 3, rows: 2, fps: 30, bodyColor: 93C7E0E8, coreColor: EEF5F5FF, scaleX: 1.24, scaleY: 1.06, peakFrame: 3, accentPartId: hit.impact.small , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: hit.fire.burst, category: hit, sheet: Explosion2_Red, columns: 3, rows: 3, fps: 45, bodyColor: E98851F2, coreColor: FFDBA3FF, scaleX: 1.06, scaleY: 0.98, peakFrame: 4, peakAlpha: 0.28, calmLight: true, desaturate: 0.65, glowAlpha: 0.20, useHitAlpha: true , inkColor: 7D422EE0, inkAlpha: 0.06}
+  - { id: hit.fire.sculptor_burst, category: hit, sheet: Explosion2_Red, columns: 3, rows: 3, fps: 45, bodyColor: E98851F2, coreColor: FFDBA3FF, scaleX: 1.06, scaleY: 0.98, peakFrame: 4, peakAlpha: 0.28, glowAlpha: 0.20, calmLight: true, desaturate: 0.65, useHitAlpha: true , inkColor: 7D422EE0, inkAlpha: 0.06}
+  - { id: hit.impact.small, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: 8CA6D3F2, coreColor: F5F5F5FF, scaleX: 0.62, scaleY: 0.62, peakFrame: 3, peakAlpha: 0.06 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: hit.impact.aqua, category: hit, sheet: Impact1_Blue, columns: 3, rows: 2, fps: 30, bodyColor: 71D9CDE0, coreColor: C0F5F5FF, scaleX: 1.05, scaleY: 1.05, peakFrame: 3 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: hit.impact.void, category: hit, sheet: Impact1_Purple, columns: 3, rows: 2, fps: 30, bodyColor: B097E0E8, coreColor: E2BAF5FF, scaleX: 1.18, scaleY: 1.18, peakFrame: 3, desaturate: 1, calmLight: true, glowAlpha: 0.20, useHitAlpha: true}
+  - { id: hit.impact.heavy, category: hit, sheet: Impact1_Purple, columns: 3, rows: 2, fps: 30, bodyColor: 9E5264ED, coreColor: F5E3CDFF, scaleX: 1.58, scaleY: 1.30, peakFrame: 3, peakAlpha: 0.78, glowAlpha: 0.20, calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.impact.large, category: hit, sheet: Explosion3_Yellow, columns: 3, rows: 3, fps: 45, bodyColor: F5D79AED, coreColor: F5E5BAFF, scaleX: 2.35, scaleY: 2.35, peakFrame: 4 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true, peakAlpha: .28 , inkAlpha: 0, inkColor: 384C64B0}
   # 잔의 방향성 주먹 압력. 왼쪽 충돌 끝점을 대상 중심에 고정해 몸체가 공격 진행 방향 바깥으로 뻗는다.
-  - { id: hit.jean.punch_pressure, category: hit, sheet: FireAttack1_Red, columns: 4, rows: 3, fps: 60, bodyColor: 10283BFF, edgeColor: 07131DFF, coreColor: FBFFFFFF, scaleX: 2.74, scaleY: 1.42, peakFrame: 6, peakAlpha: 1.0, glowAlpha: 0.82, impactAnchorX: 0.16, impactAnchorY: 0.50 }
-  - { id: hit.jean.smoke, category: hit, sheet: Smoke3_Purple, columns: 3, rows: 3, fps: 45, bodyColor: 324D62F2, edgeColor: 101C25FF, coreColor: F4FCFFFF, scaleX: 2.10, scaleY: 0.72, peakFrame: 4, peakAlpha: 0.94, glowAlpha: 0.72, impactAnchorX: 0.14, impactAnchorY: 0.64 }
-  - { id: hit.jean.impact, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: 28658AFC, edgeColor: 0C2434FF, coreColor: FFFFFFFF, scaleX: 2.05, scaleY: 1.76, peakFrame: 3, peakAlpha: 1.0, glowAlpha: 0.84 }
+  - { id: hit.jean.punch_pressure, category: hit, sheet: FireAttack1_Red, columns: 4, rows: 3, fps: 60, bodyColor: 527D9EFF, edgeColor: 263642FF, coreColor: F1F5F5FF, scaleX: .98, scaleY: .56, peakFrame: 6, peakAlpha: 0.06, glowAlpha: 0.20, impactAnchorX: 0.50, impactAnchorY: 0.50 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.jean.smoke, category: hit, sheet: Smoke3_Purple, columns: 3, rows: 3, fps: 45, bodyColor: FFFFFF70, edgeColor: 26364200, coreColor: EAF2F5FF, scaleX: 1.00, scaleY: .42, peakFrame: 4, peakAlpha: .05, glowAlpha: 0.20, impactAnchorX: .50, impactAnchorY: .50, calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.jean.impact, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: 97B1E2C0, edgeColor: 263742FF, coreColor: F5F5F5FF, scaleX: 0.62, scaleY: 0.62, peakFrame: 3, peakAlpha: 0.06, glowAlpha: 0.20, calmLight: true , desaturate: 1 , useHitAlpha: true }
   # 적 병과별 가독성 부품. 굵은 알파 몸체가 밝은 판의 실루엣을 잡고 좁은 금백 코어가 정점을 읽힌다.
-  - { id: hit.enemy.archer_pierce, category: hit, sheet: Smoke3_Purple, columns: 3, rows: 3, fps: 240, bodyColor: FF648FFF, edgeColor: 35131FFF, coreColor: FFFFFFFF, scaleX: 2.05, scaleY: 0.90, peakFrame: 2, peakAlpha: 0.98, glowAlpha: 0.98, peakHoldSeconds: 0.09, impactAnchorX: 0.50, impactAnchorY: 0.15 }
-  - { id: hit.enemy.vanguard_slash, category: hit, sheet: Slash4_Blue, columns: 3, rows: 2, fps: 30, bodyColor: 17070AFC, coreColor: FFFFFFFF, scaleX: 1.82, scaleY: 1.52, peakFrame: 3, peakAlpha: 0.98, glowAlpha: 0.94, impactAnchorX: 0.50, impactAnchorY: 0.58 }
-  - { id: hit.enemy.crusher_heavy, category: hit, sheet: Explosion3_Yellow, columns: 3, rows: 3, fps: 45, bodyColor: 5A2522FA, coreColor: FFF0D2FF, scaleX: 1.62, scaleY: 1.38, peakFrame: 3, peakAlpha: 0.88, glowAlpha: 0.62, accentPartId: hit.impact.heavy, impactAnchorX: 0.56, impactAnchorY: 0.52 }
-  - { id: hit.enemy.dragon_breath, category: hit, sheet: Explosion1_Red, columns: 3, rows: 2, fps: 24, bodyColor: 3A103CF8, coreColor: FFFFFFFFF, scaleX: 1.80, scaleY: 1.55, peakFrame: 1, peakAlpha: 0.98, glowAlpha: 0.90, impactAnchorX: 0.36, impactAnchorY: 0.50 }
+  - { id: hit.enemy.archer_pierce, category: hit, sheet: Smoke3_Purple, columns: 3, rows: 3, fps: 240, bodyColor: E07593FF, edgeColor: 00000000, coreColor: F5F5F5FF, scaleX: .80, scaleY: .16, peakFrame: 2, peakAlpha: 0.04, glowAlpha: 0.20, peakHoldSeconds: 0.09, impactAnchorX: 0.50, impactAnchorY: 0.50 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.enemy.vanguard_slash, category: hit, sheet: Slash4_Blue, columns: 3, rows: 2, fps: 30, bodyColor: 9E5260FC, coreColor: F5F5F5FF, scaleX: 1.10, scaleY: 0.86, peakFrame: 3, peakAlpha: 0.98, glowAlpha: 0.20, impactAnchorX: 0.50, impactAnchorY: 0.50, inkColor: 462F47F0, inkAlpha: 0.40, calmLight: true, desaturate: 1, useHitAlpha: true }
+  - { id: hit.enemy.crusher_heavy, category: hit, sheet: Explosion3_Yellow, columns: 3, rows: 3, fps: 45, bodyColor: 9E5652FA, coreColor: F5E6CAFF, scaleX: .70, scaleY: .62, peakFrame: 3, peakAlpha: 0.04, glowAlpha: 0.20, accentPartId: hit.impact.heavy, impactAnchorX: 0.56, impactAnchorY: 0.50 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.enemy.dragon_breath, category: hit, sheet: Explosion1_Red, columns: 3, rows: 2, fps: 24, bodyColor: 9B529EF8, coreColor: F5F5F5FF, scaleX: 1.80, scaleY: 1.55, peakFrame: 1, peakAlpha: 0.98, glowAlpha: 0.20, impactAnchorX: 0.36, impactAnchorY: 0.50 , calmLight: true , desaturate: 1 , useHitAlpha: true }
   # 직선 한 가닥을 세 줄로 벌리는 공용 할퀴기. 같은 원화에 팔레트와 시전자 색만 바꿔 쓴다.
-  - { id: hit.claw.triple, category: hit, renderer: clawTriple, sheet: ClawStroke_Blue, bodyColor: 101B24F2, edgeColor: 1CB9D7EE, coreColor: E9FFFFFF, sourceAngle: 45, lengthInCards: 1.72, thicknessInCards: 0.118, drawDuration: 0.18, centerCrossFraction: 0.50, lineDelay: 0.022, lineSpacingInCards: 0.16, lingerDuration: 0.10, fadeDuration: 0.17, revealSoftness: 0.038, tipWidth: 0.058, cardKickStrength: 0.54, accentPartId: hit.impact.aqua, secondaryPartId: hit.claw.smoke }
-  - { id: hit.claw.triple.blue, category: hit, renderer: clawTriple, sheet: ClawStroke_Blue, bodyColor: 101B24F2, edgeColor: 239DD9EE, coreColor: E9F7FFFF, sourceAngle: 45, lengthInCards: 1.72, thicknessInCards: 0.118, drawDuration: 0.18, centerCrossFraction: 0.50, lineDelay: 0.022, lineSpacingInCards: 0.16, lingerDuration: 0.10, fadeDuration: 0.17, revealSoftness: 0.038, tipWidth: 0.058, cardKickStrength: 0.54, accentPartId: hit.impact.aqua, secondaryPartId: hit.claw.smoke }
-  - { id: hit.claw.triple.green, category: hit, renderer: clawTriple, sheet: ClawStroke_Blue, bodyColor: 101D1AF2, edgeColor: 36C98DEE, coreColor: E8FFF2FF, sourceAngle: 45, lengthInCards: 1.72, thicknessInCards: 0.118, drawDuration: 0.18, centerCrossFraction: 0.50, lineDelay: 0.022, lineSpacingInCards: 0.16, lingerDuration: 0.10, fadeDuration: 0.17, revealSoftness: 0.038, tipWidth: 0.058, cardKickStrength: 0.54, accentPartId: hit.impact.aqua, secondaryPartId: hit.claw.smoke }
-  - { id: hit.claw.triple.purple, category: hit, renderer: clawTriple, sheet: ClawStroke_Blue, bodyColor: 1B1224F2, edgeColor: A34DDBEE, coreColor: F5E9FFFF, sourceAngle: 45, lengthInCards: 1.72, thicknessInCards: 0.118, drawDuration: 0.18, centerCrossFraction: 0.50, lineDelay: 0.022, lineSpacingInCards: 0.16, lingerDuration: 0.10, fadeDuration: 0.17, revealSoftness: 0.038, tipWidth: 0.058, cardKickStrength: 0.54, accentPartId: hit.impact.void, secondaryPartId: hit.claw.smoke }
-  - { id: hit.claw.triple.red, category: hit, renderer: clawTriple, sheet: ClawStroke_Blue, bodyColor: 241413F2, edgeColor: D9573FEE, coreColor: FFF0E2FF, sourceAngle: 45, lengthInCards: 1.72, thicknessInCards: 0.118, drawDuration: 0.18, centerCrossFraction: 0.50, lineDelay: 0.022, lineSpacingInCards: 0.16, lingerDuration: 0.10, fadeDuration: 0.17, revealSoftness: 0.038, tipWidth: 0.058, cardKickStrength: 0.54, accentPartId: hit.explosion.small, secondaryPartId: hit.claw.smoke }
-  - { id: hit.claw.triple.yellow, category: hit, renderer: clawTriple, sheet: ClawStroke_Blue, bodyColor: 241F12F2, edgeColor: DCB84EEE, coreColor: FFFFF0FF, sourceAngle: 45, lengthInCards: 1.72, thicknessInCards: 0.118, drawDuration: 0.18, centerCrossFraction: 0.50, lineDelay: 0.022, lineSpacingInCards: 0.16, lingerDuration: 0.10, fadeDuration: 0.17, revealSoftness: 0.038, tipWidth: 0.058, cardKickStrength: 0.54, accentPartId: hit.impact.crystal, secondaryPartId: hit.claw.smoke }
+  - { id: hit.claw.triple, category: hit, renderer: clawTriple, sheet: ClawStroke_Blue, bodyColor: 719FBBBB, edgeColor: 91BFD4CC, coreColor: E0F5F5FF, sourceAngle: 45, lengthInCards: 1.10, thicknessInCards: 0.075, drawDuration: 0.18, centerCrossFraction: 0.50, lineDelay: 0.022, lineSpacingInCards: 0.12, lingerDuration: 0.10, fadeDuration: 0.17, revealSoftness: 0.038, tipWidth: 0.058, cardKickStrength: 0.54, accentPartId: hit.impact.aqua, secondaryPartId: hit.claw.smoke , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: hit.claw.triple.blue, category: hit, renderer: clawTriple, sheet: ClawStroke_Blue, bodyColor: 659AC7BB, edgeColor: AFD7F2D4, coreColor: E0EDF5FF, sourceAngle: 45, lengthInCards: 1.10, thicknessInCards: 0.075, drawDuration: 0.18, centerCrossFraction: 0.50, lineDelay: 0.022, lineSpacingInCards: 0.12, lingerDuration: 0.10, fadeDuration: 0.17, revealSoftness: 0.038, tipWidth: 0.058, cardKickStrength: 0.54, accentPartId: hit.impact.aqua, secondaryPartId: hit.claw.smoke , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: hit.claw.triple.green, category: hit, renderer: clawTriple, sheet: ClawStroke_Blue, bodyColor: 65B7A4BB, edgeColor: 96DFCDD4, coreColor: DFF5E8FF, sourceAngle: 45, lengthInCards: 1.10, thicknessInCards: 0.075, drawDuration: 0.18, centerCrossFraction: 0.50, lineDelay: 0.022, lineSpacingInCards: 0.12, lingerDuration: 0.10, fadeDuration: 0.17, revealSoftness: 0.038, tipWidth: 0.058, cardKickStrength: 0.54, accentPartId: hit.impact.aqua, secondaryPartId: hit.claw.smoke , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: hit.claw.triple.purple, category: hit, renderer: clawTriple, sheet: ClawStroke_Blue, bodyColor: 9980C2BB, edgeColor: C4AEE9D4, coreColor: EBE0F5FF, sourceAngle: 45, lengthInCards: 1.10, thicknessInCards: 0.075, drawDuration: 0.18, centerCrossFraction: 0.50, lineDelay: 0.022, lineSpacingInCards: 0.12, lingerDuration: 0.10, fadeDuration: 0.17, revealSoftness: 0.038, tipWidth: 0.058, cardKickStrength: 0.54, accentPartId: hit.impact.void, secondaryPartId: hit.claw.smoke , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: hit.claw.triple.red, category: hit, renderer: clawTriple, sheet: ClawStroke_Blue, bodyColor: D97084BB, edgeColor: FFA39AD4, coreColor: F5E6D9FF, sourceAngle: 45, lengthInCards: 1.10, thicknessInCards: 0.075, drawDuration: 0.18, centerCrossFraction: 0.50, lineDelay: 0.022, lineSpacingInCards: 0.12, lingerDuration: 0.10, fadeDuration: 0.17, revealSoftness: 0.038, tipWidth: 0.058, cardKickStrength: 0.54, accentPartId: hit.explosion.small, secondaryPartId: hit.claw.smoke , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: hit.claw.triple.yellow, category: hit, renderer: clawTriple, sheet: ClawStroke_Blue, bodyColor: DDBF72BB, edgeColor: FFE7A3D4, coreColor: F5F5E6FF, sourceAngle: 45, lengthInCards: 1.10, thicknessInCards: 0.075, drawDuration: 0.18, centerCrossFraction: 0.50, lineDelay: 0.022, lineSpacingInCards: 0.12, lingerDuration: 0.10, fadeDuration: 0.17, revealSoftness: 0.038, tipWidth: 0.058, cardKickStrength: 0.54, accentPartId: hit.impact.crystal, secondaryPartId: hit.claw.smoke , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
   # 같은 세 갈래를 더 굵은 외곽·긴 잔광으로 그리는 야수 강타용 강화판. 다른 피격 도형은 섞지 않는다.
-  - { id: hit.claw.triple.heavy, category: hit, renderer: clawTriple, sheet: ClawStroke_Blue, bodyColor: 080706FA, edgeColor: B78B52FA, coreColor: FFF2C8FF, sourceAngle: 45, lengthInCards: 1.96, thicknessInCards: 0.152, drawDuration: 0.20, centerCrossFraction: 0.50, lineDelay: 0.018, lineSpacingInCards: 0.19, lingerDuration: 0.18, fadeDuration: 0.24, revealSoftness: 0.042, tipWidth: 0.070, cardKickStrength: 0.72, secondaryPartId: hit.claw.smoke }
-  - { id: hit.claw.smoke, category: hit, sheet: Smoke5_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 334B56A0, coreColor: 87D8E0B8, scaleX: 1.14, scaleY: 0.70, peakFrame: 4, peakAlpha: 0.40, glowAlpha: 0.26 }
+  - { id: hit.claw.triple.heavy, category: hit, renderer: clawTriple, sheet: ClawStroke_Blue, bodyColor: CCA36DBB, edgeColor: FFDBA5D4, coreColor: F5E8C0FF, sourceAngle: 45, lengthInCards: 1.30, thicknessInCards: 0.095, drawDuration: 0.20, centerCrossFraction: 0.50, lineDelay: 0.018, lineSpacingInCards: 0.14, lingerDuration: 0.10, fadeDuration: 0.16, revealSoftness: 0.042, tipWidth: 0.070, cardKickStrength: 0.72, secondaryPartId: hit.claw.smoke , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: hit.claw.smoke, category: hit, sheet: Smoke5_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 5E8A9EA0, coreColor: AADBE0B8, scaleX: 1.14, scaleY: 0.70, peakFrame: 4, peakAlpha: 0.40, glowAlpha: 0.20, calmLight: true , desaturate: 1 , useHitAlpha: true }
 
   # 지원형 피격. 팩 시트의 의미·앵커를 데이터에도 남기고, 끝에서 하단 HUD로 빛점을 연결한다.
-  - { id: hit.support.buff, category: hit, renderer: supportBuff, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: CDB65CF8, coreColor: FFF4B8FF, scaleX: 0.96, scaleY: 0.84, peakFrame: 3, peakAlpha: 0.98, glowAlpha: 0.98, impactAnchorX: 0.50, impactAnchorY: 0.50 }
-  - { id: hit.support.cleanse, category: hit, renderer: supportCleanse, sheet: Smoke5_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 4DBDCEE8, coreColor: E8FCFFFF, scaleX: 1.30, scaleY: 1.21, peakFrame: 4, peakAlpha: 0.92, glowAlpha: 0.94, impactAnchorX: 0.50, impactAnchorY: 0.15 }
-  - { id: hit.support.heal, category: hit, renderer: supportHeal, sheet: Impact1_Green, columns: 3, rows: 2, fps: 30, bodyColor: 53B779EA, coreColor: E5FFF0FF, scaleX: 1.20, scaleY: 1.14, peakFrame: 3, peakAlpha: 0.94, glowAlpha: 0.96, impactAnchorX: 0.50, impactAnchorY: 0.50 }
-  - { id: hit.support.shield, category: hit, renderer: supportShield, sheet: Ball1_Sheet_Blue, columns: 3, rows: 3, fps: 24, bodyColor: 78818CF2, coreColor: F4F7FAFF, scaleX: 1.12, scaleY: 1.02, peakFrame: 4, peakAlpha: 0.94, glowAlpha: 0.98, impactAnchorX: 0.50, impactAnchorY: 0.50 }
+  - { id: hit.support.buff, category: hit, renderer: supportBuff, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: CDB96BF8, coreColor: F5ECBAFF, scaleX: 0.96, scaleY: 0.84, peakFrame: 3, peakAlpha: 0.98, glowAlpha: 0.20, impactAnchorX: 0.50, impactAnchorY: 0.50 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.support.cleanse, category: hit, renderer: supportCleanse, sheet: Smoke5_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 6BC1CEE8, coreColor: DFF2F5FF, scaleX: 1.30, scaleY: 1.21, peakFrame: 4, peakAlpha: 0.92, glowAlpha: 0.20, impactAnchorX: 0.50, impactAnchorY: 0.15 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.support.heal, category: hit, renderer: supportHeal, sheet: Impact1_Green, columns: 3, rows: 2, fps: 30, bodyColor: 5FB781EA, coreColor: DCF5E6FF, scaleX: 1.20, scaleY: 1.14, peakFrame: 3, peakAlpha: 0.94, glowAlpha: 0.20, impactAnchorX: 0.50, impactAnchorY: 0.50 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.support.shield, category: hit, renderer: supportShield, sheet: Ball1_Sheet_Blue, columns: 3, rows: 3, fps: 24, bodyColor: 88929EF2, coreColor: EFF2F5FF, scaleX: 1.12, scaleY: 1.02, peakFrame: 4, peakAlpha: 0.94, glowAlpha: 0.20, impactAnchorX: 0.50, impactAnchorY: 0.50 , calmLight: true , desaturate: 1 , useHitAlpha: true }
   # 이전 상태 키와 Legacy 호출부의 호환 별칭.
-  - { id: affected.buff.rise, category: affected, renderer: supportBuff, bodyColor: CDB65CB8, coreColor: FFF4B8FF, scaleX: 1.28, scaleY: 1.28, peakAlpha: 0.72, glowAlpha: 0.92 }
-  - { id: affected.buff.shield, category: affected, renderer: supportShield, bodyColor: 87CBE0BC, coreColor: E5FAFFFF, scaleX: 1.28, scaleY: 1.30, peakAlpha: 0.74, glowAlpha: 0.96 }
-  - { id: affected.buff.crystal_shield, category: affected, renderer: supportShield, bodyColor: D1B768BC, coreColor: FFF4BEFF, scaleX: 1.28, scaleY: 1.30, peakAlpha: 0.74, glowAlpha: 0.96 }
-  - { id: affected.buff.moon, category: affected, renderer: supportBuff, bodyColor: 87BDE4B8, coreColor: EDFAFFFF, scaleX: 1.28, scaleY: 1.28, peakAlpha: 0.72, glowAlpha: 0.92 }
-  - { id: affected.buff.heal, category: affected, renderer: supportHeal, bodyColor: 68C896A8, coreColor: E5FFF0FF, scaleX: 1.26, scaleY: 1.28, peakAlpha: 0.66, glowAlpha: 0.94 }
-  - { id: affected.debuff.fall, category: affected, sheet: Smoke1_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 34405BC9, coreColor: 8E7CB8D9, scaleX: 1.12, scaleY: 1.30, peakFrame: 4, peakAlpha: 0.58, glowAlpha: 0.38 }
-  - { id: affected.debuff.slow, category: affected, sheet: Smoke5_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 466683C7, coreColor: 9AC4E0DE, scaleX: 1.24, scaleY: 0.82, peakFrame: 4, peakAlpha: 0.56, glowAlpha: 0.36 }
-  - { id: affected.debuff.mark, category: affected, sheet: Muzzle1_Red, columns: 2, rows: 2, fps: 40, bodyColor: 68284DD8, coreColor: D088DFFF, scaleX: 0.96, scaleY: 0.96, peakFrame: 2, peakAlpha: 0.64, glowAlpha: 0.46 }
-  - { id: affected.debuff.blaze, category: affected, sheet: Fire1_Red, columns: 4, rows: 4, fps: 25.6, bodyColor: 8A2A20EE, coreColor: FFE0A0F8, scaleX: 1.02, scaleY: 1.28, peakFrame: 7, peakAlpha: 0.78, glowAlpha: 0.58, impactAnchorX: 0.50, impactAnchorY: 0.12 }
-  - { id: affected.control.stun, category: affected, sheet: Explosion3_Yellow, columns: 3, rows: 3, fps: 45, bodyColor: DAB84CD9, coreColor: FFF8C8FF, scaleX: 1.16, scaleY: 0.84, peakFrame: 4, peakAlpha: 0.62, glowAlpha: 0.46 }
-  - { id: affected.control.bind, category: affected, sheet: Lightning2_Purple, columns: 3, rows: 3, fps: 45, bodyColor: 59319AC9, coreColor: C8A8F0E8, scaleX: 1.20, scaleY: 1.42, peakFrame: 4, peakAlpha: 0.58, glowAlpha: 0.44 }
-  - { id: affected.dot.burn, category: affected, sheet: Fire1_Red, columns: 4, rows: 4, fps: 25.6, bodyColor: C05230D4, coreColor: FFDA92E8, scaleX: 0.94, scaleY: 1.16, peakFrame: 7, peakAlpha: 0.60, glowAlpha: 0.46 }
-  - { id: affected.dot.shock, category: affected, sheet: Lightning2_Purple, columns: 3, rows: 3, fps: 45, bodyColor: 7542BBD4, coreColor: D8C0FFE8, scaleX: 0.96, scaleY: 1.18, peakFrame: 4, peakAlpha: 0.58, glowAlpha: 0.44 }
+  - { id: affected.buff.rise, category: affected, renderer: supportBuff, bodyColor: CDB96BB8, coreColor: F5ECBAFF, scaleX: 1.28, scaleY: 1.28, peakAlpha: 0.72, glowAlpha: 0.5 }
+  - { id: affected.buff.shield, category: affected, renderer: supportShield, bodyColor: 87CBE0BC, coreColor: DCF0F5FF, scaleX: 1.28, scaleY: 1.30, peakAlpha: 0.74, glowAlpha: 0.5 }
+  - { id: affected.buff.crystal_shield, category: affected, renderer: supportShield, bodyColor: D1B86DBC, coreColor: F5EBBAFF, scaleX: 1.28, scaleY: 1.30, peakAlpha: 0.74, glowAlpha: 0.5 }
+  - { id: affected.buff.moon, category: affected, renderer: supportBuff, bodyColor: 85BAE0B8, coreColor: E4F0F5FF, scaleX: 1.28, scaleY: 1.28, peakAlpha: 0.72, glowAlpha: 0.5 }
+  - { id: affected.buff.heal, category: affected, renderer: supportHeal, bodyColor: 68C896A8, coreColor: DCF5E6FF, scaleX: 1.26, scaleY: 1.28, peakAlpha: 0.66, glowAlpha: 0.5 }
+  - { id: affected.debuff.fall, category: affected, sheet: Smoke1_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 5A6F9EC9, coreColor: AE9FD1D9, scaleX: 1.12, scaleY: 1.30, peakFrame: 4, peakAlpha: 0.58, glowAlpha: 0.20, calmLight: true , desaturate: 1 , useHitAlpha: true , renderer: statusMotif }
+  - { id: affected.debuff.slow, category: affected, sheet: Smoke5_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 547B9EC7, coreColor: AACAE0DE, scaleX: 1.24, scaleY: 0.82, peakFrame: 4, peakAlpha: 0.56, glowAlpha: 0.20, calmLight: true , desaturate: 1 , useHitAlpha: true , renderer: statusMotif }
+  - { id: affected.debuff.mark, category: affected, sheet: Muzzle1_Red, columns: 2, rows: 2, fps: 40, bodyColor: 9E527ED8, coreColor: D6A9DFFF, scaleX: 0.96, scaleY: 0.96, peakFrame: 2, peakAlpha: 0.64, glowAlpha: 0.20, calmLight: true , desaturate: 1 , useHitAlpha: true , renderer: statusMotif }
+  - { id: affected.debuff.blaze, category: affected, sheet: Fire1_Red, columns: 4, rows: 4, fps: 25.6, bodyColor: E08C75EE, coreColor: F5E2BAF8, scaleX: 1.02, scaleY: 1.28, peakFrame: 7, peakAlpha: 0.78, glowAlpha: 0.20, impactAnchorX: 0.50, impactAnchorY: 0.12, desaturate: 1, calmLight: true, useHitAlpha: true }
+  - { id: affected.control.stun, category: affected, sheet: Explosion3_Yellow, columns: 3, rows: 3, fps: 45, bodyColor: DAC171D9, coreColor: F5EEC0FF, scaleX: 1.16, scaleY: 0.84, peakFrame: 4, peakAlpha: 0.62, glowAlpha: 0.20, calmLight: true , desaturate: 1 , useHitAlpha: true , renderer: statusMotif }
+  - { id: affected.control.bind, category: affected, sheet: Lightning2_Purple, edgeColor: 352642CC, columns: 3, rows: 3, fps: 45, bodyColor: AD94DAC9, coreColor: D0B6F0E8, scaleX: 1.20, scaleY: 1.42, peakFrame: 4, peakAlpha: 0.58, glowAlpha: 0.20, desaturate: 1, calmLight: true, useHitAlpha: true , renderer: statusMotif }
+  - { id: affected.dot.burn, category: affected, sheet: Fire1_Red, columns: 4, rows: 4, fps: 25.6, bodyColor: C07A64D4, coreColor: F5E1BAE8, scaleX: 0.94, scaleY: 1.16, peakFrame: 7, peakAlpha: 0.60, glowAlpha: 0.20, calmLight: true , desaturate: 1 , useHitAlpha: true , renderer: statusMotif }
+  - { id: affected.dot.shock, category: affected, sheet: Lightning2_Purple, edgeColor: 352642CC, columns: 3, rows: 3, fps: 45, bodyColor: 8761BBD4, coreColor: D0BAF5E8, scaleX: 0.96, scaleY: 1.18, peakFrame: 4, peakAlpha: 0.58, glowAlpha: 0.20, calmLight: true , desaturate: 1 , useHitAlpha: true , renderer: statusMotif }
 
   # 화면 부품은 하나의 포커스 체계만 쓴다. 요청이 겹쳐도 BattlefieldBackdrop이 최강 곡선 하나만 선택한다.
-  - { id: screen.focus.normal, category: screen, bodyColor: 263847FF, coreColor: EAF8FFFF, focusStrength: 0.16, focusFadeIn: 0.06, focusHold: 0.42, focusFadeOut: 0.22, flashStrength: 0.025, shake: 0.00 }
-  - { id: screen.focus.special, category: screen, bodyColor: 1C293AFF, coreColor: EAF8FFFF, focusStrength: 0.28, focusFadeIn: 0.06, focusHold: 0.62, focusFadeOut: 0.28, flashStrength: 0.045, shake: 0.00 }
-  - { id: screen.focus.ultimate, category: screen, bodyColor: 171F32FF, coreColor: F8F2FFFF, focusStrength: 0.44, focusFadeIn: 0.07, focusHold: 0.86, focusFadeOut: 0.34, flashStrength: 0.07, shake: 0.00 }
-  - { id: screen.tone.small, category: screen, bodyColor: 263847FF, coreColor: DCF5FFFF, focusStrength: 0.16, focusFadeIn: 0.06, focusHold: 0.42, focusFadeOut: 0.22, flashStrength: 0.025, shake: 0.00 }
-  - { id: screen.tone.large, category: screen, bodyColor: 171F32FF, coreColor: EBC8FFFF, focusStrength: 0.44, focusFadeIn: 0.07, focusHold: 0.86, focusFadeOut: 0.34, flashStrength: 0.07, shake: 0.00 }
-  - { id: screen.shake.medium, category: screen, bodyColor: 182331FF, coreColor: FFFFFFFF, focusStrength: 0.16, flashStrength: 0.04, shake: 0.09 }
-  - { id: screen.flash.front, category: screen, bodyColor: 202B38FF, coreColor: F7FCFFFF, focusStrength: 0.08, flashStrength: 0.18, shake: 0.04 }
-  - { id: screen.tone.boss, category: screen, bodyColor: 160B22FF, coreColor: EAD8F4FF, focusStrength: 0.42, flashStrength: 0.07, shake: 0.02 }
+  - { id: screen.focus.normal, category: screen, bodyColor: 263847FF, coreColor: EAF8FFFF, focusStrength: 0.14, focusFadeIn: 0.12, focusHold: 0.42, focusFadeOut: 0.22, flashStrength: 0, shake: 0.00 }
+  - { id: screen.focus.special, category: screen, bodyColor: 1C293AFF, coreColor: EAF8FFFF, focusStrength: 0.24, focusFadeIn: 0.12, focusHold: 0.62, focusFadeOut: 0.28, flashStrength: 0, shake: 0.00 }
+  - { id: screen.focus.ultimate, category: screen, bodyColor: 171F32FF, coreColor: F8F2FFFF, focusStrength: 0.28, focusFadeIn: 0.12, focusHold: 0.86, focusFadeOut: 0.34, flashStrength: 0, shake: 0.00 }
+  - { id: screen.tone.small, category: screen, bodyColor: 263847FF, coreColor: DCF5FFFF, focusStrength: 0.16, focusFadeIn: 0.12, focusHold: 0.42, focusFadeOut: 0.22, flashStrength: 0, shake: 0.00 }
+  - { id: screen.tone.large, category: screen, bodyColor: 171F32FF, coreColor: EBC8FFFF, focusStrength: 0.28, focusFadeIn: 0.12, focusHold: 0.86, focusFadeOut: 0.34, flashStrength: 0, shake: 0.00 }
+  - { id: screen.shake.medium, category: screen, bodyColor: 182331FF, coreColor: FFFFFFFF, focusStrength: 0.16, flashStrength: 0, shake: 0.09 }
+  - { id: screen.flash.front, category: screen, bodyColor: 202B38FF, coreColor: F7FCFFFF, focusStrength: 0.08, flashStrength: 0.012, shake: 0.04 }
+  - { id: screen.tone.boss, category: screen, bodyColor: 160B22FF, coreColor: EAD8F4FF, focusStrength: 0.28, flashStrength: 0, shake: 0.02 }
+
+  # 13차 로카팔라: 같은 시트의 팔레트·앵커·문양 조합. 공격 크기는 금력과 무관하다.
+  - { id: cast.indra.vajra, category: cast, renderer: lokapalaVajra, scaleX: 1, scaleY: 1, impactAnchorX: 0.5, impactAnchorY: 0.5 }
+  - { id: cast.indra.gather, category: cast, renderer: lokapalaGather, scaleX: 1.14, scaleY: 1.14, impactAnchorX: 0.5, impactAnchorY: 0.5 }
+  - { id: affected.lokapala.hud, category: affected, renderer: lokapalaHud, scaleX: 1, scaleY: 1, impactAnchorX: 0.5, impactAnchorY: 0.5 }
+  - { id: cast.wind.vortex, category: cast, sheet: Slash5_Green, columns: 3, rows: 3, fps: 30, bodyColor: 78C8BBFA, coreColor: D3F5E6FF, scaleX: 1.64, scaleY: 1.42, peakFrame: 4, peakAlpha: 0.94, glowAlpha: 0.20, peakHoldSeconds: 0.18, impactAnchorX: 0.5, impactAnchorY: 0.5, inkColor: 26423CF0, inkAlpha: 0.94, darkDesaturate: true, darkBodyColor: C8EBD8FF, desaturate: 1, calmLight: true, useHitAlpha: true }
+  - { id: cast.kubera.coin, category: cast, renderer: lokapalaCoinCast, scaleX: 1, scaleY: 1, impactAnchorX: 0.5, impactAnchorY: 0.5 }
+  - { id: cast.kubera.orbit, category: cast, renderer: lokapalaCoinOrbit, scaleX: 1, scaleY: 1, impactAnchorX: 0.5, impactAnchorY: 0.5 }
+  - { id: cast.kubera.treasury, category: cast, renderer: lokapalaTreasury, scaleX: 1, scaleY: 1, impactAnchorX: 0.5, impactAnchorY: 0.5 }
+  - { id: hit.indra.thunder, category: hit, sheet: Lightning2_Purple, edgeColor: 352642CC, columns: 3, rows: 3, fps: 45, bodyColor: AB94E0FA, coreColor: E9DAF5FF, scaleX: 1.64, scaleY: 1.30, peakFrame: 4, peakAlpha: 0.94, glowAlpha: 0.20, peakHoldSeconds: 0.10, impactAnchorX: 0.5, impactAnchorY: 0.12, inkColor: 3B2B42F0, inkAlpha: 0.94, useHitAlpha: true, tailHoldFrame: 5, tailHoldSeconds: 0.12, desaturate: 1, calmLight: true}
+  - { id: hit.indra.vajra, category: hit, sheet: Lightning2_Purple, edgeColor: 67779B60, columns: 3, rows: 3, fps: 45, bodyColor: BAA8EDF0, coreColor: F5E8C4FF, scaleX: 0.72, scaleY: 0.88, peakFrame: 4, peakAlpha: 0.20, glowAlpha: 0.06, peakHoldSeconds: 0.10, impactAnchorX: 0.5, impactAnchorY: 0.12, inkColor: 28344980, inkAlpha: 0.12, useHitAlpha: true, tailHoldFrame: 5, tailHoldSeconds: 0.12 , calmLight: true , desaturate: 1 }
+  - { id: hit.indra.contact, category: hit, sheet: Impact1_Yellow, columns: 3, rows: 2, fps: 30, bodyColor: C7AB67F2, coreColor: F5EECFFF, scaleX: 1.10, scaleY: 0.82, peakFrame: 3, peakHoldSeconds: 0.22, peakAlpha: 0.90, glowAlpha: 0.20, impactAnchorX: 0.5, impactAnchorY: 0.5, inkColor: 3B2B42F0, inkAlpha: 0.94, useHitAlpha: true, calmLight: true , desaturate: 1 }
+  - { id: hit.wind.blade, category: hit, sheet: Slash4_Green, columns: 3, rows: 2, fps: 30, bodyColor: 529E95FA, coreColor: D7F5E9FF, scaleX: 1.55, scaleY: 1.25, peakFrame: 3, peakAlpha: 0.96, glowAlpha: 0.20, peakHoldSeconds: 0.18, impactAnchorX: 0.5, impactAnchorY: 0.58, inkColor: 26423CF0, inkAlpha: 0.94, useHitAlpha: true, darkDesaturate: true, darkBodyColor: C8EBD8FF , calmLight: true , desaturate: 1 }
+  - { id: hit.wind.vortex, category: hit, sheet: Slash5_Green, columns: 3, rows: 3, fps: 36, bodyColor: 78C8BBFA, coreColor: D7F5E9FF, scaleX: 1.84, scaleY: 1.62, peakFrame: 4, peakAlpha: 0.96, glowAlpha: 0.20, peakHoldSeconds: 0.18, impactAnchorX: 0.5, impactAnchorY: 0.5, inkColor: 26423CF0, inkAlpha: 0.94, useHitAlpha: true, darkDesaturate: true, darkBodyColor: C8EBD8FF, desaturate: 1, calmLight: true}
+  - { id: hit.kubera.coin, category: hit, renderer: lokapalaCoinImpact, sheet: Impact1_Yellow, columns: 3, rows: 2, fps: 30, bodyColor: 9E7C52FA, coreColor: F5EBBAFF, scaleX: 1.54, scaleY: 1.24, peakFrame: 3, peakAlpha: 0.68, glowAlpha: 0.20, peakHoldSeconds: 0.18, impactAnchorX: 0.5, impactAnchorY: 0.5, inkColor: 3B2B42F0, inkAlpha: 0.4, useHitAlpha: true, darkBodyColor: EBD58DFF , calmLight: true , desaturate: 1 }
+  - { id: hit.kubera.treasury, category: hit, sheet: Explosion3_Yellow, columns: 3, rows: 3, fps: 36, bodyColor: FFEAC0DE, coreColor: F5ECC0FF, scaleX: 0.76, scaleY: 0.70, peakFrame: 4, peakAlpha: 0.06, glowAlpha: 0.08, peakHoldSeconds: 0.05, impactAnchorX: 0.5, impactAnchorY: 0.5, inkColor: 52678099, inkAlpha: 0.025, useHitAlpha: true, calmLight: true , desaturate: 1 }
+  - { id: affected.wind.erosion, category: affected, renderer: statusMotif, bodyColor: 6BAF9FCC, scaleX: 0.55, scaleY: 0.50, affectedDelay: 0.26 }
+
+  - { id: hit.moonlight.changya, category: hit, sheet: Explosion2_Blue, columns: 3, rows: 3, fps: 30, bodyColor: 86BEDAF2, coreColor: EEF5F5FF, scaleX: 1.24, scaleY: 1.06, peakFrame: 4, peakAlpha: .28, glowAlpha: 0.20, peakHoldSeconds: 0.10, impactAnchorX: 0.5, impactAnchorY: 0.5, inkColor: 384C64B0, inkAlpha: 0, useHitAlpha: true, desaturate: 1, calmLight: true}
+
+  - { id: hit.support.buff.ink, category: hit, renderer: supportBuff, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: CDB96BF8, coreColor: F5ECBAFF, scaleX: 0.96, scaleY: 0.84, peakFrame: 3, peakAlpha: 0.98, glowAlpha: 0.20, impactAnchorX: 0.5, impactAnchorY: 0.5, inkAlpha: 0.2 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+
+  - { id: hit.anubis.pierce, category: hit, sheet: Impact1_Yellow, columns: 3, rows: 2, fps: 30, bodyColor: 529E90F2, coreColor: F5E9BAFF, scaleX: 1.5, scaleY: 1.12, peakFrame: 3, startFrame: 3, peakAlpha: 0.86, glowAlpha: 0.20, peakHoldSeconds: 0.14, impactAnchorX: 0.5, impactAnchorY: 0.5, inkColor: 26423EF0, inkAlpha: 0.8, desaturate: 1, calmLight: true , useHitAlpha: true }
+  - { id: hit.anubis.pierce.gold, category: hit, sheet: Impact1_Yellow, columns: 3, rows: 2, fps: 30, bodyColor: CCB06AF2, coreColor: F5F5D7FF, scaleX: 1.5, scaleY: 1.12, peakFrame: 3, startFrame: 3, peakAlpha: 0.86, glowAlpha: 0.20, peakHoldSeconds: 0.14, impactAnchorX: 0.5, impactAnchorY: 0.5, inkColor: 26423EF0, inkAlpha: 0.8, desaturate: 1, calmLight: true , useHitAlpha: true }
+  - { id: cast.anubis.soul, category: cast, sheet: Fire3_Yellow, columns: 3, rows: 3, fps: 30, bodyColor: 5FB7A6F0, coreColor: D0F5ECFF, scaleX: 0.56, scaleY: 0.66, peakFrame: 4, startFrame: 4, peakAlpha: 0.86, glowAlpha: 0.20, peakHoldSeconds: 0.22, impactAnchorX: 0.5, impactAnchorY: 0.14, inkColor: 26423EF0, inkAlpha: 0.5, calmLight: true, desaturate: 1, useHitAlpha: true }
+  - { id: cast.uchi.wind, category: cast, sheet: Slash5_Green, columns: 3, rows: 3, fps: 30, bodyColor: 529E92E8, coreColor: D1F5E8FF, scaleX: 1.12, scaleY: 1.08, peakFrame: 4, startFrame: 4, peakAlpha: 0.86, glowAlpha: 0.20, peakHoldSeconds: 0.14, impactAnchorX: 0.5, impactAnchorY: 0.5, inkColor: 26423EF0, inkAlpha: 0.8, desaturate: 1, calmLight: true , useHitAlpha: true }
+  - { id: hit.uchi.strike, category: hit, sheet: Impact1_Green, columns: 3, rows: 2, fps: 30, bodyColor: 529E90EE, coreColor: EBF5E8FF, scaleX: 1.42, scaleY: 1.14, peakFrame: 3, startFrame: 3, peakAlpha: 0.86, glowAlpha: 0.20, peakHoldSeconds: 0.14, impactAnchorX: 0.5, impactAnchorY: 0.5, inkColor: 26423EF0, inkAlpha: 0.8, desaturate: 1, calmLight: true , useHitAlpha: true }
+  - { id: hit.uchi.overflow, category: hit, sheet: Impact1_Green, columns: 3, rows: 2, fps: 30, bodyColor: 529E94B8, coreColor: D1E6D4C8, scaleX: 1.1, scaleY: 0.92, peakFrame: 3, startFrame: 3, peakAlpha: 0.86, glowAlpha: 0.20, peakHoldSeconds: 0.14, impactAnchorX: 0.5, impactAnchorY: 0.5, inkColor: 26423EF0, inkAlpha: 0.8, desaturate: 1, calmLight: true , useHitAlpha: true }
+  - { id: cast.anubis.book, category: cast, renderer: cardAdvance, scaleX: 1, scaleY: 1 }
+  - { id: cast.uchi.guard, category: cast, renderer: cardAdvance, scaleX: 1, scaleY: 1 }
+
+  # 야마·바루나: 원본 알파에 0.8 가시성을 출발점으로, 코어와 후속 연출은 더 얇게 둔다.
+  - { id: screen.yv.normal, category: screen, bodyColor: 293B57FF, coreColor: EAF8FFFF, focusStrength: 0.14, focusFadeIn: 0.16, focusHold: 0.42, focusFadeOut: 0.30, flashStrength: 0, shake: 0 }
+  - { id: screen.yv.special, category: screen, bodyColor: 293B57FF, coreColor: EAF8FFFF, focusStrength: 0.24, focusFadeIn: 0.16, focusHold: 0.62, focusFadeOut: 0.30, flashStrength: 0, shake: 0 }
+  - { id: screen.yv.ultimate, category: screen, bodyColor: 293B57FF, coreColor: EAF8FFFF, focusStrength: 0.28, focusFadeIn: 0.16, focusHold: 0.86, focusFadeOut: 0.30, flashStrength: 0, shake: 0 }
+  - { id: cast.yama.seal, category: cast, renderer: yvVerdict, desaturate: 1, calmLight: true, sheet: Muzzle1_Blue, columns: 2, rows: 2, fps: 30, bodyColor: B69BCFFF, coreColor: EBE0F5FF, scaleX: 1.04, scaleY: 0.82, peakFrame: 2, peakAlpha: 0.8, glowAlpha: 0.20, useHitAlpha: true }
+  - { id: hit.yama.lightning, category: hit, desaturate: 1, calmLight: true, sheet: Lightning2_Purple, columns: 3, rows: 3, fps: 36, bodyColor: C2A5DEFF, coreColor: E9E0F5FF, scaleX: 1.35, scaleY: 1.12, peakFrame: 4, peakAlpha: 0.8, glowAlpha: 0.20, useHitAlpha: true, impactAnchorX: 0.5, impactAnchorY: 0.30, peakHoldSeconds: 0.06, tailHoldFrame: 5, tailHoldSeconds: 0.12 }
+  - { id: hit.yama.judgment, category: hit, desaturate: 1, calmLight: true, sheet: Lightning1_Purple, columns: 3, rows: 2, fps: 24, bodyColor: C6ACDFFF, coreColor: F5E8CBFF, scaleX: 1.18, scaleY: 1.64, impactAnchorY: 0.36, peakFrame: 2, peakAlpha: 0.8, glowAlpha: 0.20, useHitAlpha: true, peakHoldSeconds: 0.07 }
+  - { id: affected.yama.detonation, category: affected, desaturate: 1, calmLight: true, sheet: Smoke3_Purple, columns: 3, rows: 3, fps: 45, bodyColor: C8AEE099, coreColor: E8CEF599, scaleX: 1.18, scaleY: 0.44, peakFrame: 4, peakAlpha: 0.48, glowAlpha: 0.20, useHitAlpha: true }
+  - { id: affected.yama.verdict, category: affected, desaturate: 1, calmLight: true, sheet: Impact1_Purple, columns: 3, rows: 2, fps: 45, bodyColor: B99DD199, coreColor: E8C8F599, scaleX: 0.46, scaleY: 0.40, peakFrame: 3, peakAlpha: 0.50, glowAlpha: 0.20, useHitAlpha: true }
+  - { id: cast.varuna.water, category: cast, renderer: yvLaw, desaturate: 1, calmLight: true, sheet: Ball1_Sheet_Blue, columns: 3, rows: 3, fps: 36, bodyColor: 87C8DEFF, coreColor: D0EBF5FF, scaleX: 0.98, scaleY: 0.74, peakFrame: 4, peakAlpha: 0.8, glowAlpha: 0.20, useHitAlpha: true }
+  - { id: hit.varuna.water, category: hit, desaturate: 1, calmLight: true, sheet: Slash3_Blue, columns: 2, rows: 2, fps: 20, bodyColor: 7ACBE0FF, coreColor: D3ECF5FF, scaleX: 1.42, scaleY: 0.96, peakFrame: 1, peakAlpha: 0.8, glowAlpha: 0.20, useHitAlpha: true, peakHoldSeconds: 0.06 }
+  - { id: hit.varuna.judgment, category: hit, desaturate: 1, calmLight: true, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: D1E5F5C0, coreColor: F5E9CCFF, scaleX: 0.88, scaleY: 0.63, peakFrame: 3, peakAlpha: 0.18, glowAlpha: 0.08, useHitAlpha: true, peakHoldSeconds: 0.06 }
+  - { id: affected.varuna.shield, category: affected, renderer: yvShield, desaturate: 1, calmLight: true, sheet: Ball1_Sheet_Blue, columns: 3, rows: 3, fps: 30, bodyColor: A4D4E0FF, coreColor: D8EAF2FF, scaleX: 0.76, scaleY: 0.64, peakFrame: 4, peakHoldSeconds: 0.12, peakAlpha: 0.60, glowAlpha: 0.20, useHitAlpha: true }
+  - { id: hit.yama.contact, category: hit, renderer: yvYamaImpact, desaturate: 1, calmLight: true, sheet: Impact1_Yellow, columns: 3, rows: 2, fps: 36, bodyColor: C4ADDCFF, coreColor: F5E7CCFF, scaleX: 1.18, scaleY: 0.70, peakFrame: 3, peakAlpha: 0.70, glowAlpha: 0.20, useHitAlpha: true }
+  - { id: hit.varuna.law, category: hit, renderer: yvLawHit, scaleX: 0.90, scaleY: 0.74 }
+
+  # 베다 3인 — 파스텔 몸체·단일 국소 정점·화면 섬광 없는 조합
+  - { id: cast.vayu.palm, category: cast, renderer: trioVayuCast, sheet: Slash4_Green, columns: 3, rows: 2, fps: 30, scaleX: 0.96, scaleY: 0.60, peakFrame: 3, calmLight: true, desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: hit.vayu.palm, category: hit, sheet: Slash4_Green, columns: 3, rows: 2, fps: 30, bodyColor: 94D5BDFF, coreColor: DAF5E7FF, scaleX: 1.18, scaleY: 0.86, peakFrame: 3, peakHoldSeconds: 0.06, peakAlpha: 0.8, glowAlpha: 0.20, desaturate: 1, calmLight: true, useHitAlpha: true}
+  - { id: hit.vayu.corridor, category: hit, sheet: Slash5_Green, columns: 3, rows: 3, fps: 30, bodyColor: 5BAE99FF, coreColor: BEECDDFF, scaleX: 1.52, scaleY: 1.16, peakFrame: 4, peakHoldSeconds: 0.06, peakAlpha: 0.8, glowAlpha: 0.20, desaturate: 1, calmLight: true, useHitAlpha: true}
+  - { id: hit.vayu.gale, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: C2D8E4FF, coreColor: EDF7FAFF, scaleX: 0.66, scaleY: 0.30, peakFrame: 3, peakHoldSeconds: 0.05, peakAlpha: 0.09, glowAlpha: 0.03, desaturate: 1, calmLight: true, useHitAlpha: true}
+  - { id: cast.agni.seal, category: cast, renderer: trioAgniCast, sheet: Muzzle1_Yellow, columns: 2, rows: 2, fps: 24, scaleX: 0.76, scaleY: 0.60, peakFrame: 2, calmLight: true, desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: cast.agni.bloom, category: cast, renderer: trioAgniCast, sheet: Ball1_Sheet_Yellow, columns: 3, rows: 3, fps: 30, scaleX: 1.00, scaleY: 0.72, peakFrame: 4, calmLight: true, desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: hit.agni.normal, category: hit, sheet: Impact1_Yellow, columns: 3, rows: 2, fps: 36, bodyColor: E0B784FF, coreColor: F5E1C3FF, scaleX: 1.02, scaleY: 0.78, peakFrame: 3, peakAlpha: 0.8, glowAlpha: 0.20, desaturate: 1, calmLight: true, useHitAlpha: true}
+  - { id: hit.agni.follow_up, category: hit, sheet: Impact1_Yellow, columns: 3, rows: 2, fps: 30, bodyColor: E89456FF, coreColor: E8662AFF, scaleX: 1.20, scaleY: .86, peakFrame: 4, peakHoldSeconds: 0.03, peakAlpha: .86, glowAlpha: 0.20, desaturate: 1, calmLight: true, useHitAlpha: true, tailHoldFrame: 5, tailHoldSeconds: 0.10}
+  - { id: affected.agni.focused_center, category: affected, sheet: Explosion3_Yellow, columns: 3, rows: 3, fps: 30, bodyColor: F0A064FF, coreColor: F5E0BAFF, scaleX: 1.55, scaleY: 1.08, peakFrame: 4, peakHoldSeconds: 0.035, peakAlpha: 0.42, glowAlpha: 0.20, desaturate: 1, calmLight: true, useHitAlpha: true }
+  - { id: affected.agni.ultimate, category: affected, renderer: trioAgniBuff, scaleX: 0.70, scaleY: 0.42 }
+  - { id: cast.surya.muzzle, category: cast, renderer: trioSuryaCast, sheet: Muzzle1_Yellow, columns: 2, rows: 2, fps: 30, scaleX: 0.88, scaleY: 0.70, peakFrame: 1, peakHoldSeconds: 0.035, calmLight: true, desaturate: 1 , glowAlpha: 0.14 , useHitAlpha: true }
+  - { id: hit.surya.normal, category: hit, sheet: Impact1_Yellow, columns: 3, rows: 2, fps: 36, bodyColor: E0BE91FF, coreColor: F5E6CFFF, scaleX: 1.06, scaleY: 0.80, peakFrame: 3, peakAlpha: 0.8, glowAlpha: 0.20, desaturate: 1, calmLight: true, useHitAlpha: true}
+  - { id: hit.surya.follow_up, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 36, bodyColor: E0B58BFF, coreColor: F5E7CFFF, scaleX: 1.12, scaleY: 0.82, peakFrame: 3, peakAlpha: 0.8, glowAlpha: 0.20, desaturate: 1, calmLight: true, useHitAlpha: true}
+  - { id: hit.surya.focused_follow_up, category: hit, sheet: Impact1_Yellow, columns: 3, rows: 2, fps: 30, bodyColor: E0BF92FF, coreColor: F5E8CBFF, scaleX: 1.30, scaleY: 0.96, peakFrame: 3, peakHoldSeconds: 0.07, peakAlpha: 0.8, glowAlpha: 0.20, desaturate: 1, calmLight: true, useHitAlpha: true}
+  - { id: hit.surya.ultimate, category: hit, sheet: Impact1_Yellow, columns: 3, rows: 2, fps: 30, bodyColor: E0B885FF, coreColor: F5E1BCFF, scaleX: 1.34, scaleY: 1.06, peakFrame: 3, peakHoldSeconds: 0.06, peakAlpha: 0.8, glowAlpha: 0.20, desaturate: 1, calmLight: true, useHitAlpha: true}
+  - { id: hit.surya.wheel, category: hit, renderer: trioSuryaWheel, scaleX: 0.80, scaleY: 0.80 }
+  - { id: affected.surya.wanted, category: affected, renderer: trioSunTarget, scaleX: 0.60, scaleY: 0.60 }
+  - { id: affected.buff.sunset, category: affected, renderer: trioSuryaBuff, scaleX: 0.34, scaleY: 0.34 }
+  - { id: affected.trio.weakness.pyro, category: affected, renderer: trioWeakness, bodyColor: E0AB8BAA, scaleX: 0.48, scaleY: 0.48 }
+  - { id: affected.trio.weakness.hydro, category: affected, renderer: trioWeakness, bodyColor: 8BD0DFAA, scaleX: 0.48, scaleY: 0.48 }
+  - { id: affected.trio.weakness.dendro, category: affected, renderer: trioWeakness, bodyColor: AED795AA, scaleX: 0.48, scaleY: 0.48 }
+  - { id: affected.trio.weakness.electro, category: affected, renderer: trioWeakness, bodyColor: C1A6E0AA, scaleX: 0.48, scaleY: 0.48 }
+  - { id: affected.trio.weakness.cryo, category: affected, renderer: trioWeakness, bodyColor: ABD5E0AA, scaleX: 0.48, scaleY: 0.48 }
+  - { id: affected.trio.weakness.geo, category: affected, renderer: trioWeakness, bodyColor: E0C58AAA, scaleX: 0.48, scaleY: 0.48 }
+  - { id: affected.trio.weakness.anemo, category: affected, renderer: trioWeakness, bodyColor: 9DD9C4AA, scaleX: 0.48, scaleY: 0.48 }
+
+  - { id: affected.trio.weakness.all, category: affected, renderer: trioWeaknessAll, scaleX: 0.48, scaleY: 0.48, bodyColor: C1A6E0AA }
+
+  - { id: hit.marie.normal, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: A5D0E0FF, coreColor: E8F1F5FF, scaleX: 1.12, scaleY: 0.84, peakFrame: 3, peakAlpha: 0.8, glowAlpha: 0.20, desaturate: 1, calmLight: true, useHitAlpha: true}
+  - { id: hit.napoleon.normal, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: 90CBE0FF, coreColor: E1EFF5FF, scaleX: 1.12, scaleY: 0.84, peakFrame: 3, peakAlpha: 0.8, glowAlpha: 0.20, desaturate: 1, calmLight: true, useHitAlpha: true}
+  - { id: hit.tsukuyomi.normal, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: BFB6E0FF, coreColor: EBE6F5FF, scaleX: 1.12, scaleY: 0.84, peakFrame: 3, peakAlpha: 0.8, glowAlpha: 0.20, desaturate: 1, calmLight: true, useHitAlpha: true}
+
+  # 서로 다른 지속피해/제어를 화염·기절 시트로 오인시키지 않는 고유 모양.
+  - { id: affected.dot.poison, category: affected, renderer: statusMotif, bodyColor: 91C07CCC, scaleX: 0.55, scaleY: 0.50 }
+  - { id: affected.dot.curse, category: affected, renderer: statusMotif, bodyColor: B5A0D3CC, scaleX: 0.55, scaleY: 0.50 }
+  - { id: affected.control.frozen, category: affected, renderer: statusMotif, bodyColor: 85CBDCCC, scaleX: 0.55, scaleY: 0.50 }
+  - { id: affected.control.airborne, category: affected, renderer: statusMotif, bodyColor: 8ECED7CC, scaleX: 0.55, scaleY: 0.50 }
+
+  # 로키의 은보라 칼바람과 펜리르의 청회색 발톱. 바유의 녹색 장풍과 구분한다.
+  - { id: cast.loki.shear, category: cast, sheet: Slash1_Purple, columns: 3, rows: 3, fps: 45, bodyColor: 827AAEF5, coreColor: D8E6F5FF, scaleX: 1.5, scaleY: 0.60, peakFrame: 4, calmLight: true, desaturate: 1, glowAlpha: 0.16, useHitAlpha: true , edgeUnderlay: true, edgeColor: 344664A0}
+  - { id: hit.loki.shear, category: hit, sheet: Slash4_Blue, columns: 3, rows: 2, fps: 30, bodyColor: 818BB8FF, coreColor: D7E6F5FF, edgeColor: 344664A0, scaleX: 1.28, scaleY: 0.92, peakFrame: 3, peakHoldSeconds: 0.06, peakAlpha: 0.8, glowAlpha: 0.16, calmLight: true, desaturate: 1, useHitAlpha: true }
+  - { id: hit.loki.twilight, category: hit, sheet: Lightning2_Purple, columns: 3, rows: 3, fps: 30, bodyColor: 9C89BFFF, coreColor: E5DBF5FF, edgeColor: 493E62A0, scaleX: 1.12, scaleY: 1.34, peakFrame: 3, peakHoldSeconds: 0.05, peakAlpha: 0.72, glowAlpha: 0.18, calmLight: true, desaturate: 1, useHitAlpha: true }
+  - { id: hit.loki.fenrir, category: hit, renderer: clawTriple, sheet: ClawStroke_Blue, bodyColor: A6C6DFD9, edgeColor: 3E536AEE, coreColor: DBEAF5FF, sourceAngle: 45, lengthInCards: 1.18, thicknessInCards: 0.085, drawDuration: 0.20, centerCrossFraction: 0.50, lineDelay: 0.018, lineSpacingInCards: 0.07, lingerDuration: 0.03, fadeDuration: 0.16, revealSoftness: 0.042, tipWidth: 0.070, cardKickStrength: 0.72, calmLight: true, desaturate: 1, glowAlpha: 0.16, useHitAlpha: true }
 
 skills:
   - key: sei.ground
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.class.default, bodyColor: B89454D8, coreColor: FFFFF0F0, scale: 0.96, direction: casterToTarget, sourceFacesRight: true, timeOffset: 0.0 }
+      - { slot: cast, partId: cast.class.default, bodyColor: B89860D8, coreColor: F5F5E6F0, scale: 0.96, direction: casterToTarget, sourceFacesRight: true, timeOffset: 0.0 }
       - { slot: hit, partId: hit.crystal.shatter, scale: 0.72, direction: casterToTarget, offsetX: -0.18, offsetY: 0.24, timeOffset: 0.159 }
       - { slot: hit, partId: hit.crystal.shatter, scale: 0.68, direction: casterToTarget, offsetX: 0.17, offsetY: 0.22, timeOffset: 0.209 }
       - { slot: hit, partId: hit.crystal.shatter, scale: 0.84, direction: casterToTarget, offsetX: -0.21, offsetY: 0.08, timeOffset: 0.259, peakFrame: 3, triggersImpact: true }
@@ -116,21 +207,21 @@ skills:
   - key: sei.bigbang
     multiTargetMode: sequence
     slots:
-      - { slot: cast, partId: cast.class.default, bodyColor: B89454D8, coreColor: FFFFF0F0, scale: 1.12, direction: casterToTarget, sourceFacesRight: true, timeOffset: 0.0 }
+      - { slot: cast, partId: cast.class.default, bodyColor: B89860D8, coreColor: F5F5E6F0, scale: 1.12, direction: casterToTarget, sourceFacesRight: true, timeOffset: 0.0 }
       - { slot: hit, partId: hit.crystal.shatter, scale: 1.18, direction: casterToTarget, offsetY: 0.08, timeOffset: 0.142, peakFrame: 3, triggersImpact: true }
-      - { slot: affected, partId: hit.support.shield, bodyColor: D1B76842, coreColor: FFF4BEF2, scale: 1.0, direction: radial, offsetY: 0.08, timeOffset: 0.0 }
+      - { slot: affected, partId: hit.support.shield, bodyColor: D1B86D42, coreColor: F5EBBAF2, scale: 1.0, direction: radial, offsetY: 0.08, timeOffset: 0.0 }
       - { slot: screen, partId: screen.focus.special, timeOffset: 0.0 }
   - key: sei.genesis
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.class.default, bodyColor: B89454D8, coreColor: FFFFF0F0, scale: 1.16, direction: casterToTarget, sourceFacesRight: true, timeOffset: 0.0 }
-      - { slot: affected, partId: hit.support.buff, bodyColor: C7A846F0, coreColor: FFF4BEFF, scale: 1.0, direction: radial, timeOffset: 0.0 }
-      - { slot: affected, partId: hit.support.shield, bodyColor: A9B0B8F0, coreColor: F4F8FFFF, scale: 1.0, direction: radial, timeOffset: 0.0 }
+      - { slot: cast, partId: cast.class.default, bodyColor: B89860D8, coreColor: F5F5E6F0, scale: 1.16, direction: casterToTarget, sourceFacesRight: true, timeOffset: 0.0 }
+      - { slot: affected, partId: hit.support.buff, bodyColor: C7B067F0, coreColor: F5EBBAFF, scale: 1.0, direction: radial, timeOffset: 0.0 }
+      - { slot: affected, partId: hit.support.shield, bodyColor: A6AEB8F0, coreColor: EAEEF5FF, scale: 1.0, direction: radial, timeOffset: 0.0 }
       - { slot: screen, partId: screen.focus.ultimate, timeOffset: 0.0 }
   - key: chandra.sachi
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.class.default, bodyColor: 78B7E2D8, coreColor: F4FCFFF0, scale: 0.96, direction: casterToTarget, sourceFacesRight: true, timeOffset: 0.0 }
+      - { slot: cast, partId: cast.class.default, bodyColor: 77B6E0D8, coreColor: EAF2F5F0, scale: 0.96, direction: casterToTarget, sourceFacesRight: true, timeOffset: 0.0 }
       - { slot: hit, partId: hit.moonlight.small, scale: 0.80, direction: casterToTarget, offsetX: -0.18, offsetY: 0.24, timeOffset: 0.159 }
       - { slot: hit, partId: hit.moonlight.small, scale: 0.74, direction: casterToTarget, offsetX: 0.17, offsetY: 0.22, timeOffset: 0.209 }
       - { slot: hit, partId: hit.moonlight.small, scale: 0.94, direction: casterToTarget, offsetX: -0.21, offsetY: 0.08, timeOffset: 0.259, peakFrame: 3, triggersImpact: true }
@@ -141,21 +232,21 @@ skills:
   - key: chandra.soma
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.class.default, bodyColor: 78B7E2D8, coreColor: F4FCFFF0, scale: 1.08, direction: casterToTarget, sourceFacesRight: true, timeOffset: 0.0 }
-      - { slot: affected, partId: hit.support.buff, bodyColor: 87BDE462, coreColor: EDFAFFF2, scale: 1.0, direction: radial, offsetY: 0.08, timeOffset: 0.0 }
+      - { slot: cast, partId: cast.class.default, bodyColor: 77B6E0D8, coreColor: EAF2F5F0, scale: 1.08, direction: casterToTarget, sourceFacesRight: true, timeOffset: 0.0 }
+      - { slot: affected, partId: hit.support.buff, bodyColor: 85BAE062, coreColor: E4F0F5F2, scale: 1.0, direction: radial, offsetY: 0.08, timeOffset: 0.0 }
       - { slot: screen, partId: screen.focus.ultimate, timeOffset: 0.0 }
   - key: chandra.changya
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.class.default, bodyColor: 78B7E2D8, coreColor: F4FCFFF0, scale: 1.14, direction: casterToTarget, sourceFacesRight: true, timeOffset: 0.0 }
-      - { slot: hit, partId: hit.moonlight.small, scale: 1.22, direction: casterToTarget, offsetY: 0.10, peakFrame: 4, triggersImpact: true }
-      - { slot: affected, partId: hit.support.buff, bodyColor: 87BDE462, coreColor: EDFAFFF2, scale: 0.96, direction: radial, offsetY: 0.08, timeOffset: 0.0 }
+      - { slot: cast, partId: cast.class.default, bodyColor: 77B6E0D8, coreColor: EAF2F5F0, scale: 1.14, direction: casterToTarget, sourceFacesRight: true, timeOffset: 0.0, recolor: true }
+      - { slot: hit, partId: hit.moonlight.changya, scale: 1.22, direction: casterToTarget, offsetY: 0.10, peakFrame: 4, triggersImpact: true, portraitAnchor: true, steadyBody: true }
+      - { slot: affected, partId: hit.support.heal, scale: 1.0, direction: radial, timeOffset: 0.0, supportInk: true }
       - { slot: screen, partId: screen.focus.special, timeOffset: 0.0 }
   - key: himiko.ember
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.class.default, bodyColor: B84328E0, coreColor: FFF0B8F4, scale: 1.0, direction: casterToTarget, sourceFacesRight: true, timeOffset: 0.0 }
-      - { slot: hit, partId: hit.fire.burst, scale: 1.02, direction: casterToTarget, offsetX: 0.0, offsetY: 0.08, timeOffset: 0.189, peakFrame: 4, triggersImpact: true }
+      - { slot: cast, partId: cast.class.default, bodyColor: B87060E0, coreColor: F5E8BAF4, scale: 1.0, direction: casterToTarget, sourceFacesRight: true, timeOffset: 0.0 }
+      - { slot: hit, partId: hit.fire.burst, scale: 1.02, direction: casterToTarget, offsetX: 0.0, offsetY: -0.08, timeOffset: 0.189, peakFrame: 4, triggersImpact: true }
       - { slot: screen, partId: screen.focus.normal, timeOffset: 0.0 }
   - key: himiko.blaze_burst
     multiTargetMode: simultaneous
@@ -164,40 +255,40 @@ skills:
   - key: himiko.blaze_focus
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.class.default, bodyColor: B84328EC, coreColor: FFF0B8FF, scale: 1.08, direction: casterToTarget, timeOffset: 0.0 }
-      - { slot: screen, partId: screen.focus.ultimate, bodyColor: 35110BFF, coreColor: FFD8A8FF, timeOffset: 0.0 }
+      - { slot: cast, partId: cast.class.default, bodyColor: B87060EC, coreColor: F5E8BAFF, scale: 1.08, direction: casterToTarget, timeOffset: 0.0 }
+      - { slot: screen, partId: screen.focus.ultimate, bodyColor: 9E5D52FF, coreColor: F5DABAFF, timeOffset: 0.0 }
   - key: pygmalion.ember
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.class.default, bodyColor: A94A2DDF, coreColor: FFE09AF4, scale: 1.02, direction: casterToTarget, sourceFacesRight: true, timeOffset: 0.0 }
-      - { slot: hit, partId: hit.fire.sculptor_burst, scale: 0.94, direction: casterToTarget, sourceFacesRight: true, angleOffset: 0, offsetX: 0.0, offsetY: 0.14, timeOffset: 0.187, peakFrame: 4, triggersImpact: true }
+      - { slot: cast, partId: cast.class.default, bodyColor: A96B58DF, coreColor: F5E3BAF4, scale: 1.02, direction: casterToTarget, sourceFacesRight: true, timeOffset: 0.0 }
+      - { slot: hit, partId: hit.fire.sculptor_burst, scale: 0.94, direction: casterToTarget, sourceFacesRight: true, angleOffset: 0, offsetX: 0.0, offsetY: -0.08, timeOffset: 0.187, peakFrame: 4, triggersImpact: true }
       - { slot: screen, partId: screen.focus.normal, timeOffset: 0.0 }
   - key: pygmalion.sharp_thorns
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.class.default, bodyColor: A94A2DEC, coreColor: FFE09AFF, scale: 1.10, direction: casterToTarget, sourceFacesRight: true, timeOffset: 0.0 }
-      - { slot: affected, partId: hit.support.buff, bodyColor: B83058B0, coreColor: FFD8EAF8, scale: 1.04, direction: radial, offsetY: 0.08, timeOffset: 0.0 }
-      - { slot: screen, partId: screen.focus.ultimate, bodyColor: 301226FF, coreColor: FFD8EAFF, timeOffset: 0.0 }
+      - { slot: cast, partId: cast.class.default, bodyColor: A96B58EC, coreColor: F5E3BAFF, scale: 1.10, direction: casterToTarget, sourceFacesRight: true, timeOffset: 0.0 }
+      - { slot: affected, partId: hit.support.buff, bodyColor: B8607AB0, coreColor: F5CFE1F8, scale: 1.04, direction: radial, offsetY: 0.08, timeOffset: 0.0 }
+      - { slot: screen, partId: screen.focus.ultimate, bodyColor: 9E5285FF, coreColor: F5CFE1FF, timeOffset: 0.0 }
   - key: shi.destruction_slash
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.sword.aqua_readable, bodyColor: 080507FA, edgeColor: 6F0D19F2, coreColor: C52338FF, scale: 1.22, direction: stroke, sourceFacesRight: false, angleOffset: 35, timeOffset: 0.0 }
-      - { slot: hit, partId: hit.claw.triple, bodyColor: 070405F7, edgeColor: 78101FEE, coreColor: D42C42FF, scale: 1.0, direction: stroke, sourceFacesRight: true, angleOffset: 29, timeOffset: 0.128, triggersImpact: true }
+      - { slot: cast, partId: cast.sword.aqua_readable, bodyColor: 9E638AFA, edgeColor: 6F4046F2, coreColor: D19FA5FF, scale: 1.22, direction: stroke, sourceFacesRight: false, angleOffset: 35, timeOffset: 0.0 }
+      - { slot: hit, partId: hit.claw.triple, bodyColor: 9E5A71F7, edgeColor: 75444BEE, coreColor: D4A1A8FF, scale: 1.0, direction: stroke, sourceFacesRight: true, angleOffset: 29, timeOffset: 0.128, triggersImpact: true }
       - { slot: screen, partId: screen.tone.small, timeOffset: 0.0 }
   - key: shi.final_bell.3
     multiTargetMode: simultaneous
     slots:
-      - { slot: hit, partId: hit.smoke.horizontal, bodyColor: 12020588, edgeColor: B7193BF2, coreColor: FF6D87FF, scale: 0.78, direction: radial, offsetY: 0.20, peakFrame: 4, triggersImpact: true }
+      - { slot: hit, partId: hit.smoke.horizontal, bodyColor: 9E526088, edgeColor: 75444FF2, coreColor: F5BAC5FF, scale: 0.78, direction: radial, offsetY: 0.20, peakFrame: 4, triggersImpact: true }
       - { slot: screen, partId: screen.tone.small, timeOffset: 0.0 }
   - key: shi.final_bell.6
     multiTargetMode: simultaneous
     slots:
-      - { slot: hit, partId: hit.smoke.horizontal, bodyColor: 12020588, edgeColor: B7193BF2, coreColor: FF6D87FF, scale: 1.0, direction: radial, offsetY: 0.20, peakFrame: 4, triggersImpact: true }
+      - { slot: hit, partId: hit.smoke.horizontal, bodyColor: 9E526088, edgeColor: 75444FF2, coreColor: F5BAC5FF, scale: 1.0, direction: radial, offsetY: 0.20, peakFrame: 4, triggersImpact: true }
       - { slot: screen, partId: screen.tone.small, timeOffset: 0.0 }
   - key: shi.final_bell.9
     multiTargetMode: simultaneous
     slots:
-      - { slot: hit, partId: hit.smoke.horizontal, bodyColor: 26040AA4, edgeColor: E73558FA, coreColor: FFC5CEFF, scale: 1.0, direction: radial, offsetY: 0.20, peakFrame: 4, triggersImpact: true }
+      - { slot: hit, partId: hit.smoke.horizontal, bodyColor: B63F67E8, edgeColor: 593348FA, coreColor: FFAEC9FF, scale: 1.0, direction: radial, offsetY: 0.20, peakFrame: 4, triggersImpact: true }
       - { slot: screen, partId: screen.shake.medium, timeOffset: 0.0 }
   - key: sabah.lightning_slash
     multiTargetMode: simultaneous
@@ -209,14 +300,14 @@ skills:
     multiTargetMode: simultaneous
     slots:
       - { slot: cast, partId: cast.sword.void_light, scale: 1.08, direction: stroke, sourceFacesRight: false, angleOffset: 34, timeOffset: 0.0 }
-      - { slot: hit, partId: hit.lightning.portrait, bodyColor: 64209AF8, coreColor: F8DEFFFF, scale: 1.0, direction: radial, offsetY: 0.14, timeOffset: 0.186, peakFrame: 4, triggersImpact: true }
+      - { slot: hit, partId: hit.lightning.portrait, bodyColor: 7D529EF8, coreColor: EED5F5FF, scale: 1.0, direction: radial, offsetY: 0.14, timeOffset: 0.186, peakFrame: 4, triggersImpact: true }
       - { slot: screen, partId: screen.tone.small, timeOffset: 0.0 }
   - key: sabah.azrael
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.sword.void_flourish, scale: 1.0, direction: stroke, sourceFacesRight: false, angleOffset: 34, timeOffset: 0.0 }
-      - { slot: hit, partId: hit.lightning.formation, bodyColor: B06FE8FA, coreColor: F8E8FFFF, scale: 1.0, direction: radial, timeOffset: 0.206, peakFrame: 4 }
-      - { slot: hit, partId: hit.smoke.horizontal, bodyColor: C084F0FF, edgeColor: 55236FF4, coreColor: FFF4FFFF, scale: 1.0, direction: radial, peakFrame: 4, triggersImpact: true }
+      - { slot: cast, partId: cast.sword.void_flourish, bodyColor: 9471BDF5, edgeColor: 49365F9C, scale: 1.0, direction: stroke, sourceFacesRight: false, angleOffset: 34, timeOffset: 0.0 }
+      - { slot: hit, partId: hit.lightning.formation, bodyColor: AF75E0FA, coreColor: EEDFF5FF, scale: 1.0, direction: radial, timeOffset: 0.206, peakFrame: 4 }
+      - { slot: hit, partId: hit.smoke.horizontal, bodyColor: B47BE0FF, edgeColor: 5F406FF4, coreColor: F5EAF5FF, scale: 1.0, direction: radial, timeOffset: 0.406, peakFrame: 4, triggersImpact: true }
       - { slot: screen, partId: screen.focus.ultimate, timeOffset: 0.0 }
 
   # 바스테트 — beast 분류의 후퇴→부분 전진이 시전을 대신하고 검정/바위색 세 줄 할퀴기로 끝낸다.
@@ -224,25 +315,25 @@ skills:
     multiTargetMode: simultaneous
     slots:
       - { slot: cast, partId: cast.class.default, direction: casterToTarget, timeOffset: 0.0 }
-      - { slot: hit, partId: hit.claw.triple, bodyColor: 080706FA, edgeColor: 9B7443F5, coreColor: FFE2A8FF, scale: 1.04, direction: stroke, sourceFacesRight: true, angleOffset: 31, offsetY: 0.18, timeOffset: 0.18, triggersImpact: true }
+      - { slot: hit, partId: hit.claw.triple, bodyColor: 9E8A77FA, edgeColor: 755F44F5, coreColor: F5E1BAFF, scale: 1.04, direction: stroke, sourceFacesRight: true, angleOffset: 31, offsetY: 0.18, timeOffset: 0.18, triggersImpact: true }
   - key: bastet.one_more_hit
     multiTargetMode: simultaneous
     slots:
       - { slot: cast, partId: cast.class.default, direction: casterToTarget, timeOffset: 0.0 }
-      - { slot: hit, partId: hit.claw.triple, bodyColor: 080706FA, edgeColor: 9B7443F5, coreColor: FFE2A8FF, scale: 1.04, direction: stroke, sourceFacesRight: true, angleOffset: 31, offsetY: 0.18, timeOffset: 0.18, triggersImpact: true }
+      - { slot: hit, partId: hit.claw.triple, bodyColor: 9E8A77FA, edgeColor: 755F44F5, coreColor: F5E1BAFF, scale: 1.04, direction: stroke, sourceFacesRight: true, angleOffset: 31, offsetY: 0.18, timeOffset: 0.18, triggersImpact: true }
   - key: bastet.guard
     multiTargetMode: simultaneous
     slots:
-      - { slot: affected, partId: affected.buff.crystal_shield, bodyColor: 211A12C9, coreColor: FFE8A8E8, scale: 0.66, direction: casterToTarget, offsetY: 0.10, timeOffset: 0.0 }
+      - { slot: affected, partId: affected.buff.crystal_shield, bodyColor: 9E7D56C9, coreColor: F5E5BAE8, scale: 0.66, direction: casterToTarget, offsetY: 0.10, timeOffset: 0.0 }
 
   # 잔 — fighter 기본 카드 동작 뒤 한 피격 묶음만 연다. 반격은 같은 문법을 더 짧게 압축한다.
   - key: jean.holy_strike
     multiTargetMode: simultaneous
     slots:
       - { slot: cast, partId: cast.class.default, direction: casterToTarget, timeOffset: 0.0 }
-      - { slot: hit, partId: hit.jean.punch_pressure, scale: 1.02, direction: casterToTarget, offsetX: -0.05, offsetY: 0.14, timeOffset: 0.20, peakFrame: 6 }
-      - { slot: hit, partId: hit.jean.punch_pressure, bodyColor: 08131CFF, coreColor: FFFFFFFF, scale: 1.08, direction: casterToTarget, offsetY: 0.14, timeOffset: 0.27, peakFrame: 6, triggersImpact: true }
-      - { slot: hit, partId: hit.jean.punch_pressure, scale: 1.04, direction: casterToTarget, offsetX: 0.05, offsetY: 0.14, timeOffset: 0.34, peakFrame: 6 }
+      - { slot: hit, portraitAnchor: true, partId: hit.jean.punch_pressure, scale: 1.02, direction: casterToTarget, offsetX: -0.05, offsetY: 0.14, timeOffset: 0.20, peakFrame: 6 }
+      - { slot: hit, portraitAnchor: true, partId: hit.jean.punch_pressure, bodyColor: 527C9EFF, coreColor: F5F5F5FF, scale: 1.08, direction: casterToTarget, offsetY: 0.14, timeOffset: 0.27, peakFrame: 6, triggersImpact: true }
+      - { slot: hit, portraitAnchor: true, partId: hit.jean.punch_pressure, scale: 1.04, direction: casterToTarget, offsetX: 0.05, offsetY: 0.14, timeOffset: 0.34, peakFrame: 6 }
       - { slot: hit, partId: hit.jean.smoke, scale: 1.04, direction: casterToTarget, offsetY: 0.14, timeOffset: 0.36 }
       - { slot: hit, partId: hit.jean.impact, scale: 1.0, direction: radial, offsetY: 0.14, timeOffset: 0.27 }
       - { slot: screen, partId: screen.focus.normal, timeOffset: 0.0 }
@@ -250,21 +341,21 @@ skills:
     multiTargetMode: simultaneous
     slots:
       - { slot: cast, partId: cast.class.default, direction: casterToTarget, timeOffset: 0.0 }
-      - { slot: hit, partId: hit.jean.punch_pressure, scale: 0.98, direction: casterToTarget, offsetX: -0.05, offsetY: 0.14, timeOffset: 0.20, peakFrame: 6 }
-      - { slot: hit, partId: hit.jean.punch_pressure, bodyColor: 08131CFF, coreColor: FFFFFFFF, scale: 1.04, direction: casterToTarget, offsetY: 0.14, timeOffset: 0.245, peakFrame: 6, triggersImpact: true }
-      - { slot: hit, partId: hit.jean.punch_pressure, scale: 1.0, direction: casterToTarget, offsetX: 0.05, offsetY: 0.14, timeOffset: 0.29, peakFrame: 6 }
+      - { slot: hit, portraitAnchor: true, partId: hit.jean.punch_pressure, scale: 0.98, direction: casterToTarget, offsetX: -0.05, offsetY: 0.14, timeOffset: 0.20, peakFrame: 6 }
+      - { slot: hit, portraitAnchor: true, partId: hit.jean.punch_pressure, bodyColor: 527C9EFF, coreColor: F5F5F5FF, scale: 1.04, direction: casterToTarget, offsetY: 0.14, timeOffset: 0.245, peakFrame: 6, triggersImpact: true }
+      - { slot: hit, portraitAnchor: true, partId: hit.jean.punch_pressure, scale: 1.0, direction: casterToTarget, offsetX: 0.05, offsetY: 0.14, timeOffset: 0.29, peakFrame: 6 }
       - { slot: hit, partId: hit.jean.smoke, scale: 1.0, direction: casterToTarget, offsetY: 0.14, timeOffset: 0.32 }
       - { slot: hit, partId: hit.jean.impact, scale: 0.96, direction: radial, offsetY: 0.14, timeOffset: 0.245 }
       - { slot: screen, partId: screen.focus.special, timeOffset: 0.0 }
   - key: jean.tension_rising
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.sword.flourish, bodyColor: 315D80FF, edgeColor: 10273BFF, coreColor: F8FFFFFF, scale: 0.86, direction: fixed, angleOffset: 18, offsetX: 0.00, offsetY: 0.52, timeOffset: 0.00 }
-      - { slot: cast, partId: cast.sword.flourish, bodyColor: 315D80FC, edgeColor: 10273BFF, coreColor: F4FFFFFF, scale: 0.84, direction: fixed, angleOffset: 90, offsetX: 0.51, offsetY: 0.16, timeOffset: 0.04 }
-      - { slot: cast, partId: cast.sword.flourish, bodyColor: 294F70FA, edgeColor: 10273BFF, coreColor: EEFCFFFF, scale: 0.82, direction: fixed, angleOffset: 162, offsetX: 0.32, offsetY: -0.44, timeOffset: 0.08 }
-      - { slot: cast, partId: cast.sword.flourish, bodyColor: 315D80FC, edgeColor: 10273BFF, coreColor: F4FFFFFF, scale: 0.84, direction: fixed, angleOffset: 234, offsetX: -0.32, offsetY: -0.44, timeOffset: 0.12 }
-      - { slot: cast, partId: cast.sword.flourish, bodyColor: 315D80FF, edgeColor: 10273BFF, coreColor: F8FFFFFF, scale: 0.86, direction: fixed, angleOffset: 306, offsetX: -0.51, offsetY: 0.16, timeOffset: 0.16 }
-      - { slot: screen, partId: screen.focus.special, bodyColor: 172838F2, coreColor: ECF9FFFF, timeOffset: 0.0 }
+      - { slot: cast, partId: cast.sword.flourish, bodyColor: 527C9EFF, edgeColor: 263542FF, coreColor: EEF5F5FF, scale: 0.86, direction: fixed, angleOffset: 18, offsetX: 0.00, offsetY: 0.52, timeOffset: 0.00 }
+      - { slot: cast, partId: cast.sword.flourish, bodyColor: 527C9EFC, edgeColor: 263542FF, coreColor: EAF5F5FF, scale: 0.84, direction: fixed, angleOffset: 90, offsetX: 0.51, offsetY: 0.16, timeOffset: 0.04 }
+      - { slot: cast, partId: cast.sword.flourish, bodyColor: 527B9EFA, edgeColor: 263542FF, coreColor: E4F2F5FF, scale: 0.82, direction: fixed, angleOffset: 162, offsetX: 0.32, offsetY: -0.44, timeOffset: 0.08 }
+      - { slot: cast, partId: cast.sword.flourish, bodyColor: 527C9EFC, edgeColor: 263542FF, coreColor: EAF5F5FF, scale: 0.84, direction: fixed, angleOffset: 234, offsetX: -0.32, offsetY: -0.44, timeOffset: 0.12 }
+      - { slot: cast, partId: cast.sword.flourish, bodyColor: 527C9EFF, edgeColor: 263542FF, coreColor: EEF5F5FF, scale: 0.86, direction: fixed, angleOffset: 306, offsetX: -0.51, offsetY: 0.16, timeOffset: 0.16 }
+      - { slot: screen, partId: screen.focus.special, bodyColor: 52799EF2, coreColor: E3EFF5FF, timeOffset: 0.0 }
 
   # 시험장 적 — 모두 데이터 색(vfxColor)을 같은 부품에 입혀 시전자 시전광 + 대상 피격광으로 조합한다.
   - key: enemy.void_wolf.charge
@@ -327,6 +418,288 @@ skills:
       - { slot: hit, partId: hit.enemy.dragon_breath, scale: 1.08, direction: incomingImpact, offsetY: 0.085, timeOffset: 0.05, peakFrame: 1, impactDelay: 0.033333, triggersImpact: true }
       - { slot: screen, partId: screen.tone.boss, timeOffset: 0.0 }
 
+  - key: indra.thunderbolt
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.default, bodyColor: 966CCFFA, coreColor: EAF5EAFF, scale: 1.05, direction: casterToTarget, steadyBody: true, recolor: true }
+      - { slot: hit, partId: hit.indra.thunder, direction: horizontalFacing, offsetY: 0.12, timeOffset: 0.22, triggersImpact: true, portraitAnchor: true, steadyBody: true }
+      - { slot: screen, partId: screen.focus.normal }
+  - key: indra.vajra
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.indra.vajra, direction: horizontalFacing, steadyBody: true, recolor: true }
+      - { slot: hit, partId: hit.indra.vajra, direction: horizontalFacing, offsetY: 0.12, timeOffset: 0.22, triggersImpact: true, portraitAnchor: true, steadyBody: true }
+      - { slot: screen, partId: screen.focus.special }
+  - key: indra.gathering
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.indra.gather, direction: casterToTarget, steadyBody: true, recolor: true }
+      - { slot: affected, partId: affected.lokapala.hud, direction: radial, steadyBody: true }
+      - { slot: screen, partId: screen.focus.ultimate }
+  - key: loki.trick_wind
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.loki.shear, steadyBody: true, direction: casterToTarget, scale: 1 }
+      - { slot: hit, partId: hit.loki.shear, steadyBody: true, direction: radial, portraitAnchor: true, offsetY: -0.12, angleOffset: -24, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: loki.twilight
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.loki.shear, steadyBody: true, direction: casterToTarget, scale: 1.15 }
+      - { slot: hit, partId: hit.loki.twilight, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.ultimate }
+  - key: loki.fenrir_claw
+    slots:
+      - { slot: hit, partId: hit.loki.fenrir, direction: stroke, angleOffset: 12, portraitAnchor: true, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: vayu.gust
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.vayu.palm, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.vayu.palm, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: vayu.typhoon_eye
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.vayu.palm, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1.15 }
+      - { slot: hit, partId: hit.vayu.gale, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.special }
+  - key: vayu.storm
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.vayu.palm, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1.15 }
+      - { slot: hit, partId: hit.vayu.corridor, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.ultimate }
+  - key: kubera.coin_toss
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.kubera.coin, direction: casterToTarget, steadyBody: true, recolor: true }
+      - { slot: hit, partId: hit.kubera.coin, direction: casterToTarget, offsetY: 0.12, timeOffset: 0.22, triggersImpact: true, portraitAnchor: true, steadyBody: true }
+      - { slot: screen, partId: screen.focus.normal }
+  - key: kubera.gold_rush
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.kubera.orbit, direction: casterToTarget, steadyBody: true, recolor: true }
+      - { slot: hit, partId: hit.kubera.coin, direction: casterToTarget, offsetY: 0.12, timeOffset: 0.22, triggersImpact: true, portraitAnchor: true, steadyBody: true, coinBurst: true }
+      - { slot: screen, partId: screen.focus.special }
+  - key: kubera.treasury
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.kubera.treasury, direction: casterToTarget, steadyBody: true, recolor: true }
+      - { slot: hit, partId: hit.kubera.treasury, direction: casterToTarget, offsetY: 0.12, timeOffset: 0.22, triggersImpact: true, portraitAnchor: true, steadyBody: true }
+      - { slot: affected, partId: hit.support.buff, direction: radial, timeOffset: 0.0, steadyBody: true, supportInk: true }
+      - { slot: screen, partId: screen.focus.ultimate }
+  - key: chandra.moon_cycle
+    slots:
+      - { slot: affected, partId: hit.support.heal, scale: 0.90, direction: radial, supportInk: true, supportScale: 0.9 }
+      - { slot: screen, partId: screen.focus.special }
+
+
+  - key: anubis.heart_scale
+    slots:
+      - { slot: cast, partId: cast.class.advance }
+      - { slot: hit, partId: hit.anubis.pierce, portraitAnchor: true, steadyBody: true, direction: casterToTarget }
+      - { slot: screen, partId: screen.focus.normal }
+  - key: anubis.heart_scale.empowered
+    slots:
+      - { slot: cast, partId: cast.class.advance }
+      - { slot: hit, partId: hit.anubis.pierce.gold, portraitAnchor: true, steadyBody: true, direction: casterToTarget }
+      - { slot: screen, partId: screen.focus.normal }
+  - key: anubis.book
+    slots:
+      - { slot: cast, partId: cast.anubis.book }
+      - { slot: screen, partId: screen.focus.ultimate }
+  - key: anubis.soul
+    slots:
+      - { slot: cast, partId: cast.anubis.soul, direction: radial }
+  - key: anubis.soul.fraction
+    slots:
+      - { slot: cast, partId: cast.anubis.soul, direction: radial, scale: 0.80 }
+  - key: uchi.clone
+    slots:
+      - { slot: cast, partId: cast.uchi.wind, direction: casterToTarget }
+      - { slot: screen, partId: screen.focus.normal }
+  - key: uchi.strike
+    slots:
+      - { slot: cast, partId: cast.class.advance }
+      - { slot: hit, partId: hit.uchi.strike, portraitAnchor: true, steadyBody: true, direction: casterToTarget }
+      - { slot: screen, partId: screen.focus.normal }
+  - key: uchi.overflow
+    slots:
+      - { slot: cast, partId: cast.class.advance }
+      - { slot: hit, partId: hit.uchi.overflow, portraitAnchor: true, steadyBody: true, direction: casterToTarget }
+  - key: uchi.guard
+    slots:
+      - { slot: cast, partId: cast.uchi.guard }
+  - key: uchi.manchunhwau
+    slots:
+      - { slot: cast, partId: cast.class.advance }
+      - { slot: hit, partId: hit.uchi.strike, portraitAnchor: true, steadyBody: true, direction: casterToTarget }
+      - { slot: screen, partId: screen.focus.ultimate }
+
+  - key: yama.normal
+    slots:
+      - { slot: cast, partId: cast.yama.seal, steadyBody: true, direction: casterToTarget, offsetY: 0.12, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.yama.lightning, steadyBody: true, direction: radial, portraitAnchor: true, scale: 1, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+      - { slot: affected, partId: affected.yama.detonation, steadyBody: true, direction: radial, offsetY: 0.08 }
+  - key: yama.ultimate
+    slots:
+      - { slot: cast, partId: cast.yama.seal, steadyBody: true, direction: casterToTarget, offsetY: 0.12, forwardOffset: 0.18, scale: 1.12 }
+      - { slot: hit, partId: hit.yama.lightning, steadyBody: true, direction: radial, portraitAnchor: true, scale: 1.12, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.ultimate }
+      - { slot: affected, partId: affected.yama.detonation, steadyBody: true, direction: radial, offsetY: 0.08 }
+  - key: yama.special
+    slots:
+      - { slot: cast, partId: cast.yama.seal, steadyBody: true, direction: casterToTarget, offsetY: 0.12, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.yama.judgment, steadyBody: true, direction: radial, portraitAnchor: true, scale: 1, timeOffset: 0.18, triggersImpact: true }
+      - { slot: hit, partId: hit.yama.contact, steadyBody: true, direction: radial, portraitAnchor: true }
+      - { slot: screen, partId: screen.yv.special }
+  - key: varuna.normal
+    slots:
+      - { slot: cast, partId: cast.varuna.water, steadyBody: true, direction: casterToTarget, offsetY: 0.12, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.varuna.water, steadyBody: true, direction: radial, portraitAnchor: true, scale: 1, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+      - { slot: affected, partId: affected.varuna.shield, steadyBody: true, direction: radial, angleOffset: 210, offsetY: -0.16 }
+  - key: varuna.ultimate
+    slots:
+      - { slot: cast, partId: cast.varuna.water, steadyBody: true, direction: casterToTarget, offsetY: 0.12, forwardOffset: 0.18, scale: 1.12 }
+      - { slot: hit, partId: hit.varuna.water, steadyBody: true, direction: radial, portraitAnchor: true, scale: 1.12, timeOffset: 0.18, triggersImpact: true }
+      - { slot: hit, partId: hit.varuna.law, direction: radial, portraitAnchor: true }
+      - { slot: screen, partId: screen.yv.ultimate }
+      - { slot: affected, partId: affected.varuna.shield, steadyBody: true, direction: radial, angleOffset: 210, offsetY: -0.16 }
+  - key: varuna.special
+    slots:
+      - { slot: cast, partId: cast.varuna.water, steadyBody: true, direction: casterToTarget, offsetY: 0.12, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.varuna.judgment, steadyBody: true, direction: radial, portraitAnchor: true, scale: 1, timeOffset: 0.18, triggersImpact: true }
+      - { slot: hit, partId: hit.varuna.law, direction: radial, portraitAnchor: true }
+      - { slot: screen, partId: screen.yv.special }
+      - { slot: affected, partId: affected.varuna.shield, steadyBody: true, direction: radial, angleOffset: 210, offsetY: -0.16 }
+
+
+
+  - key: agni.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.agni.seal, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.agni.normal, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: agni.follow_up
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.agni.seal, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.agni.follow_up, steadyBody: true, direction: radial, portraitAnchor: true, offsetY: -0.14, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.special }
+  - key: agni.focused_follow_up
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.agni.bloom, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.agni.follow_up, steadyBody: true, direction: radial, portraitAnchor: true, offsetY: -0.14, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.special }
+  - key: agni.ultimate
+    slots:
+      - { slot: cast, partId: cast.agni.bloom, steadyBody: true, direction: radial }
+      - { slot: screen, partId: screen.yv.special }
+  - key: agni.special_setup
+    slots:
+      - { slot: cast, partId: cast.agni.bloom, steadyBody: true, direction: radial }
+      - { slot: screen, partId: screen.yv.special }
+  - key: surya.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.surya.muzzle, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.surya.normal, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: surya.follow_up
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.surya.muzzle, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.surya.follow_up, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: surya.focused_follow_up
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.surya.muzzle, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.surya.focused_follow_up, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.special }
+  - key: surya.ultimate
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: affected, partId: affected.buff.sunset, direction: radial, steadyBody: true }
+      - { slot: screen, partId: screen.yv.ultimate }
+
+  - key: surya.finale
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.surya.muzzle, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.surya.focused_follow_up, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.special }
+  - key: napoleon.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.archer, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.napoleon.normal, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: napoleon.follow_up
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.archer, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.napoleon.normal, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: napoleon.focused_follow_up
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.archer, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.napoleon.normal, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.special }
+  - key: napoleon.ultimate
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.archer, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.napoleon.normal, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.ultimate }
+
+  - key: marie.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.archer, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.marie.normal, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: tsukuyomi.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.tsukuyomi.normal, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: marie.emergency
+    slots:
+      - { slot: affected, partId: hit.support.buff, portraitAnchor: true, direction: radial }
+      - { slot: screen, partId: screen.yv.ultimate }
+  - key: tsukuyomi.ultimate
+    slots:
+      - { slot: affected, partId: hit.support.buff, portraitAnchor: true, direction: radial }
+      - { slot: screen, partId: screen.yv.ultimate }
+  - key: napoleon.reload
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: D9AD62EF, coreColor: F5E6C4FF, direction: radial }
+      - { slot: affected, partId: hit.support.buff, bodyColor: CBA055E6, coreColor: F5E6C4FF, portraitAnchor: true, direction: radial }
+      - { slot: screen, partId: screen.yv.ultimate }
+
+  - key: ishtar.barrage
+    slots:
+      - { slot: cast, partId: cast.class.archer, bodyColor: A4CEA2FF, coreColor: F4F8DFFF, scale: 0.82, direction: casterToTarget }
+      - { slot: hit, partId: hit.kubera.coin, bodyColor: A4CEA2FF, coreColor: F4F8DFFF, direction: casterToTarget, portraitAnchor: true, steadyBody: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.focus.normal }
+
+  - key: orpheus.melody
+    slots:
+      - { slot: cast, partId: cast.vayu.palm, direction: casterToTarget, steadyBody: true, scale: 0.8 }
+      - { slot: hit, partId: hit.vayu.palm, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true, scale: 0.75 }
+  - key: orpheus.lament
+    slots:
+      - { slot: cast, partId: cast.vayu.palm, direction: radial, steadyBody: true, scale: 0.9 }
+      - { slot: hit, partId: hit.support.buff, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true, scale: 0.6 }
+
 classCastBindings:
   - { vfxClass: archer, partId: cast.class.archer }
   - { vfxClass: caster, partId: cast.class.caster }
@@ -336,14 +709,38 @@ classCastBindings:
   - { vfxClass: lancer, partId: cast.class.advance }
   - { vfxClass: beast, partId: cast.class.advance }
 
+
+
 statusBindings:
+  - { statusKey: yama_death_verdict, partId: affected.yama.verdict }
+  - { statusKey: anubis_book_of_the_dead, partId: none }
+  - { statusKey: kubera_treasury, partId: hit.support.buff.ink }
+  - { statusKey: vayu_erosion, partId: affected.wind.erosion }
   - { statusKey: sei_song_buff, partId: hit.support.buff }
   - { statusKey: sei_song_marker, partId: hit.support.shield }
   - { statusKey: chandra_soma, partId: hit.support.buff }
-  - { statusKey: chandra_changya_crit, partId: hit.support.buff }
   - { statusKey: pygmalion_sharp_thorns, partId: hit.support.buff }
   - { statusKey: shi_final_bell, partId: affected.buff.rise }
-  - { statusKey: cc_frozen, partId: affected.control.bind }
-  - { statusKey: cc_airborne, partId: affected.control.stun }
+  - { statusKey: cc_frozen, partId: affected.control.frozen }
+  - { statusKey: cc_airborne, partId: affected.control.airborne }
   - { statusKey: cc_stun, partId: affected.control.stun }
   - { statusKey: cc_bind, partId: affected.control.bind }
+  - { statusKey: vayu_vuln_Pyro, partId: affected.trio.weakness.pyro }
+  - { statusKey: vayu_gale_vuln_Pyro, partId: affected.trio.weakness.pyro }
+  - { statusKey: vayu_vuln_Hydro, partId: affected.trio.weakness.hydro }
+  - { statusKey: vayu_gale_vuln_Hydro, partId: affected.trio.weakness.hydro }
+  - { statusKey: vayu_vuln_Dendro, partId: affected.trio.weakness.dendro }
+  - { statusKey: vayu_gale_vuln_Dendro, partId: affected.trio.weakness.dendro }
+  - { statusKey: vayu_vuln_Electro, partId: affected.trio.weakness.electro }
+  - { statusKey: vayu_gale_vuln_Electro, partId: affected.trio.weakness.electro }
+  - { statusKey: vayu_vuln_Cryo, partId: affected.trio.weakness.cryo }
+  - { statusKey: vayu_gale_vuln_Cryo, partId: affected.trio.weakness.cryo }
+  - { statusKey: vayu_vuln_Geo, partId: affected.trio.weakness.geo }
+  - { statusKey: vayu_gale_vuln_Geo, partId: affected.trio.weakness.geo }
+  - { statusKey: vayu_vuln_Anemo, partId: affected.trio.weakness.anemo }
+  - { statusKey: vayu_gale_vuln_Anemo, partId: affected.trio.weakness.anemo }
+  - { statusKey: agni_raise_stakes, partId: affected.agni.ultimate }
+  - { statusKey: surya_wanted, partId: affected.surya.wanted }
+  - { statusKey: surya_sunset, partId: affected.buff.sunset }
+
+  - { statusKey: vayu_gale_all, partId: affected.trio.weakness.all }

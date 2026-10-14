@@ -1,79 +1,54 @@
 # NeverTheLast — 네버 더 라스트
 
-신화 속 영웅으로 파티를 꾸려 문명별 스테이지를 돌파하는 **자동 전투 로그라이트 육성 RPG**입니다.
-전투는 턴제로 자동 진행되고, 플레이어의 선택은 전투 **전에** 이뤄집니다 — 편성, 배치, 장비, 훈련.
+신화 속 인물로 파티와 코드 빌드를 구성하는 서브컬처 로그라이트 자동전투 RPG입니다.
+편성·배치·보상·골드·회복 운영을 선택하고 턴제 자동 전투로 결과를 확인합니다.
 
-## 데모 다운로드 (Windows)
+## 개발 기준
 
-**현재 데모 버전: 0.4.9** (Windows) / **0.4.4** (macOS) — 신규 테마 **오디세이**가 들어왔습니다. 새 적 다섯과 보스 스킬라, 그리고 **전투 결과가 다음 판으로 이어지는** 수정(체력·궁극기 게이지가 유지되어 회복약이 제 값을 합니다). 원소만 다른 궁극기 16개를 2개로 접고 금색 상위 코드 넷을 더했습니다. 버전별 변경 사항은 [패치노트](PATCH_NOTES.md)를 보세요.
+**main**은 현행 Rework입니다. 이전 main은 [legacy](https://github.com/siholee/NeverTheLast/tree/legacy)에 보관하며 새 개발에 사용하지 않습니다.
+훈련·장비/중량·서포트 카드 계승은 현행 시스템에 포함하지 않습니다.
 
-1. [**Releases 페이지**](https://github.com/siholee/NeverTheLast/releases/latest)로 갑니다.
-2. **Assets**에서 `NeverTheLast_Demo_Win64.zip`을 내려받습니다.
-3. 압축을 **폴더째** 풉니다. `NeverTheLast.exe` 옆의 `NeverTheLast_Data` 폴더가 함께 있어야 실행됩니다.
-4. `NeverTheLast.exe`를 실행합니다.
+- [현행 기획서](Assets/Docs/Design/README.md): 게임 방향·규칙·현재 콘텐츠.
+- [서사 설정](Assets/Docs/Narrative/README.md) · [미구현 제안](Assets/Docs/Proposals/Unimplemented_Characters.md).
+- [남은 결정과 검증](Assets/Docs/Design/Design_Backlog.md): 장기 밸런스·전체 QA·미술 승인 상태.
+- [문서 보관소](Docs/Archive/README.md): 이전 사양·초안·작업 기록.
 
-> Windows 10/11 64비트. 처음 실행하면 SmartScreen이 "Windows의 PC 보호" 창을 띄울 수 있습니다.
-> 서명되지 않은 빌드라서 그렇습니다 — **추가 정보 → 실행**을 누르면 됩니다.
+## 플레이
 
-저장 데이터는 게임 폴더가 아니라 Windows 레지스트리(`HKEY_CURRENT_USER\Software\DefaultCompany\NeverTheLast`)에 남습니다.
-그래서 게임 폴더를 지우거나 새 버전으로 덮어써도 진행과 서포트 카드가 유지됩니다.
-
-## 데모 다운로드 (macOS)
-
-1. [**Releases 페이지**](https://github.com/siholee/NeverTheLast/releases/latest)의 **Assets**에서 `NeverTheLast_Demo_Mac.zip`을 내려받습니다.
-2. 압축을 풀면 `NeverTheLast.app`이 나옵니다. **응용 프로그램** 폴더 등 원하는 곳으로 옮깁니다.
-3. **처음 한 번만** 터미널을 열고 아래를 실행합니다(앱을 옮긴 경로에 맞게 바꾸세요).
-
-   ```bash
-   xattr -dr com.apple.quarantine /Applications/NeverTheLast.app
-   ```
-
-4. `NeverTheLast.app`을 엽니다.
-
-> 인텔 Mac · 애플 실리콘 모두 지원하는 유니버설 앱, macOS 12 이상. Apple 개발자 서명·공증을 받지 않은 앱이라
-> 3번을 건너뛰면 "손상되었기 때문에 열 수 없습니다"라는 경고가 뜹니다.
-> 3번 뒤에도 애플 실리콘 Mac에서 열리지 않으면 아래를 한 번 더 실행해 주세요.
->
-> ```bash
-> codesign --force --deep -s - /Applications/NeverTheLast.app
-> ```
-
-저장 데이터는 `~/Library/Preferences/unity.DefaultCompany.NeverTheLast.plist`에 남아 앱을 새 버전으로 바꿔도 유지됩니다. Windows 저장과는 이어지지 않습니다.
-
-## 데모에서 해 볼 수 있는 것
-
-| 단계 | 내용 |
-| --- | --- |
-| **1. 육성 모드 완주** | 메인 캐릭터 1명 + 서포터 카드 4장으로 1스테이지부터 **100스테이지**까지 올라갑니다. 10스테이지마다 테마(문명)가 바뀌고 10번째 스테이지에 보스가 섭니다. |
-| **2. 서포트 카드 획득** | 완주한 메인 캐릭터는 그때의 능력치와 코드를 담은 **서포트 카드**로 남습니다. 첫 완주에는 라부아지에가 해금됩니다. |
-| **3. 다시 육성** | 다음 여정에서 그 카드를 서포터로 편성하면 훈련 보너스·우정·코드 힌트를 줍니다. |
-| **4. 무한 모드** | **서로 다른 캐릭터 5명**을 완주해 카드 5장을 모으면 메인 메뉴의 **무한 모드**가 열립니다. 카드 5장으로 끝없이 이어지는 스테이지에 도전합니다. |
-
-같은 캐릭터를 다시 완주하면 카드가 새 기록으로 **교체**됩니다. 카드 수를 늘리려면 다른 캐릭터로 완주하세요.
-
-## 조작
+해금 캐릭터로 파티를 구성하고 준비 단계에서 배치·활성 코드·상점·휴식을 정합니다.
+전투 사이 체력·생사·자원이 이어지며 테마별 라운드와 사건·엘리트·보스를 진행합니다.
+보상 코드는 개인 활성 칸과 보관함을 사용하고 준비 중 Drag & Drop으로 교환합니다.
+세부 수치와 현재 캐릭터·테마 목록은 기획서의 해당 상세 사양을 확인해 주세요.
 
 | 입력 | 동작 |
 | --- | --- |
-| 마우스 | 메뉴 선택, 유닛 드래그 배치, 보상·사건 선택 |
+| 마우스 | 선택·배치·코드 Drag & Drop·용어/유닛 툴팁 |
+| TAB | 파티·코드·보급 확인 |
+| ESC | 메뉴 |
+| 화면 배속/정지 버튼 | 1·2·4배속 및 별도 일시정지 |
 
-전투 중에는 조작하지 않습니다. 준비 페이즈에서 배치·장비·훈련을 정하고 전투를 시작하세요.
+## 다운로드
 
-## 개발
+배포된 Windows 데모는 [GitHub Releases](https://github.com/siholee/NeverTheLast/releases/latest)에서 받습니다.
+현재 배포된 0.5.1과 main의 최신 개발 소스는 구분합니다. 이번 문서/브랜치 정리는 새 릴리스를 만들지 않습니다.
+압축을 폴더째 풀고 실행 파일과 Data 폴더를 함께 유지해 주세요. 기존 macOS 배포는 legacy 버전입니다.
+[패치노트](PATCH_NOTES.md)는 배포 이력입니다.
 
-- **엔진:** Unity 6 (6000.4.9f1)
-- **설계 문서:** [`Assets/Docs/Design/`](Assets/Docs/Design/) — 기획의 기준이며 데이터(`Assets/Resources/Data/*.yaml`)와 함께 갱신됩니다.
-- **데모 빌드:** Editor 메뉴 `Tools > NeverTheLast > Build Windows Demo`, 또는 명령줄
+## 개발·검증
 
-  ```
-  Unity.exe -batchmode -quit -projectPath . -buildTarget Win64 -executeMethod DemoBuild.BuildWindows -logFile Logs/DemoBuild.log
-  ```
+엔진은 Unity 6000.4.9f1이며 정확한 버전은 ProjectSettings/ProjectVersion.txt를 따릅니다.
+시작 씬은 MainMenu → Game, 실제 빌드 씬은 EditorBuildSettings를 확인합니다.
+작업 지침은 [AGENTS.md](AGENTS.md), Claude 안내는 [CLAUDE.md](CLAUDE.md)입니다.
 
-  결과물은 `Builds/NeverTheLast_Demo_Win64/`에 생기며 저장소에는 올리지 않습니다(`.gitignore`). 배포는 이 폴더를 zip으로 묶어 Releases에 올립니다.
-- **macOS 데모 빌드:** Unity Hub에서 **Mac Build Support (Mono)** 모듈을 설치한 뒤 `Tools > NeverTheLast > Build Mac Demo`, 또는 명령줄
+빌드는 Editor 메뉴 `Tools/NeverTheLast/Build Windows Demo` 또는 다음 진입점을 사용합니다.
 
-  ```
-  Unity.exe -batchmode -quit -projectPath . -buildTarget OSXUniversal -executeMethod DemoBuild.BuildMac -logFile Logs/DemoBuildMac.log
-  ```
+```text
+Unity.exe -batchmode -quit -projectPath . -buildTarget Win64 -executeMethod DemoBuild.BuildWindows -logFile Logs/DemoBuild.log
+```
 
-  결과물은 `Builds/NeverTheLast_Demo_Mac/NeverTheLast.app`입니다. Windows에서 zip으로 묶을 때 **실행 권한(`Contents/MacOS/*` 755)을 보존**해야 Mac에서 열립니다.
+해당 Unity 버전과 Build Support가 필요합니다. 출력은 Builds에 생성되며 저장소에 올리지 않습니다.
+검증은 실제 Unity Play Mode·VerifyHarnessRunner·필요한 Player 실행으로 수행하고 사용자 저장을 격리합니다.
+게임 전체 최종 QA/상용 미술 판정은 아직 진행 중이며 개발 브랜치 승격을 검수 합격으로 취급하지 않습니다.
+
+구매 Asset Store 팩과 임시 음성은 .gitignore에 따라 공개 소스에 포함되지 않습니다.
+개발 환경에는 소유한 원본 팩/음성을 기존 GUID와 리소스 경로로 유지해야 합니다.

@@ -5,6 +5,11 @@
 commonDropItemIds:
   [5001, 5003]
 
+# 보상 카드 한 장의 분류 비율과 코드 가중치(Detail_17 §5.1).
+rewardCategoryWeights: { code: 55, consumable: 30, drop: 15 }
+codeTagWeights: { match: 2, universal: 1, other: 0.5 }
+upperCodeWeight: 1.5
+
 rewardTierOdds:
   - round: 1
     tierWeights: [100, 0, 0, 0, 0]
@@ -134,3 +139,30 @@ rewards:
     levelGrant: 2
     levelGrantParty: true
     goldCost: 900
+
+# ── 신규 소모품(Detail_17 §6). 상점 고정이 아니므로 goldCost가 없다 ──
+  - id: fate_dice_t1
+    displayName: 운명의 주사위
+    description: 리롤 티켓 +1. 티켓 1장으로 보상 선택지를 다시 굴린다
+    tier: 1
+    themeIds: []
+    rerollTicketBonus: 1
+  - id: exp_book_t1
+    displayName: 경험의 서
+    description: 지정한 아군이 현재 레벨 필요 EXP의 50%를 얻는다
+    tier: 1
+    themeIds: []
+    expPercentOfNext: 0.5
+  - id: rest_incense_t2
+    displayName: 휴식의 향로
+    description: 짧은 휴식 횟수 +1 (상한 3)
+    tier: 2
+    themeIds: []
+    shortRestChargeGrant: 1
+  - id: exp_book_party_t3
+    displayName: 경험의 서 상권
+    description: 아군 전원이 현재 레벨 필요 EXP의 50%를 얻는다. 쓰러진 아군 포함
+    tier: 3
+    themeIds: []
+    expPercentOfNext: 0.5
+    expParty: true

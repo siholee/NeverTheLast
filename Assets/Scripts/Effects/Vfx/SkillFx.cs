@@ -20,6 +20,7 @@ namespace Effects.Vfx
     public sealed class SkillFxCue
     {
         public string ResourcePath;
+        public int StartFrame;
         public int Columns = 4;
         public int Rows = 4;
         public float[] FrameDelays;
@@ -33,6 +34,7 @@ namespace Effects.Vfx
         public bool FlipX;
         public bool ReverseFrames;
         public bool BehindPortrait;
+        public bool PortraitAnchor;
         public int OrderOffset;
         public FlipbookCompositeStyle Composite;
     }
@@ -185,6 +187,7 @@ namespace Effects.Vfx
             int baseOrder = cue != null && cue.BehindPortrait ? RearOrder : FrontOrder;
             FlipbookFx fx = PlayCue(cue, point, layer, baseOrder, target, Frame, Complete);
             if (fx == null) Complete();
+            else if (cue.PortraitAnchor) fx.ClipPortraitHud(target);
             return fx;
         }
 
@@ -192,14 +195,17 @@ namespace Effects.Vfx
             Unit follow = null, Action<int> onFrame = null, Action onComplete = null)
         {
             if (cue == null || string.IsNullOrWhiteSpace(cue.ResourcePath)) return null;
+            if (cue.PortraitAnchor && follow != null) anchor = VfxSpace.PortraitPoint(follow);
             float s = VfxSpace.CardSize;
             Vector3 offset = new(cue.OffsetInCards.x * s, cue.OffsetInCards.y * s, 0f);
+            BattleVfxStyle.Composite(cue.Composite);
+            Color finalBody = BattleVfxStyle.Body(cue.Color, cue.Composite?.GlowColor ?? cue.Color);
             FlipbookFx fx = FlipbookFx.Play(cue.ResourcePath, cue.Columns, cue.Rows, cue.Pivot,
-                anchor + offset, cue.SizeInCards * s, cue.Color, cue.Additive, cue.Loop, cue.FlipX,
+                anchor + offset, cue.SizeInCards * s, finalBody, cue.Additive, cue.Loop, cue.FlipX,
                 cue.FrameDelays, layer, baseOrder + cue.OrderOffset, onFrame, onComplete,
-                cue.Composite, PlaybackMode, cue.ReverseFrames);
+                cue.Composite, PlaybackMode, cue.ReverseFrames, cue.StartFrame);
             if (fx != null && follow != null)
-                fx.Follow(() => VfxSpace.WorldPoint(follow), offset);
+                fx.Follow(() => cue.PortraitAnchor ? VfxSpace.PortraitPoint(follow) : VfxSpace.WorldPoint(follow), offset);
             if (fx != null && cue.Composite != null && cue.Composite.SceneLightStrength > 0f &&
                 PlaybackMode != SkillFxPlaybackMode.Legacy16)
             {

@@ -1,4 +1,4 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+﻿#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -22,7 +22,7 @@ namespace Managers.UI.DevTools
     /// 파일 요청을 받은 에디터가 Play 모드로 들어오면 게임 API만으로 검증 장면을 만든다.
     /// 사용자 저장은 <see cref="DebugMode.BeginSession"/>이 격리하고, 모든 캡처가 끝나면 Play를 스스로 닫는다.
     /// </summary>
-    public sealed class VerifyHarnessRunner : MonoBehaviour
+    public sealed partial class VerifyHarnessRunner : MonoBehaviour
     {
         private const int SeiId = 1;
         private const int ShiId = 2;
@@ -44,6 +44,7 @@ namespace Managers.UI.DevTools
         private string _requestDirectory;
         private string _currentScenario;
         private int _captureSequence;
+        private int _captureFileSequence;
         private int _eventSerial;
         private string _latestVisualEvent = "frame";
         private string _activeLineup;
@@ -89,6 +90,9 @@ namespace Managers.UI.DevTools
 #if UNITY_EDITOR
             string json = UnityEditor.SessionState.GetString(VerifyHarnessSession.RequestJsonKey, "");
             if (string.IsNullOrWhiteSpace(json)) return;
+#else
+            if (PlayerRequestDirectory() == null) return;
+#endif
             if (FindFirstObjectByType<VerifyHarnessRunner>() != null) return;
 
             // GameManager.Start의 새 런 초기화보다 먼저 저장소를 격리해야 실제 세이브 삭제를 막을 수 있다.
@@ -96,8 +100,21 @@ namespace Managers.UI.DevTools
             var root = new GameObject("VerifyHarnessRunner");
             DontDestroyOnLoad(root);
             root.AddComponent<VerifyHarnessRunner>();
-#endif
         }
+
+#if !UNITY_EDITOR
+        private static string PlayerRequestDirectory()
+        {
+            string[] arguments = Environment.GetCommandLineArgs();
+            for (int i = 0; i + 1 < arguments.Length; i++)
+                if (arguments[i] == "--ntl-verify-dir")
+                {
+                    string directory = Path.GetFullPath(arguments[i + 1]);
+                    return File.Exists(Path.Combine(directory, "request.json")) ? directory : null;
+                }
+            return null;
+        }
+#endif
 
         private void Awake()
         {
@@ -109,11 +126,15 @@ namespace Managers.UI.DevTools
             AudioManager.SfxEventRecorded += OnSfxEvent;
             VfxComposer.SlotPlayed += OnVfxSlotPlayed;
             Combat.AttackTargetRouter.TargetRedirected += OnTargetRedirected;
+            Unit.AnyDamageIncoming += V13Damage;
+            Unit.AnyHealed += V13Heal;
+            Unit.AnyUnitDied += V13Death;
         }
 
         private void OnDestroy()
         {
             Cursor.visible = _cursorWasVisible;
+            DebugOverlay.HideBannerForVerification = false;
             Managers.UI.Core.UITooltip.HideAny();
             foreach (FieldPointerInput pointer in _disabledPointerInputs)
                 if (pointer != null) pointer.enabled = true;
@@ -123,6 +144,10 @@ namespace Managers.UI.DevTools
             AudioManager.SfxEventRecorded -= OnSfxEvent;
             VfxComposer.SlotPlayed -= OnVfxSlotPlayed;
             Combat.AttackTargetRouter.TargetRedirected -= OnTargetRedirected;
+            Unit.AnyDamageIncoming -= V13Damage;
+            Unit.AnyHealed -= V13Heal;
+            Unit.AnyUnitDied -= V13Death;
+            if (_v13MaskMaterial != null) Destroy(_v13MaskMaterial);
             BattlefieldBackdrop.SetVerificationBackgroundOverride(null);
             SkillFx.PlaybackMode = SkillFxPlaybackMode.Final;
             VfxStyleSettings.Reset();
@@ -133,8 +158,14 @@ namespace Managers.UI.DevTools
 #if UNITY_EDITOR
             string json = UnityEditor.SessionState.GetString(VerifyHarnessSession.RequestJsonKey, "");
             _requestDirectory = UnityEditor.SessionState.GetString(VerifyHarnessSession.RequestDirectoryKey, "");
+#else
+            _requestDirectory = PlayerRequestDirectory();
+            if (_requestDirectory == null) yield break;
+            string json = File.ReadAllText(Path.Combine(_requestDirectory, "request.json"));
+#endif
             _request = JsonUtility.FromJson<VerifyRequest>(json) ?? new VerifyRequest();
             NormalizeScenarioList();
+            DebugOverlay.HideBannerForVerification = _request.hideDebugBanner;
 
             _result = new VerifyRunResult
             {
@@ -145,6 +176,10 @@ namespace Managers.UI.DevTools
 
             yield return ExecuteGuarded(RunAll());
             yield return WaitForCapturedFiles(5f);
+            if (_result.captures.Count > 0)
+                RecordMechanic("검수 캡처 경로 고유성", _result.captures.Count.ToString(),
+                    _result.captures.Select(c => c.path).Distinct().Count().ToString(),
+                    _result.captures.Select(c => c.path).Distinct().Count() == _result.captures.Count);
 
             DebugMode.ResetAll();
             DebugMode.SuiteRunning = false;
@@ -163,9 +198,10 @@ namespace Managers.UI.DevTools
                 : "하나 이상의 시나리오가 실패했다.";
 
             WriteRuntimeResult();
+#if UNITY_EDITOR
             UnityEditor.EditorApplication.ExitPlaymode();
 #else
-            yield break;
+            Application.Quit(_result.success ? 0 : 1);
 #endif
         }
 
@@ -179,6 +215,22 @@ namespace Managers.UI.DevTools
                 yield break;
             }
 
+#if !UNITY_EDITOR
+            // QA만 요청 해상도를 사용한다. 사용자 그래픽 설정의 저장값은 수정하지 않는다.
+            int width = Mathf.Max(1, _request.captureWidth), height = Mathf.Max(1, _request.captureHeight);
+            Screen.SetResolution(width, height, FullScreenMode.Windowed);
+            for (int frame = 0; frame < 60; frame++)
+            {
+                yield return null;
+                if (frame >= 2 && Screen.width == width && Screen.height == height) break;
+            }
+            _result.resolution = $"{Screen.width}x{Screen.height}";
+            if (Screen.width != width || Screen.height != height)
+            {
+                AddScenarioFailure("bootstrap", $"요청 해상도 적용 실패: {width}x{height} → {_result.resolution}");
+                yield break;
+            }
+#endif
             DebugMode.BeginSession();
             DebugMode.SuiteRunning = true;
             yield return BuildFreshRun(ResolveLineup(null));
@@ -289,6 +341,37 @@ namespace Managers.UI.DevTools
                 "party5_bastet" => PartyFiveBastetIds,
                 "party5_jean" => PartyFiveJeanIds,
                 "party5_jean_bastet" => PartyFiveJeanBastetIds,
+                "party5_lokapala" => PartyFiveLokapalaIds,
+                "party5_summon" => PartyFiveSummonIds,
+                "party5_yama_varuna" => PartyFiveYamaVarunaIds,
+                "party5_treasury" => new[] { 65, 200, 220, 64, 82 },
+                "party5_nord" => new[] { 81, 82, 161, 67, 45 },
+                "party5_nord_synergy" => new[] { 81, 82, 44, 64, 62 },
+                "allvfx_group_1" => new[] { 1, 2, 3, 7, 122 },
+                "allvfx_group_2" => new[] { 60, 44, 20, 63, 64 },
+                "allvfx_group_3" => new[] { 65, 61, 66, 121, 180 },
+                "allvfx_group_4" => new[] { 62, 67, 45, 160, 161 },
+                "allvfx_group_5" => new[] { 80, 81, 82, 64, 66 },
+                "allvfx_group_6" => new[] { 25, 22, 83, 200, 220 },
+                "allvfx_group_7" => new[] { 123, 125, 120, 81, 124 },
+                "allvfx_group_8" => new[] { 25, 63, 61, 66, 1 },
+                "party5_toughness" => new[] { 25, 2, 60, 121, 1 },
+                "party5_orion_skadi" => new[] { 22, 83, 122, 160, 80 },
+                "party5_summon_authors" => new[] { 10, 124, 180, 20, 80 },
+                "party5_egyptian" => new[] { 123, 125, 120, 81, 124 },
+                "party5_isis" => new[] { 125, 20, 124, 180, 10 },
+                "party5_set_dot" => new[] { 123, 61, 45, 66, 82 },
+                "party5_horus_carry" => new[] { 81, 120, 82, 64, 66 },
+                "party5_horus_targets" => new[] { 120, 62, 81, 82, 160 },
+                "party5_summon_theatre" => new[] { 180, 121, 20, 10, 124 },
+                "party5_orion_skadi_sustain" => new[] { 22, 83, 122, 160, 82 },
+                "party5_france_moon" => new[] { 160, 161, 67, 45, 63 },
+                "party5_vedic_trio" => new[] { 64, 62, 67, 66, 63 },
+                "party5_command_fenrir" => PartyFiveCommandFenrirIds,
+                "party5_command_melee" => PartyFiveCommandMeleeIds,
+                "party5_reward_ui" => PartyFiveRewardUiIds,
+                "duo_agni_surya" => new[] { AgniId, SuryaId },
+                "duo_shi_sabah" => new[] { ShiId, SabahId },
                 _ => PartyFiveIds,
             };
             foreach (int id in ids)
@@ -308,13 +391,18 @@ namespace Managers.UI.DevTools
         private IEnumerator EnsureLineup(VerifyScenarioRequest config)
         {
             string lineup = ResolveLineup(config);
-            if (lineup != "party5" && lineup != "party5_sabah" && lineup != "party5_bastet" &&
-                lineup != "party5_jean" && lineup != "party5_jean_bastet" && lineup != "solo1")
+            if (lineup != "party5_horus_targets" && lineup != "party5_egyptian" && lineup != "party5_isis" && lineup != "party5_set_dot" && lineup != "party5_horus_carry" && lineup != "party5_summon_authors" && lineup != "party5_summon_theatre" && lineup != "party5_orion_skadi" && lineup != "party5_orion_skadi_sustain" && lineup != "party5_toughness" && lineup != "party5_treasury" && !lineup.StartsWith("allvfx_group_") && lineup != "party5" && lineup != "party5_sabah" && lineup != "party5_bastet" &&
+                lineup != "party5_jean" && lineup != "party5_jean_bastet" && lineup != "solo1" &&
+                lineup != "party5_france_moon" && lineup != "party5_lokapala" && lineup != "party5_summon" && lineup != "party5_yama_varuna" && lineup != "party5_vedic_trio" &&
+                lineup != "party5_reward_ui" && lineup != "duo_agni_surya" && lineup != "duo_shi_sabah" &&
+                lineup != "party5_nord_synergy" && lineup != "party5_nord" && lineup != "party5_command_fenrir" && lineup != "party5_command_melee")
             {
                 FailCurrent($"알 수 없는 lineup: {lineup}");
                 yield break;
             }
-            if (_activeLineup == lineup) yield break;
+            bool missingScene = SceneManager.GetActiveScene().name != "Game" || GameManager.Instance == null;
+            yield return EnsureGameScene();
+            if (_activeLineup == lineup && !missingScene) yield break;
             yield return BuildFreshRun(lineup);
         }
 
@@ -323,6 +411,7 @@ namespace Managers.UI.DevTools
             string name = scenario?.name?.Trim().ToLowerInvariant();
             _currentScenario = string.IsNullOrWhiteSpace(name) ? "unknown" : name;
             _captureSequence = 0;
+            _actionCaptureStride=Mathf.Clamp(scenario?.actionCaptureStride??1,1,12);
             _announcements.Clear();
             SkillFx.PlaybackMode = ResolveVfxVariant(scenario);
             VfxStyleSettings.Active = ResolveVfxStyle(scenario);
@@ -336,6 +425,11 @@ namespace Managers.UI.DevTools
             };
             _result.scenarios.Add(scenarioResult);
 
+            if (_request.freshLineupPerScenario)
+            {
+                if (GameManager.Instance != null) GameManager.Instance.enabled = true;
+                _activeLineup = null;
+            }
             yield return EnsureLineup(scenario);
             if (!scenarioResult.success)
             {
@@ -346,6 +440,81 @@ namespace Managers.UI.DevTools
 
             IEnumerator body = _currentScenario switch
             {
+                "whole_performance" => ScenarioWholePerformance(scenario),
+                "core_safety" => ScenarioCoreSafety(scenario),
+                "core_scheduler" => ScenarioCoreScheduler(scenario),
+                "core_scheduler_sabah" => ScenarioCoreSchedulerSabah(scenario),
+                "core_scheduler_abort" => ScenarioCoreSchedulerAbort(scenario),
+                "core_elements_safety" => ScenarioCoreElementsSafety(scenario),
+                "core_normal_death" => ScenarioCoreNormalDeath(scenario),
+                "core_removal_safety" => ScenarioCoreRemovalSafety(scenario),
+                "core_save_safety" => ScenarioCoreSaveSafety(scenario),
+                "core_seal_safety" => ScenarioCoreSealSafety(scenario),
+                "core_aura_safety" => ScenarioCoreAuraSafety(scenario),
+                "core_forecast_safety" => ScenarioCoreForecastSafety(scenario),
+                "core_shi_death_before_hit" => ScenarioCoreShiSafety(scenario),
+                "core_shi_death_after_hit" => ScenarioCoreShiSafety(scenario),
+                "core_shi_positive" => ScenarioCoreShiSafety(scenario),
+                "core_event_safety" => ScenarioCoreEventSafety(scenario),
+                var visualName when visualName.StartsWith("v13yv_", StringComparison.Ordinal) => ScenarioYvVisual(scenario),
+                "toughness_absence" => ScenarioToughnessAbsence(scenario),
+                "toughness_edges" => ScenarioToughnessEdges(scenario),
+                "toughness_core" => ScenarioToughnessCore(scenario),
+                "toughness_combat" => ScenarioToughnessCombat(scenario),
+                "checkpoint24_campaign" => ScenarioCheckpoint24Campaign(scenario),
+                "checkpoint24_layout" => ScenarioCheckpoint24Layout(scenario),
+                "checkpoint24_battle" => ScenarioCheckpoint24Battle(scenario),
+                "original_themes" => ScenarioOriginalThemes(scenario),
+                "original_kits" => ScenarioOriginalKits(scenario),
+                "original_edges" => ScenarioOriginalEdges(scenario),
+                "original_audio" => ScenarioOriginalAudio(scenario),
+                "original_campaign" => ScenarioOriginalCampaign(scenario),
+                "generic_themes" => ScenarioGenericThemes(scenario),
+                "generic_campaign" => ScenarioGenericCampaign(scenario),
+                "identity_hud" => ScenarioIdentityHud(scenario),
+                "guide_rework" => ScenarioGuideRework(scenario),
+                "effect_hit_core" => ScenarioEffectHitCore(scenario),
+                "nord_core" => ScenarioNordCore(scenario),
+                "orion_skadi_core" => ScenarioOrionSkadiCore(scenario),
+                "summon_authors_core" => ScenarioSummonAuthorsCore(scenario),
+                "egyptian_core" => ScenarioEgyptianCore(scenario),
+                "isis_core" => ScenarioIsisCore(scenario),
+                "horus_targets" => ScenarioHorusTargets(scenario),
+                "egyptian_combat" => ScenarioEgyptianCombat(scenario),
+                "summon_authors_combat" => ScenarioSummonAuthorsCombat(scenario),
+                "orion_skadi_combat" => ScenarioOrionSkadiCombat(scenario),
+                var nordVisual when nordVisual.StartsWith("nord_visual", StringComparison.Ordinal) => ScenarioNordVisual(scenario),
+                "existing_trio_sparse" => ScenarioVedicTrioVisual(scenario),
+                "nord_natural" => ScenarioNordNatural(scenario),
+                "france_moon_core" => ScenarioFranceMoon(scenario),
+                "characters_followup_core" => ScenarioCharactersFollowupCore(scenario),
+                "characters_followup_melee" => ScenarioCharactersFollowupMelee(scenario),
+                "release_save" => ScenarioReleaseSave(scenario),
+                "release_shield" => ScenarioReleaseShield(scenario),
+                "release_campaign" => ScenarioReleaseCampaign(scenario),
+                "release_event" => ScenarioReleaseEvent(scenario),
+                "release_loss" => ScenarioReleaseLoss(scenario),
+                "treasury_core" => ScenarioTreasuryCore(scenario),
+                "treasury_sp_hud" => ScenarioTreasurySpHud(scenario),
+                "treasury_rewards" => ScenarioTreasuryRewards(scenario),
+                "card_hud_containment" => ScenarioCardHudContainment(scenario),
+                "treasury_natural" => ScenarioTreasuryNatural(scenario),
+                "reward_growth" => ScenarioRewardGrowth(scenario),
+                "battle_pacing" => ScenarioBattlePacing(scenario),
+                "allvfx_presentation" => ScenarioPresentationPolish(scenario),
+                "allvfx_catalog" => ScenarioAllVfxCatalog(scenario),
+                "allvfx_skills" => ScenarioAllVfxSkills(scenario),
+                "allvfx_systems" => ScenarioAllVfxSystems(scenario),
+                "allvfx_formation" or "allvfx_formation_4x" => ScenarioAllVfxFormation(scenario),
+                "allvfx_soul_readability" => ScenarioSoulReadability(scenario),
+                "allvfx_soul_readability_4x" => ScenarioSoulReadability(scenario),
+                var showName when showName.StartsWith("allvfx_showcase_") => ScenarioAllVfxShowcase(scenario),
+                var allVfxName when allVfxName.StartsWith("allvfx_units_") => ScenarioAllVfxUnits(scenario),
+                "ui_overhaul" => ScenarioUIOverhaul(scenario),
+                "ui_overhaul_menu" => ScenarioUIOverhaulMenu(scenario),
+                "ui_settings_layout" => ScenarioSettingsLayout(scenario),
+                "reward_ui_forms" => ScenarioRewardUiForms(scenario),
+                var rewardUiName when IsRewardUiScenario(rewardUiName) => ScenarioUIOverhaul(scenario),
                 "prep" => ScenarioPrep(scenario),
                 "combat_1v1" => ScenarioCombat(scenario, CombatStage(scenario, 6, 1), "combat"),
                 "combat_1v2" => ScenarioCombat(scenario, CombatStage(scenario, 6, 2), "combat"),
@@ -421,6 +590,7 @@ namespace Managers.UI.DevTools
                 "death_boss" => ScenarioDeath(scenario, true),
                 "entry" => ScenarioEntry(scenario),
                 "status_preview" => ScenarioStatusPreview(scenario),
+                "combat_feedback" => ScenarioCombatFeedback(scenario),
                 "reward_preview" => ScenarioRewardPreview(scenario),
                 "result_preview" => ScenarioResultPreview(scenario),
                 "common_sfx" => ScenarioCommonSfx(scenario),
@@ -429,6 +599,18 @@ namespace Managers.UI.DevTools
                 "speed8" => ScenarioSpeed8(scenario),
                 "layer_isolation" => ScenarioLayerIsolation(scenario),
                 "five_party" => ScenarioFiveParty(scenario),
+                "r12_core" => ScenarioR12Core(scenario),
+                "r12_lokapala" => ScenarioR12Lokapala(scenario),
+                "r12_summon" => ScenarioR12Summon(scenario),
+                "yama_varuna_core" => ScenarioYamaVarunaCore(scenario),
+                "v13trio_visual" or "v13trio_visual8" or "v13trio_visual_sparse_1920_4x" => ScenarioVedicTrioVisual(scenario),
+                "trio_core" => ScenarioVedicTrioCore(scenario),
+                var currentname when currentname.StartsWith("v13surya_hud_") => ScenarioSuryaHud(scenario),
+                "trio_balance" => ScenarioVedicTrioBalance(scenario),
+                var naturalName when naturalName.StartsWith("trio_natural_") => ScenarioVedicTrioNatural(scenario),
+                "kubera_followup_core" => ScenarioKuberaReworkCore(scenario),
+                "kubera_followup_lokapala_ui" => ScenarioKuberaFollowupLokapalaUi(scenario),
+                "v13a_indra" or "v13a_vayu" or "v13a_kubera" or "v13a_chandra" or "v13a_gate" or "v13b_anubis" or "v13b_uchi" or "v13b_party" => ScenarioV13A(scenario),
                 _ => null,
             };
 
@@ -442,7 +624,7 @@ namespace Managers.UI.DevTools
                 yield return ExecuteGuarded(body, exception =>
                 {
                     scenarioResult.success = false;
-                    scenarioResult.message = exception.Message;
+                    scenarioResult.message = exception.ToString();
                 });
             }
 
@@ -1004,7 +1186,7 @@ namespace Managers.UI.DevTools
                 {
                     VerifyEvents.Raise("jean_bastet_guard_counter");
                     VfxRunner.Run(DebugJeanDirectAttack(attacker, new[] { bastet }, false,
-                        "jean_bastet_guard", probe, true));
+                        "jean_bastet_guard", probe, true, presentOriginal:true));
                 });
             yield return WaitForJeanProbe(probe, 2f);
             yield return WaitForCasting(bastet, 2f);
@@ -1117,7 +1299,7 @@ namespace Managers.UI.DevTools
         }
 
         private static IEnumerator DebugJeanDirectAttack(Unit attacker, IReadOnlyList<Unit> selected, bool multi,
-            string attackKey, JeanAttackProbe probe, bool runFollowUp = false)
+            string attackKey, JeanAttackProbe probe, bool runFollowUp = false,bool presentOriginal=false)
         {
             var tags = new List<int>
             {
@@ -1144,8 +1326,18 @@ namespace Managers.UI.DevTools
 
             foreach (Unit target in resolution.Targets.Where(unit => unit != null && unit.isActive).Distinct())
             {
-                target.TakeDamage(new DamageContext(attacker, 1, BaseEnums.CodeType.Normal, new List<int>(tags)));
-                probe.OriginalApplied = true;
+                void Hit()
+                {
+                    int amount=presentOriginal?Mathf.Max(1,Mathf.RoundToInt(attacker.StatValue(BaseEnums.StatType.Attack))):1;
+                    target.TakeDamage(new DamageContext(attacker, amount, BaseEnums.CodeType.Normal, new List<int>(tags)));
+                    probe.OriginalApplied = true;
+                }
+                if(presentOriginal)
+                {
+                    Combat.ActionAnnouncer.Announce(attacker,Combat.ActionAnnouncementKind.Normal,attacker.ActiveNormalCode,"일반공격");
+                    yield return EnemyNormalFx.OriginalNormal(attacker,target,Hit);
+                }
+                else Hit();
             }
             if (runFollowUp)
                 probe.FollowUpStarted = GameManager.Instance.ActionScheduler.DebugRunNextQueued();
@@ -2110,10 +2302,10 @@ namespace Managers.UI.DevTools
             }
         }
 
-        private IEnumerator CaptureStill(string tag)
+        private IEnumerator CaptureStill(string tag, bool keepTooltip = false)
         {
             yield return EndOfFrame;
-            Capture(tag);
+            Capture(tag, keepTooltip);
             yield return null;
         }
 
@@ -2180,6 +2372,36 @@ namespace Managers.UI.DevTools
         private IEnumerator CaptureActionWindowRealtimeAtInterval(string tag, float seconds, float interval,
             Action action, float preRoll = 0.5f)
         {
+            if(tag is "jean_bastet_guard_counter" or "bastet_counter_followup")
+            {
+                float previousDelta=Time.captureDeltaTime;
+                var game=GameManager.Instance;var previousState=game.gameState;bool previousEnabled=game.enabled;
+                bool previousAllyInvincible=DebugMode.AllyInvincible,previousEnemyInvincible=DebugMode.EnemyInvincible;
+                float previousSpeed=Managers.UI.HUD.BattleHud.CurrentSpeedMultiplier;
+                // 수동 행동만 실행하면서 실제 전투 표시·알림과 HUD 4배속을 유지한다.
+                game.enabled=false;game.gameState=BaseEnums.GameState.RoundInProgress;
+                DebugMode.AllyInvincible=false;DebugMode.EnemyInvincible=false;
+                Managers.UI.HUD.BattleHud.TrySetSpeedMultiplier(4f);
+                Time.captureDeltaTime=1f/60f;
+                try
+                {
+                    int count=Mathf.CeilToInt(Mathf.Max(preRoll+.05f,seconds)*60f);
+                    int start=Mathf.RoundToInt(preRoll*60f);
+                    for(int i=0;i<count;i++)
+                    {
+                        if(i==start)action?.Invoke();
+                        yield return EndOfFrame;
+                        Capture(tag+"_fixed60");
+                    }
+                }
+                finally
+                {
+                    Time.captureDeltaTime=previousDelta;game.gameState=previousState;game.enabled=previousEnabled;
+                    DebugMode.AllyInvincible=previousAllyInvincible;DebugMode.EnemyInvincible=previousEnemyInvincible;
+                    Managers.UI.HUD.BattleHud.TrySetSpeedMultiplier(previousSpeed);
+                }
+                yield break;
+            }
             float step = Mathf.Max(1f / 60f, interval);
             float startedAt = Time.realtimeSinceStartup;
             float deadline = startedAt + Mathf.Max(preRoll + 0.05f, seconds);
@@ -2201,19 +2423,54 @@ namespace Managers.UI.DevTools
             if (!acted) action?.Invoke();
         }
 
-        private void Capture(string baseTag)
+        private bool _deferCaptureEncoding;
+        private readonly List<(Texture2D Pixels,string Path)> _deferredCapturePixels=new();
+        private void FlushDeferredCaptures()
+        {
+            _deferCaptureEncoding=false;
+            try
+            {
+                foreach(var frame in _deferredCapturePixels)File.WriteAllBytes(frame.Path,frame.Pixels.EncodeToPNG());
+            }
+            finally
+            {
+                foreach(var frame in _deferredCapturePixels)if(frame.Pixels!=null)Destroy(frame.Pixels);
+                _deferredCapturePixels.Clear();
+            }
+        }
+
+        private void Capture(string baseTag, bool keepTooltip = false)
         {
             // 자동 캡처는 포인터 위치와 무관해야 한다. 매 프레임 호버가 다시 계산되므로 저장 직전에 닫는다.
-            Managers.UI.Core.UITooltip.HideAny();
+            // 툴팁 자체를 검수하는 캡처만 고정 좌표(ShowAt)로 띄운 툴팁을 남긴다.
+            if (!keepTooltip) Managers.UI.Core.UITooltip.HideAny();
             string scenarioDirectory = Path.Combine(_requestDirectory, "out", SafeName(_currentScenario));
             Directory.CreateDirectory(scenarioDirectory);
             string visualTag = string.IsNullOrWhiteSpace(_latestVisualEvent) ? "frame" : _latestVisualEvent;
             string tag = SafeName($"{baseTag}_{visualTag}");
-            string file = $"{++_captureSequence:0000}_{tag}.png";
+            string extension = _currentScenario.StartsWith("v13", StringComparison.Ordinal) ? "rgba" : "png";
+            // Windows 캡처 API의 경로 길이 제한. 전체 의미 태그는 JSON에 보존한다.
+            int tagLimit = Mathf.Max(24, 235-scenarioDirectory.Length-12);
+            string fileTag = tag.Length> tagLimit ? tag.Substring(0,tagLimit) : tag;
+            // 같은 시나리오/부품의 다른 경로를 연달아 검증해도 먼저 찍은 원본을 덮어쓰지 않는다.
+            _captureSequence++;
+            string file = $"{++_captureFileSequence:0000}_{fileTag}.{extension}";
             string path = Path.Combine(scenarioDirectory, file);
             int frame = Time.frameCount;
             float realtime = Time.realtimeSinceStartup;
-            ScreenCapture.CaptureScreenshot(path);
+            if (_currentScenario.StartsWith("v13", StringComparison.Ordinal)) V13CaptureFrame(path);
+            else if (_deferCaptureEncoding || _currentScenario.StartsWith("allvfx", StringComparison.Ordinal))
+            {
+                // 광역 정점은 같은 프레임에 여러 번 발행된다. 비동기 API가 앞 캡처를 덮지 않도록 저장한다.
+                Texture2D pixels=ScreenCapture.CaptureScreenshotAsTexture();
+                if(_deferCaptureEncoding)_deferredCapturePixels.Add((pixels,path));
+                else
+                {
+                    try { File.WriteAllBytes(path,pixels.EncodeToPNG()); }
+                    finally { Destroy(pixels); }
+                }
+            }
+            else ScreenCapture.CaptureScreenshot(path);
             _result.captures.Add(new VerifyCaptureRecord
             {
                 scenario = _currentScenario,
@@ -2221,10 +2478,13 @@ namespace Managers.UI.DevTools
                 path = path,
                 frame = frame,
                 realtime = realtime,
+                engineTimeScale=Time.timeScale,playbackSpeed=Managers.UI.HUD.BattleHud.CurrentSpeedMultiplier,
+                scaledTime=Time.time,unscaledTime=Time.unscaledTime,deltaTime=Time.deltaTime,unscaledDeltaTime=Time.unscaledDeltaTime,
                 backgroundLuminance = BattlefieldBackdrop.CurrentBackgroundLuminance,
             });
             RecordPortraitRects(frame, realtime);
             RecordUiRects(frame, realtime);
+            V13CaptureDiagnostics(path);
         }
 
         private void RecordPortraitRects(int frame, float realtime)
@@ -2242,11 +2502,30 @@ namespace Managers.UI.DevTools
                     scenario = _currentScenario,
                     realtime = realtime,
                     frame = frame,
+                    instanceId = unit.GetInstanceID(),
+                    worldX = view.Body.position.x, worldY = view.Body.position.y,
                     unit = unit.UnitName,
                     xMin = rect.xMin,
                     yMin = rect.yMin,
                     xMax = rect.xMax,
                     yMax = rect.yMax,
+                });
+            }
+            // 칸 없는 분신도 실제 표시 좌표를 기록해 이동·소멸 검수에 포함한다.
+            foreach (Entities.View.SummonCardView view in FindObjectsByType<Entities.View.SummonCardView>(
+                         FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            {
+                SpriteRenderer portrait = view.PortraitRenderer;
+                if (view.BoundUnit == null || portrait == null || !portrait.enabled) continue;
+                Bounds bounds = portrait.bounds;
+                Vector3 min = camera.WorldToScreenPoint(bounds.min);
+                Vector3 max = camera.WorldToScreenPoint(bounds.max);
+                _result.portraitRects.Add(new VerifyPortraitRectRecord
+                {
+                    scenario = _currentScenario, realtime = realtime, frame = frame,
+                    instanceId = view.BoundUnit.GetInstanceID(),
+                    worldX = view.transform.position.x, worldY = view.transform.position.y,
+                    unit = view.BoundUnit.UnitName, xMin = min.x, yMin = min.y, xMax = max.x, yMax = max.y,
                 });
             }
         }
@@ -2344,6 +2623,11 @@ namespace Managers.UI.DevTools
         private void OnVfxSlotPlayed(VfxSlotPlaybackEvent item)
         {
             if (_result == null || item == null) return;
+            if (_currentScenario?.StartsWith("v13", StringComparison.Ordinal) == true)
+                RecordPortraitRects(Time.frameCount, item.Realtime);
+            if (_v13PeakDiagnostics && item.Phase == "peak" && item.SlotName is "hit" or "affected")
+                _v13DiagnosticUntil = Time.realtimeSinceStartup +
+                    (_currentScenario.StartsWith("v13yv_", StringComparison.Ordinal) && item.SlotName == "affected" ? 0.50f : 0.15f);
             Camera camera = Camera.main;
             Vector3 screen = camera != null ? camera.WorldToScreenPoint(item.WorldPoint) : Vector3.zero;
             _result.vfxSlots.Add(new VerifyVfxSlotRecord
@@ -2356,6 +2640,8 @@ namespace Managers.UI.DevTools
                 partId = item.PartId,
                 phase = item.Phase,
                 slotIndex = item.SlotIndex,
+                casterInstanceId = item.Caster != null ? item.Caster.GetInstanceID() : 0,
+                targetInstanceId = item.Target != null ? item.Target.GetInstanceID() : 0,
                 caster = item.Caster != null ? item.Caster.UnitName : string.Empty,
                 target = item.Target != null ? item.Target.UnitName : string.Empty,
                 screenX = screen.x,
@@ -2414,31 +2700,47 @@ namespace Managers.UI.DevTools
         {
             var stack = new Stack<IEnumerator>();
             stack.Push(root);
-            while (stack.Count > 0)
+            try
             {
-                IEnumerator current = stack.Peek();
-                bool moved;
-                object yielded = null;
-                try
+                while (stack.Count > 0)
                 {
-                    moved = current.MoveNext();
-                    if (moved) yielded = current.Current;
-                }
-                catch (Exception exception)
-                {
-                    onException?.Invoke(exception);
-                    if (onException == null) AddScenarioFailure(_currentScenario ?? "runner", exception.ToString());
-                    yield break;
-                }
+                    IEnumerator current = stack.Peek();
+                    bool moved;
+                    object yielded = null;
+                    try
+                    {
+                        moved = current.MoveNext();
+                        if (moved) yielded = current.Current;
+                    }
+                    catch (Exception exception)
+                    {
+                        onException?.Invoke(exception);
+                        if (onException == null) AddScenarioFailure(_currentScenario ?? "runner", exception.ToString());
+                        yield break;
+                    }
 
-                if (!moved)
-                {
-                    stack.Pop();
-                    continue;
+                    if (!moved)
+                    {
+                        stack.Pop();
+                        (current as IDisposable)?.Dispose();
+                        continue;
+                    }
+                    if (yielded is IEnumerator nested) stack.Push(nested);
+                    else yield return yielded;
                 }
-
-                if (yielded is IEnumerator nested) stack.Push(nested);
-                else yield return yielded;
+            }
+            finally
+            {
+                // 자식에서 실패해도 부모의 finally가 전투 정지·구독·검증 시계를 복구한다.
+                while (stack.Count > 0)
+                {
+                    try { (stack.Pop() as IDisposable)?.Dispose(); }
+                    catch (Exception exception)
+                    {
+                        if (onException != null) onException(exception);
+                        else AddScenarioFailure(_currentScenario ?? "runner", exception.ToString());
+                    }
+                }
             }
         }
 
@@ -2510,13 +2812,21 @@ namespace Managers.UI.DevTools
         private string ResolveLineup(VerifyScenarioRequest config)
         {
             string value = !string.IsNullOrWhiteSpace(config?.lineup) ? config.lineup : _request.lineup;
+            // 보상 UI 시나리오는 세이 · 인드라 · 쿠베라 · 아그니 · 수리야 편성이 기준이다. 시나리오에 편성을 따로 적지 않았으면 그것을 쓴다.
+            if (string.IsNullOrWhiteSpace(config?.lineup) && IsRewardUiScenario(config?.name?.Trim().ToLowerInvariant()))
+                value = "party5_reward_ui";
             return value?.Trim().ToLowerInvariant() switch
             {
                 null or "" or "party5" or "five" => "party5",
+                "party5_toughness" => "party5_toughness",
                 "party5_sabah" or "sabah5" => "party5_sabah",
                 "party5_bastet" or "bastet5" => "party5_bastet",
                 "party5_jean" or "jean5" => "party5_jean",
                 "party5_jean_bastet" or "jean_bastet5" => "party5_jean_bastet",
+                "party5_lokapala" or "lokapala5" => "party5_lokapala",
+                "party5_summon" or "summon5" => "party5_summon",
+                "party5_yama_varuna" or "yama_varuna5" => "party5_yama_varuna",
+                "party5_reward_ui" or "reward_ui5" => "party5_reward_ui",
                 "solo1" or "solo" or "sei" => "solo1",
                 _ => value.Trim().ToLowerInvariant(),
             };

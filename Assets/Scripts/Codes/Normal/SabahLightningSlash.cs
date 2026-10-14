@@ -16,6 +16,8 @@ namespace Codes.Normal
     /// </summary>
     public sealed class SabahLightningSlash : BaseNormalCode
     {
+        public override int AttackForm => DamageTag.Slash;
+
         private const int SubstituteInterval = 3;
         private const int SubstituteTargetCount = 3;
         private int _actionCount;
@@ -83,6 +85,24 @@ namespace Codes.Normal
             yield return SabahFx.ShadowAmbush(Caster, target, () => Hit(target, context));
         }
 
+        // 지휘 사격은 일반행동 횟수를 세지 않는다. 직전 행동이 번개 베기였어도 단일 검격으로 치고 박자를 그대로 돌려 둔다.
+        private bool _commandSavedSubstitute;
+        private string _commandSavedName;
+
+        protected override void OnCommandBegin()
+        {
+            _commandSavedSubstitute = _substitute;
+            _commandSavedName = CodeName;
+            _substitute = false;
+            CodeName = "검격";
+        }
+
+        protected override void OnCommandEnd()
+        {
+            _substitute = _commandSavedSubstitute;
+            CodeName = _commandSavedName;
+        }
+
         protected override void OnAttackResolved(Unit target, DamageContext context)
         {
             if (!_substitute || target == null || !target.isActive) return;
@@ -94,6 +114,7 @@ namespace Codes.Normal
             _substitute ? DamageTag.MultiTarget : DamageTag.SingleTarget,
             DamageTag.NormalAttack,
             DamageTag.ContactAttack,
+            DamageTag.Slash,
         };
 
         private void RegisterRoundReset()

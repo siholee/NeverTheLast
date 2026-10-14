@@ -23,6 +23,9 @@ namespace Effects.Vfx.Presets
         public float TipWidth = 0.070f;
         public float CardKickStrength = 0.55f;
         public float SourceAngleDegrees = 28f;
+        // 특정 피격 문양만 원화 띠에 맞출 수 있게 한다. 기존 부품은 같은 상한을 사용한다.
+        public float PortraitWidthFraction = 1.10f;
+        public float PortraitHeightFraction = .42f;
         public Vector2 OffsetInCards = new(0f, 0.08f);
         public Color BodyColor = new(0.006f, 0.003f, 0.005f, 0.96f);
         public Color EdgeColor = new(0.70f, 0.008f, 0.016f, 0.90f);
@@ -59,6 +62,8 @@ namespace Effects.Vfx.Presets
             ClawRakeStyle style, Action onCenterPassed = null)
         {
             style ??= new ClawRakeStyle();
+            style.BodyColor = BattleVfxStyle.Body(style.BodyColor,style.EdgeColor);
+            style.CoreColor = BattleVfxStyle.Light(style.CoreColor);
             Sprite sprite = style.Sprite != null ? style.Sprite : VfxArt.ShiCrimsonClawStroke;
             if (sprite == null)
             {
@@ -80,6 +85,13 @@ namespace Effects.Vfx.Presets
             Vector2 bounds = sprite.bounds.size;
             float width = size * Mathf.Max(0.40f, style.LengthInCards);
             float height = size * Mathf.Max(style.ThicknessInCards * 5.0f, style.LengthInCards * 0.24f);
+            var targetView=CardMotion.ViewOf(target);
+            if(targetView!=null&&targetView.PortraitRenderer!=null)
+            {
+                Bounds portrait=targetView.PortraitRenderer.bounds;
+                width=Mathf.Min(width,portrait.size.x*style.PortraitWidthFraction);
+                height=Mathf.Min(height,portrait.size.y*style.PortraitHeightFraction);
+            }
             float sourceAngle = style.SourceAngleDegrees;
             // 원화는 비균일하게 눌러 쓰므로 픽셀상의 각도와 화면상의 각도가 다르다.
             // 압축 뒤 실효 각도를 보정해야 AimFrom이 정한 시전자→대상 축과 선두 이동이 일치한다.
@@ -226,7 +238,7 @@ namespace Effects.Vfx.Presets
         }
 
         private static Vector3 CurrentPoint(Unit target, Vector3 fallback)
-            => target != null && target.isActive ? VfxSpace.WorldPoint(target) : fallback;
+            => target != null && target.isActive ? VfxSpace.PortraitPoint(target)+Vector3.up*(VfxSpace.CardSize*.10f) : fallback;
 
         private static Vector3 Direction(float degrees)
         {

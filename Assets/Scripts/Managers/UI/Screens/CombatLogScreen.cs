@@ -47,6 +47,7 @@ namespace Managers.UI.Screens
         private const int LinesPerChunk = 80;
 
         private TextMeshProUGUI _summary;
+        private RectTransform _summaryPanel, _tabRow;
         private RectTransform _listContent;
         private ScrollRect _listScroll;
         private TextMeshProUGUI _count;
@@ -56,17 +57,18 @@ namespace Managers.UI.Screens
         protected override void Build()
         {
             // ── 원인 요약 ──
-            Image summaryPanel = UIBuild.Panel("Summary", Body, UITheme.SurfaceSunken, UIShapes.Corner.Diagonal, 10,
-                UITheme.Outline, 1);
+            Image summaryPanel = UIBuild.Solid("Summary", Body, Color.clear);
+            _summaryPanel = summaryPanel.rectTransform;
             UIBuild.Anchor(summaryPanel.rectTransform, new Vector2(0f, 0.74f), new Vector2(1f, 1f));
 
-            _summary = UIBuild.Text("SummaryText", summaryPanel.transform, "", UITheme.FontCaption,
+            _summary = UIBuild.Text("SummaryText", summaryPanel.transform, "", 20f,
                 UITheme.TextPrimary, TextAlignmentOptions.TopLeft, wrap: true);
             _summary.richText = true;
             UIBuild.Stretch(_summary.rectTransform, 16f, 10f);
 
             // ── 탭 ──
             RectTransform tabRow = UIBuild.Container("Tabs", Body);
+            _tabRow = tabRow;
             UIBuild.Anchor(tabRow, new Vector2(0f, 0.665f), new Vector2(1f, 0.725f));
             float x = 0f;
             foreach ((Filter filter, string label) in Tabs)
@@ -74,9 +76,9 @@ namespace Managers.UI.Screens
                 Filter captured = filter;
                 float width = 40f + label.Length * 16f;
                 Button tab = UIBuild.Button($"Tab{filter}", tabRow, label, () => SetFilter(captured),
-                    false, UITheme.FontCaption);
-                UIBuild.Pin(tab.image.rectTransform, new Vector2(0f, 0.5f), new Vector2(width, 34f), new Vector2(x, 0f));
-                x += width + 8f;
+                    false, 20f);
+                UIBuild.Pin(tab.image.rectTransform, new Vector2(0f, 0.5f), new Vector2(width + 12f, 44f), new Vector2(x, 0f));
+                x += width + 20f;
                 _tabButtons.Add(tab);
             }
 
@@ -114,8 +116,8 @@ namespace Managers.UI.Screens
             for (int i = 0; i < _tabButtons.Count; i++)
             {
                 bool on = Tabs[i].Filter == filter;
-                _tabButtons[i].image.sprite = UIShapes.CutCorner(8, on ? UITheme.AccentFaint : UITheme.SurfaceRaised,
-                    UIShapes.Corner.Diagonal, on ? UITheme.Accent : UITheme.Outline, on ? 2 : 1);
+                // 상자 윤곽 대신 다른 탭과 같은 선택 표지(옅은 군청 면 + 글자 폭 3px 막대).
+                ScreenKit.FlatTab(_tabButtons[i], on);
             }
             RebuildList();
         }
@@ -150,6 +152,19 @@ namespace Managers.UI.Screens
             }
             if (lines > 0) AddChunk(builder.ToString());
 
+            // 짧은 기록은 빈 화면을 크게 펼치지 않고, 긴 기록은 같은 읽기 폭에서 스크롤한다.
+            Canvas.ForceUpdateCanvases();
+            float summaryHeight = Mathf.Clamp(_summary.preferredHeight + 28, 72, 240);
+            _summaryPanel.anchorMin = new Vector2(0, 1); _summaryPanel.anchorMax = Vector2.one;
+            _summaryPanel.offsetMin = new Vector2(0, -summaryHeight); _summaryPanel.offsetMax = Vector2.zero;
+            _tabRow.anchorMin = new Vector2(0, 1); _tabRow.anchorMax = Vector2.one;
+            _tabRow.offsetMin = new Vector2(0, -summaryHeight - 62); _tabRow.offsetMax = new Vector2(0, -summaryHeight - 10);
+            var viewport = (RectTransform)_listScroll.transform;
+            viewport.anchorMin = Vector2.zero; viewport.anchorMax = Vector2.one;
+            viewport.offsetMin = Vector2.zero; viewport.offsetMax = new Vector2(0, -summaryHeight - 76);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_listContent);
+            FitContentHeight(104 + summaryHeight + 76 + Mathf.Clamp(_listContent.rect.height, 140, 500));
+
             // 원인은 대개 끝에 있다. 패배 직전이 먼저 보이도록 맨 아래에서 연다.
             Canvas.ForceUpdateCanvases();
             _listScroll.verticalNormalizedPosition = _filter == Filter.Important ? 1f : 0f;
@@ -157,14 +172,14 @@ namespace Managers.UI.Screens
 
         private void AddChunk(string text)
         {
-            TextMeshProUGUI chunk = UIBuild.Text("Chunk", _listContent, text, UITheme.FontCaption,
+            TextMeshProUGUI chunk = UIBuild.Text("Chunk", _listContent, text, 20f,
                 UITheme.TextPrimary, TextAlignmentOptions.TopLeft, wrap: true);
             chunk.richText = true;
             chunk.lineSpacing = 6f;
             // 목록 안의 글자는 자동 맞춤을 끈다. 켜 두면 칸 높이를 정할 수 없어 레이아웃이 0으로 접힌다.
             Object.Destroy(chunk.GetComponent<UIScaledText>());
             chunk.enableAutoSizing = false;
-            chunk.fontSize = UITheme.FontCaption * UITheme.TextScale;
+            chunk.fontSize = 20f * UITheme.TextScale;
         }
 
         private bool Matches(CombatLog.Entry entry) => _filter switch

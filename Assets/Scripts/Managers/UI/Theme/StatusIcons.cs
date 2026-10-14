@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Entities.Status;
 using UnityEngine;
 
@@ -76,6 +76,7 @@ namespace Managers.UI.Theme
         private static readonly Dictionary<int, Sprite> FrameCache = new();
         private static readonly Dictionary<string, Sprite> ExternalSprites = new();
         private static Texture2D _atlas;
+        private static Sprite _allElementWeakness;
 
         private const int AtlasColumns = 6;
         private const int AtlasRows = 6;
@@ -147,6 +148,7 @@ namespace Managers.UI.Theme
             ["reaction_Growth"] = (StatusGlyph.Defense, StatusArrow.Up),
             ["reaction_Charge"] = (StatusGlyph.Attack, StatusArrow.Up),
             ["reaction_Activation"] = (StatusGlyph.Defense, StatusArrow.Down),
+            ["vayu_erosion"] = (StatusGlyph.Defense, StatusArrow.Down),
             ["reaction_Superconduct"] = (StatusGlyph.Defense, StatusArrow.Down),
             ["reaction_Slow"] = (StatusGlyph.Speed, StatusArrow.Down),
             ["cc_frozen"] = (StatusGlyph.Freeze, StatusArrow.None),
@@ -158,6 +160,7 @@ namespace Managers.UI.Theme
             ["friendly_reaction_guard"] = (StatusGlyph.Guard, StatusArrow.Up),
             ["sei_song_buff"] = (StatusGlyph.Attack, StatusArrow.Up),
             ["sei_song_marker"] = (StatusGlyph.Focus, StatusArrow.Up),
+            ["yama_death_verdict"] = (StatusGlyph.Mark, StatusArrow.None),
         };
 
         /// <summary>
@@ -171,17 +174,12 @@ namespace Managers.UI.Theme
 
         /// <summary>
         /// 상태 본체 글리프를 얻는다. 방향 화살표는 카드에서 별도 레이어로 얹어 본체 크기를 줄이지 않는다.
-        /// 아틀라스가 아직 임포트되지 않은 첫 에디터 프레임에는 절차형 그림으로 안전하게 내려간다.
+        /// 원소와 같은 미니멀 고딕 세트를 사용한다. 과거 생성 아틀라스는 호환 자료로만 보존한다.
         /// </summary>
         public static Sprite Get(StatusGlyph glyph, StatusArrow arrow = StatusArrow.None)
         {
-            if (AtlasCells.TryGetValue(glyph, out int cell))
-            {
-                Sprite atlasSprite = AtlasSprite(cell);
-                if (atlasSprite != null) return atlasSprite;
-            }
-
-            return Procedural(glyph, arrow);
+            // 방향은 Arrow()의 독립 레이어다. 본체에 합성하면 카드에서 화살표가 두 번 그려진다.
+            return ModernCombatIcons.Status(glyph);
         }
 
         private static Sprite Procedural(StatusGlyph glyph, StatusArrow arrow)
@@ -204,23 +202,17 @@ namespace Managers.UI.Theme
         }
 
         /// <summary>우상단 방향 표식. None이면 null이라 호출부가 레이어를 숨길 수 있다.</summary>
-        public static Sprite Arrow(StatusArrow arrow) => arrow switch
-        {
-            StatusArrow.Up => AtlasSprite(23),
-            StatusArrow.Down => AtlasSprite(24),
-            _ => null,
-        };
+        public static Sprite Arrow(StatusArrow arrow) => ModernCombatIcons.Arrow(arrow);
 
         /// <summary>중첩 수용 탭형 숫자. 9를 넘는 값은 9로 압축한다.</summary>
         public static Sprite StackDigit(int value)
         {
             value = Mathf.Clamp(value, 0, 9);
-            return AtlasSprite(value <= 4 ? 25 + value : 30 + value - 5)
-                   ?? UIShapes.Digit(value, Color.white);
+            return UIShapes.Digit(value, Color.white);
         }
 
         /// <summary>소형 LOD 넘침 표식.</summary>
-        public static Sprite Overflow => AtlasSprite(35) ?? UIShapes.Chevron(64, Color.white);
+        public static Sprite Overflow => ModernCombatIcons.Overflow;
 
         /// <summary>분류 색을 없앤 상태 받침. 검은 면과 흰 림이 같은 실루엣을 공유한다.</summary>
         public static Sprite Frame(UnitStatus status, bool rim)
@@ -294,12 +286,42 @@ namespace Managers.UI.Theme
         }
 
         /// <summary>상태 하나에 맞는 아이콘.</summary>
+        /// <summary>원소 부착은 고유 원소와 별개다. 전장과 고정 HUD에서 같은 모양을 사용한다.</summary>
+        public static Sprite Element(BaseClasses.BaseEnums.UnitElement element) => ModernCombatIcons.Element(element);
+
         public static Sprite For(UnitStatus status)
         {
-            Sprite external = ExternalSprite(status?.IconPath);
-            if (external != null) return external;
+            if (status?.Key == "vayu_gale_all") return ModernCombatIcons.AllElements;
+            // 공용 상태 ID보다 원소 키를 먼저 읽어 같은 바유 상태의 원소를 구분한다.
+            if (status != null && (status.Key?.StartsWith("vayu_vuln_") == true || status.Key?.StartsWith("vayu_gale_vuln_") == true)
+                && status.Key.EndsWith("Geo"))
+                return ModernCombatIcons.Element(BaseClasses.BaseEnums.UnitElement.Geo);
+            // 과거 래스터 아이콘 경로보다 의미 레지스트리를 사용해 전투 HUD/상세/알림을 통일한다.
             (StatusGlyph glyph, StatusArrow arrow) = Resolve(status);
             return Get(glyph, arrow);
+        }
+
+        /// <summary>단일 전원소 취약 상태의 일곱색 고리. 전체 표시는 한 아이콘만 차지한다.</summary>
+        private static Sprite AllElementWeakness()
+        {
+            if (_allElementWeakness != null) return _allElementWeakness;
+            var texture = new Texture2D(Size, Size, TextureFormat.RGBA32, false);
+            texture.filterMode = FilterMode.Bilinear;
+            texture.wrapMode = TextureWrapMode.Clamp;
+            Color[] colors = { new(0.94f,0.72f,0.58f), new(0.55f,0.82f,0.87f), new(0.68f,0.84f,0.58f),
+                new(0.76f,0.65f,0.88f), new(0.72f,0.89f,0.94f), new(0.90f,0.79f,0.55f), new(0.62f,0.85f,0.77f) };
+            var pixels = new Color[Size * Size];
+            for (int y = 0; y < Size; y++) for (int x = 0; x < Size; x++)
+            {
+                float dx = x - 19.5f, dy = y - 19.5f;
+                float radius = Mathf.Sqrt(dx * dx + dy * dy);
+                if (radius < 11f || radius > 17f) continue;
+                float angle = (Mathf.Atan2(dy, dx) + Mathf.PI) / (2f * Mathf.PI);
+                pixels[y * Size + x] = colors[Mathf.Min(6, (int)(angle * 7f))];
+            }
+            texture.SetPixels(pixels); texture.Apply();
+            _allElementWeakness = Sprite.Create(texture, new Rect(0, 0, Size, Size), new Vector2(0.5f,0.5f), 100f);
+            return _allElementWeakness;
         }
 
         private static Sprite ExternalSprite(string path)
@@ -345,8 +367,9 @@ namespace Managers.UI.Theme
 
         private static (StatusGlyph Glyph, StatusArrow Arrow) ResolveUncached(UnitStatus status)
         {
-            bool good = status.IsBeneficial
-                        || status.Category == BaseClasses.BaseEnums.StatusCategory.Positive;
+            // 특성 오라는 버프 이벤트를 피하려 Neutral로 등록될 수 있다. UI에서 디버프로 오인하지 않는다.
+            bool good = status.IsBeneficial || status.Category == BaseClasses.BaseEnums.StatusCategory.Positive ||
+                (status.Category == BaseClasses.BaseEnums.StatusCategory.Neutral && !status.CountsAsDebuff);
             StatusArrow arrow = good ? StatusArrow.Up : StatusArrow.Down;
 
             string name = status.StatusName ?? "";
@@ -355,6 +378,25 @@ namespace Managers.UI.Theme
             if (!string.IsNullOrEmpty(status.Key))
             {
                 if (ByKey.TryGetValue(status.Key, out (StatusGlyph, StatusArrow) keyed)) return keyed;
+                if (status.Key == "vayu_gale_all") return (StatusGlyph.Focus, StatusArrow.Down);
+                if (status.Key == "agni_raise_stakes") return (StatusGlyph.Attack, StatusArrow.Up);
+                if (status.Key == "surya_wanted") return (StatusGlyph.Mark, StatusArrow.Down);
+                if (status.Key == "vayu_erosion") return (StatusGlyph.Defense, StatusArrow.Down);
+                if (status.Key.StartsWith("vayu_vuln_") || status.Key.StartsWith("vayu_gale_vuln_"))
+                {
+                    string element = status.Key.Substring(status.Key.LastIndexOf('_') + 1);
+                    return (element switch
+                    {
+                        "Pyro" => StatusGlyph.Burn,
+                        "Hydro" => StatusGlyph.Bleed,
+                        "Dendro" => StatusGlyph.Thorns,
+                        "Electro" => StatusGlyph.Crit,
+                        "Cryo" => StatusGlyph.Freeze,
+                        "Geo" => StatusGlyph.Defense,
+                        "Anemo" => StatusGlyph.Speed,
+                        _ => StatusGlyph.Debuff,
+                    }, StatusArrow.Down);
+                }
                 if (status.Key.StartsWith("reaction_shock_")) return (StatusGlyph.Shock, StatusArrow.None);
             }
             if (ByStatusId.TryGetValue(status.StatusId, out (StatusGlyph, StatusArrow) identified)) return identified;
