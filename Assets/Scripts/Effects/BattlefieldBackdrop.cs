@@ -30,6 +30,8 @@ namespace Effects
         private static Rect _boardArea;
         private static bool _hasBoard;
         private static readonly List<Vector2> SlotPositions = new();
+        private readonly List<Sprite> _generatedSprites = new();
+        private readonly List<SpriteRenderer> _generatedLayers = new();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         private static string _verificationOverridePath;
         private static Sprite _verificationOverrideSprite;
@@ -263,8 +265,15 @@ namespace Effects
         private void OnDestroy()
         {
             ResetFocusImmediate();
-            DestroyWorldLayer(_divider);
-            foreach (SpriteRenderer mark in _slotMarks) DestroyWorldLayer(mark);
+            foreach (SpriteRenderer layer in _generatedLayers) DestroyWorldLayer(layer);
+            _generatedLayers.Clear();
+            foreach (Sprite sprite in _generatedSprites)
+            {
+                if (sprite == null) continue;
+                if (sprite.texture != null) Destroy(sprite.texture);
+                Destroy(sprite);
+            }
+            _generatedSprites.Clear();
         }
 
         private static void DestroyWorldLayer(SpriteRenderer renderer)
@@ -280,6 +289,7 @@ namespace Effects
             renderer.sprite = sprite;
             renderer.sortingLayerID = SortingLayer.layers[0].id;
             renderer.sortingOrder = order;
+            _generatedLayers.Add(renderer);
             return renderer;
         }
 
@@ -574,7 +584,7 @@ namespace Effects
             }
         }
 
-        private static Sprite FormationMark()
+        private Sprite FormationMark()
         {
             const int size = 192;
             var pixels = new Color[size * size];
@@ -599,7 +609,7 @@ namespace Effects
             return Build("formation_slot", pixels, size, size);
         }
 
-        private static Sprite VignetteMask()
+        private Sprite VignetteMask()
         {
             const int width = 256;
             const int height = 144;
@@ -616,7 +626,7 @@ namespace Effects
             return Build("combat_focus_vignette", pixels, width, height);
         }
 
-        private static Sprite SpotlightMask()
+        private Sprite SpotlightMask()
         {
             const int width = 192;
             const int height = 192;
@@ -646,12 +656,12 @@ namespace Effects
             return t * t * (3f - 2f * t);
         }
 
-        private static Sprite Solid(string name)
+        private Sprite Solid(string name)
         {
             return Build(name, new[] { Color.white }, 1, 1);
         }
 
-        private static Sprite Build(string name, Color[] pixels, int width, int height)
+        private Sprite Build(string name, Color[] pixels, int width, int height)
         {
             var texture = new Texture2D(width, height, TextureFormat.RGBA32, false)
             {
@@ -667,6 +677,7 @@ namespace Effects
                 100f, 0u, SpriteMeshType.FullRect);
             sprite.name = name;
             sprite.hideFlags = HideFlags.HideAndDontSave;
+            _generatedSprites.Add(sprite);
             return sprite;
         }
     }

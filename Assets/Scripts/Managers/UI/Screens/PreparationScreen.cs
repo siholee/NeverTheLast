@@ -92,7 +92,7 @@ namespace Managers.UI.Screens
                 () => GameManager.Instance?.OpenShopFromPreparation());
             _inventory = MakeCommand(panel.transform, "▱", "공용 보급", 0.315f, 0.475f,
                 () => GameManager.Instance?.OpenInventoryFromPreparation());
-            _deck = MakeCommand(panel.transform, "◇", "덱 구성", 0.485f, 0.645f,
+            _deck = MakeCommand(panel.transform, "◇", "배치 변경", 0.485f, 0.645f,
                 () => GameManager.Instance?.OpenDeckSetupFromPreparation());
 
             _start = UIBuild.Button("Start", panel.transform, "", StartRequested, primary: true);
@@ -179,7 +179,7 @@ namespace Managers.UI.Screens
             string info = !string.IsNullOrWhiteSpace(message) ? message : "PREPARATION";
             if (deckMode)
             {
-                info = "<b>덱 구성 모드</b> — 빛나는 칸으로 카드를 끌어 배치를 바꾸세요. 끝나면 [완료] 또는 ESC.";
+                info = "<b>배치 변경</b> — 빛나는 칸으로 아군을 끌어 배치를 바꾸세요. 끝나면 [완료] 또는 ESC.";
             }
 
             _info.text = info;
@@ -192,7 +192,7 @@ namespace Managers.UI.Screens
             _resources.gameObject.SetActive(false);
             _infoBand.gameObject.SetActive(deckMode);
             _info.gameObject.SetActive(deckMode);
-            _info.text = "카드를 빛나는 칸으로 이동 · ESC 완료";
+            _info.text = "아군을 빛나는 칸으로 이동 · ESC 완료";
             UIBuild.Anchor(_infoBand.rectTransform,new Vector2(0f,1f),Vector2.one);
             _infoBand.rectTransform.offsetMin=new Vector2(0f,4f);_infoBand.rectTransform.offsetMax=new Vector2(0f,40f);
             UIBuild.Anchor(_info.rectTransform, Vector2.zero, Vector2.one, 8, 1);
@@ -204,7 +204,7 @@ namespace Managers.UI.Screens
             SetButton(_shop, "◉", $"상점 · {shopLeft}", game?.CanOpenShop == true,
                 shopLeft > 0 ? $"구매 {shopLeft}회 남음" : "구매 횟수 소진");
             SetButton(_inventory, "▱", $"보급 · {game?.inventoryManager?.ItemIdsInHand?.Count ?? 0}", game != null, $"공용 · {game?.inventoryManager?.ItemIdsInHand?.Count ?? 0}개");
-            SetButton(_deck, "◇", deckMode ? "완료" : "덱 구성", true,
+            SetButton(_deck, "◇", deckMode ? "완료" : "배치 변경", true,
                 deckMode ? "모드 끄기" : "배치 바꾸기");
             // 평소에는 다른 명령과 같이 면 없이, 덱 구성 중에만 공통 선택 표지(옅은 군청 면 + 아래 막대)로 켜져 있음을 보인다.
             // 예전에는 평소에도 회색 면이 깔려 이 칸만 눌려 있는 것처럼 보였다(1920 준비 화면).

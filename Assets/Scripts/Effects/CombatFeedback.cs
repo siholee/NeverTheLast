@@ -156,6 +156,10 @@ namespace Effects
 
         private static HitStop _instance;
 
+        /// <summary>모달이 복구할 배속. 타격 연출의 순간적인 0.04배속은 저장하지 않는다.</summary>
+        public static float PlaybackScale => _instance != null && _instance._remaining > 0f &&
+            Mathf.Approximately(Time.timeScale, _instance._frozenScale) ? _instance._baseScale : Time.timeScale;
+
         private float _remaining;
         private float _baseScale = 1f;
         private float _frozenScale;
@@ -176,6 +180,7 @@ namespace Effects
 
         private void Begin(float seconds)
         {
+            if (Time.timeScale <= 0f) return;
             if (Time.unscaledTime - _lastStop < MinInterval) return;
             _lastStop = Time.unscaledTime;
 

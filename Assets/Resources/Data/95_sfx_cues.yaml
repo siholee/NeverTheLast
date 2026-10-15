@@ -292,12 +292,15 @@ cues:
   - { name: mansa.ultimate.cast, clips: [Hsr/FranceMoonVoice/jade_ult], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, duckBgm: 0.78, duckSeconds: 0.9 }
   - { name: mansa.ultimate.hit, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.48, volumeMax: 0.48, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
 
+  - { name: ishtar.normal.projectile, clips: [Hsr/enemy/void_marksman_shot_cast_novoice_01], volumeMin: 0.28, volumeMax: 0.32, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: ishtar.normal.hit, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.42, volumeMax: 0.46, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
   - { name: ishtar.normal.cast, clips: [Hsr/FranceMoonVoice/topaz_basic], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, duckBgm: 0.78, duckSeconds: 0.9 }
 
   - { name: ishtar.ultimate.cast, clips: [Hsr/FranceMoonVoice/topaz_ult], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, duckBgm: 0.78, duckSeconds: 0.9 }
   - { name: ishtar.ultimate.hit, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.48, volumeMax: 0.48, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
   - { name: orpheus.melody.hit, clips: [Hsr/shi/ghost_slash_projectile_01], volumeMin: 0.45, volumeMax: 0.54, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: SFX, maxVoices: 1, minInterval: 0.07, speedMerge: true, avoidImmediateRepeat: true }
   - { name: orpheus.melody.resolve, clips: [Hsr/chandra/nishakara_hit_01], volumeMin: 0.45, volumeMax: 0.54, pitchMin: 1.02, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 1, minInterval: 0.07, speedMerge: true, avoidImmediateRepeat: true }
+  - { name: orpheus.lament.cast, clips: [Hsr/chandra/nishakara_hit_01], volumeMin: 0.30, volumeMax: 0.34, pitchMin: 0.98, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
   - { name: orpheus.lament.screen, clips: [Hsr/chandra/soma_screen_march7_01], volumeMin: 0.58, volumeMax: 0.64, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
   - { name: orpheus.lament.hit, clips: [Hsr/chandra/soma_hit_march7_01], volumeMin: 0.56, volumeMax: 0.62, pitchMin: 0.98, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 2, minInterval: 0.07, speedMerge: true }
 

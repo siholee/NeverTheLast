@@ -275,7 +275,7 @@ namespace Effects.Vfx.Presets
                 guard -= Time.deltaTime;
                 yield return null;
             }
-            if (!invoked) onPeak?.Invoke();
+            if (!invoked) { invoked = true; onPeak?.Invoke(); }
         }
 
         public static IEnumerator PlayVolley(Unit caster, Unit target, Action onHit,

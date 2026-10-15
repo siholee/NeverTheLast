@@ -58,7 +58,8 @@ namespace Managers.UI.Core
         internal static void OpenArticle(string id)
         {
             GuideTermTooltip.CloseAll(); UITooltip.HideAny();
-            GameManager.Instance?.uiManager?.ShowGuide(id);
+            if (Screens.WikiScreen.Active != null) Screens.WikiScreen.Active.ShowArticle(id);
+            else GameManager.Instance?.uiManager?.ShowGuide(id);
         }
         private void OnDisable() { _hovered = false; _hoverLink = null; GuideTermTooltip.Release(this); }
     }

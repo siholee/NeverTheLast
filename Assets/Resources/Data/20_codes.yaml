@@ -9,6 +9,10 @@
 
 codes:
   passive:
+    - id: 1050
+      verbalName: 군세의 지휘
+      codeName: VoidLegionCommand
+      description: "자신의 일반행동 완료마다 지휘+1(최대3). 피격/처치로 충전하지 않음. 첫 두 초월기에서 빈 전열 호위 자리만 보충, 최대2기 동시/전투 중 총6기. 살아 있는 호위는 회복/교체하지 않음."
     - id: 323
       verbalName: 사막의 피
       codeName: SetDesertBlood
@@ -1521,10 +1525,10 @@ codes:
       description: <적 전용> 전투 중 별도 추가 효과가 없습니다.
     - id: 21131
       verbalName: 봉합된 핵
-      description: <적 전용> 전투 시작 시 방어력0% 보호막. 첫 직접 공격 2회를 무효화합니다. 지속피해는 방호를 소모하지 않습니다.
+      description: <적 전용> 첫 직접 공격 2회를 무효화합니다. 지속피해는 방호를 소모하지 않습니다.
     - id: 21132
       verbalName: 봉합된 핵
-      description: <적 전용> 전투 시작 시 방어력0% 보호막. 첫 직접 공격 2회를 무효화합니다. 지속피해는 방호를 소모하지 않습니다.
+      description: <적 전용> 첫 직접 공격 2회를 무효화합니다. 지속피해는 방호를 소모하지 않습니다.
     - id: 21133
       verbalName: 불씨를 품은 날개
       description: <적 전용> 전투 중 별도 추가 효과가 없습니다. 첫 직접 공격 2회를 무효화합니다. 지속피해는 방호를 소모하지 않습니다.
@@ -1577,6 +1581,14 @@ codes:
       verbalName: 미지의 공포
       description: <적 전용> 동료 한 명당 가하는 피해+3%, 최대12%.
   normal:
+    - id: 1050
+      verbalName: 진군의 철퇴
+      codeName: VoidLegionStrike
+      description: "타겟 우선도를 따르는 단일 접촉 공격, 공격력110%. 실제 대상에게 쇠약 부여 시도: 받는 피해+15%/받는 치유량-25%, 대상 일반행동2회. 공통 효과 명중/정화 적용. 정상 완료 시 지휘+1."
+    - id: 1051
+      verbalName: 쇠락의 사격
+      codeName: VoidPunisherShot
+      description: "단일 비접촉 사격, 공격력60%. 실제 대상에게 쇠약 부여 시도: 받는 피해+15%/받는 치유량-25%, 대상 일반행동2회. 비중첩 기간 갱신, 공통 효과 명중/정화 적용."
     - id: 123
       verbalName: 붉은 모래
       codeName: SetBloodStrike
@@ -2201,6 +2213,10 @@ codes:
       verbalName: 여왕의 광선
       description: <적 전용> 적 전체에게 공격력 총 45% 피해를 가합니다.
   ultimate:
+    - id: 1050
+      verbalName: 무너지는 전선
+      codeName: VoidLegionAdvance
+      description: "지휘3 소비, 아군 전체 공격력80% 직접 피해. 첫 두 정상 완료 초월기에서 빈 징벌병 자리를 보충. 새 호위는 기본AV로 합류. 광역 디버프 없음."
     - id: 123
       verbalName: 피로 물든 사막
       codeName: SetCrimsonDesert
@@ -2814,6 +2830,7 @@ codes:
     - id: 13090
       verbalName: 혼돈의 소용돌이
       description: <적 전용> 적 전체에게 공격력 총 85% 피해를 가합니다. 적중 후 물 원소를 부여합니다(효과 명중 판정).
+    - { id: 25, verbalName: 비탄의 연주, codeName: OrpheusLament, description: "<마나100> 생존 필드 아군 전체에게 강인도 삭감 효율 증가(10%+40%×특공/(특공+레벨K)). 각 대상의 일반행동3회 지속, 갱신. 강인도를 추가하거나 채우지 않는다." }
   special:
     - id: 63
       verbalName: 바즈라
@@ -2853,4 +2870,3 @@ codes:
       verbalName: "일제 사격"
       codeName: "NapoleonGrandVolley"
       description: "지정한 적에게 일반 공격을 가진 아군 전원(펜리르·공격형 분신 포함, 나폴레옹·공격하지 않는 일반행동 제외)이 자기 일반 공격을 최종 일반 공격 피해의 50%로 동시에 한 번씩 가한다. 원소 · 표식 · 다단 등 적중 효과는 그대로이며 참여자의 일반행동 · 마나 · 행동 게이지 · 턴은 생기지 않는다. 대상이 쓰러지면 다른 적으로 옮기지 않는다. #특수행동 #일반 #지휘"
-    - { id: 25, verbalName: 비탄의 연주, codeName: OrpheusLament, description: "<마나100> 생존 필드 아군 전체에게 강인도 삭감 효율 증가(10%+40%×특공/(특공+레벨K)). 각 대상의 일반행동3회 지속, 갱신. 강인도를 추가하거나 채우지 않는다." }

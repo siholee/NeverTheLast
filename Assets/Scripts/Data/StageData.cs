@@ -258,6 +258,8 @@ namespace Managers
     {
         public int stage;
         public int bossId;
+        public List<int> frontIds;
+        public List<int> rearIds;
     }
 
     [Serializable]

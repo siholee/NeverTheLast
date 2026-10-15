@@ -49,12 +49,10 @@ namespace Managers.UI.Screens
         internal const string MissingEffectText = "효과 정보를 불러오지 못했습니다.";
 
         internal const string EmptySlotGuide =
-            "활성 코드 칸입니다.\n\n" +
-            "· 활성 코드만 전투에 적용됩니다(최대 7개).\n" +
-            "· 보관함에서 끌어 이 칸에 놓으면 활성화합니다.\n" +
-            "· 활성 코드를 보관함으로 끌면 해제합니다.\n" +
-            "· 왼쪽 아군 초상화로 끌면 그 아군의 보관함으로 이동합니다.\n" +
-            "· 편집은 준비 중에만 가능합니다.";
+            "획득한 보상 코드는 빈 활성 칸에 자동 등록됩니다. 활성 코드만 전투에 적용됩니다(최대 7개).\n\n" +
+            "보관함의 코드를 이 칸으로 끌면 활성화하고, 활성 코드를 보관함으로 옮기면 해제합니다.\n\n" +
+            "다른 아군의 초상화로 끌면 그 아군의 보관함으로 이동합니다.\n\n" +
+            "코드 편집은 준비 중에만 가능합니다.";
 
         private GameObject _rootObject;
         private RectTransform _rail;
@@ -248,8 +246,8 @@ namespace Managers.UI.Screens
             UIArtDirection.TitleGlyph(panel, UIIcon.Party, 24);
             UIArtDirection.HeaderTitle(panel, "Title", "파티 빌드", 62f, 320f);
 
-            _sheetTab = MakeTab(panel, "빌드", -70f, () => SetTab(Tab.Sheet));
-            _codeTab = MakeTab(panel, "코드", 70f, () => SetTab(Tab.Codes));
+            _sheetTab = MakeTab(panel, "보상 코드", -70f, () => SetTab(Tab.Sheet), "Tab빌드");
+            _codeTab = MakeTab(panel, "고유 스킬", 70f, () => SetTab(Tab.Codes), "Tab코드");
 
             // 공용 보급은 정식 경로(GameManager → UIManager)로 연다. 이 창을 먼저 닫아 두 모달이 겹치지 않게 한다.
             _supplyButton = UIBuild.Button("OpenSupply", panel, "공용 보급 열기", OpenSupply, false, UITheme.FontReadSmall);
@@ -264,9 +262,9 @@ namespace Managers.UI.Screens
             UIArtDirection.HeaderClose("Close", panel, Hide, 24f);
         }
 
-        private static Button MakeTab(Transform panel, string text, float x, System.Action action)
+        private static Button MakeTab(Transform panel, string text, float x, System.Action action, string name)
         {
-            Button button = UIBuild.Button($"Tab{text}", panel, text, action, false, UITheme.FontReadSmall);
+            Button button = UIBuild.Button(name, panel, text, action, false, UITheme.FontReadSmall);
             UIBuild.Pin(button.image.rectTransform, new Vector2(0.5f, 1f), new Vector2(128f, 40f),
                 new Vector2(x, -(UIArtDirection.HeaderMidline - 20f)));
             return button;
@@ -564,7 +562,7 @@ namespace Managers.UI.Screens
                 name.fontStyle=filled ? FontStyles.Bold : FontStyles.Normal;name.overflowMode=TextOverflowModes.Ellipsis;
                 UIBuild.Anchor(name.rectTransform,new Vector2(0f,.5f),new Vector2(1f,.5f));
                 name.rectTransform.offsetMin=new Vector2(106f,2f); name.rectTransform.offsetMax=new Vector2(filled ? -112f : -16f,34f);
-                var effect=UIBuild.Text(filled ? "Effect":"How",slot.transform,filled ? (RewardCodeCatalog.Find(id)?.capacitorCap>0 ? Combat.RewardCodeInventory.ChargeBrief(_selected.RewardCodeSlotInstances[index]) : CodeCatalog.Summary(RewardCodeCatalog.Find(id)?.description)):"보관 코드를 끌어 활성화",18,UITheme.TextSecondary,TextAlignmentOptions.TopLeft,true);
+                var effect=UIBuild.Text(filled ? "Effect":"How",slot.transform,filled ? (RewardCodeCatalog.Find(id)?.capacitorCap>0 ? Combat.RewardCodeInventory.ChargeBrief(_selected.RewardCodeSlotInstances[index]) : CodeCatalog.Summary(RewardCodeCatalog.Find(id)?.description)):(_selected.StoredRewardCodeIds.Count > 0 ? "보관 코드를 끌어 활성화" : "획득 시 빈 칸에 자동 등록"),18,UITheme.TextSecondary,TextAlignmentOptions.TopLeft,true);
                 effect.richText=false;effect.overflowMode=TextOverflowModes.Ellipsis;
                 UIBuild.Anchor(effect.rectTransform,new Vector2(0f,0f),new Vector2(1f,.5f));
                 effect.rectTransform.offsetMin=new Vector2(106f,4f); effect.rectTransform.offsetMax=new Vector2(-24f,-2f);
@@ -671,7 +669,9 @@ namespace Managers.UI.Screens
             if (unit.StoredRewardCodeIds.Count == 0)
             {
                 var empty = UIBuild.Text("EmptyStorage", content,
-                    "활성 코드를 이곳으로 끌어 보관하세요.\n다른 아군의 초상화에 놓으면 그 아군에게 이동합니다.",
+                    unit.RewardCodeIds.Count == 0
+                        ? "보상 코드는 전투 보상이나 상점에서 얻습니다.\n빈 활성 칸에 자동 등록되며, 7개를 넘으면 보관함에 들어갑니다."
+                        : "활성 코드를 이곳으로 끌어 보관하세요.\n다른 아군의 초상화에 놓으면 그 아군에게 이동합니다.",
                     UITheme.FontReadSmall, UITheme.TextMuted, TextAlignmentOptions.Center, true);
                 UIBuild.Pin(empty.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, 110f), Vector2.zero);
                 empty.rectTransform.anchorMin = new Vector2(0f, 1f); empty.rectTransform.anchorMax = Vector2.one;

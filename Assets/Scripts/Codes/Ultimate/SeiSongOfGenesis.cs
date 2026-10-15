@@ -54,9 +54,13 @@ namespace Codes.Ultimate
             float attackBonus = AttackFlat + Caster.StatValue(BaseEnums.StatType.Defense) * AttackDefenseRatio;
             int shield = Mathf.RoundToInt(StatDamage(ShieldPerLevel * Caster.Level, BaseEnums.StatType.Defense, ShieldDefenseRatio));
 
+            // 이전 집중의 정리로 새 버프가 지워지지 않도록 교체를 먼저 처리한다.
+            Concentration.Begin(Caster, ConcentrationKey, DurationTurns, OnConcentrationEnd);
+
             Caster.StartCoroutine(CardMotion.Channel(Caster, 0.18f, 0.55f, 0.3f));
             yield return GeoFx.SongOfGenesis(Caster, allies, ally =>
             {
+                if (!DirectAttack.CasterCanContinue(Caster, true) || !Concentration.IsActive(Caster, ConcentrationKey)) return;
                 ApplyBuff(ally, attackBonus);
                 if (ally == null || !ally.isActive) return;
                 ally.AddShield(shield, Caster);
@@ -65,7 +69,7 @@ namespace Codes.Ultimate
                 GeoFx.StoneShield(ally, 1.5f, null);
             });
 
-            Concentration.Begin(Caster, ConcentrationKey, DurationTurns, OnConcentrationEnd);
+            if (!DirectAttack.CasterCanContinue(Caster, true) || !Concentration.IsActive(Caster, ConcentrationKey)) yield break;
             var marker = BuffStatus.Create(MarkerStatusId, MarkerKey, "집중: 창세의 노래", Caster, Caster,
                 new ConcentrationMarkerEffect(), duration: 0, isBeneficial: true,
                 description: $"세이의 턴 {DurationTurns}번 동안 유지된다. 세이가 행동불능이 되면 풀린다.");

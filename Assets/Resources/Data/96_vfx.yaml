@@ -712,6 +712,7 @@ classCastBindings:
 
 
 statusBindings:
+  - { statusKey: checkpoint48_frailty, partId: affected.debuff.fall }
   - { statusKey: yama_death_verdict, partId: affected.yama.verdict }
   - { statusKey: anubis_book_of_the_dead, partId: none }
   - { statusKey: kubera_treasury, partId: hit.support.buff.ink }

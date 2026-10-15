@@ -36,10 +36,13 @@ namespace Codes.Ultimate
             bool shielded = false;
             yield return Effects.Vfx.LokapalaFx.Area("varuna.ultimate", Caster, targets, () =>
             {
+                if (!Combat.DirectAttack.CasterCanContinue(Caster, true)) return;
                 foreach (Unit target in targets.ToList())
                 {
+                    if (!Combat.DirectAttack.CasterCanContinue(Caster, true)) return;
                     if (target == null || !target.isActive) continue;
                     target.TakeDamage(BuildContext(StatDamage(0f, BaseEnums.StatType.Attack, AttackRatio), new List<int>(tags), target));
+                    if (!Combat.DirectAttack.CasterCanContinue(Caster, true)) return;
                     if (!target.isActive) continue;
                     target.GrantCombatElement(BaseEnums.UnitElement.Hydro, source: Caster);
                 }
@@ -49,7 +52,7 @@ namespace Codes.Ultimate
                 AudioManager.PlayAction(Caster, SfxActionSlot.Ultimate, SfxCuePhase.Hit, CodeName);
             });
             // 연출 도중 대상이 모두 사라져 정점 콜백이 오지 않아도 아군 보호막은 피해와 무관하게 한 번 준다.
-            if (!shielded && Caster != null && Caster.isActive) ShieldParty();
+            if (!shielded && Combat.DirectAttack.CasterCanContinue(Caster, true)) ShieldParty();
             yield return new WaitForSeconds(0.15f);
         }
 

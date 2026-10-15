@@ -40,6 +40,7 @@ namespace Combat
         /// <summary>필드의 같은 묶음 SP를 OpenOrder 순으로 예약한다.</summary>
         public static int OpenGate(Unit opener, string gateTag = LokapalaTag)
         {
+            if (!DirectAttack.CasterCanContinue(opener, true)) return 0;
             ActionScheduler scheduler = GameManager.Instance?.ActionScheduler;
             if (scheduler == null) return 0;
 

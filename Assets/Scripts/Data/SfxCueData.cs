@@ -173,6 +173,10 @@ namespace Managers
 
         private static string EnemyPrefix(Unit unit, SfxActionSlot slot, string codeName)
         {
+            if (unit.ID == Codes.Checkpoints.Checkpoint48.BossId)
+                return slot == SfxActionSlot.Ultimate ? "enemy.void_boss" : "enemy.void_beast.strike";
+            if (unit.ID == Codes.Checkpoints.Checkpoint48.EscortId)
+                return slot == SfxActionSlot.Normal ? "enemy.void_marksman.shot" : null;
             if (unit.HasUnitTag("RestoredTheme"))
             {
                 var kit = Codes.Restored.RestoredEnemyKit.Find(unit);

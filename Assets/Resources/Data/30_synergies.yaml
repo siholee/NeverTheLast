@@ -675,9 +675,11 @@ archetypes:
     - 20
     - 124
     partners:
+    - 67
+    - 161
     - 81
     - 64
-    description: 피그말리온·토트·이시스가 소환 증폭/치유/보호막/바위 공급을 나누고 나머지2자리에 딜러를 둔다.
+    description: 피그말리온·토트·이시스가 소환 증폭/치유/보호막/바위 공급을 나눈다. 보스 화력은 수리야·나폴레옹, 광역 보완은 수르트·바유를 고려한다. 48층에서는 단일 화력을 남겨 둔다.
   - id: SET_BLEED
     name: 출혈의 사막
     core:
@@ -818,29 +820,29 @@ recommendations:
       members:
       - 20
       - 124
-      - 81
-      - 64
+      - 67
+      - 161
       rows:
         125: Front
         20: Front
-        124: Front
-        81: Rear
-        64: Rear
-      reason: 각 유닛의 자원/부여/유지력 역할을 분리해 투자한다.
+        124: Rear
+        67: Rear
+        161: Rear
+      reason: 이시스·피그말리온의 전열과 토트의 유지력에 수리야·나폴레옹의 단일/일반공격 화력을 더한다. 호위와 보스 화력을 함께 챙긴다.
     basic:
       archetype: ISIS_SUMMON_CORE
       members:
       - 20
       - 124
-      - 81
-      - 64
+      - 67
+      - 161
       rows:
         125: Front
         20: Front
-        124: Front
-        81: Rear
-        64: Rear
-      reason: 각 유닛의 자원/부여/유지력 역할을 분리해 투자한다.
+        124: Rear
+        67: Rear
+        161: Rear
+      reason: 수호령의 방호/바위, 토트의 치유, 피그말리온의 소환 공격과 수리야·나폴레옹의 일반공격을 나눠 투자한다.
     warning: 아누비스 영혼 중첩 편성, 우치·셰익스피어 생애 순환 편성과 각각 구분한다.
   - mainId: 123
     mainName: 세트

@@ -413,6 +413,13 @@ namespace Managers.UI.DevTools
                 yield return WaitUnscaled(.8f);
                 RuiCheck("로비 새 여정 실제 진입", "Game / 편성", SceneManager.GetActiveScene().name,
                     SceneManager.GetActiveScene().name == "Game" && GameObject.Find("CharacterSelectCanvas") != null);
+                // 로스터 최초 생성 비용은 실시간 대기 안에 들어간다. 존재만으로 alpha0 창을 승인하지 않는다.
+                yield return null; yield return null;
+                float visibleDeadline = Time.realtimeSinceStartup + 3f;
+                CanvasGroup selectGroup = GameObject.Find("CharacterSelectCanvas")?.GetComponentInChildren<CanvasGroup>();
+                while (selectGroup != null && selectGroup.alpha < .99f && Time.realtimeSinceStartup < visibleDeadline) yield return null;
+                RuiCheck("첫 편성 화면 실제 표시", "alpha0.99 이상", selectGroup?.alpha.ToString("F2"), selectGroup != null && selectGroup.alpha >= .99f);
+                yield return CaptureStill("root_first_character_selection");
                 // 실제 새 여정은 편성 대기로 끝난다. 다음 시나리오가 이전 파티 캐시를 재사용하면
                 // 편성을 확인하지 않은 빈 런에서 전투하여 결과 검사가 잘못 실패한다.
                 _activeLineup = null;

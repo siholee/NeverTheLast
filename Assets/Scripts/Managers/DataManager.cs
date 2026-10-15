@@ -34,8 +34,10 @@ namespace Managers
 
         /// <summary>파티 시너지·추천 편성. 자료실이 유닛마다 이 표를 읽는다.</summary>
         public SynergyDataList FetchSynergyDataList() => Load<SynergyDataList>("Data/30_synergies");
+        public static SynergyDataList LoadSynergyDataList() => Load<SynergyDataList>("Data/30_synergies");
 
         public ItemDataList FetchItemDataList() => Load<ItemDataList>("Data/40_items");
+        public static ItemDataList LoadItemDataList() => Load<ItemDataList>("Data/40_items");
 
         public ResourceTokenDataList FetchTokenDataList()
         {
@@ -46,10 +48,12 @@ namespace Managers
         }
 
         public EnemyDataList FetchEnemyDataList() => Load<EnemyDataList>("Data/60_enemies");
+        public static EnemyDataList LoadEnemyDataList() => Load<EnemyDataList>("Data/60_enemies");
 
         public RoundTypeDataList FetchRoundTypeDataList() => Load<RoundTypeDataList>("Data/70_rounds");
 
         public StageThemeDataList FetchStageThemeDataList() => Load<StageThemeDataList>("Data/80_stages");
+        public static StageThemeDataList LoadStageThemeDataList() => Load<StageThemeDataList>("Data/80_stages");
 
         public RewardDataList FetchRewardDataList() => Load<RewardDataList>("Data/90_rewards");
 

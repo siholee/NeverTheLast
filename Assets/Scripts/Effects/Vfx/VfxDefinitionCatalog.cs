@@ -893,7 +893,13 @@ namespace Effects.Vfx
         {
             List<Unit> alive = targets?.Where(unit => unit != null && unit.isActive).ToList()
                                ?? new List<Unit>();
-            if (caster == null || alive.Count == 0) yield break;
+            if (alive.Count == 0) yield break;
+            if (caster == null)
+            {
+                // 단일 연출과 같은 완료 계약. 실제 공격의 생존 판정은 DirectAttack이 맡는다.
+                foreach (Unit target in alive) onImpact?.Invoke(target);
+                yield break;
+            }
 
             IReadOnlyList<VfxTargetHit> hits = VfxSpace.BuildTargetHitSequence(alive, impactSpreadSeconds);
             PlayScreen(skillKey, caster, alive);

@@ -916,6 +916,8 @@ namespace Entities.View
         public sealed class ResourceHudDiagnostic
         {
             public int unitId, ammo, maximum, strong;
+            public string badgeResourceId;
+            public int badgeValue, badgeMaximum;
             public bool combatHud, bodyActive, ammoEnabled, strongEnabled, ammoMeshVisible, strongMeshVisible;
             public string unitName, nameText, ammoText, strongText, font, nameFont, strongFont, sorting;
             public int ammoCharacters, strongCharacters, nameCharacters;
@@ -942,6 +944,9 @@ namespace Entities.View
             return new ResourceHudDiagnostic
             {
                 unitId = _unit.ID, unitName = _unit.UnitName, nameText = _nameLabel.text, nameFont = _nameLabel.font?.name, nameCharacters = _nameLabel.textInfo.characterCount,
+                badgeResourceId = BadgeResourceId(_unit),
+                badgeValue = _unit.ID == 65 ? _unit.ManaCurr : _unit.GetCombatResource(BadgeResourceId(_unit)),
+                badgeMaximum = _unit.ID == 65 ? 8 : _unit.GetCombatResourceMaximum(BadgeResourceId(_unit)),
                 ammo = _unit.GetCombatResource(Codes.Passive.SuryaBeforeSunset.BulletResourceId),
                 maximum = _unit.GetCombatResourceMaximum(Codes.Passive.SuryaBeforeSunset.BulletResourceId),
                 strong = _unit.GetCombatResource(Codes.Passive.SuryaBeforeSunset.EmpoweredResourceId),
@@ -1913,7 +1918,7 @@ namespace Entities.View
             string resource = BadgeResourceId(_unit);
             int max = treasure ? 8 : _combatHud && resource != null ? _unit.GetCombatResourceMaximum(resource) : 0;
             int current = treasure ? treasureCount : max > 0 ? _unit.GetCombatResource(resource) : 0;
-            bool visible = treasure || max > 0 && (_unit.ID is 7 or 67 or 82 or 121 || current > 0);
+            bool visible = treasure || max > 0 && (_unit.ID is 2 or 7 or 67 or 82 or 121 || current > 0);
             bool surya = _unit?.ID == 67;
             _resourceBadge.enabled = visible && !surya;
             if (_suryaResourcePlate != null) _suryaResourcePlate.enabled = visible && surya;
@@ -1924,7 +1929,8 @@ namespace Entities.View
                     _unit.GetCombatResource(Codes.Passive.SuryaBeforeSunset.EmpoweredResourceId) > 0;
             if (!visible) return;
 
-            _resourceBadgeText.text = surya ? $"탄 {current}/{max}" : _unit.ID == 82 ? $"{Mathf.RoundToInt(current / (float)Mathf.Max(1,max)*100)}%" : current.ToString();
+            _resourceBadgeText.text = surya ? $"탄 {current}/{max}" : _unit.ID == 82 ? $"{Mathf.RoundToInt(current / (float)Mathf.Max(1,max)*100)}%"
+                : _unit.ID == 121 ? $"영혼 {_unit.GetPermanentStacks(Codes.Passive.AnubisSoulHarvest.SoulKey)+_unit.GetPermanentStackFraction(Codes.Passive.AnubisSoulHarvest.SoulKey):0.0}" : current.ToString();
             _resourceBadge.rectTransform.sizeDelta = new Vector2(Mathf.Max(9.2f, 5.4f + _resourceBadgeText.text.Length * 3.8f), 7.2f);
             float complete = current >= max ? 1f : 0f;
             _resourceBadge.color = Color.Lerp(
@@ -1942,6 +1948,7 @@ namespace Entities.View
             return unit.ID switch
             {
                 1 => Codes.Passive.SeiBigBang.ResourceId,
+                2 => Codes.Ultimate.ShiFinalBell.ResourceId,
                 7 => Codes.Passive.JeanIronSanction.ResourceId,
                 67 => Codes.Passive.SuryaBeforeSunset.BulletResourceId,
                 82 => Codes.Ultimate.FreyaBrisingamen.Resource,
@@ -2673,19 +2680,8 @@ namespace Entities.View
             if (_group != null) _group.alpha = _alpha;
             if (_nameLabel != null) _nameLabel.enabled = false;
             if (_hpLabel != null) _hpLabel.enabled = true;
-            if (_resourceBadgeText != null)
-            {
-                _resourceBadgeText.enabled = true;
-                var first = _unit.CombatResourceIds.FirstOrDefault(id => _unit.GetCombatResourceMaximum(id)>0);
-                bool smallCounter = first != null && _unit.GetCombatResourceMaximum(first) <= 100;
-                _resourceBadgeText.enabled = smallCounter || _unit.ID == 121;
-                _resourceBadgeText.text = _unit.ID == 121
-                    ? $"영혼 {_unit.GetPermanentStacks(Codes.Passive.AnubisSoulHarvest.SoulKey)+_unit.GetPermanentStackFraction(Codes.Passive.AnubisSoulHarvest.SoulKey):0.0}"
-                    : smallCounter ? $"{_unit.GetCombatResource(first)}/{_unit.GetCombatResourceMaximum(first)}" : "";
-                _resourceBadgeText.color = new Color(.83f,.89f,.95f,_alpha);
-            }
-            if (_strongShotText != null) _strongShotText.enabled = false;
-            if (_suryaResourcePlate != null) _suryaResourcePlate.enabled = false;
+            // 고유 자원의 표시·문구는 RefreshResourceBadge 한 곳에서 정한다.
+            // 일반 마나 충전량은 원형 게이지만 사용하며 매 프레임 글자로 덮어쓰지 않는다.
         }
 
         private void AdvanceSupportHudPulse(float dt)

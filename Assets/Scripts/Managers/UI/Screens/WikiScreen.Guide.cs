@@ -70,6 +70,7 @@ namespace Managers.UI.Screens
             if (!IsVisible) return;
             GuideTermTooltip.CloseAll(); UITooltip.HideAny();
             base.Hide();
+            if (ReferenceEquals(_active, this)) _active = null;
             if (_ownsPause) Time.timeScale = _resumeScale;
             _ownsPause = false;
         }

@@ -227,6 +227,12 @@ namespace Managers
 
         private void StartBattle()
         {
+            int participants = GridManager.Instance?.ActiveAllyFieldCount ?? 0;
+            if (participants < 1 || participants > CharacterSelectionManager.MaxSelection)
+            {
+                Debug.LogWarning("[전투] 출전 유닛은 1~5명이어야 합니다. 배치를 확인해 주세요.");
+                return;
+            }
             AudioManager.PlayCue("ui.battle.start");
             gameState = GameState.RoundInProgress;
             Cell.PlacementModeActive = false;
@@ -1654,6 +1660,7 @@ namespace Managers
             }
             if (!GridManager.Instance.HasAvailableBenchSlot())
             {
+                if (GridManager.Instance.ActiveAllyFieldCount >= CharacterSelectionManager.MaxSelection) return false;
                 for (int x = GridManager.Instance.GetRearColumn(false); x <= GridManager.Instance.GetFrontColumn(false); x++)
                 {
                     if (x == 0) continue;

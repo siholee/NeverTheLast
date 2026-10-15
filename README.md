@@ -9,7 +9,7 @@
 훈련·장비/중량·서포트 카드 계승은 현행 시스템에 포함하지 않습니다.
 
 - [현행 기획서](Assets/Docs/Design/README.md): 게임 방향·규칙·현재 콘텐츠.
-- [서사 설정](Assets/Docs/Narrative/README.md) · [미구현 제안](Assets/Docs/Proposals/Unimplemented_Characters.md).
+- [서사 설정](Assets/Docs/Narrative/README.md) · [미구현 제안](Assets/Docs/Proposals/README.md).
 - [남은 결정과 검증](Assets/Docs/Design/Design_Backlog.md): 장기 밸런스·전체 QA·미술 승인 상태.
 - [문서 보관소](Docs/Archive/README.md): 이전 사양·초안·작업 기록.
 
@@ -30,7 +30,7 @@
 ## 다운로드
 
 배포된 Windows 데모는 [GitHub Releases](https://github.com/siholee/NeverTheLast/releases/latest)에서 받습니다.
-현재 배포된 0.5.1과 main의 최신 개발 소스는 구분합니다. 이번 문서/브랜치 정리는 새 릴리스를 만들지 않습니다.
+현재 Windows 데모는 **0.5.2**입니다. 48층 고정 보스와 전투·UIUX QA 수정분을 포함합니다. 이후 main의 개발 변경은 배포본과 다를 수 있습니다.
 압축을 폴더째 풀고 실행 파일과 Data 폴더를 함께 유지해 주세요. 기존 macOS 배포는 legacy 버전입니다.
 [패치노트](PATCH_NOTES.md)는 배포 이력입니다.
 

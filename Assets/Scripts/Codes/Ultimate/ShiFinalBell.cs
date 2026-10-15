@@ -47,6 +47,9 @@ namespace Codes.Ultimate
         {
             if (!DirectAttack.CasterCanContinue(Caster, false) || !_registered) return 0;
             int stack = Caster.AddCombatResource(ResourceId, 1);
+            // 9번째 사용의 후속타가 취소되어도 다음 멸참이 다시 9단계가 되지 않는다.
+            // 이번 행동의 단계는 반환값에 보존하고 카운터는 새 순환을 시작한다.
+            if (stack == MaximumStacks) Caster.TryConsumeCombatResource(ResourceId, MaximumStacks);
             return stack is 3 or 6 or 9 ? stack : 0;
         }
 
@@ -98,8 +101,6 @@ namespace Codes.Ultimate
                 target.TakeDamage(context);
             });
 
-            if (tier == 9 && DirectAttack.CasterCanContinue(Caster, false))
-                Caster.TryConsumeCombatResource(ResourceId, MaximumStacks);
         }
 
         /// <summary>

@@ -46,8 +46,9 @@ namespace Combat
 
         private static bool Standing(Unit unit) => unit != null && unit.isActive && unit.IsOnField && !unit.isControlled;
 
-        /// <summary>지금 판정을 열 수 있는가. 공격자와 지휘자가 서 있고 제어되지 않았으며 취소 · 종료되지 않았다.</summary>
-        public bool Active => !Cancelled && !Ended && Standing(Attacker) && (Commander == null || Standing(Commander));
+        /// <summary>지금 판정을 열 수 있는가. 준비 뒤 공격자의 일반행동이 봉쇄돼도 늦은 지휘 사격은 막는다.</summary>
+        public bool Active => !Cancelled && !Ended && Standing(Attacker) && !Attacker.IsNormalAttackBlocked &&
+                              (Commander == null || Standing(Commander));
 
         public void Cancel() => Cancelled = true;
         public void End() => Ended = true;

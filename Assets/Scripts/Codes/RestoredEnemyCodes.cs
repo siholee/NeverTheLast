@@ -72,9 +72,10 @@ namespace Codes.Restored
         public RestoredEnemyNormal(NormalCodeContext context) : base(context) { _kit = RestoredEnemyKit.Find(Caster) ?? new(); CodeName = _kit.normalName ?? "공격"; }
         public void Charge()
         {
+            // 기존 집중의 종료 콜백을 먼저 처리한 뒤 새 충전 상태를 설치한다.
+            Concentration.Begin(Caster, "restored_charge", 2, _ => { Charged = false; Caster?.RemoveStatusByKey("restored_charge"); });
             Charged = true;
             Caster.AddStatus(BuffStatus.Create(74003, "restored_charge", "집중", Caster, Caster, new MarkerBuffEffect(), isBeneficial: true, description: "다음 일반행동이 광역 강타로 바뀝니다. 제어되면 취소됩니다."));
-            Concentration.Begin(Caster, "restored_charge", 2, _ => { Charged = false; Caster?.RemoveStatusByKey("restored_charge"); });
         }
         public override bool IsSubstituteAction => Charged;
         public override string AnnouncementName => Charged ? "집중 방출" : CodeName;
@@ -154,7 +155,7 @@ namespace Codes.Restored
                 yield break;
             }
             var picked = _kit.ultimateMode == "Area" ? AliveEnemies() : AliveEnemies().OrderByDescending(t => t.Priority).Take(_kit.ultimateTargets).ToList();
-            var tags = new List<int> { picked.Count > 1 ? DamageTag.MultiTarget : DamageTag.SingleTarget, DamageTag.UltAttack, _kit.contact ? DamageTag.ContactAttack : DamageTag.NonContactAttack, _kit.attackForm };
+            var tags = new List<int> { _kit.ultimateMode == "Area" ? DamageTag.AllTarget : _kit.ultimateTargets > 1 ? DamageTag.MultiTarget : DamageTag.SingleTarget, DamageTag.UltAttack, _kit.contact ? DamageTag.ContactAttack : DamageTag.NonContactAttack, _kit.attackForm };
             var routing = PrepareTargets(picked, tags); yield return routing.ResolvePreAttack();
             if (!routing.CanContinue || !Targeting.Announce(Caster, routing.Targets)) yield break;
             for (int i = 0; i < _kit.ultimateHits; i++)
@@ -180,6 +181,7 @@ namespace Codes.Restored
         private bool _active;
         private int _ward;
         private int _armorShield;
+        private DamageContext _blocked;
         private Action<EventContext> _before, _after, _control;
         private Action<DamageResolvedContext> _damage;
         private Action<Unit, Unit, int, int> _healed;
@@ -197,9 +199,11 @@ namespace Codes.Restored
                 Caster.AddShield(Mathf.RoundToInt(Caster.StatValue(StatType.Defense) * _kit.shieldRatio), Caster);
                 _armorShield = Caster.ShieldCurr - before;
             }
-            _before = ctx => { if (_ward > 0 && ctx.DmgCtx != null && !ctx.DmgCtx.IsCancelled && ctx.DmgCtx.Damage > 0 && DirectAttack.IsDirect(ctx.DmgCtx)) { _ward--; ctx.DmgCtx.IsCancelled = true; Effects.StatusPopup.ShowHitWard(Caster, _ward); } };
+            _before = ctx => { if (_ward > 0 && ctx.DmgCtx != null && !ctx.DmgCtx.IsCancelled && ctx.DmgCtx.Damage > 0 && DirectAttack.IsDirect(ctx.DmgCtx)) { _ward--; _blocked = ctx.DmgCtx; _blocked.IsCancelled = true; Effects.StatusPopup.ShowHitWard(Caster, _ward); } };
             // 전투 시작 갑주만 추적한다. 이후 동료가 누적한 보호막은 제어되어도 남는다.
             _after = ctx => {
+                // 광역 시전자가 재사용하는 컨텍스트에서 이 대상의 방호만 취소한다.
+                if (_blocked != null && ReferenceEquals(ctx.DmgCtx, _blocked)) { _blocked.IsCancelled = false; _blocked = null; }
                 if (ctx.DmgCtx != null) _armorShield = Mathf.Max(0, _armorShield - Mathf.Max(0, ctx.DmgCtx.ResolvedDamage - ctx.DmgCtx.HpDamage));
                 if (_kit.passiveMode == "Rage" && Caster.isActive) Caster.RefreshAttributes();
             };
@@ -221,6 +225,8 @@ namespace Codes.Restored
             Caster?.RemoveListener(UnitEventType.OnBeforeDamageTaken, _before); Caster?.RemoveListener(UnitEventType.OnControlStarts, _control); Caster?.RemoveListener(UnitEventType.OnDamageDealt, _damage);
             Caster?.RemoveListener(UnitEventType.OnAfterDamageTaken, _after);
             if (_healed != null) Unit.AnyHealed -= _healed;
+            if (_blocked != null) _blocked.IsCancelled = false;
+            _blocked = null;
             Caster?.RemoveStatusByKey("restored_enemy_trait");
             Concentration.End(Caster, "restored_charge", Concentration.EndReason.RoundEnd);
         }

@@ -59,6 +59,7 @@ namespace Effects
             // 같은 표적의 머리 위 두 열을 사용한다. 세 번째 타격을 다른 카드 쪽으로 밀지 않는다.
             float lift = Mathf.Min(68f, Mathf.Max(0f, CombatFeedbackSurface.Root.rect.yMax - 198f - _lastAnchor.y));
             _offset = new Vector2((stack % 2 == 0 ? -1 : 1) * 52f, 34f + (stack / 2) * lift);
+            if (lift < 50f) _offset.y = -36f - (stack / 2) * 50f;
             // 아랫행 적의 숫자가 윗행 HP판에 붙지 않도록 표적 자신의 상단 안쪽으로 두 행을 내린다.
             if(target.IsEnemy&&CombatFeedbackSurface.DamageHasHudAbove(target))
                 _offset.y=-36f-(stack/2)*50f;
@@ -67,6 +68,7 @@ namespace Effects
             {
                 float allyLift=Mathf.Min(68f,Mathf.Max(0f,CombatFeedbackSurface.Root.rect.yMax-162f-_lastAnchor.y));
                 _offset=new Vector2(42+(stack/2)*102,(stack%2)*allyLift);
+                if (allyLift < 50f) _offset.y = -(stack % 2) * 68f;
             }
             _scale = Mathf.Lerp(.95f, 1.10f, weight);
             bool numeric = kind is CombatNumberKind.Damage or CombatNumberKind.Heal or CombatNumberKind.Shielded or CombatNumberKind.HealthCost;

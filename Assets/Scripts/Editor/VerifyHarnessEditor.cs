@@ -23,6 +23,22 @@ namespace Tools.Editor
         private const string ResultFile = "result.json";
         private const string MainMenuScenePath = "Assets/Scenes/MainMenu.unity";
         private const double PollInterval = 0.5d;
+        private const string BatchExitKey = "NTL.Verify.BatchExit";
+        private const string BatchReadyKey = "NTL.Verify.BatchReady";
+
+        /// <summary>창 없이 현재 요청을 실제 Play에서 검사한 뒤 결과 코드로 종료한다(-quit 사용 안 함).</summary>
+        public static void RunBatchRequest()
+        {
+            if (!Application.isBatchMode) throw new InvalidOperationException("배치 전용 검증 진입점입니다.");
+            SessionState.SetBool(BatchExitKey, true);
+            SessionState.SetBool(BatchReadyKey, false);
+            // 첫 임포트의 검색 인덱스 초기화 등 에디터 delayCall이 Play 진입보다 먼저 끝나게 한다.
+            EditorApplication.delayCall += () => EditorApplication.delayCall += () =>
+            {
+                SessionState.SetBool(BatchReadyKey, true);
+                RunPendingRequestNow();
+            };
+        }
 
         private static double _nextPoll;
         private static long _observedLength = -1;
@@ -136,6 +152,7 @@ namespace Tools.Editor
 
         private static void Poll()
         {
+            if (Application.isBatchMode && !SessionState.GetBool(BatchReadyKey, false)) return;
             bool requestedWake = _requestChanged;
             _requestChanged = false;
             if (!requestedWake && EditorApplication.timeSinceStartup < _nextPoll) return;
@@ -259,7 +276,8 @@ namespace Tools.Editor
                     SessionState.GetString(VerifyHarnessSession.RequestJsonKey, "")) ?? new VerifyRequest();
                 int width = request.captureWidth > 0 ? request.captureWidth : 1920;
                 int height = request.captureHeight > 0 ? request.captureHeight : 1080;
-                string sizeReport = GameViewResolution.TrySelect(width, height, out string warning);
+                string warning = null;
+                string sizeReport = Application.isBatchMode ? "배치 기술 검사: 화면·캡처 판정 제외" : GameViewResolution.TrySelect(width, height, out warning);
                 if (!string.IsNullOrWhiteSpace(warning)) warnings.entries.Add(warning);
                 else if (!string.IsNullOrWhiteSpace(sizeReport)) Debug.Log($"[시각 검증] Game 뷰 {sizeReport}");
 
@@ -370,6 +388,7 @@ namespace Tools.Editor
             ClearSession();
             _observedLength = -1;
             AssetDatabase.Refresh();
+            if (SessionState.GetBool(BatchExitKey, false)) EditorApplication.Exit(result.success ? 0 : 1);
         }
 
         private static VerifyLogCollection ReadLogs()
@@ -587,7 +606,9 @@ namespace Tools.Editor
                     }
 
                     Type gameViewType = editorAssembly.GetType("UnityEditor.GameView");
-                    EditorWindow gameView = EditorWindow.GetWindow(gameViewType);
+                    // 이미 있는 Game 뷰만 갱신한다. MCP 검증 때문에 사용자의 창 포커스를 가져오지 않는다.
+                    EditorWindow gameView = Resources.FindObjectsOfTypeAll(gameViewType).Cast<EditorWindow>().FirstOrDefault();
+                    if (gameView == null) throw new InvalidOperationException("열린 Game 뷰가 없어 창을 만들지 않고 현재 크기를 유지합니다.");
                     PropertyInfo selectedProperty = gameViewType.GetProperty("selectedSizeIndex",
                         BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
                     if (selectedProperty == null) throw new MissingMemberException("GameView.selectedSizeIndex");

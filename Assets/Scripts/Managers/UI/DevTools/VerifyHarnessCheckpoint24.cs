@@ -17,8 +17,8 @@ namespace Managers.UI.DevTools
             var game = GameManager.Instance;
             var data = game.dataManager.FetchStageThemeDataList();
             var definition = game.dataManager.FetchEnemyDataList().enemies.Single(e => e.id == 3201);
-            RuiCheck("24층 고정 보스 등록", "24층만·3201·패시브 없음", string.Join(",",data.fixedBossStages.Select(x=>x.stage)),
-                data.fixedBossStages.Count == 1 && data.fixedBossStages[0].stage == 24 && data.fixedBossStages[0].bossId == 3201 && definition.CodeId("passive") == 0);
+            RuiCheck("24층 고정 보스 등록", "24층·3201·패시브 없음", string.Join(",",data.fixedBossStages.Select(x=>x.stage)),
+                data.fixedBossStages.Count(x => x.stage == 24 && x.bossId == 3201) == 1 && definition.CodeId("passive") == 0);
             foreach (var theme in data.stageThemes.Where(t => t.enabled))
             {
                 game.DebugResetBattle(); DebugMode.ForcedThemeId = theme.id; game.DebugLoadStage(17);
@@ -119,6 +119,8 @@ namespace Managers.UI.DevTools
             yield return PrepareStage(config,1,false,false,false,4);
             var game=GameManager.Instance;
             game.DebugResetBattle(); DebugMode.ForcedThemeId=2; game.DebugLoadStage(1);
+            // 보상 창을 닫아도 같은 검증 배속으로 복귀하게 HUD의 배속 원천을 함께 맞춘다.
+            Managers.UI.HUD.BattleHud.TrySetSpeedMultiplier(Mathf.Max(1f, config.timeScale * 2f));
             DebugMode.SuiteRunning=false;
             int battles=0,events=0,prior=0; bool switched=false,passed24=false;
             float deadline=Time.realtimeSinceStartup+900;

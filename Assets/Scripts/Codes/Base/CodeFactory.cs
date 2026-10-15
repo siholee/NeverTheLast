@@ -4,6 +4,7 @@ using Codes.Passive;
 using Codes.Special;
 using Codes.Ultimate;
 using Codes.Restored;
+using Codes.Checkpoints;
 
 namespace Codes.Base
 {
@@ -34,6 +35,7 @@ namespace Codes.Base
     {
       return codeId switch
       {
+        Checkpoint48.CommandId => new VoidLegionCommand(context),
         >= 21000 and <= 24000 => new RestoredEnemyPassive(context),
         225 => new OrpheusCheatedDeath(context),
         210 => new ShakespeareLanguage(context),
@@ -82,6 +84,8 @@ namespace Codes.Base
     {
       return codeId switch
       {
+        Checkpoint48.CommandId => new VoidLegionStrike(context),
+        Checkpoint48.EscortShotId => new VoidPunisherShot(context),
         >= 11000 and <= 14000 => new RestoredEnemyNormal(context),
         25 => new OrpheusMelody(context),
         10 => new ShakespeareInspiration(context),
@@ -153,6 +157,7 @@ namespace Codes.Base
     {
       return codeId switch
       {
+        Checkpoint48.CommandId => new VoidLegionAdvance(context),
         >= 11000 and <= 14000 => new RestoredEnemyUltimate(context),
         25 => new OrpheusLament(context),
         10 => new ShakespeareQuestion(context),

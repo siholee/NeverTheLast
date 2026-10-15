@@ -1,6 +1,6 @@
 # AGENTS.md
 
-NeverTheLast 저장소의 Codex 작업 지침. 최종 갱신: **2026-10-14**.
+NeverTheLast 저장소의 Codex 작업 지침. 최종 갱신: **2026-10-15**.
 
 ## 프로젝트와 브랜치
 
@@ -52,7 +52,7 @@ Unity.exe -batchmode -quit -projectPath . -buildTarget Win64 -executeMethod Demo
 `DebugMode.BeginSession()`으로 사용자 저장 쓰기를 격리한다. 별도 QA Player productName은 빌드 후 원래 설정 바이트로 복원한다.
 임시 csproj 컴파일은 보조이며 Unity 실행을 대신하지 않는다. 생성 csproj를 유지보수 대상으로 바꾸지 않는다.
 실행하지 않은 검사를 합격으로 보고하지 않는다. 부분 기능/정지 화면 PASS를 전체 QA·상용 미술·실기기 성능으로 확대하지 않는다.
-전체 검수 재개 시 `Design_Backlog`와 최신 `Logs/WholeGameReview20261014/`의 상태·coverage·소스 근거를 읽는다.
+전체 검수 재개 시 `Design_Backlog`와 최신 `Logs/WholeGameReview20261015/`의 상태·coverage·소스 근거를 읽는다.
 
 ## 공통 구현 규칙
 

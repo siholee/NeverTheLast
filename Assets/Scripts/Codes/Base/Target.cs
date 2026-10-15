@@ -124,6 +124,7 @@ public static class Target
     /// </summary>
     private static List<Unit> GetAvailableTargets(Unit caster, TargetFaction faction)
     {
+        if (caster == null) return new List<Unit>();
         GridManager gridManager = GameObject.FindAnyObjectByType<GridManager>();
         if (gridManager == null)
         {
@@ -131,7 +132,8 @@ public static class Target
             return new List<Unit>();
         }
 
-        bool casterIsAlly = gridManager.heroList.Contains(caster);
+        // 소환수는 heroList가 아니라 summonList에 있으므로 목록 소속으로 진영을 추론하지 않는다.
+        bool casterIsAlly = !caster.IsEnemy;
         List<Unit> targetList;
 
         if (faction == TargetFaction.Same)

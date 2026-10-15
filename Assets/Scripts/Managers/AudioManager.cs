@@ -337,21 +337,27 @@ namespace Managers
             selected = null;
             if (cue.clips == null || cue.clips.Count == 0) return null;
             int start = _lokapalaAudioRandom.Next(cue.clips.Count);
+            AudioClip repeatFallback = null;
+            string fallbackName = null;
             for (int i = 0; i < cue.clips.Count; i++)
             {
                 string candidate = cue.clips[(start + i) % cue.clips.Count];
                 if (string.IsNullOrWhiteSpace(candidate)) continue;
                 selected = candidate.Trim();
-                if (cue.avoidImmediateRepeat && cue.clips.Count > 1 &&
+                bool avoided = cue.avoidImmediateRepeat && cue.clips.Count > 1 &&
                     ((string.IsNullOrWhiteSpace(cue.voiceGroup) && _lastClipByCue.TryGetValue(cueName, out string previous) &&
                       string.Equals(selected, previous, StringComparison.OrdinalIgnoreCase)) ||
-                     string.Equals(selected, _lastAvoidRepeatClip, StringComparison.OrdinalIgnoreCase))) continue;
-                if (IsLokapalaPresentation(cueName) && NormalizeGroup(cue.mixerGroup) == "VOICE" &&
-                    string.Equals(selected, _lastLokapalaVoiceClip, StringComparison.OrdinalIgnoreCase)) continue;
+                     string.Equals(selected, _lastAvoidRepeatClip, StringComparison.OrdinalIgnoreCase));
+                avoided |= IsLokapalaPresentation(cueName) && NormalizeGroup(cue.mixerGroup) == "VOICE" &&
+                    string.Equals(selected, _lastLokapalaVoiceClip, StringComparison.OrdinalIgnoreCase);
                 AudioClip clip = LoadClip(SfxPathPrefix + selected);
-                if (clip != null) return clip;
+                if (clip == null) continue;
+                if (!avoided) return clip;
+                if (repeatFallback == null) { repeatFallback = clip; fallbackName = selected; }
             }
-            return null;
+            // 반복 회피는 다른 음성을 우선하는 규칙이다. 유효한 유일 후보까지 무음 처리하지 않는다.
+            if (repeatFallback != null) selected = fallbackName;
+            return repeatFallback;
         }
 
         private static bool VoiceActive(SfxVoice voice, float now)

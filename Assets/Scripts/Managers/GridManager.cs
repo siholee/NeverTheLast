@@ -1274,6 +1274,7 @@ namespace Managers
         public bool HasAvailableAllySlot()
         {
             if (HasAvailableBenchSlot()) return true;
+            if (ActiveAllyFieldCount >= CharacterSelectionManager.MaxSelection) return false;
 
             for (int x = GetRearColumn(false); x <= GetFrontColumn(false); x++)
             {
@@ -1337,11 +1338,26 @@ namespace Managers
         /// 처음부터 다시 만들므로 레벨 · 현재 체력이 모두 초기값으로 돌아갔다 —
         /// 전열에서 후열로 옮기면 체력이 줄어 보이던 원인이다. 전열/후열 규칙은 체력을 건드리지 않는다.
         /// </summary>
+        public int ActiveAllyFieldCount => heroList.Count(unit => unit != null && !unit.IsEnemy && unit.IsOnField);
+
+        /// <summary>대기석 교환은 인원을 보존한다. 빈 칸 이동은 출전 1~5명을 유지한다.</summary>
+        public bool CanRelocateAlly(Unit unit, Cell target)
+        {
+            if (unit == null || target == null || unit.currentCell == null) return false;
+            if (unit.IsEnemy || unit.IsSummon) return true;
+            bool sourceBench = IsBenchCell(unit.currentCell), targetBench = IsBenchCell(target);
+            Unit counterpart = target.isOccupied && target.unit != null ? target.unit.GetComponent<Unit>() : null;
+            bool swaps = counterpart != null && counterpart.isActive && !counterpart.IsEnemy && !counterpart.IsSummon;
+            if (swaps || sourceBench == targetBench) return true;
+            return sourceBench ? ActiveAllyFieldCount < CharacterSelectionManager.MaxSelection : ActiveAllyFieldCount > 1;
+        }
+
         public bool RelocateUnit(Unit unit, Cell target)
         {
             if (unit == null || target == null) return false;
             Cell source = unit.currentCell;
             if (source == null || source == target) return false;
+            if (!CanRelocateAlly(unit, target)) return false;
 
             Unit other = target.isOccupied && target.unit != null ? target.unit.GetComponent<Unit>() : null;
             Sprite unitPortrait = source.portraitRenderer != null ? source.portraitRenderer.sprite : null;

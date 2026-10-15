@@ -385,7 +385,7 @@ namespace Managers.UI.Screens
             PlaceCoin();
             _stageInfo.text = _tab == Tab.Sell
                 ? $"귀중품 {Inventory?.Valuables?.Count ?? 0}점 · 코드 {RewardCodeFlow.Party().Sum(u=>u.OwnedRewardCodeInstances.Count())}장"
-                : $"{stage}스테이지 시세 · 기본가 × {stage}";
+                : $"{stage}층 시세 · 기본가 × {stage}";
             _purchases.text = $"남은 구매 {left} / {GameManager.MaxShopPurchases}";
             _purchases.color = left > 0 ? UIArtDirection.HeaderInkSoft : new Color(1f, 1f, 1f, 0.42f);
             _guide.text = TabGuide(_tab);
@@ -787,7 +787,7 @@ namespace Managers.UI.Screens
             float textWidth = Mathf.Max(1f, _content.rect.width * width - 20f - CardPad * 2f);
             float longest = pageEffects.Max(text => text.GetPreferredValues(text.text, textWidth, Mathf.Infinity).y);
             foreach (var text in pageEffects)
-                text.margin = new Vector4(0f, Mathf.Max(0f, (text.rectTransform.rect.height - longest) * .5f), 0f, 0f);
+                text.margin = new Vector4(0f, Mathf.Min(32f, Mathf.Max(0f, (text.rectTransform.rect.height - longest) * .5f)), 0f, 0f);
         }
 
         /// <summary>

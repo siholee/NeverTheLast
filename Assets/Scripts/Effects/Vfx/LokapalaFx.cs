@@ -89,11 +89,13 @@ namespace Effects.Vfx
             VfxComposer.PlaySlot(key, "cast", 0, caster, caster,
                 VfxSpace.WorldPoint(caster), VfxSpace.SortingLayer(caster));
             yield return new WaitForSeconds(0.16f);
+            if (!Combat.DirectAttack.CasterCanContinue(caster, true)) yield break;
             openGate?.Invoke();
             AudioManager.PlayAction(caster, SfxActionSlot.Ultimate, SfxCuePhase.Hit);
             foreach (Unit participant in Combat.SpecialAction.Participants(caster))
                 VfxComposer.PlayAffectedSlot(key, 0, caster, participant);
             yield return new WaitForSeconds(0.24f);
+            if (!Combat.DirectAttack.CasterCanContinue(caster, true)) yield break;
             AudioManager.PlayAction(caster, SfxActionSlot.Ultimate, SfxCuePhase.Resolve);
         }
 

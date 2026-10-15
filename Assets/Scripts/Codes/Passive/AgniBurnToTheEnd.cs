@@ -250,6 +250,7 @@ namespace Codes.Passive
             bool focused = center != null;
             if (focused && (!center.isActive || !targets.Contains(center)))
                 center = AgniFirstToBurn.SelectCenter(targets, out _, out _);
+            focused = center != null;
             List<Unit> ordered = focused && center != null
                 ? new[] { center }.Concat(targets.Where(unit => unit != center)).ToList()
                 : targets;

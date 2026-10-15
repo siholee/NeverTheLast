@@ -597,6 +597,12 @@ namespace Managers
             int fixedBossId = GetFixedBossId(Stage);
             if (fixedBossId > 0)
             {
+                var fixedBattle = _stageThemeDataList.fixedBossStages.First(data => data.stage == Stage);
+                if ((fixedBattle.frontIds?.Count ?? 0) + (fixedBattle.rearIds?.Count ?? 0) > 0)
+                {
+                    PlaceEnemiesInColumns(fixedBattle.frontIds, fixedBattle.rearIds);
+                    return;
+                }
                 enemyIdsToSpawn.Add(fixedBossId);
                 PlaceEnemies(enemyIdsToSpawn);
                 return;

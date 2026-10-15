@@ -37,7 +37,8 @@ namespace Managers.UI.DevTools
         private static readonly int[] PartyFiveBastetIds = { BastetId, ShiId, ChandraId, HimikoId, PygmalionId };
         private static readonly int[] PartyFiveJeanIds = { JeanId, ShiId, ChandraId, HimikoId, PygmalionId };
         private static readonly int[] PartyFiveJeanBastetIds = { JeanId, BastetId, ChandraId, HimikoId, PygmalionId };
-        private static readonly WaitForEndOfFrame EndOfFrame = new();
+        // 배치 Play에는 화면 렌더 종료 이벤트가 없다. 기술 검사는 Update를 기다리고 캡처를 생략한다.
+        private static readonly WaitForEndOfFrame EndOfFrame = Application.isBatchMode ? null : new();
 
         private VerifyRequest _request;
         private VerifyRunResult _result;
@@ -170,6 +171,8 @@ namespace Managers.UI.DevTools
             _result = new VerifyRunResult
             {
                 success = true,
+                batchMode = Application.isBatchMode,
+                validationMode = Application.isBatchMode ? "Unity batch Play 기술 검사 — 렌더·실제 포인터·미술·GPU/FPS 판정 제외" : "Unity Play 화면/기술 검사 — 개별 시나리오 범위만",
                 startedAtUtc = DateTime.UtcNow.ToString("O"),
                 resolution = $"{Screen.width}x{Screen.height}",
             };
@@ -207,6 +210,8 @@ namespace Managers.UI.DevTools
 
         private IEnumerator RunAll()
         {
+            foreach (var lobbyScenario in _request.scenarios.Where(s => s.name == "qa_lobby_guide_links"))
+                yield return ExecuteScenario(lobbyScenario);
             yield return EnsureGameScene();
             yield return WaitForGameReady(20f);
             if (GameManager.Instance?.RoundManager == null || GridManager.Instance == null)
@@ -217,6 +222,8 @@ namespace Managers.UI.DevTools
 
 #if !UNITY_EDITOR
             // QA만 요청 해상도를 사용한다. 사용자 그래픽 설정의 저장값은 수정하지 않는다.
+            if (!Application.isBatchMode)
+            {
             int width = Mathf.Max(1, _request.captureWidth), height = Mathf.Max(1, _request.captureHeight);
             Screen.SetResolution(width, height, FullScreenMode.Windowed);
             for (int frame = 0; frame < 60; frame++)
@@ -229,6 +236,7 @@ namespace Managers.UI.DevTools
             {
                 AddScenarioFailure("bootstrap", $"요청 해상도 적용 실패: {width}x{height} → {_result.resolution}");
                 yield break;
+            }
             }
 #endif
             DebugMode.BeginSession();
@@ -243,6 +251,7 @@ namespace Managers.UI.DevTools
 
             foreach (VerifyScenarioRequest scenario in _request.scenarios)
             {
+                if (scenario.name == "qa_lobby_guide_links") continue;
                 yield return ExecuteScenario(scenario);
             }
 
@@ -355,6 +364,7 @@ namespace Managers.UI.DevTools
                 "allvfx_group_6" => new[] { 25, 22, 83, 200, 220 },
                 "allvfx_group_7" => new[] { 123, 125, 120, 81, 124 },
                 "allvfx_group_8" => new[] { 25, 63, 61, 66, 1 },
+                "allvfx_group_qa_resources" => new[] { 7, 67, 82, 65, 121 },
                 "party5_toughness" => new[] { 25, 2, 60, 121, 1 },
                 "party5_orion_skadi" => new[] { 22, 83, 122, 160, 80 },
                 "party5_summon_authors" => new[] { 10, 124, 180, 20, 80 },
@@ -372,6 +382,7 @@ namespace Managers.UI.DevTools
                 "party5_reward_ui" => PartyFiveRewardUiIds,
                 "duo_agni_surya" => new[] { AgniId, SuryaId },
                 "duo_shi_sabah" => new[] { ShiId, SabahId },
+                var candidate when Checkpoint48Lineups.TryGetValue(candidate, out var members) => members,
                 _ => PartyFiveIds,
             };
             foreach (int id in ids)
@@ -395,7 +406,7 @@ namespace Managers.UI.DevTools
                 lineup != "party5_jean" && lineup != "party5_jean_bastet" && lineup != "solo1" &&
                 lineup != "party5_france_moon" && lineup != "party5_lokapala" && lineup != "party5_summon" && lineup != "party5_yama_varuna" && lineup != "party5_vedic_trio" &&
                 lineup != "party5_reward_ui" && lineup != "duo_agni_surya" && lineup != "duo_shi_sabah" &&
-                lineup != "party5_nord_synergy" && lineup != "party5_nord" && lineup != "party5_command_fenrir" && lineup != "party5_command_melee")
+                lineup != "party5_nord_synergy" && lineup != "party5_nord" && lineup != "party5_command_fenrir" && lineup != "party5_command_melee" && !Checkpoint48Lineups.ContainsKey(lineup))
             {
                 FailCurrent($"알 수 없는 lineup: {lineup}");
                 yield break;
@@ -425,12 +436,12 @@ namespace Managers.UI.DevTools
             };
             _result.scenarios.Add(scenarioResult);
 
-            if (_request.freshLineupPerScenario)
+            if (_request.freshLineupPerScenario && _currentScenario != "qa_lobby_guide_links")
             {
                 if (GameManager.Instance != null) GameManager.Instance.enabled = true;
                 _activeLineup = null;
             }
-            yield return EnsureLineup(scenario);
+            if (_currentScenario != "qa_lobby_guide_links") yield return EnsureLineup(scenario);
             if (!scenarioResult.success)
             {
                 scenarioResult.message ??= "편성을 만들지 못했다.";
@@ -442,6 +453,18 @@ namespace Managers.UI.DevTools
             {
                 "whole_performance" => ScenarioWholePerformance(scenario),
                 "core_safety" => ScenarioCoreSafety(scenario),
+                "qa_field_limits" => ScenarioQaField(scenario),
+                "qa_presentation_followup" => ScenarioQaPresentation(scenario),
+                "qa_lobby_guide_links" => ScenarioQaLobbyGuide(scenario),
+                "qa_vfx_followup" => ScenarioQaVfx(scenario),
+                "qa_kits_followup" => ScenarioQaKits(scenario),
+                "qa_interruption_followup" => ScenarioQaInterruption(scenario),
+                "qa_anubis_duration" => ScenarioQaAnubisDuration(scenario),
+                "qa_ishtar_retarget" => ScenarioQaIshtarRetarget(scenario),
+                "qa_agni_fallback" => ScenarioQaAgniFallback(scenario),
+                "qa_novice_ui" => ScenarioQaNoviceUi(scenario),
+                "qa_audio_routes" => ScenarioQaAudioRoutes(scenario),
+                "qa_ishtar_scheduled" => ScenarioQaIshtarScheduled(scenario),
                 "core_scheduler" => ScenarioCoreScheduler(scenario),
                 "core_scheduler_sabah" => ScenarioCoreSchedulerSabah(scenario),
                 "core_scheduler_abort" => ScenarioCoreSchedulerAbort(scenario),
@@ -464,6 +487,10 @@ namespace Managers.UI.DevTools
                 "checkpoint24_campaign" => ScenarioCheckpoint24Campaign(scenario),
                 "checkpoint24_layout" => ScenarioCheckpoint24Layout(scenario),
                 "checkpoint24_battle" => ScenarioCheckpoint24Battle(scenario),
+                "checkpoint48_layout" => ScenarioCheckpoint48Layout(scenario),
+                "checkpoint48_core" => ScenarioCheckpoint48Core(scenario),
+                "checkpoint48_battle" => ScenarioCheckpoint48Battle(scenario),
+                "checkpoint48_campaign" => ScenarioCheckpoint48Campaign(scenario),
                 "original_themes" => ScenarioOriginalThemes(scenario),
                 "original_kits" => ScenarioOriginalKits(scenario),
                 "original_edges" => ScenarioOriginalEdges(scenario),
@@ -630,7 +657,7 @@ namespace Managers.UI.DevTools
 
             scenarioResult.captureCount = _result.captures.Count - beforeCaptures;
             scenarioResult.finishedRealtime = Time.realtimeSinceStartup;
-            if (scenarioResult.captureCount == 0 && scenarioResult.success)
+            if (!Application.isBatchMode && scenarioResult.captureCount == 0 && scenarioResult.success)
             {
                 scenarioResult.success = false;
                 scenarioResult.message = "캡처가 생성되지 않았다.";
@@ -2441,6 +2468,7 @@ namespace Managers.UI.DevTools
 
         private void Capture(string baseTag, bool keepTooltip = false)
         {
+            if (Application.isBatchMode) return; // 캡처가 없는 기술 결과를 미술 PASS로 사용하지 않는다.
             // 자동 캡처는 포인터 위치와 무관해야 한다. 매 프레임 호버가 다시 계산되므로 저장 직전에 닫는다.
             // 툴팁 자체를 검수하는 캡처만 고정 좌표(ShowAt)로 띄운 툴팁을 남긴다.
             if (!keepTooltip) Managers.UI.Core.UITooltip.HideAny();

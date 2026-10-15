@@ -8069,3 +8069,63 @@ enemies:
     codes: { passive: 0, normal: 1001, ultimate: 1004 }
     drops: [5002]
     portrait: VOID_CRUSHER_PORTRAIT
+
+  # 48층 고정 보스와 유한 증원. 재보/아군 소환수와 별개인 적 필드 유닛.
+  - id: 3202
+    name: 공허의 군세장
+    tagline: "단일 강타와 제한된 징벌병 보충으로 본체 화력, 잡몹 처리와 쇠약 대처를 시험하는 지휘관."
+    themeId: 0
+    archetype: 10
+    tier: boss
+    element: None
+    tags: [Void, Giant]
+    vfxColor: "#8795C6"
+    vfxClass: fighter
+    hpBase: 1600
+    hpGrowth: 200
+    atkBase: 150
+    atkGrowth: 10
+    spAtkBase: 30
+    spAtkGrowth: 2
+    defBase: 62
+    defGrowth: 4
+    spDefBase: 42
+    spDefGrowth: 4
+    speedBase: 72
+    critRateBase: 0
+    critDamageBase: 50
+    manaMax: 3
+    ultimateResourceType: Stack
+    ultimateResourceName: 지휘
+    codes: { passive: 1050, normal: 1050, ultimate: 1050 }
+    drops: [5002]
+    portrait: VOID_CRUSHER_PORTRAIT
+
+  - id: 1121
+    name: 공허의 징벌병
+    tagline: "전열에서 단일 쇠약 사격을 하는 군세장의 호위. 처치하면 본체 공략 시간이 생긴다."
+    themeId: 0
+    archetype: 7
+    tier: normal
+    element: None
+    tags: [Void, Bow]
+    vfxColor: "#9BAED1"
+    vfxClass: archer
+    hpBase: 130
+    hpGrowth: 10
+    atkBase: 46
+    atkGrowth: 2
+    spAtkBase: 66
+    spAtkGrowth: 2
+    defBase: 23
+    defGrowth: 1
+    spDefBase: 43
+    spDefGrowth: 1
+    speedBase: 90
+    critRateBase: 0
+    critDamageBase: 50
+    manaMax: 1
+    ultimateResourceType: Stack
+    codes: { passive: 0, normal: 1051, ultimate: 0 }
+    drops: [5001]
+    portrait: VOID_MARKSMAN_PORTRAIT

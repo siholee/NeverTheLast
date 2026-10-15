@@ -88,7 +88,7 @@ namespace Effects.Vfx
         private Color _baseColor;
         private int _frame;
         private float _frameAge;
-        private float _age;
+        private float _completedDuration;
         private float _totalDuration;
         private bool _loop;
         private bool _finished;
@@ -182,7 +182,7 @@ namespace Effects.Vfx
                 fx.BuildPeak(sortingLayer, order, flipX);
             }
             startFrame = Mathf.Clamp(startFrame, 0, frames.Length - 1);
-            for (int i = 0; i < startFrame; i++) fx._age += fx._delays[i];
+            for (int i = 0; i < startFrame; i++) fx._completedDuration += fx._delays[i];
             fx.EnterFrame(startFrame);
             fx.UpdatePresentation();
             return fx;
@@ -202,13 +202,13 @@ namespace Effects.Vfx
             if (_follow != null) _anchor = _follow() + _followOffset;
 
             float delta = Time.deltaTime;
-            _age += delta;
             _frameAge += delta;
             // 높은 배속에서도 호출 프레임을 건너뛰지 않는다. EnterFrame을 순서대로 거쳐
             // 피해 콜백은 지정한 칸에서 정확히 한 번 발생한다.
             int guard = _frames.Length + 1;
             while (!_finished && guard-- > 0 && _frameAge >= DelayFor(_frame))
             {
+                _completedDuration += _delays[_frame];
                 _frameAge -= DelayFor(_frame);
                 int next = _frame + 1;
                 if (next >= _frames.Length)
@@ -216,7 +216,7 @@ namespace Effects.Vfx
                     if (_loop)
                     {
                         next = 0;
-                        _age = 0f;
+                        _completedDuration = 0f;
                     }
                     else
                     {
@@ -256,7 +256,10 @@ namespace Effects.Vfx
                 return;
             }
 
-            float progress = _totalDuration > 0.0001f ? Mathf.Clamp01(_age / _totalDuration) : 1f;
+            // 고배속의 최소 표시 시간도 현재 프레임에 반영한다. 원래 길이만으로 나누면
+            // 아직 남은 프레임이 있는데 진행률이 1이 되어 뒤쪽 그림이 사라진다.
+            float authoredAge = _completedDuration + _delays[_frame] * Mathf.Clamp01(_frameAge / DelayFor(_frame));
+            float progress = _totalDuration > 0.0001f ? Mathf.Clamp01(authoredAge / _totalDuration) : 1f;
             float alpha = EvaluateAlpha(progress) * _style.PeakAlpha;
             float backdrop = BattlefieldBackdrop.CurrentBackgroundLuminance;
             float backgroundRange = Smooth01(Mathf.InverseLerp(0.08f, 0.65f, backdrop));

@@ -38,6 +38,7 @@ namespace Codes.Ultimate
             _magazine = PartyTreasury.Reserve(Caster); if (_magazine == null) yield break;
             bool first = true;
             int shotIndex = 0;
+            int retargets = 0;
             try
             {
                 while (_magazine != null && _magazine.Remaining > 0 && DirectAttack.CasterCanContinue(Caster, true))
@@ -61,9 +62,17 @@ namespace Codes.Ultimate
                         target.TakeDamage(hit);
                         if (first && target.isActive) target.GrantCombatElement(BaseEnums.UnitElement.Dendro, source: Caster);
                         first = false; fired = true; MarkEffectApplied();
+                        Managers.GameManager.Instance?.ActionScheduler.NotifyUltimateProgress(Caster);
                         Managers.AudioManager.PlayAction(Caster, Managers.SfxActionSlot.Ultimate, Managers.SfxCuePhase.Hit, CodeName);
                     }, stopOnControl: true);
-                    if (!fired) break;
+                    if (!fired)
+                    {
+                        // 공지 후 정점 전에 표적이 쓰러졌다면 탄을 쓰지 않고 다른 적을 다시 고른다.
+                        // 중단·제어·기타 취소는 계속 쏘지 않으며 비정상 생성 연쇄도 유한하게 막는다.
+                        if (target != null && !target.isActive && DirectAttack.CasterCanContinue(Caster, true) && ++retargets <= 16) continue;
+                        break;
+                    }
+                    retargets = 0;
                     yield return new WaitForSeconds(.12f);
                 }
             }

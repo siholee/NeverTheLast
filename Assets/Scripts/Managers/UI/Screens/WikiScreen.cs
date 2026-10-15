@@ -31,6 +31,8 @@ namespace Managers.UI.Screens
     /// </summary>
     public partial class WikiScreen : ModalScreen
     {
+        private static WikiScreen _active;
+        internal static WikiScreen Active => _active != null && _active.IsVisible ? _active : null;
         private enum Category
         {
             Guide,
@@ -311,13 +313,14 @@ namespace Managers.UI.Screens
             if (!IsVisible)
             {
                 _history.Clear();
-                _resumeScale = Time.timeScale;
+                _resumeScale = Effects.HitStop.PlaybackScale;
                 _ownsPause = true;
                 Time.timeScale = 0;
                 _cache.Clear();
                 _selected = null;
             }
             base.Show();
+            _active = this;
             SetCategory(_category);
         }
 
@@ -588,8 +591,12 @@ namespace Managers.UI.Screens
 
         // ── 캐릭터 ───────────────────────────────────────────────────
 
+        private static List<UnitData> _lobbyUnits;
+        private static List<ItemData> _lobbyItems;
         private static List<UnitData> Units() =>
-            GameManager.Instance?.unitDataList?.units ?? new List<UnitData>();
+            GameManager.Instance?.unitDataList?.units ?? (_lobbyUnits ??= DataManager.LoadUnitDataList()?.units ?? new List<UnitData>());
+        private static List<ItemData> Items() =>
+            GameManager.Instance?.itemDataList?.items ?? (_lobbyItems ??= DataManager.LoadItemDataList()?.items ?? new List<ItemData>());
 
         private List<Entry> CharacterEntries()
         {
@@ -870,7 +877,7 @@ namespace Managers.UI.Screens
 
         private List<Entry> ItemEntries()
         {
-            return (GameManager.Instance?.itemDataList?.items ?? new List<ItemData>())
+            return Items()
                 .Where(item => item != null && (item.IsValuable || item.category == "Food" || item.category == "Tonic" || item.category == "CodeTool"))
                 .OrderBy(item => item.IsValuable)
                 .ThenBy(item => item.category)
@@ -934,7 +941,7 @@ namespace Managers.UI.Screens
         private static Dictionary<int, string> _themeNames;
 
         private static List<EnemyData> Enemies() =>
-            _enemies ??= GameManager.Instance?.dataManager?.FetchEnemyDataList()?.enemies ?? new List<EnemyData>();
+            _enemies ??= GameManager.Instance?.dataManager?.FetchEnemyDataList()?.enemies ?? DataManager.LoadEnemyDataList()?.enemies ?? new List<EnemyData>();
 
         /// <summary>적 테마 ID → 스테이지 테마 이름. 여러 스테이지 테마가 같은 적을 쓰면 첫 이름을 쓴다.</summary>
         private static string ThemeName(int enemyThemeId)
@@ -942,7 +949,7 @@ namespace Managers.UI.Screens
             if (_themeNames == null)
             {
                 _themeNames = new Dictionary<int, string>();
-                StageThemeDataList stages = GameManager.Instance?.dataManager?.FetchStageThemeDataList();
+                StageThemeDataList stages = GameManager.Instance?.dataManager?.FetchStageThemeDataList() ?? DataManager.LoadStageThemeDataList();
                 foreach (StageThemeData theme in stages?.stageThemes ?? new List<StageThemeData>())
                 {
                     if (theme != null) _themeNames.TryAdd(theme.enemyThemeId, theme.name);
@@ -1016,7 +1023,7 @@ namespace Managers.UI.Screens
                 if (enemy.codes.TryGetValue("ultimate", out int ultimate)) CodeBlock(sb, CodeCatalog.Slot.Ultimate, ultimate, "궁극기");
             }
 
-            List<ItemData> items = GameManager.Instance?.itemDataList?.items ?? new List<ItemData>();
+            List<ItemData> items = Items();
             List<string> drops = (enemy.drops ?? new List<int>())
                 .Select(id => items.FirstOrDefault(item => item?.id == id)?.name)
                 .Where(name => name != null)

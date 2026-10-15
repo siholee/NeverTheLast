@@ -309,6 +309,16 @@ namespace Managers
             }
         }
 
+        /// <summary>
+        /// 유한 다단 초월기의 실제 효과 진행을 알린다. 예고·예약·매 프레임은 진행이 아니다.
+        /// 현재 실행 중인 초월기 본체만 갱신하고, 다음 유효 효과가 8초간 없으면 기존 감시가 중단한다.
+        /// </summary>
+        public void NotifyUltimateProgress(Unit unit)
+        {
+            if (unit == null || _acting != unit || _actingRootKind != ActionKind.Ultimate || _interruptDepth > 0) return;
+            _actingElapsed = 0f;
+        }
+
         public void EndRound()
         {
             _forecastValid = false;

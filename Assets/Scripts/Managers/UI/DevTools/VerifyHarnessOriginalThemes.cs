@@ -33,7 +33,7 @@ namespace Managers.UI.DevTools
                 Check(enemy.id+" 원화·8스탯·코드 설명", SpriteResource.LoadPortrait(enemy.portrait)!=null && (string.IsNullOrEmpty(enemy.standing)||SpriteResource.LoadStanding(enemy.standing)!=null) && enemy.hpBase>0 && enemy.atkBase>0 && enemy.speedBase>0 &&
                     new[]{CodeCatalog.Slot.Passive,CodeCatalog.Slot.Normal,CodeCatalog.Slot.Ultimate}.All(s=>CodeCatalog.Find(s,enemy.CodeId(s.ToString().ToLowerInvariant()))?.description?.Length>0),enemy.name);
             }
-            Check("오리지널154종·기존25종+고정 보스1종", enemies.Count(e=>e.reworkKit!=null)==154 && enemies.Count(e=>e.reworkKit==null)==26);
+            Check("오리지널154종·범용25종·고정 보스2종·48층 호위1종", enemies.Count(e=>e.reworkKit!=null)==154 && enemies.Count(e=>e.reworkKit==null)==28);
             foreach(var theme in themes)
             {
                 Check(theme.name+" 8라운드 구성", theme.eventStageInRound==5 && theme.midBossStageInRound==6 && theme.stagePatterns.Select(p=>p.stageInRound).OrderBy(n=>n).SequenceEqual(new[]{1,2,3,4,6,7,8}));
@@ -85,9 +85,13 @@ namespace Managers.UI.DevTools
                 while(enemy.isCasting && Time.realtimeSinceStartup<deadline)yield return null;
                 RuiCheck(e.name+" 일반행동","실제 시전 종료",enemy.isCasting.ToString(),!enemy.isCasting);
                 if(enemy.isControlled)enemy.ControlEnds();
-                enemy.ActiveUltimateCode.CastCode();deadline=Time.realtimeSinceStartup+9;
-                while(enemy.isCasting && Time.realtimeSinceStartup<deadline)yield return null;
+                var ultimateHits=new List<DamageContext>();
+                void UltimateDamage(DamageResolvedContext hit) { if(hit.DamageContext.CodeType==CodeType.Ultimate)ultimateHits.Add(hit.DamageContext); }
+                enemy.AddListener(UnitEventType.OnDamageDealt,(Action<DamageResolvedContext>)UltimateDamage);
+                try { enemy.ActiveUltimateCode.CastCode();deadline=Time.realtimeSinceStartup+9;while(enemy.isCasting && Time.realtimeSinceStartup<deadline)yield return null; }
+                finally { enemy.RemoveListener(UnitEventType.OnDamageDealt,(Action<DamageResolvedContext>)UltimateDamage); }
                 RuiCheck(e.name+" 초월기","실제 완료 증거",((BaseUltimateCode)enemy.ActiveUltimateCode).CompletedNormally.ToString(),!enemy.isCasting&&((BaseUltimateCode)enemy.ActiveUltimateCode).CompletedNormally);
+                if(e.reworkKit.ultimateMode=="Area")RuiCheck(e.name+" 광역 초월기 태그","대상 수와 무관하게 전체 판정",ultimateHits.Count.ToString(),ultimateHits.Count>0&&ultimateHits.All(h=>h.HasTag(DamageTag.AllTarget)));
                 if(e.reworkKit.ultimateMode=="Charge")
                 {
                     bool prepared=((RestoredEnemyNormal)enemy.ActiveNormalCode).Charged;
@@ -143,6 +147,23 @@ namespace Managers.UI.DevTools
                 var source=AliveAllies().First();int before=enemy.HpCurr;
                 enemy.TakeDamage(new DamageContext(source,5,CodeType.Effect,new(){DamageTag.TrueDamage}));
                 RuiCheck(e.name+" 지속피해가 타수 방호 우회","체력 감소",enemy.HpCurr.ToString(),enemy.HpCurr<before);
+                if(e.reworkKit.wardHits>0)
+                {
+                    var secondWard=GridManager.Instance.SpawnUnit(1,1,true,e.id);
+                    var unguarded=GridManager.Instance.SpawnUnit(2,2,true,entries.First(x=>x.reworkKit.wardHits==0&&x.reworkKit.passiveMode=="None").id);
+                    secondWard.Invoke(UnitEventType.OnRoundStart,new EventContext(secondWard));
+                    unguarded.Invoke(UnitEventType.OnRoundStart,new EventContext(unguarded));
+                    var shared=new DamageContext(source,1,CodeType.Normal,new(){DamageTag.NormalAttack,DamageTag.AllTarget,DamageTag.TrueDamage});
+                    int firstHp=enemy.HpCurr,secondHp=secondWard.HpCurr,plainHp=unguarded.HpCurr;
+                    enemy.TakeDamage(shared); bool firstBlocked=shared.ResolvedDamage==0&&!shared.IsCancelled;
+                    secondWard.TakeDamage(shared); bool secondBlocked=shared.ResolvedDamage==0&&!shared.IsCancelled;
+                    unguarded.TakeDamage(shared);
+                    RuiCheck(e.name+" 광역 공유 컨텍스트 방호 격리","두 방호만 취소·일반 대상 피해",shared.ResolvedDamage.ToString(),firstBlocked&&secondBlocked&&enemy.HpCurr==firstHp&&secondWard.HpCurr==secondHp&&unguarded.HpCurr<plainHp);
+                    bool remainingBlocked=true;
+                    for(int j=1;j<e.reworkKit.wardHits;j++) { secondWard.TakeDamage(shared); remainingBlocked&=shared.ResolvedDamage==0; }
+                    secondWard.TakeDamage(shared);
+                    RuiCheck(e.name+" 뒤쪽 방호도 정확히1회 소비","정해진 타수 이후 체력 또는 보호막 피해",shared.ResolvedDamage.ToString(),remainingBlocked&&shared.ResolvedDamage>0&&!shared.IsCancelled);
+                }
                 if(e.reworkKit.passiveMode=="Rebirth")
                 {
                     int kills=game.KillCount,gold=game.inventoryManager.Gold,deaths=0;Action<Unit,Unit> died=(target,killer)=>{if(target==enemy)deaths++;};Unit.AnyUnitDied+=died;
@@ -150,6 +171,28 @@ namespace Managers.UI.DevTools
                     finally { Unit.AnyUnitDied-=died; }
                     RuiCheck(e.name+" 부활의 경제·사망 분리","생존·35% 체력·처치 보상0",enemy.HpCurr.ToString(),enemy.isActive&&Mathf.Abs(enemy.HpCurr-enemy.HpMax*.35f)<=1&&game.KillCount==kills&&game.inventoryManager.Gold==gold&&deaths==0);
                 }
+                enemy.Invoke(UnitEventType.OnRoundEnd,new EventContext(enemy));
+            }
+            foreach(var e in entries.Where(e=>e.reworkKit.ultimateMode=="Charge"))
+            {
+                game.DebugResetBattle();GridManager.Instance.ClearActiveEnemies();
+                var enemy=GridManager.Instance.SpawnUnit(1,2,true,e.id);
+                foreach(var target in AliveAllies()) { target.Heal(target.HpMax,target); foreach(var status in target.GetAllStatuses())target.RemoveStatusByKey(status.Key); }
+                enemy.Invoke(UnitEventType.OnRoundStart,new EventContext(enemy));
+                for(int attempt=0;attempt<2;attempt++)
+                {
+                    enemy.ActiveUltimateCode.CastCode();float deadline=Time.realtimeSinceStartup+9;
+                    while(enemy.isCasting&&Time.realtimeSinceStartup<deadline)yield return null;
+                    RuiCheck(e.name+" 연속 집중 초월기 "+attempt,"실제 완료",enemy.isCasting.ToString(),!enemy.isCasting&&((BaseUltimateCode)enemy.ActiveUltimateCode).CompletedNormally);
+                }
+                var normal=(RestoredEnemyNormal)enemy.ActiveNormalCode;
+                RuiCheck(e.name+" 재충전 상태 유지","충전·상태·집중 일치",normal.Charged.ToString(),normal.Charged&&enemy.GetAllStatuses().Any(s=>s.Key=="restored_charge")&&Concentration.IsActive(enemy,"restored_charge"));
+                int expected=AliveAllies().Count,hits=0;bool allTarget=true,strong=true;
+                Action<DamageResolvedContext> hit=ctx=>{ if(ctx.DamageContext.CodeType!=CodeType.Normal)return; hits++;allTarget&=ctx.DamageContext.HasTag(DamageTag.AllTarget);strong&=ctx.DamageContext.Damage>=Mathf.RoundToInt(enemy.StatValue(StatType.Attack)*1.65f); };
+                enemy.AddListener(UnitEventType.OnDamageDealt,hit);
+                try { normal.CastCode();float deadline=Time.realtimeSinceStartup+9;while(enemy.isCasting&&Time.realtimeSinceStartup<deadline)yield return null; }
+                finally { enemy.RemoveListener(UnitEventType.OnDamageDealt,hit); }
+                RuiCheck(e.name+" 재충전 뒤 실제 광역 강타","모든 대상·165% 이상 원시피해·집중 해제",hits+"/"+expected,!enemy.isCasting&&hits==expected&&allTarget&&strong&&!normal.Charged&&!Concentration.IsActive(enemy,"restored_charge"));
                 enemy.Invoke(UnitEventType.OnRoundEnd,new EventContext(enemy));
             }
             yield return CaptureStill("original_edges_complete");game.DebugResetBattle();RuiFinish();
