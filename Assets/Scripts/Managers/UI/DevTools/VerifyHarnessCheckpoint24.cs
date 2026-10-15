@@ -120,7 +120,7 @@ namespace Managers.UI.DevTools
             var game=GameManager.Instance;
             game.DebugResetBattle(); DebugMode.ForcedThemeId=2; game.DebugLoadStage(1);
             // 보상 창을 닫아도 같은 검증 배속으로 복귀하게 HUD의 배속 원천을 함께 맞춘다.
-            Managers.UI.HUD.BattleHud.TrySetSpeedMultiplier(Mathf.Max(1f, config.timeScale * 2f));
+            Managers.UI.HUD.BattleHud.TrySetSpeedMultiplier(Mathf.Max(1f, config.timeScale));
             DebugMode.SuiteRunning=false;
             int battles=0,events=0,prior=0; bool switched=false,passed24=false;
             float deadline=Time.realtimeSinceStartup+900;

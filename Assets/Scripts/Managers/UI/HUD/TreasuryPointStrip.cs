@@ -120,7 +120,7 @@ namespace Managers.UI.HUD
                 for (int i = 0; i < _points.Length; i++)
                 { SetRowY(_points[i].rectTransform, y); SetRowY(_reservedDots[i].rectTransform, y); }
             }
-            float delta = Time.timeScale > 0 ? Effects.Vfx.VfxTiming.ReadableDeltaTime * Mathf.Sqrt(BattleHud.CurrentSpeedMultiplier) : 0;
+            float delta = Time.timeScale > 0 ? Effects.Vfx.VfxTiming.ReadableDeltaTime * Mathf.Sqrt(BattleHud.EffectSpeedMultiplier) : 0;
             for (int i = 0; i < _points.Length; i++)
             {
                 bool available = i < PartyTreasury.Available, reserved = !available && i < PartyTreasury.Total;

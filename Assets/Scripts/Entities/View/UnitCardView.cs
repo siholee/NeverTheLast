@@ -979,11 +979,11 @@ namespace Entities.View
             if (_resourceBadgeText == null) return;
             float hud=BottomHudSize(s), scale=_compactHud ? _hudPixelScale : 1f;
             float y=s*(.5f-GlassCenterY/CanvasWidth)+hud*(GlassCenterY-(GlassTop+9.5f))/CanvasWidth;
-            PlaceLabel(_resourceBadgeText,new Vector2(-hud*.225f,y),new Vector2(hud*.38f,hud*.14f*scale),hud*.72f*scale);
+            PlaceLabel(_resourceBadgeText,new Vector2(-hud*.225f,y),new Vector2(hud*.38f,hud*.14f*scale),hud*.75f*scale);
             _resourceBadgeText.alignment=TextAlignmentOptions.MidlineLeft;
             _resourceBadgeText.enableAutoSizing=true;
             _resourceBadgeText.fontSizeMin=hud*.60f*scale;
-            _resourceBadgeText.fontSizeMax=hud*.72f*scale;
+            _resourceBadgeText.fontSizeMax=hud*.75f*scale;
             _resourceBadgeText.outlineWidth=0f;
         }
 

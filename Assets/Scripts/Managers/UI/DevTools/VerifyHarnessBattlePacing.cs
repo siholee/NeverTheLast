@@ -24,11 +24,11 @@ namespace Managers.UI.DevTools
             bool savedDeferred=_deferCaptureEncoding;
             try
             {
-            foreach(float speed in new[]{1f,2f,4f,4f})
+            foreach(float speed in new[]{1f,2f,3f,4f,5f,5f})
             {
-                bool fixedFour=speed==4f&&Time.captureDeltaTime>0f;
+                bool fixedCapture=speed==5f&&Time.captureDeltaTime>0f;
                 _deferCaptureEncoding=true;
-                float PhaseClock()=>fixedFour?Time.time/(speed*.5f):Time.realtimeSinceStartup;
+                float PhaseClock()=>fixedCapture?Time.time/(speed):Time.realtimeSinceStartup;
                 scheduler.EndRound();scheduler.BeginRound();foreach(var u in AliveAllies().Concat(AliveEnemies()))u.ClearUltimateResource();
                 BattleHud.TrySetSpeedMultiplier(speed);
                 // 직전 묶음 PNG 저장 시간과 배속 변경 전 delta가 예고 시간을 소진하지 않도록 새 프레임에서 시작한다.
@@ -75,21 +75,21 @@ namespace Managers.UI.DevTools
                         resultTextFrames++;
                         resultTextReadable&=presentedRow.Find("InsertedDetails").GetComponent<CanvasGroup>().alpha>.5f;
                     }
-                    if(fixedFour||Time.realtimeSinceStartup>=nextCapture)
+                    if(fixedCapture||Time.realtimeSinceStartup>=nextCapture)
                     {
                         nextCapture=Time.realtimeSinceStartup+1f/60f;
-                        Capture((fixedFour?"pacing_fixed4_":"pacing_speed"+speed+"_live_")+(started<0?"announced":hit<0?"acting":finished<0?"impact":"result"));
+                        Capture((fixedCapture?"pacing_fixed5_":"pacing_speed"+speed+"_live_")+(started<0?"announced":hit<0?"acting":finished<0?"impact":"result"));
                     }
                 }
                 RuiCheck(speed+"× 단계 분리","예고→실행→실제피해→종료→다음",$"{announced:F2}/{started:F2}/{hit:F2}/{finished:F2}/{nextStarted:F2}",started>announced&&hit>=started&&finished>=hit&&nextStarted>finished);
                 RuiCheck(speed+"× 결과 카드 내용 유지","종료 면과 글자 함께 fade",$"readable={resultTextReadable},frames={resultTextFrames}",resultTextReadable&&resultTextFrames>0);
-                RuiCheck(speed+"× 예고 확인 시간",$"명목{ActionScheduler.PreviewSeconds/(speed*.5f):F2}초·프레임 오차10% 이내",(started-announced).ToString("F3"),started-announced>=ActionScheduler.PreviewSeconds/(speed*.5f)*.9f);
-                RuiCheck(speed+"× 결과 확인 시간",$"최소{ActionScheduler.ResultSeconds/(speed*.5f):F2}초",(nextStarted-finished).ToString("F3"),nextStarted-finished>=ActionScheduler.ResultSeconds/(speed*.5f)*.9f);
+                RuiCheck(speed+"× 예고 확인 시간",$"명목{ActionScheduler.PreviewSeconds/(speed):F2}초·프레임 오차10% 이내",(started-announced).ToString("F3"),started-announced>=ActionScheduler.PreviewSeconds/(speed)*.9f);
+                RuiCheck(speed+"× 결과 확인 시간",$"최소{ActionScheduler.ResultSeconds/(speed):F2}초",(nextStarted-finished).ToString("F3"),nextStarted-finished>=ActionScheduler.ResultSeconds/(speed)*.9f);
                 yield return CaptureStill("pacing_speed"+speed);
                 FlushDeferredCaptures();_deferCaptureEncoding=savedDeferred;
                 ActionAnnouncer.Announced-=announce;ActionScheduler.AnyActionStarted-=begin;ActionScheduler.AnyActionFinished-=end;Unit.AnyDamageDealt-=damage;
                 actor.StopAllCoroutines();actor.isCasting=false;
-                if(speed==4f)Time.captureDeltaTime=1f/60f;
+                if(speed==5f)Time.captureDeltaTime=1f/60f;
             }
             Time.captureDeltaTime=savedCaptureDelta;
             // 고정 배너 수명보다 긴 실제 스케줄러 행동에서 사용자에게 보이는 폭을 검사한다.

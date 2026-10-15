@@ -53,7 +53,7 @@ namespace Managers.UI.DevTools
             yield return BuildFreshRun(ResolveLineup(config));
             yield return PrepareStage(config, 1, false, false, false, 4);
             game.DebugResetBattle(); DebugMode.ForcedThemeId = 2; game.DebugLoadStage(1); DebugMode.ForcedThemeId = 0;
-            Managers.UI.HUD.BattleHud.TrySetSpeedMultiplier(Mathf.Max(1f, config.timeScale * 2f));
+            Managers.UI.HUD.BattleHud.TrySetSpeedMultiplier(Mathf.Max(1f, config.timeScale));
             UnityEngine.Random.InitState(config.stage > 0 ? config.stage : 4801);
             DebugMode.SuiteRunning = false;
             int prior = 0, battles = 0, events = 0;

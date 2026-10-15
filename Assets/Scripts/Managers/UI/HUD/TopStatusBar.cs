@@ -107,7 +107,7 @@ namespace Managers.UI.HUD
             _speedLabel=UIBuild.Text("SpeedLabel",speed.transform,"1×",20,UITheme.TextPrimary,TextAlignmentOptions.Midline);
             UIBuild.Pin(_speedLabel.rectTransform,new Vector2(1,.5f),new Vector2(36,40),new Vector2(-5,0));
             TooltipTrigger.Attach(speed.gameObject,()=>"전투 속도 · "+_speedLabel.text,
-                ()=>new[]{UITooltip.Line.Note("클릭하여 1× → 2× → 4× 순으로 전환합니다.\n1×  행동과 효과를 차근차근 확인\n2×  익숙한 전투를 빠르게 확인\n4×  빠른 진행",UITheme.TextSecondary)},UITheme.Accent);
+                ()=>new[]{UITooltip.Line.Note("클릭하여 1× → 2× → 3× → 4× → 5× 순으로 전환합니다.\n1×  기본 속도 (이전 버전 2×)\n2~4×  더 빠른 전투\n5×  가장 빠른 진행\n일시정지는 옆 버튼으로 조작합니다.",UITheme.TextSecondary)},UITheme.Accent);
             Button pause=Control("BattlePauseButton",UIIcon.Pause,80,44,onPause);
             _pauseIcon=pause.transform.Find("Icon").GetComponent<Image>();
             TooltipTrigger.Attach(pause.gameObject,()=>_paused?"전투 계속":"일시정지",

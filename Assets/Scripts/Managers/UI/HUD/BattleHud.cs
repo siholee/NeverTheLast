@@ -19,21 +19,23 @@ namespace Managers.UI.HUD
     public class BattleHud : MonoBehaviour
     {
         /// <summary>배속 단계. 버튼을 누를 때마다 순환한다.</summary>
-        private static readonly float[] SpeedSteps = { 1f, 2f, 4f };
+        private static readonly float[] SpeedSteps = { 1f, 2f, 3f, 4f, 5f };
 
         /// <summary>
         /// 화면에 보이는 배속에 곱해지는 기준 시간 배율.
         ///
-        /// 예전 1배속이 눈으로 따라가기 어려울 만큼 빨랐다. 기준을 절반으로 낮춰
-        /// <b>2배속이 예전 1배속과 같은 속도</b>가 되도록 맞췄다.
+        /// 0.5.3의 1배속은 0.5.2의 2배속과 같은 실제 전투 속도다.
         /// </summary>
-        private const float BaseTimeScale = 0.5f;
+        private const float BaseTimeScale = 1f;
 
         /// <summary>
-        /// 플레이어에게 보이는 배속. 실제 <see cref="Time.timeScale"/>은 연출 기준 배율 때문에 절반이지만,
+        /// 플레이어에게 보이는 배속. 실제 <see cref="Time.timeScale"/>에도 같은 배율을 적용하며,
         /// 상단 버튼·F1 패널·디버그 배너는 모두 이 값을 한 원천으로 표시한다.
         /// </summary>
         public static float CurrentSpeedMultiplier { get; private set; } = 1f;
+
+        /// <summary>기존 연출·음향의 0.5배 기준 보정을 유지한다. 새 1배의 표시 수명도 기존 2배와 같다.</summary>
+        public static float EffectSpeedMultiplier => CurrentSpeedMultiplier * 2f;
 
         private TopStatusBar _topBar;
         private FeatureEnemyBanner _featureBanner;

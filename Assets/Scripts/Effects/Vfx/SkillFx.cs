@@ -218,7 +218,7 @@ namespace Effects.Vfx
         public static void PlayScreen(SkillFxScreenCue cue, Vector3 primary, Vector3 secondary)
         {
             if (cue == null) return;
-            float speed = Mathf.Max(1f, Managers.UI.HUD.BattleHud.CurrentSpeedMultiplier);
+            float speed = Mathf.Max(1f, Managers.UI.HUD.BattleHud.EffectSpeedMultiplier);
             float speedStrength = speed >= 4f ? Mathf.Lerp(0.72f, 0.56f, Mathf.InverseLerp(4f, 8f, speed)) : 1f;
             float speedDuration = speed >= 4f ? Mathf.Lerp(0.68f, 0.48f, Mathf.InverseLerp(4f, 8f, speed)) : 1f;
             if (cue.FocusStrength > 0f)

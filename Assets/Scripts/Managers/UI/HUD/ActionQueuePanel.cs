@@ -316,7 +316,7 @@ namespace Managers.UI.HUD
 
             public bool Tick(int index)
             {
-                if(Time.timeScale>0) _age += Time.unscaledDeltaTime * BattleHud.CurrentSpeedMultiplier;
+                if(Time.timeScale>0) _age += Time.unscaledDeltaTime * BattleHud.EffectSpeedMultiplier;
                 // 실행 시간으로 수명을 정한다. 선제 개입이 끝나도 부모 행동은 자기 종료를 기다린다.
                 if (WaitingForAction && _age > OpenSeconds &&
                     GameManager.Instance?.ActionScheduler?.PreviewUnit != Unit) FinishAction();

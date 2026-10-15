@@ -538,6 +538,7 @@ namespace Managers.UI.DevTools
                 var showName when showName.StartsWith("allvfx_showcase_") => ScenarioAllVfxShowcase(scenario),
                 var allVfxName when allVfxName.StartsWith("allvfx_units_") => ScenarioAllVfxUnits(scenario),
                 "ui_overhaul" => ScenarioUIOverhaul(scenario),
+                "release_053_ui" => ScenarioRelease053Ui(scenario),
                 "ui_overhaul_menu" => ScenarioUIOverhaulMenu(scenario),
                 "ui_settings_layout" => ScenarioSettingsLayout(scenario),
                 "reward_ui_forms" => ScenarioRewardUiForms(scenario),
@@ -2387,14 +2388,14 @@ namespace Managers.UI.DevTools
         private IEnumerator CaptureActionWindowAtInterval(string tag, float seconds, float interval,
             Action action, float preRoll = 0.5f)
         {
-            // 표시 1×에서도 엔진 Time.timeScale은 0.5이므로 사용자 영상의 프리롤·총길이는
+            // 배속과 관계없이 사용자 영상의 프리롤·총길이는
             // 게임 시간이 아니라 실제 경과 시간을 기준으로 맞춘다.
             yield return CaptureActionWindowRealtimeAtInterval(tag, seconds, interval, action, preRoll);
         }
 
         /// <summary>
         /// 사용자 검수 영상은 표시 배속과 무관하게 실제 0.5초 프리롤과 30fps 이상 간격을 지킨다.
-        /// 엔진 Time.timeScale이 1× HUD에서 0.5이므로 이 경로만 실시간 축을 사용한다.
+        /// 배속과 별개로 이 경로는 실시간 축을 사용한다.
         /// </summary>
         private IEnumerator CaptureActionWindowRealtimeAtInterval(string tag, float seconds, float interval,
             Action action, float preRoll = 0.5f)

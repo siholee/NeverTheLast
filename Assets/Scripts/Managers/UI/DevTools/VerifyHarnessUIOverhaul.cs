@@ -21,6 +21,92 @@ namespace Managers.UI.DevTools
 {
     public sealed partial class VerifyHarnessRunner
     {
+        private static Vector2 RewardGlyphPoint(TMPro.TextMeshProUGUI text, string word)
+        {
+            text.ForceMeshUpdate();
+            int index=text.GetParsedText().IndexOf(word,StringComparison.Ordinal);
+            if(index<0)throw new InvalidOperationException("검증 글자 없음: "+word);
+            var glyph=text.textInfo.characterInfo[index];
+            return RectTransformUtility.WorldToScreenPoint(null,text.transform.TransformPoint((glyph.bottomLeft+glyph.topRight)*.5f));
+        }
+
+        private IEnumerator RewardActualClick(Mouse mouse,Vector2 point)
+        {
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=point});yield return null;
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=point}.WithButton(MouseButton.Left));yield return null;yield return null;
+            InputSystem.QueueStateEvent(mouse,new MouseState{position=point});yield return null;yield return null;
+        }
+
+        private IEnumerator ScenarioRelease053Ui(VerifyScenarioRequest config)
+        {
+            _ruiFailures.Clear();yield return PrepareStage(config,6,false,true,true);
+            var game=GameManager.Instance;var ui=game.uiManager;
+            Mouse prior=Mouse.current;bool enabled=prior!=null&&prior.enabled;
+            var mouse=InputSystem.AddDevice<Mouse>("RewardTextClickVerification");
+            try
+            {
+                if(enabled)InputSystem.DisableDevice(prior);
+                var capacitor=RewardManager.BuildCodeReward(RewardCodeCatalog.Find(642));
+                var other=RewardManager.BuildCodeReward(RewardCodeCatalog.Find(723));
+                var samples=new List<RewardDef>{capacitor,other,RewardManager.BuildCodeReward(RewardCodeCatalog.Find(702))};
+                ui.ShowRewardPanel(samples);yield return WaitUnscaled(.8f);
+                var root=GameObject.Find("RewardScreen");var card=RuiFind(root,"Reward0");var second=RuiFind(root,"Reward1");
+                int forwarded=0;Action clicked=()=>forwarded++;card.GetComponent<UIPointerEvents>().Clicked+=clicked;
+                int gold=game.inventoryManager.Gold;int owned=RewardCodeFlow.Party().Sum(u=>u.OwnedRewardCodeIds.Count());
+                foreach(var part in new[]{("Name","중급"),("Name","축전기"),("Meta","T2"),("Meta","보상 코드"),("Summary","활성"),("Summary","소환수"),("Summary","태그"),("Summary","고급 단련")})
+                {
+                    GuideTermTooltip.CloseAll();
+                    yield return RewardActualClick(mouse,RectTransformUtility.WorldToScreenPoint(null,second.Find("ArtTile").position));
+                    bool switched=RuiFind(second.gameObject,"Selected").gameObject.activeSelf;
+                    var label=RuiFind(card.gameObject,part.Item1).GetComponent<TMPro.TextMeshProUGUI>();
+                    int before=forwarded;
+                    yield return RewardActualClick(mouse,RewardGlyphPoint(label,part.Item2));
+                    bool selected=RuiFind(card.gameObject,"Selected").gameObject.activeSelf&&RuiFind(root,"ConfirmReward").GetComponent<Button>().interactable;
+                    RuiCheck("보상 실제 글자 클릭 "+part.Item1+"/"+part.Item2,"다른 카드→축전기 선택·카드 클릭1회",$"{switched}/{selected}/{forwarded-before}",switched&&selected&&forwarded-before==1);
+                }
+                card.GetComponent<UIPointerEvents>().Clicked-=clicked;
+                RuiCheck("글자 선택은 획득과 분리","골드·코드 불변",game.inventoryManager.Gold.ToString(),game.inventoryManager.Gold==gold&&RewardCodeFlow.Party().Sum(u=>u.OwnedRewardCodeIds.Count())==owned);
+                GuideTermTooltip.CloseAll();
+                var meta=RuiFind(card.gameObject,"Meta").GetComponent<TMPro.TextMeshProUGUI>();
+                InputSystem.QueueStateEvent(mouse,new MouseState{position=GuideLinkPoint(meta,"term:rewardcodes")});yield return WaitUnscaled(.8f);
+                RuiCheck("수정 후 용어 호버 유지","보상 코드 툴팁",GuideTermTooltip.CurrentId,GuideTermTooltip.CurrentId=="rewardcodes");
+                yield return CaptureStill("release053_reward_text_selected_tooltip");GuideTermTooltip.CloseAll();
+                var longReward=RewardManager.BuildCodeReward(RewardCodeCatalog.Find(642));longReward.description=string.Join("\n",Enumerable.Repeat(capacitor.description,10));
+                ui.ShowRewardPanel(new List<RewardDef>{longReward,other,samples[2]});yield return WaitUnscaled(.8f);
+                root=GameObject.Find("RewardScreen");card=RuiFind(root,"Reward0");second=RuiFind(root,"Reward1");
+                yield return RewardActualClick(mouse,RectTransformUtility.WorldToScreenPoint(null,second.Find("ArtTile").position));
+                var scroll=card.GetComponentsInChildren<ScrollRect>().First();var from=RectTransformUtility.WorldToScreenPoint(null,scroll.viewport.TransformPoint(scroll.viewport.rect.center));
+                float scrollBefore=scroll.verticalNormalizedPosition;
+                InputSystem.QueueStateEvent(mouse,new MouseState{position=from}.WithButton(MouseButton.Left));yield return null;yield return null;
+                for(int i=1;i<=10;i++){InputSystem.QueueStateEvent(mouse,new MouseState{position=from+Vector2.up*(i*12)}.WithButton(MouseButton.Left));yield return null;}
+                InputSystem.QueueStateEvent(mouse,new MouseState{position=from+Vector2.up*120});yield return null;yield return null;
+                RuiCheck("긴 보상 본문 드래그","스크롤 이동·선택 오작동 없음",scroll.verticalNormalizedPosition.ToString("F3"),scroll.verticalNormalizedPosition<scrollBefore-.01f&&RuiFind(second.gameObject,"Selected").gameObject.activeSelf);
+                ui.HideRewardPanel();yield return WaitUnscaled(.2f);
+                Managers.UI.HUD.BattleHud.TrySetSpeedMultiplier(1);
+                var speed=GameObject.Find("SpeedButton");
+                foreach(float expected in new[]{2f,3f,4f,5f,1f})
+                {
+                    yield return RewardActualClick(mouse,RectTransformUtility.WorldToScreenPoint(null,((RectTransform)speed.transform).TransformPoint(((RectTransform)speed.transform).rect.center)));
+                    RuiCheck("배속 버튼 실제 클릭 "+expected,"표시·실제시간 "+expected,Managers.UI.HUD.BattleHud.CurrentSpeedMultiplier+"/"+Time.timeScale,Mathf.Approximately(Managers.UI.HUD.BattleHud.CurrentSpeedMultiplier,expected)&&Mathf.Approximately(Time.timeScale,expected));
+                }
+                Managers.UI.HUD.BattleHud.TrySetSpeedMultiplier(5);
+                yield return RewardActualClick(mouse,RectTransformUtility.WorldToScreenPoint(null,((RectTransform)GameObject.Find("BattlePauseButton").transform).TransformPoint(((RectTransform)GameObject.Find("BattlePauseButton").transform).rect.center)));
+                RuiCheck("5배속 별도 정지","표시5·시간0",Time.timeScale.ToString(),Managers.UI.HUD.BattleHud.IsPaused&&Managers.UI.HUD.BattleHud.CurrentSpeedMultiplier==5&&Time.timeScale==0);
+                game.uiManager.HandleEscape();yield return null;game.uiManager.HandleEscape();yield return null;
+                RuiCheck("5배속 메뉴 닫기 정지 보존","시간0",Time.timeScale.ToString(),Time.timeScale==0);
+                yield return RewardActualClick(mouse,RectTransformUtility.WorldToScreenPoint(null,((RectTransform)GameObject.Find("BattlePauseButton").transform).TransformPoint(((RectTransform)GameObject.Find("BattlePauseButton").transform).rect.center)));
+                RuiCheck("5배속 재개","시간5",Time.timeScale.ToString(),!Managers.UI.HUD.BattleHud.IsPaused&&Mathf.Approximately(Time.timeScale,5));
+                yield return CaptureStill("release053_speed5");
+                Managers.UI.HUD.BattleHud.TrySetSpeedMultiplier(1);
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(mouse);if(prior!=null&&prior.added){if(enabled)InputSystem.EnableDevice(prior);prior.MakeCurrent();}
+                GuideTermTooltip.CloseAll();ui.HideRewardPanel();
+            }
+            RuiFinish();
+        }
+
         private static RewardCodeInventory.Drag CodeDrag(Unit unit, bool stored, int index)
             => new() { Owner = unit, Stored = stored, Index = index,
                 CodeId = stored ? unit.StoredRewardCodeIds[index] : unit.RewardCodeSlots[index] };
@@ -77,9 +163,13 @@ namespace Managers.UI.DevTools
         private IEnumerator RuiRevealInput(List<RewardDef> samples,int replay)
         {
             Mouse prior=Mouse.current;var mouse=InputSystem.AddDevice<Mouse>("RevealInputVerification");
+            bool priorEnabled=prior!=null&&prior.enabled;
             float oldDelta=Time.captureDeltaTime;Time.captureDeltaTime=0f;_deferCaptureEncoding=true;
             try
             {
+                if(priorEnabled)InputSystem.DisableDevice(prior);
+                // 리빌의 첫 Update 뒤부터 잰다. 직전 카드 생성/글꼴 처리 시간을 표시 시간으로 세지 않는다.
+                yield return null;
                 float start=Time.realtimeSinceStartup;
                 foreach(float at in new[]{.10f,.30f,.45f})
                 {
@@ -97,7 +187,7 @@ namespace Managers.UI.DevTools
                 }
                 while(Time.realtimeSinceStartup<start+.62f){yield return EndOfFrame;Capture("overhaul_rebind"+replay+"_reveal_live");}
             }
-            finally{FlushDeferredCaptures();Time.captureDeltaTime=oldDelta;InputSystem.RemoveDevice(mouse);if(prior!=null&&prior.added)prior.MakeCurrent();}
+            finally{FlushDeferredCaptures();Time.captureDeltaTime=oldDelta;InputSystem.RemoveDevice(mouse);if(prior!=null&&prior.added){if(priorEnabled)InputSystem.EnableDevice(prior);prior.MakeCurrent();}}
         }
 
         private IEnumerator ScenarioUIOverhaul(VerifyScenarioRequest config)

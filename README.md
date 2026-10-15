@@ -30,7 +30,7 @@
 ## 다운로드
 
 배포된 Windows 데모는 [GitHub Releases](https://github.com/siholee/NeverTheLast/releases/latest)에서 받습니다.
-현재 Windows 데모는 **0.5.2**입니다. 48층 고정 보스와 전투·UIUX QA 수정분을 포함합니다. 이후 main의 개발 변경은 배포본과 다를 수 있습니다.
+현재 Windows 데모는 **0.5.3**입니다. 보상 카드 텍스트 클릭 수정과 새 기본 속도·1~5배속을 포함합니다. 이후 main의 개발 변경은 배포본과 다를 수 있습니다.
 압축을 폴더째 풀고 실행 파일과 Data 폴더를 함께 유지해 주세요. 기존 macOS 배포는 legacy 버전입니다.
 [패치노트](PATCH_NOTES.md)는 배포 이력입니다.
 

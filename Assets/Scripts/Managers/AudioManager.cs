@@ -231,8 +231,8 @@ namespace Managers
             float minInterval = Mathf.Max(0f, cue.minInterval);
             if (cue.speedMerge)
             {
-                // 전장 내부 기준은 사용자 표시의 절반(8× → timeScale 4)이라 HUD의 단일 원천을 읽는다.
-                float speed = Mathf.Clamp(UI.HUD.BattleHud.CurrentSpeedMultiplier, 1f, 8f);
+                // 기존 0.5배 기준의 음향 병합 강도를 유지해 새 1배도 이전 2배와 같게 처리한다.
+                float speed = Mathf.Clamp(UI.HUD.BattleHud.EffectSpeedMultiplier, 1f, 8f);
                 float floor1 = Mathf.Max(0f, _cueData?.speedMergeFloor ?? 0.04f);
                 float floor8 = Mathf.Max(floor1, _cueData?.speedMergeAt8x ?? 0.12f);
                 minInterval = Mathf.Max(minInterval, Mathf.Lerp(floor1, floor8, (speed - 1f) / 7f));

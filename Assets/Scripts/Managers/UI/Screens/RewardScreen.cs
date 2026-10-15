@@ -445,10 +445,11 @@ namespace Managers.UI.Screens
                 UIBuild.Pin(_art.rectTransform,new Vector2(.5f,.5f),new Vector2(52,52),Vector2.zero);
                 _name=UIBuild.Text("Name",_root.transform,"",25,UITheme.TextPrimary,TextAlignmentOptions.Midline,true);
                 _name.fontStyle=FontStyles.Bold;
+                GameTermLinks.Attach(_name, preferParentClick: true);
                 PlaceTop(_name.rectTransform,160,82,24);
                 _meta=UIBuild.Text("Meta",_root.transform,"",20,UITheme.TextMuted,TextAlignmentOptions.Midline);
                 PlaceTop(_meta.rectTransform,246,34,24);
-                GameTermLinks.Attach(_meta);
+                GameTermLinks.Attach(_meta, preferParentClick: true);
                 Image rule=UIBuild.Divider("Rule",_root.transform);
                 PlaceTop(rule.rectTransform,302,1,32); rule.raycastTarget=false;
                 RectTransform content=UIBuild.ScrollArea("RewardDescription",_root.transform,out _descriptionScroll);
@@ -458,6 +459,7 @@ namespace Managers.UI.Screens
                 _summary=UIBuild.Text("Summary",content,"",22,UITheme.TextPrimary,TextAlignmentOptions.TopLeft,true);
                 _summary.overflowMode=TextOverflowModes.Overflow;
                 _summary.richText=true;
+                GameTermLinks.Attach(_summary, preferParentClick: true);
                 PlaceTop(_summary.rectTransform,0,0,8);
                 _selection=UIBuild.Solid("Selected",_root.transform,UITheme.Accent);
                 _selection.sprite=UIShapes.RoundedRect(18,Color.white);
