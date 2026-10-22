@@ -12,6 +12,7 @@ namespace Codes.Passive
     {
         public const string StatusKey = "skadi_frost_mantle";
         public const float ShieldRatio = .60f, AttackBonus = .15f;
+        public override int BaseShieldAmount => StatDamage(0, BaseEnums.StatType.Defense, ShieldRatio);
         private bool _working, _startGranted;
         private Action<EventContext> _normal, _death, _round;
         public SkadiFrostMantle(PassiveCodeContext context) : base(context) => CodeName = "혹한의 외투";

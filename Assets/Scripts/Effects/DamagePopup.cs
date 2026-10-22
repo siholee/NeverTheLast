@@ -56,17 +56,19 @@ namespace Effects
             _rect.sizeDelta = new Vector2(186,82);
             _group = gameObject.AddComponent<CanvasGroup>(); _group.blocksRaycasts = false;
             _lastAnchor = CombatFeedbackSurface.Position(target, true);
-            // 같은 표적의 머리 위 두 열을 사용한다. 세 번째 타격을 다른 카드 쪽으로 밀지 않는다.
-            float lift = Mathf.Min(68f, Mathf.Max(0f, CombatFeedbackSurface.Root.rect.yMax - 198f - _lastAnchor.y));
-            _offset = new Vector2((stack % 2 == 0 ? -1 : 1) * 52f, 34f + (stack / 2) * lift);
+            // 같은 표적의 두 타격은 세로로 먼저 쌓아 이전 값과 새 값이 한 숫자처럼 이어지지 않게 한다.
+            float lift = Mathf.Min(96f, Mathf.Max(0f, CombatFeedbackSurface.Root.rect.yMax - 198f - _lastAnchor.y));
+            _offset = new Vector2((stack / 2 == 0 ? -1 : 1) * 52f, 34f + (stack % 2) * lift);
+            if (lift < 96f) _offset.y = -36f - (stack % 2) * 72f;
             // 아랫행 적의 숫자가 윗행 HP판에 붙지 않도록 표적 자신의 상단 안쪽으로 두 행을 내린다.
             if(target.IsEnemy&&CombatFeedbackSurface.DamageHasHudAbove(target))
-                _offset.y=-36f-(stack/2)*50f;
+                _offset.y=-36f-(stack%2)*72f;
             // 아군 쪽은 기존 검수된 오른쪽 머리 여백을 유지한다. 위로 밀면 앞줄 HUD에 겹친다.
             if(!target.IsEnemy)
             {
                 float allyLift=Mathf.Min(68f,Mathf.Max(0f,CombatFeedbackSurface.Root.rect.yMax-162f-_lastAnchor.y));
                 _offset=new Vector2(42+(stack/2)*102,(stack%2)*allyLift);
+                if (allyLift < 50f) _offset.y = -(stack % 2) * 68f;
             }
             _scale = Mathf.Lerp(.95f, 1.10f, weight);
             bool numeric = kind is CombatNumberKind.Damage or CombatNumberKind.Heal or CombatNumberKind.Shielded or CombatNumberKind.HealthCost;
@@ -90,11 +92,13 @@ namespace Effects
             {
                 _numberMaterial = new Material(label.fontSharedMaterial) { name="Combat Number SDF", hideFlags=HideFlags.HideAndDontSave };
                 _numberMaterial.EnableKeyword("OUTLINE_ON"); _numberMaterial.EnableKeyword("UNDERLAY_ON");
-                _numberMaterial.SetFloat("_OutlineWidth", .16f);
-                _numberMaterial.SetColor("_OutlineColor", new Color(.09f,.16f,.25f,.95f));
-                _numberMaterial.SetColor("_UnderlayColor", new Color(.03f,.08f,.14f,.65f));
-                _numberMaterial.SetFloat("_UnderlayOffsetX", .7f); _numberMaterial.SetFloat("_UnderlayOffsetY", -.8f);
-                _numberMaterial.SetFloat("_UnderlaySoftness", .12f);
+                _numberMaterial.SetFloat("_FaceDilate", .08f);
+                _numberMaterial.SetFloat("_OutlineWidth", .28f);
+                _numberMaterial.SetColor("_OutlineColor", new Color(.045f,.075f,.12f,1f));
+                _numberMaterial.SetColor("_UnderlayColor", new Color(.025f,.045f,.075f,.90f));
+                _numberMaterial.SetFloat("_UnderlayDilate", .18f);
+                _numberMaterial.SetFloat("_UnderlayOffsetX", .5f); _numberMaterial.SetFloat("_UnderlayOffsetY", -.65f);
+                _numberMaterial.SetFloat("_UnderlaySoftness", .05f);
             }
             label.fontSharedMaterial = _numberMaterial; label.UpdateMeshPadding();
             if (numeric)
@@ -109,11 +113,6 @@ namespace Effects
                     else tag.fontSharedMaterial = _numberMaterial;
                     UIBuild.Anchor(tag.rectTransform, new Vector2(0,0), new Vector2(1,.27f));
                 }
-                var stroke = UIBuild.Solid("ImpactStroke", transform, critical ? new Color(1,.76f,.30f,.85f) : Color.Lerp(accent,Color.white,.30f));
-                stroke.raycastTarget=false;
-                UIBuild.Pin(stroke.rectTransform,new Vector2(.5f,.30f),new Vector2(critical ? 74 : 48,2),Vector2.zero);
-                stroke.rectTransform.pivot=new Vector2(.5f,.5f);
-                stroke.rectTransform.localRotation=Quaternion.Euler(0,0,-8);
             }
             Frame();
         }

@@ -19,7 +19,7 @@ namespace Codes.Passive
             var status = BuffStatus.Create(70671, Key, "종언 표식", Caster, target,
                 new ExecutionMark(UnityEngine.Mathf.Clamp(count, 1, 2)), duration: 0,
                 stackPolicy: BaseEnums.StatusStackPolicy.Replace, category: BaseEnums.StatusCategory.Negative,
-                description: "2중첩이면 다음 일반 사격이 종언탄이 됩니다. 특수행동은 1중첩 이상을 모두 소모합니다.");
+                description: "2중첩이면 다음 일반 사격이 종언탄이 됩니다. 특수행동은 표식을 남기거나 표식을 소모하지 않는 종언탄을 발사합니다.");
             status.AffectedVfxPartId = "affected.surya.wanted";
             return target.TryAddStatus(status);
         }

@@ -14,23 +14,21 @@ namespace Managers.UI.Screens
     {
         public bool Victory;
 
-        /// <summary>목숨이 다해 런이 끝났다.</summary>
+        /// <summary>아군 전멸로 런이 끝났다.</summary>
         public bool GameOver;
 
-        /// <summary>승패의 이유 한 줄(적 전멸 · 턴 초과 · 아군 전멸).</summary>
+        /// <summary>승패의 이유 한 줄(적 전멸 · 아군 전멸).</summary>
         public string Reason;
 
         public string StageLabel;
         public string ThemeName;
 
-        public int LifeBefore;
-        public int LifeAfter;
         public int GoldGained;
         public int ExpGained;
         public int Kills;
         public int TokensGained;
 
-        /// <summary>남은 적 수. 패배일 때 목숨이 이만큼 준다.</summary>
+        /// <summary>전투 종료 시 남은 적 수.</summary>
         public int EnemiesLeft;
 
         /// <summary>승리 뒤 이어지는 것(보상 선택)을 버튼에 적는다.</summary>
@@ -79,12 +77,8 @@ namespace Managers.UI.Screens
     /// 전투 결과 화면. 명일방주의 <b>작전 종료</b> 화면을 따른다 — 판정 한 줄이 가장 크고,
     /// 그 아래에 무엇을 잃고 얻었는지가 같은 크기의 칸으로 나란히 선다.
     ///
-    /// 예전에는 전투가 끝나면 곧바로 보상 · 다음 준비 화면으로 넘어갔다. QA는 2-1을 "이겼다"고 적었는데
-    /// 목숨이 18 → 14로 줄어 있었다 — 목숨은 패배(턴 초과 · 전멸)에서만 줄어든다. 테스터조차
-    /// 승패를 알아차리지 못했다는 뜻이다. 이제 판정 · 이유 · 목숨 변화 · 쓰러진 아군이 한 장에 보이고,
-    /// 확인을 눌러야 다음으로 넘어간다.
-    ///
-    /// 목숨이 0이 되면 같은 화면이 런 종료를 알린다. 예전에는 아무 화면 없이 멈췄다.
+    /// 판정·이유·파티 생존·획득 보수와 실제 피해 기여를 한 장에 표시한다.
+    /// 아군 전멸은 런 종료이며 확인을 누르면 메인 메뉴로 돌아간다.
     /// </summary>
     public class BattleResultScreen : ModalScreen
     {
@@ -121,7 +115,7 @@ namespace Managers.UI.Screens
         private TextMeshProUGUI _reason;
         private TextMeshProUGUI _stage;
 
-        private Tile _lifeTile;
+        private Tile _survivorTile;
         private Tile _goldTile;
         private Tile _expTile;
         private Tile _killTile;
@@ -188,7 +182,7 @@ namespace Managers.UI.Screens
             RectTransform row = UIBuild.Container("Tiles", Body);
             UIBuild.Anchor(row, new Vector2(0f, 0.60f), new Vector2(1f, 0.765f));
 
-            _lifeTile = new Tile(row, 0, "목숨", "LIFE");
+            _survivorTile = new Tile(row, 0, "생존", "PARTY");
             _goldTile = new Tile(row, 1, "골드", "GOLD");
             _expTile = new Tile(row, 2, "경험치", "EXP");
             _killTile = new Tile(row, 3, "처치", "KILLS");
@@ -307,14 +301,11 @@ namespace Managers.UI.Screens
                 : $"{result.StageLabel}\n<size=55%><color=#{Hex(UITheme.TextMuted)}>{result.ThemeName}</color></size>";
             _stage.richText = true;
 
-            // ── 목숨 ── 이 화면이 생긴 이유. 줄었으면 적색으로 크게, 차이를 따로 적는다.
-            int lifeDelta = result.LifeAfter - result.LifeBefore;
-            _lifeTile.Set(
-                lifeDelta == 0 ? $"{result.LifeAfter}" : $"{result.LifeBefore} → {result.LifeAfter}",
-                lifeDelta == 0 ? "변화 없음" : $"{lifeDelta}  (남은 적 {result.EnemiesLeft})",
-                lifeDelta < 0 ? UITheme.Danger : UITheme.TextPrimary,
-                lifeDelta < 0 ? UITheme.Danger : UITheme.TextMuted,
-                emphasize: lifeDelta < 0);
+            int fallen = result.Party.FindAll(member => member.Fallen).Count;
+            _survivorTile.Set($"{result.Party.Count-fallen} / {result.Party.Count}",
+                result.GameOver ? "아군 전멸 · 런 종료" : fallen > 0 ? $"전투불능 {fallen}명" : "전원 생존",
+                fallen > 0 ? UITheme.Danger : UITheme.TextPrimary,
+                UITheme.TextMuted, emphasize: result.GameOver);
 
             _goldTile.Set($"+{result.GoldGained:N0}",
                 result.Victory ? "처치 + 승리 보수" : "처치 보수만",
@@ -329,10 +320,10 @@ namespace Managers.UI.Screens
             BindParty(result);
 
             _note.text = result.GameOver
-                ? "목숨이 모두 소진되어 이번 런이 끝났습니다. 저장본은 지워집니다."
+                ? "아군이 전멸하여 이번 런이 끝났습니다. 새로운 여정을 시작할 수 있습니다."
                 : result.Victory
-                    ? "전투 불능이 된 아군은 전투가 끝나면 전투 시작 때의 체력으로 돌아옵니다."
-                    : "패배해도 다음 스테이지로 넘어갑니다. 승리 보수와 보상 선택은 없고, 남은 적 1기마다 목숨이 1 줄어듭니다.";
+                    ? "체력과 전투불능은 이어집니다. 휴식·부활 수단이나 다음 테마 진입 시 회복할 수 있습니다."
+                    : "아군 전멸 시 여정이 끝납니다. 승리 보수와 보상 선택은 제공되지 않습니다.";
             if (!string.IsNullOrEmpty(result.ConditionNote)) _note.text += "\n" + result.ConditionNote;
 
             string next = result.GameOver ? "메인 메뉴로"
@@ -563,7 +554,7 @@ namespace Managers.UI.Screens
                 _value.color = valueColor;
                 _sub.text = sub;
                 _sub.color = subColor;
-                // 결과 숫자 한 칸 = 흰 카드 한 장. 잃은 것(목숨 감소)만 위험색 면으로 강조한다.
+                // 결과 숫자 한 칸 = 흰 카드 한 장. 전투불능과 런 종료에 위험색을 쓴다.
                 _panel.sprite = emphasize
                     ? UIShapes.RoundedRect(12, new Color(UITheme.Danger.r, UITheme.Danger.g, UITheme.Danger.b, .06f),
                         new Color(UITheme.Danger.r, UITheme.Danger.g, UITheme.Danger.b, .30f), 1)

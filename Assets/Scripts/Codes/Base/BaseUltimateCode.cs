@@ -99,11 +99,13 @@ namespace Codes.Base
         }
 
         /// <summary>치명타를 굴려 피해 정보를 만든다. 경감은 피격자가 한다.</summary>
+        protected virtual bool AppliesElement => false;
+
         protected DamageContext BuildContext(int rawDamage, List<int> tags, Unit target = null)
         {
             bool crit = RollCritical(target, out float multiplier);
             return new DamageContext(Caster, Mathf.Max(1, Mathf.RoundToInt(rawDamage * multiplier)),
-                BaseEnums.CodeType.Ultimate, tags, crit);
+                BaseEnums.CodeType.Ultimate, tags, crit) { AppliesElement = AppliesElement };
         }
 
         /// <summary>궁극기 대상도 일반행동과 같은 교체 → 선제 개입 → 공지 순서를 거친다.</summary>

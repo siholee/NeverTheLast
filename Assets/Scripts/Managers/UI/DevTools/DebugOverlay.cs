@@ -293,7 +293,7 @@ namespace Managers.UI.DevTools
         {
             RoundManager round = GameManager.Instance?.RoundManager;
             if (round == null) return;
-            LoadStage((round.Stage - 1) / RoundManager.EncountersPerTheme * RoundManager.EncountersPerTheme + Mathf.Clamp(slot, 1, RoundManager.EncountersPerTheme));
+            LoadStage(ProgressionLayout.StageOf(round.Round, slot));
         }
 
         private static void LoadStage(int stage)
@@ -648,7 +648,7 @@ namespace Managers.UI.DevTools
 
             _status.text =
                 $"스테이지 {round?.Stage} (라운드 {round?.Round} · 슬롯 {round?.StageInRound})   테마 {theme}\n"
-                + $"상태 {game?.gameState}   생명력 {game?.life}   배속 {Managers.UI.HUD.BattleHud.CurrentSpeedMultiplier:0.##}×\n"
+                + $"상태 {game?.gameState}   배속 {Managers.UI.HUD.BattleHud.CurrentSpeedMultiplier:0.##}×\n"
                 + $"아군 {allies}   적 {enemies}\n"
                 + $"강제 설정: {flags}   화풍 {VfxStyleSettings.DisplayName}"
                 + (DebugMode.SessionActive ? " · 저장: 메모리 전용" : "");

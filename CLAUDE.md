@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-NeverTheLast의 Claude CLI 작업 안내. 최종 갱신: **2026-10-14**.
+NeverTheLast의 Claude CLI 작업 안내. 최종 갱신: **2026-10-15**.
 
 공통 프로젝트 규칙은 [AGENTS.md](AGENTS.md), 설계 입구는 [현행 기획서](Assets/Docs/Design/README.md)다.
 작업 전 두 문서를 읽는다. 이 파일에 수치·로스터·복제된 설계·검수 이력을 다시 관리하지 않는다.
@@ -32,5 +32,5 @@ Root가 보고된 결함을 실제 소스/화면과 대조하고 보정·Unity �
 사용자 저장·기존 수정·브랜치/인덱스·음성·구매팩/GUID·행동 종료까지의 행동서열 확장을 보존한다.
 다른 작업의 변경을 재구현/되돌리거나 실제 임팩트 콜백·타수·상태/치유/자원 판정을 미술 작업에서 바꾸지 않는다.
 작업 결과는 로컬 Logs에 기록하고 날짜별 보고를 현행 기획서 본문에 붙이지 않는다.
-전체 검수 재개 시 Design_Backlog 및 `Logs/WholeGameReview20261014/`의 최신 인계·coverage·manifest를 먼저 확인한다.
+전체 검수 재개 시 Design_Backlog 및 `Logs/WholeGameReview20261015/`의 최신 인계·coverage·manifest를 먼저 확인한다.
 현재 전체 최종 기술·상용 미술 승인은 미완료다. main 승격과 문서 정리는 QA 승인이나 신규 릴리스가 아니다.

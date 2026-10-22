@@ -39,7 +39,7 @@ namespace Codes.Ultimate
             if (Caster == null || !Caster.isActive || Caster.isControlled) yield break;
             var status = BuffStatus.Create(73210, FieldKey, "사느냐, 죽느냐", Caster, Caster,
                 new TheatreField(), duration: 3, stackPolicy: BaseEnums.StatusStackPolicy.Replace,
-                isBeneficial: true, description: "자신의 일반행동3회 동안 소환 피해 증가(특공 비례, 최대50%). 실제 소환 개체마다 전투 중1회 치명상을 막고 체력30%로 생존. 수명 소멸 제외.");
+                isBeneficial: true, description: "자신의 일반행동3회 동안 소환 피해 증가(특공 비례, 최대65%). 실제 소환 개체마다 전투 중1회 치명상을 막고 체력30%로 생존. 수명 소멸 제외.");
             status.NormalActionDuration = true;
             Caster.AddStatus(status);
             AudioManager.PlayAction(Caster, SfxActionSlot.Ultimate, SfxCuePhase.Hit, CodeName);
@@ -53,7 +53,7 @@ namespace Codes.Ultimate
             public TheatreField() : base(0) { }
             public override bool IsBeneficial => true;
             public bool Working => _active && Caster != null && Caster.isActive && Caster.IsOnField;
-            public float Bonus => Working ? Mathf.Min(.50f, .20f + .10f * SummonSupportCombat.PowerRatio(Caster)) : 0;
+            public float Bonus => Working ? Mathf.Min(.65f, .30f + .15f * SummonSupportCombat.PowerRatio(Caster)) : 0;
             public override void OnApply()
             {
                 _active = true;

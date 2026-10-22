@@ -275,7 +275,13 @@ namespace Core
         /// </summary>
         private void ApplyMusicVolume()
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // 검증 실행의 무음은 설정 로딩·음량 적용 뒤에도 유지한다. 저장 음량은 변경하지 않는다.
+            bool verificationMuted = System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "--ntl-verify-silent") >= 0;
+            AudioListener.volume = verificationMuted ? 0f : 1f;
+#else
             AudioListener.volume = 1f;
+#endif
             Managers.AudioManager.Instance?.ApplyVolumes();
         }
 

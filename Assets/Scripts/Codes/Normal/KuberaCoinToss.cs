@@ -5,16 +5,16 @@ using Entities;
 
 namespace Codes.Normal
 {
-    /// <summary>쿠베라 — 일반행동 「금화 투척」. 우선도 단일 적에게 공격력 90%, 공용 재보 +1(Detail_08 §11.2).</summary>
+    /// <summary>쿠베라 — 일반행동 「금화 투척」. 우선도 단일 적에게 공격력 180% × 금력, 공용 재보 +1(Detail_08 §11.2).</summary>
     public sealed class KuberaCoinToss : BaseNormalCode
     {
-        private const float AttackRatio = 0.90f;
+        private const float AttackRatio = 1.80f;
 
         public override int AttackForm => DamageTag.Shot;
 
         public KuberaCoinToss(NormalCodeContext context) : base(context) => CodeName = "금화 투척";
 
-        protected override int BaseDamage(Unit target) => StatDamage(0f, BaseEnums.StatType.Attack, AttackRatio);
+        protected override int BaseDamage(Unit target) => UnityEngine.Mathf.RoundToInt(StatDamage(0f, BaseEnums.StatType.Attack, AttackRatio) * Codes.Special.KuberaGoldRush.GoldMultiplier());
 
         protected override IEnumerator Deliver(Unit target)
         {

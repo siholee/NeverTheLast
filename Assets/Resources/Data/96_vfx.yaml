@@ -273,7 +273,7 @@ skills:
     multiTargetMode: simultaneous
     slots:
       - { slot: cast, partId: cast.sword.aqua_readable, bodyColor: 9E638AFA, edgeColor: 6F4046F2, coreColor: D19FA5FF, scale: 1.22, direction: stroke, sourceFacesRight: false, angleOffset: 35, timeOffset: 0.0 }
-      - { slot: hit, partId: hit.claw.triple, bodyColor: 9E5A71F7, edgeColor: 75444BEE, coreColor: D4A1A8FF, scale: 1.0, direction: stroke, sourceFacesRight: true, angleOffset: 29, timeOffset: 0.128, triggersImpact: true }
+      - { slot: hit, partId: hit.claw.triple, focusedStroke: true, bodyColor: 291E32FA, edgeColor: AD5269EE, coreColor: F9CDD6FF, scale: 1.0, scaleY: 0.80, offsetY: 0.13, direction: stroke, sourceFacesRight: true, angleOffset: 29, timeOffset: 0.128, triggersImpact: true }
       - { slot: screen, partId: screen.tone.small, timeOffset: 0.0 }
   - key: shi.final_bell.3
     multiTargetMode: simultaneous
@@ -307,7 +307,7 @@ skills:
     slots:
       - { slot: cast, partId: cast.sword.void_flourish, bodyColor: 9471BDF5, edgeColor: 49365F9C, scale: 1.0, direction: stroke, sourceFacesRight: false, angleOffset: 34, timeOffset: 0.0 }
       - { slot: hit, partId: hit.lightning.formation, bodyColor: AF75E0FA, coreColor: EEDFF5FF, scale: 1.0, direction: radial, timeOffset: 0.206, peakFrame: 4 }
-      - { slot: hit, partId: hit.smoke.horizontal, bodyColor: B47BE0FF, edgeColor: 5F406FF4, coreColor: F5EAF5FF, scale: 1.0, direction: radial, timeOffset: 0.406, peakFrame: 4, triggersImpact: true }
+      - { slot: hit, partId: hit.smoke.horizontal, bodyColor: B47BE0FF, edgeColor: 5F406FF4, coreColor: F5EAF5FF, scale: 1.0, impactContactScale: 1.60, direction: radial, timeOffset: 0.406, peakFrame: 4, triggersImpact: true }
       - { slot: screen, partId: screen.focus.ultimate, timeOffset: 0.0 }
 
   # 바스테트 — beast 분류의 후퇴→부분 전진이 시전을 대신하고 검정/바위색 세 줄 할퀴기로 끝낸다.
@@ -604,6 +604,11 @@ skills:
     slots:
       - { slot: cast, partId: cast.agni.bloom, steadyBody: true, direction: radial }
       - { slot: screen, partId: screen.yv.special }
+  - key: amaterasu.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.surya.muzzle, steadyBody: true, direction: casterToTarget, scale: 0.6 }
+      - { slot: hit, partId: hit.surya.normal, portraitAnchor: true, triggersImpact: true }
   - key: surya.normal
     multiTargetMode: simultaneous
     slots:
@@ -626,6 +631,11 @@ skills:
     multiTargetMode: simultaneous
     slots:
       - { slot: affected, partId: affected.buff.sunset, direction: radial, steadyBody: true }
+      - { slot: screen, partId: screen.yv.ultimate }
+  - key: amaterasu.ultimate
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.surya.muzzle, steadyBody: true, direction: casterToTarget, scale: 0.85 }
       - { slot: screen, partId: screen.yv.ultimate }
 
   - key: surya.finale
@@ -665,6 +675,119 @@ skills:
       - { slot: cast, partId: cast.class.archer, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
       - { slot: hit, partId: hit.marie.normal, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
       - { slot: screen, partId: screen.yv.normal }
+  - key: astolfo.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: A7D9C8EF, coreColor: F1FFF8FF, direction: radial }
+      - { slot: hit, partId: hit.tsukuyomi.normal, bodyColor: 78BFAEFF, coreColor: E7FFF4FF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: nephthys.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: B7A0DAEF, coreColor: FAF1FFFF, direction: radial }
+      - { slot: hit, partId: hit.tsukuyomi.normal, bodyColor: AC88D6FF, coreColor: FAF1FFFF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: nephthys.ultimate
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: B7A0DAEF, coreColor: FAF1FFFF, direction: radial }
+      - { slot: hit, partId: hit.tsukuyomi.normal, bodyColor: AC88D6FF, coreColor: FAF1FFFF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+      - { slot: affected, partId: hit.support.heal, portraitAnchor: true, direction: radial }
+  - key: nephthys.passive
+    slots:
+      - { slot: affected, partId: hit.tsukuyomi.normal, portraitAnchor: true, direction: radial }
+  - key: atalante.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: B7A0DAEF, coreColor: FAF1FFFF, direction: radial }
+      - { slot: hit, partId: hit.tsukuyomi.normal, bodyColor: AC88D6FF, coreColor: FAF1FFFF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: atalante.ultimate
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: B7A0DAEF, coreColor: FAF1FFFF, direction: radial }
+      - { slot: hit, partId: hit.tsukuyomi.normal, bodyColor: AC88D6FF, coreColor: FAF1FFFF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+      - { slot: affected, partId: hit.support.heal, portraitAnchor: true, direction: radial }
+  - key: atalante.passive
+    slots:
+      - { slot: affected, partId: hit.tsukuyomi.normal, portraitAnchor: true, direction: radial }
+  - key: neith.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: B7A0DAEF, coreColor: FAF1FFFF, direction: radial }
+      - { slot: hit, partId: hit.tsukuyomi.normal, bodyColor: AC88D6FF, coreColor: FAF1FFFF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: neith.ultimate
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: B7A0DAEF, coreColor: FAF1FFFF, direction: radial }
+      - { slot: hit, partId: hit.tsukuyomi.normal, bodyColor: AC88D6FF, coreColor: FAF1FFFF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+      - { slot: affected, partId: hit.support.heal, portraitAnchor: true, direction: radial }
+  - key: neith.passive
+    slots:
+      - { slot: affected, partId: hit.tsukuyomi.normal, portraitAnchor: true, direction: radial }
+  - key: ereshkigal.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: B7A0DAEF, coreColor: FAF1FFFF, direction: radial }
+      - { slot: hit, partId: hit.tsukuyomi.normal, bodyColor: AC88D6FF, coreColor: FAF1FFFF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: ereshkigal.ultimate
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: B7A0DAEF, coreColor: FAF1FFFF, direction: radial }
+      - { slot: hit, partId: hit.tsukuyomi.normal, bodyColor: AC88D6FF, coreColor: FAF1FFFF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+      - { slot: affected, partId: hit.support.heal, portraitAnchor: true, direction: radial }
+  - key: ereshkigal.passive
+    slots:
+      - { slot: affected, partId: hit.tsukuyomi.normal, portraitAnchor: true, direction: radial }
+  - key: gaudi.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: 79B58AEF, coreColor: FAF1FFFF, direction: radial }
+      - { slot: hit, partId: hit.tsukuyomi.normal, bodyColor: 78B887FF, coreColor: FAF1FFFF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: gaudi.ultimate
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: 79B58AEF, coreColor: E7FFF4FF, direction: radial }
+      - { slot: hit, partId: hit.tsukuyomi.normal, bodyColor: 78B887FF, coreColor: E7FFF4FF, portraitAnchor: true, triggersImpact: true }
+      - { slot: affected, partId: hit.support.buff, bodyColor: 78B887FF, coreColor: FAF1FFFF, portraitAnchor: true, direction: radial }
+      - { slot: screen, partId: screen.yv.ultimate }
+  - key: gaudi.passive
+    slots:
+      - { slot: affected, partId: hit.support.buff, bodyColor: 78B887FF, coreColor: E7FFF4FF, portraitAnchor: true, direction: radial }
+  - key: ebisu.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: B7A0DAEF, coreColor: FAF1FFFF, direction: radial }
+      - { slot: hit, partId: hit.tsukuyomi.normal, bodyColor: AC88D6FF, coreColor: FAF1FFFF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: ebisu.ultimate
+    slots:
+      - { slot: affected, partId: hit.support.buff, bodyColor: B5A1D9FF, coreColor: FAF1FFFF, portraitAnchor: true, direction: radial }
+      - { slot: screen, partId: screen.yv.ultimate }
+  - key: astolfo.ultimate
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: A7D9C8EF, coreColor: F1FFF8FF, direction: radial }
+      - { slot: affected, partId: hit.support.buff, bodyColor: 94D3BFFF, coreColor: F1FFF8FF, portraitAnchor: true, direction: radial }
+      - { slot: hit, partId: hit.support.heal, bodyColor: 78BFAEFF, coreColor: E7FFF4FF, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.ultimate }
+  - key: nicol.normal
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: B7A0DAEF, coreColor: FAF1FFFF, direction: radial }
+      - { slot: hit, partId: hit.tsukuyomi.normal, bodyColor: AC88D6FF, coreColor: FAF1FFFF, direction: radial, portraitAnchor: true, timeOffset: 0.10, triggersImpact: true }
+  - key: nicol.ultimate
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: B7A0DAEF, coreColor: FAF1FFFF, direction: radial }
+      - { slot: hit, partId: hit.tsukuyomi.normal, bodyColor: AC88D6FF, coreColor: FAF1FFFF, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.ultimate }
   - key: tsukuyomi.normal
     multiTargetMode: simultaneous
     slots:
@@ -712,6 +835,7 @@ classCastBindings:
 
 
 statusBindings:
+  - { statusKey: checkpoint48_frailty, partId: affected.debuff.fall }
   - { statusKey: yama_death_verdict, partId: affected.yama.verdict }
   - { statusKey: anubis_book_of_the_dead, partId: none }
   - { statusKey: kubera_treasury, partId: hit.support.buff.ink }

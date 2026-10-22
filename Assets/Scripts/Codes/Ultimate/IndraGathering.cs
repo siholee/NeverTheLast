@@ -10,7 +10,7 @@ namespace Codes.Ultimate
     /// 인드라 — 초월기 「팔방의 소집」(Detail_08 §13.4). 로카팔라 묶음을 연다 — 로카팔라 묶음을 여는 유일한 수단이다.
     /// 초월기 자체는 피해가 없고, 턴을 쓰지 않으므로 소집 직후 묶음이 바로 이어진다.
     /// </summary>
-    public sealed class IndraGathering : BaseUltimateCode
+    public sealed class IndraGathering : BaseUltimateCode, ISpecialGateOpener
     {
         /// <summary>여는 묶음. 다른 특수 묶음이 생기면 이 데이터를 넓힌다.</summary>
         private static readonly string[] GateTags = { SpecialAction.LokapalaTag };

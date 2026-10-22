@@ -9,16 +9,17 @@ using UnityEngine;
 namespace Codes.Normal
 {
     /// <summary>
-    /// 아누비스 — 일반행동 「심장의 저울」(Detail_08 §9.2). 우선도 단일 적에게 최대 체력 6% 물리 접촉 피해,
-    /// 준 피해의 30%만큼 회복. 사자의 서 동안은 10% · 60% · 적중 대상 바위 부착(§9.3).
+    /// 아누비스 — 일반행동 「심장의 저울」(Detail_08 §9.2). 우선도 단일 적에게 최대 체력 8% 물리 접촉 피해,
+    /// 준 피해의 45%만큼 회복. 사자의 서 동안은 13% · 75% · 적중 대상 바위 부착(§9.3).
     /// 공격력 대신 최대 체력 계수라 영혼으로 늘어난 체력이 그대로 화력이 된다.
     /// </summary>
     public sealed class AnubisHeartScale : BaseNormalCode
     {
-        private const float HpRatio = 0.06f;
-        private const float HealRatio = 0.30f;
-        private const float EmpoweredHpRatio = 0.10f;
-        private const float EmpoweredHealRatio = 0.60f;
+        protected override bool AppliesElementTo(Unit target) => Empowered;
+        private const float HpRatio = 0.08f;
+        private const float HealRatio = 0.45f;
+        private const float EmpoweredHpRatio = 0.13f;
+        private const float EmpoweredHealRatio = 0.75f;
 
         public override int AttackForm => DamageTag.Pierce;
         protected override bool IsContact => true;

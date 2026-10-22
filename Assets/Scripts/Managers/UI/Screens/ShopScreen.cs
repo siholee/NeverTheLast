@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using BaseClasses;
@@ -19,7 +19,7 @@ namespace Managers.UI.Screens
     /// 왼쪽에 행상인이 서고 오른쪽이 물건이다. 맨 위 줄이 지갑 · 시세 스테이지 · 남은 구매 횟수,
     /// 그 아래가 탭이다. 열면 <b>코드</b> 탭부터 보인다 — 상점에서 가장 오래 고민하는 물건이 보상 코드이기 때문이다.
     /// <list type="bullet">
-    /// <item>코드 — 생존 · 제어 저항 같은 구멍 메우기 보상 코드(<c>shopFixed</c>) 세 장을 크게. 화력 코드는 팔지 않는다(Detail_17 §5.2)</item>
+    /// <item>코드 — 생존 보완·소환 발상 연계 보상 코드(<c>shopFixed</c>). 긴 목록은 스크롤한다(Detail_17 §5.2)</item>
     /// <item>회복 · 성장 — 회복약 · 부활약 · 사탕. <c>90_rewards.yaml</c>을 그대로 쓴다</item>
     /// <item>공용 보급 — 식량과 정화의 성수. 공용 보급(인벤토리)에 들어간다</item>
     /// <item>판매 — 주운 귀중품을 골드로 바꾼다. 구매 한도를 쓰지 않는다</item>
@@ -294,6 +294,8 @@ namespace Managers.UI.Screens
         private static List<RewardDef> BuildCodeStock()
         {
             return RewardCodeCatalog.All()
+                .Where(entry => !entry.requiresSpecialGate || Combat.AttackForms.PartyUnits().Any(Combat.SpecialAction.CanOpen))
+                .Where(entry => !entry.requiresSpecialAction || Combat.AttackForms.PartyUnits().Any(Combat.SpecialAction.CanUse))
                 .Where(entry => entry.shopFixed && Codes.Passive.Reward.RewardCodeFactory.IsImplemented(entry.id))
                 .Where(entry => !entry.requiresToughness || Combat.AttackForms.PartyUnits().Any(hero =>
                     hero.ActivePassiveCodesResolved().Any(code => code is Codes.Passive.OrpheusCheatedDeath)))
@@ -385,7 +387,7 @@ namespace Managers.UI.Screens
             PlaceCoin();
             _stageInfo.text = _tab == Tab.Sell
                 ? $"귀중품 {Inventory?.Valuables?.Count ?? 0}점 · 코드 {RewardCodeFlow.Party().Sum(u=>u.OwnedRewardCodeInstances.Count())}장"
-                : $"{stage}스테이지 시세 · 기본가 × {stage}";
+                : $"{stage}층 시세 · 기본가 × {stage}";
             _purchases.text = $"남은 구매 {left} / {GameManager.MaxShopPurchases}";
             _purchases.color = left > 0 ? UIArtDirection.HeaderInkSoft : new Color(1f, 1f, 1f, 0.42f);
             _guide.text = TabGuide(_tab);
@@ -787,7 +789,7 @@ namespace Managers.UI.Screens
             float textWidth = Mathf.Max(1f, _content.rect.width * width - 20f - CardPad * 2f);
             float longest = pageEffects.Max(text => text.GetPreferredValues(text.text, textWidth, Mathf.Infinity).y);
             foreach (var text in pageEffects)
-                text.margin = new Vector4(0f, Mathf.Max(0f, (text.rectTransform.rect.height - longest) * .5f), 0f, 0f);
+                text.margin = new Vector4(0f, Mathf.Min(32f, Mathf.Max(0f, (text.rectTransform.rect.height - longest) * .5f)), 0f, 0f);
         }
 
         /// <summary>

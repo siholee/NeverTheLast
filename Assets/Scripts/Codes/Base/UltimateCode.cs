@@ -10,6 +10,9 @@ namespace Codes.Base
     /// </summary>
     public virtual bool IsAutoCast => true;
 
+    /// <summary>개시자와 동시에 준비됐을 때 자원 공급을 먼저 예약한다. 미충전 궁극기를 기다리지는 않는다.</summary>
+    public virtual bool PrecedesSpecialGate => false;
+
     /// <summary>첫 유효 발사까지 마나와 초월기 발동 알림을 보류한다.</summary>
     public virtual bool DefersActivationUntilImpact => false;
 

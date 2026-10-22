@@ -26,8 +26,9 @@ namespace Codes.Normal
             yield return NordFx.FreyaPrayer(Caster);
             if (Caster == null || !Caster.isActive || Caster.isControlled) { StopCode(); yield break; }
             var grid = GridManager.Instance;
+            if (grid == null) { StopCode(); yield break; }
             AudioManager.PlayAction(Caster, SfxActionSlot.Normal, SfxCuePhase.Hit, CodeName);
-                int amount = Mathf.RoundToInt(Caster.HpMax * HealRatio);
+            int amount = Mathf.RoundToInt(Caster.HpMax * HealRatio);
             foreach (Unit ally in grid.heroList.Concat(grid.enemyList).Where(x => x != null && x.isActive && x.IsOnField && x.IsEnemy == Caster.IsEnemy).ToList())
                 ally.Heal(amount, Caster);
             Caster.Invoke(BaseEnums.UnitEventType.OnNormalActionResolved, new EventContext(Caster));

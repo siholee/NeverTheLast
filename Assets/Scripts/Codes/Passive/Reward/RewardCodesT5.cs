@@ -118,7 +118,7 @@ namespace Codes.Passive.Reward
                         BaseEnums.CodeType.Passive, new List<int>
                         {
                             DamageTag.SingleTarget, DamageTag.PassiveAttack, DamageTag.TrueDamage, DamageTag.ShieldPenetration,
-                        }));
+                        }) { IsExecution = true });
                 }
             }
             finally

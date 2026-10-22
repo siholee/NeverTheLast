@@ -26,7 +26,7 @@ namespace Managers.UI.DevTools
             var blood=set.ActivePassiveCodes.OfType<SetDesertBlood>().Single();var royalty=horus.ActivePassiveCodes.OfType<HorusRoyalHeir>().Single();
             void Check(string label,bool ok)=>YvCheck(label,"충족",ok?"충족":"미충족",ok);
             CfStats(set,"세트",1340,110,86,5.5f,90,6,70,5,74,5,94,120);
-            CfStats(isis,"이시스",1200,100,45,3,65,4.5f,86,6,72,5,96,140);
+            CfStats(isis,"이시스",1320,112,45,3,65,4.5f,100,7.2f,82,5.8f,96,140);
             CfStats(horus,"호루스",980,85,58,3.5f,90,6,50,4,70,5,108,120);
             Check("신규3인 원화·팩토리",new[]{set,isis,horus}.All(x=>x.ActiveNormalCode!=null&&x.ActiveUltimateCode!=null&&Helpers.SpriteResource.LoadPortrait(x.PortraitPath,out _)!=null));
             Check("자료실 출혈·소환·초월기 용어",GameGuideCatalog.Find("bleed")!=null&&GameGuideCatalog.Find("summon")!=null&&GameGuideCatalog.Find("ultimate")!=null);
@@ -45,13 +45,13 @@ namespace Managers.UI.DevTools
             using(var log=new CfLog(AliveAllies()))
             {
                 yield return NordAction(guardians[0],Kind.Normal,s=>s.AdvanceAction(guardians[0],1));
-                Check("수호령 실제 방35% 소환 일반 피해",log.Dealt.Any(x=>x.Attacker==isis&&x.DamageContext.Damage==Mathf.RoundToInt(isis.DefCurr*.35f)&&x.DamageContext.HasTag(DamageTag.SummonAttack)&&x.DamageContext.HasTag(DamageTag.NormalAttack)));
+                Check("수호령 실제 방60% 소환 일반 피해",log.Dealt.Any(x=>x.Attacker==isis&&x.DamageContext.Damage==Mathf.RoundToInt(isis.DefCurr*.60f)&&x.DamageContext.HasTag(DamageTag.SummonAttack)&&x.DamageContext.HasTag(DamageTag.NormalAttack)));
                 Check("바위 부착 이시스 명의",log.Elements.Any(x=>x.Source==isis&&x.Element==BaseEnums.UnitElement.Geo));
             }
             foreach(var foe in AliveEnemies())foe.ResetCombatElements();
             int shield=isis.ShieldCurr;
             yield return NordAction(isis,Kind.Normal,s=>s.AdvanceAction(isis,1));
-            Check("이시스 전체 방35% 보호막",AliveAllies().All(x=>x.ShieldCurr>=Mathf.RoundToInt(isis.DefCurr*.35f)));
+            Check("이시스 전체 방270% 보호막",AliveAllies().All(x=>x.ShieldCurr>=Mathf.RoundToInt(isis.DefCurr*2.70f)));
             int delta=isis.ShieldCurr-shield;shield=isis.ShieldCurr;
             YvAddTestStatus(isis,99911,"egypt_hp",new StatModifierEffect(BaseEnums.StatType.MaxHp,5000));
             yield return NordAction(isis,Kind.Normal,s=>s.AdvanceAction(isis,1));

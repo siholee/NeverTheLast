@@ -10,14 +10,15 @@ namespace Codes.Special
 {
     /// <summary>
     /// 쿠베라 — 특수행동 「골드 러쉬」(Detail_08 §11.3). 로카팔라 묶음 참여자(순서 0, 여는 것은 인드라뿐).
-    /// 적 전체에 공격력 100% × <b>금력 배율</b>. 재보3 소비 시180%로 증폭하고 재보 공격 치피 지원을 받는다. 이번 전투 골드 +5%(최대 +25%).
+    /// 적 전체에 공격력 280% × <b>금력 배율</b>. 재보를 최대3 소비해 420/560/700%로 증폭하고 재보 공격 치피 지원을 받는다. 이번 전투 골드 +5%(최대 +25%).
     ///
     /// 금력 = 보유 골드 ÷ (현재 스테이지 × 100), 배율 = 1 + 금력 × 15%(상한 ×4). 수입 · 상점가가 모두 스테이지에 비례하므로
     /// 스테이지로 나눠야 무한 모드 어디서든 "몇 전투치를 모았는가"가 같은 배율을 낸다.
     /// </summary>
     public sealed class KuberaGoldRush : BaseSpecialCode
     {
-        private const float AttackRatio = 1.00f;
+        public const float AttackRatio = 2.80f;
+        public const float BonusPerTreasury = 1.40f;
         private const float GoldPerStageUnit = 100f;
         private const float BonusPerUnit = 0.15f;
         private const float MaxMultiplier = 4f;
@@ -57,7 +58,9 @@ namespace Codes.Special
             yield return Combat.DirectAttack.HitOne("kubera.gold_rush", Caster, routing.Targets[0], () =>
             {
                 if (!routing.Targets.Any(target => target != null && target.isActive)) return;
-                bool enhanced = Combat.PartyTreasury.Spend(Caster, 3);
+                int spent = Mathf.Min(3, Combat.PartyTreasury.Available);
+                if (spent > 0 && !Combat.PartyTreasury.Spend(Caster, spent)) spent = 0;
+                bool enhanced = spent > 0;
                 float critBonus = enhanced ? Codes.Passive.KuberaPatronage.AdditionalCritDamage(Caster) + Codes.Passive.Reward.TreasuryRewardCode.CritDamageBonus(Caster) : 0;
                 float power = GoldMultiplier();
                 foreach (var target in routing.Targets.ToList())
@@ -66,7 +69,7 @@ namespace Codes.Special
                     if (target == null || !target.isActive) continue;
                     bool crit = RollCritical(target, out float multiplier);
                     if (crit) multiplier += critBonus;
-                    var hit = new DamageContext(Caster, Mathf.RoundToInt(StatDamage(0, BaseEnums.StatType.Attack, enhanced ? 1.8f : 1f) * power * multiplier),
+                    var hit = new DamageContext(Caster, Mathf.RoundToInt(StatDamage(0, BaseEnums.StatType.Attack, AttackRatio + spent * BonusPerTreasury) * power * multiplier),
                         BaseEnums.CodeType.Special, new List<int>(tags), crit) { IsTreasuryAttack = enhanced, IsTreasurySpendAttack = enhanced };
                     target.TakeDamage(hit); applied = true;
                 }

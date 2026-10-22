@@ -124,6 +124,27 @@ namespace Managers
                 (62, SfxActionSlot.Ultimate) => "agni.ultimate",
                 (62, SfxActionSlot.Special) => "agni.special_setup",
                 (160, SfxActionSlot.Normal) => "marie.normal",
+                (164, SfxActionSlot.Normal) => "nephthys.normal",
+                (164, SfxActionSlot.Ultimate) => "nephthys.ultimate",
+                (164, SfxActionSlot.Passive) => "nephthys.passive",
+                (165, SfxActionSlot.Normal) => "atalante.normal",
+                (165, SfxActionSlot.Ultimate) => "atalante.ultimate",
+                (165, SfxActionSlot.Passive) => "atalante.passive",
+                (166, SfxActionSlot.Normal) => "neith.normal",
+                (166, SfxActionSlot.Ultimate) => "neith.ultimate",
+                (166, SfxActionSlot.Passive) => "neith.passive",
+                (167, SfxActionSlot.Normal) => "ereshkigal.normal",
+                (167, SfxActionSlot.Ultimate) => "ereshkigal.ultimate",
+                (167, SfxActionSlot.Passive) => "ereshkigal.passive",
+                (162, SfxActionSlot.Normal) => "astolfo.normal",
+                (168, SfxActionSlot.Normal) => "nicol.normal",
+                (168, SfxActionSlot.Ultimate) => "nicol.ultimate",
+                (162, SfxActionSlot.Ultimate) => "astolfo.ultimate",
+                (4, SfxActionSlot.Normal) => "gaudi.normal",
+                (4, SfxActionSlot.Ultimate) => "gaudi.ultimate",
+                (4, SfxActionSlot.Passive) => "gaudi.passive",
+                (163, SfxActionSlot.Normal) => "ebisu.normal",
+                (163, SfxActionSlot.Ultimate) => "ebisu.ultimate",
                 (160, SfxActionSlot.Ultimate) => "marie.ultimate",
                 (161, SfxActionSlot.Normal) => "napoleon.normal",
                 (161, SfxActionSlot.Special) => "napoleon.volley",
@@ -139,6 +160,8 @@ namespace Managers
                 (45, SfxActionSlot.Ultimate) => "tsukuyomi.ultimate",
                 (67, SfxActionSlot.Special) => "surya.special",
                 (67, SfxActionSlot.Normal) => "surya.normal",
+                (40, SfxActionSlot.Normal) => "amaterasu.normal",
+                (40, SfxActionSlot.Ultimate) => "amaterasu.ultimate",
                 (67, SfxActionSlot.Passive) => "surya.follow_up",
                 (67, SfxActionSlot.Ultimate) => "surya.ultimate",
                 (63, SfxActionSlot.Normal) => "indra.thunderbolt",
@@ -173,6 +196,10 @@ namespace Managers
 
         private static string EnemyPrefix(Unit unit, SfxActionSlot slot, string codeName)
         {
+            if (unit.ID == Codes.Checkpoints.Checkpoint48.BossId)
+                return slot == SfxActionSlot.Ultimate ? "enemy.void_boss" : "enemy.void_beast.strike";
+            if (unit.ID == Codes.Checkpoints.Checkpoint48.EscortId)
+                return slot == SfxActionSlot.Normal ? "enemy.void_marksman.shot" : null;
             if (unit.HasUnitTag("RestoredTheme"))
             {
                 var kit = Codes.Restored.RestoredEnemyKit.Find(unit);

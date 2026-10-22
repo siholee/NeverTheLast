@@ -12,6 +12,7 @@ namespace Codes.Passive
     public sealed class SurtrLastEmber : UniquePassiveCode
     {
         public const float ShieldRatio = .12f;
+        public override int BaseShieldAmount => Caster == null ? 0 : Mathf.Max(1, StatDamage(0, BaseEnums.StatType.Defense, ShieldRatio));
         private bool _working;
         private int _lastAction = int.MinValue;
         private Action<DamageResolvedContext> _hit;

@@ -17,6 +17,7 @@ namespace Helpers
     /// </summary>
     public static class SpriteResource
     {
+        private static readonly Dictionary<string, Sprite> RoleIconSprites = new();
         private static readonly string[] PortraitRoots =
         {
             "Sprite/Portraits/Allies/",
@@ -66,7 +67,21 @@ namespace Helpers
             if (normalized.StartsWith("Sprite/", StringComparison.Ordinal))
             {
                 resourcePath = normalized;
-                return Resources.Load<Sprite>(resourcePath);
+                Sprite sprite = Resources.Load<Sprite>(resourcePath);
+                // 공용 역할 아이콘은 UI용 Texture2D로 임포트된다. 미제작 캐릭터의 명시적
+                // 임시 초상으로 쓸 때도 동일 원본을 공유하고 기존 임포트/GUID는 보존한다.
+                if (sprite == null && normalized.StartsWith("Sprite/UI/UnitTags/", StringComparison.Ordinal))
+                {
+                    if (RoleIconSprites.TryGetValue(normalized, out sprite) && sprite != null) return sprite;
+                    Texture2D texture = Resources.Load<Texture2D>(normalized);
+                    if (texture != null)
+                    {
+                        sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, .5f), 100f);
+                        sprite.name = texture.name;
+                        RoleIconSprites[normalized] = sprite;
+                    }
+                }
+                return sprite;
             }
 
             if (cache.TryGetValue(normalized, out string cachedPath))

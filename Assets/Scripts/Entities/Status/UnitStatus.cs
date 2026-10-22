@@ -112,6 +112,9 @@ namespace Entities.Status
             => Category == BaseEnums.StatusCategory.Negative ||
                (Effects != null && Effects.Exists(instance => instance.EffectObject?.IsDamageOverTime == true ||
                    (Category != BaseEnums.StatusCategory.Positive && instance.EffectObject?.Category == BaseEnums.EffectCategory.Negative)));
+
+        /// <summary>기절·빙결·에어본·속박 등 행동 제어를 품었는가.</summary>
+        public bool IsControl => Effects != null && Effects.Exists(instance => instance.EffectObject?.IsControl == true);
         
         /// <summary>
         /// 효과 인스턴스 (ID + 계수)

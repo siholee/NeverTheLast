@@ -456,7 +456,9 @@ namespace Managers.UI.Screens
 
             SetTitle("출전 캐릭터 선택");
             _phaseLabel.text = $"함께 여정을 떠날 동료를 선택하세요   {picked} / {MaxParty}";
-            _stepLabel.text = "해금한 캐릭터 중 1~5명";
+            _stepLabel.text = picked < MaxParty
+                ? "1~5명 편성 가능 · 첫 여정은 추천 동료로 5명 편성을 권장합니다"
+                : "5명 편성 완료 · 역할과 스킬을 확인하고 출발하세요";
 
             foreach (KeyValuePair<int, Image> pair in _tiles)
             {

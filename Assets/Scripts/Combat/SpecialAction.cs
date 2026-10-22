@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace Combat
 {
+    public interface ISpecialGateOpener { }
+    public interface ISpecialActionProvider { }
+
     /// <summary>
     /// 특수행동 묶음을 한 번에 예약한다. 같은 묶음의 임시 효과는 마지막 SP가 끝날 때 걷는다.
     ///
@@ -18,6 +21,19 @@ namespace Combat
     /// </summary>
     public static class SpecialAction
     {
+        public sealed class Batch
+        {
+            public Unit Opener { get; }
+            public IReadOnlyList<Unit> Members { get; }
+            public int Count => Members.Count;
+            internal Batch(Unit opener, List<Unit> members) { Opener = opener; Members = members.AsReadOnly(); }
+        }
+        public static event Action<Batch> Opened;
+        public static event Action<Batch> Finished;
+        public static Batch CurrentBatch { get; private set; }
+        public static bool CanOpen(Unit unit) => unit?.ActiveUltimateCode is ISpecialGateOpener;
+        public static bool CanUse(Unit unit) => unit != null && (unit.HasSpecialAction ||
+            unit.ActivePassiveCodesResolved().Any(code => code is ISpecialActionProvider));
         public const string LokapalaTag = "Lokapala";
 
         private static readonly HashSet<Unit> Pending = new();
@@ -40,18 +56,26 @@ namespace Combat
         /// <summary>필드의 같은 묶음 SP를 OpenOrder 순으로 예약한다.</summary>
         public static int OpenGate(Unit opener, string gateTag = LokapalaTag)
         {
+            if (CurrentBatch != null || Pending.Count > 0 || !DirectAttack.CasterCanContinue(opener, true)) return 0;
             ActionScheduler scheduler = GameManager.Instance?.ActionScheduler;
             if (scheduler == null) return 0;
 
             int opened = 0;
+            var members = new List<Unit>();
             foreach (Unit unit in Participants(opener, gateTag).OrderBy(unit => unit.ActiveSpecialCode.OpenOrder))
             {
                 if (Pending.Contains(unit)) continue;
                 if (!scheduler.EnqueueSpecial(unit, gateTag, unit.ActiveSpecialCode.CodeName, unit.CastSpecialCode)) continue;
                 Pending.Add(unit);
+                members.Add(unit);
                 opened++;
             }
-            if (opened > 0) CurrentOpener = opener;
+            if (opened > 0)
+            {
+                CurrentOpener = opener;
+                CurrentBatch = new Batch(opener, members);
+                Opened?.Invoke(CurrentBatch);
+            }
 
             Debug.Log($"[특수행동] {opener.UnitName}이(가) {gateTag} 묶음 {opened}명의 행동을 열었다");
             return opened;
@@ -62,9 +86,13 @@ namespace Combat
             if (cleanup != null) BatchCleanups.Add(cleanup);
         }
 
-        public static void NotifyResolved(Unit unit)
+        public static void NotifyResolved(Unit unit, bool completed = false)
         {
-            if (unit == null || !Pending.Remove(unit) || Pending.Count > 0) return;
+            if (unit == null || !Pending.Remove(unit)) return;
+            if (completed) _completed++;
+            if (Pending.Count > 0) return;
+            // 취소된 예약도 소진하되 실제 완료자가 한 명도 없는 묶음은 회복하지 않는다.
+            if (_completed > 0 && CurrentBatch != null) Finished?.Invoke(CurrentBatch);
             RunCleanups();
         }
 
@@ -74,9 +102,13 @@ namespace Combat
             RunCleanups();
         }
 
+        private static int _completed;
+
         private static void RunCleanups()
         {
             CurrentOpener = null;
+            CurrentBatch = null;
+            _completed = 0;
             Action[] callbacks = BatchCleanups.ToArray();
             BatchCleanups.Clear();
             foreach (Action callback in callbacks) callback?.Invoke();

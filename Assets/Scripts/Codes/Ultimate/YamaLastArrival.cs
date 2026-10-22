@@ -12,13 +12,14 @@ using UnityEngine;
 namespace Codes.Ultimate
 {
     /// <summary>
-    /// 야마 — 초월기 「언젠가 다다를 마지막」(Detail_08 §15.4). 적 전체에 공격력 120%, 대상별 번개 부착,
-    /// 그 대상의 모든 지속피해를 min(1, 1.5q) 비율로 즉시 발동한다. 대상마다 피해 → 부착 → 발동 순이다.
+    /// 야마 — 초월기 「언젠가 다다를 마지막」(Detail_08 §15.4). 적 전체에 공격력 280%, 대상별 번개 부착,
+    /// 그 대상의 모든 지속피해를 min(5, 2q) 비율로 즉시 발동한다. 대상마다 피해 → 부착 → 발동 순이다.
     /// </summary>
     public sealed class YamaLastArrival : BaseUltimateCode
     {
-        private const float AttackRatio = 1.20f;
+        private const float AttackRatio = 2.80f;
 
+        protected override bool AppliesElement => true;
         public override int AttackForm => DamageTag.Spell;
 
         public YamaLastArrival(UltimateCodeContext context) : base(context) => CodeName = "언젠가 다다를 마지막";

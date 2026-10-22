@@ -165,7 +165,7 @@ namespace Codes.Passive
                 yield return routing.ResolvePreAttack();
                 if(!Working||generation!=_generation||!routing.CanContinue||!DirectAttack.CasterCanContinue(Caster,true)||!Targeting.Announce(Caster,routing.Targets))yield break;
                 target=routing.Targets.First();
-                bool crit=RollCritical(target,out float multiplier);
+                bool crit=RollCritical(target,tags,out float multiplier);
                 var context=new DamageContext(Caster,Mathf.Max(1,Mathf.RoundToInt(Caster.StatValue(BaseEnums.StatType.Attack)*.70f*multiplier)),BaseEnums.CodeType.Passive,tags,crit);
                 AudioManager.PlayAction(Caster,SfxActionSlot.Passive,SfxCuePhase.Cast,CodeName);
                 yield return DirectAttack.HitOne("set.counter",Caster,target,()=>

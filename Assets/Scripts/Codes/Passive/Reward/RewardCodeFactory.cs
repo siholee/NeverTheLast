@@ -1,4 +1,4 @@
-﻿using BaseClasses;
+using BaseClasses;
 using Codes.Base;
 
 namespace Codes.Passive.Reward
@@ -13,6 +13,12 @@ namespace Codes.Passive.Reward
         {
             CodeCatalog.Entry entry = RewardCodeCatalog.Find(codeId);
             if (entry == null) return null;
+            if (System.Array.IndexOf(DebuffRewardCode.Ids, codeId) >= 0) return new DebuffRewardCode(context, codeId);
+            if (System.Array.IndexOf(SpecialElementRewardCode.Ids, codeId) >= 0) return new SpecialElementRewardCode(context, codeId);
+            if (System.Array.IndexOf(SingleAttackRewardCode.Ids, codeId) >= 0) return new SingleAttackRewardCode(context, codeId);
+            if (System.Array.IndexOf(FollowUpRewardCode.Ids, codeId) >= 0) return new FollowUpRewardCode(context, codeId);
+            if (System.Array.IndexOf(SummonIdeaRewardCode.Ids, codeId) >= 0) return new SummonIdeaRewardCode(context, codeId);
+            if (System.Array.IndexOf(SecretSupportRewardCode.Ids, codeId) >= 0) return new SecretSupportRewardCode(context, codeId);
             if (TreasuryRewardCode.Supports(codeId)) return new TreasuryRewardCode(context, codeId);
 
             if(!string.IsNullOrEmpty(entry.capacitorStat)) return new CapacitorCode(context,codeId);

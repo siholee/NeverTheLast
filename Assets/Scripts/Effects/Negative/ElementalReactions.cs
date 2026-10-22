@@ -52,7 +52,7 @@ namespace Effects.Negative
         Freeze,         // 빙결   물 + 얼음
         Weathering,     // 풍화   물 + 바위
         Rooting,        // 착근   풀 + 풀
-        Activation,     // 활성   풀 + 전기
+        Activation,     // 과성장 풀 + 전기 — 기존 식별자는 저장·쿨다운 호환용으로 유지
         Dormancy,       // 휴면   풀 + 얼음
         Growth,         // 성장   풀 + 바위
         Charge,         // 축전   전기 + 전기
@@ -186,7 +186,7 @@ namespace Effects.Negative
             new(Hydro, Geo,       ReactionId.Weathering,  "풍화",   ReactionKind.Dot),
 
             // 풀
-            new(Dendro, Electro,  ReactionId.Activation,  "활성",   ReactionKind.Debuff),
+            new(Dendro, Electro,  ReactionId.Activation,  "과성장", ReactionKind.Debuff, BaseEnums.StatType.SpecialDefense),
             new(Dendro, Cryo,     ReactionId.Dormancy,    "휴면",   ReactionKind.Null),
             new(Dendro, Geo,      ReactionId.Growth,      "성장",   ReactionKind.Buff,  BaseEnums.StatType.Defense),
 
@@ -344,7 +344,7 @@ namespace Effects.Negative
                 case ReactionKind.Null:     break;   // 두 원소를 지우는 것이 전부다
             }
 
-            Unit.NotifyElementalReaction(source, target, reaction.Name);
+            Unit.NotifyElementalReaction(source, target, reaction.Name, reaction.A, reaction.B);
             Debug.Log($"[원소 반응] {reaction.Name} — {source.UnitName} → {target.UnitName}");
         }
 
@@ -497,11 +497,11 @@ namespace Effects.Negative
             float ratio = StatRatio(source) * HarmfulPotency(source);
             if (ratio <= 0f) return;
 
-            // 둔화만 스탯을 깎고, 활성·초전도는 특정 경감 계열의 피해를 더 받게 한다.
-            if (reaction.Id == ReactionId.Slow)
+            // 과성장은 실제 특수방어력을 낮춘다. 부착 성공을 상속해 명중을 다시 굴리지 않는다.
+            if (reaction.Id is ReactionId.Slow or ReactionId.Activation)
             {
                 AddReactionStatus(target, BuffStatus.Create(
-                    BuffStatusId, $"reaction_{reaction.Id}", reaction.Name,
+                    reaction.Id == ReactionId.Activation ? VulnerableStatusId : BuffStatusId, $"reaction_{reaction.Id}", reaction.Name,
                     source, target, new StatModifierEffect(reaction.Stat, -ratio, percent: true),
                     duration: StatDuration,
                     category: BaseEnums.StatusCategory.Negative,
@@ -509,10 +509,9 @@ namespace Effects.Negative
                 return;
             }
 
-            // 활성은 특수방어력으로 막는 피해(지속피해·반응)를, 초전도는 방어력으로 막는 피해를 키운다.
-            bool isActivation = reaction.Id == ReactionId.Activation;
-            BaseEnums.StatType against = isActivation ? BaseEnums.StatType.SpecialDefense : BaseEnums.StatType.Defense;
-            string label = isActivation ? "지속·반응" : "일반";
+            // 초전도의 방어력 경감 계열 취약은 유지한다.
+            BaseEnums.StatType against = BaseEnums.StatType.Defense;
+            string label = "일반";
             AddReactionStatus(target, BuffStatus.Create(
                 VulnerableStatusId, $"reaction_{reaction.Id}", reaction.Name,
                 source, target, new MitigationVulnerabilityEffect(against, 1f + ratio),

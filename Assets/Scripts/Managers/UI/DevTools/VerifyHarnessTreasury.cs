@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -135,7 +135,7 @@ namespace Managers.UI.DevTools
             using(var rec=new YvRecorder())
             {
                 yield return TreasuryCast(kb,kb.CastSpecialCode);
-                RuiCheck("부족 특수 부분소비 금지", "2·기본공격",PartyTreasury.Available.ToString(),PartyTreasury.Available==2&&rec.Incoming.Where(x=>x.Attacker==kb).All(x=>!x.IsTreasuryAttack));
+                RuiCheck("재보2 단계 소비", "0·강화공격",PartyTreasury.Available.ToString(),PartyTreasury.Available==0&&rec.Incoming.Where(x=>x.Attacker==kb).All(x=>x.IsTreasuryAttack&&x.IsTreasurySpendAttack));
             }
             RuiCheck("치피 원본 재귀 없음", ".15",KuberaPatronage.AdditionalCritDamage(ish).ToString(),Mathf.Approximately(KuberaPatronage.AdditionalCritDamage(ish),kb.StatValue(BaseEnums.StatType.CritDamage)*.3f));
             RuiCheck("소환 후원 상태 제거", "후원/보고개방상태0",kb.GetStatuses().Count.ToString(),!AliveAllies().Any(x=>x.HasStatusKey("kubera_patronage")||x.HasStatusKey("kubera_treasury")));

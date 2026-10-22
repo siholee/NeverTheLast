@@ -66,6 +66,10 @@ public sealed class VfxSlotData
     public string slot;
     public bool portraitAnchor;
     public bool steadyBody;
+    /// <summary>주 검격과 얇은 잔상을 분리하고 기존 피격 정점에 획을 완성한다. 판정 시각은 바꾸지 않는다.</summary>
+    public bool focusedStroke;
+    /// <summary>수평 광역의 실제 대상별 판정에 붙이는 국소 접점 크기. 0이면 추가하지 않는다.</summary>
+    public float impactContactScale;
     public bool recolor;
     public bool supportInk;
     public float supportScale = 1f;

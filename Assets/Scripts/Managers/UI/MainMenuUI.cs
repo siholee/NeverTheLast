@@ -83,7 +83,7 @@ namespace Managers.UI
 
             RunSaveData save = SaveSystem.HasSave() ? SaveSystem.LoadRun() : null;
             string continuation = save == null ? "저장된 여정이 없습니다" :
-                $"스테이지 {save.currentRound} · {(Mathf.Max(1, save.currentStage) - 1) % RoundManager.EncountersPerTheme + 1}라운드  /  목숨 {save.life}";
+                $"스테이지 {save.currentRound} · {ProgressionLayout.SlotOf(save.currentStage)}라운드";
             RectTransform terminal = UIBuild.Container("LobbyTerminal", root);
             UIBuild.Anchor(terminal, new Vector2(.57f, .235f), new Vector2(.955f, .74f));
             Copy(terminal, "TerminalLabel", "여정", 18f, UITheme.Accent, 0f, 1.035f, .5f, 1.105f, true);

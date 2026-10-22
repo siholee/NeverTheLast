@@ -41,6 +41,9 @@ namespace Codes.Base
     /// </summary>
     public virtual int AttackForm => 0;
 
+    /// <summary>이 코드의 1회 기본 보호막 생성량. 자원 소비·시전·보호막 보정 없이 현재 스탯으로 조회한다.</summary>
+    public virtual int BaseShieldAmount => 0;
+
     protected Coroutine CurrSkillCoroutine;
 
     /// <summary>
@@ -60,6 +63,9 @@ namespace Codes.Base
     /// </summary>
     protected bool RollCritical(Unit target, out float multiplier) => RollCritical(target, CodeType, out multiplier);
 
+    protected bool RollCritical(Unit target, IReadOnlyList<int> tags, out float multiplier)
+      => RollCriticalFor(Caster, Caster, target, CodeType, out multiplier, tags);
+
     /// <summary>
     /// 치명 질의의 행동 종류를 따로 정해 굴린다. 행동은 추가행동이지만 피해는 궁극기로 판정받는 경우
     /// (아그니 초월기 동안의 특성 추공)가 궁극기 치명 보정을 받게 하려는 국소 오버로드다. 실제 행동 종류 · 이벤트는 바꾸지 않는다.
@@ -73,10 +79,16 @@ namespace Codes.Base
     /// 일반 코드는 둘 다 시전자다(<see cref="RollCritical(Unit, BaseEnums.CodeType, out float)"/>).
     /// </summary>
     protected static bool RollCriticalFor(Unit statOwner, Unit actor, Unit target, BaseEnums.CodeType queryType,
-      out float multiplier)
+      out float multiplier, IReadOnlyList<int> tags = null)
     {
       multiplier = 1f;
       if (statOwner == null) return false;
+
+      // 태그를 따로 전달하지 않는 추가행동도 실제 행동자(소환수 포함)의 실행 문맥으로 판별한다.
+      var scheduler = Managers.GameManager.Instance?.ActionScheduler;
+      if (tags == null && actor != null && scheduler?.ExecutingUnit == actor &&
+          Managers.ActionScheduler.IsAdditional(scheduler.ActingKind))
+        tags = new[] { DamageTag.AdditionalAttack };
 
       float chance = statOwner.StatValue(BaseEnums.StatType.CritRate);
       float critDamage = statOwner.StatValue(BaseEnums.StatType.CritDamage);
@@ -87,6 +99,7 @@ namespace Codes.Base
       {
         chance += effect.CritChanceBonusAgainst(statOwner, target, queryType);
         critDamage += effect.CritDamageBonusAgainst(statOwner, target, queryType);
+        critDamage += effect.TaggedCritDamageBonus(statOwner, tags);
         forced |= effect.ForcesCriticalAgainst(statOwner, target, queryType);
         overflowRatio += effect.CritOverflowToDamageRatio(statOwner);
       }

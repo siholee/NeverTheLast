@@ -394,7 +394,8 @@ namespace Effects.Vfx
             Action visualPeakNotification = () =>
             {
                 heavyCrestAtPeak?.Invoke();
-                if(skillKey is "himiko.ember" or "pygmalion.ember" or "agni.follow_up" or "agni.focused_follow_up")
+                if(skillKey=="himiko.ember")PortraitAccentFx.HimikoContact(target,Anchor());
+                if(skillKey is "pygmalion.ember" or "agni.follow_up" or "agni.focused_follow_up")
                     PortraitAccentFx.Fire(caster,target,skillKey);
                 if(skillKey=="chandra.sachi"&&index==2)PortraitAccentFx.Moon(caster,target);
                 if(part.id=="hit.fire")PortraitAccentFx.FlameStrikeCore(target);
@@ -406,7 +407,7 @@ namespace Effects.Vfx
                 if(part.id=="hit.smoke.fire_mark")PortraitAccentFx.FlameStrikeCore(target);
                 if(part.id=="hit.smoke.horizontal.afterglow")PortraitAccentFx.SmokeSweep(target,true);
                 if(part.id.StartsWith("hit.crystal",StringComparison.Ordinal))PortraitAccentFx.CrystalFragments(target,part.id=="hit.crystal.debris");
-                if(part.id is "hit.fire.burst" or "hit.fire.sculptor_burst")
+                if(skillKey!="himiko.ember" && (part.id is "hit.fire.burst" or "hit.fire.sculptor_burst"))
                     PortraitAccentFx.FireContact(target,part.id=="hit.fire.sculptor_burst");
                 if(part.id=="hit.lightning.portrait")PortraitAccentFx.LightningContact(target);
                 if(part.id=="hit.kubera.treasury")LokapalaFx.TreasuryGlints(target);
@@ -520,8 +521,8 @@ namespace Effects.Vfx
             if (portraitAnchor)
                 DrawInk(Anchor(), eventLayer, part, size, angle, flipX, peak, target, portraitAnchor,
                     part.peakHoldSeconds);
-            if(part.id is "hit.explosion.large" or "hit.moonlight" or "hit.impact.large" or "hit.moonlight.changya" or
-                "hit.fire.burst" or "hit.fire.sculptor_burst")
+            if(skillKey!="himiko.ember" && (part.id is "hit.explosion.large" or "hit.moonlight" or "hit.impact.large" or "hit.moonlight.changya" or
+                "hit.fire.burst" or "hit.fire.sculptor_burst"))
             {
                 // 넓은 불빛을 진하게 만들지 않고, 몸통 안의 구매 원화 실루엣만 또렷하게 남긴다.
                 bool fire=part.id is "hit.fire.burst" or "hit.fire.sculptor_burst";
@@ -640,6 +641,7 @@ namespace Effects.Vfx
                 RevealSoftness = part.revealSoftness,
                 TipWidth = part.tipWidth,
                 CardKickStrength = part.cardKickStrength * Mathf.Sqrt(scale),
+                FocusedStroke = slot.focusedStroke,
                 PortraitWidthFraction = part.id=="hit.loki.fenrir" ? .86f : 1.10f,
                 PortraitHeightFraction = part.id=="hit.loki.fenrir" ? .20f : .42f,
                 // 세 줄이 적의 머리 전체를 덮지 않도록 실제 HUD 위 몸통 띠로 내려 붙인다.
@@ -655,8 +657,20 @@ namespace Effects.Vfx
             int layer = VfxSpace.SortingLayer(target);
             yield return ClawRakeFx.Play(target, fallback, layer, style, () =>
             {
-                PlayClawSupport(part.accentPartId, target, edge, core, scale * 0.54f, 26);
-                PlayClawSupport(part.secondaryPartId, target, edge, core, scale * 0.46f, 22);
+                if(slot.focusedStroke)
+                {
+                    float card=CardMotion.ViewOf(target)?.CardSize??VfxSpace.CardSize;
+                    float radians=angle*Mathf.Deg2Rad;
+                    Vector3 strokeDirection=new(Mathf.Cos(radians),Mathf.Sin(radians),0f);
+                    Vector3 strikePoint=VfxSpace.PortraitPoint(target)+Vector3.up*(VfxSpace.CardSize*.10f)
+                        +(Vector3)(style.OffsetInCards*card)-strokeDirection*(card*.10f);
+                    PortraitAccentFx.ContactAt(target,strikePoint,core,1.25f);
+                }
+                else
+                {
+                    PlayClawSupport(part.accentPartId, target, edge, core, scale * .54f, 26);
+                    PlayClawSupport(part.secondaryPartId, target, edge, core, scale * 0.46f, 22);
+                }
                 onPeak?.Invoke();
             });
         }
@@ -733,6 +747,8 @@ namespace Effects.Vfx
                     VfxSpace.WorldPoint(target), angle, flipX, VfxSpace.SortingLayer(target), order);
                 if(skillKey is "shi.final_bell.6" or "shi.final_bell.9")
                     PortraitAccentFx.Contact(target,core);
+                if(slot.impactContactScale>0f)
+                    PortraitAccentFx.FormationContact(caster,target,core,slot.impactContactScale);
                 onImpact?.Invoke(target);
             }
             float total = Mathf.Max(0.20f, Mathf.Max(1, part.columns * part.rows) / Mathf.Max(1f, part.fps));
@@ -893,7 +909,13 @@ namespace Effects.Vfx
         {
             List<Unit> alive = targets?.Where(unit => unit != null && unit.isActive).ToList()
                                ?? new List<Unit>();
-            if (caster == null || alive.Count == 0) yield break;
+            if (alive.Count == 0) yield break;
+            if (caster == null)
+            {
+                // 단일 연출과 같은 완료 계약. 실제 공격의 생존 판정은 DirectAttack이 맡는다.
+                foreach (Unit target in alive) onImpact?.Invoke(target);
+                yield break;
+            }
 
             IReadOnlyList<VfxTargetHit> hits = VfxSpace.BuildTargetHitSequence(alive, impactSpreadSeconds);
             PlayScreen(skillKey, caster, alive);

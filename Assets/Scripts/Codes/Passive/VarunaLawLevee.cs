@@ -9,7 +9,7 @@ namespace Codes.Passive
 {
     /// <summary>
     /// 바루나 — 특성 「법이 만든 제방」(Detail_08 §16.2). 자신의 <b>행동</b>으로 적에게 물을 부착하면
-    /// 자신에게 현재 방어력 35%의 보호막을 얻는다. 광역이든 확산으로 여럿에게 붙든 행동당 한 번이다.
+    /// 자신에게 현재 방어력 70%의 보호막을 얻는다. 광역이든 확산으로 여럿에게 붙든 행동당 한 번이다.
     ///
     /// 실제 부착 시점(<see cref="Unit.AnyCombatElementGranted"/>)에 일하므로 부착 직후 반응으로 물이 소비돼도 발동한다.
     /// 행동 경계는 스케줄러가 매기는 행동 번호(<see cref="ActionScheduler.CurrentActionId"/>)로 가른다 — 같은 턴의
@@ -18,7 +18,8 @@ namespace Codes.Passive
     /// </summary>
     public sealed class VarunaLawLevee : UniquePassiveCode
     {
-        public const float DefenseRatio = 0.35f;
+        public override int BaseShieldAmount => StatDamage(0, BaseEnums.StatType.Defense, DefenseRatio);
+        public const float DefenseRatio = 0.70f;
 
         /// <summary>
         /// 제방 보호막을 준 순간(바루나, 행동 번호, 보정 전 보호막량). 같은 바루나의 파티 보호막(초월기 · 특수행동)과

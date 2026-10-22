@@ -228,7 +228,7 @@ namespace Codes.Passive
             // 강탄은 예약이 아니라 실제로 쏘는 순간에 쓴다.
             bool empowered = Empowered;
             float ratio = empowered ? EmpoweredShotRatio : ShotRatio;
-            bool crit = RollCritical(shot, out float multiplier);
+            bool crit = RollCritical(shot, tags, out float multiplier);
             int damage = Mathf.Max(1, Mathf.RoundToInt(StatDamage(0f, BaseEnums.StatType.Attack, ratio) * multiplier));
             var context = new DamageContext(Caster, damage, BaseEnums.CodeType.Passive, tags, crit);
 

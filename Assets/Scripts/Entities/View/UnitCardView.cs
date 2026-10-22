@@ -154,6 +154,10 @@ namespace Entities.View
         private Image _toughnessFill;
         private Image _hpTrack;
         private Image _hpFill;
+        private Image _hpDamageTrail;
+        private float _observedHpRatio = -1f;
+        private int _observedHpMax = -1;
+        private float _hpTrailRatio, _hpTrailHold, _hpTrailSpeed;
         private Image _shieldFill;
         private Image _actionTrack;
         private Image _actionFill;
@@ -655,6 +659,8 @@ namespace Entities.View
             _hpTrack.sprite = UIShapes.RoundedRect(1, new Color(0.71f, 0.75f, 0.80f, 0.38f));
             _hpTrack.type = Image.Type.Sliced;
             Place(_hpTrack.rectTransform, 6f, HpTop - GlassTop, GlassWidth - 12f, HpHeight);
+            _hpDamageTrail = NewImage(_hpTrack.transform, "HpDamageTrail", new Color(1f, .82f, .53f, .96f));
+            _hpDamageTrail.raycastTarget = false;
             _hpFill = NewImage(_hpTrack.transform, "HpFill", UITheme.Hp);
             _shieldFill = NewImage(_hpTrack.transform, "ShieldFill", new Color(0.87f, 0.94f, 1f, 0.98f));
             Image sheen = UIBuild.Solid("Sheen", _hpTrack.transform, new Color(1f, 1f, 1f, 0.22f));
@@ -745,7 +751,7 @@ namespace Entities.View
                    _ultReadyRing != null && _resourceBadge != null && _resourceBadgeDigit != null &&
                    _resourceBadgeText != null && _strongShotText != null && _suryaResourcePlate != null &&
                     _bottomGlass != null && _bottomGlassShadow != null &&
-                   _glassTint != null && _hpTrack != null && _hpFill != null && _shieldFill != null &&
+                   _glassTint != null && _hpTrack != null && _hpFill != null && _hpDamageTrail != null && _shieldFill != null &&
                    _actionTrack != null && _actionFill != null &&
                    AllAlive(_dots, MaxDots) && AllAlive(_dotBacks, MaxDots) &&
                    AllAlive(_dotRims, MaxDots) && AllAlive(_dotArrows, MaxDots) &&
@@ -830,6 +836,7 @@ namespace Entities.View
             _actionGateRim = null;
             _hpTrack = null;
             _hpFill = null;
+            _hpDamageTrail = null;
             _shieldFill = null;
             _actionTrack = null;
             _actionFill = null;
@@ -916,6 +923,8 @@ namespace Entities.View
         public sealed class ResourceHudDiagnostic
         {
             public int unitId, ammo, maximum, strong;
+            public string badgeResourceId;
+            public int badgeValue, badgeMaximum;
             public bool combatHud, bodyActive, ammoEnabled, strongEnabled, ammoMeshVisible, strongMeshVisible;
             public string unitName, nameText, ammoText, strongText, font, nameFont, strongFont, sorting;
             public int ammoCharacters, strongCharacters, nameCharacters;
@@ -942,6 +951,9 @@ namespace Entities.View
             return new ResourceHudDiagnostic
             {
                 unitId = _unit.ID, unitName = _unit.UnitName, nameText = _nameLabel.text, nameFont = _nameLabel.font?.name, nameCharacters = _nameLabel.textInfo.characterCount,
+                badgeResourceId = BadgeResourceId(_unit),
+                badgeValue = _unit.ID == 65 ? _unit.ManaCurr : _unit.GetCombatResource(BadgeResourceId(_unit)),
+                badgeMaximum = _unit.ID == 65 ? 8 : _unit.GetCombatResourceMaximum(BadgeResourceId(_unit)),
                 ammo = _unit.GetCombatResource(Codes.Passive.SuryaBeforeSunset.BulletResourceId),
                 maximum = _unit.GetCombatResourceMaximum(Codes.Passive.SuryaBeforeSunset.BulletResourceId),
                 strong = _unit.GetCombatResource(Codes.Passive.SuryaBeforeSunset.EmpoweredResourceId),
@@ -974,11 +986,11 @@ namespace Entities.View
             if (_resourceBadgeText == null) return;
             float hud=BottomHudSize(s), scale=_compactHud ? _hudPixelScale : 1f;
             float y=s*(.5f-GlassCenterY/CanvasWidth)+hud*(GlassCenterY-(GlassTop+9.5f))/CanvasWidth;
-            PlaceLabel(_resourceBadgeText,new Vector2(-hud*.225f,y),new Vector2(hud*.38f,hud*.14f*scale),hud*.72f*scale);
+            PlaceLabel(_resourceBadgeText,new Vector2(-hud*.225f,y),new Vector2(hud*.38f,hud*.14f*scale),hud*.75f*scale);
             _resourceBadgeText.alignment=TextAlignmentOptions.MidlineLeft;
             _resourceBadgeText.enableAutoSizing=true;
             _resourceBadgeText.fontSizeMin=hud*.60f*scale;
-            _resourceBadgeText.fontSizeMax=hud*.72f*scale;
+            _resourceBadgeText.fontSizeMax=hud*.75f*scale;
             _resourceBadgeText.outlineWidth=0f;
         }
 
@@ -1784,7 +1796,21 @@ namespace Entities.View
             // 보호막은 별도 생명처럼 체력 오른쪽을 늘리지 않고, 최대 체력 대비 양을 윗면에 겹쳐 보여 준다.
             float hpRatio = _unit.HpMax > 0 ? Mathf.Clamp01(_unit.HpCurr / (float)_unit.HpMax) : 0f;
             float shieldRatio = _unit.HpMax > 0 ? Mathf.Clamp01(_unit.ShieldCurr / (float)_unit.HpMax) : 0f;
+            if (_observedHpRatio < 0f || _observedHpMax != _unit.HpMax || hpRatio > _observedHpRatio)
+            {
+                _hpTrailRatio = hpRatio;
+                _hpTrailHold = 0f;
+            }
+            else if (hpRatio < _observedHpRatio)
+            {
+                _hpTrailRatio = Mathf.Max(_hpTrailRatio, _observedHpRatio);
+                _hpTrailHold = .075f;
+                _hpTrailSpeed = Mathf.Max(.001f, (_hpTrailRatio - hpRatio) / .22f);
+            }
+            _observedHpRatio = hpRatio;
+            _observedHpMax = _unit.HpMax;
             SetSpan(_hpFill.rectTransform, 0f, hpRatio);
+            DrawHpDamageTrail();
             SetSpan(_shieldFill.rectTransform, 0f, shieldRatio);
             _shieldFill.rectTransform.offsetMin = new Vector2(0f, HpHeight * 0.58f);
             _hpFill.enabled = hpRatio > 0f;
@@ -1913,7 +1939,7 @@ namespace Entities.View
             string resource = BadgeResourceId(_unit);
             int max = treasure ? 8 : _combatHud && resource != null ? _unit.GetCombatResourceMaximum(resource) : 0;
             int current = treasure ? treasureCount : max > 0 ? _unit.GetCombatResource(resource) : 0;
-            bool visible = treasure || max > 0 && (_unit.ID is 7 or 67 or 82 or 121 || current > 0);
+            bool visible = treasure || max > 0 && (_unit.ID is 2 or 7 or 67 or 82 or 121 || current > 0);
             bool surya = _unit?.ID == 67;
             _resourceBadge.enabled = visible && !surya;
             if (_suryaResourcePlate != null) _suryaResourcePlate.enabled = visible && surya;
@@ -1924,7 +1950,8 @@ namespace Entities.View
                     _unit.GetCombatResource(Codes.Passive.SuryaBeforeSunset.EmpoweredResourceId) > 0;
             if (!visible) return;
 
-            _resourceBadgeText.text = surya ? $"탄 {current}/{max}" : _unit.ID == 82 ? $"{Mathf.RoundToInt(current / (float)Mathf.Max(1,max)*100)}%" : current.ToString();
+            _resourceBadgeText.text = surya ? $"탄 {current}/{max}" : _unit.ID == 82 ? $"{Mathf.RoundToInt(current / (float)Mathf.Max(1,max)*100)}%"
+                : _unit.ID == 121 ? $"영혼 {_unit.GetPermanentStacks(Codes.Passive.AnubisSoulHarvest.SoulKey)+_unit.GetPermanentStackFraction(Codes.Passive.AnubisSoulHarvest.SoulKey):0.0}" : current.ToString();
             _resourceBadge.rectTransform.sizeDelta = new Vector2(Mathf.Max(9.2f, 5.4f + _resourceBadgeText.text.Length * 3.8f), 7.2f);
             float complete = current >= max ? 1f : 0f;
             _resourceBadge.color = Color.Lerp(
@@ -1942,6 +1969,7 @@ namespace Entities.View
             return unit.ID switch
             {
                 1 => Codes.Passive.SeiBigBang.ResourceId,
+                2 => Codes.Ultimate.ShiFinalBell.ResourceId,
                 7 => Codes.Passive.JeanIronSanction.ResourceId,
                 67 => Codes.Passive.SuryaBeforeSunset.BulletResourceId,
                 82 => Codes.Ultimate.FreyaBrisingamen.Resource,
@@ -2651,6 +2679,7 @@ namespace Entities.View
             UpdateHudLod();
             AnimateHud();
             AdvanceSupportHudPulse(VfxTiming.ReadableDeltaTime);
+            AdvanceHpDamageTrail(VfxTiming.ReadableDeltaTime);
             AdvanceActionGatePulse(VfxTiming.ReadableDeltaTime);
             ApplyBattleInformationLayout();
             if (_resourcePulseAge >= 0f)
@@ -2673,19 +2702,28 @@ namespace Entities.View
             if (_group != null) _group.alpha = _alpha;
             if (_nameLabel != null) _nameLabel.enabled = false;
             if (_hpLabel != null) _hpLabel.enabled = true;
-            if (_resourceBadgeText != null)
+            // 고유 자원의 표시·문구는 RefreshResourceBadge 한 곳에서 정한다.
+            // 일반 마나 충전량은 원형 게이지만 사용하며 매 프레임 글자로 덮어쓰지 않는다.
+        }
+
+        private void AdvanceHpDamageTrail(float dt)
+        {
+            if (_hpDamageTrail == null || _observedHpRatio < 0f) return;
+            if (Time.timeScale > 0f && _combatHud)
             {
-                _resourceBadgeText.enabled = true;
-                var first = _unit.CombatResourceIds.FirstOrDefault(id => _unit.GetCombatResourceMaximum(id)>0);
-                bool smallCounter = first != null && _unit.GetCombatResourceMaximum(first) <= 100;
-                _resourceBadgeText.enabled = smallCounter || _unit.ID == 121;
-                _resourceBadgeText.text = _unit.ID == 121
-                    ? $"영혼 {_unit.GetPermanentStacks(Codes.Passive.AnubisSoulHarvest.SoulKey)+_unit.GetPermanentStackFraction(Codes.Passive.AnubisSoulHarvest.SoulKey):0.0}"
-                    : smallCounter ? $"{_unit.GetCombatResource(first)}/{_unit.GetCombatResourceMaximum(first)}" : "";
-                _resourceBadgeText.color = new Color(.83f,.89f,.95f,_alpha);
+                float step = Mathf.Max(0f, dt);
+                float held = Mathf.Min(_hpTrailHold, step);
+                _hpTrailHold -= held;
+                _hpTrailRatio = Mathf.MoveTowards(_hpTrailRatio, _observedHpRatio, _hpTrailSpeed * (step - held));
             }
-            if (_strongShotText != null) _strongShotText.enabled = false;
-            if (_suryaResourcePlate != null) _suryaResourcePlate.enabled = false;
+            DrawHpDamageTrail();
+        }
+
+        private void DrawHpDamageTrail()
+        {
+            if (_hpDamageTrail == null) return;
+            SetSpan(_hpDamageTrail.rectTransform, 0f, Mathf.Max(_observedHpRatio, _hpTrailRatio));
+            _hpDamageTrail.enabled = _combatHud && _hpTrailRatio > _observedHpRatio + .0001f;
         }
 
         private void AdvanceSupportHudPulse(float dt)
@@ -2996,6 +3034,10 @@ namespace Entities.View
             _landingAge = -1f;
             _entryFxStarted = false;
             _lastHp = -1;
+            _observedHpRatio = -1f;
+            _observedHpMax = -1;
+            _hpTrailRatio = _hpTrailHold = _hpTrailSpeed = 0f;
+            if (_hpDamageTrail != null) _hpDamageTrail.enabled = false;
             IsPerformingMotion = false;
             SetSortBoost(0);
             ApplyTransforms();

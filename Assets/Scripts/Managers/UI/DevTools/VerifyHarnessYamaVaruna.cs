@@ -149,7 +149,12 @@ namespace Managers.UI.DevTools
             game.gameState = BaseEnums.GameState.RoundInProgress;
             game.uiManager?.HidePreparationPhasePanel();
             foreach (Unit unit in AliveAllies().Concat(AliveEnemies())) unit.ClearUltimateResource();
-            foreach (Unit enemy in AliveEnemies()) YvBoostEnemy(enemy);
+            // 수동 기믹 검사는 원본 피해 계수에서 비교한다. 자연 진행 측정은 이 준비 경로를 쓰지 않는다.
+            foreach (Unit enemy in AliveEnemies())
+            {
+                enemy.RemoveStatusByKey(EnemyCombatBudget.StatusKey);
+                YvBoostEnemy(enemy);
+            }
             yield return WaitUnscaled(0.4f);
         }
 
@@ -374,15 +379,15 @@ namespace Managers.UI.DevTools
             int yamaLevel = yama.Level, varunaLevel = varuna.Level;
             var yamaSpec = new (BaseEnums.StatType Stat, float Base, float Growth)[]
             {
-                (BaseEnums.StatType.MaxHp, 900, 80), (BaseEnums.StatType.Attack, 102, 6.8f),
-                (BaseEnums.StatType.SpecialAttack, 85, 5.2f), (BaseEnums.StatType.Defense, 56, 4.2f),
-                (BaseEnums.StatType.SpecialDefense, 62, 4.6f), (BaseEnums.StatType.Speed, 106, 0),
+                (BaseEnums.StatType.MaxHp, 900, 80), (BaseEnums.StatType.Attack, 130, 8.8f),
+                (BaseEnums.StatType.SpecialAttack, 145, 9.5f), (BaseEnums.StatType.Defense, 56, 4.2f),
+                (BaseEnums.StatType.SpecialDefense, 62, 4.6f), (BaseEnums.StatType.Speed, 118, 0),
             };
             var varunaSpec = new (BaseEnums.StatType Stat, float Base, float Growth)[]
             {
-                (BaseEnums.StatType.MaxHp, 1120, 100), (BaseEnums.StatType.Attack, 82, 5.4f),
-                (BaseEnums.StatType.SpecialAttack, 86, 5.2f), (BaseEnums.StatType.Defense, 90, 6.8f),
-                (BaseEnums.StatType.SpecialDefense, 78, 5.7f), (BaseEnums.StatType.Speed, 102, 0),
+                (BaseEnums.StatType.MaxHp, 2000, 180), (BaseEnums.StatType.Attack, 82, 5.4f),
+                (BaseEnums.StatType.SpecialAttack, 86, 5.2f), (BaseEnums.StatType.Defense, 165, 12f),
+                (BaseEnums.StatType.SpecialDefense, 125, 9f), (BaseEnums.StatType.Speed, 102, 0),
             };
             foreach (int level in new[] { 1, 20, 500 })
             {
@@ -400,12 +405,12 @@ namespace Managers.UI.DevTools
                     yamaBad == "" && varunaBad == "" && crit);
 
                 float q = YamaDeathVerdict.NormalRatio(yama), u = YamaDeathVerdict.UltimateRatio(yama);
-                YvCheck($"Lv.{level} 기본 q", "q 48.7~49.2% · U 73.1~73.8% = min(1, 1.5q)",
-                    $"q {q:P2} · U {u:P2}", q >= 0.486f && q <= 0.4925f && Near(u, Mathf.Min(1f, 1.5f * q), 0.0001f) &&
-                                            u >= 0.7295f && u <= 0.739f);
+                YvCheck($"Lv.{level} 기본 q", "q 174~181% · U 348~362% = min(5, 2q)",
+                    $"q {q:P2} · U {u:P2}", q >= 1.74f && q <= 1.81f && Near(u, Mathf.Min(5f, 2f * q), 0.0001f) &&
+                                            u >= 3.48f && u <= 3.62f);
             }
 
-            // 보상 7칸 예(505/605/506/606/710/811/906)와 710 활성 구간(+속도 15) — 문서 §15.5의 70.8~73.1% · U 상한 100%
+            // 보상 7칸 예(505/605/506/606/710/811/906)와 710 활성 구간(+속도 15) — 문서 §15.5의 240~250% · U 최대500%
             int[] seven = { 505, 605, 506, 606, 710, 811, 906 };
             yama.DebugSetLevel(20);
             foreach (int id in yama.RewardCodeIds.ToList()) yama.RemoveRewardCode(id);
@@ -430,20 +435,20 @@ namespace Managers.UI.DevTools
             {
                 yama.DebugSetLevel(level);
                 float q = YamaDeathVerdict.NormalRatio(yama), u = YamaDeathVerdict.UltimateRatio(yama);
-                YvCheck($"Lv.{level} 7칸 · 710 활성 q", "q 70.8~73.1% · U 상한 100%", $"q {q:P2} · U {u:P2}",
-                    q >= 0.705f && q <= 0.734f && Near(u, 1f, 0.0001f));
+                YvCheck($"Lv.{level} 7칸 · 710 활성 q", "q 240~250% · U 최대500%", $"q {q:P2} · U {u:P2}",
+                    q >= 2.4f && q <= 2.5f && Near(u, Mathf.Min(5f, 2f * q), 0.0001f));
             }
             yama.RemoveStatusByKey(spellAcceleration.Key);
             foreach (int id in seven) yama.RemoveRewardCode(id);
             YvCheck("보상 코드 정리", "0칸", $"{yama.RewardCodeIds.Count}칸", yama.RewardCodeIds.Count == 0);
 
-            // q 상한 — 특공 · 속도를 크게 올려도 1을 넘지 않는다
+            // q 상한 — 특공 · 속도를 크게 올려도 일반3·초월5을 넘지 않는다
             UnitStatus pump = YvAddTestStatus(yama, YvStatId, "yv_q_cap_spatk",
                 new StatModifierEffect(BaseEnums.StatType.SpecialAttack, 100000f));
             UnitStatus pumpSpeed = YvAddTestStatus(yama, YvStatId + 100, "yv_q_cap_speed",
                 new StatModifierEffect(BaseEnums.StatType.Speed, 500f));
-            YvCheck("q 상한", "q = U = 1", $"q {YamaDeathVerdict.NormalRatio(yama):0.####} · U {YamaDeathVerdict.UltimateRatio(yama):0.####}",
-                Near(YamaDeathVerdict.NormalRatio(yama), 1f, 0.0001f) && Near(YamaDeathVerdict.UltimateRatio(yama), 1f, 0.0001f));
+            YvCheck("q 상한", "q = 3 · U = 5", $"q {YamaDeathVerdict.NormalRatio(yama):0.####} · U {YamaDeathVerdict.UltimateRatio(yama):0.####}",
+                Near(YamaDeathVerdict.NormalRatio(yama), 3f, 0.0001f) && Near(YamaDeathVerdict.UltimateRatio(yama), 5f, 0.0001f));
             yama.RemoveStatusByKey(pump.Key);
             yama.RemoveStatusByKey(pumpSpeed.Key);
 
@@ -534,6 +539,18 @@ namespace Managers.UI.DevTools
                 $"상태 {countBefore}→{target.GetStatuses().Count} · {(unchanged ? "불변" : "변함")}",
                 unchanged && countBefore == target.GetStatuses().Count);
 
+            // 계산된 초월 배율이 공용 경로에서 옛 3배 상한으로 잘리지 않는지 실제 피해로 확인한다.
+            foreach (float requested in new[] { 5f, 8f })
+            {
+                using var limitProbe = new YvRecorder();
+                DamageOverTimeDetonation.Detonate(target, requested, yama);
+                var limitHits = limitProbe.Detonations.Where(hit => hit.Trigger == yama).ToList();
+                YvCheck($"공용 정산 상한 실제 피해 요청{requested:0}", "효과별 원시 피해×5 · 기존 기간 유지",
+                    string.Join(" / ", limitHits.Select(hit => $"{hit.RawDamage}→{hit.Context.Damage}")),
+                    limitHits.Count == 4 && limitHits.All(hit => hit.Context.Damage == Mathf.RoundToInt(hit.RawDamage * 5f)) &&
+                    statuses.All(status => target.GetStatuses().Contains(status) && before[status] == (status.Duration, status.ElapsedTurns, status.RemainingTurns)));
+            }
+
             // 특공 · 속도가 q를 움직이고, 즉시 발동량이 그 q를 그대로 따른다
             UnitStatus spatk = YvAddTestStatus(yama, YvStatId, "yv_q_spatk", new StatModifierEffect(BaseEnums.StatType.SpecialAttack, 200f));
             float qSpAtk = YamaDeathVerdict.NormalRatio(yama);
@@ -588,7 +605,7 @@ namespace Managers.UI.DevTools
                     tagsOk && special.Count == AliveEnemies().Count && electro == 0 && detonations == 0);
             }
 
-            // 실제 초월기 — 대상별 피해 → 번개 → 지속피해 min(1, 1.5q)
+            // 실제 초월기 — 대상별 피해 → 번개 → 지속피해 min(5, 2q)
             foreach (Unit enemy in AliveEnemies())
             {
                 enemy.ResetCombatElements();
@@ -604,7 +621,7 @@ namespace Managers.UI.DevTools
                 int electro = recorder.Elements.Count(item => item.Source == yama && item.Element == BaseEnums.UnitElement.Electro);
                 var mine = recorder.Detonations.Where(hit => hit.Trigger == yama).ToList();
                 int targets = recorder.DetonationEnds.Count(item => item.Trigger == yama);
-                YvCheck("언젠가 다다를 마지막 실제 행동", "적 전체 #궁극기 #주문 → 대상별 번개 → 지속피해 min(1, 1.5q)",
+                YvCheck("언젠가 다다를 마지막 실제 행동", "적 전체 #궁극기 #주문 → 대상별 번개 → 지속피해 min(5, 2q)",
                     $"직접 {ult.Count} [{Tags(ult.FirstOrDefault())}] · 번개 {electro} · 발동 대상 {targets} · 발동 {mine.Count}회 · U {expectedU:0.####}",
                     ult.Count >= 4 && ult.All(context => context.HasTag(DamageTag.UltAttack) && context.HasTag(DamageTag.AllTarget) &&
                                                          context.HasTag(DamageTag.Spell)) &&
@@ -646,10 +663,10 @@ namespace Managers.UI.DevTools
             pyg.TryGrantRewardCode(811);
             YvCode(pyg, 811)?.CastCode();
             var pactPoison = Measure(poisonFx);
-            YvCheck("811 한 번 적용", "자연 ×1.35 · 즉시 발동/자연 = q",
+            YvCheck("811 한 번 적용", "자연 ×1.60 · 즉시 발동/자연 = q",
                 $"자연 {basePoison.Natural}→{pactPoison.Natural} ({pactPoison.Natural / (float)Mathf.Max(1, basePoison.Natural):0.###}) · 발동/자연 {pactPoison.Detonated / (float)Mathf.Max(1, pactPoison.Natural):0.###} (q {q:0.###})",
                 // 원 피해와 보정 피해가 각각 정수화되므로 작은 피해의 비율 오차 대신 최대 2 피해의 반올림 오차를 허용한다.
-                Mathf.Abs(pactPoison.Natural - basePoison.Natural * 1.35f) <= 2f &&
+                Mathf.Abs(pactPoison.Natural - basePoison.Natural * 1.60f) <= 2f &&
                 Mathf.Abs(pactPoison.Detonated - pactPoison.Natural * q) <= 2f);
             pyg.RemoveRewardCode(811);
 
@@ -786,11 +803,11 @@ namespace Managers.UI.DevTools
             int effect = YvProbe(pyg, target, BaseEnums.CodeType.Effect);
             int own = YvProbe(yama, target, BaseEnums.CodeType.Normal);
             int enemy = YvProbe(other, target, BaseEnums.CodeType.Normal);
-            YvCheck("선고 +20% — 아군 직접 · Effect · 야마, 적 진영 공격은 제외",
-                "×1.2 · ×1.2 · ×1.2 · ×1.0",
+            YvCheck("선고 +30% — 아군 직접 · Effect · 야마, 적 진영 공격은 제외",
+                "×1.3 · ×1.3 · ×1.3 · ×1.0",
                 $"×{Ratio(direct, baseDirect):0.###} · ×{Ratio(effect, baseEffect):0.###} · ×{Ratio(own, baseYama):0.###} · ×{Ratio(enemy, baseEnemy):0.###}",
-                Near(Ratio(direct, baseDirect), 1.2f) && Near(Ratio(effect, baseEffect), 1.2f) &&
-                Near(Ratio(own, baseYama), 1.2f) && Near(Ratio(enemy, baseEnemy), 1f));
+                Near(Ratio(direct, baseDirect), 1.3f) && Near(Ratio(effect, baseEffect), 1.3f) &&
+                Near(Ratio(own, baseYama), 1.3f) && Near(Ratio(enemy, baseEnemy), 1f));
 
             // 사바흐 — 실제 빈틈 포착 효과가 선고를 디버프 하나로 센다
             var sabah = new SabahDebuffDamageEffect { Target = pyg };
@@ -808,9 +825,9 @@ namespace Managers.UI.DevTools
                 int shocks = target.GetAllStatuses(ElementalReaction.ShockStatusId).Count;
                 int verdicts = target.GetAllStatuses(YamaDeathVerdict.MarkStatusId).Count;
                 int stacked = YvProbe(pyg, target, BaseEnums.CodeType.Normal);
-                YvCheck("출처 다른 감전 2개 — 선고 1개", "감전 2 · 선고 1 · 새 선고 이벤트 0 · ×1.2(×1.44 아님)",
+                YvCheck("출처 다른 감전 2개 — 선고 1개", "감전 2 · 선고 1 · 새 선고 이벤트 0 · ×1.3(×1.69 아님)",
                     $"감전 {shocks} · 선고 {verdicts} · 이벤트 {verdictAdds} · ×{Ratio(stacked, baseDirect):0.###}",
-                    shocks == 2 && verdicts == 1 && verdictAdds == 0 && Near(Ratio(stacked, baseDirect), 1.2f));
+                    shocks == 2 && verdicts == 1 && verdictAdds == 0 && Near(Ratio(stacked, baseDirect), 1.3f));
             }
             // 같은 출처의 감전은 키가 같아 새로 쌓이지 않고 지속만 늘어난다(출처별 중복 검사)
             YvShock(yama, target);
@@ -878,9 +895,9 @@ namespace Managers.UI.DevTools
             int offField = YvProbe(pyg, target, BaseEnums.CodeType.Normal);
             yama.currentCell = cell;
             int back = YvProbe(pyg, target, BaseEnums.CodeType.Normal);
-            YvCheck("야마 전장 밖 효력 0", "필드 밖 ×1.0 · 복귀 ×1.2",
+            YvCheck("야마 전장 밖 효력 0", "필드 밖 ×1.0 · 복귀 ×1.3",
                 $"×{Ratio(offField, baseDirect):0.###} · ×{Ratio(back, baseDirect):0.###}",
-                Near(Ratio(offField, baseDirect), 1f) && Near(Ratio(back, baseDirect), 1.2f));
+                Near(Ratio(offField, baseDirect), 1f) && Near(Ratio(back, baseDirect), 1.3f));
             yield return WaitUnscaled(0.3f);
         }
 
@@ -896,6 +913,10 @@ namespace Managers.UI.DevTools
         private IEnumerator YvVaruna(Unit varuna, Unit indra, List<Unit> enemies)
         {
             foreach (Unit enemy in enemies) YvResetEnemy(enemy);
+            // 물/번개 부착 자체의 확률 시험이 아니다. 현행 테마 적의 특방 차이에 따른
+            // 준비 단계 저항으로 제방·광역 반응 검사가 흔들리지 않게 공통 명중을 확보한다.
+            CfEnsureEffectHit(varuna, enemies);
+            CfEnsureEffectHit(indra, enemies);
             foreach (Unit unit in AliveAllies().Concat(AliveEnemies())) unit.ClearUltimateResource();
             int Expected(Unit owner, float ratio) => Mathf.RoundToInt(owner.StatValue(BaseEnums.StatType.Defense) * ratio);
 
@@ -916,14 +937,14 @@ namespace Managers.UI.DevTools
                     recorder.Levees[0].Amount == levee && varuna.ShieldCurr == shieldBefore + levee);
             }
 
-            // 초월기 — 적 전체 물(먼저 번개를 깔아 감전으로 즉시 소비) · 제방 한 번 · 아군 전원 방어력 100%
+            // 초월기 — 적 전체 물(먼저 번개를 깔아 감전으로 즉시 소비) · 제방 한 번 · 아군 전원 방어력 160%
             foreach (Unit enemy in AliveEnemies())
             {
                 YvResetEnemy(enemy);
                 enemy.GrantCombatElement(BaseEnums.UnitElement.Electro, source: indra);
             }
             foreach (Unit unit in AliveAllies().Concat(AliveEnemies())) unit.ClearUltimateResource();
-            int party = Expected(varuna, 1f);
+            int party = Expected(varuna, 1.6f);
             using (var recorder = new YvRecorder())
             {
                 yield return YvRunScheduled(_ => varuna.FillUltimateResource(),
@@ -962,7 +983,7 @@ namespace Managers.UI.DevTools
                     recorder.Levees[0].ActionId != recorder.Levees[1].ActionId);
             }
 
-            // 특수행동 — 물 없음 · 제방 없음 · 아군 전원 방어력 100%
+            // 특수행동 — 물 없음 · 제방 없음 · 아군 전원 방어력 160%
             List<int> specialShields = null;
             IEnumerator Special(Action<List<(Unit Target, Unit Source, int Amount)>, YvRecorder> inspect)
             {
@@ -1002,7 +1023,7 @@ namespace Managers.UI.DevTools
             });
             foreach (UnitStatus status in noise) varuna.RemoveStatusByKey(status.Key);
 
-            // 방어 · 624 · 810 · 625 — Lv.20 6칸 예(Detail_08 §16.4: 보유자 약 585 · 나머지 약 488), 보정은 공용 경로에서 한 번
+            // 방어 · 624 · 810 · 625 — Lv.20 6칸 예(Detail_08 §16.4: 보유자 약 1649 · 나머지 약 1374), 보정은 공용 경로에서 한 번
             int level = varuna.Level;
             varuna.DebugSetLevel(20);
             foreach (int id in varuna.RewardCodeIds.ToList()) varuna.RemoveRewardCode(id);
@@ -1014,13 +1035,13 @@ namespace Managers.UI.DevTools
             {
                 int self = shields.Where(item => item.Target == varuna).Select(item => item.Amount).FirstOrDefault();
                 var others = shields.Where(item => item.Target != varuna).Select(item => item.Amount).ToList();
-                // 공용 경로는 정수 기본량 round(290.38) = 290에 보정 배율을 곱한다. 문서의 "약 585 · 약 488"과 ±1 안이다.
-                YvCheck("방어 · 624 · 810 · 625 보정 한 번", "방어력 290.38 · 자신(625) 290×2.016≈585 · 아군 290×1.68≈487(문서 약 488, ±1)",
+                // 공용 경로는 정수 기본량 round(511.11×1.6) = 818에 보정 배율을 한 번 곱한다.
+                YvCheck("방어 · 624 · 810 · 625 보정 한 번", "방어력511.11 · 기본818 · 자신1649 / 아군1374",
                     $"방어력 {defense:0.##} · 자신 {self} · 아군 {string.Join(",", others)}",
-                    Near(defense, 219.2f * 1.27f + 12f, 0.05f) && Mathf.Abs(self - 585) <= 1 && others.Count > 0 &&
-                    others.All(amount => Mathf.Abs(amount - 488) <= 1) &&
-                    self == Mathf.RoundToInt(Mathf.Round(defense) * 1.2f * 1.4f * 1.2f) &&
-                    others.All(amount => amount == Mathf.RoundToInt(Mathf.Round(defense) * 1.2f * 1.4f)));
+                    Near(defense, 393f * 1.27f + 12f, 0.05f) && Mathf.Abs(self - 1649) <= 1 && others.Count > 0 &&
+                    others.All(amount => Mathf.Abs(amount - 1374) <= 1) &&
+                    self == Mathf.RoundToInt(Mathf.Round(defense * 1.6f) * 1.2f * 1.4f * 1.2f) &&
+                    others.All(amount => amount == Mathf.RoundToInt(Mathf.Round(defense * 1.6f) * 1.2f * 1.4f)));
             });
             foreach (int id in codes) varuna.RemoveRewardCode(id);
             varuna.DebugSetLevel(level);
@@ -1079,7 +1100,12 @@ namespace Managers.UI.DevTools
 
             // 다음 라운드 시작 — 시작 전에 붙어 있던 감전도 선고를 받는다
             GridManager.Instance.OnRoundStart();
-            foreach (Unit enemy in AliveEnemies()) YvBoostEnemy(enemy);
+            // 수동 기믹 검사는 원본 피해 계수에서 비교한다. 자연 진행 측정은 이 준비 경로를 쓰지 않는다.
+            foreach (Unit enemy in AliveEnemies())
+            {
+                enemy.RemoveStatusByKey(EnemyCombatBudget.StatusKey);
+                YvBoostEnemy(enemy);
+            }
             foreach (Unit unit in AliveAllies().Concat(AliveEnemies())) unit.ClearUltimateResource();
             YvCheck("라운드 시작 재구독", "이미 감전된 적에게 선고", $"{YamaDeathVerdict.HasVerdict(enemies[0])}",
                 YamaDeathVerdict.HasVerdict(enemies[0]));

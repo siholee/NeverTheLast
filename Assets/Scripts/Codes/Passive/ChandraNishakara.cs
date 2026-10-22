@@ -1,4 +1,4 @@
-﻿using BaseClasses;
+using BaseClasses;
 using Codes.Base;
 using Combat;
 using Effects.Base;
@@ -40,6 +40,7 @@ namespace Codes.Passive
         {
             if (Caster == null) return;
             Caster.SetCombatResourceMaximum(ResourceId, ResourceDisplayMaximum, resetCurrent: true);
+            Caster.AddCombatResource(ResourceId, 1);
             Caster.AddStatus(BuffStatus.Create(
                 GuardStatusId, GuardStatusKey, "니샤카라", Caster, Caster,
                 new LethalMoonlightGuard(this), duration: 0,

@@ -82,10 +82,11 @@ namespace Core
         // v13: 빈 자리를 포함한 활성 7칸 + 캐릭터별 코드 보관함. v12는 기존 활성 코드를 그대로 이관한다.
         // v14: 코드별 축전 저장량·고유 식별자·취득 스테이지, 넥타르 영구 스탯. v12/v13 보존 이관.
         // v15: 테마당 10라운드를 8라운드로 이관. 코드 인스턴스·축전량·넥타르는 보존한다.
-        public const int CurrentVersion = 15;
+        // v16: 기본8칸 보존, 매4테마 뒤 휴식·고정보스 추가. 기존 표시 테마·위치 보존 이관.
+        // v17: 생명력 폐지·전멸 즉시 런 종료. v16의 런 위치·아군·보상·재화는 그대로 보존한다.
+        public const int CurrentVersion = 17;
         public int currentStage;
         public int currentRound;
-        public int life;
         public int killCount;
         public int rerollTicketCount;
         public int gold;

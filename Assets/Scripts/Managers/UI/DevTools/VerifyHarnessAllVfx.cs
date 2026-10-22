@@ -238,7 +238,11 @@ namespace Managers.UI.DevTools
         {
             _yvFailures.Clear();bool enabled=true;
             yield return YvPrepareScene(config,value=>enabled=value);
-            float previousDelta=Time.captureDeltaTime;Time.captureDeltaTime=1f/60f;
+            float previousDelta=Time.captureDeltaTime;
+            bool previousDeferred=_deferCaptureEncoding;
+            bool realtime=config.trigger=="realtime";
+            Time.captureDeltaTime=realtime?0f:1f/60f;
+            _deferCaptureEncoding=realtime;
             foreach(Unit unit in AliveAllies())CfNoCrit(unit);
             void Peak(VfxSlotPlaybackEvent e)
             {
@@ -252,6 +256,19 @@ namespace Managers.UI.DevTools
                     YvCheck("실제 캐릭터 집중 촬영 대상", "지정 ID 전장에 1명",actors.Length.ToString(),actors.Length==1);
                 foreach(Unit unit in actors)
                 {
+                    int damageCount=0,damageFrame=-1,hitFrame=-1;
+                    string damageSummary="";
+                    void Damage(DamageResolvedContext e)
+                    {
+                        if(e.Attacker!=unit)return;
+                        damageCount++;damageFrame=Time.frameCount;
+                        damageSummary+=$"target={e.Target.ID},damage={e.DamageDealt},hp={e.Target.HpCurr};";
+                    }
+                    void Hit(VfxSlotPlaybackEvent e)
+                    {
+                        if(e.Caster==unit&&(e.SkillKey is "shi.destruction_slash" or "himiko.ember")&&e.Phase=="peak"&&e.SlotName=="hit")hitFrame=Time.frameCount;
+                    }
+                    Unit.AnyDamageDealt+=Damage;VfxComposer.SlotPlayed+=Hit;
                     bool finished=false;
                     void End(Unit actor,ActionScheduler.ActionKind kind){if(actor==unit&&kind==ActionScheduler.ActionKind.Normal)finished=true;}
                     ActionScheduler.AnyActionFinished+=End;
@@ -262,6 +279,20 @@ namespace Managers.UI.DevTools
                         yield return NordAction(unit,ActionScheduler.ActionKind.Normal,
                             s=>s.AdvanceAction(unit,1),"unit_"+unit.ID+"_normal");
                         YvCheck("실제 일반행동 "+unit.UnitName,"행동 완료",finished.ToString(),finished);
+                        if(unit.ID==2)
+                        {
+                            YvCheck("멸참 피해 1회·피격 정점 동기화","피해1회·같은프레임",
+                                $"count={damageCount},peakFrame={hitFrame},damageFrame={damageFrame};{damageSummary}",
+                                damageCount==1&&hitFrame>=0&&hitFrame==damageFrame);
+                        }
+                        if(unit.ID==44)
+                        {
+                            YvCheck("불씨 피해 1회·피격 정점 동기화","피해1회·같은프레임",
+                                $"count={damageCount},peakFrame={hitFrame},damageFrame={damageFrame};{damageSummary}",
+                                damageCount==1&&hitFrame>=0&&hitFrame==damageFrame);
+                            int marks=AliveEnemies().Sum(e=>e.ActiveStatuses.Count(s=>s.Key=="himiko_blaze"));
+                            YvCheck("불씨 맹화 중복 부여 없음","실제 표식1개",marks.ToString(),marks==1);
+                        }
                         if(unit.ID==64)
                         {
                             var normalFx=_result.vfxSlots.Skip(vfxStart).Where(e=>e.casterInstanceId==unit.GetInstanceID()&&e.skillKey=="vayu.gust").ToArray();
@@ -270,9 +301,57 @@ namespace Managers.UI.DevTools
                             YvCheck("바유 실제 일반 시전/피격 키 연결","cast 1·hit 정점 1",casts+"/"+hits,casts==1&&hits==1);
                         }
                     }
-                    finally {ActionScheduler.AnyActionFinished-=End;}
+                    finally
+                    {
+                        ActionScheduler.AnyActionFinished-=End;
+                        Unit.AnyDamageDealt-=Damage;VfxComposer.SlotPlayed-=Hit;
+                        if(realtime){FlushDeferredCaptures();_deferCaptureEncoding=true;}
+                    }
+                    if(unit.ID==44&&config.trigger=="emberpause")
+                        yield return AuditHimikoContactLifetime(AliveEnemies().First());
                     if(unit.ActiveUltimateCode==null || !unit.ActiveUltimateCode.IsAutoCast)continue;
                     finished=false;
+                    var ultDamage=new List<(Unit Target,int Frame,int Amount)>();
+                    var impactFrames=new Dictionary<Unit,int>();
+                    var ultTargets=AliveEnemies().ToArray();
+                    var auditedPaint=new HashSet<int>();
+                    IEnumerator AuditContactPaint()
+                    {
+                        yield return EndOfFrame;
+                        foreach(var fx in FindObjectsByType<FlipbookFx>(FindObjectsSortMode.None))
+                        {
+                            var body=fx.GetComponentsInChildren<SpriteRenderer>().FirstOrDefault(r=>r.name=="Body");
+                            if(body==null||body.sortingOrder<VfxSpace.OverlaySortingOrder+171||!auditedPaint.Add(fx.GetInstanceID()))continue;
+                            Bounds b=body.bounds;Camera camera=Camera.main;
+                            Vector3 min=camera.WorldToScreenPoint(b.min),max=camera.WorldToScreenPoint(b.max);
+                            var block=new MaterialPropertyBlock();body.GetPropertyBlock(block);
+                            float clip=camera.WorldToScreenPoint(new Vector3(b.center.x,block.GetFloat("_WorldClipMinY"),0f)).y;
+                            float visible=Mathf.Clamp01((max.y-Mathf.Max(min.y,clip))/Mathf.Max(1f,max.y-min.y));
+                            YvCheck("아즈라엘 접점 렌더 영역","체력판 위 가시높이25% 이상",
+                                $"order={body.sortingOrder},frame={body.sprite?.name},color={body.color},screen={min}/{max},clip={clip:F1},visible={visible:F2}",visible>=.25f);
+                            if(body.sprite!=null&&body.sprite.name.EndsWith("_02",StringComparison.Ordinal))
+                            {
+                                Bounds local=body.sprite.bounds;
+                                Vector3 crest=body.transform.TransformPoint(new Vector3(
+                                    Mathf.Lerp(local.min.x,local.max.x,.51868f),Mathf.Lerp(local.min.y,local.max.y,.31534f),0f));
+                                float fade=Mathf.Clamp01((crest.y-block.GetFloat("_WorldClipMinY"))/Mathf.Max(.0001f,block.GetFloat("_WorldClipFeather")));
+                                float crestAlpha=Mathf.SmoothStep(0f,1f,fade)*body.color.a;
+                                YvCheck("아즈라엘 정점 심 클리핑","실제 밝은 심의 표시알파95% 이상",
+                                    $"order={body.sortingOrder},crestAlpha={crestAlpha:F3}",crestAlpha>=.95f);
+                            }
+                        }
+                    }
+                    void UltDamage(DamageResolvedContext e)
+                    {
+                        if(e.Attacker==unit&&e.DamageContext.CodeType==BaseEnums.CodeType.Ultimate)
+                            ultDamage.Add((e.Target,Time.frameCount,e.DamageDealt));
+                    }
+                    void UltImpact(VfxSlotPlaybackEvent e)
+                    {
+                        if(e.Caster==unit&&e.SkillKey=="sabah.azrael"&&e.Phase=="impact")impactFrames[e.Target]=Time.frameCount;
+                        if(config.trigger=="contactaudit"&&e.Caster==unit&&e.SkillKey=="sabah.azrael"&&e.Phase=="impact")StartCoroutine(AuditContactPaint());
+                    }
+                    Unit.AnyDamageDealt+=UltDamage;VfxComposer.SlotPlayed+=UltImpact;
                     void Ult(Unit actor,ActionScheduler.ActionKind kind){if(actor==unit&&kind==ActionScheduler.ActionKind.Ultimate)finished=true;}
                     ActionScheduler.AnyActionFinished+=Ult;
                     try
@@ -280,11 +359,103 @@ namespace Managers.UI.DevTools
                         yield return NordAction(unit,ActionScheduler.ActionKind.Ultimate,
                             s=>unit.FillUltimateResource(),"unit_"+unit.ID+"_ultimate");
                         YvCheck("실제 초월기 "+unit.UnitName,"행동 완료",finished.ToString(),finished);
+                        if(unit.ID==3)
+                            YvCheck("아즈라엘 실제 대상별 피해 정점","각 대상 1회·접점과 같은프레임",
+                                string.Join(";",ultDamage.Select(hit=>$"target={hit.Target.ID},damage={hit.Amount},frame={hit.Frame},impact={impactFrames.GetValueOrDefault(hit.Target,-1)}")),
+                                ultDamage.Count==ultTargets.Length&&ultTargets.All(target=>ultDamage.Count(hit=>hit.Target==target)==1)&&
+                                ultDamage.All(hit=>impactFrames.TryGetValue(hit.Target,out int frame)&&frame==hit.Frame));
                     }
-                    finally {ActionScheduler.AnyActionFinished-=Ult;}
+                    finally
+                    {
+                        ActionScheduler.AnyActionFinished-=Ult;Unit.AnyDamageDealt-=UltDamage;VfxComposer.SlotPlayed-=UltImpact;
+                        if(realtime){FlushDeferredCaptures();_deferCaptureEncoding=true;}
+                    }
                 }
             }
-            finally{VfxComposer.SlotPlayed-=Peak;Time.captureDeltaTime=previousDelta;GameManager.Instance.enabled=enabled;}
+            finally{VfxComposer.SlotPlayed-=Peak;if(realtime)FlushDeferredCaptures();_deferCaptureEncoding=previousDeferred;Time.captureDeltaTime=previousDelta;GameManager.Instance.enabled=enabled;}
+            if(_yvFailures.Count>0)throw new InvalidOperationException(string.Join(" / ",_yvFailures));
+        }
+
+        private IEnumerator AuditHimikoContactLifetime(Unit target)
+        {
+            // 실제 일반기 검사는 위에서 수행한다. 여기서는 새 국소 레이어의 정지/해제 수명만 검사한다.
+            PortraitAccentFx.HimikoContact(target,VfxSpace.PortraitPoint(target));
+            var paint=FindObjectsByType<FlipbookFx>(FindObjectsSortMode.None)
+                .Where(f=>f.GetComponentsInChildren<SpriteRenderer>().Any(r=>r.name=="Body"&&
+                    (r.sortingOrder==VfxSpace.OverlaySortingOrder+73||r.sortingOrder==VfxSpace.OverlaySortingOrder+74))).ToArray();
+            var bodies=paint.Select(f=>f.GetComponentsInChildren<SpriteRenderer>().First(r=>r.name=="Body")).ToArray();
+            var sprites=bodies.Select(r=>r.sprite).ToArray();
+            var scales=paint.Select(f=>f.transform.localScale).ToArray();
+            var colors=bodies.Select(r=>r.color).ToArray();
+            var pause=GameObject.Find("BattlePauseButton").GetComponent<UnityEngine.UI.Button>();
+            pause.onClick.Invoke();
+            try
+            {
+                yield return WaitUnscaled(.25f);
+                bool held=Managers.UI.HUD.BattleHud.IsPaused&&Time.timeScale==0f&&paint.Length==2&&
+                    paint.Select((f,i)=>f!=null&&bodies[i]!=null&&bodies[i].sprite==sprites[i]&&
+                        f.transform.localScale==scales[i]&&bodies[i].color==colors[i]).All(x=>x);
+                YvCheck("불씨 국소 피격 일시정지","0.25초 동안 두 겹의 셀·크기·알파 유지",held.ToString(),held);
+            }
+            finally {if(Managers.UI.HUD.BattleHud.IsPaused)pause.onClick.Invoke();}
+            // 고배속에서는 셀마다 최소 표시 프레임이 있다. 0.6 게임초는 5배에서 8셀 소진보다 짧다.
+            yield return WaitUnscaled(.35f);
+            YvCheck("불씨 국소 피격 수명 정리","재개 후 잔류0",paint.Count(f=>f!=null).ToString(),paint.All(f=>f==null));
+        }
+
+        private IEnumerator ScenarioHpDamageTrail(VerifyScenarioRequest config)
+        {
+            _yvFailures.Clear();bool enabled=true;
+            yield return YvPrepareScene(config,value=>enabled=value);
+            Unit target=AliveEnemies().First();var view=CardMotion.ViewOf(target);
+            var images=view.GetComponentsInChildren<UnityEngine.UI.Image>(true);
+            var trail=images.Single(image=>image.name=="HpDamageTrail");
+            var fill=images.Single(image=>image.name=="HpFill");
+            float previousScale=Time.timeScale;
+            try
+            {
+                target.ModifyHp(target.HpMax);view.Tick();
+                target.ModifyHp(Mathf.RoundToInt(target.HpMax*.65f));view.Tick();
+                float actual=target.HpCurr/(float)target.HpMax;
+                YvCheck("피해 HUD 실제 값 즉시 적용","실체력 비율·잔량1",
+                    $"hp={fill.rectTransform.anchorMax.x},trail={trail.rectTransform.anchorMax.x}",
+                    Mathf.Abs(fill.rectTransform.anchorMax.x-actual)<.001f&&trail.enabled&&trail.rectTransform.anchorMax.x>.99f);
+                Time.timeScale=0f;float paused=trail.rectTransform.anchorMax.x;
+                yield return WaitUnscaled(.20f);
+                YvCheck("피해 잔량 일시정지","잔량 불변",trail.rectTransform.anchorMax.x.ToString(),
+                    Mathf.Approximately(paused,trail.rectTransform.anchorMax.x));
+                Time.timeScale=previousScale;
+                yield return WaitFeedbackTime(.4f);
+                YvCheck("피해 잔량 수렴","실체력까지 정리",trail.rectTransform.anchorMax.x.ToString(),
+                    !trail.enabled&&Mathf.Abs(trail.rectTransform.anchorMax.x-actual)<.001f);
+                target.ModifyHp(Mathf.RoundToInt(target.HpMax*.45f));view.Tick();
+                target.ModifyHp(Mathf.RoundToInt(target.HpMax*.85f));view.Tick();
+                YvCheck("치유 때 가짜 피해 잔량 제거","잔량 숨김",trail.enabled.ToString(),!trail.enabled);
+                target.ModifyHp(Mathf.RoundToInt(target.HpMax*.60f));view.Tick();
+                view.Bind(target,true);
+                YvCheck("카드 재연결 때 잔량 초기화","잔량 숨김",trail.enabled.ToString(),!trail.enabled);
+                yield return CaptureStill("hp_trail_rebound");
+                yield return WaitFeedbackTime(1.4f);
+                DamagePopup.Show(target,205,false,Color.magenta);
+                yield return WaitFeedbackTime(.65f);
+                DamagePopup.Show(target,238,false,Color.magenta);
+                yield return EndOfFrame;
+                var labels=FindObjectsByType<TMPro.TextMeshProUGUI>(FindObjectsSortMode.None)
+                    .Where(label=>label.name=="Number"&&(label.text=="205"||label.text=="238")).ToArray();
+                Rect GlyphRect(TMPro.TextMeshProUGUI label)
+                {
+                    label.ForceMeshUpdate();Bounds bounds=label.textBounds;
+                    Vector2 min=RectTransformUtility.WorldToScreenPoint(null,label.transform.TransformPoint(bounds.min));
+                    Vector2 max=RectTransformUtility.WorldToScreenPoint(null,label.transform.TransformPoint(bounds.max));
+                    return Rect.MinMaxRect(min.x,min.y,max.x,max.y);
+                }
+                var boxes=labels.Select(GlyphRect).ToArray();
+                YvCheck("연속 피해 숫자 세로 분리","205·238 두 값 실제 글자 비중첩",
+                    string.Join(";",boxes.Select(box=>box.ToString())),
+                    boxes.Length==2&&!boxes[0].Overlaps(boxes[1])&&Mathf.Abs(boxes[0].center.x-boxes[1].center.x)<2f);
+                yield return CaptureStill("consecutive_number_vertical");
+            }
+            finally{Time.timeScale=previousScale;GameManager.Instance.enabled=enabled;}
             if(_yvFailures.Count>0)throw new InvalidOperationException(string.Join(" / ",_yvFailures));
         }
 

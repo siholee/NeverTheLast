@@ -34,7 +34,7 @@ roles:
     description: 보스·엘리트 한 기를 녹인다.
   - id: DPS_AOE
     name: 광역 딜
-    description: 다수 편성을 정리한다. 생명력 차감이 '남은 적 수'라 광역이 곧 생존이다.
+    description: 다수 편성을 정리해 적의 집중 공격과 누적 소모를 줄인다.
   - id: MULTIHIT
     name: 다타수
     description: 한 행동을 여러 발로 쪼갠다. 타격당 고정 효과와 곱해진다.
@@ -106,6 +106,121 @@ trainerCoverage:
 
 # ══════════════════════════════════════════════════════════════════════
 units:
+  - id: 168
+    name: 니콜
+    type: Unlocked
+    element: Electro
+    mainStat: SpecialAttack
+    topStat: Attack
+    row: Rear
+    roles: [ELEM_APPLY, DEF_SHRED, BULWARK, AMP_DMG, MULTIHIT]
+    supportValue: { combat: 5, training: 0 }
+    provides:
+      - { key: ELEM_APPLY, text: "일반6회 바운스·초월기 전체 번개 부착, 각 타격 공통 효과 명중" }
+      - { key: BULWARK, text: "아군의 적 번개 부착마다 전원 피격15% 경감1회 누적" }
+      - { key: AMP_DMG, text: "번개 반응마다 전원 공격 피해20% 증가1회 누적" }
+      - { key: DEF_SHRED, text: "초월기 적 전체 방어력20% 감소, 일반행동2회" }
+    wants: [ELEM_APPLY, HEAL, EXTRA_ACT]
+    caution: "후열 전용 권장. 중첩은 강도 대신 사용 횟수. 지속·반응·덧붙는·분담 피해에는 적용/소비하지 않는다."
+  - id: 164
+    name: 네프티스
+    type: Unlocked
+    element: Dendro
+    mainStat: SpecialAttack
+    topStat: SpecialAttack
+    row: Rear
+    roles: [DOT, DPS_ST, DPS_AOE]
+    supportValue: { combat: 2, training: 0 }
+    provides:
+      - { key: DOT, text: "맹독 자연 발동 시 독안 전부 소비, 독안당 특공150% 맹독 파열. 독안은 상한 없는 중립 표식으로 정화·해제 불가. 정산에는 파열하지 않음." }
+    wants: [DOT, HEAL, ACT_ACCEL]
+    caution: "단일 공80% 피해, 맹독 부여 성공 시 독안+1. 풀 부착 없음."
+  - id: 165
+    name: 아탈란테
+    type: Unlocked
+    element: Dendro
+    mainStat: Attack
+    topStat: SpecialAttack
+    row: Rear
+    roles: [DOT, EXTRA_ACT, AMP_DMG]
+    supportValue: { combat: 2, training: 0 }
+    provides:
+      - { key: DOT, text: "특공에 비례해 아군 맹독·출혈 피해35~55% 증폭. 맹독·출혈 자연 발동 후 생존 적에게 공110% 추가행동 추격. 자기 일반행동 사이4회." }
+    wants: [DOT, HEAL, ACT_ACCEL]
+    caution: "단일 공110% 피해와 맹독, 추격은 공110%·치명 가능. 풀 부착 없음."
+  - id: 166
+    name: 네이트
+    type: Unlocked
+    element: Electro
+    mainStat: SpecialAttack
+    topStat: SpecialAttack
+    row: Rear
+    roles: [DEF_SHRED, ELEM_APPLY, AMP_DMG]
+    supportValue: { combat: 4, training: 0 }
+    provides:
+      - { key: DEF_SHRED, text: "감전된 적에게 촉진: 특공에 비례해 특수방어력22~32% 감소. 감전/네이트 이탈 시 종료. 풀+번개 과성장과 별개." }
+    wants: [DOT, HEAL, ACT_ACCEL]
+    caution: "단일 특공90% 피해와 전기 부착."
+  - id: 167
+    name: 에레쉬키갈
+    type: Unlocked
+    element: Pyro
+    mainStat: MaxHp
+    topStat: SpecialAttack
+    row: Front
+    roles: [HEAL, BULWARK, DOT]
+    supportValue: { combat: 4, training: 0 }
+    provides:
+      - { key: HEAL, text: "아군이 적에게 지속피해를 주면 전원 자신의 최대체력1.2% 치유. 실제 행동당3회, 한 원본 틱의 파생 피해는 중복 회복 없음." }
+    wants: [DOT, HEAL, ACT_ACCEL]
+    caution: "단일 자신의 최대체력6% 피해와 출혈. 불 부착 없음."
+
+  - id: 163
+    name: 에비스
+    type: Unlocked
+    element: Electro
+    mainStat: MaxHp
+    topStat: SpecialAttack
+    row: Rear
+    roles: [BULWARK, CLEANSE, AMP_DMG, ELEM_APPLY]
+    supportValue: { combat: 5, training: 0 }
+    provides:
+      - { key: BULWARK, text: "다른 아군의 경감 뒤 피해65% 분담, 원 대상과 반격 판정 유지" }
+      - { key: AMP_DMG, text: "직접 피격당한 아군 자신에게 가하는 피해2.5% 중첩, 최대30%" }
+      - { key: CLEANSE, text: "마나100 초월기로 자신50% 회복·전원 제어/비제어 디버프 정화" }
+      - { key: ELEM_APPLY, text: "단일 일반공격 뒤 번개 부착. 마리의 얼음과 초전도" }
+    wants: [HEAL, ACT_ACCEL]
+    caution: "분담분은 자신의 체력으로 직접 감당하며 재경감·재분담·피격 마나·반격을 만들지 않는다. 파티 광역 피격과 지속피해에 급사할 수 있다."
+  - id: 162
+    name: 아스톨포
+    type: Unlocked
+    element: Anemo
+    mainStat: Attack
+    topStat: CritDamage
+    row: Rear
+    roles: [AMP_CRIT, HEAL]
+    supportValue: { combat: 5, training: 0 }
+    provides:
+      - { key: AMP_CRIT, text: "초월기로 추가행동 치피 +자신 치피30%, 반격이면 추가30%" }
+      - { key: HEAL, text: "마나120 초월기로 살아 있는 아군 전체 자신의 공격력600% 치유" }
+      - { key: EXTRA_ACT, text: "적 행동20% 앞당김·다음 일반 완료까지 피해25% 감소로 반격 기회 유도" }
+    wants: [EXTRA_ACT, HEAL, SHIELD]
+    caution: "공·특공·치피·속도를 투자하는 후열 치유 서포터. 방깎·강화 해제 없음. 반격 기회 소진 뒤 적 가속은 위험하다."
+  - id: 40
+    name: 아마테라스
+    type: Unlocked
+    element: Pyro
+    mainStat: Attack
+    topStat: Attack
+    row: Rear
+    roles: [DPS_ST, MULTIHIT]
+    supportValue: { combat: 0, training: 0 }
+    provides:
+      - { key: DPS_ST, text: "마나100 자동 초월기. 적1명이면 최대5발을 집중" }
+      - { key: MULTIHIT, text: "동료 추가공격마다 일광+2. 3당 바운스+1, 탄별 공160%·치명·불 부착" }
+    wants: [EXTRA_ACT, ELEM_APPLY, AMP_DMG, AMP_CRIT, ULT_BATTERY, HEAL]
+    caution: "마나와 일광은 별개. 과충전은 적은 탄수·자투리 손실, 저충전은 일광 상한 낭비. 공·특공·치명과 물/얼음 공급을 함께 맞춘다. 바운스는 전원 광역이 아니다."
+
   - id: 123
     name: 세트
     type: Unlocked
@@ -221,7 +336,7 @@ units:
     - key: HEAL
       text: 최대체력 기반 전체 치유와 서기관의 단일 치유.
     - key: BULWARK
-      text: 서기관 존재 중 받는 피해12% 감소.
+      text: 서기관 존재 중 필드 아군·소환수가 받는 피해24% 감소.
     wants:
     - SUMMON
     caution: 물 부착·보호막·도발 없음. 서기관은 공격하지 않는다.
@@ -233,14 +348,14 @@ units:
     mainStat: Defense
     topStat: Defense
     row: Front
-    roles: [BULWARK, SHIELD, AMP_DMG, MULTIHIT]
+    roles: [BULWARK, SHIELD, AMP_DMG, MULTIHIT, EXTRA_ACT, DEF_SHRED]
     supportValue: { combat: 4, training: 0 }
     provides:
-      - { key: AMP_DMG, text: "창세의 노래 — 아군 전체 공격력 +(50 + 방어력 15%), 타격마다 고정 피해 추가(집중 3턴)" }
-      - { key: MULTIHIT, text: "빅뱅 — 창세의 결정 7개로 무작위 적에게 바위 조각 7발, 이어서 아군 전체에 100 + 방어력 5% 보호막" }
-      - { key: SHIELD, text: "창세의 노래 — 아군 전체에 레벨 × 2 + 방어력 25% 보호막" }
+      - { key: AMP_DMG, text: "창세의 노래 — 시전 피해+25%, 집중 중 방어력25% 고정 피해 및 받는 피해25% 감소" }
+      - { key: MULTIHIT, text: "빅뱅 — 창세의 결정 7개로 무작위 적에게 바위 조각 7발, 이어서 아군 전체에 125 + 방어력 7.5% 보호막" }
+      - { key: SHIELD, text: "창세의 노래 — 아군 전체에 1200 + 레벨×48 + 방어력720% 보호막" }
     wants: [TAUNT, DPS_ST]
-    caution: "첫 빅뱅은 궁극기의 보호막이 깔린 뒤에야 쌓이기 시작한다. 집중은 세이가 기절하면 풀린다(보호막은 남는다)."
+    caution: "첫 빅뱅은 궁극기의 보호막이 깔린 뒤에야 쌓이기 시작한다. 일반행동은 바위 부착 대신 방어력25% 감소. 집중이 끊겨도 시전 보호막·피해 증가 버프는 남는다."
 
   - id: 2
     name: 시
@@ -258,36 +373,51 @@ units:
     wants: [AMP_DMG, SHIELD]
     caution: "처형 예측은 보호막과 피해 증감을 보지 않는다. 재행동 멸참으로 처치해도 세 번째 멸참은 이어지지 않는다."
 
+  - id: 4
+    name: 가우디
+    type: Unlocked
+    element: Dendro
+    mainStat: Defense
+    topStat: SpecialAttack
+    row: Front
+    roles: [BULWARK, SHIELD, ELEM_APPLY]
+    supportValue: { combat: 4, training: 0 }
+    provides:
+      - { key: SHIELD, text: "전투 시작 방180%·초월기 방400% 전원 보호막" }
+      - { key: ELEM_APPLY, text: "일반 단일·초월 전체 풀 부착으로 과성장 연계" }
+    wants: [HEAL, ELEM_APPLY]
+    caution: "회복·도발·직접 특방 감소는 없다. 풀 부착은 공통 효과 명중을 따른다."
+
   - id: 3
     name: 사바흐
     type: Unlocked
     element: Electro
-    mainStat: Attack
+    mainStat: SpecialAttack
     topStat: Speed
     row: Rear
     roles: [DPS_ST, DPS_AOE, ULT_BATTERY, ELEM_APPLY]
     supportValue: { combat: 3, training: 0 }
     provides:
-      - { key: DPS_ST, text: "검격 — 110 + 공격력 100%의 단일 접촉 베기" }
+      - { key: DPS_ST, text: "검격 — 110 + 특공 100% 특수피해의 단일 접촉 베기" }
       - { key: DPS_AOE, text: "아즈라엘 — 디버프 연계로 모은 7중첩을 소모해 적 전체를 한 번씩 공격" }
       - { key: ELEM_APPLY, text: "번개 베기 — 일반행동 3번째마다 최대 3명에게 번개 원소 부착" }
-    wants: [DOT, CONTROL, AMP_DMG]
+    wants: [ELEM_APPLY, DOT, HEAL, SHIELD, AMP_DMG]
     caution: "아즈라엘은 공용 마나로 차지 않는다. 아군의 해로운 상태 부여·갱신과 지속피해 틱이 있어야 회전한다."
 
   - id: 7
     name: 잔
     type: Unlocked
     element: Cryo
-    mainStat: MaxHp
-    topStat: MaxHp
+    mainStat: Attack
+    topStat: SpecialAttack
     row: Front
-    roles: [TAUNT, BULWARK, DPS_ST, EXTRA_ACT]
+    roles: [TAUNT, BULWARK, DPS_ST, EXTRA_ACT, ELEM_APPLY]
     supportValue: { combat: 5, training: 0 }
     provides:
       - { key: TAUNT, text: "텐션 오르는데! — 자신에게 공격을 모으고 피해를 줄인다" }
-      - { key: EXTRA_ACT, text: "철권제재 — 직접 공격 대상으로 확정되면 공격자보다 먼저 신성한 일격" }
-      - { key: DPS_ST, text: "신성한 일격 — 일반행동과 선제 반격이 공유하는 단일 접촉 공격" }
-    wants: [HEAL, SHIELD, AMP_DMG]
+      - { key: EXTRA_ACT, text: "철권제재 — 직접 공격 대상으로 확정되면 공160% 선제 반격과 얼음 부착" }
+      - { key: DPS_ST, text: "일반 공125%·반격 공160%. 공격/특공/치명 투자로 얼음 딜러 운용" }
+    wants: [HEAL, SHIELD, AMP_DMG, AMP_CRIT, ELEM_APPLY]
     caution: "철권제재는 잔의 일반행동 사이에 정해진 횟수만 쓸 수 있으며 간접 피해에는 반응하지 않는다."
 
   - id: 60
@@ -296,12 +426,12 @@ units:
     element: Geo
     mainStat: MaxHp
     topStat: MaxHp
-    row: Rear
-    roles: [BULWARK, HEAL, AMP_DMG, DPS_AOE, SPECIAL]
+    row: Front
+    roles: [BULWARK, HEAL, AMP_DMG, SPECIAL]
     supportValue: { combat: 4, training: 0 }
     provides:
       - { key: AMP_DMG, text: "소마 — 가장 공격력이 높은 아군에게 공격력 10% + 찬드라 최대 체력 10%" }
-      - { key: HEAL, text: "니샤카라 달빛 순환 — 아군 특수행동마다 찬드라 최대 체력 4% 회복 / 창야 — 광역 피해의 20%를 아군 전원에게 분배" }
+      - { key: HEAL, text: "니샤카라 달빛 순환 — 아군 특수행동마다 찬드라 최대 체력 4% 회복 / 창야 — 각 아군을 찬드라 최대 체력 8%만큼 회복(피해와 독립)" }
     wants: [SPECIAL, SHIELD]
     caution: "창야는 인드라의 팔방의 소집이 열어야 나간다. 회복을 맡으므로 묶음의 맨 끝에 선다."
 
@@ -345,14 +475,15 @@ units:
     mainStat: Attack
     topStat: Speed
     row: Rear
-    roles: [DPS_ST, EXTRA_ACT, ACT_ACCEL]
+    roles: [DPS_ST, EXTRA_ACT, ACT_ACCEL, HEAL]
     supportValue: { combat: 2, training: 0 }
     provides:
-      - { key: DPS_ST, text: "냥냥펀치 — 공격력 100%의 빠른 단일 접촉 공격" }
-      - { key: EXTRA_ACT, text: "미운 놈 한 대 더 때리기 — 아군 반격이 실제 피해를 주면 같은 대상에게 냥냥펀치 추가행동" }
+      - { key: DPS_ST, text: "냥냥펀치 — 공격력 115%의 빠른 단일 접촉 공격" }
+      - { key: EXTRA_ACT, text: "미운 놈 한 대 더 때리기 — 아군 반격 뒤 같은 대상에게 공100% 추가행동" }
       - { key: ACT_ACCEL, text: "기초 속도 116 — 현 로스터 최고 속도로 일반행동 회전을 확보" }
+      - { key: HEAL, text: "반격 후속 본타 실제 피해50%를 원 반격 요원에게 회복" }
     wants: [TAUNT, EXTRA_ACT, AMP_DMG]
-    caution: "경호는 견고 또는 반격 아군이 필요하다. 현 로스터에는 자연 반격 공격자가 없어 초월기 추가행동은 이후 반격 유닛과 조합할 때 열린다."
+    caution: "경호는 견고 또는 반격 아군이 필요하다. 잔·세트·오리온 등의 실제 반격과 연결한다. 후속100%는 반격 본체의 피해를 보조한다."
 
   - id: 63
     name: 인드라
@@ -364,7 +495,7 @@ units:
     roles: [SPECIAL, AMP_DMG, DPS_AOE, ULT_BATTERY]
     supportValue: { combat: 3, training: 0 }
     provides:
-      - { key: SPECIAL, text: "팔방의 소집 — 로카팔라 묶음을 여는 유일한 수단" }
+      - { key: SPECIAL, text: "팔방의 소집 — 로카팔라 묶음을 여는 유일한 수단, 전투 시작 마나 최소40%" }
       - { key: AMP_DMG, text: "데바의 왕 — 아군 전원의 특수행동 피해 +25%(출처 무관, 시의 재행동 포함)" }
       - { key: DPS_AOE, text: "바즈라 — 적 전체 공격력 150%, 궁극기 판정도 받는다" }
     wants: [DEF_SHRED, SPECIAL]
@@ -392,14 +523,14 @@ units:
     element: Pyro
     mainStat: Attack
     topStat: Attack
-    row: Front
+    row: Rear
     roles: [ELEM_APPLY, EXTRA_ACT, AMP_DMG, DPS_AOE, SPECIAL]
     supportValue: { combat: 3, training: 0 }
     provides:
-      - { key: EXTRA_ACT, text: "끝까지 태워 주지 — 다른 아군의 초월기 완료마다 적 전체 공격력 45% 추가행동(아군별 일반행동 사이 1회)" }
+      - { key: EXTRA_ACT, text: "끝까지 태워 주지 — 다른 아군의 초월기 완료마다 적 전체 공격력 90% 추가행동(아군별 일반행동 사이 1회)" }
       - { key: ELEM_APPLY, text: "끝까지 태워 주지 — 적마다 피해 직후 불 부착(증발 · 융해 · 화상의 재료)" }
       - { key: AMP_DMG, text: "내가 판을 키워 주지 — 아군 전원 궁극기 피해 +20%(아그니 일반행동 3회), 자기 추공도 궁극기 판정" }
-      - { key: DPS_AOE, text: "제일 먼저 태울 곳 — 인드라의 표 한 장을 중심 180% · 나머지 45% 집중 포격으로" }
+      - { key: DPS_AOE, text: "제일 먼저 태울 곳 — 인드라의 표 한 장을 중심 540% · 나머지 120% 집중 포격으로" }
     wants: [ULT_BATTERY, ELEM_APPLY, SPECIAL]
     caution: "아군 초월기가 드물면 추공도 드물다. 물 · 얼음 · 풀을 붙여 주는 동료가 없으면 증폭 반응이 나지 않고, 집중 포격도 계수만 남는다."
 
@@ -413,8 +544,8 @@ units:
     roles: [DPS_ST, DPS_AOE, SPECIAL]
     supportValue: { combat: 1, training: 0 }
     provides:
-      - { key: DPS_ST, text: "두 일반 사격의 표식 뒤 종언탄 360%, 방어력 25% 무시" }
-      - { key: DPS_AOE, text: "로카팔라 특수행동은 표식이 있는 적 모두에게 종언탄" }
+      - { key: DPS_ST, text: "두 일반 사격의 표식 뒤 종언탄 600%, 방어력 25% 무시" }
+      - { key: DPS_AOE, text: "특수행동은 미표식 적 조준140%, 표식 적 종언600%(표식 보존)" }
     wants: [AMP_DMG, ELEM_APPLY, SPECIAL]
     caution: "느린 사격수다. 효과 명중이 낮거나 표적이 자주 바뀌면 종언탄이 늦어진다."
 
@@ -429,8 +560,8 @@ units:
     supportValue: { combat: 3, training: 0 }
     provides:
       - { key: AMP_DMG, text: "재보 증감 공격에 자신의 치피30% 가산" }
-      - { key: ECON, text: "일반 재보+1, 초월기로 이자 충전" }
-      - { key: DPS_AOE, text: "골드 러쉬 재보3 소비 강화 및 금력 광역" }
+      - { key: ECON, text: "일반 재보+1, 초월기로 이자 충전(재보 부족·개시자 동시 준비 시 먼저 공급)" }
+      - { key: DPS_AOE, text: "금력 일반 사격 · 골드 러쉬 재보0/1/2/3소비 시280/420/560/700% 광역" }
     wants: [SPECIAL, ECON]
     caution: "소환 시너지는 없다. 골드 소비는 금력, 재보 소비는 이후 탄약과 방호를 줄인다."
 
@@ -445,7 +576,7 @@ units:
     supportValue: { combat: 3, training: 0 }
     provides:
       - { key: DOT, text: "명부의 낙뢰 · 언젠가 다다를 마지막 — 대상의 모든 지속피해를 q 비율(초월기는 1.5q)로 즉시 발동" }
-      - { key: AMP_DMG, text: "죽음의 선고 — 감전된 적이 야마의 아군에게 받는 모든 피해 +20%" }
+      - { key: AMP_DMG, text: "죽음의 선고 — 감전된 적이 야마의 아군에게 받는 모든 피해 +30%" }
       - { key: DPS_AOE, text: "죽음의 순회 — 적 전체 공격력 400%(로카팔라, 인드라 뒤 · 찬드라 앞)" }
     wants: [DOT, ELEM_APPLY, SPECIAL]
     caution: "감전은 물 + 번개 반응이라 물을 붙여 주는 동료(바루나)가 있어야 선고가 켜진다. 지속피해가 없으면 즉시 발동할 것이 없다. q는 특수공격력과 속도에 비례한다."
@@ -460,9 +591,9 @@ units:
     roles: [SHIELD, ELEM_APPLY, BULWARK, SPECIAL]
     supportValue: { combat: 3, training: 0 }
     provides:
-      - { key: SHIELD, text: "동일한 법 아래 · 넘치는 판결 — 생존 필드 아군 전원에게 방어력 100% 보호막(누적)" }
+      - { key: SHIELD, text: "동일한 법 아래 · 넘치는 판결 — 생존 필드 아군 전원에게 방어력 160% 보호막(누적)" }
       - { key: ELEM_APPLY, text: "금줄 · 동일한 법 아래 — 물 부착(감전 · 개화 · 증발의 재료)" }
-      - { key: BULWARK, text: "법이 만든 제방 — 물을 붙이는 행동마다 자신에게 방어력 35% 보호막" }
+      - { key: BULWARK, text: "법이 만든 제방 — 물을 붙이는 행동마다 자신에게 방어력 70% 보호막" }
     wants: [DPS_ST, DOT, SPECIAL]
     caution: "지속피해와 원소 반응 피해는 보호막을 우회한다. 보호막은 방어력만 따라 늘어 HP 비례 아군에게는 상대적으로 얇다."
 
@@ -546,10 +677,12 @@ units:
     element: Electro
     mainStat: SpecialAttack
     topStat: SpecialAttack
-    row: Rear
-    roles: [DOT, AMP_DMG]
+    row: Front
+    roles: [DOT, AMP_DMG, BULWARK, SHIELD]
     supportValue: { combat: 5, training: 0 }
     provides:
+      - { key: BULWARK, text: "높은 체력·방어로 전열 피격을 분산. 개전 방어력35%·초월50% 전체 보조 보호막. 별도 도발·피해 분담은 없음." }
+      - { key: SHIELD, text: "개전 1회 방어력35%·초월 방어력50%의 전체 보조 보호막. 특공은 지속피해 증폭, 방어력은 보호막을 강화." }
       - { key: DOT, text: "저주는 생성자 일반행동마다 특수공격력 50% 피해" }
       - { key: AMP_DMG, text: "특공 비례 오라로 모든 지속피해와 야마 즉시 발동 증폭" }
     wants: [DOT, ACT_ACCEL]
@@ -616,8 +749,8 @@ units:
     element: Anemo
     mainStat: SpecialAttack
     topStat: SpecialAttack
-    row: Rear
-    roles: [TOUGHNESS, AMP_TOUGH, ELEM_APPLY]
+    row: Front
+    roles: [BULWARK, TOUGHNESS, AMP_TOUGH, ELEM_APPLY]
     provides:
       - { key: TOUGHNESS, text: "죽음마저 속인 자 — 적 강인도를 생성해 살아 있는 적의 처치 연계를 연다." }
       - { key: AMP_TOUGH, text: "비탄의 연주 — 특수공격력에 비례하여 아군 전체 강인도 삭감 효율 증가." }
@@ -668,6 +801,40 @@ units:
     caution: 아군 전체 보호막·도발·반격은 없다. 얼음 부착과 자기 방호를 맡는다.
 
 archetypes:
+  - id: ACTIVE_SHOCK
+    name: 능동 감전
+    core: [61, 166, 66, 45, 167]
+    partners: []
+    description: "츠쿠요미·에레쉬키갈을 공통 코어로 능동 정산과 적 행동 기반 지속피해를 구분한다."
+  - id: PASSIVE_POISON
+    name: 독안의 사냥
+    core: [164, 165, 162, 45, 167]
+    partners: []
+    description: "츠쿠요미·에레쉬키갈을 공통 코어로 능동 정산과 적 행동 기반 지속피해를 구분한다."
+  - id: POISON_BLEED
+    name: 독과 붉은 상처
+    core: [164, 123, 162, 45, 167]
+    partners: []
+    description: "츠쿠요미·에레쉬키갈을 공통 코어로 능동 정산과 적 행동 기반 지속피해를 구분한다."
+
+  - id: SET_COUNTER_CORE
+    name: 사막 반격 전선
+    core: [123, 122, 162, 1, 160]
+    description: "아스톨포·세이·마리 코어를 유지하고 메인을 세트로 교체한다. 직접 반격과 출혈 모두 세이의 시전 피해 증가를 받는다."
+    partners: [7, 22]
+    counterplay: "세트는 불 속성이지만 불을 붙이지 않는다. 반격은 자기 일반행동 사이2회 한도이며 초월기로 보충한다."
+  - id: ASTOLFO_COUNTER
+    name: 아스톨포 반격 전선
+    core: [22, 122, 162, 1, 160]
+    description: "아스톨포·세이·마리를 공통 코어로 두고 오리온의 광역 반격에 바스테트가 후속한다. 세이가 보호막·집중 경감으로 전열을 나누고 아스톨포의 추가행동 치피·반격 추가 보너스를 연결한다."
+    partners: [7, 123, 83, 82]
+    counterplay: "반격 기회 소진 뒤의 적 가속은 위험하다. 방깎과 피해 감소의 명중을 위해 특공을 확보하고 치피·속도를 함께 투자한다."
+  - id: SUNLIGHT_VOLLEY
+    name: 일광 바운스 편성
+    core: [40, 7, 122]
+    description: "잔·바스테트의 실제 추가공격을 일광으로 저장하고 마나100에 바운스 초월기로 방출한다."
+    partners: [83, 82, 66, 120]
+    counterplay: "추가공격 공급·물/얼음 부착·유지력·충전 지원이5칸을 경쟁한다. 탄별 반응이며 충전을 무조건 올리면 일광이 덜 모인다."
   - id: ISIS_SUMMON_CORE
     name: 수호령의 소환 전열
     core:
@@ -675,9 +842,11 @@ archetypes:
     - 20
     - 124
     partners:
+    - 67
+    - 161
     - 81
     - 64
-    description: 피그말리온·토트·이시스가 소환 증폭/치유/보호막/바위 공급을 나누고 나머지2자리에 딜러를 둔다.
+    description: 피그말리온·토트·이시스가 소환 증폭/치유/보호막/바위 공급을 나눈다. 보스 화력은 수리야·나폴레옹, 광역 보완은 수르트·바유를 고려한다. 군세장전에서는 단일 화력을 남겨 둔다.
   - id: SET_BLEED
     name: 출혈의 사막
     core:
@@ -730,16 +899,22 @@ archetypes:
     counterplay: "추가행동이 사냥감을 빗겨가면 추격이 끊긴다. 자유 추격 소진 뒤에는 일반공격만으로 계속 추격할 수 없다."
   - id: LOKAPALA_GATE
     name: 로카팔라 묶음 편성
-    core: [63, 64, 65, 60]
-    description: "인드라의 팔방의 소집이 바유 → 쿠베라 → 인드라 → 찬드라 순으로 특수행동을 연다. 바유의 방깍과 데바의 왕 +25% 위에서 쿠베라가 모아 둔 골드로 친다."
-    partners: [2]
+    core: [65, 64, 63, 66, 60]
+    description: "인드라의 팔방의 소집이 바유 → 바루나 → 쿠베라 → 인드라 → 찬드라 순으로 특수행동을 연다. 바유의 방깍과 데바의 왕 +25% 위에서 쿠베라가 모아 둔 골드로 친다."
+    partners: []
     counterplay: "인드라가 쓰러지면 묶음을 열 수 없다. 골드를 쓰면 골드 러쉬가 약해진다."
   - id: LOKAPALA_SHOCK
     name: 로카팔라 감전 편성
-    core: [61, 66, 63, 60]
-    description: "바루나의 물과 인드라 · 야마의 번개가 만나 감전이 생기고, 야마의 선고(+20%)와 지속피해 즉시 발동이 그 위에 얹힌다. 묶음 순서는 바루나(-50) → 인드라(+50) → 야마(+75) → 찬드라(+100)이다."
-    partners: [20]
+    core: [61, 64, 63, 66, 60]
+    description: "바루나의 물과 인드라 · 야마의 번개가 만나 감전이 생기고, 야마의 선고(+30%)와 지속피해 즉시 발동이 그 위에 얹힌다. 묶음 순서는 바유(-100) → 바루나(-50) → 인드라(+50) → 야마(+75) → 찬드라(+100)이다."
+    partners: []
     counterplay: "인드라가 쓰러지면 묶음을 열 수 없다. 반응 지속피해는 특수방어력으로 경감되고 보호막을 우회한다."
+  - id: LOKAPALA_SUN
+    name: 로카팔라 종언탄 편성
+    core: [67, 64, 63, 66, 60]
+    partners: []
+    description: "바루나·찬드라가 전열을 나누고, 바유의 취약과 인드라의 특수행동 지원 위에서 수리야가 표식을 종언탄으로 소비한다."
+    counterplay: "표식 명중과 공격 대상 유지가 필요하며, 인드라가 쓰러지면 특수행동 묶음이 끊긴다."
   - id: VEDIC_FIRE
     name: 베다 불길 편성
     core: [62, 63, 64, 66]
@@ -764,6 +939,12 @@ archetypes:
     description: "잔이 바스테트의 직접 공격을 대신 받아 선제 반격하고, 바스테트가 같은 공격자에게 후속 냥냥펀치를 잇는다."
     partners: []
     counterplay: "잔의 철권제재 기회가 소진되면 반격 후속이 멈추며, 간접 피해는 경호·반격을 열지 않는다."
+  - id: JEAN_ICE_CARRY
+    name: 얼음 반격 지휘
+    core: [7, 161, 160]
+    description: "잔에게 기수와 공격·타격·추가행동·반격 코드를 집중하고, 나폴레옹의 일반공격 지휘와 마리의 추가행동 치피로 얼음 반격을 강화한다."
+    partners: [64, 82]
+    counterplay: "직접 피격을 모아야 한다. 적의 간접 피해와 반격 기회 소진에 약하며, 초반부터 유지력을 과투자하면 화력이 부족하다."
   - id: REWORK_FIVE
     name: 현행 5인 균형 편성
     core: [1, 2, 60, 44, 20]
@@ -771,11 +952,17 @@ archetypes:
     partners: []
     counterplay: "광역 회복·정화가 없고, 로카팔라 특수행동을 자연 개방하지 못한다."
   - id: SABAH_EXECUTION
-    name: 사바흐 빈틈 처형 편성
-    core: [3, 2, 60, 44, 20]
-    description: "히미코·피그말리온이 해로운 상태와 지속피해를 공급해 아즈라엘을 채우고, 시와 사바흐가 단일·광역 처형을 나눈다."
+    name: 사바흐 과성장 하이퍼캐리
+    core: [3, 4, 167]
+    description: "전열 가우디·에레쉬키갈, 후열 사바흐. 남은 후열은 세이·바유·히미코 중 두 명으로 비교한다. 풀+번개 과성장과 디버프로 사바흐 특공 특수피해를 지원한다."
+    partners: [1, 64, 44]
+    counterplay: "검토 후보. 바유 초월 방깎은 사바흐 특수피해를 직접 키우지 않는다. 바유 원소 취약과 히미코 맹화 취약·방어 스탯 무시는 특수피해에 유효하다."
+  - id: SABAH_DUAL_DEBUFFER
+    name: 사바흐 이중 디버퍼
+    core: [3, 4, 64, 44, 167]
+    description: "전열 가우디·에레쉬키갈 / 후열 사바흐·바유·히미코. 세이의 보호막·피해 증가를 빼고 확산·맹화와 아즈라엘 회전을 비교한다."
     partners: []
-    counterplay: "맹화 1~2중첩은 디버프가 아니며, 적이 해로운 상태에 강하면 아즈라엘 회전이 느려진다."
+    counterplay: "세이 없는 검토 후보. 가우디가 전원 보호막을 전담하며 바유의 로카팔라 특수행동은 인드라 없이 개방되지 않는다."
 
   - id: TREASURY_BARRAGE
     name: 왕실 재보 포격
@@ -808,7 +995,85 @@ archetypes:
     description: 스카디의 얼음과 바루나의 물을 공급하고 보호막·치유로 전열을 유지한다.
     counterplay: 얼음 부착 저항과 보호막을 우회하는 지속피해에 대비해야 한다.
 
+  - id: JEAN_TESLA_COUNTER
+    name: 잔 반격
+    core: [7, 122, 162, 1, 168]
+    partners: [1, 22]
+    description: "잔의 얼음 반격과 니콜의 광역 번개로 초전도를 열고 아스톨포의 공격력 치유·반격 치피를 연결한다."
+    counterplay: "아스톨포와 니콜은 후열. 적 가속은 위험을 동반하며 경감 중첩은 피격 횟수로 소모된다."
+
 recommendations:
+  - mainId: 164
+    mainName: 네프티스
+    axis: 독안의 사냥
+    starterRecommended: true
+    best:
+      archetype: PASSIVE_POISON
+      members: [165, 162, 45, 167]
+      rows: { 45: Front, 167: Front }
+      reason: "실제 지속피해의 부여·발동·지원·치유를 다섯 자리로 나눈다."
+    warning: "부여 저항·정화·급사·효과 수명을 함께 확인한다."
+  - mainId: 165
+    mainName: 아탈란테
+    axis: 독안의 사냥
+    starterRecommended: true
+    best:
+      archetype: PASSIVE_POISON
+      members: [164, 162, 45, 167]
+      rows: { 45: Front, 167: Front }
+      reason: "실제 지속피해의 부여·발동·지원·치유를 다섯 자리로 나눈다."
+    warning: "부여 저항·정화·급사·효과 수명을 함께 확인한다."
+  - mainId: 166
+    mainName: 네이트
+    axis: 능동 감전
+    starterRecommended: true
+    best:
+      archetype: ACTIVE_SHOCK
+      members: [61, 66, 45, 167]
+      rows: { 45: Front, 167: Front }
+      reason: "실제 지속피해의 부여·발동·지원·치유를 다섯 자리로 나눈다."
+    warning: "부여 저항·정화·급사·효과 수명을 함께 확인한다."
+  - mainId: 167
+    mainName: 에레쉬키갈
+    axis: 능동 감전
+    starterRecommended: true
+    best:
+      archetype: ACTIVE_SHOCK
+      members: [61, 166, 66, 45]
+      rows: { 45: Front, 167: Front }
+      reason: "실제 지속피해의 부여·발동·지원·치유를 다섯 자리로 나눈다."
+    warning: "부여 저항·정화·급사·효과 수명을 함께 확인한다."
+
+  - mainId: 162
+    mainName: 아스톨포
+    axis: "반격 치피·적 행동 가속·공격력 치유"
+    starterRecommended: true
+    best:
+      archetype: ASTOLFO_COUNTER
+      members: [22, 122, 1, 160]
+      rows: { 162: Rear, 22: Front, 122: Rear, 1: Front, 160: Rear }
+      reason: "오리온의 광역 반격과 바스테트 후속을 차등 강화한다. 세이의 보호막·집중, 마리의 치유·추공 치피를 공통 코어로 삼는다."
+    basic:
+      archetype: JEAN_TESLA_COUNTER
+      members: [7, 122, 1, 168]
+      rows: { 162: Rear, 7: Front, 122: Rear, 1: Rear, 168: Rear }
+      reason: "잔의 얼음 반격과 니콜의 광역 번개로 초전도를 만들고, 아스톨포가 치유·반격 치피, 세이가 보호막과 경감을 맡는다."
+    warning: "바스테트 후속은 기본 추가행동 치피만, 반격은 추가 보너스까지 받는다. 아마테라스 초월기는 대상이 아니다. 제어로 적 턴이 사라지면 적 가속의 이득도 줄어든다."
+  - mainId: 40
+    mainName: 아마테라스
+    axis: 추가공격 축적·초월 바운스
+    starterRecommended: true
+    best:
+      archetype: SUNLIGHT_VOLLEY
+      members: [7, 122, 83, 82]
+      rows: { 40: Rear, 7: Front, 122: Rear, 83: Front, 82: Front }
+      reason: "잔·바스테트가 일광을 공급하고 스카디의 얼음으로 융해를 노린다. 프레이아가 유지력을 맡는다. 추가공격과 충전 속도를 함께 맞춘다."
+    basic:
+      archetype: SUNLIGHT_VOLLEY
+      members: [7, 122, 83, 82]
+      rows: { 40: Rear, 7: Front, 122: Rear, 83: Front, 82: Front }
+      reason: "추가공격·반응 재료·치유를 확보한 출발 편성. 단계별 화력/승률 최적화는 별도 실측한다."
+    warning: "나폴레옹 지휘와 로카팔라 특수행동은 일광을 주지 않는다. 호루스는 초월기를 지원하지만 과충전과 대체할 파티 역할을 확인한다. 마리의 추가행동 치피는 아마테라스 초월기에 적용되지 않는다."
   - mainId: 125
     mainName: 이시스
     axis: ISIS_SUMMON_CORE
@@ -818,29 +1083,29 @@ recommendations:
       members:
       - 20
       - 124
-      - 81
-      - 64
+      - 67
+      - 161
       rows:
         125: Front
         20: Front
-        124: Front
-        81: Rear
-        64: Rear
-      reason: 각 유닛의 자원/부여/유지력 역할을 분리해 투자한다.
+        124: Rear
+        67: Rear
+        161: Front
+      reason: 이시스·피그말리온의 전열과 토트의 유지력에 수리야·나폴레옹의 단일/일반공격 화력을 더한다. 호위와 보스 화력을 함께 챙긴다.
     basic:
       archetype: ISIS_SUMMON_CORE
       members:
       - 20
       - 124
-      - 81
-      - 64
+      - 67
+      - 161
       rows:
         125: Front
         20: Front
-        124: Front
-        81: Rear
-        64: Rear
-      reason: 각 유닛의 자원/부여/유지력 역할을 분리해 투자한다.
+        124: Rear
+        67: Rear
+        161: Front
+      reason: 수호령의 방호/바위, 토트의 치유, 피그말리온의 소환 공격과 수리야·나폴레옹의 일반공격을 나눠 투자한다.
     warning: 아누비스 영혼 중첩 편성, 우치·셰익스피어 생애 순환 편성과 각각 구분한다.
   - mainId: 123
     mainName: 세트
@@ -857,7 +1122,7 @@ recommendations:
         123: Front
         66: Front
         82: Front
-        61: Rear
+        61: Front
         45: Rear
       reason: 각 유닛의 자원/부여/유지력 역할을 분리해 투자한다.
     basic:
@@ -871,7 +1136,7 @@ recommendations:
         123: Front
         66: Front
         82: Front
-        61: Rear
+        61: Front
         45: Rear
       reason: 각 유닛의 자원/부여/유지력 역할을 분리해 투자한다.
     warning: 아누비스 영혼 중첩 편성, 우치·셰익스피어 생애 순환 편성과 각각 구분한다.
@@ -960,18 +1225,18 @@ recommendations:
 
   - mainId: 7
     mainName: 잔
-    axis: "선제 반격·도발·바스테트 후속"
+    axis: "얼음 선제 반격·방호/캐리"
     starterRecommended: true
     best:
-      archetype: JEAN_BASTET_COUNTER
-      members: [122, 1, 44, 60]
-      rows: { 7: Front, 122: Rear, 1: Front, 44: Rear, 60: Rear }
-      reason: "잔이 공격을 모아 선제 반격을 만들고, 바스테트가 그 반격을 실제 추가행동으로 전환한다. 보호막·취약·위기 회복이 전열 유지와 단일 압박을 보완한다."
+      archetype: JEAN_TESLA_COUNTER
+      members: [122, 162, 1, 168]
+      rows: { 7: Front, 122: Rear, 162: Rear, 1: Rear, 168: Rear }
+      reason: "잔의 얼음 반격에 니콜의 번개 부착·방깎·공방 버프를 잇고, 아스톨포 치유와 세이 보호막으로 전열을 유지한다."
     basic:
-      archetype: JEAN_BASTET_COUNTER
-      members: [122, 1, 44, 60]
-      rows: { 7: Front, 122: Rear, 1: Front, 44: Rear, 60: Rear }
-      reason: "현재 해금 로스터만으로 경호→선제 반격→바스테트 추격을 모두 확인하는 기본 편성."
+      archetype: JEAN_ICE_CARRY
+      members: [64, 160, 161, 82]
+      rows: { 7: Front, 64: Rear, 160: Rear, 161: Front, 82: Front }
+      reason: "기수로 피격을 모으고 공격·타격·추가행동·반격 보상을 잔에게 집중하는 얼음 캐리 대안. 나폴레옹은 일반공격 태그를 가진 반격도 강화한다."
     warning: "잔이 공격자를 선제 처치하면 원래 공격과 죽은 대상을 향한 바스테트 추격은 모두 취소된다."
 
   - mainId: 122
@@ -992,19 +1257,19 @@ recommendations:
 
   - mainId: 3
     mainName: 사바흐
-    axis: "디버프·지속피해·아즈라엘 광역"
-    starterRecommended: true
+    axis: "과성장·특공 특수피해·디버프 하이퍼캐리"
+    starterRecommended: false
     best:
       archetype: SABAH_EXECUTION
-      members: [2, 60, 44, 20]
-      rows: { 3: Rear, 2: Rear, 60: Rear, 44: Rear, 20: Front }
-      reason: "히미코의 취약과 피그말리온의 맹독이 아즈라엘을 채우며, 찬드라가 가장 높은 공격력을 강화하고 시가 남은 단일 적을 정리한다."
+      members: [4, 44, 1, 167]
+      rows: { 3: Rear, 4: Front, 44: Rear, 1: Rear, 167: Front }
+      reason: "검토 기본: 전열 가우디·에레쉬키갈 / 후열 사바흐·히미코·세이. 맹화 취약·집중 해제와 디버프 자원을 제공한다."
     basic:
       archetype: SABAH_EXECUTION
-      members: [2, 60, 44, 20]
-      rows: { 3: Rear, 2: Rear, 60: Rear, 44: Rear, 20: Front }
-      reason: "현행 사바흐 검수 편성과 같은 5인 조합으로 단일·광역·디버프 축을 모두 확인한다."
-    warning: "해로운 상태 부여가 끊기면 궁극기 자원이 오르지 않는다."
+      members: [4, 64, 1, 167]
+      rows: { 3: Rear, 4: Front, 64: Rear, 1: Rear, 167: Front }
+      reason: "비교 후보: 전열 가우디·에레쉬키갈 / 후열 사바흐·바유·세이. 바유의 확산 원소 취약으로 번개 직접 피해를 지원한다."
+    warning: "에비스는 제외. 세이 없이 바유·히미코를 모두 쓰는 안도 별도 검토한다. 에레쉬키갈은 임시 치유 담당이며 완성 판정 전이다."
 
   - mainId: 1
     mainName: 세이
@@ -1028,15 +1293,15 @@ recommendations:
     starterRecommended: true
     best:
       archetype: LOKAPALA_GATE
-      members: [64, 65, 60, 2]
-      rows: { 63: Rear, 64: Rear, 65: Rear, 60: Front, 2: Rear }
-      reason: "팔방의 소집 한 번에 특수행동 네 번이 이어지고, 시의 처치 재행동도 데바의 왕을 받는다."
+      members: [64, 65, 66, 60]
+      rows: { 63: Rear, 64: Rear, 65: Rear, 66: Front, 60: Front }
+      reason: "쿠베라의 재보 포격을 바유·인드라가 지원하고 바루나·찬드라가 전열 방호와 회복을 나눈다."
     basic:
       archetype: LOKAPALA_GATE
-      members: [64, 65, 60, 2]
-      rows: { 63: Rear, 64: Rear, 65: Rear, 60: Front, 2: Rear }
-      reason: "로카팔라 4인과 처형 딜러로 묶음 순서와 피해 보조를 모두 확인한다."
-    warning: "전열이 찬드라 하나라 소모전에 약하다."
+      members: [64, 65, 66, 60]
+      rows: { 63: Rear, 64: Rear, 65: Rear, 66: Front, 60: Front }
+      reason: "쿠베라를 주 딜러로 두는 로카팔라 5인 편성."
+    warning: "찬드라·바루나의 전열 유지와 인드라 생존이 특수행동 회전의 전제다."
 
   - mainId: 61
     mainName: 야마
@@ -1044,13 +1309,13 @@ recommendations:
     starterRecommended: true
     best:
       archetype: LOKAPALA_SHOCK
-      members: [66, 63, 60, 20]
-      rows: { 61: Rear, 66: Front, 63: Rear, 60: Rear, 20: Front }
-      reason: "바루나의 물과 번개가 감전을 만들고, 피그말리온의 맹독이 즉시 발동할 지속피해를 더한다. 인드라가 묶음을 열어 야마가 400%로 마무리하고 찬드라가 회복한다."
+      members: [66, 63, 60, 64]
+      rows: { 61: Rear, 66: Front, 63: Rear, 60: Front, 64: Rear }
+      reason: "바루나의 물과 번개가 감전을 만들고, 바유의 확산·취약이 감전 화력을 보조한다. 인드라가 묶음을 열어 야마가 400%로 마무리하고 찬드라가 회복한다."
     basic:
       archetype: LOKAPALA_SHOCK
-      members: [66, 63, 60, 20]
-      rows: { 61: Rear, 66: Front, 63: Rear, 60: Rear, 20: Front }
+      members: [66, 63, 60, 64]
+      rows: { 61: Rear, 66: Front, 63: Rear, 60: Front, 64: Rear }
       reason: "현재 해금 로스터에서 감전 → 선고 → 즉시 발동 → 묶음 순서를 모두 확인하는 5인 편성."
     warning: "지속피해가 없으면 즉시 발동은 비어 있고, 감전이 없으면 선고도 켜지지 않는다."
 
@@ -1060,13 +1325,13 @@ recommendations:
     starterRecommended: true
     best:
       archetype: LOKAPALA_SHOCK
-      members: [61, 63, 60, 20]
-      rows: { 66: Front, 61: Rear, 63: Rear, 60: Rear, 20: Front }
+      members: [61, 63, 60, 64]
+      rows: { 66: Front, 61: Rear, 63: Rear, 60: Front, 64: Rear }
       reason: "물을 붙일 때마다 제방이 쌓이고 초월기·특수행동의 방어력 보호막이 전원을 받친다. 붙인 물이 야마의 번개와 만나 감전이 된다."
     basic:
       archetype: LOKAPALA_SHOCK
-      members: [61, 63, 60, 20]
-      rows: { 66: Front, 61: Rear, 63: Rear, 60: Rear, 20: Front }
+      members: [61, 63, 60, 64]
+      rows: { 66: Front, 61: Rear, 63: Rear, 60: Front, 64: Rear }
       reason: "방어 보호막과 감전 반응이 한 편성에서 함께 도는지 확인하는 기본 편성."
     warning: "반응·지속피해는 보호막을 우회한다. 인드라가 없으면 넘치는 판결은 열리지 않는다."
 
@@ -1077,12 +1342,12 @@ recommendations:
     best:
       archetype: VEDIC_FIRE
       members: [63, 64, 66, 60]
-      rows: { 62: Front, 63: Rear, 64: Rear, 66: Front, 60: Rear }
-      reason: "바루나의 물과 바유의 확산 위에서 인드라의 팔방의 소집이 아그니의 집중 포격(중심 180%)을 열고, 찬드라가 수습한다."
+      rows: { 62: Rear, 63: Rear, 64: Rear, 66: Front, 60: Front }
+      reason: "바루나의 물과 바유의 확산 위에서 인드라의 팔방의 소집이 아그니의 집중 포격(중심 540%)을 열고, 찬드라가 수습한다."
     basic:
       archetype: VEDIC_FIRE
       members: [63, 64, 66, 60]
-      rows: { 62: Front, 63: Rear, 64: Rear, 66: Front, 60: Rear }
+      rows: { 62: Rear, 63: Rear, 64: Rear, 66: Front, 60: Front }
       reason: "추천 시험 편성(Detail_08 §17) — 보류 → 집중 포격 → 인드라 순서를 한 묶음에서 확인한다."
     warning: "아군 초월기가 늦게 돌면 추공도 늦다. 물 공급원이 없으면 증발이 나지 않는다."
 
@@ -1093,12 +1358,12 @@ recommendations:
     best:
       archetype: NORMAL_VOLLEY
       members: [161, 1, 44, 60]
-      rows: { 67: Rear, 161: Rear, 1: Front, 44: Rear, 60: Front }
+      rows: { 67: Rear, 161: Front, 1: Front, 44: Rear, 60: Front }
       reason: "나폴레옹의 지휘 사격에서도 표식을 쌓고 종언탄을 발사한다. 세이·찬드라가 유지력을, 히미코가 방어 무시를 제공한다."
     basic:
       archetype: NORMAL_VOLLEY
       members: [161, 1, 44, 60]
-      rows: { 67: Rear, 161: Rear, 1: Front, 44: Rear, 60: Front }
+      rows: { 67: Rear, 161: Front, 1: Front, 44: Rear, 60: Front }
       reason: "일반공격 증폭과 표식 집중을 함께 활용하는 기본 편성."
     warning: "표식 부여에는 효과 명중이 필요하며 대상이 자주 바뀌면 종언탄이 늦어진다."
 
@@ -1109,12 +1374,12 @@ recommendations:
     best:
       archetype: NORMAL_VOLLEY
       members: [67, 1, 44, 60]
-      rows: { 161: Rear, 67: Rear, 1: Front, 44: Rear, 60: Front }
+      rows: { 161: Front, 67: Rear, 1: Front, 44: Rear, 60: Front }
       reason: "공격형 일반행동의 종언탄·다타수·방어 무시를 한 지정 대상에게 집중한다."
     basic:
       archetype: NORMAL_VOLLEY
       members: [67, 1, 44, 60]
-      rows: { 161: Rear, 67: Rear, 1: Front, 44: Rear, 60: Front }
+      rows: { 161: Front, 67: Rear, 1: Front, 44: Rear, 60: Front }
       reason: "생존과 일반공격 집중을 함께 확보한다."
     warning: "지휘 사격은 참여자의 일반행동 턴을 앞당기거나 마나를 충전하지 않는다."
 
@@ -1248,3 +1513,19 @@ recommendations:
         '82': Rear
       reason: 얼음·물 부착, 전원 보호막과 취약·치유를 나누어 담당한다.
     warning: 오리온은 피격 확보, 스카디는 효과 명중과 방어력 투자를 먼저 확인한다.
+
+  - mainId: 168
+    mainName: 니콜
+    axis: "광역 번개·초전도·일회성 공방 중첩"
+    starterRecommended: true
+    best:
+      archetype: JEAN_TESLA_COUNTER
+      members: [7, 122, 162, 1]
+      rows: { 168: Rear, 7: Front, 122: Rear, 162: Rear, 1: Rear }
+      reason: "마리를 대신하는 아스톨포의 공격력 치유와 니콜의 광역 번개로 잔 초전도 반격을 지원한다."
+    basic:
+      archetype: JEAN_TESLA_COUNTER
+      members: [7, 122, 162, 1]
+      rows: { 168: Rear, 7: Front, 122: Rear, 162: Rear, 1: Rear }
+      reason: "잔 단독 전열에 피격을 모으고 후열 세이가 보호막·집중을 제공하는 잔 반격 편성."
+    warning: "부착은 공통 효과 명중을 통과해야 하며 번개가 없는 반응은 특성을 발동하지 않는다."

@@ -11,6 +11,17 @@ namespace Effects
     /// <summary>전투 숫자와 상태 알림의 비입력 화면 표면. 원화 크기와 카메라 배율에 관계없이 읽힌다.</summary>
     internal static class CombatFeedbackSurface
     {
+        private static int _cardFrame = -1;
+        private static UnitCardView[] _cards = System.Array.Empty<UnitCardView>();
+        private static UnitCardView[] Cards()
+        {
+            if (_cardFrame != Time.frameCount)
+            {
+                _cardFrame = Time.frameCount;
+                _cards = Object.FindObjectsByType<UnitCardView>(FindObjectsSortMode.None);
+            }
+            return _cards;
+        }
         private static RectTransform _root;
         public static RectTransform Root
         {
@@ -48,8 +59,9 @@ namespace Effects
             var view=CardMotion.ViewOf(target);Camera camera=Camera.main;
             if(view==null||camera==null)return false;
             Rect portrait=view.PortraitFocusScreenRect(camera);
-            foreach(var card in Object.FindObjectsByType<UnitCardView>(FindObjectsSortMode.None))
+            foreach(var card in Cards())
             {
+                if (card == null) continue;
                 if(card==view)continue;
                 Rect hud=card.HudScreenRect(camera);
                 if(hud.height<=0||hud.yMin<portrait.yMax||hud.yMin-portrait.yMax>=132f)continue;
@@ -69,8 +81,9 @@ namespace Effects
             if (_obstacleFrame != Time.frameCount)
             {
                 _obstacleFrame = Time.frameCount; HudObstacles.Clear();
-                foreach (var card in Object.FindObjectsByType<UnitCardView>(FindObjectsSortMode.None))
+                foreach (var card in Cards())
                 {
+                    if (card == null) continue;
                     AddObstacle(card.HudScreenRect(Camera.main));
                     Rect face = card.PortraitFocusScreenRect(Camera.main);
                     face.yMin = Mathf.Lerp(face.yMin, face.yMax, .55f);

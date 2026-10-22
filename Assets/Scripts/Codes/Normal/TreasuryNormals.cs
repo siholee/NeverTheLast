@@ -9,6 +9,7 @@ namespace Codes.Normal
 {
     public sealed class MansaRoyalShield : NormalCode
     {
+        public override int BaseShieldAmount => StatDamage(0, BaseEnums.StatType.Defense, .8f);
         public MansaRoyalShield(NormalCodeContext context) : base(context) { CodeName = "왕실의 방호"; CodeType = BaseEnums.CodeType.Normal; }
         public override bool HasValidTarget() => PartyTreasury.CanUse(Caster);
         public override void CastCode() { Caster.isCasting = true; CurrSkillCoroutine = Caster.StartCoroutine(Perform()); }
@@ -28,6 +29,7 @@ namespace Codes.Normal
     }
     public sealed class IshtarVenusShot : BaseNormalCode
     {
+        protected override bool AppliesElementTo(Unit target) => true;
         public IshtarVenusShot(NormalCodeContext context) : base(context) => CodeName = "금성 사격";
         public override int AttackForm => DamageTag.Shot;
         protected override int BaseDamage(Unit target) => StatDamage(0, BaseEnums.StatType.Attack, .8f);

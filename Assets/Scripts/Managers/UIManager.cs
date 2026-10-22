@@ -34,8 +34,7 @@ namespace Managers
 
         private void Start()
         {
-            // HUD를 미리 만들어 두어야 생명력/골드 초기값이 곧바로 보인다.
-            UpdateLifeText();
+            // HUD를 미리 만들어 두어야 골드 초기값이 곧바로 보인다.
             UpdateGoldText();
         }
 
@@ -49,12 +48,6 @@ namespace Managers
         public void UpdateGameStatusWithEnemyCount(GameState currentState, int remainingTime, int enemyCount)
         {
             Hud.SetPhase(currentState, enemyCount);
-        }
-
-        public void UpdateLifeText()
-        {
-            if (GameManager.Instance == null) return;
-            Hud.SetLife(GameManager.Instance.life);
         }
 
         public void UpdateGoldText()

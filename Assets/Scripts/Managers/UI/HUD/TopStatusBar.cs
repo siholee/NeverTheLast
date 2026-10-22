@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using BaseClasses;
 using Managers.UI.Core;
 using Managers.UI.Theme;
 using TMPro;
@@ -68,8 +69,8 @@ namespace Managers.UI.HUD
             UIBuild.Stretch(_crestIcon.rectTransform,7,7);
             _timerLabel=UIBuild.Text("TimerText",ringTrack,"",14,UITheme.TextPrimary,TextAlignmentOptions.Center);
             UIBuild.Stretch(_timerLabel.rectTransform);
-            TooltipTrigger.Attach(ringTrack.gameObject,()=>GameManager.Instance?.IsRoundTurnGauge==true?"남은 전투 턴":"준비 남은 시간",
-                ()=>new[]{UITooltip.Line.Note(GameManager.Instance?.IsRoundTurnGauge==true?$"{GameManager.Instance.PhaseRemainingSeconds}턴 남았습니다.":$"{GameManager.Instance?.PhaseRemainingSeconds??0}초 남았습니다.",UITheme.TextSecondary)},UITheme.Accent);
+            TooltipTrigger.Attach(ringTrack.gameObject,()=>GameManager.Instance?.gameState==BaseEnums.GameState.RoundInProgress?"전투 진행":"출격 준비",
+                ()=>new[]{UITooltip.Line.Note(GameManager.Instance?.gameState==BaseEnums.GameState.RoundInProgress?"턴 제한 없이 전투를 진행합니다.":"상점·휴식·배치를 마치면 직접 출격하세요.",UITheme.TextSecondary)},UITheme.Accent);
             _roundLabel=UIBuild.Text("RoundLabel",roundBlock,"1-1",22,UITheme.TextPrimary);
             UIBuild.Anchor(_roundLabel.rectTransform,Vector2.zero,new Vector2(.34f,1f));
             _roundLabel.rectTransform.offsetMin=new Vector2(42,0);
@@ -107,7 +108,7 @@ namespace Managers.UI.HUD
             _speedLabel=UIBuild.Text("SpeedLabel",speed.transform,"1×",20,UITheme.TextPrimary,TextAlignmentOptions.Midline);
             UIBuild.Pin(_speedLabel.rectTransform,new Vector2(1,.5f),new Vector2(36,40),new Vector2(-5,0));
             TooltipTrigger.Attach(speed.gameObject,()=>"전투 속도 · "+_speedLabel.text,
-                ()=>new[]{UITooltip.Line.Note("클릭하여 1× → 2× → 4× 순으로 전환합니다.\n1×  행동과 효과를 차근차근 확인\n2×  익숙한 전투를 빠르게 확인\n4×  빠른 진행",UITheme.TextSecondary)},UITheme.Accent);
+                ()=>new[]{UITooltip.Line.Note("클릭하여 1× → 2× → 3× → 4× → 5× 순으로 전환합니다.\n1×  기본 속도 (이전 버전 2×)\n2~4×  더 빠른 전투\n5×  가장 빠른 진행\n일시정지는 옆 버튼으로 조작합니다.",UITheme.TextSecondary)},UITheme.Accent);
             Button pause=Control("BattlePauseButton",UIIcon.Pause,80,44,onPause);
             _pauseIcon=pause.transform.Find("Icon").GetComponent<Image>();
             TooltipTrigger.Attach(pause.gameObject,()=>_paused?"전투 계속":"일시정지",
@@ -139,12 +140,11 @@ namespace Managers.UI.HUD
                 ? $"STAGE {round.Stage}"
                 : round.CurrentThemeName;
 
-            // 원형 게이지 — 준비 단계는 남은 초, 전투 중에는 남은 턴이다.
+            // 전투 제한은 없으며 비활성 타이머에는 진행 문양을 표시한다.
             _timerRing.fillAmount = game.PhaseProgressRatio;
 
             int remaining = game.PhaseRemainingSeconds;
             _crestIcon.enabled = remaining <= 0;
-            bool turnGauge = game.IsRoundTurnGauge;
             _timerLabel.text = remaining > 0
                 ? remaining.ToString()
                 : "";
@@ -214,14 +214,14 @@ namespace Managers.UI.HUD
             {
                 bool isCurrent=distance==0;
                 _kindName = kind switch { StageKind.Boss => "보스", StageKind.MidBoss => "중간 보스",
-                    StageKind.Elite => "정예", StageKind.Event => "사건", _ => "전투" };
-                _forecast=$"{(stage-1)/RoundManager.EncountersPerTheme+1}-{(stage-1)%RoundManager.EncountersPerTheme+1} · {_kindName}";
+                    StageKind.Elite => "정예", StageKind.Event => "사건", StageKind.Rest => "무료 휴식", _ => "전투" };
+                _forecast=$"{ProgressionLayout.Label(stage)} · {_kindName}";
                 string meaning=kind switch { StageKind.Boss=>"구간의 보스와 전투합니다.", StageKind.MidBoss=>"중간 보스와 전투합니다.",
-                    StageKind.Elite=>"강화된 적과 전투합니다.", StageKind.Event=>"사건과 선택지가 기다리고 있습니다.", _=>"적 편성과 자동 전투를 진행합니다." };
+                    StageKind.Elite=>"강화된 적과 전투합니다.", StageKind.Event=>"사건과 선택지가 기다리고 있습니다.", StageKind.Rest=>"전투 없이 무료 긴 휴식 후 고정보스로 이동합니다.", _=>"적 편성과 자동 전투를 진행합니다." };
                 _detail=(isCurrent?"현재 스테이지":"앞으로 "+distance+"단계 후")+"\n"+meaning;
                 _glyph.sprite = UILineIcons.Get(kind switch { StageKind.Boss => UIIcon.Boss,
                     StageKind.MidBoss => UIIcon.Elite, StageKind.Elite => UIIcon.Elite,
-                    StageKind.Event => UIIcon.Event, _ => UIIcon.Battle });
+                    StageKind.Event => UIIcon.Event, StageKind.Rest => UIIcon.Supply, _ => UIIcon.Battle });
                 _glyph.color = isCurrent ? UITheme.TextPrimary : UITheme.TextSecondary;
                 _fill.color = isCurrent ? Color.white : new Color(1f, 1f, 1f, 0.58f);
                 _currentMark.enabled = isCurrent;

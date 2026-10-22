@@ -12,7 +12,7 @@ namespace Codes.Passive
 {
     /// <summary>
     /// 인드라 — 특성 「데바의 왕」(Detail_08 §13.1). 필드에 있는 동안 아군 전원의 <b>특수행동 피해 +25%</b>,
-    /// 다른 아군이 특수행동을 마칠 때마다 인드라 마나 +10.
+    /// 다른 아군이 특수행동을 마칠 때마다 인드라 마나 +10. 전투 개시에는 마나 최소40%를 준비한다.
     ///
     /// 로카팔라에 묶지 않았다 — 시의 처치 재행동처럼 <c>SpecialAttack</c> 태그를 단 피해라면 출처를 묻지 않는다.
     /// </summary>
@@ -22,14 +22,23 @@ namespace Codes.Passive
         private const string AuraKey = "indra_deva_king";
         private const float SpecialDamageBonus = 1.25f;
         private const int ManaPerAllySpecial = 10;
+        public const float OpeningManaFloor = .40f;
 
         private bool _subscribed;
+        private bool _openingApplied;
 
         public IndraDevaKing(PassiveCodeContext context) : base(context) => CodeName = "데바의 왕";
 
         public override void CastCode()
         {
             if (Caster == null) return;
+            // 첫 묶음을 일반전 예산 안에 준비한다. 더 많이 보유한 마나는 보존하며 재시전으로 재충전하지 않는다.
+            if (!_openingApplied && Caster.IsOnField && GameManager.Instance?.gameState == BaseEnums.GameState.RoundInProgress)
+            {
+                _openingApplied = true;
+                int floor = UnityEngine.Mathf.RoundToInt(Caster.ManaMax * OpeningManaFloor);
+                Caster.AddUltimateResource(UnityEngine.Mathf.Max(0, floor - Caster.ManaCurr));
+            }
             foreach (Unit ally in FieldAllies())
             {
                 ally.AddStatus(BuffStatus.Create(AuraStatusId, AuraKey, CodeName, Caster, ally,
@@ -45,6 +54,7 @@ namespace Codes.Passive
 
         public override void StopCode()
         {
+            if (GameManager.Instance?.gameState != BaseEnums.GameState.RoundInProgress) _openingApplied = false;
             if (_subscribed) ActionScheduler.AnyActionFinished -= OnAnyActionFinished;
             _subscribed = false;
             GridManager grid = GridManager.Instance;

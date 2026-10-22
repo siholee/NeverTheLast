@@ -83,7 +83,7 @@ namespace Codes.Passive
                 AudioManager.PlayAction(Caster, SfxActionSlot.Passive, SfxCuePhase.Cast, CodeName);
                 yield return DirectAttack.HitEach("orion.sirius", Caster, routing.Targets, target =>
                 {
-                    bool crit = RollCritical(target, out float multiplier);
+                    bool crit = RollCritical(target, tags, out float multiplier);
                     AudioManager.PlayAction(Caster, SfxActionSlot.Passive, SfxCuePhase.Hit, CodeName);
                     target.TakeDamage(new DamageContext(Caster, Mathf.Max(1, Mathf.RoundToInt(raw * multiplier)), BaseEnums.CodeType.Passive, new List<int>(tags), crit));
                     fired = true;

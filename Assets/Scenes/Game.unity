@@ -565,7 +565,6 @@ MonoBehaviour:
   KillCount: 0
   preparationTime: 30
   roundProgressTime: 60
-  life: 20
   dataManager: {fileID: 5003}
   unitDataList:
     units: []

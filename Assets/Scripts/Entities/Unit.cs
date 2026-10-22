@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,6 +36,7 @@ namespace Entities
         public static event Action<Unit, DamageContext> AnyDamageIncoming;
         /// <summary>원소 반응이 일어났음을 알린다. (반응을 일으킨 쪽, 대상, 반응 이름)</summary>
         public static event Action<Unit, Unit, string> AnyElementalReaction;
+        public static event Action<ElementalReactionContext> AnyElementalReactionResolved;
         /// <summary>원소가 부착될 때 발행한다. (부여자, 대상, 부여 원소)</summary>
         public static event Action<Unit, Unit, BaseEnums.UnitElement> AnyCombatElementGranted;
         /// <summary>영구 중첩이 정수로 늘어난 순간. (보유자, 키, 이번에 늘어난 정수량)</summary>
@@ -58,6 +59,8 @@ namespace Entities
         /// <see cref="ActionScheduler.AnyActionFinished"/>(Ultimate)를 함께 봐야 시전 도중 사망을 가른다(아그니).
         /// </summary>
         public static event Action<Unit> AnyUltimateCast;
+        /// <summary>실제로 소비한 마나. 지연형 초월기도 첫 효과 확정 직전에 한 번 발행한다.</summary>
+        public static event Action<Unit, int> AnyUltimateManaSpent;
 
         /// <summary>
         /// 보상 코드 칸 수. 옛 장비 슬롯 7종(머리 · 목걸이 · 갑옷 · 반지 · 신발 · 주무기 · 보조)의 자리를 코드가 물려받았다
@@ -180,7 +183,14 @@ namespace Entities
         public int ShieldCurr { get => shieldCurr; protected set => shieldCurr = value; }
 
         /// <summary>레벨과 상태 효과를 반영한 최종 스탯.</summary>
-        public float StatValue(BaseEnums.StatType stat) => _finalStats[(int)stat];
+        public float StatValue(BaseEnums.StatType stat)
+        {
+            float value = _finalStats[(int)stat];
+            if (stat != BaseEnums.StatType.Attack) return value;
+            float bonus = 0f;
+            foreach (BaseEffect effect in ActiveEffectObjects()) bonus += effect.ActionAttackBonus(this);
+            return value * Mathf.Max(0f, 1f + bonus);
+        }
 
         /// <summary>레벨만 반영한 기초 스탯(효과 전). 캐릭터 시트의 "기초"에 쓴다.</summary>
         public float BaseStat(BaseEnums.StatType stat) => stats.LeveledBase(stat);
@@ -806,8 +816,7 @@ namespace Entities
             bool deferred = UltimateCode.DefersActivationUntilImpact;
             if (!deferred)
             {
-                if (ultimateResourceType != BaseEnums.UltimateResourceType.Passive) ManaCurr = 0;
-                RefreshView();
+                ConsumeUltimateActivationResource();
             }
             UltimateCode.CastCode();
             if (!deferred) NotifyUltimateActivation();
@@ -816,9 +825,16 @@ namespace Entities
         /// <summary>초월기 자원과 발동 알림은 행동당 한 번. 지연형은 첫 탄 판정 직전에 호출한다.</summary>
         public void CommitUltimateActivation()
         {
+            ConsumeUltimateActivationResource();
+            NotifyUltimateActivation();
+        }
+
+        private void ConsumeUltimateActivationResource()
+        {
+            int spentMana = ultimateResourceType == BaseEnums.UltimateResourceType.Mana ? ManaCurr : 0;
             if (ultimateResourceType != BaseEnums.UltimateResourceType.Passive) ManaCurr = 0;
             RefreshView();
-            NotifyUltimateActivation();
+            if (spentMana > 0) AnyUltimateManaSpent?.Invoke(this, spentMana);
         }
 
         private void NotifyUltimateActivation()
@@ -846,11 +862,17 @@ namespace Entities
 
         /// <summary>마나를 회복한다. 효과의 회복 배율을 받는다.</summary>
         public virtual void RecoverMana(int amount)
+            => RecoverMana(amount, includeActionBonus: true);
+
+        private void RecoverMana(int amount, bool includeActionBonus)
         {
             // 스택형 자원은 고유 특성의 명시적 AddUltimateResource만 받는다.
             // 공용 행동·피격·처치 마나가 섞이면 7중첩 계약이 일반행동 한 번에 끝나 버린다.
             if (ultimateResourceType != BaseEnums.UltimateResourceType.Mana || amount <= 0 || !isActive) return;
-            AddUltimateResource(Mathf.Max(0, Mathf.RoundToInt(amount * ManaEfficiencyCurr)));
+            float actionMultiplier = 1f;
+            if (includeActionBonus)
+                foreach (BaseEffect effect in ActiveEffectObjects()) actionMultiplier *= effect.ActionManaRecoveryMultiplier(this);
+            AddUltimateResource(Mathf.Max(0, Mathf.RoundToInt(amount * ManaEfficiencyCurr * actionMultiplier)));
         }
 
         /// <summary>마나를 배율 없이 그대로 더한다(음수면 깎는다).</summary>
@@ -890,11 +912,15 @@ namespace Entities
         /// <summary>
         /// 피해를 받는다. <c>OnBeforeDamageTaken → OnTakingDamage(경감 · 보호막 · 체력) → OnAfterDamageTaken</c>.
         /// </summary>
+        /// <summary>현재 이 유닛의 피격 반응 범위. 중첩 피해가 끝나면 이전 컨텍스트로 복원한다.</summary>
+        public DamageContext ReceivingDamageContext { get; private set; }
+
         public virtual void TakeDamage(DamageContext context)
         {
             if (context == null) return;
             // 광역 공격은 같은 컨텍스트를 여러 대상에게 재사용하므로 대상마다 초기화한다.
             context.ResolvedDamage = 0;
+            context.SharedDamage = 0;
             context.HpDamage = 0;
             context.ToughnessBroken = false;
             if (!isActive || _deathInProgress || IsUntargetable)
@@ -910,10 +936,16 @@ namespace Entities
                 return;
             }
 #endif
-            AnyDamageIncoming?.Invoke(this, context);
-            Invoke(BaseEnums.UnitEventType.OnBeforeDamageTaken, new EventContext(this, context.Attacker, context));
-            Invoke(BaseEnums.UnitEventType.OnTakingDamage, new EventContext(this, null, context));
-            Invoke(BaseEnums.UnitEventType.OnAfterDamageTaken, new EventContext(this, context.Attacker, context));
+            DamageContext previous = ReceivingDamageContext;
+            ReceivingDamageContext = context;
+            try
+            {
+                AnyDamageIncoming?.Invoke(this, context);
+                Invoke(BaseEnums.UnitEventType.OnBeforeDamageTaken, new EventContext(this, context.Attacker, context));
+                Invoke(BaseEnums.UnitEventType.OnTakingDamage, new EventContext(this, null, context));
+                Invoke(BaseEnums.UnitEventType.OnAfterDamageTaken, new EventContext(this, context.Attacker, context));
+            }
+            finally { ReceivingDamageContext = previous; }
         }
 
         protected void DefaultTakeDamageEvent(EventContext context)
@@ -926,6 +958,7 @@ namespace Entities
             }
 
             int damage = CalculateFinalDamage(dmgCtx);
+            damage = Codes.Passive.EbisuSharedFortune.ShareDamage(this, dmgCtx, damage);
             int hpBefore = HpCurr;
             int shieldBefore = ShieldCurr;
 
@@ -966,7 +999,7 @@ namespace Entities
 
             // 맞는 것도 궁극기를 채운다. 지속피해는 행동이 아니고, 덧붙은 피해는 원래 한 방의 일부라 세지 않는다.
             if (damageDealt > 0 && dmgCtx.CodeType != BaseEnums.CodeType.Effect && !dmgCtx.HasTag(DamageTag.BonusDamage))
-                RecoverMana(ManaPerHitTaken);
+                RecoverMana(ManaPerHitTaken, includeActionBonus: false);
 
             if (dmgCtx.Attacker != null && damageDealt > 0)
             {
@@ -991,6 +1024,7 @@ namespace Entities
         /// </summary>
         private int CalculateFinalDamage(DamageContext dmgCtx)
         {
+            if (dmgCtx.IsSharedDamage) return Mathf.Max(0, dmgCtx.Damage);
             float outgoing = Mathf.Max(0f, dmgCtx.OutgoingDamageMultiplier);
             float defenseMultiplier = Mathf.Max(0f, dmgCtx.DefenseStatMultiplier);
 
@@ -1024,7 +1058,9 @@ namespace Entities
                 mitigation = UnitStats.MitigationMultiplier(defense, UnitStats.ArmorConstant(attackerLevel));
             }
 
-            if (dmgCtx.IsDamageOverTime) outgoing *= Codes.Passive.TsukuyomiNight.DotMultiplier(dmgCtx.Attacker);
+            if (dmgCtx.IsDamageOverTime) outgoing *= Codes.Passive.TsukuyomiNight.DotMultiplier(dmgCtx.Attacker) * Codes.Passive.AtalantePoisonHunt.DotMultiplier(dmgCtx);
+            outgoing *= Codes.Passive.Reward.SecretRewardRules.DamageMultiplier(dmgCtx.Attacker, this, dmgCtx);
+            outgoing *= Codes.Passive.Reward.SingleAttackRewardCode.AuraMultiplier(dmgCtx.Attacker, this);
             float scaled = dmgCtx.Damage * outgoing * mitigation * receiving;
             if (scaled <= 0f) return 0;
             return Mathf.Max(1, Mathf.RoundToInt(scaled));
@@ -1211,7 +1247,11 @@ namespace Entities
             if (status == null) return false;
             float chance = 0f;
             foreach (BaseEffect effect in ActiveEffectObjects())
+            {
                 chance += Mathf.Max(0f, effect.NegativeStatusResistanceChanceModifier(this, status));
+                // 확정 저항을 이미 확보했으면 뒤의 일회용 저항까지 함께 소비하지 않는다.
+                if (chance >= 1f) return true;
+            }
             return chance > 0f && UnityEngine.Random.value < Mathf.Clamp01(chance);
         }
 
@@ -1277,8 +1317,10 @@ namespace Entities
             RefreshView();
         }
 
-        internal static void NotifyElementalReaction(Unit source, Unit target, string reactionName)
+        internal static void NotifyElementalReaction(Unit source, Unit target, string reactionName,
+            BaseEnums.UnitElement first = BaseEnums.UnitElement.None, BaseEnums.UnitElement second = BaseEnums.UnitElement.None)
         {
+            AnyElementalReactionResolved?.Invoke(new ElementalReactionContext(source, target, first, second, reactionName));
             AnyElementalReaction?.Invoke(source, target, reactionName);
             Effects.Vfx.ElementReactionFx.Reaction(target, reactionName);
         }
@@ -1632,15 +1674,24 @@ namespace Entities
         public bool HasDamageOverTimeStatus() => ActiveEffectObjects().Any(effect => effect.IsDamageOverTime);
 
         public void RemoveAllNegativeStatuses(Unit source = null)
+            => RemoveNegativeStatuses(_ => true, true, source);
+
+        /// <summary>제어 또는 비제어 디버프 전부를 정화한다. 제어 정화는 별도 행동불능 타이머도 해제한다.</summary>
+        public int CleanseDebuffs(bool control, Unit source = null)
+            => RemoveNegativeStatuses(status => status.IsControl == control, control, source);
+
+        private int RemoveNegativeStatuses(Func<Status.UnitStatus, bool> predicate, bool clearControl, Unit source)
         {
             List<Status.UnitStatus> removed = GetAllStatuses()
-                .Where(s => s.CountsAsDebuff).ToList();
+                .Where(s => s.CountsAsDebuff && predicate(s)).ToList();
             foreach (Status.UnitStatus status in removed)
                 StatusController.RemoveInstance(status);
             // 제어는 별도 타이머도 쓴다. 상태만 지우면 정화 뒤에도 행동 불가가 남는다.
-            if (isControlled) ControlEnds();
-            if (removed.Count > 0)
+            bool timerCleared = clearControl && isControlled && !GetAllStatuses().Any(status => status.IsControl);
+            if (timerCleared) ControlEnds();
+            if (removed.Count > 0 || timerCleared)
                 Effects.Vfx.StatusAffectedVfx.PlaySupport(this, source, "hit.support.cleanse");
+            return removed.Count + (timerCleared && removed.Count == 0 ? 1 : 0);
         }
     }
 }

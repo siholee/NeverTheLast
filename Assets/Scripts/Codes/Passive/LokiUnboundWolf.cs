@@ -324,7 +324,7 @@ namespace Codes.Passive
 
                 Unit target = routing.Targets[0];
                 // 치명은 로키의 스탯 · 효과로, 행동자 기준 오라(마리 보급의 추가행동 치명 피해)는 실제 행동자인 펜리르로 굴린다.
-                bool crit = RollCriticalFor(Caster, fenrir, target, BaseEnums.CodeType.Passive, out float multiplier);
+                bool crit = RollCriticalFor(Caster, fenrir, target, BaseEnums.CodeType.Passive, out float multiplier, tags);
                 int damage = Mathf.Max(1, Mathf.RoundToInt(StatDamage(0f, BaseEnums.StatType.Attack, FollowUpRatio) * multiplier));
                 var context = new DamageContext(Caster, damage, BaseEnums.CodeType.Passive, tags, crit);
                 AudioManager.PlayAction(Caster, SfxActionSlot.Passive, SfxCuePhase.Cast, CodeName);

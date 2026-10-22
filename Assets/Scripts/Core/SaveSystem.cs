@@ -137,8 +137,9 @@ namespace Core
                 data.currentRound = (oldStage - 1) / 10 + 1;
                 data.currentStage = (data.currentRound - 1) * Managers.RoundManager.EncountersPerTheme + slots[(oldStage - 1) % 10];
                 if (data.currentThemeId == 1) data.currentThemeId = 2; // 운영에서 은퇴한 시험장
-                data.version = RunSaveData.CurrentVersion;
+                data.version = 15;
             }
+            UpgradeProgression(data);
             if (data == null || data.version < RunSaveData.CurrentVersion)
             {
                 // 구버전 저장본(레거시 스탯 필드 포함)은 필드 매핑이 달라 안전하게 복원할 수 없다.
@@ -148,6 +149,19 @@ namespace Core
             }
             Debug.Log($"[SaveSystem] 런 불러오기 완료 (Stage {data.currentStage}, Round {data.currentRound})");
             return data;
+        }
+
+        internal static void UpgradeProgression(RunSaveData data)
+        {
+            if (data == null) return;
+            if (data.version == 15)
+            {
+                data.currentStage = Managers.ProgressionLayout.FromLegacyEightSlot(data.currentStage);
+                data.currentRound = Managers.ProgressionLayout.ThemeOf(data.currentStage);
+                data.version = 16;
+            }
+            // 생명력 필드만 무시한다. 회복·재추첨 없이 나머지 스냅샷을 보존한다.
+            if (data.version == 16) data.version = 17;
         }
 
         /// <summary>저장 데이터 삭제 (게임오버 또는 런 완료 시)</summary>

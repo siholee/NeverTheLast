@@ -214,6 +214,8 @@ namespace Core
     public sealed class VerifyRunResult
     {
         public bool success;
+        public bool batchMode;
+        public string validationMode;
         public string startedAtUtc;
         public string finishedAtUtc;
         public string resolution;

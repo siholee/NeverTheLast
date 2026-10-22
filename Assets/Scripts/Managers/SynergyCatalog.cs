@@ -25,7 +25,8 @@ namespace Managers
         {
             if (_data != null) return;
 
-            _data = GameManager.Instance?.dataManager?.FetchSynergyDataList() ?? new SynergyDataList();
+            // 로비 자료실도 같은 표를 쓴다. GameManager가 없다는 이유로 빈 표를 영구 캐시하지 않는다.
+            _data = GameManager.Instance?.dataManager?.FetchSynergyDataList() ?? DataManager.LoadSynergyDataList() ?? new SynergyDataList();
             _units = (_data.units ?? new List<SynergyUnitData>())
                 .Where(unit => unit != null).ToDictionary(unit => unit.id);
             _recommendations = (_data.recommendations ?? new List<SynergyRecommendationData>())

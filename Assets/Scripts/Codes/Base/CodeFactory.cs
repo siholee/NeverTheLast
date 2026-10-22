@@ -4,6 +4,7 @@ using Codes.Passive;
 using Codes.Special;
 using Codes.Ultimate;
 using Codes.Restored;
+using Codes.Checkpoints;
 
 namespace Codes.Base
 {
@@ -34,6 +35,15 @@ namespace Codes.Base
     {
       return codeId switch
       {
+        364 => new NephthysPoisonGarden(context),
+        365 => new AtalantePoisonHunt(context),
+        366 => new NeithCatalyticWeave(context),
+        367 => new EreshkigalUnderworldFeast(context),
+        368 => new NicolTeslaGenerator(context),
+        240 => new AmaterasuRisingSun(context),
+        362 => new AstolfoTravelKit(context),
+        363 => new EbisuSharedFortune(context),
+        Checkpoint48.CommandId => new VoidLegionCommand(context),
         >= 21000 and <= 24000 => new RestoredEnemyPassive(context),
         225 => new OrpheusCheatedDeath(context),
         210 => new ShakespeareLanguage(context),
@@ -45,6 +55,7 @@ namespace Codes.Base
         283 => new SkadiFrostMantle(context),
         201 => new SeiBigBang(context),              // 세이 — 빅뱅
         202 => new ShiFinalVerse(context),            // 시 — 멸망의 시
+        204 => new GaudiSagradaFamilia(context),
         203 => new SabahDebuffHunter(context),         // 사바흐 — 빈틈 포착
         207 => new JeanIronSanction(context),          // 잔 — 철권제재
         220 => new PygmalionGalatea(context),         // 피그말리온 — 갈라테아
@@ -82,6 +93,16 @@ namespace Codes.Base
     {
       return codeId switch
       {
+        164 => new NephthysPoisonSeed(context),
+        165 => new AtalanteHuntingArrow(context),
+        166 => new NeithThunderArrow(context),
+        167 => new EreshkigalUnendingWound(context),
+        168 => new NicolAlternatingMotor(context),
+        40 => new AmaterasuSunVolley(context),
+        162 => new AstolfoProvokingHorn(context),
+        163 => new EbisuLuckyCast(context),
+        Checkpoint48.CommandId => new VoidLegionStrike(context),
+        Checkpoint48.EscortShotId => new VoidPunisherShot(context),
         >= 11000 and <= 14000 => new RestoredEnemyNormal(context),
         25 => new OrpheusMelody(context),
         10 => new ShakespeareInspiration(context),
@@ -93,6 +114,7 @@ namespace Codes.Base
         83 => new SkadiSnowHunt(context),
         1 => new SeiGroundLeveling(context),         // 세이 — 땅고르기
         2 => new ShiGhostSlash(context),              // 시 — 귀참
+        4 => new GaudiNormalAttack(context),
         3 => new SabahLightningSlash(context),        // 사바흐 — 검격 / 번개 베기
         7 => new JeanHolyStrike(context),              // 잔 — 신성한 일격
         20 => new PygmalionEmber(context),            // 피그말리온 — 불씨
@@ -153,6 +175,15 @@ namespace Codes.Base
     {
       return codeId switch
       {
+        164 => new NephthysClosedGarden(context),
+        165 => new AtalanteHuntingSeason(context),
+        166 => new NeithThunderWeave(context),
+        167 => new EreshkigalReturnHome(context),
+        168 => new NicolThunderGrid(context),
+        162 => new AstolfoReturnGift(context),
+        163 => new EbisuSafeHarbor(context),
+        40 => new AmaterasuDaybreak(context),
+        Checkpoint48.CommandId => new VoidLegionAdvance(context),
         >= 11000 and <= 14000 => new RestoredEnemyUltimate(context),
         25 => new OrpheusLament(context),
         10 => new ShakespeareQuestion(context),
@@ -164,6 +195,7 @@ namespace Codes.Base
         83 => new SkadiIcicleSpike(context),
         1 => new SeiSongOfGenesis(context),          // 세이 — 창세의 노래
         2 => new ShiFinalBell(context),               // 시 — 만종
+        4 => new GaudiImmortalLegacy(context),
         3 => new SabahAzrael(context),                // 사바흐 — 아즈라엘
         7 => new JeanTensionRising(context),          // 잔 — 텐션 오르는데!
         20 => new PygmalionSharpThorns(context),      // 피그말리온 — 날카로운 가시

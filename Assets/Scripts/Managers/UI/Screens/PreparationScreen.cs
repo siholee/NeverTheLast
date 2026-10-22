@@ -92,7 +92,7 @@ namespace Managers.UI.Screens
                 () => GameManager.Instance?.OpenShopFromPreparation());
             _inventory = MakeCommand(panel.transform, "▱", "공용 보급", 0.315f, 0.475f,
                 () => GameManager.Instance?.OpenInventoryFromPreparation());
-            _deck = MakeCommand(panel.transform, "◇", "덱 구성", 0.485f, 0.645f,
+            _deck = MakeCommand(panel.transform, "◇", "배치 변경", 0.485f, 0.645f,
                 () => GameManager.Instance?.OpenDeckSetupFromPreparation());
 
             _start = UIBuild.Button("Start", panel.transform, "", StartRequested, primary: true);
@@ -129,7 +129,7 @@ namespace Managers.UI.Screens
             button.image.sprite=UIShapes.RoundedRect(22,Color.clear);
             TooltipTrigger.Attach(button.gameObject,()=>heading.text,()=>new System.Collections.Generic.List<UITooltip.Line> {
                 UITooltip.Line.Note(detail.text,UITheme.TextSecondary),
-                UITooltip.Line.Note($"식량 {GameManager.Instance?.inventoryManager?.FoodUnits ?? 0} · 긴 휴식 비용 {GameManager.LongRestFoodCost}",UITheme.TextSecondary) },UITheme.Accent);
+                UITooltip.Line.Note($"식량 {GameManager.Instance?.inventoryManager?.FoodUnits ?? 0} · 긴 휴식 비용 {GameManager.Instance?.CurrentLongRestFoodCost ?? GameManager.LongRestFoodCost}",UITheme.TextSecondary) },UITheme.Accent);
             UIBuild.Anchor(button.image.rectTransform, new Vector2(.012f + left, .11f), new Vector2(.012f + right,.89f));
             return button;
         }
@@ -165,7 +165,8 @@ namespace Managers.UI.Screens
             GameManager game = GameManager.Instance;
             bool deckMode = Cell.PlacementModeActive;
 
-            string state = restUsed ? "휴식 완료" : "출격 준비";
+            bool freeRest = game?.IsFreeLongRestPreparation == true;
+            string state = restUsed ? "휴식 완료" : freeRest ? "고정보스 전 휴식" : "출격 준비";
             Color stateColor = restUsed ? UITheme.TextSecondary : UITheme.TextPrimary;
             _stateLabel.text = state;
             _stateLabel.color = stateColor;
@@ -179,7 +180,7 @@ namespace Managers.UI.Screens
             string info = !string.IsNullOrWhiteSpace(message) ? message : "PREPARATION";
             if (deckMode)
             {
-                info = "<b>덱 구성 모드</b> — 빛나는 칸으로 카드를 끌어 배치를 바꾸세요. 끝나면 [완료] 또는 ESC.";
+                info = "<b>배치 변경</b> — 빛나는 칸으로 아군을 끌어 배치를 바꾸세요. 끝나면 [완료] 또는 ESC.";
             }
 
             _info.text = info;
@@ -192,19 +193,19 @@ namespace Managers.UI.Screens
             _resources.gameObject.SetActive(false);
             _infoBand.gameObject.SetActive(deckMode);
             _info.gameObject.SetActive(deckMode);
-            _info.text = "카드를 빛나는 칸으로 이동 · ESC 완료";
+            _info.text = "아군을 빛나는 칸으로 이동 · ESC 완료";
             UIBuild.Anchor(_infoBand.rectTransform,new Vector2(0f,1f),Vector2.one);
             _infoBand.rectTransform.offsetMin=new Vector2(0f,4f);_infoBand.rectTransform.offsetMax=new Vector2(0f,40f);
             UIBuild.Anchor(_info.rectTransform, Vector2.zero, Vector2.one, 8, 1);
 
-            SetButton(_rest, "△", "휴식", game?.CanRest == true,
-                restUsed ? "이번 준비에서 사용함" : "짧은 휴식 · 긴 휴식");
+            SetButton(_rest, "△", freeRest ? "무료 긴 휴식" : "휴식", game?.CanRest == true,
+                restUsed ? "이번 준비에서 사용함" : freeRest ? "소모품 없이 부활·완전 회복" : "짧은 휴식 · 긴 휴식");
 
             int shopLeft = game?.ShopPurchasesLeft ?? 0;
             SetButton(_shop, "◉", $"상점 · {shopLeft}", game?.CanOpenShop == true,
                 shopLeft > 0 ? $"구매 {shopLeft}회 남음" : "구매 횟수 소진");
             SetButton(_inventory, "▱", $"보급 · {game?.inventoryManager?.ItemIdsInHand?.Count ?? 0}", game != null, $"공용 · {game?.inventoryManager?.ItemIdsInHand?.Count ?? 0}개");
-            SetButton(_deck, "◇", deckMode ? "완료" : "덱 구성", true,
+            SetButton(_deck, "◇", deckMode ? "완료" : "배치 변경", true,
                 deckMode ? "모드 끄기" : "배치 바꾸기");
             // 평소에는 다른 명령과 같이 면 없이, 덱 구성 중에만 공통 선택 표지(옅은 군청 면 + 아래 막대)로 켜져 있음을 보인다.
             // 예전에는 평소에도 회색 면이 깔려 이 칸만 눌려 있는 것처럼 보였다(1920 준비 화면).
@@ -213,8 +214,8 @@ namespace Managers.UI.Screens
             RoundManager round = game?.RoundManager;
             string stage = round != null ? $"{round.Round}-{round.StageInRound}" : "";
             _start.interactable = true;
-            _startTitle.text = "전투 시작";
-            _startMeta.text = round?.IsCurrentBossStage == true ? $"STAGE {stage} · BOSS" : $"STAGE {stage}";
+            _startTitle.text = freeRest ? "고정보스로 이동" : "전투 시작";
+            _startMeta.text = freeRest ? $"STAGE {stage} · 전투 없음" : round?.IsCurrentBossStage == true ? $"STAGE {stage} · BOSS" : $"STAGE {stage}";
         }
 
         private static void SetButton(Button button, string glyph, string name, bool enabled, string sub)

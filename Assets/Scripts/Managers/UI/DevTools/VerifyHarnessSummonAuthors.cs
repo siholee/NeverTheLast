@@ -18,6 +18,77 @@ namespace Managers.UI.DevTools
 {
     public sealed partial class VerifyHarnessRunner
     {
+        private IEnumerator ScenarioSummonTankCompare(VerifyScenarioRequest config)
+        {
+            _yvFailures.Clear(); _cfActionIdSequence = 0;
+            bool enabled = true;
+            yield return YvPrepareScene(config, value => enabled = value);
+            DebugMode.AllyInvincible = DebugMode.EnemyInvincible = false;
+            Unit pyg = CfAlly(20), anubis = CfAlly(121), sei = CfAlly(1), orpheus = CfAlly(25);
+            Unit enemy = AliveEnemies().First();
+            foreach (Unit unit in AliveAllies().Concat(AliveEnemies()).ToList())
+            {
+                foreach (var code in unit.ActivePassiveCodes.ToList()) code.StopCode();
+                unit.ActiveUltimateCode?.StopCode();
+                unit.ApplyRewardCodeInventory(Enumerable.Repeat(0, 7).ToList(), new List<int>());
+                unit.DebugClearStatuses(); unit.RefreshAttributes();
+                unit.RemoveShield(unit.ShieldCurr); unit.RestoreHpOutsideCombat(unit.HpMax);
+            }
+            CfStats(pyg, "피그말리온", 3500, 315, 72, 4.8f, 62, 4.2f, 235, 18, 220, 17, 94, 100);
+            CfStats(anubis, "아누비스", 3350, 300, 60, 3.5f, 50, 3, 230, 17.5f, 210, 16, 90, 120);
+            // 같은 공격자의 실제 공통 피해 경로를 읽는다. 영혼·보상·본인 초월기 없는 개전 내구도다.
+            float Probe(Unit target, bool dot = false)
+            {
+                target.RestoreHpOutsideCombat(target.HpMax);
+                int pool = target.HpCurr + target.ShieldCurr;
+                var tags = dot ? new List<int>() : new List<int>
+                    { DamageTag.SingleTarget, DamageTag.NormalAttack, DamageTag.ContactAttack, DamageTag.Strike };
+                var hit = new DamageContext(enemy, 1000, dot ? BaseEnums.CodeType.Effect : BaseEnums.CodeType.Normal, tags)
+                    { IsDamageOverTime = dot };
+                target.TakeDamage(hit);
+                return hit.ResolvedDamage > 0 ? pool * 1000f / hit.ResolvedDamage : 0;
+            }
+            float pygBare = Probe(pyg), anubisBare = Probe(anubis);
+            float seiBare = Probe(sei), orpheusBare = Probe(orpheus);
+            float pygDot = Probe(pyg, true), anubisDot = Probe(anubis, true), orpheusDot = Probe(orpheus, true);
+            YvCheck("소환 퓨어 탱커 기본 내구도 Lv." + pyg.Level, "두 탱커 > 세이·오르페우스",
+                $"피그말리온 {pygBare:F1}, 아누비스 {anubisBare:F1}, 세이 {seiBare:F1}, 오르페우스 {orpheusBare:F1}",
+                Mathf.Min(pygBare, anubisBare) > Mathf.Max(seiBare, orpheusBare));
+            YvCheck("소환 퓨어 탱커 지속피해 내구도 Lv." + pyg.Level, "두 탱커 > 오르페우스",
+                $"피그말리온 {pygDot:F1}, 아누비스 {anubisDot:F1}, 오르페우스 {orpheusDot:F1}",
+                Mathf.Min(pygDot, anubisDot) > orpheusDot);
+            foreach (Unit unit in AliveAllies()) unit.RestoreHpOutsideCombat(unit.HpMax);
+            yield return NordAction(sei, Kind.Ultimate, scheduler => sei.FillUltimateResource());
+            float supportedOrpheus = Probe(orpheus);
+            YvCheck("소환 퓨어 탱커와 세이 지원 전열 비교 Lv." + pyg.Level, "본인 초월기 전 두 탱커 > 세이 보호막·경감 오르페우스",
+                $"피그말리온 {pygBare:F1}, 아누비스 {anubisBare:F1}, 지원 오르페우스 {supportedOrpheus:F1}",
+                Mathf.Min(pygBare, anubisBare) > supportedOrpheus);
+            // 개전 방호는 성장 이정표로만 앞당긴다. 기초 스탯·영혼당 성장·흡혈은 늘리지 않는다.
+            var soul = anubis.ActivePassiveCodes.OfType<AnubisSoulHarvest>().Single();
+            anubis.RemoveShield(anubis.ShieldCurr);
+            anubis.SetPermanentStacks(AnubisSoulHarvest.SoulKey, 199); anubis.RefreshAttributes();
+            soul.CastCode();
+            YvCheck("영혼199 개전 방호 미해금 Lv." + anubis.Level, "보호막0·능력량0",
+                $"보호막{anubis.ShieldCurr}·능력량{soul.BaseShieldAmount}", anubis.ShieldCurr == 0 && soul.BaseShieldAmount == 0);
+            int hp199 = anubis.HpMax; float def199 = anubis.StatValue(BaseEnums.StatType.Defense);
+            soul.StopCode();
+            anubis.SetPermanentStacks(AnubisSoulHarvest.SoulKey, 200); anubis.RefreshAttributes();
+            soul.CastCode();
+            float defense200 = anubis.StatValue(BaseEnums.StatType.Defense);
+            int opening = Mathf.RoundToInt(defense200 * 2.7f);
+            YvCheck("영혼200 개전 방호·능력량 Lv." + anubis.Level, "자신에게 방어270%·영혼1당 체력8/방어0.4",
+                $"보호막{anubis.ShieldCurr}/{opening}·체력차{anubis.HpMax-hp199}·방어차{defense200-def199:F1}",
+                anubis.ShieldCurr == opening && soul.BaseShieldAmount == opening && anubis.HpMax-hp199 == 8 && Mathf.Abs(defense200-def199-.4f)<.01f);
+            anubis.RestoreHpOutsideCombat(anubis.HpMax); int protectedHp = anubis.HpCurr;
+            anubis.TakeDamage(new DamageContext(enemy, 1000, BaseEnums.CodeType.Normal,
+                new() { DamageTag.SingleTarget, DamageTag.NormalAttack, DamageTag.ContactAttack, DamageTag.Strike }));
+            YvCheck("영혼 개전 보호막 실제 흡수 Lv." + anubis.Level, "체력 손실 없이 보호막 소모",
+                $"체력{protectedHp}→{anubis.HpCurr}·보호막{opening}→{anubis.ShieldCurr}",
+                anubis.HpCurr == protectedHp && anubis.ShieldCurr < opening);
+            soul.StopCode(); anubis.SetPermanentStacks(AnubisSoulHarvest.SoulKey, 0); anubis.RefreshAttributes();
+            OsFinish(enabled);
+        }
+
         private IEnumerator ScenarioSummonAuthorsCore(VerifyScenarioRequest config)
         {
             _yvFailures.Clear(); _cfActionIdSequence = 0;
@@ -27,8 +98,8 @@ namespace Managers.UI.DevTools
             Unit writer=CfAlly(10), thoth=CfAlly(124), uchi=CfAlly(180), pyg=CfAlly(20), loki=CfAlly(80), enemy=AliveEnemies().First();
             var language=writer.ActivePassiveCodes.OfType<ShakespeareLanguage>().Single();
             var records=thoth.ActivePassiveCodes.OfType<ThothLivingRecords>().Single();
-            CfStats(writer,"셰익스피어",940,80,48,3,100,6,50,4,70,4.5f,110,140);
-            CfStats(thoth,"토트",1140,100,50,3,90,6,64,4.5f,78,5,103,120);
+            CfStats(writer,"셰익스피어",1140,100,48,3,100,6,60,4.8f,84,5.4f,110,140);
+            CfStats(thoth,"토트",1850,165,50,3,90,6,80,6,90,6,103,120);
             Unit fenrir=Summons.Of(loki).Single();
             void Check(string label,bool ok)=>YvCheck(label,"충족",ok?"충족":"미충족",ok);
             void SetLanguage(int value) { writer.AddCombatResource(ShakespeareLanguage.Resource,-language.Language); language.Gain(value); }
@@ -37,6 +108,7 @@ namespace Managers.UI.DevTools
             Check("현재 소환 보유자·피그말리온2",records.OwnerCount==2);
             Check("서기관 생성 전 피해경감 없음",!records.Scribe);
             for(int i=0;i<3;i++)Summons.Create(uchi);
+            Check("분신 고정 속도105",Summons.Of(uchi).All(x=>x.StatValue(BaseEnums.StatType.Speed)==105));
             Check("분신3기라도 소환자1명",records.OwnerCount==3);
             Check("분신 생성마다 언어1",language.Language==5);
             // 피그말리온의 별도 전역 오라를 제외하고 토트 배율만 분리 측정한다. 자기 소환 판정은 유지한다.
@@ -121,7 +193,7 @@ namespace Managers.UI.DevTools
             }
             thoth.ModifyHp(thoth.HpMax/2);int hp=thoth.HpCurr, mana=thoth.ManaCurr;
             yield return NordAction(thoth,Kind.Normal,s=>s.AdvanceAction(thoth,1));
-            Check("토트 최대체력5% 치유·마나20",thoth.HpCurr-hp==Mathf.RoundToInt(thoth.HpMax*.05f)&&thoth.ManaCurr==mana+20);
+            Check("토트 최대체력24% 치유·마나20",thoth.HpCurr-hp==Mathf.RoundToInt(thoth.HpMax*.24f)&&thoth.ManaCurr==mana+20);
             SetLanguage(0);
             yield return NordAction(writer,Kind.Normal,s=>s.AdvanceAction(writer,1));
             Check("셰익스피어 실제 일반 언어3",language.Language==3);
@@ -133,8 +205,8 @@ namespace Managers.UI.DevTools
             Check("피격 가능 서기관 원화·체력 표시",scribeView!=null&&scribeView.PortraitRenderer.enabled&&scribeView.HasHealthDisplay&&Mathf.Abs(scribeView.DisplayedHealthRatio-scribe.HpCurr/(float)scribe.HpMax)<.001f);
             yield return CaptureStill("scribe_visible_health");
             Check("서기관 생성 언어1",language.Language==4);
-            Check("서기관 속도90·체력35%·피격 가능",scribe!=null && scribe.StatValue(BaseEnums.StatType.Speed)==90 && scribe.HpMax==Mathf.RoundToInt(thoth.HpMax*.35f)&&!scribe.IsUntargetable);
-            Check("서기관 방·특방60%",Mathf.Abs(scribe.StatValue(BaseEnums.StatType.Defense)-thoth.DefCurr*.6f)<.01f && Mathf.Abs(scribe.StatValue(BaseEnums.StatType.SpecialDefense)-thoth.StatValue(BaseEnums.StatType.SpecialDefense)*.6f)<.01f);
+            Check("서기관 속도90·체력50%·피격 가능",scribe!=null && scribe.StatValue(BaseEnums.StatType.Speed)==90 && scribe.HpMax==Mathf.RoundToInt(thoth.HpMax*.50f)&&!scribe.IsUntargetable);
+            Check("서기관 방·특방80%",Mathf.Abs(scribe.StatValue(BaseEnums.StatType.Defense)-thoth.DefCurr*.8f)<.01f && Mathf.Abs(scribe.StatValue(BaseEnums.StatType.SpecialDefense)-thoth.StatValue(BaseEnums.StatType.SpecialDefense)*.8f)<.01f);
             Check("서기관 생성·분신 소멸 현재 보유자3",records.OwnerCount==3);
             Check("실제 적 공격 후보에 서기관 포함",CombatTargets.AliveEnemies(enemy).Contains(scribe));
             Check("대상 불가 분신·펜리르 제외",!CombatTargets.AliveEnemies(enemy).Contains(fenrir));
@@ -147,11 +219,11 @@ namespace Managers.UI.DevTools
             scribe.Priority=priority;
             hp=thoth.HpCurr;
             thoth.TakeDamage(new DamageContext(enemy,100,BaseEnums.CodeType.Normal,new(){DamageTag.TrueDamage}));
-            Check("서기관 존재 중 피해12% 경감",hp-thoth.HpCurr==88);
+            Check("서기관 존재 중 피해24% 경감",hp-thoth.HpCurr==76);
             thoth.ModifyHp(thoth.HpMax/4);hp=thoth.HpCurr;
             int scribeLanguage=language.Language;
             yield return NordAction(scribe,Kind.Normal,s=>s.AdvanceAction(scribe,1));
-            Check("서기관 독립 일반·최저 체력 치유",thoth.HpCurr-hp==Mathf.RoundToInt(thoth.HpMax*.03f));
+            Check("서기관 독립 일반·최저 체력 치유",thoth.HpCurr-hp==Mathf.RoundToInt(thoth.HpMax*.20f));
             Check("비공격 소환 행동은 언어 미소비·완료1",language.Language==Mathf.Min(12,scribeLanguage+1));
             int before=language.Language;
             yield return NordAction(thoth,Kind.Ultimate,s=>thoth.FillUltimateResource());
@@ -164,7 +236,7 @@ namespace Managers.UI.DevTools
             YvAddTestStatus(thoth,99861,"authors_high_sp",new StatModifierEffect(BaseEnums.StatType.SpecialAttack,20000));
             YvAddTestStatus(writer,99862,"authors_high_sp",new StatModifierEffect(BaseEnums.StatType.SpecialAttack,20000));
             Check("토트 특공 과투자 피해 상한45%",Mathf.Abs(records.DamageBonus-.45f)<.0001f);
-            Check("결계 특공 과투자 피해 상한50%",Probe(true)==Mathf.RoundToInt(100*1.45f*1.50f));
+            Check("결계 특공 과투자 피해 상한65%",Probe(true)==Mathf.RoundToInt(100*1.45f*1.65f));
             thoth.RemoveStatusByKey("authors_high_sp");writer.RemoveStatusByKey("authors_high_sp");capClone.Die(null);
             yield return CaptureStill("summon_authors_field");
             int savedHeals=0;void SavedHeal(Unit x,Unit source,int actual,int over){if(source==writer)savedHeals++;}

@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -37,7 +37,8 @@ namespace Managers.UI.DevTools
         private static readonly int[] PartyFiveBastetIds = { BastetId, ShiId, ChandraId, HimikoId, PygmalionId };
         private static readonly int[] PartyFiveJeanIds = { JeanId, ShiId, ChandraId, HimikoId, PygmalionId };
         private static readonly int[] PartyFiveJeanBastetIds = { JeanId, BastetId, ChandraId, HimikoId, PygmalionId };
-        private static readonly WaitForEndOfFrame EndOfFrame = new();
+        // 배치 Play에는 화면 렌더 종료 이벤트가 없다. 기술 검사는 Update를 기다리고 캡처를 생략한다.
+        private static readonly WaitForEndOfFrame EndOfFrame = Application.isBatchMode ? null : new();
 
         private VerifyRequest _request;
         private VerifyRunResult _result;
@@ -82,6 +83,15 @@ namespace Managers.UI.DevTools
             public bool CanceledBeforeOriginal;
             public bool FollowUpStarted;
             public Unit FinalTarget;
+        }
+
+        // 측정 전용 Player는 첫 장면의 BGM이 시작되기 전부터 무음으로 실행한다.
+        // 설정 저장값이나 다른 앱의 음량은 변경하지 않는다.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void ApplyVerificationAudioOverride()
+        {
+            if (Array.IndexOf(Environment.GetCommandLineArgs(), "--ntl-verify-silent") >= 0)
+                AudioListener.volume = 0f;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -170,6 +180,8 @@ namespace Managers.UI.DevTools
             _result = new VerifyRunResult
             {
                 success = true,
+                batchMode = Application.isBatchMode,
+                validationMode = Application.isBatchMode ? "Unity batch Play 기술 검사 — 렌더·실제 포인터·미술·GPU/FPS 판정 제외" : "Unity Play 화면/기술 검사 — 개별 시나리오 범위만",
                 startedAtUtc = DateTime.UtcNow.ToString("O"),
                 resolution = $"{Screen.width}x{Screen.height}",
             };
@@ -207,6 +219,8 @@ namespace Managers.UI.DevTools
 
         private IEnumerator RunAll()
         {
+            foreach (var lobbyScenario in _request.scenarios.Where(s => s.name == "qa_lobby_guide_links"))
+                yield return ExecuteScenario(lobbyScenario);
             yield return EnsureGameScene();
             yield return WaitForGameReady(20f);
             if (GameManager.Instance?.RoundManager == null || GridManager.Instance == null)
@@ -217,6 +231,8 @@ namespace Managers.UI.DevTools
 
 #if !UNITY_EDITOR
             // QA만 요청 해상도를 사용한다. 사용자 그래픽 설정의 저장값은 수정하지 않는다.
+            if (!Application.isBatchMode)
+            {
             int width = Mathf.Max(1, _request.captureWidth), height = Mathf.Max(1, _request.captureHeight);
             Screen.SetResolution(width, height, FullScreenMode.Windowed);
             for (int frame = 0; frame < 60; frame++)
@@ -229,6 +245,7 @@ namespace Managers.UI.DevTools
             {
                 AddScenarioFailure("bootstrap", $"요청 해상도 적용 실패: {width}x{height} → {_result.resolution}");
                 yield break;
+            }
             }
 #endif
             DebugMode.BeginSession();
@@ -243,6 +260,7 @@ namespace Managers.UI.DevTools
 
             foreach (VerifyScenarioRequest scenario in _request.scenarios)
             {
+                if (scenario.name == "qa_lobby_guide_links") continue;
                 yield return ExecuteScenario(scenario);
             }
 
@@ -355,9 +373,18 @@ namespace Managers.UI.DevTools
                 "allvfx_group_6" => new[] { 25, 22, 83, 200, 220 },
                 "allvfx_group_7" => new[] { 123, 125, 120, 81, 124 },
                 "allvfx_group_8" => new[] { 25, 63, 61, 66, 1 },
+                "allvfx_group_qa_resources" => new[] { 7, 67, 82, 65, 121 },
+                "party5_amaterasu" => new[] { 40, 7, 122, 83, 82 },
+                "party5_astolfo_core" => new[] { 7, 162, 122, 22, 82 },
+                "party5_single_rewards" => new[] { 2, 1, 162, 81, 44 },
+                "party5_nicol_core" => new[] { 7, 122, 162, 163, 168 },
+                "party5_dot_roster" => new[] { 164, 165, 166, 167, 162 },
+                "party5_ebisu_core" => new[] { 22, 122, 162, 163, 160 },
+                "party5_jean_carry" => new[] { 7, 64, 160, 161, 82 },
                 "party5_toughness" => new[] { 25, 2, 60, 121, 1 },
                 "party5_orion_skadi" => new[] { 22, 83, 122, 160, 80 },
                 "party5_summon_authors" => new[] { 10, 124, 180, 20, 80 },
+                "party5_summon_tank_compare" => new[] { 20, 121, 1, 25, 124 },
                 "party5_egyptian" => new[] { 123, 125, 120, 81, 124 },
                 "party5_isis" => new[] { 125, 20, 124, 180, 10 },
                 "party5_set_dot" => new[] { 123, 61, 45, 66, 82 },
@@ -372,6 +399,8 @@ namespace Managers.UI.DevTools
                 "party5_reward_ui" => PartyFiveRewardUiIds,
                 "duo_agni_surya" => new[] { AgniId, SuryaId },
                 "duo_shi_sabah" => new[] { ShiId, SabahId },
+                var candidate when CampaignLineups.TryGetValue(candidate, out var campaign) => campaign.ids,
+                var candidate when Checkpoint48Lineups.TryGetValue(candidate, out var members) => members,
                 _ => PartyFiveIds,
             };
             foreach (int id in ids)
@@ -382,6 +411,39 @@ namespace Managers.UI.DevTools
                     yield break;
                 }
             }
+            // 이 편성의 성능 검사는 선택 순서가 아니라 기획한 전후열에서 수행한다.
+            if (lineup is "party5_amaterasu" or "party5_jean_carry" or "party5_astolfo_core" or "party5_ebisu_core")
+            {
+                foreach (var entry in selection.Lineup)
+                {
+                    (entry.XPos, entry.YPos) = entry.UnitId switch
+                    {
+                        7 => (-1, 2),
+                        162 => (-2, 2),
+                        163 => (-1, 2),
+                        22 => (-1, 3),
+                        40 => (-2, 2),
+                        122 => (-2, 3),
+                        83 => (-1, 3),
+                        82 => (-1, 1),
+                        60 => (-2, 2),
+                        44 => (-2, 3),
+                        64 => (-2, 1),
+                        160 when lineup == "party5_ebisu_core" => (-2, 1),
+                        160 => (-2, 3),
+                        66 => (-1, 3),
+                        200 => (-1, 3),
+                        161 => (-2, 2),
+                        _ => (entry.XPos, entry.YPos),
+                    };
+                }
+            }
+            if (CampaignLineups.TryGetValue(lineup, out var campaignLayout))
+                foreach (var entry in selection.Lineup)
+                {
+                    int index = Array.IndexOf(campaignLayout.ids, entry.UnitId);
+                    entry.XPos = campaignLayout.xs[index]; entry.YPos = campaignLayout.ys[index];
+                }
             selection.ConfirmSelection();
             yield return WaitForState(BaseEnums.GameState.Preparation, 8f);
             yield return WaitUnscaled(1.15f);
@@ -391,11 +453,11 @@ namespace Managers.UI.DevTools
         private IEnumerator EnsureLineup(VerifyScenarioRequest config)
         {
             string lineup = ResolveLineup(config);
-            if (lineup != "party5_horus_targets" && lineup != "party5_egyptian" && lineup != "party5_isis" && lineup != "party5_set_dot" && lineup != "party5_horus_carry" && lineup != "party5_summon_authors" && lineup != "party5_summon_theatre" && lineup != "party5_orion_skadi" && lineup != "party5_orion_skadi_sustain" && lineup != "party5_toughness" && lineup != "party5_treasury" && !lineup.StartsWith("allvfx_group_") && lineup != "party5" && lineup != "party5_sabah" && lineup != "party5_bastet" &&
+            if (lineup != "party5_jean_carry" && lineup != "party5_amaterasu" && lineup != "party5_horus_targets" && lineup != "party5_egyptian" && lineup != "party5_isis" && lineup != "party5_set_dot" && lineup != "party5_horus_carry" && lineup != "party5_summon_authors" && lineup != "party5_summon_theatre" && lineup != "party5_orion_skadi" && lineup != "party5_orion_skadi_sustain" && lineup != "party5_toughness" && lineup != "party5_treasury" && !lineup.StartsWith("allvfx_group_") && lineup != "party5" && lineup != "party5_sabah" && lineup != "party5_bastet" &&
                 lineup != "party5_jean" && lineup != "party5_jean_bastet" && lineup != "solo1" &&
                 lineup != "party5_france_moon" && lineup != "party5_lokapala" && lineup != "party5_summon" && lineup != "party5_yama_varuna" && lineup != "party5_vedic_trio" &&
-                lineup != "party5_reward_ui" && lineup != "duo_agni_surya" && lineup != "duo_shi_sabah" &&
-                lineup != "party5_nord_synergy" && lineup != "party5_nord" && lineup != "party5_command_fenrir" && lineup != "party5_command_melee")
+                lineup != "party5_dot_roster" && lineup != "party5_ebisu_core" && lineup != "party5_astolfo_core" && lineup != "party5_single_rewards" && lineup != "party5_nicol_core" && lineup != "party5_reward_ui" && lineup != "duo_agni_surya" && lineup != "duo_shi_sabah" &&
+                lineup != "party5_nord_synergy" && lineup != "party5_nord" && lineup != "party5_command_fenrir" && lineup != "party5_command_melee" && lineup != "party5_summon_tank_compare" && !Checkpoint48Lineups.ContainsKey(lineup) && !CampaignLineups.ContainsKey(lineup))
             {
                 FailCurrent($"알 수 없는 lineup: {lineup}");
                 yield break;
@@ -425,12 +487,28 @@ namespace Managers.UI.DevTools
             };
             _result.scenarios.Add(scenarioResult);
 
-            if (_request.freshLineupPerScenario)
+            // 동적 편성 키는 EnsureLineup의 유효성 검사보다 먼저 등록해야 한다.
+            if (_currentScenario == "composition_campaign" && scenario?.lineup == "sabah_overgrowth")
+                scenario.lineup = CampaignBuildCatalog().teams.Single(spec => spec.aliases.Contains("사바흐/best")).key;
+            if (_currentScenario == "composition_campaign" && scenario?.lineup is "sabah_vayu" or "sabah_himiko" or "sabah_dual_debuffer")
+            {
+                string alias = scenario.lineup switch
+                {
+                    "sabah_vayu" => "점검/사바흐_바유",
+                    "sabah_himiko" => "점검/사바흐_히미코",
+                    _ => "점검/사바흐_바유히미코",
+                };
+                scenario.lineup = CampaignBuildCatalog().teams.Single(spec => spec.aliases.Contains(alias)).key;
+            }
+            if (_currentScenario == "composition_campaign" && scenario?.lineup?.StartsWith("campaign_") == true)
+                CampaignBuildCatalog();
+
+            if (_request.freshLineupPerScenario && _currentScenario != "qa_lobby_guide_links")
             {
                 if (GameManager.Instance != null) GameManager.Instance.enabled = true;
                 _activeLineup = null;
             }
-            yield return EnsureLineup(scenario);
+            if (_currentScenario != "qa_lobby_guide_links") yield return EnsureLineup(scenario);
             if (!scenarioResult.success)
             {
                 scenarioResult.message ??= "편성을 만들지 못했다.";
@@ -441,7 +519,51 @@ namespace Managers.UI.DevTools
             IEnumerator body = _currentScenario switch
             {
                 "whole_performance" => ScenarioWholePerformance(scenario),
+                "composition_campaign" => ScenarioCompositionCampaign(scenario),
+                "failure_branches" => ScenarioFailureBranches(scenario),
+                "failure_continuations" => ScenarioFailureContinuations(scenario),
+                "boss48_diagnosis" => ScenarioBoss48Diagnosis(scenario),
+                "boss48_defense_rewards" => ScenarioBoss48Diagnosis(scenario),
+                "defense_rewards_core" => ScenarioDefenseRewardsCore(scenario),
+                "checkpoint_progression_core" => ScenarioCheckpointProgression(scenario),
+                "run_failure_core" => ScenarioRunFailure(scenario),
+                "tsukuyomi_shield_core" => ScenarioTsukuyomiShieldCore(scenario),
+                "atalante_cause_campaign_old" => ScenarioAtalanteCauseCampaign(scenario, "old"),
+                "atalante_cause_campaign_new" => ScenarioAtalanteCauseCampaign(scenario, "new"),
+                "atalante_cause_replay_old" => ScenarioAtalanteCauseReplay(scenario, "old"),
+                "atalante_cause_replay_new" => ScenarioAtalanteCauseReplay(scenario, "new"),
+                "atalante_cause_operations" => ScenarioAtalanteCauseReplay(scenario, "new", true),
+                "astolfo_core" => ScenarioAstolfoCore(scenario),
+                "nicol_core" => ScenarioNicolCore(scenario),
+                "dot_roster_core" => ScenarioDotRosterCore(scenario),
+                "dot_frontline_core" => ScenarioDotFrontlineCore(scenario),
+                "secret_rewards_core" => ScenarioSecretRewardsCore(scenario),
+                "dot_reward_replay" => ScenarioDotRewardReplay(scenario),
+                "ebisu_core" => ScenarioEbisuCore(scenario),
+                "solo_special_rewards" => ScenarioSoloSpecialRewards(scenario),
+                "kubera_preparation" => ScenarioKuberaPreparation(scenario),
+                "lokapala_damage" => ScenarioLokapalaDamage(scenario),
+                "chandra_role" => ScenarioChandraRole(scenario),
+                "normal_pressure_core" => ScenarioNormalPressure(scenario),
+                "indra_opening_core" => ScenarioIndraOpening(scenario),
+                "lokapala_budget" => ScenarioLokapalaBudget(scenario),
+                "special_rewards_core" => ScenarioSpecialRewardsCore(scenario),
+                "summon_rewards_core" => ScenarioSummonRewardsCore(scenario),
+                "sei_followup_core" => ScenarioSeiFollowUpCore(scenario),
+                "single_rewards_core" => ScenarioSingleRewardsCore(scenario),
                 "core_safety" => ScenarioCoreSafety(scenario),
+                "qa_field_limits" => ScenarioQaField(scenario),
+                "qa_presentation_followup" => ScenarioQaPresentation(scenario),
+                "qa_lobby_guide_links" => ScenarioQaLobbyGuide(scenario),
+                "qa_vfx_followup" => ScenarioQaVfx(scenario),
+                "qa_kits_followup" => ScenarioQaKits(scenario),
+                "qa_interruption_followup" => ScenarioQaInterruption(scenario),
+                "qa_anubis_duration" => ScenarioQaAnubisDuration(scenario),
+                "qa_ishtar_retarget" => ScenarioQaIshtarRetarget(scenario),
+                "qa_agni_fallback" => ScenarioQaAgniFallback(scenario),
+                "qa_novice_ui" => ScenarioQaNoviceUi(scenario),
+                "qa_audio_routes" => ScenarioQaAudioRoutes(scenario),
+                "qa_ishtar_scheduled" => ScenarioQaIshtarScheduled(scenario),
                 "core_scheduler" => ScenarioCoreScheduler(scenario),
                 "core_scheduler_sabah" => ScenarioCoreSchedulerSabah(scenario),
                 "core_scheduler_abort" => ScenarioCoreSchedulerAbort(scenario),
@@ -464,6 +586,11 @@ namespace Managers.UI.DevTools
                 "checkpoint24_campaign" => ScenarioCheckpoint24Campaign(scenario),
                 "checkpoint24_layout" => ScenarioCheckpoint24Layout(scenario),
                 "checkpoint24_battle" => ScenarioCheckpoint24Battle(scenario),
+                "checkpoint48_layout" => ScenarioCheckpoint48Layout(scenario),
+                "checkpoint48_core" => ScenarioCheckpoint48Core(scenario),
+                "checkpoint48_battle" => ScenarioCheckpoint48Battle(scenario),
+                "checkpoint48_campaign" => ScenarioCheckpoint48Campaign(scenario),
+                "theme_specs" => ScenarioThemeSpecs(scenario),
                 "original_themes" => ScenarioOriginalThemes(scenario),
                 "original_kits" => ScenarioOriginalKits(scenario),
                 "original_edges" => ScenarioOriginalEdges(scenario),
@@ -475,8 +602,18 @@ namespace Managers.UI.DevTools
                 "guide_rework" => ScenarioGuideRework(scenario),
                 "effect_hit_core" => ScenarioEffectHitCore(scenario),
                 "nord_core" => ScenarioNordCore(scenario),
+                "amaterasu_core" => ScenarioAmaterasuCore(scenario),
+                "amaterasu_combat" => ScenarioAmaterasuCombat(scenario),
+                "counter_ice_core" => ScenarioCounterIceCore(scenario),
+                "bastet_sustain_core" => ScenarioBastetSustainCore(scenario),
+                "sei_shield68_core" => ScenarioSeiShield68Core(scenario),
+                "support_cleanse_core" => ScenarioSupportCleanseCore(scenario),
+                "support_cleanse_save" => ScenarioSupportCleanseSave(scenario),
+                "reference_cycle_core" => ScenarioReferenceCycleCore(scenario),
+                "counter_support_balance" => ScenarioCounterSupportBalance(scenario),
                 "orion_skadi_core" => ScenarioOrionSkadiCore(scenario),
                 "summon_authors_core" => ScenarioSummonAuthorsCore(scenario),
+                "summon_tank_compare" => ScenarioSummonTankCompare(scenario),
                 "egyptian_core" => ScenarioEgyptianCore(scenario),
                 "isis_core" => ScenarioIsisCore(scenario),
                 "horus_targets" => ScenarioHorusTargets(scenario),
@@ -505,16 +642,20 @@ namespace Managers.UI.DevTools
                 "allvfx_catalog" => ScenarioAllVfxCatalog(scenario),
                 "allvfx_skills" => ScenarioAllVfxSkills(scenario),
                 "allvfx_systems" => ScenarioAllVfxSystems(scenario),
+                "allvfx_hp_trail" => ScenarioHpDamageTrail(scenario),
                 "allvfx_formation" or "allvfx_formation_4x" => ScenarioAllVfxFormation(scenario),
                 "allvfx_soul_readability" => ScenarioSoulReadability(scenario),
                 "allvfx_soul_readability_4x" => ScenarioSoulReadability(scenario),
                 var showName when showName.StartsWith("allvfx_showcase_") => ScenarioAllVfxShowcase(scenario),
                 var allVfxName when allVfxName.StartsWith("allvfx_units_") => ScenarioAllVfxUnits(scenario),
                 "ui_overhaul" => ScenarioUIOverhaul(scenario),
+                "release_053_ui" => ScenarioRelease053Ui(scenario),
                 "ui_overhaul_menu" => ScenarioUIOverhaulMenu(scenario),
                 "ui_settings_layout" => ScenarioSettingsLayout(scenario),
                 "reward_ui_forms" => ScenarioRewardUiForms(scenario),
                 var rewardUiName when IsRewardUiScenario(rewardUiName) => ScenarioUIOverhaul(scenario),
+                "overgrowth_core" => ScenarioOvergrowthCore(scenario),
+                "debuff_rewards_core" => ScenarioDebuffRewardsCore(scenario),
                 "prep" => ScenarioPrep(scenario),
                 "combat_1v1" => ScenarioCombat(scenario, CombatStage(scenario, 6, 1), "combat"),
                 "combat_1v2" => ScenarioCombat(scenario, CombatStage(scenario, 6, 2), "combat"),
@@ -630,7 +771,7 @@ namespace Managers.UI.DevTools
 
             scenarioResult.captureCount = _result.captures.Count - beforeCaptures;
             scenarioResult.finishedRealtime = Time.realtimeSinceStartup;
-            if (scenarioResult.captureCount == 0 && scenarioResult.success)
+            if (!Application.isBatchMode && scenarioResult.captureCount == 0 && scenarioResult.success)
             {
                 scenarioResult.success = false;
                 scenarioResult.message = "캡처가 생성되지 않았다.";
@@ -2058,8 +2199,6 @@ namespace Managers.UI.DevTools
                 Reason = "적 전멸",
                 StageLabel = "1-2",
                 ThemeName = "공허의 시험장",
-                LifeBefore = 20,
-                LifeAfter = 20,
                 GoldGained = 84,
                 ExpGained = 120,
                 Kills = 2,
@@ -2360,14 +2499,14 @@ namespace Managers.UI.DevTools
         private IEnumerator CaptureActionWindowAtInterval(string tag, float seconds, float interval,
             Action action, float preRoll = 0.5f)
         {
-            // 표시 1×에서도 엔진 Time.timeScale은 0.5이므로 사용자 영상의 프리롤·총길이는
+            // 배속과 관계없이 사용자 영상의 프리롤·총길이는
             // 게임 시간이 아니라 실제 경과 시간을 기준으로 맞춘다.
             yield return CaptureActionWindowRealtimeAtInterval(tag, seconds, interval, action, preRoll);
         }
 
         /// <summary>
         /// 사용자 검수 영상은 표시 배속과 무관하게 실제 0.5초 프리롤과 30fps 이상 간격을 지킨다.
-        /// 엔진 Time.timeScale이 1× HUD에서 0.5이므로 이 경로만 실시간 축을 사용한다.
+        /// 배속과 별개로 이 경로는 실시간 축을 사용한다.
         /// </summary>
         private IEnumerator CaptureActionWindowRealtimeAtInterval(string tag, float seconds, float interval,
             Action action, float preRoll = 0.5f)
@@ -2441,6 +2580,7 @@ namespace Managers.UI.DevTools
 
         private void Capture(string baseTag, bool keepTooltip = false)
         {
+            if (Application.isBatchMode) return; // 캡처가 없는 기술 결과를 미술 PASS로 사용하지 않는다.
             // 자동 캡처는 포인터 위치와 무관해야 한다. 매 프레임 호버가 다시 계산되므로 저장 직전에 닫는다.
             // 툴팁 자체를 검수하는 캡처만 고정 좌표(ShowAt)로 띄운 툴팁을 남긴다.
             if (!keepTooltip) Managers.UI.Core.UITooltip.HideAny();

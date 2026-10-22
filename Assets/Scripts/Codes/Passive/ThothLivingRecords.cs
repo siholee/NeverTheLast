@@ -32,7 +32,7 @@ namespace Codes.Passive
         public SummonSpec Spec => new()
         {
             Id = ScribeId, Kind = Kind, Name = "서기관", Element = "Hydro", PortraitKey = "PENSEE_PORTRAIT",
-            Hp = Mathf.Max(1, Mathf.RoundToInt((Caster?.HpMax ?? 1) * .35f)), Speed = 90,
+            Hp = Mathf.Max(1, Mathf.RoundToInt((Caster?.HpMax ?? 1) * .50f)), Speed = 90,
             NormalCodeId = ThothScribeHeal.CodeId, Targetable = true,
         };
         public void OnOverflow(Unit owner, Unit oldest) { }
@@ -58,7 +58,7 @@ namespace Codes.Passive
             {
                 if (ally.HasStatusKey(AuraKey)) continue;
                 ally.AddStatus(BuffStatus.Create(73124, AuraKey, CodeName, Caster, ally, new RecordsEffect(this),
-                    duration: 0, isBeneficial: true, description: "소환수를 보유한 아군 본체 수와 토트의 특공에 비례해 소환 피해 증가(최대45%). 서기관이 있으면 받는 피해12% 감소."));
+                    duration: 0, isBeneficial: true, description: "소환수를 보유한 아군 본체 수와 토트의 특공에 비례해 소환 피해 증가(최대45%). 서기관이 있으면 받는 피해24% 감소."));
                 if (!_holders.Contains(ally)) _holders.Add(ally);
             }
         }
@@ -72,10 +72,10 @@ namespace Codes.Passive
                 if (scribe == null) return null;
                 scribe.gameObject.AddComponent<Entities.View.SummonCardView>().Bind(scribe);
                 scribe.AddStatus(BuffStatus.Create(73125, "thoth_scribe_defense", "서기관의 몸", Caster, scribe,
-                    new StatModifierEffect(BaseEnums.StatType.Defense, Caster.DefCurr * .60f),
+                    new StatModifierEffect(BaseEnums.StatType.Defense, Caster.DefCurr * .80f),
                     duration: 0, category: BaseEnums.StatusCategory.Neutral));
                 scribe.AddStatus(BuffStatus.Create(73126, "thoth_scribe_spdef", "서기관의 몸", Caster, scribe,
-                    new StatModifierEffect(BaseEnums.StatType.SpecialDefense, Caster.StatValue(BaseEnums.StatType.SpecialDefense) * .60f),
+                    new StatModifierEffect(BaseEnums.StatType.SpecialDefense, Caster.StatValue(BaseEnums.StatType.SpecialDefense) * .80f),
                     duration: 0, category: BaseEnums.StatusCategory.Neutral));
             }
             _remaining = 3;
@@ -117,7 +117,7 @@ namespace Codes.Passive
             public override float OutgoingDamageModifier(Unit attacker, Unit target, DamageContext context)
                 => attacker == Target && SummonSupportCombat.IsSummonDamage(context) ? 1 + _source.DamageBonus : 1;
             public override float ReceivingDamageModifier(Unit unit, DamageContext context)
-                => unit == Target && _source.Working && _source.Scribe != null ? .88f : 1;
+                => unit == Target && _source.Working && _source.Scribe != null ? .76f : 1;
         }
     }
 }

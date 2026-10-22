@@ -106,6 +106,34 @@ namespace Effects.Vfx
                 Mathf.Lerp(bounds.min.y, bounds.max.y, .67f), 0f);
         }
 
+        /// <summary>불씨의 실제 피격점에만 손그림 파열을 둔다. 판정·대기·추가 타수를 소유하지 않는다.</summary>
+        public static void HimikoContact(Unit target, Vector3 point)
+        {
+            if(target==null)return;
+            int layer=VfxSpace.SortingLayer(target);
+            void Layer(HandpaintSheet sheet,Vector2 size,Color color,int order,int startFrame)
+            {
+                float[] delays=HandpaintFx.Cue(sheet,size,Color.white,Color.white).FrameDelays;
+                // 국소 먹빛 외곽은 밝은 판·주황 원화 양쪽에서 몸체를 분리한다. 전역 팔레트는 유지한다.
+                var style=new FlipbookCompositeStyle
+                {
+                    PeakAlpha=1f,GlowAlpha=0f,Desaturate=0f,PaintContrast=0f,
+                    BlendFraction=.20f,FadeInFraction=0f,FadeOutFraction=.50f,
+                    BrightBackdropLiftStrength=0f,StartScale=1f,CrestScale=1f,EndScale=.72f,
+                    GroundLightColor=Color.clear,ContactShadowColor=Color.clear,
+                    GroundLightSizeInCards=Vector2.zero,ContactShadowSizeInCards=Vector2.zero,SceneLightStrength=0f,
+                };
+                // 원래 폭발의 정점 셀부터 소진한다. 후행 팽창이나 정점 홀드로 두 번째 타격을 암시하지 않는다.
+                FlipbookFx.Play(sheet.ResourcePath,sheet.Columns,sheet.Rows,sheet.Pivot,point,
+                    size*VfxSpace.CardSize,color,false,false,false,delays,layer,
+                    VfxSpace.OverlaySortingOrder+order,style:style,startFrame:startFrame)?.ClipPortraitHud(target);
+            }
+            Layer(HandpaintFx.Explosion2Red,new Vector2(.75f,.84f),new Color(.48f,.22f,.14f,.52f),73,4);
+            // 원본의 백열 중심을 남겨 살구색 연기와 구분한다. 별/원륜 대신 한 줄기 불꽃만 사용한다.
+            Layer(new HandpaintSheet("Fire1_Red",4,4,80f,new Vector2(.5f,.5f)),
+                new Vector2(.62f,.78f),new Color(1f,.96f,.82f,.98f),74,8);
+        }
+
         public static void Fire(Unit caster, Unit target, string skillKey)
         {
             if (target == null) return;
@@ -688,12 +716,53 @@ namespace Effects.Vfx
         public static void Contact(Unit target, Color color)
         {
             if(target==null)return;
-            SpriteFx.Play(VfxArt.ImpactStar,VfxSpace.PortraitPoint(target),new Color(.18f,.28f,.40f,.55f),false,
-                .12f*VfxSpace.CardSize,.28f*VfxSpace.CardSize,.13f,fadeIn:0f,fadeOutFrom:.40f,
-                sortingLayer:VfxSpace.SortingLayer(target),order:VfxSpace.OverlaySortingOrder+61);
-            SpriteFx.Play(VfxArt.ImpactStar,VfxSpace.PortraitPoint(target),color,true,
-                .10f*VfxSpace.CardSize,.25f*VfxSpace.CardSize,.13f,fadeIn:0f,fadeOutFrom:.40f,
-                sortingLayer:VfxSpace.SortingLayer(target),order:VfxSpace.OverlaySortingOrder+62);
+            ContactAt(target,VfxSpace.PortraitPoint(target),color);
+        }
+
+        /// <summary>광역의 실제 피격은 예고 연기보다 앞에 둔다. 구매 손그림의 정점에서 시작하며 새 피해 판정을 만들지 않는다.</summary>
+        public static void FormationContact(Unit source, Unit target, Color color, float scale)
+        {
+            if(target==null)return;
+            float side=VfxSpace.AimFrom(source,target).Direction.x>=0f?1f:-1f;
+            Vector3 point=StatusMotifFx.Anchor(target)+new Vector3(side*.35f,-.06f)*VfxSpace.CardSize;
+            Vector2 size=new Vector2(.60f,.18f)*Mathf.Clamp(scale,.5f,2f);
+            int layer=VfxSpace.SortingLayer(target);
+            // 숫자가 모이는 입사 쪽과 원화 중앙 코어를 피해 낮은 몸통 띠에 짧은 파열을 둔다.
+            // 정점 셀의 밝은 심은 중앙보다 낮다. 시트 중심을 붙이면 가장 중요한 심이 HUD 클립에 걸린다.
+            HandpaintSheet sheet=new("Impact1_Purple",3,2,30f,new Vector2(.52f,.31f));
+            float[] delays=HandpaintFx.Cue(sheet,size,Color.white,color).FrameDelays;
+            void Layer(Color ink,float fit,int order,bool core)
+            {
+                // 이 작은 두 겹은 먹빛 본체와 밝은 중심을 직접 분리한다. 전역 파스텔/광 설정은 건드리지 않는다.
+                var style=new FlipbookCompositeStyle
+                {
+                    PeakAlpha=1f,GlowAlpha=0f,Desaturate=core?1f:0f,PaintContrast=1f,
+                    BlendFraction=.20f,FadeInFraction=0f,FadeOutFraction=.45f,
+                    BrightBackdropLiftStrength=0f,StartScale=1.02f,CrestScale=1f,EndScale=.82f,
+                    GroundLightColor=Color.clear,ContactShadowColor=Color.clear,
+                    GroundLightSizeInCards=Vector2.zero,ContactShadowSizeInCards=Vector2.zero,SceneLightStrength=0f,
+                };
+                FlipbookFx.Play(sheet.ResourcePath,sheet.Columns,sheet.Rows,sheet.Pivot,point,
+                    size*(fit*VfxSpace.CardSize),ink,false,false,false,delays,layer,
+                    VfxSpace.OverlaySortingOrder+order,style:style,startFrame:2)?.ClipPortraitHud(target);
+            }
+            Layer(new Color(.10f,.07f,.16f,.96f),1.12f,171,false);
+            Layer(new Color(.90f,.86f,1f,.95f),.90f,176,true);
+        }
+
+        public static void ContactAt(Unit target, Vector3 point, Color color, float scale=1f, int orderOffset=61)
+        {
+            if(target==null)return;
+            scale=Mathf.Clamp(scale,.5f,2f);
+            bool focused=scale>1f;
+            float card=VfxSpace.CardSize*scale;
+            float life=focused?VfxTiming.AtLeastFrames(.13f,5):.13f;
+            SpriteFx.Play(VfxArt.ImpactStar,point,focused?new Color(.16f,.10f,.23f,.94f):new Color(.18f,.28f,.40f,.55f),false,
+                (focused?.32f:.12f)*card,(focused?.12f:.28f)*card,life,fadeIn:0f,fadeOutFrom:.40f,
+                sortingLayer:VfxSpace.SortingLayer(target),order:VfxSpace.OverlaySortingOrder+orderOffset,preserveInk:focused);
+            SpriteFx.Play(VfxArt.ImpactStar,point,color,true,
+                (focused?.14f:.10f)*card,(focused?.05f:.25f)*card,life,fadeIn:0f,fadeOutFrom:.40f,
+                sortingLayer:VfxSpace.SortingLayer(target),order:VfxSpace.OverlaySortingOrder+orderOffset+1);
         }
 
         /// <summary>동시 일제사격에서도 얼음 파편과 월광의 실루엣을 구분한다. 판정은 원래 코드가 맡는다.</summary>

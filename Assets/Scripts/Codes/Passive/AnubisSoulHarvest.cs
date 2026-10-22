@@ -14,7 +14,7 @@ namespace Codes.Passive
     ///
     /// 영혼 1당 최대 체력 +8 · 방어 +0.4 · 특방 +0.4(합연산, 전투 밖에서도 보인다). 영혼과 레벨이 모두 스테이지에 비례해
     /// 자라므로 기초 대비 비율이 무한 모드에서 거의 일정하다 — 깡 수치인데도 후반에 죽지 않는 이유다.
-    /// 이정표(누적): 50 피격 마나 2배 · 150 사자의 서 지속 4턴 · 300 전투 시작 방어력 270% 보호막.
+    /// 이정표(누적): 50 피격 마나 2배 · 150 사자의 서 지속 4턴 · 200 전투 시작 방어력 270% 보호막.
     /// </summary>
     public sealed class AnubisSoulHarvest : UniquePassiveCode
     {
@@ -23,12 +23,13 @@ namespace Codes.Passive
 
         public const int MilestoneHitMana = 50;
         public const int MilestoneLongerBook = 150;
-        public const int MilestoneOpeningShield = 300;
+        public const int MilestoneOpeningShield = 200;
 
         private const float HpPerSoul = 8f;
         private const float DefensePerSoul = 0.4f;
         private const float SummonSoul = 0.25f;
         private const float OpeningShieldRatio = 2.7f;
+        public override int BaseShieldAmount => Souls >= MilestoneOpeningShield ? StatDamage(0, BaseEnums.StatType.Defense, OpeningShieldRatio) : 0;
 
         private bool _subscribed;
 

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
@@ -47,6 +47,9 @@ namespace Codes.Ultimate
         {
             if (!DirectAttack.CasterCanContinue(Caster, false) || !_registered) return 0;
             int stack = Caster.AddCombatResource(ResourceId, 1);
+            // 9번째 사용의 후속타가 취소되어도 다음 멸참이 다시 9단계가 되지 않는다.
+            // 이번 행동의 단계는 반환값에 보존하고 카운터는 새 순환을 시작한다.
+            if (stack == MaximumStacks) Caster.TryConsumeCombatResource(ResourceId, MaximumStacks);
             return stack is 3 or 6 or 9 ? stack : 0;
         }
 
@@ -65,7 +68,7 @@ namespace Codes.Ultimate
             if (targets.Count == 0) yield break;
 
             bool crit = RollCritical(out float multiplier);
-            float ratio = tier == 3 ? ThreeStackRatio(Caster.Level) : tier == 6 ? 2f : 3f;
+            float ratio = tier == 3 ? ThreeStackRatio(Caster.Level) : tier == 6 ? 2.5f : 3.75f;
             int total = Mathf.Max(1, Mathf.RoundToInt(
                 Caster.StatValue(BaseEnums.StatType.Attack) * ratio * multiplier));
             int each = tier == 3 ? total : Mathf.Max(1, Mathf.RoundToInt(total / (float)targets.Count));
@@ -77,7 +80,7 @@ namespace Codes.Ultimate
                 DamageTag.BonusDamage,
             };
             var contexts = targets.ToDictionary(target => target, _ => new DamageContext(Caster, each,
-                BaseEnums.CodeType.Ultimate, new List<int>(tags), crit));
+                BaseEnums.CodeType.Ultimate, new List<int>(tags), crit) { IsDistributed = tier != 3 });
             string key = $"shi.final_bell.{tier}";
             ActionAnnouncer.Announce(Caster, ActionAnnouncementKind.Ultimate, this);
             AudioManager.PlayAction(Caster, SfxActionSlot.Ultimate, SfxCuePhase.Screen, CodeName);
@@ -98,19 +101,17 @@ namespace Codes.Ultimate
                 target.TakeDamage(context);
             });
 
-            if (tier == 9 && DirectAttack.CasterCanContinue(Caster, false))
-                Caster.TryConsumeCombatResource(ResourceId, MaximumStacks);
         }
 
         /// <summary>
-        /// 구 3중첩 위력 20/31/68을 50 위력=공격력 100% 이관 규칙으로 환산한다.
+        /// 3중첩은 기존 레벨별 계수에 1.25배를 적용한다.
         /// 밸런스 확정 전까지 문서와 함께 🔸 임시 수치로 유지한다.
         /// </summary>
         private static float ThreeStackRatio(int level)
         {
             int offset = Mathf.Max(0, level - 1);
             float power = 20f + Mathf.Round(-0.031f * offset + 0.00521f * offset * offset);
-            return Mathf.Max(1f, power) / 50f;
+            return Mathf.Max(1f, power) / 40f;
         }
 
         private List<Unit> AliveEnemies()

@@ -8,6 +8,7 @@ namespace Codes.Ultimate
     public sealed class KuberaTreasury : BaseUltimateCode
     {
         public KuberaTreasury(UltimateCodeContext context) : base(context) => CodeName = "복리의 보고";
+        public override bool PrecedesSpecialGate => PartyTreasury.Available < 3;
         public override bool HasValidTarget() => PartyTreasury.CanUse(Caster);
         protected override bool RequiresCompletionEvidence => true;
         public static int Interest(int available) => 1 + Mathf.FloorToInt(Mathf.Max(0, available) * .25f);

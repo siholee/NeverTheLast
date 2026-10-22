@@ -231,8 +231,8 @@ namespace Managers
             float minInterval = Mathf.Max(0f, cue.minInterval);
             if (cue.speedMerge)
             {
-                // 전장 내부 기준은 사용자 표시의 절반(8× → timeScale 4)이라 HUD의 단일 원천을 읽는다.
-                float speed = Mathf.Clamp(UI.HUD.BattleHud.CurrentSpeedMultiplier, 1f, 8f);
+                // 기존 0.5배 기준의 음향 병합 강도를 유지해 새 1배도 이전 2배와 같게 처리한다.
+                float speed = Mathf.Clamp(UI.HUD.BattleHud.EffectSpeedMultiplier, 1f, 8f);
                 float floor1 = Mathf.Max(0f, _cueData?.speedMergeFloor ?? 0.04f);
                 float floor8 = Mathf.Max(floor1, _cueData?.speedMergeAt8x ?? 0.12f);
                 minInterval = Mathf.Max(minInterval, Mathf.Lerp(floor1, floor8, (speed - 1f) / 7f));
@@ -337,21 +337,27 @@ namespace Managers
             selected = null;
             if (cue.clips == null || cue.clips.Count == 0) return null;
             int start = _lokapalaAudioRandom.Next(cue.clips.Count);
+            AudioClip repeatFallback = null;
+            string fallbackName = null;
             for (int i = 0; i < cue.clips.Count; i++)
             {
                 string candidate = cue.clips[(start + i) % cue.clips.Count];
                 if (string.IsNullOrWhiteSpace(candidate)) continue;
                 selected = candidate.Trim();
-                if (cue.avoidImmediateRepeat && cue.clips.Count > 1 &&
+                bool avoided = cue.avoidImmediateRepeat && cue.clips.Count > 1 &&
                     ((string.IsNullOrWhiteSpace(cue.voiceGroup) && _lastClipByCue.TryGetValue(cueName, out string previous) &&
                       string.Equals(selected, previous, StringComparison.OrdinalIgnoreCase)) ||
-                     string.Equals(selected, _lastAvoidRepeatClip, StringComparison.OrdinalIgnoreCase))) continue;
-                if (IsLokapalaPresentation(cueName) && NormalizeGroup(cue.mixerGroup) == "VOICE" &&
-                    string.Equals(selected, _lastLokapalaVoiceClip, StringComparison.OrdinalIgnoreCase)) continue;
+                     string.Equals(selected, _lastAvoidRepeatClip, StringComparison.OrdinalIgnoreCase));
+                avoided |= IsLokapalaPresentation(cueName) && NormalizeGroup(cue.mixerGroup) == "VOICE" &&
+                    string.Equals(selected, _lastLokapalaVoiceClip, StringComparison.OrdinalIgnoreCase);
                 AudioClip clip = LoadClip(SfxPathPrefix + selected);
-                if (clip != null) return clip;
+                if (clip == null) continue;
+                if (!avoided) return clip;
+                if (repeatFallback == null) { repeatFallback = clip; fallbackName = selected; }
             }
-            return null;
+            // 반복 회피는 다른 음성을 우선하는 규칙이다. 유효한 유일 후보까지 무음 처리하지 않는다.
+            if (repeatFallback != null) selected = fallbackName;
+            return repeatFallback;
         }
 
         private static bool VoiceActive(SfxVoice voice, float now)
