@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
@@ -13,16 +13,16 @@ using UnityEngine;
 namespace Codes.Special
 {
     /// <summary>
-    /// 찬드라 — 특수행동 「창야」. 회복만 맡으므로 로카팔라 묶음의 <b>맨 끝</b>(+100)에 선다(Detail_08 §3.7).
-    /// 최대 체력 100%의 광역 피해를 가하고, 실제로 깎은 피해의 20%를 살아 있는 아군 전원에게 똑같이 나눠 회복한다.
+    /// 찬드라 — 특수행동 「창야」. 유지력 담당이므로 로카팔라 묶음의 <b>맨 끝</b>(+100)에 선다(Detail_08 §3.7).
+    /// 최대 체력 30%의 광역 피해 뒤, 살아 있는 아군 각각을 자신의 최대 체력 8%만큼 회복한다. 회복은 공격 판정과 독립한다.
     /// 특수행동 피해 보조는 인드라의 몫이라 예전의 묶음 치명타 버프는 없앴다.
     /// </summary>
     public sealed class ChandraChangya : SpecialCode
     {
         public override int AttackForm => DamageTag.Spell;
 
-        private const float MaxHpRatio = 1f;
-        private const float HealRatio = 0.20f;
+        private const float MaxHpRatio = 0.30f;
+        private const float HealRatio = 0.08f;
 
         public ChandraChangya(SpecialCodeContext context) : base(context)
         {
@@ -69,9 +69,10 @@ namespace Codes.Special
             }
             var contexts = new Dictionary<Unit, DamageContext>();
 
-            int totalDamage = 0;
+            int healing = Mathf.Max(1, Mathf.RoundToInt(Caster.HpMax * HealRatio));
             yield return ChandraFx.Changya(Caster, allies, targets, () =>
             {
+                if (!Combat.DirectAttack.CasterCanContinue(Caster, stopOnControl: true)) return;
                 // 시전 정점의 월광 획득·피해 준비 순서를 유지한다. 예전 묶음 치명타 버프는 없다.
                 Caster.ActivePassiveCodes.OfType<ChandraNishakara>().FirstOrDefault()
                     ?.GainMoonlight(playVfx: false);
@@ -85,26 +86,31 @@ namespace Codes.Special
                 }
             }, target =>
             {
-                if (target == null || !target.isActive || !contexts.TryGetValue(target, out DamageContext context)) return;
+                if (!Combat.DirectAttack.CasterCanContinue(Caster, stopOnControl: true) ||
+                    target == null || !target.isActive || !contexts.TryGetValue(target, out DamageContext context)) return;
                 target.TakeDamage(context);
-                totalDamage += context.ResolvedDamage;
             });
 
-            // 회복 몫을 살아 있는 아군 전원에게 똑같이 나눈다 — 찬드라가 묶음의 유지력을 맡는다.
-            List<Unit> survivors = Allies().Where(unit => unit != null && unit.isActive).ToList();
-            if (survivors.Count > 0 && totalDamage > 0)
+            // 피해 계수·치명·적 방어·적 수·잔여 체력과 분리한다. 중단된 시전은 회복하지 않는다.
+            if (!Combat.DirectAttack.CasterCanContinue(Caster, stopOnControl: true))
             {
-                int share = Mathf.Max(1, Mathf.RoundToInt(totalDamage * HealRatio / survivors.Count));
+                StopCode();
+                yield break;
+            }
+            List<Unit> survivors = Allies().Where(unit => unit != null && unit.isActive).ToList();
+            if (survivors.Count > 0)
+            {
                 VfxComposer.PlayScreen("chandra.changya", Caster, survivors);
                 foreach (Unit ally in survivors)
                 {
                     using (StatusAffectedVfx.SupportVariant("chandra.changya"))
-                        ally.Heal(share, Caster);
+                        ally.Heal(healing, Caster);
                 }
                 AudioManager.PlayAction(Caster, SfxActionSlot.Special, SfxCuePhase.Resolve, CodeName);
             }
             // 회복광이 끝날 때까지 기존 isCasting을 유지해 다음 특수행동과 표시 길이를 맞춘다.
             yield return new WaitForSeconds(0.50f);
+            Combat.SpecialAction.NotifyResolved(Caster, completed: true);
             StopCode();
         }
 

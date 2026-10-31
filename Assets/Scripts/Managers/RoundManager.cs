@@ -14,33 +14,25 @@ namespace Managers
         Event,
         MidBoss,
         Boss,
+        Rest,
     }
 
     public class RoundManager
     {
         private readonly DataManager _dataManager;
-        public int Stage { get; private set; }  // 현재 전투 스테이지
+        public int Stage { get; private set; }  // 휴식·고정보스를 포함한 현재 누적 진행 위치
         public const int EncountersPerTheme = 8;
         public int Round { get; private set; }  // 표시상 스테이지(테마)
-        // 누적 전투 라운드 기준 성장 레벨. 1번째 전투는 기본 스탯(성장 0회),
+        // 누적 진행 위치 기준 성장 레벨. 1번째 전투는 기본 스탯(성장 0회),
         // n번째 전투는 각 스탯의 IncrementLvl을 (n - 1)회 적용한다.
         /// <summary>적 유닛의 레벨. 현재 스테이지와 같다(1스테이지 = Level 1 = 성장분 0).</summary>
         public int EnemyLevel => Mathf.Max(1, Stage);
-        public int StageInRound => ((Stage - 1) % EncountersPerTheme) + 1;
+        public int StageInRound => ProgressionLayout.SlotOf(Stage);
+        public int SlotsInCurrentTheme => ProgressionLayout.SlotsInTheme(Round);
+        public bool IsCurrentRestStage => ProgressionLayout.IsRest(Stage);
+        public bool IsCurrentFixedBossStage => IsFixedBossStage(Stage);
 
-        /// <summary>
-        /// 이 스테이지가 소비하는 <b>내용 슬롯</b>. 평소에는 <see cref="StageInRound"/>과 같다.
-        ///
-        /// 고정 보스가 낀 라운드는 <b>2번 슬롯을 건너뛰고 이후를 1씩 당긴다.</b>
-        /// 그래서 마지막 한 칸이 비고 거기에 고정 보스가 들어간다.
-        ///
-        /// <code>
-        /// 평소       1  2  3  4  5  6(엘리트)  7  8(보스)
-        /// 고정 보스  1  3  4  5  6(엘리트)  7  8(보스)  고정 보스
-        /// </code>
-        ///
-        /// 결과적으로 테마 보스는 7번째 전투로 당겨진다 — 기존 규칙과 같은 자리다.
-        /// </summary>
+        /// <summary>기본 내용1~8을 보존하며 매4번째 테마의9는 휴식,10은 고정보스다.</summary>
         public int ContentSlotInRound => ContentSlot(Stage);
         public int CurrentThemeId => _currentStageTheme?.id ?? 0;
         public string CurrentThemeName => _currentStageTheme?.name ?? "";
@@ -52,6 +44,15 @@ namespace Managers
         public UnityEngine.Color CurrentThemeAmbient =>
             _currentStageTheme?.Ambient ?? new UnityEngine.Color(0.13f, 0.15f, 0.20f);
         public bool IsCurrentBossStage => IsBossStage(Stage);
+        /// <summary>한 번만 발생하는 사건이 이미 끝나 일반전으로 대체된 현재 슬롯은 일반전으로 판정한다.</summary>
+        public StageKind CurrentCombatKind
+        {
+            get
+            {
+                StageKind kind = GetStageKind(Stage);
+                return kind == StageKind.Event && !IsEventStage() ? StageKind.Normal : kind;
+            }
+        }
         public bool IsRoundInProgress { get; private set; }
         private int _cachedEventStage = int.MinValue;
         private StageEventData _cachedEvent;
@@ -105,7 +106,7 @@ namespace Managers
             EnsureDataLoaded();
             int themeId = CurrentThemeId;
             int slot = ContentSlotInRound;
-            if (themeId <= 0 || IsFixedBossStage(Stage)) return new List<StageEventData>();
+            if (themeId <= 0 || IsFixedBossStage(Stage) || IsCurrentRestStage) return new List<StageEventData>();
 
             return _stageThemeDataList?.events?
                 .Where(data => data != null && data.triggerThemeId == themeId && data.triggerStageInRound == slot)
@@ -184,6 +185,13 @@ namespace Managers
             EnsureDataLoaded();
             EnsureThemeForCurrentRound();
 
+            if (IsCurrentRestStage)
+            {
+                GridManager.Instance?.ClearActiveEnemies();
+                IsRoundInProgress = false;
+                return;
+            }
+
             if (_enemyDataList == null || _roundTypeDataList == null || _currentStageTheme == null)
             {
                 Debug.LogError("Enemy data, round type data, or stage theme data not loaded.");
@@ -207,7 +215,7 @@ namespace Managers
                 return;
             }
             
-            int patternIndex = (Stage - 1) % stageData.rounds.Count;
+            int patternIndex = Mathf.Clamp(ContentSlotInRound - 1, 0, stageData.rounds.Count - 1);
             int roundTypeId = stageData.rounds[patternIndex];
             RoundTypeData roundType = _roundTypeDataList.roundTypes.Find(rt => rt.id == roundTypeId);
             
@@ -217,11 +225,6 @@ namespace Managers
                 return;
             }
 
-            if (roundType.isBoss && CurrentRoundHasFixedBoss())
-            {
-                roundType = _roundTypeDataList.roundTypes.FirstOrDefault(rt => !rt.isBoss && !rt.isElite) ?? roundType;
-            }
-            
             // 적 소환
             SpawnEnemiesForStage(roundType);
             
@@ -249,7 +252,7 @@ namespace Managers
 
         private static int GetRewardRound(int battleStage)
         {
-            return Mathf.Max(1, ((battleStage - 1) / EncountersPerTheme) + 1);
+            return ProgressionLayout.ThemeOf(battleStage);
         }
 
         private void EnsureDataLoaded()
@@ -402,7 +405,7 @@ namespace Managers
 
         private bool IsEventStage()
         {
-            if (IsFixedBossStage(Stage)) return false;
+            if (IsFixedBossStage(Stage) || IsCurrentRestStage) return false;
             if (RawCurrentEventData != null) return CurrentEventData != null;
             if (CurrentEventData != null) return true;
             int eventSlot = _currentStageTheme?.eventStageInRound ?? 5;
@@ -468,25 +471,10 @@ namespace Managers
             return GetFixedBossId(stage) > 0;
         }
 
-        private bool CurrentRoundHasFixedBoss() => RoundHasFixedBoss(Round);
-
-        private bool RoundHasFixedBoss(int rewardRound)
-        {
-            if (_stageThemeDataList?.fixedBossStages == null) return false;
-
-            return _stageThemeDataList.fixedBossStages.Any(data => GetRewardRound(data.stage) == rewardRound);
-        }
-
-        /// <summary>
-        /// 임의 스테이지의 내용 슬롯. 규칙은 <see cref="ContentSlotInRound"/>을 본다.
-        /// 고정 보스 스테이지 자신은 어떤 슬롯에도 대응하지 않는다(9를 반환하고 호출부가 먼저 걸러낸다).
-        /// </summary>
+        /// <summary>표시 라운드와 같은 내용 슬롯. 기본8칸을 앞당기지 않는다.</summary>
         private int ContentSlot(int stage)
         {
-            int stageInRound = ((stage - 1) % EncountersPerTheme) + 1;
-            if (!RoundHasFixedBoss(GetRewardRound(stage))) return stageInRound;
-
-            return stageInRound >= 2 ? stageInRound + 1 : stageInRound;
+            return ProgressionLayout.SlotOf(stage);
         }
 
         private bool IsBossStage(int stage)
@@ -519,10 +507,11 @@ namespace Managers
 
         private int GetFixedBossId(int stage)
         {
-            FixedBossStageData fixedBoss = _stageThemeDataList?.fixedBossStages?
-                .FirstOrDefault(data => data.stage == stage);
-            return fixedBoss?.bossId ?? 0;
+            return GetFixedBossData(stage)?.bossId ?? 0;
         }
+        private FixedBossStageData GetFixedBossData(int stage)
+            => !ProgressionLayout.IsFixedBoss(stage) ? null : _stageThemeDataList?.fixedBossStages?
+                .Where(data => data.stage <= stage).OrderByDescending(data => data.stage).FirstOrDefault();
 
         /// <summary>
         /// 임의의 스테이지가 어떤 성격인지 판정한다. HUD의 진행 예고 표시에 쓴다.
@@ -533,6 +522,7 @@ namespace Managers
         {
             EnsureDataLoaded();
 
+            if (ProgressionLayout.IsRest(stage)) return StageKind.Rest;
             if (GetFixedBossId(stage) > 0) return StageKind.Boss;
 
             int slot = ContentSlot(stage);
@@ -565,7 +555,7 @@ namespace Managers
         public List<StageKind> GetUpcomingStageKinds(int count)
         {
             var kinds = new List<StageKind>();
-            for (int i = 0; i < Mathf.Min(Mathf.Max(0, count), EncountersPerTheme - StageInRound + 1); i++)
+            for (int i = 0; i < Mathf.Min(Mathf.Max(0, count), SlotsInCurrentTheme - StageInRound + 1); i++)
             {
                 kinds.Add(GetStageKind(Stage + i));
             }
@@ -597,6 +587,12 @@ namespace Managers
             int fixedBossId = GetFixedBossId(Stage);
             if (fixedBossId > 0)
             {
+                var fixedBattle = GetFixedBossData(Stage);
+                if ((fixedBattle.frontIds?.Count ?? 0) + (fixedBattle.rearIds?.Count ?? 0) > 0)
+                {
+                    PlaceEnemiesInColumns(fixedBattle.frontIds, fixedBattle.rearIds);
+                    return;
+                }
                 enemyIdsToSpawn.Add(fixedBossId);
                 PlaceEnemies(enemyIdsToSpawn);
                 return;

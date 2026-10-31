@@ -80,7 +80,7 @@ namespace Managers.UI.DevTools
                 string heroesBefore = string.Join(";", save.heroUnits.Select(u => JsonUtility.ToJson(u)));
                 SaveSystem.SaveRun(save);
                 var loaded = SaveSystem.LoadRun();
-                RuiCheck("v14 위치 복원 " + before, after + ":theme2:v15", $"{loaded?.currentStage}:{loaded?.currentThemeId}:v{loaded?.version}",
+                RuiCheck("v14 위치 복원 " + before, after + ":theme2:v16", $"{loaded?.currentStage}:{loaded?.currentThemeId}:v{loaded?.version}",
                     loaded != null && loaded.currentStage == after && loaded.currentThemeId == 2 && loaded.version == RunSaveData.CurrentVersion);
                 RuiCheck("v14 유닛·코드 보존 " + before, "전체 DTO 동일", loaded.heroUnits.Count.ToString(),
                     heroesBefore == string.Join(";", loaded.heroUnits.Select(u => JsonUtility.ToJson(u))));
@@ -196,14 +196,14 @@ namespace Managers.UI.DevTools
             int battles = 0, ordinaryLoss = 0, priorStage = 0;
             int stopStage = config.trigger == "first_theme" ? 9 : 17;
             float deadline = Time.realtimeSinceStartup + 540f;
-            while(game.RoundManager.Stage < stopStage && game.life > 0 && game.gameState != GameState.GameOver && Time.realtimeSinceStartup < deadline)
+            while(game.RoundManager.Stage < stopStage && game.gameState != GameState.GameOver && Time.realtimeSinceStartup < deadline)
             {
                 if(game.gameState == GameState.Preparation)
                 {
                     if (priorStage != game.RoundManager.Stage)
                     {
                         int stage = game.RoundManager.Stage;
-                        Debug.Log($"[범용밸런스] theme={game.RoundManager.CurrentThemeId},stage={stage},life={game.life},HP=" + string.Join(",", AliveAllies().Select(u=>$"{u.ID}:L{u.Level}:{u.HpCurr}/{u.HpMax}")));
+                        Debug.Log($"[범용밸런스] theme={game.RoundManager.CurrentThemeId},stage={stage},state={game.gameState},HP=" + string.Join(",", AliveAllies().Select(u=>$"{u.ID}:L{u.Level}:{u.HpCurr}/{u.HpMax}")));
                         // 손실은 자동 회복하지 않는다. 플레이어에게 주어진 짧은 휴식만 필요 시 사용한다.
                         if(AliveAllies().Any(u=>u.HpCurr < u.HpMax*.4f)) game.TryShortRest();
                         priorStage = stage;
@@ -232,8 +232,8 @@ namespace Managers.UI.DevTools
                 else if(game.gameState == GameState.EventStage) { ordinaryLoss++; break; }
                 yield return null;
             }
-            RuiCheck("범용 스테이지 자연 완주", $"{stopStage-1}전투·사건0·생명20", $"stage={game.RoundManager.Stage},battle={battles},event={ordinaryLoss},life={game.life}",
-                game.RoundManager.Stage >= stopStage && ordinaryLoss == 0 && game.life == 20);
+            RuiCheck("범용 스테이지 자연 완주", $"{stopStage-1}전투·사건0·생명20", $"stage={game.RoundManager.Stage},battle={battles},event={ordinaryLoss},state={game.gameState}",
+                game.RoundManager.Stage >= stopStage && ordinaryLoss == 0);
             yield return CaptureStill("generic_campaign_final_" + config.stage);
             game.DebugResetBattle(); DebugMode.SuiteRunning = true; RuiFinish();
         }

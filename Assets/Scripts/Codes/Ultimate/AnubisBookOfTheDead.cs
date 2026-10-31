@@ -30,7 +30,8 @@ namespace Codes.Ultimate
             int turns = souls >= AnubisSoulHarvest.MilestoneLongerBook ? LongTurns : BaseTurns;
             var status = BuffStatus.Create(StatusId, StatusKey, CodeName, Caster, Caster, new MarkerBuffEffect(),
                 duration: turns, stackPolicy: BaseEnums.StatusStackPolicy.Replace, isBeneficial: true,
-                description: $"{turns}턴 동안 심장의 저울 피해 최대 체력 10% · 회복 60% · 적중 대상 바위 부착.");
+                description: $"{turns}턴 동안 심장의 저울 피해 최대 체력 13% · 회복 75% · 적중 대상 바위 부착.");
+            status.NormalActionDuration = true;
             status.AffectedVfxPartId = Effects.Vfx.StatusAffectedVfx.SuppressPartId;
             Effects.Vfx.AnubisFx.Book(Caster);
             Caster.AddStatus(status);

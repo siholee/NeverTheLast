@@ -9,6 +9,7 @@ using Entities;
 using Entities.Status;
 using Managers;
 using UnityEngine;
+using Random = Combat.CombatRandom;
 
 namespace Codes.Passive.Reward
 {
@@ -23,6 +24,7 @@ namespace Codes.Passive.Reward
             code = codeId switch
             {
                 731 => new EchoSongCode(context),
+                739 => new SuperiorDefenseCode(context),
                 701 => new RebirthWindCode(context),
                 702 => new MentalityCode(context),
                 703 => new SelfHealingCode(context),
@@ -52,6 +54,28 @@ namespace Codes.Passive.Reward
                 727 => new MultiStackCode(context),
                 _ => code,
             };
+        }
+    }
+
+    /// <summary>739 우수한 방어 — 패시브 활성화가 끝난 개전 시점의 최강 기본 보호막을 복제한다.</summary>
+    public sealed class SuperiorDefenseCode : RewardPassiveCode
+    {
+        private bool _granted;
+        public SuperiorDefenseCode(PassiveCodeContext context) : base(context, 739) { }
+        protected override void OnCast()
+        {
+            _granted = false;
+            Caster.AddListener<EventContext>(BaseEnums.UnitEventType.OnPassiveActivates, Opening);
+        }
+        protected override void OnStop()
+            => Caster?.RemoveListener<EventContext>(BaseEnums.UnitEventType.OnPassiveActivates, Opening);
+        private void Opening(EventContext context)
+        {
+            if (_granted || !HolderWorking || Caster.HpCurr <= 0) return;
+            _granted = true;
+            int amount = ShieldCapability.StrongestBaseAmount(Caster);
+            if (amount <= 0) return;
+            ShieldCapability.GrantParty(Caster, amount);
         }
     }
 
@@ -490,6 +514,7 @@ namespace Codes.Passive.Reward
     /// <summary>714 응급치료 — 실제 치유 시 대상마다 자신의 턴당 1회, 방어력 35% 보호막을 더한다.</summary>
     public sealed class FirstAidCode : RewardPassiveCode
     {
+        public override int BaseShieldAmount => StatDamage(0, BaseEnums.StatType.Defense, .35f);
         private readonly TargetTurnCooldown _cooldown = new(1);
         public FirstAidCode(PassiveCodeContext context) : base(context, 714) { }
         protected override void OnCast() { _cooldown.Clear(); Unit.AnyHealed += OnAnyHealed; }
@@ -599,6 +624,7 @@ namespace Codes.Passive.Reward
     /// <summary>719 과다치유 — 초과 치유를 받으면 자신의 턴당 1회, 방어력 40% 보호막을 더한다.</summary>
     public sealed class OverhealCode : RewardPassiveCode
     {
+        public override int BaseShieldAmount => StatDamage(0, BaseEnums.StatType.Defense, .40f);
         private readonly TurnCooldown _cooldown = new(1);
         public OverhealCode(PassiveCodeContext context) : base(context, 719) { }
         protected override void OnCast() { _cooldown.Reset(); Unit.AnyHealed += OnAnyHealed; }

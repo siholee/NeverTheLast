@@ -1,0 +1,185 @@
+{
+  "runs": 100,
+  "seed": 1000,
+  "maxActions": 3000,
+  "maxCycles": 100,
+  "teams": [
+    {
+      "name": "기본",
+      "gold": 0,
+      "members": [
+        {
+          "id": 7,
+          "level": null,
+          "column": 1,
+          "row": 2,
+          "hpRatio": 1,
+          "resource": 0,
+          "rewards": [],
+          "rewardInstances": [],
+          "stacks": [],
+          "nectar": []
+        },
+        {
+          "id": 1,
+          "level": null,
+          "column": 1,
+          "row": 3,
+          "hpRatio": 1,
+          "resource": 0,
+          "rewards": [],
+          "rewardInstances": [],
+          "stacks": [],
+          "nectar": []
+        },
+        {
+          "id": 3,
+          "level": null,
+          "column": 2,
+          "row": 2,
+          "hpRatio": 1,
+          "resource": 0,
+          "rewards": [],
+          "rewardInstances": [],
+          "stacks": [],
+          "nectar": []
+        },
+        {
+          "id": 44,
+          "level": null,
+          "column": 2,
+          "row": 3,
+          "hpRatio": 1,
+          "resource": 0,
+          "rewards": [],
+          "rewardInstances": [],
+          "stacks": [],
+          "nectar": []
+        },
+        {
+          "id": 82,
+          "level": null,
+          "column": 2,
+          "row": 1,
+          "hpRatio": 1,
+          "resource": 0,
+          "rewards": [],
+          "rewardInstances": [],
+          "stacks": [],
+          "nectar": []
+        }
+      ]
+    },
+    {
+      "name": "오리온",
+      "gold": 0,
+      "members": [
+        {
+          "id": 7,
+          "level": null,
+          "column": 1,
+          "row": 2,
+          "hpRatio": 1,
+          "resource": 0,
+          "rewards": [],
+          "rewardInstances": [],
+          "stacks": [],
+          "nectar": []
+        },
+        {
+          "id": 1,
+          "level": null,
+          "column": 1,
+          "row": 3,
+          "hpRatio": 1,
+          "resource": 0,
+          "rewards": [],
+          "rewardInstances": [],
+          "stacks": [],
+          "nectar": []
+        },
+        {
+          "id": 22,
+          "level": null,
+          "column": 2,
+          "row": 2,
+          "hpRatio": 1,
+          "resource": 0,
+          "rewards": [],
+          "rewardInstances": [],
+          "stacks": [],
+          "nectar": []
+        },
+        {
+          "id": 83,
+          "level": null,
+          "column": 2,
+          "row": 3,
+          "hpRatio": 1,
+          "resource": 0,
+          "rewards": [],
+          "rewardInstances": [],
+          "stacks": [],
+          "nectar": []
+        },
+        {
+          "id": 82,
+          "level": null,
+          "column": 2,
+          "row": 1,
+          "hpRatio": 1,
+          "resource": 0,
+          "rewards": [],
+          "rewardInstances": [],
+          "stacks": [],
+          "nectar": []
+        }
+      ]
+    }
+  ],
+  "encounters": [
+    {
+      "name": "늑대 셋",
+      "stage": 1,
+      "kind": "Normal",
+      "enemies": [
+        {
+          "id": 1001,
+          "level": null,
+          "column": 1,
+          "row": 1,
+          "hpRatio": 1,
+          "resource": 0,
+          "rewards": [],
+          "rewardInstances": [],
+          "stacks": [],
+          "nectar": []
+        },
+        {
+          "id": 1001,
+          "level": null,
+          "column": 1,
+          "row": 2,
+          "hpRatio": 1,
+          "resource": 0,
+          "rewards": [],
+          "rewardInstances": [],
+          "stacks": [],
+          "nectar": []
+        },
+        {
+          "id": 1001,
+          "level": null,
+          "column": 1,
+          "row": 3,
+          "hpRatio": 1,
+          "resource": 0,
+          "rewards": [],
+          "rewardInstances": [],
+          "stacks": [],
+          "nectar": []
+        }
+      ]
+    }
+  ]
+}

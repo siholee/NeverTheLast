@@ -378,11 +378,11 @@ namespace Managers.UI.DevTools
                 var hits = r.Dealt.Where(x => x.Attacker == agni && x.DamageContext.HasTag(DamageTag.AdditionalAttack)).ToList();
                 RecordMechanic("724 추가행동 완료 마나", "5", agni.ManaCurr.ToString(), agni.ManaCurr == 5);
                 RecordMechanic("아그니 보상 집중 추공 실제피해 Lv" + agni.Level, "양의 실제 피해", string.Join(",", hits.Select(x => x.DamageDealt)), hits.Count > 0 && hits.All(x => x.DamageDealt > 0));
-                int basicRaw=Mathf.RoundToInt(agni.StatValue(BaseEnums.StatType.Attack)*0.45f);
-                int centerRaw=Mathf.RoundToInt(agni.StatValue(BaseEnums.StatType.Attack)*1.8f);
+                int basicRaw=Mathf.RoundToInt(agni.StatValue(BaseEnums.StatType.Attack)*AgniBurnToTheEnd.FollowUpRatio);
+                int centerRaw=Mathf.RoundToInt(agni.StatValue(BaseEnums.StatType.Attack)*AgniBurnToTheEnd.FocusedCenterRatio);
                 var raw=r.Incoming.Where(x=>x.Attacker==agni && x.HasTag(DamageTag.AdditionalAttack)).ToList();
                 bool rawValid=raw.Count==AliveEnemies().Count && raw.All(x=>x.Damage==Mathf.RoundToInt((x.Damage>=centerRaw?centerRaw:basicRaw)*(x.IsCrit?1f+agni.StatValue(BaseEnums.StatType.CritDamage):1f)));
-                RecordMechanic("아그니 중심180/나머지45 실제 원시계수", "전체 대상·계수일치", string.Join(",",raw.Select(x=>x.Damage)),rawValid);
+                RecordMechanic("아그니 중심360/나머지90 실제 원시계수", "전체 대상·계수일치", string.Join(",",raw.Select(x=>x.Damage)),rawValid);
                 RecordMechanic("아그니 보상 추공 실제행동 분리", "Additional, actualU 아님", r.Finished.Count(x => x.Unit == agni && ActionScheduler.IsAdditional(x.Kind)).ToString(), r.Finished.Any(x => x.Unit == agni && ActionScheduler.IsAdditional(x.Kind)) && !r.Finished.Any(x => x.Unit == agni && x.Kind == ActionScheduler.ActionKind.Ultimate));
             }, r => r.Finished.Count(x => x.Kind == ActionScheduler.ActionKind.Special) >= SpecialAction.Participants(indra).Count);
             foreach (int gift in new[] {10,0})

@@ -22,6 +22,7 @@ namespace Effects.Vfx.Presets
         public float RevealSoftness = 0.040f;
         public float TipWidth = 0.070f;
         public float CardKickStrength = 0.55f;
+        public bool FocusedStroke;
         public float SourceAngleDegrees = 28f;
         // 특정 피격 문양만 원화 띠에 맞출 수 있게 한다. 기존 부품은 같은 상한을 사용한다.
         public float PortraitWidthFraction = 1.10f;
@@ -62,7 +63,8 @@ namespace Effects.Vfx.Presets
             ClawRakeStyle style, Action onCenterPassed = null)
         {
             style ??= new ClawRakeStyle();
-            style.BodyColor = BattleVfxStyle.Body(style.BodyColor,style.EdgeColor);
+            // 먹빛 검격의 좁은 몸체는 밝은 전장과의 명암을 맡는다. 공통 파스텔 보정으로 띄우지 않는다.
+            if (!style.FocusedStroke) style.BodyColor = BattleVfxStyle.Body(style.BodyColor,style.EdgeColor);
             style.CoreColor = BattleVfxStyle.Light(style.CoreColor);
             Sprite sprite = style.Sprite != null ? style.Sprite : VfxArt.ShiCrimsonClawStroke;
             if (sprite == null)
@@ -120,9 +122,15 @@ namespace Effects.Vfx.Presets
                 renderers[i] = VfxSpace.NewSprite(line.transform, "BodyAndCore", sprite, Color.white,
                     sortingLayer, VfxSpace.OverlaySortingOrder + 30 + i);
                 renderers[i].sharedMaterial = Material;
+                bool primary = i == count / 2;
+                float lineWidth = style.FocusedStroke && !primary ? .78f : 1f;
+                float lineHeight = style.FocusedStroke ? (primary ? .64f : .30f) : 1f;
+                float lineAngle = Mathf.Atan2(Mathf.Sin(sourceRadians) * height * lineHeight,
+                    Mathf.Cos(sourceRadians) * width * lineWidth) * Mathf.Rad2Deg;
+                line.transform.localRotation = Quaternion.Euler(0f, 0f, effectiveSourceAngle - lineAngle);
                 renderers[i].transform.localScale = new Vector3(
-                    width / Mathf.Max(0.0001f, bounds.x),
-                    height / Mathf.Max(0.0001f, bounds.y), 1f);
+                    width * lineWidth / Mathf.Max(0.0001f, bounds.x),
+                    height * lineHeight / Mathf.Max(0.0001f, bounds.y), 1f);
                 blocks[i] = new MaterialPropertyBlock();
 
                 tips[i] = VfxSpace.NewSprite(line.transform, "MovingClawTip", VfxArt.Glint, Color.clear,
@@ -154,9 +162,22 @@ namespace Effects.Vfx.Presets
                     if (age > fadeStarts)
                         alpha *= 1f - Mathf.Clamp01((age - fadeStarts) / fade);
 
-                    Apply(renderers[i], blocks[i], style, eased, alpha);
-                    UpdateTip(tips[i], sprite, width, height, eased,
-                        age >= 0f && age <= draw ? alpha : 0f, style.CoreColor);
+                    if (style.FocusedStroke)
+                    {
+                        // 중앙 획은 기존 콜백 시각에 완성되고 곧 잔광으로 빠진다.
+                        // draw·delay·centerCross·코루틴 수명은 그대로여서 피해/후속 행동 시각을 보존한다.
+                        eased = 1f - Mathf.Pow(1f - Mathf.Clamp01(age / (draw * crossFraction)), 2f);
+                        bool primary = i == count / 2;
+                        float release = Mathf.Max(0f, elapsed - centerCross - .025f);
+                        alpha *= (primary ? 1f : .48f) *
+                                 (1f - SmoothStep(release / (primary ? .16f : .10f)));
+                    }
+
+                    Apply(renderers[i], blocks[i], style, eased, alpha, i == count / 2);
+                    bool showTip = !style.FocusedStroke || i == count / 2;
+                    float tipHeight = style.FocusedStroke ? height * .64f : height;
+                    UpdateTip(tips[i], sprite, width, tipHeight, eased,
+                        showTip && age >= 0f && age <= draw ? alpha : 0f, style.CoreColor);
                 }
 
                 if (!crossed && elapsed >= centerCross)
@@ -164,7 +185,7 @@ namespace Effects.Vfx.Presets
                     crossed = true;
                     Vector3 point = CurrentPoint(target, fallbackPoint) + offset;
                     CardMotion.RakeReaction(target, direction, style.CardKickStrength);
-                    BurstAtTip(point, direction, size, style, sortingLayer);
+                    if (!style.FocusedStroke) BurstAtTip(point, direction, size, style, sortingLayer);
                     onCenterPassed?.Invoke();
                 }
 
@@ -190,11 +211,17 @@ namespace Effects.Vfx.Presets
         }
 
         private static void Apply(SpriteRenderer renderer, MaterialPropertyBlock block,
-            ClawRakeStyle style, float reveal, float alpha)
+            ClawRakeStyle style, float reveal, float alpha, bool primary)
         {
             renderer.GetPropertyBlock(block);
-            block.SetColor(BodyColor, style.BodyColor);
-            block.SetColor(EdgeColor, style.EdgeColor);
+            Color body = style.BodyColor, edge = style.EdgeColor;
+            if (style.FocusedStroke)
+            {
+                if (primary) edge = Color.Lerp(body, edge, .25f);
+                else body = edge;
+            }
+            block.SetColor(BodyColor, body);
+            block.SetColor(EdgeColor, edge);
             block.SetColor(CoreColor, style.CoreColor);
             block.SetFloat(Reveal, reveal);
             block.SetFloat(RevealSoftness, Mathf.Clamp(style.RevealSoftness, 0.005f, 0.20f));

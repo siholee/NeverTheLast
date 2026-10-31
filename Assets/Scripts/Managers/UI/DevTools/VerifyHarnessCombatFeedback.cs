@@ -32,7 +32,10 @@ namespace Managers.UI.DevTools
             var unique=cards.SelectMany(c=>c.GetComponentsInChildren<TextMeshPro>()).Where(t=>t.name=="ResourceValue" && t.enabled && !string.IsNullOrEmpty(t.text)).ToArray();
             foreach(var label in unique)label.ForceMeshUpdate();
             RuiCheck("전장 고유 자원 렌더링", "표시한 고유 자원은 실제 글자 존재",string.Join(" / ",unique.Select(t=>t.text)),unique.All(t=>t.textInfo.characterInfo.Take(t.textInfo.characterCount).Any(c=>c.isVisible)));
-            RuiCheck("전장 초월기 원형 게이지", "모든 활성 카드에 실제 수위 이미지",cards.Length.ToString(),cards.All(c=>c.GetComponentsInChildren<UnityEngine.UI.Image>().Any(i=>i.name=="LiquidFront"&&i.enabled&&i.fillMethod==UnityEngine.UI.Image.FillMethod.Vertical)));
+            if (Managers.Stage.VisualModeState.Current == Managers.Stage.VisualMode.Stage)
+                CheckStageResourceRings(cards);
+            else
+                RuiCheck("전장 초월기 원형 게이지", "모든 활성 카드에 실제 수위 이미지",cards.Length.ToString(),cards.All(c=>c.GetComponentsInChildren<UnityEngine.UI.Image>().Any(i=>i.name=="LiquidFront"&&i.enabled&&i.fillMethod==UnityEngine.UI.Image.FillMethod.Vertical)));
             Camera camera=Camera.main;
             float pixelsPerWorld=Screen.height/(camera.orthographicSize*2f);
             RuiCheck("전장 고유 자원 가독성", "요청된1920 화면 표시 자원 최소16px(공통 캡션15px 이상)",string.Join(" / ",unique.Select(t=>$"{t.text}:{t.fontSize*t.transform.lossyScale.y*.1f*pixelsPerWorld:F1}px")),unique.All(t=>t.fontSize*t.transform.lossyScale.y*.1f*pixelsPerWorld>=16f));

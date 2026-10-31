@@ -13,7 +13,7 @@ namespace Codes.Passive
     /// 다른 아군의 공격 직후 멸참으로 끝낼 수 있는 적이 있으면 특수행동을 예약한다.
     /// 멸참 처치 재행동도 같은 특수행동 슬롯을 쓰되, 재행동은 깊이 1에서 반드시 끝낸다.
     /// </summary>
-    public sealed class ShiFinalVerse : UniquePassiveCode
+    public sealed class ShiFinalVerse : UniquePassiveCode, ISpecialActionProvider
     {
         private const string ExecuteKey = "shi_song_of_ruin_execute";
         private const string RepriseKey = "shi_destruction_slash_reprise";

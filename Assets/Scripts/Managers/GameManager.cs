@@ -53,19 +53,8 @@ namespace Managers
         private float currentPreparationTime;
         private bool isPreparationTimerActive = false;
 
-        // 라운드 진행 타이머 관련
-        /// <summary>
-        /// 라운드 제한 — <b>전역 턴 수</b>. 벽시계가 아니다.
-        ///
-        /// 전투가 턴제이므로 초로 재면 시전 딜레이·투사체 비행 같은 <b>연출 길이가
-        /// 라운드당 행동 수를 좌우</b>한다. 연출을 손볼 때마다 밸런스가 흔들리므로 턴으로 센다.
-        /// 참가 유닛이 많을수록 각자 얻는 턴은 줄어드는데, 보스전처럼 인원이 적은 전투에
-        /// 더 많은 턴이 돌아가는 셈이라 의도한 성질이다.
-        /// </summary>
-        public int roundTurnLimit = 80;
-        /// <summary>이번 라운드에 남은 턴 수.</summary>
-        private int remainingRoundTurns;
-        private bool isRoundProgressTimerActive = false;
+        // 전투에는 행동 수·기준 라운드에 따른 강제 종료가 없다.
+        private bool isBattleActive = false;
         /// <summary>
         /// 현재 단계 타이머의 남은 비율(1 = 방금 시작, 0 = 시간 종료).
         /// HUD의 원형 프로그레스가 읽는다. 타이머가 돌지 않는 단계에서는 1을 반환한다.
@@ -74,11 +63,6 @@ namespace Managers
         {
             get
             {
-                if (isRoundProgressTimerActive && roundTurnLimit > 0)
-                {
-                    return Mathf.Clamp01(remainingRoundTurns / (float)roundTurnLimit);
-                }
-
                 if (isPreparationTimerActive && preparationTime > 0f)
                 {
                     return Mathf.Clamp01(currentPreparationTime / preparationTime);
@@ -90,20 +74,16 @@ namespace Managers
 
         /// <summary>
         /// HUD 게이지 옆에 띄울 숫자.
-        /// 준비 단계에서는 <b>남은 초</b>, 전투 중에는 <b>남은 턴</b>이다.
+        /// 준비 단계의 남은 초다. 전투에는 제한 시간이 없어 0이다.
         /// </summary>
         public int PhaseRemainingSeconds
         {
             get
             {
-                if (isRoundProgressTimerActive) return Mathf.Max(0, remainingRoundTurns);
                 if (isPreparationTimerActive) return Mathf.Max(0, Mathf.CeilToInt(currentPreparationTime));
                 return 0;
             }
         }
-
-        /// <summary>전투 중이면 true. HUD가 숫자 단위를 '턴'으로 바꿔 표시한다.</summary>
-        public bool IsRoundTurnGauge => isRoundProgressTimerActive;
 
         private float eventStageEnteredAt;
         private StageEventData currentStageEvent;
@@ -115,6 +95,7 @@ namespace Managers
         private StageEventChoiceData pendingRecruitChoice;
         private int eventDialogueIndex;
         private bool eventBattleInProgress;
+        public bool IsEventBattleInProgress => eventBattleInProgress;
 
         // 사건(이벤트) 시스템: 페이즈 사이 어디서든 사건을 끼워 넣기 위한 스케줄러와,
         // 현재 사건이 끝난 뒤 이어서 실행할 연속 동작(continuation).
@@ -122,8 +103,6 @@ namespace Managers
         private Action _eventResumeAction;
         public EventScheduler EventScheduler => _eventScheduler;
 
-        // 생명력 시스템
-        public int life; // 현재 생명력
 
         // 아군 필드 상태 저장 (라운드 복원용)
         private List<UnitSaveData> allyFieldSnapshot;
@@ -141,7 +120,6 @@ namespace Managers
             {
                 Instance = this;
                 KillCount = 0;
-                life = 20; // 생명력 초기화
                 
                 // 런타임에만 DontDestroyOnLoad 적용
                 if (Application.isPlaying)
@@ -177,7 +155,7 @@ namespace Managers
                     case GameState.RoundInProgress:
                         gameState = GameState.RoundEnd;
                         isPreparationTimerActive = false;
-                        isRoundProgressTimerActive = false;
+                        isBattleActive = false;
                         break;
                     case GameState.RoundEnd:
                         gameState = GameState.Preparation;
@@ -214,6 +192,12 @@ namespace Managers
 
         public void StartRound()
         {
+            if (runManager == null || !runManager.RunActive || gameState != GameState.Preparation) return;
+            if (_roundManager?.IsCurrentRestStage == true)
+            {
+                if (gameState == GameState.Preparation) runManager?.AdvanceToNextStage();
+                return;
+            }
             if (_roundManager != null && _roundManager.TryGetScheduledEvent(out StageEventData scheduledEvent))
             {
                 EnterStageSlotEvent(scheduledEvent);
@@ -227,6 +211,13 @@ namespace Managers
 
         private void StartBattle()
         {
+            if (runManager == null || !runManager.RunActive || gameState is GameState.GameOver or GameState.RunComplete) return;
+            int participants = GridManager.Instance?.ActiveAllyFieldCount ?? 0;
+            if (participants < 1 || participants > CharacterSelectionManager.MaxSelection)
+            {
+                Debug.LogWarning("[전투] 출전 유닛은 1~5명이어야 합니다. 배치를 확인해 주세요.");
+                return;
+            }
             AudioManager.PlayCue("ui.battle.start");
             gameState = GameState.RoundInProgress;
             Cell.PlacementModeActive = false;
@@ -241,9 +232,7 @@ namespace Managers
             SaveAllyFieldState();
             runManager?.SaveCurrentRun();
 
-            // 라운드 진행 타이머 시작
-            remainingRoundTurns = roundTurnLimit;
-            isRoundProgressTimerActive = true;
+            isBattleActive = true;
 
             Debug.LogWarning("[GameManager] 🔥 라운드 시작 - GridManager.OnRoundStart() 호출");
             GridManager.Instance.OnRoundStart();
@@ -267,7 +256,7 @@ namespace Managers
         // ── 골드 수급 ──────────────────────────────────────────────
         // 소모품 가격이 스테이지에 비례하므로(RewardManager.ShopPrice) 수입도 스테이지에 비례한다.
         // 적 4기 기준 한 전투에 125 × 스테이지 + 50이 들어온다.
-        public const int GoldPerKillPerStage = 25;
+        public const int GoldPerKillPerStage = Combat.CombatKillEconomy.GoldPerKillPerStage;
         public const int GoldPerClearBase = 50;
         public const int GoldPerClearPerStage = 25;
 
@@ -344,7 +333,7 @@ namespace Managers
         {
             KillCount++;
             if (killed != null && killed.IsEnemy) _battleKilledEnemyIds.Add(killed.ID);
-            int gold = GoldPerKillPerStage * Mathf.Max(1, _roundManager?.Stage ?? 1);
+            int gold = Combat.CombatKillEconomy.GoldForStage(_roundManager?.Stage ?? 1);
             inventoryManager?.AddGold(gold);
             _battleKillGold += gold;
             pendingPartyExp += ExpPerKillBase + ExpPerKillPerStage * CurrentStageForExp;
@@ -413,34 +402,21 @@ namespace Managers
                     StartRound();
                 }
             }
-            // 라운드 진행 중 타이머 처리
-            else if (gameState == GameState.RoundInProgress && isRoundProgressTimerActive)
+            else if (gameState == GameState.RoundInProgress && isBattleActive)
             {
-                // 남은 턴은 스케줄러가 연 턴 수에서 역산한다. 벽시계는 보지 않는다.
-                remainingRoundTurns = Mathf.Max(0, roundTurnLimit - ActionScheduler.TurnsTaken);
-
                 // 남은 적 수 계산 (필드의 적 + 스폰 대기 중인 적)
                 int remainingEnemies = GetRemainingEnemyCount();
 
                 // 아군 전멸 체크
                 if (Time.timeScale > 0 && !ActionScheduler.IsPresenting && AreAllAlliesDefeated())
                 {
-                    // 전투를 시작할 때 이미 전원이 쓰러져 있었다면 이길 방법이 없다. 그대로 두면
-                    // 스테이지마다 즉시 패배가 반복되며 생명력만 깎이므로 여기서 런을 끝낸다.
-                    if (_battleParty.Count == 0) life = 0;
                     EndRoundByAllyDefeat();
                     return;
                 }
 
                 if (uiManager != null)
                 {
-                    uiManager.UpdateGameStatusWithEnemyCount(gameState, remainingRoundTurns, remainingEnemies);
-                }
-
-                // 턴을 다 쓰면 라운드 종료
-                if (Time.timeScale > 0 && !ActionScheduler.IsPresenting && remainingRoundTurns <= 0)
-                {
-                    EndRoundByTimeout();
+                    uiManager.UpdateGameStatusWithEnemyCount(gameState, 0, remainingEnemies);
                 }
             }
             else if (uiManager != null)
@@ -476,7 +452,7 @@ namespace Managers
             StopAllCoroutines();
             _roundManager?.StopRound();
             ActionScheduler.EndRound();
-            isPreparationTimerActive = isRoundProgressTimerActive = false;
+            isPreparationTimerActive = isBattleActive = false;
             pendingPartyExp = 0;
             eventBattleInProgress = false;
             currentStageEvent = null;
@@ -607,7 +583,6 @@ namespace Managers
             ShopPurchaseCount = 0;
             Cell.PlacementModeActive = false;
             StartPreparationTimer();
-            uiManager?.UpdateLifeText();
         }
 
         public void EnterNextStageAfterLoad()
@@ -647,7 +622,7 @@ namespace Managers
             _eventResumeAction = onComplete;
             gameState = GameState.EventStage;
             isPreparationTimerActive = false;
-            isRoundProgressTimerActive = false;
+            isBattleActive = false;
             eventStageEnteredAt = Time.unscaledTime;
             currentStageEvent = PrepareRandomEventVariant(stageEvent);
             pendingEventChoice = null;
@@ -916,8 +891,7 @@ namespace Managers
             ResetBattleAccounting();
             CaptureBattleStart();
             gameState = GameState.RoundInProgress;
-            remainingRoundTurns = roundTurnLimit;
-            isRoundProgressTimerActive = true;
+            isBattleActive = true;
             GridManager.Instance.OnRoundStart();
             ApplyPendingTonic();
             ActionScheduler.BeginRound();
@@ -997,6 +971,8 @@ namespace Managers
         public const float ShortRestHealRatio = 0.50f;
 
         public bool CanRest => gameState == GameState.Preparation && !restUsedThisPreparation;
+        public bool IsFreeLongRestPreparation => _roundManager?.IsCurrentRestStage == true;
+        public int CurrentLongRestFoodCost => IsFreeLongRestPreparation ? 0 : LongRestFoodCost;
 
         public void OpenRestFromPreparation()
         {
@@ -1007,7 +983,7 @@ namespace Managers
         /// <summary>짧은 휴식 — 긴 휴식 사이 두 번. 살아 있는 파티원의 최대 체력 50%를 회복한다.</summary>
         public bool TryShortRest()
         {
-            if (!CanRest || ShortRestCharges <= 0) return false;
+            if (!CanRest || IsFreeLongRestPreparation || ShortRestCharges <= 0) return false;
 
             HealActiveHeroesByRatio(ShortRestHealRatio);
             ShortRestCharges--;
@@ -1020,7 +996,8 @@ namespace Managers
         /// </summary>
         public bool TryLongRest()
         {
-            if (!CanRest || inventoryManager == null || !inventoryManager.TryConsumeFood(LongRestFoodCost)) return false;
+            int cost = CurrentLongRestFoodCost;
+            if (!CanRest || inventoryManager == null || cost > 0 && !inventoryManager.TryConsumeFood(cost)) return false;
 
             foreach (Unit hero in GridManager.Instance.heroList)
             {
@@ -1031,7 +1008,7 @@ namespace Managers
             }
 
             ShortRestCharges = MaxShortRestCharges;
-            CompleteRest($"긴 휴식 완료: 식량 {LongRestFoodCost} 소모 · 파티 완전 회복");
+            CompleteRest(cost == 0 ? "무료 긴 휴식 완료: 파티 부활·완전 회복 · 소모품 사용 없음" : $"긴 휴식 완료: 식량 {cost} 소모 · 파티 완전 회복");
             return true;
         }
 
@@ -1045,6 +1022,21 @@ namespace Managers
 
         /// <summary>준비 화면이 다음에 뜰 때 안내 줄에 얹을 문장. 한 번 읽으면 비운다.</summary>
         private string _pendingPreparationNote;
+
+        /// <summary>테마 회복은 식량·휴식 횟수·생명력을 쓰지 않으며 전투 치유 이벤트를 발행하지 않는다.</summary>
+        public void RecoverPartyForThemeTransition()
+        {
+            if (runManager == null || !runManager.RunActive || gameState == GameState.GameOver) return;
+            foreach (Unit hero in GridManager.Instance.heroList)
+            {
+                if (hero == null || hero.IsEnemy || hero.IsSummon) continue;
+                if (!hero.isActive) hero.ReviveAfterBattle(1f);
+                if (!hero.isActive) continue;
+                hero.RestoreHpOutsideCombat(hero.HpMax);
+                hero.ClearUltimateResource();
+            }
+            _pendingPreparationNote = "새 테마 진입: 아군 전원 부활·체력 완전 회복 · 초월 자원 초기화";
+        }
 
         private string TakePreparationNote()
         {
@@ -1143,6 +1135,11 @@ namespace Managers
             if (item == null) return;
             foreach (Unit hero in GridManager.Instance.heroList.Where(hero => hero != null && hero.isActive && hero.IsOnField))
                 Effects.Buffs.TonicEffect.Apply(hero, item);
+            if (Codes.Passive.AstolfoTravelKit.TryPreserveBattleConsumable())
+            {
+                inventoryManager.AddItem(item.id);
+                Debug.Log($"[비약] 아스톨포 — {item.name} 보존");
+            }
             Debug.Log($"[비약] {item.name} 적용");
         }
 
@@ -1241,27 +1238,11 @@ namespace Managers
             return true; // 필드에 살아있는 아군이 없으면 true
         }
 
-        private void EndRoundByTimeout()
-        {
-            // 라운드 진행 타이머 정지
-            isRoundProgressTimerActive = false;
-            
-            // 남은 적 수만큼 생명력 차감
-            int remainingEnemies = GetRemainingEnemyCount();
-            _battleEndReason = $"턴 초과 — {roundTurnLimit}턴 안에 적을 모두 쓰러뜨리지 못했습니다";
-            _battleEnemiesLeft = remainingEnemies;
-            TakeDamage(remainingEnemies);
-
-            Debug.Log($"라운드 시간 초과! 남은 적 {remainingEnemies}마리만큼 생명력 차감. 현재 생명력: {life}");
-            
-            // 라운드 종료 처리
-            EndRound(false);
-        }
-
         public void EndRoundByEnemyDefeat()
         {
-            // 적 전멸로 인한 라운드 종료 (생명력 차감 없음)
-            isRoundProgressTimerActive = false;
+            if (AreAllAlliesDefeated()) { EndRoundByAllyDefeat(); return; }
+            // 적 전멸로 인한 라운드 승리.
+            isBattleActive = false;
             Debug.Log("모든 적을 처치했습니다! 라운드 승리!");
             _battleEndReason = "적 전멸";
             _battleEnemiesLeft = 0;
@@ -1271,15 +1252,12 @@ namespace Managers
         private void EndRoundByAllyDefeat()
         {
             // 아군 전멸로 인한 라운드 종료 (패배 처리)
-            isRoundProgressTimerActive = false;
+            isBattleActive = false;
             
-            // 남은 적 수만큼 생명력 차감 (패배 페널티)
             int remainingEnemies = GetRemainingEnemyCount();
             _battleEndReason = "아군 전멸";
             _battleEnemiesLeft = remainingEnemies;
-            TakeDamage(remainingEnemies);
-
-            Debug.Log($"아군이 전멸했습니다! 남은 적 {remainingEnemies}마리만큼 생명력 차감. 현재 생명력: {life}");
+            Debug.Log($"아군 전멸 — 런 종료. 남은 적 {remainingEnemies}기.");
             
             // 라운드 종료 처리
             EndRound(false);
@@ -1303,19 +1281,21 @@ namespace Managers
             CaptureCleanedAllyHealth();
             
             // 아군 필드 상태 복원 (게임 오버가 아닌 경우에만)
-            if (life > 0)
+            if (victory)
             {
                 RestoreAllyFieldState();
             }
             GridManager.Instance?.ClearActiveEnemies();
 
-            if (life <= 0)
+            if (!victory)
             {
                 pendingPartyExp = 0;
                 gameState = GameState.GameOver;
-                SaveSystem.DeleteSave();
+                if (runManager != null) runManager.EndFailedRun();
+                else SaveSystem.DeleteSave();
                 FinishBattleResult(result);
                 result.GameOver = true;
+                result.NextStep = "메인 메뉴";
                 // 예전에는 여기서 아무 화면 없이 멈췄다. 결과 화면이 런 종료를 알리고 메인 메뉴로 보낸다.
                 PresentBattleResult(result, LoadMainMenuScene);
                 return;
@@ -1356,19 +1336,12 @@ namespace Managers
                 result.NextStep = "보상 선택";
                 PresentBattleResult(result, () => RunEventCheckpoint(ShowRewardSelection));
             }
-            else
-            {
-                // 패배도 해당 스테이지의 확정 결과다. 클리어 보상은 지급하지 않고 다음 스테이지로 진행한다.
-                result.NextStep = "다음 스테이지";
-                PresentBattleResult(result, () => runManager?.AdvanceToNextStage());
-            }
         }
 
         // ── 전투 결과 정산 ───────────────────────────────────────────
         // 결과 화면(BattleResultScreen)에 넘길 값을 전투 시작과 끝에서 모은다.
         // 전투 중 골드는 처치마다 바로 들어오므로 시작 시점과의 차로 잰다.
 
-        private int _battleStartLife;
         private int _battleStartGold;
         private int _battleStartKills;
         private string _battleEndReason;
@@ -1377,7 +1350,6 @@ namespace Managers
 
         private void CaptureBattleStart()
         {
-            _battleStartLife = life;
             _battleStartGold = inventoryManager != null ? inventoryManager.Gold : 0;
             _battleStartKills = KillCount;
             _battleEndReason = null;
@@ -1402,8 +1374,6 @@ namespace Managers
             {
                 Victory = victory,
                 Reason = _battleEndReason ?? (victory ? "적 전멸" : "패배"),
-                LifeBefore = _battleStartLife,
-                LifeAfter = life,
                 EnemiesLeft = _battleEnemiesLeft,
                 StageLabel = _roundManager != null ? $"{_roundManager.Round}-{_roundManager.StageInRound}" : "",
                 ThemeName = _roundManager?.CurrentThemeName,
@@ -1427,10 +1397,9 @@ namespace Managers
             return result;
         }
 
-        /// <summary>보수 지급이 끝난 뒤의 값(목숨 · 골드 · 처치 · 토큰)을 채운다.</summary>
+        /// <summary>보수 지급이 끝난 뒤의 값(골드 · 처치 · 토큰)을 채운다.</summary>
         private void FinishBattleResult(BattleResultData result)
         {
-            result.LifeAfter = life;
             result.GoldGained = Mathf.Max(0, (inventoryManager != null ? inventoryManager.Gold : 0) - _battleStartGold);
             result.Kills = Mathf.Max(0, KillCount - _battleStartKills);
             // 처치 3의 배수마다 무작위 토큰 5개(OnKillEnemy).
@@ -1603,7 +1572,7 @@ namespace Managers
         private void ResolveEventBattle(bool victory)
         {
             eventBattleInProgress = false;
-            isRoundProgressTimerActive = false;
+            isBattleActive = false;
             gameState = GameState.EventStage;
 
             StageEventChoiceData resolvedChoice = pendingEventChoice;
@@ -1654,6 +1623,7 @@ namespace Managers
             }
             if (!GridManager.Instance.HasAvailableBenchSlot())
             {
+                if (GridManager.Instance.ActiveAllyFieldCount >= CharacterSelectionManager.MaxSelection) return false;
                 for (int x = GridManager.Instance.GetRearColumn(false); x <= GridManager.Instance.GetFrontColumn(false); x++)
                 {
                     if (x == 0) continue;
@@ -1669,25 +1639,6 @@ namespace Managers
             }
             GridManager.Instance.SpawnUnit(0, 0, false, unitId, true);
             return GridManager.Instance.heroList.Any(hero => hero != null && hero.isActive && !hero.IsEnemy && hero.ID == unitId);
-        }
-
-        private void TakeDamage(int damage)
-        {
-            life = Mathf.Max(0, life - damage);
-            
-            // UI 업데이트
-            if (uiManager != null)
-            {
-                uiManager.UpdateLifeText();
-            }
-            
-            // 생명력이 0이 되면 게임 오버
-            if (life <= 0)
-            {
-                gameState = GameState.GameOver;
-                Debug.Log("생명력이 0이 되었습니다. 게임 오버!");
-                SaveSystem.DeleteSave();
-            }
         }
 
         private void SaveAllyFieldState()

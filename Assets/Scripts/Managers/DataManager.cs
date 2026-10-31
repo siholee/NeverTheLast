@@ -9,7 +9,7 @@ namespace Managers
     public class DataManager : MonoBehaviour
     {
         /// <summary>Resources 경로의 YAML을 T로 역직렬화한다. 파일이 없으면 null.</summary>
-        private static T Load<T>(string resourcePath) where T : class
+        private static T Load<T>(string resourcePath, bool strict = false) where T : class
         {
             TextAsset asset = Resources.Load<TextAsset>(resourcePath);
             if (asset == null)
@@ -18,7 +18,9 @@ namespace Managers
                 return null;
             }
 
-            var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
+            var builder = new DeserializerBuilder();
+            if (!strict) builder.IgnoreUnmatchedProperties();
+            var deserializer = builder.Build();
             return deserializer.Deserialize<T>(asset.text);
         }
 
@@ -34,8 +36,10 @@ namespace Managers
 
         /// <summary>파티 시너지·추천 편성. 자료실이 유닛마다 이 표를 읽는다.</summary>
         public SynergyDataList FetchSynergyDataList() => Load<SynergyDataList>("Data/30_synergies");
+        public static SynergyDataList LoadSynergyDataList() => Load<SynergyDataList>("Data/30_synergies");
 
         public ItemDataList FetchItemDataList() => Load<ItemDataList>("Data/40_items");
+        public static ItemDataList LoadItemDataList() => Load<ItemDataList>("Data/40_items");
 
         public ResourceTokenDataList FetchTokenDataList()
         {
@@ -46,14 +50,25 @@ namespace Managers
         }
 
         public EnemyDataList FetchEnemyDataList() => Load<EnemyDataList>("Data/60_enemies");
+        public static EnemyDataList LoadEnemyDataList() => Load<EnemyDataList>("Data/60_enemies");
 
         public RoundTypeDataList FetchRoundTypeDataList() => Load<RoundTypeDataList>("Data/70_rounds");
 
         public StageThemeDataList FetchStageThemeDataList() => Load<StageThemeDataList>("Data/80_stages");
+        public static StageThemeDataList LoadStageThemeDataList() => Load<StageThemeDataList>("Data/80_stages");
 
         public RewardDataList FetchRewardDataList() => Load<RewardDataList>("Data/90_rewards");
 
         /// <summary>손그림 VFX 부품과 스킬 슬롯 조합 정의.</summary>
         public VfxDataList FetchVfxDataList() => Load<VfxDataList>("Data/96_vfx");
+
+        /// <summary>SD 보정은 엄격하게 읽고 중첩 프레임/앵커도 검증한다. deform 생략 기본값은 true다.</summary>
+        public static StageFigureDataList LoadStageFigureDataList()
+        {
+            StageFigureDataList data = Load<StageFigureDataList>("Data/97_stage_figures", true);
+            if (data == null) throw new System.InvalidOperationException("97_stage_figures.yaml 누락");
+            data.Validate();
+            return data;
+        }
     }
 }

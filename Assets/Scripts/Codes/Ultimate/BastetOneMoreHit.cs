@@ -46,8 +46,11 @@ namespace Codes.Ultimate
             if (!_handledActionIds.Add(actionId)) return;
 
             Unit target = context.Target;
+            Unit counterSource = context.Attacker;
+            int counterSourceId = counterSource.ID;
             scheduler.EnqueuePriorityAdditional(Caster, $"bastet_counter_{actionId}", CodeName,
-                () => (Caster.ActiveNormalCode as BastetCatPunch)?.CastAdditional(target),
+                () => (Caster.ActiveNormalCode as BastetCatPunch)?.CastAdditional(target,
+                    counterSource != null && counterSource.ID == counterSourceId ? counterSource : null),
                 () => CanFollowUp(target));
         }
 

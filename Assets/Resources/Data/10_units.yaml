@@ -1,4 +1,4 @@
-﻿# 아군 유닛 데이터
+# 아군 유닛 데이터
 #
 # 스탯 규격 (2026-09 전면 개편) — 원본은 Detail_03 §2.
 #   · 전투 스탯은 여덟이다.
@@ -27,11 +27,193 @@
 # 2026-09 개편으로 옛 로스터 52명을 모두 걷어냈다. 캐릭터를 하나씩 다시 만든다.
 
 units:
+  # 가우디: 오리지널 ID와 원화를 복원하고 풀 부착·방호 서브탱커로 재설계.
+  - id: 4
+    name: 가우디
+    tagline: "녹음의 아치로 동료를 보호하고 풀 부착으로 과성장을 여는 건축가."
+    characterType: Unlocked
+    element: Dendro
+    vfxClass: caster
+    tags: [Akasha, Human]
+    archetypeTags: [Sturdy, Shielding, Support]
+    hpBase: 2050
+    hpGrowth: 185
+    atkBase: 48
+    atkGrowth: 3
+    spAtkBase: 104
+    spAtkGrowth: 7
+    defBase: 145
+    defGrowth: 10.8
+    spDefBase: 125
+    spDefGrowth: 9.2
+    speedBase: 104
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    codes: { passive: 204, normal: 4, ultimate: 4 }
+    portrait: GAUDI_PORTRAIT
+    standing: GAUDI_STANDING
+
+  - id: 168
+    name: 니콜
+    tagline: "번개 부착과 반응을 동료의 보호와 화력으로 전환하는 발명가."
+    characterType: Unlocked
+    element: Electro
+    vfxClass: caster
+    tags: [Human]
+    archetypeTags: [Support, Swift]
+    hpBase: 860
+    hpGrowth: 76
+    atkBase: 90
+    atkGrowth: 6
+    spAtkBase: 110
+    spAtkGrowth: 7.2
+    defBase: 46
+    defGrowth: 3.6
+    spDefBase: 62
+    spDefGrowth: 4.6
+    speedBase: 108
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    codes: { passive: 368, normal: 168, ultimate: 168 }
+    portrait: NICOLE_PORTRAIT
+    standing: NICOLE_STANDING
+  - id: 164
+    name: 네프티스
+    tagline: "독안을 쌓아 자연 맹독 발동에 특공 파열을 더하는 딜러."
+    characterType: Unlocked
+    element: Dendro
+    vfxClass: caster
+    tags: [Divine]
+    archetypeTags: [Domination, Support]
+    hpBase: 1000
+    hpGrowth: 88
+    atkBase: 80
+    atkGrowth: 5
+    spAtkBase: 150
+    spAtkGrowth: 10.2
+    defBase: 58
+    defGrowth: 4.2
+    spDefBase: 78
+    spDefGrowth: 5.6
+    speedBase: 102
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes: { passive: 364, normal: 164, ultimate: 164 }
+    portrait: NEPHTHYS_PORTRAIT
+    standing: NEPHTHYS_STANDING
+
+  - id: 165
+    name: 아탈란테
+    tagline: "맹독·출혈을 증폭하고 맹독 자연 발동마다 공격력 추격을 여는 사냥꾼."
+    characterType: Unlocked
+    element: Dendro
+    vfxClass: archer
+    tags: [Divine]
+    archetypeTags: [FollowUp, Support]
+    hpBase: 980
+    hpGrowth: 86
+    atkBase: 108
+    atkGrowth: 7
+    spAtkBase: 96
+    spAtkGrowth: 6.4
+    defBase: 56
+    defGrowth: 4
+    spDefBase: 68
+    spDefGrowth: 4.8
+    speedBase: 108
+    critRateBase: 10
+    critDamageBase: 50
+    manaMax: 120
+    codes: { passive: 365, normal: 165, ultimate: 165 }
+    portrait: ATALANTE_PORTRAIT
+    standing: ATALANTE_STANDING
+
+  - id: 166
+    name: 네이트
+    tagline: "감전을 촉진으로 연결하고 번개 아군의 특공을 지원하는 직조자."
+    characterType: Unlocked
+    element: Electro
+    vfxClass: caster
+    tags: [Divine]
+    archetypeTags: [Support, Support]
+    hpBase: 1100
+    hpGrowth: 98
+    atkBase: 48
+    atkGrowth: 3
+    spAtkBase: 112
+    spAtkGrowth: 7.5
+    defBase: 62
+    defGrowth: 4.5
+    spDefBase: 86
+    spDefGrowth: 6.2
+    speedBase: 106
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    codes: { passive: 366, normal: 166, ultimate: 166 }
+    portrait: NEITH_PORTRAIT
+    standing: NEITH_STANDING
+
+  - id: 167
+    name: 에레쉬키갈
+    tagline: "출혈을 부여하고 아군 지속피해를 전원 치유로 바꾸는 명계의 수호자."
+    characterType: Unlocked
+    element: Pyro
+    vfxClass: caster
+    tags: [Divine]
+    archetypeTags: [Healing, Support]
+    hpBase: 2400
+    hpGrowth: 215
+    atkBase: 50
+    atkGrowth: 3
+    spAtkBase: 78
+    spAtkGrowth: 5
+    defBase: 155
+    defGrowth: 11.5
+    spDefBase: 120
+    spDefGrowth: 9
+    speedBase: 100
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    codes: { passive: 367, normal: 167, ultimate: 167 }
+    portrait: ERESHKIGAL_PORTRAIT
+    standing: ERESHKIGAL_STANDING
+
+  - id: 40
+    name: 아마테라스
+    tagline: "동료의 추가공격을 일광으로 모아, 충전된 일륜의 화살을 적 사이에 튕기는 후열 딜러."
+    characterType: Unlocked
+    element: Pyro
+    vfxClass: archer
+    tags: [Takamagahara, Divine]
+    archetypeTags: [Burst, Precision]
+    hpBase: 900
+    hpGrowth: 80
+    atkBase: 110
+    atkGrowth: 7.2
+    spAtkBase: 55
+    spAtkGrowth: 3.5
+    defBase: 52
+    defGrowth: 4
+    spDefBase: 60
+    spDefGrowth: 4.4
+    speedBase: 100
+    critRateBase: 10
+    critDamageBase: 50
+    manaMax: 100
+    codes: { passive: 240, normal: 40, ultimate: 40 }
+    portrait: AMATERASU_PORTRAIT
+    standing: AMATERASU_STANDING
+
   # ── 세이 ──────────────────────────────────────────────────────────
   # 대지를 고르는 수호자. 방어력을 계수로 쓰는 드문 유닛이라 단단할수록 세게 친다.
   # 보호막을 두른 아군이 맞을 때마다 결정을 모아 빅뱅을 터뜨리고, 터뜨린 뒤 아군 전체에 보호막을 둘러
-  # 다음 결정의 재료를 스스로 깐다. 궁극기로 파티 전체의 공격력을 올리고 두꺼운 보호막을 두르며
-  # 모든 타격에 고정 피해를 덧붙인다(집중).
+  # 다음 결정의 재료를 스스로 깐다. 일반행동으로 방어력을 낮추고 궁극기로 피해 증가와 보호막을 부여하며
+  # 별도 집중 오라로 추가 고정 피해·받는 피해 감소를 제공한다.
   # 개편 전의 세이를 새 규칙으로 다시 만든 캐릭터다.
   - id: 1
     name: 세이
@@ -75,16 +257,16 @@ units:
     vfxClass: assassin
     tags: [Divine]
     archetypeTags: [Precision, FollowUp, Swift]
-    hpBase: 850
-    hpGrowth: 75
-    atkBase: 106
-    atkGrowth: 7
+    hpBase: 980
+    hpGrowth: 88
+    atkBase: 128
+    atkGrowth: 8.5
     spAtkBase: 45
     spAtkGrowth: 3
-    defBase: 53
-    defGrowth: 4
-    spDefBase: 55
-    spDefGrowth: 4
+    defBase: 62
+    defGrowth: 4.8
+    spDefBase: 64
+    spDefGrowth: 4.8
     speedBase: 106
     critRateBase: 5
     critDamageBase: 50
@@ -99,27 +281,27 @@ units:
     standing: SHI_STANDING
 
   # ── 사바흐 ────────────────────────────────────────────────────────
-  # 옛 LUK 주 · DEX 부의 치명/속도형 처형 딜러를 8스탯으로 옮겼다.
+  # 과성장과 디버프를 활용하는 특공·치명·속도형 하이퍼캐리.
   # 아즈라엘은 마나가 아니라 아군의 디버프 부여·지속피해 틱으로만 차는 7중첩 고유 자원이다.
   - id: 3
     name: 사바흐
-    tagline: "아군이 만든 빈틈을 그림자에서 베어 내는 처형자. 디버프가 쌓인 적에게 강해지고 아즈라엘로 적 전체를 가른다."
+    tagline: "과성장과 디버프 위에서 특공 검격과 아즈라엘을 퍼붓는 번개 하이퍼캐리."
     characterType: Unlocked
     element: Electro
     vfxClass: assassin
     startingItemIds: [4102]
     tags: [Akasha]
     archetypeTags: [Precision, Swift, Domination]
-    hpBase: 880
-    hpGrowth: 78
-    atkBase: 102
-    atkGrowth: 6.8
-    spAtkBase: 64
-    spAtkGrowth: 4.0
-    defBase: 54
-    defGrowth: 4.0
-    spDefBase: 60
-    spDefGrowth: 4.5
+    hpBase: 980
+    hpGrowth: 88
+    atkBase: 64
+    atkGrowth: 4.0
+    spAtkBase: 132
+    spAtkGrowth: 8.8
+    defBase: 60
+    defGrowth: 4.5
+    spDefBase: 70
+    spDefGrowth: 5
     speedBase: 112
     critRateBase: 18
     critDamageBase: 60
@@ -138,24 +320,24 @@ units:
   # counterUsesBase는 기본 회복량이며 코드의 하드캡이 아니다.
   - id: 7
     name: 잔
-    tagline: "노려지는 순간 철권제재로 먼저 끊는 맨손 전열. 도발과 피해 경감으로 공격을 모으고 바스테트의 반격 추격을 연다."
+    tagline: "얼음을 두른 선제 반격으로 적의 공격을 끊는 맨손 전열. 방호와 치명·반응 투자에 따라 수호자 또는 얼음 딜러로 싸운다."
     characterType: Unlocked
     element: Cryo
     vfxClass: fighter
     tags: [Akasha, Gaul, Human]
     archetypeTags: [Sturdy, Counter]
     counterUsesBase: 3
-    hpBase: 1360
-    hpGrowth: 120
-    atkBase: 92
-    atkGrowth: 6.2
-    spAtkBase: 55
-    spAtkGrowth: 3.5
-    defBase: 94
-    defGrowth: 7
-    spDefBase: 82
-    spDefGrowth: 6
-    speedBase: 94
+    hpBase: 1900
+    hpGrowth: 172
+    atkBase: 128
+    atkGrowth: 8.8
+    spAtkBase: 78
+    spAtkGrowth: 5
+    defBase: 132
+    defGrowth: 10
+    spDefBase: 116
+    spDefGrowth: 8.6
+    speedBase: 98
     critRateBase: 5
     critDamageBase: 50
     manaMax: 120
@@ -167,8 +349,8 @@ units:
     standing: JEAN_STANDING
 
   # ── 찬드라 ────────────────────────────────────────────────────────
-  # 높은 체력과 특수방어력으로 버티며, 소마로 가장 강한 공격수를 키운다.
-  # 인드라 계열 트리거가 로카팔라의 문을 열면 창야가 바유 다음 순서로 나선다.
+  # 높은 체력과 양쪽 방어력으로 전열에서 버티며, 소마로 가장 강한 공격수를 키운다.
+  # 인드라 계열 트리거가 로카팔라의 문을 열면 창야가 묶음의 맨 끝에 나선다.
   - id: 60
     name: 찬드라
     tagline: "월광으로 치명상을 되돌리는 탱커. 가장 강한 아군 한 명을 키우고, 특수행동 묶음의 끝에서 아군 전원을 회복한다."
@@ -177,16 +359,16 @@ units:
     vfxClass: caster
     tags: [Vedic, Lokapala]
     archetypeTags: [Sturdy, Special, Healing]
-    hpBase: 1380
-    hpGrowth: 120
+    hpBase: 1800
+    hpGrowth: 160
     atkBase: 58
     atkGrowth: 3.8
     spAtkBase: 70
     spAtkGrowth: 4.5
-    defBase: 86
-    defGrowth: 6.5
-    spDefBase: 94
-    spDefGrowth: 7
+    defBase: 155
+    defGrowth: 11.5
+    spDefBase: 140
+    spDefGrowth: 10
     speedBase: 92
     critRateBase: 5
     critDamageBase: 50
@@ -242,20 +424,20 @@ units:
     vfxClass: caster
     tags: [Greek]
     archetypeTags: [Domination, Sturdy, Support, Summon]
-    hpBase: 1280
-    hpGrowth: 112
+    hpBase: 3500
+    hpGrowth: 315
     atkBase: 72
     atkGrowth: 4.8
     spAtkBase: 62
     spAtkGrowth: 4.2
-    defBase: 96
-    defGrowth: 7.2
-    spDefBase: 82
-    spDefGrowth: 6.0
+    defBase: 235
+    defGrowth: 18
+    spDefBase: 220
+    spDefGrowth: 17
     speedBase: 94
     critRateBase: 5
     critDamageBase: 50
-    manaMax: 120
+    manaMax: 100
     codes:
       passive: 220
       normal: 20
@@ -321,7 +503,7 @@ units:
     speedBase: 108
     critRateBase: 5
     critDamageBase: 50
-    manaMax: 120
+    manaMax: 100
     codes:
       passive: 263
       normal: 63
@@ -416,7 +598,7 @@ units:
     defGrowth: 4.4
     spDefBase: 62
     spDefGrowth: 4.5
-    speedBase: 88
+    speedBase: 98
     critRateBase: 15
     critDamageBase: 50
     manaMax: 140
@@ -441,8 +623,8 @@ units:
     archetypeTags: [Treasury, Support, Special]
     hpBase: 1150
     hpGrowth: 100
-    atkBase: 90
-    atkGrowth: 5.8
+    atkBase: 108
+    atkGrowth: 6.8
     spAtkBase: 65
     spAtkGrowth: 4
     defBase: 75
@@ -473,15 +655,15 @@ units:
     archetypeTags: [Domination, Special, Burst, Swift]
     hpBase: 900
     hpGrowth: 80
-    atkBase: 102
-    atkGrowth: 6.8
-    spAtkBase: 85
-    spAtkGrowth: 5.2
+    atkBase: 130
+    atkGrowth: 8.8
+    spAtkBase: 145
+    spAtkGrowth: 9.5
     defBase: 56
     defGrowth: 4.2
     spDefBase: 62
     spDefGrowth: 4.6
-    speedBase: 106
+    speedBase: 118
     critRateBase: 5
     critDamageBase: 50
     manaMax: 120
@@ -504,16 +686,16 @@ units:
     vfxClass: caster
     tags: [Vedic, Lokapala]
     archetypeTags: [Support, Shielding, Infusion, Special]
-    hpBase: 1120
-    hpGrowth: 100
+    hpBase: 2000
+    hpGrowth: 180
     atkBase: 82
     atkGrowth: 5.4
     spAtkBase: 86
     spAtkGrowth: 5.2
-    defBase: 90
-    defGrowth: 6.8
-    spDefBase: 78
-    spDefGrowth: 5.7
+    defBase: 165
+    defGrowth: 12
+    spDefBase: 125
+    spDefGrowth: 9
     speedBase: 102
     critRateBase: 5
     critDamageBase: 50
@@ -537,16 +719,16 @@ units:
     vfxClass: lancer
     tags: [Egypt, Divine]
     archetypeTags: [Sturdy, Growth]
-    hpBase: 1500
-    hpGrowth: 135
+    hpBase: 3350
+    hpGrowth: 300
     atkBase: 60
     atkGrowth: 3.5
     spAtkBase: 50
     spAtkGrowth: 3
-    defBase: 100
-    defGrowth: 7.5
-    spDefBase: 95
-    spDefGrowth: 7
+    defBase: 230
+    defGrowth: 17.5
+    spDefBase: 210
+    spDefGrowth: 16
     speedBase: 90
     critRateBase: 5
     critDamageBase: 50
@@ -559,7 +741,7 @@ units:
     standing: ANUBIS_STANDING
 
   # ── 우치 ──────────────────────────────────────────────────────────
-  # 분신을 찍어 내는 다수형 소환 딜러(Detail_08 §10). 우치 자신은 때리지 않는다 — 분신이 고정 속도 70으로
+  # 분신을 찍어 내는 다수형 소환 딜러(Detail_08 §10). 우치 자신은 때리지 않는다 — 분신이 고정 속도 90으로
   # 한 번 치고 사라지고, 초월기가 분신이 움직이기 전에 한꺼번에 터뜨린다. 속도가 화력과 넘침을 함께 정한다.
   - id: 180
     name: 우치
@@ -571,8 +753,8 @@ units:
     archetypeTags: [Summon, Swift]
     hpBase: 980
     hpGrowth: 85
-    atkBase: 95
-    atkGrowth: 6.2
+    atkBase: 180
+    atkGrowth: 12
     spAtkBase: 70
     spAtkGrowth: 4.5
     defBase: 60
@@ -592,22 +774,22 @@ units:
 
   - id: 45
     name: 츠쿠요미
-    tagline: "달의 저주를 남기고 모든 지속피해를 강화하는 후열 서포터."
+    tagline: "높은 체력과 방어로 전열을 지키며 달의 저주와 지속피해 증폭을 제공하는 서포터."
     characterType: Unlocked
     element: Electro
     vfxClass: caster
     tags: [Takamagahara, Divine]
     archetypeTags: [Support, Precision]
-    hpBase: 1080
-    hpGrowth: 96
+    hpBase: 2400
+    hpGrowth: 215
     atkBase: 62
     atkGrowth: 3.8
     spAtkBase: 104
     spAtkGrowth: 6.8
-    defBase: 68
-    defGrowth: 4.8
-    spDefBase: 82
-    spDefGrowth: 5.8
+    defBase: 170
+    defGrowth: 12.5
+    spDefBase: 110
+    spDefGrowth: 8.2
     speedBase: 102
     critRateBase: 5
     critDamageBase: 50
@@ -618,6 +800,65 @@ units:
       ultimate: 45
     portrait: TSUKUYOMI_PORTRAIT
     standing: TSUKUYOMI_STANDING
+
+  # 아스톨포 — 반격 지원. 전용 초상화·스탠딩을 연결한다.
+  - id: 162
+    name: 아스톨포
+    tagline: "적을 불러들이고 동료의 반격에 힘을 싣고 공격력으로 동료를 치유하는 모험가."
+    characterType: Unlocked
+    element: Anemo
+    vfxClass: caster
+    tags: [Gaul, Human]
+    archetypeTags: [Support, Healing, FollowUp]
+    hpBase: 820
+    hpGrowth: 72
+    atkBase: 92
+    atkGrowth: 6.4
+    spAtkBase: 108
+    spAtkGrowth: 7
+    defBase: 48
+    defGrowth: 3.8
+    spDefBase: 74
+    spDefGrowth: 5.4
+    speedBase: 110
+    critRateBase: 5
+    critDamageBase: 70
+    manaMax: 120
+    codes:
+      passive: 362
+      normal: 162
+      ultimate: 162
+    portrait: ASTOLFO_PORTRAIT
+    standing: ASTOLFO_STANDING
+
+  - id: 163
+    name: 에비스
+    tagline: "동료의 고통을 나누고, 맞선 이에게 돌아올 복을 쌓아 주는 번개의 수호자."
+    characterType: Unlocked
+    element: Electro
+    vfxClass: caster
+    tags: [Takamagahara, Divine]
+    archetypeTags: [Support, Sturdy, Healing]
+    hpBase: 1600
+    hpGrowth: 140
+    atkBase: 52
+    atkGrowth: 3.2
+    spAtkBase: 90
+    spAtkGrowth: 6
+    defBase: 82
+    defGrowth: 6
+    spDefBase: 86
+    spDefGrowth: 6.2
+    speedBase: 96
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    codes:
+      passive: 363
+      normal: 163
+      ultimate: 163
+    portrait: EBISU_PORTRAIT
+    standing: EBISU_STANDING
 
   - id: 160
     name: 마리 테레즈
@@ -652,9 +893,9 @@ units:
 
   # ── 나폴레옹 ──────────────────────────────────────────────────────
   # 직접 치지 않는 지휘관. 일반행동은 피해 없이 가장 쉽게 쓰러질 적 하나를 지정하고, 특수행동 일제 사격으로
-  # 일반 공격을 가진 아군 전원이 그 적에게 자기 일반 공격을 60%로 동시에 꽂는다(일반행동 · 마나 · 턴 없이).
+  # 일반 공격을 가진 아군 전원이 그 적에게 자기 일반 공격을 50%로 동시에 꽂는다(일반행동 · 마나 · 턴 없이).
   # 특성은 개전 자기 행동 게이지 25% 선행과 아군 일반 공격 피해 +15% 오라, 초월기는 치명타 피해 비례 일반 공격 버프와 20% 앞당김.
-  # 임시 원화 SIGURD, 임시 음성 게파드.
+  # 원화 NAPOLEON, 임시 음성 게파드.
   - id: 161
     name: 나폴레옹
     tagline: "직접 쏘지 않고 포격 지점을 정해, 일반 공격을 가진 동료 전원의 일제 사격을 지휘하는 물 속성 지휘관."
@@ -844,16 +1085,16 @@ units:
     vfxClass: caster
     tags: [Greek]
     archetypeTags: [Support, Toughness, Infusion]
-    hpBase: 900
-    hpGrowth: 80
+    hpBase: 1550
+    hpGrowth: 140
     atkBase: 50
     atkGrowth: 3
     spAtkBase: 100
     spAtkGrowth: 6
-    defBase: 45
-    defGrowth: 3
-    spDefBase: 70
-    spDefGrowth: 5
+    defBase: 108
+    defGrowth: 8
+    spDefBase: 105
+    spDefGrowth: 7.8
     speedBase: 105
     critRateBase: 5
     critDamageBase: 50
@@ -940,16 +1181,16 @@ units:
     archetypeTags:
     - Summon
     - Support
-    hpBase: 940
-    hpGrowth: 80
+    hpBase: 1140
+    hpGrowth: 100
     atkBase: 48
     atkGrowth: 3
     spAtkBase: 100
     spAtkGrowth: 6
-    defBase: 50
-    defGrowth: 4
-    spDefBase: 70
-    spDefGrowth: 4.5
+    defBase: 60
+    defGrowth: 4.8
+    spDefBase: 84
+    spDefGrowth: 5.4
     speedBase: 110
     critRateBase: 5
     critDamageBase: 50
@@ -972,16 +1213,16 @@ units:
     - Summon
     - Healing
     - Support
-    hpBase: 1140
-    hpGrowth: 100
+    hpBase: 1850
+    hpGrowth: 165
     atkBase: 50
     atkGrowth: 3
     spAtkBase: 90
     spAtkGrowth: 6
-    defBase: 64
-    defGrowth: 4.5
-    spDefBase: 78
-    spDefGrowth: 5
+    defBase: 80
+    defGrowth: 6
+    spDefBase: 90
+    spDefGrowth: 6
     speedBase: 103
     critRateBase: 5
     critDamageBase: 50
@@ -1039,16 +1280,16 @@ units:
     - Shielding
     - Infusion
     - Support
-    hpBase: 1200
-    hpGrowth: 100
+    hpBase: 1320
+    hpGrowth: 112
     atkBase: 45
     atkGrowth: 3
     spAtkBase: 65
     spAtkGrowth: 4.5
-    defBase: 86
-    defGrowth: 6
-    spDefBase: 72
-    spDefGrowth: 5
+    defBase: 100
+    defGrowth: 7.2
+    spDefBase: 82
+    spDefGrowth: 5.8
     speedBase: 96
     critRateBase: 5
     critDamageBase: 50

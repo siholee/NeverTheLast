@@ -1,8 +1,9 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
 using BaseClasses;
 using Core;
+using Managers.Stage;
 using Entities;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -450,6 +451,7 @@ namespace Managers
         private Vector2Int _framedScreen;
         private float _framedHudScale = 1f;
         private BaseEnums.GameState _lastLayoutState = (BaseEnums.GameState)(-1);
+        private VisualMode _lastVisualMode = VisualMode.Card;
 
         // 인원 변화 때 카메라가 즉시 튀면 사망·등장 연출의 기준점이 흔들린다.
         // 목표 프레임만 다시 계산하고 실제 카메라는 unscaled time으로 짧게 따라간다.
@@ -475,6 +477,13 @@ namespace Managers
 
         private void LateUpdate()
         {
+            if (_lastVisualMode != VisualModeState.Current)
+            {
+                _lastVisualMode = VisualModeState.Current;
+                _snapCameraFrame = true;
+                _layoutDirty = true;
+                _placementElapsed = 1f;
+            }
             if (_reframeAfterHold && Time.time >= _cameraHoldUntil)
             {
                 _reframeAfterHold = false;
@@ -571,6 +580,12 @@ namespace Managers
             bool showEmpty = ShouldShowEmptyCells();
             _lastShowEmpty = showEmpty;
             ApplyBenchVisibility(_benchVisible && showEmpty);
+            if (VisualModeState.Current == VisualMode.Stage)
+            {
+                FrameCamera(); // 픽셀 투영 전에 고정 프레임을 먼저 적용한다.
+                RefreshStageLayout(showEmpty);
+                return;
+            }
             ApplyDensityScale(showEmpty);
 
             for (int columnIndex = 0; columnIndex < 2; columnIndex++)
@@ -580,6 +595,57 @@ namespace Managers
             }
 
             FrameCamera();
+        }
+
+        /// <summary>무대는 준비 때 원래 4레인, 전투 때 열 안의 생존 인원으로 배치한다.</summary>
+        private void RefreshStageLayout(bool showEmpty)
+        {
+            Camera camera = Camera.main;
+            if (camera == null || !camera.orthographic) return;
+            bool preparation = GameManager.Instance == null ||
+                               GameManager.Instance.gameState == BaseEnums.GameState.Preparation;
+            var visible = new List<Cell>();
+            for (int side = -1; side <= 1; side += 2)
+            for (int column = 0; column < 2; column++)
+            {
+                var occupied = new List<Cell>();
+                for (int y = yMin; y <= yMax; y++)
+                {
+                    Cell cell = GetFieldCell(side * (column + 1), y);
+                    if (cell != null && cell.isOccupied) occupied.Add(cell);
+                }
+                var logicalOrder = new List<Cell>(occupied);
+                if (showEmpty)
+                    for (int y = yMin; y <= yMax; y++)
+                    {
+                        Cell cell = GetFieldCell(side * (column + 1), y);
+                        if (cell != null && !cell.isOccupied) logicalOrder.Add(cell);
+                    }
+                int displayColumn = !preparation && column == 1 && !ColumnHasOccupied(side, 0) ? 0 : column;
+                for (int y = yMin; y <= yMax; y++)
+                {
+                    Cell cell = GetFieldCell(side * (column + 1), y);
+                    if (cell == null) continue;
+                    bool show = cell.isOccupied || showEmpty || (preparation && side < 0);
+                    cell.IsLaidOut = show;
+                    cell.gameObject.SetActive(show);
+                    if (!show) continue;
+                    StageLayout.Slot slot = preparation
+                        ? StageLayout.ForPreparation(side, column, y - yMin)
+                        : StageLayout.ForBattle(side, displayColumn, occupied.IndexOf(cell), occupied.Count);
+                    cell.SetLayoutScale(1f); // Card 모드에서 쓰던 밀도 배율을 걷어낸다.
+                    cell.transform.position = StageLayout.PixelToWorld(slot.Pixel, camera);
+                    cell.transform.localScale = Vector3.one * slot.Scale;
+                    if (cell.unit != null) cell.unit.transform.position = cell.transform.position;
+                    // 거리 판정은 Card 모드의 중앙 정렬 좌표를 그대로 쓴다.
+                    cell.DisplaySlot = Combat.CombatFieldLayout.DisplaySlot(logicalOrder.IndexOf(cell), logicalOrder.Count);
+                    cell.SetGroundPadVisible(!cell.isOccupied);
+                    visible.Add(cell);
+                }
+            }
+            // 열별 인덱스 대신 실제 화면 y로 합쳐 정렬한다. 기존 10칸 묶음과 VFX 정렬대를 유지한다.
+            visible.Sort((a, b) => b.transform.position.y.CompareTo(a.transform.position.y));
+            for (int i = 0; i < visible.Count; i++) visible[i].ApplyDepth(i);
         }
 
         /// <summary>
@@ -644,7 +710,6 @@ namespace Managers
                 }
                 posX = side * distance;
             }
-            float half = (ordered.Count - 1) * 0.5f;
             float largestScale = 1f;
             foreach (Cell cell in occupied) largestScale = Mathf.Max(largestScale, cell.FeatureScale);
             float rowSpacing = showEmpty ? SlotSpacing : SlotSpacing * largestScale;
@@ -653,7 +718,7 @@ namespace Managers
             {
                 Cell cell = ordered[i];
                 if (!cell.gameObject.activeSelf) cell.gameObject.SetActive(true);
-                float slot = i - half;   // 위가 음수, 아래가 양수 — yPos와 같은 방향이다.
+                float slot = Combat.CombatFieldLayout.DisplaySlot(i, ordered.Count); // 위가 음수, 아래가 양수다.
 
                 cell.transform.position = new Vector3(posX, -slot * rowSpacing, 0f);
                 cell.transform.localScale = Vector3.one;
@@ -755,6 +820,19 @@ namespace Managers
         {
             Camera camera = Camera.main;
             if (camera == null || !camera.orthographic) return;
+            if (VisualModeState.Current == VisualMode.Stage)
+            {
+                Effects.BattlefieldBackdrop.Ensure();
+                _cameraTargetSize = StageLayout.WorldHeight * 0.5f;
+                _cameraTargetPosition = new Vector3(0f, 0f, camera.transform.position.z);
+                camera.orthographicSize = _cameraTargetSize;
+                camera.transform.position = _cameraTargetPosition;
+                _cameraMoveVelocity = Vector3.zero;
+                _cameraSizeVelocity = 0f;
+                _cameraFrameReady = true;
+                _snapCameraFrame = false;
+                return;
+            }
             if (Time.time < _cameraHoldUntil)
             {
                 _reframeAfterHold = true;
@@ -1139,35 +1217,15 @@ namespace Managers
 
         public void OnRoundStart()
         {
-            // 목록 순서와 무관하게 아군 개전 오라보다 수신기를 먼저 연다.
-            foreach (Unit unit in heroList.Concat(enemyList).Where(unit => unit != null && unit.isActive && !unit.IsBench))
-                unit.PrepareRoundResources();
-            Debug.Log("[GridManager] OnRoundStart 호출됨");
-
             // 전투 중에는 대기석을 쓸 수 없다. 숨기고 그만큼 전장을 확대한다.
             SetBenchVisible(false);
+            Combat.CombatRoundLifecycle.Begin(heroList, enemyList);
+        }
 
-            Debug.Log($"[GridManager] 아군 수: {heroList.Count}");
-            foreach (Unit hero in heroList)
-            {
-                if (hero.isActive)
-                {
-                    Debug.Log($"[GridManager] 아군 {hero.UnitName}에게 OnRoundStart 이벤트 발송");
-                    EventContext context = new EventContext(hero);
-                    hero.Invoke(BaseEnums.UnitEventType.OnRoundStart, context);
-                }
-            }
-
-            Debug.Log($"[GridManager] 적군 수: {enemyList.Count}");
-            foreach (Unit enemy in enemyList)
-            {
-                if (enemy.isActive)
-                {
-                    Debug.Log($"[GridManager] 적군 {enemy.UnitName}에게 OnRoundStart 이벤트 발송");
-                    EventContext context = new EventContext(enemy);
-                    enemy.Invoke(BaseEnums.UnitEventType.OnRoundStart, context);
-                }
-            }
+        /// <summary>개전 적과 전투 중 증원이 같은 수명·기본 난이도 보정을 사용한다.</summary>
+        public void BeginEnemyCombatLife(Unit enemy)
+        {
+            Combat.CombatRoundLifecycle.BeginEnemy(enemy);
         }
 
         public List<Unit> TargetNearestEnemy(Unit caster)
@@ -1274,6 +1332,7 @@ namespace Managers
         public bool HasAvailableAllySlot()
         {
             if (HasAvailableBenchSlot()) return true;
+            if (ActiveAllyFieldCount >= CharacterSelectionManager.MaxSelection) return false;
 
             for (int x = GetRearColumn(false); x <= GetFrontColumn(false); x++)
             {
@@ -1337,11 +1396,26 @@ namespace Managers
         /// 처음부터 다시 만들므로 레벨 · 현재 체력이 모두 초기값으로 돌아갔다 —
         /// 전열에서 후열로 옮기면 체력이 줄어 보이던 원인이다. 전열/후열 규칙은 체력을 건드리지 않는다.
         /// </summary>
+        public int ActiveAllyFieldCount => heroList.Count(unit => unit != null && !unit.IsEnemy && unit.IsOnField);
+
+        /// <summary>대기석 교환은 인원을 보존한다. 빈 칸 이동은 출전 1~5명을 유지한다.</summary>
+        public bool CanRelocateAlly(Unit unit, Cell target)
+        {
+            if (unit == null || target == null || unit.currentCell == null) return false;
+            if (unit.IsEnemy || unit.IsSummon) return true;
+            bool sourceBench = IsBenchCell(unit.currentCell), targetBench = IsBenchCell(target);
+            Unit counterpart = target.isOccupied && target.unit != null ? target.unit.GetComponent<Unit>() : null;
+            bool swaps = counterpart != null && counterpart.isActive && !counterpart.IsEnemy && !counterpart.IsSummon;
+            if (swaps || sourceBench == targetBench) return true;
+            return sourceBench ? ActiveAllyFieldCount < CharacterSelectionManager.MaxSelection : ActiveAllyFieldCount > 1;
+        }
+
         public bool RelocateUnit(Unit unit, Cell target)
         {
             if (unit == null || target == null) return false;
             Cell source = unit.currentCell;
             if (source == null || source == target) return false;
+            if (!CanRelocateAlly(unit, target)) return false;
 
             Unit other = target.isOccupied && target.unit != null ? target.unit.GetComponent<Unit>() : null;
             Sprite unitPortrait = source.portraitRenderer != null ? source.portraitRenderer.sprite : null;
@@ -1353,6 +1427,8 @@ namespace Managers
             Occupy(target, unit, unitPortrait);
             if (other != null) Occupy(source, other, otherPortrait);
 
+            // 전열 단독 배치 등 현재 배치를 읽는 스탯 보정을 즉시 갱신한다.
+            RefreshAllyAttributes();
             RequestFieldLayoutRefresh();
             return true;
         }
@@ -1427,15 +1503,7 @@ namespace Managers
 
         public void OnRoundEnd()
         {
-            // 판에 깔린 상태는 라운드를 넘기지 않는다.
-            Combat.Battlefield.Clear();
-            // 소환수는 라운드 밖으로 남지 않는다. 사망이 아니므로 사망 판정 없이 지운다.
-            Combat.Summons.ClearAll();
-
-            foreach (Unit unit in heroList.Concat(enemyList).Where(unit => unit != null).ToList())
-            {
-                unit.Invoke(BaseEnums.UnitEventType.OnRoundEnd, new EventContext(unit));
-            }
+            Combat.CombatRoundLifecycle.End(heroList, enemyList);
 
             // 죽은 자리의 예약을 푼다.
             //
@@ -1450,8 +1518,6 @@ namespace Managers
                     if (cell != null) cell.reservedTime = 0f;
                 }
             }
-
-            Combat.PartyTreasury.EndBattle();
 
             // 다시 편성할 수 있도록 대기석을 되돌린다.
             SetBenchVisible(true);

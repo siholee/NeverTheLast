@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -188,7 +188,7 @@ namespace Managers.UI.DevTools
                 yield return null;
             }
             actions=recorder.Finished.Count;
-            RuiCheck("실제 자동 전투→결과→보상→4단계", "무적/스탯 조작 없이 3단계 진행",$"stage={game.RoundManager.Stage},win={victories},actions={actions},events={events},life={game.life}",game.RoundManager.Stage>=4 && actions>0 && victories>0);
+            RuiCheck("실제 자동 전투→결과→보상→4단계", "무적/스탯 조작 없이 3단계 진행",$"stage={game.RoundManager.Stage},win={victories},actions={actions},events={events},state={game.gameState}",game.RoundManager.Stage>=4 && actions>0 && victories>0);
             RuiCheck("캠페인 자동 저장", "현재 단계 저장",SaveSystem.LoadRun()?.currentStage.ToString(),SaveSystem.LoadRun()?.currentStage==game.RoundManager.Stage);
             yield return CaptureStill("release_natural_campaign"); game.DebugResetBattle(); DebugMode.SuiteRunning=true; RuiFinish();
         }
@@ -250,47 +250,27 @@ namespace Managers.UI.DevTools
         }
         private IEnumerator ScenarioReleaseLoss(VerifyScenarioRequest config)
         {
-            _ruiFailures.Clear();
-            DebugMode.SuiteRunning=false;
-            for(int attempt=0;attempt<2;attempt++)
+            _ruiFailures.Clear(); DebugMode.SuiteRunning=false;
+            yield return PrepareStage(config,1,true,false,true);
+            GameManager game=GameManager.Instance;
+            int gold=game.inventoryManager.Gold; Unit attacker=AliveEnemies().First();
+            foreach(Unit hero in AliveAllies().ToList())
             {
-                yield return PrepareStage(config,1,true,false,true);
-                GameManager game=GameManager.Instance; game.life=attempt==0?20:1;
-                int gold=game.inventoryManager.Gold;
-                int enemiesLeft=AliveEnemies().Count;
-                Unit attacker=AliveEnemies().First();
-                var previousHeroes=AliveAllies().ToArray();
-                foreach(Unit hero in previousHeroes)
-                {
-                    Combat.ActionDot.Apply(attacker,hero,Combat.ActionDotKind.Poison,inheritedHit:true);
-                    hero.isControlled=true;hero.controlTurns=3;
-                }
-                foreach(Unit hero in AliveAllies().ToList()) {hero.RemoveShield(hero.ShieldCurr);YvProbe(attacker,hero,BaseEnums.CodeType.Normal,10000000);}
-                float deadline=Time.realtimeSinceStartup+12f;
-                while(Time.realtimeSinceStartup<deadline && ReleaseResultContinue()==null) yield return null;
-                Button next=ReleaseResultContinue();
-                if(attempt==0)
-                {
-                    yield return CaptureStill("release_loss_result");
-                    RuiCheck("패배 목숨·보상 차단", $"목숨{20-enemiesLeft}·골드 동일·결과 확인",game.life+"/"+game.inventoryManager.Gold,game.life==20-enemiesLeft && game.inventoryManager.Gold==gold && next!=null);
-                    next?.onClick.Invoke(); yield return WaitUnscaled(.3f);
-                    RuiCheck("패배 다음 단계", "보상 없이 2단계",game.RoundManager.Stage.ToString(),game.RoundManager.Stage==2 && game.gameState==BaseEnums.GameState.Preparation);
-                    var restoredHeroes=GridManager.Instance.heroList.Where(h=>h!=null&&!h.IsBench).ToArray();
-                    RuiCheck("사망 아군 새 객체 복원·전투 상태 정리","5개 새 객체·상태/보호막/제어0",restoredHeroes.Length.ToString(),
-                        restoredHeroes.Length==5&&restoredHeroes.All(h=>!previousHeroes.Contains(h)&&!h.GetAllStatuses().Any()&&!h.isControlled&&h.ShieldCurr==0));
-                    game.RestorePreparationState(false,0,0);game.inventoryManager.AddItem(5002);bool revived=game.TryLongRest();
-                    RuiCheck("패배 후 긴 휴식 부활", "모든 편성원 회복",AliveAllies().Count.ToString(),revived && AliveAllies().Count==5 && AliveAllies().All(h=>h.HpCurr==h.HpMax));
-                    RuiCheck("긴 휴식 부활 후 이전 지속피해·제어 없음","상태0·제어없음",AliveAllies().Count.ToString(),AliveAllies().All(h=>!h.GetAllStatuses().Any()&&!h.isControlled));
-                }
-                else
-                {
-                    RuiCheck("게임오버 저장 제거·결과", "GameOver·세이브 없음·확인 버튼",game.gameState.ToString(),game.gameState==BaseEnums.GameState.GameOver && !SaveSystem.HasSave() && next!=null);
-                    yield return CaptureStill("release_gameover_result");
-                    next?.onClick.Invoke(); yield return WaitUnscaled(.5f);
-                    RuiCheck("게임오버 메뉴 복귀", "MainMenu",UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,UnityEngine.SceneManagement.SceneManager.GetActiveScene().name=="MainMenu");
-                }
+                hero.RemoveShield(hero.ShieldCurr);
+                for(int hit=0;hit<4 && hero.isActive;hit++)
+                    YvProbe(attacker,hero,BaseEnums.CodeType.Normal,10000000);
             }
-            DebugMode.SuiteRunning=true; RuiFinish();
+            float deadline=Time.realtimeSinceStartup+12f;
+            while(Time.realtimeSinceStartup<deadline && ReleaseResultContinue()==null)yield return null;
+            Button next=ReleaseResultContinue();
+            RuiCheck("전멸 즉시 런 종료·보상 차단", "GameOver·재화 불변·저장 제거·결과 확인",game.gameState.ToString(),
+                game.gameState==BaseEnums.GameState.GameOver && !RunManager.Instance.RunActive && !SaveSystem.HasSave() &&
+                game.inventoryManager.Gold==gold && next!=null && !game.TryLongRest());
+            yield return CaptureStill("release_gameover_result");
+            next?.onClick.Invoke();yield return WaitUnscaled(.5f);
+            RuiCheck("전멸 결과 확인 후 메뉴 복귀", "MainMenu",UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,
+                UnityEngine.SceneManagement.SceneManager.GetActiveScene().name=="MainMenu");
+            DebugMode.SuiteRunning=true;RuiFinish();
         }
     }
 }

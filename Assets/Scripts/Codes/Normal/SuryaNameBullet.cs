@@ -9,10 +9,11 @@ namespace Codes.Normal
     /// <summary>두 번의 일반 사격이 표식을 남기고, 세 번째 사격은 종언탄으로 바뀐다.</summary>
     public sealed class SuryaNameBullet : BaseNormalCode
     {
-        public const float AttackRatio = 1.10f;
-        public const float FinaleRatio = 3.60f;
+        public const float AttackRatio = 1.40f;
+        public const float FinaleRatio = 6.00f;
         public const float DefenseMultiplier = .75f;
         private bool _finale;
+        protected override bool AppliesElementTo(Unit target) => Passive?.Marks(target) >= 2;
         private SuryaExecution Passive => Caster.ActivePassiveCodes.OfType<SuryaExecution>().FirstOrDefault();
         public override int AttackForm => DamageTag.Shot;
         public SuryaNameBullet(NormalCodeContext context) : base(context) => CodeName = "해가 지는 사격";

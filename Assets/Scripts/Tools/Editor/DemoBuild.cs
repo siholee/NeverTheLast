@@ -77,8 +77,9 @@ public static class DemoBuild
             File.WriteAllText(Path.Combine(outputDirectory, "version.txt"), Application.version + Environment.NewLine);
         }
 
-        if (summary.result != BuildResult.Succeeded && Application.isBatchMode)
-            EditorApplication.Exit(1);
+        // 호출자의 using/finally가 원본 에셋을 복구한 뒤 CLI 실패가 전파되게 한다.
+        if (summary.result != BuildResult.Succeeded)
+            throw new InvalidOperationException($"[DemoBuild] {target} 빌드 실패: {summary.result}");
     }
 
     private static void SetMacArchitecture(string architectureName)

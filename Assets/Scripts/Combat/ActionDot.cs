@@ -10,11 +10,33 @@ using UnityEngine;
 
 namespace Combat
 {
+    public enum DotTriggerKind { Unspecified, Natural, Immediate, Derived }
+
     public enum ActionDotKind { Shock, Burn, Poison, Curse, Bleed }
 
     /// <summary>지속피해의 자연 발동과 대상 일반행동 2회 시계를 분리한다. 즉시 발동은 시계를 건드리지 않는다.</summary>
     public static class ActionDot
     {
+        private static long _nextRoot;
+        public static long NextRootId() => ++_nextRoot;
+        public static event System.Action<NaturalDotTickContext> NaturalTickResolved;
+        public sealed class NaturalDotTickContext
+        {
+            public readonly Unit Target;
+            public readonly ActionDotEffect Effect;
+            public readonly DamageContext Damage;
+            public NaturalDotTickContext(Unit target, ActionDotEffect effect, DamageContext damage)
+            { Target = target; Effect = effect; Damage = damage; }
+        }
+        public static void ResolveNaturalTick(Unit target, ActionDotEffect effect)
+        {
+            if (target == null || !target.IsOnField || effect == null ||
+                !target.GetAllStatuses().Any(s => s.Effects.Any(e => e.EffectObject == effect))) return;
+            var damage = effect.CreateDamageOverTimeTick();
+            damage.DotTrigger = DotTriggerKind.Natural;
+            target.TakeDamage(damage);
+            if (damage.ResolvedDamage > 0) NaturalTickResolved?.Invoke(new NaturalDotTickContext(target, effect, damage));
+        }
         private static readonly HashSet<Unit> NormalActors = new();
         private static readonly HashSet<(Unit actor, int action)> AttackCompletions = new();
         private static readonly HashSet<(Unit actor, int action)> BleedNormalCompletions = new();
@@ -36,7 +58,7 @@ namespace Combat
                 foreach (var status in actor.GetAllStatuses())
                 foreach (var effect in status.Effects.Select(x=>x.EffectObject).OfType<ActionDotEffect>())
                     if (actor.isActive && actor.GetAllStatuses().Contains(status) && effect.Kind == ActionDotKind.Bleed)
-                        actor.TakeDamage(effect.CreateDamageOverTimeTick());
+                        ResolveNaturalTick(actor, effect);
             // 일반 완료 알림은 코루틴 안에서 먼저 난다. 마지막 출혈 틱 뒤에만 기간을 소모한다.
             if (actor != null && BleedNormalCompletions.Remove(key))
                 foreach (var status in actor.GetAllStatuses().Where(IsBleed)) AdvanceDuration(actor,status);
@@ -82,7 +104,7 @@ namespace Combat
             {
                 if (!actor.isActive || !actor.GetAllStatuses().Contains(status)) continue;
                 if (effect.Kind == ActionDotKind.Burn || normal && effect.Kind is ActionDotKind.Shock or ActionDotKind.Poison)
-                    actor.TakeDamage(effect.CreateDamageOverTimeTick());
+                    ResolveNaturalTick(actor, effect);
             }
             if (!normal || !actor.isActive || GridManager.Instance == null) return;
             foreach (Unit target in GridManager.Instance.heroList.Concat(GridManager.Instance.enemyList).Concat(GridManager.Instance.summonList).Distinct().ToArray())
@@ -91,7 +113,7 @@ namespace Combat
                 foreach (UnitStatus status in target.GetAllStatuses())
                 foreach (ActionDotEffect effect in status.Effects.Select(x => x.EffectObject).OfType<ActionDotEffect>())
                     if (target.isActive && actor.isActive && effect.Kind == ActionDotKind.Curse && effect.Caster == actor)
-                        target.TakeDamage(effect.CreateDamageOverTimeTick());
+                        ResolveNaturalTick(target, effect);
             }
         }
 
@@ -140,6 +162,6 @@ namespace Combat
         public override DamageContext CreateDamageOverTimeTick() => new DamageContext(Caster, EstimateDamagePerTurn(),
             BaseEnums.CodeType.Effect, Kind is ActionDotKind.Shock or ActionDotKind.Burn
                 ? new List<int> { DamageTag.ElementalReaction } : new List<int>())
-            { IsDamageOverTime = true, StatusVfxKey = ActionDot.Key(Kind) };
+            { IsDamageOverTime = true, StatusVfxKey = ActionDot.Key(Kind), DotKind = Kind, DotRootId = ActionDot.NextRootId() };
     }
 }

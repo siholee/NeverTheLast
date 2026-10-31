@@ -80,7 +80,14 @@ namespace Entities
             {
                 bool refresh = status != null && _statuses.Any(existing => existing.Key == status.Key);
                 AddCore(status);
-                if (status?.ApplicationSucceeded == true) Effects.StatusPopup.Show(_owner, status, refresh);
+                if (status?.ApplicationSucceeded == true)
+                {
+                    Effects.StatusPopup.Show(_owner, status, refresh);
+                    // 실제로 갱신된 맹독도 착탄 뒤 부여 연출을 보여 준다. 새 상태는
+                    // AddInternal에서 이미 재생하므로 중복시키지 않는다.
+                    if (refresh && status.Key == Combat.ActionDot.Key(Combat.ActionDotKind.Poison) &&
+                        !_statuses.Contains(status)) StatusAffectedVfx.Play(_owner, status, true);
+                }
             }
             finally { EndBatch(); }
         }

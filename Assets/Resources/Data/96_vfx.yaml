@@ -1,6 +1,24 @@
 # 메이플 WZ의 prepare/effect/hit/affected/screen 분리를 따르는 전투 VFX 조합표.
 # 판정은 코드가 소유하고, triggersImpact인 hit의 peakFrame에서만 콜백이 열린다.
+# 원화 전체 rect의 좌하단0~1 좌표. 가면형은 자동 몸통 추정 대신 실제 어깨와 얼굴 제외 영역을 지정한다.
+portraitContacts:
+  - { portrait: AZTEC_ELITE_SERPENT_PRIEST_PORTRAIT, anchorX: 0.70, anchorY: 0.44, faceMinX: 0.37, faceMinY: 0.38, faceMaxX: 0.65, faceMaxY: 0.67, presentationLiftInCards: 0.16 }
+  - { portrait: AZTEC_ELITE_JAGUAR_PORTRAIT, anchorX: 0.69, anchorY: 0.45, faceMinX: 0.29, faceMinY: 0.43, faceMaxX: 0.57, faceMaxY: 0.77, presentationLiftInCards: 0.16 }
+  - { portrait: AZTEC_JAGUAR_PORTRAIT, anchorX: 0.66, anchorY: 0.43, faceMinX: 0.25, faceMinY: 0.40, faceMaxX: 0.56, faceMaxY: 0.76, presentationLiftInCards: 0.16 }
+  - { portrait: AZTEC_SERPENT_PRIEST_PORTRAIT, anchorX: 0.70, anchorY: 0.43, faceMinX: 0.39, faceMinY: 0.44, faceMaxX: 0.65, faceMaxY: 0.79, presentationLiftInCards: 0.16 }
+  - { portrait: AZTEC_EAGLE_PORTRAIT, anchorX: 0.65, anchorY: 0.44, faceMinX: 0.35, faceMinY: 0.49, faceMaxX: 0.58, faceMaxY: 0.80, presentationLiftInCards: 0.16 }
+
 parts:
+  # 시·사바흐 전용 구매 부품. 기존 시트·정점·완료 시각은 그대로 둔다.
+  - { id: cast.shi.roster, category: cast, sheet: Slash1_Blue, columns: 3, rows: 3, fps: 32.15, bodyColor: 6BCDC0FA, coreColor: CFF5EAFF, scaleX: 2.24, scaleY: 2.24, peakFrame: 4 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: cast.sabah.roster, category: cast, sheet: Slash1_Purple, columns: 3, rows: 3, fps: 45, bodyColor: B397E0FA, coreColor: E4BAF5FF, scaleX: 2.12, scaleY: 2.12, peakFrame: 4, desaturate: 1, calmLight: true, glowAlpha: 0.20, useHitAlpha: true }
+  - { id: cast.sabah.roster_ult, category: cast, sheet: Slash5_Blue, columns: 3, rows: 3, fps: 45, bodyColor: AE86D8FA, coreColor: F5BAF5FF, scaleX: 3.02, scaleY: 3.02, peakFrame: 4, desaturate: 1, calmLight: true, glowAlpha: 0.20, useHitAlpha: true }
+  - { id: hit.shi.wind_roster, category: hit, renderer: clawTriple, sheet: ClawStroke_Blue, bodyColor: 719FBBBB, edgeColor: 91BFD4CC, coreColor: E0F5F5FF, sourceAngle: 45, lengthInCards: 1.10, thicknessInCards: 0.075, drawDuration: 0.18, centerCrossFraction: 0.50, lineDelay: 0.022, lineSpacingInCards: 0.12, lingerDuration: 0.10, fadeDuration: 0.17, revealSoftness: 0.038, tipWidth: 0.058, cardKickStrength: 0.54, accentPartId: hit.impact.aqua, secondaryPartId: hit.claw.smoke , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: hit.sabah.roster, category: hit, sheet: Lightning2_Purple, columns: 3, rows: 3, fps: 45, bodyColor: B9A5DFFB, edgeColor: 372642FF, coreColor: B59BE8FF, scaleX: 1.10, scaleY: 0.86, peakFrame: 4, peakAlpha: 0.98, glowAlpha: 0.20, impactAnchorX: 0.50, impactAnchorY: 0.50, desaturate: 0.70, calmLight: true, useHitAlpha: true}
+  - { id: hit.sabah.roster_bolt, category: hit, sheet: Lightning2_Purple, edgeColor: 352642CC, columns: 3, rows: 3, fps: 45, bodyColor: AF75E0FA, coreColor: EEDFF5FF, scaleX: 2.32, scaleY: 2.58, peakFrame: 4, peakAlpha: 0.98, glowAlpha: 0.20, impactAnchorX: 0.50, impactAnchorY: 0.10 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.shi.bell_roster, category: hit, sheet: Smoke3_Purple, columns: 3, rows: 3, fps: 45, bodyColor: 99AADDC8, edgeColor: 26344870, coreColor: E2E8FFFF, scaleX: 3.58, scaleY: 1.28, peakFrame: 4, peakAlpha: 0.94, glowAlpha: 0.12, impactAnchorX: 0.50, impactAnchorY: 0.15 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.sabah.smoke_roster, category: hit, sheet: Smoke3_Purple, columns: 3, rows: 3, fps: 45, bodyColor: 99AADDC8, edgeColor: 26344870, coreColor: E2E8FFFF, scaleX: 3.58, scaleY: 1.28, peakFrame: 4, peakAlpha: 0.94, glowAlpha: 0.12, impactAnchorX: 0.50, impactAnchorY: 0.15 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+
   # 시전·예비
   - { id: cast.sword.light, category: cast, sheet: Slash1_Blue, columns: 3, rows: 3, fps: 45, bodyColor: 75E0CBF2, coreColor: BAF5E4FF, scaleX: 2.02, scaleY: 2.02, peakFrame: 4 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
   - { id: cast.sword.aqua_readable, category: cast, sheet: Slash1_Blue, columns: 3, rows: 3, fps: 32.15, bodyColor: 6BCDC0FA, coreColor: CFF5EAFF, scaleX: 2.24, scaleY: 2.24, peakFrame: 4 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
@@ -46,7 +64,7 @@ parts:
   - { id: hit.moonlight.small, category: hit, sheet: Impact1_Blue, columns: 3, rows: 2, fps: 30, bodyColor: 93C7E0E8, coreColor: EEF5F5FF, scaleX: 1.24, scaleY: 1.06, peakFrame: 3, accentPartId: hit.impact.small , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
   - { id: hit.fire.burst, category: hit, sheet: Explosion2_Red, columns: 3, rows: 3, fps: 45, bodyColor: E98851F2, coreColor: FFDBA3FF, scaleX: 1.06, scaleY: 0.98, peakFrame: 4, peakAlpha: 0.28, calmLight: true, desaturate: 0.65, glowAlpha: 0.20, useHitAlpha: true , inkColor: 7D422EE0, inkAlpha: 0.06}
   - { id: hit.fire.sculptor_burst, category: hit, sheet: Explosion2_Red, columns: 3, rows: 3, fps: 45, bodyColor: E98851F2, coreColor: FFDBA3FF, scaleX: 1.06, scaleY: 0.98, peakFrame: 4, peakAlpha: 0.28, glowAlpha: 0.20, calmLight: true, desaturate: 0.65, useHitAlpha: true , inkColor: 7D422EE0, inkAlpha: 0.06}
-  - { id: hit.impact.small, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: 8CA6D3F2, coreColor: F5F5F5FF, scaleX: 0.62, scaleY: 0.62, peakFrame: 3, peakAlpha: 0.06 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
+  - { id: hit.impact.small, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: 8CA6D3F2, coreColor: F5F5F5FF, scaleX: 0.62, scaleY: 0.62, peakFrame: 3, peakAlpha: 0, contactScale: 0.95, calmLight: true, desaturate: 1, glowAlpha: 0, useHitAlpha: true }
   - { id: hit.impact.aqua, category: hit, sheet: Impact1_Blue, columns: 3, rows: 2, fps: 30, bodyColor: 71D9CDE0, coreColor: C0F5F5FF, scaleX: 1.05, scaleY: 1.05, peakFrame: 3 , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
   - { id: hit.impact.void, category: hit, sheet: Impact1_Purple, columns: 3, rows: 2, fps: 30, bodyColor: B097E0E8, coreColor: E2BAF5FF, scaleX: 1.18, scaleY: 1.18, peakFrame: 3, desaturate: 1, calmLight: true, glowAlpha: 0.20, useHitAlpha: true}
   - { id: hit.impact.heavy, category: hit, sheet: Impact1_Purple, columns: 3, rows: 2, fps: 30, bodyColor: 9E5264ED, coreColor: F5E3CDFF, scaleX: 1.58, scaleY: 1.30, peakFrame: 3, peakAlpha: 0.78, glowAlpha: 0.20, calmLight: true , desaturate: 1 , useHitAlpha: true }
@@ -56,9 +74,9 @@ parts:
   - { id: hit.jean.smoke, category: hit, sheet: Smoke3_Purple, columns: 3, rows: 3, fps: 45, bodyColor: FFFFFF70, edgeColor: 26364200, coreColor: EAF2F5FF, scaleX: 1.00, scaleY: .42, peakFrame: 4, peakAlpha: .05, glowAlpha: 0.20, impactAnchorX: .50, impactAnchorY: .50, calmLight: true , desaturate: 1 , useHitAlpha: true }
   - { id: hit.jean.impact, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: 97B1E2C0, edgeColor: 263742FF, coreColor: F5F5F5FF, scaleX: 0.62, scaleY: 0.62, peakFrame: 3, peakAlpha: 0.06, glowAlpha: 0.20, calmLight: true , desaturate: 1 , useHitAlpha: true }
   # 적 병과별 가독성 부품. 굵은 알파 몸체가 밝은 판의 실루엣을 잡고 좁은 금백 코어가 정점을 읽힌다.
-  - { id: hit.enemy.archer_pierce, category: hit, sheet: Smoke3_Purple, columns: 3, rows: 3, fps: 240, bodyColor: E07593FF, edgeColor: 00000000, coreColor: F5F5F5FF, scaleX: .80, scaleY: .16, peakFrame: 2, peakAlpha: 0.04, glowAlpha: 0.20, peakHoldSeconds: 0.09, impactAnchorX: 0.50, impactAnchorY: 0.50 , calmLight: true , desaturate: 1 , useHitAlpha: true }
-  - { id: hit.enemy.vanguard_slash, category: hit, sheet: Slash4_Blue, columns: 3, rows: 2, fps: 30, bodyColor: 9E5260FC, coreColor: F5F5F5FF, scaleX: 1.10, scaleY: 0.86, peakFrame: 3, peakAlpha: 0.98, glowAlpha: 0.20, impactAnchorX: 0.50, impactAnchorY: 0.50, inkColor: 462F47F0, inkAlpha: 0.40, calmLight: true, desaturate: 1, useHitAlpha: true }
-  - { id: hit.enemy.crusher_heavy, category: hit, sheet: Explosion3_Yellow, columns: 3, rows: 3, fps: 45, bodyColor: 9E5652FA, coreColor: F5E6CAFF, scaleX: .70, scaleY: .62, peakFrame: 3, peakAlpha: 0.04, glowAlpha: 0.20, accentPartId: hit.impact.heavy, impactAnchorX: 0.56, impactAnchorY: 0.50 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.enemy.archer_pierce, category: hit, contactScale: 0.55, sheet: Smoke3_Purple, columns: 3, rows: 3, fps: 240, bodyColor: E07593FF, edgeColor: 00000000, coreColor: F5F5F5FF, scaleX: .80, scaleY: .16, peakFrame: 2, peakAlpha: 0.04, glowAlpha: 0.20, peakHoldSeconds: 0.09, impactAnchorX: 0.50, impactAnchorY: 0.50 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.enemy.vanguard_slash, category: hit, contactScale: 0.8, sheet: Slash4_Blue, columns: 3, rows: 2, fps: 30, bodyColor: 9E5260FC, coreColor: F5F5F5FF, scaleX: 1.10, scaleY: 0.86, peakFrame: 3, peakAlpha: 0.98, glowAlpha: 0.20, impactAnchorX: 0.50, impactAnchorY: 0.50, inkColor: 462F47F0, inkAlpha: 0.40, calmLight: true, desaturate: 1, useHitAlpha: true }
+  - { id: hit.enemy.crusher_heavy, category: hit, contactScale: 1.25, sheet: Explosion3_Yellow, columns: 3, rows: 3, fps: 45, bodyColor: 9E5652FA, coreColor: F5E6CAFF, scaleX: .70, scaleY: .62, peakFrame: 3, peakAlpha: 0.04, glowAlpha: 0.20, accentPartId: hit.impact.heavy, impactAnchorX: 0.56, impactAnchorY: 0.50 , calmLight: true , desaturate: 1 , useHitAlpha: true }
   - { id: hit.enemy.dragon_breath, category: hit, sheet: Explosion1_Red, columns: 3, rows: 2, fps: 24, bodyColor: 9B529EF8, coreColor: F5F5F5FF, scaleX: 1.80, scaleY: 1.55, peakFrame: 1, peakAlpha: 0.98, glowAlpha: 0.20, impactAnchorX: 0.36, impactAnchorY: 0.50 , calmLight: true , desaturate: 1 , useHitAlpha: true }
   # 직선 한 가닥을 세 줄로 벌리는 공용 할퀴기. 같은 원화에 팔레트와 시전자 색만 바꿔 쓴다.
   - { id: hit.claw.triple, category: hit, renderer: clawTriple, sheet: ClawStroke_Blue, bodyColor: 719FBBBB, edgeColor: 91BFD4CC, coreColor: E0F5F5FF, sourceAngle: 45, lengthInCards: 1.10, thicknessInCards: 0.075, drawDuration: 0.18, centerCrossFraction: 0.50, lineDelay: 0.022, lineSpacingInCards: 0.12, lingerDuration: 0.10, fadeDuration: 0.17, revealSoftness: 0.038, tipWidth: 0.058, cardKickStrength: 0.54, accentPartId: hit.impact.aqua, secondaryPartId: hit.claw.smoke , calmLight: true , desaturate: 1 , glowAlpha: 0.20 , useHitAlpha: true }
@@ -165,7 +183,7 @@ parts:
   - { id: hit.surya.ultimate, category: hit, sheet: Impact1_Yellow, columns: 3, rows: 2, fps: 30, bodyColor: E0B885FF, coreColor: F5E1BCFF, scaleX: 1.34, scaleY: 1.06, peakFrame: 3, peakHoldSeconds: 0.06, peakAlpha: 0.8, glowAlpha: 0.20, desaturate: 1, calmLight: true, useHitAlpha: true}
   - { id: hit.surya.wheel, category: hit, renderer: trioSuryaWheel, scaleX: 0.80, scaleY: 0.80 }
   - { id: affected.surya.wanted, category: affected, renderer: trioSunTarget, scaleX: 0.60, scaleY: 0.60 }
-  - { id: affected.buff.sunset, category: affected, renderer: trioSuryaBuff, scaleX: 0.34, scaleY: 0.34 }
+  - { id: affected.buff.sunset, category: affected, renderer: rosterSunset, scaleX: 0.34, scaleY: 0.34 }
   - { id: affected.trio.weakness.pyro, category: affected, renderer: trioWeakness, bodyColor: E0AB8BAA, scaleX: 0.48, scaleY: 0.48 }
   - { id: affected.trio.weakness.hydro, category: affected, renderer: trioWeakness, bodyColor: 8BD0DFAA, scaleX: 0.48, scaleY: 0.48 }
   - { id: affected.trio.weakness.dendro, category: affected, renderer: trioWeakness, bodyColor: AED795AA, scaleX: 0.48, scaleY: 0.48 }
@@ -180,8 +198,11 @@ parts:
   - { id: hit.napoleon.normal, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: 90CBE0FF, coreColor: E1EFF5FF, scaleX: 1.12, scaleY: 0.84, peakFrame: 3, peakAlpha: 0.8, glowAlpha: 0.20, desaturate: 1, calmLight: true, useHitAlpha: true}
   - { id: hit.tsukuyomi.normal, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: BFB6E0FF, coreColor: EBE6F5FF, scaleX: 1.12, scaleY: 0.84, peakFrame: 3, peakAlpha: 0.8, glowAlpha: 0.20, desaturate: 1, calmLight: true, useHitAlpha: true}
 
+  - { id: hit.ishtar.purchased, category: hit, contactMotif: treasuryShot, sheet: Impact1_Yellow, columns: 3, rows: 2, fps: 30, bodyColor: A4CEA2FF, coreColor: F4F8DFFF, scaleX: 1.54, scaleY: 1.24, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, peakHoldSeconds: 0.18, impactAnchorX: 0.5, impactAnchorY: 0.5, inkAlpha: 0, useHitAlpha: true, calmLight: true, desaturate: 1 }
+
   # 서로 다른 지속피해/제어를 화염·기절 시트로 오인시키지 않는 고유 모양.
-  - { id: affected.dot.poison, category: affected, renderer: statusMotif, bodyColor: 91C07CCC, scaleX: 0.55, scaleY: 0.50 }
+  - { id: affected.dot.bleed, category: affected, renderer: statusMotif, bodyColor: E08C9CCC, scaleX: 0.55, scaleY: 0.50 }
+  - { id: affected.dot.poison, category: affected, renderer: statusMotif, bodyColor: 91C07CCC, scaleX: 0.55, scaleY: 0.50, affectedDelay: 0.24 }
   - { id: affected.dot.curse, category: affected, renderer: statusMotif, bodyColor: B5A0D3CC, scaleX: 0.55, scaleY: 0.50 }
   - { id: affected.control.frozen, category: affected, renderer: statusMotif, bodyColor: 85CBDCCC, scaleX: 0.55, scaleY: 0.50 }
   - { id: affected.control.airborne, category: affected, renderer: statusMotif, bodyColor: 8ECED7CC, scaleX: 0.55, scaleY: 0.50 }
@@ -191,6 +212,35 @@ parts:
   - { id: hit.loki.shear, category: hit, sheet: Slash4_Blue, columns: 3, rows: 2, fps: 30, bodyColor: 818BB8FF, coreColor: D7E6F5FF, edgeColor: 344664A0, scaleX: 1.28, scaleY: 0.92, peakFrame: 3, peakHoldSeconds: 0.06, peakAlpha: 0.8, glowAlpha: 0.16, calmLight: true, desaturate: 1, useHitAlpha: true }
   - { id: hit.loki.twilight, category: hit, sheet: Lightning2_Purple, columns: 3, rows: 3, fps: 30, bodyColor: 9C89BFFF, coreColor: E5DBF5FF, edgeColor: 493E62A0, scaleX: 1.12, scaleY: 1.34, peakFrame: 3, peakHoldSeconds: 0.05, peakAlpha: 0.72, glowAlpha: 0.18, calmLight: true, desaturate: 1, useHitAlpha: true }
   - { id: hit.loki.fenrir, category: hit, renderer: clawTriple, sheet: ClawStroke_Blue, bodyColor: A6C6DFD9, edgeColor: 3E536AEE, coreColor: DBEAF5FF, sourceAngle: 45, lengthInCards: 1.18, thicknessInCards: 0.085, drawDuration: 0.20, centerCrossFraction: 0.50, lineDelay: 0.018, lineSpacingInCards: 0.07, lingerDuration: 0.03, fadeDuration: 0.16, revealSoftness: 0.042, tipWidth: 0.070, cardKickStrength: 0.72, calmLight: true, desaturate: 1, glowAlpha: 0.16, useHitAlpha: true }
+
+  - { id: cast.enemy.support, category: cast, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, scaleX: 0.96, scaleY: 0.60, peakFrame: 3, calmLight: true, desaturate: 1, glowAlpha: 0.12, useHitAlpha: true }
+  - { id: hit.enemy.support.heal, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: 60B987F0, coreColor: E2F9E9FF, scaleX: 0.96, scaleY: 0.84, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, impactAnchorX: 0.50, impactAnchorY: 0.50 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.enemy.support.shield, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: 669DAEF0, coreColor: E1F6F9FF, scaleX: 0.96, scaleY: 0.84, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, impactAnchorX: 0.50, impactAnchorY: 0.50 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.enemy.support.rally, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: CDB96BF8, coreColor: F5ECBAFF, scaleX: 0.96, scaleY: 0.84, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, impactAnchorX: 0.50, impactAnchorY: 0.50 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+  - { id: hit.enemy.support.charge, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: 9F8AB9F0, coreColor: EEE5FFFF, scaleX: 0.96, scaleY: 0.84, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, impactAnchorX: 0.50, impactAnchorY: 0.50 , calmLight: true , desaturate: 1 , useHitAlpha: true }
+
+  - { id: hit.nephthys.contact, contactMotif: poison, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: 78B977FF, coreColor: ECF6DFFF, scaleX: 0.9, scaleY: 0.66, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, desaturate: 1, calmLight: true, useHitAlpha: true}
+  - { id: hit.atalante.contact, contactMotif: pierce, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: 7EBB87FF, coreColor: E9F9EFFF, scaleX: 0.82, scaleY: 0.28, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, desaturate: 1, calmLight: true, useHitAlpha: true}
+  - { id: hit.neith.contact, contactMotif: arc, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: 8F99E4FF, coreColor: E9EBFFFF, scaleX: 0.68, scaleY: 0.64, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, desaturate: 1, calmLight: true, useHitAlpha: true}
+  - { id: hit.ereshkigal.contact, contactMotif: wound, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: B76B80FF, coreColor: FBE4E9FF, scaleX: 0.82, scaleY: 0.62, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, desaturate: 1, calmLight: true, useHitAlpha: true}
+  # 초월은 회복과 출혈 부여다. 정점 콜백 시각은 유지하고 실제 성공 상태가 자기 연출을 낸다.
+  - { id: hit.ereshkigal.pact, contactMotif: pact, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, scaleX: 0.82, scaleY: 0.62, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, desaturate: 1, calmLight: true, useHitAlpha: true}
+  - { id: hit.nicol.contact, contactMotif: field, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: 94A2ECFF, coreColor: F0F3FFFF, scaleX: 0.62, scaleY: 0.48, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, desaturate: 1, calmLight: true, useHitAlpha: true}
+  - { id: hit.astolfo.contact, contactMotif: horn, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, bodyColor: 78BFAEFF, coreColor: E7FFF4FF, scaleX: 0.52, scaleY: 0.34, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, desaturate: 1, calmLight: true, useHitAlpha: true}
+  - { id: hit.roster.ribbon, category: affected, renderer: rosterRibbon, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, calmLight: true }
+  - { id: hit.astolfo.heal, contactMotif: pact, category: hit, sheet: Impact1_Green, columns: 3, rows: 2, fps: 30, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, scaleX: 1.20, scaleY: 1.14, calmLight: true }
+  - { id: hit.ebisu.contact, contactMotif: field, category: hit, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, scaleX: 1.12, scaleY: 0.84, calmLight: true }
+  - { id: cast.roster.sun, category: cast, renderer: rosterSunCast, sheet: Muzzle1_Yellow, columns: 2, rows: 2, fps: 30, peakFrame: 1, peakHoldSeconds: 0.035, peakAlpha: 0, glowAlpha: 0, calmLight: true }
+  - { id: hit.roster.sun, contactMotif: sunshot, category: hit, sheet: Impact1_Yellow, columns: 3, rows: 2, fps: 36, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, calmLight: true }
+  - { id: hit.roster.sun_finale, contactMotif: sunshot, category: hit, sheet: Impact1_Yellow, columns: 3, rows: 2, fps: 30, peakFrame: 3, peakHoldSeconds: 0.07, peakAlpha: 0, glowAlpha: 0, calmLight: true }
+
+
+  - { id: cast.roster.officer, category: cast, renderer: rosterSunCast, sheet: Muzzle1_Yellow, columns: 2, rows: 2, fps: 120, peakFrame: 2, peakHoldSeconds: 0.24, peakAlpha: 0, glowAlpha: 0, calmLight: true }
+  - { id: cast.roster.command, category: cast, renderer: rosterOfficerCommand, sheet: Muzzle1_Yellow, columns: 2, rows: 2, fps: 120, peakFrame: 2, peakHoldSeconds: 0.24, peakAlpha: 0, glowAlpha: 0, calmLight: true }
+  - { id: hit.roster.officer, category: hit, contactMotif: purchasedShot, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, calmLight: true }
+  - { id: affected.roster.officer.heal, category: affected, renderer: rosterOfficerHeal, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, calmLight: true }
+  - { id: affected.roster.officer.receive, category: affected, renderer: rosterOfficerReceive, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, calmLight: true }
+  - { id: affected.roster.officer.receipt, category: affected, renderer: rosterOfficerHealReceipt, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, calmLight: true }
 
 skills:
   - key: sei.ground
@@ -272,42 +322,42 @@ skills:
   - key: shi.destruction_slash
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.sword.aqua_readable, bodyColor: 9E638AFA, edgeColor: 6F4046F2, coreColor: D19FA5FF, scale: 1.22, direction: stroke, sourceFacesRight: false, angleOffset: 35, timeOffset: 0.0 }
-      - { slot: hit, partId: hit.claw.triple, bodyColor: 9E5A71F7, edgeColor: 75444BEE, coreColor: D4A1A8FF, scale: 1.0, direction: stroke, sourceFacesRight: true, angleOffset: 29, timeOffset: 0.128, triggersImpact: true }
+      - { slot: cast, partId: cast.shi.roster, bodyColor: 9E638AFA, edgeColor: 6F4046F2, coreColor: D19FA5FF, scale: 1.22, direction: stroke, sourceFacesRight: false, angleOffset: 35, timeOffset: 0.0 }
+      - { slot: hit, partId: hit.shi.wind_roster, focusedStroke: true, bodyColor: 291E32FA, edgeColor: AD5269EE, coreColor: F9CDD6FF, scale: 1.0, scaleY: 0.80, offsetY: 0.13, direction: stroke, sourceFacesRight: true, angleOffset: 29, timeOffset: 0.128, triggersImpact: true }
       - { slot: screen, partId: screen.tone.small, timeOffset: 0.0 }
   - key: shi.final_bell.3
     multiTargetMode: simultaneous
     slots:
-      - { slot: hit, partId: hit.smoke.horizontal, bodyColor: 9E526088, edgeColor: 75444FF2, coreColor: F5BAC5FF, scale: 0.78, direction: radial, offsetY: 0.20, peakFrame: 4, triggersImpact: true }
+      - { slot: hit, partId: hit.shi.bell_roster, bodyColor: 9E526088, edgeColor: 75444FF2, coreColor: F5BAC5FF, scale: 0.78, direction: radial, offsetY: 0.20, peakFrame: 4, triggersImpact: true }
       - { slot: screen, partId: screen.tone.small, timeOffset: 0.0 }
   - key: shi.final_bell.6
     multiTargetMode: simultaneous
     slots:
-      - { slot: hit, partId: hit.smoke.horizontal, bodyColor: 9E526088, edgeColor: 75444FF2, coreColor: F5BAC5FF, scale: 1.0, direction: radial, offsetY: 0.20, peakFrame: 4, triggersImpact: true }
+      - { slot: hit, partId: hit.shi.bell_roster, bodyColor: 9E526088, edgeColor: 75444FF2, coreColor: F5BAC5FF, scale: 1.0, direction: radial, offsetY: 0.20, peakFrame: 4, triggersImpact: true }
       - { slot: screen, partId: screen.tone.small, timeOffset: 0.0 }
   - key: shi.final_bell.9
     multiTargetMode: simultaneous
     slots:
-      - { slot: hit, partId: hit.smoke.horizontal, bodyColor: B63F67E8, edgeColor: 593348FA, coreColor: FFAEC9FF, scale: 1.0, direction: radial, offsetY: 0.20, peakFrame: 4, triggersImpact: true }
+      - { slot: hit, partId: hit.shi.bell_roster, bodyColor: B63F67E8, edgeColor: 593348FA, coreColor: FFAEC9FF, scale: 1.0, direction: radial, offsetY: 0.20, peakFrame: 4, triggersImpact: true }
       - { slot: screen, partId: screen.shake.medium, timeOffset: 0.0 }
   - key: sabah.lightning_slash
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.sword.void_light, scale: 1.0, direction: stroke, sourceFacesRight: false, angleOffset: 32, timeOffset: 0.0 }
-      - { slot: hit, partId: hit.lightning.portrait, scale: 1.0, direction: radial, offsetY: 0.14, timeOffset: 0.224, peakFrame: 4, triggersImpact: true }
+      - { slot: cast, partId: cast.sabah.roster, scale: 1.0, direction: stroke, sourceFacesRight: false, angleOffset: 32, timeOffset: 0.0 }
+      - { slot: hit, partId: hit.sabah.roster, scale: 1.0, direction: radial, offsetY: 0.14, timeOffset: 0.224, peakFrame: 4, triggersImpact: true }
       - { slot: screen, partId: screen.tone.small, timeOffset: 0.0 }
   - key: sabah.lightning_sweep
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.sword.void_light, scale: 1.08, direction: stroke, sourceFacesRight: false, angleOffset: 34, timeOffset: 0.0 }
-      - { slot: hit, partId: hit.lightning.portrait, bodyColor: 7D529EF8, coreColor: EED5F5FF, scale: 1.0, direction: radial, offsetY: 0.14, timeOffset: 0.186, peakFrame: 4, triggersImpact: true }
+      - { slot: cast, partId: cast.sabah.roster, scale: 1.08, direction: stroke, sourceFacesRight: false, angleOffset: 34, timeOffset: 0.0 }
+      - { slot: hit, partId: hit.sabah.roster, bodyColor: 7D529EF8, coreColor: EED5F5FF, scale: 1.0, direction: radial, offsetY: 0.14, timeOffset: 0.186, peakFrame: 4, triggersImpact: true }
       - { slot: screen, partId: screen.tone.small, timeOffset: 0.0 }
   - key: sabah.azrael
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.sword.void_flourish, bodyColor: 9471BDF5, edgeColor: 49365F9C, scale: 1.0, direction: stroke, sourceFacesRight: false, angleOffset: 34, timeOffset: 0.0 }
-      - { slot: hit, partId: hit.lightning.formation, bodyColor: AF75E0FA, coreColor: EEDFF5FF, scale: 1.0, direction: radial, timeOffset: 0.206, peakFrame: 4 }
-      - { slot: hit, partId: hit.smoke.horizontal, bodyColor: B47BE0FF, edgeColor: 5F406FF4, coreColor: F5EAF5FF, scale: 1.0, direction: radial, timeOffset: 0.406, peakFrame: 4, triggersImpact: true }
+      - { slot: cast, partId: cast.sabah.roster_ult, bodyColor: 9471BDF5, edgeColor: 49365F9C, scale: 1.0, direction: stroke, sourceFacesRight: false, angleOffset: 34, timeOffset: 0.0 }
+      - { slot: hit, partId: hit.sabah.roster_bolt, bodyColor: AF75E0FA, coreColor: EEDFF5FF, scale: 1.0, direction: radial, timeOffset: 0.206, peakFrame: 4 }
+      - { slot: hit, partId: hit.sabah.smoke_roster, bodyColor: B47BE0FF, edgeColor: 5F406FF4, coreColor: F5EAF5FF, scale: 1.0, impactContactScale: 0, direction: radial, timeOffset: 0.406, peakFrame: 4, triggersImpact: true }
       - { slot: screen, partId: screen.focus.ultimate, timeOffset: 0.0 }
 
   # 바스테트 — beast 분류의 후퇴→부분 전진이 시전을 대신하고 검정/바위색 세 줄 할퀴기로 끝낸다.
@@ -358,6 +408,23 @@ skills:
       - { slot: screen, partId: screen.focus.special, bodyColor: 52799EF2, coreColor: E3EFF5FF, timeOffset: 0.0 }
 
   # 시험장 적 — 모두 데이터 색(vfxColor)을 같은 부품에 입혀 시전자 시전광 + 대상 피격광으로 조합한다.
+  - key: enemy.support.heal
+    slots:
+      - { slot: cast, partId: cast.enemy.support, direction: radial, steadyBody: true, scale: 0.9, bodyColor: 60B987F0, coreColor: E2F9E9FF }
+      - { slot: hit, partId: hit.enemy.support.heal, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true, scale: 0.6 }
+  - key: enemy.support.shield
+    slots:
+      - { slot: cast, partId: cast.enemy.support, direction: radial, steadyBody: true, scale: 0.9, bodyColor: 669DAEF0, coreColor: E1F6F9FF }
+      - { slot: hit, partId: hit.enemy.support.shield, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true, scale: 0.6 }
+  - key: enemy.support.rally
+    slots:
+      - { slot: cast, partId: cast.enemy.support, direction: radial, steadyBody: true, scale: 0.9, bodyColor: CDB96BF8, coreColor: F5ECBAFF }
+      - { slot: hit, partId: hit.enemy.support.rally, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true, scale: 0.6 }
+  - key: enemy.support.charge
+    slots:
+      - { slot: cast, partId: cast.enemy.support, direction: radial, steadyBody: true, scale: 0.9, bodyColor: 9F8AB9F0, coreColor: EEE5FFFF }
+      - { slot: hit, partId: hit.enemy.support.charge, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true, scale: 0.6 }
+
   - key: enemy.void_wolf.charge
     multiTargetMode: simultaneous
     slots:
@@ -604,46 +671,56 @@ skills:
     slots:
       - { slot: cast, partId: cast.agni.bloom, steadyBody: true, direction: radial }
       - { slot: screen, partId: screen.yv.special }
+  - key: amaterasu.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.roster.sun, steadyBody: true, direction: casterToTarget, scale: 0.6 }
+      - { slot: hit, partId: hit.roster.sun, portraitAnchor: true, triggersImpact: true }
   - key: surya.normal
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.surya.muzzle, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
-      - { slot: hit, partId: hit.surya.normal, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: cast, partId: cast.roster.sun, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.roster.sun, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
       - { slot: screen, partId: screen.yv.normal }
   - key: surya.follow_up
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.surya.muzzle, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
-      - { slot: hit, partId: hit.surya.follow_up, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: cast, partId: cast.roster.sun, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.roster.sun, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
       - { slot: screen, partId: screen.yv.normal }
   - key: surya.focused_follow_up
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.surya.muzzle, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
-      - { slot: hit, partId: hit.surya.focused_follow_up, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: cast, partId: cast.roster.sun, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.roster.sun_finale, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
       - { slot: screen, partId: screen.yv.special }
   - key: surya.ultimate
     multiTargetMode: simultaneous
     slots:
       - { slot: affected, partId: affected.buff.sunset, direction: radial, steadyBody: true }
       - { slot: screen, partId: screen.yv.ultimate }
+  - key: amaterasu.ultimate
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.roster.sun, steadyBody: true, direction: casterToTarget, scale: 0.85 }
+      - { slot: screen, partId: screen.yv.ultimate }
 
   - key: surya.finale
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.surya.muzzle, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
-      - { slot: hit, partId: hit.surya.focused_follow_up, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: cast, partId: cast.roster.sun, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.roster.sun_finale, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
       - { slot: screen, partId: screen.yv.special }
   - key: napoleon.normal
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.class.archer, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: cast, partId: cast.roster.command, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
       - { slot: hit, partId: hit.napoleon.normal, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
       - { slot: screen, partId: screen.yv.normal }
   - key: napoleon.follow_up
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.class.archer, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: cast, partId: cast.roster.command, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
       - { slot: hit, partId: hit.napoleon.normal, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
       - { slot: screen, partId: screen.yv.normal }
   - key: napoleon.focused_follow_up
@@ -662,9 +739,122 @@ skills:
   - key: marie.normal
     multiTargetMode: simultaneous
     slots:
-      - { slot: cast, partId: cast.class.archer, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
-      - { slot: hit, partId: hit.marie.normal, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: cast, partId: cast.roster.officer, steadyBody: true, direction: casterToTarget, offsetY: 0.10, forwardOffset: 0.18, scale: 1 }
+      - { slot: hit, partId: hit.roster.officer, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
       - { slot: screen, partId: screen.yv.normal }
+  - key: astolfo.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: A7D9C8EF, coreColor: F1FFF8FF, direction: radial }
+      - { slot: hit, partId: hit.astolfo.contact, bodyColor: 78BFAEFF, coreColor: E7FFF4FF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: nephthys.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: 84BA84EF, coreColor: ECF6DFFF, direction: radial }
+      - { slot: hit, partId: hit.nephthys.contact, bodyColor: 78B977FF, coreColor: ECF6DFFF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: nephthys.ultimate
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: 84BA84EF, coreColor: ECF6DFFF, direction: radial }
+      - { slot: hit, partId: hit.nephthys.contact, bodyColor: 78B977FF, coreColor: ECF6DFFF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+      - { slot: affected, partId: hit.support.heal, portraitAnchor: true, direction: radial }
+  - key: nephthys.passive
+    slots:
+      - { slot: affected, partId: hit.nephthys.contact, portraitAnchor: true, direction: radial }
+  - key: atalante.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.archer, bodyColor: 84BA84EF, coreColor: E9F9EFFF, direction: radial }
+      - { slot: hit, partId: hit.atalante.contact, bodyColor: 7EBB87FF, coreColor: E9F9EFFF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: atalante.ultimate
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: 84BA84EF, coreColor: E9F9EFFF, direction: radial }
+      - { slot: hit, partId: hit.atalante.contact, bodyColor: 7EBB87FF, coreColor: E9F9EFFF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+      - { slot: affected, partId: hit.support.heal, portraitAnchor: true, direction: radial }
+  - key: atalante.passive
+    slots:
+      - { slot: affected, partId: hit.atalante.contact, portraitAnchor: true, direction: radial }
+  - key: neith.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: 9AADE6EF, coreColor: E9EBFFFF, direction: radial }
+      - { slot: hit, partId: hit.neith.contact, bodyColor: 8F99E4FF, coreColor: E9EBFFFF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: neith.ultimate
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: 9AADE6EF, coreColor: E9EBFFFF, direction: radial }
+      - { slot: hit, partId: hit.neith.contact, bodyColor: 8F99E4FF, coreColor: E9EBFFFF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+      - { slot: affected, partId: hit.support.buff, portraitAnchor: true, direction: radial }
+  - key: neith.passive
+    slots:
+      - { slot: affected, partId: hit.neith.contact, portraitAnchor: true, direction: radial }
+  - key: ereshkigal.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: C98C9AEF, coreColor: FBE4E9FF, direction: radial }
+      - { slot: hit, partId: hit.ereshkigal.contact, bodyColor: B76B80FF, coreColor: FBE4E9FF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: ereshkigal.ultimate
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: C98C9AEF, coreColor: FBE4E9FF, direction: radial }
+      - { slot: hit, partId: hit.ereshkigal.pact, bodyColor: B76B80FF, coreColor: FBE4E9FF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+      - { slot: affected, partId: hit.support.heal, portraitAnchor: true, direction: radial }
+  - key: ereshkigal.passive
+    slots:
+      - { slot: affected, partId: hit.support.heal, portraitAnchor: true, direction: radial }
+  - key: gaudi.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: 79B58AEF, coreColor: FAF1FFFF, direction: radial }
+      - { slot: hit, partId: hit.tsukuyomi.normal, bodyColor: 78B887FF, coreColor: FAF1FFFF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: gaudi.ultimate
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: 79B58AEF, coreColor: E7FFF4FF, direction: radial }
+      - { slot: hit, partId: hit.tsukuyomi.normal, bodyColor: 78B887FF, coreColor: E7FFF4FF, portraitAnchor: true, triggersImpact: true }
+      - { slot: affected, partId: hit.support.buff, bodyColor: 78B887FF, coreColor: FAF1FFFF, portraitAnchor: true, direction: radial }
+      - { slot: screen, partId: screen.yv.ultimate }
+  - key: gaudi.passive
+    slots:
+      - { slot: affected, partId: hit.support.buff, bodyColor: 78B887FF, coreColor: E7FFF4FF, portraitAnchor: true, direction: radial }
+  - key: ebisu.normal
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: B7A0DAEF, coreColor: FAF1FFFF, direction: radial }
+      - { slot: hit, partId: hit.ebisu.contact, bodyColor: AC88D6FF, coreColor: FAF1FFFF, steadyBody: true, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.normal }
+  - key: ebisu.ultimate
+    slots:
+      - { slot: affected, partId: hit.roster.ribbon, bodyColor: B5A1D9FF, coreColor: FAF1FFFF, portraitAnchor: true, direction: radial }
+      - { slot: screen, partId: screen.yv.ultimate }
+  - key: astolfo.ultimate
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: A7D9C8EF, coreColor: F1FFF8FF, direction: radial }
+      - { slot: affected, partId: hit.roster.ribbon, bodyColor: 94D3BFFF, coreColor: F1FFF8FF, portraitAnchor: true, direction: radial }
+      - { slot: hit, partId: hit.astolfo.heal, bodyColor: 78BFAEFF, coreColor: E7FFF4FF, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.ultimate }
+  - key: nicol.normal
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: 9AADE6EF, coreColor: F0F3FFFF, direction: radial }
+      - { slot: hit, partId: hit.nicol.contact, bodyColor: 94A2ECFF, coreColor: F0F3FFFF, direction: radial, portraitAnchor: true, timeOffset: 0.10, triggersImpact: true }
+  - key: nicol.ultimate
+    multiTargetMode: simultaneous
+    slots:
+      - { slot: cast, partId: cast.class.caster, bodyColor: 9AADE6EF, coreColor: F0F3FFFF, direction: radial }
+      - { slot: hit, partId: hit.nicol.contact, bodyColor: 94A2ECFF, coreColor: F0F3FFFF, direction: radial, portraitAnchor: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: screen, partId: screen.yv.ultimate }
   - key: tsukuyomi.normal
     multiTargetMode: simultaneous
     slots:
@@ -673,7 +863,7 @@ skills:
       - { slot: screen, partId: screen.yv.normal }
   - key: marie.emergency
     slots:
-      - { slot: affected, partId: hit.support.buff, portraitAnchor: true, direction: radial }
+      - { slot: affected, partId: affected.roster.officer.receipt, portraitAnchor: true, direction: radial }
       - { slot: screen, partId: screen.yv.ultimate }
   - key: tsukuyomi.ultimate
     slots:
@@ -681,14 +871,14 @@ skills:
       - { slot: screen, partId: screen.yv.ultimate }
   - key: napoleon.reload
     slots:
-      - { slot: cast, partId: cast.class.caster, bodyColor: D9AD62EF, coreColor: F5E6C4FF, direction: radial }
-      - { slot: affected, partId: hit.support.buff, bodyColor: CBA055E6, coreColor: F5E6C4FF, portraitAnchor: true, direction: radial }
+      - { slot: cast, partId: cast.roster.command, bodyColor: D9AD62EF, coreColor: F5E6C4FF, direction: radial }
+      - { slot: affected, partId: affected.roster.officer.receive, bodyColor: CBA055E6, coreColor: F5E6C4FF, portraitAnchor: true, direction: radial }
       - { slot: screen, partId: screen.yv.ultimate }
 
   - key: ishtar.barrage
     slots:
-      - { slot: cast, partId: cast.class.archer, bodyColor: A4CEA2FF, coreColor: F4F8DFFF, scale: 0.82, direction: casterToTarget }
-      - { slot: hit, partId: hit.kubera.coin, bodyColor: A4CEA2FF, coreColor: F4F8DFFF, direction: casterToTarget, portraitAnchor: true, steadyBody: true, timeOffset: 0.18, triggersImpact: true }
+      - { slot: cast, partId: cast.roster.officer, bodyColor: A4CEA2FF, coreColor: F4F8DFFF, scale: 0.82, direction: casterToTarget }
+      - { slot: hit, partId: hit.ishtar.purchased, bodyColor: A4CEA2FF, coreColor: F4F8DFFF, direction: casterToTarget, portraitAnchor: true, steadyBody: true, timeOffset: 0.18, triggersImpact: true }
       - { slot: screen, partId: screen.focus.normal }
 
   - key: orpheus.melody
@@ -712,6 +902,9 @@ classCastBindings:
 
 
 statusBindings:
+  - { statusKey: napoleon_austerlitz, partId: none }
+  - { statusKey: bleed, partId: affected.dot.bleed }
+  - { statusKey: checkpoint48_frailty, partId: affected.debuff.fall }
   - { statusKey: yama_death_verdict, partId: affected.yama.verdict }
   - { statusKey: anubis_book_of_the_dead, partId: none }
   - { statusKey: kubera_treasury, partId: hit.support.buff.ink }

@@ -33,6 +33,32 @@ namespace Effects.Vfx
             ActionScheduler.AnyActionFinished += OnActionFinished;
         }
 
+        internal static bool PurchasedSkill(string key,Unit caster)
+            => caster!=null&&((caster.ID==61&&key is "yama.normal" or "yama.ultimate" or "yama.special")||
+                (caster.ID==66&&key is "varuna.normal" or "varuna.ultimate" or "varuna.special"));
+
+        internal static void PurchasedLead(Unit caster,Unit target)
+            => PurchasedRosterStrokeFx.Play(caster,target,caster.ID==61?
+                PurchasedRosterStrokeFx.Kind.Descent:PurchasedRosterStrokeFx.Kind.Tide);
+
+        internal static bool PurchasedStatus(VfxPartData part,Unit caster,Unit target)
+        {
+            if(caster==null)return false;
+            if(caster.ID==66&&part.id=="affected.varuna.shield")
+            {
+                PurchasedSupportThreadsFx.Play(caster,target,PurchasedSupportThreadsFx.Kind.Ward);
+                return true;
+            }
+            if(caster.ID!=61)return false;
+            if(part.id=="affected.yama.detonation"||part.id=="affected.yama.verdict")
+            {
+                PurchasedRosterStrokeFx.Play(caster,target,part.id=="affected.yama.detonation"?
+                    PurchasedRosterStrokeFx.Kind.Detonation:PurchasedRosterStrokeFx.Kind.Verdict);
+                return true;
+            }
+            return false;
+        }
+
         public static IDisposable Observe(string key, Unit caster)
             => caster != null && (key.StartsWith("yama.") || key.StartsWith("varuna.")) ? new YamaVarunaFx(key, caster) : null;
 

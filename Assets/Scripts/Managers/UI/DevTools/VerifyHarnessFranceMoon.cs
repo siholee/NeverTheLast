@@ -103,20 +103,29 @@ namespace Managers.UI.DevTools
             moon.RemoveShield(moon.ShieldCurr);
             hp = moon.HpCurr;
             int reserve = marie.GetCombatResource(MarieEmergencySupply.Resource);
-            yield return FranceAction(enemy, ActionScheduler.ActionKind.Additional, s => s.EnqueueAdditional(enemy, "hurt_ally", "치유 트리거", () =>
-                moon.TakeDamage(new DamageContext(enemy, 100, BaseEnums.CodeType.Effect, new List<int>()))));
+            // 기본 fixture의 아군 무적을 이 피격에만 해제한다. 긴급지원은 실제 HP 피해가 있어야 예약한다.
+            void HurtMoon()
+            {
+                bool invincible = DebugMode.AllyInvincible;
+                try { DebugMode.AllyInvincible = false; moon.TakeDamage(new DamageContext(enemy, 100, BaseEnums.CodeType.Effect, new List<int>())); }
+                finally { DebugMode.AllyInvincible = invincible; }
+            }
+            yield return FranceAction(enemy, ActionScheduler.ActionKind.Additional, s => s.EnqueueAdditional(enemy, "hurt_ally", "치유 트리거", HurtMoon));
             YvCheck("마리 긴급지원 우선 치유", "중첩 1 소모 / HP 증가", $"중첩 {reserve}→{marie.GetCombatResource(MarieEmergencySupply.Resource)} / HP {hp}→{moon.HpCurr}",
                 marie.GetCombatResource(MarieEmergencySupply.Resource) == reserve - 1 && moon.HpCurr > hp);
             moon.ModifyHp(moon.HpMax / 4);
             moon.RemoveShield(moon.ShieldCurr);
+            marie.AddCombatResource(MarieEmergencySupply.Resource, 1); // 반환 검사도 실제 예약 예산으로 시작한다.
             reserve = marie.GetCombatResource(MarieEmergencySupply.Resource);
+            bool supportReserved = false;
             yield return FranceAction(enemy, ActionScheduler.ActionKind.Additional, s => s.EnqueueAdditional(enemy, "cancel_heal", "예약 후 회복", () =>
             {
-                moon.TakeDamage(new DamageContext(enemy, 100, BaseEnums.CodeType.Effect, new List<int>()));
+                HurtMoon();
+                supportReserved = marie.GetCombatResource(MarieEmergencySupply.Resource) == reserve - 1;
                 moon.Heal(moon.HpMax, moon);
             }));
             YvCheck("마리 조건 해소 중첩 반환", reserve.ToString(), marie.GetCombatResource(MarieEmergencySupply.Resource).ToString(),
-                marie.GetCombatResource(MarieEmergencySupply.Resource) == reserve);
+                supportReserved && marie.GetCombatResource(MarieEmergencySupply.Resource) == reserve);
 
             foreach (Unit target in AliveEnemies()) foreach (var st in target.GetAllStatuses().Where(x => x.NormalActionDuration).ToArray()) target.RemoveStatusByKey(st.Key);
             ActionDot.Apply(moon, enemy, ActionDotKind.Curse, inheritedHit: true);
@@ -179,13 +188,13 @@ namespace Managers.UI.DevTools
             int plain = Probe(false), baseDot = Probe(true);
             moon.TryGrantRewardCode(617); YvCode(moon, 617)?.CastCode();
             int plague = Probe(true);
-            YvCheck("617 지속피해 보상 1회 적용", "DoT ×1.15", plague.ToString(), Mathf.Abs(plague - baseDot * 1.15f) <= 2);
+            YvCheck("617 지속피해 보상 1회 적용", "DoT ×1.30", plague.ToString(), Mathf.Abs(plague - baseDot * 1.30f) <= 2);
             int instant = Probe(false);
             YvCheck("617 즉발 피해는 제외", plain.ToString(), instant.ToString(), instant == plain);
             moon.RemoveRewardCode(617);
             moon.TryGrantRewardCode(811); YvCode(moon, 811)?.CastCode();
             int pact = Probe(true);
-            YvCheck("811 지속피해 보상 1회 적용", "DoT ×1.35", pact.ToString(), Mathf.Abs(pact - baseDot * 1.35f) <= 2);
+            YvCheck("811 지속피해 보상 1회 적용", "DoT ×1.60", pact.ToString(), Mathf.Abs(pact - baseDot * 1.60f) <= 2);
             instant = Probe(false);
             YvCheck("811 즉발 피해는 제외", plain.ToString(), instant.ToString(), instant == plain);
             foreach (var status in enemy.GetAllStatuses().Where(x => x.NormalActionDuration).ToArray()) enemy.RemoveStatusByKey(status.Key);

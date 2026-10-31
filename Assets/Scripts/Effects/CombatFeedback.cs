@@ -56,7 +56,13 @@ namespace Effects
 
             CombatNumberKind kind = hpLost > 0 ? CombatNumberKind.Damage : CombatNumberKind.Shielded;
             DamagePopup.Show(target, total, crit, accent, kind, weight,
-                context?.HasTag(DamageTag.CounterAttack)==true);
+                context?.HasTag(DamageTag.CounterAttack)==true,
+                context!=null&&context.CodeType!=BaseEnums.CodeType.Effect&&!context.IsDamageOverTime&&
+                !context.IsSharedDamage&&!context.IsDistributed&&!context.HasTag(DamageTag.BonusDamage)&&
+                !context.HasTag(DamageTag.ElementalReaction)&&Managers.GameManager.Instance?.ActionScheduler?.ExecutingUnit!=null
+                    ? Managers.GameManager.Instance.ActionScheduler.CurrentActionId : -1);
+
+            Vfx.RosterImpactDetailFx.Play(target,context,weight);
 
             // 지속피해는 때린 사람이 없다. 카드까지 흔들면 매 턴 전장이 들썩인다.
             bool overTime = context?.CodeType == BaseEnums.CodeType.Effect;
@@ -156,6 +162,10 @@ namespace Effects
 
         private static HitStop _instance;
 
+        /// <summary>모달이 복구할 배속. 타격 연출의 순간적인 0.04배속은 저장하지 않는다.</summary>
+        public static float PlaybackScale => _instance != null && _instance._remaining > 0f &&
+            Mathf.Approximately(Time.timeScale, _instance._frozenScale) ? _instance._baseScale : Time.timeScale;
+
         private float _remaining;
         private float _baseScale = 1f;
         private float _frozenScale;
@@ -176,6 +186,7 @@ namespace Effects
 
         private void Begin(float seconds)
         {
+            if (Time.timeScale <= 0f) return;
             if (Time.unscaledTime - _lastStop < MinInterval) return;
             _lastStop = Time.unscaledTime;
 

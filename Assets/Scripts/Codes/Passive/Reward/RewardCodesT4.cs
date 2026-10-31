@@ -9,6 +9,7 @@ using Entities;
 using Entities.Status;
 using Managers;
 using UnityEngine;
+using Random = Combat.CombatRandom;
 
 namespace Codes.Passive.Reward
 {
@@ -86,6 +87,7 @@ namespace Codes.Passive.Reward
     /// </summary>
     public sealed class AllDayLongCode : RewardPassiveCode
     {
+        public override int BaseShieldAmount => StatDamage(0, BaseEnums.StatType.Defense, .60f);
         private const float HealRatio = 0.15f;
         private readonly TurnCooldown _shieldCooldown = new(1);
         private bool _capturing;
@@ -213,7 +215,7 @@ namespace Codes.Passive.Reward
             _executing = true;
             // 처형으로 죽은 대상은 즉시 비활성화되므로 같은 행동의 다음 타격이 두 번 처형하지 않는다.
             target.TakeDamage(new DamageContext(Caster, target.HpCurr + target.ShieldCurr, BaseEnums.CodeType.Passive,
-                new List<int> { DamageTag.SingleTarget, DamageTag.PassiveAttack, DamageTag.TrueDamage, DamageTag.ShieldPenetration }));
+                new List<int> { DamageTag.SingleTarget, DamageTag.PassiveAttack, DamageTag.TrueDamage, DamageTag.ShieldPenetration }) { IsExecution = true });
             _executing = false;
         }
     }
@@ -402,12 +404,12 @@ namespace Codes.Passive.Reward
     }
 
     /// <summary>
-    /// 811 죽음의 계약 — 자신이 부여하는 지속피해 +35%, 지속 +1턴(역병의 저주의 상위).
+    /// 811 죽음의 계약 — 자신이 부여하는 지속피해 +60%, 지속 +1턴(역병의 저주의 상위).
     /// 지속 가산은 상태가 붙기 전에 물으므로, 아직 효과 객체가 없는 ID 효과(1001 · 1002)도 지속피해로 읽는다.
     /// </summary>
     public sealed class DeathPactCode : RewardPassiveCode
     {
-        private const float DotBonus = 1.35f;
+        private const float DotBonus = 1.60f;
 
         public DeathPactCode(PassiveCodeContext context) : base(context, 811) { }
 
@@ -503,7 +505,7 @@ namespace Codes.Passive.Reward
             foreach (Unit enemy in survivors)
             {
                 if (!enemy.isActive || enemy.HpCurr <= 0) continue;
-                enemy.TakeDamage(new DamageContext(Caster, each, BaseEnums.CodeType.Effect, new List<int>()));
+                enemy.TakeDamage(new DamageContext(Caster, each, BaseEnums.CodeType.Effect, new List<int>()) { IsDistributed = true });
             }
         }
     }

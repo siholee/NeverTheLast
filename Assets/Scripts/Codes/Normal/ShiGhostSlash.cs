@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using BaseClasses;
@@ -16,7 +16,7 @@ namespace Codes.Normal
     {
         public override int AttackForm => DamageTag.Slash;
 
-        public const float AttackRatio = 2.5f;
+        public const float AttackRatio = 3f;
 
         public enum SpecialSource
         {
@@ -84,6 +84,7 @@ namespace Codes.Normal
             bool crit = RollCritical(target, out float multiplier);
             int damage = Mathf.Max(1, Mathf.RoundToInt(BaseDamage(target) * multiplier));
             var context = new DamageContext(Caster, damage, codeType, tags, crit);
+            context.IsExecution = source == SpecialSource.Trait;
             // 지휘 중이면 원시 피해는 그대로 두고 표지 · 최종 배율만 컨텍스트에 붙인다.
             StampCommand(context);
             Caster.StartCoroutine(CardMotion.Channel(Caster, 0.08f, 0.22f, 0.12f));

@@ -48,7 +48,7 @@ namespace Codes.Normal
             yield return SummonAuthorsFx.Prayer(Caster, false);
             if (Caster == null || !Caster.isActive || Caster.isControlled) { StopCode(); yield break; }
             foreach (var ally in SummonSupportCombat.Allies(Caster, true).ToList())
-                ally.Heal(Mathf.RoundToInt(Caster.HpMax * .05f), Caster);
+                ally.Heal(Mathf.RoundToInt(Caster.HpMax * .24f), Caster);
             AudioManager.PlayAction(Caster, SfxActionSlot.Normal, SfxCuePhase.Hit, CodeName);
             Caster.Invoke(BaseEnums.UnitEventType.OnNormalActionResolved, new EventContext(Caster));
             Caster.isCasting = false;
@@ -72,7 +72,7 @@ namespace Codes.Normal
             yield return SummonAuthorsFx.Prayer(Caster, false);
             if (!HasValidTarget() || Caster.isControlled) { StopCode(); yield break; }
             var target = SummonSupportCombat.Allies(owner, true).OrderBy(x => x.HpCurr / (float)Mathf.Max(1, x.HpMax)).FirstOrDefault();
-            target?.Heal(Mathf.RoundToInt(owner.HpMax * .03f), owner);
+            target?.Heal(Mathf.RoundToInt(owner.HpMax * .20f), owner);
             AudioManager.PlayCue("thoth.scribe.hit");
             Caster.Invoke(BaseEnums.UnitEventType.OnNormalActionResolved, new EventContext(Caster));
             Caster.isCasting = false;

@@ -19,21 +19,23 @@ namespace Managers.UI.HUD
     public class BattleHud : MonoBehaviour
     {
         /// <summary>배속 단계. 버튼을 누를 때마다 순환한다.</summary>
-        private static readonly float[] SpeedSteps = { 1f, 2f, 4f };
+        private static readonly float[] SpeedSteps = { 1f, 2f, 3f, 4f, 5f };
 
         /// <summary>
         /// 화면에 보이는 배속에 곱해지는 기준 시간 배율.
         ///
-        /// 예전 1배속이 눈으로 따라가기 어려울 만큼 빨랐다. 기준을 절반으로 낮춰
-        /// <b>2배속이 예전 1배속과 같은 속도</b>가 되도록 맞췄다.
+        /// 0.5.3의 1배속은 0.5.2의 2배속과 같은 실제 전투 속도다.
         /// </summary>
-        private const float BaseTimeScale = 0.5f;
+        private const float BaseTimeScale = 1f;
 
         /// <summary>
-        /// 플레이어에게 보이는 배속. 실제 <see cref="Time.timeScale"/>은 연출 기준 배율 때문에 절반이지만,
+        /// 플레이어에게 보이는 배속. 실제 <see cref="Time.timeScale"/>에도 같은 배율을 적용하며,
         /// 상단 버튼·F1 패널·디버그 배너는 모두 이 값을 한 원천으로 표시한다.
         /// </summary>
         public static float CurrentSpeedMultiplier { get; private set; } = 1f;
+
+        /// <summary>기존 연출·음향의 0.5배 기준 보정을 유지한다. 새 1배의 표시 수명도 기존 2배와 같다.</summary>
+        public static float EffectSpeedMultiplier => CurrentSpeedMultiplier * 2f;
 
         private TopStatusBar _topBar;
         private FeatureEnemyBanner _featureBanner;
@@ -42,7 +44,6 @@ namespace Managers.UI.HUD
         private DamageMeterPanel _damageMeter;
         private CodexScreen _codex;
 
-        private TextMeshProUGUI _lifeLabel;
         private TextMeshProUGUI _goldLabel;
         private TextMeshProUGUI _phaseLabel;
         private TreasuryPointStrip _treasury;
@@ -100,33 +101,24 @@ namespace Managers.UI.HUD
             Time.timeScale = 1f;
         }
 
-        /// <summary>상단 중앙의 생명력/골드/단계 표시.</summary>
+        /// <summary>상단 중앙의 골드·전투 상태 표시.</summary>
         private void BuildResourceStrip(Transform parent)
         {
             // 상단 바는 한 장이어야 한다. 자원은 별도 유리 카드를 만들지 않고 헤더 레일에 직접 얹는다.
             RectTransform strip = (RectTransform)parent;
-            Image heart = UIBuild.Icon("LifeIcon", strip.transform, UIIcon.Heart, UITheme.TextPrimary);
-            UIBuild.Pin(heart.rectTransform, new Vector2(0.035f, 0.5f), new Vector2(28,28), Vector2.zero);
             Image coin = UIBuild.Icon("GoldIcon", strip.transform, UIIcon.Coin, UITheme.TextPrimary);
-            UIBuild.Pin(coin.rectTransform, new Vector2(0.35f, 0.5f), new Vector2(28,28), Vector2.zero);
-            _lifeLabel = UIBuild.Text("Life", strip.transform, "20", 24,
-                UITheme.TextPrimary, TextAlignmentOptions.Center);
-            UIBuild.Anchor(_lifeLabel.rectTransform, new Vector2(0.08f, 0f), new Vector2(0.30f, 1f), 8f, 0f);
-
-            UIBuild.Divider("Div1", strip.transform).rectTransform.pivot = new Vector2(0.5f, 0.5f);
-            Image div1 = strip.transform.Find("Div1").GetComponent<Image>();
-            UIBuild.Pin(div1.rectTransform, new Vector2(0.30f, 0.5f), new Vector2(1f, 28f), Vector2.zero);
+            UIBuild.Pin(coin.rectTransform, new Vector2(0.06f, 0.5f), new Vector2(28,28), Vector2.zero);
 
             _goldLabel = UIBuild.Text("Gold", strip.transform, "0", 24,
                 UITheme.TextPrimary, TextAlignmentOptions.Center);
-            UIBuild.Anchor(_goldLabel.rectTransform, new Vector2(0.39f, 0f), new Vector2(0.60f, 1f), 8f, 0f);
+            UIBuild.Anchor(_goldLabel.rectTransform, new Vector2(0.12f, 0f), new Vector2(0.50f, 1f), 8f, 0f);
 
             Image div2 = UIBuild.Divider("Div2", strip.transform);
-            UIBuild.Pin(div2.rectTransform, new Vector2(0.60f, 0.5f), new Vector2(1f, 28f), Vector2.zero);
+            UIBuild.Pin(div2.rectTransform, new Vector2(0.52f, 0.5f), new Vector2(1f, 28f), Vector2.zero);
 
             _phaseLabel = UIBuild.Text("Phase", strip.transform, "", UITheme.FontBody,
                 UITheme.TextSecondary, TextAlignmentOptions.Center);
-            UIBuild.Anchor(_phaseLabel.rectTransform, new Vector2(0.60f, 0f), new Vector2(1f, 1f), 8f, 0f);
+            UIBuild.Anchor(_phaseLabel.rectTransform, new Vector2(0.55f, 0f), new Vector2(1f, 1f), 8f, 0f);
         }
 
         private BaseEnums.GameState? _shownPhase;
@@ -164,14 +156,6 @@ namespace Managers.UI.HUD
         }
 
         // ── 외부(UIManager)에서 호출하는 갱신 ────────────────────────
-
-        public void SetLife(int life)
-        {
-            if (_lifeLabel == null) return;
-            _lifeLabel.text = $"{life}";
-            // 상단 생명 숫자는 다른 탐색 정보와 같은 군청색을 쓴다.
-            _lifeLabel.color = UITheme.TextPrimary;
-        }
 
         public void SetGold(int gold)
         {

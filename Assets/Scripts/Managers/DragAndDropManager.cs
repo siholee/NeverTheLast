@@ -284,7 +284,7 @@ namespace Managers
             bool isNegativeXField = targetCell.xPos < 0;
             bool isBenchCell = IsBenchCell(targetCell);
             
-            return isNegativeXField || isBenchCell;
+            return (isNegativeXField || isBenchCell) && GridManager.Instance.CanRelocateAlly(draggedUnit, targetCell);
         }
         
         private bool IsBenchCell(Cell cell)

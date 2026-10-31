@@ -1,0 +1,33 @@
+{
+  "newImageGenerationCalls": 5,
+  "retries": 0,
+  "master": "Docs/Mockups/VisualSD/sd_motion_quartet_v1/SEI/master.png",
+  "normalization": "normalization.json",
+  "sources": [
+    {
+      "name": "IDLE",
+      "source": "keys/idle_original.png",
+      "prompt": "keys/idle_prompt.txt"
+    },
+    {
+      "name": "PREPARE",
+      "source": "keys/prepare_original.png",
+      "prompt": "keys/prepare_prompt.txt"
+    },
+    {
+      "name": "APEX",
+      "source": "keys/apex_original.png",
+      "prompt": "keys/apex_prompt.txt"
+    },
+    {
+      "name": "HIT",
+      "source": "keys/hit_original.png",
+      "prompt": "keys/hit_prompt.txt"
+    },
+    {
+      "name": "DEATH",
+      "source": "keys/death_original.png",
+      "prompt": "keys/death_prompt.txt"
+    }
+  ]
+}

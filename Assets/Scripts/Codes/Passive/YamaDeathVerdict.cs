@@ -15,7 +15,7 @@ namespace Codes.Passive
 {
     /// <summary>
     /// 야마 — 특성 「죽음의 선고」(Detail_08 §15.2). 야마가 살아서 전장에 있는 동안, 감전 상태의 적은 같은 진영 아군에게
-    /// 받는 모든 피해가 +20%다. 감전의 출처 · 개수와 무관하게 선고는 하나이고, 감전이 없어지면 효력도 즉시 사라진다.
+    /// 받는 모든 피해가 +30%다. 감전의 출처 · 개수와 무관하게 선고는 하나이고, 감전이 없어지면 효력도 즉시 사라진다.
     ///
     /// 선고는 <b>감전에서 파생된 해로운 상태</b>다. 디버프로 세므로 사바흐의 빈틈 포착 · 해로운 상태 이벤트가 그대로 읽는다.
     /// 다만 원본 감전이 이미 효과 명중 · 상태 저항을 거쳤으므로 선고 자체는 어느 쪽도 다시 굴리지 않는다.
@@ -29,7 +29,7 @@ namespace Codes.Passive
     {
         public const int MarkStatusId = 70610;
         public const string MarkKey = "yama_death_verdict";
-        public const float DamageMultiplier = 1.20f;
+        public const float DamageMultiplier = 1.30f;
 
         private bool _subscribed;
         private Action<EventContext> _cleanupHandler;
@@ -38,7 +38,7 @@ namespace Codes.Passive
 
         // ── 즉시 발동 비율 (Detail_08 §15.3) ──
 
-        /// <summary>q = clamp01(현재 특수공격력 / (현재 특수공격력 + K) × 현재 속도 / 100), K = 100 + 6 × (레벨 − 1).</summary>
+        /// <summary>q = clamp(2.5 × 현재 특수공격력 / (현재 특수공격력 + K) × 현재 속도 / 100, 0, 3), K = 100 + 6 × (레벨 − 1).</summary>
         public static float DetonationRatio(Unit yama)
         {
             if (yama == null) return 0f;
@@ -47,14 +47,14 @@ namespace Codes.Passive
             float constant = UnitStats.ArmorConstant(yama.Level);
             float denominator = specialAttack + constant;
             if (denominator <= 0f) return 0f;
-            return Mathf.Clamp01(specialAttack / denominator * speed / 100f);
+            return Mathf.Clamp(2.5f * specialAttack / denominator * speed / 100f, 0f, 3f);
         }
 
         /// <summary>일반행동 발동 비율 q.</summary>
         public static float NormalRatio(Unit yama) => DetonationRatio(yama);
 
-        /// <summary>초월기 발동 비율 min(1, 1.5q).</summary>
-        public static float UltimateRatio(Unit yama) => Mathf.Min(1f, 1.5f * DetonationRatio(yama));
+        /// <summary>초월기 발동 비율 min(5, 2q).</summary>
+        public static float UltimateRatio(Unit yama) => Mathf.Min(Combat.DamageOverTimeDetonation.MaxRatio, 2f * DetonationRatio(yama));
 
         // ── 감전 판정 ──
 
@@ -120,7 +120,7 @@ namespace Codes.Passive
                     new DeathVerdictEffect(Caster), duration: 0,
                     stackPolicy: BaseEnums.StatusStackPolicy.Ignore,
                     category: BaseEnums.StatusCategory.Negative,
-                    description: "감전에서 비롯된 해로운 상태: 야마의 아군에게 받는 모든 피해 +20%. " +
+                    description: "감전에서 비롯된 해로운 상태: 야마의 아군에게 받는 모든 피해 +30%. " +
                                  "감전이 모두 사라지면 함께 사라지고, 감전이 남아 있으면 선고만 지워도 다시 붙습니다.");
                 // 원본 감전이 이미 명중 · 저항을 거쳤다. 파생 오라가 두 번째 관문이 되지 않게 둘 다 건너뛴다.
                 verdict.SkipEffectHitRoll = true;
@@ -150,7 +150,7 @@ namespace Codes.Passive
             return (Caster.IsEnemy ? grid.heroList : grid.enemyList).Where(unit => unit != null && unit.isActive).ToList();
         }
 
-        /// <summary>선고의 효과. 같은 진영 아군의 피해에만 ×1.2이고, 감전 · 야마 생존을 질의 시점에 다시 본다.</summary>
+        /// <summary>선고의 효과. 같은 진영 아군의 피해에만 ×1.3이고, 감전 · 야마 생존을 질의 시점에 다시 본다.</summary>
         private sealed class DeathVerdictEffect : BaseEffect
         {
             private readonly Unit _yama;

@@ -3,7 +3,7 @@
 > **3계층 문서.** 8스탯 모델, 레벨·성장, 기본 코드 3분류와 선택형 특수행동, 집중, 캐릭터 데이터 스키마.
 > 개념 정의는 [서브 기획서](GDD_Sub_Concepts.md) 3장을 본다.
 
-최종 갱신: **2026-10-14**
+최종 갱신: **2026-10-30**
 관련 코드: `Unit.cs`, `UnitStats.cs`, `CombatantData.cs`, `Code.cs`, `CodeFactory.cs`, `Combat/Concentration.cs`, `Combat/Summons.cs`
 관련 데이터: `10_units.yaml`, `20_codes.yaml`, `60_enemies.yaml`
 
@@ -25,7 +25,7 @@
 | **치명타 확률** | `CritRate` | 0~1로 자른다 |
 | **치명타 피해** | `CritDamage` | 치명타 배율 = `1 + 치명타 피해` |
 
-**피해의 계수는 코드마다 정한다.** 대부분 공격력이고, 극소수가 방어력이나 최대 체력을 쓴다
+**피해의 계수는 코드마다 정한다.** 대부분 공격력이고, 사바흐·가우디와 히미코의 맹화 폭발은 특공, 일부는 방어력이나 최대 체력을 쓴다
 (세이는 방어력 계수 — [Detail_08](Detail_08_Confirmed_Characters.md)). 어느 스탯을 계수로 쓰든 **경감은 방어 규칙 하나**를 탄다 — [Detail_02 §3](Detail_02_Combat.md).
 
 ### 1.1 성장 — 롤식 선형
@@ -116,7 +116,7 @@
 
 | 항목 | 규칙 | 구현 |
 | --- | --- | --- |
-| 저장 | 유닛마다 `키 → (정수 · 소수 몫)` 목록으로 저장한다. 현행 **v15**에서 보존하며 v12~v14 이관 지원 | `UnitSaveData.permanentStacks`(`PermanentStackSaveData` key · value · fraction), `Unit.WriteRunState` / `RestoreRunState` |
+| 저장 | 유닛마다 `키 → (정수 · 소수 몫)` 목록으로 저장한다. 현행 **v17**에서 보존하며 v12~v16 이관 지원 | `UnitSaveData.permanentStacks`(`PermanentStackSaveData` key · value · fraction), `Unit.WriteRunState` / `RestoreRunState` |
 | 획득 | **`Unit.GainPermanentStacks(key, amount)`가 유일한 입구**다. `amount`는 소수일 수 있다(아누비스: 소환수 0.25). 이 한 곳이 획득량 배율을 곱한다 | `Unit.cs`. 읽기는 `GetPermanentStacks` · `GetPermanentStackFraction`, 디버그 · 복원용 `SetPermanentStacks` |
 | 보정 | 보유자의 활성 코드가 `PassiveCode.PermanentStackGainMultiplier(key)`로 배율을 낸다. 모두 곱한다. 축적의 촉진(×1.5)은 상위 겹겹이 쌓인 운명(×2)을 받으면 사라지므로 둘이 겹치지 않는다 | `Codes/Passive/Reward/RewardCodesT3.cs` `MultiStackCode`, `RewardCodesT4.cs` `LayeredFateCode` |
 | 소수 | 키마다 소수 몫(0 ≤ x < 1)을 함께 저장하고, 합이 1이 될 때마다 정수 중첩으로 옮긴다. 억제 상한 대신 **획득량 자체를 낮춰** 가속 폭을 정한다. 부동소수 오차(0.25 × 4)로 한 칸을 놓치지 않게 아주 작은 여유를 둔다 | `Unit.GainPermanentStacks` |
@@ -236,7 +236,7 @@ ID 규칙은 [Detail_11 §1](Detail_11_Code_Catalog.md).
 판정은 `CharacterSelectionManager.IsUnlocked` 한 곳이다. 해금한 캐릭터는 누구나 무한 모드 편성(1~5명)에 오른다.
 **해금 코드(레벨로 열리는 패시브)는 어떤 유닛에도 없다.** 선택형 특수행동은 레벨 해금이 아니라 고유 트리거 슬롯이다.
 
-현재 로스터는 **세이 · 시 · 사바흐 · 잔 · 피그말리온 · 히미코 · 찬드라 · 인드라 · 바유 · 쿠베라 · 바스테트 · 아누비스 · 우치 · 야마 · 바루나 · 아그니 · 수리야 열일곱 명**(모두 Unlocked)이다 — [Detail_08](Detail_08_Confirmed_Characters.md).
+현재 로스터·해금 상태는 `10_units.yaml`과 [Detail_08](Detail_08_Confirmed_Characters.md)를 따른다. 가우디는 기존 ID4를 복원하고 사바흐는 특공 특수피해로 운용한다.
 
 ### 5.1 전투 성향 UI 태그 (`archetypeTags`)
 
@@ -302,7 +302,7 @@ ID 규칙은 [Detail_11 §1](Detail_11_Code_Catalog.md).
 | --- | --- | --- |
 | 1~19 | 아카샤 | 1 세이 · 2 시 · 3 사바흐 · 7 잔 · 10 셰익스피어 |
 | 20~39 | 그리스 | 20 피그말리온 · 22 오리온 · 25 오르페우스 |
-| 40~59 | 다카마가하라 | 44 히미코 · 45 츠쿠요미 |
+| 40~59 | 다카마가하라 | 40 아마테라스 · 44 히미코 · 45 츠쿠요미 |
 | 60~79 | 베다 | 60 찬드라 · 61 야마 · 62 아그니 · 63 인드라 · 64 바유 · 65 쿠베라 · 66 바루나 · 67 수리야 |
 | 80~99 | 노르드 | 80 로키 · 81 수르트 · 82 프레이아 · 83 스카디 |
 | 100~119 | 로마 | — |
@@ -313,7 +313,7 @@ ID 규칙은 [Detail_11 §1](Detail_11_Code_Catalog.md).
 | 200~219 | 말리 | 200 만사 무사 |
 | 220~239 | 메소포타미아 | 220 이슈타르 |
 
-> **ID는 저장 호환을 위해 보존한다.** 현행 저장은 v15이며 v12~v14를 이관한다.
+> **ID는 저장 호환을 위해 보존한다.** 현행 저장은 v17이며 v12~v16을 이관한다.
 > 소환수 정의 ID는 아군 유닛 ID와 겹치지 않게 900번대를 쓴다(우치 분신 901) — §4.7.
 
 
@@ -325,18 +325,18 @@ ID 규칙은 [Detail_11 §1](Detail_11_Code_Catalog.md).
 
 유닛당 **활성 7칸**과 개수 제한 없는 코드 보관함을 둔다. 보관 코드는 패시브 인스턴스·스탯·전투·정산 효과를 내지 않는다.
 준비 중 무료 드래그로 활성/보관 및 아군 간 교환한다. 동일 코드·상하위 동시 활성은 금지한다. 장비·중량은 없다.
-상세 획득·교환·인장·저장 v15 규칙은 [Detail_17 §2](Detail_17_Reward_Codes.md)를 따른다.
+상세 획득·교환·인장·저장 v17 규칙은 [Detail_17 §2](Detail_17_Reward_Codes.md)를 따른다.
 
-최종 갱신: **2026-10-14**
+최종 갱신: **2026-10-18**
 
 ### 코드 인스턴스와 넥타르 (2026-10-08)
 
-축전기 충전값은 유닛 영구 중첩 키 대신 코드 한 장의 `RewardCodeInstanceData`에 저장한다. 활성 코드만 고정 스탯을 주고, 이동·보관·승급·저장·복원에 인스턴스가 따라간다. 넥타르는 유닛별 `nectarStats`에 런 영구 고정 보정으로 저장한다. 저장은 v15이며 기존 v12~v14도 이관한다. 상세 수치는 [Detail_17](Detail_17_Reward_Codes.md)의 넥타르·축전기 표를 따른다.
+축전기 충전값은 유닛 영구 중첩 키 대신 코드 한 장의 `RewardCodeInstanceData`에 저장한다. 활성 코드만 고정 스탯을 주고, 이동·보관·승급·저장·복원에 인스턴스가 따라간다. 넥타르는 유닛별 `nectarStats`에 런 영구 고정 보정으로 저장한다. 저장은 v17이며 기존 v12~v16도 이관한다. 상세 수치는 [Detail_17](Detail_17_Reward_Codes.md)의 넥타르·축전기 표를 따른다.
 
 
 ### 공용 재보 (2026-10-10)
 
-재보는 아군 전용 전투 공유 자원이며 개인 마나·영구 중첩·코드 인스턴스 충전값과 별개다. 쿠베라의 기존ID65를 유지하고 개인 보물8을 마나120으로 변경했다. 재보와 탄창은 전투 종료에 폐기하며 현행 v15 저장/기존 ID를 보존한다. 상세 원본은 [재보 사양 §1](Detail_18_Treasury.md).
+재보는 아군 전용 전투 공유 자원이며 개인 마나·영구 중첩·코드 인스턴스 충전값과 별개다. 쿠베라의 기존ID65를 유지하고 개인 보물8을 마나120으로 변경했다. 재보와 탄창은 전투 종료에 폐기하며 현행 v17 저장/기존 ID를 보존한다. 상세 원본은 [재보 사양 §1](Detail_18_Treasury.md).
 
 ### 특수공격력의 강인도 활용 2026-10-12
 

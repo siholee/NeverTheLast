@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Managers;
+using Managers.Stage;
 using Managers.UI.Core;
 using Managers.UI.Theme;
 using UnityEngine;
@@ -30,6 +31,8 @@ namespace Effects
         private static Rect _boardArea;
         private static bool _hasBoard;
         private static readonly List<Vector2> SlotPositions = new();
+        private readonly List<Sprite> _generatedSprites = new();
+        private readonly List<SpriteRenderer> _generatedLayers = new();
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         private static string _verificationOverridePath;
         private static Sprite _verificationOverrideSprite;
@@ -70,6 +73,7 @@ namespace Effects
         private SpriteRenderer _environment;
         private SpriteRenderer _environmentPrevious;
         private SpriteRenderer _themeVeil;
+        private SpriteRenderer _stageGrade;
         private SpriteRenderer _divider;
         private SpriteRenderer _focusVignette;
         private SpriteRenderer _focusSpotlight;
@@ -263,8 +267,15 @@ namespace Effects
         private void OnDestroy()
         {
             ResetFocusImmediate();
-            DestroyWorldLayer(_divider);
-            foreach (SpriteRenderer mark in _slotMarks) DestroyWorldLayer(mark);
+            foreach (SpriteRenderer layer in _generatedLayers) DestroyWorldLayer(layer);
+            _generatedLayers.Clear();
+            foreach (Sprite sprite in _generatedSprites)
+            {
+                if (sprite == null) continue;
+                if (sprite.texture != null) Destroy(sprite.texture);
+                Destroy(sprite);
+            }
+            _generatedSprites.Clear();
         }
 
         private static void DestroyWorldLayer(SpriteRenderer renderer)
@@ -280,6 +291,7 @@ namespace Effects
             renderer.sprite = sprite;
             renderer.sortingLayerID = SortingLayer.layers[0].id;
             renderer.sortingOrder = order;
+            _generatedLayers.Add(renderer);
             return renderer;
         }
 
@@ -294,6 +306,20 @@ namespace Effects
             Cover(_environment, halfWidth * 2f, halfHeight * 2f, 20f);
             Cover(_environmentPrevious, halfWidth * 2f, halfHeight * 2f, 20f);
             Stretch(_themeVeil, halfWidth * 2f, halfHeight * 2f, Vector2.zero, 19.9f);
+            bool stage = VisualModeState.Current == VisualMode.Stage;
+            if (stage && GetComponent<StageRowBands>() == null) gameObject.AddComponent<StageRowBands>();
+            _themeVeil.enabled = !stage;
+            if (stage && _stageGrade == null)
+                _stageGrade = NewLayer("StageGrade", StageGradeMask(), BackdropSortingOrder + 1, transform);
+            if (_stageGrade != null)
+            {
+                _stageGrade.enabled = stage;
+                if (stage)
+                {
+                    Stretch(_stageGrade, halfWidth * 2f, halfHeight * 2f, Vector2.zero, 19.9f);
+                    _stageGrade.transform.localPosition = new Vector3(0f, 0f, 19.9f);
+                }
+            }
             // 화면 합성 마스크는 카메라 프레이밍과 무관하게 뷰포트보다 크게 다시 맞춘다.
             // 런타임 스프라이트의 투명 페더까지 화면 밖에 두어 비율이 달라도 사각 경계가 들어오지 않는다.
             Cover(_focusVignette, halfWidth * 2f * FocusScreenOverscan,
@@ -405,7 +431,7 @@ namespace Effects
 
         private void PlaceBoardLayers()
         {
-            bool visible = _hasBoard;
+            bool visible = _hasBoard && VisualModeState.Current != VisualMode.Stage;
             _divider.enabled = visible;
             if (!visible)
             {
@@ -574,7 +600,7 @@ namespace Effects
             }
         }
 
-        private static Sprite FormationMark()
+        private Sprite FormationMark()
         {
             const int size = 192;
             var pixels = new Color[size * size];
@@ -599,7 +625,31 @@ namespace Effects
             return Build("formation_slot", pixels, size, size);
         }
 
-        private static Sprite VignetteMask()
+        /// <summary>시안 .grade: 위 14%·아래 26% 먹군청과 화면 가장자리의 타원 비네트.</summary>
+        private Sprite StageGradeMask()
+        {
+            const int width = 512, height = 288;
+            var pixels = new Color[width * height];
+            Color navy = new(14f / 255f, 22f / 255f, 40f / 255f);
+            Color edge = new(20f / 255f, 32f / 255f, 60f / 255f);
+            for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
+            {
+                float u = (x + 0.5f) / width;
+                float v = 1f - (y + 0.5f) / height;
+                float band = v < 0.14f ? 0.28f * (1f - v / 0.14f)
+                    : v > 0.74f ? 0.42f * (v - 0.74f) / 0.26f : 0f;
+                float dx = (u - 0.5f) / 1.2f, dy = (v - 0.62f) / 0.8f;
+                float vignette = 0.22f * Mathf.Clamp01((Mathf.Sqrt(dx * dx + dy * dy) - 0.55f) / 0.45f);
+                float alpha = band + vignette * (1f - band);
+                Color color = alpha > 0f ? (navy * band + edge * (vignette * (1f - band))) / alpha : navy;
+                color.a = alpha;
+                pixels[y * width + x] = color;
+            }
+            return Build("stage_grade", pixels, width, height);
+        }
+
+        private Sprite VignetteMask()
         {
             const int width = 256;
             const int height = 144;
@@ -616,7 +666,7 @@ namespace Effects
             return Build("combat_focus_vignette", pixels, width, height);
         }
 
-        private static Sprite SpotlightMask()
+        private Sprite SpotlightMask()
         {
             const int width = 192;
             const int height = 192;
@@ -646,12 +696,12 @@ namespace Effects
             return t * t * (3f - 2f * t);
         }
 
-        private static Sprite Solid(string name)
+        private Sprite Solid(string name)
         {
             return Build(name, new[] { Color.white }, 1, 1);
         }
 
-        private static Sprite Build(string name, Color[] pixels, int width, int height)
+        private Sprite Build(string name, Color[] pixels, int width, int height)
         {
             var texture = new Texture2D(width, height, TextureFormat.RGBA32, false)
             {
@@ -667,6 +717,7 @@ namespace Effects
                 100f, 0u, SpriteMeshType.FullRect);
             sprite.name = name;
             sprite.hideFlags = HideFlags.HideAndDontSave;
+            _generatedSprites.Add(sprite);
             return sprite;
         }
     }

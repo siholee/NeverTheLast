@@ -17,8 +17,8 @@ namespace Managers.UI.DevTools
             var game = GameManager.Instance;
             var data = game.dataManager.FetchStageThemeDataList();
             var definition = game.dataManager.FetchEnemyDataList().enemies.Single(e => e.id == 3201);
-            RuiCheck("24층 고정 보스 등록", "24층만·3201·패시브 없음", string.Join(",",data.fixedBossStages.Select(x=>x.stage)),
-                data.fixedBossStages.Count == 1 && data.fixedBossStages[0].stage == 24 && data.fixedBossStages[0].bossId == 3201 && definition.CodeId("passive") == 0);
+            RuiCheck("24층 고정 보스 등록", "24층·3201·패시브 없음", string.Join(",",data.fixedBossStages.Select(x=>x.stage)),
+                data.fixedBossStages.Count(x => x.stage == 24 && x.bossId == 3201) == 1 && definition.CodeId("passive") == 0);
             foreach (var theme in data.stageThemes.Where(t => t.enabled))
             {
                 game.DebugResetBattle(); DebugMode.ForcedThemeId = theme.id; game.DebugLoadStage(17);
@@ -80,7 +80,7 @@ namespace Managers.UI.DevTools
                 // 온전한 컨디션을 전제로 하지 않는 검증: 최대 체력의75%로 입장한다.
                 unit.TakeDamage(new BaseClasses.DamageContext(AliveEnemies()[0],Mathf.RoundToInt(unit.HpMax*.25f),CodeType.Effect,new(){BaseClasses.DamageTag.TrueDamage}));
             }
-            var boss=AliveEnemies().Single(); int startingLife=game.life;
+            var boss=AliveEnemies().Single();
             int minimumAllies=party.Count, normals=0, lastBossHp=boss.HpCurr, turns=0; float start=Time.realtimeSinceStartup,deadline=start+180;
             DebugMode.ForcedThemeId=0; DebugMode.SuiteRunning=false; game.StartRound();
             while(game.gameState==GameState.RoundInProgress && Time.realtimeSinceStartup<deadline)
@@ -90,10 +90,10 @@ namespace Managers.UI.DevTools
             }
             DebugMode.SuiteRunning=true;
             bool won=Combat.CombatLog.Current.LastOrDefault(e=>e.Text.StartsWith("전투 종료 — ")).Text?.Contains("전투 종료 — 승리") == true;
-            string actual=$"won={won},reason={Combat.CombatLog.Current.LastOrDefault(e=>e.Text.StartsWith("전투 종료 — ")).Text},life={startingLife}->{game.life},turns={turns}/80,lastBossHp={lastBossHp},seconds={Time.realtimeSinceStartup-start:F1},bossNormal={normals},survivors={AliveAllies().Count},min={minimumAllies},hp={string.Join(",",AliveAllies().Select(u=>$"{u.ID}:L{u.Level}:{u.HpCurr}/{u.HpMax}"))}";
+            string actual=$"won={won},reason={Combat.CombatLog.Current.LastOrDefault(e=>e.Text.StartsWith("전투 종료 — ")).Text},state={game.gameState},turns={turns}/80,lastBossHp={lastBossHp},seconds={Time.realtimeSinceStartup-start:F1},bossNormal={normals},survivors={AliveAllies().Count},min={minimumAllies},hp={string.Join(",",AliveAllies().Select(u=>$"{u.ID}:L{u.Level}:{u.HpCurr}/{u.HpMax}"))}";
             bool noHealer=ResolveLineup(config)=="party5_vedic_trio";
             RuiCheck("24층 "+ResolveLineup(config)+(weak?" 불완전 편성 대조":" 덱 구성 시험"),weak?"회복·탱킹 없는2인 편성은 패배":$"Lv{config.partyLevel}·T1/T2만·75%체력·패배0"+(noHealer?"·최소4인 생존":"·전원 생존"),actual,
-                weak ? !won && game.gameState!=GameState.RoundInProgress : won && game.life==startingLife && minimumAllies>=(noHealer?4:party.Count));
+                weak ? !won && game.gameState!=GameState.RoundInProgress : won && minimumAllies>=(noHealer?4:party.Count));
             yield return CaptureStill("checkpoint24_result_"+ResolveLineup(config));
             if(won)
             {
@@ -101,7 +101,7 @@ namespace Managers.UI.DevTools
                 while(ReleaseResultContinue()==null && Time.realtimeSinceStartup<resultDeadline) yield return null;
                 var button=ReleaseResultContinue(); if(button!=null)button.onClick.Invoke();
                 yield return WaitForState(GameState.RewardSelection,5);
-                RuiCheck("고정 보스 정산", "보상 선택·생명 보존",game.gameState.ToString(),game.gameState==GameState.RewardSelection && game.life==startingLife);
+                RuiCheck("고정 보스 정산", "보상 선택·생명 보존",game.gameState.ToString(),game.gameState==GameState.RewardSelection);
             }
             game.DebugResetBattle(); RuiFinish();
         }
@@ -111,7 +111,6 @@ namespace Managers.UI.DevTools
             _ruiFailures.Clear();
             yield return WaitForGameReady(8);
             // 앞선 패배 대조군의 생명·재화·휴식이 새 런에 섞이지 않게 초기 상태를 명시한다.
-            GameManager.Instance.life=20;
             GameManager.Instance.KillCount=0;
             GameManager.Instance.inventoryManager.Initialize();
             GameManager.Instance.RestorePreparationState(false,GameManager.MaxShortRestCharges,0);
@@ -119,10 +118,12 @@ namespace Managers.UI.DevTools
             yield return PrepareStage(config,1,false,false,false,4);
             var game=GameManager.Instance;
             game.DebugResetBattle(); DebugMode.ForcedThemeId=2; game.DebugLoadStage(1);
+            // 보상 창을 닫아도 같은 검증 배속으로 복귀하게 HUD의 배속 원천을 함께 맞춘다.
+            Managers.UI.HUD.BattleHud.TrySetSpeedMultiplier(Mathf.Max(1f, config.timeScale));
             DebugMode.SuiteRunning=false;
             int battles=0,events=0,prior=0; bool switched=false,passed24=false;
             float deadline=Time.realtimeSinceStartup+900;
-            while(game.RoundManager.Stage<25 && game.life>0 && game.gameState!=GameState.GameOver && Time.realtimeSinceStartup<deadline)
+            while(game.RoundManager.Stage<25 && game.gameState!=GameState.GameOver && Time.realtimeSinceStartup<deadline)
             {
                 if(game.gameState==GameState.Preparation)
                 {
@@ -152,7 +153,7 @@ namespace Managers.UI.DevTools
                         if(game.RoundManager.Stage==24)
                         {
                             passed24=Combat.CombatLog.Current.LastOrDefault(e=>e.Text.StartsWith("전투 종료 — ")).Text?.Contains("전투 종료 — 승리")==true;
-                            RuiCheck("실제 성장·보상으로24층 승리","Lv1 출발·사망0·자연 보상만",$"won={passed24},life={game.life},party={string.Join(",",AliveAllies().Select(u=>$"{u.ID}:Lv{u.Level}:HP{u.HpCurr}/{u.HpMax}:codes{string.Join('/',u.RewardCodeSlots)}"))}",passed24&&game.life==20&&AliveAllies().Count==5);
+                            RuiCheck("실제 성장·보상으로24층 승리","Lv1 출발·사망0·자연 보상만",$"won={passed24},state={game.gameState},party={string.Join(",",AliveAllies().Select(u=>$"{u.ID}:Lv{u.Level}:HP{u.HpCurr}/{u.HpMax}:codes{string.Join('/',u.RewardCodeSlots)}"))}",passed24&&AliveAllies().Count==5);
                         }
                         battles++; button.onClick.Invoke(); yield return WaitUnscaled(.12f);
                     }
@@ -175,8 +176,8 @@ namespace Managers.UI.DevTools
                 }
                 yield return null;
             }
-            RuiCheck("1→24층 실제 완주·노르드 연작","23전투+사건·생명20·25층 노르드 북부",$"floor={game.RoundManager.Stage},theme={game.RoundManager.CurrentThemeId},battles={battles},events={events},life={game.life}",
-                passed24 && game.RoundManager.Stage==25 && game.RoundManager.CurrentThemeId==17 && battles==23 && events>=1 && game.life==20);
+            RuiCheck("1→24층 실제 완주·노르드 연작","23전투+사건·생명20·25층 노르드 북부",$"floor={game.RoundManager.Stage},theme={game.RoundManager.CurrentThemeId},battles={battles},events={events},state={game.gameState}",
+                passed24 && game.RoundManager.Stage==25 && game.RoundManager.CurrentThemeId==17 && battles==23 && events>=1);
             yield return CaptureStill("checkpoint24_natural_finished");
             DebugMode.SuiteRunning=true; DebugMode.ForcedThemeId=0; game.DebugResetBattle(); RuiFinish();
         }

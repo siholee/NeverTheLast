@@ -9,17 +9,24 @@ namespace Codes.Normal
 {
     public sealed class MansaRoyalShield : NormalCode
     {
+        public override int BaseShieldAmount => StatDamage(0, BaseEnums.StatType.Defense, .8f);
         public MansaRoyalShield(NormalCodeContext context) : base(context) { CodeName = "왕실의 방호"; CodeType = BaseEnums.CodeType.Normal; }
         public override bool HasValidTarget() => PartyTreasury.CanUse(Caster);
         public override void CastCode() { Caster.isCasting = true; CurrSkillCoroutine = Caster.StartCoroutine(Perform()); }
         private IEnumerator Perform()
         {
+            if(Caster.ID==200)Effects.Vfx.PurchasedArcherFx.RosterPreparation(Caster,Caster,attack:false);
             AudioManager.PlayAction(Caster, SfxActionSlot.Normal, SfxCuePhase.Cast, CodeName);
             yield return new WaitForSeconds(.20f);
             if (DirectAttack.CasterCanContinue(Caster, true))
             {
                 if (PartyTreasury.Spend(Caster, 1))
-                    foreach (Unit ally in CombatTargets.AliveAlliesIncludingSelf(Caster)) ally.AddShield(StatDamage(0, BaseEnums.StatType.Defense, .8f), Caster, treasurySpent: true);
+                    foreach (Unit ally in CombatTargets.AliveAlliesIncludingSelf(Caster))
+                    {
+                        int previousShield=ally.ShieldCurr;
+                        ally.AddShield(StatDamage(0, BaseEnums.StatType.Defense, .8f), Caster, treasurySpent: true);
+                        Effects.Vfx.LokapalaFx.TreasuryShield(Caster,ally,previousShield);
+                    }
                 Caster.Invoke(BaseEnums.UnitEventType.OnNormalActionResolved, new EventContext(Caster));
             }
             yield return new WaitForSeconds(.20f); StopCode();
@@ -28,8 +35,10 @@ namespace Codes.Normal
     }
     public sealed class IshtarVenusShot : BaseNormalCode
     {
+        protected override bool AppliesElementTo(Unit target) => true;
         public IshtarVenusShot(NormalCodeContext context) : base(context) => CodeName = "금성 사격";
         public override int AttackForm => DamageTag.Shot;
+        protected override Effects.Vfx.ProjectileStyle ProjectileFor(Unit target) => Effects.Vfx.OrionSkadiFx.Arrow(false,purchased:true);
         protected override int BaseDamage(Unit target) => StatDamage(0, BaseEnums.StatType.Attack, .8f);
         protected override void OnAttackResolved(Unit target, DamageContext context)
         { if (target != null && target.isActive) target.GrantCombatElement(BaseEnums.UnitElement.Dendro, source: Caster); }

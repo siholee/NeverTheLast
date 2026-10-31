@@ -97,8 +97,11 @@ namespace Codes.Passive
             if(_heir!=null)_heir.RemoveStatusByKey(AuraKey);
             _heir=SummonSupportCombat.Allies(Caster).FirstOrDefault(Eligible);
             if(_heir==null)return;
-            _heir.AddStatus(BuffStatus.Create(73520,AuraKey,CodeName,Caster,_heir,new HeirEffect(this),0,isBeneficial:true,
-                description:"호루스가 필드에 있는 동안 초월기 피해 증가(특공 비례, 최대55%). 마나형 공격 초월기 아군1명 지정."));
+            var aura=BuffStatus.Create(73520,AuraKey,CodeName,Caster,_heir,new HeirEffect(this),0,isBeneficial:true,
+                description:"호루스가 필드에 있는 동안 초월기 피해 증가(특공 비례, 최대55%). 마나형 공격 초월기 아군1명 지정.");
+            aura.AffectedVfxPartId=Effects.Vfx.StatusAffectedVfx.SuppressPartId;_heir.AddStatus(aura);
+            Effects.Vfx.PurchasedSupportThreadsFx.Play(Caster,_heir,Effects.Vfx.PurchasedSupportThreadsFx.Kind.Order);
+            Effects.Vfx.PurchasedSupportThreadsFx.Play(Caster,_heir,Effects.Vfx.PurchasedSupportThreadsFx.Kind.Receive);
             ActionAnnouncer.AnnouncePassive(Caster,this);
         }
         public override void StopCode()
@@ -165,7 +168,7 @@ namespace Codes.Passive
                 yield return routing.ResolvePreAttack();
                 if(!Working||generation!=_generation||!routing.CanContinue||!DirectAttack.CasterCanContinue(Caster,true)||!Targeting.Announce(Caster,routing.Targets))yield break;
                 target=routing.Targets.First();
-                bool crit=RollCritical(target,out float multiplier);
+                bool crit=RollCritical(target,tags,out float multiplier);
                 var context=new DamageContext(Caster,Mathf.Max(1,Mathf.RoundToInt(Caster.StatValue(BaseEnums.StatType.Attack)*.70f*multiplier)),BaseEnums.CodeType.Passive,tags,crit);
                 AudioManager.PlayAction(Caster,SfxActionSlot.Passive,SfxCuePhase.Cast,CodeName);
                 yield return DirectAttack.HitOne("set.counter",Caster,target,()=>

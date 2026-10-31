@@ -15,6 +15,16 @@ namespace Effects.Vfx
         private static readonly Color GoldInk = new(0.30f, 0.17f, 0.055f, 0.98f);
         private static readonly Color GoldCore = new(1f, 0.94f, 0.64f, 0.90f);
 
+        // 소유 스킬만 구매 부품을 사용한다. 같은 원화를 빌린 다른 캐릭터는 기존 경로를 유지한다.
+        internal static bool PurchasedSkill(string key, Unit caster)
+            => caster != null && ((caster.ID == 63 && key is "indra.thunderbolt" or "indra.vajra" or "indra.gathering") ||
+                (caster.ID == 64 && key is "vayu.gust" or "vayu.storm" or "vayu.typhoon_eye") ||
+                (caster.ID == 65 && key is "kubera.coin_toss" or "kubera.gold_rush"));
+
+        internal static void PurchasedLead(Unit caster, Unit target)
+            => PurchasedRosterStrokeFx.Play(caster, target, caster.ID == 65 ? PurchasedRosterStrokeFx.Kind.Verdict : caster.ID == 63 ?
+                PurchasedRosterStrokeFx.Kind.Descent : PurchasedRosterStrokeFx.Kind.Tide);
+
         public static IEnumerator Normal(string key, Unit caster, Unit target, Action onImpact)
         {
             using (YamaVarunaFx.Observe(key, caster))
@@ -42,9 +52,10 @@ namespace Effects.Vfx
             VfxComposer.PlayScreen(key, caster, caster);
             VfxComposer.PlaySlot(key, "cast", 0, caster, alive[0],
                 VfxSpace.WorldPoint(caster), VfxSpace.SortingLayer(caster));
+            if(PurchasedArcherFx.IsArea(key))PurchasedArcherFx.Cast(caster,alive,key);
             // 바즈라는 한 표적을 겨누는 궤적 대신 전 적의 몸통에 같은 충전 신호를 먼저 준다.
             // 시각 예고만 추가하며 피격 순서와 단일 판정 콜백은 아래 공통 경로가 소유한다.
-            if (key == "indra.vajra") PortraitAccentFx.VajraField(alive);
+            if (key == "indra.vajra" && !PurchasedSkill(key, caster)) PortraitAccentFx.VajraField(alive);
             yield return new WaitForSeconds(VfxComposer.Offset(key, "hit", fallback: 0.22f));
             VfxComposer.PlayScreen(key, caster, alive);
 
@@ -89,11 +100,13 @@ namespace Effects.Vfx
             VfxComposer.PlaySlot(key, "cast", 0, caster, caster,
                 VfxSpace.WorldPoint(caster), VfxSpace.SortingLayer(caster));
             yield return new WaitForSeconds(0.16f);
+            if (!Combat.DirectAttack.CasterCanContinue(caster, true)) yield break;
             openGate?.Invoke();
             AudioManager.PlayAction(caster, SfxActionSlot.Ultimate, SfxCuePhase.Hit);
             foreach (Unit participant in Combat.SpecialAction.Participants(caster))
                 VfxComposer.PlayAffectedSlot(key, 0, caster, participant);
             yield return new WaitForSeconds(0.24f);
+            if (!Combat.DirectAttack.CasterCanContinue(caster, true)) yield break;
             AudioManager.PlayAction(caster, SfxActionSlot.Ultimate, SfxCuePhase.Resolve);
         }
 
@@ -160,9 +173,45 @@ namespace Effects.Vfx
             => Coins(VfxSpace.PortraitPoint(target), VfxSpace.SortingLayer(target), rich ? 7 : 3,
                 0.28f, angle, true);
 
+        internal static void PurchasedCoinCast(string key, Unit caster, Unit target)
+        {
+            PurchasedArcherFx.RosterPreparation(caster,target,attack:true);
+            Coins(TreasuryHandPoint(caster,VfxSpace.WorldPoint(caster)),VfxSpace.SortingLayer(caster),
+                key=="kubera.gold_rush"?5:1,.32f,VfxSpace.AimFrom(caster,target).AngleDegrees,true,
+                radiusInCards:.09f,coinScale:.65f,filled:true,embossed:true);
+        }
+
+        public static void TreasuryShield(Unit caster, Unit target, int previousShield)
+        {
+            // 보호막 수치 적용 뒤의 실제 양수 증가만 공통 수혜 그림으로 잇는다.
+            if(caster==null||caster.ID!=200||target==null||target.ShieldCurr<=previousShield)return;
+            PurchasedSupportThreadsFx.Play(caster,target,PurchasedSupportThreadsFx.Kind.Ward);
+        }
+
         public static void ResourceGained(Unit caster, SfxActionSlot slot = SfxActionSlot.Passive)
         {
-            CardMotion.ViewOf(caster)?.PulseSupportHud(false, false, Gold);
+            if (caster != null && caster.ID == 63)
+            {
+                PurchasedSupportThreadsFx.Play(caster, caster, PurchasedSupportThreadsFx.Kind.Receive);
+                CardMotion.ViewOf(caster)?.PulseSupportHud(false, false, ElementPalette.ColorFor(caster.Element));
+            }
+            else if(caster!=null&&caster.ID is 65 or 200)
+            {
+                PurchasedArcherFx.RosterPreparation(caster,caster,attack:false);
+                if(caster.ID==200)
+                {
+                    foreach(Unit ally in Combat.CombatTargets.AliveAlliesIncludingSelf(caster))
+                        if(ally.GetAllStatuses().Any(status=>status.Caster==caster&&
+                            status.Key?.StartsWith("mansa_procession_",StringComparison.Ordinal)==true))
+                        {
+                            PurchasedSupportThreadsFx.Play(caster,ally,PurchasedSupportThreadsFx.Kind.Order);
+                            PurchasedSupportThreadsFx.Play(caster,ally,PurchasedSupportThreadsFx.Kind.Receive);
+                        }
+                }
+                else PurchasedSupportThreadsFx.Play(caster,caster,PurchasedSupportThreadsFx.Kind.Receive);
+                CardMotion.ViewOf(caster)?.PulseSupportHud(false,false,ElementPalette.ColorFor(caster.Element));
+            }
+            else CardMotion.ViewOf(caster)?.PulseSupportHud(false, false, Gold);
             AudioManager.PlayAction(caster, slot, SfxCuePhase.Resolve);
         }
 

@@ -9,6 +9,7 @@ using Effects.Buffs;
 using Effects.Vfx;
 using Entities;
 using Entities.Status;
+using Managers.Stage;
 using Managers.UI.Core;
 using Managers.UI.Theme;
 using TMPro;
@@ -90,6 +91,9 @@ namespace Managers.UI.DevTools
             float y = 12f;
             Header("디버그 모드  ·  F1 닫기", ref y);
             _status = Body("", ref y, 4);
+
+            Section("표시 모드  ·  개발 전용", ref y);
+            Row(ref y, ("Card ↔ Stage", ToggleVisualMode));
 
             Section("테마 고정", ref y);
             BuildThemeRows(ref y);
@@ -293,7 +297,7 @@ namespace Managers.UI.DevTools
         {
             RoundManager round = GameManager.Instance?.RoundManager;
             if (round == null) return;
-            LoadStage((round.Stage - 1) / RoundManager.EncountersPerTheme * RoundManager.EncountersPerTheme + Mathf.Clamp(slot, 1, RoundManager.EncountersPerTheme));
+            LoadStage(ProgressionLayout.StageOf(round.Round, slot));
         }
 
         private static void LoadStage(int stage)
@@ -648,8 +652,8 @@ namespace Managers.UI.DevTools
 
             _status.text =
                 $"스테이지 {round?.Stage} (라운드 {round?.Round} · 슬롯 {round?.StageInRound})   테마 {theme}\n"
-                + $"상태 {game?.gameState}   생명력 {game?.life}   배속 {Managers.UI.HUD.BattleHud.CurrentSpeedMultiplier:0.##}×\n"
-                + $"아군 {allies}   적 {enemies}\n"
+                + $"상태 {game?.gameState}   배속 {Managers.UI.HUD.BattleHud.CurrentSpeedMultiplier:0.##}×\n"
+                + $"아군 {allies}   적 {enemies}   표시 {VisualModeState.Current}\n"
                 + $"강제 설정: {flags}   화풍 {VfxStyleSettings.DisplayName}"
                 + (DebugMode.SessionActive ? " · 저장: 메모리 전용" : "");
             _status.color = DebugMode.AnyOverrideActive || vfxOverride ? UITheme.Danger : UITheme.TextSecondary;
@@ -718,6 +722,13 @@ namespace Managers.UI.DevTools
             if (vfxOverride) parts.Add($"VFX {VfxStyleSettings.DisplayName}");
             if (!Mathf.Approximately(speed, 1f)) parts.Add($"{speed:0.##}배속");
             _banner.text = "디버그 — " + string.Join("  ·  ", parts) + "   (F1 패널)";
+        }
+
+        private static void ToggleVisualMode()
+        {
+            DebugMode.BeginSession();
+            VisualModeState.Set(VisualModeState.Current == VisualMode.Card ? VisualMode.Stage : VisualMode.Card);
+            _instance?.Refresh();
         }
 
         private static void SetVfxStyle(VfxStyle style)

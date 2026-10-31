@@ -124,10 +124,14 @@ namespace Codes.Normal
                 yield break;
             }
             VfxComposer.PlayScreen(Key, fenrir, target);
+            var stage = Managers.Stage.VisualModeState.Current == Managers.Stage.VisualMode.Stage
+                ? fenrir.GetComponent<Entities.View.SummonCardView>()?.StageVisual : null;
+            stage?.BeginAdvance(target, fenrir: true);
             VfxComposer.PlaySlot(Key, "hit", 0, fenrir, target, VfxSpace.PortraitPoint(target), VfxSpace.SortingLayer(target));
             // 세 획은 판정 전에 그리기 시작한다. 피해 .10초와 후속 대기 .16초는 보존한다.
             yield return new WaitForSeconds(0.10f);
             CardMotion.RakeReaction(target, VfxSpace.AimFrom(fenrir, target).Direction, 0.30f);
+            stage?.Strike();
             impact?.Invoke();
             yield return new WaitForSeconds(0.16f);
         }

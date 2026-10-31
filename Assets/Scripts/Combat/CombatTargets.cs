@@ -3,6 +3,7 @@ using System.Linq;
 using Entities;
 using Managers;
 using UnityEngine;
+using Random = Combat.CombatRandom;
 
 namespace Combat
 {

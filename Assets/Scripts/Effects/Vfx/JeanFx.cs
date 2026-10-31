@@ -14,7 +14,9 @@ namespace Effects.Vfx
             bool completed = false;
             void Impact()
             {
-                if(counter)PortraitAccentFx.HeavyContact(target,new Color(.67f,.86f,1f),false);
+                if(caster!=null&&caster.ID==7)
+                    PurchasedArcherFx.RosterContact(caster,target,counter?.63f:.55f,elementalInk:true);
+                else if(counter)PortraitAccentFx.HeavyContact(target,new Color(.67f,.86f,1f),false);
                 onImpact?.Invoke();
             }
             VfxRunner.Run(Complete(VfxComposer.PlaySingleTarget(key, caster, target, Impact,

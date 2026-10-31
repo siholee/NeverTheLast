@@ -16,7 +16,7 @@ namespace Codes.Passive
 {
     /// <summary>
     /// 아그니 — 특성 「끝까지 태워 주지」(Detail_08 §17.2). 다른 필드 아군(자신 · 소환수 제외)이 <b>초월기를 실제로 마칠 때마다</b>
-    /// 적 전체에 공격력 45% 추가행동을 예약하고, 적마다 피해 → 그 적에게 불 부착 → 다음 적 순으로 처리한다.
+    /// 적 전체에 공격력 120% 추가행동을 예약하고, 적마다 피해 → 그 적에게 불 부착 → 다음 적 순으로 처리한다.
     ///
     ///   · 같은 아군에게서는 아그니의 일반행동 사이에 한 번만 받는다. 예약이 수락되는 순간 그 아군의 몫을 쓴다.
     ///   · 표(티켓)마다 따로 예약해 여러 건이 대기해도 하나도 잃거나 겹치지 않는다.
@@ -28,8 +28,8 @@ namespace Codes.Passive
     /// </summary>
     public sealed class AgniBurnToTheEnd : UniquePassiveCode
     {
-        public const float FollowUpRatio = 0.45f;
-        public const float FocusedCenterRatio = 1.80f;
+        public const float FollowUpRatio = 1.20f;
+        public const float FocusedCenterRatio = 5.40f;
         public const int StakesNormalActions = 3;
         public const float UltimateDamageBonus = 1.20f;
         public const int StakesStatusId = 70620;
@@ -250,6 +250,7 @@ namespace Codes.Passive
             bool focused = center != null;
             if (focused && (!center.isActive || !targets.Contains(center)))
                 center = AgniFirstToBurn.SelectCenter(targets, out _, out _);
+            focused = center != null;
             List<Unit> ordered = focused && center != null
                 ? new[] { center }.Concat(targets.Where(unit => unit != center)).ToList()
                 : targets;
@@ -269,7 +270,7 @@ namespace Codes.Passive
             if (!DirectAttack.CasterCanContinue(Caster, true) || target == null || !target.isActive) return;
             bool crit = RollCritical(target, stakes ? BaseEnums.CodeType.Ultimate : BaseEnums.CodeType.Passive, out float multiplier);
             int damage = Mathf.Max(1, Mathf.RoundToInt(StatDamage(0f, BaseEnums.StatType.Attack, ratio) * multiplier));
-            target.TakeDamage(new DamageContext(Caster, damage, BaseEnums.CodeType.Passive, new List<int>(tags), crit));
+            target.TakeDamage(new DamageContext(Caster, damage, BaseEnums.CodeType.Passive, new List<int>(tags), crit) { AppliesElement = true });
             if (target.isActive && DirectAttack.CasterCanContinue(Caster, true)) target.GrantCombatElement(BaseEnums.UnitElement.Pyro, source: Caster);
         }
 

@@ -13,6 +13,14 @@ Shader "NeverTheLast/Vfx/HardEdgeErosion"
         _NoiseScale ("Noise Scale", Float) = 3.4
         _Radial ("Radial", Range(0,1)) = 0.35
         _UvScroll ("UV Scroll", Vector) = (0,0.08,0,0)
+        [HideInInspector] _StageSlice ("Stage slice", Float) = 0
+        [HideInInspector] _SpriteUV ("Sprite UV", Vector) = (0,0,1,1)
+        [HideInInspector] _ClipV ("Slice interval", Vector) = (0,1,0,0)
+        [HideInInspector] _Ellipse ("Head ellipse", Vector) = (.5,.1,.1,.1)
+        [HideInInspector] _Feather ("Feather", Float) = .3
+        [HideInInspector] _KeepAboveV ("Hair", Float) = -1
+        [HideInInspector] _AboveFadeV ("Hair fade", Float) = .02
+        [HideInInspector] _Head ("Head", Float) = 0
         [MaterialToggle] PixelSnap ("Pixel snap", Float) = 0
     }
 
@@ -49,10 +57,27 @@ Shader "NeverTheLast/Vfx/HardEdgeErosion"
             float _NoiseScale;
             float _Radial;
             float4 _UvScroll;
+            float _StageSlice, _Feather, _KeepAboveV, _AboveFadeV, _Head;
+            float4 _SpriteUV, _ClipV, _Ellipse;
 
             fixed4 frag(v2f IN) : SV_Target
             {
                 fixed4 source = SampleSpriteTexture(IN.texcoord) * IN.color;
+                if (_StageSlice > .5)
+                {
+                    float2 p = (IN.texcoord - _SpriteUV.xy) / _SpriteUV.zw;
+                    p.y = 1-p.y;
+                    float strip = 1-smoothstep(_Ellipse.z,_Ellipse.z*1.3,abs(p.x-_Ellipse.x));
+                    if (_Head>.5) clip(p.y-_ClipV.x);
+                    clip(_ClipV.y-p.y);
+                    if (_Head<.5 && p.y<_ClipV.x) source.a*=1-strip;
+                    if (_Head>.5)
+                    {
+                        float ellipse = 1-smoothstep(1-_Feather,1,length((p-_Ellipse.xy)/_Ellipse.zw));
+                        float hair = (1-smoothstep(_KeepAboveV,_KeepAboveV+_AboveFadeV,p.y))*strip;
+                        source.a *= max(ellipse,hair);
+                    }
+                }
                 clip(source.a - 0.01);
 
                 float2 scrollUv = IN.texcoord * _NoiseScale + _UvScroll.xy * _Time.y;

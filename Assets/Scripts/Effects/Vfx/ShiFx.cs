@@ -33,7 +33,7 @@ namespace Effects.Vfx
                     "shi.destruction_slash", "hit", 0, 0.128f));
                 yield return VfxComposer.PlayHitSlot("shi.destruction_slash", 0, caster, target, () =>
                 {
-                    BattlefieldBackdrop.PulseFlash(new Color(0.30f, 0.006f, 0.014f), 0.085f, 0.075f);
+                    // 바람 원소의 국소 구매 착탄이 정점을 맡는다. 전장 전체 점멸은 겹치지 않는다.
                     CameraShake.ShakeDirectional(end - origin, 0.09f * scale);
                     onImpact?.Invoke();
                 }, scale);

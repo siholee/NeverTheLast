@@ -3,6 +3,15 @@ using Entities;
 
 namespace BaseClasses
 {
+  public sealed class ElementalReactionContext
+  {
+    public readonly Unit Source, Target;
+    public readonly BaseEnums.UnitElement First, Second;
+    public readonly string Name;
+    public ElementalReactionContext(Unit source, Unit target, BaseEnums.UnitElement first, BaseEnums.UnitElement second, string name)
+    { Source = source; Target = target; First = first; Second = second; Name = name; }
+    public bool Contains(BaseEnums.UnitElement element) => First == element || Second == element;
+  }
   public class PassiveCodeContext
   {
     public Unit Caster;
@@ -36,6 +45,12 @@ namespace BaseClasses
     /// <summary>대상 방어 스탯을 얼마만큼만 인정하는가(1 = 그대로, 0 = 완전 무시).</summary>
     public float DefenseStatMultiplier = 1f;
     public bool IsCancelled;
+    /// <summary>명시적 처형 공격. 실제 사망과 함께 확인하며 강인도 격파는 경제 보상을 주지 않는다.</summary>
+    public bool IsExecution;
+    /// <summary>이 직접 타격이 원소 부착을 시도하는가. 고유 원소·반응·피격 보복과 구분한다.</summary>
+    public bool AppliesElement;
+    /// <summary>총량을 대상 수로 나눈 피해. 다단 바운스·일반 광역 피해와 구분한다.</summary>
+    public bool IsDistributed;
     /// <summary>이 타격에 실제 재보 충전/소비가 귀속되었는가. 예약/반환은 포함하지 않는다.</summary>
     public bool IsTreasuryAttack;
     /// <summary>실제 소비로 강화한 직접 공격. 충전 공격·반환·예약은 제외한다.</summary>
@@ -45,6 +60,13 @@ namespace BaseClasses
     public float ToughnessReduction = -1f;
     public bool ToughnessBroken { get; internal set; }
     public bool IsDamageOverTime;
+    /// <summary>공통 지속피해의 종류·발동 출처·원본 틱. 정산과 파생 피해의 재귀/중복 회복을 구분한다.</summary>
+    public Combat.ActionDotKind? DotKind;
+    public Combat.DotTriggerKind DotTrigger;
+    public long DotRootId;
+    /// <summary>이미 경감된 피해의 분담분. 재경감·재분담·실제 공격 피격으로 중복 처리하지 않는다.</summary>
+    public bool IsSharedDamage;
+    public int SharedDamage;
     /// <summary>지속피해 연출 분류. 피해·상태 판정에는 사용하지 않는다.</summary>
     public string StatusVfxKey;
     public int HpDamage { get; internal set; }

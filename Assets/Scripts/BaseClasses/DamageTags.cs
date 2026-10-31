@@ -30,6 +30,7 @@ namespace BaseClasses
     public const int ShieldPenetration = 40001; // 방어막 관통
     public const int TrueDamage = 40002;        // 고정 피해 — 방어력 · 특수방어력 경감을 무시한다
     public const int SpecialDamage = 40004;     // #특수 피해 — 특수방어력으로 경감한다
+    public const int SharedDamage = 40005;      // 이미 정산한 아군 피해의 이전분, 직접 공격이 아니다
 
     /// <summary>
     /// 다른 피해에 <b>덧붙어</b> 나간 추가 피해. 덧붙는 효과가 이 태그를 보고 다시 덧붙지 않는다.

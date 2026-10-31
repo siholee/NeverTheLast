@@ -12,6 +12,8 @@ namespace Codes.Ultimate
 {
     public sealed class TsukuyomiMoonlitPact : BaseUltimateCode
     {
+        public const float PartyShieldRatio = 5.5f;
+        public override int BaseShieldAmount => StatDamage(0, BaseEnums.StatType.Defense, PartyShieldRatio);
         private readonly List<Unit> _buffed = new();
         private System.Action<EventContext> _normal;
         private int _remaining;
@@ -22,6 +24,7 @@ namespace Codes.Ultimate
         public TsukuyomiMoonlitPact(UltimateCodeContext context) : base(context) => CodeName = "달 아래의 계약";
         protected override IEnumerator Perform()
         {
+            Codes.Passive.TsukuyomiNight.ShieldParty(Caster, PartyShieldRatio);
             float amount = UnityEngine.Mathf.Max(0, Caster.StatValue(BaseEnums.StatType.SpecialAttack) - _selfBonus) * .20f;
             ClearBuff();
             // 광역 아군 버프는 공격 대상 지정 가능 여부와 무관하며 독립 소환수도 포함한다.

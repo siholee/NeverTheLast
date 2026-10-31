@@ -61,6 +61,8 @@ namespace Effects.Vfx
         private Color[] _labelColors = Array.Empty<Color>();
         private SpriteRenderer _portrait;
         private SpriteRenderer _flash;
+        private SpriteRenderer[] _stageFlashes = Array.Empty<SpriteRenderer>();
+        private bool _stage;
         private float _age;
         private float _cardSize;
         private int _layer;
@@ -73,9 +75,10 @@ namespace Effects.Vfx
         {
             _boss = unit != null && unit.IsEnemy &&
                     string.Equals(unit.UnitTier, "boss", StringComparison.OrdinalIgnoreCase);
-            _cardSize = view.CardSize;
+            _stage = view.StageProxy != null;
+            _cardSize = _stage ? VfxSpace.CardSize : view.CardSize;
             _layer = view.LayerId;
-            _center = view.Body.position;
+            _center = _stage ? view.CenterWorld : view.Body.position;
             _center.z = 0f;
             _moteColor = unit != null && unit.IsEnemy
                 ? new Color(0.92f, 0.78f, 1f, 1f)
@@ -86,15 +89,16 @@ namespace Effects.Vfx
             {
                 float flash=Mathf.Max(_boss?BossFlashTime:NormalFlashTime,Time.timeScale*2f/60f);
                 float total=_boss?CardLifecycleFx.BossDepartureDuration:CardLifecycleFx.NormalDepartureDuration;
-                ErosionFx.Attach(_portrait,flash,0f,0f,Mathf.Max(.01f,total-flash),
-                    new Color(.90f,.94f,1f),_moteColor,new Color(.23f,.30f,.43f),radial:.20f);
-                _center=_portrait.bounds.center;
+                foreach (SpriteRenderer slice in _stage ? _sprites : new[] { _portrait })
+                    ErosionFx.Attach(slice,flash,0f,0f,Mathf.Max(.01f,total-flash),
+                        new Color(.90f,.94f,1f),_moteColor,new Color(.23f,.30f,.43f),radial:.20f);
+                if (!_stage) _center=_portrait.bounds.center;
             }
         }
 
         private void BuildGhost(UnitCardView view)
         {
-            _snapshot = view.CreateDeathSnapshot(out _portrait);
+            _snapshot = view.CreateDeathSnapshot(out _portrait, actualDeath: true);
             if (_snapshot == null)
             {
                 Destroy(gameObject);
@@ -133,6 +137,12 @@ namespace Effects.Vfx
             }
 
             SpriteRenderer sourceRenderer = view.PortraitRenderer;
+            if (view.StageProxy != null)
+            {
+                _stageFlashes = view.StageProxy.CopySlices(transform, "WhiteSilhouetteFlash", Color.clear,
+                    _layer, SortBase + 8, additive: true);
+                return;
+            }
             Sprite sprite = sourceRenderer != null ? sourceRenderer.sprite : null;
             if (sprite == null) return;
 
@@ -155,6 +165,8 @@ namespace Effects.Vfx
 
             if (_flash != null)
                 _flash.color = new Color(.86f, .90f, .96f, flash * (_boss ? 0.18f : 0.16f));
+            foreach (SpriteRenderer slice in _stageFlashes)
+                if (slice != null) slice.color = new Color(.86f, .90f, .96f, flash * (_boss ? 0.18f : 0.16f));
 
             if (_ghost != null)
             {
@@ -186,14 +198,14 @@ namespace Effects.Vfx
                 SpriteRenderer renderer = _sprites[i];
                 if (renderer == null) continue;
                 Color color = _spriteColors[i];
-                if (ReferenceEquals(renderer, _portrait))
+                if (ReferenceEquals(renderer, _portrait) || _stage)
                 {
                     float pale = Mathf.Clamp01(fade * 0.62f + flash * 0.22f);
                     color.r = Mathf.Lerp(color.r, 1f, pale);
                     color.g = Mathf.Lerp(color.g, 1f, pale);
                     color.b = Mathf.Lerp(color.b, 1f, pale);
                 }
-                color.a = _spriteColors[i].a * (ReferenceEquals(renderer,_portrait)&&renderer.GetComponent<ErosionFx>()!=null?1f:opacity);
+                color.a = _spriteColors[i].a * ((ReferenceEquals(renderer,_portrait)||_stage)&&renderer.GetComponent<ErosionFx>()!=null?1f:opacity);
                 renderer.color = color;
             }
 

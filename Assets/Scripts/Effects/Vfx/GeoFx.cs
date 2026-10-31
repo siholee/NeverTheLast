@@ -150,6 +150,7 @@ namespace Effects.Vfx
         {
             if (VfxStyleSettings.UseHandpaint(VfxStyleCharacter.Sei))
             {
+                CrystalFlights(caster,target);
                 yield return VfxComposer.PlaySingleTarget("sei.ground", caster, target, onHit, scale);
                 yield break;
             }
@@ -174,6 +175,14 @@ namespace Effects.Vfx
         /// 발사된 암편을 대상에게 곧게 날린다. 짧은 주황빛 꼬리 · 흙먼지 띠를 달고 부스러기를 흘린다.
         /// 착탄점은 비행 내내 대상 카드를 따라간다.
         /// </summary>
+        internal static void CrystalFlights(Unit caster, Unit target)
+        {
+            if(caster==null||target==null||caster.ID is not (1 or 60))return;
+            // 여섯 그림은 장식이다. 세 번째 원래 시트 정점만 기존 피해 콜백을 소유한다.
+            for(int i=0;i<6;i++)VfxRunner.Run(PurchasedProjectileFx.Fly(caster,target,.259f+i*.05f,null,
+                weight:.36f,paintContact:false,minimumFlightFrames:false,elementalInk:true));
+        }
+
         private static IEnumerator FlyRock(Transform root, SpriteRenderer rock, Unit target, float scale, int layer,
             float duration, float spin, Action<Vector3> arrived, bool directedShard = false, bool compactTrail = false)
         {
@@ -460,6 +469,11 @@ namespace Effects.Vfx
         public static void CrystalGained(MonoBehaviour runner, Unit from, Unit to)
         {
             if (to == null) return;
+            if(to.ID==1&&VfxStyleSettings.UseHandpaint(VfxStyleCharacter.Sei))
+            {
+                PurchasedSupportThreadsFx.Play(to,to,PurchasedSupportThreadsFx.Kind.Receive);
+                return;
+            }
             if (from == null || from == to)
             {
                 CrystalAbsorbed(VfxSpace.WorldPoint(to) + Vector3.down * 0.36f * S,
@@ -612,6 +626,8 @@ namespace Effects.Vfx
                 }
 
                 Unit captured = target;
+                if(caster.ID==1)VfxRunner.Run(PurchasedProjectileFx.Fly(caster,captured,.242f,null,
+                    weight:.44f,paintContact:false,minimumFlightFrames:false,elementalInk:true));
                 VfxRunner.Run(Chain(PlayComposedBigBangImpact(caster, captured, () =>
                 {
                     onHit?.Invoke(captured);

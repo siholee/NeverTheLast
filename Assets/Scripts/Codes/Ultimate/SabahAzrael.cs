@@ -12,7 +12,7 @@ namespace Codes.Ultimate
 {
     /// <summary>
     /// 사바흐 — 아즈라엘 7중첩을 모두 소모해 적 전체를 한 번씩 벤다.
-    /// 옛 DEX 계수는 현행 물리 딜러 스탯인 공격력으로만 치환하고 수치 구조·대상·횟수는 유지한다.
+    /// 특공 기반 특수피해. 자원·대상·횟수·공유 치명타는 유지한다.
     /// </summary>
     public sealed class SabahAzrael : BaseUltimateCode
     {
@@ -24,7 +24,7 @@ namespace Codes.Ultimate
         {
             var tags = new List<int>
             {
-                DamageTag.AllTarget, DamageTag.UltAttack, DamageTag.ContactAttack, DamageTag.Slash,
+                DamageTag.AllTarget, DamageTag.UltAttack, DamageTag.ContactAttack, DamageTag.Slash, DamageTag.SpecialDamage,
             };
             Combat.AttackTargetResolution routing = PrepareTargets(AliveEnemies(), tags);
             yield return routing.ResolvePreAttack();
@@ -33,7 +33,7 @@ namespace Codes.Ultimate
 
             bool isCrit = RollCritical(out float multiplier);
             int damage = Mathf.Max(1, Mathf.RoundToInt(
-                StatDamage(150f, BaseEnums.StatType.Attack, 1f) * multiplier));
+                StatDamage(150f, BaseEnums.StatType.SpecialAttack, 1f) * multiplier));
             var contexts = targets.ToDictionary(target => target, _ => new DamageContext(
                 Caster, damage, BaseEnums.CodeType.Ultimate,
                 new List<int>(tags), isCrit));

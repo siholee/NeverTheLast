@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ using Effects;
 using Effects.Vfx;
 using Entities;
 using Entities.View;
+using Managers.Stage;
 using Managers.UI.Screens;
 using TMPro;
 using UnityEngine;
@@ -37,7 +38,8 @@ namespace Managers.UI.DevTools
         private static readonly int[] PartyFiveBastetIds = { BastetId, ShiId, ChandraId, HimikoId, PygmalionId };
         private static readonly int[] PartyFiveJeanIds = { JeanId, ShiId, ChandraId, HimikoId, PygmalionId };
         private static readonly int[] PartyFiveJeanBastetIds = { JeanId, BastetId, ChandraId, HimikoId, PygmalionId };
-        private static readonly WaitForEndOfFrame EndOfFrame = new();
+        // 배치 Play에는 화면 렌더 종료 이벤트가 없다. 기술 검사는 Update를 기다리고 캡처를 생략한다.
+        private static readonly WaitForEndOfFrame EndOfFrame = Application.isBatchMode ? null : new();
 
         private VerifyRequest _request;
         private VerifyRunResult _result;
@@ -51,6 +53,7 @@ namespace Managers.UI.DevTools
         private readonly List<(int Serial, string Tag)> _events = new();
         private readonly List<FieldPointerInput> _disabledPointerInputs = new();
         private readonly HashSet<string> _dumpedPortraitScenarios = new();
+        private readonly HashSet<string> _stageLayoutChecks = new();
         private bool _waitMatched;
         private bool _cursorWasVisible;
         private ActionScheduler.ActionKind _lastActionKind;
@@ -82,6 +85,15 @@ namespace Managers.UI.DevTools
             public bool CanceledBeforeOriginal;
             public bool FollowUpStarted;
             public Unit FinalTarget;
+        }
+
+        // 측정 전용 Player는 첫 장면의 BGM이 시작되기 전부터 무음으로 실행한다.
+        // 설정 저장값이나 다른 앱의 음량은 변경하지 않는다.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void ApplyVerificationAudioOverride()
+        {
+            if (Array.IndexOf(Environment.GetCommandLineArgs(), "--ntl-verify-silent") >= 0)
+                AudioListener.volume = 0f;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -151,6 +163,7 @@ namespace Managers.UI.DevTools
             BattlefieldBackdrop.SetVerificationBackgroundOverride(null);
             SkillFx.PlaybackMode = SkillFxPlaybackMode.Final;
             VfxStyleSettings.Reset();
+            VisualModeState.Set(VisualMode.Card);
         }
 
         private IEnumerator Start()
@@ -164,12 +177,15 @@ namespace Managers.UI.DevTools
             string json = File.ReadAllText(Path.Combine(_requestDirectory, "request.json"));
 #endif
             _request = JsonUtility.FromJson<VerifyRequest>(json) ?? new VerifyRequest();
+            VisualModeState.Set(ResolveVisualMode(null));
             NormalizeScenarioList();
             DebugOverlay.HideBannerForVerification = _request.hideDebugBanner;
 
             _result = new VerifyRunResult
             {
                 success = true,
+                batchMode = Application.isBatchMode,
+                validationMode = Application.isBatchMode ? "Unity batch Play 기술 검사 — 렌더·실제 포인터·미술·GPU/FPS 판정 제외" : "Unity Play 화면/기술 검사 — 개별 시나리오 범위만",
                 startedAtUtc = DateTime.UtcNow.ToString("O"),
                 resolution = $"{Screen.width}x{Screen.height}",
             };
@@ -183,6 +199,7 @@ namespace Managers.UI.DevTools
 
             DebugMode.ResetAll();
             DebugMode.SuiteRunning = false;
+            VisualModeState.Set(VisualMode.Card);
             BattlefieldBackdrop.SetVerificationBackgroundOverride(null);
             HovlFx.ClearTransient();
             if (AudioManager.Instance != null)
@@ -207,6 +224,8 @@ namespace Managers.UI.DevTools
 
         private IEnumerator RunAll()
         {
+            foreach (var lobbyScenario in _request.scenarios.Where(s => s.name == "qa_lobby_guide_links"))
+                yield return ExecuteScenario(lobbyScenario);
             yield return EnsureGameScene();
             yield return WaitForGameReady(20f);
             if (GameManager.Instance?.RoundManager == null || GridManager.Instance == null)
@@ -217,6 +236,8 @@ namespace Managers.UI.DevTools
 
 #if !UNITY_EDITOR
             // QA만 요청 해상도를 사용한다. 사용자 그래픽 설정의 저장값은 수정하지 않는다.
+            if (!Application.isBatchMode)
+            {
             int width = Mathf.Max(1, _request.captureWidth), height = Mathf.Max(1, _request.captureHeight);
             Screen.SetResolution(width, height, FullScreenMode.Windowed);
             for (int frame = 0; frame < 60; frame++)
@@ -229,6 +250,7 @@ namespace Managers.UI.DevTools
             {
                 AddScenarioFailure("bootstrap", $"요청 해상도 적용 실패: {width}x{height} → {_result.resolution}");
                 yield break;
+            }
             }
 #endif
             DebugMode.BeginSession();
@@ -243,6 +265,7 @@ namespace Managers.UI.DevTools
 
             foreach (VerifyScenarioRequest scenario in _request.scenarios)
             {
+                if (scenario.name == "qa_lobby_guide_links") continue;
                 yield return ExecuteScenario(scenario);
             }
 
@@ -337,6 +360,7 @@ namespace Managers.UI.DevTools
             int[] ids = lineup switch
             {
                 "solo1" => new[] { SeiId },
+                "solo_surtr" => new[] { 81 }, // SD 시안과 같은 수르트의 크기·형상 비교용 편성.
                 "party5_sabah" => PartyFiveSabahIds,
                 "party5_bastet" => PartyFiveBastetIds,
                 "party5_jean" => PartyFiveJeanIds,
@@ -355,9 +379,18 @@ namespace Managers.UI.DevTools
                 "allvfx_group_6" => new[] { 25, 22, 83, 200, 220 },
                 "allvfx_group_7" => new[] { 123, 125, 120, 81, 124 },
                 "allvfx_group_8" => new[] { 25, 63, 61, 66, 1 },
+                "allvfx_group_qa_resources" => new[] { 7, 67, 82, 65, 121 },
+                "party5_amaterasu" => new[] { 40, 7, 122, 83, 82 },
+                "party5_astolfo_core" => new[] { 7, 162, 122, 22, 82 },
+                "party5_single_rewards" => new[] { 2, 1, 162, 81, 44 },
+                "party5_nicol_core" => new[] { 7, 122, 162, 163, 168 },
+                "party5_dot_roster" => new[] { 164, 165, 166, 167, 162 },
+                "party5_ebisu_core" => new[] { 22, 122, 162, 163, 160 },
+                "party5_jean_carry" => new[] { 7, 64, 160, 161, 82 },
                 "party5_toughness" => new[] { 25, 2, 60, 121, 1 },
                 "party5_orion_skadi" => new[] { 22, 83, 122, 160, 80 },
                 "party5_summon_authors" => new[] { 10, 124, 180, 20, 80 },
+                "party5_summon_tank_compare" => new[] { 20, 121, 1, 25, 124 },
                 "party5_egyptian" => new[] { 123, 125, 120, 81, 124 },
                 "party5_isis" => new[] { 125, 20, 124, 180, 10 },
                 "party5_set_dot" => new[] { 123, 61, 45, 66, 82 },
@@ -372,6 +405,8 @@ namespace Managers.UI.DevTools
                 "party5_reward_ui" => PartyFiveRewardUiIds,
                 "duo_agni_surya" => new[] { AgniId, SuryaId },
                 "duo_shi_sabah" => new[] { ShiId, SabahId },
+                var candidate when CampaignLineups.TryGetValue(candidate, out var campaign) => campaign.ids,
+                var candidate when Checkpoint48Lineups.TryGetValue(candidate, out var members) => members,
                 _ => PartyFiveIds,
             };
             foreach (int id in ids)
@@ -382,6 +417,39 @@ namespace Managers.UI.DevTools
                     yield break;
                 }
             }
+            // 이 편성의 성능 검사는 선택 순서가 아니라 기획한 전후열에서 수행한다.
+            if (lineup is "party5_amaterasu" or "party5_jean_carry" or "party5_astolfo_core" or "party5_ebisu_core")
+            {
+                foreach (var entry in selection.Lineup)
+                {
+                    (entry.XPos, entry.YPos) = entry.UnitId switch
+                    {
+                        7 => (-1, 2),
+                        162 => (-2, 2),
+                        163 => (-1, 2),
+                        22 => (-1, 3),
+                        40 => (-2, 2),
+                        122 => (-2, 3),
+                        83 => (-1, 3),
+                        82 => (-1, 1),
+                        60 => (-2, 2),
+                        44 => (-2, 3),
+                        64 => (-2, 1),
+                        160 when lineup == "party5_ebisu_core" => (-2, 1),
+                        160 => (-2, 3),
+                        66 => (-1, 3),
+                        200 => (-1, 3),
+                        161 => (-2, 2),
+                        _ => (entry.XPos, entry.YPos),
+                    };
+                }
+            }
+            if (CampaignLineups.TryGetValue(lineup, out var campaignLayout))
+                foreach (var entry in selection.Lineup)
+                {
+                    int index = Array.IndexOf(campaignLayout.ids, entry.UnitId);
+                    entry.XPos = campaignLayout.xs[index]; entry.YPos = campaignLayout.ys[index];
+                }
             selection.ConfirmSelection();
             yield return WaitForState(BaseEnums.GameState.Preparation, 8f);
             yield return WaitUnscaled(1.15f);
@@ -390,12 +458,25 @@ namespace Managers.UI.DevTools
 
         private IEnumerator EnsureLineup(VerifyScenarioRequest config)
         {
+            if(config?.vfxPartyIds?.Length>0)
+            {
+                int[] ids=config.vfxPartyIds.Distinct().ToArray();
+                var front=new HashSet<int>(config.vfxFrontIds??Array.Empty<int>());
+                if(ids.Length!=5||front.Count<1||front.Count>4||front.Any(id=>!ids.Contains(id)))
+                    throw new InvalidOperationException("VFX 검수 편성은 유효한 전열1~4명과 중복 없는5명이 필요합니다.");
+                string key="vfx_party_"+string.Join("_",ids)+"_f_"+string.Join("_",front.OrderBy(id=>id));
+                int f=0,r=0;int[] rows={2,3,1,4};
+                CampaignLineups[key]=new CampaignSpec {key=key,name=key,ids=ids,
+                    xs=ids.Select(id=>front.Contains(id)?-1:-2).ToArray(),
+                    ys=ids.Select(id=>rows[front.Contains(id)?f++:r++]).ToArray()};
+                config.lineup=key;
+            }
             string lineup = ResolveLineup(config);
-            if (lineup != "party5_horus_targets" && lineup != "party5_egyptian" && lineup != "party5_isis" && lineup != "party5_set_dot" && lineup != "party5_horus_carry" && lineup != "party5_summon_authors" && lineup != "party5_summon_theatre" && lineup != "party5_orion_skadi" && lineup != "party5_orion_skadi_sustain" && lineup != "party5_toughness" && lineup != "party5_treasury" && !lineup.StartsWith("allvfx_group_") && lineup != "party5" && lineup != "party5_sabah" && lineup != "party5_bastet" &&
-                lineup != "party5_jean" && lineup != "party5_jean_bastet" && lineup != "solo1" &&
+            if (lineup != "party5_jean_carry" && lineup != "party5_amaterasu" && lineup != "party5_horus_targets" && lineup != "party5_egyptian" && lineup != "party5_isis" && lineup != "party5_set_dot" && lineup != "party5_horus_carry" && lineup != "party5_summon_authors" && lineup != "party5_summon_theatre" && lineup != "party5_orion_skadi" && lineup != "party5_orion_skadi_sustain" && lineup != "party5_toughness" && lineup != "party5_treasury" && !lineup.StartsWith("allvfx_group_") && lineup != "party5" && lineup != "party5_sabah" && lineup != "party5_bastet" &&
+                lineup != "party5_jean" && lineup != "party5_jean_bastet" && lineup != "solo1" && lineup != "solo_surtr" &&
                 lineup != "party5_france_moon" && lineup != "party5_lokapala" && lineup != "party5_summon" && lineup != "party5_yama_varuna" && lineup != "party5_vedic_trio" &&
-                lineup != "party5_reward_ui" && lineup != "duo_agni_surya" && lineup != "duo_shi_sabah" &&
-                lineup != "party5_nord_synergy" && lineup != "party5_nord" && lineup != "party5_command_fenrir" && lineup != "party5_command_melee")
+                lineup != "party5_dot_roster" && lineup != "party5_ebisu_core" && lineup != "party5_astolfo_core" && lineup != "party5_single_rewards" && lineup != "party5_nicol_core" && lineup != "party5_reward_ui" && lineup != "duo_agni_surya" && lineup != "duo_shi_sabah" &&
+                lineup != "party5_nord_synergy" && lineup != "party5_nord" && lineup != "party5_command_fenrir" && lineup != "party5_command_melee" && lineup != "party5_summon_tank_compare" && !Checkpoint48Lineups.ContainsKey(lineup) && !CampaignLineups.ContainsKey(lineup))
             {
                 FailCurrent($"알 수 없는 lineup: {lineup}");
                 yield break;
@@ -413,6 +494,7 @@ namespace Managers.UI.DevTools
             _captureSequence = 0;
             _actionCaptureStride=Mathf.Clamp(scenario?.actionCaptureStride??1,1,12);
             _announcements.Clear();
+            VisualModeState.Set(ResolveVisualMode(scenario));
             SkillFx.PlaybackMode = ResolveVfxVariant(scenario);
             VfxStyleSettings.Active = ResolveVfxStyle(scenario);
             int beforeCaptures = _result.captures.Count;
@@ -425,12 +507,28 @@ namespace Managers.UI.DevTools
             };
             _result.scenarios.Add(scenarioResult);
 
-            if (_request.freshLineupPerScenario)
+            // 동적 편성 키는 EnsureLineup의 유효성 검사보다 먼저 등록해야 한다.
+            if (_currentScenario == "composition_campaign" && scenario?.lineup == "sabah_overgrowth")
+                scenario.lineup = CampaignBuildCatalog().teams.Single(spec => spec.aliases.Contains("사바흐/best")).key;
+            if (_currentScenario == "composition_campaign" && scenario?.lineup is "sabah_vayu" or "sabah_himiko" or "sabah_dual_debuffer")
+            {
+                string alias = scenario.lineup switch
+                {
+                    "sabah_vayu" => "점검/사바흐_바유",
+                    "sabah_himiko" => "점검/사바흐_히미코",
+                    _ => "점검/사바흐_바유히미코",
+                };
+                scenario.lineup = CampaignBuildCatalog().teams.Single(spec => spec.aliases.Contains(alias)).key;
+            }
+            if (_currentScenario == "composition_campaign" && scenario?.lineup?.StartsWith("campaign_") == true)
+                CampaignBuildCatalog();
+
+            if (_request.freshLineupPerScenario && _currentScenario != "qa_lobby_guide_links")
             {
                 if (GameManager.Instance != null) GameManager.Instance.enabled = true;
                 _activeLineup = null;
             }
-            yield return EnsureLineup(scenario);
+            if (_currentScenario != "qa_lobby_guide_links") yield return EnsureLineup(scenario);
             if (!scenarioResult.success)
             {
                 scenarioResult.message ??= "편성을 만들지 못했다.";
@@ -440,8 +538,66 @@ namespace Managers.UI.DevTools
 
             IEnumerator body = _currentScenario switch
             {
+                "s8_sample" => ScenarioS8Sample(scenario),
+                "s4_cutin" => ScenarioS4CutIn(scenario),
+                "s8_parity" => ScenarioS8Parity(scenario),
+                "sd_frames" => ScenarioSdFrames(scenario),
+                "sd_frames_actions" => ScenarioSdFrames(scenario, actionsOnly: true),
+                "s8_timing" => ScenarioS8Timing(scenario),
+                "s8_guards" => ScenarioS8Guards(scenario),
+                "s7_layout" => ScenarioS7Layout(),
+                "summon_stage" => ScenarioSummonStage(scenario),
+                "summon_stage_speed" => ScenarioSummonStageSpeed(scenario),
+                "s6_timing" => ScenarioS6Timing(scenario),
+                "s6_cutin" => ScenarioS6CutIn(scenario),
+                "s6_resources" => ScenarioS6Resources(scenario),
+                "simulation_parity" => ScenarioSimulationParity(scenario),
                 "whole_performance" => ScenarioWholePerformance(scenario),
+                "composition_campaign" => ScenarioCompositionCampaign(scenario),
+                "failure_branches" => ScenarioFailureBranches(scenario),
+                "failure_continuations" => ScenarioFailureContinuations(scenario),
+                "boss48_diagnosis" => ScenarioBoss48Diagnosis(scenario),
+                "boss48_defense_rewards" => ScenarioBoss48Diagnosis(scenario),
+                "defense_rewards_core" => ScenarioDefenseRewardsCore(scenario),
+                "checkpoint_progression_core" => ScenarioCheckpointProgression(scenario),
+                "run_failure_core" => ScenarioRunFailure(scenario),
+                "tsukuyomi_shield_core" => ScenarioTsukuyomiShieldCore(scenario),
+                "atalante_cause_campaign_old" => ScenarioAtalanteCauseCampaign(scenario, "old"),
+                "atalante_cause_campaign_new" => ScenarioAtalanteCauseCampaign(scenario, "new"),
+                "atalante_cause_replay_old" => ScenarioAtalanteCauseReplay(scenario, "old"),
+                "atalante_cause_replay_new" => ScenarioAtalanteCauseReplay(scenario, "new"),
+                "atalante_cause_operations" => ScenarioAtalanteCauseReplay(scenario, "new", true),
+                "astolfo_core" => ScenarioAstolfoCore(scenario),
+                "nicol_core" => ScenarioNicolCore(scenario),
+                "dot_roster_core" => ScenarioDotRosterCore(scenario),
+                "dot_frontline_core" => ScenarioDotFrontlineCore(scenario),
+                "secret_rewards_core" => ScenarioSecretRewardsCore(scenario),
+                "dot_reward_replay" => ScenarioDotRewardReplay(scenario),
+                "ebisu_core" => ScenarioEbisuCore(scenario),
+                "solo_special_rewards" => ScenarioSoloSpecialRewards(scenario),
+                "kubera_preparation" => ScenarioKuberaPreparation(scenario),
+                "lokapala_damage" => ScenarioLokapalaDamage(scenario),
+                "chandra_role" => ScenarioChandraRole(scenario),
+                "normal_pressure_core" => ScenarioNormalPressure(scenario),
+                "indra_opening_core" => ScenarioIndraOpening(scenario),
+                "lokapala_budget" => ScenarioLokapalaBudget(scenario),
+                "special_rewards_core" => ScenarioSpecialRewardsCore(scenario),
+                "summon_rewards_core" => ScenarioSummonRewardsCore(scenario),
+                "sei_followup_core" => ScenarioSeiFollowUpCore(scenario),
+                "single_rewards_core" => ScenarioSingleRewardsCore(scenario),
                 "core_safety" => ScenarioCoreSafety(scenario),
+                "qa_field_limits" => ScenarioQaField(scenario),
+                "qa_presentation_followup" => ScenarioQaPresentation(scenario),
+                "qa_lobby_guide_links" => ScenarioQaLobbyGuide(scenario),
+                "qa_vfx_followup" => ScenarioQaVfx(scenario),
+                "qa_kits_followup" => ScenarioQaKits(scenario),
+                "qa_interruption_followup" => ScenarioQaInterruption(scenario),
+                "qa_anubis_duration" => ScenarioQaAnubisDuration(scenario),
+                "qa_ishtar_retarget" => ScenarioQaIshtarRetarget(scenario),
+                "qa_agni_fallback" => ScenarioQaAgniFallback(scenario),
+                "qa_novice_ui" => ScenarioQaNoviceUi(scenario),
+                "qa_audio_routes" => ScenarioQaAudioRoutes(scenario),
+                "qa_ishtar_scheduled" => ScenarioQaIshtarScheduled(scenario),
                 "core_scheduler" => ScenarioCoreScheduler(scenario),
                 "core_scheduler_sabah" => ScenarioCoreSchedulerSabah(scenario),
                 "core_scheduler_abort" => ScenarioCoreSchedulerAbort(scenario),
@@ -464,6 +620,11 @@ namespace Managers.UI.DevTools
                 "checkpoint24_campaign" => ScenarioCheckpoint24Campaign(scenario),
                 "checkpoint24_layout" => ScenarioCheckpoint24Layout(scenario),
                 "checkpoint24_battle" => ScenarioCheckpoint24Battle(scenario),
+                "checkpoint48_layout" => ScenarioCheckpoint48Layout(scenario),
+                "checkpoint48_core" => ScenarioCheckpoint48Core(scenario),
+                "checkpoint48_battle" => ScenarioCheckpoint48Battle(scenario),
+                "checkpoint48_campaign" => ScenarioCheckpoint48Campaign(scenario),
+                "theme_specs" => ScenarioThemeSpecs(scenario),
                 "original_themes" => ScenarioOriginalThemes(scenario),
                 "original_kits" => ScenarioOriginalKits(scenario),
                 "original_edges" => ScenarioOriginalEdges(scenario),
@@ -475,8 +636,18 @@ namespace Managers.UI.DevTools
                 "guide_rework" => ScenarioGuideRework(scenario),
                 "effect_hit_core" => ScenarioEffectHitCore(scenario),
                 "nord_core" => ScenarioNordCore(scenario),
+                "amaterasu_core" => ScenarioAmaterasuCore(scenario),
+                "amaterasu_combat" => ScenarioAmaterasuCombat(scenario),
+                "counter_ice_core" => ScenarioCounterIceCore(scenario),
+                "bastet_sustain_core" => ScenarioBastetSustainCore(scenario),
+                "sei_shield68_core" => ScenarioSeiShield68Core(scenario),
+                "support_cleanse_core" => ScenarioSupportCleanseCore(scenario),
+                "support_cleanse_save" => ScenarioSupportCleanseSave(scenario),
+                "reference_cycle_core" => ScenarioReferenceCycleCore(scenario),
+                "counter_support_balance" => ScenarioCounterSupportBalance(scenario),
                 "orion_skadi_core" => ScenarioOrionSkadiCore(scenario),
                 "summon_authors_core" => ScenarioSummonAuthorsCore(scenario),
+                "summon_tank_compare" => ScenarioSummonTankCompare(scenario),
                 "egyptian_core" => ScenarioEgyptianCore(scenario),
                 "isis_core" => ScenarioIsisCore(scenario),
                 "horus_targets" => ScenarioHorusTargets(scenario),
@@ -498,24 +669,35 @@ namespace Managers.UI.DevTools
                 "treasury_sp_hud" => ScenarioTreasurySpHud(scenario),
                 "treasury_rewards" => ScenarioTreasuryRewards(scenario),
                 "card_hud_containment" => ScenarioCardHudContainment(scenario),
+                "stage_hud_focus" => ScenarioStageHudFocus(scenario),
+                "stage_hud_visualsd" => ScenarioStageHudVisualSd(scenario),
+                "stage_bottom_hud" => ScenarioStageBottomHud(scenario),
+                "stage_card_hud_restore" => ScenarioStageCardHudRestore(scenario),
                 "treasury_natural" => ScenarioTreasuryNatural(scenario),
                 "reward_growth" => ScenarioRewardGrowth(scenario),
                 "battle_pacing" => ScenarioBattlePacing(scenario),
                 "allvfx_presentation" => ScenarioPresentationPolish(scenario),
-                "allvfx_catalog" => ScenarioAllVfxCatalog(scenario),
+                var catalogName when catalogName.StartsWith("allvfx_catalog",StringComparison.Ordinal) => ScenarioAllVfxCatalog(scenario),
                 "allvfx_skills" => ScenarioAllVfxSkills(scenario),
+                var enemyVfxName when enemyVfxName.StartsWith("allvfx_enemies_",StringComparison.Ordinal) => ScenarioAllVfxEnemies(scenario),
                 "allvfx_systems" => ScenarioAllVfxSystems(scenario),
+                var systemVfxName when systemVfxName.StartsWith("allvfx_systems_",StringComparison.Ordinal) => ScenarioAllVfxSystems(scenario),
+                "allvfx_hp_trail" => ScenarioHpDamageTrail(scenario),
+                "stage_hit_anchors" => ScenarioStageHitAnchors(scenario),
                 "allvfx_formation" or "allvfx_formation_4x" => ScenarioAllVfxFormation(scenario),
                 "allvfx_soul_readability" => ScenarioSoulReadability(scenario),
                 "allvfx_soul_readability_4x" => ScenarioSoulReadability(scenario),
                 var showName when showName.StartsWith("allvfx_showcase_") => ScenarioAllVfxShowcase(scenario),
                 var allVfxName when allVfxName.StartsWith("allvfx_units_") => ScenarioAllVfxUnits(scenario),
                 "ui_overhaul" => ScenarioUIOverhaul(scenario),
+                "release_053_ui" => ScenarioRelease053Ui(scenario),
                 "ui_overhaul_menu" => ScenarioUIOverhaulMenu(scenario),
                 "ui_settings_layout" => ScenarioSettingsLayout(scenario),
                 "reward_ui_forms" => ScenarioRewardUiForms(scenario),
                 var rewardUiName when IsRewardUiScenario(rewardUiName) => ScenarioUIOverhaul(scenario),
-                "prep" => ScenarioPrep(scenario),
+                "overgrowth_core" => ScenarioOvergrowthCore(scenario),
+                "debuff_rewards_core" => ScenarioDebuffRewardsCore(scenario),
+                "prep" => scenario.trigger == "s6" ? ScenarioS6Prep(scenario) : ScenarioPrep(scenario),
                 "combat_1v1" => ScenarioCombat(scenario, CombatStage(scenario, 6, 1), "combat"),
                 "combat_1v2" => ScenarioCombat(scenario, CombatStage(scenario, 6, 2), "combat"),
                 "battle_banner" => ScenarioBattleBanner(scenario),
@@ -598,7 +780,7 @@ namespace Managers.UI.DevTools
                 "backdrop_transition" => ScenarioBackdropTransition(scenario),
                 "speed8" => ScenarioSpeed8(scenario),
                 "layer_isolation" => ScenarioLayerIsolation(scenario),
-                "five_party" => ScenarioFiveParty(scenario),
+                "five_party" => scenario.trigger == "s7" ? ScenarioS7Battle(scenario) : ScenarioFiveParty(scenario),
                 "r12_core" => ScenarioR12Core(scenario),
                 "r12_lokapala" => ScenarioR12Lokapala(scenario),
                 "r12_summon" => ScenarioR12Summon(scenario),
@@ -621,6 +803,8 @@ namespace Managers.UI.DevTools
             }
             else
             {
+                if (scenario.trigger == "s6" && _currentScenario is "five_party" or "combat_1v1" or "speed8")
+                    body = S6Observe(_currentScenario == "five_party" ? S6FiveFinish(body, scenario) : ScenarioS6Combat(scenario), scenario);
                 yield return ExecuteGuarded(body, exception =>
                 {
                     scenarioResult.success = false;
@@ -630,11 +814,13 @@ namespace Managers.UI.DevTools
 
             scenarioResult.captureCount = _result.captures.Count - beforeCaptures;
             scenarioResult.finishedRealtime = Time.realtimeSinceStartup;
-            if (scenarioResult.captureCount == 0 && scenarioResult.success)
+            if (!Application.isBatchMode && scenarioResult.captureCount == 0 && scenarioResult.success && !scenario.vfxMechanicsOnly)
             {
                 scenarioResult.success = false;
                 scenarioResult.message = "캡처가 생성되지 않았다.";
             }
+            if(scenario.vfxMechanicsOnly&&scenarioResult.success)
+                scenarioResult.message="기술 검사 완료(이미지 판정 제외)";
             if (string.IsNullOrEmpty(scenarioResult.message))
                 scenarioResult.message = scenarioResult.success ? "완료" : "실패";
             _result.success &= scenarioResult.success;
@@ -1839,8 +2025,10 @@ namespace Managers.UI.DevTools
 
         private IEnumerator ScenarioFiveParty(VerifyScenarioRequest config)
         {
-            if (_activeLineup != "party5") yield return BuildFreshRun("party5");
+            if (_activeLineup != "party5_sabah") yield return BuildFreshRun("party5_sabah");
             yield return PrepareStage(config, Stage(config, 6), false, false, false);
+            ConfigureStageHudEnemies(config);
+            yield return null;
 
             List<Unit> allies = AliveAllies();
             Unit enemy = AliveEnemies().FirstOrDefault();
@@ -2058,8 +2246,6 @@ namespace Managers.UI.DevTools
                 Reason = "적 전멸",
                 StageLabel = "1-2",
                 ThemeName = "공허의 시험장",
-                LifeBefore = 20,
-                LifeAfter = 20,
                 GoldGained = 84,
                 ExpGained = 120,
                 Kills = 2,
@@ -2258,6 +2444,7 @@ namespace Managers.UI.DevTools
 
         private void ApplyOverrides(VerifyScenarioRequest config, bool allyDefault, bool enemyDefault, float speedDefault)
         {
+            if(config?.vfxThemeId>0)DebugMode.ForcedThemeId=config.vfxThemeId;
             BattlefieldBackdrop.SetVerificationBackgroundOverride(BackgroundOverridePath(config));
             DebugMode.AllyInvincible = config?.allyInvincible >= 0 ? config.allyInvincible == 1 : allyDefault;
             DebugMode.EnemyInvincible = config?.enemyInvincible >= 0 ? config.enemyInvincible == 1 : enemyDefault;
@@ -2304,6 +2491,13 @@ namespace Managers.UI.DevTools
 
         private IEnumerator CaptureStill(string tag, bool keepTooltip = false)
         {
+            if(!keepTooltip)
+            {
+                // EndOfFrame에서 닫으면 이미 렌더된 툴팁이 캡처에 남는다. 다음 렌더 전에 닫는다.
+                yield return null;
+                Managers.UI.Core.UITooltip.HideAny();
+                Managers.UI.HUD.StageTreasuryTooltip.HideForCapture();
+            }
             yield return EndOfFrame;
             Capture(tag, keepTooltip);
             yield return null;
@@ -2360,14 +2554,14 @@ namespace Managers.UI.DevTools
         private IEnumerator CaptureActionWindowAtInterval(string tag, float seconds, float interval,
             Action action, float preRoll = 0.5f)
         {
-            // 표시 1×에서도 엔진 Time.timeScale은 0.5이므로 사용자 영상의 프리롤·총길이는
+            // 배속과 관계없이 사용자 영상의 프리롤·총길이는
             // 게임 시간이 아니라 실제 경과 시간을 기준으로 맞춘다.
             yield return CaptureActionWindowRealtimeAtInterval(tag, seconds, interval, action, preRoll);
         }
 
         /// <summary>
         /// 사용자 검수 영상은 표시 배속과 무관하게 실제 0.5초 프리롤과 30fps 이상 간격을 지킨다.
-        /// 엔진 Time.timeScale이 1× HUD에서 0.5이므로 이 경로만 실시간 축을 사용한다.
+        /// 배속과 별개로 이 경로는 실시간 축을 사용한다.
         /// </summary>
         private IEnumerator CaptureActionWindowRealtimeAtInterval(string tag, float seconds, float interval,
             Action action, float preRoll = 0.5f)
@@ -2441,6 +2635,10 @@ namespace Managers.UI.DevTools
 
         private void Capture(string baseTag, bool keepTooltip = false)
         {
+            if (Application.isBatchMode) return; // 캡처가 없는 기술 결과를 미술 PASS로 사용하지 않는다.
+            if (VisualModeState.Current == VisualMode.Stage &&
+                (baseTag is "five_party" or "prep_1v1" or "prep_1v2" or "combat") &&
+                _stageLayoutChecks.Add($"{_currentScenario}:{baseTag}")) RecordStageLayoutChecks(baseTag);
             // 자동 캡처는 포인터 위치와 무관해야 한다. 매 프레임 호버가 다시 계산되므로 저장 직전에 닫는다.
             // 툴팁 자체를 검수하는 캡처만 고정 좌표(ShowAt)로 띄운 툴팁을 남긴다.
             if (!keepTooltip) Managers.UI.Core.UITooltip.HideAny();
@@ -2487,6 +2685,152 @@ namespace Managers.UI.DevTools
             V13CaptureDiagnostics(path);
         }
 
+        private void RecordStageLayoutChecks(string tag)
+        {
+            Camera camera = Camera.main;
+            if (camera == null) { FailCurrent("Stage 카메라가 없다."); return; }
+            bool preparation = GameManager.Instance.gameState == BaseEnums.GameState.Preparation;
+            bool showEmpty = Cell.PlacementModeActive || DragAndDropManager.Instance?.IsDragging() == true;
+            var cells = FindObjectsByType<Cell>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .Where(cell => cell.yPos > 0).ToList();
+            float maxPixelError = 0f, maxUnitError = 0f, maxLogicalError = 0f;
+            foreach (Cell cell in cells.Where(cell => cell.IsLaidOut))
+            {
+                var column = cells.Where(other => other.xPos == cell.xPos).OrderBy(other => other.yPos).ToList();
+                var occupied = column.Where(other => other.isOccupied).ToList();
+                var logical = new List<Cell>(occupied);
+                if (showEmpty && preparation) logical.AddRange(column.Where(other => !other.isOccupied));
+                int side = cell.xPos < 0 ? -1 : 1;
+                int displayColumn = Mathf.Abs(cell.xPos) - 1;
+                if (!preparation && displayColumn == 1 && !cells.Any(other => other.xPos == side && other.isOccupied))
+                    displayColumn = 0;
+                StageLayout.Slot expected = preparation
+                    ? StageLayout.ForPreparation(side, displayColumn, cell.yPos - 1)
+                    : StageLayout.ForBattle(side, displayColumn, occupied.IndexOf(cell), occupied.Count);
+                Vector3 screen = camera.WorldToScreenPoint(cell.transform.position);
+                Vector2 actual = new((screen.x - camera.pixelRect.center.x) * 1080f / camera.pixelHeight + 960f,
+                    (camera.pixelRect.yMax - screen.y) * 1080f / camera.pixelHeight);
+                maxPixelError = Mathf.Max(maxPixelError, Vector2.Distance(actual, expected.Pixel));
+                if (cell.unit != null)
+                    maxUnitError = Mathf.Max(maxUnitError, Vector3.Distance(cell.unit.transform.position, cell.transform.position));
+                maxLogicalError = Mathf.Max(maxLogicalError, Mathf.Abs(cell.DisplaySlot -
+                    Combat.CombatFieldLayout.DisplaySlot(logical.IndexOf(cell), logical.Count)));
+            }
+            var ordered = cells.Where(cell => cell.IsLaidOut).OrderByDescending(cell => cell.transform.position.y).ToList();
+            bool depth = true;
+            for (int i = 1; i < ordered.Count; i++)
+                if (ordered[i - 1].transform.position.y > ordered[i].transform.position.y + 0.0001f &&
+                    ordered[i - 1].DepthOrder >= ordered[i].DepthOrder) depth = false;
+            RecordMechanic($"stage_layout_{tag}", "무대 좌표 오차 ≤0.5px, 유닛 동기화, 기존 거리 좌표, y 정렬",
+                $"cells={ordered.Count}, pixelError={maxPixelError:F5}, unitError={maxUnitError:F5}, logicalError={maxLogicalError:F5}, depth={depth}",
+                ordered.Count > 0 && maxPixelError <= 0.5f && maxUnitError <= 0.0001f && maxLogicalError <= 0.0001f && depth);
+            RecordMechanic($"stage_camera_{tag}", "고정 높이 36, 중심 (0,0)",
+                $"height={camera.orthographicSize * 2f:F5}, center={camera.transform.position}, resolution={Screen.width}x{Screen.height}",
+                camera.orthographic && Mathf.Abs(camera.orthographicSize * 2f - StageLayout.WorldHeight) < 0.0001f &&
+                Mathf.Abs(camera.transform.position.x) < 0.0001f && Mathf.Abs(camera.transform.position.y) < 0.0001f);
+            SpriteRenderer grade = camera.transform.Find("StageGrade")?.GetComponent<SpriteRenderer>();
+            bool boardHidden = !FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None).Any(renderer =>
+                renderer.enabled && (renderer.name == "CenterDivider" || renderer.name.StartsWith("FormationMark", StringComparison.Ordinal)));
+            RecordMechanic($"stage_backdrop_{tag}", "StageGrade 표시, 유리판·중앙선·각인 숨김",
+                $"grade={grade != null && grade.enabled}, boardHidden={boardHidden}", grade != null && grade.enabled && boardHidden);
+            RecordStageFigureChecks(tag, camera, cells);
+        }
+
+        private void RecordStageFigureChecks(string tag, Camera camera, List<Cell> cells)
+        {
+            StageFigureDataList data = DataManager.LoadStageFigureDataList();
+            var yaml = new YamlDotNet.RepresentationModel.YamlStream();
+            yaml.Load(new StringReader(Resources.Load<TextAsset>("Data/97_stage_figures").text));
+            var mapping = (YamlDotNet.RepresentationModel.YamlMappingNode)yaml.Documents[0].RootNode;
+            var entries = (YamlDotNet.RepresentationModel.YamlSequenceNode)mapping.Children[
+                new YamlDotNet.RepresentationModel.YamlScalarNode("figures")];
+            bool fieldsMatch = entries.Children.Count == data.figures.Count;
+            var profiles = data.figures.Concat(new[] { data.@default }).ToArray();
+            var nodes = entries.Children.Concat(new[] { mapping.Children[
+                new YamlDotNet.RepresentationModel.YamlScalarNode("default")] }).ToArray();
+            bool MatchFields(object profile, YamlDotNet.RepresentationModel.YamlMappingNode node)
+            {
+                bool match = true;
+                foreach (var field in profile.GetType().GetFields())
+                {
+                bool present = node.Children.TryGetValue(new YamlDotNet.RepresentationModel.YamlScalarNode(field.Name), out var value);
+                object actual = field.GetValue(profile);
+                if (!present && actual == null) continue;
+                if (field.Name == "deform" && !present) { match &= (bool)actual; continue; }
+                if (!present && profile is SummonStageData && field.FieldType == typeof(float))
+                { match &= (float)actual == 0f; continue; }
+                if (!present && profile is SummonStageData && field.FieldType == typeof(bool))
+                { match &= !(bool)actual; continue; }
+                if (!present) { match = false; continue; }
+                if (value is YamlDotNet.RepresentationModel.YamlMappingNode nested)
+                { match &= actual != null && MatchFields(actual, nested); continue; }
+                if (value is YamlDotNet.RepresentationModel.YamlSequenceNode sequence)
+                {
+                    var list = actual as System.Collections.IList;
+                    if (list == null || list.Count != sequence.Children.Count) { match = false; continue; }
+                    for (int j = 0; j < list.Count; j++)
+                        match &= MatchFields(list[j], (YamlDotNet.RepresentationModel.YamlMappingNode)sequence.Children[j]);
+                    continue;
+                }
+                string raw = ((YamlDotNet.RepresentationModel.YamlScalarNode)value).Value;
+                match &= field.FieldType == typeof(float)
+                    ? Mathf.Abs((float)actual - float.Parse(raw, System.Globalization.CultureInfo.InvariantCulture)) < .000001f
+                    : field.FieldType == typeof(bool) ? (bool)actual == bool.Parse(raw) : (string)actual == raw;
+                }
+                return match;
+            }
+            for (int i = 0; i < profiles.Length; i++)
+                fieldsMatch &= MatchFields(profiles[i], (YamlDotNet.RepresentationModel.YamlMappingNode)nodes[i]);
+            fieldsMatch &= MatchFields(data.swarm, (YamlDotNet.RepresentationModel.YamlMappingNode)mapping.Children[
+                new YamlDotNet.RepresentationModel.YamlScalarNode("swarm")]);
+            RecordMechanic($"stage_figure_yaml_{tag}", "새 YAML의 모든 필드가 DTO에 반영됨(default 포함)",
+                $"figures={data.figures.Count}, fieldsMatch={fieldsMatch}, strict=true", fieldsMatch);
+            string sourceYaml = Resources.Load<TextAsset>("Data/97_stage_figures").text;
+            bool typoRejected = false, missingRejected = false;
+            try { new YamlDotNet.Serialization.DeserializerBuilder().Build().Deserialize<StageFigureDataList>(sourceYaml.Replace("chin:", "chni:")); }
+            catch (YamlDotNet.Core.YamlException) { typoRejected = true; }
+            try { new YamlDotNet.Serialization.DeserializerBuilder().Build().Deserialize<StageFigureDataList>(
+                System.Text.RegularExpressions.Regex.Replace(sourceYaml, @"chin:\s*[0-9.]+,\s*", "")).Validate(); }
+            catch (Exception) { missingRejected = true; }
+            RecordMechanic($"stage_figure_yaml_rejection_{tag}", "메모리 사본의 오타/누락이 거부됨(원본 불변)",
+                $"typoRejected={typoRejected}, missingRejected={missingRejected}", typoRejected && missingRejected);
+            bool deformTypo = false;
+            try { new YamlDotNet.Serialization.DeserializerBuilder().Build().Deserialize<StageFigureDataList>(sourceYaml.Replace("deform:", "defrom:")); }
+            catch (YamlDotNet.Core.YamlException) { deformTypo = true; }
+            var omitted = new YamlDotNet.Serialization.DeserializerBuilder().Build().Deserialize<StageFigureDataList>(
+                System.Text.RegularExpressions.Regex.Replace(sourceYaml, @",\s*deform:\s*(true|false)", ""));
+            bool voidWhole = data.figures.Where(p => p.sprite.StartsWith("VOID_", StringComparison.Ordinal)).All(p => !p.deform);
+            RecordMechanic($"stage_figure_deform_{tag}", "deform 필드/기본 true/오타 거부/VOID 한 장",
+                $"defaultTrue={omitted.figures.All(p=>p.deform) && omitted.@default.deform}, typoRejected={deformTypo}, voidWhole={voidWhole}",
+                omitted.figures.All(p=>p.deform) && omitted.@default.deform && deformTypo && voidWhole);
+            var occupied = cells.Where(cell => cell.IsLaidOut && cell.isOccupied && cell.unit != null).ToList();
+            RecordMechanic($"stage_figure_lineup_{tag}", "촬영 시 실제 편성 수", $"allies={occupied.Count(c => c.xPos < 0)}, enemies={occupied.Count(c => c.xPos > 0)}", occupied.Count > 0);
+            foreach (Cell cell in occupied)
+            {
+                UnitCardView view = cell.Card;
+                StageFigure figure = view.StageProxy;
+                if (figure == null) { RecordMechanic($"stage_figure_{tag}", "SD 프록시 존재", view.BoundUnit?.UnitName, false); continue; }
+                Unit unit = view.BoundUnit;
+                float rank = unit.UnitTier is "elite" or "boss" ? 1.15f : 1f;
+                float expected = StageLayout.BodyHeightPx * cell.transform.lossyScale.y * rank;
+                float actual = figure.BodyWorldHeight * camera.pixelHeight / (camera.orthographicSize * 2f);
+                // 피격/시전의 Body 찌그러짐은 기존 모션이다. 기준 T는 이 일시 배율을 걷어내 검증한다.
+                float motionScale = figure.transform.parent.localScale.y;
+                float restingHeight = actual / motionScale;
+                bool compatible = view.PortraitRenderer == figure.Lower && Vector3.Distance(cell.CardCenter, figure.ChestWorld) < .0001f &&
+                    Mathf.Abs(Cell.CardSize - StageFigure.BaseWorldHeight) < .0001f && !cell.portraitRenderer.enabled;
+                Vector3 feet = camera.WorldToScreenPoint(cell.transform.position);
+                bool slices = figure.Lower.sharedMaterial.shader.name == "NeverTheLast/StageFigureSlice" &&
+                    (figure.Frames != null ? !figure.Head.enabled && figure.Lower.sprite.name.StartsWith(figure.Frames.Profile.prefix + "_", StringComparison.Ordinal) :
+                        figure.Deform ? figure.Head.enabled && figure.Lower.sprite == figure.Head.sprite : !figure.Head.enabled && Mathf.Abs(figure.Lower.transform.localScale.x - figure.Lower.transform.localScale.y) < .0001f) &&
+                    figure.transform.parent == view.Body && figure.SpriteKey.EndsWith("_STANDING", StringComparison.Ordinal);
+                RecordMechanic($"stage_figure_{tag}_{unit.UnitName}", "기준 높이=250×깊이×등급, Lower/chest 호환, deform에 따라 2조각/전신 한 장",
+                    $"sprite={figure.SpriteKey}, deform={figure.Deform}, calibrated={figure.Calibrated}, heightPx={actual:F3}, restingHeightPx={restingHeight:F3}, motionScale={motionScale:F5}, expectedPx={expected:F3}, feet=({feet.x:F3},{1080f-feet.y:F3}), lowerPx={figure.Lower.bounds.size.y*30f:F3}, compatible={compatible}, slices={slices}",
+                    Mathf.Abs(restingHeight - expected) < 1f && compatible && slices);
+                RecordStageHudCheck(view, tag, camera);
+            }
+        }
+
         private void RecordPortraitRects(int frame, float realtime)
         {
             Camera camera = Camera.main;
@@ -2497,6 +2841,17 @@ namespace Managers.UI.DevTools
                 Unit unit = view.BoundUnit;
                 Rect rect = view.PortraitFocusScreenRect(camera);
                 if (unit == null || rect.width <= 1f || rect.height <= 1f) continue;
+                if (view.StageProxy != null)
+                {
+                    Bounds visibleHead = view.StageProxy.VisibleHeadWorldBounds;
+                    Vector3 headMin = camera.WorldToScreenPoint(visibleHead.min), headMax = camera.WorldToScreenPoint(visibleHead.max);
+                    _result.uiRects.Add(new VerifyUiRectRecord
+                    {
+                        scenario=_currentScenario,realtime=realtime,frame=frame,groupId=unit.GetInstanceID(),
+                        element="StageHeadVisible",text=unit.UnitName,
+                        xMin=headMin.x,yMin=headMin.y,xMax=headMax.x,yMax=headMax.y,
+                    });
+                }
                 _result.portraitRects.Add(new VerifyPortraitRectRecord
                 {
                     scenario = _currentScenario,
@@ -2532,6 +2887,26 @@ namespace Managers.UI.DevTools
 
         private void RecordUiRects(int frame, float realtime)
         {
+            if (VisualModeState.Current == VisualMode.Stage)
+                foreach (TextMeshProUGUI label in FindObjectsByType<TextMeshProUGUI>(FindObjectsSortMode.None))
+                {
+                    if (!label.enabled || label.name is not ("StatusName" or "Number" or "Kind") ||
+                        label.GetComponentsInParent<CanvasGroup>().Any(g => g.alpha <= .1f)) continue;
+                    label.ForceMeshUpdate();
+                    Vector2 min=new(float.PositiveInfinity,float.PositiveInfinity),max=new(float.NegativeInfinity,float.NegativeInfinity);
+                    foreach (var glyph in label.textInfo.characterInfo.Take(label.textInfo.characterCount).Where(c => c.isVisible))
+                    {
+                        min=Vector2.Min(min,RectTransformUtility.WorldToScreenPoint(null,label.transform.TransformPoint(glyph.bottomLeft)));
+                        max=Vector2.Max(max,RectTransformUtility.WorldToScreenPoint(null,label.transform.TransformPoint(glyph.topRight)));
+                    }
+                    if (max.x<=min.x || max.y<=min.y) continue;
+                    _result.uiRects.Add(new VerifyUiRectRecord
+                    {
+                        scenario=_currentScenario,realtime=realtime,frame=frame,groupId=label.transform.parent.GetInstanceID(),
+                        element=label.name=="StatusName"?"StageStatus":"StageNumber",text=label.text,
+                        xMin=min.x,yMin=min.y,xMax=max.x,yMax=max.y,
+                    });
+                }
             foreach (TextMeshProUGUI label in FindObjectsByType<TextMeshProUGUI>(
                          FindObjectsInactive.Exclude, FindObjectsSortMode.None))
             {
@@ -2861,6 +3236,13 @@ namespace Managers.UI.DevTools
                 "hybrid32" or "c" => SkillFxPlaybackMode.Hybrid32,
                 _ => SkillFxPlaybackMode.Final,
             };
+        }
+
+        private VisualMode ResolveVisualMode(VerifyScenarioRequest config)
+        {
+            string value = !string.IsNullOrWhiteSpace(config?.visualMode) ? config.visualMode : _request.visualMode;
+            return string.Equals(value?.Trim(), "Stage", StringComparison.OrdinalIgnoreCase)
+                ? VisualMode.Stage : VisualMode.Card;
         }
 
         private VfxStyle ResolveVfxStyle(VerifyScenarioRequest config)

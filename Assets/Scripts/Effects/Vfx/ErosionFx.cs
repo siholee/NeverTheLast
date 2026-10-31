@@ -37,6 +37,15 @@ namespace Effects.Vfx
                 name = "Vfx_HardEdgeErosion_Runtime",
                 hideFlags = HideFlags.HideAndDontSave,
             };
+            Material source = renderer.sharedMaterial;
+            if (source != null && source.shader.name == "NeverTheLast/StageFigureSlice")
+            {
+                fx._material.SetFloat("_StageSlice", 1f);
+                foreach (string property in new[] { "_SpriteUV", "_ClipV", "_Ellipse" })
+                    fx._material.SetVector(property, source.GetVector(property));
+                foreach (string property in new[] { "_Feather", "_KeepAboveV", "_AboveFadeV", "_Head" })
+                    fx._material.SetFloat(property, source.GetFloat(property));
+            }
             fx._material.SetTexture("_NoiseTex", Noise);
             fx._material.SetColor("_CoreColor", core);
             fx._material.SetColor("_BandColor", band);

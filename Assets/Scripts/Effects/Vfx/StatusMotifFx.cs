@@ -12,7 +12,7 @@ namespace Effects.Vfx
     {
         private sealed class Recent { public readonly Dictionary<string, float> Until = new(); }
         private static readonly ConditionalWeakTable<Unit, Recent> Shown = new();
-        public static readonly string[] Kinds = { "burn", "shock", "poison", "curse", "frozen", "airborne", "stun", "bind", "slow", "mark", "erosion", "debuff" };
+        public static readonly string[] Kinds = { "burn", "bleed", "shock", "poison", "curse", "frozen", "airborne", "stun", "bind", "slow", "mark", "erosion", "debuff" };
 
         /// <summary>정보판 위 몸통 안에 붙여 이웃 카드의 상태로 읽히지 않게 한다.</summary>
         public static Vector3 Anchor(Unit target)
@@ -43,7 +43,7 @@ namespace Effects.Vfx
             recent.Until[token] = Time.time + .18f;
             // 몸체의 문양과 분리하고 머리 위 피해/부여 알림의 공간을 비운다.
             Vector3 p = Anchor(target);
-            float scale = (tick ? .80f : 1.00f) * (kind is "poison" or "stun" ? 1.5f : 1f);
+            float scale = (tick ? .80f : 1.00f) * (kind=="stun" ? 1.5f : 1f);
             int layer = VfxSpace.SortingLayer(target), order = VfxSpace.OverlaySortingOrder + 62;
             Color color = kind switch
             {
@@ -69,9 +69,7 @@ namespace Effects.Vfx
             switch(kind)
             {
                 case "bleed":
-                    Stroke(new Vector2(-.16f,.16f),new Vector2(-.10f,-.14f));
-                    Stroke(new Vector2(0,.21f),new Vector2(.06f,-.18f));
-                    Stroke(new Vector2(.16f,.14f),new Vector2(.20f,-.10f));
+                    PortraitAccentFx.BleedMark(target,tick);
                     break;
                 case "shock":
                     for(int i=0;i<2;i++)
@@ -85,20 +83,7 @@ namespace Effects.Vfx
                     for(int i=0;i<3;i++) Stroke(new(-.18f+i*.18f,-.17f),new(-.18f+i*.18f,-.08f));
                     break;
                 case "poison":
-                    for(int i=0;i<3;i++)
-                    {
-                        Vector3 dot=p+new Vector3((i-1)*.12f,.02f+(i==1?.07f:0f),0)*VfxSpace.CardSize*scale;
-                        float size=(i==1?.085f:.068f)*VfxSpace.CardSize*scale;
-                        SpriteFx.Play(VfxSpace.Ring,dot,new Color(.33f,.19f,.38f,.55f),false,
-                            size*1.18f,size*1.25f,.48f,fadeIn:.08f,fadeOutFrom:.34f,
-                            sortingLayer:layer,order:order-1)?.Follow(target.transform);
-                        SpriteFx.Play(VfxSpace.ToxicBubble,dot,new Color(.49f,.70f,.30f,.62f),false,
-                            size,size*1.08f,.48f,fadeIn:.08f,fadeOutFrom:.34f,
-                            sortingLayer:layer,order:order)?.Follow(target.transform);
-                        SpriteFx.Play(VfxSpace.BubbleHighlight,dot,
-                            new Color(.84f,.94f,.56f,.78f),false,size*.92f,size,.46f,
-                            fadeIn:.08f,fadeOutFrom:.34f,sortingLayer:layer,order:order+1)?.Follow(target.transform);
-                    }
+                    PoisonBubblesFx.Play(target,tick);
                     break;
                 case "burn":
                     // 베기 자국 같은 세 줄 대신 구매 원화의 한 불꽃과 밝은 심지를 사용한다.
@@ -106,7 +91,7 @@ namespace Effects.Vfx
                         new Color(1f,.68f,.35f,.86f),new Color(1f,.94f,.73f,.92f),
                         orderOffset:62,peakAlpha:.26f,glowAlpha:.08f,heldFrame:7,
                         peakHoldSeconds:.04f,desaturate:.35f,steadyBody:true,calmLight:true,
-                        paintContrast:.30f)?.ClipPortraitHud(target);
+                        paintContrast:.30f)?.BindRecipient(target);
                     PortraitAccentFx.FlameCore(target,.75f*scale,.38f);
                     break;
                 case "frozen":

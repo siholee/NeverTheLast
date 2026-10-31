@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +14,27 @@ namespace Managers.UI.DevTools
         {
             _yvFailures.Clear();bool enabled=true;yield return YvPrepareScene(config,value=>enabled=value);
             var game=GameManager.Instance;SaveSystem.SeedEmptyDebugAccount();SaveSystem.MarkBossDefeated(13012);
+            if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "--ntl-verify-silent") >= 0)
+            {
+                var settings = SettingsManager.Instance;
+                float music = settings.MusicVolume, sfx = settings.SfxVolume;
+                typeof(SettingsManager).GetMethod("ApplyMusicVolume", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(settings, null);
+                YvCheck("설정 재적용 뒤 검증 음량0·설정값 보존", "리스너0·저장 설정 불변", $"{AudioListener.volume}/{settings.MusicVolume}/{settings.SfxVolume}",
+                    Mathf.Approximately(AudioListener.volume, 0) && Mathf.Approximately(settings.MusicVolume, music) && Mathf.Approximately(settings.SfxVolume, sfx));
+            }
+            IEnumerator CheckUnlimited(string label)
+            {
+                DebugMode.AllyInvincible = DebugMode.EnemyInvincible = true;
+                typeof(ActionScheduler).GetProperty("TurnsTaken").SetValue(game.ActionScheduler, 79);
+                game.enabled = true;
+                float deadline = Time.realtimeSinceStartup + 30;
+                while (game.gameState == BaseEnums.GameState.RoundInProgress && game.ActionScheduler.TurnsTaken < 83 && Time.realtimeSinceStartup < deadline)
+                    yield return null;
+                game.enabled = false;
+                YvCheck(label, "80일반턴 초과·전투 유지·생명 불변", $"{game.ActionScheduler.TurnsTaken}/{game.gameState}/{game.gameState}",
+                    game.ActionScheduler.TurnsTaken >= 83 && game.gameState == BaseEnums.GameState.RoundInProgress);
+                DebugMode.AllyInvincible = DebugMode.EnemyInvincible = false;
+            }
             foreach(int floor in new[]{5,13})
             {
                 game.DebugResetBattle();DebugMode.ForcedThemeId=0;game.DebugLoadStage(floor);
@@ -23,6 +44,7 @@ namespace Managers.UI.DevTools
                 game.StartRound();
                 YvCheck($"범용{floor}층 실제 전투 유지","적 존재·전투",AliveEnemies().Count.ToString(),game.gameState==BaseEnums.GameState.RoundInProgress&&AliveEnemies().Count>0);
             }
+            yield return CheckUnlimited("일반 전투 행동 제한 없음");
             game.DebugResetBattle();DebugMode.ForcedThemeId=8;game.DebugLoadStage(17);DebugMode.ForcedThemeId=0;
             var story=game.dataManager.FetchStageThemeDataList().events.First(item=>item.themeId==8&&item.choices.Any(choice=>choice.battleEnemyId>0));
             var choice=story.choices.First(item=>item.battleEnemyId>0);
@@ -49,6 +71,7 @@ namespace Managers.UI.DevTools
             float until=Time.realtimeSinceStartup+15f;
             while(scheduler.ActionCount==0&&Time.realtimeSinceStartup<until){scheduler.Tick(Time.deltaTime);yield return null;}
             YvCheck("사건 전투 실제 첫 행동 진행","행동1이상·턴80미만",$"{scheduler.ActionCount}/{scheduler.TurnsTaken}",scheduler.ActionCount>0&&scheduler.TurnsTaken<80);
+            yield return CheckUnlimited("사건 전투 행동 제한 없음");
             yield return CaptureStill("core_event_safety_fresh_battle");game.DebugResetBattle();OsFinish(enabled);
         }
     }

@@ -213,6 +213,7 @@ namespace Effects.Negative
     /// </summary>
     internal sealed class ActionLockEffect : BaseEffect
     {
+        public override bool IsControl => true;
         private readonly Unit _source;
         private int _remainingTurns;
 

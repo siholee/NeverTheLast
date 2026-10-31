@@ -7,6 +7,7 @@ namespace Codes.Normal
 {
     public sealed class OrpheusMelody : BaseNormalCode
     {
+        protected override bool AppliesElementTo(Unit target) => true;
         public override int AttackForm => DamageTag.Spell;
         public OrpheusMelody(NormalCodeContext context) : base(context) => CodeName = "애도의 선율";
         protected override int BaseDamage(Unit target) => StatDamage(0, BaseEnums.StatType.Attack, .8f);

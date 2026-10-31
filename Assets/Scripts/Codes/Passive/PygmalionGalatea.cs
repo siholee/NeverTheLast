@@ -17,6 +17,7 @@ namespace Codes.Passive
         private const int AuraStatusId = 70201;
         private const string IdentityKey = "pygmalion_summon_identity";
         private const string AuraKey = "pygmalion_galatea_aura";
+        private bool _subscribed;
 
         public PygmalionGalatea(PassiveCodeContext context) : base(context) => CodeName = "갈라테아";
 
@@ -30,21 +31,32 @@ namespace Codes.Passive
                 category: BaseEnums.StatusCategory.Neutral,
                 description: "이 유닛은 소환수로도 간주됩니다."));
 
-            foreach (Unit ally in AliveAllies())
-            {
-                ally.AddStatus(BuffStatus.Create(
+            foreach (Unit ally in AliveAllies()) ApplyAura(ally);
+            if (!_subscribed) { Summons.AnySummonCreated += OnSummonCreated; _subscribed = true; }
+            ActionAnnouncer.AnnouncePassive(Caster, this);
+            AudioManager.PlayAction(Caster, SfxActionSlot.Passive, SfxCuePhase.Hit, CodeName);
+        }
+
+        private void ApplyAura(Unit ally)
+        {
+            if (ally == null || !ally.isActive || !ally.IsOnField) return;
+            ally.AddStatus(BuffStatus.Create(
                     AuraStatusId, AuraKey, "갈라테아의 축복", Caster, ally,
                     new GalateaDamageEffect(Caster), duration: 0,
                     stackPolicy: BaseEnums.StatusStackPolicy.Replace,
                     isBeneficial: true,
                     description: "피그말리온이 필드에 있는 동안 가하는 피해 +15%. 소환수는 +30%."));
-            }
-            ActionAnnouncer.AnnouncePassive(Caster, this);
-            AudioManager.PlayAction(Caster, SfxActionSlot.Passive, SfxCuePhase.Hit, CodeName);
+        }
+
+        private void OnSummonCreated(Unit owner, Unit summon, SummonSource source, object tag)
+        {
+            if (Caster != null && Caster.isActive && Caster.IsOnField && summon != null && summon.IsEnemy == Caster.IsEnemy)
+                ApplyAura(summon);
         }
 
         public override void StopCode()
         {
+            if (_subscribed) { Summons.AnySummonCreated -= OnSummonCreated; _subscribed = false; }
             if (Caster != null) Caster.RemoveStatusByKey(IdentityKey);
             foreach (Unit ally in AliveAllies(includeInactive: true)) ally.RemoveStatusByKey(AuraKey);
         }
@@ -53,7 +65,7 @@ namespace Codes.Passive
         {
             GridManager grid = GridManager.Instance;
             if (grid == null || Caster == null) return new List<Unit>();
-            List<Unit> pool = Caster.IsEnemy ? grid.enemyList : grid.heroList;
+            var pool = (Caster.IsEnemy ? grid.enemyList : grid.heroList).Concat(grid.summonList);
             return pool.Where(unit => unit != null && (includeInactive || unit.isActive) &&
                                       unit.IsEnemy == Caster.IsEnemy).ToList();
         }

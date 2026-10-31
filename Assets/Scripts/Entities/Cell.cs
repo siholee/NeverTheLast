@@ -2,6 +2,7 @@ using UnityEngine;
 using Entities;
 using Entities.View;
 using Managers;
+using Managers.Stage;
 
 public class Cell : MonoBehaviour
 {
@@ -51,7 +52,9 @@ public class Cell : MonoBehaviour
     public const float CellSize = 10.16f;
 
     /// <summary>카드 한 변. 칸보다 조금 작게 잡아야 격자 사이가 벌어져 보인다.</summary>
-    public const float CardSize = CellSize * UnitCardView.CardRatio;
+    public const float CardBaseSize = CellSize * UnitCardView.CardRatio;
+    public static float CardSize => VisualModeState.Current == VisualMode.Stage
+        ? StageFigure.BaseWorldHeight : CardBaseSize;
 
     /// <summary>
     /// 초상화가 차지할 한 변(월드 단위).
@@ -59,7 +62,7 @@ public class Cell : MonoBehaviour
     /// 초상화는 SpriteRenderer라 잘라낼 수 없으므로 카드 <b>안쪽에 맞춰</b> 줄인다(contain).
     /// 초상화가 정사각이면 카드를 거의 꽉 채우고, 세로로 긴 그림은 좌우에 여백이 남는다.
     /// </summary>
-    public const float PortraitFitSize = CardSize * 1.03f;
+    public const float PortraitFitSize = CardBaseSize * 1.03f;
 
     public const float StandingHeight = PortraitFitSize;
     public const float StandingWidth = PortraitFitSize;
@@ -88,6 +91,11 @@ public class Cell : MonoBehaviour
     private bool _groundPadRequestedVisible = true;
     private bool _dropTargetHovered;
     private bool _dropTargetValid;
+    private SpriteRenderer _stageSlot;
+    private static Sprite _stageSlotSolid, _stageSlotDashed, _stageSlotTarget;
+    private BoxCollider2D _stageCollider;
+    private Vector2 _savedColliderSize, _savedColliderOffset;
+    private bool _stageColliderSaved;
 
     /// <summary>
     /// 덱 구성 모드. 켜져 있으면 아군이 놓일 수 있는 빈 칸과 벤치가 앰버로 숨쉰다.
@@ -164,7 +172,7 @@ public class Cell : MonoBehaviour
     private void ApplyCardScale()
     {
         EnsureCard();
-        _card.Resize(CardSize * FeatureScale);
+        _card.Resize(CardBaseSize * FeatureScale);
     }
 
     private void EnsureCard()
@@ -278,7 +286,9 @@ public class Cell : MonoBehaviour
     }
 
     /// <summary>카드 몸체의 월드 중심. 돌진 중이면 날아가 있는 자리다.</summary>
-    public Vector3 CardCenter => _card != null ? _card.CenterWorld : transform.position;
+    public Vector3 CardCenter => _card != null
+        ? _card.StageProxy != null ? _card.StageProxy.ChestWorld : _card.CenterWorld
+        : transform.position;
 
     /// <summary>이 칸의 카드. 연출이 카드를 직접 움직일 때 쓴다.</summary>
     public UnitCardView Card
@@ -387,6 +397,14 @@ public class Cell : MonoBehaviour
     /// </summary>
     private void UpdatePlacementGlow()
     {
+        UpdateStageSlot();
+        if (VisualModeState.Current == VisualMode.Stage)
+        {
+            if (_groundPad != null) _groundPad.enabled = false;
+            if (_dropPlate != null) _dropPlate.enabled = false;
+            if (_dropLabel != null) _dropLabel.gameObject.SetActive(false);
+            return;
+        }
         if (_groundPad == null) return;
         bool showDrop=_dropTargetHovered;
         if(_dropPlate!=null)
@@ -431,6 +449,62 @@ public class Cell : MonoBehaviour
         {
             _groundPad.color = _groundPadBase;
         }
+    }
+
+    // 표시와 드롭 콜라이더를 같은 발 좌표에 둔다. Card의 원본 콜라이더는 모드 이탈 때 복원한다.
+    private void UpdateStageSlot()
+    {
+        bool stage = VisualModeState.Current == VisualMode.Stage && yPos > 0;
+        _stageCollider ??= GetComponent<BoxCollider2D>();
+        if (stage && _stageCollider != null)
+        {
+            if (!_stageColliderSaved)
+            {
+                _savedColliderSize = _stageCollider.size; _savedColliderOffset = _stageCollider.offset;
+                _stageColliderSaved = true;
+            }
+            float px = StageLayout.WorldHeight / 1080f / Mathf.Max(.001f, transform.lossyScale.y);
+            _stageCollider.size = new Vector2(170f, 46f) * px;
+            _stageCollider.offset = Vector2.zero;
+        }
+        else if (_stageColliderSaved && _stageCollider != null)
+        {
+            _stageCollider.size = _savedColliderSize; _stageCollider.offset = _savedColliderOffset;
+            _stageColliderSaved = false;
+        }
+        bool show = stage && xPos < 0 && (GameManager.Instance == null ||
+            GameManager.Instance.gameState == BaseClasses.BaseEnums.GameState.Preparation);
+        if (!show) { if (_stageSlot != null) _stageSlot.enabled = false; return; }
+        if (_stageSlot == null)
+        {
+            var slot = new GameObject("StagePreparationSlot"); slot.transform.SetParent(transform, false);
+            _stageSlot = slot.AddComponent<SpriteRenderer>();
+        }
+        if (_stageSlotSolid == null) _stageSlotSolid = StageSlotSprite(false, false);
+        if (_stageSlotDashed == null) _stageSlotDashed = StageSlotSprite(true, false);
+        if (_stageSlotTarget == null) _stageSlotTarget = StageSlotSprite(false, true);
+        _stageSlot.sprite = _dropTargetHovered ? _stageSlotTarget : isOccupied ? _stageSlotSolid : _stageSlotDashed;
+        _stageSlot.color = _dropTargetHovered && !_dropTargetValid ? Managers.UI.Theme.UITheme.Danger : Color.white;
+        float unit = StageLayout.WorldHeight / 1080f / Mathf.Max(.001f, transform.lossyScale.y);
+        _stageSlot.transform.localScale = new Vector3(170f * unit / _stageSlot.sprite.bounds.size.x,
+            46f * unit / _stageSlot.sprite.bounds.size.y, 1f);
+        _stageSlot.sortingLayerID = DepthLayerId; _stageSlot.sortingOrder = DepthOrder - 1;
+        _stageSlot.enabled = true;
+    }
+
+    private static Sprite StageSlotSprite(bool dashed, bool target)
+    {
+        var texture = new Texture2D(340, 92, TextureFormat.RGBA32, false) { hideFlags = HideFlags.HideAndDontSave };
+        for (int y = 0; y < 92; y++) for (int x = 0; x < 340; x++)
+        {
+            Vector2 p = new((x - 169.5f) / 168f, (y - 45.5f) / 44f);
+            float r = p.magnitude;
+            float edge = Mathf.Clamp01((1f - r) * 32f) * Mathf.Clamp01((r - (target ? .84f : .91f)) * 40f);
+            if (dashed && Mathf.Repeat(Mathf.Atan2(p.y, p.x) * 12f / Mathf.PI, 1f) > .58f) edge = 0f;
+            texture.SetPixel(x, y, new Color(.38f, .64f, .86f, Mathf.Max(r < .98f ? .06f : 0f, edge * (target ? .95f : .52f))));
+        }
+        texture.Apply();
+        return Sprite.Create(texture, new Rect(0, 0, 340, 92), new Vector2(.5f, .5f), 100f);
     }
 
     public void SetGroundPadVisible(bool visible)

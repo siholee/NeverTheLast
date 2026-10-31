@@ -140,7 +140,7 @@ namespace Effects.Vfx
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                     Core.VerifyEvents.Raise("sabah_normal_hit");
 #endif
-                    BattlefieldBackdrop.PulseFlash(new Color(0.55f, 0.18f, 0.88f), 0.10f, 0.08f);
+                    // 전장 점멸 대신 대상의 국소 전격·파편으로 정점을 읽힌다.
                     CameraShake.ShakeDirectional(destination - origin, 0.075f);
                     onImpact?.Invoke();
                 });
@@ -225,7 +225,7 @@ namespace Effects.Vfx
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             Core.VerifyEvents.Raise("sabah_ult_blackout");
 #endif
-            BattlefieldBackdrop.PulseFlash(new Color(0.66f, 0.24f, 0.92f), 0.20f, 0.065f);
+            // 광역은 한 번의 발도와 수평 결로 구분하고 별도 전장 섬광을 더하지 않는다.
             // 단일 발도 뒤 첫 피격 정점을 승인된 실제 시간 구간에 둔다.
             yield return new WaitForSeconds(VfxComposer.Offset("sabah.azrael", "hit", 0, 0.206f));
             Vector3 center = Vector3.zero;
@@ -256,6 +256,7 @@ namespace Effects.Vfx
                 VfxAim aim = VfxSpace.AimFrom(caster, target);
                 CardMotion.RakeReaction(target, aim.Direction, 0.52f);
                 CameraShake.ShakeDirectional(aim.Direction, 0.07f);
+                VerseReaperFx.Contact(caster,target,.66f);
                 onHit?.Invoke(target);
             });
             AudioManager.PlayAction(caster, SfxActionSlot.Ultimate, SfxCuePhase.Resolve, "아즈라엘");
@@ -585,6 +586,18 @@ namespace Effects.Vfx
                 Entities.View.UnitCardView view = CardMotion.ViewOf(unit);
                 SpriteRenderer source = view?.PortraitRenderer;
                 if (source == null || source.sprite == null) continue;
+                if (view.StageProxy != null)
+                {
+                    foreach (SpriteRenderer slice in view.StageProxy.Deform ?
+                        new[] { view.StageProxy.Lower, view.StageProxy.Head } : new[] { view.StageProxy.Lower })
+                    {
+                        SpriteRenderer copy = Entities.View.StageFigure.CopySlice(slice, null,
+                            $"AzraelCardSilhouette_{result.Count}", Color.clear, fallbackLayer,
+                            VfxSpace.OverlaySortingOrder + 62 + result.Count);
+                        result.Add(new CardSilhouette { Source = slice, Renderer = copy });
+                    }
+                    continue;
+                }
 
                 SpriteRenderer silhouette = VfxSpace.NewSprite(null, $"AzraelCardSilhouette_{result.Count}",
                     source.sprite, Color.clear,
@@ -636,6 +649,16 @@ namespace Effects.Vfx
         private static void PlayPortraitErosion(Unit caster, float dissolve)
         {
             Entities.View.UnitCardView view = CardMotion.ViewOf(caster);
+            if (view?.StageProxy != null)
+            {
+                var stageRoot = new GameObject("SabahPortraitErosion").transform;
+                foreach (SpriteRenderer slice in view.StageProxy.CopySlices(stageRoot, "Portrait",
+                    new Color(.38f, .14f, .48f, .74f), VfxSpace.SortingLayer(caster), VfxSpace.FlyingCardSortingOrder + 2))
+                    ErosionFx.Attach(slice, 0f, 0f, .015f, dissolve,
+                        new Color(.98f, .80f, 1f), VioletCore, ShadowBody,
+                        .18f, new Vector2(0f, -1.75f), true);
+                return;
+            }
             Sprite sprite = view != null ? view.PortraitSprite : null;
             if (sprite == null) return;
 

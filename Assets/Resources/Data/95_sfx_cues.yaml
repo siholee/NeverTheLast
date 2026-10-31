@@ -6,6 +6,76 @@ speedMergeFloor: 0.04
 speedMergeAt8x: 0.12
 
 cues:
+  - { name: gaudi.normal.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.18, volumeMax: 0.18, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: gaudi.normal.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.18, volumeMax: 0.18, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: gaudi.normal.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.18, volumeMax: 0.18, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: gaudi.ultimate.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.18, volumeMax: 0.18, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: gaudi.ultimate.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.18, volumeMax: 0.18, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: gaudi.ultimate.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.18, volumeMax: 0.18, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: gaudi.passive.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.18, volumeMax: 0.18, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: gaudi.passive.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.18, volumeMax: 0.18, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: gaudi.passive.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.18, volumeMax: 0.18, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: nephthys.normal.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: nephthys.normal.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: nephthys.normal.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: nephthys.ultimate.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: nephthys.ultimate.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: nephthys.ultimate.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: nephthys.passive.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: nephthys.passive.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: nephthys.passive.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: atalante.normal.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: atalante.normal.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: atalante.normal.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: atalante.ultimate.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: atalante.ultimate.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: atalante.ultimate.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: atalante.passive.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: atalante.passive.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: atalante.passive.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: nicol.normal.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: nicol.normal.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: nicol.normal.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: nicol.ultimate.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: nicol.ultimate.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: nicol.ultimate.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: neith.normal.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: neith.normal.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: neith.normal.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: neith.ultimate.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: neith.ultimate.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: neith.ultimate.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: neith.passive.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: neith.passive.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: neith.passive.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: ereshkigal.normal.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: ereshkigal.normal.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: ereshkigal.normal.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: ereshkigal.ultimate.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: ereshkigal.ultimate.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: ereshkigal.ultimate.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: ereshkigal.passive.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: ereshkigal.passive.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: ereshkigal.passive.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: ebisu.normal.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.25, volumeMax: 0.25, pitchMin: 0.95, pitchMax: 0.95, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: ebisu.normal.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.20, pitchMin: 1.05, pitchMax: 1.05, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: ebisu.normal.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.16, volumeMax: 0.16, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: ebisu.ultimate.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.30, volumeMax: 0.30, pitchMin: 0.9, pitchMax: 0.9, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: ebisu.ultimate.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.22, volumeMax: 0.22, pitchMin: 1.1, pitchMax: 1.1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: astolfo.normal.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.25, volumeMax: 0.25, pitchMin: 1.15, pitchMax: 1.15, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: astolfo.normal.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.18, volumeMax: 0.18, pitchMin: 1.05, pitchMax: 1.05, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: astolfo.normal.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.16, volumeMax: 0.16, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: astolfo.ultimate.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.30, volumeMax: 0.30, pitchMin: 0.9, pitchMax: 0.9, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: astolfo.ultimate.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.22, volumeMax: 0.22, pitchMin: 1.1, pitchMax: 1.1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: astolfo.ultimate.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.18, volumeMax: 0.18, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  # 아마테라스: 신규 음성 지정 전까지 효과음만 연결한다.
+  - { name: amaterasu.normal.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.18, volumeMax: 0.18, maxVoices: 1, minInterval: 0.12, speedMerge: true }
+  - { name: amaterasu.normal.projectile, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.22, volumeMax: 0.22, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: amaterasu.normal.hit, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.28, volumeMax: 0.28, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: amaterasu.ultimate.cast, clips: [Kenney/Interface/confirmation_002], volumeMin: 0.25, volumeMax: 0.25, maxVoices: 1, minInterval: 0.2, speedMerge: true }
+  - { name: amaterasu.ultimate.projectile, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.24, volumeMax: 0.24, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: amaterasu.ultimate.hit, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.32, volumeMax: 0.32, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: amaterasu.ultimate.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.22, volumeMax: 0.22, maxVoices: 1, minInterval: 0.2, speedMerge: true }
   # ── 공용 전투: 다음 무료 팩 매핑을 위한 빈 큐 ──
   - { name: common.hit.contact, clips: [], volumeMin: 0.72, volumeMax: 0.82, pitchMin: 0.96, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 3, minInterval: 0.05, speedMerge: true }
   - { name: common.death, clips: [], volumeMin: 0.70, volumeMax: 0.78, pitchMin: 0.98, pitchMax: 1.02, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
@@ -292,12 +362,15 @@ cues:
   - { name: mansa.ultimate.cast, clips: [Hsr/FranceMoonVoice/jade_ult], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, duckBgm: 0.78, duckSeconds: 0.9 }
   - { name: mansa.ultimate.hit, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.48, volumeMax: 0.48, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
 
+  - { name: ishtar.normal.projectile, clips: [Hsr/enemy/void_marksman_shot_cast_novoice_01], volumeMin: 0.28, volumeMax: 0.32, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: ishtar.normal.hit, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.42, volumeMax: 0.46, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
   - { name: ishtar.normal.cast, clips: [Hsr/FranceMoonVoice/topaz_basic], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, duckBgm: 0.78, duckSeconds: 0.9 }
 
   - { name: ishtar.ultimate.cast, clips: [Hsr/FranceMoonVoice/topaz_ult], volumeMin: 0.64, volumeMax: 0.64, pitchMin: 1, pitchMax: 1, mixerGroup: Voice, voiceGroup: vedic_temporary, maxVoices: 1, minInterval: 0.4, speedMerge: true, duckBgm: 0.78, duckSeconds: 0.9 }
   - { name: ishtar.ultimate.hit, clips: [Hsr/enemy/void_marksman_shot_hit_novoice_01], volumeMin: 0.48, volumeMax: 0.48, pitchMin: 1, pitchMax: 1, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
   - { name: orpheus.melody.hit, clips: [Hsr/shi/ghost_slash_projectile_01], volumeMin: 0.45, volumeMax: 0.54, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: SFX, maxVoices: 1, minInterval: 0.07, speedMerge: true, avoidImmediateRepeat: true }
   - { name: orpheus.melody.resolve, clips: [Hsr/chandra/nishakara_hit_01], volumeMin: 0.45, volumeMax: 0.54, pitchMin: 1.02, pitchMax: 1.04, mixerGroup: SFX, maxVoices: 1, minInterval: 0.07, speedMerge: true, avoidImmediateRepeat: true }
+  - { name: orpheus.lament.cast, clips: [Hsr/chandra/nishakara_hit_01], volumeMin: 0.30, volumeMax: 0.34, pitchMin: 0.98, pitchMax: 1, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
   - { name: orpheus.lament.screen, clips: [Hsr/chandra/soma_screen_march7_01], volumeMin: 0.58, volumeMax: 0.64, pitchMin: 0.99, pitchMax: 1.01, mixerGroup: SFX, maxVoices: 1, minInterval: 0.10, speedMerge: true }
   - { name: orpheus.lament.hit, clips: [Hsr/chandra/soma_hit_march7_01], volumeMin: 0.56, volumeMax: 0.62, pitchMin: 0.98, pitchMax: 1.03, mixerGroup: SFX, maxVoices: 2, minInterval: 0.07, speedMerge: true }
 

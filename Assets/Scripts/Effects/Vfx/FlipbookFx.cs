@@ -11,6 +11,13 @@ namespace Effects.Vfx
         public bool Enabled = true;
         public bool BlendFrames = true;
         public float BlendFraction = 0.62f;
+        // 구매 명중만 한 패스에서 premultiplied 셀을 보간한다. 기존 합성은 기본값 false로 보존한다.
+        public bool ContinuousBodyBlend;
+        public int CoreLastFrame=6;
+        public float SampleRate=60f;
+        // 콜백 없는 지정 명중만 저배속 정점 뒤의 해체 단계를 렌더에서 건너뛰지 않는다.
+        public int MaxCoreCellsPerUpdate;
+        public bool SeedImpactProfile;
         public float PeakAlpha = 0.78f;
         public bool SoftPulse;
         public float FadeInFraction = 0.12f;
@@ -20,8 +27,15 @@ namespace Effects.Vfx
         public float EdgeSoftness = 0.038f;
         public float AlphaCutoff;
         public float AlphaSoftness = 0.001f;
+        public bool BlackMatte;
         public float Desaturate;
         public float PaintContrast;
+        // HDR 베이크의 밝은 코어는 RGB 비율보다 보존한 광량 alpha로 분리한다.
+        public float CoverageCoreStrength;
+        public float PaletteWhiteMix = .65f;
+        public float AlphaGain=1f;
+        // 국소 접점의 먹선 전용. 0은 기존 모든 시트 합성과 같다.
+        public float InkOutlineWidth;
 
         public Color GlowColor = new(1f, 0.82f, 0.40f, 1f);
         public float GlowAlpha = 0.66f;
@@ -32,7 +46,17 @@ namespace Effects.Vfx
         public float StartScale = 0.88f;
         public float CrestScale = 1.04f;
         public float EndScale = 1.10f;
+        // 콜백 없는 장식만 정점을 앞당기고 짧게 회수한다. 기본값은 기존 시트와 같다.
+        public float CrestAtFraction = .52f;
+        public float ReleaseEndFraction = 1f;
+        public Vector2 StartStretch = Vector2.one;
+        public Vector2 CrestStretch = Vector2.one;
+        public Vector2 EndStretch = Vector2.one;
         public float RotationDegrees;
+        public float StartRotationDegrees;
+        public bool AllowHighSpeedSkipping;
+        // 콜백 없는 장식의 과장 셀만 최소 한 렌더 프레임 보장한다.
+        public int RequiredVisibleFrame=-1;
         public Vector2 StartOffsetInCards;
         public Vector2 EndOffsetInCards;
 
@@ -88,8 +112,9 @@ namespace Effects.Vfx
         private Color _baseColor;
         private int _frame;
         private float _frameAge;
-        private float _age;
+        private float _completedDuration;
         private float _totalDuration;
+        private float _coreEndAge;
         private bool _loop;
         private bool _finished;
         private Action<int> _onFrame;
@@ -97,17 +122,30 @@ namespace Effects.Vfx
         private Func<Vector3> _follow;
         private Vector3 _followOffset;
         private Vector3 _anchor;
+        private Vector3 _presentationOffset;
+        private bool _lateFollow;
+        private int _requiredVisibleFrame=-1;
+        private bool _requiredFramePresented;
+        private bool _requiredFrameRendered;
+        private float _requiredHoldAge;
+        internal int RequiredVisibleFrame => _requiredVisibleFrame;
+        internal int DisplayedFrame => _frame;
+        // 스타일의 코어 셀 끝을 따른다. 샘플 수가 다른 구매 시트도 장식 간 위상만 연결한다.
+        internal bool ImpactCoreReleased => _finished || !_useComposite || _style==null || !_style.ContinuousBodyBlend || _frame>_style.CoreLastFrame;
+        internal bool ContactLocked => _lateFollow;
         private FlipbookCompositeStyle _style;
         private bool _useComposite;
         private bool _usePeak;
+        private float _bodyBlend,_coreRelease;
         private MaterialPropertyBlock _propertyBlock;
-        private Entities.Unit _hudClipTarget;
+        private Entities.Unit _recipient;
+        internal Entities.Unit Recipient => _recipient;
 
-        /// <summary>시트 여백 때문에 전체를 축소하지 않고 대상 정보판 아래만 부드럽게 지운다.</summary>
-        public FlipbookFx ClipPortraitHud(Entities.Unit target)
+        /// <summary>실제 수신자를 기록한다. 전투 VFX는 카드 앞에서 원본 형상을 온전히 그린다.</summary>
+        public FlipbookFx BindRecipient(Entities.Unit target)
         {
-            _hudClipTarget = target;
-            RefreshHudClip();
+            _recipient = target;
+            RefreshMaterialProperties();
             return this;
         }
         public FlipbookFx ScaleEnvelope(float start,float crest,float end)
@@ -115,7 +153,35 @@ namespace Effects.Vfx
             if (_style != null) { _style.StartScale=start; _style.CrestScale=crest; _style.EndScale=end; }
             return this;
         }
-        private void RefreshHudClip()
+        /// <summary>곡선 비행의 접선 방향을 합성 업데이트와 같은 회전에 반영한다.</summary>
+        public FlipbookFx AimDegrees(float angle)
+        {
+            if(_style!=null)_style.StartRotationDegrees=angle;
+            transform.localRotation=Quaternion.Euler(0f,0f,angle);
+            return this;
+        }
+        public FlipbookFx LimitCoreSteps(int cells)
+        {
+            if(_style!=null)_style.MaxCoreCellsPerUpdate=Mathf.Max(0,cells);
+            return this;
+        }
+
+        /// <summary>씨앗 명중의 짧고 작은 핵만 선택한다. 셀/콜백/총 수명은 바꾸지 않는다.</summary>
+        public FlipbookFx UseSeedImpact()
+        {
+            if(_style!=null)_style.SeedImpactProfile=true;
+            RefreshMaterialProperties();
+            return this;
+        }
+
+        /// <summary>구매 시트의 형태를 유지하며 짧은 정점의 방향 강세를 조절한다.</summary>
+        public FlipbookFx StretchEnvelope(Vector2 start,Vector2 crest,Vector2 end)
+        {
+            if(_style!=null){_style.StartStretch=start;_style.CrestStretch=crest;_style.EndStretch=end;}
+            UpdatePresentation();
+            return this;
+        }
+        private void RefreshMaterialProperties()
         {
             ApplyMaterialProperties(_renderer); ApplyMaterialProperties(_nextRenderer);
             ApplyMaterialProperties(_glowRenderer,true); ApplyMaterialProperties(_nextGlowRenderer,true);
@@ -129,11 +195,19 @@ namespace Effects.Vfx
             Vector3 position, Vector2 size, Color color, bool additive, bool loop, bool flipX,
             float[] frameDelays, int sortingLayer, int order, Action<int> onFrame = null,
             Action onComplete = null, FlipbookCompositeStyle style = null,
-            SkillFxPlaybackMode playbackMode = SkillFxPlaybackMode.Final, bool reverseFrames = false, int startFrame = 0)
+            SkillFxPlaybackMode playbackMode = SkillFxPlaybackMode.Final, bool reverseFrames = false, int startFrame = 0,
+            int frameCount = 0)
         {
             Texture2D texture = Resources.Load<Texture2D>(resourcePath);
             Sprite[] frames = FramesFor(resourcePath, texture, columns, rows, pivot);
             if (frames == null || frames.Length == 0) return null;
+            // 장식 전용 셀 범위. 기본값은 기존 콜백·프레임 계약 전체를 그대로 재생한다.
+            if (frameCount > 0 && frameCount < frames.Length)
+            {
+                var subset = new Sprite[frameCount];
+                Array.Copy(frames, subset, frameCount);
+                frames = subset;
+            }
             if (reverseFrames)
             {
                 // 캐시 배열은 다른 재생과 공유하므로 복사본만 뒤집어 정방향 부품에 영향을 주지 않는다.
@@ -147,6 +221,8 @@ namespace Effects.Vfx
             fx._frames = frames;
             fx._delays = NormalizeDelays(frameDelays, frames.Length);
             fx._totalDuration = Sum(fx._delays);
+            if(style?.ContinuousBodyBlend==true)
+                for(int i=0;i<=Mathf.Clamp(style.CoreLastFrame,0,frames.Length-1);i++)fx._coreEndAge+=fx._delays[i];
             fx._size = size;
             fx._baseColor = color;
             fx._loop = loop;
@@ -155,6 +231,13 @@ namespace Effects.Vfx
             fx._anchor = position;
             fx._style = style;
             fx._useComposite = style != null && style.Enabled && playbackMode != SkillFxPlaybackMode.Legacy16;
+            fx._requiredVisibleFrame=fx._useComposite&&onFrame==null&&onComplete==null
+                ?Mathf.Clamp(style.RequiredVisibleFrame,-1,frames.Length-1):-1;
+            if(fx._requiredVisibleFrame>=0)
+            {
+                Camera.onPostRender+=fx.ObserveRequiredFrame;
+                UnityEngine.Rendering.RenderPipelineManager.endCameraRendering+=fx.ObserveRequiredFrameSrp;
+            }
             fx._usePeak = fx._useComposite && playbackMode != SkillFxPlaybackMode.Blended16 &&
                           !string.IsNullOrWhiteSpace(style.PeakResourcePath);
             fx._propertyBlock = new MaterialPropertyBlock();
@@ -164,11 +247,12 @@ namespace Effects.Vfx
             fx._renderer.flipX = flipX;
             if (fx._useComposite)
             {
-                fx._renderer.sharedMaterial = VfxSpace.CompositeAlpha;
+                fx._renderer.sharedMaterial = style.ContinuousBodyBlend?VfxSpace.ContinuousImpact:VfxSpace.CompositeAlpha;
                 fx._nextRenderer = VfxSpace.NewSprite(root.transform, "BodyBlend", frames[0], Color.clear,
                     sortingLayer, order + 1);
                 fx._nextRenderer.sharedMaterial = VfxSpace.CompositeAlpha;
                 fx._nextRenderer.flipX = flipX;
+                if(style.ContinuousBodyBlend)fx._nextRenderer.enabled=false;
 
                 fx._glowRenderer = VfxSpace.NewSprite(root.transform, "LuminanceCore", frames[0], Color.clear,
                     sortingLayer, order + 2);
@@ -182,33 +266,54 @@ namespace Effects.Vfx
                 fx.BuildPeak(sortingLayer, order, flipX);
             }
             startFrame = Mathf.Clamp(startFrame, 0, frames.Length - 1);
-            for (int i = 0; i < startFrame; i++) fx._age += fx._delays[i];
+            for (int i = 0; i < startFrame; i++) fx._completedDuration += fx._delays[i];
             fx.EnterFrame(startFrame);
             fx.UpdatePresentation();
             return fx;
         }
 
         /// <summary>움직이는 카드나 착탄점을 따라가야 하는 노드에 동적 앵커를 붙인다.</summary>
-        public FlipbookFx Follow(Func<Vector3> anchor, Vector3 offset)
+        public FlipbookFx Follow(Func<Vector3> anchor, Vector3 offset, bool lateFollow=false)
         {
             _follow = anchor;
             _followOffset = offset;
+            _lateFollow = lateFollow;
             return this;
+        }
+
+        private void LateUpdate()
+        {
+            if(_finished||!_lateFollow||_follow==null||Time.timeScale<=0f)return;
+            // 반동 코루틴의 회전·스쿼시가 끝난 실제 원화 UV를 렌더 직전에 다시 따른다.
+            _anchor=_follow()+_followOffset;
+            transform.position=_anchor+_presentationOffset;
+            if(_recipient!=null)RefreshMaterialProperties();
         }
 
         private void Update()
         {
-            if (_finished) return;
+            if (_finished || Time.timeScale<=0f) return;
             if (_follow != null) _anchor = _follow() + _followOffset;
 
             float delta = Time.deltaTime;
-            _age += delta;
+            bool paceCore=_useComposite&&_style.ContinuousBodyBlend&&_style.MaxCoreCellsPerUpdate>0&&
+                _onFrame==null&&_onComplete==null&&Effects.HitStop.PlaybackScale<=2.01f;
+            int coreSteps=0;
             _frameAge += delta;
+            if(_frame==_requiredVisibleFrame&&!_requiredFrameRendered&&_requiredHoldAge<.10f)
+            {
+                _requiredFramePresented=true;
+                if(paceCore)_frameAge=Mathf.Min(_frameAge,DelayFor(_frame));
+                _requiredHoldAge+=Time.unscaledDeltaTime;
+                UpdatePresentation();
+                return;
+            }
             // 높은 배속에서도 호출 프레임을 건너뛰지 않는다. EnterFrame을 순서대로 거쳐
             // 피해 콜백은 지정한 칸에서 정확히 한 번 발생한다.
             int guard = _frames.Length + 1;
             while (!_finished && guard-- > 0 && _frameAge >= DelayFor(_frame))
             {
+                _completedDuration += _delays[_frame];
                 _frameAge -= DelayFor(_frame);
                 int next = _frame + 1;
                 if (next >= _frames.Length)
@@ -216,7 +321,7 @@ namespace Effects.Vfx
                     if (_loop)
                     {
                         next = 0;
-                        _age = 0f;
+                        _completedDuration = 0f;
                     }
                     else
                     {
@@ -225,9 +330,30 @@ namespace Effects.Vfx
                     }
                 }
                 EnterFrame(next);
+                if(!_requiredFramePresented&&_frame==_requiredVisibleFrame)
+                {
+                    // 긴 프레임에서도 과장 셀을 렌더 전에 지나치지 않는다. 남은 시간은 다음 Update로 넘긴다.
+                    _requiredFramePresented=true;
+                    if(paceCore)_frameAge=Mathf.Min(_frameAge,DelayFor(_frame));
+                    break;
+                }
+                if(paceCore&&(_requiredFramePresented||_requiredVisibleFrame<0)&&_frame<=_style.CoreLastFrame&&
+                    ++coreSteps>=_style.MaxCoreCellsPerUpdate)
+                {
+                    // 정점에서 밀린 시간을 다음 해체 셀에 한꺼번에 갚지 않는다. 게임 시계는 그대로다.
+                    _frameAge=Mathf.Min(_frameAge,DelayFor(_frame));
+                    break;
+                }
             }
             if (!_finished) UpdatePresentation();
         }
+
+        private void ObserveRequiredFrame(Camera camera)
+        {
+            if(camera==Camera.main&&_frame==_requiredVisibleFrame)_requiredFrameRendered=true;
+        }
+        private void ObserveRequiredFrameSrp(UnityEngine.Rendering.ScriptableRenderContext context,Camera camera)
+            =>ObserveRequiredFrame(camera);
 
         private void EnterFrame(int frame)
         {
@@ -256,7 +382,10 @@ namespace Effects.Vfx
                 return;
             }
 
-            float progress = _totalDuration > 0.0001f ? Mathf.Clamp01(_age / _totalDuration) : 1f;
+            // 고배속의 최소 표시 시간도 현재 프레임에 반영한다. 원래 길이만으로 나누면
+            // 아직 남은 프레임이 있는데 진행률이 1이 되어 뒤쪽 그림이 사라진다.
+            float authoredAge = _completedDuration + _delays[_frame] * Mathf.Clamp01(_frameAge / DelayFor(_frame));
+            float progress = _totalDuration > 0.0001f ? Mathf.Clamp01(authoredAge / _totalDuration) : 1f;
             float alpha = EvaluateAlpha(progress) * _style.PeakAlpha;
             float backdrop = BattlefieldBackdrop.CurrentBackgroundLuminance;
             float backgroundRange = Smooth01(Mathf.InverseLerp(0.08f, 0.65f, backdrop));
@@ -272,23 +401,32 @@ namespace Effects.Vfx
                 blend = Smooth01(Mathf.InverseLerp(start, 1f, inFrame));
             }
 
-            SetRendererColor(_renderer, _baseColor, bodyAlpha * (1f - blend));
-            SetRendererColor(_nextRenderer, _baseColor, bodyAlpha * blend);
+            _bodyBlend=blend;
+            // 코어 마지막 셀은 release .62다. 완전 소멸(.8) 전에 실제 파편과 섞인다.
+            float releaseEndAge=_style.ContinuousBodyBlend?.05f+Mathf.Max(.001f,_coreEndAge-.05f)/.62f:.35f;
+            _coreRelease=Mathf.InverseLerp(.05f,releaseEndAge,authoredAge);
+            SetRendererColor(_renderer, _baseColor, bodyAlpha * (_style.ContinuousBodyBlend?1f:1f-blend));
+            SetRendererColor(_nextRenderer, _baseColor, _style.ContinuousBodyBlend?0f:bodyAlpha*blend);
             SetRendererColor(_glowRenderer, _style.GlowColor,
                 alpha * glowAdaptation * _style.GlowAlpha * (1f - blend));
             SetRendererColor(_nextGlowRenderer, _style.GlowColor,
                 alpha * glowAdaptation * _style.GlowAlpha * blend);
 
-            float crest = Smooth01(Mathf.InverseLerp(0f, 0.52f, progress));
-            float release = Smooth01(Mathf.InverseLerp(0.52f, 1f, progress));
-            float scale = progress < 0.52f
+            float crestAt=Mathf.Clamp(_style.CrestAtFraction,.001f,.999f);
+            float releaseEnd=Mathf.Clamp(_style.ReleaseEndFraction,crestAt+.001f,1f);
+            float crest = Smooth01(Mathf.InverseLerp(0f, crestAt, progress));
+            float release = Smooth01(Mathf.InverseLerp(crestAt, releaseEnd, progress));
+            float scale = progress < crestAt
                 ? Mathf.Lerp(_style.StartScale, _style.CrestScale, crest)
                 : Mathf.Lerp(_style.CrestScale, _style.EndScale, release);
-            transform.localScale = Vector3.one * Mathf.Max(0.01f, scale);
-            transform.localRotation = Quaternion.Euler(0f, 0f, _style.RotationDegrees * progress);
+            Vector2 stretch=progress<crestAt?Vector2.Lerp(_style.StartStretch,_style.CrestStretch,crest)
+                :Vector2.Lerp(_style.CrestStretch,_style.EndStretch,release);
+            transform.localScale = new Vector3(Mathf.Max(.01f,scale*stretch.x),Mathf.Max(.01f,scale*stretch.y),Mathf.Max(.01f,scale));
+            transform.localRotation = Quaternion.Euler(0f, 0f, _style.StartRotationDegrees + _style.RotationDegrees * progress);
             Vector2 offsetCards = Vector2.Lerp(_style.StartOffsetInCards, _style.EndOffsetInCards,
                 Smooth01(progress));
-            transform.position = _anchor + (Vector3)(offsetCards * VfxSpace.CardSize);
+            _presentationOffset=(Vector3)(offsetCards * VfxSpace.CardSize);
+            transform.position = _anchor + _presentationOffset;
 
             float pulse = Mathf.Sin(Mathf.Clamp01(progress) * Mathf.PI);
             SetRendererColor(_groundLight, _style.GroundLightColor,
@@ -296,7 +434,7 @@ namespace Effects.Vfx
             SetRendererColor(_contactShadow, _style.ContactShadowColor,
                 _style.ContactShadowColor.a * pulse * bodyAlpha);
             UpdatePeak(progress, bodyAlpha, glowAdaptation);
-            if (_hudClipTarget != null) RefreshHudClip();
+            if (_recipient != null) RefreshMaterialProperties();
         }
 
         private void BuildGrounding(int layer, int order)
@@ -400,10 +538,23 @@ namespace Effects.Vfx
             _propertyBlock.SetFloat(EdgeSoftness, _style.EdgeSoftness);
             _propertyBlock.SetFloat(AlphaCutoff, _style.AlphaCutoff);
             _propertyBlock.SetFloat(AlphaSoftness, _style.AlphaSoftness);
+            _propertyBlock.SetFloat("_BlackMatte",_style.BlackMatte?1f:0f);
             _propertyBlock.SetFloat(Desaturate, Mathf.Clamp01(_style.Desaturate));
             _propertyBlock.SetFloat("_PaintContrast",Mathf.Clamp01(_style.PaintContrast));
-            _propertyBlock.SetFloat("_WorldClipMinY",_hudClipTarget!=null ? VfxSpace.PortraitHudTop(_hudClipTarget)+.025f*VfxSpace.CardSize : -100000f);
-            _propertyBlock.SetFloat("_WorldClipFeather",.06f*VfxSpace.CardSize);
+            _propertyBlock.SetFloat("_CoverageCoreStrength",Mathf.Clamp01(_style.CoverageCoreStrength));
+            _propertyBlock.SetFloat("_AlphaGain",Mathf.Max(1f,_style.AlphaGain));
+            if(_style.ContinuousBodyBlend&&renderer==_renderer&&!glow)
+            {
+                var next=_frames[Mathf.Min(_frame+1,_frames.Length-1)].textureRect;
+                _propertyBlock.SetVector("_NextUvRect",new Vector4(next.x/texture.width,next.y/texture.height,next.width/texture.width,next.height/texture.height));
+                _propertyBlock.SetFloat("_FrameBlend",_bodyBlend);
+                _propertyBlock.SetFloat("_SeedProfile",_style.SeedImpactProfile?1f:0f);
+                _propertyBlock.SetFloat("_PaletteWhiteMix",Mathf.Clamp01(_style.PaletteWhiteMix));
+                _propertyBlock.SetFloat("_CoreRelease",_coreRelease);
+                _propertyBlock.SetFloat("_CurrentCore",_frame<=_style.CoreLastFrame?1f:0f);
+                _propertyBlock.SetFloat("_NextCore",_frame+1<=_style.CoreLastFrame?1f:0f);
+            }
+            _propertyBlock.SetFloat("_InkOutlineWidth",Mathf.Clamp(_style.InkOutlineWidth,0f,.08f));
             if (glow)
             {
                 _propertyBlock.SetFloat(GlowThreshold, _style.GlowThreshold);
@@ -423,7 +574,8 @@ namespace Effects.Vfx
         private float DelayFor(int frame)
         {
             float authored = _delays[Mathf.Clamp(frame, 0, _delays.Length - 1)];
-            return Mathf.Max(authored, Time.timeScale * (1f / 60f));
+            float speed=_style?.AllowHighSpeedSkipping==true?Mathf.Min(2f,Time.timeScale):Time.timeScale;
+            return Mathf.Max(authored, speed / Mathf.Clamp(_style?.SampleRate??60f,60f,120f));
         }
 
         private void Complete()
@@ -438,6 +590,8 @@ namespace Effects.Vfx
 
         private void OnDestroy()
         {
+            Camera.onPostRender-=ObserveRequiredFrame;
+            UnityEngine.Rendering.RenderPipelineManager.endCameraRendering-=ObserveRequiredFrameSrp;
             // 씬 정리로 먼저 파괴돼도 대기 중인 SkillFx 코루틴이 영원히 남지 않게 한다.
             if (!_finished)
             {

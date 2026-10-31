@@ -32,6 +32,8 @@ namespace Codes.Passive
             if (_working || Caster == null) return;
             _working = true; _pending = false; _generation++; _lastAction = int.MinValue;
             Caster.SetCombatResourceMaximum(ResourceId, Maximum, true);
+            if (Entities.View.StageSummonVisual.Sirius(Caster) == null)
+                Entities.View.StageSummonVisual.Create(Caster, null, "sirius");
             _hit = Hit; _death = _ => StopCode();
             _controlEnded = _ => TryQueue();
             Caster.AddListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _hit);
@@ -83,7 +85,7 @@ namespace Codes.Passive
                 AudioManager.PlayAction(Caster, SfxActionSlot.Passive, SfxCuePhase.Cast, CodeName);
                 yield return DirectAttack.HitEach("orion.sirius", Caster, routing.Targets, target =>
                 {
-                    bool crit = RollCritical(target, out float multiplier);
+                    bool crit = RollCritical(target, tags, out float multiplier);
                     AudioManager.PlayAction(Caster, SfxActionSlot.Passive, SfxCuePhase.Hit, CodeName);
                     target.TakeDamage(new DamageContext(Caster, Mathf.Max(1, Mathf.RoundToInt(raw * multiplier)), BaseEnums.CodeType.Passive, new List<int>(tags), crit));
                     fired = true;
@@ -98,6 +100,7 @@ namespace Codes.Passive
         }
         public override void StopCode()
         {
+            Entities.View.StageSummonVisual.Sirius(Caster)?.RetireSirius();
             _working = false; _pending = false; _generation++;
             ActionScheduler.AnyActionFinished -= Finished;
             if (_hit != null) Caster?.RemoveListener(BaseEnums.UnitEventType.OnAfterDamageTaken, _hit);

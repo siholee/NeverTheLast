@@ -71,6 +71,12 @@ namespace Effects.Base
         /// <summary>마나 회복 배율 보정 (1 = 변화 없음)</summary>
         public virtual float ManaRecoveryMultiplierModifier(Unit unit) => 1f;
 
+        /// <summary>실제 행동 문맥에서만 적용하는 공격력 가산 비율. 캐시된 일반 스탯을 바꾸지 않는다.</summary>
+        public virtual float ActionAttackBonus(Unit unit) => 0f;
+
+        /// <summary>마나를 획득하는 순간의 행동별 회복 배율. 상시 마나 효율과 각각 한 번 적용한다.</summary>
+        public virtual float ActionManaRecoveryMultiplier(Unit unit) => 1f;
+
         /// <summary>초월기 피해 증가의 가산 몫. 동일 분류는 더해서 한 번 곱한다.</summary>
         public virtual float UltimateDamageBonus(Unit actor) => 0f;
 
@@ -99,6 +105,9 @@ namespace Effects.Base
         /// <summary>이 공격의 치명타 피해 가산(0.2 = +20%p).</summary>
         public virtual float CritDamageBonusAgainst(Unit attacker, Unit target, BaseEnums.CodeType codeType) => 0f;
 
+        /// <summary>실제 피해 태그를 요구하는 치명타 피해 보정. 반격 지원을 다른 추가공격과 구분한다.</summary>
+        public virtual float TaggedCritDamageBonus(Unit attacker, System.Collections.Generic.IReadOnlyList<int> tags) => 0f;
+
         /// <summary>이 공격을 확정 치명타로 만드는가.</summary>
         public virtual bool ForcesCriticalAgainst(Unit attacker, Unit target, BaseEnums.CodeType codeType) => false;
 
@@ -109,6 +118,9 @@ namespace Effects.Base
         public virtual int OutgoingStatusDurationModifier(Unit caster, Entities.Status.UnitStatus status) => 0;
 
         // ===== 제어 =====
+
+        /// <summary>행동을 막는 제어 효과인가. 정화는 표시 이름이나 상태 ID 대신 이 분류를 읽는다.</summary>
+        public virtual bool IsControl => false;
 
         /// <summary>보유자에게 걸리는 제어 지속 가산(음수면 줄인다). 최소 1턴은 남는다.</summary>
         public virtual int ControlDurationModifier(Unit unit) => 0;

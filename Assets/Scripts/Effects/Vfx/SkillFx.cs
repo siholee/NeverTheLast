@@ -84,7 +84,8 @@ namespace Effects.Vfx
     /// </summary>
     public static class SkillFx
     {
-        private const int RearOrder = -100;
+        // 앞/뒤 노드는 VFX 사이의 상대 순서이며, 모두 카드·HUD보다 앞이다.
+        private const int RearOrder = VfxSpace.OverlaySortingOrder + 10;
         private static int FrontOrder => VfxSpace.OverlaySortingOrder + 40;
 
         /// <summary>
@@ -187,7 +188,7 @@ namespace Effects.Vfx
             int baseOrder = cue != null && cue.BehindPortrait ? RearOrder : FrontOrder;
             FlipbookFx fx = PlayCue(cue, point, layer, baseOrder, target, Frame, Complete);
             if (fx == null) Complete();
-            else if (cue.PortraitAnchor) fx.ClipPortraitHud(target);
+            else if (cue.PortraitAnchor) fx.BindRecipient(target);
             return fx;
         }
 
@@ -218,7 +219,7 @@ namespace Effects.Vfx
         public static void PlayScreen(SkillFxScreenCue cue, Vector3 primary, Vector3 secondary)
         {
             if (cue == null) return;
-            float speed = Mathf.Max(1f, Managers.UI.HUD.BattleHud.CurrentSpeedMultiplier);
+            float speed = Mathf.Max(1f, Managers.UI.HUD.BattleHud.EffectSpeedMultiplier);
             float speedStrength = speed >= 4f ? Mathf.Lerp(0.72f, 0.56f, Mathf.InverseLerp(4f, 8f, speed)) : 1f;
             float speedDuration = speed >= 4f ? Mathf.Lerp(0.68f, 0.48f, Mathf.InverseLerp(4f, 8f, speed)) : 1f;
             if (cue.FocusStrength > 0f)

@@ -22,6 +22,21 @@ namespace Effects.Vfx
         private static Dictionary<string, VfxSkillData> _skills;
         private static Dictionary<string, string> _statusBindings;
         private static Dictionary<string, string> _classCastBindings;
+        private static Dictionary<string,VfxPortraitContactData> _portraitContacts;
+
+        // 도메인 재로딩을 끈 Play도 편집 중 갱신한 YAML을 새 세션에서 읽는다.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetSessionCatalog()
+        {
+            _data=null;_parts=null;_skills=null;_statusBindings=null;_classCastBindings=null;_portraitContacts=null;
+        }
+
+        public static VfxPortraitContactData PortraitContact(string spriteName)
+        {
+            Ensure();
+            string key=spriteName?.Replace("_HudFade","");
+            return key!=null&&_portraitContacts.TryGetValue(key,out var value)?value:null;
+        }
 
         public static IReadOnlyList<VfxPartData> Parts => Data.parts;
         public static IReadOnlyList<VfxSkillData> Skills => Data.skills;
@@ -87,6 +102,9 @@ namespace Effects.Vfx
             _data.skills ??= new List<VfxSkillData>();
             _data.statusBindings ??= new List<VfxStatusBindingData>();
             _data.classCastBindings ??= new List<VfxClassCastBindingData>();
+            _data.portraitContacts ??= new List<VfxPortraitContactData>();
+            _portraitContacts=_data.portraitContacts.Where(p=>p!=null&&!string.IsNullOrWhiteSpace(p.portrait))
+                .GroupBy(p=>p.portrait).ToDictionary(g=>g.Key,g=>g.Last());
             _parts = _data.parts.Where(item => item != null && !string.IsNullOrWhiteSpace(item.id))
                 .GroupBy(item => item.id).ToDictionary(group => group.Key, group => group.Last());
             _skills = _data.skills.Where(item => item != null && !string.IsNullOrWhiteSpace(item.key))
@@ -144,6 +162,8 @@ namespace Effects.Vfx
                 partId = VfxDefinitionCatalog.ClassCastPart(caster?.VfxClass);
             VfxPartData part = VfxDefinitionCatalog.Part(partId);
             if (slot == null || part == null) return null;
+            bool supportCast=slotName=="cast"&&part.id=="cast.enemy.support";
+            bool rosterCast=slotName=="cast"&&(supportCast||!string.IsNullOrWhiteSpace(VfxDefinitionCatalog.Part(Slot(skillKey,"hit",0)?.partId)?.contactMotif));
 
             if (slotName == "hit" && slot.portraitAnchor) point = VfxSpace.PortraitPoint(target);
             if (slotName == "cast" && caster != null) point = VfxSpace.PortraitPoint(caster);
@@ -152,6 +172,13 @@ namespace Effects.Vfx
             Color body = ParseColor(slot.bodyColor, ParseColor(part.bodyColor, Color.white));
             Color core = ParseColor(slot.coreColor, ParseColor(part.coreColor, Color.white));
             ResolveCasterPalette(slot, caster, ref body, ref core);
+            if(caster!=null&&caster.ID==7&&skillKey=="jean.tension_rising")
+            {
+                float alpha=body.a;
+                body=ElementPalette.ColorFor(caster.Element);body.a=alpha;
+                core=Color.Lerp(body,Color.white,.22f);
+            }
+            if(VerseReaperFx.OwnPart(part.id,caster))VerseReaperFx.Palette(caster,ref body,ref core);
             if(part.id.StartsWith("hit.crystal"))body=BattleVfxStyle.Platinum(body);
             LiftLokapalaOnDarkBoard(part, ref body);
             float x = slot.scaleX > 0f ? slot.scaleX : part.scaleX;
@@ -218,6 +245,75 @@ namespace Effects.Vfx
             }
             NotifySlot(skillKey, slotName, part.id, "start", index, caster, target, point,
                 angle, flipX, layer, slot.orderOffset != 0 ? slot.orderOffset : 30);
+            bool stormSkill=LokapalaFx.PurchasedSkill(skillKey,caster);
+            if(slotName=="cast"&&stormSkill)
+            {
+                if(caster.ID==65)LokapalaFx.PurchasedCoinCast(skillKey,caster,target);
+                else PurchasedArcherFx.RosterPreparation(caster,target,attack:skillKey!="indra.gathering");
+                NotifyCustomPeak(skillKey,slotName,part,index,caster,target,point,angle,flipX,layer,.10f);
+                return null;
+            }
+            if(slotName=="affected"&&stormSkill&&skillKey=="indra.gathering"&&part.id=="affected.lokapala.hud")
+            {
+                PurchasedSupportThreadsFx.Play(caster,target,PurchasedSupportThreadsFx.Kind.Order);
+                PurchasedSupportThreadsFx.Play(caster,target,PurchasedSupportThreadsFx.Kind.Receive);
+                CardMotion.ViewOf(target)?.PulseActionGateHud(ElementPalette.ColorFor(caster.Element));
+                NotifyCustomPeak(skillKey,slotName,part,index,caster,target,point,angle,flipX,layer,.10f);
+                return null;
+            }
+            bool lawSkill=YamaVarunaFx.PurchasedSkill(skillKey,caster);
+            if(slotName=="cast"&&lawSkill)
+            {
+                PurchasedArcherFx.RosterPreparation(caster,target,attack:true);
+                NotifyCustomPeak(skillKey,slotName,part,index,caster,target,point,angle,flipX,layer,
+                    Mathf.Max(0,part.peakFrame-part.startFrame)/Mathf.Max(1f,part.fps));
+                return null;
+            }
+            if(slotName=="affected"&&YamaVarunaFx.PurchasedStatus(part,caster,target)||
+                slotName=="hit"&&lawSkill&&!slot.triggersImpact)
+            {
+                NotifyCustomPeak(skillKey,slotName,part,index,caster,target,point,angle,flipX,layer,.10f);
+                return null;
+            }
+            bool crystalCast=caster!=null&&((caster.ID==1&&skillKey is "sei.ground" or "sei.bigbang" or "sei.genesis")||
+                (caster.ID==60&&skillKey is "chandra.sachi" or "chandra.soma" or "chandra.changya"));
+            if(slotName=="cast"&&crystalCast)
+            {
+                PurchasedArcherFx.RosterPreparation(caster,target,attack:skillKey is not ("sei.genesis" or "chandra.soma"));
+                NotifyCustomPeak(skillKey,slotName,part,index,caster,target,point,angle,flipX,layer,
+                    Mathf.Max(0,part.peakFrame-part.startFrame)/Mathf.Max(1f,part.fps));
+                return null;
+            }
+            if(slotName=="affected"&&caster!=null&&((caster.ID==1&&skillKey=="sei.genesis")||
+                (caster.ID==60&&skillKey=="chandra.soma")))
+            {
+                if(index==0)
+                {
+                    PurchasedSupportThreadsFx.Play(caster,target,PurchasedSupportThreadsFx.Kind.Order);
+                    PurchasedSupportThreadsFx.Play(caster,target,skillKey=="sei.genesis"?
+                        PurchasedSupportThreadsFx.Kind.Ward:PurchasedSupportThreadsFx.Kind.Receive);
+                }
+                NotifyCustomPeak(skillKey,slotName,part,index,caster,target,point,angle,flipX,layer,.10f);
+                return null;
+            }
+            if(slotName=="cast"&&caster!=null&&caster.ID==7&&skillKey is "jean.holy_strike" or "jean.iron_sanction")
+            {
+                PurchasedArcherFx.RosterPreparation(caster,target,attack:true);
+                NotifyCustomPeak(skillKey,slotName,part,index,caster,target,point,angle,flipX,layer,
+                    Mathf.Max(0,part.peakFrame-part.startFrame)/Mathf.Max(1f,part.fps));
+                return null;
+            }
+            if(supportCast)PortraitAccentFx.SupportCast(caster,core,
+                Managers.GameManager.Instance?.ActionScheduler?.ActingKind==Managers.ActionScheduler.ActionKind.Ultimate);
+            if(rosterCast&&!supportCast)
+            {
+                var contact=VfxDefinitionCatalog.Part(Slot(skillKey,"hit",0)?.partId);
+                if(PurchasedArcherFx.SupportsProjectile(skillKey)||contact.contactMotif=="pierce")
+                {
+                    if(!PurchasedArcherFx.IsArea(skillKey))PurchasedArcherFx.Cast(caster,new[]{target},skillKey);
+                }
+                else PortraitAccentFx.RosterContact(caster,caster,contact.contactMotif,true,target,skillKey);
+            }
             if(part.id=="cast.sword.void_flourish")PortraitAccentFx.CastRim(caster,target,body);
             if(slotName=="prepare"&&part.id=="prepare.beast.claw")PortraitAccentFx.BeastPrepare(caster);
             if(slotName=="prepare"&&part.id=="prepare.heavy.impact")PortraitAccentFx.HeavyPrepare(caster);
@@ -241,7 +337,7 @@ namespace Effects.Vfx
                 PortraitAccentFx.BlazeMark(target);
                 HandpaintFx.PlayAt(StatusMotifFx.Anchor(target),layer,Sheet(part),new Vector2(.40f,.36f),
                     new Color(1f,.68f,.36f,.14f),Color.clear,orderOffset:130,peakAlpha:.04f,
-                    glowAlpha:0f,desaturate:1f,calmLight:true)?.ClipPortraitHud(target);
+                    glowAlpha:0f,desaturate:1f,calmLight:true)?.BindRecipient(target);
                 NotifyCustomPeak(skillKey,slotName,part,index,caster,target,point,angle,flipX,layer,.10f);
                 return null;
             }
@@ -269,10 +365,44 @@ namespace Effects.Vfx
 
             if (string.Equals(part.renderer, "casterTwin", StringComparison.OrdinalIgnoreCase))
             {
-                PlayCasterTwin(part, slot, caster, target, point, layer, size, body, core, angle, flipX,
+                if(!rosterCast)PlayCasterTwin(part, slot, caster, target, point, layer, size, body, core, angle, flipX,
                     slot.recolor);
                 NotifyCustomPeak(skillKey, slotName, part, index, caster, target, point,
                     angle, flipX, layer, 0.10f);
+                return null;
+            }
+            if (string.Equals(part.renderer,"rosterSunCast",StringComparison.OrdinalIgnoreCase))
+            {
+                if(!rosterCast)PurchasedArcherFx.RosterPreparation(caster,target);
+                NotifyCustomPeak(skillKey,slotName,part,index,caster,target,point,angle,flipX,layer,
+                    part.peakFrame/Mathf.Max(1f,part.fps));
+                return null;
+            }
+            if(part.renderer=="rosterOfficerCommand")
+            {
+                PurchasedArcherFx.RosterPreparation(caster,target);
+                if(caster!=null&&target!=null&&caster.IsEnemy!=target.IsEnemy)
+                    PurchasedSupportThreadsFx.Play(caster,target,PurchasedSupportThreadsFx.Kind.Order);
+                NotifyCustomPeak(skillKey,slotName,part,index,caster,target,point,angle,flipX,layer,
+                    part.peakFrame/Mathf.Max(1f,part.fps));
+                return null;
+            }
+            if(part.renderer=="rosterOfficerReceive")
+            {
+                PurchasedSupportThreadsFx.Play(caster,target,PurchasedSupportThreadsFx.Kind.Receive);
+                NotifyCustomPeak(skillKey,slotName,part,index,caster,target,point,angle,flipX,layer,.13f);
+                return null;
+            }
+            if(part.renderer=="rosterOfficerHealReceipt")
+            {
+                // 실제 회복의 Unit.Heal → PlaySupport가 그림을 소유한다. 기존 성공 알림을 이중 재생하지 않는다.
+                NotifyCustomPeak(skillKey,slotName,part,index,caster,target,point,angle,flipX,layer,.13f);
+                return null;
+            }
+            if (string.Equals(part.renderer,"rosterRibbon",StringComparison.OrdinalIgnoreCase))
+            {
+                PurchasedRosterStrokeFx.Play(caster,target,PurchasedRosterStrokeFx.Kind.Support);
+                NotifyCustomPeak(skillKey,slotName,part,index,caster,target,point,angle,flipX,layer,.13f);
                 return null;
             }
             if (string.Equals(part.renderer, "beneficialAura", StringComparison.OrdinalIgnoreCase) ||
@@ -301,7 +431,7 @@ namespace Effects.Vfx
             if (string.Equals(part.renderer, "shieldMembrane", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(part.renderer, "supportShield", StringComparison.OrdinalIgnoreCase))
             {
-                PlaySupportShield(target, point, layer, size, body, core);
+                StatusAffectedVfx.PlayShield(target,caster);
                 if(part.id=="affected.buff.crystal_shield")PortraitAccentFx.CrystalWard(target);
                 NotifyCustomPeak(skillKey, slotName, part, index, caster, target, point,
                     angle, flipX, layer, 0.14f);
@@ -320,7 +450,8 @@ namespace Effects.Vfx
             if (string.IsNullOrWhiteSpace(part.sheet)) return null;
             int peakFrame = slot.peakFrame >= 0 ? slot.peakFrame :
                 part.peakFrame >= 0 ? part.peakFrame : Mathf.Max(0, part.columns * part.rows / 2);
-            if (part.edgeUnderlay)
+            if(rosterCast){body.a=0f;core.a=0f;}
+            if (part.edgeUnderlay&&!rosterCast)
             {
                 // 총구광은 한 부품의 진한 외곽과 밝은 몸체를 겹쳐 양쪽 배경에서 같은 실루엣을 유지한다.
                 Color edge = part.id.StartsWith("cast.class.archer",StringComparison.Ordinal)
@@ -353,11 +484,11 @@ namespace Effects.Vfx
                 body.a=Mathf.Min(body.a,part.sheet.StartsWith("Ball1",StringComparison.Ordinal)?.30f:.56f);
                 PlayMagicCastAccent(caster,part,visualCenter,layer,core);
             }
-            if (slot.steadyBody) DrawInk(point, layer, part, size, angle, flipX, peakFrame);
+            if (slot.steadyBody&&!rosterCast) DrawInk(point, layer, part, size, angle, flipX, peakFrame);
             FlipbookFx fx = HandpaintFx.PlayAt(visualCenter, layer, sheet, size, body, core, angle,
                 slot.orderOffset != 0 ? slot.orderOffset : 30,
-                Mathf.Clamp01(part.peakAlpha), Mathf.Clamp01(part.glowAlpha), false, flipX,
-                peakFrame, part.peakHoldSeconds, steadyBody: slot.steadyBody, desaturate: WindOnDark(part), startFrame: part.startFrame, tailHoldFrame: part.tailHoldFrame, tailHoldSeconds: part.tailHoldSeconds, calmLight: part.calmLight, paintContrast:PaintContrast(part));
+                rosterCast?0f:Mathf.Clamp01(part.peakAlpha), rosterCast?0f:Mathf.Clamp01(part.glowAlpha), false, flipX,
+                peakFrame, part.peakHoldSeconds, steadyBody: slot.steadyBody&&!rosterCast, desaturate: WindOnDark(part), startFrame: part.startFrame, tailHoldFrame: part.tailHoldFrame, tailHoldSeconds: part.tailHoldSeconds, calmLight: part.calmLight, paintContrast:PaintContrast(part));
             // 일반 플립북도 정점 사건을 남겨야 시전 가시성을 실제 캡처 프레임으로 잴 수 있다.
             // 시작 사건만 있으면 짧은 총구광이 사라진 뒤의 이론상 시트 길이로 잘못 통과할 수 있다.
             NotifyCustomPeak(skillKey, slotName, part, index, caster, target, point,
@@ -376,12 +507,23 @@ namespace Effects.Vfx
                 yield break;
             }
 
+            bool agniPurchase=caster!=null&&caster.ID==62&&part.id is "hit.agni.normal" or "hit.agni.follow_up";
+            bool jeanPurchase=caster!=null&&caster.ID==7&&skillKey is "jean.holy_strike" or "jean.iron_sanction";
+            bool crystalPurchase=caster!=null&&((caster.ID==1&&skillKey is "sei.ground" or "sei.bigbang")||
+                (caster.ID==60&&skillKey is "chandra.sachi" or "chandra.changya"));
+            bool lawPurchase=YamaVarunaFx.PurchasedSkill(skillKey,caster);
+            bool stormPurchase=LokapalaFx.PurchasedSkill(skillKey,caster);
+            bool purchasedClock=agniPurchase||jeanPurchase||crystalPurchase||lawPurchase||stormPurchase;
+
             ResolveDirection(slot, caster, target, float.NaN, true, out float eventAngle, out bool eventFlipX);
             // 공격 충돌은 원화 중심에 붙인다. 바닥/진형은 PlayPointHitSlot의 별도 계약이다.
             bool portraitAnchor = true;
             Vector3 Anchor()
             {
-                Vector3 point = VfxSpace.PortraitPoint(target) + new Vector3(slot.offsetX, slot.offsetY) * VfxSpace.CardSize;
+                if(purchasedClock)return PurchasedProjectileFx.ContactFor(caster,target,true);
+                if(VerseReaperFx.OwnPart(part.id,caster))return VerseReaperFx.Point(target);
+                Vector3 point = (part.contactMotif=="treasuryShot"?VfxSpace.BodyContactPoint(target):!string.IsNullOrWhiteSpace(part.contactMotif)?VfxSpace.ContactPoint(target):VfxSpace.PortraitPoint(target))
+                    + new Vector3(slot.offsetX, slot.offsetY) * VfxSpace.CardSize;
                 var view = CardMotion.ViewOf(target);
                 return view != null ? view.ClampPortraitHitPoint(point) : point;
             }
@@ -390,34 +532,49 @@ namespace Effects.Vfx
             int eventOrder = slot.orderOffset != 0 ? slot.orderOffset : 30;
             NotifySlot(skillKey, "hit", part.id, "start", index, caster, target, eventPoint,
                 eventAngle, eventFlipX, eventLayer, eventOrder);
+            if(lawPurchase&&slot.triggersImpact)YamaVarunaFx.PurchasedLead(caster,target);
+            if(stormPurchase&&slot.triggersImpact)LokapalaFx.PurchasedLead(caster,target);
             Action heavyCrestAtPeak = null;
             Action visualPeakNotification = () =>
             {
                 heavyCrestAtPeak?.Invoke();
-                if(skillKey is "himiko.ember" or "pygmalion.ember" or "agni.follow_up" or "agni.focused_follow_up")
+                if(stormPurchase&&slot.triggersImpact&&caster.isActive)PurchasedArcherFx.RosterContact(caster,target,
+                    skillKey is "indra.thunderbolt" or "vayu.gust"?.55f:.64f,elementalInk:true);
+                if(lawPurchase&&slot.triggersImpact&&caster.isActive)PurchasedArcherFx.RosterContact(caster,target,
+                    skillKey.EndsWith("normal",StringComparison.Ordinal)?.50f:.58f,elementalInk:true);
+                if(crystalPurchase&&slot.triggersImpact&&caster.isActive)PurchasedArcherFx.RosterContact(caster,target,
+                    skillKey=="sei.bigbang"?.46f:skillKey=="chandra.changya"?.60f:.55f,elementalInk:true);
+                if(agniPurchase)PurchasedArcherFx.RosterContact(caster,target,skillKey=="agni.normal"?.55f:.62f,elementalInk:true);
+                if(part.id=="hit.sabah.roster")VerseReaperFx.Contact(caster,target,.55f);
+                if(!string.IsNullOrWhiteSpace(part.contactMotif))
+                    PortraitAccentFx.RosterContact(caster,target,part.contactMotif,skillKey:skillKey);
+                if(part.contactScale>0f&&slot.impactDelay<0f)
+                    PortraitAccentFx.PaintedContact(target,Anchor(),ParseColor(part.coreColor,Color.white),part.contactScale);
+                if(skillKey=="himiko.ember")PortraitAccentFx.HimikoContact(target,Anchor());
+                if(!agniPurchase&&skillKey is "pygmalion.ember" or "agni.follow_up" or "agni.focused_follow_up")
                     PortraitAccentFx.Fire(caster,target,skillKey);
-                if(skillKey=="chandra.sachi"&&index==2)PortraitAccentFx.Moon(caster,target);
+                if(!crystalPurchase&&skillKey=="chandra.sachi"&&index==2)PortraitAccentFx.Moon(caster,target);
                 if(part.id=="hit.fire")PortraitAccentFx.FlameStrikeCore(target);
-                if(part.id=="hit.indra.vajra")PortraitAccentFx.VajraContact(caster,target);
-                if(part.id=="hit.varuna.judgment")YamaVarunaFx.BalanceCue(target);
+                if(!stormPurchase&&part.id=="hit.indra.vajra")PortraitAccentFx.VajraContact(caster,target);
+                if(!lawPurchase&&part.id=="hit.varuna.judgment")YamaVarunaFx.BalanceCue(target);
                 if(part.id=="hit.explosion.small")PortraitAccentFx.SmallExplosion(target);
                 if(part.id=="hit.enemy.archer_pierce")PortraitAccentFx.EnemyPierce(caster,target);
                 if(part.id=="hit.enemy.crusher_heavy")PortraitAccentFx.EnemyCrusher(target);
                 if(part.id=="hit.smoke.fire_mark")PortraitAccentFx.FlameStrikeCore(target);
                 if(part.id=="hit.smoke.horizontal.afterglow")PortraitAccentFx.SmokeSweep(target,true);
-                if(part.id.StartsWith("hit.crystal",StringComparison.Ordinal))PortraitAccentFx.CrystalFragments(target,part.id=="hit.crystal.debris");
-                if(part.id is "hit.fire.burst" or "hit.fire.sculptor_burst")
+                if(!crystalPurchase&&part.id.StartsWith("hit.crystal",StringComparison.Ordinal))PortraitAccentFx.CrystalFragments(target,part.id=="hit.crystal.debris");
+                if(skillKey!="himiko.ember" && (part.id is "hit.fire.burst" or "hit.fire.sculptor_burst"))
                     PortraitAccentFx.FireContact(target,part.id=="hit.fire.sculptor_burst");
                 if(part.id=="hit.lightning.portrait")PortraitAccentFx.LightningContact(target);
                 if(part.id=="hit.kubera.treasury")LokapalaFx.TreasuryGlints(target);
                 if(part.id=="hit.uchi.overflow")PortraitAccentFx.OverflowRipple(target);
-                if(part.id=="hit.vayu.gale")PortraitAccentFx.WindStrikeFlow(target);
-                if(part.id is "hit.jean.impact" or "hit.impact.small" or "hit.jean.punch_pressure")
+                if(!stormPurchase&&part.id=="hit.vayu.gale")PortraitAccentFx.WindStrikeFlow(target);
+                if(!jeanPurchase&&part.contactScale<=0f && (part.id is "hit.jean.impact" or "hit.impact.small" or "hit.jean.punch_pressure"))
                     PortraitAccentFx.PressureHit(target,part.id=="hit.jean.punch_pressure");
-                if(part.id=="hit.jean.smoke")PortraitAccentFx.SmokeSweep(target,true);
+                if(!jeanPurchase&&part.id=="hit.jean.smoke")PortraitAccentFx.SmokeSweep(target,true);
                 if(part.id is "hit.slash.aqua" or "hit.slash.aqua_finisher")
                     PortraitAccentFx.AquaSlash(target,ParseColor(part.coreColor,Color.white),part.id=="hit.slash.aqua_finisher");
-                if(part.id is "hit.explosion.large" or "hit.moonlight" or "hit.moonlight.changya" or "hit.impact.large")
+                if(!crystalPurchase&&(part.id is "hit.explosion.large" or "hit.moonlight" or "hit.moonlight.changya" or "hit.impact.large"))
                     PortraitAccentFx.HeavyContact(target,ParseColor(part.coreColor,Color.white),
                         part.id is "hit.moonlight" or "hit.moonlight.changya",part.id=="hit.explosion.large");
                 // 전용 피격 문양은 논리 키가 아니라 부품이 소유한다. 단독 검수와 실제 일제사격도 같은 정점을 쓴다.
@@ -429,7 +586,7 @@ namespace Effects.Vfx
             Action peakCallback = () =>
             {
                 visualPeakNotification();
-                if (string.Equals(part.renderer, "lokapalaCoinImpact", StringComparison.OrdinalIgnoreCase))
+                if (!stormPurchase && string.Equals(part.renderer, "lokapalaCoinImpact", StringComparison.OrdinalIgnoreCase))
                     LokapalaFx.CoinImpact(target, eventAngle, slot.coinBurst);
                 onPeak?.Invoke();
             };
@@ -451,6 +608,7 @@ namespace Effects.Vfx
             Color body = ParseColor(slot.bodyColor, ParseColor(part.bodyColor, Color.white));
             Color core = ParseColor(slot.coreColor, ParseColor(part.coreColor, Color.white));
             ResolveCasterPalette(slot, caster, ref body, ref core);
+            if(VerseReaperFx.OwnPart(part.id,caster))VerseReaperFx.Palette(caster,ref body,ref core);
             LiftLokapalaOnDarkBoard(part, ref body);
             if(part.id.StartsWith("hit.crystal", StringComparison.Ordinal)) body=BattleVfxStyle.Platinum(body);
             float x = slot.scaleX > 0f ? slot.scaleX : part.scaleX;
@@ -469,6 +627,8 @@ namespace Effects.Vfx
                 // 긴 잔상을 위해 플립북 FPS를 낮춰도 피해 판정 계약은 원래 시각에 정확히 한 번 유지한다.
                 VfxRunner.Run(InvokeAfterDelay(slot.impactDelay, () =>
                 {
+                    if(part.contactScale>0f)
+                        PortraitAccentFx.PaintedContact(target,Anchor(),ParseColor(part.coreColor,Color.white),part.contactScale);
                     NotifySlot(skillKey, "hit", part.id, "impact", index, caster, target, eventPoint,
                         eventAngle, eventFlipX, eventLayer, eventOrder);
                     onPeak?.Invoke();
@@ -502,26 +662,26 @@ namespace Effects.Vfx
                     Vector3 edgeCenter = VisualCenterForAnchor(impactPoint, edgeSize, part, angle, flipX);
                     Color edgeCore = new(edge.r, edge.g, edge.b, Mathf.Min(edge.a, 0.28f));
                     VfxRunner.Run(HandpaintFx.PlayPoint(edgeCenter, eventLayer, Sheet(part), edgeSize,
-                        edge, edgeCore, null, angle, flipX, peak, 0.72f, 0.24f, true, part.peakHoldSeconds));
+                        edge, edgeCore, null, angle, flipX, peak, 0.72f, 0.24f, true, part.peakHoldSeconds, hiddenClock:stormPurchase));
                 }
 
                 Vector3 visualCenter = fittedCenter;
                 VfxRunner.Run(HandpaintFx.PlayPoint(visualCenter, eventLayer, Sheet(part), size,
                     body, core, visualPeakCallback, angle, flipX, peak,
-                    Mathf.Clamp01(part.peakAlpha), Mathf.Clamp01(part.glowAlpha), true, part.peakHoldSeconds));
+                    Mathf.Clamp01(part.peakAlpha), Mathf.Clamp01(part.glowAlpha), true, part.peakHoldSeconds, hiddenClock:stormPurchase));
                 // 같은 Smoke 원화의 좁은 휘도 코어를 몸체 안에 넣는다. 별도 부품 사건은 남기지 않는다.
                 Vector2 coreSize = new(size.x * 0.92f, size.y * 0.52f);
                 Vector3 coreCenter = fittedCenter;
                 Color coreBody = new(core.r, core.g, core.b, 0.34f);
                 yield return HandpaintFx.PlayPoint(coreCenter, eventLayer, Sheet(part), coreSize,
-                    coreBody, core, null, angle, flipX, peak, part.id=="hit.enemy.archer_pierce"?.03f:.36f, 0.20f, true, part.peakHoldSeconds);
+                    coreBody, core, null, angle, flipX, peak, part.id=="hit.enemy.archer_pierce"?.03f:.36f, 0.20f, true, part.peakHoldSeconds, hiddenClock:stormPurchase);
                 yield break;
             }
-            if (portraitAnchor)
+            if (portraitAnchor&&!purchasedClock)
                 DrawInk(Anchor(), eventLayer, part, size, angle, flipX, peak, target, portraitAnchor,
                     part.peakHoldSeconds);
-            if(part.id is "hit.explosion.large" or "hit.moonlight" or "hit.impact.large" or "hit.moonlight.changya" or
-                "hit.fire.burst" or "hit.fire.sculptor_burst")
+            if(!crystalPurchase&&skillKey!="himiko.ember" && (part.id is "hit.explosion.large" or "hit.moonlight" or "hit.impact.large" or "hit.moonlight.changya" or
+                "hit.fire.burst" or "hit.fire.sculptor_burst"))
             {
                 // 넓은 불빛을 진하게 만들지 않고, 몸통 안의 구매 원화 실루엣만 또렷하게 남긴다.
                 bool fire=part.id is "hit.fire.burst" or "hit.fire.sculptor_burst";
@@ -534,18 +694,20 @@ namespace Effects.Vfx
                     heavyCrestAtPeak=()=>HandpaintFx.PlayAt(crestPoint,eventLayer,Sheet(part),crest,crestBody,core,angle,
                         orderOffset:35,peakAlpha:.30f,glowAlpha:.12f,flipX:flipX,heldFrame:peak,
                         peakHoldSeconds:VfxTiming.AtLeastFrames(.08f,4),desaturate:.85f,steadyBody:true,
-                        startFrame:peak,calmLight:true,paintContrast:PaintContrast(part))?.ClipPortraitHud(target);
+                        startFrame:peak,calmLight:true,paintContrast:PaintContrast(part))?.BindRecipient(target);
                 }
                 else HandpaintFx.PlayAt(crestPoint,eventLayer,Sheet(part),crest,crestBody,core,angle,
                     orderOffset:35,peakAlpha:fire ? .36f : .45f,glowAlpha:.12f,flipX:flipX,heldFrame:peak,
                     peakHoldSeconds:Mathf.Max(part.peakHoldSeconds,VfxTiming.AtLeastFrames(fire ? .04f : .08f,fire?3:4)),desaturate:fire ? .65f : .45f,steadyBody:true,
-                    calmLight:true,paintContrast:PaintContrast(part))?.ClipPortraitHud(target);
+                    calmLight:true,paintContrast:PaintContrast(part))?.BindRecipient(target);
             }
             yield return HandpaintFx.PlayHit(target, Sheet(part), size, body, core, visualPeakCallback,
                 angle, flipX, peak, accent, visualOffset,
                 part.peakHoldSeconds,
-                part.useHitAlpha ? part.peakAlpha : 0.86f,
-                part.useHitAlpha ? part.glowAlpha : 0.60f, portraitAnchor, steadyBody: slot.steadyBody, desaturate: WindOnDark(part), tailHoldFrame: part.tailHoldFrame, tailHoldSeconds: part.tailHoldSeconds, calmLight: part.calmLight, paintContrast:PaintContrast(part));
+                purchasedClock?0f:part.useHitAlpha ? part.peakAlpha : 0.86f,
+                purchasedClock?0f:part.useHitAlpha ? part.glowAlpha : 0.60f, portraitAnchor,
+                steadyBody:slot.steadyBody&&string.IsNullOrWhiteSpace(part.contactMotif)&&!part.id.StartsWith("hit.enemy.support.",StringComparison.Ordinal),
+                desaturate: WindOnDark(part), tailHoldFrame: part.tailHoldFrame, tailHoldSeconds: part.tailHoldSeconds, calmLight: part.calmLight, paintContrast:PaintContrast(part));
         }
 
         /// <summary>
@@ -573,6 +735,7 @@ namespace Effects.Vfx
 
             Color body = ParseColor(slot.bodyColor, ParseColor(part.bodyColor, Color.white));
             Color core = ParseColor(slot.coreColor, ParseColor(part.coreColor, Color.white));
+            if(VerseReaperFx.OwnPart(part.id,caster))VerseReaperFx.Palette(caster,ref body,ref core);
             float x = slot.scaleX > 0f ? slot.scaleX : part.scaleX;
             float y = slot.scaleY > 0f ? slot.scaleY : part.scaleY;
             Vector2 size = new(Mathf.Max(0.01f, x), Mathf.Max(0.01f, y));
@@ -616,6 +779,8 @@ namespace Effects.Vfx
                 new Color(0.10f, 0.72f, 0.92f, 0.92f)));
             Color core = ParseColor(slot.coreColor, ParseColor(part.coreColor, Color.white));
             ResolveClawPalette(slot, caster, ref body, ref edge, ref core);
+            if(VerseReaperFx.OwnPart(part.id,caster))
+            {body=VerseReaperFx.Edge(caster);edge=ElementPalette.ColorFor(caster.Element);core=Color.Lerp(edge,Color.white,.22f);}
 
             float scale = Mathf.Max(0.01f, slot.scale * extraScale);
             float xScale = slot.scaleX > 0f ? slot.scaleX : 1f;
@@ -640,6 +805,7 @@ namespace Effects.Vfx
                 RevealSoftness = part.revealSoftness,
                 TipWidth = part.tipWidth,
                 CardKickStrength = part.cardKickStrength * Mathf.Sqrt(scale),
+                FocusedStroke = slot.focusedStroke,
                 PortraitWidthFraction = part.id=="hit.loki.fenrir" ? .86f : 1.10f,
                 PortraitHeightFraction = part.id=="hit.loki.fenrir" ? .20f : .42f,
                 // 세 줄이 적의 머리 전체를 덮지 않도록 실제 HUD 위 몸통 띠로 내려 붙인다.
@@ -651,12 +817,26 @@ namespace Effects.Vfx
                 CoreColor = core,
             };
 
+            if(VerseReaperFx.OwnPart(part.id,caster))style.OffsetInCards=(Vector2)(VerseReaperFx.Point(target)-VfxSpace.PortraitPoint(target))/VfxSpace.CardSize-Vector2.up*.10f;
             Vector3 fallback = VfxSpace.PortraitPoint(target);
             int layer = VfxSpace.SortingLayer(target);
             yield return ClawRakeFx.Play(target, fallback, layer, style, () =>
             {
-                PlayClawSupport(part.accentPartId, target, edge, core, scale * 0.54f, 26);
-                PlayClawSupport(part.secondaryPartId, target, edge, core, scale * 0.46f, 22);
+                if(part.id=="hit.shi.wind_roster")VerseReaperFx.Contact(caster,target,.56f);
+                else if(slot.focusedStroke)
+                {
+                    float card=CardMotion.ViewOf(target)?.CardSize??VfxSpace.CardSize;
+                    float radians=angle*Mathf.Deg2Rad;
+                    Vector3 strokeDirection=new(Mathf.Cos(radians),Mathf.Sin(radians),0f);
+                    Vector3 strikePoint=VfxSpace.PortraitPoint(target)+Vector3.up*(VfxSpace.CardSize*.10f)
+                        +(Vector3)(style.OffsetInCards*card)-strokeDirection*(card*.10f);
+                    PortraitAccentFx.ContactAt(target,strikePoint,core,1.25f);
+                }
+                else
+                {
+                    PlayClawSupport(part.accentPartId, target, edge, core, scale * .54f, 26);
+                    PlayClawSupport(part.secondaryPartId, target, edge, core, scale * 0.46f, 22);
+                }
                 onPeak?.Invoke();
             });
         }
@@ -689,7 +869,9 @@ namespace Effects.Vfx
 
             Color body = ParseColor(slot.bodyColor, ParseColor(part.bodyColor, Color.white));
             Color edge = ParseColor(slot.edgeColor, Color.clear);
+            if(VerseReaperFx.OwnPart(part.id,caster))edge=VerseReaperFx.Edge(caster);
             Color core = ParseColor(slot.coreColor, ParseColor(part.coreColor, Color.white));
+            if(VerseReaperFx.OwnPart(part.id,caster))VerseReaperFx.Palette(caster,ref body,ref core);
             float x = slot.scaleX > 0f ? slot.scaleX : part.scaleX;
             float y = slot.scaleY > 0f ? slot.scaleY : part.scaleY;
             Vector2 size = new(Mathf.Max(0.01f, x), Mathf.Max(0.01f, y));
@@ -720,19 +902,21 @@ namespace Effects.Vfx
                 PlayFormationSmokeRow(part,row,rowPoint,size,body,edge,core,angle,flipX,peak,layer,peakCallback,skillKey=="shi.final_bell.9");
             }
 
-            float farthest = alive.Max(unit => Mathf.Abs(VfxSpace.WorldPoint(unit).x - point.x));
-            List<Unit> ordered = alive.OrderBy(unit => Mathf.Abs(VfxSpace.WorldPoint(unit).x - point.x)).ToList();
+            // 원화 피팅과 이동 중 카드 좌표는 피해 순서를 바꾸지 않는다.
+            var impacts = Combat.CombatSweepTiming.Plan(alive);
             float elapsed = 0f;
-            foreach (Unit target in ordered)
+            foreach (var impact in impacts)
             {
-                float distance = Mathf.Abs(VfxSpace.WorldPoint(target).x - point.x);
-                float due = 0.055f + (farthest > 0.001f ? distance / farthest : 0f) * 0.075f;
+                Unit target = impact.Target;
+                float due = impact.Due;
                 if (due > elapsed) yield return new WaitForSeconds(due - elapsed);
                 elapsed = due;
                 NotifySlot(skillKey, "hit", part.id, "impact", index, caster, target,
                     VfxSpace.WorldPoint(target), angle, flipX, VfxSpace.SortingLayer(target), order);
                 if(skillKey is "shi.final_bell.6" or "shi.final_bell.9")
                     PortraitAccentFx.Contact(target,core);
+                if(slot.impactContactScale>0f)
+                    PortraitAccentFx.FormationContact(caster,target,core,slot.impactContactScale);
                 onImpact?.Invoke(target);
             }
             float total = Mathf.Max(0.20f, Mathf.Max(1, part.columns * part.rows) / Mathf.Max(1f, part.fps));
@@ -792,9 +976,15 @@ namespace Effects.Vfx
                         angle,flipX,peak,layer,()=>{if(!applied){applied=true;onPeak?.Invoke();}},finalTier);
                 return;
             }
-            foreach(Unit receiver in receivers.Where(unit=>unit!=null))
-                VfxRunner.Run(InvokeAfterDelay(Mathf.Max(0,peak)/Mathf.Max(1f,part.fps),()=>PortraitAccentFx.SmokeSweep(receiver,false)));
-            if(finalTier)body=Color.Lerp(body,new Color(.64f,.29f,.43f,body.a),.30f);
+            // 구매 명중·파편이 있는 새 검격에는 고정 청보라 리본을 덧씌우지 않는다.
+            // 만종 9단계도 앞에서 정한 원소 팔레트를 그대로 사용한다.
+            bool purchasedVerse=part.id is "hit.shi.bell_roster" or "hit.sabah.smoke_roster";
+            if(!purchasedVerse)
+            {
+                foreach(Unit receiver in receivers.Where(unit=>unit!=null))
+                    VfxRunner.Run(InvokeAfterDelay(Mathf.Max(0,peak)/Mathf.Max(1f,part.fps),()=>PortraitAccentFx.SmokeSweep(receiver,false)));
+                if(finalTier)body=Color.Lerp(body,new Color(.64f,.29f,.43f,body.a),.30f);
+            }
             body.a=Mathf.Min(body.a,.14f);
             center=FitPortraitVisual(receivers,center,ref size);
             if(edge.a>.01f)
@@ -893,7 +1083,13 @@ namespace Effects.Vfx
         {
             List<Unit> alive = targets?.Where(unit => unit != null && unit.isActive).ToList()
                                ?? new List<Unit>();
-            if (caster == null || alive.Count == 0) yield break;
+            if (alive.Count == 0) yield break;
+            if (caster == null)
+            {
+                // 단일 연출과 같은 완료 계약. 실제 공격의 생존 판정은 DirectAttack이 맡는다.
+                foreach (Unit target in alive) onImpact?.Invoke(target);
+                yield break;
+            }
 
             IReadOnlyList<VfxTargetHit> hits = VfxSpace.BuildTargetHitSequence(alive, impactSpreadSeconds);
             PlayScreen(skillKey, caster, alive);
@@ -1008,6 +1204,19 @@ namespace Effects.Vfx
             Color core = ParseColor(part.coreColor, Color.white);
             ResolveSupportPalette(caster, ref body, ref core);
             Vector2 size = new(part.scaleX, part.scaleY);
+            if(part.renderer is "rosterOfficerHeal" or "rosterOfficerReceive")
+            {
+                PurchasedSupportThreadsFx.Play(caster,target,part.renderer=="rosterOfficerHeal"
+                    ?PurchasedSupportThreadsFx.Kind.Heal:PurchasedSupportThreadsFx.Kind.Receive);
+                return;
+            }
+            if(part.renderer=="rosterSunset")
+            {
+                PurchasedArcherFx.RosterPreparation(caster??target,target);
+                PurchasedSupportThreadsFx.Play(caster??target,target,PurchasedSupportThreadsFx.Kind.Receive);
+                return;
+            }
+            if(YamaVarunaFx.PurchasedStatus(part,caster,target))return;
             // 자동 상태 표시도 직접 시전과 같은 고유 문양을 쓴다. 상태 판정/부여 성공률은 바꾸지 않는다.
             if(part.id=="affected.yama.detonation")YamaVarunaFx.DetonationCue(target);
             if(part.id=="affected.yama.verdict")YamaVarunaFx.VerdictCue(target);
@@ -1040,7 +1249,7 @@ namespace Effects.Vfx
             if (string.Equals(part.renderer, "shieldMembrane", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(part.renderer, "supportShield", StringComparison.OrdinalIgnoreCase))
             {
-                PlaySupportShield(target, point, layer, size, body, core);
+                StatusAffectedVfx.PlayShield(target,caster);
                 return;
             }
             if(part.renderer=="yvShield"&&YamaVarunaFx.PlayMotif(part,caster,target,point,layer,size,0f))return;
@@ -1249,7 +1458,7 @@ namespace Effects.Vfx
                 angle, 29, ink.a, 0f, false, flipX, peak, Mathf.Max(Mathf.Max(part.peakHoldSeconds, extraHold), part.renderer == "casterTwin" ? 0.10f : 0f), desaturate: 1f, steadyBody: true, startFrame: part.startFrame);
             if (follow != null) fx?.Follow(() => followPortrait ? VfxSpace.PortraitPoint(follow) : VfxSpace.WorldPoint(follow),
                 center - (followPortrait ? VfxSpace.PortraitPoint(follow) : VfxSpace.WorldPoint(follow)));
-            if (followPortrait) fx?.ClipPortraitHud(follow);
+            if (followPortrait) fx?.BindRecipient(follow);
         }
 
         /// <summary>데이터가 적은 시작점·충돌점을 월드 목표점에 고정하도록 원화 중심을 역산한다.</summary>
@@ -1324,9 +1533,12 @@ namespace Effects.Vfx
                 case SupportVisualKind.Buff:
                     // 흰 원본을 써야 시전자색/장미색 재착색이 녹색 채널에 오염되지 않는다.
                     sheet = HandpaintFx.Impact1White;
-                    visualSize = new Vector2(0.84f, 0.72f);
-                    // 얼굴을 덮지 않고 머리 위에서 수렴하도록 카드 중심보다 충분히 올린다.
-                    visualPoint = VfxSpace.PortraitPoint(target) + Vector3.up * card * 0.31f;
+                    visualSize = new Vector2(.30f,.20f);
+                    // 강화 문양은 수신자의 어깨 옆에 붙여 떠 있는 숫자로 오인하지 않게 한다.
+                    var buffView=CardMotion.ViewOf(target);
+                    visualPoint = buffView?.PortraitRenderer!=null
+                        ? new Vector3(VfxSpace.PortraitHudAnchor(target).x-.24f*card,VfxSpace.PortraitHudTop(target)+card*.22f,0f)
+                        : VfxSpace.BodyPoint(target);
                     reverse = true;
                     break;
                 case SupportVisualKind.Cleanse:
@@ -1343,7 +1555,7 @@ namespace Effects.Vfx
                     visualSize = (addInk ? new Vector2(.76f, .70f) : new Vector2(.70f, .64f)) * healScale;
                     visualPoint = StatusMotifFx.Anchor(target) + Vector3.down * card * 0.05f;
                     reverse = false;
-                    body = new Color(.53f, .78f, .66f, .70f);
+                    body = new Color(.38f, .80f, .63f, .65f);
                     core = new Color(0.82f, 1f, 0.88f, 1f);
                     break;
                 default:
@@ -1353,7 +1565,7 @@ namespace Effects.Vfx
                     visualPoint = StatusMotifFx.Anchor(target) - Vector3.up * card * .09f;
                     reverse = false;
                     // 보호막은 시전자 속성과 무관하게 은회색으로 고정한다.
-                    body = new Color(0.66f, 0.79f, 0.88f, 0.12f);
+                    body = new Color(0.66f, 0.79f, 0.88f, 0.28f);
                     core = new Color(0.92f, 0.95f, 0.98f, 1f);
                     break;
             }
@@ -1362,7 +1574,7 @@ namespace Effects.Vfx
             if(buff && addInk) body=Color.Lerp(body,new Color(.88f,.78f,.48f,body.a),.20f);
             SkillFxCue cue = HandpaintFx.Cue(sheet, visualSize, body, core,
                 shield ? 210f : 0f, false, sheet.Columns * sheet.Rows - 1,
-                Vector2.zero, shield ? .12f : health ? .52f : kind==SupportVisualKind.Cleanse ? .24f : addInk ? .68f : .70f, shield ? .10f : health ? .10f : addInk ? .15f : .22f);
+                Vector2.zero, shield||buff ? 0f : health ? .24f : kind==SupportVisualKind.Cleanse ? .24f : addInk ? .68f : .70f, shield||buff ? 0f : health ? .10f : addInk ? .15f : .22f);
             if (addInk)
             {
                 if (cue.FrameDelays.Length > 3) cue.FrameDelays[3] += 0.10f;
@@ -1401,7 +1613,7 @@ namespace Effects.Vfx
                 cue.FrameDelays[holdFrame] += kind == SupportVisualKind.Cleanse ? 0.04f :
                     shield ? 0.25f : 0.15f;
             }
-            if (addInk || buff)
+            if (addInk && !buff)
             {
                 // 받침도 같은 셀·역재생·유지 시간을 써야 몸체보다 먼저 사라지지 않는다.
                 SkillFxCue ink = HandpaintFx.Cue(sheet, visualSize * (buff ? 1.07f : 1.18f),
@@ -1414,27 +1626,34 @@ namespace Effects.Vfx
                 ink.Composite.ContactShadowColor = ink.Composite.GroundLightColor = Color.clear;
                 ink.Composite.StartScale = ink.Composite.CrestScale = ink.Composite.EndScale = health ? 1f : 1.08f;
                 ink.Composite.BlendFraction = 0.20f;
-                SkillFx.PlayCue(ink, visualPoint, layer, VfxSpace.OverlaySortingOrder + 20);
+                var inkFx=SkillFx.PlayCue(ink, visualPoint, layer, VfxSpace.OverlaySortingOrder + 20);
+                if(health)inkFx?.BindRecipient(target);
             }
             var supportFx=SkillFx.PlayCue(cue, visualPoint, layer, VfxSpace.OverlaySortingOrder + 20);
-            if(shield)supportFx?.ClipPortraitHud(target);
+            if(shield||buff||health)supportFx?.BindRecipient(target);
             if (shield)
             {
-                // 선택 링과 구분되는 반구 표면. 가슴께에만 짧게 펼치고 얼굴/HUD를 비운다.
-                SpriteFx.Play(VfxSpace.ShieldVeil,visualPoint,new Color(.35f,.58f,.76f,.68f),false,
-                    new Vector2(.68f,.40f)*card,new Vector2(.84f,.50f)*card,.32f,
-                    fadeIn:.03f,fadeOutFrom:.38f,sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+140);
-                SpriteFx.Play(VfxSpace.ShieldVeil,visualPoint,new Color(.88f,.95f,1f,.34f),true,
-                    new Vector2(.64f,.37f)*card,new Vector2(.79f,.46f)*card,.26f,
-                    fadeIn:.02f,fadeOutFrom:.30f,sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+141);
+                PortraitAccentFx.ShieldWard(target);
             }
             if (health)
             {
                 // 치유는 팩 충격 몸체 안에 녹백 십자광을 한 합성 부품으로 겹쳐 의미를 즉시 읽힌다.
                 Color outline = SupportOutline(body, 0.96f);
-                float length = card * 0.22f * healScale;
-                float thickness = card * 0.042f * healScale;
-                Vector3 symbolPoint=StatusMotifFx.Anchor(target)+new Vector3(target.IsEnemy?-.40f:.40f,-.08f)*card;
+                float length = card * 0.26f * healScale;
+                float thickness = card * 0.060f * healScale;
+                Vector3 symbolPoint=StatusMotifFx.Anchor(target);
+                var recipient=CardMotion.ViewOf(target);
+                if(recipient?.PortraitRenderer!=null)
+                {
+                    Bounds bounds=recipient.PortraitRenderer.bounds;
+                    float hud=VfxSpace.PortraitHudTop(target);
+                    float available=Mathf.Max(.12f*card,bounds.max.y-hud);
+                    length=Mathf.Min(length,available*.32f);
+                    thickness=Mathf.Min(thickness,length*.24f);
+                    symbolPoint=new Vector3(bounds.center.x,hud+length*.5f+available*.07f,0f);
+                    // 가면 적도 수신자가 분명하도록 중심 x를 유지하고 십자를 HUD 바로 위로 내린다.
+                    if(target.IsEnemy)symbolPoint=VfxSpace.ContactPoint(target);
+                }
                 symbolPoint.y=Mathf.Max(symbolPoint.y,VfxSpace.PortraitHudTop(target)+length*.5f+card*.03f);
                 PlaySupportStroke(target, symbolPoint, layer, 0f, length, thickness,
                     outline, body, core, VfxSpace.OverlaySortingOrder + 130);
@@ -1443,14 +1662,7 @@ namespace Effects.Vfx
             }
             else if(buff)
             {
-                // 구매 원화의 수렴광 중심에 짧은 강화 별을 붙여 밝은 하늘에서도 즉시 읽힌다.
-                Vector3 star=visualPoint+Vector3.up*.08f*card;
-                SpriteFx.Play(VfxArt.Glint,star,new Color(.08f,.14f,.22f,addInk?.48f:.43f),false,
-                    .31f*card,.34f*card,.40f,rotation:12f,
-                    fadeIn:.02f,fadeOutFrom:.50f,sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+148);
-                SpriteFx.Play(VfxArt.Glint,star,new Color(.92f,.72f,.34f,.96f),false,
-                    .21f*card,.23f*card,.40f,rotation:12f,
-                    fadeIn:.02f,fadeOutFrom:.50f,sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+149);
+                PortraitAccentFx.RallyCrest(target,visualPoint,new Vector2(.75f,.80f)*card);
             }
             else if (kind == SupportVisualKind.Cleanse)
             {
@@ -1519,7 +1731,7 @@ namespace Effects.Vfx
             bool shield, bool health)
         {
             float card = VfxSpace.CardSize;
-            Vector3 to = VfxSpace.WorldPoint(target) + Vector3.down * card * 0.41f;
+            Vector3 to = VfxSpace.PortraitHudAnchor(target) + Vector3.down * card * .03f;
             SpriteRenderer spark = VfxSpace.NewSprite(null, "SupportHudArrival", VfxArt.Glint,
                 color, layer, VfxSpace.OverlaySortingOrder + 142, true);
             const float duration = 0.18f;
@@ -1536,12 +1748,7 @@ namespace Effects.Vfx
             }
             if (spark != null) UnityEngine.Object.Destroy(spark.gameObject);
 
-            Color ring = new(color.r, color.g, color.b, 0.92f);
-            SpriteFx.Play(VfxArt.Shockwave, to, ring, true,
-                new Vector2(card * 0.08f, card * 0.025f),
-                new Vector2(card * 0.42f, card * 0.12f), 0.22f,
-                fadeIn: 0.02f, fadeOutFrom: 0.52f,
-                sortingLayer: layer, order: VfxSpace.OverlaySortingOrder + 143);
+            // 도착은 실제 게이지의 내부 펄스로 마친다. 상태 아이콘 줄 위에 별도 파동을 겹치지 않는다.
             CardMotion.ViewOf(target)?.PulseSupportHud(shield, health, color);
         }
 
@@ -1568,13 +1775,14 @@ namespace Effects.Vfx
         {
             Vector2 from = new(length * 0.56f, thickness * 0.72f);
             Vector2 to = new(length, thickness);
-            outline.a=Mathf.Min(outline.a,.46f);
+            outline.a=Mathf.Min(outline.a,.72f);
+            var pose=CardMotion.ViewOf(target)?.PortraitRenderer?.transform??target?.transform;
             SpriteFx.Play(VfxSpace.GlyphLine, point, outline, false, from * 1.13f, to * 1.13f, 0.54f,
-                angle, 0f, 0.06f, 0.70f, SpriteFx.Ease.OutBack, layer, order)?.Follow(target?.transform);
+                angle, 0f, 0.06f, 0.70f, SpriteFx.Ease.OutBack, layer, order, preserveInk:true)?.Follow(pose).BindRecipient(target);
             SpriteFx.Play(VfxSpace.GlyphLine, point, body, false, from, to, 0.54f,
-                angle, 0f, 0.06f, 0.70f, SpriteFx.Ease.OutBack, layer, order + 1)?.Follow(target?.transform);
+                angle, 0f, 0.06f, 0.70f, SpriteFx.Ease.OutBack, layer, order + 1)?.Follow(pose).BindRecipient(target);
             SpriteFx.Play(VfxSpace.GlyphLine, point, core, true, from * 0.72f, to * 0.72f, 0.54f,
-                angle, 0f, 0.06f, 0.70f, SpriteFx.Ease.OutBack, layer, order + 2)?.Follow(target?.transform);
+                angle, 0f, 0.06f, 0.70f, SpriteFx.Ease.OutBack, layer, order + 2)?.Follow(pose).BindRecipient(target);
         }
 
         private static void NotifyCustomPeak(string skillKey, string slotName, VfxPartData part, int index,
@@ -1594,6 +1802,9 @@ namespace Effects.Vfx
             int index, Unit caster, Unit target, Vector3 point, float angle, bool flipX, int layer, float delay)
         {
             if (delay > 0f) yield return new WaitForSeconds(delay);
+            var part=VfxDefinitionCatalog.Part(partId);
+            if(slotName=="affected"&&!string.IsNullOrWhiteSpace(part?.contactMotif))
+                PortraitAccentFx.RosterContact(caster,target,part.contactMotif,skillKey:skillKey);
             NotifySlot(skillKey, slotName, partId, "peak", index, caster, target, point,
                 angle, flipX, layer, 118);
         }
@@ -1635,7 +1846,7 @@ namespace Effects.Vfx
         private static IEnumerator PlayDelayedHit(string skillKey, int index, float delay,
             Unit caster, Unit target, Action onPeak, float extraScale, Action onComplete)
         {
-            if (delay > 0f) yield return new WaitForSeconds(delay);
+            if (delay > 0f) yield return Combat.CombatPresentationWait.Delay(delay);
             yield return PlayHitSlot(skillKey, index, caster, target, onPeak, extraScale);
             onComplete?.Invoke();
         }
@@ -1706,20 +1917,18 @@ namespace Effects.Vfx
         }
 
         /// <summary>
-        /// 적 공용 부품은 실루엣과 명암 합성은 공유하되 데이터의 vfxColor로 몸체를 물들인다.
+        /// 공용 공격 부품은 시전자의 원소색으로 몸체를 물들인다.
         /// 코어는 같은 색을 백색 쪽으로 끌어 정점이 밝은 전장에서도 묻히지 않게 한다.
         /// </summary>
         private static void ResolveCasterPalette(VfxSlotData slot, Unit caster, ref Color body, ref Color core)
         {
-            if (slot?.useCasterColor != true || caster == null ||
-                string.IsNullOrWhiteSpace(caster.VfxColorHex) ||
-                !ColorUtility.TryParseHtmlString(caster.VfxColorHex, out Color accent))
-                return;
+            if (caster == null || slot == null || slot.slot is not ("cast" or "hit")) return;
+            Color accent=ElementPalette.ColorFor(caster.Element);
 
             float bodyAlpha = body.a;
             float coreAlpha = core.a;
             accent.a = 1f;
-            body = Color.Lerp(body, accent, 0.82f);
+            body = accent;
             core = Color.Lerp(accent, Color.white, 0.72f);
             body.a = bodyAlpha;
             core.a = coreAlpha;
@@ -1732,17 +1941,12 @@ namespace Effects.Vfx
         private static void ResolveSupportPalette(Unit caster, ref Color body, ref Color core)
         {
             if (caster == null) return;
-            Color accent;
-            if (!string.IsNullOrWhiteSpace(caster.VfxColorHex) &&
-                ColorUtility.TryParseHtmlString(caster.VfxColorHex, out Color parsed))
-                accent = parsed;
-            else
-                accent = ElementPalette.ColorFor(caster.Element);
+            Color accent=ElementPalette.ColorFor(caster.Element);
 
             float bodyAlpha = body.a;
             float coreAlpha = core.a;
             accent.a = 1f;
-            body = Color.Lerp(body, accent, 0.78f);
+            body = accent;
             core = Color.Lerp(accent, Color.white, 0.74f);
             body.a = bodyAlpha;
             core.a = coreAlpha;
@@ -1776,6 +1980,13 @@ namespace Effects.Vfx
         public const string SuppressPartId = "none";
         private static string _supportVariant;
 
+        /// <summary>실제 양수 보호막 수혜의 공통 생성 연출. 보호막 양·기간은 호출자가 이미 적용했다.</summary>
+        public static void PlayShield(Unit owner,Unit caster)
+        {
+            if(owner==null||!owner.isActive||owner.ShieldCurr<=0)return;
+            PurchasedSupportThreadsFx.Play(caster,owner,PurchasedSupportThreadsFx.Kind.Ward);
+        }
+
         /// <summary>실제 Heal 호출 안에서 자동 지원 부품만 선택한다. 예외·중첩 호출 뒤에는 이전 설정을 되돌린다.</summary>
         public static IDisposable SupportVariant(string skillKey) => new SupportScope(skillKey);
 
@@ -1790,30 +2001,54 @@ namespace Effects.Vfx
         {
             if (owner == null || !owner.isActive || string.IsNullOrWhiteSpace(partId)) return;
             string variant = _supportVariant;
+            if(caster?.ID==60&&partId=="hit.support.heal")
+            {
+                PurchasedSupportThreadsFx.Play(caster,owner,PurchasedSupportThreadsFx.Kind.Heal,prepareCaster:variant!="chandra.changya");
+                return;
+            }
+            if(caster?.ID==160&&partId=="hit.support.heal"&&string.IsNullOrWhiteSpace(variant))
+            {
+                VfxComposer.PlayAffectedPart(owner,"affected.roster.officer.heal",caster);
+                return;
+            }
             if (partId == "hit.support.heal" && !string.IsNullOrWhiteSpace(variant))
                 VfxComposer.PlayAffectedSlot(variant, 0, caster, owner);
             else VfxComposer.PlayAffectedPart(owner, partId, caster);
         }
 
-        public static void Play(Unit owner, UnitStatus status)
+        private static string PartFor(UnitStatus status)
         {
-            if (owner == null || status == null || !owner.isActive) return;
-            if (string.Equals(status.AffectedVfxPartId, SuppressPartId,
-                    StringComparison.OrdinalIgnoreCase)) return;
-            string partId = !string.IsNullOrWhiteSpace(status.AffectedVfxPartId)
-                ? status.AffectedVfxPartId
-                : VfxDefinitionCatalog.StatusPart(status.Key);
-            if (string.IsNullOrWhiteSpace(partId)) partId = DefaultPart(status);
-            if (VfxDefinitionCatalog.Part(partId)?.affectedDelay > 0f)
-                VfxRunner.Run(PlayAffectedAfterHit(owner, status.Caster, partId));
-            else if (!string.IsNullOrWhiteSpace(partId)) VfxComposer.PlayAffectedPart(owner, partId, status.Caster);
+            if(status==null || string.Equals(status.AffectedVfxPartId,SuppressPartId,StringComparison.OrdinalIgnoreCase))return null;
+            // 실제 황금의 행렬 수혜는 ResourceGained의 구매 연결이 한 번 소유한다.
+            if(status.StatusId==72001&&status.Caster?.ID==200&&status.Key?.StartsWith("mansa_procession_",StringComparison.Ordinal)==true)return null;
+            string partId=!string.IsNullOrWhiteSpace(status.AffectedVfxPartId)
+                ?status.AffectedVfxPartId:VfxDefinitionCatalog.StatusPart(status.Key);
+            return string.IsNullOrWhiteSpace(partId)?DefaultPart(status):partId;
         }
 
-        private static IEnumerator PlayAffectedAfterHit(Unit owner, Unit caster, string partId)
+        internal static bool PairsPoisonNotice(UnitStatus status)
+            => PartFor(status)=="affected.dot.poison";
+
+        public static void Play(Unit owner, UnitStatus status, bool refresh=false)
+        {
+            if (owner == null || status == null || !owner.isActive) return;
+            string partId=PartFor(status);
+            if (VfxDefinitionCatalog.Part(partId)?.affectedDelay > 0f)
+                VfxRunner.Run(PlayAffectedAfterHit(owner,status,partId,refresh));
+            else if (!string.IsNullOrWhiteSpace(partId)) PlayWithNotice(owner,status,partId,refresh);
+        }
+
+        private static void PlayWithNotice(Unit owner,UnitStatus status,string partId,bool refresh)
+        {
+            VfxComposer.PlayAffectedPart(owner,partId,status.Caster);
+            if(partId=="affected.dot.poison")Effects.StatusPopup.ShowPoison(owner,refresh);
+        }
+
+        private static IEnumerator PlayAffectedAfterHit(Unit owner, UnitStatus status, string partId,bool refresh)
         {
             // 상태·명중은 이미 적용됐다. 연출만 원 공격 피격의 꼬리 뒤에 이어 얼굴을 이중으로 덮지 않는다.
             yield return new WaitForSeconds(VfxDefinitionCatalog.Part(partId).affectedDelay);
-            if (owner != null && owner.isActive) VfxComposer.PlayAffectedPart(owner, partId, caster);
+            if (owner != null && owner.isActive) PlayWithNotice(owner,status,partId,refresh);
         }
 
         private static string DefaultPart(UnitStatus status)
@@ -1823,7 +2058,7 @@ namespace Effects.Vfx
                 return key.Contains("frozen") ? "affected.control.frozen" : key.Contains("airborne") ? "affected.control.airborne" :
                     key.Contains("bind") ? "affected.control.bind" : "affected.control.stun";
             if (status.Effects != null && status.Effects.Any(effect => effect.EffectObject?.IsDamageOverTime == true))
-                return key.Contains("poison") ? "affected.dot.poison" : key.Contains("curse") ? "affected.dot.curse" :
+                return key.Contains("bleed") ? "affected.dot.bleed" : key.Contains("poison") ? "affected.dot.poison" : key.Contains("curse") ? "affected.dot.curse" :
                     key.Contains("shock") || key.Contains("electro") ? "affected.dot.shock" : "affected.dot.burn";
             if (status.IsBeneficial || status.Category == BaseClasses.BaseEnums.StatusCategory.Positive)
                 return key.Contains("shield") ? "hit.support.shield" :

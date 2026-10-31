@@ -9,6 +9,7 @@ using Managers.UI.Theme;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Managers.Stage;
 
 namespace Managers.UI.HUD
 {
@@ -34,6 +35,15 @@ namespace Managers.UI.HUD
         private readonly Dictionary<Unit, AdjustmentCue> _adjustments = new();
         private bool _wasInBattle;
         private float _panelHeight;
+        private readonly List<StageSlot> _stageSlots = new();
+        private readonly List<StageAction> _stageActions = new();
+        private bool _stageLayout;
+        private Sprite _cardPanelSprite;
+        private Color _cardPanelColor;
+        private sealed class StageAction
+        {
+            public Unit Unit; public int Id=-1; public ActionScheduler.ActionKind Kind; public string Label, KindLabel;
+        }
 
         public ActionQueuePanel(Transform parent)
         {
@@ -89,11 +99,34 @@ namespace Managers.UI.HUD
             if (!inBattle)
             {
                 if (_wasInBattle) ClearAnnouncements();
+                _stageActions.Clear();foreach(var slot in _stageSlots)slot.Hide();
                 _wasInBattle = false;
                 return;
             }
 
             _wasInBattle = true;
+            bool stage=VisualModeState.Current==VisualMode.Stage;
+            if(stage!=_stageLayout)
+            {
+                if(stage)
+                {
+                    _cardPanelSprite=_panel.sprite;_cardPanelColor=_panel.color;ClearAnnouncements();
+                    if(_stageSlots.Count==0)for(int i=0;i<7;i++)_stageSlots.Add(new StageSlot(_panel.transform));
+                }
+                else
+                {
+                    _panel.sprite=_cardPanelSprite;_panel.color=_cardPanelColor;
+                    _panel.rectTransform.localScale=Vector3.one;
+                    UIBuild.Pin(_panel.rectTransform,new Vector2(0,1),new Vector2(PanelWidth,_panelHeight),new Vector2(UITheme.ScreenEdgeInset,-UITheme.BelowTopBar));
+                    foreach(var slot in _stageSlots)slot.Hide();_stageActions.Clear();
+                    var caption=_panel.transform.Find("Caption").GetComponent<TMP_Text>();caption.fontSize=16;
+                    caption.color=UITheme.TextSecondary;caption.alignment=TextAlignmentOptions.MidlineLeft;caption.enableAutoSizing=true;
+                    UIBuild.Pin(caption.rectTransform,new Vector2(0,1),new Vector2(100,28),new Vector2(14,-9));
+                }
+                _stageLayout=stage;
+            }
+            _rail.enabled=!stage;
+            if(stage){TickStage(game.ActionScheduler);return;}
             TickAnnouncements();
             PruneAdjustmentCues();
 
@@ -137,6 +170,12 @@ namespace Managers.UI.HUD
         private void OnAnnounced(ActionAnnouncement announcement)
         {
             if (announcement.Unit == null) return;
+            if(VisualModeState.Current==VisualMode.Stage)
+            {
+                if(announcement.FollowsAction)
+                    _stageActions.Add(new StageAction{Unit=announcement.Unit,Label=announcement.ActionName,KindLabel=announcement.KindLabel});
+                return;
+            }
             _announcements.Insert(0, new InsertedSlot(_panel.transform, announcement));
             while (_announcements.Count > MaxAnnouncements)
             {
@@ -151,12 +190,20 @@ namespace Managers.UI.HUD
         private void OnActionStarted(Unit unit, ActionScheduler.ActionKind kind, string label)
         {
             int id = GameManager.Instance.ActionScheduler.CurrentActionId;
+            if(VisualModeState.Current==VisualMode.Stage)
+            {
+                var action=_stageActions.LastOrDefault(a=>a.Unit==unit&&a.Id<0);
+                if(action==null){action=new StageAction{Unit=unit};_stageActions.Add(action);}
+                action.Id=id;action.Kind=kind;action.Label=label;action.KindLabel=StageKind(kind);
+                return;
+            }
             _announcements.FirstOrDefault(row => row.WaitingForAction && row.Unit == unit)?.BindAction(id);
         }
 
         private void OnActionFinished(Unit unit, ActionScheduler.ActionKind kind)
         {
             int id = GameManager.Instance.ActionScheduler.CurrentActionId;
+            _stageActions.RemoveAll(a=>a.Unit==unit&&a.Id==id);
             foreach (InsertedSlot row in _announcements)
                 if (row.Unit == unit && row.ActionId == id) row.FinishAction();
         }
@@ -194,6 +241,98 @@ namespace Managers.UI.HUD
             foreach (Slot slot in _slots) slot.Reset();
         }
 
+        private static string StageKind(ActionScheduler.ActionKind kind)=>kind switch
+        {
+            ActionScheduler.ActionKind.Ultimate=>"초월기",
+            ActionScheduler.ActionKind.Additional or ActionScheduler.ActionKind.PriorityAdditional=>"추가행동",
+            ActionScheduler.ActionKind.Coordinated=>"협동행동",ActionScheduler.ActionKind.Special=>"특수행동",_=>"일반행동"
+        };
+        private void TickStage(ActionScheduler scheduler)
+        {
+            _stageActions.RemoveAll(a=>a.Unit==null||a.Id<0&&scheduler?.PreviewUnit!=a.Unit);
+            StageAction current=_stageActions.LastOrDefault(a=>a.Unit==scheduler?.ActingUnit);
+            var order=scheduler?.ForecastOrderCached(7);
+            var bindings=new List<(Unit unit,StageAction action)>();
+            if(current!=null)bindings.Add((current.Unit,current));
+            if(order!=null)foreach(var reservation in order)
+            {
+                if(bindings.Count>=7)break;
+                if(current!=null&&reservation.IsQueued&&reservation.Unit==current.Unit&&reservation.Label==current.Label)continue;
+                bindings.Add((reservation.Unit,null));
+            }
+            float scale=StageBattleHud.UiScale(_panel.rectTransform);
+            int count=bindings.Count;
+            float height=52+(count>0?70:0)+Mathf.Max(0,count-1)*67;
+            UIBuild.Pin(_panel.rectTransform,new Vector2(0,1),new Vector2(94,height),new Vector2(24*scale,-100*scale));
+            _panel.rectTransform.localScale=Vector3.one*scale;
+            _panel.sprite=UIShapes.RoundedRect(14,Color.white);_panel.type=Image.Type.Sliced;_panel.color=StageBattleHud.Glass;
+            var caption=_panel.transform.Find("Caption").GetComponent<TMP_Text>();StageBattleHud.TextSize(caption,13);caption.color=StageBattleHud.Muted;
+            UIBuild.Pin(caption.rectTransform,new Vector2(.5f,1),new Vector2(82,15),new Vector2(0,-12));caption.alignment=TextAlignmentOptions.Center;
+            for(int i=0;i<_stageSlots.Count;i++)
+                if(i<count)_stageSlots[i].Bind(bindings[i].unit,bindings[i].action,i);else _stageSlots[i].Hide();
+        }
+
+        // 표시 전용이다. AV·예약 순서·판정은 기존 ForecastOrderCached와 행동 이벤트가 소유한다.
+        private sealed class StageSlot
+        {
+            private readonly Image _face,_portrait,_side,_detail;
+            private readonly TMP_Text _name,_kind,_label,_summon;
+            private readonly StageUnitFocus _focus;
+            public StageSlot(Transform parent)
+            {
+                _face=UIBuild.Solid("OrderSlot",parent,Color.white);_face.preserveAspect=true;
+                _focus=StageUnitFocus.Attach(_face);
+                var crop=UIBuild.Solid("FaceCrop",_face.transform,Color.white);crop.sprite=UIShapes.RoundedRect(10,Color.white);crop.type=Image.Type.Sliced;
+                crop.gameObject.AddComponent<Mask>().showMaskGraphic=false;UIBuild.Stretch(crop.rectTransform,2,2);
+                _portrait=UIBuild.Solid("Portrait",crop.transform,Color.white);UIBuild.Stretch(_portrait.rectTransform);_portrait.raycastTarget=false;
+                _side=UIBuild.Solid("TeamLine",_face.transform,Color.white);_side.raycastTarget=false;
+                _detail=UIBuild.Solid("InsertedAction",_face.transform,Color.white);_detail.sprite=UIShapes.RoundedRect(14,Color.white);_detail.type=Image.Type.Sliced;_detail.raycastTarget=false;
+                _name=UIBuild.Text("Unit",_detail.transform,"",19,StageBattleHud.Ink);
+                _kind=UIBuild.Text("Kind",_detail.transform,"",11,Color.white);
+                _label=UIBuild.Text("Action",_detail.transform,"",14,StageBattleHud.Muted);
+                _summon=UIBuild.Text("SummonOwnerChip",_face.transform,"",11,StageBattleHud.Ink);
+                foreach(var text in new[]{_name,_kind,_label,_summon}){text.raycastTarget=false;text.enableAutoSizing=false;text.textWrappingMode=TextWrappingModes.NoWrap;text.overflowMode=TextOverflowModes.Overflow;}
+                _name.fontSize=19;_name.fontStyle=FontStyles.Bold;_kind.fontSize=11;_label.fontSize=14;_summon.fontSize=11;
+            }
+            public void Hide(){_focus.Bind(null);_face.gameObject.SetActive(false);}
+            public void Bind(Unit unit,StageAction action,int index)
+            {
+                if(unit==null){Hide();return;}
+                _face.gameObject.SetActive(true);_focus.Bind(unit);
+                bool summon=unit.IsSummon;
+                float size=index==0?70:58;
+                UIBuild.Pin(_face.rectTransform,new Vector2(.5f,1),new Vector2(size,size),new Vector2(0,-38-(index==0?0:79+(index-1)*67)));
+                _face.rectTransform.pivot=new Vector2(.5f,1);
+                _face.sprite=UIShapes.RoundedRect(index==0?12:10,new Color(22f/255f,34f/255f,60f/255f),Effects.Vfx.ElementPalette.ColorFor(unit.Element),index==0?2:0);
+                _face.type=Image.Type.Sliced;
+                _portrait.sprite=UIPortraitCrop.Face(SpriteResource.LoadPortrait(unit.PortraitPath));
+                UIBuild.Pin(_side.rectTransform,new Vector2(.5f,0),new Vector2(size-16,3),new Vector2(0,0));
+                _side.color=unit.IsEnemy?new Color(240f/255f,107f/255f,120f/255f):new Color(143f/255f,180f/255f,1);
+                _detail.gameObject.SetActive(action!=null);
+                if(action!=null)
+                {
+                    _detail.color=new Color(247f/255f,250f/255f,253f/255f,.95f);
+                    float width=Mathf.Clamp(Mathf.Max(_name.GetPreferredValues(unit.UnitName).x,_label.GetPreferredValues(action.Label??"").x+84)+40,200,440);
+                    UIBuild.Pin(_detail.rectTransform,new Vector2(0,1),new Vector2(width,62),new Vector2(82,-4));
+                    _name.text=unit.UnitName;_kind.text=action.KindLabel;_label.text=action.Label;
+                    UIBuild.Pin(_name.rectTransform,new Vector2(0,1),new Vector2(width-40,22),new Vector2(18,-8));
+                    UIBuild.Pin(_kind.rectTransform,new Vector2(0,1),new Vector2(66,20),new Vector2(18,-34));
+                    _kind.color=Effects.Vfx.ElementPalette.ColorFor(unit.Element);
+                    UIBuild.Pin(_label.rectTransform,new Vector2(0,1),new Vector2(width-114,20),new Vector2(92,-34));
+                    _name.ForceMeshUpdate();
+                }
+                _summon.gameObject.SetActive(summon);
+                if(summon)
+                {
+                    _face.rectTransform.sizeDelta=new Vector2(36,36);
+                    _face.rectTransform.anchoredPosition+=new Vector2(-18,0);
+                    _summon.text=unit.SummonOwner.UnitName+" · "+unit.UnitName;
+                    UIBuild.Pin(_summon.rectTransform,new Vector2(1,.5f),new Vector2(46,36),new Vector2(4,0));_summon.rectTransform.pivot=new Vector2(0,.5f);
+                    _summon.textWrappingMode=TextWrappingModes.Normal;
+                }
+            }
+        }
+
         private static float RowY(int index) => -HeaderHeight - 8f - index * RowStep;
 
         private static float Damp(float current, float target, float sharpness)
@@ -224,6 +363,7 @@ namespace Managers.UI.HUD
         /// <summary>실행 중 사건은 초상 슬롯이 가로로 열리며 내용을 보여 주고, 닫힐 때 아래 서열이 올라온다.</summary>
         private sealed class InsertedSlot
         {
+            private readonly StageUnitFocus _stageFocus;
             private const float OpenSeconds = 0.18f;
             private const float HoldSeconds = 2.8f;
             private const float CloseSeconds = 0.24f;
@@ -310,13 +450,15 @@ namespace Managers.UI.HUD
                 _group.interactable = false;
                 // 예약행동의 짧은 예고는 생성 프레임부터 읽힌다. 패시브 공지의 진입 모션은 유지한다.
                 _group.alpha = _followsAction ? 1f : 0f;
+                _stageFocus = StageUnitFocus.Attach(_frame, _group);
+                _stageFocus.Bind(announcement.Unit);
                 _age = _followsAction ? OpenSeconds : 0f;
                 _y = RowY(0) + (_followsAction ? 0f : 18f);
             }
 
             public bool Tick(int index)
             {
-                if(Time.timeScale>0) _age += Time.unscaledDeltaTime * BattleHud.CurrentSpeedMultiplier;
+                if(Time.timeScale>0) _age += Time.unscaledDeltaTime * BattleHud.EffectSpeedMultiplier;
                 // 실행 시간으로 수명을 정한다. 선제 개입이 끝나도 부모 행동은 자기 종료를 기다린다.
                 if (WaitingForAction && _age > OpenSeconds &&
                     GameManager.Instance?.ActionScheduler?.PreviewUnit != Unit) FinishAction();
@@ -350,15 +492,18 @@ namespace Managers.UI.HUD
 
         private sealed class Slot
         {
+            private readonly StageUnitFocus _stageFocus;
             private readonly Image _frame;
             private readonly Image _ring;
             private readonly Image _portrait;
             private readonly TextMeshProUGUI _queueMark;
             private readonly TextMeshProUGUI _adjustmentMark;
+            private readonly TextMeshProUGUI _summonCaption;
             private readonly CanvasGroup _group;
             private string _portraitPath;
             private float _targetY;
             private float _y;
+            private bool _summonChip;
 
             public string Key { get; private set; }
             public bool Active => _frame.gameObject.activeSelf;
@@ -394,9 +539,15 @@ namespace Managers.UI.HUD
                 UIBuild.Pin(_adjustmentMark.rectTransform, new Vector2(1f, 0.5f),
                     new Vector2(30f, 34f), new Vector2(14f, 0f));
 
+                _summonCaption = UIBuild.Text("SummonOwnerChip", _frame.transform, "", 11,
+                    UITheme.TextPrimary, TextAlignmentOptions.MidlineLeft);
+                UIBuild.Pin(_summonCaption.rectTransform, new Vector2(0, .5f), new Vector2(38, 40), new Vector2(43, 0));
+                _summonCaption.raycastTarget = false;
+
                 _group = UIBuild.Group(_frame.gameObject);
                 _group.blocksRaycasts = false;
                 _frame.gameObject.SetActive(false);
+                _stageFocus = StageUnitFocus.Attach(_frame, _group);
             }
 
             public void BeginLayout() => Claimed = false;
@@ -404,6 +555,7 @@ namespace Managers.UI.HUD
             public void Bind(ActionScheduler.Reservation reservation, int row, bool current, AdjustmentCue cue)
             {
                 Unit unit = reservation.Unit;
+                _stageFocus.Bind(unit);
                 if (unit == null)
                 {
                     Release();
@@ -427,6 +579,17 @@ namespace Managers.UI.HUD
                     border, current || reservation.IsQueued ? 1 : 0);
                 _ring.sprite = UIShapes.Surface(8, Color.clear, UIShapes.Corner.Diagonal, team, 1);
                 _frame.rectTransform.localScale = Vector3.one * (current ? 1.06f : 1f);
+                bool summonChip = VisualModeState.Current == VisualMode.Stage && unit.IsSummon;
+                _summonChip = summonChip;
+                _frame.rectTransform.sizeDelta = summonChip ? new Vector2(80, 48) : new Vector2(SlotSize, SlotSize);
+                _summonCaption.text = summonChip ? unit.SummonOwner.UnitName + "\n" + unit.UnitName : "";
+                if (summonChip)
+                {
+                    var ring = _ring.rectTransform;
+                    ring.anchorMin = ring.anchorMax = ring.pivot = new Vector2(0, .5f);
+                    ring.sizeDelta = new Vector2(36, 36); ring.anchoredPosition = new Vector2(4, 0);
+                }
+                else UIBuild.Stretch(_ring.rectTransform, 4, 4);
                 _queueMark.text = reservation.IsQueued ? QueueMark(reservation.Kind) : string.Empty;
                 _queueMark.color = team;
                 _adjustmentMark.text = cue.Visible ? cue.Advanced ? "↑" : "↓" : string.Empty;
@@ -452,11 +615,12 @@ namespace Managers.UI.HUD
 
                 _y = Damp(_y, _targetY, 16f);
                 _group.alpha = Damp(_group.alpha, 1f, 18f);
-                _frame.rectTransform.anchoredPosition = new Vector2(18f, _y);
+                _frame.rectTransform.anchoredPosition = new Vector2(_summonChip ? 36f : 18f, _y);
             }
 
             public void Reset()
             {
+                _stageFocus.Bind(null);
                 _frame.gameObject.SetActive(false);
                 Key = null;
                 Claimed = false;

@@ -12,10 +12,13 @@ namespace Codes.Normal
 {
     /// <summary>
     /// 사바흐 — 평소에는 단일 검격, 일반행동 세 번째마다 최대 세 명을 긋는 번개 베기로 대체한다.
-    /// 대상 수·번개 부착 박자는 옛 구현 그대로이며 피해 스탯만 DEX에서 공격력으로 기계적으로 옮겼다.
+    /// 디버프·과성장 편성의 특공 기반 특수피해. 대상 수·번개 부착 박자는 유지한다.
     /// </summary>
     public sealed class SabahLightningSlash : BaseNormalCode
     {
+        protected override bool AppliesElementTo(Unit target) => _substitute;
+        // 지휘 사격은 OnCommandBegin에서 항상 부착 없는 단일 검격으로 바뀐다.
+        protected override void PrepareEstimateProbe(Unit target, DamageContext probe) => probe.AppliesElement = false;
         public override int AttackForm => DamageTag.Slash;
 
         private const int SubstituteInterval = 3;
@@ -48,7 +51,7 @@ namespace Codes.Normal
         }
 
         protected override int BaseDamage(Unit target)
-            => StatDamage(110f, BaseEnums.StatType.Attack, 1f);
+            => StatDamage(110f, BaseEnums.StatType.SpecialAttack, 1f);
 
         protected override List<Unit> SelectTarget()
             => _substitute
@@ -115,6 +118,7 @@ namespace Codes.Normal
             DamageTag.NormalAttack,
             DamageTag.ContactAttack,
             DamageTag.Slash,
+            DamageTag.SpecialDamage,
         };
 
         private void RegisterRoundReset()

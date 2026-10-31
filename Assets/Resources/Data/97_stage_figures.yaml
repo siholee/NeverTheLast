@@ -1,0 +1,163 @@
+# 스탠딩 높이 기준 비율. top=머리 위, chin=턱, cx=얼굴 중심 x, feet=발바닥.
+# facing은 원화 방향. Stage 진영 방향과 다를 때만 뒤집는다.
+swarm: { badge: "분신 ×{n}", size: 0.55, slots: [ { x: 100, y: 6 }, { x: -165, y: -28 }, { x: -250, y: 24 } ] }
+figures:
+  - { sprite: isis_guardian_2, top: 0, chin: 0.17, cx: 0.5, feet: 1, facing: right, deform: false, summon: { badge: "수호령 ×{n}", aboveUnits: true, size: 0.45, hover: 30, slots: [ { x: 105, y: 4 }, { x: -170, y: -26 }, { x: -255, y: 22 } ] }, sd: { prefix: ISIS_GUARD_WING_SD, feetY: 1220, faceX: 760, topY: 196, head: { x: 760, y: 775 }, chest: { x: 560, y: 790 }, hand: { x: 720, y: 800 } } }
+  - { sprite: isis_guardian_1, top: 0, chin: 0.17, cx: 0.5, feet: 1, facing: right, deform: false, summon: { badge: "수호령 ×{n}", aboveUnits: true, size: 0.45, hover: 30, slots: [ { x: 105, y: 4 }, { x: -170, y: -26 }, { x: -255, y: 22 } ] }, sd: { prefix: ISIS_GUARD_EYE_SD, feetY: 1220, faceX: 670, topY: 348, head: { x: 670, y: 630 }, chest: { x: 520, y: 790 }, hand: { x: 810, y: 660 } } }
+  - { sprite: isis_guardian_0, top: 0, chin: 0.17, cx: 0.5, feet: 1, facing: right, deform: false, summon: { badge: "수호령 ×{n}", aboveUnits: true, size: 0.45, hover: 30, slots: [ { x: 105, y: 4 }, { x: -170, y: -26 }, { x: -255, y: 22 } ] }, sd: { prefix: ISIS_GUARD_KNOT_SD, feetY: 1220, faceX: 650, topY: 256, head: { x: 650, y: 600 }, chest: { x: 550, y: 825 }, hand: { x: 730, y: 710 } } }
+  - { sprite: thoth_scribe, top: 0, chin: 0.17, cx: 0.5, feet: 1, facing: right, deform: false, summon: { badge: "서기관", size: 0.60, back: 128, up: 20 }, sd: { prefix: PENSEE_SD, feetY: 1220, faceX: 800, topY: 669, head: { x: 800, y: 900 }, chest: { x: 620, y: 1010 }, hand: { x: 870, y: 895 } } }
+  - { sprite: uchi_clone, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: false, sd: { prefix: USA_CLONE_SD, feetY: 1220, faceX: 700, topY: 48, head: { x: 700, y: 680 }, chest: { x: 632, y: 928 }, hand: { x: 858, y: 812 } } }
+  - { sprite: fenrir, summon: { badge: "펜리르", size: 0.62, back: 170, up: 20 }, top: 0, chin: 0.17, cx: 0.5, feet: 1, facing: right, deform: false, sd: { prefix: FENRIR_SD, feetY: 1220, faceX: 828, topY: 740, head: { x: 828, y: 935 }, chest: { x: 665, y: 1053 }, hand: { x: 810, y: 1175 } } }
+  - { sprite: sirius, summon: { badge: "시리우스", size: 0.60, back: 128, up: 20 }, top: 0, chin: 0.17, cx: 0.5, feet: 1, facing: right, deform: false, sd: { prefix: SIRIUS_SD, feetY: 1220, faceX: 722, topY: 355, head: { x: 722, y: 680 }, chest: { x: 651, y: 930 }, hand: { x: 793, y: 1120 } } }
+  - { sprite: SHI_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: SHI_SD, feetY: 1220, faceX: 584, topY: 208, head: { x: 584, y: 413 }, chest: { x: 589, y: 700 }, hand: { x: 650, y: 799 } } }
+  - { sprite: SKADI_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: SKADI_SD, feetY: 1218, faceX: 481.28, topY: 216.32, head: { x: 481.28, y: 426 }, chest: { x: 526, y: 720 }, hand: { x: 718, y: 715 } } }
+  - { sprite: FREYA_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: FREYA_SD, feetY: 1220, faceX: 651, topY: 119, head: { x: 651, y: 443 }, chest: { x: 645, y: 701 }, hand: { x: 656, y: 835 } } }
+  - { sprite: SURTR_STANDING, top: 0.140, chin: 0.235, cx: 0.46, feet: 0.975, facing: right, deform: true, sd: { prefix: SURTR_SD, feetY: 1192, faceX: 614.4, topY: 152.32, head: { x: 614.4, y: 362 }, chest: { x: 601, y: 675 }, hand: { x: 752, y: 655 } } }
+  - { sprite: INDRA_STANDING, top: 0.145, chin: 0.240, cx: 0.45, feet: 0.960, facing: left, deform: true, sd: { prefix: INDRA_SD, feetY: 1220, faceX: 594, topY: 350, head: { x: 594, y: 586 }, chest: { x: 592, y: 825 }, hand: { x: 664, y: 827 } } }
+  - { sprite: KUBERA_STANDING, top: 0.040, chin: 0.160, cx: 0.50, feet: 0.970, facing: left, deform: true, sd: { prefix: KUBERA_SD, feetY: 1220, faceX: 505, topY: 143, head: { x: 505, y: 355 }, chest: { x: 515, y: 625 }, hand: { x: 780, y: 530 } } }
+  - { sprite: MANSAMUSA_STANDING, top: 0.030, chin: 0.146, cx: 0.51, feet: 0.970, facing: right, deform: true, sd: { prefix: MANSAMUSA_SD, feetY: 1220, faceX: 600, topY: 311, head: { x: 600, y: 585 }, chest: { x: 600, y: 820 }, hand: { x: 710, y: 900 } } }
+  - { sprite: SURYA_STANDING, top: 0.040, chin: 0.170, cx: 0.51, feet: 0.960, facing: left, deform: true, sd: { prefix: SURYA_SD, feetY: 1220, faceX: 601, topY: 117, head: { x: 601, y: 469 }, chest: { x: 547, y: 732 }, hand: { x: 760, y: 1000 } } }
+  - { sprite: SEI_STANDING, top: 0.030, chin: 0.155, cx: 0.52, feet: 0.960, facing: right, deform: true, sd: { prefix: SEI_SD, feetY: 1220, faceX: 585, topY: 285, head: { x: 585, y: 475 }, chest: { x: 620, y: 760 }, hand: { x: 668, y: 900 } } }
+  - { sprite: ATALANTE_STANDING, top: 0.050, chin: 0.170, cx: 0.55, feet: 0.960, facing: right, deform: true, sd: { prefix: ATALANTE_SD, feetY: 1220, faceX: 535, topY: 127, head: { x: 535, y: 395 }, chest: { x: 500, y: 650 }, hand: { x: 740, y: 990 } } }
+  - { sprite: AZTEC_JAGUAR_STANDING, top: 0.140, chin: 0.265, cx: 0.42, feet: 0.945, facing: left, deform: true }
+  - { sprite: AZTEC_ELITE_JAGUAR_STANDING, top: 0.100, chin: 0.235, cx: 0.55, feet: 0.930, facing: left, deform: true }
+  - { sprite: AZTEC_EAGLE_STANDING, top: 0.080, chin: 0.220, cx: 0.43, feet: 0.970, facing: right, deform: true }
+  - { sprite: AZTEC_SERPENT_PRIEST_STANDING, top: 0.100, chin: 0.230, cx: 0.51, feet: 0.930, facing: left, deform: true }
+  - { sprite: GAUDI_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: GAUDI_SD, feetY: 1220, faceX: 585, topY: 95, head: { x: 585, y: 395 }, chest: { x: 530, y: 690 }, hand: { x: 650, y: 795 } } }
+  - { sprite: NICOLE_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: NICOLE_SD, feetY: 1220, faceX: 570, topY: 116, head: { x: 570, y: 460 }, chest: { x: 540, y: 735 }, hand: { x: 400, y: 785 } } }
+  - { sprite: NEPHTHYS_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: NEPHTHYS_SD, feetY: 1220, faceX: 620, topY: 209, head: { x: 620, y: 520 }, chest: { x: 590, y: 800 }, hand: { x: 670, y: 920 } } }
+  - { sprite: NEITH_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: NEITH_SD, feetY: 1220, faceX: 566, topY: 345, head: { x: 566, y: 622 }, chest: { x: 572, y: 840 }, hand: { x: 720, y: 875 } } }
+  - { sprite: ERESHKIGAL_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: ERESHKIGAL_SD, feetY: 1220, faceX: 605, topY: 407, head: { x: 605, y: 640 }, chest: { x: 590, y: 862 }, hand: { x: 480, y: 915 } } }
+  - { sprite: AMATERASU_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: AMATERASU_SD, feetY: 1220, faceX: 595, topY: 137, head: { x: 595, y: 466 }, chest: { x: 641, y: 733 }, hand: { x: 830, y: 717 } } }
+  - { sprite: SABAH_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: SABAH_SD, feetY: 1220, faceX: 616, topY: 433, head: { x: 616, y: 670 }, chest: { x: 550, y: 900 }, hand: { x: 760, y: 780 } } }
+  - { sprite: JEAN_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: JEAN_SD, feetY: 1220, faceX: 598, topY: 323, head: { x: 598, y: 510 }, chest: { x: 645, y: 770 }, hand: { x: 825, y: 752 } } }
+  - { sprite: CHANDRA_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: CHANDRA_SD, feetY: 1220, faceX: 579, topY: 26, head: { x: 579, y: 469 }, chest: { x: 650, y: 760 }, hand: { x: 665, y: 859 } } }
+  - { sprite: HIMIKO_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: HIMIKO_SD, feetY: 1220, faceX: 569, topY: 224, head: { x: 569, y: 414 }, chest: { x: 590, y: 690 }, hand: { x: 756, y: 744 } } }
+  - { sprite: PYGMALION_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: PYGMALION_SD, feetY: 1220, faceX: 640, topY: 137, head: { x: 640, y: 370 }, chest: { x: 625, y: 660 }, hand: { x: 820, y: 730 } } }
+  - { sprite: BASTET_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: BASTET_SD, feetY: 1220, faceX: 554, topY: 127, head: { x: 554, y: 474 }, chest: { x: 563, y: 713 }, hand: { x: 748, y: 723 } } }
+  - { sprite: VAYU_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: VAYU_SD, feetY: 1220, faceX: 600, topY: 281, head: { x: 600, y: 504 }, chest: { x: 557, y: 720 }, hand: { x: 702, y: 812 } } }
+  - { sprite: AGNI_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: AGNI_SD, feetY: 1220, faceX: 594, topY: 324, head: { x: 594, y: 554 }, chest: { x: 590, y: 805 }, hand: { x: 680, y: 780 } } }
+  - { sprite: YAMA_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: YAMA_SD, feetY: 1220, faceX: 556, topY: 122, head: { x: 556, y: 473 }, chest: { x: 610, y: 735 }, hand: { x: 799, y: 730 } } }
+  - { sprite: VARUNA_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: VARUNA_SD, feetY: 1220, faceX: 588, topY: 269, head: { x: 588, y: 488 }, chest: { x: 560, y: 748 }, hand: { x: 370, y: 820 } } }
+  - { sprite: ANUBIS_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: ANUBIS_SD, feetY: 1220, faceX: 560, topY: 216, head: { x: 560, y: 600 }, chest: { x: 560, y: 820 }, hand: { x: 810, y: 824 } } }
+  - { sprite: USA_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: USA_SD, feetY: 1220, faceX: 711, topY: 172, head: { x: 711, y: 586 }, chest: { x: 677, y: 820 }, hand: { x: 875, y: 825 } } }
+  - { sprite: TSUKUYOMI_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: TSUKUYOMI_SD, feetY: 1220, faceX: 551, topY: 191, head: { x: 551, y: 394 }, chest: { x: 602, y: 713 }, hand: { x: 390, y: 755 } } }
+  - { sprite: ASTOLFO_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: ASTOLFO_SD, feetY: 1220, faceX: 622, topY: 115, head: { x: 622, y: 490 }, chest: { x: 590, y: 755 }, hand: { x: 364, y: 762 } } }
+  - { sprite: EBISU_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: EBISU_SD, feetY: 1220, faceX: 570, topY: 333, head: { x: 570, y: 560 }, chest: { x: 570, y: 820 }, hand: { x: 675, y: 915 } } }
+  - { sprite: MARIE_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: AMATERASU_SD, feetY: 1220, faceX: 595, topY: 137, head: { x: 595, y: 466 }, chest: { x: 641, y: 733 }, hand: { x: 830, y: 717 } } } # 임시 SD: AMATERASU
+  - { sprite: NAPOLEON_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: TSUKUYOMI_SD, feetY: 1220, faceX: 551, topY: 191, head: { x: 551, y: 394 }, chest: { x: 602, y: 713 }, hand: { x: 390, y: 755 } } } # 임시 SD: TSUKUYOMI
+  - { sprite: LOKI_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: LOKI_SD, feetY: 1220, faceX: 611, topY: 266, head: { x: 611, y: 543 }, chest: { x: 579, y: 786 }, hand: { x: 448, y: 985 } } }
+  - { sprite: ISHTAR_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: ISHTAR_SD, feetY: 1220, faceX: 620, topY: 359, head: { x: 620, y: 550 }, chest: { x: 570, y: 796 }, hand: { x: 765, y: 858 } } }
+  - { sprite: ORPHEUS_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: ORPHEUS_SD, feetY: 1220, faceX: 582, topY: 125, head: { x: 582, y: 440 }, chest: { x: 563, y: 725 }, hand: { x: 450, y: 793 } } }
+  - { sprite: ORION_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: ORION_SD, feetY: 1220, faceX: 579, topY: 172, head: { x: 579, y: 422 }, chest: { x: 540, y: 696 }, hand: { x: 809, y: 824 } } }
+  - { sprite: SHAKESPEARE_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: SHAKESPEARE_SD, feetY: 1220, faceX: 575, topY: 106, head: { x: 575, y: 420 }, chest: { x: 570, y: 680 }, hand: { x: 520, y: 730 } } }
+  - { sprite: THOTH_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: THOTH_SD, feetY: 1220, faceX: 586, topY: 275, head: { x: 586, y: 495 }, chest: { x: 558, y: 755 }, hand: { x: 590, y: 756 } } }
+  - { sprite: SET_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: SET_SD, feetY: 1220, faceX: 602, topY: 93, head: { x: 602, y: 416 }, chest: { x: 584, y: 700 }, hand: { x: 305, y: 915 } } }
+  - { sprite: ISIS_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: ISIS_SD, feetY: 1220, faceX: 620, topY: 142, head: { x: 620, y: 512 }, chest: { x: 570, y: 748 }, hand: { x: 765, y: 930 } } }
+  - { sprite: HORUS_STANDING, top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true, sd: { prefix: AMATERASU_SD, feetY: 1220, faceX: 595, topY: 137, head: { x: 595, y: 466 }, chest: { x: 641, y: 733 }, hand: { x: 830, y: 717 } } } # 임시 SD: AMATERASU
+# 비인간형은 원화 한 장을 등방 축소한다. 60_enemies의 standing과 실제 원화 기준.
+  - { sprite: ABYSS_ARCHON_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: ABYSS_HORROR_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: ABYSS_HUNTER_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false, cutinFace: { x: 0.25, y: 0.56 } }
+  - { sprite: APOCALYPSE_PREDATOR_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: APOCALYPSE_SEED_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: AZTEC_TEZCATLIPOCA_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: FROST_SEED_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: HIPPOCAMPUS_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: HUNGER_CRYSTAL_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: KETOS_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: NETHER_WRAITH_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: RUPTURE_SCALE_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: SCYLLA_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: SIREN_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: SKY_PREDATOR_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_ASSAULT_CAPTAIN_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_BOAR_ANEMO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_BOAR_CRYO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_BOAR_DENDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_BOAR_ELECTRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_BOAR_GEO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_BOAR_HYDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_BOAR_PYRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_BOAR_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_BUTTERFLY_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_COCOON_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_CRUSHER_ANEMO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_CRUSHER_CRYO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_CRUSHER_DENDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_CRUSHER_ELECTRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_CRUSHER_GEO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_CRUSHER_HYDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_CRUSHER_PYRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_CRUSHER_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_DEER_ANEMO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_DEER_CRYO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_DEER_DENDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_DEER_ELECTRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_DEER_GEO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_DEER_HYDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_DEER_PYRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_DEER_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_DRAGON_ANEMO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_DRAGON_CRYO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_DRAGON_DENDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_DRAGON_ELECTRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_DRAGON_GEO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_DRAGON_HYDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_DRAGON_PYRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_DRAGON_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_KNIGHT_ANEMO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_KNIGHT_CRYO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_KNIGHT_DENDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_KNIGHT_ELECTRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_KNIGHT_GEO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_KNIGHT_HYDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_KNIGHT_PYRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_KNIGHT_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_LANTERN_MOTH_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_MARKSMAN_ANEMO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_MARKSMAN_CRYO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_MARKSMAN_DENDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_MARKSMAN_ELECTRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_MARKSMAN_GEO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_MARKSMAN_HYDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_MARKSMAN_PYRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_MARKSMAN_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_MONSTROUS_BIRD_ANEMO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_MONSTROUS_BIRD_CRYO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_MONSTROUS_BIRD_DENDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_MONSTROUS_BIRD_ELECTRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_MONSTROUS_BIRD_GEO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_MONSTROUS_BIRD_HYDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_MONSTROUS_BIRD_PYRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_MONSTROUS_BIRD_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false, cutinFace: { x: 0.30, y: 0.57 } }
+  - { sprite: VOID_PREDATOR_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_PRISM_ANEMO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_PRISM_CRYO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_PRISM_DENDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_PRISM_ELECTRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_PRISM_GEO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_PRISM_HYDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_PRISM_PYRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_PRISM_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_SCOUT_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_SEED_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_SLAUGHTERER_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_SPEARHEAD_CAPTAIN_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_VANGUARD_ANEMO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_VANGUARD_CRYO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_VANGUARD_DENDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_VANGUARD_ELECTRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_VANGUARD_GEO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_VANGUARD_HYDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_VANGUARD_PYRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_VANGUARD_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_WOLF_ANEMO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_WOLF_CRYO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_WOLF_DENDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_WOLF_ELECTRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_WOLF_GEO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_WOLF_HYDRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_WOLF_PYRO_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }
+  - { sprite: VOID_WOLF_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false, cutinFace: { x: 0.18, y: 0.56 } }
+default: { top: 0.05, chin: 0.17, cx: 0.50, feet: 0.97, facing: right, deform: true }

@@ -32,6 +32,7 @@ namespace Core
         public bool hideDebugBanner;
         public bool freshLineupPerScenario;
         public string lineup = "party5";
+        public string visualMode = "Card";
         public string backgroundOverridePath;
         public string vfxVariant;
         public string vfxStyle;
@@ -51,6 +52,8 @@ namespace Core
         public int actionCaptureStride = 1;
         public string trigger;
         public string lineup;
+        // 비어 있으면 요청 전체의 표시 모드를 따른다.
+        public string visualMode;
         public string backgroundOverridePath;
         public string vfxVariant;
         public string vfxStyle;
@@ -63,9 +66,17 @@ namespace Core
         public int vfxPartCaptureFrames = 60;
         // 적 전용 시전 부품은 실제 적 원화/진영으로 집중 검수한다. 0은 기존 일반 부품 편성.
         public int vfxCasterEnemyId;
+        // 파티/테마별 VFX 검수. 명단은 검증 요청에서만 주며 런타임 추천 편성을 바꾸지 않는다.
+        public int[] vfxPartyIds = Array.Empty<int>();
+        public int[] vfxFrontIds = Array.Empty<int>();
+        public int[] vfxEnemyIds = Array.Empty<int>();
+        public int vfxThemeId;
+        // 대량 연결 검사는 실제 행동/사건만 기록한다. 이 결과에 미술 판정을 붙이지 않는다.
+        public bool vfxMechanicsOnly;
         // 캐릭터 전용 부품은 실제 시전자와 아군 지원 대상으로 검수한다. 0은 기본 편성.
         public int vfxCasterAllyId;
         public int vfxTargetAllyId;
+        public int vfxTargetEnemyId;
         // 직접 스킬 슬롯과 다른 자동 상태 부여 경로의 문양/정리도 따로 촬영한다.
         public bool vfxAutomaticStatusRoute;
         // 비어 있으면 전체 조합. 공통 부품 보정 뒤 실제 조합도 작은 범위만 재촬영한다.
@@ -214,6 +225,8 @@ namespace Core
     public sealed class VerifyRunResult
     {
         public bool success;
+        public bool batchMode;
+        public string validationMode;
         public string startedAtUtc;
         public string finishedAtUtc;
         public string resolution;

@@ -1,10 +1,12 @@
 using System;
 using Combat;
+using Managers.Stage;
 using Managers.UI.Core;
 using Managers.UI.Theme;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace Managers.UI.HUD
 {
@@ -24,6 +26,10 @@ namespace Managers.UI.HUD
         private int _lastTotal, _lastAvailable, _lastReserved;
         private int _displayAvailable = -1, _displayReserved = -1;
         private bool _shown;
+        private bool _stageLayout;
+        private readonly Image _surface;
+        private readonly Sprite _cardSurface;
+        private readonly TooltipTrigger _cardTooltip;
         private static readonly Color Ink = new(.13f, .21f, .36f, 1f);
         private static readonly Color Gold = new(.72f, .53f, .22f, 1f);
 
@@ -32,6 +38,8 @@ namespace Managers.UI.HUD
             _root = UIBuild.Container("PartyTreasury", parent);
             UIBuild.Pin(_root, new Vector2(1, 0), new Vector2(452, 60), new Vector2(-UITheme.ScreenEdgeInset, UITheme.ScreenEdgeInset));
             Image surface = UIBuild.Panel("TreasurySurface", _root, new Color(.96f, .98f, 1f, .91f), cut: 10);
+            _surface = surface;
+            _cardSurface = surface.sprite;
             UIBuild.Stretch(surface.rectTransform);
             _filled = PointSprite(false); _outline = PointSprite(true);
             _title = UIBuild.Text("TreasuryTitle", _root, "재보", 17, Ink, TextAlignmentOptions.MidlineLeft);
@@ -50,8 +58,9 @@ namespace Managers.UI.HUD
             UIBuild.Pin(_capacity.rectTransform, new Vector2(0, .5f), new Vector2(28, 28), new Vector2(411, -3));
             _reservation = UIBuild.Text("TreasuryReservation", _root, "", 14, new Color(.43f, .32f, .16f), TextAlignmentOptions.Midline);
             UIBuild.Pin(_reservation.rectTransform, new Vector2(.5f, .5f), new Vector2(300, 18), new Vector2(2, -15));
-            TooltipTrigger.Attach(surface.gameObject, () => "재보 · 아군 공용", () => new[] { UITooltip.Line.Note(
+            _cardTooltip=TooltipTrigger.Attach(surface.gameObject, () => "재보 · 아군 공용", () => new[] { UITooltip.Line.Note(
                 $"사용 가능 {PartyTreasury.Available} · 사격 예약 {PartyTreasury.Reserved}\n채운 별은 사용 가능 · 점이 있는 빈 별은 사격 예약\n공유 상한 {PartyTreasury.Capacity} · 예약도 상한에 포함 · 전투 종료 시 소멸", UITheme.TextSecondary) }, UITheme.Accent);
+            surface.gameObject.AddComponent<StageTreasuryTooltip>();
             _lastTotal = PartyTreasury.Total;
             _lastAvailable = PartyTreasury.Available; _lastReserved = PartyTreasury.Reserved;
             _root.gameObject.SetActive(false);
@@ -95,11 +104,15 @@ namespace Managers.UI.HUD
             return false;
         }
 
+        public static bool ShouldShow => PartyTreasury.Active && HasTreasuryAlly();
+
         private static void SetRowY(RectTransform rect, float y) => rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, y);
 
         public void Tick()
         {
-            bool show = PartyTreasury.Active && HasTreasuryAlly();
+            bool stage = VisualModeState.Current == VisualMode.Stage;
+            ApplyLayout(stage);
+            bool show = ShouldShow && (!stage || StageBattleHud.Visible);
             if (_shown != show)
             {
                 _shown = show; _root.gameObject.SetActive(show);
@@ -115,17 +128,21 @@ namespace Managers.UI.HUD
             {
                 _displayReserved = PartyTreasury.Reserved;
                 _reservation.text = _displayReserved > 0 ? $"사격 예약 {_displayReserved}" : "";
-                float y = _displayReserved > 0 ? 7 : 0;
-                SetRowY(_title.rectTransform, y); SetRowY(_count.rectTransform, y); SetRowY(_capacity.rectTransform, y - 3);
-                for (int i = 0; i < _points.Length; i++)
-                { SetRowY(_points[i].rectTransform, y); SetRowY(_reservedDots[i].rectTransform, y); }
+                if (!stage)
+                {
+                    float y = _displayReserved > 0 ? 7 : 0;
+                    SetRowY(_title.rectTransform, y); SetRowY(_count.rectTransform, y); SetRowY(_capacity.rectTransform, y - 3);
+                    for (int i = 0; i < _points.Length; i++)
+                    { SetRowY(_points[i].rectTransform, y); SetRowY(_reservedDots[i].rectTransform, y); }
+                }
             }
-            float delta = Time.timeScale > 0 ? Effects.Vfx.VfxTiming.ReadableDeltaTime * Mathf.Sqrt(BattleHud.CurrentSpeedMultiplier) : 0;
+            float delta = Time.timeScale > 0 ? Effects.Vfx.VfxTiming.ReadableDeltaTime * Mathf.Sqrt(BattleHud.EffectSpeedMultiplier) : 0;
             for (int i = 0; i < _points.Length; i++)
             {
                 bool available = i < PartyTreasury.Available, reserved = !available && i < PartyTreasury.Total;
-                _points[i].sprite = available ? _filled : _outline;
-                _points[i].color = available ? Ink : reserved ? Gold : new Color(Ink.r, Ink.g, Ink.b, .40f);
+                _points[i].sprite = stage ? UIShapes.RoundedRect(0,available?Color.white:Color.clear,Color.white,available?0:1) : available ? _filled : _outline;
+                Color ink = stage ? new Color(.94f, .79f, .42f) : Ink;
+                _points[i].color = available ? ink : reserved ? Gold : new Color(ink.r, ink.g, ink.b, .40f);
                 _reservedDots[i].enabled = reserved; _reservedDots[i].color = Gold;
                 float scale = 1;
                 if (_pulses[i] != 0)
@@ -145,6 +162,66 @@ namespace Managers.UI.HUD
                 }
                 if (_pulses[i] >= 0) _echoes[i].enabled = false;
                 _points[i].rectTransform.localScale = Vector3.one * scale;
+            }
+        }
+
+        private void ApplyLayout(bool stage)
+        {
+            if (stage)
+            {
+                float scale = Screen.height / 1080f / _root.GetComponentInParent<Canvas>().scaleFactor;
+                float offset=StageBattleHud.Current?.CenterOffset ?? 0f;
+                UIBuild.Pin(_root, new Vector2(.5f, 0), new Vector2(136, 150), new Vector2(offset * scale, 18f * scale));
+                _root.localScale = Vector3.one * scale;
+            }
+            if (_stageLayout == stage) return;
+            _stageLayout = stage;
+            _cardTooltip.enabled=!stage;
+            if(stage)UITooltip.HideAny();
+            foreach(var text in new[]{_title,_count,_capacity,_reservation})text.enableAutoSizing=!stage;
+            _displayReserved = -1;
+            _surface.sprite = stage ? UIShapes.RoundedRect(12, Color.white) : _cardSurface;
+            _surface.color = stage ? new Color(14f/255f,22f/255f,40f/255f,.7f) : Color.white;
+            Array.Clear(_pulses,0,_pulses.Length);
+            _title.color = _count.color = stage ? Color.white : Ink;
+            _capacity.color = stage ? new Color(.8f,.85f,.92f) : UITheme.TextSecondary;
+            if (stage)
+            {
+                UIBuild.Pin(_title.rectTransform, new Vector2(.5f,.5f), new Vector2(100,24), new Vector2(0,48));
+                _title.alignment = TextAlignmentOptions.Center; _title.fontSize = 14;
+                _count.fontSize=20;_capacity.fontSize=13;
+                UIBuild.Pin(_count.rectTransform, new Vector2(.5f,.5f), new Vector2(40,26), new Vector2(-12,-48));
+                UIBuild.Pin(_capacity.rectTransform, new Vector2(.5f,.5f), new Vector2(35,24), new Vector2(24,-50));
+                UIBuild.Pin(_reservation.rectTransform, new Vector2(.5f,.5f), new Vector2(130,16), new Vector2(0,-66));
+                _reservation.fontSize = 11;
+                for (int i=0;i<_points.Length;i++)
+                {
+                    Vector2 p = new(-31.5f + i%4*21, 16-i/4*21);
+                    foreach (Image image in new[]{_points[i],_echoes[i]}) UIBuild.Pin(image.rectTransform,new Vector2(.5f,.5f),new Vector2(12,12),p);
+                    _points[i].rectTransform.localRotation=Quaternion.Euler(0,0,45);
+                    _echoes[i].rectTransform.localRotation=Quaternion.Euler(0,0,45);
+                    _echoes[i].sprite=UIShapes.RoundedRect(0,Color.white);
+                    UIBuild.Pin(_reservedDots[i].rectTransform,new Vector2(.5f,.5f),new Vector2(5,5),p);
+                }
+            }
+            else
+            {
+                UIBuild.Pin(_root,new Vector2(1,0),new Vector2(452,60),new Vector2(-UITheme.ScreenEdgeInset,UITheme.ScreenEdgeInset));
+                _root.localScale = Vector3.one;
+                UIBuild.Pin(_title.rectTransform,new Vector2(0,.5f),new Vector2(50,26),new Vector2(18,0));
+                _title.alignment = TextAlignmentOptions.MidlineLeft; _title.fontSize = 17;
+                _count.fontSize=23;_capacity.fontSize=14;
+                UIBuild.Pin(_count.rectTransform,new Vector2(0,.5f),new Vector2(38,30),new Vector2(368,0));
+                UIBuild.Pin(_capacity.rectTransform,new Vector2(0,.5f),new Vector2(28,28),new Vector2(411,-3));
+                UIBuild.Pin(_reservation.rectTransform,new Vector2(.5f,.5f),new Vector2(300,18),new Vector2(2,-15));
+                _reservation.fontSize = 14;
+                for(int i=0;i<_points.Length;i++)
+                {
+                    foreach(Image image in new[]{_points[i],_echoes[i]}) UIBuild.Pin(image.rectTransform,new Vector2(0,.5f),new Vector2(19,19),new Vector2(80+i*23,0));
+                    _points[i].rectTransform.localRotation=_echoes[i].rectTransform.localRotation=Quaternion.identity;
+                    _echoes[i].sprite=_filled;
+                    UIBuild.Pin(_reservedDots[i].rectTransform,new Vector2(0,.5f),new Vector2(7,7),new Vector2(86+i*23,0));
+                }
             }
         }
 
@@ -172,5 +249,44 @@ namespace Managers.UI.HUD
         }
 
         public void Dispose() => PartyTreasury.BalanceChanged -= OnBalanceChanged;
+    }
+
+    /// <summary>Stage 재보만의 비고정 호버. 카드 사이의 빈 폭 안에서 바로 위에 설명한다.</summary>
+    internal sealed class StageTreasuryTooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    {
+        private RectTransform _panel;
+        private TMP_Text _value;
+        private PointerEventData _pointer;
+        public bool Showing=>_panel!=null&&_panel.gameObject.activeInHierarchy;
+        public RectTransform Panel=>_panel;
+        public void OnPointerEnter(PointerEventData data)
+        {
+            if(!StageBattleHud.Visible)return;
+            _pointer=data;
+            if(_panel==null)
+            {
+                var image=UIBuild.Solid("StageTreasuryHint",transform,StageBattleHud.Glass);
+                image.sprite=UIShapes.RoundedRect(10,Color.white);image.type=Image.Type.Sliced;image.raycastTarget=false;
+                _panel=image.rectTransform;
+                UIBuild.Pin(_panel,new Vector2(.5f,1),new Vector2(136,70),new Vector2(0,8));_panel.pivot=new Vector2(.5f,0);
+                var title=UIBuild.Text("Title",_panel,"재보 · 아군 공용",13,StageBattleHud.Ink,TextAlignmentOptions.Center);
+                UIBuild.Pin(title.rectTransform,new Vector2(.5f,1),new Vector2(124,22),new Vector2(0,-5));title.enableAutoSizing=false;
+                _value=UIBuild.Text("Balance",_panel,"",12,StageBattleHud.Muted,TextAlignmentOptions.Center);
+                UIBuild.Pin(_value.rectTransform,new Vector2(.5f,0),new Vector2(124,36),new Vector2(0,5));_value.enableAutoSizing=false;
+            }
+            _panel.gameObject.SetActive(true);Refresh();
+        }
+        public void OnPointerExit(PointerEventData data)=>Hide();
+        private void Refresh()=>_value.text=$"가용 {PartyTreasury.Available} · 예약 {PartyTreasury.Reserved}\n공유 상한 {PartyTreasury.Capacity}";
+        public void Hide(){_pointer=null;if(_panel!=null)_panel.gameObject.SetActive(false);}
+        private void Update()
+        {
+            if(!Showing)return;
+            if(!StageBattleHud.Visible||_pointer==null||!RectTransformUtility.RectangleContainsScreenPoint((RectTransform)transform,_pointer.position,null))Hide();
+            else Refresh();
+        }
+        private void OnDisable()=>Hide();
+        public static void HideForCapture()
+        {foreach(var tip in UnityEngine.Object.FindObjectsByType<StageTreasuryTooltip>(FindObjectsSortMode.None))tip.Hide();}
     }
 }

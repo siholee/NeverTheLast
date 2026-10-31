@@ -295,11 +295,14 @@ namespace Managers
             bool hasToughness = party.Any(hero => hero.ActivePassiveCodesResolved().Any(code => code is Codes.Passive.OrpheusCheatedDeath));
 
             return Codes.Base.RewardCodeCatalog.All()
+                .Where(entry => !entry.shopOnly)
                 .Where(entry => Codes.Passive.Reward.RewardCodeFactory.IsImplemented(entry.id))
                 .Where(entry => entry.requiresAttackForm <= 0 || Combat.AttackForms.PartyHas(entry.requiresAttackForm))
                 .Where(entry => !entry.requiresGrowth || hasGrowth)
                 .Where(entry => !entry.requiresTreasury || hasTreasury)
                 .Where(entry => !entry.requiresToughness || hasToughness)
+                .Where(entry => !entry.requiresSpecialGate || PartyHeroes().Any(Combat.SpecialAction.CanOpen))
+                .Where(entry => !entry.requiresSpecialAction || PartyHeroes().Any(Combat.SpecialAction.CanUse))
                 .Where(entry => party.Any(hero => hero.CanReceiveRewardCode(entry.id, out _, out _, out _)))
                 .Select(BuildCodeReward)
                 .ToList();

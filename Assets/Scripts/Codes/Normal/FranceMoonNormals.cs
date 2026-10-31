@@ -8,6 +8,7 @@ namespace Codes.Normal
 {
     public sealed class MarieIceShot : BaseNormalCode
     {
+        protected override bool AppliesElementTo(Unit target) => true;
         public override int AttackForm => DamageTag.Shot;
         public MarieIceShot(NormalCodeContext context) : base(context) => CodeName = "장교의 사격";
         protected override int BaseDamage(Unit target) => StatDamage(0, BaseEnums.StatType.Attack, .60f);

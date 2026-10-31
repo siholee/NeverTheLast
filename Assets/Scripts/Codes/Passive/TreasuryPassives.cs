@@ -63,9 +63,10 @@ namespace Codes.Passive
         {
             if (actor != Caster || delta >= 0 || !PartyTreasury.CanUse(Caster)) return;
             Stacks = Mathf.Min(12, Stacks - delta);
-            Caster.AddStatus(BuffStatus.Create(72201, "ishtar_magazine", CodeName, Caster, Caster,
+            var status=BuffStatus.Create(72201, "ishtar_magazine", CodeName, Caster, Caster,
                 new MagazineEffect(this), duration: 0, isBeneficial: true,
-                description: $"초월기 피해 +{Stacks * 4}%. 다음 자기 일반행동 종료 시 소멸."));
+                description: $"초월기 피해 +{Stacks * 4}%. 다음 자기 일반행동 종료 시 소멸.");
+            status.AffectedVfxPartId=Effects.Vfx.StatusAffectedVfx.SuppressPartId;Caster.AddStatus(status);
         }
         private void OnDeath(EventContext _) => StopCode();
         private void OnNormal(EventContext _) { Stacks = 0; Caster.RemoveStatusByKey("ishtar_magazine"); }

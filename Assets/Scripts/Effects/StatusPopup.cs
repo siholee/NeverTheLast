@@ -22,6 +22,9 @@ namespace Effects
         }
         private static StatusPopup _instance;
         private Material _labelMaterial;
+        private Material _stageLabelMaterial;
+        private TextMeshProUGUI _stageMeasure;
+        private static bool IsStage => Managers.Stage.VisualModeState.Current == Managers.Stage.VisualMode.Stage;
         private readonly List<Notice> _pending = new();
         private readonly List<Entry> _live = new();
         private sealed class Entry
@@ -30,6 +33,7 @@ namespace Effects
             public TextMeshProUGUI Label; public float Age; public int Slot; public Vector2 Anchor;
             /// <summary>대상이 움직여 이웃 알림과 겹치게 됐을 때만 늘어나는 추가 상승. 줄지 않으므로 흔들리지 않는다.</summary>
             public float Lift, LiftTarget;
+            public float Side;
             public float Width => Rect.sizeDelta.x;
         }
         private const float Life=1.35f, RowStep=34f, BaseRise=12f, RisePerSecond=0f, BoxHeight=44f;
@@ -38,13 +42,15 @@ namespace Effects
         private const float MaxLift=RowStep;
         /// <summary>생성·갱신·충돌 검사가 모두 쓰는 한 가지 좌표 규약. 상단 경계 클램프까지 적용한 실제 자리다.</summary>
         private static Vector2 Place(Vector2 anchor,int slot,float age,float lift,float width)
-            => CombatFeedbackSurface.Clamp(anchor+new Vector2(0,BaseRise+slot*RowStep+lift+RisePerSecond*age),new Vector2(width*.5f+2,BoxHeight*.5f));
+            => CombatFeedbackSurface.Clamp(anchor+new Vector2(0,(IsStage ? 0f : BaseRise)+slot*RowStep+lift+RisePerSecond*age),new Vector2(width*.5f+2,BoxHeight*.5f));
         private static Vector2 Place(Entry e,float age) => Place(e.Anchor,e.Slot,age,e.Lift,e.Width);
         private static bool Overlaps(Vector2 a,float aWidth,Vector2 b,float bWidth)
             => Mathf.Abs(a.x-b.x)<(aWidth+bWidth)*.5f && Mathf.Abs(a.y-b.y)<ClearHeight;
         public static void Show(Unit target, UnitStatus status, bool refresh)
         {
             if (status == null) return;
+            // 맹독 글자는 일반 알림 큐 대신 실제 거품 시작과 함께 띄운다.
+            if (Vfx.StatusAffectedVfx.PairsPoisonNotice(status)) return;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             // 검증 fixture는 전투 판정에만 쓰며 출시 화면의 상태 알림으로 노출하지 않는다.
             if(status.Key?.StartsWith("verify_",System.StringComparison.Ordinal)==true) return;
@@ -57,6 +63,14 @@ namespace Effects
                 _ => UITheme.AccentDim
             };
             Enqueue(target,status.StatusName,StatusIcons.For(status),accent,refresh);
+        }
+        internal static void ShowPoison(Unit target, bool refresh)
+        {
+            if (target==null || !target.isActive || !target.IsOnField ||
+                GameManager.Instance?.gameState!=BaseEnums.GameState.RoundInProgress) return;
+            var view=Vfx.CardMotion.ViewOf(target);
+            if(view==null || !view.gameObject.activeInHierarchy || view.PortraitRenderer==null || view.PortraitRenderer.sprite==null)return;
+            DamagePopup.ShowPoison(target,refresh);
         }
         public static void ShowElement(Unit target, BaseEnums.UnitElement element, bool refresh)
             => Enqueue(target, UnitInfoText.ElementName(element.ToString()) + " 원소 부여",
@@ -101,7 +115,7 @@ namespace Effects
             for(int i=0;i<_live.Count;i++)
             {
                 Entry e=_live[i];
-                e.Anchor=CombatFeedbackSurface.Position(e.Notice.Target,true);
+                e.Anchor=CombatFeedbackSurface.Position(e.Notice.Target,true)+Vector2.right*e.Side;
                 Vector2 desired=Place(e.Anchor,e.Slot,e.Age,e.LiftTarget,e.Width);
                 for(int j=0;j<i;j++)
                 {
@@ -132,14 +146,36 @@ namespace Effects
                 float width=EstimateWidth(n);
                 int slot=0;
                 while(slot<MaxSlot && (slots.Contains(slot) || CollidesWithLive(anchor,slot,width))) slot++;
+                float side=0f;
+                if (IsStage && slot>=MaxSlot)
+                {
+                    // SD의 이웃 머리 때문에 세 줄이 모두 막히면 같은 높이의 가까운 옆 여백을 쓴다.
+                    foreach (float shift in new[] { 24f, -24f, 48f, -48f, 72f, -72f, 96f, -96f })
+                    {
+                        Vector2 candidate=anchor+Vector2.right*shift;
+                        slot=0;
+                        while(slot<MaxSlot && (slots.Contains(slot) || CollidesWithLive(candidate,slot,width))) slot++;
+                        if(slot>=MaxSlot)continue;
+                        side=shift;anchor=candidate;break;
+                    }
+                }
                 if(slot>=MaxSlot){i++;continue;}
-                Spawn(n,slot,anchor);_pending.RemoveAt(i);
+                Spawn(n,slot,anchor,side);_pending.RemoveAt(i);
             }
         }
         /// <summary>대상 머리 위 세 줄 범위만 쓴다. 위 행의 다른 캐릭터까지 올라가지 않는다.</summary>
         private const int MaxSlot=3;
         // 자동 맞춤된 기존 글자의 크기로 새 알림 폭을 추측하지 않는다. 최대 폭을 미리 확보한다.
-        private float EstimateWidth(Notice n) => 236;
+        private float EstimateWidth(Notice n)
+        {
+            if (!IsStage) return 236f;
+            if (_stageMeasure == null)
+            {
+                _stageMeasure=UIBuild.Text("StatusMeasure",transform,"",22,UITheme.TextPrimary);
+                _stageMeasure.fontStyle=FontStyles.Bold;_stageMeasure.enabled=false;
+            }
+            return Mathf.Clamp(_stageMeasure.GetPreferredValues(Label(n)).x+62f,128f,236f);
+        }
         /// <summary>
         /// 새 알림이 떠 있는 동안의 실제 궤적을 기존 알림의 남은 궤적과 비교한다. 둘 다 같은 속도로 오르지만
         /// 위쪽이 상단 경계에 막히면 아래 알림이 따라붙으므로 시작·중간·끝 세 시점을 클램프한 자리로 본다.
@@ -161,7 +197,7 @@ namespace Effects
             }
             return false;
         }
-        private void Spawn(Notice notice,int slot,Vector2 anchor)
+        private void Spawn(Notice notice,int slot,Vector2 anchor,float side=0f)
         {
             var rect=UIBuild.Container("StatusNotice",transform);
             rect.anchorMin=rect.anchorMax=rect.pivot=new Vector2(.5f,.5f);rect.sizeDelta=new Vector2(236,BoxHeight);
@@ -176,10 +212,22 @@ namespace Effects
             material.SetFloat(ShaderUtilities.ID_OutlineWidth,.10f);
             material.SetColor(ShaderUtilities.ID_OutlineColor,new Color(1,1,1,.95f));
             text.fontSharedMaterial=material;
+            if(IsStage)
+            {
+                if(_stageLabelMaterial==null)
+                {
+                    _stageLabelMaterial=new Material(material);
+                    _stageLabelMaterial.SetColor(ShaderUtilities.ID_OutlineColor,new Color(10f/255f,16f/255f,32f/255f,.95f));
+                    _stageLabelMaterial.EnableKeyword("UNDERLAY_ON");
+                    _stageLabelMaterial.SetColor("_UnderlayColor",new Color(10f/255f,16f/255f,32f/255f,.7f));
+                    _stageLabelMaterial.SetFloat("_UnderlaySoftness",.2f);
+                }
+                text.fontSharedMaterial=_stageLabelMaterial;text.color=notice.Accent;
+            }
             text.overflowMode=TextOverflowModes.Ellipsis;
             UIBuild.Stretch(text.rectTransform,44,0);text.rectTransform.offsetMax=new Vector2(-9,0);
             var group=rect.gameObject.AddComponent<CanvasGroup>();group.blocksRaycasts=false;group.alpha=0;
-            var entry=new Entry{Notice=notice,Rect=rect,Group=group,Label=text,Slot=slot,Anchor=anchor};
+            var entry=new Entry{Notice=notice,Rect=rect,Group=group,Label=text,Slot=slot,Anchor=anchor,Side=side};
             FitLabel(entry);
             // 같은 프레임의 다음 알림이 (0,0)이 아닌 실제 자리와 비교하도록 생성 즉시 배치한다.
             rect.anchoredPosition=Place(entry,0);
@@ -192,6 +240,6 @@ namespace Effects
         }
         private void Clear()
         {foreach(Entry e in _live)if(e.Rect!=null)Destroy(e.Rect.gameObject);_live.Clear();_pending.Clear();}
-        private void OnDestroy(){Clear();if(_labelMaterial!=null)Destroy(_labelMaterial);if(_instance==this)_instance=null;}
+        private void OnDestroy(){Clear();if(_labelMaterial!=null)Destroy(_labelMaterial);if(_stageLabelMaterial!=null)Destroy(_stageLabelMaterial);if(_instance==this)_instance=null;}
     }
 }

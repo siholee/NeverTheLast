@@ -11,6 +11,7 @@ namespace Codes.Ultimate
 {
     public sealed class SurtrRagnarok : BaseUltimateCode
     {
+        protected override bool AppliesElement => true;
         public const int HealthThresholdPercent = 60;
         public const float AttackRatio = 1.80f, HealthRatio = .14f, CostRatio = .20f, HealthThreshold = HealthThresholdPercent / 100f;
         public int LastHealthPaid { get; private set; }

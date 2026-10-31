@@ -41,6 +41,8 @@ namespace Codes.Base
             public int supersededBy;
             /// <summary>상점 코드 탭에 늘 오르는가(Detail_17 §5.2).</summary>
             public bool shopFixed;
+            /// <summary>상점 전용. 보상 추첨에는 포함하지 않는다.</summary>
+            public bool shopOnly;
             /// <summary>상점 기본가. 실제 가격은 × 현재 스테이지.</summary>
             public int shopPrice;
             /// <summary>공격 형태 코드가 요구하는 형태(50000번대). 파티에 그 형태 공격이 없으면 후보에서 뺀다.</summary>
@@ -49,6 +51,8 @@ namespace Codes.Base
             public bool requiresGrowth;
             public bool requiresTreasury;
             public bool requiresToughness;
+            public bool requiresSpecialGate;
+            public bool requiresSpecialAction;
 
             // ── 데이터 구동 코드(RewardStatCode)가 읽는 값 ──
             /// <summary>깡 스탯 보정. 키 = StatType 이름, 치명타는 퍼센트 포인트(4 = +4%p).</summary>

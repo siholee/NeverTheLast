@@ -11,6 +11,9 @@ namespace Effects.Vfx
     {
         /// <summary>지정하면 Hovl Flash · Projectile · Hit이 주 연출이 되고 아래 스프라이트는 보조층만 맡는다.</summary>
         public HovlProjectileSet Hovl;
+        /// <summary>지정한 궁수만 구매 원소 외피를 쓴다. 비행 시간과 논리 콜백은 기존 전달 계약이다.</summary>
+        public bool PurchasedArcherPresentation;
+        public float PurchasedWeight = .78f;
         public Sprite Body = VfxSpace.HardDot;
         public Color BodyColor = Color.white;
         public bool BodyAdditive;
@@ -111,7 +114,25 @@ namespace Effects.Vfx
         }
 
         public static IEnumerator Fly(Unit from, Unit to, ProjectileStyle style, Action onImpact)
-            => FlyFrom(VfxSpace.WorldPoint(from), to, style, onImpact, VfxSpace.SortingLayer(from));
+            => style?.PurchasedArcherPresentation==true&&from!=null&&to!=null
+                ? FlyPurchased(from,to,style,onImpact)
+                : FlyFrom(VfxSpace.WorldPoint(from), to, style, onImpact, VfxSpace.SortingLayer(from));
+
+        private static IEnumerator FlyPurchased(Unit from,Unit to,ProjectileStyle style,Action onImpact)
+        {
+            Vector3 origin=PurchasedArcherFx.EmissionPoint(from,to);
+            Vector3 end=VfxSpace.ContactPoint(to);
+            style.OnLaunch?.Invoke(origin,(end-origin).normalized);
+            PurchasedArcherFx.RosterPreparation(from,to,attack:true);
+            yield return PurchasedProjectileFx.Fly(from,to,style.Duration,()=>
+            {
+                var view=to!=null?CardMotion.ViewOf(to):null;
+                if(to!=null&&to.isActive&&view?.PortraitRenderer!=null&&view.PortraitRenderer.sprite!=null)
+                    end=VfxSpace.ContactPoint(to);
+                style.OnImpact?.Invoke(end,(end-origin).normalized);
+                onImpact?.Invoke();
+            },weight:style.PurchasedWeight,elementalInk:true);
+        }
 
         public static IEnumerator FlyFrom(Vector3 origin, Unit to, ProjectileStyle style, Action onImpact, int sortingLayer)
         {

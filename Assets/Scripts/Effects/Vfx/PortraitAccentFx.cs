@@ -1,12 +1,368 @@
+using System.Linq;
 using Effects.Vfx.Presets;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Entities;
+using Managers;
 using UnityEngine;
 
 namespace Effects.Vfx
 {
-    /// <summary>원화 밖의 작은 충돌점으로 의미를 전달한다. 피해·자원 판정은 호출한 코드만 소유한다.</summary>
+    /// <summary>원화의 실제 접점에서 행동 의미를 전달한다. 피해·자원 판정은 호출한 코드만 소유한다.</summary>
     public static class PortraitAccentFx
     {
+        private sealed class CastLayers
+        {
+            public readonly List<FlipbookFx> Live=new();
+            public int LastImpactAction=-1;
+        }
+        private static readonly ConditionalWeakTable<Unit,CastLayers> RosterCasts=new();
+
+        private static void FinishRosterCast(Unit caster)
+        {
+            if(caster==null||!RosterCasts.TryGetValue(caster,out var layers))return;
+            foreach(var layer in layers.Live)if(layer!=null)Object.Destroy(layer.gameObject);
+            layers.Live.Clear();
+        }
+        private static bool FirstActionImpact(Unit caster)
+        {
+            var scheduler=GameManager.Instance?.ActionScheduler;
+            if(caster==null||scheduler==null)return true;
+            var layers=RosterCasts.GetOrCreateValue(caster);
+            int action=scheduler.CurrentActionId;
+            if(layers.LastImpactAction==action)return false;
+            layers.LastImpactAction=action;
+            return true;
+        }
+        /// <summary>지원 시전의 공통 손 기운. 초월기는 같은 문법의 큰 호를 사용한다.</summary>
+        public static void SupportCast(Unit caster,Color color,bool ultimate)
+        {
+            if(caster==null)return;
+            float card=VfxSpace.CardSize;
+            Vector2 size=new(ultimate?.44f:.38f,ultimate?.80f:.64f);size*=card;
+            Color light=ultimate?new Color(.98f,.89f,.67f):new Color(.34f,.61f,.78f);
+            // 무기·투구에서 떨어진 좌우 한 쌍이 같은 바닥에서 솟아 시전자 전체의 기운으로 읽힌다.
+            foreach(float side in new[]{-1f,1f})
+            {
+                Vector3 point=VfxSpace.PortraitHudAnchor(caster)+
+                    new Vector3(side*(ultimate?.60f:.64f),.08f+(ultimate?.80f:.64f)*.40f,0f)*card;
+                SignatureSheet(caster,"Blessing",point,size,ultimate?.46f:.42f,0,light);
+            }
+            Vector3 floor=VfxSpace.PortraitHudAnchor(caster)+Vector3.up*.07f*card;
+            floor.z=0f;
+            Vector2 ring=new Vector2(ultimate?1.50f:1.30f,ultimate?.14f:.11f)*card;
+            float life=VfxTiming.AtLeastFrames(.42f,10);
+            SpriteFx.Play(VfxSpace.PressureRing,floor,new Color(.24f,.38f,.54f,.90f),false,
+                ring*new Vector2(.84f,1.28f),ring*new Vector2(1.08f,1.28f),life,
+                fadeIn:0f,fadeOutFrom:.68f,sortingLayer:VfxSpace.SortingLayer(caster),
+                order:VfxSpace.OverlaySortingOrder+166,preserveInk:true)?.Follow(caster.transform).BindRecipient(caster);
+            SpriteFx.Play(VfxSpace.PressureRing,floor,light,false,
+                ring*.84f,ring*1.08f,life,fadeIn:0f,fadeOutFrom:.68f,
+                sortingLayer:VfxSpace.SortingLayer(caster),order:VfxSpace.OverlaySortingOrder+167,
+                preserveInk:true)?.Follow(caster.transform).BindRecipient(caster);
+        }
+
+        /// <summary>몸통 가장자리를 얇은 결계로 감싼다. 판정·콜백·대기 시간은 소유하지 않는다.</summary>
+        public static void ShieldWard(Unit target)
+        {
+            if(target==null)return;
+            float card=VfxSpace.CardSize;
+            Vector3 point=VfxSpace.BodyPoint(target);var view=CardMotion.ViewOf(target);
+            // 가운데가 빈 원화로 얼굴은 보존하고 수신자의 중심에 결계를 붙인다.
+            if(view?.PortraitRenderer!=null)point.x=view.PortraitRenderer.bounds.center.x;
+            Vector2 size=new(1.18f,.84f);size*=card;
+            point.y=VfxSpace.PortraitHudTop(target)+.53f*card;
+            if(view?.PortraitRenderer!=null)
+            {
+                // 전체 투명 rect가 아니라 실제 표시 원화에 맞춰, 작은 원화 위 허공에 결계가 뜨지 않게 한다.
+                Bounds visible=view.VisiblePortraitBounds();
+                size=new Vector2(visible.size.x*1.35f,visible.size.y*1.28f)/.90f;
+                point=visible.center;
+                point.y=Mathf.Max(point.y,VfxSpace.PortraitHudTop(target)+size.y*.5f+.025f*card);
+            }
+            if (view?.StageProxy != null) point = view.CenterWorld;
+            SignatureSheet(target,"Ward",point,size,.48f,2,new Color(.66f,.82f,1f));
+            SignatureMotes(target,point,new Color(.36f,.78f,1f,1f),5);
+        }
+
+        /// <summary>강화는 세 갈래 빛잎이 위로 풀리는 연속 원화다. 회복 십자·보호막 결계와 구분한다.</summary>
+        public static void RallyCrest(Unit target,Vector3 point,Vector2 size,float strength=1f,bool casting=false)
+        {
+            if(target==null)return;
+            if(!casting)
+            {
+                var portrait=CardMotion.ViewOf(target)?.PortraitRenderer;
+                if(portrait!=null)point=new Vector3(portrait.bounds.center.x-.12f*VfxSpace.CardSize,
+                    portrait.bounds.max.y+.08f*VfxSpace.CardSize,0f);
+                size=new Vector2(.54f,.28f)*VfxSpace.CardSize;
+            }
+            SignatureSheet(target,"Blessing",point,size*strength,.42f,2,new Color(.98f,.89f,.67f));
+        }
+
+        private static FlipbookFx SignatureSheet(Unit target,string name,Vector3 point,Vector2 size,float duration,int firstFrame=0,Color? palette=null,float glow=0f,float rotation=0f,Vector2? pivot=null,Unit castOwner=null,int frameCount=16,bool contactLocked=false,bool impact=false)
+        {
+            frameCount=Mathf.Clamp(frameCount,1,16);
+            float[] delays=new float[frameCount];for(int i=0;i<delays.Length;i++)delays[i]=duration/frameCount;
+            FlipbookFx Paint(bool ink)
+            {
+                var style=new FlipbookCompositeStyle
+                {
+                    BlackMatte=true,PeakAlpha=ink?(name=="Ward"?.58f:.30f):1f,GlowAlpha=ink?0f:glow,
+                    GlowColor=palette??Color.white,GlowThreshold=.75f,GlowSoftness=.10f,GlowGain=1f,
+                    Desaturate=palette.HasValue?1f:name is "Drops" or "Bleed" or "Cleave"?0f:.32f,PaintContrast=palette.HasValue?.65f:0f,
+                    InkOutlineWidth=ink?(name=="Ward"?.008f:.003f):0f,
+                    BlendFraction=impact?.18f:.45f,FadeInFraction=0f,FadeOutFraction=.22f,
+                    StartRotationDegrees=rotation,AllowHighSpeedSkipping=true,
+                    RequiredVisibleFrame=name is "Blessing" or "Ward"?3:-1,
+                    BrightBackdropLiftStrength=0f,StartScale=impact?.62f:.84f,CrestScale=impact?1.72f:1.14f,EndScale=impact?.55f:1.04f,
+                    CrestAtFraction=impact?.14f:.26f,ReleaseEndFraction=impact?.48f:.80f,
+                    StartStretch=impact?new Vector2(.72f,1.28f):Vector2.one,
+                    CrestStretch=impact?new Vector2(1.18f,.94f):Vector2.one,
+                    EndStretch=impact?new Vector2(1.30f,.62f):Vector2.one,
+                    EdgeSoftness=.012f,GroundLightColor=Color.clear,ContactShadowColor=Color.clear,
+                    GroundLightSizeInCards=Vector2.zero,ContactShadowSizeInCards=Vector2.zero,SceneLightStrength=0f,
+                };
+                var fx=FlipbookFx.Play("VfxTex/Signature/"+name+"_16",4,4,pivot??new Vector2(.5f,.5f),point,size,
+                    ink?(name=="Ward"?new Color(.22f,.39f,.58f):new Color(.36f,.34f,.48f,1f)):palette??Color.white,false,false,false,delays,VfxSpace.SortingLayer(target),
+                    VfxSpace.OverlaySortingOrder+(ink?168:170),style:style,startFrame:firstFrame,frameCount:frameCount)
+                    ?.Follow(()=>contactLocked?VfxSpace.ContactPoint(target):VfxSpace.PortraitMotionPoint(target),
+                        point-(contactLocked?VfxSpace.ContactPoint(target):VfxSpace.PortraitMotionPoint(target)),lateFollow:contactLocked).BindRecipient(target);
+                if(castOwner!=null&&fx!=null)
+                {
+                    var list=RosterCasts.GetOrCreateValue(castOwner).Live;
+                    list.RemoveAll(f=>f==null);list.Add(fx);
+                }
+                return fx;
+            }
+            Paint(true);return Paint(false);
+        }
+
+        private static void SignatureMotes(Unit target,Vector3 point,Color color,int count)
+        {
+            float card=VfxSpace.CardSize;
+            // 각 조각은 매 프레임 보간하되 한 번에 최대 여섯 개만 사용한다.
+            for(int i=0;i<count;i++)
+            {
+                float angle=(30f+i*137.5f)*Mathf.Deg2Rad;
+                Vector3 offset=new Vector3(Mathf.Cos(angle)*.18f,Mathf.Sin(angle)*.10f,0f)*card;
+                Vector3 start=point+offset;
+                start.y=Mathf.Max(start.y,VfxSpace.PortraitHudTop(target)+.075f*card);
+                float size=(i%2==0?.045f:.027f)*card;
+                float life=VfxTiming.AtLeastFrames(.34f+i*.012f,8);
+                var fx=SpriteFx.Play(VfxSpace.CrystalFacet,start,color,false,size,size*.24f,
+                    life,rotation:i*47f,spin:45f,
+                    fadeIn:0f,fadeOutFrom:.28f,sortingLayer:VfxSpace.SortingLayer(target),
+                    order:VfxSpace.OverlaySortingOrder+172,preserveInk:true)?.BindRecipient(target);
+                VfxRunner.Run(FragmentTravel(fx,null,start,new Vector3(Mathf.Cos(angle)*.10f,.13f,0f)*card,life,true));
+            }
+        }
+
+        /// <summary>기존 피격 정점에서만 소진하는 공용 손그림 접점. 추가 피해나 콜백은 없다.</summary>
+        public static void PaintedContact(Unit target,Vector3 point,Color core,float scale=1f)
+        {
+            if(target==null)return;
+            // 확대 잔광과 밝은 심 모두 실제 접점에서 카드 앞에 둔다.
+            ContactCrest(target,scale,"Impact");
+            scale=Mathf.Clamp(scale,.4f,1.8f);
+            var view=CardMotion.ViewOf(target);
+            point=VfxSpace.ContactPoint(target);
+            HandpaintSheet sheet=HandpaintFx.Impact1White;
+            Vector2 size=VfxSpace.FitBodySize(target,new Vector2(.34f,.28f)*scale)*VfxSpace.CardSize;
+            if(view?.PortraitRenderer!=null)
+            {
+                Bounds bounds=view.PortraitRenderer.bounds;
+                float hud=VfxSpace.PortraitHudTop(target),available=Mathf.Max(.12f*VfxSpace.CardSize,bounds.max.y-hud);
+                size=new Vector2(Mathf.Min(.34f*scale*VfxSpace.CardSize,bounds.size.x*.65f),Mathf.Min(.28f*scale*VfxSpace.CardSize,available*.50f));
+            }
+            float[] delays=HandpaintFx.Cue(sheet,Vector2.one,Color.white,core).FrameDelays;
+            void Layer(Color color,float fit,int order)
+            {
+                var style=new FlipbookCompositeStyle
+                {
+                    PeakAlpha=order==165?.35f:1f,GlowAlpha=0f,Desaturate=order==165?0f:1f,PaintContrast=1f,
+                    InkOutlineWidth=order==165?.012f:0f,
+                    BlendFraction=.20f,FadeInFraction=0f,FadeOutFraction=.55f,
+                    BrightBackdropLiftStrength=0f,StartScale=1f,CrestScale=1f,EndScale=.66f,
+                    GroundLightColor=Color.clear,ContactShadowColor=Color.clear,
+                    GroundLightSizeInCards=Vector2.zero,ContactShadowSizeInCards=Vector2.zero,SceneLightStrength=0f,
+                };
+                FlipbookFx.Play(sheet.ResourcePath,sheet.Columns,sheet.Rows,sheet.Pivot,point,size*fit,
+                    color,false,false,false,delays,VfxSpace.SortingLayer(target),
+                    VfxSpace.OverlaySortingOrder+order,style:style,startFrame:2)
+                    ?.Follow(()=>VfxSpace.ContactPoint(target),Vector3.zero,lateFollow:true).BindRecipient(target);
+            }
+            Layer(new Color(.52f,.44f,.58f,.55f),1f,165);
+            core=new Color(1f,.92f,.87f,1f);
+            Layer(core,1f,171);
+            VfxParticles.Burst(point,new ParticleSpec
+            {
+                Sprite=VfxSpace.CrystalFacet,StartColor=new Color(1f,.83f,.89f,.95f),
+                EndColor=new Color(1f,.83f,.89f,0f),Lifetime=new Vector2(.16f,.24f),
+                Speed=new Vector2(.45f,.85f)*VfxSpace.CardSize,Angle=20f,Spread=280f,
+                StartSize=new Vector2(.022f,.045f)*VfxSpace.CardSize,EndSizeScale=.25f,
+            },3,VfxSpace.SortingLayer(target),VfxSpace.OverlaySortingOrder+173);
+        }
+
+        private static void ContactCrest(Unit target,float strength=1f,string sheet="Cleave",Color? palette=null)
+        {
+            Vector3 point=VfxSpace.ContactPoint(target);
+            var style=new FlipbookCompositeStyle
+            {
+                BlackMatte=true,PeakAlpha=.90f,GlowAlpha=0f,BlendFraction=.12f,
+                FadeInFraction=0f,FadeOutFraction=.42f,BrightBackdropLiftStrength=0f,
+                StartScale=.58f,CrestScale=1.55f,EndScale=.48f,CrestAtFraction=.14f,ReleaseEndFraction=.48f,
+                StartStretch=new Vector2(.70f,1.25f),CrestStretch=new Vector2(1.16f,.95f),EndStretch=new Vector2(1.3f,.65f),
+                EdgeSoftness=.012f,AllowHighSpeedSkipping=true,RequiredVisibleFrame=2,
+                Desaturate=palette.HasValue?1f:0f,PaintContrast=palette.HasValue?.35f:0f,
+                GroundLightSizeInCards=Vector2.zero,ContactShadowSizeInCards=Vector2.zero,SceneLightStrength=0f,
+            };
+            float[] delays={.016f,.018f,.022f,.022f,.018f,.018f,.018f,.018f,.022f,.022f,.024f,.024f,.026f,.026f,.028f,.028f};
+            FlipbookFx.Play("VfxTex/Signature/"+sheet+"_16",4,4,new Vector2(.5f,.5f),point,
+                new Vector2(1.10f,.98f)*VfxSpace.CardSize*Mathf.Clamp(strength,.7f,1.25f),palette??Color.white,false,false,false,
+                delays,VfxSpace.SortingLayer(target),VfxSpace.OverlaySortingOrder+164,style:style,startFrame:1)
+                ?.Follow(()=>VfxSpace.ContactPoint(target),Vector3.zero,lateFollow:true).BindRecipient(target);
+        }
+
+        private static void ContactSpark(Unit target,Color color)
+        {
+            Vector3 point=VfxSpace.ContactPoint(target);
+            var pose=CardMotion.ViewOf(target)?.PortraitRenderer?.transform??target.transform;
+            SpriteFx.Play(VfxSpace.Sparkle,point,color,false,.21f*VfxSpace.CardSize,.035f*VfxSpace.CardSize,.13f,
+                rotation:18f,fadeIn:0f,fadeOutFrom:.25f,sortingLayer:VfxSpace.SortingLayer(target),
+                order:VfxSpace.OverlaySortingOrder+174,preserveInk:true)?.Follow(pose).BindRecipient(target);
+        }
+
+        /// <summary>새 로스터의 공격/지원 의미를 공용 손그림으로 구분한다. 상태·피해 판정은 추가하지 않는다.</summary>
+        public static void RosterContact(Unit caster,Unit target,string motif,bool casting=false,Unit aimTarget=null,string skillKey=null)
+        {
+            if(target==null)return;
+            if(!casting&&PurchasedArcherFx.TryContact(skillKey,caster,target))return;
+            if(motif=="pierce")
+            {
+                if(!casting)PurchasedArcherFx.Impact(caster,target);
+                return;
+            }
+            if(!casting)FinishRosterCast(caster);
+            float card=VfxSpace.CardSize;
+            Vector3 point=casting?VfxSpace.CastPoint(caster,aimTarget):VfxSpace.ContactPoint(target);
+            int layer=VfxSpace.SortingLayer(target);
+            var view=CardMotion.ViewOf(target);
+            Color element=ElementPalette.ColorFor(caster!=null?caster.Element:target.Element);
+            Color light=Color.Lerp(element,Color.white,.65f);
+            // 제자리 기운은 머리 옆 자원 배지의 반대편에 둔다. 화살은 실제 발사 방향을 쓴다.
+            if(casting&&motif is not ("pierce" or "arc"))point.x=VfxSpace.PortraitHudAnchor(target).x-.12f*card;
+            if(motif is "pierce" or "arc")
+            {
+                bool thunder=motif=="arc";
+                float angle=VfxSpace.AimFrom(caster,casting?aimTarget:target).AngleDegrees;
+                if(casting)
+                {
+                    Vector3 direction=VfxSpace.AimFrom(caster,aimTarget).Direction;
+                    float side=direction.x>=0f?1f:-1f;
+                    // 발사 준비는 꼬리를 몸 앞에 고정한다. 촉을 시전자에 고정하면 들어오는 공격처럼 보인다.
+                    point=VfxSpace.PortraitHudAnchor(target)+new Vector3(side*.35f,.10f+.202f*Mathf.Max(0f,-direction.y),0f)*card;
+                    if(!thunder)point.y+=.10f*card;
+                }
+                Vector2 arrowSize=casting?thunder?new(.32f,.18f):new(.85f,.64f):thunder?new(.65f,.50f):new(.95f,.52f);
+                SignatureSheet(target,thunder?"Thunder":"Pierce",point,arrowSize*card,casting&&!thunder?.66f:.32f,
+                    casting?thunder?1:2:thunder?6:4,palette:element,
+                    rotation:angle,pivot:new Vector2(casting?.15f:thunder?.78f:.86f,.50f),castOwner:casting?caster:null,
+                    frameCount:casting&&!thunder?6:16,contactLocked:!casting);
+                if(!casting)
+                {
+                    // 연타/광역의 첫 실제 접점만 크게 펼치며 후속 탄의 논리 시각은 그대로 둔다.
+                    if(FirstActionImpact(caster))ContactCrest(target,.92f,"Impact",element);
+                    SignatureMotes(target,point,light,3);
+                    var pose=view?.PortraitRenderer?.transform??target.transform;
+                    SpriteFx.Play(VfxSpace.Sparkle,point,new Color(.08f,.18f,.20f),false,
+                        .19f*card,.12f*card,.16f,rotation:angle,fadeIn:0f,fadeOutFrom:.35f,
+                        sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+173,preserveInk:true)?.Follow(pose).BindRecipient(target);
+                    SpriteFx.Play(VfxSpace.Sparkle,point,light,false,
+                        .14f*card,.08f*card,.16f,rotation:angle,fadeIn:0f,fadeOutFrom:.35f,
+                        sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+174,preserveInk:true)?.Follow(pose).BindRecipient(target);
+                }
+                return;
+            }
+            if(motif=="treasuryShot")
+            {
+                if(caster==null||target==null||!caster.isActive||!target.isActive||caster.isControlled)return;
+                if(casting)
+                {
+                    PurchasedArcherFx.RosterPreparation(caster,aimTarget,attack:true);
+                    VfxRunner.Run(PurchasedProjectileFx.Fly(caster,aimTarget,.28f,null,weight:.74f,
+                        paintContact:false,minimumFlightFrames:false,elementalInk:true));
+                }
+                else
+                {
+                    int stacks=caster.ActivePassiveCodes.OfType<Codes.Passive.IshtarGoldenMagazine>().FirstOrDefault()?.Stacks??0;
+                    PurchasedArcherFx.RosterContact(caster,target,.60f+Mathf.Clamp(stacks,0,12)*.004f,elementalInk:true);
+                }
+                return;
+            }
+            if(motif is "sunshot" or "purchasedShot")
+            {
+                if(casting)PurchasedArcherFx.RosterPreparation(caster,aimTarget);
+                else PurchasedArcherFx.RosterContact(caster,target,skillKey is "surya.finale" or "surya.focused_follow_up"?.78f:.56f);
+                return;
+            }
+            if(motif=="field")
+            {
+                if(casting)
+                {
+                    PurchasedArcherFx.RosterPreparation(caster,aimTarget);
+                    if(aimTarget!=null)PurchasedRosterStrokeFx.Play(caster,aimTarget,PurchasedRosterStrokeFx.Kind.Link);
+                }
+                else PurchasedArcherFx.RosterContact(caster,target);
+                return;
+            }
+            if(motif=="pact")
+            {
+                // 회복·상태 부여의 주체만 손앞에 보이고, 적에게 가짜 피해 정점을 만들지 않는다.
+                if(casting)PurchasedArcherFx.RosterPreparation(caster,aimTarget);
+                return;
+            }
+            if(motif=="poison")
+            {
+                Vector2 seed=casting?new(.35f,.40f):new(.43f,.32f);seed*=card;
+                if(casting)point.y=VfxSpace.PortraitHudTop(target)+seed.y*.5f+.035f*card;
+                if(!casting)ContactCrest(target,1f,"Seed",element);
+                SignatureSheet(target,casting?"Miasma":"Seed",point,seed,.40f,casting?0:1,palette:element,castOwner:casting?caster:null,contactLocked:!casting);
+                SignatureMotes(target,point,light,5);
+                return;
+            }
+            if(motif=="horn")
+            {
+                if(casting)PurchasedArcherFx.RosterPreparation(caster,aimTarget);
+                PurchasedRosterStrokeFx.Play(caster,target,PurchasedRosterStrokeFx.Kind.Horn);
+                return;
+            }
+            if(motif=="wound")
+            {
+                if(!casting)
+                {
+                    PurchasedArcherFx.RosterContact(caster,target,.60f);
+                }
+                else PurchasedArcherFx.RosterPreparation(caster,aimTarget);
+                return;
+            }
+        }
+
+        public static void BleedMark(Unit target,bool tick)
+        {
+            if(target==null)return;
+            float card=VfxSpace.CardSize;
+            Vector3 point=VfxSpace.ContactPoint(target);
+            var view=CardMotion.ViewOf(target);
+            if(view!=null&&!view.TryAuthoredPortraitContact(out _))
+            {
+                point.y=VfxSpace.PortraitHudTop(target)+.075f*card;
+                point=view.SnapPortraitContactPoint(point,VfxSpace.PortraitHudTop(target));
+            }
+            // 상태 부여·틱은 베기를 반복하지 않고 분리된 낙혈 셀만 사용한다.
+            SignatureSheet(target,"Drops",point,new Vector2(.60f,.54f)*card*(tick?.85f:1f),.42f,2,
+                pivot:new Vector2(.50f,.50f),contactLocked:true);
+        }
+
         public static void WindStrikeFlow(Unit target)
         {
             if(target==null)return;
@@ -106,6 +462,34 @@ namespace Effects.Vfx
                 Mathf.Lerp(bounds.min.y, bounds.max.y, .67f), 0f);
         }
 
+        /// <summary>불씨의 실제 피격점에만 손그림 파열을 둔다. 판정·대기·추가 타수를 소유하지 않는다.</summary>
+        public static void HimikoContact(Unit target, Vector3 point)
+        {
+            if(target==null)return;
+            int layer=VfxSpace.SortingLayer(target);
+            void Layer(HandpaintSheet sheet,Vector2 size,Color color,int order,int startFrame)
+            {
+                float[] delays=HandpaintFx.Cue(sheet,size,Color.white,Color.white).FrameDelays;
+                // 국소 먹빛 외곽은 밝은 판·주황 원화 양쪽에서 몸체를 분리한다. 전역 팔레트는 유지한다.
+                var style=new FlipbookCompositeStyle
+                {
+                    PeakAlpha=1f,GlowAlpha=0f,Desaturate=0f,PaintContrast=0f,
+                    BlendFraction=.20f,FadeInFraction=0f,FadeOutFraction=.50f,
+                    BrightBackdropLiftStrength=0f,StartScale=1f,CrestScale=1f,EndScale=.72f,
+                    GroundLightColor=Color.clear,ContactShadowColor=Color.clear,
+                    GroundLightSizeInCards=Vector2.zero,ContactShadowSizeInCards=Vector2.zero,SceneLightStrength=0f,
+                };
+                // 원래 폭발의 정점 셀부터 소진한다. 후행 팽창이나 정점 홀드로 두 번째 타격을 암시하지 않는다.
+                FlipbookFx.Play(sheet.ResourcePath,sheet.Columns,sheet.Rows,sheet.Pivot,point,
+                    size*VfxSpace.CardSize,color,false,false,false,delays,layer,
+                    VfxSpace.OverlaySortingOrder+order,style:style,startFrame:startFrame)?.BindRecipient(target);
+            }
+            Layer(HandpaintFx.Explosion2Red,new Vector2(.75f,.84f),new Color(.48f,.22f,.14f,.52f),73,4);
+            // 원본의 백열 중심을 남겨 살구색 연기와 구분한다. 별/원륜 대신 한 줄기 불꽃만 사용한다.
+            Layer(new HandpaintSheet("Fire1_Red",4,4,80f,new Vector2(.5f,.5f)),
+                new Vector2(.62f,.78f),new Color(1f,.96f,.82f,.98f),74,8);
+        }
+
         public static void Fire(Unit caster, Unit target, string skillKey)
         {
             if (target == null) return;
@@ -184,18 +568,23 @@ namespace Effects.Vfx
         }
 
         // 사수의 피격은 연무 덩어리 대신 한 방향의 관통 획과 작은 접점을 남긴다.
-        public static void EnemyPierce(Unit caster,Unit target)
+        public static void EnemyPierce(Unit caster,Unit target,Color? tint=null,Vector3? contactPoint=null)
         {
             if(target==null)return;
-            float c=VfxSpace.CardSize;Vector3 p=StatusMotifFx.Anchor(target)+Vector3.up*.04f*c;
+            float c=VfxSpace.CardSize;Vector3 p=contactPoint??VfxSpace.BodyPoint(target);
             int layer=VfxSpace.SortingLayer(target);float angle=VfxSpace.AimFrom(caster,target).AngleDegrees;
-            Vector2 size=new Vector2(.62f,.038f)*c;
-            SpriteFx.Play(VfxSpace.ClawCue,p,new Color(.08f,.14f,.22f,.47f),false,
+            bool arrow=tint.HasValue;
+            if(arrow)angle=-18f;
+            Vector2 size=new Vector2(.62f,arrow?.075f:.038f)*c;
+            SpriteFx.Play(VfxSpace.ClawCue,p,new Color(.08f,.14f,.22f,arrow?1f:.47f),false,
                 size*new Vector2(1.06f,1.7f),size*new Vector2(1.25f,1.1f),.21f,rotation:angle,
-                fadeIn:0f,fadeOutFrom:.52f,sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+150);
-            SpriteFx.Play(VfxSpace.ClawCue,p,new Color(1f,.69f,.61f,.88f),false,
+                fadeIn:0f,fadeOutFrom:.52f,sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+150,preserveInk:arrow);
+            SpriteFx.Play(VfxSpace.ClawCue,p,tint??new Color(1f,.69f,.61f,.88f),false,
                 size,size*new Vector2(1.22f,.60f),.21f,rotation:angle,
-                fadeIn:0f,fadeOutFrom:.52f,sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+151);
+                fadeIn:0f,fadeOutFrom:.52f,sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+151,preserveInk:arrow);
+            if(arrow)SpriteFx.Play(VfxSpace.ClawCue,p,Color.white,false,
+                size*new Vector2(.90f,.40f),size*new Vector2(1.20f,.24f),.18f,rotation:angle,
+                fadeIn:0f,fadeOutFrom:.52f,sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+152,preserveInk:true);
             SpriteFx.Play(VfxSpace.HardDot,p,new Color(.94f,.94f,.94f,.94f),false,
                 .07f*c,.04f*c,.13f,fadeIn:0f,fadeOutFrom:.45f,
                 sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+152);
@@ -320,11 +709,12 @@ namespace Effects.Vfx
             }
         }
 
-        private static System.Collections.IEnumerator FragmentTravel(SpriteFx edge,SpriteFx face,Vector3 origin,Vector3 travel)
+        private static System.Collections.IEnumerator FragmentTravel(SpriteFx edge,SpriteFx face,Vector3 origin,Vector3 travel,float duration=.24f,bool smooth=false)
         {
-            for(float age=0f;age<.24f;age+=Time.deltaTime)
+            for(float age=0f;age<duration;age+=Time.deltaTime)
             {
-                Vector3 p=origin+travel*Mathf.Clamp01(age/.24f);
+                float t=Mathf.Clamp01(age/Mathf.Max(.001f,duration));
+                Vector3 p=origin+travel*(smooth?1f-Mathf.Pow(1f-t,3f):t);
                 if(edge!=null)edge.transform.position=p;if(face!=null)face.transform.position=p;
                 yield return null;
             }
@@ -648,24 +1038,25 @@ namespace Effects.Vfx
                 sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+66);
         }
 
-        public static void LightningContact(Unit target)
+        public static void LightningContact(Unit target,Vector3? contactPoint=null)
         {
             if(target==null)return;
-            float c=VfxSpace.CardSize;Vector3 point=StatusMotifFx.Anchor(target);
+            float c=VfxSpace.CardSize;Vector3 point=contactPoint??StatusMotifFx.Anchor(target);
             int layer=VfxSpace.SortingLayer(target);
             float life=VfxTiming.AtLeastFrames(.20f,8);
             Vector2[] bolt={new(-.04f,.22f),new(.06f,.06f),new(-.06f,-.02f),new(.04f,-.18f)};
             void Stroke(Vector2 a,Vector2 b)
             {
                 Vector2 delta=b-a;float angle=Mathf.Atan2(delta.y,delta.x)*Mathf.Rad2Deg;
-                Vector3 center=point+(Vector3)((a+b)*.5f*c);
-                Vector2 size=new(delta.magnitude*c,.016f*c);
-                SpriteFx.Play(VfxSpace.GlyphLine,center,new Color(.24f,.20f,.40f,.72f),false,
+                float fit=contactPoint.HasValue?.85f:1f;
+                Vector3 center=point+(Vector3)((a+b)*.5f*c*fit);
+                Vector2 size=new(delta.magnitude*c*fit,(contactPoint.HasValue?.024f:.016f)*c);
+                SpriteFx.Play(VfxSpace.GlyphLine,center,contactPoint.HasValue?new Color(.07f,.17f,.29f,.98f):new Color(.24f,.20f,.40f,.72f),false,
                     size*new Vector2(1f,1.7f),size*new Vector2(1f,1.7f),life,angle,
-                    fadeIn:0f,fadeOutFrom:.50f,sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+70);
-                SpriteFx.Play(VfxSpace.GlyphLine,center,new Color(.72f,.58f,.94f,.96f),false,
+                    fadeIn:0f,fadeOutFrom:.50f,sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+70,preserveInk:contactPoint.HasValue);
+                SpriteFx.Play(VfxSpace.GlyphLine,center,contactPoint.HasValue?new Color(.61f,.86f,1f,.98f):new Color(.72f,.58f,.94f,.96f),false,
                     size,size,life,angle,fadeIn:0f,fadeOutFrom:.50f,
-                    sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+71);
+                    sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+71,preserveInk:contactPoint.HasValue);
             }
             for(int i=0;i<bolt.Length-1;i++)Stroke(bolt[i],bolt[i+1]);
             Stroke(bolt[1],new Vector2(.20f,.13f));
@@ -688,12 +1079,53 @@ namespace Effects.Vfx
         public static void Contact(Unit target, Color color)
         {
             if(target==null)return;
-            SpriteFx.Play(VfxArt.ImpactStar,VfxSpace.PortraitPoint(target),new Color(.18f,.28f,.40f,.55f),false,
-                .12f*VfxSpace.CardSize,.28f*VfxSpace.CardSize,.13f,fadeIn:0f,fadeOutFrom:.40f,
-                sortingLayer:VfxSpace.SortingLayer(target),order:VfxSpace.OverlaySortingOrder+61);
-            SpriteFx.Play(VfxArt.ImpactStar,VfxSpace.PortraitPoint(target),color,true,
-                .10f*VfxSpace.CardSize,.25f*VfxSpace.CardSize,.13f,fadeIn:0f,fadeOutFrom:.40f,
-                sortingLayer:VfxSpace.SortingLayer(target),order:VfxSpace.OverlaySortingOrder+62);
+            ContactAt(target,VfxSpace.PortraitPoint(target),color);
+        }
+
+        /// <summary>광역의 실제 피격은 예고 연기보다 앞에 둔다. 구매 손그림의 정점에서 시작하며 새 피해 판정을 만들지 않는다.</summary>
+        public static void FormationContact(Unit source, Unit target, Color color, float scale)
+        {
+            if(target==null)return;
+            float side=VfxSpace.AimFrom(source,target).Direction.x>=0f?1f:-1f;
+            Vector3 point=StatusMotifFx.Anchor(target)+new Vector3(side*.35f,-.06f)*VfxSpace.CardSize;
+            Vector2 size=new Vector2(.60f,.18f)*Mathf.Clamp(scale,.5f,2f);
+            int layer=VfxSpace.SortingLayer(target);
+            // 숫자가 모이는 입사 쪽과 원화 중앙 코어를 피해 낮은 몸통 띠에 짧은 파열을 둔다.
+            // 정점 셀의 밝은 심은 중앙보다 낮다. 시트 중심을 붙이면 가장 중요한 심이 HUD 클립에 걸린다.
+            HandpaintSheet sheet=new("Impact1_Purple",3,2,30f,new Vector2(.52f,.31f));
+            float[] delays=HandpaintFx.Cue(sheet,size,Color.white,color).FrameDelays;
+            void Layer(Color ink,float fit,int order,bool core)
+            {
+                // 이 작은 두 겹은 먹빛 본체와 밝은 중심을 직접 분리한다. 전역 파스텔/광 설정은 건드리지 않는다.
+                var style=new FlipbookCompositeStyle
+                {
+                    PeakAlpha=1f,GlowAlpha=0f,Desaturate=core?1f:0f,PaintContrast=1f,
+                    BlendFraction=.20f,FadeInFraction=0f,FadeOutFraction=.45f,
+                    BrightBackdropLiftStrength=0f,StartScale=1.02f,CrestScale=1f,EndScale=.82f,
+                    GroundLightColor=Color.clear,ContactShadowColor=Color.clear,
+                    GroundLightSizeInCards=Vector2.zero,ContactShadowSizeInCards=Vector2.zero,SceneLightStrength=0f,
+                };
+                FlipbookFx.Play(sheet.ResourcePath,sheet.Columns,sheet.Rows,sheet.Pivot,point,
+                    size*(fit*VfxSpace.CardSize),ink,false,false,false,delays,layer,
+                    VfxSpace.OverlaySortingOrder+order,style:style,startFrame:2)?.BindRecipient(target);
+            }
+            Layer(new Color(.10f,.07f,.16f,.96f),1.12f,171,false);
+            Layer(new Color(.90f,.86f,1f,.95f),.90f,176,true);
+        }
+
+        public static void ContactAt(Unit target, Vector3 point, Color color, float scale=1f, int orderOffset=61)
+        {
+            if(target==null)return;
+            scale=Mathf.Clamp(scale,.5f,2f);
+            bool focused=scale>1f;
+            float card=VfxSpace.CardSize*scale;
+            float life=focused?VfxTiming.AtLeastFrames(.13f,5):.13f;
+            SpriteFx.Play(VfxArt.ImpactStar,point,focused?new Color(.16f,.10f,.23f,.94f):new Color(.18f,.28f,.40f,.55f),false,
+                (focused?.32f:.12f)*card,(focused?.12f:.28f)*card,life,fadeIn:0f,fadeOutFrom:.40f,
+                sortingLayer:VfxSpace.SortingLayer(target),order:VfxSpace.OverlaySortingOrder+orderOffset,preserveInk:focused);
+            SpriteFx.Play(VfxArt.ImpactStar,point,color,true,
+                (focused?.14f:.10f)*card,(focused?.05f:.25f)*card,life,fadeIn:0f,fadeOutFrom:.40f,
+                sortingLayer:VfxSpace.SortingLayer(target),order:VfxSpace.OverlaySortingOrder+orderOffset+1);
         }
 
         /// <summary>동시 일제사격에서도 얼음 파편과 월광의 실루엣을 구분한다. 판정은 원래 코드가 맡는다.</summary>

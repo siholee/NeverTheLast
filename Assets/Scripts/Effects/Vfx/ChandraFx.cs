@@ -63,6 +63,7 @@ namespace Effects.Vfx
         {
             if (VfxStyleSettings.UseHandpaint(VfxStyleCharacter.Chandra))
             {
+                GeoFx.CrystalFlights(caster,target);
                 yield return VfxComposer.PlaySingleTarget("chandra.sachi", caster, target,
                     onImpact, scale);
                 yield break;
@@ -584,7 +585,8 @@ namespace Effects.Vfx
             }
             if (gained && VfxStyleSettings.UseHandpaint(VfxStyleCharacter.Chandra))
             {
-                VfxComposer.PlayAffectedPart(unit, "affected.buff.moon");
+                if(unit.ID==60)PurchasedSupportThreadsFx.Play(unit,unit,PurchasedSupportThreadsFx.Kind.Receive);
+                else VfxComposer.PlayAffectedPart(unit, "affected.buff.moon");
                 return;
             }
             Vector3 point = VfxSpace.WorldPoint(unit) + Vector3.up * VfxSpace.CardSize * 0.12f;

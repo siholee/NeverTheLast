@@ -1,0 +1,50 @@
+{
+  "tracks": {
+    "windup": [
+      0,
+      0,
+      0.1,
+      0.2,
+      0.3,
+      0.5,
+      0.6,
+      0.8,
+      1,
+      1.2,
+      1.5,
+      1.7,
+      1.9,
+      2,
+      2,
+      2
+    ],
+    "strike": [
+      2,
+      3,
+      5,
+      7,
+      9,
+      12,
+      14,
+      14,
+      12,
+      10,
+      8,
+      5,
+      3,
+      1,
+      0,
+      0
+    ]
+  },
+  "axis": [
+    0.914,
+    0.406
+  ],
+  "fixedMouth": [
+    227,
+    375
+  ],
+  "wind": false,
+  "headAndBody": "original pixels preserved outside the small wrist/hilt region; broad sleeve and sheath stay fixed"
+}

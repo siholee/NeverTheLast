@@ -1,6 +1,7 @@
 using BaseClasses;
 using Entities;
 using UnityEngine;
+using Random = Combat.CombatRandom;
 
 namespace Combat
 {

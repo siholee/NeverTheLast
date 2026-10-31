@@ -35,6 +35,8 @@ namespace Effects.Vfx
         public static void Strike(Unit clone, Unit target, float scale = 1f, bool ultimate = false)
         {
             if (clone == null || target == null) return;
+            if (Managers.Stage.VisualModeState.Current == Managers.Stage.VisualMode.Stage)
+                clone.GetComponent<SummonCardView>()?.StageVisual?.Strike();
             string key = ultimate ? "uchi.manchunhwau" : scale < 1f ? "uchi.overflow" : "uchi.strike";
             VfxComposer.PlaySlot(key, "hit", 0, clone, target, VfxSpace.PortraitPoint(target), VfxSpace.SortingLayer(target));
             CardMotion.RakeReaction(target, VfxSpace.AimFrom(clone,target).Direction,.34f);
@@ -55,18 +57,26 @@ namespace Effects.Vfx
             VfxComposer.PlaySlot("uchi.manchunhwau","cast",0,caster,caster,VfxSpace.WorldPoint(caster),VfxSpace.SortingLayer(caster));
             Unit direction = Codes.Normal.UchiCloneStrike.Enemies(caster).FirstOrDefault();
             // 대상 추첨은 기존 순회 판정 안에 남기고 표시 방향만 읽어 세 장을 동시에 부분 전진시킨다.
+            int index = 0;
             foreach(Unit clone in clones)
                 if(clone != null && clone.GetComponent<SummonCardView>() is SummonCardView view)
-                    VfxRunner.Run(view.Advance(direction));
+                {
+                    if (Managers.Stage.VisualModeState.Current == Managers.Stage.VisualMode.Stage && view.StageVisual != null)
+                        view.StageVisual.BeginAdvance(direction, stagger: index++ * .015f);
+                    else VfxRunner.Run(view.Advance(direction));
+                }
             yield return new WaitForSeconds(.24f);
         }
 
-        public static void PaperDeparture(Vector3 point, Sprite portrait, Vector3 scale, Color tint, Unit clone)
+        public static void PaperDeparture(Vector3 point, Sprite portrait, Vector3 scale, Color tint, Unit clone,
+            int? stageLayer = null, int? stageOrder = null, bool flip = false)
         {
-            int layer=VfxSpace.SortingLayer(clone);
+            int layer=stageLayer ?? VfxSpace.SortingLayer(clone);
             SpriteRenderer ghost=VfxSpace.NewSprite(null,"ClonePaperDeparture",portrait,tint,layer,VfxSpace.OverlaySortingOrder-10,false);
-            var ownerView=CardMotion.ViewOf(clone.SummonOwner);
+            var ownerView=CardMotion.ViewOf(clone.IsSummon ? clone.SummonOwner : clone);
             if(ownerView?.PortraitRenderer!=null)ghost.sortingOrder=ownerView.PortraitRenderer.sortingOrder-1;
+            if (stageOrder.HasValue) ghost.sortingOrder = stageOrder.Value;
+            ghost.flipX = flip;
             ghost.transform.position=point;ghost.transform.localScale=scale;
             VfxRunner.Run(Fade(ghost,tint,clone.GetInstanceID(),point));
             float c=VfxSpace.CardSize;

@@ -7,6 +7,9 @@ public sealed class VfxPartData
 {
     public string id;
     public string category;
+    /// <summary>기존 정점에 국소 손그림 파열을 겹친다. 판정·재생 대기는 추가하지 않는다.</summary>
+    public float contactScale;
+    public string contactMotif;
     public string inkColor;
     public float inkAlpha;
     public string darkBodyColor;
@@ -66,6 +69,10 @@ public sealed class VfxSlotData
     public string slot;
     public bool portraitAnchor;
     public bool steadyBody;
+    /// <summary>주 검격과 얇은 잔상을 분리하고 기존 피격 정점에 획을 완성한다. 판정 시각은 바꾸지 않는다.</summary>
+    public bool focusedStroke;
+    /// <summary>수평 광역의 실제 대상별 판정에 붙이는 국소 접점 크기. 0이면 추가하지 않는다.</summary>
+    public float impactContactScale;
     public bool recolor;
     public bool supportInk;
     public float supportScale = 1f;
@@ -118,10 +125,20 @@ public sealed class VfxClassCastBindingData
 }
 
 [Serializable]
+public sealed class VfxPortraitContactData
+{
+    public string portrait;
+    public float anchorX=.5f,anchorY=.4f;
+    public float faceMinX,faceMinY,faceMaxX,faceMaxY;
+    public float presentationLiftInCards;
+}
+
+[Serializable]
 public sealed class VfxDataList
 {
     public List<VfxPartData> parts = new();
     public List<VfxSkillData> skills = new();
     public List<VfxStatusBindingData> statusBindings = new();
     public List<VfxClassCastBindingData> classCastBindings = new();
+    public List<VfxPortraitContactData> portraitContacts = new();
 }

@@ -1,0 +1,1075 @@
+{
+  "teams": [
+    {
+      "key": "intent_01",
+      "name": "수동 맹독",
+      "currentComparison": true,
+      "ids": [
+        164,
+        165,
+        162,
+        45,
+        167
+      ],
+      "xs": [
+        -2,
+        -2,
+        -2,
+        -1,
+        -1
+      ],
+      "ys": [
+        2,
+        3,
+        1,
+        2,
+        3
+      ],
+      "aliases": [
+        "네프티스/best",
+        "아탈란테/best",
+        "archetype/PASSIVE_POISON",
+        "검증 편성/b48_dot_poison"
+      ],
+      "origin": "campaign_01",
+      "family": "지속피해",
+      "intent": "맹독의 자연 발동과 추격을 아스톨포의 적 가속으로 당기고, 츠쿠요미·에레쉬키갈이 증폭과 치유를 맡는다."
+    },
+    {
+      "key": "intent_02",
+      "name": "능동 감전",
+      "currentComparison": true,
+      "ids": [
+        166,
+        61,
+        66,
+        45,
+        167
+      ],
+      "xs": [
+        -2,
+        -2,
+        -1,
+        -1,
+        -1
+      ],
+      "ys": [
+        2,
+        3,
+        2,
+        3,
+        1
+      ],
+      "aliases": [
+        "네이트/best",
+        "에레쉬키갈/best",
+        "archetype/ACTIVE_SHOCK",
+        "검증 편성/b48_dot_active"
+      ],
+      "origin": "campaign_02",
+      "family": "지속피해",
+      "intent": "바루나의 물과 네이트·야마의 번개로 감전을 만들고, 야마가 지속피해를 능동 정산한다."
+    },
+    {
+      "key": "intent_03",
+      "name": "아스톨포 · 오리온 반격",
+      "currentComparison": true,
+      "ids": [
+        162,
+        22,
+        122,
+        1,
+        160
+      ],
+      "xs": [
+        -2,
+        -1,
+        -2,
+        -1,
+        -2
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        3,
+        1
+      ],
+      "aliases": [
+        "아스톨포/best",
+        "archetype/ASTOLFO_COUNTER",
+        "점검/오리온_세이"
+      ],
+      "origin": "campaign_03",
+      "family": "추가행동·반격",
+      "intent": "오리온의 피격 반격과 바스테트 경호를 아스톨포·마리의 추가행동 치명 지원에 연결한다."
+    },
+    {
+      "key": "intent_04",
+      "name": "잔 반격 · 니콜",
+      "currentComparison": true,
+      "ids": [
+        162,
+        7,
+        122,
+        1,
+        168
+      ],
+      "xs": [
+        -2,
+        -1,
+        -2,
+        -2,
+        -2
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        1,
+        4
+      ],
+      "aliases": [
+        "아스톨포/basic",
+        "잔/best",
+        "니콜/best",
+        "니콜/basic",
+        "검증 편성/b48_nicol_solo"
+      ],
+      "origin": "campaign_04",
+      "family": "추가행동·반격",
+      "intent": "잔 단독 전열에 피격을 모으고 바스테트 추격, 아스톨포 치유, 니콜 초전도, 후열 세이 방호를 연결한다."
+    },
+    {
+      "key": "intent_05",
+      "name": "일광 바운스 편성",
+      "currentComparison": true,
+      "ids": [
+        40,
+        7,
+        122,
+        83,
+        82
+      ],
+      "xs": [
+        -2,
+        -1,
+        -2,
+        -1,
+        -1
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        3,
+        1
+      ],
+      "aliases": [
+        "아마테라스/best",
+        "아마테라스/basic",
+        "archetype/SUNLIGHT_VOLLEY"
+      ],
+      "origin": "campaign_05",
+      "family": "추가행동·반격",
+      "intent": "잔·바스테트의 추가공격으로 아마테라스의 일광을 모으고 스카디·프레이아가 전열과 회복을 보완한다."
+    },
+    {
+      "key": "intent_06",
+      "name": "수호령의 소환 전열",
+      "currentComparison": true,
+      "ids": [
+        125,
+        20,
+        124,
+        67,
+        161
+      ],
+      "xs": [
+        -1,
+        -1,
+        -2,
+        -2,
+        -1
+      ],
+      "ys": [
+        2,
+        3,
+        2,
+        3,
+        1
+      ],
+      "aliases": [
+        "이시스/best",
+        "이시스/basic"
+      ],
+      "origin": "campaign_06",
+      "family": "소환",
+      "intent": "이시스·피그말리온·토트의 수호령·소환 증폭·치유 코어에 수리야·나폴레옹의 단일 화력을 더한다."
+    },
+    {
+      "key": "intent_07",
+      "name": "출혈의 사막",
+      "currentComparison": true,
+      "ids": [
+        123,
+        61,
+        45,
+        66,
+        82
+      ],
+      "xs": [
+        -1,
+        -1,
+        -2,
+        -1,
+        -1
+      ],
+      "ys": [
+        2,
+        3,
+        2,
+        1,
+        4
+      ],
+      "aliases": [
+        "세트/best",
+        "세트/basic"
+      ],
+      "origin": "campaign_07",
+      "family": "지속피해",
+      "intent": "세트의 전열 출혈을 야마의 즉시 발동과 츠쿠요미의 증폭에 연결하고 물·치유를 보완한다."
+    },
+    {
+      "key": "intent_08",
+      "name": "태양의 후계자",
+      "currentComparison": true,
+      "ids": [
+        120,
+        81,
+        82,
+        64,
+        66
+      ],
+      "xs": [
+        -2,
+        -1,
+        -1,
+        -2,
+        -1
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        3,
+        1
+      ],
+      "aliases": [
+        "호루스/best",
+        "호루스/basic",
+        "archetype/HORUS_BURST"
+      ],
+      "origin": "campaign_08",
+      "family": "캐리·균형",
+      "intent": "수르트를 첫 공격 초월기 후계자로 두고 호루스 지원을 집중하며 프레이아가 체력 비용을 회복한다."
+    },
+    {
+      "key": "intent_10",
+      "name": "얼음 반격 지휘",
+      "currentComparison": true,
+      "ids": [
+        7,
+        64,
+        160,
+        161,
+        82
+      ],
+      "xs": [
+        -1,
+        -2,
+        -2,
+        -1,
+        -1
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        3,
+        1
+      ],
+      "aliases": [
+        "잔/basic"
+      ],
+      "origin": "campaign_10",
+      "family": "추가행동·반격",
+      "intent": "잔의 일반공격 태그 반격에 나폴레옹 지휘·마리 치명 지원을 겹치고 바유·프레이아로 지원한다."
+    },
+    {
+      "key": "intent_11",
+      "name": "바스테트 경호 편성",
+      "currentComparison": true,
+      "ids": [
+        122,
+        7,
+        60,
+        44,
+        20
+      ],
+      "xs": [
+        -2,
+        -1,
+        -2,
+        -2,
+        -1
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        1,
+        3
+      ],
+      "aliases": [
+        "바스테트/best",
+        "바스테트/basic"
+      ],
+      "origin": "campaign_11",
+      "family": "추가행동·반격",
+      "intent": "잔이 바스테트의 피격을 넘겨받아 반격하고 바스테트가 후속 공격을 잇는 경호 축을 점검한다."
+    },
+    {
+      "key": "intent_12",
+      "name": "사바흐 · 세이 · 히미코",
+      "currentComparison": true,
+      "ids": [
+        3,
+        4,
+        44,
+        1,
+        167
+      ],
+      "xs": [
+        -2,
+        -1,
+        -2,
+        -2,
+        -1
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        1,
+        3
+      ],
+      "aliases": [
+        "사바흐/best",
+        "점검/사바흐_히미코"
+      ],
+      "origin": "campaign_12",
+      "family": "디버프 캐리",
+      "intent": "가우디·에레쉬키갈 전열, 세이 방호 위에 히미코의 상태 부여로 사바흐 자원과 과성장을 공급한다."
+    },
+    {
+      "key": "intent_13",
+      "name": "사바흐 · 세이 · 바유",
+      "currentComparison": true,
+      "ids": [
+        3,
+        4,
+        64,
+        1,
+        167
+      ],
+      "xs": [
+        -2,
+        -1,
+        -2,
+        -2,
+        -1
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        1,
+        3
+      ],
+      "aliases": [
+        "사바흐/basic",
+        "점검/사바흐_바유"
+      ],
+      "origin": "campaign_13",
+      "family": "디버프 캐리",
+      "intent": "같은 사바흐 전후열에서 히미코 대신 바유의 취약·방어 감소·확산을 사용하는 변형이다."
+    },
+    {
+      "key": "intent_14",
+      "name": "현행 5인 균형 편성",
+      "currentComparison": true,
+      "ids": [
+        1,
+        2,
+        60,
+        44,
+        20
+      ],
+      "xs": [
+        -1,
+        -2,
+        -2,
+        -2,
+        -1
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        1,
+        3
+      ],
+      "aliases": [
+        "세이/best",
+        "세이/basic"
+      ],
+      "origin": "campaign_14",
+      "family": "캐리·균형",
+      "intent": "세이의 방호와 시의 처형에 찬드라·히미코·피그말리온의 단일 강화·맹화·소환 방호를 결합한다."
+    },
+    {
+      "key": "intent_15",
+      "name": "로카팔라 · 쿠베라",
+      "currentComparison": true,
+      "ids": [
+        63,
+        64,
+        65,
+        66,
+        60
+      ],
+      "xs": [
+        -2,
+        -2,
+        -2,
+        -1,
+        -1
+      ],
+      "ys": [
+        2,
+        3,
+        1,
+        2,
+        3
+      ],
+      "aliases": [
+        "인드라/best",
+        "인드라/basic",
+        "archetype/LOKAPALA_GATE",
+        "검증 편성/b48_lokapala_kubera"
+      ],
+      "origin": "campaign_15",
+      "family": "로카팔라",
+      "intent": "인드라가 묶음을 열고 바유의 취약 위에서 쿠베라가 누적 골드와 재보로 포격한다."
+    },
+    {
+      "key": "intent_16",
+      "name": "로카팔라 · 야마",
+      "currentComparison": true,
+      "ids": [
+        61,
+        66,
+        63,
+        60,
+        64
+      ],
+      "xs": [
+        -2,
+        -1,
+        -2,
+        -1,
+        -2
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        3,
+        1
+      ],
+      "aliases": [
+        "야마/best",
+        "야마/basic",
+        "바루나/best",
+        "바루나/basic",
+        "archetype/LOKAPALA_SHOCK",
+        "검증 편성/b48_lokapala"
+      ],
+      "origin": "campaign_16",
+      "family": "로카팔라",
+      "intent": "바유·바루나·인드라가 묶음을 만들고 야마의 감전 선고와 비소모 지속피해 발동을 사용한다."
+    },
+    {
+      "key": "intent_17",
+      "name": "로카팔라 · 아그니",
+      "currentComparison": true,
+      "ids": [
+        62,
+        63,
+        64,
+        66,
+        60
+      ],
+      "xs": [
+        -2,
+        -2,
+        -2,
+        -1,
+        -1
+      ],
+      "ys": [
+        2,
+        3,
+        1,
+        2,
+        3
+      ],
+      "aliases": [
+        "아그니/best",
+        "아그니/basic",
+        "archetype/VEDIC_FIRE",
+        "검증 편성/b48_lokapala_agni"
+      ],
+      "origin": "campaign_17",
+      "family": "로카팔라",
+      "intent": "물 부착·확산 뒤 아그니가 초월기 응답 추공과 집중 포격을 수행한다."
+    },
+    {
+      "key": "intent_18",
+      "name": "지휘 일제 사격 편성",
+      "currentComparison": true,
+      "ids": [
+        67,
+        161,
+        1,
+        44,
+        60
+      ],
+      "xs": [
+        -2,
+        -1,
+        -1,
+        -2,
+        -1
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        3,
+        1
+      ],
+      "aliases": [
+        "수리야/best",
+        "수리야/basic",
+        "나폴레옹/best",
+        "나폴레옹/basic"
+      ],
+      "origin": "campaign_18",
+      "family": "일반공격 지휘",
+      "intent": "나폴레옹의 일제 사격으로 수리야 표식·종언탄과 세이 등의 일반 공격을 한 적에게 모은다."
+    },
+    {
+      "key": "intent_20",
+      "name": "분신 순환 편성",
+      "currentComparison": true,
+      "ids": [
+        121,
+        180,
+        60,
+        20,
+        1
+      ],
+      "xs": [
+        -1,
+        -2,
+        -2,
+        -2,
+        -1
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        1,
+        3
+      ],
+      "aliases": [
+        "아누비스/best",
+        "아누비스/basic"
+      ],
+      "origin": "campaign_20",
+      "family": "소환",
+      "intent": "우치 분신 소멸을 아누비스 영혼 성장으로 바꾸고 피그말리온·찬드라·세이로 전열을 유지한다."
+    },
+    {
+      "key": "intent_21",
+      "name": "불씨와 온기의 순환",
+      "currentComparison": true,
+      "ids": [
+        81,
+        82,
+        44,
+        64,
+        62
+      ],
+      "xs": [
+        -1,
+        -1,
+        -2,
+        -2,
+        -2
+      ],
+      "ys": [
+        2,
+        3,
+        2,
+        3,
+        1
+      ],
+      "aliases": [
+        "수르트/best",
+        "수르트/basic",
+        "프레이아/best",
+        "프레이아/basic",
+        "archetype/EMBER_RENEWAL"
+      ],
+      "origin": "campaign_21",
+      "family": "캐리·균형",
+      "intent": "수르트의 체력 비용을 프레이아의 실제 치유·온기와 연결하고 아그니 추공·맹화·취약을 보완한다."
+    },
+    {
+      "key": "intent_22",
+      "name": "오리온 · 로키 반격",
+      "currentComparison": true,
+      "ids": [
+        22,
+        122,
+        160,
+        80,
+        1
+      ],
+      "xs": [
+        -1,
+        -2,
+        -2,
+        -2,
+        -1
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        1,
+        3
+      ],
+      "aliases": [
+        "오리온/best",
+        "오리온/basic",
+        "archetype/ORION_SIRIUS"
+      ],
+      "origin": "campaign_22",
+      "family": "추가행동·반격",
+      "intent": "오리온 피격 반격·바스테트 경호에 로키 추격과 마리 치명 지원을 결합한다."
+    },
+    {
+      "key": "intent_23",
+      "name": "설원의 전열",
+      "currentComparison": true,
+      "ids": [
+        83,
+        66,
+        1,
+        64,
+        82
+      ],
+      "xs": [
+        -1,
+        -2,
+        -1,
+        -2,
+        -2
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        3,
+        1
+      ],
+      "aliases": [
+        "스카디/best",
+        "스카디/basic"
+      ],
+      "origin": "campaign_23",
+      "family": "캐리·균형",
+      "intent": "스카디·바루나의 얼음·물 부착을 세이 방호, 바유 취약, 프레이아 치유로 유지한다."
+    },
+    {
+      "key": "intent_24",
+      "name": "사바흐 · 바유 · 히미코 (세이 제외)",
+      "currentComparison": true,
+      "ids": [
+        3,
+        4,
+        64,
+        44,
+        167
+      ],
+      "xs": [
+        -2,
+        -1,
+        -2,
+        -2,
+        -1
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        1,
+        3
+      ],
+      "aliases": [
+        "점검/사바흐_바유히미코",
+        "archetype/SABAH_DUAL_DEBUFFER"
+      ],
+      "origin": "campaign_24",
+      "family": "디버프 캐리",
+      "intent": "세이를 제외하고 바유·히미코 두 디버퍼를 함께 쓰며 가우디가 보호막을 전담한다."
+    },
+    {
+      "key": "intent_25",
+      "name": "출혈 혼합 · 행동 당김",
+      "currentComparison": true,
+      "ids": [
+        164,
+        123,
+        162,
+        45,
+        167
+      ],
+      "xs": [
+        -2,
+        -1,
+        -2,
+        -1,
+        -1
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        3,
+        1
+      ],
+      "aliases": [
+        "archetype/POISON_BLEED",
+        "검증 편성/b48_dot_mixed"
+      ],
+      "origin": "campaign_25",
+      "family": "지속피해",
+      "intent": "맹독·세트 출혈을 츠쿠요미가 증폭하고 아스톨포 적 가속으로 자연 발동을 당긴다."
+    },
+    {
+      "key": "intent_26",
+      "name": "사막 반격 전선",
+      "currentComparison": true,
+      "ids": [
+        123,
+        122,
+        162,
+        1,
+        160
+      ],
+      "xs": [
+        -1,
+        -2,
+        -2,
+        -1,
+        -2
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        3,
+        1
+      ],
+      "aliases": [
+        "archetype/SET_COUNTER_CORE"
+      ],
+      "origin": "campaign_26",
+      "family": "추가행동·반격",
+      "intent": "세트의 피격 반격·출혈에 바스테트와 아스톨포·마리의 추가행동 지원을 붙인다."
+    },
+    {
+      "key": "intent_30",
+      "name": "로카팔라 · 수리야",
+      "currentComparison": true,
+      "ids": [
+        67,
+        64,
+        63,
+        66,
+        60
+      ],
+      "xs": [
+        -2,
+        -2,
+        -2,
+        -1,
+        -1
+      ],
+      "ys": [
+        2,
+        3,
+        1,
+        2,
+        3
+      ],
+      "aliases": [
+        "archetype/LOKAPALA_SUN",
+        "검증 편성/b48_lokapala_surya"
+      ],
+      "origin": "campaign_30",
+      "family": "로카팔라",
+      "intent": "로카팔라 공통 전열과 인드라 묶음 위에서 수리야가 종언탄과 특수 사격을 담당한다."
+    },
+    {
+      "key": "intent_37",
+      "name": "왕실 재보 · 이슈타르",
+      "currentComparison": true,
+      "ids": [
+        220,
+        65,
+        200,
+        64,
+        82
+      ],
+      "xs": [
+        -2,
+        -2,
+        -2,
+        -2,
+        -1
+      ],
+      "ys": [
+        2,
+        3,
+        1,
+        4,
+        2
+      ],
+      "aliases": [
+        "archetype/TREASURY_BARRAGE",
+        "검증 편성/b48_treasury"
+      ],
+      "origin": "campaign_37",
+      "family": "재보",
+      "intent": "쿠베라·만사의 재보 생산·경제·방호로 이슈타르 탄약을 공급하고 바유·프레이아가 지원한다."
+    },
+    {
+      "key": "intent_46",
+      "name": "시 강인도 하이퍼캐리",
+      "currentComparison": true,
+      "ids": [
+        2,
+        1,
+        25,
+        60,
+        44
+      ],
+      "xs": [
+        -2,
+        -1,
+        -1,
+        -2,
+        -2
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        3,
+        1
+      ],
+      "aliases": [
+        "검증 편성/b48_shi_hypercarry",
+        "후보/처형"
+      ],
+      "origin": "campaign_46",
+      "family": "캐리·균형",
+      "intent": "세이·오르페우스 전열이 시를 지키며 가상 처치를 만들고 찬드라·히미코가 단일 화력을 보강한다."
+    },
+    {
+      "key": "intent_49",
+      "name": "출혈 혼합 · 증폭",
+      "currentComparison": true,
+      "ids": [
+        164,
+        165,
+        123,
+        45,
+        167
+      ],
+      "xs": [
+        -2,
+        -2,
+        -1,
+        -1,
+        -1
+      ],
+      "ys": [
+        2,
+        3,
+        2,
+        3,
+        1
+      ],
+      "aliases": [
+        "검증 편성/b48_dot_mixed_amp"
+      ],
+      "origin": "campaign_49",
+      "family": "지속피해",
+      "intent": "적 가속 대신 네프티스·아탈란테·세트를 함께 넣어 맹독·출혈 증폭과 추격을 늘린다."
+    },
+    {
+      "key": "intent_64",
+      "name": "우치 순수 소환 파티",
+      "currentComparison": true,
+      "ids": [
+        180,
+        125,
+        10,
+        20,
+        124
+      ],
+      "xs": [
+        -2,
+        -2,
+        -2,
+        -1,
+        -2
+      ],
+      "ys": [
+        2,
+        3,
+        1,
+        2,
+        4
+      ],
+      "aliases": [
+        "최적/소환"
+      ],
+      "origin": "campaign_64",
+      "family": "소환",
+      "intent": "피그말리온 단독 전열, 우치·이시스·셰익스피어·토트 후열로 순수 소환 생애 순환을 운용한다."
+    },
+    {
+      "key": "intent_65",
+      "name": "우치 아누비스 혼합 파티",
+      "currentComparison": true,
+      "ids": [
+        10,
+        180,
+        121,
+        20,
+        124
+      ],
+      "xs": [
+        -2,
+        -2,
+        -1,
+        -1,
+        -2
+      ],
+      "ys": [
+        2,
+        3,
+        2,
+        3,
+        1
+      ],
+      "aliases": [
+        "최적/소환_혼합"
+      ],
+      "origin": "campaign_65",
+      "family": "소환",
+      "intent": "아누비스·피그말리온 전열과 우치·셰익스피어·토트 후열로 소멸을 영혼 성장과 언어 자원에 연결한다."
+    },
+    {
+      "key": "intent_loki",
+      "name": "펜리르 추격 · 잔 단독 전열",
+      "ids": [
+        80,
+        7,
+        122,
+        160,
+        1
+      ],
+      "xs": [
+        -2,
+        -1,
+        -2,
+        -2,
+        -2
+      ],
+      "ys": [
+        2,
+        2,
+        3,
+        1,
+        4
+      ],
+      "aliases": [
+        "로키/잔/바스테트/마리/세이의 추격 축. 제외된 잔·세이 동시 전열을 쓰지 않음."
+      ],
+      "currentComparison": true,
+      "family": "추가행동·반격",
+      "intent": "로키/잔/바스테트/마리/세이의 추격 축. 제외된 잔·세이 동시 전열을 쓰지 않음."
+    },
+    {
+      "key": "intent_ebisu",
+      "name": "에비스 피해 분담 · 오리온",
+      "ids": [
+        163,
+        22,
+        82,
+        64,
+        160
+      ],
+      "xs": [
+        -1,
+        -1,
+        -2,
+        -2,
+        -2
+      ],
+      "ys": [
+        2,
+        3,
+        2,
+        3,
+        1
+      ],
+      "aliases": [
+        "에비스의 분담·자가 치유와 오리온의 피격을 연결하는 별도 실험 후보. 잔 반격 추천에 넣지 않음."
+      ],
+      "currentComparison": true,
+      "family": "피해분담",
+      "intent": "에비스의 분담·자가 치유와 오리온의 피격을 연결하는 별도 실험 후보. 잔 반격 추천에 넣지 않음."
+    }
+  ]
+}

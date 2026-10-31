@@ -54,6 +54,12 @@ namespace Managers
             if (clearSavedRun) SaveSystem.DeleteSave();
         }
 
+        public void EndFailedRun()
+        {
+            RunActive = false;
+            SaveSystem.DeleteSave();
+        }
+
         /// <summary>
         /// 플레이어가 직접 저장하거나 게임을 끌 때 지금 상태를 저장해도 되는지.
         /// 전투 중에는 쓰러진 아군이 저장본에서 빠지고, 보상 선택 중에는 경험치를 받은 채
@@ -97,8 +103,8 @@ namespace Managers
 
         private void RestoreRun(RunSaveData save)
         {
+            SaveSystem.UpgradeProgression(save);
             RunActive = true;
-            GameManager.Instance.life = save.life;
             GameManager.Instance.KillCount = save.killCount;
             RestoreInventory(save);
             _triggeredEventIds.Clear();
@@ -120,7 +126,6 @@ namespace Managers
             RestoreHeroes(save.heroUnits);
             roundManager.LoadRound(Mathf.Max(1, save.currentStage));
 
-            GameManager.Instance.uiManager?.UpdateLifeText();
             GameManager.Instance.EnterNextStageAfterLoad();
             GameManager.Instance.RestorePreparationState(
                 save.restUsedThisPreparation,
@@ -150,21 +155,18 @@ namespace Managers
                 return;
             }
 
-            ResetUltimateResourcesOnThemeTransition(previousRound);
+            RecoverPartyOnThemeTransition(previousRound);
             GameManager.Instance.EnterNextStageAfterLoad();
             // 새 준비/사건 상태와 초기화된 휴식·상점 횟수를 함께 저장한다.
             SaveCurrentRun();
         }
 
-        /// <summary>1-8 → 2-1처럼 8라운드 테마 라운드가 바뀔 때 궁극기 자원을 완전히 비운다.</summary>
-        private static void ResetUltimateResourcesOnThemeTransition(int previousRound)
+        /// <summary>새 테마 진입은 전원 부활·완전 회복의 안전 지점이다. 초월 자원은 기존처럼 비운다.</summary>
+        private static void RecoverPartyOnThemeTransition(int previousRound)
         {
             if (GameManager.Instance.RoundManager.Round == previousRound) return;
 
-            foreach (Unit hero in GridManager.Instance.heroList)
-            {
-                if (hero != null && hero.isActive && !hero.IsEnemy) hero.ClearUltimateResource();
-            }
+            GameManager.Instance.RecoverPartyForThemeTransition();
         }
 
         private void OnApplicationPause(bool pauseStatus)
@@ -187,7 +189,6 @@ namespace Managers
             {
                 currentStage = roundManager?.Stage ?? 1,
                 currentRound = roundManager?.Round ?? 1,
-                life = GameManager.Instance.life,
                 killCount = GameManager.Instance.KillCount,
                 rerollTicketCount = GameManager.Instance.inventoryManager?.rerollTicketCount ?? 0,
                 gold = GameManager.Instance.inventoryManager?.Gold ?? 0,

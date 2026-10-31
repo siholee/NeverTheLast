@@ -38,13 +38,15 @@ namespace Codes.Ultimate
         public override bool HasValidTarget()=>Caster!=null&&Caster.IsOnField&&Heir!=null;
         protected override IEnumerator Perform()
         {
-            yield return EgyptianReworkFx.Chant(Caster,false,true);
+            yield return EgyptianReworkFx.Chant(Caster,false,true,purchased:true);
             if(Caster==null||!Caster.IsOnField||Caster.isControlled)yield break;
             Unit heir=Heir;if(heir==null)yield break;
             var status=BuffStatus.Create(73521,BuffKey,CodeName,Caster,heir,new RoyalPower(),2,isBeneficial:true,
                 description:"일반행동2회 동안 초월기 피해+30%. 부여 직후 최대 마나30% 충전.");
-            status.NormalActionDuration=true;heir.AddStatus(status);
+            status.NormalActionDuration=true;status.AffectedVfxPartId=StatusAffectedVfx.SuppressPartId;heir.AddStatus(status);
             heir.AddUltimateResource(Mathf.RoundToInt(heir.ManaMax*.30f));
+            PurchasedSupportThreadsFx.Play(Caster,heir,PurchasedSupportThreadsFx.Kind.Order);
+            PurchasedSupportThreadsFx.Play(Caster,heir,PurchasedSupportThreadsFx.Kind.Receive);
             AudioManager.PlayAction(Caster,SfxActionSlot.Ultimate,SfxCuePhase.Hit,CodeName);MarkEffectApplied();
         }
         private sealed class RoyalPower:BaseEffect

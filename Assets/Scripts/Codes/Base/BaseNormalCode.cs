@@ -6,6 +6,7 @@ using Effects.Vfx;
 using Entities;
 using Managers;
 using UnityEngine;
+using Random = Combat.CombatRandom;
 
 namespace Codes.Base
 {
@@ -106,11 +107,14 @@ namespace Codes.Base
         /// 치명타를 굴려 피해 정보를 만든다. 원시 피해는 언제나 100%다 — 지휘 중이면 컨텍스트에 표지를 붙여
         /// 최종 배율만 <see cref="DamageContext.OutgoingDamageMultiplier"/>에 한 번 곱한다.
         /// </summary>
+        protected virtual bool AppliesElementTo(Unit target) => false;
+
         protected DamageContext BuildContext(Unit target)
         {
-            bool crit = RollCritical(target, out float multiplier);
+            bool crit = RollCritical(target, GetDamageTags(), out float multiplier);
             int damage = Mathf.Max(1, Mathf.RoundToInt(BaseDamage(target) * multiplier));
             var context = new DamageContext(Caster, damage, BaseEnums.CodeType.Normal, GetDamageTags(), crit);
+            context.AppliesElement = AppliesElementTo(target);
             StampCommand(context);
             return context;
         }
@@ -202,6 +206,7 @@ namespace Codes.Base
             var probe = new DamageContext(owner, Mathf.Max(1, BaseDamage(target)), BaseEnums.CodeType.Normal, GetDamageTags())
             {
                 OutgoingDamageMultiplier = Combat.CommandedAttackScope.FinalDamageRatio,
+                AppliesElement = AppliesElementTo(target),
             };
             PrepareEstimateProbe(target, probe);
             return Combat.CommandedAttackScope.EstimateFinalDamage(probe, target);
@@ -215,6 +220,9 @@ namespace Codes.Base
                 IsContact ? DamageTag.ContactAttack : DamageTag.NonContactAttack,
             };
             if (AttackForm > 0) tags.Add(AttackForm);
+            var scheduler = GameManager.Instance?.ActionScheduler;
+            if (scheduler?.ExecutingUnit == Caster && ActionScheduler.IsAdditional(scheduler.ActingKind))
+                tags.Add(DamageTag.AdditionalAttack);
             return tags;
         }
     }

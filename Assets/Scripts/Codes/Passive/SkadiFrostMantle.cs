@@ -2,6 +2,7 @@ using System;
 using BaseClasses;
 using Codes.Base;
 using Effects.Buffs;
+using Effects.Vfx;
 using Entities;
 using UnityEngine;
 
@@ -12,6 +13,7 @@ namespace Codes.Passive
     {
         public const string StatusKey = "skadi_frost_mantle";
         public const float ShieldRatio = .60f, AttackBonus = .15f;
+        public override int BaseShieldAmount => StatDamage(0, BaseEnums.StatType.Defense, ShieldRatio);
         private bool _working, _startGranted;
         private Action<EventContext> _normal, _death, _round;
         public SkadiFrostMantle(PassiveCodeContext context) : base(context) => CodeName = "혹한의 외투";
@@ -38,7 +40,12 @@ namespace Codes.Passive
         private void GrantShield()
         {
             if (_working && Caster != null && Caster.isActive && Caster.IsOnField)
+            {
+                int before=Caster.ShieldCurr;
                 Caster.AddShield(Mathf.RoundToInt(Caster.DefCurr * ShieldRatio), Caster);
+                if(Caster.ShieldCurr>before)
+                    PurchasedSupportThreadsFx.Play(Caster,Caster,PurchasedSupportThreadsFx.Kind.Ward);
+            }
         }
         private void ShieldChanged(Unit owner) { if (_working && owner == Caster) Caster.RefreshAttributes(); }
         public override void StopCode()

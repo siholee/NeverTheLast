@@ -8,6 +8,7 @@ namespace Codes.Normal
     /// <summary>바루나 — 일반행동 「금줄」(Detail_08 §16.3). 우선도 단일 적에게 공격력 90%, 물 부착. 제방 보호막은 부착 시점에 특성이 준다.</summary>
     public sealed class VarunaSacredRope : BaseNormalCode
     {
+        protected override bool AppliesElementTo(Unit target) => true;
         private const float AttackRatio = 0.90f;
 
         public override int AttackForm => DamageTag.Spell;

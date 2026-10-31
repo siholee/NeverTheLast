@@ -1,16 +1,18 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
 using Codes.Base;
 using Effects.Base;
 using Effects.Buffs;
 using Entities;
+using Managers;
 
 namespace Codes.Passive.Reward
 {
     /// <summary>
     /// T2 전용 기믹(Detail_17 §4.2) — 617 · 619~630 · 633. 강인도 코드는 ToughnessRewardCodes에서 정의한다.
-    /// 조건이 붙어도 "어떤 공격 · 어떤 대상"의 분류일 뿐 전장 상태를 보지 않는 숫자 하나짜리 효과다.
+    /// 숫자 보정과 소유자 턴당 지원 행동1회인 정화 두 종류를 포함한다.
     /// </summary>
     public static partial class RewardCodes
     {
@@ -18,6 +20,8 @@ namespace Codes.Passive.Reward
         {
             code = codeId switch
             {
+                634 => new SupportCleanseCode(context, control: true),
+                635 => new SupportCleanseCode(context, control: false),
                 633 => new FeintCode(context),
                 617 => new PlagueCurseCode(context),
                 619 => new SummonerAdeptCode(context),
@@ -37,7 +41,67 @@ namespace Codes.Passive.Reward
         }
     }
 
-    /// <summary>617 역병의 저주 — 자신이 부여한 지속피해 +15%. 상위 811.</summary>
+    /// <summary>소유자 턴마다 한 지원 행동의 대상들을 정화한다. 두 코드는 각자의 재사용 제한을 가진다.</summary>
+    public sealed class SupportCleanseCode : RewardPassiveCode
+    {
+        private readonly bool _control;
+        private readonly HashSet<Unit> _cleansed = new();
+        private int _spentTurn = int.MinValue, _supportActionId = -1;
+        private Unit _supportActor;
+        public SupportCleanseCode(PassiveCodeContext context, bool control) : base(context, control ? 634 : 635)
+            => _control = control;
+        protected override void OnCast()
+        {
+            _spentTurn = int.MinValue;
+            _supportActionId = -1;
+            _supportActor = null;
+            _cleansed.Clear();
+            if (_control) Unit.AnyHealed += OnHealed;
+            else Unit.AnyShieldGranted += OnShielded;
+        }
+        protected override void OnStop()
+        {
+            Unit.AnyHealed -= OnHealed;
+            Unit.AnyShieldGranted -= OnShielded;
+            _cleansed.Clear();
+            _supportActor = null;
+        }
+        private void OnHealed(Unit target, Unit source, int effective, int overflow)
+        {
+            // 체력이 가득 차도 유효한 치유가 도달하면 정화한다. 회복량0인 호출은 이벤트 자체가 없다.
+            if (effective > 0 || overflow > 0) TryCleanse(target, source);
+        }
+        private void OnShielded(Unit target, Unit source, int amount)
+        {
+            if (amount > 0) TryCleanse(target, source);
+        }
+        private void TryCleanse(Unit target, Unit source)
+        {
+            if (!HolderWorking || source != Caster || target == null || !target.IsOnField ||
+                !target.isActive || target.IsEnemy != Caster.IsEnemy) return;
+            var scheduler = GameManager.Instance?.ActionScheduler;
+            Unit actor = scheduler?.ExecutingUnit;
+            int actionId = actor != null ? scheduler.CurrentActionId : -1;
+            bool spent = _spentTurn == Caster.TurnCount;
+            // 행동 밖 직접 지원 호출은 단일 지원 한 번이다. 프레임/시간으로 광역이나 재사용을 추측하지 않는다.
+            if (spent && (actor == null || actor != _supportActor || actionId != _supportActionId)) return;
+            if (spent && _cleansed.Contains(target)) return;
+            bool removable = target.GetAllStatuses().Any(status => status.CountsAsDebuff && status.IsControl == _control) ||
+                             _control && target.isControlled;
+            if (!removable) return; // 정화할 것이 없으면 그 턴의 사용권을 남긴다.
+            if (!spent)
+            {
+                _spentTurn = Caster.TurnCount;
+                _supportActor = actor;
+                _supportActionId = actionId;
+                _cleansed.Clear();
+            }
+            _cleansed.Add(target); // OnRemove가 새 지원 이벤트를 내도 같은 대상을 재귀 정화하지 않는다.
+            target.CleanseDebuffs(_control, Caster);
+        }
+    }
+
+    /// <summary>617 역병의 저주 — 자신이 부여한 지속피해 +30%. 상위 811.</summary>
     public sealed class PlagueCurseCode : RewardPassiveCode
     {
         public PlagueCurseCode(PassiveCodeContext context) : base(context, 617) { }
@@ -46,7 +110,7 @@ namespace Codes.Passive.Reward
         {
             // 즉발 반응과 구분한다. 자연 틱과 즉시 발동은 모두 원 생성자의 지속피해다.
             AddStatus(Caster, new ConditionalOutgoingDamageMultiplierEffect(
-                damage => damage?.IsDamageOverTime == true, 1.15f));
+                damage => damage?.IsDamageOverTime == true, 1.30f));
         }
     }
 

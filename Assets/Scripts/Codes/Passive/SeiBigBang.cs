@@ -8,6 +8,7 @@ using Effects.Vfx;
 using Entities;
 using Managers;
 using UnityEngine;
+using Random = Combat.CombatRandom;
 
 namespace Codes.Passive
 {
@@ -22,7 +23,7 @@ namespace Codes.Passive
     ///   · 조각은 조각마다 대상을 새로 뽑고, <b>대상 우선도(도발 · 전열)를 무시한다.</b>
     ///   · 파쇄는 추가행동이다. 결정이 찬 즉시 줄을 서고, 시전하는 순간 7개를 모두 태운다.
     ///     줄을 서 있는 동안에는 더 쌓이지 않는다(상한 7).
-    ///   · 추가행동이 끝나면 아군 전체에게 <c>100 + 방어력의 5%</c> 보호막을 두른다.
+    ///   · 추가행동이 끝나면 아군 전체에게 <c>125 + 방어력의 7.5%</c> 보호막을 두른다.
     ///     보호막을 두른 아군이 맞아야 다시 쌓이므로, 한 번 터지면 다음 빅뱅의 재료가 스스로 깔린다.
     /// </summary>
     public sealed class SeiBigBang : UniquePassiveCode
@@ -32,8 +33,9 @@ namespace Codes.Passive
         public const string ResourceId = "sei_genesis_crystal";
         public const int Threshold = 7;
         private const float ShardDefenseRatio = 0.25f;
-        private const float ShieldFlat = 100f;
-        private const float ShieldDefenseRatio = 0.05f;
+        private const float ShieldFlat = 125f;
+        private const float ShieldDefenseRatio = 0.075f;
+        public override int BaseShieldAmount => StatDamage(ShieldFlat, BaseEnums.StatType.Defense, ShieldDefenseRatio);
 
         private bool _subscribed;
 
@@ -136,12 +138,10 @@ namespace Codes.Passive
         private void HitShard(Unit target)
         {
             if (target == null || !target.isActive || Caster == null) return;
-            bool crit = RollCritical(target, out float multiplier);
+            var tags = new List<int> { DamageTag.MultiTarget, DamageTag.AdditionalAttack, DamageTag.PassiveAttack, DamageTag.NonContactAttack, DamageTag.Spell };
+            bool crit = RollCritical(target, tags, out float multiplier);
             int damage = Mathf.Max(1, Mathf.RoundToInt(StatDamage(0f, BaseEnums.StatType.Defense, ShardDefenseRatio) * multiplier));
-            target.TakeDamage(new DamageContext(Caster, damage, BaseEnums.CodeType.Passive, new List<int>
-            {
-                DamageTag.MultiTarget, DamageTag.PassiveAttack, DamageTag.NonContactAttack, DamageTag.Spell,
-            }, crit));
+            target.TakeDamage(new DamageContext(Caster, damage, BaseEnums.CodeType.Passive, tags, crit));
         }
 
         private List<Unit> AliveAllies()

@@ -6,6 +6,19 @@ using UnityEngine;
 
 namespace Effects.Buffs
 {
+    /// <summary>공통 명중을 통과한 적대 해로운 상태 한 번을 확정 저항한다.</summary>
+    public sealed class NegativeStatusWardEffect : BaseEffect
+    {
+        private bool _available = true;
+        public NegativeStatusWardEffect() : base(0) { }
+        public override float NegativeStatusResistanceChanceModifier(Unit unit, Entities.Status.UnitStatus status)
+        {
+            if (unit != Target || !_available) return 0;
+            _available = false;
+            return 1;
+        }
+    }
+
     /// <summary>
     /// 조건 없이 값 하나만 곱하거나 더하는 효과들의 공용 구현.
     ///

@@ -101,3 +101,9 @@ __pycache__/
 /Assets/Hovl Studio.meta
 /Assets/Resources/VfxPrefabs/Hovl/
 /Assets/Resources/VfxPrefabs/Hovl.meta
+/Assets/Resources/VfxTex/PurchasedArcher/
+/Assets/Resources/VfxTex/PurchasedArcher.meta
+
+# 독립 전투 시뮬레이터의 .NET 생성물
+/Tools/BalanceSim/**/bin/
+/Tools/BalanceSim/**/obj/

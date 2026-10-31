@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Entities;
+using Managers.Stage;
 using UnityEngine;
 using UnityEngine.EventSystems;
 #if ENABLE_INPUT_SYSTEM
@@ -279,7 +280,15 @@ namespace Managers
                 if(unit==null || !unit.isActive || unit.currentCell==null || !unit.IsOnField)return;
                 Cell cell=unit.currentCell;
                 var card=cell.Card;
-                if(!card.PortraitFocusScreenRect(camera).Contains(screen) && !card.HudScreenRect(camera).Contains(screen))return;
+                bool hit = card.PortraitFocusScreenRect(camera).Contains(screen) || card.HudScreenRect(camera).Contains(screen);
+                if (VisualModeState.Current == VisualMode.Stage && card.StageProxy != null)
+                {
+                    Bounds bounds = card.StageProxy.Lower.bounds;
+                    if (card.StageProxy.Deform) bounds.Encapsulate(card.StageProxy.Head.bounds);
+                    Vector3 low = camera.WorldToScreenPoint(bounds.min), high = camera.WorldToScreenPoint(bounds.max);
+                    hit = Rect.MinMaxRect(low.x, low.y, high.x, high.y).Contains(screen) || card.StageHudHitRect(camera).Contains(screen);
+                }
+                if (!hit) return;
                 if(visible==null || cell.DepthOrder>visible.DepthOrder)visible=cell;
             }
             GridManager grid=GridManager.Instance;

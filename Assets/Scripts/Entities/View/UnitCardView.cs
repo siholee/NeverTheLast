@@ -8,6 +8,7 @@ using Effects;
 using Effects.Vfx;
 using Entities.Status;
 using Managers;
+using Managers.Stage;
 using Managers.UI.Core;
 using Managers.UI.Theme;
 using TMPro;
@@ -36,7 +37,7 @@ namespace Entities.View
     /// 그 위에 피격 반응(밀림 · 떨림)이 얹힌다. 그림자는 루트에 남아 들린 높이를 말해 준다.
     /// </summary>
     [DisallowMultipleComponent]
-    public sealed class UnitCardView : MonoBehaviour
+    public sealed partial class UnitCardView : MonoBehaviour
     {
         /// <summary>칸 한 변 대비 카드 한 변의 비율.</summary>
         public const float CardRatio = 0.96f;
@@ -109,9 +110,21 @@ namespace Entities.View
         private int _sortBoost;
 
         private Transform _body;
+        private StageFigure _stageFigure;
+        private bool _stagePortraitHidden, _cardPortraitEnabled;
+        private bool _stageUltimate;
+        public StageFigure StageProxy => VisualModeState.Current == VisualMode.Stage && _stageFigure != null &&
+            _stageFigure.gameObject.activeSelf ? _stageFigure : null;
+        private bool IsStage => VisualModeState.Current == VisualMode.Stage;
+        private float StageMotion(float normalPx, float ultimatePx) => (_stageUltimate ? ultimatePx : normalPx) *
+            StageLayout.WorldHeight / StageLayout.HeightPx / Mathf.Max(.001f, transform.lossyScale.x);
         private bool _pointerHovered, _pointerPressed;
         private float _pointerScale=1f;
-        public void SetPointerFeedback(bool hovered,bool pressed) { _pointerHovered=hovered; _pointerPressed=pressed; }
+        public void SetPointerFeedback(bool hovered,bool pressed)
+        {
+            _pointerHovered=hovered; _pointerPressed=pressed;
+            StageUnitFocus.Set(this, _unit, hovered);
+        }
         private SpriteRenderer _shadow;
         private SpriteRenderer _auraGlow;
         private SpriteRenderer _portrait;
@@ -154,6 +167,10 @@ namespace Entities.View
         private Image _toughnessFill;
         private Image _hpTrack;
         private Image _hpFill;
+        private Image _hpDamageTrail;
+        private float _observedHpRatio = -1f;
+        private int _observedHpMax = -1;
+        private float _hpTrailRatio, _hpTrailHold, _hpTrailSpeed;
         private Image _shieldFill;
         private Image _actionTrack;
         private Image _actionFill;
@@ -198,6 +215,7 @@ namespace Entities.View
         private static Sprite _neutralGlyphSprite;
         private static readonly Dictionary<Sprite, Sprite> FadedPortraits = new();
         private static readonly Dictionary<Sprite, Sprite> PortraitSources = new();
+        private static readonly Dictionary<Sprite, Vector3[]> PortraitContactRows = new();
 
         // 패널이 시작되는 높이부터 실제 밑변까지 지우고, 하단에서 긴 직선으로 잘린 원화만
         // 좌우 모서리도 함께 녹인다. 짧은 발·꼬리 끝은 절단선으로 오인하지 않는다.
@@ -228,6 +246,8 @@ namespace Entities.View
         private float _vfxLightDuration;
         private float _lunge;
         private Vector3 _lungeDirection = Vector3.right;
+        private float _rangedDrawAge=-1f,_rangedDrawRelease,_rangedDrawStrength,_rangedDrawStartedAt;
+        private Vector3 _rangedDrawDirection=Vector3.right;
         private float _vfxKick;
         private float _vfxKickStrength;
         private Vector3 _vfxKickDirection = Vector3.right;
@@ -252,16 +272,60 @@ namespace Entities.View
 
         private void OnEnable()
         {
+            VisualModeState.Changed += OnVisualModeChanged;
+            ActionScheduler.AnyActionStarted += OnStageActionStarted;
+            ActionScheduler.AnyActionFinished += OnStageActionFinished;
+            Unit.AnyUltimateCast += OnStageUltimate;
             // Play 중 스크립트 재컴파일 뒤에는 런타임 생성 계층은 복원되지만, 새 배열 필드의
             // 원소는 복원되지 않을 수 있다. 완성된 캔버스처럼 보이는 반쪽 HUD를 여기서 바로 수선한다.
             if (_body != null && !HudIsComplete()) RebuildHud();
+            if (_body != null) OnVisualModeChanged(VisualModeState.Current);
+        }
+
+        private void OnDisable()
+        {
+            UltimateCutIn.Stop(_unit);
+            StageUnitFocus.Set(this, _unit, false);
+            VisualModeState.Changed -= OnVisualModeChanged;
+            ActionScheduler.AnyActionStarted -= OnStageActionStarted;
+            ActionScheduler.AnyActionFinished -= OnStageActionFinished;
+            Unit.AnyUltimateCast -= OnStageUltimate;
+            if (_stageFigure != null) _stageFigure.SetVisible(false);
+        }
+
+        private void OnStageActionStarted(Unit unit, ActionScheduler.ActionKind kind, string label)
+        {
+            if (unit != _unit) return;
+            _stageUltimate = kind == ActionScheduler.ActionKind.Ultimate;
+        }
+        private void OnStageActionFinished(Unit unit, ActionScheduler.ActionKind kind)
+        {
+            if (unit != _unit) return;
+            _stageUltimate = false;
+            if (kind == ActionScheduler.ActionKind.Ultimate) UltimateCutIn.Stop(unit);
+        }
+        private void OnStageUltimate(Unit unit) { if (unit == _unit) _stageUltimate = true; }
+
+        private void OnVisualModeChanged(VisualMode mode)
+        {
+            if (mode != VisualMode.Stage) UltimateCutIn.Stop(_unit);
+            if (_body == null || !HudIsComplete()) return;
+            StageUnitFocus.Clear();
+            RestoreStageHud();
+            if (_stageFigure != null) _stageFigure.SetVisible(false);
+            LayOut(_cardSize);
+            LayOutPortrait();
+            ApplyHudVisibility();
+            Tick();
+            if (_stageFigure != null) _shadow.enabled = _unit != null && !IsStage;
+            ApplyTransforms();
         }
 
         /// <summary>돌진처럼 카드가 스스로 움직이는 중인가. 이 동안에는 들린 상태를 반응이 건드리지 않는다.</summary>
         public bool IsPerformingMotion { get; private set; }
 
         /// <summary>카드 몸체의 월드 중심. 투사체의 출발점과 착탄점이다.</summary>
-        public Vector3 CenterWorld => _body != null ? _body.position : transform.position;
+        public Vector3 CenterWorld => StageProxy != null ? StageProxy.ChestWorld : _body != null ? _body.position : transform.position;
 
         /// <summary>하네스가 카드와 전투 로그를 같은 유닛 ID로 묶을 때 쓴다.</summary>
         public Unit BoundUnit => _unit;
@@ -271,13 +335,20 @@ namespace Entities.View
         /// Unity 화면 좌표라 원점은 좌하단이며, PNG 분석기는 높이에서 y를 빼서 사용한다.
         /// </summary>
         /// <summary>자세·피격 모션이 바뀌어도 실제 원화 상단 72% 중심에 피격 앵커를 놓는다.</summary>
-        public Vector3 PortraitFocusWorldPoint => _portrait != null
+        public Vector3 PortraitFocusWorldPoint => StageProxy != null ? StageProxy.ChestWorld : _portrait != null
             ? _portrait.bounds.center + Vector3.up * (_portrait.bounds.size.y * 0.14f)
             : transform.position;
 
         /// <summary>다중 타격의 분산을 살리되 충돌점은 실제 원화 상체 안에 둔다.</summary>
         public Vector3 ClampPortraitHitPoint(Vector3 point)
         {
+            if (StageProxy != null)
+            {
+                Bounds lower = StageProxy.LowerWorldBounds;
+                point.x = Mathf.Clamp(point.x, lower.min.x, lower.max.x);
+                point.y = Mathf.Clamp(point.y, lower.min.y, lower.max.y);
+                return point;
+            }
             if (_portrait == null) return point;
             Bounds bounds = _portrait.bounds;
             float inset = Mathf.Min(bounds.size.x, bounds.size.y) * .04f;
@@ -286,8 +357,84 @@ namespace Entities.View
             return point;
         }
 
+        /// <summary>하단 몸통 띠의 실제 불투명 연속 구간에 접점을 붙인다. 무기·깃털의 바깥 bounds는 피한다.</summary>
+        internal Vector3 SnapPortraitContactPoint(Vector3 desired, float hudTop)
+        {
+            if (StageProxy != null) return ClampPortraitHitPoint(desired);
+            if(_portrait==null||_portrait.sprite==null||!PortraitContactRows.TryGetValue(_portrait.sprite,out var rows))
+                return ClampPortraitHitPoint(desired);
+            var pose=_portrait.transform;
+            Vector3 local=pose.InverseTransformPoint(desired),best=desired;
+            float score=float.PositiveInfinity;
+            float top=Mathf.Lerp(hudTop,_portrait.bounds.max.y,.38f);
+            foreach(Vector3 row in rows)
+            {
+                // x/z는 해당 행에서 가장 넓은 불투명 덩어리의 양 끝이다.
+                float left=_portrait.flipX?-row.z:row.x,right=_portrait.flipX?-row.x:row.z;
+                float inset=(right-left)*.12f;
+                var candidate=pose.TransformPoint(new Vector3(Mathf.Clamp(local.x,left+inset,right-inset),row.y,0f));
+                if(candidate.y<hudTop+.025f*Cell.CardSize||candidate.y>top)continue;
+                float distance=(candidate-desired).sqrMagnitude;
+                if(distance>=score)continue;
+                score=distance;best=candidate;
+            }
+            best.z=0f;return best;
+        }
+
+        internal bool TryAuthoredPortraitContact(out Vector3 point)
+        {
+            point=default;
+            if (IsStage) return false;
+            var profile=VfxDefinitionCatalog.PortraitContact(_portrait?.sprite?.name);
+            if(profile==null)return false;
+            point=PortraitUvToWorld(profile.anchorX,profile.anchorY);point.z=0f;
+            return true;
+        }
+
+        internal Bounds VisiblePortraitBounds()
+        {
+            if (StageProxy != null) return StageProxy.LowerWorldBounds;
+            if(_portrait==null||_portrait.sprite==null)return new Bounds(transform.position,Vector3.zero);
+            if(!PortraitContactRows.TryGetValue(_portrait.sprite,out var rows)||rows.Length==0)return _portrait.bounds;
+            Bounds bounds=default;bool found=false;
+            float floor=VfxSpace.PortraitHudTop(_unit);
+            foreach(Vector3 row in rows)
+            {
+                float left=_portrait.flipX?-row.z:row.x,right=_portrait.flipX?-row.x:row.z;
+                Vector3 a=_portrait.transform.TransformPoint(new Vector3(left,row.y,0f));
+                Vector3 b=_portrait.transform.TransformPoint(new Vector3(right,row.y,0f));
+                if(Mathf.Max(a.y,b.y)<floor)continue;
+                if(!found){bounds=new Bounds(a,Vector3.zero);found=true;}
+                bounds.Encapsulate(a);bounds.Encapsulate(b);
+            }
+            return found?bounds:_portrait.bounds;
+        }
+
+        internal Vector4 PortraitFaceWorldRect()
+        {
+            if (StageProxy != null)
+            {
+                Bounds head = StageProxy.VisibleHeadWorldBounds;
+                return new Vector4(head.min.x, head.min.y, head.max.x, head.max.y);
+            }
+            var p=VfxDefinitionCatalog.PortraitContact(_portrait?.sprite?.name);
+            if(p==null||p.faceMaxX<=p.faceMinX||p.faceMaxY<=p.faceMinY)return Vector4.zero;
+            Vector3 a=PortraitUvToWorld(p.faceMinX,p.faceMinY),b=PortraitUvToWorld(p.faceMaxX,p.faceMaxY);
+            return new Vector4(Mathf.Min(a.x,b.x),Mathf.Min(a.y,b.y),Mathf.Max(a.x,b.x),Mathf.Max(a.y,b.y));
+        }
+
+        private Vector3 PortraitUvToWorld(float x,float y)
+        {
+            Sprite sprite=_portrait.sprite;
+            Vector3 local=new((Mathf.Clamp01(x)*sprite.rect.width-sprite.pivot.x)/sprite.pixelsPerUnit,
+                (Mathf.Clamp01(y)*sprite.rect.height-sprite.pivot.y)/sprite.pixelsPerUnit,0f);
+            if(_portrait.flipX)local.x=-local.x;if(_portrait.flipY)local.y=-local.y;
+            return _portrait.transform.TransformPoint(local);
+        }
+
         public Rect PortraitFocusScreenRect(Camera camera)
         {
+            if (StageProxy != null) return StageBoundsScreenRect(StageProxy.HeadWorldBounds, camera);
             if (camera == null || _portrait == null || !_portrait.enabled) return default;
             Bounds bounds = _portrait.bounds;
             float focusBottom = Mathf.Lerp(bounds.min.y, bounds.max.y, 0.28f);
@@ -300,6 +447,7 @@ namespace Entities.View
         /// <summary>상태 알림이 피해야 하는 이름·체력 판의 실제 화면 영역.</summary>
         public Rect HudScreenRect(Camera camera)
         {
+            if (StageProxy != null) return StageHudHitRect(camera);
             if (camera == null || _glassTint == null || !_glassTint.gameObject.activeInHierarchy || _unit == null) return default;
             var corners = new Vector3[4];
             _glassTint.rectTransform.GetWorldCorners(corners);
@@ -310,6 +458,35 @@ namespace Entities.View
                 min = Vector2.Min(min, point); max = Vector2.Max(max, point);
             }
             return Rect.MinMaxRect(min.x - 4, min.y - 4, max.x + 4, max.y + 4);
+        }
+
+        /// <summary>전투 숫자·알림이 피해야 하는 원소/초월 원형 HUD의 실제 영역.</summary>
+        public Rect ResourceBadgeScreenRect(Camera camera)
+        {
+            if (StageProxy != null)
+            {
+                if (camera == null || _resourceBadgeText == null || !_resourceBadgeText.enabled ||
+                    !_resourceBadgeText.gameObject.activeInHierarchy) return default;
+                var points = new Vector3[4]; _resourceBadgeText.rectTransform.GetWorldCorners(points);
+                Vector2 low = camera.WorldToScreenPoint(points[0]), high = camera.WorldToScreenPoint(points[2]);
+                return Rect.MinMaxRect(low.x, low.y, high.x, high.y);
+            }
+            if(camera==null||_unit==null||_ultRoot==null||!_ultRoot.gameObject.activeInHierarchy)return default;
+            var corners=new Vector3[4];_ultRoot.GetWorldCorners(corners);
+            Vector2 min=new(float.PositiveInfinity,float.PositiveInfinity),max=new(float.NegativeInfinity,float.NegativeInfinity);
+            foreach(Vector3 corner in corners)
+            {
+                Vector2 point=camera.WorldToScreenPoint(corner);
+                min=Vector2.Min(min,point);max=Vector2.Max(max,point);
+            }
+            return Rect.MinMaxRect(min.x-6f,min.y-6f,max.x+6f,max.y+6f);
+        }
+
+        private static Rect StageBoundsScreenRect(Bounds bounds, Camera camera)
+        {
+            if (camera == null) return default;
+            Vector2 low = camera.WorldToScreenPoint(bounds.min), high = camera.WorldToScreenPoint(bounds.max);
+            return Rect.MinMaxRect(low.x, low.y, high.x, high.y);
         }
 
         /// <summary>칸에 카드 뷰를 붙인다(이미 있으면 그대로 쓴다).</summary>
@@ -655,6 +832,8 @@ namespace Entities.View
             _hpTrack.sprite = UIShapes.RoundedRect(1, new Color(0.71f, 0.75f, 0.80f, 0.38f));
             _hpTrack.type = Image.Type.Sliced;
             Place(_hpTrack.rectTransform, 6f, HpTop - GlassTop, GlassWidth - 12f, HpHeight);
+            _hpDamageTrail = NewImage(_hpTrack.transform, "HpDamageTrail", new Color(1f, .82f, .53f, .96f));
+            _hpDamageTrail.raycastTarget = false;
             _hpFill = NewImage(_hpTrack.transform, "HpFill", UITheme.Hp);
             _shieldFill = NewImage(_hpTrack.transform, "ShieldFill", new Color(0.87f, 0.94f, 1f, 0.98f));
             Image sheen = UIBuild.Solid("Sheen", _hpTrack.transform, new Color(1f, 1f, 1f, 0.22f));
@@ -745,7 +924,7 @@ namespace Entities.View
                    _ultReadyRing != null && _resourceBadge != null && _resourceBadgeDigit != null &&
                    _resourceBadgeText != null && _strongShotText != null && _suryaResourcePlate != null &&
                     _bottomGlass != null && _bottomGlassShadow != null &&
-                   _glassTint != null && _hpTrack != null && _hpFill != null && _shieldFill != null &&
+                   _glassTint != null && _hpTrack != null && _hpFill != null && _hpDamageTrail != null && _shieldFill != null &&
                    _actionTrack != null && _actionFill != null &&
                    AllAlive(_dots, MaxDots) && AllAlive(_dotBacks, MaxDots) &&
                    AllAlive(_dotRims, MaxDots) && AllAlive(_dotArrows, MaxDots) &&
@@ -830,6 +1009,7 @@ namespace Entities.View
             _actionGateRim = null;
             _hpTrack = null;
             _hpFill = null;
+            _hpDamageTrail = null;
             _shieldFill = null;
             _actionTrack = null;
             _actionFill = null;
@@ -873,7 +1053,7 @@ namespace Entities.View
             canvasRect.localPosition = new Vector3(0f, s * 0.5f, -0.01f);
             var orbCanvasRect = (RectTransform)_orbCanvas.transform;
             orbCanvasRect.localScale = Vector3.one * (s / CanvasWidth);
-            orbCanvasRect.localPosition = new Vector3(0f, s * 0.5f, -0.005f);
+            AlignPortraitGauge();
         }
 
         private void LayOutNameLabel(float s, bool compact)
@@ -916,6 +1096,8 @@ namespace Entities.View
         public sealed class ResourceHudDiagnostic
         {
             public int unitId, ammo, maximum, strong;
+            public string badgeResourceId;
+            public int badgeValue, badgeMaximum;
             public bool combatHud, bodyActive, ammoEnabled, strongEnabled, ammoMeshVisible, strongMeshVisible;
             public string unitName, nameText, ammoText, strongText, font, nameFont, strongFont, sorting;
             public int ammoCharacters, strongCharacters, nameCharacters;
@@ -942,6 +1124,9 @@ namespace Entities.View
             return new ResourceHudDiagnostic
             {
                 unitId = _unit.ID, unitName = _unit.UnitName, nameText = _nameLabel.text, nameFont = _nameLabel.font?.name, nameCharacters = _nameLabel.textInfo.characterCount,
+                badgeResourceId = BadgeResourceId(_unit),
+                badgeValue = _unit.ID == 65 ? _unit.ManaCurr : _unit.GetCombatResource(BadgeResourceId(_unit)),
+                badgeMaximum = _unit.ID == 65 ? 8 : _unit.GetCombatResourceMaximum(BadgeResourceId(_unit)),
                 ammo = _unit.GetCombatResource(Codes.Passive.SuryaBeforeSunset.BulletResourceId),
                 maximum = _unit.GetCombatResourceMaximum(Codes.Passive.SuryaBeforeSunset.BulletResourceId),
                 strong = _unit.GetCombatResource(Codes.Passive.SuryaBeforeSunset.EmpoweredResourceId),
@@ -974,11 +1159,11 @@ namespace Entities.View
             if (_resourceBadgeText == null) return;
             float hud=BottomHudSize(s), scale=_compactHud ? _hudPixelScale : 1f;
             float y=s*(.5f-GlassCenterY/CanvasWidth)+hud*(GlassCenterY-(GlassTop+9.5f))/CanvasWidth;
-            PlaceLabel(_resourceBadgeText,new Vector2(-hud*.225f,y),new Vector2(hud*.38f,hud*.14f*scale),hud*.72f*scale);
+            PlaceLabel(_resourceBadgeText,new Vector2(-hud*.225f,y),new Vector2(hud*.38f,hud*.14f*scale),hud*.75f*scale);
             _resourceBadgeText.alignment=TextAlignmentOptions.MidlineLeft;
             _resourceBadgeText.enableAutoSizing=true;
             _resourceBadgeText.fontSizeMin=hud*.60f*scale;
-            _resourceBadgeText.fontSizeMax=hud*.72f*scale;
+            _resourceBadgeText.fontSizeMax=hud*.75f*scale;
             _resourceBadgeText.outlineWidth=0f;
         }
 
@@ -1008,10 +1193,16 @@ namespace Entities.View
         {
             if (_body == null) return;
             int o = _baseOrder + _sortBoost;
+            if (IsStage && _stageHudActive)
+            {
+                ApplyStageHudSorting(o);
+                return;
+            }
 
             SetOrder(_shadow, o);
             SetOrder(_auraGlow, o);
             SetOrder(_portrait, o + 3);
+            _stageFigure?.ApplyDepth(o, _layerId);
 
             // 큰 초월기 원은 원화 뒤, 체력·상태 정보는 앞에 놓는다.
             int hudLayer = SortingLayer.NameToID("CombatHud");
@@ -1067,6 +1258,32 @@ namespace Entities.View
         public void LayOutPortrait()
         {
             if (_portrait == null) return;
+            if (IsStage)
+            {
+                if (!_stagePortraitHidden) _cardPortraitEnabled = _portrait.enabled;
+                _stagePortraitHidden = true;
+                _portrait.enabled = false;
+                Sprite stageSource = _portrait.sprite;
+                if (stageSource != null)
+                {
+                    if (PortraitSources.TryGetValue(stageSource, out Sprite original) && original != null) stageSource = original;
+                    // 카드 렌더러는 흉상이다. SD는 같은 캐릭터의 전신 스탠딩 원본을 사용한다.
+                    stageSource = Helpers.SpriteResource.LoadStanding(stageSource.name.Replace("_PORTRAIT", "_STANDING")) ?? stageSource;
+                    if (_stageFigure == null)
+                    {
+                        var figure = new GameObject("StageFigure");
+                        figure.transform.SetParent(_body, false);
+                        _stageFigure = figure.AddComponent<StageFigure>();
+                    }
+                    _stageFigure.Configure(stageSource, _unit, transform);
+                    _stageFigure.ApplyDepth(_baseOrder + _sortBoost, _layerId);
+                    ConfigureStageHud();
+                }
+                return;
+            }
+            _stageFigure?.SetVisible(false);
+            if (_stagePortraitHidden) _portrait.enabled = _cardPortraitEnabled;
+            _stagePortraitHidden = false;
             ApplyPortraitBottomFade();
             Sprite sprite = _portrait.sprite;
             if (sprite == null)
@@ -1093,7 +1310,18 @@ namespace Entities.View
             float scale = Mathf.Min(fit / size.x, fit / size.y);
             center *= scale;
             _portrait.transform.localScale = new Vector3(scale, scale, 1f);
-            _portrait.transform.localPosition = new Vector3(-center.x, -center.y, 0f);
+            // 머리 장식이 큰 원화는 몸통이 HP판 아래에 묻히지 않도록 등록된 여백만큼 세운다.
+            // 원화 자체·크기·카드/HUD·전투 좌표는 그대로이며, 반복 레이아웃에도 누적하지 않는다.
+            float lift=Mathf.Clamp(VfxDefinitionCatalog.PortraitContact(sprite.name)?.presentationLiftInCards??0f,0f,.25f);
+            _portrait.transform.localPosition = new Vector3(-center.x, -center.y+lift*_cardSize, 0f);
+            AlignPortraitGauge();
+        }
+
+        private void AlignPortraitGauge()
+        {
+            if(_orbCanvas==null)return;
+            float lift=Mathf.Clamp(VfxDefinitionCatalog.PortraitContact(_portrait?.sprite?.name)?.presentationLiftInCards??0f,0f,.25f);
+            ((RectTransform)_orbCanvas.transform).localPosition=new Vector3(0f,_cardSize*(.5f+lift),-.005f);
         }
 
         /// <summary>
@@ -1211,6 +1439,7 @@ namespace Entities.View
                     source.pixelsPerUnit, 0, SpriteMeshType.FullRect, source.border);
                 faded.name = $"{source.name}_HudFade";
                 faded.hideFlags = HideFlags.HideAndDontSave;
+                PortraitContactRows[faded]=BuildPortraitContactRows(pixels,width,height,source.pivot,source.pixelsPerUnit);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 double elapsedMs = (System.Diagnostics.Stopwatch.GetTimestamp() - startedAt)
                     * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
@@ -1232,6 +1461,28 @@ namespace Entities.View
                 RenderTexture.active = previous;
                 RenderTexture.ReleaseTemporary(temporary);
             }
+        }
+
+        private static Vector3[] BuildPortraitContactRows(Color32[] pixels,int width,int height,Vector2 pivot,float ppu)
+        {
+            var rows=new List<Vector3>(64);
+            for(int sample=0;sample<64;sample++)
+            {
+                int y=Mathf.Min(height-1,Mathf.FloorToInt((sample+.5f)*height/64f));
+                int start=-1,bestStart=0,bestLength=0;
+                for(int x=0;x<=width;x++)
+                {
+                    bool opaque=x<width&&pixels[y*width+x].a>=128;
+                    if(opaque&&start<0)start=x;
+                    if(opaque||start<0)continue;
+                    if(x-start>bestLength){bestStart=start;bestLength=x-start;}
+                    start=-1;
+                }
+                if(bestLength<Mathf.Max(3,width/40))continue;
+                rows.Add(new Vector3((bestStart+.5f-pivot.x)/ppu,(y+.5f-pivot.y)/ppu,
+                    (bestStart+bestLength-.5f-pivot.x)/ppu));
+            }
+            return rows.ToArray();
         }
 
         private static void FindOpaqueBounds(Color32[] pixels, int width, int height,
@@ -1437,7 +1688,7 @@ namespace Entities.View
         public void RefreshPortraitBase() => LayOutPortrait();
 
         public Sprite PortraitSprite => _portrait != null ? _portrait.sprite : null;
-        internal SpriteRenderer PortraitRenderer => _portrait;
+        internal SpriteRenderer PortraitRenderer => StageProxy != null ? StageProxy.Lower : _portrait;
         internal Transform Body => _body;
         internal float CardSize => _cardSize;
         internal int LayerId => _layerId;
@@ -1446,10 +1697,19 @@ namespace Entities.View
         /// 사망 직후 칸이 비워져도 원화와 두 HUD 캔버스를 같은 박자로 지울 수 있도록 몸체 전체를 뜬다.
         /// 직전 <see cref="Tick"/>이 체력 0 카드를 낮춘 알파만 되돌리고, 실제 뷰의 생명주기에는 손대지 않는다.
         /// </summary>
-        internal GameObject CreateDeathSnapshot(out SpriteRenderer portrait)
+        internal GameObject CreateDeathSnapshot(out SpriteRenderer portrait, bool actualDeath = false)
         {
             portrait=null;
             if (_body == null || !_body.gameObject.activeInHierarchy) return null;
+            if (StageProxy != null)
+            {
+                // 실제 퇴장 사본을 뜨기 직전이다. 강인도 격파는 이 경로로 오지 않는다.
+                if (actualDeath) StageProxy.Frames?.ObserveDeath();
+                var stage = new GameObject($"DeathSnapshot_{_unit?.UnitName}");
+                portrait = StageProxy.CopySlices(stage.transform, "Stage", Color.white, LayerId,
+                    VfxSpace.OverlaySortingOrder - 280)[0];
+                return stage;
+            }
 
             GameObject snapshot = Instantiate(_body.gameObject);
             snapshot.name = $"DeathSnapshot_{(_unit != null ? _unit.UnitName : name)}";
@@ -1712,9 +1972,12 @@ namespace Entities.View
         public void Bind(Unit unit, bool combatHud)
         {
             if (!EnsureHudReady()) return;
+            if (_stageHudActive && !ReferenceEquals(_unit, unit)) StageBattleHud.Current?.Freeze(_unit, _canvas);
+            RestoreStageHud();
             ResetMotion();
             _unit = unit;
             _combatHud = combatHud;
+            if (IsStage) LayOut(_cardSize);
             LayOutResourceBadgeText(_cardSize);
 
             Show(unit != null);
@@ -1741,7 +2004,8 @@ namespace Entities.View
             // 대기석 카드는 전투 정보를 들지 않는다. 원화와 이름만 남는다.
             _ultRoot.gameObject.SetActive(visible);
             _bottomGlass.SetActive(visible);
-            _bottomGlassShadow.SetActive(visible);
+            _bottomGlassShadow.SetActive(visible && !IsStage);
+            _glassTint.enabled = !IsStage;
             _hpLabel.gameObject.SetActive(visible);
             _glassTint.color = new Color(0.149f, 0.22f, 0.29f, 0.72f);
             if (!visible)
@@ -1761,6 +2025,7 @@ namespace Entities.View
             if (_body == null) return;
             _body.gameObject.SetActive(visible);
             _shadow.enabled = visible;
+            if (_stageFigure != null) _stageFigure.SetVisible(visible && IsStage);
         }
 
         // ══════════════════════════════════════════════════════
@@ -1784,7 +2049,21 @@ namespace Entities.View
             // 보호막은 별도 생명처럼 체력 오른쪽을 늘리지 않고, 최대 체력 대비 양을 윗면에 겹쳐 보여 준다.
             float hpRatio = _unit.HpMax > 0 ? Mathf.Clamp01(_unit.HpCurr / (float)_unit.HpMax) : 0f;
             float shieldRatio = _unit.HpMax > 0 ? Mathf.Clamp01(_unit.ShieldCurr / (float)_unit.HpMax) : 0f;
+            if (_observedHpRatio < 0f || _observedHpMax != _unit.HpMax || hpRatio > _observedHpRatio)
+            {
+                _hpTrailRatio = hpRatio;
+                _hpTrailHold = 0f;
+            }
+            else if (hpRatio < _observedHpRatio)
+            {
+                _hpTrailRatio = Mathf.Max(_hpTrailRatio, _observedHpRatio);
+                _hpTrailHold = .075f;
+                _hpTrailSpeed = Mathf.Max(.001f, (_hpTrailRatio - hpRatio) / .22f);
+            }
+            _observedHpRatio = hpRatio;
+            _observedHpMax = _unit.HpMax;
             SetSpan(_hpFill.rectTransform, 0f, hpRatio);
+            DrawHpDamageTrail();
             SetSpan(_shieldFill.rectTransform, 0f, shieldRatio);
             _shieldFill.rectTransform.offsetMin = new Vector2(0f, HpHeight * 0.58f);
             _hpFill.enabled = hpRatio > 0f;
@@ -1817,6 +2096,7 @@ namespace Entities.View
                 SetSpan(_toughnessFill.rectTransform, 0f, _unit.ToughnessMax > 0 ? (float)_unit.ToughnessCurr / _unit.ToughnessMax : 0f);
             }
             RefreshStatusDots();
+            if (IsStage) UpdateStageHud();
         }
 
         /// <summary>
@@ -1913,7 +2193,7 @@ namespace Entities.View
             string resource = BadgeResourceId(_unit);
             int max = treasure ? 8 : _combatHud && resource != null ? _unit.GetCombatResourceMaximum(resource) : 0;
             int current = treasure ? treasureCount : max > 0 ? _unit.GetCombatResource(resource) : 0;
-            bool visible = treasure || max > 0 && (_unit.ID is 7 or 67 or 82 or 121 || current > 0);
+            bool visible = treasure || max > 0 && (_unit.ID is 2 or 7 or 67 or 82 or 121 || current > 0);
             bool surya = _unit?.ID == 67;
             _resourceBadge.enabled = visible && !surya;
             if (_suryaResourcePlate != null) _suryaResourcePlate.enabled = visible && surya;
@@ -1924,7 +2204,8 @@ namespace Entities.View
                     _unit.GetCombatResource(Codes.Passive.SuryaBeforeSunset.EmpoweredResourceId) > 0;
             if (!visible) return;
 
-            _resourceBadgeText.text = surya ? $"탄 {current}/{max}" : _unit.ID == 82 ? $"{Mathf.RoundToInt(current / (float)Mathf.Max(1,max)*100)}%" : current.ToString();
+            _resourceBadgeText.text = surya ? $"탄 {current}/{max}" : _unit.ID == 82 ? $"{Mathf.RoundToInt(current / (float)Mathf.Max(1,max)*100)}%"
+                : _unit.ID == 121 ? $"영혼 {_unit.GetPermanentStacks(Codes.Passive.AnubisSoulHarvest.SoulKey)+_unit.GetPermanentStackFraction(Codes.Passive.AnubisSoulHarvest.SoulKey):0.0}" : current.ToString();
             _resourceBadge.rectTransform.sizeDelta = new Vector2(Mathf.Max(9.2f, 5.4f + _resourceBadgeText.text.Length * 3.8f), 7.2f);
             float complete = current >= max ? 1f : 0f;
             _resourceBadge.color = Color.Lerp(
@@ -1942,6 +2223,7 @@ namespace Entities.View
             return unit.ID switch
             {
                 1 => Codes.Passive.SeiBigBang.ResourceId,
+                2 => Codes.Ultimate.ShiFinalBell.ResourceId,
                 7 => Codes.Passive.JeanIronSanction.ResourceId,
                 67 => Codes.Passive.SuryaBeforeSunset.BulletResourceId,
                 82 => Codes.Ultimate.FreyaBrisingamen.Resource,
@@ -2028,17 +2310,17 @@ namespace Entities.View
             SortDotsByUrgency();
             ApplyGlassHeight(_dotStatuses.Count > 0);
 
-            int slots = Mathf.Clamp(_visibleDotSlots, 1, MaxDots);
-            int iconCapacity = _compactHud ? Mathf.Min(CompactStatusIconCount, slots - 1) : slots;
+            int slots = IsStage ? 3 : Mathf.Clamp(_visibleDotSlots, 1, MaxDots);
+            int iconCapacity = IsStage ? slots : _compactHud ? Mathf.Min(CompactStatusIconCount, slots - 1) : slots;
             bool overflow = _dotStatuses.Count > iconCapacity;
-            int iconSlots = overflow && !_compactHud
+            int iconSlots = overflow && (IsStage || !_compactHud)
                 ? slots - 1
                 : Mathf.Min(_dotStatuses.Count, iconCapacity);
             int overflowSlot = iconSlots;
             for (int i = 0; i < _dots.Length; i++)
             {
                 bool isOverflow = overflow && i == overflowSlot;
-                bool has = i < iconSlots || isOverflow;
+                bool has = i < slots && (i < iconSlots || isOverflow);
                 _dotBacks[i].enabled = has;
                 _dotRims[i].enabled = has;
                 _dots[i].enabled = has;
@@ -2089,6 +2371,7 @@ namespace Entities.View
         /// </summary>
         private void ApplyGlassHeight(bool showStatusRow)
         {
+            if (_stageHudActive) return;
             if (_bottomGlass == null || _bottomGlassShadow == null || _actingOutline == null) return;
             if (_glassHeightInitialized && _statusRowVisible == showStatusRow) return;
 
@@ -2157,6 +2440,7 @@ namespace Entities.View
         /// <param name="physical">카드가 직접 부딪힌 공격인가.</param>
         public void PlayHitReaction(float strength, bool physical, bool crit)
         {
+            if (_unit?.ReceivingDamageContext?.ResolvedDamage > 0) StageProxy?.Frames?.ObserveDamage();
             float scaled = Mathf.Clamp(strength, 0.2f, 1.4f);
             // 전용 착탄광과 겹쳐도 카드 원화가 사라지지 않도록 최종 면광을 0.25 아래로 제한한다.
             _flash = Mathf.Max(_flash, crit ? 0.67f : 0.62f);
@@ -2198,6 +2482,16 @@ namespace Entities.View
             _lungeDirection = direction.sqrMagnitude > 0.0001f ? direction.normalized : new Vector3(_facing, 0f, 0f);
             _lunge = Mathf.Clamp01(strength);
             _punch = Mathf.Max(_punch, 0.5f * Mathf.Clamp01(strength));
+        }
+
+        /// <summary>시전자 몸체만 당겼다 놓는다. 행동 대기·칸·판정 콜백은 소유하지 않는다.</summary>
+        public void PlayRangedWindup(Vector3 direction,float releaseAfter,float strength=1f)
+        {
+            direction.z=0f;
+            _rangedDrawDirection=direction.sqrMagnitude>.0001f?direction.normalized:Vector3.right;
+            _rangedDrawAge=0f;_rangedDrawRelease=Mathf.Clamp(releaseAfter,.08f,.22f);
+            _rangedDrawStartedAt=Time.time;
+            _rangedDrawStrength=Mathf.Clamp01(strength);
         }
 
         /// <summary>
@@ -2263,8 +2557,8 @@ namespace Entities.View
             direction.z = 0f;
             direction = direction.sqrMagnitude > 0.0001f ? direction.normalized : new Vector3(_facing, 0f, 0f);
             float tiltSign = direction.x >= 0f ? -1f : 1f;
-            Vector3 windup = -direction * _cardSize * 0.10f;
-            Vector3 advanced = direction * _cardSize * 0.18f;
+            Vector3 windup = -direction * (IsStage ? StageMotion(12f, 20f) : _cardSize * 0.10f);
+            Vector3 advanced = direction * (IsStage ? StageMotion(36f, 48f) : _cardSize * 0.18f);
 
             IsPerformingMotion = true;
             SetSortBoost(VfxSpace.FlyingCardSortingOrder);
@@ -2380,7 +2674,7 @@ namespace Entities.View
             // 2) 살짝 뒤로 빼며 기운다
             Vector3 direction = Direction();
             float tiltSign = direction.x >= 0f ? -1f : 1f;
-            Vector3 windup = -direction * _cardSize * 0.13f;
+            Vector3 windup = -direction * (IsStage ? StageMotion(12f, 20f) : _cardSize * 0.13f);
             for (float t = 0f; t < ChargeWindupTime; t += Time.deltaTime)
             {
                 float k = EaseOutCubic(t / ChargeWindupTime);
@@ -2398,6 +2692,7 @@ namespace Entities.View
                 k = k * k * (2f - k);
                 direction = Direction();
                 Vector3 contact = targetCenter() - direction * _cardSize * 0.92f - home;
+                if (IsStage) contact = direction * StageMotion(36f, 48f) * transform.lossyScale.x;
                 contact.z = 0f;
                 _motionOffset = Vector3.LerpUnclamped(start, contact, k);
                 _tilt = Mathf.Lerp(tiltSign * 3.5f, -tiltSign * 5.5f, k);
@@ -2407,6 +2702,7 @@ namespace Entities.View
             direction = Direction();
             Vector3 impactPoint = targetCenter() - direction * _cardSize * 0.46f;
             _motionOffset = impactPoint - home - direction * _cardSize * 0.46f;
+            if (IsStage) _motionOffset = direction * StageMotion(36f, 48f) * transform.lossyScale.x;
             _motionOffset.z = 0f;
 
             // 4) 쿵 — 부딪히는 프레임에 피해와 충돌 연출이 함께 나간다.
@@ -2651,6 +2947,7 @@ namespace Entities.View
             UpdateHudLod();
             AnimateHud();
             AdvanceSupportHudPulse(VfxTiming.ReadableDeltaTime);
+            AdvanceHpDamageTrail(VfxTiming.ReadableDeltaTime);
             AdvanceActionGatePulse(VfxTiming.ReadableDeltaTime);
             ApplyBattleInformationLayout();
             if (_resourcePulseAge >= 0f)
@@ -2663,6 +2960,7 @@ namespace Entities.View
                 _resourceBadgeText.transform.localScale = Vector3.one * (1f+.07f*_resourcePulseStrength*Mathf.Sin(t*Mathf.PI));
                 if (t >= 1f) _resourcePulseAge = -1f;
             }
+            if (IsStage) UpdateStageHud();
         }
 
         /// <summary>기존 적의 원화·하단 정보판 구조를 모든 진영에서 공통으로 사용한다.</summary>
@@ -2673,19 +2971,28 @@ namespace Entities.View
             if (_group != null) _group.alpha = _alpha;
             if (_nameLabel != null) _nameLabel.enabled = false;
             if (_hpLabel != null) _hpLabel.enabled = true;
-            if (_resourceBadgeText != null)
+            // 고유 자원의 표시·문구는 RefreshResourceBadge 한 곳에서 정한다.
+            // 일반 마나 충전량은 원형 게이지만 사용하며 매 프레임 글자로 덮어쓰지 않는다.
+        }
+
+        private void AdvanceHpDamageTrail(float dt)
+        {
+            if (_hpDamageTrail == null || _observedHpRatio < 0f) return;
+            if (Time.timeScale > 0f && _combatHud)
             {
-                _resourceBadgeText.enabled = true;
-                var first = _unit.CombatResourceIds.FirstOrDefault(id => _unit.GetCombatResourceMaximum(id)>0);
-                bool smallCounter = first != null && _unit.GetCombatResourceMaximum(first) <= 100;
-                _resourceBadgeText.enabled = smallCounter || _unit.ID == 121;
-                _resourceBadgeText.text = _unit.ID == 121
-                    ? $"영혼 {_unit.GetPermanentStacks(Codes.Passive.AnubisSoulHarvest.SoulKey)+_unit.GetPermanentStackFraction(Codes.Passive.AnubisSoulHarvest.SoulKey):0.0}"
-                    : smallCounter ? $"{_unit.GetCombatResource(first)}/{_unit.GetCombatResourceMaximum(first)}" : "";
-                _resourceBadgeText.color = new Color(.83f,.89f,.95f,_alpha);
+                float step = Mathf.Max(0f, dt);
+                float held = Mathf.Min(_hpTrailHold, step);
+                _hpTrailHold -= held;
+                _hpTrailRatio = Mathf.MoveTowards(_hpTrailRatio, _observedHpRatio, _hpTrailSpeed * (step - held));
             }
-            if (_strongShotText != null) _strongShotText.enabled = false;
-            if (_suryaResourcePlate != null) _suryaResourcePlate.enabled = false;
+            DrawHpDamageTrail();
+        }
+
+        private void DrawHpDamageTrail()
+        {
+            if (_hpDamageTrail == null) return;
+            SetSpan(_hpDamageTrail.rectTransform, 0f, Mathf.Max(_observedHpRatio, _hpTrailRatio));
+            _hpDamageTrail.enabled = _combatHud && _hpTrailRatio > _observedHpRatio + .0001f;
         }
 
         private void AdvanceSupportHudPulse(float dt)
@@ -2693,11 +3000,11 @@ namespace Entities.View
             if (_supportHudPulseAge < 0f || _supportHudPulseTarget == null) return;
             if (Time.timeScale > 0f) _supportHudPulseAge += Mathf.Max(0f, dt);
             float t = Mathf.Clamp01(_supportHudPulseAge / SupportHudPulseDuration);
-            // 1.0 → 1.35 → 1.0. 뒤쪽 복귀를 길게 둬 작은 카드에서도 한 번의 팝으로 읽힌다.
+            // 게이지 가로 폭은 유지한다. 폭까지 늘리면 카드 양옆으로 HP 선이 튀어나온다.
             float wave = Mathf.Sin(t * Mathf.PI);
-            _supportHudPulseTarget.localScale = Vector3.one * (1f + 0.35f * wave);
+            _supportHudPulseTarget.localScale = new Vector3(1f,1f+.18f*wave,1f);
             if (_supportHudPulseImage != null)
-                _supportHudPulseImage.color = Color.Lerp(Color.white, _supportHudPulseBaseColor, t);
+                _supportHudPulseImage.color = Color.Lerp(Color.Lerp(_supportHudPulseBaseColor,Color.white,.24f),_supportHudPulseBaseColor,t);
             if (t < 1f) return;
             _supportHudPulseTarget.localScale = Vector3.one;
             if (_supportHudPulseImage != null) _supportHudPulseImage.color = _supportHudPulseBaseColor;
@@ -2728,6 +3035,7 @@ namespace Entities.View
         /// </summary>
         private void UpdateHudLod()
         {
+            if (IsStage) return;
             if (!_combatHud || Time.frameCount % 10 != 0) return;
             Camera camera = Camera.main;
             if (camera == null) return;
@@ -2745,6 +3053,7 @@ namespace Entities.View
 
         private void ApplyHudLod(bool compact, bool force = false)
         {
+            if (_stageHudActive) return;
             if (!force && _hudLodInitialized && _compactHud == compact) return;
             _hudLodInitialized = true;
             _compactHud = compact;
@@ -2780,6 +3089,7 @@ namespace Entities.View
         /// </summary>
         private void AnimateHud()
         {
+            if (_stageHudActive) return;
             if (!_combatHud || _ultRoot == null || !_ultRoot.gameObject.activeInHierarchy) return;
 
             // 원형 자체의 스프라이트만 채운다. 월드 HUD의 직사각 그라데이션은 일부
@@ -2805,6 +3115,12 @@ namespace Entities.View
             _hitSquash = Mathf.Max(0f, _hitSquash - dt / (PunchTime * 0.8f));
             _shake = Mathf.Max(0f, _shake - dt / ShakeTime);
             _lunge = Mathf.Max(0f, _lunge - dt / LungeTime);
+            if(_rangedDrawAge>=0f)
+            {
+                // 시작 전의 긴 프레임 시간을 새 모션에 더하면 당김을 통째로 건너뛴다.
+                _rangedDrawAge=Mathf.Max(0f,Time.time-_rangedDrawStartedAt);
+                if(_rangedDrawAge>=_rangedDrawRelease+.16f||_unit==null||!_unit.isActive)_rangedDrawAge=-1f;
+            }
             _vfxKick = Mathf.Max(0f, _vfxKick - dt / VfxKickTime);
             if (_vfxKick <= 0f) _vfxKickStrength = 0f;
             if (_vfxLightDuration > 0f)
@@ -2836,7 +3152,7 @@ namespace Entities.View
         private void ApplyTransforms()
         {
             if (_body == null) return;
-            float s = _cardSize;
+            float s = IsStage ? StageFigure.BaseWorldHeight : _cardSize;
 
             // 루트 — 돌진 등 월드 이동. 칸의 배율을 되돌려 월드 거리 그대로 움직인다.
             transform.localPosition = transform.parent != null
@@ -2847,11 +3163,27 @@ namespace Entities.View
             float lift = Mathf.Max(0f, _lift);
             float scale = (1f + 0.035f * Mathf.Min(1f, lift) + PunchAmount * _punch) * (1f + 0.12f * Mathf.Max(0f, lift - 1f));
             Vector3 offset = new(0f, s * (0.09f * lift + _airborneLift), 0f);
-            offset += new Vector3(-_facing * RecoilDistance * s * _recoil, 0f, 0f);
+            offset += new Vector3(-_facing * (IsStage ? StageMotion(12f, 20f) : RecoilDistance * s) * _recoil, 0f, 0f);
             float lungeShape = Mathf.Sin(Mathf.PI * (1f - _lunge));
-            offset += _lungeDirection * LungeDistance * s * lungeShape * (_lunge > 0f ? 1f : 0f);
+            offset += _lungeDirection * (IsStage ? StageMotion(36f, 48f) : LungeDistance * s) * lungeShape * (_lunge > 0f ? 1f : 0f);
             float kickShape = Mathf.Sin(Mathf.PI * (1f - _vfxKick));
             offset += _vfxKickDirection * VfxKickDistance * s * kickShape * _vfxKickStrength;
+            float draw=0f,release=0f;
+            if(_rangedDrawAge>=0f)
+            {
+                if(_rangedDrawAge<_rangedDrawRelease)draw=Mathf.Sin(_rangedDrawAge/_rangedDrawRelease*Mathf.PI*.5f);
+                else
+                {
+                    float releaseAge=_rangedDrawAge-_rangedDrawRelease;
+                    // 놓는 순간에도 최대 당김에서 이어져야 발사점이 한 프레임 뒤에 남지 않는다.
+                    draw=1f-Mathf.SmoothStep(0f,1f,Mathf.Clamp01(releaseAge/.055f));
+                    release=Mathf.Sin(Mathf.Clamp01(releaseAge/.16f)*Mathf.PI);
+                }
+                // 위쪽 적을 겨눠도 수평 당김이 사라지지 않게 몸체의 뒤로 당김을 따로 보존한다.
+                offset+=new Vector3(Mathf.Sign(_rangedDrawDirection.x)*_rangedDrawStrength*
+                    (IsStage ? -StageMotion(12f,20f)*draw+StageMotion(36f,48f)*release : s*(-.18f*draw+.075f*release)),
+                    s*_rangedDrawStrength*(.015f*draw+.01f*release),0f);
+            }
             if (_shake > 0f)
             {
                 float elapsed = (1f - _shake) * ShakeTime;
@@ -2861,14 +3193,15 @@ namespace Entities.View
             }
 
             _body.localPosition = offset;
-            _body.localRotation = Quaternion.Euler(0f, 0f, _tilt);
+            float drawTilt=Mathf.Sign(_rangedDrawDirection.x)*_rangedDrawStrength*(5f*draw-2f*release);
+            _body.localRotation = Quaternion.Euler(0f, 0f, _tilt+drawTilt);
             float hitWidth = 1f - 0.025f * _hitSquash;
             float hitHeight = 1f + 0.020f * _hitSquash;
-            _body.localScale = new Vector3(scale * _pointerScale * _squash.x * hitWidth, scale * _pointerScale * _squash.y * hitHeight, 1f);
+            _body.localScale = new Vector3(scale * _pointerScale * _squash.x * hitWidth*(1f-.025f*draw), scale * _pointerScale * _squash.y * hitHeight*(1f+.02f*draw), 1f);
 
             // 돌진의 기울기는 원화의 물성만 말한다. 정보판까지 돌아가면 이름·HP를 읽기 어려우므로
             // 몸체 회전을 같은 양만큼 상쇄하고, 이동·들림·스케일 반동은 그대로 따라간다.
-            Quaternion hudCounterRotation = Quaternion.Euler(0f, 0f, -_tilt);
+            Quaternion hudCounterRotation = Quaternion.Euler(0f, 0f, -_tilt-drawTilt);
             if (_orbCanvas != null) _orbCanvas.transform.localRotation = hudCounterRotation;
             if (_canvas != null) _canvas.transform.localRotation = hudCounterRotation;
             if (_nameLabel != null) _nameLabel.transform.localRotation = hudCounterRotation;
@@ -2905,6 +3238,16 @@ namespace Entities.View
             }
 
             ApplyAlpha();
+            if (StageProxy != null)
+            {
+                _shadow.enabled = false;
+                _auraGlow.enabled = false;
+                bool acting = ReferenceEquals(GameManager.Instance?.ActionScheduler?.ActingUnit, _unit) || _unit?.isCasting == true;
+                Color stageColor = _portrait != null ? _portrait.color : Color.white;
+                _stageFigure.ApplyAppearance(stageColor, lift, acting,
+                    ElementPalette.ColorFor(_unit?.Element), StageUnitFocus.IsFocused(_unit));
+            }
+            else if (!IsStage) _auraGlow.enabled = true;
         }
 
         private float _appliedAlpha = -1f;
@@ -2949,7 +3292,7 @@ namespace Entities.View
 
             ActionScheduler scheduler = GameManager.Instance?.ActionScheduler;
             bool acting = scheduler != null && ReferenceEquals(scheduler.ActingUnit, _unit);
-            _actingOutline.enabled = acting;
+            _actingOutline.enabled = acting && !IsStage;
 
             Color glow = Color.clear;
             foreach (UnitStatus status in _unit.ActiveStatuses)
@@ -2979,6 +3322,8 @@ namespace Entities.View
             ActionGatePulseStrength = 0f;
             if (_actionGateRim != null) _actionGateRim.color = Color.clear;
             _flash = _punch = _recoil = _shake = _lunge = 0f;
+            _stageUltimate = false;
+            _rangedDrawAge=-1f;
             _pointerHovered=_pointerPressed=false; _pointerScale=1f;
             _hitSquash = 0f;
             _vfxLightPeak = 0f;
@@ -2996,6 +3341,10 @@ namespace Entities.View
             _landingAge = -1f;
             _entryFxStarted = false;
             _lastHp = -1;
+            _observedHpRatio = -1f;
+            _observedHpMax = -1;
+            _hpTrailRatio = _hpTrailHold = _hpTrailSpeed = 0f;
+            if (_hpDamageTrail != null) _hpDamageTrail.enabled = false;
             IsPerformingMotion = false;
             SetSortBoost(0);
             ApplyTransforms();

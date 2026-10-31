@@ -126,7 +126,7 @@ namespace Managers.UI.Screens
             base.Show();
             if (!wasVisible)
             {
-                _resumeTimeScale = Time.timeScale;
+                _resumeTimeScale = Effects.HitStop.PlaybackScale;
                 Time.timeScale = 0f;
             }
             Refresh(null);

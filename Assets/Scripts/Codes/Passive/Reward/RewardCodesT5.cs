@@ -6,6 +6,7 @@ using Effects.Base;
 using Effects.Buffs;
 using Entities;
 using UnityEngine;
+using Random = Combat.CombatRandom;
 
 namespace Codes.Passive.Reward
 {
@@ -118,7 +119,7 @@ namespace Codes.Passive.Reward
                         BaseEnums.CodeType.Passive, new List<int>
                         {
                             DamageTag.SingleTarget, DamageTag.PassiveAttack, DamageTag.TrueDamage, DamageTag.ShieldPenetration,
-                        }));
+                        }) { IsExecution = true });
                 }
             }
             finally

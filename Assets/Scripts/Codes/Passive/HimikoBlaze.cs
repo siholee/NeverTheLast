@@ -53,7 +53,7 @@ namespace Codes.Passive
             target.AddStatus(vulnerability);
 
             EmberFx.Blaze(target, detonate: true);
-            target.TakeDamage(new DamageContext(Caster, Mathf.Max(1, Caster.AtkCurr), BaseEnums.CodeType.Passive,
+            target.TakeDamage(new DamageContext(Caster, Mathf.Max(1, Caster.SpAtkCurr), BaseEnums.CodeType.Passive,
                 new List<int>
                 {
                     DamageTag.SingleTarget,

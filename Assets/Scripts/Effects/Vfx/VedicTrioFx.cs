@@ -17,6 +17,17 @@ namespace Effects.Vfx
         private static readonly ConditionalWeakTable<Unit, WeaknessPresentation> WeaknessFrames = new();
         public static IEnumerator Single(string key, Unit caster, Unit target, Action onImpact)
         {
+            if(key is "surya.normal" or "surya.finale" or "surya.follow_up" or "surya.focused_follow_up" or "marie.normal")
+            {
+                var slot=VfxComposer.Slot(key,"hit");var part=VfxDefinitionCatalog.Part(slot?.partId);
+                int peak=slot!=null&&slot.peakFrame>=0?slot.peakFrame:part?.peakFrame??3;
+                float arrival=VfxComposer.Offset(key,"hit")+(slot!=null&&slot.impactDelay>=0?slot.impactDelay:
+                    Mathf.Max(0,peak-(part?.startFrame??0))/Mathf.Max(1f,part?.fps??30f));
+                // 비행은 장식뿐이다. 기존 슬롯의 정점과 콜백·타격음이 판정을 그대로 소유한다.
+                VfxRunner.Run(PurchasedProjectileFx.Fly(caster,target,arrival,null,
+                    weight:key is "surya.finale" or "surya.focused_follow_up"?1.05f:.80f,
+                    paintContact:false,minimumFlightFrames:false));
+            }
             yield return VfxComposer.PlaySingleTarget(key, caster, target, () =>
             {
                 // 종언탄은 일반/특수 어느 경로에서도 정점 타격음을 이 입구가 한 번 소유한다.
@@ -57,7 +68,13 @@ namespace Effects.Vfx
             yield return LokapalaFx.Area(key, caster, targets, () =>
             {
                 if (empowered && centralTarget != null && targets != null && targets.Contains(centralTarget))
-                    VfxComposer.PlayAffectedPart(centralTarget, "affected.agni.focused_center", caster);
+                {
+                    Color tint = ElementPalette.ColorFor(caster.Element);
+                    HandpaintFx.PlayAt(VfxSpace.BodyContactPoint(centralTarget), VfxSpace.SortingLayer(centralTarget),
+                        new HandpaintSheet("Explosion3_Yellow",3,3,30f,new Vector2(.5f,.5f)),
+                        new Vector2(.62f,.72f), tint, tint, peakAlpha:.40f, glowAlpha:0f,
+                        desaturate:1f, calmLight:true, orderOffset:160)?.BindRecipient(centralTarget);
+                }
                 AudioManager.PlayCue(key + ".hit");
                 onImpact?.Invoke();
             });
@@ -209,19 +226,17 @@ namespace Effects.Vfx
             }
             if (part.renderer == "trioAgniBuff")
             {
-                Vector3 center = StatusMotifFx.Anchor(target);
-                center.y=VfxSpace.PortraitHudTop(target)+.16f*VfxSpace.CardSize;
-                // 얼굴을 가로지르는 세로 줄기 대신 쇄골 아래의 짧은 가로 충전 각인을 쓴다.
-                for (int i = -1; i <= 1; i++)
-                {
-                    Vector3 at=center+Vector3.right*VfxSpace.CardSize*i*.10f;
-                    Mark(VfxArt.Diamond,at,new Vector2(.070f,.10f),new Color(.16f,.23f,.35f,.86f),0f,layer,preserveInk:true);
-                    Mark(VfxArt.Diamond,at,new Vector2(.050f,.080f),new Color(.98f,.58f,.29f,.94f),0f,layer);
-                }
-                CardMotion.ViewOf(target)?.PulseSupportHud(false, false, new Color(0.95f, 0.72f, 0.46f));
+                // 실제 상태 부여/갱신이 수혜 그림을 한 번 소유한다. 자신에게는 연결선을 중복하지 않는다.
+                PurchasedSupportThreadsFx.Play(caster,target,PurchasedSupportThreadsFx.Kind.Order);
+                PurchasedSupportThreadsFx.Play(caster,target,PurchasedSupportThreadsFx.Kind.Receive);
                 return true;
             }
-            if (part.renderer != "trioVayuCast" && part.renderer != "trioAgniCast" && part.renderer != "trioSuryaCast") return false;
+            if (part.renderer == "trioAgniCast")
+            {
+                PurchasedArcherFx.RosterPreparation(caster,target,attack:part.id=="cast.agni.seal");
+                return true;
+            }
+            if (part.renderer != "trioVayuCast" && part.renderer != "trioSuryaCast") return false;
             bool wind = part.renderer == "trioVayuCast";
             bool gun = part.renderer == "trioSuryaCast";
             Color body = wind ? new Color(0.53f, 0.82f, 0.73f) : gun ? new Color(0.94f, 0.73f, 0.54f) : new Color(0.91f, 0.62f, 0.52f);
@@ -237,42 +252,6 @@ namespace Effects.Vfx
                 HandpaintFx.PlayAt(point,layer,sheet,size,new Color(.96f,.65f,.24f),new Color(1f,.91f,.70f),angle,
                     orderOffset:119,heldFrame:part.peakFrame,peakHoldSeconds:part.peakHoldSeconds,
                     peakAlpha:.92f,glowAlpha:.14f,desaturate:1f,steadyBody:true,calmLight:true);
-                return true;
-            }
-            if (part.renderer == "trioAgniCast")
-            {
-                if(part.id=="cast.agni.seal")
-                {
-                    // 봉인은 작은 불씨를 여섯 획 인장으로 모으고, 개화의 세 갈래 불꽃과 구분한다.
-                    float card=VfxSpace.CardSize;
-                    Vector3 seal=point+Vector3.up*.025f*card;
-                    for(int i=0;i<6;i++)
-                    {
-                        float a=(i*60f+30f)*Mathf.Deg2Rad,b=((i+1)*60f+30f)*Mathf.Deg2Rad;
-                        Vector2 p=new(Mathf.Cos(a)*.15f,Mathf.Sin(a)*.15f);
-                        Vector2 q=new(Mathf.Cos(b)*.15f,Mathf.Sin(b)*.15f);
-                        Vector2 delta=q-p;
-                        Vector3 at=seal+(Vector3)((p+q)*.5f*card);
-                        Vector2 stroke=new(delta.magnitude*card,.027f*card);
-                        float turn=Mathf.Atan2(delta.y,delta.x)*Mathf.Rad2Deg;
-                        SpriteFx.Play(VfxSpace.GlyphLine,at,new Color(.14f,.22f,.35f,.98f),false,
-                            stroke,stroke*new Vector2(.76f,1f),.40f,turn,
-                            fadeIn:.08f,fadeOutFrom:.55f,sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+40,preserveInk:true);
-                        SpriteFx.Play(VfxSpace.GlyphLine,at,new Color(.98f,.89f,.73f,.92f),false,
-                            stroke*new Vector2(.95f,.24f),stroke*new Vector2(.72f,.24f),.40f,turn,fadeIn:.08f,fadeOutFrom:.55f,
-                            sortingLayer:layer,order:VfxSpace.OverlaySortingOrder+41,preserveInk:true);
-                    }
-                    var ember=new HandpaintSheet("Fire1_Red",4,4,64f,new Vector2(.5f,.5f));
-                    HandpaintFx.PlayAt(seal,layer,ember,new Vector2(.20f,.30f),body,core,
-                        peakAlpha:.65f,glowAlpha:.10f,desaturate:1f,steadyBody:true,calmLight:true);
-                    return true;
-                }
-                // 개화는 단색 원판 대신 구매 불꽃 세 갈래가 손에서 열린다.
-                var flame = new HandpaintSheet("Fire1_Red",4,4,64f,new Vector2(.5f,.5f));
-                for(int i=-1;i<=1;i++)
-                    HandpaintFx.PlayAt(point + Vector3.right * i * .08f * VfxSpace.CardSize, layer, flame,
-                        new Vector2(.30f,.48f), body, core, i*22f,
-                        peakAlpha:.82f,glowAlpha:.14f,desaturate:1f,steadyBody:true,calmLight:true);
                 return true;
             }
             HandpaintFx.PlayAt(point, layer, sheet, size, body, core, angle, heldFrame: part.peakFrame,

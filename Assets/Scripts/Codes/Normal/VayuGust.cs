@@ -11,6 +11,7 @@ namespace Codes.Normal
     /// </summary>
     public sealed class VayuGust : BaseNormalCode
     {
+        protected override bool AppliesElementTo(Unit target) => true;
         public const float AttackRatio = 0.90f;
         private const string FxKey = "vayu.gust";
 

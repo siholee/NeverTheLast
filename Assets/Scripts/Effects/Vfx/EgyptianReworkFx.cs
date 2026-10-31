@@ -32,20 +32,31 @@ namespace Effects.Vfx
             texture.SetPixels32(pixels);texture.Apply(false,true);
             return Glyphs[index]=Sprite.Create(texture,new Rect(0,0,size,size),new Vector2(.5f,.5f),100);
         }
-        public static IEnumerator Chant(Unit caster,bool blood,bool ultimate=false)
+        public static IEnumerator Chant(Unit caster,bool blood,bool ultimate=false,bool purchased=false)
         {
             if(caster==null)yield break;
+            if(purchased||caster.ID==123&&blood)
+            {
+                PurchasedArcherFx.RosterPreparation(caster,caster);
+                yield return new WaitForSeconds(ultimate ? .48f : .36f);
+                yield break;
+            }
             Color light=blood?new Color(.97f,.77f,.76f):new Color(.98f,.92f,.73f);
             Color edge=blood?new Color(.81f,.43f,.48f):new Color(.85f,.70f,.40f);
-            HandpaintFx.PlayAt(VfxSpace.PortraitPoint(caster),VfxSpace.SortingLayer(caster),HandpaintFx.Impact1White,
-                Vector2.one*(ultimate?1f:.65f),light,edge,peakAlpha:.62f,glowAlpha:.10f,calmLight:true);
+            // 전신 섬광을 손·가슴 띠에 모아 지원 시전 중 얼굴과 정보판을 남긴다.
+            Vector3 point=StatusMotifFx.Anchor(caster);
+            Vector2 size=ultimate?new Vector2(.72f,.38f):new Vector2(.50f,.27f);
+            HandpaintFx.PlayAt(point,VfxSpace.SortingLayer(caster),HandpaintFx.Impact1White,
+                size,light,edge,peakAlpha:.62f,glowAlpha:.10f,calmLight:true);
             yield return new WaitForSeconds(ultimate ? .48f : .36f);
         }
         public static IEnumerator Slash(Unit caster,Unit target,Action impact)
         {
+            if(caster!=null&&caster.ID==123)PurchasedArcherFx.RosterPreparation(caster,target,attack:true);
             yield return CardMotion.Charge(caster,target,(point,direction)=>
             {
-                ImpactFx.Slam(point,direction,new Color(.86f,.61f,.62f),1f);
+                if(caster!=null&&caster.ID==123)PurchasedArcherFx.RosterContact(caster,target,.56f,elementalInk:true);
+                else ImpactFx.Slam(point,direction,new Color(.86f,.61f,.62f),1f);
                 impact?.Invoke();
             });
         }

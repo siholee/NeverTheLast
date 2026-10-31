@@ -52,6 +52,18 @@ namespace Effects.Vfx
     /// </summary>
     public static class VfxSpace
     {
+        /// <summary>원화 옆 원형 자원/역할 배지는 VFX 합성에서도 비운다.</summary>
+        public static Vector4 PortraitBadgeWorldRect(Unit target)
+        {
+            Camera camera=Camera.main;var view=CardMotion.ViewOf(target);
+            if(camera==null||view==null)return Vector4.zero;
+            Rect rect=view.ResourceBadgeScreenRect(camera);
+            if(rect.width<=0f||rect.height<=0f)return Vector4.zero;
+            float depth=camera.WorldToScreenPoint(WorldPoint(target)).z;
+            Vector3 min=camera.ScreenToWorldPoint(new Vector3(rect.xMin,rect.yMin,depth));
+            Vector3 max=camera.ScreenToWorldPoint(new Vector3(rect.xMax,rect.yMax,depth));
+            return new Vector4(min.x,min.y,max.x,max.y);
+        }
         /// <summary>카드보다 확실히 위에 그릴 연출의 정렬 순서. 행 깊이(×10)를 넉넉히 넘긴다.</summary>
         public const int OverlaySortingOrder = 1000;
 
@@ -64,6 +76,7 @@ namespace Effects.Vfx
         private static Material _additive;
         private static Material _alpha;
         private static Material _compositeAlpha;
+        private static Material _continuousImpact;
         private static Material _luminanceGlow;
 
         /// <summary>
@@ -90,10 +103,59 @@ namespace Effects.Vfx
             return unit.transform.position;
         }
 
+        /// <summary>초상과 HUD 사이의 낮은 몸통 띠. 고정 카드 오프셋으로 작은 얼굴을 가리지 않는다.</summary>
+        public static Vector3 BodyPoint(Unit unit)
+        {
+            var view=CardMotion.ViewOf(unit);
+            if (view?.StageProxy != null) return view.CenterWorld;
+            if(view?.PortraitRenderer==null)return PortraitPoint(unit);
+            Bounds bounds=view.PortraitRenderer.bounds;
+            float hud=PortraitHudTop(unit);
+            return new Vector3(bounds.center.x,Mathf.Lerp(hud,bounds.max.y,.22f),0f);
+        }
+
+        /// <summary>원화 투명 여백이 아닌 실제 몸통에 맞춘다. 연출만 사용하는 접점이다.</summary>
+        public static Vector3 ContactPoint(Unit unit)
+        {
+            var view=CardMotion.ViewOf(unit);
+            if (view?.StageProxy != null) return view.ClampPortraitHitPoint(view.CenterWorld);
+            if(view!=null&&view.TryAuthoredPortraitContact(out Vector3 authored))return authored;
+            Vector3 point=BodyPoint(unit);
+            point.x=PortraitHudAnchor(unit).x;
+            return view!=null?view.SnapPortraitContactPoint(point,PortraitHudTop(unit)):point;
+        }
+
+        /// <summary>얼굴 회피용 어깨 프로필 대신 정보판 중심 위의 실제 불투명 흉부에 맞춘다.</summary>
+        public static Vector3 BodyContactPoint(Unit unit)
+        {
+            var view=CardMotion.ViewOf(unit);
+            if (view?.StageProxy != null) return view.ClampPortraitHitPoint(view.CenterWorld);
+            if(view?.PortraitRenderer==null||view.PortraitRenderer.sprite==null)return WorldPoint(unit);
+            Vector3 point=BodyPoint(unit);point.x=PortraitHudAnchor(unit).x;
+            return view.SnapPortraitContactPoint(point,PortraitHudTop(unit));
+        }
+
+        public static Vector3 PortraitMotionPoint(Unit unit)
+            =>CardMotion.ViewOf(unit)?.StageProxy != null ? CardMotion.ViewOf(unit).CenterWorld :
+                CardMotion.ViewOf(unit)?.PortraitRenderer?.transform.position??WorldPoint(unit);
+
+        public static Vector4 PortraitFaceWorldRect(Unit unit)
+            =>CardMotion.ViewOf(unit)?.PortraitFaceWorldRect()??Vector4.zero;
+
+        public static Vector2 FitBodySize(Unit unit,Vector2 size)
+        {
+            var view=CardMotion.ViewOf(unit);
+            if(view?.PortraitRenderer==null)return size;
+            Bounds bounds=view.PortraitRenderer.bounds;
+            float available=Mathf.Max(.12f*CardSize,bounds.max.y-PortraitHudTop(unit));
+            return new Vector2(Mathf.Min(size.x,bounds.size.x*.80f/CardSize),Mathf.Min(size.y,available*.38f/CardSize));
+        }
+
         /// <summary>실제 HUD 위의 손·가슴 띠에서 시전한다. 전신 원화의 투명 하단은 기준에 넣지 않는다.</summary>
         public static Vector3 CastPoint(Unit caster, Unit target)
         {
             var view=CardMotion.ViewOf(caster);
+            if (view?.StageProxy != null) return view.StageProxy.HandWorld;
             if(view?.PortraitRenderer==null)return PortraitPoint(caster);
             Bounds bounds=view.PortraitRenderer.bounds;
             float side=AimFrom(caster,target).Direction.x>=0f?1f:-1f;
@@ -101,17 +163,18 @@ namespace Effects.Vfx
                 Mathf.Lerp(PortraitHudTop(caster),bounds.max.y,.32f),0f);
         }
 
-        public static float PortraitHudTop(Unit unit)
+        public static Vector3 PortraitHudAnchor(Unit unit)
         {
             var view=CardMotion.ViewOf(unit);
-            if(view?.PortraitRenderer==null)return WorldPoint(unit).y;
+            if(view?.PortraitRenderer==null)return WorldPoint(unit);
             Bounds bounds=view.PortraitRenderer.bounds;
             Camera camera=Camera.main;
             Rect hud=view.HudScreenRect(camera);
-            if(camera==null||hud.height<=0f)return Mathf.Lerp(bounds.min.y,bounds.max.y,.28f);
+            if(camera==null||hud.height<=0f)return new Vector3(bounds.center.x,Mathf.Lerp(bounds.min.y,bounds.max.y,.28f),bounds.center.z);
             float depth=camera.WorldToScreenPoint(bounds.center).z;
-            return camera.ScreenToWorldPoint(new Vector3(hud.center.x,hud.yMax,depth)).y;
+            return camera.ScreenToWorldPoint(new Vector3(hud.center.x,hud.yMax,depth));
         }
+        public static float PortraitHudTop(Unit unit)=>PortraitHudAnchor(unit).y;
 
         public static Vector2 FitCastSize(Unit caster,Vector2 size,float angle)
         {
@@ -231,6 +294,17 @@ namespace Effects.Vfx
         /// 밝은 전장의 휘도에 맞춰 암부를 진주·금빛 쪽으로 살짝 들어 올리는 플립북 몸체 재질.
         /// 시트의 알파는 그대로 보존하고 색만 보정하므로 불투명 스티커처럼 뜨는 면을 줄인다.
         /// </summary>
+        /// <summary>구매 Hit4 전용 연속 셀 합성. 다른 공통 시트의 합성 재질을 바꾸지 않는다.</summary>
+        public static Material ContinuousImpact
+        {
+            get
+            {
+                if(_continuousImpact!=null)return _continuousImpact;
+                _continuousImpact=new Material(Resources.Load<Shader>("Shaders/PurchasedImpactBlend")){name="Vfx_ContinuousImpact"};
+                _continuousImpact.SetTexture("_GrainTex",Resources.Load<Texture2D>("VfxTex/PurchasedArcher/Dissolve"));
+                return _continuousImpact;
+            }
+        }
         public static Material CompositeAlpha
         {
             get
@@ -399,6 +473,22 @@ namespace Effects.Vfx
             return new Color(1f,1f,1f,Mathf.Clamp01(rim+face)*lower);
         });
 
+        // 공용 보호막: 얼굴을 읽을 수 있는 낮은 농도의 면과 하단 첨점의 테두리.
+        public static Sprite ShieldContour => Cached("shield_contour",128,(x,y)=>ShieldContourPixel(x,y,.20f));
+        public static Sprite ShieldContourCore => Cached("shield_contour_core",128,(x,y)=>ShieldContourPixel(x,y,.085f,.14f));
+        private static Color ShieldContourPixel(float x,float y,float band,float fill=0f)
+        {
+            float halfWidth=y>=-.12f
+                ? .84f-.20f*Mathf.Clamp01((y+.12f)/.92f)
+                : .84f*Mathf.Clamp01((y+.88f)/.76f);
+            if(y<-.88f||y>.80f)return Color.clear;
+            float side=Mathf.Abs(Mathf.Abs(x)-halfWidth);
+            float top=Mathf.Abs(y-.80f);
+            float distance=Mathf.Min(side,Mathf.Abs(x)<halfWidth?top:2f);
+            float line=Mathf.Clamp01(1f-distance/band);
+            return new Color(1f,1f,1f,Mathf.Max(Mathf.SmoothStep(0f,1f,line),Mathf.Abs(x)<halfWidth?fill:0f));
+        }
+
         // 바루나 전용 짧은 흉부 보호막. 공유 보호막 마스크는 유지하고 선택 링과 다른 막/하단 첨점을 쓴다.
         public static Sprite VarunaBarrier => Cached("varuna_barrier",128,(x,y)=>
         {
@@ -456,8 +546,10 @@ namespace Effects.Vfx
             float edge=Mathf.Clamp01((.97f-d)*35f);
             float rim=Mathf.Clamp01(1f-Mathf.Abs(d-.86f)/.10f);
             float lower=Mathf.Clamp01((-y+.15f)*.6f);
-            float alpha=(.18f+lower*.24f+rim*.34f)*edge;
-            float shade=.72f+.28f*Mathf.Clamp01((y-x+1f)*.5f);
+            float alpha=(.78f+lower*.06f+rim*.12f)*edge;
+            float z=Mathf.Sqrt(Mathf.Max(0,1f-d*d));
+            float light=Mathf.Clamp01(-x*.4f+y*.55f+z*.65f);
+            float shade=.30f+.70f*light;
             return new Color(shade,shade,shade,alpha);
         });
 

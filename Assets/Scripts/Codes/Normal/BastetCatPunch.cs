@@ -12,6 +12,8 @@ namespace Codes.Normal
     /// <summary>바스테트 — 짧게 내딛고 대상 초상화에 한 번 꽂는 접촉 물리 공격.</summary>
     public sealed class BastetCatPunch : BaseNormalCode
     {
+        public const float FollowUpRatio = 1f;
+        public const float CounterHealingRatio = .5f;
         public override int AttackForm => DamageTag.Strike;
 
         public BastetCatPunch(NormalCodeContext context) : base(context)
@@ -22,7 +24,7 @@ namespace Codes.Normal
 
         protected override bool IsContact => true;
         protected override int BaseDamage(Unit target)
-            => StatDamage(0f, BaseEnums.StatType.Attack, 1f);
+            => StatDamage(0f, BaseEnums.StatType.Attack, 1.15f);
 
         protected override IEnumerator Deliver(Unit target)
         {
@@ -30,14 +32,14 @@ namespace Codes.Normal
             yield return BastetFx.CatPunch(Caster, target, false, () => Hit(target, context));
         }
 
-        public void CastAdditional(Unit originalTarget)
+        public void CastAdditional(Unit originalTarget, Unit counterSource = null)
         {
             if (Caster == null || originalTarget == null) return;
             Caster.isCasting = true;
-            CurrSkillCoroutine = Caster.StartCoroutine(AdditionalRoutine(originalTarget));
+            CurrSkillCoroutine = Caster.StartCoroutine(AdditionalRoutine(originalTarget, counterSource));
         }
 
-        private IEnumerator AdditionalRoutine(Unit originalTarget)
+        private IEnumerator AdditionalRoutine(Unit originalTarget, Unit counterSource)
         {
             var tags = new List<int>
             {
@@ -60,14 +62,19 @@ namespace Codes.Normal
             Unit target = targets[0];
             // 추가행동 표기는 스케줄러가 담당한다. 연출과 음향은 일반 냥냥펀치를 그대로 반복한다.
             AudioManager.PlayAction(Caster, SfxActionSlot.Normal, SfxCuePhase.Cast, CodeName);
-            bool crit = RollCritical(target, out float multiplier);
-            int damage = UnityEngine.Mathf.Max(1, UnityEngine.Mathf.RoundToInt(BaseDamage(target) * multiplier));
+            bool crit = RollCritical(target, tags, out float multiplier);
+            int damage = UnityEngine.Mathf.Max(1, UnityEngine.Mathf.RoundToInt(StatDamage(0, BaseEnums.StatType.Attack, FollowUpRatio) * multiplier));
             var context = new DamageContext(Caster, damage, BaseEnums.CodeType.Normal, tags, crit);
             yield return BastetFx.CatPunch(Caster, target, true, () =>
             {
                 AudioManager.PlayAction(Caster, SfxActionSlot.Normal, SfxCuePhase.Hit, CodeName);
                 Hit(target, context, false);
             });
+            // 본타의 실제 피해만 회복으로 돌린다. 후속 보상·추가 피해를 다시 합산하지 않는다.
+            if (Caster != null && Caster.isActive && Caster.IsOnField && context.ResolvedDamage > 0 &&
+                !context.IsCancelled && counterSource != null && counterSource.isActive && counterSource.IsOnField &&
+                counterSource.HpCurr > 0 && counterSource != Caster && counterSource.IsEnemy == Caster.IsEnemy)
+                counterSource.Heal(UnityEngine.Mathf.RoundToInt(context.ResolvedDamage * CounterHealingRatio), Caster);
             StopCode();
         }
     }

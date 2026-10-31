@@ -16,11 +16,12 @@ namespace Combat
     /// 기존 효과는 건드리지 않는다. 지속시간 · 중첩 · 경과 턴 · 풍화의 행동 트리거는 그대로이고,
     /// <c>OnOwnerTurn</c>이나 만료 처리도 부르지 않는다. 피해 정보는 효과가 스스로 만든
     /// <see cref="BaseEffect.CreateDamageOverTimeTick"/>(자연 틱과 같은 함수)에서 받아 시전자 · 종류 · 반응 태그를 보존하고,
-    /// 금액만 비율로 줄여 <see cref="Unit.TakeDamage"/>에 한 번 넘긴다. 주는 피해 보정(원 시전자의 811 · 903 등)과
+    /// 금액에 발동 배율을 곱해 <see cref="Unit.TakeDamage"/>에 한 번 넘긴다. 주는 피해 보정(원 시전자의 811 · 903 등)과
     /// 대상 경감은 그 공용 경로가 각각 한 번만 적용한다. 새 효과 클래스를 쓰지 않으므로 직접 공격 태그를 붙이지 않는다.
     /// </summary>
     public static class DamageOverTimeDetonation
     {
+        public const float MaxRatio = 5f;
         /// <summary>지금 발동 중인 대상. 피해 처리 중 같은 대상에게 다시 발동이 들어오는 재귀를 막는다.</summary>
         private static readonly HashSet<Unit> Running = new();
 
@@ -68,7 +69,7 @@ namespace Combat
         }
 
         /// <summary>
-        /// 대상의 모든 지속피해를 <paramref name="ratio"/>(0~1) 비율로 즉시 발동한다. 실제로 피해를 넘긴 횟수를 돌려준다.
+        /// 대상의 모든 지속피해를 <paramref name="ratio"/>(0~5) 비율로 즉시 발동한다. 실제로 피해를 넘긴 횟수를 돌려준다.
         /// 대상이 쓰러지면 남은 발동을 멈추고, 처리 도중 사라진 효과와 새로 생긴 효과는 건너뛴다.
         /// </summary>
         /// <param name="trigger">발동시킨 유닛(야마). 피해는 원 시전자 몫이며, 이 값은 알림에만 쓴다.</param>
@@ -87,7 +88,7 @@ namespace Combat
 
                     DamageContext raw = entry.Effect.CreateDamageOverTimeTick();
                     if (raw == null) continue;
-                    int scaled = Mathf.RoundToInt(raw.Damage * Mathf.Clamp01(ratio));
+                    int scaled = Mathf.RoundToInt(raw.Damage * Mathf.Clamp(ratio, 0f, MaxRatio));
                     if (scaled <= 0) continue;
 
                     DamageContext context = Scale(raw, scaled);
@@ -114,6 +115,7 @@ namespace Combat
             => new DamageContext(raw.Attacker, damage, raw.CodeType, new List<int>(raw.DamageTags ?? new List<int>()), raw.IsCrit)
             {
                 IsDamageOverTime = raw.IsDamageOverTime,
+                DotKind = raw.DotKind, DotRootId = raw.DotRootId, DotTrigger = DotTriggerKind.Immediate,
                 StatusVfxKey = raw.StatusVfxKey,
                 OutgoingDamageMultiplier = raw.OutgoingDamageMultiplier,
                 DefenseStatMultiplier = raw.DefenseStatMultiplier,

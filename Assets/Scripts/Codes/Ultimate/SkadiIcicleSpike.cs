@@ -10,6 +10,8 @@ namespace Codes.Ultimate
 {
     public sealed class SkadiIcicleSpike : BaseUltimateCode
     {
+        protected override bool AppliesElement => true;
+        public override int BaseShieldAmount => StatDamage(0, BaseEnums.StatType.Defense, 1.20f);
         public override int AttackForm => DamageTag.Spell;
         protected override bool RequiresCompletionEvidence => true;
         public SkadiIcicleSpike(UltimateCodeContext context) : base(context) => CodeName = "고드름 스파이크";

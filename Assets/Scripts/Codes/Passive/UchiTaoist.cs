@@ -11,8 +11,8 @@ namespace Codes.Passive
 {
     /// <summary>
     /// 우치 — 특성 「도사란 무엇인가」(Detail_08 §10.1 · §10.2). 다수형 소환자로 분신을 최대 3기 거느린다.
-    ///   · 분신: 칸 없음 · 대상 불가 · 고정 속도 70, 제 차례에 우치 공격력 120%로 한 번 치고 사라진다.
-    ///   · 넘침: 상한에서 새 분신이 생기면 가장 오래된 분신부터 즉시 60%로 치고 사라진다(일반 · 초월기 · 외부 생성 모두).
+    ///   · 분신: 칸 없음 · 대상 불가 · 고정 속도 105, 제 차례에 우치 공격력 210%로 한 번 치고 사라진다.
+    ///   · 넘침: 상한에서 새 분신이 생기면 가장 오래된 분신부터 즉시 105%로 치고 사라진다(일반 · 초월기 · 외부 생성 모두).
     ///   · 대신 맞기: 우치가 최대 체력 15% 이상인 한 방을 맞으면 분신 1기가 사라지며 그 피해를 무효화한다(한 적 행동당 1기, 우치만).
     /// 분신이 사라지는 모든 경우는 사망 판정이다 — 아누비스의 영혼이 0.25씩 찬다.
     /// </summary>
@@ -20,7 +20,7 @@ namespace Codes.Passive
     {
         public const string CloneKind = "uchi_clone";
         private const int CloneCap = 3;
-        private const float CloneSpeed = 70f;
+        private const float CloneSpeed = 105f;
         private const float GuardHpRatio = 0.15f;
         private const float OverflowDamageRatio = 0.5f;
 

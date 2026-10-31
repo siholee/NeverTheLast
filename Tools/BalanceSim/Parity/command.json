@@ -1,0 +1,489 @@
+{
+  "seed": 42,
+  "runs": 2,
+  "maxActions": 400,
+  "encounters": [
+    {
+      "enemies": [
+        {
+          "column": 1,
+          "row": 1,
+          "level": 10,
+          "id": 1001,
+          "resource": 0
+        },
+        {
+          "column": 1,
+          "row": 2,
+          "level": 10,
+          "id": 1001,
+          "resource": 0
+        },
+        {
+          "column": 1,
+          "row": 3,
+          "level": 10,
+          "id": 1001,
+          "resource": 0
+        },
+        {
+          "column": 1,
+          "row": 4,
+          "level": 10,
+          "id": 1001,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 1,
+          "level": 10,
+          "id": 1001,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 2,
+          "level": 10,
+          "id": 1001,
+          "resource": 0
+        }
+      ],
+      "stage": 1,
+      "name": "command_boundary",
+      "kind": "Normal"
+    }
+  ],
+  "teams": [
+    {
+      "members": [
+        {
+          "column": 1,
+          "row": 1,
+          "level": 5,
+          "id": 161,
+          "resource": 0
+        },
+        {
+          "column": 1,
+          "row": 2,
+          "level": 5,
+          "id": 1,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 1,
+          "level": 5,
+          "id": 2,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 2,
+          "level": 5,
+          "id": 3,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 3,
+          "level": 5,
+          "id": 7,
+          "resource": 0
+        }
+      ],
+      "gold": 1000,
+      "name": "command_group_0"
+    },
+    {
+      "members": [
+        {
+          "column": 1,
+          "row": 1,
+          "level": 5,
+          "id": 161,
+          "resource": 0
+        },
+        {
+          "column": 1,
+          "row": 2,
+          "level": 5,
+          "id": 20,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 1,
+          "level": 5,
+          "id": 22,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 2,
+          "level": 5,
+          "id": 25,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 3,
+          "level": 5,
+          "id": 40,
+          "resource": 0
+        }
+      ],
+      "gold": 1000,
+      "name": "command_group_1"
+    },
+    {
+      "members": [
+        {
+          "column": 1,
+          "row": 1,
+          "level": 5,
+          "id": 161,
+          "resource": 0
+        },
+        {
+          "column": 1,
+          "row": 2,
+          "level": 5,
+          "id": 44,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 1,
+          "level": 5,
+          "id": 45,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 2,
+          "level": 5,
+          "id": 60,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 3,
+          "level": 5,
+          "id": 61,
+          "resource": 0
+        }
+      ],
+      "gold": 1000,
+      "name": "command_group_2"
+    },
+    {
+      "members": [
+        {
+          "column": 1,
+          "row": 1,
+          "level": 5,
+          "id": 161,
+          "resource": 0
+        },
+        {
+          "column": 1,
+          "row": 2,
+          "level": 5,
+          "id": 62,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 1,
+          "level": 5,
+          "id": 63,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 2,
+          "level": 5,
+          "id": 64,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 3,
+          "level": 5,
+          "id": 65,
+          "resource": 0
+        }
+      ],
+      "gold": 1000,
+      "name": "command_group_3"
+    },
+    {
+      "members": [
+        {
+          "column": 1,
+          "row": 1,
+          "level": 5,
+          "id": 161,
+          "resource": 0
+        },
+        {
+          "column": 1,
+          "row": 2,
+          "level": 5,
+          "id": 66,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 1,
+          "level": 5,
+          "id": 67,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 2,
+          "level": 5,
+          "id": 80,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 3,
+          "level": 5,
+          "id": 81,
+          "resource": 0
+        }
+      ],
+      "gold": 1000,
+      "name": "command_group_4"
+    },
+    {
+      "members": [
+        {
+          "column": 1,
+          "row": 1,
+          "level": 5,
+          "id": 161,
+          "resource": 0
+        },
+        {
+          "column": 1,
+          "row": 2,
+          "level": 5,
+          "id": 120,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 1,
+          "level": 5,
+          "id": 121,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 2,
+          "level": 5,
+          "id": 122,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 3,
+          "level": 5,
+          "id": 123,
+          "resource": 0
+        }
+      ],
+      "gold": 1000,
+      "name": "command_group_5"
+    },
+    {
+      "members": [
+        {
+          "column": 1,
+          "row": 1,
+          "level": 5,
+          "id": 161,
+          "resource": 0
+        },
+        {
+          "column": 1,
+          "row": 2,
+          "level": 5,
+          "id": 125,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 1,
+          "level": 5,
+          "id": 160,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 2,
+          "level": 5,
+          "id": 164,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 3,
+          "level": 5,
+          "id": 165,
+          "resource": 0
+        }
+      ],
+      "gold": 1000,
+      "name": "command_group_6"
+    },
+    {
+      "members": [
+        {
+          "column": 1,
+          "row": 1,
+          "level": 5,
+          "id": 161,
+          "resource": 0
+        },
+        {
+          "column": 1,
+          "row": 2,
+          "level": 5,
+          "id": 166,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 1,
+          "level": 5,
+          "id": 167,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 2,
+          "level": 5,
+          "id": 168,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 3,
+          "level": 5,
+          "id": 180,
+          "resource": 0
+        }
+      ],
+      "gold": 1000,
+      "name": "command_group_7"
+    },
+    {
+      "members": [
+        {
+          "column": 1,
+          "row": 1,
+          "level": 5,
+          "id": 161,
+          "resource": 0
+        },
+        {
+          "column": 1,
+          "row": 2,
+          "level": 5,
+          "id": 4,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 1,
+          "level": 5,
+          "id": 10,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 2,
+          "level": 5,
+          "id": 82,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 3,
+          "level": 5,
+          "id": 83,
+          "resource": 0
+        }
+      ],
+      "gold": 1000,
+      "name": "command_group_8"
+    },
+    {
+      "members": [
+        {
+          "column": 1,
+          "row": 1,
+          "level": 5,
+          "id": 161,
+          "resource": 0
+        },
+        {
+          "column": 1,
+          "row": 2,
+          "level": 5,
+          "id": 124,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 1,
+          "level": 5,
+          "id": 162,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 2,
+          "level": 5,
+          "id": 163,
+          "resource": 0
+        },
+        {
+          "column": 2,
+          "row": 3,
+          "level": 5,
+          "id": 200,
+          "resource": 0
+        }
+      ],
+      "gold": 1000,
+      "name": "command_group_9"
+    },
+    {
+      "members": [
+        {
+          "column": 1,
+          "row": 1,
+          "level": 5,
+          "id": 161,
+          "resource": 0
+        },
+        {
+          "column": 1,
+          "row": 2,
+          "level": 5,
+          "id": 220,
+          "resource": 0
+        }
+      ],
+      "gold": 1000,
+      "name": "command_group_10"
+    }
+  ],
+  "maxCycles": 2.5
+}

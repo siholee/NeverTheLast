@@ -7,6 +7,7 @@ using Combat;
 using Entities;
 using Managers;
 using UnityEngine;
+using Random = Combat.CombatRandom;
 
 namespace Codes.Normal
 {
@@ -42,14 +43,14 @@ namespace Codes.Normal
     }
 
     /// <summary>
-    /// 분신의 일반행동(일반행동 네임스페이스 500 — 소환수 코드). 제 차례에 우치 공격력 120%로 한 번 치고 사라진다.
+    /// 분신의 일반행동(일반행동 네임스페이스 500 — 소환수 코드). 제 차례에 우치 공격력 210%로 한 번 치고 사라진다.
     /// 피해는 <b>우치 명의</b>(처치 · 마나 귀속)로 기록하고 소환수 피해 태그를 붙여 갈라테아 · 쿠베라 후원이 받게 한다.
     /// 분신은 우치의 스탯 · 버프를 물려받지 않지만, 피해 계산은 소환자 현재 스탯으로 한다(Detail_03 §4.7).
     /// </summary>
     public sealed class UchiCloneStrike : NormalCode
     {
         public const int CodeId = 500;
-        private const float AttackRatio = 1.20f;
+        private const float AttackRatio = 2.10f;
 
         public override int AttackForm => DamageTag.Strike;
 

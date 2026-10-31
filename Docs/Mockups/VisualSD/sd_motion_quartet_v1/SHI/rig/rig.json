@@ -1,0 +1,43 @@
+{
+  "canvas": [
+    448,
+    512
+  ],
+  "mouth": [
+    227,
+    375
+  ],
+  "axis": [
+    0.914,
+    0.406
+  ],
+  "shoulderY": 322,
+  "wristY": 355,
+  "bladeOrigin": [
+    228,
+    375
+  ],
+  "maxDraw": 14,
+  "order": [
+    "body",
+    "blade",
+    "nearArm",
+    "fixedSheath"
+  ],
+  "wind": false,
+  "nearMaskPolygon": "182,334 210,340 221,350 221,364 232,367 232,378 224,383 213,377 168,359 167,348 181,345",
+  "wristTransform": {
+    "anchorY": 322,
+    "denominator": 53,
+    "kx": "-draw*0.914/53",
+    "ky": "-draw*0.406/53"
+  },
+  "preserveOriginalRGBAOutside": [
+    65,
+    310,
+    345,
+    442
+  ],
+  "fixedSheathPolicy": "Source far hand/sheath mask in front of mouth plane; rendered last.",
+  "broadSleeve": "fixed original; only wrist/hand/hilt cutout moves"
+}

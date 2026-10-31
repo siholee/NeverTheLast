@@ -1,0 +1,37 @@
+[
+  {
+    "name": "idle",
+    "originalSole": 1213,
+    "shift": 0,
+    "soleY": 1213,
+    "top": 136
+  },
+  {
+    "name": "prepare",
+    "originalSole": 1214,
+    "shift": -1,
+    "soleY": 1213,
+    "top": 135
+  },
+  {
+    "name": "apex",
+    "originalSole": 1214,
+    "shift": -1,
+    "soleY": 1213,
+    "top": 135
+  },
+  {
+    "name": "hit",
+    "originalSole": 1209,
+    "shift": 4,
+    "soleY": 1213,
+    "top": 101
+  },
+  {
+    "name": "death",
+    "originalSole": 1194,
+    "shift": 19,
+    "soleY": 1213,
+    "top": 288
+  }
+]

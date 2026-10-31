@@ -1,0 +1,164 @@
+{
+  "teams": [
+    {
+      "ys": [
+        2,
+        2,
+        3,
+        1,
+        3
+      ],
+      "intent": "현재 시 화력 우선",
+      "xs": [
+        -2,
+        -1,
+        -2,
+        -2,
+        -1
+      ],
+      "aliases": [],
+      "key": "intent_shi200_current",
+      "policy": "shi",
+      "name": "현재 시 화력 우선",
+      "family": "시·세이·히미코·찬드라·오르페우스",
+      "ids": [
+        2,
+        1,
+        44,
+        60,
+        25
+      ],
+      "study": "shi200",
+      "shiAttackGrowthScale": 1,
+      "partyHpGrowthScale": 1
+    },
+    {
+      "ys": [
+        2,
+        2,
+        3,
+        1,
+        3
+      ],
+      "intent": "시 공격 성장 +50%",
+      "xs": [
+        -2,
+        -1,
+        -2,
+        -2,
+        -1
+      ],
+      "aliases": [],
+      "key": "intent_shi200_attack150",
+      "policy": "shi",
+      "name": "시 공격 성장 +50%",
+      "family": "시·세이·히미코·찬드라·오르페우스",
+      "ids": [
+        2,
+        1,
+        44,
+        60,
+        25
+      ],
+      "study": "shi200",
+      "shiAttackGrowthScale": 1.5,
+      "partyHpGrowthScale": 1
+    },
+    {
+      "ys": [
+        2,
+        2,
+        3,
+        1,
+        3
+      ],
+      "intent": "파티 체력 성장 +50%",
+      "xs": [
+        -2,
+        -1,
+        -2,
+        -2,
+        -1
+      ],
+      "aliases": [],
+      "key": "intent_shi200_hp150",
+      "policy": "shi",
+      "name": "파티 체력 성장 +50%",
+      "family": "시·세이·히미코·찬드라·오르페우스",
+      "ids": [
+        2,
+        1,
+        44,
+        60,
+        25
+      ],
+      "study": "shi200",
+      "shiAttackGrowthScale": 1,
+      "partyHpGrowthScale": 1.5
+    },
+    {
+      "ys": [
+        2,
+        2,
+        3,
+        1,
+        3
+      ],
+      "intent": "시 공격·파티 체력 성장 +50%",
+      "xs": [
+        -2,
+        -1,
+        -2,
+        -2,
+        -1
+      ],
+      "aliases": [],
+      "key": "intent_shi200_both150",
+      "policy": "shi",
+      "name": "시 공격·파티 체력 성장 +50%",
+      "family": "시·세이·히미코·찬드라·오르페우스",
+      "ids": [
+        2,
+        1,
+        44,
+        60,
+        25
+      ],
+      "study": "shi200",
+      "shiAttackGrowthScale": 1.5,
+      "partyHpGrowthScale": 1.5
+    },
+    {
+      "ys": [
+        2,
+        2,
+        3,
+        1,
+        3
+      ],
+      "intent": "시 공격·파티 체력 성장 +100%",
+      "xs": [
+        -2,
+        -1,
+        -2,
+        -2,
+        -1
+      ],
+      "aliases": [],
+      "key": "intent_shi200_both200",
+      "policy": "shi",
+      "name": "시 공격·파티 체력 성장 +100%",
+      "family": "시·세이·히미코·찬드라·오르페우스",
+      "ids": [
+        2,
+        1,
+        44,
+        60,
+        25
+      ],
+      "study": "shi200",
+      "shiAttackGrowthScale": 2,
+      "partyHpGrowthScale": 2
+    }
+  ]
+}

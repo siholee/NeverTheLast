@@ -57,6 +57,7 @@ namespace Effects.Vfx
         private Transform _follow;
         private Vector3 _followOffset;
         private bool _unscaledLife;
+        private Vector3 _drift,_driftOrigin;
 
         /// <summary>
         /// 한 장을 띄운다. 크기는 월드 단위(가로 · 세로), 페이드는 수명 비율이다.
@@ -103,6 +104,17 @@ namespace Effects.Vfx
             return this;
         }
 
+        /// <summary>공통 수신자 연결 API. 카드·얼굴·HUD로 스프라이트를 잘라내지 않는다.</summary>
+        public SpriteFx BindRecipient(Entities.Unit target)
+        {
+            return this;
+        }
+
+        public SpriteFx Drift(Vector3 displacement)
+        {
+            _drift=displacement;_driftOrigin=transform.position;return this;
+        }
+
         /// <summary>배속이 개입 도중 바뀌어도 짧은 의미 신호를 읽을 시간을 보장한다. 일시정지는 따른다.</summary>
         public SpriteFx HoldUnscaled(float seconds)
         {
@@ -131,6 +143,8 @@ namespace Effects.Vfx
                 Ease.InCubic => t * t * t,
                 _ => 1f - (1f - t) * (1f - t) * (1f - t),
             };
+            if(_drift!=Vector3.zero)
+                transform.position=(_follow!=null?_follow.position+_followOffset:_driftOrigin)+_drift*k;
             Vector2 size = Vector2.LerpUnclamped(_from, _to, k);
             _renderer.transform.localScale = new Vector3(size.x, size.y, 1f);
             if (_spin != 0f) transform.Rotate(0f, 0f, _spin * Time.deltaTime);

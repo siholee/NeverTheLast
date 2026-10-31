@@ -51,6 +51,7 @@ namespace Codes.Base
         {
             if (!_finishingNaturally && Caster != null && CurrSkillCoroutine != null)
                 Caster.StopCoroutine(CurrSkillCoroutine);
+            if (_finishingNaturally) Combat.SpecialAction.NotifyResolved(Caster, completed: true);
             base.StopCode();
         }
 

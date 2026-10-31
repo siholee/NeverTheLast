@@ -16,6 +16,8 @@ namespace Entities.View
         private Unit _unit;
         private SpriteRenderer _portrait;
         private SpriteRenderer _healthTrack, _healthFill;
+        public StageSummonVisual StageVisual { get; private set; }
+        private bool IsStage => Managers.Stage.VisualModeState.Current == Managers.Stage.VisualMode.Stage;
         public bool HasHealthDisplay => _healthTrack != null && _healthFill != null;
         public float DisplayedHealthRatio { get; private set; }
         private Vector3 _advance;
@@ -32,6 +34,10 @@ namespace Entities.View
             _portrait.sprite = unit.SummonPortraitOverride != null ? unit.SummonPortraitOverride
                 : UnitCardView.PortraitWithBottomFade(SpriteResource.LoadPortrait(unit.PortraitPath, out _));
             _portrait.color = new Color(0.74f, 0.95f, 0.91f, _opacity);
+            if (Summons.StyleOf(unit.SummonOwner) == SummonStyle.Swarm || unit.SummonKind == Codes.Passive.LokiUnboundWolf.FenrirKind ||
+                Managers.DataManager.LoadStageFigureDataList().figures.Any(p => p.sprite == unit.SummonKind && p.sd != null))
+                StageVisual = StageSummonVisual.Create(unit.SummonOwner, unit,
+                    unit.SummonKind == Codes.Passive.LokiUnboundWolf.FenrirKind ? "fenrir" : unit.SummonKind);
             if (!unit.IsUntargetable)
             {
                 _healthTrack = new GameObject("SummonHealthTrack").AddComponent<SpriteRenderer>();
@@ -59,6 +65,35 @@ namespace Entities.View
                 return;
             }
             _portrait.enabled = _unit.isActive && owner.isActive && owner.IsOnField;
+            if (IsStage && StageVisual != null)
+            {
+                if (_unit.SummonKind != "uchi_clone" && _unit.SummonKind != Codes.Passive.LokiUnboundWolf.FenrirKind)
+                {
+                    // 기존 문양/서기관의 논리 위치를 보존한다. 투사체 출발점과 실제 타격 창을 SD 배치로 바꾸지 않는다.
+                    int legacyIndex = Mathf.Clamp(Summons.Of(owner).IndexOf(_unit), 0, 2);
+                    float legacyFacing = owner.IsEnemy ? -1f : 1f;
+                    float legacyPixel = Managers.Stage.StageLayout.WorldHeight / 1080f;
+                    transform.position = view.Body.position + new Vector3(-legacyFacing * (100f + legacyIndex * 42f), 32f, 0f) * legacyPixel + _advance;
+                }
+                _portrait.enabled = false;
+                if (HasHealthDisplay)
+                {
+                    DisplayedHealthRatio = Mathf.Clamp01(_unit.HpCurr / (float)Mathf.Max(1, _unit.HpMax));
+                    float px = Managers.Stage.StageLayout.WorldHeight / 1080f * StageVisual.Depth;
+                    float stageBarWidth = 52f * px, stageBarHeight = 3f * px;
+                    Vector3 top = StageVisual.Feet + Vector3.up * (StageVisual.Height + 8f * px);
+                    _healthTrack.transform.position = top;
+                    _healthFill.transform.position = top + Vector3.left * (stageBarWidth * (1 - DisplayedHealthRatio) * .5f);
+                    _healthTrack.transform.localScale = new Vector3(stageBarWidth / _healthTrack.sprite.bounds.size.x, stageBarHeight / _healthTrack.sprite.bounds.size.y, 1);
+                    _healthFill.transform.localScale = new Vector3(stageBarWidth * DisplayedHealthRatio / _healthFill.sprite.bounds.size.x, stageBarHeight / _healthFill.sprite.bounds.size.y, 1);
+                    _healthTrack.sortingLayerID = _healthFill.sortingLayerID = StageVisual.Renderer.sortingLayerID;
+                    _healthTrack.sortingOrder = StageVisual.Renderer.sortingOrder + 1;
+                    _healthFill.sortingOrder = StageVisual.Renderer.sortingOrder + 2;
+                    _healthTrack.enabled = _unit.isActive && owner.isActive && owner.IsOnField;
+                    _healthFill.enabled = _healthTrack.enabled && DisplayedHealthRatio > 0;
+                }
+                return;
+            }
             int index = Mathf.Clamp(Summons.Of(owner).IndexOf(_unit), 0, 2);
             float facing = owner.IsEnemy ? -1f : 1f;
             float card = view.CardSize;
@@ -77,6 +112,12 @@ namespace Entities.View
                 _portrait.sortingOrder = view.PortraitRenderer.sortingOrder + 2;
                 _portrait.transform.localScale = Vector3.one * (card * .28f / Mathf.Max(.01f,width));
                 _portrait.color = new Color(.94f,.83f,.62f,.86f);
+            }
+            if (Managers.Stage.VisualModeState.Current == Managers.Stage.VisualMode.Stage && view.StageProxy != null)
+            {
+                float px = Managers.Stage.StageLayout.WorldHeight / 1080f;
+                transform.position = view.Body.position + new Vector3(-facing * (100f + index * 42f), 32f, 0f) * px + _advance;
+                _portrait.transform.localScale = Vector3.one * (80f * px / Mathf.Max(.01f, width));
             }
             if (HasHealthDisplay)
             {
@@ -99,6 +140,7 @@ namespace Entities.View
 
         public IEnumerator Advance(Unit target, float scale = 1f)
         {
+            if (IsStage && StageVisual != null) StageVisual.BeginAdvance(target);
             Vector3 direction = VfxSpace.AimFrom(_unit, target).Direction;
             float card = VfxSpace.CardSize;
             _opacity = BaseOpacity * scale;
@@ -114,6 +156,7 @@ namespace Entities.View
 
         public void Guard(Unit attacker)
         {
+            if (IsStage && StageVisual != null) { StageVisual.Guard(); Trace("clone_guard"); return; }
             Unit owner = _unit.SummonOwner;
             _advance = VfxSpace.AimFrom(owner, attacker).Direction * VfxSpace.CardSize * .46f;
             FollowOwner();
@@ -122,6 +165,7 @@ namespace Entities.View
 
         public void Overflow(Unit target)
         {
+            if (IsStage && StageVisual != null) { StageVisual.Overflow(); Trace("card_motion_clone_overflow_peak"); return; }
             _opacity = .38f;
             _advance = VfxSpace.AimFrom(_unit, target).Direction * VfxSpace.CardSize * .12f;
             FollowOwner();
@@ -131,11 +175,22 @@ namespace Entities.View
         public void Depart()
         {
             if (_portrait == null) return;
+            if (IsStage && StageVisual != null)
+            {
+                StageVisual.Depart();
+                _portrait.enabled = false;
+                return;
+            }
             if (!IsCompanion)
                 UchiFx.PaperDeparture(transform.position, _portrait.sprite, _portrait.transform.lossyScale,
                     _portrait.color, _unit);
             _portrait.enabled = false;
             if (HasHealthDisplay) _healthTrack.enabled = _healthFill.enabled = false;
+        }
+
+        private void OnDestroy()
+        {
+            if (StageVisual != null && !StageVisual.Detached) Destroy(StageVisual.gameObject);
         }
 
         private void Trace(string tag)

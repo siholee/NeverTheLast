@@ -25,47 +25,58 @@ namespace Effects.Vfx
         {
             if (caster == null || target == null) { impact?.Invoke(); yield break; }
             CardMotion.Throw(caster, target, .45f);
-            Vector3 end = StatusMotifFx.Anchor(target);
-            Blade(end, VfxSpace.SortingLayer(target), .82f, .36f, false);
-            yield return HandpaintFx.PlayHit(target, Slow(HandpaintFx.Slash1RedSlow, .36f), new Vector2(1.05f, .98f), Ember, Gold, () =>
+            PurchasedArcherFx.RosterPreparation(caster, target, attack:true);
+            var blade=HeavyGreatbladeFx.BeginSlash(caster,target);
+            // 원래 4셀/.05초 정점 대기는 판정 시계로 남기고, 실제 구매 코어는 그 콜백에서만 연다.
+            yield return HandpaintFx.PlayHit(target, Slow(HandpaintFx.Slash1RedSlow, .36f), new Vector2(1.05f, .98f), Color.clear, Color.clear, () =>
             {
+                blade?.Land();
+                PurchasedArcherFx.RosterContact(caster, target, .53f, elementalInk:true);
                 CardMotion.RakeReaction(target, VfxSpace.AimFrom(caster, target).Direction, .35f);
                 impact?.Invoke();
-            }, rotation: -22f, impactFrame: 4, glowAlpha: .17f, calmLight: true, peakHoldSeconds: .05f, desaturate: .75f, portraitAnchor: true, peakAlpha: .38f);
+            }, rotation: -22f, impactFrame: 4, glowAlpha: 0f, calmLight: true, peakHoldSeconds: .05f, desaturate: 1f, portraitAnchor: true, peakAlpha: 0f);
         }
 
         public static IEnumerator SurtrUltimate(Unit caster, IReadOnlyList<Unit> targets, bool empowered, Action impact)
         {
             if (caster == null || targets == null || targets.Count == 0) { impact?.Invoke(); yield break; }
-            Vector3 source = StatusMotifFx.Anchor(caster);
-            int layer = VfxSpace.SortingLayer(caster);
-            // 축적 → 검기 → 불티 순서. 강화 상태에서만 두 번째 검기를 겹친다.
-            // 얼굴을 채우는 평면 화염 대신 가슴·손 가장자리의 작은 불꽃과 얇은 검기 예고를 쓴다.
-            Vector3 charge = StatusMotifFx.Anchor(caster) + Vector3.right*.22f*VfxSpace.CardSize;
-            HandpaintFx.PlayAt(charge, layer, Slow(HandpaintFx.Fire1Red, .72f), new Vector2(.48f, .60f), Ember, Gold,
-                peakAlpha: .50f, glowAlpha: .12f, calmLight: true)?.ClipPortraitHud(caster).ScaleEnvelope(.60f,1.35f,.40f);
-            Ribbon.Arc(source, Gold, .60f, .46f, 230, 280, .045f, layer);
+            // 공유 Nord 색·프레이아 경로는 건드리지 않고 수르트의 실제 불 원소만 쓴다.
+            PurchasedArcherFx.RosterPreparation(caster, targets.FirstOrDefault(), attack:true);
+            var blade=HeavyGreatbladeFx.BeginSkyfall(caster,targets,empowered);
             yield return new WaitForSeconds(.28f);
-            foreach (Unit target in targets)
-            {
-                Vector3 point = StatusMotifFx.Anchor(target);
-                Blade(point, VfxSpace.SortingLayer(target), empowered ? 1.18f : .96f, .64f, empowered);
-                HandpaintFx.PlayAt(point, VfxSpace.SortingLayer(target), Slow(HandpaintFx.FireAttack1Red, .60f), new Vector2(1.18f, 1.48f), Ember, Gold,
-                    peakAlpha: .36f, glowAlpha: .18f, calmLight: true, orderOffset: 33, desaturate: .90f)?.ClipPortraitHud(target);
-            }
             yield return new WaitForSeconds(.19f);
             AudioManager.PlayCue("surtr.ultimate.hit");
-            impact?.Invoke();
+            blade?.Land();
             foreach (Unit target in targets)
             {
-                if (target == null) continue;
-                HandpaintFx.PlayAt(VfxSpace.PortraitPoint(target), VfxSpace.SortingLayer(target), Slow(HandpaintFx.Explosion2Red, .42f),
-                    new Vector2(.90f, .98f), Ember, Gold, peakAlpha: .40f, glowAlpha: .12f, calmLight: true, desaturate: .85f)?.ClipPortraitHud(target);
+                if (target == null || !target.isActive) continue;
+                PurchasedArcherFx.RosterContact(caster, target, empowered ? .66f : .54f, elementalInk:true);
                 CardMotion.RakeReaction(target, VfxSpace.AimFrom(caster, target).Direction, .47f);
             }
+            impact?.Invoke();
             yield return new WaitForSeconds(.43f);
         }
 
+        private static void SurtrSlash(Unit caster, Unit target, float scale, float life, bool empowered)
+        {
+            var view = CardMotion.ViewOf(target);
+            if (view?.PortraitRenderer == null || view.PortraitRenderer.sprite == null) return;
+            Color tint = ElementPalette.ColorFor(caster.Element);
+            Vector3 point = VfxSpace.BodyContactPoint(target);
+            int layer = VfxSpace.SortingLayer(target);
+            int count = empowered ? 2 : 1;
+            for (int i = 0; i < count; i++)
+            {
+                HandpaintFx.PlayAt(point, layer, Slow(HandpaintFx.Slash1RedSlow, life),
+                    new Vector2(1.06f, .72f) * scale, tint * new Color(.16f,.16f,.16f,1f), Color.clear,
+                    -22f+i*48f, peakAlpha:.72f, glowAlpha:0f, desaturate:1f, calmLight:true, orderOffset:160)?.BindRecipient(target);
+                HandpaintFx.PlayAt(point, layer, Slow(HandpaintFx.Slash1RedSlow, life),
+                    new Vector2(.96f, .62f) * scale, tint, tint, -22f+i*48f,
+                    peakAlpha:.70f, glowAlpha:0f, desaturate:1f, calmLight:true, orderOffset:161)?.BindRecipient(target);
+            }
+        }
+
+        /// <summary>검 하나의 예비 자세·낙하·박힌 잔상을 그린다. 피해·정지·행동 시계는 기존 호출자가 소유한다.</summary>
         public static IEnumerator FreyaPrayer(Unit caster)
         {
             if (caster == null) yield break;
@@ -92,7 +103,7 @@ namespace Effects.Vfx
                 Ribbon.Petal(point, i % 2 == 0 ? Mint : Spring, .52f * scale, .76f, i * 60, .022f * scale, layer, i * .024f);
             }
             HandpaintFx.PlayAt(point, layer, Slow(HandpaintFx.Impact1White, .52f), new Vector2(.62f, .64f) * scale, Mint, Spring,
-                peakAlpha: .44f, glowAlpha: .09f, calmLight: true, orderOffset: 26, desaturate: .80f)?.ClipPortraitHud(target);
+                peakAlpha: .44f, glowAlpha: .09f, calmLight: true, orderOffset: 26, desaturate: .80f)?.BindRecipient(target);
         }
 
         private static void Blade(Vector3 point, int layer, float scale, float life, bool empowered)

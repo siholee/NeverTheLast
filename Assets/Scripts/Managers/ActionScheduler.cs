@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BaseClasses;
@@ -90,6 +90,8 @@ namespace Managers
 
         /// <summary>행동치 조작을 행동서열이 작은 표식과 보간 이동으로 설명할 때 쓴다.</summary>
         public static event Action<Unit, bool> AnyActionOrderAdjusted;
+        /// <summary>실제 남은 AV가 감소했다(대상 · 현재 행동자). 이미 0인 대상에는 발행하지 않는다.</summary>
+        public static event Action<Unit, Unit> AnyActionValueReduced;
 
         /// <summary>
         /// 실행된 행동 하나가 끝났다(유닛 · 종류). 코루틴 행동은 시전이 끝날 때, 즉발 행동은 실행 직후 발행한다.
@@ -224,9 +226,27 @@ namespace Managers
         /// <summary>
         /// 이번 라운드에서 행동치가 실제로 전진한 전투 시간(초).
         /// 연출의 벽시계와 무관하며, 궁극기 자원 충전에 사용한 것과 정확히 같은 축이다.
-        /// 밸런스 검증은 이 값을 기준으로 DPM을 환산한다.
+        /// 기존 DPM 통계의 환산값이며, 캐릭터 비교에는 아래 기준 라운드를 함께 기록한다.
         /// </summary>
         public float CombatSecondsElapsed { get; private set; }
+
+        /// <summary>내부 성능 측정용 누적 AV. 연출 시간·추가행동 수와 독립이다.</summary>
+        public float CombatActionValueElapsed { get; private set; }
+        public const float ReferenceCycleActionValue = BaseActionValue / 100f;
+        /// <summary>속도 100인 가상 행동자의 소요 라운드. 진행 라운드·유닛 턴 수와 구별한다.</summary>
+        public float ReferenceCyclesElapsed => CombatActionValueElapsed / ReferenceCycleActionValue;
+        public int InitialEnemyCount { get; private set; }
+
+        // 개전 완충은 첫 일반행동 기회까지만 적용한다. 추가·특수·초월기는 이 기록을 소비하지 않는다.
+        private readonly HashSet<Unit> _normalActionStarted = new();
+        public bool HasStartedNormalAction(Unit unit) => unit != null && _normalActionStarted.Contains(unit);
+
+        /// <summary>내부 진단 목표만 제공한다. 전투 종료 조건에는 사용하지 않는다.</summary>
+        public static int ReferenceCycleBudget(StageKind kind)
+            => kind is StageKind.Boss or StageKind.MidBoss ? 10 : 3;
+
+        public static bool ExceedsReferenceCycleBudget(float elapsedActionValue, StageKind kind)
+            => elapsedActionValue > ReferenceCycleBudget(kind) * ReferenceCycleActionValue + .001f;
 
         /// <summary>현재 행동 중인 유닛. 없으면 null.</summary>
         public Unit ActingUnit => _acting ?? _previewing?.Unit;
@@ -250,6 +270,7 @@ namespace Managers
             Combat.AttackTargetRouter.ResetRound();
             _actionValues.Clear();
             _turnCounts.Clear();
+            _normalActionStarted.Clear();
             _lapCredit.Clear();
             ClearQueue();
             _acting = null;
@@ -261,6 +282,8 @@ namespace Managers
             ActionCount = 0;
             TurnsTaken = 0;
             CombatSecondsElapsed = 0f;
+            CombatActionValueElapsed = 0f;
+            InitialEnemyCount = Participants().Count(unit => unit.IsEnemy);
 
             foreach (Unit unit in Participants())
             {
@@ -309,8 +332,20 @@ namespace Managers
             }
         }
 
+        /// <summary>
+        /// 유한 다단 초월기의 실제 효과 진행을 알린다. 예고·예약·매 프레임은 진행이 아니다.
+        /// 현재 실행 중인 초월기 본체만 갱신하고, 다음 유효 효과가 8초간 없으면 기존 감시가 중단한다.
+        /// </summary>
+        public void NotifyUltimateProgress(Unit unit)
+        {
+            if (unit == null || _acting != unit || _actingRootKind != ActionKind.Ultimate || _interruptDepth > 0) return;
+            _actingElapsed = 0f;
+        }
+
         public void EndRound()
         {
+            _normalActionStarted.Clear();
+            InitialEnemyCount = 0;
             _forecastValid = false;
             _forecastCache.Clear();
             _forecastUnits.Clear();
@@ -369,6 +404,7 @@ namespace Managers
             if (unit == null || ratio <= 0f) return;
             if (!_actionValues.TryGetValue(unit, out float remaining)) return;
             _actionValues[unit] = Mathf.Max(0f, remaining - FullActionValue(unit) * ratio);
+            if (_actionValues[unit] < remaining) AnyActionValueReduced?.Invoke(unit, ExecutingUnit);
             _lapCredit[unit] = _lapCredit.GetValueOrDefault(unit) + ratio;
             AnyActionOrderAdjusted?.Invoke(unit, true);
         }
@@ -640,7 +676,7 @@ namespace Managers
 
                 Combat.ActionAnnouncer.AnnounceScheduled(next.Unit,next.Kind,next.Label);
                 if(immediate) ExecuteQueued(next);
-                else { _previewing=next; _previewRemaining=PreviewSeconds; }
+                else { _previewing=next; _previewRemaining=PreviewSeconds + Effects.Vfx.ActionPresentation.ExtraPreviewSeconds(next.Unit, next.Kind); }
                 return true;
             }
 
@@ -683,6 +719,7 @@ namespace Managers
                     _executingUnit = null;
                     return;
                 }
+                if (next.Kind == ActionKind.Normal) _normalActionStarted.Add(next.Unit);
                 AnyActionStarted?.Invoke(next.Unit, next.Kind, next.Label);
                 next.Run();
 
@@ -796,6 +833,7 @@ namespace Managers
                     _actionValues[unit] = Mathf.Max(0f, _actionValues[unit] - lowest);
                 }
                 CombatSecondsElapsed += lowest / ActionValuePerSecond;
+                CombatActionValueElapsed += lowest;
             }
 
             // 행동을 소비했으므로 AV를 다시 채운다.
@@ -894,7 +932,16 @@ namespace Managers
         /// </summary>
         private void ReserveReadyUltimates()
         {
-            foreach (Unit unit in _actionValues.Keys.ToList())
+            var units = _actionValues.Keys.ToList();
+            // 자원 공급형이 없는 편성은 기존의 예약 순서·명중/난수 호출 경로를 그대로 유지한다.
+            if (units.Any(unit => unit?.ActiveUltimateCode?.PrecedesSpecialGate == true && CanUseUltimate(unit)))
+            {
+                var gates = new HashSet<bool>(units.Where(unit => Combat.SpecialAction.CanOpen(unit) && CanUseUltimate(unit))
+                    .Select(unit => unit.IsEnemy));
+                if (gates.Count > 0)
+                    units = units.OrderBy(unit => unit?.ActiveUltimateCode?.PrecedesSpecialGate == true && gates.Contains(unit.IsEnemy) ? 0 : 1).ToList();
+            }
+            foreach (Unit unit in units)
             {
                 if (!CanUseUltimate(unit)) continue;
                 Enqueue(unit, ActionKind.Ultimate, "ult", unit.ActiveUltimateCode.CodeName,

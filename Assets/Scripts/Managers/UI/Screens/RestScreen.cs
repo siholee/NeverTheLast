@@ -119,12 +119,13 @@ namespace Managers.UI.Screens
             GameManager game = GameManager.Instance;
             int charges = game?.ShortRestCharges ?? 0;
             int food = game?.inventoryManager?.FoodUnits ?? 0;
+            bool free = game?.IsFreeLongRestPreparation == true;
             _shortMeta.text = $"남은 횟수  {charges} / {GameManager.MaxShortRestCharges}";
-            _longMeta.text = $"필요 보급 {GameManager.LongRestFoodCost} · 보유 {food}";
+            _longMeta.text = free ? "고정보스 전 휴식 · 소모품 사용 없음" : $"필요 보급 {GameManager.LongRestFoodCost} · 보유 {food}";
             _shortButton.GetComponentInChildren<TextMeshProUGUI>().text = "짧은 휴식 · 1회";
-            _longButton.GetComponentInChildren<TextMeshProUGUI>().text = $"긴 휴식 · 보급 {GameManager.LongRestFoodCost}";
-            _shortButton.interactable = game?.CanRest == true && charges > 0;
-            _longButton.interactable = game?.CanRest == true && food >= GameManager.LongRestFoodCost;
+            _longButton.GetComponentInChildren<TextMeshProUGUI>().text = free ? "무료 긴 휴식" : $"긴 휴식 · 보급 {GameManager.LongRestFoodCost}";
+            _shortButton.interactable = game?.CanRest == true && !free && charges > 0;
+            _longButton.interactable = game?.CanRest == true && (free || food >= GameManager.LongRestFoodCost);
         }
 
         private void UseShortRest()

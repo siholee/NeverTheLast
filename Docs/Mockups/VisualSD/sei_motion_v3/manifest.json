@@ -1,0 +1,2009 @@
+{
+  "version": 3,
+  "date": "2026-10-29",
+  "character": "SEI",
+  "status": "concept-preview",
+  "generator": "built-in image_gen",
+  "width": 320,
+  "height": 400,
+  "sourceScale": 0.92,
+  "ground": 376,
+  "notes": [
+    "Each motion has 16 generated drawings. No interpolated or duplicated frames.",
+    "Export: largest connected opaque component plus 2px antialias margin; alpha<16 removed; original source atlases preserved.",
+    "Uniform scale .92 and per-frame translation to front-toe/ground only; no character-part warping/redrawing.",
+    "Preview only; Unity integration/timing callback/performance not tested."
+  ],
+  "motions": [
+    {
+      "key": "idle",
+      "label": "대기",
+      "durationMs": 1600,
+      "loop": true,
+      "frames": [
+        {
+          "frame": 1,
+          "sourceRect": [
+            42,
+            6,
+            196,
+            346
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            192,
+            342
+          ],
+          "toe": 168,
+          "ground": 342,
+          "translate": [
+            82,
+            62
+          ],
+          "removedPixels": 6458,
+          "sha256": "c0ea20b67b3fa0311738fd225aa35824d3f540a8328f5ed06fa13e806deadab7",
+          "file": "frames/idle/SEI_IDLE_01.png"
+        },
+        {
+          "frame": 2,
+          "sourceRect": [
+            307,
+            6,
+            197,
+            346
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            193,
+            342
+          ],
+          "toe": 169,
+          "ground": 342,
+          "translate": [
+            81,
+            62
+          ],
+          "removedPixels": 6540,
+          "sha256": "584f4096e15d2966518ca79abd2c5d18147ca8a3f091b3a9bf98e34e92403a75",
+          "file": "frames/idle/SEI_IDLE_02.png"
+        },
+        {
+          "frame": 3,
+          "sourceRect": [
+            574,
+            6,
+            197,
+            346
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            193,
+            342
+          ],
+          "toe": 169,
+          "ground": 342,
+          "translate": [
+            81,
+            62
+          ],
+          "removedPixels": 7198,
+          "sha256": "3061ec91e21a2ff4f3fd81240dc98a7b03dc495eae3fe969b2d5c8b028a44212",
+          "file": "frames/idle/SEI_IDLE_03.png"
+        },
+        {
+          "frame": 4,
+          "sourceRect": [
+            840,
+            6,
+            197,
+            346
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            193,
+            342
+          ],
+          "toe": 169,
+          "ground": 342,
+          "translate": [
+            81,
+            62
+          ],
+          "removedPixels": 6019,
+          "sha256": "0353f3e6006126e2249114d86614f96bdb058df04297cb3fe9b7fc4114b66e5e",
+          "file": "frames/idle/SEI_IDLE_04.png"
+        },
+        {
+          "frame": 5,
+          "sourceRect": [
+            42,
+            353,
+            199,
+            344
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            195,
+            340
+          ],
+          "toe": 169,
+          "ground": 340,
+          "translate": [
+            81,
+            64
+          ],
+          "removedPixels": 7412,
+          "sha256": "d7c4c056a943f1baa40fdf00bc41fb886a8d6146bacd5c9d1500628978189be5",
+          "file": "frames/idle/SEI_IDLE_05.png"
+        },
+        {
+          "frame": 6,
+          "sourceRect": [
+            307,
+            352,
+            200,
+            346
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            196,
+            342
+          ],
+          "toe": 170,
+          "ground": 342,
+          "translate": [
+            81,
+            62
+          ],
+          "removedPixels": 6286,
+          "sha256": "b36251adad54bfedd0c45ee3d341e665ee3fae3cda13a3b7c4302da6d9b7def2",
+          "file": "frames/idle/SEI_IDLE_06.png"
+        },
+        {
+          "frame": 7,
+          "sourceRect": [
+            574,
+            352,
+            199,
+            345
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            195,
+            341
+          ],
+          "toe": 169,
+          "ground": 341,
+          "translate": [
+            81,
+            63
+          ],
+          "removedPixels": 7640,
+          "sha256": "6f75934bf93dfc3e6a0552a9b0ed7c9b6f0c3e9a4b15971fef291311bf38b3f3",
+          "file": "frames/idle/SEI_IDLE_07.png"
+        },
+        {
+          "frame": 8,
+          "sourceRect": [
+            841,
+            353,
+            199,
+            344
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            195,
+            340
+          ],
+          "toe": 168,
+          "ground": 340,
+          "translate": [
+            82,
+            64
+          ],
+          "removedPixels": 6513,
+          "sha256": "415f1b644ad1275c16f613a4b52a3443f6cec00e64ea4d24296c93c465efabdc",
+          "file": "frames/idle/SEI_IDLE_08.png"
+        },
+        {
+          "frame": 9,
+          "sourceRect": [
+            42,
+            702,
+            201,
+            341
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            197,
+            337
+          ],
+          "toe": 170,
+          "ground": 337,
+          "translate": [
+            81,
+            67
+          ],
+          "removedPixels": 7292,
+          "sha256": "8f0383ea4bb75d3147cb0a2bd9572def8540966efe512376e4cbd9d7fc2aed3b",
+          "file": "frames/idle/SEI_IDLE_09.png"
+        },
+        {
+          "frame": 10,
+          "sourceRect": [
+            304,
+            702,
+            206,
+            341
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            202,
+            337
+          ],
+          "toe": 175,
+          "ground": 337,
+          "translate": [
+            76,
+            67
+          ],
+          "removedPixels": 7289,
+          "sha256": "23d3a636e762e0960be671b57b62122aa5013e80815a54559c20e8c654760342",
+          "file": "frames/idle/SEI_IDLE_10.png"
+        },
+        {
+          "frame": 11,
+          "sourceRect": [
+            570,
+            702,
+            205,
+            341
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            201,
+            337
+          ],
+          "toe": 174,
+          "ground": 337,
+          "translate": [
+            77,
+            67
+          ],
+          "removedPixels": 6956,
+          "sha256": "8c10efeb3728aba6d1e60b50a62dcde5c3cbec43f9d6c6465612c4d888537fda",
+          "file": "frames/idle/SEI_IDLE_11.png"
+        },
+        {
+          "frame": 12,
+          "sourceRect": [
+            839,
+            702,
+            202,
+            341
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            198,
+            337
+          ],
+          "toe": 171,
+          "ground": 337,
+          "translate": [
+            80,
+            67
+          ],
+          "removedPixels": 6997,
+          "sha256": "fc6188d8fcf8352a27606580c23a349edb75796712e441b7d0cd26ac2588b242",
+          "file": "frames/idle/SEI_IDLE_12.png"
+        },
+        {
+          "frame": 13,
+          "sourceRect": [
+            42,
+            1048,
+            196,
+            345
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            192,
+            341
+          ],
+          "toe": 169,
+          "ground": 341,
+          "translate": [
+            81,
+            63
+          ],
+          "removedPixels": 6508,
+          "sha256": "d60832e4401f283886fb11fb4bbf3384a757b19b003ff31b0c27b62f23afa497",
+          "file": "frames/idle/SEI_IDLE_13.png"
+        },
+        {
+          "frame": 14,
+          "sourceRect": [
+            308,
+            1048,
+            196,
+            345
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            192,
+            341
+          ],
+          "toe": 168,
+          "ground": 341,
+          "translate": [
+            82,
+            63
+          ],
+          "removedPixels": 7073,
+          "sha256": "977dc4230ebf26c019986d3e3e4c6e60804a23e65fe011b7653eea59ea3b69a3",
+          "file": "frames/idle/SEI_IDLE_14.png"
+        },
+        {
+          "frame": 15,
+          "sourceRect": [
+            574,
+            1048,
+            196,
+            345
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            192,
+            341
+          ],
+          "toe": 169,
+          "ground": 341,
+          "translate": [
+            81,
+            63
+          ],
+          "removedPixels": 7363,
+          "sha256": "3bbc3b69e3a07383bc170b78e4efb09f7a62e7b5223e9af4ec867613d9baaa0d",
+          "file": "frames/idle/SEI_IDLE_15.png"
+        },
+        {
+          "frame": 16,
+          "sourceRect": [
+            840,
+            1048,
+            197,
+            344
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            193,
+            340
+          ],
+          "toe": 169,
+          "ground": 340,
+          "translate": [
+            81,
+            64
+          ],
+          "removedPixels": 6522,
+          "sha256": "209a5b6af130200c0b57bb174d3ca547318b42a34e1d1df195c0322c51526271",
+          "file": "frames/idle/SEI_IDLE_16.png"
+        }
+      ],
+      "source": "SEI_IDLE_atlas.png",
+      "sourceSha256": "f7cdcddfe3ea56b3e0793127c5083ee84b208cc3662123bdf29210fc7db7e50a",
+      "sourceSize": [
+        1122,
+        1402
+      ]
+    },
+    {
+      "key": "windup",
+      "label": "준비",
+      "durationMs": 800,
+      "loop": false,
+      "frames": [
+        {
+          "frame": 1,
+          "sourceRect": [
+            74,
+            11,
+            172,
+            333
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            168,
+            329
+          ],
+          "toe": 150,
+          "ground": 329,
+          "translate": [
+            99,
+            74
+          ],
+          "removedPixels": 8021,
+          "sha256": "199c200a56a0d3e101724922fa2835284883fada93ce2678cd98c201af4c640b",
+          "file": "frames/windup/SEI_WINDUP_01.png"
+        },
+        {
+          "frame": 2,
+          "sourceRect": [
+            324,
+            10,
+            173,
+            334
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            169,
+            330
+          ],
+          "toe": 151,
+          "ground": 330,
+          "translate": [
+            98,
+            73
+          ],
+          "removedPixels": 8194,
+          "sha256": "56944cc2cf1ee2afb76dedbe217a80f9d23f576e0c7ebd0f271bcad0c650d496",
+          "file": "frames/windup/SEI_WINDUP_02.png"
+        },
+        {
+          "frame": 3,
+          "sourceRect": [
+            576,
+            10,
+            172,
+            334
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            168,
+            330
+          ],
+          "toe": 149,
+          "ground": 330,
+          "translate": [
+            100,
+            73
+          ],
+          "removedPixels": 7809,
+          "sha256": "4be3c90ebfacab15e663f6656ea2441214237f7bf7f7836e25ba0f8ed41f00d9",
+          "file": "frames/windup/SEI_WINDUP_03.png"
+        },
+        {
+          "frame": 4,
+          "sourceRect": [
+            828,
+            10,
+            171,
+            334
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            167,
+            330
+          ],
+          "toe": 148,
+          "ground": 330,
+          "translate": [
+            101,
+            73
+          ],
+          "removedPixels": 8935,
+          "sha256": "7a4cdc8009cf419e4dbdc7c17b6e1fd68d0705a2e6952efacb97854278d67103",
+          "file": "frames/windup/SEI_WINDUP_04.png"
+        },
+        {
+          "frame": 5,
+          "sourceRect": [
+            70,
+            351,
+            179,
+            336
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            175,
+            332
+          ],
+          "toe": 154,
+          "ground": 332,
+          "translate": [
+            95,
+            71
+          ],
+          "removedPixels": 7711,
+          "sha256": "5fbc829e5cb13ff35592960b55b97e2bc376cd3cda3f107c2c1c0fda9ed4c4ce",
+          "file": "frames/windup/SEI_WINDUP_05.png"
+        },
+        {
+          "frame": 6,
+          "sourceRect": [
+            327,
+            351,
+            177,
+            336
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            173,
+            332
+          ],
+          "toe": 151,
+          "ground": 332,
+          "translate": [
+            98,
+            71
+          ],
+          "removedPixels": 10151,
+          "sha256": "d27d124ff6680dc0a4e2f5aeba78a712eb84cc776e3b7c2a2a3b45c73c9b82ee",
+          "file": "frames/windup/SEI_WINDUP_06.png"
+        },
+        {
+          "frame": 7,
+          "sourceRect": [
+            578,
+            351,
+            178,
+            336
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            174,
+            332
+          ],
+          "toe": 151,
+          "ground": 332,
+          "translate": [
+            98,
+            71
+          ],
+          "removedPixels": 9718,
+          "sha256": "514f26306bf99bce9e4628ade47920b83fab10063b486f0ef6626772bcb78fd8",
+          "file": "frames/windup/SEI_WINDUP_07.png"
+        },
+        {
+          "frame": 8,
+          "sourceRect": [
+            831,
+            351,
+            179,
+            336
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            175,
+            332
+          ],
+          "toe": 151,
+          "ground": 332,
+          "translate": [
+            98,
+            71
+          ],
+          "removedPixels": 7706,
+          "sha256": "334ff3ffad5b34a0a5715d2f91c09b1b509928b48e4d98a42a06a98aa2ccf94e",
+          "file": "frames/windup/SEI_WINDUP_08.png"
+        },
+        {
+          "frame": 9,
+          "sourceRect": [
+            70,
+            696,
+            181,
+            337
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            177,
+            333
+          ],
+          "toe": 156,
+          "ground": 333,
+          "translate": [
+            93,
+            71
+          ],
+          "removedPixels": 9661,
+          "sha256": "f84e48b4d56c837341490cd288283aad1d0cf4a589e21f1e101121b1965d6e3f",
+          "file": "frames/windup/SEI_WINDUP_09.png"
+        },
+        {
+          "frame": 10,
+          "sourceRect": [
+            324,
+            696,
+            183,
+            337
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            179,
+            333
+          ],
+          "toe": 155,
+          "ground": 333,
+          "translate": [
+            94,
+            71
+          ],
+          "removedPixels": 10229,
+          "sha256": "cc92b88ceeed679c73402e9b8e88b4b7950ff69aa7aede842a28be68e9a6740f",
+          "file": "frames/windup/SEI_WINDUP_10.png"
+        },
+        {
+          "frame": 11,
+          "sourceRect": [
+            573,
+            696,
+            184,
+            337
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            180,
+            333
+          ],
+          "toe": 157,
+          "ground": 333,
+          "translate": [
+            92,
+            71
+          ],
+          "removedPixels": 11033,
+          "sha256": "dea0b9fc683a2541f7cf113a18193ca82cb20efb951403720292e75d19ec9060",
+          "file": "frames/windup/SEI_WINDUP_11.png"
+        },
+        {
+          "frame": 12,
+          "sourceRect": [
+            826,
+            697,
+            186,
+            336
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            182,
+            332
+          ],
+          "toe": 157,
+          "ground": 332,
+          "translate": [
+            92,
+            71
+          ],
+          "removedPixels": 8929,
+          "sha256": "d9a173f942e4c872e69d2dbcba5b3d56ef444141ebe3338fc441c3ddb76732cd",
+          "file": "frames/windup/SEI_WINDUP_12.png"
+        },
+        {
+          "frame": 13,
+          "sourceRect": [
+            69,
+            1040,
+            182,
+            339
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            178,
+            335
+          ],
+          "toe": 157,
+          "ground": 335,
+          "translate": [
+            92,
+            69
+          ],
+          "removedPixels": 9062,
+          "sha256": "27bb7dacccf4c085808ef0f25e64c3be0ac71d3d19eff53fcdc710f03bba5c27",
+          "file": "frames/windup/SEI_WINDUP_13.png"
+        },
+        {
+          "frame": 14,
+          "sourceRect": [
+            322,
+            1040,
+            185,
+            339
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            181,
+            335
+          ],
+          "toe": 157,
+          "ground": 335,
+          "translate": [
+            92,
+            69
+          ],
+          "removedPixels": 10393,
+          "sha256": "0fcc4025fa64c42667a5dc5fc1ffa455ce1203c2ff6d5457d35a7fb1f7eb1481",
+          "file": "frames/windup/SEI_WINDUP_14.png"
+        },
+        {
+          "frame": 15,
+          "sourceRect": [
+            575,
+            1040,
+            182,
+            339
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            178,
+            335
+          ],
+          "toe": 155,
+          "ground": 335,
+          "translate": [
+            94,
+            69
+          ],
+          "removedPixels": 9974,
+          "sha256": "06ce71c86ffd54168cf4c860ca6f3b0d676940a37a299be68d513b7954efa9a8",
+          "file": "frames/windup/SEI_WINDUP_15.png"
+        },
+        {
+          "frame": 16,
+          "sourceRect": [
+            828,
+            1041,
+            184,
+            338
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            180,
+            334
+          ],
+          "toe": 154,
+          "ground": 334,
+          "translate": [
+            95,
+            70
+          ],
+          "removedPixels": 8408,
+          "sha256": "ddb031512de4922b9c3df18dadd6031ab81bb089571f4b2f3be7bcfd13ae4e51",
+          "file": "frames/windup/SEI_WINDUP_16.png"
+        }
+      ],
+      "source": "SEI_WINDUP_atlas.png",
+      "sourceSha256": "bf48e47441efffec11a200468b9f7b434eac68411528b8cdf95703b81caf3032",
+      "sourceSize": [
+        1122,
+        1402
+      ]
+    },
+    {
+      "key": "strike",
+      "label": "시전",
+      "durationMs": 960,
+      "loop": false,
+      "frames": [
+        {
+          "frame": 1,
+          "sourceRect": [
+            67,
+            15,
+            199,
+            336
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            195,
+            332
+          ],
+          "toe": 169,
+          "ground": 332,
+          "translate": [
+            81,
+            71
+          ],
+          "removedPixels": 6758,
+          "sha256": "9fd58308efef884e5a4724318fabfe9d667093200cc009b28aa39f3483252237",
+          "file": "frames/strike/SEI_STRIKE_01.png"
+        },
+        {
+          "frame": 2,
+          "sourceRect": [
+            333,
+            14,
+            199,
+            337
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            195,
+            333
+          ],
+          "toe": 168,
+          "ground": 333,
+          "translate": [
+            82,
+            71
+          ],
+          "removedPixels": 6692,
+          "sha256": "c3ab54ebfc110407818a8bd4b7769fbd00684216871260afde7260cea79a25b2",
+          "file": "frames/strike/SEI_STRIKE_02.png"
+        },
+        {
+          "frame": 3,
+          "sourceRect": [
+            581,
+            12,
+            202,
+            339
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            198,
+            335
+          ],
+          "toe": 171,
+          "ground": 335,
+          "translate": [
+            80,
+            69
+          ],
+          "removedPixels": 7278,
+          "sha256": "ee7ec19d2bc5d7cb6929dd32efc853dfe1d89c7d96744b53a783285d30193d67",
+          "file": "frames/strike/SEI_STRIKE_03.png"
+        },
+        {
+          "frame": 4,
+          "sourceRect": [
+            845,
+            11,
+            202,
+            340
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            198,
+            336
+          ],
+          "toe": 171,
+          "ground": 336,
+          "translate": [
+            80,
+            68
+          ],
+          "removedPixels": 6872,
+          "sha256": "75e247b56c9e44d4712a4d8b3bd4dfdcaa6308de721aee37f29a9bdb2fc27483",
+          "file": "frames/strike/SEI_STRIKE_04.png"
+        },
+        {
+          "frame": 5,
+          "sourceRect": [
+            67,
+            356,
+            201,
+            342
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            197,
+            338
+          ],
+          "toe": 170,
+          "ground": 338,
+          "translate": [
+            81,
+            66
+          ],
+          "removedPixels": 6901,
+          "sha256": "e6004abf18c45f73b3d7d135e2787c23cfe35b5cce329aebe81fd811f10aa6cc",
+          "file": "frames/strike/SEI_STRIKE_05.png"
+        },
+        {
+          "frame": 6,
+          "sourceRect": [
+            329,
+            356,
+            202,
+            342
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            198,
+            338
+          ],
+          "toe": 171,
+          "ground": 338,
+          "translate": [
+            80,
+            66
+          ],
+          "removedPixels": 8768,
+          "sha256": "1c345c2a3cfeb3cdb5391ef9cc540ead8a0b294de923f4f1ff687852b26d98fe",
+          "file": "frames/strike/SEI_STRIKE_06.png"
+        },
+        {
+          "frame": 7,
+          "sourceRect": [
+            581,
+            356,
+            203,
+            342
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            199,
+            338
+          ],
+          "toe": 171,
+          "ground": 338,
+          "translate": [
+            80,
+            66
+          ],
+          "removedPixels": 10059,
+          "sha256": "f23d71d1ef0de39027cce873420aaeab03289e08ffbd277e02ea8c394f8b14e8",
+          "file": "frames/strike/SEI_STRIKE_07.png"
+        },
+        {
+          "frame": 8,
+          "sourceRect": [
+            846,
+            357,
+            201,
+            341
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            197,
+            337
+          ],
+          "toe": 170,
+          "ground": 337,
+          "translate": [
+            81,
+            67
+          ],
+          "removedPixels": 7501,
+          "sha256": "79f064fd6af8927532a991bf3bf7ac307c21495b38ce7ba1be6e4fdb57d0954d",
+          "file": "frames/strike/SEI_STRIKE_08.png"
+        },
+        {
+          "frame": 9,
+          "sourceRect": [
+            64,
+            703,
+            203,
+            343
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            199,
+            339
+          ],
+          "toe": 172,
+          "ground": 339,
+          "translate": [
+            79,
+            65
+          ],
+          "removedPixels": 7852,
+          "sha256": "d0b94e9a0e0f6c39bf1ee828393475b8101dee5bcd4d137ee944095c52a89963",
+          "file": "frames/strike/SEI_STRIKE_09.png"
+        },
+        {
+          "frame": 10,
+          "sourceRect": [
+            330,
+            704,
+            205,
+            342
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            201,
+            338
+          ],
+          "toe": 173,
+          "ground": 338,
+          "translate": [
+            78,
+            66
+          ],
+          "removedPixels": 10591,
+          "sha256": "8e9268fad07af3d187200f6cb500153960aca8dff4a901b9fc922cb39fd0a796",
+          "file": "frames/strike/SEI_STRIKE_10.png"
+        },
+        {
+          "frame": 11,
+          "sourceRect": [
+            580,
+            704,
+            204,
+            344
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            200,
+            340
+          ],
+          "toe": 172,
+          "ground": 340,
+          "translate": [
+            79,
+            64
+          ],
+          "removedPixels": 8333,
+          "sha256": "fed43e7ebfaf26edbb638c364beab20ae55b247efc2063cd1eba65d2a89d7b18",
+          "file": "frames/strike/SEI_STRIKE_11.png"
+        },
+        {
+          "frame": 12,
+          "sourceRect": [
+            845,
+            706,
+            203,
+            342
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            199,
+            338
+          ],
+          "toe": 172,
+          "ground": 338,
+          "translate": [
+            79,
+            66
+          ],
+          "removedPixels": 8301,
+          "sha256": "f5a651c5f555b526dd7687f81661e5a8735dc7273e3e0bf552beb67e6b6c3ebc",
+          "file": "frames/strike/SEI_STRIKE_12.png"
+        },
+        {
+          "frame": 13,
+          "sourceRect": [
+            65,
+            1052,
+            203,
+            343
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            199,
+            339
+          ],
+          "toe": 171,
+          "ground": 339,
+          "translate": [
+            80,
+            65
+          ],
+          "removedPixels": 6588,
+          "sha256": "d0f85e7168a96855f215469f21789862b73559c37c1fc0468346afdb71b3b0f1",
+          "file": "frames/strike/SEI_STRIKE_13.png"
+        },
+        {
+          "frame": 14,
+          "sourceRect": [
+            329,
+            1051,
+            203,
+            344
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            199,
+            340
+          ],
+          "toe": 172,
+          "ground": 340,
+          "translate": [
+            79,
+            64
+          ],
+          "removedPixels": 8709,
+          "sha256": "c6be285998793a7cfac39de2ea8982b81841cf61216d130c02f6e0d81cdd481c",
+          "file": "frames/strike/SEI_STRIKE_14.png"
+        },
+        {
+          "frame": 15,
+          "sourceRect": [
+            581,
+            1053,
+            202,
+            342
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            198,
+            338
+          ],
+          "toe": 171,
+          "ground": 338,
+          "translate": [
+            80,
+            66
+          ],
+          "removedPixels": 8136,
+          "sha256": "cc6d0bc90d58821bb46638ace791f9f52418a6344b69bec46b2f40c807b9a49a",
+          "file": "frames/strike/SEI_STRIKE_15.png"
+        },
+        {
+          "frame": 16,
+          "sourceRect": [
+            846,
+            1052,
+            201,
+            343
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            197,
+            339
+          ],
+          "toe": 170,
+          "ground": 339,
+          "translate": [
+            81,
+            65
+          ],
+          "removedPixels": 6674,
+          "sha256": "4e53aecfc70945a1af67a2c9c214b8430f3704afa940588ee046c5206c55343b",
+          "file": "frames/strike/SEI_STRIKE_16.png"
+        }
+      ],
+      "source": "SEI_STRIKE_atlas.png",
+      "sourceSha256": "b296772043c6a2f28571ff1962d176da4d10b2bb2eb35e582bb7ee6c75ffff57",
+      "sourceSize": [
+        1122,
+        1402
+      ]
+    },
+    {
+      "key": "hit",
+      "label": "피격",
+      "durationMs": 640,
+      "loop": false,
+      "frames": [
+        {
+          "frame": 1,
+          "sourceRect": [
+            55,
+            10,
+            204,
+            348
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            200,
+            344
+          ],
+          "toe": 173,
+          "ground": 344,
+          "translate": [
+            78,
+            60
+          ],
+          "removedPixels": 9774,
+          "sha256": "717b82c92888a701cfedd637d3f4b4e03324d03f759d33d0e417596c53912f23",
+          "file": "frames/hit/SEI_HIT_01.png"
+        },
+        {
+          "frame": 2,
+          "sourceRect": [
+            316,
+            9,
+            205,
+            349
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            201,
+            345
+          ],
+          "toe": 175,
+          "ground": 345,
+          "translate": [
+            76,
+            60
+          ],
+          "removedPixels": 10116,
+          "sha256": "de15327a2f53334e70d9f39f987f7d3f0fcd7fbe83cbf78ae7f04275847e80f8",
+          "file": "frames/hit/SEI_HIT_02.png"
+        },
+        {
+          "frame": 3,
+          "sourceRect": [
+            572,
+            7,
+            213,
+            351
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            209,
+            347
+          ],
+          "toe": 181,
+          "ground": 347,
+          "translate": [
+            70,
+            58
+          ],
+          "removedPixels": 11150,
+          "sha256": "e308b44a6282e9a3732b9ec91c919a295b73420b5397125f48ef4f595318dc8a",
+          "file": "frames/hit/SEI_HIT_03.png"
+        },
+        {
+          "frame": 4,
+          "sourceRect": [
+            840,
+            9,
+            209,
+            349
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            205,
+            345
+          ],
+          "toe": 176,
+          "ground": 345,
+          "translate": [
+            75,
+            60
+          ],
+          "removedPixels": 10134,
+          "sha256": "c17847641d6212a460b5c2cdf1aea63fd62606dcf201235ddcfdd6885fa4fd89",
+          "file": "frames/hit/SEI_HIT_04.png"
+        },
+        {
+          "frame": 5,
+          "sourceRect": [
+            51,
+            360,
+            215,
+            348
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            211,
+            344
+          ],
+          "toe": 179,
+          "ground": 344,
+          "translate": [
+            72,
+            60
+          ],
+          "removedPixels": 9574,
+          "sha256": "c08bb8c6d72efa75c48cb5b5075d9f557eaf5f174e0cbe36a392ba7fdc4ccac2",
+          "file": "frames/hit/SEI_HIT_05.png"
+        },
+        {
+          "frame": 6,
+          "sourceRect": [
+            318,
+            359,
+            214,
+            349
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            210,
+            345
+          ],
+          "toe": 176,
+          "ground": 345,
+          "translate": [
+            75,
+            60
+          ],
+          "removedPixels": 11457,
+          "sha256": "68f9e6fdabc64664c45294343fc91e7c59fbabb56571ea15ebffa3174bb90c7e",
+          "file": "frames/hit/SEI_HIT_06.png"
+        },
+        {
+          "frame": 7,
+          "sourceRect": [
+            579,
+            362,
+            203,
+            346
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            199,
+            342
+          ],
+          "toe": 175,
+          "ground": 342,
+          "translate": [
+            76,
+            62
+          ],
+          "removedPixels": 10338,
+          "sha256": "6b30b0bcfd844f1cb0ba8e0ac8e13bff07d805001fdd6b4edcf20e4bce050262",
+          "file": "frames/hit/SEI_HIT_07.png"
+        },
+        {
+          "frame": 8,
+          "sourceRect": [
+            844,
+            361,
+            212,
+            347
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            208,
+            343
+          ],
+          "toe": 179,
+          "ground": 343,
+          "translate": [
+            72,
+            61
+          ],
+          "removedPixels": 10139,
+          "sha256": "f36abf3e23526ce6e1aa7324298f234b5afc3079543d3325e1817b926d3d0879",
+          "file": "frames/hit/SEI_HIT_08.png"
+        },
+        {
+          "frame": 9,
+          "sourceRect": [
+            54,
+            715,
+            208,
+            340
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            204,
+            336
+          ],
+          "toe": 176,
+          "ground": 336,
+          "translate": [
+            75,
+            68
+          ],
+          "removedPixels": 10128,
+          "sha256": "32c6f1cc17daffe63c5dddb0a4a4218f87f685093fd02e299ab7e258afa64e28",
+          "file": "frames/hit/SEI_HIT_09.png"
+        },
+        {
+          "frame": 10,
+          "sourceRect": [
+            317,
+            712,
+            214,
+            343
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            210,
+            339
+          ],
+          "toe": 179,
+          "ground": 339,
+          "translate": [
+            72,
+            65
+          ],
+          "removedPixels": 13565,
+          "sha256": "4234c64a16c29aed696ffa255b144889e1693562eedfc8bfa100aeb1f00b9fac",
+          "file": "frames/hit/SEI_HIT_10.png"
+        },
+        {
+          "frame": 11,
+          "sourceRect": [
+            582,
+            711,
+            205,
+            345
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            201,
+            341
+          ],
+          "toe": 173,
+          "ground": 341,
+          "translate": [
+            78,
+            63
+          ],
+          "removedPixels": 11443,
+          "sha256": "bea09d051773acfd3c6a33d1aab0d2a3b3830aedf991fcc7a523cbba765ce44e",
+          "file": "frames/hit/SEI_HIT_11.png"
+        },
+        {
+          "frame": 12,
+          "sourceRect": [
+            849,
+            709,
+            206,
+            347
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            202,
+            343
+          ],
+          "toe": 174,
+          "ground": 343,
+          "translate": [
+            77,
+            61
+          ],
+          "removedPixels": 10974,
+          "sha256": "9b056f67438a9caba2da66dafb967f7702c1995958ce013867c41c9e79d91937",
+          "file": "frames/hit/SEI_HIT_12.png"
+        },
+        {
+          "frame": 13,
+          "sourceRect": [
+            56,
+            1055,
+            210,
+            347
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            206,
+            343
+          ],
+          "toe": 176,
+          "ground": 343,
+          "translate": [
+            75,
+            61
+          ],
+          "removedPixels": 9806,
+          "sha256": "01998f2c4657aadc65302cb661a9a52469697a40ec74b54dca0b826b3a680924",
+          "file": "frames/hit/SEI_HIT_13.png"
+        },
+        {
+          "frame": 14,
+          "sourceRect": [
+            320,
+            1054,
+            210,
+            348
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            206,
+            344
+          ],
+          "toe": 177,
+          "ground": 344,
+          "translate": [
+            74,
+            60
+          ],
+          "removedPixels": 11914,
+          "sha256": "0cee19b5ee07944a8d846d254bcadcc7457c9b5841cac7ac16ee3b01665cacb8",
+          "file": "frames/hit/SEI_HIT_14.png"
+        },
+        {
+          "frame": 15,
+          "sourceRect": [
+            583,
+            1055,
+            211,
+            347
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            207,
+            343
+          ],
+          "toe": 175,
+          "ground": 343,
+          "translate": [
+            76,
+            61
+          ],
+          "removedPixels": 11972,
+          "sha256": "a4879fa05030f259406f8e0e77fc67079e01648191b4d81a9fe823fafb311918",
+          "file": "frames/hit/SEI_HIT_15.png"
+        },
+        {
+          "frame": 16,
+          "sourceRect": [
+            851,
+            1055,
+            211,
+            347
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            207,
+            343
+          ],
+          "toe": 177,
+          "ground": 343,
+          "translate": [
+            74,
+            61
+          ],
+          "removedPixels": 9937,
+          "sha256": "7f6c19da361c9e596d985c1537d413d934a7cec02d7cd9a918730d8a04368038",
+          "file": "frames/hit/SEI_HIT_16.png"
+        }
+      ],
+      "source": "SEI_HIT_atlas.png",
+      "sourceSha256": "d4fe559e4926db269288393e448ffc1dcb11401dbd6bf58bc6cf1423642b2e1a",
+      "sourceSize": [
+        1122,
+        1402
+      ]
+    },
+    {
+      "key": "down",
+      "label": "쓰러짐",
+      "durationMs": 1120,
+      "loop": false,
+      "frames": [
+        {
+          "frame": 1,
+          "sourceRect": [
+            47,
+            25,
+            196,
+            345
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            192,
+            341
+          ],
+          "toe": 167,
+          "ground": 341,
+          "translate": [
+            83,
+            63
+          ],
+          "removedPixels": 8156,
+          "sha256": "d14384c20aba2b2c05fda3b406988a63fa297a9b121abea6eea94fc85e6ec2cd",
+          "file": "frames/down/SEI_DOWN_01.png"
+        },
+        {
+          "frame": 2,
+          "sourceRect": [
+            313,
+            27,
+            195,
+            342
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            191,
+            338
+          ],
+          "toe": 167,
+          "ground": 338,
+          "translate": [
+            83,
+            66
+          ],
+          "removedPixels": 8219,
+          "sha256": "fd4c87b701fc6d93a91bb1a113ffbcdbe70ce8007e3a062ea8ef53c3d29dc23a",
+          "file": "frames/down/SEI_DOWN_02.png"
+        },
+        {
+          "frame": 3,
+          "sourceRect": [
+            583,
+            28,
+            188,
+            341
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            184,
+            337
+          ],
+          "toe": 163,
+          "ground": 337,
+          "translate": [
+            87,
+            67
+          ],
+          "removedPixels": 8954,
+          "sha256": "0e911b93be6997f40d6f7e3f29b4a6eacebcc857a9c86156557d721d610fd121",
+          "file": "frames/down/SEI_DOWN_03.png"
+        },
+        {
+          "frame": 4,
+          "sourceRect": [
+            854,
+            29,
+            186,
+            340
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            182,
+            336
+          ],
+          "toe": 159,
+          "ground": 336,
+          "translate": [
+            91,
+            68
+          ],
+          "removedPixels": 8790,
+          "sha256": "12637a11a0d0e3d6d18b18449db7b9f815839f4ff18224d0fb06506668c2f530",
+          "file": "frames/down/SEI_DOWN_04.png"
+        },
+        {
+          "frame": 5,
+          "sourceRect": [
+            53,
+            380,
+            192,
+            330
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            188,
+            326
+          ],
+          "toe": 160,
+          "ground": 326,
+          "translate": [
+            90,
+            77
+          ],
+          "removedPixels": 7418,
+          "sha256": "a15811440007f573b3a86c524c8dcd87a38ed37e3bfbf395d5a3e141eede4629",
+          "file": "frames/down/SEI_DOWN_05.png"
+        },
+        {
+          "frame": 6,
+          "sourceRect": [
+            317,
+            383,
+            193,
+            327
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            189,
+            323
+          ],
+          "toe": 162,
+          "ground": 323,
+          "translate": [
+            88,
+            80
+          ],
+          "removedPixels": 8486,
+          "sha256": "c1b8e9cf2eae7f36468a3ab965ea81e7c8975154240ee36eeab226cae0c4c725",
+          "file": "frames/down/SEI_DOWN_06.png"
+        },
+        {
+          "frame": 7,
+          "sourceRect": [
+            580,
+            392,
+            205,
+            318
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            201,
+            314
+          ],
+          "toe": 180,
+          "ground": 314,
+          "translate": [
+            71,
+            88
+          ],
+          "removedPixels": 9457,
+          "sha256": "5a9d27a862493b4f572eab694c113863a710450dda205a965d7e0bda465146fa",
+          "file": "frames/down/SEI_DOWN_07.png"
+        },
+        {
+          "frame": 8,
+          "sourceRect": [
+            855,
+            413,
+            207,
+            299
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            203,
+            295
+          ],
+          "toe": 199,
+          "ground": 295,
+          "translate": [
+            54,
+            106
+          ],
+          "removedPixels": 8684,
+          "sha256": "821a5d9c2095a838190c38baf09c80adaa54626485e84b5bd2a77efa5a07b1b5",
+          "file": "frames/down/SEI_DOWN_08.png"
+        },
+        {
+          "frame": 9,
+          "sourceRect": [
+            53,
+            743,
+            211,
+            299
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            207,
+            295
+          ],
+          "toe": 202,
+          "ground": 295,
+          "translate": [
+            51,
+            106
+          ],
+          "removedPixels": 7027,
+          "sha256": "7c5659bd22d33cbad78bd129e8d7b5748b6b3ff816ee1a66f4255c9b6d1cf646",
+          "file": "frames/down/SEI_DOWN_09.png"
+        },
+        {
+          "frame": 10,
+          "sourceRect": [
+            316,
+            746,
+            218,
+            296
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            214,
+            292
+          ],
+          "toe": 211,
+          "ground": 292,
+          "translate": [
+            43,
+            108
+          ],
+          "removedPixels": 10259,
+          "sha256": "2b343cefa0642c25e4b2900e5b0e7924d974d14e9362f6365aa946ee8589d269",
+          "file": "frames/down/SEI_DOWN_10.png"
+        },
+        {
+          "frame": 11,
+          "sourceRect": [
+            581,
+            752,
+            218,
+            290
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            214,
+            286
+          ],
+          "toe": 212,
+          "ground": 286,
+          "translate": [
+            42,
+            114
+          ],
+          "removedPixels": 9589,
+          "sha256": "6dde8b4c7f56868e221c7fa0117ad800578806a080cdbb4a7b50e8a197f73ccc",
+          "file": "frames/down/SEI_DOWN_11.png"
+        },
+        {
+          "frame": 12,
+          "sourceRect": [
+            849,
+            756,
+            235,
+            287
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            231,
+            283
+          ],
+          "toe": 231,
+          "ground": 283,
+          "translate": [
+            24,
+            117
+          ],
+          "removedPixels": 9091,
+          "sha256": "1ddcc0cc2dfcadd2813f0b5844c0a35666e168eb2ebdc56d23d270ac913cdd64",
+          "file": "frames/down/SEI_DOWN_12.png"
+        },
+        {
+          "frame": 13,
+          "sourceRect": [
+            37,
+            1073,
+            238,
+            294
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            234,
+            290
+          ],
+          "toe": 234,
+          "ground": 290,
+          "translate": [
+            22,
+            110
+          ],
+          "removedPixels": 9453,
+          "sha256": "3afe1e925128928343c1b262994aebe3b9b38e794ed7caff2421f355a1c0f034",
+          "file": "frames/down/SEI_DOWN_13.png"
+        },
+        {
+          "frame": 14,
+          "sourceRect": [
+            310,
+            1078,
+            232,
+            289
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            228,
+            285
+          ],
+          "toe": 228,
+          "ground": 285,
+          "translate": [
+            27,
+            115
+          ],
+          "removedPixels": 8621,
+          "sha256": "6ec9b8297141b3dae972f64fc2aa5531a90753d71fa6d85608335f945c3fb7a6",
+          "file": "frames/down/SEI_DOWN_14.png"
+        },
+        {
+          "frame": 15,
+          "sourceRect": [
+            579,
+            1083,
+            235,
+            284
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            231,
+            280
+          ],
+          "toe": 231,
+          "ground": 280,
+          "translate": [
+            24,
+            119
+          ],
+          "removedPixels": 11007,
+          "sha256": "2f3f0483a558d0df25a261ea3e75b0056e8a7be1760a102c92ad93be95dd43f6",
+          "file": "frames/down/SEI_DOWN_15.png"
+        },
+        {
+          "frame": 16,
+          "sourceRect": [
+            848,
+            1088,
+            236,
+            280
+          ],
+          "sourceBodyBounds": [
+            3,
+            3,
+            232,
+            276
+          ],
+          "toe": 232,
+          "ground": 276,
+          "translate": [
+            23,
+            123
+          ],
+          "removedPixels": 8159,
+          "sha256": "7c2010aa164c4321dea83e4a9b77e018507ece4ab0b41e6f4c0a4df04f32ebdf",
+          "file": "frames/down/SEI_DOWN_16.png"
+        }
+      ],
+      "source": "SEI_DOWN_atlas.png",
+      "sourceSha256": "de2fcbd7ef4be54cc2ec81e8f7ba70323bd0c847cdcf86b0d1f259499a278805",
+      "sourceSize": [
+        1122,
+        1402
+      ]
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "newImageGenerationCalls": 0,
+  "reused": [
+    {
+      "name": "IDLE",
+      "source": "Docs/Mockups/VisualSD/sd_gen/style_c3/SHI_SD_IDLE.png",
+      "promptSource": "Docs/Mockups/VisualSD/sd_gen/report_v6.md"
+    },
+    {
+      "name": "WINDUP",
+      "source": "Docs/Mockups/VisualSD/sd_gen/style_c3/SHI_SD_WINDUP.png",
+      "promptSource": "Docs/Mockups/VisualSD/sd_gen/report_v6.md"
+    },
+    {
+      "name": "STRIKE",
+      "source": "Docs/Mockups/VisualSD/sd_gen/style_c3/SHI_SD_STRIKE.png",
+      "promptSource": "Docs/Mockups/VisualSD/sd_gen/report_v6.md"
+    },
+    {
+      "name": "HIT",
+      "source": "Docs/Mockups/VisualSD/sd_gen/style_c3/SHI_SD_HIT.png",
+      "promptSource": "Docs/Mockups/VisualSD/sd_gen/report_v6.md"
+    },
+    {
+      "name": "DOWN",
+      "source": "Docs/Mockups/VisualSD/sd_gen/style_c3/SHI_SD_DOWN.png",
+      "promptSource": "Docs/Mockups/VisualSD/sd_gen/report_v6.md"
+    }
+  ],
+  "notes": "확정 C3 키 재사용. 해당 원문 실제 프롬프트는 report_v6.md의 B+H+포즈와 재생성 R 참조."
+}

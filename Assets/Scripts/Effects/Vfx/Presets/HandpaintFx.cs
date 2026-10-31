@@ -232,7 +232,8 @@ namespace Effects.Vfx.Presets
         public static IEnumerator PlayPoint(Vector3 point, int layer, HandpaintSheet sheet, Vector2 size,
             Color body, Color core, Action onPeak, float rotation = 0f, bool flipX = false,
             int impactFrame = 4, float peakAlpha = 0.86f, float glowAlpha = 0.60f,
-            bool floating = false, float peakHoldSeconds = 0f, bool calmLight = false, float desaturate = 0f)
+            bool floating = false, float peakHoldSeconds = 0f, bool calmLight = false, float desaturate = 0f,
+            bool hiddenClock = false)
         {
             SkillFxCue cue = Cue(sheet, size, body, core, rotation, flipX, impactFrame,
                 Vector2.zero, peakAlpha, glowAlpha);
@@ -252,6 +253,17 @@ namespace Effects.Vfx.Presets
                 cue.Composite.SceneLightStrength = 0.11f;
             }
             if(calmLight)CalmLocalLight(cue);
+            if (hiddenClock)
+            {
+                // 수평 원화도 기존 FPS·정점·hold·완료 콜백을 그대로 소유하고 그림만 숨긴다.
+                cue.Color = Color.clear;
+                cue.Composite.PeakAlpha = 0f;
+                cue.Composite.GlowAlpha = 0f;
+                cue.Composite.BrightBackdropLiftStrength = 0f;
+                cue.Composite.SceneLightStrength = 0f;
+                cue.Composite.ContactShadowColor = Color.clear;
+                cue.Composite.GroundLightColor = Color.clear;
+            }
             bool invoked = false;
             bool done = false;
             SkillFx.PlayCue(cue, point, layer, VfxSpace.OverlaySortingOrder + 34, null, frame =>
@@ -275,7 +287,7 @@ namespace Effects.Vfx.Presets
                 guard -= Time.deltaTime;
                 yield return null;
             }
-            if (!invoked) onPeak?.Invoke();
+            if (!invoked) { invoked = true; onPeak?.Invoke(); }
         }
 
         public static IEnumerator PlayVolley(Unit caster, Unit target, Action onHit,

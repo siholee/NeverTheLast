@@ -1,6 +1,7 @@
 using System.Collections;
 using BaseClasses;
 using Codes.Base;
+using Effects.Buffs;
 using Effects.Vfx;
 using Entities;
 
@@ -8,7 +9,7 @@ namespace Codes.Normal
 {
     /// <summary>
     /// 세이 — 일반행동 「땅고르기」.
-    /// 전방으로 결정탄을 연발해 55 + 방어력의 50% 피해를 입히고, 맞은 대상에게 바위 원소를 부여한다.
+    /// 전방으로 결정탄을 연발해 55 + 방어력의 50% 피해와 방어력 감소를 준다.
     ///
     /// 세이는 방어력을 계수로 쓰는 드문 유닛이다. 경감은 다른 공격처럼 대상의 방어력이 맡는다.
     /// 카드가 날아가지 않는 원거리 공격이라 카드는 반동만 치고, 여섯 발 가운데 세 번째 주 착탄만 판정한다.
@@ -42,9 +43,14 @@ namespace Codes.Normal
 
         protected override void OnAttackResolved(Unit target, DamageContext context)
         {
-            // 피해 뒤에 붙인다. 증폭 반응이 방금 그 피해를 되짚어 키울 수 있게.
             if (target != null && target.isActive)
-                target.GrantCombatElement(BaseEnums.UnitElement.Geo, Unit.CommonElementAuraDuration, Caster);
+            {
+                var status = BuffStatus.Create(7003, "sei_ground_shred", "땅고르기", Caster, target,
+                    new StatModifierEffect(BaseEnums.StatType.Defense, -.25f, percent: true), duration: 2,
+                    category: BaseEnums.StatusCategory.Negative, description: "방어력 -25%. 자신의 일반행동 2회까지.");
+                status.NormalActionDuration = true;
+                target.AddStatus(status);
+            }
         }
     }
 }

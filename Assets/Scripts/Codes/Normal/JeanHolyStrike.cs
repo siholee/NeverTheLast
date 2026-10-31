@@ -13,6 +13,7 @@ namespace Codes.Normal
     /// <summary>잔 — 짧게 내딛은 뒤 대상 상체에 연타 압력을 꽂는 단일 접촉 공격.</summary>
     public sealed class JeanHolyStrike : BaseNormalCode
     {
+        public const float CounterRatio = 1.60f;
         public override int AttackForm => DamageTag.Strike;
 
         public JeanHolyStrike(NormalCodeContext context) : base(context)
@@ -23,7 +24,7 @@ namespace Codes.Normal
 
         protected override bool IsContact => true;
         protected override int BaseDamage(Unit target)
-            => StatDamage(0f, BaseEnums.StatType.Attack, 1f);
+            => StatDamage(0f, BaseEnums.StatType.Attack, 1.25f);
 
         protected override IEnumerator Deliver(Unit target)
         {
@@ -47,13 +48,15 @@ namespace Codes.Normal
             if (!Targeting.Announce(Caster, new[] { attacker })) yield break;
 
             AudioManager.PlayAction(Caster, SfxActionSlot.Passive, SfxCuePhase.Cast, "철권제재");
-            bool crit = RollCritical(attacker, out float multiplier);
-            int damage = Mathf.Max(1, Mathf.RoundToInt(BaseDamage(attacker) * multiplier));
-            var context = new DamageContext(Caster, damage, BaseEnums.CodeType.Normal, tags, crit);
+            bool crit = RollCritical(attacker, tags, out float multiplier);
+            int damage = Mathf.Max(1, Mathf.RoundToInt(StatDamage(0, BaseEnums.StatType.Attack, CounterRatio) * multiplier));
+            var context = new DamageContext(Caster, damage, BaseEnums.CodeType.Normal, tags, crit) { AppliesElement = true };
             yield return JeanFx.HolyStrike(Caster, attacker, true, () =>
             {
                 AudioManager.PlayAction(Caster, SfxActionSlot.Passive, SfxCuePhase.Hit, "철권제재");
                 Hit(attacker, context, false);
+                if (!context.IsCancelled && attacker.isActive && DirectAttack.CasterCanContinue(Caster, true))
+                    attacker.GrantCombatElement(BaseEnums.UnitElement.Cryo, source: Caster);
             });
         }
     }
