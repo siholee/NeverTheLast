@@ -1,0 +1,1052 @@
+[
+  {
+    "key": "VOID_PRISM",
+    "pose": "IDLE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      144,
+      189,
+      881,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_PRISM",
+    "pose": "WINDUP",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      218,
+      223,
+      805,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_PRISM",
+    "pose": "STRIKE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      94,
+      225,
+      930,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_PRISM",
+    "pose": "HIT",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      95,
+      280,
+      929,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_PRISM",
+    "pose": "DOWN",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      170,
+      421,
+      855,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_MONSTROUS_BIRD",
+    "pose": "IDLE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      124,
+      367,
+      900,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_MONSTROUS_BIRD",
+    "pose": "WINDUP",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      107,
+      461,
+      917,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_MONSTROUS_BIRD",
+    "pose": "STRIKE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      84,
+      506,
+      939,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_MONSTROUS_BIRD",
+    "pose": "HIT",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      84,
+      436,
+      939,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_MONSTROUS_BIRD",
+    "pose": "DOWN",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      143,
+      608,
+      882,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_BOAR",
+    "pose": "IDLE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      63,
+      461,
+      962,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_BOAR",
+    "pose": "WINDUP",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      82,
+      651,
+      941,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_BOAR",
+    "pose": "STRIKE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      91,
+      628,
+      933,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_BOAR",
+    "pose": "HIT",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      84,
+      555,
+      941,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_BOAR",
+    "pose": "DOWN",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      74,
+      687,
+      949,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_WOLF",
+    "pose": "IDLE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      72,
+      455,
+      951,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_WOLF",
+    "pose": "WINDUP",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      76,
+      595,
+      949,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_WOLF",
+    "pose": "STRIKE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      57,
+      580,
+      968,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_WOLF",
+    "pose": "HIT",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      152,
+      568,
+      872,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_WOLF",
+    "pose": "DOWN",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      144,
+      730,
+      881,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_KNIGHT",
+    "pose": "IDLE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      93,
+      225,
+      931,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_KNIGHT",
+    "pose": "WINDUP",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      122,
+      315,
+      901,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_KNIGHT",
+    "pose": "STRIKE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      85,
+      408,
+      939,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_KNIGHT",
+    "pose": "HIT",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      68,
+      202,
+      957,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_KNIGHT",
+    "pose": "DOWN",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      123,
+      443,
+      900,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_MARKSMAN",
+    "pose": "IDLE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      105,
+      300,
+      919,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_MARKSMAN",
+    "pose": "WINDUP",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      95,
+      394,
+      929,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_MARKSMAN",
+    "pose": "STRIKE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      77,
+      283,
+      948,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_MARKSMAN",
+    "pose": "HIT",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      145,
+      331,
+      878,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_MARKSMAN",
+    "pose": "DOWN",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      142,
+      429,
+      882,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_VANGUARD",
+    "pose": "IDLE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      111,
+      239,
+      912,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_VANGUARD",
+    "pose": "WINDUP",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      145,
+      344,
+      879,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_VANGUARD",
+    "pose": "STRIKE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      146,
+      631,
+      878,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_VANGUARD",
+    "pose": "HIT",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      144,
+      314,
+      880,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_VANGUARD",
+    "pose": "DOWN",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      136,
+      455,
+      889,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_DEER",
+    "pose": "IDLE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      105,
+      366,
+      918,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_DEER",
+    "pose": "WINDUP",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      86,
+      404,
+      939,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_DEER",
+    "pose": "STRIKE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      105,
+      482,
+      919,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_DEER",
+    "pose": "HIT",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      94,
+      408,
+      929,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_DEER",
+    "pose": "DOWN",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      96,
+      600,
+      928,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_CRUSHER",
+    "pose": "IDLE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      92,
+      348,
+      932,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_CRUSHER",
+    "pose": "WINDUP",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      94,
+      373,
+      930,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_CRUSHER",
+    "pose": "STRIKE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      91,
+      501,
+      934,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_CRUSHER",
+    "pose": "HIT",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      107,
+      352,
+      917,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_CRUSHER",
+    "pose": "DOWN",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      122,
+      466,
+      901,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_DRAGON",
+    "pose": "IDLE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      72,
+      361,
+      952,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_DRAGON",
+    "pose": "WINDUP",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      113,
+      465,
+      911,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_DRAGON",
+    "pose": "STRIKE",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      78,
+      541,
+      945,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_DRAGON",
+    "pose": "HIT",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      124,
+      425,
+      901,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  },
+  {
+    "key": "VOID_DRAGON",
+    "pose": "DOWN",
+    "width": 1024,
+    "height": 1280,
+    "bounds": [
+      101,
+      557,
+      924,
+      1220
+    ],
+    "corners": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "feetPass": true,
+    "horizontalPass": true,
+    "format": "Format32bppArgb"
+  }
+]

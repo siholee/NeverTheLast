@@ -38,6 +38,8 @@ namespace Codes.Passive
         public override int BaseShieldAmount => StatDamage(ShieldFlat, BaseEnums.StatType.Defense, ShieldDefenseRatio);
 
         private bool _subscribed;
+        private bool _attachmentAttempted;
+        public const float AttachmentChance = .20f;
 
         public SeiBigBang(PassiveCodeContext context) : base(context)
         {
@@ -83,6 +85,7 @@ namespace Codes.Passive
         {
             if (Caster == null || !Caster.isActive) return;
             if (!Caster.TryConsumeCombatResource(ResourceId, Threshold)) return;
+            _attachmentAttempted = false;
             if (AliveEnemies().Count == 0) return;
 
             ActionAnnouncer.AnnouncePassive(Caster, this);
@@ -141,7 +144,14 @@ namespace Codes.Passive
             var tags = new List<int> { DamageTag.MultiTarget, DamageTag.AdditionalAttack, DamageTag.PassiveAttack, DamageTag.NonContactAttack, DamageTag.Spell };
             bool crit = RollCritical(target, tags, out float multiplier);
             int damage = Mathf.Max(1, Mathf.RoundToInt(StatDamage(0f, BaseEnums.StatType.Defense, ShardDefenseRatio) * multiplier));
-            target.TakeDamage(new DamageContext(Caster, damage, BaseEnums.CodeType.Passive, tags, crit));
+            target.TakeDamage(new DamageContext(Caster, damage, BaseEnums.CodeType.Passive, tags, crit)
+                { AppliesElement = !_attachmentAttempted });
+            if (!_attachmentAttempted && DirectAttack.CasterCanContinue(Caster, false) && target.isActive)
+            {
+                _attachmentAttempted = true;
+                target.GrantCombatElement(BaseEnums.UnitElement.Geo, source: Caster,
+                    baseChance: AttachmentChance, hitScaling: EffectHitScaling.Proportional);
+            }
         }
 
         private List<Unit> AliveAllies()

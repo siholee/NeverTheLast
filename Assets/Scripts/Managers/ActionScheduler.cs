@@ -540,6 +540,7 @@ namespace Managers
                 _currentActionId = _actingRootActionId;
                 ActingKind = _actingRootKind;
                 _executingUnit = finishedUnit;
+                if (_actingRootKind == ActionKind.Ultimate) finishedUnit.FinishUltimateAction();
                 Combat.ActionDot.OnActionFinished(finishedUnit, _actingRootKind);
                 AnyActionFinished?.Invoke(finishedUnit, _actingRootKind);
                 _actingElapsed = 0f;
@@ -730,6 +731,7 @@ namespace Managers
                 if (_acting == null)
                 {
                     // 비동기 행동과 동일하게 완료 훅까지 실제 행동 ID/실행 문맥을 보존한다.
+                    if (next.Kind == ActionKind.Ultimate) next.Unit.FinishUltimateAction();
                     Combat.ActionDot.OnActionFinished(next.Unit, next.Kind);
                     AnyActionFinished?.Invoke(next.Unit, next.Kind);
                     _currentActionId = -1;
@@ -922,7 +924,7 @@ namespace Managers
         {
             if (!CanAct(unit)) return;
 
-            Enqueue(unit, ActionKind.Normal, "main", unit.ActiveNormalCode.CodeName,
+            Enqueue(unit, ActionKind.Normal, "main", unit.ActiveNormalCode.AnnouncementName,
                 unit.CastNormalCode);
         }
 
@@ -943,6 +945,12 @@ namespace Managers
             }
             foreach (Unit unit in units)
             {
+                if (unit != null && unit.HasPendingUltimateCopy && unit.isActive && !unit.isControlled && !unit.isCasting && unit.ActiveUltimateCode?.HasValidTarget() == true)
+                {
+                    Enqueue(unit, ActionKind.Ultimate, "ult_copy", unit.ActiveUltimateCode.CodeName + " · 더블 캐스팅", unit.CastUltimateReplay,
+                        () => unit.HasPendingUltimateCopy && unit.ActiveUltimateCode.HasValidTarget());
+                    continue;
+                }
                 if (!CanUseUltimate(unit)) continue;
                 Enqueue(unit, ActionKind.Ultimate, "ult", unit.ActiveUltimateCode.CodeName,
                     unit.CastUltimateCode);

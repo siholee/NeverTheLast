@@ -54,7 +54,7 @@ namespace Effects.Buffs
             if (item.tonicStartManaPercent > 0f && hero.UltimateResourceType == BaseEnums.UltimateResourceType.Mana)
             {
                 int target = Mathf.RoundToInt(hero.ManaMax * item.tonicStartManaPercent / 100f);
-                if (hero.ManaCurr < target) hero.AddUltimateResource(target - hero.ManaCurr);
+                hero.GrantInitialMana(item.id, target);
             }
         }
 

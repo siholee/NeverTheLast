@@ -30,7 +30,7 @@
 ## 다운로드
 
 배포된 Windows 데모는 [GitHub Releases](https://github.com/siholee/NeverTheLast/releases/latest)에서 받습니다.
-현재 Windows 데모는 **0.5.5**입니다. SD 3~6차 전용 아군 39명·소환수 7종, 소환술사별 배치와 Stage HUD를 반영했습니다. 전체 최종 QA·상용 미술 승인 전 데모입니다.
+현재 Windows 데모는 **0.5.6**입니다. SD 3~6차 전용 아군 39명·소환수 7종, 소환술사별 배치와 Stage HUD를 반영했습니다. 전체 최종 QA·상용 미술 승인 전 데모입니다.
 압축을 폴더째 풀고 실행 파일과 Data 폴더를 함께 유지해 주세요. 기존 macOS 배포는 legacy 버전입니다.
 [패치노트](PATCH_NOTES.md)는 배포 이력입니다.
 

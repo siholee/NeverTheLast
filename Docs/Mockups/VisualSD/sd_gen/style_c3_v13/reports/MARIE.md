@@ -1,0 +1,20 @@
+# MARIE · SD 비율 13차 p2 · 2026-11-06
+- 상태: **검수 대기**
+- 자체 판정: 목표 범위 충족(자체 측정), 최종 승인 아님.
+- N160: 단일 적·비접촉·사격 후 얼음 부착.
+- SP: 별도 고유 코드 없음.
+- U160: 다른 아군·비접촉·긴급지원 우선 추가행동 치유(상시형).
+- P360: 아군·비접촉·추가행동 치피 오라/행동 종료 치유.
+- 키트/포즈: 일반행동 기준 등록본 5포즈 유지, 신규 행동·소품 없음.
+- 전 IDLE 재측정: 3.333등신. 원 정수리/턱은 _work_MARIE/before_measure.csv, 12차 측정법으로 재독.
+- 목표 2.68: 머리/키 상대비 1.2438배, 머리 고정 시 몸 길이 0.7200배가 필요하여 머리 확대+몸통/다리 단축 재작화.
+- 후 IDLE: crownY=300, chinY=644, (1220−crownY)/(chinY−crownY)=2.674.
+- 두개부 수동 ROI: 귀·뜬 머리·장발·모자·후드 제외, 가림 경계 추정 ±10px. 원 ROI/배율/최종 좌표 CSV 보존.
+- 5포즈 √(w×h) ROI 환산치(IDLE/WINDUP/STRIKE/HIT/DOWN): 375.55 / 375.36 / 375.47 / 375.46 / 375.43px; IDLE 대비 −0.052~0%.
+- 재생성: 0회 (5포즈 각 1회 생성). 내장 image_gen, transparent_background=true, 포즈별 등록본+새 IDLE 참조.
+- 후처리: PowerShell System.Drawing, 전체 균등 배율+LockBits 정수 이동만. 신체 부위별 변형/합성 없음.
+- 규격 실측: 5장 1024×1280 8bit RGBA, 모서리 alpha0, alpha≥129 최하단 y1220, x30..994 안.
+- 육안 확인: 우향·포즈/무기 각도·의상/눈색/머리색 유지, 단색 구분·250px 확인. Assets 등록·Unity 검증 없음.
+- 실제 프롬프트: _work_MARIE/prompts.json. 이름 없이 외형 기술, same pose/outfit/face + larger head/shorter torso/legs/2.68-head.
+- 남은 결함: 모자 금장·총기 장식선 미세 차이. 모자 아래 두개 정수리 추정 ±10px, 얼굴 세부 최종 검수 필요.
+- 증거: measure_MARIE.png, sheets/MARIE_{poses|silhouette|face|battle250|before_after}.png, lineup_p2.png.

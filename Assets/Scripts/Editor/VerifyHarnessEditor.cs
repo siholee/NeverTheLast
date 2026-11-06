@@ -40,6 +40,15 @@ namespace Tools.Editor
             };
         }
 
+        /// <summary>렌더를 켠 명령줄 검증. 실제 화면 촬영 후 요청 결과와 함께 작업 소유 에디터를 종료한다.</summary>
+        public static void RunRenderedRequest()
+        {
+            if (Application.isBatchMode) throw new InvalidOperationException("렌더 검증은 일반 에디터 실행을 사용합니다.");
+            SessionState.SetBool(BatchExitKey, true);
+            SessionState.SetBool(BatchReadyKey, true);
+            EditorApplication.delayCall += () => EditorApplication.delayCall += RunPendingRequestNow;
+        }
+
         private static double _nextPoll;
         private static long _observedLength = -1;
         private static DateTime _observedWriteTimeUtc;

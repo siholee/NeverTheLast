@@ -31,12 +31,14 @@ namespace Managers
     public sealed class SummonStageData
     {
         public float size, hover, back, up;
+        public float front;
         public bool aboveUnits;
+        public bool drawInFront;
         public string badge;
         public List<SdAnchorData> slots;
         public void Validate()
         {
-            if (!(size > 0 && size <= 1 && hover >= 0) ||
+            if (!(size > 0 && size <= 1 && hover >= 0 && front >= 0 && !float.IsInfinity(front)) ||
                 (slots != null && (slots.Count != 3 || slots.Exists(p => p == null || float.IsNaN(p.x) || float.IsNaN(p.y)))))
                 throw new InvalidOperationException("소환수 Stage 크기/둘레 슬롯 오류");
         }
@@ -59,15 +61,19 @@ namespace Managers
     public sealed class SdFrameData
     {
         public string prefix;
+        public string facing = "right";
         // 소환수 SD가 승인·등록되기 전 사용하는 비변형 원화. 5프레임이 등록되면 sd 블록만 교체한다.
         public string fallbackSprite;
+        public bool downFade;
         public float feetY = float.NaN, faceX = float.NaN, topY = float.NaN;
+        public float crownY = float.NaN;
         public SdAnchorData head, chest, hand;
 
         public void Validate()
         {
             if (string.IsNullOrWhiteSpace(prefix) || !(topY >= 0 && feetY > topY && feetY <= 1280 && faceX > 0 && faceX < 1024) ||
-                head == null || chest == null || hand == null)
+                (!float.IsNaN(crownY) && !(crownY >= topY && crownY < feetY)) ||
+                head == null || chest == null || hand == null || (facing != "left" && facing != "right"))
                 throw new InvalidOperationException("SD 프레임 접두어/발/얼굴/앵커 누락");
             head.Validate(); chest.Validate(); hand.Validate();
         }

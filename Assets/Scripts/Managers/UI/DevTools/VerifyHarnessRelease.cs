@@ -13,6 +13,9 @@ using Entities.Status;
 using Managers.UI.Core;
 using UnityEngine.UI;
 using Entities;
+using Entities.View;
+using Managers.Stage;
+using UnityEngine.SceneManagement;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
@@ -20,6 +23,89 @@ namespace Managers.UI.DevTools
 {
     public sealed partial class VerifyHarnessRunner
     {
+        // 모드를 지정하지 않은 새 여정의 실제 UI 경로. 저장만 메모리로 격리한다.
+        private IEnumerator ScenarioStageDefaultJourney(VerifyScenarioRequest config)
+        {
+            _ruiFailures.Clear();
+            bool suite = DebugMode.SuiteRunning;
+            DebugMode.SuiteRunning = false;
+            try
+            {
+                yield return WaitUnscaled(.3f);
+                bool menu = SceneManager.GetActiveScene().name == "MainMenu" && VisualModeState.Current == VisualMode.Stage;
+                RuiCheck("기본 무대 로비", "모드 강제 지정 없이 MainMenu·Stage", SceneManager.GetActiveScene().name + "/" + VisualModeState.Current, menu);
+                if (!menu) { RuiFinish(); yield break; }
+                yield return CaptureStill("default_stage_menu");
+                SaveSystem.SeedEmptyDebugAccount();
+                var start = GameObject.Find("MainMenuBrightCanvas").GetComponentsInChildren<Button>().First(b => b.name == "NewRun");
+                start.onClick.Invoke();
+                yield return WaitForGameReady(20f);
+                var selection = GameObject.Find("CharacterSelectCanvas");
+                var selectionGroup = selection == null ? null : selection.GetComponentInChildren<CanvasGroup>();
+                float deadline = Time.realtimeSinceStartup + 5f;
+                while (selectionGroup != null && selectionGroup.alpha < .99f && Time.realtimeSinceStartup < deadline) yield return null;
+                bool selectVisible = selectionGroup != null && selectionGroup.alpha >= .99f;
+                RuiCheck("기본 무대 편성", "실제 새 여정 버튼→편성창 표시·Stage", VisualModeState.Current.ToString(), selectVisible && VisualModeState.Current == VisualMode.Stage);
+                if (!selectVisible) { RuiFinish(); yield break; }
+                foreach (int id in new[] {180, 125, 121, 1, 2})
+                    RuiClick(selection.GetComponentsInChildren<Transform>(true).First(t => t.name == "Unit" + id));
+                RuiCheck("기본 무대 선택", "우치·이시스·아누비스·세이·시 5명", string.Join(",", CharacterSelectionManager.Instance.Lineup.Select(e => e.UnitId)), CharacterSelectionManager.Instance.Lineup.Count == 5);
+                yield return CaptureStill("default_stage_selection");
+                selection.GetComponentsInChildren<Button>().First(b => b.name == "Primary").onClick.Invoke();
+                yield return WaitForState(BaseEnums.GameState.Preparation, 8f);
+                yield return WaitUnscaled(1.1f);
+                var game = GameManager.Instance;
+                var grid = GridManager.Instance;
+                RuiCheck("기본 무대 준비", "준비 상태·실제 SD5명", game.gameState.ToString(), game.gameState == BaseEnums.GameState.Preparation && AliveAllies().Count == 5 && AliveAllies().All(u => u.currentCell.Card.StageProxy?.Frames != null && u.currentCell.Card.StageProxy.Lower.enabled));
+                var cells = FindObjectsByType<Cell>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(c => c.xPos is -1 or -2 && c.yPos >= 1 && c.yPos <= 4).ToArray();
+                RuiCheck("기본 무대 배치8칸", "8개 슬롯·발 중심 콜라이더 활성", cells.Length.ToString(), cells.Length == 8 && cells.All(c => c.gameObject.activeInHierarchy && c.GetComponent<BoxCollider2D>().enabled && c.transform.Find("StagePreparationSlot") != null));
+                var actor = AliveAllies().First();
+                var from = actor.currentCell;
+                var empty = cells.First(c => !c.isOccupied);
+                var drag = DragAndDropManager.Instance;
+                Vector2 Point(Cell c) => Camera.main.WorldToScreenPoint(c.transform.position);
+                drag.StartDrag(from, Point(from)); yield return null;
+                drag.EndDrag(Point(empty)); yield return WaitUnscaled(.35f);
+                RuiCheck("기본 무대 배치 이동", "화면 좌표 드롭→빈칸 이동·기존 객체 보존", actor.currentCell.name, actor.currentCell == empty && !from.isOccupied);
+                var other = AliveAllies().First(u => u != actor);
+                var otherCell = other.currentCell;
+                drag.StartDrag(actor.currentCell, Point(actor.currentCell)); yield return null;
+                drag.EndDrag(Point(otherCell)); yield return WaitUnscaled(.35f);
+                RuiCheck("기본 무대 배치 교환", "점유 칸 드롭→객체 교환", actor.currentCell.name, actor.currentCell == otherCell && other.currentCell == empty);
+                yield return CaptureStill("default_stage_preparation");
+                int actions = 0;
+                void Finished(Unit unit, ActionScheduler.ActionKind kind) => actions++;
+                ActionScheduler.AnyActionFinished += Finished;
+                try
+                {
+                    game.StartRound();
+                    yield return WaitForState(BaseEnums.GameState.RoundInProgress, 8f);
+                    yield return WaitUnscaled(.5f);
+                    RuiCheck("기본 무대 전투 HUD", "Stage·실제 전투·하단 카드5개", game.gameState.ToString(), VisualModeState.Current == VisualMode.Stage && StageBattleHud.Visible && AliveAllies().All(u => u.currentCell.Card.StageHudHitRect(Camera.main).width > 0));
+                    foreach (int id in new[] {180, 125})
+                    {
+                        var owner = AliveAllies().Single(u => u.ID == id);
+                        // 우치의 분신술은 일반행동에서 생성된다. 개전 0.5초에 존재한다고 가정하지 않는다.
+                        deadline = Time.realtimeSinceStartup + 20f;
+                        while (!FindObjectsByType<StageSummonVisual>(FindObjectsSortMode.None).Any(v => v.Owner == owner && v.Renderer != null && v.Renderer.enabled && v.Renderer.sprite != null) && game.gameState == BaseEnums.GameState.RoundInProgress && Time.realtimeSinceStartup < deadline)
+                            yield return null;
+                        yield return EndOfFrame;
+                        var visuals = FindObjectsByType<StageSummonVisual>(FindObjectsSortMode.None).Where(v => v.Owner == owner).ToArray();
+                        string badge = SmBadge(owner);
+                        RuiCheck("기본 무대 소환수 " + id, "실제 생성 뒤 소환수 SD·배지", badge + "/" + visuals.Length, visuals.Length > 0 && visuals.All(v => v.Renderer != null && v.Renderer.enabled && v.Renderer.sprite != null) && badge.Contains(id == 180 ? "분신" : "수호령"));
+                    }
+                    yield return CaptureStill("default_stage_battle");
+                    deadline = Time.realtimeSinceStartup + 120f;
+                    while (ReleaseResultContinue() == null && Time.realtimeSinceStartup < deadline) yield return null;
+                    RuiCheck("기본 무대 전투 결과", "실제 행동 완료→승리 결과창 표시·Stage 유지", $"actions={actions}, state={game.gameState}", actions > 0 && game.gameState == BaseEnums.GameState.RoundEnd && ReleaseResultContinue() != null && VisualModeState.Current == VisualMode.Stage);
+                    yield return CaptureStill("default_stage_result");
+                }
+                finally { ActionScheduler.AnyActionFinished -= Finished; }
+                RuiFinish();
+            }
+            finally { DebugMode.SuiteRunning = suite; _activeLineup = null; }
+        }
+
         private static Button ReleaseResultContinue()
         {
             GameObject canvas = GameObject.Find("BattleResultCanvas");

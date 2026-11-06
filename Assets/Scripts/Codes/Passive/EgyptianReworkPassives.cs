@@ -70,54 +70,6 @@ namespace Codes.Passive
         }
     }
 
-    public sealed class HorusRoyalHeir : UniquePassiveCode
-    {
-        private bool _working;
-        private Unit _heir;
-        private Action<EventContext> _death;
-        public string AuraKey=>$"horus_heir_{Caster?.GetEntityId()}";
-        public bool Working=>_working&&Caster!=null&&Caster.IsOnField;
-        public float Bonus=>Working?Mathf.Min(.55f,.25f+.15f*SummonSupportCombat.PowerRatio(Caster)):0;
-        public Unit Heir { get { SelectHeir();return _heir; } }
-        public HorusRoyalHeir(PassiveCodeContext context):base(context)=>CodeName="태양의 후계자";
-        private bool Eligible(Unit unit)=>unit!=null&&unit!=Caster&&unit.IsOnField&&!unit.IsSummon&&
-            unit.IsEnemy==Caster.IsEnemy&&unit.UltimateResourceType==BaseEnums.UltimateResourceType.Mana&&
-            unit.ActiveUltimateCode!=null&&unit.ActiveUltimateCode.SupportsUltimateDamage;
-        public override void CastCode()
-        {
-            if(_working||Caster==null)return;
-            _working=true;SelectHeir();ActionScheduler.AnyActionStarted+=Started;
-            _death=_=>StopCode();Caster.AddListener(BaseEnums.UnitEventType.OnDeath,_death);
-        }
-        private void Started(Unit actor,ActionScheduler.ActionKind kind,string label)=>SelectHeir();
-        private void SelectHeir()
-        {
-            if(!Working)return;
-            if(Eligible(_heir)&&_heir.HasStatusKey(AuraKey))return;
-            if(_heir!=null)_heir.RemoveStatusByKey(AuraKey);
-            _heir=SummonSupportCombat.Allies(Caster).FirstOrDefault(Eligible);
-            if(_heir==null)return;
-            var aura=BuffStatus.Create(73520,AuraKey,CodeName,Caster,_heir,new HeirEffect(this),0,isBeneficial:true,
-                description:"호루스가 필드에 있는 동안 초월기 피해 증가(특공 비례, 최대55%). 마나형 공격 초월기 아군1명 지정.");
-            aura.AffectedVfxPartId=Effects.Vfx.StatusAffectedVfx.SuppressPartId;_heir.AddStatus(aura);
-            Effects.Vfx.PurchasedSupportThreadsFx.Play(Caster,_heir,Effects.Vfx.PurchasedSupportThreadsFx.Kind.Order);
-            Effects.Vfx.PurchasedSupportThreadsFx.Play(Caster,_heir,Effects.Vfx.PurchasedSupportThreadsFx.Kind.Receive);
-            ActionAnnouncer.AnnouncePassive(Caster,this);
-        }
-        public override void StopCode()
-        {
-            _working=false;ActionScheduler.AnyActionStarted-=Started;
-            if(_heir!=null)_heir.RemoveStatusByKey(AuraKey);
-            _heir=null;Caster?.RemoveListener(BaseEnums.UnitEventType.OnDeath,_death);
-        }
-        private sealed class HeirEffect:BaseEffect
-        {
-            private readonly HorusRoyalHeir _source;
-            public HeirEffect(HorusRoyalHeir source):base(0)=>_source=source;
-            public override bool IsBeneficial=>true;
-            public override float UltimateDamageBonus(Unit actor)=>actor==Target&&_source.Working?_source.Bonus:0;
-        }
-    }
 
     public sealed class SetDesertBlood : UniquePassiveCode
     {

@@ -106,6 +106,50 @@ trainerCoverage:
 
 # ══════════════════════════════════════════════════════════════════════
 units:
+  - id: 100
+    name: 아그리파
+    type: Unlocked
+    element: Geo
+    mainStat: Defense
+    topStat: Speed
+    row: Front
+    roles: [SHIELD, ULT_BATTERY, AMP_DMG]
+    supportValue: { combat: 5, training: 0 }
+    provides:
+      - { key: SHIELD, text: "개전 방80%·일반 방40%·초월 방160% 전원 누적 보호막" }
+      - { key: ULT_BATTERY, text: "마나120 초월기로 다른 마나형 아군 최대 마나20% 충전" }
+      - { key: AMP_DMG, text: "보호막을 가진 아군 초월기 피해+20%" }
+    wants: [DPS_AOE, ACT_ACCEL, HEAL]
+    caution: "일반행동은 비공격. 자신·상시·중첩 자원을 충전하지 않으며 바위 부착 없음."
+  - id: 101
+    name: 옥타비아
+    type: Unlocked
+    element: Hydro
+    mainStat: Attack
+    topStat: SpecialAttack
+    row: Rear
+    roles: [DPS_AOE, BULWARK, ELEM_APPLY]
+    supportValue: { combat: 2, training: 0 }
+    provides:
+      - { key: DPS_AOE, text: "아군 공격 대상마다 무한 포위, 초월기로 대상별 소비·폭발" }
+      - { key: BULWARK, text: "현재 특공30%만큼 전원 특방 증가" }
+      - { key: ELEM_APPLY, text: "초월기 광역 물 부착, 통상 효과 명중" }
+    wants: [EXTRA_ACT, SUMMON, ULT_BATTERY, AMP_CRIT, HEAL]
+    caution: "다단은 같은 행동·대상1회. 표식은 옥타비아 특공 명중, 직접 화력은 공격·치명 투자."
+  - id: 21
+    name: 테세우스
+    type: Unlocked
+    element: Hydro
+    mainStat: Attack
+    topStat: Attack
+    row: Rear
+    roles: [DPS_ST, DPS_AOE, ELEM_APPLY]
+    supportValue: { combat: 1, training: 0 }
+    provides:
+      - { key: DPS_ST, text: "일반180%·초월280%, 마나60. 초월기 뒤 일반행동 두 번에 광역100% 파장" }
+      - { key: ELEM_APPLY, text: "파장 물 부착은 기본25% × 특공/대상 특방. 초월기는 통상 명중" }
+    wants: [SHIELD, HEAL, ELEM_APPLY]
+    caution: "공격·치명은 직접 피해와 자기 회복, 특공은 부착·개화·감전·풍화. 불+물은 피해 없이 상쇄하며 반응은 두 번째 부착자의 특공을 사용한다."
   - id: 168
     name: 니콜
     type: Unlocked
@@ -278,21 +322,13 @@ units:
     mainStat: SpecialAttack
     topStat: Speed
     row: Rear
-    roles:
-    - AMP_DMG
-    - ULT_BATTERY
-    supportValue:
-      combat: 3
-      training: 0
+    roles: [DPS_AOE, EXTRA_ACT]
+    supportValue: { combat: 1, training: 0 }
     provides:
-    - key: AMP_DMG
-      text: 마나형 공격 초월기 후계자1명 피해 증폭.
-    - key: ULT_BATTERY
-      text: 초월기로만 지정 대상 마나 충전.
-    wants:
-    - DPS_AOE
-    caution: 단일 후계자만 지원. 일반공격 피해와 고유중첩형 초월기는 증폭/충전하지 않는다.
-
+      - { key: EXTRA_ACT, text: "아군 가상 강인도 격파마다 일륜 소사 추가행동" }
+      - { key: DPS_AOE, text: "공격력·특공 합산 광역 사격. 해방 중 일반행동3회 강화" }
+    wants: [TOUGHNESS, AMP_TOUGH, AMP_CRIT, ULT_BATTERY, SHIELD, HEAL]
+    caution: "기본 삭감 증가 없음. 오르페우스가 강인도·삭감 효율을 담당하며 격파 추공은 일반행동 마나·해방 기간을 소모하지 않는다."
   - id: 10
     name: 셰익스피어
     type: Unlocked
@@ -355,7 +391,7 @@ units:
       - { key: MULTIHIT, text: "빅뱅 — 창세의 결정 7개로 무작위 적에게 바위 조각 7발, 이어서 아군 전체에 125 + 방어력 7.5% 보호막" }
       - { key: SHIELD, text: "창세의 노래 — 아군 전체에 1200 + 레벨×48 + 방어력720% 보호막" }
     wants: [TAUNT, DPS_ST]
-    caution: "첫 빅뱅은 궁극기의 보호막이 깔린 뒤에야 쌓이기 시작한다. 일반행동은 바위 부착 대신 방어력25% 감소. 집중이 끊겨도 시전 보호막·피해 증가 버프는 남는다."
+    caution: "첫 빅뱅은 궁극기의 보호막이 깔린 뒤에야 쌓이기 시작한다. 일반행동은 방어력25% 감소. 빅뱅 전체에서 1회만 기본20%×특공/특방 바위 부착을 시도한다. 집중이 끊겨도 시전 보호막·피해 증가 버프는 남는다."
 
   - id: 2
     name: 시
@@ -369,7 +405,7 @@ units:
     provides:
       - { key: EXECUTE, text: "멸망의 시 — 아군 공격 후 멸참으로 끝낼 수 있는 적을 방어력·현재 체력만 보고 특수행동으로 정리" }
       - { key: EXTRA_ACT, text: "멸참 — 일반·특성 멸참 처치 시 특수행동 멸참을 한 번 더 사용" }
-      - { key: MULTIHIT, text: "만종 — 멸참 3/6/9회째에 단일 추가 피해 또는 적 전체 분배 피해" }
+      - { key: MULTIHIT, text: "만종 — 멸참 3/6/9회째에 단일100% 또는 적 전체250%/375% 분배 피해, 피격 생존 적마다 기본20%×특공/특방 바람 부착" }
     wants: [AMP_DMG, SHIELD]
     caution: "처형 예측은 보호막과 피해 증감을 보지 않는다. 재행동 멸참으로 처치해도 세 번째 멸참은 이어지지 않는다."
 
@@ -466,7 +502,7 @@ units:
       - { key: TAUNT, text: "날카로운 가시 — 집중 3턴 동안 타겟 우선도 +1·받는 피해 -50%" }
       - { key: DOT, text: "날카로운 가시 — 접촉 공격자에게 맹독" }
     wants: [HEAL, SHIELD]
-    caution: "맹독 반사는 접촉 공격에만 발동한다. 비접촉 위주의 적에게는 궁극기의 반격 가치가 낮다."
+    caution: "맹독 반사는 접촉 공격에만 발동한다. 비접촉 위주의 적에게는 궁극기의 반격 가치가 낮다. 불씨는 기본20%×특공/특방 불 부착. 물은 상쇄하며 풀은 연소를 만든다."
 
   - id: 122
     name: 바스테트
@@ -479,11 +515,11 @@ units:
     supportValue: { combat: 2, training: 0 }
     provides:
       - { key: DPS_ST, text: "냥냥펀치 — 공격력 115%의 빠른 단일 접촉 공격" }
-      - { key: EXTRA_ACT, text: "미운 놈 한 대 더 때리기 — 아군 반격 뒤 같은 대상에게 공100% 추가행동" }
+      - { key: EXTRA_ACT, text: "미운 놈 한 대 더 때리기 — 아군 반격 뒤 같은 대상에게 공100% 추가행동·기본15%×특공/특방 바위 부착" }
       - { key: ACT_ACCEL, text: "기초 속도 116 — 현 로스터 최고 속도로 일반행동 회전을 확보" }
       - { key: HEAL, text: "반격 후속 본타 실제 피해50%를 원 반격 요원에게 회복" }
     wants: [TAUNT, EXTRA_ACT, AMP_DMG]
-    caution: "경호는 견고 또는 반격 아군이 필요하다. 잔·세트·오리온 등의 실제 반격과 연결한다. 후속100%는 반격 본체의 피해를 보조한다."
+    caution: "경호는 견고 또는 반격 아군이 필요하다. 잔·세트·오리온 등의 실제 반격과 연결한다. 특공은 후속 바위 부착·반응, 공격·치명은 후속 피해·반격자 치유를 강화한다."
 
   - id: 63
     name: 인드라
@@ -528,7 +564,7 @@ units:
     supportValue: { combat: 3, training: 0 }
     provides:
       - { key: EXTRA_ACT, text: "끝까지 태워 주지 — 다른 아군의 초월기 완료마다 적 전체 공격력 90% 추가행동(아군별 일반행동 사이 1회)" }
-      - { key: ELEM_APPLY, text: "끝까지 태워 주지 — 적마다 피해 직후 불 부착(증발 · 융해 · 화상의 재료)" }
+      - { key: ELEM_APPLY, text: "끝까지 태워 주지 — 적마다 피해 직후 불 부착(연소 · 융해 · 상쇄의 재료)" }
       - { key: AMP_DMG, text: "내가 판을 키워 주지 — 아군 전원 궁극기 피해 +20%(아그니 일반행동 3회), 자기 추공도 궁극기 판정" }
       - { key: DPS_AOE, text: "제일 먼저 태울 곳 — 인드라의 표 한 장을 중심 540% · 나머지 120% 집중 포격으로" }
     wants: [ULT_BATTERY, ELEM_APPLY, SPECIAL]
@@ -623,9 +659,9 @@ units:
     supportValue: { combat: 1, training: 0 }
     provides:
       - { key: SUMMON, text: "도사란 무엇인가 — 분신 최대 3기, 소멸은 아누비스의 영혼" }
-      - { key: MULTIHIT, text: "만천화우 — 분신마다 공격력 300%" }
+      - { key: MULTIHIT, text: "만천화우 — 분신마다 공격력525%" }
     wants: [AMP_SUMMON, ACT_ACCEL]
-    caution: "속도가 너무 높으면 분신이 넘쳐 절반 피해로 흩어진다."
+    caution: "자기 차례 분신 일격만 기본15%×우치 특공/특방 바람 부착. 넘침·초월·지휘·추가는 제외. 속도 과투자는 넘침을 늘린다."
 
   - id: 160
     name: 마리 테레즈
@@ -772,11 +808,11 @@ units:
       training: 0
     provides:
     - key: EXTRA_ACT
-      text: 시리우스 — 피격5회마다 광역 반격 화살비. 보호막 피격 인정·다단은 행동당1회.
+      text: 시리우스 — 피격5회마다 광역 반격 화살비. 보호막 피격 인정·다단은 행동당1회. 화살비는 생존 대상마다 기본20%×특공/특방 바위 부착.
     wants:
     - SHIELD
     - HEAL
-    caution: 피격이 적으면 화살비가 느리다. 초월기의 충전2로 단일 적전의 공백을 보완한다.
+    caution: 피격이 적으면 화살비가 느리다. 초월기의 충전2로 단일 적전의 공백을 보완한다. 특공 부착 육성은 체력·직접 화력 투자와 경쟁한다.
   - id: 83
     name: 스카디
     type: Unlocked
@@ -833,7 +869,7 @@ archetypes:
     name: 일광 바운스 편성
     core: [40, 7, 122]
     description: "잔·바스테트의 실제 추가공격을 일광으로 저장하고 마나100에 바운스 초월기로 방출한다."
-    partners: [83, 82, 66, 120]
+    partners: [83, 82, 66, 100]
     counterplay: "추가공격 공급·물/얼음 부착·유지력·충전 지원이5칸을 경쟁한다. 탄별 반응이며 충전을 무조건 올리면 일광이 덜 모인다."
   - id: ISIS_SUMMON_CORE
     name: 수호령의 소환 전열
@@ -858,15 +894,10 @@ archetypes:
     - 82
     description: 세트가 전열·출혈, 야마가 모든 지속피해 즉시 발동, 츠쿠요미가 지속피해를 증폭한다.
   - id: HORUS_BURST
-    name: 태양의 후계자
-    core:
-    - 81
-    - 120
-    partners:
-    - 82
-    - 64
-    - 66
-    description: 수르트를 첫 공격 초월기 아군으로 편성하여 호루스 지원을 집중한다.
+    name: 일륜 격파 편성
+    core: [120, 25]
+    partners: [2, 100, 101, 82]
+    description: "오르페우스가 강인도·삭감 효율, 호루스가 격파 소사 연쇄를 담당한다. 시는 처치/격파 행동, 아그리파는 개전 방호·충전, 옥타비아는 추공 대상마다 포위를 제공한다."
 
   - id: SUMMON_THEATRE
     name: 언어와 기록의 소환극
@@ -920,7 +951,7 @@ archetypes:
     core: [62, 63, 64, 66]
     description: "바루나의 물을 바유가 퍼뜨리고, 인드라의 팔방의 소집에서 아그니가 인드라의 표 한 장을 보류해 물이 붙은 적을 중심으로 집중 포격한다. 순서는 바유(-100) → 바루나(-50) → 아그니(+25) → 인드라(+50) → 찬드라(+100)."
     partners: [60]
-    counterplay: "인드라가 쓰러지면 묶음을 열 수 없다. 물이 없으면 증발 대신 계수만 남는다."
+    counterplay: "인드라가 쓰러지면 묶음을 열 수 없다. 불+물은 상쇄다. 연소는 풀, 융해는 얼음 공급을 확인한다."
   - id: SUMMON_CYCLE
     name: 분신 순환 편성
     core: [121, 180, 20, 60]
@@ -1003,6 +1034,36 @@ archetypes:
     counterplay: "아스톨포와 니콜은 후열. 적 가속은 위험을 동반하며 경감 중첩은 피격 횟수로 소모된다."
 
 recommendations:
+  - mainId: 100
+    mainName: 아그리파
+    axis: 초월기 순환
+    starterRecommended: true
+    best:
+      archetype: HORUS_BURST
+      members: [120, 25, 101, 2]
+      rows: {100: Front, 25: Front, 120: Rear, 101: Rear, 2: Rear}
+      reason: "개전 방호와 단체 마나로 격파/포위 딜러의 첫 초월기를 보조한다."
+    warning: "비공격 일반행동, 반응·지속피해는 보호막을 우회한다."
+  - mainId: 101
+    mainName: 옥타비아
+    axis: 포위 누적
+    starterRecommended: true
+    best:
+      archetype: HORUS_BURST
+      members: [120, 25, 100, 2]
+      rows: {100: Front, 25: Front, 120: Rear, 101: Rear, 2: Rear}
+      reason: "격파로 늘어나는 실제 공격에 포위를 쌓고 아그리파 충전으로 정산한다."
+    warning: "포위 명중은 자신의 특공, 직접 피해는 공격·치명에 투자한다."
+  - mainId: 21
+    mainName: 테세우스
+    axis: 공격·치명 또는 특공 물 반응
+    starterRecommended: false
+    best:
+      archetype: ACTIVE_SHOCK
+      members: [166, 61, 167, 1]
+      rows: { 21: Rear, 166: Rear, 61: Rear, 167: Front, 1: Front }
+      reason: "번개 공급 뒤 테세우스의 물로 감전을 완성한다. 공격·치명은 직접 피해, 특공은 물 부착과 자신이 완성한 반응을 강화한다."
+    warning: "자동 전투의 부착 순서에 따라감전의 유발자가 달라진다. 개화는 풀, 풍화는 바위 공급과 연결하며 불 부착은 물을 소모한다. 장기 최적 편성은 검증 필요."
   - mainId: 164
     mainName: 네프티스
     axis: 독안의 사냥
@@ -1146,33 +1207,15 @@ recommendations:
     starterRecommended: true
     best:
       archetype: HORUS_BURST
-      members:
-      - 81
-      - 82
-      - 64
-      - 66
-      rows:
-        81: Front
-        82: Front
-        66: Front
-        120: Rear
-        64: Rear
-      reason: 각 유닛의 자원/부여/유지력 역할을 분리해 투자한다.
+      members: [25, 2, 100, 101]
+      rows: {25: Front, 100: Front, 120: Rear, 2: Rear, 101: Rear}
+      reason: "강인도 생성·격파 소사·추공 표식·보호막/충전을 결합한다."
     basic:
       archetype: HORUS_BURST
-      members:
-      - 81
-      - 82
-      - 64
-      - 66
-      rows:
-        81: Front
-        82: Front
-        66: Front
-        120: Rear
-        64: Rear
-      reason: 각 유닛의 자원/부여/유지력 역할을 분리해 투자한다.
-    warning: 아누비스 영혼 중첩 편성, 우치·셰익스피어 생애 순환 편성과 각각 구분한다.
+      members: [25, 2, 1, 60]
+      rows: {25: Front, 1: Front, 60: Front, 120: Rear, 2: Rear}
+      reason: "강인도 공급과 시의 격파 연계, 세이·찬드라의 방호/치유를 결합한다."
+    warning: "오르페우스가 강인도를 공급한다. 격파 소사는 일반행동 마나·해방 기간을 소모하지 않는다."
 
   - mainId: 10
     mainName: 셰익스피어
@@ -1349,7 +1392,7 @@ recommendations:
       members: [63, 64, 66, 60]
       rows: { 62: Rear, 63: Rear, 64: Rear, 66: Front, 60: Front }
       reason: "추천 시험 편성(Detail_08 §17) — 보류 → 집중 포격 → 인드라 순서를 한 묶음에서 확인한다."
-    warning: "아군 초월기가 늦게 돌면 추공도 늦다. 물 공급원이 없으면 증발이 나지 않는다."
+    warning: "아군 초월기가 늦게 돌면 추공도 늦다. 물은 불을 상쇄한다. 증폭을 원하면 풀 또는 얼음 공급을 확인한다."
 
   - mainId: 67
     mainName: 수리야
@@ -1429,7 +1472,7 @@ recommendations:
       members: [82, 44, 64, 62]
       rows: { 81: Front, 82: Front, 44: Rear, 64: Rear, 62: Rear }
       reason: "체력 60% 조건을 지킬 회복과 초월기 중심의 증폭을 결합한다."
-    warning: "보호막은 체력 소모를 막지 않는다. 물·풀 부착원이 없으면 불 부착만으로 증발/화상은 생기지 않는다."
+    warning: "보호막은 체력 소모를 막지 않는다. 풀은 연소, 얼음은 융해를 제공하며 물은 불을 상쇄한다."
   - mainId: 82
     mainName: 프레이아
     axis: "실치유 · 온기 오라 · 긴급 구조"

@@ -27,6 +27,81 @@
 # 2026-09 개편으로 옛 로스터 52명을 모두 걷어냈다. 캐릭터를 하나씩 다시 만든다.
 
 units:
+  - id: 100
+    name: 아그리파
+    tagline: "개전부터 진형을 보호하고 동료의 초월기를 준비하는 지휘관."
+    characterType: Unlocked
+    element: Geo
+    vfxClass: caster
+    tags: [Roman, Human]
+    archetypeTags: [Support, Shielding, Burst]
+    hpBase: 1540
+    hpGrowth: 135
+    atkBase: 60
+    atkGrowth: 4
+    spAtkBase: 70
+    spAtkGrowth: 4
+    defBase: 140
+    defGrowth: 10
+    spDefBase: 90
+    spDefGrowth: 6
+    speedBase: 106
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 120
+    codes: { passive: 300, normal: 100, ultimate: 100 }
+    portrait: AGRIPPA_PORTRAIT
+    standing: AGRIPPA_STANDING
+  - id: 101
+    name: 옥타비아
+    tagline: "동료의 공격으로 포위망을 쌓고 수평선을 닫아 적진을 무너뜨리는 지휘자."
+    characterType: Unlocked
+    element: Hydro
+    vfxClass: caster
+    tags: [Roman, Human]
+    archetypeTags: [Burst, Support]
+    hpBase: 1120
+    hpGrowth: 100
+    atkBase: 100
+    atkGrowth: 6.5
+    spAtkBase: 90
+    spAtkGrowth: 6
+    defBase: 62
+    defGrowth: 4.5
+    spDefBase: 82
+    spDefGrowth: 5.5
+    speedBase: 102
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 100
+    codes: { passive: 301, normal: 101, ultimate: 101 }
+    portrait: OCTAVIA_PORTRAIT
+    standing: OCTAVIA_STANDING
+  - id: 21
+    name: 테세우스
+    tagline: "짧은 해류로 자신을 회복하고, 뒤따르는 검격에 파장을 실어 물의 반응을 여는 귀환자."
+    characterType: Unlocked
+    element: Hydro
+    vfxClass: assassin
+    tags: [Greek, Hero]
+    archetypeTags: [Precision, Burst, Infusion]
+    hpBase: 1260
+    hpGrowth: 110
+    atkBase: 110
+    atkGrowth: 7
+    spAtkBase: 45
+    spAtkGrowth: 3
+    defBase: 75
+    defGrowth: 5
+    spDefBase: 70
+    spDefGrowth: 4.5
+    speedBase: 104
+    critRateBase: 5
+    critDamageBase: 50
+    manaMax: 60
+    codes: { passive: 221, normal: 21, ultimate: 21 }
+    portrait: THESEUS_PORTRAIT
+    standing: THESEUS_STANDING
   # 가우디: 오리지널 ID와 원화를 복원하고 풀 부착·방호 서브탱커로 재설계.
   - id: 4
     name: 가우디
@@ -1302,15 +1377,16 @@ units:
     standing: ISIS_STANDING
   - id: 120
     name: 호루스
-    tagline: 마나형 초월기 딜러 하나에게 왕권과 에너지를 집중하는 태양의 후견인.
+    tagline: 아군의 강인도 격파에 일륜 소사를 잇는 불의 격파 딜러.
     characterType: Unlocked
     element: Pyro
     vfxClass: archer
     tags:
     - Egypt
     archetypeTags:
-    - Support
-    - Swift
+    - FollowUp
+    - Precision
+    - Burst
     hpBase: 980
     hpGrowth: 85
     atkBase: 58
@@ -1324,7 +1400,7 @@ units:
     speedBase: 108
     critRateBase: 5
     critDamageBase: 50
-    manaMax: 120
+    manaMax: 100
     codes:
       passive: 320
       normal: 120

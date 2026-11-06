@@ -25,13 +25,6 @@ namespace Codes.Normal
                 presentation:impact=>EgyptianReworkFx.Slash(Caster,target,impact));
         }
     }
-    public sealed class HorusSunArrow:BaseNormalCode
-    {
-        public HorusSunArrow(NormalCodeContext context):base(context)=>CodeName="태양의 화살";
-        public override int AttackForm=>DamageTag.Shot;
-        protected override int BaseDamage(Unit target)=>StatDamage(0,BaseEnums.StatType.Attack,.80f);
-        protected override ProjectileStyle ProjectileFor(Unit target)=>OrionSkadiFx.Arrow(false,purchased:true);
-    }
     public sealed class IsisGuardianStrike:BaseNormalCode
     {
         protected override bool AppliesElementTo(Unit target) => true;

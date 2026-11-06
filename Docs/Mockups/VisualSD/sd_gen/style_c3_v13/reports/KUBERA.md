@@ -1,0 +1,20 @@
+# KUBERA · SD 비율 13차 p2 · 2026-11-06
+- 상태: **검수 대기**
+- 자체 판정: 목표 범위 충족(자체 측정), 최종 승인 아님.
+- N65: 단일 적·비접촉·금화 사격, 재보 충전.
+- SP65: 적 전체·비접촉·골드 러쉬 사격.
+- U65: 아군 공용 재보·비접촉·자원 충전, 공격/소환 없음.
+- P265: 아군 필드·비접촉·재보 거래 공격 치피 후원.
+- 키트/포즈: 일반행동 기준 등록본 5포즈 유지, 신규 행동·소품 없음.
+- 전 IDLE 재측정: 4.262등신. 원 정수리/턱은 _work_KUBERA/before_measure.csv, 12차 측정법으로 재독.
+- 목표 2.68: 머리/키 상대비 1.5902배, 머리 고정 시 몸 길이 0.5151배가 필요하여 머리 확대+몸통/다리 단축 재작화.
+- 후 IDLE: crownY=251, chinY=617, (1220−crownY)/(chinY−crownY)=2.648.
+- 두개부 수동 ROI: 귀·뜬 머리·장발·모자·후드 제외, 가림 경계 추정 ±10px. 원 ROI/배율/최종 좌표 CSV 보존.
+- 5포즈 √(w×h) ROI 환산치(IDLE/WINDUP/STRIKE/HIT/DOWN): 376.84 / 376.89 / 377.00 / 376.83 / 376.57px; IDLE 대비 −0.072~+0.043%.
+- 재생성: 0회 (5포즈 각 1회 생성). 내장 image_gen, transparent_background=true, 포즈별 등록본+새 IDLE 참조.
+- 후처리: PowerShell System.Drawing, 전체 균등 배율+LockBits 정수 이동만. 신체 부위별 변형/합성 없음.
+- 규격 실측: 5장 1024×1280 8bit RGBA, 모서리 alpha0, alpha≥129 최하단 y1220, x30..994 안.
+- 육안 확인: 우향·포즈/무기 각도·의상/눈색/머리색 유지, 단색 구분·250px 확인. Assets 등록·Unity 검증 없음.
+- 실제 프롬프트: _work_KUBERA/prompts.json. 이름 없이 외형 기술, same pose/outfit/face + larger head/shorter torso/legs/2.68-head.
+- 남은 결함: 허리 금장·술 배치의 미세 차이, HIT 치아 노출 폭 증가. 얼굴·장신구 세부 최종 검수 필요.
+- 증거: measure_KUBERA.png, sheets/KUBERA_{poses|silhouette|face|battle250|before_after}.png, lineup_p2.png.

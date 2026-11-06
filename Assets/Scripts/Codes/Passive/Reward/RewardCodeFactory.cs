@@ -13,6 +13,8 @@ namespace Codes.Passive.Reward
         {
             CodeCatalog.Entry entry = RewardCodeCatalog.Find(codeId);
             if (entry == null) return null;
+            if (codeId is UltimateManaRewardCode.Initial or UltimateManaRewardCode.Overflow or UltimateManaRewardCode.Double)
+                return new UltimateManaRewardCode(context, codeId);
             if (System.Array.IndexOf(DebuffRewardCode.Ids, codeId) >= 0) return new DebuffRewardCode(context, codeId);
             if (System.Array.IndexOf(SpecialElementRewardCode.Ids, codeId) >= 0) return new SpecialElementRewardCode(context, codeId);
             if (System.Array.IndexOf(SingleAttackRewardCode.Ids, codeId) >= 0) return new SingleAttackRewardCode(context, codeId);

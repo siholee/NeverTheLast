@@ -63,6 +63,7 @@ namespace Effects.Vfx
         private SpriteRenderer _flash;
         private SpriteRenderer[] _stageFlashes = Array.Empty<SpriteRenderer>();
         private bool _stage;
+        private bool _sdDownFade;
         private float _age;
         private float _cardSize;
         private int _layer;
@@ -76,6 +77,7 @@ namespace Effects.Vfx
             _boss = unit != null && unit.IsEnemy &&
                     string.Equals(unit.UnitTier, "boss", StringComparison.OrdinalIgnoreCase);
             _stage = view.StageProxy != null;
+            _sdDownFade = view.StageProxy?.Frames?.Profile.downFade == true;
             _cardSize = _stage ? VfxSpace.CardSize : view.CardSize;
             _layer = view.LayerId;
             _center = _stage ? view.CenterWorld : view.Body.position;
@@ -85,6 +87,13 @@ namespace Effects.Vfx
                 : new Color(0.76f, 0.89f, 1f, 1f);
 
             BuildGhost(view);
+            if (_sdDownFade && _snapshot != null)
+            {
+                // 공통 퇴장 완료 시각은 보존하고, 시의 DOWN 사본만 라운드/부활까지 남긴다.
+                _ghost.SetParent(null, true);
+                _snapshot.AddComponent<SdDownRemnant>().Configure(unit, _portrait);
+                return;
+            }
             if(_portrait!=null)
             {
                 float flash=Mathf.Max(_boss?BossFlashTime:NormalFlashTime,Time.timeScale*2f/60f);
@@ -137,12 +146,13 @@ namespace Effects.Vfx
             }
 
             SpriteRenderer sourceRenderer = view.PortraitRenderer;
-            if (view.StageProxy != null)
+            if (view.StageProxy != null && !_sdDownFade)
             {
                 _stageFlashes = view.StageProxy.CopySlices(transform, "WhiteSilhouetteFlash", Color.clear,
                     _layer, SortBase + 8, additive: true);
                 return;
             }
+            if (_sdDownFade) return;
             Sprite sprite = sourceRenderer != null ? sourceRenderer.sprite : null;
             if (sprite == null) return;
 
@@ -156,6 +166,17 @@ namespace Effects.Vfx
         private void Update()
         {
             _age += Time.deltaTime;
+            if (_sdDownFade)
+            {
+                if (_age >= (_boss ? CardLifecycleFx.BossDepartureDuration : CardLifecycleFx.NormalDepartureDuration))
+                {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    Core.VerifyEvents.Raise("death_complete");
+#endif
+                    Destroy(gameObject);
+                }
+                return;
+            }
             float flashTime=Mathf.Max(_boss?BossFlashTime:NormalFlashTime,Time.timeScale*2f/60f);
             float fadeTime=(_boss?CardLifecycleFx.BossDepartureDuration:CardLifecycleFx.NormalDepartureDuration)-flashTime;
             float flash = _age < flashTime ? Mathf.Sin(Mathf.Clamp01(_age / flashTime) * Mathf.PI) : 0f;

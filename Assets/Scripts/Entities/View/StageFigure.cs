@@ -125,10 +125,12 @@ namespace Entities.View
             _profile = _data.figures.Find(item => item.sprite == source.name);
             Calibrated = _profile != null;
             _profile ??= _data.@default;
+            bool flip = (unit != null && unit.IsEnemy) == (_profile.facing == "right");
             float rank = unit != null && (unit.UnitTier == "elite" || unit.UnitTier == "boss") ? 1.15f : 1f;
             _height = BaseWorldHeight * rank;
             if (_frames == null) _frames = gameObject.AddComponent<SdFrameRig>();
-            if (_frames.Configure(_profile.sd, unit, _lower, _height))
+            bool sdFlip = (unit != null && unit.IsEnemy) == ((_profile.sd?.facing ?? "right") == "right");
+            if (_frames.Configure(_profile.sd, unit, _lower, _height, sdFlip))
             {
                 _lowerHeight = _height;
                 _head.enabled = false;
@@ -136,7 +138,6 @@ namespace Entities.View
                 return;
             }
             float neck = _profile.chin + .012f;
-            bool flip = (unit != null && unit.IsEnemy) == (_profile.facing == "right");
             if (!_profile.deform)
             {
                 // 비인간형은 전신 한 장을 등방 축소한다. Lower/chest 소비자 계약은 유지한다.
@@ -250,7 +251,10 @@ namespace Entities.View
         public void ApplyAppearance(Color color, float lift, bool acting, Color element, bool focused = false)
         {
             if (_lower == null) return;
-            _lower.color = _head.color = color;
+            _head.color = color;
+            Color lowerColor = color;
+            if (Frames?.Profile.downFade == true) lowerColor.a = Frames.DownOpacity;
+            _lower.color = lowerColor;
             _lower.sharedMaterial.SetFloat("_Brightness", focused ? 1.12f : 1f);
             _head.sharedMaterial.SetFloat("_Brightness", focused ? 1.12f : 1f);
             float px = StageLayout.WorldHeight / StageLayout.HeightPx;

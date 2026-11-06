@@ -1,0 +1,52 @@
+[
+  {
+    "key": "VOID_PRISM",
+    "standing": "VOID_PRISM_STANDING",
+    "line": "  - { sprite: VOID_PRISM_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }"
+  },
+  {
+    "key": "VOID_MONSTROUS_BIRD",
+    "standing": "VOID_MONSTROUS_BIRD_STANDING",
+    "line": "  - { sprite: VOID_MONSTROUS_BIRD_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false, cutinFace: { x: 0.30, y: 0.57 } }"
+  },
+  {
+    "key": "VOID_BOAR",
+    "standing": "VOID_BOAR_STANDING",
+    "line": "  - { sprite: VOID_BOAR_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }"
+  },
+  {
+    "key": "VOID_WOLF",
+    "standing": "VOID_WOLF_STANDING",
+    "line": "  - { sprite: VOID_WOLF_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false, cutinFace: { x: 0.18, y: 0.56 } }"
+  },
+  {
+    "key": "VOID_KNIGHT",
+    "standing": "VOID_KNIGHT_STANDING",
+    "line": "  - { sprite: VOID_KNIGHT_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }"
+  },
+  {
+    "key": "VOID_MARKSMAN",
+    "standing": "VOID_MARKSMAN_STANDING",
+    "line": "  - { sprite: VOID_MARKSMAN_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }"
+  },
+  {
+    "key": "VOID_VANGUARD",
+    "standing": "VOID_VANGUARD_STANDING",
+    "line": "  - { sprite: VOID_VANGUARD_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }"
+  },
+  {
+    "key": "VOID_DEER",
+    "standing": "VOID_DEER_STANDING",
+    "line": "  - { sprite: VOID_DEER_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }"
+  },
+  {
+    "key": "VOID_CRUSHER",
+    "standing": "VOID_CRUSHER_STANDING",
+    "line": "  - { sprite: VOID_CRUSHER_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }"
+  },
+  {
+    "key": "VOID_DRAGON",
+    "standing": "VOID_DRAGON_STANDING",
+    "line": "  - { sprite: VOID_DRAGON_STANDING, top: 0.0, chin: 0.17, cx: 0.50, feet: 1.0, facing: right, deform: false }"
+  }
+]

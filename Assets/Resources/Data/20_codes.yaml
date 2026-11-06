@@ -9,6 +9,42 @@
 
 codes:
   passive:
+    - id: 300
+      verbalName: 불침의 진형
+      codeName: AgrippaUnsinkableFormation
+      description: "<고유 특성> 개전 시 아군 전원에게 자신의 방어력80% 보호막. 필드에 있는 동안 보호막을 가진 아군의 초월기 피해+20%."
+    - id: 301
+      verbalName: 함대의 포위망
+      codeName: OctaviaEncirclement
+      description: "<고유 특성> 아군의 직접 공격 대상마다 포위1중첩(행동·대상별1회, 옥타비아 특공으로 통상 효과 명중). 상한·턴 만료 없음. 아군 전원 특방+자신의 현재 특공30%. 자신의 초월기는 표식을 남기지 않음."
+    - id: 514
+      verbalName: 마나 수정
+      codeName: UltimateManaRewardCode
+      description: "전투 시작 시 마나+20. 다른 초기 마나와 합산, 마나 효율 미적용. 마나형 전용."
+      tier: 1
+      codeTags: [Burst]
+      shopFixed: true
+      shopPrice: 75
+    - id: 772
+      verbalName: 궁극의 초월
+      codeName: UltimateManaRewardCode
+      description: "초과 마나를 최대 마나100%까지 별도 저장. 자원을 소비한 초월기 종료 후 저장 마나를 즉시 획득하며 효율을 다시 적용하지 않음. 전투 종료·해제 시 저장분 제거."
+      tier: 3
+      codeTags: [Burst]
+      shopFixed: true
+      shopPrice: 300
+    - id: 919
+      verbalName: 더블 캐스팅
+      codeName: UltimateManaRewardCode
+      description: "전투 중 본래 초월기3회마다 무료로 초월기를1회 추가 발동. 추가 시전은 자원 소비·저장 마나 이동·자기 카운트 없음. 효과와 다른 초월기 연계는 정상 적용."
+      tier: 5
+      codeTags: [Burst]
+      shopFixed: true
+      shopPrice: 1200
+    - id: 221
+      verbalName: 되돌아오는 파도
+      codeName: TheseusReturningWave
+      description: "<고유 특성> 초월기의 공격이 해결되면 파장 2회를 얻는다(재시전은 2회로 갱신). 실제 일반행동의 본타 뒤 1회를 소비해 적 전체에게 공격력100% 피해를 주고 각 대상에게 기본25% × 자신의 특공/대상 특방 확률로 물을 부착한다(최대100%). 파장은 독립 치명타, 별도 행동·마나 지급 없음. 지휘·추가행동은 소비하지 않는다."
     - id: 667
       verbalName: 빈틈 공략
       codeName: DebuffRewardCode
@@ -125,10 +161,9 @@ codes:
       codeName: IsisThreefoldGuard
       description: 피격 불가 수호령3기. 서로 다른 고정 기초속도60/80/100, 각 일반공격은 이시스 방어력60% 피해와 바위 부착 시도. 치명/효과 명중은 이시스 스탯. 초기 생성하고 손실은 자기 일반 완료 때 보충. 토트의 소환 보유자 판정은1명.
     - id: 320
-      verbalName: 태양의 후계자
-      codeName: HorusRoyalHeir
-      description: 편성상 앞선 마나형 공격 초월기 아군1명 지정(자신 제외, 사망/이탈 시 교체). 필드에 있는 동안 대상 초월기 피해+(25%+특공/K×15%p), 최대55%. 일반/지속/특수 피해에는 적용하지 않음.
-
+      verbalName: 무너지는 지평선
+      codeName: HorusShatteringHorizon
+      description: "<고유 특성> 자신의 기초 특방+30%. 필드에서 아군이 적의 가상 강인도를 격파하면 해당 적을 주대상으로 일륜 소사를 추가행동으로 발동한다. 일반공격·추가공격 판정. 삭감 증가 없음."
     - id: 210
       verbalName: 언어의 창조자
       codeName: ShakespeareLanguage
@@ -141,7 +176,7 @@ codes:
     - id: 222
       verbalName: 시리우스
       codeName: OrionSirius
-      description: '적의 직접 공격으로 체력 또는 보호막이 감소하면 행동당 시리우스1(최대5). 5개 소비: 적 전체 공격력160%+자신 최대체력4% 화살비(추가행동·반격), 발사 후 최대체력5% 치유. 지속·반사·자해 제외. 제어 중 보관.'
+      description: '적의 직접 공격으로 체력 또는 보호막이 감소하면 행동당 시리우스1(최대5). 5개 소비: 적 전체 공격력160%+자신 최대체력4% 화살비(추가행동·반격), 발사 후 최대체력5% 치유. 화살비의 생존 피격 대상마다 기본20% × 자신의 특공/대상 특방(최대100%)로 바위 부착1회. 일반·초월기는 부착 없음. 지속·반사·자해 제외. 제어 중 보관.'
     - id: 283
       verbalName: 혹한의 외투
       codeName: SkadiFrostMantle
@@ -197,11 +232,11 @@ codes:
     - id: 380
       verbalName: 도사란 무엇인가
       codeName: UchiTaoist
-      description: "<고유 특성> 분신을 최대 3기 거느린다. 분신은 고정 속도 105으로 제 차례에 우치 공격력 210%로 한 번 치고 사라진다. 상한에서 새 분신이 생기면 가장 오래된 분신이 즉시 105%로 치고 사라진다. 우치가 최대 체력 15% 이상인 한 방을 맞으면 분신 1기가 대신 맞고 사라진다(한 적 행동당 1기)."
+      description: "<고유 특성> 분신을 최대 3기 거느린다. 분신은 고정 속도 105으로 제 차례에 우치 공격력 210%로 한 번 치고 사라진다. 자기 차례의 분신 일격은 기본15% × 우치 본체 특공/대상 특방(최대100%)으로 바람 부착을 시도한다. 넘침·초월 소모·지휘·추가행동에는 부착하지 않는다. 상한에서 새 분신이 생기면 가장 오래된 분신이 즉시 105%로 치고 사라진다. 우치가 최대 체력 15% 이상인 한 방을 맞으면 분신 1기가 대신 맞고 사라진다(한 적 행동당 1기)."
     - id: 201
       verbalName: 빅뱅
       codeName: SeiBigBang
-      description: "<고유 특성> 고유 중첩 '창세의 결정'을 가진다. 필드 위에 보호막을 두른 아군이 공격을 받을 때마다 1중첩을 얻는다. 창세의 결정이 7개 모이면 무작위 적에게 방어력의 25%에 해당하는 작은 바위 조각 7개를 발사한다. 이 공격은 대상 우선도를 무시한다. <추가> 이후 아군 전체에게 125 + 방어력의 7.5%에 해당하는 보호막을 부여한다. #다중 #특성 #비접촉"
+      description: "<고유 특성> 고유 중첩 '창세의 결정'을 가진다. 필드 위에 보호막을 두른 아군이 공격을 받을 때마다 1중첩을 얻는다. 창세의 결정이 7개 모이면 무작위 적에게 방어력의 25%에 해당하는 작은 바위 조각 7개를 발사한다. 이 공격은 대상 우선도를 무시한다. 빅뱅 전체에서 처음 암편을 맞고 살아남은 적 하나에게 기본20% × 자신의 특공/대상 특방 확률로 바위를 1회 부착 시도한다(최대100%). <추가> 이후 아군 전체에게 125 + 방어력의 7.5%에 해당하는 보호막을 부여한다. #다중 #특성 #비접촉"
     - id: 202
       verbalName: 멸망의 시
       codeName: ShiFinalVerse
@@ -864,7 +899,7 @@ codes:
     - id: 803
       verbalName: 사전준비
       codeName: PreparationCode
-      description: "전투 시작 시 마나가 최대치의 50%로 찬다. Passive · Stack 자원에는 무효"
+      description: "전투 시작 시 최대 마나50%를 다른 초기 마나와 합산한다. 같은 전투 중복 적용·효율 증폭 없음. Passive · Stack 자원에는 무효"
       tier: 4
       codeTags: [Burst]
     - id: 804
@@ -2310,6 +2345,18 @@ codes:
       shopPrice: 300
 
   normal:
+    - id: 100
+      verbalName: 전열 재정비
+      codeName: AgrippaReorganize
+      description: "비공격 일반행동. 아군 전원에게 자신의 방어력40% 보호막. 정상 완료 시 기본 마나20."
+    - id: 101
+      verbalName: 밀려드는 파도
+      codeName: OctaviaRisingTide
+      description: "적 전체에게 공격력70% 피해. 물 부착 없음."
+    - id: 21
+      verbalName: 해로를 가르는 검
+      codeName: TheseusSeaCleaver
+      description: "적 하나에게 공격력180% 피해를 준다. 본타에는 물 부착이 없으며 파장이 있으면 본타 뒤 광역 파장을 잇는다. #단일 #일반 #베기 #비접촉"
     - id: 4
       verbalName: 녹음의 아치
       codeName: GaudiNormalAttack
@@ -2363,9 +2410,9 @@ codes:
       codeName: IsisWovenShield
       description: 아군 전체 및 피격 가능한 아군 소환수에게 방어력270% 보호막. 누적하며 보호막 보너스만 추가 적용. 최대체력/특공 계수 없음.
     - id: 120
-      verbalName: 태양의 화살
-      codeName: HorusSunArrow
-      description: 공격력80% 단일 비접촉 사격. 일반 마나20. 원소 부착 및 아군 에너지 충전 없음.
+      verbalName: 파성의 화살
+      codeName: HorusStarbreaker
+      description: "단일 적에게 공격력140% 피해. 일륜 해방 중에는 주대상 공격력100%+특공160%, 나머지 적 각각 공격력50%+특공80%의 일륜 소사로 변경. 전체 합산 피해에 치명 적용."
     - id: 503
       verbalName: 수호령의 별빛
       codeName: IsisGuardianStrike
@@ -2447,7 +2494,7 @@ codes:
     - id: 500
       verbalName: 분신 일격
       codeName: UchiCloneStrike
-      description: "<소환수> 분신이 우선도 적에게 우치 공격력 210% 피해를 주고 사라진다. #단일 #일반 #접촉 #타격"
+      description: "<소환수> 분신이 우선도 적에게 우치 공격력 210% 피해를 주고 사라진다. 자기 차례 일반행동만 기본15% × 우치 본체 특공/대상 특방(최대100%)으로 바람 부착. 넘침·초월기·지휘·추가행동은 제외. #단일 #일반 #접촉 #타격"
     - id: 1
       verbalName: 땅고르기
       codeName: SeiGroundLeveling
@@ -2467,7 +2514,7 @@ codes:
     - id: 20
       verbalName: 불씨
       codeName: PygmalionEmber
-      description: "대상 발밑에서 불씨를 솟구치게 해 단일 적에게 공격력의 100% 피해를 입힌다. #단일 #일반 #비접촉"
+      description: "대상 발밑에서 불씨를 솟구치게 해 단일 적에게 공격력의 100% 피해를 입히고 생존 대상에게 기본20% × 자신의 특공/대상 특방(최대100%)로 불 부착을 시도한다. #단일 #일반 #비접촉"
     - id: 44
       verbalName: 불씨
       codeName: HimikoEmber
@@ -2978,6 +3025,18 @@ codes:
       verbalName: 여왕의 광선
       description: <적 전용> 적 전체에게 공격력 총 45% 피해를 가합니다.
   ultimate:
+    - id: 100
+      verbalName: 승리를 위한 포석
+      codeName: AgrippaWinningPosition
+      description: "<마나120> 아군 전원 방어력160% 보호막을 먼저 부여한 뒤 다른 마나형 아군에게 최대 마나20% 충전. 충전은 마나 효율 미적용."
+    - id: 101
+      verbalName: 닫히는 수평선
+      codeName: OctaviaClosingHorizon
+      description: "<마나100> 적 전체에게 공격력180%×(1+각 적의 포위 중첩×8%) 피해·물 부착. 실제 적중한 적의 표식 전부 소비. 피해는 치명 가능, 물은 통상 효과 명중."
+    - id: 21
+      verbalName: 귀환하는 해류
+      codeName: TheseusReturningCurrent
+      description: "<마나60> 적 하나에게 공격력280% 피해를 주고 통상 효과 명중으로 물 부착을 시도한다. 자신을 공격력100% × (1 + 잃은 체력 비율)만큼 회복하고 파장2회를 얻는다. 부착 실패·대상 처치에도 회복·파장을 얻지만 공격 전 취소에는 얻지 않는다. #단일 #궁극기 #베기 #비접촉"
     - id: 4
       verbalName: 불멸의 유산
       codeName: GaudiImmortalLegacy
@@ -3027,10 +3086,9 @@ codes:
       codeName: IsisStellarProcession
       description: 마나140. 자신의 수호령 포함 아군 모든 실제 소환수 및 소환수 취급 피그말리온의 행동 게이지50% 앞당김. 적/벤치/일반 소환자 본체 제외. 추가 생성/즉시 공격이 아니며 각자의 정상 행동이 이어짐.
     - id: 120
-      verbalName: 지평선의 왕관
-      codeName: HorusRoyalInvestiture
-      description: 마나120. 지정한 후계자의 초월기 피해+30%(대상 일반행동2회), 이후 최대 마나30% 충전. 버프를 먼저 부여. 자신/고유중첩/상시 초월기 충전 불가. 대상이 없으면 자원 소비 없음.
-
+      verbalName: 일륜 해방
+      codeName: HorusSolarRelease
+      description: "<마나100> 실제 일반행동3회 동안 파성의 화살을 일륜 소사로 변경. 추가행동은 기간·일반행동 마나를 소모하거나 생성하지 않으며 재시전은3회로 갱신."
     - id: 10
       verbalName: 사느냐, 죽느냐, 그것이 문제로다
       codeName: ShakespeareQuestion
@@ -3108,7 +3166,7 @@ codes:
     - id: 2
       verbalName: 만종
       codeName: ShiFinalBell
-      description: "<패시브형> 멸참을 사용할 때마다 만종 1중첩을 얻는다. 3중첩에는 멸참 대상에게 공격력의 🔸50~170% 추가 피해를, 6중첩에는 적 전체에 공격력 250%의 분배 피해를, 9중첩에는 적 전체에 공격력 375%의 분배 피해를 준 뒤 0중첩으로 돌아간다. #단일/전체 #궁극기 #분배 #비접촉"
+      description: "<패시브형> 멸참을 사용할 때마다 만종 1중첩을 얻는다. 3중첩에는 멸참 대상에게 공격력의 100% 추가 피해를, 6중첩에는 적 전체에 공격력 250%의 분배 피해를, 9중첩에는 적 전체에 공격력 375%의 분배 피해를 준 뒤 0중첩으로 돌아간다. 만종 후속 피해를 받은 생존 적마다 기본20% × 자신의 특공/대상 특방 확률로 바람 부착을 1회 시도한다(최대100%). #단일/전체 #궁극기 #분배 #비접촉"
     - id: 3
       verbalName: 아즈라엘
       codeName: SabahAzrael
@@ -3132,7 +3190,7 @@ codes:
     - id: 122
       verbalName: 미운 놈 한 대 더 때리기
       codeName: BastetOneMoreHit
-      description: "<상시> 다른 아군의 반격이 적에게 실제 피해를 주면 바스테트가 같은 대상에게 공격력100% 냥냥펀치를 우선 추가행동으로 한 번 사용한다. 턴당 제한은 없고 같은 반격 행동 하나당 한 번만 발동한다. 이 공격은 일반행동과 추가행동으로 함께 판정하며 초월기 자원을 충전하거나 소모하지 않는다. 후속 공격을 마치면 본타가 실제로 깎은 체력·보호막 피해의50%만큼 이 후속을 유발한 반격 요원을 치유한다. 치유 출처는 바스테트이며 공통 치유 보정을 적용한다. 파생 추가 피해는 제외하고, 취소·무피해·사망/이탈한 반격자는 치유하지 않는다. #단일 #일반 #추가행동 #접촉 #물리"
+      description: "<상시> 다른 아군의 반격이 적에게 실제 피해를 주면 바스테트가 같은 대상에게 공격력100% 냥냥펀치를 우선 추가행동으로 한 번 사용한다. 후속 타격은 생존 대상에게 기본15% × 자신의 특공/대상 특방(최대100%)로 바위 부착1회. 일반행동·지휘 사격에는 부착 없음. 턴당 제한은 없고 같은 반격 행동 하나당 한 번만 발동한다. 이 공격은 일반행동과 추가행동으로 함께 판정하며 초월기 자원을 충전하거나 소모하지 않는다. 후속 공격을 마치면 본타가 실제로 깎은 체력·보호막 피해의50%만큼 이 후속을 유발한 반격 요원을 치유한다. 치유 출처는 바스테트이며 공통 치유 보정을 적용한다. 파생 추가 피해는 제외하고, 취소·무피해·사망/이탈한 반격자는 치유하지 않는다. #단일 #일반 #추가행동 #접촉 #물리"
     - id: 1001
       verbalName: 강타
       codeName: EnemySmash

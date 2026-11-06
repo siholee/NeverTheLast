@@ -32,7 +32,9 @@ namespace Codes.Normal
 
     public sealed class PygmalionEmber : BaseNormalCode
     {
+        public const float AttachmentChance = .20f;
         public override int AttackForm => DamageTag.Spell;
+        protected override bool AppliesElementTo(Unit target) => true;
 
         public PygmalionEmber(NormalCodeContext context) : base(context)
         {
@@ -46,6 +48,13 @@ namespace Codes.Normal
         {
             DamageContext context = BuildContext(target);
             yield return EmberFx.Slash(Caster, target, () => Hit(target, context));
+        }
+
+        protected override void OnAttackResolved(Unit target, DamageContext context)
+        {
+            if (!context.IsCancelled && Combat.DirectAttack.CasterCanContinue(Caster, true) && target != null && target.isActive)
+                target.GrantCombatElement(BaseEnums.UnitElement.Pyro, source: Caster,
+                    baseChance: AttachmentChance, hitScaling: Combat.EffectHitScaling.Proportional);
         }
     }
 }

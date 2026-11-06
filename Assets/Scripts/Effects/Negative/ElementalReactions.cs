@@ -50,7 +50,7 @@ namespace Effects.Negative
         Bloom,          // 개화   물 + 풀
         Shock,          // 감전   물 + 전기
         Freeze,         // 빙결   물 + 얼음
-        Weathering,     // 풍화   물 + 바위
+        Weathering,     // 풍화   물/풀 + 바위
         Rooting,        // 착근   풀 + 풀
         Activation,     // 과성장 풀 + 전기 — 기존 식별자는 저장·쿨다운 호환용으로 유지
         Dormancy,       // 휴면   풀 + 얼음
@@ -62,16 +62,15 @@ namespace Effects.Negative
         Hardening,      // 경화   얼음 + 바위
         Vibration,      // 진동   바위 + 바위
         Diffusion,      // 확산   바람 + X (여섯 원소가 같은 반응이다)
-        DiffusionBurst, // 확산   바람 + 바람 (같은 이름, 광역 피해)
+        DiffusionBurst, // 초확산 바람 + 바람 (별도 반응, 광역 피해)
     }
 
     /// <summary>
     /// 원소 반응.
     ///
     /// 두 원소가 한 유닛에게 겹치면 반응이 일어나 <b>두 원소가 모두 사라지고</b> 결과가 남는다.
-    /// 결과는 언제나 <b>원소가 부착된 유닛</b>이 가져간다 — 버프도 마찬가지다.
-    /// 자기 자신에게 원소를 둘러 버프를 만드는 것이 정규 운용이고,
-    /// 적에게 잘못 만들어 적을 이롭게 하는 것이 이 시스템의 상성이다.
+    /// 결과는 <b>원소가 부착된 유닛</b>에게 적용된다. 물/풀+바위는 동일 풍화를 공유한다.
+    /// 성장·단조·경화는 활성 표에서 삭제하고 열거형 값은 기존 ID 호환을 위해 남긴다.
     ///
     /// 위력은 전부 <b>유발자의 특수공격력</b>에 비례한다(2026-09 개편 — 옛 CON의 자리).
     /// 반응 피해는 <b>대상의 특수방어력</b>으로 경감된다(<see cref="Combat.DamageMitigation"/>).
@@ -94,21 +93,16 @@ namespace Effects.Negative
         // ── 위력(유발자 특수공격력 대비 배율) ─────────────────────
 
         /// <summary>지속피해(감전·풍화)의 턴당 위력.</summary>
-        private const float DotRatio = 0.6f;
-
-        /// <summary>화상은 대상 최대 체력 비례라 유발자 특수공격력을 보지 않는다.</summary>
+        public const float DotRatio = 0.45f;
 
         /// <summary>즉발 피해(과부하)의 위력.</summary>
-        private const float BurstRatio = 1.2f;
+        public const float BurstRatio = 1.6f;
 
-        /// <summary>확산(바람 + 바람)의 위력. 진영 전체를 때리므로 단일보다 낮다.</summary>
-        private const float DiffusionBurstRatio = 0.7f;
+        /// <summary>초확산(바람 + 바람)의 위력. 진영 전체를 때리므로 단일보다 낮다.</summary>
+        public const float DiffusionBurstRatio = 0.6f;
 
         /// <summary>증폭이 얹는 약소 고정 피해의 위력.</summary>
         private const float AmplifyRatio = 0.4f;
-
-        /// <summary>경화가 만드는 보호막의 위력.</summary>
-        private const float BarrierRatio = 1.5f;
 
         /// <summary>지속피해·즉발 반응의 기본 지속 턴.</summary>
         public const int DotDuration = 2;
@@ -169,18 +163,17 @@ namespace Effects.Negative
         private const BaseEnums.UnitElement Anemo = BaseEnums.UnitElement.Anemo;
         private const BaseEnums.UnitElement Geo = BaseEnums.UnitElement.Geo;
 
-        /// <summary>23쌍 전부. 바람이 낀 여섯 쌍은 <b>모두 같은 반응(확산)</b>이다.</summary>
+        /// <summary>21쌍 전부. 바람이 낀 여섯 쌍은 <b>모두 같은 반응(확산)</b>이다.</summary>
         private static readonly Reaction[] Table =
         {
             // 불
-            new(Pyro, Hydro,      ReactionId.Vaporize,    "증발",   ReactionKind.Amplify),
-            new(Pyro, Dendro,     ReactionId.Burn,        "화상",   ReactionKind.Dot),
+            new(Pyro, Hydro,      ReactionId.Vaporize,    "증발",   ReactionKind.Null),
+            new(Pyro, Dendro,     ReactionId.Combustion,  "연소",   ReactionKind.Amplify),
             new(Pyro, Electro,    ReactionId.Overload,    "과부하", ReactionKind.Burst),
             new(Pyro, Cryo,       ReactionId.Melt,        "융해",   ReactionKind.Amplify),
-            new(Pyro, Geo,        ReactionId.Forge,       "단조",   ReactionKind.Buff,  BaseEnums.StatType.Speed),
 
             // 물
-            new(Hydro, Dendro,    ReactionId.Bloom,       "개화",   ReactionKind.Buff,  BaseEnums.StatType.MaxHp),
+            new(Hydro, Dendro,    ReactionId.Bloom,       "개화",   ReactionKind.Burst),
             new(Hydro, Electro,   ReactionId.Shock,       "감전",   ReactionKind.Dot),
             new(Hydro, Cryo,      ReactionId.Freeze,      "빙결",   ReactionKind.Control),
             new(Hydro, Geo,       ReactionId.Weathering,  "풍화",   ReactionKind.Dot),
@@ -188,14 +181,11 @@ namespace Effects.Negative
             // 풀
             new(Dendro, Electro,  ReactionId.Activation,  "과성장", ReactionKind.Debuff, BaseEnums.StatType.SpecialDefense),
             new(Dendro, Cryo,     ReactionId.Dormancy,    "휴면",   ReactionKind.Null),
-            new(Dendro, Geo,      ReactionId.Growth,      "성장",   ReactionKind.Buff,  BaseEnums.StatType.Defense),
+            new(Dendro, Geo,      ReactionId.Weathering,  "풍화",   ReactionKind.Dot),
 
             // 전기
             new(Electro, Cryo,    ReactionId.Superconduct,"초전도", ReactionKind.Debuff),
             new(Electro, Geo,     ReactionId.Grounding,   "접지",   ReactionKind.Null),
-
-            // 얼음
-            new(Cryo, Geo,        ReactionId.Hardening,   "경화",   ReactionKind.Buff),
 
             // 바위
             new(Geo, Geo,         ReactionId.Vibration,   "진동",   ReactionKind.Control),
@@ -207,7 +197,7 @@ namespace Effects.Negative
             new(Anemo, Electro,   ReactionId.Diffusion,   "확산",   ReactionKind.Spread),
             new(Anemo, Cryo,      ReactionId.Diffusion,   "확산",   ReactionKind.Spread),
             new(Anemo, Geo,       ReactionId.Diffusion,   "확산",   ReactionKind.Spread),
-            new(Anemo, Anemo,     ReactionId.DiffusionBurst, "확산", ReactionKind.Burst),
+            new(Anemo, Anemo,     ReactionId.DiffusionBurst, "초확산", ReactionKind.Burst),
         };
 
         /// <summary>자료실이 보여 줄 반응 한 줄. 표가 곧 원본이라 화면에서 다시 적지 않는다.</summary>
@@ -226,7 +216,7 @@ namespace Effects.Negative
             }
         }
 
-        /// <summary>23쌍 전부를 표에 적힌 순서 그대로 돌려준다.</summary>
+        /// <summary>활성 조합을 표에 적힌 순서 그대로 돌려준다.</summary>
         public static IEnumerable<Listing> AllReactions()
         {
             foreach (Reaction reaction in Table)
@@ -340,7 +330,6 @@ namespace Effects.Negative
                 case ReactionKind.Burst:    ResolveBurst(target, reaction, source); break;
                 case ReactionKind.Dot:      ResolveDot(target, reaction, source); break;
                 case ReactionKind.Debuff:   ResolveDebuff(target, reaction, source); break;
-                case ReactionKind.Buff:     ResolveBuff(target, reaction, source); break;
                 case ReactionKind.Null:     break;   // 두 원소를 지우는 것이 전부다
             }
 
@@ -358,7 +347,7 @@ namespace Effects.Negative
                 source.StatValue(BaseEnums.StatType.SpecialAttack) * ratio * FieldReactionMultiplier(source)));
 
         /// <summary>
-        /// 증폭(증발·연소·융해) — 약소한 고정 피해에 더해, 부착 직전에 들어간 그 공격의
+        /// 증폭(연소·융해) — 약소한 고정 피해에 더해, 부착 직전에 들어간 그 공격의
         /// 피해를 특수공격력 비례로 한 번 더 얹는다. 부착은 언제나 피해 뒤에 오므로
         /// "이번 공격을 키운다"를 사후 추가 피해로 환산한 것이다.
         /// </summary>
@@ -518,26 +507,6 @@ namespace Effects.Negative
                 duration: StatDuration,
                 category: BaseEnums.StatusCategory.Negative,
                 description: $"{label} 피해를 {ratio * 100f:0.#}% 더 받습니다."));
-        }
-
-        private static void ResolveBuff(Unit target, Reaction reaction, Unit source)
-        {
-            // 경화만 보호막이고 나머지는 스탯 배율이다.
-            if (reaction.Id == ReactionId.Hardening)
-            {
-                target.AddShield(ReactionPower(source, BarrierRatio), source);
-                return;
-            }
-
-            float ratio = StatRatio(source);
-            if (ratio <= 0f) return;
-
-            target.AddStatus(BuffStatus.Create(
-                BuffStatusId, $"reaction_{reaction.Id}", reaction.Name,
-                source, target, new StatModifierEffect(reaction.Stat, ratio, percent: true),
-                duration: StatDuration,
-                isBeneficial: true,
-                description: $"{UnitStats.DisplayName(reaction.Stat)}이(가) {ratio * 100f:0.#}% 증가합니다."));
         }
 
         /// <summary>버프·디버프가 공유하는 특수공격력 비례 배율. 0 ~ <see cref="RatioCap"/>.</summary>

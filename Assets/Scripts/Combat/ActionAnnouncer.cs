@@ -88,8 +88,10 @@ namespace Combat
                     announcementKind = substitute
                         ? ActionAnnouncementKind.Substitute
                         : ActionAnnouncementKind.Normal;
-                    code = substitute ? null : normal;
-                    name = substitute ? normal.AnnouncementName : fallback;
+                    bool dynamicName = normal != null && !string.IsNullOrWhiteSpace(normal.AnnouncementName) &&
+                        !string.Equals(normal.AnnouncementName, normal.CodeName, StringComparison.Ordinal);
+                    code = substitute || dynamicName ? null : normal;
+                    name = substitute || dynamicName ? normal.AnnouncementName : fallback;
                     break;
                 case ActionScheduler.ActionKind.Ultimate:
                     announcementKind = ActionAnnouncementKind.Ultimate;

@@ -51,6 +51,7 @@ namespace Codes.Normal
     {
         public const int CodeId = 500;
         private const float AttackRatio = 2.10f;
+        public const float NaturalAttachmentChance = .15f;
 
         public override int AttackForm => DamageTag.Strike;
 
@@ -72,13 +73,15 @@ namespace Codes.Normal
         private IEnumerator StrikeSequence()
         {
             yield return Effects.Vfx.UchiFx.PrepareStrike(Caster);
-            StrikeAndVanish(Caster, 1f);
+            var scheduler = GameManager.Instance?.ActionScheduler;
+            bool natural = scheduler?.ExecutingUnit == Caster && scheduler.ActingKind == ActionScheduler.ActionKind.Normal;
+            StrikeAndVanish(Caster, 1f, applyWind: natural);
         }
 
         /// <summary>
         /// 분신이 우선도 적 하나를 치고 사라진다. 넘침은 <paramref name="ratioScale"/> 0.5로 부른다(평소의 절반).
         /// </summary>
-        public static void StrikeAndVanish(Unit clone, float ratioScale)
+        public static void StrikeAndVanish(Unit clone, float ratioScale, bool applyWind = false)
         {
             if (clone == null || !clone.isActive) return;
             Unit owner = clone.SummonOwner;
@@ -89,7 +92,7 @@ namespace Codes.Normal
                 {
                     if (ratioScale < 1f) clone.GetComponent<Entities.View.SummonCardView>()?.Overflow(target);
                     Effects.Vfx.UchiFx.Strike(clone, target, ratioScale);
-                    HitAsOwner(owner, target, AttackRatio * ratioScale, StrikeTags(), actor: clone);
+                    HitAsOwner(owner, target, AttackRatio * ratioScale, StrikeTags(), actor: clone, applyWind: applyWind);
                 }
             }
             clone.Die(null);
@@ -103,7 +106,8 @@ namespace Codes.Normal
         /// 컨텍스트에 표지 · 최종 배율을 붙이고, 지휘가 이미 끝났으면 판정을 열지 않는다. 실제로 피해를 넣었으면 참.
         /// </summary>
         public static bool HitAsOwner(Unit owner, Unit target, float attackRatio, List<int> tags,
-            BaseEnums.CodeType codeType = BaseEnums.CodeType.Normal, CommandedAttackScope command = null, Unit actor = null)
+            BaseEnums.CodeType codeType = BaseEnums.CodeType.Normal, CommandedAttackScope command = null, Unit actor = null,
+            bool applyWind = false)
         {
             if (owner == null || target == null || !target.isActive || (command != null && !command.Active)) return false;
             bool crit = Random.value < owner.CritChanceCurr;
@@ -114,10 +118,15 @@ namespace Codes.Normal
                 multiplier = owner.CritMultiplierCurr + converted;
             }
             int damage = Mathf.Max(1, Mathf.RoundToInt(owner.StatValue(BaseEnums.StatType.Attack) * attackRatio * multiplier));
-            var context = new DamageContext(owner, damage, codeType, tags, crit);
+            var context = new DamageContext(owner, damage, codeType, tags, crit) { AppliesElement = applyWind };
             command?.Stamp(context);
             if (!CommandedAttackScope.TryAdmit(context)) return false;
             target.TakeDamage(context);
+            // 부착·반응도 우치 본체 명의다. 넘침·초월기·지휘 일격에서는 applyWind를 열지 않는다.
+            if (applyWind && !context.IsCancelled && DirectAttack.CasterCanContinue(owner, false) &&
+                DirectAttack.CasterCanContinue(actor, true) && target.isActive)
+                target.GrantCombatElement(BaseEnums.UnitElement.Anemo, source: owner,
+                    baseChance: NaturalAttachmentChance, hitScaling: EffectHitScaling.Proportional);
             return true;
         }
 

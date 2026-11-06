@@ -6,6 +6,30 @@ speedMergeFloor: 0.04
 speedMergeAt8x: 0.12
 
 cues:
+  - { name: agrippa.normal.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.24, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: agrippa.normal.hit, clips: [Kenney/Interface/click_001], volumeMin: 0.20, volumeMax: 0.24, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: agrippa.normal.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.24, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: agrippa.ultimate.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.24, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: agrippa.ultimate.hit, clips: [Kenney/Interface/click_001], volumeMin: 0.20, volumeMax: 0.24, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: agrippa.ultimate.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.24, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: octavia.normal.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.24, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: octavia.normal.hit, clips: [Kenney/Interface/click_001], volumeMin: 0.20, volumeMax: 0.24, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: octavia.normal.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.24, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: octavia.ultimate.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.24, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: octavia.ultimate.hit, clips: [Kenney/Interface/click_001], volumeMin: 0.20, volumeMax: 0.24, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: octavia.ultimate.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.24, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: horus.sun.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.24, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: horus.sun.hit, clips: [Kenney/Interface/click_001], volumeMin: 0.20, volumeMax: 0.24, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: horus.sun.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.24, mixerGroup: SFX, maxVoices: 2, minInterval: 0.10, speedMerge: true }
+  - { name: theseus.normal.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.24, pitchMin: 0.95, pitchMax: 1.05, mixerGroup: SFX, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: theseus.normal.hit, clips: [Kenney/Interface/click_001], volumeMin: 0.20, volumeMax: 0.24, pitchMin: 0.95, pitchMax: 1.05, mixerGroup: SFX, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: theseus.normal.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.24, pitchMin: 0.95, pitchMax: 1.05, mixerGroup: SFX, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: theseus.wave.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.24, pitchMin: 0.95, pitchMax: 1.05, mixerGroup: SFX, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: theseus.wave.hit, clips: [Kenney/Interface/click_001], volumeMin: 0.20, volumeMax: 0.24, pitchMin: 0.95, pitchMax: 1.05, mixerGroup: SFX, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: theseus.wave.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.24, pitchMin: 0.95, pitchMax: 1.05, mixerGroup: SFX, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: theseus.ultimate.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.24, pitchMin: 0.95, pitchMax: 1.05, mixerGroup: SFX, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: theseus.ultimate.hit, clips: [Kenney/Interface/click_001], volumeMin: 0.20, volumeMax: 0.24, pitchMin: 0.95, pitchMax: 1.05, mixerGroup: SFX, maxVoices: 2, minInterval: 0.08, speedMerge: true }
+  - { name: theseus.ultimate.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.20, volumeMax: 0.24, pitchMin: 0.95, pitchMax: 1.05, mixerGroup: SFX, maxVoices: 2, minInterval: 0.08, speedMerge: true }
   - { name: gaudi.normal.cast, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.18, volumeMax: 0.18, maxVoices: 1, minInterval: 0.12, speedMerge: true }
   - { name: gaudi.normal.hit, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.18, volumeMax: 0.18, maxVoices: 1, minInterval: 0.12, speedMerge: true }
   - { name: gaudi.normal.resolve, clips: [Kenney/Interface/confirmation_001], volumeMin: 0.18, volumeMax: 0.18, maxVoices: 1, minInterval: 0.12, speedMerge: true }

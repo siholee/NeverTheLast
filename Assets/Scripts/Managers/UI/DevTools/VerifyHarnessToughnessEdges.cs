@@ -61,16 +61,19 @@ namespace Managers.UI.DevTools
             yield return WaitUnscaled(.6f);
             GameObject shopRoot = GameObject.Find("ShopScreen");
             var seenStock = new HashSet<int>();
-            for (int page = 0; page < 3; page++)
+            int pageCount = Mathf.Max(1, Mathf.CeilToInt(stock.Count / 3f));
+            for (int page = 0; page < pageCount; page++)
             {
                 for (int i = page*3; i < Mathf.Min(stock.Count,(page+1)*3); i++)
                     if (RuiFind(shopRoot,"CodeGood_"+i)!=null) seenStock.Add(stock[i].codeId);
                 RuiReadable("강인도 상점 페이지"+page, shopRoot);
                 yield return CaptureStill("toughness_shop_page_"+page);
-                if(page<2) { RuiClick(RuiFind(shopRoot,"CodePageNext")); yield return WaitUnscaled(.3f); }
+                if(page < pageCount - 1) { RuiClick(RuiFind(shopRoot,"CodePageNext")); yield return WaitUnscaled(.1f); }
             }
-            Check("상점8종 페이지 접근", stock.Count==8 && seenStock.Count==8);
-            RuiClick(RuiFind(shopRoot,"CodePagePrevious")); yield return WaitUnscaled(.3f);
+            Check("현재 상점 전 상품 페이지 접근", stock.Count > 0 && seenStock.Count == stock.Count, seenStock.Count + "/" + stock.Count);
+            int targetPage = stock.FindIndex(r => r.codeId == 717) / 3;
+            for (int page = pageCount - 1; page > targetPage; page--)
+            { RuiClick(RuiFind(shopRoot,"CodePagePrevious")); yield return WaitUnscaled(.1f); }
             RuiReadable("강인도 상점", shopRoot);
             yield return CaptureStill("toughness_shop_stock");
             int stockIndex = stock.FindIndex(r=>r.codeId==717);

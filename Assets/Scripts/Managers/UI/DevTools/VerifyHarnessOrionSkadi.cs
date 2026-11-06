@@ -108,6 +108,8 @@ namespace Managers.UI.DevTools
                 Check("5회 피격 광역 반격·추공", rain.Count==AliveEnemies().Count && rain.All(x=>x.DamageContext.HasTag(DamageTag.AdditionalAttack) && x.DamageContext.HasTag(DamageTag.AllTarget)));
                 Check("화살비 소비·예약 정리", sirius.Charges==0 && !sirius.Pending);
             }
+            // 앞선 화살비와 바스테트 후속이 만든 진동은 다음 제어 해제 fixture의 적 행동을 막지 않게 정리한다.
+            foreach (Unit foe in AliveEnemies()) YvResetEnemy(foe);
             ControlStatuses.ApplyFixedStun(orion,enemy,1,true);
             sirius.Gain(5); sirius.Gain(10);
             Check("제어 중 충전 보관·상한5", orion.isControlled && sirius.Charges==5 && !sirius.Pending);
@@ -140,6 +142,8 @@ namespace Managers.UI.DevTools
             sirius.Gain(2); sirius.StopCode();
             Check("오리온 정지 자원·예약 정리", sirius.Charges==0 && !sirius.Pending);
             sirius.CastCode();
+            // 구독 재시작 검사는 공격 가능한 적이 필요하다. 앞선 화살비의 확률 바위 재부착으로 생긴 진동은 분리한다.
+            foreach (Unit foe in AliveEnemies()) YvResetEnemy(foe);
             yield return NordAction(enemy,Kind.Additional,s=>s.EnqueueAdditional(enemy,"os_restart","재시작 피격",()=>
                 orion.TakeDamage(new DamageContext(enemy,1,BaseEnums.CodeType.Normal,new(){DamageTag.NormalAttack,DamageTag.TrueDamage}))));
             Check("오리온 재시작 중복 구독 없음", sirius.Charges==1);

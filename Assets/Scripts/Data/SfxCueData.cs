@@ -67,8 +67,16 @@ namespace Managers
             if (unit == null) return null;
             if (unit.IsEnemy) return EnemyPrefix(unit, slot, codeName);
 
+            if (unit.ID == 120 && codeName == "일륜 소사") return "horus.sun";
             return (unit.ID, slot) switch
             {
+                (100, SfxActionSlot.Normal) => "agrippa.normal",
+                (100, SfxActionSlot.Ultimate) => "agrippa.ultimate",
+                (101, SfxActionSlot.Normal) => "octavia.normal",
+                (101, SfxActionSlot.Ultimate) => "octavia.ultimate",
+                (21, SfxActionSlot.Normal) => "theseus.normal",
+                (21, SfxActionSlot.Passive) => "theseus.wave",
+                (21, SfxActionSlot.Ultimate) => "theseus.ultimate",
                 (25, SfxActionSlot.Normal) => "orpheus.melody",
                 (22, SfxActionSlot.Normal) => "orion.normal",
                 (22, SfxActionSlot.Passive) => "orion.sirius",

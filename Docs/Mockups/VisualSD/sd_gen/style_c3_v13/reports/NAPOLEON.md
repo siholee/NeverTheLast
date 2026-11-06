@@ -1,0 +1,19 @@
+# NAPOLEON · SD 비율 13차 p2 HOLD 수정 1회차 · 2026-11-06
+- 상태: **검수 대기** — Root 재검수 전.
+- IDLE 등신: 등록본 3.492 → 이전 v13 HOLD 2.517 → 수정본 **2.682**; 요청 범위 2.66~2.70 안.
+- 목표 2.68 계산: HOLD 대비 머리/키 상대비 0.939배, 머리 고정 시 몸 길이 1.107배. 머리를 조금 줄이고 몸을 늘리는 방향으로 5포즈 재작화.
+- 새 IDLE: crownY=276, chinY=628, (1220−276)/(628−276)=2.681818; measure_NAPOLEON.png에 선 표시.
+- 두개부 ROI: 귀·뜬 머리·장식·후드 제외, 후드/방독면 아래 경계 수동 추정 ±10px. 최종 좌표는 수동 원 ROI에 전체 배율/정수 이동을 적용한 값.
+- 5포즈 √(w×h) 환산치(IDLE/WINDUP/STRIKE/HIT/DOWN): 376.17 / 375.88 / 375.80 / 376.10 / 376.10px; IDLE 대비 최대 절대 편차 0.098%.
+- 생성 횟수: IDLE 3 / WINDUP 3 / STRIKE 2 / HIT 1 / DOWN 1; 총 10회, 재생성 5회. 이번 수정 회차 포즈당 최대 3회 준수.
+- 생성: 내장 image_gen, transparent_background=true. 등록본 해당 포즈 전신 또는 얼굴 크롭+이전 v13 포즈+새 IDLE 참조, 실제 문장은 _work_NAPOLEON/prompts_fix1.json.
+- 프롬프트는 외형 묘사만 사용. 최종 선택: IDLE 3 / WINDUP 3 / STRIKE 2 / HIT 1 / DOWN 1번 후보.
+- N161: 단일 적·비접촉·무피해 지휘. SP161: 지정 적에 아군 일제사격 지휘, 자신 직접 공격 없음.
+- U161: 아군 전체 일반 공격 강화/행동 게이지 선행. P361: 아군 일반 공격 피해 오라/자신 개시 선행.
+- 포즈 예외: 사용자 승인에 따라 돌격소총·방독면·후드·등록본 5포즈 유지, 발사 VFX 추가 없음.
+- 후처리: PowerShell System.Drawing, 이미지 전체 균등 배율+LockBits 정수 이동만. 머리/몸 개별 기하 변형·합성 없음.
+- PNG 검증: 5장 1024×1280 8bit RGBA, 네 모서리 alpha0, alpha≥129 발 y1220, x30..994 안; _work_NAPOLEON/validation.json.
+- 직접 확인: 우향, 얼굴·눈/머리색·의상·총기·포즈, poses/silhouette/face/battle250/before_after 시트 및 기준 5명 포함 lineup_p2.png.
+- 보존: 이전 결과는 _work_NAPOLEON/_superseded_hold1/로 이동, archive_hold1_manifest.csv에 원본 SHA256 보존.
+- 남은 결함: 후드·방독면 가림에 따른 두개부 추정 오차, 총기 외장선·끈·봉제선 미세 차이. Root의 최종 얼굴/후드 크기 검수 필요.
+- 근거: _work_NAPOLEON/{before_measure,head_roi_prehead,final_measure}.csv, 포즈별 transform.json 및 모든 생성 후보 보존.

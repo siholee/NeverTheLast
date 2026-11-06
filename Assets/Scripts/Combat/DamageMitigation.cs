@@ -5,6 +5,9 @@ using Random = Combat.CombatRandom;
 
 namespace Combat
 {
+    /// <summary>통상 효과는 완만한 비율식, 선택적 저확률 부착은 특공 투자에 정비례한다.</summary>
+    public enum EffectHitScaling { Contested, Proportional }
+
     /// <summary>
     /// 피해 한 번을 <b>어느 방어 스탯이 경감하는가</b>, 그리고 효과가 <b>걸리는가</b>를 한 곳에서 정한다.
     ///
@@ -45,18 +48,21 @@ namespace Combat
         public static bool IsHostileEffect(Unit source, Unit target)
             => source != null && target != null && source.IsEnemy != target.IsEnemy;
 
-        public static float EffectHitChance(Unit source, Unit target, float baseChance = DefaultEffectHitChance)
+        public static float EffectHitChance(Unit source, Unit target, float baseChance = DefaultEffectHitChance,
+            EffectHitScaling scaling = EffectHitScaling.Contested)
         {
             if (target == null || !target.isActive) return 0f;
             if (!IsHostileEffect(source, target)) return 1f;
             float attack = source != null ? Mathf.Max(1f, source.StatValue(BaseEnums.StatType.SpecialAttack)) : 1f;
             float resist = target != null ? Mathf.Max(1f, target.StatValue(BaseEnums.StatType.SpecialDefense)) : 1f;
-            return Mathf.Clamp01(baseChance * 2f * attack / (attack + resist));
+            float multiplier = scaling == EffectHitScaling.Proportional ? attack / resist : 2f * attack / (attack + resist);
+            return Mathf.Clamp01(baseChance * multiplier);
         }
 
-        public static bool RollEffectHit(Unit source, Unit target, float baseChance = DefaultEffectHitChance)
+        public static bool RollEffectHit(Unit source, Unit target, float baseChance = DefaultEffectHitChance,
+            EffectHitScaling scaling = EffectHitScaling.Contested)
         {
-            float chance = EffectHitChance(source, target, baseChance);
+            float chance = EffectHitChance(source, target, baseChance, scaling);
             // 확정 부여는 난수를 소모하지 않는다. 0%에서 Random.value == 0인 경우도 성공하지 않는다.
             return chance >= 1f || (chance > 0f && Random.value < chance);
         }

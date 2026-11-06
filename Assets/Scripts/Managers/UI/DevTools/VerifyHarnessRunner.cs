@@ -224,7 +224,7 @@ namespace Managers.UI.DevTools
 
         private IEnumerator RunAll()
         {
-            foreach (var lobbyScenario in _request.scenarios.Where(s => s.name == "qa_lobby_guide_links"))
+            foreach (var lobbyScenario in _request.scenarios.Where(s => IsLobbyScenario(s.name)))
                 yield return ExecuteScenario(lobbyScenario);
             yield return EnsureGameScene();
             yield return WaitForGameReady(20f);
@@ -265,7 +265,7 @@ namespace Managers.UI.DevTools
 
             foreach (VerifyScenarioRequest scenario in _request.scenarios)
             {
-                if (scenario.name == "qa_lobby_guide_links") continue;
+                if (IsLobbyScenario(scenario.name)) continue;
                 yield return ExecuteScenario(scenario);
             }
 
@@ -359,6 +359,9 @@ namespace Managers.UI.DevTools
             selection.ClearLineup();
             int[] ids = lineup switch
             {
+                "party5_trio_mana" => new[] { 100, 101, 120, 25, 2 },
+                "party5_optional_infusion" => new[] { 122, 180, 22, 20, 7 },
+                "party5_theseus" => new[] { 21, 1, 2, 64, 167 },
                 "solo1" => new[] { SeiId },
                 "solo_surtr" => new[] { 81 }, // SD 시안과 같은 수르트의 크기·형상 비교용 편성.
                 "party5_sabah" => PartyFiveSabahIds,
@@ -395,7 +398,7 @@ namespace Managers.UI.DevTools
                 "party5_isis" => new[] { 125, 20, 124, 180, 10 },
                 "party5_set_dot" => new[] { 123, 61, 45, 66, 82 },
                 "party5_horus_carry" => new[] { 81, 120, 82, 64, 66 },
-                "party5_horus_targets" => new[] { 120, 62, 81, 82, 160 },
+                "party5_horus_targets" => new[] { 100, 101, 120, 25, 2 },
                 "party5_summon_theatre" => new[] { 180, 121, 20, 10, 124 },
                 "party5_orion_skadi_sustain" => new[] { 22, 83, 122, 160, 82 },
                 "party5_france_moon" => new[] { 160, 161, 67, 45, 63 },
@@ -475,7 +478,7 @@ namespace Managers.UI.DevTools
             if (lineup != "party5_jean_carry" && lineup != "party5_amaterasu" && lineup != "party5_horus_targets" && lineup != "party5_egyptian" && lineup != "party5_isis" && lineup != "party5_set_dot" && lineup != "party5_horus_carry" && lineup != "party5_summon_authors" && lineup != "party5_summon_theatre" && lineup != "party5_orion_skadi" && lineup != "party5_orion_skadi_sustain" && lineup != "party5_toughness" && lineup != "party5_treasury" && !lineup.StartsWith("allvfx_group_") && lineup != "party5" && lineup != "party5_sabah" && lineup != "party5_bastet" &&
                 lineup != "party5_jean" && lineup != "party5_jean_bastet" && lineup != "solo1" && lineup != "solo_surtr" &&
                 lineup != "party5_france_moon" && lineup != "party5_lokapala" && lineup != "party5_summon" && lineup != "party5_yama_varuna" && lineup != "party5_vedic_trio" &&
-                lineup != "party5_dot_roster" && lineup != "party5_ebisu_core" && lineup != "party5_astolfo_core" && lineup != "party5_single_rewards" && lineup != "party5_nicol_core" && lineup != "party5_reward_ui" && lineup != "duo_agni_surya" && lineup != "duo_shi_sabah" &&
+                lineup != "party5_trio_mana" && lineup != "party5_optional_infusion" && lineup != "party5_theseus" && lineup != "party5_dot_roster" && lineup != "party5_ebisu_core" && lineup != "party5_astolfo_core" && lineup != "party5_single_rewards" && lineup != "party5_nicol_core" && lineup != "party5_reward_ui" && lineup != "duo_agni_surya" && lineup != "duo_shi_sabah" &&
                 lineup != "party5_nord_synergy" && lineup != "party5_nord" && lineup != "party5_command_fenrir" && lineup != "party5_command_melee" && lineup != "party5_summon_tank_compare" && !Checkpoint48Lineups.ContainsKey(lineup) && !CampaignLineups.ContainsKey(lineup))
             {
                 FailCurrent($"알 수 없는 lineup: {lineup}");
@@ -523,12 +526,12 @@ namespace Managers.UI.DevTools
             if (_currentScenario == "composition_campaign" && scenario?.lineup?.StartsWith("campaign_") == true)
                 CampaignBuildCatalog();
 
-            if (_request.freshLineupPerScenario && _currentScenario != "qa_lobby_guide_links")
+            if (_request.freshLineupPerScenario && !IsLobbyScenario(_currentScenario))
             {
                 if (GameManager.Instance != null) GameManager.Instance.enabled = true;
                 _activeLineup = null;
             }
-            if (_currentScenario != "qa_lobby_guide_links") yield return EnsureLineup(scenario);
+            if (!IsLobbyScenario(_currentScenario)) yield return EnsureLineup(scenario);
             if (!scenarioResult.success)
             {
                 scenarioResult.message ??= "편성을 만들지 못했다.";
@@ -538,6 +541,13 @@ namespace Managers.UI.DevTools
 
             IEnumerator body = _currentScenario switch
             {
+                "trio_mana_core" => ScenarioTrioMana(scenario),
+                "mana_rewards_core" => ScenarioManaRewards(scenario),
+                "trio_mana_natural" => ScenarioTrioManaNatural(scenario),
+                "trio_mana_natural_boss" => ScenarioTrioManaNatural(scenario),
+                "optional_infusion_core" => ScenarioOptionalInfusion(scenario),
+                "elements_theseus_core" => ScenarioElementsTheseus(scenario),
+                "theseus_builds" => ScenarioTheseusBuilds(scenario),
                 "s8_sample" => ScenarioS8Sample(scenario),
                 "s4_cutin" => ScenarioS4CutIn(scenario),
                 "s8_parity" => ScenarioS8Parity(scenario),
@@ -589,6 +599,7 @@ namespace Managers.UI.DevTools
                 "qa_field_limits" => ScenarioQaField(scenario),
                 "qa_presentation_followup" => ScenarioQaPresentation(scenario),
                 "qa_lobby_guide_links" => ScenarioQaLobbyGuide(scenario),
+                "stage_default_journey" => ScenarioStageDefaultJourney(scenario),
                 "qa_vfx_followup" => ScenarioQaVfx(scenario),
                 "qa_kits_followup" => ScenarioQaKits(scenario),
                 "qa_interruption_followup" => ScenarioQaInterruption(scenario),
@@ -2657,7 +2668,8 @@ namespace Managers.UI.DevTools
             int frame = Time.frameCount;
             float realtime = Time.realtimeSinceStartup;
             if (_currentScenario.StartsWith("v13", StringComparison.Ordinal)) V13CaptureFrame(path);
-            else if (_deferCaptureEncoding || _currentScenario.StartsWith("allvfx", StringComparison.Ordinal))
+            else if (_deferCaptureEncoding || _currentScenario.StartsWith("allvfx", StringComparison.Ordinal) ||
+                     _currentScenario is "sd_frames" or "sd_frames_actions")
             {
                 // 광역 정점은 같은 프레임에 여러 번 발행된다. 비동기 API가 앞 캡처를 덮지 않도록 저장한다.
                 Texture2D pixels=ScreenCapture.CaptureScreenshotAsTexture();
@@ -2756,6 +2768,12 @@ namespace Managers.UI.DevTools
                 bool present = node.Children.TryGetValue(new YamlDotNet.RepresentationModel.YamlScalarNode(field.Name), out var value);
                 object actual = field.GetValue(profile);
                 if (!present && actual == null) continue;
+                if (!present && profile is SdFrameData && field.Name == "downFade")
+                { match &= !(bool)actual; continue; }
+                if (!present && profile is SdFrameData && field.Name == "crownY")
+                { match &= float.IsNaN((float)actual); continue; }
+                if (!present && profile is SdFrameData && field.Name == "facing")
+                { match &= (string)actual == "right"; continue; }
                 if (field.Name == "deform" && !present) { match &= (bool)actual; continue; }
                 if (!present && profile is SummonStageData && field.FieldType == typeof(float))
                 { match &= (float)actual == 0f; continue; }
@@ -2786,6 +2804,19 @@ namespace Managers.UI.DevTools
             RecordMechanic($"stage_figure_yaml_{tag}", "새 YAML의 모든 필드가 DTO에 반영됨(default 포함)",
                 $"figures={data.figures.Count}, fieldsMatch={fieldsMatch}, strict=true", fieldsMatch);
             string sourceYaml = Resources.Load<TextAsset>("Data/97_stage_figures").text;
+            var facingDefault = new YamlDotNet.Serialization.DeserializerBuilder().Build().Deserialize<StageFigureDataList>(
+                System.Text.RegularExpressions.Regex.Replace(sourceYaml, @"(sd:\s*\{\s*prefix:[^,]+),\s*facing:\s*(left|right)", "$1"));
+            facingDefault.Validate();
+            bool invalidSdFacingRejected = false;
+            try
+            {
+                new YamlDotNet.Serialization.DeserializerBuilder().Build().Deserialize<StageFigureDataList>(
+                    System.Text.RegularExpressions.Regex.Replace(sourceYaml, @"(sd:\s*\{\s*prefix:[^,]+),\s*facing:\s*(left|right)", "$1, facing: sideways")).Validate();
+            }
+            catch (InvalidOperationException) { invalidSdFacingRejected = true; }
+            bool defaultSdFacingRight = facingDefault.figures.Where(p => p.sd != null).All(p => p.sd.facing == "right");
+            RecordMechanic($"stage_figure_sd_facing_{tag}", "sd.facing 생략=right·잘못된 방향 거부",
+                $"defaultRight={defaultSdFacingRight}, invalidRejected={invalidSdFacingRejected}", defaultSdFacingRight && invalidSdFacingRejected);
             bool typoRejected = false, missingRejected = false;
             try { new YamlDotNet.Serialization.DeserializerBuilder().Build().Deserialize<StageFigureDataList>(sourceYaml.Replace("chin:", "chni:")); }
             catch (YamlDotNet.Core.YamlException) { typoRejected = true; }
@@ -3238,9 +3269,15 @@ namespace Managers.UI.DevTools
             };
         }
 
+        private static bool IsLobbyScenario(string name)
+            => name is "qa_lobby_guide_links" or "stage_default_journey";
+
         private VisualMode ResolveVisualMode(VerifyScenarioRequest config)
         {
             string value = !string.IsNullOrWhiteSpace(config?.visualMode) ? config.visualMode : _request.visualMode;
+            // 기본 진입 검사는 초기화된 런타임 모드를 관찰한다. 기존 Card/Stage 요청은 그대로다.
+            if (string.Equals(value?.Trim(), "Default", StringComparison.OrdinalIgnoreCase))
+                return VisualModeState.Current;
             return string.Equals(value?.Trim(), "Stage", StringComparison.OrdinalIgnoreCase)
                 ? VisualMode.Stage : VisualMode.Card;
         }

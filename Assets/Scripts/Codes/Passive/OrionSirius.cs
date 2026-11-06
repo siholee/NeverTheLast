@@ -17,6 +17,7 @@ namespace Codes.Passive
         public const string ResourceId = "orion_sirius";
         public const int Maximum = 5;
         public const float AttackRatio = 1.60f, HealthRatio = .04f, HealRatio = .05f;
+        public const float AttachmentChance = .20f;
         private bool _working, _pending;
         private int _lastAction = int.MinValue, _generation;
         private Action<EventContext> _hit, _death, _controlEnded;
@@ -85,10 +86,17 @@ namespace Codes.Passive
                 AudioManager.PlayAction(Caster, SfxActionSlot.Passive, SfxCuePhase.Cast, CodeName);
                 yield return DirectAttack.HitEach("orion.sirius", Caster, routing.Targets, target =>
                 {
+                    if (!Working || generation != _generation) return;
                     bool crit = RollCritical(target, tags, out float multiplier);
                     AudioManager.PlayAction(Caster, SfxActionSlot.Passive, SfxCuePhase.Hit, CodeName);
-                    target.TakeDamage(new DamageContext(Caster, Mathf.Max(1, Mathf.RoundToInt(raw * multiplier)), BaseEnums.CodeType.Passive, new List<int>(tags), crit));
+                    var context = new DamageContext(Caster, Mathf.Max(1, Mathf.RoundToInt(raw * multiplier)),
+                        BaseEnums.CodeType.Passive, new List<int>(tags), crit) { AppliesElement = true };
+                    target.TakeDamage(context);
                     fired = true;
+                    if (!context.IsCancelled && Working && generation == _generation &&
+                        DirectAttack.CasterCanContinue(Caster, true) && target.isActive)
+                        target.GrantCombatElement(BaseEnums.UnitElement.Geo, source: Caster,
+                            baseChance: AttachmentChance, hitScaling: EffectHitScaling.Proportional);
                 }, stopOnControl: true, presentation: (targets, impact) => OrionSkadiFx.Rain(Caster, targets, impact));
                 if (fired && Working && !Caster.isControlled) Caster.ModifyHp(Caster.HpCurr + Mathf.RoundToInt(Caster.HpMax * HealRatio), Caster);
                 if (fired) AudioManager.PlayAction(Caster, SfxActionSlot.Passive, SfxCuePhase.Resolve, CodeName);

@@ -23,11 +23,11 @@ namespace Managers.UI.DevTools
             yield return YvPrepareScene(config,x=>enabled=x);
             DebugMode.AllyInvincible=false;DebugMode.EnemyInvincible=false;
             Unit set=CfAlly(123),isis=CfAlly(125),horus=CfAlly(120),carry=CfAlly(81),thoth=CfAlly(124),enemy=AliveEnemies().First();
-            var blood=set.ActivePassiveCodes.OfType<SetDesertBlood>().Single();var royalty=horus.ActivePassiveCodes.OfType<HorusRoyalHeir>().Single();
+            var blood=set.ActivePassiveCodes.OfType<SetDesertBlood>().Single();
             void Check(string label,bool ok)=>YvCheck(label,"충족",ok?"충족":"미충족",ok);
             CfStats(set,"세트",1340,110,86,5.5f,90,6,70,5,74,5,94,120);
             CfStats(isis,"이시스",1320,112,45,3,65,4.5f,100,7.2f,82,5.8f,96,140);
-            CfStats(horus,"호루스",980,85,58,3.5f,90,6,50,4,70,5,108,120);
+            CfStats(horus,"호루스",980,85,58,3.5f,90,6,50,4,70,5,108,100);
             Check("신규3인 원화·팩토리",new[]{set,isis,horus}.All(x=>x.ActiveNormalCode!=null&&x.ActiveUltimateCode!=null&&Helpers.SpriteResource.LoadPortrait(x.PortraitPath,out _)!=null));
             Check("자료실 출혈·소환·초월기 용어",GameGuideCatalog.Find("bleed")!=null&&GameGuideCatalog.Find("summon")!=null&&GameGuideCatalog.Find("ultimate")!=null);
             var guardians=Summons.Of(isis);
@@ -56,30 +56,7 @@ namespace Managers.UI.DevTools
             YvAddTestStatus(isis,99911,"egypt_hp",new StatModifierEffect(BaseEnums.StatType.MaxHp,5000));
             yield return NordAction(isis,Kind.Normal,s=>s.AdvanceAction(isis,1));
             Check("보호막 누적·체력 무관",isis.ShieldCurr-shield==delta);isis.RemoveStatusByKey("egypt_hp");
-            Check("후계자는 공격 마나 초월기 수르트",royalty.Heir==carry);
-            float bonus=royalty.Bonus;
-            Check("후계자 특공 비례 초월 피해",Mathf.Abs(bonus-Mathf.Min(.55f,.25f+.15f*SummonSupportCombat.PowerRatio(horus)))<.0001f);
-            int Probe(bool ultimate)
-            {
-                var ctx=new DamageContext(carry,100,ultimate?BaseEnums.CodeType.Ultimate:BaseEnums.CodeType.Normal,ultimate?new(){DamageTag.TrueDamage,DamageTag.UltAttack}:new(){DamageTag.TrueDamage,DamageTag.NormalAttack});enemy.TakeDamage(ctx);return ctx.ResolvedDamage;
-            }
-            Check("후계자 일반 미증폭·초월만 증폭",Probe(false)==100&&Probe(true)==Mathf.RoundToInt(100*(1+bonus)));
-            carry.ClearUltimateResource();
-            using(var log=new CfLog(AliveAllies()))
-            {
-                yield return NordAction(horus,Kind.Normal,s=>s.AdvanceAction(horus,1));
-                Check("호루스 실제 일반 공80% 사격",log.Dealt.Any(x=>x.Attacker==horus&&x.DamageContext.Damage==Mathf.RoundToInt(horus.StatValue(BaseEnums.StatType.Attack)*.80f)));
-            }
-            Check("호루스 일반은 동료 충전 없음",carry.ManaCurr==0);
-            yield return NordAction(horus,Kind.Ultimate,s=>horus.FillUltimateResource());
-            Check("초월기 지정1명만 마나30%",carry.ManaCurr==Mathf.RoundToInt(carry.ManaMax*.30f)&&horus.ManaCurr==0&&carry.HasStatusKey(HorusRoyalInvestiture.BuffKey)&&!isis.HasStatusKey(HorusRoyalInvestiture.BuffKey));
-            Check("왕관 피해30% 가산",Probe(true)==Mathf.RoundToInt(100*(1+bonus+.30f)));
-            carry.Invoke(BaseEnums.UnitEventType.OnNormalActionResolved,new EventContext(carry));
-            Check("왕관 대상 일반1회 유지",carry.HasStatusKey(HorusRoyalInvestiture.BuffKey));
-            carry.Invoke(BaseEnums.UnitEventType.OnNormalActionResolved,new EventContext(carry));
-            Check("왕관 대상 일반2회 만료",!carry.HasStatusKey(HorusRoyalInvestiture.BuffKey));
-            YvAddTestStatus(horus,99912,"egypt_sp",new StatModifierEffect(BaseEnums.StatType.SpecialAttack,20000));
-            Check("후계자 증폭 상한55%",Mathf.Abs(royalty.Bonus-.55f)<.0001f);horus.RemoveStatusByKey("egypt_sp");
+            Check("호루스 격파 특성 팩토리",horus.ActivePassiveCodes.Any(x=>x is HorusShatteringHorizon));
             using(var log=new CfLog(AliveAllies()))
             {
                 yield return NordAction(set,Kind.Normal,s=>s.AdvanceAction(set,1));
@@ -165,9 +142,7 @@ namespace Managers.UI.DevTools
             Check("세트 초월 전체 출혈·체력12% 회복",AliveEnemies().All(x=>x.HasStatusKey("bleed"))&&set.HpCurr-hp==Mathf.RoundToInt(set.HpMax*.12f)&&blood.Budget==2);
             yield return CaptureStill("egyptian_core");
             carry.RemoveShield(carry.ShieldCurr);carry.TakeDamage(new DamageContext(enemy,10000000,BaseEnums.CodeType.Normal,new(){DamageTag.TrueDamage}));
-            Check("공격형 후계자 없으면 초월 대상 없음",royalty.Heir==null&&!horus.ActiveUltimateCode.HasValidTarget());
-            horus.FillUltimateResource();horus.CastUltimateCode();Check("대상 없는 초월 마나 보존",horus.ManaCurr==horus.ManaMax);
-            royalty.StopCode();blood.StopCode();
+            blood.StopCode();
             int deaths=0;void Died(Unit u,Unit a){if(u.IsSummon&&u.SummonOwner==isis)deaths++;}
             Unit.AnyUnitDied+=Died;isis.ActivePassiveCodes.OfType<IsisThreefoldGuard>().Single().StopCode();Unit.AnyUnitDied-=Died;
             Check("수호령 정지 사망보상 없이 정리",Summons.Of(isis).Count==0&&deaths==0&&!Summons.IsSummoner(isis));
@@ -204,19 +179,7 @@ namespace Managers.UI.DevTools
         }
         private IEnumerator ScenarioHorusTargets(VerifyScenarioRequest config)
         {
-            _yvFailures.Clear();_cfActionIdSequence=0;bool enabled=true;
-            yield return YvPrepareScene(config,x=>enabled=x);DebugMode.AllyInvincible=false;DebugMode.EnemyInvincible=false;
-            var horus=CfAlly(120);var agni=CfAlly(62);var surtr=CfAlly(81);var royalty=horus.ActivePassiveCodes.OfType<HorusRoyalHeir>().Single();var enemy=AliveEnemies().First();
-            void Check(string label,bool ok)=>YvCheck(label,"충족",ok?"충족":"미충족",ok);
-            Check("아그니 초월 피해 전환 딜러도 지정",royalty.Heir==agni&&agni.HasStatusKey(royalty.AuraKey)&&!surtr.HasStatusKey(royalty.AuraKey));
-            agni.ClearUltimateResource();yield return NordAction(horus,Kind.Ultimate,s=>horus.FillUltimateResource());
-            Check("아그니 마나30%·초월 피해 버프",agni.ManaCurr==Mathf.RoundToInt(agni.ManaMax*.30f)&&agni.HasStatusKey(HorusRoyalInvestiture.BuffKey));
-            agni.RemoveShield(agni.ShieldCurr);agni.TakeDamage(new DamageContext(enemy,10000000,BaseEnums.CodeType.Normal,new(){DamageTag.TrueDamage}));
-            Check("후계자 사망 시 다음 공격 초월기 지정",royalty.Heir==surtr&&surtr.HasStatusKey(royalty.AuraKey)&&!agni.HasStatusKey(royalty.AuraKey));
-            royalty.StopCode();Check("호루스 정지 오라 제거",!surtr.HasStatusKey(royalty.AuraKey));royalty.CastCode();
-            Check("호루스 재시작 생존 대상 정상지정",royalty.Heir==surtr);
-            yield return CaptureStill("horus_targets");
-            OsFinish(enabled);
+            yield return ScenarioTrioMana(config);
         }
         private IEnumerator ScenarioEgyptianCombat(VerifyScenarioRequest config)
         {

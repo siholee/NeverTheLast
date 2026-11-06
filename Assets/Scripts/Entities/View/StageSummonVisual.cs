@@ -26,6 +26,23 @@ namespace Entities.View
         private readonly float[] _widths = new float[3];
         private readonly float[] _heights = new float[3];
         private readonly Vector2[] _centers = new Vector2[3];
+        private float _companionScale = 1f;
+        public float CompanionScale => _companionScale;
+        public float RearClearanceX { get; private set; }
+        private static readonly Dictionary<Sprite, Rect> FrontBodyRects = new();
+        public Bounds PlacementBounds
+        {
+            get
+            {
+                Rect rect = FrontBodyRect(_frames[0]);
+                var sprite = _renderer.sprite;
+                float x0 = rect.xMin, x1 = rect.xMax;
+                if (_renderer.flipX) { x0 = 1f - rect.xMax; x1 = 1f - rect.xMin; }
+                var bounds = new Bounds(_renderer.transform.TransformPoint(sprite.bounds.min + Vector3.Scale(sprite.bounds.size, new Vector3(x0, rect.yMin, 0))), Vector3.zero);
+                bounds.Encapsulate(_renderer.transform.TransformPoint(sprite.bounds.min + Vector3.Scale(sprite.bounds.size, new Vector3(x1, rect.yMax, 0))));
+                return bounds;
+            }
+        }
         public const int SpiritSortingOrder = 20000;
         private bool _surround, _acting;
         private float _castAt, _hitUntil = -1;
@@ -44,6 +61,8 @@ namespace Entities.View
         public bool Detached => _detached;
         public bool IsSwarm => _swarm;
         public bool IsSurround => _surround;
+        public bool IsFrontCompanion => !_surround && _placement.front > 0f;
+        public bool DrawsInFront => _surround || IsFrontCompanion || _placement.drawInFront;
         public float Height => _height;
         public Vector3 Feet => transform.position;
         public float Depth => _owner != null && _owner.currentCell != null ? _owner.currentCell.transform.lossyScale.y : 1f;
@@ -92,7 +111,13 @@ namespace Entities.View
         {
             var figure = OwnerView?.StageProxy;
             Vector3 feet = figure != null ? figure.transform.position : _owner.transform.position;
-            if (!_surround) return feet + new Vector3(-_placement.back * Facing, _placement.up + _placement.hover, 0) * (Px * Depth);
+            if (!_surround)
+            {
+                Vector3 nominal = feet + new Vector3((_placement.front - _placement.back) * Facing,
+                    _placement.up + _placement.hover, 0) * (Px * Depth);
+                if (!IsFrontCompanion) return nominal;
+                return FrontCompanionHome();
+            }
             var siblings = Summons.Of(_owner);
             var camera = Camera.main;
             for (int i = 0; i < 3; i++)
@@ -125,6 +150,158 @@ namespace Entities.View
                 }
             }
             return _homes[Mathf.Clamp(index, 0, 2)];
+        }
+
+        private Vector3 FrontCompanionHome()
+        {
+            var companions = FindObjectsByType<StageSummonVisual>()
+                .Where(v => v._owner != null && v._owner.IsOnField && v._owner.IsEnemy == _owner.IsEnemy &&
+                    v.IsFrontCompanion && !v._detached && !v._retiring)
+                .OrderByDescending(v => v.OwnerView.StageProxy.transform.position.y).ThenBy(v => v.Owner.ID).ToArray();
+            var points = new Vector3[companions.Length];
+            var lowered = new bool[companions.Length];
+            for (int i = 0; i < companions.Length; i++)
+            {
+                companions[i]._companionScale = 1f;
+                companions[i].RearClearanceX = 0f;
+                points[i] = companions[i].FrontPoint(false);
+            }
+            // 위 칸 주인만 아래로 옮긴다. 얼굴을 피해 위로 올리는 경로는 없다.
+            for (int pass = 0; pass < companions.Length; pass++)
+                for (int i = 0; i < companions.Length; i++)
+                    for (int j = i + 1; j < companions.Length; j++)
+                    {
+                        if (!FrontCrowded(companions[i], points[i], companions[j], points[j])) continue;
+                        lowered[i] = true;
+                        points[i] = companions[i].FrontPoint(true);
+                        if (FrontCrowded(companions[i], points[i], companions[j], points[j]))
+                        {
+                            companions[i]._companionScale = .9f;
+                            points[i] = companions[i].FrontPoint(true);
+                        }
+                    }
+            for (int i = 0; i < companions.Length; i++)
+                if (companions[i].FrontFaceCrowded(points[i]))
+                {
+                    // 아래 칸 얼굴의 앞 여유도 확보한다. 위 칸 동반체만 허용된 0.9배로 줄인다.
+                    companions[i]._companionScale = .9f;
+                    points[i] = companions[i].FrontPoint(lowered[i]);
+                }
+            // 뒤 배치를 복원한 펜리르는 고정한다. 앞 동반체가 닿을 때만 기존 아래 보정을 적용한다.
+            var rearCompanions = FindObjectsByType<StageSummonVisual>().Where(v => v._owner != null &&
+                v._owner.IsOnField && v._owner.IsEnemy == _owner.IsEnemy && !v._surround &&
+                !v.IsFrontCompanion && !v._detached && !v._retiring).ToArray();
+            foreach (var rear in rearCompanions)
+            {
+                rear._height = rear.OwnerView.StageProxy.BodyWorldHeight * rear._placement.size;
+                Vector3 rearPoint = rear.OwnerView.StageProxy.transform.position + new Vector3(
+                    (rear._placement.front - rear._placement.back) * rear.Facing,
+                    rear._placement.up + rear._placement.hover, 0) * rear.Px * rear.Depth;
+                for (int i = 0; i < companions.Length; i++)
+                {
+                    if (!FrontCrowded(companions[i], points[i], rear, rearPoint)) continue;
+                    lowered[i] = true;
+                    points[i] = companions[i].FrontPoint(true);
+                    if (FrontCrowded(companions[i], points[i], rear, rearPoint))
+                    {
+                        companions[i]._companionScale = .9f;
+                        points[i] = companions[i].FrontPoint(true);
+                    }
+                    if (FrontCrowded(companions[i], points[i], rear, rearPoint))
+                    {
+                        var companion = companions[i];
+                        float a = companion._height / (companion._data.feetY - companion._data.topY);
+                        float b = rear._height / (rear._data.feetY - rear._data.topY);
+                        Rect ar = FrontBodyRect(companion._frames[0]), br = FrontBodyRect(rear._frames[0]);
+                        float center = points[i].x + (ar.center.x * 1024f - companion._data.faceX) * a * companion.Facing;
+                        float rearCenter = rearPoint.x + (br.center.x * 1024f - rear._data.faceX) * b * rear.Facing;
+                        float gap = .6f * 1024f * Mathf.Max(a * ar.width, b * br.width) + .001f;
+                        Vector3 clear = points[i];
+                        clear.x += Mathf.Sign(center - rearCenter) * (gap - Mathf.Abs(center - rearCenter));
+                        clear = companion.ClampHome(clear, ar.width * 1024f * a,
+                            (ar.center.x * 1024f - companion._data.faceX) * a * companion.Facing, Camera.main);
+                        // 주인 앞 배치는 유지한다. 뒤 동반체와의 최소 몸 간격만 더 확보한다.
+                        if ((clear.x - companion.OwnerView.StageProxy.transform.position.x) * companion.Facing > 0f)
+                        {
+                            companion.RearClearanceX = clear.x - points[i].x;
+                            points[i] = clear;
+                        }
+                    }
+                }
+            }
+            for (int i = 0; i < companions.Length; i++)
+                if (companions[i] == this) return points[i];
+            return FrontPoint(false);
+        }
+
+        private Vector3 FrontPoint(bool lowered)
+        {
+            var figure = OwnerView.StageProxy;
+            float body = figure.BodyWorldHeight;
+            _height = body * _placement.size * _companionScale;
+            float pixel = _height / (_data.feetY - _data.topY);
+            Rect rect = FrontBodyRect(_frames[0]);
+            float width = rect.width * 1024f * pixel, offset = (rect.center.x * 1024f - _data.faceX) * pixel * Facing;
+            Vector3 feet = figure.transform.position;
+            float up = lowered ? -body * .35f : 10f * Px * Depth;
+            if (!lowered && _companionScale < 1f) up = body * .5f - _height;
+            // 허리는 발~머리 높이의 중간. 큰 동반체도 머리 윗선이 허리 위로 오르지 않는다.
+            up = Mathf.Min(up, body * .5f - _height);
+            Vector3 point = feet + new Vector3(150f * Px * Depth * Facing, up, 0);
+            return ClampHome(point, width, offset, Camera.main);
+        }
+
+        private static bool FrontCrowded(StageSummonVisual a, Vector3 pa, StageSummonVisual b, Vector3 pb)
+        {
+            float ax = a._height / (a._data.feetY - a._data.topY), bx = b._height / (b._data.feetY - b._data.topY);
+            Rect ar = FrontBodyRect(a._frames[0]), br = FrontBodyRect(b._frames[0]);
+            return Mathf.Abs(pa.x + (ar.center.x * 1024f - a._data.faceX) * ax * a.Facing - pb.x - (br.center.x * 1024f - b._data.faceX) * bx * b.Facing) < .6f * 1024f * Mathf.Max(ax * ar.width, bx * br.width) &&
+                Mathf.Abs(pa.y + a._height * .5f - pb.y - b._height * .5f) < .5f * Mathf.Max(a._height, b._height);
+        }
+
+        private bool FrontFaceCrowded(Vector3 point)
+        {
+            float pixel = _height / (_data.feetY - _data.topY);
+            Rect rect = FrontBodyRect(_frames[0]);
+            float center = point.x + (rect.center.x * 1024f - _data.faceX) * pixel * Facing;
+            float half = rect.width * 1024f * pixel * .5f;
+            float ownerY = OwnerView.StageProxy.transform.position.y;
+            var allies = _owner.IsEnemy ? GridManager.Instance.enemyList : GridManager.Instance.heroList;
+            foreach (var ally in allies)
+            {
+                if (ally == _owner || !ally.IsOnField || ally.currentCell == null) continue;
+                var figure = ally.currentCell.Card.StageProxy;
+                if (figure.transform.position.y >= ownerY) continue;
+                Vector3 face = figure.Frames.HeadWorld;
+                float body = figure.BodyWorldHeight;
+                if (Mathf.Abs(center - face.x) < half + body * .16f &&
+                    point.y < face.y + body * .14f && point.y + _height > face.y - body * .14f) return true;
+            }
+            return false;
+        }
+
+        private static Rect FrontBodyRect(Sprite sprite)
+        {
+            if (FrontBodyRects.TryGetValue(sprite, out Rect cached)) return cached;
+            int width = Mathf.RoundToInt(sprite.rect.width), height = Mathf.RoundToInt(sprite.rect.height);
+            var target = RenderTexture.GetTemporary(sprite.texture.width, sprite.texture.height, 0, RenderTextureFormat.ARGB32);
+            var prior = RenderTexture.active;
+            var copy = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            try
+            {
+                Graphics.Blit(sprite.texture, target); RenderTexture.active = target;
+                copy.ReadPixels(sprite.rect, 0, 0, false);
+                var pixels = copy.GetPixels32();
+                int left = width, right = -1, bottom = height, top = -1;
+                for (int y = 0; y < height; y++) for (int x = 0; x < width; x++)
+                    if (pixels[y * width + x].a >= 129)
+                    { left = Mathf.Min(left, x); right = Mathf.Max(right, x); bottom = Mathf.Min(bottom, y); top = Mathf.Max(top, y); }
+                // 압축 노이즈를 제외한 실제 몸 경계. 텍스처·메시·알파 자체는 바꾸지 않는다.
+                cached = right >= left ? Rect.MinMaxRect(left / (float)width, bottom / (float)height, (right + 1f) / width, (top + 1f) / height) : new Rect(0, 0, 1, 1);
+                FrontBodyRects[sprite] = cached;
+                return cached;
+            }
+            finally { RenderTexture.active = prior; RenderTexture.ReleaseTemporary(target); Destroy(copy); }
         }
 
         private bool CrowdedHome(int index, Vector3 point)
@@ -304,7 +481,7 @@ namespace Entities.View
             _renderer.enabled = visible;
             if (!visible) return;
             int index = _summon != null ? Mathf.Max(0, Summons.Of(_owner).IndexOf(_summon)) : 0;
-            _height = view.StageProxy.BodyWorldHeight * _placement.size;
+            _height = view.StageProxy.BodyWorldHeight * _placement.size * _companionScale;
             if (index != _index)
             {
                 _reslotting = _index >= 0;
@@ -312,7 +489,7 @@ namespace Entities.View
                 Trace("slot_" + index);
             }
             _renderer.sortingLayerID = view.PortraitRenderer.sortingLayerID;
-            _renderer.sortingOrder = view.PortraitRenderer.sortingOrder + (_guard ? 1 : _surround ? 1 + index : -1 - index);
+            _renderer.sortingOrder = view.PortraitRenderer.sortingOrder + (_guard ? 1 : DrawsInFront ? 1 + index : -1 - index);
             if (_placement.aboveUnits)
             {
                 _renderer.sortingLayerID = SortingLayer.NameToID("CombatHud");

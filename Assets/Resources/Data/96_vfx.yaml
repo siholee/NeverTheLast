@@ -243,6 +243,47 @@ parts:
   - { id: affected.roster.officer.receipt, category: affected, renderer: rosterOfficerHealReceipt, sheet: Impact1_White, columns: 3, rows: 2, fps: 30, peakFrame: 3, peakAlpha: 0, glowAlpha: 0, calmLight: true }
 
 skills:
+  - key: octavia.normal
+    slots:
+      - { slot: cast, partId: cast.varuna.water, direction: radial, scale: 0.85 }
+      - { slot: hit, partId: hit.varuna.water, direction: radial, portraitAnchor: true, scale: 0.85, timeOffset: 0.18, triggersImpact: true }
+  - key: octavia.ultimate
+    slots:
+      - { slot: cast, partId: cast.varuna.water, direction: radial, scale: 1.3 }
+      - { slot: hit, partId: hit.varuna.water, direction: radial, portraitAnchor: true, scale: 1.3, timeOffset: 0.18, triggersImpact: true }
+  - key: agrippa.normal
+    slots:
+      - { slot: cast, partId: cast.magic.focus, direction: radial, scale: 0.8 }
+      - { slot: hit, partId: hit.support.shield, direction: radial, portraitAnchor: true, scale: 0.8, timeOffset: 0.18, triggersImpact: true }
+  - key: agrippa.ultimate
+    slots:
+      - { slot: cast, partId: cast.magic.focus, direction: radial, scale: 1.2 }
+      - { slot: hit, partId: hit.support.shield, direction: radial, portraitAnchor: true, scale: 1.2, timeOffset: 0.18, triggersImpact: true }
+  - key: horus.normal
+    slots:
+      - { slot: cast, partId: cast.magic.fire, direction: radial, scale: 0.8 }
+      - { slot: hit, partId: hit.fire, direction: radial, portraitAnchor: true, scale: 0.8, timeOffset: 0.18, triggersImpact: true }
+  - key: horus.sun
+    slots:
+      - { slot: cast, partId: cast.magic.fire, direction: radial, scale: 1.05 }
+      - { slot: hit, partId: hit.fire.burst, direction: radial, portraitAnchor: true, scale: 1.05, timeOffset: 0.18, triggersImpact: true }
+  - key: horus.ultimate
+    slots:
+      - { slot: cast, partId: cast.magic.fire, direction: radial, scale: 1.1 }
+      - { slot: hit, partId: hit.support.buff, direction: radial, portraitAnchor: true, scale: 1.1, timeOffset: 0.18, triggersImpact: true }
+  - key: theseus.normal
+    slots:
+      - { slot: cast, partId: cast.magic.focus, direction: casterToTarget, scale: 0.8 }
+      - { slot: hit, partId: hit.varuna.water, direction: radial, portraitAnchor: true, scale: 0.9, timeOffset: 0.18, triggersImpact: true }
+  - key: theseus.wave
+    slots:
+      - { slot: cast, partId: cast.magic.circle, direction: radial, scale: 1 }
+      - { slot: hit, partId: hit.varuna.water, direction: radial, portraitAnchor: true, scale: 1.15, timeOffset: 0.16, triggersImpact: true }
+  - key: theseus.ultimate
+    slots:
+      - { slot: cast, partId: cast.magic.focus, direction: casterToTarget, scale: 1.2 }
+      - { slot: hit, partId: hit.varuna.water, direction: radial, portraitAnchor: true, scale: 1.45, timeOffset: 0.22, triggersImpact: true }
+      - { slot: affected, partId: affected.buff.heal, direction: radial, scale: 0.8 }
   - key: sei.ground
     multiTargetMode: simultaneous
     slots:

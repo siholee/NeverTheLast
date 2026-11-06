@@ -12,13 +12,19 @@ namespace Entities.View
     public sealed class SdFrameRig : MonoBehaviour
     {
         public enum Pose { IDLE, WINDUP, STRIKE, HIT, DOWN }
+        // 등록 아군 42명(호루스 제외)의 IDLE 실루엣 표시 높이 중앙값을 유지한다.
+        public const float CrownHeightScale = .96299463f;
         public static event Action<SdFrameRig, Pose> PoseChanged;
         private readonly Sprite[] _frames = new Sprite[5];
         private SpriteRenderer _renderer;
         private Unit _unit;
         private SdFrameData _data;
         private float _pixelWorld, _castAt = -1f, _hitUntil = -1f;
-        private bool _acting, _down;
+        private bool _acting, _down, _flip;
+        private float _downAt;
+        public const float DownFadeDuration = .6f, DownFadeAlpha = .35f;
+        public float DownOpacity => _data?.downFade == true && _down ? FadeOpacity(Time.time - _downAt) : 1f;
+        internal static float FadeOpacity(float age) => Mathf.Lerp(1f, DownFadeAlpha, Mathf.Clamp01(age / DownFadeDuration));
         public Pose CurrentPose { get; private set; }
         public SpriteRenderer Renderer => _renderer;
         public Unit BoundUnit => _unit;
@@ -43,10 +49,11 @@ namespace Entities.View
             }
         }
 
-        public bool Configure(SdFrameData data, Unit unit, SpriteRenderer renderer, float height)
+        public bool Configure(SdFrameData data, Unit unit, SpriteRenderer renderer, float height, bool flip)
         {
             Ready = false;
             if (data == null) return false;
+            bool resetFade = _data?.downFade == true || data.downFade;
             bool changed = _data != data || _unit != unit || (_down && unit != null && unit.isActive && unit.HpCurr > 0);
             if (changed)
                 for (int i = 0; i < _frames.Length; i++)
@@ -54,17 +61,23 @@ namespace Entities.View
                     _frames[i] = Resources.Load<Sprite>($"Sprite/SD/{data.prefix}_{(Pose)i}");
                     if (_frames[i] == null) return false;
                 }
-            _data = data; _unit = unit; _renderer = renderer;
+            _data = data; _unit = unit; _renderer = renderer; _flip = flip;
             UnitId = unit != null ? unit.ID : 0;
-            _pixelWorld = height / (data.feetY - data.topY);
-            if (changed) { CurrentPose = Pose.IDLE; _acting = _down = false; _castAt = _hitUntil = -1f; }
+            _pixelWorld = float.IsNaN(data.crownY)
+                ? height / (data.feetY - data.topY)
+                : height * CrownHeightScale / (data.feetY - data.crownY);
+            if (changed)
+            {
+                CurrentPose = Pose.IDLE; _acting = _down = false; _castAt = _hitUntil = -1f;
+                if (resetFade) { Color color = _renderer.color; color.a = 1f; _renderer.color = color; }
+            }
             Ready = true;
             ApplyFrame();
             return true;
         }
 
         private Vector3 Point(float x, float y) => transform.TransformPoint(new Vector3(
-            (x - _data.faceX) * _pixelWorld * (_unit != null && _unit.IsEnemy ? -1f : 1f),
+            (x - _data.faceX) * _pixelWorld * (_flip ? -1f : 1f),
             (_data.feetY - y) * _pixelWorld, 0f));
 
         // Center 피벗·임포트 축소 비율을 원본 캔버스 좌표로 환산한다. 프레임마다 알파 bounds로 재배치하지 않는다.
@@ -72,7 +85,8 @@ namespace Entities.View
         {
             Sprite sprite = _frames[(int)CurrentPose];
             _renderer.sprite = sprite;
-            bool flip = _unit != null && _unit.IsEnemy;
+            // 원본 좌향/우향에 따른 반전을 접점 앵커와 동일하게 적용한다.
+            bool flip = _flip;
             _renderer.flipX = flip;
             float sx = 1024f * _pixelWorld / sprite.bounds.size.x;
             float sy = 1280f * _pixelWorld / sprite.bounds.size.y;
@@ -152,12 +166,17 @@ namespace Entities.View
         private void OnDeath(Unit unit, Unit attacker) { if (unit == _unit) ObserveDeath(); }
         internal void ObserveDeath()
         {
-            if (!Ready) return;
+            if (!Ready || _down) return;
             _down = true; _acting = false; _hitUntil = _castAt = -1f;
+            _downAt = Time.time;
             SetPose(Pose.DOWN);
         }
         private void LateUpdate()
         {
+            if (Ready && _data.downFade)
+            {
+                Color color = _renderer.color; color.a = DownOpacity; _renderer.color = color;
+            }
             if (!Ready || _down || Time.timeScale <= 0f) return;
             if (_unit.isControlled)
             {
@@ -169,6 +188,40 @@ namespace Entities.View
             // 마지막 타로부터 0.42초가 지나면 대기로 복귀한다.
             if (CurrentPose == Pose.HIT) { _hitUntil = -1f; SetPose(Pose.IDLE); return; }
             SetPose(_acting ? Time.time - _castAt < .14f ? Pose.WINDUP : Pose.STRIKE : Pose.IDLE);
+        }
+    }
+
+    /// <summary>실제 사망으로 분리된 SD 표시만 유지한다. 전투 수명/완료 사건에는 관여하지 않는다.</summary>
+    internal sealed class SdDownRemnant : MonoBehaviour
+    {
+        private Unit _unit;
+        private SpriteRenderer _renderer;
+        private float _started;
+        private Action<EventContext> _roundEnded;
+        internal Unit Owner => _unit;
+        internal SpriteRenderer Renderer => _renderer;
+
+        internal void Configure(Unit unit, SpriteRenderer renderer)
+        {
+            _unit = unit; _renderer = renderer; _started = Time.time;
+            _roundEnded = _ => Destroy(gameObject);
+            unit.AddListener(BaseEnums.UnitEventType.OnRoundEnd, _roundEnded);
+        }
+
+        private void LateUpdate()
+        {
+            if (_unit == null || (_unit.isActive && _unit.HpCurr > 0) ||
+                GameManager.Instance == null || GameManager.Instance.gameState != BaseEnums.GameState.RoundInProgress)
+            { Destroy(gameObject); return; }
+            Color color = _renderer.color;
+            color.a = SdFrameRig.FadeOpacity(Time.time - _started);
+            _renderer.color = color;
+        }
+
+        private void OnDestroy()
+        {
+            if (_unit != null && _roundEnded != null)
+                _unit.RemoveListener(BaseEnums.UnitEventType.OnRoundEnd, _roundEnded);
         }
     }
 }

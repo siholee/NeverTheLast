@@ -42,9 +42,9 @@ namespace Effects.Vfx
             Color color = name switch
             {
                 "증발" or "풍화" => ElementPalette.ColorFor(BaseEnums.UnitElement.Hydro),
-                "융해" or "과부하" or "단조" => ElementPalette.ColorFor(BaseEnums.UnitElement.Pyro),
-                "확산" => ElementPalette.ColorFor(BaseEnums.UnitElement.Anemo),
-                "개화" or "성장" or "활성" => ElementPalette.ColorFor(BaseEnums.UnitElement.Dendro),
+                "융해" or "연소" or "과부하" => ElementPalette.ColorFor(BaseEnums.UnitElement.Pyro),
+                "확산" or "초확산" => ElementPalette.ColorFor(BaseEnums.UnitElement.Anemo),
+                "개화" or "과성장" => ElementPalette.ColorFor(BaseEnums.UnitElement.Dendro),
                 "초전도" or "접지" => ElementPalette.ColorFor(BaseEnums.UnitElement.Electro),
                 _ => ElementPalette.ColorFor(BaseEnums.UnitElement.Geo)
             };

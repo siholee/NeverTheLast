@@ -22,6 +22,10 @@ namespace Managers.UI.DevTools
 
         private IEnumerator ScenarioSdFrames(VerifyScenarioRequest config, bool actionsOnly = false)
         {
+            if (config.trigger == "catalog_v1011") { yield return SdCatalogV1011(config); yield break; }
+            if (config.trigger == "down_fade_v11") { yield return SdDownFadeV11(config); yield break; }
+            if (config.trigger == "registered_enemies") { yield return SdRegisteredEnemies(config); yield break; }
+            if (config.trigger == "registered_theme") { yield return SdRegisteredTheme(config); yield break; }
             bool enabled = GameManager.Instance.enabled;
             float prior = Time.captureDeltaTime;
             Time.captureDeltaTime = 1f / 60f;
@@ -163,14 +167,15 @@ namespace Managers.UI.DevTools
                     finally { ActionScheduler.AnyActionFinished -= Finish; game.ActionScheduler.EndRound(); }
                     foreach (var u in units) u.ActiveUltimateCode?.StopCode();
                     yield return new WaitForSeconds(.8f);
-                    foreach (var support in units.Where(u => (u.ID is 124 or 125 or 162 or 200) && !normalSequences.Contains(u.ID)))
+                    foreach (var support in units.Where(u => !actionSequences.Contains(u.ID) ||
+                        ((u.ID is 124 or 125 or 162 or 200) && !normalSequences.Contains(u.ID))))
                     {
                         bool complete = false;
                         IEnumerator Normal()
                         {
                             yield return NordAction(support, ActionScheduler.ActionKind.Normal, scheduler =>
                             {
-                                foreach (var u in units) u.ClearUltimateResource();
+                                foreach (var u in units.Concat(AliveEnemies())) u.ClearUltimateResource();
                                 if (support.ID == 200) { PartyTreasury.BeginBattle(); PartyTreasury.Charge(support,1); }
                                 scheduler.AdvanceAction(support,1);
                             });
@@ -326,6 +331,111 @@ namespace Managers.UI.DevTools
             }
         }
 
+        // 등록 fixture는 실제 행동과 피해/사망을 관측하고, 전체화면 촬영도 결과에 남긴다.
+        private IEnumerator SdRegisteredEnemies(VerifyScenarioRequest config)
+        {
+            bool enabled = GameManager.Instance.enabled;
+            float prior = Time.captureDeltaTime;
+            Time.captureDeltaTime = 1f / 60f;
+            yield return S8Prepare(config, startRound: true);
+            var game = GameManager.Instance;
+            var foes = AliveEnemies().ToArray();
+            var rigs = foes.ToDictionary(u => u, u => u.currentCell.Card.StageProxy.Frames);
+            var steps = new Dictionary<int, int>();
+            var sequences = new HashSet<int>();
+            var seen = new HashSet<string>();
+            var dead = new HashSet<int>();
+            void Observe(SdFrameRig rig, SdFrameRig.Pose pose)
+            {
+                if (!rigs.Values.Contains(rig)) return;
+                int id = rig.UnitId;
+                steps.TryGetValue(id, out int step);
+                if (pose == SdFrameRig.Pose.WINDUP) steps[id] = 1;
+                else if (pose == SdFrameRig.Pose.STRIKE && step == 1) steps[id] = 2;
+                else if (pose == SdFrameRig.Pose.IDLE && step == 2) { sequences.Add(id); steps[id] = 0; }
+                if (seen.Add(id + "_" + pose)) SdRenderPose(rig, rig.Renderer, pose);
+                SdFeetCheck(rig, "enemy_" + pose, true);
+            }
+            void Died(Unit unit, Unit attacker)
+            {
+                if (rigs.TryGetValue(unit, out var rig) && rig != null && rig.CurrentPose == SdFrameRig.Pose.DOWN)
+                    dead.Add(rig.UnitId);
+            }
+            SdFrameRig.PoseChanged += Observe; Unit.AnyUnitDied += Died;
+            try
+            {
+                foreach (var ally in AliveAllies()) YvBoostEnemy(ally);
+                yield return CaptureStill("registered_enemy_lineup");
+                foreach (var unit in foes)
+                {
+                    var rig = rigs[unit];
+                    RecordMechanic("sd_enemy_registered_" + unit.ID, "실제 적 SD 좌향·좌향 원본 무반전/우향 공용 원본 반전·단일 렌더러", rig?.Profile.prefix,
+                        rig != null && rig.Renderer.flipX == (rig.Profile.facing != "left") && !unit.currentCell.Card.StageProxy.Head.enabled && unit.currentCell.Card.PortraitRenderer == rig.Renderer);
+                    if (rig == null) continue;
+                    SdSourceCheck(rig); Observe(rig, rig.CurrentPose);
+                    Vector3 Pixel(float x, float y)
+                    {
+                        var s = rig.Renderer.sprite;
+                        return rig.Renderer.transform.TransformPoint(new Vector3((x / 1024f - .5f) * s.bounds.size.x * (rig.Renderer.flipX ? -1f : 1f), (.5f - y / 1280f) * s.bounds.size.y));
+                    }
+                    float anchorError = new[] { Vector3.Distance(Pixel(rig.Profile.head.x, rig.Profile.head.y), rig.HeadWorld), Vector3.Distance(Pixel(rig.Profile.chest.x, rig.Profile.chest.y), rig.ChestWorld), Vector3.Distance(Pixel(rig.Profile.hand.x, rig.Profile.hand.y), rig.HandWorld) }.Max();
+                    RecordMechanic("sd_enemy_anchors_" + unit.ID, "좌향 렌더러의 머리/몸/손 접점과 리그 앵커 일치", anchorError.ToString("R"), anchorError < .0001f && VfxSpace.CastPoint(unit, null) == rig.HandWorld);
+                    yield return NordAction(unit, ActionScheduler.ActionKind.Normal, scheduler =>
+                    {
+                        foreach (var u in AliveAllies().Concat(AliveEnemies())) u.ClearUltimateResource();
+                        scheduler.AdvanceAction(unit, 1);
+                    });
+                    yield return EndOfFrame;
+                    RecordMechanic("sd_enemy_sequence_" + unit.ID, "실제 일반행동 WINDUP→STRIKE→IDLE", unit.UnitName, sequences.Contains(unit.ID));
+                    var attacker = AliveAllies().First();
+                    unit.TakeDamage(new DamageContext(attacker, 7, BaseEnums.CodeType.Normal, new List<int> { DamageTag.TrueDamage }, false));
+                    yield return new WaitForSeconds(.25f);
+                    RecordMechanic("sd_enemy_hit_hold_" + unit.ID, "실제 피해 후0.25초 HIT 유지", rig.CurrentPose.ToString(), rig.CurrentPose == SdFrameRig.Pose.HIT);
+                    yield return new WaitForSeconds(.20f);
+                    RecordMechanic("sd_enemy_hit_idle_" + unit.ID, "실제 피해 후0.42초 경과 IDLE", rig.CurrentPose.ToString(), rig.CurrentPose == SdFrameRig.Pose.IDLE);
+                    int id = unit.ID;
+                    int attempts = 0;
+                    while (unit.isActive && unit.HpCurr > 0 && attempts < 3)
+                    {
+                        attempts++;
+                        unit.TakeDamage(new DamageContext(attacker, unit.HpMax * 10, BaseEnums.CodeType.Normal, new List<int> { DamageTag.TrueDamage }, false));
+                        bool survived = unit.isActive && unit.HpCurr > 0;
+                        RecordMechanic($"sd_enemy_lethal_{id}_{attempts}", "실제 부활은 생존HIT·소모 뒤 실제 사망DOWN", $"survived={survived}, pose={rig.CurrentPose}",
+                            rig.CurrentPose == (survived ? SdFrameRig.Pose.HIT : SdFrameRig.Pose.DOWN));
+                        if (survived) yield return new WaitForSeconds(.45f);
+                    }
+                    RecordMechanic("sd_enemy_death_" + id, "실제 치사 피해·사망 사건의 DOWN", rig.CurrentPose.ToString(), dead.Contains(id) && !unit.isActive && rig.CurrentPose == SdFrameRig.Pose.DOWN);
+                    yield return new WaitForSeconds(.7f);
+                }
+                RecordMechanic("sd_enemy_pose_coverage", "적 전원 5포즈 실제 선택 렌더러 촬영", string.Join(",", seen.OrderBy(x => x)), seen.Count == foes.Length * 5);
+            }
+            finally
+            {
+                SdFrameRig.PoseChanged -= Observe; Unit.AnyUnitDied -= Died;
+                game.ActionScheduler.EndRound(); game.gameState = BaseEnums.GameState.Preparation; game.enabled = enabled;
+                Time.captureDeltaTime = prior; Time.timeScale = 1f;
+            }
+        }
+
+        private IEnumerator SdRegisteredTheme(VerifyScenarioRequest config)
+        {
+            yield return PrepareStage(config, Stage(config, 8), startBattle: true, allyInvincible: false, enemyInvincible: false);
+            var game = GameManager.Instance;
+            int actions = 0; void End(Unit unit, ActionScheduler.ActionKind kind) => actions++;
+            ActionScheduler.AnyActionFinished += End;
+            try
+            {
+                var foes = AliveEnemies().ToArray();
+                RecordMechanic("sd_theme_lineup_" + config.vfxThemeId, "실제 테마 패턴·전용 SD 적 편성", string.Join(",", foes.Select(u => u.ID)), game.RoundManager.CurrentThemeId == config.vfxThemeId && foes.Length > 0 && foes.All(u => u.currentCell.Card.StageProxy.Frames != null));
+                yield return WaitUnscaled(.4f); yield return CaptureStill("registered_party_" + config.vfxThemeId);
+                float deadline = Time.realtimeSinceStartup + 30f;
+                while (actions < 3 && game.gameState == BaseEnums.GameState.RoundInProgress && Time.realtimeSinceStartup < deadline) yield return null;
+                RecordMechanic("sd_theme_battle_" + config.vfxThemeId, "실제 Stage 전투 행동3개 이상", actions.ToString(), actions >= 3 && VisualModeState.Current == VisualMode.Stage);
+                yield return CaptureStill("registered_combat_" + config.vfxThemeId);
+            }
+            finally { ActionScheduler.AnyActionFinished -= End; game.DebugResetBattle(); }
+        }
+
         private IEnumerator SdTemporaryAssignments(VerifyScenarioRequest config)
         {
             yield return S8Prepare(config);
@@ -363,13 +473,140 @@ namespace Managers.UI.DevTools
                 yield return EndOfFrame;
                 foreach (var unit in AliveAllies()) Check(unit);
             }
-            RecordMechanic("sd_temporary_catalog", "10_units 아군 중 전용 SD 없는 전체 캐릭터 확인", string.Join(",", roster.Select(d => d.id)), roster.Length > 0);
+            bool allRegistered = DataManager.LoadUnitDataList().units.All(d => !string.IsNullOrWhiteSpace(d.standing) &&
+                profiles.TryGetValue(d.standing, out var profile) && Enum.GetValues(typeof(SdFrameRig.Pose)).Cast<SdFrameRig.Pose>()
+                    .All(pose => Resources.Load<Sprite>("Sprite/SD/" + profile.sd.prefix + "_" + pose) != null));
+            RecordMechanic("sd_temporary_catalog", "10_units 전체 아군 SD 연결·임시 목록 확인(전체 전용이면0명)",
+                $"temporary={string.Join(",", roster.Select(d => d.id))}, allRegistered={allRegistered}", allRegistered);
+        }
+
+        private IEnumerator SdCatalogV1011(VerifyScenarioRequest config)
+        {
+            var game = GameManager.Instance;
+            bool enabled = game.enabled;
+            try
+            {
+                yield return S8Prepare(config);
+                var profiles = DataManager.LoadStageFigureDataList().figures.Where(p => p.sd != null)
+                    .GroupBy(p => p.sd.prefix).Select(g => g.First()).ToArray();
+                foreach (var profile in profiles) SdSourceProfileCheck(profile.sd, profile.sd.prefix);
+                foreach (var ally in AliveAllies()) SdSourceCheck(ally.currentCell.Card.StageProxy.Frames);
+                RecordStageFigureChecks("catalog_v1011", Camera.main,
+                    GridManager.Instance.heroList.Concat(GridManager.Instance.enemyList).Where(u => u.currentCell != null).Select(u => u.currentCell).Distinct().ToList());
+                RecordMechanic("sd_catalog_v1011", "124 SD prefixes / 620 frames, full-canvas feet, strict YAML defaults", profiles.Length.ToString(), profiles.Length == 124);
+                yield return CaptureStill("catalog_v1011");
+            }
+            finally { game.DebugResetBattle(); game.enabled = enabled; }
+        }
+        private IEnumerator SdDownFadeV11(VerifyScenarioRequest config)
+        {
+            var game = GameManager.Instance;
+            bool enabled = game.enabled;
+            float prior = Time.captureDeltaTime, speed = Time.timeScale;
+            try
+            {
+                Time.captureDeltaTime = 1f / 60f; Time.timeScale = config.timeScale > 0 ? config.timeScale : 1f;
+                yield return S8Prepare(config);
+                var profiles = DataManager.LoadStageFigureDataList().figures;
+                var flagged = profiles.Where(p => p.sd?.downFade == true).ToArray();
+                RecordMechanic("sd_v11_flag", "SHI만 데이터 DOWN 페이드", string.Join(",", flagged.Select(p => p.sprite)),
+                    flagged.Length == 1 && flagged[0].sprite == "SHI_STANDING");
+                var shi = AliveAllies().Single(u => u.currentCell.Card.StageProxy.Frames.Profile.prefix == "SHI_SD");
+                var rig = shi.currentCell.Card.StageProxy.Frames;
+                var other = AliveAllies().First(u => u != shi).currentCell.Card.StageProxy.Frames;
+                int actions = game.ActionScheduler.ActionCount;
+                float started = Time.time;
+                shi.Die(AliveEnemies().First());
+                var remnant = FindObjectsByType<SdDownRemnant>(FindObjectsSortMode.None).SingleOrDefault(r => r.Owner == shi);
+                RecordMechanic("sd_v11_down_start", "실제 사망 DOWN·사본 시작 알파1", $"pose={rig.CurrentPose}, alpha={remnant?.Renderer.color.a:R}",
+                    rig.CurrentPose == SdFrameRig.Pose.DOWN && remnant != null && Mathf.Abs(remnant.Renderer.color.a - 1f) < .001f);
+                if (remnant == null) yield break;
+                var samples = new List<string>();
+                int curveSamples = 0, heldSamples = 0;
+                bool correct = true, paused = false, capturedMid = false, capturedEnd = false;
+                float last = 1f;
+                while (Time.time - started < 1.05f)
+                {
+                    yield return EndOfFrame;
+                    float age = Time.time - started;
+                    if (remnant == null) { correct = false; break; }
+                    float alpha = remnant.Renderer.color.a;
+                    // 기대식은 제품 함수 대신 직접 계산한다. 실제 선택 사망 사본을 매프레임 읽는다.
+                    float expected = age >= .6f ? .35f : 1f - .65f * age / .6f;
+                    correct &= Mathf.Abs(alpha - expected) < .003f && alpha <= last + .001f;
+                    last = alpha;
+                    if (age > 0 && age < .6f) curveSamples++;
+                    if (age >= .6f) heldSamples++;
+                    samples.Add($"{Time.frameCount}|{age:R}|{alpha:R}|{expected:R}");
+                    if (!capturedMid && age >= .3f)
+                    {
+                        capturedMid = true;
+                        yield return CaptureStill("shi_down_fade_mid");
+                    }
+                    if (!capturedEnd && age >= .6f)
+                    {
+                        capturedEnd = true;
+                        yield return CaptureStill("shi_down_fade_end");
+                    }
+                    if (!paused && age >= .2f)
+                    {
+                        paused = true;
+                        float activeSpeed = Time.timeScale; Time.timeScale = 0f;
+                        float before = Time.time;
+                        yield return WaitUnscaled(.15f); yield return EndOfFrame;
+                        RecordMechanic("sd_v11_pause", "일시정지 중 DOWN 알파·시계 불변", $"alpha={remnant.Renderer.color.a:R}",
+                            Mathf.Abs(remnant.Renderer.color.a - alpha) < .001f && Time.time == before);
+                        Time.timeScale = activeSpeed;
+                    }
+                }
+                RecordMechanic("sd_v11_curve", "0~0.6초 1→.35 단조감소·0.6초 이후 유지(공통퇴장0.56초 후에도 남음)",
+                    string.Join("\n", samples), correct && curveSamples >= 3 && heldSamples >= 3);
+                RecordMechanic("sd_v11_independent", "다른 SD 알파1·스케줄러 행동수 불변", $"other={other.Renderer.color.a:R}, actions={game.ActionScheduler.ActionCount}",
+                    !other.Profile.downFade && Mathf.Abs(other.Renderer.color.a - 1f) < .001f && actions == game.ActionScheduler.ActionCount);
+                bool revived = shi.ReviveAfterBattle();
+                yield return EndOfFrame; yield return null;
+                rig = shi.currentCell.Card.StageProxy.Frames;
+                RecordMechanic("sd_v11_revive", "부활 후 사본 제거·IDLE 알파1", $"revived={revived}, pose={rig.CurrentPose}, alpha={rig.Renderer.color.a:R}",
+                    revived && remnant == null && rig.CurrentPose == SdFrameRig.Pose.IDLE && Mathf.Abs(rig.Renderer.color.a - 1f) < .001f);
+                shi.Die(AliveEnemies().First());
+                yield return new WaitForSeconds(.7f);
+                GridManager.Instance.OnRoundEnd();
+                yield return null;
+                RecordMechanic("sd_v11_round_cleanup", "라운드 종료로 반투명 사본 정리", FindObjectsByType<SdDownRemnant>(FindObjectsSortMode.None).Length.ToString(),
+                    !FindObjectsByType<SdDownRemnant>(FindObjectsSortMode.None).Any());
+                _activeLineup = null;
+                game.enabled = true;
+                yield return EnsureLineup(config);
+                yield return S8Prepare(config);
+                rig = AliveAllies().Single(u => u.currentCell.Card.StageProxy.Frames.Profile.prefix == "SHI_SD").currentCell.Card.StageProxy.Frames;
+                RecordMechanic("sd_v11_restart", "새 전투 SHI IDLE·알파1·사본 없음", $"pose={rig.CurrentPose}, alpha={rig.Renderer.color.a:R}",
+                    rig.CurrentPose == SdFrameRig.Pose.IDLE && Mathf.Abs(rig.Renderer.color.a - 1f) < .001f &&
+                    !FindObjectsByType<SdDownRemnant>(FindObjectsSortMode.None).Any());
+            }
+            finally
+            {
+                game.DebugResetBattle(); game.enabled = enabled;
+                Time.captureDeltaTime = prior; Time.timeScale = speed;
+            }
         }
 
         private void SdSourceCheck(SdFrameRig rig)
         {
             SdSourceProfileCheck(rig.Profile, rig.BoundUnit.ID.ToString());
             SdFeetCheck(rig, "initial", true);
+            var data = rig.Profile;
+            if (!float.IsNaN(data.crownY))
+            {
+                var sprite = rig.Renderer.sprite;
+                Vector3 Pixel(float y) => rig.Renderer.transform.TransformPoint(new Vector3(0,
+                    (.5f - y / 1280f) * sprite.bounds.size.y, 0));
+                float actual = Vector3.Distance(Pixel(data.feetY), Pixel(data.crownY));
+                float expected = rig.GetComponent<StageFigure>().BodyWorldHeight * SdFrameRig.CrownHeightScale;
+                RecordMechanic("sd_crown_height_" + rig.UnitId, "실제 렌더러 발~정수리 높이=공통 높이×K, 장식 topY 유지",
+                    $"actual={actual:R}, expected={expected:R}, crown={data.crownY:R}, top={data.topY:R}",
+                    Mathf.Abs(actual - expected) < .0001f && data.crownY >= data.topY &&
+                    rig.HeadBounds.Contains(rig.HeadWorld));
+            }
         }
 
         private void SdSourceProfileCheck(SdFrameData data, string key)
@@ -381,8 +618,8 @@ namespace Managers.UI.DevTools
                 {
                 texture.LoadImage(File.ReadAllBytes(Path.Combine(Application.dataPath, "Resources/Sprite/SD", data.prefix+"_"+pose+".png")));
                 var pixels = texture.GetPixels32(); int bottom = 0;
-                // report_v6의 수르트 STRIKE 칼끝은 발보다20px 아래다. 발 영역(x<850)만 잰다.
-                int maxX = data.prefix == "SURTR_SD" && pose == SdFrameRig.Pose.STRIKE ? 850 : texture.width;
+                // All registered poses use the full alpha bounds, including v11 SURTR.
+                int maxX = texture.width;
                 for (int y = 0; y < texture.height; y++) for (int x = 0; x < maxX; x++)
                     if (pixels[y*texture.width+x].a >= 129) bottom = Mathf.Max(bottom, texture.height-1-y);
                 RecordMechanic("sd_source_feet_"+key+"_"+pose, "Unity에서 원본RGBA alpha≥129 발 하단 재측정(report_v6)", $"{texture.width}×{texture.height}, measured={bottom}, data={data.feetY}, x<{maxX}, errorPx={Mathf.Abs(bottom-data.feetY):R}",
@@ -433,7 +670,7 @@ namespace Managers.UI.DevTools
             }
             Vector3 min = Camera.main.WorldToScreenPoint(bounds.min), max = Camera.main.WorldToScreenPoint(bounds.max);
             RecordMechanic("sd_capture_"+key, "실제 Unity 화면 크롭 영역(좌하단xy)", $"{min.x:F3},{min.y:F3},{max.x-min.x:F3},{max.y-min.y:F3}", true);
-            Capture("pose_"+key);
+            yield return CaptureStill("pose_"+key);
         }
 
         // 실제 행동에서 선택된 렌더러를 단독 촬영한다. 포즈/재질/색을 지정하거나 원본 PNG를 합성하지 않는다.

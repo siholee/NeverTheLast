@@ -1,0 +1,20 @@
+# ORION · SD 비율 13차 p2 · 2026-11-06
+- 상태: **검수 대기**
+- 자체 판정: 목표 범위 충족(자체 측정), 최종 승인 아님.
+- N22: 단일 적·비접촉·대궁 사격.
+- SP: 별도 고유 코드 없음; P 추가행동 화살비가 존재.
+- U22: 단일 적·비접촉·대궁 사격+자기 치유/충전.
+- P222: 피격 충전 후 적 전체·비접촉·화살비 반격+자기 치유.
+- 키트/포즈: 일반행동 기준 등록본 5포즈 유지, 신규 행동·소품 없음.
+- 전 IDLE 재측정: 3.129등신. 원 정수리/턱은 _work_ORION/before_measure.csv, 12차 측정법으로 재독.
+- 목표 2.68: 머리/키 상대비 1.1675배, 머리 고정 시 몸 길이 0.7892배가 필요하여 머리 확대+몸통/다리 단축 재작화.
+- 후 IDLE: crownY=277, chinY=627, (1220−crownY)/(chinY−crownY)=2.694.
+- 두개부 수동 ROI: 귀·뜬 머리·장발·모자·후드 제외, 가림 경계 추정 ±10px. 원 ROI/배율/최종 좌표 CSV 보존.
+- 5포즈 √(w×h) ROI 환산치(IDLE/WINDUP/STRIKE/HIT/DOWN): 341.91 / 341.76 / 342.00 / 341.82 / 342.00px; IDLE 대비 −0.043~+0.027%.
+- 재생성: 3회 (IDLE 2회, HIT 1회; IDLE 총 3회 제한 도달). 내장 image_gen, transparent_background=true, 포즈별 등록본+새 IDLE 참조.
+- 후처리: PowerShell System.Drawing, 전체 균등 배율+LockBits 정수 이동만. 신체 부위별 변형/합성 없음.
+- 규격 실측: 5장 1024×1280 8bit RGBA, 모서리 alpha0, alpha≥129 최하단 y1220, x30..994 안.
+- 육안 확인: 우향·포즈/무기 각도·의상/눈색/머리색 유지, 단색 구분·250px 확인. Assets 등록·Unity 검증 없음.
+- 실제 프롬프트: _work_ORION/prompts.json. 이름 없이 외형 기술, same pose/outfit/face + larger head/shorter torso/legs/2.68-head.
+- 남은 결함: 금색 기하 테두리·버클선 미세 차이. HIT 한쪽 열린 눈 재생성 반영. 얼굴/근육 체형 최종 검수 필요. 시리우스 원본 미접근·미수정.
+- 증거: measure_ORION.png, sheets/ORION_{poses|silhouette|face|battle250|before_after}.png, lineup_p2.png.

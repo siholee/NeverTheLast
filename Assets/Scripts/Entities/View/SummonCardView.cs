@@ -67,7 +67,12 @@ namespace Entities.View
             _portrait.enabled = _unit.isActive && owner.isActive && owner.IsOnField;
             if (IsStage && StageVisual != null)
             {
-                if (_unit.SummonKind != "uchi_clone" && _unit.SummonKind != Codes.Passive.LokiUnboundWolf.FenrirKind)
+                if (_unit.SummonKind == "thoth_scribe")
+                {
+                    // 칸 없는 서기관의 대상/피격 접점도 실제 SD 몸통을 따른다.
+                    transform.position = StageVisual.Feet + Vector3.up * (StageVisual.Height * .5f);
+                }
+                else if (_unit.SummonKind != "uchi_clone" && _unit.SummonKind != Codes.Passive.LokiUnboundWolf.FenrirKind)
                 {
                     // 기존 문양/서기관의 논리 위치를 보존한다. 투사체 출발점과 실제 타격 창을 SD 배치로 바꾸지 않는다.
                     int legacyIndex = Mathf.Clamp(Summons.Of(owner).IndexOf(_unit), 0, 2);

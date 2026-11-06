@@ -508,6 +508,8 @@ namespace Managers.UI.Screens
                     break;
                 default:
                     parts.Add($"마나 {unit.ManaCurr} / {unit.ManaMax}");
+                    if (unit.StoredUltimateMana > 0) parts.Add($"저장 마나 {unit.StoredUltimateMana} / {unit.ManaMax}");
+                    if (unit.RewardCodeIds.Contains(919)) parts.Add($"더블 캐스팅 {unit.OriginalUltimateCount % 3} / 3");
                     break;
             }
 

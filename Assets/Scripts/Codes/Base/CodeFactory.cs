@@ -35,6 +35,9 @@ namespace Codes.Base
     {
       return codeId switch
       {
+        300 => new AgrippaUnsinkableFormation(context),
+        301 => new OctaviaEncirclement(context),
+        221 => new TheseusReturningWave(context),
         364 => new NephthysPoisonGarden(context),
         365 => new AtalantePoisonHunt(context),
         366 => new NeithCatalyticWeave(context),
@@ -50,7 +53,7 @@ namespace Codes.Base
         324 => new ThothLivingRecords(context),
         323 => new SetDesertBlood(context),
         325 => new IsisThreefoldGuard(context),
-        320 => new HorusRoyalHeir(context),
+        320 => new HorusShatteringHorizon(context),
         222 => new OrionSirius(context),
         283 => new SkadiFrostMantle(context),
         201 => new SeiBigBang(context),              // 세이 — 빅뱅
@@ -93,6 +96,9 @@ namespace Codes.Base
     {
       return codeId switch
       {
+        100 => new AgrippaReorganize(context),
+        101 => new OctaviaRisingTide(context),
+        21 => new TheseusSeaCleaver(context),
         164 => new NephthysPoisonSeed(context),
         165 => new AtalanteHuntingArrow(context),
         166 => new NeithThunderArrow(context),
@@ -109,7 +115,7 @@ namespace Codes.Base
         124 => new ThothLifeScript(context),
         123 => new SetBloodStrike(context),
         125 => new IsisWovenShield(context),
-        120 => new HorusSunArrow(context),
+        120 => new HorusStarbreaker(context),
         22 => new OrionHunt(context),
         83 => new SkadiSnowHunt(context),
         1 => new SeiGroundLeveling(context),         // 세이 — 땅고르기
@@ -175,6 +181,9 @@ namespace Codes.Base
     {
       return codeId switch
       {
+        100 => new AgrippaWinningPosition(context),
+        101 => new OctaviaClosingHorizon(context),
+        21 => new TheseusReturningCurrent(context),
         164 => new NephthysClosedGarden(context),
         165 => new AtalanteHuntingSeason(context),
         166 => new NeithThunderWeave(context),
@@ -190,7 +199,7 @@ namespace Codes.Base
         124 => new ThothScribe(context),
         123 => new SetCrimsonDesert(context),
         125 => new IsisStellarProcession(context),
-        120 => new HorusRoyalInvestiture(context),
+        120 => new HorusSolarRelease(context),
         22 => new OrionStarPiercer(context),
         83 => new SkadiIcicleSpike(context),
         1 => new SeiSongOfGenesis(context),          // 세이 — 창세의 노래

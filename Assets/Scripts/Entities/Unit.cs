@@ -60,6 +60,7 @@ namespace Entities
         /// <see cref="ActionScheduler.AnyActionFinished"/>(Ultimate)를 함께 봐야 시전 도중 사망을 가른다(아그니).
         /// </summary>
         public static event Action<Unit> AnyUltimateCast;
+        public static event Action<Unit> AnyAttributesUpdated;
         /// <summary>실제로 소비한 마나. 지연형 초월기도 첫 효과 확정 직전에 한 번 발행한다.</summary>
         public static event Action<Unit, int> AnyUltimateManaSpent;
 
@@ -325,6 +326,7 @@ namespace Entities
             _judgementElements.Clear();
             _temporaryElementDurations.Clear();
             ClearToughness();
+            ResetBattleUltimateState();
             _combatResources.Clear();
             _combatResourceMaximums.Clear();
             _combatResourceOrder.Clear();
@@ -519,6 +521,7 @@ namespace Entities
             foreach (BaseEffect effect in effects) manaMultiplier *= effect.ManaRecoveryMultiplierModifier(this);
             ManaEfficiencyCurr = Mathf.Max(0f, manaMultiplier);
             RefreshView();
+            AnyAttributesUpdated?.Invoke(this);
         }
 
         /// <summary>파생 스탯 캐시를 즉시 갱신한다. 코드가 들고 있는 동적 수치가 바뀌었을 때 부른다.</summary>
@@ -807,20 +810,14 @@ namespace Entities
         public virtual void CastUltimateCode()
         {
             // 예약과 실행 사이에 앞선 행동이 마지막 적을 지웠을 수 있다. 자원을 먼저 태우면 한 번을 통째로 잃는다.
-            if (UltimateCode == null) return;
+            if (UltimateCode == null || !CanCastUltimateCode()) return;
             if (!UltimateCode.HasValidTarget())
             {
                 Debug.Log($"{UnitName}의 궁극기 {UltimateCode.CodeName}은(는) 대상이 없어 자원을 유지한 채 취소한다");
                 return;
             }
 
-            bool deferred = UltimateCode.DefersActivationUntilImpact;
-            if (!deferred)
-            {
-                ConsumeUltimateActivationResource();
-            }
-            UltimateCode.CastCode();
-            if (!deferred) NotifyUltimateActivation();
+            BeginUltimateCast(false);
         }
 
         /// <summary>초월기 자원과 발동 알림은 행동당 한 번. 지연형은 첫 탄 판정 직전에 호출한다.</summary>
@@ -832,6 +829,9 @@ namespace Entities
 
         private void ConsumeUltimateActivationResource()
         {
+            if (_ultimateCommitted) return;
+            _ultimateCommitted = true;
+            if (IsUltimateReplay) return;
             int spentMana = ultimateResourceType == BaseEnums.UltimateResourceType.Mana ? ManaCurr : 0;
             if (ultimateResourceType != BaseEnums.UltimateResourceType.Passive) ManaCurr = 0;
             RefreshView();
@@ -840,6 +840,13 @@ namespace Entities
 
         private void NotifyUltimateActivation()
         {
+            if (_ultimateNotified) return;
+            _ultimateNotified = true;
+            if (!IsUltimateReplay && HasManaReward(Codes.Passive.Reward.UltimateManaRewardCode.Double))
+            {
+                _originalUltimateCount++;
+                if (_originalUltimateCount % 3 == 0) _pendingUltimateCopies++;
+            }
             Invoke(BaseEnums.UnitEventType.OnUltimateActivates, new EventContext(this));
             AnyUltimateCast?.Invoke(this);
         }
@@ -886,7 +893,10 @@ namespace Entities
                 return;
             }
             int before = ManaCurr;
-            ManaCurr = Mathf.Clamp(ManaCurr + amount, 0, ManaMax);
+            long total = (long)ManaCurr + amount;
+            if (amount > 0 && ultimateResourceType == BaseEnums.UltimateResourceType.Mana && HasManaReward(Codes.Passive.Reward.UltimateManaRewardCode.Overflow))
+                _storedUltimateMana = (int)System.Math.Min(ManaMax, (long)_storedUltimateMana + System.Math.Max(0L, total - ManaMax));
+            ManaCurr = (int)System.Math.Clamp(total, 0L, (long)ManaMax);
             foreach (BaseEffect effect in ActiveEffectObjects().ToList()) effect.OnUltimateResourceChanged(this);
             if (before < ManaMax && ManaCurr >= ManaMax) AudioManager.PlayCue("common.ultimate.ready");
             RefreshView();
@@ -1288,10 +1298,12 @@ namespace Entities
         /// <param name="effectHitResolved">원본 대상의 확산 재부착처럼 이미 성공한 부착의 파생일 때만 켠다.</param>
         /// <returns>이번 부착이 실제 성공했는가. 실패하면 기존 부착과 기간을 보존한다.</returns>
         public bool GrantCombatElement(BaseEnums.UnitElement elementToGrant, int duration = CommonElementAuraDuration,
-            Unit source = null, bool suppressReaction = false, bool effectHitResolved = false)
+            Unit source = null, bool suppressReaction = false, bool effectHitResolved = false,
+            float baseChance = Combat.DamageMitigation.DefaultEffectHitChance,
+            Combat.EffectHitScaling hitScaling = Combat.EffectHitScaling.Contested)
         {
             if (elementToGrant == BaseEnums.UnitElement.None || !isActive) return false;
-            if (!effectHitResolved && !Combat.DamageMitigation.RollEffectHit(source, this))
+            if (!effectHitResolved && !Combat.DamageMitigation.RollEffectHit(source, this, baseChance, hitScaling))
             {
                 Debug.Log($"[효과 저항] {UnitName} — {elementToGrant} 부착 실패");
                 Effects.CombatFeedback.PlayEffectResisted(this);
@@ -1452,7 +1464,12 @@ namespace Entities
         /// <summary>자기 턴의 행동이 모두 끝났을 때 스케줄러가 부른다.</summary>
         public void EndTurn() => Invoke(BaseEnums.UnitEventType.OnTurnEnd, new EventContext(this));
 
-        internal void PrepareRoundResources() { TurnCount = 0; ClearToughness(); }
+        internal void PrepareRoundResources()
+        {
+            TurnCount = 0; ClearToughness(); ResetBattleUltimateState();
+            ManaCurr = ultimateResourceType == BaseEnums.UltimateResourceType.Passive ? ManaMax : 0;
+            RefreshView();
+        }
 
         protected void DefaultRoundStartEvent(EventContext context)
         {

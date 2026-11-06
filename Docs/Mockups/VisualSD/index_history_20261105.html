@@ -1,0 +1,1471 @@
+<title>NeverTheLast SD 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;900&family=Rajdhani:wght@500;600;700&display=swap">
+<style>
+/* 레이아웃: 실제 원화·전장 배경으로 그린 1920×1080 전투 시안이 주인공, 아래로 규격 보드가 한 열로 이어진다. */
+:root{
+  --bg:#EDF1F6; --surface:#FFFFFF; --sunken:#E3E9F1; --ink:#121A2E; --muted:#55657A;
+  --line:rgba(33,54,92,.15); --accent:#21365C; --accent-soft:rgba(33,54,92,.08); --gold:#9A7A34;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-num:"Rajdhani","IBM Plex Sans KR","Malgun Gothic",sans-serif;
+  --f-disp:"Noto Serif KR","Nanum Myeongjo","Batang",serif;
+  --cut:12px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0C1220; --surface:#141C2F; --sunken:#0F1626; --ink:#E6ECF5; --muted:#93A1B8;
+  --line:rgba(170,195,235,.14); --accent:#9DB4E2; --accent-soft:rgba(157,180,226,.10); --gold:#D9B868; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C1220; --surface:#141C2F; --sunken:#0F1626; --ink:#E6ECF5; --muted:#93A1B8;
+  --line:rgba(170,195,235,.14); --accent:#9DB4E2; --accent-soft:rgba(157,180,226,.10); --gold:#D9B868; color-scheme:dark}
+
+body{background:var(--bg);color:var(--ink);font:15px/1.65 var(--f-body);margin:0}
+.wrap{max-width:1280px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 80px;display:flex;flex-direction:column;gap:56px}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.3}
+h1{font:900 clamp(30px,4.2vw,50px)/1.15 var(--f-disp);letter-spacing:-.01em}
+h2{font:900 26px/1.3 var(--f-disp)}
+h3{font-size:16px;font-weight:700}
+p{margin:0}
+.eyebrow{font:600 12px/1 var(--f-num);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.lede{max-width:70ch;color:var(--muted);font-size:16px}
+.cut{border-radius:var(--cut)}
+.panel{background:var(--surface);padding:22px 24px}
+.sec{display:flex;flex-direction:column;gap:20px}
+.sec-head{display:flex;flex-direction:column;gap:8px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.grid3>*,.grid2>*{min-width:0}
+.tag{display:inline-block;font:600 11px/1 var(--f-num);letter-spacing:.12em;padding:5px 8px;background:var(--accent-soft);color:var(--accent)}
+.muted{color:var(--muted)}
+.tbl{overflow-x:auto;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:14px}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 12px/1.3 var(--f-num);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--sunken)}
+td.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap}
+code{font:500 13px/1 ui-monospace,Consolas,monospace;background:var(--accent-soft);padding:2px 5px}
+.hero{display:flex;flex-direction:column;gap:14px}
+.hero-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.mock-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.seg{display:inline-flex;background:var(--surface);padding:4px;gap:4px}
+.seg button,.btn{font:600 14px/1 var(--f-body);border:0;background:transparent;color:var(--muted);padding:9px 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+.btn{background:var(--surface);color:var(--ink)}
+.btn[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.ctrls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seg button:disabled{opacity:.4;cursor:not-allowed}
+.note{font-size:14px;color:var(--muted)}
+
+/* ===== 전투 시안: 게임 내부 색은 고정 ===== */
+.mock{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:#0E1628;max-width:100%;border-radius:12px}
+.stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;font-family:var(--f-body);color:#F4F7FB;overflow:hidden;
+  background:#BFD6EE url(art/stage_sky_citadel.jpg) center/cover no-repeat}
+.stage *{box-sizing:border-box}
+.layer{position:absolute;inset:0;pointer-events:none}
+.grade{background:
+  linear-gradient(180deg,rgba(14,22,40,.28) 0%,rgba(14,22,40,0) 14%,rgba(14,22,40,0) 74%,rgba(14,22,40,.42) 100%),
+  radial-gradient(120% 80% at 50% 62%,rgba(255,255,255,0) 55%,rgba(20,32,60,.22) 100%)}
+#units{z-index:2}#hud{z-index:3}#fx{z-index:4}.guides{z-index:5}
+.topbar,.center-status,.treasury,.timeline,.tally,.bench,.deploy,.enemy-note{z-index:10}.cutin{z-index:20}.tip{z-index:30}
+
+.unit{position:absolute;pointer-events:auto}
+.unit .shadow{position:absolute;left:50%;bottom:-14px;width:150px;height:30px;transform:translateX(-50%) scale(var(--sc,1));border-radius:50%;
+  background:radial-gradient(closest-side,rgba(28,40,72,.42),rgba(28,40,72,0))}
+.unit .ring{position:absolute;left:50%;bottom:-20px;width:176px;height:42px;transform:translateX(-50%) scale(var(--sc,1));border-radius:50%;opacity:0;
+  border:2px solid var(--el);box-shadow:0 0 18px 2px var(--el),inset 0 0 14px var(--el)}
+.unit.acting .ring{opacity:.95;animation:ringPulse 1s ease-in-out infinite}
+@keyframes ringPulse{50%{opacity:.5}}
+.sd-move,.sd-flip,.sd-bob{position:absolute;inset:0}
+.sd-flip.flip{transform:scaleX(-1)}
+.sd-bob{animation:bob 1.6s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes bob{50%{transform:scaleY(.988) translateY(1px)}}
+.sd-part{position:absolute;left:0;right:0;overflow:hidden}
+.sd-part img{position:absolute;display:block;max-width:none;user-select:none;-webkit-user-drag:none}
+.unit.dim{filter:saturate(.25) brightness(.92);opacity:.5}
+
+/* 유닛 HUD 묶음: 초월 원 + 체력판을 발밑 바닥에 붙이고 위 꼭지로 주인을 가리킨다.
+   유닛과 같은 깊이로 정렬해 앞 SD가 뒤 묶음을 가리므로, 다른 유닛의 몸 위에 남의 HUD가 얹히지 않는다. */
+.hu{position:absolute;pointer-events:auto;display:flex;align-items:center;gap:7px;padding:4px 9px 5px 4px;border-radius:12px;background:rgba(14,22,40,.72);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 4px 10px rgba(14,22,40,.25);transition:transform .15s,box-shadow .15s;transform-origin:50% 0}
+.hu::after{content:"";position:absolute;left:50%;top:-7px;transform:translateX(-50%);border:7px solid transparent;border-top:0;border-bottom-color:rgba(14,22,40,.72)}
+.hu.enemy{background:rgba(48,18,30,.72)}.hu.enemy::after{border-bottom-color:rgba(48,18,30,.72)}
+.hu.focus{box-shadow:inset 0 0 0 1px rgba(255,255,255,.55),0 0 16px rgba(255,255,255,.3);transform:scale(1.08)}
+.hu.acting{box-shadow:inset 0 0 0 1.5px var(--el),0 0 18px color-mix(in srgb,var(--el) 65%,transparent)}
+.hu .uring{position:relative;width:34px;height:34px;flex:none}
+.plate{position:relative;width:104px}
+.plate .row{display:flex;align-items:flex-end;justify-content:space-between;height:16px}
+.plate .hpn{font:700 16px/1 var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:.03em}
+.plate .icons{display:flex;gap:3px}
+.plate .icons i{width:14px;height:14px;display:grid;place-items:center;background:rgba(255,255,255,.14);border-radius:4px}
+.plate .icons svg{width:9px;height:9px}
+.bar{position:relative;height:6px;margin-top:4px;background:rgba(0,0,0,.45);border-radius:3px;overflow:visible}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
+.bar .trail{background:#F4F7FB;transition:width .45s ease .28s}
+.bar .fill{background:linear-gradient(90deg,#1FAE98,#39DCC1);transition:width .08s linear}
+.plate.enemy .bar .fill{background:linear-gradient(90deg,#C8414F,#F06B78)}
+.bar .sh{position:absolute;right:0;top:-4px;height:2px;border-radius:1px;background:#F0C96A;box-shadow:0 0 4px #F0C96A}
+.tough{height:2px;margin-top:3px;background:rgba(0,0,0,.4);border-radius:1px}
+.tough i{display:block;height:100%;background:#E8EEF8;border-radius:1px}
+.instant .bar i,.instant .bar .sh{transition:none!important}
+
+.uring{position:relative;width:42px;height:42px}
+.uring svg{width:100%;height:100%;display:block;overflow:visible}
+.uring.full svg{filter:drop-shadow(0 0 5px var(--el)) drop-shadow(0 0 10px var(--el))}
+
+.fx{position:absolute;pointer-events:none}
+.dmg{position:absolute;font:700 46px/1 var(--f-num);font-variant-numeric:tabular-nums;color:#fff;letter-spacing:.02em;white-space:nowrap;
+  -webkit-text-stroke:3px #14203A;paint-order:stroke fill;text-shadow:0 2px 0 #14203A,0 0 14px rgba(20,32,58,.55);transform:translate(-50%,-50%) skewX(-8deg)}
+.dmg.crit{font-size:60px;color:#FFE6A0;text-shadow:0 2px 0 #3A2408,0 0 18px rgba(255,170,60,.75);-webkit-text-stroke:3px #3A2408}
+.dmg small{display:block;font:700 15px/1 var(--f-num);letter-spacing:.3em;color:#FFE6A0;-webkit-text-stroke:0;text-align:center;margin-bottom:3px}
+.dmg.shield{color:#F0C96A;font-size:32px}
+.stx{position:absolute;font:700 22px/1 var(--f-body);white-space:nowrap;letter-spacing:.06em;text-shadow:0 1px 2px rgba(10,16,32,.95),0 0 10px rgba(10,16,32,.7);transform:translate(-50%,-50%)}
+
+/* 상단 바: 현행과 같은 한 줄 둥근 바(진행·골드 | 상태 | 예고·배속·정지·파티·설정) */
+.topbar{position:absolute;left:24px;right:24px;top:20px;height:62px;display:flex;justify-content:space-between;align-items:center;padding:0 10px 0 22px;
+  border-radius:14px;background:rgba(247,250,253,.88);color:#122133;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 6px 22px rgba(14,22,40,.12)}
+.tb{display:flex;align-items:center;gap:18px}
+.tb .mid{font:600 17px/1 var(--f-body);color:#3A4D66;letter-spacing:.04em}
+.tb .stg{font:700 26px/1 var(--f-num);letter-spacing:.04em}
+.tb .thm{font:900 19px/1 var(--f-disp)}
+.pips{display:flex;gap:5px}
+.pips b{width:18px;height:4px;background:rgba(33,54,92,.16)}
+.pips b.on{background:#21365C}.pips b.now{background:#B8923F}
+.tb .lbl{font:600 12px/1 var(--f-num);letter-spacing:.18em;color:#5A6E84}
+.tb .val{font:700 22px/1 var(--f-num);font-variant-numeric:tabular-nums}
+.tb .ico{width:40px;height:40px;display:grid;place-items:center;color:#21365C;border-radius:10px}
+.tb .ico:hover{background:rgba(33,54,92,.08)}
+.tb .coin{width:22px;height:22px;color:#B8923F}
+.tb .ico svg{width:22px;height:22px}
+.tb .spd{font:700 20px/1 var(--f-num);color:#21365C;min-width:40px;text-align:center}
+.tb .sep{width:1px;height:26px;background:rgba(33,54,92,.16)}
+.fc{display:flex;gap:6px}
+.fc i{width:30px;height:30px;display:grid;place-items:center;background:rgba(33,54,92,.07);border-radius:8px}
+.fc i.now{background:#21365C}
+.fc svg{width:15px;height:15px}
+
+/* 행동 순서: 현행처럼 왼쪽 세로 둥근 패널, 현재 행동만 오른쪽으로 확장 */
+.timeline{position:absolute;left:24px;top:100px;width:94px;padding:12px 0 14px;display:flex;flex-direction:column;align-items:center;gap:9px;pointer-events:auto;
+  border-radius:14px;background:rgba(247,250,253,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 6px 22px rgba(14,22,40,.12)}
+.tl-label{font:700 13px/1 var(--f-body);letter-spacing:.06em;color:#3A4D66;margin-bottom:2px}
+.timeline .chip .av{color:#5A6E84}
+.cur-wrap{position:relative;width:70px;height:70px}
+.cur-wrap .face{width:70px;height:70px;border-radius:12px;box-shadow:0 0 0 2px var(--el)}
+.cur-wrap .cur-card{position:absolute;left:82px;top:4px;height:62px;min-width:0;width:max-content;padding:0 22px 0 18px;gap:0;display:block;padding-top:11px;
+  background:rgba(247,250,253,.95);color:#122133;box-shadow:0 6px 22px rgba(14,22,40,.14)}
+.cur-wrap .cur-card .nm{font-size:19px}
+.cur-wrap .cur-card .ac{color:#3A4D66;margin-top:6px;font-size:14px}
+.stage .tally{top:100px;bottom:auto;right:24px;width:230px;height:auto;flex-direction:column;align-items:stretch;gap:0;padding:14px 16px;background:rgba(247,250,253,.86);color:#122133;box-shadow:0 6px 22px rgba(14,22,40,.12)}
+.tally .lbl{margin-bottom:8px;color:#3A4D66}
+.tally .r{display:flex;align-items:center;gap:10px;height:40px;border-top:1px solid rgba(33,54,92,.08)}
+.tally .r .face{width:30px;height:30px;border-radius:8px}
+.tally .r span{flex:1;font-size:14px;font-weight:500}
+.tally .r b{font:700 16px/1 var(--f-num);font-variant-numeric:tabular-nums}
+.tally .sum{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid rgba(33,54,92,.16);font-size:14px;font-weight:700}
+.tally .sum b{font:700 20px/1 var(--f-num)}
+.face{position:relative;overflow:hidden;background:linear-gradient(180deg,#2A3A5E,#16223C)}
+.face img{position:absolute;max-width:none}
+.chip{position:relative;width:58px;display:flex;flex-direction:column;align-items:center;gap:5px}
+.chip .face{width:58px;height:58px;border-radius:10px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
+.chip .side{position:absolute;left:8px;right:8px;top:55px;height:3px;border-radius:2px}
+.chip.focus .face{box-shadow:inset 0 0 0 2px #fff}
+.chip.ally .side{background:#8FB4FF}.chip.enemy .side{background:#F06B78}
+.chip .av{font:700 14px/1 var(--f-num);color:rgba(255,255,255,.8);font-variant-numeric:tabular-nums}
+.cur-card{display:flex;align-items:center;gap:14px;height:84px;padding:0 24px 0 0;min-width:390px;background:rgba(14,22,40,.78);border-radius:14px;overflow:hidden;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.cur-card .face{width:84px;height:84px}
+.cur-card .k{border-radius:5px}
+.cur-wrap.focus .face{box-shadow:0 0 0 3px #21365C}
+.chip.focus .face{box-shadow:inset 0 0 0 2px #fff,0 0 0 2px #21365C}
+.tally .r.focus{background:rgba(33,54,92,.08)}
+.cur-card .nm{font:900 22px/1.1 var(--f-disp)}
+.cur-card .ac{display:flex;gap:8px;align-items:center;margin-top:7px;font-size:15px;color:#D5DEEC}
+.cur-card .k{font:700 11px/1 var(--f-body);padding:4px 7px;letter-spacing:.06em}
+.cur-card.ult{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--el) 70%,transparent),0 0 24px color-mix(in srgb,var(--el) 40%,transparent)}
+
+.treasury,.tally{position:absolute;bottom:24px;height:58px;display:flex;align-items:center;gap:14px;padding:0 20px;background:rgba(14,22,40,.72);border-radius:14px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.treasury{right:24px}
+.treasury.in-bar{display:none}
+.rowbands{z-index:1}
+.rowbands .band{opacity:.10}.rowbands .bandline{stroke-width:2;stroke-dasharray:10 10;opacity:.35}.rowbands .bandlbl{font:700 22px/1 var(--f-body);opacity:0}
+.mode-prep .rowbands .band{opacity:.2}.mode-prep .rowbands .bandline{opacity:.7}.mode-prep .rowbands .bandlbl{opacity:.9}
+/* 스타레일식 하단 HUD */
+.hsr{position:absolute;left:24px;right:24px;bottom:18px;display:flex;align-items:flex-end;justify-content:center;gap:14px;z-index:10}
+.hgroup{display:flex;align-items:flex-end;gap:8px}
+.hcard.enemy{background:rgba(48,18,30,.84)}
+.hcard.enemy .uring{left:auto;right:-10px}
+.hcard.enemy .hc-row{right:auto;left:6px}
+.hcard{position:relative;width:118px;height:150px;border-radius:12px;overflow:visible;pointer-events:auto;transition:transform .18s,box-shadow .18s;
+  background:rgba(14,22,40,.82);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.hc-art{position:absolute;left:0;right:0;top:0;height:112px;border-radius:12px 12px 0 0;background-size:cover;background-position:center 14%;
+  -webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}
+.hc-row{position:absolute;right:6px;top:6px;font:600 11px/1 var(--f-body);padding:3px 6px;border-radius:4px;background:rgba(14,22,40,.7);color:#E6ECF5}
+.hcard .uring{position:absolute;left:-10px;top:-12px;width:42px;height:42px}
+.hc-foot{position:absolute;left:7px;right:7px;bottom:7px}
+.hc-foot .plate{width:100%}
+.hcard.ready{transform:translateY(-8px);box-shadow:inset 0 0 0 2px var(--el),0 0 18px color-mix(in srgb,var(--el) 55%,transparent)}
+.hcard.acting{transform:translateY(-14px);box-shadow:inset 0 0 0 2px #fff,0 0 18px rgba(255,255,255,.5)}
+.hcard.focus{box-shadow:inset 0 0 0 2px #fff}
+.hsp{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;width:136px;height:150px;border-radius:12px;background:rgba(14,22,40,.7);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.hsp .lbl{font-weight:700;font-size:14px}
+.hsp .d{display:grid;grid-template-columns:repeat(4,12px);gap:9px}
+.hsp .d b{width:12px;height:12px;transform:rotate(45deg);border:1px solid rgba(240,201,106,.6)}
+.hsp .d b.on{background:#F0C96A;border-color:#F0C96A;box-shadow:0 0 6px #F0C96A}
+.hsp .n{font:700 20px/1 var(--f-num)}.hsp .n small{opacity:.55;font-size:13px}
+.etag{position:absolute;width:120px;pointer-events:auto;z-index:2000;transition:transform .15s}
+.etag .et-row{display:flex;align-items:center;gap:4px;height:16px;justify-content:center}
+.etag .et-row svg{width:12px;height:12px}
+.etag .hpn{font:700 14px/1 var(--f-num);text-shadow:0 1px 2px rgba(10,16,32,.9),0 0 6px rgba(10,16,32,.7)}
+.etag .bar{height:5px;margin-top:2px}
+.etag.focus,.etag.acting{transform:scale(1.12)}
+.pbar{position:absolute;left:24px;right:24px;bottom:16px;height:100px;display:flex;justify-content:space-between;align-items:stretch;gap:10px;z-index:10}
+.pside{display:flex;gap:6px}
+.pcard{width:160px;border-radius:12px;background:rgba(14,22,40,.76);padding:7px 8px;display:flex;flex-direction:column;gap:6px;pointer-events:auto;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);transition:box-shadow .15s,transform .15s}
+.pcard.enemy{background:rgba(48,18,30,.76)}
+.pcard.focus{box-shadow:inset 0 0 0 2px #fff;transform:translateY(-4px)}
+.pcard.acting{box-shadow:inset 0 0 0 2px var(--el),0 0 16px color-mix(in srgb,var(--el) 60%,transparent)}
+.pc-top{display:flex;align-items:center;gap:8px;height:34px}
+.pc-top .face{width:34px;height:34px;border-radius:8px;flex:none}
+.pc-nm{font-weight:700;font-size:14px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc-row{font:600 11px/1 var(--f-body);padding:3px 6px;border-radius:4px;background:rgba(255,255,255,.12);color:#D5DEEC}
+.pc-bot{display:flex;align-items:center;gap:6px}
+.pc-bot .uring{width:32px;height:32px;flex:none}
+.pc-bot .plate{width:106px}
+.pmid{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;padding:0 14px;border-radius:12px;background:rgba(14,22,40,.6);min-width:150px}
+.pmid .lbl{font-weight:700;font-size:14px}
+.pmid .d{display:grid;grid-template-columns:repeat(6,9px);gap:6px}
+.pmid .d b{width:9px;height:9px;transform:rotate(45deg);border:1px solid rgba(240,201,106,.6)}
+.pmid .d b.on{background:#F0C96A;border-color:#F0C96A}
+.pmid .n{font:700 18px/1 var(--f-num)}.pmid .n small{opacity:.55;font-size:13px}
+.treasury .lbl,.tally .lbl{font-weight:700;font-size:15px;letter-spacing:.04em}
+.treasury .d{display:flex;gap:6px}
+.treasury .d b{width:9px;height:9px;transform:rotate(45deg);border:1px solid rgba(240,201,106,.6)}
+.treasury .d b.on{background:#F0C96A;border-color:#F0C96A;box-shadow:0 0 6px #F0C96A}
+.treasury .n,.tally .n{font:700 21px/1 var(--f-num);font-variant-numeric:tabular-nums}
+
+.cutin{position:absolute;left:-80px;right:-80px;top:340px;height:250px;transform:rotate(-6deg);opacity:0;pointer-events:none;overflow:hidden;
+  background:linear-gradient(90deg,rgba(10,14,28,.96) 0%,color-mix(in srgb,var(--el) 55%,#0A0E1C) 42%,rgba(10,14,28,.96) 82%)}
+.cutin::before,.cutin::after{content:"";position:absolute;left:0;right:0;height:1px;background:rgba(255,236,190,.9)}
+.cutin::before{top:10px}.cutin::after{bottom:10px}
+/* 컷인 원화: 얼굴 중심(ART top·chin·cx)을 띠 안 고정점에 맞추고 그 점을 축으로 세운다. 얼굴이 띠 밖으로 잘리지 않게 한다. */
+.cutin .art{position:absolute;transform:rotate(6deg)}
+.cutin .art img{width:100%;height:100%;display:block;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 22%,#000 70%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 22%,#000 70%,transparent 100%)}
+.cutin .t{position:absolute;left:860px;top:64px;transform:rotate(6deg)}
+.cutin .t .k{font:600 18px/1 var(--f-num);color:#FFE6A0;letter-spacing:.4em}
+.cutin .t .n{font:900 78px/1.05 var(--f-disp);color:#fff;margin-top:16px;letter-spacing:-.01em;text-shadow:0 0 30px color-mix(in srgb,var(--el) 60%,transparent)}
+.cutin .lines{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 46px,rgba(255,255,255,.09) 46px 48px,transparent 48px 130px,rgba(255,255,255,.05) 130px 131px)}
+.cutin .glow{position:absolute;left:180px;top:-60px;width:700px;height:370px;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--el) 70%,transparent),transparent)}
+.cutin .t .el{display:inline-flex;width:30px;height:30px;vertical-align:-8px;margin-right:12px}
+.cutin .t .el svg{width:100%;height:100%}
+.dimov{position:absolute;inset:0;z-index:15;pointer-events:none;opacity:0;background:radial-gradient(120% 90% at 50% 50%,rgba(6,10,22,.35),rgba(6,10,22,.7))}
+.wash{position:absolute;inset:0;z-index:16;pointer-events:none;opacity:0;background:radial-gradient(70% 60% at 62% 55%,rgba(255,240,220,.55),rgba(255,240,220,0))}
+.shard{position:absolute;width:12px;height:22px;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.ripple{position:absolute;border-radius:50%;border:2px solid;transform:translate(-50%,-50%)}
+
+.tip{position:absolute;pointer-events:none;background:rgba(14,22,40,.9);color:#F4F7FB;padding:12px 16px;min-width:260px;opacity:0;transition:opacity .12s;border-radius:12px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+.tip.on{opacity:1}
+.tip .n{font:900 19px/1.2 var(--f-disp);display:flex;gap:10px;align-items:center}
+.tip .e{font:700 12px/1 var(--f-body);padding:4px 7px;color:#122133;border-radius:5px}
+.tip .l{font-size:14px;color:#C9D4E6;margin-top:6px}
+
+.slot{position:absolute;width:170px;height:46px;transform:translate(-50%,-50%);border-radius:50%;border:1.5px solid rgba(33,54,92,.42);background:radial-gradient(closest-side,rgba(255,255,255,.35),rgba(255,255,255,0))}
+.slot.target{border:2px solid #21365C;box-shadow:0 0 16px rgba(33,54,92,.5);background:radial-gradient(closest-side,rgba(33,54,92,.22),rgba(33,54,92,0))}
+.slot.vacant{border-style:dashed}
+.slot-lbl{position:absolute;transform:translate(-50%,0);font:700 12px/1 var(--f-num);letter-spacing:.18em;color:rgba(33,54,92,.75)}
+.bench{position:absolute;left:28px;bottom:24px;height:150px;display:flex;align-items:flex-end;gap:10px;padding:14px 18px;background:rgba(14,22,40,.72);border-radius:14px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.bench .bl{position:absolute;left:18px;top:12px;font-weight:700;font-size:14px;letter-spacing:.04em}
+.bench .ped{width:96px;height:110px;position:relative}
+.bench .ped::after{content:"";position:absolute;left:10px;right:10px;bottom:2px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,.3)}
+.bench .ped .unit{pointer-events:none}
+.deploy{position:absolute;right:28px;bottom:24px;display:flex;gap:8px;align-items:stretch}
+.deploy .s{height:58px;padding:0 22px;display:grid;place-items:center;background:rgba(247,250,253,.88);color:#122133;font-weight:700;font-size:16px;backdrop-filter:blur(10px);border-radius:14px}
+.deploy .go{height:58px;padding:0 46px;display:grid;place-items:center;background:#21365C;color:#fff;font:900 24px/1 var(--f-disp);letter-spacing:.3em;box-shadow:0 0 0 1px rgba(255,255,255,.2) inset;border-radius:14px}
+.enemy-note{position:absolute;font:600 14px/1 var(--f-num);letter-spacing:.2em;color:#fff;background:rgba(14,22,40,.72);padding:9px 14px;border-radius:10px}
+
+.guides{opacity:0;transition:opacity .2s}
+.show-guides .guides{opacity:1}
+.mode-prep .battle-only{display:none}
+.mode-battle .prep-only{display:none}
+
+/* 보드 부품 */
+.ratio{display:grid;grid-template-columns:minmax(0,520px) minmax(0,1fr);gap:28px;align-items:center}
+@media (max-width:820px){.ratio{grid-template-columns:1fr}}
+.ratio-fig{position:relative;background:linear-gradient(180deg,#D7E6F5,#EEF4FA);aspect-ratio:520/420;overflow:hidden;max-width:100%}
+.ratio-fig .inner{position:absolute;left:0;top:0;width:520px;height:420px;transform-origin:0 0}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:14px}
+.kv dt{font:600 12px/1.6 var(--f-num);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.kv dd{margin:0}
+.comp{background:#1C2741;padding:22px;display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end;justify-content:center;color:#F4F7FB;min-height:140px;position:relative}
+.comp .lab{font:600 11px/1.3 var(--f-num);letter-spacing:.14em;color:#AFC0DA;text-align:center;margin-top:10px;text-transform:uppercase}
+.comp .cell{display:flex;flex-direction:column;align-items:center}
+.comp .plate,.comp .uring{position:relative}
+.sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.sw div{background:var(--surface);padding:10px}
+.sw i{display:block;height:40px;margin-bottom:8px}
+.sw b{display:block;font-size:13px}
+.sw span{font:500 12px/1.3 var(--f-num);color:var(--muted);letter-spacing:.06em}
+.phase{display:grid;grid-template-columns:64px minmax(0,1fr);gap:16px;padding:18px 20px;background:var(--surface)}
+.phase .pn{font:700 28px/1 var(--f-num);color:var(--accent)}
+.phase h3{margin-bottom:6px}
+.phase .acc{margin-top:8px;font-size:14px;color:var(--muted)}
+.phases{display:flex;flex-direction:column;gap:10px}
+.decide{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.decide>div{background:var(--surface);padding:18px 20px;display:flex;flex-direction:column;gap:8px}
+.decide .rec{font-size:13px;color:var(--gold);font-weight:700}
+.typeset{display:flex;flex-direction:column;gap:14px;background:var(--surface);padding:20px 22px}
+.typeset .a{font:900 38px/1.15 var(--f-disp)}
+.typeset .b{font:700 40px/1 var(--f-num);font-variant-numeric:tabular-nums}
+.typeset .c{font:500 16px/1.6 var(--f-body)}
+.foot{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:18px}
+.sdgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.sdgrid figure{margin:0;background:linear-gradient(180deg,#D7E6F5,#EEF4FA);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.sdgrid img{width:100%;aspect-ratio:4/5;object-fit:contain;display:block}
+.sdgrid figcaption{background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);flex:1}
+.sdgrid figcaption b{color:var(--ink);font-size:14px}
+.sdrow{display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr);gap:16px;align-items:center}
+@media (max-width:820px){.sdrow{grid-template-columns:1fr}}
+.sdlab{font-weight:700;font-size:16px}
+.sdlab small{display:block;font-weight:400;font-size:13px;color:var(--muted);margin-top:4px;line-height:1.5}
+@media (prefers-reduced-motion: reduce){.sd-bob,.unit.acting .ring{animation:none}}
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="hero-meta"><span class="tag">🔸 미구현 제안</span><span class="eyebrow">시안 v1.2 · 2026-10-29 · 기준 1920×1080</span></div>
+    <h1>공허 위의 디오라마 전장</h1>
+    <p class="lede">카드 원화 전장을 무대 위에 선 SD 유닛으로 바꾸는 시안입니다. 배경과 캐릭터는 현재 게임의 원화를 그대로 썼습니다. SD는 ChatGPT ImageGen으로 새로 생성할 예정이며, 지금 화면의 SD는 스탠딩 원화를 머리 확대·몸 축소로 변형한 <b>임시 프록시</b>입니다. 판정·행동서열·AV·피해 콜백은 그대로 두고 화면에 보이는 층만 교체합니다.</p>
+  </header>
+
+  <section class="sec" aria-label="전투 화면 시안">
+    <div class="mock-bar">
+      <div class="seg" role="group" aria-label="화면">
+        <button id="m-battle" aria-pressed="true">전투</button>
+        <button id="m-prep" aria-pressed="false">준비·배치</button>
+      </div>
+      <div class="ctrls">
+        <span class="seg" role="group" aria-label="SD 스타일" id="sd-seg"><button data-s="v1" aria-pressed="false">SD 1차</button><button data-s="a" aria-pressed="false">스타일 A · 레조넌스 계열</button><button data-s="b" aria-pressed="false">스타일 B · 명일방주 계열</button><button data-s="c" aria-pressed="false">스타일 C</button><button data-s="c2" aria-pressed="false">스타일 C2</button><button data-s="c3" aria-pressed="true">스타일 C3 · 적을 보는 전투 자세</button><button data-s="off" aria-pressed="false">프록시</button></span>
+        <button class="btn" id="b-prop" aria-pressed="false">원화 비율로 보기</button>
+        <button class="btn" id="b-play">일시정지</button>
+        <button class="btn" id="b-speed">배속 ×1</button>
+        <button class="btn" id="b-guide" aria-pressed="false">가이드 보기</button>
+      </div>
+    </div>
+    <div class="mock-bar">
+      <div class="ctrls">
+        <span class="seg" role="group" aria-label="배치" id="lay-seg"><button data-v="rows" aria-pressed="true">진형 배치(전열·후열)</button><button data-v="zig" aria-pressed="false">기존 지그재그</button></span>
+        <span class="seg" role="group" aria-label="캐릭터 정보" id="hud-seg"><button data-v="hsr" aria-pressed="true">정보: 스타레일식</button><button data-v="bar" aria-pressed="false">정보: 양진영 하단 바</button><button data-v="feet" aria-pressed="false">정보: 발밑 묶음</button></span>
+      </div>
+    </div>
+    <div class="mock" id="mock"><div class="stage mode-battle" id="stage"></div></div>
+    <p class="note">재생 순서: 일반행동 → 정예 재규어 전사 공격(전열 탱커 보호막) → 수르트 초월기 컷인과 전열 광역. SD·하단 카드·행동 순서 칩·피해 집계 줄 중 하나에 마우스를 올리면 함께 강조되고 이름·원소·한줄소개가 뜹니다. 위 전환으로 기존 지그재그·발밑 묶음과 비교할 수 있습니다.</p>
+    <div class="grid2">
+      <div class="panel cut"><h3>진형 배치 · 세븐나이츠식 제안</h3><p class="muted" style="margin-top:8px">전열과 후열을 각각 바닥 원근을 따라 기울어진 한 줄로 세우고, 두 줄 사이를 크게 띄웁니다(중앙에서 전열 190px, 후열 540px). 같은 줄 안에서는 지그재그를 쓰지 않습니다. 바닥에 두 줄을 옅게 긋고, 준비 화면에서는 진하게 표시하며 “전열·후열” 이름을 붙입니다. 격자 좌표(x −2…2, y 1…4)와 전열 공석 시 후열을 당기는 규칙은 그대로입니다.</p></div>
+      <div class="panel cut"><h3>캐릭터 정보 · 스타레일식 하단 HUD</h3><p class="muted" style="margin-top:8px">양 진영을 모두 화면 아래에 초상화 카드로 늘어놓습니다. 아군은 왼쪽, 적은 오른쪽, 재보(공용 포인트 마름모 12칸)는 가운데이며, 각 진영의 전열 카드가 가운데 쪽에 와서 무대 배치와 방향이 같습니다. 카드는 초상화 원화를 크게 보여 주고 아래에 체력판(적은 강인도 포함), 바깥쪽 위 모서리에 초월 원을 겹칩니다. 초월이 충전되면 카드가 원소색 테두리로 빛나며 위로 뜨고, 행동 중인 유닛은 더 높이 뜹니다. 전장에는 SD·행동 고리·피해 숫자·상태 글자만 남아 가림이 없습니다. 카드를 가리키면 해당 SD가 강조됩니다. 위 전환의 “양진영 하단 바”는 이전의 작은 카드 안입니다.</p></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><span class="eyebrow">시범 원화 · 검수 대기</span><h2>ImageGen SD 1차</h2><p class="lede">Codex가 ChatGPT ImageGen으로 스탠딩 원화를 참조해 뽑은 IDLE 다섯 장입니다(총 15회 생성). 위 전투 화면의 SD 스타일 전환에서 “SD 1차”가 이 그림이고, “프록시”로 바꿔 비교할 수 있습니다.</p></div>
+    <div class="sdgrid">
+      <figure><img src="art/sd/surtr_sd.png" alt="수르트 SD"><figcaption><b>수르트</b><span>장발·검붉은 코트·룬 대검 유지. 다섯 중 가장 원화에 가깝다.</span></figcaption></figure>
+      <figure><img src="art/sd/sei_sd.png" alt="세이 SD"><figcaption><b>세이</b><span>은백 장발·백금 로브 유지. 원화보다 어려 보이고 머리 가장자리 흰 번짐.</span></figcaption></figure>
+      <figure><img src="art/sd/skadi_sd.png" alt="스카디 SD"><figcaption><b>스카디</b><span>구슬 지팡이·모피 망토 유지. 머리색이 원화보다 진하고 땋은 머리가 추가됨.</span></figcaption></figure>
+      <figure><img src="art/sd/shi_sd.png" alt="시 SD"><figcaption><b>시</b><span>올림머리·꽃 비녀·기모노 유지. 발이 옷자락에 가려 발 기준점 재확인 필요.</span></figcaption></figure>
+      <figure><img src="art/sd/freya_sd.png" alt="프레이아 SD"><figcaption><b>프레이아</b><span>포니테일·고글·공구 벨트 유지. 원화보다 무표정.</span></figcaption></figure>
+    </div>
+    <div class="panel cut"><h3>Root 검수 · 1차 HOLD</h3><p class="muted" style="margin-top:8px">톤은 합격선이지만 머리가 커서 약 2.5등신이고 눈이 커 어려 보이며, 림라이트 번짐과 머리 크기 불균일이 있습니다.</p></div>
+    <div class="sec-head" style="margin-top:12px"><span class="eyebrow">2차 · 검수 대기</span><h3 style="font-size:20px">두 스타일 비교</h3><p class="lede">같은 원화와 같은 실루엣 3요소로 스타일만 달리해 뽑았습니다(총 17회 생성). 프롬프트에는 게임 이름 대신 시각 특징만 적었습니다. 위 전투 화면의 SD 스타일 전환에서 같은 장면으로 비교할 수 있습니다.</p></div>
+    <div class="sdrow"><span class="sdlab">스타일 A<small>레조넌스 계열 · 둥근 2.5등신 · 부드러운 회화 명암 · 따뜻한 파스텔 · 가는 갈색 선</small></span>
+      <div class="sdgrid">
+        <figure><img src="art/sd_a/surtr_sd.png" alt="수르트 A"><figcaption><b>수르트</b></figcaption></figure>
+        <figure><img src="art/sd_a/sei_sd.png" alt="세이 A"><figcaption><b>세이</b></figcaption></figure>
+        <figure><img src="art/sd_a/skadi_sd.png" alt="스카디 A"><figcaption><b>스카디</b></figcaption></figure>
+        <figure><img src="art/sd_a/shi_sd.png" alt="시 A"><figcaption><b>시</b></figcaption></figure>
+        <figure><img src="art/sd_a/freya_sd.png" alt="프레이아 A"><figcaption><b>프레이아</b></figcaption></figure>
+      </div></div>
+    <div class="sdrow"><span class="sdlab">스타일 B<small>명일방주 계열 · 날렵한 3등신 · 진한 균일 선 · 단단한 2톤 셀 명암 · 원소색 포인트</small></span>
+      <div class="sdgrid">
+        <figure><img src="art/sd_b/surtr_sd.png" alt="수르트 B"><figcaption><b>수르트</b></figcaption></figure>
+        <figure><img src="art/sd_b/sei_sd.png" alt="세이 B"><figcaption><b>세이</b></figcaption></figure>
+        <figure><img src="art/sd_b/skadi_sd.png" alt="스카디 B"><figcaption><b>스카디</b></figcaption></figure>
+        <figure><img src="art/sd_b/shi_sd.png" alt="시 B"><figcaption><b>시</b></figcaption></figure>
+        <figure><img src="art/sd_b/freya_sd.png" alt="프레이아 B"><figcaption><b>프레이아</b></figcaption></figure>
+      </div></div>
+    <div class="panel cut"><h3>Root 검수 · 2차 HOLD</h3><p class="muted" style="margin-top:8px">1차보다 나아진 점: 다섯 명 모두 발끝이 보이고(시 포함), 흰 번짐이 줄었고, 한 스타일 안에서 머리 크기가 고르게 맞았습니다. 남은 문제: ① 두 스타일의 차이가 작습니다. B가 선이 진하고 명암 경계가 조금 단단할 뿐, 비율·얼굴·눈 크기가 A와 거의 같아 “날렵한 3등신”이 나오지 않았습니다. ② 두 스타일 모두 눈이 여전히 커서 원화보다 어려 보입니다. B를 확실히 가르려면 머리 비율을 전체의 1/3 이하로 고정하고 눈 높이를 머리 높이의 12% 안으로 지정해 다시 뽑아야 합니다.</p></div>
+    <div class="sdrow"><span class="sdlab">스타일 C · 3차<small>A 바탕 + B의 진한 균일 선(남색 먹선) + 실루엣 안 원소색 포인트 · 눈 높이 머리의 14% 이하</small></span>
+      <div class="sdgrid">
+        <figure><img src="art/sd_c/surtr_sd.png" alt="수르트 C"><figcaption><b>수르트</b><span>주홍 포인트는 대검 룬 안쪽.</span></figcaption></figure>
+        <figure><img src="art/sd_c/sei_sd.png" alt="세이 C"><figcaption><b>세이</b><span>노랑 포인트는 허리 장식·펜던트.</span></figcaption></figure>
+        <figure><img src="art/sd_c/skadi_sd.png" alt="스카디 C"><figcaption><b>스카디</b><span>빙색 포인트는 구슬·결정.</span></figcaption></figure>
+        <figure><img src="art/sd_c/shi_sd.png" alt="시 C"><figcaption><b>시</b><span>민트 포인트는 허리 장식·소매 안쪽.</span></figcaption></figure>
+        <figure><img src="art/sd_c/freya_sd.png" alt="프레이아 C"><figcaption><b>프레이아</b><span>황록 포인트는 파우치·의상 삽입부.</span></figcaption></figure>
+      </div></div>
+    <div class="panel cut"><h3>Root 검수 · 3차(스타일 C) 톤 합격 후보</h3><p class="muted" style="margin-top:8px">요청한 두 요소가 제대로 들어갔습니다. 외곽과 주요 형태에 굵기가 고른 남색 먹선이 둘려 작은 크기에서도 실루엣이 가장 또렷하고, 원소색은 의상·무기 안쪽 한두 곳에만 칠해져 번짐이 없습니다. A의 부드러운 명암과 따뜻한 색은 유지됐고, 눈이 작아져 1·2차보다 원화의 차분한 인상에 가깝습니다. 남은 점: ① 시·세이는 캔버스 안에서 그림 자체가 작게 생성되어(머리 위 여백 24~27%) 전장에서는 같은 키로 맞추지만 원본 해상도가 낮습니다. ② 스카디의 별 장식·땋은 머리·문양이 원화와 조금 다릅니다. 방향을 C로 정하면 이 두 가지만 보정해 나머지 포즈로 넘어가는 것을 권합니다.</p></div>
+    <div class="panel cut" style="display:flex;flex-direction:column;gap:14px">
+      <h3>Root 검수 · 스타일 C 눈·표정·자세 HOLD</h3>
+      <img src="art/review/eyes_portrait_vs_c.png" alt="위 초상화 원화, 아래 스타일 C의 얼굴 비교" style="width:100%;border-radius:10px;display:block">
+      <p class="muted">위는 초상화 원화, 아래는 스타일 C입니다. <b>눈:</b> 다섯 장 모두 같은 반쯤 감긴 아몬드 눈, 같은 위 눈꺼풀 선, 같은 아래쪽 시선, 같은 작은 일자 입입니다. 원화는 시(둥근 눈·옅은 미소), 세이(눈웃음), 수르트(처진 눈·살짝 벌린 입), 스카디(크고 맑은 눈), 프레이아(또렷한 눈·자신감 있는 미소)로 서로 다릅니다. 원인은 3차 프롬프트가 “작고 차분한 반감은 눈”을 다섯 명 공통으로 지시한 것입니다.</p>
+      <p class="muted"><b>자세:</b> 수르트를 뺀 네 명이 정면에 가까운 3/4, 어깨너비로 벌린 발, 한 팔을 옆으로 내민 같은 자세입니다. 무게 중심·고개·어깨 기울기도 같아 실루엣이 무기 유무로만 갈립니다. 원화 자세와 역할에서 가져와야 합니다: 시는 손을 모은 정적인 자세, 수르트는 대검에 기대고 손을 뺨에, 스카디는 지팡이를 양손으로 세워 쥠, 프레이아는 한 손을 허리에 대고 체중을 한쪽에.</p>
+      <p class="muted"><b>다음 회차:</b> 공통 문구에서 눈 모양·표정·자세를 빼고 캐릭터별 문장을 넣습니다. 초상화를 얼굴 참조로 함께 첨부하고, 스타일 기준본은 선·채색에만 쓰도록 명시합니다. 검수는 얼굴만 잘라 놓았을 때와 실루엣만 칠했을 때 다섯 명이 구분되는지로 봅니다. 상세: <code>sd_gen/review_c_eyes_pose.md</code></p>
+    </div>
+    <div class="sdrow"><span class="sdlab">스타일 C2 · 4차<small>C와 같은 선·채색 · 캐릭터별 눈·표정·자세 · 초상화를 얼굴 참조로 첨부</small></span>
+      <div class="sdgrid">
+        <figure><img src="art/sd_c2/surtr_sd.png" alt="수르트 C2"><figcaption><b>수르트</b><span>처진 눈·벌린 입, 대검에 기대고 손을 뺨에.</span></figcaption></figure>
+        <figure><img src="art/sd_c2/sei_sd.png" alt="세이 C2"><figcaption><b>세이</b><span>눈웃음, 손바닥을 내민 수호자 자세.</span></figcaption></figure>
+        <figure><img src="art/sd_c2/skadi_sd.png" alt="스카디 C2"><figcaption><b>스카디</b><span>크고 맑은 눈, 지팡이를 세워 쥠. 땋은 머리 제거.</span></figcaption></figure>
+        <figure><img src="art/sd_c2/shi_sd.png" alt="시 C2"><figcaption><b>시</b><span>둥근 눈·옅은 미소, 소매 속 손을 모은 자세.</span></figcaption></figure>
+        <figure><img src="art/sd_c2/freya_sd.png" alt="프레이아 C2"><figcaption><b>프레이아</b><span>밝은 눈·이 보이는 미소, 허리에 손.</span></figcaption></figure>
+      </div></div>
+    <div class="panel cut" style="display:flex;flex-direction:column;gap:14px">
+      <h3>Root 검수 · C2 눈 PASS · 자세 부분 HOLD</h3>
+      <img src="art/review/faces_c2.png" alt="위 초상화 원화, 아래 C2 얼굴" style="width:100%;border-radius:10px;display:block">
+      <p class="muted"><b>눈·표정 PASS.</b> 다섯 얼굴이 서로 구분되고 각자 원화를 닮았습니다. 시는 둥근 눈과 옅은 미소, 세이는 아래 눈꺼풀이 올라간 눈웃음, 수르트는 처진 눈과 살짝 벌린 입, 스카디는 크고 맑은 눈과 다문 입입니다. 프레이아는 이가 보이는 웃음으로, 원화의 옅은 미소보다 한 단계 밝지만 성격(자신감)에는 맞습니다.</p>
+      <img src="art/review/silhouettes_c2.png" alt="C2 다섯 장의 단색 실루엣" style="width:100%;border-radius:10px;display:block;background:#EEF1F5">
+      <p class="muted"><b>자세 부분 HOLD.</b> 색이 있을 때는 다섯 자세가 모두 구분됩니다. 단색 실루엣으로 보면 시(좁고 곧은 형태), 수르트(왼쪽 대검), 스카디(오른쪽 지팡이)는 바로 읽히지만, 세이와 프레이아는 머리카락 덩어리가 팔을 덮어 둘 다 큰 둥근 형태로 보입니다. 세이의 내민 손은 끝만 조금 나오고, 프레이아의 허리 위 팔꿈치는 보이지 않습니다. 전장의 작은 크기에서는 실루엣이 먼저 읽히므로, 두 명만 팔을 머리카락 밖으로 꺼내고 머리카락을 등 뒤로 모아 다시 뽑기를 권합니다. 나머지 세 명과 눈·표정은 이대로 확정해도 됩니다.</p>
+    </div>
+    <div class="sdrow"><span class="sdlab">스타일 C3 · 5차<small>적(화면 오른쪽)을 바라봄 · 원화 자세 대신 역할·무기의 전투 대기 자세 · C2 눈·표정 유지</small></span>
+      <div class="sdgrid">
+        <figure><img src="art/sd_c3/surtr_sd.png" alt="수르트 C3"><figcaption><b>수르트</b><span>대검을 어깨에 메고 여유 있게 선 자세.</span></figcaption></figure>
+        <figure><img src="art/sd_c3/sei_sd.png" alt="세이 C3"><figcaption><b>세이</b><span>곧게 서서 온화하게 적을 봄. 머리끝 황금색, 손짓으로 대지의 결정을 날림.</span></figcaption></figure>
+        <figure><img src="art/sd_c3/skadi_sd.png" alt="스카디 C3"><figcaption><b>스카디</b><span>지팡이를 두 손으로 비스듬히 쥠.</span></figcaption></figure>
+        <figure><img src="art/sd_c3/shi_sd.png" alt="시 C3"><figcaption><b>시</b><span>칼집에 손을 얹은 발도술 검사. 멀리 있는 적을 벰.</span></figcaption></figure>
+        <figure><img src="art/sd_c3/freya_sd.png" alt="프레이아 C3"><figcaption><b>프레이아</b><span>두 손을 모은 치유사. 눈을 감고 기도해 아군을 치유, 렌치는 벨트에만.</span></figcaption></figure>
+      </div></div>
+    <div class="panel cut" style="display:flex;flex-direction:column;gap:14px">
+      <h3>Root 검수 · C3 방향·실루엣 PASS · 소소한 보정 3건</h3>
+      <img src="art/review/silhouettes_c3.png" alt="C3 다섯 장의 단색 실루엣" style="width:100%;border-radius:10px;display:block;background:#EEF1F5">
+      <p class="muted"><b>방향 PASS.</b> 다섯 명 모두 얼굴·시선·코끝이 화면 오른쪽(적)을 향하고, 카메라를 보는 눈이 없습니다. 몸통도 오른쪽으로 돌았습니다. <b>실루엣 PASS.</b> 단색으로 칠해도 시(낮춘 자세·세운 손), 세이(오른쪽으로 뻗은 팔), 수르트(어깨 위 대검), 스카디(오른쪽 지팡이), 프레이아(높은 포니테일·허리 팔꿈치의 빈틈·렌치)가 바로 구분됩니다. C2에서 겹치던 세이·프레이아가 해결됐습니다. <b>자세:</b> 수르트는 원화 자세를 버리고 대검을 어깨에 멘 자연스러운 대기 자세가 되었습니다.</p>
+      <img src="art/review/faces_c3.png" alt="위 초상화 원화, 아래 C3 얼굴(오른쪽 시선)" style="width:100%;border-radius:10px;display:block">
+      <p class="muted"><b>눈·표정 유지.</b> 각도만 바뀌고 C2의 캐릭터별 눈·표정이 남았습니다. <b>소소한 보정:</b> ① 시의 세운 손이 “멈춰” 손짓처럼 보여 검사의 손날로 덜 읽힙니다(손날을 비스듬히, 손가락을 붙여서). ② 스카디의 구슬이 위를 향해 적 쪽을 겨누는 느낌이 약합니다(지팡이 끝을 오른쪽으로 더 기울여서). ③ 시의 눈이 C2보다 조금 커졌습니다. 세 가지 모두 IDLE을 확정하는 데 막히는 문제는 아니며, 나머지 포즈를 뽑을 때 함께 고칠 수 있습니다.</p>
+    </div>
+    <div class="sec-head" style="margin-top:12px"><span class="eyebrow">C3 확정 · 포즈 세트 · 검수 대기</span><h3 style="font-size:20px">IDLE · WINDUP · STRIKE · HIT · DOWN</h3><p class="lede">사용자 확정 C3를 기준으로 4포즈씩 20장을 생성했습니다. 시는 발도술 검사로 정정해 IDLE부터 다시 그렸습니다(맨손 IDLE은 보관). 위 전투 화면에서 공격자는 WINDUP → STRIKE, 피격자는 HIT 프레임으로 실제로 바뀝니다.</p></div>
+    <img src="art/review/poses_c3.png" alt="다섯 캐릭터의 다섯 포즈 비교 시트" style="width:100%;border-radius:12px;display:block">
+    <div class="panel cut" style="display:flex;flex-direction:column;gap:14px">
+      <h3>Root 검수 · 포즈 세트 · 사용자 확정(2026-10-29, 보류 3건은 기록만)</h3>
+      <img src="art/review/poses_c3_silhouette.png" alt="다섯 포즈의 단색 실루엣" style="width:100%;border-radius:10px;display:block;background:#EEF1F5">
+      <p class="muted"><b>좋은 점.</b> 다섯 명 모두 5포즈에서 같은 인물로 읽히고(머리·의상·얼굴 유지), 적 쪽을 향합니다. HIT은 눈을 감고 뒤로 젖히며, DOWN은 무기를 짚고 한 무릎을 꿇어 한눈에 읽힙니다. 수르트(어깨 메기 → 감아올림 → 오른쪽 아래 내리베기)와 시(발도 대기 → 칼집에서 한 뼘 → 완전히 뽑아 오른쪽으로 뻗음)가 가장 잘 나왔습니다. 프레임마다 발 기준선이 캐릭터별로 같아 교체해도 튀지 않습니다.</p>
+      <p class="muted"><b>HOLD.</b> ① 스카디 STRIKE: 머리가 다른 프레임보다 작고, 왼쪽 머리카락이 캔버스에 잘리며, 지팡이 머리 장식이 IDLE과 다릅니다(Codex도 FAIL로 표시). ② 세이 STRIKE가 IDLE과 실루엣이 거의 같습니다. 두 손을 앞으로 더 크게 내밀고 몸을 기울여야 정점으로 읽힙니다. ③ 프레이아 WINDUP이 IDLE과 거의 같습니다. 렌치를 어깨 뒤로 확실히 당겨야 합니다. 이 세 장만 다시 뽑으면 됩니다.</p>
+      <p class="muted"><b>참고.</b> 시의 IDLE과 WINDUP도 실루엣이 비슷하지만, WINDUP은 0.14초만 보이고 칼날이 칼집에서 나와 있어 허용합니다. 발 기준선은 캐릭터마다 다릅니다(캔버스 아래에서 2.5~7.7%). 게임 등록 때 캐릭터별 발 좌표를 데이터로 두면 되므로 다시 맞추지 않습니다.</p>
+    </div>
+  </section>
+
+  <section class="sec" aria-label="소환수 배치 시안" id="sm-sec">
+<style>
+/* 소환수 배치 시안: 위 전투 시안과 같은 무대 좌표(ROW·rowDist·slotPos)를 쓰고, 이 절 안에서만 돌아가는 별도 장면이다. */
+.sm-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;color:#F4F7FB;font-family:var(--f-body);
+  background:#BFD6EE url(art/stage_sky_citadel.jpg) center/cover no-repeat}
+.sm-stage *{box-sizing:border-box}
+.sm-layer{position:absolute;inset:0;pointer-events:none}
+.sm-grade{background:linear-gradient(180deg,rgba(14,22,40,.28) 0%,rgba(14,22,40,0) 14%,rgba(14,22,40,0) 74%,rgba(14,22,40,.42) 100%),
+  radial-gradient(120% 80% at 50% 62%,rgba(255,255,255,0) 55%,rgba(20,32,60,.22) 100%)}
+.sm-u{position:absolute;left:0;top:0;width:0;height:0}
+.sm-fig{position:absolute;left:0;top:0;transform-origin:0 0}
+.sm-fig img{position:absolute;display:block;max-width:none;user-select:none;pointer-events:none}
+.sm-shadow{position:absolute;width:150px;height:28px;left:-75px;top:-14px;border-radius:50%;background:radial-gradient(closest-side,rgba(28,40,72,.42),rgba(28,40,72,0))}
+.sm-ring{position:absolute;width:176px;height:42px;left:-88px;top:-21px;border-radius:50%;opacity:0;transition:opacity .2s;
+  border:2px solid var(--el);box-shadow:0 0 18px 2px var(--el),inset 0 0 14px var(--el)}
+.sm-u.acting .sm-ring{opacity:.95}
+.sm-clone img{filter:sepia(.2) hue-rotate(118deg) saturate(.85) brightness(1.12)}
+.sm-clone .sm-shadow{opacity:.6}
+.sm-dmg{position:absolute;font:700 44px/1 var(--f-num);font-variant-numeric:tabular-nums;color:#fff;letter-spacing:.02em;white-space:nowrap;
+  -webkit-text-stroke:3px #14203A;paint-order:stroke fill;text-shadow:0 2px 0 #14203A,0 0 14px rgba(20,32,58,.55);transform:translate(-50%,-50%) skewX(-8deg)}
+.sm-dmg small{display:block;font:700 15px/1 var(--f-body);letter-spacing:.08em;color:#CFE9FF;-webkit-text-stroke:0;text-align:center;margin-bottom:5px}
+.sm-tag{position:absolute;font:700 21px/1 var(--f-body);color:#E8F6FF;white-space:nowrap;transform:translate(-50%,-50%);
+  text-shadow:0 1px 0 #14203A,0 0 10px rgba(20,32,58,.75)}
+.sm-paper{position:absolute;width:12px;height:16px;margin:-8px 0 0 -6px;background:#F3F6EE;border-radius:2px;box-shadow:0 0 0 1px rgba(80,120,110,.3)}
+.sm-arrow{position:absolute;width:3px;height:74px;margin-left:-1px;border-radius:2px;background:linear-gradient(rgba(255,232,168,0),#FFE8A8);transform:rotate(16deg)}
+.sm-prey{position:absolute;width:30px;height:30px;transform:translate(-50%,-50%)}
+.sm-slotmark{position:absolute;border:2px dashed rgba(255,255,255,.85);border-radius:50%;transform:translate(-50%,-50%)}
+.sm-slotmark b{position:absolute;left:50%;top:-30px;transform:translateX(-50%);font:700 16px/1 var(--f-body);white-space:nowrap;padding:5px 8px;border-radius:6px;background:rgba(14,22,40,.78)}
+.sm-slotmark.own{border-color:rgba(159,227,200,.95)}
+#sm-guide{display:none}.sm-stage.g #sm-guide{display:block}
+.sm-top{position:absolute;left:24px;right:24px;top:14px;height:52px;border-radius:12px;background:rgba(244,247,251,.82);color:#21365C;
+  display:flex;align-items:center;gap:26px;padding:0 24px;font:600 19px/1 var(--f-body)}
+.sm-top .r{margin-left:auto;font:600 17px/1 var(--f-num);letter-spacing:.06em}
+.sm-tl{position:absolute;left:24px;top:84px;width:172px;padding:10px;border-radius:12px;background:rgba(244,247,251,.8);color:#21365C;display:flex;flex-direction:column;gap:5px}
+.sm-tl h4{margin:0 0 4px;font:600 14px/1 var(--f-body);color:#55657A}
+.sm-tl .c{display:flex;align-items:center;gap:8px;font:600 15px/1 var(--f-body);padding:4px;border-radius:8px}
+.sm-tl .c img{width:32px;height:32px;border-radius:8px;object-fit:cover;object-position:50% 20%;flex:none}
+.sm-tl .c.s{margin-left:18px;font-size:13px}.sm-tl .c.s img{width:24px;height:24px;filter:sepia(.4) hue-rotate(118deg) saturate(.7) brightness(1.1)}
+.sm-tl .c.s.co img{filter:none}
+.sm-tl .c.now{background:#21365C;color:#fff}
+.sm-cap{position:absolute;left:50%;top:92px;transform:translateX(-50%);padding:12px 24px;border-radius:12px;background:rgba(14,22,40,.76);
+  font:600 23px/1.35 var(--f-body);white-space:nowrap;text-align:center}
+.sm-cap small{display:block;font:500 17px/1.4 var(--f-body);color:#B9C9DF;margin-top:3px}
+.sm-cards{position:absolute;left:0;right:0;bottom:16px;display:flex;justify-content:center;gap:10px}
+.sm-card{position:relative;width:120px;height:150px;border-radius:8px;overflow:hidden;background:#141C2F;box-shadow:0 0 0 1px rgba(255,255,255,.16);transition:transform .2s,box-shadow .2s}
+.sm-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 16%}
+.sm-card::after{content:"";position:absolute;inset:auto 0 0 0;height:56px;background:linear-gradient(rgba(14,22,40,0),rgba(14,22,40,.92))}
+.sm-card .nm{position:absolute;left:8px;bottom:17px;font:700 15px/1 var(--f-body);z-index:1}
+.sm-card .hp{position:absolute;left:8px;right:8px;bottom:7px;height:5px;background:rgba(0,0,0,.6);border-radius:3px;z-index:1}
+.sm-card .hp i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:linear-gradient(90deg,#1FAE98,#39DCC1);transition:width .3s}
+.sm-card.enemy .hp i{background:linear-gradient(90deg,#C8414F,#F06B78)}
+.sm-card .badge{position:absolute;left:6px;right:6px;top:6px;height:22px;border-radius:6px;background:rgba(1,2,6,.88);z-index:1;
+  font:700 13px/22px var(--f-body);text-align:center;color:#CFF3EA;display:flex;align-items:center;justify-content:center;gap:4px}
+.sm-card .badge:empty{display:none}
+.sm-card .badge i{width:9px;height:9px;transform:rotate(45deg);background:#3A4660;display:block}
+.sm-card .badge i.on{background:#FFC836;box-shadow:0 0 6px #FFC836}
+.sm-card.now{box-shadow:0 0 0 2px #9FE3C8,0 0 16px #9FE3C8;transform:translateY(-12px)}
+.sm-cards .gap{width:44px}
+.sm-temp{position:absolute;right:24px;top:84px;padding:9px 13px;border-radius:10px;background:rgba(200,65,79,.88);font:700 15px/1.3 var(--f-body);max-width:330px}
+</style>
+    <div class="sec-head"><span class="eyebrow">소환수 · 실제 구동 · SD 4차 · 검수 대기</span><h2>소환수 배치</h2><p class="lede">칸 없는 소환수를 주인 뒤쪽 바닥에 SD로 세우고, 실제 키트 순서대로 움직이는 장면입니다. 다수형(우치 분신 최대 3기)과 동반형(로키의 펜리르), 표시 전용 동반(오리온의 시리우스)을 같은 무대 규칙으로 맞췄습니다.</p></div>
+    <div class="mock-bar">
+      <span class="seg" role="group" aria-label="장면" id="sm-scene"><button data-v="all" aria-pressed="true">전체 자동</button><button data-v="usa" aria-pressed="false">우치 · 분신</button><button data-v="loki" aria-pressed="false">로키 · 펜리르</button><button data-v="orion" aria-pressed="false">오리온 · 시리우스</button></span>
+      <div class="ctrls"><button class="btn" id="sm-play">일시정지</button><button class="btn" id="sm-speed">배속 ×1</button><button class="btn" id="sm-gbtn" aria-pressed="false">자리 가이드</button></div>
+    </div>
+    <div class="mock" id="sm-mock"><div class="sm-stage" id="sm-stage">
+      <div class="sm-layer sm-grade"></div>
+      <div class="sm-layer" id="sm-guide"></div>
+      <div class="sm-layer" id="sm-units"></div>
+      <div class="sm-layer" id="sm-fx" style="z-index:5000"></div>
+      <div class="sm-top" style="z-index:6000"><span>1-6</span><span>공허의 결정원</span><span>전투 중 · 적 4</span><span class="r" id="sm-spd">×1</span></div>
+      <div class="sm-tl" id="sm-tl" style="z-index:6000"></div>
+      <div class="sm-cap" id="sm-cap" style="z-index:6000"></div>
+      <div class="sm-temp" id="sm-temp" style="z-index:6000">임시 그림 · 오리온·시리우스는 SD 4차 검수 뒤 교체</div>
+      <div class="sm-cards" id="sm-cards" style="z-index:6000"></div>
+    </div></div>
+    <div class="grid2">
+      <div class="panel cut"><h3>자리 · 동반형은 뒤, 다수형은 소환술사별 고유 배치(주인 둘레)</h3><p class="muted" style="margin-top:8px">소환수는 칸을 차지하지 않습니다. <b>동반형</b>(펜리르·시리우스)은 주인 뒤쪽 바닥 한 자리에 서고 주인보다 뒤에 그립니다. <b>다수형</b>은 소환술사마다 고유 배치를 갖습니다 — 우치 분신(주인 × 0.55)과 이시스 수호령(× 0.45, 떠 있음)은 모두 <b>주인과 같은 깊이에서 주인 둘레 좌우로 넓게</b> 펼칩니다. 한 기는 적 쪽 앞, 두 기는 열 사이 빈 공간(뒤쪽)으로 가서 서로 뭉치지 않고, 주인 다리 곁과 같은 열의 위아래 칸(다른 유닛의 머리·몸)은 비워 가리지 않습니다. 적 쪽으로는 화면 중앙선을 넘지 않고, 화면 가장자리 140px 안에 들어오는 슬롯은 먼저 안쪽으로 당기고, 그래도 다른 소환수와 붙으면 주인 적 쪽 (+215, −24) 또는 (+215, +40)으로 옮겨 어떤 두 소환수도 뭉치지 않게 합니다.</p></div>
+      <div class="panel cut"><h3>움직임 · 주인과 같은 5포즈</h3><p class="muted" style="margin-top:8px">분신은 종이가 펴지듯 세로로 펼쳐지며 나오고, 제 차례에 WINDUP → 적 앞까지 돌진 → STRIKE 뒤 그 자리에서 종이로 흩어집니다. 넘칠 때는 가장 오래된 분신이 제자리에서 짧게 내딛어 치고, 남은 분신이 한 칸씩 앞으로 옵니다. 큰 한 방을 대신 맞을 때는 주인 앞으로 나서 HIT 뒤 흩어집니다. 펜리르는 추격 때 도약해 물고 제자리로 돌아오며, 소환자와 소환수는 피격 판정이 따로라 주인이 맞아도 소환수는 함께 움찔하지 않습니다. 시리우스는 화살비 순간에만 울부짖습니다. 모든 움직임은 게임의 실제 타격 시각 안에 맞춥니다 — 분신은 0.24초 안에 준비·돌진, 펜리르는 0.10초 안에 덮치고 복귀는 타격 뒤, 만천화우는 모든 분신이 같은 순간에 칩니다.</p></div>
+      <div class="panel cut"><h3>HUD · 행동 순서</h3><p class="muted" style="margin-top:8px">대상이 될 수 없는 소환수에는 체력판을 달지 않습니다. 주인 카드 위 배지가 <b>분신 ×n</b> · <b>펜리르</b> · <b>시리우스 마름모 5칸</b>을 보여 줍니다. 고정 속도 소환수(분신 105 · 펜리르 90)는 행동 순서에 주인 이름 아래 작은 칩으로 들어가고, 시리우스는 자원이라 들어가지 않습니다.</p></div>
+      <div class="panel cut"><h3>키트와 맞춘 점</h3><p class="muted" style="margin-top:8px">우치 자신은 때리지 않습니다(분신술·초월기 모두 손짓). 분신의 공격만 접촉 타격입니다. 오리온의 시리우스는 데이터상 소환 유닛이 아니라 피격으로 쌓이는 자원이라, 요청대로 <b>표시 전용 사냥개</b>로 붙이고 판정·행동 순서는 바꾸지 않습니다. 이시스 수호단(문양 3개)은 현행 표시를 유지하고, 쿠베라 초월기의 추가 생성은 다수형 규칙을 그대로 씁니다.</p></div>
+    </div>
+    <div class="tbl cut"><table>
+      <thead><tr><th>종류</th><th>예</th><th>자리(주인 발 기준, 깊이 배율 곱)</th><th>크기</th><th>그리기 순서</th><th>표시</th></tr></thead>
+      <tbody>
+        <tr><td>다수형 Swarm</td><td>우치 분신</td><td class="num">주인 둘레 같은 깊이: 앞(+100,+6) · 뒤(−165,−28) · 더 뒤(−250,+24)px. 주인 다리 곁과 같은 열 위아래 칸은 비움</td><td class="num">주인 × 0.55(꼬맹이 분신)</td><td>주인보다 앞</td><td>원본 색에 옥색 종이 색조, 불투명도 0.88</td></tr>
+        <tr><td>동반형 Companion</td><td>로키 펜리르</td><td class="num">뒤 170px, 깊이 −20px(가로로 긴 몸이 주인과 겹치지 않게)</td><td class="num">주인 × 0.62(네 발 짐승이라 몸 길이 기준으로 줄임)</td><td>주인 바로 뒤</td><td>원본 색 그대로</td></tr>
+        <tr><td>표시 전용 동반</td><td>오리온 시리우스</td><td class="num">뒤 128px, 깊이 −20px</td><td class="num">주인 × 0.60</td><td>주인 바로 뒤</td><td>행동 순서·대상 아님, 주인 카드에 자원 5칸</td></tr>
+        <tr><td>수호령 Cohort</td><td>이시스 수호령(매듭·눈·날개)</td><td class="num">주인 둘레 같은 깊이: 앞(+105,+4) · 뒤(−170,−26) · 더 뒤(−255,+22)px, 30px 떠 있음</td><td class="num">주인 × 0.45</td><td>주인보다 앞</td><td>원본 색, 피격 불가라 체력판 없음. 떠 있는 정령이라 아군 SD 전체보다 위에 그린다. 카드 배지 “수호령 ×n”</td></tr>
+      </tbody></table></div>
+  </section>
+<script>
+(()=>{
+const S=document.getElementById('sm-stage'), MOCK=document.getElementById('sm-mock');
+const fit=()=>{ S.style.transform=`scale(${MOCK.clientWidth/1920})`; };
+new ResizeObserver(fit).observe(MOCK); fit();
+const $=s=>S.querySelector(s);
+// 위 전투 시안·StageLayout과 같은 무대 좌표.
+const ROW={far:560,near:870,front:190,back:540,slant:30}, BODY=250;
+const rowDist=(c,t)=>(c?ROW.back:ROW.front)*(.80+.25*t)+ROW.slant*(t-.5);
+const slot=(side,c,t)=>({x:960+side*rowDist(c,t),y:ROW.far+(ROW.near-ROW.far)*t,ds:.84+.22*t});
+// 소환수 자리 규칙. 값은 1920×1080 픽셀에 주인의 깊이 배율 ds를 곱한다.
+const RULE={companion:{back:{fenrir:170,sirius:128},up:20,size:{fenrir:.62,sirius:.60}},swarm:{usa:{size:.55,slots:[[100,6],[-165,-28],[-250,24]],float:0},isis:{size:.45,slots:[[105,4],[-170,-26],[-255,22]],float:30}}};
+const ART={usa:'art/sd_v4/usa',usa_clone:'art/sd_v4/usa_clone',loki:'art/sd_v4/loki',fenrir:'art/sd_v4/fenrir',
+  orion:'art/sd_v4/orion',sirius:'art/sd_v4/sirius',sei:'art/sd_v4/sei',chandra:'art/sd_v4/chandra'};
+const STAND={jaguar:{f:'art/jaguar.png',left:true},eagle:{f:'art/eagle.png',left:false},priest:{f:'art/priest.png',left:true}};
+const TEMP=false;
+const POSES=['idle','windup','strike','hit','down'];
+const M={};
+function measure(src){return new Promise(res=>{const im=new Image();im.onload=()=>{const w=im.naturalWidth,h=im.naturalHeight;
+  let r=(w*1.25===h)?{w,h,top:h*230/1280,bottom:h*1220/1280,cx:w/2}:{w,h,top:h*.1,bottom:h*.96,cx:w/2};
+  try{const cw=256,ch=Math.round(h*cw/w),c=document.createElement('canvas');c.width=cw;c.height=ch;const x=c.getContext('2d');x.drawImage(im,0,0,cw,ch);
+    const d=x.getImageData(0,0,cw,ch).data;let top=-1,bot=-1;
+    for(let y=0;y<ch;y++)for(let i=0;i<cw;i++)if(d[(y*cw+i)*4+3]>=129){if(top<0)top=y;bot=y;break;}
+    if(top>=0){let sx=0,n=0;for(let y=Math.max(0,bot-Math.round(ch*.03));y<=bot;y++)for(let i=0;i<cw;i++)if(d[(y*cw+i)*4+3]>=129){sx+=i;n++;}
+      const s=w/cw;r={w,h,top:top*s,bottom:(bot+1)*s,cx:n?sx/n*s:w/2};}}catch(e){}
+  M[src]=r;res(r);};im.onerror=()=>{M[src]={w:1024,h:1280,top:230,bottom:1220,cx:512};res(M[src]);};im.src=src;});}
+
+// 시계: 배속·일시정지를 따르고, 장면을 바꾸면 이전 장면의 대기가 모두 멈춘다.
+const STOP={}; let speed=1,paused=false,token=0;
+const raf=()=>new Promise(r=>requestAnimationFrame(r));
+async function wait(ms){const tk=token;let t=0,l=performance.now();while(t<ms){await raf();const n=performance.now();if(!paused)t+=(n-l)*speed;l=n;if(tk!==token)throw STOP;}}
+async function tween(ms,fn){const tk=token;let t=0,l=performance.now();fn(0);while(t<ms){await raf();const n=performance.now();if(!paused)t+=(n-l)*speed;l=n;if(tk!==token)throw STOP;fn(Math.min(1,t/ms));}}
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2, lerp=(a,b,t)=>a+(b-a)*t;
+const bg=p=>p.catch(()=>{});
+
+let U={}, clones=[], pips=3;
+function mk(o){
+  const u=Object.assign({size:1,zb:0,op:1,sx:1,sy:1},o);
+  if(o.c!==undefined){const s=slot(o.side,o.c,o.t);u.x=s.x;u.y=s.y;u.ds=s.ds;}
+  u.hx=u.x;u.hy=u.y;
+  u.src0=u.key?`${ART[u.key]}_idle.png`:STAND[u.stand].f; u.m=M[u.src0];
+  const el=document.createElement('div');el.className='sm-u'+(u.cls?' '+u.cls:'');el.style.setProperty('--el',u.el||'#9DB4E2');
+  el.innerHTML='<div class="sm-shadow"></div><div class="sm-ring"></div><div class="sm-fig"><img alt=""></div>';
+  u.dom=el;u.fig=el.querySelector('.sm-fig');u.img=el.querySelector('img');
+  u.H=BODY*u.ds*u.size*(u.stand?1.25:1); const k=u.H/(u.m.bottom-u.m.top);
+  Object.assign(u.img.style,{width:u.m.w*k+'px',left:-u.m.cx*k+'px',top:-u.m.bottom*k+'px'});
+  u.img.src=u.src0;
+  u.flip=u.side===1&&!(u.stand&&STAND[u.stand].left);
+  el.querySelector('.sm-shadow').style.transform=`scale(${u.ds*u.size})`;
+  el.querySelector('.sm-ring').style.transform=`scale(${u.ds*u.size})`;
+  $('#sm-units').appendChild(el); place(u); return u;}
+const zOf=u=>u.z!==undefined?u.z:Math.round(u.y)*4+u.zb;
+function place(u){u.dom.style.transform=`translate(${u.x}px,${u.y}px)`;u.dom.style.zIndex=String(zOf(u));
+  u.fig.style.transform=`scale(${(u.flip?-1:1)*u.sx},${u.sy})`;u.dom.style.opacity=u.op;}
+function pose(u,p){if(u.key)u.img.src=`${ART[u.key]}_${p}.png`;}
+const head=u=>({x:u.x,y:u.y-u.H*.9});
+function act(u,on){u.dom.classList.toggle('acting',on);}
+
+function fx(cls,html,x,y){const e=document.createElement('div');e.className=cls;e.innerHTML=html||'';e.style.left=x+'px';e.style.top=y+'px';$('#sm-fx').appendChild(e);return e;}
+function num(u,text,label,color){const p=head(u);const e=fx('sm-dmg',(label?`<small>${label}</small>`:'')+text,p.x+(Math.random()*24-12),p.y);if(color)e.style.color=color;
+  bg(tween(820,t=>{e.style.marginTop=(-48*ease(t))+'px';e.style.opacity=t<.7?1:1-(t-.7)/.3;}).finally(()=>e.remove()));}
+function tag(u,text,color){const p=head(u);const e=fx('sm-tag',text,p.x,p.y-26);if(color)e.style.color=color;
+  bg(tween(1000,t=>{e.style.marginTop=(-30*t)+'px';e.style.opacity=t<.75?1:1-(t-.75)/.25;}).finally(()=>e.remove()));}
+function paper(x,y,H){for(let i=0;i<9;i++){const e=fx('sm-paper','',x,y-H*(.2+Math.random()*.6));const a=Math.random()*Math.PI*2,d=40+Math.random()*70,r=Math.random()*360;
+  bg(tween(640,t=>{e.style.transform=`translate(${Math.cos(a)*d*t}px,${Math.sin(a)*d*t-56*t}px) rotate(${r+t*260}deg)`;e.style.opacity=1-t;}).finally(()=>e.remove()));}}
+
+async function hit(u,ms=420){pose(u,'hit');const x0=u.x;await tween(110,t=>{u.x=x0+u.side*16*t;place(u);});await wait(ms-260);
+  await tween(150,t=>{u.x=x0+u.side*16*(1-t);place(u);});pose(u,'idle');}
+async function cast(u,windup=160,hold=320){act(u,true);pose(u,'windup');await wait(windup);pose(u,'strike');await wait(hold);pose(u,'idle');act(u,false);}
+async function dashTo(a,x,y,ms=220,arc=0){const x0=a.x,y0=a.y;await tween(ms,t=>{const e=ease(t);a.x=lerp(x0,x,e);a.y=lerp(y0,y,e)-arc*Math.sin(Math.PI*t);place(a);});}
+const front=(a,tg,stop=130)=>({x:tg.x+a.side*stop*tg.ds,y:tg.y+2});
+function damage(tg,f){const c=$(`.sm-card[data-id="${tg.id}"] .hp i`);if(c){tg.hpf=Math.max(.08,(tg.hpf??1)-f);c.style.width=tg.hpf*100+'%';}}
+
+// 분신 자리와 생성·소멸
+function swarmPos(o,i,k="usa"){const r=RULE.swarm[k],s=r.slots[i];return{x:o.hx-o.side*s[0]*o.ds,y:o.hy+(s[1]-r.float)*o.ds,ds:o.ds};}
+function compPos(o,k){return{x:o.hx+o.side*RULE.companion.back[k]*o.ds,y:o.hy-RULE.companion.up*o.ds};}
+async function spawn(o){const i=clones.length,p=swarmPos(o,i);
+  const c=mk({id:'clone',key:'usa_clone',side:o.side,x:p.x,y:p.y,ds:p.ds,size:RULE.swarm.usa.size,cls:'sm-clone',el:o.el,op:0,sy:0});
+  c.z=zOf(o)+1+i;clones.push(c);badges();paper(c.x,c.y,c.H);
+  await tween(300,t=>{const e=ease(t);c.op=.88*e;c.sy=e;place(c);});}
+async function depart(c){paper(c.x,c.y,c.H);await tween(220,t=>{c.op=(1-t)*.88;c.sy=1-t*.6;c.sx=1+t*.15;place(c);});c.dom.remove();}
+async function reslot(o){await Promise.all(clones.map((c,i)=>{const p=swarmPos(o,i);c.z=zOf(o)+1+i;return dashTo(c,p.x,p.y,240);}));}
+
+function cards(){
+  const ally=['chandra','sei','loki','orion','usa'],foe=['jag1','jag2','eagle','priest'];
+  const card=id=>{const u=U[id];return `<div class="sm-card ${u.side===1?'enemy':''}" data-id="${id}"><img src="art/portrait/${u.por}.png" alt=""><div class="badge"></div><span class="nm">${u.name}</span><span class="hp"><i style="width:${(u.hpf??1)*100}%"></i></span></div>`;};
+  $('#sm-cards').innerHTML=ally.map(card).join('')+'<span class="gap"></span>'+foe.map(card).join('');badges();}
+function badges(){const b=id=>$(`.sm-card[data-id="${id}"] .badge`);if(!b('usa'))return;
+  b('usa').textContent=clones.length?`분신 ×${clones.length}`:'';b('loki').textContent='펜리르';
+  b('orion').innerHTML=`<span style="margin-right:3px">시리우스</span>`+[0,1,2,3,4].map(i=>`<i class="${i<pips?'on':''}"></i>`).join('');}
+function now(id){S.querySelectorAll('.sm-card').forEach(c=>c.classList.toggle('now',c.dataset.id===id));}
+const CH={usa:['우치','usa'],clone:['분신','usa',1],loki:['로키','loki'],fenrir:['펜리르','fenrir',2],orion:['오리온','orion'],sei:['세이','sei'],chandra:['찬드라','chandra'],jag:['재규어 전사','jaguar'],eagle:['독수리 전사','eagle']};
+function order(list){$('#sm-tl').innerHTML='<h4>행동 순서</h4>'+list.map((k,i)=>{const [n,p,s]=CH[k];return `<div class="c ${s?'s':''} ${s===2?'co':''} ${i===0?'now':''}"><img src="art/portrait/${p}.png" alt="">${n}</div>`;}).join('');}
+function cap(t,sub){$('#sm-cap').innerHTML=t+(sub?`<small>${sub}</small>`:'');}
+function guide(){const g=$('#sm-guide');const mark=(x,y,w,l,own)=>`<div class="sm-slotmark ${own?'own':''}" style="left:${x}px;top:${y}px;width:${w}px;height:${w*.24}px"><b>${l}</b></div>`;
+  const o=U.usa,l=U.loki,r=U.orion;
+  g.innerHTML=[0,1,2].map(i=>{const p=swarmPos(o,i);return mark(p.x,p.y,80*o.ds,`분신 ${i+1}`);}).join('')+mark(o.hx,o.hy,160*o.ds,'우치',1)
+    +mark(compPos(l,"fenrir").x,compPos(l,"fenrir").y,130*l.ds,'펜리르 · 동반')+mark(l.hx,l.hy,160*l.ds,'로키',1)
+    +mark(compPos(r,"sirius").x,compPos(r,"sirius").y,110*r.ds,'시리우스 · 표시 전용')+mark(r.hx,r.hy,160*r.ds,'오리온',1);}
+
+function build(){
+  $('#sm-units').innerHTML='';$('#sm-fx').innerHTML='';clones=[];pips=3;
+  U={};
+  U.usa=mk({id:'usa',name:'우치',key:'usa',side:-1,c:0,t:.2,el:'#5CDAB3',por:'usa'});
+  U.orion=mk({id:'orion',name:'오리온',key:'orion',side:-1,c:0,t:.8,el:'#FFC836',por:'orion'});
+  U.loki=mk({id:'loki',name:'로키',key:'loki',side:-1,c:1,t:0,el:'#5CDAB3',por:'loki'});
+  U.sei=mk({id:'sei',name:'세이',key:'sei',side:-1,c:1,t:.5,el:'#99E5F6',por:'sei'});
+  U.chandra=mk({id:'chandra',name:'찬드라',key:'chandra',side:-1,c:1,t:1,el:'#FFC836',por:'chandra'});
+  U.jag1=mk({id:'jag1',name:'재규어 전사',stand:'jaguar',side:1,c:0,t:.2,por:'jaguar'});
+  U.jag2=mk({id:'jag2',name:'재규어 전사',stand:'jaguar',side:1,c:0,t:.8,por:'jaguar'});
+  U.eagle=mk({id:'eagle',name:'독수리 전사',stand:'eagle',side:1,c:1,t:.2,por:'eagle'});
+  U.priest=mk({id:'priest',name:'뱀 사제',stand:'priest',side:1,c:1,t:.8,por:'priest'});
+  for(const [k,o] of [['fenrir',U.loki],['sirius',U.orion]]){const p=compPos(o,k);
+    U[k]=mk({id:k,key:k,side:o.side,x:p.x,y:p.y,ds:o.ds,size:RULE.companion.size[k],el:o.el});U[k].z=zOf(o)-1;place(U[k]);}
+  cards();guide();$('#sm-temp').style.display=TEMP?'':'none';}
+
+// ---- 장면: 실제 키트 순서 ----
+async function sceneUsa(){
+  const o=U.usa,J=U.jag1;
+  order(['usa','sei','clone','jag','loki','orion']);now('usa');
+  cap('우치 · 분신술','분신 1기를 만든다. 우치 자신은 피해를 주지 않는다');
+  await cast(o);await spawn(o);await wait(500);
+  order(['clone','jag','usa','loki','orion','sei']);now('usa');
+  cap('분신 차례 · 고정 속도 105','우치 공격력 210%로 한 번 치고 그 자리에서 사라진다');
+  {const c=clones.shift();badges();act(c,true);pose(c,'windup');await wait(80);const f=front(c,J);await dashTo(c,f.x,f.y,160);
+   pose(c,'strike');num(J,'2,940','분신');damage(J,.08);bg(hit(J));await wait(260);await depart(c);}
+  await wait(400);
+  order(['usa','usa','usa','jag','clone','clone']);
+  cap('우치 · 분신술 ×3','오래된 분신이 주인에게 가장 가깝고, 새 분신은 뒤로 한 칸씩 펼쳐진다');
+  for(let i=0;i<3;i++){await cast(o,120,200);await spawn(o);await wait(160);}
+  await wait(400);
+  cap('상한 3기에서 분신술','가장 오래된 분신이 105%로 즉시 치고 사라지고, 남은 분신이 한 칸씩 앞으로');
+  await cast(o,140,240);
+  {const c=clones.shift();badges();const x0=c.x,y0=c.y,d=c.side*-1;pose(c,'windup');await wait(110);
+   await tween(160,t=>{c.x=x0+d*BODY*.12*ease(t);place(c);});pose(c,'strike');num(J,'1,470','넘침');damage(J,.05);bg(hit(J));await wait(220);
+   await depart(c);await reslot(o);await spawn(o);}
+  await wait(500);
+  order(['jag','clone','clone','usa','loki','orion']);now('jag1');
+  cap('적 차례 · 최대 체력 15% 이상의 한 방','분신 1기가 주인 앞으로 나서 대신 맞고 사라진다(적 행동당 1기)');
+  {const c=clones.shift();badges();const f=front(J,o,150);J.z=zOf(o)+2;
+   await Promise.all([dashTo(J,f.x,f.y,260),(async()=>{c.z=zOf(o)+1;await dashTo(c,o.hx-o.side*72*o.ds,o.hy+6,120);})()]);
+   num(c,'1,820','대신 맞음');await hit(c,250);await depart(c);tag(o,'피해 0','#9FE3C8');
+   await dashTo(J,J.hx,J.hy,260);J.z=undefined;place(J);await reslot(o);}
+  await wait(500);
+  order(['usa','clone','clone','loki','jag','orion']);now('usa');
+  cap('우치 · 만천화우(초월기)','분신을 모두 소모해 각각 우선도 적에게 우치 공격력 525%');
+  await cast(o,220,260);
+  {const list=clones.splice(0);badges();const tg=[U.jag1,U.jag2,U.eagle];
+   await Promise.all(list.map(async(c,i)=>{await wait(i*30);pose(c,'windup');await wait(80);c.z=undefined;const t=tg[i%tg.length],f=front(c,t);await dashTo(c,f.x,f.y,160-i*30);
+     pose(c,'strike');num(t,'7,350','만천화우');damage(t,.15);bg(hit(t));await wait(260);await depart(c);}));}
+  await wait(900);}
+
+async function sceneLoki(){
+  const l=U.loki,F=U.fenrir,T=U.jag2;
+  order(['loki','sei','fenrir','jag','usa','orion']);now('loki');
+  cap('로키 · 기만의 칼바람','사냥감에게 공격력 90% 베기(비접촉). 사냥감 표식이 붙는다');
+  act(l,true);pose(l,'windup');await wait(170);pose(l,'strike');num(T,'1,530');damage(T,.05);bg(hit(T));
+  const pr=fx('sm-prey','<svg viewBox="0 0 30 30"><path d="M15 2 28 15 15 28 2 15Z" fill="none" stroke="#5CDAB3" stroke-width="3"/><path d="M15 9 21 15 15 21 9 15Z" fill="#5CDAB3"/></svg>',T.x,T.y-T.H-22);
+  await wait(320);pose(l,'idle');act(l,false);await wait(400);
+  order(['sei','fenrir','jag','usa','orion','loki']);now('sei');
+  cap('세이 · 추가행동이 사냥감에 직접 피해','아군의 실제 추가행동이 사냥감을 치면 펜리르가 추격한다');
+  await cast(U.sei,160,300);num(T,'2,210','추가행동');damage(T,.06);bg(hit(T));await wait(380);
+  cap('펜리르 추격 · 로키 공격력 55% 물기','행동당 1회, 펜리르 차례 사이 최대 3회. 짧게 웅크렸다 한달음에 덮쳐 물고 제자리로');
+  await chase(F,T,'940','추격');await wait(500);
+  order(['fenrir','jag','usa','orion','loki','sei']);now('loki');
+  cap('펜리르 차례 · 고정 속도 90','행동 순서에 끼어 직접 행동한다. 피해는 로키 명의로 기록');
+  await chase(F,T,'1,180','펜리르');pr.remove();await wait(900);}
+async function chase(F,T,n,label){act(F,true);pose(F,'windup');await wait(30);F.z=undefined;const f=front(F,T,150);
+  await dashTo(F,f.x,f.y,70,40);pose(F,'strike');num(T,n,label);damage(T,.04);bg(hit(T));await wait(200);
+  pose(F,'idle');await dashTo(F,F.hx,F.hy,320,50);F.z=zOf(U.loki)-1;place(F);act(F,false);}
+
+async function sceneOrion(){
+  const o=U.orion,D=U.sirius;pips=3;badges();
+  order(['eagle','jag','orion','usa','loki','sei']);now('eagle');
+  cap('적의 직접 공격 · 시리우스 +1','오리온의 체력·보호막이 줄 때마다 1개(최대 5). 소환수는 피격 판정이 따로라 사냥개는 함께 맞지 않는다');
+  for(const e of [U.eagle,U.jag2]){const ranged=e===U.eagle,x0=e.x;now(e.id);
+    if(ranged)await tween(200,t=>{e.x=x0-40*Math.sin(Math.PI*t);place(e);});
+    else{const f=front(e,o,150);e.z=zOf(o)+2;await dashTo(e,f.x,f.y,260);}
+    num(o,ranged?'640':'910');damage(o,.06);pips=Math.min(5,pips+1);badges();tag(D,pips<5?'+1 시리우스':'시리우스 5','#FFE6A0');
+    await hit(o);
+    if(!ranged){await dashTo(e,e.hx,e.hy,260);e.z=undefined;place(e);}
+    await wait(300);}
+  order(['orion','usa','loki','sei','eagle','jag']);now('orion');
+  cap('시리우스 5개 · 화살비(추가행동 · 반격)','사냥개가 울부짖는 순간 오리온이 적 전체에 공격력 160%+최대 체력 4%');
+  act(o,true);pose(D,'windup');pose(o,'windup');await wait(240);pose(D,'strike');pose(o,'strike');
+  pips=0;badges();
+  const foes=[U.jag1,U.jag2,U.eagle,U.priest];
+  for(const t of foes)for(let i=0;i<5;i++){const x=t.x+(Math.random()*90-45),a=fx('sm-arrow','',x,t.y-t.H-240);const dl=i*60+Math.random()*60;
+    bg(wait(dl).then(()=>tween(300,k=>{a.style.transform=`translate(${-70*k}px,${220*k}px) rotate(16deg)`;a.style.opacity=k<.8?1:1-(k-.8)/.2;})).finally(()=>a.remove()));}
+  await wait(360);for(const t of foes){num(t,'3,260','화살비');damage(t,.1);bg(hit(t));}
+  await wait(380);tag(o,'+5% 회복','#9FE3C8');pose(D,'idle');pose(o,'idle');act(o,false);await wait(700);
+  order(['orion','usa','loki','sei','eagle','jag']);
+  cap('오리온 · 거인의 사냥','단일 사격. 시리우스는 쌓일 때까지 뒤에서 대기한다');
+  await cast(o,170,300);num(U.jag1,'2,480');damage(U.jag1,.06);await hit(U.jag1);await wait(900);}
+
+const SCENES={usa:[sceneUsa],loki:[sceneLoki],orion:[sceneOrion],all:[sceneUsa,sceneLoki,sceneOrion]};
+let scene='all';
+async function run(){token++;const tk=token;
+  try{for(;;){for(const f of SCENES[scene]){build();await f();}}}catch(e){if(e!==STOP)console.error(e);}
+  if(tk===token)run();}
+document.getElementById('sm-scene').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;scene=b.dataset.v;
+  document.querySelectorAll('#sm-scene button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));run();});
+const bp=document.getElementById('sm-play');bp.onclick=()=>{paused=!paused;bp.textContent=paused?'재생':'일시정지';};
+const bs=document.getElementById('sm-speed');bs.onclick=()=>{speed=speed===1?2:speed===2?4:1;bs.textContent=`배속 ×${speed}`;$('#sm-spd').textContent=`×${speed}`;};
+const bgd=document.getElementById('sm-gbtn');bgd.onclick=()=>{const on=!S.classList.contains('g');S.classList.toggle('g',on);bgd.setAttribute('aria-pressed',String(on));};
+const srcs=[...Object.values(ART).map(a=>`${a}_idle.png`),...Object.values(STAND).map(s=>s.f)];
+Object.values(ART).forEach(a=>POSES.forEach(p=>{const i=new Image();i.src=`${a}_${p}.png`;}));
+Promise.all(srcs.map(measure)).then(run);
+})();
+</script>
+  <section class="sec">
+    <div class="sec-head"><span class="eyebrow">방향</span><h2>세 가지 원칙</h2></div>
+    <div class="grid3">
+      <div class="panel cut"><h3>원화의 격을 SD로 옮긴다</h3><p class="muted" style="margin-top:8px">현행 스탠딩은 장신·장식이 많은 성숙한 서브컬처 그림입니다. SD도 같은 선 굵기·채색·장식 밀도를 유지한 약 3등신으로 만들고, 둥근 장난감형 SD는 쓰지 않습니다.</p></div>
+      <div class="panel cut"><h3>캐릭터는 공간에 선다</h3><p class="muted" style="margin-top:8px">카드 프레임 없이 접지 그림자와 깊이 정렬로 위치를 읽습니다. 전열/후열은 중앙선과의 거리, 1~4행은 깊이 레인입니다. 아군과 적은 같은 유닛 구조와 같은 발밑 체력판을 씁니다.</p></div>
+      <div class="panel cut"><h3>HUD는 주인 발밑 한 덩어리</h3><p class="muted" style="margin-top:8px">초월 원과 체력판을 한 묶음으로 발밑 바닥에 붙이고 위 꼭지로 주인을 가리킵니다. 묶음은 주인과 같은 깊이로 그려 앞 SD에 가려지므로 남의 몸 위에 얹히지 않습니다. SD·묶음·행동 순서·피해 집계는 함께 강조됩니다.</p></div>
+    </div>
+    <div class="tbl cut">
+      <table>
+        <thead><tr><th>레조넌스에서 가져오는 것</th><th>가져오지 않는 것</th></tr></thead>
+        <tbody>
+          <tr><td>무대 위 SD 파티와 적이 좌우로 마주 보는 측면 구도, 살짝 내려다보는 카메라</td><td>열차·황무지·녹슨 산업 소재. 세계는 공허와 신화 문명입니다</td></tr>
+          <tr><td>장식을 줄이지 않은 성숙한 SD, 의상 질감이 읽히는 렌더링</td><td>손패 카드 UI와 직접 스킬 지시. 전투는 자동이고 판단은 준비 단계에서 끝납니다</td></tr>
+          <tr><td>얇은 선·작은 영문 라벨·숫자 전용 서체의 단말기형 HUD, 초월기 컷인 뒤 복귀하는 리듬</td><td>저채도 먼지 톤. 현행 하늘 성채 배경의 밝은 공기와 군청 UI를 유지합니다</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><span class="eyebrow">규격</span><h2>SD 캐릭터</h2><p class="lede">스탠딩 원화에서 SD로 옮길 때 지킬 것과 바꿀 것입니다. 왼쪽 그림의 SD는 원화를 변형한 프록시라 머리와 몸의 이음새가 보이며, 실제 SD는 새로 그립니다.</p></div>
+    <div class="ratio panel cut">
+      <div class="ratio-fig" id="ratio-fig"><div class="inner" id="ratio-inner"></div></div>
+      <dl class="kv">
+        <dt>비율</dt><dd>약 3등신(머리가 전체 높이의 1/3). 팔다리는 짧게 줄이되 가늘게 유지하고 손가락·장신구를 생략하지 않습니다.</dd>
+        <dt>원화 계승</dt><dd>스탠딩마다 실루엣 핵심 3요소를 정해 남깁니다. 수르트라면 붉은 장발, 검은 코트와 붉은 안감, 룬이 새겨진 대검입니다.</dd>
+        <dt>선과 채색</dt><dd>원화와 같은 가는 선과 회화적 셀 명암. 두꺼운 먹선은 쓰지 않고 실루엣은 원소색 림라이트와 접지 그림자로 띄웁니다.</dd>
+        <dt>원본</dt><dd>512×640 캔버스, 피벗은 발 중심 (256, 620). 아군은 오른쪽, 적은 왼쪽을 봅니다. 적은 좌우 반전만 하고 별도로 그리지 않습니다.</dd>
+        <dt>화면 크기</dt><dd>깊이 배율 1.0에서 몸 높이(정수리~발) 250px. 대형·정예 ×1.15, 보스 ×1.6~2.2(무대 뒤 중앙 전용 슬롯).</dd>
+        <dt>앵커 4점</dt><dd><b>head</b> HUD 묶음·상태 글자 · <b>chest</b> 피격 접점 · <b>hand</b> 시전·발사 · <b>feet</b> 그림자·행동 고리. 현행 <code>portraitContacts</code>를 대체합니다.</dd>
+      </dl>
+    </div>
+    <div class="tbl cut">
+      <table>
+        <thead><tr><th>상태</th><th>길이(1배)</th><th>동작</th><th>판정과의 관계</th></tr></thead>
+        <tbody>
+          <tr><td>대기</td><td class="num">1.6s 반복</td><td>호흡, 머리카락·옷자락 지연</td><td>없음</td></tr>
+          <tr><td>예고</td><td class="num">0.35s</td><td>발밑 원소색 고리 점등</td><td>행동서열 확장과 같은 시점</td></tr>
+          <tr><td>일반행동</td><td class="num">0.55s</td><td>준비 0.14 → 전진 40px 이하 0.12 → <b>정점</b> → 복귀 0.22</td><td>정점은 기존 타격 콜백 시각을 구독만 한다. 연출이 판정을 소유하지 않음</td></tr>
+          <tr><td>스킬·특수</td><td class="num">0.7s</td><td>시전 자세 + hand 발광</td><td>기존 시전 콜백</td></tr>
+          <tr><td>초월기</td><td class="num">0.9s + 시전</td><td>스탠딩 원화 컷인 → 시전 → 대상별 정점</td><td>기존 초월 콜백, <code>CombatSweepTiming</code> 대상 순서</td></tr>
+          <tr><td>피격</td><td class="num">0.18s</td><td>뒤로 10px 반동 + 짧은 명도 상승</td><td>실제 피해 적용 뒤</td></tr>
+          <tr><td>제어</td><td class="num">반복</td><td>대기 모션 정지 + 머리 위 상태 소품</td><td>상태 수명</td></tr>
+          <tr><td>쓰러짐</td><td class="num">0.6s</td><td>무릎 꿇음 → 결정 조각으로 흩어짐</td><td>실제 사망 뒤. 강인도 격파(가상 처치)에는 쓰지 않음</td></tr>
+          <tr><td>승리</td><td class="num">1.0s</td><td>무기 들기</td><td>결과 화면 전</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><span class="eyebrow">원화 제작</span><h2>ImageGen으로 SD 뽑기</h2><p class="lede">명일방주·레조넌스 전투 SD처럼 장식을 줄이지 않은 성숙한 SD를 목표로 합니다. 프롬프트에는 게임 이름 대신 특징을 적고, 캐릭터마다 현행 스탠딩을 참조 이미지로 첨부합니다.</p></div>
+    <div class="grid2">
+      <div class="panel cut" style="display:flex;flex-direction:column;gap:12px">
+        <h3>생성 규격</h3>
+        <dl class="kv">
+          <dt>참조</dt><dd><code>Assets/Resources/Sprite/Standings/Allies/{ID}_STANDING.png</code>를 함께 첨부</dd>
+          <dt>캔버스</dt><dd>1024×1280, 투명 배경, 전신, 발 아래 여백 4%, 그림자·글자 없음</dd>
+          <dt>방향</dt><dd>오른쪽을 보는 3/4 측면. 적도 같은 방향으로 뽑고 게임에서 반전</dd>
+          <dt>세트</dt><dd>대기 → 공격 준비 → 공격 정점 → 피격 → 쓰러짐 5장. 대기를 먼저 확정하고 그 결과를 다음 포즈의 참조로 다시 첨부</dd>
+          <dt>파일</dt><dd><code>{ID}_SD_IDLE.png</code> 형식, 상태 접미사 <code>WINDUP·STRIKE·HIT·DOWN</code></dd>
+        </dl>
+      </div>
+      <div class="panel cut" style="display:flex;flex-direction:column;gap:12px">
+        <h3>검수 체크리스트</h3>
+        <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px" class="muted">
+          <li>실루엣 핵심 3요소가 스탠딩과 일치(머리색·헤어형, 대표 의상 색면, 무기)</li>
+          <li>약 3등신, 얼굴은 스탠딩과 같은 성숙한 인상(눈 과장 최소)</li>
+          <li>가는 선과 회화적 셀 명암, 두꺼운 먹선·둥근 벙어리장갑 손 없음</li>
+          <li>5장 사이 머리 크기·의상 장식·무기 손이 바뀌지 않음</li>
+          <li>투명 가장자리에 흰 테두리·잔여 배경 없음</li>
+        </ul>
+      </div>
+    </div>
+    <div class="panel cut" style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><h3>프롬프트 틀 · 수르트 예시</h3><button class="btn" id="b-copy" style="background:var(--sunken)">복사</button></div>
+      <pre id="prompt" style="margin:0;white-space:pre-wrap;font:500 13px/1.6 ui-monospace,Consolas,monospace;background:var(--sunken);padding:16px;border-radius:10px;overflow-x:auto">Full-body super-deformed (SD) battle sprite for a mobile gacha RPG, based on the attached character illustration.
+Proportions: about 3 heads tall, slender short limbs, detailed hands, mature refined face with small sharp eyes (not a toddler chibi).
+Keep from the reference: long wild crimson hair with an ahoge; long black coat with crimson lining and gold trim; huge black-and-gold greatsword with glowing red runes.
+Style: thin clean lineart, painterly cel shading in 2-3 tones, soft warm rim light in orange-red (#FF6633), costume ornaments kept, weapon slightly exaggerated.
+Pose: [idle battle stance | wind-up before a heavy slash | slash at full extension | recoiling from a hit | knocked down on one knee].
+View: three-quarter view facing right. Transparent background, no ground shadow, no text, no frame. Character centered, feet near the bottom edge. 1024x1280.
+Avoid: thick black outlines, round mitten hands, oversized baby head, blob body, flat vector look, background scenery.</pre>
+      <p class="note">대괄호 안의 포즈를 한 장에 하나씩 넣습니다. 캐릭터를 바꿀 때는 “Keep from the reference” 줄의 세 요소와 림라이트 원소색만 바꿉니다.</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><span class="eyebrow">무대</span><h2>격자 좌표를 무대로 옮기는 규칙</h2><p class="lede">GridManager의 좌표(x −2…2, y 1…4)와 대기석 5칸은 그대로입니다. 새 <code>StageLayout</code>이 좌표를 화면 위치로만 바꿉니다. 배경은 현행 <code>backgroundKey</code> 원화를 그대로 무대로 씁니다.</p></div>
+    <div class="tbl cut">
+      <table>
+        <thead><tr><th>항목</th><th>규칙(1080p)</th><th>근거</th></tr></thead>
+        <tbody>
+          <tr><td>열 거리</td><td>전열 x=±1은 중앙에서 200px, 후열 x=±2는 560px. 원근 0.86~1.0</td><td>현행 전열/후열 의미 유지. 열 사이를 넓혀 앞열 SD가 뒷열 HUD를 덮지 않게</td></tr>
+          <tr><td>깊이 레인</td><td>먼 레인 y=540 ~ 가까운 레인 y=925. 전투 중에는 한 열의 인원수로 펼치고, 2명이면 깊이 0.12·0.88에 둔다</td><td>현행 <code>DisplaySlot</code>의 중앙 정렬과 같은 의미. 5:5 기준 HUD 가림 최대 51%→5%(시안 실측)</td></tr>
+          <tr><td>깊이 배율</td><td>먼 레인 0.84 → 가까운 레인 1.06, 그리기 순서 = 화면 y</td><td>겹칠 때 앞사람이 앞에 오도록</td></tr>
+          <tr><td>V자·지그재그 대형</td><td>먼 레인일수록 중앙에서 최대 50px 더 바깥, 열 안의 짝수 순번 +100px·홀수 순번 −80px 엇갈림</td><td>머리 위 HUD 묶음이 뒤 SD의 몸에 얹혀 주인이 헷갈리지 않게</td></tr>
+          <tr><td>전열 공백</td><td>전투 중 전열이 비면 후열을 안쪽으로 당김</td><td>현행 규칙 그대로</td></tr>
+          <tr><td>준비 모드</td><td>8칸 전부 바닥 표식, 좌표 의미 유지, 들어 올린 SD는 그림자를 남김</td><td>현행 “준비 배치는 원래 2열 유지”</td></tr>
+          <tr><td>그리기 층</td><td>배경 < 색 보정 < 그림자 < SD(깊이 정렬) < HUD < VFX < 숫자·상태 글자 < 화면 UI < 컷인</td><td>현행 “VFX는 HUD 앞, 형상 자르기 금지”</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><span class="eyebrow">HUD</span><h2>부품</h2><p class="lede">군청 기본, 의미 정보에만 색. 상자 대신 얇은 막대·그림자·유리 패널로 정보를 띄우고, 두꺼운 테두리와 좌측 I 장식선은 쓰지 않습니다.</p></div>
+    <div class="grid2">
+      <div><div class="comp cut" id="comp-plates"></div><p class="note" style="font-size:13px;margin-top:8px">유닛 HUD 묶음: 초월 원 + 숫자·상태 아이콘 + 6px 체력 막대(감소분 잔상). 보호막은 막대 위 금색 선, 강인도는 생성된 적에게만. 적 묶음은 붉은 기가 도는 먹색으로 진영을 구분합니다.</p></div>
+      <div><div class="comp cut" id="comp-rings"></div><p class="note" style="font-size:13px;margin-top:8px">초월 원: 마나형은 연속 호, 스택형은 분절, 상시형은 점선. 충전 퍼센트 글자는 없습니다.</p></div>
+      <div><div class="comp cut" id="comp-chips"></div><p class="note" style="font-size:13px;margin-top:8px">행동서열: 얼굴 칩은 스탠딩 원화를 얼굴 중심으로 잘라 씁니다(현행 <code>UIPortraitCrop.Face</code>). 현재 행동만 이름·종류·기술명까지 확장합니다.</p></div>
+      <div><div class="comp cut" id="comp-nums"></div><p class="note" style="font-size:13px;margin-top:8px">숫자: 일반 백색, 치명 금색과 라벨, 보호막 흡수 금색 소형, 회복은 작은 +수치. 상태 알림은 테두리 없는 원소색 글자.</p></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><span class="eyebrow">토큰</span><h2>색과 글꼴</h2></div>
+    <div class="sw" id="swatches"></div>
+    <div class="grid2">
+      <div class="typeset cut"><span class="eyebrow">컷인·이름·큰 제목 · 명조</span><span class="a">아직 꺼지지 않은 종말</span></div>
+      <div class="typeset cut"><span class="eyebrow">숫자·라벨 · 응축 산세리프</span><span class="b">9,120 · 1-4 · AV 37</span><span class="c">본문과 설명은 한글 고딕 본문체입니다. 세 서체 모두 OFL 계열로 골라 TMP 폰트 에셋으로 바꿀 수 있게 합니다.</span></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><span class="eyebrow">현행 규칙과의 관계</span><h2>바뀌는 것과 유지되는 것</h2></div>
+    <div class="tbl cut">
+      <table>
+        <thead><tr><th>현행(Detail_07·AGENTS)</th><th>시안</th><th>처리</th></tr></thead>
+        <tbody>
+          <tr><td>아군·적 모두 적 카드 기본 구조</td><td>아군·적 모두 같은 SD 유닛 + 같은 발밑 체력판</td><td>“동일 구조” 원칙은 유지, 카드를 SD 유닛으로 교체. <b>규칙 개정 필요</b></td></tr>
+          <tr><td>원화의 얼굴·가슴·손, <code>portraitContacts</code></td><td>SD 앵커 4점</td><td>스탠딩·초상화는 홈·사건 VN·파티 TAB·행동서열 얼굴칩·컷인에 계속 사용</td></tr>
+          <tr><td>초월 원은 캐릭터 위, 체력은 카드 하단 정보판</td><td>초월 원과 체력판을 한 묶음으로 발밑, 주인과 같은 깊이로 정렬</td><td>주인 표시 강화. <b>규칙 개정 필요</b></td></tr>
+          <tr><td>둥근 모서리 패널·상단 한 줄 바</td><td>같은 둥근 패널, 같은 상단 바 구성</td><td>유지</td></tr>
+          <tr><td>이름·원소·한줄소개는 hover</td><td>SD 히트박스 hover</td><td>유지</td></tr>
+          <tr><td>행동서열 좌측 세로 열, 피해 집계 우측, 재보 우하단</td><td>같은 위치·같은 둥근 패널</td><td>유지</td></tr>
+          <tr><td>VFX는 카드·HUD 앞, 형상 자르기 금지</td><td>VFX는 SD·HUD 앞</td><td>유지. 접점 출처만 앵커로 이전</td></tr>
+          <tr><td>군청 기본 UI, 두꺼운 테두리·좌측 I선 금지</td><td>군청 유지 + 반투명 유리 패널</td><td>유지</td></tr>
+          <tr><td>1~5배속, 별도 일시정지, 판정과 벽시계 분리</td><td>SD 모션도 scaled 시간, 정지 시 진행 없음</td><td>유지</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><span class="eyebrow">결정 필요</span><h2>작업 전에 정할 네 가지</h2></div>
+    <div class="decide">
+      <div><h3>SD 움직임 방식</h3><p class="rec">권장: 포즈 프레임 방식으로 시작</p><p class="muted">ImageGen 5포즈를 그대로 쓰고 사이를 절차 모션(전진·반동·호흡)으로 잇습니다. 생성 결과로 바로 화면을 검증할 수 있습니다. 나중에 더 부드러운 움직임이 필요하면 1장을 파츠로 나눠 Spine 또는 Unity 2D Animation으로 옮깁니다.</p></div>
+      <div><h3>SD 원화 조달</h3><p class="rec">결정: ChatGPT ImageGen으로 새로 생성</p><p class="muted">시범 3명(근접·원거리·대형 탱커)을 먼저 뽑아 톤을 확정합니다. 그동안 Codex는 이 시안의 스탠딩 변형 프록시로 무대·HUD·앵커·모션을 먼저 완성합니다.</p></div>
+      <div><h3>SD 앞뒤 가림 허용</h3><p class="rec">권장: 같은 열 3명 이상일 때만 일부 가림 허용</p><p class="muted">발밑 HUD를 주인 깊이로 그리면 앞 SD가 뒤 HUD의 가장자리를 가릴 수 있습니다. 지그재그로 숫자는 보이게 하되, 완전히 가려지는 배치가 생기면 레인 간격을 넓힐지 정해야 합니다.</p></div>
+      <div><h3>1단계 범위</h3><p class="rec">권장: 전투 + 준비·배치</p><p class="muted">두 화면이 같은 무대를 공유하므로 함께 바꾸는 편이 싸고, 홈·로비 SD 연출은 시범 SD가 나온 뒤에 붙입니다.</p></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><span class="eyebrow">인계</span><h2>Codex 작업 단계</h2><p class="lede">각 단계는 기존 카드 경로를 지우지 않고 <code>VisualMode.Card/Stage</code> 전환으로 공존시킵니다. 합격은 실제 Play Mode의 VerifyHarness 결과로 판정하며 정지 화면 PASS를 미술 승인으로 쓰지 않습니다.</p></div>
+    <div class="phases">
+      <div class="phase cut"><span class="pn">P1</span><div><h3>무대 레이아웃</h3><p><code>StageLayout</code>(격자 좌표 → 무대 좌표·깊이 배율·정렬)과 <code>UnitStageView</code>를 추가하고 <code>VisualMode.Card/Stage</code>로 전환합니다. 현행 배경 원화 위에 색 보정·접지 그림자 층을 둡니다.</p><p class="acc">합격: 두 모드의 전투·배치 시나리오 행동/피해 사건 수와 결과가 같음. 1920×1080 겹침 캡처.</p></div></div>
+      <div class="phase cut"><span class="pn">P2</span><div><h3>SD 프록시와 모션</h3><p><code>ISdRig</code> 인터페이스, 스탠딩 변형 프록시 <code>SdProxyRig</code>(머리 확대·몸 축소 2분할), 포즈 프레임 <code>SdFrameRig</code>(IDLE·WINDUP·STRIKE·HIT·DOWN 교체 + 절차 모션). SD 원화가 없는 유닛은 프록시로 떨어집니다. 정점 이벤트는 기존 콜백 시각을 구독만 합니다.</p><p class="acc">합격: 콜백 수·시각 불변, 1~5배와 일시정지에서 모션 정지·재개.</p></div></div>
+      <div class="phase cut"><span class="pn">P3</span><div><h3>HUD 재배치</h3><p>초월 원+체력판 묶음을 발밑 앵커에 붙여 유닛과 같은 깊이로 정렬하고, 상태 글자·피해 숫자를 앵커 기반으로 옮깁니다. 상단 바·행동 순서·피해 집계·재보는 현행 위치를 유지합니다. 기존 데이터 바인딩과 고유 자원 표시 규칙을 재사용합니다.</p><p class="acc">합격: 고유 자원(만종·텐션·치유 에너지·영혼) 표시 유지, 숫자 경로가 얼굴·초월 원·행동서열 회피.</p></div></div>
+      <div class="phase cut"><span class="pn">P4</span><div><h3>VFX 접점 이전</h3><p><code>VfxComposer</code>·<code>PortraitAccentFx</code>의 접점 출처를 원화 접점에서 SD 앵커로 바꿉니다. 앞 레이어 규칙과 구매팩 시트·정점 시간은 그대로입니다.</p><p class="acc">합격: 효과군 단위 작은 범위 검수, 판정·대기 불변.</p></div></div>
+      <div class="phase cut"><span class="pn">P5</span><div><h3>준비·배치</h3><p>바닥 표식 8칸, 드래그 들어올림·그림자, 대기석 레일, 적 예고 흐림 표시.</p><p class="acc">합격: 배치 입력 시나리오(드래그·교체·중복 금지) 통과.</p></div></div>
+      <div class="phase cut"><span class="pn">P6</span><div><h3>시범 SD 3명 → 로스터 확장</h3><p>ImageGen 5포즈 원화를 <code>Resources/Sprite/SD/</code>에 등록하고 임포트 정책(<code>SdTextureImportPolicy</code>)과 앵커 보정값을 데이터로 둡니다. 시범은 체형이 다른 세 명(근접·원거리·대형 탱커).</p><p class="acc">합격: 캐릭터 1~3스킬 단위 미술 검수.</p></div></div>
+      <div class="phase cut"><span class="pn">P7</span><div><h3>홈·로비 SD 연출</h3><p>후순위. 스탠딩 중심 홈은 유지하고 SD는 보조 생활 연출로만 추가합니다.</p></div></div>
+    </div>
+  </section>
+
+  <p class="foot">미구현 제안입니다. 수치와 판정을 바꾸지 않으며, 채택 시 Detail_07의 해당 절로 옮깁니다. 캐릭터·배경 그림은 현행 게임 원화이고, 화면의 SD는 스탠딩을 머리 1.5배·몸 0.5배로 변형한 임시 프록시입니다. 최종 SD는 ImageGen 시범 3명에서 정합니다. 초월기 화면 섬광은 한 번, 낮은 명도차로 제한했습니다.</p>
+</div>
+
+<script>
+(() => {
+const E = {pyro:'#FF6633',hydro:'#2BB1F1',dendro:'#96CB2D',anemo:'#5CDAB3',electro:'#B37BEF',cryo:'#99E5F6',geo:'#FFC836'};
+const EKO = {pyro:'불',hydro:'물',dendro:'풀',anemo:'바람',electro:'번개',cryo:'얼음',geo:'바위'};
+const IC = {
+  pyro:'<path d="M8 1.2c1.3 2.7 4.4 4.2 4.4 7.6A4.4 4.4 0 0 1 3.6 8.8c0-1.7.9-2.8 1.8-3.6.1 1.3.8 2.1 1.6 2.4C6.7 5.6 7 3.3 8 1.2z"/>',
+  geo:'<path d="M8 1.2 13.4 8 8 14.8 2.6 8z"/>',
+  electro:'<path d="M9.8 1.2 3.6 9.2h3.9l-1.1 5.6 6.2-8.2H8.7z"/>',
+  dendro:'<path d="M13.8 2.2C7 2.2 2.8 5.3 2.8 10c0 1.5.5 2.7 1.3 3.7C5 9.5 7.6 7.4 10.2 6.3 8.1 7.9 6 10.3 5.3 14 11.2 13.7 13.8 9 13.8 2.2z"/>',
+  hydro:'<path d="M8 1.2c2.7 3.7 4.8 6.2 4.8 9a4.8 4.8 0 0 1-9.6 0c0-2.8 2.1-5.3 4.8-9z"/>',
+  anemo:'<path d="M2 6.2h7.6a2.3 2.3 0 1 0-2.3-2.3h1.6a.7.7 0 1 1 .7.7H2zM2 9h10.2a2.3 2.3 0 1 1-2.3 2.3h1.6a.7.7 0 1 0 .7-.7H2z"/>',
+  cryo:'<path d="M7.2 1h1.6v14H7.2zM1.9 4.2l.8-1.4 11.4 9-.8 1.4zM13.3 2.8l.8 1.4-11.4 9-.8-1.4z"/>'
+};
+const icon = (el,c) => `<svg viewBox="0 0 16 16" fill="${c||E[el]}">${IC[el]}</svg>`;
+
+/* ---------- 원화 정보: 이미지 높이 기준 비율(머리 위·턱·발), 얼굴 중심 x, 바라보는 방향 ---------- */
+const ART = {
+  surtr:{f:'surtr',a:480/720,cx:.46,top:.14,chin:.235,feet:.975},
+  indra:{f:'indra',a:480/720,cx:.45,top:.145,chin:.24,feet:.96,flip:1},
+  kubera:{f:'kubera',a:480/720,cx:.50,top:.04,chin:.16,feet:.97,flip:1},
+  mansa:{f:'mansa',a:540/720,cx:.51,top:.03,chin:.146,feet:.97},
+  surya:{f:'surya',a:480/720,cx:.51,top:.04,chin:.17,feet:.96,flip:1},
+  jaguar:{f:'jaguar',a:480/720,cx:.42,top:.14,chin:.265,feet:.945},
+  jagE:{f:'jaguar_elite',a:480/720,cx:.55,top:.10,chin:.235,feet:.93},
+  eagle:{f:'eagle',a:480/720,cx:.43,top:.08,chin:.22,feet:.97,flip:1},
+  priest:{f:'priest',a:480/720,cx:.51,top:.10,chin:.23,feet:.93},
+  sei:{f:'sei',a:320/480,cx:.52,top:.03,chin:.155,feet:.96},
+  atalante:{f:'atalante',a:320/480,cx:.55,top:.05,chin:.17,feet:.96}
+};
+let proxy = true;               // true: SD 프록시, false: 원화 비율
+const SH=1.5, SB=.5, SBX=.8;     // 머리·몸 세로·몸 가로 배율
+/* SD 프록시: 같은 원화를 머리(타원 마스크, 확대)와 몸(축소) 두 조각으로 겹친다. 발이 상자 아래에 닿는다. */
+function sdBox(p, T, sp){
+  const sh = sp?SH:1, sb = sp?SB:1, sbx = sp?SBX:1;
+  const neck = p.chin+.012;   // 턱 바로 아래에서 몸 조각이 이어받아 목이 비지 않게 한다
+  const Hi = T/((neck-p.top)*sh + (p.feet-neck)*sb);
+  const hH = neck*Hi*sh, bH = (p.feet-neck)*Hi*sb;
+  const W = Math.max(Hi*p.a*sh*.9, 120);
+  return {Hi,sh,sb,sbx,neck,hH,bH,W,H:hH+bH};
+}
+/* 포즈 프레임: 포즈 세트가 있는 SD(C3)는 같은 캔버스·발 기준선의 프레임으로 이미지만 바꾼다. 위치·크기 계산은 IDLE 그대로다. */
+const POSE_SETS = { c3:['windup','strike','hit','down'] };
+function setPose(u, pose){
+  const p = ART[u.art]; if (!p || !p.sd) return;
+  const style = u.art.split('_').slice(1).join('_'), c = u.art.split('_')[0];
+  if (!POSE_SETS[style]) return;
+  const img = uEl(u.id)?.querySelector('.sd-part img'); if (!img) return;
+  img.src = pose==='idle' ? `art/${p.f}.png` : `art/${SD_SETS[style].dir}/${c}_${pose}.png`;
+}
+// 포즈 프레임을 미리 받아 둬서 교체 순간에 빈 프레임이 보이지 않게 한다.
+['surtr','sei','skadi','shi','freya'].forEach(c=>POSE_SETS.c3.forEach(ps=>{ const i=new Image(); i.src=`art/sd_c3/${c}_${ps}.png`; }));
+function sdParts(p, b){
+  const src = `art/${p.f}.png`;
+  const hy = (p.top+p.chin)/2*b.Hi*b.sh, rx = (p.chin-p.top)*b.Hi*b.sh*.95, ry = (p.chin-p.top)*b.Hi*b.sh*.74;
+  const aboveY = p.top*b.Hi*b.sh + 10;
+  const mask = `radial-gradient(${rx}px ${ry}px at 50% ${hy}px,#000 70%,transparent 100%),linear-gradient(#000 ${aboveY}px,transparent ${aboveY+26}px)`;
+  const head = `<div class="sd-part" style="top:0;height:${b.hH+18}px;z-index:1;-webkit-mask-image:${mask};mask-image:${mask}"><img src="${src}" alt="" style="height:${b.Hi*b.sh}px;width:${b.Hi*p.a*b.sh}px;left:${b.W/2-p.cx*b.Hi*p.a*b.sh}px;top:0"></div>`;
+  const body = `<div class="sd-part" style="top:${b.hH}px;height:${b.bH+2}px"><img src="${src}" alt="" style="height:${b.Hi*b.sb}px;width:${b.Hi*p.a*b.sbx}px;left:${b.W/2-p.cx*b.Hi*p.a*b.sbx}px;top:${-b.neck*b.Hi*b.sb}px"></div>`;
+  return b.sh===1 ? `<div class="sd-part" style="top:0;height:${b.H}px"><img src="${src}" alt="" style="height:${b.Hi}px;width:${b.Hi*p.a}px;left:${b.W/2-p.cx*b.Hi*p.a}px;top:0"></div>` : head+body;
+}
+/* 행동 순서·피해 집계·툴팁 얼굴은 SD가 아니라 캐릭터 초상화 원화를 쓴다. 자르는 범위는 현행 UIPortraitCrop.Face(가로 24~76%, 위에서 5~57%)와 같다. */
+const POR_AR = { mansa: 192/256 };
+function portraitHTML(key, size){
+  const ar = POR_AR[key] || 1, imgW = size/.52, imgH = imgW/ar;
+  return `<div class="face" style="width:${size}px;height:${size}px"><img src="art/portrait/${key}.png" alt="" style="width:${imgW}px;height:${imgH}px;left:${-.24*imgW}px;top:${-.05*imgH}px"></div>`;
+}
+function faceHTML(p, size){
+  const hh = p.chin-p.top, imgH = size/(hh*1.55), top = -(p.top-hh*.32)*imgH, left = size/2 - p.cx*imgH*p.a;
+  return `<div class="face" style="width:${size}px;height:${size}px"><img src="art/${p.f}.png" alt="" style="height:${imgH}px;width:${imgH*p.a}px;top:${top}px;left:${left}px;${p.flip?'transform:scaleX(-1);transform-origin:'+(size/2-left)+'px 0':''}"></div>`;
+}
+
+/* ---------- 데이터 ---------- */
+const U = [
+  {id:'surtr',art:'surtr',name:'수르트',side:-1,col:0,prow:0,el:'pyro',max:4100,hp:3197,ult:.96,res:'mana',tag:'끝을 예고하는 불꽃으로 전열을 태우는 화력형.'},
+  {id:'kubera',art:'kubera',name:'쿠베라',side:-1,col:0,prow:1,el:'geo',max:4050,hp:4050,shield:900,ult:.42,res:'mana',tag:'재보를 쌓아 파티의 전력을 끌어올리는 근접형.'},
+  {id:'indra',art:'indra',name:'인드라',side:-1,col:1,prow:0,el:'electro',max:3900,hp:3718,ult:.66,res:'mana',tag:'로카팔라의 문을 여는 번개의 지휘자.'},
+  {id:'mansa',art:'mansa',name:'만사 무사',side:-1,col:1,prow:2,el:'geo',max:3660,hp:3660,ult:.3,res:'mana',tag:'재보의 흐름을 다루는 황금의 왕.'},
+  {id:'surya',art:'surya',name:'수리야',side:-1,col:1,prow:3,el:'pyro',max:3600,hp:3474,ult:.55,res:'mana',tag:'적에게 종언 표식을 쌓는 태양의 사수.'},
+  {id:'jagE',art:'jagE',name:'정예 재규어 전사',side:1,col:0,prow:1,el:'geo',max:12800,hp:12800,tough:1,ult:.5,big:1.15,res:'mana',tag:'단일 대상을 노리고 고유 초월기로 압박합니다.'},
+  {id:'jag1',art:'jaguar',name:'재규어 전사',side:1,col:0,prow:2,el:'geo',max:7360,hp:7360,ult:.2,res:'mana',tag:'단일 대상을 노리고 고유 초월기로 압박합니다.'},
+  {id:'eagle',art:'eagle',name:'독수리 전사',side:1,col:1,prow:0,el:'dendro',max:6900,hp:6900,ult:.35,res:'mana',tag:'단일 대상을 노리고 고유 초월기로 압박합니다.'},
+  {id:'priest',art:'priest',name:'뱀 사제',side:1,col:1,prow:1,el:'dendro',max:6400,hp:6400,ult:.1,res:'mana',tag:'단일 대상을 노리고 고유 초월기로 압박합니다.'},
+  {id:'jag2',art:'jaguar',name:'재규어 전사',side:1,col:1,prow:3,el:'geo',max:7360,hp:7360,ult:.6,res:'mana',tag:'단일 대상을 노리고 고유 초월기로 압박합니다.'}
+];
+const BENCH = [{art:'sei',name:'세이'},{art:'atalante',name:'아탈란테'}];
+const byId = id => U.find(u=>u.id===id);
+const POR0={surtr:"surtr",kubera:"kubera",indra:"indra",mansa:"mansa",surya:"surya",jagE:"jagE",jag1:"jaguar",jag2:"jaguar",eagle:"eagle",priest:"priest"};
+U.forEach(u=>{u.hp0=u.hp; u.sh0=u.shield||0; u.ult0=u.ult; u.base={art:u.art,name:u.name,el:u.el,tag:u.tag,res:u.res,por:POR0[u.id]};});
+/* ImageGen SD 편성: 같은 칸(id)에 생성된 다섯 명을 앉힌다. 칸의 역할(광역 초월·보호막 탱커·일반행동 시전자)은 그대로다. */
+const SD_SWAP = {
+  surtr:{sdc:"surtr"},
+  kubera:{sdc:"sei",por:"sei",name:'세이',el:'geo',res:'mana',tag:'아군에게 대지의 방패를 두르고 방패가 맞을수록 창세의 결정을 모으는 수호자.'},
+  indra:{sdc:"skadi",por:"skadi",name:'스카디',el:'cryo',res:'mana',tag:'얼음을 공급하며 보호막으로 전열을 지키는 설원의 사냥꾼.'},
+  mansa:{sdc:"shi",por:"shi",name:'시',el:'anemo',res:'passive',tag:'아군이 만든 처치각을 멸참으로 베어 내는 바람의 검사.'},
+  surya:{sdc:"freya",por:"freya",name:'프레이아',el:'dendro',res:'passive',tag:'회복한 체력을 온기로 저장해 동료의 피해를 높이는 치유사.'}
+};
+/* SD 세트: 생성 폴더와 캐릭터별 [얼굴 중심 x, 머리 위, 발] 비율(투명 영역 실측). */
+const SD_SETS = {
+  v1:{label:"1차", dir:"sd", sfx:"_sd", m:{surtr:[.555,.048,.952],sei:[.555,.044,.953],skadi:[.5,.067,.952],shi:[.53,.045,.942],freya:[.493,.052,.953]}},
+  // 스카디의 x는 지팡이 구슬이 상단 측정을 끌어당겨 얼굴 위치를 눈으로 보정했다.
+  a:{label:"스타일 A", dir:"sd_a", sfx:"_sd", m:{surtr:[.532,.069,.956],sei:[.565,.119,.956],skadi:[.45,.106,.956],shi:[.48,.106,.956],freya:[.54,.103,.955]}},
+  // C3: 적(화면 오른쪽)을 바라보는 전투 대기 자세. 포니테일·대검·지팡이가 상단 x 측정을 끌어당겨 얼굴 x는 눈으로 보정했다.
+  c3:{label:"스타일 C3", dir:"sd_c3", sfx:"_sd", m:{surtr:[.6,.119,.931],sei:[.568,.230,.953],skadi:[.47,.169,.952],shi:[.5,.123,.922],freya:[.636,.093,.953]}},
+  // C2: 스카디는 지팡이가 오른쪽 상단 측정을 끌어당겨 얼굴 x를 눈으로 보정했다.
+  c2:{label:"스타일 C2", dir:"sd_c2", sfx:"_sd", m:{surtr:[.56,.064,.958],sei:[.505,.063,.958],skadi:[.45,.063,.958],shi:[.514,.063,.958],freya:[.496,.061,.958]}},
+  c:{label:"스타일 C", dir:"sd_c", sfx:"_sd", m:{surtr:[.551,.178,.958],sei:[.544,.241,.956],skadi:[.57,.13,.956],shi:[.516,.27,.956],freya:[.496,.152,.958]}},
+  b:{label:"스타일 B", dir:"sd_b", sfx:"_sd", m:{surtr:[.544,.083,.958],sei:[.559,.08,.956],skadi:[.49,.088,.956],shi:[.483,.073,.955],freya:[.517,.061,.956]}}
+};
+let sdStyle = "c3";
+function sdArt(style,c){ const key=c+"_"+style, s=SD_SETS[style]; if(!ART[key]){ const [cx,top,feet]=s.m[c]; ART[key]={f:s.dir+"/"+c+s.sfx,a:.8,cx,top,chin:top+(feet-top)*.3,feet,flip:1,sd:1}; } return key; }
+function applyRoster(){ U.forEach(u=>{ Object.assign(u,u.base); const sw=SD_SWAP[u.id]; if(sdStyle!=="off"&&sw){ const {sdc,...rest}=sw; Object.assign(u,rest,{art:sdArt(sdStyle,sdc)}); } }); }
+applyRoster();
+
+/* ---------- 무대 배치 ---------- */
+const QP=new URLSearchParams(location.search), qn=(k,d)=>QP.has(k)?+QP.get(k):d;
+let CX=960, FAR=qn("far",540), NEAR=qn("near",925), BODY=250, ZIN=qn("zin",100), ZOUT=qn("zout",-80), T2=qn("t2",.12), B0=qn("b0",200), B1=qn("b1",560);
+// V자(먼 레인일수록 바깥) + 지그재그(짝수 순번 바깥)로 위아래 SD의 얼굴과 체력판이 겹치지 않게 한다.
+const colDist = (col,t,i) => ((col===0?B0:B1)+(.5-t)*100+(i%2===0?ZIN:ZOUT))*(.86+.14*t);
+/* 진형 배치(세븐나이츠식): 전열·후열을 각각 바닥 원근을 따라 기울어진 한 줄로 세우고, 두 줄 사이를 크게 띄워 열이 한눈에 갈리게 한다.
+   지그재그를 쓰지 않으므로 같은 줄 위아래 SD가 겹칠 수 있다. 그래서 이 배치는 캐릭터 정보를 하단 바로 옮기는 것과 한 묶음이다. */
+let layoutMode = QP.get('layout') || 'rows', hudMode = QP.get('hud') || 'hsr';
+const ROW = { far:560, near:870, front:190, back:540, slant:30 };
+const rowDist = (col,t) => (col===0?ROW.front:ROW.back)*(.80+.25*t) + ROW.slant*(t-.5);
+const laneY = t => layoutMode==='rows' ? ROW.far+(ROW.near-ROW.far)*t : FAR+(NEAR-FAR)*t;
+const sideDist = (col,t,i) => layoutMode==='rows' ? rowDist(col,t) : colDist(col,t,i);
+function place(mode){
+  for (const side of [-1,1]) for (const col of [0,1]){
+    const list = U.filter(u=>u.side===side&&u.col===col).sort((a,b)=>a.prow-b.prow);
+    list.forEach((u,i)=>{
+      const n=list.length, lifted = mode==='prep'&&u.id==='surya';
+      const t2 = layoutMode==='rows' ? .2 : T2;
+      u.t = lifted ? 1 : mode==='prep' ? u.prow/3 : (n===1?.5 : n===2?[t2,1-t2][i] : i/(n-1));
+      u.y = laneY(u.t); u.s = .84+.22*u.t;
+      u.x = CX + side*sideDist(lifted?0:col,u.t,mode==='prep'?(lifted?3:u.prow):i);
+      const p = ART[u.art]; u.b = p.sd ? sdBox(p, BODY*u.s*(u.big||1), false) : sdBox(p, BODY*u.s*(u.big||1)*(proxy?1:1.45), proxy);
+      u.left = u.x-u.b.W/2; u.top = u.y-u.b.H;
+    });
+  }
+}
+function slotPos(side,col,row){ const t=row/3; return {x:CX+side*sideDist(col,t,row), y:laneY(t)}; }
+/* 바닥 열 표시: 진형 배치에서 전열·후열 줄을 바닥에 옅게 긋는다. 준비 화면에서는 진하게 하고 이름을 붙인다. */
+function rowBandsHTML(){
+  if (layoutMode!=='rows') return '';
+  let g = `<svg class="layer rowbands" viewBox="0 0 1920 1080">`;
+  for (const side of [-1,1]) for (const col of [0,1]){
+    const a = slotPos(side,col,0), b = slotPos(side,col,3), c = side===-1?'#21365C':'#C8414F';
+    const dx = (b.x-a.x), dy = (b.y-a.y), len = Math.hypot(dx,dy), nx = -dy/len*34, ny = dx/len*34;
+    g += `<polygon points="${a.x-nx},${a.y-36-ny} ${a.x+nx},${a.y-36+ny} ${b.x+nx},${b.y+30+ny} ${b.x-nx},${b.y+30-ny}" fill="${c}" class="band"/>`;
+    g += `<line x1="${a.x}" y1="${a.y-36}" x2="${b.x}" y2="${b.y+30}" stroke="${c}" class="bandline"/>`;
+    g += `<text x="${a.x}" y="${a.y-52}" text-anchor="middle" fill="${c}" class="bandlbl">${col===0?'전열':'후열'}</text>`;
+  }
+  return g + `</svg>`;
+}
+/* 스타레일식 하단 HUD: 아군만 화면 오른쪽 아래에 초상화 카드로 둔다. 초월 원은 카드 왼쪽 위 모서리에 겹치고, 충전되면 카드가 빛나며 위로 뜬다.
+   재보는 카드 줄 오른쪽의 공용 포인트(마름모)로 둔다. 적은 머리 위에 얇은 체력·강인도 막대만 띄운다. */
+function hsrBarHTML(){
+  // 양 진영을 모두 하단에 둔다. 무대와 같은 방향으로, 각 진영의 전열이 화면 가운데(재보) 쪽에 온다.
+  const allies = U.filter(u=>u.side===-1).sort((a,b)=>b.col-a.col||a.prow-b.prow);
+  const enemies = U.filter(u=>u.side===1).sort((a,b)=>a.col-b.col||a.prow-b.prow);
+  const card = u => `<div class="hcard ${u.side===1?'enemy':'ally'} ${u.ult>=1?'ready':''}" data-h="${u.id}" style="--el:${E[u.el]}">
+      <div class="hc-art" style="background-image:url(art/portrait/${u.por}.png)"></div>
+      <span class="hc-row">${u.col===0?'전열':'후열'}</span>
+      <div class="uring ${u.ult>=1?'full':''}" data-r="${u.id}" style="--el:${E[u.el]}">${ringHTML(u.el,u.ult,u.res)}</div>
+      <div class="hc-foot">${plateHTML(u)}</div></div>`;
+  return `<div class="hsr battle-only"><div class="hgroup">${allies.map(card).join('')}</div>
+    <div class="hsp"><span class="lbl">재보</span><span class="d">${Array.from({length:12},(_,i)=>`<b class="${i<3?'on':''}"></b>`).join('')}</span><span class="n">3<small>/12</small></span></div><div class="hgroup">${enemies.map(card).join("")}</div></div>`;
+}
+function enemyTagHTML(u){
+  const hd = anchor(u,'head'), pct = u.hp/u.max*100;
+  return `<div class="etag battle-only" data-h="${u.id}" style="left:${hd.x-60}px;top:${hd.y-34}px;--el:${E[u.el]}">
+      <div class="et-row"><svg viewBox="0 0 16 16" fill="${E[u.el]}">${IC[u.el]}</svg><span class="hpn" data-p-num="${u.id}">${fmt(u.hp)}</span></div>
+      <div class="plate enemy" data-p="${u.id}" style="width:120px"><div class="row" style="display:none"><span class="hpn">${fmt(u.hp)}</span></div>
+        <div class="bar"><i class="trail" style="width:${pct}%"></i><i class="fill" style="width:${pct}%"></i><span class="sh" style="width:0"></span></div>
+        ${u.tough?`<div class="tough"><i style="width:${u.tough*100}%"></i></div>`:''}</div></div>`;
+}
+/* 하단 정보 바: 아군(왼쪽)·적(오른쪽)을 진형 순서(전열 → 후열)대로 카드로 늘어놓는다. data-h를 그대로 써서 강조·행동 표시·체력 갱신이 같은 경로로 동작한다. */
+function partyBarHTML(){
+  const card = u => `<div class="pcard ${u.side===1?'enemy':'ally'}" data-h="${u.id}" style="--el:${E[u.el]}">
+      <div class="pc-top">${portraitHTML(u.por,34)}<span class="pc-nm">${u.name}</span><span class="pc-row">${u.col===0?'전열':'후열'}</span></div>
+      <div class="pc-bot"><div class="uring ${u.ult>=1?'full':''}" data-r="${u.id}" style="--el:${E[u.el]}">${ringHTML(u.el,u.ult,u.res)}</div>${plateHTML(u)}</div></div>`;
+  const ord = side => U.filter(u=>u.side===side).sort((a,b)=>a.col-b.col||a.prow-b.prow);
+  return `<div class="pbar battle-only"><div class="pside">${ord(-1).map(card).join('')}</div>
+    <div class="pmid"><span class="lbl">재보</span><span class="d">${Array.from({length:12},(_,i)=>`<b class="${i<3?'on':''}"></b>`).join('')}</span><span class="n">3<small>/12</small></span></div>
+    <div class="pside">${ord(1).map(card).join('')}</div></div>`;
+}
+function anchor(u,k){
+  const p=ART[u.art], b=u.b, face = u.side===-1?1:-1;
+  if (k==='head') return {x:u.x, y:u.top+p.top*b.Hi*b.sh};
+  if (k==='chest') return {x:u.x, y:u.top+b.hH+(p.feet-b.neck)*b.Hi*b.sb*.2};
+  if (k==='hand') return {x:u.x+face*b.W*.3, y:u.top+b.hH+(p.feet-b.neck)*b.Hi*b.sb*.3};
+  return {x:u.x, y:u.y};
+}
+
+/* ---------- 부품 HTML ---------- */
+const fmt = n => Math.round(n).toLocaleString('en-US');
+const arrow = up => `<svg viewBox="0 0 10 10" fill="${up?'#9FE3C8':'#F3A0A8'}"><path d="${up?'M5 1 9 6H6.4v3H3.6V6H1z':'M5 9 1 4h2.6V1h2.8v3H9z'}"/></svg>`;
+function hudHTML(u, style='', cls=''){
+  return `<div class="hu ${u.side===1?'enemy':'ally'} ${cls}" data-h="${u.id}" style="--el:${E[u.el]};${style}">
+    <div class="uring ${u.ult>=1?'full':''}" data-r="${u.id}" style="--el:${E[u.el]}">${ringHTML(u.el,u.ult,u.res)}</div>${plateHTML(u)}</div>`;
+}
+function plateHTML(u){
+  const pct = u.hp/u.max*100, shp = u.shield? Math.min(100,u.shield/u.max*100*2.2):0;
+  return `<div class="plate ${u.side===1?'enemy':'ally'}" data-p="${u.id}">
+    <div class="row"><span class="hpn">${fmt(u.hp)}</span><span class="icons">${u.side===-1?`<i>${arrow(true)}</i>`:''}${u.id==='eagle'?`<i>${arrow(false)}</i>`:''}</span></div>
+    <div class="bar"><i class="trail" style="width:${pct}%"></i><i class="fill" style="width:${pct}%"></i><span class="sh" style="width:${shp}%"></span></div>
+    ${u.tough?`<div class="tough"><i style="width:${u.tough*100}%"></i></div>`:''}
+  </div>`;
+}
+function ringHTML(el, frac, kind){
+  const r=18, C=2*Math.PI*r, c=E[el];
+  let arc;
+  if (kind==='stack'){
+    const n=7, seg=C/n, on=Math.round(frac*n);
+    arc = Array.from({length:n},(_,i)=>`<circle cx="21" cy="21" r="${r}" fill="none" stroke="${i<on?c:'rgba(255,255,255,.22)'}" stroke-width="3" stroke-dasharray="${seg-3} ${C-seg+3}" stroke-dashoffset="${-i*seg}" transform="rotate(-90 21 21)"/>`).join('');
+  } else if (kind==='passive'){
+    arc = `<circle cx="21" cy="21" r="${r}" fill="none" stroke="${c}" stroke-width="1.8" stroke-dasharray="2 3.5"/>`;
+  } else {
+    arc = `<circle cx="21" cy="21" r="${r}" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="3"/><circle class="arc" cx="21" cy="21" r="${r}" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${C*frac} ${C}" transform="rotate(-90 21 21)"/>`;
+  }
+  return `<svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="14.5" fill="rgba(14,22,40,.8)"/>${arc}<svg x="14" y="14" width="14" height="14" viewBox="0 0 16 16" fill="${c}">${IC[el]}</svg></svg>`;
+}
+function setRing(u){
+  const el = stage.querySelector(`[data-r="${u.id}"]`); if(!el) return;
+  const C=2*Math.PI*18, a = el.querySelector('.arc'); if (a) a.setAttribute('stroke-dasharray',`${C*u.ult} ${C}`);
+  el.classList.toggle('full', u.ult>=1);
+  stage.querySelector(`.hcard[data-h="${u.id}"]`)?.classList.toggle('ready', u.ult>=1);
+}
+function unitHTML(u, extra=''){
+  const p = ART[u.art], flip = (u.side===-1) === !!p.flip;   // 아군은 오른쪽, 적은 왼쪽을 보게 한다
+  return `<div class="unit ${extra}" data-u="${u.id||''}" style="left:${u.left}px;top:${u.top}px;width:${u.b.W}px;height:${u.b.H}px;z-index:${Math.round(u.y)};--el:${E[u.el]||'#fff'};--sc:${u.s||1}">
+    <div class="shadow"></div><div class="ring"></div>
+    <div class="sd-move" ${u.lift?'style="transform:translateY(-50px) rotate(-5deg)"':''}><div class="sd-flip ${flip?'':'flip'}"><div class="sd-bob">${sdParts(p,u.b)}</div></div></div></div>`;
+}
+
+/* ---------- 무대 그리기 ---------- */
+const stage = document.getElementById('stage');
+let mode = 'battle';
+function render(){
+  place(mode);
+  stage.className = `stage mode-${mode}` + (stage.classList.contains('show-guides')?' show-guides':'');
+  stage.classList.toggle('hud-bar', hudMode==='bar');
+  let h = `<div class="layer grade"></div>` + rowBandsHTML();
+  h += `<div class="layer prep-only">`;
+  for (const col of [0,1]) for (let r=0;r<4;r++){
+    const p = slotPos(-1,col,r), occ = U.some(u=>u.side===-1&&u.col===col&&u.prow===r&&u.id!=='surya');
+    const tgt = col===0&&r===3, vac = col===1&&r===3;
+    h += `<div class="slot ${tgt?'target':''} ${vac?'vacant':''}" style="left:${p.x}px;top:${p.y}px"></div>`;
+    if (!occ) h += `<div class="slot-lbl" style="left:${p.x}px;top:${p.y+30}px">${col===0?'FRONT':'BACK'} ${r+1}</div>`;
+  }
+  h += `</div>`;
+  h += `<div class="layer" id="units">` + [...U].sort((a,b)=>a.y-b.y).map(u=>{
+    u.lift = mode==='prep'&&u.id==='surya';
+    return unitHTML(u, mode==='prep'&&u.side===1?'dim':'') + (hudMode==="hsr" ? "" : hudMode==='bar' ? '' : hudHTML(u, `left:${u.x-79}px;top:${u.y+12}px;z-index:${Math.round(u.y)+1}`, 'battle-only'));
+  }).join('') + `</div>`;
+  h += `<div class="layer" id="fx"></div>`;
+  h += guidesHTML();
+  h += `<div class="topbar">
+    <div class="tb"><span class="ico" style="width:28px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg></span><span class="stg">1-4</span><span class="thm">메히코</span><span class="pips">${Array.from({length:8},(_,i)=>`<b class="${i<3?'on':i===3?'now':''}"></b>`).join('')}</span>
+      <span class="sep"></span><svg class="coin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/></svg><span class="val">500</span></div>
+    <div class="tb mid battle-only">전투 중 · 적 5</div><div class="tb mid prep-only">준비 · 배치</div>
+    <div class="tb"><span class="lbl">예고</span><span class="fc"><i class="now">${icon('geo','#fff')}</i><i>${icon('geo','#21365C')}</i><i>${icon('dendro','#21365C')}</i><i>${icon('electro','#21365C')}</i></span>
+      <span class="sep"></span><span class="spd battle-only" id="spd">×1</span><span class="ico battle-only" title="일시정지"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5" width="3.5" height="14"/><rect x="14" y="5" width="3.5" height="14"/></svg></span>
+      <span class="ico" title="파티"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c.8-3.4 3.2-5 6-5s5.2 1.6 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c2.6.2 4.6 1.8 5.3 4.8"/></svg></span>
+      <span class="ico" title="설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></span></div>
+  </div>`;
+  if (hudMode==='bar') h += partyBarHTML();
+  if (hudMode==='hsr') h += hsrBarHTML();
+  h += `<div class="treasury battle-only ${hudMode!=='feet'?'in-bar':''}"><span class="lbl">재보</span><span class="d">${Array.from({length:12},(_,i)=>`<b class="${i<3?'on':''}"></b>`).join('')}</span><span class="n">3<span style="opacity:.55;font-size:15px">/12</span></span></div>
+  <div class="timeline battle-only" id="tl"></div>
+  <div class="tally battle-only" id="tally"></div>`;
+  h += `<div class="bench prep-only"><span class="bl">대기석 2/5</span>${BENCH.map(bn=>{ const p=ART[bn.art], b=sdBox(p,96,proxy); const u={art:bn.art,b,left:48-b.W/2,top:106-b.H,y:0,side:-1,s:.62}; return `<div class="ped">${unitHTML(u)}</div>`; }).join('')}${'<div class="ped"></div>'.repeat(3)}</div>
+  <div class="deploy prep-only"><span class="s">상점</span><span class="s">휴식</span><span class="s">파티</span><span class="go">출격</span></div>
+  <div class="enemy-note prep-only" style="left:1290px;top:440px">NEXT WAVE · 메히코 전사단 5</div>`;
+  h += `<div class="dimov" id="dimov"></div><div class="wash" id="wash"></div>`;
+  h += `<div class="cutin" id="cutin"><div class="glow"></div><div class="lines" id="cutin-lines"></div><div class="art" id="cutin-art"><img src="art/surtr_cutin.png" alt=""></div><div class="t" id="cutin-t"><div class="k" id="cutin-k"></div><div class="n" id="cutin-n"></div></div></div>`;
+  h += `<div class="tip" id="tip"></div>`;
+  stage.innerHTML = h;
+  drawTimeline(); drawTally();
+}
+let hoverId=null;
+function ownerOf(t){ const el=t.closest&&t.closest('#units .unit,[data-h],[data-c]'); return el ? (el.dataset.u||el.dataset.h||el.dataset.c) : null; }
+stage.addEventListener('mouseover',e=>{ const id=ownerOf(e.target); if(id===hoverId) return; if(hoverId) focusUnit(hoverId,false); hoverId=id; if(id){ focusUnit(id,true); showTip(byId(id)); } else tipEl().classList.remove('on'); });
+stage.addEventListener('mouseleave',()=>{ if(hoverId) focusUnit(hoverId,false); hoverId=null; tipEl().classList.remove('on'); });
+/* 소유 표시: SD·HUD 묶음·행동서열 칩 중 하나에 올리면 셋이 함께 강조된다. */
+function focusUnit(id,on){
+  stage.querySelector(`[data-h="${id}"]`)?.classList.toggle('focus',on);
+  stage.querySelectorAll(`[data-c="${id}"]`).forEach(c=>c.classList.toggle('focus',on));
+  const u=uEl(id); if(u) u.style.filter = on ? 'brightness(1.12) drop-shadow(0 0 8px rgba(255,255,255,.7))' : '';
+}
+function guidesHTML(){
+  let g = `<svg class="layer guides" viewBox="0 0 1920 1080">`;
+  for (let r=0;r<4;r++){ const y=FAR+(NEAR-FAR)*r/3; g+=`<line x1="120" y1="${y}" x2="1800" y2="${y}" stroke="#FF2E88" stroke-width="1.5" stroke-dasharray="8 6"/><text x="128" y="${y-8}" fill="#FF2E88" font-size="18" font-family="Rajdhani" font-weight="700">LANE y=${r+1} · ×${(.84+.22*r/3).toFixed(2)}</text>`; }
+  [[-2,'x=-2 후열'],[-1,'x=-1 전열'],[1,'x=+1 전열'],[2,'x=+2 후열']].forEach(([x,l])=>{ const side=Math.sign(x), col=Math.abs(x)-1, a=slotPos(side,col,0), b=slotPos(side,col,3); g+=`<line x1="${a.x}" y1="${a.y-270}" x2="${b.x}" y2="${b.y+30}" stroke="#00B3FF" stroke-width="2"/><text x="${a.x}" y="${a.y-278}" fill="#00B3FF" font-size="18" text-anchor="middle" font-family="IBM Plex Sans KR" font-weight="700">${l}</text>`; });
+  U.forEach(u=>{ for (const k of ['head','chest','hand','feet']){ const p=anchor(u,k), c={head:'#FFD400',chest:'#FF2E88',hand:'#00E0B0',feet:'#00B3FF'}[k]; g+=`<circle cx="${p.x}" cy="${p.y}" r="6" fill="${c}" stroke="#121A2E" stroke-width="2"/>`; } });
+  g+=`<g font-family="Rajdhani" font-weight="700" font-size="18"><rect x="1600" y="150" width="200" height="124" fill="rgba(18,26,46,.85)"/>
+    <circle cx="1622" cy="176" r="6" fill="#FFD400"/><text x="1636" y="182" fill="#fff">HEAD · 초월 원</text>
+    <circle cx="1622" cy="204" r="6" fill="#FF2E88"/><text x="1636" y="210" fill="#fff">CHEST · 피격</text>
+    <circle cx="1622" cy="232" r="6" fill="#00E0B0"/><text x="1636" y="238" fill="#fff">HAND · 시전</text>
+    <circle cx="1622" cy="260" r="6" fill="#00B3FF"/><text x="1636" y="266" fill="#fff">FEET · 체력판</text></g>`;
+  return g+`</svg>`;
+}
+const tipEl = () => document.getElementById('tip');
+function showTip(u){
+  if (!u) return;
+  const t = tipEl(), hd = anchor(u,'head');
+  t.innerHTML = `<div class="n">${u.name}<span class="e" style="background:${E[u.el]}">${EKO[u.el]}</span></div><div class="l">${u.tag}</div>`;
+  t.style.left = Math.min(1600, Math.max(20, hd.x-140))+'px'; t.style.top = Math.max(100, hd.y-110)+'px';
+  t.classList.add('on');
+}
+
+/* ---------- 행동서열 ---------- */
+const ORDER0 = [['indra',0],['jagE',14],['surtr',22],['kubera',37],['jag1',45],['mansa',58],['eagle',66],['surya',74],['priest',88]];
+let order = ORDER0.map(a=>[...a]), cur = null;
+function drawTimeline(){
+  const tl = document.getElementById('tl'); if(!tl) return;
+  const [first,...rest] = order, u0 = byId(first[0]), cc = cur && cur.id===first[0], ult = cc&&cur.kind==='초월기';
+  let h = `<span class="tl-label">행동 순서</span>`;
+  h += `<div class="cur-wrap" data-c="${u0.id}" style="--el:${E[u0.el]}">${portraitHTML(u0.por,70)}
+    ${cc?`<div class="cur-card ${ult?'ult':''}" style="--el:${E[u0.el]}"><div class="nm">${u0.name}</div><div class="ac"><span class="k" style="background:${ult?E[u0.el]:'#21365C'};color:${ult?'#122133':'#fff'}">${cur.kind}</span><span>${cur.name}</span></div></div>`:''}</div>`;
+  h += rest.slice(0,6).map(([id,av])=>{ const u=byId(id); return `<div class="chip ${u.side===1?'enemy':'ally'}" data-c="${u.id}">${portraitHTML(u.por,58)}<span class="side"></span><span class="av">${Math.round(av-first[1])}</span></div>`; }).join('');
+  tl.innerHTML = h;
+}
+function advance(id, spd){
+  const i = order.findIndex(o=>o[0]===id); const [it] = order.splice(i,1);
+  it[1] = it[1] + Math.round(10000/spd/1.1); order.push(it); order.sort((a,b)=>a[1]-b[1]);
+}
+
+/* ---------- 연출 엔진: scaled 시간, 일시정지 중에는 진행하지 않음 ---------- */
+let paused=false, speed=1, tally=0;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function wait(ms){ return new Promise(res=>{ let acc=0,last=performance.now(); const f=now=>{ const dt=Math.min(250,now-last); last=now; if(!paused) acc+=dt*speed; acc>=ms?res():requestAnimationFrame(f); }; requestAnimationFrame(f); }); }
+function anim(el,kf,ms,ease='ease-out'){ const a=el.animate(kf,{duration:ms,easing:ease,fill:'forwards'}); a.playbackRate=speed; if(paused) a.pause(); return a; }
+const uEl = id => stage.querySelector(`#units [data-u="${id}"]`);
+const fxL = () => document.getElementById('fx');
+function spawn(html,x,y){ const d=document.createElement('div'); d.className='fx'; d.style.left=x+'px'; d.style.top=y+'px'; d.innerHTML=html; fxL().appendChild(d); return d; }
+/* 피격: 원소색 가는 베기 두 줄 + 백색 심 + 얇은 고리 + 불티 */
+function impact(x,y,el,big){
+  const c=E[el], s=big?260:200, h=s/2;
+  let sp=''; for(let i=0;i<7;i++){ const a=Math.random()*Math.PI*2, r=h*(.35+Math.random()*.4); sp+=`<circle cx="${h+Math.cos(a)*r}" cy="${h+Math.sin(a)*r}" r="${1.5+Math.random()*2}" fill="#fff"/>`; }
+  const d = spawn(`<svg width="${s}" height="${s}" style="position:absolute;left:${-h}px;top:${-h}px;overflow:visible">
+    <defs><linearGradient id="g${x|0}" x1="0" x2="1"><stop offset="0" stop-color="${c}" stop-opacity="0"/><stop offset=".5" stop-color="#fff"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs>
+    <path d="M${s*.08} ${s*.7} Q${h} ${h} ${s*.92} ${s*.3}" stroke="${c}" stroke-width="10" fill="none" stroke-linecap="round" opacity=".85"/>
+    <path d="M${s*.08} ${s*.7} Q${h} ${h} ${s*.92} ${s*.3}" stroke="url(#g${x|0})" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M${s*.2} ${s*.22} L${s*.8} ${s*.78}" stroke="${c}" stroke-width="6" stroke-linecap="round" opacity=".7"/>
+    <circle cx="${h}" cy="${h}" r="${s*.1}" fill="#fff"/><circle cx="${h}" cy="${h}" r="${s*.32}" fill="none" stroke="${c}" stroke-width="2"/>${sp}</svg>`,x,y);
+  d.style.filter=`drop-shadow(0 0 10px ${c})`;
+  anim(d,[{transform:'scale(.5) rotate(-6deg)',opacity:1},{transform:'scale(1.05) rotate(0deg)',opacity:1,offset:.3},{transform:'scale(1.18) rotate(2deg)',opacity:0}],420);
+  wait(460).then(()=>d.remove());
+  // 결정 파편: 몸통 접점에서 바깥으로 튀고 회전하며 사라진다
+  for (let i=0;i<(big?10:7);i++){
+    const a=-Math.PI*.9+Math.random()*Math.PI*1.8, r=(big?150:105)*(.6+Math.random()*.5);
+    const s=spawn(`<div class="shard" style="background:linear-gradient(${c},#fff);left:-6px;top:-11px"></div>`,x,y);
+    anim(s,[{transform:'translate(0,0) rotate(0deg) scale(1)',opacity:1},{transform:`translate(${Math.cos(a)*r}px,${Math.sin(a)*r+30}px) rotate(${(Math.random()-.5)*540}deg) scale(.4)`,opacity:0}],520+Math.random()*160,'cubic-bezier(.15,.7,.3,1)');
+    wait(720).then(()=>s.remove());
+  }
+}
+function ripple(u,el){
+  const f=anchor(u,'feet'), d=spawn(`<div class="ripple" style="border-color:${E[el]};width:120px;height:30px"></div>`,f.x,f.y);
+  anim(d.firstChild,[{transform:'translate(-50%,-50%) scale(.4)',opacity:1},{transform:'translate(-50%,-50%) scale(1.8)',opacity:0}],420);
+  wait(460).then(()=>d.remove());
+}
+// 화면 흔들림: 배경은 두고 유닛·HUD·효과 층만 짧게 흔든다(치명·초월기만)
+function shake(px){
+  const kf=[0,1,2,3,4,5].map(i=>({transform:i===5?'translate(0,0)':`translate(${(i%2?-1:1)*px*(1-i/5)}px,${(i%3-1)*px*.5}px)`}));
+  ['units','hud','fx'].forEach(id=>{ const el=document.getElementById(id); if(el) anim(el,kf,180,'linear'); });
+}
+function flash(x,y,el){ const c=E[el]; const d=spawn(`<div style="position:absolute;left:-30px;top:-30px;width:60px;height:60px;border-radius:50%;background:radial-gradient(closest-side,#fff,${c} 45%,transparent)"></div>`,x,y); anim(d,[{transform:'scale(.3)',opacity:1},{transform:'scale(1.3)',opacity:0}],260); wait(300).then(()=>d.remove()); }
+const combos = {};   // 같은 행동ID·수신자의 직접 연타는 한 숫자로 누계(현행 'N타 합계' 규칙)
+function number(u,val,opt={}){
+  const p=anchor(u,'chest'); const key=opt.combo?`${opt.combo}:${u.id}`:null;
+  if (key && combos[key]){
+    const c=combos[key]; c.n++; c.sum+=val; c.el.querySelector('b').textContent=fmt(c.sum); c.el.querySelector('small').textContent=`${c.n}타 합계`;
+    anim(c.el,[{transform:'translate(-50%,-50%) skewX(-8deg) scale(1.25)'},{transform:'translate(-50%,-50%) skewX(-8deg) scale(1)'}],160);
+    return;
+  }
+  const jit=(Math.random()-.5)*20;
+  const label = opt.crit?'CRITICAL':key?'1타':'';
+  const d=spawn(`<div class="dmg ${opt.crit?'crit':''} ${opt.shield?'shield':''}">${label?`<small>${label}</small>`:''}${opt.shield?'보호막 ':''}<b style="font-weight:inherit">${fmt(val)}</b></div>`,p.x+jit,p.y-60-(opt.row||0)*48);
+  if (key) combos[key]={el:d.firstChild,n:1,sum:val};
+  anim(d,[{transform:'translateY(16px) scale(1.45)',opacity:0},{transform:'translateY(-4px) scale(.95)',opacity:1,offset:.12},{transform:'translateY(0) scale(1)',opacity:1,offset:.2},{transform:'translateY(-24px)',opacity:1,offset:.78},{transform:'translateY(-38px)',opacity:0}],1150);
+  wait(1190).then(()=>{ d.remove(); if(key) delete combos[key]; });
+}
+function stText(u,txt,el){ const p=anchor(u,'head'); const d=spawn(`<div class="stx" style="color:${E[el]}">${txt}</div>`,p.x,p.y-26);
+  anim(d,[{transform:'translateY(8px)',opacity:0},{transform:'translateY(0)',opacity:1,offset:.2},{transform:'translateY(-22px)',opacity:0}],900); wait(940).then(()=>d.remove()); }
+function setHp(u,instant){
+  const pl=stage.querySelector(`[data-p="${u.id}"]`); if(!pl) return;
+  if (instant) pl.classList.add('instant');
+  const pct=Math.max(0,u.hp/u.max*100);
+  pl.querySelector('.fill').style.width=pct+'%'; pl.querySelector('.trail').style.width=pct+'%';
+  pl.querySelector('.sh').style.width=(u.shield?Math.min(100,u.shield/u.max*100*2.2):0)+'%';
+  pl.querySelector('.hpn').textContent=fmt(u.hp);
+  const tagNum=stage.querySelector(`[data-p-num="${u.id}"]`); if(tagNum) tagNum.textContent=fmt(u.hp);
+  if (instant){ void pl.offsetWidth; pl.classList.remove('instant'); }
+}
+function hit(t,val,el,dir,opt={}){
+  let dmg=val;
+  if (t.shield){ const ab=Math.min(t.shield,dmg); t.shield-=ab; dmg-=ab; number(t,ab,{shield:true,row:1}); }
+  t.hp=Math.max(1,t.hp-dmg); setHp(t);
+  if (dmg>0) number(t,dmg,opt);
+  if (t.side===1 && opt.by){ dmgBy[opt.by]=(dmgBy[opt.by]||0)+val; drawTally(); }
+  const m=uEl(t.id).querySelector('.sd-move'), b=uEl(t.id).querySelector('.sd-bob');
+  setPose(t,'hit'); clearTimeout(t._poseT); t._poseT=setTimeout(()=>setPose(t,'idle'), 420/speed);
+  anim(m,[{transform:'translateX(0)'},{transform:`translateX(${dir*(opt.big?20:12)}px)`,offset:.25},{transform:`translateX(${dir*(opt.big?20:12)}px)`,offset:.45},{transform:'translateX(0)'}],opt.big?300:220);
+  anim(b,[{filter:'brightness(2.1) saturate(.4)'},{filter:'brightness(1.4) saturate(.8)',offset:.4},{filter:'brightness(1) saturate(1)'}],200);
+  const p=anchor(t,'chest'); impact(p.x,p.y,el,opt.big); ripple(t,el);
+  if (opt.crit||opt.big) shake(opt.big?9:5);
+}
+function setCur(id,o){ cur={id,...o}; drawTimeline(); }
+async function act(aid,tids,o){
+  const a=byId(aid), dir=a.side===-1?1:-1, ae=uEl(aid), mv=ae.querySelector('.sd-move'), ult=o.kind==='초월기';
+  const hu=stage.querySelector(`[data-h="${aid}"]`);
+  setCur(aid,o); ae.classList.add('acting'); hu?.classList.add('acting');
+  await wait(350);
+  if (ult) await cutin(a,o);
+  setPose(a,'windup');
+  anim(mv,[{transform:'translateX(0) scale(1,1)'},{transform:`translateX(${-10*dir}px) scale(1.02,.97)`}],140); await wait(140);
+  setPose(a,'strike');
+  anim(mv,[{transform:`translateX(${-10*dir}px) scale(1.02,.97)`},{transform:`translateX(${(ult?48:36)*dir}px) scale(.99,1.02)`}],120,'cubic-bezier(.2,.9,.3,1)'); await wait(110);
+  const hp=anchor(a,'hand'); flash(hp.x+dir*30,hp.y,a.el);
+  if (ult){ const w=document.getElementById('wash'); anim(w,[{opacity:0},{opacity:.55,offset:.25},{opacity:0}],260); }
+  const hits = o.hits||1;
+  for (let i=0;i<tids.length;i++){
+    const t=byId(tids[i]);
+    for (let k=0;k<hits;k++){
+      hit(t,o.dmg[i]/hits,a.el,dir,{crit:o.crit&&o.crit[i],big:ult,combo:hits>1?aid:null,by:a.side===-1?aid:null});
+      if (k<hits-1) await wait(150);
+    }
+    if(o.status) stText(t,o.status,a.el);
+    if (i<tids.length-1) await wait(90);
+  }
+  if (ult){ a.ult=0; setRing(a); }
+  await wait(320);
+  setPose(a,'idle');
+  anim(mv,[{transform:`translateX(${(ult?48:36)*dir}px)`},{transform:'translateX(0)'}],220,'ease-in-out'); await wait(260);
+  ae.classList.remove('acting'); hu?.classList.remove('acting'); cur=null; advance(aid,a.side===1?100:108); drawTimeline();
+  U.forEach(u=>{ if(u.id!==aid && u.ult<1){ u.ult=Math.min(1,u.ult+.06); setRing(u);} });
+}
+async function cutin(a,o){
+  const c=document.getElementById('cutin'); c.style.setProperty('--el',E[a.el]);
+  document.getElementById('cutin-k').innerHTML=`<span class="el">${icon(a.el)}</span>${a.name.toUpperCase()} · 초월기`; document.getElementById('cutin-n').textContent=o.name;
+  const T=1150, p=ART[a.art], art=document.getElementById('cutin-art');
+  const AH=1100, AW=AH*p.a, fx=p.cx*AW, fy=(p.top+p.chin)/2*AH;   // 띠 높이 250 중 얼굴을 y=112, x=480에 둔다
+  art.style.cssText=`left:${480-fx}px;top:${112-fy}px;width:${AW}px;height:${AH}px;transform-origin:${fx}px ${fy}px`;
+  anim(document.getElementById('dimov'),[{opacity:0},{opacity:1,offset:.12},{opacity:1,offset:.86},{opacity:0}],T);
+  anim(c,[{opacity:0,transform:'rotate(-6deg) scaleY(.08)'},{opacity:1,transform:'rotate(-6deg) scaleY(1)',offset:.1},{opacity:1,transform:'rotate(-6deg) scaleY(1)',offset:.86},{opacity:0,transform:'rotate(-6deg) scaleY(.05)'}],T,'cubic-bezier(.3,0,.2,1)');
+  anim(document.getElementById('cutin-lines'),[{transform:'translateX(0)'},{transform:'translateX(-520px)'}],T,'linear');
+  anim(document.getElementById('cutin-art'),[{transform:'rotate(6deg) translateX(-140px) scale(1.06)',opacity:0},{transform:'rotate(6deg) translateX(0) scale(1)',opacity:1,offset:.22},{transform:'rotate(6deg) translateX(26px) scale(1)',opacity:1,offset:.86},{transform:'rotate(6deg) translateX(40px)',opacity:0}],T,'cubic-bezier(.2,.8,.2,1)');
+  anim(document.getElementById('cutin-t'),[{transform:'rotate(6deg) translateX(80px)',opacity:0,letterSpacing:'.3em'},{transform:'rotate(6deg) translateX(80px)',opacity:0,offset:.14},{transform:'rotate(6deg) translateX(0)',opacity:1,letterSpacing:'0em',offset:.36},{transform:'rotate(6deg) translateX(-14px)',opacity:1,offset:.86},{transform:'rotate(6deg) translateX(-30px)',opacity:0}],T,'cubic-bezier(.2,.8,.2,1)');
+  await wait(T);
+}
+let dmgBy = {};
+function drawTally(){
+  const el=document.getElementById('tally'); if(!el) return;
+  const allies=U.filter(u=>u.side===-1), sum=allies.reduce((s,u)=>s+(dmgBy[u.id]||0),0);
+  el.innerHTML = `<span class="lbl">피해 집계</span>` + allies.map(u=>`<div class="r" data-c="${u.id}">${portraitHTML(u.por,30)}<span>${u.name}</span><b>${fmt(dmgBy[u.id]||0)}</b></div>`).join('')
+    + `<div class="sum"><span>합계</span><b>${fmt(sum)}</b></div>`;
+}
+function resetData(){ U.forEach(u=>{u.hp=u.hp0; u.shield=u.sh0; u.ult=u.ult0;}); order=ORDER0.map(a=>[...a]); cur=null; dmgBy={}; }
+function resetAll(){ resetData(); U.forEach(u=>{ setHp(u,true); setRing(u); }); drawTally(); drawTimeline(); }
+let loopId=0;
+async function loop(){
+  const my=++loopId;
+  while(my===loopId){
+    await act("indra",["eagle"], sdStyle!=="off" ? {kind:'일반행동',name:'설원의 사냥꾼',dmg:[2980],status:'얼음 부착'} : {kind:'일반행동',name:'뇌정 찌르기',dmg:[3412],hits:2,status:'감전'}); if(my!==loopId) return; await wait(380);
+    await act('jagE',['kubera'],{kind:'일반행동',name:'흑요석 내려치기',dmg:[1460]}); if(my!==loopId) return; await wait(380);
+    await act('surtr',['jagE','jag1'],{kind:'초월기',name:'아직 꺼지지 않은 종말',dmg:[9120,6740],crit:[true,false]}); if(my!==loopId) return; await wait(1400);
+    resetAll(); await wait(500);
+  }
+}
+
+/* ---------- 조작 ---------- */
+const bPlay=document.getElementById('b-play'), bSpd=document.getElementById('b-speed'), bG=document.getElementById('b-guide'), bP=document.getElementById('b-prop');
+function setPaused(p){ paused=p; bPlay.textContent=p?'재생':'일시정지'; stage.getAnimations({subtree:true}).forEach(a=>p?a.pause():a.play()); }
+bPlay.onclick=()=>setPaused(!paused);
+bSpd.onclick=()=>{ speed = speed>=5?1:speed+1; bSpd.textContent=`배속 ×${speed}`; const s=document.getElementById('spd'); if(s) s.textContent=`×${speed}`; stage.getAnimations({subtree:true}).forEach(a=>a.playbackRate=speed); };
+bG.onclick=()=>{ const on=!stage.classList.contains('show-guides'); stage.classList.toggle('show-guides',on); bG.setAttribute('aria-pressed',on); bG.textContent=on?'가이드 숨기기':'가이드 보기'; };
+function bindSeg(id, get, set){ const bs=[...document.querySelectorAll(`#${id} button`)]; const sync=()=>bs.forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===get())); bs.forEach(b=>b.onclick=()=>{ set(b.dataset.v); sync(); restart(); }); sync(); }
+bindSeg('lay-seg', ()=>layoutMode, v=>layoutMode=v);
+bindSeg('hud-seg', ()=>hudMode, v=>hudMode=v);
+function setSdStyle(s){ if(s!=="off"&&!SD_SETS[s]) return; sdStyle=s; document.querySelectorAll("#sd-seg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.s===s)); applyRoster(); restart(); }
+document.querySelectorAll("#sd-seg button").forEach(b=>{ b.onclick=()=>setSdStyle(b.dataset.s); if(b.dataset.s!=="off"&&!SD_SETS[b.dataset.s]) b.disabled=true; });
+bP.onclick=()=>{ proxy=!proxy; bP.setAttribute('aria-pressed',!proxy); bP.textContent=proxy?'원화 비율로 보기':'SD 프록시로 보기'; restart(); };
+function restart(){ resetData(); render(); if(mode==='battle'){ loop(); } else { loopId++; } if (paused) setPaused(true); }
+function setMode(m){ mode=m; document.getElementById('m-battle').setAttribute('aria-pressed',m==='battle'); document.getElementById('m-prep').setAttribute('aria-pressed',m==='prep'); restart(); }
+document.getElementById('m-battle').onclick=()=>setMode('battle');
+document.getElementById('m-prep').onclick=()=>setMode('prep');
+
+const mock=document.getElementById('mock');
+const fit=()=>{ stage.style.transform=`scale(${mock.clientWidth/1920})`; };
+new ResizeObserver(fit).observe(mock); fit();
+
+window.__setLanes = o => { if(o.far!=null)FAR=o.far; if(o.near!=null)NEAR=o.near; if(o.zin!=null)ZIN=o.zin; if(o.zout!=null)ZOUT=o.zout; if(o.t2!=null)T2=o.t2; if(o.b0!=null)B0=o.b0; if(o.b1!=null)B1=o.b1; loopId++; resetData(); render(); };
+render();
+if (reduce){ setPaused(true); setCur('indra',{kind:'일반행동',name:'뇌정 찌르기'}); uEl('indra').classList.add('acting'); }
+loop();
+
+/* ---------- 보드 부품 ---------- */
+// 원화 → SD 비교 도해
+(() => {
+  const p = ART.surtr, raw = sdBox(p, 360, false), sd = sdBox(p, 250, true);
+  const L = (b,x,base) => `<div class="unit" style="left:${x-b.W/2}px;top:${base-b.H}px;width:${b.W}px;height:${b.H}px;pointer-events:none"><div class="shadow"></div><div class="sd-flip"><div class="sd-bob" style="animation:none">${sdParts(p,b)}</div></div></div>`;
+  let h = L(raw,150,398) + L(sd,380,398);
+  const top = 398-250, hu = 250/3;
+  let g = `<svg width="520" height="420" style="position:absolute;inset:0">`;
+  for (let i=0;i<=3;i++){ const y=top+hu*i; g+=`<line x1="270" y1="${y}" x2="510" y2="${y}" stroke="#21365C" stroke-opacity="${i===3?.6:.3}" stroke-dasharray="${i===3?'':'4 4'}"/>`; }
+  ['1','2','3'].forEach((t,i)=> g+=`<text x="500" y="${top+hu*(i+.5)+4}" font-size="12" fill="#21365C" font-family="Rajdhani" font-weight="700" text-anchor="end">${t}</text>`);
+  g += `<text x="150" y="30" font-size="14" fill="#21365C" font-family="IBM Plex Sans KR" font-weight="700" text-anchor="middle">현행 스탠딩</text><text x="380" y="30" font-size="14" fill="#21365C" font-family="IBM Plex Sans KR" font-weight="700" text-anchor="middle">SD 프록시 · 약 3등신</text></svg>`;
+  document.getElementById('ratio-inner').innerHTML = h + g;
+  const fig=document.getElementById('ratio-fig'), inner=document.getElementById('ratio-inner');
+  const f=()=>{ inner.style.transform=`scale(${fig.clientWidth/520})`; }; new ResizeObserver(f).observe(fig); f();
+})();
+// HUD 부품
+(() => {
+  const demo = (o)=>({id:'x',res:'mana',...o});
+  const a=demo({side:-1,el:'geo',ult:.42,max:4050,hp:4050,shield:900}), b=demo({side:1,el:'geo',ult:.5,max:12800,hp:5120,tough:.6}), c=demo({side:-1,el:'pyro',ult:1,max:3600,hp:820});
+  document.getElementById('comp-plates').innerHTML = [[a,'아군 · 보호막'],[b,'적 · 강인도'],[c,'아군 · 위험 · 초월 충전']].map(([u,l])=>`<div class="cell" style="padding-bottom:8px">${hudHTML(u,'position:relative').replace(/data-[hrp]="x"/g,'')}<div class="lab" style="margin-top:16px">${l}</div></div>`).join('');
+  const low = document.querySelectorAll('#comp-plates .plate')[2]; if (low){ low.querySelector('.fill').style.background='linear-gradient(90deg,#B83240,#E0505E)'; low.querySelector('.trail').style.width='38%'; }
+  document.getElementById('comp-rings').innerHTML = [['pyro',.62,'mana','마나형'],['electro',.57,'stack','스택형 4/7'],['anemo',1,'passive','상시형'],['geo',1,'mana','충전 완료']].map(([e,f,k,l])=>`<div class="cell"><div class="uring ${f>=1&&k==='mana'?'full':''}" style="--el:${E[e]}">${ringHTML(e,f,k)}</div><div class="lab">${l}</div></div>`).join('');
+  document.getElementById('comp-chips').innerHTML = `<div class="cell" style="transform:scale(.82);transform-origin:bottom center;margin:-8px -36px 0"><div class="cur-card ult" style="--el:${E.pyro}">${portraitHTML("surtr",84)}<div><div class="nm">수르트</div><div class="ac"><span class="k" style="background:${E.pyro};color:#122133">초월기</span><span>아직 꺼지지 않은 종말</span></div></div></div></div>
+    <div class="cell"><div class="chip enemy">${portraitHTML("jagE",58)}<span class="side"></span><span class="av">14</span></div><div class="lab">적</div></div>
+    <div class="cell"><div class="chip ally">${portraitHTML("indra",58)}<span class="side"></span><span class="av">37</span></div><div class="lab">아군</div></div>`;
+  const nc = (w,inner,l)=>`<div class="cell" style="height:110px;width:${w}px;position:relative">${inner}<div class="lab" style="position:absolute;bottom:-8px;left:0;right:0">${l}</div></div>`;
+  document.getElementById('comp-nums').innerHTML =
+    nc(150,`<div class="dmg" style="left:75px;top:60px;font-size:40px">3,412</div>`,'일반') +
+    nc(170,`<div class="dmg crit" style="left:85px;top:52px;font-size:50px"><small>CRITICAL</small>9,120</div>`,'치명') +
+    nc(170,`<div class="dmg shield" style="left:85px;top:60px;font-size:28px">보호막 900</div>`,'흡수') +
+    nc(100,`<div class="dmg" style="left:50px;top:60px;font-size:26px;color:#8FF0C8">+420</div>`,'회복') +
+    nc(100,`<div class="stx" style="left:50px;top:60px;color:${E.electro}">감전</div>`,'상태');
+})();
+(() => {
+  const sw=[['군청 기본','#21365C','UITheme.Accent'],['먹군청 유리','#0E1628','HUD 패널 72~80%'],['백','#F7FAFD','상단 바 86%'],['금','#B8923F','진행·선택'],['아군 체력','#28C7AE','UITheme.Hp'],['적 체력','#E05A68','UITheme.Enemy'],['보호막','#F0C96A','UITheme.Shield 계열'],
+    ...Object.keys(E).map(k=>[`원소 · ${EKO[k]}`,E[k],'ElementPalette'])];
+  document.getElementById('swatches').innerHTML = sw.map(([n,c,s])=>`<div class="cut"><i style="background:${c};border-radius:6px"></i><b>${n}</b><span>${c} · ${s}</span></div>`).join('');
+})();
+(() => {
+  const b=document.getElementById('b-copy'), pre=document.getElementById('prompt');
+  b.onclick = () => {
+    navigator.clipboard.writeText(pre.textContent).then(()=>{ b.textContent='복사됨'; }).catch(()=>{
+      const r=document.createRange(); r.selectNodeContents(pre); const s=getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent='선택됨 · Ctrl+C';
+    });
+    setTimeout(()=>{ b.textContent='복사'; },2000);
+  };
+})();
+})();
+</script>

@@ -138,9 +138,7 @@ namespace Codes.Passive.Reward
         protected override void OnCast()
         {
             if (Caster.UltimateResourceType != BaseEnums.UltimateResourceType.Mana) return;
-            // 이미 절반 이상이면 그대로 둔다 — 깎지 않는다.
-            int need = Caster.ManaMax / 2 - Caster.ManaCurr;
-            if (need > 0) Caster.AddUltimateResource(need);
+            Caster.GrantInitialMana(803, Caster.ManaMax / 2);
         }
     }
 

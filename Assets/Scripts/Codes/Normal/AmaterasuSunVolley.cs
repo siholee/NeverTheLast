@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Codes.Normal
 {
-    /// <summary>마나를 모으는 단일 사격. 불 부착을 하지 않아 초월기의 증발·융해 재료를 남긴다.</summary>
+    /// <summary>마나를 모으는 단일 사격. 불 부착을 하지 않아 초월기의 연소·융해 재료를 남긴다.</summary>
     public sealed class AmaterasuSunVolley : BaseNormalCode
     {
         public const float ArrowRatio = 1f;

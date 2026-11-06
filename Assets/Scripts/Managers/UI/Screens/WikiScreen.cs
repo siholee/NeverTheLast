@@ -1149,9 +1149,9 @@ namespace Managers.UI.Screens
         private static string ReactionOverviewBody()
         {
             var sb = new StringBuilder();
-            Headline(sb, "원소 반응", "28쌍", UITheme.TextPrimary);
+            Headline(sb, "원소 반응", $"{ElementalReaction.AllReactions().Count()}쌍", UITheme.TextPrimary);
             Paragraph(sb,
-                "캐릭터마다 타고난 원소가 있고, 공격은 대상에게 원소를 부착한다." + "\n" +
+                "캐릭터마다 타고난 원소가 있지만, 실제 원소 부착은 각 코드의 설명을 따른다." + "\n" +
                 "이미 다른 원소가 붙어 있는 대상에게 원소를 부착하면 두 원소가 반응한다.",
                 UITheme.TextPrimary);
 
@@ -1166,7 +1166,7 @@ namespace Managers.UI.Screens
                 "증폭이 가장 앞인 것은 방금 들어간 그 공격에만 얹을 수 있어 놓치면 사라지기 때문이다.");
 
             Section(sb, "바람");
-            Paragraph(sb, "바람이 낀 여섯 쌍은 모두 같은 확산이다. 바람 + 바람만 광역 피해가 된다.");
+            Paragraph(sb, "바람이 낀 여섯 쌍은 모두 같은 확산이다. 바람 + 바람은 별도 반응인 초확산으로 광역 특공 피해를 준다. 불+물은 상쇄, 물+풀은 개화 피해, 물/풀+바위는 동일한 풍화다.");
 
             Section(sb, $"전체 {ElementalReaction.AllReactions().Count()}쌍");
             foreach (ElementalReaction.Listing reaction in ElementalReaction.AllReactions())

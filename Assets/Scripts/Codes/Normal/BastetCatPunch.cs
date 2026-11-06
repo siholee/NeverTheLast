@@ -14,6 +14,7 @@ namespace Codes.Normal
     {
         public const float FollowUpRatio = 1f;
         public const float CounterHealingRatio = .5f;
+        public const float FollowUpAttachmentChance = .15f;
         public override int AttackForm => DamageTag.Strike;
 
         public BastetCatPunch(NormalCodeContext context) : base(context)
@@ -64,11 +65,14 @@ namespace Codes.Normal
             AudioManager.PlayAction(Caster, SfxActionSlot.Normal, SfxCuePhase.Cast, CodeName);
             bool crit = RollCritical(target, tags, out float multiplier);
             int damage = UnityEngine.Mathf.Max(1, UnityEngine.Mathf.RoundToInt(StatDamage(0, BaseEnums.StatType.Attack, FollowUpRatio) * multiplier));
-            var context = new DamageContext(Caster, damage, BaseEnums.CodeType.Normal, tags, crit);
+            var context = new DamageContext(Caster, damage, BaseEnums.CodeType.Normal, tags, crit) { AppliesElement = true };
             yield return BastetFx.CatPunch(Caster, target, true, () =>
             {
                 AudioManager.PlayAction(Caster, SfxActionSlot.Normal, SfxCuePhase.Hit, CodeName);
                 Hit(target, context, false);
+                if (!context.IsCancelled && DirectAttack.CasterCanContinue(Caster, true) && target != null && target.isActive)
+                    target.GrantCombatElement(BaseEnums.UnitElement.Geo, source: Caster,
+                        baseChance: FollowUpAttachmentChance, hitScaling: EffectHitScaling.Proportional);
             });
             // 본타의 실제 피해만 회복으로 돌린다. 후속 보상·추가 피해를 다시 합산하지 않는다.
             if (Caster != null && Caster.isActive && Caster.IsOnField && context.ResolvedDamage > 0 &&

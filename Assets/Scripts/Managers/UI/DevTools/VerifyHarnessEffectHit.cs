@@ -151,6 +151,13 @@ namespace Managers.UI.DevTools
                 !target.GetAllStatuses().Contains(neutralDot) && target.GetAllStatuses().Contains(benefit));
 
             foreach (Unit enemy in AliveEnemies()) YvResetEnemy(enemy);
+            // 진행 데이터가 단일 보스 편성이어도 확산의 새 수신자 저항을 실제로 검사한다.
+            if (AliveEnemies().Count < 2)
+            {
+                Unit spare = GridManager.Instance.SpawnUnit(2, 4, true, target.ID, playEntry: false);
+                if (spare == null) throw new System.InvalidOperationException("효과 명중 검증의 확산 대상 생성 실패");
+                YvBoostEnemy(spare);
+            }
             Unit resistant = AliveEnemies().First(unit => unit != target);
             EhStat(source, BaseEnums.StatType.SpecialAttack, 200f);
             EhStat(target, BaseEnums.StatType.SpecialDefense, 100f);

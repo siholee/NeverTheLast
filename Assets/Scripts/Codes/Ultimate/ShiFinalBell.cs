@@ -19,6 +19,7 @@ namespace Codes.Ultimate
     {
         public const string ResourceId = "shi_final_bell";
         public const int MaximumStacks = 9;
+        public const float AttachmentChance = .20f;
         private bool _registered;
 
         public override bool IsAutoCast => false;
@@ -68,7 +69,7 @@ namespace Codes.Ultimate
             if (targets.Count == 0) yield break;
 
             bool crit = RollCritical(out float multiplier);
-            float ratio = tier == 3 ? ThreeStackRatio(Caster.Level) : tier == 6 ? 2.5f : 3.75f;
+            float ratio = tier == 3 ? 1f : tier == 6 ? 2.5f : 3.75f;
             int total = Mathf.Max(1, Mathf.RoundToInt(
                 Caster.StatValue(BaseEnums.StatType.Attack) * ratio * multiplier));
             int each = tier == 3 ? total : Mathf.Max(1, Mathf.RoundToInt(total / (float)targets.Count));
@@ -80,7 +81,7 @@ namespace Codes.Ultimate
                 DamageTag.BonusDamage,
             };
             var contexts = targets.ToDictionary(target => target, _ => new DamageContext(Caster, each,
-                BaseEnums.CodeType.Ultimate, new List<int>(tags), crit) { IsDistributed = tier != 3 });
+                BaseEnums.CodeType.Ultimate, new List<int>(tags), crit) { IsDistributed = tier != 3, AppliesElement = true });
             string key = $"shi.final_bell.{tier}";
             ActionAnnouncer.Announce(Caster, ActionAnnouncementKind.Ultimate, this);
             AudioManager.PlayAction(Caster, SfxActionSlot.Ultimate, SfxCuePhase.Screen, CodeName);
@@ -100,19 +101,11 @@ namespace Codes.Ultimate
                 }
                 VerseReaperFx.Contact(Caster,target,tier==9?.76f:.60f,particles:true);
                 target.TakeDamage(context);
+                if (DirectAttack.CasterCanContinue(Caster, false) && target.isActive)
+                    target.GrantCombatElement(BaseEnums.UnitElement.Anemo, source: Caster,
+                        baseChance: AttachmentChance, hitScaling: EffectHitScaling.Proportional);
             });
 
-        }
-
-        /// <summary>
-        /// 3중첩은 기존 레벨별 계수에 1.25배를 적용한다.
-        /// 밸런스 확정 전까지 문서와 함께 🔸 임시 수치로 유지한다.
-        /// </summary>
-        private static float ThreeStackRatio(int level)
-        {
-            int offset = Mathf.Max(0, level - 1);
-            float power = 20f + Mathf.Round(-0.031f * offset + 0.00521f * offset * offset);
-            return Mathf.Max(1f, power) / 40f;
         }
 
         private List<Unit> AliveEnemies()

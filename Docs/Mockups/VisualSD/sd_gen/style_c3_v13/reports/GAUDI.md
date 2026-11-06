@@ -1,0 +1,19 @@
+# GAUDI · SD 비율 13차 p2 HOLD 수정 1회차 · 2026-11-06
+- 상태: **검수 대기** — Root 재검수 전.
+- IDLE 등신: 등록본 3.140 → 이전 v13 HOLD 2.753 → 수정본 **2.689**; 요청 범위 2.66~2.70 및 운영 상한 2.74 안.
+- 목표 2.68 계산: HOLD 대비 머리/키 상대비 1.027배, 머리 고정 시 몸 길이 0.958배. 머리를 조금 키우고 몸통·다리를 줄이는 방향으로 5포즈 재작화.
+- 새 IDLE: crownY=276, chinY=627, (1220−276)/(627−276)=2.689459; measure_GAUDI.png에 선 표시.
+- 두개부 ROI: 귀·뜬 머리·장식·후드 제외, 후드 아래 경계 수동 추정 ±10px. 최종 좌표는 수동 원 ROI에 전체 배율/정수 이동을 적용한 값.
+- 5포즈 √(w×h) 환산치(IDLE/WINDUP/STRIKE/HIT/DOWN): 347.48 / 347.49 / 347.47 / 347.37 / 347.49px; IDLE 대비 최대 절대 편차 0.033%.
+- 생성 횟수: IDLE 3 / WINDUP 1 / STRIKE 2 / HIT 1 / DOWN 1; 총 8회, 재생성 3회. 이번 수정 회차 포즈당 최대 3회 준수.
+- 생성: 내장 image_gen, transparent_background=true. 등록본 해당 포즈 전신 또는 얼굴 크롭+이전 v13 포즈+새 IDLE 참조, 실제 문장은 _work_GAUDI/prompts_fix1.json.
+- 프롬프트는 외형 묘사만 사용. 최종 선택: IDLE 3 / WINDUP 1 / STRIKE 2 / HIT 1 / DOWN 1번 후보.
+- N4: 단일 적·비접촉·풀 주문 피해/부착. 별도 SP 고유 코드 없음.
+- U4: 아군 전체 보호막+적 전체 주문 피해/풀 부착·비접촉. P204: 자신 피해 감소+전투 시작 아군 전체 보호막.
+- 포즈 유지: 일반행동 기준 등록본 5포즈·위장 후드·안경·목도리 유지, 신규 행동·소품 없음.
+- 후처리: PowerShell System.Drawing, 이미지 전체 균등 배율+LockBits 정수 이동만. 머리/몸 개별 기하 변형·합성 없음.
+- PNG 검증: 5장 1024×1280 8bit RGBA, 네 모서리 alpha0, alpha≥129 발 y1220, x30..994 안; _work_GAUDI/validation.json.
+- 직접 확인: 우향, 얼굴·눈/머리색·안경·위장 후드·포즈, poses/silhouette/face/battle250/before_after 시트 및 기준 5명 포함 lineup_p2.png.
+- 보존: 이전 결과는 _work_GAUDI/_superseded_hold1/로 이동, archive_hold1_manifest.csv에 원본 SHA256 보존.
+- 남은 결함: 후드 아래 정수리 추정 오차, 위장 무늬·후드 봉제선 미세 차이. Root의 최종 얼굴/정수리 경계 검수 필요.
+- 근거: _work_GAUDI/{before_measure,head_roi_prehead,final_measure}.csv, 포즈별 transform.json 및 모든 생성 후보 보존.

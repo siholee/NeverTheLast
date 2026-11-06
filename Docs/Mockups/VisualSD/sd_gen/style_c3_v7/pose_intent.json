@@ -1,0 +1,296 @@
+[
+  {
+    "key": "MURMILLO",
+    "category": "Enemies/Normal",
+    "description": "Short swept dark-brown hair, brown eyes, stern lightly scarred adult face, sleeveless dark navy quilted tunic, bronze segmented left pauldron, dark red mantle and layered skirt, bronze greaves, sandals, broad dark heavy straight sword, navy rectangular bronze-rimmed lion shield.",
+    "poses": {
+      "IDLE": "Shield held ahead, sword held low diagonally, steady guarded feet apart.",
+      "WINDUP": "Rotate torso away and draw the shield back beside chest, elbow clearly cocked; keep sword low.",
+      "STRIKE": "Firm short shield-boss BASH toward left with bent forward knee and arm extended; sword stays low and does not slash.",
+      "HIT": "Behind shield while recoiling backward, jaw tight, raised shield tilted, rear knee bent.",
+      "DOWN": "Kneel with one knee on baseline, shield resting upright beside body and sword laid low, head bowed."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Short swept dark-brown hair, brown eyes, stern lightly scarred adult face, sleeveless dark navy quilted tunic, bronze segmented left pauldron, dark red mantle and layered skirt, bronze greaves, sandals, broad dark heavy straight sword, navy rectangular bronze-rimmed lion shield.\nPose: IDLE. Shield held ahead, sword held low diagonally, steady guarded feet apart.",
+    "anonymous": false
+  },
+  {
+    "key": "HOPLOMACHUS",
+    "category": "Enemies/Normal",
+    "description": "Adult woman, long straight dark-brown ponytail, brown eyes, white cloth with bronze corset armor, layered white skirt and muted red sashes, bronze shoulder and greaves, slim spear and small circular bronze shield. Keep her outfit modestly closed at chest.",
+    "poses": {
+      "IDLE": "Side-on poised guard, spear upright behind shoulder, round shield held close before chest.",
+      "WINDUP": "Drop into a compact low crouch, draw round shield back at shoulder, spear remains upright.",
+      "STRIKE": "Step left and give a short forceful round-shield BASH at chest level; spear held away and NOT thrust.",
+      "HIT": "Pull round shield high as she leans backward, ponytail kept orderly, feet braced.",
+      "DOWN": "Sit on one folded knee with spear upright as support, shield lowered beside hip, head bowed."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Adult woman, long straight dark-brown ponytail, brown eyes, white cloth with bronze corset armor, layered white skirt and muted red sashes, bronze shoulder and greaves, slim spear and small circular bronze shield. Keep her outfit modestly closed at chest.\nPose: IDLE. Side-on poised guard, spear upright behind shoulder, round shield held close before chest.",
+    "anonymous": false
+  },
+  {
+    "key": "THRAEX",
+    "category": "Enemies/Normal",
+    "description": "Adult tan man, short black hair, brown eyes, diagonal leather chest harness, bronze arm and shoulder armor, dark plum/burgundy layered waistcloth, shin guards and sandals, small dark shield with angular gold motif and recurved sickle sword. Preserve the powerful adult identity without exaggerating torso muscles.",
+    "poses": {
+      "IDLE": "Asymmetric compact guard with shield before ribs and curved blade low at waist.",
+      "WINDUP": "Twist torso and draw sword fist beside shoulder, shield forward, low bent knees.",
+      "STRIKE": "Drive sword POMMEL and armored fist toward left in a blunt blow, curved blade turned back away from opponent, no slicing arc.",
+      "HIT": "Raise small shield and recoil onto back foot with face turned slightly down to left.",
+      "DOWN": "One-knee collapse with curved sword lowered along ground above baseline and shield beside folded knee."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Adult tan man, short black hair, brown eyes, diagonal leather chest harness, bronze arm and shoulder armor, dark plum/burgundy layered waistcloth, shin guards and sandals, small dark shield with angular gold motif and recurved sickle sword. Preserve the powerful adult identity without exaggerating torso muscles.\nPose: IDLE. Asymmetric compact guard with shield before ribs and curved blade low at waist.",
+    "anonymous": false
+  },
+  {
+    "key": "RETIARIUS",
+    "category": "Enemies/Normal",
+    "description": "Young adult androgynous male, short silver-gray hair and pale gray-blue eyes, muted sea-green scarf and wrapped skirt, bronze single shoulder and forearm armor, dark fitted leggings, sandals, slender trident and coiled rope net. Preserve slim adult identity, no extra ornaments.",
+    "poses": {
+      "IDLE": "Trident upright at side, folded net gathered in other hand, poised weight on rear foot.",
+      "WINDUP": "Gather and draw folded net back beside left shoulder, trident braced upright in other hand.",
+      "STRIKE": "Throw the physical net to left with open arm extended, one looped net immediately at fingertips, trident retained upright; no trail or extra projectile copies.",
+      "HIT": "Recoil and brace trident diagonally while net hangs from hand, face tense looking left.",
+      "DOWN": "Kneel with trident laid diagonally across thighs, rope net collected beside knees, gaze lowered left."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Young adult androgynous male, short silver-gray hair and pale gray-blue eyes, muted sea-green scarf and wrapped skirt, bronze single shoulder and forearm armor, dark fitted leggings, sandals, slender trident and coiled rope net. Preserve slim adult identity, no extra ornaments.\nPose: IDLE. Trident upright at side, folded net gathered in other hand, poised weight on rear foot.",
+    "anonymous": false
+  },
+  {
+    "key": "SECUTOR",
+    "category": "Enemies/Normal",
+    "description": "Adult dark-brown skinned bearded man, cropped black hair, brown eyes, battered dark bronze segmented armor, black leather chestpiece, dark burgundy skirt and torn red mantle, bronze bracers and greaves, a straight short sword in each hand.",
+    "poses": {
+      "IDLE": "Square heavy guard with two blades down at either side, no helmet.",
+      "WINDUP": "Sink into a low planted stance and draw both fists back to ribs with blades angled out.",
+      "STRIKE": "Deliver one rightward short sword-POMMEL punch, opposite blade held down for guard; a blunt striking action not a slicing arc.",
+      "HIT": "Cross armored forearms in defense with blade tips safely up and recoil backward.",
+      "DOWN": "Sit heavily on folded legs, both short swords lowered at sides, shoulders slumped."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Adult dark-brown skinned bearded man, cropped black hair, brown eyes, battered dark bronze segmented armor, black leather chestpiece, dark burgundy skirt and torn red mantle, bronze bracers and greaves, a straight short sword in each hand.\nPose: IDLE. Square heavy guard with two blades down at either side, no helmet.",
+    "anonymous": false
+  },
+  {
+    "key": "DIMACHAERUS",
+    "category": "Enemies/Normal",
+    "description": "Adult athletic woman, long auburn-brown slightly wavy hair, amber-brown eyes, black and bronze fitted armor, muted red scarf and layered sash, dark trousers and bronze greaves, paired curved crescent-blade poleaxes. Avoid excessive curls and exposed torso emphasis.",
+    "poses": {
+      "IDLE": "Hold two short-haft crescent axes at low opposing diagonals in a balanced guard.",
+      "WINDUP": "Raise one axe behind shoulder and brace the other horizontally before torso, knees clearly lowered.",
+      "STRIKE": "Extend horizontal axe HAFT crosswise toward left as a blunt two-handed-looking shove while second axe stays back; no spinning or cutting trails.",
+      "HIT": "Bring crossed axe hafts up to block, lean backward on rear leg, jaw tight.",
+      "DOWN": "One knee down, axe heads resting beside folded legs above baseline, hair and scarf settle quietly."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Adult athletic woman, long auburn-brown slightly wavy hair, amber-brown eyes, black and bronze fitted armor, muted red scarf and layered sash, dark trousers and bronze greaves, paired curved crescent-blade poleaxes. Avoid excessive curls and exposed torso emphasis.\nPose: IDLE. Hold two short-haft crescent axes at low opposing diagonals in a balanced guard.",
+    "anonymous": false
+  },
+  {
+    "key": "MARCELLUS",
+    "category": "Enemies/Elite",
+    "description": "Adult man, swept chestnut-brown hair, amber eyes, white split long coat with gold ornament and dark red lining, bronze chestplate and shoulder armor, dark trousers, bronze boots, straight ceremonial sword.",
+    "poses": {
+      "IDLE": "Upright dignified guard with sword held low before body, coat closed around torso.",
+      "WINDUP": "Lift sword fist near shoulder with blade vertical behind arm and draw elbow back, feet wider.",
+      "STRIKE": "Short precise POMMEL BASH toward left with armored sword hand; vertical sword blade stays above wrist, no slash.",
+      "HIT": "Lean back with free forearm raised to protect chest and sword held low, eyebrows tense.",
+      "DOWN": "Dignified one-knee collapse, sword point above baseline beside knee, bowed head and settled white coat."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Adult man, swept chestnut-brown hair, amber eyes, white split long coat with gold ornament and dark red lining, bronze chestplate and shoulder armor, dark trousers, bronze boots, straight ceremonial sword.\nPose: IDLE. Upright dignified guard with sword held low before body, coat closed around torso.",
+    "anonymous": false
+  },
+  {
+    "key": "SABINA",
+    "category": "Enemies/Elite",
+    "description": "Adult woman, tied light brown hair with small practical braids, hazel eyes, bronze leather shoulder armor and practical fitted hunting tunic, layered tan and olive drapes, muted red neckscarf, tall lace-up brown boots, coiled rope/whip and slender throwing dart. Fully covered practical hunter outfit.",
+    "poses": {
+      "IDLE": "Rope gathered at waist, short throwing dart held down beside thigh, eyes tracking left.",
+      "WINDUP": "Draw throwing dart behind ear with elbow clearly raised and coil of rope held at other hip.",
+      "STRIKE": "Release one physical throwing dart rightward from outstretched hand; rope stays coiled at other hip, no whip lash or magic.",
+      "HIT": "Recoil with forearm guarding upper chest, dart held down, stance widened.",
+      "DOWN": "Sit on one knee with rope coil beside lap and dart lowered, exhausted head angled left."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Adult woman, tied light brown hair with small practical braids, hazel eyes, bronze leather shoulder armor and practical fitted hunting tunic, layered tan and olive drapes, muted red neckscarf, tall lace-up brown boots, coiled rope/whip and slender throwing dart. Fully covered practical hunter outfit.\nPose: IDLE. Rope gathered at waist, short throwing dart held down beside thigh, eyes tracking left.",
+    "anonymous": false
+  },
+  {
+    "key": "SPARTACUS",
+    "category": "Enemies/Boss",
+    "description": "Broad adult man, short tousled brown hair, amber-brown eyes, dark leather sleeveless cuirass with bronze single shoulder, muted red neck scarf and red layered sash, dark trousers, large bronze greaves, oversized squared dark cleaver-like greatsword.",
+    "poses": {
+      "IDLE": "Large sword held diagonally down with two hands in a planted powerful guard, no shoulder-rest pose.",
+      "WINDUP": "Lift the heavy sword flat above one shoulder with both hands, knees deeply braced.",
+      "STRIKE": "Bring BROAD FLAT SIDE of greatsword down and forward toward left as one heavy blunt slam, blade edge turned away, no slash trails, feet remain grounded.",
+      "HIT": "Recoil back with greatsword held crosswise in front of chest as a heavy block, strained face.",
+      "DOWN": "Kneel low with both hands leaning on sword flat beside knee, shoulders dropped and head bowed."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Broad adult man, short tousled brown hair, amber-brown eyes, dark leather sleeveless cuirass with bronze single shoulder, muted red neck scarf and red layered sash, dark trousers, large bronze greaves, oversized squared dark cleaver-like greatsword.\nPose: IDLE. Large sword held diagonally down with two hands in a planted powerful guard, no shoulder-rest pose.",
+    "anonymous": false
+  },
+  {
+    "key": "HASTATI",
+    "category": "Enemies/Normal",
+    "description": "Young adult soldier, silver closed-cheek helmet with a fully opaque dark visor, silver segmented armor, pale ice-blue scarf and cape, white tunic and trousers, gray greaves and strapped sandals, simple slim long spear. Anonymous repeatable troop: the entire eye opening is opaque near-black shadow; absolutely no visible eyes, pupils, sclera, closed-eye lines or personal facial identity.",
+    "poses": {
+      "IDLE": "Upright narrow spear guard, spear nearly vertical ahead at left, compact feet.",
+      "WINDUP": "Lower spear to hip and draw rear elbow back with one small step into wide stance.",
+      "STRIKE": "Thrust slim spear straight left at waist level, both hands controlling shaft, torso upright and front knee bent.",
+      "HIT": "Raise spear diagonally as a guard and recoil backward, shoulders hunched.",
+      "DOWN": "One knee down, spear upright held near body as support, head lowered."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Young adult soldier, silver closed-cheek helmet with visible focused eyes looking left, silver segmented armor, pale ice-blue scarf and cape, white tunic and trousers, gray greaves and strapped sandals, simple slim long spear.\nPose: IDLE. Upright narrow spear guard, spear nearly vertical ahead at left, compact feet.",
+    "anonymous": true
+  },
+  {
+    "key": "PRINCIPES",
+    "category": "Enemies/Normal",
+    "description": "Adult veteran soldier, silver enclosed cheek helmet with a fully opaque dark visor, silver segmented armor, taupe brown scarf and sand-beige cape, pale cream tunic and trousers, gray greaves and sandals, stout long spear with broad leaf point. Anonymous repeatable troop: the entire eye opening is opaque near-black shadow; absolutely no visible eyes, pupils, sclera, closed-eye lines or personal facial identity.",
+    "poses": {
+      "IDLE": "Low broad-footed guard with spear angled forward down, mature firm posture.",
+      "WINDUP": "Draw stout spear across torso to the far hip, both hands spread, low crouch distinct from upright idle.",
+      "STRIKE": "Short powerful spear THRUST rightward at chest height from planted low stance, cape settled behind.",
+      "HIT": "Turn shoulder defensively and pull spear vertically in front while leaning backward.",
+      "DOWN": "Sit back on one folded knee, spear diagonally against shoulder, head bowed."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Adult veteran soldier, silver enclosed cheek helmet with focused left-looking eyes, silver segmented armor, taupe brown scarf and sand-beige cape, pale cream tunic and trousers, gray greaves and sandals, stout long spear with broad leaf point.\nPose: IDLE. Low broad-footed guard with spear angled forward down, mature firm posture.",
+    "anonymous": true
+  },
+  {
+    "key": "TRIARII",
+    "category": "Enemies/Normal",
+    "description": "Older adult armored soldier, helmet with strong cheekguards and a fully opaque dark visor, dark antique bronze segmented armor, warm brown scarf and ochre cape, tan layered tunic, bronze greaves, sandals, heavy long spear with broad triangular point. Anonymous repeatable troop: the entire eye opening is opaque near-black shadow; absolutely no visible eyes, pupils, sclera, closed-eye lines or personal facial identity.",
+    "poses": {
+      "IDLE": "Half-crouched disciplined reserve guard, heavy spear upright near chest, broad silhouette.",
+      "WINDUP": "Kneel into a very low one-leg lunge and draw heavy spear back with shaft across shoulder.",
+      "STRIKE": "Low braced rightward spear THRUST from one bent knee, both hands extended, heavy point forward.",
+      "HIT": "Brace heavy spear diagonally across body with arms tense as torso rocks backward.",
+      "DOWN": "Both knees folded, heavy spear lowered horizontally across lap, helmet tilted down."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Older adult armored soldier, helmet with strong cheekguards and visible eyes, dark antique bronze segmented armor, warm brown scarf and ochre cape, tan layered tunic, bronze greaves, sandals, heavy long spear with broad triangular point.\nPose: IDLE. Half-crouched disciplined reserve guard, heavy spear upright near chest, broad silhouette.",
+    "anonymous": true
+  },
+  {
+    "key": "EQUITES",
+    "category": "Enemies/Normal",
+    "description": "Adult armored spell soldier, closed bronze face helmet with red crest, muted burgundy scarf and long cape, dark bronze segmented cuirass, red-and-tan waist armor, strapped sandals. Hands empty: remove the reference's flame; red accent is one matte gem on palm gauntlet, never emissive. Anonymous repeatable troop: the entire eye opening is opaque near-black shadow; absolutely no visible eyes, pupils, sclera, closed-eye lines or personal facial identity.",
+    "poses": {
+      "IDLE": "Empty left hand half raised at waist with relaxed curved fingers, other fist at hip, helmet gaze left; NO horse because source has none.",
+      "WINDUP": "Bring both empty hands together beside chest as a restrained spell preparation, elbow silhouette wide.",
+      "STRIKE": "Extend an OPEN EMPTY PALM toward left with other hand bracing forearm, noncontact spell release conveyed ONLY by pose; absolutely no fire or particles.",
+      "HIT": "Recoil with one forearm shielding face opening and other palm lowered, crest steady.",
+      "DOWN": "Kneel with both hands lowered and helmet bowed, cape pooled within body silhouette."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Adult armored spell soldier, closed bronze face helmet with red crest, muted burgundy scarf and long cape, dark bronze segmented cuirass, red-and-tan waist armor, strapped sandals. Hands empty: remove the reference's flame; red accent is one matte gem on palm gauntlet, never emissive.\nPose: IDLE. Empty left hand half raised at waist with relaxed curved fingers, other fist at hip, helmet gaze left; NO horse because source has none.",
+    "anonymous": true
+  },
+  {
+    "key": "CENTURION",
+    "category": "Enemies/Normal",
+    "description": "Adult heavy soldier, near-black closed cheek helmet with no crest and a fully opaque dark visor, blackened segmented armor, ochre scarf and cape, dark tunic with bronze edging, black greaves and sandals, thick long spear. Anonymous repeatable troop: the entire eye opening is opaque near-black shadow; absolutely no visible eyes, pupils, sclera, closed-eye lines or personal facial identity.",
+    "poses": {
+      "IDLE": "Tall stern spear guard, spear diagonal upwards and close to ribs, commanding squared shoulders.",
+      "WINDUP": "Take a wide step and draw spear behind hip with rear elbow high, torso rotated.",
+      "STRIKE": "Drive thick spear rightward in a short forceful THRUST, front foot planted, shoulders square.",
+      "HIT": "Brace spear horizontally high and recoil backward from blow, knees bent.",
+      "DOWN": "One knee planted with spear held upright for support, helmet bowed and cape settled."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Adult heavy soldier, near-black closed cheek helmet with no crest and visible eyes, blackened segmented armor, ochre scarf and cape, dark tunic with bronze edging, black greaves and sandals, thick long spear.\nPose: IDLE. Tall stern spear guard, spear diagonal upwards and close to ribs, commanding squared shoulders.",
+    "anonymous": true
+  },
+  {
+    "key": "VELITES",
+    "category": "Enemies/Normal",
+    "description": "Adult light soldier, silver cheek helmet with eye slit, silver segmented armor, pale blue scarf and cape, white tunic and gray leggings, sandals, wooden compact arbalest with slim iron bow limbs. Keep original crossbow rather than inventing a thrown spear. Anonymous repeatable troop: the entire eye opening is opaque near-black shadow; absolutely no visible eyes, pupils, sclera, closed-eye lines or personal facial identity.",
+    "poses": {
+      "IDLE": "Arbalest held across waist, muzzle slightly down toward left, relaxed compact guard.",
+      "WINDUP": "Bring arbalest up and pull the loading lever with rear hand, torso leaned forward.",
+      "STRIKE": "Aim crossbow fully horizontal left at shoulder height and fire without muzzle effect or visible projectile, both eyes facing left.",
+      "HIT": "Pull crossbow against chest while recoiling backward, elbows tucked.",
+      "DOWN": "Sit on folded legs with crossbow laid across lap, head lowered, pale blue cape settled."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Adult light soldier, silver cheek helmet with eye slit, silver segmented armor, pale blue scarf and cape, white tunic and gray leggings, sandals, wooden compact arbalest with slim iron bow limbs. Keep original crossbow rather than inventing a thrown spear.\nPose: IDLE. Arbalest held across waist, muzzle slightly down toward left, relaxed compact guard.",
+    "anonymous": true
+  },
+  {
+    "key": "SCORPIO",
+    "category": "Enemies/Normal",
+    "description": "Adult siege marksman, silver cheek helmet with a fully opaque dark visor, silver plate armor, taupe scarf and sandy beige cape, tan tunic and leggings, sandals, broad wooden steel-bowed siege arbalest with reinforced stock. Distinguish from pale-blue light crossbow soldier with wider crossbow and low braced stance. Anonymous repeatable troop: the entire eye opening is opaque near-black shadow; absolutely no visible eyes, pupils, sclera, closed-eye lines or personal facial identity.",
+    "poses": {
+      "IDLE": "Broad arbalest held low forward with both hands, legs wide and knees slightly bent.",
+      "WINDUP": "Crank and brace the siege arbalest low at hip, shoulder rolled forward and muzzle raised.",
+      "STRIKE": "Fire reinforced arbalest rightward from low hip-braced stance, both arms extended and rear heel planted, no bolt or trail.",
+      "HIT": "Turn crossbow diagonally up as body rocks backward and knees buckle.",
+      "DOWN": "One knee down with crossbow resting on other thigh, head lowered toward left."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Adult siege marksman, silver cheek helmet with focused eyes, silver plate armor, taupe scarf and sandy beige cape, tan tunic and leggings, sandals, broad wooden steel-bowed siege arbalest with reinforced stock. Distinguish from pale-blue light crossbow soldier with wider crossbow and low braced stance.\nPose: IDLE. Broad arbalest held low forward with both hands, legs wide and knees slightly bent.",
+    "anonymous": true
+  },
+  {
+    "key": "OPTIO",
+    "category": "Enemies/Normal",
+    "description": "Adult junior officer, bronze closed face helmet with a pale blue-gray crest, silver segmented cuirass, pale blue scarf and cape, white tunic with blue geometric hem, bronze greaves and sandals, short straight sword. Anonymous repeatable troop: the entire eye opening is opaque near-black shadow; absolutely no visible eyes, pupils, sclera, closed-eye lines or personal facial identity.",
+    "poses": {
+      "IDLE": "Short sword held angled down at side, free hand open near ribs, erect compact guard.",
+      "WINDUP": "Draw short sword behind waist and rotate torso left, free hand held back.",
+      "STRIKE": "One restrained horizontal short-sword CUT to image left with arm extended, blade completely visible and no trail.",
+      "HIT": "Raise sword diagonally to guard as torso leans backward, free forearm before chest.",
+      "DOWN": "Kneel with sword lowered across thighs, helmet bowed and pale blue crest still."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Adult junior officer, bronze closed face helmet with a pale blue-gray crest, silver segmented cuirass, pale blue scarf and cape, white tunic with blue geometric hem, bronze greaves and sandals, short straight sword.\nPose: IDLE. Short sword held angled down at side, free hand open near ribs, erect compact guard.",
+    "anonymous": true
+  },
+  {
+    "key": "TRIBUNE",
+    "category": "Enemies/Normal",
+    "description": "Adult field officer, bronze closed helmet with muted ochre crest, dark bronze segmented cuirass, brown scarf and long tan cape, bronze-trimmed tan tunic, dark greaves and sandals, short straight sword and a small plain belt clasp. Anonymous repeatable troop: the entire eye opening is opaque near-black shadow; absolutely no visible eyes, pupils, sclera, closed-eye lines or personal facial identity.",
+    "poses": {
+      "IDLE": "Sword held point up close before chest, free hand at belt, calm upright stance.",
+      "WINDUP": "Lift sword above and behind shoulder with elbow raised, knees spread in low stance.",
+      "STRIKE": "A single descending diagonal short-sword CUT toward left, compact feet planted, no sweep or trail.",
+      "HIT": "Hold sword across upper torso to block and recoil backward, crest contained.",
+      "DOWN": "One knee down, sword held low beside thigh, free hand against ground above baseline."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Adult field officer, bronze closed helmet with muted ochre crest, dark bronze segmented cuirass, brown scarf and long tan cape, bronze-trimmed tan tunic, dark greaves and sandals, short straight sword and a small plain belt clasp.\nPose: IDLE. Sword held point up close before chest, free hand at belt, calm upright stance.",
+    "anonymous": true
+  },
+  {
+    "key": "AGRIPPA",
+    "category": "Allies",
+    "description": "Adult aristocratic male, short slightly tousled blonde hair, gold-brown eyes, ivory white high-collared tunic and long white mantle with matte gold embroidery, dark fitted trousers, gold high boots and belt, small ochre brooch; no weapon or attack prop.",
+    "poses": {
+      "IDLE": "Composed upright stance, one open hand at chest and other gently extended toward comrades at left.",
+      "WINDUP": "Raise OPEN HAND beside shoulder as if preparing a spoken command, other hand flat over heart, feet steady.",
+      "STRIKE": "Give a broad gracious OPEN-PALM leadership gesture toward left, fingers spread naturally, other hand at heart; this BUFF/COMMAND must not look like a fist attack or projectile spell.",
+      "HIT": "Step back and raise forearm across chest protectively, expression tightened but composed.",
+      "DOWN": "Kneel on one knee with one hand resting over chest, mantle gathered neatly, head bowed."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Adult aristocratic male, short slightly tousled blonde hair, gold-brown eyes, ivory white high-collared tunic and long white mantle with matte gold embroidery, dark fitted trousers, gold high boots and belt, small ochre brooch; no weapon or attack prop.\nPose: IDLE. Composed upright stance, one open hand at chest and other gently extended toward comrades at left.",
+    "anonymous": false
+  },
+  {
+    "key": "OCTAVIA",
+    "category": "Allies",
+    "description": "Adult noblewoman, very long straight black hair, blue-gray eyes, thin matte gold laurel headband, high-neck black fitted tunic with fine gold abstract embroidery, white leggings and long white-lined dark navy cape, tall black boots. Fully covered, no visible lettering or magic. She is an orb-using sorceress: carry one small palm-sized blue-green crystal orb seated in a delicate antique-gold cradle, entirely physical and non-glowing.",
+    "poses": {
+      "IDLE": "Hold the blue-green crystal orb in its gold cradle on one open palm at waist level, other hand relaxed beside it. Look LEFT.",
+      "WINDUP": "Raise the same held orb in its gold cradle high beside the front/left temple, with bent vertical supporting forearm and elbow outside the cape silhouette; free hand shapes a restrained spell beside the orb.",
+      "STRIKE": "Extend the supporting palm bearing the SAME orb in its gold cradle toward the LEFT at shoulder height, while the other hand makes a restrained curved shaping gesture close behind the orb. Clearly use the orb to cast a noncontact spell; do not throw or punch with it. No magic effects.",
+      "HIT": "Recoil slightly backward, clutching the SAME orb and its gold cradle securely against the lower chest with both hands. Keep the orb fully visible and intact, no blocking it with forearm.",
+      "DOWN": "Sit on folded knees with head bowed, cradling the SAME intact orb and gold holder securely between both hands in the lap. The orb remains visible, not floating or rolling away."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Adult noblewoman, very long straight black hair, dark eyes, thin matte gold laurel headband, high-neck black fitted tunic with fine gold abstract embroidery, white leggings and long white-lined dark navy cape, tall black boots. Fully covered, no visible lettering or magic.\nPose: IDLE. One hand relaxed near waist, other lightly holding cape edge, cool attentive gaze left.",
+    "anonymous": false
+  },
+  {
+    "key": "CAESAR",
+    "category": "Allies",
+    "description": "Adult statesman-warrior, short pale sandy-blonde hair, amber eyes, matte gold laurel wreath, dark bronze sculpted cuirass, antique red cloak and short white gold-bordered tunic, bronze bracers and sandals, straight short sword. No text or readable emblems.",
+    "poses": {
+      "IDLE": "Sword held low at side with free hand resting lightly at belt, straight dignified posture facing left.",
+      "WINDUP": "Draw sword hand back to ribs, blade angled safely back, free forearm lifted in guard.",
+      "STRIKE": "Deliver a precise short sword-POMMEL BASH toward left with blade vertical behind hand, feet firmly planted; no slash.",
+      "HIT": "Step back and turn cuirass to take blow, free forearm raised across chest, sword lowered.",
+      "DOWN": "One knee down, free hand pressed to chest and sword lowered beside knee, wreath retained and head bowed."
+    },
+    "idlePrompt": "Use case: stylized-concept. Asset: ONE production full-body super-deformed 2D game sprite on genuine transparent background, requested canvas 1024x1280 RGBA. Reference 1 is the adult character identity, costume, colors and equipment to adapt, reference 2 is ONLY the SD proportion and painterly rendering reference. Match reference 2's approximately 2.5-head-tall proportions (acceptable 2.3-2.8), very large head, compact torso, short sturdy limbs, uniform dark-navy ink outlines and soft painterly warm low-saturation shading. Keep rich restrained ornament density and clean adult facial identity; no childish vector styling. Character must face image LEFT in three-quarter side view, eyes looking to an offscreen opponent at left, never at viewer. Entire body and equipment inside canvas x30..994, lowest solid pixel at y1220, clear upper margin. Keep head approximately 390-420 pixels wide and similarly large, fixed across poses. ZERO background, ground, cast shadow, letters, writing, numbers, textlike ornaments, flags, halo, glow, flames, trails, speed lines, magic circle, effects, white sticker outline or white edge fringe. Only one character and one pose, no panels or labels.\nSubject: Adult statesman-warrior, short pale sandy-blonde hair, amber eyes, matte gold laurel wreath, dark bronze sculpted cuirass, antique red cloak and short white gold-bordered tunic, bronze bracers and sandals, straight short sword. No text or readable emblems.\nPose: IDLE. Sword held low at side with free hand resting lightly at belt, straight dignified posture facing left.",
+    "anonymous": false
+  }
+]

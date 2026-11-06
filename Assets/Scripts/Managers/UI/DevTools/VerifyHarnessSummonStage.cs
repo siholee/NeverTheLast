@@ -20,6 +20,7 @@ namespace Managers.UI.DevTools
     {
         private IEnumerator ScenarioSummonStage(VerifyScenarioRequest config)
         {
+            if (config.trigger == "front_v11") { yield return ScenarioSingleSummonFrontV11(config); yield break; }
             if (config.trigger != null && config.trigger.StartsWith("layout_")) { yield return ScenarioSummonLayoutFix(config); yield break; }
             if (config.trigger == "authors") { yield return ScenarioSummonStageAuthors(config); yield break; }
             bool enabled = GameManager.Instance.enabled;
@@ -72,17 +73,19 @@ namespace Managers.UI.DevTools
                     int index = v.Summon != null ? Summons.Of(v.Owner).IndexOf(v.Summon) : 0;
                     float[] front = { 100, -165, -250 }, up = { -6, 28, -24 };
                     bool cohort = v.Kind.StartsWith("isis_guardian_");
-                    float dx = cohort ? new[] { 105, -170, -255 }[index] : v.IsSwarm ? front[index] : v.Kind == "fenrir" ? -170 : -128;
-                    float dy = cohort ? new[] { 26, 56, 8 }[index] : v.IsSwarm ? up[index] : 20;
+                    float dx = cohort ? new[] { 105, -170, -255 }[index] : v.IsSwarm ? front[index] : 128;
+                    float dy = cohort ? new[] { 26, 56, 8 }[index] : v.IsSwarm ? up[index] : v.Kind == "fenrir" ? 20 : -12;
+                    if (v.Kind == "fenrir") dx = -70;
                     var owner = v.Owner.currentCell.Card; var figure = owner.StageProxy;
                     float px = StageLayout.WorldHeight / 1080f, ds = v.Owner.currentCell.transform.lossyScale.y;
                     Vector3 expected = figure.transform.position + new Vector3((v.Owner.IsEnemy ? -1 : 1) * dx, dy, 0) * px * ds;
                     if (v.IsSurround) expected = SmExpectedHome(v,index);
+                    else if (v.IsFrontCompanion) expected = SmSingleFrontHome(v);
                     float error = Vector3.Distance(v.Feet, expected) / px;
                     float scale = cohort ? .45f : v.Kind == "uchi_clone" ? .55f : v.Kind == "fenrir" ? .62f : .6f;
-                    int order = owner.PortraitRenderer.sortingOrder + (v.IsSurround ? 1 + index : -1 - index);
+                    int order = owner.PortraitRenderer.sortingOrder + (v.DrawsInFront ? 1 + index : -1 - index);
                     if (cohort) order = StageSummonVisual.SpiritSortingOrder + index;
-                    RecordMechanic("sm_slot_" + v.Kind + "_" + index, "슬롯≤1px·몸높이 배율·Swarm주인+1+i/동반형주인-1-i·체력판 없음",
+                    RecordMechanic("sm_slot_" + v.Kind + "_" + index, "슬롯≤1px·몸높이 배율·다수/앞동반형 주인+1+i·체력판 없음",
                         $"errorPx={error:R}, feet={v.Feet}, ds={ds:R}, height={v.Height:R}, order={v.Renderer.sortingOrder}/{owner.PortraitRenderer.sortingOrder}",
                         error <= 1 && Mathf.Abs(v.Height / figure.BodyWorldHeight - scale) < .0001f && v.Renderer.sortingOrder == order && SmSpiritSorting(v) &&
                         (v.Summon == null || !v.Summon.GetComponent<SummonCardView>().HasHealthDisplay));
@@ -227,6 +230,141 @@ namespace Managers.UI.DevTools
             }
         }
 
+        // 80/22/124가 포함된 5인 편성. 전열 3명/후열 2명으로 세 표시 위치를 왕복한다.
+        private IEnumerator ScenarioSingleSummonFrontV11(VerifyScenarioRequest config)
+        {
+            var game = GameManager.Instance;
+            bool enabled = game.enabled;
+            float prior = Time.captureDeltaTime, speed = Time.timeScale;
+            try
+            {
+                Time.captureDeltaTime = 1f / 60f; Time.timeScale = config.timeScale > 0 ? config.timeScale : 1f;
+                yield return S8Prepare(config, startRound: true);
+                var grid = GridManager.Instance;
+                var owners = new[] { 80, 22, 124 }.Select(id => AliveAllies().Single(u => u.ID == id)).ToArray();
+                var thoth = owners[2];
+                yield return NordAction(thoth, Kind.Ultimate, a => thoth.FillUltimateResource());
+                yield return new WaitForSeconds(.7f);
+                var targets = AliveAllies().Select(u => u.currentCell).ToArray();
+                var front = targets.Where(c => c.xPos == -1).OrderBy(c => c.yPos).ToArray();
+                var rear = targets.Where(c => c.xPos == -2).OrderBy(c => c.yPos).ToArray();
+                RecordMechanic("sm_v11_fixture", "전열3·후열2·로키/오리온/토트", $"front={front.Length}, rear={rear.Length}", front.Length == 3 && rear.Length == 2);
+                if (front.Length != 3 || rear.Length != 2) yield break;
+                foreach (var initial in owners)
+                    SmSingleFrontCheck(FindObjectsByType<StageSummonVisual>().Single(v => v.Owner == initial), "initial_permutation");
+                yield return CaptureStill($"v11_permutation_{string.Join("_", config.vfxPartyIds.Take(3))}_{config.timeScale}");
+                foreach (var owner in owners)
+                {
+                    var visual = FindObjectsByType<StageSummonVisual>(FindObjectsSortMode.None).Single(v => v.Owner == owner);
+                    var original = owner.currentCell;
+                    foreach (var target in new[] { front[1], rear[0], rear[1], original })
+                    {
+                        if (owner.currentCell != target) grid.RelocateUnit(owner, target);
+                        yield return grid.WaitForFieldLayoutSettled();
+                        yield return new WaitForSeconds(.65f); yield return EndOfFrame;
+                        SmSingleFrontCheck(visual, $"{target.xPos}_{target.yPos}");
+                        yield return CaptureStill($"v11_front_{string.Join("_", config.vfxPartyIds.Take(3))}_{config.timeScale}_{visual.Kind}_{target.xPos}_{target.yPos}");
+                    }
+                    var enemy = AliveEnemies().First();
+                    owner.TakeDamage(new DamageContext(enemy, 1, BaseEnums.CodeType.Normal, new List<int> { DamageTag.TrueDamage }));
+                    int samples = 0, copied = 0;
+                    float until = Time.time + .45f;
+                    while (Time.time < until)
+                    {
+                        yield return EndOfFrame;
+                        if (owner.currentCell.Card.StageProxy.Frames.CurrentPose != SdFrameRig.Pose.HIT) continue;
+                        samples++; if (visual.Pose == SdFrameRig.Pose.HIT) copied++;
+                    }
+                    RecordMechanic("sm_v11_hit_" + visual.Kind, "주인 실제HIT 동안 소환수 HIT 복제0", $"samples={samples}, copied={copied}", samples > 0 && copied == 0);
+                }
+                var scribe = Summons.Of(thoth).Single();
+                var sv = scribe.GetComponent<SummonCardView>();
+                var v = sv.StageVisual;
+                Vector3 center = v.Feet + Vector3.up * (v.Height * .5f);
+                var track = sv.GetComponentsInChildren<SpriteRenderer>().Single(r => r.name == "SummonHealthTrack");
+                float pixel = StageLayout.WorldHeight / 1080f * v.Depth;
+                RecordMechanic("sm_v11_scribe_target", "대상 접점/작은체력판이 이동한 서기관을 추적·기존 대상 후보 유지",
+                    $"target={Effects.Vfx.VfxSpace.WorldPoint(scribe)}, center={center}, bar={track.transform.position}",
+                    Vector3.Distance(Effects.Vfx.VfxSpace.WorldPoint(scribe), center) < .001f &&
+                    Vector3.Distance(track.transform.position, v.Feet + Vector3.up * (v.Height + 8f * pixel)) < .001f &&
+                    CombatTargets.AliveEnemies(AliveEnemies().First()).Contains(scribe));
+                scribe.TakeDamage(new DamageContext(AliveEnemies().First(), 7, BaseEnums.CodeType.Normal,
+                    new List<int> { DamageTag.TrueDamage }));
+                yield return EndOfFrame;
+                RecordMechanic("sm_v11_scribe_hit_independent", "서기관 실제HIT·주인IDLE·작은 체력판 갱신",
+                    $"summon={v.Pose}, owner={thoth.currentCell.Card.StageProxy.Frames.CurrentPose}, health={sv.DisplayedHealthRatio:R}",
+                    v.Pose == SdFrameRig.Pose.HIT && thoth.currentCell.Card.StageProxy.Frames.CurrentPose == SdFrameRig.Pose.IDLE &&
+                    Mathf.Abs(sv.DisplayedHealthRatio - scribe.HpCurr / (float)scribe.HpMax) < .0001f);
+            }
+            finally
+            {
+                game.ActionScheduler.EndRound(); game.enabled = enabled;
+                Time.captureDeltaTime = prior; Time.timeScale = speed;
+            }
+        }
+
+        private Vector3 SmSingleFrontHome(StageSummonVisual v, bool lowered = false)
+        {
+            var camera = Camera.main;
+            int facing = v.Owner.IsEnemy ? -1 : 1;
+            Vector3 feet = camera.WorldToScreenPoint(v.Owner.currentCell.Card.StageProxy.transform.position);
+            float ds = v.Depth * camera.pixelHeight / 1080f;
+            float body = v.Owner.currentCell.Card.StageProxy.BodyWorldHeight * camera.pixelHeight / StageLayout.WorldHeight;
+            float up = lowered ? -body * .35f : 10f * ds;
+            if (!lowered && v.CompanionScale < 1f) up = body * .5f - v.Height * camera.pixelHeight / StageLayout.WorldHeight;
+            up = Mathf.Min(up, body * .5f - v.Height * camera.pixelHeight / StageLayout.WorldHeight);
+            Vector3 point = feet + new Vector3(facing * 150f * ds, up, 0f);
+            float width = v.PlacementBounds.size.x * camera.pixelHeight / StageLayout.WorldHeight;
+            float offset = camera.WorldToScreenPoint(v.PlacementBounds.center).x - camera.WorldToScreenPoint(v.Feet).x;
+            float lo = camera.pixelRect.xMin + width * .5f + (facing > 0 ? 140 : 24) - offset;
+            float hi = camera.pixelRect.xMax - width * .5f - (facing < 0 ? 140 : 24) - offset;
+            float middle = camera.pixelRect.center.x;
+            if (facing > 0) hi = Mathf.Min(hi, middle - width * .5f - offset);
+            else lo = Mathf.Max(lo, middle + width * .5f - offset);
+            point.x = Mathf.Clamp(point.x, lo, hi);
+            return camera.ScreenToWorldPoint(point);
+        }
+
+        private void SmSingleFrontCheck(StageSummonVisual v, string tag)
+        {
+            var figure = v.Owner.currentCell.Card.StageProxy;
+            float pixel = StageLayout.WorldHeight / 1080f;
+            if (v.Kind == "fenrir")
+            {
+                Vector3 home = figure.transform.position + new Vector3(v.Owner.IsEnemy ? 70f : -70f, 20f, 0f) * pixel * v.Depth;
+                RecordMechanic("sm_v12_fenrir_home", "Root 허용 범위 뒤70·위20·.62, 로키 앞+1", $"tag={tag}, expected={home}, feet={v.Feet}, scale={v.Height / figure.BodyWorldHeight:R}",
+                    !v.IsFrontCompanion && Vector3.Distance(home, v.Feet) / pixel <= 1f &&
+                    Mathf.Abs(v.Height / figure.BodyWorldHeight - .62f) < .0001f &&
+                    v.Renderer.sortingLayerID == figure.Lower.sortingLayerID && v.Renderer.sortingOrder == figure.Lower.sortingOrder + 1);
+                SmOcclusion(v, tag);
+                return;
+            }
+            float scale = v.Kind == "sirius" ? .60f : .50f;
+            var expected = SmSingleFrontHome(v) + Vector3.right * v.RearClearanceX;
+            RecordMechanic("sm_v11_front_" + v.Kind, "앞150·위10/충돌 시 위 칸만 아래0.35몸높이·허리선 제한·주인+1·크기", $"tag={tag}, expected={expected}, feet={v.Feet}, scale={v.CompanionScale:R}",
+                v.IsFrontCompanion && Mathf.Min(Vector3.Distance(expected, v.Feet), Vector3.Distance(SmSingleFrontHome(v, true) + Vector3.right * v.RearClearanceX, v.Feet)) / pixel <= 1f &&
+                Mathf.Abs(v.RearClearanceX) < figure.BodyWorldHeight &&
+                (v.Feet.x - figure.transform.position.x) * (v.Owner.IsEnemy ? -1 : 1) > 0 &&
+                (Mathf.Abs(v.CompanionScale - 1f) < .0001f || Mathf.Abs(v.CompanionScale - .9f) < .0001f) &&
+                Mathf.Abs(v.Height / figure.BodyWorldHeight - scale * v.CompanionScale) < .0001f &&
+                v.Feet.y + v.Height <= figure.transform.position.y + figure.BodyWorldHeight * .5f + .0001f &&
+                v.Renderer.sortingLayerID == figure.Lower.sortingLayerID && v.Renderer.sortingOrder == figure.Lower.sortingOrder + 1);
+            foreach (var lower in AliveAllies().Concat(AliveEnemies()).Where(u => u != v.Owner && u.IsEnemy == v.Owner.IsEnemy &&
+                u.currentCell.xPos == v.Owner.currentCell.xPos && u.currentCell.Card.StageProxy.transform.position.y < figure.transform.position.y))
+                RecordMechanic("sm_v11_lower_head_" + v.Kind, "同열 아래 아군의 머리보다 적 쪽", $"tag={tag}, ally={lower.ID}",
+                    (v.Feet.x - lower.currentCell.Card.StageProxy.Frames.HeadWorld.x) * (v.Owner.IsEnemy ? -1 : 1) > 0f);
+            SmOcclusion(v, tag);
+            foreach (var other in FindObjectsByType<StageSummonVisual>(FindObjectsSortMode.None).Where(o => o != v && o.Renderer.enabled && o.Owner.IsEnemy == v.Owner.IsEnemy))
+            {
+                Bounds body = v.PlacementBounds, otherBody = other.PlacementBounds;
+                float dx = Mathf.Abs(body.center.x - otherBody.center.x);
+                float dy = Mathf.Abs(v.Feet.y + v.Height * .5f - other.Feet.y - other.Height * .5f);
+                RecordMechanic("sm_v11_pair_" + v.Kind + "_" + other.Kind, "다른 주인 포함 소환수 밀집0(alpha 몸 경계)", $"tag={tag}, dx={dx/pixel:R}, dy={dy/pixel:R}, minX={.6f * Mathf.Max(body.size.x, otherBody.size.x)/pixel:R}, minY={.5f * Mathf.Max(v.Height, other.Height)/pixel:R}",
+                    dx + .00001f >= .6f * Mathf.Max(body.size.x, otherBody.size.x) ||
+                    dy + .00001f >= .5f * Mathf.Max(v.Height, other.Height));
+            }
+        }
+
         private IEnumerator ScenarioSummonStageAuthors(VerifyScenarioRequest config)
         {
             bool enabled = GameManager.Instance.enabled;
@@ -294,11 +432,11 @@ namespace Managers.UI.DevTools
                 var view = scribe.GetComponent<SummonCardView>(); var visual = view.StageVisual;
                 Observe(visual, "idle");
                 float pixel = StageLayout.WorldHeight / 1080f;
-                Vector3 home = thoth.currentCell.Card.StageProxy.transform.position + new Vector3(-128,20,0)*pixel*visual.Depth;
-                RecordMechanic("sm_scribe_companion", "서기관은 주인뒤128/깊이-20·.60·뒤정렬·피격가능/대상/작은체력판", $"errorPx={Vector3.Distance(home,visual.Feet)/pixel:R}, hp={view.DisplayedHealthRatio:R}",
+                Vector3 home = SmSingleFrontHome(visual);
+                RecordMechanic("sm_scribe_companion", "서기관은 앞128/아래12·.50·앞정렬·피격가능/대상/작은체력판", $"errorPx={Vector3.Distance(home,visual.Feet)/pixel:R}, hp={view.DisplayedHealthRatio:R}",
                     !scribe.IsUntargetable && CombatTargets.AliveEnemies(enemy).Contains(scribe) && view.HasHealthDisplay && Mathf.Abs(view.DisplayedHealthRatio-1)<.0001f &&
-                    Vector3.Distance(home,visual.Feet)/pixel<=1 && Mathf.Abs(visual.Height/thoth.currentCell.Card.StageProxy.BodyWorldHeight-.60f)<.0001f &&
-                    visual.Renderer.sortingOrder < thoth.currentCell.Card.PortraitRenderer.sortingOrder);
+                    Vector3.Distance(home,visual.Feet)/pixel<=1 && Mathf.Abs(visual.Height/thoth.currentCell.Card.StageProxy.BodyWorldHeight-.50f)<.0001f &&
+                    visual.Renderer.sortingOrder == thoth.currentCell.Card.PortraitRenderer.sortingOrder+1);
                 SmOcclusion(visual, "scribe");
                 RecordMechanic("sm_scribe_badge","프로필 배지: 서기관",SmBadge(thoth),SmBadge(thoth)=="서기관");
                 yield return CaptureStill("thoth_scribe");
@@ -661,15 +799,75 @@ namespace Managers.UI.DevTools
                 int f = Count(face), h = Count(hud);
                 RecordMechanic("sm_overlap_" + visual.Kind, "실제 그림의 주인얼굴·하단HUD 중첩0px", $"tag={tag}, face={f}, hud={h}, rect={face}/{hud}", f == 0 && h == 0);
                 int otherFaces = 0;
+                float otherFaceArea = 0f, maxOtherFaceRatio = 0f;
+                bool otherFacesWithinLimit = true;
+                var otherFaceSamples = new List<string>();
                 foreach (var unit in AliveAllies().Concat(AliveEnemies()).Where(u => u != visual.Owner && u.IsEnemy == visual.Owner.IsEnemy &&
                     u.currentCell != null && u.currentCell.xPos == visual.Owner.currentCell.xPos))
                 {
                     var figure = unit.currentCell.Card.StageProxy;
                     Vector3 point = camera.WorldToScreenPoint(figure.Frames != null ? figure.Frames.HeadWorld : figure.HeadWorldBounds.center);
-                    otherFaces += Count(new Rect(point.x - 4, point.y - 4, 8, 8));
+                    Rect roi = new Rect(point.x - 4, point.y - 4, 8, 8);
+                    int covered = Count(roi);
+                    float area = roi.width * roi.height;
+                    float ratio = area > 0f ? covered / area : float.PositiveInfinity;
+                    otherFaces += covered; otherFaceArea += area;
+                    maxOtherFaceRatio = Mathf.Max(maxOtherFaceRatio, ratio);
+                    otherFacesWithinLimit &= area > 0f && ratio <= .01f;
+                    otherFaceSamples.Add($"ally={unit.ID}, pixels={covered}, roiArea={area:R}, ratio={ratio:R}, percent={ratio * 100f:R}%");
                 }
-                RecordMechanic("sm_other_face_" + visual.Kind, "같은 열 다른 아군 얼굴 앵커 가림0px", $"tag={tag}, pixels={otherFaces}", otherFaces == 0);
-                if (visual.IsSurround)
+                RecordMechanic("sm_other_face_" + visual.Kind, "아군 얼굴 ROI 면적의 1% 이하 alpha 중첩",
+                    $"tag={tag}, pixels={otherFaces}, totalRoiArea={otherFaceArea:R}, maxRatio={maxOtherFaceRatio:R}, maxPercent={maxOtherFaceRatio * 100f:R}%|{string.Join("|", otherFaceSamples)}", otherFacesWithinLimit);
+                if (visual.IsFrontCompanion || visual.Kind == "fenrir")
+                    foreach (var ally in AliveAllies().Concat(AliveEnemies()).Where(u => u.IsEnemy == visual.Owner.IsEnemy && u.currentCell != null))
+                    {
+                        var figure = ally.currentCell.Card.StageProxy;
+                        Vector3 center = camera.WorldToScreenPoint(figure.Frames.HeadWorld);
+                        float body = figure.BodyWorldHeight * camera.pixelHeight / StageLayout.WorldHeight;
+                        // Face ROI verified against five IDLE sources. HeadBounds includes hats, hair and shoulders.
+                        Rect roi = new Rect(center.x - body * .15f, center.y - body * .13f, body * .30f, body * .26f);
+                        int covered = Count(roi);
+                        float area = roi.width * roi.height;
+                        float ratio = area > 0f ? covered / area : float.PositiveInfinity;
+                        if (visual.Kind == "fenrir")
+                        {
+                            var faceRenderer = figure.Frames.Renderer;
+                            int petLayer = SortingLayer.GetLayerValueFromID(visual.Renderer.sortingLayerID);
+                            int faceLayer = SortingLayer.GetLayerValueFromID(faceRenderer.sortingLayerID);
+                            bool drawnAbove = petLayer > faceLayer || petLayer == faceLayer && visual.Renderer.sortingOrder > faceRenderer.sortingOrder;
+                            int visibleCover = drawnAbove ? covered : 0;
+                            RecordMechanic("sm_v12_fenrir_face_visible_" + ally.ID, "실제 그리기 순서에서 얼굴 ROI 가림0px",
+                                $"tag={tag}, geometricPx={covered}, drawnAbove={drawnAbove}, visibleCover={visibleCover}, petOrder={visual.Renderer.sortingOrder}, faceOrder={faceRenderer.sortingOrder}", visibleCover == 0);
+                            continue;
+                        }
+                        RecordMechanic("sm_v11_face_box_" + visual.Kind + "_" + ally.ID, "아군 얼굴 ROI 면적의 1% 이하 alpha 중첩",
+                            $"tag={tag}, pixels={covered}, roiArea={area:R}, ratio={ratio:R}, percent={ratio * 100f:R}%", area > 0f && ratio <= .01f);
+                    }
+                if (visual.Kind == "fenrir")
+                {
+                    // 몸 bounds의 근접만으로 통과시키지 않는다. 실제 두 그림의 불투명 픽셀을 대조한다.
+                    visual.Renderer.enabled = false;
+                    var loki = owner.StageProxy.Frames.Renderer;
+                    loki.enabled = true;
+                    Color32[] lokiBlack = Render(Color.black), lokiWhite = Render(Color.white);
+                    loki.enabled = false; visual.Renderer.enabled = true;
+                    Vector3 feet = camera.WorldToScreenPoint(owner.StageProxy.transform.position);
+                    float body = owner.StageProxy.BodyWorldHeight * camera.pixelHeight / StageLayout.WorldHeight;
+                    float left = feet.x - body * (visual.Owner.IsEnemy ? .05f : .6f);
+                    Rect lowerBack = new Rect(left, feet.y, body * .65f, body * .5f);
+                    bool Visible(Color32[] b, Color32[] w, int p) =>
+                        1f - ((w[p].r - b[p].r) + (w[p].g - b[p].g) + (w[p].b - b[p].b)) / (3f * 255f) > .35f;
+                    int overlap = 0;
+                    for (int y = Mathf.Max(0, Mathf.CeilToInt(lowerBack.yMin)); y < Mathf.Min(Screen.height, lowerBack.yMax); y++)
+                        for (int x = Mathf.Max(0, Mathf.CeilToInt(lowerBack.xMin)); x < Mathf.Min(Screen.width, lowerBack.xMax); x++)
+                        {
+                            int p = y * Screen.width + x;
+                            if (Visible(black, white, p) && Visible(lokiBlack, lokiWhite, p)) overlap++;
+                        }
+                    RecordMechanic("sm_v12_fenrir_loki_body_overlap", "로키 허리 아래·뒤 몸과 실제 alpha 겹침≥8×ds²px", 
+                        $"tag={tag}, overlapPx={overlap}, ds={visual.Depth:R}, lowerBack={lowerBack}", overlap >= 8f * visual.Depth * visual.Depth);
+                }
+                if (visual.IsSurround || visual.IsFrontCompanion)
                 {
                       var boxLeft=camera.WorldToScreenPoint(visual.Renderer.bounds.min).x;
                       var boxRight=camera.WorldToScreenPoint(visual.Renderer.bounds.max).x;
